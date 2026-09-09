@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-09
-summary: "D148–D152 已合入 loop/merge。D8 / D16 / D31 F4 / D147 / D153 仍开。compile unused 仍红，不 push。人类工位尚未 cascade。"
+summary: "D148–D155 已合入 loop/merge。D8 / D16 / D31 F4 / D147 仍开。compile unused 仍红，不 push。人类工位尚未 cascade。"
 ---
 
 # Development Progress
@@ -41,8 +41,8 @@ summary: "D148–D152 已合入 loop/merge。D8 / D16 / D31 F4 / D147 / D153 仍
 
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 进行中（2026-09-09 本 wake · merge 代码 MERGE_SHA `c5276645f61`）
-本关仓续：**A** D152 MCP update/remove/toggle 回写；**B** D152 Skills toggle/save 回写。merge 复测 catalog 45 / skills 23。前波 D148–D151 已在历史。compile unused 仍红 **不 push**。人类工位 **未 cascade**。
+### 进行中（2026-09-09 本 wake · merge 代码 MERGE_SHA `83b588779a3`）
+本关仓续：**A** D153 Agents 写成功回写；**B** D154 Snapshots Restore/Delete 回写；**D** D155 Plugins enable/reload/unload 回写。merge 复测 catalog 50 / snapshots 31 / plugins 5。compile unused 仍红 **不 push**。人类工位 **未 cascade**。不占 C。
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
@@ -134,7 +134,7 @@ summary: "D148–D152 已合入 loop/merge。D8 / D16 / D31 F4 / D147 / D153 仍
 | [D34](deferred-gaps.md) | B 槽 `timeline-hygiene` | **closed** 空/零高树不再读 `lastVisibleElement` |
 | [D35](deferred-gaps.md) | B 槽 `timeline-hygiene` | **closed** 删 `getTimelineRowElement` 死第二段 query |
 | [D36](deferred-gaps.md) | B 槽 `timeline-hygiene` | **closed** standalone thinking/tool 诚实摘要行，无假 fold |
-| — | 2026-09-09 代码复读 | D147 剩 2 条 **compile-only** 勿派 letter；promote overlay 仍 close-first（测锁）；接通 `createSession()` 回 `''`；D148–D152 已闭；Agents 写成功后 list-fail → [D153](deferred-gaps.md) |
+| — | 2026-09-09 代码复读 | D147 剩 2 条 **compile-only** 勿派 letter；promote overlay 仍 close-first（测锁）；接通 `createSession()` 回 `''`；D148–D155 已闭；Agents 选中用 `saveAgentProfile` 当加载（既有） |
 | [D15](deferred-gaps.md)–[D90](deferred-gaps.md) | A/B/D leftover-honesty 波 | **closed** 详见 deferred-gaps；未关 D16 |
 | [D92](deferred-gaps.md)–[D129](deferred-gaps.md) / [D131](deferred-gaps.md) / [D133](deferred-gaps.md)–[D139](deferred-gaps.md) | B roster+inbox+sessions / D nav / A beside+mru+sessionbar / A·B composer / A notifications / B sessionChat / D bind / A navigator lease / B reveal / A attribution / A rotate / A revoke / B triggers / A rename error tone / B clipboard clear / A Hub fallback revoke / B upsert refresh / D clipboard write / A catch error tone / B swallowed-primary notice lock | **closed** throw 回滚/notice；RotateToken / Revoke `!success` 与 catch 已 error tone；Triggers 删/upsert 与 Clipboard 清空/写入成功 refresh；swallowed primary 后 beside 已锁 bootstrap notice；未关 D16 |
 | [D140](deferred-gaps.md)–[D146](deferred-gaps.md) | A SessionBar / B Sessions 侧栏断连 New session / D mermaid getExtension reject / A copyTurn writeText reject / B requestResync reject / A acknowledge·releaseLease reject / B Projects rebuildTree·openWindow | **closed** 断连+history New session 画 notice 且不调 `createSession`；mermaid reject 回 `undefined`；copyTurn reject 画 `failed`；requestResync / acknowledge / releaseLease reject 已吞；Projects last-good + openWindow 已吞；未关 D16 |
@@ -144,16 +144,18 @@ summary: "D148–D152 已合入 loop/merge。D8 / D16 / D31 F4 / D147 / D153 仍
 | [D150](deferred-gaps.md) | D `navigator-projects-recents-first-paint` | **closed** `b38c90c373e` 首绘 recents throw 保当前文件夹+失败文案；last-good 仍在；merge 14 passing |
 | [D151](deferred-gaps.md) | A MCP add / B Skills create | **closed** `799b56581dd` / `100706ff8d2`；list-fail 仍见 Added./Created.；merge 42 / 19 passing |
 | [D152](deferred-gaps.md) | A MCP update/remove/toggle / B Skills toggle/save | **closed** `9814d192022` / `92b722b8f31`；merge 45 / 23 passing |
-| [D153](deferred-gaps.md) | — | **仍开** Agents create/delete/reset / save markdown 成功后 refresh 盖成功文案 |
+| [D153](deferred-gaps.md) | A Agents 写成功回写 | **closed** `d4a8d8d5309`；list-fail 仍见 Created./Deleted./Reset./Saved.；merge 50 passing |
+| [D154](deferred-gaps.md) | B Snapshots restore/delete | **closed** `f011e26d5f3`；list-fail 仍见 Restored./Deleted.；merge 31 passing |
+| [D155](deferred-gaps.md) | D Plugins enable/reload/unload | **closed** `e56636a0fbb`；list-fail 仍见 Enabled./Reloaded./Unloaded.；merge 5 passing |
 | — | 人类工位 wave-9 | 合入保留：`stub-and-fixtures.md` 重复 frontmatter；`sourcesReviewModel` 测 `toResource.call` 使 `this.test` undefined。本波 **未 cascade** |
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `c5276645f61` | `__pycache__` | 0 | 代码 MERGE_SHA D152；compile unused 仍红，**不 push**；人类工位未 cascade |
-| A | `vscode-WorkTrees/A` | `loop/A` | `c5276645f61` | `__pycache__` | 0 | idle |
-| B | `vscode-WorkTrees/B` | `loop/B` | `c5276645f61` | `__pycache__` | 0 | idle |
-| C | `vscode-WorkTrees/C` | `loop/C` | `c5276645f61` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `c5276645f61` | `__pycache__` | 0 | idle |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `83b588779a3` | `__pycache__` | 0 | 代码 MERGE_SHA D153–D155；compile unused 仍红，**不 push**；人类工位未 cascade |
+| A | `vscode-WorkTrees/A` | `loop/A` | `83b588779a3` | `__pycache__` | 0 | idle |
+| B | `vscode-WorkTrees/B` | `loop/B` | `83b588779a3` | `__pycache__` | 0 | idle |
+| C | `vscode-WorkTrees/C` | `loop/C` | `83b588779a3` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `83b588779a3` | `__pycache__` | 0 | idle |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `eeac2dd5cc9` | `dev/loop` | 0 | 落后本波；勿 add `dev/loop` |
 ## Next（Blockers：无）
 | 项 | 指针 |

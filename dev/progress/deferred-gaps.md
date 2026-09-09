@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-09
-summary: "延期缺口 SSOT；D8 / D16 / D147 / D153 仍开；D45–D90 / D92–D129 / D131 / D133–D152 已闭；人类工位合入保留 stub-and-fixtures 重复 frontmatter / sourcesReview toResource.call 发现；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / D131 / D133–D155 已闭；人类工位合入保留 stub-and-fixtures 重复 frontmatter / sourcesReview toResource.call 发现；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -166,7 +166,9 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 / D153 仍开；D45–D90 / D92–
 | D150 | P3 | **Projects 首绘 `getRecentlyOpened` throw 丢掉当前文件夹**：D146 last-good 只保二次 throw；首绘无 last-good → 空白。recents 须独立 catch。不得改 `openWindow` swallow | D 槽 `loop/D` `b38c90c373e` 已收：recents 独立 try；首绘保当前文件夹 + status/note；二次 throw 仍 last-good。merge 复测 14 passing。未关 D16；未改 openWindow。残留：空工作区 welcome 或盖住树 note（status 仍在）；`setRecentsStatus` 后未立即 `layoutBody` | 首绘 recents throw 当前文件夹仍在且失败文案可见；last-good 测仍绿；`navigatorProjectsList.test.ts` 绿 | navigator | closed |
 | D151 | P3 | **MCP `addServer` / Skills `createSkill` 成功后 `refresh()` 清 write 成功态**，后续 list 失败盖掉已成功写入（与 D148 同族） | A `799b56581dd` MCP add 回写「Added.」；B `100706ff8d2` createSkill 回写「Created.」。merge 复测 catalog 42 / skills 19 passing。未关 D16；未改 MCP update/remove/toggle、Skills toggle/saveBody | add/create 成功后 list-fail 仍见成功文案；既有 ok:false/throw 测绿 | conversation | closed |
 | D152 | P3 | **MCP update/remove/toggle 与 Skills toggle/saveBody 成功后 refresh 仍冲掉成功文案**（D151 只收 add/create） | A `9814d192022` MCP 三写回写 Updated./Removed./Toggled.；B `92b722b8f31` Skills Updated./Saved.。merge 复测 catalog 45 / skills 23 passing。未关 D16 | 成功后 list-fail 仍见 write-success | conversation | closed |
-| D153 | P3 | **Agents create/delete/reset / save markdown 成功后 refresh 仍冲成功文案**（D151/D152 只收 MCP+Skills）。测会撞 `engineCatalogSections.test.ts` | 本波未占；勿与 MCP 同槽双写该测文件 | 成功后 list-fail 仍见 write-success | conversation | open |
+| D153 | P3 | **Agents create/delete/reset / save markdown 成功后 refresh 仍冲成功文案**（D151/D152 只收 MCP+Skills） | A `d4a8d8d5309` 回写 Created./Deleted./Reset./Saved.；merge 复测 catalog 50 passing。未关 D16。残留：选中 profile 用 `saveAgentProfile` 当加载；`refresh()` 里 `void loadAgentsEditorForSelection` 不 await | 成功后 list-fail 仍见 write-success | conversation | closed |
+| D154 | P3 | **Snapshots Restore/Delete 成功后 `refresh()` 冲掉写成功**：`listSnapshots` throw 后用户只见 list-fail | B `f011e26d5f3` 回写 Restored./Deleted.；成功测用 `flushMicrotasks`。merge 复测 31 passing。未关 D16；未改 ok:false/throw 不 refresh | 成功后 list-fail 仍见 write-success；overlay 仍开 | conversation | closed |
+| D155 | P3 | **Plugins Enable/Reload/Unload 成功后 list-fail 无写成功态**。`scanNew` 已回写 lastScan，不重做 | D `e56636a0fbb` 回写 Enabled./Reloaded./Unloaded.；新测 `enginePluginsSection.test.ts`。merge 复测 5 passing。未关 D16；未改 scanNew | 成功后 list-fail 仍见 write-success | conversation | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 
