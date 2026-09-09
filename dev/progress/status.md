@@ -154,16 +154,18 @@ summary: "D148–D184 已合入 loop/merge。D8 / D16 / D31 F4 / D147 仍开。c
 | [D187](deferred-gaps.md) | A Mode picker 配置 Agents catch | **closed** `4af67197837`；OpenEditor reject 无未处理 rejection；merge 3 passing |
 | [D188](deferred-gaps.md) | A 未登录模型通知就绪 catch | **closed** `0cb46a24224`；getDefaultAccount reject 无未处理 rejection；merge 11 passing |
 | [D189](deferred-gaps.md) | B Growth session Restored catch | **closed** `df6572565d3`；when(Restored) reject 无未处理 rejection；merge 8 passing |
+| [D190](deferred-gaps.md) | A Test Connection probeEngine catch | **closed** `16b5047e127`；throw 画 test status；merge 102 passing |
+| [D191](deferred-gaps.md) | B Agents Activity reveal catch | **closed** `2bc77426082`；executeCommand reject 无未处理 rejection；merge 20 passing |
 | — | 人类工位 wave-9 | 合入保留：`stub-and-fixtures.md` 重复 frontmatter；`sourcesReviewModel` 测 `toResource.call` 使 `this.test` undefined。本波 **未 cascade** |
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `a3b2c0db37f` | `__pycache__` | 0 | 代码 MERGE_SHA D189；compile unused 仍红，**不 push**；人类工位未 cascade |
-| A | `vscode-WorkTrees/A` | `loop/A` | `a3b2c0db37f` | `__pycache__` | 0 | idle |
-| B | `vscode-WorkTrees/B` | `loop/B` | `a3b2c0db37f` | `__pycache__` | 0 | idle |
-| C | `vscode-WorkTrees/C` | `loop/C` | `a3b2c0db37f` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `a3b2c0db37f` | `__pycache__` | 0 | idle |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `eeac2dd5cc9` | `dev/loop` | 0 | 落后 D148–D189；勿 add `dev/loop` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `61109c8a701` | `__pycache__` | 0 | 代码 MERGE_SHA D191；compile unused 仍红，**不 push**；人类工位未 cascade |
+| A | `vscode-WorkTrees/A` | `loop/A` | `61109c8a701` | `__pycache__` | 0 | idle |
+| B | `vscode-WorkTrees/B` | `loop/B` | `61109c8a701` | `__pycache__` | 0 | idle |
+| C | `vscode-WorkTrees/C` | `loop/C` | `61109c8a701` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `61109c8a701` | `__pycache__` | 0 | idle |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `eeac2dd5cc9` | `dev/loop` | 0 | 落后 D148–D191；勿 add `dev/loop` |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
