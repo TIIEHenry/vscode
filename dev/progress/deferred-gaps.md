@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-09
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / D131 / D133–D191 已闭；人类工位合入保留 stub-and-fixtures 重复 frontmatter / sourcesReview toResource.call 发现；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / D131 / D133–D193 已闭；人类工位合入保留 stub-and-fixtures 重复 frontmatter / sourcesReview toResource.call 发现；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -204,6 +204,8 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / 
 | D189 | P3 | **Growth session `when(Restored).then` 无 catch** → lifecycle reject 漏 | B `df6572565d3` `.catch(onUnexpectedError)`。merge 复测 growth 8 passing。未改 dismiss / opener | when(Restored) reject 无未处理 rejection | workbench | closed |
 | D190 | P3 | **无选中 profile 时 `probeEngine` 无 catch** → Test Connection throw 漏 | A `16b5047e127` 与 profile 分支同级 try/catch 画 test status。merge 复测 pane 102 passing。未改 profile 分支 | probeEngine throw 画 status、无未处理 rejection | conversation | closed |
 | D191 | P3 | **Agents Activity `void executeCommand(revealItem)` 无 catch** → reveal reject 漏 | B `2bc77426082` `.catch(onUnexpectedError)`。merge 复测 agents 20 passing。未改 hierarchy / setTarget | reveal reject 无未处理 rejection | navigator | closed |
+| D192 | P3 | **草稿换 cwd `void _changeWorkingDirectory` 无 catch** → `getUriTrustInfo` reject 漏 | A `d72003f13eb` 三处 `.catch(onUnexpectedError)`。merge 复测 provisional 52 passing。未改 `_queue` / 信任语义 | trust reject 无未处理 rejection | workbench | closed |
+| D193 | P3 | **Agents 断连 Open Connection `executeCommand` 无 catch** → 开 Connection 页 reject 漏 | B `cd87c9623fb` 两处 `.catch(onUnexpectedError)`。merge 复测 catalog 51 passing。未改其它 catalog 节 | Open Connection reject 无未处理 rejection | conversation | closed |
 | D167 | P3 | **桌面布局 `void openView/openViewContainer` 无 catch** → 视图打开 reject 漏 | D `f535773c208` 7 处 `.catch(onUnexpectedError)`。merge 复测 layout 140 passing | untitled/restore reject 无未处理 rejection | sessions | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
