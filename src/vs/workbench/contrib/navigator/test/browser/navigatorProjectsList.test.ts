@@ -303,6 +303,47 @@ suite('NavigatorProjectsView', () => {
 		assert.ok(!isFilterVisible(view));
 	});
 
+	test('getRecentlyOpened throw on first paint of empty workspace hides welcome and shows failure copy without unhandled rejection', async () => {
+		class WorkspacesThrowOnFirst extends TestWorkspacesService {
+			override async getRecentlyOpened(): Promise<IRecentlyOpened> {
+				throw new Error('getRecentlyOpened boom');
+			}
+		}
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const view = await mountView({
+				workspacesService: new WorkspacesThrowOnFirst(),
+			});
+			await flushMicrotasks();
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(getViewEntries(view).length, 0);
+			assert.strictEqual(view.shouldShowWelcome(), false);
+
+			const expectedCopy = navigatorProjectsRecentsFailureMessage(new Error('getRecentlyOpened boom'));
+			const failureNote = findTreeNode(getViewTreeNodes(view), node => node.id === 'local:recents-failed' && node.kind === 'note');
+			assert.ok(failureNote, 'recents failure note must be in the tree');
+			assert.strictEqual(failureNote.label, expectedCopy);
+
+			const status = view.element.querySelector('.navigator-projects-recents-status') as HTMLElement | null;
+			assert.ok(status, 'recents failure status must exist');
+			assert.notStrictEqual(status.style.display, 'none');
+			assert.strictEqual(status.textContent, expectedCopy);
+			assert.ok(status.textContent.includes('Unable to load recent folders'));
+			assert.ok(status.textContent.includes('getRecentlyOpened boom'));
+
+			const paneBody = view.element.querySelector('.pane-body') as HTMLElement | null;
+			assert.ok(paneBody, 'pane body must exist');
+			assert.strictEqual(paneBody.classList.contains('welcome'), false, 'welcome class would hide recents status via CSS');
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
 	test('getRecentlyOpened throw on first paint keeps current folder and shows failure copy without unhandled rejection', async () => {
 		const currentFolder = URI.file('/projects/current-first-paint');
 		const contextService = new TestContextService(testWorkspace(currentFolder));
