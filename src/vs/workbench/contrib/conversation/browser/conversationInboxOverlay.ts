@@ -6,6 +6,7 @@
 import { $, addDisposableListener, append, reset } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { AnchorPosition } from '../../../../base/common/layout.js';
 import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -114,7 +115,7 @@ export class ConversationInboxOverlay extends Disposable {
 		this.goalButton.label = conversationLensDockNoGoal;
 		this.goalButton.element.classList.add('conversation-lens-inbox-chip', 'conversation-lens-inbox-goal-button');
 		this.goalButton.setAriaLabel(`${conversationLensDockGoal}, ${conversationLensDockNoGoal}`);
-		this._register(this.goalButton.onDidClick(() => void this.onGoalClicked()));
+		this._register(this.goalButton.onDidClick(() => void this.onGoalClicked().catch(onUnexpectedError)));
 
 		this.pendingButton = append(this.leftCluster, $('button.conversation-lens-inbox-pending')) as HTMLButtonElement;
 		this.pendingButton.type = 'button';
@@ -462,7 +463,7 @@ export class ConversationInboxOverlay extends Disposable {
 		enqueueButton.title = enabled ? conversationLensInboxQueueEnqueue : conversationLensInboxQueueEnqueueUnavailable;
 		enqueueButton.setAttribute('aria-label', enqueueButton.title);
 		addDisposableListener(enqueueButton, 'click', () => {
-			void this.onEnqueueClicked();
+			void this.onEnqueueClicked().catch(onUnexpectedError);
 		});
 	}
 
