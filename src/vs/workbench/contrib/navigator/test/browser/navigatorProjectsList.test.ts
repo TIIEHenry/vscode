@@ -21,7 +21,7 @@ import { TestHostService, TestWorkspacesService, workbenchInstantiationService }
 import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { NAVIGATOR_PROJECTS_VIEW_ID } from '../../browser/navigatorStubView.js';
 import { INavigatorLocalFolderEntry, NavigatorProjectsView, navigatorProjectsRecentsFailureMessage } from '../../browser/navigatorProjectsList.js';
-import { INavigatorProjectsTreeNode } from '../../common/navigatorProjectsTree.js';
+import { INavigatorProjectsTreeNode } from '../../browser/navigatorProjectsTree.js';
 import { CONVERSATION_STUB_SEED_SESSIONS } from '../../../conversation/browser/conversationStubModel.js';
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 
