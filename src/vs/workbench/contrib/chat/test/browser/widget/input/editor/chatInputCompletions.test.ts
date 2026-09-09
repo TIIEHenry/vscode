@@ -4,7 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../../../../base/common/async.js';
 import { CancellationToken } from '../../../../../../../../base/common/cancellation.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../../../../base/common/errors.js';
 import { DisposableStore, IDisposable } from '../../../../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../../../base/test/common/utils.js';
@@ -178,6 +180,20 @@ class TestableAgentHostInputCompletions extends AgentHostInputCompletions {
 	}
 }
 
+class RejectingTriggerChatSessionsService extends MockChatSessionsService {
+	constructor(private readonly existingSchemes: readonly string[] = []) {
+		super();
+	}
+
+	override getContentProviderSchemes(): string[] {
+		return [...this.existingSchemes];
+	}
+
+	override getChatInputCompletionTriggerCharacters(): Promise<readonly string[] | undefined> {
+		return Promise.reject(new Error('boom'));
+	}
+}
+
 suite('AgentHostInputCompletions #chat references', () => {
 
 	const store = new DisposableStore();
@@ -218,6 +234,53 @@ suite('AgentHostInputCompletions #chat references', () => {
 			// token minus the trailing space, never a partial slice.
 			range: new Range(1, 1, 1, 18),
 		});
+	});
+
+	test('does not leak unhandled rejection when getChatInputCompletionTriggerCharacters rejects for an existing scheme', async () => {
+		const sessions = new RejectingTriggerChatSessionsService(['agent-host-copilot']);
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			store.add(new TestableAgentHostInputCompletions(
+				new LanguageFeaturesService(),
+				new MockChatWidgetService(),
+				sessions,
+				new TestConfigurationService(),
+			));
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when getChatInputCompletionTriggerCharacters rejects for an added scheme', async () => {
+		const sessions = new RejectingTriggerChatSessionsService();
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			store.add(new TestableAgentHostInputCompletions(
+				new LanguageFeaturesService(),
+				new MockChatWidgetService(),
+				sessions,
+				new TestConfigurationService(),
+			));
+			store.add(sessions.registerChatSessionContentProvider('agent-host-copilot', {
+				provideChatSessionContent: () => Promise.reject(new Error('unused')),
+			}));
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });
 
