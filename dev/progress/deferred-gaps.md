@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-09
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / D131 / D133–D187 已闭；人类工位合入保留 stub-and-fixtures 重复 frontmatter / sourcesReview toResource.call 发现；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / D131 / D133–D189 已闭；人类工位合入保留 stub-and-fixtures 重复 frontmatter / sourcesReview toResource.call 发现；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -200,6 +200,8 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / 
 | D185 | P3 | **Copilot 按分支查 PR `lookup.then` 无 catch** → `findPullRequestNumberByHeadBranch` reject 漏 | A `42e796fd0a9` lookup `.catch` 记错误后回 `undefined`（按无 PR 驱逐可重试）。merge 复测 provider 75 passing | lookup reject 无未处理 rejection | sessions | closed |
 | D186 | P3 | **sandbox `_discoverAndSeed` void / 排队 then 无 catch** → `seedSessions` throw 漏 | B `4f93c78dac8` 成功路径 try/catch + `void`/排队 `.catch(onUnexpectedError)`。merge 复测 contribution 15 passing。未改 provision | seed throw 无未处理 rejection | sessions | closed |
 | D187 | P3 | **Mode picker 配置 Agents `executeCommand` 无 catch** → OpenEditor reject 漏 | A `4af67197837` `void executeCommand(...).catch(onUnexpectedError)`。merge 复测 modePicker 3 passing。未改 mode 分支 | configure command reject 无未处理 rejection | sessions | closed |
+| D188 | P3 | **未登录模型通知三条就绪 `.then` 无 catch** → `getDefaultAccount` / extensions / whenReady reject 漏 | A `0cb46a24224` 三处 `.catch(onUnexpectedError)`。merge 复测 notification 11 passing。未改状态机 | getDefaultAccount reject 无未处理 rejection | workbench | closed |
+| D189 | P3 | **Growth session `when(Restored).then` 无 catch** → lifecycle reject 漏 | B `df6572565d3` `.catch(onUnexpectedError)`。merge 复测 growth 8 passing。未改 dismiss / opener | when(Restored) reject 无未处理 rejection | workbench | closed |
 | D167 | P3 | **桌面布局 `void openView/openViewContainer` 无 catch** → 视图打开 reject 漏 | D `f535773c208` 7 处 `.catch(onUnexpectedError)`。merge 复测 layout 140 passing | untitled/restore reject 无未处理 rejection | sessions | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）

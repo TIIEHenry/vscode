@@ -148,47 +148,22 @@ summary: "D148–D184 已合入 loop/merge。D8 / D16 / D31 F4 / D147 仍开。c
 | [D154](deferred-gaps.md) | B Snapshots restore/delete | **closed** `f011e26d5f3`；list-fail 仍见 Restored./Deleted.；merge 31 passing |
 | [D155](deferred-gaps.md) | D Plugins enable/reload/unload | **closed** `e56636a0fbb`；list-fail 仍见 Enabled./Reloaded./Unloaded.；merge 5 passing |
 | [D156](deferred-gaps.md) | A 空工作区 recents 失败关 welcome | **closed** `15ef116e957`；失败文案不被 welcome 盖住；merge 15 passing |
-| [D157](deferred-gaps.md) | A picker commandId catch | **closed** `1db937a63ae`；Sign in reject 无未处理 rejection；merge 69 passing |
-| [D158](deferred-gaps.md) | A picker item.run catch | **closed** `9a0e83bc66e`；run reject 无未处理 rejection；merge 70 passing |
-| [D159](deferred-gaps.md) | B notifier _notify catch | **closed** `092edec434c`；showToast reject 无未处理 rejection；merge 8 passing |
-| [D160](deferred-gaps.md) | D 鼠标前进后退 catch | **closed** `cbb24c0a33b`；back/forward reject 无未处理 rejection；merge 6 passing |
-| [D161](deferred-gaps.md) | A picker fire-and-forget dispatch | **closed** `6cfea5911d9`；delegate.onSelect reject 无未处理 rejection；merge 71 passing |
-| [D162](deferred-gaps.md) | A 新会话提示选项 select catch | **closed** `57c7a6beb36`；selectOption reject 无未处理 rejection；merge 9 passing |
-| [D163](deferred-gaps.md) | A 提示选项选中回滚 | **closed** `255538f4e54`；reject 后选中态回到点击前；merge 10 passing |
-| [D164](deferred-gaps.md) | B 轮次 Changes 打开 catch | **closed** `8f509ff3ffd`；openChangesEditor reject 无未处理 rejection；merge 10 passing |
-| [D165](deferred-gaps.md) | D 浏览器 pill 打开 catch | **closed** `dad1f019b24`；openEditor reject 无未处理 rejection；merge 9 passing |
-| [D166](deferred-gaps.md) | A session 终端清理 catch | **closed** `6dec56ea1a0`；dispose reject 无未处理 rejection；merge 78 passing |
-| [D167](deferred-gaps.md) | D 桌面布局打开视图 catch | **closed** `f535773c208`；openView reject 无未处理 rejection；merge 140 passing |
-| [D168](deferred-gaps.md) | A archived 终端 dispose 测 | **closed** `d552cf5584f`；archived reject 无未处理 rejection；merge 79 passing |
-| [D169](deferred-gaps.md) | B telemetry getAllTasks catch | **closed** `b83a6f9c062`；isNewChat reject 无未处理 rejection；merge 7 passing |
-| [D170](deferred-gaps.md) | D agent-host 补全 trigger catch | **closed** `fb01fed6d4d`；trigger reject 无未处理 rejection；merge 7 passing |
-| [D171](deferred-gaps.md) | A 工作台 agent-host 补全 catch | **closed** `2dcb6d6b9bc`；existing/added reject 无未处理 rejection；merge 54 passing |
-| [D172](deferred-gaps.md) | B Inbox Goal/Enqueue catch | **closed** `ab26662bdde`；input reject 无未处理 rejection；merge 30 passing |
-| [D173](deferred-gaps.md) | A Codex 认证链接 catch | **closed** `c68ce95365e`；opener reject 无未处理 rejection；merge 12 passing |
-| [D174](deferred-gaps.md) | B feedback 附件 reveal catch | **closed** `b4ef8494a43`；reveal reject 无未处理 rejection；merge 6 passing |
-| [D175](deferred-gaps.md) | A Claude 权限 Learn more catch | **closed** `9a51365629c`；opener reject 无未处理 rejection；merge 4 passing |
-| [D176](deferred-gaps.md) | B active client whenResolved catch | **closed** `e4844ce08ae`；scope reject 无未处理 rejection；merge 206 passing |
-| [D177](deferred-gaps.md) | A untitled mode 回填 catch | **closed** `18f9ec25bdb`；waitForPendingUpdates reject 无未处理 rejection；merge 7 passing |
-| [D178](deferred-gaps.md) | B 自定义 MCP root config catch | **closed** `956cab78bbe`；setRootConfigValue reject 无未处理 rejection；merge 3 passing |
-| [D179](deferred-gaps.md) | A 快照删除确认 catch | **closed** `33a85adf420`；confirm reject 无未处理 rejection；merge 32 passing |
-| [D180](deferred-gaps.md) | B 自动化卡片删除确认 catch | **closed** `09937b546ea`；confirm reject 无未处理 rejection；merge 54 passing |
-| [D181](deferred-gaps.md) | A PR 号查找 catch | **closed** `809535a6150`；lookup reject 无未处理 rejection；merge 19 passing |
-| [D182](deferred-gaps.md) | B 空态创建自动化 catch | **closed** `7092184f4ee`；dialog reject 无未处理 rejection；merge 55 passing |
-| [D183](deferred-gaps.md) | A 会话分组上限实验 catch | **closed** `558e453b187`；getTreatment reject 无未处理 rejection；merge 82 passing |
-| [D184](deferred-gaps.md) | B AutoApprove 确认 catch | **closed** `f004fcdce21`；prompt reject 无未处理 rejection；merge 16 passing |
+| [D157](deferred-gaps.md)–[D184](deferred-gaps.md) | A/B/D picker·notifier·layout·telemetry·inbox·Codex·feedback·MCP·snapshot·automation·PR·AutoApprove catch | **closed** 未处理 rejection 已吞；明细见 deferred-gaps |
 | [D185](deferred-gaps.md) | A Copilot 分支 PR 查找 catch | **closed** `42e796fd0a9`；lookup reject 无未处理 rejection；merge 75 passing |
 | [D186](deferred-gaps.md) | B sandbox 发现 seed catch | **closed** `4f93c78dac8`；seed throw 无未处理 rejection；merge 15 passing |
 | [D187](deferred-gaps.md) | A Mode picker 配置 Agents catch | **closed** `4af67197837`；OpenEditor reject 无未处理 rejection；merge 3 passing |
+| [D188](deferred-gaps.md) | A 未登录模型通知就绪 catch | **closed** `0cb46a24224`；getDefaultAccount reject 无未处理 rejection；merge 11 passing |
+| [D189](deferred-gaps.md) | B Growth session Restored catch | **closed** `df6572565d3`；when(Restored) reject 无未处理 rejection；merge 8 passing |
 | — | 人类工位 wave-9 | 合入保留：`stub-and-fixtures.md` 重复 frontmatter；`sourcesReviewModel` 测 `toResource.call` 使 `this.test` undefined。本波 **未 cascade** |
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `e0e938426ff` | `__pycache__` | 0 | 代码 MERGE_SHA D187；compile unused 仍红，**不 push**；人类工位未 cascade |
-| A | `vscode-WorkTrees/A` | `loop/A` | `e0e938426ff` | `__pycache__` | 0 | idle |
-| B | `vscode-WorkTrees/B` | `loop/B` | `e0e938426ff` | `__pycache__` | 0 | idle |
-| C | `vscode-WorkTrees/C` | `loop/C` | `e0e938426ff` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `e0e938426ff` | `__pycache__` | 0 | idle |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `eeac2dd5cc9` | `dev/loop` | 0 | 落后 D148–D187；勿 add `dev/loop` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `a3b2c0db37f` | `__pycache__` | 0 | 代码 MERGE_SHA D189；compile unused 仍红，**不 push**；人类工位未 cascade |
+| A | `vscode-WorkTrees/A` | `loop/A` | `a3b2c0db37f` | `__pycache__` | 0 | idle |
+| B | `vscode-WorkTrees/B` | `loop/B` | `a3b2c0db37f` | `__pycache__` | 0 | idle |
+| C | `vscode-WorkTrees/C` | `loop/C` | `a3b2c0db37f` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `a3b2c0db37f` | `__pycache__` | 0 | idle |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `eeac2dd5cc9` | `dev/loop` | 0 | 落后 D148–D189；勿 add `dev/loop` |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
