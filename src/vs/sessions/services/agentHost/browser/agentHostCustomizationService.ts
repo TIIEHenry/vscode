@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { URI } from '../../../../base/common/uri.js';
 import { identityAgentHostResourceUriMapper } from '../../../../platform/agentHost/common/agentHostUri.js';
 import { combinedDisposable, DisposableMap } from '../../../../base/common/lifecycle.js';
@@ -86,7 +87,7 @@ export class AgentHostCustomizationService extends AbstractAgentHostCustomizatio
 				return provider.getMcpServers(session.sessionId).find(server => this._serverIdMatchesRawId(server.id, rawId))?.stop() ?? Promise.resolve();
 			},
 			setRootConfigValue: (property, value) => {
-				void provider.setRootConfigValue(property, value);
+				void provider.setRootConfigValue(property, value).catch(onUnexpectedError);
 			},
 		};
 	}
