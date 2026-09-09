@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { isEqual } from '../../../../../base/common/resources.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ISettableObservable, transaction } from '../../../../../base/common/observable.js';
@@ -146,6 +147,37 @@ suite('LayoutController (desktop)', () => {
 		harness.activeSessionObs.set(session, undefined);
 
 		assert.ok(harness.openedViewContainers.includes(SESSIONS_FILES_CONTAINER_ID));
+	});
+
+	test('does not leak unhandled rejection when untitled/restore view opens reject', async () => {
+		createController();
+		harness.viewsOpenRejects = new Error('open view failed');
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			const untitled = makeSession(URI.parse('session:untitled'), { status: SessionStatus.Untitled });
+			harness.activeSessionObs.set(untitled, undefined);
+			await timeout(0);
+
+			const session1 = makeSession(URI.parse('session:1'));
+			const session2 = makeSession(URI.parse('session:2'));
+			harness.activeSessionObs.set(session1, undefined);
+			harness.activePaneCompositeId = SESSIONS_FILES_CONTAINER_ID;
+			harness.partVisibility.set(Parts.AUXILIARYBAR_PART, true);
+			harness.onDidChangePartVisibility.fire({ partId: Parts.AUXILIARYBAR_PART, visible: true });
+			harness.activeSessionObs.set(session2, undefined);
+			harness.activeSessionObs.set(session1, undefined);
+			await timeout(0);
+
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('[D3d] defaults to Files while the session has no changes', () => {
