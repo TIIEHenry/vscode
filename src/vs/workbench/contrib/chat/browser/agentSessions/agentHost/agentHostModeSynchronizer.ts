@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Disposable, DisposableMap, DisposableStore } from '../../../../../../base/common/lifecycle.js';
 import { autorun } from '../../../../../../base/common/observable.js';
 import { URI } from '../../../../../../base/common/uri.js';
@@ -116,7 +117,7 @@ export class AgentHostModeSynchronizer extends Disposable implements IWorkbenchC
 		if (agentUri === undefined) {
 			return;
 		}
-		void this._applyMode(widget, sessionResource, agentUri);
+		void this._applyMode(widget, sessionResource, agentUri).catch(onUnexpectedError);
 	}
 
 	private async _applyMode(widget: IChatWidget, sessionResource: URI, agentUri: string): Promise<void> {

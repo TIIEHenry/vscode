@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { timeout } from '../../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { observableValue } from '../../../../../../base/common/observable.js';
 import { URI } from '../../../../../../base/common/uri.js';
@@ -34,7 +35,7 @@ suite('AgentHostModeSynchronizer', () => {
 		} as IChatMode;
 	}
 
-	function createModes(customModes: () => readonly IChatMode[], onDidChange: Event<void>): IChatModes {
+	function createModes(customModes: () => readonly IChatMode[], onDidChange: Event<void>, waitForPendingUpdatesRejects = false): IChatModes {
 		return {
 			onDidChange,
 			builtin: [ChatMode.Agent, ChatMode.Ask, ChatMode.Edit],
@@ -43,17 +44,21 @@ suite('AgentHostModeSynchronizer', () => {
 			},
 			findModeById: id => [ChatMode.Agent, ChatMode.Ask, ChatMode.Edit, ...customModes()].find(mode => mode.id === id),
 			findModeByName: name => [ChatMode.Agent, ChatMode.Ask, ChatMode.Edit, ...customModes()].find(mode => mode.name?.get() === name),
-			waitForPendingUpdates: async () => { },
+			waitForPendingUpdates: async () => {
+				if (waitForPendingUpdatesRejects) {
+					throw new Error('boom');
+				}
+			},
 		};
 	}
 
-	function createSynchronizer(initialMode: IChatMode, initialCustomModes: readonly IChatMode[] = [], resource: URI = sessionResource) {
+	function createSynchronizer(initialMode: IChatMode, initialCustomModes: readonly IChatMode[] = [], resource: URI = sessionResource, waitForPendingUpdatesRejects = false) {
 		let customModes = [...initialCustomModes];
 		const modeChanges = store.add(new Emitter<IChatModeChangeEvent>());
 		const modesChanges = store.add(new Emitter<void>());
 		const widgetRemovals = store.add(new Emitter<IChatWidget>());
 		const mode = observableValue<IChatMode>('mode', initialMode);
-		const modes = createModes(() => customModes, modesChanges.event);
+		const modes = createModes(() => customModes, modesChanges.event, waitForPendingUpdatesRejects);
 		const modesObservable = observableValue<IChatModes>('modes', modes);
 		const setChatModeCalls: string[] = [];
 
@@ -177,5 +182,25 @@ suite('AgentHostModeSynchronizer', () => {
 		await timeout(0);
 
 		assert.deepStrictEqual(setChatModeCalls, []);
+	});
+
+	test('does not leak unhandled rejection when waitForPendingUpdates rejects', async () => {
+		const untitledResource = URI.parse('agent-host-claude:/untitled-session-1');
+		const { modesChanges, storageService } = createSynchronizer(ChatMode.Agent, [], untitledResource, true);
+		storageService.store(agentHostAgentPickerStorageKey(untitledResource.scheme), agentUri, StorageScope.PROFILE, StorageTarget.MACHINE);
+		modesChanges.fire();
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });
