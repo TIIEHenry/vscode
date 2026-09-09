@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-09
-summary: "人类工位已合入 loop/merge。D8 / D16 / D31 F4 / D147 仍开。D44–D146 已闭。compile unused 仍红，不 push。A2 仍 blocked。"
+summary: "D26 病因已改口：引擎 store 迁移卡死（非 Create 不写 meta），D25 同源，report 已交接、禁改引擎仓代码。D8 / D16 / D31 F4 / D147 仍开。compile unused 仍红，不 push。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -192,7 +192,7 @@ summary: "人类工位已合入 loop/merge。D8 / D16 / D31 F4 / D147 仍开。D
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
-| **引擎空壳 Create** | [D26](deferred-gaps.md) — 空 store 首次 Create 仍 `ALREADY_EXISTS` 且不写 meta；不要再清 store |
+| **引擎 store 迁移卡死** | [D26](deferred-gaps.md) 病因已改口（2026-09-09）：`user_version=0` + 表已建 ⇒ 迁移抛错 ⇒ 库永久打不开 ⇒ `LookupFailed` fail-closed deny ⇒ `ALREADY_EXISTS`（**设计内拒绝**）。根因与交接见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md)；D25 同源。**禁改引擎仓代码**；原闭合条件「Create 先写 meta」已撤回；不要再清 store |
 | **test-baseline** | D17 名单 0 数据行。**merge** `run-unit-custom.sh` + `check-test-baseline.sh` **passed**（conversation 795 / sources 101 / universeAgent 213）。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + CI 绿 + merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。

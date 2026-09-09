@@ -3,8 +3,8 @@ title: "dev/ — 开发规划与决策目录"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-09-02
-summary: "行动层：plan、ADR、progress；与 docs/ 知识库分离"
+updated: 2026-09-09
+summary: "行动层：plan、ADR、progress、reports（跨仓 bug 交接）；与 docs/ 知识库分离"
 ---
 
 # dev/ — 开发规划与决策目录
@@ -21,6 +21,7 @@ summary: "行动层：plan、ADR、progress；与 docs/ 知识库分离"
 | 阶段日志 | [`progress/status.md`](progress/status.md) |
 | 任务清单 | [`plans/INDEX.md`](plans/INDEX.md) · [`parallel/INDEX.md`](parallel/INDEX.md) |
 | 并行看板 | [`parallel/`](parallel/) |
+| 跨仓 bug 分析交接 | [`reports/`](reports/) — 引擎侧 bug 的证据链与根因判定；车道见 [`plans/cross-repo-protocol.md`](plans/cross-repo-protocol.md) §3.4 |
 
 ## 与 `docs/` 的区别
 

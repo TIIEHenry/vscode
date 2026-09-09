@@ -3,8 +3,8 @@ title: "跨仓协议提案：引擎缺口 → 本仓解锁映射"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-05
-summary: "按提案性质拆：引擎仓须给新面或扩已有消息（G-ENG-1/2/3 新面；G-ENG-4、G3、G-REV-1 扩已有消息）vs 确认 Desktop session-core（G2）；每行有闭合条件；映射本仓 UI/PRD 解锁；附 docs-only 切片 D1 修正登记处过时句；不推翻 M7 本波不做引擎仓新增 RPC / 不为 G-ENG 画表单。2026-09-05 第二轮对抗审查后签收"
+updated: 2026-09-09
+summary: "按提案性质拆：引擎仓须给新面或扩已有消息（G-ENG-1/2/3 新面；G-ENG-4、G3、G-REV-1 扩已有消息）vs 确认 Desktop session-core（G2）；每行有闭合条件；映射本仓 UI/PRD 解锁；附 docs-only 切片 D1 修正登记处过时句；不推翻 M7 本波不做引擎仓新增 RPC / 不为 G-ENG 画表单。2026-09-05 第二轮对抗审查后签收。2026-09-09 新增 §3.4 引擎侧 bug 上报车道（只读分析 + report + 双向登记；禁改引擎仓代码，但不禁读）"
 ---
 
 # 跨仓协议提案：引擎缺口 → 本仓解锁映射
@@ -19,6 +19,7 @@ summary: "按提案性质拆：引擎仓须给新面或扩已有消息（G-ENG-1
 **目标**
 
 1. 按提案性质把已登记、UI 只能写 unsupported 的缺口写成清单（每行标「待引擎仓确认」）：**引擎仓须给新面**（G-ENG-1/2/3）、**扩已有消息**（G-ENG-4 `AgentProfileProto` 字段、G-NAV-1/2、G-REV-1、**G3** `GetHistory`/L2 带 `DetailRef`）vs **确认 Desktop session-core**（G2 typed arm）。G2/G3 **不是** surface §4 行，但 G3 的性质是扩消息。
+1a. 为**引擎侧 bug**（不是缺功能，而是已有面坏了）建立上报车道，见 §3.4。该车道产出 report + 双向登记，**不产出**引擎仓代码改动。
 2. 每条缺口写清：现状、引擎须给出什么（提案级，不写本仓将实现该 RPC）、**闭合条件**（哪种引擎回复或合并算闭；「不做」也算闭）、本仓闭合后解锁哪条 UI / PRD、优先级。
 3. 约定跨仓流程：本仓登记落点、引擎仓谁开 issue/PR（建议，不假装已开）、何时换钉 [debug-engine](../../docs/guides/debug-engine.md)。
 
@@ -27,7 +28,7 @@ summary: "按提案性质拆：引擎仓须给新面或扩已有消息（G-ENG-1
 | 不做 | 依据 |
 |------|------|
 | 本仓 `src/` 发明或实现外仓 RPC / proto 字段 | ADR-003；surface「RPC 名以外仓 proto 为准」 |
-| 本迭代改引擎仓、或把 M7 收口波改成「去补 RPC」 | [m7-ui-completion-wave §6](m7-ui-completion-wave.md)「引擎仓侧新增 RPC（G-ENG-1/2/3）；本波只登记缺口并交付 unsupported 态」与 [m7-gap-closeout](m7-gap-closeout.md) 非目标「不为 G-ENG 画表单」是**当前实施波约束**；本稿是跨仓提案，**不推翻**那条「本波不做」 |
+| 本迭代改引擎仓**代码 / proto / 构建文件**（其缺口账追加一行 docs-only 是 §3.4 的例外）、或把 M7 收口波改成「去补 RPC」 | [m7-ui-completion-wave §6](m7-ui-completion-wave.md)「引擎仓侧新增 RPC（G-ENG-1/2/3）；本波只登记缺口并交付 unsupported 态」与 [m7-gap-closeout](m7-gap-closeout.md) 非目标「不为 G-ENG 画表单」是**当前实施波约束**；本稿是跨仓提案，**不推翻**那条「本波不做」 |
 | 在 G-ENG-1/2/3/4 闭合前为 Provider / Rules / Hooks / Agents Model 子 tab 画表单或假编辑器 | [m7-ui-completion-wave §2 / §6](m7-ui-completion-wave.md)；[engine-preferences-completion](engine-preferences-completion.md) §3.2 / §3.4 / §3.5 / §3.6 |
 | 把 G-CONV-1 / P2a `FetchToolDetail` 传输通道再登记成新缺口 | surface §1b / §4：P2a 已绑定；G-CONV-1 已闭 |
 | 独立 CreateSkill RPC、会话级 `SwitchModel`、`SubscribeToolDetail` / `FetchToolUsageDetail` / 手动 `Compact`、Navigator v2 写操作 | 不在用户点名范围；M7 明确不纳入或另立 PRD |
@@ -108,6 +109,7 @@ summary: "按提案性质拆：引擎仓须给新面或扩已有消息（G-ENG-1
 | [conversation-stream-timeline §6](conversation-stream-timeline.md) | **G2 / G3 登记处**。**不在** surface §4。确认后回填该稿 §6，并同步 surface §5 visualize / DetailRef 行。**D1 切片**先修正该稿 §6 G3 行「IDE 侧未实施」与 §12 / 摘要里「`compacted` emit 绑在 G2/G3」的过时句（G-CONV-1 已闭，`compacted` 投影 S6 已落）。 |
 | [engine-protocol-surface §1 / §1b](../../docs/reference/universe-agent/engine-protocol-surface.md) | 已知 RPC 与本仓消费面。新 RPC **合入引擎仓并被本仓 adapter 绑定之后**才加行。G3 传输面已在 §1b（P2a）。 |
 | 本稿 | 优先级与解锁映射。不重复枚举 RPC；外仓改名只改 surface。 |
+| `dev/reports/` + 引擎仓 `dev/progress/deferred-gaps.md` | **§3.4 bug 车道**的两个落点：本仓 report 是分析 SSOT，引擎仓缺口账只放一行指针（**docs-only**，跨仓写入的唯一例外）。要功能车道不走这里。 |
 
 ### 3.2 引擎仓 issue / PR（建议 · 未开）
 
@@ -135,6 +137,36 @@ summary: "按提案性质拆：引擎仓须给新面或扩已有消息（G-ENG-1
 | 换钉步骤见仓外 README；换完更新 `PIN`，**不要**把新 SHA 抄进 `debug-engine.md` | 把调试钉当成产品「已接通」或抬升 [PRD-008](../../docs/product/requirements.md#prd-008-引擎与会话权威) |
 
 真发消息的凭据仍走钉死工位的宿主环境（`start-engine.sh` 从 `~/.claude/settings.json` 导出 `ANTHROPIC_*`），直到 G-ENG-1 闭合且本仓解锁切片落地。debug-engine §4 与仓外 README 里「须改 `agent-home/config.json`」是过时句，D1 一并改。
+
+### 3.4 引擎侧 bug 上报车道（2026-09-09 新增）
+
+§1–§3.3 只覆盖**要功能**（引擎须给新面 / 扩已有消息 / 确认 session-core）。**引擎侧 bug** ——「本仓观察到引擎行为坏了，可能是引擎自身变更导致」——此前**没有车道**：D26 病因记错、闭合条件写反（写成「引擎 Create 先写 meta 再回成功」，照做会放宽 fail-closed），D25 记的错误串其实是对的但从未与 D26 关联，两行各自挂了三天半；而引擎仓对此毫不知情（本节写入之前，引擎缺口账全文搜 `vscode` / `IDE 侧` **零命中**）。本节补这条车道。
+
+**与要功能车道的区别：** 要功能是「你没有这个面」，闭合条件是引擎回「做 / 不做 / 改用已有面」；bug 是「你有的这个面坏了」，闭合条件是根因定位 + 修复，且**症状方与修复方不同仓**，必须双向登记否则必然掉缝。
+
+**本节新立的权限边界（不是既有措辞的还原）：** HEAD 上既有的「禁止改引擎仓」都是**不带限定**的（[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) `:55`、[sources-accept-empty-success](sources-accept-empty-success.md) `:91`、D25/D26 原句）。本节**新裁定** bug 车道允许：读引擎仓任意文件 + 在其缺口账追加一行 docs-only；**仍禁止**改任何源码 / proto / 构建文件 / 对方 loop 的 `summary` 与后注。ADR-008 `:55` 在其自身刀口（Accept 空 patches）范围内**仍不带限定，不被本节推翻**。把「禁止改引擎仓」读成「禁止阅读」是 D25/D26 拖三天半的直接原因，本节明确否掉这种读法。
+
+| 步 | 动作 | 约束 | 完成判据 |
+|:---|:-----|:-----|:---------|
+| 1 | **本仓缺口账登记症状**（[deferred-gaps](../progress/deferred-gaps.md)），写清可观察行为、不写猜测病因 | 病因未坐实前**不得**写进闭合条件栏 | 该行在 `deferred-gaps.md` 可 `rg` 到且 Status=`open` |
+| 2 | **只读跨仓分析**：读引擎仓源码与日志、对落盘产物做只读探测（如 `sqlite3` 查询） | 见上「权限边界」 | 每条断言有 file:line 或命令输出 |
+| 3 | **落一篇 report** 到 `dev/reports/`，交付证据链、根因判定、排查入口 | 必须**分栏区分已确认与未确认**；**不提交修法**（修法是引擎侧的决定权）；不得把「本仓推断」写成引擎事实；**搜索类断言须写明过滤条件**（带 `!*test*` 之类过滤的搜索不得说成「全文搜索」） | report 已从 [status.md](../progress/status.md) Next 段可达 |
+| 4 | **在引擎仓缺口账登记一行**：症状 + 证据锚点 + 本仓 report 指针 | docs-only。**Exit Condition 栏写「由引擎侧自定」**，本仓只给复现入口，不替对方写验收标准；安全侧的否定式约束（「不要靠放宽 X 来修」）可写 | 该行**已提交**且 SHA 可引；未提交只能称「已写入工作树」 |
+| 5 | **回写本仓**：按 report 结论改口症状行的病因与闭合条件；同源的多行合并指向同一根因 | 原先写错的闭合条件必须**显式撤回**并写明为何是错的，不能静默替换 | 撤回句在 `deferred-gaps.md` 可 `rg` 到 |
+
+**终态（与 §2.1 同体例，「不做」也是闭）**
+
+| 终态 | 判定 | 本仓动作 |
+|:-----|:-----|:---------|
+| **已修** | 引擎仓对应行 closed 且本仓可复验症状消失 | 关本仓症状行；被它 block 的 PRD 按实际证据改口 |
+| **不是 bug** | 引擎侧判定为设计内行为并给出依据 | 关本仓症状行，改成本仓适配缺口或 UI 诚实态；**不得**继续挂成引擎缺口 |
+| **不修 / 长期不回** | 引擎侧明确不修，或超过约定期限无回应 | 本仓症状行降级为长期缺口，UI 保持诚实降级；被 block 的 PRD 保持 `blocked` 并在 traceability 注明原因是外仓不修，不是本仓未做 |
+
+**硬约束**
+
+- **不得**为了让本仓路径走通而提议放宽引擎的安全控制。若根因链穿过一个 fail-closed 拒绝，那个拒绝**通常是对的**，要修的是它下面那层。D26 原闭合条件正是这个错误方向，已撤回。
+- **不得**因为「引擎侧变更导致」就把它记成引擎的过失。交叉影响（两次各自正确的变更叠加）要如实写成交叉影响。
+- 首个实例：[engine-session-store-migration-stuck](../reports/engine-session-store-migration-stuck-2026-09-09.md)（D25 / D26 同源）。引擎仓 `D-SESSION-STORE-MIGRATION-STUCK-1` 截至 2026-09-09 **只写入其工作树、尚未提交**，按步骤 4 判据不得称「已登记」。
 
 ## 4. UI：缺口闭合前继续 unsupported
 
@@ -175,6 +207,9 @@ summary: "按提案性质拆：引擎仓须给新面或扩已有消息（G-ENG-1
 | 无「本仓将实现该 RPC」 | §2 / §5 每条引擎面都标「待引擎仓确认」或「本仓只消费」；G3 写明扩消息、非新 RPC、非已闭 |
 | 两栏 / 两个史诗 | 新面或扩消息（含 G3）vs 确认 Desktop session-core（G2）；G2 与 G-CORE-1 / GFS-4 同写者串行 |
 | 不推翻本波约束 | §0 两处都链 [m7-ui-completion-wave §6](m7-ui-completion-wave.md) 与 [m7-gap-closeout](m7-gap-closeout.md)；「本波不做引擎仓新增 RPC / 不为 G-ENG 画表单」仍成立 |
+| **§3.4 bug 车道有终态与判据** | §3.4 三种终态各有判定与本仓动作；五步各有完成判据栏；「不修 / 长期不回」也是闭（与 §2.1 同体例）——`rg -n "终态" dev/plans/cross-repo-protocol.md` 可查 |
+| **§3.4 跨仓写入不越界** | 引擎仓侧只有缺口账 markdown 被改，`cd ../UniverseAgent && git diff --stat` 无 `.kt` / `.proto` / `build.gradle*`；其缺口账行的 Exit Condition 栏写「由引擎侧自定」 |
+| **§3.4 不超报登记状态** | 未提交只称「已写入工作树」；称「已登记」须引擎仓 `git log` 可查到 SHA |
 | 不发明字段、不假装 issue 已开 | 除 surface 或已签收方案已出现的名字外，无新 proto 字段 / 新 RPC 名；§3.2 写明截至 2026-09-05 未开 |
 
 ## 相关
@@ -214,3 +249,21 @@ Minor（可改已改）：§0 两处与 §4 都链 [m7-ui-completion-wave §6](m
 | Minor 删 §3.2 / §3.3 / §4 / §6 | 不采纳 | §3.2 是「谁开 issue」的合同，§4 是闭合前姿态的单点引用，保留；§6 已改成可检 |
 
 **签收裁定：** 本稿 `accepted`。可立即开工的只有 D1（docs-only）；解锁切片仍以 §2.1 终态为前置。G2 的 Desktop 写者排在 G-CORE-1 与 GFS-4 之后。
+
+**2026-09-09 第三轮（只读 reviewer，Cursor Task `generalPurpose`，inherit；审查对象仅本轮新增 §3.4 + §0 条目 1a + frontmatter）。结论 Approve with changes，Critical / Important 已当轮改入：**
+
+| 意见 | 复核 | 处理 |
+|------|------|------|
+| C1 report §8「`session-100` 不来自本仓 `src/`（已全文搜索确认）」与 `rg` 相反：4 个单测文件共 58 处 | **属实**。原搜索带 `!*test*` 过滤，把测试排除后当成全文搜索 | report §8 改为「只出现在单测夹具（四文件逐一列出），单测不落 `.sessions/`，落盘创建方未追」，并写明初稿措辞错误已修正；§3.4 步骤 3 新增约束「搜索类断言须写明过滤条件」 |
+| C2 report §8「未改引擎仓任何文件」与本轮实际写入其缺口账矛盾 | **属实** | report §8 改为「未改源码 / proto / 构建文件」＋显式列出 §3.4 步骤 4 的 docs-only 例外 |
+| I1 §3.4 称引擎仓「已登记」，实际只在未提交工作树 | **属实**（引擎仓 `HEAD 5af57d6631`，`git status` 为 ` M`） | §3.4 末段改为「只写入其工作树、尚未提交，不得称已登记」；步骤 4 完成判据加「已提交且 SHA 可引」；§6 新增「不超报登记状态」行 |
+| I2 步骤 4 自称「一行指针」，实际在对方 SSOT 写了闭合条件与禁令，与步骤 3「不提交修法」张力 | **属实** | 引擎仓那行 Exit Condition 栏改为「由引擎侧自定」＋只保留安全侧否定式约束；步骤 4 措辞同步收窄 |
+| I3「『禁止改引擎仓』是代码边界」被写成既有措辞的还原，而 HEAD 上 ADR-008 `:55` 等都不带限定 | **属实** | §3.4 新增「本节新立的权限边界（不是既有措辞的还原）」段，明说是新裁定，并注明 ADR-008 `:55` 在其自身刀口内不被推翻 |
+| I4 §0 非目标「本迭代改引擎仓」与 §3.1 落点表未与 §3.4 协调 | **属实** | §0 该行加限定「代码 / proto / 构建文件」并注明 §3.4 例外；§3.1 补一行 `dev/reports/` + 引擎仓缺口账落点 |
+| I5 bug 车道无终态、无完成判据，§6 未随之扩展 | **属实** | §3.4 补三终态表（已修 / 不是 bug / 不修或长期不回）＋五步各加完成判据栏；§6 新增三行断言 |
+| I6 `applyAndroidPhysicalPragmas` 唯一调用点在 `androidMain`，候选可排除，却被抄进引擎仓账本会误导分诊 | **属实**（全仓搜索仅 `singularity/bridge/src/androidMain/`） | report §5 改为「已按调用点排除，不要按这条方向分诊」，剩余候选收窄到两处；引擎仓那行同步改 |
+| M1 `writeUserVersion` 在 `if/else` **之后**（`:71`），非「分支末尾」 | **属实**（结论不受影响） | report §3 改口 |
+| M2 §1 日志节选静默略去 6 行且「同一毫秒」与 89 ms 跨度不符 | **属实**（末三行同毫秒是准的） | 补 `…` 与省略行清单；引言改「同一次 Create 调用窗口内（`elapsed=5ms`）」，要点改为末三行同毫秒 |
+| M3 §3.4「D25 / D26 病因记错、闭合条件写反」对 D25 不成立 | **属实**（D25 原文记的错误串本就正确、闭合条件中性） | §3.4 引言改为「D26 病因记错、闭合条件写反；D25 记的错误串其实是对的但从未与 D26 关联」 |
+| M6 `dev/reports/` 未进 `dev/README.md` 导航 | **属实** | `dev/README.md` 快速导航补一行并更新 frontmatter |
+| M4 / M5 标「非缺陷」：§3.4 与 §3.2 不矛盾；§4 交叉影响叙述与 §6.4 否定式约束不构成「指定修法」 | 同意 | 不改。§3.2 的否认限定在「issue / PR」且带日期锚，与 §3.4 写缺口账可共存 |
