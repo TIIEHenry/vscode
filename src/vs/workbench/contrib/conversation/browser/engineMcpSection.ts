@@ -34,6 +34,9 @@ type EngineMcpTab = 'definitions' | 'runtime';
 const MCP_FEATURE = localize('ua.engineMcpFeatureLabel', "MCP server definitions");
 
 export const ENGINE_MCP_ADD_SUCCESS_COPY = localize('ua.engineMcpAddSuccess', "Added.");
+export const ENGINE_MCP_UPDATE_SUCCESS_COPY = localize('ua.engineMcpUpdateSuccess', "Updated.");
+export const ENGINE_MCP_REMOVE_SUCCESS_COPY = localize('ua.engineMcpRemoveSuccess', "Removed.");
+export const ENGINE_MCP_TOGGLE_SUCCESS_COPY = localize('ua.engineMcpToggleSuccess', "Toggled.");
 
 type EngineMcpListEntry =
 	| { readonly kind: 'group'; readonly origin: UniverseAgentMcpServerOrigin; readonly label: string }
@@ -369,6 +372,7 @@ export class EngineMcpSection extends Disposable {
 			return false;
 		}
 		this.writeFailedReason = undefined;
+		this.hideCatalogWriteStatus();
 		const scope = this.selectedServer.origin === 'project' ? 'project' : 'global';
 		const merged: UniverseAgentMcpServerConfig = {
 			id: this.selectedServer.id,
@@ -387,7 +391,9 @@ export class EngineMcpSection extends Disposable {
 				this.showWriteFailed(result.reason);
 				return false;
 			}
+			this.showCatalogWriteStatus(ENGINE_MCP_UPDATE_SUCCESS_COPY);
 			await this.refresh();
+			this.showCatalogWriteStatus(ENGINE_MCP_UPDATE_SUCCESS_COPY);
 			return true;
 		} catch (error) {
 			this.showWriteFailed(error);
@@ -400,6 +406,7 @@ export class EngineMcpSection extends Disposable {
 			return false;
 		}
 		this.writeFailedReason = undefined;
+		this.hideCatalogWriteStatus();
 		const scope = this.selectedServer.origin === 'project' ? 'project' : 'global';
 		try {
 			const result = await this.connection.removeMcpServer({
@@ -411,7 +418,9 @@ export class EngineMcpSection extends Disposable {
 				return false;
 			}
 			this.selectedServer = undefined;
+			this.showCatalogWriteStatus(ENGINE_MCP_REMOVE_SUCCESS_COPY);
 			await this.refresh();
+			this.showCatalogWriteStatus(ENGINE_MCP_REMOVE_SUCCESS_COPY);
 			return true;
 		} catch (error) {
 			this.showWriteFailed(error);
@@ -621,7 +630,9 @@ export class EngineMcpSection extends Disposable {
 				this.showWriteFailed(result.reason);
 				return;
 			}
+			this.showCatalogWriteStatus(ENGINE_MCP_TOGGLE_SUCCESS_COPY);
 			await this.refresh();
+			this.showCatalogWriteStatus(ENGINE_MCP_TOGGLE_SUCCESS_COPY);
 		} catch (error) {
 			this.showWriteFailed(error);
 			await this.refresh();

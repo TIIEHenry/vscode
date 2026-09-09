@@ -30,7 +30,7 @@ import type {
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { EngineAgentsSection } from '../../browser/engineAgentsSection.js';
-import { ENGINE_MCP_ADD_SUCCESS_COPY, EngineMcpSection } from '../../browser/engineMcpSection.js';
+import { ENGINE_MCP_ADD_SUCCESS_COPY, ENGINE_MCP_REMOVE_SUCCESS_COPY, ENGINE_MCP_TOGGLE_SUCCESS_COPY, ENGINE_MCP_UPDATE_SUCCESS_COPY, EngineMcpSection } from '../../browser/engineMcpSection.js';
 import { EngineToolsSection } from '../../browser/engineToolsSection.js';
 import { canPerformCatalogWrite, getCatalogFailedCopy, getCatalogUnsupportedCopy } from '../../browser/engineCatalog.js';
 import { localize } from '../../../../../nls.js';
@@ -1300,6 +1300,116 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			assert.ok(catalog);
 			assert.strictEqual(catalog.dataset['catalogMode'], 'failed');
 			assert.ok((catalog.textContent ?? '').includes(getCatalogFailedCopy(MCP_FEATURE, 'list boom')));
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	function assertMcpWriteSuccessSurvivesListFail(section: EngineMcpSection, successCopy: string, listReason: string): void {
+		const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+		assert.ok(writeStatus);
+		assert.strictEqual(writeStatus.textContent, successCopy);
+		assert.notStrictEqual(writeStatus.style.display, 'none');
+
+		const catalog = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(catalog);
+		assert.strictEqual(catalog.dataset['catalogMode'], 'failed');
+		assert.ok((catalog.textContent ?? '').includes(getCatalogFailedCopy(MCP_FEATURE, listReason)));
+	}
+
+	test('MCP: updateMcpServer ok still shows update-success when subsequent listMcpServers fails', async () => {
+		let listMcpServersCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { mcp: { support: 'SUPPORTED' } },
+				listMcpServers: async () => {
+					listMcpServersCalls++;
+					if (listMcpServersCalls > 1) {
+						throw new Error('list boom');
+					}
+					return { servers: [demoMcpServer()] };
+				},
+				updateMcpServer: async () => ({ ok: true }),
+			});
+			const section = mountMcpSection(connection);
+			await flushMicrotasks();
+			assert.strictEqual(listMcpServersCalls, 1);
+			assert.strictEqual(section.getMode(), 'ready');
+			assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
+
+			assert.strictEqual(await section.updateSelectedServer({ name: 'Renamed' }), true);
+			assert.ok(listMcpServersCalls >= 2);
+			assertMcpWriteSuccessSurvivesListFail(section, ENGINE_MCP_UPDATE_SUCCESS_COPY, 'list boom');
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('MCP: removeMcpServer ok still shows remove-success when subsequent listMcpServers fails', async () => {
+		let listMcpServersCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { mcp: { support: 'SUPPORTED' } },
+				listMcpServers: async () => {
+					listMcpServersCalls++;
+					if (listMcpServersCalls > 1) {
+						throw new Error('list boom');
+					}
+					return { servers: [demoMcpServer()] };
+				},
+				removeMcpServer: async () => ({ ok: true }),
+			});
+			const section = mountMcpSection(connection);
+			await flushMicrotasks();
+			assert.strictEqual(listMcpServersCalls, 1);
+			assert.strictEqual(section.getMode(), 'ready');
+			assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
+
+			assert.strictEqual(await section.removeSelectedServer(), true);
+			assert.ok(listMcpServersCalls >= 2);
+			assertMcpWriteSuccessSurvivesListFail(section, ENGINE_MCP_REMOVE_SUCCESS_COPY, 'list boom');
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('MCP: toggleServer ok still shows toggle-success when subsequent listMcpServers fails', async () => {
+		let listMcpServersCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { mcp: { support: 'SUPPORTED' } },
+				listMcpServers: async () => {
+					listMcpServersCalls++;
+					if (listMcpServersCalls > 1) {
+						throw new Error('list boom');
+					}
+					return { servers: [demoMcpServer()] };
+				},
+				toggleMcpServer: async () => ({ ok: true }),
+			});
+			const section = mountMcpSection(connection);
+			await flushMicrotasks();
+			assert.strictEqual(listMcpServersCalls, 1);
+			assert.strictEqual(section.getMode(), 'ready');
+
+			await section.toggleServerForTest('stdio-demo', false);
+			assert.ok(listMcpServersCalls >= 2);
+			assertMcpWriteSuccessSurvivesListFail(section, ENGINE_MCP_TOGGLE_SUCCESS_COPY, 'list boom');
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
