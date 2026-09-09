@@ -6,6 +6,8 @@
 import assert from 'assert';
 import { addDisposableListener, EventType } from '../../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../../base/browser/window.js';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -33,7 +35,10 @@ class TestSessionsLayoutService extends TestLayoutService {
 suite('SessionsMouseNavigationContribution', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function createContribution(enabled = true): {
+	function createContribution(enabled = true, sessionOverrides?: {
+		readonly openPreviousSession?: () => Promise<void>;
+		readonly openNextSession?: () => Promise<void>;
+	}): {
 		readonly store: DisposableStore;
 		readonly layoutService: TestSessionsLayoutService;
 		readonly configurationService: TestConfigurationService;
@@ -47,12 +52,12 @@ suite('SessionsMouseNavigationContribution', () => {
 		});
 		const navigation: string[] = [];
 		const sessionsService = upcastPartial<ISessionsService>({
-			openPreviousSession: async () => {
+			openPreviousSession: sessionOverrides?.openPreviousSession ?? (async () => {
 				navigation.push('back');
-			},
-			openNextSession: async () => {
+			}),
+			openNextSession: sessionOverrides?.openNextSession ?? (async () => {
 				navigation.push('forward');
-			},
+			}),
 		});
 
 		const target = mainWindow.document.createElement('div');
@@ -125,5 +130,43 @@ suite('SessionsMouseNavigationContribution', () => {
 			navigation: ['forward'],
 			defaultPrevented: [false, true],
 		});
+	});
+
+	test('does not leak unhandled rejection when openPreviousSession rejects on mouse back', async () => {
+		const { target } = createContribution(true, {
+			openPreviousSession: () => Promise.reject('boom'),
+		});
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			target.dispatchEvent(new MouseEvent(EventType.MOUSE_DOWN, { bubbles: true, cancelable: true, button: 3 }));
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when openNextSession rejects on mouse forward', async () => {
+		const { target } = createContribution(true, {
+			openNextSession: () => Promise.reject('boom'),
+		});
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			target.dispatchEvent(new MouseEvent(EventType.MOUSE_DOWN, { bubbles: true, cancelable: true, button: 4 }));
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });

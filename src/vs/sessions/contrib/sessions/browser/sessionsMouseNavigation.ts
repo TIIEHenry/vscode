@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { addDisposableListener, EventType } from '../../../../base/browser/dom.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -50,9 +51,9 @@ export class SessionsMouseNavigationContribution extends Disposable implements I
 		}
 
 		if (event.button === 3) {
-			void this.sessionsService.openPreviousSession();
+			void this.sessionsService.openPreviousSession().catch(onUnexpectedError);
 		} else {
-			void this.sessionsService.openNextSession();
+			void this.sessionsService.openNextSession().catch(onUnexpectedError);
 		}
 	}
 }
