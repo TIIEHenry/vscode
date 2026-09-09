@@ -643,6 +643,22 @@
 			"project": "vscode-workbench"
 		},
 		{
+			"name": "vs/workbench/contrib/conversation",
+			"project": "vscode-workbench"
+		},
+		{
+			"name": "vs/workbench/contrib/navigator",
+			"project": "vscode-workbench"
+		},
+		{
+			"name": "vs/workbench/contrib/sources",
+			"project": "vscode-workbench"
+		},
+		{
+			"name": "vs/workbench/contrib/universeAgentMigration",
+			"project": "vscode-workbench"
+		},
+		{
 			"name": "vs/workbench/services/accounts",
 			"project": "vscode-workbench"
 		},

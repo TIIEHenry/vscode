@@ -145,7 +145,7 @@ export class ConversationPart extends Part implements IConversationPartService {
 	 */
 	private layoutConversationEditorParts(): void {
 		for (const part of this.editorGroupsService.conversationParts) {
-			const host = (part as { getContainer?(): HTMLElement | undefined }).getContainer?.();
+			const host = part.getContainer();
 			if (!host) {
 				continue;
 			}
@@ -156,11 +156,12 @@ export class ConversationPart extends Part implements IConversationPartService {
 				continue;
 			}
 
-			(part as { layout(width: number, height: number, top: number, left: number): void }).layout(hostWidth, hostHeight, 0, 0);
+			part.layout(hostWidth, hostHeight, 0, 0);
 		}
 	}
 
 	focus(): void {
+		// eslint-disable-next-line no-restricted-syntax -- the dock input belongs to the lens, which this part only hosts
 		const dockInput = this.getContainer()?.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement | null;
 		if (dockInput) {
 			if (this.configurationService.getValue<boolean>('ua.client.chatInput.autoFocus') !== false) {

@@ -8,7 +8,7 @@ import { X509Certificate } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join } from '../../../../base/common/path.js';
 import tls from 'node:tls';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { DIRECT_ADDRESS_SNI_PLACEHOLDER } from '../../node/deviceGrant/observe-candidate-leaf.js';

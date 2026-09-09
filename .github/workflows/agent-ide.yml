@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - agent-ide
+      - loop/**
   workflow_dispatch:
 
 permissions:
@@ -107,9 +108,16 @@ jobs:
           BASE="${{ github.event.pull_request.base.sha }}"
           HEAD="${{ github.sha }}"
           CHANGED="$(git diff --name-only "$BASE"..."$HEAD")"
-          if echo "$CHANGED" | grep -q '^dev/progress/test-baseline-failures\.txt$'; then
-            if echo "$CHANGED" | grep -q '^src/'; then
-              echo "error: dev/progress/test-baseline-failures.txt must not change in the same PR as src/** (use a separate D17 registration PR)" >&2
+          if echo "$CHANGED" | grep -q '^src/'; then
+            # Only a newly registered failure is smuggling. Header keys (a new
+            # domain's min_cases / max_skipped) and removed entries are not, so
+            # a catch-up PR can fix src and wire a new domain in one go.
+            ADDED_ENTRIES="$(git diff -U0 "$BASE"..."$HEAD" -- dev/progress/test-baseline-failures.txt \
+              | grep '^+' | grep -v '^+++' | sed 's/^+//' \
+              | grep -v '^[[:space:]]*#' | grep -v '^[[:space:]]*$' || true)"
+            if [ -n "$ADDED_ENTRIES" ]; then
+              echo "error: dev/progress/test-baseline-failures.txt registers new failure(s) in the same PR as src/** (use a separate D17 registration PR):" >&2
+              printf '%s\n' "$ADDED_ENTRIES" >&2
               exit 1
             fi
           fi

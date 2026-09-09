@@ -16,7 +16,7 @@ import type {
 } from '../../common/universeAgentTypes.js';
 import type { IUniverseAgentSessionViewFrameEvent } from '../../common/universeAgentSessionView.js';
 import type { ViewPatch } from '../../common/sessionView/types.js';
-import { createEmptyCapabilitySnapshot } from '../../node/grpcCapabilityProbe.js';
+import { createEmptyCapabilitySnapshot } from '../../common/universeAgentCapabilities.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
 
 const ROOT_TREE: UniverseAgentAgentTreeNode = {

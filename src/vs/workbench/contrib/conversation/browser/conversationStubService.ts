@@ -27,17 +27,11 @@ import {
 	ConversationStubTurn,
 	getConversationStubNextTurnId,
 } from './conversationStubModel.js';
-import {
-	mergeTrajectoryFixtureExtras,
-	projectSnapshotToTrajectory,
-	shouldMergeTrajectoryFixtureExtras,
-	type TrajectoryProjectionOptions,
-} from './conversationTrajectoryModel.js';
+import { mergeTrajectoryFixtureExtras, projectSnapshotToTrajectory, shouldMergeTrajectoryFixtureExtras, type TrajectoryProjectionOptions, ConversationTrajectoryRecord } from './conversationTrajectoryModel.js';
 import {
 	entriesToLegacyTurns,
 	projectSnapshotToEntries,
 } from './conversationSessionView.js';
-import { ConversationTrajectoryRecord } from './conversationTrajectoryModel.js';
 import {
 	ConversationMessageQueueState,
 	ConversationQueueItemHoldReason,
@@ -51,6 +45,17 @@ export interface ILiveAgentTreeChangeEvent {
 	readonly tree: LiveAgentTreeNodeView;
 }
 
+/**
+ * A roster action was dispatched to the engine and the engine rejected it, so
+ * the engine state does not match what the UI reported. `action` is the
+ * connection method name that failed.
+ */
+export interface IConversationEngineActionFailure {
+	readonly sessionId: string;
+	readonly action: string;
+	readonly error: unknown;
+}
+
 export interface IConversationRosterService {
 	readonly _serviceBrand: undefined;
 
@@ -58,6 +63,12 @@ export interface IConversationRosterService {
 	readonly onDidChangeSession: Event<string>;
 	readonly onDidChangeEngineConnection: Event<boolean>;
 	readonly onDidChangeLiveAgentTree: Event<ILiveAgentTreeChangeEvent>;
+	/**
+	 * Roster mutations return synchronously, before the engine has answered.
+	 * A `true` return therefore only means "dispatched"; this event is the
+	 * only place a later engine rejection becomes visible.
+	 */
+	readonly onDidFailEngineAction: Event<IConversationEngineActionFailure>;
 
 	getSessions(): readonly ConversationStubSession[];
 	getActiveSessionId(): string;
@@ -250,6 +261,9 @@ export class ConversationStubService extends Disposable implements IConversation
 	readonly onDidChangeEngineConnection = this._onDidChangeEngineConnection.event;
 
 	readonly onDidChangeLiveAgentTree = Event.None;
+
+	/** Stub mutations are purely local, so they cannot fail on an engine. */
+	readonly onDidFailEngineAction = Event.None;
 
 	protected frameSource!: ConversationStubFrameSource;
 

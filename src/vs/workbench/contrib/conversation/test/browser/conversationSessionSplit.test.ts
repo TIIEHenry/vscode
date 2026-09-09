@@ -10,12 +10,12 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { findGroup } from '../../../../services/editor/common/editorGroupFinder.js';
-import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
+import { IEditorGroupsService, type IConversationEditorPart } from '../../../../services/editor/common/editorGroupsService.js';
 import { CONVERSATION_SIDE_GROUP, SIDE_GROUP } from '../../../../services/editor/common/editorService.js';
 import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/editor.js';
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
-import { getDefaultConversationChatResource } from '../../browser/conversationChatInput.js';
+import { getDefaultConversationChatResource } from '../../common/conversationChatInput.js';
 import '../../browser/conversationEditor.contribution.js';
 import { ConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
@@ -29,8 +29,8 @@ suite('Conversation session split (S4)', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 	const disposables = store as unknown as DisposableStore;
 
-	function layoutConversationEditorPart(part: { layout?(width: number, height: number, top: number, left: number): void }): void {
-		(part as { layout(width: number, height: number, top: number, left: number): void }).layout(800, 600, 0, 0);
+	function layoutConversationEditorPart(part: IConversationEditorPart): void {
+		part.layout(800, 600, 0, 0);
 	}
 
 	setup(() => {

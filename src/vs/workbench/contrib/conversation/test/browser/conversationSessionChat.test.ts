@@ -7,7 +7,7 @@ import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
 import { getErrorMessage } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
-import { CancellationToken } from '../../../../../base/common/cancellation.js';
+import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { DisposableStore, IDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -37,7 +37,7 @@ import {
 	ConversationChatInputTypeId,
 	getConversationChatResource,
 	parseConversationChatResource,
-} from '../../browser/conversationChatInput.js';
+} from '../../common/conversationChatInput.js';
 import { ConversationSessionChatService, IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
 import { isConversationExtensionTab } from '../../common/conversationEditorRouting.js';
 import { conversationSubAgentOverlayClass, conversationSubAgentOverlayBackdropClass, conversationSubAgentOverlayCardClass, conversationSubAgentOverlayMaximizeClass, conversationSubAgentOverlayMaximizedAttribute, conversationSubAgentOverlayPopoutClass, conversationSubAgentOverlaySessionBarClass, conversationSubAgentOverlayTitleId } from '../../browser/conversationSubAgentOverlay.js';
@@ -52,7 +52,6 @@ import { ForkConversationAction } from '../../../chat/browser/actions/chatForkAc
 import { isDefaultCodeWindow } from '../../../chat/browser/chatShellRouting.js';
 import { IChatSessionsService } from '../../../chat/common/chatSessionsService.js';
 import { getChatSessionType } from '../../../chat/common/model/chatUri.js';
-import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 
 const TEST_CONVERSATION_CHAT_EDITOR_ID = 'workbench.editor.conversationChat.test';
 
@@ -261,10 +260,10 @@ suite('Conversation session chat (S3)', () => {
 				const notificationService = accessor.get(INotificationService);
 				if (roster.isEngineConnected()) {
 					if (roster.forkSubAgent(roster.getActiveSessionId())) {
-						return { handled: true };
+						return { kind: 'handled' as const, handled: true };
 					}
 					notificationService.error(localize('conversationFork.forkSubAgentFailed', "Could not fork conversation."));
-					return { handled: true };
+					return { kind: 'handled' as const, handled: false };
 				}
 
 				const chatSessionsService = accessor.get(IChatSessionsService);
@@ -273,6 +272,7 @@ suite('Conversation session chat (S3)', () => {
 				}
 
 				return {
+					kind: 'fork' as const,
 					chatSessionsService,
 					sessionChatService: accessor.get(IConversationSessionChatService),
 					notificationService,
@@ -282,7 +282,7 @@ suite('Conversation session chat (S3)', () => {
 			if (!context) {
 				return false;
 			}
-			if ('handled' in context) {
+			if (context.kind === 'handled') {
 				return context.handled === true;
 			}
 

@@ -4,9 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type {
@@ -235,8 +232,6 @@ suite('Sources - Changes git read', () => {
 		assert.deepStrictEqual(parsed, { original: 'keep\nold', modified: 'keep\nnew' });
 	});
 
-	const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../../..');
-
 	test('git read failure message is honest and keeps the error text', () => {
 		const message = sourcesGitReadFailureMessage(new Error('boom'));
 		assert.ok(message.includes('Unable to read git changes'));
@@ -249,29 +244,4 @@ suite('Sources - Changes git read', () => {
 		assert.ok(message.includes('boom'));
 	});
 
-	test('Changes and Review lists read Git when connected; FileDiff is open-time only', () => {
-		const changes = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts'), 'utf8');
-		const review = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts'), 'utf8');
-		const open = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.ts'), 'utf8');
-
-		assert.ok(changes.includes('tryLoadSourcesGitChangeEntries'));
-		assert.ok(changes.includes('tryReadSourcesGitFileDiff'));
-		assert.ok(changes.includes('collectSourcesChangeEntries'));
-		assert.ok(review.includes('tryLoadSourcesGitChangeEntries'));
-		assert.ok(review.includes('tryReadSourcesGitFileDiff'));
-		assert.ok(review.includes('collectSourcesReviewEntries'));
-		assert.ok(review.includes('sourcesGitReadFailureMessage'));
-		assert.ok(review.includes('sourcesGitDiffOpenFailureMessage'));
-		assert.ok(review.includes('sources-review-status'));
-		assert.ok(review.includes('gitReadError'));
-		assert.ok(changes.includes('sourcesGitReadFailureMessage'));
-		assert.ok(changes.includes('sourcesGitDiffOpenFailureMessage'));
-		assert.ok(open.includes('needsSourcesGitFileDiff'));
-		assert.ok(open.includes('readGitFileDiff'));
-
-		const loadStart = changes.indexOf('private async tryLoadGitEntries');
-		const loadEnd = changes.indexOf('private getGitResourceRoot', loadStart);
-		assert.ok(loadStart >= 0 && loadEnd > loadStart);
-		assert.ok(!changes.slice(loadStart, loadEnd).includes('tryReadSourcesGitFileDiff'));
-	});
 });

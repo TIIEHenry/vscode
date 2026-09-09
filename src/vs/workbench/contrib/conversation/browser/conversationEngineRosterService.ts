@@ -27,6 +27,7 @@ import { projectSnapshotToTrajectory, projectTurnsToTrajectory, type Conversatio
 import {
 	ConversationStubService,
 	IConversationRosterService,
+	type IConversationEngineActionFailure,
 	type ILiveAgentTreeChangeEvent,
 } from './conversationStubService.js';
 import {
@@ -63,6 +64,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	private readonly liveTreeObservationStore = this._register(new DisposableStore());
 	protected readonly _onDidChangeLiveAgentTree = this._register(new Emitter<ILiveAgentTreeChangeEvent>());
 	override readonly onDidChangeLiveAgentTree = this._onDidChangeLiveAgentTree.event;
+	private readonly _onDidFailEngineAction = this._register(new Emitter<IConversationEngineActionFailure>());
+	override readonly onDidFailEngineAction = this._onDidFailEngineAction.event;
 	private engineSessions: ConversationStubSession[] = [];
 	private activeEngineSessionId: string | undefined;
 	private listCompleted = false;
@@ -482,7 +485,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override pauseMessageQueue(sessionId: string): void {
 		if (this.isEngineConnected()) {
-			this.forwardEngineQueueRef(sessionId, true, () => this.uaConnection.pauseQueue({ sessionId }));
+			this.forwardEngineQueueRef(sessionId, 'pauseQueue', true, () => this.uaConnection.pauseQueue({ sessionId }));
 			return;
 		}
 		if (!this.wasEverConnected) {
@@ -492,7 +495,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override resumeMessageQueue(sessionId: string): void {
 		if (this.isEngineConnected()) {
-			this.forwardEngineQueueRef(sessionId, true, () => this.uaConnection.resumeQueue({ sessionId }));
+			this.forwardEngineQueueRef(sessionId, 'resumeQueue', true, () => this.uaConnection.resumeQueue({ sessionId }));
 			return;
 		}
 		if (!this.wasEverConnected) {
@@ -502,7 +505,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override clearMessageQueue(sessionId: string): void {
 		if (this.isEngineConnected()) {
-			this.forwardEngineQueueRef(sessionId, true, () => this.uaConnection.clearQueue({ sessionId }));
+			this.forwardEngineQueueRef(sessionId, 'clearQueue', true, () => this.uaConnection.clearQueue({ sessionId }));
 			return;
 		}
 		if (!this.wasEverConnected) {
@@ -512,7 +515,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override holdMessageQueueItem(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): void {
 		if (this.isEngineConnected()) {
-			this.forwardEngineQueueItem(sessionId, itemId, true, id => this.uaConnection.holdQueueItem({
+			this.forwardEngineQueueItem(sessionId, itemId, 'holdQueueItem', true, id => this.uaConnection.holdQueueItem({
 				sessionId,
 				itemId: id,
 				reason: hold,
@@ -526,7 +529,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override releaseMessageQueueItemHold(sessionId: string, itemId: string): void {
 		if (this.isEngineConnected()) {
-			this.forwardEngineQueueItem(sessionId, itemId, true, id => this.uaConnection.releaseQueueItemHold({
+			this.forwardEngineQueueItem(sessionId, itemId, 'releaseQueueItemHold', true, id => this.uaConnection.releaseQueueItemHold({
 				sessionId,
 				itemId: id,
 			}));
@@ -687,13 +690,33 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 	}
 
+	/**
+	 * The roster API is synchronous, so engine actions are dispatched without
+	 * awaiting and the `true` return only means "sent". A rejected RPC still
+	 * means the engine never applied the action, so report it rather than
+	 * dropping the rejection. `recover` runs first, for callers that already
+	 * wrote local state the engine has now refused.
+	 */
+	private dispatchEngineAction(
+		sessionId: string,
+		action: string,
+		send: () => Promise<unknown>,
+		recover?: () => void,
+	): void {
+		send().catch(error => {
+			recover?.();
+			this._onDidFailEngineAction.fire({ sessionId, action, error });
+		});
+	}
+
 	private cancelEngineGeneration(sessionId: string, agentId: string | undefined, callRemote: boolean): boolean {
 		if (!this.engineSessions.some(session => session.id === sessionId)) {
 			return false;
 		}
 		const resolved = agentId?.trim() || this.lastStreamingAgentId(sessionId) || 'root';
 		if (callRemote) {
-			void this.uaConnection.cancelGeneration({ sessionId, agentId: resolved });
+			this.dispatchEngineAction(sessionId, 'cancelGeneration', () =>
+				this.uaConnection.cancelGeneration({ sessionId, agentId: resolved }));
 			return true;
 		}
 		return false;
@@ -715,12 +738,32 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				return false;
 			}
 			const previous = this.sessionGoals.get(sessionId);
+			this.dispatchEngineAction(
+				sessionId,
+				'setSessionGoal',
+				async () => {
+					const result = await this.uaConnection.setSessionGoal!({ sessionId, goal: trimmed });
+					if (result && result.ok === false) {
+						throw new Error('setSessionGoal refused');
+					}
+				},
+				() => this.restoreSessionGoal(sessionId, previous),
+			);
 			this.sessionGoals.set(sessionId, trimmed);
 			this._onDidChangeSession.fire(sessionId);
-			this.followRemoteSessionGoal(this.uaConnection.setSessionGoal({ sessionId, goal: trimmed }), sessionId, previous);
 			return true;
 		}
 		return false;
+	}
+
+	/** Undo a locally applied goal the engine then refused. */
+	private restoreSessionGoal(sessionId: string, previous: string | undefined): void {
+		if (previous === undefined) {
+			this.sessionGoals.delete(sessionId);
+		} else {
+			this.sessionGoals.set(sessionId, previous);
+		}
+		this._onDidChangeSession.fire(sessionId);
 	}
 
 	private cancelEngineSessionGoal(sessionId: string, callRemote: boolean): boolean {
@@ -732,31 +775,22 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				return false;
 			}
 			const previous = this.sessionGoals.get(sessionId);
+			this.dispatchEngineAction(
+				sessionId,
+				'cancelSessionGoal',
+				async () => {
+					const result = await this.uaConnection.cancelSessionGoal!({ sessionId });
+					if (result && result.ok === false) {
+						throw new Error('cancelSessionGoal refused');
+					}
+				},
+				() => this.restoreSessionGoal(sessionId, previous),
+			);
 			this.sessionGoals.delete(sessionId);
 			this._onDidChangeSession.fire(sessionId);
-			this.followRemoteSessionGoal(this.uaConnection.cancelSessionGoal({ sessionId }), sessionId, previous);
 			return true;
 		}
 		return false;
-	}
-
-	private followRemoteSessionGoal(remote: Promise<{ readonly ok: boolean } | void>, sessionId: string, previous: string | undefined): void {
-		void remote.then(result => {
-			if (result && !result.ok) {
-				this.rollbackSessionGoal(sessionId, previous);
-			}
-		}, () => {
-			this.rollbackSessionGoal(sessionId, previous);
-		});
-	}
-
-	private rollbackSessionGoal(sessionId: string, previous: string | undefined): void {
-		if (previous === undefined) {
-			this.sessionGoals.delete(sessionId);
-		} else {
-			this.sessionGoals.set(sessionId, previous);
-		}
-		this._onDidChangeSession.fire(sessionId);
 	}
 
 	private forkEngineSubAgent(
@@ -774,12 +808,12 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			const parentAgentId = options?.parentAgentId?.trim() || this.lastStreamingAgentId(sessionId) || 'root';
 			const name = options?.name?.trim();
 			const task = options?.task?.trim();
-			void this.uaConnection.forkAgent({
+			this.dispatchEngineAction(sessionId, 'forkAgent', () => this.uaConnection.forkAgent!({
 				sessionId,
 				parentAgentId,
 				...(name ? { name } : {}),
 				...(task ? { task } : {}),
-			});
+			}));
 			return true;
 		}
 		return false;
@@ -804,11 +838,11 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				? options.title
 				: localize('conversationCreateSnapshotDefaultTitle', "Snapshot");
 			const description = options?.description;
-			void this.uaConnection.createSnapshot({
+			this.dispatchEngineAction(sessionId, 'createSnapshot', () => this.uaConnection.createSnapshot!({
 				sessionId,
 				title,
 				...(description !== undefined ? { description } : {}),
-			});
+			}));
 			return true;
 		}
 		return false;
@@ -829,11 +863,11 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			const agentId = options?.agentId !== undefined
 				? options.agentId.trim()
 				: (this.lastStreamingAgentId(sessionId) ?? '');
-			void this.uaConnection.killAgent({
+			this.dispatchEngineAction(sessionId, 'killAgent', () => this.uaConnection.killAgent!({
 				sessionId,
 				agentId,
 				...(options?.force === true ? { force: true } : {}),
-			});
+			}));
 			return true;
 		}
 		return false;
@@ -858,13 +892,13 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			}
 			const content = options?.content;
 			const metadataJson = options?.metadataJson;
-			void this.uaConnection.sendClientToolResponse({
+			this.dispatchEngineAction(sessionId, 'sendClientToolResponse', () => this.uaConnection.sendClientToolResponse!({
 				sessionId,
 				callId: trimmedCallId,
 				...(options?.isError === true ? { isError: true } : {}),
 				...(content !== undefined ? { content } : {}),
 				...(metadataJson !== undefined ? { metadataJson } : {}),
-			});
+			}));
 			return true;
 		}
 		return false;
@@ -887,11 +921,11 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (!this.uaConnection.respondPermission) {
 				return false;
 			}
-			void this.uaConnection.respondPermission({
+			this.dispatchEngineAction(sessionId, 'respondPermission', () => this.uaConnection.respondPermission!({
 				sessionId,
 				requestId,
 				granted: status === 'allowed',
-			});
+			}));
 			return true;
 		}
 		return false;
@@ -915,12 +949,12 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (!this.uaConnection.respondQuestion) {
 				return false;
 			}
-			void this.uaConnection.respondQuestion({
+			this.dispatchEngineAction(sessionId, 'respondQuestion', () => this.uaConnection.respondQuestion!({
 				sessionId,
 				questionId: trimmedQuestionId,
 				...(answers !== undefined ? { answers } : {}),
 				...(customText !== undefined ? { customText } : {}),
-			});
+			}));
 			return true;
 		}
 		return false;
@@ -939,7 +973,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				return false;
 			}
 			const agentId = this.lastStreamingAgentId(sessionId) || 'root';
-			void this.uaConnection.deleteMessage({ sessionId, turnId: trimmedTurnId, agentId });
+			this.dispatchEngineAction(sessionId, 'deleteMessage', () =>
+				this.uaConnection.deleteMessage!({ sessionId, turnId: trimmedTurnId, agentId }));
 			return true;
 		}
 		return false;
@@ -962,7 +997,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				return false;
 			}
 			const agentId = options.agentId?.trim() || this.lastStreamingAgentId(sessionId) || 'root';
-			void this.uaConnection.cancelToolCall({ sessionId, agentId, toolCallId });
+			this.dispatchEngineAction(sessionId, 'cancelToolCall', () =>
+				this.uaConnection.cancelToolCall!({ sessionId, agentId, toolCallId }));
 			return true;
 		}
 		return false;
@@ -998,19 +1034,19 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return false;
 	}
 
-	private forwardEngineQueueRef(sessionId: string, callRemote: boolean, send: () => void): boolean {
+	private forwardEngineQueueRef(sessionId: string, action: string, callRemote: boolean, send: () => Promise<unknown>): boolean {
 		if (!this.engineSessions.some(session => session.id === sessionId)) {
 			return false;
 		}
 		if (callRemote) {
-			send();
+			this.dispatchEngineAction(sessionId, action, send);
 			this._onDidChangeSession.fire(sessionId);
 			return true;
 		}
 		return false;
 	}
 
-	private forwardEngineQueueItem(sessionId: string, itemId: string, callRemote: boolean, send: (itemId: string) => void): boolean {
+	private forwardEngineQueueItem(sessionId: string, itemId: string, action: string, callRemote: boolean, send: (itemId: string) => Promise<unknown>): boolean {
 		const trimmedId = itemId.trim();
 		if (!trimmedId) {
 			return false;
@@ -1019,7 +1055,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return false;
 		}
 		if (callRemote) {
-			send(trimmedId);
+			this.dispatchEngineAction(sessionId, action, () => send(trimmedId));
 			this._onDidChangeSession.fire(sessionId);
 			return true;
 		}
@@ -1037,7 +1073,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return false;
 		}
 		const opId = options?.opId?.trim();
-		return this.forwardEngineQueueRef(sessionId, callRemote, () => this.uaConnection.enqueueQueueItem({
+		return this.forwardEngineQueueRef(sessionId, 'enqueueQueueItem', callRemote, () => this.uaConnection.enqueueQueueItem({
 			sessionId,
 			text: trimmed,
 			...(options?.priority ? { priority: options.priority } : {}),
@@ -1050,7 +1086,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (!trimmed) {
 			return false;
 		}
-		return this.forwardEngineQueueItem(sessionId, itemId, callRemote, id => this.uaConnection.editQueueItem({
+		return this.forwardEngineQueueItem(sessionId, itemId, 'editQueueItem', callRemote, id => this.uaConnection.editQueueItem({
 			sessionId,
 			itemId: id,
 			text: trimmed,
@@ -1075,18 +1111,18 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				if (!this.uaConnection.retryQueueItemUpload) {
 					return false;
 				}
-				void this.uaConnection.retryQueueItemUpload({
+				this.dispatchEngineAction(sessionId, 'retryQueueItemUpload', () => this.uaConnection.retryQueueItemUpload!({
 					sessionId,
 					itemId: trimmedId,
-				});
+				}));
 			} else {
 				if (!this.uaConnection.retryQueueItem) {
 					return false;
 				}
-				void this.uaConnection.retryQueueItem({
+				this.dispatchEngineAction(sessionId, 'retryQueueItem', () => this.uaConnection.retryQueueItem!({
 					sessionId,
 					itemId: trimmedId,
-				});
+				}));
 			}
 			this._onDidChangeSession.fire(sessionId);
 			return true;
@@ -1108,12 +1144,12 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				return false;
 			}
 			const agentId = this.lastStreamingAgentId(sessionId) || 'root';
-			void this.uaConnection.editMessage({
+			this.dispatchEngineAction(sessionId, 'editMessage', () => this.uaConnection.editMessage!({
 				sessionId,
 				turnId: trimmedTurnId,
 				newContent: trimmedText,
 				agentId,
-			});
+			}));
 			return true;
 		}
 		return false;
@@ -1144,22 +1180,22 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 		const previousTitle = session.title;
 		session.title = trimmed;
+		if (callRemote) {
+			this.dispatchEngineAction(
+				sessionId,
+				'renameSession',
+				async () => {
+					const result = await this.uaConnection.renameSession({ sessionId, title: trimmed });
+					if (!result.ok) {
+						throw new Error('renameSession refused');
+					}
+				},
+				() => this.rollbackEngineSessionTitle(sessionId, previousTitle),
+			);
+		}
 		this._onDidChangeSession.fire(sessionId);
 		this.persistEngineAwareRoster();
-		if (callRemote) {
-			this.followRemoteRenameSession(this.uaConnection.renameSession({ sessionId, title: trimmed }), sessionId, previousTitle);
-		}
 		return true;
-	}
-
-	private followRemoteRenameSession(remote: Promise<{ readonly ok: boolean }>, sessionId: string, previousTitle: string): void {
-		void remote.then(result => {
-			if (!result.ok) {
-				this.rollbackEngineSessionTitle(sessionId, previousTitle);
-			}
-		}, () => {
-			this.rollbackEngineSessionTitle(sessionId, previousTitle);
-		});
 	}
 
 	private rollbackEngineSessionTitle(sessionId: string, previousTitle: string): void {
@@ -1189,6 +1225,14 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		const wasActive = this.getActiveSessionId() === sessionId;
 		this.engineSessions = this.engineSessions.filter(s => s.id !== sessionId);
 		this.sessionGoals.delete(sessionId);
+		if (callRemote) {
+			this.dispatchEngineAction(
+				sessionId,
+				'deleteSession',
+				() => this.uaConnection.deleteSession({ sessionId }),
+				() => this.rollbackEngineSessionDelete(snapshot),
+			);
+		}
 		if (this.engineSessions.length === 0) {
 			// Honest empty — no stub seed refill (m6 §6 / M6-A2).
 			this.listCompleted = true;
@@ -1205,16 +1249,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 		this._onDidChangeSession.fire(sessionId);
 		this.persistEngineAwareRoster();
-		if (callRemote) {
-			this.followRemoteDeleteSession(this.uaConnection.deleteSession({ sessionId }), snapshot);
-		}
 		return true;
-	}
-
-	private followRemoteDeleteSession(remote: Promise<void>, snapshot: EngineSessionDeleteSnapshot): void {
-		void remote.then(() => { }, () => {
-			this.rollbackEngineSessionDelete(snapshot);
-		});
 	}
 
 	private rollbackEngineSessionDelete(snapshot: EngineSessionDeleteSnapshot): void {

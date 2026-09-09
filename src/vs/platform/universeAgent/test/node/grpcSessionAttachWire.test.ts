@@ -38,8 +38,9 @@ suite('grpc first-send / attach protobuf wire', () => {
 		assert.notStrictEqual(encoded[0], 0x7b, 'must not start with JSON {');
 		const fields = readProtoFields(encoded);
 		const byField = new Map(fields.map(field => [field.field, field]));
-		assert.strictEqual(byField.get(3)?.field, 3);
-		assert.strictEqual(Buffer.from(byField.get(3)?.wireType === 2 ? byField.get(3)!.bytes : []).toString('utf8'), 'gpt-test');
+		const model = byField.get(3);
+		assert.ok(model && model.wireType === 2);
+		assert.strictEqual(Buffer.from(model.bytes).toString('utf8'), 'gpt-test');
 		assert.ok(!fields.some(field => field.wireType === 2 && Buffer.from(field.bytes).toString('utf8') === 'New session'));
 	});
 

@@ -18,7 +18,7 @@ import type {
 	UniverseAgentSessionStreamCloseCause,
 } from '../../common/universeAgentTypes.js';
 import type { IUniverseAgentSessionViewFrameEvent } from '../../common/universeAgentSessionView.js';
-import { createEmptyCapabilitySnapshot } from '../../node/grpcCapabilityProbe.js';
+import { createEmptyCapabilitySnapshot } from '../../common/universeAgentCapabilities.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
 import { NodeSchedulerPort } from '../../node/sessionViewHostPorts.js';
 import type { TimerId } from '../../node/sessionCore/ports.js';

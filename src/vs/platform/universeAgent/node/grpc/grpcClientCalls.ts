@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as grpc from '@grpc/grpc-js';
+import type * as grpc from '@grpc/grpc-js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { createStreamCloseGate } from '../../common/sessionStreamClose.js';
 import type { UniverseAgentSessionStreamCloseCause, UniverseAgentChatStream } from '../../common/universeAgentTypes.js';

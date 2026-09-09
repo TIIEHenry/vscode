@@ -26,7 +26,7 @@ function capabilityMarksUnsupportedEnvironment(capabilities: UniverseAgentCapabi
 		return false;
 	}
 	for (const entry of Object.values(capabilities)) {
-		if (entry && typeof entry === 'object' && 'reason' in entry && entry.reason === LOCAL_ENGINE_UNSUPPORTED_REASON) {
+		if (entry?.reason === LOCAL_ENGINE_UNSUPPORTED_REASON) {
 			return true;
 		}
 	}

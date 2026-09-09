@@ -13,7 +13,7 @@ import { GroupIdentifier } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IConversationEditorPart, IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
-import { ConversationChatInput } from './conversationChatInput.js';
+import { ConversationChatInput } from '../common/conversationChatInput.js';
 import { isConversationDiffReviewInput } from '../../sources/common/conversationDiffReviewInput.js';
 import { isConversationExtensionTab } from '../common/conversationEditorRouting.js';
 import { CONVERSATION_CLOSE_CHILD_ON_BACK_SETTING } from '../common/conversationNavigation.js';

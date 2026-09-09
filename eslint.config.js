@@ -54,7 +54,10 @@ export default defineConfig(
 			'prefer-const': [
 				'warn',
 				{
-					'destructuring': 'all'
+					'destructuring': 'all',
+					// A variable read by a closure that is defined before the assignment
+					// cannot be a const at all, so reporting it has no actionable fix.
+					'ignoreReadBeforeAssign': true
 				}
 			],
 			'no-buffer-constructor': 'warn',
@@ -1620,6 +1623,17 @@ export default defineConfig(
 						'undici-types',
 						'url',
 						'module',
+						// `node:`-prefixed spellings of the built-ins allowed above. The
+						// prefix reaches the same module, so it must not change what this
+						// list permits — `node:path` stays out for the same reason 'path'
+						// does.
+						'node:child_process',
+						'node:crypto',
+						'node:fs',
+						'node:net',
+						'node:os',
+						'node:tls',
+						'node:url',
 						'util',
 						'vscode-regexpp',
 						'vscode-textmate',
@@ -1742,6 +1756,25 @@ export default defineConfig(
 					]
 				},
 				{
+					'target': 'src/vs/platform/universeAgent/~',
+					'restrictions': [
+						'vs/base/~',
+						'vs/base/parts/*/~',
+						'vs/platform/*/~',
+						'tas-client', // node module allowed even in /common/
+						'@microsoft/1ds-core-js', // node module allowed even in /common/
+						'@microsoft/1ds-post-js', // node module allowed even in /common/
+						'@xterm/headless', // node module allowed even in /common/
+						'@vscode/tree-sitter-wasm', // used by agentHost for command auto-approval
+						{
+							// gRPC transport to the engine. Node layers only: the browser
+							// and common layers reach the engine through the channel.
+							'when': 'hasNode',
+							'pattern': '@grpc/grpc-js'
+						}
+					]
+				},
+				{
 					'target': 'src/vs/platform/*/~',
 					'restrictions': [
 						'vs/base/~',
@@ -1830,6 +1863,14 @@ export default defineConfig(
 						'vs/editor/contrib/*/~',
 						'vs/workbench/~',
 						'vs/workbench/services/*/~',
+						// This fork puts the conversation part at the centre of the shell:
+						// the editor parts open a conversation input as the default editor,
+						// and group routing asks the conversation/sources contribs where an
+						// editor is allowed to land. That inverts the usual «core knows
+						// nothing about contrib» rule on purpose, so the specific modules
+						// involved are named here rather than left as a silent violation.
+						'vs/workbench/contrib/conversation/common/conversationChatInput.js',
+						'vs/workbench/contrib/conversation/common/conversationEditorRouting.js',
 						'assert',
 						{
 							'when': 'test',
@@ -1863,6 +1904,14 @@ export default defineConfig(
 						'vs/editor/contrib/*/~',
 						'vs/workbench/~',
 						'vs/workbench/services/*/~',
+						// This fork puts the conversation part at the centre of the shell:
+						// the editor parts open a conversation input as the default editor,
+						// and group routing asks the conversation/sources contribs where an
+						// editor is allowed to land. That inverts the usual «core knows
+						// nothing about contrib» rule on purpose, so the specific modules
+						// involved are named here rather than left as a silent violation.
+						'vs/workbench/contrib/conversation/common/conversationEditorRouting.js',
+						'vs/workbench/contrib/sources/common/conversationDiffReviewInput.js',
 						{
 							'when': 'test',
 							'pattern': 'vs/workbench/contrib/*/~'

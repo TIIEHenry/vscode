@@ -5,29 +5,39 @@
 
 import assert from 'assert';
 import * as fs from 'fs';
-import * as path from 'path';
+import * as path from '../../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import {
 	CONVERSATION_SRC_ROOT,
 	assertConversationSourceScan,
 	collectConversationProductionFiles,
 	extractImportPaths,
-} from '../common/conversationImportBoundaryScan.js';
+} from '../node/conversationImportBoundaryScan.js';
+
+const CHAT_CONTENT_PARTS_PREFIX = 'vs/workbench/contrib/chat/browser/widget/chatContentParts/';
 
 const FORBIDDEN_IMPORT_SUBSTRINGS = [
-	'deepseek-harness',
-	'dsh-client',
+	'chat/widget/chatListWidget',
+	'chatWidget',
+	'chat/browser/widget/input/',
+	'agentSessions/',
+	'thinkrail',
+	'chatOutputItemRenderer',
+	'vs/sessions/',
 ] as const;
 
-function isForbiddenTrajectoryImport(importPath: string): boolean {
+function isForbiddenVisualizeImport(importPath: string): boolean {
+	if (importPath.includes('contrib/chat/')) {
+		return !importPath.includes(CHAT_CONTENT_PARTS_PREFIX);
+	}
 	return FORBIDDEN_IMPORT_SUBSTRINGS.some(forbidden => importPath.includes(forbidden));
 }
 
-suite('conversationTrajectoryImportBoundaries', () => {
+suite('conversationVisualizeImportBoundaries', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('production contrib/conversation files do not import harness runtime paths', () => {
+	test('production contrib/conversation files respect visualize import boundaries', () => {
 		const files = collectConversationProductionFiles();
 		assertConversationSourceScan(files);
 
@@ -36,7 +46,7 @@ suite('conversationTrajectoryImportBoundaries', () => {
 			const relativePath = path.relative(CONVERSATION_SRC_ROOT, filePath).split(path.sep).join('/');
 			const source = fs.readFileSync(filePath, 'utf8');
 			for (const importPath of extractImportPaths(source)) {
-				if (isForbiddenTrajectoryImport(importPath)) {
+				if (isForbiddenVisualizeImport(importPath)) {
 					violations.push(`${relativePath}: ${importPath}`);
 				}
 			}
@@ -45,7 +55,7 @@ suite('conversationTrajectoryImportBoundaries', () => {
 		assert.deepStrictEqual(
 			violations,
 			[],
-			`Forbidden harness imports in contrib/conversation production code:\n${violations.join('\n')}`,
+			`Forbidden visualize imports in contrib/conversation production code:\n${violations.join('\n')}`,
 		);
 	});
 });

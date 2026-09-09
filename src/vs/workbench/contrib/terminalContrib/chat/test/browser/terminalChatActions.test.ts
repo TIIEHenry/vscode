@@ -6,8 +6,7 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../../platform/actions/common/actions.js';
-import type { ContextKeyExpression, ContextKeyValue } from '../../../../../../platform/contextkey/common/contextkey.js';
-import { ContextKeyValue as ContextKeyValueType, IContext } from '../../../../../../platform/contextkey/common/contextkey.js';
+import { type ContextKeyExpression, type ContextKeyValue, ContextKeyValue as ContextKeyValueType, IContext } from '../../../../../../platform/contextkey/common/contextkey.js';
 import { IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
 import { ChatContextKeys } from '../../../../chat/common/actions/chatContextKeys.js';
 import '../../browser/terminalChatActions.js';

@@ -22,10 +22,10 @@ suite('conversation lens dispose gate', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('applySessionViewTimeline skips applyEntries after _store dispose', () => {
+	test('applySessionViewTimeline skips applyEntries after dispose', () => {
 		let applyEntries = 0;
 		const host = {
-			_store: { isDisposed: true },
+			isDisposed: true,
 			sessionViewLease: { sessionId: 's1' },
 			timelineTree: { applyEntries: () => { applyEntries++; } },
 		} as unknown as IConversationLensProjectionHost;
@@ -33,11 +33,11 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(applyEntries, 0);
 	});
 
-	test('refreshTrajectoryRecords skips setRecords after _store dispose', () => {
+	test('refreshTrajectoryRecords skips setRecords after dispose', () => {
 		let setRecords = 0;
 		let readRecords = 0;
 		const host = {
-			_store: { isDisposed: true },
+			isDisposed: true,
 			filterAgentId: undefined,
 			sessionViewLease: undefined,
 			stubService: {
@@ -53,10 +53,10 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(setRecords, 0);
 	});
 
-	test('refreshTrajectoryRecords still setRecords while _store is live', () => {
+	test('refreshTrajectoryRecords still setRecords while live', () => {
 		let setRecords = 0;
 		const host = {
-			_store: { isDisposed: false },
+			isDisposed: false,
 			filterAgentId: undefined,
 			sessionViewLease: undefined,
 			stubService: {
@@ -70,13 +70,13 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(setRecords, 1);
 	});
 
-	test('bindSessionView skips applyEntries after _store dispose', () => {
+	test('bindSessionView skips applyEntries after dispose', () => {
 		const lifetime = new DisposableStore();
 		lifetime.dispose();
 		let applyEntries = 0;
 		let acquire = 0;
 		const host = {
-			_store: { isDisposed: true },
+			isDisposed: true,
 			sessionViewLifetime: lifetime,
 			sessionViewLease: { sessionId: 's1' },
 			lastAttachedEntries: [],
@@ -94,11 +94,11 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(acquire, 0);
 	});
 
-	test('bindSessionView still applyEntries empty tree while _store is live', () => {
+	test('bindSessionView still applyEntries empty tree while live', () => {
 		const lifetime = new DisposableStore();
 		let applyEntries = 0;
 		const host = {
-			_store: { isDisposed: false },
+			isDisposed: false,
 			sessionViewLifetime: lifetime,
 			sessionViewLease: { sessionId: 's1' },
 			lastAttachedEntries: [{ id: 't1' }],

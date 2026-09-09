@@ -5,14 +5,14 @@
 
 import assert from 'assert';
 import * as fs from 'fs';
-import * as path from 'path';
+import * as path from '../../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import {
 	CONVERSATION_SRC_ROOT,
 	assertConversationSourceScan,
 	collectConversationProductionFiles,
 	extractImportPaths,
-} from '../common/conversationImportBoundaryScan.js';
+} from '../node/conversationImportBoundaryScan.js';
 
 const FORBIDDEN_IMPORT_SUBSTRINGS = [
 	'chatThinkingContentPart',

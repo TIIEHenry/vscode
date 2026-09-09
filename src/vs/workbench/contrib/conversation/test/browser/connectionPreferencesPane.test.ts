@@ -11,9 +11,8 @@ import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
-import type { HubAuthStatus, HubDeviceProjection, HubDirectoryStatus } from '../../../../../platform/universeAgent/common/hub.js';
+import { type HubAuthStatus, type HubDeviceProjection, type HubDirectoryStatus, IUniverseAgentHubService } from '../../../../../platform/universeAgent/common/hub.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { IUniverseAgentHubService } from '../../../../../platform/universeAgent/common/hub.js';
 import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
@@ -75,7 +74,7 @@ import {
 	connectionPaneIdentityReservationHostClass,
 	connectionPaneIdentityReservedTopVar,
 } from '../../browser/connectionPaneIdentityStripReservation.js';
-import { Dimension } from '../../../../../base/browser/dom.js';
+import { Dimension, getWindow } from '../../../../../base/browser/dom.js';
 
 const CONNECTION_EMPTY_COPY = 'No connection profiles yet';
 const FAKE_PROFILE_LABELS = ['Local Engine', 'Home Server'];
@@ -227,10 +226,10 @@ suite('ConnectionPreferencesPane', () => {
 			activeZone.contains(dialog) || activeZone.nextElementSibling === host,
 			'SAS confirm must sit in or immediately after the active Connect zone',
 		);
-		assert.strictEqual(getComputedStyle(profiles).display, 'none');
-		assert.notStrictEqual(getComputedStyle(dialog).display, 'none');
-		assert.notStrictEqual(getComputedStyle(host).display, 'none');
-		assert.notStrictEqual(getComputedStyle(activeZone).display, 'none');
+		assert.strictEqual(getWindow(profiles).getComputedStyle(profiles).display, 'none');
+		assert.notStrictEqual(getWindow(dialog).getComputedStyle(dialog).display, 'none');
+		assert.notStrictEqual(getWindow(host).getComputedStyle(host).display, 'none');
+		assert.notStrictEqual(getWindow(activeZone).getComputedStyle(activeZone).display, 'none');
 		const buttons = getPairingConfirmButtons(container);
 		assert.strictEqual(buttons.length, 2);
 		assert.strictEqual(buttons[0].textContent, SAS_CONFIRM_BUTTON_LABEL);
@@ -1720,8 +1719,6 @@ suite('ConnectionPreferencesPane', () => {
 
 	test('recoverTrust confirm shows identity+fingerprint dialog then confirmPairing', async () => {
 		let confirmCalls = 0;
-		let promptedTitle: string | undefined;
-		let promptedDetail: string | undefined;
 		const leafFp = 'a'.repeat(64);
 		const engineId = 'eng-recover-identity-01';
 		const instantiationService = workbenchInstantiationService(undefined, store);
@@ -1764,8 +1761,8 @@ suite('ConnectionPreferencesPane', () => {
 		await Promise.resolve();
 		const dialogBox = container.querySelector('.connection-pairing-confirm .monaco-dialog-box') as HTMLElement;
 		assert.ok(dialogBox);
-		promptedTitle = dialogBox.querySelector('.dialog-message')?.textContent ?? undefined;
-		promptedDetail = dialogBox.querySelector('.dialog-message-detail')?.textContent ?? undefined;
+		const promptedTitle = dialogBox.querySelector('.dialog-message')?.textContent ?? undefined;
+		const promptedDetail = dialogBox.querySelector('.dialog-message-detail')?.textContent ?? undefined;
 		assert.ok(promptedDetail?.includes(engineId));
 		assert.ok(promptedDetail?.includes(leafFp));
 		assert.ok(promptedDetail?.includes('does not use a pairing code'));
@@ -3262,6 +3259,8 @@ suite('ConnectionPreferencesPane', () => {
 });
 
 suite('Conversation Session StatusBar H4a negative', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
 	test('engine status copy stays not connected before H4b phase wiring', () => {
 		assert.strictEqual(getConversationEngineStatusText(), 'Engine not connected');
 	});

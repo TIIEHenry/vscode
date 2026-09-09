@@ -2,7 +2,7 @@
  * Pure timelineItemFrom* helpers for SessionActor respond cleanup (GFS-4).
  */
 import type { NormalizedLocalFact } from './local-fact.js'
-import type { ClientActionRequestId, PendingActionView, TimelineItemId, TimelineItemView } from '../../common/sessionView/types.js'
+import type { PendingActionView, TimelineItemId, TimelineItemView } from '../../common/sessionView/types.js'
 
 type PermissionRespondFact = Extract<NormalizedLocalFact, { kind: 'permissionRespond' }>
 

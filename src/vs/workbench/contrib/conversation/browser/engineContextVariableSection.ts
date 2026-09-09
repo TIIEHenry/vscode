@@ -45,6 +45,7 @@ export class EngineContextVariableSection extends Disposable {
 	private renderGeneration = 0;
 	private rows: EngineContextVariableListRow[] = [];
 	private selectedRow: EngineContextVariableListRow | undefined;
+	private renderedRows: { readonly element: HTMLElement; readonly model: EngineContextVariableListRow }[] = [];
 
 	constructor(
 		parent: HTMLElement,
@@ -112,6 +113,7 @@ export class EngineContextVariableSection extends Disposable {
 		this.readStatus.style.display = 'none';
 		this.readStatus.textContent = '';
 		DOM.clearNode(this.listHost);
+		this.renderedRows = [];
 		this.updateReadAction();
 
 		if (!this.connection.isEngineConnected()) {
@@ -175,6 +177,7 @@ export class EngineContextVariableSection extends Disposable {
 		this.listHost.style.display = '';
 		for (const row of this.rows) {
 			const item = DOM.append(this.listHost, $('.engine-context-variable-row'));
+			this.renderedRows.push({ element: item, model: row });
 			item.setAttribute('role', 'listitem');
 			item.textContent = formatEngineContextVariableListLabel(row.source, row.entry);
 			item.addEventListener('click', () => {
@@ -185,10 +188,9 @@ export class EngineContextVariableSection extends Disposable {
 	}
 
 	private paintSelection(): void {
-		const items = this.listHost.querySelectorAll('.engine-context-variable-row');
-		items.forEach((item, index) => {
-			item.classList.toggle('selected', this.rows[index] === this.selectedRow);
-		});
+		for (const rendered of this.renderedRows) {
+			rendered.element.classList.toggle('selected', rendered.model === this.selectedRow);
+		}
 	}
 
 	private updateReadAction(): void {

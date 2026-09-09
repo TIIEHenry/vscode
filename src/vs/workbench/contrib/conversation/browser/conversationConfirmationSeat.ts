@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, append, getActiveElement, getWindow } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, getActiveElement, getWindow, isHTMLElement } from '../../../../base/browser/dom.js';
 import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
@@ -130,7 +130,7 @@ export function handleConversationOverlayTab(container: HTMLElement, event: Keyb
 	}
 
 	const active = getActiveElement();
-	const currentIndex = active instanceof HTMLElement
+	const currentIndex = isHTMLElement(active)
 		? focusable.findIndex(element => element === active || element.contains(active))
 		: -1;
 	let nextIndex: number;

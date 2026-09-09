@@ -11,10 +11,13 @@ declare -A RESULT_XML=(
 	[conversation]="linux-x64-conversation-results.xml"
 	[sources]="linux-x64-sources-results.xml"
 	[universeAgent]="linux-x64-universeagent-results.xml"
+	[universeAgentNode]="linux-x64-universeagentnode-results.xml"
 )
 
+DOMAINS=(conversation sources universeAgent universeAgentNode)
+
 missing=()
-for domain in conversation sources universeAgent; do
+for domain in "${DOMAINS[@]}"; do
 	xml="$WORKSPACE/test-results/${RESULT_XML[$domain]}"
 	if [[ ! -f "$xml" ]]; then
 		missing+=("$xml")
@@ -33,7 +36,7 @@ if [[ ! -f "$LIST_FILE" ]]; then
 fi
 
 export WORKSPACE LIST_FILE
-for domain in conversation sources universeAgent; do
+for domain in "${DOMAINS[@]}"; do
 	export "XML_${domain}=$WORKSPACE/test-results/${RESULT_XML[$domain]}"
 done
 
@@ -45,7 +48,7 @@ import xml.etree.ElementTree as ET
 
 workspace = os.environ["WORKSPACE"]
 list_file = os.environ["LIST_FILE"]
-domains = ("conversation", "sources", "universeAgent")
+domains = ("conversation", "sources", "universeAgent", "universeAgentNode")
 xml_paths = {d: os.environ[f"XML_{d}"] for d in domains}
 
 min_cases: dict[str, int] = {}

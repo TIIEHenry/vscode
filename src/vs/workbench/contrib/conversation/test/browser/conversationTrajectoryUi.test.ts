@@ -9,8 +9,10 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { ConversationPart, IConversationLensSlots } from '../../../../browser/parts/conversation/conversationPart.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
-import { ConversationTrajectory, conversationTrajectorySearchPlaceholder, formatConversationTrajectoryLimitNotice } from '../../browser/conversationTrajectory.js';
 import {
+	ConversationTrajectory,
+	conversationTrajectorySearchPlaceholder,
+	formatConversationTrajectoryLimitNotice,
 	conversationTrajectoryInspectorPayload,
 	conversationTrajectoryInspectorSummary,
 	conversationTrajectoryKindContext,
@@ -22,7 +24,7 @@ import { ConversationStubService, IConversationRosterService } from '../../brows
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
-import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
+import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
 import {
 	CONVERSATION_TRAJECTORY_RECORD_LIMIT,
 	CONVERSATION_TRAJECTORY_STUB_CONTEXT_TEXT,
@@ -38,6 +40,7 @@ import { ISCMService } from '../../../scm/common/scm.js';
 import { IStorageService } from '../../../../../platform/storage/common/storage.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { flushConversationLensLayout, installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
+import { mainWindow } from '../../../../../base/browser/window.js';
 
 suite('ConversationTrajectoryUi', () => {
 
@@ -314,7 +317,7 @@ suite('ConversationTrajectoryUi', () => {
 		assert.strictEqual(search.placeholder, conversationTrajectorySearchPlaceholder);
 
 		search.value = CONVERSATION_TRAJECTORY_STUB_SYSTEM_TEXT;
-		search.dispatchEvent(new window.Event('input', { bubbles: true }));
+		search.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
 		await new Promise<void>(resolve => setTimeout(resolve, 200));
 		layout();
 

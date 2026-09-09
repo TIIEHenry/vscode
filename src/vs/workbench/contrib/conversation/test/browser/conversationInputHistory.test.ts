@@ -11,8 +11,11 @@ import {
 	navigateInputHistoryBrowse,
 } from '../../browser/conversationInputHistory.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 
 suite('ConversationInputHistory', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('buildSessionUserInputHistory keeps user turns newest-first and ignores other kinds', () => {
 		const turns: ConversationStubTurn[] = [

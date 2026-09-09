@@ -32,7 +32,6 @@ function readSaoSubOwnDataValue(record: object, key: string): unknown {
 
 import {
 	isApplyViewPatchesFact,
-	isChatLifecycleLocalFact,
 	isChatStreamDownFact,
 	isChatStreamUpFact,
 	isClientToolRespondFact,
@@ -67,7 +66,6 @@ import {
 	timelineItemFromQuestionRespondPending,
 } from './session-actor-timeline-items.js'
 import {
-	SEND_FAILED_EFFECT_KIND,
 	SEND_FAILED_HOST_WRITE,
 	SEND_FAILED_OUTBOX_OVERFLOW,
 } from './session-actor-chat-outbox.js'

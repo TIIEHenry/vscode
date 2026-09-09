@@ -10,7 +10,7 @@ import { ConversationPart, IConversationLensSlots } from '../../../../browser/pa
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { ConversationTimelineTree } from '../../browser/conversationTimelineTree.js';
-import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
+import { ConversationTrajectory, getTrajectoryKindLabel, conversationTrajectoryKindTool } from '../../browser/conversationTrajectory.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
@@ -29,7 +29,6 @@ import {
 } from '../../browser/conversationTrajectoryModel.js';
 import type { ItemAttribution } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { SessionViewSnapshot, TimelineItemId } from '../../../../../platform/universeAgent/common/sessionView/index.js';
-import { getTrajectoryKindLabel, conversationTrajectoryKindTool } from '../../browser/conversationTrajectory.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
 import { TestClipboardService } from '../../../../../platform/clipboard/test/common/testClipboardService.js';
@@ -39,7 +38,7 @@ import { IExplorerService } from '../../../files/browser/files.js';
 import { ISCMService } from '../../../scm/common/scm.js';
 import { IStorageService } from '../../../../../platform/storage/common/storage.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
-import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
+import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
 import { flushConversationLensLayout, installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
 
 function turn(id: string, kind: ConversationStubTurn['kind'], text = id, status?: ConversationStubTurn['status']): ConversationStubTurn {

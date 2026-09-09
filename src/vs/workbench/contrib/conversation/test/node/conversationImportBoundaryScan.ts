@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import * as fs from 'fs';
-import * as path from 'path';
+import * as path from '../../../../../base/common/path.js';
 import { fileURLToPath } from 'url';
 
 /**

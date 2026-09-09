@@ -643,6 +643,7 @@ export function updatePermissionSelectEnabled(host: IConversationLensComposerChr
 			? conversationLensDockPermissionLabel
 			: `${conversationLensDockPermissionLabel} — ${conversationLensDockPermissionUnavailable}`;
 		host.permissionSelectBox.setAriaLabel(label);
+		// eslint-disable-next-line no-restricted-syntax -- the permission host is built by the dock, not by this chrome
 		const container = host.dockRoot?.querySelector('.conversation-lens-dock-permission') as HTMLElement | null;
 		if (container) {
 			container.title = available ? conversationLensDockPermissionLabel : conversationLensDockPermissionUnavailable;

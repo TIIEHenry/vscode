@@ -7,8 +7,7 @@ import assert from 'assert';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { URI } from '../../../../../base/common/uri.js';
-import type { SessionViewSnapshot, TimelineItemSummary } from '../../../../../platform/universeAgent/common/sessionView/index.js';
-import { emptySessionViewSnapshot } from '../../../../../platform/universeAgent/common/sessionView/index.js';
+import { type SessionViewSnapshot, type TimelineItemSummary, emptySessionViewSnapshot } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ISCMService } from '../../../scm/common/scm.js';
@@ -23,7 +22,7 @@ import {
 	materializeReviewNavRecords,
 	reviewNavEntryId,
 	reviewNavIndicesOutsideProcessFold,
-} from '../../common/conversationReviewEntry.js';
+} from '../../browser/conversationReviewEntry.js';
 import {
 	entriesToLegacyTurns,
 	projectSnapshotToEntries,
@@ -217,7 +216,7 @@ suite('conversationReviewEntry (R4b)', () => {
 		const root = WORKSPACE_ROOT;
 		const mutationEmitter = store.add(new Emitter<IFileMutationRecord>());
 		const connectionChangeEmitter = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
-		const settleEmitter = store.add(new Emitter<import('../../common/conversationReviewEntry.js').ITurnSettleSignal>());
+		const settleEmitter = store.add(new Emitter<import('../../browser/conversationReviewEntry.js').ITurnSettleSignal>());
 
 		const connection = {
 			isEngineConnected: () => false,

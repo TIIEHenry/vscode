@@ -36,9 +36,11 @@ suite('universeAgentRendererSync', () => {
 	});
 
 	test('sanitizeDesktopCapabilitySnapshot strips Web stub pollution', () => {
-		const polluted = createIdleCapabilitySnapshot();
-		polluted.skills = { support: 'UNSUPPORTED', reason: WEB_UNSUPPORTED_LOCAL_ENGINE_REASON };
-		polluted.models = { support: 'UNSUPPORTED', reason: WEB_UNSUPPORTED_LOCAL_ENGINE_REASON };
+		const polluted = {
+			...createIdleCapabilitySnapshot(),
+			skills: { support: 'UNSUPPORTED' as const, reason: WEB_UNSUPPORTED_LOCAL_ENGINE_REASON },
+			models: { support: 'UNSUPPORTED' as const, reason: WEB_UNSUPPORTED_LOCAL_ENGINE_REASON },
+		};
 		const clean = sanitizeDesktopCapabilitySnapshot(polluted);
 		assert.strictEqual(clean.skills.support, 'UNKNOWN');
 		assert.strictEqual(clean.skills.reason, undefined);
@@ -48,8 +50,10 @@ suite('universeAgentRendererSync', () => {
 
 	test('connection cache drops Web stub capability reasons from IPC snapshots', () => {
 		const cache = new UniverseAgentConnectionSyncCache();
-		const capabilities = createIdleCapabilitySnapshot();
-		capabilities.mcp = { support: 'UNSUPPORTED', reason: WEB_UNSUPPORTED_LOCAL_ENGINE_REASON };
+		const capabilities = {
+			...createIdleCapabilitySnapshot(),
+			mcp: { support: 'UNSUPPORTED' as const, reason: WEB_UNSUPPORTED_LOCAL_ENGINE_REASON },
+		};
 		cache.applySnapshot({
 			transport: 'idle',
 			pairingPending: false,
@@ -111,7 +115,7 @@ suite('universeAgentRendererSync', () => {
 	test('hub cache maps a Promise list to empty until a real array arrives', () => {
 		const cache = new UniverseAgentHubSyncCache();
 		cache.applyProfiles(Promise.resolve([{ profileId: 'x' }]));
-		assert.deepStrictEqual(cache.profiles, []);
+		assert.strictEqual(cache.profiles.length, 0);
 		cache.applyProfiles([{
 			profileId: 'p1',
 			displayName: 'Direct',
@@ -131,7 +135,7 @@ suite('universeAgentRendererSync', () => {
 			capabilities: createIdleCapabilitySnapshot(),
 		};
 		const channel: IChannel = {
-			call: (command: string) => {
+			call: (command: string): Promise<any> => {
 				switch (command) {
 					case 'getConnectionSnapshot':
 						return Promise.resolve(snapshot);
@@ -172,7 +176,7 @@ suite('universeAgentRendererSync', () => {
 			capabilities: createIdleCapabilitySnapshot(),
 		};
 		const channel: IChannel = {
-			call: (command: string) => {
+			call: (command: string): Promise<any> => {
 				switch (command) {
 					case 'getConnectionSnapshot':
 						return Promise.resolve(snapshot);
@@ -202,7 +206,7 @@ suite('universeAgentRendererSync', () => {
 			capabilities: createIdleCapabilitySnapshot(),
 		};
 		const channel: IChannel = {
-			call: (command: string) => {
+			call: (command: string): Promise<any> => {
 				switch (command) {
 					case 'getConnectionSnapshot':
 						return Promise.resolve(snapshot);
@@ -263,7 +267,7 @@ suite('universeAgentRendererSync', () => {
 		};
 		const commands: string[] = [];
 		const channel: IChannel = {
-			call: (command: string, args?: unknown[]) => {
+			call: (command: string, args?: unknown[]): Promise<any> => {
 				commands.push(command);
 				switch (command) {
 					case 'getConnectionSnapshot':
@@ -309,7 +313,7 @@ suite('universeAgentRendererSync', () => {
 			capabilities: createIdleCapabilitySnapshot(),
 		};
 		const channel: IChannel = {
-			call: (command: string) => {
+			call: (command: string): Promise<any> => {
 				switch (command) {
 					case 'getConnectionSnapshot':
 						return Promise.resolve(snapshot);
@@ -330,7 +334,7 @@ suite('universeAgentRendererSync', () => {
 		assert.strictEqual(client.getConnectionPhase().kind, 'disconnected');
 		assert.strictEqual(client.isEngineConnected(), false);
 		assert.strictEqual(client.getCapabilitySnapshot().providerConfig.support, 'UNKNOWN');
-		assert.notStrictEqual(typeof client.getCapabilitySnapshot().then, 'function');
+		assert.notStrictEqual(typeof (client.getCapabilitySnapshot() as { then?: unknown }).then, 'function');
 	});
 
 	test('connection channel client hydrate IPC reject keeps pre-hydrate defaults without unhandled rejection', async () => {
@@ -446,7 +450,7 @@ suite('universeAgentRendererSync', () => {
 			targetKind: 'directAddress' as const,
 		}];
 		const channel: IChannel = {
-			call: (command: string) => {
+			call: (command: string): Promise<any> => {
 				switch (command) {
 					case 'listConnectionProfiles':
 						return Promise.resolve(profiles);

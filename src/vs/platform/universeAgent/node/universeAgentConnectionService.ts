@@ -366,8 +366,10 @@ import type {
 	IFileMutationRecord,
 	ITurnSettleSignal,
 } from '../common/universeAgentTypes.js';
-import { createEmptyCapabilitySnapshot, probeEngineCapabilities } from './grpcCapabilityProbe.js';
+import { createEmptyCapabilitySnapshot } from '../common/universeAgentCapabilities.js';
+import { probeEngineCapabilities } from './grpcCapabilityProbe.js';
 import { createGrpcUniverseAgentClient, createPinnedGrpcUniverseAgentClient } from './grpc/grpcClient.js';
+import { loadGrpcModule } from './universeAgentChannel.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, isTransportFailureCode, UniverseAgentFetchToolDetailMethodKey, UniverseAgentGrpcServices, UniverseAgentSaveSkillContentMethodKey, UniverseAgentTransportError } from './grpc/grpcTransport.js';
 import { createSessionRecoveringAlreadyExists, runCreateSessionSingleFlight } from './sessionCreateRecover.js';
 import type { ConnectionResolver, ResolvedEndpoint } from './connectionResolver.js';
@@ -614,7 +616,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	async connect(request: UniverseAgentConnectRequest): Promise<UniverseAgentConnectResult> {
 		this._connectionPhase = { kind: 'connecting', reason: 'initial' };
 		this._sharedFsRootSent = !!request.workDir;
-		this._ensureTransport();
+		await this._ensureTransport();
 		try {
 			const result = await this._transport!.connect(request);
 			this._sessionToken = result.sessionToken;
@@ -682,6 +684,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		}
 
 		this._transport?.close();
+		await loadGrpcModule();
 		const endpoint = resolved.endpoint;
 		const dialAddress = `${endpoint.resolvedIp}:${endpoint.port}`;
 		if (endpoint.tls) {
@@ -819,6 +822,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			};
 		}
 
+		await loadGrpcModule();
 		const confirmResult = snapshot.phase === 'recover_trust'
 			? await this._pairingOrchestrator.confirmRecoverTrust()
 			: await this._pairingOrchestrator.confirmSas();
@@ -1878,8 +1882,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		super.dispose();
 	}
 
-	private _ensureTransport(): void {
+	private async _ensureTransport(): Promise<void> {
 		if (!this._transport) {
+			await loadGrpcModule();
 			this._transport = this._createTransport(this._loopbackAddress);
 		}
 	}
@@ -1986,6 +1991,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 		let startResult: Awaited<ReturnType<PairingOrchestrator['startPairing']>>;
 		try {
+			await loadGrpcModule();
 			startResult = await this._pairingOrchestrator.startPairing(profile, pairingEndpoint);
 		} catch (error) {
 			const reason = error instanceof Error ? error.message : String(error);
@@ -2049,6 +2055,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	private async _probeResolvedEndpoint(endpoint: ResolvedEndpoint): Promise<ConnectionProbeResult> {
+		await loadGrpcModule();
 		const dialAddress = `${endpoint.resolvedIp}:${endpoint.port}`;
 		const probeTransport = endpoint.tls
 			? createPinnedGrpcUniverseAgentClient({
@@ -2133,9 +2140,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	private _clearSaveSkillContentBinding(): void {
-		if ('saveSkillContent' in this) {
-			delete (this as Partial<IUniverseAgentConnection>).saveSkillContent;
-		}
+		// The binding is only ever installed as an own property, and deleting a
+		// missing one is a no-op, so no presence check is needed.
+		delete (this as Partial<IUniverseAgentConnection>).saveSkillContent;
 	}
 
 	private async _invokeSaveSkillContent(request: UniverseAgentSaveSkillContentRequest): Promise<UniverseAgentSaveSkillContentResult> {

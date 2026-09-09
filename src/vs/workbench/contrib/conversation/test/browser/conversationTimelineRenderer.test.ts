@@ -72,6 +72,8 @@ suite('renderHonestTimelineRow error retry (PRD-021)', () => {
 
 suite('renderStandaloneThinkingOrToolRow (D36)', () => {
 
+	ensureNoDisposablesAreLeakedInTestSuite();
+
 	test('standalone thinking is an honest summary row, not process-fold chrome', () => {
 		const container = document.createElement('div');
 		renderStandaloneThinkingOrToolRow(container, { id: 't1', kind: 'thinking', text: 'considering', summary: 'think summary' });

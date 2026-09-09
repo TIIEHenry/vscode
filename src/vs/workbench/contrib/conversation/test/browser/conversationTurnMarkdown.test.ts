@@ -5,8 +5,11 @@
 
 import assert from 'assert';
 import { shouldRenderTurnAsMarkdown } from '../../browser/conversationTurnMarkdown.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 
 suite('ConversationTurnMarkdown', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('shouldRenderTurnAsMarkdown is true only for assistant turns', () => {
 		assert.strictEqual(shouldRenderTurnAsMarkdown('assistant'), true);

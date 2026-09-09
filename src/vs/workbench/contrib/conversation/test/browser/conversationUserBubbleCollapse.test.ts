@@ -11,8 +11,11 @@ import {
 	USER_BUBBLE_COLLAPSE_LINE_THRESHOLD,
 	USER_BUBBLE_EXPANDED_SCROLL_LINE_THRESHOLD,
 } from '../../browser/conversationUserBubbleCollapse.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 
 suite('ConversationUserBubbleCollapse', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
 
 	function lines(count: number): string {
 		return Array.from({ length: count }, (_, index) => `Line ${index + 1}`).join('\n');

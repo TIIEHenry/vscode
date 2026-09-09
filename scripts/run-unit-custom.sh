@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Run agent-ide unit-custom three-domain Electron tests, then compare JUnit to the baseline list.
 # conversation / sources keep the official single globs (mocha non-zero is ignored until the compare).
-# universeAgent uses the official single glob. The 11 Electron-unloadable
-# test/node files (D17) stay excluded via --excludeRunGlob so the first
-# connectionResolver.test.js dynamic-import miss cannot abort JUnit.
-# Other test/node files stay in the same --tfs universeAgent invocation.
+# universeAgent is collected once: the 11 Electron-unloadable test/node files (D17) are excluded;
+# other test/node files stay in the same --tfs universeAgent invocation so the XML is not overwritten.
+# Those 11 then run under the Node runner as domain universeAgentNode — they load and pass there,
+# so excluding them from Electron must not mean excluding them from the gate.
 # See dev/plans/test-baseline-ci.md §5 and D17 「三域基线红」.
 set -uo pipefail
 
@@ -29,6 +29,7 @@ UA_NODE_UNLOADABLE=(
 )
 
 UA_FILES=()
+UA_NODE_FILES=()
 
 is_ua_node_unloadable() {
 	local rel="$1"
@@ -49,6 +50,7 @@ collect_universeagent_files() {
 	local f rel name listed
 	local kept_node=0
 	UA_FILES=()
+	UA_NODE_FILES=()
 
 	for name in "${UA_NODE_UNLOADABLE[@]}"; do
 		listed="$REPO_ROOT/src/vs/platform/universeAgent/test/node/${name}.test.ts"
@@ -61,6 +63,7 @@ collect_universeagent_files() {
 	while IFS= read -r -d '' f; do
 		rel="${f#"$REPO_ROOT/"}"
 		if is_ua_node_unloadable "$rel"; then
+			UA_NODE_FILES+=("$rel")
 			continue
 		fi
 		UA_FILES+=("$rel")
@@ -77,6 +80,10 @@ collect_universeagent_files() {
 		echo "error: universeAgent collection dropped all test/node files (min_cases would fail)" >&2
 		return 1
 	fi
+	if ((${#UA_NODE_FILES[@]} != ${#UA_NODE_UNLOADABLE[@]})); then
+		echo "error: expected ${#UA_NODE_UNLOADABLE[@]} Electron-unloadable file(s), collected ${#UA_NODE_FILES[@]}" >&2
+		return 1
+	fi
 	return 0
 }
 
@@ -89,13 +96,21 @@ if [[ "${1:-}" == "--print-universeagent" ]]; then
 	exit 0
 fi
 
-UA_OFFICIAL_GLOB='**/vs/platform/universeAgent/test/**/*.test.js'
-UA_EXCLUDE_GLOB="**/vs/platform/universeAgent/test/node/{$(IFS=','; echo "${UA_NODE_UNLOADABLE[*]}")}.test.js"
+if [[ "${1:-}" == "--print-universeagent-node" ]]; then
+	printf '%s\n' "${UA_NODE_FILES[@]}"
+	exit 0
+fi
+
+UA_NODE_RUN_ARGS=()
+for rel in "${UA_NODE_FILES[@]}"; do
+	UA_NODE_RUN_ARGS+=(--run "$rel")
+done
 
 set +e
 ./scripts/test.sh --glob '**/vs/workbench/contrib/conversation/test/**/*.test.js' --tfs conversation
 ./scripts/test.sh --glob '**/vs/workbench/contrib/sources/test/**/*.test.js' --tfs sources
-./scripts/test.sh --glob "$UA_OFFICIAL_GLOB" --excludeRunGlob "$UA_EXCLUDE_GLOB" --tfs universeAgent
+./scripts/test.sh --tfs universeAgent "${UA_FILES[@]}"
+node test/unit/node/index.js --tfs universeAgentNode "${UA_NODE_RUN_ARGS[@]}"
 set -e
 
 exec ./scripts/check-test-baseline.sh

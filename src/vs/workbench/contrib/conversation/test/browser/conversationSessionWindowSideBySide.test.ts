@@ -41,7 +41,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 
 	function layoutConversationEditorParts(parts: Awaited<ReturnType<typeof createEditorParts>>): void {
 		for (const part of parts.conversationParts) {
-			(part as { layout(width: number, height: number, top: number, left: number): void }).layout(800, 600, 0, 0);
+			part.layout(800, 600, 0, 0);
 		}
 	}
 

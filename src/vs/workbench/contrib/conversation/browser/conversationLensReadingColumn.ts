@@ -4,14 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { $, append, getWindow } from '../../../../base/browser/dom.js';
-import { IDisposable } from '../../../../base/common/lifecycle.js';
-import { toDisposable } from '../../../../base/common/lifecycle.js';
+import { IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import { type IConversationSessionViewLease, type ConversationQuestionRespondAnswers } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND } from '../../sources/browser/sourcesReview.contribution.js';
@@ -19,7 +18,6 @@ import { applyConversationDensityClass, shouldShowClientToolInvocationDetails } 
 import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
 import { ConversationTimelineTree } from './conversationTimelineTree.js';
 import { ConversationTrajectory } from './conversationTrajectory.js';
-import type { ConversationQuestionRespondAnswers } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { conversationLensPhasePreFirstClass, conversationLensPrefirstHeroClass } from './conversationLensDockStrings.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
 import { conversationLeafWidthBucket, isConversationLeafCompact, isConversationLeafNarrow } from './conversationNarrowLayout.js';
@@ -102,6 +100,7 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 	host.timelineTree.domNode.id = 'conversation-lens-panel-conversation';
 	host.timelineTree.domNode.setAttribute('role', 'tabpanel');
 	host.timelineTree.domNode.setAttribute('aria-labelledby', 'conversation-lens-tab-conversation');
+	// eslint-disable-next-line no-restricted-syntax -- the trajectory host is built by the lens, not by this column
 	const trajectoryHost = host.readingColumn.querySelector('.conversation-lens-trajectory') as HTMLElement;
 	trajectoryHost.id = 'conversation-lens-panel-trajectory';
 	trajectoryHost.setAttribute('role', 'tabpanel');
@@ -140,6 +139,7 @@ export function refreshStaleSnapshotBanner(
 	},
 	sync?: SyncChrome,
 ): void {
+	// eslint-disable-next-line no-restricted-syntax -- the banner is appended by the lens, not by this column
 	const banner = host.readingColumn?.querySelector<HTMLElement>(`.${conversationLensStaleSnapshotClass}`);
 	if (!banner) {
 		return;
@@ -216,6 +216,7 @@ export function applyConversationDensity(host: IConversationLensReadingColumnHos
 	if (host.timelineTree?.domNode) {
 		applyConversationDensityClass(host.timelineTree.domNode, host.configurationService);
 	}
+	// eslint-disable-next-line no-restricted-syntax -- process folds are rendered by the timeline tree
 	for (const root of host.slotHosts.timeline.querySelectorAll<HTMLElement>('[data-process-fold]')) {
 		applyConversationDensityClass(root, host.configurationService);
 	}

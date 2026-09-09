@@ -11,7 +11,7 @@ import type { PinnedTlsPlanInput } from './deviceGrant/tls-pin.js';
 import { listHubDevices, type HubDevice, type HubDirectoryHttp } from './hubDirectoryClient.js';
 import { issueHubRelayTicket, type HubRelayTicketHttp, type IssueHubRelayTicketResult } from './hub/hub-relay-ticket-client.js';
 import type { HubRefreshHttp, IHubSessionStore } from './hubSessionStore.js';
-import { withHubAccessRetry } from './hubAuthAccess.js';
+import { isHubAccessAuthExpired, withHubAccessRetry } from './hubAuthAccess.js';
 
 const DEFAULT_HUB_RELAY_PORT = 443;
 
@@ -339,7 +339,7 @@ export class ConnectionResolver {
 			accessToken => this.listDevices({ hubBaseUrl, accessToken }, this.http),
 		);
 
-		if ('authExpired' in directoryAccess) {
+		if (isHubAccessAuthExpired(directoryAccess)) {
 			return {
 				ok: false,
 				code: 'hub_auth_expired',
@@ -421,7 +421,7 @@ export class ConnectionResolver {
 				}),
 			);
 
-			if ('authExpired' in ticketResult) {
+			if (isHubAccessAuthExpired(ticketResult)) {
 				return {
 					ok: false,
 					code: 'hub_auth_expired',

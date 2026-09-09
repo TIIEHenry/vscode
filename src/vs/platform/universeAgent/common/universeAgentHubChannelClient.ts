@@ -19,6 +19,13 @@ import {
 } from './universeAgentRendererSync.js';
 
 /**
+ * The constructor returns a forwarding proxy, so instances answer every
+ * {@link IUniverseAgentHubService} member even though the class only spells out
+ * the ones it overrides. This merge tells the type system the same thing.
+ */
+export interface UniverseAgentHubChannelClient extends IUniverseAgentHubService { }
+
+/**
  * Renderer client for Hub / profile control-plane methods on the shared
  * UniverseAgent main-process channel. Sync getters read a hydrated cache.
  */

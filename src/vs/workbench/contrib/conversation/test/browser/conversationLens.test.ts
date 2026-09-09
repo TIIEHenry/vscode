@@ -11,7 +11,7 @@ import { ConversationPart, IConversationLensSlots } from '../../../../browser/pa
 import { Parts } from '../../../../services/layout/browser/layoutService.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
 import { TestLayoutService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { ConversationChatInput } from '../../browser/conversationChatInput.js';
+import { ConversationChatInput } from '../../common/conversationChatInput.js';
 import { ConversationEditorPane } from '../../browser/conversationEditorPane.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { conversationLensStaleSnapshotClass } from '../../browser/conversationLensReadingColumn.js';
@@ -61,7 +61,19 @@ import {
 } from '../../browser/conversationLensDockStrings.js';
 import { conversationLensDockModelFailed, conversationLensDockPermissionUnavailable } from '../../browser/conversationLensComposerChrome.js';
 import { conversationLensVoiceTranscriptBarClass } from '../../browser/conversationVoiceTranscriptBar.js';
-import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarNoTrajectory, conversationLensSessionBarRenameTitle, conversationLensSessionBarRouteLabel, conversationLensSessionBarTrajectoryTab, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from '../../browser/conversationLensSessionBarStrings.js';
+import {
+	conversationLensSessionBarConversationTab,
+	conversationLensSessionBarDeleteSession,
+	conversationLensSessionBarNewSession,
+	conversationLensSessionBarNoTrajectory,
+	conversationLensSessionBarRenameTitle,
+	conversationLensSessionBarRouteLabel,
+	conversationLensSessionBarTrajectoryTab,
+	conversationLensPinnedUserPromptAria,
+	conversationLensPinnedUserPromptCopyAria,
+	conversationLensTurnCopy,
+	conversationLensTurnDelete,
+} from '../../browser/conversationLensSessionBarStrings.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
@@ -70,7 +82,6 @@ import { TestConversationFrameSource } from './testConversationFrameSource.js';
 import { conversationIdentityStripClass } from '../../browser/conversationIdentityStrip.js';
 import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
 import { shouldRenderTurnAsMarkdown } from '../../browser/conversationTurnMarkdown.js';
-import { conversationLensTurnCopy, conversationLensTurnDelete } from '../../browser/conversationLensSessionBarStrings.js';
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
 import { TestClipboardService } from '../../../../../platform/clipboard/test/common/testClipboardService.js';
 import { Event } from '../../../../../base/common/event.js';
@@ -84,8 +95,9 @@ import { IExtensionService } from '../../../../services/extensions/common/extens
 import { ILayoutService } from '../../../../../platform/layout/browser/layoutService.js';
 import { IWebviewService } from '../../../webview/browser/webview.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
-import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
+import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
 import { flushConversationLensLayout, installConversationLensResizeObserverHarness, yieldConversationLensPaint } from './conversationLensLayoutHarness.js';
+import { getWindow } from '../../../../../base/browser/dom.js';
 
 suite('ConversationLens', () => {
 
@@ -340,25 +352,25 @@ suite('ConversationLens', () => {
 		return queryTimeline(slots, '.conversation-timeline-pinned-user-bubble') as HTMLButtonElement | null;
 	}
 
-	function layoutReadingColumn(lens: ConversationLens, slots: IConversationLensSlots, layoutWidth = LENS_LAYOUT_WIDTH): void {
+	function layoutReadingColumn(lens: ConversationLens, slots: IConversationLensSlots, layoutWidth = LENS_LAYOUT_WIDTH, layoutHeight = LENS_LAYOUT_HEIGHT): void {
 		const readingColumn = slots.timeline.querySelector('.conversation-lens-reading-column') as HTMLElement | null;
 		const timelineScroll = slots.timeline.querySelector('.conversation-lens-timeline-scroll') as HTMLElement | null;
 		const contentHost = slots.timeline.querySelector('.conversation-lens-timeline-content') as HTMLElement | null;
 		const treeContainer = slots.timeline.querySelector('.conversation-timeline-tree') as HTMLElement | null;
 		if (readingColumn) {
 			readingColumn.style.width = `${layoutWidth}px`;
-			readingColumn.style.height = `${LENS_LAYOUT_HEIGHT}px`;
+			readingColumn.style.height = `${layoutHeight}px`;
 		}
 		if (timelineScroll) {
-			timelineScroll.style.height = `${LENS_LAYOUT_HEIGHT - 120}px`;
-			timelineScroll.style.minHeight = `${LENS_LAYOUT_HEIGHT - 120}px`;
+			timelineScroll.style.height = `${layoutHeight - 120}px`;
+			timelineScroll.style.minHeight = `${layoutHeight - 120}px`;
 		}
 		if (contentHost) {
 			contentHost.style.display = '';
-			contentHost.style.minHeight = `${LENS_LAYOUT_HEIGHT - 120}px`;
+			contentHost.style.minHeight = `${layoutHeight - 120}px`;
 		}
 		if (treeContainer) {
-			treeContainer.style.height = `${LENS_LAYOUT_HEIGHT - 120}px`;
+			treeContainer.style.height = `${layoutHeight - 120}px`;
 		}
 		const trajectoryHost = slots.timeline.querySelector('.conversation-lens-trajectory') as HTMLElement | null;
 		const trajectoryScroll = slots.timeline.querySelector('.conversation-lens-trajectory-table-scroll') as HTMLElement | null;
@@ -375,7 +387,7 @@ suite('ConversationLens', () => {
 			slots.sessionBar.style.width = `${layoutWidth}px`;
 			slots.sessionBar.style.minWidth = `${layoutWidth}px`;
 		}
-		const timelineHeight = LENS_LAYOUT_HEIGHT - 120;
+		const timelineHeight = layoutHeight - 120;
 		lens.layout(timelineHeight, layoutWidth);
 	}
 
@@ -546,7 +558,7 @@ suite('ConversationLens', () => {
 		return select.options[select.selectedIndex]?.text;
 	}
 
-	function mountLens(options?: { storageService?: TestStorageService; layoutWidth?: number; connection?: IUniverseAgentConnection; stubService?: ConversationStubService; sessionKey?: string; tablistOnly?: boolean }): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; clipboardService: TestClipboardService; storageService: TestStorageService; layoutReadingColumn: () => void; openInEditorCalls: { count: number }; layoutContainer: HTMLElement } {
+	function mountLens(options?: { storageService?: TestStorageService; layoutWidth?: number; layoutHeight?: number; connection?: IUniverseAgentConnection; stubService?: ConversationStubService; sessionKey?: string; tablistOnly?: boolean }): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; clipboardService: TestClipboardService; storageService: TestStorageService; layoutReadingColumn: () => void; openInEditorCalls: { count: number }; layoutContainer: HTMLElement } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const storageService = options?.storageService ?? store.add(new TestStorageService());
 		instantiationService.stub(IStorageService, storageService);
@@ -613,8 +625,9 @@ suite('ConversationLens', () => {
 		const parent = document.createElement('div');
 		parent.classList.add('part', 'conversation');
 		const layoutWidth = options?.layoutWidth ?? LENS_LAYOUT_WIDTH;
+		const layoutHeight = options?.layoutHeight ?? LENS_LAYOUT_HEIGHT;
 		parent.style.width = `${layoutWidth}px`;
-		parent.style.height = `${LENS_LAYOUT_HEIGHT}px`;
+		parent.style.height = `${layoutHeight}px`;
 		layoutContainer.appendChild(parent);
 		document.body.appendChild(layoutContainer);
 		store.add(toDisposable(() => layoutContainer.remove()));
@@ -655,7 +668,7 @@ suite('ConversationLens', () => {
 		}
 		parent.appendChild(slots.timeline);
 		parent.appendChild(slots.dock);
-		part.layout(layoutWidth, LENS_LAYOUT_HEIGHT, 0, 0);
+		part.layout(layoutWidth, layoutHeight, 0, 0);
 		const layoutCallbacks: Array<() => void> = [];
 		const runLayouts = () => {
 			for (const layout of layoutCallbacks) {
@@ -666,7 +679,7 @@ suite('ConversationLens', () => {
 		store.add(stubService.onDidChangeActiveSession(() => runLayouts()));
 		const lens = store.add(instantiationService.createInstance(ConversationLens, slots));
 		lensSlotsByPart.set(part, slots);
-		const layout = () => layoutReadingColumn(lens, slots, layoutWidth);
+		const layout = () => layoutReadingColumn(lens, slots, layoutWidth, layoutHeight);
 		layoutCallbacks.push(layout);
 		layout();
 		const contentHost = slots.timeline.querySelector('.conversation-lens-timeline-content') as HTMLElement | null;
@@ -863,7 +876,7 @@ suite('ConversationLens', () => {
 		const slots = getLensSlots(part);
 		const bottomBar = getComposerBottomBar(slots);
 
-		const bottomBarMinHeight = parseInt(getComputedStyle(bottomBar).minHeight, 10);
+		const bottomBarMinHeight = parseInt(getWindow(bottomBar).getComputedStyle(bottomBar).minHeight, 10);
 		if (bottomBarMinHeight > 0) {
 			assert.strictEqual(bottomBarMinHeight, conversationLensDockControlHeightPx);
 		}
@@ -888,7 +901,8 @@ suite('ConversationLens', () => {
 		assert.ok(filledSend.classList.contains('conversation-lens-dock-control--filled'));
 
 		for (const control of bottomBar.querySelectorAll('.conversation-lens-dock-control')) {
-			const height = parseInt(getComputedStyle(control as HTMLElement).height, 10);
+			const controlElement = control as HTMLElement;
+			const height = parseInt(getWindow(controlElement).getComputedStyle(controlElement).height, 10);
 			if (height > 0) {
 				assert.strictEqual(height, conversationLensDockControlHeightPx);
 			}
@@ -1645,7 +1659,9 @@ suite('ConversationLens', () => {
 	});
 
 	test('renders confirmation as a timeline list item with Allow and Skip', async () => {
-		const { part, stubService, layoutReadingColumn } = mountLens();
+		// Taller than the suite default: this test asserts on virtualized rows, and
+		// how many fit depends on font metrics, which differ across machines.
+		const { part, stubService, layoutReadingColumn } = mountLens({ layoutHeight: 1200 });
 		const slots = getLensSlots(part);
 		await seedPendingConfirmation(stubService, layoutReadingColumn);
 		const seat = queryTimeline(slots, '.conversation-lens-confirmation-seat');
@@ -2480,7 +2496,9 @@ suite('ConversationLens', () => {
 	});
 
 	test('user turns are display-only; assistant turns expose Copy and Delete action bars', async () => {
-		const { part, stubService, layoutReadingColumn } = mountLens();
+		// Taller than the suite default: this test asserts on virtualized rows, and
+		// how many fit depends on font metrics, which differ across machines.
+		const { part, stubService, layoutReadingColumn } = mountLens({ layoutHeight: 1200 });
 		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 
@@ -3081,10 +3099,11 @@ suite('ConversationLens', () => {
 		const nestedTools = fold.querySelectorAll('.conversation-process-fold-tool--nested');
 		assert.strictEqual(nestedTools.length, 2);
 
-		const childrenStyle = getComputedStyle(children);
-		const nestedToolStyle = getComputedStyle(nestedTools[0] as Element);
+		const childrenStyle = getWindow(children).getComputedStyle(children);
+		const firstNestedTool = nestedTools[0] as HTMLElement;
+		const nestedToolStyle = getWindow(firstNestedTool).getComputedStyle(firstNestedTool);
 		const thinkingToolsHost = fold.querySelector('.conversation-process-fold-thinking-tools') as HTMLElement;
-		const thinkingToolsStyle = getComputedStyle(thinkingToolsHost);
+		const thinkingToolsStyle = getWindow(thinkingToolsHost).getComputedStyle(thinkingToolsHost);
 		assert.ok(parseFloat(childrenStyle.paddingInlineStart) >= 12);
 		assert.ok(parseFloat(thinkingToolsStyle.paddingInlineStart) >= 12);
 		assert.ok(parseFloat(nestedToolStyle.paddingInlineStart) >= 0);

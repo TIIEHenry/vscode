@@ -1,23 +1,23 @@
-/**
- * Pure ADR-261 certificate-pin checks. The gRPC Channel adapter remains the
- * sole @grpc/grpc-js import site and passes peer certificate bytes structurally.
- */
-import { createHash } from 'node:crypto'
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+import { createHash } from 'node:crypto';
 
-export const ENGINE_CERT_FINGERPRINT_PATTERN = /^[0-9a-f]{64}$/
+export const ENGINE_CERT_FINGERPRINT_PATTERN = /^[0-9a-f]{64}$/;
 
 export type PinnedTlsPlanInput = {
-	readonly trustAnchorLeafDer: Uint8Array
-	readonly expectedLeafSha256Hex: string
-	readonly hostnameVerification: 'replaced-by-pin'
-}
+	readonly trustAnchorLeafDer: Uint8Array;
+	readonly expectedLeafSha256Hex: string;
+	readonly hostnameVerification: 'replaced-by-pin';
+};
 
 export type ObservedPeerCertificate = {
-	readonly raw: Uint8Array
-}
+	readonly raw: Uint8Array;
+};
 
 export function deriveEngineLeafFingerprintHex(leafDer: Uint8Array): string {
-	return createHash('sha256').update(leafDer).digest('hex')
+	return createHash('sha256').update(leafDer).digest('hex');
 }
 
 export function verifyPinnedTlsPlan(
@@ -28,23 +28,23 @@ export function verifyPinnedTlsPlan(
 		!ENGINE_CERT_FINGERPRINT_PATTERN.test(plan.expectedLeafSha256Hex) ||
 		plan.hostnameVerification !== 'replaced-by-pin'
 	) {
-		return { ok: false, reason: 'invalid Engine TLS pin plan' }
+		return { ok: false, reason: 'invalid Engine TLS pin plan' };
 	}
-	const observedFingerprintHex = deriveEngineLeafFingerprintHex(plan.trustAnchorLeafDer)
+	const observedFingerprintHex = deriveEngineLeafFingerprintHex(plan.trustAnchorLeafDer);
 	if (observedFingerprintHex !== plan.expectedLeafSha256Hex) {
-		return { ok: false, reason: 'Engine TLS pin digest mismatch' }
+		return { ok: false, reason: 'Engine TLS pin digest mismatch' };
 	}
-	return { ok: true, observedFingerprintHex }
+	return { ok: true, observedFingerprintHex };
 }
 
 export function createPinnedServerIdentityCheck(
 	expectedLeafSha256Hex: string,
 ): (certificate: ObservedPeerCertificate) => Error | undefined {
 	return (certificate) => {
-		const observed = certificate?.raw ? deriveEngineLeafFingerprintHex(certificate.raw) : ''
+		const observed = certificate?.raw ? deriveEngineLeafFingerprintHex(certificate.raw) : '';
 		if (observed !== expectedLeafSha256Hex) {
-			return new Error('Engine TLS leaf fingerprint does not match pinned trust anchor')
+			return new Error('Engine TLS leaf fingerprint does not match pinned trust anchor');
 		}
-		return undefined
-	}
+		return undefined;
+	};
 }

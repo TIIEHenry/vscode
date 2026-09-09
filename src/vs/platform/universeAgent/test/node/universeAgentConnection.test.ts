@@ -324,7 +324,7 @@ import type { ConnectionResolver } from '../../node/connectionResolver.js';
 import type { PairingOrchestrator } from '../../node/pairingOrchestrator.js';
 import { PAIRING_REQUIRED_USE_CONNECT_REASON } from '../../common/connectionHubTypes.js';
 import { WEB_UNSUPPORTED_LOCAL_ENGINE_REASON } from '../../common/universeAgentRendererSync.js';
-import { createEmptyCapabilitySnapshot } from '../../node/grpcCapabilityProbe.js';
+import { createEmptyCapabilitySnapshot } from '../../common/universeAgentCapabilities.js';
 import { InMemoryHubSessionStore } from '../../node/hubSessionStore.js';
 import type { ParsedAuthSessionV1 } from '../../node/hub/hub-auth-client.js';
 import { randomUUID } from 'node:crypto';

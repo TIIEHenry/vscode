@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { ConnectionPhase } from './connectionHubTypes.js';
+import type { UniverseAgentNavigatorCapabilityKey } from './universeAgentConnection.js';
 import type {
 	ConnectionProfileProjection,
 	HubAuthStatus,
@@ -117,7 +118,7 @@ export function createRemoteForwardingProxy<T extends object>(local: T, remote: 
 			if (prop === 'then') {
 				return undefined;
 			}
-			if (prop in target) {
+			if (Reflect.has(target, prop)) {
 				const value = Reflect.get(target, prop, receiver);
 				if (typeof value === 'function') {
 					return value.bind(target);
@@ -130,7 +131,7 @@ export function createRemoteForwardingProxy<T extends object>(local: T, remote: 
 			if (typeof remoteValue === 'function') {
 				return remoteValue.bind(remote);
 			}
-			if (prop in target) {
+			if (Reflect.has(target, prop)) {
 				return Reflect.get(target, prop, receiver);
 			}
 			return remoteValue;
@@ -206,7 +207,12 @@ export class UniverseAgentConnectionSyncCache {
 		this._agentTreeFetchFailed = failed;
 	}
 
-	navigatorCapability(key: UniverseAgentCapabilityKey): UniverseAgentCapabilitySupport {
+	navigatorCapability(key: UniverseAgentNavigatorCapabilityKey): UniverseAgentCapabilitySupport {
+		// Session listing is not carried in the capability snapshot; the node service
+		// answers the same way.
+		if (key === 'sessionList') {
+			return 'UNKNOWN';
+		}
 		return this._snapshot.capabilities[key]?.support ?? 'UNKNOWN';
 	}
 }

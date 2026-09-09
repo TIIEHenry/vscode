@@ -21,7 +21,6 @@ import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
 import { NAVIGATOR_TEAM_CONTAINER_ID, NAVIGATOR_TEAM_VIEW_CONTAINER } from '../../browser/navigator.contribution.js';
 import { INavigatorTeamMember, NavigatorTeamView } from '../../browser/navigatorTeamList.js';
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
-import '../../browser/navigator.contribution.js';
 
 const TEAM_EMPTY_COPY = 'No team members yet';
 

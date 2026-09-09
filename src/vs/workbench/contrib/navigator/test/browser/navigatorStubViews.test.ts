@@ -30,8 +30,6 @@ import {
 	NAVIGATOR_TEAM_CONTAINER_ID,
 	NAVIGATOR_TEAM_VIEW_CONTAINER,
 } from '../../browser/navigator.contribution.js';
-import '../../../conversation/browser/conversation.contribution.js';
-import '../../browser/navigator.contribution.js';
 
 suite('Navigator stub views', () => {
 

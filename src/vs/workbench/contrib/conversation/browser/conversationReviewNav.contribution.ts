@@ -5,6 +5,6 @@
 
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { ConversationReviewNavService } from './conversationReviewNavService.js';
-import { IConversationReviewNavService } from '../common/conversationReviewEntry.js';
+import { IConversationReviewNavService } from './conversationReviewEntry.js';
 
 registerSingleton(IConversationReviewNavService, ConversationReviewNavService, InstantiationType.Delayed);

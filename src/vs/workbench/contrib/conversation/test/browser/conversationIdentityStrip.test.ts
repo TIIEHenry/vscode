@@ -20,7 +20,7 @@ import { IExplorerService } from '../../../files/browser/files.js';
 import { ISCMRepository, ISCMService } from '../../../scm/common/scm.js';
 import { TestContextService, TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
-import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
+import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { ConversationTimelineTree } from '../../browser/conversationTimelineTree.js';
@@ -42,6 +42,7 @@ import { IClipboardService } from '../../../../../platform/clipboard/common/clip
 import { TestClipboardService } from '../../../../../platform/clipboard/test/common/testClipboardService.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 import { flushConversationLensLayout, installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
+import { getWindow } from '../../../../../base/browser/dom.js';
 
 const LENS_LAYOUT_WIDTH = 640;
 const LENS_LAYOUT_HEIGHT = 480;
@@ -293,8 +294,8 @@ suite('ConversationIdentityStrip', () => {
 		workbench.appendChild(overlay);
 		store.add(toDisposable(() => overlay.remove()));
 
-		assert.strictEqual(getComputedStyle(overlay).pointerEvents, 'none');
-		assert.strictEqual(getComputedStyle(engineChip).pointerEvents, 'auto');
+		assert.strictEqual(getWindow(overlay).getComputedStyle(overlay).pointerEvents, 'none');
+		assert.strictEqual(getWindow(engineChip).getComputedStyle(engineChip).pointerEvents, 'auto');
 
 		const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
 		assert.ok(hit === engineChip || engineChip.contains(hit), `expected engine chip under overlay, hit ${hit?.className ?? 'null'}`);

@@ -27,6 +27,13 @@ import type {
 } from './universeAgentTypes.js';
 
 /**
+ * The constructor returns a forwarding proxy, so instances answer every
+ * {@link IUniverseAgentConnection} member even though the class only spells out
+ * the ones it overrides. This merge tells the type system the same thing.
+ */
+export interface UniverseAgentConnectionChannelClient extends IUniverseAgentConnection { }
+
+/**
  * Renderer client for the main-process gRPC adapter.
  * ProxyChannel makes every method async; UI getters stay sync from this cache.
  */

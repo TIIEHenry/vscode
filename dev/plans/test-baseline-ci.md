@@ -154,7 +154,7 @@ on:
 | `eslint` | `npm run eslint` | `build/eslint.ts`；分层靠已有 `local/code-layering`，不靠 D8。同样要 `build/` + 根 `npm ci` |
 | `docs-health` | `python3 scripts/check-docs-health.py`；docs-burden S1 落地后追加 `python3 scripts/generate-docs-status.py --check` | 只需 checkout + python3；无 `npm ci`。这是 [docs-burden-reduction](docs-burden-reduction.md)「忘跑生成脚本则红」的唯一机器调用方；health-gates 现只写「提交前建议」 |
 | `unit-custom` | 见下 | 只跑三域；用 §5 名单判定，**不要**让 mocha 的非零退出直接当 job 失败 |
-| `baseline-guard`（`unit-custom` 内一步，仅 `pull_request`） | `git diff --name-only $BASE...HEAD` | 若 `dev/progress/test-baseline-failures.txt` 有改动且同一 PR 还改了 `src/**` → exit 1。名单加行必须是**单独 PR**（§5「加行 = D17 登记 PR」的机器面） |
+| `baseline-guard`（`unit-custom` 内一步，仅 `pull_request`） | `git diff -U0 $BASE...HEAD -- dev/progress/test-baseline-failures.txt` | 若同一 PR 改了 `src/**`，**且**名单里新增了非注释非空行（即真的登记了新失败）→ exit 1 并打印那几行。名单加行必须是**单独 PR**（§5「加行 = D17 登记 PR」的机器面）。**只改头部键**（新域的 `min_cases` / `max_skipped`）**或只删行**不拦——追平型 PR 需要一次同时修 src 与接入新域，2026-09-07 工位 E 实测撞上后放宽 |
 
 **`compile` 最低前置**（缺一则 gulp / 原生模块会红，禁止写成「只 checkout 再 `npm run compile`」）：
 
@@ -316,7 +316,7 @@ D8 仍豁免，不进名单、不进本 workflow。
 
 1. `d16-ledger.md` 全部行闭合；三 `--run` exit 0 且 skipped / 用例数满足 §3.4；import boundaries 非空扫。
 2. `.github/workflows/agent-ide.yml` 存在，触发 `agent-ide`，四 job 如上（含 `docs-health`），`runs-on: ubuntu-24.04`，无 1ES / `vscode-large-runners`。
-3. `unit-custom` 在「只存在名单内失败」时绿；人为加一个不在名单里的 `assert.fail` 时红；删掉一个已通过但仍在名单中的 `classname::name` 时红；把某域 `--glob` 改成不匹配任何文件时红（`min_cases`）；给一个用例加 `it.skip` 时红（`max_skipped`）；PR 同时改名单文件与 `src/**` 时红（`baseline-guard`）。
+3. `unit-custom` 在「只存在名单内失败」时绿；人为加一个不在名单里的 `assert.fail` 时红；删掉一个已通过但仍在名单中的 `classname::name` 时红；把某域 `--glob` 改成不匹配任何文件时红（`min_cases`）；给一个用例加 `it.skip` 时红（`max_skipped`）；PR 在改 `src/**` 的同时**往名单里加一行失败登记**时红（`baseline-guard`），而只改头部域键或只删行时不红。
 4. `compile` / `eslint` 失败 → workflow 红，与名单无关。
 5. workflow **没有** `valid-layers-check`。
 6. Actions 不可用时：health-gates 有同等本地命令（含 `export GITHUB_WORKSPACE="$PWD"`），PR 能贴退出码；不得改用未证明的 self-hosted。

@@ -31,7 +31,7 @@ import { IStatusbarService } from '../../../services/statusbar/browser/statusbar
 import { mainWindow } from '../../../../base/browser/window.js';
 import { IModalEditorPartOptions } from '../../../../platform/editor/common/editor.js';
 import { EditorPartModalVisibleContext } from '../../../common/contextkeys.js';
-import { ConversationChatInput, getDefaultConversationChatResource } from '../../../contrib/conversation/browser/conversationChatInput.js';
+import { ConversationChatInput, getDefaultConversationChatResource } from '../../../contrib/conversation/common/conversationChatInput.js';
 
 interface IEditorPartsUIState {
 	readonly auxiliary: IAuxiliaryEditorPartState[];

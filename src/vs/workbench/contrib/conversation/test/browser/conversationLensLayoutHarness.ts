@@ -20,6 +20,7 @@
  */
 
 import { errorHandler } from '../../../../../base/common/errors.js';
+import { mainWindow } from '../../../../../base/browser/window.js';
 
 function isResizeObserverLoopMessage(message: unknown): boolean {
 	return typeof message === 'string' && message.includes('ResizeObserver loop');
@@ -112,26 +113,26 @@ function installCaptureListener(): void {
 	if (captureListenerInstalled) {
 		return;
 	}
-	window.addEventListener('error', ignoreConversationLensResizeObserverLoop, true);
+	mainWindow.addEventListener('error', ignoreConversationLensResizeObserverLoop, true);
 	captureListenerInstalled = true;
 }
 
 function wrapWindowOnError(): void {
-	if (window.onerror === activeOnError && activeOnError) {
+	if (mainWindow.onerror === activeOnError && activeOnError) {
 		return;
 	}
-	const previous = window.onerror;
+	const previous = mainWindow.onerror;
 	const wrapped: OnErrorEventHandler = (message, source, lineno, colno, error) => {
 		if (isResizeObserverLoop(message) || isResizeObserverLoop(error)) {
 			return true;
 		}
 		if (typeof previous === 'function') {
-			return previous.call(window, message, source, lineno, colno, error);
+			return previous.call(mainWindow, message, source, lineno, colno, error);
 		}
 		return false;
 	};
 	activeOnError = wrapped;
-	window.onerror = wrapped;
+	mainWindow.onerror = wrapped;
 }
 
 function wrapProcessListeners(): void {
@@ -144,12 +145,13 @@ function wrapProcessListeners(): void {
 			if (typeof listener !== 'function') {
 				continue;
 			}
-			process.removeListener(event, listener);
+			const original = listener as (...args: unknown[]) => unknown;
+			process.removeListener(event, original);
 			process.on(event, (...args: unknown[]) => {
 				if (isResizeObserverLoop(args[0])) {
 					return;
 				}
-				return listener.apply(process, args);
+				return original.apply(process, args);
 			});
 		}
 	}
@@ -187,10 +189,8 @@ export function installConversationLensResizeObserverHarness(): void {
 
 export async function flushConversationLensLayout(): Promise<void> {
 	await new Promise<void>(resolve => setTimeout(resolve, 20));
-	// Race rAF against a timer. Merge Electron mocha often has no vsync, so
-	// a bare double-rAF never resolves and the next test hits Timeout of 5000ms.
 	await Promise.race([
-		new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))),
+		new Promise<void>(resolve => mainWindow.requestAnimationFrame(() => mainWindow.requestAnimationFrame(() => resolve()))),
 		new Promise<void>(resolve => setTimeout(resolve, 50)),
 	]);
 }

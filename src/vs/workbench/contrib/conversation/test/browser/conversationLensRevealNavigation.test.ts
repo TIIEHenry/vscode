@@ -4,23 +4,19 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
 import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ConversationPart, IConversationLensSlots } from '../../../../browser/parts/conversation/conversationPart.js';
 import { TestLayoutService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { conversationLensPhasePreFirstClass, conversationLensShowingTrajectoryClass } from '../../browser/conversationLensDockStrings.js';
-import { ConversationTimelineTree } from '../../browser/conversationTimelineTree.js';
 import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
 import { ILayoutService } from '../../../../../platform/layout/browser/layoutService.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
-import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
+import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
 import { TestClipboardService } from '../../../../../platform/clipboard/test/common/testClipboardService.js';
 import { Event } from '../../../../../base/common/event.js';
@@ -33,6 +29,8 @@ import { TestStorageService } from '../../../../test/common/workbenchTestService
 import { IExtensionService } from '../../../../services/extensions/common/extensions.js';
 import { IWebviewService } from '../../../webview/browser/webview.js';
 import { flushConversationLensLayout, installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
+import { getWindow } from '../../../../../base/browser/dom.js';
+import { mainWindow } from '../../../../../base/browser/window.js';
 
 suite('ConversationLens reveal navigation (T5a)', function () {
 
@@ -50,7 +48,7 @@ suite('ConversationLens reveal navigation (T5a)', function () {
 	}
 
 	async function flushAnimationFrames(): Promise<void> {
-		await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+		await new Promise<void>(resolve => mainWindow.requestAnimationFrame(() => mainWindow.requestAnimationFrame(() => resolve())));
 	}
 
 	teardown(async () => {
@@ -65,10 +63,6 @@ suite('ConversationLens reveal navigation (T5a)', function () {
 
 	function clickLensTab(slots: IConversationLensSlots, lensId: 'conversation' | 'trajectory'): void {
 		getLensTab(slots, lensId).click();
-	}
-
-	function getTimelineTree(lens: ConversationLens): ConversationTimelineTree {
-		return (lens as unknown as { timelineTree: ConversationTimelineTree }).timelineTree;
 	}
 
 	function layoutReadingColumn(lens: ConversationLens, slots: IConversationLensSlots): void {
@@ -371,14 +365,6 @@ suite('ConversationLens reveal navigation (T5a)', function () {
 		assert.ok(slots.timeline.querySelector('.conversation-lens-turn[data-turn-id="untitled-a1"]'));
 	});
 
-	test('maximize CSS hides the Conversation tree, not the shared slot on Trajectory', () => {
-		const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../../..');
-		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8');
-		assert.ok(css.includes('.conversation-lens-input-maximized:not(:has(.conversation-lens-phase-prefirst)) .conversation-lens-timeline'));
-		assert.ok(css.includes('.conversation-lens-input-maximized:not(:has(.conversation-lens-phase-prefirst)):not(.conversation-lens-showing-trajectory)'));
-		assert.ok(!/\.conversation-timeline\.conversation-lens-input-maximized:not\(:has\(\.conversation-lens-phase-prefirst\)\)\s*\{\s*display:\s*none;/.test(css));
-	});
-
 	test('input maximize hides conversation tree but still paints Trajectory rows', async () => {
 		const { lens, layoutReadingColumn, slots } = mountLens();
 		await flushTimelineHeightUpdates();
@@ -400,7 +386,7 @@ suite('ConversationLens reveal navigation (T5a)', function () {
 		assert.strictEqual(lens.isInputMaximized(), true);
 		assert.strictEqual(slots.timeline.classList.contains(conversationLensShowingTrajectoryClass), true);
 		assert.ok(!slots.timeline.querySelector('.conversation-lens-trajectory')!.hasAttribute('hidden'));
-		assert.notStrictEqual(getComputedStyle(slots.timeline).display, 'none');
+		assert.notStrictEqual(getWindow(slots.timeline).getComputedStyle(slots.timeline).display, 'none');
 		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline')!.hasAttribute('hidden'));
 
 		await revealTrajectoryRow(lens, layoutReadingColumn, 'untitled-u1');

@@ -817,7 +817,7 @@ export class SSHRemoteAgentHostMainService extends Disposable implements ISSHRem
 				// clean up the detached SSH client so it doesn't leak.
 				const connectionId = connectionKey;
 				try {
-					let conn: SSHConnection | undefined; // eslint-disable-line prefer-const
+					let conn: SSHConnection | undefined;
 					// Bound the relay creation: a silently dead SSH client
 					// (TCP half-open, ssh2 keepalive hasn't fired yet) can
 					// leave forwardOut's callback unfired, hanging the whole
@@ -1069,7 +1069,7 @@ export class SSHRemoteAgentHostMainService extends Disposable implements ISSHRem
 			// 4. Connect to the exact selected/spawned endpoint via WebSocket relay.
 			reportProgress(localize('sshProgressForwarding', "Connecting to remote agent host..."));
 			const connectionId = connectionKey;
-			let conn: SSHConnection | undefined; // eslint-disable-line prefer-const
+			let conn: SSHConnection | undefined;
 			let relay: { send: (data: string) => void; close: () => void };
 			try {
 				relay = await this._createWebSocketRelay(

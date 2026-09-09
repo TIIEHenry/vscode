@@ -28,10 +28,10 @@ function toolNameFromSummary(summary: TimelineItemSummary): string {
 	if (summary.kind === 'tool') {
 		return summary.toolName ?? summary.title;
 	}
-	if ('title' in summary) {
-		return summary.title;
+	if (summary.kind === 'unknown') {
+		return '';
 	}
-	return '';
+	return summary.title;
 }
 
 function buildActivityItem(

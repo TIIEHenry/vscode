@@ -40,6 +40,7 @@ export function appendPartRegionHideControl(
 	actionBar.push(hideAction, { icon: true, label: false });
 	actionBar.setFocusable(false);
 
+	// eslint-disable-next-line no-restricted-syntax -- the codicons are built by the action bar, not by this control
 	for (const codicon of actionsContainer.querySelectorAll('.codicon')) {
 		codicon.setAttribute('aria-hidden', 'true');
 	}

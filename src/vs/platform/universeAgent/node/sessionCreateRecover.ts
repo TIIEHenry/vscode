@@ -150,14 +150,13 @@ async function resumeClientSessionIfKnown(
 }
 
 function assertResumeSucceeded(result: unknown, sessionId: string): void {
-	if (!result || typeof result !== 'object' || !('ok' in result)) {
+	if (!result || typeof result !== 'object' || !Object.hasOwn(result, 'ok')) {
 		return;
 	}
-	if ((result as { ok: unknown }).ok === true) {
+	const outcome = result as { readonly ok: unknown; readonly message?: unknown };
+	if (outcome.ok === true) {
 		return;
 	}
-	const message = 'message' in result && typeof (result as { message?: unknown }).message === 'string'
-		? (result as { message: string }).message
-		: 'ok=false';
+	const message = typeof outcome.message === 'string' ? outcome.message : 'ok=false';
 	throw new Error(`CreateSession ALREADY_EXISTS and Resume(${sessionId}) failed: ${message}`);
 }

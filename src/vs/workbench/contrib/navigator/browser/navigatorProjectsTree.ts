@@ -8,7 +8,7 @@ import { localize } from '../../../../nls.js';
 import type { IWindowOpenable } from '../../../../platform/window/common/window.js';
 import { URI } from '../../../../base/common/uri.js';
 import type { ConversationStubSession } from '../../conversation/browser/conversationStubModel.js';
-import type { NavigatorCapabilitySupport } from './navigatorEngineBridge.js';
+import type { NavigatorCapabilitySupport } from '../common/navigatorEngineBridge.js';
 
 export type NavigatorProjectsNodeKind =
 	| 'engine-root'

@@ -4,8 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IEncryptionMainService } from '../../encryption/common/encryptionService.js';
-import { IApplicationStorageMainService } from '../../storage/electron-main/storageMainService.js';
-import { StorageScope, StorageTarget } from '../../storage/common/storage.js';
+import { IStorageService, StorageScope, StorageTarget } from '../../storage/common/storage.js';
 import { normalizeHttpsUrl } from './hub/host-normalize.js';
 import { parseAuthSessionV1, type ParsedAuthSessionV1, type HubAuthHttp } from './hub/hub-auth-client.js';
 
@@ -195,7 +194,7 @@ export class HubSessionStore implements IHubSessionStore {
 
 	constructor(
 		private readonly encryptionService: IEncryptionMainService,
-		private readonly applicationStorage: IApplicationStorageMainService,
+		private readonly applicationStorage: IStorageService,
 	) { }
 
 	async isEncryptionAvailable(): Promise<boolean> {

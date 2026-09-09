@@ -20,8 +20,7 @@ import {
 } from '../common/conversationViewFrame.js';
 import type { IUniverseAgentSessionViewFrameEvent } from '../common/universeAgentSessionView.js';
 import { createSessionCore, type SessionCore } from './sessionCore/session-core.js';
-import type { CoreIntent, HistoryFillCoreIntent } from './sessionCore/intents.js';
-import { isChatCoreIntent, isHistoryFillCoreIntent } from './sessionCore/intents.js';
+import { type CoreIntent, type HistoryFillCoreIntent, isChatCoreIntent, isHistoryFillCoreIntent } from './sessionCore/intents.js';
 import type { CoreMessage, CorrelationRef, PostOutcome, ViewFrameAck, ViewFrameSink } from './sessionCore/messages.js';
 import type { SessionId, ViewFrame, ViewLeaseId, ViewPatch } from '../common/sessionView/types.js';
 import type { AttemptId, ChatWriteId, DiagnosticMetric, DiagnosticsPort, TimerId } from './sessionCore/ports.js';

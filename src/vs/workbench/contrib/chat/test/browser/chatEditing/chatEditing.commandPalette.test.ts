@@ -11,12 +11,10 @@ import { IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
 import { ChatContextKeys } from '../../../common/actions/chatContextKeys.js';
 import { ChatConfiguration } from '../../../common/constants.js';
 import { hasUndecidedChatEditingResourceContextKey } from '../../../common/editing/chatEditingService.js';
-import { AcceptAction, AcceptAllEditsAction, RejectAction } from '../../../browser/chatEditing/chatEditingEditorActions.js';
+import { AcceptAction, AcceptAllEditsAction, RejectAction, registerChatEditorActions } from '../../../browser/chatEditing/chatEditingEditorActions.js';
 import { ChatEditingShowChangesAction, ViewPreviousEditsAction } from '../../../browser/chatEditing/chatEditingActions.js';
-import { registerChatEditorActions } from '../../../browser/chatEditing/chatEditingEditorActions.js';
 import { ctxHasEditorModification, ctxIsCurrentlyBeingModified } from '../../../browser/chatEditing/chatEditingEditorContextKeys.js';
 
-import '../../../browser/chatEditing/chatEditingActions.js';
 import '../../../browser/planReviewFeedback/planReviewFeedbackEditorOverlay.js';
 
 function evalWhen(when: ContextKeyExpression | undefined, values: Record<string, ContextKeyValue>): boolean {

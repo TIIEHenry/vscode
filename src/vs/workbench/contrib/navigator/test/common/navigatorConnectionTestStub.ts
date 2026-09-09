@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Event } from '../../../../../base/common/event.js';
+import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import type { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
 	UniverseAgentConnectionSnapshot,
@@ -23,9 +24,9 @@ export function createNavigatorConnectionTestStub(
 			pairingPending: false,
 			channelAlive: false,
 			sharedFsRootSent: false,
-			capabilities: {} as UniverseAgentConnectionSnapshot['capabilities'],
+			capabilities: createEmptyCapabilitySnapshot(),
 		}),
-		getCapabilitySnapshot: () => ({} as UniverseAgentConnectionSnapshot['capabilities']),
+		getCapabilitySnapshot: () => createEmptyCapabilitySnapshot(),
 		onDidChangeConnection: Event.None,
 		onDidFileMutation: Event.None,
 		onDidTurnSettle: Event.None,

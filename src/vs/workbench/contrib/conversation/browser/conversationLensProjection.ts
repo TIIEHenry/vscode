@@ -8,10 +8,8 @@ import { IStorageService, StorageScope, StorageTarget } from '../../../../platfo
 import type { ConversationViewFrameApplied, IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
-import { IConversationReviewNavService } from '../common/conversationReviewEntry.js';
-import { attachReviewEntries, computeReviewNavSidecarApplied } from '../common/conversationReviewEntry.js';
-import { projectSnapshotToEntries, formatSyncChromeLabel } from './conversationSessionView.js';
-import type { ConversationTimelineEntry } from './conversationSessionView.js';
+import { IConversationReviewNavService, attachReviewEntries, computeReviewNavSidecarApplied } from './conversationReviewEntry.js';
+import { projectSnapshotToEntries, formatSyncChromeLabel, type ConversationTimelineEntry } from './conversationSessionView.js';
 import {
 	collectConversationTrajectoryTurnIds,
 	collectTrajectoryTurnIdsFromSnapshot,
@@ -34,8 +32,8 @@ export const CONVERSATION_LENS_ID_STORAGE_KEY = 'conversation.lensId';
 export type ConversationLensId = 'conversation' | 'trajectory';
 
 export interface IConversationLensProjectionHost {
-	/** Same dispose gate Mermaid resolve uses (`this._store.isDisposed`). */
-	readonly _store: { readonly isDisposed: boolean };
+	/** Same dispose gate Mermaid resolve uses. */
+	readonly isDisposed: boolean;
 	lensId: ConversationLensId;
 	filterAgentId: string | undefined;
 	inputMaximized: boolean;
@@ -95,7 +93,7 @@ export function isPreFirst(host: IConversationLensProjectionHost): boolean {
 export function applySessionViewTimeline(host: IConversationLensProjectionHost, applied: ConversationViewFrameApplied,
 		options?: { readonly sidecarOnly?: boolean },): void {
 
-		if (host._store.isDisposed) {
+		if (host.isDisposed) {
 			return;
 		}
 		if (!host.sessionViewLease) {
@@ -203,7 +201,7 @@ export function updateReadingColumn(host: IConversationLensProjectionHost): void
 
 export function refreshTrajectoryRecords(host: IConversationLensProjectionHost, sessionId: string): void {
 
-		if (host._store.isDisposed) {
+		if (host.isDisposed) {
 			return;
 		}
 		const options = trajectoryProjectionOptions(host);

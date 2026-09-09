@@ -8,6 +8,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/c
 import { GrpcStatusCode, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
 import { encodeDetailRef } from '../../common/conversationViewFrame.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
+import type { UniverseAgentCreateSessionRequest, UniverseAgentCreateSessionResult, UniverseAgentListSessionsResult } from '../../common/universeAgentTypes.js';
 import { TestConnection, TestHost } from './sessionViewHostTestHelpers.js';
 
 class BindConnection extends TestConnection {
@@ -15,7 +16,7 @@ class BindConnection extends TestConnection {
 	readonly streamSessionIds: string[] = [];
 	createdEngineId = 'eng-real';
 
-	override async createSession(request: { title?: string; model?: string; clientSessionId?: string } = {}) {
+	override async createSession(request: UniverseAgentCreateSessionRequest = {}): Promise<UniverseAgentCreateSessionResult> {
 		this.createSessionCalls.push(request);
 		this.createdEngineSessionIds.add(this.createdEngineId);
 		return { sessionId: this.createdEngineId };
@@ -26,7 +27,7 @@ class BindConnection extends TestConnection {
 		return super.subscribeSessionEventStream(sessionId, listener);
 	}
 
-	override openChatStream(sessionId: string) {
+	openChatStream(sessionId: string) {
 		this.chatSessionIds.push(sessionId);
 		return {
 			write: () => { },
@@ -70,7 +71,7 @@ suite('SessionViewHost engine session bind', () => {
 	test('Chat is not sent until Create returns a session_id', async () => {
 		let resolveCreate: (value: { sessionId: string }) => void = () => { };
 		const connection = new class extends BindConnection {
-			override async createSession() {
+			override async createSession(): Promise<UniverseAgentCreateSessionResult> {
 				this.createSessionCalls.push({});
 				return new Promise<{ sessionId: string }>(resolve => {
 					resolveCreate = resolve;
@@ -159,11 +160,11 @@ suite('SessionViewHost engine session bind', () => {
 
 	test('Create ALREADY_EXISTS Resumes listed session_id and does not Create again', async () => {
 		const connection = new class extends BindConnection {
-			override async createSession() {
+			override async createSession(): Promise<UniverseAgentCreateSessionResult> {
 				this.createSessionCalls.push({});
 				throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, '6 ALREADY_EXISTS: Session already exists');
 			}
-			override async listSessions() {
+			override async listSessions(): Promise<UniverseAgentListSessionsResult> {
 				return { sessions: [{ sessionId: 'eng-listed', title: 'Hello' }] };
 			}
 			override async resumeSession(request: { sessionId: string }) {
@@ -190,11 +191,11 @@ suite('SessionViewHost engine session bind', () => {
 
 	test('Create ALREADY_EXISTS prefers List title match over first row', async () => {
 		const connection = new class extends BindConnection {
-			override async createSession() {
+			override async createSession(): Promise<UniverseAgentCreateSessionResult> {
 				this.createSessionCalls.push({});
 				throw new UniverseAgentTransportError(6, 'Session already exists');
 			}
-			override async listSessions() {
+			override async listSessions(): Promise<UniverseAgentListSessionsResult> {
 				return {
 					sessions: [
 						{ sessionId: 'eng-first', title: 'Other' },
@@ -223,11 +224,11 @@ suite('SessionViewHost engine session bind', () => {
 	test('Create ALREADY_EXISTS with List transport/query failure Resumes localId', async () => {
 		let resumeCount = 0;
 		const connection = new class extends BindConnection {
-			override async createSession(request: { title?: string; model?: string; clientSessionId?: string } = {}) {
+			override async createSession(request: UniverseAgentCreateSessionRequest = {}): Promise<UniverseAgentCreateSessionResult> {
 				this.createSessionCalls.push(request);
 				throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, 'Session already exists');
 			}
-			override async listSessions() {
+			override async listSessions(): Promise<UniverseAgentListSessionsResult> {
 				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'Query does not return results');
 			}
 			override async resumeSession(request: { sessionId: string }) {
@@ -256,7 +257,7 @@ suite('SessionViewHost engine session bind', () => {
 	test('Create ALREADY_EXISTS with empty List Resumes localId and does not retry Create', async () => {
 		let resumeCount = 0;
 		const connection = new class extends BindConnection {
-			override async createSession(request: { title?: string; model?: string; clientSessionId?: string } = {}) {
+			override async createSession(request: UniverseAgentCreateSessionRequest = {}): Promise<UniverseAgentCreateSessionResult> {
 				this.createSessionCalls.push(request);
 				throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, 'Session already exists');
 			}
@@ -285,7 +286,7 @@ suite('SessionViewHost engine session bind', () => {
 
 	test('Create ALREADY_EXISTS with empty List and Resume ok=false is not treated as Create success', async () => {
 		const connection = new class extends BindConnection {
-			override async createSession(request: { title?: string; model?: string; clientSessionId?: string } = {}) {
+			override async createSession(request: UniverseAgentCreateSessionRequest = {}): Promise<UniverseAgentCreateSessionResult> {
 				this.createSessionCalls.push(request);
 				throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, 'Session already exists');
 			}
@@ -345,11 +346,11 @@ suite('SessionViewHost engine session bind', () => {
 	test('Create non-ALREADY_EXISTS errors still throw without List recover', async () => {
 		const connection = new class extends BindConnection {
 			listCalled = false;
-			override async createSession() {
+			override async createSession(): Promise<UniverseAgentCreateSessionResult> {
 				this.createSessionCalls.push({});
 				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'engine down');
 			}
-			override async listSessions() {
+			override async listSessions(): Promise<UniverseAgentListSessionsResult> {
 				this.listCalled = true;
 				return { sessions: [{ sessionId: 'should-not-use' }] };
 			}
@@ -367,7 +368,7 @@ suite('SessionViewHost engine session bind', () => {
 
 	test('requestDetail bind failure returns failed outcome and does not reject', async () => {
 		const connection = new class extends BindConnection {
-			override async createSession() {
+			override async createSession(): Promise<UniverseAgentCreateSessionResult> {
 				this.createSessionCalls.push({});
 				throw new Error('CreateSession refused');
 			}

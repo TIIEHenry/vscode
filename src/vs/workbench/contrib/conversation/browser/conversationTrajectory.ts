@@ -801,6 +801,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	/** T5 virtual list `rerender()` does not re-run row renderers; sync selection chrome in DOM. */
 	private syncTrajectoryRowSelectionStyles(): void {
 		const selectedId = this.selectedRecordIdHolder.current;
+		// eslint-disable-next-line no-restricted-syntax -- rows are virtualized by the list view, so no stable reference exists
 		for (const row of this.host.querySelectorAll('.conversation-lens-trajectory-record-row')) {
 			const recordId = row.getAttribute('data-record-id');
 			const selected = !!selectedId && recordId === selectedId;

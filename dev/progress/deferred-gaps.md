@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-09
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / D131 / D133–D193 已闭；人类工位合入保留 stub-and-fixtures 重复 frontmatter / sourcesReview toResource.call 发现；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / D131 / D133–D193 已闭；D194 麦克风与 Route 假造 UI；gate-recovery 合入中（compile 已复证 0；universeAgentNode 418 条接回门禁；loop 新切片已停）；人类工位合入保留 stub-and-fixtures 重复 frontmatter / sourcesReview toResource.call 发现；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -207,6 +207,32 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / 
 | D192 | P3 | **草稿换 cwd `void _changeWorkingDirectory` 无 catch** → `getUriTrustInfo` reject 漏 | A `d72003f13eb` 三处 `.catch(onUnexpectedError)`。merge 复测 provisional 52 passing。未改 `_queue` / 信任语义 | trust reject 无未处理 rejection | workbench | closed |
 | D193 | P3 | **Agents 断连 Open Connection `executeCommand` 无 catch** → 开 Connection 页 reject 漏 | B `cd87c9623fb` 两处 `.catch(onUnexpectedError)`。merge 复测 catalog 51 passing。未改其它 catalog 节 | Open Connection reject 无未处理 rejection | conversation | closed |
 | D167 | P3 | **桌面布局 `void openView/openViewContainer` 无 catch** → 视图打开 reject 漏 | D `f535773c208` 7 处 `.catch(onUnexpectedError)`。merge 复测 layout 140 passing | untitled/restore reject 无未处理 rejection | sessions | closed |
+| D194 | P2 | **Composer 麦克风与 Route 下拉是假造 UI，且有测试在锁定这份假造**。麦克风：`contrib/conversation` 全树 `getUserMedia` / `MediaRecorder` / `mediaDevices` **0 处命中**；按钮只要引擎连上就 `enabled = true`（`conversationLensComposer.ts`）；`durationLabel` 硬编码 `'0:01'`；`finishVoiceClip` 在 30ms 后把 `STUB_VOICE_TRANSCRIPT_PHRASES` 里的预设台词写进草稿，形同用户说过话；`conversationLens.test.ts` 断言点完麦克风后输入框等于 `conversationLensVoiceStubPhraseOne`——**测试在验证假造能工作**。`IUniverseAgentConnection` 无任何语音/转写方法，capability key 也没有对应项，即没有可接的真实后端。Route 下拉：`routeIndex` 只在 dock 与 sessionBar 两个 SelectBox 之间互相回显，从不进引擎；选项文案本身写着 "Stub Balanced / Speed / Quality" | **用户裁定 @2026-09-07**：本刀只登记不动代码。E 原登记为 D45，loop 已用 D45 收 host-open-catch，故改号。整套横跨 7 个文件（含专用转写条 `conversationVoiceTranscriptBar.ts`） | 麦克风：**要么**删整条流水线（按钮 + 转写条 + 预设台词 + 那条锁定假造的测试），**要么**门控到真实引擎转写 capability 之后再放开；不接受「按钮可点但产出预设文案」。Route：**要么** `routeIndex` 真的进引擎请求，**要么**删控件；不接受「唯一作用是记住你点了哪一项」的控件。任一路径都须有测试断言**不存在**预设台词写入草稿 | UI / conversation | open |
+
+## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
+
+`loop/merge` @ `793ff6e201f`（提交信息为「关仓：T5a Uncaught 闸门与 statusbar 二次注册幂等**已复测**」）在**仓外独立 detached 工位**上实测：
+
+| 项 | 实测 | 命令 |
+|:---|:-----|:-----|
+| `npm run compile` | **1275 错**，退出码 1 | `npm run compile` |
+| `conversationIdentityStrip.test.ts` | 2 passing / **1 failing** | `./scripts/test.sh src/.../conversationIdentityStrip.test.ts` |
+| 合入后 conversation 域 | 794 → **237** 条（`min_cases=714` 不达） | `./scripts/run-unit-custom.sh` |
+
+失败不是断言，是根 suite 的输出闸门：`ListView` 在 `display:none` 下量行高，打出 `Measured item node at 0px`，被 `renderer.js` 的「Unexpected console output」判红并中断后续文件，于是 conversation 域丢掉约 70% 用例。
+
+净新增的 5 个类型错（`IConversationEditorPart` 缺 `getContainer` / `layout` 被强转、`process.rawListeners` 的 `Function` 不匹配重载、一个死掉的 `getTimelineTree`）已在本工位随合并修掉，compile 回到 0。
+
+### 已修（2026-09-07，用户裁定 `fix_now`）
+
+两个独立的真 bug，都不是测试环境的怪癖：
+
+1. `ConversationTimelineTree` 先 splice 再切显隐。`renderEmptyState` 把承载树的 `contentHost` 在空态设成 `display:none`，而 `rebuildTreeFromTurns` / `applyContentPatches` 都是**先** `setChildren` / `rerender`、**后**调 `renderEmptyState`。于是空 → 非空那一跳里，ListView 在还挂着上一轮 `display:none` 的子树里量行高，量到 0px 并把这些高度缓存下来。改成先显后改。
+2. `ConversationSubAgentOverlay.scheduleLensLayout` 的 `requestAnimationFrame` 不可取消。dispose 之后回调仍会跑 `layoutLens` → `layoutBreadcrumb` → `BreadcrumbsWidget.layout`，后者每次新建一个 `DisposableStore` 交给 `_pendingDimLayout`，而 widget 已经 dispose 过，这个 store 再没有人释放。换成 `scheduleAtNextAnimationFrame` 存进 `MutableDisposable`，dispose 时一起取消。
+
+反向验证（逐个撤掉再跑整域）：只撤第 1 个 → 4 条 `Measured item node at 0px`，域内 236 passing 后中止；只撤第 2 个 → 520 passing / 2 failing（`There are 6 undisposed disposables!`）；两个都在 → **799 passing / 0 failing**。`min_cases` 已从中止水位对应的 714 抬到 799。
+
+**教训不是「loop 又红了」，而是「关仓声明没有机器背书」**：`.github/workflows/agent-ide.yml` 的 push 触发在本工位才刚加上 `loop/**`（提交 `127c6c0f915`）。在那之前 `loop/*` 上的「已复测」全靠人写，没有一次进过 CI。
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 
@@ -516,9 +542,22 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | `793ff6e201f` | conversation：名单已空后官方单 glob **仍有未列红**（工位 A `d17-conversation-glob-reprove`）：IdentityStrip afterEach `Measured item node at 0px` 中断 glob；Lens untitled/two-leaves 虚窗未 reveal；S5 restore afterEach breadcrumb `DisposableStore` 泄漏。夹具/诚实收口后官方 glob **795/0/0**。名单仍 0 数据行。未关 D16 | leftover | A `d17-conversation-glob-reprove` |
 | `d2abb648c0e` | sources：`collectSourcesReviewEntries` 委托 `toResource`/`fullTitle` 未定义 | baseline | A `test-baseline-slice3` |
 | `d2abb648c0e` | universeAgent：`FileMutationJoin` lifecycle+snapshot **已修**（B：无 `diff_stats` 时 omit optional `diffStats`，不再写出 `undefined`）。名单该一行已删 | leftover | A `filemutation-join` |
-| `d2abb648c0e` | universeAgent：11 个 node 测 Electron ESM `Failed to fetch dynamically imported module`（无 JUnit testcase，未进名单）：connectionResolver / deviceAuthHandshake / deviceGrantCrypto / hubControlPlane / hubDirectoryClient / hubSessionStore / observeCandidateLeaf / pairingOrchestrator / universeAgentChannel / universeAgentConnection / universeAgentHubService。**CI 走官方 glob + `--excludeRunGlob` 排除这 11 个**（[`scripts/run-unit-custom.sh`](../../scripts/run-unit-custom.sh) 只匹配 `test/node/`；`browser/universeAgentConnection` 仍跑）。runner **只**对这 11 个 basename 跳过同文案加载失败（mocha pending 会踩 `max_skipped=0`，故不用 JUnit skip）。其它 `*.test` 仍 abort。不降 `min_cases`、不删这 11 份源 | baseline | A `test-baseline-slice3` / D `ua-official-glob` |
+| `d2abb648c0e` | universeAgent：11 个 node 测 Electron ESM `Failed to fetch dynamically imported module`（无 JUnit testcase，未进名单）：connectionResolver / deviceAuthHandshake / deviceGrantCrypto / hubControlPlane / hubDirectoryClient / hubSessionStore / observeCandidateLeaf / pairingOrchestrator / universeAgentChannel / universeAgentConnection / universeAgentHubService。Electron 采集仍排除这 11 个（[`scripts/run-unit-custom.sh`](../../scripts/run-unit-custom.sh) 只匹配 `test/node/`；`browser/universeAgentConnection` 仍跑）；可加载的 `test/node` 仍进同一 `--tfs universeAgent`。**这 11 个已改由 Node runner 跑并接回门禁**（`universeAgentNode` 418 条，见下节） | baseline | A `test-baseline-slice3` / A `unit-custom-xml` / E `gate-recovery` |
 
-官方 conversation 单 glob：DiffReview afterEach 泄漏已修，不再中断后续用例。universeAgent 官方单 glob 仍会在首个 unloadable 文件处动态 import 失败；**unit-custom 现经 `scripts/run-unit-custom.sh`**：conversation / sources 仍单 glob；universeAgent 走官方 glob + `--excludeRunGlob` 排除上表 11 个 `test/node` 文件（不降 `min_cases`、不删这 11 份源）。Electron runner **只**对这 11 个 basename 跳过 `Failed to fetch dynamically imported module`，其它加载失败仍 abort / `_loaderErrors`。名单按分批收齐后的 JUnit 差集去重。
+官方 conversation 单 glob：DiffReview afterEach 泄漏已修，不再中断后续用例。universeAgent 官方单 glob 仍会在首个 unloadable 文件处动态 import 失败；**unit-custom 现经 `scripts/run-unit-custom.sh`**：conversation / sources 仍单 glob；universeAgent 按文件列表采集（Electron 跳过上表 11 个 `test/node`，其余同 `--tfs universeAgent`）；那 11 个改由 Node runner 以 `universeAgentNode` 接回门禁。名单按分批收齐后的 JUnit 差集去重。
+
+### 那 11 个文件已接回门禁（2026-09-07，工位 E / `fix/gate-recovery`）
+
+「Electron 不可加载」只说明加载器不对，不说明测试不该跑。实测这 11 个文件在 **Node runner 下 418 条全过、0 skipped、0 failing**，此前被 `run-unit-custom.sh` 整体跳过，等于 418 条真测试完全不在门禁内。
+
+| 项 | 内容 |
+|:---|:-----|
+| runner 改动 | `test/unit/node/index.js` 加 `--tfs <域名>`，用 `mocha-multi-reporters` 同时保留 spec 输出与 JUnit XML，文件命名沿用 Electron runner 同一套布局 |
+| 新域 | `universeAgentNode` → `test-results/linux-x64-universeagentnode-results.xml` |
+| 门禁 | `check-test-baseline.sh` 域列表从三域改为四域；`test-baseline-failures.txt` 头部加 `universeAgentNode=418` / `max_skipped=0` |
+| 反向验证 | XML 缺失 → 报 missing 并退 1；用例数降到 417 → 报 `below min_cases=418` 并退 1 |
+
+**未做**：这 11 个在 Electron 下为何 `Failed to fetch dynamically imported module` 仍未查（Node runner 能跑不代表 Electron 侧的加载问题消失）。该问题只影响 Electron 采集路径，不再影响这批测试是否被执行。
 
 ## 维护规则
 

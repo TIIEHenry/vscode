@@ -13,7 +13,6 @@ import { VIEWLET_ID } from '../../common/files.js';
 import { explorerSidebarViewsWhen } from '../../browser/explorerViewlet.js';
 import { TimelineHasProviderContext } from '../../../timeline/common/timelineService.js';
 
-import '../../browser/explorerViewlet.js';
 import '../../../outline/browser/outline.contribution.js';
 import '../../../timeline/browser/timeline.contribution.js';
 

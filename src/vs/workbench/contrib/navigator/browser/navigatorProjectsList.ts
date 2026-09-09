@@ -32,7 +32,7 @@ import { IConversationPartService } from '../../../browser/parts/conversation/co
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { matchesNavigatorProjectsInlineFilter } from '../common/navigatorProjectsInlineFilter.js';
-import { buildNavigatorProjectsTree, countLocalFolders, INavigatorLocalFolderEntry, INavigatorProjectsTreeNode } from '../common/navigatorProjectsTree.js';
+import { buildNavigatorProjectsTree, countLocalFolders, INavigatorLocalFolderEntry, INavigatorProjectsTreeNode } from './navigatorProjectsTree.js';
 import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { NavigatorProjectsInlineFilterBox } from './navigatorProjectsInlineFilterBox.js';
 import { NAVIGATOR_PROJECTS_VIEW_ID } from './navigatorStubView.js';
@@ -255,7 +255,7 @@ export class NavigatorProjectsView extends ViewPane {
 			return;
 		}
 		if (node.kind === 'local-folder' && node.openable) {
-			const mouseEvent = browserEvent instanceof MouseEvent ? browserEvent : undefined;
+			const mouseEvent = dom.isMouseEvent(browserEvent) ? browserEvent : undefined;
 			void this.hostService.openWindow([node.openable], {
 				forceNewWindow: !!(mouseEvent && (mouseEvent.ctrlKey || mouseEvent.metaKey)),
 				forceReuseWindow: !!(mouseEvent && mouseEvent.altKey),
