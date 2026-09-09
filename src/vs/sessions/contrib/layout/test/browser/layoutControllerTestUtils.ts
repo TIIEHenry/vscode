@@ -206,6 +206,8 @@ export interface ITestLayoutHarness {
 	partVisibility: Map<Parts, boolean>;
 	openedViewContainers: string[];
 	openedViews: string[];
+	/** When set, `IViewsService.openView` / `openViewContainer` reject with this reason. */
+	viewsOpenRejects?: unknown;
 	setPartHiddenCalls: { hidden: boolean; part: Parts }[];
 	/** Value returned by the layout service's `isEditorRevealedExplicitly()` mock. */
 	editorRevealedExplicitly: boolean;
@@ -545,12 +547,18 @@ export function createTestHarness(store: DisposableStore, options: ICreateOption
 			return harness.activeAuxViewContainerIds.includes(id);
 		}
 		override async openViewContainer(id: string) {
+			if (harness.viewsOpenRejects !== undefined) {
+				throw harness.viewsOpenRejects;
+			}
 			harness.openedViewContainers.push(id);
 			revealAuxiliaryBar();
 			return null;
 		}
 		override closeViewContainer() { }
 		override async openView(id: string) {
+			if (harness.viewsOpenRejects !== undefined) {
+				throw harness.viewsOpenRejects;
+			}
 			harness.openedViews.push(id);
 			revealAuxiliaryBar();
 			return null;

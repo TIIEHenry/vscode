@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { mainWindow } from '../../../../base/browser/window.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { autorun, derived, observableFromEvent } from '../../../../base/common/observable.js';
 import { isEqual } from '../../../../base/common/resources.js';
@@ -101,7 +102,7 @@ export class LayoutController extends BaseLayoutController {
 			if (editorMaximized) {
 				previousSessionResource = activeSessionResource;
 				previousIsCreated = isCreated;
-				void this._viewsService.openView(CHANGES_VIEW_ID, false);
+				void this._viewsService.openView(CHANGES_VIEW_ID, false).catch(onUnexpectedError);
 				return;
 			}
 
@@ -360,7 +361,7 @@ export class LayoutController extends BaseLayoutController {
 				return;
 			}
 		}
-		void this._viewsService.openView(CHANGES_VIEW_ID, false);
+		void this._viewsService.openView(CHANGES_VIEW_ID, false).catch(onUnexpectedError);
 	}
 
 	/**
@@ -556,7 +557,7 @@ export class LayoutController extends BaseLayoutController {
 				this._hideAuxiliaryBarForRestore();
 				return;
 			}
-			void this._openDefaultAuxiliaryBarContainer();
+			void this._openDefaultAuxiliaryBarContainer().catch(onUnexpectedError);
 			return;
 		}
 
@@ -571,11 +572,11 @@ export class LayoutController extends BaseLayoutController {
 		// [D3c] Restore the user's last explicit choice, but only if that pane is still pinned.
 		const savedContainerId = savedState.auxiliaryBarActiveViewContainerId;
 		if (savedContainerId && this._isAuxiliaryBarContainerPinned(savedContainerId)) {
-			void this._viewsService.openViewContainer(savedContainerId, false);
+			void this._viewsService.openViewContainer(savedContainerId, false).catch(onUnexpectedError);
 			return;
 		}
 
-		void this._openDefaultAuxiliaryBarContainer();
+		void this._openDefaultAuxiliaryBarContainer().catch(onUnexpectedError);
 	}
 
 	/**
@@ -617,14 +618,14 @@ export class LayoutController extends BaseLayoutController {
 		const savedContainerId = savedState.auxiliaryBarActiveViewContainerId;
 		if (savedContainerId && this._isAuxiliaryBarContainerPinned(savedContainerId)) {
 			this._viewStateBySession.set(sessionResource, { ...savedState, auxiliaryBarVisible: true });
-			void this._viewsService.openViewContainer(savedContainerId, false);
+			void this._viewsService.openViewContainer(savedContainerId, false).catch(onUnexpectedError);
 		} else {
 			const defaultContainerId = this._defaultAuxiliaryBarContainerId();
 			this._viewStateBySession.set(sessionResource, {
 				auxiliaryBarVisible: true,
 				auxiliaryBarActiveViewContainerId: defaultContainerId,
 			});
-			void this._openDefaultAuxiliaryBarContainer(defaultContainerId);
+			void this._openDefaultAuxiliaryBarContainer(defaultContainerId).catch(onUnexpectedError);
 		}
 		return true;
 	}
