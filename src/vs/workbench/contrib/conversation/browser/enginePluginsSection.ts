@@ -35,6 +35,10 @@ const $ = DOM.$;
 const PLUGINS_FEATURE = localize('ua.enginePluginsFeatureLabel', "engine plugins");
 const EMBEDDED_SOURCE = 'embedded';
 
+export const ENGINE_PLUGINS_ENABLE_SUCCESS_COPY = localize('ua.enginePluginsEnableSuccess', "Enabled.");
+export const ENGINE_PLUGINS_RELOAD_SUCCESS_COPY = localize('ua.enginePluginsReloadSuccess', "Reloaded.");
+export const ENGINE_PLUGINS_UNLOAD_SUCCESS_COPY = localize('ua.enginePluginsUnloadSuccess', "Unloaded.");
+
 type EnginePluginListEntry = { readonly kind: 'plugin'; readonly plugin: UniverseAgentPluginSummary };
 type PluginWriteMethod = 'enablePlugin' | 'reloadPlugin' | 'unloadPlugin' | 'scanNewPlugins';
 
@@ -151,6 +155,7 @@ export class EnginePluginsSection extends Disposable {
 	private readonly writeToolbar: HTMLElement;
 	private readonly scanNewButton: Button;
 	private readonly scanResult: HTMLElement;
+	private readonly catalogWriteStatus: HTMLElement;
 	private readonly listContainer: HTMLElement;
 	private readonly rowToolbar: HTMLElement;
 	private readonly enableButton: Button;
@@ -195,6 +200,11 @@ export class EnginePluginsSection extends Disposable {
 		this.scanResult.setAttribute('role', 'status');
 		this.scanResult.setAttribute('aria-live', 'polite');
 		this.scanResult.style.display = 'none';
+
+		this.catalogWriteStatus = DOM.append(this.container, $('.engine-catalog-write-status'));
+		this.catalogWriteStatus.setAttribute('role', 'status');
+		this.catalogWriteStatus.setAttribute('aria-live', 'polite');
+		this.catalogWriteStatus.style.display = 'none';
 
 		this.listContainer = DOM.append(this.container, $('.engine-catalog-list.engine-plugins-list'));
 		this.listContainer.style.display = 'none';
@@ -282,14 +292,26 @@ export class EnginePluginsSection extends Disposable {
 		return canPerformCatalogWrite(this.mode) && this.connection.isEngineConnected();
 	}
 
-	selectPluginForTest(id: string): void {
-		if (!this.list) {
-			return;
-		}
+	selectPluginForTest(id: string): boolean {
 		const index = this.listEntries.findIndex(entry => entry.plugin.id === id);
-		if (index >= 0) {
-			this.list.setSelection([index]);
+		if (index < 0) {
+			return false;
 		}
+		this.selectedPlugin = this.listEntries[index].plugin;
+		this.list?.setSelection([index]);
+		return true;
+	}
+
+	async enableSelectedForTest(): Promise<void> {
+		await this.enableSelected();
+	}
+
+	async reloadSelectedForTest(): Promise<void> {
+		await this.reloadSelected();
+	}
+
+	async unloadSelectedForTest(): Promise<void> {
+		await this.unloadSelected();
 	}
 
 	private ensureList(): WorkbenchList<EnginePluginListEntry> {
@@ -331,6 +353,7 @@ export class EnginePluginsSection extends Disposable {
 		const support = capabilities.plugins.support;
 		this.writeFailedReason = undefined;
 		this.lastWritePermissionDenied = false;
+		this.hideCatalogWriteStatus();
 
 		if (!connected) {
 			this.clearCatalogPresentation();
@@ -485,14 +508,14 @@ export class EnginePluginsSection extends Disposable {
 		if (!this.canWrite() || !this.selectedPlugin || !hasPluginWriteMethod(this.connection, 'enablePlugin')) {
 			return;
 		}
-		await this.runWrite(() => this.connection.enablePlugin(this.selectedPlugin!.id, true));
+		await this.runWrite(() => this.connection.enablePlugin(this.selectedPlugin!.id, true), ENGINE_PLUGINS_ENABLE_SUCCESS_COPY);
 	}
 
 	private async reloadSelected(): Promise<void> {
 		if (!this.canWrite() || !this.selectedPlugin || !hasPluginWriteMethod(this.connection, 'reloadPlugin')) {
 			return;
 		}
-		await this.runWrite(() => this.connection.reloadPlugin(this.selectedPlugin!.id));
+		await this.runWrite(() => this.connection.reloadPlugin(this.selectedPlugin!.id), ENGINE_PLUGINS_RELOAD_SUCCESS_COPY);
 	}
 
 	private async unloadSelected(): Promise<void> {
@@ -502,7 +525,7 @@ export class EnginePluginsSection extends Disposable {
 		if (this.selectedPlugin.source === EMBEDDED_SOURCE) {
 			return;
 		}
-		await this.runWrite(() => this.connection.unloadPlugin(this.selectedPlugin!.id));
+		await this.runWrite(() => this.connection.unloadPlugin(this.selectedPlugin!.id), ENGINE_PLUGINS_UNLOAD_SUCCESS_COPY);
 	}
 
 	private async scanNew(): Promise<void> {
@@ -525,15 +548,28 @@ export class EnginePluginsSection extends Disposable {
 		}
 	}
 
-	private async runWrite(op: () => Promise<unknown>): Promise<void> {
+	private async runWrite(op: () => Promise<unknown>, successCopy: string): Promise<void> {
 		this.writeFailedReason = undefined;
+		this.hideCatalogWriteStatus();
 		this.renderScanResult();
 		try {
 			await op();
+			this.showCatalogWriteStatus(successCopy);
 			await this.refresh();
+			this.showCatalogWriteStatus(successCopy);
 		} catch (error) {
 			this.showWriteFailed(error);
 		}
+	}
+
+	private hideCatalogWriteStatus(): void {
+		this.catalogWriteStatus.style.display = 'none';
+		this.catalogWriteStatus.textContent = '';
+	}
+
+	private showCatalogWriteStatus(message: string): void {
+		this.catalogWriteStatus.style.display = '';
+		this.catalogWriteStatus.textContent = message;
 	}
 
 	private showWriteFailed(error: unknown): void {
@@ -542,6 +578,7 @@ export class EnginePluginsSection extends Disposable {
 		this.lastWritePermissionDenied = isPermissionDeniedError(error);
 		this.writeFailedReason = reason;
 		this.lastScan = undefined;
+		this.hideCatalogWriteStatus();
 		this.renderScanResult();
 		this.status.render({
 			mode: 'failed',
@@ -631,6 +668,7 @@ export class EnginePluginsSection extends Disposable {
 		this.writeFailedReason = undefined;
 		this.lastWritePermissionDenied = false;
 		this.list?.splice(0, this.list?.length ?? 0, []);
+		this.hideCatalogWriteStatus();
 		this.status.hide();
 		this.listContainer.style.display = 'none';
 		this.writeToolbar.style.display = 'none';
