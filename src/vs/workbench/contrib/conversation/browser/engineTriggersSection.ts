@@ -20,6 +20,7 @@ import {
 	canSendEngineTriggerUpsert,
 	ENGINE_TRIGGER_ADD_LABEL,
 	ENGINE_TRIGGER_DELETE_LABEL,
+	ENGINE_TRIGGER_DELETE_SUCCESS_COPY,
 	ENGINE_TRIGGER_DISABLE_LABEL,
 	ENGINE_TRIGGER_EDIT_LABEL,
 	ENGINE_TRIGGER_ENABLE_LABEL,
@@ -323,9 +324,11 @@ export class EngineTriggersSection extends Disposable {
 		const request = engineTriggerDeleteRequest(this.selectedTrigger);
 		try {
 			await hook.call(this.connection, request);
-			this.deleteStatus.textContent = '';
+			this.deleteStatus.textContent = ENGINE_TRIGGER_DELETE_SUCCESS_COPY;
 			this.deleteStatus.style.display = '';
 			await this.refresh();
+			this.deleteStatus.textContent = ENGINE_TRIGGER_DELETE_SUCCESS_COPY;
+			this.deleteStatus.style.display = '';
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.deleteStatus.textContent = reason;

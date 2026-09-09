@@ -162,6 +162,11 @@ export const ENGINE_TRIGGER_DELETE_LABEL = localize(
 	"Delete",
 );
 
+export const ENGINE_TRIGGER_DELETE_SUCCESS_COPY = localize(
+	'ua.engineTriggersDeleteSuccess',
+	"Deleted.",
+);
+
 export const ENGINE_TRIGGER_ADD_LABEL = localize(
 	'ua.engineTriggersAdd',
 	"Add",
