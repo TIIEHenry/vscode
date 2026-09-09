@@ -29,7 +29,7 @@ import type {
 	UniverseAgentToolInfoResult,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { EngineAgentsSection } from '../../browser/engineAgentsSection.js';
+import { ENGINE_AGENTS_CREATE_SUCCESS_COPY, ENGINE_AGENTS_DELETE_SUCCESS_COPY, ENGINE_AGENTS_RESET_SUCCESS_COPY, ENGINE_AGENTS_SAVE_SUCCESS_COPY, EngineAgentsSection } from '../../browser/engineAgentsSection.js';
 import { ENGINE_MCP_ADD_SUCCESS_COPY, ENGINE_MCP_REMOVE_SUCCESS_COPY, ENGINE_MCP_TOGGLE_SUCCESS_COPY, ENGINE_MCP_UPDATE_SUCCESS_COPY, EngineMcpSection } from '../../browser/engineMcpSection.js';
 import { EngineToolsSection } from '../../browser/engineToolsSection.js';
 import { canPerformCatalogWrite, getCatalogFailedCopy, getCatalogUnsupportedCopy } from '../../browser/engineCatalog.js';
@@ -961,6 +961,193 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			"Could not save AGENTS.md to the engine.",
 		)));
 		assertAgentsWriteFailureKeepsCatalog(section, 'save exploded', 1, 'demo');
+	});
+
+	function assertAgentsWriteSuccessSurvivesListFail(section: EngineAgentsSection, successCopy: string, listReason: string): void {
+		const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+		assert.ok(writeStatus);
+		assert.strictEqual(writeStatus.textContent, successCopy);
+		assert.notStrictEqual(writeStatus.style.display, 'none');
+
+		const catalog = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(catalog);
+		assert.strictEqual(catalog.dataset['catalogMode'], 'failed');
+		assert.ok((catalog.textContent ?? '').includes(getCatalogFailedCopy(AGENTS_FEATURE, listReason)));
+	}
+
+	test('Agents: createProfile ok still shows create-success when subsequent listAgentProfiles fails', async () => {
+		let listAgentProfilesCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => {
+					listAgentProfilesCalls++;
+					if (listAgentProfilesCalls > 1) {
+						throw new Error('list boom');
+					}
+					return { profiles: [demoUserAgent()] };
+				},
+				saveAgentProfile: async (request) => ({ profile: request.profile }),
+			});
+			const section = mountAgentsSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+			assert.strictEqual(listAgentProfilesCalls, 1);
+			assert.strictEqual(section.getMode(), 'ready');
+
+			assert.strictEqual(await section.createProfile({ id: 'new-agent', name: 'New', source: 'user' }), true);
+			assert.ok(listAgentProfilesCalls >= 2);
+			assertAgentsWriteSuccessSurvivesListFail(section, ENGINE_AGENTS_CREATE_SUCCESS_COPY, 'list boom');
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('Agents: deleteSelectedProfile ok still shows delete-success when subsequent listAgentProfiles fails', async () => {
+		let listAgentProfilesCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => {
+					listAgentProfilesCalls++;
+					if (listAgentProfilesCalls > 1) {
+						throw new Error('list boom');
+					}
+					return { profiles: [demoUserAgent()] };
+				},
+				deleteAgentProfile: async () => ({ ok: true }),
+			});
+			const section = mountAgentsSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+			assert.strictEqual(listAgentProfilesCalls, 1);
+			assert.strictEqual(section.getMode(), 'ready');
+			await section.selectProfileByIdForTest('demo');
+
+			assert.strictEqual(await section.deleteSelectedProfile(), true);
+			assert.ok(listAgentProfilesCalls >= 2);
+			assertAgentsWriteSuccessSurvivesListFail(section, ENGINE_AGENTS_DELETE_SUCCESS_COPY, 'list boom');
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('Agents: resetSelectedProfile ok still shows reset-success when subsequent listAgentProfiles fails', async () => {
+		let listAgentProfilesCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => {
+					listAgentProfilesCalls++;
+					if (listAgentProfilesCalls > 1) {
+						throw new Error('list boom');
+					}
+					return { profiles: [demoBuiltInAgent()] };
+				},
+				resetAgentProfile: async () => ({ ok: true }),
+			});
+			const section = mountAgentsSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+			assert.strictEqual(listAgentProfilesCalls, 1);
+			assert.strictEqual(section.getMode(), 'ready');
+			await section.selectProfileByIdForTest('builtin');
+
+			assert.strictEqual(await section.resetSelectedProfile(), true);
+			assert.ok(listAgentProfilesCalls >= 2);
+			assertAgentsWriteSuccessSurvivesListFail(section, ENGINE_AGENTS_RESET_SUCCESS_COPY, 'list boom');
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('Agents: saveSelectedProfile ok still shows save-success when subsequent listAgentProfiles fails', async () => {
+		let listAgentProfilesCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => {
+					listAgentProfilesCalls++;
+					if (listAgentProfilesCalls > 1) {
+						throw new Error('list boom');
+					}
+					return { profiles: [demoUserAgent()] };
+				},
+				saveAgentProfile: async (request) => ({ profile: request.profile }),
+			});
+			const section = mountAgentsSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+			assert.strictEqual(listAgentProfilesCalls, 1);
+			assert.strictEqual(section.getMode(), 'ready');
+			await section.selectProfileByIdForTest('demo');
+
+			assert.strictEqual(await section.saveSelectedProfile({ summary: 'Updated' }), true);
+			assert.ok(listAgentProfilesCalls >= 2);
+			assertAgentsWriteSuccessSurvivesListFail(section, ENGINE_AGENTS_SAVE_SUCCESS_COPY, 'list boom');
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('Agents: saveAgentsMarkdown ok still shows save-success when subsequent listAgentProfiles fails', async () => {
+		let listAgentProfilesCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => {
+					listAgentProfilesCalls++;
+					if (listAgentProfilesCalls > 1) {
+						throw new Error('list boom');
+					}
+					return { profiles: [demoUserAgent()] };
+				},
+				saveAgentProfile: async (request) => ({ profile: request.profile }),
+			});
+			const section = mountAgentsSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+			assert.strictEqual(listAgentProfilesCalls, 1);
+			assert.strictEqual(section.getMode(), 'ready');
+			await section.selectProfileByIdForTest('demo');
+			section.setAgentsMarkdownValue('---\nsummary: Updated\n---\n# Agent body');
+
+			assert.strictEqual(await section.saveAgentsMarkdown(), true);
+			assert.ok(listAgentProfilesCalls >= 2);
+			assertAgentsWriteSuccessSurvivesListFail(section, ENGINE_AGENTS_SAVE_SUCCESS_COPY, 'list boom');
+
+			const editorStatus = section.getDomNode().querySelector('.engine-agents-editor-status') as HTMLElement;
+			assert.ok(editorStatus);
+			assert.strictEqual(editorStatus.textContent, ENGINE_AGENTS_SAVE_SUCCESS_COPY);
+			assert.notStrictEqual(editorStatus.style.display, 'none');
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('Agents: tools tab listTools throw paints failed toolsStatus', async () => {
