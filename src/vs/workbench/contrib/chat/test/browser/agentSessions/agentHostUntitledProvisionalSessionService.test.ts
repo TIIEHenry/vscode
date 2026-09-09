@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { DeferredPromise, timeout } from '../../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../../base/common/lifecycle.js';
 import { constObservable, derived, observableValue } from '../../../../../../base/common/observable.js';
@@ -186,6 +187,7 @@ suite('AgentHostUntitledProvisionalSessionService', () => {
 	let cleanup: DisposableStore;
 	let workspaceTrusted: boolean;
 	let untrustedFolders: Set<string>;
+	let rejectTrustInfo: boolean;
 	let workspaceFolders: URI[];
 	let workspaceConfiguration: URI | null;
 	let workspaceName: string | undefined;
@@ -199,6 +201,7 @@ suite('AgentHostUntitledProvisionalSessionService', () => {
 		agentHost = ds.add(new MockAgentHostService());
 		workspaceTrusted = true;
 		untrustedFolders = new Set<string>();
+		rejectTrustInfo = false;
 		workspaceFolders = [];
 		workspaceConfiguration = null;
 		workspaceName = undefined;
@@ -226,7 +229,12 @@ suite('AgentHostUntitledProvisionalSessionService', () => {
 		});
 		insta.stub(IWorkspaceTrustManagementService, new class extends mock<IWorkspaceTrustManagementService>() {
 			override isWorkspaceTrusted(): boolean { return workspaceTrusted; }
-			override async getUriTrustInfo(uri: URI) { return { uri, trusted: !untrustedFolders.has(uri.toString()) }; }
+			override async getUriTrustInfo(uri: URI) {
+				if (rejectTrustInfo) {
+					throw new Error('trust info failed');
+				}
+				return { uri, trusted: !untrustedFolders.has(uri.toString()) };
+			}
 		});
 		insta.stub(IUriIdentityService, { extUri: new ExtUri(() => false) } as Partial<IUriIdentityService> as IUriIdentityService);
 		folderService = ds.add(insta.createInstance(AgentHostNewSessionFolderService));
@@ -1256,6 +1264,29 @@ suite('AgentHostUntitledProvisionalSessionService', () => {
 			recreatedCwd: folderB.toString(),
 			recreatedConfig: 'worktree',
 		});
+	});
+
+	test('folder change does not leak unhandled rejection when getUriTrustInfo rejects', async () => {
+		const folderA = URI.file('/repoA');
+		const folderB = URI.file('/repoB');
+		const ui = untitledChatUri('cwd-trust-reject');
+		agentHost.resolveQueue = [{ schema: makeSchema(false), values: { isolation: 'worktree' } }];
+		await provisional.applyConfigChange(ui, 'copilot', folderA, { isolation: 'worktree' });
+
+		rejectTrustInfo = true;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			folderService.setFolder(ui, folderB);
+			await flush();
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('folder change listeners can wait for the queued replacement', async () => {
