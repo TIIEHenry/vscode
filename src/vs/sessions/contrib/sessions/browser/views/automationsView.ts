@@ -462,7 +462,7 @@ class AutomationCardsSection extends Disposable {
 		}));
 		createButton.label = localize('createAutomation', "Create Automation");
 		createButton.element.classList.add('automations-cards-create-button');
-		this.emptyStateDisposables.add(createButton.onDidClick(() => this.openCreateDialog()));
+		this.emptyStateDisposables.add(createButton.onDidClick(() => void this.openCreateDialog().catch(onUnexpectedError)));
 	}
 
 	private async openCreateDialog(): Promise<void> {
