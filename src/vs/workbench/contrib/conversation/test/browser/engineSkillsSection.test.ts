@@ -401,6 +401,105 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.ok(writeStatus.textContent?.includes(toggleFailed));
 	});
 
+	test('toggleSkill success still shows toggle-success when subsequent listSkills fails', async () => {
+		let listSkillsCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				skillsSupport: 'SUPPORTED',
+				listSkills: async () => {
+					listSkillsCalls++;
+					if (listSkillsCalls > 1) {
+						throw new Error('listSkills exploded');
+					}
+					return { skills: [{ name: 'demo-skill', source: 'bundled', enabled: true }] };
+				},
+				setSkillEnabled: async () => ({ ok: true }),
+			});
+			const section = mountSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+
+			assert.strictEqual(section.getMode(), 'ready');
+			assert.strictEqual(section.getListEntryCount(), 1);
+
+			await section.toggleSkillForTest('demo-skill', false);
+			await flushMicrotasks();
+
+			assert.ok(listSkillsCalls >= 2);
+			const toggleSuccess = localize('ua.engineSkillToggleSuccess', "Updated.");
+			const writeStatus = section.getDomNode().querySelector('.engine-skill-write-status') as HTMLElement;
+			assert.ok(writeStatus);
+			assert.notStrictEqual(writeStatus.style.display, 'none');
+			assert.ok(writeStatus.textContent?.includes(toggleSuccess));
+
+			assert.strictEqual(section.getMode(), 'failed');
+			assert.strictEqual(section.getListEntryCount(), 0);
+			const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+			assert.ok(status);
+			assert.strictEqual(status.dataset['catalogMode'], 'failed');
+			assert.ok(status.textContent?.includes(getCatalogFailedCopy(SKILLS_FEATURE, 'listSkills exploded')));
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('toggleSkill success still shows toggle-success when subsequent getSkillInfo fails', async () => {
+		let getSkillInfoCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				skillsSupport: 'SUPPORTED',
+				listSkills: async () => ({
+					skills: [{ name: 'demo-skill', source: 'bundled', enabled: true }],
+				}),
+				getSkillInfo: async (request) => {
+					getSkillInfoCalls++;
+					if (getSkillInfoCalls > 1) {
+						throw new Error('getSkillInfo exploded');
+					}
+					return {
+						name: request.skillName,
+						content: '# Demo',
+						source: 'bundled',
+						enabled: true,
+					};
+				},
+				setSkillEnabled: async () => ({ ok: true }),
+			});
+			const section = mountSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+
+			section.selectSkillForTest('demo-skill');
+			await flushMicrotasks();
+			assert.strictEqual(section.getSelectedSkillName(), 'demo-skill');
+			assert.ok(getSkillInfoCalls >= 1);
+
+			await section.toggleSkillForTest('demo-skill', false);
+			await flushMicrotasks();
+
+			assert.ok(getSkillInfoCalls >= 2);
+			const toggleSuccess = localize('ua.engineSkillToggleSuccess', "Updated.");
+			const writeStatus = section.getDomNode().querySelector('.engine-skill-write-status') as HTMLElement;
+			assert.ok(writeStatus);
+			assert.notStrictEqual(writeStatus.style.display, 'none');
+			assert.ok(writeStatus.textContent?.includes(toggleSuccess));
+			assert.strictEqual(section.getMode(), 'ready');
+			assert.strictEqual(section.getListEntryCount(), 1);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
 	test('createSkill success still shows create-success when subsequent listSkills fails', async () => {
 		let listSkillsCalls = 0;
 		const unhandledRejections: unknown[] = [];
@@ -583,6 +682,116 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.ok(writeStatus);
 		assert.notStrictEqual(writeStatus.style.display, 'none');
 		assert.ok(writeStatus.textContent?.includes(saveFailed));
+	});
+
+	test('saveSelectedSkillBody success still shows save-success when subsequent listSkills fails', async () => {
+		let listSkillsCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				skillsSupport: 'SUPPORTED',
+				listSkills: async () => {
+					listSkillsCalls++;
+					if (listSkillsCalls > 1) {
+						throw new Error('listSkills exploded');
+					}
+					return { skills: [{ name: 'user-skill', source: 'user', enabled: true }] };
+				},
+				getSkillInfo: async (request) => ({
+					name: request.skillName,
+					content: '# Original',
+					source: 'user',
+					enabled: true,
+				}),
+				saveSkillContent: async () => ({ ok: true }),
+			});
+			const section = mountSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+
+			assert.strictEqual(section.getMode(), 'ready');
+			assert.strictEqual(section.getListEntryCount(), 1);
+			section.selectSkillForTest('user-skill');
+			await flushMicrotasks();
+			assert.strictEqual(section.getSelectedSkillName(), 'user-skill');
+
+			const ok = await section.saveSelectedSkillBody('# Updated body');
+			await flushMicrotasks();
+			assert.strictEqual(ok, true);
+			assert.ok(listSkillsCalls >= 2);
+
+			const saveSuccess = localize('ua.engineSkillBodySaveSuccess', "Saved.");
+			const writeStatus = section.getDomNode().querySelector('.engine-skill-write-status') as HTMLElement;
+			assert.ok(writeStatus);
+			assert.notStrictEqual(writeStatus.style.display, 'none');
+			assert.ok(writeStatus.textContent?.includes(saveSuccess));
+
+			assert.strictEqual(section.getMode(), 'failed');
+			assert.strictEqual(section.getListEntryCount(), 0);
+			const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+			assert.ok(status);
+			assert.strictEqual(status.dataset['catalogMode'], 'failed');
+			assert.ok(status.textContent?.includes(getCatalogFailedCopy(SKILLS_FEATURE, 'listSkills exploded')));
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('saveSelectedSkillBody success still shows save-success when subsequent getSkillInfo fails', async () => {
+		let getSkillInfoCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				skillsSupport: 'SUPPORTED',
+				listSkills: async () => ({
+					skills: [{ name: 'user-skill', source: 'user', enabled: true }],
+				}),
+				getSkillInfo: async (request) => {
+					getSkillInfoCalls++;
+					if (getSkillInfoCalls > 1) {
+						throw new Error('getSkillInfo exploded');
+					}
+					return {
+						name: request.skillName,
+						content: '# Original',
+						source: 'user',
+						enabled: true,
+					};
+				},
+				saveSkillContent: async () => ({ ok: true }),
+			});
+			const section = mountSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+
+			section.selectSkillForTest('user-skill');
+			await flushMicrotasks();
+			assert.strictEqual(section.getSelectedSkillName(), 'user-skill');
+			assert.ok(getSkillInfoCalls >= 1);
+
+			const ok = await section.saveSelectedSkillBody('# Updated body');
+			await flushMicrotasks();
+			assert.strictEqual(ok, true);
+			assert.ok(getSkillInfoCalls >= 2);
+
+			const saveSuccess = localize('ua.engineSkillBodySaveSuccess', "Saved.");
+			const writeStatus = section.getDomNode().querySelector('.engine-skill-write-status') as HTMLElement;
+			assert.ok(writeStatus);
+			assert.notStrictEqual(writeStatus.style.display, 'none');
+			assert.ok(writeStatus.textContent?.includes(saveSuccess));
+			assert.strictEqual(section.getMode(), 'ready');
+			assert.strictEqual(section.getListEntryCount(), 1);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('SUPPORTED connected saveSelectedSkillBody calls saveSkillContent RPC', async () => {
