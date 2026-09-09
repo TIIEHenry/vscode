@@ -39,6 +39,8 @@ const $ = DOM.$;
 
 const SKILL_WRITE_FEATURE = localize('ua.engineSkillWriteFeatureLabel', "skill content write");
 const SKILL_CREATE_SUCCESS_COPY = localize('ua.engineSkillCreateSuccess', "Created.");
+const SKILL_TOGGLE_SUCCESS_COPY = localize('ua.engineSkillToggleSuccess', "Updated.");
+const SKILL_SAVE_SUCCESS_COPY = localize('ua.engineSkillBodySaveSuccess', "Saved.");
 
 type EngineSkillListEntry =
 	| { readonly kind: 'group'; readonly source: UniverseAgentSkillSummary['source']; readonly label: string }
@@ -330,9 +332,7 @@ export class EngineSkillsSection extends Disposable {
 				this.paintSkillCreateFailed();
 				return false;
 			}
-			this.paintSkillCreateSucceeded();
-			await this.refresh();
-			this.paintSkillCreateSucceeded();
+			await this.restoreWriteSuccessAfterRefresh(() => this.paintSkillCreateSucceeded());
 			if (!this.canWrite()) {
 				return false;
 			}
@@ -364,7 +364,7 @@ export class EngineSkillsSection extends Disposable {
 			this.hideBodyStatus();
 			this.loadedBodyText = payload;
 			this.bodyDirty = false;
-			await this.loadSkillBody(this.selectedSkill);
+			await this.restoreWriteSuccessAfterRefresh(() => this.paintSkillSaveSucceeded());
 			return true;
 		} catch {
 			this.paintSkillSaveFailed();
@@ -534,8 +534,26 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private paintSkillCreateSucceeded(): void {
+		this.paintSkillWriteSucceeded(SKILL_CREATE_SUCCESS_COPY);
+	}
+
+	private paintSkillToggleSucceeded(): void {
+		this.paintSkillWriteSucceeded(SKILL_TOGGLE_SUCCESS_COPY);
+	}
+
+	private paintSkillSaveSucceeded(): void {
+		this.paintSkillWriteSucceeded(SKILL_SAVE_SUCCESS_COPY);
+	}
+
+	private paintSkillWriteSucceeded(copy: string): void {
 		this.writeStatus.style.display = '';
-		this.writeStatus.textContent = SKILL_CREATE_SUCCESS_COPY;
+		this.writeStatus.textContent = copy;
+	}
+
+	private async restoreWriteSuccessAfterRefresh(paintSucceeded: () => void): Promise<void> {
+		paintSucceeded();
+		await this.refresh();
+		paintSucceeded();
 	}
 
 	private paintSkillToggleFailed(): void {
@@ -628,8 +646,7 @@ export class EngineSkillsSection extends Disposable {
 				this.paintSkillToggleFailed();
 				return;
 			}
-			this.hideWriteStatus();
-			await this.refresh();
+			await this.restoreWriteSuccessAfterRefresh(() => this.paintSkillToggleSucceeded());
 		} catch {
 			this.paintSkillToggleFailed();
 			await this.refresh();
