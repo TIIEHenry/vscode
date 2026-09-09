@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-09
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / D131 / D133–D176 已闭；人类工位合入保留 stub-and-fixtures 重复 frontmatter / sourcesReview toResource.call 发现；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / D131 / D133–D178 已闭；人类工位合入保留 stub-and-fixtures 重复 frontmatter / sourcesReview toResource.call 发现；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -189,6 +189,8 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / 
 | D174 | P3 | **单条 feedback `void revealFeedback` 无 catch** | B `b4ef8494a43` `.catch(onUnexpectedError)`。merge 复测 6 passing。残留：context view 同类 void 无 widget 测，不可锁 | 单条 click reject 无未处理 rejection | sessions | closed |
 | D175 | P3 | **Claude 权限 Learn more `void opener.open` 无 catch** → 文档链接 reject 漏 | A `9a51365629c` `.catch(onUnexpectedError)`。merge 复测 picker 4 passing | Learn more opener reject 无未处理 rejection | sessions | closed |
 | D176 | P3 | **`void _dispatchActiveClientWhenResolved` 无 catch** → `whenResolved()` reject 漏 | B `e4844ce08ae` `.catch(onUnexpectedError)`。merge 复测 provider 206 passing | scope reject 无未处理 rejection、无 SessionActiveClientSet | sessions | closed |
+| D177 | P3 | **untitled mode 回填 `void _applyMode` 无 catch** → `waitForPendingUpdates` reject 漏 | A `18f9ec25bdb` `.catch(onUnexpectedError)`。merge 复测 synchronizer 7 passing | waitForPendingUpdates reject 无未处理 rejection | workbench | closed |
+| D178 | P3 | **`void provider.setRootConfigValue` 无 catch** → addMcpServer 写 root config reject 漏 | B `956cab78bbe` `.catch(onUnexpectedError)`。merge 复测 customization 3 passing。未改 workbench 同步 dispatch 副本 | setRootConfigValue reject 无未处理 rejection | sessions | closed |
 | D167 | P3 | **桌面布局 `void openView/openViewContainer` 无 catch** → 视图打开 reject 漏 | D `f535773c208` 7 处 `.catch(onUnexpectedError)`。merge 复测 layout 140 passing | untitled/restore reject 无未处理 rejection | sessions | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
