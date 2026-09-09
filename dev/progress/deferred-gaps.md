@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-09
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / D131 / D133–D174 已闭；人类工位合入保留 stub-and-fixtures 重复 frontmatter / sourcesReview toResource.call 发现；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / D131 / D133–D176 已闭；人类工位合入保留 stub-and-fixtures 重复 frontmatter / sourcesReview toResource.call 发现；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -186,7 +186,9 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / 
 | D171 | P3 | **workbench `void _registerForScheme` 无 catch** | A `2dcb6d6b9bc` 两处 `.catch(onUnexpectedError)`。merge 复测 chatInputCompletions 54 passing | existing/added scheme reject 无未处理 rejection | workbench | closed |
 | D172 | P3 | **Inbox Goal/Enqueue `void` click 无 catch** → `input` reject 漏 | B `ab26662bdde` `.catch(onUnexpectedError)`。merge 复测 inbox 30 passing。未改 false notice 合同 | reject 无未处理 rejection、不误弹 notice | conversation | closed |
 | D173 | P3 | **Codex `void openCodexAuthUrl` 无 catch** → opener reject 漏 | A `c68ce95365e` auth URL + profile image `.catch(onUnexpectedError)`。merge 复测 12 passing | auth URL reject 无未处理 rejection | workbench | closed |
-| D174 | P3 | **单条 feedback `void revealFeedback` 无 catch** | B `b4ef8494a43` `.catch(onUnexpectedError)`。merge 复测 6 passing。残留：context view 同类 void 未扫 | 单条 click reject 无未处理 rejection | sessions | closed |
+| D174 | P3 | **单条 feedback `void revealFeedback` 无 catch** | B `b4ef8494a43` `.catch(onUnexpectedError)`。merge 复测 6 passing。残留：context view 同类 void 无 widget 测，不可锁 | 单条 click reject 无未处理 rejection | sessions | closed |
+| D175 | P3 | **Claude 权限 Learn more `void opener.open` 无 catch** → 文档链接 reject 漏 | A `9a51365629c` `.catch(onUnexpectedError)`。merge 复测 picker 4 passing | Learn more opener reject 无未处理 rejection | sessions | closed |
+| D176 | P3 | **`void _dispatchActiveClientWhenResolved` 无 catch** → `whenResolved()` reject 漏 | B `e4844ce08ae` `.catch(onUnexpectedError)`。merge 复测 provider 206 passing | scope reject 无未处理 rejection、无 SessionActiveClientSet | sessions | closed |
 | D167 | P3 | **桌面布局 `void openView/openViewContainer` 无 catch** → 视图打开 reject 漏 | D `f535773c208` 7 处 `.catch(onUnexpectedError)`。merge 复测 layout 140 passing | untitled/restore reject 无未处理 rejection | sessions | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
