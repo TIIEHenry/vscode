@@ -4,7 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../../base/common/async.js';
 import { Codicon } from '../../../../../../base/common/codicons.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../../base/common/errors.js';
 import { Event } from '../../../../../../base/common/event.js';
 import { constObservable, observableValue } from '../../../../../../base/common/observable.js';
 import { URI } from '../../../../../../base/common/uri.js';
@@ -73,7 +75,7 @@ class FakeProvider implements Pick<IAgentHostSessionsProvider, 'id' | 'onDidChan
 	}
 }
 
-function setupPicker(store: Pick<ReturnType<typeof ensureNoDisposablesAreLeakedInTestSuite>, 'add'>) {
+function setupPicker(store: Pick<ReturnType<typeof ensureNoDisposablesAreLeakedInTestSuite>, 'add'>, options?: { openRejects?: boolean }) {
 	const provider = new FakeProvider();
 	const openedResources: string[] = [];
 	const actionWidgetItems: IActionListItem<IAgentHostSessionEnumPickerItem>[] = [];
@@ -101,6 +103,9 @@ function setupPicker(store: Pick<ReturnType<typeof ensureNoDisposablesAreLeakedI
 	})());
 	instantiationService.set(IOpenerService, new (class extends mock<IOpenerService>() {
 		override async open(resource: URI | string): Promise<boolean> {
+			if (options?.openRejects) {
+				throw new Error('boom');
+			}
 			openedResources.push(resource.toString());
 			return true;
 		}
@@ -162,5 +167,27 @@ suite('AgentHostClaudePermissionModePicker', () => {
 			openedResources: [LEARN_MORE_URL],
 			setCalls: [],
 		});
+	});
+
+	test('does not leak unhandled rejection when Learn more opener rejects', async () => {
+		const { actionWidgetItems, onSelect } = setupPicker(store, { openRejects: true });
+		const learnMoreItem = actionWidgetItems.at(-1)?.item;
+		const select = onSelect();
+		assert.ok(select);
+		assert.ok(learnMoreItem);
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			select(learnMoreItem);
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });
