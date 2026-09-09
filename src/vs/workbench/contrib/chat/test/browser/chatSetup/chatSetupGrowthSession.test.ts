@@ -116,7 +116,7 @@ suite('GrowthSessionController', () => {
 	test('does not leak unhandled rejection when lifecycle.when rejects', async () => {
 		instantiationService.stub(ILifecycleService, {
 			when: async () => { throw new Error('boom'); },
-		} as ILifecycleService);
+		} as unknown as ILifecycleService);
 
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);

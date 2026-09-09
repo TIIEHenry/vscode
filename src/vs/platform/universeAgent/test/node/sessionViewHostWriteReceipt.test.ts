@@ -8,6 +8,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/c
 import type { IUniverseAgentSessionViewFrameEvent } from '../../common/universeAgentSessionView.js';
 import type { ViewPatch } from '../../common/sessionView/types.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
+import type { IUniverseAgentConnection } from '../../common/universeAgentConnection.js';
 import { TestConnection, TestHost } from './sessionViewHostTestHelpers.js';
 
 class ResidentWriteConnection extends TestConnection {
@@ -101,7 +102,7 @@ suite('SessionViewHost host write receipt', () => {
 
 	test('one-shot chat resolve with no callback still folds removePendingAction for perm-live', async () => {
 		const connection = new TestConnection();
-		assert.strictEqual(typeof connection.openChatStream, 'undefined');
+		assert.strictEqual(typeof (connection as IUniverseAgentConnection).openChatStream, 'undefined');
 		const { viewHost, leaseId, frames } = await connectWithPermissionSeat('sess-oneshot-ok', connection);
 
 		const outcome = viewHost.post(leaseId, { kind: 'permissionRespond', requestId: 'perm-live', decision: 'allow' });
@@ -119,7 +120,7 @@ suite('SessionViewHost host write receipt', () => {
 				throw new Error('oneshot chat failed');
 			}
 		}();
-		assert.strictEqual(typeof connection.openChatStream, 'undefined');
+		assert.strictEqual(typeof (connection as IUniverseAgentConnection).openChatStream, 'undefined');
 		const { viewHost, leaseId, frames } = await connectWithPermissionSeat('sess-oneshot-fail', connection);
 
 		const rejections: unknown[] = [];

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-09
-summary: "fix/gate-recovery 已合入 loop/merge（4548cc5792f）。loop 新切片已停。D8 / D16 / D31 F4 / D147 / D194 仍开。合入后 tsgo 24，未 push。人类工位尚未 cascade。"
+summary: "fix/gate-recovery 已合入 loop/merge。合入后 tsgo 夹具已清，merge 槽 compile 0。loop 新切片已停。D8 / D16 / D31 F4 / D147 / D194 仍开。未 push。人类工位尚未 cascade。"
 ---
 
 # Development Progress
@@ -42,7 +42,7 @@ summary: "fix/gate-recovery 已合入 loop/merge（4548cc5792f）。loop 新切�
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
 ### 进行中（2026-09-09 · 停 loop 切片 · 合入门禁线）
-人类裁定：先停 loop 新切片，把 `fix/gate-recovery` 合回 `loop/merge`。E 先合入 `loop/merge` 至 D193（`4140eab214c`），再 `--no-ff` 回集成（`4548cc5792f`）。冲突 17 处 keep-both：E 的诚实 RPC / 跨层搬迁 / `universeAgentNode` 418；loop 的 catch 与 `{ ok:false }` 回滚。麦克风与 Route 假造 UI 改登记 [D194](deferred-gaps.md)。**禁止再开 D194+ catch 切片。** 合入后 merge 槽 `npm run compile`：**compile-src 0 错**，tsgo **24**（3 条是跨层 import 残留，已改；其余 21 条是 loop 测夹具对不上更严类型）。未 push。人类工位 **未 cascade**。不占 A–D。未开 D147。
+人类裁定：先停 loop 新切片，把 `fix/gate-recovery` 合回 `loop/merge`。E 先合入至 D193（`4140eab214c`），再 `--no-ff` 回集成（`4548cc5792f`）。合入后 tsgo 24：3 条跨层 import 已在 `71f5ed0b495` 补；其余 12 个测试夹具类型已对齐，merge 槽 `npm run compile` **0 错**。麦克风与 Route 假造 UI 仍为 [D194](deferred-gaps.md)。**禁止再开 D194+ catch 切片。** 未 push。人类工位 **未 cascade**。不占 A–D。未开 D147。
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
@@ -159,12 +159,12 @@ summary: "fix/gate-recovery 已合入 loop/merge（4548cc5792f）。loop 新切�
 | [D192](deferred-gaps.md) | A 草稿换目录信任 catch | **closed** `d72003f13eb`；getUriTrustInfo reject 无未处理 rejection；merge 52 passing |
 | [D193](deferred-gaps.md) | B Agents Open Connection catch | **closed** `cd87c9623fb`；executeCommand reject 无未处理 rejection；merge 51 passing |
 | [D194](deferred-gaps.md) | E 假造麦克风 / Route UI | **仍开** 只登记；原 E/D45，loop 已用 D45 收 host-open-catch |
-| **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；E 单独 @ `4a2bebe0158` compile 0；合入后 tsgo 24（3 import 已补）；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
+| **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | 落后 D148–D193 + gate-recovery；**未 cascade** |
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `4548cc5792f` | 3 import + progress | 0 | 已合 gate-recovery；合入后 tsgo 24；**不 push**；人类工位未 cascade |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `71f5ed0b495`+ | 12 测类型 | 0 | compile 0；**不 push**；人类工位未 cascade |
 | A | `vscode-WorkTrees/A` | `loop/A` | `b2d8bc37f08` | `__pycache__` | 0 | idle；切片已停，勿占 |
 | B | `vscode-WorkTrees/B` | `loop/B` | `b2d8bc37f08` | `__pycache__` | 0 | idle；切片已停，勿占 |
 | C | `vscode-WorkTrees/C` | `loop/C` | `b2d8bc37f08` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
@@ -175,7 +175,7 @@ summary: "fix/gate-recovery 已合入 loop/merge（4548cc5792f）。loop 新切�
 | 项 | 指针 |
 |:---|:-----|
 | **引擎空壳 Create** | [D26](deferred-gaps.md) — 空 store 首次 Create 仍 `ALREADY_EXISTS` 且不写 meta；不要再清 store |
-| **loop 切片** | **已停**。下一刀不是 D194+ catch，是合入后 compile / 门禁是否仍绿 |
+| **loop 切片** | **已停**。merge compile 已 0；全仓 eslint 仍未复证。不要开 D194+ catch |
 | **test-baseline** | D17 名单 0 数据行。E 已把 11 个 Electron-unloadable 文件改 Node runner（`universeAgentNode=418`）。合入后须在 merge 复证四域。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + CI 绿 + merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。

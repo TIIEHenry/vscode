@@ -114,7 +114,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 			get conversationParts() {
 				return conversationParts;
 			},
-		} as IEditorGroupsService;
+		} as unknown as IEditorGroupsService;
 
 		const errors: string[] = [];
 		const sessionWindowService = store.add(new ConversationSessionWindowService(
@@ -123,7 +123,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 				onDidFocus: Event.None,
 				getSlots: () => ({ sessionBar: document.createElement('div'), sessionWindowGrid: gridHost, editorPartHost: undefined }),
 				focus: () => { },
-			} as IConversationPartService,
+			} as unknown as IConversationPartService,
 			editorGroupsService,
 			rosterService,
 			new NullLogService(),

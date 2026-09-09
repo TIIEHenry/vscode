@@ -44,6 +44,7 @@ import { conversationSubAgentOverlayClass, conversationSubAgentOverlayBackdropCl
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { IConversationLensSlots } from '../../../../browser/parts/conversation/conversationPart.js';
 import { ConversationStubService, IConversationRosterService, type ILiveAgentTreeChangeEvent } from '../../browser/conversationStubService.js';
+import type { IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
 import { ConversationDiffReviewInputTypeId } from '../../../sources/common/conversationDiffReviewInput.js';
@@ -573,7 +574,7 @@ suite('Conversation session chat (S3)', () => {
 			override getActiveSessionId(): string {
 				return 'untitled';
 			}
-			override acquireSessionView(_sessionId: string) {
+			override acquireSessionView(_sessionId: string): IConversationSessionViewLease {
 				throw boom;
 			}
 		}

@@ -117,7 +117,7 @@ suite('ConversationTimelineRevealService', () => {
 				calls.push('accessible');
 				throw new Error('boom');
 			},
-		} as ConversationLens;
+		} as unknown as ConversationLens;
 	}
 
 	function createService(): { service: ConversationTimelineRevealService; errors: string[] } {

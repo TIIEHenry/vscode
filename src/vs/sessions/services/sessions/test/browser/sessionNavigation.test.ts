@@ -723,7 +723,7 @@ suite('SessionsNavigation', () => {
 
 			opener.throwNext = false;
 			await localNav.goBack();
-			assert.strictEqual(localStore.lastOpenedResource?.toString(), s1.resource.toString());
+			assert.strictEqual((localStore.lastOpenedResource as URI | undefined)?.toString(), s1.resource.toString());
 			assert.strictEqual(localCanGoBack(), false);
 			assert.strictEqual(localCanGoForward(), true);
 
@@ -733,7 +733,7 @@ suite('SessionsNavigation', () => {
 			assert.deepStrictEqual(unhandledRejections, []);
 			assert.strictEqual(localCanGoBack(), false);
 			assert.strictEqual(localCanGoForward(), true);
-			assert.strictEqual(localStore.lastOpenedResource?.toString(), s1.resource.toString());
+			assert.strictEqual((localStore.lastOpenedResource as URI | undefined)?.toString(), s1.resource.toString());
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}

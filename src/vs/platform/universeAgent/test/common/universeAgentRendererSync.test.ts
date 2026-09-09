@@ -346,7 +346,7 @@ suite('universeAgentRendererSync', () => {
 			capabilities: createIdleCapabilitySnapshot(),
 		};
 		const channel: IChannel = {
-			call: (command: string) => {
+			call: (command: string): Promise<any> => {
 				switch (command) {
 					case 'getConnectionSnapshot':
 						return Promise.resolve(rejectedSnapshot);
@@ -400,7 +400,7 @@ suite('universeAgentRendererSync', () => {
 		const connectionChanges = new Emitter<typeof incomingSnapshot>();
 		store.add(connectionChanges);
 		const channel: IChannel = {
-			call: (command: string) => {
+			call: (command: string): Promise<any> => {
 				switch (command) {
 					case 'getConnectionSnapshot':
 						return Promise.resolve(idleSnapshot);
@@ -481,7 +481,7 @@ suite('universeAgentRendererSync', () => {
 			targetKind: 'hubDevice' as const,
 		}];
 		const channel: IChannel = {
-			call: (command: string) => {
+			call: (command: string): Promise<any> => {
 				switch (command) {
 					case 'listConnectionProfiles':
 						return Promise.resolve(profiles);

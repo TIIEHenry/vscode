@@ -132,7 +132,7 @@ suite('Sources - review list model', () => {
 			multiDiffEditorOriginalUri: undefined,
 			multiDiffEditorModifiedUri: undefined,
 			open: async () => { },
-		} as ISCMResource;
+		} as unknown as ISCMResource;
 		group.resources.push(scmResource);
 
 		const repository = {

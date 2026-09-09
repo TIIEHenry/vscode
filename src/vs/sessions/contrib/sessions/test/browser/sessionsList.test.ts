@@ -2366,7 +2366,7 @@ suite('Sessions - SessionsList', () => {
 			const harness = createListHarness(disposables, []);
 			harness.instantiationService.stub(IWorkbenchAssignmentService, new class extends mock<IWorkbenchAssignmentService>() {
 				override readonly onDidRefetchAssignments = Event.None;
-				override async getTreatment() { throw new Error('boom'); }
+				override async getTreatment<T extends string | number | boolean>(_name: string): Promise<T | undefined> { throw new Error('boom'); }
 			});
 			const container = harness.createContainer();
 

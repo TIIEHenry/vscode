@@ -717,7 +717,7 @@ suite('Navigator Agents subviews', () => {
 			getAccessibleTurnContent: () => undefined,
 			focusAccessibleTurn: () => { },
 			scrollToFirstPendingConfirmation: () => { },
-		} as IConversationTimelineRevealService);
+		} as unknown as IConversationTimelineRevealService);
 		instantiationService.stub(INotificationService, {
 			error: (message: string | Error) => {
 				errors.push(typeof message === 'string' ? message : getErrorMessage(message));

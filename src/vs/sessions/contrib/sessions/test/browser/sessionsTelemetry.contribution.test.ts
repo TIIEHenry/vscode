@@ -26,7 +26,7 @@ import { NullTelemetryServiceShape } from '../../../../../platform/telemetry/com
 import { IUriIdentityService } from '../../../../../platform/uriIdentity/common/uriIdentity.js';
 import { ISearchService } from '../../../../../workbench/services/search/common/search.js';
 import { IAgentFeedbackService } from '../../../agentFeedback/browser/agentFeedbackService.js';
-import { ISessionsTasksService } from '../../../chat/browser/sessionsTasksService.js';
+import { ISessionsTasksService, ISessionTaskWithTarget } from '../../../chat/browser/sessionsTasksService.js';
 import { ChatInteractivity, IChat, ISession, ISessionFolder, ISessionWorkspace, SessionStatus } from '../../../../services/sessions/common/session.js';
 import { IActiveSession, ISendRequestSentEvent, ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
 import { ISessionsPartService } from '../../../../services/sessions/browser/sessionsPartService.js';
@@ -150,7 +150,7 @@ const workspace = createWorkspace(URI.parse('file:///repo'));
 suite('SessionsTelemetryContribution', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function setup(sessions: readonly ISession[], activeSession?: IObservable<IActiveSession | undefined>, getAllTasks: () => Promise<readonly unknown[]> = async () => []): { telemetryService: TestTelemetryService; storageService: InMemoryStorageService; onDidSendRequest: Emitter<ISendRequestSentEvent>; onDidArchiveSession: Emitter<ISession>; onModelAdded: Emitter<ITextModel> } {
+	function setup(sessions: readonly ISession[], activeSession?: IObservable<IActiveSession | undefined>, getAllTasks: () => Promise<readonly ISessionTaskWithTarget[]> = async () => []): { telemetryService: TestTelemetryService; storageService: InMemoryStorageService; onDidSendRequest: Emitter<ISendRequestSentEvent>; onDidArchiveSession: Emitter<ISession>; onModelAdded: Emitter<ITextModel> } {
 		const onDidSendRequest = disposables.add(new Emitter<ISendRequestSentEvent>());
 		const onDidArchiveSession = disposables.add(new Emitter<ISession>());
 		const onModelAdded = disposables.add(new Emitter<ITextModel>());
@@ -191,7 +191,7 @@ suite('SessionsTelemetryContribution', () => {
 		}();
 		const tasksService = new class extends mock<ISessionsTasksService>() {
 			override readonly onDidRunTask = Event.None;
-			override async getAllTasks() { return getAllTasks(); }
+			override async getAllTasks(_session: ISession): Promise<readonly ISessionTaskWithTarget[]> { return getAllTasks(); }
 		}();
 		const modelService = new class extends mock<IModelService>() {
 			override readonly onModelAdded = onModelAdded.event;

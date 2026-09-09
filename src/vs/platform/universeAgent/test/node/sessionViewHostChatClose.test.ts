@@ -53,7 +53,7 @@ class ChatConnection extends TestConnection {
 	}
 }
 
-function closedChromeFromFrames(frames: readonly IUniverseAgentSessionViewFrameEvent[]): SyncChrome[] {
+function closedChromeFromFrames(frames: readonly IUniverseAgentSessionViewFrameEvent[]): Extract<SyncChrome, { kind: 'closed' }>[] {
 	return frames.flatMap(event => {
 		const body = event.frame.frame.body;
 		if (body.kind !== 'patches') {
