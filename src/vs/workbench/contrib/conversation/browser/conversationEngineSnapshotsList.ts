@@ -6,6 +6,7 @@
 import { $, addDisposableListener, append, reset } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -434,7 +435,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			}));
 			deleteButton.icon = Codicon.trash;
 			deleteButton.label = conversationLensSessionBarSnapshotsDelete;
-			this.rowDisposables.add(deleteButton.onDidClick(() => void this.deleteSnapshot(snapshot)));
+			this.rowDisposables.add(deleteButton.onDidClick(() => void this.deleteSnapshot(snapshot).catch(onUnexpectedError)));
 		}
 	}
 }
