@@ -4,14 +4,28 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
+import { Event } from '../../../../../base/common/event.js';
+import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+import { observableValue } from '../../../../../base/common/observable.js';
+import { URI } from '../../../../../base/common/uri.js';
+import { mock, upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { OffsetRange } from '../../../../../editor/common/core/ranges/offsetRange.js';
+import { createTextModel } from '../../../../../editor/test/common/testTextModel.js';
+import { withTestCodeEditor } from '../../../../../editor/test/browser/testCodeEditor.js';
+import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
 import { IChatRequestVariableEntry, toAgentHostCompletionVariableEntry, AgentHostCompletionReferenceKind } from '../../../../../workbench/contrib/chat/common/attachments/chatVariableEntries.js';
-import { getAgentHostCompletionAttachmentRange, getCommandArgumentHintPlaceholder } from '../../browser/agentHostInputCompletions.js';
+import { IChatSessionsService } from '../../../../../workbench/contrib/chat/common/chatSessionsService.js';
+import { IActiveSession } from '../../../../services/sessions/common/sessionsManagement.js';
+import { ISessionContext } from '../../../../services/sessions/browser/sessionContext.js';
+import { AgentHostInputCompletionHandler, getAgentHostCompletionAttachmentRange, getCommandArgumentHintPlaceholder } from '../../browser/agentHostInputCompletions.js';
+import { INewChatAttachments } from '../../browser/newChatContextAttachments.js';
 
 suite('AgentHostInputCompletions', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('uses the accepted occurrence when duplicate slash tokens exist', () => {
 		const text = 'first /rename then accepted /rename';
@@ -82,5 +96,47 @@ suite('AgentHostInputCompletions', () => {
 			assert.strictEqual(getCommandArgumentHintPlaceholder('hi /plan ', [withHint], refs(withHint, 3)), undefined);
 			assert.strictEqual(getCommandArgumentHintPlaceholder('/plan ', [withHint], new Map()), undefined);
 		});
+	});
+
+	test('does not leak unhandled rejection when getChatInputCompletionTriggerCharacters rejects', async () => {
+		const session = observableValue<IActiveSession | undefined>('session', upcastPartial<IActiveSession>({
+			resource: URI.from({ scheme: 'agent-host-copilot', path: '/reject-triggers' }),
+		}));
+		const services = new ServiceCollection(
+			[ISessionContext, { _serviceBrand: undefined, session }],
+			[IChatSessionsService, new class extends mock<IChatSessionsService>() {
+				override getChatInputCompletionTriggerCharacters(): Promise<readonly string[] | undefined> {
+					return Promise.reject(new Error('boom'));
+				}
+			}],
+		);
+		const attachments: INewChatAttachments = {
+			onDidChangeContext: Event.None,
+			attachments: [],
+			setAttachments() { },
+			addAttachments() { },
+			removeAttachment() { },
+		};
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			const model = store.add(createTextModel(''));
+			await withTestCodeEditor(model, { serviceCollection: services }, async (editor, _viewModel, instantiationService) => {
+				const local = new DisposableStore();
+				try {
+					local.add(instantiationService.createInstance(AgentHostInputCompletionHandler, editor, attachments));
+					await timeout(0);
+				} finally {
+					local.dispose();
+				}
+			});
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });
