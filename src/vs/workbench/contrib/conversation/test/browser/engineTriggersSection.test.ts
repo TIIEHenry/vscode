@@ -8,7 +8,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentDeleteTriggerRequest, UniverseAgentFireTriggerRequest, UniverseAgentListTriggersRequest, UniverseAgentListTriggersResult, UniverseAgentSetTriggerEnabledRequest, UniverseAgentTrigger, UniverseAgentUpsertTriggerRequest } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { ENGINE_TRIGGER_ADD_LABEL, ENGINE_TRIGGER_DELETE_LABEL, ENGINE_TRIGGER_DISABLE_LABEL, ENGINE_TRIGGER_EDIT_LABEL, ENGINE_TRIGGER_ENABLE_LABEL, ENGINE_TRIGGER_FIRE_LABEL, formatEngineTriggerListLabel } from '../../browser/engineTriggerList.js';
+import { ENGINE_TRIGGER_ADD_LABEL, ENGINE_TRIGGER_DELETE_LABEL, ENGINE_TRIGGER_DELETE_SUCCESS_COPY, ENGINE_TRIGGER_DISABLE_LABEL, ENGINE_TRIGGER_EDIT_LABEL, ENGINE_TRIGGER_ENABLE_LABEL, ENGINE_TRIGGER_FIRE_LABEL, formatEngineTriggerListLabel } from '../../browser/engineTriggerList.js';
 import { EngineTriggersSection } from '../../browser/engineTriggersSection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 
@@ -421,7 +421,63 @@ suite('EngineTriggersSection', () => {
 		assert.ok(listTriggersCalls >= 2);
 		assert.strictEqual(pane.getDomNode().querySelector('.engine-triggers-row'), null);
 		assert.ok((pane.getDomNode().textContent ?? '').includes('No triggers.'));
+		const deleteStatus = pane.getDomNode().querySelector('.engine-triggers-delete-status') as HTMLElement | null;
+		assert.ok(deleteStatus);
+		assert.strictEqual(deleteStatus.textContent, ENGINE_TRIGGER_DELETE_SUCCESS_COPY);
+		assert.notStrictEqual(deleteStatus.style.display, 'none');
 		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('DeleteTrigger success still shows delete-success when subsequent ListTriggers fails', async () => {
+		let listTriggersCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const pane = mountSection(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				listTriggers: async (): Promise<UniverseAgentListTriggersResult> => {
+					listTriggersCalls++;
+					if (listTriggersCalls > 1) {
+						throw new Error('list boom');
+					}
+					return {
+						triggers: [emptyTrigger({
+							triggerId: '  trig  ',
+							name: '  Nightly  ',
+							type: 'cron',
+							target: { kind: 'self' },
+						})],
+					};
+				},
+				deleteTrigger: async () => {
+					return {};
+				},
+			}));
+			await flushMicrotasks();
+			assert.strictEqual(listTriggersCalls, 1);
+			const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
+			assert.ok(row);
+			row.click();
+			const del = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_DELETE_LABEL);
+			assert.ok(del);
+			del.click();
+			await flushMicrotasks();
+			assert.ok(listTriggersCalls >= 2);
+			const deleteStatus = pane.getDomNode().querySelector('.engine-triggers-delete-status') as HTMLElement | null;
+			assert.ok(deleteStatus);
+			assert.strictEqual(deleteStatus.textContent, ENGINE_TRIGGER_DELETE_SUCCESS_COPY);
+			assert.notStrictEqual(deleteStatus.style.display, 'none');
+			const catalog = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement | null;
+			assert.ok(catalog);
+			assert.strictEqual(catalog.dataset['catalogMode'], 'failed');
+			assert.ok((catalog.textContent ?? '').includes('Could not load triggers from the engine (list boom).'));
+			assert.deepStrictEqual(unhandledRejections, []);
+			pane.getDomNode().parentElement?.remove();
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('DeleteTrigger throw paints delete-status and leaves the row', async () => {
