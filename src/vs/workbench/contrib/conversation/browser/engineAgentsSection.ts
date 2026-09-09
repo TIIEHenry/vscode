@@ -9,6 +9,7 @@ import { InputBox } from '../../../../base/browser/ui/inputbox/inputBox.js';
 import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -721,7 +722,7 @@ export class EngineAgentsSection extends Disposable {
 				emptyCopy: localize('ua.engineAgentsToolsEmpty', "No engine tools to enable for this profile."),
 				onOpenConnection: this.connection.isEngineConnected()
 					? undefined
-					: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+					: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError),
 			});
 			return;
 		}
@@ -871,7 +872,7 @@ export class EngineAgentsSection extends Disposable {
 			loadingKind: options?.loadingKind,
 			onRetry: options?.onRetry,
 			onOpenConnection: this.mode === 'disconnected'
-				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID)
+				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError)
 				: undefined,
 		});
 	}

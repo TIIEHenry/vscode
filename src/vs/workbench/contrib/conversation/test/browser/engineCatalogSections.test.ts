@@ -4,8 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/node/grpcCapabilityProbe.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
@@ -267,6 +269,46 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			assert.ok(!/\.vscode\/mcp\.json/i.test(combined));
 		});
 	}
+
+	test('Agents: disconnected Open Connection executeCommand reject does not leak unhandled rejection', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			let executeCommandCalls = 0;
+			const connection = createConnectionStub({
+				connected: false,
+				capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			});
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			const instantiationService = workbenchInstantiationService(undefined, store);
+			instantiationService.stub(IUniverseAgentConnection, connection);
+			instantiationService.stub(ICommandService, {
+				executeCommand: async () => {
+					executeCommandCalls++;
+					throw new Error('boom');
+				},
+			});
+			const section = store.add(instantiationService.createInstance(EngineAgentsSection, parent));
+			section.layout(640, 120);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+
+			const openConnection = Array.from(section.getDomNode().querySelectorAll('.engine-catalog-status-widget .monaco-button'))
+				.find(button => (button.textContent ?? '').includes('Open Connection')) as HTMLElement | undefined;
+			assert.ok(openConnection);
+			openConnection.click();
+			await flushMicrotasks();
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(executeCommandCalls, 1);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
 
 	test('Agents: SUPPORTED loads RPC catalog', async () => {
 		let listCalled = false;
