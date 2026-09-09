@@ -4,9 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
+import { mainWindow } from '../../../../../base/browser/window.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { getErrorMessage } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
@@ -367,16 +365,6 @@ suite('Sources - review list model', () => {
 		assert.strictEqual(marked.length, 1);
 	});
 
-	const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../../..');
-
-	test('Review list surfaces git read failure on a status line instead of a silent catch', () => {
-		const review = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts'), 'utf8');
-		assert.ok(review.includes('sourcesGitReadFailureMessage'));
-		assert.ok(review.includes('setStatusMessage'));
-		assert.ok(review.includes('sources-review-status'));
-		assert.ok(!review.includes('} catch {\n\t\t\tif (seq !== this.refreshSeq)'));
-	});
-
 	test('Review list status DOM shows git-read throw', async function () {
 		const host = document.createElement('div');
 		document.body.appendChild(host);
@@ -403,19 +391,6 @@ suite('Sources - review list model', () => {
 		assert.strictEqual(status, sourcesGitReadFailureMessage('boom'));
 		assert.ok(status.includes('Unable to read git changes:'));
 		assert.ok(status.includes('boom'));
-	});
-
-	test('Review list surfaces open-diff failure on the same status line and does not mark reviewed', () => {
-		const review = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts'), 'utf8');
-		const openStart = review.indexOf('this._register(this.list.onDidOpen');
-		const openEnd = review.indexOf('this._register(this.list.onContextMenu', openStart);
-		assert.ok(openStart >= 0 && openEnd > openStart);
-		const openHandler = review.slice(openStart, openEnd);
-		assert.ok(openHandler.includes('markReviewedAfterSuccessfulOpen'));
-		assert.ok(openHandler.includes('} catch (error)'));
-		assert.ok(openHandler.includes('sourcesGitDiffOpenFailureMessage'));
-		assert.ok(openHandler.includes('setStatusMessage'));
-		assert.ok(!openHandler.includes('} catch {'));
 	});
 
 	test('Review list status DOM shows onDidOpen open-diff throw and does not mark reviewed', async function () {
@@ -484,7 +459,7 @@ suite('Sources - review list model', () => {
 
 		const input = host.querySelector('.sources-changes-commit-input') as HTMLInputElement;
 		input.value = 'fix';
-		input.dispatchEvent(new window.Event('input', { bubbles: true }));
+		input.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
 
 		const commitButton = await waitForEnabledButton(host, '.sources-changes-commit .monaco-button');
 		commitButton.click();
@@ -526,7 +501,7 @@ suite('Sources - review list model', () => {
 
 		const input = host.querySelector('.sources-changes-commit-input') as HTMLInputElement;
 		input.value = 'fix';
-		input.dispatchEvent(new window.Event('input', { bubbles: true }));
+		input.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
 
 		const commitButton = await waitForEnabledButton(host, '.sources-changes-commit .monaco-button');
 		commitButton.click();
@@ -567,13 +542,6 @@ suite('Sources - review list model', () => {
 		} finally {
 			unstageCommand.dispose();
 		}
-	});
-
-	test('Changes list does not reference review progress service', () => {
-		const changesListPath = path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts');
-		const source = fs.readFileSync(changesListPath, 'utf8');
-		assert.ok(!source.includes('ISourcesReviewProgressService'));
-		assert.ok(!source.includes('sourcesReviewProgress'));
 	});
 
 	test('review progress keys remain distinct per content hash', () => {

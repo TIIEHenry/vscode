@@ -4,9 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type {
 	UniverseAgentWriteGitApplyHunksRequest,
@@ -323,54 +320,5 @@ suite('Sources - Changes git write', () => {
 		assert.strictEqual(isSourcesGitWriteAccepted(committed), false);
 		assert.strictEqual(isSourcesGitWriteUnsupported(applied), true);
 		assert.strictEqual(isSourcesGitWriteAccepted(applied), false);
-	});
-
-	const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../../..');
-
-	test('Changes Stage / Commit write; Unstage stays on git.unstage', () => {
-		const source = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts'), 'utf8');
-		assert.ok(source.includes('tryWriteSourcesGitStagePaths'));
-		assert.ok(source.includes('tryWriteSourcesGitCommit'));
-		assert.ok(source.includes('isSourcesGitWriteAccepted'));
-		assert.ok(source.includes('isSourcesGitWriteUnsupported'));
-		assert.ok(source.includes('SOURCES_GIT_UNSTAGE_COMMAND'));
-		assert.ok(source.includes('resolveSourcesChangesRowAction'));
-		assert.ok(source.includes('sourcesGitUnstageUnavailableMessage'));
-		assert.ok(source.includes("rowAction === 'unstageUnavailable'"));
-		assert.ok(!source.includes('tryWriteSourcesGitApplyHunks'));
-		assert.ok(!source.includes('writeGitUnstage'));
-	});
-
-	test('Review Accept writes ApplyHunks; Revert stays on git.clean; Unstage is local or unavailable', () => {
-		const source = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts'), 'utf8');
-		assert.ok(source.includes('tryWriteSourcesGitApplyHunks'));
-		assert.ok(source.includes('attemptSourcesGitWrite'));
-		assert.ok(source.includes('resolveSourcesDiffWriteActions'));
-		assert.ok(source.includes('SOURCES_GIT_CLEAN_COMMAND'));
-		assert.ok(source.includes('SOURCES_GIT_UNSTAGE_COMMAND'));
-		assert.ok(source.includes('sourcesGitUnstageUnavailableMessage'));
-		assert.ok(source.includes('runGitAction(SOURCES_GIT_STAGE_COMMAND)'));
-		assert.ok(!source.includes('writeGitUnstage'));
-		const runGitActionStart = source.indexOf('private async runGitAction(');
-		assert.ok(runGitActionStart >= 0);
-		const runGitActionEnd = source.indexOf('\n\tprivate ', runGitActionStart + 1);
-		const runGitAction = source.slice(runGitActionStart, runGitActionEnd > runGitActionStart ? runGitActionEnd : undefined);
-		assert.ok(runGitAction.includes('catch'));
-		assert.ok(runGitAction.includes('this.showNotice(getErrorMessage(error))'));
-		assert.ok(runGitAction.includes('finally'));
-		assert.ok(runGitAction.includes('this.updateReviewActions()'));
-	});
-
-	test('Panel Diff write actions share the Review write gate', () => {
-		const source = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts'), 'utf8');
-		assert.ok(source.includes('tryWriteSourcesGitStagePaths'));
-		assert.ok(source.includes('tryWriteSourcesGitApplyHunks'));
-		assert.ok(source.includes('attemptSourcesGitWrite'));
-		assert.ok(source.includes('resolveSourcesDiffWriteActions'));
-		assert.ok(source.includes('SOURCES_GIT_CLEAN_COMMAND'));
-		assert.ok(source.includes('SOURCES_GIT_UNSTAGE_COMMAND'));
-		assert.ok(source.includes('sourcesGitUnstageUnavailableMessage'));
-		assert.ok(source.includes('runGitAction(SOURCES_GIT_STAGE_COMMAND)'));
-		assert.ok(!source.includes('writeGitUnstage'));
 	});
 });

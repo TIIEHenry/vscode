@@ -8,6 +8,7 @@ import { Action, SubmenuAction } from '../../../../../base/common/actions.js';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
+import { hasKey } from '../../../../../base/common/types.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { NullAgentHostService } from '../../../../../platform/agentHost/browser/nullAgentHostService.js';
@@ -233,7 +234,7 @@ suite('CodexAccountService', () => {
 			}
 
 			override dispatch(_channel: string, action: Parameters<NullAgentHostService['dispatch']>[1]): void {
-				if (!('config' in action)) {
+				if (!hasKey(action, { config: true })) {
 					return;
 				}
 				const request = action.config?.[CODEX_ACCOUNT_SIGN_IN_REQUEST_KEY];

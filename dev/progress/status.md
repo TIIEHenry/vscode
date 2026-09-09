@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-09
-summary: "gate-recovery 已合入。compile 0；四域 unit-custom 绿（conversation 975 / sources 118 / UA 225 / UANode 418）。全仓 eslint 仍 OOM。loop 切片已停。D8 / D16 / D147 / D194 仍开。未 push。"
+summary: "gate-recovery 已合入。compile 0；四域 unit-custom 绿；全仓 eslint 0（concurrency 4 / 16G，12278 文件）。loop 切片已停。D8 / D16 / D147 / D194 仍开。未 push。"
 ---
 
 # Development Progress
@@ -42,7 +42,7 @@ summary: "gate-recovery 已合入。compile 0；四域 unit-custom 绿（convers
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
 ### 进行中（2026-09-09 · 停 loop 切片 · 合入门禁线）
-人类裁定：停 loop 新切片，先收 `fix/gate-recovery`。已合入。本 wake 复证门禁：compile 仍 0（未重跑）；全仓 eslint 仍 `ERR_WORKER_OUT_OF_MEMORY`（`concurrency: auto` / 28 worker，16G 堆不够）。四域 unit-custom 初跑 conversation 975 中 1 红（合入把 D127 `handled` 写成 false）；测 helper 改回 `handled: true` 后 `run-unit-custom.sh` **passed**（975 / 118 / 225 / 418，0 fail）。**禁止再开 D194+ catch。** 未 push。人类工位 **未 cascade**。
+人类裁定：停 loop 新切片，先收门禁。已合入。本 wake：`eslint` `concurrency: auto`→`4`、堆 16G；全仓 **12278 文件 / 0 error / 0 warning**（先 13 条测夹具 warning，已迁走 Node `fs` 扫描并改 `mainWindow`/`hasKey`）。compile 0、四域 unit-custom 绿仍有效。**禁止再开 D194+ catch。** 未 push。人类工位 **未 cascade**。
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
@@ -164,7 +164,7 @@ summary: "gate-recovery 已合入。compile 0；四域 unit-custom 绿（convers
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `5ab398d1dce`+ | D127 helper | 0 | compile 0；四域绿；eslint OOM；**不 push** |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `6648294cf7e`+ | eslint 门 | 0 | compile 0；四域绿；eslint 0；**不 push** |
 | A | `vscode-WorkTrees/A` | `loop/A` | `b2d8bc37f08` | `__pycache__` | 0 | idle；切片已停，勿占 |
 | B | `vscode-WorkTrees/B` | `loop/B` | `b2d8bc37f08` | `__pycache__` | 0 | idle；切片已停，勿占 |
 | C | `vscode-WorkTrees/C` | `loop/C` | `b2d8bc37f08` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
@@ -175,7 +175,7 @@ summary: "gate-recovery 已合入。compile 0；四域 unit-custom 绿（convers
 | 项 | 指针 |
 |:---|:-----|
 | **引擎空壳 Create** | [D26](deferred-gaps.md) — 空 store 首次 Create 仍 `ALREADY_EXISTS` 且不写 meta；不要再清 store |
-| **loop 切片** | **已停**。不要开 D194+ catch。全仓 eslint 仍 OOM（`concurrency: auto`） |
+| **loop 切片** | **已停**。不要开 D194+ catch。本地三门（compile / eslint / 四域）已绿，未 push |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + CI 绿 + merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。

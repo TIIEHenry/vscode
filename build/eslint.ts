@@ -27,7 +27,8 @@ async function eslint(args: readonly string[]): Promise<void> {
 		cache: true,
 		cacheLocation: '.eslintcache',
 		cacheStrategy: 'content',
-		concurrency: 'auto',
+		// `auto` forks ~nproc workers and OOM'd on 28-core + 8–16G heap.
+		concurrency: 4,
 		errorOnUnmatchedPattern: shouldErrorOnUnmatchedPattern(args),
 	});
 	const formatter = await linter.loadFormatter('compact');

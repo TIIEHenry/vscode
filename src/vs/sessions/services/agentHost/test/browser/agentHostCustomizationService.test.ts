@@ -12,6 +12,7 @@ import { URI } from '../../../../../base/common/uri.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { CustomizationType, McpServerStatus, type Customization, type McpServerCustomization, type PluginCustomization, type RootConfigState } from '../../../../../platform/agentHost/common/state/protocol/state.js';
+import { McpServerType } from '../../../../../platform/mcp/common/mcpPlatformTypes.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { ILoggerService, NullLoggerService, NullLogService } from '../../../../../platform/log/common/log.js';
 import { IOutputService } from '../../../../../workbench/services/output/common/output.js';
@@ -150,7 +151,7 @@ suite('AgentHostCustomizationService', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(() => { });
 		try {
-			service.addMcpServer(sessionResource, 'demo', { type: 'stdio', command: 'echo' } as any);
+			service.addMcpServer(sessionResource, 'demo', { type: McpServerType.LOCAL, command: 'echo' });
 			await timeout(0);
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
