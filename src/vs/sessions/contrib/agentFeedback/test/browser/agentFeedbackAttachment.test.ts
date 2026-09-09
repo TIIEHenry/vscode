@@ -5,6 +5,8 @@
 
 import assert from 'assert';
 import { IDelayedHoverOptions, IHoverLifecycleOptions } from '../../../../../base/browser/ui/hover/hover.js';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { KeyCode } from '../../../../../base/common/keyCodes.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../../base/common/lifecycle.js';
@@ -197,6 +199,53 @@ suite('AgentFeedbackAttachmentContribution', () => {
 			contextViewShowCount: 0,
 			revealedFeedbackIds: ['comment-1', 'comment-1'],
 		});
+	});
+
+	test('does not leak unhandled rejection when revealFeedback rejects on a single comment', async () => {
+		const instantiationService = store.add(new TestInstantiationService());
+		const sessionResource = URI.parse('agent-host-copilot:/session-1');
+		const feedbackService = new class extends mock<IAgentFeedbackService>() {
+			override async revealFeedback(_sessionResource: URI, _feedbackId: string): Promise<void> {
+				throw new Error('boom');
+			}
+		};
+		instantiationService.stub(IAgentFeedbackService, feedbackService);
+		instantiationService.stub(IHoverService, new TestHoverService());
+		instantiationService.stub(IContextViewService, new TestContextViewService());
+		instantiationService.stub(ILanguageService, new class extends mock<ILanguageService>() { });
+		instantiationService.stub(IThemeService, new class extends mock<IThemeService>() { });
+
+		const attachment: IAgentFeedbackVariableEntry = {
+			kind: 'agentFeedback',
+			id: 'attachment-1',
+			name: '1 comment',
+			value: '1 comment',
+			sessionResource,
+			feedbackItems: [
+				{ id: 'comment-1', text: 'Check this', resourceUri: URI.file('/workspace/a.ts'), range: new Range(1, 1, 1, 1) },
+			],
+		};
+		const container = document.createElement('div');
+		const widget = store.add(instantiationService.createInstance(
+			AgentFeedbackAttachmentWidget,
+			attachment,
+			{ shouldFocusClearButton: false, supportsDeletion: false },
+			container,
+		));
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			widget.element.click();
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('multiple comments toggle a context view without revealing a comment', () => {
