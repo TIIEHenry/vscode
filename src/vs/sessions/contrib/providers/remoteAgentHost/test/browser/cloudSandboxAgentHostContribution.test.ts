@@ -4,7 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../../base/common/async.js';
 import { CancellationToken } from '../../../../../../base/common/cancellation.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../../base/common/errors.js';
 import { Event } from '../../../../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable, toDisposable } from '../../../../../../base/common/lifecycle.js';
 import { mock, upcastPartial } from '../../../../../../base/test/common/mock.js';
@@ -49,7 +51,7 @@ class StubProvider extends mock<CloudSandboxSessionsProvider>() {
 
 	override readonly id: string;
 
-	constructor(readonly config: IRemoteAgentHostSessionsProviderConfig) {
+	constructor(readonly config: IRemoteAgentHostSessionsProviderConfig, private readonly _onSeedSessions?: () => void) {
 		super();
 		this.id = `agenthost-${config.address}`;
 	}
@@ -60,6 +62,7 @@ class StubProvider extends mock<CloudSandboxSessionsProvider>() {
 	 * provider in `remoteAgentHostSessionsProvider.test.ts`.
 	 */
 	override seedSessions(metas: readonly IAgentSessionMetadata[]): void {
+		this._onSeedSessions?.();
 		for (const meta of metas) {
 			if (!this.seeded.some(seen => seen.session.toString() === meta.session.toString())) {
 				this.seeded.push(meta);
@@ -109,9 +112,11 @@ class StubProvider extends mock<CloudSandboxSessionsProvider>() {
 
 class TestCloudSandboxContribution extends CloudSandboxAgentHostContribution {
 	readonly stubProviders = new Map<string, StubProvider>();
+	/** Wired before `createInstance` so the constructor's eager discovery can throw. */
+	static seedSessionsImpl: (() => void) | undefined;
 
 	protected override _instantiateProvider(config: IRemoteAgentHostSessionsProviderConfig): CloudSandboxSessionsProvider {
-		const stub = new StubProvider(config);
+		const stub = new StubProvider(config, TestCloudSandboxContribution.seedSessionsImpl);
 		this.stubProviders.set(config.address, stub);
 		return stub as unknown as CloudSandboxSessionsProvider;
 	}
@@ -145,6 +150,8 @@ interface ITestHarness {
 	readonly connectedTo: string[];
 	/** Host groups currently declared to the filter service. */
 	readonly hostGroups: IAgentHostGroup[];
+	/** Invoked at the start of each stub `seedSessions`, including the constructor's eager pass. */
+	seedSessionsImpl?: () => void;
 }
 
 /**
@@ -157,6 +164,8 @@ async function createContribution(store: Pick<DisposableStore, 'add'>, sessions:
 	readonly createSession?: () => Promise<ICloudSandboxCreatedSession>;
 	/** Whether the sandbox feature settings start on. Defaults to `true`. */
 	readonly enabled?: boolean;
+	/** Thrown (or otherwise invoked) from stub `seedSessions` during the constructor's eager discovery. */
+	readonly onSeedSessions?: () => void;
 }): Promise<ITestHarness> {
 	const discoveryHandlers: (() => Promise<void>)[] = [];
 	const hostGroups: IAgentHostGroup[] = [];
@@ -168,6 +177,7 @@ async function createContribution(store: Pick<DisposableStore, 'add'>, sessions:
 		created,
 		connectedTo,
 		hostGroups,
+		seedSessionsImpl: options?.onSeedSessions,
 		runDiscovery: async () => { await Promise.all(discoveryHandlers.map(handler => handler())); },
 	} as ITestHarness;
 
@@ -226,11 +236,17 @@ async function createContribution(store: Pick<DisposableStore, 'add'>, sessions:
 	instantiationService.stub(IChatSessionsService, new class extends mock<IChatSessionsService>() { }());
 	instantiationService.stub(ILogService, new NullLogService());
 
-	const contribution = store.add(instantiationService.createInstance(TestCloudSandboxContribution));
-	// The constructor kicks off discovery eagerly; re-running the registered handler awaits it,
-	// because `_discoverAndSeed` serializes onto the in-flight pass.
-	await harness.runDiscovery();
-	return Object.assign(harness, { contribution, configurationService });
+	const previousSeedSessionsImpl = TestCloudSandboxContribution.seedSessionsImpl;
+	TestCloudSandboxContribution.seedSessionsImpl = () => harness.seedSessionsImpl?.();
+	try {
+		const contribution = store.add(instantiationService.createInstance(TestCloudSandboxContribution));
+		// The constructor kicks off discovery eagerly; re-running the registered handler awaits it,
+		// because `_discoverAndSeed` serializes onto the in-flight pass.
+		await harness.runDiscovery();
+		return Object.assign(harness, { contribution, configurationService });
+	} finally {
+		TestCloudSandboxContribution.seedSessionsImpl = previousSeedSessionsImpl;
+	}
 }
 
 function discoveredSession(overrides?: Partial<ICloudSandboxDiscoveredSession>): ICloudSandboxDiscoveredSession {
@@ -313,6 +329,24 @@ suite('CloudSandboxAgentHostContribution', () => {
 		const { hostGroups } = await createContribution(store, [discoveredSession()], { enabled: false });
 
 		assert.deepStrictEqual([...hostGroups], []);
+	});
+
+	test('does not leak unhandled rejection when seedSessions throws after a successful listSessions', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			await createContribution(store, [discoveredSession()], {
+				onSeedSessions: () => { throw new Error('seed failed'); },
+			});
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });
 
