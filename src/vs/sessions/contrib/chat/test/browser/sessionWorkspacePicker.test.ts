@@ -3172,6 +3172,81 @@ suite('WorkspacePicker - Tab discovery', () => {
 		}
 	});
 
+	test('delegate.onSelect folder canSelectWorkspace rejection does not become an unhandled rejection', async () => {
+		class SelectingActionWidgetService extends mock<IActionWidgetService>() {
+			override isVisible = false;
+			private readonly selections = new Map<string, () => void>();
+			private onHide: (() => void) | undefined;
+
+			override show<T>(_user: string, _supportsPreview: boolean, items: readonly IActionListItem<T>[], delegate: IActionListDelegate<T>): void {
+				this.selections.clear();
+				for (const item of items) {
+					const actionItem = item.item;
+					if (item.label && actionItem) {
+						this.selections.set(item.label, () => delegate.onSelect(actionItem));
+					}
+				}
+				this.onHide = delegate.onHide;
+				this.isVisible = true;
+			}
+
+			override hide(): void {
+				this.isVisible = false;
+				this.onHide?.();
+				this.onHide = undefined;
+			}
+
+			select(label: string): void {
+				const select = this.selections.get(label);
+				assert.ok(select);
+				select();
+			}
+		}
+
+		const actionWidgetService = new SelectingActionWidgetService();
+		const folderUri = URI.file('/local/candidate');
+		const storage = disposables.add(new TestStorageService());
+		seedStorage(storage, [{ uri: folderUri, providerId: 'local-1', checked: false }]);
+		const localProvider = createMockProvider('local-1');
+		providersService.setProviders([{
+			...localProvider,
+			supportsLocalWorkspaces: true,
+			resolveWorkspace: uri => {
+				const workspace = localProvider.resolveWorkspace(uri);
+				return workspace ? { ...workspace, group: SESSION_WORKSPACE_GROUP_LOCAL } : undefined;
+			},
+		}]);
+		const picker = createTestPicker(
+			disposables,
+			providersService,
+			storage,
+			new TestNotificationService(),
+			WorkspacePicker,
+			{},
+			undefined,
+			undefined,
+			{ canSelectWorkspace: () => Promise.reject('boom') },
+			undefined,
+			actionWidgetService,
+		);
+		const trigger = document.createElement('button');
+		picker.showPicker(false, trigger, SESSION_WORKSPACE_GROUP_LOCAL);
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			actionWidgetService.select('local/candidate');
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
 	test('web GitHub picker includes entries owned outside the selected execution host', () => {
 		const remoteProvider = createMockProvider('agenthost-remote-1');
 		const githubProvider = createMockProvider('default-copilot');
