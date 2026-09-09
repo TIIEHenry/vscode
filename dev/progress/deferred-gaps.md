@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-09
-summary: "延期缺口 SSOT；D8 / D16 / D147 / D151 仍开；D45–D90 / D92–D129 / D131 / D133–D146 / D148–D150 已闭；人类工位合入保留 stub-and-fixtures 重复 frontmatter / sourcesReview toResource.call 发现；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 / D152 仍开；D45–D90 / D92–D129 / D131 / D133–D146 / D148–D151 已闭；人类工位合入保留 stub-and-fixtures 重复 frontmatter / sourcesReview toResource.call 发现；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -164,7 +164,8 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 / D151 仍开；D45–D90 / D92–
 | D148 | P3 | **Triggers `handleDelete` 成功后 `refresh()` 冲掉成功文案**：D131 已 `await refresh()`；`refresh()` 开头清空 `deleteStatus`；后续 `listTriggers` throw 被 refresh 内部 catch，用户只见 list failed。对照 `handleUpsert` refresh 后回写。不得改 setEnabled/fire | A 槽 `loop/A` `f0f3b0938b4` 已收：成功画 `ENGINE_TRIGGER_DELETE_SUCCESS_COPY` → refresh → 再回写；测锁 list throw 后成功文案仍在 + catalog failed。merge 复测 23 passing。未关 D16；未改 setEnabled/fire | 成功 delete 后成功文案在 refresh/list-fail 后仍可见；throw 仍画失败且行仍在；`engineTriggersSection.test.ts` 绿 | conversation | closed |
 | D149 | P3 | **overlay 面包屑 `existingTab` 先 `closeSubAgentDialog` 再 `openEditor`**：throw 时 overlay 已关、tab 未激活。不得改 promote close-first（D85 测锁 `isSubAgentDialogOpen()===false`） | B 槽 `loop/B` `8df5ebee622` 已收：`openEditor` 成功后再关 overlay；throw 测 overlay 仍开。merge 复测 36 passing。未关 D16；未改 promote | throw 时 overlay 仍开 + error notice；成功关 overlay 且激活 ancestor tab；`conversationSessionChat.test.ts` 绿 | conversation | closed |
 | D150 | P3 | **Projects 首绘 `getRecentlyOpened` throw 丢掉当前文件夹**：D146 last-good 只保二次 throw；首绘无 last-good → 空白。recents 须独立 catch。不得改 `openWindow` swallow | D 槽 `loop/D` `b38c90c373e` 已收：recents 独立 try；首绘保当前文件夹 + status/note；二次 throw 仍 last-good。merge 复测 14 passing。未关 D16；未改 openWindow。残留：空工作区 welcome 或盖住树 note（status 仍在）；`setRecentsStatus` 后未立即 `layoutBody` | 首绘 recents throw 当前文件夹仍在且失败文案可见；last-good 测仍绿；`navigatorProjectsList.test.ts` 绿 | navigator | closed |
-| D151 | P3 | **MCP `addServer` / Skills `createSkill` 成功后 `refresh()` 清 write 成功态**，后续 list 失败盖掉已成功写入（与 D148 同族）。测会撞 `engineCatalogSections.test.ts` / `engineSkillsSection.test.ts` | 本波未占；勿与 catalog leftover 同槽双写同一测文件 | list/refresh 失败后仍可见 write-success | conversation | open |
+| D151 | P3 | **MCP `addServer` / Skills `createSkill` 成功后 `refresh()` 清 write 成功态**，后续 list 失败盖掉已成功写入（与 D148 同族） | A `799b56581dd` MCP add 回写「Added.」；B `100706ff8d2` createSkill 回写「Created.」。merge 复测 catalog 42 / skills 19 passing。未关 D16；未改 MCP update/remove/toggle、Skills toggle/saveBody | add/create 成功后 list-fail 仍见成功文案；既有 ok:false/throw 测绿 | conversation | closed |
+| D152 | P3 | **MCP update/remove/toggle 与 Skills toggle/saveBody 成功后 refresh 仍冲掉成功文案**（D151 只收 add/create）。测会撞 `engineCatalogSections.test.ts` / `engineSkillsSection.test.ts` | 本波未占；分槽、勿双写同一测文件 | 成功后 list-fail 仍见 write-success | conversation | open |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 
