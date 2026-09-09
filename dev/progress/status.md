@@ -183,12 +183,12 @@ summary: "人类工位已合入 loop/merge。D8 / D16 / D31 F4 / D147 仍开。D
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `c86804ee45f` | `__pycache__` | 0 | parked；compile unused 仍红，**不 push** |
-| A | `vscode-WorkTrees/A` | `loop/A` | `c86804ee45f` | `__pycache__` | 0 | idle |
-| B | `vscode-WorkTrees/B` | `loop/B` | `c86804ee45f` | `__pycache__` | 0 | idle |
-| C | `vscode-WorkTrees/C` | `loop/C` | `c86804ee45f` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `c86804ee45f` | `__pycache__` | 0 | idle |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` + 过期 progress | 0 | 人类工位；请自行对齐 `c86804ee45f` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `523d4522901` | `__pycache__` | 0 | 已与 `agent-ide` 同 SHA；compile unused 仍红，**不 push** |
+| A | `vscode-WorkTrees/A` | `loop/A` | `523d4522901` | `__pycache__` | 0 | idle |
+| B | `vscode-WorkTrees/B` | `loop/B` | `523d4522901` | `__pycache__` | 0 | idle |
+| C | `vscode-WorkTrees/C` | `loop/C` | `523d4522901` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `523d4522901` | `__pycache__` | 0 | idle |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `523d4522901` | `dev/loop` | 0 | 人类工位已对齐；勿 add `dev/loop` |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
