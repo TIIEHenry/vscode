@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../../../../base/common/errors.js';
 import { DisposableMap } from '../../../../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../../../../base/common/network.js';
 import { assertType } from '../../../../../../../base/common/types.js';
@@ -113,14 +114,14 @@ export class AgentHostInputCompletions extends AgentHostInputCompletionsBase<ICh
 
 		// Sync existing registrations and observe changes.
 		for (const scheme of this._chatSessionsService.getContentProviderSchemes()) {
-			void this._registerForScheme(scheme);
+			void this._registerForScheme(scheme).catch(onUnexpectedError);
 		}
 		this._register(this._chatSessionsService.onDidChangeContentProviderSchemes(({ added, removed }) => {
 			for (const scheme of removed) {
 				this._registrations.deleteAndDispose(scheme);
 			}
 			for (const scheme of added) {
-				void this._registerForScheme(scheme);
+				void this._registerForScheme(scheme).catch(onUnexpectedError);
 			}
 		}));
 	}
