@@ -161,7 +161,15 @@ export class NavigatorProjectsView extends ViewPane {
 	}
 
 	override shouldShowWelcome(): boolean {
+		if (this.hasRecentsFailure()) {
+			return false;
+		}
 		return countLocalFolders(this.treeNodes) === 0 && !this.rosterService.isEngineConnected() && !this.wasEverConnected;
+	}
+
+	private hasRecentsFailure(): boolean {
+		return this.findNodeById(this.treeNodes, RECENTS_FAILED_NOTE_ID) !== undefined
+			|| (!!this.recentsStatus && this.recentsStatus.style.display !== 'none');
 	}
 
 	protected override renderBody(container: HTMLElement): void {
