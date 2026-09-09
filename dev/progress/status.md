@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-09
-summary: "人类工位已合入 loop/merge。D8 / D16 / D31 F4 / D147 仍开。D44–D146 已闭。compile unused 仍红，不 push。A2 仍 blocked。"
+summary: "D148–D150 已合入 loop/merge。D8 / D16 / D31 F4 / D147 / D151 仍开。compile unused 仍红，不 push。人类工位尚未 cascade 本波。"
 ---
 
 # Development Progress
@@ -41,7 +41,12 @@ summary: "人类工位已合入 loop/merge。D8 / D16 / D31 F4 / D147 仍开。D
 
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 进行中（2026-09-07 本 wake · 以 merge 代码为准，不信上文「已合入」清单）
+### 进行中（2026-09-09 本 wake · merge 代码 MERGE_SHA `dc7ccb02cf1`）
+本关仓：**A** D148 删除成功回写；**B** D149 overlay 先激活再关；**D** D150 首绘 recents 失败诚实。merge 复测 23 / 36 / 14 passing。compile unused 仍红 **不 push**。Chat 仍被引擎空壳 Create 挡住（[D26](deferred-gaps.md)）。**U2 未开**。不跑 F4 / 不实施 A2。人类工位 **未 cascade**。
+
+<details>
+<summary>历史切片流水（D45 起，已闭项见上表）</summary>
+
 集成 tip **本关仓提交**（`loop/merge`；未 push）。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 / PRD-019 不升 `implemented`**。[R8](research-queue.md) **已闭**（[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 引擎空 `patches` = 成功空操作）。Accept 产品选项 A 见 [sources-accept-empty-success](../plans/sources-accept-empty-success.md)（`draft`；**A1 已落**；**P5 停线**——只批准停线，不批准 A2；A2 须新选定 + 新 Arch-First）。
 
 1. **集成 tip** 以 merge 本关仓提交为准（FileMutationJoin A=`10d8dd3b143`；createScoped B=`9c49eb5b978`；Review 委托 D=`60dbf139ac1`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。D22/F3 已撤回。不跑 F4 / 不实施 A2。
@@ -105,6 +110,8 @@ summary: "人类工位已合入 loop/merge。D8 / D16 / D31 F4 / D147 仍开。D
 65. **A/B 本波（未关 D16 / D31）**：A `copyTurn` `writeText` reject → `showPostFailure('failed')`。[D143](deferred-gaps.md) **已闭**。B `requestResync` reject 已 `.catch`；坏帧不落地。[D144](deferred-gaps.md) **已闭**。未 compile。
 66. **A/B 本波（未关 D16 / D31）**：A `acknowledge` / `releaseLease` reject 已 `.catch`；帧仍落地。[D145](deferred-gaps.md) **已闭**。B `rebuildTree` throw 保留末次树；`openWindow` reject 已吞。[D146](deferred-gaps.md) **已闭**。未 compile。
 67. **A 槽 `d147-worker-checker-step1`（未关 D8 / D16；未开 step 2B；未改 `src/vs/**`）**：`tsconfig.worker.json` 对齐 browser 补充类型。native tsc **48→2**（exit 1）。[D147](deferred-gaps.md) **仍开**。未恢复 valid-layers-check。
+</details>
+
 子 agent 发现的既有代码问题：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
@@ -127,68 +134,25 @@ summary: "人类工位已合入 loop/merge。D8 / D16 / D31 F4 / D147 仍开。D
 | [D34](deferred-gaps.md) | B 槽 `timeline-hygiene` | **closed** 空/零高树不再读 `lastVisibleElement` |
 | [D35](deferred-gaps.md) | B 槽 `timeline-hygiene` | **closed** 删 `getTimelineRowElement` 死第二段 query |
 | [D36](deferred-gaps.md) | B 槽 `timeline-hygiene` | **closed** standalone thinking/tool 诚实摘要行，无假 fold |
-| [D15](deferred-gaps.md) | A 槽 `d15-web-evidence` | **closed** W1 `code-web.sh` V1–V3 PASS；phase=`disconnected`；不画桌面连接控件；证据 w1-1556dde3 |
-| [D42](deferred-gaps.md) | B 槽 `d42-maximize-trajectory` | **closed** merge compile 后 CSS+铺行两测绿 |
-| [D43](deferred-gaps.md) | D 槽 leftover | **closed** `ConversationPart.layout` 按叶 host 尺寸再 layout 各 conversation editor part；resize 测已补 |
-| [D44](deferred-gaps.md) | B 槽 `d44-preferences-nav-idempotent` | **closed** 已注册 id 跳过；二次调用不抛；生产仍只 contribution 调一次 |
-| [D45](deferred-gaps.md) | A 槽 `host-open-catch` | **closed** `openResidentChat` / `openStream` throw-on-open 已 catch；Chat 仍 echo one-shot；未关 D16 |
-| [D46](deferred-gaps.md) | B 槽 `d46-catalog-leftover-clear` | **closed** catch 先 `clearCatalogPresentation` 再 `failed`；成功→throw 测 `getMode()==='failed'` 且 `getListEntryCount()===0`；首拉 throw 测保留；未关 D16 / 未转 listTools / 未发明 GetQueue |
-| [D47](deferred-gaps.md) | A 槽 `host-close-stream-dispose-catch` | **closed** `closeStream` dispose throw 已 catch；同批 Chat 仍关；未关 D16 |
-| [D48](deferred-gaps.md) | A 槽 `host-remaining-dispose-catch` | **closed** `closeResidentChat` / 断连三圈 / open 旧句柄 dispose throw 已 catch；Chat 仍删、`connectionDown` 仍 post；未关 D16 |
-| [D49](deferred-gaps.md) | B 槽 `mcp-skills-leftover-clear` | **closed** MCP/Skills catch 先清行再 `failed`；成功→throw 测 `getMode()==='failed'` 且 `getListEntryCount()===0`；首拉 / disconnect 测保留；未关 D16 / 未转 listTools / 未发明 GetQueue |
-| [D50](deferred-gaps.md) | B 槽 `composer-leftover-clear` | **closed** agent/model catch 重置 No agent / No model / `catalogModelIds=['']` / selectedIndex=0；成功→throw 测不留上一轮 catalog；首拉 throw 测保留；未关 D16 / 未转 listTools / 未发明 GetQueue |
-| [D51](deferred-gaps.md) | A 槽 `host-write-receipt` | **closed** host receipt 用 `accepted`/`failed` + `host-write-accepted` / `writeId` / `chatAttemptId`；permission inflight 成功清座、失败 `pendingRespondFailed`；未关 D16 |
-| [D52](deferred-gaps.md) | A 槽 `oneshot-chat-receipt` | **closed** no-resident `writeChat` mark 至多一次；chat resolve 无 callback 仍 accepted / 清座；chat throw 仍 `pendingRespondFailed` `hostWriteFailed`；未关 D16 |
-| [D53](deferred-gaps.md) | A 槽 `navigator-team-leftover` | **closed** `memberStatus` / `taskList` throw 已 catch；成功→throw 清 leftover 并写失败 note；断连 leftover + stale-note 未改；未关 D16 |
-| [D54](deferred-gaps.md) | B 槽 `snapshots-write-status` | **closed** Restore/Delete `ok:false` / throw 画 overlay write-status，不 unload 行、不 refresh；未关 D16 |
-| [D55](deferred-gaps.md) | B 槽 `mcp-write-status` | **closed** Add/Update/Remove `ok:false` / throw 画 catalog write-status，不卸行、不 refresh；未关 D16 |
-| [D56](deferred-gaps.md) | A 槽 `skills-create-status` | **closed** `createSkill` `ok:false` / throw 画 body/toolbar write-status，无假行、不改选中、不清 catalog；未关 D16 |
-| [D57](deferred-gaps.md) | B 槽 `agents-write-status` | **closed** Agents create/delete/reset / save `ok:false` / throw 画 catalog write-status，不卸行、不 refresh、不改选中；`saveAgentsMarkdown` 复用 editor-status；未关 D16 |
-| [D58](deferred-gaps.md) | B 槽 `tools-write-status` | **closed** Tools `savePendingEnablement` / `toggleTool` 空 id / throw 画 catalog write-status，不卸行、不 refresh；pending dirty map 保留；未关 D16 |
-| [D59](deferred-gaps.md) | A 槽 `skills-toggle-status` | **closed** `toggleSkill` `ok:false` / throw 画 write-status，不清 catalog、不改选中；refresh 回退 checkbox；未关 D16 |
-| [D60](deferred-gaps.md) | B 槽 `mcp-toggle-status` | **closed** `toggleServer` `ok:false` / throw 画 catalog write-status，不卸行；refresh 回退 checkbox；未关 D16 |
-| [D61](deferred-gaps.md) | D 槽 `connection-list-leftover` | **closed** `listDevices` / `listPending` throw 保留末次快照并画失败 note，不成静默空；未关 D16 / 未占 D60 |
-| [D62](deferred-gaps.md) | A 槽 `hub-rename-throw` | **closed** `renameDevice` / 成功后 `refreshDirectory` throw 画 `hubDirectoryBanner`；未关 D16；未做 login/changePassword |
-| [D63](deferred-gaps.md) | B 槽 `agents-tools-leftover` | **closed** Agents Tools 页 `listTools` throw 画 `toolsStatus` `failed`，不再假装 empty；未关 D16 |
-| [D64](deferred-gaps.md) | A 槽 `hub-login-throw` | **closed** `login` / `changePassword` throw 画 `hubAuthBadge`；未关 D16；未重做 D62 rename |
-| [D65](deferred-gaps.md) | A 槽 `hub-remaining-write-throw` | **closed** `probeConnectionProfile` / `logout` / Hub fallback `revokeDevice` / `confirmDeviceCode` throw 画对应 hook；未关 D16；未重做 D61/D62/D64 |
-| [D66](deferred-gaps.md) | A 槽 `skills-save-write-status` | **closed** `saveSelectedSkillBody` `ok:false` / throw 走 `paintSkillWriteFailed`；write-status + body-status 可见；不清 catalog、不改选中；未关 D16 |
-| [D67](deferred-gaps.md) | B 槽 `mcp-runtime-tools-leftover` | **closed** `getMcpServerTools` throw 清 leftover 工具名并画 `toolsStatus` `failed`；首拉 throw 仍 failed；未关 D16 |
-| [D68](deferred-gaps.md) | A 槽 `catalog-reconnect-stale` | **closed** Agents Tools 页重连后第二次 `listTools` throw 清 leftover 并画 failed；catalog 仍 ready；UNKNOWN 未改；未关 D16 |
-| [D69](deferred-gaps.md) | A 槽 `catalog-reconnect-stale` | **closed** Tools 成功 refresh 后 `getToolInfo` throw 重画详情 failed；catalog 仍 ready（非 D46）；未关 D16 |
-| [D70](deferred-gaps.md) | A 槽 `skills-refresh-reload-body` | **closed** Skills 成功 refresh 后 `getSkillInfo` throw 重画 body failed；catalog 仍 ready；dirty 不覆盖；未关 D16 |
-| [D71](deferred-gaps.md) | B 槽 `agents-refresh-reload-editor` | **closed** Agents Instructions 成功 refresh 后重载 AGENTS.md；dirty 不覆盖；第二次 `saveAgentProfile` throw 画 `ua.engineAgentsMdLoadFailed`；未关 D16 |
-| [D72](deferred-gaps.md) | A 槽 `catalog-refresh-clear-pending` | **closed** Tools 成功 refresh 清 `pendingEnablement`；重连后 dirty false、catalog ready；未关 D16 |
-| [D73](deferred-gaps.md) | A 槽 `catalog-refresh-clear-pending` | **closed** Agents 成功 refresh 清 `agentToolPending`；重连后 dirty false、catalog/tools ready；未关 D16 |
-| [D74](deferred-gaps.md) | A 槽 `connection-hub-refresh-throw` | **closed** `refreshDirectory` throw 画 `hubDirectoryBanner`；未调 `refreshEngineDeviceLists`；未关 D16 |
-| [D76](deferred-gaps.md) | B 槽 `composer-switch-model-empty-rollback` | **closed** `switchModel` 空/空白 `resolvedModelId` 回滚 select + gate；throw 测保留；未关 D16 |
-| [D77](deferred-gaps.md) | A 槽 `lens-stale-banner-lease-sync` | **closed** lease-only sync `closed` 刷新阅读列 stale banner；未关 D16 |
-| [D78](deferred-gaps.md) | B 槽 `sessions-roster-engine-connect` | **closed** Sessions view 接通后 `refreshList()`；空 roster 立即空，不留 stub 行；未关 D16 |
-| [D79](deferred-gaps.md) | D 槽 `host-openstream-throw-sync` | **closed** `openStream` throw-on-open 已 `streamClosed`；sync 不再假 live；warn + Chat 仍开；未关 D16 |
-| [D80](deferred-gaps.md) | A 槽 `lens-retry-error-postbound-catch` | **closed** `retryError` `postBound` throw 已 `showPostFailure('failed')`；未关 D16 |
-| [D81](deferred-gaps.md) | B 槽 `channel-client-hydrate-catch` | **closed** hydrate / refreshPhase IPC reject 已吞；保留已写缓存；不 fire 半应用 phase；未关 D16 |
-| [D82](deferred-gaps.md) | D 槽 `navigator-reveal-throw-notice` | **closed** `openSubAgent` throw 已 `INotificationService.error`；void 调用点未改；未关 D16 / D21 |
-| [D83](deferred-gaps.md) | A 槽 `lens-permission-question-postbound-catch` | **closed** permission/question `postBound` throw 已 `showPostFailure('failed')`；未关 D16 |
-| [D84](deferred-gaps.md) | B 槽 `hub-client-hydrate-catch` | **closed** Hub hydrate IPC reject 已吞；未关 D16 |
-| [D85](deferred-gaps.md) | D 槽 `promote-subagent-throw-notice` | **closed** Promote `openExtensionTab` throw 已 notice；未关 D16 |
-| [D86](deferred-gaps.md) | A 槽 `composer-submit-postbound-catch` | **closed** `submitDraft` `postBound` throw 已 `showPostFailure('failed')`；未关 D16 |
-| [D87](deferred-gaps.md) | D 槽 `breadcrumb-navigate-throw-notice` | **closed** `navigateAgentBreadcrumb` throw 已 notice；未关 D16 |
-| [D88](deferred-gaps.md) | D 槽 `fork-open-tab-throw-notice` | **closed** Fork `openForkTab` throw 已 notice；未关 D16 |
-| [D89](deferred-gaps.md) | A 槽 `connection-profile-crud-throw` | **closed** Add Direct / Disconnect / Forget / ConnectDevice throw 已画 status；未关 D16 |
-| [D90](deferred-gaps.md) | B 槽 `session-window-primary-bootstrap-catch` | **closed** throw 回滚 + in-flight 串行；merge 复测 9/9；未关 D16 |
+| — | 2026-09-09 代码复读 | D147 剩 2 条 **compile-only** 勿派 letter；promote overlay 仍 close-first（测锁）；接通 `createSession()` 回 `''`；MCP/Skills 成功后 list fail 盖 write-success → [D151](deferred-gaps.md) |
+| [D15](deferred-gaps.md)–[D90](deferred-gaps.md) | A/B/D leftover-honesty 波 | **closed** 详见 deferred-gaps；未关 D16 |
 | [D92](deferred-gaps.md)–[D129](deferred-gaps.md) / [D131](deferred-gaps.md) / [D133](deferred-gaps.md)–[D139](deferred-gaps.md) | B roster+inbox+sessions / D nav / A beside+mru+sessionbar / A·B composer / A notifications / B sessionChat / D bind / A navigator lease / B reveal / A attribution / A rotate / A revoke / B triggers / A rename error tone / B clipboard clear / A Hub fallback revoke / B upsert refresh / D clipboard write / A catch error tone / B swallowed-primary notice lock | **closed** throw 回滚/notice；RotateToken / Revoke `!success` 与 catch 已 error tone；Triggers 删/upsert 与 Clipboard 清空/写入成功 refresh；swallowed primary 后 beside 已锁 bootstrap notice；未关 D16 |
 | [D140](deferred-gaps.md)–[D146](deferred-gaps.md) | A SessionBar / B Sessions 侧栏断连 New session / D mermaid getExtension reject / A copyTurn writeText reject / B requestResync reject / A acknowledge·releaseLease reject / B Projects rebuildTree·openWindow | **closed** 断连+history New session 画 notice 且不调 `createSession`；mermaid reject 回 `undefined`；copyTurn reject 画 `failed`；requestResync / acknowledge / releaseLease reject 已吞；Projects last-good + openWindow 已吞；未关 D16 |
-| [D147](deferred-gaps.md) | A `d147-worker-checker-step1` | **仍开** worker native tsc 48→2（exit 1）；剩 `sessionList` TS2345 + `IConversationEditorPart` TS2352；未关 D8；未开 step 2B |
-| — | 人类工位 wave-9 | 合入保留：`stub-and-fixtures.md` 重复 frontmatter；`sourcesReviewModel` 测 `toResource.call` 使 `this.test` undefined |
+| [D147](deferred-gaps.md) | A `d147-worker-checker-step1` | **仍开** worker tsc 48→2；剩 TS2345/TS2352 **compile-only** 勿派 letter；未关 D8 |
+| [D148](deferred-gaps.md) | A `engine-triggers-delete-refresh` | **closed** `f0f3b0938b4` 删除成功回写「Deleted.」；list 失败仍见成功文案；merge 23 passing |
+| [D149](deferred-gaps.md) | B `conversation-session-chat-overlay-leftover` | **closed** `8df5ebee622` existingTab 先 openEditor 再关 overlay；throw 时 overlay 仍开；promote 未改；merge 36 passing |
+| [D150](deferred-gaps.md) | D `navigator-projects-recents-first-paint` | **closed** `b38c90c373e` 首绘 recents throw 保当前文件夹+失败文案；last-good 仍在；merge 14 passing |
+| [D151](deferred-gaps.md) | — | **仍开** MCP add / Skills create 成功后 refresh 盖掉 write-success（D148 同族） |
+| — | 人类工位 wave-9 | 合入保留：`stub-and-fixtures.md` 重复 frontmatter；`sourcesReviewModel` 测 `toResource.call` 使 `this.test` undefined。本波 **未 cascade** |
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `523d4522901` | `__pycache__` | 0 | 已与 `agent-ide` 同 SHA；compile unused 仍红，**不 push** |
-| A | `vscode-WorkTrees/A` | `loop/A` | `523d4522901` | `__pycache__` | 0 | idle |
-| B | `vscode-WorkTrees/B` | `loop/B` | `523d4522901` | `__pycache__` | 0 | idle |
-| C | `vscode-WorkTrees/C` | `loop/C` | `523d4522901` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `523d4522901` | `__pycache__` | 0 | idle |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `523d4522901` | `dev/loop` | 0 | 人类工位已对齐；勿 add `dev/loop` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `dc7ccb02cf1` | `__pycache__` | 0 | 代码 MERGE_SHA D148–D150；compile unused 仍红，**不 push**；人类工位未 cascade |
+| A | `vscode-WorkTrees/A` | `loop/A` | `dc7ccb02cf1` | `__pycache__` | 0 | idle |
+| B | `vscode-WorkTrees/B` | `loop/B` | `dc7ccb02cf1` | `__pycache__` | 0 | idle |
+| C | `vscode-WorkTrees/C` | `loop/C` | `dc7ccb02cf1` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `dc7ccb02cf1` | `__pycache__` | 0 | idle |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `eeac2dd5cc9` | `dev/loop` | 0 | 落后本波；勿 add `dev/loop` |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
