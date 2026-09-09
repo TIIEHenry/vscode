@@ -1263,6 +1263,30 @@ suite('AutomationsCardsWidget', () => {
 		}
 	});
 
+	test('does not leak unhandled rejection when create dialog rejects', async () => {
+		const { automationService, automationDialogService, widget } = setup();
+		automationService.setAutomations([]);
+		automationDialogService.error = new Error('boom');
+		const createButton = widget.element.querySelector<HTMLElement>('.automations-cards-create-button');
+		assert.ok(createButton);
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			createButton.click();
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(automationDialogService.showCalls, 1);
+			assert.deepStrictEqual(automationService.createCalls, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
 	test('automation action buttons support arrow navigation and keyboard activation', async () => {
 		const { automationService, runner, widget } = setup();
 		automationService.setAutomations([automation()]);
