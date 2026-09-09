@@ -21,6 +21,8 @@ import {
 	conversationLensSnapshotsRestoreClass,
 	conversationLensSnapshotsRowClass,
 	conversationLensSnapshotsWriteStatusClass,
+	ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY,
+	ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY,
 	formatEngineSnapshotCreatedAt,
 	formatEngineSnapshotDeleteFailedCopy,
 	formatEngineSnapshotFailedCopy,
@@ -127,6 +129,10 @@ suite('ConversationEngineSnapshotsList', () => {
 
 	function writeStatus(overlay: HTMLElement): HTMLElement | null {
 		return overlay.querySelector(`.${conversationLensSnapshotsWriteStatusClass}`);
+	}
+
+	async function flushMicrotasks(): Promise<void> {
+		await new Promise(resolve => setTimeout(resolve, 0));
 	}
 
 	test('SessionBar control is Snapshots, not History, and overlay starts closed', () => {
@@ -294,14 +300,52 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.ok(snapshotRow(overlayParent, 'snap-1'));
 		assert.strictEqual(snapshotRow(overlayParent, 'snap-2'), null);
 		restoreButton(snapshotRow(overlayParent, 'snap-1'))?.click();
-		await Promise.resolve();
-		await Promise.resolve();
+		await flushMicrotasks();
 		assert.deepStrictEqual(restoreCalls, [{ sessionId: 'sess-1', snapshotId: 'snap-1' }]);
 		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }, { sessionId: 'sess-1' }]);
 		assert.strictEqual(list.isOpen(), true);
 		assert.ok(!overlayParent.querySelector(`.${conversationLensSnapshotsOverlayClass}`)?.hasAttribute('hidden'));
 		assert.strictEqual(snapshotRow(overlayParent, 'snap-1')?.querySelector('.conversation-lens-snapshots-title-text')?.textContent, 'After restore');
 		assert.ok(snapshotRow(overlayParent, 'snap-2'));
+		const status = writeStatus(overlayParent);
+		assert.strictEqual(status?.textContent, ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY);
+		assert.ok(!status?.hidden);
+	});
+
+	test('restore success still shows restore-success when subsequent listSnapshots fails', async () => {
+		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				listSnapshots: async request => {
+					listCalls.push(request);
+					if (listCalls.length > 1) {
+						throw new Error('list boom');
+					}
+					return {
+						snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
+					};
+				},
+				restoreSnapshot: async () => ({ ok: true }),
+			}));
+			list.show();
+			await Promise.resolve();
+			assert.ok(snapshotRow(overlayParent, 'snap-1'));
+			restoreButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+			await flushMicrotasks();
+			assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }, { sessionId: 'sess-1' }]);
+			assert.strictEqual(list.isOpen(), true);
+			const status = writeStatus(overlayParent);
+			assert.strictEqual(status?.textContent, ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY);
+			assert.ok(!status?.hidden);
+			assert.ok(overlayParent.textContent?.includes(formatEngineSnapshotFailedCopy('list boom')));
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('failed restore does not refresh list', async () => {
@@ -504,9 +548,7 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.ok(snapshotRow(overlayParent, 'snap-1'));
 		assert.ok(snapshotRow(overlayParent, 'snap-2'));
 		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
-		await Promise.resolve();
-		await Promise.resolve();
-		await Promise.resolve();
+		await flushMicrotasks();
 		assert.strictEqual(confirmCalls.length, 1);
 		assert.deepStrictEqual(deleteCalls, [{ sessionId: 'sess-1', snapshotId: 'snap-1' }]);
 		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }, { sessionId: 'sess-1' }]);
@@ -514,6 +556,45 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.ok(!overlayParent.querySelector(`.${conversationLensSnapshotsOverlayClass}`)?.hasAttribute('hidden'));
 		assert.strictEqual(snapshotRow(overlayParent, 'snap-1'), null);
 		assert.ok(snapshotRow(overlayParent, 'snap-2'));
+		const status = writeStatus(overlayParent);
+		assert.strictEqual(status?.textContent, ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY);
+		assert.ok(!status?.hidden);
+	});
+
+	test('delete success still shows delete-success when subsequent listSnapshots fails', async () => {
+		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				listSnapshots: async request => {
+					listCalls.push(request);
+					if (listCalls.length > 1) {
+						throw new Error('list boom');
+					}
+					return {
+						snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
+					};
+				},
+				deleteSnapshot: async () => ({ ok: true }),
+			}), createRosterStub(), { confirmResult: true });
+			list.show();
+			await Promise.resolve();
+			assert.ok(snapshotRow(overlayParent, 'snap-1'));
+			deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+			await flushMicrotasks();
+			assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }, { sessionId: 'sess-1' }]);
+			assert.strictEqual(list.isOpen(), true);
+			const status = writeStatus(overlayParent);
+			assert.strictEqual(status?.textContent, ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY);
+			assert.ok(!status?.hidden);
+			assert.ok(overlayParent.textContent?.includes(formatEngineSnapshotFailedCopy('list boom')));
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('cancelled delete confirm does not send or refresh', async () => {
