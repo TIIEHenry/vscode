@@ -1397,18 +1397,23 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (!this.activeProfileId) {
 			if (typeof this.connectionService.probeEngine === 'function') {
 				writeStatus(this.testStatus, testingCopy);
-				const result = await this.connectionService.probeEngine();
-				writeStatus(
-					this.testStatus,
-					formatConnectionProbeStatus(
-						result,
-						getConnectionTestStatusText(
-							this.connectionService.getConnectionPhase(),
-							this.connectionService.getConnectionSnapshot().pairingPending,
+				try {
+					const result = await this.connectionService.probeEngine();
+					writeStatus(
+						this.testStatus,
+						formatConnectionProbeStatus(
+							result,
+							getConnectionTestStatusText(
+								this.connectionService.getConnectionPhase(),
+								this.connectionService.getConnectionSnapshot().pairingPending,
+							),
 						),
-					),
-					result.ok ? 'success' : 'error',
-				);
+						result.ok ? 'success' : 'error',
+					);
+				} catch (error) {
+					const reason = error instanceof Error && error.message ? error.message : String(error);
+					writeStatus(this.testStatus, reason, 'error');
+				}
 				return;
 			}
 			writeStatus(this.testStatus, getConnectionTestStatusText());
