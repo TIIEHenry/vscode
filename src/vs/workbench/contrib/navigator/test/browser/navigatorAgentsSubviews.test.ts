@@ -4,12 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { getErrorMessage } from '../../../../../base/common/errors.js';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
-import { WorkbenchList, WorkbenchObjectTree } from '../../../../../platform/list/browser/listService.js';
+import { getSelectionKeyboardEvent, WorkbenchList, WorkbenchObjectTree } from '../../../../../platform/list/browser/listService.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { Extensions as ViewExtensions, IViewContainerModel, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -83,11 +84,12 @@ suite('Navigator Agents subviews', () => {
 		roster: ConversationStubService = store.add(new ConversationStubService()),
 		connection: IUniverseAgentConnection = createNavigatorConnectionTestStub(),
 		inspectService?: IAgentInspectService,
+		executeCommand: ICommandService['executeCommand'] = async () => undefined,
 	): NavigatorAgentsView {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, roster);
 		instantiationService.stub(IAgentInspectService, inspectService ?? store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
-		instantiationService.stub(ICommandService, { executeCommand: async () => undefined });
+		instantiationService.stub(ICommandService, { executeCommand });
 		instantiationService.stub(IUniverseAgentConnection, connection);
 		const stubViewContainer = {
 			id: 'navigator-agents-test-container',
@@ -732,6 +734,39 @@ suite('Navigator Agents subviews', () => {
 			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('activity list open does not leak unhandled rejection when reveal command rejects', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		let executeCommandCalls = 0;
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const view = mountAgentsView(
+				store.add(new ConversationStubService()),
+				createNavigatorConnectionTestStub(),
+				undefined,
+				async () => {
+					executeCommandCalls++;
+					throw new Error('boom');
+				},
+			);
+			setActivityEntries(view, [{ id: 'a1', label: 'Alpha Tool Run' }]);
+			view.showActivity();
+			const activityList = (view as unknown as { activityList: WorkbenchList<INavigatorAgentsActivityItem> }).activityList;
+			assert.ok(activityList, 'expected WorkbenchList for activity');
+			assert.strictEqual(activityList.length, 1);
+			activityList.setFocus([0]);
+			activityList.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
+			await timeout(0);
+			assert.strictEqual(executeCommandCalls, 1);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
