@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { CancellationError } from '../../../../../base/common/errors.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { localize } from '../../../../../nls.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
@@ -226,12 +227,16 @@ suite('ConversationInboxOverlay Goal', () => {
 		inputResult?: string,
 		failures: ConversationComposerPostFailureReason[] = [],
 		beforeResolve?: () => void,
+		inputError?: unknown,
 	): ConversationInboxOverlay {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, roster);
 		instantiationService.stub(IQuickInputService, {
 			input: async () => {
 				beforeResolve?.();
+				if (inputError !== undefined) {
+					throw inputError;
+				}
 				return inputResult;
 			},
 		} as IQuickInputService);
@@ -350,6 +355,25 @@ suite('ConversationInboxOverlay Goal', () => {
 		assert.deepStrictEqual(roster.cancelGoalCalls, []);
 		assert.strictEqual(roster.getSessionGoal(roster.getActiveSessionId()), undefined);
 	});
+
+	test('connected Goal input reject does not leak unhandled rejection or show notice', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const roster = store.add(new GoalRoster());
+		const overlay = createOverlay(roster, undefined, failures, undefined, new CancellationError());
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			getGoalButton(overlay).click();
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.deepStrictEqual(roster.setGoalCalls, []);
+			assert.deepStrictEqual(roster.cancelGoalCalls, []);
+			assert.deepStrictEqual(failures, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
 });
 
 suite('ConversationInboxOverlay context ring', () => {
@@ -466,12 +490,16 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		inputResult?: string,
 		failures: ConversationComposerPostFailureReason[] = [],
 		beforeResolve?: () => void,
+		inputError?: unknown,
 	): ConversationInboxOverlay {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, roster);
 		instantiationService.stub(IQuickInputService, {
 			input: async () => {
 				beforeResolve?.();
+				if (inputError !== undefined) {
+					throw inputError;
+				}
 				return inputResult;
 			},
 		} as IQuickInputService);
@@ -600,6 +628,24 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
 		assert.deepStrictEqual(roster.enqueueCalls, []);
+	});
+
+	test('connected Enqueue input reject does not leak unhandled rejection or show notice', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const roster = store.add(new EnqueueRoster());
+		const overlay = createOverlay(roster, undefined, failures, undefined, new CancellationError());
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			getEnqueueButton(openQueuePanel(overlay)).click();
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.deepStrictEqual(roster.enqueueCalls, []);
+			assert.deepStrictEqual(failures, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('connected Inbox does not pose fixture as the engine queue', () => {
