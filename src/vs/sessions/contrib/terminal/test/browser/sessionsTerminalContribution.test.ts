@@ -979,6 +979,38 @@ suite('SessionsTerminalContribution', () => {
 		});
 	});
 
+	test('does not leak unhandled rejection when disposing an archived session terminal fails', async () => {
+		const worktreeUri = URI.file('/worktree');
+		await contribution.ensureTerminal(worktreeUri, false, makeAgentSession({ sessionId: 'test:archived-session', worktree: worktreeUri, providerType: AgentSessionProviders.Background }));
+
+		// Archiving flips the active session away from the archived one, matching
+		// the happy-path archive cleanup setup above.
+		const otherSession = makeAgentSession({ sessionId: 'test:other-session', worktree: URI.file('/other'), providerType: AgentSessionProviders.Background });
+		activeSessionObs.set(otherSession, undefined);
+		await tick();
+
+		rejectSafeDispose = new Error('safeDispose failed');
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			const session = makeAgentSession({
+				sessionId: 'test:archived-session',
+				isArchived: true,
+				worktree: worktreeUri,
+				providerType: AgentSessionProviders.Background,
+			});
+			onDidChangeSessions.fire({ added: [], removed: [], changed: [session] });
+			await tick();
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
 	test('disposes the active terminal when its session is archived', async () => {
 		const worktreeUri = URI.file('/worktree');
 		const session = makeAgentSession({
