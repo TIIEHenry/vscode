@@ -6,11 +6,12 @@
 import * as assert from 'assert';
 import { Action, SubmenuAction } from '../../../../../base/common/actions.js';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { NullAgentHostService } from '../../../../../platform/agentHost/browser/nullAgentHostService.js';
-import { CODEX_ACCOUNT_META_KEY } from '../../../../../platform/agentHost/common/codexAccount.js';
+import { CODEX_ACCOUNT_META_KEY, CODEX_ACCOUNT_SIGN_IN_REQUEST_KEY } from '../../../../../platform/agentHost/common/codexAccount.js';
 import { AgentHostCodexAgentEnabledSettingId, CodexPreferAgentHostEditorSettingId } from '../../../../../platform/agentHost/common/agentService.js';
 import { CODEX_AGENT_PROVIDER_ID } from '../../../../../platform/agentHost/common/agent.js';
 import type { IAgentSubscription } from '../../../../../platform/agentHost/common/state/agentSubscription.js';
@@ -209,6 +210,72 @@ suite('CodexAccountService', () => {
 			readCount: 2,
 			profileImageDataUri: 'data:image/png;base64,AQID',
 		});
+	});
+
+	test('does not leak unhandled rejection when opening the ChatGPT auth URL fails', async () => {
+		const authUrl = 'https://auth.openai.com/authorize?token=secret';
+		const state: RootState = {
+			agents: [],
+			_meta: { [CODEX_ACCOUNT_META_KEY]: { status: 'signedOut' } },
+		};
+		const rootStateEmitter = new Emitter<RootState>();
+		const rootState: IAgentSubscription<RootState> = {
+			value: state,
+			verifiedValue: state,
+			onDidChange: rootStateEmitter.event,
+			onWillApplyAction: Event.None,
+			onDidApplyAction: Event.None,
+		};
+		let signInRequest: string | undefined;
+		const agentHostService = new class extends NullAgentHostService {
+			override get rootState(): IAgentSubscription<RootState> {
+				return rootState;
+			}
+
+			override dispatch(_channel: string, action: Parameters<NullAgentHostService['dispatch']>[1]): void {
+				if (!('config' in action)) {
+					return;
+				}
+				const request = action.config?.[CODEX_ACCOUNT_SIGN_IN_REQUEST_KEY];
+				if (typeof request === 'string') {
+					signInRequest = request;
+				}
+			}
+		}();
+		const openerService = {
+			...NullOpenerService,
+			open: async () => {
+				throw new Error('opener failed');
+			},
+		};
+		const accountService = disposables.add(new CodexAccountService(agentHostService, openerService));
+		disposables.add(rootStateEmitter);
+
+		accountService.signIn();
+		assert.ok(signInRequest);
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			rootStateEmitter.fire({
+				agents: [],
+				_meta: {
+					[CODEX_ACCOUNT_META_KEY]: {
+						status: 'signedOut',
+						authUrl,
+						authUrlNonce: signInRequest,
+					},
+				},
+			});
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 });
