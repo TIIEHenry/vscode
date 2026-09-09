@@ -8,6 +8,7 @@ import * as dom from '../../../../base/browser/dom.js';
 import { RenderIndentGuides } from '../../../../base/browser/ui/tree/abstractTree.js';
 import { ITreeNode, ITreeRenderer } from '../../../../base/browser/ui/tree/tree.js';
 import { IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
+import { getErrorMessage } from '../../../../base/common/errors.js';
 import { splitRecentLabel } from '../../../../base/common/labels.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -39,6 +40,12 @@ import { NAVIGATOR_PROJECTS_VIEW_ID } from './navigatorStubView.js';
 const $ = dom.$;
 
 export type { INavigatorLocalFolderEntry };
+
+const RECENTS_FAILED_NOTE_ID = 'local:recents-failed';
+
+export function navigatorProjectsRecentsFailureMessage(error: unknown): string {
+	return localize('navigatorProjects.recentsFailed', "Unable to load recent folders: {0}", getErrorMessage(error));
+}
 
 class ProjectsTreeDelegate implements IListVirtualDelegate<INavigatorProjectsTreeNode> {
 	getHeight(): number {
@@ -109,6 +116,7 @@ export class NavigatorProjectsView extends ViewPane {
 
 	private tree: WorkbenchObjectTree<INavigatorProjectsTreeNode, void> | undefined;
 	private treeContainer: HTMLElement | undefined;
+	private recentsStatus: HTMLElement | undefined;
 	private filterBox: NavigatorProjectsInlineFilterBox | undefined;
 	private filterQuery = '';
 	private treeNodes: INavigatorProjectsTreeNode[] = [];
@@ -173,6 +181,9 @@ export class NavigatorProjectsView extends ViewPane {
 			this.applyFilterToTree();
 		}));
 
+		this.recentsStatus = dom.append(container, $('.navigator-projects-recents-status'));
+		this.recentsStatus.setAttribute('role', 'status');
+		this.recentsStatus.style.display = 'none';
 		this.treeContainer = dom.append(container, $('.navigator-projects-list'));
 		this.ensureTree();
 		this.refresh();
@@ -183,7 +194,10 @@ export class NavigatorProjectsView extends ViewPane {
 		this.element.classList.toggle('is-narrow', width > 0 && width < 600);
 		this.element.classList.toggle('is-compact', width > 0 && width < 300);
 		const filterHeight = this.treeNodes.length > 0 ? NavigatorProjectsInlineFilterBox.HEIGHT : 0;
-		this.tree?.layout(height - filterHeight, width);
+		const statusHeight = this.recentsStatus && this.recentsStatus.style.display !== 'none'
+			? this.recentsStatus.offsetHeight
+			: 0;
+		this.tree?.layout(height - filterHeight - statusHeight, width);
 	}
 
 	private ensureTree(): WorkbenchObjectTree<INavigatorProjectsTreeNode, void> {
@@ -248,10 +262,26 @@ export class NavigatorProjectsView extends ViewPane {
 
 	private async rebuildTree(): Promise<void> {
 		try {
-			this.localFolderEntries = [
-				...this.getCurrentFolderEntries(),
-				...(await this.getRecentFolderEntries()),
-			];
+			const currentFolders = this.getCurrentFolderEntries();
+			let recentFolders: INavigatorLocalFolderEntry[] = [];
+			let recentsFailureCopy: string | undefined;
+			try {
+				recentFolders = await this.getRecentFolderEntries();
+			} catch (error) {
+				recentsFailureCopy = navigatorProjectsRecentsFailureMessage(error);
+			}
+
+			if (recentsFailureCopy && (this.localFolderEntries.length > 0 || this.treeNodes.length > 0)) {
+				// Keep last-good localFolderEntries / treeNodes after a successful paint.
+				this.setRecentsStatus(recentsFailureCopy);
+				return;
+			}
+
+			this.setRecentsStatus(recentsFailureCopy);
+
+			this.localFolderEntries = recentsFailureCopy
+				? currentFolders
+				: [...currentFolders, ...recentFolders];
 
 			const engineConnected = this.rosterService.isEngineConnected();
 			if (engineConnected) {
@@ -259,7 +289,7 @@ export class NavigatorProjectsView extends ViewPane {
 			}
 
 			const snapshot = this.uaConnection.getConnectionSnapshot();
-			this.treeNodes = buildNavigatorProjectsTree({
+			this.treeNodes = this.withRecentsFailureNote(buildNavigatorProjectsTree({
 				engineConnected,
 				wasEverConnected: this.wasEverConnected,
 				transportFailed: snapshot.transport === 'failed',
@@ -267,7 +297,7 @@ export class NavigatorProjectsView extends ViewPane {
 				workDir: snapshot.workDir,
 				sessions: this.rosterService.getSessions(),
 				localFolders: this.localFolderEntries,
-			});
+			}), recentsFailureCopy);
 
 			this.filterBox?.setVisible(this.treeNodes.length > 0);
 			this.applyFilterToTree();
@@ -275,6 +305,33 @@ export class NavigatorProjectsView extends ViewPane {
 		} catch {
 			// Keep last-good localFolderEntries / treeNodes.
 		}
+	}
+
+	private setRecentsStatus(copy: string | undefined): void {
+		if (!this.recentsStatus) {
+			return;
+		}
+		if (!copy) {
+			this.recentsStatus.textContent = '';
+			this.recentsStatus.style.display = 'none';
+			return;
+		}
+		this.recentsStatus.textContent = copy;
+		this.recentsStatus.style.display = 'block';
+	}
+
+	private withRecentsFailureNote(
+		nodes: INavigatorProjectsTreeNode[],
+		recentsFailureCopy: string | undefined,
+	): INavigatorProjectsTreeNode[] {
+		if (!recentsFailureCopy) {
+			return nodes;
+		}
+		return [...nodes, {
+			id: RECENTS_FAILED_NOTE_ID,
+			kind: 'note',
+			label: recentsFailureCopy,
+		}];
 	}
 
 	private applyFilterToTree(): void {

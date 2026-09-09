@@ -20,7 +20,7 @@ import { TestContextService } from '../../../../test/common/workbenchTestService
 import { TestHostService, TestWorkspacesService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { NAVIGATOR_PROJECTS_VIEW_ID } from '../../browser/navigatorStubView.js';
-import { INavigatorLocalFolderEntry, NavigatorProjectsView } from '../../browser/navigatorProjectsList.js';
+import { INavigatorLocalFolderEntry, NavigatorProjectsView, navigatorProjectsRecentsFailureMessage } from '../../browser/navigatorProjectsList.js';
 import { INavigatorProjectsTreeNode } from '../../common/navigatorProjectsTree.js';
 import { CONVERSATION_STUB_SEED_SESSIONS } from '../../../conversation/browser/conversationStubModel.js';
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
@@ -301,6 +301,49 @@ suite('NavigatorProjectsView', () => {
 
 		assert.strictEqual(view.shouldShowWelcome(), true);
 		assert.ok(!isFilterVisible(view));
+	});
+
+	test('getRecentlyOpened throw on first paint keeps current folder and shows failure copy without unhandled rejection', async () => {
+		const currentFolder = URI.file('/projects/current-first-paint');
+		const contextService = new TestContextService(testWorkspace(currentFolder));
+		class WorkspacesThrowOnFirst extends TestWorkspacesService {
+			override async getRecentlyOpened(): Promise<IRecentlyOpened> {
+				throw new Error('getRecentlyOpened boom');
+			}
+		}
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const view = await mountView({
+				contextService,
+				workspacesService: new WorkspacesThrowOnFirst(),
+			});
+			await flushMicrotasks();
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+
+			assert.deepStrictEqual(unhandledRejections, []);
+			const entries = getViewEntries(view);
+			assert.strictEqual(entries.length, 1);
+			assert.ok(entries[0].id.startsWith('current:'));
+			assert.strictEqual(entries[0].resource.toString(), currentFolder.toString());
+			assert.strictEqual(view.shouldShowWelcome(), false);
+
+			const expectedCopy = navigatorProjectsRecentsFailureMessage(new Error('getRecentlyOpened boom'));
+			const failureNote = findTreeNode(getViewTreeNodes(view), node => node.id === 'local:recents-failed' && node.kind === 'note');
+			assert.ok(failureNote, 'recents failure note must be in the tree');
+			assert.strictEqual(failureNote.label, expectedCopy);
+
+			const status = view.element.querySelector('.navigator-projects-recents-status') as HTMLElement | null;
+			assert.ok(status, 'recents failure status must exist');
+			assert.notStrictEqual(status.style.display, 'none');
+			assert.strictEqual(status.textContent, expectedCopy);
+			assert.ok(status.textContent.includes('Unable to load recent folders'));
+			assert.ok(status.textContent.includes('getRecentlyOpened boom'));
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('getRecentlyOpened throw after first paint keeps last-good tree without unhandled rejection', async () => {

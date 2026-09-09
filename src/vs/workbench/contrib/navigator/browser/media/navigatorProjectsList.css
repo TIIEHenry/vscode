@@ -22,3 +22,8 @@
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
+
+.monaco-workbench .navigator-projects-body .navigator-projects-recents-status {
+	padding: 4px 8px;
+	color: var(--vscode-errorForeground);
+}
