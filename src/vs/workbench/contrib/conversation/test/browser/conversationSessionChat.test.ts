@@ -936,6 +936,22 @@ suite('Conversation session chat (S3)', () => {
 		}
 	});
 
+	test('dialog breadcrumb ancestor with existing tab closes overlay after activating tab', async () => {
+		const { conversationPart, sessionChatService } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-2', 'Child agent', 'sub-1');
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-1', { title: 'Parent agent' });
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-2');
+
+		await sessionChatService.navigateAgentBreadcrumb(SESSION_KEY, 'sub-1');
+
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
+		assert.strictEqual(
+			(conversationPart.activeGroup.activeEditor as ConversationChatInput).resource.toString(),
+			getConversationChatResource(SESSION_KEY, 'sub-1').toString(),
+		);
+	});
+
 	test('breadcrumb navigate throw notifies error without unhandled rejection', async () => {
 		const boom = new Error('boom');
 		const errors: string[] = [];
@@ -950,6 +966,7 @@ suite('Conversation session chat (S3)', () => {
 		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-2', 'Child agent', 'sub-1');
 		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-1', { title: 'Parent agent' });
 		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-2');
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
 		conversationPart.activeGroup.openEditor = async () => {
 			throw boom;
 		};
@@ -960,6 +977,7 @@ suite('Conversation session chat (S3)', () => {
 			await timeout(0);
 			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
 			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
