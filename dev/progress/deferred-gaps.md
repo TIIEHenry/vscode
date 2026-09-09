@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-09
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / D131 / D133–D157 已闭；人类工位合入保留 stub-and-fixtures 重复 frontmatter / sourcesReview toResource.call 发现；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / D131 / D133–D159 已闭；人类工位合入保留 stub-and-fixtures 重复 frontmatter / sourcesReview toResource.call 发现；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -170,7 +170,9 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / 
 | D154 | P3 | **Snapshots Restore/Delete 成功后 `refresh()` 冲掉写成功**：`listSnapshots` throw 后用户只见 list-fail | B `f011e26d5f3` 回写 Restored./Deleted.；成功测用 `flushMicrotasks`。merge 复测 31 passing。未关 D16；未改 ok:false/throw 不 refresh | 成功后 list-fail 仍见 write-success；overlay 仍开 | conversation | closed |
 | D155 | P3 | **Plugins Enable/Reload/Unload 成功后 list-fail 无写成功态**。`scanNew` 已回写 lastScan，不重做 | D `e56636a0fbb` 回写 Enabled./Reloaded./Unloaded.；新测 `enginePluginsSection.test.ts`。merge 复测 5 passing。未关 D16；未改 scanNew | 成功后 list-fail 仍见 write-success | conversation | closed |
 | D156 | P3 | **空工作区首绘 recents throw 仍 welcome**：CSS 藏 recents status / `local:recents-failed`，用户只见空态 | A `15ef116e957` `shouldShowWelcome` 遇失败 note/status 返 false。merge 复测 15 passing。未关 D16；未改 last-good / openWindow / D150 有文件夹路径。残留：`setRecentsStatus` 未立即 `layoutBody` | 空工作区 recents throw 关 welcome 且失败文案可见；空成功 welcome 仍在 | navigator | closed |
-| D157 | P3 | **工作区选择器 `commandId` 路径 `void executeCommand` 不 catch reject** → 未处理 rejection | A `1db937a63ae` `.catch(onUnexpectedError)`。merge 复测 picker 69 passing。未改 identity-strip。残留：`item.run()` 同步调用，返回 rejected Promise 仍可能漏 | reject 无未处理 rejection；成功 Sign in 测仍绿 | sessions | closed |
+| D157 | P3 | **工作区选择器 `commandId` 路径 `void executeCommand` 不 catch reject** → 未处理 rejection | A `1db937a63ae` `.catch(onUnexpectedError)`。merge 复测 picker 69 passing。未改 identity-strip。残留 `item.run()` 已由 D158 收 | reject 无未处理 rejection；成功 Sign in 测仍绿 | sessions | closed |
+| D158 | P3 | **工作区选择器 `item.run()` 同步调用不 catch reject** → Manage 项走 `run` 优先，D157 覆盖不到 | A `9a0e83bc66e` `Promise.resolve(item.run()).catch(onUnexpectedError)`。merge 复测 picker 70 passing。未改 commandId / identity-strip | reject 无未处理 rejection；D157 Sign in 测仍绿 | sessions | closed |
+| D159 | P3 | **`SessionsWindowNotifier` `void _notify(...)` 无 catch** → toast/focus/openSession reject 成未处理 rejection | B `092edec434c` 两处 `.catch(onUnexpectedError)`。merge 复测 notifier 8 passing。未单独锁 Completed/`focus`/`openSession` | NeedsInput + showToast reject 无未处理 rejection；既有 6 测仍绿 | sessions | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 
