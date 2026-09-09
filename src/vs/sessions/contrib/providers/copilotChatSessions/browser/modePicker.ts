@@ -6,6 +6,7 @@
 import * as dom from '../../../../../base/browser/dom.js';
 import { Gesture, EventType as TouchEventType } from '../../../../../base/browser/touch.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable, MutableDisposable } from '../../../../../base/common/lifecycle.js';
 import { IObservable } from '../../../../../base/common/observable.js';
@@ -251,7 +252,7 @@ export class ModePicker extends Disposable {
 					reportChatModeChange(this.telemetryService, previousMode, item.mode, requestCount);
 					this._selectMode(item.mode);
 				} else {
-					this.commandService.executeCommand(AICustomizationManagementCommands.OpenEditor, AICustomizationManagementSection.Agents);
+					void this.commandService.executeCommand(AICustomizationManagementCommands.OpenEditor, AICustomizationManagementSection.Agents).catch(onUnexpectedError);
 				}
 			},
 			onHide: () => { triggerElement.focus(); },
