@@ -401,6 +401,53 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.ok(writeStatus.textContent?.includes(toggleFailed));
 	});
 
+	test('createSkill success still shows create-success when subsequent listSkills fails', async () => {
+		let listSkillsCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				skillsSupport: 'SUPPORTED',
+				listSkills: async () => {
+					listSkillsCalls++;
+					if (listSkillsCalls > 1) {
+						throw new Error('listSkills exploded');
+					}
+					return { skills: [{ name: 'demo-skill', source: 'bundled', enabled: true }] };
+				},
+				saveSkillContent: async () => ({ ok: true }),
+			});
+			const section = mountSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+
+			assert.strictEqual(section.getMode(), 'ready');
+			assert.strictEqual(section.getListEntryCount(), 1);
+
+			await section.createSkill({ skillName: 'my-new-skill', content: '# My New Skill\n\nBody.' });
+			await flushMicrotasks();
+
+			assert.ok(listSkillsCalls >= 2);
+			const createSuccess = localize('ua.engineSkillCreateSuccess', "Created.");
+			const writeStatus = section.getDomNode().querySelector('.engine-skill-write-status') as HTMLElement;
+			assert.ok(writeStatus);
+			assert.notStrictEqual(writeStatus.style.display, 'none');
+			assert.ok(writeStatus.textContent?.includes(createSuccess));
+
+			assert.strictEqual(section.getMode(), 'failed');
+			assert.strictEqual(section.getListEntryCount(), 0);
+			const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+			assert.ok(status);
+			assert.strictEqual(status.dataset['catalogMode'], 'failed');
+			assert.ok(status.textContent?.includes(getCatalogFailedCopy(SKILLS_FEATURE, 'listSkills exploded')));
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
 	test('createSkill throw paints write-status and does not add a fake row', async () => {
 		let listSkillsCalls = 0;
 		const connection = createConnectionStub({
