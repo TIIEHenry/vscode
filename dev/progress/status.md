@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-09
-summary: "D148–D180 已合入 loop/merge。D8 / D16 / D31 F4 / D147 仍开。compile unused 仍红，不 push。人类工位尚未 cascade。"
+summary: "D148–D182 已合入 loop/merge。D8 / D16 / D31 F4 / D147 仍开。compile unused 仍红，不 push。人类工位尚未 cascade。"
 ---
 
 # Development Progress
@@ -41,8 +41,8 @@ summary: "D148–D180 已合入 loop/merge。D8 / D16 / D31 F4 / D147 仍开。c
 
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 进行中（2026-09-09 本 wake · merge 代码 MERGE_SHA `409047e87f9`）
-本关仓续：**A** D179 快照删除确认 catch；**B** D180 自动化卡片删除确认 catch。前波 D177–D178 已在 `ef357614437`。merge 复测 32 / 54 passing。compile unused 仍红 **不 push**。人类工位 **未 cascade**。不占 C。未开 D147（须另授权改 `src/vs`）。
+### 进行中（2026-09-09 本 wake · merge 代码 MERGE_SHA `06ecd8db8b1`）
+本关仓续：**A** D181 PR 号查找 catch；**B** D182 空态创建自动化 catch。前波 D179–D180 已在 `409047e87f9`。merge 复测 19 / 55 passing。compile unused 仍红 **不 push**。人类工位 **未 cascade**。不占 C。未开 D147。
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
@@ -172,15 +172,17 @@ summary: "D148–D180 已合入 loop/merge。D8 / D16 / D31 F4 / D147 仍开。c
 | [D178](deferred-gaps.md) | B 自定义 MCP root config catch | **closed** `956cab78bbe`；setRootConfigValue reject 无未处理 rejection；merge 3 passing |
 | [D179](deferred-gaps.md) | A 快照删除确认 catch | **closed** `33a85adf420`；confirm reject 无未处理 rejection；merge 32 passing |
 | [D180](deferred-gaps.md) | B 自动化卡片删除确认 catch | **closed** `09937b546ea`；confirm reject 无未处理 rejection；merge 54 passing |
+| [D181](deferred-gaps.md) | A PR 号查找 catch | **closed** `809535a6150`；lookup reject 无未处理 rejection；merge 19 passing |
+| [D182](deferred-gaps.md) | B 空态创建自动化 catch | **closed** `7092184f4ee`；dialog reject 无未处理 rejection；merge 55 passing |
 | — | 人类工位 wave-9 | 合入保留：`stub-and-fixtures.md` 重复 frontmatter；`sourcesReviewModel` 测 `toResource.call` 使 `this.test` undefined。本波 **未 cascade** |
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `409047e87f9` | `__pycache__` | 0 | 代码 MERGE_SHA D180；compile unused 仍红，**不 push**；人类工位未 cascade |
-| A | `vscode-WorkTrees/A` | `loop/A` | `409047e87f9` | `__pycache__` | 0 | idle |
-| B | `vscode-WorkTrees/B` | `loop/B` | `409047e87f9` | `__pycache__` | 0 | idle |
-| C | `vscode-WorkTrees/C` | `loop/C` | `409047e87f9` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `409047e87f9` | `__pycache__` | 0 | idle |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `06ecd8db8b1` | `__pycache__` | 0 | 代码 MERGE_SHA D182；compile unused 仍红，**不 push**；人类工位未 cascade |
+| A | `vscode-WorkTrees/A` | `loop/A` | `06ecd8db8b1` | `__pycache__` | 0 | idle |
+| B | `vscode-WorkTrees/B` | `loop/B` | `06ecd8db8b1` | `__pycache__` | 0 | idle |
+| C | `vscode-WorkTrees/C` | `loop/C` | `06ecd8db8b1` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `06ecd8db8b1` | `__pycache__` | 0 | idle |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `eeac2dd5cc9` | `dev/loop` | 0 | 落后本波；勿 add `dev/loop` |
 ## Next（Blockers：无）
 | 项 | 指针 |
