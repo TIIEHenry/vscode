@@ -738,7 +738,7 @@ export class WorkspacePicker extends Disposable {
 		const generation = ++this._selectionGeneration;
 		this._reportPickerClosed(item);
 		if (item.run) {
-			item.run();
+			void Promise.resolve(item.run()).catch(onUnexpectedError);
 			return true;
 		} else if (item.commandId) {
 			void this.commandService.executeCommand(item.commandId).catch(onUnexpectedError);

@@ -2922,6 +2922,10 @@ class TestablePicker extends WorkspacePicker {
 		assert.ok(entry?.item, `Expected picker item '${label}'`);
 		await this._dispatchPickerItem(entry.item);
 	}
+
+	dispatchItem(item: IWorkspacePickerItem): Promise<boolean> {
+		return this._dispatchPickerItem(item);
+	}
 }
 
 function makeBrowseAction(providerId: string, group: string | undefined, label = 'browse'): ISessionWorkspaceBrowseAction {
@@ -3141,6 +3145,25 @@ suite('WorkspacePicker - Tab discovery', () => {
 		setUnexpectedErrorHandler(() => { });
 		try {
 			await picker.select('Sign in to GitHub');
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('item.run rejection does not become an unhandled rejection', async () => {
+		providersService.setProviders([createMockProvider('p1')]);
+		const picker = createTestablePicker(disposables, providersService);
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			await picker.dispatchItem({ run: () => Promise.reject('boom') });
 			await timeout(0);
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
