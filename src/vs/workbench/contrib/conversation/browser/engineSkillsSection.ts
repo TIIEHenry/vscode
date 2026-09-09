@@ -38,6 +38,7 @@ import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesP
 const $ = DOM.$;
 
 const SKILL_WRITE_FEATURE = localize('ua.engineSkillWriteFeatureLabel', "skill content write");
+const SKILL_CREATE_SUCCESS_COPY = localize('ua.engineSkillCreateSuccess', "Created.");
 
 type EngineSkillListEntry =
 	| { readonly kind: 'group'; readonly source: UniverseAgentSkillSummary['source']; readonly label: string }
@@ -329,8 +330,9 @@ export class EngineSkillsSection extends Disposable {
 				this.paintSkillCreateFailed();
 				return false;
 			}
-			this.hideWriteStatus();
+			this.paintSkillCreateSucceeded();
 			await this.refresh();
+			this.paintSkillCreateSucceeded();
 			if (!this.canWrite()) {
 				return false;
 			}
@@ -529,6 +531,11 @@ export class EngineSkillsSection extends Disposable {
 			'ua.engineSkillCreateFailed',
 			"Could not create skill content on the engine.",
 		));
+	}
+
+	private paintSkillCreateSucceeded(): void {
+		this.writeStatus.style.display = '';
+		this.writeStatus.textContent = SKILL_CREATE_SUCCESS_COPY;
 	}
 
 	private paintSkillToggleFailed(): void {
