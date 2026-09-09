@@ -127,7 +127,7 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 				const { agentIndex } = host.getSessionConfig(host.getBoundSessionId());
 				host.agentSelectBox.setOptions(options, Math.min(agentIndex, options.length - 1));
 			} catch {
-				// Keep honest empty agent list.
+				host.agentSelectBox.setOptions([{ text: conversationLensDockNoAgent }], 0);
 			}
 		}
 		if (caps.models.support === 'SUPPORTED') {
@@ -140,7 +140,9 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 				host.modelSelectedIndex = 0;
 				host.catalogModelIds = composerModelIds(result.models);
 			} catch {
-				// Keep "No model"; send is not gated when connected.
+				host.modelSelectBox.setOptions([{ text: conversationLensDockNoModel }], 0);
+				host.modelSelectedIndex = 0;
+				host.catalogModelIds = [''];
 			}
 		}
 		if (caps.tools.support === 'SUPPORTED') {
@@ -230,6 +232,8 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 			host.dockTextarea.value = '';
 			host.resetInputHistoryBrowse();
 			host.updateConversationPhase();
+		} catch {
+			host.showPostFailure('failed');
 		} finally {
 			host.submitInFlight = false;
 		}
@@ -244,8 +248,16 @@ export function saveTurnEdit(host: IConversationLensComposerHost): void {
 		}
 		const sessionId = host.getBoundSessionId();
 		const turnId = host.editingTurnId;
+		const saved = host.stubService.updateUserTurnText(sessionId, turnId, text);
+		if (!saved) {
+			host.showPostFailure(
+				!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
+					? 'engine_disconnected'
+					: 'failed'
+			);
+			return;
+		}
 		host.exitComposerEdit();
-		host.stubService.updateUserTurnText(sessionId, turnId, text);
 	
 }
 
@@ -258,8 +270,16 @@ export function saveQueueEdit(host: IConversationLensComposerHost): void {
 		}
 		const sessionId = host.getBoundSessionId();
 		const itemId = item.id;
+		const saved = host.stubService.updateMessageQueueItemContent(sessionId, itemId, text);
+		if (!saved) {
+			host.showPostFailure(
+				!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
+					? 'engine_disconnected'
+					: 'failed'
+			);
+			return;
+		}
 		host.exitComposerEdit(true, false);
-		host.stubService.updateMessageQueueItemContent(sessionId, itemId, text);
 		host.stubService.releaseMessageQueueItemHold(sessionId, itemId);
 		host.renderInboxStatus();
 	

@@ -19,6 +19,7 @@ import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
@@ -144,6 +145,7 @@ export class ConversationSessionsView extends ViewPane {
 		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
 		@IConversationPartService private readonly conversationPartService: IConversationPartService,
 		@IConversationSessionWindowService private readonly sessionWindowService: IConversationSessionWindowService,
+		@INotificationService private readonly notificationService: INotificationService,
 		@IKeybindingService keybindingService: IKeybindingService,
 		@IContextMenuService contextMenuService: IContextMenuService,
 		@IConfigurationService configurationService: IConfigurationService,
@@ -158,14 +160,28 @@ export class ConversationSessionsView extends ViewPane {
 
 		this._register(this.stubService.onDidChangeActiveSession(() => this.refreshList()));
 		this._register(this.stubService.onDidChangeSession(() => this.refreshList()));
+		this._register(this.stubService.onDidChangeEngineConnection(() => this.refreshList()));
 	}
 
 	createNewSession(): void {
+		if (!this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory()) {
+			this.notificationService.error(
+				localize('conversationSessionsView.createSessionDisconnected', "Could not create session — engine disconnected."),
+			);
+			return;
+		}
 		this.stubService.createSession();
 	}
 
 	deleteActiveSession(): void {
-		this.stubService.deleteSession(this.stubService.getActiveSessionId());
+		if (this.stubService.deleteSession(this.stubService.getActiveSessionId())) {
+			return;
+		}
+		this.notificationService.error(
+			!this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory()
+				? localize('conversationSessionsView.deleteSessionDisconnected', "Could not delete session — engine disconnected.")
+				: localize('conversationSessionsView.deleteSessionFailed', "Could not delete session."),
+		);
 	}
 
 	openSessionBeside(sessionId: string): void {

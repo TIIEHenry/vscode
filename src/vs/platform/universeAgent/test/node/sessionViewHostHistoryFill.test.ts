@@ -132,4 +132,56 @@ suite('SessionViewHost HistoryFill', () => {
 			&& patch.item.summary.kind === 'text'
 			&& (patch.item.summary as { preview?: string }).preview === 'from history'));
 	});
+
+	test('bind failure during fillHistory posts failed historyResult and does not leak rejection', async () => {
+		const connection = new class extends TestConnection {
+			failNextBind = false;
+			override async createSession(request: { title?: string; model?: string; clientSessionId?: string } = {}) {
+				this.createSessionCalls.push(request);
+				if (this.failNextBind) {
+					throw new Error('CreateSession refused');
+				}
+				return super.createSession(request);
+			}
+			override async resumeSession(request: { sessionId: string }) {
+				this.resumeSessionCalls.push(request);
+				if (this.failNextBind) {
+					return { ok: false, message: 'dead shell' };
+				}
+				return super.resumeSession(request);
+			}
+		}();
+		let getHistoryCalls = 0;
+		connection.getHistory = async () => {
+			getHistoryCalls += 1;
+			return { envelopes: [{ cursorSeq: '1', payload: TEXT_ENVELOPE }] };
+		};
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), { orphanTimeoutMs: 0 }));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('sess-hist-bind-fail');
+		await viewHost.whenEngineSessionReady('sess-hist-bind-fail');
+
+		const hostInternal = viewHost as unknown as {
+			engineSessionByLocal: Map<string, string>;
+			engineBoundForGeneration: Set<string>;
+		};
+		hostInternal.engineSessionByLocal.clear();
+		hostInternal.engineBoundForGeneration.clear();
+		connection.failNextBind = true;
+
+		const rejections: unknown[] = [];
+		const onUnhandled = (reason: unknown) => { rejections.push(reason); };
+		process.on('unhandledRejection', onUnhandled);
+		try {
+			connection.pushStreamEvent('sess-hist-bind-fail', {
+				hello: { session_version: 1, head_seq: 1, runtime_epoch: 1, last_mutated_from_seq: 0 },
+			});
+			await timeout(40);
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.deepStrictEqual(rejections, []);
+			assert.strictEqual(getHistoryCalls, 0);
+		} finally {
+			process.off('unhandledRejection', onUnhandled);
+		}
+	});
 });

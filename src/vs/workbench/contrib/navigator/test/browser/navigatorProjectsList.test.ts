@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Event } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { WorkbenchObjectTree } from '../../../../../platform/list/browser/listService.js';
@@ -14,12 +14,14 @@ import { IWorkspaceContextService, WorkbenchState } from '../../../../../platfor
 import { testWorkspace, Workspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
 import { IViewContainerModel, IViewDescriptorService, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
 import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
+import { IHostService } from '../../../../services/host/browser/host.js';
 import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
 import { TestContextService } from '../../../../test/common/workbenchTestServices.js';
-import { TestWorkspacesService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { TestHostService, TestWorkspacesService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { NAVIGATOR_PROJECTS_VIEW_ID } from '../../browser/navigatorStubView.js';
 import { INavigatorLocalFolderEntry, NavigatorProjectsView } from '../../browser/navigatorProjectsList.js';
+import { INavigatorProjectsTreeNode } from '../../common/navigatorProjectsTree.js';
 import { CONVERSATION_STUB_SEED_SESSIONS } from '../../../conversation/browser/conversationStubModel.js';
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 
@@ -78,10 +80,42 @@ suite('NavigatorProjectsView', () => {
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 	}
 
+	function getViewTreeNodes(view: NavigatorProjectsView): INavigatorProjectsTreeNode[] {
+		return (view as unknown as { treeNodes: INavigatorProjectsTreeNode[] }).treeNodes;
+	}
+
+	function findTreeNode(
+		nodes: readonly INavigatorProjectsTreeNode[],
+		predicate: (node: INavigatorProjectsTreeNode) => boolean,
+	): INavigatorProjectsTreeNode | undefined {
+		for (const node of nodes) {
+			if (predicate(node)) {
+				return node;
+			}
+			const nested = node.children ? findTreeNode(node.children, predicate) : undefined;
+			if (nested) {
+				return nested;
+			}
+		}
+		return undefined;
+	}
+
+	function openTreeNode(view: NavigatorProjectsView, node: INavigatorProjectsTreeNode, browserEvent?: UIEvent): void {
+		(view as unknown as {
+			openTreeNode(node: INavigatorProjectsTreeNode | undefined, browserEvent?: UIEvent): void;
+		}).openTreeNode(node, browserEvent);
+	}
+
+	async function flushMicrotasks(): Promise<void> {
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+	}
+
 	async function mountView(options?: {
 		contextService?: TestContextService;
 		workspacesService?: IWorkspacesService;
 		rosterService?: ConversationStubService;
+		uaConnection?: IUniverseAgentConnection;
+		patchHost?: (host: TestHostService) => void;
 	}): Promise<NavigatorProjectsView> {
 		const contextService = options?.contextService ?? new TestContextService(new Workspace('empty-workspace', []));
 		const workspacesService = options?.workspacesService ?? new TestWorkspacesService();
@@ -90,7 +124,10 @@ suite('NavigatorProjectsView', () => {
 		instantiationService.stub(IWorkspaceContextService, contextService);
 		instantiationService.stub(IWorkspacesService, workspacesService);
 		instantiationService.stub(IConversationRosterService, rosterService);
-		instantiationService.stub(IUniverseAgentConnection, createNavigatorConnectionTestStub());
+		instantiationService.stub(IUniverseAgentConnection, options?.uaConnection ?? createNavigatorConnectionTestStub());
+		if (options?.patchHost) {
+			options.patchHost(instantiationService.get(IHostService) as TestHostService);
+		}
 		instantiationService.stub(IWorkbenchLayoutService, {
 			isVisible: () => true,
 			setPartHidden: async () => { },
@@ -264,5 +301,101 @@ suite('NavigatorProjectsView', () => {
 
 		assert.strictEqual(view.shouldShowWelcome(), true);
 		assert.ok(!isFilterVisible(view));
+	});
+
+	test('getRecentlyOpened throw after first paint keeps last-good tree without unhandled rejection', async () => {
+		const recentFolder = URI.file('/projects/recent-keep');
+		const onDidChangeRecentlyOpened = store.add(new Emitter<void>());
+		class WorkspacesThrowAfterSuccess extends TestWorkspacesService {
+			throwOnNext = false;
+			override readonly onDidChangeRecentlyOpened = onDidChangeRecentlyOpened.event;
+			override async getRecentlyOpened(): Promise<IRecentlyOpened> {
+				if (this.throwOnNext) {
+					throw new Error('getRecentlyOpened boom');
+				}
+				return {
+					workspaces: [{ folderUri: recentFolder, label: 'recent-keep' }],
+					files: [],
+				};
+			}
+		}
+		const workspacesService = new WorkspacesThrowAfterSuccess();
+		const view = await mountView({ workspacesService });
+
+		const lastGoodEntries = getViewEntries(view).map(entry => entry.id);
+		const lastGoodLeaves = countTreeLeaves(view);
+		assert.strictEqual(lastGoodEntries.length, 1);
+		assert.strictEqual(lastGoodLeaves, 1);
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			workspacesService.throwOnNext = true;
+			onDidChangeRecentlyOpened.fire();
+			await flushMicrotasks();
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.deepStrictEqual(getViewEntries(view).map(entry => entry.id), lastGoodEntries);
+			assert.strictEqual(countTreeLeaves(view), lastGoodLeaves);
+			assert.strictEqual(getViewEntries(view)[0]?.resource.toString(), recentFolder.toString());
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('openWindow reject on local-folder click is swallowed; session row only switchSession', async () => {
+		class SwitchTrackingRoster extends ConversationStubService {
+			readonly switchSessionCalls: string[] = [];
+			override switchSession(sessionId: string): void {
+				this.switchSessionCalls.push(sessionId);
+				super.switchSession(sessionId);
+			}
+		}
+
+		const folderUri = URI.file('/projects/open-folder');
+		const contextService = new TestContextService(testWorkspace(folderUri));
+		const rosterService = new SwitchTrackingRoster();
+		rosterService.setEngineConnected(true);
+		const uaConnection = createNavigatorConnectionTestStub({
+			getNavigatorCapability: () => 'SUPPORTED',
+		});
+		const openWindowCalls: unknown[] = [];
+
+		const view = await mountView({
+			contextService,
+			rosterService,
+			uaConnection,
+			patchHost: host => {
+				host.openWindow = async (...args: unknown[]) => {
+					openWindowCalls.push(args);
+					return Promise.reject(new Error('openWindow boom'));
+				};
+			},
+		});
+		const folderNode = findTreeNode(getViewTreeNodes(view), node => node.kind === 'local-folder');
+		const sessionNode = findTreeNode(getViewTreeNodes(view), node => node.kind === 'session' && !!node.sessionId);
+		assert.ok(folderNode, 'local-folder node must exist');
+		assert.ok(sessionNode?.sessionId, 'session node must exist');
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			openTreeNode(view, folderNode, new MouseEvent('click'));
+			await flushMicrotasks();
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(openWindowCalls.length, 1);
+			assert.deepStrictEqual(rosterService.switchSessionCalls, []);
+
+			openTreeNode(view, sessionNode);
+			await flushMicrotasks();
+			assert.deepStrictEqual(rosterService.switchSessionCalls, [sessionNode.sessionId]);
+			assert.strictEqual(openWindowCalls.length, 1);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });

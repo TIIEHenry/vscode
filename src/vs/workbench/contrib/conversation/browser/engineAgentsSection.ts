@@ -134,6 +134,20 @@ class EngineAgentListAccessibilityProvider implements IListAccessibilityProvider
 	}
 }
 
+function agentsWriteRejectedReason(): string {
+	return localize('ua.engineAgentsWriteRejected', "The engine rejected the agent profile write.");
+}
+
+function agentsWriteFailureReason(error: unknown): string {
+	if (typeof error === 'string' && error) {
+		return error;
+	}
+	if (error instanceof Error && error.message) {
+		return error.message;
+	}
+	return agentsWriteRejectedReason();
+}
+
 function getAgentSourceGroupLabel(source: UniverseAgentAgentProfileSource): string {
 	switch (source) {
 		case 'built_in':
@@ -171,6 +185,7 @@ export class EngineAgentsSection extends Disposable {
 	private readonly heading: HTMLElement;
 	private readonly status: EngineCatalogStatusWidget;
 	private readonly writeToolbar: HTMLElement;
+	private readonly catalogWriteStatus: HTMLElement;
 	private readonly deleteButton: Button;
 	private readonly resetButton: Button;
 	private readonly listContainer: HTMLElement;
@@ -203,6 +218,7 @@ export class EngineAgentsSection extends Disposable {
 	private agentsMarkdownDirty = false;
 	private activeDetailTab: EngineAgentDetailTab = 'instructions';
 	private agentTools: UniverseAgentToolSummary[] = [];
+	private agentToolsLoadFailed: string | undefined;
 	private readonly agentToolPending = new Map<string, boolean>();
 	private sectionActive = false;
 
@@ -235,6 +251,10 @@ export class EngineAgentsSection extends Disposable {
 		this.deleteButton = this._register(new Button(this.writeToolbar, { ...defaultButtonStyles, secondary: true }));
 		this.deleteButton.label = localize('ua.engineAgentsDelete', "Delete");
 		this._register(this.deleteButton.onDidClick(() => void this.deleteSelectedProfile()));
+		this.catalogWriteStatus = DOM.append(this.container, $('.engine-catalog-write-status'));
+		this.catalogWriteStatus.setAttribute('role', 'status');
+		this.catalogWriteStatus.setAttribute('aria-live', 'polite');
+		this.catalogWriteStatus.style.display = 'none';
 		this.updateWriteActions();
 
 		this.listContainer = DOM.append(this.container, $('.engine-catalog-list'));
@@ -416,6 +436,14 @@ export class EngineAgentsSection extends Disposable {
 		return false;
 	}
 
+	setAgentToolPendingForTest(tool: UniverseAgentToolSummary, enabled: boolean): void {
+		if (!this.selectedProfile || !this.canEditAgentTools()) {
+			return;
+		}
+		this.agentToolPending.set(toolEnablementPendingKey(this.selectedProfile.id, tool.name), enabled);
+		this.toolsSaveButton.enabled = this.isAgentToolEnablementDirty();
+	}
+
 	isDeleteActionVisible(): boolean {
 		return this.deleteButton.element.style.display !== 'none';
 	}
@@ -439,6 +467,7 @@ export class EngineAgentsSection extends Disposable {
 		if (!this.canWrite()) {
 			return false;
 		}
+		this.hideCatalogWriteStatus();
 		const payload = profile ?? {
 			id: `agent-${Date.now()}`,
 			name: localize('ua.engineAgentsNewDefaultName', "New Agent"),
@@ -452,11 +481,13 @@ export class EngineAgentsSection extends Disposable {
 				return false;
 			}
 			if (!result.profile.id) {
+				this.showCatalogWriteFailed(localize('ua.engineAgentsCreateFailed', "Unable to create: {0}", agentsWriteRejectedReason()));
 				return false;
 			}
 			await this.refresh();
 			return true;
-		} catch {
+		} catch (error) {
+			this.showCatalogWriteFailed(localize('ua.engineAgentsCreateFailed', "Unable to create: {0}", agentsWriteFailureReason(error)));
 			return false;
 		}
 	}
@@ -468,15 +499,18 @@ export class EngineAgentsSection extends Disposable {
 		if (this.selectedProfile.source === 'built_in') {
 			return false;
 		}
+		this.hideCatalogWriteStatus();
 		try {
 			const result = await this.connection.deleteAgentProfile({ id: this.selectedProfile.id });
 			if (!result.ok) {
+				this.showCatalogWriteFailed(localize('ua.engineAgentsDeleteFailed', "Unable to delete: {0}", agentsWriteFailureReason(result.reason)));
 				return false;
 			}
 			this.selectedProfile = undefined;
 			await this.refresh();
 			return true;
-		} catch {
+		} catch (error) {
+			this.showCatalogWriteFailed(localize('ua.engineAgentsDeleteFailed', "Unable to delete: {0}", agentsWriteFailureReason(error)));
 			return false;
 		}
 	}
@@ -488,9 +522,11 @@ export class EngineAgentsSection extends Disposable {
 		if (this.selectedProfile.source !== 'built_in') {
 			return false;
 		}
+		this.hideCatalogWriteStatus();
 		try {
 			const result = await this.connection.resetAgentProfile({ id: this.selectedProfile.id });
 			if (!result.ok) {
+				this.showCatalogWriteFailed(localize('ua.engineAgentsResetFailed', "Unable to reset: {0}", agentsWriteFailureReason(result.reason)));
 				return false;
 			}
 			await this.refresh();
@@ -498,7 +534,8 @@ export class EngineAgentsSection extends Disposable {
 				await this.loadAgentsEditorForSelection();
 			}
 			return true;
-		} catch {
+		} catch (error) {
+			this.showCatalogWriteFailed(localize('ua.engineAgentsResetFailed', "Unable to reset: {0}", agentsWriteFailureReason(error)));
 			return false;
 		}
 	}
@@ -510,6 +547,7 @@ export class EngineAgentsSection extends Disposable {
 		if (this.selectedProfile.source === 'built_in') {
 			return false;
 		}
+		this.hideCatalogWriteStatus();
 		const profile: UniverseAgentAgentProfileDetail = {
 			...summaryToProfileDetail(this.selectedProfile),
 			...updates,
@@ -517,11 +555,13 @@ export class EngineAgentsSection extends Disposable {
 		try {
 			const result = await this.connection.saveAgentProfile({ profile });
 			if (!result.profile.id) {
+				this.showCatalogWriteFailed(localize('ua.engineAgentsSaveFailed', "Unable to save: {0}", agentsWriteRejectedReason()));
 				return false;
 			}
 			await this.refresh();
 			return true;
-		} catch {
+		} catch (error) {
+			this.showCatalogWriteFailed(localize('ua.engineAgentsSaveFailed', "Unable to save: {0}", agentsWriteFailureReason(error)));
 			return false;
 		}
 	}
@@ -534,9 +574,15 @@ export class EngineAgentsSection extends Disposable {
 		const parsed = parseAgentsMarkdown(this.agentsEditorInput.value);
 		const ok = await this.saveSelectedProfile(parsed);
 		if (ok) {
+			this.hideAgentsEditorStatus();
 			this.loadedAgentsMarkdown = this.agentsEditorInput.value;
 			this.agentsMarkdownDirty = false;
 			await this.selectProfileByIdForTest(profileId);
+		} else {
+			this.showAgentsEditorStatus(localize(
+				'ua.engineAgentsMdSaveFailed',
+				"Could not save AGENTS.md to the engine.",
+			));
 		}
 		return ok;
 	}
@@ -575,6 +621,26 @@ export class EngineAgentsSection extends Disposable {
 		this.resetButton.element.style.display = canWrite && selected && selected.source === 'built_in' ? '' : 'none';
 	}
 
+	private hideCatalogWriteStatus(): void {
+		this.catalogWriteStatus.style.display = 'none';
+		this.catalogWriteStatus.textContent = '';
+	}
+
+	private showCatalogWriteFailed(message: string): void {
+		this.catalogWriteStatus.style.display = '';
+		this.catalogWriteStatus.textContent = message;
+	}
+
+	private hideAgentsEditorStatus(): void {
+		this.agentsEditorStatus.style.display = 'none';
+		this.agentsEditorStatus.textContent = '';
+	}
+
+	private showAgentsEditorStatus(message: string): void {
+		this.agentsEditorStatus.style.display = '';
+		this.agentsEditorStatus.textContent = message;
+	}
+
 	private renderModelTab(): void {
 		this.modelStatus.render({
 			mode: 'unsupported',
@@ -605,8 +671,12 @@ export class EngineAgentsSection extends Disposable {
 		try {
 			const result = await this.connection.listTools();
 			this.agentTools = [...result.tools];
-		} catch {
+			this.agentToolsLoadFailed = undefined;
+		} catch (error) {
 			this.agentTools = [];
+			this.agentToolsLoadFailed = error instanceof Error && error.message
+				? error.message
+				: '';
 		}
 	}
 
@@ -617,6 +687,15 @@ export class EngineAgentsSection extends Disposable {
 		this.toolsSaveButton.enabled = this.canEditAgentTools() && this.isAgentToolEnablementDirty();
 		if (!this.selectedProfile) {
 			this.toolsStatus.hide();
+			return;
+		}
+		if (this.agentToolsLoadFailed !== undefined) {
+			this.toolsStatus.render({
+				mode: 'failed',
+				featureLabel: AGENT_TOOLS_FEATURE,
+				reason: this.agentToolsLoadFailed || undefined,
+				onRetry: () => void this.ensureAgentToolsLoaded().then(() => this.renderAgentTools()),
+			});
 			return;
 		}
 		if (this.agentTools.length === 0) {
@@ -735,7 +814,11 @@ export class EngineAgentsSection extends Disposable {
 				this.renderStatus();
 				return;
 			}
+			this.agentTools = [];
+			this.agentToolsLoadFailed = undefined;
+			this.agentToolPending.clear();
 			this.setProfiles(result.profiles);
+			this.hideCatalogWriteStatus();
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
 				kind: 'success',
 				itemCount: result.profiles.length,
@@ -744,14 +827,18 @@ export class EngineAgentsSection extends Disposable {
 			this.writeToolbar.style.display = canPerformCatalogWrite(this.mode) ? '' : 'none';
 			this.updateWriteActions();
 			this.syncDetailHost();
+			if (this.selectedProfile && !this.agentsMarkdownDirty && this.activeDetailTab === 'instructions') {
+				void this.loadAgentsEditorForSelection();
+			}
 			this.renderStatus();
 		} catch (error) {
-			this.writeToolbar.style.display = 'none';
-			this.updateWriteActions();
+			this.clearCatalogPresentation();
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
 				kind: 'failed',
 				error: error instanceof Error ? error.message : undefined,
 			});
+			this.writeToolbar.style.display = 'none';
+			this.updateWriteActions();
 			this.renderStatus({
 				reason: error instanceof Error ? error.message : undefined,
 				onRetry: () => void this.refresh(),
@@ -778,8 +865,10 @@ export class EngineAgentsSection extends Disposable {
 		this.list.splice(0, this.list.length, []);
 		this.selectedProfile = undefined;
 		this.agentTools = [];
+		this.agentToolsLoadFailed = undefined;
 		this.agentToolPending.clear();
 		this.status.hide();
+		this.hideCatalogWriteStatus();
 		this.listContainer.style.display = 'none';
 		this.writeToolbar.style.display = 'none';
 		this.updateWriteActions();
@@ -793,15 +882,13 @@ export class EngineAgentsSection extends Disposable {
 		this.agentsEditorInput.value = '';
 		this.agentsEditorInput.inputElement.readOnly = true;
 		this.agentsEditorSaveButton.enabled = false;
-		this.agentsEditorStatus.style.display = 'none';
-		this.agentsEditorStatus.textContent = '';
+		this.hideAgentsEditorStatus();
 		this.loadedAgentsMarkdown = undefined;
 		this.agentsMarkdownDirty = false;
 	}
 
 	private async loadAgentsEditorForSelection(): Promise<void> {
-		this.agentsEditorStatus.style.display = 'none';
-		this.agentsEditorStatus.textContent = '';
+		this.hideAgentsEditorStatus();
 
 		if (!canShowCatalogRows(this.mode) || !this.connection.isEngineConnected() || !this.selectedProfile) {
 			if (!this.agentsMarkdownDirty) {
@@ -844,11 +931,10 @@ export class EngineAgentsSection extends Disposable {
 			if (generation !== this.agentsEditorLoadGeneration || this.selectedProfile?.id !== selected.id) {
 				return;
 			}
-			this.agentsEditorStatus.style.display = '';
-			this.agentsEditorStatus.textContent = localize(
+			this.showAgentsEditorStatus(localize(
 				'ua.engineAgentsMdLoadFailed',
 				"Could not load AGENTS.md from the engine.",
-			);
+			));
 		}
 	}
 

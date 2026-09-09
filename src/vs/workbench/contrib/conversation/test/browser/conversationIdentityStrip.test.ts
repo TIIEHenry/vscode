@@ -343,6 +343,35 @@ suite('ConversationIdentityStrip', () => {
 		assert.deepStrictEqual((commandService as unknown as { executed: string[] }).executed, [OPEN_ENGINE_PREFERENCES_COMMAND_ID]);
 	});
 
+	test('engine chip opens Connection while pairingPending even if phase is connected', async () => {
+		const stubService = store.add(new ConversationStubService());
+		stubService.setEngineConnected(true);
+
+		const { slots, commandService } = mountLens({
+			stubService,
+			connectionOverrides: {
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+				getConnectionSnapshot: () => ({
+					transport: 'ok',
+					pairingPending: true,
+					channelAlive: true,
+					sharedFsRootSent: false,
+					capabilities: createEmptyTestCapabilitySnapshot(),
+				}),
+			},
+		});
+		const engineChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityEngineChipClass}`) as HTMLButtonElement;
+
+		assert.ok(engineChip);
+		assert.strictEqual(engineChip.textContent, getConnectionPhaseStatusBarText({ kind: 'connected', path: 'direct' }, true));
+		assert.strictEqual(engineChip.textContent, 'Engine not connected');
+
+		engineChip.click();
+		await Promise.resolve();
+		assert.deepStrictEqual((commandService as unknown as { executed: string[] }).executed, [OPEN_CONNECTION_PREFERENCES_COMMAND_ID]);
+	});
+
 	test('engine chip updates when connection phase changes', () => {
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 		let phase: ConnectionPhase = { kind: 'disconnected' };

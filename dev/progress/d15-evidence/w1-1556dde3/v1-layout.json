@@ -1,0 +1,18 @@
+{
+  "id": "V1",
+  "scene": "Conversation present",
+  "result": "PASS",
+  "title": "Workspace - UniverseAgentStudio Dev",
+  "hasWorkbench": true,
+  "sidebar": true,
+  "conversation": true,
+  "editor": false,
+  "sources": true,
+  "panel": false,
+  "aux": false,
+  "conversationTimeline": true,
+  "sessionBar": "Untitled session",
+  "sessionSync": "Session not connected",
+  "screenshot": "screenshots/v1-conversation.png",
+  "notes": "中心 Conversation 时间线、SessionBar、Composer 均在；Preview 四钮为 pressed，但无打开文件故 .part.editor 宽高为 0。Sources FILES/CHANGES/REVIEW 可见。"
+}

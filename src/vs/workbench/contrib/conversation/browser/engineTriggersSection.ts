@@ -325,6 +325,7 @@ export class EngineTriggersSection extends Disposable {
 			await hook.call(this.connection, request);
 			this.deleteStatus.textContent = '';
 			this.deleteStatus.style.display = '';
+			await this.refresh();
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.deleteStatus.textContent = reason;
@@ -340,6 +341,9 @@ export class EngineTriggersSection extends Disposable {
 		const request = engineTriggerUpsertRequest(this.selectedTrigger, mode);
 		try {
 			const result = await hook.call(this.connection, request);
+			this.upsertStatus.textContent = formatEngineTriggerListLabel(result.trigger);
+			this.upsertStatus.style.display = '';
+			await this.refresh();
 			this.upsertStatus.textContent = formatEngineTriggerListLabel(result.trigger);
 			this.upsertStatus.style.display = '';
 		} catch (error) {

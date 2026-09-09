@@ -43,6 +43,7 @@ import {
 	applySessionPermissionIndex,
 	type ConversationSessionConfigSelection,
 	type IConversationLensComposerChromeHost,
+	showPostFailure,
 	updatePermissionSelectEnabled,
 } from './conversationLensComposerChrome.js';
 
@@ -116,6 +117,7 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		host.inboxOverlay = host.register(host.instantiationService.createInstance(ConversationInboxOverlay, host.dockRoot, {
 			onQueueItemHold: itemId => host.beginQueueEdit(itemId),
 			onScrollToPendingConfirmation: () => host.scrollToFirstPendingConfirmation(),
+			showPostFailure: reason => showPostFailure(host, reason),
 		}));
 
 		host.composerCluster = append(host.dockRoot, $('.conversation-lens-composer-cluster'));

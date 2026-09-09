@@ -904,11 +904,12 @@ export interface IUniverseAgentConnection {
 
 	/**
 	 * AgentService.RetryQueueItem unary (QueueMutationResponse.ok).
-	 * Optional so Web / tests can omit it. Catalog + node transport only this
-	 * slice; empty `sessionId` / `itemId` / `opId` are sent as-is. No
-	 * Conversation roster / UI.
+	 * Optional so Web / tests can omit it. Empty `sessionId` / `itemId` /
+	 * `opId` are sent as-is. Conversation roster
+	 * `retryMessageQueueItem` (upload omitted / false) forwards when
+	 * connected; empty item / disconnected cache / missing hook do not send.
 	 * ≠ DeleteQueueItem / ReorderQueue / InsertQueueItem / EditQueueItem /
-	 * RetryAllFailed.
+	 * RetryAllFailed / retryError.
 	 */
 	retryQueueItem?(request: UniverseAgentRetryQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
 
@@ -923,10 +924,12 @@ export interface IUniverseAgentConnection {
 
 	/**
 	 * AgentService.RetryQueueItemUpload unary (QueueMutationResponse.ok).
-	 * Optional so Web / tests can omit it. Catalog + node transport only this
-	 * slice; empty `sessionId` / `itemId` / `opId` are sent as-is. No
-	 * Conversation roster / UI.
-	 * ≠ RetryQueueItem / RetryAllFailed / DeleteQueueItem / PinQueueItem.
+	 * Optional so Web / tests can omit it. Empty `sessionId` / `itemId` /
+	 * `opId` are sent as-is. Conversation roster
+	 * `retryMessageQueueItem({ upload: true })` forwards when connected;
+	 * empty item / disconnected cache / missing hook do not send.
+	 * ≠ RetryQueueItem / RetryAllFailed / DeleteQueueItem / PinQueueItem /
+	 * retryError.
 	 */
 	retryQueueItemUpload?(request: UniverseAgentRetryQueueItemUploadRequest): Promise<UniverseAgentQueueMutationResult>;
 

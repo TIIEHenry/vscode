@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { getErrorMessage } from '../../../../base/common/errors.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { localize, localize2 } from '../../../../nls.js';
@@ -47,20 +48,24 @@ registerAction2(class ConversationRevealItemAction extends Action2 {
 
 		const rosterService = accessor.get(IConversationRosterService);
 		const revealService = accessor.get(IConversationTimelineRevealService);
+		const notificationService = accessor.get(INotificationService);
 		const sessionId = rosterService.getActiveSessionId();
-		const lease = rosterService.acquireSessionView(sessionId);
+		let lease: ReturnType<IConversationRosterService['acquireSessionView']> | undefined;
 		try {
+			lease = rosterService.acquireSessionView(sessionId);
 			let itemId = args.itemId;
 			if (!itemId && args.toolCallId) {
 				itemId = resolveItemIdFromToolCallId(lease, args.toolCallId);
 			}
 			if (!itemId) {
-				notifyConversationRevealItemNotFound(accessor.get(INotificationService));
+				notifyConversationRevealItemNotFound(notificationService);
 				return;
 			}
 			revealService.revealItem(itemId);
+		} catch (error) {
+			notificationService.error(getErrorMessage(error));
 		} finally {
-			lease.dispose();
+			lease?.dispose();
 		}
 	}
 });

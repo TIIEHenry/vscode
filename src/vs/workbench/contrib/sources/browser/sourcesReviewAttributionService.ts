@@ -3,11 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { getErrorMessage } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentConnectionSnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
@@ -49,6 +51,7 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 		@IUniverseAgentConnection connection: IUniverseAgentConnection,
 		@IConversationRosterService private readonly roster: IConversationRosterService,
 		@IWorkspaceContextService private readonly workspaceContext: IWorkspaceContextService,
+		@INotificationService private readonly notificationService: INotificationService,
 	) {
 		super();
 
@@ -117,11 +120,15 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 	}
 
 	resolveRevealItemId(toolCallId: string): string | undefined {
-		const lease = this.roster.acquireSessionView(this.activeSessionId);
+		let lease: ReturnType<IConversationRosterService['acquireSessionView']> | undefined;
 		try {
+			lease = this.roster.acquireSessionView(this.activeSessionId);
 			return resolveRevealItemId(lease.attribution as ReadonlyMap<string, IReviewItemAttribution>, toolCallId);
+		} catch (error) {
+			this.notificationService.error(getErrorMessage(error));
+			return undefined;
 		} finally {
-			lease.dispose();
+			lease?.dispose();
 		}
 	}
 
@@ -138,8 +145,9 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 			return result;
 		}
 
-		const lease = this.roster.acquireSessionView(this.activeSessionId);
+		let lease: ReturnType<IConversationRosterService['acquireSessionView']> | undefined;
 		try {
+			lease = this.roster.acquireSessionView(this.activeSessionId);
 			const snapshot = lease.snapshot;
 			const attribution = lease.attribution as ReadonlyMap<string, IReviewItemAttribution>;
 			for (const entry of entries) {
@@ -149,11 +157,13 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 				}
 				result.set(entry.resource.toString(), buildAttributionChips(matching, snapshot, attribution));
 			}
+			return result;
+		} catch (error) {
+			this.notificationService.error(getErrorMessage(error));
+			return new Map();
 		} finally {
-			lease.dispose();
+			lease?.dispose();
 		}
-
-		return result;
 	}
 
 	private getActiveRecords(): readonly IFileMutationRecord[] {

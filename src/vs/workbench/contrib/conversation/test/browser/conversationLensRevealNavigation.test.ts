@@ -4,13 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import * as fs from 'fs';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
 import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ConversationPart, IConversationLensSlots } from '../../../../browser/parts/conversation/conversationPart.js';
-import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { TestLayoutService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
-import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
+import { conversationLensPhasePreFirstClass, conversationLensShowingTrajectoryClass } from '../../browser/conversationLensDockStrings.js';
 import { ConversationTimelineTree } from '../../browser/conversationTimelineTree.js';
+import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
+import { ILayoutService } from '../../../../../platform/layout/browser/layoutService.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
@@ -29,7 +34,9 @@ import { IExtensionService } from '../../../../services/extensions/common/extens
 import { IWebviewService } from '../../../webview/browser/webview.js';
 import { flushConversationLensLayout, installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
 
-suite('ConversationLens reveal navigation (T5a)', () => {
+suite('ConversationLens reveal navigation (T5a)', function () {
+
+	this.timeout(15000);
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
@@ -69,6 +76,11 @@ suite('ConversationLens reveal navigation (T5a)', () => {
 		const timelineScroll = slots.timeline.querySelector('.conversation-lens-timeline-scroll') as HTMLElement | null;
 		const contentHost = slots.timeline.querySelector('.conversation-lens-timeline-content') as HTMLElement | null;
 		const treeContainer = slots.timeline.querySelector('.conversation-timeline-tree') as HTMLElement | null;
+		const trajectoryHost = slots.timeline.querySelector('.conversation-lens-trajectory') as HTMLElement | null;
+		const trajectoryScroll = slots.timeline.querySelector('.conversation-lens-trajectory-table-scroll') as HTMLElement | null;
+		slots.timeline.style.width = `${LENS_LAYOUT_WIDTH}px`;
+		slots.timeline.style.height = `${LENS_LAYOUT_HEIGHT}px`;
+		slots.timeline.style.minHeight = `${LENS_LAYOUT_HEIGHT}px`;
 		if (readingColumn) {
 			readingColumn.style.width = `${LENS_LAYOUT_WIDTH}px`;
 			readingColumn.style.height = `${LENS_LAYOUT_HEIGHT}px`;
@@ -84,11 +96,19 @@ suite('ConversationLens reveal navigation (T5a)', () => {
 		if (treeContainer) {
 			treeContainer.style.height = `${LENS_LAYOUT_HEIGHT - 120}px`;
 		}
-		const timelineTree = getTimelineTree(lens);
-		const trajectoryView = (lens as unknown as { trajectoryView: ConversationTrajectory }).trajectoryView;
-		const timelineHeight = LENS_LAYOUT_HEIGHT - 120;
-		timelineTree.layout(timelineHeight, LENS_LAYOUT_WIDTH);
-		trajectoryView.layout(LENS_LAYOUT_HEIGHT, LENS_LAYOUT_WIDTH);
+		if (trajectoryHost) {
+			trajectoryHost.style.height = `${LENS_LAYOUT_HEIGHT - 120}px`;
+			trajectoryHost.style.minHeight = `${LENS_LAYOUT_HEIGHT - 120}px`;
+		}
+		if (trajectoryScroll) {
+			trajectoryScroll.style.height = `${LENS_LAYOUT_HEIGHT - 200}px`;
+			trajectoryScroll.style.minHeight = `${LENS_LAYOUT_HEIGHT - 200}px`;
+		}
+		if (slots.sessionBar) {
+			slots.sessionBar.style.width = `${LENS_LAYOUT_WIDTH}px`;
+			slots.sessionBar.style.minWidth = `${LENS_LAYOUT_WIDTH}px`;
+		}
+		lens.layout(LENS_LAYOUT_HEIGHT - 120, LENS_LAYOUT_WIDTH);
 	}
 
 	function mountLens(): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; storageService: TestStorageService; layoutReadingColumn: () => void; slots: IConversationLensSlots } {
@@ -156,13 +176,19 @@ suite('ConversationLens reveal navigation (T5a)', () => {
 			registerSCMProvider: () => { throw new Error('not implemented'); },
 			getRepository: () => undefined,
 		} as unknown as ISCMService);
-		const part = store.add(instantiationService.createInstance(ConversationPart));
+		const layoutContainer = document.createElement('div');
+		layoutContainer.classList.add('monaco-workbench');
 		const parent = document.createElement('div');
-		parent.classList.add('monaco-workbench');
+		parent.classList.add('part', 'conversation');
 		parent.style.width = `${LENS_LAYOUT_WIDTH}px`;
 		parent.style.height = `${LENS_LAYOUT_HEIGHT}px`;
-		document.body.appendChild(parent);
-		store.add(toDisposable(() => parent.remove()));
+		layoutContainer.appendChild(parent);
+		document.body.appendChild(layoutContainer);
+		store.add(toDisposable(() => layoutContainer.remove()));
+		const layoutService = new TestLayoutService();
+		layoutService.getContainer = () => layoutContainer;
+		instantiationService.stub(ILayoutService, layoutService);
+		const part = store.add(instantiationService.createInstance(ConversationPart));
 		part.create(parent);
 		const partSlots = part.getSlots();
 		assert.ok(partSlots);
@@ -198,10 +224,20 @@ suite('ConversationLens reveal navigation (T5a)', () => {
 		return { part, lens, stubService, storageService, layoutReadingColumn: layout, slots };
 	}
 
+	function getTrajectoryView(lens: ConversationLens): ConversationTrajectory {
+		return (lens as unknown as { trajectoryView: ConversationTrajectory }).trajectoryView;
+	}
+
 	function getTrajectoryRow(slots: IConversationLensSlots, recordId: string): HTMLElement {
 		const row = slots.timeline.querySelector(`.conversation-lens-trajectory-record-row[data-record-id="${recordId}"]`) as HTMLElement | null;
 		assert.ok(row, `expected trajectory row ${recordId}`);
 		return row;
+	}
+
+	async function revealTrajectoryRow(lens: ConversationLens, layout: () => void, recordId: string): Promise<void> {
+		getTrajectoryView(lens).revealRecord(recordId);
+		layout();
+		await flushTimelineHeightUpdates();
 	}
 
 	function getSelectedTrajectoryRecordId(slots: IConversationLensSlots): string | undefined {
@@ -323,6 +359,7 @@ suite('ConversationLens reveal navigation (T5a)', () => {
 		clickLensTab(slots, 'trajectory');
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
+		await revealTrajectoryRow(lens, layoutReadingColumn, 'untitled-a1');
 
 		getTrajectoryRow(slots, 'untitled-a1').click();
 		layoutReadingColumn();
@@ -332,6 +369,42 @@ suite('ConversationLens reveal navigation (T5a)', () => {
 		assert.strictEqual(lens.isInputMaximized(), false);
 		assert.strictEqual(getLensTab(slots, 'conversation').getAttribute('aria-selected'), 'true');
 		assert.ok(slots.timeline.querySelector('.conversation-lens-turn[data-turn-id="untitled-a1"]'));
+	});
+
+	test('maximize CSS hides the Conversation tree, not the shared slot on Trajectory', () => {
+		const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../../..');
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8');
+		assert.ok(css.includes('.conversation-lens-input-maximized:not(:has(.conversation-lens-phase-prefirst)) .conversation-lens-timeline'));
+		assert.ok(css.includes('.conversation-lens-input-maximized:not(:has(.conversation-lens-phase-prefirst)):not(.conversation-lens-showing-trajectory)'));
+		assert.ok(!/\.conversation-timeline\.conversation-lens-input-maximized:not\(:has\(\.conversation-lens-phase-prefirst\)\)\s*\{\s*display:\s*none;/.test(css));
+	});
+
+	test('input maximize hides conversation tree but still paints Trajectory rows', async () => {
+		const { lens, layoutReadingColumn, slots } = mountLens();
+		await flushTimelineHeightUpdates();
+
+		const readingColumn = slots.timeline.querySelector('.conversation-lens-reading-column') as HTMLElement;
+		assert.ok(readingColumn);
+		assert.strictEqual(readingColumn.classList.contains(conversationLensPhasePreFirstClass), false);
+		assert.strictEqual(slots.timeline.classList.contains(conversationLensShowingTrajectoryClass), false);
+
+		const maximizeButton = slots.dock.querySelector('.conversation-lens-dock-maximize-input .monaco-button') as HTMLButtonElement;
+		assert.ok(maximizeButton);
+		maximizeButton.click();
+		assert.strictEqual(lens.isInputMaximized(), true);
+
+		clickLensTab(slots, 'trajectory');
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		assert.strictEqual(lens.isInputMaximized(), true);
+		assert.strictEqual(slots.timeline.classList.contains(conversationLensShowingTrajectoryClass), true);
+		assert.ok(!slots.timeline.querySelector('.conversation-lens-trajectory')!.hasAttribute('hidden'));
+		assert.notStrictEqual(getComputedStyle(slots.timeline).display, 'none');
+		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline')!.hasAttribute('hidden'));
+
+		await revealTrajectoryRow(lens, layoutReadingColumn, 'untitled-u1');
+		assert.ok(getTrajectoryRow(slots, 'untitled-u1'));
 	});
 
 	test('fixture-only trajectory rows stay on Trajectory lens and open inspector', async () => {

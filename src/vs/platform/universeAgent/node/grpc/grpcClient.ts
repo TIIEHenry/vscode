@@ -385,7 +385,6 @@ import {
 	UniverseAgentDeviceAuthConnectRequest,
 	UniverseAgentGrpcServices,
 } from './grpcTransport.js';
-import { createSessionRecoveringAlreadyExists } from '../sessionCreateRecover.js';
 import { createPinnedChannelOptions, createPinnedTlsChannelCredentials, type UniverseAgentPinnedTlsTarget } from '../universeAgentChannel.js';
 import {
 	base64ToBytes,
@@ -522,6 +521,7 @@ import {
 	makeResidentBidiHandleClient,
 	makeBidiStreamClient,
 	makeBidiBytesClient,
+	asUnaryProtoBytes,
 	grpcErrorCode,
 } from './grpcClientCalls.js';
 import {
@@ -555,6 +555,7 @@ import {
 	encodeListDevicesRequest,
 	encodeListModelsRequest,
 	encodeListSessionsRequest,
+	encodeProbeRpcRequest,
 } from './grpcCatalogUnaryWire.js';
 import type {
 	AddMcpServerResponseWire,
@@ -1270,9 +1271,9 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			const path = `/${service}/${method}`;
 			this._channel.makeUnaryRequest(
 				path,
-				() => Buffer.from('{}'),
+				asUnaryProtoBytes,
 				(buffer: Buffer) => buffer,
-				{},
+				encodeProbeRpcRequest(),
 				(error: grpc.ServiceError | null) => resolve(grpcErrorCode(error)),
 			);
 		});
@@ -1295,13 +1296,7 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			UniverseAgentGrpcServices.Session.Create,
 			decodeCreateSessionResponse,
 		);
-		return createSessionRecoveringAlreadyExists(
-			() => unary(encodeCreateSessionRequest(request)),
-			() => this.listSessions({}),
-			async sessionId => this.resumeSession({ sessionId }),
-			request.title,
-			request.clientSessionId,
-		);
+		return unary(encodeCreateSessionRequest(request));
 	}
 
 	async deleteSession(request: UniverseAgentDeleteSessionRequest): Promise<void> {

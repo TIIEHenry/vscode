@@ -27,7 +27,7 @@ import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
-import { tryLoadSourcesGitChangeEntries, tryReadSourcesGitFileDiff } from '../common/sourcesChangesGitRead.js';
+import { tryLoadSourcesGitChangeEntries, tryReadSourcesGitFileDiff, sourcesGitDiffOpenFailureMessage, sourcesGitReadFailureMessage } from '../common/sourcesChangesGitRead.js';
 import { sourcesChangeEntryIdentity } from '../common/sourcesChangesModel.js';
 import { collectSourcesReviewEntries, ISourcesReviewEntry } from '../common/sourcesReviewModel.js';
 import {
@@ -194,6 +194,7 @@ export class SourcesReviewList extends Disposable {
 	private readonly markAllButton: Button;
 	private readonly listContainer: HTMLElement;
 	private readonly emptyMessage: HTMLElement;
+	private readonly statusMessage: HTMLElement;
 	private list: WorkbenchList<ISourcesReviewEntry> | undefined;
 	private labels: ResourceLabels | undefined;
 	private readonly refreshScheduler: RunOnceScheduler;
@@ -283,6 +284,9 @@ export class SourcesReviewList extends Disposable {
 		this.listContainer = dom.append(host, $('.sources-review-list'));
 		this.emptyMessage = dom.append(host, $('.sources-review-empty'));
 		this.emptyMessage.style.display = 'none';
+		this.statusMessage = dom.append(host, $('.sources-review-status'));
+		this.statusMessage.style.display = 'none';
+		this.statusMessage.setAttribute('role', 'status');
 
 		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refresh(), 250));
 		this._register(this.reviewProgressService.onDidChange(() => this.scheduleRefresh()));
@@ -323,6 +327,16 @@ export class SourcesReviewList extends Disposable {
 
 	markAllReviewed(): void {
 		this.markAllVisibleReviewed();
+	}
+
+	setStatusMessage(message: string | undefined): void {
+		if (!message) {
+			this.statusMessage.textContent = '';
+			this.statusMessage.style.display = 'none';
+			return;
+		}
+		this.statusMessage.textContent = message;
+		this.statusMessage.style.display = 'block';
 	}
 
 	private registerRepository(repo: ISCMRepository): void {
@@ -495,8 +509,8 @@ export class SourcesReviewList extends Disposable {
 					key => this.reviewProgressService.markReviewed(key),
 					element.resource,
 				);
-			} catch {
-				// open failed — do not mark reviewed
+			} catch (error) {
+				this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error));
 			}
 		}));
 
@@ -566,6 +580,7 @@ export class SourcesReviewList extends Disposable {
 
 	private async refresh(): Promise<void> {
 		const seq = ++this.refreshSeq;
+		let gitReadError: string | undefined;
 		try {
 			const loaded = await this.tryLoadGitEntries();
 			if (seq !== this.refreshSeq) {
@@ -573,12 +588,13 @@ export class SourcesReviewList extends Disposable {
 			}
 			this.usingGitRead = !!loaded;
 			this.allEntries = loaded ?? collectSourcesReviewEntries(this.scmService.repositories);
-		} catch {
+		} catch (error) {
 			if (seq !== this.refreshSeq) {
 				return;
 			}
 			this.usingGitRead = false;
 			this.allEntries = collectSourcesReviewEntries(this.scmService.repositories);
+			gitReadError = sourcesGitReadFailureMessage(error);
 		}
 
 		const hasRepository = this.usingGitRead || this.scmService.repositoryCount > 0;
@@ -628,6 +644,7 @@ export class SourcesReviewList extends Disposable {
 		this.filterRow.style.display = hasAnyEntries ? 'flex' : 'none';
 		this.progressHeader.style.display = hasAnyEntries ? 'flex' : 'none';
 		this.headerHint.style.display = hasAnyEntries ? '' : 'none';
+		this.setStatusMessage(gitReadError);
 
 		if (!hasVisibleEntries) {
 			return;

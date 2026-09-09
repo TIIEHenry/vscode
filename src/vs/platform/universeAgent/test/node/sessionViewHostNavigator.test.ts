@@ -297,3 +297,57 @@ suite('SessionViewHost navigator §11', () => {
 		assert.strictEqual(host.turnSettleSignals.length, 0);
 	});
 });
+
+suite('AgentTreeCoordinator doFetch (D26)', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('UNIMPLEMENTED marks unsupported and returns undefined', async () => {
+		const coordinator = new AgentTreeCoordinator('sess-tree-unimp', {
+			fetchAgentTree: async () => {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNIMPLEMENTED, 'Tree UNIMPLEMENTED');
+			},
+		});
+		const result = await coordinator.pullNow(() => { });
+		assert.strictEqual(result, undefined);
+		assert.strictEqual(coordinator.isUnsupported(), true);
+		const second = await coordinator.pullNow(() => { });
+		assert.strictEqual(second, undefined);
+		assert.strictEqual(coordinator.fetchCount, 1);
+	});
+
+	test('NOT_FOUND does not swallow — pullNow rejects so bind can observe', async () => {
+		const notFound = new UniverseAgentTransportError(5, 'Tree NOT_FOUND');
+		const coordinator = new AgentTreeCoordinator('sess-tree-nf', {
+			fetchAgentTree: async () => {
+				throw notFound;
+			},
+		});
+		await assert.rejects(
+			() => coordinator.pullNow(() => { }),
+			(error: unknown) => error === notFound,
+		);
+		assert.strictEqual(coordinator.isUnsupported(), false);
+	});
+
+	test('scheduleRefresh debounce does not leak unhandled rejection on Tree error', async () => {
+		const coordinator = new AgentTreeCoordinator('sess-tree-debounce', {
+			fetchAgentTree: async () => {
+				throw new UniverseAgentTransportError(5, 'Tree NOT_FOUND');
+			},
+		});
+		const seen: unknown[] = [];
+		const rejections: unknown[] = [];
+		const onUnhandled = (reason: unknown) => { rejections.push(reason); };
+		process.on('unhandledRejection', onUnhandled);
+		try {
+			coordinator.scheduleRefresh(() => { }, error => { seen.push(error); });
+			await flushAgentTreeCoordinator(coordinator);
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.strictEqual(seen.length, 1);
+			assert.deepStrictEqual(rejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandled);
+		}
+	});
+});

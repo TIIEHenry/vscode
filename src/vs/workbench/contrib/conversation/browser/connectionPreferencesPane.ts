@@ -28,6 +28,9 @@ import {
 	canSendConnectionDeviceListRequest,
 	canSendConnectionDeviceRotateToken,
 	CONNECTION_DEVICE_ROTATE_TOKEN_LABEL,
+	connectionDeviceListFailureMessage,
+	connectionDeviceRevokeFailureMessage,
+	connectionDeviceRotateTokenFailureMessage,
 	connectionDeviceRotateTokenIds,
 	toConnectionPairedDevice,
 } from './connectionDeviceList.js';
@@ -37,6 +40,7 @@ import {
 	CONNECTION_DEVICE_PENDING_EMPTY_COPY,
 	CONNECTION_DEVICE_PENDING_HEADING,
 	connectionDevicePairIds,
+	connectionDevicePendingListFailureMessage,
 	formatConnectionPendingPairLabel,
 } from './connectionDevicePair.js';
 import {
@@ -62,6 +66,7 @@ import {
 	readRecoverTrustLeafFingerprint,
 	type ConnectionStatusTone,
 } from './connectionPreferencesPaneLabels.js';
+import { applyConnectionPaneIdentityStripReservation } from './connectionPaneIdentityStripReservation.js';
 import { promptRecoverTrustConfirmDialog, promptSasConfirmDialog } from './connectionPreferencesPaneSas.js';
 import { getConnectionPhaseStatusBarText } from './conversationSessionStatus.js';
 import {
@@ -426,7 +431,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private entries: IConnectionProfileEntry[] = [];
 	private hubDevices: HubDeviceProjection[] = [];
 	private enginePairedDevices: UniverseAgentDeviceInfo[] | undefined;
+	private engineDevicesListFailed: string | undefined;
 	private pendingPairs: UniverseAgentPendingPairInfo[] = [];
+	private pendingPairsListFailed: string | undefined;
 	private selectedPending: UniverseAgentPendingPairInfo | undefined;
 	private readonly pendingRowDisposables = this._register(new DisposableStore());
 	private connectionPhase: ConnectionPhase = { kind: 'disconnected' };
@@ -900,6 +907,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.applyNarrowChrome();
 		this.navList.layout(this.getNavHeight(dimension.height), this.getNavWidth(dimension.width));
 		this.layoutLists();
+		applyConnectionPaneIdentityStripReservation(this.container);
 	}
 
 	private getNavWidth(paneWidth: number): number {
@@ -955,41 +963,63 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const email = this.hubEmailInput.value.trim();
 		const password = this.hubPasswordInput.value;
 		this.hubService.setActiveHubBaseUrl(hubBaseUrl || undefined);
-		const result = await this.hubService.login(hubBaseUrl, email, password);
-		if (!result.ok) {
-			writeStatus(this.hubAuthBadge, result.reason, 'error');
-			return;
+		try {
+			const result = await this.hubService.login(hubBaseUrl, email, password);
+			if (!result.ok) {
+				writeStatus(this.hubAuthBadge, result.reason, 'error');
+				return;
+			}
+			this.renderHubAccount();
+			if (this.hubService.getAuthStatus().kind === 'mustChangePassword') {
+				return;
+			}
+			this.hubPasswordInput.value = '';
+			this.hubNewPasswordInput.value = '';
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			writeStatus(this.hubAuthBadge, reason, 'error');
 		}
-		this.renderHubAccount();
-		if (this.hubService.getAuthStatus().kind === 'mustChangePassword') {
-			return;
-		}
-		this.hubPasswordInput.value = '';
-		this.hubNewPasswordInput.value = '';
 	}
 
 	private async handleChangePassword(): Promise<void> {
 		const oldPassword = this.hubPasswordInput.value;
 		const newPassword = this.hubNewPasswordInput.value;
-		const result = await this.hubService.changePassword(oldPassword, newPassword);
-		if (!result.ok) {
-			writeStatus(this.hubAuthBadge, result.reason, 'error');
-			return;
+		try {
+			const result = await this.hubService.changePassword(oldPassword, newPassword);
+			if (!result.ok) {
+				writeStatus(this.hubAuthBadge, result.reason, 'error');
+				return;
+			}
+			this.hubPasswordInput.value = '';
+			this.hubNewPasswordInput.value = '';
+			this.renderHubAccount();
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			writeStatus(this.hubAuthBadge, reason, 'error');
 		}
-		this.hubPasswordInput.value = '';
-		this.hubNewPasswordInput.value = '';
-		this.renderHubAccount();
 	}
 
 	private async handleLogout(): Promise<void> {
-		await this.hubService.logout();
-		this.hubPasswordInput.value = '';
-		this.hubNewPasswordInput.value = '';
-		this.renderHubAccount();
+		try {
+			await this.hubService.logout();
+			this.hubPasswordInput.value = '';
+			this.hubNewPasswordInput.value = '';
+			this.renderHubAccount();
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			writeStatus(this.hubAuthBadge, reason, 'error');
+		}
 	}
 
 	private async refreshHubDirectory(): Promise<void> {
-		await this.hubService.refreshDirectory();
+		try {
+			await this.hubService.refreshDirectory();
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			writeStatus(this.hubDirectoryBanner, reason, 'error');
+			this.hubDirectoryBanner.style.display = '';
+			return;
+		}
 		await this.refreshEngineDeviceLists();
 	}
 
@@ -1002,22 +1032,32 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const hook = this.connectionService.listDevices;
 		if (!canSendConnectionDeviceListRequest(this.connectionService.isEngineConnected(), typeof hook === 'function') || !hook) {
 			this.enginePairedDevices = undefined;
+			this.engineDevicesListFailed = undefined;
 			this.renderHubDirectory();
 			return;
 		}
 		try {
 			const result = await hook.call(this.connectionService);
 			this.enginePairedDevices = [...result.devices];
-		} catch {
-			this.enginePairedDevices = [];
+			const hadFail = this.engineDevicesListFailed !== undefined;
+			this.engineDevicesListFailed = undefined;
+			this.renderHubDirectory();
+			if (hadFail) {
+				writeStatus(this.devicesConnectStatus, '', 'neutral');
+			}
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			this.engineDevicesListFailed = reason;
+			this.renderHubDirectory();
+			writeStatus(this.devicesConnectStatus, connectionDeviceListFailureMessage(reason), 'error');
 		}
-		this.renderHubDirectory();
 	}
 
 	private async refreshEnginePending(): Promise<void> {
 		const hook = this.connectionService.listPending;
 		if (!canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof hook === 'function') || !hook) {
 			this.pendingPairs = [];
+			this.pendingPairsListFailed = undefined;
 			this.selectedPending = undefined;
 			this.renderPendingPairs();
 			return;
@@ -1025,10 +1065,12 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		try {
 			const result = await hook.call(this.connectionService);
 			this.pendingPairs = [...result.pending];
-		} catch {
-			this.pendingPairs = [];
+			this.pendingPairsListFailed = undefined;
+			this.selectedPending = undefined;
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			this.pendingPairsListFailed = reason;
 		}
-		this.selectedPending = undefined;
 		this.renderPendingPairs();
 	}
 
@@ -1037,7 +1079,12 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const canList = canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof hook === 'function');
 		this.pendingPairsHeading.style.display = canList ? '' : 'none';
 		this.pendingPairsList.style.display = canList && this.pendingPairs.length > 0 ? '' : 'none';
-		this.pendingPairsEmpty.style.display = canList && this.pendingPairs.length === 0 ? '' : 'none';
+		this.pendingPairsEmpty.style.display = canList && (this.pendingPairs.length === 0 || !!this.pendingPairsListFailed) ? '' : 'none';
+		if (canList && this.pendingPairsListFailed) {
+			writeStatus(this.pendingPairsEmpty, connectionDevicePendingListFailureMessage(this.pendingPairsListFailed), 'error');
+		} else {
+			writeStatus(this.pendingPairsEmpty, CONNECTION_DEVICE_PENDING_EMPTY_COPY, 'neutral');
+		}
 		this.pendingRowDisposables.clear();
 		DOM.clearNode(this.pendingPairsList);
 		if (!canList) {
@@ -1064,14 +1111,19 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const port = Number(this.directPortInput.value);
 		const displayName = this.directNameInput.value.trim() || undefined;
 		const allowPrivateNetwork = this.directAllowPrivateCheckbox.checked;
-		const result = await this.hubService.addDirectAddressProfile({ host, port, displayName, allowPrivateNetwork });
-		if (!result.ok) {
-			writeStatus(this.directAddressStatus, result.reason, 'error');
-			return;
+		try {
+			const result = await this.hubService.addDirectAddressProfile({ host, port, displayName, allowPrivateNetwork });
+			if (!result.ok) {
+				writeStatus(this.directAddressStatus, result.reason, 'error');
+				return;
+			}
+			this.activeProfileId = result.profileId;
+			writeStatus(this.directAddressStatus, localize('ua.connectionDirectAdded', "Direct address profile added."), 'success');
+			this.renderProfiles();
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			writeStatus(this.directAddressStatus, reason, 'error');
 		}
-		this.activeProfileId = result.profileId;
-		writeStatus(this.directAddressStatus, localize('ua.connectionDirectAdded', "Direct address profile added."), 'success');
-		this.renderProfiles();
 	}
 
 	private async handleConnectDirectAddress(): Promise<void> {
@@ -1124,8 +1176,13 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private async handleDisconnect(): Promise<void> {
-		await this.connectionService.disconnect();
-		this.renderConnectionPhase();
+		try {
+			await this.connectionService.disconnect();
+			this.renderConnectionPhase();
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			this.writeConnectStatus(reason, 'error');
+		}
 	}
 
 	private async handleForgetSelectedProfile(): Promise<void> {
@@ -1133,14 +1190,19 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			return;
 		}
 		await this.connectionService.disconnect().catch(() => undefined);
-		const result = await this.hubService.forgetConnectionProfile(this.activeProfileId);
-		if (!result.ok) {
-			this.writeConnectStatus(result.reason, 'error');
-			return;
+		try {
+			const result = await this.hubService.forgetConnectionProfile(this.activeProfileId);
+			if (!result.ok) {
+				this.writeConnectStatus(result.reason, 'error');
+				return;
+			}
+			this.activeProfileId = undefined;
+			this.renderProfiles();
+			this.renderConnectionPhase();
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			this.writeConnectStatus(reason, 'error');
 		}
-		this.activeProfileId = undefined;
-		this.renderProfiles();
-		this.renderConnectionPhase();
 	}
 
 	private getVisibleConnectStatusTarget(): HTMLElement {
@@ -1297,17 +1359,22 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private async handleConnectDevice(device: HubDeviceProjection): Promise<void> {
-		const result = await this.hubService.addHubDeviceProfile({
-			hubDeviceId: device.id,
-			displayName: device.name,
-		});
-		if (!result.ok) {
-			this.writeConnectStatus(result.reason, 'error');
-			return;
-		}
+		try {
+			const result = await this.hubService.addHubDeviceProfile({
+				hubDeviceId: device.id,
+				displayName: device.name,
+			});
+			if (!result.ok) {
+				this.writeConnectStatus(result.reason, 'error');
+				return;
+			}
 
-		await this.connectProfileWithPairing(result.profileId);
-		this.renderProfiles();
+			await this.connectProfileWithPairing(result.profileId);
+			this.renderProfiles();
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			this.writeConnectStatus(reason, 'error');
+		}
 	}
 
 	private getSelectedDevice(): HubDeviceProjection | undefined {
@@ -1348,8 +1415,13 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			return;
 		}
 		writeStatus(this.testStatus, testingCopy);
-		const result = await this.connectionService.probeConnectionProfile(this.activeProfileId);
-		writeStatus(this.testStatus, formatConnectionProbeStatus(result), result.ok ? 'success' : 'error');
+		try {
+			const result = await this.connectionService.probeConnectionProfile(this.activeProfileId);
+			writeStatus(this.testStatus, formatConnectionProbeStatus(result), result.ok ? 'success' : 'error');
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			writeStatus(this.testStatus, reason, 'error');
+		}
 	}
 
 	private async handleRenameSelectedDevice(): Promise<void> {
@@ -1367,13 +1439,19 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (!name || name === device.name) {
 			return;
 		}
-		const result = await this.hubService.renameDevice(device.id, name);
-		if (!result.ok) {
-			this.hubDirectoryBanner.textContent = result.reason;
+		try {
+			const result = await this.hubService.renameDevice(device.id, name);
+			if (!result.ok) {
+				writeStatus(this.hubDirectoryBanner, result.reason, 'error');
+				this.hubDirectoryBanner.style.display = '';
+				return;
+			}
+			await this.hubService.refreshDirectory();
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			writeStatus(this.hubDirectoryBanner, reason, 'error');
 			this.hubDirectoryBanner.style.display = '';
-			return;
 		}
-		await this.hubService.refreshDirectory();
 	}
 
 	private async handleRotateSelectedDeviceToken(): Promise<void> {
@@ -1384,11 +1462,16 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const request = connectionDeviceRotateTokenIds(this.hubDevicesList.getSelectedElements()[0]);
 		try {
 			const result = await hook.call(this.connectionService, request);
+			if (!result.success) {
+				writeStatus(this.hubDirectoryBanner, connectionDeviceRotateTokenFailureMessage(result.message), 'error');
+				this.hubDirectoryBanner.style.display = '';
+				return;
+			}
 			this.hubDirectoryBanner.textContent = result.message;
 			this.hubDirectoryBanner.style.display = result.message ? '' : 'none';
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
-			this.hubDirectoryBanner.textContent = reason;
+			writeStatus(this.hubDirectoryBanner, reason, 'error');
 			this.hubDirectoryBanner.style.display = '';
 		}
 	}
@@ -1415,27 +1498,36 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			const request = connectionDeviceRevokeIds(device.id);
 			try {
 				const result = await revokeHook.call(this.connectionService, request);
+				if (!result.success) {
+					writeStatus(this.hubDirectoryBanner, connectionDeviceRevokeFailureMessage(result.message), 'error');
+					this.hubDirectoryBanner.style.display = '';
+					return;
+				}
 				this.hubDirectoryBanner.textContent = result.message;
 				this.hubDirectoryBanner.style.display = '';
-				if (result.success) {
-					await this.hubService.refreshDirectory();
-					this.renderProfiles();
-				}
+				await this.hubService.refreshDirectory();
+				this.renderProfiles();
 			} catch (error) {
 				const reason = error instanceof Error && error.message ? error.message : String(error);
-				this.hubDirectoryBanner.textContent = reason;
+				writeStatus(this.hubDirectoryBanner, reason, 'error');
 				this.hubDirectoryBanner.style.display = '';
 			}
 			return;
 		}
-		const result = await this.hubService.revokeDevice(device.id);
-		if (!result.ok) {
-			this.hubDirectoryBanner.textContent = result.reason;
+		try {
+			const result = await this.hubService.revokeDevice(device.id);
+			if (!result.ok) {
+				writeStatus(this.hubDirectoryBanner, result.reason, 'error');
+				this.hubDirectoryBanner.style.display = '';
+				return;
+			}
+			await this.hubService.refreshDirectory();
+			this.renderProfiles();
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			writeStatus(this.hubDirectoryBanner, reason, 'error');
 			this.hubDirectoryBanner.style.display = '';
-			return;
 		}
-		await this.hubService.refreshDirectory();
-		this.renderProfiles();
 	}
 
 	private async handleConfirmDeviceCode(): Promise<void> {
@@ -1460,15 +1552,20 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			writeStatus(this.hubDeviceCodeStatus, localize('ua.connectionConfirmDeviceCodeEmpty', "Enter a device code first."), 'warning');
 			return;
 		}
-		const result = await this.hubService.confirmDeviceCode(code);
-		writeStatus(
-			this.hubDeviceCodeStatus,
-			result.ok ? localize('ua.connectionConfirmDeviceCodeOk', "Device code confirmed") : result.reason,
-			result.ok ? 'success' : 'error',
-		);
-		if (result.ok) {
-			this.confirmDeviceCodeInput.value = '';
-			await this.hubService.refreshDirectory();
+		try {
+			const result = await this.hubService.confirmDeviceCode(code);
+			writeStatus(
+				this.hubDeviceCodeStatus,
+				result.ok ? localize('ua.connectionConfirmDeviceCodeOk', "Device code confirmed") : result.reason,
+				result.ok ? 'success' : 'error',
+			);
+			if (result.ok) {
+				this.confirmDeviceCodeInput.value = '';
+				await this.hubService.refreshDirectory();
+			}
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			writeStatus(this.hubDeviceCodeStatus, reason, 'error');
 		}
 	}
 
@@ -1519,7 +1616,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private renderHubDirectory(): void {
 		const directory = this.hubService.getDirectoryStatus();
-		const banner = getHubDirectoryBannerLabel(directory);
+		const banner = this.engineDevicesListFailed
+			? connectionDeviceListFailureMessage(this.engineDevicesListFailed)
+			: getHubDirectoryBannerLabel(directory);
 		this.hubDirectoryBanner.textContent = banner ?? '';
 		this.hubDirectoryBanner.style.display = banner ? '' : 'none';
 

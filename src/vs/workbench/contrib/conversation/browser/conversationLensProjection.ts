@@ -20,12 +20,14 @@ import {
 import {
 	conversationLensPhasePreFirstClass,
 	conversationLensPhasePreFirstDockHiddenClass,
+	conversationLensShowingTrajectoryClass,
 } from './conversationLensDockStrings.js';
 import { ConversationTimelineTree } from './conversationTimelineTree.js';
 import { ConversationTrajectory } from './conversationTrajectory.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
 import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
+import { refreshStaleSnapshotBanner } from './conversationLensReadingColumn.js';
 
 export const CONVERSATION_LENS_ID_STORAGE_KEY = 'conversation.lensId';
 
@@ -143,6 +145,7 @@ export function updateSyncChrome(host: IConversationLensProjectionHost, sync: Sy
 			}
 		}
 		host.renderInboxStatus();
+		refreshStaleSnapshotBanner(host, sync);
 	
 }
 
@@ -189,8 +192,8 @@ export function updateReadingColumn(host: IConversationLensProjectionHost): void
 		const sessionId = host.getBoundSessionId();
 		if (host.lensId === 'trajectory') {
 			host.timelineTree.hide();
-			refreshTrajectoryRecords(host, sessionId);
 			host.trajectoryView.show();
+			refreshTrajectoryRecords(host, sessionId);
 		} else {
 			host.trajectoryView.hide();
 			host.timelineTree.show();
@@ -242,8 +245,8 @@ export function navigateToTrajectoryFromTurn(host: IConversationLensProjectionHo
 			host.storageService.store(CONVERSATION_LENS_ID_STORAGE_KEY, 'trajectory', StorageScope.WORKSPACE, StorageTarget.MACHINE);
 			updateLensTabs(host);
 			host.timelineTree.hide();
-			refreshTrajectoryRecords(host, sessionId);
 			host.trajectoryView.show();
+			refreshTrajectoryRecords(host, sessionId);
 		}
 		host.trajectoryView.revealRecord(recordId);
 	
@@ -273,6 +276,7 @@ export function setLensId(host: IConversationLensProjectionHost, lensId: Convers
 
 export function updateLensTabs(host: IConversationLensProjectionHost): void {
 
+		host.slotHosts.timeline.classList.toggle(conversationLensShowingTrajectoryClass, host.lensId === 'trajectory');
 		if (!host.lensTabConversation || !host.lensTabTrajectory) {
 			return;
 		}

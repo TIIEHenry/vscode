@@ -8,6 +8,8 @@ import { localize } from '../../../../nls.js';
 /** Honest Input Dock copy — no engine, no Copilot entitlement CTAs. */
 export const conversationLensDockEngineNotConnected = localize('conversationLens.dockEngineNotConnected', "Engine not connected");
 export const conversationLensDockInboxNoQueue = localize('conversationLens.inboxNoQueue', "No queue");
+/** Connected / disconnected-cache Inbox is not a live engine queue (no GetQueue). */
+export const conversationLensDockInboxQueueNotListed = localize('conversationLens.inboxQueueNotListed', "Queue not listed");
 export const conversationLensDockInboxNoTasks = localize('conversationLens.inboxNoTasks', "No tasks");
 export const conversationLensDockInboxTaskLabel = localize('conversationLens.inboxTaskLabel', "Task");
 export const conversationLensDockInboxQueueLabel = localize('conversationLens.inboxQueueLabel', "MessageQueue");
@@ -18,6 +20,8 @@ export const conversationLensInboxQueueEnqueue = localize('conversationLens.inbo
 export const conversationLensInboxQueueEnqueuePrompt = localize('conversationLens.inboxQueueEnqueuePrompt', "Message to enqueue");
 export const conversationLensInboxQueueEnqueuePlaceholder = localize('conversationLens.inboxQueueEnqueuePlaceholder', "Queued after the current turn");
 export const conversationLensInboxQueueEnqueueUnavailable = localize('conversationLens.inboxQueueEnqueueUnavailable', "Cannot enqueue without engine");
+export const conversationLensInboxQueueRetry = localize('conversationLens.inboxQueueRetry', "Retry");
+export const conversationLensInboxQueueRetryUnavailable = localize('conversationLens.inboxQueueRetryUnavailable', "Cannot retry without engine");
 export const conversationLensInboxQueueEditingTag = localize('conversationLens.inboxQueueEditingTag', "Editing");
 export const conversationLensInboxQueueUploadingTag = localize('conversationLens.inboxQueueUploadingTag', "Uploading {0}%");
 export const conversationLensInboxQueueFailedTag = localize('conversationLens.inboxQueueFailedTag', "Failed");
@@ -69,11 +73,14 @@ export const conversationLensPostFailedMailboxFull = localize('conversationLens.
 export const conversationLensPostFailedNotAuthenticated = localize('conversationLens.postFailedNotAuthenticated', "Message not sent — not signed in.");
 export const conversationLensPostFailedNoSession = localize('conversationLens.postFailedNoSession', "Message not sent — session not found.");
 export const conversationLensPostFailedDisconnected = localize('conversationLens.postFailedDisconnected', "Message not sent — engine disconnected. Draft kept.");
+/** Honest fallback when postBound throws — not one of the four Actor reject reasons. */
+export const conversationLensPostFailed = localize('conversationLens.postFailed', "Retry failed — could not post. Try again.");
 export type ConversationComposerPostFailureReason =
 	| 'mailbox_full'
 	| 'no_such_session'
 	| 'not_authenticated'
-	| 'engine_disconnected';
+	| 'engine_disconnected'
+	| 'failed';
 export const conversationLensDockPlaceholder = localize('conversationLens.dockPlaceholder', "Message");
 export const conversationLensDockEditingMessage = localize('conversationLens.dockEditingMessage', "Editing message");
 export const conversationLensDockEditingQueued = localize('conversationLens.dockEditingQueued', "Editing queued");
@@ -82,6 +89,9 @@ export const conversationLensDockSaveQueued = localize('conversationLens.dockSav
 
 /** Toggled on ConversationPart slot hosts when Input Maximize is active (Desktop §8.3.11). */
 export const conversationLensInputMaximizedClass = 'conversation-lens-input-maximized';
+
+/** Toggled on the shared timeline slot while the Trajectory page is showing (D42). */
+export const conversationLensShowingTrajectoryClass = 'conversation-lens-showing-trajectory';
 
 /** PreFirst (no visible messages): centered composer cluster in the reading column. */
 export const conversationLensPhasePreFirstClass = 'conversation-lens-phase-prefirst';

@@ -6,6 +6,7 @@
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { localize, localize2 } from '../../../../nls.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IQuickInputService } from '../../../../platform/quickinput/common/quickInput.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { isDefaultCodeWindow } from '../../chat/browser/chatShellRouting.js';
@@ -40,11 +41,43 @@ export function resolveCreateSnapshotTitle(input: string | undefined): string {
 	return input !== undefined ? input : CONVERSATION_CREATE_SNAPSHOT_DEFAULT_TITLE;
 }
 
+export const conversationCreateSnapshotFailedCopy = localize(
+	'conversationCreateSnapshotFailed',
+	"Could not create snapshot.",
+);
+
+export const conversationCreateSnapshotDisconnectedCopy = localize(
+	'conversationCreateSnapshotDisconnected',
+	"Could not create snapshot — engine disconnected.",
+);
+
+/**
+ * D110 mapping for Create Snapshot: true stays silent; false → failed,
+ * or engine_disconnected when `!connected && history`.
+ */
+export function notifyCreateSnapshotRejected(
+	created: boolean,
+	connected: boolean,
+	history: boolean,
+	notificationService: Pick<INotificationService, 'error'>,
+): boolean {
+	if (created) {
+		return true;
+	}
+	notificationService.error(
+		!connected && history
+			? conversationCreateSnapshotDisconnectedCopy
+			: conversationCreateSnapshotFailedCopy,
+	);
+	return false;
+}
+
 /**
  * Connected user Create Snapshot → AgentService.CreateSnapshot for the
  * active session. Does not list, restore, or delete snapshots, and does
  * not replace SessionBar History (GetHistory). Disconnected / no hook / empty
- * sessionId / cancelled prompt no-op.
+ * sessionId / cancelled prompt no-op. `createSnapshot` false → notice
+ * (D110 failed / engine_disconnected); true stays silent.
  */
 registerAction2(class ConversationCreateSnapshotAction extends Action2 {
 
@@ -63,13 +96,15 @@ registerAction2(class ConversationCreateSnapshotAction extends Action2 {
 		}
 		const roster = accessor.get(IConversationRosterService);
 		const connection = accessor.get(IUniverseAgentConnection);
+		const notificationService = accessor.get(INotificationService);
+		const quickInputService = accessor.get(IQuickInputService);
 		const sessionId = roster.getActiveSessionId();
 		if (!canCreateEngineSnapshot(roster.isEngineConnected(), !!connection.createSnapshot, sessionId)) {
 			return;
 		}
 		let title = args?.title;
 		if (title === undefined) {
-			const next = await accessor.get(IQuickInputService).input({
+			const next = await quickInputService.input({
 				title: localize('conversationCreateSnapshotPromptTitle', "Create snapshot"),
 				prompt: localize('conversationCreateSnapshotPrompt', "Snapshot title"),
 				value: CONVERSATION_CREATE_SNAPSHOT_DEFAULT_TITLE,
@@ -79,9 +114,14 @@ registerAction2(class ConversationCreateSnapshotAction extends Action2 {
 			}
 			title = resolveCreateSnapshotTitle(next);
 		}
-		roster.createSnapshot(sessionId, {
-			title,
-			...(args?.description !== undefined ? { description: args.description } : {}),
-		});
+		notifyCreateSnapshotRejected(
+			roster.createSnapshot(sessionId, {
+				title,
+				...(args?.description !== undefined ? { description: args.description } : {}),
+			}),
+			roster.isEngineConnected(),
+			roster.hasEngineConnectionHistory(),
+			notificationService,
+		);
 	}
 });

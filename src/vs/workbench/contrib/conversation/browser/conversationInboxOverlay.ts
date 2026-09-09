@@ -17,6 +17,7 @@ import {
 	conversationLensDockGoalPlaceholder,
 	conversationLensDockGoalPrompt,
 	conversationLensDockInboxNoQueue,
+	conversationLensDockInboxQueueNotListed,
 	conversationLensDockInboxNoTasks,
 	conversationLensDockInboxQueueLabel,
 	conversationLensDockInboxTaskLabel,
@@ -31,14 +32,18 @@ import {
 	conversationLensInboxQueueEnqueuePrompt,
 	conversationLensInboxQueueEnqueueUnavailable,
 	conversationLensInboxQueueFailedTag,
+	conversationLensInboxQueueRetry,
+	conversationLensInboxQueueRetryUnavailable,
 	conversationLensInboxQueuePause,
 	conversationLensInboxQueueResume,
 	conversationLensInboxQueueUploadingTag,
+	type ConversationComposerPostFailureReason,
 } from './conversationLensDockStrings.js';
 import {
 	ConversationMessageQueueItem,
 	ConversationMessageQueueState,
 	conversationMessageQueuePendingCount,
+	createEmptyMessageQueueState,
 } from './conversationMessageQueueModel.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { formatSyncChromeLabel } from './conversationSessionView.js';
@@ -50,6 +55,7 @@ type InboxListPanel = 'task' | 'queue';
 export interface IConversationInboxOverlayDelegate {
 	onQueueItemHold(itemId: string): void;
 	onScrollToPendingConfirmation(): void;
+	showPostFailure(reason: ConversationComposerPostFailureReason): void;
 }
 
 /**
@@ -151,7 +157,7 @@ export class ConversationInboxOverlay extends Disposable {
 
 	render(): void {
 		const sessionId = this.stubService.getActiveSessionId();
-		const queueState = this.stubService.getMessageQueueState(sessionId);
+		const queueState = this.displayQueueState(sessionId);
 		const taskCount = this.stubService.getAutoDriveTaskCount(sessionId);
 		const pendingConfirmations = this.stubService.countPendingConfirmations(sessionId);
 
@@ -189,12 +195,29 @@ export class ConversationInboxOverlay extends Disposable {
 		this.taskChip.setAttribute('aria-pressed', String(this.openPanel === 'task'));
 	}
 
+	private isEngineQueueUnlisted(): boolean {
+		return this.stubService.isEngineConnected() || this.stubService.hasEngineConnectionHistory();
+	}
+
+	private displayQueueState(sessionId: string): ConversationMessageQueueState {
+		if (this.isEngineQueueUnlisted()) {
+			return createEmptyMessageQueueState();
+		}
+		return this.stubService.getMessageQueueState(sessionId);
+	}
+
+	private queueEmptyCopy(): string {
+		return this.isEngineQueueUnlisted()
+			? conversationLensDockInboxQueueNotListed
+			: conversationLensDockInboxNoQueue;
+	}
+
 	private renderQueueChip(queueState: ConversationMessageQueueState): void {
 		const pending = conversationMessageQueuePendingCount(queueState);
 		const total = queueState.items.length;
 		let label: string;
 		if (total === 0) {
-			label = conversationLensDockInboxNoQueue;
+			label = this.queueEmptyCopy();
 		} else if (queueState.isPaused) {
 			label = localize('conversationLens.inboxQueuePaused', "{0} paused", total);
 		} else if (queueState.isProcessing) {
@@ -212,10 +235,9 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private renderGoal(sessionId: string): void {
-		const connected = this.stubService.isEngineConnected();
 		const goal = this.stubService.getSessionGoal(sessionId)?.trim();
 		const label = goal || conversationLensDockNoGoal;
-		this.goalButton.enabled = connected;
+		this.goalButton.enabled = this.stubService.isEngineConnected() || this.stubService.hasEngineConnectionHistory();
 		this.goalButton.label = label;
 		this.goalButton.setTitle(label);
 		this.goalButton.setAriaLabel(`${conversationLensDockGoal}, ${label}`);
@@ -223,6 +245,9 @@ export class ConversationInboxOverlay extends Disposable {
 
 	private async onGoalClicked(): Promise<void> {
 		if (!this.stubService.isEngineConnected()) {
+			if (this.stubService.hasEngineConnectionHistory()) {
+				this.delegate.showPostFailure('engine_disconnected');
+			}
 			return;
 		}
 		const sessionId = this.stubService.getActiveSessionId();
@@ -237,10 +262,19 @@ export class ConversationInboxOverlay extends Disposable {
 			return;
 		}
 		const trimmed = next.trim();
+		let applied = true;
 		if (trimmed) {
-			this.stubService.setSessionGoal(sessionId, trimmed);
+			applied = this.stubService.setSessionGoal(sessionId, trimmed);
 		} else if (current) {
-			this.stubService.cancelSessionGoal(sessionId);
+			applied = this.stubService.cancelSessionGoal(sessionId);
+		}
+		if (!applied) {
+			this.delegate.showPostFailure(
+				!this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory()
+					? 'engine_disconnected'
+					: 'failed'
+			);
+			return;
 		}
 		this.render();
 	}
@@ -259,8 +293,16 @@ export class ConversationInboxOverlay extends Disposable {
 
 	private onStopClicked(): void {
 		const sessionId = this.stubService.getActiveSessionId();
-		if (this.isGenerating(sessionId)) {
-			this.stubService.cancelGeneration(sessionId);
+		if (!this.isGenerating(sessionId) && !this.stopButton.enabled) {
+			return;
+		}
+		const cancelled = this.stubService.cancelGeneration(sessionId);
+		if (!cancelled) {
+			this.delegate.showPostFailure(
+				!this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory()
+					? 'engine_disconnected'
+					: 'failed'
+			);
 		}
 	}
 
@@ -357,7 +399,7 @@ export class ConversationInboxOverlay extends Disposable {
 
 	private renderQueueList(host: HTMLElement): void {
 		const sessionId = this.stubService.getActiveSessionId();
-		const state = this.stubService.getMessageQueueState(sessionId);
+		const state = this.displayQueueState(sessionId);
 		const listRoot = append(host, $('.conversation-lens-inbox-list.conversation-lens-message-queue-list'));
 		listRoot.setAttribute('role', 'list');
 
@@ -401,7 +443,7 @@ export class ConversationInboxOverlay extends Disposable {
 
 		const body = append(listRoot, $('.queue-bar-body'));
 		if (state.items.length === 0) {
-			append(body, $('.conversation-lens-inbox-list-empty')).textContent = conversationLensDockInboxNoQueue;
+			append(body, $('.conversation-lens-inbox-list-empty')).textContent = this.queueEmptyCopy();
 			return;
 		}
 
@@ -414,10 +456,10 @@ export class ConversationInboxOverlay extends Disposable {
 		const enqueueButton = append(actions, $('button.queue-bar-action.conversation-lens-inbox-queue-enqueue')) as HTMLButtonElement;
 		enqueueButton.type = 'button';
 		enqueueButton.textContent = conversationLensInboxQueueEnqueue;
-		const connected = this.stubService.isEngineConnected();
-		enqueueButton.disabled = !connected;
-		enqueueButton.setAttribute('aria-disabled', String(!connected));
-		enqueueButton.title = connected ? conversationLensInboxQueueEnqueue : conversationLensInboxQueueEnqueueUnavailable;
+		const enabled = this.stubService.isEngineConnected() || this.stubService.hasEngineConnectionHistory();
+		enqueueButton.disabled = !enabled;
+		enqueueButton.setAttribute('aria-disabled', String(!enabled));
+		enqueueButton.title = enabled ? conversationLensInboxQueueEnqueue : conversationLensInboxQueueEnqueueUnavailable;
 		enqueueButton.setAttribute('aria-label', enqueueButton.title);
 		addDisposableListener(enqueueButton, 'click', () => {
 			void this.onEnqueueClicked();
@@ -426,6 +468,9 @@ export class ConversationInboxOverlay extends Disposable {
 
 	private async onEnqueueClicked(): Promise<void> {
 		if (!this.stubService.isEngineConnected()) {
+			if (this.stubService.hasEngineConnectionHistory()) {
+				this.delegate.showPostFailure('engine_disconnected');
+			}
 			return;
 		}
 		const sessionId = this.stubService.getActiveSessionId();
@@ -439,6 +484,11 @@ export class ConversationInboxOverlay extends Disposable {
 		}
 		const queued = this.stubService.enqueueMessageQueueItem(sessionId, next.trim());
 		if (!queued) {
+			this.delegate.showPostFailure(
+				!this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory()
+					? 'engine_disconnected'
+					: 'failed'
+			);
 			return;
 		}
 		this.render();
@@ -448,7 +498,7 @@ export class ConversationInboxOverlay extends Disposable {
 	private formatQueueSummary(state: ConversationMessageQueueState): string {
 		const count = state.items.length;
 		if (count === 0) {
-			return conversationLensDockInboxNoQueue;
+			return this.queueEmptyCopy();
 		}
 		if (state.isProcessing) {
 			return localize('conversationLens.inboxQueueSummarySending', "Sending…");
@@ -466,7 +516,9 @@ export class ConversationInboxOverlay extends Disposable {
 		if (item.hold === 'EDITING') {
 			row.classList.add('hold-editing');
 		}
-		if (item.status === 'FAILED' || item.status === 'UPLOAD_FAILED') {
+		if (item.status === 'FAILED') {
+			row.classList.add('queue-failed');
+		} else if (item.status === 'UPLOAD_FAILED') {
 			row.classList.add('upload-failed');
 		}
 		if (item.status === 'UPLOADING') {
@@ -499,6 +551,7 @@ export class ConversationInboxOverlay extends Disposable {
 			meta.classList.add('failed');
 			meta.appendChild(document.createTextNode(' · '));
 			meta.appendChild(document.createTextNode(`✗ ${item.lastError ?? conversationLensInboxQueueFailedTag}`));
+			row.appendChild(this.renderQueueRetryAction(sessionId, item));
 		}
 
 		addDisposableListener(row, 'click', () => {
@@ -511,5 +564,32 @@ export class ConversationInboxOverlay extends Disposable {
 		});
 
 		return row;
+	}
+
+	private renderQueueRetryAction(sessionId: string, item: ConversationMessageQueueItem): HTMLButtonElement {
+		const retryButton = $('button.queue-bar-action.conversation-lens-inbox-queue-retry') as HTMLButtonElement;
+		retryButton.type = 'button';
+		retryButton.textContent = conversationLensInboxQueueRetry;
+		const connected = this.stubService.isEngineConnected();
+		retryButton.disabled = !connected;
+		retryButton.setAttribute('aria-disabled', String(!connected));
+		retryButton.title = connected ? conversationLensInboxQueueRetry : conversationLensInboxQueueRetryUnavailable;
+		retryButton.setAttribute('aria-label', retryButton.title);
+		addDisposableListener(retryButton, 'click', e => {
+			e.stopPropagation();
+			void this.onQueueRetryClicked(sessionId, item);
+		});
+		return retryButton;
+	}
+
+	private onQueueRetryClicked(sessionId: string, item: ConversationMessageQueueItem): void {
+		if (!this.stubService.isEngineConnected()) {
+			return;
+		}
+		this.stubService.retryMessageQueueItem(sessionId, item.id, {
+			upload: item.status === 'UPLOAD_FAILED',
+		});
+		this.render();
+		this.refreshOpenListPanel();
 	}
 }

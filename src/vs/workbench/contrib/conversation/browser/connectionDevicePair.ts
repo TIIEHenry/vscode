@@ -33,6 +33,11 @@ export const CONNECTION_DEVICE_PENDING_EMPTY_COPY = localize(
 	"No pending pairing requests",
 );
 
+/** Honest listPending throw copy — last snapshot stays; this is not an empty list. */
+export function connectionDevicePendingListFailureMessage(reason: string): string {
+	return localize('ua.connectionDevicePendingListFailed', "Unable to list pending pairs: {0}", reason);
+}
+
 export const CONNECTION_DEVICE_PENDING_HEADING = localize(
 	'ua.connectionDevicePendingHeading',
 	"Pending pairs",

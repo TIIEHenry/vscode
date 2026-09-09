@@ -16,7 +16,12 @@ import {
 	UniverseAgentDeepLinkHandler,
 	UNIVERSE_AGENT_SCHEME,
 } from '../../../conversation/browser/universeAgentDeepLink.contribution.js';
-import { UA_CONNECTION_PANE_ID, UA_ENGINE_PANE_ID } from '../../../conversation/common/uaPreferencesPanes.js';
+import {
+	OPEN_CONNECTION_PREFERENCES_COMMAND_ID,
+	OPEN_ENGINE_PREFERENCES_COMMAND_ID,
+	UA_CONNECTION_PANE_ID,
+	UA_ENGINE_PANE_ID,
+} from '../../../conversation/common/uaPreferencesPanes.js';
 
 suite('Universe Agent settings deep links', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -98,6 +103,15 @@ suite('Universe Agent settings deep links', () => {
 suite('Open Connection Preferences action', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
+	test('registerUaPreferencesNavigationActions is idempotent for connection and engine preferences', () => {
+		assert.doesNotThrow(() => {
+			registerUaPreferencesNavigationActions();
+			registerUaPreferencesNavigationActions();
+		});
+		assert.ok(CommandsRegistry.getCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID));
+		assert.ok(CommandsRegistry.getCommand(OPEN_ENGINE_PREFERENCES_COMMAND_ID));
+	});
+
 	test('workbench.action.openConnectionPreferences calls openPreferences with ua.connection', async () => {
 		registerUaPreferencesNavigationActions();
 
@@ -110,7 +124,7 @@ suite('Open Connection Preferences action', () => {
 			openSettings: async () => undefined,
 		} as IPreferencesService);
 
-		const command = CommandsRegistry.getCommand('workbench.action.openConnectionPreferences');
+		const command = CommandsRegistry.getCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
 		assert.ok(command);
 
 		await instantiationService.invokeFunction(accessor => command!.handler(accessor));

@@ -33,6 +33,7 @@ import {
 	conversationLensDockTemplatesTitle,
 	conversationLensDockToolsEngineHint,
 	conversationLensDockTuneTitle,
+	conversationLensPostFailed,
 	conversationLensPostFailedDisconnected,
 	conversationLensPostFailedMailboxFull,
 	conversationLensPostFailedNoSession,
@@ -54,6 +55,7 @@ import {
 import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
 import { isConversationLeafNarrow } from './conversationNarrowLayout.js';
 import { ConversationTimelineTree } from './conversationTimelineTree.js';
+import { provideTurnEditComposer } from './conversationTimelineRenderer.js';
 import { ConversationVoiceTranscriptBar } from './conversationVoiceTranscriptBar.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
@@ -79,7 +81,7 @@ export const conversationLensDockPermissionUnavailable = localize(
 const conversationLensDockPermissionFailed = localize(
 	'conversationLens.dockPermissionFailed',
 	"Permission mode was not applied");
-const conversationLensDockModelFailed = localize(
+export const conversationLensDockModelFailed = localize(
 	'conversationLens.dockModelFailed',
 	"Model was not applied");
 
@@ -366,6 +368,7 @@ export function beginTurnEdit(host: IConversationLensComposerChromeHost, turnId:
 		host.editingTurnId = turnId;
 		host.editingQueueItemId = undefined;
 		host.dockTextarea.value = turn.text;
+		provideTurnEditComposer(host.composer);
 		host.timelineTree.setEditingTurnId(turnId);
 		syncComposerPlacement(host);
 		updateComposerEditChrome(host);
@@ -389,6 +392,7 @@ export function beginQueueEdit(host: IConversationLensComposerChromeHost, itemId
 		host.composerPolicy = 'queueEdit';
 		host.editingQueueItemId = itemId;
 		host.editingTurnId = undefined;
+		provideTurnEditComposer(undefined);
 		host.timelineTree.setEditingTurnId(undefined);
 		host.dockTextarea.value = item.content;
 		syncComposerPlacement(host);
@@ -413,6 +417,7 @@ export function exitComposerEdit(host: IConversationLensComposerChromeHost, rest
 		host.composerPolicy = 'compose';
 		host.editingTurnId = undefined;
 		host.editingQueueItemId = undefined;
+		provideTurnEditComposer(undefined);
 		host.timelineTree.setEditingTurnId(undefined);
 		host.dockTextarea.value = restoreComposeDraft
 			? (host.composeDraftSnapshot || host.readComposerDraft(sessionId) || '')
@@ -578,7 +583,9 @@ export function showPostFailure(host: IConversationLensComposerChromeHost, reaso
 				? conversationLensPostFailedNotAuthenticated
 				: reason === 'engine_disconnected'
 					? conversationLensPostFailedDisconnected
-					: conversationLensPostFailedNoSession;
+					: reason === 'failed'
+						? conversationLensPostFailed
+						: conversationLensPostFailedNoSession;
 		showGateNotice(host, message);
 	
 }
@@ -708,12 +715,16 @@ export async function applySessionModelIndex(host: IConversationLensComposerChro
 			return;
 		}
 		try {
-			await host.uaConnection.switchModel({
+			const result = await host.uaConnection.switchModel({
 				sessionId,
 				agentId: '',
 				modelType: '',
 				modelId,
 			});
+			if (!result.resolvedModelId.trim()) {
+				restoreSessionModelIndex(host, previous);
+				showGateNotice(host, conversationLensDockModelFailed);
+			}
 		} catch (error) {
 			restoreSessionModelIndex(host, previous);
 			const detail = error instanceof Error ? error.message.trim() : '';

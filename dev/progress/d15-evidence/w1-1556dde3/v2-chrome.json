@@ -1,0 +1,24 @@
+{
+  "id": "V2",
+  "scene": "Agent IDE chrome",
+  "result": "PASS",
+  "title": "Workspace - UniverseAgentStudio Dev",
+  "fourButtons": [
+    "Navigator (Ctrl+B)",
+    "Conversation (Ctrl+Shift+Alt+C)",
+    "Preview (Ctrl+Shift+Alt+P)",
+    "Sources (Ctrl+Shift+Alt+S)"
+  ],
+  "statusBar": [
+    "remote",
+    "Notifications",
+    "Layout: us",
+    "Session: Untitled session",
+    "Engine connection: Engine not connected"
+  ],
+  "engineStatusObserved": [
+    "Engine: Engine not connected",
+    "Engine connection: Engine not connected"
+  ],
+  "notes": "标题为 UniverseAgentStudio Dev，不是上游 Code - OSS。四钮与 Conversation/Trajectory 透镜、Sources 三 tab 同屏。"
+}

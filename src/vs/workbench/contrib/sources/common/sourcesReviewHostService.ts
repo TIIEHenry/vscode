@@ -15,6 +15,7 @@ export interface ISourcesReviewListHost {
 	getSelectedEntry(): ISourcesReviewEntry | undefined;
 	toggleReviewedSelected(): void;
 	markAllReviewed(): void;
+	setStatusMessage(message: string | undefined): void;
 }
 
 export interface ISourcesReviewHostService {

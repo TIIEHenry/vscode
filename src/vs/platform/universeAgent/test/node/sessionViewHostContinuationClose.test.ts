@@ -159,6 +159,34 @@ suite('SessionViewHost continuation onClosed', () => {
 		assert.ok(!diagnostics.warnings.some(w => w.message === 'openContinuationStream closed'));
 	});
 
+	test('lease.post continueGeneration opens the host continuation stream', async () => {
+		const connection = new ContinuationConnection();
+		const diagnostics = new CountingDiagnostics();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+			diagnostics,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease('sess-cg-lease-post');
+		await viewHost.whenEngineSessionReady('sess-cg-lease-post');
+
+		const outcome = viewHost.post(leaseId, {
+			kind: 'continueGeneration',
+			agentId: 'agent-root',
+			turnId: 'turn-1',
+			messageId: 'msg-1',
+		});
+		assert.strictEqual(outcome.accepted, true);
+		assert.strictEqual(connection.opens.length, 1);
+		assert.deepStrictEqual(connection.opens[0], {
+			sessionId: 'sess-cg-lease-post',
+			agentId: 'agent-root',
+			turnId: 'turn-1',
+			messageId: 'msg-1',
+		});
+		assert.strictEqual(diagnostics.counts.get('intent.unhandled'), undefined);
+	});
+
 	test('replacing a continuation disposes the previous handle', async () => {
 		const connection = new ContinuationConnection();
 		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {

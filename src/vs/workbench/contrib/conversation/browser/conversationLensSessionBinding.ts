@@ -68,14 +68,20 @@ export function bindSessionView(host: IConversationLensSessionBindingHost, sessi
 		host.timelineTree.applyEntries([], { kind: 'baseline' });
 		return;
 	}
-	const lease = host.sessionViewLifetime.add(host.stubService.acquireSessionView(sessionId));
-	host.sessionViewLease = lease;
-	const coalescer = host.sessionViewLifetime.add(new ConversationSessionViewFrameCoalescer(applied => host.applySessionViewTimeline(applied)));
-	host.sessionViewLifetime.add(lease.onDidApplyFrame(applied => coalescer.push(applied)));
-	// Stub leases fire baseline during construction. Engine leases start as an
-	// empty `pending` replica — applying that as baseline flashes an empty tree.
-	if (lease.snapshot.sessionId !== 'pending') {
-		host.applySessionViewTimeline({ kind: 'baseline' });
+	try {
+		const lease = host.sessionViewLifetime.add(host.stubService.acquireSessionView(sessionId));
+		host.sessionViewLease = lease;
+		const coalescer = host.sessionViewLifetime.add(new ConversationSessionViewFrameCoalescer(applied => host.applySessionViewTimeline(applied)));
+		host.sessionViewLifetime.add(lease.onDidApplyFrame(applied => coalescer.push(applied)));
+		// Stub leases fire baseline during construction. Engine leases start as an
+		// empty `pending` replica — applying that as baseline flashes an empty tree.
+		if (lease.snapshot.sessionId !== 'pending') {
+			host.applySessionViewTimeline({ kind: 'baseline' });
+		}
+	} catch {
+		host.sessionViewLease = undefined;
+		host.showPostFailure('failed');
+		return;
 	}
 
 }
@@ -124,21 +130,30 @@ export async function resolveConfirmation(host: IConversationLensSessionBindingH
 			status,
 		);
 		if (!forwarded) {
+			host.showPostFailure(
+				!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
+					? 'engine_disconnected'
+					: 'failed'
+			);
 			return;
 		}
 		host.focusTimelineRecord(turnId);
 		return;
 	}
-	const outcome = await host.postBound({
-		kind: 'permissionRespond',
-		requestId: turnId,
-		decision: status === 'allowed' ? 'allow' : 'deny',
-	});
-	if (!outcome.accepted) {
-		host.showPostFailure(outcome.reason);
-		return;
+	try {
+		const outcome = await host.postBound({
+			kind: 'permissionRespond',
+			requestId: turnId,
+			decision: status === 'allowed' ? 'allow' : 'deny',
+		});
+		if (!outcome.accepted) {
+			host.showPostFailure(outcome.reason);
+			return;
+		}
+		host.focusTimelineRecord(turnId);
+	} catch {
+		host.showPostFailure('failed');
 	}
-	host.focusTimelineRecord(turnId);
 
 }
 
@@ -152,22 +167,31 @@ export async function resolveQuestion(host: IConversationLensSessionBindingHost,
 			customText,
 		);
 		if (!forwarded) {
+			host.showPostFailure(
+				!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
+					? 'engine_disconnected'
+					: 'failed'
+			);
 			return;
 		}
 		host.focusTimelineRecord(turnId);
 		return;
 	}
-	const outcome = await host.postBound({
-		kind: 'questionRespond',
-		requestId,
-		answers,
-		...(customText !== undefined ? { customText } : {}),
-	});
-	if (!outcome.accepted) {
-		host.showPostFailure(outcome.reason);
-		return;
+	try {
+		const outcome = await host.postBound({
+			kind: 'questionRespond',
+			requestId,
+			answers,
+			...(customText !== undefined ? { customText } : {}),
+		});
+		if (!outcome.accepted) {
+			host.showPostFailure(outcome.reason);
+			return;
+		}
+		host.focusTimelineRecord(turnId);
+	} catch {
+		host.showPostFailure('failed');
 	}
-	host.focusTimelineRecord(turnId);
 
 }
 
@@ -180,13 +204,22 @@ export function focusTimelineRecord(host: IConversationLensSessionBindingHost, t
 
 export function copyTurn(host: IConversationLensSessionBindingHost, text: string): void {
 
-	host.clipboardService.writeText(text);
+	void host.clipboardService.writeText(text).catch(() => {
+		host.showPostFailure('failed');
+	});
 
 }
 
 export function deleteTurn(host: IConversationLensSessionBindingHost, turnId: string): void {
 
-	host.stubService.deleteTurn(host.getBoundSessionId(), turnId);
+	const deleted = host.stubService.deleteTurn(host.getBoundSessionId(), turnId);
+	if (!deleted) {
+		host.showPostFailure(
+			!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
+				? 'engine_disconnected'
+				: 'failed'
+		);
+	}
 
 }
 
@@ -197,10 +230,17 @@ export function cancelToolCall(host: IConversationLensSessionBindingHost, turn: 
 		return;
 	}
 	const agentId = turn.agentId?.trim();
-	host.stubService.cancelToolCall(host.getBoundSessionId(), {
+	const cancelled = host.stubService.cancelToolCall(host.getBoundSessionId(), {
 		toolCallId,
 		...(agentId ? { agentId } : {}),
 	});
+	if (!cancelled) {
+		host.showPostFailure(
+			!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
+				? 'engine_disconnected'
+				: 'failed'
+		);
+	}
 
 }
 
@@ -210,12 +250,19 @@ export function retryError(host: IConversationLensSessionBindingHost, turn: { re
 	if (!messageId) {
 		return;
 	}
-	const turnId = turn.turnId?.trim();
-	const agentId = turn.agentId?.trim();
-	host.stubService.retryError(host.getBoundSessionId(), {
+	const turnId = turn.turnId?.trim() || messageId;
+	const agentId = turn.agentId?.trim() || 'root';
+	void host.postBound({
+		kind: 'continueGeneration',
+		agentId,
+		turnId,
 		messageId,
-		...(turnId ? { turnId } : {}),
-		...(agentId ? { agentId } : {}),
+	}).then(outcome => {
+		if (!outcome.accepted) {
+			host.showPostFailure(outcome.reason);
+		}
+	}).catch(() => {
+		host.showPostFailure('failed');
 	});
 
 }

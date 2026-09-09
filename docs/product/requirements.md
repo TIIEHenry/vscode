@@ -269,7 +269,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
 - **产品验收标准**：
   1. Web 入口启动后 PRD-001 验收 1–3 成立。
   2. 依赖桌面进程的能力（如本机引擎进程）在 Web 下省略或明示不可用。
-- **依赖或未决**：`contrib/conversation` / `contrib/sources` 注册在 `workbench.common.main.ts`，理论上 Web 共用；尚无任何 Web 冒烟证据。**裁定（2026-09-02）**：本条是验证义务而非新功能；验收 1 的 Web 冒烟（`scripts/code-web.sh` 或 `server` 入口 + D4 式 V1–V3 断言）登记 [D15](../../dev/progress/deferred-gaps.md)。ADR-003 已保证 gRPC 只在 `platform/universeAgent/node`。**HEAD（2026-09-03）**：P0 已在 `workbench.web.main.ts` 注册 browser 三服务诚实断连；E2-1 按 phase / capability / `unsupported_environment` 省略桌面连接控件。W1 / D15 冒烟未跑，本条不升 `implemented`。
+- **依赖或未决**：`contrib/conversation` / `contrib/sources` 注册在 `workbench.common.main.ts`，理论上 Web 共用。**裁定（2026-09-02）**：本条是验证义务而非新功能；验收 1 的 Web 冒烟（`scripts/code-web.sh` 或 `server` 入口 + D4 式 V1–V3 断言）登记 [D15](../../dev/progress/deferred-gaps.md)。ADR-003 已保证 gRPC 只在 `platform/universeAgent/node`。**HEAD（2026-09-07）**：P0 已在 `workbench.web.main.ts` 注册 browser 三服务诚实断连；E2-1 按 phase / capability / `unsupported_environment` 省略桌面连接控件。W1 / D15 冒烟已跑（[w1-1556dde3](../../dev/progress/d15-evidence/w1-1556dde3/) PASS）；本条仍不升 `implemented`（升格留给合入门禁 / 产品确认）。
 
 ### PRD-020 规模与性能上限
 

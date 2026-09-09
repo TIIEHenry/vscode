@@ -24,7 +24,8 @@ import type { CoreIntent, HistoryFillCoreIntent } from './sessionCore/intents.js
 import { isChatCoreIntent, isHistoryFillCoreIntent } from './sessionCore/intents.js';
 import type { CoreMessage, CorrelationRef, PostOutcome, ViewFrameAck, ViewFrameSink } from './sessionCore/messages.js';
 import type { SessionId, ViewFrame, ViewLeaseId, ViewPatch } from '../common/sessionView/types.js';
-import type { AttemptId, DiagnosticMetric, DiagnosticsPort, TimerId } from './sessionCore/ports.js';
+import type { AttemptId, ChatWriteId, DiagnosticMetric, DiagnosticsPort, TimerId } from './sessionCore/ports.js';
+import { HOST_WRITE_RECEIPT_SOURCE } from './sessionCore/host-write-receipt.js';
 import type { UniverseAgentChatStream } from '../common/universeAgentTypes.js';
 import { demuxSessionStreamPayload, localFactFromQuestionArm } from './sessionStreamDemux.js';
 import { OverlayDeltaJoin } from './overlayDeltaJoin.js';
@@ -136,6 +137,13 @@ function writeMessageToCoreFact(msg: ConversationWriteMessage, leaseId: ViewLeas
 				callId: msg.requestId,
 				isError: false,
 				content: msg.resultJson,
+			};
+		case 'continueGeneration':
+			return {
+				kind: 'continueGeneration',
+				agentId: msg.agentId,
+				turnId: msg.turnId,
+				messageId: msg.messageId,
 			};
 	}
 }
@@ -308,15 +316,27 @@ export class SessionViewHost extends Disposable {
 		if (!parsed) {
 			return { ok: false, reason: 'failed', message: 'unparseable DetailRef' };
 		}
-		const engineSessionId = this.connection.isEngineConnected()
-			? await this.ensureEngineSession(binding.sessionId)
-			: binding.sessionId;
-		const result = await this.host.fetchToolDetail({
-			sessionId: engineSessionId,
-			toolCallId: parsed.toolCallId,
-			detailKind: parsed.detailKind,
-			refId: parsed.refId,
-		});
+		let engineSessionId: string;
+		if (this.connection.isEngineConnected()) {
+			try {
+				engineSessionId = await this.ensureEngineSession(binding.sessionId);
+			} catch (error) {
+				return { ok: false, reason: 'failed', message: error instanceof Error ? error.message : 'Engine session bind failed' };
+			}
+		} else {
+			engineSessionId = binding.sessionId;
+		}
+		let result: Awaited<ReturnType<IUniverseAgentHostConnection['fetchToolDetail']>>;
+		try {
+			result = await this.host.fetchToolDetail({
+				sessionId: engineSessionId,
+				toolCallId: parsed.toolCallId,
+				detailKind: parsed.detailKind,
+				refId: parsed.refId,
+			});
+		} catch (error) {
+			return { ok: false, reason: 'failed', message: error instanceof Error ? error.message : 'Tool detail fetch failed' };
+		}
 		if (!result.ok) {
 			return result;
 		}
@@ -346,15 +366,18 @@ export class SessionViewHost extends Disposable {
 				sidecar.overlayDelta.clear();
 			}
 			for (const stream of this.streams.values()) {
-				stream.dispose();
+				this.disposeQuietly(stream, 'closeStream dispose failed', {
+					sessionId: stream.sessionId,
+					attemptId: String(stream.attemptId),
+				});
 			}
 			this.streams.clear();
-			for (const stream of this.chatStreams.values()) {
-				stream.dispose();
+			for (const [sessionId, stream] of this.chatStreams) {
+				this.disposeQuietly(stream, 'closeResidentChat dispose failed', { sessionId });
 			}
 			this.chatStreams.clear();
-			for (const stream of this.continuationStreams.values()) {
-				stream.dispose();
+			for (const [sessionId, stream] of this.continuationStreams) {
+				this.disposeQuietly(stream, 'closeContinuationStream dispose failed', { sessionId });
 			}
 			this.continuationStreams.clear();
 			for (const binding of this.leases.values()) {
@@ -492,10 +515,16 @@ export class SessionViewHost extends Disposable {
 		}
 		const sidecar = this.ensureSessionSidecar(sessionId);
 		const onBound = (fact: AgentTreeBoundFact) => this.postAgentTreeBound(sessionId, fact);
+		const onError = (error: unknown) => {
+			this.diagnostics.warn('agentTree fetch failed', {
+				sessionId,
+				error: error instanceof Error ? error.message : String(error),
+			});
+		};
 		if (immediate) {
-			void sidecar.tree.pullNow(onBound);
+			void sidecar.tree.pullNow(onBound).catch(onError);
 		} else {
-			sidecar.tree.scheduleRefresh(onBound);
+			sidecar.tree.scheduleRefresh(onBound, onError);
 		}
 	}
 
@@ -873,9 +902,13 @@ export class SessionViewHost extends Disposable {
 				this.openStream(sessionId, intent.attemptId);
 				break;
 			case 'closeStream': {
-				const active = this.streams.get(`${sessionId}:${intent.attemptId}`);
-				active?.dispose();
-				this.streams.delete(`${sessionId}:${intent.attemptId}`);
+				const key = `${sessionId}:${intent.attemptId}`;
+				const active = this.streams.get(key);
+				this.disposeQuietly(active, 'closeStream dispose failed', {
+					sessionId,
+					attemptId: String(intent.attemptId),
+				});
+				this.streams.delete(key);
 				break;
 			}
 			case 'startTimer':
@@ -905,7 +938,7 @@ export class SessionViewHost extends Disposable {
 				break;
 			default:
 				if (isChatCoreIntent(intent) && intent.do === 'chatStreamWrite') {
-					void this.writeChat(sessionId, intent.correlation, intent.payload, intent.chatAttemptId);
+					void this.writeChat(sessionId, intent.correlation, intent.payload, intent.chatAttemptId, intent.writeId);
 				} else if (isHistoryFillCoreIntent(intent)) {
 					void this.fillHistory(sessionId, intent);
 				} else {
@@ -936,7 +969,10 @@ export class SessionViewHost extends Disposable {
 			});
 			return;
 		}
-		this.continuationStreams.get(sessionId)?.dispose();
+		this.disposeQuietly(this.continuationStreams.get(sessionId), 'openContinuationStream dispose failed', {
+			sessionId,
+			correlation: String(intent.correlation),
+		});
 		this.continuationStreams.delete(sessionId);
 		const engineSessionId = this.resolveEngineSessionId(sessionId);
 		if (!engineSessionId) {
@@ -1008,9 +1044,10 @@ export class SessionViewHost extends Disposable {
 
 	/**
 	 * Resident Chat bidi: optional connection hook opens the handle; missing hook
-	 * still echoes `chatStreamUp` so Actor writes fall back to one-shot `chat()`.
-	 * Remote/error `onClosed` drops the handle and posts `chatStreamDown` (Actor
-	 * may re-ensure the same generation). Local dispose / connection-down is silent.
+	 * or throw-on-open still echoes `chatStreamUp` so Actor writes fall back to
+	 * one-shot `chat()`. Remote/error `onClosed` drops the handle and posts
+	 * `chatStreamDown` (Actor may re-ensure the same generation). Local dispose /
+	 * connection-down is silent.
 	 */
 	private openResidentChat(sessionId: string, chatAttemptId: AttemptId): void {
 		this.chatOwners.set(String(chatAttemptId), sessionId);
@@ -1019,7 +1056,10 @@ export class SessionViewHost extends Disposable {
 			this.postChatLifecycle(sessionId, 'chatStreamUp', chatAttemptId);
 			return;
 		}
-		existing?.dispose();
+		this.disposeQuietly(existing, 'openResidentChat dispose failed', {
+			sessionId,
+			chatAttemptId: String(chatAttemptId),
+		});
 		this.chatStreams.delete(sessionId);
 
 		const engineSessionId = this.resolveEngineSessionId(sessionId);
@@ -1035,43 +1075,74 @@ export class SessionViewHost extends Disposable {
 			return;
 		}
 
-		let disposed = false;
-		const handle: UniverseAgentChatStream = open.call(
-			this.connection,
-			engineSessionId,
-			() => { },
-			cause => {
-				if (disposed || (cause.kind !== 'remote' && cause.kind !== 'error')) {
-					return;
-				}
-				this.chatStreams.delete(sessionId);
-				this.diagnostics.warn('openChatStream closed', {
-					sessionId,
-					chatAttemptId: String(chatAttemptId),
-					kind: cause.kind,
-					...(cause.kind === 'error' ? { message: cause.message } : {}),
-				});
-				this.postChatLifecycle(sessionId, 'chatStreamDown', chatAttemptId);
-			},
-		);
-		this.chatStreams.set(sessionId, {
-			chatAttemptId,
-			write: payload => handle.write(payload),
-			dispose: () => {
-				disposed = true;
-				handle.dispose();
-			},
-		});
-		this.postChatLifecycle(sessionId, 'chatStreamUp', chatAttemptId);
+		try {
+			let disposed = false;
+			const handle: UniverseAgentChatStream = open.call(
+				this.connection,
+				engineSessionId,
+				() => { },
+				cause => {
+					if (disposed || (cause.kind !== 'remote' && cause.kind !== 'error')) {
+						return;
+					}
+					this.chatStreams.delete(sessionId);
+					this.diagnostics.warn('openChatStream closed', {
+						sessionId,
+						chatAttemptId: String(chatAttemptId),
+						kind: cause.kind,
+						...(cause.kind === 'error' ? { message: cause.message } : {}),
+					});
+					this.postChatLifecycle(sessionId, 'chatStreamDown', chatAttemptId);
+				},
+			);
+			this.chatStreams.set(sessionId, {
+				chatAttemptId,
+				write: payload => handle.write(payload),
+				dispose: () => {
+					disposed = true;
+					handle.dispose();
+				},
+			});
+			this.postChatLifecycle(sessionId, 'chatStreamUp', chatAttemptId);
+		} catch (error) {
+			this.diagnostics.warn('openChatStream failed', {
+				sessionId,
+				chatAttemptId: String(chatAttemptId),
+				error: error instanceof Error ? error.message : String(error),
+			});
+			// Same echo as a missing hook: write gate opens; writes use one-shot chat().
+			this.postChatLifecycle(sessionId, 'chatStreamUp', chatAttemptId);
+		}
 	}
 
 	private closeResidentChat(sessionId: string, chatAttemptId: AttemptId): void {
 		const stream = this.chatStreams.get(sessionId);
 		if (stream && stream.chatAttemptId === chatAttemptId) {
-			stream.dispose();
+			this.disposeQuietly(stream, 'closeResidentChat dispose failed', {
+				sessionId,
+				chatAttemptId: String(chatAttemptId),
+			});
 			this.chatStreams.delete(sessionId);
 		}
 		this.postChatLifecycle(sessionId, 'chatStreamDown', chatAttemptId);
+	}
+
+	private disposeQuietly(
+		target: { dispose(): void } | undefined,
+		message: string,
+		fields: Readonly<Record<string, unknown>>,
+	): void {
+		if (!target) {
+			return;
+		}
+		try {
+			target.dispose();
+		} catch (error) {
+			this.diagnostics.warn(message, {
+				...fields,
+				error: error instanceof Error ? error.message : String(error),
+			});
+		}
 	}
 
 	private postChatLifecycle(sessionId: string, kind: 'chatStreamUp' | 'chatStreamDown', chatAttemptId: AttemptId): void {
@@ -1093,64 +1164,88 @@ export class SessionViewHost extends Disposable {
 		let disposed = false;
 		const sidecar = this.ensureSessionSidecar(sessionId);
 		sidecar.overlayDelta.clear();
-		const subscription = this.connection.subscribeSessionEventStream(engineSessionId, event => {
-			if (disposed) {
-				return;
-			}
-			if (!streamOpened) {
-				streamOpened = true;
-				this.scheduleAgentTreeRefresh(sessionId, true);
-			}
-			this.handleHostStreamPayload(sessionId, event.payload);
-			const arms = [
-				...demuxSessionStreamPayload(event.payload),
-				...sidecar.overlayDelta.handlePayload(event.payload),
-			];
-			for (const arm of arms) {
-				if (arm && typeof arm === 'object' && (arm as { arm?: string }).arm === 'heartbeat') {
-					void this.sendHeartbeatAck(sessionId);
-					continue;
+		try {
+			const subscription = this.connection.subscribeSessionEventStream(engineSessionId, event => {
+				if (disposed) {
+					return;
 				}
+				if (!streamOpened) {
+					streamOpened = true;
+					this.scheduleAgentTreeRefresh(sessionId, true);
+				}
+				this.handleHostStreamPayload(sessionId, event.payload);
+				const arms = [
+					...demuxSessionStreamPayload(event.payload),
+					...sidecar.overlayDelta.handlePayload(event.payload),
+				];
+				for (const arm of arms) {
+					if (arm && typeof arm === 'object' && (arm as { arm?: string }).arm === 'heartbeat') {
+						void this.sendHeartbeatAck(sessionId);
+						continue;
+					}
+					this.postAndDrain(sessionId as SessionId, {
+						t: 'streamEvent',
+						attemptId,
+						event: arm,
+					});
+					const questionFact = localFactFromQuestionArm(arm);
+					if (questionFact) {
+						this.postAndDrain(sessionId as SessionId, { t: 'localFact', fact: questionFact });
+					}
+				}
+			}, cause => {
+				if (disposed || closedPosted || (cause.kind !== 'remote' && cause.kind !== 'error')) {
+					return;
+				}
+				closedPosted = true;
+				sidecar.overlayDelta.clear();
 				this.postAndDrain(sessionId as SessionId, {
-					t: 'streamEvent',
+					t: 'streamClosed',
 					attemptId,
-					event: arm,
+					cause,
 				});
-				const questionFact = localFactFromQuestionArm(arm);
-				if (questionFact) {
-					this.postAndDrain(sessionId as SessionId, { t: 'localFact', fact: questionFact });
-				}
-			}
-		}, cause => {
-			if (disposed || closedPosted || (cause.kind !== 'remote' && cause.kind !== 'error')) {
-				return;
-			}
-			closedPosted = true;
-			sidecar.overlayDelta.clear();
+			});
+			this.streams.set(key, {
+				attemptId,
+				sessionId,
+				dispose: () => {
+					disposed = true;
+					subscription.dispose();
+				},
+			});
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
+			this.diagnostics.warn('openStream failed', {
+				sessionId,
+				attemptId: String(attemptId),
+				error: message,
+			});
 			this.postAndDrain(sessionId as SessionId, {
 				t: 'streamClosed',
 				attemptId,
-				cause,
+				cause: { kind: 'error', message },
 			});
-		});
-		this.streams.set(key, {
-			attemptId,
-			sessionId,
-			dispose: () => {
-				disposed = true;
-				subscription.dispose();
-			},
-		});
+		}
 	}
 
 	private async sendHeartbeatAck(sessionId: string): Promise<void> {
 		if (!this.connection.isEngineConnected()) {
 			return;
 		}
-		const engineSessionId = this.resolveEngineSessionId(sessionId) ?? await this.ensureEngineSession(sessionId);
+		let engineSessionId: string;
+		try {
+			engineSessionId = this.resolveEngineSessionId(sessionId) ?? await this.ensureEngineSession(sessionId);
+		} catch {
+			// bind failure surfaces on next RPC
+			return;
+		}
 		const resident = this.chatStreams.get(sessionId);
 		if (resident) {
-			resident.write({ heartbeat_ack: {} });
+			try {
+				resident.write({ heartbeat_ack: {} });
+			} catch {
+				// transport failure surfaces on next RPC
+			}
 			return;
 		}
 		try {
@@ -1163,15 +1258,18 @@ export class SessionViewHost extends Disposable {
 		}
 	}
 
-	private async writeChat(sessionId: string, correlation: CorrelationRef, payload: unknown, chatAttemptId: AttemptId): Promise<void> {
+	private async writeChat(sessionId: string, correlation: CorrelationRef, payload: unknown, chatAttemptId: AttemptId, writeId: ChatWriteId): Promise<void> {
 		const sid = sessionId as SessionId;
-		const mark = (status: 'written' | 'failed', errorMessage?: string) => {
+		const mark = (status: 'accepted' | 'failed', errorMessage?: string) => {
 			this.postAndDrain(sid, {
 				t: 'localFact',
 				fact: {
 					kind: 'inputDelivery',
 					messageId: String(correlation),
 					status,
+					source: HOST_WRITE_RECEIPT_SOURCE,
+					writeId: String(writeId),
+					chatAttemptId: String(chatAttemptId),
 					...(errorMessage !== undefined ? { errorMessage } : {}),
 				},
 			});
@@ -1192,45 +1290,76 @@ export class SessionViewHost extends Disposable {
 		if (resident && resident.chatAttemptId === chatAttemptId) {
 			try {
 				resident.write(wirePayload);
-				mark('written');
+				mark('accepted');
 			} catch {
 				mark('failed', 'Chat write failed');
 			}
 			return;
 		}
+		let marked = false;
+		const markOnce = (status: 'accepted' | 'failed', errorMessage?: string) => {
+			if (marked) {
+				return;
+			}
+			marked = true;
+			mark(status, errorMessage);
+		};
 		try {
 			await this.connection.chat({
 				sessionId: engineSessionId,
 				payload: wirePayload,
 			}, () => {
-				mark('written');
+				markOnce('accepted');
 			});
+			if (!marked) {
+				markOnce('accepted');
+			}
 		} catch {
-			mark('failed', 'Chat write failed');
+			if (!marked) {
+				markOnce('failed', 'Chat write failed');
+			}
 		}
 	}
 
 	private async fillHistory(sessionId: string, intent: HistoryFillCoreIntent): Promise<void> {
 		const sid = sessionId as SessionId;
-		const engineSessionId = this.resolveEngineSessionId(sessionId) ?? await this.ensureEngineSession(sessionId);
-		const result = await fillHistoryGap(
-			request => this.connection.getHistory(request),
-			{
-				sessionId: engineSessionId,
-				fromExclusive: intent.fromExclusive,
-				toInclusive: intent.toInclusive,
-			},
-			payload => {
-				this.captureEnvelopeAttributionHint(sessionId, payload);
-				this.captureRangeReplacedCompactHint(sessionId, payload);
-			},
-		);
-		this.postAndDrain(sid, {
-			t: 'historyResult',
-			attemptId: intent.attemptId,
-			requestId: intent.requestId,
-			result,
-		});
+		const fail = (errorMessage: string) => {
+			this.postAndDrain(sid, {
+				t: 'historyResult',
+				attemptId: intent.attemptId,
+				requestId: intent.requestId,
+				result: { ok: false, code: 'transport_failed', message: errorMessage },
+			});
+		};
+		let engineSessionId: string;
+		try {
+			engineSessionId = this.resolveEngineSessionId(sessionId) ?? await this.ensureEngineSession(sessionId);
+		} catch (error) {
+			fail(error instanceof Error ? error.message : 'Engine session bind failed');
+			return;
+		}
+		try {
+			const result = await fillHistoryGap(
+				request => this.connection.getHistory(request),
+				{
+					sessionId: engineSessionId,
+					fromExclusive: intent.fromExclusive,
+					toInclusive: intent.toInclusive,
+				},
+				payload => {
+					this.captureEnvelopeAttributionHint(sessionId, payload);
+					this.captureRangeReplacedCompactHint(sessionId, payload);
+				},
+			);
+			this.postAndDrain(sid, {
+				t: 'historyResult',
+				attemptId: intent.attemptId,
+				requestId: intent.requestId,
+				result,
+			});
+		} catch (error) {
+			fail(error instanceof Error ? error.message : 'History fill failed');
+		}
 	}
 }
 

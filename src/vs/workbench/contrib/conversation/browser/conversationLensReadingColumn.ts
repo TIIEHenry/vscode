@@ -115,7 +115,10 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 
 }
 
-function resolveReadingColumnSessionId(host: IConversationLensReadingColumnHost): string {
+function resolveReadingColumnSessionId(host: {
+	readonly stubService: IConversationRosterService;
+	readonly sessionViewLease?: IConversationSessionViewLease;
+}): string {
 	return host.sessionViewLease?.sessionId ?? host.stubService.getActiveSessionId();
 }
 
@@ -129,12 +132,20 @@ function formatStaleSnapshotLabel(sync: SyncChrome): string | undefined {
 		: localize('conversationLens.staleSnapshot', "Showing snapshot from before disconnect");
 }
 
-function refreshStaleSnapshotBanner(host: IConversationLensReadingColumnHost): void {
+export function refreshStaleSnapshotBanner(
+	host: {
+		readonly readingColumn?: HTMLElement;
+		readonly stubService: IConversationRosterService;
+		readonly sessionViewLease?: IConversationSessionViewLease;
+	},
+	sync?: SyncChrome,
+): void {
 	const banner = host.readingColumn?.querySelector<HTMLElement>(`.${conversationLensStaleSnapshotClass}`);
 	if (!banner) {
 		return;
 	}
-	const label = formatStaleSnapshotLabel(host.stubService.getSessionSync(resolveReadingColumnSessionId(host)));
+	const chrome = sync ?? host.stubService.getSessionSync(resolveReadingColumnSessionId(host));
+	const label = formatStaleSnapshotLabel(chrome);
 	if (label) {
 		banner.hidden = false;
 		banner.textContent = label;
@@ -156,6 +167,12 @@ export function bindReadingColumnLayout(host: IConversationLensReadingColumnHost
 		for (const entry of entries) {
 			const width = Math.floor(entry.contentRect.width);
 			const height = Math.floor(entry.contentRect.height);
+			// Maximize hides the shared slot on the Conversation page; jsdom / flex
+			// then report 0×0. Do not clobber lastReadingWidth or unpaint the
+			// Trajectory virtual list (D42).
+			if (width < 1 || height < 1) {
+				continue;
+			}
 			const restored = host.lastReadingWidth < 1 && width > 0;
 			host.lastReadingWidth = width;
 			applyConversationWidth(host, width);
@@ -178,6 +195,9 @@ export function bindReadingColumnLayout(host: IConversationLensReadingColumnHost
 export function layoutReadingSurfaces(host: IConversationLensReadingColumnHost, height: number, width: number): void {
 	refreshStaleSnapshotBanner(host);
 	if (host.readingColumn.classList.contains(conversationLensPhasePreFirstClass)) {
+		return;
+	}
+	if (height < 1 || width < 1) {
 		return;
 	}
 	if (host.lensId === 'conversation') {

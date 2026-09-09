@@ -40,6 +40,17 @@ export const conversationLensUserBubbleShowMore = localize('conversationLens.use
 export const conversationLensUserBubbleShowLess = localize('conversationLens.userBubbleShowLess', "Show less");
 export const conversationLensErrorRetry = localize('conversationLens.errorRetry', "Retry");
 
+/**
+ * Composer to mount into the next edit-host during `renderElement`, before ListView
+ * measures the row. Chrome must call this before `setEditingTurnId` so the host is
+ * never measured empty (D27). Cleared when leaving turn-edit.
+ */
+let pendingTurnEditComposer: HTMLElement | undefined;
+
+export function provideTurnEditComposer(composer: HTMLElement | undefined): void {
+	pendingTurnEditComposer = composer;
+}
+
 export class ConversationTimelineDelegate implements IListVirtualDelegate<ConversationTimelineItem> {
 
 	private readonly heights = new Map<string, number>();
@@ -252,12 +263,8 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			this.confirmationSeats.set(turn.id, seat);
 			templateData.container.appendChild(seat.element);
 		} else if (turn.kind === 'thinking' || turn.kind === 'tool') {
-			// Process-fold spans render thinking/tool turns; standalone hits should not occur.
-			const el = append(templateData.container, $('div.conversation-lens-turn.conversation-lens-turn-process'));
-			el.setAttribute('data-kind', turn.kind);
-			el.setAttribute('data-turn-id', turn.id);
-			const summary = append(el, $('.conversation-lens-turn-summary'));
-			summary.textContent = turn.text;
+			// Process-fold spans own thinking/tool; a standalone hit is a fallback, not fold chrome.
+			renderStandaloneThinkingOrToolRow(templateData.container, turn);
 		} else {
 			const el = $('div.conversation-lens-turn');
 			el.setAttribute('data-kind', turn.kind);
@@ -272,9 +279,9 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 					el.classList.add('conversation-lens-turn--editing');
 					const host = append(el, $('.conversation-lens-turn-edit-host'));
 					host.setAttribute('data-turn-id', turn.id);
-					// The composer is re-parented in after this render, so keep the same non-zero
-					// floor scheduleHeightUpdate uses; a 0px row caches a collapsed edited turn.
-					host.style.minHeight = '1px';
+					if (pendingTurnEditComposer) {
+						host.appendChild(pendingTurnEditComposer);
+					}
 					templateData.container.appendChild(el);
 					this.scheduleHeightUpdate(item, templateData.container);
 					return;
@@ -477,6 +484,21 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 }
 
 const UNKNOWN_RAW_CONTENT_PREVIEW_MAX_CHARS = 240;
+
+/**
+ * Honest summary row for a thinking/tool turn that is not inside a process-fold.
+ * No fold chrome (`conversation-lens-turn-process` / chevron) — that path is a stub.
+ */
+export function renderStandaloneThinkingOrToolRow(container: HTMLElement, turn: ConversationStubTurn): void {
+	const el = append(container, $('div.conversation-lens-turn'));
+	el.setAttribute('data-kind', turn.kind);
+	el.setAttribute('data-honest-kind', turn.kind);
+	el.setAttribute('data-turn-id', turn.id);
+	const header = append(el, $('.conversation-lens-turn-header'));
+	header.textContent = getConversationTurnRoleLabel(turn.kind);
+	const body = append(el, $('.conversation-lens-turn-body.conversation-lens-turn-body--honest'));
+	body.textContent = turn.summary ?? turn.text;
+}
 
 export function renderHonestTimelineRow(
 	container: HTMLElement,

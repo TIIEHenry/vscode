@@ -3,9 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { getErrorMessage } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import type { ConversationLens } from './conversationLens.js';
 
 export const IConversationTimelineRevealService = createDecorator<IConversationTimelineRevealService>('conversationTimelineRevealService');
@@ -26,6 +28,12 @@ export class ConversationTimelineRevealService extends Disposable implements ICo
 	private primaryLens: ConversationLens | undefined;
 	private pendingConfirmationScrollScheduled = false;
 
+	constructor(
+		@INotificationService private readonly notificationService: INotificationService,
+	) {
+		super();
+	}
+
 	registerLens(lens: ConversationLens): { dispose(): void } {
 		this.primaryLens = lens;
 		return {
@@ -38,15 +46,28 @@ export class ConversationTimelineRevealService extends Disposable implements ICo
 	}
 
 	revealItem(itemId: string): void {
-		this.primaryLens?.revealTimelineItem(itemId);
+		try {
+			this.primaryLens?.revealTimelineItem(itemId);
+		} catch (error) {
+			this.notificationService.error(getErrorMessage(error));
+		}
 	}
 
 	getAccessibleTurnContent(): string | undefined {
-		return this.primaryLens?.getAccessibleTurnContent();
+		try {
+			return this.primaryLens?.getAccessibleTurnContent();
+		} catch (error) {
+			this.notificationService.error(getErrorMessage(error));
+			return undefined;
+		}
 	}
 
 	focusAccessibleTurn(): void {
-		this.primaryLens?.focusAccessibleTurn();
+		try {
+			this.primaryLens?.focusAccessibleTurn();
+		} catch (error) {
+			this.notificationService.error(getErrorMessage(error));
+		}
 	}
 
 	scrollToFirstPendingConfirmation(): void {
@@ -56,7 +77,11 @@ export class ConversationTimelineRevealService extends Disposable implements ICo
 		this.pendingConfirmationScrollScheduled = true;
 		queueMicrotask(() => {
 			this.pendingConfirmationScrollScheduled = false;
-			this.primaryLens?.scrollToFirstPendingConfirmation();
+			try {
+				this.primaryLens?.scrollToFirstPendingConfirmation();
+			} catch (error) {
+				this.notificationService.error(getErrorMessage(error));
+			}
 		});
 	}
 }

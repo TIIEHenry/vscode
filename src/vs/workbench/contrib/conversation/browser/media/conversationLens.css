@@ -334,6 +334,21 @@
 	color: var(--vscode-descriptionForeground);
 }
 
+.monaco-workbench .part.conversation .conversation-lens-snapshots-write-status {
+	flex-shrink: 0;
+	padding: 8px;
+	font-size: 12px;
+	font-weight: 400;
+	text-transform: none;
+	letter-spacing: normal;
+	color: var(--vscode-errorForeground, var(--vscode-descriptionForeground));
+	border-top: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
+}
+
+.monaco-workbench .part.conversation .conversation-lens-snapshots-write-status[hidden] {
+	display: none;
+}
+
 .monaco-workbench .part.conversation .conversation-lens-snapshots-list {
 	display: flex;
 	flex-direction: column;
@@ -1932,6 +1947,14 @@
 	background: var(--vscode-list-activeSelectionBackground);
 }
 
+.monaco-workbench .part.conversation .conversation-lens-message-queue-list .queue-item.queue-failed {
+	box-shadow: inset 2px 0 0 var(--vscode-errorForeground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-message-queue-list .queue-item.upload-failed {
+	box-shadow: inset 2px 0 0 var(--vscode-charts-orange, var(--vscode-editorWarning-foreground));
+}
+
 .monaco-workbench .part.conversation .conversation-lens-message-queue-list .queue-item-main {
 	flex: 1;
 	min-width: 0;
@@ -1960,6 +1983,11 @@
 
 .monaco-workbench .part.conversation .conversation-lens-message-queue-list .queue-item-meta .tag.upload {
 	color: var(--vscode-textLink-foreground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-message-queue-list .conversation-lens-inbox-queue-retry {
+	flex-shrink: 0;
+	align-self: center;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-inbox-list-empty {
@@ -2287,8 +2315,16 @@
 	left: 12px;
 }
 
-/* Input Maximize — stays inside Conversation column (Desktop §8.3.11) */
-.monaco-workbench .part.conversation .conversation-timeline.conversation-lens-input-maximized:not(:has(.conversation-lens-phase-prefirst)) {
+/* Input Maximize — stays inside Conversation column (Desktop §8.3.11).
+ * Hide only the Conversation tree. Trajectory shares `.conversation-timeline`
+ * and cannot paint virtual rows if the whole slot is `display:none` (D42).
+ * Collapse the shared slot on the Conversation page only so the dock expands.
+ */
+.monaco-workbench .part.conversation .conversation-timeline.conversation-lens-input-maximized:not(:has(.conversation-lens-phase-prefirst)) .conversation-lens-timeline {
+	display: none;
+}
+
+.monaco-workbench .part.conversation .conversation-timeline.conversation-lens-input-maximized:not(:has(.conversation-lens-phase-prefirst)):not(.conversation-lens-showing-trajectory) {
 	display: none;
 }
 

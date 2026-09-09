@@ -506,6 +506,9 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	show(): void {
 		this.visible = true;
 		this.host.hidden = false;
+		if (this.displayItems.length > 0 && this.listHeight > 0 && this.listWidth > 0) {
+			this.list.layout(this.listHeight, this.listWidth);
+		}
 		if (this.lastRevealedRecordId) {
 			this.scrollRecordIntoView(this.lastRevealedRecordId);
 		}
@@ -621,14 +624,18 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 
 	layout(height: number, width: number): void {
 		const wasCollapsed = this.lastLayoutCollapsed;
-		this.lastLayoutCollapsed = width < 1 || height < 1;
+		const collapsed = width < 1 || height < 1;
+		this.lastLayoutCollapsed = collapsed;
+		if (collapsed) {
+			return;
+		}
 		this.listHeight = Math.max(0, height - 200);
 		this.listWidth = width;
 		this.syncInspectorOverlay();
 		if (this.displayItems.length > 0) {
 			this.list.layout(this.listHeight, this.listWidth);
 		}
-		if (wasCollapsed && !this.lastLayoutCollapsed && this.lastRevealedRecordId) {
+		if (wasCollapsed && this.lastRevealedRecordId) {
 			this.scrollRecordIntoView(this.lastRevealedRecordId);
 		}
 	}

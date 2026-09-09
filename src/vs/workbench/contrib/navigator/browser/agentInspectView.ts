@@ -7,6 +7,7 @@ import './media/agentInspect.css';
 import * as dom from '../../../../base/browser/dom.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
+import { getErrorMessage } from '../../../../base/common/errors.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
@@ -15,6 +16,7 @@ import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { IViewPaneOptions, ViewPane } from '../../../browser/parts/views/viewPane.js';
@@ -176,9 +178,14 @@ export class AgentInspectView extends ViewPane {
 		@IHoverService hoverService: IHoverService,
 		@IAgentInspectService private readonly inspectService: IAgentInspectService,
 		@IConversationRosterService private readonly rosterService: IConversationRosterService,
+		@INotificationService private readonly notificationService: INotificationService,
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
-		this.leaseHolder = this._register(new NavigatorSessionLeaseHolder(this.rosterService, () => this.renderTarget()));
+		this.leaseHolder = this._register(new NavigatorSessionLeaseHolder(
+			this.rosterService,
+			() => this.renderTarget(),
+			error => this.notificationService.error(getErrorMessage(error)),
+		));
 		this._register(this.inspectService.onDidChangeTarget(() => this.renderTarget()));
 		this._register(this.inspectService.onDidChangeLiveAgentIds(() => this.renderTarget()));
 	}

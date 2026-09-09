@@ -4,8 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
+import { getErrorMessage } from '../../../../base/common/errors.js';
+import { localize } from '../../../../nls.js';
 import { registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { ForkConversationAction } from '../../chat/browser/actions/chatForkActions.js';
 import { isDefaultCodeWindow } from '../../chat/browser/chatShellRouting.js';
 import { IChatSessionsService } from '../../chat/common/chatSessionsService.js';
@@ -25,8 +28,13 @@ export class ConversationForkConversationAction extends ForkConversationAction {
 			}
 
 			const roster = accessor.get(IConversationRosterService);
+			const notificationService = accessor.get(INotificationService);
 			if (roster.isEngineConnected()) {
-				return roster.forkSubAgent(roster.getActiveSessionId());
+				if (roster.forkSubAgent(roster.getActiveSessionId())) {
+					return true;
+				}
+				notificationService.error(localize('conversationFork.forkSubAgentFailed', "Could not fork conversation."));
+				return true;
 			}
 
 			const chatSessionsService = accessor.get(IChatSessionsService);
@@ -34,10 +42,15 @@ export class ConversationForkConversationAction extends ForkConversationAction {
 				return false;
 			}
 
+			const sessionChatService = accessor.get(IConversationSessionChatService);
 			const cts = new CancellationTokenSource();
 			try {
 				const forkedItem = await chatSessionsService.forkChatSession(sourceSessionResource, request, cts.token);
-				await accessor.get(IConversationSessionChatService).openForkTab(forkedItem.resource, forkedItem.label);
+				try {
+					await sessionChatService.openForkTab(forkedItem.resource, forkedItem.label);
+				} catch (error) {
+					notificationService.error(getErrorMessage(error));
+				}
 				return true;
 			} finally {
 				cts.dispose();
@@ -54,10 +67,16 @@ export class ConversationForkConversationAction extends ForkConversationAction {
 			if (!isDefaultCodeWindow(accessor)) {
 				return super._openForkedSession(instantiationService, parentSessionResource, forkedSessionResource);
 			}
+			const sessionChatService = accessor.get(IConversationSessionChatService);
+			const notificationService = accessor.get(INotificationService);
 			if (accessor.get(IConversationRosterService).isEngineConnected()) {
 				return;
 			}
-			await accessor.get(IConversationSessionChatService).openForkTab(forkedSessionResource);
+			try {
+				await sessionChatService.openForkTab(forkedSessionResource);
+			} catch (error) {
+				notificationService.error(getErrorMessage(error));
+			}
 		});
 	}
 }

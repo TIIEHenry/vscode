@@ -110,6 +110,43 @@ suite('SessionViewHost heartbeat_ack', () => {
 		]);
 	});
 
+	test('resident write throw is swallowed and does not become an unhandled rejection', async () => {
+		class ThrowingResidentChatConnection extends ResidentChatConnection {
+			override openChatStream(
+				sessionId: string,
+				_onResponse: (response: { payload: unknown }) => void,
+				onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+			): { write(payload: unknown): void; dispose(): void } {
+				const handle = super.openChatStream(sessionId, _onResponse, onClosed);
+				return {
+					write: (payload: unknown) => {
+						handle.write(payload);
+						throw new Error('resident write failed');
+					},
+					dispose: () => handle.dispose(),
+				};
+			}
+		}
+
+		const connection = new ThrowingResidentChatConnection();
+		const viewHost = createHost(connection);
+		await leaseAndSettle(viewHost, 'sess-hb-throw');
+
+		const rejections: unknown[] = [];
+		const onUnhandled = (reason: unknown) => { rejections.push(reason); };
+		process.on('unhandledRejection', onUnhandled);
+		try {
+			connection.pushStreamEvent('sess-hb-throw', { heartbeat: {} });
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.deepStrictEqual(rejections, []);
+			assert.deepStrictEqual(connection.residentWrites, [{ openIndex: 0, payload: { heartbeat_ack: {} } }]);
+			assert.deepStrictEqual(connection.chatCalls, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandled);
+		}
+	});
+
 	test('engine already disconnected acks nothing on either path', async () => {
 		const connection = new ResidentChatConnection();
 		const viewHost = createHost(connection);

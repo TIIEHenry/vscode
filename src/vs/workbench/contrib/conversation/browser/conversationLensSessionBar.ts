@@ -23,6 +23,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
 import type { ConversationSessionConfigSelection } from './conversationLensComposerChrome.js';
+import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
 import { showConversationPart } from './conversationSessionStatus.js';
 
 export interface IConversationLensSessionBarHost {
@@ -69,6 +70,7 @@ export interface IConversationLensSessionBarHost {
 	deleteComposerDraftsForSession(sessionId: string): void;
 	refreshSessionSelectOptions(): void;
 	updateSessionTitle(): void;
+	showPostFailure(reason: ConversationComposerPostFailureReason): void;
 }
 
 export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: HTMLElement): void {
@@ -302,7 +304,16 @@ export function commitSessionTitleEdit(host: IConversationLensSessionBarHost): v
 			return;
 		}
 
-		host.stubService.renameSession(sessionId, trimmed);
+		const renamed = host.stubService.renameSession(sessionId, trimmed);
+		if (!renamed) {
+			host.showPostFailure(
+				!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
+					? 'engine_disconnected'
+					: 'failed'
+			);
+			updateSessionTitle(host);
+			return;
+		}
 		updateSessionTitle(host);
 		refreshSessionSelectOptions(host);
 	
@@ -311,6 +322,10 @@ export function commitSessionTitleEdit(host: IConversationLensSessionBarHost): v
 export function createNewSession(host: IConversationLensSessionBarHost): void {
 
 		host.writeComposerDraft(host.getBoundSessionId(), host.dockTextarea.value);
+		if (!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()) {
+			host.showPostFailure('engine_disconnected');
+			return;
+		}
 		host.stubService.createSession();
 	
 }
@@ -318,8 +333,16 @@ export function createNewSession(host: IConversationLensSessionBarHost): void {
 export function deleteActiveSession(host: IConversationLensSessionBarHost): void {
 
 		const sessionId = host.stubService.getActiveSessionId();
+		const deleted = host.stubService.deleteSession(sessionId);
+		if (!deleted) {
+			host.showPostFailure(
+				!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
+					? 'engine_disconnected'
+					: 'failed'
+			);
+			return;
+		}
 		host.deleteComposerDraftsForSession(sessionId);
-		host.stubService.deleteSession(sessionId);
 	
 }
 

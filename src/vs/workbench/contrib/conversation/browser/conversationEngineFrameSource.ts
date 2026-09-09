@@ -54,6 +54,19 @@ export class ConversationEngineFrameSource extends Disposable implements IConver
 		return candidate.whenBindReady?.();
 	}
 
+	/**
+	 * Post on an already-held lease for `sessionId`. Returns undefined when this
+	 * source does not currently hold one (caller may acquire).
+	 */
+	postIfHeld(sessionId: string, msg: ConversationWriteMessage): Promise<PostOutcome> | undefined {
+		for (const lease of this.leases.values()) {
+			if (lease.sessionId === sessionId) {
+				return lease.post(msg);
+			}
+		}
+		return undefined;
+	}
+
 	/** Last replica for a session when a lease is still held (UA disconnect cache). */
 	getCachedProjection(sessionId: string): ConversationSessionViewProjection | undefined {
 		for (const lease of this.leases.values()) {
@@ -91,14 +104,14 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 		super();
 		this.ready = this.sessionView.acquireLease(sessionId).then(id => {
 			if (this.disposed) {
-				void this.sessionView.releaseLease(id);
+				void this.sessionView.releaseLease(id).catch(() => undefined);
 				return false;
 			}
 			this.leaseId = id;
 			this.lifetime.add(this.sessionView.onDynamicDidApplyFrame(id)(event =>
 				this.onHostFrame(event.frame, event.applied)));
 			this.lifetime.add({ dispose: () => {
-				void this.sessionView.releaseLease(id);
+				void this.sessionView.releaseLease(id).catch(() => undefined);
 				this.onRelease(id);
 			} });
 			this.onAcquired(id);
@@ -136,7 +149,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 
 	requestResync(): void {
 		if (this.leaseId) {
-			void this.sessionView.requestResync(this.leaseId);
+			void this.sessionView.requestResync(this.leaseId).catch(() => undefined);
 		}
 	}
 
@@ -194,7 +207,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 				generation: this.cursor.generation,
 				frameId: this.cursor.frameId,
 				appliedVersion: this.cursor.version,
-			});
+			}).catch(() => undefined);
 		}
 	}
 

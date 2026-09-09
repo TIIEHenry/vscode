@@ -7,6 +7,7 @@ import { MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
+import { CommandsRegistry } from '../../../../platform/commands/common/commands.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
@@ -123,7 +124,7 @@ export class ConversationSessionStatusBarContribution extends Disposable impleme
 		const snapshot = this.uaConnection.getConnectionSnapshot();
 		const phase = this.uaConnection.getConnectionPhase();
 		const text = getConnectionPhaseStatusBarText(phase, snapshot.pairingPending);
-		const commandId = getEngineStatusCommandId(phase);
+		const commandId = getEngineStatusCommandId(phase, snapshot.pairingPending);
 		return {
 			name: localize('conversationStatus.engineName', "Engine connection"),
 			text,
@@ -172,5 +173,8 @@ export class ShowConversationPartAction extends Action2 {
 }
 
 export function registerConversationSessionStatusBar(): void {
+	if (CommandsRegistry.getCommand(ShowConversationPartAction.ID)) {
+		return;
+	}
 	registerAction2(ShowConversationPartAction);
 }

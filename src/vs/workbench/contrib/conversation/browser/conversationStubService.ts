@@ -41,6 +41,7 @@ import { ConversationTrajectoryRecord } from './conversationTrajectoryModel.js';
 import {
 	ConversationMessageQueueState,
 	ConversationQueueItemHoldReason,
+	createEmptyMessageQueueState,
 } from './conversationMessageQueueModel.js';
 
 export const IConversationRosterService = createDecorator<IConversationRosterService>('conversationStubService');
@@ -168,6 +169,16 @@ export interface IConversationRosterService {
 	 * fails honestly (`false`) and does not mutate the fixture queue.
 	 */
 	enqueueMessageQueueItem(sessionId: string, text: string, options?: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string }): boolean;
+	/**
+	 * AgentService.RetryQueueItem / RetryQueueItemUpload (Inbox FAILED CTA).
+	 * Engine-connected forwards unary (`upload` omitted / false →
+	 * RetryQueueItem; `{ upload: true }` → RetryQueueItemUpload). Overlay
+	 * FAILED → RetryQueueItem; UPLOAD_FAILED → `{ upload: true }`. Empty
+	 * `itemId` / unknown session / stub / never-connected / disconnected
+	 * cache / missing hook returns false and does not mutate the fixture
+	 * queue. ≠ `retryError` (ContinueGeneration).
+	 */
+	retryMessageQueueItem(sessionId: string, itemId: string, options?: { upload?: boolean }): boolean;
 	/**
 	 * AgentService.EditQueueItem. Engine-connected forwards unary (empty /
 	 * unknown id / disconnected cache false). Stub / never-connected stays local.
@@ -372,6 +383,14 @@ export class ConversationStubService extends Disposable implements IConversation
 		return false;
 	}
 
+	retryMessageQueueItem(_sessionId: string, itemId: string, _options?: { upload?: boolean }): boolean {
+		if (!itemId.trim()) {
+			return false;
+		}
+		// Never-connected: no engine queue. Do not mutate fixture items.
+		return false;
+	}
+
 	deleteSession(sessionId: string): boolean {
 		const previousActive = this.model.getActiveSessionId();
 		const deleted = this.model.deleteSession(sessionId);
@@ -559,10 +578,16 @@ export class ConversationStubService extends Disposable implements IConversation
 	}
 
 	getMessageQueueState(sessionId: string): ConversationMessageQueueState {
+		if (this.hidesMessageQueueFixture()) {
+			return createEmptyMessageQueueState();
+		}
 		return this.model.getMessageQueueState(sessionId);
 	}
 
 	setMessageQueueFixture(sessionId: string, state: ConversationMessageQueueState): void {
+		if (this.hidesMessageQueueFixture()) {
+			return;
+		}
 		this.model.setMessageQueueFixture(sessionId, state);
 		this._onDidChangeSession.fire(sessionId);
 	}
@@ -603,6 +628,14 @@ export class ConversationStubService extends Disposable implements IConversation
 	setAutoDriveTaskFixture(sessionId: string, tasks: readonly string[]): void {
 		this.model.setAutoDriveTaskFixture(sessionId, tasks);
 		this._onDidChangeSession.fire(sessionId);
+	}
+
+	/**
+	 * Connected / disconnected-cache Inbox is not the engine queue — no
+	 * GetQueue RPC. Fixture must not pose as live items.
+	 */
+	protected hidesMessageQueueFixture(): boolean {
+		return this.isEngineConnected() || this.hasEngineConnectionHistory();
 	}
 
 	isEngineConnected(): boolean {

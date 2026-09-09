@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { GrpcStatusCode, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
+import { encodeDetailRef } from '../../common/conversationViewFrame.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
 import { TestConnection, TestHost } from './sessionViewHostTestHelpers.js';
 
@@ -362,5 +363,81 @@ suite('SessionViewHost engine session bind', () => {
 			(error: unknown) => error instanceof UniverseAgentTransportError && error.code === GrpcStatusCode.UNAVAILABLE,
 		);
 		assert.strictEqual(connection.listCalled, false);
+	});
+
+	test('requestDetail bind failure returns failed outcome and does not reject', async () => {
+		const connection = new class extends BindConnection {
+			override async createSession() {
+				this.createSessionCalls.push({});
+				throw new Error('CreateSession refused');
+			}
+			override async resumeSession(request: { sessionId: string }) {
+				this.resumeSessionCalls.push(request);
+				return { ok: false, message: 'dead shell' };
+			}
+		}();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		const leaseId = viewHost.acquireLease('local-detail-fail');
+		const outcome = await viewHost.requestDetail(leaseId, encodeDetailRef({
+			toolCallId: 'tc',
+			detailKind: 1,
+			refId: 'tc',
+		}));
+		assert.strictEqual(outcome.ok, false);
+		if (!outcome.ok) {
+			assert.strictEqual(outcome.reason, 'failed');
+			assert.ok(outcome.message && /CreateSession refused|dead shell/.test(outcome.message));
+		}
+	});
+
+	test('requestDetail fetchToolDetail rejection returns failed and does not leak unhandledRejection', async () => {
+		class ThrowingDetailHost extends TestHost {
+			override async fetchToolDetail(): Promise<never> {
+				throw new Error('fetchToolDetail exploded');
+			}
+		}
+		const connection = new BindConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new ThrowingDetailHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		const leaseId = viewHost.acquireLease('local-detail-throw');
+		const rejections: unknown[] = [];
+		const onUnhandled = (reason: unknown) => { rejections.push(reason); };
+		process.on('unhandledRejection', onUnhandled);
+		try {
+			const outcome = await viewHost.requestDetail(leaseId, encodeDetailRef({
+				toolCallId: 'tc',
+				detailKind: 1,
+				refId: 'tc',
+			}));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.strictEqual(outcome.ok, false);
+			if (!outcome.ok) {
+				assert.strictEqual(outcome.reason, 'failed');
+				assert.ok(outcome.message && /fetchToolDetail exploded/.test(outcome.message));
+			}
+			assert.deepStrictEqual(rejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandled);
+		}
+	});
+
+	test('requestDetail passes through host fetchToolDetail ok:false without rewriting', async () => {
+		const connection = new BindConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		const leaseId = viewHost.acquireLease('local-detail-unavailable');
+		const outcome = await viewHost.requestDetail(leaseId, encodeDetailRef({
+			toolCallId: 'tc',
+			detailKind: 1,
+			refId: 'tc',
+		}));
+		assert.strictEqual(outcome.ok, false);
+		if (!outcome.ok) {
+			assert.strictEqual(outcome.reason, 'unavailable');
+		}
 	});
 });

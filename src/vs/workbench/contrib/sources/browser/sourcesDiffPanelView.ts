@@ -14,7 +14,9 @@ import { DiffEditorWidget } from '../../../../editor/browser/widget/diffEditor/d
 import { IEditorOptions } from '../../../../editor/common/config/editorOptions.js';
 import { ITextModel } from '../../../../editor/common/model.js';
 import { IResolvedTextEditorModel, ITextModelService } from '../../../../editor/common/services/resolverService.js';
+import { getErrorMessage } from '../../../../base/common/errors.js';
 import { localize } from '../../../../nls.js';
+import { CommandsRegistry, ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
@@ -23,10 +25,26 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ViewPane, IViewPaneOptions } from '../../../browser/parts/views/viewPane.js';
 import { EditorModel } from '../../../common/editor/editorModel.js';
 import { IViewDescriptorService } from '../../../common/views.js';
-import { ISourcesChangeRef } from '../common/sourcesChangeRef.js';
+import { ISCMResource, ISCMService } from '../../scm/common/scm.js';
+import { findScmResourceForUri, ISourcesChangeRef, sourcesDiffLocalWritePath } from '../common/sourcesChangeRef.js';
+import {
+	SOURCES_GIT_CLEAN_COMMAND,
+	SOURCES_GIT_STAGE_COMMAND,
+	SOURCES_GIT_UNSTAGE_COMMAND,
+} from '../common/sourcesChangesGit.js';
+import {
+	attemptSourcesGitWrite,
+	canSendSourcesGitApplyHunks,
+	canSendSourcesGitStagePaths,
+	resolveSourcesDiffWriteActions,
+	sourcesGitUnstageUnavailableMessage,
+	tryWriteSourcesGitApplyHunks,
+	tryWriteSourcesGitStagePaths,
+} from '../common/sourcesChangesGitWrite.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import { SOURCES_DIFF_PANEL_VIEW_ID } from './sourcesDiffPanelIds.js';
 
@@ -73,7 +91,14 @@ export class SourcesDiffPanelView extends ViewPane {
 	private bodyContainer: HTMLElement | undefined;
 	private editorContainer: HTMLElement | undefined;
 	private headerElement: HTMLElement | undefined;
+	private headerTitle: HTMLElement | undefined;
+	private stageButton: HTMLButtonElement | undefined;
+	private acceptButton: HTMLButtonElement | undefined;
+	private revertButton: HTMLButtonElement | undefined;
+	private unstageButton: HTMLButtonElement | undefined;
+	private unstageUnavailable: HTMLElement | undefined;
 	private newFileNoticeElement: HTMLElement | undefined;
+	private actionNoticeElement: HTMLElement | undefined;
 	private dimension: dom.Dimension | undefined;
 	private currentRef: ISourcesChangeRef | undefined;
 
@@ -90,6 +115,9 @@ export class SourcesDiffPanelView extends ViewPane {
 		@IHoverService hoverService: IHoverService,
 		@ITextModelService private readonly textModelService: ITextModelService,
 		@ISourcesDiffPanelService private readonly sourcesDiffPanelService: ISourcesDiffPanelService,
+		@ICommandService private readonly commandService: ICommandService,
+		@ISCMService private readonly scmService: ISCMService,
+		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
 		this.element.classList.add('sources-diff-panel');
@@ -98,6 +126,7 @@ export class SourcesDiffPanelView extends ViewPane {
 			this.currentRef = ref;
 			void this.renderRef(ref);
 		}));
+		this._register(this.uaConnection.onDidChangeConnection(() => this.updateWriteActions()));
 
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration('diffEditor.renderSideBySide') && this.diffWidget.value) {
@@ -113,8 +142,29 @@ export class SourcesDiffPanelView extends ViewPane {
 
 		this.bodyContainer = dom.append(container, $('.sources-diff-panel-body'));
 		this.headerElement = dom.append(this.bodyContainer, $('.sources-diff-panel-header'));
+		this.headerTitle = dom.append(this.headerElement, $('.sources-diff-panel-title'));
+		const headerActions = dom.append(this.headerElement, $('.sources-diff-panel-actions'));
+
+		this.stageButton = this.createHeaderAction(headerActions, 'sources-diff-panel-stage', localize('sourcesDiffPanel.stage', "Stage"), () => {
+			void this.runStage();
+		});
+		this.acceptButton = this.createHeaderAction(headerActions, 'sources-diff-panel-accept', localize('sourcesDiffPanel.accept', "Accept"), () => {
+			void this.runAccept();
+		});
+		this.revertButton = this.createHeaderAction(headerActions, 'sources-diff-panel-revert', localize('sourcesDiffPanel.revert', "Revert"), () => {
+			void this.runGitAction(SOURCES_GIT_CLEAN_COMMAND);
+		});
+		this.unstageButton = this.createHeaderAction(headerActions, 'sources-diff-panel-unstage', localize('sourcesDiffPanel.unstage', "Unstage"), () => {
+			void this.runGitAction(SOURCES_GIT_UNSTAGE_COMMAND);
+		});
+		this.unstageUnavailable = dom.append(headerActions, $('span.sources-diff-panel-unstage-unavailable'));
+		this.unstageUnavailable.textContent = sourcesGitUnstageUnavailableMessage();
+		this.unstageUnavailable.style.display = 'none';
+
 		this.newFileNoticeElement = dom.append(this.bodyContainer, $('.sources-diff-panel-new-file-notice'));
 		this.newFileNoticeElement.style.display = 'none';
+		this.actionNoticeElement = dom.append(this.bodyContainer, $('.sources-diff-panel-action-notice'));
+		this.actionNoticeElement.style.display = 'none';
 		this.editorContainer = dom.append(this.bodyContainer, $('.sources-diff-panel-editor'));
 
 		void this.renderRef(this.currentRef);
@@ -126,7 +176,8 @@ export class SourcesDiffPanelView extends ViewPane {
 
 		const headerHeight = this.headerElement?.offsetHeight ?? 0;
 		const noticeHeight = this.newFileNoticeElement?.style.display === 'none' ? 0 : (this.newFileNoticeElement?.offsetHeight ?? 0);
-		const editorHeight = Math.max(0, height - headerHeight - noticeHeight);
+		const actionNoticeHeight = this.actionNoticeElement?.style.display === 'none' ? 0 : (this.actionNoticeElement?.offsetHeight ?? 0);
+		const editorHeight = Math.max(0, height - headerHeight - noticeHeight - actionNoticeHeight);
 		const editorDimension = new dom.Dimension(width, editorHeight);
 
 		this.diffWidget.value?.layout(editorDimension);
@@ -146,18 +197,22 @@ export class SourcesDiffPanelView extends ViewPane {
 		this.bodyDisposables.clear();
 		this.clearEditors();
 
-		if (!this.headerElement || !this.newFileNoticeElement || !this.editorContainer) {
+		if (!this.headerElement || !this.headerTitle || !this.newFileNoticeElement || !this.editorContainer) {
 			return;
 		}
+
+		this.hideActionNotice();
 
 		if (!ref) {
-			this.headerElement.textContent = '';
+			this.headerTitle.textContent = '';
+			this.headerTitle.title = '';
 			this.newFileNoticeElement.style.display = 'none';
+			this.updateWriteActions();
 			return;
 		}
 
-		this.headerElement.textContent = basename(ref.modified);
-		this.headerElement.title = ref.modified.fsPath;
+		this.headerTitle.textContent = basename(ref.modified);
+		this.headerTitle.title = ref.modified.fsPath;
 
 		if (!ref.original) {
 			this.newFileNoticeElement.textContent = localize('sourcesDiffPanel.newFile', "New file with no previous version to compare.");
@@ -171,6 +226,189 @@ export class SourcesDiffPanelView extends ViewPane {
 		if (this.dimension) {
 			this.layoutBody(this.dimension.height, this.dimension.width);
 		}
+		this.updateWriteActions();
+	}
+
+	private createHeaderAction(parent: HTMLElement, className: string, label: string, onClick: () => void): HTMLButtonElement {
+		const button = dom.append(parent, $(`button.${className}`)) as HTMLButtonElement;
+		button.type = 'button';
+		button.textContent = label;
+		button.style.display = 'none';
+		button.addEventListener('click', onClick);
+		return button;
+	}
+
+	private getWriteContext(): { groupId: string; scmResource: ISCMResource | undefined; path: string } | undefined {
+		const ref = this.currentRef;
+		if (!ref) {
+			return undefined;
+		}
+		const match = ref.scmResource
+			? { resource: ref.scmResource, groupId: ref.groupId }
+			: findScmResourceForUri(this.scmService, ref.modified);
+		return {
+			groupId: match?.groupId || ref.groupId,
+			scmResource: match?.resource,
+			path: sourcesDiffLocalWritePath({
+				modified: ref.modified,
+				scmResource: match?.resource ?? ref.scmResource,
+			}),
+		};
+	}
+
+	private updateWriteActions(): void {
+		if (!this.stageButton || !this.acceptButton || !this.revertButton || !this.unstageButton || !this.unstageUnavailable) {
+			return;
+		}
+
+		const context = this.getWriteContext();
+		if (!context) {
+			this.stageButton.style.display = 'none';
+			this.acceptButton.style.display = 'none';
+			this.revertButton.style.display = 'none';
+			this.unstageButton.style.display = 'none';
+			this.unstageUnavailable.style.display = 'none';
+			return;
+		}
+
+		const actions = resolveSourcesDiffWriteActions({
+			groupId: context.groupId,
+			hasScmResource: !!context.scmResource,
+			canWriteStage: canSendSourcesGitStagePaths(
+				this.uaConnection.isEngineConnected(),
+				typeof this.uaConnection.writeGitStagePaths === 'function',
+			),
+			canWriteAccept: canSendSourcesGitApplyHunks(
+				this.uaConnection.isEngineConnected(),
+				typeof this.uaConnection.writeGitApplyHunks === 'function',
+			),
+			hasGitStageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND),
+			hasGitUnstageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_UNSTAGE_COMMAND),
+			hasGitCleanCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_CLEAN_COMMAND),
+		});
+
+		this.stageButton.style.display = actions.showStage ? '' : 'none';
+		this.acceptButton.style.display = actions.showAccept ? '' : 'none';
+		this.revertButton.style.display = actions.showRevert ? '' : 'none';
+		this.unstageButton.style.display = actions.showUnstage ? '' : 'none';
+		this.unstageUnavailable.style.display = actions.unstageUnavailable ? '' : 'none';
+	}
+
+	private async runStage(): Promise<void> {
+		const context = this.getWriteContext();
+		if (!context) {
+			return;
+		}
+
+		const hook = this.uaConnection.writeGitStagePaths;
+		try {
+			const attempt = await attemptSourcesGitWrite(() => tryWriteSourcesGitStagePaths(
+				this.uaConnection.isEngineConnected(),
+				hook ? request => hook.call(this.uaConnection, request) : undefined,
+				[context.path],
+			));
+			if (attempt.kind === 'accepted') {
+				this.hideActionNotice();
+				this.updateWriteActions();
+				return;
+			}
+			if (attempt.kind === 'failed') {
+				this.showActionNotice(attempt.detail);
+				this.updateWriteActions();
+				return;
+			}
+		} catch (error) {
+			this.showActionNotice(getErrorMessage(error));
+			this.updateWriteActions();
+			return;
+		}
+
+		if (context.scmResource) {
+			await this.runGitAction(SOURCES_GIT_STAGE_COMMAND);
+			return;
+		}
+
+		if (canSendSourcesGitStagePaths(
+			this.uaConnection.isEngineConnected(),
+			typeof this.uaConnection.writeGitStagePaths === 'function',
+		)) {
+			this.showActionNotice(localize('sourcesDiffPanel.stageUnavailable', "Git stage is not available."));
+		}
+		this.updateWriteActions();
+	}
+
+	private async runAccept(): Promise<void> {
+		const context = this.getWriteContext();
+		if (!context) {
+			return;
+		}
+
+		const hook = this.uaConnection.writeGitApplyHunks;
+		try {
+			const attempt = await attemptSourcesGitWrite(() => tryWriteSourcesGitApplyHunks(
+				this.uaConnection.isEngineConnected(),
+				hook ? request => hook.call(this.uaConnection, request) : undefined,
+			));
+			if (attempt.kind === 'accepted') {
+				this.hideActionNotice();
+				this.updateWriteActions();
+				return;
+			}
+			if (attempt.kind === 'failed') {
+				this.showActionNotice(attempt.detail);
+				this.updateWriteActions();
+				return;
+			}
+		} catch (error) {
+			this.showActionNotice(getErrorMessage(error));
+			this.updateWriteActions();
+			return;
+		}
+
+		if (context.scmResource) {
+			await this.runGitAction(SOURCES_GIT_STAGE_COMMAND);
+			return;
+		}
+
+		if (canSendSourcesGitApplyHunks(
+			this.uaConnection.isEngineConnected(),
+			typeof this.uaConnection.writeGitApplyHunks === 'function',
+		)) {
+			this.showActionNotice(localize('sourcesDiffPanel.acceptUnavailable', "Git accept is not available."));
+		}
+		this.updateWriteActions();
+	}
+
+	private async runGitAction(commandId: string): Promise<void> {
+		const context = this.getWriteContext();
+		if (!context?.scmResource) {
+			return;
+		}
+
+		try {
+			await this.commandService.executeCommand(commandId, context.scmResource);
+			this.hideActionNotice();
+		} catch (error) {
+			this.showActionNotice(getErrorMessage(error));
+		} finally {
+			this.updateWriteActions();
+		}
+	}
+
+	private showActionNotice(message: string): void {
+		if (!this.actionNoticeElement) {
+			return;
+		}
+		this.actionNoticeElement.textContent = message;
+		this.actionNoticeElement.style.display = '';
+	}
+
+	private hideActionNotice(): void {
+		if (!this.actionNoticeElement) {
+			return;
+		}
+		this.actionNoticeElement.textContent = '';
+		this.actionNoticeElement.style.display = 'none';
 	}
 
 	private showLoadNotice(message: string): void {

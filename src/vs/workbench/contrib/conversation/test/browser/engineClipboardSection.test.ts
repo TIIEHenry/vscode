@@ -14,7 +14,7 @@ import type {
 	UniverseAgentWriteClipboardRequest,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { ENGINE_CLIPBOARD_CLEAR_LABEL, ENGINE_CLIPBOARD_READ_LABEL, ENGINE_CLIPBOARD_WRITE_LABEL } from '../../browser/engineClipboardList.js';
+import { ENGINE_CLIPBOARD_CLEAR_LABEL, ENGINE_CLIPBOARD_READ_LABEL, ENGINE_CLIPBOARD_WRITE_LABEL, formatEngineClipboardClearLabel, formatEngineClipboardWriteLabel } from '../../browser/engineClipboardList.js';
 import { EngineClipboardSection } from '../../browser/engineClipboardSection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 
@@ -322,6 +322,88 @@ suite('EngineClipboardSection', () => {
 		pane.getDomNode().parentElement?.remove();
 	});
 
+	test('WriteClipboard success refreshes so the written row appears', async () => {
+		let written = false;
+		let listClipboardCalls = 0;
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listClipboard: async (): Promise<UniverseAgentListClipboardResult> => {
+				listClipboardCalls++;
+				if (written) {
+					return {
+						entries: [{
+							clipId: '  new  ',
+							label: '',
+							type: 'CLIPBOARD_TEXT',
+							createdBy: '',
+							createdAt: 0,
+						}],
+					};
+				}
+				return { entries: [] };
+			},
+			writeClipboard: async () => {
+				written = true;
+				return { clipId: '  new  ' };
+			},
+		}));
+		await flushMicrotasks();
+		assert.strictEqual(listClipboardCalls, 1);
+		assert.strictEqual(pane.getDomNode().querySelector('.engine-clipboard-row'), null);
+		const write = findActionButton(pane.getDomNode(), ENGINE_CLIPBOARD_WRITE_LABEL);
+		assert.ok(write);
+		write.click();
+		await flushMicrotasks();
+		assert.ok(listClipboardCalls >= 2);
+		const row = pane.getDomNode().querySelector('.engine-clipboard-row');
+		assert.ok(row);
+		const writeStatus = pane.getDomNode().querySelector('.engine-clipboard-write-status') as HTMLElement | null;
+		assert.ok(writeStatus);
+		assert.strictEqual(writeStatus.textContent, formatEngineClipboardWriteLabel('  new  '));
+		assert.notStrictEqual(writeStatus.style.display, 'none');
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('WriteClipboard throw paints write-status and leaves the row', async () => {
+		let listClipboardCalls = 0;
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listClipboard: async (): Promise<UniverseAgentListClipboardResult> => {
+				listClipboardCalls++;
+				return {
+					entries: [{
+						clipId: '  clip  ',
+						label: '  Note  ',
+						type: 'CLIPBOARD_TEXT',
+						createdBy: '',
+						createdAt: 0,
+					}],
+				};
+			},
+			writeClipboard: async () => {
+				throw new Error('boom');
+			},
+		}));
+		await flushMicrotasks();
+		assert.strictEqual(listClipboardCalls, 1);
+		const row = pane.getDomNode().querySelector('.engine-clipboard-row') as HTMLElement | null;
+		assert.ok(row);
+		const write = findActionButton(pane.getDomNode(), ENGINE_CLIPBOARD_WRITE_LABEL);
+		assert.ok(write);
+		write.click();
+		await flushMicrotasks();
+		assert.strictEqual(listClipboardCalls, 1);
+		const leftover = pane.getDomNode().querySelector('.engine-clipboard-row');
+		assert.ok(leftover);
+		const writeStatus = pane.getDomNode().querySelector('.engine-clipboard-write-status') as HTMLElement | null;
+		assert.ok(writeStatus);
+		assert.strictEqual(writeStatus.textContent, 'boom');
+		assert.notStrictEqual(writeStatus.style.display, 'none');
+		pane.getDomNode().parentElement?.remove();
+	});
+
 	test('Clear does not send when disconnected or hook missing', async () => {
 		const clearCalls: UniverseAgentClearClipboardRequest[] = [];
 		const disconnected = mountSection(createConversationConnectionTestStub({
@@ -370,6 +452,89 @@ suite('EngineClipboardSection', () => {
 		await flushMicrotasks();
 		assert.deepStrictEqual(clearCalls, [{ sessionId: '' }]);
 		assert.ok((pane.getDomNode().textContent ?? '').includes('0'));
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('ClearClipboard success refreshes so the cleared row is gone', async () => {
+		let cleared = false;
+		let listClipboardCalls = 0;
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listClipboard: async (): Promise<UniverseAgentListClipboardResult> => {
+				listClipboardCalls++;
+				if (cleared) {
+					return { entries: [] };
+				}
+				return {
+					entries: [{
+						clipId: '  clip  ',
+						label: '  Note  ',
+						type: 'CLIPBOARD_TEXT',
+						createdBy: '',
+						createdAt: 0,
+					}],
+				};
+			},
+			clearClipboard: async () => {
+				cleared = true;
+				return { removedCount: 1 };
+			},
+		}));
+		await flushMicrotasks();
+		assert.strictEqual(listClipboardCalls, 1);
+		const row = pane.getDomNode().querySelector('.engine-clipboard-row') as HTMLElement | null;
+		assert.ok(row);
+		const clear = findActionButton(pane.getDomNode(), ENGINE_CLIPBOARD_CLEAR_LABEL);
+		assert.ok(clear);
+		clear.click();
+		await flushMicrotasks();
+		assert.ok(listClipboardCalls >= 2);
+		assert.strictEqual(pane.getDomNode().querySelector('.engine-clipboard-row'), null);
+		assert.ok((pane.getDomNode().textContent ?? '').includes('No clipboard entries.'));
+		const clearStatus = pane.getDomNode().querySelector('.engine-clipboard-clear-status') as HTMLElement | null;
+		assert.ok(clearStatus);
+		assert.strictEqual(clearStatus.textContent, formatEngineClipboardClearLabel(1));
+		assert.notStrictEqual(clearStatus.style.display, 'none');
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('ClearClipboard throw paints clear-status and leaves the row', async () => {
+		let listClipboardCalls = 0;
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listClipboard: async (): Promise<UniverseAgentListClipboardResult> => {
+				listClipboardCalls++;
+				return {
+					entries: [{
+						clipId: '  clip  ',
+						label: '  Note  ',
+						type: 'CLIPBOARD_TEXT',
+						createdBy: '',
+						createdAt: 0,
+					}],
+				};
+			},
+			clearClipboard: async () => {
+				throw new Error('boom');
+			},
+		}));
+		await flushMicrotasks();
+		assert.strictEqual(listClipboardCalls, 1);
+		const row = pane.getDomNode().querySelector('.engine-clipboard-row') as HTMLElement | null;
+		assert.ok(row);
+		const clear = findActionButton(pane.getDomNode(), ENGINE_CLIPBOARD_CLEAR_LABEL);
+		assert.ok(clear);
+		clear.click();
+		await flushMicrotasks();
+		assert.strictEqual(listClipboardCalls, 1);
+		const leftover = pane.getDomNode().querySelector('.engine-clipboard-row');
+		assert.ok(leftover);
+		const clearStatus = pane.getDomNode().querySelector('.engine-clipboard-clear-status') as HTMLElement | null;
+		assert.ok(clearStatus);
+		assert.strictEqual(clearStatus.textContent, 'boom');
+		assert.notStrictEqual(clearStatus.style.display, 'none');
 		pane.getDomNode().parentElement?.remove();
 	});
 });

@@ -30,6 +30,8 @@ import {
 	sourcesGitChangesRequest,
 	sourcesGitFileDiffRequest,
 	sourcesGitSummaryRequest,
+	sourcesGitDiffOpenFailureMessage,
+	sourcesGitReadFailureMessage,
 	tryLoadSourcesGitChangeEntries,
 	tryReadSourcesGitChanges,
 	tryReadSourcesGitFileDiff,
@@ -235,6 +237,18 @@ suite('Sources - Changes git read', () => {
 
 	const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../../..');
 
+	test('git read failure message is honest and keeps the error text', () => {
+		const message = sourcesGitReadFailureMessage(new Error('boom'));
+		assert.ok(message.includes('Unable to read git changes'));
+		assert.ok(message.includes('boom'));
+	});
+
+	test('git diff open failure message is honest and keeps the error text', () => {
+		const message = sourcesGitDiffOpenFailureMessage(new Error('boom'));
+		assert.ok(message.includes('Unable to open diff'));
+		assert.ok(message.includes('boom'));
+	});
+
 	test('Changes and Review lists read Git when connected; FileDiff is open-time only', () => {
 		const changes = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts'), 'utf8');
 		const review = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts'), 'utf8');
@@ -246,6 +260,12 @@ suite('Sources - Changes git read', () => {
 		assert.ok(review.includes('tryLoadSourcesGitChangeEntries'));
 		assert.ok(review.includes('tryReadSourcesGitFileDiff'));
 		assert.ok(review.includes('collectSourcesReviewEntries'));
+		assert.ok(review.includes('sourcesGitReadFailureMessage'));
+		assert.ok(review.includes('sourcesGitDiffOpenFailureMessage'));
+		assert.ok(review.includes('sources-review-status'));
+		assert.ok(review.includes('gitReadError'));
+		assert.ok(changes.includes('sourcesGitReadFailureMessage'));
+		assert.ok(changes.includes('sourcesGitDiffOpenFailureMessage'));
 		assert.ok(open.includes('needsSourcesGitFileDiff'));
 		assert.ok(open.includes('readGitFileDiff'));
 

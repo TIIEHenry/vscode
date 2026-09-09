@@ -21,6 +21,7 @@ import {
 	encodeListDevicesRequest,
 	encodeListModelsRequest,
 	encodeListSessionsRequest,
+	encodeProbeRpcRequest,
 	SESSION_LIST_FILTER_ALL,
 } from '../../node/grpc/grpcCatalogUnaryWire.js';
 import { mapListSessionsResponse } from '../../node/grpc/grpcClientMappers.js';
@@ -41,6 +42,16 @@ suite('grpc catalog unary protobuf wire', () => {
 		assert.strictEqual(encodeEmptyProtoMessage().length, 0);
 		assert.ok(encoded !== undefined);
 		const framed = asUnaryProtoBytes(EMPTY_PROTO_MESSAGE);
+		assert.ok(Buffer.isBuffer(framed));
+		assert.strictEqual(framed.length, 0);
+		assert.notStrictEqual(framed[0], 0x7b);
+	});
+
+	test('encodeProbeRpcRequest is empty proto, not JSON {}', () => {
+		const encoded = encodeProbeRpcRequest();
+		assert.strictEqual(encoded.length, 0);
+		assert.notStrictEqual(JSON.stringify({}), Buffer.from(encoded).toString('utf8'));
+		const framed = asUnaryProtoBytes(encoded);
 		assert.ok(Buffer.isBuffer(framed));
 		assert.strictEqual(framed.length, 0);
 		assert.notStrictEqual(framed[0], 0x7b);

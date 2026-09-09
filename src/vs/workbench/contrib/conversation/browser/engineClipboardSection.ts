@@ -255,6 +255,9 @@ export class EngineClipboardSection extends Disposable {
 			const result = await hook.call(this.connection, request);
 			this.writeStatus.textContent = formatEngineClipboardWriteLabel(result.clipId);
 			this.writeStatus.style.display = '';
+			await this.refresh();
+			this.writeStatus.textContent = formatEngineClipboardWriteLabel(result.clipId);
+			this.writeStatus.style.display = '';
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.writeStatus.textContent = reason;
@@ -287,6 +290,9 @@ export class EngineClipboardSection extends Disposable {
 		const request = engineClipboardClearRequest();
 		try {
 			const result = await hook.call(this.connection, request);
+			this.clearStatus.textContent = formatEngineClipboardClearLabel(result.removedCount);
+			this.clearStatus.style.display = '';
+			await this.refresh();
 			this.clearStatus.textContent = formatEngineClipboardClearLabel(result.removedCount);
 			this.clearStatus.style.display = '';
 		} catch (error) {

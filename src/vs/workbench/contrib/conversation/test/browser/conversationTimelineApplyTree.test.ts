@@ -13,6 +13,7 @@ import { IWebviewService } from '../../../webview/browser/webview.js';
 import { stubTurnsToEntries } from '../../browser/conversationSessionView.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import { ConversationTimelineTree } from '../../browser/conversationTimelineTree.js';
+import { provideTurnEditComposer } from '../../browser/conversationTimelineRenderer.js';
 
 /**
  * Acceptance matrix for the three frame classes of
@@ -91,6 +92,16 @@ suite('ConversationTimelineTree applyEntries (plan §3.4)', () => {
 		tree.applyEntries(stubTurnsToEntries(turns), { kind: 'baseline' });
 		tree.resetTestApplyMetrics();
 		return tree;
+	}
+
+	function hostEditComposer(): HTMLElement {
+		const composer = document.createElement('div');
+		composer.className = 'conversation-lens-composer';
+		composer.style.minHeight = '48px';
+		composer.textContent = 'edit';
+		provideTurnEditComposer(composer);
+		store.add(toDisposable(() => provideTurnEditComposer(undefined)));
+		return composer;
 	}
 
 	test('type A — content patch rerenders only the changed rows and never resets children', () => {
@@ -179,6 +190,7 @@ suite('ConversationTimelineTree applyEntries (plan §3.4)', () => {
 		const before = [tree.getTimelineRowElement('u1'), tree.getTimelineRowElement('a1')];
 		assert.ok(before[0] && before[1]);
 
+		hostEditComposer();
 		tree.setEditingTurnId('u1');
 
 		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 0, rerenderCount: 1 });
@@ -190,6 +202,7 @@ suite('ConversationTimelineTree applyEntries (plan §3.4)', () => {
 
 	test('type A — switching and clearing edit only rerenders the affected rows', () => {
 		const tree = seed([user('u1', 'hello'), user('u2', 'there'), assistant('a1', 'one')]);
+		hostEditComposer();
 		tree.setEditingTurnId('u1');
 		tree.resetTestApplyMetrics();
 
@@ -197,6 +210,7 @@ suite('ConversationTimelineTree applyEntries (plan §3.4)', () => {
 		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 0, rerenderCount: 2 });
 
 		tree.resetTestApplyMetrics();
+		provideTurnEditComposer(undefined);
 		tree.setEditingTurnId(undefined);
 		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 0, rerenderCount: 1 });
 	});
@@ -271,5 +285,16 @@ suite('ConversationTimelineTree applyEntries (plan §3.4)', () => {
 
 		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 1, rerenderCount: 0 });
 		assert.ok(tree.getTimelineRowElement('a2'));
+	});
+
+	test('empty and zero-height tree does not throw when reading visible indices (D34)', () => {
+		const empty = createTree();
+		assert.doesNotThrow(() => empty.layout(0, TREE_WIDTH));
+		assert.doesNotThrow(() => empty.refreshScrollChrome());
+
+		const seeded = seed([user('u1', 'hello'), assistant('a1', 'one')]);
+		assert.doesNotThrow(() => seeded.layout(0, TREE_WIDTH));
+		assert.doesNotThrow(() => seeded.refreshScrollChrome());
+		assert.doesNotThrow(() => seeded.layout(TREE_HEIGHT, TREE_WIDTH));
 	});
 });
