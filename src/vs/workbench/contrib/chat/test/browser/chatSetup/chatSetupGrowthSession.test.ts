@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../../base/common/uri.js';
@@ -110,6 +111,26 @@ suite('GrowthSessionController', () => {
 		const controller = disposables.add(instantiationService.createInstance(GrowthSessionController));
 		await controller.refresh();
 		assert.strictEqual(controller.items.length, 1);
+	});
+
+	test('does not leak unhandled rejection when lifecycle.when rejects', async () => {
+		instantiationService.stub(ILifecycleService, {
+			when: async () => { throw new Error('boom'); },
+		} as ILifecycleService);
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			disposables.add(instantiationService.createInstance(GrowthSessionController));
+			await new Promise<void>(r => setTimeout(r, 0));
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });
 
