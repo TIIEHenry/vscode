@@ -164,7 +164,7 @@ summary: "fix/gate-recovery 已合入 loop/merge。合入后 tsgo 夹具已清�
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `71f5ed0b495`+ | 12 测类型 | 0 | compile 0；**不 push**；人类工位未 cascade |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `2c430835ca7` | `__pycache__` | 0 | compile 0；**不 push**；人类工位未 cascade |
 | A | `vscode-WorkTrees/A` | `loop/A` | `b2d8bc37f08` | `__pycache__` | 0 | idle；切片已停，勿占 |
 | B | `vscode-WorkTrees/B` | `loop/B` | `b2d8bc37f08` | `__pycache__` | 0 | idle；切片已停，勿占 |
 | C | `vscode-WorkTrees/C` | `loop/C` | `b2d8bc37f08` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
