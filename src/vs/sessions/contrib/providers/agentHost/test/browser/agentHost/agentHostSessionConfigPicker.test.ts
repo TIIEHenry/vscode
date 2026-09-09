@@ -4,7 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../../../base/common/async.js';
 import { Codicon } from '../../../../../../../base/common/codicons.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../../../base/common/event.js';
 import { constObservable, IObservable, observableValue } from '../../../../../../../base/common/observable.js';
 import { URI } from '../../../../../../../base/common/uri.js';
@@ -708,5 +710,61 @@ suite('Agent Host Session Config Picker', () => {
 		picker.render(container);
 
 		assert.strictEqual(container.querySelectorAll('.sessions-chat-picker-slot').length, 2, 'only the Dev Container and isolation checkboxes render, not a worktreeBranchTrack chip');
+	});
+
+	test('does not leak unhandled rejection when auto-approve confirm prompt rejects', async () => {
+		const services = setupServices(store);
+		const { instantiationService, provider, actionWidget } = services;
+
+		instantiationService.stub(IDialogService, {
+			prompt: async () => { throw new Error('boom'); },
+		} as Partial<IDialogService> as IDialogService);
+		instantiationService.stub(IStorageService, new (class extends mock<IStorageService>() {
+			override getBoolean(): boolean { return false; }
+		})());
+		instantiationService.stub(IConfigurationService, new (class extends mock<IConfigurationService>() {
+			override inspect() { return {}; }
+		})());
+
+		provider.config = {
+			schema: {
+				type: 'object',
+				properties: {
+					[SessionConfigKey.Isolation]: {
+						title: 'Isolation', description: '', type: 'string',
+						enum: ['folder', 'worktree'], enumLabels: ['Folder', 'Worktree'],
+						default: 'worktree',
+					},
+					[SessionConfigKey.AutoApprove]: {
+						title: 'Approvals', description: '', type: 'string',
+						enum: ['assisted', 'custom'], enumLabels: ['Assisted', 'Custom'],
+					},
+				},
+			},
+			values: { [SessionConfigKey.AutoApprove]: 'custom', [SessionConfigKey.Isolation]: 'worktree' },
+		} as ResolveSessionConfigResult;
+
+		const { container } = renderPicker(store, services);
+		const slots = Array.from(container.querySelectorAll<HTMLElement>('.sessions-chat-picker-slot'))
+			.filter(slot => !slot.classList.contains('sessions-chat-config-checkbox'));
+		const approvalsSlot = slots.find(slot => slot.querySelector('a.action-label')?.getAttribute('aria-label')?.includes('Approvals')) ?? slots[0];
+		approvalsSlot!.querySelector<HTMLElement>('a.action-label')!
+			.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+		await timeout(0);
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			actionWidget.delegate!.onSelect({ value: 'assisted', label: 'Assisted' });
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(provider.setSessionConfigValueCalls, 0);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });
