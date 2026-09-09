@@ -6,7 +6,7 @@
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { raceCancellationError, raceTimeout } from '../../../../../base/common/async.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
-import { CancellationError } from '../../../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../../../base/common/errors.js';
 import { IMarkdownString, MarkdownString, markdownStringEqual } from '../../../../../base/common/htmlContent.js';
 import { Disposable, DisposableStore, IDisposable, DisposableMap, MutableDisposable } from '../../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../../base/common/network.js';
@@ -1121,14 +1121,17 @@ class AgentSessionAdapter implements ICopilotChatSession {
 			return cached;
 		}
 
-		const lookup = this._gitHubService.findPullRequestNumberByHeadBranch(owner, repo, branch);
+		const lookup = this._gitHubService.findPullRequestNumberByHeadBranch(owner, repo, branch).catch(error => {
+			onUnexpectedError(error);
+			return undefined;
+		});
 		const observable = observableFromPromise(lookup);
 		this._pullRequestNumberCache.set(key, observable);
 		lookup.then(pullRequestNumber => {
 			if (pullRequestNumber === undefined && this._pullRequestNumberCache.get(key) === observable) {
 				this._pullRequestNumberCache.delete(key);
 			}
-		});
+		}).catch(onUnexpectedError);
 		return observable;
 	}
 
