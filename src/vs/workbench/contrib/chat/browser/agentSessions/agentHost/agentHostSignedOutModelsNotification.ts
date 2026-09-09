@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { disposableTimeout } from '../../../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Disposable, DisposableStore, MutableDisposable } from '../../../../../../base/common/lifecycle.js';
 import { Event } from '../../../../../../base/common/event.js';
 import { localize } from '../../../../../../nls.js';
@@ -106,7 +107,7 @@ export class AgentHostSignedOutModelsNotificationContribution extends Disposable
 				this._accountResolved = true;
 				this._update();
 			}
-		});
+		}).catch(onUnexpectedError);
 		this._register(Event.any(
 			this._chatEntitlementService.onDidChangeEntitlement,
 			this._languageModelsService.onDidChangeLanguageModels,
@@ -124,13 +125,13 @@ export class AgentHostSignedOutModelsNotificationContribution extends Disposable
 				this._extensionsRegistered = true;
 				this._update();
 			}
-		});
+		}).catch(onUnexpectedError);
 		this._languageModelsConfigurationService.whenReady.then(() => {
 			if (!this._store.isDisposed) {
 				this._configurationLoaded = true;
 				this._update();
 			}
-		});
+		}).catch(onUnexpectedError);
 		const rootStateListeners = this._register(new DisposableStore());
 		const bindRootState = () => {
 			rootStateListeners.clear();

@@ -5,6 +5,8 @@
 
 import assert from 'assert';
 import * as sinon from 'sinon';
+import { timeout } from '../../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
 import { AgentHostAllowSignedOutWhenUsableSettingId, IAgentHostService } from '../../../../../../platform/agentHost/common/agentService.js';
@@ -137,6 +139,49 @@ suite('AgentHostSignedOutModelsNotification', () => {
 
 		assert.strictEqual(fixture.notifications.isShown(), false);
 		fixture.clock.restore();
+	});
+
+	test('does not leak unhandled rejection when getDefaultAccount rejects', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		let contribution: AgentHostSignedOutModelsNotificationContribution | undefined;
+		try {
+			const notifications = new TestChatInputNotificationService();
+			const languageModels = new TestLanguageModelsService(['anthropic']);
+			const languageModelsConfiguration = new TestLanguageModelsConfigurationService([]);
+			const chatEntitlement = new TestChatEntitlementService(ChatEntitlement.Unknown);
+			const configuration = new TestConfigurationService();
+			configuration.setUserConfiguration(AgentHostAllowSignedOutWhenUsableSettingId, true);
+
+			const instantiationService = store.add(new TestInstantiationService());
+			instantiationService.stub(IChatInputNotificationService, notifications);
+			instantiationService.stub(IDefaultAccountService, {
+				onDidChangeDefaultAccount: Event.None,
+				currentDefaultAccount: null,
+				getDefaultAccount: async () => { throw new Error('boom'); },
+			});
+			instantiationService.stub(ILanguageModelsService, languageModels);
+			instantiationService.stub(ILanguageModelsConfigurationService, languageModelsConfiguration);
+			instantiationService.stub(IAgentHostService, {
+				onAgentHostStart: Event.None,
+				rootState: new TestRootStateSubscription({ agents: [{ provider: 'copilotcli' }] } as RootState),
+			});
+			instantiationService.stub(IConfigurationService, configuration);
+			instantiationService.stub(IChatEntitlementService, chatEntitlement);
+			instantiationService.stub(IContextKeyService, store.add(new MockContextKeyService()));
+			instantiationService.stub(IExtensionService, { whenInstalledExtensionsRegistered: () => Promise.resolve(true) });
+
+			contribution = instantiationService.createInstance(AgentHostSignedOutModelsNotificationContribution);
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+			contribution?.dispose();
+		}
 	});
 
 	async function createFixture(options: { configuredVendors?: string[]; resolvedVendors?: string[]; entitlement?: ChatEntitlement } = {}) {
