@@ -741,7 +741,7 @@ export class WorkspacePicker extends Disposable {
 			item.run();
 			return true;
 		} else if (item.commandId) {
-			void this.commandService.executeCommand(item.commandId);
+			void this.commandService.executeCommand(item.commandId).catch(onUnexpectedError);
 			return true;
 		} else if (item.folderUri && item.providerId && this._isProviderUnavailable(item.providerId)) {
 			// Workspace belongs to an unavailable remote — ignore selection
