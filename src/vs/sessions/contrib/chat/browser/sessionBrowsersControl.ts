@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { derived, derivedOpts, IObservable, IReader, observableSignal, observableValue } from '../../../../base/common/observable.js';
 import { isEqual } from '../../../../base/common/resources.js';
@@ -151,7 +152,7 @@ export class SessionBrowsersControl extends Disposable {
 			id: input?.id ?? label,
 			label,
 			icon: Codicon.globe,
-			open: () => { void this._openBrowser(input, chat); },
+			open: () => { void this._openBrowser(input, chat).catch(onUnexpectedError); },
 		};
 	}
 
