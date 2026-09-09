@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -1991,6 +1993,37 @@ suite('ConnectionPreferencesPane', () => {
 		const status = container.querySelector('.connection-test-status');
 		assert.ok(status?.textContent?.startsWith('Reachable —'));
 		container.remove();
+	});
+
+	test('Test Connection probeEngine throw does not leak unhandled rejection', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		const pane = mountPane(undefined, {
+			probeEngine: async () => {
+				throw new Error('boom');
+			},
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+		});
+		const container = pane.getDomNode();
+		try {
+			assert.strictEqual((pane as unknown as { activeProfileId?: string }).activeProfileId, undefined);
+			const testButton = container.querySelector('.connection-test-row .monaco-button') as HTMLButtonElement | null;
+			assert.ok(testButton);
+			testButton.click();
+			await Promise.resolve();
+			await Promise.resolve();
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+			const status = container.querySelector('.connection-test-status');
+			assert.ok(status?.textContent?.includes('boom'));
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+			container.remove();
+		}
 	});
 
 	test('device Rename throw paints hub directory banner', async () => {
