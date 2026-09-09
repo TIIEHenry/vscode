@@ -42,22 +42,30 @@ class BufferedMockUniverseAgentSessionView implements IUniverseAgentSessionView 
 		return leaseId;
 	}
 
-	releaseLeaseFn: (leaseId: string) => Promise<void> = async leaseId => {
-		this.releaseLeaseCalls.push(leaseId);
-	};
+	releaseLeaseFn: (leaseId: string) => Promise<void> = async () => { };
 
 	async releaseLease(leaseId: string): Promise<void> {
-		await this.releaseLeaseFn(leaseId);
+		this.releaseLeaseCalls.push(leaseId);
+		return this.releaseLeaseFn(leaseId);
 	}
 
 	async post(_leaseId: string, _msg: ConversationWriteMessage): Promise<PostOutcome> {
 		return { accepted: true, correlation: { id: 'mock' } };
 	}
 
-	async requestResync(_leaseId: string): Promise<void> { }
+	readonly requestResyncCalls: string[] = [];
+	requestResyncFn: (leaseId: string) => Promise<void> = async () => { };
+
+	async requestResync(leaseId: string): Promise<void> {
+		this.requestResyncCalls.push(leaseId);
+		return this.requestResyncFn(leaseId);
+	}
+
+	acknowledgeFn: (leaseId: string, ack: { readonly generation: number; readonly frameId: number; readonly appliedVersion: number }) => Promise<void> = async () => { };
 
 	async acknowledge(leaseId: string, ack: { readonly generation: number; readonly frameId: number; readonly appliedVersion: number }): Promise<void> {
 		this.acknowledgeCalls.push({ leaseId, ...ack });
+		return this.acknowledgeFn(leaseId, ack);
 	}
 
 	async requestDetail(_leaseId: string, _ref: string): Promise<DetailFetchOutcome> {
@@ -140,9 +148,11 @@ class PostOutcomeMockSessionView implements IUniverseAgentSessionView {
 	}
 
 	readonly releaseLeaseCalls: string[] = [];
+	releaseLeaseFn: (leaseId: string) => Promise<void> = async () => { };
 
 	async releaseLease(leaseId: string): Promise<void> {
 		this.releaseLeaseCalls.push(leaseId);
+		return this.releaseLeaseFn(leaseId);
 	}
 
 	async post(leaseId: string, msg: ConversationWriteMessage): Promise<PostOutcome> {
@@ -341,6 +351,125 @@ suite('ConversationEngineFrameSource per-lease subscribe (F1)', () => {
 			frameId: 2,
 			appliedVersion: 2,
 		});
+	});
+
+	test('requestResync reject does not leave an unhandled rejection or apply a bad frame', async () => {
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		sessionView.requestResyncFn = () => Promise.reject('boom');
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-resync-reject'));
+
+		const applied: ConversationViewFrameApplied[] = [];
+		store.add(lease.onDidApplyFrame(e => applied.push(e)));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		const appliedBefore = applied.length;
+		const ackBefore = sessionView.acknowledgeCalls.length;
+		const snapshotBefore = lease.snapshot;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const frame: ConversationViewFrame = {
+				frame: {
+					leaseId: 'lease:sess-resync-reject' as ViewLeaseId,
+					generation: 1,
+					frameId: 99,
+					version: 99,
+					body: { kind: 'patches', patches: [{ op: 'setSyncChrome', sync: { kind: 'closed', reason: 'bad' } }] },
+				},
+			};
+			(lease as unknown as {
+				onHostFrame(frame: ConversationViewFrame, applied: ConversationViewFrameApplied): void;
+			}).onHostFrame(frame, {
+				kind: 'patches',
+				changedIds: new Set(['should-not-apply']),
+			});
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.deepStrictEqual(sessionView.requestResyncCalls, ['lease:sess-resync-reject']);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(applied.length, appliedBefore);
+			assert.strictEqual(sessionView.acknowledgeCalls.length, ackBefore);
+			assert.strictEqual(lease.snapshot, snapshotBefore);
+			assert.deepStrictEqual(lease.snapshot.sync, { kind: 'live' });
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('acknowledge reject does not leave an unhandled rejection and still applies the frame', async () => {
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		sessionView.acknowledgeFn = () => Promise.reject('boom');
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const lease = store.add(source.acquire('sess-ack-reject'));
+			const applied: ConversationViewFrameApplied[] = [];
+			store.add(lease.onDidApplyFrame(e => applied.push(e)));
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.ok(applied.length >= 2);
+			assert.strictEqual(applied[0]!.kind, 'baseline');
+			assert.strictEqual(applied[1]!.kind, 'patches');
+			assert.ok(sessionView.acknowledgeCalls.length >= 2);
+			assert.deepStrictEqual(lease.snapshot.sync, { kind: 'live' });
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('releaseLease reject on dispose-before-resolve still records release and does not leave an unhandled rejection', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		sessionView.releaseLeaseFn = () => Promise.reject('boom');
+		let resolveAcquire!: (id: string) => void;
+		sessionView.acquireLeaseFn = () => new Promise<string>(resolve => {
+			resolveAcquire = resolve;
+		});
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = source.acquire('sess-early-dispose-reject');
+		lease.dispose();
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			resolveAcquire('lease:sess-early-dispose-reject');
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.deepStrictEqual(sessionView.releaseLeaseCalls, ['lease:sess-early-dispose-reject']);
+			assert.strictEqual(source.getCachedProjection('sess-early-dispose-reject'), undefined);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('releaseLease reject on dispose-after still runs onRelease/cache and does not leave an unhandled rejection', async () => {
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		sessionView.releaseLeaseFn = () => Promise.reject('boom');
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-dispose-reject'));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.ok(source.getCachedProjection('sess-dispose-reject'));
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			lease.dispose();
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.deepStrictEqual(sessionView.releaseLeaseCalls, ['lease:sess-dispose-reject']);
+			assert.strictEqual(source.getCachedProjection('sess-dispose-reject'), undefined);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('onHostFrame normalizes IPC-deserialized changedIds before emit', async () => {

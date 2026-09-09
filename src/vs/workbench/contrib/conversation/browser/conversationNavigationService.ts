@@ -3,10 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { getErrorMessage } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { GroupIdentifier } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
@@ -149,6 +151,7 @@ export class ConversationNavigationService extends Disposable implements IConver
 	constructor(
 		@IEditorGroupsService private readonly editorGroupsService: IEditorGroupsService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
+		@INotificationService private readonly notificationService: INotificationService,
 	) {
 		super();
 	}
@@ -205,12 +208,13 @@ export class ConversationNavigationService extends Disposable implements IConver
 			return;
 		}
 
-		const leaving = stack.current;
-		stack.moveBack();
-		const destination = stack.current;
+		const destination = stack.peekPrevious();
 		if (!destination) {
 			return;
 		}
+
+		const leaving = stack.current;
+		stack.moveBack();
 
 		stack.navigating = true;
 		try {
@@ -222,6 +226,9 @@ export class ConversationNavigationService extends Disposable implements IConver
 			} else {
 				await targetPart.activeGroup.openEditor(destination.editor);
 			}
+		} catch (error) {
+			stack.moveForward();
+			this.notificationService.error(getErrorMessage(error));
 		} finally {
 			stack.navigating = false;
 		}
@@ -238,15 +245,19 @@ export class ConversationNavigationService extends Disposable implements IConver
 			return;
 		}
 
-		stack.moveForward();
-		const destination = stack.current;
+		const destination = stack.peekNext();
 		if (!destination) {
 			return;
 		}
 
+		stack.moveForward();
+
 		stack.navigating = true;
 		try {
 			await targetPart.activeGroup.openEditor(destination.editor);
+		} catch (error) {
+			stack.moveBack();
+			this.notificationService.error(getErrorMessage(error));
 		} finally {
 			stack.navigating = false;
 		}

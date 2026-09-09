@@ -6,6 +6,7 @@
 import { $, addDisposableListener, append, reset } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { AnchorPosition } from '../../../../base/common/layout.js';
 import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { format } from '../../../../base/common/strings.js';
@@ -38,6 +39,7 @@ import {
 	conversationLensInboxQueuePause,
 	conversationLensInboxQueueResume,
 	conversationLensInboxQueueUploadingTag,
+	type ConversationComposerPostFailureReason,
 } from './conversationLensDockStrings.js';
 import {
 	ConversationMessageQueueItem,
@@ -55,6 +57,7 @@ type InboxListPanel = 'task' | 'queue';
 export interface IConversationInboxOverlayDelegate {
 	onQueueItemHold(itemId: string): void;
 	onScrollToPendingConfirmation(): void;
+	showPostFailure(reason: ConversationComposerPostFailureReason): void;
 }
 
 /**
@@ -113,7 +116,7 @@ export class ConversationInboxOverlay extends Disposable {
 		this.goalButton.label = conversationLensDockNoGoal;
 		this.goalButton.element.classList.add('conversation-lens-inbox-chip', 'conversation-lens-inbox-goal-button');
 		this.goalButton.setAriaLabel(`${conversationLensDockGoal}, ${conversationLensDockNoGoal}`);
-		this._register(this.goalButton.onDidClick(() => void this.onGoalClicked()));
+		this._register(this.goalButton.onDidClick(() => void this.onGoalClicked().catch(onUnexpectedError)));
 
 		this.pendingButton = append(this.leftCluster, $('button.conversation-lens-inbox-pending')) as HTMLButtonElement;
 		this.pendingButton.type = 'button';
@@ -234,10 +237,9 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private renderGoal(sessionId: string): void {
-		const connected = this.stubService.isEngineConnected();
 		const goal = this.stubService.getSessionGoal(sessionId)?.trim();
 		const label = goal || conversationLensDockNoGoal;
-		this.goalButton.enabled = connected;
+		this.goalButton.enabled = this.stubService.isEngineConnected() || this.stubService.hasEngineConnectionHistory();
 		this.goalButton.label = label;
 		this.goalButton.setTitle(label);
 		this.goalButton.setAriaLabel(`${conversationLensDockGoal}, ${label}`);
@@ -245,6 +247,9 @@ export class ConversationInboxOverlay extends Disposable {
 
 	private async onGoalClicked(): Promise<void> {
 		if (!this.stubService.isEngineConnected()) {
+			if (this.stubService.hasEngineConnectionHistory()) {
+				this.delegate.showPostFailure('engine_disconnected');
+			}
 			return;
 		}
 		const sessionId = this.stubService.getActiveSessionId();
@@ -259,10 +264,19 @@ export class ConversationInboxOverlay extends Disposable {
 			return;
 		}
 		const trimmed = next.trim();
+		let applied = true;
 		if (trimmed) {
-			this.stubService.setSessionGoal(sessionId, trimmed);
+			applied = this.stubService.setSessionGoal(sessionId, trimmed);
 		} else if (current) {
-			this.stubService.cancelSessionGoal(sessionId);
+			applied = this.stubService.cancelSessionGoal(sessionId);
+		}
+		if (!applied) {
+			this.delegate.showPostFailure(
+				!this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory()
+					? 'engine_disconnected'
+					: 'failed'
+			);
+			return;
 		}
 		this.render();
 	}
@@ -281,8 +295,16 @@ export class ConversationInboxOverlay extends Disposable {
 
 	private onStopClicked(): void {
 		const sessionId = this.stubService.getActiveSessionId();
-		if (this.isGenerating(sessionId)) {
-			this.stubService.cancelGeneration(sessionId);
+		if (!this.isGenerating(sessionId) && !this.stopButton.enabled) {
+			return;
+		}
+		const cancelled = this.stubService.cancelGeneration(sessionId);
+		if (!cancelled) {
+			this.delegate.showPostFailure(
+				!this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory()
+					? 'engine_disconnected'
+					: 'failed'
+			);
 		}
 	}
 
@@ -436,18 +458,21 @@ export class ConversationInboxOverlay extends Disposable {
 		const enqueueButton = append(actions, $('button.queue-bar-action.conversation-lens-inbox-queue-enqueue')) as HTMLButtonElement;
 		enqueueButton.type = 'button';
 		enqueueButton.textContent = conversationLensInboxQueueEnqueue;
-		const connected = this.stubService.isEngineConnected();
-		enqueueButton.disabled = !connected;
-		enqueueButton.setAttribute('aria-disabled', String(!connected));
-		enqueueButton.title = connected ? conversationLensInboxQueueEnqueue : conversationLensInboxQueueEnqueueUnavailable;
+		const enabled = this.stubService.isEngineConnected() || this.stubService.hasEngineConnectionHistory();
+		enqueueButton.disabled = !enabled;
+		enqueueButton.setAttribute('aria-disabled', String(!enabled));
+		enqueueButton.title = enabled ? conversationLensInboxQueueEnqueue : conversationLensInboxQueueEnqueueUnavailable;
 		enqueueButton.setAttribute('aria-label', enqueueButton.title);
 		addDisposableListener(enqueueButton, 'click', () => {
-			void this.onEnqueueClicked();
+			void this.onEnqueueClicked().catch(onUnexpectedError);
 		});
 	}
 
 	private async onEnqueueClicked(): Promise<void> {
 		if (!this.stubService.isEngineConnected()) {
+			if (this.stubService.hasEngineConnectionHistory()) {
+				this.delegate.showPostFailure('engine_disconnected');
+			}
 			return;
 		}
 		const sessionId = this.stubService.getActiveSessionId();
@@ -461,6 +486,11 @@ export class ConversationInboxOverlay extends Disposable {
 		}
 		const queued = this.stubService.enqueueMessageQueueItem(sessionId, next.trim());
 		if (!queued) {
+			this.delegate.showPostFailure(
+				!this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory()
+					? 'engine_disconnected'
+					: 'failed'
+			);
 			return;
 		}
 		this.render();

@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../../base/common/errors.js';
 import { Event } from '../../../../../../base/common/event.js';
 import { hash } from '../../../../../../base/common/hash.js';
 import { IDisposable } from '../../../../../../base/common/lifecycle.js';
@@ -148,5 +150,83 @@ suite('ModePicker', () => {
 			}],
 			requestedChatResources: [chatResource.toString()],
 		});
+	});
+
+	test('does not leak unhandled rejection when configure custom agents command rejects', async () => {
+		const sessionResource = URI.parse('agent-host-copilotcli:/session-1');
+		const modes: IChatModes & IDisposable = {
+			onDidChange: Event.None,
+			builtin: [ChatMode.Agent],
+			custom: [],
+			findModeById: id => ChatMode.Agent.id === id ? ChatMode.Agent : undefined,
+			findModeByName: () => undefined,
+			waitForPendingUpdates: async () => { },
+			dispose: () => { },
+		};
+		const model = store.add(new ModePickerModel(
+			new class extends mock<IChatSessionsService>() {
+				override getCustomAgentTargetForSessionType(): Target {
+					return Target.Undefined;
+				}
+			}(),
+			new class extends mock<IChatModeService>() {
+				override createModes(): IChatModes & IDisposable {
+					return modes;
+				}
+			}(),
+		));
+		model.setSession(new class extends mock<ISession>() {
+			override readonly resource = sessionResource;
+		}(), ChatMode.Agent.id);
+
+		let selectConfigure: (() => void) | undefined;
+		let executeCommandCalls = 0;
+		const picker = store.add(new ModePicker(
+			model,
+			observableValue<IActiveSession | undefined>('session', undefined),
+			new class extends mock<IActionWidgetService>() {
+				override readonly isVisible = false;
+				override show<T>(_user: string, _supportsPreview: boolean, items: readonly IActionListItem<T>[], delegate: IActionListDelegate<T>): void {
+					const item = items.find(item => {
+						if (!item.item) {
+							return false;
+						}
+						const value = item.item as { readonly kind?: string };
+						return value.kind === 'configure';
+					});
+					assert.ok(item?.item);
+					const configureItem = item.item;
+					selectConfigure = () => delegate.onSelect(configureItem);
+				}
+				override hide(): void { }
+			}(),
+			new class extends mock<ICommandService>() {
+				override executeCommand = async () => {
+					executeCommandCalls++;
+					throw new Error('boom');
+				};
+			}(),
+			new TestTelemetryService(),
+			new class extends mock<IChatService>() { }(),
+		));
+		const container = document.createElement('div');
+		picker.render(container);
+		container.querySelector<HTMLElement>('a.action-label')?.click();
+		assert.ok(selectConfigure);
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			selectConfigure();
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(executeCommandCalls, 1);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });

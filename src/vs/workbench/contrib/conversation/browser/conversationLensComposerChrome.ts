@@ -33,6 +33,7 @@ import {
 	conversationLensDockTemplatesTitle,
 	conversationLensDockToolsEngineHint,
 	conversationLensDockTuneTitle,
+	conversationLensPostFailed,
 	conversationLensPostFailedDisconnected,
 	conversationLensPostFailedMailboxFull,
 	conversationLensPostFailedNoSession,
@@ -80,7 +81,7 @@ export const conversationLensDockPermissionUnavailable = localize(
 const conversationLensDockPermissionFailed = localize(
 	'conversationLens.dockPermissionFailed',
 	"Permission mode was not applied");
-const conversationLensDockModelFailed = localize(
+export const conversationLensDockModelFailed = localize(
 	'conversationLens.dockModelFailed',
 	"Model was not applied");
 
@@ -582,7 +583,9 @@ export function showPostFailure(host: IConversationLensComposerChromeHost, reaso
 				? conversationLensPostFailedNotAuthenticated
 				: reason === 'engine_disconnected'
 					? conversationLensPostFailedDisconnected
-					: conversationLensPostFailedNoSession;
+					: reason === 'failed'
+						? conversationLensPostFailed
+						: conversationLensPostFailedNoSession;
 		showGateNotice(host, message);
 	
 }
@@ -713,12 +716,16 @@ export async function applySessionModelIndex(host: IConversationLensComposerChro
 			return;
 		}
 		try {
-			await host.uaConnection.switchModel({
+			const result = await host.uaConnection.switchModel({
 				sessionId,
 				agentId: '',
 				modelType: '',
 				modelId,
 			});
+			if (!result.resolvedModelId.trim()) {
+				restoreSessionModelIndex(host, previous);
+				showGateNotice(host, conversationLensDockModelFailed);
+			}
 		} catch (error) {
 			restoreSessionModelIndex(host, previous);
 			const detail = error instanceof Error ? error.message.trim() : '';

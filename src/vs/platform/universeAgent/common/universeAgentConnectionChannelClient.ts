@@ -116,24 +116,32 @@ export class UniverseAgentConnectionChannelClient extends Disposable {
 	}
 
 	private async hydrate(): Promise<void> {
-		const [snapshot, phase, failed] = await Promise.all([
-			resolveMaybePromise(this.remote.getConnectionSnapshot()),
-			resolveMaybePromise(this.remote.getConnectionPhase()),
-			resolveMaybePromise(this.remote.isAgentTreeFetchFailed()),
-		]);
-		this.cache.applySnapshot(snapshot);
-		this.cache.applyPhase(phase);
-		this.cache.applyAgentTreeFetchFailed(!!failed);
-		this._onDidChangeConnection.fire(this.cache.snapshot);
+		try {
+			const [snapshot, phase, failed] = await Promise.all([
+				resolveMaybePromise(this.remote.getConnectionSnapshot()),
+				resolveMaybePromise(this.remote.getConnectionPhase()),
+				resolveMaybePromise(this.remote.isAgentTreeFetchFailed()),
+			]);
+			this.cache.applySnapshot(snapshot);
+			this.cache.applyPhase(phase);
+			this.cache.applyAgentTreeFetchFailed(!!failed);
+			this._onDidChangeConnection.fire(this.cache.snapshot);
+		} catch {
+			// Keep last-good cache; do not notify a half-applied phase.
+		}
 	}
 
 	private async refreshPhaseAndNotify(): Promise<void> {
-		const [phase, failed] = await Promise.all([
-			resolveMaybePromise(this.remote.getConnectionPhase()),
-			resolveMaybePromise(this.remote.isAgentTreeFetchFailed()),
-		]);
-		this.cache.applyPhase(phase);
-		this.cache.applyAgentTreeFetchFailed(!!failed);
-		this._onDidChangeConnection.fire(this.cache.snapshot);
+		try {
+			const [phase, failed] = await Promise.all([
+				resolveMaybePromise(this.remote.getConnectionPhase()),
+				resolveMaybePromise(this.remote.isAgentTreeFetchFailed()),
+			]);
+			this.cache.applyPhase(phase);
+			this.cache.applyAgentTreeFetchFailed(!!failed);
+			this._onDidChangeConnection.fire(this.cache.snapshot);
+		} catch {
+			// Keep last-good / already-applied cache; do not notify a half-applied phase.
+		}
 	}
 }

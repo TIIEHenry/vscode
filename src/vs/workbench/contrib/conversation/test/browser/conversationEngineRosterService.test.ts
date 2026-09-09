@@ -96,10 +96,20 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		}
 		return this.createSessionResult;
 	}
-	async deleteSession() { }
+	deleteError: Error | undefined;
+	async deleteSession() {
+		if (this.deleteError) {
+			throw this.deleteError;
+		}
+	}
+	renameResult: { ok: boolean; message?: string } = { ok: true };
+	renameError: Error | undefined;
 	async renameSession(request: { sessionId: string; title: string }) {
 		this.renameCalls.push({ sessionId: request.sessionId, title: request.title });
-		return { ok: true };
+		if (this.renameError) {
+			throw this.renameError;
+		}
+		return this.renameResult;
 	}
 	readonly cancelCalls: { sessionId: string; agentId: string }[] = [];
 	async cancelGeneration(request: { sessionId: string; agentId: string }) {
@@ -107,14 +117,24 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		return { ok: true };
 	}
 	readonly setGoalCalls: { sessionId: string; goal: string }[] = [];
+	setGoalResult: { ok: boolean; message?: string } = { ok: true };
+	setGoalError: Error | undefined;
 	async setSessionGoal(request: { sessionId: string; goal: string }) {
 		this.setGoalCalls.push({ sessionId: request.sessionId, goal: request.goal });
-		return { ok: true };
+		if (this.setGoalError) {
+			throw this.setGoalError;
+		}
+		return this.setGoalResult;
 	}
 	readonly cancelGoalCalls: { sessionId: string }[] = [];
+	cancelGoalResult: { ok: boolean; message?: string } = { ok: true };
+	cancelGoalError: Error | undefined;
 	async cancelSessionGoal(request: { sessionId: string }) {
 		this.cancelGoalCalls.push({ sessionId: request.sessionId });
-		return { ok: true };
+		if (this.cancelGoalError) {
+			throw this.cancelGoalError;
+		}
+		return this.cancelGoalResult;
 	}
 	readonly forkCalls: { sessionId: string; parentAgentId?: string; name?: string; task?: string }[] = [];
 	async forkAgent(request: { sessionId: string; parentAgentId?: string; name?: string; task?: string }) {
@@ -396,6 +416,81 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(service.deleteSession('ua-b'), true);
 		assert.strictEqual(service.getSessions().length, 0);
 		assert.ok(!service.getSessions().some(s => s.id === 'untitled'));
+	});
+
+	test('connected deleteSession last entry remote throw rolls back roster and bind-failed empty-state', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const storage = store.add(new TestStorageService());
+			const connection = store.add(new MockUniverseAgentConnection());
+			connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+			const service = store.add(createService(connection, storage));
+			connection.setConnected(true);
+			service.setEngineConnected(true);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+			assert.strictEqual(service.setSessionGoal('ua-only', 'Keep this goal'), true);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			assert.strictEqual(service.getSessionGoal('ua-only'), 'Keep this goal');
+			assert.strictEqual(service.getActiveSessionId(), 'ua-only');
+
+			connection.deleteError = new Error('boom');
+			assert.strictEqual(service.deleteSession('ua-only'), true);
+			assert.strictEqual(service.getSessions()[0]!.id, ENGINE_BIND_FAILED_SESSION_ID);
+			assert.strictEqual(service.getActiveSessionId(), ENGINE_BIND_FAILED_SESSION_ID);
+			assert.strictEqual(service.getSessionGoal('ua-only'), undefined);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			assert.strictEqual(service.getSessions().length, 1);
+			assert.strictEqual(service.getSessions()[0]!.id, 'ua-only');
+			assert.strictEqual(service.getSessions()[0]!.title, 'Only UA');
+			assert.strictEqual(service.getActiveSessionId(), 'ua-only');
+			assert.strictEqual(service.getSessionGoal('ua-only'), 'Keep this goal');
+			assert.strictEqual(service.isEngineSessionReady(), true);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('connected deleteSession mid-list remote throw restores row index and active', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const storage = store.add(new TestStorageService());
+			const connection = store.add(new MockUniverseAgentConnection());
+			connection.setListSessions([
+				{ sessionId: 'ua-a', title: 'A' },
+				{ sessionId: 'ua-b', title: 'B' },
+				{ sessionId: 'ua-c', title: 'C' },
+			]);
+			const service = store.add(createService(connection, storage));
+			connection.setConnected(true);
+			service.setEngineConnected(true);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+			service.switchSession('ua-b');
+			assert.strictEqual(service.setSessionGoal('ua-b', 'Mid goal'), true);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			assert.strictEqual(service.getActiveSessionId(), 'ua-b');
+			assert.strictEqual(service.getSessionGoal('ua-b'), 'Mid goal');
+
+			connection.deleteError = new Error('boom');
+			assert.strictEqual(service.deleteSession('ua-b'), true);
+			assert.deepStrictEqual(service.getSessions().map(session => session.id), ['ua-a', 'ua-c']);
+			assert.strictEqual(service.getActiveSessionId(), 'ua-c');
+			assert.strictEqual(service.getSessionGoal('ua-b'), undefined);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			assert.deepStrictEqual(service.getSessions().map(session => session.id), ['ua-a', 'ua-b', 'ua-c']);
+			assert.strictEqual(service.getSessions()[1]!.title, 'B');
+			assert.strictEqual(service.getActiveSessionId(), 'ua-b');
+			assert.strictEqual(service.getSessionGoal('ua-b'), 'Mid goal');
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('isEngineConnected follows connected phase when platform isEngineConnected is false', async () => {
@@ -882,6 +977,54 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(connection.renameCalls.length, 0);
 	});
 
+	test('connected renameSession remote throw rolls back title', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const storage = store.add(new TestStorageService());
+			const connection = store.add(new MockUniverseAgentConnection());
+			connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+			const service = store.add(createService(connection, storage));
+			connection.setConnected(true);
+			service.setEngineConnected(true);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+			connection.renameError = new Error('boom');
+			assert.strictEqual(service.renameSession('ua-only', 'Renamed UA'), true);
+			assert.strictEqual(service.getSessions()[0]?.title, 'Renamed UA');
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			assert.strictEqual(service.getSessions()[0]?.title, 'Only UA');
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('connected renameSession ok:false rolls back title', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const storage = store.add(new TestStorageService());
+			const connection = store.add(new MockUniverseAgentConnection());
+			connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+			const service = store.add(createService(connection, storage));
+			connection.setConnected(true);
+			service.setEngineConnected(true);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+			connection.renameResult = { ok: false, message: 'denied' };
+			assert.strictEqual(service.renameSession('ua-only', 'Renamed UA'), true);
+			assert.strictEqual(service.getSessions()[0]?.title, 'Renamed UA');
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			assert.strictEqual(service.getSessions()[0]?.title, 'Only UA');
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
 	test('connected cancelGeneration forwards AgentService.Cancel', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());
@@ -1030,6 +1173,85 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.deepStrictEqual(connection.cancelGoalCalls, [{ sessionId: 'ua-only' }]);
 		assert.strictEqual(service.cancelSessionGoal('missing'), false);
 		assert.strictEqual(connection.cancelGoalCalls.length, 1);
+	});
+
+	test('connected setSessionGoal remote throw rolls back getSessionGoal', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const storage = store.add(new TestStorageService());
+			const connection = store.add(new MockUniverseAgentConnection());
+			connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+			const service = store.add(createService(connection, storage));
+			connection.setConnected(true);
+			service.setEngineConnected(true);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+			connection.setGoalError = new Error('boom');
+			assert.strictEqual(service.setSessionGoal('ua-only', 'Ship the slice'), true);
+			assert.strictEqual(service.getSessionGoal('ua-only'), 'Ship the slice');
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			assert.strictEqual(service.getSessionGoal('ua-only'), undefined);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('connected setSessionGoal ok:false rolls back prior getSessionGoal', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.setSessionGoal('ua-only', 'Prior goal'), true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(service.getSessionGoal('ua-only'), 'Prior goal');
+
+		connection.setGoalResult = { ok: false, message: 'denied' };
+		assert.strictEqual(service.setSessionGoal('ua-only', 'Next goal'), true);
+		assert.strictEqual(service.getSessionGoal('ua-only'), 'Next goal');
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(service.getSessionGoal('ua-only'), 'Prior goal');
+	});
+
+	test('connected cancelSessionGoal remote throw or ok:false restores prior goal', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const storage = store.add(new TestStorageService());
+			const connection = store.add(new MockUniverseAgentConnection());
+			connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+			const service = store.add(createService(connection, storage));
+			connection.setConnected(true);
+			service.setEngineConnected(true);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+			assert.strictEqual(service.setSessionGoal('ua-only', 'Prior goal'), true);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			assert.strictEqual(service.getSessionGoal('ua-only'), 'Prior goal');
+
+			connection.cancelGoalError = new Error('boom');
+			assert.strictEqual(service.cancelSessionGoal('ua-only'), true);
+			assert.strictEqual(service.getSessionGoal('ua-only'), undefined);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			assert.strictEqual(service.getSessionGoal('ua-only'), 'Prior goal');
+			assert.deepStrictEqual(unhandledRejections, []);
+
+			connection.cancelGoalError = undefined;
+			connection.cancelGoalResult = { ok: false, message: 'denied' };
+			assert.strictEqual(service.cancelSessionGoal('ua-only'), true);
+			assert.strictEqual(service.getSessionGoal('ua-only'), undefined);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			assert.strictEqual(service.getSessionGoal('ua-only'), 'Prior goal');
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('connected forkSubAgent forwards AgentService.Fork', async () => {

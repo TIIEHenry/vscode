@@ -4,12 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { observableValue } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { CustomizationType, McpServerStatus, type Customization, type McpServerCustomization, type PluginCustomization } from '../../../../../platform/agentHost/common/state/protocol/state.js';
+import { CustomizationType, McpServerStatus, type Customization, type McpServerCustomization, type PluginCustomization, type RootConfigState } from '../../../../../platform/agentHost/common/state/protocol/state.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { ILoggerService, NullLoggerService, NullLogService } from '../../../../../platform/log/common/log.js';
 import { IOutputService } from '../../../../../workbench/services/output/common/output.js';
@@ -25,33 +27,24 @@ import { ISessionsProvider } from '../../../sessions/common/sessionsProvider.js'
 suite('AgentHostCustomizationService', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('reports client-bundled MCP servers from the active client', () => {
-		const sessionResource = URI.parse('agent-host-copilot:///session-1');
+	function createService(options: {
+		readonly sessionResource: URI;
+		readonly getCustomizations?: () => Customization[];
+		readonly getRootConfig?: () => RootConfigState | undefined;
+		readonly setRootConfigValue?: (property: string, value: unknown) => Promise<void>;
+		readonly isBundledMcpServer?: (pluginUri: string, serverName: string) => boolean;
+	}): AgentHostCustomizationService {
 		const session = new class extends mock<ISession>() {
-			override readonly resource = sessionResource;
+			override readonly resource = options.sessionResource;
 			override readonly providerId = 'agenthost-test';
 			override readonly sessionId = 'agenthost-test:session-1';
-		};
-		const server: McpServerCustomization = {
-			type: CustomizationType.McpServer,
-			id: 'context7',
-			uri: 'file:///plugin/.mcp.json',
-			name: 'context7',
-			state: { kind: McpServerStatus.Stopped },
-		};
-		const plugin: PluginCustomization = {
-			type: CustomizationType.Plugin,
-			id: 'plugin',
-			uri: 'vscode-synced-customization:///plugin',
-			name: 'Plugin',
-			children: [server],
 		};
 		const provider = new class extends mock<IAgentHostSessionsProvider>() {
 			override readonly id = 'agenthost-test';
 			override readonly onDidChangeCustomAgents = Event.None;
 			override readonly onDidChangeCustomizations = Event.None;
 			override getCustomizations(): Customization[] {
-				return [plugin];
+				return options.getCustomizations?.() ?? [];
 			}
 			override getWorkingDirectory(): string | undefined {
 				return undefined;
@@ -60,7 +53,10 @@ suite('AgentHostCustomizationService', () => {
 				return [];
 			}
 			override getRootConfig() {
-				return undefined;
+				return options.getRootConfig?.();
+			}
+			override setRootConfigValue(property: string, value: unknown): Promise<void> {
+				return options.setRootConfigValue?.(property, value) ?? Promise.resolve();
 			}
 			override getMcpServers() {
 				return [];
@@ -75,7 +71,7 @@ suite('AgentHostCustomizationService', () => {
 		const sessionsManagementService = new class extends mock<ISessionsManagementService>() {
 			override readonly onDidChangeSessions = Event.None;
 			override getSession(resource: URI): ISession | undefined {
-				return resource.toString() === sessionResource.toString() ? session : undefined;
+				return resource.toString() === options.sessionResource.toString() ? session : undefined;
 			}
 		};
 		const sessionsService = new class extends mock<ISessionsService>() {
@@ -91,7 +87,7 @@ suite('AgentHostCustomizationService', () => {
 		}(provider);
 		const activeClientService = new class extends mock<IAgentHostActiveClientService>() {
 			override isBundledMcpServer(pluginUri: string, serverName: string): boolean {
-				return pluginUri === plugin.uri && serverName === server.name;
+				return options.isBundledMcpServer?.(pluginUri, serverName) ?? false;
 			}
 		};
 		const instantiationService = store.add(new TestInstantiationService());
@@ -101,7 +97,7 @@ suite('AgentHostCustomizationService', () => {
 			getChannelDescriptor: () => undefined,
 			showChannel: async () => { },
 		});
-		const service = store.add(new AgentHostCustomizationService(
+		return store.add(new AgentHostCustomizationService(
 			sessionsManagementService,
 			sessionsService,
 			sessionsProvidersService,
@@ -109,9 +105,57 @@ suite('AgentHostCustomizationService', () => {
 			new NullLogService(),
 			activeClientService,
 		));
+	}
+
+	test('reports client-bundled MCP servers from the active client', () => {
+		const sessionResource = URI.parse('agent-host-copilot:///session-1');
+		const server: McpServerCustomization = {
+			type: CustomizationType.McpServer,
+			id: 'context7',
+			uri: 'file:///plugin/.mcp.json',
+			name: 'context7',
+			state: { kind: McpServerStatus.Stopped },
+		};
+		const plugin: PluginCustomization = {
+			type: CustomizationType.Plugin,
+			id: 'plugin',
+			uri: 'vscode-synced-customization:///plugin',
+			name: 'Plugin',
+			children: [server],
+		};
+		const service = createService({
+			sessionResource,
+			getCustomizations: () => [plugin],
+			isBundledMcpServer: (pluginUri, serverName) => pluginUri === plugin.uri && serverName === server.name,
+		});
 
 		const [mcpServer] = service.getMcpServers(sessionResource);
 
 		assert.deepStrictEqual({ isClientBundled: mcpServer.isClientBundled }, { isClientBundled: true });
+	});
+
+	test('does not leak unhandled rejection when setRootConfigValue rejects', async () => {
+		const sessionResource = URI.parse('agent-host-copilot:///session-1');
+		const service = createService({
+			sessionResource,
+			getRootConfig: () => ({ schema: { type: 'object', properties: {} }, values: {} }),
+			setRootConfigValue: async () => {
+				throw new Error('boom');
+			},
+		});
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			service.addMcpServer(sessionResource, 'demo', { type: 'stdio', command: 'echo' } as any);
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });

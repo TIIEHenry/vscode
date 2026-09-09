@@ -13,6 +13,7 @@ import { BaseActionViewItem } from '../../../../../base/browser/ui/actionbar/act
 import { Checkbox } from '../../../../../base/browser/ui/toggle/toggle.js';
 import { Delayer } from '../../../../../base/common/async.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Disposable, DisposableMap, DisposableStore, IDisposable, MutableDisposable } from '../../../../../base/common/lifecycle.js';
 import { autorun, IObservable, observableValue } from '../../../../../base/common/observable.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
@@ -788,28 +789,30 @@ export class AgentHostSessionConfigPicker extends Disposable {
 		const actionItems = toActionItems(property, items, currentValue, policyRestricted, repositoryState?.branchName, repositoryState?.uncommittedChanges);
 
 		const delegate: IActionListDelegate<IConfigPickerItem> = {
-			onSelect: async item => {
-				this._actionWidgetService.hide();
+			onSelect: item => {
+				void (async () => {
+					this._actionWidgetService.hide();
 
-				reportNewChatPickerClosed(this._telemetryService, {
-					id: 'NewChatAgentHostSessionConfigPicker',
-					name: `NewChatAgentHostSessionConfigPicker.${property}`,
-					optionIdBefore: typeof currentValue === 'string' ? currentValue : undefined,
-					optionIdAfter: item.value,
-					optionLabelBefore: currentItem?.label,
-					optionLabelAfter: item.label,
-					isPII: !!schema.enumDynamic,
-				});
+					reportNewChatPickerClosed(this._telemetryService, {
+						id: 'NewChatAgentHostSessionConfigPicker',
+						name: `NewChatAgentHostSessionConfigPicker.${property}`,
+						optionIdBefore: typeof currentValue === 'string' ? currentValue : undefined,
+						optionIdAfter: item.value,
+						optionLabelBefore: currentItem?.label,
+						optionLabelAfter: item.label,
+						isPII: !!schema.enumDynamic,
+					});
 
-				if (isAutoApproveProperty && item.value !== 'default') {
-					const confirmed = await confirmAutoApproveLevel(item.value, item.label, this._dialogService, this._storageService);
-					if (!confirmed) {
-						return;
+					if (isAutoApproveProperty && item.value !== 'default') {
+						const confirmed = await confirmAutoApproveLevel(item.value, item.label, this._dialogService, this._storageService);
+						if (!confirmed) {
+							return;
+						}
 					}
-				}
 
-				const nextValue = schema.type === 'boolean' ? item.value === 'true' : item.value;
-				provider.setSessionConfigValue(sessionId, property, nextValue).catch(() => { /* best-effort */ });
+					const nextValue = schema.type === 'boolean' ? item.value === 'true' : item.value;
+					provider.setSessionConfigValue(sessionId, property, nextValue).catch(() => { /* best-effort */ });
+				})().catch(onUnexpectedError);
 			},
 			onFilter: schema.enumDynamic
 				? query => this._filterDelayer.trigger(async () => {

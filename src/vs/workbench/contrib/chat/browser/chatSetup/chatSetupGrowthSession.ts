@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -68,7 +69,7 @@ export class GrowthSessionController extends Disposable implements IChatSessionI
 			this._register(this.chatWidgetService.onDidAddWidget(() => {
 				this.dismiss();
 			}));
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	get items(): readonly IChatSessionItem[] {

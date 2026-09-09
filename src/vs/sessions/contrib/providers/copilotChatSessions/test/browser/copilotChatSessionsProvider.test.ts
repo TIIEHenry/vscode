@@ -7,6 +7,7 @@ import assert from 'assert';
 import { Codicon } from '../../../../../../base/common/codicons.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { timeout } from '../../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../../base/common/errors.js';
 import { DisposableStore, IDisposable, ImmortalReference, toDisposable } from '../../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../../base/common/uri.js';
 import { generateUuid } from '../../../../../../base/common/uuid.js';
@@ -1003,6 +1004,37 @@ suite('CopilotChatSessionsProvider', () => {
 			firstReobservedNumber: 42,
 			numberAfterUpdate: 42,
 		});
+	});
+
+	test('does not leak unhandled rejection when findPullRequestNumberByHeadBranch rejects', async () => {
+		const resource = URI.from({ scheme: AgentSessionProviders.Cloud, path: '/session-1' });
+		const gitHubService = new TestGitHubService();
+		gitHubService.findPullRequestNumberByHeadBranch = async () => { throw new Error('boom'); };
+		model.addSession(createMockAgentSession(resource, {
+			providerType: AgentSessionProviders.Cloud,
+			metadata: {
+				owner: 'owner',
+				name: 'repo',
+				branch: 'feature',
+			},
+		}));
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			const provider = createProvider(disposables, model, { gitHubService });
+			disposables.add(autorun(reader => {
+				provider.getSessions()[0].workspace.get()!.folders[0].gitRepository!.gitHubInfo.read(reader);
+			}));
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('cloud session waits for provider PR metadata after an unsuccessful branch lookup without polling on unrelated updates', async () => {

@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
+import { getErrorMessage } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { DisposableStore, IDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
@@ -15,6 +16,8 @@ import { TestConfigurationService } from '../../../../../platform/configuration/
 import { IEditorOptions } from '../../../../../platform/editor/common/editor.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
+import { localize } from '../../../../../nls.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
@@ -23,6 +26,7 @@ import { IEditorOpenContext, IEditorSerializer, EditorExtensions, IEditorFactory
 import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { EditorPane } from '../../../../browser/parts/editor/editorPane.js';
 import { IEditorGroupsService, IEditorGroup } from '../../../../services/editor/common/editorGroupsService.js';
+import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 import { TestThemeService } from '../../../../../platform/theme/test/common/testThemeService.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
@@ -140,6 +144,13 @@ suite('Conversation session chat (S3)', () => {
 		}
 	}
 
+	class ConnectedForkFalseRoster extends ConnectedForkRoster {
+		override forkSubAgent(sessionId: string): boolean {
+			this.forkCalls.push({ sessionId });
+			return false;
+		}
+	}
+
 	class TestConversationSessionChatService extends ConversationSessionChatService {
 		override async openExtensionTab(sessionKey: string, chatId: string, options?: { title?: string }): Promise<void> {
 			const part = this.getConversationPart(sessionKey);
@@ -246,8 +257,13 @@ suite('Conversation session chat (S3)', () => {
 				}
 
 				const roster = accessor.get(IConversationRosterService);
+				const notificationService = accessor.get(INotificationService);
 				if (roster.isEngineConnected()) {
-					return { kind: 'handled' as const, handled: roster.forkSubAgent(roster.getActiveSessionId()) };
+					if (roster.forkSubAgent(roster.getActiveSessionId())) {
+						return { kind: 'handled' as const, handled: true };
+					}
+					notificationService.error(localize('conversationFork.forkSubAgentFailed', "Could not fork conversation."));
+					return { kind: 'handled' as const, handled: false };
 				}
 
 				const chatSessionsService = accessor.get(IChatSessionsService);
@@ -259,6 +275,7 @@ suite('Conversation session chat (S3)', () => {
 					kind: 'fork' as const,
 					chatSessionsService,
 					sessionChatService: accessor.get(IConversationSessionChatService),
+					notificationService,
 				};
 			});
 
@@ -272,7 +289,11 @@ suite('Conversation session chat (S3)', () => {
 			const cts = new CancellationTokenSource();
 			try {
 				const forkedItem = await context.chatSessionsService.forkChatSession(sourceSessionResource, request, cts.token);
-				await context.sessionChatService.openForkTab(forkedItem.resource, forkedItem.label);
+				try {
+					await context.sessionChatService.openForkTab(forkedItem.resource, forkedItem.label);
+				} catch (error) {
+					context.notificationService.error(getErrorMessage(error));
+				}
 				return true;
 			} finally {
 				cts.dispose();
@@ -292,13 +313,16 @@ suite('Conversation session chat (S3)', () => {
 		}
 	});
 
-	async function createHarness(rosterService: IConversationRosterService = new ConversationStubService()) {
+	async function createHarness(rosterService: IConversationRosterService = new ConversationStubService(), notificationService?: INotificationService) {
 		const instantiationService = workbenchInstantiationService({
 			configurationService: () => new TestConfigurationService({
 				workbench: { editor: { enablePreview: false } },
 			}),
 		}, store);
 		instantiationService.stub(IConversationRosterService, rosterService);
+		if (notificationService) {
+			instantiationService.stub(INotificationService, notificationService);
+		}
 		instantiationService.invokeFunction(accessor => Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor));
 
 		const parts = await createEditorParts(instantiationService, disposables);
@@ -434,6 +458,83 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(sessionChatService.getCatalog(SESSION_KEY).length, 0);
 	});
 
+	test('connected forkSubAgent false notifies error and does not fall through to local fork', async () => {
+		const roster = store.add(new ConnectedForkFalseRoster());
+		const errors: string[] = [];
+		const { instantiationService, conversationPart, sessionChatService } = await createHarness(roster, {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService);
+		instantiationService.stub(IWorkbenchEnvironmentService, upcastPartial<IWorkbenchEnvironmentService>({ isSessionsWindow: false }));
+		instantiationService.stub(IConversationSessionChatService, sessionChatService);
+		instantiationService.stub(IConversationRosterService, roster);
+
+		let forkCalls = 0;
+		instantiationService.stub(IChatSessionsService, upcastPartial<IChatSessionsService>({
+			getContentProviderSchemes: () => ['agent-host-copilot'],
+			forkChatSession: async () => {
+				forkCalls++;
+				return {
+					resource: URI.parse('agent-host-copilot:/fork-source#peer-1'),
+					label: 'Forked peer',
+					iconPath: undefined,
+					timing: { created: 0, lastRequestStarted: 0, lastRequestEnded: 0 },
+				};
+			},
+		}));
+
+		const handled = await new TestConversationForkAction().tryForkAsChat(
+			instantiationService,
+			URI.parse('agent-host-copilot:/fork-source'),
+		);
+		assert.strictEqual(handled, true);
+		assert.deepStrictEqual(errors, ['Could not fork conversation.']);
+		assert.deepStrictEqual(roster.forkCalls, [{ sessionId: roster.getActiveSessionId() }]);
+		assert.strictEqual(forkCalls, 0);
+		assert.strictEqual(conversationPart.activeGroup.count, 1);
+		assert.strictEqual(sessionChatService.getCatalog(SESSION_KEY).length, 0);
+	});
+
+	test('fork openForkTab throw notifies error without unhandled rejection', async () => {
+		const boom = new Error(`Conversation editor part for session ${SESSION_KEY} is not available`);
+		const errors: string[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const { instantiationService, conversationPart, sessionChatService } = await createHarness(undefined, {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService);
+		instantiationService.stub(IWorkbenchEnvironmentService, upcastPartial<IWorkbenchEnvironmentService>({ isSessionsWindow: false }));
+		instantiationService.stub(IConversationSessionChatService, sessionChatService);
+		const sourceSessionResource = URI.parse('agent-host-copilot:/fork-source');
+		const forkedResource = URI.parse('agent-host-copilot:/fork-source#peer-1');
+		instantiationService.stub(IChatSessionsService, upcastPartial<IChatSessionsService>({
+			getContentProviderSchemes: () => ['agent-host-copilot'],
+			forkChatSession: async () => ({
+				resource: forkedResource,
+				label: 'Forked peer',
+				iconPath: undefined,
+				timing: { created: 0, lastRequestStarted: 0, lastRequestEnded: 0 },
+			}),
+		}));
+		sessionChatService.getConversationPart = () => undefined;
+
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const handled = await new TestConversationForkAction().tryForkAsChat(instantiationService, sourceSessionResource);
+			await timeout(0);
+			assert.strictEqual(handled, true);
+			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(conversationPart.activeGroup.count, 1);
+			assert.ok(!sessionChatService.findOpenTabForChat(SESSION_KEY, 'peer-1'));
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
 	function makeLiveAgentTree(children: LiveAgentTreeNodeView[] = []): LiveAgentTreeNodeView {
 		return {
 			agentId: 'root',
@@ -459,6 +560,46 @@ suite('Conversation session chat (S3)', () => {
 			children,
 		};
 	}
+
+	test('bindLiveTreeLease acquireSessionView throw notifies error without unhandled rejection', async () => {
+		const boom = new Error('acquireSessionView: session untitled is not engine-bound');
+		class ConnectedReadyAcquireThrowsRoster extends ConversationStubService {
+			override isEngineConnected(): boolean {
+				return true;
+			}
+			override isEngineSessionReady(): boolean {
+				return true;
+			}
+			override getActiveSessionId(): string {
+				return 'untitled';
+			}
+			override acquireSessionView(_sessionId: string) {
+				throw boom;
+			}
+		}
+		const errors: string[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const roster = store.add(new ConnectedReadyAcquireThrowsRoster());
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const { sessionChatService, sessionWindow } = await createHarness(roster, {
+				error: (message: string | Error) => {
+					errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+				},
+			} as INotificationService);
+			assert.ok(errors.length >= 1);
+			assert.ok(errors.every(message => message === getErrorMessage(boom)));
+			roster.setEngineConnected(true);
+			await timeout(0);
+			assert.ok(errors.every(message => message === getErrorMessage(boom)));
+			assert.deepStrictEqual(sessionChatService.getAgentHierarchyBreadcrumb(SESSION_KEY, 'web'), []);
+			assert.ok(sessionWindow.querySelector(`.${conversationSubAgentOverlayClass}`));
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
 
 	test('live agent tree syncs non-root nodes into the catalog once', async () => {
 		const { sessionChatService } = await createHarness();
@@ -628,6 +769,32 @@ suite('Conversation session chat (S3)', () => {
 		assert.ok(sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-1'));
 	});
 
+	test('promote openExtensionTab throw notifies error without unhandled rejection', async () => {
+		const boom = new Error(`Conversation editor part for session ${SESSION_KEY} is not available`);
+		const errors: string[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const { sessionChatService } = await createHarness(undefined, {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService);
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Research sub-agent');
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-1');
+		sessionChatService.getConversationPart = () => undefined;
+
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			void sessionChatService.promoteSubAgentDialog();
+			await timeout(0);
+			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
 	test('leaf maximize keeps the sub-agent dialog open without adding a tab', async () => {
 		const { conversationPart, sessionChatService, sessionWindow } = await createHarness();
 		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Research sub-agent');
@@ -743,6 +910,112 @@ suite('Conversation session chat (S3)', () => {
 		assert.ok((conversationPart.activeGroup.getEditorByIndex(0) as ConversationChatInput).isDefaultRoot);
 		assert.strictEqual(sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-1'), undefined);
 		assert.strictEqual(sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-2'), undefined);
+	});
+
+	test('splitSessionWindow missing conversation part notifies error without unhandled rejection', async () => {
+		const boom = new Error(`Conversation editor part for session ${SESSION_KEY} is not available`);
+		const errors: string[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const { conversationPart, sessionChatService } = await createHarness(undefined, {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService);
+		sessionChatService.getConversationPart = () => undefined;
+
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			void sessionChatService.splitSessionWindow();
+			await timeout(0);
+			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(conversationPart.groups.length, 1);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('dialog breadcrumb ancestor with existing tab closes overlay after activating tab', async () => {
+		const { conversationPart, sessionChatService } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-2', 'Child agent', 'sub-1');
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-1', { title: 'Parent agent' });
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-2');
+
+		await sessionChatService.navigateAgentBreadcrumb(SESSION_KEY, 'sub-1');
+
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
+		assert.strictEqual(
+			(conversationPart.activeGroup.activeEditor as ConversationChatInput).resource.toString(),
+			getConversationChatResource(SESSION_KEY, 'sub-1').toString(),
+		);
+	});
+
+	test('breadcrumb navigate throw notifies error without unhandled rejection', async () => {
+		const boom = new Error('boom');
+		const errors: string[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const { conversationPart, sessionChatService } = await createHarness(undefined, {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService);
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-2', 'Child agent', 'sub-1');
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-1', { title: 'Parent agent' });
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-2');
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
+		conversationPart.activeGroup.openEditor = async () => {
+			throw boom;
+		};
+
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			void sessionChatService.navigateAgentBreadcrumb(SESSION_KEY, 'sub-1');
+			await timeout(0);
+			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('closeNonRootTabs closeEditors throw notifies error without unhandled rejection', async () => {
+		const boom = new Error('boom');
+		const errors: string[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const { conversationPart, parts, sessionChatService } = await createHarness(undefined, {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService);
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-1', { title: 'Parent agent' });
+
+		const scopedEditorService = parts.getScopedInstantiationService(conversationPart).invokeFunction(accessor => accessor.get(IEditorService));
+		scopedEditorService.closeEditors = async () => {
+			throw boom;
+		};
+
+		let closeStateFires = 0;
+		store.add(sessionChatService.onDidChangeCloseNonRootState(() => {
+			closeStateFires++;
+		}));
+
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			void ConversationSessionChatService.prototype.closeNonRootTabs.call(sessionChatService);
+			await timeout(0);
+			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.ok(closeStateFires >= 1);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('close non-root closes extension tabs but keeps root group', async () => {

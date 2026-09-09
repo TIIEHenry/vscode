@@ -9,6 +9,7 @@ import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { getErrorMessage } from '../../../../base/common/errors.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { ContextKeyExpr, IContextKey, RawContextKey, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
@@ -18,6 +19,7 @@ import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -51,6 +53,7 @@ const $ = dom.$;
 const TEAM_MEMBERS_EMPTY_COPY = localize('navigatorTeamMembers.emptyConnected', "No team members yet");
 const TEAM_TASKS_EMPTY_COPY = localize('navigatorTeamTasks.emptyConnected', "No tasks yet");
 const TEAM_FILTER_NO_MATCH = localize('navigatorTeam.noMatch', "No matches");
+const TEAM_FETCH_FAILED_COPY = localize('navigatorTeam.fetchFailed', "Failed to read team members and tasks");
 
 export type NavigatorTeamSubview = 'members' | 'tasks';
 
@@ -195,12 +198,17 @@ export class NavigatorTeamView extends ViewPane {
 		@IConversationRosterService private readonly rosterService: IConversationRosterService,
 		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 		@IAgentInspectService private readonly inspectService: IAgentInspectService,
+		@INotificationService private readonly notificationService: INotificationService,
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
 
 		this.membersContextKey = NAVIGATOR_TEAM_SUBVIEW_MEMBERS_KEY.bindTo(this.scopedContextKeyService);
 		this.tasksContextKey = NAVIGATOR_TEAM_SUBVIEW_TASKS_KEY.bindTo(this.scopedContextKeyService);
-		this.leaseHolder = this._register(new NavigatorSessionLeaseHolder(this.rosterService, () => this.scheduleRefresh()));
+		this.leaseHolder = this._register(new NavigatorSessionLeaseHolder(
+			this.rosterService,
+			() => this.scheduleRefresh(),
+			error => this.notificationService.error(getErrorMessage(error)),
+		));
 		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refreshTeamData(), 250));
 		this._register(this.rosterService.onDidChangeActiveSession(() => this.scheduleRefresh()));
 		this._register(this.rosterService.onDidChangeEngineConnection(() => this.scheduleRefresh()));
@@ -415,54 +423,60 @@ export class NavigatorTeamView extends ViewPane {
 		const members: INavigatorTeamMemberEntry[] = [];
 		const tasks: INavigatorTeamTaskEntry[] = [];
 
-		for (const manager of managers) {
-			let managerLabel = manager.name || manager.agentId;
-			if (liveTeamId !== undefined) {
-				try {
-					this.teamInfoCallCount++;
-					const info = await teamApi.teamInfo(sessionId, manager.agentId, liveTeamId);
-					if (info?.status) {
-						managerLabel = `${managerLabel} (${info.status})`;
+		try {
+			for (const manager of managers) {
+				let managerLabel = manager.name || manager.agentId;
+				if (liveTeamId !== undefined) {
+					try {
+						this.teamInfoCallCount++;
+						const info = await teamApi.teamInfo(sessionId, manager.agentId, liveTeamId);
+						if (info?.status) {
+							managerLabel = `${managerLabel} (${info.status})`;
+						}
+					} catch {
+						// keep manager name only
 					}
-				} catch {
-					// keep manager name only
+				}
+
+				const memberRows = await teamApi.memberStatus(sessionId, manager.agentId);
+				for (const row of memberRows) {
+					const prefix = managers.length > 1 ? `${managerLabel}: ` : '';
+					members.push({
+						...row,
+						id: `member:${row.memberAgentId}`,
+						label: `${prefix}${row.memberName} · ${row.status}`,
+						managerAgentId: manager.agentId,
+						managerName: manager.name || manager.agentId,
+					});
+				}
+
+				const taskRows = await teamApi.taskList(sessionId, manager.agentId);
+				for (const row of taskRows) {
+					const blocked = row.status === 'BLOCKED' && row.blockedBy ? ` · ${row.blockedBy}` : '';
+					const prefix = managers.length > 1 ? `${managerLabel}: ` : '';
+					tasks.push({
+						...row,
+						id: `task:${row.taskId}`,
+						label: `${prefix}${row.subject || row.taskId} · ${row.status}${blocked}`,
+						managerAgentId: manager.agentId,
+						managerName: manager.name || manager.agentId,
+					});
 				}
 			}
 
-			const memberRows = await teamApi.memberStatus(sessionId, manager.agentId);
-			for (const row of memberRows) {
-				const prefix = managers.length > 1 ? `${managerLabel}: ` : '';
-				members.push({
-					...row,
-					id: `member:${row.memberAgentId}`,
-					label: `${prefix}${row.memberName} · ${row.status}`,
-					managerAgentId: manager.agentId,
-					managerName: manager.name || manager.agentId,
-				});
+			this.hadTeamSnapshot = true;
+			this.setMemberEntries(members, members.length === 0 ? TEAM_MEMBERS_EMPTY_COPY : undefined);
+			this.setTaskEntries(tasks, tasks.length === 0 ? TEAM_TASKS_EMPTY_COPY : undefined);
+			if (!this.rosterService.isEngineConnected() || this.uaConnection.getConnectionPhase().kind !== 'connected') {
+				this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
+				return;
 			}
-
-			const taskRows = await teamApi.taskList(sessionId, manager.agentId);
-			for (const row of taskRows) {
-				const blocked = row.status === 'BLOCKED' && row.blockedBy ? ` · ${row.blockedBy}` : '';
-				const prefix = managers.length > 1 ? `${managerLabel}: ` : '';
-				tasks.push({
-					...row,
-					id: `task:${row.taskId}`,
-					label: `${prefix}${row.subject || row.taskId} · ${row.status}${blocked}`,
-					managerAgentId: manager.agentId,
-					managerName: manager.name || manager.agentId,
-				});
-			}
+			this.setTeamSnapshotNote(undefined);
+		} catch {
+			this.setMemberEntries([], TEAM_MEMBERS_EMPTY_COPY);
+			this.setTaskEntries([], TEAM_TASKS_EMPTY_COPY);
+			this.setTeamSnapshotNote(TEAM_FETCH_FAILED_COPY);
 		}
-
-		this.hadTeamSnapshot = true;
-		this.setMemberEntries(members, members.length === 0 ? TEAM_MEMBERS_EMPTY_COPY : undefined);
-		this.setTaskEntries(tasks, tasks.length === 0 ? TEAM_TASKS_EMPTY_COPY : undefined);
-		if (!this.rosterService.isEngineConnected() || this.uaConnection.getConnectionPhase().kind !== 'connected') {
-			this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
-			return;
-		}
-		this.setTeamSnapshotNote(undefined);
 	}
 
 	private setTeamSnapshotNote(noteMessage: string | undefined): void {

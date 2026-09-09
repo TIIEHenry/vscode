@@ -49,6 +49,7 @@
  */
 
 import { SequencerByKey } from '../../../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { Disposable, DisposableStore, MutableDisposable } from '../../../../../../base/common/lifecycle.js';
 import { ResourceMap, ResourceSet } from '../../../../../../base/common/map.js';
@@ -326,7 +327,7 @@ export class AgentHostUntitledProvisionalSessionService extends Disposable imple
 		this._register(this._newSessionFolderService.onDidChangeFolder(sessionResource => {
 			const folder = this._newSessionFolderService.getFolder(sessionResource);
 			if (folder && this._entries.has(sessionResource)) {
-				void this._changeWorkingDirectory(sessionResource, folder);
+				void this._changeWorkingDirectory(sessionResource, folder).catch(onUnexpectedError);
 			}
 		}));
 		// If workspace folders change, recompute the desired directory set. If it
@@ -340,7 +341,7 @@ export class AgentHostUntitledProvisionalSessionService extends Disposable imple
 				}
 				// Untitled drafts reselect removed primaries; rebound sessions retain their immutable primary.
 				if (isUntitledChatSession(sessionResource) && this._primaryWasRemoved(entry, e)) {
-					void this._changeWorkingDirectory(sessionResource, this._newSessionFolderService.resolveNewSessionPrimary(sessionResource));
+					void this._changeWorkingDirectory(sessionResource, this._newSessionFolderService.resolveNewSessionPrimary(sessionResource)).catch(onUnexpectedError);
 					continue;
 				}
 				this._reconcileWorkspaceRootSet(sessionResource, entry);
@@ -430,7 +431,7 @@ export class AgentHostUntitledProvisionalSessionService extends Disposable imple
 		}
 		this._updateActiveClientScope(entry);
 		if (entry.usesWorkspaceRootSet && !this._generationMatchingDesiredState(entry)) {
-			void this._queue(sessionResource, () => this._reconcileGeneration(sessionResource, entry));
+			void this._queue(sessionResource, () => this._reconcileGeneration(sessionResource, entry)).catch(onUnexpectedError);
 		}
 	}
 

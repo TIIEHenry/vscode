@@ -7,6 +7,7 @@ import assert from 'assert';
 import { IDelayedHoverOptions, IHoverLifecycleOptions } from '../../../../../base/browser/ui/hover/hover.js';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { isMarkdownString } from '../../../../../base/common/htmlContent.js';
 import { Disposable, IDisposable, MutableDisposable } from '../../../../../base/common/lifecycle.js';
 import { mock } from '../../../../../base/test/common/mock.js';
@@ -193,6 +194,83 @@ suite('NewSessionPromptOptionsWidget', () => {
 			ariaLabel: 'Tackle issue #123: A complete issue title',
 			hover: ['**Tackle issue \\#123**\n\nA complete issue title'],
 		});
+	});
+
+	test('rolls back selection when selectOption rejects', async () => {
+		const container = document.createElement('div');
+		const hoverService = new TestHoverService();
+		let rejectNext = true;
+		const widget = disposables.add(new NewSessionPromptOptionsWidget(container, {
+			selectOption: () => rejectNext ? Promise.reject('boom') : Promise.resolve(true),
+			onDidSelectOption: () => undefined,
+			onDidClose: () => undefined,
+		}, hoverService));
+		widget.setState({ kind: 'resolved', options: [option('feature', 'Implement a feature'), option('bug', 'Fix a bug')] });
+		const buttons = Array.from(widget.element.querySelectorAll<HTMLElement>('.monaco-button.new-session-prompt-option'));
+
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			buttons[0].click();
+			await timeout(0);
+			const afterFirstReject = snapshotButtons(buttons);
+
+			rejectNext = false;
+			buttons[0].click();
+			await timeout(0);
+			const afterSelect = snapshotButtons(buttons);
+
+			rejectNext = true;
+			buttons[1].click();
+			await timeout(0);
+			const afterSecondReject = snapshotButtons(buttons);
+
+			assert.deepStrictEqual({
+				afterFirstReject,
+				afterSelect,
+				afterSecondReject,
+			}, {
+				afterFirstReject: [
+					{ selected: false, disabled: false },
+					{ selected: false, disabled: false },
+				],
+				afterSelect: [
+					{ selected: true, disabled: false },
+					{ selected: false, disabled: false },
+				],
+				afterSecondReject: [
+					{ selected: true, disabled: false },
+					{ selected: false, disabled: false },
+				],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+		}
+	});
+
+	test('does not leak unhandled rejection when selectOption rejects', async () => {
+		const container = document.createElement('div');
+		const hoverService = new TestHoverService();
+		const widget = disposables.add(new NewSessionPromptOptionsWidget(container, {
+			selectOption: () => Promise.reject('boom'),
+			onDidSelectOption: () => undefined,
+			onDidClose: () => undefined,
+		}, hoverService));
+		widget.setState({ kind: 'resolved', options: [option('feature', 'Implement a feature')] });
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			widget.element.querySelector<HTMLElement>('.monaco-button.new-session-prompt-option')?.click();
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('renders a close action in the title row', async () => {

@@ -43,6 +43,24 @@ const $ = DOM.$;
 const TOOLS_FEATURE = localize('ua.engineToolsFeatureLabel', "engine tools");
 const TOOL_DETAIL_FEATURE = localize('ua.engineToolsInfoFeatureLabel', "tool details");
 
+function toolsWriteRejectedReason(): string {
+	return localize('ua.engineToolsWriteRejected', "The engine rejected the tool enablement write.");
+}
+
+function toolsWriteFailureReason(error: unknown): string {
+	if (typeof error === 'string' && error) {
+		return error;
+	}
+	if (error instanceof Error && error.message) {
+		return error.message;
+	}
+	return toolsWriteRejectedReason();
+}
+
+function toolsSaveFailedMessage(error: unknown): string {
+	return localize('ua.engineToolsSaveFailed', "Unable to save: {0}", toolsWriteFailureReason(error));
+}
+
 type EngineToolListEntry =
 	| { readonly kind: 'group'; readonly group: EngineToolCatalogGroup; readonly label: string }
 	| { readonly kind: 'tool'; readonly tool: UniverseAgentToolSummary };
@@ -170,6 +188,7 @@ export class EngineToolsSection extends Disposable {
 	private readonly profileSelect: SelectBox;
 	private readonly writeToolbar: HTMLElement;
 	private readonly saveButton: Button;
+	private readonly catalogWriteStatus: HTMLElement;
 	private readonly listContainer: HTMLElement;
 	private readonly infoHost: HTMLElement;
 	private readonly instantiationService: IInstantiationService;
@@ -223,6 +242,10 @@ export class EngineToolsSection extends Disposable {
 		this.saveButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
 		this.saveButton.label = localize('ua.engineToolsSave', "Save");
 		this._register(this.saveButton.onDidClick(() => void this.savePendingEnablement()));
+		this.catalogWriteStatus = DOM.append(this.container, $('.engine-catalog-write-status'));
+		this.catalogWriteStatus.setAttribute('role', 'status');
+		this.catalogWriteStatus.setAttribute('aria-live', 'polite');
+		this.catalogWriteStatus.style.display = 'none';
 
 		this.listContainer = DOM.append(this.container, $('.engine-catalog-list'));
 		this.infoHost = DOM.append(this.container, $('.engine-tools-info'));
@@ -332,6 +355,7 @@ export class EngineToolsSection extends Disposable {
 		if (!this.canWrite() || !this.activeProfile) {
 			return false;
 		}
+		this.hideCatalogWriteStatus();
 		const profileId = this.activeProfile.id;
 		const prefix = `${profileId}\u0000`;
 		const changes: Array<{ readonly toolName: string; readonly enabled: boolean }> = [];
@@ -347,6 +371,7 @@ export class EngineToolsSection extends Disposable {
 		try {
 			const result = await this.connection.saveAgentProfile({ profile });
 			if (!result.profile.id) {
+				this.showCatalogWriteFailed(toolsSaveFailedMessage(toolsWriteRejectedReason()));
 				return false;
 			}
 			this.activeProfile = {
@@ -364,10 +389,12 @@ export class EngineToolsSection extends Disposable {
 					this.pendingEnablement.delete(key);
 				}
 			}
+			this.hideCatalogWriteStatus();
 			this.updateSaveChrome();
 			this.list?.rerender();
 			return true;
-		} catch {
+		} catch (error) {
+			this.showCatalogWriteFailed(toolsSaveFailedMessage(error));
 			return false;
 		}
 	}
@@ -376,6 +403,7 @@ export class EngineToolsSection extends Disposable {
 		if (!this.canWrite() || !this.activeProfile) {
 			return false;
 		}
+		this.hideCatalogWriteStatus();
 		const profile = applyToolEnablementChange(
 			summaryToProfileDetail(this.activeProfile),
 			tool.name,
@@ -384,6 +412,7 @@ export class EngineToolsSection extends Disposable {
 		try {
 			const result = await this.connection.saveAgentProfile({ profile });
 			if (!result.profile.id) {
+				this.showCatalogWriteFailed(toolsSaveFailedMessage(toolsWriteRejectedReason()));
 				return false;
 			}
 			this.activeProfile = {
@@ -397,10 +426,12 @@ export class EngineToolsSection extends Disposable {
 				this.profiles[index] = this.activeProfile;
 			}
 			this.pendingEnablement.delete(toolEnablementPendingKey(this.activeProfile.id, tool.name));
+			this.hideCatalogWriteStatus();
 			this.updateSaveChrome();
 			this.list?.rerender();
 			return true;
-		} catch {
+		} catch (error) {
+			this.showCatalogWriteFailed(toolsSaveFailedMessage(error));
 			return false;
 		}
 	}
@@ -416,13 +447,23 @@ export class EngineToolsSection extends Disposable {
 		return isToolEnabledInProfile(toolName, this.activeProfile);
 	}
 
-	private setPendingEnablement(tool: UniverseAgentToolSummary, enabled: boolean): void {
+	setPendingEnablement(tool: UniverseAgentToolSummary, enabled: boolean): void {
 		if (!this.activeProfile || !this.canWrite()) {
 			return;
 		}
 		this.pendingEnablement.set(toolEnablementPendingKey(this.activeProfile.id, tool.name), enabled);
 		this.updateSaveChrome();
 		this.list?.rerender();
+	}
+
+	private hideCatalogWriteStatus(): void {
+		this.catalogWriteStatus.style.display = 'none';
+		this.catalogWriteStatus.textContent = '';
+	}
+
+	private showCatalogWriteFailed(message: string): void {
+		this.catalogWriteStatus.style.display = '';
+		this.catalogWriteStatus.textContent = message;
 	}
 
 	private updateSaveChrome(): void {
@@ -512,7 +553,10 @@ export class EngineToolsSection extends Disposable {
 			}
 			this.profiles = profilesResult.profiles.filter(profile => profile.source !== 'built_in');
 			this.populateProfileSelect();
+			const selectedToolName = this.selectedToolName;
 			this.setTools(toolsResult.tools);
+			this.hideCatalogWriteStatus();
+			this.pendingEnablement.clear();
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
 				kind: 'success',
 				itemCount: toolsResult.tools.length,
@@ -520,12 +564,18 @@ export class EngineToolsSection extends Disposable {
 			this.listContainer.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
 			this.updateSaveChrome();
 			this.renderStatus();
+			if (selectedToolName) {
+				this.selectedToolName = selectedToolName;
+				this.clearToolInfo();
+				void this.loadToolInfo(selectedToolName);
+			}
 		} catch (error) {
-			this.updateSaveChrome();
+			this.clearCatalogPresentation();
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
 				kind: 'failed',
 				error: error instanceof Error ? error.message : undefined,
 			});
+			this.updateSaveChrome();
 			this.renderStatus({
 				reason: error instanceof Error ? error.message : undefined,
 				onRetry: () => void this.refresh(),
@@ -573,6 +623,7 @@ export class EngineToolsSection extends Disposable {
 		this.selectedToolName = undefined;
 		this.clearToolInfo();
 		this.status.hide();
+		this.hideCatalogWriteStatus();
 		this.listContainer.style.display = 'none';
 		this.profileSelectHost.style.display = 'none';
 		this.profileSelect.setOptions([]);

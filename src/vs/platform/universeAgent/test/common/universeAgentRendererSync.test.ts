@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Event } from '../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { timeout } from '../../../../base/common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { IChannel } from '../../../../base/parts/ipc/common/ipc.js';
@@ -337,6 +337,110 @@ suite('universeAgentRendererSync', () => {
 		assert.notStrictEqual(typeof (client.getCapabilitySnapshot() as { then?: unknown }).then, 'function');
 	});
 
+	test('connection channel client hydrate IPC reject keeps pre-hydrate defaults without unhandled rejection', async () => {
+		const rejectedSnapshot = {
+			transport: 'ok' as const,
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: true,
+			capabilities: createIdleCapabilitySnapshot(),
+		};
+		const channel: IChannel = {
+			call: (command: string) => {
+				switch (command) {
+					case 'getConnectionSnapshot':
+						return Promise.resolve(rejectedSnapshot);
+					case 'getConnectionPhase':
+						return Promise.reject(new Error('ipc hydrate phase'));
+					case 'isAgentTreeFetchFailed':
+						return Promise.resolve(true);
+					default:
+						return Promise.resolve(undefined);
+				}
+			},
+			listen: () => Event.None,
+		};
+		const rejections: unknown[] = [];
+		const onUnhandled = (reason: unknown) => { rejections.push(reason); };
+		process.on('unhandledRejection', onUnhandled);
+		try {
+			const client = store.add(new UniverseAgentConnectionChannelClient(channel));
+			let fires = 0;
+			store.add(client.onDidChangeConnection(() => { fires++; }));
+			await timeout(0);
+			assert.deepStrictEqual(rejections, []);
+			assert.strictEqual(fires, 0);
+			assert.strictEqual(client.getConnectionPhase().kind, 'disconnected');
+			assert.strictEqual(client.isEngineConnected(), false);
+			assert.strictEqual(client.getTransportState(), 'idle');
+			assert.strictEqual(client.isAgentTreeFetchFailed(), false);
+			assert.strictEqual(client.getConnectionSnapshot().transport, 'idle');
+			assert.strictEqual(client.getCapabilitySnapshot().providerConfig.support, 'UNKNOWN');
+		} finally {
+			process.off('unhandledRejection', onUnhandled);
+		}
+	});
+
+	test('connection channel client refreshPhase IPC reject keeps last-good phase without unhandled rejection', async () => {
+		const idleSnapshot = {
+			transport: 'idle' as const,
+			pairingPending: false,
+			channelAlive: false,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+		};
+		const incomingSnapshot = {
+			transport: 'ok' as const,
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+		};
+		let rejectRefresh = false;
+		const connectionChanges = new Emitter<typeof incomingSnapshot>();
+		store.add(connectionChanges);
+		const channel: IChannel = {
+			call: (command: string) => {
+				switch (command) {
+					case 'getConnectionSnapshot':
+						return Promise.resolve(idleSnapshot);
+					case 'getConnectionPhase':
+						return rejectRefresh
+							? Promise.reject(new Error('ipc refresh phase'))
+							: Promise.resolve({ kind: 'disconnected' });
+					case 'isAgentTreeFetchFailed':
+						return Promise.resolve(rejectRefresh);
+					default:
+						return Promise.resolve(undefined);
+				}
+			},
+			listen: (event: string) => event === 'onDidChangeConnection' ? connectionChanges.event : Event.None,
+		};
+		const rejections: unknown[] = [];
+		const onUnhandled = (reason: unknown) => { rejections.push(reason); };
+		process.on('unhandledRejection', onUnhandled);
+		try {
+			const client = store.add(new UniverseAgentConnectionChannelClient(channel));
+			let fires = 0;
+			store.add(client.onDidChangeConnection(() => { fires++; }));
+			await timeout(0);
+			assert.strictEqual(fires, 1);
+			assert.strictEqual(client.getConnectionPhase().kind, 'disconnected');
+			assert.strictEqual(client.getConnectionSnapshot().transport, 'idle');
+			rejectRefresh = true;
+			connectionChanges.fire(incomingSnapshot);
+			await timeout(0);
+			assert.deepStrictEqual(rejections, []);
+			assert.strictEqual(fires, 1);
+			assert.strictEqual(client.getConnectionSnapshot().transport, 'ok');
+			assert.strictEqual(client.getConnectionPhase().kind, 'disconnected');
+			assert.strictEqual(client.isEngineConnected(), false);
+			assert.strictEqual(client.isAgentTreeFetchFailed(), false);
+		} finally {
+			process.off('unhandledRejection', onUnhandled);
+		}
+	});
+
 	test('hub channel client hydrates listConnectionProfiles to a real array', async () => {
 		const profiles = [{
 			profileId: 'p1',
@@ -366,5 +470,55 @@ suite('universeAgentRendererSync', () => {
 		await timeout(0);
 		assert.strictEqual(client.listConnectionProfiles()[0]?.profileId, 'p1');
 		assert.ok(Array.isArray(client.listConnectionProfiles()));
+	});
+
+	test('hub channel client hydrate IPC reject keeps pre-hydrate defaults without unhandled rejection', async () => {
+		const profiles = [{
+			profileId: 'p-rejected',
+			displayName: 'hub.example',
+			state: 'active' as const,
+			hasTrust: true,
+			targetKind: 'hubDevice' as const,
+		}];
+		const channel: IChannel = {
+			call: (command: string) => {
+				switch (command) {
+					case 'listConnectionProfiles':
+						return Promise.resolve(profiles);
+					case 'getAuthStatus':
+						return Promise.reject(new Error('ipc hydrate auth'));
+					case 'getDirectoryStatus':
+						return Promise.resolve({ kind: 'ok', devices: [] });
+					case 'getActiveHubBaseUrl':
+						return Promise.resolve('https://hub.example');
+					default:
+						return Promise.resolve(undefined);
+				}
+			},
+			listen: () => Event.None,
+		};
+		const rejections: unknown[] = [];
+		const onUnhandled = (reason: unknown) => { rejections.push(reason); };
+		process.on('unhandledRejection', onUnhandled);
+		try {
+			const client = store.add(new UniverseAgentHubChannelClient(channel));
+			let authFires = 0;
+			let directoryFires = 0;
+			let profileFires = 0;
+			store.add(client.onDidChangeAuthStatus(() => { authFires++; }));
+			store.add(client.onDidChangeDirectory(() => { directoryFires++; }));
+			store.add(client.onDidChangeProfiles(() => { profileFires++; }));
+			await timeout(0);
+			assert.deepStrictEqual(rejections, []);
+			assert.strictEqual(authFires, 0);
+			assert.strictEqual(directoryFires, 0);
+			assert.strictEqual(profileFires, 0);
+			assert.strictEqual(client.getAuthStatus().kind, 'signedOut');
+			assert.strictEqual(client.getDirectoryStatus().kind, 'idle');
+			assert.deepStrictEqual(client.listConnectionProfiles(), []);
+			assert.strictEqual(client.getActiveHubBaseUrl(), undefined);
+		} finally {
+			process.off('unhandledRejection', onUnhandled);
+		}
 	});
 });

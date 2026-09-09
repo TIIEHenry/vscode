@@ -8,11 +8,14 @@ import { $, append } from '../../../../base/browser/dom.js';
 import { ActionBar } from '../../../../base/browser/ui/actionbar/actionbar.js';
 import { Action } from '../../../../base/common/actions.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { getErrorMessage } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import { ILogService } from '../../../../platform/log/common/log.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
@@ -68,6 +71,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 
 	private gridHost: HTMLElement | undefined;
 	private primarySessionKey: string | undefined;
+	private primaryBootstrapInFlight: Promise<void> | undefined;
 	private readonly leaves = new Map<string, IConversationSessionLeaf>();
 	private readonly leafOrder: string[] = [];
 
@@ -78,6 +82,8 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		@IConversationPartService private readonly conversationPartService: IConversationPartService,
 		@IEditorGroupsService private readonly editorGroupsService: IEditorGroupsService,
 		@IConversationRosterService private readonly rosterService: IConversationRosterService,
+		@ILogService private readonly logService: ILogService,
+		@INotificationService private readonly notificationService: INotificationService,
 	) {
 		super();
 
@@ -131,9 +137,20 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			return;
 		}
 
-		this.primarySessionKey = sessionKey;
-		await this.ensureLeaf(sessionKey, { primary: true });
-		this.fireVisibleWindowsChange();
+		if (this.primaryBootstrapInFlight) {
+			await this.primaryBootstrapInFlight;
+			return;
+		}
+
+		const bootstrap = this.tryBootstrapPrimaryWindow(sessionKey);
+		this.primaryBootstrapInFlight = bootstrap;
+		try {
+			await bootstrap;
+		} finally {
+			if (this.primaryBootstrapInFlight === bootstrap) {
+				this.primaryBootstrapInFlight = undefined;
+			}
+		}
 	}
 
 	async openSessionBeside(sessionKey: string): Promise<void> {
@@ -143,6 +160,11 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 
 		await this.ensurePrimaryWindow(this.primarySessionKey ?? this.rosterService.getActiveSessionId());
 
+		const primaryKey = this.getPrimarySessionKey();
+		if (!primaryKey || !this.getLeafSlots(primaryKey)) {
+			return;
+		}
+
 		const existing = this.leaves.get(sessionKey);
 		if (existing) {
 			if (existing.hidden) {
@@ -151,16 +173,27 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			return;
 		}
 
+		let evictedSecondaryKey: string | undefined;
 		const visibleKeys = this.getVisibleSessionKeys();
 		if (visibleKeys.length >= CONVERSATION_SESSION_WINDOW_MAX_LEAVES) {
 			const secondaryKey = visibleKeys.find(key => key !== this.primarySessionKey);
 			if (secondaryKey) {
 				this.hideSessionWindow(secondaryKey);
+				evictedSecondaryKey = secondaryKey;
 			}
 		}
 
-		await this.ensureLeaf(sessionKey, { primary: false });
-		this.fireVisibleWindowsChange();
+		try {
+			await this.ensureLeaf(sessionKey, { primary: false });
+			this.fireVisibleWindowsChange();
+		} catch (error) {
+			this.rollbackHalfAppliedLeaf(sessionKey);
+			if (evictedSecondaryKey) {
+				this.restoreSessionWindow(evictedSecondaryKey);
+			}
+			this.logService.warn(`[ConversationSessionWindowService] openSessionBeside failed: ${getErrorMessage(error)}`);
+			this.notificationService.error(getErrorMessage(error));
+		}
 	}
 
 	hideSessionWindow(sessionKey: string): void {
@@ -280,6 +313,29 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		this._register(hideAction);
 		actionBar.push(hideAction, { icon: true, label: false });
 		actionBar.setFocusable(false);
+	}
+
+	private async tryBootstrapPrimaryWindow(sessionKey: string): Promise<void> {
+		try {
+			await this.ensureLeaf(sessionKey, { primary: true });
+			this.primarySessionKey = sessionKey;
+			this.fireVisibleWindowsChange();
+		} catch (error) {
+			this.primarySessionKey = undefined;
+			this.rollbackHalfAppliedLeaf(sessionKey);
+			this.logService.warn(`[ConversationSessionWindowService] ensurePrimaryWindow failed: ${getErrorMessage(error)}`);
+			this.notificationService.error(getErrorMessage(error));
+		}
+	}
+
+	private rollbackHalfAppliedLeaf(sessionKey: string): void {
+		const leaf = this.leaves.get(sessionKey);
+		this.leaves.delete(sessionKey);
+		const orderIndex = this.leafOrder.indexOf(sessionKey);
+		if (orderIndex !== -1) {
+			this.leafOrder.splice(orderIndex, 1);
+		}
+		leaf?.container.remove();
 	}
 
 	private fireVisibleWindowsChange(): void {

@@ -38,6 +38,9 @@ import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesP
 const $ = DOM.$;
 
 const SKILL_WRITE_FEATURE = localize('ua.engineSkillWriteFeatureLabel', "skill content write");
+const SKILL_CREATE_SUCCESS_COPY = localize('ua.engineSkillCreateSuccess', "Created.");
+const SKILL_TOGGLE_SUCCESS_COPY = localize('ua.engineSkillToggleSuccess', "Updated.");
+const SKILL_SAVE_SUCCESS_COPY = localize('ua.engineSkillBodySaveSuccess', "Saved.");
 
 type EngineSkillListEntry =
 	| { readonly kind: 'group'; readonly source: UniverseAgentSkillSummary['source']; readonly label: string }
@@ -149,6 +152,7 @@ export class EngineSkillsSection extends Disposable {
 	private readonly status: EngineCatalogStatusWidget;
 	private readonly freezeNotice: HTMLElement;
 	private readonly writeToolbar: HTMLElement;
+	private readonly writeStatus: HTMLElement;
 	private readonly listContainer: HTMLElement;
 	private readonly bodyEditor: HTMLElement;
 	private readonly bodyToolbar: HTMLElement;
@@ -195,6 +199,11 @@ export class EngineSkillsSection extends Disposable {
 		const newButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
 		newButton.label = localize('ua.engineSkillsNew', "New");
 		this._register(newButton.onDidClick(() => void this.createSkill()));
+
+		this.writeStatus = DOM.append(this.container, $('.engine-skill-write-status'));
+		this.writeStatus.setAttribute('role', 'status');
+		this.writeStatus.setAttribute('aria-live', 'polite');
+		this.writeStatus.style.display = 'none';
 
 		this.listContainer = DOM.append(this.container, $('.engine-skills-list'));
 
@@ -303,6 +312,14 @@ export class EngineSkillsSection extends Disposable {
 		}
 	}
 
+	/** Test hook: programmatically toggle a skill by name. */
+	async toggleSkillForTest(name: string, enabled: boolean): Promise<void> {
+		const entry = this.listEntries.find(item => item.kind === 'skill' && item.skill.name === name);
+		if (entry?.kind === 'skill') {
+			await this.toggleSkill(entry.skill, enabled);
+		}
+	}
+
 	async createSkill(options?: { skillName?: string; content?: string }): Promise<boolean> {
 		if (!this.canWrite() || !this.connection.saveSkillContent) {
 			return false;
@@ -312,15 +329,17 @@ export class EngineSkillsSection extends Disposable {
 		try {
 			const result = await this.connection.saveSkillContent({ skillName, content });
 			if (!result.ok) {
+				this.paintSkillCreateFailed();
 				return false;
 			}
-			await this.refresh();
+			await this.restoreWriteSuccessAfterRefresh(() => this.paintSkillCreateSucceeded());
 			if (!this.canWrite()) {
 				return false;
 			}
 			this.selectSkillForTest(skillName);
 			return true;
 		} catch {
+			this.paintSkillCreateFailed();
 			return false;
 		}
 	}
@@ -339,22 +358,16 @@ export class EngineSkillsSection extends Disposable {
 				content: payload,
 			});
 			if (!result.ok) {
-				this.showBodyStatus(localize(
-					'ua.engineSkillBodySaveFailed',
-					"Could not save skill content to the engine.",
-				));
+				this.paintSkillSaveFailed();
 				return false;
 			}
 			this.hideBodyStatus();
 			this.loadedBodyText = payload;
 			this.bodyDirty = false;
-			await this.loadSkillBody(this.selectedSkill);
+			await this.restoreWriteSuccessAfterRefresh(() => this.paintSkillSaveSucceeded());
 			return true;
 		} catch {
-			this.showBodyStatus(localize(
-				'ua.engineSkillBodySaveFailed',
-				"Could not save skill content to the engine.",
-			));
+			this.paintSkillSaveFailed();
 			return false;
 		}
 	}
@@ -407,12 +420,16 @@ export class EngineSkillsSection extends Disposable {
 			this.listContainer.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
 			this.bodyEditor.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
 			this.renderStatus();
+			if (this.selectedSkill && !this.bodyDirty) {
+				void this.loadSkillBody(this.selectedSkill);
+			}
 		} catch (error) {
-			this.writeToolbar.style.display = 'none';
+			this.clearCatalogPresentation();
 			this.mode = resolveEngineSkillsPaneMode(true, support, {
 				kind: 'failed',
 				error: error instanceof Error ? error.message : undefined,
 			});
+			this.writeToolbar.style.display = 'none';
 			this.renderStatus({
 				reason: error instanceof Error ? error.message : undefined,
 				onRetry: () => void this.refresh(),
@@ -479,6 +496,7 @@ export class EngineSkillsSection extends Disposable {
 		this.status.hide();
 		this.freezeNotice.style.display = 'none';
 		this.writeToolbar.style.display = 'none';
+		this.hideWriteStatus();
 		this.listContainer.style.display = 'none';
 		this.bodyEditor.style.display = 'none';
 		this.clearBodyEditor();
@@ -501,6 +519,61 @@ export class EngineSkillsSection extends Disposable {
 	private hideBodyStatus(): void {
 		this.bodyStatus.style.display = 'none';
 		this.bodyStatus.textContent = '';
+	}
+
+	private hideWriteStatus(): void {
+		this.writeStatus.style.display = 'none';
+		this.writeStatus.textContent = '';
+	}
+
+	private paintSkillCreateFailed(): void {
+		this.paintSkillWriteFailed(localize(
+			'ua.engineSkillCreateFailed',
+			"Could not create skill content on the engine.",
+		));
+	}
+
+	private paintSkillCreateSucceeded(): void {
+		this.paintSkillWriteSucceeded(SKILL_CREATE_SUCCESS_COPY);
+	}
+
+	private paintSkillToggleSucceeded(): void {
+		this.paintSkillWriteSucceeded(SKILL_TOGGLE_SUCCESS_COPY);
+	}
+
+	private paintSkillSaveSucceeded(): void {
+		this.paintSkillWriteSucceeded(SKILL_SAVE_SUCCESS_COPY);
+	}
+
+	private paintSkillWriteSucceeded(copy: string): void {
+		this.writeStatus.style.display = '';
+		this.writeStatus.textContent = copy;
+	}
+
+	private async restoreWriteSuccessAfterRefresh(paintSucceeded: () => void): Promise<void> {
+		paintSucceeded();
+		await this.refresh();
+		paintSucceeded();
+	}
+
+	private paintSkillToggleFailed(): void {
+		this.paintSkillWriteFailed(localize(
+			'ua.engineSkillToggleFailed',
+			"Could not update skill enablement on the engine.",
+		));
+	}
+
+	private paintSkillSaveFailed(): void {
+		this.paintSkillWriteFailed(localize(
+			'ua.engineSkillBodySaveFailed',
+			"Could not save skill content to the engine.",
+		));
+	}
+
+	private paintSkillWriteFailed(message: string): void {
+		this.showBodyStatus(message);
+		this.writeStatus.style.display = '';
+		this.writeStatus.textContent = message;
 	}
 
 	private updateBodyEditorChrome(source: UniverseAgentSkillSource | undefined): void {
@@ -568,12 +641,16 @@ export class EngineSkillsSection extends Disposable {
 		try {
 			const result = await this.connection.setSkillEnabled({ skillName: skill.name, enabled });
 			if (!result.ok) {
+				this.paintSkillToggleFailed();
 				await this.refresh();
+				this.paintSkillToggleFailed();
 				return;
 			}
-			await this.refresh();
+			await this.restoreWriteSuccessAfterRefresh(() => this.paintSkillToggleSucceeded());
 		} catch {
+			this.paintSkillToggleFailed();
 			await this.refresh();
+			this.paintSkillToggleFailed();
 		}
 	}
 

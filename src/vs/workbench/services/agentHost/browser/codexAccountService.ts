@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event, Emitter } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { Action, IAction, SubmenuAction, toAction } from '../../../../base/common/actions.js';
@@ -157,7 +158,7 @@ export class CodexAccountService extends Disposable implements ICodexAccountServ
 		this._onDidChangeAccount.fire(this._account);
 		this._updateProfileImage(account.profileImage);
 		if (account.authUrlNonce && this._pendingSignInRequests.delete(account.authUrlNonce) && account.authUrl) {
-			void openCodexAuthUrl(this._openerService, account.authUrl);
+			void openCodexAuthUrl(this._openerService, account.authUrl).catch(onUnexpectedError);
 		}
 	}
 
@@ -181,7 +182,7 @@ export class CodexAccountService extends Disposable implements ICodexAccountServ
 			}
 			this._account = { ...this._rootAccount, profileImageDataUri };
 			this._onDidChangeAccount.fire(this._account);
-		});
+		}).catch(onUnexpectedError);
 	}
 }
 

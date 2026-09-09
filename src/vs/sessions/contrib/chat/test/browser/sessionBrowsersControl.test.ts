@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { constObservable, observableValue } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -28,6 +30,10 @@ interface IControlSpec {
 	readonly visible?: boolean;
 	/** Start with only the main chat, so the subagent can be added later. */
 	readonly withoutSubagent?: boolean;
+	/** Reject `getPreferredGroup` so opening a browser fails before `openEditor`. */
+	readonly preferredGroupError?: unknown;
+	/** Reject `openEditor` so opening a browser fails after a group is chosen. */
+	readonly openEditorError?: unknown;
 }
 
 interface IControlHarness {
@@ -76,7 +82,12 @@ function createControl(spec: IControlSpec, store: ReturnType<typeof ensureNoDisp
 		override readonly onDidChangeBrowserViews = Event.None;
 		override getKnownBrowserViews() { return knownBrowsers; }
 		override getContextualBrowserViews() { return knownBrowsers; }
-		override async getPreferredGroup() { return undefined; }
+		override async getPreferredGroup() {
+			if (spec.preferredGroupError !== undefined) {
+				return Promise.reject(spec.preferredGroupError);
+			}
+			return undefined;
+		}
 	}();
 
 	let browserOpenCount = 0;
@@ -85,6 +96,9 @@ function createControl(spec: IControlSpec, store: ReturnType<typeof ensureNoDisp
 	const editorService = new class extends mock<IEditorService>() {
 		override findEditors() { return []; }
 		override async openEditor(editor: object) {
+			if (spec.openEditorError !== undefined) {
+				return Promise.reject(spec.openEditorError);
+			}
 			browserOpenCount++;
 			openedBrowserId = browserIds.get(editor);
 			return undefined;
@@ -219,6 +233,28 @@ suite('SessionBrowsersControl', () => {
 			openCount: 1,
 			openedBrowser: 'browser-0',
 		});
+	});
+
+	test('does not leak unhandled rejection when opening a browser rejects', async () => {
+		const cases: IControlSpec[] = [
+			{ browsers: [{ title: 'Preview' }], preferredGroupError: 'boom' },
+			{ browsers: [{ title: 'Preview' }], openEditorError: 'boom' },
+		];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			for (const spec of cases) {
+				openEntry(createControl(spec, store).control);
+			}
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('prefers a shared browser for the same destination and otherwise opens the normal browser', async () => {

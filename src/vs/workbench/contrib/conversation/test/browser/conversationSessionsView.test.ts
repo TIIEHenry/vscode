@@ -4,10 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { getErrorMessage } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { ConversationPart, IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainerModel, IViewContainersRegistry, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
@@ -120,13 +122,20 @@ suite('ConversationSessionsView', () => {
 		layoutService: RosterNavigationLayoutService;
 		conversationPart: ConversationPart;
 		focusSpy: { called: boolean };
+		errors: string[];
 	} {
 		const service = options?.stubService ?? store.add(new ConversationStubService());
 		const layoutService = new RosterNavigationLayoutService(options?.conversationVisible ?? true);
 		const instantiationService = workbenchInstantiationService(undefined, store);
+		const errors: string[] = [];
 		instantiationService.stub(IConversationRosterService, service);
 		instantiationService.stub(IWorkbenchLayoutService, layoutService);
 		instantiationService.stub(IViewDescriptorService, createViewDescriptorServiceStub());
+		instantiationService.stub(INotificationService, {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService);
 
 		const conversationPart = store.add(instantiationService.createInstance(ConversationPart));
 		const partParent = document.createElement('div');
@@ -148,7 +157,7 @@ suite('ConversationSessionsView', () => {
 		container.appendChild(view.element);
 		view.setExpanded(true);
 		view.setVisible(true);
-		return { view, stubService: service, layoutService, conversationPart, focusSpy };
+		return { view, stubService: service, layoutService, conversationPart, focusSpy, errors };
 	}
 
 	test('registers on dedicated Sidebar ViewContainer that is not default', () => {
@@ -260,6 +269,7 @@ suite('ConversationSessionsView', () => {
 		const stubService = new class extends mock<IConversationRosterService>() {
 			override onDidChangeActiveSession = Event.None;
 			override onDidChangeSession = Event.None;
+			override onDidChangeEngineConnection = Event.None;
 			override getSessions() { return []; }
 			override getActiveSessionId() { return ''; }
 			override createSession() { return 'new'; }
@@ -425,6 +435,7 @@ suite('ConversationSessionsView', () => {
 		const stubService = new class extends mock<IConversationRosterService>() {
 			override onDidChangeActiveSession = Event.None;
 			override onDidChangeSession = Event.None;
+			override onDidChangeEngineConnection = Event.None;
 			override getSessions() { return []; }
 			override getActiveSessionId() { return ''; }
 			override createSession() { return 'new'; }
@@ -499,6 +510,28 @@ suite('ConversationSessionsView', () => {
 		assert.deepStrictEqual(getVisibleSessionTitles(view), rosterOrder);
 	});
 
+	test('engine connect empties sidebar roster immediately when getSessions is empty', () => {
+		const stubService = store.add(new class extends ConversationStubService {
+			override getSessions(): readonly ConversationStubSession[] {
+				if (this.isEngineConnected()) {
+					return [];
+				}
+				return super.getSessions();
+			}
+		}());
+		const { view } = mountView({ stubService });
+		const stubRowCount = view.element.querySelectorAll('.conversation-sessions-item-label').length;
+		assert.ok(stubRowCount > 0);
+		assert.strictEqual(view.element.querySelector('.conversation-sessions-empty')?.getAttribute('style'), 'display: none;');
+
+		stubService.setEngineConnected(true);
+
+		assert.strictEqual(stubService.getSessions().length, 0);
+		assert.strictEqual(view.element.querySelector('.conversation-sessions-empty')?.getAttribute('style'), 'display: block;');
+		assert.strictEqual(view.element.querySelector('.conversation-sessions-list')?.getAttribute('style'), 'display: none;');
+		assert.ok(!isFilterVisible(view));
+	});
+
 	test('click still switches session for a visible filtered row', async () => {
 		const { view, stubService } = mountView();
 		const firstId = stubService.getActiveSessionId();
@@ -515,5 +548,101 @@ suite('ConversationSessionsView', () => {
 		label.click();
 
 		assert.strictEqual(stubService.getActiveSessionId(), secondId);
+	});
+
+	test('createNewSession after engine-cache disconnect shows disconnected notice and does not create', () => {
+		class EngineCacheDisconnectCreateRoster extends ConversationStubService {
+			createSessionCalls = 0;
+			override hasEngineConnectionHistory(): boolean {
+				return true;
+			}
+			override createSession(): string {
+				this.createSessionCalls++;
+				return super.createSession();
+			}
+		}
+		const stubService = store.add(new EngineCacheDisconnectCreateRoster());
+		const { view, errors } = mountView({ stubService });
+		const activeId = stubService.getActiveSessionId();
+		const titlesBefore = stubService.getSessions().map(session => session.title);
+
+		view.createNewSession();
+
+		assert.deepStrictEqual(errors, ['Could not create session — engine disconnected.']);
+		assert.strictEqual(stubService.createSessionCalls, 0);
+		assert.strictEqual(stubService.getActiveSessionId(), activeId);
+		assert.deepStrictEqual(stubService.getSessions().map(session => session.title), titlesBefore);
+		assert.ok(getVisibleSessionTitles(view).includes(stubService.getActiveSession().title));
+	});
+
+	test('createNewSession when engine connected still calls createSession', () => {
+		class ConnectedCreateRoster extends ConversationStubService {
+			createSessionCalls = 0;
+			override isEngineConnected(): boolean {
+				return true;
+			}
+			override createSession(): string {
+				this.createSessionCalls++;
+				return super.createSession();
+			}
+		}
+		const stubService = store.add(new ConnectedCreateRoster());
+		const { view, errors } = mountView({ stubService });
+		const countBefore = stubService.getSessions().length;
+
+		view.createNewSession();
+
+		assert.deepStrictEqual(errors, []);
+		assert.strictEqual(stubService.createSessionCalls, 1);
+		assert.strictEqual(stubService.getSessions().length, countBefore + 1);
+	});
+
+	test('deleteActiveSession false shows failed notice and keeps the session', () => {
+		class RejectingDeleteRoster extends ConversationStubService {
+			override deleteSession(_sessionId: string): boolean {
+				return false;
+			}
+		}
+		const stubService = store.add(new RejectingDeleteRoster());
+		const { view, errors } = mountView({ stubService });
+		const activeId = stubService.getActiveSessionId();
+		const titlesBefore = stubService.getSessions().map(session => session.title);
+
+		view.deleteActiveSession();
+
+		assert.deepStrictEqual(errors, ['Could not delete session.']);
+		assert.ok(stubService.getSessions().some(session => session.id === activeId));
+		assert.deepStrictEqual(stubService.getSessions().map(session => session.title), titlesBefore);
+		assert.ok(getVisibleSessionTitles(view).includes(stubService.getActiveSession().title));
+	});
+
+	test('deleteActiveSession false after engine-cache disconnect shows disconnected notice', () => {
+		class EngineCacheRejectingDeleteRoster extends ConversationStubService {
+			override hasEngineConnectionHistory(): boolean {
+				return true;
+			}
+			override deleteSession(_sessionId: string): boolean {
+				return false;
+			}
+		}
+		const stubService = store.add(new EngineCacheRejectingDeleteRoster());
+		const { view, errors } = mountView({ stubService });
+		const activeId = stubService.getActiveSessionId();
+
+		view.deleteActiveSession();
+
+		assert.deepStrictEqual(errors, ['Could not delete session — engine disconnected.']);
+		assert.ok(stubService.getSessions().some(session => session.id === activeId));
+		assert.ok(getVisibleSessionTitles(view).includes(stubService.getActiveSession().title));
+	});
+
+	test('deleteActiveSession true stays silent and removes the session', () => {
+		const { view, stubService, errors } = mountView();
+		const activeId = stubService.getActiveSessionId();
+
+		view.deleteActiveSession();
+
+		assert.deepStrictEqual(errors, []);
+		assert.ok(!stubService.getSessions().some(session => session.id === activeId));
 	});
 });

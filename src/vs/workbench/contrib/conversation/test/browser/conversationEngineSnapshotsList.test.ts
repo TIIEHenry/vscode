@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IConfirmation, IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
@@ -20,8 +22,13 @@ import {
 	conversationLensSnapshotsOverlayClass,
 	conversationLensSnapshotsRestoreClass,
 	conversationLensSnapshotsRowClass,
+	conversationLensSnapshotsWriteStatusClass,
+	ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY,
+	ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY,
 	formatEngineSnapshotCreatedAt,
+	formatEngineSnapshotDeleteFailedCopy,
 	formatEngineSnapshotFailedCopy,
+	formatEngineSnapshotRestoreFailedCopy,
 } from '../../browser/conversationEngineSnapshotsList.js';
 import {
 	conversationLensSessionBarSnapshots,
@@ -89,13 +96,16 @@ suite('ConversationEngineSnapshotsList', () => {
 	function mountList(
 		connection: IUniverseAgentConnection,
 		roster: IConversationRosterService = createRosterStub(),
-		options: { confirmResult?: boolean } = {},
+		options: { confirmResult?: boolean; confirmRejects?: boolean } = {},
 	): { list: ConversationEngineSnapshotsList; buttonParent: HTMLElement; overlayParent: HTMLElement; confirmCalls: IConfirmation[] } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const confirmCalls: IConfirmation[] = [];
 		instantiationService.stub(IDialogService, {
 			confirm: async (confirmation: IConfirmation) => {
 				confirmCalls.push(confirmation);
+				if (options.confirmRejects) {
+					throw new Error('boom');
+				}
 				return { confirmed: options.confirmResult ?? false };
 			},
 		} as IDialogService);
@@ -120,6 +130,14 @@ suite('ConversationEngineSnapshotsList', () => {
 
 	function deleteButton(row: HTMLElement | null): HTMLElement | undefined {
 		return row?.querySelector(`.${conversationLensSnapshotsDeleteClass} .monaco-button`) as HTMLElement | undefined;
+	}
+
+	function writeStatus(overlay: HTMLElement): HTMLElement | null {
+		return overlay.querySelector(`.${conversationLensSnapshotsWriteStatusClass}`);
+	}
+
+	async function flushMicrotasks(): Promise<void> {
+		await new Promise(resolve => setTimeout(resolve, 0));
 	}
 
 	test('SessionBar control is Snapshots, not History, and overlay starts closed', () => {
@@ -287,14 +305,52 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.ok(snapshotRow(overlayParent, 'snap-1'));
 		assert.strictEqual(snapshotRow(overlayParent, 'snap-2'), null);
 		restoreButton(snapshotRow(overlayParent, 'snap-1'))?.click();
-		await Promise.resolve();
-		await Promise.resolve();
+		await flushMicrotasks();
 		assert.deepStrictEqual(restoreCalls, [{ sessionId: 'sess-1', snapshotId: 'snap-1' }]);
 		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }, { sessionId: 'sess-1' }]);
 		assert.strictEqual(list.isOpen(), true);
 		assert.ok(!overlayParent.querySelector(`.${conversationLensSnapshotsOverlayClass}`)?.hasAttribute('hidden'));
 		assert.strictEqual(snapshotRow(overlayParent, 'snap-1')?.querySelector('.conversation-lens-snapshots-title-text')?.textContent, 'After restore');
 		assert.ok(snapshotRow(overlayParent, 'snap-2'));
+		const status = writeStatus(overlayParent);
+		assert.strictEqual(status?.textContent, ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY);
+		assert.ok(!status?.hidden);
+	});
+
+	test('restore success still shows restore-success when subsequent listSnapshots fails', async () => {
+		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				listSnapshots: async request => {
+					listCalls.push(request);
+					if (listCalls.length > 1) {
+						throw new Error('list boom');
+					}
+					return {
+						snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
+					};
+				},
+				restoreSnapshot: async () => ({ ok: true }),
+			}));
+			list.show();
+			await Promise.resolve();
+			assert.ok(snapshotRow(overlayParent, 'snap-1'));
+			restoreButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+			await flushMicrotasks();
+			assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }, { sessionId: 'sess-1' }]);
+			assert.strictEqual(list.isOpen(), true);
+			const status = writeStatus(overlayParent);
+			assert.strictEqual(status?.textContent, ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY);
+			assert.ok(!status?.hidden);
+			assert.ok(overlayParent.textContent?.includes(formatEngineSnapshotFailedCopy('list boom')));
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('failed restore does not refresh list', async () => {
@@ -317,6 +373,9 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }]);
 		assert.strictEqual(list.isOpen(), true);
 		assert.ok(snapshotRow(overlayParent, 'snap-1'));
+		const status = writeStatus(overlayParent);
+		assert.strictEqual(status?.textContent, formatEngineSnapshotRestoreFailedCopy('denied'));
+		assert.ok(!status?.hidden);
 	});
 
 	test('restore throw does not refresh list', async () => {
@@ -341,6 +400,9 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }]);
 		assert.strictEqual(list.isOpen(), true);
 		assert.ok(snapshotRow(overlayParent, 'snap-1'));
+		const status = writeStatus(overlayParent);
+		assert.strictEqual(status?.textContent, formatEngineSnapshotRestoreFailedCopy('transport reset'));
+		assert.ok(!status?.hidden);
 	});
 
 	test('empty snapshotId restore does not send or refresh', async () => {
@@ -464,6 +526,37 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.deepStrictEqual(deleteCalls, [{ sessionId: 'sess-1', snapshotId: 'snap-1' }]);
 	});
 
+	test('does not leak unhandled rejection when delete confirm rejects', async () => {
+		const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			const { list, overlayParent, confirmCalls } = mountList(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				listSnapshots: async () => ({
+					snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Before refactor', createdAt: 1, turnCount: 2 }],
+				}),
+				deleteSnapshot: async request => {
+					deleteCalls.push(request);
+					return { ok: true };
+				},
+			}), createRosterStub(), { confirmRejects: true });
+			list.show();
+			await Promise.resolve();
+			deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+			await timeout(0);
+			assert.strictEqual(confirmCalls.length, 1);
+			assert.deepStrictEqual(deleteCalls, []);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
 	test('successful delete refreshes via listSnapshots and keeps overlay open', async () => {
 		const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
 		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
@@ -491,9 +584,7 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.ok(snapshotRow(overlayParent, 'snap-1'));
 		assert.ok(snapshotRow(overlayParent, 'snap-2'));
 		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
-		await Promise.resolve();
-		await Promise.resolve();
-		await Promise.resolve();
+		await flushMicrotasks();
 		assert.strictEqual(confirmCalls.length, 1);
 		assert.deepStrictEqual(deleteCalls, [{ sessionId: 'sess-1', snapshotId: 'snap-1' }]);
 		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }, { sessionId: 'sess-1' }]);
@@ -501,6 +592,45 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.ok(!overlayParent.querySelector(`.${conversationLensSnapshotsOverlayClass}`)?.hasAttribute('hidden'));
 		assert.strictEqual(snapshotRow(overlayParent, 'snap-1'), null);
 		assert.ok(snapshotRow(overlayParent, 'snap-2'));
+		const status = writeStatus(overlayParent);
+		assert.strictEqual(status?.textContent, ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY);
+		assert.ok(!status?.hidden);
+	});
+
+	test('delete success still shows delete-success when subsequent listSnapshots fails', async () => {
+		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				listSnapshots: async request => {
+					listCalls.push(request);
+					if (listCalls.length > 1) {
+						throw new Error('list boom');
+					}
+					return {
+						snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
+					};
+				},
+				deleteSnapshot: async () => ({ ok: true }),
+			}), createRosterStub(), { confirmResult: true });
+			list.show();
+			await Promise.resolve();
+			assert.ok(snapshotRow(overlayParent, 'snap-1'));
+			deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+			await flushMicrotasks();
+			assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }, { sessionId: 'sess-1' }]);
+			assert.strictEqual(list.isOpen(), true);
+			const status = writeStatus(overlayParent);
+			assert.strictEqual(status?.textContent, ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY);
+			assert.ok(!status?.hidden);
+			assert.ok(overlayParent.textContent?.includes(formatEngineSnapshotFailedCopy('list boom')));
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('cancelled delete confirm does not send or refresh', async () => {
@@ -548,9 +678,13 @@ suite('ConversationEngineSnapshotsList', () => {
 		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
 		await Promise.resolve();
 		await Promise.resolve();
+		await Promise.resolve();
 		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }]);
 		assert.strictEqual(list.isOpen(), true);
 		assert.ok(snapshotRow(overlayParent, 'snap-1'));
+		const status = writeStatus(overlayParent);
+		assert.strictEqual(status?.textContent, formatEngineSnapshotDeleteFailedCopy('denied'));
+		assert.ok(!status?.hidden);
 	});
 
 	test('delete throw does not refresh list', async () => {
@@ -572,9 +706,13 @@ suite('ConversationEngineSnapshotsList', () => {
 		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
 		await Promise.resolve();
 		await Promise.resolve();
+		await Promise.resolve();
 		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }]);
 		assert.strictEqual(list.isOpen(), true);
 		assert.ok(snapshotRow(overlayParent, 'snap-1'));
+		const status = writeStatus(overlayParent);
+		assert.strictEqual(status?.textContent, formatEngineSnapshotDeleteFailedCopy('transport reset'));
+		assert.ok(!status?.hidden);
 	});
 
 	test('empty snapshotId delete does not send or refresh', async () => {

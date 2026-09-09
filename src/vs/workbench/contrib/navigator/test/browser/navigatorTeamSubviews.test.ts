@@ -4,10 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { getErrorMessage } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
@@ -22,6 +24,7 @@ import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEm
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 import '../../browser/navigator.contribution.js';
 import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
+import { NavigatorSessionLeaseHolder } from '../../browser/navigatorSessionLeaseHolder.js';
 import {
 	INavigatorTeamMember,
 	NAVIGATOR_TEAM_SHOW_MEMBERS_COMMAND_ID,
@@ -81,11 +84,15 @@ suite('Navigator Team subviews', () => {
 	function mountTeamView(
 		roster: ConversationStubService = store.add(new ConversationStubService()),
 		connection: IUniverseAgentConnection = createNavigatorConnectionTestStub(),
+		notification?: INotificationService,
 	): NavigatorTeamView {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, roster);
 		instantiationService.stub(IAgentInspectService, store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
 		instantiationService.stub(IUniverseAgentConnection, connection);
+		if (notification) {
+			instantiationService.stub(INotificationService, notification);
+		}
 		const stubViewContainer = {
 			id: 'navigator-team-test-container',
 			title: { value: 'Team', original: 'Team' },
@@ -374,5 +381,127 @@ suite('Navigator Team subviews', () => {
 		assert.strictEqual(note.style.display, 'none');
 		const membersEmpty = view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty');
 		assert.strictEqual(membersEmpty?.textContent, TEAM_MEMBERS_EMPTY_COPY);
+	});
+
+	test('successful Team load then memberStatus throw clears leftover rows and writes a failure note', async () => {
+		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
+		roster.setEngineConnected(true);
+		let memberStatusCalls = 0;
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => roster.isEngineConnected() ? { kind: 'connected', path: 'direct' } : { kind: 'disconnected' },
+			getNavigatorCapability: () => 'SUPPORTED',
+			team: {
+				memberStatus: async () => {
+					memberStatusCalls++;
+					if (memberStatusCalls === 1) {
+						return [{
+							memberName: 'Alice',
+							memberAgentId: 'member:1',
+							status: 'IDLE',
+							preset: 'p',
+							dynamic: 'd',
+							turnCount: 1,
+						}];
+					}
+					throw new Error('memberStatus boom');
+				},
+				taskList: async () => [],
+				teamInfo: async () => undefined,
+			},
+		});
+		const view = mountTeamView(roster, connection);
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+
+		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList;
+		const tasksList = (view as unknown as { tasksList: WorkbenchList<{ id: string; label: string }> }).tasksList;
+		assert.strictEqual(membersList.length, 1);
+		assert.ok(membersList.element(0)?.label.includes('Alice'));
+
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+
+		assert.strictEqual(membersList.length, 0);
+		assert.strictEqual(tasksList.length, 0);
+		const note = view.element.querySelector('.navigator-team-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(note);
+		assert.strictEqual(note.style.display, 'block');
+		assert.strictEqual(note.textContent, 'Failed to read team members and tasks');
+		assert.notStrictEqual(note.textContent, NAVIGATOR_STALE_SNAPSHOT_COPY);
+	});
+
+	test('successful Team load then taskList throw clears leftover rows and writes a failure note', async () => {
+		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
+		roster.setEngineConnected(true);
+		let taskListCalls = 0;
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => roster.isEngineConnected() ? { kind: 'connected', path: 'direct' } : { kind: 'disconnected' },
+			getNavigatorCapability: () => 'SUPPORTED',
+			team: {
+				memberStatus: async () => [{
+					memberName: 'Alice',
+					memberAgentId: 'member:1',
+					status: 'IDLE',
+					preset: 'p',
+					dynamic: 'd',
+					turnCount: 1,
+				}],
+				taskList: async () => {
+					taskListCalls++;
+					if (taskListCalls === 1) {
+						return [];
+					}
+					throw new Error('taskList boom');
+				},
+				teamInfo: async () => undefined,
+			},
+		});
+		const view = mountTeamView(roster, connection);
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+
+		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList;
+		assert.strictEqual(membersList.length, 1);
+		assert.ok(membersList.element(0)?.label.includes('Alice'));
+
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+
+		assert.strictEqual(membersList.length, 0);
+		const note = view.element.querySelector('.navigator-team-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(note);
+		assert.strictEqual(note.style.display, 'block');
+		assert.strictEqual(note.textContent, 'Failed to read team members and tasks');
+		assert.notStrictEqual(note.textContent, NAVIGATOR_STALE_SNAPSHOT_COPY);
+	});
+
+	test('acquireSessionView throw notifies error without hanging a lease or unhandled rejection', async () => {
+		const boom = new Error('acquireSessionView: session untitled is not engine-bound');
+		class RosterAcquireThrows extends ConversationStubService {
+			override acquireSessionView(_sessionId: string): IConversationSessionViewLease {
+				throw boom;
+			}
+		}
+		const errors: string[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const roster = store.add(new RosterAcquireThrows());
+		const notification = {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService;
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			let view: NavigatorTeamView | undefined;
+			assert.doesNotThrow(() => {
+				view = mountTeamView(roster, createNavigatorConnectionTestStub(), notification);
+			});
+			assert.ok(view);
+			const holder = (view as unknown as { leaseHolder: NavigatorSessionLeaseHolder }).leaseHolder;
+			assert.strictEqual(holder.getLease(), undefined);
+			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+			assert.strictEqual(view.getActiveSubview(), 'members');
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });

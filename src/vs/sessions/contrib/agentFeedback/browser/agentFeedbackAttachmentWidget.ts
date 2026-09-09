@@ -7,6 +7,7 @@ import './media/agentFeedbackAttachment.css';
 import * as dom from '../../../../base/browser/dom.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import * as event from '../../../../base/common/event.js';
 import { truncate } from '../../../../base/common/strings.js';
@@ -102,7 +103,7 @@ export class AgentFeedbackAttachmentWidget extends Disposable {
 			return;
 		}
 		if (feedbackItems.length === 1) {
-			void this._agentFeedbackService.revealFeedback(this._attachment.sessionResource, feedbackItems[0].id);
+			void this._agentFeedbackService.revealFeedback(this._attachment.sessionResource, feedbackItems[0].id).catch(onUnexpectedError);
 			return;
 		}
 		this._contextView.toggle();

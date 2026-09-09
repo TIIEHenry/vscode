@@ -3,7 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { getErrorMessage } from '../../../../base/common/errors.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { showConversationPart } from '../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { IConversationSessionChatService } from '../../conversation/browser/conversationSessionChatService.js';
@@ -16,23 +18,28 @@ export async function revealNavigatorAgentInConversation(
 ): Promise<void> {
 	const rosterService = accessor.get(IConversationRosterService);
 	const sessionChatService = accessor.get(IConversationSessionChatService);
+	const notificationService = accessor.get(INotificationService);
 	const sessionKey = rosterService.getActiveSessionId();
 
 	showConversationPart(accessor);
 
-	if (isEngineRootAgentId(agentId)) {
-		await sessionChatService.navigateAgentBreadcrumb(sessionKey, 'default');
-		if (sessionChatService.isSubAgentDialogOpen(sessionKey)) {
-			sessionChatService.closeSubAgentDialog(sessionKey);
+	try {
+		if (isEngineRootAgentId(agentId)) {
+			await sessionChatService.navigateAgentBreadcrumb(sessionKey, 'default');
+			if (sessionChatService.isSubAgentDialogOpen(sessionKey)) {
+				sessionChatService.closeSubAgentDialog(sessionKey);
+			}
+			return;
 		}
-		return;
-	}
 
-	const existing = sessionChatService.findOpenTabForChat(sessionKey, agentId);
-	if (existing) {
-		await sessionChatService.navigateAgentBreadcrumb(sessionKey, agentId);
-		return;
-	}
+		const existing = sessionChatService.findOpenTabForChat(sessionKey, agentId);
+		if (existing) {
+			await sessionChatService.navigateAgentBreadcrumb(sessionKey, agentId);
+			return;
+		}
 
-	await sessionChatService.openSubAgent(sessionKey, agentId, title);
+		await sessionChatService.openSubAgent(sessionKey, agentId, title);
+	} catch (error) {
+		notificationService.error(getErrorMessage(error));
+	}
 }

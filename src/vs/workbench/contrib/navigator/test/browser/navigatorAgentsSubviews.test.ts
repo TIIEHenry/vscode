@@ -4,10 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
-import { WorkbenchList, WorkbenchObjectTree } from '../../../../../platform/list/browser/listService.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
+import { getSelectionKeyboardEvent, WorkbenchList, WorkbenchObjectTree } from '../../../../../platform/list/browser/listService.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { Extensions as ViewExtensions, IViewContainerModel, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -18,7 +21,7 @@ import { IConversationSessionChatService } from '../../../conversation/browser/c
 import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { IAgentInspectService } from '../../common/agentInspect.js';
 import { AgentInspectService } from '../../browser/agentInspectService.js';
-import { ICommandService } from '../../../../../platform/commands/common/commands.js';
+import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import type { INavigatorAgentsHierarchyNode } from '../../common/navigatorAgentHierarchy.js';
 import type { INavigatorAgentsActivityItem } from '../../common/navigatorAgentsActivity.js';
 import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEmptyState.js';
@@ -26,6 +29,8 @@ import { createNavigatorConnectionTestStub } from '../common/navigatorConnection
 import { workbenchInstantiationService, TestViewsService } from '../../../../test/browser/workbenchTestServices.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
 import { AGENT_INSPECT_VIEW_ID, OPEN_NAVIGATOR_AGENTS_INSPECT_COMMAND_ID } from '../../browser/agentInspectIds.js';
+import { CONVERSATION_REVEAL_ITEM_COMMAND_ID } from '../../../conversation/browser/conversationRevealItem.contribution.js';
+import { IConversationTimelineRevealService } from '../../../conversation/browser/conversationTimelineRevealService.js';
 import '../../browser/navigator.contribution.js';
 import {
 	NAVIGATOR_AGENTS_SHOW_ACTIVITY_COMMAND_ID,
@@ -79,11 +84,12 @@ suite('Navigator Agents subviews', () => {
 		roster: ConversationStubService = store.add(new ConversationStubService()),
 		connection: IUniverseAgentConnection = createNavigatorConnectionTestStub(),
 		inspectService?: IAgentInspectService,
+		executeCommand: ICommandService['executeCommand'] = async () => undefined,
 	): NavigatorAgentsView {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, roster);
 		instantiationService.stub(IAgentInspectService, inspectService ?? store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
-		instantiationService.stub(ICommandService, { executeCommand: async () => undefined });
+		instantiationService.stub(ICommandService, { executeCommand });
 		instantiationService.stub(IUniverseAgentConnection, connection);
 		const stubViewContainer = {
 			id: 'navigator-agents-test-container',
@@ -619,5 +625,149 @@ suite('Navigator Agents subviews', () => {
 		view.revealHierarchyNode(hierarchyNode('sub:alpha', 'Alpha'));
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assert.deepStrictEqual(opened, [{ sessionKey: roster.getActiveSessionId(), chatId: 'sub:alpha', title: 'Alpha' }]);
+	});
+
+	test('openSubAgent throw notifies error without unhandled rejection', async () => {
+		const boom = new Error('Sub-agent overlay for session untitled is not mounted');
+		const errors: string[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const roster = store.add(new ConversationStubService());
+		instantiationService.stub(IConversationRosterService, roster);
+		instantiationService.stub(IAgentInspectService, store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
+		instantiationService.stub(ICommandService, { executeCommand: async () => undefined });
+		instantiationService.stub(IUniverseAgentConnection, createNavigatorConnectionTestStub());
+		instantiationService.stub(IConversationPartService, { focus: () => { } } as IConversationPartService);
+		instantiationService.stub(IConversationSessionChatService, {
+			findOpenTabForChat: () => undefined,
+			isSubAgentDialogOpen: () => false,
+			closeSubAgentDialog: () => { },
+			navigateAgentBreadcrumb: async () => { },
+			openSubAgent: async () => {
+				throw boom;
+			},
+		} as unknown as IConversationSessionChatService);
+		instantiationService.stub(INotificationService, {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService);
+		const stubViewContainer = {
+			id: 'navigator-agents-test-container',
+			title: { value: 'Agents', original: 'Agents' },
+		} as ViewContainer;
+		instantiationService.stub(IViewDescriptorService, {
+			onDidChangeLocation: Event.None,
+			getViewLocationById(_id: string): ViewContainerLocation {
+				return ViewContainerLocation.Sidebar;
+			},
+			getViewDescriptorById(_id: string): null {
+				return null;
+			},
+			getViewContainerByViewId(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+			getViewContainerModel(_viewContainer: ViewContainer): IViewContainerModel {
+				return {
+					title: stubViewContainer.title.value,
+					onDidChangeContainerInfo: Event.None,
+				} as IViewContainerModel;
+			},
+			getDefaultContainerById(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+		});
+		const view = store.add(instantiationService.createInstance(NavigatorAgentsView, {
+			id: NAVIGATOR_AGENTS_VIEW_ID,
+			title: 'Agents',
+		}));
+		view.render();
+		document.createElement('div').appendChild(view.element);
+		view.setExpanded(true);
+		view.setVisible(true);
+
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			view.revealHierarchyNode(hierarchyNode('sub:alpha', 'Alpha'));
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('conversation.revealItem acquireSessionView throw notifies error without unhandled rejection', async () => {
+		const boom = new Error('acquireSessionView: session untitled is not engine-bound');
+		const errors: string[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		class RosterAcquireThrows extends ConversationStubService {
+			override acquireSessionView(_sessionId: string): IConversationSessionViewLease {
+				throw boom;
+			}
+		}
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationRosterService, store.add(new RosterAcquireThrows()));
+		instantiationService.stub(IConversationPartService, { focus: () => { } } as IConversationPartService);
+		instantiationService.stub(IConversationTimelineRevealService, {
+			revealItem: () => { },
+			registerLens: () => ({ dispose: () => { } }),
+			getAccessibleTurnContent: () => undefined,
+			focusAccessibleTurn: () => { },
+			scrollToFirstPendingConfirmation: () => { },
+		} as IConversationTimelineRevealService);
+		instantiationService.stub(INotificationService, {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService);
+
+		const command = CommandsRegistry.getCommand(CONVERSATION_REVEAL_ITEM_COMMAND_ID);
+		assert.ok(command, 'conversation.revealItem must be registered');
+
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			void instantiationService.invokeFunction(accessor => command.handler(accessor, { itemId: 'item-1' }));
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('activity list open does not leak unhandled rejection when reveal command rejects', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		let executeCommandCalls = 0;
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const view = mountAgentsView(
+				store.add(new ConversationStubService()),
+				createNavigatorConnectionTestStub(),
+				undefined,
+				async () => {
+					executeCommandCalls++;
+					throw new Error('boom');
+				},
+			);
+			setActivityEntries(view, [{ id: 'a1', label: 'Alpha Tool Run' }]);
+			view.showActivity();
+			const activityList = (view as unknown as { activityList: WorkbenchList<INavigatorAgentsActivityItem> }).activityList;
+			assert.ok(activityList, 'expected WorkbenchList for activity');
+			assert.strictEqual(activityList.length, 1);
+			activityList.setFocus([0]);
+			activityList.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
+			await timeout(0);
+			assert.strictEqual(executeCommandCalls, 1);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });

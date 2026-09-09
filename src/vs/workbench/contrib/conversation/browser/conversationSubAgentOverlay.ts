@@ -64,12 +64,14 @@ export class ConversationSubAgentOverlay extends Disposable {
 	private lens: ConversationLens | undefined;
 	private state: IConversationSubAgentOverlayState | undefined;
 	private maximized = false;
+	private lensLayoutCancelled = false;
 
 	constructor(
 		parent: HTMLElement,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 	) {
 		super();
+		this._register({ dispose: () => { this.lensLayoutCancelled = true; } });
 		this.element = append(parent, $(`.${conversationSubAgentOverlayClass}`));
 		this.element.setAttribute('role', 'dialog');
 		this.element.setAttribute('aria-modal', 'false');
@@ -242,7 +244,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 	}
 
 	private layoutLens(): void {
-		if (!this.isOpen()) {
+		if (this.lensLayoutCancelled || !this.isOpen()) {
 			return;
 		}
 		const width = this.body.clientWidth || this.card.clientWidth;

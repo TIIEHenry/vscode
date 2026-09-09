@@ -10,6 +10,7 @@ import { GestureEvent, EventType as TouchEventType } from '../../../../../base/b
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { constObservable, IObservable, observableValue } from '../../../../../base/common/observable.js';
 import { DisposableStore, IDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
@@ -1234,6 +1235,56 @@ suite('AutomationsCardsWidget', () => {
 				detail: 'delete failed',
 			}],
 		});
+	});
+
+	test('does not leak unhandled rejection when card delete confirm rejects', async () => {
+		const { automationService, dialogService, widget } = setup();
+		automationService.setAutomations([automation()]);
+		const deleteButton = [...widget.element.querySelectorAll<HTMLElement>('.automations-card-action-button')]
+			.find(element => element.getAttribute('aria-label') === 'Delete' || element.title === 'Delete');
+		assert.ok(deleteButton);
+		dialogService.confirm = async () => {
+			throw new Error('boom');
+		};
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			deleteButton.click();
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.deepStrictEqual(automationService.deleteCalls, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when create dialog rejects', async () => {
+		const { automationService, automationDialogService, widget } = setup();
+		automationService.setAutomations([]);
+		automationDialogService.error = new Error('boom');
+		const createButton = widget.element.querySelector<HTMLElement>('.automations-cards-create-button');
+		assert.ok(createButton);
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			createButton.click();
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(automationDialogService.showCalls, 1);
+			assert.deepStrictEqual(automationService.createCalls, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('automation action buttons support arrow navigation and keyboard activation', async () => {

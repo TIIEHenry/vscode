@@ -4,7 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { constObservable, IObservable, observableValue } from '../../../../../base/common/observable.js';
 import { extUri } from '../../../../../base/common/resources.js';
@@ -148,7 +150,7 @@ const workspace = createWorkspace(URI.parse('file:///repo'));
 suite('SessionsTelemetryContribution', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function setup(sessions: readonly ISession[], activeSession?: IObservable<IActiveSession | undefined>): { telemetryService: TestTelemetryService; storageService: InMemoryStorageService; onDidSendRequest: Emitter<ISendRequestSentEvent>; onDidArchiveSession: Emitter<ISession>; onModelAdded: Emitter<ITextModel> } {
+	function setup(sessions: readonly ISession[], activeSession?: IObservable<IActiveSession | undefined>, getAllTasks: () => Promise<readonly unknown[]> = async () => []): { telemetryService: TestTelemetryService; storageService: InMemoryStorageService; onDidSendRequest: Emitter<ISendRequestSentEvent>; onDidArchiveSession: Emitter<ISession>; onModelAdded: Emitter<ITextModel> } {
 		const onDidSendRequest = disposables.add(new Emitter<ISendRequestSentEvent>());
 		const onDidArchiveSession = disposables.add(new Emitter<ISession>());
 		const onModelAdded = disposables.add(new Emitter<ITextModel>());
@@ -189,7 +191,7 @@ suite('SessionsTelemetryContribution', () => {
 		}();
 		const tasksService = new class extends mock<ISessionsTasksService>() {
 			override readonly onDidRunTask = Event.None;
-			override async getAllTasks() { return []; }
+			override async getAllTasks() { return getAllTasks(); }
 		}();
 		const modelService = new class extends mock<IModelService>() {
 			override readonly onModelAdded = onModelAdded.event;
@@ -240,6 +242,23 @@ suite('SessionsTelemetryContribution', () => {
 			{ isNewSession: false, isNewChat: true, totalAttachementCount: 0, attachmentKinds: '{}' },
 			{ isNewSession: false, isNewChat: false, totalAttachementCount: 1, attachmentKinds: '{"generic":1}' },
 		]);
+	});
+
+	test('does not leak unhandled rejection when getAllTasks rejects on isNewChat', async () => {
+		const { onDidSendRequest } = setup([session], undefined, () => Promise.reject('boom'));
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			onDidSendRequest.fire({ session, chat, isNewSession: false, isNewChat: true, options: { query: 'new chat' } });
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('requestSent session counts exclude the session the request was sent to', async () => {

@@ -6,4 +6,5 @@
 # 只登记 unit-custom 三域 + universeAgentNode；D16 三文件在本 SHA 仍 0 failing，未列入
 # universeAgentNode = D17 那 11 个 Electron 不可加载文件，改由 Node runner 跑，418 条 0 failing
 # 采集：工位 A loop/A @ d2abb648c0e；本关仓 merge `a90517cf774` 复证后 29 行 leftover 均已从名单删除（visualize 两行补 reveal 后 3/3 绿）。min_cases 未降。D16 仍开。
-# 2026-09-07 工位 E：D46 修掉后 conversation 从中止时的 237 条恢复到 799 条全绿，min_cases 从 714 抬到实测水位 799。
+# 2026-09-07 工位 E：timeline 空态 + overlay rAF 泄漏修掉后 conversation 从中止时的 237 条恢复到 799 条全绿，min_cases 从 714 抬到实测水位 799。
+# 官方 conversation 单 glob 复证：工位 A loop/A @ 793ff6e201f 后夹具收口，`linux-x64-conversation-results.xml` 795 testcase / 0 fail / 0 skip（≥ min_cases=714）。未关 D16；未开切片 1。

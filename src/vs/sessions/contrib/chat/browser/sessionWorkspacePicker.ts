@@ -553,7 +553,7 @@ export class WorkspacePicker extends Disposable {
 			if (directBrowseItem?.browseActionIndex !== undefined && !items[0].disabled) {
 				this._activeTriggerElement = undefined;
 				triggerElement.setAttribute('aria-expanded', 'false');
-				void this._dispatchPickerItem(directBrowseItem).finally(() => {
+				void this._dispatchPickerItem(directBrowseItem).catch(onUnexpectedError).finally(() => {
 					this._directPickerGroup = undefined;
 					this._directPickerAttachesContext = undefined;
 					triggerElement.focus();
@@ -640,7 +640,7 @@ export class WorkspacePicker extends Disposable {
 	private _buildDelegate(triggerElement: HTMLElement, hide: () => void): IActionListDelegate<IWorkspacePickerItem> {
 		return {
 			onSelect: (item) => {
-				void this._dispatchPickerItem(item);
+				void this._dispatchPickerItem(item).catch(onUnexpectedError);
 				hide();
 			},
 			onHide: () => {
@@ -738,10 +738,10 @@ export class WorkspacePicker extends Disposable {
 		const generation = ++this._selectionGeneration;
 		this._reportPickerClosed(item);
 		if (item.run) {
-			item.run();
+			void Promise.resolve(item.run()).catch(onUnexpectedError);
 			return true;
 		} else if (item.commandId) {
-			void this.commandService.executeCommand(item.commandId);
+			void this.commandService.executeCommand(item.commandId).catch(onUnexpectedError);
 			return true;
 		} else if (item.folderUri && item.providerId && this._isProviderUnavailable(item.providerId)) {
 			// Workspace belongs to an unavailable remote — ignore selection

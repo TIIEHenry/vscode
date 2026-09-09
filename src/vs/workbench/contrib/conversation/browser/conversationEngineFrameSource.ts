@@ -104,14 +104,14 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 		super();
 		this.ready = this.sessionView.acquireLease(sessionId).then(id => {
 			if (this.disposed) {
-				void this.sessionView.releaseLease(id);
+				void this.sessionView.releaseLease(id).catch(() => undefined);
 				return false;
 			}
 			this.leaseId = id;
 			this.lifetime.add(this.sessionView.onDynamicDidApplyFrame(id)(event =>
 				this.onHostFrame(event.frame, event.applied)));
 			this.lifetime.add({ dispose: () => {
-				void this.sessionView.releaseLease(id);
+				void this.sessionView.releaseLease(id).catch(() => undefined);
 				this.onRelease(id);
 			} });
 			this.onAcquired(id);
@@ -149,7 +149,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 
 	requestResync(): void {
 		if (this.leaseId) {
-			void this.sessionView.requestResync(this.leaseId);
+			void this.sessionView.requestResync(this.leaseId).catch(() => undefined);
 		}
 	}
 
@@ -207,7 +207,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 				generation: this.cursor.generation,
 				frameId: this.cursor.frameId,
 				appliedVersion: this.cursor.version,
-			});
+			}).catch(() => undefined);
 		}
 	}
 

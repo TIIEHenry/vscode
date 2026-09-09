@@ -4,10 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { getErrorMessage } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { type SessionViewSnapshot, type TimelineItemSummary, emptySessionViewSnapshot } from '../../../../../platform/universeAgent/common/sessionView/index.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
@@ -55,6 +57,14 @@ suite('Sources - review attribution', () => {
 		};
 	}
 
+	function stubNotification(errors: string[] = []): INotificationService {
+		return {
+			error: (error: string | Error) => {
+				errors.push(typeof error === 'string' ? error : getErrorMessage(error));
+			},
+		} as INotificationService;
+	}
+
 	function createService(testContext: Mocha.Context, options: {
 		records?: IFileMutationRecord[];
 		activeSessionId?: string;
@@ -62,6 +72,8 @@ suite('Sources - review attribution', () => {
 		connected?: boolean;
 		snapshot?: SessionViewSnapshot;
 		attribution?: ReadonlyMap<string, IReviewItemAttribution>;
+		acquireSessionView?: () => IConversationSessionViewLease;
+		notificationErrors?: string[];
 	} = {}): SourcesReviewAttributionService {
 		const mutationEmitter = store.add(new Emitter<IFileMutationRecord>());
 		const connectionChangeEmitter = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
@@ -100,14 +112,14 @@ suite('Sources - review attribution', () => {
 		const roster = {
 			getActiveSessionId: () => activeSessionId,
 			onDidChangeActiveSession: Event.None,
-			acquireSessionView: () => lease,
+			acquireSessionView: options.acquireSessionView ?? (() => lease),
 		} as unknown as IConversationRosterService;
 
 		const workspace = {
 			getWorkspace: () => ({ folders: [{ uri: workspaceRoot, name: 'project', index: 0, toResource: () => workspaceRoot }] }),
 		} as unknown as IWorkspaceContextService;
 
-		const service = store.add(new SourcesReviewAttributionService(connection, roster, workspace));
+		const service = store.add(new SourcesReviewAttributionService(connection, roster, workspace, stubNotification(options.notificationErrors)));
 
 		for (const record of options.records ?? []) {
 			mutationEmitter.fire(record);
@@ -222,7 +234,7 @@ suite('Sources - review attribution', () => {
 			getWorkspace: () => ({ folders: [{ uri: workspaceRoot, name: 'project', index: 0, toResource: () => workspaceRoot }] }),
 		} as unknown as IWorkspaceContextService;
 
-		const service = store.add(new SourcesReviewAttributionService(connection, roster, workspace));
+		const service = store.add(new SourcesReviewAttributionService(connection, roster, workspace, stubNotification()));
 		mutationEmitter.fire(makeRecord({ path: 'src/a.ts', toolCallId: 'tc-1', turnId: 'turn-1' }));
 
 		connected = false;
@@ -256,6 +268,49 @@ suite('Sources - review attribution', () => {
 		});
 		assert.strictEqual(service.resolveRevealItemId('tc-1'), 'item-1');
 		assert.strictEqual(service.resolveRevealItemId('missing'), undefined);
+	});
+
+	test('service resolveRevealItemId acquireSessionView throw notifies error without unhandled rejection', async function () {
+		const boom = new Error('acquireSessionView: session untitled is not engine-bound');
+		const errors: string[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const service = createService(this, {
+				acquireSessionView: () => { throw boom; },
+				notificationErrors: errors,
+			});
+			assert.strictEqual(service.resolveRevealItemId('tc-1'), undefined);
+			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('buildChipMapForEntries acquireSessionView throw notifies error and returns empty map', async function () {
+		const boom = new Error('acquireSessionView: session untitled is not engine-bound');
+		const errors: string[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const resource = toResource.call(this, '/project/src/a.ts');
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const service = createService(this, {
+				records: [makeRecord({ path: 'src/a.ts', toolCallId: 'tc-1', turnId: 'turn-1' })],
+				acquireSessionView: () => { throw boom; },
+				notificationErrors: errors,
+			});
+			const chipMap = service.buildChipMapForEntries([{ resource }]);
+			assert.strictEqual(chipMap.size, 0);
+			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('filterRecordsForResource matches joined work_dir paths', function () {

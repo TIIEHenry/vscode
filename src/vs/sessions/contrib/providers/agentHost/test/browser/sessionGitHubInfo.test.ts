@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { timeout } from '../../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../../base/common/errors.js';
 import { DisposableStore, ImmortalReference, type IReference } from '../../../../../../base/common/lifecycle.js';
 import { autorun, observableValue, type IObservable } from '../../../../../../base/common/observable.js';
 import { ThemeIcon } from '../../../../../../base/common/themables.js';
@@ -177,6 +178,25 @@ suite('SessionGitHubInfoResolver', () => {
 		}));
 		assert.strictEqual(firstReObservedNumber, 42);
 		assert.strictEqual(gitHubService.lookupCalls, 1);
+	});
+
+	test('does not leak unhandled rejection when findPullRequestNumberByHeadBranch rejects', async () => {
+		const service = new TestGitHubService();
+		service.findPullRequestNumberByHeadBranch = async () => { throw new Error('boom'); };
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			createResolver(gitMeta('owner', 'repo', 'feature'), service);
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('a branch change resolves a new pull request number', async () => {

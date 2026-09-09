@@ -10,7 +10,7 @@
 
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
-import { CancellationError } from '../../../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { Disposable, DisposableMap, DisposableStore, MutableDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -195,7 +195,7 @@ export class CloudSandboxAgentHostContribution extends Disposable implements IWo
 			if (e.affectsConfiguration(CloudSandboxEnabledSettingId) || e.affectsConfiguration(RemoteAgentHostsEnabledSettingId)) {
 				this._updateHostGroupRegistration();
 				if (this._isEnabled()) {
-					void this._discoverAndSeed();
+					void this._discoverAndSeed().catch(onUnexpectedError);
 				} else {
 					this._teardownAll();
 				}
@@ -207,7 +207,7 @@ export class CloudSandboxAgentHostContribution extends Disposable implements IWo
 		// Lazy discovery: surface environment-bound sandbox sessions in the list without connecting.
 		// Connecting happens on open via the sandbox async activator.
 		this._register(this._agentHostFilterService.registerDiscoveryHandler(() => this._discoverAndSeed()));
-		void this._discoverAndSeed();
+		void this._discoverAndSeed().catch(onUnexpectedError);
 
 		// Discovery needs a GitHub session, and the auth provider is contributed by an extension that
 		// may not be registered yet at startup. Retry as sessions become available, until the first
@@ -218,7 +218,7 @@ export class CloudSandboxAgentHostContribution extends Disposable implements IWo
 				retryUntilFirstSuccess.clear();
 				return;
 			}
-			void this._discoverAndSeed();
+			void this._discoverAndSeed().catch(onUnexpectedError);
 		};
 		retryUntilFirstSuccess.add(this._authenticationService.onDidChangeSessions(retry));
 		retryUntilFirstSuccess.add(this._authenticationService.onDidRegisterAuthenticationProvider(retry));
@@ -253,6 +253,9 @@ export class CloudSandboxAgentHostContribution extends Disposable implements IWo
 			this._discoveryQueued ??= this._discoveryInFlight.then(() => {
 				this._discoveryQueued = undefined;
 				return this._discoverAndSeed();
+			}).catch(error => {
+				this._discoveryQueued = undefined;
+				onUnexpectedError(error);
 			});
 			return this._discoveryQueued;
 		}
@@ -284,46 +287,50 @@ export class CloudSandboxAgentHostContribution extends Disposable implements IWo
 		}
 		this._hasDiscovered = true;
 
-		const present = new Set<string>();
-		for (const session of result.sessions) {
-			if (!session.environmentId || !session.sessionId) {
-				continue;
-			}
-			const address = cloudSandboxAddress(session.environmentId);
-			present.add(address);
-			this._ensureProvider({ environmentId: session.environmentId, sessionId: session.sessionId, taskId: session.taskId, name: session.name });
-			const provider = this._providerInstances.get(address);
-			const parsed = session.updatedAt ? Date.parse(session.updatedAt) : Number.NaN;
-			const modifiedTime = Number.isNaN(parsed) ? Date.now() : parsed;
-			const project = discoveredSessionProject(session.repoName);
-			const meta: IAgentSessionMetadata = {
-				// Seed under the agent-provider (UI) scheme, preserving the session id: the host
-				// lists the same id back, so this reconciles with `listSessions()` on connect.
-				session: AgentSession.uri(CLOUD_SANDBOX_AGENT_PROVIDER, session.sessionId),
-				startTime: modifiedTime,
-				modifiedTime,
-				summary: session.name,
-				...(project ? { project } : {}),
-			};
-			provider?.seedSessions([meta]);
-		}
-
-		// Negative reconciliation: drop environments that are no longer discoverable and aren't
-		// currently connected (an open/connected session is kept so active use isn't disrupted).
-		// Only a complete scan is authoritative — a partial one is missing entries that still exist.
-		if (result.kind === 'complete') {
-			for (const address of [...this._environments.keys()]) {
-				if (present.has(address) || this._provisioning.has(address)) {
+		try {
+			const present = new Set<string>();
+			for (const session of result.sessions) {
+				if (!session.environmentId || !session.sessionId) {
 					continue;
 				}
-				const connected = this._remoteAgentHostService.connections.some(c => c.address === address);
-				if (!connected) {
-					this._teardownEnvironment(address);
+				const address = cloudSandboxAddress(session.environmentId);
+				present.add(address);
+				this._ensureProvider({ environmentId: session.environmentId, sessionId: session.sessionId, taskId: session.taskId, name: session.name });
+				const provider = this._providerInstances.get(address);
+				const parsed = session.updatedAt ? Date.parse(session.updatedAt) : Number.NaN;
+				const modifiedTime = Number.isNaN(parsed) ? Date.now() : parsed;
+				const project = discoveredSessionProject(session.repoName);
+				const meta: IAgentSessionMetadata = {
+					// Seed under the agent-provider (UI) scheme, preserving the session id: the host
+					// lists the same id back, so this reconciles with `listSessions()` on connect.
+					session: AgentSession.uri(CLOUD_SANDBOX_AGENT_PROVIDER, session.sessionId),
+					startTime: modifiedTime,
+					modifiedTime,
+					summary: session.name,
+					...(project ? { project } : {}),
+				};
+				provider?.seedSessions([meta]);
+			}
+
+			// Negative reconciliation: drop environments that are no longer discoverable and aren't
+			// currently connected (an open/connected session is kept so active use isn't disrupted).
+			// Only a complete scan is authoritative — a partial one is missing entries that still exist.
+			if (result.kind === 'complete') {
+				for (const address of [...this._environments.keys()]) {
+					if (present.has(address) || this._provisioning.has(address)) {
+						continue;
+					}
+					const connected = this._remoteAgentHostService.connections.some(c => c.address === address);
+					if (!connected) {
+						this._teardownEnvironment(address);
+					}
 				}
 			}
-		}
 
-		this._logService.info(`${LOG_PREFIX} Seeded ${present.size} discovered sandbox environment(s)${result.kind === 'partial' ? ' (partial scan; kept existing entries)' : ''}.`);
+			this._logService.info(`${LOG_PREFIX} Seeded ${present.size} discovered sandbox environment(s)${result.kind === 'partial' ? ' (partial scan; kept existing entries)' : ''}.`);
+		} catch (error) {
+			this._logService.warn(`${LOG_PREFIX} ${error instanceof Error ? error.message : String(error)}`);
+		}
 	}
 
 	/**

@@ -4,8 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
@@ -21,19 +23,22 @@ import type {
 	UniverseAgentAddMcpServerRequest,
 	UniverseAgentUpdateMcpServerRequest,
 	UniverseAgentRemoveMcpServerRequest,
+	UniverseAgentToggleMcpServerRequest,
+	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
 	UniverseAgentSessionStreamCloseCause,
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { EngineAgentsSection } from '../../browser/engineAgentsSection.js';
-import { EngineMcpSection } from '../../browser/engineMcpSection.js';
+import { ENGINE_AGENTS_CREATE_SUCCESS_COPY, ENGINE_AGENTS_DELETE_SUCCESS_COPY, ENGINE_AGENTS_RESET_SUCCESS_COPY, ENGINE_AGENTS_SAVE_SUCCESS_COPY, EngineAgentsSection } from '../../browser/engineAgentsSection.js';
+import { ENGINE_MCP_ADD_SUCCESS_COPY, ENGINE_MCP_REMOVE_SUCCESS_COPY, ENGINE_MCP_TOGGLE_SUCCESS_COPY, ENGINE_MCP_UPDATE_SUCCESS_COPY, EngineMcpSection } from '../../browser/engineMcpSection.js';
 import { EngineToolsSection } from '../../browser/engineToolsSection.js';
-import { canPerformCatalogWrite, getCatalogUnsupportedCopy } from '../../browser/engineCatalog.js';
+import { canPerformCatalogWrite, getCatalogFailedCopy, getCatalogUnsupportedCopy } from '../../browser/engineCatalog.js';
 import { localize } from '../../../../../nls.js';
 
 const AGENTS_FEATURE = localize('ua.engineAgentsFeatureLabel', "agent profiles");
+const AGENT_TOOLS_FEATURE = localize('ua.engineAgentToolsFeatureLabel', "agent profile tools");
 const MCP_FEATURE = localize('ua.engineMcpFeatureLabel', "MCP server definitions");
 const TOOLS_FEATURE = localize('ua.engineToolsFeatureLabel', "engine tools");
 
@@ -53,6 +58,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		addMcpServer?: (request: UniverseAgentAddMcpServerRequest) => Promise<{ ok: boolean }>;
 		updateMcpServer?: (request: UniverseAgentUpdateMcpServerRequest) => Promise<{ ok: boolean }>;
 		removeMcpServer?: (request: UniverseAgentRemoveMcpServerRequest) => Promise<{ ok: boolean }>;
+		toggleMcpServer?: (request: UniverseAgentToggleMcpServerRequest) => Promise<UniverseAgentToggleMcpServerResult>;
 		getToolInfo?: (request: UniverseAgentToolInfoRequest) => Promise<UniverseAgentToolInfoResult>;
 	} = {}): IUniverseAgentConnection & { setConnected(value: boolean): void } {
 		const capabilities: UniverseAgentCapabilitySnapshot = {
@@ -133,7 +139,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			reloadPlugin: async () => ({ plugin: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const } }),
 			unloadPlugin: async () => ({ removedHookCount: 0 }),
 			scanNewPlugins: async () => ({ newPlugins: [], skippedCount: 0 }),
-			toggleMcpServer: async () => ({ ok: true }),
+			toggleMcpServer: options.toggleMcpServer ?? (async () => ({ ok: true })),
 			addMcpServer: options.addMcpServer ?? (async () => ({ ok: true })),
 			updateMcpServer: options.updateMcpServer ?? (async () => ({ ok: true })),
 			removeMcpServer: options.removeMcpServer ?? (async () => ({ ok: true })),
@@ -156,6 +162,48 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		const section = store.add(instantiationService.createInstance(EngineAgentsSection, parent));
 		section.layout(640, 120);
 		return section;
+	}
+
+	function mountMcpSection(connection: IUniverseAgentConnection): EngineMcpSection {
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const section = store.add(instantiationService.createInstance(EngineMcpSection, parent));
+		section.setSectionActive(true);
+		section.layout(640, 160);
+		return section;
+	}
+
+	function mountToolsSection(connection: IUniverseAgentConnection): EngineToolsSection {
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const section = store.add(instantiationService.createInstance(EngineToolsSection, parent));
+		section.setSectionActive(true);
+		section.layout(640, 160);
+		return section;
+	}
+
+	function assertFailedCatalogHonesty(
+		section: EngineAgentsSection | EngineToolsSection | EngineMcpSection,
+		featureLabel: string,
+		errorMessage: string,
+	): void {
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(section.canWrite(), false);
+		section.setSectionActive(true);
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(featureLabel, errorMessage)));
+		const combined = (section.getDomNode().parentElement?.textContent ?? '') + (status.textContent ?? '');
+		assert.ok(!/Demo Agent/i.test(combined));
+		assert.ok(!/\bbash\b/i.test(combined));
+		assert.ok(!/copilot/i.test(combined));
+		assert.ok(!/\.vscode\/mcp\.json/i.test(combined));
 	}
 
 	async function flushMicrotasks(): Promise<void> {
@@ -221,6 +269,46 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			assert.ok(!/\.vscode\/mcp\.json/i.test(combined));
 		});
 	}
+
+	test('Agents: disconnected Open Connection executeCommand reject does not leak unhandled rejection', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			let executeCommandCalls = 0;
+			const connection = createConnectionStub({
+				connected: false,
+				capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			});
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			const instantiationService = workbenchInstantiationService(undefined, store);
+			instantiationService.stub(IUniverseAgentConnection, connection);
+			instantiationService.stub(ICommandService, {
+				executeCommand: async () => {
+					executeCommandCalls++;
+					throw new Error('boom');
+				},
+			});
+			const section = store.add(instantiationService.createInstance(EngineAgentsSection, parent));
+			section.layout(640, 120);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+
+			const openConnection = Array.from(section.getDomNode().querySelectorAll('.engine-catalog-status-widget .monaco-button'))
+				.find(button => (button.textContent ?? '').includes('Open Connection')) as HTMLElement | undefined;
+			assert.ok(openConnection);
+			openConnection.click();
+			await flushMicrotasks();
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(executeCommandCalls, 1);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
 
 	test('Agents: SUPPORTED loads RPC catalog', async () => {
 		let listCalled = false;
@@ -450,6 +538,53 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(parent.querySelector('textarea'), null);
 	});
 
+	test('Tools: successful refresh reloads selected tool info and drops stale detail', async () => {
+		let getToolInfoCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => ({ tools: [{ name: 'bash', description: 'list desc', category: 'shell' }] }),
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+			}),
+			getToolInfo: async (request) => {
+				getToolInfoCalls++;
+				if (getToolInfoCalls === 1) {
+					return {
+						name: request.toolName,
+						description: 'Run a command',
+						category: 'shell',
+						destructive: false,
+						requiresPermission: false,
+						aliases: [],
+					};
+				}
+				throw new Error('getToolInfo exploded');
+			},
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.selectTool('bash'), true);
+		await flushMicrotasks();
+		assert.ok((section.getToolInfoDetailText() ?? '').includes('Run a command'));
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		const infoHost = section.getDomNode().querySelector('.engine-tools-info') as HTMLElement | null;
+		assert.ok(infoHost);
+		const detail = (section.getToolInfoDetailText() ?? infoHost.textContent ?? '');
+		assert.ok(detail.includes(localize(
+			'ua.engineToolsInfoFailed',
+			"Could not load tool details from the engine.",
+		)));
+		assert.ok(!detail.includes('Run a command'));
+	});
+
 	test('Tools: missing getToolInfo hook explains the detail API is unavailable', async () => {
 		const connection = createConnectionStub({
 			connected: true,
@@ -469,5 +604,1092 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		await flushMicrotasks();
 		assert.strictEqual(section.isToolInfoVisible(), true);
 		assert.ok((section.getToolInfoDetailText() ?? '').includes('does not expose'));
+	});
+
+	test('Tools: listTools reject is failed with error status and no fake catalog', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => {
+				throw new Error('listTools exploded');
+			},
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+			}),
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assertFailedCatalogHonesty(section, TOOLS_FEATURE, 'listTools exploded');
+	});
+
+	test('Tools: listAgentProfiles reject is failed with error status and no fake catalog', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => ({ tools: [{ name: 'bash', description: 'should not paint' }] }),
+			listAgentProfiles: async () => {
+				throw new Error('listAgentProfiles exploded');
+			},
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assertFailedCatalogHonesty(section, TOOLS_FEATURE, 'listAgentProfiles exploded');
+	});
+
+	test('Agents: listAgentProfiles reject is failed with error status and no fake catalog', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				throw new Error('listAgentProfiles exploded');
+			},
+		});
+		const section = mountAgentsSection(connection);
+		await flushMicrotasks();
+
+		assertFailedCatalogHonesty(section, AGENTS_FEATURE, 'listAgentProfiles exploded');
+	});
+
+	test('MCP: listMcpServers reject is failed with error status and no fake catalog', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => {
+				throw new Error('listMcpServers exploded');
+			},
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+
+		assertFailedCatalogHonesty(section, MCP_FEATURE, 'listMcpServers exploded');
+	});
+
+	test('Tools: successful load then refresh throw is failed with no leftover catalog', async () => {
+		let listToolsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => {
+				listToolsCalls++;
+				if (listToolsCalls === 1) {
+					return { tools: [{ name: 'bash', description: 'shell tool', category: 'shell' }] };
+				}
+				throw new Error('listTools retry exploded');
+			},
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+			}),
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assertFailedCatalogHonesty(section, TOOLS_FEATURE, 'listTools retry exploded');
+	});
+
+	function demoToolsUserProfile() {
+		return { id: 'demo', name: 'Demo Agent', source: 'user' as const, disabledTools: [] as string[] };
+	}
+
+	function demoBashTool() {
+		return { name: 'bash', description: 'shell tool', category: 'shell' };
+	}
+
+	function assertToolsWriteFailureKeepsCatalog(
+		section: EngineToolsSection,
+		expectedReason: string,
+		expectedRows: number,
+		expectedDirty: boolean,
+	): void {
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), expectedRows);
+		assert.strictEqual(section.canWrite(), true);
+		assert.strictEqual(section.isToolEnablementDirty(), expectedDirty);
+		assert.strictEqual(section.getActiveProfileId(), 'demo');
+		const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+		assert.ok(writeStatus);
+		assert.strictEqual(writeStatus.getAttribute('role'), 'status');
+		assert.notStrictEqual(writeStatus.style.display, 'none');
+		assert.ok(writeStatus.textContent?.includes(expectedReason));
+		assert.ok(writeStatus.textContent?.includes('Unable to save:'));
+	}
+
+	test('Tools: savePendingEnablement / toggleTool empty id paints write-status and keeps catalog rows', async () => {
+		let listToolsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [demoBashTool()] };
+			},
+			listAgentProfiles: async () => ({
+				profiles: [demoToolsUserProfile()],
+			}),
+			saveAgentProfile: async () => ({ profile: { id: '', name: 'should-not-appear' } }),
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		const listCallsAfterLoad = listToolsCalls;
+
+		section.setPendingEnablement({ name: 'bash' }, false);
+		assert.strictEqual(section.isToolEnablementDirty(), true);
+		assert.strictEqual(await section.savePendingEnablement(), false);
+		assertToolsWriteFailureKeepsCatalog(section, localize('ua.engineToolsWriteRejected', "The engine rejected the tool enablement write."), 1, true);
+		assert.strictEqual(listToolsCalls, listCallsAfterLoad);
+		assert.ok(!/should-not-appear/i.test(section.getDomNode().textContent ?? ''));
+
+		assert.strictEqual(await section.toggleTool({ name: 'bash' }, false), false);
+		assertToolsWriteFailureKeepsCatalog(section, localize('ua.engineToolsWriteRejected', "The engine rejected the tool enablement write."), 1, true);
+		assert.strictEqual(listToolsCalls, listCallsAfterLoad);
+	});
+
+	test('Tools: savePendingEnablement / toggleTool throw paints write-status and keeps catalog rows', async () => {
+		let listToolsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [demoBashTool()] };
+			},
+			listAgentProfiles: async () => ({
+				profiles: [demoToolsUserProfile()],
+			}),
+			saveAgentProfile: async () => {
+				throw new Error('save exploded');
+			},
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		const listCallsAfterLoad = listToolsCalls;
+
+		section.setPendingEnablement({ name: 'bash' }, false);
+		assert.strictEqual(section.isToolEnablementDirty(), true);
+		assert.strictEqual(await section.savePendingEnablement(), false);
+		assertToolsWriteFailureKeepsCatalog(section, 'save exploded', 1, true);
+		assert.strictEqual(listToolsCalls, listCallsAfterLoad);
+
+		assert.strictEqual(await section.toggleTool({ name: 'bash' }, false), false);
+		assertToolsWriteFailureKeepsCatalog(section, 'save exploded', 1, true);
+		assert.strictEqual(listToolsCalls, listCallsAfterLoad);
+	});
+
+	test('Tools: successful reconnect refresh clears pending enablement and keeps catalog ready', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => ({ tools: [demoBashTool()] }),
+			listAgentProfiles: async () => ({
+				profiles: [demoToolsUserProfile()],
+			}),
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		section.setPendingEnablement({ name: 'bash' }, false);
+		assert.strictEqual(section.isToolEnablementDirty(), true);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.isToolEnablementDirty(), false);
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+	});
+
+	test('Agents: successful load then refresh throw is failed with no leftover catalog', async () => {
+		let listAgentProfilesCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				if (listAgentProfilesCalls === 1) {
+					return { profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }] };
+				}
+				throw new Error('listAgentProfiles retry exploded');
+			},
+		});
+		const section = mountAgentsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assertFailedCatalogHonesty(section, AGENTS_FEATURE, 'listAgentProfiles retry exploded');
+	});
+
+	function demoUserAgent() {
+		return { id: 'demo', name: 'Demo Agent', source: 'user' as const };
+	}
+
+	function demoBuiltInAgent() {
+		return { id: 'builtin', name: 'Built-in Agent', source: 'built_in' as const };
+	}
+
+	function assertAgentsWriteFailureKeepsCatalog(
+		section: EngineAgentsSection,
+		expectedReason: string,
+		expectedRows: number,
+		expectedSelectedId?: string,
+	): void {
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), expectedRows);
+		assert.strictEqual(section.canWrite(), true);
+		if (expectedSelectedId !== undefined) {
+			assert.strictEqual(section.getSelectedProfileId(), expectedSelectedId);
+		}
+		const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+		assert.ok(writeStatus);
+		assert.strictEqual(writeStatus.getAttribute('role'), 'status');
+		assert.notStrictEqual(writeStatus.style.display, 'none');
+		assert.ok(writeStatus.textContent?.includes(expectedReason));
+	}
+
+	test('Agents: create/delete/reset ok:false paints write-status and keeps catalog rows', async () => {
+		let listAgentProfilesCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [demoUserAgent(), demoBuiltInAgent()] };
+			},
+			saveAgentProfile: async () => ({ profile: { id: '', name: 'should-not-appear' } }),
+			deleteAgentProfile: async () => ({ ok: false, reason: 'delete denied' }),
+			resetAgentProfile: async () => ({ ok: false, reason: 'reset denied' }),
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 2);
+		const listCallsAfterLoad = listAgentProfilesCalls;
+
+		assert.strictEqual(await section.createProfile({ id: 'should-not-appear', name: 'should-not-appear', source: 'user' }), false);
+		assertAgentsWriteFailureKeepsCatalog(section, 'Unable to create:', 2);
+		assert.ok((section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement).textContent?.includes(
+			localize('ua.engineAgentsWriteRejected', "The engine rejected the agent profile write."),
+		));
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+		assert.ok(!/should-not-appear/i.test(section.getDomNode().textContent ?? ''));
+
+		await section.selectProfileByIdForTest('demo');
+		assert.strictEqual(section.getSelectedProfileId(), 'demo');
+		assert.strictEqual(await section.deleteSelectedProfile(), false);
+		assertAgentsWriteFailureKeepsCatalog(section, 'delete denied', 2, 'demo');
+		assert.ok((section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement).textContent?.includes('Unable to delete:'));
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+
+		await section.selectProfileByIdForTest('builtin');
+		assert.strictEqual(section.getSelectedProfileId(), 'builtin');
+		assert.strictEqual(await section.resetSelectedProfile(), false);
+		assertAgentsWriteFailureKeepsCatalog(section, 'reset denied', 2, 'builtin');
+		assert.ok((section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement).textContent?.includes('Unable to reset:'));
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+	});
+
+	test('Agents: create/delete/reset throw paints write-status and keeps catalog rows', async () => {
+		let listAgentProfilesCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [demoUserAgent(), demoBuiltInAgent()] };
+			},
+			saveAgentProfile: async () => {
+				throw new Error('create exploded');
+			},
+			deleteAgentProfile: async () => {
+				throw new Error('delete exploded');
+			},
+			resetAgentProfile: async () => {
+				throw new Error('reset exploded');
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 2);
+		const listCallsAfterLoad = listAgentProfilesCalls;
+
+		assert.strictEqual(await section.createProfile({ id: 'should-not-appear', name: 'should-not-appear', source: 'user' }), false);
+		assertAgentsWriteFailureKeepsCatalog(section, 'create exploded', 2);
+		assert.ok((section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement).textContent?.includes('Unable to create:'));
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+		assert.ok(!/should-not-appear/i.test(section.getDomNode().textContent ?? ''));
+
+		await section.selectProfileByIdForTest('demo');
+		assert.strictEqual(section.getSelectedProfileId(), 'demo');
+		assert.strictEqual(await section.deleteSelectedProfile(), false);
+		assertAgentsWriteFailureKeepsCatalog(section, 'delete exploded', 2, 'demo');
+		assert.ok((section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement).textContent?.includes('Unable to delete:'));
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+
+		await section.selectProfileByIdForTest('builtin');
+		assert.strictEqual(section.getSelectedProfileId(), 'builtin');
+		assert.strictEqual(await section.resetSelectedProfile(), false);
+		assertAgentsWriteFailureKeepsCatalog(section, 'reset exploded', 2, 'builtin');
+		assert.ok((section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement).textContent?.includes('Unable to reset:'));
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+	});
+
+	test('Agents: saveAgentsMarkdown throw paints editor-status and keeps catalog rows', async () => {
+		let listAgentProfilesCalls = 0;
+		let saveCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [demoUserAgent()] };
+			},
+			saveAgentProfile: async (request) => {
+				saveCalls++;
+				if (saveCalls > 1) {
+					throw new Error('save exploded');
+				}
+				return { profile: request.profile };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		await section.selectProfileByIdForTest('demo');
+		assert.ok(section.isAgentsEditorVisible());
+		assert.strictEqual(section.getSelectedProfileId(), 'demo');
+		const listCallsAfterLoad = listAgentProfilesCalls;
+		section.setAgentsMarkdownValue('---\nsummary: Updated\n---\n# Agent body');
+
+		assert.strictEqual(await section.saveAgentsMarkdown(), false);
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(section.getSelectedProfileId(), 'demo');
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+
+		const editorStatus = section.getDomNode().querySelector('.engine-agents-editor-status') as HTMLElement;
+		assert.ok(editorStatus);
+		assert.notStrictEqual(editorStatus.style.display, 'none');
+		assert.ok(editorStatus.textContent?.includes(localize(
+			'ua.engineAgentsMdSaveFailed',
+			"Could not save AGENTS.md to the engine.",
+		)));
+		assertAgentsWriteFailureKeepsCatalog(section, 'save exploded', 1, 'demo');
+	});
+
+	function assertAgentsWriteSuccessSurvivesListFail(section: EngineAgentsSection, successCopy: string, listReason: string): void {
+		const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+		assert.ok(writeStatus);
+		assert.strictEqual(writeStatus.textContent, successCopy);
+		assert.notStrictEqual(writeStatus.style.display, 'none');
+
+		const catalog = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(catalog);
+		assert.strictEqual(catalog.dataset['catalogMode'], 'failed');
+		assert.ok((catalog.textContent ?? '').includes(getCatalogFailedCopy(AGENTS_FEATURE, listReason)));
+	}
+
+	test('Agents: createProfile ok still shows create-success when subsequent listAgentProfiles fails', async () => {
+		let listAgentProfilesCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => {
+					listAgentProfilesCalls++;
+					if (listAgentProfilesCalls > 1) {
+						throw new Error('list boom');
+					}
+					return { profiles: [demoUserAgent()] };
+				},
+				saveAgentProfile: async (request) => ({ profile: request.profile }),
+			});
+			const section = mountAgentsSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+			assert.strictEqual(listAgentProfilesCalls, 1);
+			assert.strictEqual(section.getMode(), 'ready');
+
+			assert.strictEqual(await section.createProfile({ id: 'new-agent', name: 'New', source: 'user' }), true);
+			assert.ok(listAgentProfilesCalls >= 2);
+			assertAgentsWriteSuccessSurvivesListFail(section, ENGINE_AGENTS_CREATE_SUCCESS_COPY, 'list boom');
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('Agents: deleteSelectedProfile ok still shows delete-success when subsequent listAgentProfiles fails', async () => {
+		let listAgentProfilesCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => {
+					listAgentProfilesCalls++;
+					if (listAgentProfilesCalls > 1) {
+						throw new Error('list boom');
+					}
+					return { profiles: [demoUserAgent()] };
+				},
+				deleteAgentProfile: async () => ({ ok: true }),
+			});
+			const section = mountAgentsSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+			assert.strictEqual(listAgentProfilesCalls, 1);
+			assert.strictEqual(section.getMode(), 'ready');
+			await section.selectProfileByIdForTest('demo');
+
+			assert.strictEqual(await section.deleteSelectedProfile(), true);
+			assert.ok(listAgentProfilesCalls >= 2);
+			assertAgentsWriteSuccessSurvivesListFail(section, ENGINE_AGENTS_DELETE_SUCCESS_COPY, 'list boom');
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('Agents: resetSelectedProfile ok still shows reset-success when subsequent listAgentProfiles fails', async () => {
+		let listAgentProfilesCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => {
+					listAgentProfilesCalls++;
+					if (listAgentProfilesCalls > 1) {
+						throw new Error('list boom');
+					}
+					return { profiles: [demoBuiltInAgent()] };
+				},
+				resetAgentProfile: async () => ({ ok: true }),
+			});
+			const section = mountAgentsSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+			assert.strictEqual(listAgentProfilesCalls, 1);
+			assert.strictEqual(section.getMode(), 'ready');
+			await section.selectProfileByIdForTest('builtin');
+
+			assert.strictEqual(await section.resetSelectedProfile(), true);
+			assert.ok(listAgentProfilesCalls >= 2);
+			assertAgentsWriteSuccessSurvivesListFail(section, ENGINE_AGENTS_RESET_SUCCESS_COPY, 'list boom');
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('Agents: saveSelectedProfile ok still shows save-success when subsequent listAgentProfiles fails', async () => {
+		let listAgentProfilesCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => {
+					listAgentProfilesCalls++;
+					if (listAgentProfilesCalls > 1) {
+						throw new Error('list boom');
+					}
+					return { profiles: [demoUserAgent()] };
+				},
+				saveAgentProfile: async (request) => ({ profile: request.profile }),
+			});
+			const section = mountAgentsSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+			assert.strictEqual(listAgentProfilesCalls, 1);
+			assert.strictEqual(section.getMode(), 'ready');
+			await section.selectProfileByIdForTest('demo');
+
+			assert.strictEqual(await section.saveSelectedProfile({ summary: 'Updated' }), true);
+			assert.ok(listAgentProfilesCalls >= 2);
+			assertAgentsWriteSuccessSurvivesListFail(section, ENGINE_AGENTS_SAVE_SUCCESS_COPY, 'list boom');
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('Agents: saveAgentsMarkdown ok still shows save-success when subsequent listAgentProfiles fails', async () => {
+		let listAgentProfilesCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => {
+					listAgentProfilesCalls++;
+					if (listAgentProfilesCalls > 1) {
+						throw new Error('list boom');
+					}
+					return { profiles: [demoUserAgent()] };
+				},
+				saveAgentProfile: async (request) => ({ profile: request.profile }),
+			});
+			const section = mountAgentsSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+			assert.strictEqual(listAgentProfilesCalls, 1);
+			assert.strictEqual(section.getMode(), 'ready');
+			await section.selectProfileByIdForTest('demo');
+			section.setAgentsMarkdownValue('---\nsummary: Updated\n---\n# Agent body');
+
+			assert.strictEqual(await section.saveAgentsMarkdown(), true);
+			assert.ok(listAgentProfilesCalls >= 2);
+			assertAgentsWriteSuccessSurvivesListFail(section, ENGINE_AGENTS_SAVE_SUCCESS_COPY, 'list boom');
+
+			const editorStatus = section.getDomNode().querySelector('.engine-agents-editor-status') as HTMLElement;
+			assert.ok(editorStatus);
+			assert.strictEqual(editorStatus.textContent, ENGINE_AGENTS_SAVE_SUCCESS_COPY);
+			assert.notStrictEqual(editorStatus.style.display, 'none');
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('Agents: tools tab listTools throw paints failed toolsStatus', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({
+				profiles: [demoUserAgent()],
+			}),
+			listTools: async () => {
+				throw new Error('listTools exploded');
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		await section.selectProfileByIdForTest('demo');
+		section.setActiveAgentDetailTabForTest('tools');
+		await flushMicrotasks();
+
+		const toolsStatus = section.getDomNode().querySelector(
+			'.engine-agents-tools-panel .engine-catalog-status-widget[data-catalog-mode="failed"]',
+		) as HTMLElement | null;
+		assert.ok(toolsStatus);
+		assert.ok(toolsStatus.textContent?.includes(getCatalogFailedCopy(AGENT_TOOLS_FEATURE, 'listTools exploded')));
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+	});
+
+	test('Agents: tools tab reconnect listTools throw drops leftover rows and keeps catalog', async () => {
+		let listToolsCalls = 0;
+		let listAgentProfilesCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [demoUserAgent()] };
+			},
+			listTools: async () => {
+				listToolsCalls++;
+				if (listToolsCalls === 1) {
+					return { tools: [{ name: 'leftover-agent-tool' }] };
+				}
+				throw new Error('listTools exploded');
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		await section.selectProfileByIdForTest('demo');
+		section.setActiveAgentDetailTabForTest('tools');
+		await flushMicrotasks();
+
+		assert.ok((section.getDomNode().textContent ?? '').includes('leftover-agent-tool'));
+		assert.strictEqual(listAgentProfilesCalls, 1);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		const toolsStatus = section.getDomNode().querySelector(
+			'.engine-agents-tools-panel .engine-catalog-status-widget[data-catalog-mode="failed"]',
+		) as HTMLElement | null;
+		assert.ok(toolsStatus);
+		assert.ok(toolsStatus.textContent?.includes(getCatalogFailedCopy(AGENT_TOOLS_FEATURE, 'listTools exploded')));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes('leftover-agent-tool'));
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.ok((section.getDomNode().textContent ?? '').includes('Demo Agent'));
+		assert.strictEqual(listAgentProfilesCalls, 2);
+		assert.strictEqual(listToolsCalls, 2);
+	});
+
+	test('Agents: successful reconnect refresh clears agent tool pending and keeps catalog ready', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({
+				profiles: [demoUserAgent()],
+			}),
+			listTools: async () => ({
+				tools: [{ name: 'bash' }],
+			}),
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		await section.selectProfileByIdForTest('demo');
+		section.setActiveAgentDetailTabForTest('tools');
+		await flushMicrotasks();
+
+		section.setAgentToolPendingForTest({ name: 'bash' }, false);
+		assert.strictEqual(section.isAgentToolEnablementDirty(), true);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.isAgentToolEnablementDirty(), false);
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		const toolsFailed = section.getDomNode().querySelector(
+			'.engine-agents-tools-panel .engine-catalog-status-widget[data-catalog-mode="failed"]',
+		);
+		assert.strictEqual(toolsFailed, null);
+		assert.ok((section.getDomNode().textContent ?? '').includes('bash'));
+	});
+
+	test('Agents: instructions tab refresh reloads editor and paints load-failed without leftover markdown', async () => {
+		let listAgentProfilesCalls = 0;
+		let saveCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [demoUserAgent()] };
+			},
+			saveAgentProfile: async () => {
+				saveCalls++;
+				if (listAgentProfilesCalls > 1) {
+					throw new Error('save exploded');
+				}
+				return {
+					profile: {
+						id: 'demo',
+						name: 'Demo Agent',
+						source: 'user' as const,
+						systemPrompt: 'Stale agents md',
+					},
+				};
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		await section.selectProfileByIdForTest('demo');
+		assert.strictEqual(section.getActiveAgentDetailTab(), 'instructions');
+		assert.ok(section.isAgentsEditorVisible());
+		assert.ok(section.getAgentsMarkdownValue().includes('Stale agents md'));
+		assert.strictEqual(section.isAgentsMarkdownDirty(), false);
+		assert.ok(saveCalls >= 1);
+		assert.strictEqual(listAgentProfilesCalls, 1);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		const editorStatus = section.getDomNode().querySelector('.engine-agents-editor-status') as HTMLElement;
+		assert.ok(editorStatus);
+		assert.notStrictEqual(editorStatus.style.display, 'none');
+		assert.ok(editorStatus.textContent?.includes(localize(
+			'ua.engineAgentsMdLoadFailed',
+			"Could not load AGENTS.md from the engine.",
+		)));
+		assert.ok(!section.getAgentsMarkdownValue().includes('Stale agents md'));
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.ok((section.getDomNode().textContent ?? '').includes('Demo Agent'));
+		assert.strictEqual(section.getSelectedProfileId(), 'demo');
+		assert.strictEqual(listAgentProfilesCalls, 2);
+		assert.ok(saveCalls >= 2);
+	});
+
+	test('MCP: successful load then refresh throw is failed with no leftover catalog', async () => {
+		let listMcpServersCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => {
+				listMcpServersCalls++;
+				if (listMcpServersCalls === 1) {
+					return {
+						servers: [{
+							id: 'stdio-demo',
+							name: 'Demo MCP',
+							transport: 'stdio' as const,
+							origin: 'global' as const,
+							enabled: true,
+						}],
+					};
+				}
+				throw new Error('listMcpServers retry exploded');
+			},
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assertFailedCatalogHonesty(section, MCP_FEATURE, 'listMcpServers retry exploded');
+		assert.ok(!/Demo MCP/i.test(section.getDomNode().textContent ?? ''));
+	});
+
+	function demoMcpServer() {
+		return {
+			id: 'stdio-demo',
+			name: 'Demo MCP',
+			transport: 'stdio' as const,
+			origin: 'global' as const,
+			enabled: true,
+		};
+	}
+
+	function assertMcpWriteFailureKeepsRows(section: EngineMcpSection, reason: string, expectedRows: number): void {
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), expectedRows);
+		assert.strictEqual(section.canWrite(), true);
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.notStrictEqual(status.style.display, 'none');
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(MCP_FEATURE, reason)));
+	}
+
+	test('MCP: add/update/remove ok:false shows write-failure status and keeps catalog rows', async () => {
+		let listMcpServersCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => {
+				listMcpServersCalls++;
+				return { servers: [demoMcpServer()] };
+			},
+			addMcpServer: async () => ({ ok: false, reason: 'add denied' }),
+			updateMcpServer: async () => ({ ok: false, reason: 'update denied' }),
+			removeMcpServer: async () => ({ ok: false, reason: 'remove denied' }),
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(listMcpServersCalls, 1);
+
+		assert.strictEqual(await section.addServer(), false);
+		assertMcpWriteFailureKeepsRows(section, 'add denied', 1);
+		assert.strictEqual(listMcpServersCalls, 1);
+
+		assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
+		assert.strictEqual(await section.updateSelectedServer({ name: 'Renamed' }), false);
+		assertMcpWriteFailureKeepsRows(section, 'update denied', 1);
+		assert.strictEqual(listMcpServersCalls, 1);
+
+		assert.strictEqual(await section.removeSelectedServer(), false);
+		assertMcpWriteFailureKeepsRows(section, 'remove denied', 1);
+		assert.strictEqual(listMcpServersCalls, 1);
+	});
+
+	test('MCP: add/update/remove throw shows write-failure status and keeps catalog rows', async () => {
+		let listMcpServersCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => {
+				listMcpServersCalls++;
+				return { servers: [demoMcpServer()] };
+			},
+			addMcpServer: async () => {
+				throw new Error('add exploded');
+			},
+			updateMcpServer: async () => {
+				throw new Error('update exploded');
+			},
+			removeMcpServer: async () => {
+				throw new Error('remove exploded');
+			},
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(listMcpServersCalls, 1);
+
+		assert.strictEqual(await section.addServer(), false);
+		assertMcpWriteFailureKeepsRows(section, 'add exploded', 1);
+		assert.strictEqual(listMcpServersCalls, 1);
+
+		assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
+		assert.strictEqual(await section.updateSelectedServer({ name: 'Renamed' }), false);
+		assertMcpWriteFailureKeepsRows(section, 'update exploded', 1);
+		assert.strictEqual(listMcpServersCalls, 1);
+
+		assert.strictEqual(await section.removeSelectedServer(), false);
+		assertMcpWriteFailureKeepsRows(section, 'remove exploded', 1);
+		assert.strictEqual(listMcpServersCalls, 1);
+	});
+
+	test('MCP: addMcpServer ok still shows add-success when subsequent listMcpServers fails', async () => {
+		let listMcpServersCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { mcp: { support: 'SUPPORTED' } },
+				listMcpServers: async () => {
+					listMcpServersCalls++;
+					if (listMcpServersCalls > 1) {
+						throw new Error('list boom');
+					}
+					return { servers: [demoMcpServer()] };
+				},
+				addMcpServer: async () => ({ ok: true }),
+			});
+			const section = mountMcpSection(connection);
+			await flushMicrotasks();
+			assert.strictEqual(listMcpServersCalls, 1);
+			assert.strictEqual(section.getMode(), 'ready');
+
+			assert.strictEqual(await section.addServer(), true);
+			assert.ok(listMcpServersCalls >= 2);
+
+			const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+			assert.ok(writeStatus);
+			assert.strictEqual(writeStatus.textContent, ENGINE_MCP_ADD_SUCCESS_COPY);
+			assert.notStrictEqual(writeStatus.style.display, 'none');
+
+			const catalog = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+			assert.ok(catalog);
+			assert.strictEqual(catalog.dataset['catalogMode'], 'failed');
+			assert.ok((catalog.textContent ?? '').includes(getCatalogFailedCopy(MCP_FEATURE, 'list boom')));
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	function assertMcpWriteSuccessSurvivesListFail(section: EngineMcpSection, successCopy: string, listReason: string): void {
+		const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+		assert.ok(writeStatus);
+		assert.strictEqual(writeStatus.textContent, successCopy);
+		assert.notStrictEqual(writeStatus.style.display, 'none');
+
+		const catalog = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(catalog);
+		assert.strictEqual(catalog.dataset['catalogMode'], 'failed');
+		assert.ok((catalog.textContent ?? '').includes(getCatalogFailedCopy(MCP_FEATURE, listReason)));
+	}
+
+	test('MCP: updateMcpServer ok still shows update-success when subsequent listMcpServers fails', async () => {
+		let listMcpServersCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { mcp: { support: 'SUPPORTED' } },
+				listMcpServers: async () => {
+					listMcpServersCalls++;
+					if (listMcpServersCalls > 1) {
+						throw new Error('list boom');
+					}
+					return { servers: [demoMcpServer()] };
+				},
+				updateMcpServer: async () => ({ ok: true }),
+			});
+			const section = mountMcpSection(connection);
+			await flushMicrotasks();
+			assert.strictEqual(listMcpServersCalls, 1);
+			assert.strictEqual(section.getMode(), 'ready');
+			assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
+
+			assert.strictEqual(await section.updateSelectedServer({ name: 'Renamed' }), true);
+			assert.ok(listMcpServersCalls >= 2);
+			assertMcpWriteSuccessSurvivesListFail(section, ENGINE_MCP_UPDATE_SUCCESS_COPY, 'list boom');
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('MCP: removeMcpServer ok still shows remove-success when subsequent listMcpServers fails', async () => {
+		let listMcpServersCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { mcp: { support: 'SUPPORTED' } },
+				listMcpServers: async () => {
+					listMcpServersCalls++;
+					if (listMcpServersCalls > 1) {
+						throw new Error('list boom');
+					}
+					return { servers: [demoMcpServer()] };
+				},
+				removeMcpServer: async () => ({ ok: true }),
+			});
+			const section = mountMcpSection(connection);
+			await flushMicrotasks();
+			assert.strictEqual(listMcpServersCalls, 1);
+			assert.strictEqual(section.getMode(), 'ready');
+			assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
+
+			assert.strictEqual(await section.removeSelectedServer(), true);
+			assert.ok(listMcpServersCalls >= 2);
+			assertMcpWriteSuccessSurvivesListFail(section, ENGINE_MCP_REMOVE_SUCCESS_COPY, 'list boom');
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('MCP: toggleServer ok still shows toggle-success when subsequent listMcpServers fails', async () => {
+		let listMcpServersCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { mcp: { support: 'SUPPORTED' } },
+				listMcpServers: async () => {
+					listMcpServersCalls++;
+					if (listMcpServersCalls > 1) {
+						throw new Error('list boom');
+					}
+					return { servers: [demoMcpServer()] };
+				},
+				toggleMcpServer: async () => ({ ok: true }),
+			});
+			const section = mountMcpSection(connection);
+			await flushMicrotasks();
+			assert.strictEqual(listMcpServersCalls, 1);
+			assert.strictEqual(section.getMode(), 'ready');
+
+			await section.toggleServerForTest('stdio-demo', false);
+			assert.ok(listMcpServersCalls >= 2);
+			assertMcpWriteSuccessSurvivesListFail(section, ENGINE_MCP_TOGGLE_SUCCESS_COPY, 'list boom');
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('MCP: toggleServer ok:false shows write-failure status and keeps catalog rows', async () => {
+		let listMcpServersCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => {
+				listMcpServersCalls++;
+				return { servers: [demoMcpServer()] };
+			},
+			toggleMcpServer: async () => ({ ok: false, reason: 'toggle denied' }),
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(listMcpServersCalls, 1);
+
+		await section.toggleServerForTest('stdio-demo', false);
+		assertMcpWriteFailureKeepsRows(section, 'toggle denied', 1);
+		assert.ok(listMcpServersCalls >= 2);
+	});
+
+	test('MCP: toggleServer throw shows write-failure status and keeps catalog rows', async () => {
+		let listMcpServersCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => {
+				listMcpServersCalls++;
+				return { servers: [demoMcpServer()] };
+			},
+			toggleMcpServer: async () => {
+				throw new Error('toggle exploded');
+			},
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(listMcpServersCalls, 1);
+
+		await section.toggleServerForTest('stdio-demo', false);
+		assertMcpWriteFailureKeepsRows(section, 'toggle exploded', 1);
+		assert.ok(listMcpServersCalls >= 2);
 	});
 });

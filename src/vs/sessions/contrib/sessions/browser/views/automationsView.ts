@@ -12,6 +12,7 @@ import { getDefaultHoverDelegate } from '../../../../../base/browser/ui/hover/ho
 import { defaultButtonStyles } from '../../../../../platform/theme/browser/defaultStyles.js';
 import { disposableTimeout } from '../../../../../base/common/async.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { combinedDisposable, Disposable, DisposableMap, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { autorun, constObservable, IObservable, IReader, ISettableObservable, observableSignalFromEvent, observableValue, transaction } from '../../../../../base/common/observable.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
@@ -333,7 +334,7 @@ class AutomationCardsSection extends Disposable {
 			if (!currentAutomation || this.automationService.canDeleteAutomation?.(automation.id) === false) {
 				return;
 			}
-			void this.confirmDelete(currentAutomation);
+			void this.confirmDelete(currentAutomation).catch(onUnexpectedError);
 		}));
 
 		for (const eventType of [DOM.EventType.CLICK, TouchEventType.Tap]) {
@@ -461,7 +462,7 @@ class AutomationCardsSection extends Disposable {
 		}));
 		createButton.label = localize('createAutomation', "Create Automation");
 		createButton.element.classList.add('automations-cards-create-button');
-		this.emptyStateDisposables.add(createButton.onDidClick(() => this.openCreateDialog()));
+		this.emptyStateDisposables.add(createButton.onDidClick(() => void this.openCreateDialog().catch(onUnexpectedError)));
 	}
 
 	private async openCreateDialog(): Promise<void> {

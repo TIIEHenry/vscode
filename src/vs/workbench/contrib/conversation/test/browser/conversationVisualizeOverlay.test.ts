@@ -12,7 +12,9 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { ExtensionIdentifier } from '../../../../../platform/extensions/common/extensions.js';
 import { ILayoutService } from '../../../../../platform/layout/browser/layoutService.js';
+import { IExtensionService } from '../../../../services/extensions/common/extensions.js';
 import { IWebviewElement, IWebviewService } from '../../../webview/browser/webview.js';
+import { resolveConversationMermaidExtension } from '../../browser/conversationMermaidHost.js';
 import { ConversationVisualizeOverlay } from '../../browser/conversationVisualizeOverlay.js';
 
 suite('ConversationVisualizeOverlay', () => {
@@ -150,5 +152,28 @@ suite('ConversationVisualizeOverlay', () => {
 		});
 		assert.ok(container.querySelector('.conversation-visualize-overlay-close'));
 		assert.ok(container.querySelector('.conversation-visualize-overlay-title')?.textContent?.length === 200);
+	});
+
+	test('resolveConversationMermaidExtension swallows getExtension rejection', async () => {
+		const stub = {
+			getExtension: () => Promise.reject('boom'),
+		} as unknown as IExtensionService;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const result = await resolveConversationMermaidExtension(stub);
+			assert.strictEqual(result, undefined);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('resolveConversationMermaidExtension returns undefined when extension is missing', async () => {
+		const stub = {
+			getExtension: () => Promise.resolve(undefined),
+		} as unknown as IExtensionService;
+		assert.strictEqual(await resolveConversationMermaidExtension(stub), undefined);
 	});
 });

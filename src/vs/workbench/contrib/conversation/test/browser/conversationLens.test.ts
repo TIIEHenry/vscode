@@ -16,6 +16,7 @@ import { ConversationEditorPane } from '../../browser/conversationEditorPane.js'
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { conversationLensStaleSnapshotClass } from '../../browser/conversationLensReadingColumn.js';
 import { ConversationTimelineTree, conversationLensUserBubbleShowLess, conversationLensUserBubbleShowMore } from '../../browser/conversationTimelineTree.js';
+import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
 import {
 	conversationLensDockAddTitle,
 	conversationLensDockControlHeightPx,
@@ -34,6 +35,7 @@ import {
 	conversationLensDockNoModel,
 	conversationLensDockNoRoute,
 	conversationLensDockNoTools,
+	conversationLensDockNoEngineTools,
 	conversationLensDockNoAgent,
 	conversationLensDockStubAgent,
 	conversationLensDockRouteBalanced,
@@ -41,6 +43,7 @@ import {
 	conversationLensDockPermissionLabel,
 	conversationLensDockPermissionPermit,
 	conversationLensDockPlaceholder,
+	conversationLensPostFailed,
 	conversationLensPostFailedDisconnected,
 	conversationLensDockRestoreTimeline,
 	conversationLensDockStop,
@@ -56,7 +59,7 @@ import {
 	conversationLensVoiceStubPhraseOne,
 	conversationLensVoiceTranscriptLabel,
 } from '../../browser/conversationLensDockStrings.js';
-import { conversationLensDockPermissionUnavailable } from '../../browser/conversationLensComposerChrome.js';
+import { conversationLensDockModelFailed, conversationLensDockPermissionUnavailable } from '../../browser/conversationLensComposerChrome.js';
 import { conversationLensVoiceTranscriptBarClass } from '../../browser/conversationVoiceTranscriptBar.js';
 import {
 	conversationLensSessionBarConversationTab,
@@ -93,9 +96,8 @@ import { ILayoutService } from '../../../../../platform/layout/browser/layoutSer
 import { IWebviewService } from '../../../webview/browser/webview.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
-import { flushConversationLensLayout, installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
+import { flushConversationLensLayout, installConversationLensResizeObserverHarness, yieldConversationLensPaint } from './conversationLensLayoutHarness.js';
 import { getWindow } from '../../../../../base/browser/dom.js';
-import { mainWindow } from '../../../../../base/browser/window.js';
 
 suite('ConversationLens', () => {
 
@@ -115,7 +117,7 @@ suite('ConversationLens', () => {
 	}
 
 	async function flushAnimationFrames(): Promise<void> {
-		await new Promise<void>(resolve => mainWindow.requestAnimationFrame(() => mainWindow.requestAnimationFrame(() => resolve())));
+		await flushConversationLensLayout();
 	}
 
 	async function inflateTimelineRowHeights(lens: ConversationLens, layout: () => void, rowHeight = 400): Promise<void> {
@@ -183,10 +185,62 @@ suite('ConversationLens', () => {
 		await flushTimelineHeightUpdates();
 	}
 
+	function isRevealedTurnPainted(lens: ConversationLens, turnId: string): boolean {
+		const tree = getTimelineTree(lens);
+		return !!tree.getTimelineRowElement(turnId)
+			|| !!tree.domNode.querySelector(`[data-turn-id="${turnId}"]`)
+			|| !!tree.domNode.querySelector(`[data-fold-id="${turnId}"]`);
+	}
+
+	function restoreDelegateRowHeights(lens: ConversationLens): void {
+		const internal = getTimelineTree(lens) as unknown as {
+			turnItems: Map<string, { variant?: string }>;
+			safeUpdateElementHeight: (item: object, height: number) => void;
+		};
+		const seen = new Set<object>();
+		for (const item of internal.turnItems.values()) {
+			if (seen.has(item)) {
+				continue;
+			}
+			seen.add(item);
+			internal.safeUpdateElementHeight(item, item.variant === 'process-fold' ? 40 : 72);
+		}
+	}
+
 	async function revealVisualizeTurn(lens: ConversationLens, layoutReadingColumn: () => void, turnId: string): Promise<void> {
-		getTimelineTree(lens).revealTurn(turnId, 0);
+		// Layout first so ListView has a real viewport, then reveal. Leftover
+		// reveal-then-await-rAF hung on merge transpile: Electron mocha can
+		// stall requestAnimationFrame (no vsync / height-update rAF storm),
+		// so mocha hit Timeout of 5000ms. A stalled rAF can also write 1px
+		// dynamic heights (offsetHeight 0) and unpaint every virtual row.
+		// Restore delegate defaults and yield with setTimeout — not rAF.
+		// Stop after a few tries so a missing row fails the product assert.
+		const tree = getTimelineTree(lens);
+		await new Promise<void>(resolve => setTimeout(resolve, 16));
 		layoutReadingColumn();
-		await flushAnimationFrames();
+		tree.revealTurn(turnId, 0);
+		layoutReadingColumn();
+		if (isRevealedTurnPainted(lens, turnId)) {
+			return;
+		}
+		restoreDelegateRowHeights(lens);
+		layoutReadingColumn();
+		tree.revealTurn(turnId, 0);
+		layoutReadingColumn();
+		for (let attempt = 0; attempt < 4; attempt++) {
+			if (isRevealedTurnPainted(lens, turnId)) {
+				return;
+			}
+			await new Promise<void>(resolve => setTimeout(resolve, 16));
+			restoreDelegateRowHeights(lens);
+			layoutReadingColumn();
+			tree.revealTurn(turnId, 0);
+			layoutReadingColumn();
+		}
+	}
+
+	async function revealUntitledProcessFold(lens: ConversationLens, layoutReadingColumn: () => void): Promise<void> {
+		await revealVisualizeTurn(lens, layoutReadingColumn, 'untitled-t1');
 	}
 
 	async function revealLatestTurn(
@@ -217,6 +271,54 @@ suite('ConversationLens', () => {
 		return (lens as unknown as { timelineTree: ConversationTimelineTree }).timelineTree;
 	}
 
+	function getTrajectoryView(lens: ConversationLens): ConversationTrajectory {
+		return (lens as unknown as { trajectoryView: ConversationTrajectory }).trajectoryView;
+	}
+
+	function countTrajectoryRecordRows(slots: IConversationLensSlots): number {
+		return slots.timeline.querySelectorAll('.conversation-lens-trajectory-record-row').length;
+	}
+
+	function isPinnedUserPromptPainted(slots: IConversationLensSlots, expectedPreview?: string): boolean {
+		const host = getPinnedUserPrompt(slots);
+		if (!host?.classList.contains('conversation-timeline-pinned-user--visible')) {
+			return false;
+		}
+		const preview = host.querySelector('.conversation-timeline-pinned-user-text')?.textContent ?? '';
+		return expectedPreview === undefined ? preview.length > 0 : preview === expectedPreview;
+	}
+
+	async function paintTrajectoryRows(
+		lens: ConversationLens,
+		slots: IConversationLensSlots,
+		stubService: ConversationStubService,
+		layout: () => void,
+		expectedCount: number,
+	): Promise<void> {
+		const view = getTrajectoryView(lens);
+		const recordIds = stubService.getTurns(stubService.getActiveSessionId()).map(turn => turn.id);
+		await yieldConversationLensPaint();
+		layout();
+		for (const recordId of recordIds) {
+			view.revealRecord(recordId);
+		}
+		layout();
+		if (countTrajectoryRecordRows(slots) === expectedCount) {
+			return;
+		}
+		for (let attempt = 0; attempt < 4; attempt++) {
+			if (countTrajectoryRecordRows(slots) === expectedCount) {
+				return;
+			}
+			await yieldConversationLensPaint();
+			layout();
+			for (const recordId of recordIds) {
+				view.revealRecord(recordId);
+			}
+			layout();
+		}
+	}
+
 	async function scrollTimelineAwayFromPinnedRead(lens: ConversationLens, slots: IConversationLensSlots, layout: () => void, rowHeight = 400): Promise<void> {
 		const timelineTree = getTimelineTree(lens);
 		const assistantTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]');
@@ -224,14 +326,18 @@ suite('ConversationLens', () => {
 		const turnId = assistantTurn!.getAttribute('data-turn-id');
 		assert.ok(turnId);
 
-		for (let attempt = 0; attempt < 3; attempt++) {
+		// Layout first, then reveal the assistant row so the user prompt leaves
+		// the virtual window. Bounded setTimeout — not rAF — so Electron mocha
+		// without vsync still paints the sticky preview instead of hanging.
+		for (let attempt = 0; attempt < 4; attempt++) {
+			await yieldConversationLensPaint();
+			layout();
 			await inflateTimelineRowHeights(lens, layout, rowHeight + attempt * 40);
 			timelineTree.setScrollLock(false);
+			layout();
 			timelineTree.revealTurn(turnId!, 0);
 			layout();
-			await flushAnimationFrames();
-			await flushTimelineHeightUpdates();
-			if (!timelineTree.isScrolledToBottom()) {
+			if (!timelineTree.isScrolledToBottom() && isPinnedUserPromptPainted(slots)) {
 				return;
 			}
 		}
@@ -265,6 +371,16 @@ suite('ConversationLens', () => {
 		}
 		if (treeContainer) {
 			treeContainer.style.height = `${layoutHeight - 120}px`;
+		}
+		const trajectoryHost = slots.timeline.querySelector('.conversation-lens-trajectory') as HTMLElement | null;
+		const trajectoryScroll = slots.timeline.querySelector('.conversation-lens-trajectory-table-scroll') as HTMLElement | null;
+		if (trajectoryHost) {
+			trajectoryHost.style.height = `${LENS_LAYOUT_HEIGHT - 120}px`;
+			trajectoryHost.style.minHeight = `${LENS_LAYOUT_HEIGHT - 120}px`;
+		}
+		if (trajectoryScroll) {
+			trajectoryScroll.style.height = `${LENS_LAYOUT_HEIGHT - 200}px`;
+			trajectoryScroll.style.minHeight = `${LENS_LAYOUT_HEIGHT - 200}px`;
 		}
 		// Part sessionBar measures clientWidth before applying is-narrow / is-compact.
 		if (slots.sessionBar) {
@@ -672,16 +788,19 @@ suite('ConversationLens', () => {
 		assert.strictEqual(assistantTurn.querySelector('.conversation-lens-turn-body--collapsed'), null);
 	});
 
-	test('default session shows seeded untitled fixture without fake engine history', () => {
-		const { part, stubService } = mountLens();
+	test('default session shows seeded untitled fixture without fake engine history', async () => {
+		const { part, stubService, lens, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
 		const pendingButton = slots.dock.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
 
 		assert.strictEqual(stubService.getSessions().length, 2);
 		assert.strictEqual(stubService.getTurns(stubService.getActiveSessionId()).length, 7);
 		assert.strictEqual(getTimelineEmpty(slots), null);
+		await revealUntitledProcessFold(lens, layoutReadingColumn);
 		assert.ok(queryTimeline(slots, '[data-process-fold]'));
+		await revealVisualizeTurn(lens, layoutReadingColumn, 'untitled-u1');
 		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]'));
+		await revealVisualizeTurn(lens, layoutReadingColumn, 'untitled-c1');
 		assert.ok(queryTimeline(slots, '.conversation-lens-confirmation-seat'));
 		assert.ok(pendingButton);
 		assert.ok(!pendingButton.hidden);
@@ -937,6 +1056,40 @@ suite('ConversationLens', () => {
 		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row') as HTMLElement;
 		assert.strictEqual(gateRow.hidden, false);
 		assert.ok(gateRow.textContent?.includes('engine rejected model'));
+	});
+
+	test('model select rolls back and shows the gate when switchModel resolves with an empty resolvedModelId', async () => {
+		const calls: { sessionId: string; modelId: string }[] = [];
+		const capabilities = createEmptyTestCapabilitySnapshot();
+		const connection = createConversationConnectionTestStub({
+			getCapabilitySnapshot: () => ({
+				...capabilities,
+				models: { support: 'SUPPORTED' },
+			}),
+			listModels: async () => ({ models: [{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' }] }),
+			switchModel: async request => {
+				calls.push({ sessionId: request.sessionId, modelId: request.modelId });
+				return { resolvedModelId: '', provider: '', level: 0, cost: '', speed: '' };
+			},
+		});
+		const { part, stubService } = mountLens({ connection });
+		const slots = getLensSlots(part);
+		stubService.setEngineConnected(true);
+		await waitForModelOption(slots, 'gpt-test');
+
+		const modelSelect = getModelSelect(slots);
+		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, conversationLensDockNoModel);
+
+		selectDockModel(slots, 1);
+		await Promise.resolve();
+
+		assert.strictEqual(calls.length, 1);
+		assert.strictEqual(calls[0].modelId, 'gpt-test');
+		assert.strictEqual(modelSelect.selectedIndex, 0);
+		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, conversationLensDockNoModel);
+		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row') as HTMLElement;
+		assert.strictEqual(gateRow.hidden, false);
+		assert.ok(gateRow.textContent?.includes(conversationLensDockModelFailed));
 	});
 
 	test('narrow More permission radios stay disabled without setPermissionMode', () => {
@@ -1352,6 +1505,47 @@ suite('ConversationLens', () => {
 		assert.ok(!popup?.textContent?.includes(conversationLensDockNoTools));
 	});
 
+	test('connected catalog RPC throws keep No agent / No model / empty tools', async () => {
+		const capabilities = createEmptyTestCapabilitySnapshot();
+		const connection = createConversationConnectionTestStub({
+			getCapabilitySnapshot: () => ({
+				...capabilities,
+				agentProfiles: { support: 'SUPPORTED' },
+				tools: { support: 'SUPPORTED' },
+				models: { support: 'SUPPORTED' },
+			}),
+			listAgentProfiles: async () => {
+				throw new Error('listAgentProfiles exploded');
+			},
+			listTools: async () => {
+				throw new Error('listTools exploded');
+			},
+			listModels: async () => {
+				throw new Error('listModels exploded');
+			},
+		});
+		const { part, stubService } = mountLens({ connection });
+		const slots = getLensSlots(part);
+		stubService.setEngineConnected(true);
+		for (let i = 0; i < 8; i++) {
+			await Promise.resolve();
+		}
+
+		const agentSelect = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-agent select.monaco-select-box') as HTMLSelectElement;
+		assert.strictEqual(agentSelect.options[agentSelect.selectedIndex]?.text, conversationLensDockNoAgent);
+		assert.ok(![...agentSelect.options].some(option => option.text === 'Coder'));
+		assert.ok(![...agentSelect.options].some(option => option.text === conversationLensDockStubAgent));
+
+		assert.strictEqual(getModelSelect(slots).options[getModelSelect(slots).selectedIndex]?.text, conversationLensDockNoModel);
+		assert.ok(![...getModelSelect(slots).options].some(option => option.text === 'gpt-test'));
+
+		const tuneButton = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-tune .monaco-button') as HTMLButtonElement;
+		tuneButton.click();
+		const popup = document.querySelector('.conversation-lens-dock-tune-popup');
+		assert.strictEqual(popup?.textContent, conversationLensDockNoEngineTools);
+		assert.ok(!popup?.textContent?.includes('bash'));
+	});
+
 	test('connected Enter submits draft through lease.post(submitInput)', async () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
@@ -1589,8 +1783,12 @@ suite('ConversationLens', () => {
 		const leafB = mountLens({ stubService, sessionKey: sessionB });
 		const slotsA = getLensSlots(leafA.part);
 		const slotsB = getLensSlots(leafB.part);
-		await flushProjectedTimeline(leafA.layoutReadingColumn);
-		await flushProjectedTimeline(leafB.layoutReadingColumn);
+		const alphaTurn = stubService.getTurns(sessionA).find(turn => turn.text === 'Alpha leaf only');
+		const betaTurn = stubService.getTurns(sessionB).find(turn => turn.text === 'Beta leaf only');
+		assert.ok(alphaTurn);
+		assert.ok(betaTurn);
+		await revealVisualizeTurn(leafA.lens, leafA.layoutReadingColumn, alphaTurn.id);
+		await revealVisualizeTurn(leafB.lens, leafB.layoutReadingColumn, betaTurn.id);
 
 		assert.ok(slotsA.timeline.textContent?.includes('Alpha leaf only'));
 		assert.ok(!slotsA.timeline.textContent?.includes('Beta leaf only'));
@@ -1598,8 +1796,8 @@ suite('ConversationLens', () => {
 		assert.ok(!slotsB.timeline.textContent?.includes('Alpha leaf only'));
 
 		stubService.switchSession(sessionA);
-		await flushProjectedTimeline(leafA.layoutReadingColumn);
-		await flushProjectedTimeline(leafB.layoutReadingColumn);
+		await revealVisualizeTurn(leafA.lens, leafA.layoutReadingColumn, alphaTurn.id);
+		await revealVisualizeTurn(leafB.lens, leafB.layoutReadingColumn, betaTurn.id);
 
 		assert.ok(slotsB.timeline.textContent?.includes('Beta leaf only'));
 		assert.ok(!slotsB.timeline.textContent?.includes('Alpha leaf only'));
@@ -2092,6 +2290,190 @@ suite('ConversationLens', () => {
 		assert.strictEqual(stubService.getSessions().find(s => s.id === sessionId)?.title, 'Renamed for select sync');
 	});
 
+	test('SessionBar renameSession false shows failed notice and keeps previous title', () => {
+		class RejectingRenameRoster extends ConversationStubService {
+			override renameSession(_sessionId: string, _title: string): boolean {
+				return false;
+			}
+		}
+		const roster = store.add(new RejectingRenameRoster());
+		const { part } = mountLens({ stubService: roster });
+		const slots = getLensSlots(part);
+		const titleButton = slots.sessionBar!.querySelector('button.conversation-lens-session-title') as HTMLButtonElement;
+		const titleInput = slots.sessionBar!.querySelector('input.conversation-lens-session-title-input') as HTMLInputElement;
+		const titleLive = slots.sessionBar!.querySelector('.conversation-lens-session-title-live') as HTMLElement;
+		const sessionId = roster.getActiveSessionId();
+		const previousTitle = roster.getActiveSession().title;
+
+		titleButton.click();
+		titleInput.value = 'Rejected rename';
+		titleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: KeyCode.Enter, bubbles: true }));
+
+		assert.strictEqual(roster.getActiveSession().title, previousTitle);
+		assert.strictEqual(roster.getSessions().find(s => s.id === sessionId)?.title, previousTitle);
+		assert.strictEqual(titleButton.textContent, previousTitle);
+		assert.strictEqual(titleLive.textContent, previousTitle);
+		assert.strictEqual(getSessionSelectLabel(slots), previousTitle);
+		assert.ok(!titleButton.hidden);
+		assert.ok(titleInput.hidden);
+		const gateRow = (getReadingColumn(slots).querySelector('.conversation-lens-dock-gate-row')
+			?? slots.dock.querySelector('.conversation-lens-dock-gate-row')) as HTMLElement | null;
+		assert.ok(gateRow);
+		assert.strictEqual(gateRow.hidden, false);
+		assert.ok(gateRow.textContent?.includes(conversationLensPostFailed));
+	});
+
+	test('SessionBar renameSession false after engine-cache disconnect shows disconnected notice', () => {
+		class EngineCacheRejectingRenameRoster extends ConversationStubService {
+			override hasEngineConnectionHistory(): boolean {
+				return true;
+			}
+			override renameSession(_sessionId: string, _title: string): boolean {
+				return false;
+			}
+		}
+		const roster = store.add(new EngineCacheRejectingRenameRoster());
+		const { part } = mountLens({ stubService: roster });
+		const slots = getLensSlots(part);
+		const titleButton = slots.sessionBar!.querySelector('button.conversation-lens-session-title') as HTMLButtonElement;
+		const titleInput = slots.sessionBar!.querySelector('input.conversation-lens-session-title-input') as HTMLInputElement;
+		const sessionId = roster.getActiveSessionId();
+		const previousTitle = roster.getActiveSession().title;
+
+		titleButton.click();
+		titleInput.value = 'Rejected while disconnected';
+		titleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: KeyCode.Enter, bubbles: true }));
+
+		assert.strictEqual(roster.getActiveSession().title, previousTitle);
+		assert.strictEqual(roster.getSessions().find(s => s.id === sessionId)?.title, previousTitle);
+		assert.strictEqual(titleButton.textContent, previousTitle);
+		assert.strictEqual(getSessionSelectLabel(slots), previousTitle);
+		const gateRow = (getReadingColumn(slots).querySelector('.conversation-lens-dock-gate-row')
+			?? slots.dock.querySelector('.conversation-lens-dock-gate-row')) as HTMLElement | null;
+		assert.ok(gateRow);
+		assert.strictEqual(gateRow.hidden, false);
+		assert.ok(gateRow.textContent?.includes(conversationLensPostFailedDisconnected));
+	});
+
+	test('SessionBar deleteSession false shows failed notice and keeps the session', () => {
+		class RejectingDeleteRoster extends ConversationStubService {
+			override deleteSession(_sessionId: string): boolean {
+				return false;
+			}
+		}
+		const roster = store.add(new RejectingDeleteRoster());
+		const { part } = mountLens({ stubService: roster });
+		const slots = getLensSlots(part);
+		const deleteButton = slots.sessionBar!.querySelector('.conversation-lens-session-delete .monaco-button') as HTMLButtonElement;
+		const sessionId = roster.getActiveSessionId();
+		const initialCount = roster.getSessions().length;
+
+		assert.ok(deleteButton);
+		deleteButton.click();
+
+		assert.strictEqual(roster.getSessions().length, initialCount);
+		assert.strictEqual(roster.getActiveSessionId(), sessionId);
+		assert.strictEqual(roster.getSessions().some(s => s.id === sessionId), true);
+		const gateRow = (getReadingColumn(slots).querySelector('.conversation-lens-dock-gate-row')
+			?? slots.dock.querySelector('.conversation-lens-dock-gate-row')) as HTMLElement | null;
+		assert.ok(gateRow);
+		assert.strictEqual(gateRow.hidden, false);
+		assert.ok(gateRow.textContent?.includes(conversationLensPostFailed));
+	});
+
+	test('SessionBar deleteSession false after engine-cache disconnect shows disconnected notice', () => {
+		class EngineCacheRejectingDeleteRoster extends ConversationStubService {
+			override hasEngineConnectionHistory(): boolean {
+				return true;
+			}
+			override deleteSession(_sessionId: string): boolean {
+				return false;
+			}
+		}
+		const roster = store.add(new EngineCacheRejectingDeleteRoster());
+		const { part } = mountLens({ stubService: roster });
+		const slots = getLensSlots(part);
+		const deleteButton = slots.sessionBar!.querySelector('.conversation-lens-session-delete .monaco-button') as HTMLButtonElement;
+		const sessionId = roster.getActiveSessionId();
+		const initialCount = roster.getSessions().length;
+
+		assert.ok(deleteButton);
+		deleteButton.click();
+
+		assert.strictEqual(roster.getSessions().length, initialCount);
+		assert.strictEqual(roster.getActiveSessionId(), sessionId);
+		assert.strictEqual(roster.getSessions().some(s => s.id === sessionId), true);
+		const gateRow = (getReadingColumn(slots).querySelector('.conversation-lens-dock-gate-row')
+			?? slots.dock.querySelector('.conversation-lens-dock-gate-row')) as HTMLElement | null;
+		assert.ok(gateRow);
+		assert.strictEqual(gateRow.hidden, false);
+		assert.ok(gateRow.textContent?.includes(conversationLensPostFailedDisconnected));
+	});
+
+	test('SessionBar createNewSession after engine-cache disconnect shows disconnected notice and does not create', () => {
+		class EngineCacheCreateRoster extends ConversationStubService {
+			createSessionCalls = 0;
+			override hasEngineConnectionHistory(): boolean {
+				return true;
+			}
+			override isEngineConnected(): boolean {
+				return false;
+			}
+			override createSession(): string {
+				this.createSessionCalls += 1;
+				return super.createSession();
+			}
+		}
+		const roster = store.add(new EngineCacheCreateRoster());
+		const { part } = mountLens({ stubService: roster });
+		const slots = getLensSlots(part);
+		const newButton = slots.sessionBar!.querySelector('.conversation-lens-session-new .monaco-button') as HTMLButtonElement;
+		const sessionId = roster.getActiveSessionId();
+		const initialCount = roster.getSessions().length;
+
+		assert.ok(newButton);
+		newButton.click();
+
+		assert.strictEqual(roster.createSessionCalls, 0);
+		assert.strictEqual(roster.getSessions().length, initialCount);
+		assert.strictEqual(roster.getActiveSessionId(), sessionId);
+		const gateRow = (getReadingColumn(slots).querySelector('.conversation-lens-dock-gate-row')
+			?? slots.dock.querySelector('.conversation-lens-dock-gate-row')) as HTMLElement | null;
+		assert.ok(gateRow);
+		assert.strictEqual(gateRow.hidden, false);
+		assert.ok(gateRow.textContent?.includes(conversationLensPostFailedDisconnected));
+	});
+
+	test('SessionBar createNewSession while engine connected still calls createSession', () => {
+		class ConnectedCreateRoster extends ConversationStubService {
+			createSessionCalls = 0;
+			override hasEngineConnectionHistory(): boolean {
+				return true;
+			}
+			override isEngineConnected(): boolean {
+				return true;
+			}
+			override createSession(): string {
+				this.createSessionCalls += 1;
+				return super.createSession();
+			}
+		}
+		const roster = store.add(new ConnectedCreateRoster());
+		const { part } = mountLens({ stubService: roster });
+		const slots = getLensSlots(part);
+		const newButton = slots.sessionBar!.querySelector('.conversation-lens-session-new .monaco-button') as HTMLButtonElement;
+		const initialCount = roster.getSessions().length;
+
+		assert.ok(newButton);
+		newButton.click();
+
+		assert.strictEqual(roster.createSessionCalls, 1);
+		assert.strictEqual(roster.getSessions().length, initialCount + 1);
+		const gateRow = (getReadingColumn(slots).querySelector('.conversation-lens-dock-gate-row')
+			?? slots.dock.querySelector('.conversation-lens-dock-gate-row')) as HTMLElement | null;
+		assert.ok(!gateRow || gateRow.hidden);
+	});
+
 	test('SessionBar select refreshes after deleting the last stub session', () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
@@ -2183,6 +2565,7 @@ suite('ConversationLens', () => {
 		clickLensTab(slots, 'trajectory');
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
+		await paintTrajectoryRows(lens, slots, stubService, layoutReadingColumn, 2);
 
 		let trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
 		assert.strictEqual(trajectory.querySelectorAll('.conversation-lens-trajectory-record-row').length, 2);
@@ -2209,6 +2592,7 @@ suite('ConversationLens', () => {
 		clickLensTab(slots, 'trajectory');
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
+		await paintTrajectoryRows(lens, slots, stubService, layoutReadingColumn, 1);
 
 		trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
 		assert.strictEqual(trajectory.querySelectorAll('.conversation-lens-trajectory-record-row').length, 1);
@@ -2491,6 +2875,35 @@ suite('ConversationLens', () => {
 		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]')?.textContent?.includes('Keep this turn after disconnect'));
 	});
 
+	test('PRD-007: lease apply closed sync shows stale snapshot without onDidChangeSession', async () => {
+		const { part, lens, stubService, layoutReadingColumn } = mountLens();
+		const slots = getLensSlots(part);
+		const sessionId = stubService.createSession();
+		stubService.appendUserTurn(sessionId, 'Keep this turn after lease-only sync');
+		stubService.appendStubEchoAssistant(sessionId, 'Echo before lease-only sync');
+		await flushProjectedTimeline(layoutReadingColumn);
+
+		const banner = getReadingColumn(slots).querySelector(`.${conversationLensStaleSnapshotClass}`) as HTMLElement | null;
+		assert.ok(banner);
+		assert.strictEqual(banner.hidden, true);
+
+		const { model, onSessionChanged } = stubService.createTestFrameSourceCallback();
+		const testSource = store.add(new TestConversationFrameSource(model, onSessionChanged));
+		stubService.wireTestFrameSource(testSource);
+		lens.bindSessionView(sessionId);
+
+		let sessionChangedAfterBind = 0;
+		store.add(stubService.onDidChangeSession(() => { sessionChangedAfterBind++; }));
+
+		testSource.setSessionSync(sessionId, { kind: 'closed', reason: 'Subscription ended' });
+		await new Promise<void>(resolve => setTimeout(resolve, 20));
+
+		assert.strictEqual(sessionChangedAfterBind, 0);
+		assert.strictEqual(stubService.getSessionSync(sessionId).kind, 'closed');
+		assert.strictEqual(banner.hidden, false);
+		assert.strictEqual(banner.textContent, 'Showing snapshot from before disconnect: Subscription ended');
+	});
+
 	test('S3 shim: getTurns matches lease projection after fixture writes', () => {
 		const service = store.add(new ConversationStubService());
 		const sessionId = service.createSession();
@@ -2617,8 +3030,6 @@ suite('ConversationLens', () => {
 		assert.ok(!getPinnedUserPrompt(slots)?.classList.contains('conversation-timeline-pinned-user--visible'));
 
 		await scrollTimelineAwayFromPinnedRead(lens, slots, layoutReadingColumn);
-		await flushTimelineHeightUpdates();
-		await flushAnimationFrames();
 
 		assert.ok(getPinnedUserPrompt(slots)?.classList.contains('conversation-timeline-pinned-user--visible'));
 
@@ -2641,8 +3052,6 @@ suite('ConversationLens', () => {
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 		await scrollTimelineAwayFromPinnedRead(lens, slots, layoutReadingColumn);
-		await flushTimelineHeightUpdates();
-		await flushAnimationFrames();
 
 		const bubble = getPinnedUserPromptBubble(slots);
 		assert.ok(bubble);
@@ -2660,9 +3069,10 @@ suite('ConversationLens', () => {
 		assert.ok(!getPinnedUserPrompt(slots)?.classList.contains('conversation-timeline-pinned-user--visible'));
 	});
 
-	test('untitled fixture renders collapsed process fold header with Stub summary', () => {
-		const { part } = mountLens();
+	test('untitled fixture renders collapsed process fold header with Stub summary', async () => {
+		const { part, lens, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
+		await revealUntitledProcessFold(lens, layoutReadingColumn);
 		const fold = queryTimeline(slots, '[data-process-fold]');
 		assert.ok(fold);
 		const header = fold!.querySelector('.conversation-process-fold-header') as HTMLElement;
@@ -2673,9 +3083,10 @@ suite('ConversationLens', () => {
 		assert.strictEqual(children.hidden, true);
 	});
 
-	test('expanding untitled process fold reveals nested thinking and tool indent layers', () => {
-		const { part } = mountLens();
+	test('expanding untitled process fold reveals nested thinking and tool indent layers', async () => {
+		const { part, lens, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
+		await revealUntitledProcessFold(lens, layoutReadingColumn);
 		const fold = queryTimeline(slots, '[data-process-fold]')!;
 		const header = fold.querySelector('.conversation-process-fold-header') as HTMLElement;
 		header.click();
@@ -2698,19 +3109,23 @@ suite('ConversationLens', () => {
 		assert.ok(parseFloat(nestedToolStyle.paddingInlineStart) >= 0);
 	});
 
-	test('user and confirmation seats stay outside process fold on untitled fixture', () => {
-		const { part } = mountLens();
+	test('user and confirmation seats stay outside process fold on untitled fixture', async () => {
+		const { part, lens, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
+		await revealUntitledProcessFold(lens, layoutReadingColumn);
 		const fold = queryTimeline(slots, '[data-process-fold]')!;
 		assert.strictEqual(fold.querySelector('.conversation-lens-turn[data-kind="user"]'), null);
 		assert.strictEqual(fold.querySelector('.conversation-lens-confirmation-seat'), null);
+		await revealVisualizeTurn(lens, layoutReadingColumn, 'untitled-u1');
 		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]'));
+		await revealVisualizeTurn(lens, layoutReadingColumn, 'untitled-c1');
 		assert.ok(queryTimeline(slots, '.conversation-lens-confirmation-seat'));
 	});
 
-	test('expanding untitled thinking reveals Stub payload body distinct from header summary', () => {
-		const { part } = mountLens();
+	test('expanding untitled thinking reveals Stub payload body distinct from header summary', async () => {
+		const { part, lens, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
+		await revealUntitledProcessFold(lens, layoutReadingColumn);
 		const fold = queryTimeline(slots, '[data-process-fold]')!;
 		(fold.querySelector('.conversation-process-fold-header') as HTMLElement).click();
 
@@ -2726,9 +3141,10 @@ suite('ConversationLens', () => {
 		assert.notStrictEqual(body.textContent, thinkingHeader.textContent);
 	});
 
-	test('expanding untitled tool row reveals Stub payload text', () => {
-		const { part } = mountLens();
+	test('expanding untitled tool row reveals Stub payload text', async () => {
+		const { part, lens, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
+		await revealUntitledProcessFold(lens, layoutReadingColumn);
 		const fold = queryTimeline(slots, '[data-process-fold]')!;
 		(fold.querySelector('.conversation-process-fold-header') as HTMLElement).click();
 
@@ -2759,9 +3175,6 @@ suite('ConversationLens', () => {
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 		await scrollTimelineAwayFromPinnedRead(lens, slots, layoutReadingColumn);
-		layoutReadingColumn();
-		await flushTimelineHeightUpdates();
-		await flushAnimationFrames();
 
 		const pinnedHost = getPinnedUserPrompt(slots);
 		assert.ok(pinnedHost?.classList.contains('conversation-timeline-pinned-user--visible'));

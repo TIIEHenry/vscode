@@ -3,11 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { getErrorMessage } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { createDecorator, IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { GroupIdentifier, IEditorIdentifier } from '../../../common/editor.js';
 import { IEditorGroupsService, IConversationEditorPart, preferredSideBySideGroupDirection } from '../../../services/editor/common/editorGroupsService.js';
 import { CONVERSATION_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
@@ -102,6 +104,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@IConversationRosterService private readonly rosterService: IConversationRosterService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
+		@INotificationService private readonly notificationService: INotificationService,
 	) {
 		super();
 		this._register(this.rosterService.onDidChangeLiveAgentTree(event => {
@@ -119,11 +122,16 @@ export class ConversationSessionChatService extends Disposable implements IConve
 			return;
 		}
 		const sessionId = this.rosterService.getActiveSessionId();
-		const lease = this.rosterService.acquireSessionView(sessionId);
-		this.liveTreeLease = lease;
-		this.liveTreeLeaseStore.add(lease);
-		this.liveTreeLeaseStore.add(lease.onDidApplyFrame(() => this.applyLiveTreeFromLease()));
-		this.applyLiveTreeFromLease();
+		try {
+			const lease = this.rosterService.acquireSessionView(sessionId);
+			this.liveTreeLease = lease;
+			this.liveTreeLeaseStore.add(lease);
+			this.liveTreeLeaseStore.add(lease.onDidApplyFrame(() => this.applyLiveTreeFromLease()));
+			this.applyLiveTreeFromLease();
+		} catch (error) {
+			this.notificationService.error(getErrorMessage(error));
+			this.liveTreeLease = undefined;
+		}
 	}
 
 	private applyLiveTreeFromLease(): void {
@@ -176,61 +184,65 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	async navigateAgentBreadcrumb(sessionKey: string, targetChatId: string): Promise<void> {
-		const overlay = this.subAgentOverlays.get(sessionKey);
-		if (overlay?.isOpen()) {
-			await this.navigateOverlayBreadcrumb(sessionKey, targetChatId);
-			return;
-		}
-
-		const part = this.getConversationPart(sessionKey);
-		if (!part) {
-			return;
-		}
-
-		const activeEditor = part.activeGroup.activeEditor;
-		if (!(activeEditor instanceof ConversationChatInput) || activeEditor.isDefaultRoot) {
-			return;
-		}
-
-		const activeChatId = parseConversationChatResource(activeEditor.resource)?.chatId;
-		const activeEntry = activeChatId ? this.catalog.get(sessionKey)?.get(activeChatId) : undefined;
-		if (!activeEntry || activeEntry.originKind !== 'tool') {
-			return;
-		}
-
-		if (targetChatId === activeChatId) {
-			return;
-		}
-
-		const editorService = this.getScopedEditorService(part);
-		const group = part.activeGroup;
-
-		if (targetChatId === 'default') {
-			const rootEditor = group.getEditorByIndex(0);
-			if (rootEditor instanceof ConversationChatInput && rootEditor.isDefaultRoot) {
-				await editorService.closeEditor({ editor: activeEditor, groupId: group.id });
-				await group.openEditor(rootEditor);
+		try {
+			const overlay = this.subAgentOverlays.get(sessionKey);
+			if (overlay?.isOpen()) {
+				await this.navigateOverlayBreadcrumb(sessionKey, targetChatId);
+				return;
 			}
+
+			const part = this.getConversationPart(sessionKey);
+			if (!part) {
+				return;
+			}
+
+			const activeEditor = part.activeGroup.activeEditor;
+			if (!(activeEditor instanceof ConversationChatInput) || activeEditor.isDefaultRoot) {
+				return;
+			}
+
+			const activeChatId = parseConversationChatResource(activeEditor.resource)?.chatId;
+			const activeEntry = activeChatId ? this.catalog.get(sessionKey)?.get(activeChatId) : undefined;
+			if (!activeEntry || activeEntry.originKind !== 'tool') {
+				return;
+			}
+
+			if (targetChatId === activeChatId) {
+				return;
+			}
+
+			const editorService = this.getScopedEditorService(part);
+			const group = part.activeGroup;
+
+			if (targetChatId === 'default') {
+				const rootEditor = group.getEditorByIndex(0);
+				if (rootEditor instanceof ConversationChatInput && rootEditor.isDefaultRoot) {
+					await editorService.closeEditor({ editor: activeEditor, groupId: group.id });
+					await group.openEditor(rootEditor);
+				}
+				this.fireCloseNonRootStateChange();
+				return;
+			}
+
+			const targetEntry = this.catalog.get(sessionKey)?.get(targetChatId);
+			if (!targetEntry) {
+				return;
+			}
+
+			const replacement = this.instantiationService.createInstance(
+				ConversationChatInput,
+				getConversationChatResource(sessionKey, targetChatId),
+				{ isDefaultRoot: false, title: targetEntry.title },
+			);
+
+			await editorService.replaceEditors([{
+				editor: activeEditor,
+				replacement,
+			}], group);
 			this.fireCloseNonRootStateChange();
-			return;
+		} catch (error) {
+			this.notificationService.error(getErrorMessage(error));
 		}
-
-		const targetEntry = this.catalog.get(sessionKey)?.get(targetChatId);
-		if (!targetEntry) {
-			return;
-		}
-
-		const replacement = this.instantiationService.createInstance(
-			ConversationChatInput,
-			getConversationChatResource(sessionKey, targetChatId),
-			{ isDefaultRoot: false, title: targetEntry.title },
-		);
-
-		await editorService.replaceEditors([{
-			editor: activeEditor,
-			replacement,
-		}], group);
-		this.fireCloseNonRootStateChange();
 	}
 
 	private async navigateOverlayBreadcrumb(sessionKey: string, targetChatId: string): Promise<void> {
@@ -252,8 +264,8 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		const existingTab = this.findOpenTabForChat(sessionKey, targetChatId);
 		if (existingTab) {
 			const part = this.getConversationPart(sessionKey);
-			this.closeSubAgentDialog(sessionKey);
 			await part?.activeGroup.openEditor(existingTab);
+			this.closeSubAgentDialog(sessionKey);
 			return;
 		}
 
@@ -284,21 +296,25 @@ export class ConversationSessionChatService extends Disposable implements IConve
 
 		this.closeSubAgentDialog(key);
 
-		const editorService = this.getScopedEditorService(part);
-		const toClose: IEditorIdentifier[] = [];
-		for (const group of part.groups) {
-			for (const editor of group.editors) {
-				if (isConversationExtensionTab(editor)) {
-					toClose.push({ editor, groupId: group.id });
+		try {
+			const editorService = this.getScopedEditorService(part);
+			const toClose: IEditorIdentifier[] = [];
+			for (const group of part.groups) {
+				for (const editor of group.editors) {
+					if (isConversationExtensionTab(editor)) {
+						toClose.push({ editor, groupId: group.id });
+					}
 				}
 			}
-		}
 
-		if (toClose.length > 0) {
-			await editorService.closeEditors(toClose);
+			if (toClose.length > 0) {
+				await editorService.closeEditors(toClose);
+			}
+		} catch (error) {
+			this.notificationService.error(getErrorMessage(error));
+		} finally {
+			this.fireCloseNonRootStateChange();
 		}
-
-		this.fireCloseNonRootStateChange();
 	}
 
 	getCatalog(sessionKey: string): readonly IConversationSessionChatEntry[] {
@@ -422,7 +438,11 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		}
 
 		this.closeSubAgentDialog(key);
-		await this.openExtensionTab(state.sessionKey, state.chatId, { title: state.title });
+		try {
+			await this.openExtensionTab(state.sessionKey, state.chatId, { title: state.title });
+		} catch (error) {
+			this.notificationService.error(getErrorMessage(error));
+		}
 	}
 
 	toggleSubAgentDialogMaximized(sessionKey?: string): void {
@@ -487,19 +507,23 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	async splitSessionWindow(sessionKey?: string): Promise<void> {
-		const key = this.resolveSessionKey(sessionKey);
-		const part = this.getConversationPart(key);
-		if (!part) {
-			throw new Error(`Conversation editor part for session ${key} is not available`);
-		}
+		try {
+			const key = this.resolveSessionKey(sessionKey);
+			const part = this.getConversationPart(key);
+			if (!part) {
+				throw new Error(`Conversation editor part for session ${key} is not available`);
+			}
 
-		const direction = preferredSideBySideGroupDirection(this.configurationService);
-		let sideGroup = part.findGroup({ direction }, part.activeGroup, false);
-		if (!sideGroup) {
-			sideGroup = part.addGroup(part.activeGroup, direction);
-		}
+			const direction = preferredSideBySideGroupDirection(this.configurationService);
+			let sideGroup = part.findGroup({ direction }, part.activeGroup, false);
+			if (!sideGroup) {
+				sideGroup = part.addGroup(part.activeGroup, direction);
+			}
 
-		await sideGroup.focus();
+			await sideGroup.focus();
+		} catch (error) {
+			this.notificationService.error(getErrorMessage(error));
+		}
 	}
 
 	hideSplitColumn(sessionKey?: string, groupId?: GroupIdentifier): void {

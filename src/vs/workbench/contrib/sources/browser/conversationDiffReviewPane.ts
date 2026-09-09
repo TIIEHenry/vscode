@@ -302,6 +302,8 @@ export class ConversationDiffReviewPane extends EditorPane {
 
 		try {
 			await this.commandService.executeCommand(commandId, match.resource);
+		} catch (error) {
+			this.showNotice(getErrorMessage(error));
 		} finally {
 			this.updateReviewActions();
 		}
