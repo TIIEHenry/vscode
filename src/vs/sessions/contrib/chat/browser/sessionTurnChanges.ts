@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { constObservable, derived, derivedObservableWithCache, IObservable, IReader } from '../../../../base/common/observable.js';
 import { extUriBiasedIgnorePathCase, isEqual } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -194,30 +195,34 @@ export class SessionsChatResponseFileChangesService extends AbstractChatResponse
 	}
 
 	private async _openSessionTurnChanges(session: ISession, transientTurn?: ISessionTransientTurnChanges): Promise<void> {
-		if (!isEqual(this._sessionsService.activeSession.get()?.resource, session.resource)) {
-			this._sessionsService.showSession(session.resource, { preserveFocus: true });
-		}
-		this._layoutService.revealEditorPartExplicitly();
-		const changesetSelection: ISessionChangesEditorOptions['changesetSelection'] = transientTurn
-			? {
-				kind: 'transient',
-				changeset: {
-					id: transientTurn.id,
-					label: transientTurn.label,
-					description: transientTurn.description,
-					isEnabled: constObservable(true),
-					isDefault: constObservable(false),
-					isLoadingChanges: constObservable(false),
-					changes: transientTurn.changes,
-					operations: constObservable([]),
-					originalCheckpointRef: constObservable(undefined),
-					modifiedCheckpointRef: constObservable(undefined),
-					async invokeOperation(operationId: string): Promise<void> {
-						throw new Error(`Historical turn changes do not support operation '${operationId}'`);
-					},
-				} satisfies ISessionChangeset,
+		try {
+			if (!isEqual(this._sessionsService.activeSession.get()?.resource, session.resource)) {
+				this._sessionsService.showSession(session.resource, { preserveFocus: true });
 			}
-			: { kind: 'id', id: TURN_CHANGES_CHANGESET_ID };
-		await this._sessionChangesService.openChangesEditor(session.resource, { changesetSelection });
+			this._layoutService.revealEditorPartExplicitly();
+			const changesetSelection: ISessionChangesEditorOptions['changesetSelection'] = transientTurn
+				? {
+					kind: 'transient',
+					changeset: {
+						id: transientTurn.id,
+						label: transientTurn.label,
+						description: transientTurn.description,
+						isEnabled: constObservable(true),
+						isDefault: constObservable(false),
+						isLoadingChanges: constObservable(false),
+						changes: transientTurn.changes,
+						operations: constObservable([]),
+						originalCheckpointRef: constObservable(undefined),
+						modifiedCheckpointRef: constObservable(undefined),
+						async invokeOperation(operationId: string): Promise<void> {
+							throw new Error(`Historical turn changes do not support operation '${operationId}'`);
+						},
+					} satisfies ISessionChangeset,
+				}
+				: { kind: 'id', id: TURN_CHANGES_CHANGESET_ID };
+			await this._sessionChangesService.openChangesEditor(session.resource, { changesetSelection });
+		} catch (error) {
+			onUnexpectedError(error);
+		}
 	}
 }

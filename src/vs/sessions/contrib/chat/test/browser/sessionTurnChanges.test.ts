@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { autorun, constObservable, IObservable, observableValue, transaction } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock, upcastPartial } from '../../../../../base/test/common/mock.js';
@@ -364,6 +366,54 @@ suite('SessionTurnChanges', () => {
 			label: undefined,
 			uris: undefined,
 		}]);
+	});
+
+	test('does not leak unhandled rejection when openChangesEditor rejects', async () => {
+		const chatResource = URI.parse('chat:session');
+		const chat = upcastPartial<IChat>({
+			resource: chatResource,
+			updatedAt: constObservable(new Date('2026-08-13T10:00:00Z')),
+		});
+		const session = upcastPartial<IActiveSession>({
+			resource: URI.parse('agent-host:session'),
+			providerId: 'local-agent-host',
+			chats: constObservable([chat]),
+			mainChat: constObservable(chat),
+		});
+		const service = disposables.add(new SessionsChatResponseFileChangesService(
+			new class extends mock<IEditorService>() { }(),
+			new class extends mock<ISessionsManagementService>() {
+				override getSessionForChatResource() {
+					return { session, chat };
+				}
+			}(),
+			new class extends mock<ISessionsService>() {
+				override readonly activeSession = constObservable<IActiveSession | undefined>(session);
+			}(),
+			new class extends mock<ISessionChangesService>() {
+				override async openChangesEditor(): Promise<undefined> {
+					return Promise.reject('boom');
+				}
+			}(),
+			new class extends mock<IAgentWorkbenchLayoutService>() {
+				override revealEditorPartExplicitly(): void { }
+			}(),
+			createChangesViewService(),
+		));
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			service.openChangesForRequest(chatResource, undefined, { isLastTurn: true });
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('falls back to a standalone multi-diff for non-Agents sessions', () => {
