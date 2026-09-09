@@ -211,6 +211,9 @@ export class NewSessionPromptOptionsWidget extends Disposable {
 			} else {
 				this._options.onDidSelectOption(option);
 			}
+		} catch (error) {
+			this._selectedOptionId = previousSelectedOptionId;
+			throw error;
 		} finally {
 			this._selecting = false;
 			this._updateButtons();
