@@ -52,6 +52,11 @@ const AGENTS_FEATURE = localize('ua.engineAgentsFeatureLabel', "agent profiles")
 const AGENT_MODEL_FEATURE = localize('ua.engineAgentModelFeatureLabel', "agent profile model.json");
 const AGENT_TOOLS_FEATURE = localize('ua.engineAgentToolsFeatureLabel', "agent profile tools");
 
+export const ENGINE_AGENTS_CREATE_SUCCESS_COPY = localize('ua.engineAgentsCreateSuccess', "Created.");
+export const ENGINE_AGENTS_DELETE_SUCCESS_COPY = localize('ua.engineAgentsDeleteSuccess', "Deleted.");
+export const ENGINE_AGENTS_RESET_SUCCESS_COPY = localize('ua.engineAgentsResetSuccess', "Reset.");
+export const ENGINE_AGENTS_SAVE_SUCCESS_COPY = localize('ua.engineAgentsSaveSuccess', "Saved.");
+
 type EngineAgentDetailTab = 'instructions' | 'tools' | 'model';
 
 type EngineAgentListEntry =
@@ -484,7 +489,7 @@ export class EngineAgentsSection extends Disposable {
 				this.showCatalogWriteFailed(localize('ua.engineAgentsCreateFailed', "Unable to create: {0}", agentsWriteRejectedReason()));
 				return false;
 			}
-			await this.refresh();
+			await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_CREATE_SUCCESS_COPY);
 			return true;
 		} catch (error) {
 			this.showCatalogWriteFailed(localize('ua.engineAgentsCreateFailed', "Unable to create: {0}", agentsWriteFailureReason(error)));
@@ -507,7 +512,7 @@ export class EngineAgentsSection extends Disposable {
 				return false;
 			}
 			this.selectedProfile = undefined;
-			await this.refresh();
+			await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_DELETE_SUCCESS_COPY);
 			return true;
 		} catch (error) {
 			this.showCatalogWriteFailed(localize('ua.engineAgentsDeleteFailed', "Unable to delete: {0}", agentsWriteFailureReason(error)));
@@ -529,7 +534,7 @@ export class EngineAgentsSection extends Disposable {
 				this.showCatalogWriteFailed(localize('ua.engineAgentsResetFailed', "Unable to reset: {0}", agentsWriteFailureReason(result.reason)));
 				return false;
 			}
-			await this.refresh();
+			await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_RESET_SUCCESS_COPY);
 			if (this.selectedProfile) {
 				await this.loadAgentsEditorForSelection();
 			}
@@ -558,7 +563,7 @@ export class EngineAgentsSection extends Disposable {
 				this.showCatalogWriteFailed(localize('ua.engineAgentsSaveFailed', "Unable to save: {0}", agentsWriteRejectedReason()));
 				return false;
 			}
-			await this.refresh();
+			await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_SAVE_SUCCESS_COPY);
 			return true;
 		} catch (error) {
 			this.showCatalogWriteFailed(localize('ua.engineAgentsSaveFailed', "Unable to save: {0}", agentsWriteFailureReason(error)));
@@ -574,10 +579,11 @@ export class EngineAgentsSection extends Disposable {
 		const parsed = parseAgentsMarkdown(this.agentsEditorInput.value);
 		const ok = await this.saveSelectedProfile(parsed);
 		if (ok) {
-			this.hideAgentsEditorStatus();
 			this.loadedAgentsMarkdown = this.agentsEditorInput.value;
 			this.agentsMarkdownDirty = false;
 			await this.selectProfileByIdForTest(profileId);
+			this.showAgentsEditorStatus(ENGINE_AGENTS_SAVE_SUCCESS_COPY);
+			this.showCatalogWriteStatus(ENGINE_AGENTS_SAVE_SUCCESS_COPY);
 		} else {
 			this.showAgentsEditorStatus(localize(
 				'ua.engineAgentsMdSaveFailed',
@@ -626,9 +632,19 @@ export class EngineAgentsSection extends Disposable {
 		this.catalogWriteStatus.textContent = '';
 	}
 
-	private showCatalogWriteFailed(message: string): void {
+	private showCatalogWriteStatus(message: string): void {
 		this.catalogWriteStatus.style.display = '';
 		this.catalogWriteStatus.textContent = message;
+	}
+
+	private async restoreCatalogWriteSuccessAfterRefresh(copy: string): Promise<void> {
+		this.showCatalogWriteStatus(copy);
+		await this.refresh();
+		this.showCatalogWriteStatus(copy);
+	}
+
+	private showCatalogWriteFailed(message: string): void {
+		this.showCatalogWriteStatus(message);
 	}
 
 	private hideAgentsEditorStatus(): void {
