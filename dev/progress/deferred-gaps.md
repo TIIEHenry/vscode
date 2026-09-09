@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-09
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / D131 / D133–D167 已闭；人类工位合入保留 stub-and-fixtures 重复 frontmatter / sourcesReview toResource.call 发现；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / D131 / D133–D170 已闭；人类工位合入保留 stub-and-fixtures 重复 frontmatter / sourcesReview toResource.call 发现；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -179,7 +179,10 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / 
 | D163 | P3 | **`selectOption` reject 不回滚 `_selectedOptionId`** → 失败后按钮仍像选中 | A `255538f4e54` catch 恢复 previous 再 rethrow。merge 复测 prompt options 10 passing | reject 后选中态回到点击前；D162 测仍绿 | sessions | closed |
 | D164 | P3 | **`void _openSessionTurnChanges` 无 catch** → `openChangesEditor` reject 成未处理 rejection | B `8f509ff3ffd` 方法内 try/catch + `onUnexpectedError`。merge 复测 turn changes 10 passing | reject 无未处理 rejection；既有测仍绿 | sessions | closed |
 | D165 | P3 | **浏览器 pill `void _openBrowser` 无 catch** → `openEditor`/`getPreferredGroup` reject 漏 | D `dad1f019b24` `.catch(onUnexpectedError)`。merge 复测 browsers 9 passing | reject 无未处理 rejection；既有测仍绿 | sessions | closed |
-| D166 | P3 | **session 终端 removed/archived 清理 `void` 无 catch** → `safeDisposeTerminal` reject 漏 | A `6dec56ea1a0` `.catch(onUnexpectedError)`。merge 复测 terminal 78 passing。残留：archived reject 无单独测 | removed dispose reject 无未处理 rejection | sessions | closed |
+| D166 | P3 | **session 终端 removed/archived 清理 `void` 无 catch** → `safeDisposeTerminal` reject 漏 | A `6dec56ea1a0` `.catch(onUnexpectedError)`。merge 复测 terminal 78 passing。残留 archived 测已由 D168 收 | removed dispose reject 无未处理 rejection | sessions | closed |
+| D168 | P3 | **D166 archived 路径缺 reject 回归测** | A `d552cf5584f` 只加测。merge 复测 terminal 79 passing | archived dispose reject 无未处理 rejection | sessions | closed |
+| D169 | P3 | **telemetry `getAllTasks().then` 无 catch** → 新会话首请求 reject 漏 | B `b83a6f9c062` `.catch(onUnexpectedError)`。merge 复测 telemetry 7 passing。残留：同文件其它 `.then` 未扫 | isNewChat reject 无未处理 rejection | sessions | closed |
+| D170 | P3 | **`void _registerForScheme` 无 catch** → trigger characters reject 漏 | D `fb01fed6d4d` `.catch(onUnexpectedError)`。merge 复测 completions 7 passing。残留：workbench 侧同类 void 未扫 | trigger reject 无未处理 rejection | sessions | closed |
 | D167 | P3 | **桌面布局 `void openView/openViewContainer` 无 catch** → 视图打开 reject 漏 | D `f535773c208` 7 处 `.catch(onUnexpectedError)`。merge 复测 layout 140 passing | untitled/restore reject 无未处理 rejection | sessions | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
