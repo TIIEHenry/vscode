@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-07
-summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行动层账。Chat 仍被引擎空壳 ALREADY_EXISTS 挡住。compile 基线 unused 仍红"
+summary: "wave-9 已本地合入 MERGE_SHA 1556dde3d32（未 push）。A probeRpc + C Inbox 诚实空。D16/D24/D25 仍开。compile 基线 unused 仍红"
 ---
 
 # Development Progress
@@ -49,39 +49,51 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
 
-### 进行中（2026-09-07 本 wake · 以代码/工位 tip 为准，不信上文「已合入」清单）
+### 进行中（2026-09-07 调度 wake · 以 merge 代码为准，不信上文「已合入」清单）
 
-人类工位已 merge `c1b228caf74`（先 commit 行动层再三路合）。Direct 接通已通。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 不升 `implemented`**。
+集成 tip **`1556dde3d32`**（`loop/merge`；未 push）。Chat 仍被引擎空壳 Create 回 6 挡住；见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 不升 `implemented`**。compile 基线 unused 仍红，**不 push**。
 
-1. **集成 tip** 以人类工位 `agent-ide` 为准（含 `c1b228caf74` + 行动层）。下一波：A=D23+D32，B=D33+D27，C=D30+诚实空，D=D31+R8。GFS >800 不拆。
-2. 字母槽 leftover 进度句已收进本账，再 cascade：
-   - **A**：Sources 写面 `supported && success` 才算 Stage/Commit/Accept；`supported: false` 回落本地 git；Accept 不绑死 SCM。次级面 [D31](deferred-gaps.md)。
-   - **B**：`conversation-disconnect-send` 未连不锁 Send；引擎缓存断连先试 enqueue，拒收则留 draft + 明确失败，不 stub echo。
-   - **C**：pairing pending 时 SAS 框挂在发起 Connect 的 zone 外侧，避免被 `.connection-zone:not(.is-active-zone)` 吃掉。
-   - **D**：retryable error 行 Retry → roster `openContinuationStream`；不经 `lease.post`（[D32](deferred-gaps.md)）。
+wave-9 本地合入 A=`9db20a48aed`、C=`7226ab17445`。**[D16](deferred-gaps.md)/[D24](deferred-gaps.md)/[D25](deferred-gaps.md) 仍开**。不改引擎仓、不 push。
+
+| 槽 | 状态 | slice | 代码证据（merge tip） |
+|----|:----:|:------|:----------------------|
+| A | idle | D24 probeRpc 已合 | empty proto；listTools 仍 JSON；D24 仍开 |
+| B | idle | — | 已对齐；D16 仍开 |
+| C | idle | Inbox 诚实空已合 | Queue not listed；勿 add `dev/loop` |
+| D | idle | — | 已对齐；D31 F4 仍开 |
+| merge | parked | — | `1556dde3d32`；compile 基线红故不 push |
 
 子 agent 发现的既有代码问题：
 
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
-| [D23](deferred-gaps.md) | A 槽核实时 | `sessionViewHost.ts` `void sendHeartbeatAck`：resident `write` 无 catch，失败可成未处理 rejection |
-| [D33](deferred-gaps.md) | 决策核实时 | `getEngineStatusCommandId` 配对中可能把 chip 指到 Engine 页（号原误写成 D24） |
-| [D27](deferred-gaps.md) | 决策核实时 | ListView 0px：编辑态整树重建；1px 垫高未根治 |
-| [D31](deferred-gaps.md) | A 槽 Sources | Review 读失败静默、Panel 无写动作、无 Unstage |
+| [D38](deferred-gaps.md) | A 本波 | **closed** fillHistory catch 已进 merge |
+| [D39](deferred-gaps.md) | A 本波 | **closed** requestDetail bind catch 已进 merge |
+| [D40](deferred-gaps.md) | A 本波 | **closed** fetchToolDetail catch 已进 merge |
+| [D16](deferred-gaps.md) | B 本波 | remainder 7 夹具已进 merge；D16 不闭合 |
+| [D34](deferred-gaps.md) | B 本波 | **closed** 零高/空树不读 `lastVisibleElement` |
+| [D35](deferred-gaps.md) | B 本波 | **closed** 已删死 querySelector |
+| [D36](deferred-gaps.md) | B 本波 | **closed** standalone thinking/tool 诚实摘要 |
+| [D37](deferred-gaps.md) | C 本波 | **closed** roster 已按 `upload` 转发；无 GetQueue，活引擎失败行仍不可见 |
+| [D41](deferred-gaps.md) | C 本波 | **closed** FAILED=`queue-failed` / UPLOAD_FAILED=`upload-failed` |
+| — | C 槽 D30 | `stub-and-fixtures.md` frontmatter 重复 `updated`/`summary` |
+| [D31](deferred-gaps.md) | D 本波 | Open Selected 失败上浮已进 merge；F4 仍欠；D31 不闭合 |
+| — | D 槽 D31 | `sourcesReviewModel.test.ts` / `sourcesReviewShowForPaths.test.ts`：`toResource.call(this)` 使 `this.test` 为 undefined |
 | [R8](research-queue.md) | A 槽 Sources | `WriteGitApplyHunks` 空 patches 语义未定 |
-| [D32](deferred-gaps.md) | D 槽 error-retry | UI 直开 ContinueGeneration，不经 lease.post |
+| [D25](deferred-gaps.md) | A 本波 | host leftover 已进 merge；引擎 List 真空仍开 |
+| [D28](deferred-gaps.md) | C 本波 | **closed** 模态下移预留身份条 |
 | [D26](deferred-gaps.md) | merge 账 | 引擎空壳 Create 回 6；不要再清 store |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `7f5b34929ac` | 0 | 0 | 与 `agent-ide` 同 SHA；待 push |
-| A | `vscode-WorkTrees/A` | `loop/A` | `92522b202df` | `__pycache__` | 0 | 已 merge 集成线；leftover 已 commit |
-| B | `vscode-WorkTrees/B` | `loop/B` | `621c2c58de9` | 0 | 0 | 同上 |
-| C | `vscode-WorkTrees/C` | `loop/C` | `5f3d8092b60` | `dev/loop` | 0 | 同上；未 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `eb4fb68ef35` | 0 | 0 | 同上 |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `7f5b34929ac`+ | `dev/loop` | 0 | 本机最新；推 `origin/agent-ide` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `1556dde3d32` | 0 | 0 | parked；未 push（compile 基线红） |
+| A | `vscode-WorkTrees/A` | `loop/A` | `1556dde3d32` | `__pycache__` | 0 | idle |
+| B | `vscode-WorkTrees/B` | `loop/B` | `1556dde3d32` | 0 | 0 | idle |
+| C | `vscode-WorkTrees/C` | `loop/C` | `1556dde3d32` | `dev/loop` | 0 | idle；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `1556dde3d32` | 0 | 0 | idle |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` | 0 | 人类工位；请自行对齐 `1556dde3d32` |
 
 ## Blockers
 
