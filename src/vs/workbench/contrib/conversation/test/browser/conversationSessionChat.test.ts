@@ -264,7 +264,7 @@ suite('Conversation session chat (S3)', () => {
 						return { kind: 'handled' as const, handled: true };
 					}
 					notificationService.error(localize('conversationFork.forkSubAgentFailed', "Could not fork conversation."));
-					return { kind: 'handled' as const, handled: false };
+					return { kind: 'handled' as const, handled: true };
 				}
 
 				const chatSessionsService = accessor.get(IChatSessionsService);
