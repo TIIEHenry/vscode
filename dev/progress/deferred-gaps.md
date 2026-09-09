@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-09
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / D131 / D133–D161 已闭；人类工位合入保留 stub-and-fixtures 重复 frontmatter / sourcesReview toResource.call 发现；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / D131 / D133–D162 已闭；人类工位合入保留 stub-and-fixtures 重复 frontmatter / sourcesReview toResource.call 发现；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -174,7 +174,8 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / 
 | D158 | P3 | **工作区选择器 `item.run()` 同步调用不 catch reject** → Manage 项走 `run` 优先，D157 覆盖不到 | A `9a0e83bc66e` `Promise.resolve(item.run()).catch(onUnexpectedError)`。merge 复测 picker 70 passing。未改 commandId / identity-strip | reject 无未处理 rejection；D157 Sign in 测仍绿 | sessions | closed |
 | D159 | P3 | **`SessionsWindowNotifier` `void _notify(...)` 无 catch** → toast/focus/openSession reject 成未处理 rejection | B `092edec434c` 两处 `.catch(onUnexpectedError)`。merge 复测 notifier 8 passing。未单独锁 Completed/`focus`/`openSession` | NeedsInput + showToast reject 无未处理 rejection；既有 6 测仍绿 | sessions | closed |
 | D160 | P3 | **鼠标前进/后退 `void openPrevious/NextSession` 无 catch** → 导航 reject 成未处理 rejection | D `cbb24c0a33b` 两处 `.catch(onUnexpectedError)`。merge 复测 mouse nav 6 passing | back/forward reject 无未处理 rejection；既有 3 测仍绿 | sessions | closed |
-| D161 | P3 | **picker `void _dispatchPickerItem`（onSelect / 直跳 browse）无 catch** → `canSelectWorkspace` reject 漏 | A `6cfea5911d9` `.catch(onUnexpectedError)`。merge 复测 picker 71 passing。残留：mobile sheet / automations / web picker 其它 void 入口未扫 | delegate.onSelect folder reject 无未处理 rejection；D157/D158 仍绿 | sessions | closed |
+| D161 | P3 | **picker `void _dispatchPickerItem`（onSelect / 直跳 browse）无 catch** → `canSelectWorkspace` reject 漏 | A `6cfea5911d9` `.catch(onUnexpectedError)`。merge 复测 picker 71 passing。残留：mobile/web/automations void 入口无 widget 测，不可锁 | delegate.onSelect folder reject 无未处理 rejection；D157/D158 仍绿 | sessions | closed |
+| D162 | P3 | **新会话提示选项 `void _select(option)` 无 catch** → `selectOption` reject 成未处理 rejection | A `57c7a6beb36` `.catch(onUnexpectedError)`。merge 复测 prompt options 9 passing。残留：reject 不回滚 `_selectedOptionId` | click reject 无未处理 rejection；既有测仍绿 | sessions | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 
