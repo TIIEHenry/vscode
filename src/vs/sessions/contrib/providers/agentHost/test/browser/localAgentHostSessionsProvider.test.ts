@@ -9,6 +9,7 @@ import { DeferredPromise, raceTimeout, timeout } from '../../../../../../base/co
 import { CancellationToken } from '../../../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../../../base/common/codicons.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../../base/common/errors.js';
 import { DisposableMap, DisposableStore, ImmortalReference, toDisposable, type IReference } from '../../../../../../base/common/lifecycle.js';
 import { autorun, constObservable, derived, ISettableObservable, observableFromEvent, observableValue, type IObservable } from '../../../../../../base/common/observable.js';
 import { URI } from '../../../../../../base/common/uri.js';
@@ -4298,6 +4299,78 @@ suite('LocalAgentHostSessionsProvider', () => {
 				clientSeq: 0,
 			}],
 		});
+	});
+
+	test('does not leak unhandled rejection when an unobserved active session scope rejects', async () => {
+		const activeSession = observableValue<IActiveSession | undefined>('activeSession', undefined);
+		const resolution = new DeferredPromise<void>();
+		let scopeRequests = 0;
+		let activeClientReads = 0;
+		const activeClient = {
+			tools: [],
+			customizations: [{
+				type: CustomizationType.Plugin,
+				id: 'file:///customizations/resolved',
+				uri: 'file:///customizations/resolved',
+				name: 'Resolved Customization',
+				enablement: [{ kind: CustomizationEnablementKind.Global, enabled: true }],
+			}],
+		} satisfies Omit<SessionActiveClient, 'clientId'>;
+		const scope: IAgentCustomizationScope = {
+			customizations: constObservable(activeClient.customizations),
+			customAgents: constObservable([]),
+			tools: constObservable(activeClient.tools),
+			isResolved: constObservable(true),
+			whenResolved: () => resolution.p,
+			activeClient: clientId => {
+				activeClientReads++;
+				return constObservable({ clientId, ...activeClient });
+			},
+			dispose: () => { },
+		};
+		agentHost.addSession(createSession('delayed-active-client-reject', {
+			workingDirectory: URI.file('/home/user/delayed-active-client-reject'),
+		}));
+		const provider = createProvider(disposables, agentHost, undefined, {
+			activeSession,
+			activeClientScope: () => {
+				scopeRequests++;
+				return scope;
+			},
+		});
+		provider.getSessions();
+		await timeout(0);
+		agentHost.dispatchedActions.length = 0;
+		const resource = URI.from({ scheme: 'agent-host-copilotcli', path: '/delayed-active-client-reject' });
+		activeSession.set({
+			providerId: provider.id,
+			sessionId: `${provider.id}:${resource.toString()}`,
+			resource,
+		} as IActiveSession, undefined);
+		await timeout(0);
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			resolution.error(new Error('boom'));
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.deepStrictEqual({
+				scopeRequests,
+				activeClientReads,
+				actions: agentHost.dispatchedActions.filter(dispatch => dispatch.action.type === ActionType.SessionActiveClientSet),
+			}, {
+				scopeRequests: 1,
+				activeClientReads: 0,
+				actions: [],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('createNewSession eagerly creates the backend session with the client-allocated URI', async () => {
