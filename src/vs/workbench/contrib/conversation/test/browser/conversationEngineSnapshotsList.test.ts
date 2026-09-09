@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IConfirmation, IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
@@ -94,13 +96,16 @@ suite('ConversationEngineSnapshotsList', () => {
 	function mountList(
 		connection: IUniverseAgentConnection,
 		roster: IConversationRosterService = createRosterStub(),
-		options: { confirmResult?: boolean } = {},
+		options: { confirmResult?: boolean; confirmRejects?: boolean } = {},
 	): { list: ConversationEngineSnapshotsList; buttonParent: HTMLElement; overlayParent: HTMLElement; confirmCalls: IConfirmation[] } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const confirmCalls: IConfirmation[] = [];
 		instantiationService.stub(IDialogService, {
 			confirm: async (confirmation: IConfirmation) => {
 				confirmCalls.push(confirmation);
+				if (options.confirmRejects) {
+					throw new Error('boom');
+				}
 				return { confirmed: options.confirmResult ?? false };
 			},
 		} as IDialogService);
@@ -519,6 +524,37 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.strictEqual(confirmCalls[0]?.type, 'warning');
 		assert.ok(confirmCalls[0]?.message.includes('Before refactor'));
 		assert.deepStrictEqual(deleteCalls, [{ sessionId: 'sess-1', snapshotId: 'snap-1' }]);
+	});
+
+	test('does not leak unhandled rejection when delete confirm rejects', async () => {
+		const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			const { list, overlayParent, confirmCalls } = mountList(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				listSnapshots: async () => ({
+					snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Before refactor', createdAt: 1, turnCount: 2 }],
+				}),
+				deleteSnapshot: async request => {
+					deleteCalls.push(request);
+					return { ok: true };
+				},
+			}), createRosterStub(), { confirmRejects: true });
+			list.show();
+			await Promise.resolve();
+			deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+			await timeout(0);
+			assert.strictEqual(confirmCalls.length, 1);
+			assert.deepStrictEqual(deleteCalls, []);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('successful delete refreshes via listSnapshots and keeps overlay open', async () => {
