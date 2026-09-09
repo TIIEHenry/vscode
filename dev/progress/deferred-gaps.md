@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-09
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / D131 / D133–D182 已闭；人类工位合入保留 stub-and-fixtures 重复 frontmatter / sourcesReview toResource.call 发现；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / D131 / D133–D184 已闭；人类工位合入保留 stub-and-fixtures 重复 frontmatter / sourcesReview toResource.call 发现；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -195,6 +195,8 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / 
 | D180 | P3 | **自动化卡片删除 `void confirmDelete` 无 catch** → confirm reject 漏 | B `09937b546ea` `.catch(onUnexpectedError)`。merge 复测 automations 54 passing。未改 confirmAndDeleteAutomation / 右键 Delete | 卡片 confirm reject 无未处理 rejection、不删 | sessions | closed |
 | D181 | P3 | **`sessionGitHubInfo` PR 号 `lookup.then` 无 catch** → `findPullRequestNumberByHeadBranch` reject 漏（`observableFromPromise` 第二订阅同样裸 then） | A `809535a6150` lookup `.catch` 记错误后回 `undefined`（按无 PR 驱逐可重试）。merge 复测 19 passing | lookup reject 无未处理 rejection | sessions | closed |
 | D182 | P3 | **空态 Create `openCreateDialog` 无 catch** → `showAutomationDialog` reject 漏 | B `7092184f4ee` `.catch(onUnexpectedError)`。merge 复测 automations 55 passing。未改 openCreateDialog 本体 / D180 delete | create dialog reject 无未处理 rejection | sessions | closed |
+| D183 | P3 | **`SessionsList` `getTreatment().then` 无 catch** → 分组上限实验取值 reject 漏 | A `558e453b187` `.catch(onUnexpectedError)`。merge 复测 sessionsList 82 passing | getTreatment reject 无未处理 rejection | sessions | closed |
+| D184 | P3 | **config picker `onSelect` async 无 catch** → AutoApprove `dialogService.prompt` reject 漏 | B `f004fcdce21` `void (async () => …)().catch(onUnexpectedError)`。merge 复测 picker 16 passing。未改 setSessionConfigValue best-effort | prompt reject 无未处理 rejection、不写配置 | sessions | closed |
 | D167 | P3 | **桌面布局 `void openView/openViewContainer` 无 catch** → 视图打开 reject 漏 | D `f535773c208` 7 处 `.catch(onUnexpectedError)`。merge 复测 layout 140 passing | untitled/restore reject 无未处理 rejection | sessions | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
