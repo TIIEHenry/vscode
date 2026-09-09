@@ -86,6 +86,10 @@ export function formatEngineSnapshotDeleteFailedCopy(reason: string): string {
 	return localize('conversationLens.sessionBarSnapshotsDeleteFailed', "Unable to delete: {0}", reason);
 }
 
+export const ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY = localize('conversationLens.sessionBarSnapshotsRestoreSuccess', "Restored.");
+
+export const ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY = localize('conversationLens.sessionBarSnapshotsDeleteSuccess', "Deleted.");
+
 function snapshotWriteFailureReason(error: unknown): string {
 	return error instanceof Error && error.message ? error.message : String(error);
 }
@@ -94,13 +98,18 @@ function snapshotWriteFailureReason(error: unknown): string {
  * SessionBar extra control + overlay for AgentService.ListSnapshots.
  * Distinct from SessionBar History ({@link ConversationEngineHistoryList} GetHistory).
  * Restore on rows calls {@link IUniverseAgentConnection.restoreSnapshot};
- * a successful restore refreshes via {@link IUniverseAgentConnection.listSnapshots}
- * and keeps the overlay open. Failed restore / no send does not refresh;
+ * a successful restore paints {@link ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY} on the
+ * sibling write-status, refreshes via {@link IUniverseAgentConnection.listSnapshots},
+ * then paints the success copy again so a subsequent list failure cannot hide it.
+ * Failed restore / no send does not refresh;
  * ok:false / throw paints a sibling write-status line without unloading rows.
  * Delete on rows confirms then calls {@link IUniverseAgentConnection.deleteSnapshot};
- * a confirmed successful delete refreshes via {@link IUniverseAgentConnection.listSnapshots}
- * and keeps the overlay open. Cancel / failed delete / no send does not refresh;
+ * a confirmed successful delete paints {@link ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY}
+ * the same way (success → refresh → success) and keeps the overlay open.
+ * Cancel / failed delete / no send does not refresh;
  * ok:false / throw paints the same write-status line without unloading rows.
+ * Success copy is painted on the write-status sibling, not via paintStatus
+ * (that helper unloads rows).
  * no Create.
  */
 export class ConversationEngineSnapshotsList extends Disposable {
@@ -291,7 +300,9 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		if (!this.open) {
 			return;
 		}
+		this.paintWriteStatus(ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY);
 		await this.refresh();
+		this.paintWriteStatus(ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY);
 	}
 
 	private async deleteSnapshot(snapshot: UniverseAgentSessionSnapshotInfo): Promise<void> {
@@ -334,7 +345,9 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		if (!this.open) {
 			return;
 		}
+		this.paintWriteStatus(ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY);
 		await this.refresh();
+		this.paintWriteStatus(ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY);
 	}
 
 	private canSendDelete(snapshotId: string): boolean {
