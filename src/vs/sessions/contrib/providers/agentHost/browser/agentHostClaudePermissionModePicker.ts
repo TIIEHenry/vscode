@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { IObservable } from '../../../../../base/common/observable.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -94,7 +95,7 @@ export class AgentHostClaudePermissionModePicker extends AgentHostSessionEnumPic
 		if (item.value !== LEARN_MORE_VALUE) {
 			return false;
 		}
-		void this._openerService.open(URI.parse(CLAUDE_PERMISSION_MODE_LEARN_MORE_URL));
+		void this._openerService.open(URI.parse(CLAUDE_PERMISSION_MODE_LEARN_MORE_URL)).catch(onUnexpectedError);
 		return true;
 	}
 }
