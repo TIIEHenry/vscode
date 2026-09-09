@@ -265,8 +265,8 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		const existingTab = this.findOpenTabForChat(sessionKey, targetChatId);
 		if (existingTab) {
 			const part = this.getConversationPart(sessionKey);
-			this.closeSubAgentDialog(sessionKey);
 			await part?.activeGroup.openEditor(existingTab);
+			this.closeSubAgentDialog(sessionKey);
 			return;
 		}
 
