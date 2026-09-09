@@ -2923,7 +2923,7 @@ export class SessionsList extends Disposable implements ISessionsList {
 					this.update();
 				}
 			}
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	refresh(): void {

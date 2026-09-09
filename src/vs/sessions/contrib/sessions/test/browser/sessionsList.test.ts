@@ -4,8 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
+import { Event } from '../../../../../base/common/event.js';
 import { ExtUri } from '../../../../../base/common/resources.js';
 import { constObservable, IObservable, observableValue } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -26,6 +29,7 @@ import { IUriIdentityService } from '../../../../../platform/uriIdentity/common/
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { IAutomationRun } from '../../../../../workbench/contrib/chat/common/automations/automation.js';
 import { IAutomationService } from '../../../../../workbench/contrib/chat/common/automations/automationService.js';
+import { IWorkbenchAssignmentService } from '../../../../../workbench/services/assignment/common/assignmentService.js';
 import { IPreferencesService, IOpenSettingsOptions } from '../../../../../workbench/services/preferences/common/preferences.js';
 import { getSessionChatDragData, isSessionChatDrag, SessionsDataTransfers } from '../../../../browser/dnd.js';
 import { IsPhoneLayoutContext } from '../../../../common/contextkeys.js';
@@ -2353,6 +2357,36 @@ suite('Sessions - SessionsList', () => {
 				opened: [session.resource.toString()],
 				markedRead: 1,
 			});
+		});
+	});
+
+	suite('session group limit treatment', () => {
+
+		test('does not leak unhandled rejection when getTreatment rejects', async () => {
+			const harness = createListHarness(disposables, []);
+			harness.instantiationService.stub(IWorkbenchAssignmentService, new class extends mock<IWorkbenchAssignmentService>() {
+				override readonly onDidRefetchAssignments = Event.None;
+				override async getTreatment() { throw new Error('boom'); }
+			});
+			const container = harness.createContainer();
+
+			const unhandledRejections: unknown[] = [];
+			const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+			process.on('unhandledRejection', onUnhandledRejection);
+			const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+			setUnexpectedErrorHandler(() => { });
+			try {
+				harness.store.add(harness.instantiationService.createInstance(SessionsList, container, {
+					grouping: () => SessionsGrouping.Workspace,
+					sorting: () => SessionsSorting.Created,
+					onSessionOpen: () => { },
+				}));
+				await timeout(0);
+				assert.deepStrictEqual(unhandledRejections, []);
+			} finally {
+				setUnexpectedErrorHandler(originalErrorHandler);
+				process.off('unhandledRejection', onUnhandledRejection);
+			}
 		});
 	});
 });
