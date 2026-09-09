@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { observableValue } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -261,5 +262,27 @@ suite('SessionsWindowNotifier', () => {
 		await flushNotifications();
 
 		assert.deepStrictEqual(host.toasts, []);
+	});
+
+	test('does not leak unhandled rejection when showToast rejects on NeedsInput', async () => {
+		const { session, status } = createSession('toast-reject', SessionStatus.InProgress);
+		const { host } = createNotifier(session, {
+			[ChatConfiguration.NotifyWindowOnConfirmation]: ChatNotificationMode.Always,
+		});
+		host.showToast = () => Promise.reject('boom');
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			status.set(SessionStatus.NeedsInput, undefined);
+			await flushNotifications();
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });

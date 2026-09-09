@@ -6,6 +6,7 @@
 import { RunOnceScheduler, timeout } from '../../../../base/common/async.js';
 import { mainWindow } from '../../../../base/browser/window.js';
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableMap, DisposableResourceMap, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { autorunDelta } from '../../../../base/common/observable.js';
 import { localize } from '../../../../nls.js';
@@ -73,7 +74,7 @@ export class SessionsWindowNotifier extends Disposable implements IWorkbenchCont
 
 	private _trackSession(session: ISession): void {
 		const store = new DisposableStore();
-		const completedNotificationScheduler = store.add(new RunOnceScheduler(() => void this._notify(session, SessionStatus.Completed), this._getCompletedNotificationDelay()));
+		const completedNotificationScheduler = store.add(new RunOnceScheduler(() => void this._notify(session, SessionStatus.Completed).catch(onUnexpectedError), this._getCompletedNotificationDelay()));
 		store.add(autorunDelta(session.status, ({ lastValue, newValue }) => {
 			if (lastValue === undefined || lastValue === newValue) {
 				return;
@@ -86,7 +87,7 @@ export class SessionsWindowNotifier extends Disposable implements IWorkbenchCont
 				completedNotificationScheduler.cancel();
 			}
 			if (newValue === SessionStatus.NeedsInput || newValue === SessionStatus.Error) {
-				void this._notify(session, newValue);
+				void this._notify(session, newValue).catch(onUnexpectedError);
 			}
 		}));
 		this._statusListeners.set(session.sessionId, store);
