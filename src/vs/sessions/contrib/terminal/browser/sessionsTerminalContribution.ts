@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { autorun, derived, IReader } from '../../../../base/common/observable.js';
 import { isEqual } from '../../../../base/common/resources.js';
@@ -265,10 +266,10 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 			}
 			this._logService.trace(`[SessionsTerminal] onDidChangeSessions cleanup (removed: ${e.removed.length}, justArchived: ${justArchived.length}, trackedSessions: ${this._sessionTerminals.size}, activeKey: ${this._activeKey ?? '<none>'})`);
 			for (const session of e.removed) {
-				void this._closeTerminalsForSession(session.sessionId, `session removed (${session.sessionId})`).finally(() => this._sessionTerminals.delete(session.sessionId));
+				void this._closeTerminalsForSession(session.sessionId, `session removed (${session.sessionId})`).catch(onUnexpectedError).finally(() => this._sessionTerminals.delete(session.sessionId));
 			}
 			for (const session of justArchived) {
-				void this._closeArchivedSessionTerminals(session);
+				void this._closeArchivedSessionTerminals(session).catch(onUnexpectedError);
 			}
 		}));
 	}

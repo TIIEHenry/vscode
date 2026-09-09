@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { DeferredPromise } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { DisposableStore, Disposable } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { Emitter } from '../../../../../base/common/event.js';
@@ -265,6 +266,7 @@ suite('SessionsTerminalContribution', () => {
 	let disposeOnCreatePaths: Set<string>;
 	let defaultCwdCalls: (URI | undefined)[];
 	let vetoSafeDispose: boolean;
+	let rejectSafeDispose: Error | undefined;
 	let safeDisposeBarrier: DeferredPromise<void> | undefined;
 	let logService: TestLogService;
 	let allSessions: ISession[];
@@ -289,6 +291,7 @@ suite('SessionsTerminalContribution', () => {
 		disposeOnCreatePaths = new Set();
 		defaultCwdCalls = [];
 		vetoSafeDispose = false;
+		rejectSafeDispose = undefined;
 		safeDisposeBarrier = undefined;
 		logService = new TestLogService();
 		allSessions = [];
@@ -354,6 +357,9 @@ suite('SessionsTerminalContribution', () => {
 			}
 			override async safeDisposeTerminal(instance: ITerminalInstance): Promise<void> {
 				await safeDisposeBarrier?.p;
+				if (rejectSafeDispose) {
+					throw rejectSafeDispose;
+				}
 				if (vetoSafeDispose) {
 					return;
 				}
@@ -1517,6 +1523,28 @@ suite('SessionsTerminalContribution', () => {
 		await tick();
 
 		assert.strictEqual(disposedInstances.length, 1);
+	});
+
+	test('does not leak unhandled rejection when disposing a removed session terminal fails', async () => {
+		const worktreeUri = URI.file('/worktree');
+		await contribution.ensureTerminal(worktreeUri, false, makeAgentSession({ sessionId: 'test:removed-session', worktree: worktreeUri, providerType: AgentSessionProviders.Background }));
+		await contribution.ensureTerminal(URI.file('/other'), false, makeAgentSession({ sessionId: 'test:other-session', worktree: URI.file('/other'), providerType: AgentSessionProviders.Background }));
+
+		rejectSafeDispose = new Error('safeDispose failed');
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			const session = makeAgentSession({ sessionId: 'test:removed-session', worktree: worktreeUri, providerType: AgentSessionProviders.Background });
+			onDidChangeSessions.fire({ added: [], removed: [session], changed: [] });
+			await tick();
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('does not log info when a removed session has no tracked terminals', async () => {
