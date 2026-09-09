@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { disposableTimeout } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { hash } from '../../../../base/common/hash.js';
 import { Disposable, DisposableMap } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
@@ -199,7 +200,7 @@ export class SessionsTelemetryContribution extends Disposable implements IWorkbe
 				void this._sessionsTasksService.getAllTasks(session).then(tasks => {
 					const hasWorktreeCreatedTask = tasks.some(t => t.task.runOptions?.runOn === 'worktreeCreated');
 					this._lifecycleTracker.recordFirstRequestTaskInfo(session, { hasWorktreeCreatedTask, configuredTasksCount: tasks.length });
-				});
+				}).catch(onUnexpectedError);
 			}
 		} else {
 			this._lifecycleTracker.recordRequestSent(session);
