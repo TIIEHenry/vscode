@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { autorun } from '../../../../base/common/observable.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -233,7 +234,7 @@ export class AgentHostInputCompletionHandler extends AgentHostInputCompletionsBa
 			currentScheme = scheme;
 			this._registration.clear();
 			if (scheme && isAgentHostTarget(scheme)) {
-				void this._registerForScheme(scheme);
+				void this._registerForScheme(scheme).catch(onUnexpectedError);
 			}
 		}));
 	}
