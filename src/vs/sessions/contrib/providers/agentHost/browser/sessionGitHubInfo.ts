@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { structuralEquals } from '../../../../../base/common/equals.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { derived, derivedOpts, IDerivedReader, IObservable, observableFromPromise } from '../../../../../base/common/observable.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -120,7 +121,10 @@ export class SessionGitHubInfoResolver {
 		}
 
 		this._logService.trace(`${TRACE_PREFIX} [IconAdapter] Session ${this._sessionId} no cached PR-number observable for ${key}; starting lookup`);
-		const lookup = gitHubService.findPullRequestNumberByHeadBranch(coords.owner, coords.repo, coords.branch);
+		const lookup = gitHubService.findPullRequestNumberByHeadBranch(coords.owner, coords.repo, coords.branch).catch(error => {
+			onUnexpectedError(error);
+			return undefined;
+		});
 		const prNumberObs = observableFromPromise(lookup);
 		this._pullRequestNumberCache.set(key, prNumberObs);
 		// Don't pin a "no PR yet" result: drop it so a later recompute re-queries
@@ -135,7 +139,7 @@ export class SessionGitHubInfoResolver {
 			} else {
 				this._logService.trace(`${TRACE_PREFIX} [IconAdapter] Session ${this._sessionId} PR-number lookup for ${key} resolved PR #${prNumber}; kept sticky`);
 			}
-		});
+		}).catch(onUnexpectedError);
 		return prNumberObs;
 	}
 
