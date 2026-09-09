@@ -12,6 +12,7 @@ import { HoverPosition } from '../../../../base/browser/ui/hover/hoverWidget.js'
 import { renderIcon } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { Action } from '../../../../base/common/actions.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { Disposable, DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
@@ -183,7 +184,7 @@ export class NewSessionPromptOptionsWidget extends Disposable {
 			}
 			dom.append(button.element, dom.$('.new-session-prompt-option-description')).textContent = option.description;
 			store.add(button.onDidClick(() => {
-				void this._select(option);
+				void this._select(option).catch(onUnexpectedError);
 			}));
 			buttons.push({ option, button });
 		}
