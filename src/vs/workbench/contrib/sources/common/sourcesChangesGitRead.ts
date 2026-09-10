@@ -266,12 +266,9 @@ export async function tryLoadSourcesGitChangeEntries(
 		return undefined;
 	}
 
-	let summary: UniverseAgentReadGitSummaryResult | undefined;
-	try {
-		summary = await tryReadSourcesGitSummary(connected, readSummary, sessionId);
-	} catch {
-		summary = undefined;
-	}
+	// Summary throw is the same failure class as Changes throw: callers paint
+	// sourcesGitReadFailureMessage and must not keep engine entries as "no summary".
+	const summary = await tryReadSourcesGitSummary(connected, readSummary, sessionId);
 
 	return {
 		entries: collectSourcesGitChangeEntries(changes.entries, rootUri),
