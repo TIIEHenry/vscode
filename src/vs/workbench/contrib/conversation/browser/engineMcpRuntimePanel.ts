@@ -352,10 +352,41 @@ export class EngineMcpRuntimePanel extends Disposable {
 		}
 	}
 
+	private hasLeftoverRuntimeTools(): boolean {
+		return this.tools.length > 0 && this.toolsList.querySelector('.engine-catalog-row') !== null;
+	}
+
+	private paintRuntimeToolsHonestyUnavailable(): void {
+		if (this.hasLeftoverRuntimeTools()) {
+			this.toolsList.style.display = '';
+			this.toolsMeta.style.display = '';
+		} else {
+			this.tools = [];
+			this.toolsTotal = undefined;
+			this.toolsCachedAt = undefined;
+			DOM.clearNode(this.toolsList);
+			this.toolsMeta.style.display = 'none';
+			this.toolsList.style.display = 'none';
+		}
+		this.toolsStatus.render({
+			mode: 'unsupported',
+			featureLabel: MCP_RUNTIME_TOOLS_FEATURE,
+		});
+	}
+
 	private async loadTools(serverId: string, forceRefresh: boolean): Promise<void> {
 		const generation = ++this.toolsGeneration;
-		this.toolsMeta.style.display = 'none';
-		this.toolsList.style.display = 'none';
+		// D279: keep leftover tools while the next getMcpServerTools is in-flight.
+		// First-pull empty still hides.
+		if (!this.hasLeftoverRuntimeTools()) {
+			this.toolsMeta.style.display = 'none';
+			this.toolsList.style.display = 'none';
+		}
+		if (typeof this.connection.getMcpServerTools !== 'function') {
+			this.paintRuntimeToolsHonestyUnavailable();
+			return;
+		}
+
 		this.toolsStatus.render({
 			mode: 'loading',
 			loadingKind: 'list',
@@ -375,8 +406,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 			if (generation !== this.toolsGeneration) {
 				return;
 			}
-			const hadLivePaint = this.tools.length > 0;
-			if (!hadLivePaint) {
+			if (!this.hasLeftoverRuntimeTools()) {
 				this.tools = [];
 				this.toolsTotal = undefined;
 				this.toolsCachedAt = undefined;
@@ -385,6 +415,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 				this.toolsList.style.display = 'none';
 			} else {
 				this.toolsList.style.display = '';
+				this.toolsMeta.style.display = '';
 			}
 			this.toolsStatus.render({
 				mode: 'failed',
