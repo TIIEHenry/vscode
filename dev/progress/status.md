@@ -44,7 +44,7 @@ summary: "loop 关仓：D258–D259 已合入；merge compile-client 0。待 pus
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | triggers-unsupported-leftover | 已进 merge；[D258](deferred-gaps.md) 已闭 |
+| **A** | connection-nohook-leftover | 进行中；[D260](deferred-gaps.md) pending+devices 已接通失 hook 保 leftover |
 | **B** | context-variable-unsupported-leftover | 已进 merge；[D259](deferred-gaps.md) 已闭 |
 | **C** | mcp-runtime-unknown-leftover | 已进 merge；[D256](deferred-gaps.md) 已闭；勿 add `dev/loop` |
 | **D** | clipboard-unsupported-leftover | 已进 merge；[D257](deferred-gaps.md) 已闭 |
