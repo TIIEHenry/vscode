@@ -1680,6 +1680,112 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assertAgentsUnknownCapabilityHonesty(section, 1);
 	});
 
+	test('Agents: successful markdown load then list throw then select leftover keeps editor value', async () => {
+		let listAgentProfilesCalls = 0;
+		let saveCalls = 0;
+		const leftoverMarkdown = 'Leftover agents md';
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				if (listAgentProfilesCalls === 1) {
+					return { profiles: [{ id: 'leftover', name: 'Leftover Agent', source: 'user' as const }] };
+				}
+				throw new Error('listAgentProfiles retry exploded');
+			},
+			saveAgentProfile: async () => {
+				saveCalls++;
+				return {
+					profile: {
+						id: 'leftover',
+						name: 'Leftover Agent',
+						source: 'user' as const,
+						systemPrompt: leftoverMarkdown,
+					},
+				};
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		await section.selectProfileByIdForTest('leftover');
+		assert.ok(section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+		assert.strictEqual(section.isAgentsMarkdownDirty(), false);
+		assert.ok(section.isAgentsEditorVisible());
+		const saveCallsAfterLoad = saveCalls;
+		assert.ok(saveCallsAfterLoad >= 1);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(listAgentProfilesCalls, 2);
+		assertAgentsLeftoverFailedHonesty(section, 'listAgentProfiles retry exploded', 1);
+		await section.selectProfileByIdForTest('leftover');
+		await flushMicrotasks();
+
+		assert.ok(section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+		assert.strictEqual(section.isAgentsMarkdownDirty(), false);
+		assert.ok(section.isAgentsEditorVisible());
+		assert.strictEqual(saveCalls, saveCallsAfterLoad);
+		assertAgentsLeftoverFailedHonesty(section, 'listAgentProfiles retry exploded', 1);
+	});
+
+	test('Agents: successful markdown load then capability UNKNOWN then select leftover keeps editor value', async () => {
+		let listAgentProfilesCalls = 0;
+		let saveCalls = 0;
+		const leftoverMarkdown = 'Leftover agents md';
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [{ id: 'leftover', name: 'Leftover Agent', source: 'user' as const }] };
+			},
+			saveAgentProfile: async () => {
+				saveCalls++;
+				return {
+					profile: {
+						id: 'leftover',
+						name: 'Leftover Agent',
+						source: 'user' as const,
+						systemPrompt: leftoverMarkdown,
+					},
+				};
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		await section.selectProfileByIdForTest('leftover');
+		assert.ok(section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+		assert.strictEqual(section.isAgentsMarkdownDirty(), false);
+		assert.ok(section.isAgentsEditorVisible());
+		const saveCallsAfterLoad = saveCalls;
+		const listCallsAfterLoad = listAgentProfilesCalls;
+		assert.ok(saveCallsAfterLoad >= 1);
+
+		connection.setAgentProfilesSupport('UNKNOWN');
+		await flushMicrotasks();
+
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+		assertAgentsUnknownCapabilityHonesty(section, 1);
+		await section.selectProfileByIdForTest('leftover');
+		await flushMicrotasks();
+
+		assert.ok(section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+		assert.strictEqual(section.isAgentsMarkdownDirty(), false);
+		assert.ok(section.isAgentsEditorVisible());
+		assert.strictEqual(saveCalls, saveCallsAfterLoad);
+		assertAgentsUnknownCapabilityHonesty(section, 1);
+	});
+
 	function assertToolsUnknownCapabilityHonesty(
 		section: EngineToolsSection,
 		expectedRows: number,
