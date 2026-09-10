@@ -34,7 +34,13 @@ import { workbenchInstantiationService } from '../../../../test/browser/workbenc
 import { ENGINE_AGENTS_CREATE_SUCCESS_COPY, ENGINE_AGENTS_DELETE_SUCCESS_COPY, ENGINE_AGENTS_RESET_SUCCESS_COPY, ENGINE_AGENTS_SAVE_SUCCESS_COPY, EngineAgentsSection } from '../../browser/engineAgentsSection.js';
 import { ENGINE_MCP_ADD_SUCCESS_COPY, ENGINE_MCP_REMOVE_SUCCESS_COPY, ENGINE_MCP_TOGGLE_SUCCESS_COPY, ENGINE_MCP_UPDATE_SUCCESS_COPY, EngineMcpSection } from '../../browser/engineMcpSection.js';
 import { EngineToolsSection } from '../../browser/engineToolsSection.js';
-import { canPerformCatalogWrite, getCatalogFailedCopy, getCatalogUnsupportedCopy } from '../../browser/engineCatalog.js';
+import {
+	canPerformCatalogWrite,
+	getCatalogFailedCopy,
+	getCatalogListLoadingCopy,
+	getCatalogUnknownCopy,
+	getCatalogUnsupportedCopy,
+} from '../../browser/engineCatalog.js';
 import { localize } from '../../../../../nls.js';
 
 const AGENTS_FEATURE = localize('ua.engineAgentsFeatureLabel', "agent profiles");
@@ -1575,11 +1581,32 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(status.dataset['catalogMode'], 'loading');
 	});
 
-	test('Agents: successful load then capability UNKNOWN clears leftover rows before loading', async () => {
+	function assertAgentsUnknownCapabilityHonesty(
+		section: EngineAgentsSection,
+		expectedRows: number,
+	): void {
+		assert.strictEqual(section.getMode(), 'loading');
+		assert.strictEqual(section.getListEntryCount(), expectedRows);
+		assert.strictEqual(section.canWrite(), false);
+		section.setSectionActive(true);
+		const listContainer = section.getDomNode().querySelector('.engine-catalog-list') as HTMLElement;
+		assert.ok(listContainer);
+		if (expectedRows > 0) {
+			assert.notStrictEqual(listContainer.style.display, 'none');
+		}
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		assert.ok(status.textContent?.includes(getCatalogUnknownCopy()));
+		assert.ok(!(status.textContent ?? '').includes(getCatalogListLoadingCopy()));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(AGENTS_EMPTY_COPY));
+	}
+
+	test('Agents: first-pull capability UNKNOWN is empty with capability loading', async () => {
 		let listAgentProfilesCalls = 0;
 		const connection = createConnectionStub({
 			connected: true,
-			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			capabilities: { agentProfiles: { support: 'UNKNOWN' } },
 			listAgentProfiles: async () => {
 				listAgentProfilesCalls++;
 				return { profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }] };
@@ -1588,19 +1615,32 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		const section = mountAgentsSection(connection);
 		await flushMicrotasks();
 
+		assertAgentsUnknownCapabilityHonesty(section, 0);
+		assert.strictEqual(listAgentProfilesCalls, 0);
+	});
+
+	test('Agents: successful load then capability UNKNOWN keeps leftover rows and paints capability loading', async () => {
+		let listAgentProfilesCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [{ id: 'leftover', name: 'Leftover Agent', source: 'user' as const }] };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		await flushMicrotasks();
+
 		assert.strictEqual(section.getMode(), 'ready');
-		assert.ok(section.getListEntryCount() > 0);
+		assert.strictEqual(section.getListEntryCount(), 1);
 		const listCallsAfterLoad = listAgentProfilesCalls;
 
 		connection.setAgentProfilesSupport('UNKNOWN');
 		await flushMicrotasks();
 
-		assert.strictEqual(section.getMode(), 'loading');
-		assert.strictEqual(section.getListEntryCount(), 0);
 		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
-		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
-		assert.ok(status);
-		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		assertAgentsUnknownCapabilityHonesty(section, 1);
 	});
 
 	test('Tools: successful load then capability UNKNOWN clears leftover rows before loading', async () => {

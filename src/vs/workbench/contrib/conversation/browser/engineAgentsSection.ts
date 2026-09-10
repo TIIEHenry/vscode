@@ -854,7 +854,13 @@ export class EngineAgentsSection extends Disposable {
 		}
 
 		if (support === 'UNKNOWN') {
-			this.clearCatalogPresentation();
+			// Keep leftover profile rows after a live paint (D253; D204 / D233).
+			const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'profile');
+			if (!hadLiveCatalog) {
+				this.clearCatalogPresentation();
+			} else {
+				this.hideCatalogWriteStatus();
+			}
 			this.mode = resolveEngineCatalogPaneMode(true, support);
 			this.writeToolbar.style.display = 'none';
 			this.updateWriteActions();
