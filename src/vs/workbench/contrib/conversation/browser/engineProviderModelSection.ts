@@ -201,7 +201,15 @@ export class EngineProviderModelSection extends Disposable {
 		}
 
 		if (entry.support === 'UNKNOWN') {
-			this.clearModelPresentation();
+			// D252: leftover honesty after a live paint (align D204 Composer UNKNOWN
+			// keep-last). First-pull UNKNOWN still clears — no fake list, no list RPC.
+			const hadLivePaint = this.modelCount > 0;
+			if (!hadLivePaint) {
+				this.clearModelPresentation();
+			} else {
+				this.sessionHint.style.display = 'none';
+				this.modelList.style.display = '';
+			}
 			this.modelListPhase = { kind: 'none' };
 			this.renderModelStatus(resolveEngineCatalogPaneMode(true, entry.support), undefined, 'capability');
 			return;
