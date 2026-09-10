@@ -33,6 +33,7 @@ import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesP
 const $ = DOM.$;
 
 const PLUGINS_FEATURE = localize('ua.enginePluginsFeatureLabel', "engine plugins");
+const PLUGIN_INFO_FEATURE = localize('ua.enginePluginInfoFeature', "plugin info");
 const EMBEDDED_SOURCE = 'embedded';
 
 export const ENGINE_PLUGINS_ENABLE_SUCCESS_COPY = localize('ua.enginePluginsEnableSuccess', "Enabled.");
@@ -464,13 +465,40 @@ export class EnginePluginsSection extends Disposable {
 		}
 	}
 
+	private hasLeftoverHooks(): boolean {
+		return this.hookEntries.length > 0 && this.hooksBody.rows.length > 0;
+	}
+
+	private paintHookHonestyUnavailable(): void {
+		if (this.hasLeftoverHooks()) {
+			this.hooksTable.style.display = '';
+		} else {
+			this.hookEntries = [];
+			this.clearHookRows();
+			this.hooksTable.style.display = 'none';
+		}
+		this.infoStatus.render({
+			mode: 'unsupported',
+			featureLabel: PLUGIN_INFO_FEATURE,
+		});
+	}
+
 	private async loadInfo(id: string): Promise<void> {
 		const generation = ++this.infoGeneration;
-		this.hooksTable.style.display = 'none';
+		// D279: keep leftover hooks while the next getPluginInfo is in-flight.
+		// First-pull empty still hides.
+		if (!this.hasLeftoverHooks()) {
+			this.hooksTable.style.display = 'none';
+		}
+		if (typeof this.connection.getPluginInfo !== 'function') {
+			this.paintHookHonestyUnavailable();
+			return;
+		}
+
 		this.infoStatus.render({
 			mode: 'loading',
 			loadingKind: 'list',
-			featureLabel: localize('ua.enginePluginInfoFeature', "plugin info"),
+			featureLabel: PLUGIN_INFO_FEATURE,
 		});
 
 		try {
@@ -484,7 +512,7 @@ export class EnginePluginsSection extends Disposable {
 			if (result.hooks.length === 0) {
 				this.infoStatus.render({
 					mode: 'empty',
-					featureLabel: localize('ua.enginePluginInfoFeature', "plugin info"),
+					featureLabel: PLUGIN_INFO_FEATURE,
 					emptyCopy: localize('ua.enginePluginHooksEmpty', "No hooks."),
 				});
 			} else {
@@ -495,8 +523,7 @@ export class EnginePluginsSection extends Disposable {
 			if (generation !== this.infoGeneration) {
 				return;
 			}
-			const hadLivePaint = this.hookEntries.length > 0;
-			if (!hadLivePaint) {
+			if (!this.hasLeftoverHooks()) {
 				this.hookEntries = [];
 				this.clearHookRows();
 				this.hooksTable.style.display = 'none';
@@ -505,7 +532,7 @@ export class EnginePluginsSection extends Disposable {
 			}
 			this.infoStatus.render({
 				mode: 'failed',
-				featureLabel: localize('ua.enginePluginInfoFeature', "plugin info"),
+				featureLabel: PLUGIN_INFO_FEATURE,
 				reason: getTransportErrorMessage(error),
 				onRetry: () => void this.loadInfo(id),
 			});

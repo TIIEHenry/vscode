@@ -17,7 +17,7 @@ import type {
 	UniverseAgentSessionStreamCloseCause,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy } from '../../browser/engineCatalog.js';
+import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy, getCatalogUnsupportedCopy } from '../../browser/engineCatalog.js';
 import {
 	ENGINE_PLUGINS_ENABLE_SUCCESS_COPY,
 	ENGINE_PLUGINS_RELOAD_SUCCESS_COPY,
@@ -61,6 +61,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 	} = {}): IUniverseAgentConnection & {
 		setPluginsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setConnected(next: boolean): void;
+		clearGetPluginInfo(): void;
 	} {
 		const pluginsCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN' } = {
 			support: options.pluginsSupport ?? 'SUPPORTED',
@@ -72,6 +73,9 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		let connected = options.connected ?? true;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 		const plugin = demoPlugin();
+		let getPluginInfo: IUniverseAgentConnection['getPluginInfo'] | undefined = 'getPluginInfo' in options
+			? options.getPluginInfo
+			: (async () => ({ summary: plugin, hooks: [] }));
 
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
 			transport: connected ? 'ok' : 'idle',
@@ -137,7 +141,9 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 			getMcpServerStatuses: async () => ({ statuses: [] }),
 			getMcpServerTools: async () => ({ tools: [] }),
 			listPlugins: options.listPlugins ?? (async () => ({ plugins: [plugin] })),
-			getPluginInfo: options.getPluginInfo ?? (async () => ({ summary: plugin, hooks: [] })),
+			get getPluginInfo() {
+				return getPluginInfo as IUniverseAgentConnection['getPluginInfo'];
+			},
 			enablePlugin: options.enablePlugin ?? (async () => ({ plugin })),
 			reloadPlugin: options.reloadPlugin ?? (async () => ({ plugin })),
 			unloadPlugin: options.unloadPlugin ?? (async () => ({ removedHookCount: 0 })),
@@ -156,6 +162,9 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 			setConnected(next: boolean) {
 				connected = next;
 				onDidChangeConnection.fire(snapshot());
+			},
+			clearGetPluginInfo() {
+				getPluginInfo = undefined;
 			},
 		};
 	}
@@ -232,6 +241,27 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		) as HTMLElement | undefined;
 		assert.ok(infoStatus);
 		assert.strictEqual(infoStatus.dataset['catalogMode'], 'failed');
+		const hooksTable = getHooksTable(section);
+		assert.ok(hooksTable);
+		if (expectedRows === 0) {
+			assert.strictEqual(hooksTable.style.display, 'none');
+		} else {
+			assert.notStrictEqual(hooksTable.style.display, 'none');
+			assert.ok((section.getDomNode().textContent ?? '').includes(LEFTOVER_HOOK_CLASS));
+		}
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(PLUGIN_HOOKS_EMPTY_COPY));
+	}
+
+	function assertPluginInfoUnavailableHonesty(section: EnginePluginsSection, expectedRows: number): void {
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(section.getHookRowCount(), expectedRows);
+		assert.strictEqual(section.getHookEntries().length, expectedRows);
+		const infoStatus = [...section.getDomNode().querySelectorAll('.engine-catalog-status-widget')].find(
+			el => (el.textContent ?? '').includes(getCatalogUnsupportedCopy(PLUGIN_INFO_FEATURE)),
+		) as HTMLElement | undefined;
+		assert.ok(infoStatus);
+		assert.strictEqual(infoStatus.dataset['catalogMode'], 'unsupported');
 		const hooksTable = getHooksTable(section);
 		assert.ok(hooksTable);
 		if (expectedRows === 0) {
@@ -736,5 +766,96 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 
 		assert.strictEqual(infoCalls, 2);
 		assertPluginInfoFailedHonesty(section, 'getPluginInfo retry exploded', 1);
+	});
+
+	test('getPluginInfo reconnect reload in-flight keeps leftover hook rows', async () => {
+		let infoCalls = 0;
+		let releaseSecond: (() => void) | undefined;
+		const leftoverHook = { hookType: 'onChat', priority: 10, className: LEFTOVER_HOOK_CLASS };
+		const connection = createConnectionStub({
+			getPluginInfo: async () => {
+				infoCalls++;
+				if (infoCalls === 1) {
+					return { summary: demoPlugin(), hooks: [leftoverHook] };
+				}
+				await new Promise<void>(resolve => {
+					releaseSecond = resolve;
+				});
+				return { summary: demoPlugin(), hooks: [leftoverHook] };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.selectPluginForTest('demo-plugin'));
+		await flushMicrotasks();
+
+		const hooksTable = getHooksTable(section);
+		assert.ok(hooksTable);
+		assert.strictEqual(section.getHookRowCount(), 1);
+		assert.notStrictEqual(hooksTable.style.display, 'none');
+		assert.ok((section.getDomNode().textContent ?? '').includes(LEFTOVER_HOOK_CLASS));
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(infoCalls, 2);
+		assert.ok(releaseSecond);
+		assert.strictEqual(section.getHookRowCount(), 1);
+		assert.notStrictEqual(hooksTable.style.display, 'none');
+		assert.ok((section.getDomNode().textContent ?? '').includes(LEFTOVER_HOOK_CLASS));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(PLUGIN_HOOKS_EMPTY_COPY));
+		const loadingStatus = [...section.getDomNode().querySelectorAll('.engine-catalog-status-widget')].find(
+			el => el instanceof HTMLElement && el.dataset['catalogMode'] === 'loading',
+		) as HTMLElement | undefined;
+		assert.ok(loadingStatus);
+		assert.ok((loadingStatus.textContent ?? '').includes(getCatalogListLoadingCopy()));
+
+		releaseSecond!();
+		await flushMicrotasks();
+		assert.strictEqual(section.getHookRowCount(), 1);
+		assert.notStrictEqual(hooksTable.style.display, 'none');
+		assert.ok((section.getDomNode().textContent ?? '').includes(LEFTOVER_HOOK_CLASS));
+	});
+
+	test('getPluginInfo first-pull missing hook is unavailable with no leftover hook rows', async () => {
+		const connection = createConnectionStub({
+			getPluginInfo: undefined,
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.ok(section.selectPluginForTest('demo-plugin'));
+		await flushMicrotasks();
+
+		assertPluginInfoUnavailableHonesty(section, 0);
+	});
+
+	test('getPluginInfo live paint then missing hook keeps leftover hook rows and paints unavailable', async () => {
+		const leftoverHook = { hookType: 'onChat', priority: 10, className: LEFTOVER_HOOK_CLASS };
+		const connection = createConnectionStub({
+			getPluginInfo: async () => ({ summary: demoPlugin(), hooks: [leftoverHook] }),
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.selectPluginForTest('demo-plugin'));
+		await flushMicrotasks();
+
+		const hooksTable = getHooksTable(section);
+		assert.ok(hooksTable);
+		assert.strictEqual(section.getHookRowCount(), 1);
+		assert.notStrictEqual(hooksTable.style.display, 'none');
+		assert.ok((section.getDomNode().textContent ?? '').includes(LEFTOVER_HOOK_CLASS));
+
+		connection.clearGetPluginInfo();
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assertPluginInfoUnavailableHonesty(section, 1);
 	});
 });

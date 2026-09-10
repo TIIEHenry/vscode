@@ -15,7 +15,7 @@ import type {
 	UniverseAgentSessionStreamCloseCause,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy } from '../../browser/engineCatalog.js';
+import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy, getCatalogUnsupportedCopy } from '../../browser/engineCatalog.js';
 import { EngineMcpRuntimePanel } from '../../browser/engineMcpRuntimePanel.js';
 import { localize } from '../../../../../nls.js';
 
@@ -39,6 +39,7 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 	} = {}): IUniverseAgentConnection & {
 		setConnected(value: boolean): void;
 		setMcpRuntimeSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
+		clearGetMcpServerTools(): void;
 	} {
 		const mcpRuntimeCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN' } = {
 			support: options.mcpRuntimeSupport ?? 'SUPPORTED',
@@ -49,6 +50,9 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 		};
 		let connected = options.connected ?? false;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
+		let getMcpServerTools: IUniverseAgentConnection['getMcpServerTools'] | undefined = 'getMcpServerTools' in options
+			? options.getMcpServerTools
+			: (async () => ({ tools: [] }));
 
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
 			transport: connected ? 'ok' : 'idle',
@@ -114,7 +118,9 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 			getMcpServerStatuses: options.getMcpServerStatuses ?? (async () => ({
 				statuses: [{ serverId: RUNTIME_SERVER_ID, status: 'connected' }],
 			})),
-			getMcpServerTools: options.getMcpServerTools ?? (async () => ({ tools: [] })),
+			get getMcpServerTools() {
+				return getMcpServerTools as IUniverseAgentConnection['getMcpServerTools'];
+			},
 			listPlugins: async () => ({ plugins: [] }),
 			getPluginInfo: async () => ({ summary: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const }, hooks: [] }),
 			enablePlugin: async () => ({ plugin: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const } }),
@@ -135,6 +141,9 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 			setMcpRuntimeSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
 				mcpRuntimeCapability.support = support;
 				onDidChangeConnection.fire(snapshot());
+			},
+			clearGetMcpServerTools() {
+				getMcpServerTools = undefined;
 			},
 		};
 	}
@@ -177,6 +186,27 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 			assert.strictEqual(toolsList.style.display, 'none');
 		} else {
 			assert.notStrictEqual(toolsList.style.display, 'none');
+		}
+		assert.ok(!(panel.getDomNode().textContent ?? '').includes(MCP_RUNTIME_TOOLS_EMPTY));
+	}
+
+	function assertToolsUnavailableHonesty(panel: EngineMcpRuntimePanel, expectedRows: number): void {
+		assert.strictEqual(panel.getMode(), 'ready');
+		assert.strictEqual(panel.getListEntryCount(), 1);
+		assert.strictEqual(panel.getToolsCount(), expectedRows);
+		const toolsStatus = [...panel.getDomNode().querySelectorAll('.engine-catalog-status-widget')].find(
+			el => (el.textContent ?? '').includes(getCatalogUnsupportedCopy(MCP_RUNTIME_TOOLS_FEATURE)),
+		) as HTMLElement | undefined;
+		assert.ok(toolsStatus);
+		assert.strictEqual(toolsStatus.dataset['catalogMode'], 'unsupported');
+		const toolsList = getToolsList(panel);
+		assert.ok(toolsList);
+		assert.strictEqual(getToolsRowCount(panel), expectedRows);
+		if (expectedRows === 0) {
+			assert.strictEqual(toolsList.style.display, 'none');
+		} else {
+			assert.notStrictEqual(toolsList.style.display, 'none');
+			assert.ok((panel.getDomNode().textContent ?? '').includes(LEFTOVER_TOOL_NAME));
 		}
 		assert.ok(!(panel.getDomNode().textContent ?? '').includes(MCP_RUNTIME_TOOLS_EMPTY));
 	}
@@ -448,5 +478,100 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 		assert.ok(status.textContent?.includes(getCatalogUnknownCopy()));
 		assert.ok(!(status.textContent ?? '').includes(getCatalogListLoadingCopy()));
 		assert.ok(!(panel.getDomNode().textContent ?? '').includes(MCP_RUNTIME_EMPTY));
+	});
+
+	test('getMcpServerTools reconnect reload in-flight keeps leftover tool rows', async () => {
+		let toolsCalls = 0;
+		let releaseSecond: (() => void) | undefined;
+		const leftoverTools = { tools: [{ name: LEFTOVER_TOOL_NAME, description: 'keep me' }] };
+		const connection = createConnectionStub({
+			connected: true,
+			getMcpServerTools: async () => {
+				toolsCalls++;
+				if (toolsCalls === 1) {
+					return leftoverTools;
+				}
+				await new Promise<void>(resolve => {
+					releaseSecond = resolve;
+				});
+				return leftoverTools;
+			},
+		});
+		const panel = mountPanel(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(panel.getMode(), 'ready');
+		assert.ok(panel.selectServerForTest(RUNTIME_SERVER_ID));
+		await flushMicrotasks();
+
+		const toolsList = getToolsList(panel);
+		assert.ok(toolsList);
+		assert.strictEqual(panel.getToolsCount(), 1);
+		assert.strictEqual(getToolsRowCount(panel), 1);
+		assert.notStrictEqual(toolsList.style.display, 'none');
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(toolsCalls, 2);
+		assert.ok(releaseSecond);
+		assert.strictEqual(panel.getToolsCount(), 1);
+		assert.strictEqual(getToolsRowCount(panel), 1);
+		assert.notStrictEqual(toolsList.style.display, 'none');
+		assert.ok((panel.getDomNode().textContent ?? '').includes(LEFTOVER_TOOL_NAME));
+		assert.ok(!(panel.getDomNode().textContent ?? '').includes(MCP_RUNTIME_TOOLS_EMPTY));
+		const loadingStatus = [...panel.getDomNode().querySelectorAll('.engine-catalog-status-widget')].find(
+			el => el instanceof HTMLElement && el.dataset['catalogMode'] === 'loading',
+		) as HTMLElement | undefined;
+		assert.ok(loadingStatus);
+		assert.ok((loadingStatus.textContent ?? '').includes(getCatalogListLoadingCopy()));
+
+		releaseSecond!();
+		await flushMicrotasks();
+		assert.strictEqual(getToolsRowCount(panel), 1);
+		assert.notStrictEqual(toolsList.style.display, 'none');
+		assert.ok((panel.getDomNode().textContent ?? '').includes(LEFTOVER_TOOL_NAME));
+	});
+
+	test('getMcpServerTools first-pull missing hook is unavailable with no leftover tool rows', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			getMcpServerTools: undefined,
+		});
+		const panel = mountPanel(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(panel.getMode(), 'ready');
+		assert.ok(panel.selectServerForTest(RUNTIME_SERVER_ID));
+		await flushMicrotasks();
+
+		assertToolsUnavailableHonesty(panel, 0);
+	});
+
+	test('getMcpServerTools live paint then missing hook keeps leftover tool rows and paints unavailable', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			getMcpServerTools: async () => ({
+				tools: [{ name: LEFTOVER_TOOL_NAME, description: 'keep me' }],
+			}),
+		});
+		const panel = mountPanel(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(panel.getMode(), 'ready');
+		assert.ok(panel.selectServerForTest(RUNTIME_SERVER_ID));
+		await flushMicrotasks();
+
+		const toolsList = getToolsList(panel);
+		assert.ok(toolsList);
+		assert.strictEqual(panel.getToolsCount(), 1);
+		assert.strictEqual(getToolsRowCount(panel), 1);
+		assert.notStrictEqual(toolsList.style.display, 'none');
+
+		connection.clearGetMcpServerTools();
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assertToolsUnavailableHonesty(panel, 1);
 	});
 });
