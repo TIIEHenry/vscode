@@ -91,6 +91,7 @@ suite('Sources - Changes git write - 源码接线扫描', () => {
 		const runGitActionEnd = source.indexOf('\n\tprivate ', runGitActionStart + 1);
 		const runGitAction = source.slice(runGitActionStart, runGitActionEnd > runGitActionStart ? runGitActionEnd : undefined);
 		assert.ok(runGitAction.includes('catch'));
+		assert.ok(runGitAction.includes('this.hideNotice()'));
 		assert.ok(runGitAction.includes('this.showNotice(getErrorMessage(error))'));
 		assert.ok(runGitAction.includes('finally'));
 		assert.ok(runGitAction.includes('this.updateReviewActions()'));

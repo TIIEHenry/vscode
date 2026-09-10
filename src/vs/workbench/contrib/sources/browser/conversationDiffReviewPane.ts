@@ -75,6 +75,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 	private noticeElement: HTMLElement | undefined;
 	private editorContainer: HTMLElement | undefined;
 	private dimension: dom.Dimension | undefined;
+	private comparisonLoadFailed = false;
 
 	constructor(
 		group: IEditorGroup,
@@ -162,20 +163,34 @@ export class ConversationDiffReviewPane extends EditorPane {
 		}
 
 		this.clearEditors();
-		this.updateReviewActions();
+		this.comparisonLoadFailed = false;
+		this.hideWriteChrome();
+		this.hideNotice();
 
+		let loaded = false;
 		if (!input.original) {
-			this.showNotice(localize('conversationDiffReviewPane.newFile', "New file with no previous version to compare."));
-			await this.renderModifiedOnly(input, token);
+			loaded = await this.renderModifiedOnly(input, token);
+			if (loaded) {
+				this.showNotice(localize('conversationDiffReviewPane.newFile', "New file with no previous version to compare."));
+			}
 		} else {
-			this.hideNotice();
-			await this.renderDiff(input, token);
+			loaded = await this.renderDiff(input, token);
 		}
 
 		if (this._store.isDisposed || this.input !== input || token.isCancellationRequested) {
 			return;
 		}
 
+		if (!loaded) {
+			this.comparisonLoadFailed = true;
+			this.hideWriteChrome();
+			this.showNotice(localize('conversationDiffReviewPane.loadFailed', "Unable to load this comparison."));
+			this.layoutEditors();
+			this._onDidChangeControl.fire();
+			return;
+		}
+
+		this.updateReviewActions();
 		this.layoutEditors();
 		this._onDidChangeControl.fire();
 	}
@@ -186,6 +201,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 	}
 
 	override clearInput(): void {
+		this.comparisonLoadFailed = false;
 		this.clearEditors();
 		this.hideNotice();
 		if (this.revertButton) {
@@ -238,9 +254,31 @@ export class ConversationDiffReviewPane extends EditorPane {
 		return this.roster.getActiveSessionId();
 	}
 
+	private hideWriteChrome(): void {
+		if (this.revertButton) {
+			this.revertButton.style.display = 'none';
+		}
+		if (this.unstageButton) {
+			this.unstageButton.style.display = 'none';
+		}
+		if (this.unstageUnavailable) {
+			this.unstageUnavailable.style.display = 'none';
+		}
+		if (this.stageButton) {
+			this.stageButton.style.display = 'none';
+		}
+		if (this.acceptButton) {
+			this.acceptButton.style.display = 'none';
+		}
+	}
+
 	private updateReviewActions(): void {
 		const input = this.input;
 		if (!(input instanceof ConversationDiffReviewInput) || !this.revertButton || !this.stageButton || !this.acceptButton || !this.unstageButton || !this.unstageUnavailable) {
+			return;
+		}
+		if (this.comparisonLoadFailed) {
+			this.hideWriteChrome();
 			return;
 		}
 
@@ -370,6 +408,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 
 		try {
 			await this.commandService.executeCommand(commandId, match.resource);
+			this.hideNotice();
 		} catch (error) {
 			this.showNotice(getErrorMessage(error));
 		} finally {
@@ -393,9 +432,9 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.noticeElement.style.display = 'none';
 	}
 
-	private async renderDiff(input: ConversationDiffReviewInput, token: CancellationToken): Promise<void> {
+	private async renderDiff(input: ConversationDiffReviewInput, token: CancellationToken): Promise<boolean> {
 		if (!this.editorContainer || !input.original) {
-			return;
+			return false;
 		}
 
 		let originalRef: IReference<IResolvedTextEditorModel> | undefined;
@@ -406,14 +445,13 @@ export class ConversationDiffReviewPane extends EditorPane {
 		} catch {
 			originalRef?.dispose();
 			modifiedRef?.dispose();
-			this.showNotice(localize('conversationDiffReviewPane.loadFailed', "Unable to load this comparison."));
-			return;
+			return false;
 		}
 
 		if (this._store.isDisposed || this.input !== input || token.isCancellationRequested) {
 			originalRef.dispose();
 			modifiedRef.dispose();
-			return;
+			return false;
 		}
 
 		this.originalModelRef.value = originalRef;
@@ -429,24 +467,24 @@ export class ConversationDiffReviewPane extends EditorPane {
 			original: originalRef.object.textEditorModel,
 			modified: modifiedRef.object.textEditorModel,
 		});
+		return true;
 	}
 
-	private async renderModifiedOnly(input: ConversationDiffReviewInput, token: CancellationToken): Promise<void> {
+	private async renderModifiedOnly(input: ConversationDiffReviewInput, token: CancellationToken): Promise<boolean> {
 		if (!this.editorContainer) {
-			return;
+			return false;
 		}
 
 		let modifiedRef: IReference<IResolvedTextEditorModel>;
 		try {
 			modifiedRef = await this.textModelService.createModelReference(input.modified);
 		} catch {
-			this.showNotice(localize('conversationDiffReviewPane.loadFailed', "Unable to load this comparison."));
-			return;
+			return false;
 		}
 
 		if (this._store.isDisposed || this.input !== input || token.isCancellationRequested) {
 			modifiedRef.dispose();
-			return;
+			return false;
 		}
 
 		this.modifiedModelRef.value = modifiedRef;
@@ -457,6 +495,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 			{ isSimpleWidget: true },
 		);
 		widget.setModel(modifiedRef.object.textEditorModel);
+		return true;
 	}
 
 	private layoutEditors(): void {

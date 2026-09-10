@@ -15,6 +15,7 @@ import { resolveSourcesChangeRef, ISourcesChangeRef } from '../common/sourcesCha
 import {
 	needsSourcesGitFileDiff,
 	parseSourcesGitUnifiedDiff,
+	sourcesGitEmptyFileDiffMessage,
 } from '../common/sourcesChangesGitRead.js';
 import { ISourcesChangeEntry } from '../common/sourcesChangesModel.js';
 import { SOURCES_DIFF_DEFAULT_OWNER_SETTING, SourcesDiffDefaultOwner } from '../common/sourcesDiffConfiguration.js';
@@ -73,6 +74,9 @@ async function applySourcesGitFileDiffIfNeeded(
 	if (!result || !result.supported) {
 		return ref;
 	}
+	if (result.unifiedDiff === '') {
+		throw new Error(sourcesGitEmptyFileDiffMessage());
+	}
 
 	const sides = parseSourcesGitUnifiedDiff(result.unifiedDiff);
 	const originalUri = sourcesGitDiffModelUri('original', entry.gitPath ?? '', entry.indexState ?? '');
@@ -82,7 +86,7 @@ async function applySourcesGitFileDiffIfNeeded(
 
 	return {
 		modified: modifiedUri,
-		original: result.unifiedDiff === '' ? undefined : originalUri,
+		original: originalUri,
 		groupId: ref.groupId,
 		scmResource: ref.scmResource,
 	};

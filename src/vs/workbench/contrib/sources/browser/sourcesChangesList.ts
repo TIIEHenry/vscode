@@ -39,6 +39,7 @@ import {
 } from '../common/sourcesChangesGit.js';
 import {
 	sourcesGitDiffOpenFailureMessage,
+	sourcesGitLocalOnlyMessage,
 	sourcesGitReadFailureMessage,
 	tryLoadSourcesGitChangeEntries,
 	tryReadSourcesGitFileDiff,
@@ -218,6 +219,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	private gitCommandsAvailable = false;
 	private usingGitRead = false;
 	private refreshSeq = 0;
+	private writeStatusMessage: string | undefined;
 
 	constructor(
 		host: HTMLElement,
@@ -428,6 +430,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				});
 				this.setStatusMessage(undefined);
 			} catch (error) {
+				this.writeStatusMessage = undefined;
 				this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error));
 			}
 		}));
@@ -441,28 +444,39 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		const seq = ++this.refreshSeq;
 		this.activeRepository = this.getPrimaryRepository();
 		let allEntries: ISourcesChangeEntry[];
+		let gitReadError: string | undefined;
+		let localOnly = false;
 		try {
 			const loaded = await this.tryLoadGitEntries();
 			if (seq !== this.refreshSeq) {
 				return;
 			}
 			this.usingGitRead = !!loaded;
-			allEntries = loaded ?? collectSourcesChangeEntries(this.scmService.repositories);
+			if (loaded) {
+				allEntries = loaded;
+			} else {
+				allEntries = collectSourcesChangeEntries(this.scmService.repositories);
+				localOnly = allEntries.length > 0;
+			}
 		} catch (error) {
 			if (seq !== this.refreshSeq) {
 				return;
 			}
 			this.usingGitRead = false;
-			allEntries = collectSourcesChangeEntries(this.scmService.repositories);
-			this.applyRefreshPresentation(allEntries);
-			this.setStatusMessage(sourcesGitReadFailureMessage(error));
+			this.writeStatusMessage = undefined;
+			allEntries = [];
+			gitReadError = sourcesGitReadFailureMessage(error);
+			this.applyRefreshPresentation(allEntries, { gitReadError });
 			return;
 		}
 
-		this.applyRefreshPresentation(allEntries);
+		this.applyRefreshPresentation(allEntries, { localOnly });
 	}
 
-	private applyRefreshPresentation(allEntries: ISourcesChangeEntry[]): void {
+	private applyRefreshPresentation(allEntries: ISourcesChangeEntry[], options?: {
+		readonly gitReadError?: string;
+		readonly localOnly?: boolean;
+	}): void {
 		const hasRepository = this.usingGitRead || this.scmService.repositoryCount > 0;
 		const entries = filterSourcesEntries(allEntries, this.filterBox.value);
 		const hasAnyEntries = allEntries.length > 0;
@@ -486,7 +500,13 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.filterBox.element.style.display = hasAnyEntries ? 'block' : 'none';
 		this.commitRow.style.display = hasRepository ? 'flex' : 'none';
 
-		if (hasRepository && !this.gitCommandsAvailable && !this.canWriteStage() && !this.canWriteCommit()) {
+		if (options?.gitReadError) {
+			this.setStatusMessage(options.gitReadError);
+		} else if (this.writeStatusMessage) {
+			this.setStatusMessage(this.writeStatusMessage);
+		} else if (options?.localOnly) {
+			this.setStatusMessage(sourcesGitLocalOnlyMessage());
+		} else if (hasRepository && !this.gitCommandsAvailable && !this.canWriteStage() && !this.canWriteCommit()) {
 			this.setStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
 		} else {
 			this.setStatusMessage(undefined);
@@ -495,13 +515,12 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.syncCommitInputFromRepository();
 		this.updateCommitRow();
 
-		if (hasVisibleEntries) {
-			const list = this.ensureList();
-			list.splice(0, list.length, entries);
-			this.updateSelectionToolbar();
-		} else {
-			this.updateSelectionToolbar();
+		if (this.list) {
+			this.list.splice(0, this.list.length, entries);
+		} else if (hasVisibleEntries) {
+			this.ensureList().splice(0, 0, entries);
 		}
+		this.updateSelectionToolbar();
 	}
 
 	private async tryLoadGitEntries(): Promise<ISourcesChangeEntry[] | undefined> {
@@ -582,21 +601,22 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		const resource = entry.scmResource;
 		if (!resource) {
 			if (action === 'stage' && this.canWriteStage()) {
-				this.setStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
+				this.setWriteStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
 			}
 			return;
 		}
 
 		const commandId = action === 'stage' ? SOURCES_GIT_STAGE_COMMAND : SOURCES_GIT_UNSTAGE_COMMAND;
 		if (!this.isGitCommandAvailable(commandId)) {
+			this.setWriteStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
 			return;
 		}
 
 		try {
 			await this.commandService.executeCommand(commandId, resource);
-			this.setStatusMessage(undefined);
+			this.setWriteStatusMessage(undefined);
 		} catch (error) {
-			this.setStatusMessage(action === 'stage'
+			this.setWriteStatusMessage(action === 'stage'
 				? localize('sourcesChangesList.stageFailed', "Unable to stage: {0}", getErrorMessage(error))
 				: localize('sourcesChangesList.unstageFailed', "Unable to unstage: {0}", getErrorMessage(error)));
 		}
@@ -615,16 +635,21 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				return false;
 			}
 			if (!isSourcesGitWriteAccepted(result)) {
-				this.setStatusMessage(localize('sourcesChangesList.stageFailed', "Unable to stage: {0}", sourcesGitWriteFailureDetail(result)));
+				this.setWriteStatusMessage(localize('sourcesChangesList.stageFailed', "Unable to stage: {0}", sourcesGitWriteFailureDetail(result)));
 				return true;
 			}
-			this.setStatusMessage(undefined);
+			this.setWriteStatusMessage(undefined);
 			this.scheduleRefresh();
 			return true;
 		} catch (error) {
-			this.setStatusMessage(localize('sourcesChangesList.stageFailed', "Unable to stage: {0}", getErrorMessage(error)));
+			this.setWriteStatusMessage(localize('sourcesChangesList.stageFailed', "Unable to stage: {0}", getErrorMessage(error)));
 			return true;
 		}
+	}
+
+	private setWriteStatusMessage(message: string | undefined): void {
+		this.writeStatusMessage = message;
+		this.setStatusMessage(message);
 	}
 
 	private setStatusMessage(message: string | undefined): void {
@@ -686,23 +711,21 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				message,
 			);
 			if (isSourcesGitWriteAccepted(written)) {
-				this.setStatusMessage(undefined);
+				this.setWriteStatusMessage(undefined);
 				this.scheduleRefresh();
 				return;
 			}
 			if (written && !isSourcesGitWriteUnsupported(written)) {
-				this.setStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", sourcesGitWriteFailureDetail(written)));
+				this.setWriteStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", sourcesGitWriteFailureDetail(written)));
 				return;
 			}
 		} catch (error) {
-			this.setStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", getErrorMessage(error)));
+			this.setWriteStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", getErrorMessage(error)));
 			return;
 		}
 
 		if (!repo) {
-			if (this.canWriteCommit()) {
-				this.setStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
-			}
+			this.setWriteStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
 			return;
 		}
 
@@ -710,9 +733,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		if (acceptCommand?.id && this.isGitCommandAvailable(acceptCommand.id)) {
 			try {
 				await this.commandService.executeCommand(acceptCommand.id, ...(acceptCommand.arguments ?? []));
-				this.setStatusMessage(undefined);
+				this.setWriteStatusMessage(undefined);
 			} catch (error) {
-				this.setStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", getErrorMessage(error)));
+				this.setWriteStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", getErrorMessage(error)));
 			}
 			return;
 		}
@@ -720,10 +743,13 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		if (this.isGitCommandAvailable(SOURCES_GIT_COMMIT_COMMAND)) {
 			try {
 				await this.commandService.executeCommand(SOURCES_GIT_COMMIT_COMMAND);
-				this.setStatusMessage(undefined);
+				this.setWriteStatusMessage(undefined);
 			} catch (error) {
-				this.setStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", getErrorMessage(error)));
+				this.setWriteStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", getErrorMessage(error)));
 			}
+			return;
 		}
+
+		this.setWriteStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
 	}
 }

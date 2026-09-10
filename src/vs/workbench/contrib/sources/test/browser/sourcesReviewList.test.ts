@@ -20,7 +20,7 @@ import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
 import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
 import { SourcesReviewList } from '../../browser/sourcesReviewList.js';
-import { sourcesGitDiffOpenFailureMessage, sourcesGitReadFailureMessage } from '../../common/sourcesChangesGitRead.js';
+import { sourcesGitDiffOpenFailureMessage, sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage } from '../../common/sourcesChangesGitRead.js';
 import { ISourcesChangeEntry } from '../../common/sourcesChangesModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
 import { ISourcesReviewAttributionService } from '../../common/sourcesReviewAttribution.js';
@@ -57,19 +57,23 @@ suite('Sources - review list model', () => {
 		throwOnCommit?: boolean;
 		failOnStage?: boolean;
 		failOnCommit?: boolean;
+		unsupportedChanges?: boolean;
+		unsupportedCommit?: boolean;
+		connected?: boolean;
+		emptyFileDiff?: boolean;
 	} = {}): IUniverseAgentConnection {
 		return {
-			isEngineConnected: () => true,
+			isEngineConnected: () => options.connected ?? true,
 			onDidChangeConnection: Event.None,
 			readGitChanges: async () => {
 				if (options.throwOnRead) {
 					throw new Error('boom');
 				}
 				return {
-					supported: true,
+					supported: !options.unsupportedChanges,
 					reason: '',
 					branch: 'main',
-					entries: [{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+					entries: options.unsupportedChanges ? [] : [{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
 				};
 			},
 			readGitSummary: async () => ({
@@ -77,6 +81,12 @@ suite('Sources - review list model', () => {
 				reason: '',
 				branch: 'main',
 				changeCount: 1,
+			}),
+			readGitFileDiff: async () => ({
+				supported: true,
+				reason: '',
+				path: 'src/a.ts',
+				unifiedDiff: options.emptyFileDiff ? '' : '@@ -1 +1 @@\n-old\n+new\n',
 			}),
 			...(options.throwOnStage || options.failOnStage ? {
 				writeGitStagePaths: async () => {
@@ -86,10 +96,20 @@ suite('Sources - review list model', () => {
 					return deniedWriteResult();
 				},
 			} : {}),
-			...(options.throwOnCommit || options.failOnCommit ? {
+			...(options.throwOnCommit || options.failOnCommit || options.unsupportedCommit ? {
 				writeGitCommit: async () => {
 					if (options.throwOnCommit) {
 						throw new Error('boom');
+					}
+					if (options.unsupportedCommit) {
+						return {
+							supported: false,
+							reason: '',
+							success: false,
+							errorMessage: '',
+							exitCode: 0,
+							stdout: '',
+						};
 					}
 					return deniedWriteResult();
 				},
@@ -587,6 +607,124 @@ suite('Sources - review list model', () => {
 		} finally {
 			unstageCommand.dispose();
 		}
+	});
+
+	test('Review list throw clears leftover SCM rows and chrome', async function () {
+		const leftover = toResource.call(this, '/project/src/leftover.ts');
+		const host = mountListHost();
+		const widget = store.add(stubSourcesGitListServices({
+			scmService: createIndexScmService(leftover),
+		}).createInstance(SourcesReviewList, host));
+
+		const status = await waitForStatusText(host, '.sources-review-status');
+		assert.strictEqual(status, sourcesGitReadFailureMessage('boom'));
+		assert.strictEqual((widget as unknown as { list?: WorkbenchList<unknown> }).list?.length ?? 0, 0);
+		assert.strictEqual((host.querySelector('.sources-review-progress-header') as HTMLElement | null)?.style.display, 'none');
+		assert.strictEqual((host.querySelector('.sources-review-header-hint') as HTMLElement | null)?.style.display, 'none');
+		assert.strictEqual((host.querySelector('.sources-review-filter-row') as HTMLElement | null)?.style.display, 'none');
+		assert.ok(!host.querySelector('.sources-review-list .monaco-list-row'));
+	});
+
+	test('Changes list throw clears leftover SCM rows and chrome', async function () {
+		const leftover = toResource.call(this, '/project/src/leftover.ts');
+		const host = mountListHost();
+		const widget = store.add(stubSourcesGitListServices({
+			scmService: createIndexScmService(leftover),
+		}).createInstance(SourcesChangesList, host));
+
+		const status = await waitForStatusText(host, '.sources-changes-status');
+		assert.strictEqual(status, sourcesGitReadFailureMessage('boom'));
+		assert.strictEqual((widget as unknown as { list?: WorkbenchList<unknown> }).list?.length ?? 0, 0);
+		assert.strictEqual((host.querySelector('.sources-changes-toolbar') as HTMLElement | null)?.style.display, 'none');
+		assert.ok(!host.querySelector('.sources-changes-list .monaco-list-row'));
+	});
+
+	test('leftover SCM is local-only when session is empty, disconnected, or unsupported', async function () {
+		const leftover = toResource.call(this, '/project/src/leftover.ts');
+		const cases: Array<{
+			label: string;
+			connection?: IUniverseAgentConnection;
+			roster?: IConversationRosterService;
+		}> = [
+			{ label: 'empty session', roster: createRoster('') },
+			{ label: 'disconnected', connection: createNoGitReadConnection() },
+			{ label: 'unsupported', connection: createGitConnection({ unsupportedChanges: true }) },
+		];
+
+		for (const testCase of cases) {
+			const host = mountListHost();
+			store.add(stubSourcesGitListServices({
+				connection: testCase.connection,
+				roster: testCase.roster,
+				scmService: createIndexScmService(leftover),
+			}).createInstance(SourcesChangesList, host));
+
+			const status = await waitForStatusText(host, '.sources-changes-status');
+			assert.strictEqual(status, sourcesGitLocalOnlyMessage(), testCase.label);
+			assert.ok(status.includes('local source control'), testCase.label);
+		}
+	});
+
+	test('Review list empty unifiedDiff does not mark reviewed', async function () {
+		const host = mountListHost();
+		let marked = 0;
+		const widget = store.add(stubSourcesGitListServices({
+			connection: createGitConnection({ emptyFileDiff: true }),
+			markReviewed: () => { marked += 1; },
+		}).createInstance(SourcesReviewList, host));
+		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+
+		await openFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+
+		const status = await waitForStatusText(host, '.sources-review-status', 'Unable to open diff');
+		assert.strictEqual(status, sourcesGitDiffOpenFailureMessage(new Error(sourcesGitEmptyFileDiffMessage())));
+		assert.strictEqual(marked, 0);
+	});
+
+	test('Changes write failure status survives applyRefreshPresentation', async function () {
+		const host = mountListHost();
+		const widget = store.add(stubSourcesGitListServices({
+			connection: createGitConnection({ throwOnStage: true }),
+		}).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		await selectFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+		const stageButton = await waitForEnabledButton(host, '.sources-changes-toolbar .monaco-button');
+		stageButton.click();
+
+		const failed = await waitForStatusText(host, '.sources-changes-status', 'Unable to stage');
+		assert.ok(failed.includes('Unable to stage:'));
+
+		const filter = host.querySelector('.sources-list-filter-input') as HTMLInputElement;
+		assert.ok(filter);
+		filter.value = 'a';
+		filter.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+		await timeout(400);
+
+		assert.strictEqual(host.querySelector('.sources-changes-status')?.textContent ?? '', failed);
+	});
+
+	test('Changes unsupported Commit without local command shows unavailable', async function () {
+		const host = mountListHost();
+		store.add(stubSourcesGitListServices({
+			connection: createGitConnection({ unsupportedCommit: true }),
+		}).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		const input = host.querySelector('.sources-changes-commit-input') as HTMLInputElement;
+		const deadline = Date.now() + 2000;
+		while (Date.now() < deadline && !input) {
+			await timeout(20);
+		}
+		assert.ok(input);
+		input.value = 'fix';
+		input.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+
+		const commitButton = await waitForEnabledButton(host, '.sources-changes-commit .monaco-button');
+		commitButton.click();
+
+		const status = await waitForStatusText(host, '.sources-changes-status', 'not available');
+		assert.strictEqual(status, localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
 	});
 
 	test('review progress keys remain distinct per content hash', () => {
