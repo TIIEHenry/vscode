@@ -36,9 +36,9 @@ export function canSendSourcesGitApplyHunks(connected: boolean, hasHook: boolean
 	return connected && hasHook;
 }
 
-/** Accept RPC payload: both sides required. Empty sessionId or empty patches → no hook. */
+/** Accept RPC payload: both sides required. Empty sessionId or empty / whitespace-only patches → no hook. */
 export function hasSourcesGitApplyHunksPayload(sessionId: string, patches: readonly string[]): boolean {
-	return sessionId !== '' && patches.length > 0;
+	return hasSourcesGitSessionId(sessionId) && patches.some(patch => patch.trim() !== '');
 }
 
 /**
