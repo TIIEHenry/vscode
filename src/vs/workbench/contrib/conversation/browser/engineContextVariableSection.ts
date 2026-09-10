@@ -107,16 +107,12 @@ export class EngineContextVariableSection extends Disposable {
 			typeof hook === 'function',
 		);
 
-		this.rows = [];
-		this.selectedRow = undefined;
-		this.listHost.style.display = 'none';
 		this.readStatus.style.display = 'none';
 		this.readStatus.textContent = '';
-		DOM.clearNode(this.listHost);
-		this.renderedRows = [];
 		this.updateReadAction();
 
 		if (!this.connection.isEngineConnected()) {
+			this.clearListPresentation();
 			this.status.render({
 				mode: 'disconnected',
 				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
@@ -125,6 +121,7 @@ export class EngineContextVariableSection extends Disposable {
 		}
 
 		if (!canSend || !hook) {
+			this.clearListPresentation();
 			this.status.render({
 				mode: 'unsupported',
 				featureLabel: ENGINE_CONTEXT_VARIABLE_LIST_FEATURE,
@@ -163,8 +160,21 @@ export class EngineContextVariableSection extends Disposable {
 		}
 	}
 
+	private clearListPresentation(): void {
+		this.rows = [];
+		this.selectedRow = undefined;
+		this.listHost.style.display = 'none';
+		DOM.clearNode(this.listHost);
+		this.renderedRows = [];
+	}
+
 	private paintList(): void {
+		this.selectedRow = undefined;
+		DOM.clearNode(this.listHost);
+		this.renderedRows = [];
+
 		if (this.rows.length === 0) {
+			this.listHost.style.display = 'none';
 			this.status.render({
 				mode: 'empty',
 				featureLabel: ENGINE_CONTEXT_VARIABLE_LIST_FEATURE,

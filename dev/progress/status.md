@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 关仓：本波 A–D 已合入 merge。D216–D221 已闭。compile-client 0。"
+summary: "loop 关仓：本波 A–D 已合入 merge。D216–D221 已闭。D 槽 D225 Context Variables leftover 已收。compile-client 未跑。"
 ---
 
 # Development Progress
@@ -47,7 +47,7 @@ summary: "loop 关仓：本波 A–D 已合入 merge。D216–D221 已闭。comp
 | **A** | plugins-scan-list-fail | 已进 merge `19ac68c13cf`；[D216](deferred-gaps.md) 已闭 |
 | **B** | catalog-write-list-fail | 已进 merge `a92db1b8cf4`；[D217](deferred-gaps.md)–[D219](deferred-gaps.md) 已闭 |
 | **C** | connection-pair-write-list-fail | 已进 merge `58e5b701902`；[D221](deferred-gaps.md) 已闭；勿 add `dev/loop` |
-| **D** | navigator-agents-activity-fetch-leftover | 已进 merge `6b7c2002b3a`；[D220](deferred-gaps.md) 已闭 |
+| **D** | context-variable-list-leftover | 工位 D [D225](deferred-gaps.md) 已闭；成功后再 list throw 保 leftover 行 + failed；首拉 throw 仍 empty+failed；勿 compile-client |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
@@ -169,6 +169,7 @@ summary: "loop 关仓：本波 A–D 已合入 merge。D216–D221 已闭。comp
 | [D216](deferred-gaps.md) | A `plugins-scan-list-fail` | **closed** scanNew 写成功后再 listPlugins fail 不回刷 lastScan；`refresh()` 返回 listed 才回写；merge compile-client 0 |
 | [D217](deferred-gaps.md)–[D219](deferred-gaps.md) | B `catalog-write-list-fail` | **closed** MCP/Skills/Agents 写成功后再 list fail 不回刷 Added./Created./Saved. 等；`refresh()` 返回 listed 才回写；未占 D216；merge compile-client 0 |
 | [D221](deferred-gaps.md) | C `connection-pair-write-list-fail` | **closed** PairApprove/Reject 写成功后再 ListDevices / ListPending fail 不回刷 pair-success；merge compile-client 0 |
+| [D225](deferred-gaps.md) | D `context-variable-list-leftover` | **closed** Context Variables 成功后再 list throw 保 leftover 行 + failed，不得装「No context variables.」；首拉 throw 仍 empty+failed；未 compile-client |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）
