@@ -35,6 +35,7 @@ import {
 	getTeamTreeEmptyCopy,
 	INavigatorTeamMemberEntry,
 	INavigatorTeamTaskEntry,
+	NAVIGATOR_TEAM_LOADING_COPY,
 } from '../common/navigatorTeamData.js';
 import { collectLiveAgentTreeAgentIds, EMPTY_LIVE_AGENT_IDS } from '../common/navigatorAgentHierarchy.js';
 import { getNavigatorAgentTreePendingCopy, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
@@ -420,6 +421,11 @@ export class NavigatorTeamView extends ViewPane {
 			this.setTaskEntries([], TEAM_UNSUPPORTED_COPY);
 			this.hadTeamSnapshot = true;
 			this.setTeamSnapshotNote(undefined);
+			return;
+		}
+		if (teamCapability === 'UNKNOWN') {
+			this.inspectService.setLiveAgentIds('team', undefined);
+			this.setTeamAfterTreeEmpty(NAVIGATOR_TEAM_LOADING_COPY);
 			return;
 		}
 

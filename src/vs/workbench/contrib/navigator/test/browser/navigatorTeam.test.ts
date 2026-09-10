@@ -7,7 +7,7 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { getNavigatorAgentTreePendingCopy } from '../../common/navigatorAgentTreeEmptyState.js';
-import { findManagerNodes, getTeamTreeEmptyCopy } from '../../common/navigatorTeamData.js';
+import { findManagerNodes, getTeamTreeEmptyCopy, NAVIGATOR_TEAM_LOADING_COPY } from '../../common/navigatorTeamData.js';
 
 suite('NavigatorTeam (N4)', () => {
 
@@ -90,6 +90,14 @@ suite('NavigatorTeam (N4)', () => {
 			getNavigatorAgentTreePendingCopy('UNKNOWN', undefined),
 			getTeamTreeEmptyCopy('UNKNOWN', undefined),
 		);
+	});
+
+	test('UNKNOWN with retained liveTree is agent-tree loading, not live or no-team', () => {
+		assert.strictEqual(getNavigatorAgentTreePendingCopy('UNKNOWN', treeWithManager), 'Reading agent tree…');
+		assert.strictEqual(getTeamTreeEmptyCopy('UNKNOWN', treeWithManager), 'Reading agent tree…');
+		assert.strictEqual(NAVIGATOR_TEAM_LOADING_COPY, '正在读取…');
+		assert.notStrictEqual(NAVIGATOR_TEAM_LOADING_COPY, getNavigatorAgentTreePendingCopy('UNKNOWN', treeWithManager));
+		assert.notStrictEqual(NAVIGATOR_TEAM_LOADING_COPY, getNavigatorAgentTreePendingCopy('UNKNOWN', undefined));
 	});
 
 	test('Hierarchy and Team share the same fail empty copy (D21)', () => {
