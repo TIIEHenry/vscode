@@ -1221,6 +1221,15 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			assert.ok(editorStatus);
 			assert.notStrictEqual(editorStatus.textContent, ENGINE_AGENTS_SAVE_SUCCESS_COPY);
 			assert.ok(!(editorStatus.textContent ?? '').includes(ENGINE_AGENTS_SAVE_SUCCESS_COPY));
+
+			await section.restoreMarkdownSaveSuccessWithLeftoverReadyForTest('demo');
+			assert.strictEqual(canPerformCatalogWrite(section.getMode()), true);
+			assert.notStrictEqual(editorStatus.textContent, ENGINE_AGENTS_SAVE_SUCCESS_COPY);
+			assert.ok(!(editorStatus.textContent ?? '').includes(ENGINE_AGENTS_SAVE_SUCCESS_COPY));
+			const leftoverWriteStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+			assert.ok(leftoverWriteStatus);
+			assert.notStrictEqual(leftoverWriteStatus.textContent, ENGINE_AGENTS_SAVE_SUCCESS_COPY);
+			assert.ok(!(leftoverWriteStatus.textContent ?? '').includes(ENGINE_AGENTS_SAVE_SUCCESS_COPY));
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);

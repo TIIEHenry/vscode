@@ -221,6 +221,8 @@ export class EngineAgentsSection extends Disposable {
 	private readonly toolCheckboxStore = this._register(new DisposableStore());
 
 	private mode: EngineCatalogPaneMode = 'disconnected';
+	/** Last write-path `refresh()` listed result (D219 helper; markdown Save second paint). */
+	private lastWriteRefreshListed = false;
 	private listEntries: EngineAgentListEntry[] = [];
 	private selectedProfile: UniverseAgentAgentProfileSummary | undefined;
 	private agentsEditorLoadGeneration = 0;
@@ -587,11 +589,7 @@ export class EngineAgentsSection extends Disposable {
 		if (ok) {
 			this.loadedAgentsMarkdown = this.agentsEditorInput.value;
 			this.agentsMarkdownDirty = false;
-			if (canPerformCatalogWrite(this.mode)) {
-				await this.selectProfileByIdForTest(profileId);
-				this.showAgentsEditorStatus(ENGINE_AGENTS_SAVE_SUCCESS_COPY);
-				this.showCatalogWriteStatus(ENGINE_AGENTS_SAVE_SUCCESS_COPY);
-			}
+			await this.restoreMarkdownSaveSuccessIfListed(profileId);
 		} else {
 			this.showAgentsEditorStatus(localize(
 				'ua.engineAgentsMdSaveFailed',
@@ -645,12 +643,33 @@ export class EngineAgentsSection extends Disposable {
 		this.catalogWriteStatus.textContent = message;
 	}
 
-	private async restoreCatalogWriteSuccessAfterRefresh(copy: string): Promise<void> {
+	private async restoreCatalogWriteSuccessAfterRefresh(copy: string): Promise<boolean> {
 		this.showCatalogWriteStatus(copy);
 		const listed = await this.refresh();
+		this.lastWriteRefreshListed = listed;
 		if (listed) {
 			this.showCatalogWriteStatus(copy);
 		}
+		return listed;
+	}
+
+	private async restoreMarkdownSaveSuccessIfListed(profileId: string): Promise<void> {
+		if (!this.lastWriteRefreshListed) {
+			return;
+		}
+		await this.selectProfileByIdForTest(profileId);
+		this.showAgentsEditorStatus(ENGINE_AGENTS_SAVE_SUCCESS_COPY);
+		this.showCatalogWriteStatus(ENGINE_AGENTS_SAVE_SUCCESS_COPY);
+	}
+
+	/**
+	 * Test hook: leftover rows can leave mode `ready`/`empty` after an unlisted
+	 * refresh. Re-runs the markdown Save success paint so tests lock the listed
+	 * gate (not `canPerformCatalogWrite`).
+	 */
+	async restoreMarkdownSaveSuccessWithLeftoverReadyForTest(profileId: string): Promise<void> {
+		this.mode = 'ready';
+		await this.restoreMarkdownSaveSuccessIfListed(profileId);
 	}
 
 	private showCatalogWriteFailed(message: string): void {
