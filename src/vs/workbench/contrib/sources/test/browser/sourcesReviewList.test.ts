@@ -20,7 +20,7 @@ import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
 import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
 import { SourcesReviewList } from '../../browser/sourcesReviewList.js';
-import { sourcesGitDiffOpenFailureMessage, sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage } from '../../common/sourcesChangesGitRead.js';
+import { sourcesGitDiffOpenFailureMessage, sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadUnavailableNoHookMessage } from '../../common/sourcesChangesGitRead.js';
 import { ISourcesChangeEntry } from '../../common/sourcesChangesModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
 import { ISourcesReviewAttributionService } from '../../common/sourcesReviewAttribution.js';
@@ -476,6 +476,55 @@ suite('Sources - review list model', () => {
 		assert.ok(host.querySelector('.sources-review-list .monaco-list-row'));
 		assert.strictEqual((host.querySelector('.sources-review-empty') as HTMLElement).style.display, 'none');
 		assert.ok(!(host.querySelector('.sources-review-empty')?.textContent ?? '').includes(localize('sourcesReviewList.noChanges', "No changes to review.")));
+	});
+
+	test('Review list success then missing readGitChanges keeps leftover rows and does not paint local-only', async function () {
+		const onDidChangeConnection = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
+		const leftoverPath = 'src/leftover.ts';
+		const connection = {
+			isEngineConnected: () => true,
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				entries: [{ path: leftoverPath, oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+			}),
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+		} as unknown as IUniverseAgentConnection;
+		const scmStub = toResource.call(this, '/project/src/scm-stub.ts');
+		const host = mountListHost();
+		const widget = store.add(stubSourcesGitListServices({
+			connection,
+			scmService: createIndexScmService(scmStub),
+		}).createInstance(SourcesReviewList, host));
+		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<unknown> });
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual((list.element(0) as { gitPath?: string }).gitPath, leftoverPath);
+
+		delete (connection as { readGitChanges?: unknown }).readGitChanges;
+		onDidChangeConnection.fire({
+			transport: 'ok',
+			sharedFsRootSent: false,
+			pairingPending: false,
+			channelAlive: true,
+			capabilities: {} as never,
+		});
+
+		const status = await waitForStatusText(host, '.sources-review-status', 'no git changes API');
+		assert.strictEqual(status, sourcesGitReadUnavailableNoHookMessage());
+		assert.ok(!status.includes('local source control'));
+		assert.notStrictEqual(status, sourcesGitLocalOnlyMessage());
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual((list.element(0) as { gitPath?: string }).gitPath, leftoverPath);
+		assert.strictEqual((list.element(0) as { scmResource?: unknown }).scmResource, undefined);
 	});
 
 	test('Changes list status DOM shows git-read throw', async function () {
