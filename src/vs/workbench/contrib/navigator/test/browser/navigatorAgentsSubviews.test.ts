@@ -684,7 +684,7 @@ suite('Navigator Agents subviews', () => {
 				notices.push(typeof message === 'string' ? message : String(message));
 			},
 			error: () => { },
-		} as INotificationService);
+		} as unknown as INotificationService);
 		const stubViewContainer = {
 			id: 'navigator-agents-test-container',
 			title: { value: 'Agents', original: 'Agents' },

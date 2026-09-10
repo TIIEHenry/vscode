@@ -647,7 +647,7 @@ suite('Navigator Team subviews', () => {
 				notices.push(typeof message === 'string' ? message : String(message));
 			},
 			error: () => { },
-		} as INotificationService);
+		} as unknown as INotificationService);
 		const stubViewContainer = {
 			id: 'navigator-team-test-container',
 			title: { value: 'Team', original: 'Team' },
