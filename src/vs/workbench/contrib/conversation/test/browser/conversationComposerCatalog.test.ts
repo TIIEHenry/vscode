@@ -8,7 +8,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import type { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { conversationLensDockCatalogProbing, conversationLensDockNoAgent, conversationLensDockNoModel } from '../../browser/conversationLensDockStrings.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from '../../browser/conversationComposerCatalog.js';
-import { loadConnectedComposerCatalogs, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
+import { loadConnectedComposerCatalogs, refreshComposerCatalogs, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('conversationComposerCatalog', () => {
@@ -94,9 +94,10 @@ suite('conversationComposerCatalog', () => {
 		assert.strictEqual(host.getSessionConfig('s1').agentIndex, 0);
 	});
 
-	test('loadConnectedComposerCatalogs success then throw clears leftover agent and model options', async () => {
+	test('loadConnectedComposerCatalogs success then SUPPORTED throw keeps last-good catalogs', async () => {
 		let listAgentProfilesCalls = 0;
 		let listModelsCalls = 0;
+		let listToolsCalls = 0;
 		const { host, agentOptions, modelOptions } = createLoadCatalogHost({
 			listAgentProfiles: async () => {
 				listAgentProfilesCalls++;
@@ -112,7 +113,13 @@ suite('conversationComposerCatalog', () => {
 				}
 				throw new Error('listModels retry exploded');
 			},
-			listTools: async () => ({ tools: [{ name: 'bash' }] }),
+			listTools: async () => {
+				listToolsCalls++;
+				if (listToolsCalls === 1) {
+					return { tools: [{ name: 'bash' }] };
+				}
+				throw new Error('listTools retry exploded');
+			},
 		});
 
 		await loadConnectedComposerCatalogs(host, 1);
@@ -120,16 +127,61 @@ suite('conversationComposerCatalog', () => {
 		assert.ok(agentOptions.some(option => option.text === 'Coder'));
 		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
 		assert.deepStrictEqual([...host.catalogModelIds], ['', 'gpt-test']);
+		assert.deepStrictEqual([...host.catalogToolNames], ['bash']);
 		host.modelSelectedIndex = 1;
 
 		await loadConnectedComposerCatalogs(host, 1);
 
-		assert.deepStrictEqual(agentOptions, [{ text: conversationLensDockNoAgent }]);
-		assert.deepStrictEqual(modelOptions, [{ text: conversationLensDockNoModel }]);
-		assert.deepStrictEqual([...host.catalogModelIds], ['']);
-		assert.strictEqual(host.modelSelectedIndex, 0);
-		assert.ok(!agentOptions.some(option => option.text === 'Coder'));
-		assert.ok(!modelOptions.some(option => option.text === 'gpt-test'));
+		assert.ok(agentOptions.some(option => option.text === 'Coder'));
+		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
+		assert.deepStrictEqual([...host.catalogModelIds], ['', 'gpt-test']);
+		assert.deepStrictEqual([...host.catalogToolNames], ['bash']);
+		assert.ok(!agentOptions.every(option => option.text === conversationLensDockNoAgent));
+		assert.ok(!modelOptions.every(option => option.text === conversationLensDockNoModel));
+	});
+
+	test('refreshComposerCatalogs pre-clear does not win when SUPPORTED list throws after live catalog', async () => {
+		let listAgentProfilesCalls = 0;
+		let listModelsCalls = 0;
+		let listToolsCalls = 0;
+		const { host, agentOptions, modelOptions } = createLoadCatalogHost({
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				if (listAgentProfilesCalls === 1) {
+					return { profiles: [{ id: 'coder', name: 'Coder', source: 'user' }] };
+				}
+				throw new Error('listAgentProfiles retry exploded');
+			},
+			listModels: async () => {
+				listModelsCalls++;
+				if (listModelsCalls === 1) {
+					return { models: [{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' }] };
+				}
+				throw new Error('listModels retry exploded');
+			},
+			listTools: async () => {
+				listToolsCalls++;
+				if (listToolsCalls === 1) {
+					return { tools: [{ name: 'bash' }] };
+				}
+				throw new Error('listTools retry exploded');
+			},
+		});
+
+		await loadConnectedComposerCatalogs(host, host.composerCatalogGeneration);
+		assert.ok(agentOptions.some(option => option.text === 'Coder'));
+		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
+		assert.deepStrictEqual([...host.catalogToolNames], ['bash']);
+
+		refreshComposerCatalogs(host);
+		await loadConnectedComposerCatalogs(host, host.composerCatalogGeneration);
+
+		assert.ok(agentOptions.some(option => option.text === 'Coder'));
+		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
+		assert.deepStrictEqual([...host.catalogModelIds], ['', 'gpt-test']);
+		assert.deepStrictEqual([...host.catalogToolNames], ['bash']);
+		assert.ok(!agentOptions.every(option => option.text === conversationLensDockNoAgent));
+		assert.ok(!modelOptions.every(option => option.text === conversationLensDockNoModel));
 	});
 
 	test('loadConnectedComposerCatalogs UNKNOWN without last-good paints probing not empty-fail', async () => {
@@ -232,6 +284,9 @@ function createLoadCatalogHost(
 		},
 		getBoundSessionId: () => 's1',
 		getSessionConfig: () => ({ agentIndex: 0 }),
+		stubService: { isEngineConnected: () => true },
+		updateSendEnabled() { },
+		updateGateRow() { },
 		uaConnection: createConversationConnectionTestStub({
 			getCapabilitySnapshot: () => {
 				const resolved = typeof support === 'function' ? support() : support;

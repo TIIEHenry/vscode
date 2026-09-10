@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-10
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D233 已闭；D230–D233 catalog leftover；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D235 已闭；D235 composer leftover；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -247,6 +247,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D233 已闭；D230
 | D231 | P3 | **closed** Skills `refresh()` catch 在活画后不再 `clearCatalogPresentation()`（D226/D225 同胞；不再走 D49 空失败）。成功后再 `listSkills` throw 保 leftover 行并画 failed；首拉 throw 仍 empty+failed。不得画「No skills yet.」接通空成功。未占 Plugins/MCP/Agents/Tools/connection/navigator / proto / 引擎仓 | 工位 B `skills-list-leftover` 已收 | 成功→listSkills throw leftover 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；补 `engineSkillsSection.test.ts` | conversation / skills | closed |
 | D232 | P3 | **closed** MCP Definitions `refresh()` catch 在活画后不再 `clearCatalogPresentation()`（D226 / D225 同胞；不再走 D49 空失败）。成功后再 `listMcpServers` throw 保 leftover 行并画 failed；首拉 throw 仍 empty+failed。不得画「No MCP servers yet.」接通空成功。未占 MCP Runtime（D227）/ Skills/Plugins/Agents/Tools / connection pane / navigator / proto / 引擎仓 | 工位 C `mcp-defs-list-leftover` 已收 | 成功→list throw leftover 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；补 `engineCatalogSections.test.ts` | conversation / mcp-definitions | closed |
 | D233 | P3 | **closed** Agents `refresh()` catch 在活画后不再 `clearCatalogPresentation()`（D226 / D225 同胞；不再走 D46 空失败）。成功后再 `listAgentProfiles` throw 保 leftover 行并画 failed；首拉 throw 仍 empty+failed。不得画「No agent profiles yet.」接通空成功。未重做 markdown listed 闸（D223）；未占 Tools / MCP / Skills / Plugins / connection pane / navigator / proto / 引擎仓 | 工位 D `agents-list-leftover` 已收 | 成功→list throw leftover 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；补 `engineCatalogSections.test.ts` | conversation / agents | closed |
+| D235 | P3 | **closed** Composer `loadConnectedComposerCatalogs` 在 capability **SUPPORTED** 时 list throw 不再把活 catalog 画成 No agent / No model / 空 tools（D50 空失败的反面；D225 leftover 诚实）。catch 保 `rememberLastGoodComposerCatalog`，抵消 `refreshComposerCatalogs` 预清空；无 last-good 首拉 throw 仍空。未重开 D204 UNKNOWN probing；未改断连 refresh | 工位 B `composer-supported-throw-keep-last` 已收 | 成功→SUPPORTED throw 末次 agent/model/tools 仍在；首拉 throw 仍 No agent / No model / 空 tools；补 `conversationComposerCatalog.test.ts` | conversation / composer | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 
