@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 关仓：D250–D253 已合入；merge compile-client 0。待 push 后对齐工位。"
+summary: "loop 关仓：D254–D257 已合入；merge compile-client 0。待 push 后对齐工位。"
 ---
 
 # Development Progress
@@ -44,8 +44,8 @@ summary: "loop 关仓：D250–D253 已合入；merge compile-client 0。待 pus
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | mcp-unknown-leftover | 已进 merge；[D254](deferred-gaps.md) 已闭；未 compile-client |
-| **B** | tools-unknown-leftover | 已进 merge；[D255](deferred-gaps.md) 已闭；未 compile-client |
+| **A** | mcp-unknown-leftover | 已进 merge；[D254](deferred-gaps.md) 已闭 |
+| **B** | tools-unknown-leftover | 已进 merge；[D255](deferred-gaps.md) 已闭 |
 | **C** | mcp-runtime-unknown-leftover | 已进 merge；[D256](deferred-gaps.md) 已闭；勿 add `dev/loop` |
 | **D** | clipboard-unsupported-leftover | 已进 merge；[D257](deferred-gaps.md) 已闭 |
 
@@ -177,7 +177,7 @@ summary: "loop 关仓：D250–D253 已合入；merge compile-client 0。待 pus
 | [D230](deferred-gaps.md)–[D233](deferred-gaps.md) | A–D catalog leftover | **closed** Plugins / Skills / MCP Definitions / Agents 成功后再 list throw 保 leftover + failed；merge compile-client 0 |
 | [D234](deferred-gaps.md)–[D237](deferred-gaps.md) | A–D leftover 关仓波 | **closed** ProviderModel list throw / Composer SUPPORTED keep-last / Team catch leftover / Hierarchy pending leftover；merge compile-client 0 |
 | [D238](deferred-gaps.md)–[D241](deferred-gaps.md) | A–D leftover 关仓波 | **closed** MCP Runtime tools / Clipboard / Triggers list throw leftover；Team pending/treeEmpty leftover；merge compile-client 0 |
-| [D242](deferred-gaps.md)–[D253](deferred-gaps.md) | A–D leftover 关仓波 | **closed** list-throw leftover + catalog UNKNOWN leftover（Plugins/Skills/ProviderModel/Agents）；merge compile-client 0 |
+| [D242](deferred-gaps.md)–[D257](deferred-gaps.md) | A–D leftover 关仓波 | **closed** list-throw leftover + catalog UNKNOWN leftover + Clipboard no-hook leftover；merge compile-client 0 |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）
@@ -194,7 +194,7 @@ summary: "loop 关仓：D250–D253 已合入；merge compile-client 0。待 pus
 | 项 | 指针 |
 |:---|:-----|
 | **引擎 store 迁移卡死** | [D26](deferred-gaps.md) 病因已改口（2026-09-09）：`user_version=0` + 表已建 ⇒ 迁移抛错 ⇒ 库永久打不开 ⇒ `LookupFailed` fail-closed deny ⇒ `ALREADY_EXISTS`（**设计内拒绝**）。根因与交接见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md)；D25 同源。**禁改引擎仓代码**；原闭合条件「Create 先写 meta」已撤回；不要再清 store |
-| **loop 切片** | D250–D253 已 compile-client 0；下一波从代码搜 leftover（D254+）。勿派 D147 / 勿开 F3·A2 / 勿发明 proto / 勿改引擎仓 |
+| **loop 切片** | D254–D257 已 compile-client 0；下一波 leftover（D258+：Triggers/Context Variables no-hook）。勿派 D147 / 勿开 F3·A2 / 勿发明 proto / 勿改引擎仓 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + CI 绿 + merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
