@@ -110,10 +110,13 @@ suite('Sources - Changes git write', () => {
 		});
 	});
 
-	test('Accept payload requires both sessionId and patches', () => {
+	test('Accept payload requires both sessionId and a non-empty patch', () => {
 		assert.strictEqual(hasSourcesGitApplyHunksPayload('', []), false);
 		assert.strictEqual(hasSourcesGitApplyHunksPayload('sess-1', []), false);
 		assert.strictEqual(hasSourcesGitApplyHunksPayload('', ['p']), false);
+		assert.strictEqual(hasSourcesGitApplyHunksPayload('sess-1', ['']), false);
+		assert.strictEqual(hasSourcesGitApplyHunksPayload('sess-1', ['  ']), false);
+		assert.strictEqual(hasSourcesGitApplyHunksPayload('sess-1', ['', '  ']), false);
 		assert.strictEqual(hasSourcesGitApplyHunksPayload('sess-1', ['p']), true);
 	});
 
@@ -346,6 +349,8 @@ suite('Sources - Changes git write', () => {
 		assert.strictEqual(await tryWriteSourcesGitApplyHunks(true, hook), undefined);
 		assert.strictEqual(await tryWriteSourcesGitApplyHunks(true, hook, 'sess-1'), undefined);
 		assert.strictEqual(await tryWriteSourcesGitApplyHunks(true, hook, '', ['a'], ['p']), undefined);
+		assert.strictEqual(await tryWriteSourcesGitApplyHunks(true, hook, 'sess-1', [], ['']), undefined);
+		assert.strictEqual(await tryWriteSourcesGitApplyHunks(true, hook, 'sess-1', [], ['  ']), undefined);
 		assert.deepStrictEqual(applyCalls, []);
 
 		const applied = await tryWriteSourcesGitApplyHunks(true, hook, 'sess-1', ['a'], ['p']);

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 关仓：A–D 四槽已合入 merge。D197 / D199–D204 / D206 已闭；D205 仍开。待一路 compile。"
+summary: "loop 关仓中：C D206、D D196 已合；A D205 / B D195 仍在工位。D196 / D197 / D199–D204 / D206 已闭；D195 / D198 / D205 仍开。"
 ---
 
 # Development Progress
@@ -44,10 +44,10 @@ summary: "loop 关仓：A–D 四槽已合入 merge。D197 / D199–D204 / D206 
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | conversation-fork-unknown-honesty | 已进 merge `5fc3c8ca092`；[D202](deferred-gaps.md)/[D204](deferred-gaps.md) 已闭 |
-| **B** | navigator-inspect-lease-honesty | 已进 merge `b77177da870`；[D197](deferred-gaps.md) 已闭；[D205](deferred-gaps.md) |
-| **C** | mcp-catalog-unknown-leftover | 本刀 MCP UNKNOWN 先清行再 loading；[D206](deferred-gaps.md) 已闭；勿 add `dev/loop` |
-| **D** | catalog-defaults-unknown-triggers | 已进 merge `3664ea9249e`；[D199](deferred-gaps.md)–[D201](deferred-gaps.md) 已闭 |
+| **A** | navigator-live-id-sentinel | 工位进行中 [D205](deferred-gaps.md) |
+| **B** | sources-git-summary-throw | 工位进行中 [D195](deferred-gaps.md) |
+| **C** | mcp-catalog-unknown-leftover | 已进 merge `9667f3a8eba`；[D206](deferred-gaps.md) 已闭；勿 add `dev/loop` |
+| **D** | sources-git-apply-hunks-payload | 已进 merge `62a20244ca2`；[D196](deferred-gaps.md) 已闭 |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>

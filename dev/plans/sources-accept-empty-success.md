@@ -3,8 +3,8 @@ title: "Sources Accept：空载荷宿主拒送（产品切片）"
 type: plan
 status: draft
 phase: N/A
-updated: 2026-09-07
-summary: "R8/ADR-008 之后：A1 宿主拒空已落。P5 停线已裁定：A2 仍 blocked，须新选定 + 独立 Arch-First。D31 F4 仍开。"
+updated: 2026-09-10
+summary: "R8/ADR-008 之后：A1 宿主拒空已落；D196 空串/空白 patches 亦拒送。P5 停线已裁定：A2 仍 blocked，须新选定 + 独立 Arch-First。D31 F4 仍开。"
 ---
 
 # Sources Accept：空载荷宿主拒送
@@ -26,7 +26,7 @@ summary: "R8/ADR-008 之后：A1 宿主拒空已落。P5 停线已裁定：A2 �
 
 | 证据 | 事实 |
 |:-----|:-----|
-| `sourcesChangesGitWrite.ts` L35–37 / L69–78 / L218–231 | `hasSourcesGitApplyHunksPayload`：空 session **或** `patches.length === 0` 不调 hook。`patches: ['']` 能过门（只查 length），**不是**真实 apply 载荷 |
+| `sourcesChangesGitWrite.ts` L35–37 / L69–78 / L218–231 | `hasSourcesGitApplyHunksPayload`：空 session **或** 无 `trim()` 非空 patch 不调 hook。`['']` / `['  ']` 不算载荷（[D196](../progress/deferred-gaps.md) 已闭） |
 | `conversationDiffReviewPane.ts` L252–255 / `sourcesDiffPanelView.ts` L348–351 | `runAccept` **不传** session / argv / patches；无 roster 注入 |
 | `isSourcesGitWriteAccepted` | 只认 `supported && success`，不看请求是否空（拒空发生在发 RPC 前） |
 | 引擎 `GitWorkDirWriter.kt` L77–78 / L80–82（ADR-008，只读） | 空 `patches` → `success = true` 不跑 `git apply`；空 argv 仅在 patches 非空时拒写 |
@@ -74,7 +74,7 @@ A1 之后空 Accept 走 `fallback` → 有 SCM 则 `git.stage`。土地雷仍是
 
 **产品选项 A（A1，已落）：宿主拒空 Accept。**
 
-1. 谓词：`sessionId !== ''` **且** `patches.length > 0` 才允许发 RPC。缺一侧 → `tryWriteSourcesGitApplyHunks` 不调 hook、回 `undefined` → `attemptSourcesGitWrite` 走 `fallback`。`patches: ['']` 过 length 门，仍不是真实 hunk。
+1. 谓词：`sessionId !== ''` **且** 至少一条 `trim()` 非空 patch 才允许发 RPC。缺一侧 → `tryWriteSourcesGitApplyHunks` 不调 hook、回 `undefined` → `attemptSourcesGitWrite` 走 `fallback`。`['']` / `['  ']` 不算载荷（[D196](../progress/deferred-gaps.md)）。
 2. **P5 停线（本轮只批准这一条）**：**A2 仍 blocked。** 独立审查只批准停线，不批准 A2 实施。现有读面没有非发明的 apply stdin。**禁止**只接线 session。**禁止**把 `unified_diff`（已缓存或再拉的 `ReadGitFileDiff`）或 parse/monaco 还原两侧当成 `patches`。**禁止**把 Stage `{ argv: [path] }` 映射到 Apply。A2 须**新**选定设计 + **新**独立 Arch-First；本裁定不是解锁条件。缺源记 [D31](../progress/deferred-gaps.md) leftover。
 3. `isSourcesGitWriteAccepted` 的 `supported && success` 口径可留；拒空发生在发 RPC 之前，空 no-op 进不了 accepted。
 4. Stage / Commit 空 `sessionId` **不在本切片**（仍按既有合同空送）。
