@@ -4,15 +4,22 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
+	UniverseAgentConnectionSnapshot,
 	UniverseAgentContextVariableListRequest,
 	UniverseAgentContextVariableListResult,
 	UniverseAgentContextVariableReadRequest,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { ENGINE_CONTEXT_VARIABLE_READ_LABEL } from '../../browser/engineContextVariableList.js';
+import { getCatalogFailedCopy } from '../../browser/engineCatalog.js';
+import {
+	ENGINE_CONTEXT_VARIABLE_LIST_EMPTY_COPY,
+	ENGINE_CONTEXT_VARIABLE_LIST_FEATURE,
+	ENGINE_CONTEXT_VARIABLE_READ_LABEL,
+} from '../../browser/engineContextVariableList.js';
 import { EngineContextVariableSection } from '../../browser/engineContextVariableSection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 
@@ -104,7 +111,69 @@ suite('EngineContextVariableSection', () => {
 		await flushMicrotasks();
 		assert.strictEqual(listContextVariableCalls, 1);
 		assert.strictEqual(pane.getDomNode().querySelector('.engine-context-variable-row'), null);
-		assert.ok((pane.getDomNode().textContent ?? '').includes('No context variables.'));
+		assert.ok((pane.getDomNode().textContent ?? '').includes(ENGINE_CONTEXT_VARIABLE_LIST_EMPTY_COPY));
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('List first-pull throw is failed with no leftover rows', async () => {
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listContextVariable: async () => {
+				throw new Error('listContextVariable exploded');
+			},
+		}));
+		await flushMicrotasks();
+		assert.strictEqual(pane.getDomNode().querySelector('.engine-context-variable-row'), null);
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(ENGINE_CONTEXT_VARIABLE_LIST_FEATURE, 'listContextVariable exploded')));
+		assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_CONTEXT_VARIABLE_LIST_EMPTY_COPY));
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('List success then throw keeps leftover rows and paints failed', async () => {
+		let listContextVariableCalls = 0;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const leftover = {
+			name: 'leftover-var',
+			scope: 'VARIABLE_GLOBAL' as const,
+			updatedBy: 'agent',
+			updatedAt: 1,
+			contentPreview: 'preview',
+		};
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			onDidChangeConnection: onDidChangeConnection.event,
+			listContextVariable: async (): Promise<UniverseAgentContextVariableListResult> => {
+				listContextVariableCalls++;
+				if (listContextVariableCalls === 1) {
+					return { current: [leftover], inherited: [] };
+				}
+				throw new Error('listContextVariable retry exploded');
+			},
+		});
+		const pane = mountSection(connection);
+		await flushMicrotasks();
+		const liveRow = pane.getDomNode().querySelector('.engine-context-variable-row');
+		assert.ok(liveRow);
+		assert.strictEqual(liveRow.textContent, 'current — leftover-var — VARIABLE_GLOBAL — agent — 1 — preview');
+		assert.strictEqual(listContextVariableCalls, 1);
+
+		onDidChangeConnection.fire(connection.getConnectionSnapshot());
+		await flushMicrotasks();
+
+		assert.strictEqual(listContextVariableCalls, 2);
+		const leftoverRows = pane.getDomNode().querySelectorAll('.engine-context-variable-row');
+		assert.strictEqual(leftoverRows.length, 1);
+		assert.strictEqual(leftoverRows[0].textContent, 'current — leftover-var — VARIABLE_GLOBAL — agent — 1 — preview');
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(ENGINE_CONTEXT_VARIABLE_LIST_FEATURE, 'listContextVariable retry exploded')));
+		assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_CONTEXT_VARIABLE_LIST_EMPTY_COPY));
 		pane.getDomNode().parentElement?.remove();
 	});
 

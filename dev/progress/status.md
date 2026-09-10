@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 重启：A 槽 plugins-enable-listed-gate。D222 已闭（Enable/Reload/Unload 仅 listed 回刷）。未 compile-client。"
+summary: "loop 本波：A D222、D D225 已合；B/C 仍在工位。未 compile-client。"
 ---
 
 # Development Progress
@@ -47,7 +47,7 @@ summary: "loop 重启：A 槽 plugins-enable-listed-gate。D222 已闭（Enable/
 | **A** | plugins-enable-listed-gate | [D222](deferred-gaps.md) 已闭：Enable/Reload/Unload `runWrite` 仅 `listed === true` 回刷成功文案；既有 list-fail 测仍绿；未 compile-client |
 | **B** | catalog-write-list-fail | 已进 merge `a92db1b8cf4`；[D217](deferred-gaps.md)–[D219](deferred-gaps.md) 已闭 |
 | **C** | connection-pair-write-list-fail | 已进 merge `58e5b701902`；[D221](deferred-gaps.md) 已闭；勿 add `dev/loop` |
-| **D** | navigator-agents-activity-fetch-leftover | 已进 merge `6b7c2002b3a`；[D220](deferred-gaps.md) 已闭 |
+| **D** | context-variable-list-leftover | 已进 merge `677afb487ce`；[D225](deferred-gaps.md) 已闭；成功后再 list throw 保 leftover + failed |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
@@ -170,6 +170,7 @@ summary: "loop 重启：A 槽 plugins-enable-listed-gate。D222 已闭（Enable/
 | [D222](deferred-gaps.md) | A `plugins-enable-listed-gate` | **closed** Enable/Reload/Unload 写成功后再 listPlugins fail 不回刷 Enabled./Reloaded./Unloaded.；`refresh()` 返回 listed 才回写（不再用 mode 代理）；未 compile-client |
 | [D217](deferred-gaps.md)–[D219](deferred-gaps.md) | B `catalog-write-list-fail` | **closed** MCP/Skills/Agents 写成功后再 list fail 不回刷 Added./Created./Saved. 等；`refresh()` 返回 listed 才回写；未占 D216；merge compile-client 0 |
 | [D221](deferred-gaps.md) | C `connection-pair-write-list-fail` | **closed** PairApprove/Reject 写成功后再 ListDevices / ListPending fail 不回刷 pair-success；merge compile-client 0 |
+| [D225](deferred-gaps.md) | D `context-variable-list-leftover` | **closed** Context Variables 成功后再 list throw 保 leftover 行 + failed，不得装「No context variables.」；首拉 throw 仍 empty+failed；未 compile-client |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）
