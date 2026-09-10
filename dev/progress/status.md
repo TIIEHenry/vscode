@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-09
-summary: "gate-recovery 已合入；人类工位 D26 改口与跨仓 bug 车道已合入。compile 0；四域 unit-custom 绿；全仓 eslint 0。loop 切片已停。D8 / D16 / D147 / D194 仍开。未 push。"
+summary: "gate-recovery 与人类工位 D26 改口已合入并 push origin/agent-ide、origin/loop/merge @ 484cec7538b。compile 0；四域绿；eslint 0。loop 切片已停。D8 / D16 / D147 / D194 仍开。"
 ---
 
 # Development Progress
@@ -42,7 +42,7 @@ summary: "gate-recovery 已合入；人类工位 D26 改口与跨仓 bug 车道�
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
 ### 进行中（2026-09-09 · 停 loop 切片 · 合入门禁线）
-人类裁定：停 loop 新切片，先收门禁；合并须包括人类工位。门禁已合入。人类工位账（D26 store 迁移改口、§3.4 bug 车道、report）已合入 `loop/merge`。compile 0、eslint 0、四域绿仍有效。**禁止再开 D194+ catch。** 未 push。
+人类裁定：停 loop 新切片，先收门禁；合并须包括人类工位。门禁与 D26 改口已合入并 **已 push** `origin/agent-ide` / `origin/loop/merge` @ `484cec7538b`。字母槽 A–D 与人类工位已 ff 对齐，保留各槽脏文件（C / edit 的 `dev/loop`）。**禁止再开 D194+ catch。**
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
@@ -164,18 +164,18 @@ summary: "gate-recovery 已合入；人类工位 D26 改口与跨仓 bug 车道�
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `1e69f56aeae` | 干净 | 0 | 含 D26 改口；compile/eslint/四域绿；**不 push** |
-| A | `vscode-WorkTrees/A` | `loop/A` | `b2d8bc37f08` | `__pycache__` | 0 | idle；切片已停，勿占 |
-| B | `vscode-WorkTrees/B` | `loop/B` | `b2d8bc37f08` | `__pycache__` | 0 | idle；切片已停，勿占 |
-| C | `vscode-WorkTrees/C` | `loop/C` | `b2d8bc37f08` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `b2d8bc37f08` | `__pycache__` | 0 | idle；切片已停，勿占 |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `484cec7538b` | 干净 | 0 | 已 push 同 SHA |
+| A | `vscode-WorkTrees/A` | `loop/A` | `484cec7538b` | 干净 | 0 | idle；已对齐；切片已停 |
+| B | `vscode-WorkTrees/B` | `loop/B` | `484cec7538b` | 干净 | 0 | idle；已对齐；切片已停 |
+| C | `vscode-WorkTrees/C` | `loop/C` | `484cec7538b` | 未提交 `dev/loop` | 0 | idle；已对齐；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `484cec7538b` | 干净 | 0 | idle；已对齐；切片已停 |
 | E | `vscode-WorkTrees/E` | `fix/gate-recovery` | `4140eab214c` | 干净 | 0 | 已合入 merge；勿再开 catch |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `1e69f56aeae` | `dev/loop` | 0 | 已对齐 loop/merge；勿 add `dev/loop` |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `484cec7538b` | `dev/loop` + `.idea` | 0 | 已对齐并 push；勿 add `dev/loop` |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
 | **引擎 store 迁移卡死** | [D26](deferred-gaps.md) 病因已改口（2026-09-09）：`user_version=0` + 表已建 ⇒ 迁移抛错 ⇒ 库永久打不开 ⇒ `LookupFailed` fail-closed deny ⇒ `ALREADY_EXISTS`（**设计内拒绝**）。根因与交接见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md)；D25 同源。**禁改引擎仓代码**；原闭合条件「Create 先写 meta」已撤回；不要再清 store |
-| **loop 切片** | **已停**。不要开 D194+ catch。本地三门已绿；人类工位账已合入；未 push |
+| **loop 切片** | **已停**。不要开 D194+ catch。本地三门已绿；人类工位已对齐；**已 push** `484cec7538b` |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + CI 绿 + merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
