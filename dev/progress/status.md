@@ -46,7 +46,7 @@ summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop 关�
 |:---|:-----|:-----|
 | **A** | tools-info-selection-leftover | 已进 merge；[D270](deferred-gaps.md) 已闭 |
 | **B** | agents-tools-detailhost-leftover | 已进 merge；[D271](deferred-gaps.md) 已闭 |
-| **C** | skills-body-selection-leftover | 已进 merge；[D265](deferred-gaps.md) 已闭；勿 add `dev/loop` |
+| **C** | overview-model-keep-last | [D272](deferred-gaps.md) Overview Model keep-last 已闭；勿 add `dev/loop` |
 | **D** | snapshots-nohook-leftover | 已进 merge；[D268](deferred-gaps.md) 已闭 |
 
 <details>

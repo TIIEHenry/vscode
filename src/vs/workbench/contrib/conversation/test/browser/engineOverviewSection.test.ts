@@ -4,8 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import type { UniverseAgentModelEntry } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentConnectionSnapshot, UniverseAgentModelEntry } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
@@ -35,6 +36,12 @@ function assertProviderRowOmitted(text: string, root: HTMLElement): void {
 	assert.ok(!text.includes('Unavailable — this client has no provider API yet.'), text);
 	assert.ok(!text.includes('openai'), text);
 	assert.ok(!text.includes('anthropic'), text);
+}
+
+type OverviewModelsSupport = 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN';
+
+function flushOverview(): Promise<void> {
+	return new Promise(resolve => setTimeout(resolve, 0));
 }
 
 suite('EngineOverviewSection', () => {
@@ -264,6 +271,130 @@ suite('EngineOverviewSection', () => {
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		const text = section.getDomNode().textContent ?? '';
 		assert.ok(text.includes('读取失败 — transport reset'), text);
+		parent.remove();
+	});
+
+	function createMutableOverviewConnection(options: {
+		modelsSupport: OverviewModelsSupport;
+		listModels?: () => Promise<{ models: UniverseAgentModelEntry[] }>;
+	}): IUniverseAgentConnection & {
+		setModelsSupport(support: OverviewModelsSupport): void;
+		setListModels(impl: () => Promise<{ models: UniverseAgentModelEntry[] }>): void;
+		fireConnection(): void;
+	} {
+		const capabilities = createEmptyTestCapabilitySnapshot();
+		const modelsCapability: { support: OverviewModelsSupport } = { support: options.modelsSupport };
+		let listModelsImpl = options.listModels;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			sessionToken: 'tok',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: { ...capabilities, models: modelsCapability },
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listModels: async () => {
+				if (!listModelsImpl) {
+					return { models: [] };
+				}
+				return listModelsImpl();
+			},
+		});
+		return Object.assign(connection, {
+			setModelsSupport(support: OverviewModelsSupport) {
+				modelsCapability.support = support;
+				onDidChangeConnection.fire(snapshot());
+			},
+			setListModels(impl: () => Promise<{ models: UniverseAgentModelEntry[] }>) {
+				listModelsImpl = impl;
+			},
+			fireConnection() {
+				onDidChangeConnection.fire(snapshot());
+			},
+		});
+	}
+
+	test('successful listModels then capability UNKNOWN keeps last model count', async () => {
+		let listModelsCalls = 0;
+		const connection = createMutableOverviewConnection({
+			modelsSupport: 'SUPPORTED',
+			listModels: async () => {
+				listModelsCalls++;
+				return { models };
+			},
+		});
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const section = store.add(instantiationService.createInstance(EngineOverviewSection, parent));
+		section.setSectionActive(true);
+		await flushOverview();
+
+		const summary = formatOverviewModelSummary(models.length);
+		let modelValue = overviewRowValue(section.getDomNode(), 'Model');
+		assert.strictEqual(modelValue?.textContent, summary);
+		assert.strictEqual(listModelsCalls, 1);
+
+		connection.setModelsSupport('UNKNOWN');
+		await flushOverview();
+
+		modelValue = overviewRowValue(section.getDomNode(), 'Model');
+		const text = section.getDomNode().textContent ?? '';
+		assert.strictEqual(modelValue?.textContent, summary);
+		assert.ok(text.includes(summary), text);
+		assert.notStrictEqual(modelValue?.textContent, formatOverviewModelUnknownCopy());
+		assert.ok(modelValue?.textContent !== formatOverviewModelUnknownCopy());
+		assert.ok(!(modelValue?.textContent ?? '').includes(formatOverviewModelUnknownCopy()));
+		assert.strictEqual(modelValue?.title, formatOverviewModelUnknownCopy());
+		assert.strictEqual(listModelsCalls, 1);
+		parent.remove();
+	});
+
+	test('successful listModels then listModels throw keeps last model count and failed honesty', async () => {
+		let listModelsCalls = 0;
+		const connection = createMutableOverviewConnection({
+			modelsSupport: 'SUPPORTED',
+			listModels: async () => {
+				listModelsCalls++;
+				return { models };
+			},
+		});
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const section = store.add(instantiationService.createInstance(EngineOverviewSection, parent));
+		section.setSectionActive(true);
+		await flushOverview();
+
+		const summary = formatOverviewModelSummary(models.length);
+		assert.strictEqual(overviewRowValue(section.getDomNode(), 'Model')?.textContent, summary);
+		assert.strictEqual(listModelsCalls, 1);
+
+		connection.setListModels(async () => {
+			listModelsCalls++;
+			throw new Error('transport reset');
+		});
+		connection.fireConnection();
+		await flushOverview();
+
+		const modelValue = overviewRowValue(section.getDomNode(), 'Model');
+		const failed = formatOverviewModelFailedCopy('transport reset');
+		const text = section.getDomNode().textContent ?? '';
+		assert.strictEqual(modelValue?.textContent, summary);
+		assert.ok(text.includes(summary), text);
+		assert.notStrictEqual(modelValue?.textContent, failed);
+		assert.ok(!(modelValue?.textContent ?? '').includes(failed));
+		assert.strictEqual(modelValue?.title, failed);
+		assert.ok(!text.includes('No models in the registry.'), text);
+		assert.strictEqual(listModelsCalls, 2);
 		parent.remove();
 	});
 });
