@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-10
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D209 已闭；D198 空引擎列表回落 SCM；D207 Projects 干净断连；D208 Agents UNKNOWN；D209 Tools UNKNOWN；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D211 已闭；D198 空引擎列表回落 SCM；D207 Projects 干净断连；D208 Agents / D209 Tools / D210 ProviderModel / D211 McpRuntime UNKNOWN；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -223,6 +223,8 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D209 已闭；D198
 | D203 | P3 | **`deleteSession` 失败后 composer draft 未回滚**（原登记）。**本切片已闭**：C 槽 delete 前快照 textarea；`false` 挂回原 session；optimistic `true` 仍删草稿，session 再现或 `onDidFailEngineAction('deleteSession')` 再 write + textarea。测锁 false 与 rollback | 工位 C `session-delete-draft-rollback` 已收 | 删除失败/回滚后 draft 仍挂回原 session；`conversationLens.test.ts` 锁失败不丢草稿 | conversation | closed |
 | D204 | P3 | **capability `UNKNOWN` 时 composer catalog 被画成空**（原登记）。**本切片已闭**：`loadConnectedComposerCatalogs` 对 UNKNOWN 保末次成功行，无末次则画 probing；不打 list。`conversationComposerCatalog.test.ts` 锁 probing + keep-last | 工位 A `conversation-fork-unknown-honesty` 已收 | UNKNOWN 保末次成功行或显式 probing，不得装成「引擎没有 catalog」；补 `conversationComposerCatalog.test.ts` | conversation | closed |
 | D207 | P3 | **closed** Projects 干净断连（`wasEverConnected && !engineConnected && !transportFailed`）不再把 leftover sessions 画成活 workdir。`buildNavigatorProjectsTree` 复用 `NAVIGATOR_STALE_SNAPSHOT_COPY`，保留 leftover 行。未改 transportFailed 注路径；未占 [D198](#d198) | 工位 D `navigator-projects-clean-disconnect-stale` 已收 | 干净断连 leftover 有 stale note 且仍见 leftover 行；补 `navigatorProjectsTree.test.ts` | navigator / projects | closed |
+| D210 | P3 | **closed** ProviderModel `UNKNOWN` 先 `clearModelPresentation` 再 loading（D200/D206 同胞）；成功→UNKNOWN 测 `getMode()==='loading'` 且 `getListEntryCount()===0`。Rules 无 list RPC / 无 catalog 行，`render` 已藏 scope，跳过 | 工位 C 已收 | UNKNOWN 先清行再 loading；不发 `listModels`；补成功→UNKNOWN 测 | conversation / catalog | closed |
+| D211 | P3 | **closed** McpRuntime `UNKNOWN` 先 `clearRuntimePresentation` 再 loading（D206 MCP 同胞）；成功→UNKNOWN 测 `getMode()==='loading'` 且 `getListEntryCount()===0` | 工位 C 已收 | UNKNOWN 先清行再 loading/probing；不发 `getMcpServerStatuses`；补成功→UNKNOWN 测 | conversation / catalog | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 

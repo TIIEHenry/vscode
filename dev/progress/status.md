@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 关仓中：A D198、B Agents/Tools、D Projects 已合；C catalog 仍在工位。D198 / D207–D209 已闭。"
+summary: "loop 关仓：本波 A–D 已合入 merge。D198 / D207–D211 已闭。待一路 compile。"
 ---
 
 # Development Progress
@@ -46,7 +46,7 @@ summary: "loop 关仓中：A D198、B Agents/Tools、D Projects 已合；C catal
 |:---|:-----|:-----|
 | **A** | sources-git-empty-entries-scm | 已进 merge `6a6dd1d3cdc`；[D198](deferred-gaps.md) 已闭 |
 | **B** | agents-tools-catalog-unknown-leftover | 已进 merge `c25e00faa7b`；[D208](deferred-gaps.md)/[D209](deferred-gaps.md) 已闭 |
-| **C** | provider-rules-catalog-unknown | 工位进行中；勿 add `dev/loop` |
+| **C** | catalog-unknown-leftover-provider-runtime | 已进 merge `ffb2906c5b2`；[D210](deferred-gaps.md)/[D211](deferred-gaps.md) 已闭；Rules 跳过；勿 add `dev/loop` |
 | **D** | navigator-projects-clean-disconnect-stale | 已进 merge `ea1f8897200`；[D207](deferred-gaps.md) 已闭 |
 
 <details>

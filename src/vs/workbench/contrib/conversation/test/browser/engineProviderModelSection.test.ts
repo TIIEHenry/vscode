@@ -11,38 +11,34 @@ import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/
 import type {
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentConnectionSnapshot,
+	UniverseAgentListModelsResult,
 	UniverseAgentSessionEvent,
 	UniverseAgentSessionStreamCloseCause,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { getCatalogFailedCopy } from '../../browser/engineCatalog.js';
-import { EngineMcpRuntimePanel } from '../../browser/engineMcpRuntimePanel.js';
-import { localize } from '../../../../../nls.js';
+import { EngineProviderModelSection } from '../../browser/engineProviderModelSection.js';
 
-const MCP_RUNTIME_TOOLS_FEATURE = localize('ua.engineMcpRuntimeToolsFeature', "MCP server tools");
-const RUNTIME_SERVER_ID = 'stdio-runtime';
-const LEFTOVER_TOOL_NAME = 'leftover-mcp-tool';
+const LEFTOVER_MODEL_ID = 'gpt-leftover';
 
-suite('EngineMcpRuntimePanel tools leftover (D67)', () => {
+suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	function createConnectionStub(options: {
 		connected?: boolean;
-		getMcpServerStatuses?: IUniverseAgentConnection['getMcpServerStatuses'];
-		getMcpServerTools?: IUniverseAgentConnection['getMcpServerTools'];
+		modelsSupport?: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN';
+		listModels?: () => Promise<UniverseAgentListModelsResult>;
 	} = {}): IUniverseAgentConnection & {
-		setConnected(value: boolean): void;
-		setMcpRuntimeSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
+		setModelsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 	} {
-		const mcpRuntimeCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN' } = {
-			support: 'SUPPORTED',
+		const modelsCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN' } = {
+			support: options.modelsSupport ?? 'SUPPORTED',
 		};
 		const capabilities: UniverseAgentCapabilitySnapshot = {
 			...createEmptyCapabilitySnapshot(),
-			mcpRuntime: mcpRuntimeCapability,
+			models: modelsCapability,
 		};
-		let connected = options.connected ?? false;
+		let connected = options.connected ?? true;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
@@ -106,10 +102,8 @@ suite('EngineMcpRuntimePanel tools leftover (D67)', () => {
 			deleteAgentProfile: async () => ({ ok: true }),
 			resetAgentProfile: async () => ({ ok: true }),
 			listMcpServers: async () => ({ servers: [] }),
-			getMcpServerStatuses: options.getMcpServerStatuses ?? (async () => ({
-				statuses: [{ serverId: RUNTIME_SERVER_ID, status: 'connected' }],
-			})),
-			getMcpServerTools: options.getMcpServerTools ?? (async () => ({ tools: [] })),
+			getMcpServerStatuses: async () => ({ statuses: [] }),
+			getMcpServerTools: async () => ({ tools: [] }),
 			listPlugins: async () => ({ plugins: [] }),
 			getPluginInfo: async () => ({ summary: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const }, hooks: [] }),
 			enablePlugin: async () => ({ plugin: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const } }),
@@ -121,118 +115,67 @@ suite('EngineMcpRuntimePanel tools leftover (D67)', () => {
 			updateMcpServer: async () => ({ ok: true }),
 			removeMcpServer: async () => ({ ok: true }),
 			listTools: async () => ({ tools: [] }),
-			listModels: async () => ({ models: [] }),
+			listModels: options.listModels ?? (async () => ({ models: [] })),
 			probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
-			setConnected(value: boolean) {
-				connected = value;
-				onDidChangeConnection.fire(snapshot());
-			},
-			setMcpRuntimeSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
-				mcpRuntimeCapability.support = support;
+			setModelsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
+				modelsCapability.support = support;
 				onDidChangeConnection.fire(snapshot());
 			},
 		};
 	}
 
-	function mountPanel(connection: IUniverseAgentConnection): EngineMcpRuntimePanel {
+	function mountSection(connection: IUniverseAgentConnection): EngineProviderModelSection {
 		const parent = document.createElement('div');
 		document.body.appendChild(parent);
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
-		const panel = store.add(instantiationService.createInstance(EngineMcpRuntimePanel, parent));
-		panel.layout(640, 240);
-		return panel;
+		const section = store.add(instantiationService.createInstance(EngineProviderModelSection, parent));
+		section.setSectionActive(true);
+		section.layout(640, 240);
+		return section;
 	}
 
 	async function flushMicrotasks(): Promise<void> {
 		await new Promise(resolve => setTimeout(resolve, 0));
 	}
 
-	function assertToolsFailed(panel: EngineMcpRuntimePanel, reason: string): void {
-		assert.strictEqual(panel.getMode(), 'ready');
-		assert.strictEqual(panel.getListEntryCount(), 1);
-		assert.strictEqual(panel.getToolsCount(), 0);
-		const toolsStatus = panel.getDomNode().querySelector(
-			'.engine-catalog-status-widget[data-catalog-mode="failed"]',
-		) as HTMLElement | null;
-		assert.ok(toolsStatus);
-		assert.ok(toolsStatus.textContent?.includes(getCatalogFailedCopy(MCP_RUNTIME_TOOLS_FEATURE, reason)));
-		const toolsList = panel.getDomNode().querySelector('.engine-mcp-runtime-tools') as HTMLElement | null;
-		assert.ok(toolsList);
-		assert.ok(!new RegExp(LEFTOVER_TOOL_NAME, 'i').test(toolsList.textContent ?? ''));
-		assert.ok(!new RegExp(LEFTOVER_TOOL_NAME, 'i').test(panel.getDomNode().textContent ?? ''));
-	}
-
-	test('getMcpServerTools first throw paints failed toolsStatus without leftover', async () => {
-		const connection = createConnectionStub({
-			connected: true,
-			getMcpServerTools: async () => {
-				throw new Error('getMcpServerTools exploded');
-			},
-		});
-		const panel = mountPanel(connection);
-		await flushMicrotasks();
-
-		assert.strictEqual(panel.getMode(), 'ready');
-		assert.ok(panel.selectServerForTest(RUNTIME_SERVER_ID));
-		await flushMicrotasks();
-
-		assertToolsFailed(panel, 'getMcpServerTools exploded');
-	});
-
-	test('getMcpServerTools success then throw clears leftover tool name and paints failed', async () => {
-		let toolsCalls = 0;
-		const connection = createConnectionStub({
-			connected: true,
-			getMcpServerTools: async () => {
-				toolsCalls++;
-				if (toolsCalls === 1) {
-					return { tools: [{ name: LEFTOVER_TOOL_NAME, description: 'keep me' }] };
-				}
-				throw new Error('getMcpServerTools retry exploded');
-			},
-		});
-		const panel = mountPanel(connection);
-		await flushMicrotasks();
-
-		assert.strictEqual(panel.getMode(), 'ready');
-		assert.ok(panel.selectServerForTest(RUNTIME_SERVER_ID));
-		await flushMicrotasks();
-
-		const toolsList = panel.getDomNode().querySelector('.engine-mcp-runtime-tools') as HTMLElement | null;
-		assert.ok(toolsList);
-		assert.ok(toolsList.textContent?.includes(LEFTOVER_TOOL_NAME));
-		assert.strictEqual(panel.getToolsCount(), 1);
-
-		connection.setConnected(true);
-		await flushMicrotasks();
-
-		assertToolsFailed(panel, 'getMcpServerTools retry exploded');
-	});
-
 	test('successful load then capability UNKNOWN clears leftover rows before loading', async () => {
-		let statusCalls = 0;
+		let listModelsCalls = 0;
 		const connection = createConnectionStub({
 			connected: true,
-			getMcpServerStatuses: async () => {
-				statusCalls++;
-				return { statuses: [{ serverId: RUNTIME_SERVER_ID, status: 'connected' }] };
+			modelsSupport: 'SUPPORTED',
+			listModels: async () => {
+				listModelsCalls++;
+				return {
+					models: [{
+						id: 'leftover',
+						type: 'chat',
+						enabled: true,
+						level: 1,
+						provider: 'demo',
+						modelId: LEFTOVER_MODEL_ID,
+					}],
+				};
 			},
 		});
-		const panel = mountPanel(connection);
+		const section = mountSection(connection);
 		await flushMicrotasks();
 
-		assert.strictEqual(panel.getMode(), 'ready');
-		assert.ok(panel.getListEntryCount() > 0);
-		const statusCallsAfterLoad = statusCalls;
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.ok((section.getDomNode().textContent ?? '').includes(LEFTOVER_MODEL_ID));
+		const listCallsAfterLoad = listModelsCalls;
 
-		connection.setMcpRuntimeSupport('UNKNOWN');
+		connection.setModelsSupport('UNKNOWN');
 		await flushMicrotasks();
 
-		assert.strictEqual(panel.getMode(), 'loading');
-		assert.strictEqual(panel.getListEntryCount(), 0);
-		assert.strictEqual(statusCalls, statusCallsAfterLoad);
-		const status = panel.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.strictEqual(section.getMode(), 'loading');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(LEFTOVER_MODEL_ID));
+		assert.strictEqual(listModelsCalls, listCallsAfterLoad);
+		const status = section.getDomNode().querySelector(
+			'.engine-provider-model-group--model .engine-catalog-status-widget',
+		) as HTMLElement;
 		assert.ok(status);
 		assert.strictEqual(status.dataset['catalogMode'], 'loading');
 	});
