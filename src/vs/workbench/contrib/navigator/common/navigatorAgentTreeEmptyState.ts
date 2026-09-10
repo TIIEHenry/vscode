@@ -24,10 +24,10 @@ export function getNavigatorAgentTreePendingCopy(
 	if (agentTreeCapability === 'UNSUPPORTED') {
 		return undefined;
 	}
+	if (treeFetchFailed) {
+		return NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY;
+	}
 	if (liveTree === undefined) {
-		if (treeFetchFailed) {
-			return NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY;
-		}
 		return localize('navigatorAgentTree.loading', "Reading agent tree…");
 	}
 	return undefined;

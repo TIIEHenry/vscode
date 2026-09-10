@@ -76,9 +76,9 @@ suite('NavigatorTeam (N4)', () => {
 			getNavigatorAgentTreePendingCopy('UNKNOWN', undefined, true),
 			getTeamTreeEmptyCopy('UNKNOWN', undefined, true),
 		);
-		// Success path still clears to empty/no-team when tree arrived.
-		assert.strictEqual(getTeamTreeEmptyCopy('SUPPORTED', { ...treeWithManager, children: [] }, true), 'No team in the current session');
-		assert.strictEqual(getNavigatorAgentTreePendingCopy('SUPPORTED', treeWithManager, true), undefined);
+		// Retained leftover tree still surfaces fetch-fail, not live/no-team (D262).
+		assert.strictEqual(getTeamTreeEmptyCopy('SUPPORTED', { ...treeWithManager, children: [] }, true), fail);
+		assert.strictEqual(getNavigatorAgentTreePendingCopy('SUPPORTED', treeWithManager, true), fail);
 	});
 
 	test('Hierarchy and Team share the same loading empty copy', () => {
