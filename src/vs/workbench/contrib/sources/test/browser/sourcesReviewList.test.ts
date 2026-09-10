@@ -61,6 +61,7 @@ suite('Sources - review list model', () => {
 		unsupportedCommit?: boolean;
 		connected?: boolean;
 		emptyFileDiff?: boolean;
+		emptyEntries?: boolean;
 	} = {}): IUniverseAgentConnection {
 		return {
 			isEngineConnected: () => options.connected ?? true,
@@ -73,7 +74,7 @@ suite('Sources - review list model', () => {
 					supported: !options.unsupportedChanges,
 					reason: '',
 					branch: 'main',
-					entries: options.unsupportedChanges ? [] : [{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+					entries: (options.unsupportedChanges || options.emptyEntries) ? [] : [{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
 				};
 			},
 			readGitSummary: async () => ({
@@ -649,6 +650,7 @@ suite('Sources - review list model', () => {
 			{ label: 'empty session', roster: createRoster('') },
 			{ label: 'disconnected', connection: createNoGitReadConnection() },
 			{ label: 'unsupported', connection: createGitConnection({ unsupportedChanges: true }) },
+			{ label: 'empty supported entries', connection: createGitConnection({ emptyEntries: true }) },
 		];
 
 		for (const testCase of cases) {
@@ -663,6 +665,34 @@ suite('Sources - review list model', () => {
 			assert.strictEqual(status, sourcesGitLocalOnlyMessage(), testCase.label);
 			assert.ok(status.includes('local source control'), testCase.label);
 		}
+	});
+
+	test('empty supported git entries do not hide leftover SCM on Changes or Review', async function () {
+		const leftover = toResource.call(this, '/project/src/leftover.ts');
+		const connection = createGitConnection({ emptyEntries: true });
+
+		const changesHost = mountListHost();
+		const changes = store.add(stubSourcesGitListServices({
+			connection,
+			scmService: createIndexScmService(leftover),
+		}).createInstance(SourcesChangesList, changesHost));
+		(changesHost.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		assert.strictEqual(await waitForStatusText(changesHost, '.sources-changes-status'), sourcesGitLocalOnlyMessage());
+		assert.strictEqual((await waitForList(changes as unknown as { list?: WorkbenchList<unknown> })).length, 1);
+		assert.strictEqual((changesHost.querySelector('.sources-changes-empty') as HTMLElement).style.display, 'none');
+		assert.ok((changesHost.querySelector('.sources-changes-empty')?.textContent ?? '') !== localize('sourcesChangesList.noChanges', "No changes."));
+
+		const reviewHost = mountListHost();
+		const review = store.add(stubSourcesGitListServices({
+			connection,
+			scmService: createIndexScmService(leftover),
+		}).createInstance(SourcesReviewList, reviewHost));
+		(reviewHost.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+
+		assert.strictEqual(await waitForStatusText(reviewHost, '.sources-review-status'), sourcesGitLocalOnlyMessage());
+		assert.strictEqual((await waitForList(review as unknown as { list?: WorkbenchList<unknown> })).length, 1);
+		assert.strictEqual((reviewHost.querySelector('.sources-review-empty') as HTMLElement).style.display, 'none');
 	});
 
 	test('Review list empty unifiedDiff does not mark reviewed', async function () {

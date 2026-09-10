@@ -20,6 +20,7 @@ import {
 	canSendSourcesGitFileDiff,
 	canSendSourcesGitSummary,
 	collectSourcesGitChangeEntries,
+	hasSourcesGitReadEntries,
 	needsSourcesGitFileDiff,
 	parseSourcesGitUnifiedDiff,
 	sourcesGitChangeGroupId,
@@ -198,6 +199,28 @@ suite('Sources - Changes git read', () => {
 		assert.strictEqual(unsupported, undefined);
 		const emptySession = await tryLoadSourcesGitChangeEntries(true, async () => ({ ...unsupportedChanges, supported: true }), async () => unsupportedSummary, root, '');
 		assert.strictEqual(emptySession, undefined);
+
+		const emptySupportedCalls: UniverseAgentReadGitChangesRequest[] = [];
+		let emptySupportedSummaryCalls = 0;
+		const emptySupported = await tryLoadSourcesGitChangeEntries(true, async request => {
+			emptySupportedCalls.push(request);
+			return { supported: true, reason: '', branch: 'main', entries: [] };
+		}, async () => {
+			emptySupportedSummaryCalls += 1;
+			return { supported: true, reason: '', branch: 'main', changeCount: 0 };
+		}, root, 'sess-1');
+		assert.deepStrictEqual(emptySupportedCalls, [{ sessionId: 'sess-1' }]);
+		assert.strictEqual(emptySupportedSummaryCalls, 0);
+		assert.strictEqual(emptySupported, undefined);
+	});
+
+	test('empty supported engine list is not authoritative', () => {
+		assert.strictEqual(hasSourcesGitReadEntries(undefined), false);
+		assert.strictEqual(hasSourcesGitReadEntries([]), false);
+		assert.strictEqual(hasSourcesGitReadEntries(collectSourcesGitChangeEntries([], URI.file('/project'))), false);
+		assert.strictEqual(hasSourcesGitReadEntries(collectSourcesGitChangeEntries([
+			{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' },
+		], URI.file('/project'))), true);
 	});
 
 	test('tryLoad Summary throw is the same failure class as Changes throw', async () => {

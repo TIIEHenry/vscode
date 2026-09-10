@@ -248,10 +248,19 @@ export function sourcesGitEmptyFileDiffMessage(): string {
 
 /**
  * SCM leftover is local-only when the engine list is unavailable
- * (no session / disconnected / `supported: false`). Not authoritative.
+ * (no session / disconnected / `supported: false` / empty supported entries).
+ * Not authoritative.
  */
 export function sourcesGitLocalOnlyMessage(): string {
 	return localize('sourcesChangesGitRead.localOnly', "Showing local source control changes only.");
+}
+
+/**
+ * Non-empty engine list is the only authoritative git-read result.
+ * Empty `entries` is the same SCM fallback as `supported: false`.
+ */
+export function hasSourcesGitReadEntries(entries: readonly ISourcesChangeEntry[] | undefined): entries is ISourcesChangeEntry[] {
+	return !!entries && entries.length > 0;
 }
 
 export async function tryLoadSourcesGitChangeEntries(
@@ -262,7 +271,7 @@ export async function tryLoadSourcesGitChangeEntries(
 	sessionId: string,
 ): Promise<{ entries: ISourcesChangeEntry[]; summary: UniverseAgentReadGitSummaryResult | undefined } | undefined> {
 	const changes = await tryReadSourcesGitChanges(connected, readChanges, sessionId);
-	if (!changes || !changes.supported) {
+	if (!changes || !changes.supported || changes.entries.length === 0) {
 		return undefined;
 	}
 

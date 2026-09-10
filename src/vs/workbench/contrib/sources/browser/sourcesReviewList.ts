@@ -28,7 +28,7 @@ import { IEditorService } from '../../../services/editor/common/editorService.js
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
-import { tryLoadSourcesGitChangeEntries, tryReadSourcesGitFileDiff, sourcesGitDiffOpenFailureMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage } from '../common/sourcesChangesGitRead.js';
+import { hasSourcesGitReadEntries, tryLoadSourcesGitChangeEntries, tryReadSourcesGitFileDiff, sourcesGitDiffOpenFailureMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage } from '../common/sourcesChangesGitRead.js';
 import { sourcesChangeEntryIdentity } from '../common/sourcesChangesModel.js';
 import { collectSourcesReviewEntries, ISourcesReviewEntry } from '../common/sourcesReviewModel.js';
 import {
@@ -584,7 +584,8 @@ export class SourcesReviewList extends Disposable {
 			this.getGitResourceRoot(),
 			this.getGitSessionId(),
 		);
-		return loaded?.entries;
+		const entries = loaded?.entries;
+		return hasSourcesGitReadEntries(entries) ? entries : undefined;
 	}
 
 	private async refresh(): Promise<void> {
@@ -596,10 +597,11 @@ export class SourcesReviewList extends Disposable {
 			if (seq !== this.refreshSeq) {
 				return;
 			}
-			this.usingGitRead = !!loaded;
-			if (loaded) {
+			if (hasSourcesGitReadEntries(loaded)) {
+				this.usingGitRead = true;
 				this.allEntries = loaded;
 			} else {
+				this.usingGitRead = false;
 				this.allEntries = collectSourcesReviewEntries(this.scmService.repositories);
 				localOnly = this.allEntries.length > 0;
 			}

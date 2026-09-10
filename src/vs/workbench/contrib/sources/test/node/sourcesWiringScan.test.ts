@@ -21,11 +21,13 @@ suite('Sources - Changes git read - 源码接线扫描', () => {
 		const open = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.ts'), 'utf8');
 
 		assert.ok(changes.includes('tryLoadSourcesGitChangeEntries'));
+		assert.ok(changes.includes('hasSourcesGitReadEntries'));
 		assert.ok(changes.includes('tryReadSourcesGitFileDiff'));
 		assert.ok(changes.includes('collectSourcesChangeEntries'));
 		assert.ok(changes.includes('IConversationRosterService'));
 		assert.ok(changes.includes('getActiveSessionId'));
 		assert.ok(review.includes('tryLoadSourcesGitChangeEntries'));
+		assert.ok(review.includes('hasSourcesGitReadEntries'));
 		assert.ok(review.includes('tryReadSourcesGitFileDiff'));
 		assert.ok(review.includes('IConversationRosterService'));
 		assert.ok(review.includes('getActiveSessionId'));
