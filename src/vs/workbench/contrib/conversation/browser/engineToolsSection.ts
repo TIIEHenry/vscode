@@ -530,7 +530,13 @@ export class EngineToolsSection extends Disposable {
 		}
 
 		if (support === 'UNKNOWN') {
-			this.clearCatalogPresentation();
+			// Keep leftover tool rows after a live paint (D255; D253 / D250).
+			const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'tool');
+			if (!hadLiveCatalog) {
+				this.clearCatalogPresentation();
+			} else {
+				this.hideCatalogWriteStatus();
+			}
 			this.mode = resolveEngineCatalogPaneMode(true, support);
 			this.updateSaveChrome();
 			this.renderStatus({ loadingKind: 'capability' });
