@@ -38,6 +38,7 @@ import {
 	isSourcesChangeUnstageable,
 } from '../common/sourcesChangesGit.js';
 import {
+	hasSourcesGitReadEntries,
 	sourcesGitDiffOpenFailureMessage,
 	sourcesGitLocalOnlyMessage,
 	sourcesGitReadFailureMessage,
@@ -451,10 +452,11 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			if (seq !== this.refreshSeq) {
 				return;
 			}
-			this.usingGitRead = !!loaded;
-			if (loaded) {
+			if (hasSourcesGitReadEntries(loaded)) {
+				this.usingGitRead = true;
 				allEntries = loaded;
 			} else {
+				this.usingGitRead = false;
 				allEntries = collectSourcesChangeEntries(this.scmService.repositories);
 				localOnly = allEntries.length > 0;
 			}
@@ -533,7 +535,8 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.getGitResourceRoot(),
 			this.getGitSessionId(),
 		);
-		return loaded?.entries;
+		const entries = loaded?.entries;
+		return hasSourcesGitReadEntries(entries) ? entries : undefined;
 	}
 
 	private getGitResourceRoot(): URI | undefined {
