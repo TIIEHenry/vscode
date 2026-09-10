@@ -22,8 +22,6 @@ import { NAVIGATOR_TEAM_CONTAINER_ID, NAVIGATOR_TEAM_VIEW_CONTAINER } from '../.
 import { INavigatorTeamMember, NavigatorTeamView } from '../../browser/navigatorTeamList.js';
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 
-const TEAM_EMPTY_COPY = 'No team members yet';
-
 suite('NavigatorTeamView', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -115,15 +113,9 @@ suite('NavigatorTeamView', () => {
 		assert.strictEqual(view.shouldShowWelcome(), false);
 	});
 
-	test('welcome content uses roster-empty copy without service-disconnected wording', () => {
+	test('Team view does not register welcome overlay because shouldShowWelcome is false', () => {
 		const welcomeContents = viewsRegistry.getViewWelcomeContent(NAVIGATOR_TEAM_VIEW_ID);
-		assert.ok(welcomeContents.length > 0, 'Team view must register welcome content');
-		const combined = welcomeContents.map(item => item.content).join('\n');
-		assert.ok(combined.includes(TEAM_EMPTY_COPY), `welcome must include "${TEAM_EMPTY_COPY}"`);
-		assert.ok(!/not connected/i.test(combined), 'welcome must not say not connected');
-		assert.ok(!/copilot/i.test(combined), 'welcome must not mention Copilot');
-		assert.ok(!/open chat/i.test(combined), 'welcome must not mention Open Chat');
-		assert.ok(!/\(command:/.test(combined), 'welcome must not include command buttons');
+		assert.strictEqual(welcomeContents.length, 0, 'dead Team welcome would cover the body-top filter');
 	});
 
 	test('mounted view has WorkbenchList and no chat widgets', async () => {

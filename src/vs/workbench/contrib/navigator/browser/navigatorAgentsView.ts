@@ -479,7 +479,7 @@ export class NavigatorAgentsView extends ViewPane {
 		if (pendingCopy) {
 			this.inspectService.setLiveAgentIds('agents', undefined);
 			this.setHierarchyState([], pendingCopy);
-			this.setActivityFromSnapshot(snapshot, lease?.attribution);
+			this.setActivityFromSnapshot(snapshot, lease?.attribution, undefined, treeFetchFailed);
 			return;
 		}
 
@@ -525,6 +525,7 @@ export class NavigatorAgentsView extends ViewPane {
 		snapshot: SessionViewSnapshot | undefined,
 		attribution: ReadonlyMap<string, ItemAttribution> | undefined,
 		staleNote?: string,
+		fetchFailed = false,
 	): void {
 		if (!snapshot || !attribution) {
 			if (this.hadActivitySnapshot) {
@@ -533,7 +534,9 @@ export class NavigatorAgentsView extends ViewPane {
 				}
 				return;
 			}
-			this.setActivityState([], localize('navigatorAgentsActivity.empty', "No tool activity — no engine."));
+			this.setActivityState([], fetchFailed
+				? localize('navigatorAgentsActivity.fetchFailed', "Failed to read tool activity")
+				: localize('navigatorAgentsActivity.emptyConnected', "No tool activity yet."));
 			return;
 		}
 		this.hadActivitySnapshot = true;
@@ -599,7 +602,12 @@ export class NavigatorAgentsView extends ViewPane {
 
 	inspectHierarchyNode(node: INavigatorAgentsHierarchyNode): void {
 		this.inspectService.setTarget({ kind: 'agent', node: node.source });
-		void this.instantiationService.invokeFunction(accessor => accessor.get(IViewsService).openView(AGENT_INSPECT_VIEW_ID, true));
+		this.openInspectPanel();
+	}
+
+	inspectActivityItem(item: INavigatorAgentsActivityItem): void {
+		this.inspectService.setTarget({ kind: 'activity', item });
+		this.openInspectPanel();
 	}
 
 	revealHierarchyNode(node: INavigatorAgentsHierarchyNode): void {
@@ -611,6 +619,28 @@ export class NavigatorAgentsView extends ViewPane {
 		if (node) {
 			this.inspectHierarchyNode(node);
 		}
+	}
+
+	inspectFocusedTitleAction(): void {
+		if (this.subview === 'hierarchy') {
+			const node = this.hierarchyTree?.getFocus()[0];
+			if (node) {
+				this.inspectHierarchyNode(node);
+				return;
+			}
+		} else {
+			const index = this.activityList?.getFocus()[0];
+			const item = typeof index === 'number' && index >= 0 ? this.activityList?.element(index) : undefined;
+			if (item) {
+				this.inspectActivityItem(item);
+				return;
+			}
+		}
+		this.notificationService.info(localize('navigatorAgents.inspectNoFocus', "Select an agent or activity item to inspect"));
+	}
+
+	private openInspectPanel(): void {
+		void this.instantiationService.invokeFunction(accessor => accessor.get(IViewsService).openView(AGENT_INSPECT_VIEW_ID, true));
 	}
 
 	revealFocusedHierarchyNode(): void {
@@ -833,8 +863,8 @@ registerAction2(class NavigatorAgentsOpenInspectAction extends ViewAction<Naviga
 		});
 	}
 
-	override runInView(accessor: ServicesAccessor): void {
-		void accessor.get(IViewsService).openView(AGENT_INSPECT_VIEW_ID, true);
+	override runInView(_accessor: ServicesAccessor, view: NavigatorAgentsView): void {
+		view.inspectFocusedTitleAction();
 	}
 });
 

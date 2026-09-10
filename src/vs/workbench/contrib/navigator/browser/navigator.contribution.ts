@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/navigatorStub.css';
-import './navigatorAgentsView.js';
 import './agentInspectService.js';
 import './agentInspect.contribution.js';
 import { Codicon } from '../../../../base/common/codicons.js';
@@ -20,9 +19,11 @@ import { NavigatorProjectsView } from './navigatorProjectsList.js';
 import { NavigatorTeamView } from './navigatorTeamList.js';
 import {
 	NAVIGATOR_AGENTS_VIEW_ID,
+	NavigatorAgentsView,
+} from './navigatorAgentsView.js';
+import {
 	NAVIGATOR_PROJECTS_VIEW_ID,
 	NAVIGATOR_TEAM_VIEW_ID,
-	NavigatorAgentsView,
 } from './navigatorStubView.js';
 
 export const NAVIGATOR_PROJECTS_CONTAINER_ID = 'workbench.view.navigator.projects';
@@ -132,12 +133,6 @@ const openRecentButton = `[${openRecent}](command:${OpenRecentAction.ID})`;
 viewsRegistry.registerViewWelcomeContent(NAVIGATOR_PROJECTS_VIEW_ID, {
 	content: localize({ key: 'navigatorProjectsWelcome', comment: ['Please do not translate the word "command", it is part of our internal syntax which must not change'] },
 		"No projects yet.\n{0}\n{1}", openFolderButton, openRecentButton),
-	group: ViewContentGroups.Open,
-	order: 1,
-});
-
-viewsRegistry.registerViewWelcomeContent(NAVIGATOR_TEAM_VIEW_ID, {
-	content: localize('navigatorTeamWelcome', "No team members yet"),
 	group: ViewContentGroups.Open,
 	order: 1,
 });

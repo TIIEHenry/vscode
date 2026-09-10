@@ -49,11 +49,14 @@ import { NAVIGATOR_TEAM_VIEW_ID } from './navigatorStubView.js';
 
 const $ = dom.$;
 
-/** PRD-022 / navigator-engine-segments §3: Team 未连接 = HEAD 「No team members yet」, not Agents' "— no engine." */
+/** Never connected is not the same sentence as connected-empty 「No team members yet」. */
+const TEAM_NEVER_CONNECTED_COPY = localize('navigatorTeam.neverConnected', "No team — engine not connected.");
+const TEAM_CONNECTING_COPY = localize('navigatorTeam.connecting', "Connecting to engine…");
 const TEAM_MEMBERS_EMPTY_COPY = localize('navigatorTeamMembers.emptyConnected', "No team members yet");
 const TEAM_TASKS_EMPTY_COPY = localize('navigatorTeamTasks.emptyConnected', "No tasks yet");
 const TEAM_FILTER_NO_MATCH = localize('navigatorTeam.noMatch', "No matches");
 const TEAM_FETCH_FAILED_COPY = localize('navigatorTeam.fetchFailed', "Failed to read team members and tasks");
+const TEAM_UNSUPPORTED_COPY = localize('navigatorTeam.unsupported', "Current engine does not provide Team");
 
 export type NavigatorTeamSubview = 'members' | 'tasks';
 
@@ -280,7 +283,8 @@ export class NavigatorTeamView extends ViewPane {
 
 		this.membersBody = dom.append(container, $('.navigator-team-subview'));
 		this.membersEmpty = dom.append(this.membersBody, $('.navigator-stub-empty'));
-		this.membersEmpty.textContent = TEAM_MEMBERS_EMPTY_COPY;
+		this.membersHonestEmpty = this.getDisconnectedTeamEmptyCopy();
+		this.membersEmpty.textContent = this.membersHonestEmpty;
 		this.membersNote = dom.append(this.membersBody, $('.navigator-stub-note'));
 		this.membersNote.style.display = 'none';
 		this.membersListContainer = dom.append(this.membersBody, $('.navigator-team-list'));
@@ -288,7 +292,8 @@ export class NavigatorTeamView extends ViewPane {
 
 		this.tasksBody = dom.append(container, $('.navigator-team-subview'));
 		this.tasksEmpty = dom.append(this.tasksBody, $('.navigator-stub-empty'));
-		this.tasksEmpty.textContent = TEAM_TASKS_EMPTY_COPY;
+		this.tasksHonestEmpty = this.getDisconnectedTeamEmptyCopy();
+		this.tasksEmpty.textContent = this.tasksHonestEmpty;
 		this.tasksNote = dom.append(this.tasksBody, $('.navigator-stub-note'));
 		this.tasksNote.style.display = 'none';
 		this.tasksListContainer = dom.append(this.tasksBody, $('.navigator-team-tasks-list'));
@@ -374,15 +379,18 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	private async refreshTeamData(): Promise<void> {
-		if (!this.rosterService.isEngineConnected() || this.uaConnection.getConnectionPhase().kind !== 'connected') {
+		const phaseKind = this.uaConnection.getConnectionPhase().kind;
+		const engineReady = this.rosterService.isEngineConnected() && phaseKind === 'connected';
+		if (!engineReady) {
 			if (this.hadTeamSnapshot) {
 				this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
 				return;
 			}
 			this.inspectService.setLiveAgentIds('team', undefined);
 			this.setTeamSnapshotNote(undefined);
-			this.setMemberEntries([], TEAM_MEMBERS_EMPTY_COPY);
-			this.setTaskEntries([], TEAM_TASKS_EMPTY_COPY);
+			const disconnectedCopy = this.getDisconnectedTeamEmptyCopy();
+			this.setMemberEntries([], disconnectedCopy);
+			this.setTaskEntries([], disconnectedCopy);
 			return;
 		}
 
@@ -409,9 +417,8 @@ export class NavigatorTeamView extends ViewPane {
 
 		const teamCapability = getNavigatorCapability(this.uaConnection, 'team');
 		if (teamCapability === 'UNSUPPORTED') {
-			const msg = localize('navigatorTeam.unsupported', "Current engine does not provide Team");
-			this.setMemberEntries([], msg);
-			this.setTaskEntries([], msg);
+			this.setMemberEntries([], TEAM_UNSUPPORTED_COPY);
+			this.setTaskEntries([], TEAM_UNSUPPORTED_COPY);
 			this.hadTeamSnapshot = true;
 			this.setTeamSnapshotNote(undefined);
 			return;
@@ -473,10 +480,16 @@ export class NavigatorTeamView extends ViewPane {
 			}
 			this.setTeamSnapshotNote(undefined);
 		} catch {
-			this.setMemberEntries([], TEAM_MEMBERS_EMPTY_COPY);
-			this.setTaskEntries([], TEAM_TASKS_EMPTY_COPY);
+			this.setMemberEntries([], TEAM_FETCH_FAILED_COPY);
+			this.setTaskEntries([], TEAM_FETCH_FAILED_COPY);
 			this.setTeamSnapshotNote(TEAM_FETCH_FAILED_COPY);
 		}
+	}
+
+	private getDisconnectedTeamEmptyCopy(): string {
+		return this.uaConnection.getConnectionPhase().kind === 'connecting'
+			? TEAM_CONNECTING_COPY
+			: TEAM_NEVER_CONNECTED_COPY;
 	}
 
 	private setTeamSnapshotNote(noteMessage: string | undefined): void {
@@ -583,6 +596,39 @@ export class NavigatorTeamView extends ViewPane {
 		this.membersBody?.classList.toggle('active', this.subview === 'members');
 		this.tasksBody?.classList.toggle('active', this.subview === 'tasks');
 	}
+
+	inspectMember(member: INavigatorTeamMemberEntry): void {
+		this.inspectService.setTarget({ kind: 'member', info: member });
+		this.openInspectPanel();
+	}
+
+	inspectTask(task: INavigatorTeamTaskEntry): void {
+		this.inspectService.setTarget({ kind: 'task', task });
+		this.openInspectPanel();
+	}
+
+	inspectFocusedTitleAction(): void {
+		if (this.subview === 'members') {
+			const index = this.membersList?.getFocus()[0];
+			const member = typeof index === 'number' && index >= 0 ? this.membersList?.element(index) : undefined;
+			if (member) {
+				this.inspectMember(member);
+				return;
+			}
+		} else {
+			const index = this.tasksList?.getFocus()[0];
+			const task = typeof index === 'number' && index >= 0 ? this.tasksList?.element(index) : undefined;
+			if (task) {
+				this.inspectTask(task);
+				return;
+			}
+		}
+		this.notificationService.info(localize('navigatorTeam.inspectNoFocus', "Select a team member or task to inspect"));
+	}
+
+	private openInspectPanel(): void {
+		void this.instantiationService.invokeFunction(accessor => accessor.get(IViewsService).openView(AGENT_INSPECT_VIEW_ID, true));
+	}
 }
 
 registerAction2(class NavigatorTeamShowMembersAction extends ViewAction<NavigatorTeamView> {
@@ -645,7 +691,7 @@ registerAction2(class NavigatorTeamOpenInspectAction extends ViewAction<Navigato
 		});
 	}
 
-	override runInView(accessor: ServicesAccessor): void {
-		void accessor.get(IViewsService).openView(AGENT_INSPECT_VIEW_ID, true);
+	override runInView(_accessor: ServicesAccessor, view: NavigatorTeamView): void {
+		view.inspectFocusedTitleAction();
 	}
 });

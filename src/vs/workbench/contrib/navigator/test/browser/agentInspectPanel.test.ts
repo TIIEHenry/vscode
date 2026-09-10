@@ -113,15 +113,18 @@ suite('Agent inspect panel', () => {
 		assert.strictEqual(teamInspectItem.command.id, OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID);
 	});
 
-	test('Agents ViewTitle Inspect action opens inspect panel view via ViewsService', async () => {
-		const openViewCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+	test('Agents ViewTitle Inspect action dispatches to the active Agents view', async () => {
+		const inspectCalls: string[] = [];
 		class TrackingViewsService extends TestViewsService {
-			override openView<T>(id: string, focus?: boolean): Promise<T | null> {
-				openViewCalls.push({ id, focus });
-				return Promise.resolve(null);
-			}
 			override getActiveViewWithId<T>(id: string): T | null {
-				return id === NAVIGATOR_AGENTS_VIEW_ID ? {} as T : null;
+				if (id === NAVIGATOR_AGENTS_VIEW_ID) {
+					return {
+						inspectFocusedTitleAction: () => {
+							inspectCalls.push('agents');
+						},
+					} as T;
+				}
+				return null;
 			}
 			dispose(): void { }
 		}
@@ -134,7 +137,7 @@ suite('Agent inspect panel', () => {
 		assert.ok(command, 'Agents Inspect action must register as a command');
 
 		await instantiationService.invokeFunction(accessor => command!.handler(accessor));
-		assert.deepStrictEqual(openViewCalls, [{ id: AGENT_INSPECT_VIEW_ID, focus: true }]);
+		assert.deepStrictEqual(inspectCalls, ['agents']);
 	});
 
 	test('empty inspect list shows welcome with no targets', async () => {
@@ -312,15 +315,18 @@ suite('Agent inspect panel', () => {
 		assert.strictEqual(view.element.querySelector('.chat-setup'), null);
 	});
 
-	test('Team ViewTitle Inspect action opens inspect panel view via ViewsService', async () => {
-		const openViewCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+	test('Team ViewTitle Inspect action dispatches to the active Team view', async () => {
+		const inspectCalls: string[] = [];
 		class TrackingViewsService extends TestViewsService {
-			override openView<T>(id: string, focus?: boolean): Promise<T | null> {
-				openViewCalls.push({ id, focus });
-				return Promise.resolve(null);
-			}
 			override getActiveViewWithId<T>(id: string): T | null {
-				return id === NAVIGATOR_TEAM_VIEW_ID ? {} as T : null;
+				if (id === NAVIGATOR_TEAM_VIEW_ID) {
+					return {
+						inspectFocusedTitleAction: () => {
+							inspectCalls.push('team');
+						},
+					} as T;
+				}
+				return null;
 			}
 			dispose(): void { }
 		}
@@ -333,6 +339,6 @@ suite('Agent inspect panel', () => {
 		assert.ok(command, 'Team Inspect action must register as a command');
 
 		await instantiationService.invokeFunction(accessor => command!.handler(accessor));
-		assert.deepStrictEqual(openViewCalls, [{ id: AGENT_INSPECT_VIEW_ID, focus: true }]);
+		assert.deepStrictEqual(inspectCalls, ['team']);
 	});
 });
