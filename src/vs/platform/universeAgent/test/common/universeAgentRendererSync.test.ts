@@ -329,6 +329,36 @@ suite('universeAgentRendererSync', () => {
 		assert.deepStrictEqual(await (client as unknown as typeof remote).connectProfile(), { ok: true, path: 'direct', pairingPending: false });
 	});
 
+	test('connection channel client connected phase with pairingPending is not engine connected', async () => {
+		const snapshot = {
+			transport: 'ok' as const,
+			pairingPending: true,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+		};
+		const channel: IChannel = {
+			call: (command: string): Promise<any> => {
+				switch (command) {
+					case 'getConnectionSnapshot':
+						return Promise.resolve(snapshot);
+					case 'getConnectionPhase':
+						return Promise.resolve({ kind: 'connected', path: 'direct' });
+					case 'isAgentTreeFetchFailed':
+						return Promise.resolve(false);
+					default:
+						return Promise.resolve(undefined);
+				}
+			},
+			listen: () => Event.None,
+		};
+		const client = store.add(new UniverseAgentConnectionChannelClient(channel));
+		await timeout(0);
+		assert.strictEqual(client.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(client.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(client.isEngineConnected(), false);
+	});
+
 	test('connection channel client hydrates sync getters from async IPC', async () => {
 		const snapshot = {
 			transport: 'idle' as const,
