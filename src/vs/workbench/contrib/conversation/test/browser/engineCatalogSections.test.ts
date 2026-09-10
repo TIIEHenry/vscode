@@ -1350,7 +1350,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 	test('Agents: tools tab listTools throw paints failed toolsStatus', async () => {
 		const connection = createConnectionStub({
 			connected: true,
-			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			capabilities: { agentProfiles: { support: 'SUPPORTED' }, tools: { support: 'SUPPORTED' } },
 			listAgentProfiles: async () => ({
 				profiles: [demoUserAgent()],
 			}),
@@ -1376,7 +1376,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		let listAgentProfilesCalls = 0;
 		const connection = createConnectionStub({
 			connected: true,
-			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			capabilities: { agentProfiles: { support: 'SUPPORTED' }, tools: { support: 'SUPPORTED' } },
 			listAgentProfiles: async () => {
 				listAgentProfilesCalls++;
 				return { profiles: [demoUserAgent()] };
@@ -1418,7 +1418,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 	test('Agents: successful reconnect refresh clears agent tool pending and keeps catalog ready', async () => {
 		const connection = createConnectionStub({
 			connected: true,
-			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			capabilities: { agentProfiles: { support: 'SUPPORTED' }, tools: { support: 'SUPPORTED' } },
 			listAgentProfiles: async () => ({
 				profiles: [demoUserAgent()],
 			}),
@@ -1450,6 +1450,93 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		);
 		assert.strictEqual(toolsFailed, null);
 		assert.ok((section.getDomNode().textContent ?? '').includes('bash'));
+	});
+
+	function assertAgentToolsUnknownCapabilityHonesty(
+		section: EngineAgentsSection,
+		expectedRows: number,
+	): void {
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(section.getAgentToolRowCount(), expectedRows);
+		const rows = getAgentToolRows(section);
+		assert.strictEqual(rows.length, expectedRows);
+		const toolsPanel = section.getDomNode().querySelector('.engine-agents-tools-panel') as HTMLElement;
+		assert.ok(toolsPanel);
+		assert.notStrictEqual(toolsPanel.style.display, 'none');
+		for (const row of rows) {
+			assert.notStrictEqual((row as HTMLElement).style.display, 'none');
+		}
+		const toolsStatus = section.getDomNode().querySelector(
+			'.engine-agents-tools-panel .engine-catalog-status-widget',
+		) as HTMLElement;
+		assert.ok(toolsStatus);
+		assert.notStrictEqual(toolsStatus.style.display, 'none');
+		assert.strictEqual(toolsStatus.dataset['catalogMode'], 'loading');
+		assert.ok(toolsStatus.textContent?.includes(getCatalogUnknownCopy()));
+		assert.ok(!(toolsStatus.textContent ?? '').includes(getCatalogListLoadingCopy()));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(AGENT_TOOLS_EMPTY_COPY));
+	}
+
+	test('Agents: tools tab first-pull capability UNKNOWN is empty with capability loading', async () => {
+		let listToolsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' }, tools: { support: 'UNKNOWN' } },
+			listAgentProfiles: async () => ({
+				profiles: [demoUserAgent()],
+			}),
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [{ name: LEFTOVER_AGENT_TOOL_NAME }] };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		await section.selectProfileByIdForTest('demo');
+		section.setActiveAgentDetailTabForTest('tools');
+		await flushMicrotasks();
+
+		assertAgentToolsUnknownCapabilityHonesty(section, 0);
+		assert.strictEqual(listToolsCalls, 0);
+	});
+
+	test('Agents: tools tab successful load then capability UNKNOWN keeps leftover rows and paints capability loading', async () => {
+		let listToolsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' }, tools: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({
+				profiles: [demoUserAgent()],
+			}),
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [{ name: LEFTOVER_AGENT_TOOL_NAME }] };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		await section.selectProfileByIdForTest('demo');
+		section.setActiveAgentDetailTabForTest('tools');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getAgentToolRowCount(), 1);
+		const listToolsAfterLoad = listToolsCalls;
+		assert.ok(listToolsAfterLoad >= 1);
+
+		connection.setToolsSupport('UNKNOWN');
+		await flushMicrotasks();
+
+		assert.strictEqual(listToolsCalls, listToolsAfterLoad);
+		assertAgentToolsUnknownCapabilityHonesty(section, 1);
 	});
 
 	test('Agents: instructions tab refresh reloads editor and paints load-failed without leftover markdown', async () => {

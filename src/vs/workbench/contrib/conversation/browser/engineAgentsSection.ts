@@ -721,6 +721,12 @@ export class EngineAgentsSection extends Disposable {
 		if (!this.connection.isEngineConnected()) {
 			return;
 		}
+		const toolsSupport = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot()).tools.support;
+		if (toolsSupport === 'UNKNOWN') {
+			// Keep leftover agent tool rows after a live paint (D267; D255).
+			// UNKNOWN must not invent listTools; first-pull empty stays empty.
+			return;
+		}
 		if (!forceReload && this.agentTools.length > 0 && this.agentToolsLoadFailed === undefined) {
 			return;
 		}
@@ -747,7 +753,17 @@ export class EngineAgentsSection extends Disposable {
 			this.toolsStatus.hide();
 			return;
 		}
-		if (this.agentToolsLoadFailed !== undefined) {
+		const toolsSupport = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot()).tools.support;
+		if (toolsSupport === 'UNKNOWN') {
+			this.toolsStatus.render({
+				mode: 'loading',
+				featureLabel: AGENT_TOOLS_FEATURE,
+				loadingKind: 'capability',
+			});
+			if (this.agentTools.length === 0) {
+				return;
+			}
+		} else if (this.agentToolsLoadFailed !== undefined) {
 			this.toolsStatus.render({
 				mode: 'failed',
 				featureLabel: AGENT_TOOLS_FEATURE,
