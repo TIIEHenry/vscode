@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-10
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D232 已闭；D230 Plugins leftover；D232 MCP Definitions leftover；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D233 已闭；D230 Plugins leftover；D232 MCP Definitions leftover；D233 Agents leftover；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -245,6 +245,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D232 已闭；D230
 | D229 | P3 | **closed** Agents Hierarchy 成功画 leftover 后 `isAgentTreeFetchFailed` 不再走 `setHierarchyState([], pendingCopy)` 把旧树节点装成首拉空失败。`setHierarchyAfterTreeFetchFail` 保 leftover 节点并画 `NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY`；首拉 fail 空态仍「Failed to read the agent tree」。未重做 Activity（仅共用空态 copy）；未占 catalog / connection / proto / 引擎仓 / D22 / D26 / A2 / mic·Route | 工位 D `navigator-hierarchy-fetch-leftover` 已收 | leftover 节点仍在 + 失败 note；不得装活树；首拉 fail 仍 empty+failed；补 `navigatorAgentsSubviews.test.ts` | navigator / agents | closed |
 | D230 | P3 | **closed** Plugins `refresh()` catch 在活画后不再 `clearCatalogPresentation()`（D226 / D225 同胞；不再走 D46 空失败）。成功后再 `listPlugins` throw 保 leftover 行并画 failed；首拉 throw 仍 empty+failed。不得画「No engine plugins.」接通空成功。写/扫描成功文案仍在 list-fail 时清掉（D216 / D222 不回退）。未占 Skills/MCP/Agents/Tools/connection/navigator / proto / 引擎仓 / D22 / D26 / A2 / mic·Route | 工位 A `plugins-list-leftover` 已收 | 成功→list throw leftover 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；补 `enginePluginsSection.test.ts` | conversation / plugins | closed |
 | D232 | P3 | **closed** MCP Definitions `refresh()` catch 在活画后不再 `clearCatalogPresentation()`（D226 / D225 同胞；不再走 D49 空失败）。成功后再 `listMcpServers` throw 保 leftover 行并画 failed；首拉 throw 仍 empty+failed。不得画「No MCP servers yet.」接通空成功。未占 MCP Runtime（D227）/ Skills/Plugins/Agents/Tools / connection pane / navigator / proto / 引擎仓 | 工位 C `mcp-defs-list-leftover` 已收 | 成功→list throw leftover 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；补 `engineCatalogSections.test.ts` | conversation / mcp-definitions | closed |
+| D233 | P3 | **closed** Agents `refresh()` catch 在活画后不再 `clearCatalogPresentation()`（D226 / D225 同胞；不再走 D46 空失败）。成功后再 `listAgentProfiles` throw 保 leftover 行并画 failed；首拉 throw 仍 empty+failed。不得画「No agent profiles yet.」接通空成功。未重做 markdown listed 闸（D223）；未占 Tools / MCP / Skills / Plugins / connection pane / navigator / proto / 引擎仓 | 工位 D `agents-list-leftover` 已收 | 成功→list throw leftover 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；补 `engineCatalogSections.test.ts` | conversation / agents | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 

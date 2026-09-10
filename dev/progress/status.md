@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 本波：A D230、C D232 已合；B/D 仍在工位。未 compile-client。"
+summary: "loop 本波：A D230、C D232、D D233 已合；B 仍在工位。未 compile-client。"
 ---
 
 # Development Progress
@@ -47,7 +47,7 @@ summary: "loop 本波：A D230、C D232 已合；B/D 仍在工位。未 compile-
 | **A** | plugins-list-leftover | 已进 merge `899e57da6bb`；[D230](deferred-gaps.md) 已闭 |
 | **B** | skills-list-leftover | 工位进行中 |
 | **C** | mcp-defs-list-leftover | 已进 merge `1bf59304a14`；[D232](deferred-gaps.md) 已闭；勿 add `dev/loop` |
-| **D** | agents-list-leftover | 工位进行中 |
+| **D** | agents-list-leftover | 已进 merge `f3145bb12cf`；[D233](deferred-gaps.md) 已闭 |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
@@ -179,6 +179,7 @@ summary: "loop 本波：A D230、C D232 已合；B/D 仍在工位。未 compile-
 | [D229](deferred-gaps.md) | D `navigator-hierarchy-fetch-leftover` | **closed** Hierarchy 成功后再 tree fetch-fail 保 leftover 节点 + 失败 note，不得装活树或首拉空失败；merge compile-client 0 |
 | [D230](deferred-gaps.md) | A `plugins-list-leftover` | **closed** Plugins 成功后再 listPlugins throw 保 leftover 行 + failed，不得装「No engine plugins.」；首拉 throw 仍 empty+failed；未 compile-client |
 | [D232](deferred-gaps.md) | C `mcp-defs-list-leftover` | **closed** MCP Definitions 成功后再 listMcpServers throw 保 leftover 行 + failed，不得装「No MCP servers yet.」；首拉 throw 仍 empty+failed；未 compile-client |
+| [D233](deferred-gaps.md) | D `agents-list-leftover` | **closed** Agents 成功后再 `listAgentProfiles` throw 保 leftover 行 + failed，不得装「No agent profiles yet.」；首拉 throw 仍 empty+failed；未重做 D223 |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）

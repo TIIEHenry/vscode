@@ -38,6 +38,7 @@ import { canPerformCatalogWrite, getCatalogFailedCopy, getCatalogUnsupportedCopy
 import { localize } from '../../../../../nls.js';
 
 const AGENTS_FEATURE = localize('ua.engineAgentsFeatureLabel', "agent profiles");
+const AGENTS_EMPTY_COPY = localize('ua.engineAgentsEmpty', "No agent profiles yet.");
 const AGENT_TOOLS_FEATURE = localize('ua.engineAgentToolsFeatureLabel', "agent profile tools");
 const MCP_FEATURE = localize('ua.engineMcpFeatureLabel', "MCP server definitions");
 const MCP_EMPTY_COPY = localize('ua.engineMcpEmpty', "No MCP servers yet.");
@@ -687,6 +688,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		await flushMicrotasks();
 
 		assertFailedCatalogHonesty(section, AGENTS_FEATURE, 'listAgentProfiles exploded');
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(AGENTS_EMPTY_COPY));
 	});
 
 	test('MCP: listMcpServers reject is failed with error status and no fake catalog', async () => {
@@ -899,7 +901,26 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok(section.getListEntryCount() > 0);
 	});
 
-	test('Agents: successful load then refresh throw is failed with no leftover catalog', async () => {
+	function assertAgentsLeftoverFailedHonesty(
+		section: EngineAgentsSection,
+		errorMessage: string,
+		expectedRows: number,
+	): void {
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), expectedRows);
+		assert.strictEqual(section.canWrite(), false);
+		section.setSectionActive(true);
+		const listContainer = section.getDomNode().querySelector('.engine-catalog-list') as HTMLElement;
+		assert.ok(listContainer);
+		assert.notStrictEqual(listContainer.style.display, 'none');
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(AGENTS_FEATURE, errorMessage)));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(AGENTS_EMPTY_COPY));
+	}
+
+	test('Agents: successful load then listAgentProfiles throw keeps leftover catalog and paints failed', async () => {
 		let listAgentProfilesCalls = 0;
 		const connection = createConnectionStub({
 			connected: true,
@@ -907,7 +928,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			listAgentProfiles: async () => {
 				listAgentProfilesCalls++;
 				if (listAgentProfilesCalls === 1) {
-					return { profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }] };
+					return { profiles: [{ id: 'leftover', name: 'Leftover Agent', source: 'user' as const }] };
 				}
 				throw new Error('listAgentProfiles retry exploded');
 			},
@@ -916,14 +937,13 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		await flushMicrotasks();
 
 		assert.strictEqual(section.getMode(), 'ready');
-		assert.ok(section.getListEntryCount() > 0);
+		assert.strictEqual(section.getListEntryCount(), 1);
 
 		connection.setConnected(true);
 		await flushMicrotasks();
 
-		assert.strictEqual(section.getMode(), 'failed');
-		assert.strictEqual(section.getListEntryCount(), 0);
-		assertFailedCatalogHonesty(section, AGENTS_FEATURE, 'listAgentProfiles retry exploded');
+		assert.strictEqual(listAgentProfilesCalls, 2);
+		assertAgentsLeftoverFailedHonesty(section, 'listAgentProfiles retry exploded', 1);
 	});
 
 	function demoUserAgent() {
@@ -1091,7 +1111,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 	function assertAgentsWriteSuccessClearedAfterListFail(section: EngineAgentsSection, successCopy: string, listReason: string): void {
 		assert.strictEqual(section.getMode(), 'failed');
-		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(section.getListEntryCount(), 1);
 		const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
 		assert.ok(writeStatus);
 		assert.notStrictEqual(writeStatus.textContent, successCopy);

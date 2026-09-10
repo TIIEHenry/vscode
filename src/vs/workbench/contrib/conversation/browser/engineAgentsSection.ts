@@ -879,7 +879,11 @@ export class EngineAgentsSection extends Disposable {
 			this.renderStatus();
 			return true;
 		} catch (error) {
-			this.clearCatalogPresentation();
+			const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'profile');
+			if (!hadLiveCatalog) {
+				this.clearCatalogPresentation();
+			}
+			this.hideCatalogWriteStatus();
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
 				kind: 'failed',
 				error: error instanceof Error ? error.message : undefined,
