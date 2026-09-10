@@ -78,6 +78,22 @@ suite('conversationComposerCatalog', () => {
 		assert.ok(!modelOptions.some(option => option.text === 'gpt-test'));
 	});
 
+	test('agent catalog is display labels only and does not invoke SwitchAgent', async () => {
+		const switchCalls: unknown[] = [];
+		const { host, agentOptions } = createLoadCatalogHost({
+			listAgentProfiles: async () => ({ profiles: [{ id: 'coder', name: 'Coder', source: 'user' }] }),
+			listModels: async () => ({ models: [] }),
+			listTools: async () => ({ tools: [] }),
+		});
+		(host.uaConnection as { switchAgent?: unknown }).switchAgent = async () => {
+			switchCalls.push('switchAgent');
+		};
+		await loadConnectedComposerCatalogs(host, 1);
+		assert.ok(agentOptions.some(option => option.text === 'Coder'));
+		assert.deepStrictEqual(switchCalls, []);
+		assert.strictEqual(host.getSessionConfig('s1').agentIndex, 0);
+	});
+
 	test('loadConnectedComposerCatalogs success then throw clears leftover agent and model options', async () => {
 		let listAgentProfilesCalls = 0;
 		let listModelsCalls = 0;

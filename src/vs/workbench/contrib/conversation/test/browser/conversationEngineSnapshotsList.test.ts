@@ -472,7 +472,12 @@ suite('ConversationEngineSnapshotsList', () => {
 		}));
 		list.show();
 		await Promise.resolve();
-		restoreButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		const restore = restoreButton(snapshotRow(overlayParent, 'snap-1'));
+		assert.ok(restore);
+		assert.strictEqual(restore.classList.contains('disabled'), true);
+		assert.strictEqual(restore.getAttribute('aria-disabled'), 'true');
+		assert.ok(restore.getAttribute('aria-label')?.includes(conversationLensSessionBarSnapshotsUnavailableNoHook));
+		restore.click();
 		await Promise.resolve();
 		await Promise.resolve();
 		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }]);
@@ -786,7 +791,12 @@ suite('ConversationEngineSnapshotsList', () => {
 		}), createRosterStub(), { confirmResult: true });
 		list.show();
 		await Promise.resolve();
-		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		const remove = deleteButton(snapshotRow(overlayParent, 'snap-1'));
+		assert.ok(remove);
+		assert.strictEqual(remove.classList.contains('disabled'), true);
+		assert.strictEqual(remove.getAttribute('aria-disabled'), 'true');
+		assert.ok(remove.getAttribute('aria-label')?.includes(conversationLensSessionBarSnapshotsUnavailableNoHook));
+		remove.click();
 		await Promise.resolve();
 		await Promise.resolve();
 		assert.ok(snapshotRow(overlayParent, 'snap-1'));

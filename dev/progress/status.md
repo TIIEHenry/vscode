@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 本波关仓中。D catalog list-fail 诚实已合；C bind-ready / B Sources 失败空 diff / A 假铬条待合。D8 / D16 / D147 / D195–D204 仍开。D194 已闭。"
+summary: "loop 本波四槽已合入 merge：A 假铬条、B Sources 失败空 diff、C bind-ready、D catalog list-fail。待一路 compile。D8 / D16 / D147 / D195–D204 仍开。D194 已闭。"
 ---
 
 # Development Progress
@@ -44,10 +44,10 @@ summary: "loop 本波关仓中。D catalog list-fail 诚实已合；C bind-ready
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | conversation-fake-chrome-honesty | merge-queued `cc7d2f396e7` |
-| **B** | Sources 失败与空 diff 诚实面 | merge-queued `cfb340570a3` |
-| **C** | session-bind-ready-honesty：roster 等 Create/Resume，不把 acquireLease / web-empty 当成功 | 合入中；**勿 add `dev/loop`** |
-| **D** | catalog-write-listfail-honesty：list-fail 不回刷成功文案；Overview 无假 Supported；Web Profiles 省略桌面控件 | 已进 merge `21f8d299cd8`；[D199](deferred-gaps.md)–[D201](deferred-gaps.md) |
+| **A** | conversation-fake-chrome-honesty：拆 Add/Templates/Task/ring；Agent/Model/Goal/Snapshots/Retry 门控 | 已进 merge `cc7d2f396e7`；[D202](deferred-gaps.md)–[D204](deferred-gaps.md) |
+| **B** | Sources 失败与空 diff 诚实面 | 已进 merge `cfb340570a3` |
+| **C** | session-bind-ready-honesty：roster 等 Create/Resume | 已进 merge `320dc8c0ab3`；**勿 add `dev/loop`** |
+| **D** | catalog-write-listfail-honesty | 已进 merge `21f8d299cd8`；[D199](deferred-gaps.md)–[D201](deferred-gaps.md) |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>

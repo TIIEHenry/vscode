@@ -418,17 +418,38 @@ export class ConversationEngineSnapshotsList extends Disposable {
 				turns.setAttribute('data-turn-count', String(snapshot.turnCount));
 			}
 
+			const sessionId = this.roster.getActiveSessionId();
+			const connected = this.connection.isEngineConnected();
+			const canRestore = canRestoreEngineSnapshot(
+				connected,
+				typeof this.connection.restoreSnapshot === 'function',
+				snapshot.id,
+				sessionId,
+			);
+			const canDelete = canDeleteEngineSnapshot(
+				connected,
+				typeof this.connection.deleteSnapshot === 'function',
+				snapshot.id,
+				sessionId,
+			);
+			const restoreUnavailable = this.unavailableCopy(connected, typeof this.connection.restoreSnapshot === 'function', sessionId);
+			const deleteUnavailable = this.unavailableCopy(connected, typeof this.connection.deleteSnapshot === 'function', sessionId);
+
 			const restoreContainer = append(row, $(`.${conversationLensSnapshotsRestoreClass}`));
 			const restoreButton = this.rowDisposables.add(new Button(restoreContainer, {
 				...defaultButtonStyles,
 				supportIcons: true,
 				small: true,
 				secondary: true,
-				title: conversationLensSessionBarSnapshotsRestore,
-				ariaLabel: conversationLensSessionBarSnapshotsRestore,
+				disabled: !canRestore,
+				title: canRestore ? conversationLensSessionBarSnapshotsRestore : restoreUnavailable,
+				ariaLabel: canRestore
+					? conversationLensSessionBarSnapshotsRestore
+					: `${conversationLensSessionBarSnapshotsRestore} — ${restoreUnavailable}`,
 			}));
 			restoreButton.icon = Codicon.discard;
 			restoreButton.label = conversationLensSessionBarSnapshotsRestore;
+			restoreButton.enabled = canRestore;
 			this.rowDisposables.add(restoreButton.onDidClick(() => this.restoreSnapshot(snapshot.id)));
 
 			const deleteContainer = append(row, $(`.${conversationLensSnapshotsDeleteClass}`));
@@ -437,11 +458,15 @@ export class ConversationEngineSnapshotsList extends Disposable {
 				supportIcons: true,
 				small: true,
 				secondary: true,
-				title: conversationLensSessionBarSnapshotsDelete,
-				ariaLabel: conversationLensSessionBarSnapshotsDelete,
+				disabled: !canDelete,
+				title: canDelete ? conversationLensSessionBarSnapshotsDelete : deleteUnavailable,
+				ariaLabel: canDelete
+					? conversationLensSessionBarSnapshotsDelete
+					: `${conversationLensSessionBarSnapshotsDelete} — ${deleteUnavailable}`,
 			}));
 			deleteButton.icon = Codicon.trash;
 			deleteButton.label = conversationLensSessionBarSnapshotsDelete;
+			deleteButton.enabled = canDelete;
 			this.rowDisposables.add(deleteButton.onDidClick(() => void this.deleteSnapshot(snapshot).catch(onUnexpectedError)));
 		}
 	}

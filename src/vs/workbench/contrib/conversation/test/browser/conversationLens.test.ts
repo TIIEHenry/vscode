@@ -18,16 +18,15 @@ import { conversationLensStaleSnapshotClass } from '../../browser/conversationLe
 import { ConversationTimelineTree, conversationLensUserBubbleShowLess, conversationLensUserBubbleShowMore } from '../../browser/conversationTimelineTree.js';
 import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
 import {
-	conversationLensDockAddTitle,
+	conversationLensDockAgentLabel,
 	conversationLensDockControlHeightPx,
 	conversationLensDockEditExit,
 	conversationLensDockEditingMessage,
 	conversationLensDockEngineNotConnected,
 	conversationLensDockGoal,
 	conversationLensDockInboxNoQueue,
-	conversationLensDockInboxNoTasks,
 	conversationLensDockMaximizeInput,
-	conversationLensDockNoAttachments,
+	conversationLensDockGoalUnavailable,
 	conversationLensDockNoGoal,
 	conversationLensDockNoModel,
 	conversationLensDockNoTools,
@@ -42,7 +41,6 @@ import {
 	conversationLensDockRestoreTimeline,
 	conversationLensDockStop,
 	conversationLensDockStopNotGenerating,
-	conversationLensDockTemplatesTitle,
 	conversationLensDockTuneTitle,
 	conversationLensInputMaximizedClass,
 	conversationLensPhasePreFirstClass,
@@ -51,7 +49,7 @@ import {
 	conversationLensInboxQueueEditingTag,
 	conversationLensInboxQueuePause,
 } from '../../browser/conversationLensDockStrings.js';
-import { conversationLensDockModelFailed, conversationLensDockPermissionUnavailable } from '../../browser/conversationLensComposerChrome.js';
+import { conversationLensDockAgentUnavailable, conversationLensDockModelFailed, conversationLensDockModelUnavailable, conversationLensDockPermissionUnavailable } from '../../browser/conversationLensComposerChrome.js';
 import {
 	conversationLensSessionBarConversationTab,
 	conversationLensSessionBarDeleteSession,
@@ -396,12 +394,6 @@ suite('ConversationLens', () => {
 		return overlay as HTMLElement;
 	}
 
-	function getInboxTaskChip(slots: IConversationLensSlots): HTMLButtonElement {
-		const chip = getInboxOverlay(slots).querySelector('.conversation-lens-inbox-task') as HTMLButtonElement | null;
-		assert.ok(chip);
-		return chip;
-	}
-
 	function getInboxQueueChip(slots: IConversationLensSlots): HTMLButtonElement {
 		const chip = getInboxOverlay(slots).querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement | null;
 		assert.ok(chip);
@@ -428,16 +420,6 @@ suite('ConversationLens', () => {
 		const button = slots.dock.querySelector('.conversation-lens-inbox-stop .conversation-lens-inbox-stop-button');
 		assert.ok(button);
 		return button as HTMLElement;
-	}
-
-	function getVisibleDockAddPopup(): HTMLElement | null {
-		for (const popup of document.querySelectorAll<HTMLElement>('.conversation-lens-dock-add-popup')) {
-			const host = popup.closest('.context-view') as HTMLElement | null;
-			if (!host || host.style.display !== 'none') {
-				return popup;
-			}
-		}
-		return null;
 	}
 
 	function getComposerBottomBar(slots: IConversationLensSlots): HTMLElement {
@@ -830,7 +812,7 @@ suite('ConversationLens', () => {
 		assert.ok(slots.dock.querySelector('.conversation-lens-dock-send'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-dock-gate-row'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-dock-model'));
-		assert.ok(slots.dock.querySelector('.conversation-lens-inbox-task'));
+		assert.strictEqual(slots.dock.querySelector('.conversation-lens-inbox-task'), null);
 		assert.ok(slots.dock.querySelector('.conversation-lens-inbox-queue'));
 	});
 
@@ -860,7 +842,7 @@ suite('ConversationLens', () => {
 		assert.ok(!inputRow.querySelector('.conversation-lens-dock-send'));
 	});
 
-	test('T2 composer chrome: 32px bottom bar with add tune permission model more send codicons', () => {
+	test('T2 composer chrome: 32px bottom bar with tune permission model more send codicons', () => {
 		const { part } = mountLens();
 		const slots = getLensSlots(part);
 		const bottomBar = getComposerBottomBar(slots);
@@ -872,20 +854,18 @@ suite('ConversationLens', () => {
 
 		const leading = bottomBar.querySelector('.conversation-lens-dock-bottom-leading')!;
 		const trailing = bottomBar.querySelector('.conversation-lens-dock-bottom-trailing')!;
-		assert.ok(leading.querySelector('.conversation-lens-dock-add .codicon-add'));
+		assert.strictEqual(leading.querySelector('.conversation-lens-dock-add'), null);
 		assert.ok(leading.querySelector('.conversation-lens-dock-tune .codicon-settings-gear'));
 		assert.ok(leading.querySelector('.conversation-lens-dock-permission .monaco-select-box'));
 		assert.ok(leading.querySelector('.conversation-lens-dock-more .codicon-ellipsis'));
 		assert.ok(trailing.querySelector('.conversation-lens-dock-model .monaco-select-box'));
-		assert.ok(trailing.querySelector('.conversation-lens-dock-templates .codicon-notebook-template'));
+		assert.strictEqual(trailing.querySelector('.conversation-lens-dock-templates'), null);
 		assert.ok(trailing.querySelector('.conversation-lens-dock-maximize-input .codicon-screen-full'));
 		assert.strictEqual(trailing.querySelector('.conversation-lens-dock-mic'), null);
 		assert.ok(trailing.querySelector('.conversation-lens-dock-send .codicon-arrow-up'));
 
-		const softAdd = leading.querySelector('.conversation-lens-dock-add .monaco-button') as HTMLElement;
 		const ghostTune = leading.querySelector('.conversation-lens-dock-tune .monaco-button') as HTMLElement;
 		const filledSend = trailing.querySelector('.conversation-lens-dock-send .monaco-button') as HTMLElement;
-		assert.ok(softAdd.classList.contains('conversation-lens-dock-control--soft'));
 		assert.ok(ghostTune.classList.contains('conversation-lens-dock-control--ghost'));
 		assert.ok(filledSend.classList.contains('conversation-lens-dock-control--filled'));
 
@@ -897,9 +877,7 @@ suite('ConversationLens', () => {
 			}
 		}
 
-		const addButton = leading.querySelector('.conversation-lens-dock-add .monaco-button') as HTMLButtonElement;
 		const tuneButton = leading.querySelector('.conversation-lens-dock-tune .monaco-button') as HTMLButtonElement;
-		assert.strictEqual(addButton.getAttribute('aria-label'), conversationLensDockAddTitle);
 		assert.strictEqual(tuneButton.getAttribute('aria-label'), conversationLensDockTuneTitle);
 		assert.strictEqual(leading.querySelector('.conversation-lens-dock-route'), null);
 
@@ -935,6 +913,81 @@ suite('ConversationLens', () => {
 		assert.strictEqual(permissionSelect.disabled, false);
 		assert.strictEqual(permissionSelect.getAttribute('aria-label'), conversationLensDockPermissionLabel);
 		assert.strictEqual(permissionContainer.title, conversationLensDockPermissionLabel);
+	});
+
+	test('agent select is disabled without SwitchAgent and does not write agentIndex', async () => {
+		const capabilities = createEmptyTestCapabilitySnapshot();
+		const connection = createConversationConnectionTestStub({
+			getCapabilitySnapshot: () => ({
+				...capabilities,
+				agentProfiles: { support: 'SUPPORTED' },
+			}),
+			listAgentProfiles: async () => ({ profiles: [{ id: 'coder', name: 'Coder', source: 'user' }] }),
+		});
+		const { part, stubService, lens } = mountLens({ connection });
+		const slots = getLensSlots(part);
+		const sessionId = stubService.getActiveSessionId();
+		const agentSelect = getAgentSelect(slots);
+		const agentContainer = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-agent') as HTMLElement;
+
+		assert.strictEqual(agentSelect.disabled, true);
+		assert.strictEqual(agentSelect.getAttribute('aria-label'), `${conversationLensDockAgentLabel} — ${conversationLensDockAgentUnavailable}`);
+		assert.strictEqual(agentContainer.title, conversationLensDockAgentUnavailable);
+		assert.strictEqual(lens.getSessionConfig(sessionId).agentIndex, 0);
+
+		stubService.setEngineConnected(true);
+		for (let i = 0; i < 8; i++) {
+			await Promise.resolve();
+		}
+		assert.ok([...agentSelect.options].some(option => option.text === 'Coder'));
+		assert.strictEqual(agentSelect.disabled, true);
+		const coderIndex = [...agentSelect.options].findIndex(option => option.text === 'Coder');
+		assert.ok(coderIndex >= 0);
+		agentSelect.selectedIndex = coderIndex;
+		agentSelect.dispatchEvent(new globalThis.Event('change', { bubbles: true }));
+		assert.strictEqual(lens.getSessionConfig(sessionId).agentIndex, 0);
+		assert.strictEqual(agentSelect.selectedIndex, 0);
+	});
+
+	test('model select is disabled until the engine can switchModel', () => {
+		const connection = createConversationConnectionTestStub({
+			switchModel: async () => ({ resolvedModelId: 'gpt-test', provider: '', level: 0, cost: '', speed: '' }),
+		});
+		const { part, stubService } = mountLens({ connection });
+		const slots = getLensSlots(part);
+		const modelSelect = getModelSelect(slots);
+		const modelContainer = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-model') as HTMLElement;
+
+		assert.strictEqual(modelSelect.disabled, true);
+		assert.strictEqual(modelSelect.getAttribute('aria-label'), `Model — ${conversationLensDockModelUnavailable}`);
+		assert.strictEqual(modelContainer.title, conversationLensDockModelUnavailable);
+
+		stubService.setEngineConnected(true);
+
+		assert.strictEqual(modelSelect.disabled, false);
+		assert.strictEqual(modelSelect.getAttribute('aria-label'), 'Model');
+		assert.strictEqual(modelContainer.title, 'Model');
+	});
+
+	test('model select does not keep a new index without switchModel', async () => {
+		const capabilities = createEmptyTestCapabilitySnapshot();
+		const connection = createConversationConnectionTestStub({
+			getCapabilitySnapshot: () => ({
+				...capabilities,
+				models: { support: 'SUPPORTED' },
+			}),
+			listModels: async () => ({ models: [{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' }] }),
+		});
+		const { part, stubService } = mountLens({ connection });
+		const slots = getLensSlots(part);
+		stubService.setEngineConnected(true);
+		await waitForModelOption(slots, 'gpt-test');
+
+		selectDockModel(slots, 1);
+		await Promise.resolve();
+
+		assert.strictEqual(getModelSelect(slots).selectedIndex, 0);
+		assert.strictEqual(getModelSelect(slots).options[getModelSelect(slots).selectedIndex]?.text, conversationLensDockNoModel);
 	});
 
 	test('permission select rolls back and shows the gate when setPermissionMode fails', async () => {
@@ -1249,6 +1302,8 @@ suite('ConversationLens', () => {
 
 		const agentSelect = agentSlot().querySelector('select.monaco-select-box') as HTMLSelectElement;
 		assert.strictEqual(agentSelect.options[agentSelect.selectedIndex]?.text, conversationLensDockNoAgent);
+		assert.strictEqual(agentSelect.disabled, true);
+		assert.strictEqual(agentSelect.getAttribute('aria-label'), `${conversationLensDockAgentLabel} — ${conversationLensDockAgentUnavailable}`);
 		assertDisconnectedComposerCatalogsHonest(slots);
 
 		await sendDockDraft(slots, 'Hello Active');
@@ -1307,7 +1362,7 @@ suite('ConversationLens', () => {
 		assert.ok(!('routeIndex' in lens.getSessionConfig(sessionId)));
 	});
 
-	test('Active inbox: left/right clusters with Task before MessageQueue', async () => {
+	test('Active inbox: left/right clusters with MessageQueue and no Task chip', async () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
 		stubService.createSession();
@@ -1316,37 +1371,29 @@ suite('ConversationLens', () => {
 		const left = overlay.querySelector('.conversation-lens-inbox-left')!;
 		const right = overlay.querySelector('.conversation-lens-inbox-right')!;
 
-		assert.ok(left.querySelector('.conversation-lens-inbox-task'));
+		assert.strictEqual(left.querySelector('.conversation-lens-inbox-task'), null);
 		assert.ok(left.querySelector('.conversation-lens-inbox-queue'));
 		assert.ok(left.querySelector('.conversation-lens-inbox-goal'));
 		assert.ok(right.querySelector('.conversation-lens-inbox-stop'));
+		assert.strictEqual(right.querySelector('.conversation-lens-inbox-context-ring'), null);
 		assert.strictEqual(left.querySelector('.conversation-lens-inbox-label'), null);
 
-		const chipOrder = [...left.querySelectorAll('.conversation-lens-inbox-task, .conversation-lens-inbox-queue')].map(el => el.classList.contains('conversation-lens-inbox-task') ? 'task' : 'queue');
-		assert.deepStrictEqual(chipOrder, ['task', 'queue']);
-
-		assert.ok(getInboxTaskChip(slots).textContent?.includes(conversationLensDockInboxNoTasks));
 		assert.ok(getInboxQueueChip(slots).textContent?.includes(conversationLensDockInboxNoQueue));
 		assert.ok(overlay.textContent?.includes(conversationLensDockNoGoal));
 	});
 
-	test('inbox task and queue lists are XOR', async () => {
+	test('inbox queue list opens without a Task chip or task list', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
-		const sessionId = stubService.createSession();
+		stubService.createSession();
 		await sendDockDraft(slots, 'Open inbox lists');
-		stubService.setAutoDriveTaskFixture(sessionId, ['Fix lint']);
 		await flushProjectedTimeline(layoutReadingColumn);
 
-		getInboxTaskChip(slots).click();
-		const taskPanel = getVisibleInboxListPanel();
-		assert.ok(taskPanel?.querySelector('.conversation-lens-inbox-task-list'));
-
+		assert.strictEqual(getInboxOverlay(slots).querySelector('.conversation-lens-inbox-task'), null);
 		getInboxQueueChip(slots).click();
 		const queuePanel = getVisibleInboxListPanel();
 		assert.ok(queuePanel?.querySelector('.conversation-lens-message-queue-list'));
 		assert.strictEqual(queuePanel?.querySelector('.conversation-lens-inbox-task-list'), null);
-		assert.strictEqual(getInboxTaskChip(slots).getAttribute('aria-pressed'), 'false');
 		assert.strictEqual(getInboxQueueChip(slots).getAttribute('aria-pressed'), 'true');
 	});
 
@@ -1396,7 +1443,7 @@ suite('ConversationLens', () => {
 
 		assert.ok(goalButton.classList.contains('disabled'));
 		assert.strictEqual(goalButton.getAttribute('aria-disabled'), 'true');
-		assert.strictEqual(goalButton.getAttribute('aria-label'), `${conversationLensDockGoal}, ${conversationLensDockNoGoal}`);
+		assert.strictEqual(goalButton.getAttribute('aria-label'), `${conversationLensDockGoal} — ${conversationLensDockGoalUnavailable}`);
 		assert.strictEqual(goalButton.textContent?.trim(), conversationLensDockNoGoal);
 
 		goalButton.click();
@@ -1581,39 +1628,23 @@ suite('ConversationLens', () => {
 		assert.strictEqual(textarea.getAttribute('aria-label'), 'Message');
 	});
 
-	test('dock add control is honest: no file picker or attachment list', () => {
+	test('dock has no Add control or attachments popup', () => {
 		const { part } = mountLens();
 		const slots = getLensSlots(part);
-		const addHost = slots.dock.querySelector('.conversation-lens-dock-add');
-		const addButton = addHost?.querySelector('.monaco-button') as HTMLButtonElement | null;
-
-		assert.ok(addHost);
-		assert.ok(addButton);
-		assert.strictEqual(addButton.getAttribute('aria-label'), conversationLensDockAddTitle);
-		assert.strictEqual(addHost.querySelector('.conversation-lens-dock-attachment-list'), null);
-		assert.strictEqual(addHost.querySelector('.chat-attachments-container'), null);
+		assert.strictEqual(slots.dock.querySelector('.conversation-lens-dock-add'), null);
+		assert.strictEqual(slots.dock.querySelector('.conversation-lens-dock-attachment-list'), null);
+		assert.strictEqual(slots.dock.querySelector('.chat-attachments-container'), null);
 		assert.strictEqual(slots.dock.querySelector('.chat-setup'), null);
-		assert.strictEqual(getVisibleDockAddPopup(), null);
-
-		addButton.click();
-
-		const popup = getVisibleDockAddPopup();
-		assert.ok(popup);
-		assert.strictEqual(popup.textContent, conversationLensDockNoAttachments);
-		assert.strictEqual(popup.querySelectorAll('[role="option"], .monaco-list-row, .conversation-lens-dock-attachment-item').length, 0);
-
-		addButton.click();
-		assert.strictEqual(getVisibleDockAddPopup(), null);
+		assert.strictEqual(document.querySelector('.conversation-lens-dock-add-popup'), null);
 	});
 
-	test('dock tune and templates popups are honest stubs', () => {
+	test('dock tune popup is honest and Templates chrome is gone', () => {
 		const { part } = mountLens();
 		const slots = getLensSlots(part);
 		const tuneButton = slots.dock.querySelector('.conversation-lens-dock-tune .monaco-button') as HTMLButtonElement;
-		const templatesButton = slots.dock.querySelector('.conversation-lens-dock-templates .monaco-button') as HTMLButtonElement;
 
 		assert.strictEqual(tuneButton.getAttribute('aria-label'), conversationLensDockTuneTitle);
-		assert.strictEqual(templatesButton.getAttribute('aria-label'), conversationLensDockTemplatesTitle);
+		assert.strictEqual(slots.dock.querySelector('.conversation-lens-dock-templates'), null);
 
 		tuneButton.click();
 		const tunePopup = document.querySelector('.conversation-lens-dock-tune-popup');
@@ -1621,10 +1652,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(tunePopup.textContent, conversationLensDockNoTools);
 		tuneButton.click();
 
-		templatesButton.click();
-		const templatesPopup = document.querySelector('.conversation-lens-dock-templates-popup');
-		assert.ok(templatesPopup);
-		templatesButton.click();
+		assert.strictEqual(document.querySelector('.conversation-lens-dock-templates-popup'), null);
 	});
 
 	test('empty session shows timeline empty state without send-below hint', () => {

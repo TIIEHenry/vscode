@@ -12,7 +12,6 @@ import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import {
-	conversationLensDockAddTitle,
 	conversationLensDockAgentLabel,
 	conversationLensDockEditExit,
 	conversationLensDockEngineNotConnected,
@@ -24,7 +23,6 @@ import {
 	conversationLensDockPermissionLabel,
 	conversationLensDockPermissionPermit,
 	conversationLensDockPlaceholder,
-	conversationLensDockTemplatesTitle,
 	conversationLensDockTuneTitle,
 } from './conversationLensDockStrings.js';
 import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
@@ -40,7 +38,7 @@ import {
 	type ConversationSessionConfigSelection,
 	type IConversationLensComposerChromeHost,
 	showPostFailure,
-	updatePermissionSelectEnabled,
+	updateComposerSessionSelectsEnabled,
 } from './conversationLensComposerChrome.js';
 
 export interface IConversationLensDockHost {
@@ -54,7 +52,6 @@ export interface IConversationLensDockHost {
 	composerEditTitle: HTMLElement;
 	composerExitButton: Button;
 	dockTextarea: HTMLTextAreaElement;
-	addButton: Button;
 	tuneButton: Button;
 	permissionSelectBox: SelectBox;
 	agentContainer: HTMLElement;
@@ -62,7 +59,6 @@ export interface IConversationLensDockHost {
 	moreButton: Button;
 	modelSelectBox: SelectBox;
 	modelSelectedIndex: number;
-	templatesButton: Button;
 	maximizeInputButton: Button;
 	sendButton: Button;
 	composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
@@ -75,10 +71,8 @@ export interface IConversationLensDockHost {
 	createComposerSelectBox(options: { text: string }[], selectedIndex: number, ariaLabel: string): SelectBox;
 	getSessionConfig(sessionId: string): ConversationSessionConfigSelection;
 	setSessionConfig(sessionId: string, patch: Partial<ConversationSessionConfigSelection>): void;
-	toggleAddContextView(): void;
 	toggleTuneContextView(): void;
 	toggleMoreContextView(): void;
-	toggleTemplatesContextView(): void;
 	toggleInputMaximized(): void;
 	updateMaximizeInputButton(): void;
 	updateSendEnabled(): void;
@@ -133,16 +127,6 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		const bottomBar = append(host.composer, $('.conversation-lens-dock-bottom-bar'));
 		const bottomLeading = append(bottomBar, $('.conversation-lens-dock-bottom-leading'));
 
-		const addContainer = append(bottomLeading, $('.conversation-lens-dock-add'));
-		host.addButton = host.register(new Button(addContainer, {
-			...defaultButtonStyles,
-			supportIcons: true,
-			title: conversationLensDockAddTitle,
-		}));
-		host.addButton.icon = Codicon.add;
-		host.addButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--soft');
-		host.register(host.addButton.onDidClick(() => host.toggleAddContextView()));
-
 		const tuneContainer = append(bottomLeading, $('.conversation-lens-dock-tune'));
 		host.tuneButton = host.register(new Button(tuneContainer, {
 			...defaultButtonStyles,
@@ -166,9 +150,6 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		host.register(host.permissionSelectBox.onDidSelect(e => {
 			void applySessionPermissionIndex(host, host.getBoundSessionId(), e.index);
 		}));
-		updatePermissionSelectEnabled(host);
-		host.register(host.stubService.onDidChangeEngineConnection(() => updatePermissionSelectEnabled(host)));
-		host.register(host.uaConnection.onDidChangeConnection(() => updatePermissionSelectEnabled(host)));
 
 		host.agentContainer = append(bottomLeading, $('.conversation-lens-dock-agent'));
 		host.agentSelectBox = host.register(host.createComposerSelectBox(
@@ -176,8 +157,8 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 			Math.min(host.getSessionConfig(host.getBoundSessionId()).agentIndex, COMPOSER_AGENT_OPTIONS.length - 1),
 			conversationLensDockAgentLabel));
 		host.agentSelectBox.render(host.agentContainer);
-		host.register(host.agentSelectBox.onDidSelect(e => {
-			host.setSessionConfig(host.getBoundSessionId(), { agentIndex: e.index });
+		host.register(host.agentSelectBox.onDidSelect(() => {
+			host.agentSelectBox.select(host.getSessionConfig(host.getBoundSessionId()).agentIndex);
 		}));
 
 		const moreContainer = append(bottomLeading, $('.conversation-lens-dock-more'));
@@ -201,16 +182,9 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		host.register(host.modelSelectBox.onDidSelect(e => {
 			void applySessionModelIndex(host, host.getBoundSessionId(), e.index);
 		}));
-
-		const templatesContainer = append(bottomTrailing, $('.conversation-lens-dock-templates'));
-		host.templatesButton = host.register(new Button(templatesContainer, {
-			...defaultButtonStyles,
-			supportIcons: true,
-			title: conversationLensDockTemplatesTitle,
-		}));
-		host.templatesButton.icon = Codicon.notebookTemplate;
-		host.templatesButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--ghost');
-		host.register(host.templatesButton.onDidClick(() => host.toggleTemplatesContextView()));
+		updateComposerSessionSelectsEnabled(host);
+		host.register(host.stubService.onDidChangeEngineConnection(() => updateComposerSessionSelectsEnabled(host)));
+		host.register(host.uaConnection.onDidChangeConnection(() => updateComposerSessionSelectsEnabled(host)));
 
 		const maximizeInputContainer = append(bottomTrailing, $('.conversation-lens-dock-maximize-input'));
 		host.maximizeInputButton = host.register(new Button(maximizeInputContainer, {
