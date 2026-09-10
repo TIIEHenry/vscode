@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "关仓中：A D216、D D220 已合；B catalog listed / C leftover 仍在工位。"
+summary: "关仓中：A D216、B D217–D219、D D220 已合；C leftover 仍在工位。"
 ---
 
 # Development Progress
@@ -45,7 +45,7 @@ summary: "关仓中：A D216、D D220 已合；B catalog listed / C leftover 仍
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
 | **A** | plugins-scan-list-fail | 已进 merge `19ac68c13cf`；[D216](deferred-gaps.md) 已闭 |
-| **B** | catalog-write-listed-gates | 工位进行中 |
+| **B** | catalog-write-list-fail | 已进 merge `a92db1b8cf4`；[D217](deferred-gaps.md)–[D219](deferred-gaps.md) 已闭 |
 | **C** | leftover-from-code | 工位进行中；勿 add `dev/loop` |
 | **D** | navigator-agents-activity-fetch-leftover | 已进 merge `6b7c2002b3a`；[D220](deferred-gaps.md) 已闭 |
 
@@ -167,6 +167,7 @@ summary: "关仓中：A D216、D D220 已合；B catalog listed / C leftover 仍
 | [D203](deferred-gaps.md) | C `session-delete-draft-rollback` | **closed** delete 失败/回滚后 composer draft 挂回原 session；`conversationLens.test.ts` 锁 false 与 optimistic rollback；未 compile |
 | [D212](deferred-gaps.md) | C `clipboard-write-list-fail` | **closed** Write/Clear 写成功后再 ListClipboard fail 不回刷 clipId / removedCount；`refresh()` 返回 listed 才回写；未 compile |
 | [D216](deferred-gaps.md) | A `plugins-scan-list-fail` | **closed** scanNew 写成功后再 listPlugins fail 不回刷 lastScan；`refresh()` 返回 listed 才回写；未 compile |
+| [D217](deferred-gaps.md)–[D219](deferred-gaps.md) | B `catalog-write-list-fail` | **closed** MCP/Skills/Agents 写成功后再 list fail 不回刷 Added./Created./Saved. 等；`refresh()` 返回 listed 才回写；未占 D216；未 compile |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）

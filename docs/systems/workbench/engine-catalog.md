@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-10
-summary: "HEAD 九节壳已挂：四节写路径 + Overview/Model/MCP Runtime/Plugins；Provider/Rules/Hooks 仍 unsupported；产品验证未做"
+summary: "HEAD 九节壳已挂：四节写路径 + Overview/Model/MCP Runtime/Plugins；MCP/Skills/Agents 写成功仅 list listed 才回刷成功文案；Provider/Rules/Hooks 仍 unsupported；产品验证未做"
 ---
 
 # Engine 页 Customizations catalog（`ua.engine`）
@@ -58,7 +58,7 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 | `empty` | RPC 成功且列表长度 0 | 真空态；允许合法 New/Add |
 | `ready` | RPC 成功且有条目 | 列表 / 详情 / 写控件 |
 
-写入口仅 `canPerformCatalogWrite`（`empty` \| `ready`）。`canShowCatalogRows` 仅 `ready`。`shouldHideCatalogRows` 已 deprecated，不得再当 hide-on-disconnect。
+写入口仅 `canPerformCatalogWrite`（`empty` \| `ready`）。`canShowCatalogRows` 仅 `ready`。`shouldHideCatalogRows` 已 deprecated，不得再当 hide-on-disconnect。MCP / Skills / Agents 写成功后 `refresh()` 仅在 list listed 时回刷 Added/Created/Saved 等成功文案（D201 同胞；Plugins scanNew 不在本刀）。
 
 `catch → emptyList()` **禁止**。断连后 catalog 清 RPC 缓存并回 disconnected；不得标「已同步」。Navigator「断开前快照」不适用于本页。
 

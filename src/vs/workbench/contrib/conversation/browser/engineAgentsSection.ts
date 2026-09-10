@@ -185,6 +185,10 @@ function groupProfilesBySource(profiles: readonly UniverseAgentAgentProfileSumma
 	return groups;
 }
 
+/**
+ * Agents write success is restored after refresh only when
+ * ListAgentProfiles listed (D201 sibling).
+ */
 export class EngineAgentsSection extends Disposable {
 
 	private readonly container: HTMLElement;
@@ -643,8 +647,8 @@ export class EngineAgentsSection extends Disposable {
 
 	private async restoreCatalogWriteSuccessAfterRefresh(copy: string): Promise<void> {
 		this.showCatalogWriteStatus(copy);
-		await this.refresh();
-		if (canPerformCatalogWrite(this.mode)) {
+		const listed = await this.refresh();
+		if (listed) {
 			this.showCatalogWriteStatus(copy);
 		}
 	}
@@ -796,7 +800,7 @@ export class EngineAgentsSection extends Disposable {
 		return ok;
 	}
 
-	private async refresh(): Promise<void> {
+	private async refresh(): Promise<boolean> {
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.agentProfiles.support;
@@ -805,14 +809,14 @@ export class EngineAgentsSection extends Disposable {
 			this.clearCatalogPresentation();
 			this.mode = resolveEngineCatalogPaneMode(false, support);
 			this.renderStatus();
-			return;
+			return false;
 		}
 
 		if (support === 'UNSUPPORTED') {
 			this.clearCatalogPresentation();
 			this.mode = resolveEngineCatalogPaneMode(true, support);
 			this.renderStatus({ reason: capabilities.agentProfiles.reason });
-			return;
+			return false;
 		}
 
 		if (support === 'UNKNOWN') {
@@ -821,7 +825,7 @@ export class EngineAgentsSection extends Disposable {
 			this.writeToolbar.style.display = 'none';
 			this.updateWriteActions();
 			this.renderStatus({ loadingKind: 'capability' });
-			return;
+			return false;
 		}
 
 		this.mode = resolveEngineCatalogPaneMode(true, support, { kind: 'inFlight' });
@@ -835,7 +839,7 @@ export class EngineAgentsSection extends Disposable {
 				this.clearCatalogPresentation();
 				this.mode = resolveEngineCatalogPaneMode(false, support);
 				this.renderStatus();
-				return;
+				return false;
 			}
 			this.agentTools = [];
 			this.agentToolsLoadFailed = undefined;
@@ -854,6 +858,7 @@ export class EngineAgentsSection extends Disposable {
 				void this.loadAgentsEditorForSelection();
 			}
 			this.renderStatus();
+			return true;
 		} catch (error) {
 			this.clearCatalogPresentation();
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
@@ -866,6 +871,7 @@ export class EngineAgentsSection extends Disposable {
 				reason: error instanceof Error ? error.message : undefined,
 				onRetry: () => void this.refresh(),
 			});
+			return false;
 		}
 	}
 

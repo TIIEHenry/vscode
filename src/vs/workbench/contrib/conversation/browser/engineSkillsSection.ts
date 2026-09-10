@@ -145,6 +145,10 @@ class EngineSkillListAccessibilityProvider implements IListAccessibilityProvider
 	}
 }
 
+/**
+ * Skills write success is restored after refresh only when ListSkills
+ * listed (D201 sibling).
+ */
 export class EngineSkillsSection extends Disposable {
 
 	private readonly container: HTMLElement;
@@ -372,7 +376,7 @@ export class EngineSkillsSection extends Disposable {
 		}
 	}
 
-	private async refresh(): Promise<void> {
+	private async refresh(): Promise<boolean> {
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.skills.support;
@@ -381,14 +385,14 @@ export class EngineSkillsSection extends Disposable {
 			this.clearCatalogPresentation();
 			this.mode = resolveEngineSkillsPaneMode(false, support);
 			this.renderStatus();
-			return;
+			return false;
 		}
 
 		if (support === 'UNSUPPORTED') {
 			this.clearCatalogPresentation();
 			this.mode = resolveEngineSkillsPaneMode(true, support);
 			this.renderStatus({ reason: capabilities.skills.reason });
-			return;
+			return false;
 		}
 
 		if (support === 'UNKNOWN') {
@@ -396,7 +400,7 @@ export class EngineSkillsSection extends Disposable {
 			this.mode = resolveEngineSkillsPaneMode(true, support, { kind: 'none' });
 			this.writeToolbar.style.display = 'none';
 			this.renderStatus({ loadingKind: 'capability' });
-			return;
+			return false;
 		}
 
 		this.mode = resolveEngineSkillsPaneMode(true, support, { kind: 'inFlight' });
@@ -409,7 +413,7 @@ export class EngineSkillsSection extends Disposable {
 				this.clearCatalogPresentation();
 				this.mode = resolveEngineSkillsPaneMode(false, support);
 				this.renderStatus();
-				return;
+				return false;
 			}
 			this.setSkills(result.skills);
 			this.mode = resolveEngineSkillsPaneMode(true, support, {
@@ -424,6 +428,7 @@ export class EngineSkillsSection extends Disposable {
 			if (this.selectedSkill && !this.bodyDirty) {
 				void this.loadSkillBody(this.selectedSkill);
 			}
+			return true;
 		} catch (error) {
 			this.clearCatalogPresentation();
 			this.mode = resolveEngineSkillsPaneMode(true, support, {
@@ -435,6 +440,7 @@ export class EngineSkillsSection extends Disposable {
 				reason: error instanceof Error ? error.message : undefined,
 				onRetry: () => void this.refresh(),
 			});
+			return false;
 		}
 	}
 
@@ -553,8 +559,8 @@ export class EngineSkillsSection extends Disposable {
 
 	private async restoreWriteSuccessAfterRefresh(paintSucceeded: () => void): Promise<void> {
 		paintSucceeded();
-		await this.refresh();
-		if (canPerformCatalogWrite(this.mode)) {
+		const listed = await this.refresh();
+		if (listed) {
 			paintSucceeded();
 		}
 	}

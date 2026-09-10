@@ -185,6 +185,10 @@ function groupMcpServersByOrigin(servers: readonly UniverseAgentMcpServerSummary
 	return groups;
 }
 
+/**
+ * MCP Definitions write success is restored after refresh only when
+ * ListMcpServers listed (D201 sibling).
+ */
 export class EngineMcpSection extends Disposable {
 
 	private readonly container: HTMLElement;
@@ -364,8 +368,10 @@ export class EngineMcpSection extends Disposable {
 				return false;
 			}
 			this.showCatalogWriteStatus(ENGINE_MCP_ADD_SUCCESS_COPY);
-			await this.refresh();
-			this.restoreCatalogWriteSuccessIfListed(ENGINE_MCP_ADD_SUCCESS_COPY);
+			const listed = await this.refresh();
+			if (listed) {
+				this.showCatalogWriteStatus(ENGINE_MCP_ADD_SUCCESS_COPY);
+			}
 			return true;
 		} catch (error) {
 			this.showWriteFailed(error);
@@ -398,8 +404,10 @@ export class EngineMcpSection extends Disposable {
 				return false;
 			}
 			this.showCatalogWriteStatus(ENGINE_MCP_UPDATE_SUCCESS_COPY);
-			await this.refresh();
-			this.restoreCatalogWriteSuccessIfListed(ENGINE_MCP_UPDATE_SUCCESS_COPY);
+			const listed = await this.refresh();
+			if (listed) {
+				this.showCatalogWriteStatus(ENGINE_MCP_UPDATE_SUCCESS_COPY);
+			}
 			return true;
 		} catch (error) {
 			this.showWriteFailed(error);
@@ -425,8 +433,10 @@ export class EngineMcpSection extends Disposable {
 			}
 			this.selectedServer = undefined;
 			this.showCatalogWriteStatus(ENGINE_MCP_REMOVE_SUCCESS_COPY);
-			await this.refresh();
-			this.restoreCatalogWriteSuccessIfListed(ENGINE_MCP_REMOVE_SUCCESS_COPY);
+			const listed = await this.refresh();
+			if (listed) {
+				this.showCatalogWriteStatus(ENGINE_MCP_REMOVE_SUCCESS_COPY);
+			}
 			return true;
 		} catch (error) {
 			this.showWriteFailed(error);
@@ -442,12 +452,6 @@ export class EngineMcpSection extends Disposable {
 	private showCatalogWriteStatus(message: string): void {
 		this.catalogWriteStatus.style.display = '';
 		this.catalogWriteStatus.textContent = message;
-	}
-
-	private restoreCatalogWriteSuccessIfListed(copy: string): void {
-		if (canPerformCatalogWrite(this.mode)) {
-			this.showCatalogWriteStatus(copy);
-		}
 	}
 
 	private showWriteFailed(error: unknown): void {
@@ -493,7 +497,7 @@ export class EngineMcpSection extends Disposable {
 		return this.list;
 	}
 
-	private async refresh(): Promise<void> {
+	private async refresh(): Promise<boolean> {
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.mcp.support;
@@ -504,14 +508,14 @@ export class EngineMcpSection extends Disposable {
 			this.clearCatalogPresentation();
 			this.mode = resolveEngineCatalogPaneMode(false, support);
 			this.renderStatus();
-			return;
+			return false;
 		}
 
 		if (support === 'UNSUPPORTED') {
 			this.clearCatalogPresentation();
 			this.mode = resolveEngineCatalogPaneMode(true, support);
 			this.renderStatus({ reason: capabilities.mcp.reason });
-			return;
+			return false;
 		}
 
 		if (support === 'UNKNOWN') {
@@ -519,7 +523,7 @@ export class EngineMcpSection extends Disposable {
 			this.mode = resolveEngineCatalogPaneMode(true, support);
 			this.writeToolbar.style.display = 'none';
 			this.renderStatus({ loadingKind: 'capability' });
-			return;
+			return false;
 		}
 
 		this.mode = resolveEngineCatalogPaneMode(true, support, { kind: 'inFlight' });
@@ -532,7 +536,7 @@ export class EngineMcpSection extends Disposable {
 				this.clearCatalogPresentation();
 				this.mode = resolveEngineCatalogPaneMode(false, support);
 				this.renderStatus();
-				return;
+				return false;
 			}
 			this.setServers(result.servers);
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
@@ -542,6 +546,7 @@ export class EngineMcpSection extends Disposable {
 			this.listContainer.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
 			this.writeToolbar.style.display = canPerformCatalogWrite(this.mode) ? '' : 'none';
 			this.renderStatus();
+			return true;
 		} catch (error) {
 			this.clearCatalogPresentation();
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
@@ -553,6 +558,7 @@ export class EngineMcpSection extends Disposable {
 				reason: error instanceof Error ? error.message : undefined,
 				onRetry: () => void this.refresh(),
 			});
+			return false;
 		}
 	}
 
@@ -644,8 +650,10 @@ export class EngineMcpSection extends Disposable {
 				return;
 			}
 			this.showCatalogWriteStatus(ENGINE_MCP_TOGGLE_SUCCESS_COPY);
-			await this.refresh();
-			this.restoreCatalogWriteSuccessIfListed(ENGINE_MCP_TOGGLE_SUCCESS_COPY);
+			const listed = await this.refresh();
+			if (listed) {
+				this.showCatalogWriteStatus(ENGINE_MCP_TOGGLE_SUCCESS_COPY);
+			}
 		} catch (error) {
 			this.showWriteFailed(error);
 			await this.refresh();
