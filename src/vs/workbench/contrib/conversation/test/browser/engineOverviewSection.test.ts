@@ -10,6 +10,7 @@ import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
 	EngineOverviewSection,
+	formatOverviewCapabilitySupportLabel,
 	formatOverviewModelFailedCopy,
 	formatOverviewModelSummary,
 	formatOverviewModelUnknownCopy,
@@ -17,6 +18,7 @@ import {
 	formatOverviewProviderSummary,
 	formatOverviewRegistryUnavailable,
 } from '../../browser/engineOverviewSection.js';
+import { formatCapabilitySupportLabel } from '../../browser/engineSectionChrome.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 function overviewRowValue(root: HTMLElement, label: string): HTMLElement | null {
@@ -178,6 +180,61 @@ suite('EngineOverviewSection', () => {
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		const text = section.getDomNode().textContent ?? '';
 		assert.ok(text.includes('读取失败 — transport reset'), text);
+		parent.remove();
+	});
+
+	test('capability SUPPORTED without list evidence is not Supported', () => {
+		assert.strictEqual(formatOverviewCapabilitySupportLabel('skills', 'SUPPORTED'), formatCapabilitySupportLabel('UNKNOWN'));
+		assert.strictEqual(formatOverviewCapabilitySupportLabel('agentProfiles', 'SUPPORTED'), formatCapabilitySupportLabel('UNKNOWN'));
+		assert.strictEqual(formatOverviewCapabilitySupportLabel('tools', 'SUPPORTED'), formatCapabilitySupportLabel('UNKNOWN'));
+		assert.strictEqual(formatOverviewCapabilitySupportLabel('mcp', 'SUPPORTED'), formatCapabilitySupportLabel('UNKNOWN'));
+		assert.strictEqual(formatOverviewCapabilitySupportLabel('plugins', 'SUPPORTED'), formatCapabilitySupportLabel('UNKNOWN'));
+		assert.strictEqual(formatOverviewCapabilitySupportLabel('skills', 'SUPPORTED', true), formatCapabilitySupportLabel('SUPPORTED'));
+		assert.strictEqual(formatOverviewCapabilitySupportLabel('skills', 'UNSUPPORTED'), formatCapabilitySupportLabel('UNSUPPORTED'));
+	});
+
+	test('Rules/Hooks capability SUPPORTED folds to Unsupported without list API', () => {
+		assert.strictEqual(formatOverviewCapabilitySupportLabel('globalRules', 'SUPPORTED'), formatCapabilitySupportLabel('UNSUPPORTED'));
+		assert.strictEqual(formatOverviewCapabilitySupportLabel('projectRules', 'SUPPORTED'), formatCapabilitySupportLabel('UNSUPPORTED'));
+		assert.strictEqual(formatOverviewCapabilitySupportLabel('hooksMetadata', 'SUPPORTED'), formatCapabilitySupportLabel('UNSUPPORTED'));
+		assert.strictEqual(formatOverviewCapabilitySupportLabel('globalRules', 'UNKNOWN'), formatCapabilitySupportLabel('UNKNOWN'));
+	});
+
+	test('Overview does not paint Supported from capability-only SUPPORTED', async () => {
+		const capabilities = createEmptyTestCapabilitySnapshot();
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				sessionToken: 'tok',
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: {
+					...capabilities,
+					skills: { support: 'SUPPORTED' },
+					agentProfiles: { support: 'SUPPORTED' },
+					tools: { support: 'SUPPORTED' },
+					mcp: { support: 'SUPPORTED' },
+					plugins: { support: 'SUPPORTED' },
+					globalRules: { support: 'SUPPORTED' },
+					projectRules: { support: 'SUPPORTED' },
+					hooksMetadata: { support: 'SUPPORTED' },
+				},
+			}),
+		});
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const section = store.add(instantiationService.createInstance(EngineOverviewSection, parent));
+		section.setSectionActive(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		const supports = [...section.getDomNode().querySelectorAll('.engine-overview-capability-support')].map(el => el.textContent);
+		assert.ok(supports.length > 0);
+		assert.ok(!supports.includes(formatCapabilitySupportLabel('SUPPORTED')), supports.join(','));
+		assert.ok(supports.includes(formatCapabilitySupportLabel('UNSUPPORTED')), supports.join(','));
 		parent.remove();
 	});
 

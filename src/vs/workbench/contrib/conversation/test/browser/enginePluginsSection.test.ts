@@ -152,11 +152,13 @@ suite('EnginePluginsSection write-success (D155)', () => {
 		await new Promise(resolve => setTimeout(resolve, 0));
 	}
 
-	function assertWriteSuccessSurvivesListFail(section: EnginePluginsSection, successCopy: string, listReason: string): void {
+	function assertWriteSuccessClearedAfterListFail(section: EnginePluginsSection, successCopy: string, listReason: string): void {
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), 0);
 		const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
 		assert.ok(writeStatus);
-		assert.strictEqual(writeStatus.textContent, successCopy);
-		assert.notStrictEqual(writeStatus.style.display, 'none');
+		assert.notStrictEqual(writeStatus.textContent, successCopy);
+		assert.ok(!(writeStatus.textContent ?? '').includes(successCopy));
 
 		const catalog = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
 		assert.ok(catalog);
@@ -164,7 +166,7 @@ suite('EnginePluginsSection write-success (D155)', () => {
 		assert.ok((catalog.textContent ?? '').includes(getCatalogFailedCopy(PLUGINS_FEATURE, listReason)));
 	}
 
-	test('enablePlugin ok still shows Enabled. when subsequent listPlugins fails', async () => {
+	test('enablePlugin ok does not keep Enabled. when subsequent listPlugins fails', async () => {
 		let listPluginsCalls = 0;
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -188,14 +190,14 @@ suite('EnginePluginsSection write-success (D155)', () => {
 
 			await section.enableSelectedForTest();
 			assert.ok(listPluginsCalls >= 2);
-			assertWriteSuccessSurvivesListFail(section, ENGINE_PLUGINS_ENABLE_SUCCESS_COPY, 'list boom');
+			assertWriteSuccessClearedAfterListFail(section, ENGINE_PLUGINS_ENABLE_SUCCESS_COPY, 'list boom');
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
 
-	test('unloadPlugin ok still shows Unloaded. when subsequent listPlugins fails', async () => {
+	test('unloadPlugin ok does not keep Unloaded. when subsequent listPlugins fails', async () => {
 		let listPluginsCalls = 0;
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -219,14 +221,14 @@ suite('EnginePluginsSection write-success (D155)', () => {
 
 			await section.unloadSelectedForTest();
 			assert.ok(listPluginsCalls >= 2);
-			assertWriteSuccessSurvivesListFail(section, ENGINE_PLUGINS_UNLOAD_SUCCESS_COPY, 'list boom');
+			assertWriteSuccessClearedAfterListFail(section, ENGINE_PLUGINS_UNLOAD_SUCCESS_COPY, 'list boom');
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
 
-	test('reloadPlugin ok still shows Reloaded. when subsequent listPlugins fails', async () => {
+	test('reloadPlugin ok does not keep Reloaded. when subsequent listPlugins fails', async () => {
 		let listPluginsCalls = 0;
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -250,7 +252,7 @@ suite('EnginePluginsSection write-success (D155)', () => {
 
 			await section.reloadSelectedForTest();
 			assert.ok(listPluginsCalls >= 2);
-			assertWriteSuccessSurvivesListFail(section, ENGINE_PLUGINS_RELOAD_SUCCESS_COPY, 'list boom');
+			assertWriteSuccessClearedAfterListFail(section, ENGINE_PLUGINS_RELOAD_SUCCESS_COPY, 'list boom');
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);

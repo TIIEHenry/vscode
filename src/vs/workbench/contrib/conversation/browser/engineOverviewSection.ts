@@ -19,6 +19,34 @@ import type {
 	UniverseAgentTransportState,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 
+const OVERVIEW_FOLDED_UNSUPPORTED_KEYS = new Set<UniverseAgentCapabilityKey>([
+	'globalRules',
+	'projectRules',
+	'hooksMetadata',
+]);
+
+/**
+ * Overview must not write "Supported" from a capability probe alone.
+ * Rules/Hooks sections already fold missing list APIs to unsupported.
+ */
+export function formatOverviewCapabilitySupportLabel(
+	key: UniverseAgentCapabilityKey,
+	support: UniverseAgentCapabilitySupport | undefined,
+	hasListSuccess = false,
+): string {
+	const resolved = support ?? 'UNKNOWN';
+	if (resolved === 'UNSUPPORTED') {
+		return formatCapabilitySupportLabel('UNSUPPORTED');
+	}
+	if (OVERVIEW_FOLDED_UNSUPPORTED_KEYS.has(key)) {
+		return formatCapabilitySupportLabel(resolved === 'UNKNOWN' ? 'UNKNOWN' : 'UNSUPPORTED');
+	}
+	if (resolved === 'SUPPORTED' && !hasListSuccess) {
+		return formatCapabilitySupportLabel('UNKNOWN');
+	}
+	return formatCapabilitySupportLabel(resolved);
+}
+
 const $ = DOM.$;
 
 function getOverviewCapabilityLabel(key: UniverseAgentCapabilityKey): string {
@@ -274,7 +302,7 @@ export class EngineOverviewSection extends Disposable {
 			const row = DOM.append(capabilitiesList, $('.engine-overview-capability-row'));
 			DOM.append(row, $('.engine-overview-capability-name')).textContent = getOverviewCapabilityLabel(key);
 			const support = DOM.append(row, $('.engine-overview-capability-support'));
-			support.textContent = formatCapabilitySupportLabel(entry?.support ?? 'UNKNOWN');
+			support.textContent = formatOverviewCapabilitySupportLabel(key, entry?.support);
 			if (entry?.reason) {
 				support.title = entry.reason;
 			}

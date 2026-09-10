@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-10
-summary: "延期缺口 SSOT；D8 / D16 / D147 / D197 仍开；D45–D90 / D92–D129 / D131 / D133–D194 已闭；D194 假 mic/Route 与断连 Stub 已删；D195 ReadGitSummary 吞错、D196 patches:[''] length 门、D198 非空 session 空引擎列表盖 SCM；gate-recovery 已合入；D25/D26 同源（store 迁移卡死，report 已交接，禁改引擎仓代码）；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 / D197 / D199–D201 仍开；D45–D90 / D92–D129 / D131 / D133–D194 已闭；D194 假 mic/Route 与断连 Stub 已删；D195 ReadGitSummary 吞错、D196 patches:[''] length 门、D198 非空 session 空引擎列表盖 SCM；D199 MCP Add 发明 echo/mcp-stub；D200 Skills/Plugins UNKNOWN 不清行；D201 Triggers list-fail 成功 leftover；gate-recovery 已合入；D25/D26 同源（store 迁移卡死，report 已交接，禁改引擎仓代码）；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -212,6 +212,9 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 / D197 仍开；D45–D90 / D92–
 | D196 | P3 | **`hasSourcesGitApplyHunksPayload` 只查 `patches.length > 0`**：`patches: ['']` 过 length 门，仍不是真实 apply stdin。A1 / [sources-accept-empty-success](../plans/sources-accept-empty-success.md) 已记。本刀不发 `WriteGitApplyHunks`、不发明 hunk，故不收 | A2 仍 blocked（P5 停线）；本切片 Accept 无载荷不显示 | payload 谓词拒绝空串 patch，或 A2 选定真实 patches 源后锁非空 hunk；补测 `['']` 不得发 RPC | sources-git | open |
 | D197 | P3 | **Inspect 叶仍持有 `NavigatorSessionLeaseHolder`**（`agentInspectView.ts` `private readonly leaseHolder`），与方案 [navigator-engine-segments §2.5](../plans/navigator-engine-segments.md)「不给 Inspect 单独 lease」及 `agentInspectPanel.test.ts`「AgentInspectView does not hold its own session lease」断言相反。本 slice `navigator-leftover-stub-and-empty-honesty` 未改 `agentInspectView.ts`（只收 ViewTitle Inspect 选中传递）。该测在 tip `8fd03c1236d` 已红 | 本 slice DoD 不含拆 Inspect lease；ctor 改动会碰到 stale 跟随路径 | 去掉 Inspect 的 leaseHolder，跟随只读 Agents/Team `setLiveAgentIds`；该测绿 | navigator / inspect | open |
 | D198 | P3 | **非空 session + `ReadGitChanges` `supported:true` + `entries=[]` 仍盖掉本地 SCM**：`tryLoadGitEntries` 把空数组当 truthy，`usingGitRead=true`，Changes/Review 显示「No changes」，本地改动消失。本刀只修空 `sessionId` 不发 hook | 空 session 门已落；有 session 的空引擎列表语义未选定 | 空引擎列表与 `supported:false` 一样回落 SCM，或显式「引擎无变更」且不藏 SCM；补测 | sources-git | open |
+| D199 | P3 | **MCP Add 无参时发明默认 `echo` / `mcp-stub`**：`engineMcpSection.addServer` 在未传 `config` 时写 `{ command:'echo', args:['mcp-stub'] }`。本刀 `catalog-write-listfail-honesty` 只收 list-fail 成功 leftover，改默认会扩大 MCP 写路径冲突 | 去掉发明默认须先有表单/必填校验，否则 Add 无载荷可发 | Add 无完整 config 不发 RPC、不发明 command；补测无 `echo`/`mcp-stub` 默认 | conversation / catalog | open |
+| D200 | P3 | **Skills / Plugins capability `UNKNOWN` 不清行**：`engineSkillsSection.refresh` / `enginePluginsSection.refresh` 在 `support === 'UNKNOWN'` 只改 mode=loading，不 `clearCatalogPresentation`。成功列出后再掉 UNKNOWN 可能 leftover 旧行。本刀可顺手但勿挡 list-fail DoD | 主 DoD 是写成功后再 list-fail；UNKNOWN 轴未测锁 | UNKNOWN 先清行再 loading；补成功→UNKNOWN 测：`getListEntryCount()===0` | conversation / catalog | open |
+| D201 | P3 | **Triggers 写成功后再 `ListTriggers` fail 仍回刷成功文案**：`engineTriggersSection.test.ts`「DeleteTrigger success still shows delete-success when subsequent ListTriggers fails」与本刀已改的 Agents/MCP/Plugins/Skills/Snapshots 同构 leftover。本刀 conflict_domain=catalog，Triggers 不在委派范围 | 同文件合同未列入 DoD；扩 Triggers 会碰另一节 | list-fail 后清行 + 不回刷 delete-success；改掉锁死 leftover 的测 | conversation / catalog | open |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 

@@ -401,7 +401,7 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.ok(writeStatus.textContent?.includes(toggleFailed));
 	});
 
-	test('toggleSkill success still shows toggle-success when subsequent listSkills fails', async () => {
+	test('toggleSkill success does not keep toggle-success when subsequent listSkills fails', async () => {
 		let listSkillsCalls = 0;
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -433,8 +433,7 @@ suite('EngineSkillsSection (E1)', () => {
 			const toggleSuccess = localize('ua.engineSkillToggleSuccess', "Updated.");
 			const writeStatus = section.getDomNode().querySelector('.engine-skill-write-status') as HTMLElement;
 			assert.ok(writeStatus);
-			assert.notStrictEqual(writeStatus.style.display, 'none');
-			assert.ok(writeStatus.textContent?.includes(toggleSuccess));
+			assert.ok(!(writeStatus.textContent ?? '').includes(toggleSuccess));
 
 			assert.strictEqual(section.getMode(), 'failed');
 			assert.strictEqual(section.getListEntryCount(), 0);
@@ -500,7 +499,7 @@ suite('EngineSkillsSection (E1)', () => {
 		}
 	});
 
-	test('createSkill success still shows create-success when subsequent listSkills fails', async () => {
+	test('createSkill success does not keep create-success when subsequent listSkills fails', async () => {
 		let listSkillsCalls = 0;
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -532,8 +531,7 @@ suite('EngineSkillsSection (E1)', () => {
 			const createSuccess = localize('ua.engineSkillCreateSuccess', "Created.");
 			const writeStatus = section.getDomNode().querySelector('.engine-skill-write-status') as HTMLElement;
 			assert.ok(writeStatus);
-			assert.notStrictEqual(writeStatus.style.display, 'none');
-			assert.ok(writeStatus.textContent?.includes(createSuccess));
+			assert.ok(!(writeStatus.textContent ?? '').includes(createSuccess));
 
 			assert.strictEqual(section.getMode(), 'failed');
 			assert.strictEqual(section.getListEntryCount(), 0);
@@ -684,7 +682,7 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.ok(writeStatus.textContent?.includes(saveFailed));
 	});
 
-	test('saveSelectedSkillBody success still shows save-success when subsequent listSkills fails', async () => {
+	test('saveSelectedSkillBody success does not keep save-success when subsequent listSkills fails', async () => {
 		let listSkillsCalls = 0;
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -726,8 +724,7 @@ suite('EngineSkillsSection (E1)', () => {
 			const saveSuccess = localize('ua.engineSkillBodySaveSuccess', "Saved.");
 			const writeStatus = section.getDomNode().querySelector('.engine-skill-write-status') as HTMLElement;
 			assert.ok(writeStatus);
-			assert.notStrictEqual(writeStatus.style.display, 'none');
-			assert.ok(writeStatus.textContent?.includes(saveSuccess));
+			assert.ok(!(writeStatus.textContent ?? '').includes(saveSuccess));
 
 			assert.strictEqual(section.getMode(), 'failed');
 			assert.strictEqual(section.getListEntryCount(), 0);

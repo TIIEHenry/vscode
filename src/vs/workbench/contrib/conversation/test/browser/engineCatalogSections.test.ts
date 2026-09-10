@@ -1005,11 +1005,13 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assertAgentsWriteFailureKeepsCatalog(section, 'save exploded', 1, 'demo');
 	});
 
-	function assertAgentsWriteSuccessSurvivesListFail(section: EngineAgentsSection, successCopy: string, listReason: string): void {
+	function assertAgentsWriteSuccessClearedAfterListFail(section: EngineAgentsSection, successCopy: string, listReason: string): void {
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), 0);
 		const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
 		assert.ok(writeStatus);
-		assert.strictEqual(writeStatus.textContent, successCopy);
-		assert.notStrictEqual(writeStatus.style.display, 'none');
+		assert.notStrictEqual(writeStatus.textContent, successCopy);
+		assert.ok(!(writeStatus.textContent ?? '').includes(successCopy));
 
 		const catalog = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
 		assert.ok(catalog);
@@ -1017,7 +1019,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok((catalog.textContent ?? '').includes(getCatalogFailedCopy(AGENTS_FEATURE, listReason)));
 	}
 
-	test('Agents: createProfile ok still shows create-success when subsequent listAgentProfiles fails', async () => {
+	test('Agents: createProfile ok does not keep create-success when subsequent listAgentProfiles fails', async () => {
 		let listAgentProfilesCalls = 0;
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -1043,14 +1045,14 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 			assert.strictEqual(await section.createProfile({ id: 'new-agent', name: 'New', source: 'user' }), true);
 			assert.ok(listAgentProfilesCalls >= 2);
-			assertAgentsWriteSuccessSurvivesListFail(section, ENGINE_AGENTS_CREATE_SUCCESS_COPY, 'list boom');
+			assertAgentsWriteSuccessClearedAfterListFail(section, ENGINE_AGENTS_CREATE_SUCCESS_COPY, 'list boom');
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
 
-	test('Agents: deleteSelectedProfile ok still shows delete-success when subsequent listAgentProfiles fails', async () => {
+	test('Agents: deleteSelectedProfile ok does not keep delete-success when subsequent listAgentProfiles fails', async () => {
 		let listAgentProfilesCalls = 0;
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -1077,14 +1079,14 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 			assert.strictEqual(await section.deleteSelectedProfile(), true);
 			assert.ok(listAgentProfilesCalls >= 2);
-			assertAgentsWriteSuccessSurvivesListFail(section, ENGINE_AGENTS_DELETE_SUCCESS_COPY, 'list boom');
+			assertAgentsWriteSuccessClearedAfterListFail(section, ENGINE_AGENTS_DELETE_SUCCESS_COPY, 'list boom');
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
 
-	test('Agents: resetSelectedProfile ok still shows reset-success when subsequent listAgentProfiles fails', async () => {
+	test('Agents: resetSelectedProfile ok does not keep reset-success when subsequent listAgentProfiles fails', async () => {
 		let listAgentProfilesCalls = 0;
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -1111,14 +1113,14 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 			assert.strictEqual(await section.resetSelectedProfile(), true);
 			assert.ok(listAgentProfilesCalls >= 2);
-			assertAgentsWriteSuccessSurvivesListFail(section, ENGINE_AGENTS_RESET_SUCCESS_COPY, 'list boom');
+			assertAgentsWriteSuccessClearedAfterListFail(section, ENGINE_AGENTS_RESET_SUCCESS_COPY, 'list boom');
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
 
-	test('Agents: saveSelectedProfile ok still shows save-success when subsequent listAgentProfiles fails', async () => {
+	test('Agents: saveSelectedProfile ok does not keep save-success when subsequent listAgentProfiles fails', async () => {
 		let listAgentProfilesCalls = 0;
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -1145,14 +1147,14 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 			assert.strictEqual(await section.saveSelectedProfile({ summary: 'Updated' }), true);
 			assert.ok(listAgentProfilesCalls >= 2);
-			assertAgentsWriteSuccessSurvivesListFail(section, ENGINE_AGENTS_SAVE_SUCCESS_COPY, 'list boom');
+			assertAgentsWriteSuccessClearedAfterListFail(section, ENGINE_AGENTS_SAVE_SUCCESS_COPY, 'list boom');
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
 
-	test('Agents: saveAgentsMarkdown ok still shows save-success when subsequent listAgentProfiles fails', async () => {
+	test('Agents: saveAgentsMarkdown ok does not keep save-success when subsequent listAgentProfiles fails', async () => {
 		let listAgentProfilesCalls = 0;
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -1180,12 +1182,12 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 			assert.strictEqual(await section.saveAgentsMarkdown(), true);
 			assert.ok(listAgentProfilesCalls >= 2);
-			assertAgentsWriteSuccessSurvivesListFail(section, ENGINE_AGENTS_SAVE_SUCCESS_COPY, 'list boom');
+			assertAgentsWriteSuccessClearedAfterListFail(section, ENGINE_AGENTS_SAVE_SUCCESS_COPY, 'list boom');
 
 			const editorStatus = section.getDomNode().querySelector('.engine-agents-editor-status') as HTMLElement;
 			assert.ok(editorStatus);
-			assert.strictEqual(editorStatus.textContent, ENGINE_AGENTS_SAVE_SUCCESS_COPY);
-			assert.notStrictEqual(editorStatus.style.display, 'none');
+			assert.notStrictEqual(editorStatus.textContent, ENGINE_AGENTS_SAVE_SUCCESS_COPY);
+			assert.ok(!(editorStatus.textContent ?? '').includes(ENGINE_AGENTS_SAVE_SUCCESS_COPY));
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
@@ -1494,7 +1496,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(listMcpServersCalls, 1);
 	});
 
-	test('MCP: addMcpServer ok still shows add-success when subsequent listMcpServers fails', async () => {
+	test('MCP: addMcpServer ok does not keep add-success when subsequent listMcpServers fails', async () => {
 		let listMcpServersCalls = 0;
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -1520,26 +1522,20 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			assert.strictEqual(await section.addServer(), true);
 			assert.ok(listMcpServersCalls >= 2);
 
-			const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
-			assert.ok(writeStatus);
-			assert.strictEqual(writeStatus.textContent, ENGINE_MCP_ADD_SUCCESS_COPY);
-			assert.notStrictEqual(writeStatus.style.display, 'none');
-
-			const catalog = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
-			assert.ok(catalog);
-			assert.strictEqual(catalog.dataset['catalogMode'], 'failed');
-			assert.ok((catalog.textContent ?? '').includes(getCatalogFailedCopy(MCP_FEATURE, 'list boom')));
+			assertMcpWriteSuccessClearedAfterListFail(section, ENGINE_MCP_ADD_SUCCESS_COPY, 'list boom');
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
 
-	function assertMcpWriteSuccessSurvivesListFail(section: EngineMcpSection, successCopy: string, listReason: string): void {
+	function assertMcpWriteSuccessClearedAfterListFail(section: EngineMcpSection, successCopy: string, listReason: string): void {
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), 0);
 		const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
 		assert.ok(writeStatus);
-		assert.strictEqual(writeStatus.textContent, successCopy);
-		assert.notStrictEqual(writeStatus.style.display, 'none');
+		assert.notStrictEqual(writeStatus.textContent, successCopy);
+		assert.ok(!(writeStatus.textContent ?? '').includes(successCopy));
 
 		const catalog = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
 		assert.ok(catalog);
@@ -1547,7 +1543,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok((catalog.textContent ?? '').includes(getCatalogFailedCopy(MCP_FEATURE, listReason)));
 	}
 
-	test('MCP: updateMcpServer ok still shows update-success when subsequent listMcpServers fails', async () => {
+	test('MCP: updateMcpServer ok does not keep update-success when subsequent listMcpServers fails', async () => {
 		let listMcpServersCalls = 0;
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -1573,14 +1569,14 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 			assert.strictEqual(await section.updateSelectedServer({ name: 'Renamed' }), true);
 			assert.ok(listMcpServersCalls >= 2);
-			assertMcpWriteSuccessSurvivesListFail(section, ENGINE_MCP_UPDATE_SUCCESS_COPY, 'list boom');
+			assertMcpWriteSuccessClearedAfterListFail(section, ENGINE_MCP_UPDATE_SUCCESS_COPY, 'list boom');
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
 
-	test('MCP: removeMcpServer ok still shows remove-success when subsequent listMcpServers fails', async () => {
+	test('MCP: removeMcpServer ok does not keep remove-success when subsequent listMcpServers fails', async () => {
 		let listMcpServersCalls = 0;
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -1606,14 +1602,14 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 			assert.strictEqual(await section.removeSelectedServer(), true);
 			assert.ok(listMcpServersCalls >= 2);
-			assertMcpWriteSuccessSurvivesListFail(section, ENGINE_MCP_REMOVE_SUCCESS_COPY, 'list boom');
+			assertMcpWriteSuccessClearedAfterListFail(section, ENGINE_MCP_REMOVE_SUCCESS_COPY, 'list boom');
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
 
-	test('MCP: toggleServer ok still shows toggle-success when subsequent listMcpServers fails', async () => {
+	test('MCP: toggleServer ok does not keep toggle-success when subsequent listMcpServers fails', async () => {
 		let listMcpServersCalls = 0;
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -1638,7 +1634,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 			await section.toggleServerForTest('stdio-demo', false);
 			assert.ok(listMcpServersCalls >= 2);
-			assertMcpWriteSuccessSurvivesListFail(section, ENGINE_MCP_TOGGLE_SUCCESS_COPY, 'list boom');
+			assertMcpWriteSuccessClearedAfterListFail(section, ENGINE_MCP_TOGGLE_SUCCESS_COPY, 'list boom');
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);

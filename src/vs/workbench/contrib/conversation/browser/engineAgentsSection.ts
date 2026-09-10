@@ -583,9 +583,11 @@ export class EngineAgentsSection extends Disposable {
 		if (ok) {
 			this.loadedAgentsMarkdown = this.agentsEditorInput.value;
 			this.agentsMarkdownDirty = false;
-			await this.selectProfileByIdForTest(profileId);
-			this.showAgentsEditorStatus(ENGINE_AGENTS_SAVE_SUCCESS_COPY);
-			this.showCatalogWriteStatus(ENGINE_AGENTS_SAVE_SUCCESS_COPY);
+			if (canPerformCatalogWrite(this.mode)) {
+				await this.selectProfileByIdForTest(profileId);
+				this.showAgentsEditorStatus(ENGINE_AGENTS_SAVE_SUCCESS_COPY);
+				this.showCatalogWriteStatus(ENGINE_AGENTS_SAVE_SUCCESS_COPY);
+			}
 		} else {
 			this.showAgentsEditorStatus(localize(
 				'ua.engineAgentsMdSaveFailed',
@@ -642,7 +644,9 @@ export class EngineAgentsSection extends Disposable {
 	private async restoreCatalogWriteSuccessAfterRefresh(copy: string): Promise<void> {
 		this.showCatalogWriteStatus(copy);
 		await this.refresh();
-		this.showCatalogWriteStatus(copy);
+		if (canPerformCatalogWrite(this.mode)) {
+			this.showCatalogWriteStatus(copy);
+		}
 	}
 
 	private showCatalogWriteFailed(message: string): void {

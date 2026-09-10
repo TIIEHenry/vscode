@@ -1088,6 +1088,43 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(notice.textContent, getUnsupportedEnvironmentCopy());
 		assert.strictEqual(getUnsupportedEnvironmentCopy(), '此环境不支持本机 Engine 连接');
 
+		const profileActions = container.querySelector('.connection-profile-actions') as HTMLElement;
+		assert.ok(profileActions);
+		assert.strictEqual(profileActions.style.display, 'none');
+
+		container.remove();
+	});
+
+	test('E2-1: Web unsupported_environment omits Profiles Connect / Disconnect / Forget', () => {
+		const capabilities = createWebUnsupportedCapabilitySnapshot();
+		const snapshot: UniverseAgentConnectionSnapshot = {
+			transport: 'idle',
+			pairingPending: false,
+			channelAlive: false,
+			sharedFsRootSent: false,
+			capabilities,
+		};
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'direct-1',
+				displayName: '127.0.0.1:50061',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'directAddress',
+			}],
+		}, {
+			getConnectionPhase: () => ({ kind: 'disconnected' }),
+			getCapabilitySnapshot: () => capabilities as UniverseAgentCapabilitySnapshot,
+			getConnectionSnapshot: () => snapshot,
+		});
+		const container = pane.getDomNode();
+		const profileActions = container.querySelector('.connection-profile-actions') as HTMLElement;
+		assert.ok(profileActions);
+		assert.strictEqual(profileActions.style.display, 'none');
+		const labels = [...profileActions.querySelectorAll('.monaco-button')].map(el => el.textContent ?? '');
+		assert.ok(labels.some(label => label.includes('Connect')));
+		assert.ok(labels.some(label => label.includes('Disconnect')));
+		assert.ok(labels.some(label => label.includes('Forget')));
 		container.remove();
 	});
 

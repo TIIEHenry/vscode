@@ -100,13 +100,14 @@ function snapshotWriteFailureReason(error: unknown): string {
  * Distinct from SessionBar History ({@link ConversationEngineHistoryList} GetHistory).
  * Restore on rows calls {@link IUniverseAgentConnection.restoreSnapshot};
  * a successful restore paints {@link ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY} on the
- * sibling write-status, refreshes via {@link IUniverseAgentConnection.listSnapshots},
- * then paints the success copy again so a subsequent list failure cannot hide it.
+ * sibling write-status, then refreshes via {@link IUniverseAgentConnection.listSnapshots}.
+ * Success copy is restored only after a successful list; a subsequent list
+ * failure must not leave Restored. on the failed overlay.
  * Failed restore / no send does not refresh;
  * ok:false / throw paints a sibling write-status line without unloading rows.
  * Delete on rows confirms then calls {@link IUniverseAgentConnection.deleteSnapshot};
  * a confirmed successful delete paints {@link ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY}
- * the same way (success → refresh → success) and keeps the overlay open.
+ * the same way (success → refresh → success-if-listed) and keeps the overlay open.
  * Cancel / failed delete / no send does not refresh;
  * ok:false / throw paints the same write-status line without unloading rows.
  * Success copy is painted on the write-status sibling, not via paintStatus
@@ -231,7 +232,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		super.dispose();
 	}
 
-	private async refresh(): Promise<void> {
+	private async refresh(): Promise<boolean> {
 		const generation = ++this.renderGeneration;
 		const sessionId = this.roster.getActiveSessionId();
 		const connected = this.connection.isEngineConnected();
@@ -240,22 +241,24 @@ export class ConversationEngineSnapshotsList extends Disposable {
 
 		if (!canRequestEngineSnapshots(connected, hasHook, sessionId) || !listSnapshots) {
 			this.paintStatus(this.unavailableCopy(connected, hasHook, sessionId));
-			return;
+			return false;
 		}
 
 		this.paintStatus(conversationLensSessionBarSnapshotsLoading);
 		try {
 			const result = await listSnapshots.call(this.connection, { sessionId });
 			if (generation !== this.renderGeneration) {
-				return;
+				return false;
 			}
 			this.paintSnapshots(result.snapshots);
+			return true;
 		} catch (error) {
 			if (generation !== this.renderGeneration) {
-				return;
+				return false;
 			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.paintStatus(formatEngineSnapshotFailedCopy(reason));
+			return false;
 		}
 	}
 
@@ -302,8 +305,10 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			return;
 		}
 		this.paintWriteStatus(ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY);
-		await this.refresh();
-		this.paintWriteStatus(ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY);
+		const listed = await this.refresh();
+		if (listed) {
+			this.paintWriteStatus(ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY);
+		}
 	}
 
 	private async deleteSnapshot(snapshot: UniverseAgentSessionSnapshotInfo): Promise<void> {
@@ -347,8 +352,10 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			return;
 		}
 		this.paintWriteStatus(ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY);
-		await this.refresh();
-		this.paintWriteStatus(ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY);
+		const listed = await this.refresh();
+		if (listed) {
+			this.paintWriteStatus(ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY);
+		}
 	}
 
 	private canSendDelete(snapshotId: string): boolean {

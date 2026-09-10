@@ -359,7 +359,7 @@ export class EngineMcpSection extends Disposable {
 			}
 			this.showCatalogWriteStatus(ENGINE_MCP_ADD_SUCCESS_COPY);
 			await this.refresh();
-			this.showCatalogWriteStatus(ENGINE_MCP_ADD_SUCCESS_COPY);
+			this.restoreCatalogWriteSuccessIfListed(ENGINE_MCP_ADD_SUCCESS_COPY);
 			return true;
 		} catch (error) {
 			this.showWriteFailed(error);
@@ -393,7 +393,7 @@ export class EngineMcpSection extends Disposable {
 			}
 			this.showCatalogWriteStatus(ENGINE_MCP_UPDATE_SUCCESS_COPY);
 			await this.refresh();
-			this.showCatalogWriteStatus(ENGINE_MCP_UPDATE_SUCCESS_COPY);
+			this.restoreCatalogWriteSuccessIfListed(ENGINE_MCP_UPDATE_SUCCESS_COPY);
 			return true;
 		} catch (error) {
 			this.showWriteFailed(error);
@@ -420,7 +420,7 @@ export class EngineMcpSection extends Disposable {
 			this.selectedServer = undefined;
 			this.showCatalogWriteStatus(ENGINE_MCP_REMOVE_SUCCESS_COPY);
 			await this.refresh();
-			this.showCatalogWriteStatus(ENGINE_MCP_REMOVE_SUCCESS_COPY);
+			this.restoreCatalogWriteSuccessIfListed(ENGINE_MCP_REMOVE_SUCCESS_COPY);
 			return true;
 		} catch (error) {
 			this.showWriteFailed(error);
@@ -436,6 +436,12 @@ export class EngineMcpSection extends Disposable {
 	private showCatalogWriteStatus(message: string): void {
 		this.catalogWriteStatus.style.display = '';
 		this.catalogWriteStatus.textContent = message;
+	}
+
+	private restoreCatalogWriteSuccessIfListed(copy: string): void {
+		if (canPerformCatalogWrite(this.mode)) {
+			this.showCatalogWriteStatus(copy);
+		}
 	}
 
 	private showWriteFailed(error: unknown): void {
@@ -632,7 +638,7 @@ export class EngineMcpSection extends Disposable {
 			}
 			this.showCatalogWriteStatus(ENGINE_MCP_TOGGLE_SUCCESS_COPY);
 			await this.refresh();
-			this.showCatalogWriteStatus(ENGINE_MCP_TOGGLE_SUCCESS_COPY);
+			this.restoreCatalogWriteSuccessIfListed(ENGINE_MCP_TOGGLE_SUCCESS_COPY);
 		} catch (error) {
 			this.showWriteFailed(error);
 			await this.refresh();
