@@ -359,6 +359,8 @@ export class EnginePluginsSection extends Disposable {
 				this.updateRowActions();
 				if (this.selectedPlugin && canShowCatalogRows(this.mode)) {
 					void this.loadInfo(this.selectedPlugin.id);
+				} else if ((this.mode === 'failed' || this.mode === 'loading') && this.hookEntries.length > 0) {
+					this.hooksTable.style.display = '';
 				} else {
 					this.clearInfoPresentation();
 				}

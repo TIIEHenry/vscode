@@ -44,10 +44,10 @@ summary: "loop 关仓：D260 已合入；merge compile-client 0。待 push 后�
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | roster-inflight-leftover | [D261](deferred-gaps.md) 已闭；refresh 保 leftover |
-| **B** | navigator-fetchfail-retained-tree | 已收；[D262](deferred-gaps.md) 已闭 |
-| **C** | mcp-runtime-tools-selection-leftover | [D263](deferred-gaps.md) 已闭；failed/loading 选 leftover 不清 tools；勿 add `dev/loop` |
-| **D** | clipboard-unsupported-leftover | 已进 merge；[D257](deferred-gaps.md) 已闭 |
+| **A** | roster-inflight-leftover | 已进 merge；[D261](deferred-gaps.md) 已闭 |
+| **B** | navigator-fetchfail-retained-tree | 已进 merge；[D262](deferred-gaps.md) 已闭 |
+| **C** | mcp-runtime-tools-selection-leftover | 已进 merge；[D263](deferred-gaps.md) 已闭；勿 add `dev/loop` |
+| **D** | plugins-hooks-selection-leftover | 已进 merge；[D264](deferred-gaps.md) 已闭 |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
