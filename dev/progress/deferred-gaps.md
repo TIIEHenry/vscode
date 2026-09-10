@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-10
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D245 已闭；D242–D245 leftover；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D247 已闭；D247 Agents Tools leftover；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -259,6 +259,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D245 已闭；D242
 | D243 | P3 | **closed** Plugins `loadInfo()` / `getPluginInfo` catch 在活画 hook 行后不再 `hookEntries = []` + `clearHookRows()`（D238 MCP Runtime tools 同胞）。成功后再 `getPluginInfo` throw 保 leftover hook 行并画 failed；首拉 throw 仍 empty+failed。不得画「No hooks.」接通空成功。未重做 D230 catalog list leftover；未重做 D216/D222 listed-gate。未占 Snapshots/Sources/Triggers/Clipboard/Team / proto / 引擎仓 / F3/A2/D26 / mic·Route / `.sessions` | 工位 B `plugins-info-leftover` 已收 | 成功→getPluginInfo throw leftover hook 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；补 `enginePluginsSection.test.ts`（`getHookRowCount()` / 可见性 + failed） | conversation / plugins | closed |
 | D244 | P3 | **closed** Sources Changes `refresh()` catch 在活画后不再 `allEntries = []` 把 leftover 变更行卸掉（Files leftover / D225 同胞）。成功后再 git-read throw 保 leftover 行并画 `sourcesGitReadFailureMessage`；首拉 throw 仍 empty+failed。未重开 D195 summary swallow；未实施 A2 / F4 / WriteGitUnstage；未改 Review list。 | 工位 C `changes-git-read-leftover` 已收 | 成功→git-read throw leftover 行仍在 + 失败文案；不得装空工作区成功；首拉 throw 仍 empty+failed；补 `sourcesChangesList.test.ts` | sources / changes | closed |
 | D245 | P3 | **closed** Sources Review `refresh()` catch 在活画后不再 `this.allEntries = []` 把 leftover 审阅行卸掉（Changes leftover 同胞；D225 系）。成功后再 `readGitChanges` throw 保 leftover 行并画 git-read 失败文案；首拉 throw 仍 empty+failed。未改 Changes 列表；未发明 WriteGitUnstage；未开 A2 / F4；未重开 D195 | 工位 D `review-git-read-leftover` 已收 | 成功→git-read throw leftover 行仍在 + `sourcesGitReadFailureMessage`；首拉 throw 仍 empty+failed；补 `sourcesReviewList.test.ts` | sources / review | closed |
+| D247 | P3 | **closed** Agents 详情 Tools 页 `ensureAgentToolsLoaded()` catch 在活画后不再 `this.agentTools = []`（D238 MCP Runtime tools / D243 Plugins hooks 同胞；不是 D233 catalog list leftover）。成功后再 `listTools` throw 保 leftover 工具行并画 toolsStatus failed；首拉 throw 仍 empty+failed。Agents profile 列表 leftover（D233）不回退。未改 `refresh()` catalog catch / UNKNOWN 清 catalog（D210）/ markdown listed-gate（D223） | 工位 B `agents-tools-leftover` 已收 | 成功→listTools throw leftover 工具名仍在 + failed；不得装「No engine tools…」空成功；首拉 throw 仍 empty+failed；catalog 列表仍在；补 `engineCatalogSections.test.ts`（行可见性 + failed） | conversation / agents-tools | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 

@@ -45,7 +45,7 @@ summary: "loop 关仓：D242–D245 已合入；merge compile-client 0。待 pus
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
 | **A** | snapshots-list-leftover | 已进 merge `539a4f30302`；[D242](deferred-gaps.md) 已闭 |
-| **B** | plugins-info-leftover | 已进 merge `fb82575f013`；[D243](deferred-gaps.md) 已闭 |
+| **B** | agents-tools-leftover | [D247](deferred-gaps.md) 已闭：活画后再 listTools throw 保 leftover 工具行 + failed |
 | **C** | changes-git-read-leftover | 已进 merge `777bb925c97`；[D244](deferred-gaps.md) 已闭；勿 add `dev/loop` |
 | **D** | review-git-read-leftover | 已进 merge `0fad23e55ca`；[D245](deferred-gaps.md) 已闭 |
 
