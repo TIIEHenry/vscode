@@ -16,7 +16,7 @@ import type {
 	UniverseAgentSessionStreamCloseCause,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { getCatalogFailedCopy } from '../../browser/engineCatalog.js';
+import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy } from '../../browser/engineCatalog.js';
 import { EngineProviderModelSection } from '../../browser/engineProviderModelSection.js';
 
 const LEFTOVER_MODEL_ID = 'gpt-leftover';
@@ -147,7 +147,7 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 		await new Promise(resolve => setTimeout(resolve, 0));
 	}
 
-	test('successful load then capability UNKNOWN clears leftover rows before loading', async () => {
+	test('successful load then capability UNKNOWN keeps leftover rows and paints capability loading', async () => {
 		let listModelsCalls = 0;
 		const connection = createConnectionStub({
 			connected: true,
@@ -172,20 +172,64 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 		assert.strictEqual(section.getMode(), 'ready');
 		assert.strictEqual(section.getListEntryCount(), 1);
 		assert.ok((section.getDomNode().textContent ?? '').includes(LEFTOVER_MODEL_ID));
+		const listAfterLoad = getModelList(section);
+		assert.ok(listAfterLoad);
+		assert.notStrictEqual(listAfterLoad.style.display, 'none');
 		const listCallsAfterLoad = listModelsCalls;
 
 		connection.setModelsSupport('UNKNOWN');
 		await flushMicrotasks();
 
 		assert.strictEqual(section.getMode(), 'loading');
-		assert.strictEqual(section.getListEntryCount(), 0);
-		assert.ok(!(section.getDomNode().textContent ?? '').includes(LEFTOVER_MODEL_ID));
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.ok((section.getDomNode().textContent ?? '').includes(LEFTOVER_MODEL_ID));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(MODEL_EMPTY_COPY));
 		assert.strictEqual(listModelsCalls, listCallsAfterLoad);
-		const status = section.getDomNode().querySelector(
-			'.engine-provider-model-group--model .engine-catalog-status-widget',
-		) as HTMLElement;
+		const leftoverList = getModelList(section);
+		assert.ok(leftoverList);
+		assert.notStrictEqual(leftoverList.style.display, 'none');
+		const status = getModelStatus(section);
 		assert.ok(status);
 		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		assert.ok(status.textContent?.includes(getCatalogUnknownCopy()));
+		assert.ok(!(status.textContent ?? '').includes(getCatalogListLoadingCopy()));
+	});
+
+	test('first-pull capability UNKNOWN is empty with capability loading and does not list', async () => {
+		let listModelsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			modelsSupport: 'UNKNOWN',
+			listModels: async () => {
+				listModelsCalls++;
+				return {
+					models: [{
+						id: 'fake',
+						type: 'chat',
+						enabled: true,
+						level: 1,
+						provider: 'demo',
+						modelId: 'should-not-appear',
+					}],
+				};
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'loading');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(listModelsCalls, 0);
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(MODEL_EMPTY_COPY));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes('should-not-appear'));
+		const list = getModelList(section);
+		assert.ok(list);
+		assert.strictEqual(list.style.display, 'none');
+		const status = getModelStatus(section);
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		assert.ok(status.textContent?.includes(getCatalogUnknownCopy()));
+		assert.ok(!(status.textContent ?? '').includes(getCatalogListLoadingCopy()));
 	});
 
 	function getModelList(section: EngineProviderModelSection): HTMLElement {
