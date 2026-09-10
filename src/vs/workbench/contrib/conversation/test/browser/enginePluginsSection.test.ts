@@ -17,7 +17,7 @@ import type {
 	UniverseAgentSessionStreamCloseCause,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { getCatalogFailedCopy } from '../../browser/engineCatalog.js';
+import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy } from '../../browser/engineCatalog.js';
 import {
 	ENGINE_PLUGINS_ENABLE_SUCCESS_COPY,
 	ENGINE_PLUGINS_RELOAD_SUCCESS_COPY,
@@ -51,6 +51,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 
 	function createConnectionStub(options: {
 		connected?: boolean;
+		pluginsSupport?: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN';
 		listPlugins?: () => Promise<UniverseAgentListPluginsResult>;
 		enablePlugin?: IUniverseAgentConnection['enablePlugin'];
 		reloadPlugin?: IUniverseAgentConnection['reloadPlugin'];
@@ -62,7 +63,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		setConnected(next: boolean): void;
 	} {
 		const pluginsCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN' } = {
-			support: 'SUPPORTED',
+			support: options.pluginsSupport ?? 'SUPPORTED',
 		};
 		const capabilities: UniverseAgentCapabilitySnapshot = {
 			...createEmptyCapabilitySnapshot(),
@@ -242,9 +243,45 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		assert.ok(!(section.getDomNode().textContent ?? '').includes(PLUGIN_HOOKS_EMPTY_COPY));
 	}
 
-	test('successful load then capability UNKNOWN clears leftover rows before loading', async () => {
+	test('successful load then capability UNKNOWN keeps leftover rows and paints capability loading', async () => {
+		let listPluginsCalls = 0;
+		const leftover = { ...demoPlugin(), id: 'leftover-plugin', displayName: 'Leftover Plugin' };
+		const connection = createConnectionStub({
+			listPlugins: async () => {
+				listPluginsCalls++;
+				return { plugins: [leftover] };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		const listCallsAfterLoad = listPluginsCalls;
+
+		connection.setPluginsSupport('UNKNOWN');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'loading');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		assert.strictEqual(listPluginsCalls, listCallsAfterLoad);
+		const listContainer = section.getDomNode().querySelector('.engine-catalog-list') as HTMLElement;
+		assert.ok(listContainer);
+		assert.notStrictEqual(listContainer.style.display, 'none');
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		assert.ok(status.textContent?.includes(getCatalogUnknownCopy()));
+		assert.ok(!(status.textContent ?? '').includes(getCatalogListLoadingCopy()));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(PLUGINS_EMPTY_COPY));
+	});
+
+	test('first-pull capability UNKNOWN is empty with capability loading and no leftover rows', async () => {
 		let listPluginsCalls = 0;
 		const connection = createConnectionStub({
+			pluginsSupport: 'UNKNOWN',
 			listPlugins: async () => {
 				listPluginsCalls++;
 				return { plugins: [demoPlugin()] };
@@ -253,20 +290,20 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		const section = mountSection(connection);
 		await flushMicrotasks();
 
-		assert.strictEqual(section.getMode(), 'ready');
-		assert.strictEqual(section.getListEntryCount(), 1);
-		const listCallsAfterLoad = listPluginsCalls;
-
-		connection.setPluginsSupport('UNKNOWN');
-		await flushMicrotasks();
-
 		assert.strictEqual(section.getMode(), 'loading');
 		assert.strictEqual(section.getListEntryCount(), 0);
-		assert.ok(!(section.getDomNode().textContent ?? '').includes('Demo Plugin'));
-		assert.strictEqual(listPluginsCalls, listCallsAfterLoad);
+		assert.strictEqual(section.selectPluginForTest('demo-plugin'), false);
+		assert.strictEqual(listPluginsCalls, 0);
+		const listContainer = section.getDomNode().querySelector('.engine-catalog-list') as HTMLElement;
+		assert.ok(listContainer);
+		assert.strictEqual(listContainer.style.display, 'none');
 		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
 		assert.ok(status);
 		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		assert.ok(status.textContent?.includes(getCatalogUnknownCopy()));
+		assert.ok(!(status.textContent ?? '').includes(getCatalogListLoadingCopy()));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(PLUGINS_EMPTY_COPY));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes('Demo Plugin'));
 	});
 
 	test('listPlugins first-pull throw is failed with no leftover rows', async () => {
