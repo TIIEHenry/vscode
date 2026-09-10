@@ -3,8 +3,8 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-09-10
-summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop 关仓：D273–D275 / D277 已合入 merge；compile-client 待复跑。"
+updated: 2026-09-11
+summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop：D273–D275 / D277 已合入并 push `loop/merge` `0e3b09d3`；compile-client 0。"
 ---
 
 # Development Progress
@@ -41,18 +41,18 @@ summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop 关�
 
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 进行中（2026-09-10 · loop 重启 · 四槽并行）
+### 进行中（2026-09-11 · 三槽并行 · 基线 `0e3b09d3`）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | overview-h4b-pairing-gate | 已进 merge；[D277](deferred-gaps.md) 已闭 |
-| **B** | — | idle；对齐 `ad9245ca178` |
-| **C** | catalog-detail-rpc-leftover | 已进 merge；[D275](deferred-gaps.md) 已闭；勿 add `dev/loop` |
-| **D** | — | idle；对齐 `ad9245ca178` |
+| **A** | catalog-plugins-mcp-runtime-detail | occupied；D279（D275 模板平移 Plugins/Runtime） |
+| **B** | pairing-catalog-keep-last | occupied；D278（pairingPending 不清 catalog 行） |
+| **C** | — | idle；`0e3b09d3`；勿 add `dev/loop` |
+| **D** | navigator-read-unknown-leftover | occupied；补登记并收 [D276](deferred-gaps.md) |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
 
-集成 tip **本关仓提交**（`loop/merge`；未 push）。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 / PRD-019 不升 `implemented`**。[R8](research-queue.md) **已闭**（[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 引擎空 `patches` = 成功空操作）。Accept 产品选项 A 见 [sources-accept-empty-success](../plans/sources-accept-empty-success.md)（`draft`；**A1 已落**；**P5 停线**——只批准停线，不批准 A2；A2 须新选定 + 新 Arch-First）。
+集成 tip **`0e3b09d3`**（`loop/merge`；已 push；compile-client 0）。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 / PRD-019 不升 `implemented`**。[R8](research-queue.md) **已闭**（[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 引擎空 `patches` = 成功空操作）。Accept 产品选项 A 见 [sources-accept-empty-success](../plans/sources-accept-empty-success.md)（`draft`；**A1 已落**；**P5 停线**——只批准停线，不批准 A2；A2 须新选定 + 新 Arch-First）。
 
 1. **集成 tip** 以 merge 本关仓提交为准（FileMutationJoin A=`10d8dd3b143`；createScoped B=`9c49eb5b978`；Review 委托 D=`60dbf139ac1`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。D22/F3 已撤回。不跑 F4 / 不实施 A2。
 2. 本波字母槽已进 merge：**A** `filemutation-join`（无 `diff_stats` 时 omit）；**B** createScoped + SessionsView 夹具 + [D42](deferred-gaps.md) Maximize 已闭；**C** inbox-getqueue-honesty（无 GetQueue）；**D** review-entries + [D43](deferred-gaps.md) layout 扇出已闭。**[D16](deferred-gaps.md) 仍开**。
@@ -180,21 +180,21 @@ summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop 关�
 | [D242](deferred-gaps.md)–[D275](deferred-gaps.md) / [D277](deferred-gaps.md) | leftover + pairing | **closed** catalog leftover + Overview Model + Sources no-hook + Activity fetch-fail + 详情二次 throw + H4b pairing |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
-## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）
+## 工位表（P0 盘点 · 2026-09-11 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | 本 C 合入 | 干净 | 0 | 已合 A+C；未 push |
-| A | `vscode-WorkTrees/A` | `loop/A` | `6f73b0d56b8` | 干净 | 0 | 已合入 merge（D277）；cascade 留给父 |
-| B | `vscode-WorkTrees/B` | `loop/B` | `ad9245ca178` | 干净 | 0 | idle |
-| C | `vscode-WorkTrees/C` | `loop/C` | `01f4c90497c` | 未提交 `dev/loop` | 0 | 已合入 merge（D275）；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `ad9245ca178` | 干净 | 0 | idle |
-| E | `vscode-WorkTrees/E` | `fix/gate-recovery` | `4140eab214c` | 干净 | 0 | 已合入 merge；勿再开 catch |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `484cec7538b` | `dev/loop` + `.idea` | 0 | 已对齐并 push；勿 add `dev/loop` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `0e3b09d3` | 干净 | 0 | 已 push 同 SHA；OV PARTIAL |
+| A | `vscode-WorkTrees/A` | `loop/A` | `0e3b09d3` | 实施中 | 0 | occupied D279 |
+| B | `vscode-WorkTrees/B` | `loop/B` | `0e3b09d3` | 实施中 | 0 | occupied D278 |
+| C | `vscode-WorkTrees/C` | `loop/C` | `0e3b09d3` | 未提交 `dev/loop` | 0 | idle；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `0e3b09d3` | 实施中 | 0 | occupied D276 |
+| E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c` | 干净 | 0 | 已合入 merge；勿再开 catch |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `ad9245ca178` | `dev/loop` + `.idea` | 0 | 人类工位未 cascade；勿 add `dev/loop` |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
 | **引擎 store 迁移卡死** | [D26](deferred-gaps.md) 病因已改口（2026-09-09）：`user_version=0` + 表已建 ⇒ 迁移抛错 ⇒ 库永久打不开 ⇒ `LookupFailed` fail-closed deny ⇒ `ALREADY_EXISTS`（**设计内拒绝**）。根因与交接见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md)；D25 同源。**禁改引擎仓代码**；原闭合条件「Create 先写 meta」已撤回；不要再清 store |
-| **loop 切片** | D273–D275 / D277 已进 merge。排队 D276 Read leftover、Team UNKNOWN。compile-client 待复跑。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto |
+| **loop 切片** | D275/D277 已 push。在途：A D279 Plugins/Runtime 详情、B D278 pairing 清行、D D276 UNKNOWN leftover。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
