@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-10
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D225 / D227 已闭；D222–D223 catalog listed 门；D224 Hub directory write/list-fail；D225 Context Variables leftover；D227 MCP Runtime leftover；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D227 已闭；D226 Tools leftover；D227 MCP Runtime leftover；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -239,6 +239,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D225 / D227 已闭
 | D223 | P3 | **closed** Agents `saveAgentsMarkdown` 写成功后再 `listAgentProfiles` fail 不回刷 editor/catalog **Saved.**（D219 同胞）。`saveSelectedProfile` 已 listed 闸；二次回刷改闸 `listed`（同 `restoreCatalogWriteSuccessAfterRefresh`），不用 `canPerformCatalogWrite`（mode 在 leftover `ready`/`empty` 时是代理）。未发明 Add forms / 新 RPC | 工位 B `agents-markdown-listed-gate` 已收 | markdown Save 写-ok + list-fail 不回刷 Saved.；leftover ready 二次回刷测锁 listed 闸 | conversation / catalog | closed |
 | D224 | P3 | **closed** Hub `confirmDeviceCode` / Rename / Revoke 写成功后再 `refreshDirectory` 非 throw fail 不回刷「Device code confirmed」/ revoke `result.message` / leftover 活目录（D221 同胞）。`refreshDirectoryListed()` 返回 listed 才回写。未重做 PairApprove/Reject；未发明 list RPC；未占 catalog / navigator / D22 / D24 / D26 / A2 / mic·Route / `.sessions` | 工位 C `connection-hub-write-list-fail` 已收 | write-ok + directory refresh fail 后清成功文案 + leftover；补成功→refresh-fail 测 | conversation / connection | closed |
 | D225 | P3 | **closed** Context Variables `refresh()` 不再在 `listContextVariable` 前清空 leftover（D214 / D215 同胞）。成功后再 throw 保 leftover 行并画 failed；首拉 throw 仍 empty+failed。不得画「No context variables.」接通空成功。未占 Plugins/MCP/Skills/Agents write gates / connection pane / navigator / proto / 引擎仓 | 工位 D `context-variable-list-leftover` 已收 | 成功→list throw leftover 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；补 `engineContextVariableSection.test.ts` | conversation / context-variables | closed |
+| D226 | P3 | **closed** Tools `refresh()` catch 在活画后不再 `clearCatalogPresentation()`（D225 同胞；不再走 D46 空失败）。成功后再 `listTools` / `listAgentProfiles` throw 保 leftover 行并画 failed；首拉 throw 仍 empty+failed。不得画「No engine tools yet.」接通空成功。未占 MCP Runtime / Agents / Plugins / connection pane / navigator / Context Variables / proto / 引擎仓 | 工位 A `tools-list-leftover` 已收 | 成功→list throw leftover 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；补 `engineCatalogSections.test.ts` | conversation / tools | closed |
 | D227 | P3 | **closed** MCP Runtime `refresh()` catch 不再在活画后 `clearRuntimePresentation()`（D225 同胞）。成功后再 `getMcpServerStatuses` throw 保 leftover 行并画 failed；首拉 throw 仍 empty+failed。不得画「No MCP servers in runtime.」接通空成功。未发明 write RPC；未占 Tools / Agents / Plugins / connection pane / navigator / context variables | 工位 B `mcp-runtime-list-leftover` 已收 | 成功→list throw leftover 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；补 `engineMcpRuntimePanel.test.ts` | conversation / mcp-runtime | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）

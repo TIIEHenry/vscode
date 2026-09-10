@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 本波：B D227 已合；A/C/D 仍在工位。未 compile-client。"
+summary: "loop 本波：A D226、B D227 已合；C/D 仍在工位。未 compile-client。"
 ---
 
 # Development Progress
@@ -44,7 +44,7 @@ summary: "loop 本波：B D227 已合；A/C/D 仍在工位。未 compile-client�
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | tools-list-leftover | 工位进行中 |
+| **A** | tools-list-leftover | 已进 merge `6a78b9701ea`；[D226](deferred-gaps.md) 已闭 |
 | **B** | mcp-runtime-list-leftover | 已进 merge `5609a0b874f`；[D227](deferred-gaps.md) 已闭 |
 | **C** | connection-hub-refresh-rotate | 工位进行中；勿 add `dev/loop` |
 | **D** | navigator-hierarchy-fetch-leftover | 工位进行中 |
@@ -173,6 +173,7 @@ summary: "loop 本波：B D227 已合；A/C/D 仍在工位。未 compile-client�
 | [D221](deferred-gaps.md) | C `connection-pair-write-list-fail` | **closed** PairApprove/Reject 写成功后再 ListDevices / ListPending fail 不回刷 pair-success；merge compile-client 0 |
 | [D224](deferred-gaps.md) | C `connection-hub-write-list-fail` | **closed** Hub confirm/rename/revoke 写成功后再 `refreshDirectory` fail 不回刷成功文案 / leftover；merge compile-client 0 |
 | [D225](deferred-gaps.md) | D `context-variable-list-leftover` | **closed** Context Variables 成功后再 list throw 保 leftover 行 + failed，不得装「No context variables.」；首拉 throw 仍 empty+failed；merge compile-client 0 |
+| [D226](deferred-gaps.md) | A `tools-list-leftover` | **closed** Tools 成功后再 listTools / listAgentProfiles throw 保 leftover 行 + failed，不得装「No engine tools yet.」；首拉 throw 仍 empty+failed；未 compile-client |
 | [D227](deferred-gaps.md) | B `mcp-runtime-list-leftover` | **closed** MCP Runtime 成功后再 `getMcpServerStatuses` throw 保 leftover 行 + failed，不得装「No MCP servers in runtime.」；首拉 throw 仍 empty+failed；未 compile-client |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
