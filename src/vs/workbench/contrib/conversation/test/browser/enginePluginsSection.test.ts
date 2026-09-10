@@ -582,6 +582,110 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		}
 	});
 
+	function leftoverHook(): { hookType: string; priority: number; className: string } {
+		return { hookType: 'onChat', priority: 10, className: LEFTOVER_HOOK_CLASS };
+	}
+
+	function leftoverPlugin(): UniverseAgentPluginSummary {
+		return { ...demoPlugin(), id: 'leftover-plugin', displayName: 'Leftover Plugin' };
+	}
+
+	function assertLeftoverHooksKeptAfterCatalogHonesty(section: EnginePluginsSection, expectedRows: number): void {
+		assert.strictEqual(section.getHookRowCount(), expectedRows);
+		assert.strictEqual(section.getHookEntries().length, expectedRows);
+		const hooksTable = getHooksTable(section);
+		assert.ok(hooksTable);
+		assert.notStrictEqual(hooksTable.style.display, 'none');
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(PLUGIN_HOOKS_EMPTY_COPY));
+	}
+
+	test('successful hooks then list throw then select leftover keeps hook rows', async () => {
+		let listPluginsCalls = 0;
+		let infoCalls = 0;
+		const leftover = leftoverPlugin();
+		const connection = createConnectionStub({
+			listPlugins: async () => {
+				listPluginsCalls++;
+				if (listPluginsCalls === 1) {
+					return { plugins: [leftover] };
+				}
+				throw new Error('listPlugins retry exploded');
+			},
+			getPluginInfo: async () => {
+				infoCalls++;
+				return { summary: leftover, hooks: [leftoverHook()] };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		await flushMicrotasks();
+
+		assert.strictEqual(infoCalls, 1);
+		assertLeftoverHooksKeptAfterCatalogHonesty(section, 1);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(listPluginsCalls, 2);
+		assertPluginsLeftoverFailedHonesty(section, 'listPlugins retry exploded', 1);
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		await flushMicrotasks();
+
+		assert.strictEqual(infoCalls, 1);
+		assertPluginsLeftoverFailedHonesty(section, 'listPlugins retry exploded', 1);
+		assertLeftoverHooksKeptAfterCatalogHonesty(section, 1);
+	});
+
+	test('successful hooks then capability UNKNOWN then select leftover keeps hook rows', async () => {
+		let listPluginsCalls = 0;
+		let infoCalls = 0;
+		const leftover = leftoverPlugin();
+		const connection = createConnectionStub({
+			listPlugins: async () => {
+				listPluginsCalls++;
+				return { plugins: [leftover] };
+			},
+			getPluginInfo: async () => {
+				infoCalls++;
+				return { summary: leftover, hooks: [leftoverHook()] };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		await flushMicrotasks();
+
+		assert.strictEqual(infoCalls, 1);
+		assertLeftoverHooksKeptAfterCatalogHonesty(section, 1);
+		const listCallsAfterLoad = listPluginsCalls;
+
+		connection.setPluginsSupport('UNKNOWN');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'loading');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(listPluginsCalls, listCallsAfterLoad);
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		await flushMicrotasks();
+
+		assert.strictEqual(infoCalls, 1);
+		assert.strictEqual(section.getMode(), 'loading');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assertLeftoverHooksKeptAfterCatalogHonesty(section, 1);
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		assert.ok(status.textContent?.includes(getCatalogUnknownCopy()));
+		assert.ok(!(status.textContent ?? '').includes(getCatalogListLoadingCopy()));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(PLUGINS_EMPTY_COPY));
+	});
+
 	test('getPluginInfo first-pull throw is failed with no leftover hook rows', async () => {
 		const connection = createConnectionStub({
 			getPluginInfo: async () => {

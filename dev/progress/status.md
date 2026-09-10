@@ -47,7 +47,7 @@ summary: "loop 关仓：D260 已合入；merge compile-client 0。待 push 后�
 | **A** | connection-nohook-leftover | 已进 merge；[D260](deferred-gaps.md) 已闭 |
 | **B** | context-variable-unsupported-leftover | 已进 merge；[D259](deferred-gaps.md) 已闭 |
 | **C** | mcp-runtime-unknown-leftover | 已进 merge；[D256](deferred-gaps.md) 已闭；勿 add `dev/loop` |
-| **D** | clipboard-unsupported-leftover | 已进 merge；[D257](deferred-gaps.md) 已闭 |
+| **D** | plugins-hooks-selection-leftover | 进行中；[D264](deferred-gaps.md) 已闭 |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
