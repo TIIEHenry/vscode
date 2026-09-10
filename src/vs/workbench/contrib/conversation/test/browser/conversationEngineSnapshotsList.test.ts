@@ -317,7 +317,7 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.ok(!status?.hidden);
 	});
 
-	test('restore success still shows restore-success when subsequent listSnapshots fails', async () => {
+	test('restore success does not keep restore-success when subsequent listSnapshots fails', async () => {
 		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -343,9 +343,11 @@ suite('ConversationEngineSnapshotsList', () => {
 			await flushMicrotasks();
 			assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }, { sessionId: 'sess-1' }]);
 			assert.strictEqual(list.isOpen(), true);
+			assert.strictEqual(snapshotRow(overlayParent, 'snap-1'), null);
 			const status = writeStatus(overlayParent);
-			assert.strictEqual(status?.textContent, ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY);
-			assert.ok(!status?.hidden);
+			assert.ok(status);
+			assert.notStrictEqual(status.textContent, ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY);
+			assert.ok(!(status.textContent ?? '').includes(ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY));
 			assert.ok(overlayParent.textContent?.includes(formatEngineSnapshotFailedCopy('list boom')));
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
@@ -597,7 +599,7 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.ok(!status?.hidden);
 	});
 
-	test('delete success still shows delete-success when subsequent listSnapshots fails', async () => {
+	test('delete success does not keep delete-success when subsequent listSnapshots fails', async () => {
 		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -623,9 +625,11 @@ suite('ConversationEngineSnapshotsList', () => {
 			await flushMicrotasks();
 			assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }, { sessionId: 'sess-1' }]);
 			assert.strictEqual(list.isOpen(), true);
+			assert.strictEqual(snapshotRow(overlayParent, 'snap-1'), null);
 			const status = writeStatus(overlayParent);
-			assert.strictEqual(status?.textContent, ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY);
-			assert.ok(!status?.hidden);
+			assert.ok(status);
+			assert.notStrictEqual(status.textContent, ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY);
+			assert.ok(!(status.textContent ?? '').includes(ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY));
 			assert.ok(overlayParent.textContent?.includes(formatEngineSnapshotFailedCopy('list boom')));
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {

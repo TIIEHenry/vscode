@@ -870,6 +870,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.directAddressSection.style.display = drawDesktop ? '' : 'none';
 		this.testSection.style.display = drawDesktop ? '' : 'none';
 		this.environmentNotice.style.display = drawDesktop ? 'none' : '';
+		this.syncProfileActionsVisibility();
 		if (!drawDesktop) {
 			this.hubDevicesSection.style.display = 'none';
 			this.applyNarrowChrome();
@@ -1700,6 +1701,11 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const isEmpty = this.entries.length === 0;
 		this.emptyWelcome.style.display = isEmpty ? '' : 'none';
 		this.listContainer.style.display = isEmpty ? 'none' : '';
-		this.profileActionsRow.style.display = isEmpty ? 'none' : '';
+		this.syncProfileActionsVisibility();
+	}
+
+	private syncProfileActionsVisibility(): void {
+		const drawDesktop = shouldDrawDesktopConnectionControls(this.desktopConnectionControlContext());
+		this.profileActionsRow.style.display = drawDesktop && this.entries.length > 0 ? '' : 'none';
 	}
 }

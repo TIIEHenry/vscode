@@ -553,7 +553,9 @@ export class EngineSkillsSection extends Disposable {
 	private async restoreWriteSuccessAfterRefresh(paintSucceeded: () => void): Promise<void> {
 		paintSucceeded();
 		await this.refresh();
-		paintSucceeded();
+		if (canPerformCatalogWrite(this.mode)) {
+			paintSucceeded();
+		}
 	}
 
 	private paintSkillToggleFailed(): void {
