@@ -190,8 +190,9 @@ export class UniverseAgentConnectionSyncCache {
 		return this._snapshot.transport;
 	}
 
+	/** H4b live-engine gate — same as `isConversationEngineLive(phase, pairingPending)`. */
 	get connected(): boolean {
-		return this._phase.kind === 'connected';
+		return isUniverseAgentPhaseConnected(this._phase) && !this._snapshot.pairingPending;
 	}
 
 	get agentTreeFetchFailed(): boolean {

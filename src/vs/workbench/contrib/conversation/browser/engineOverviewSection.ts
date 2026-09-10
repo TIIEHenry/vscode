@@ -299,7 +299,7 @@ export class EngineOverviewSection extends Disposable {
 		this.summaryGrid.style.display = '';
 		DOM.clearNode(this.summaryGrid);
 
-		this.appendSummaryRow(localize('ua.engineOverviewConnection', "Connection"), getConnectionPhaseStatusBarText(phase));
+		this.appendSummaryRow(localize('ua.engineOverviewConnection', "Connection"), getConnectionPhaseStatusBarText(phase, snapshot.pairingPending));
 		this.appendSummaryRow(localize('ua.engineOverviewWorkDir', "Working directory"), snapshot.workDir ?? localize('ua.engineOverviewWorkDirUnknown', "Unknown"));
 		this.appendSummaryRow(localize('ua.engineOverviewTransport', "Transport"), getOverviewTransportLabel(snapshot.transport));
 		// G-ENG-1: Provider summary stays omitted until a provider-config contract exists.

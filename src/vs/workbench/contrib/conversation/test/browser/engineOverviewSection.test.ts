@@ -20,6 +20,7 @@ import {
 	formatOverviewRegistryUnavailable,
 } from '../../browser/engineOverviewSection.js';
 import { formatCapabilitySupportLabel } from '../../browser/engineSectionChrome.js';
+import { getConnectionPhaseStatusBarText } from '../../browser/conversationSessionStatus.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 function overviewRowValue(root: HTMLElement, label: string): HTMLElement | null {
@@ -319,6 +320,37 @@ suite('EngineOverviewSection', () => {
 			},
 		});
 	}
+
+	test('connected phase with pairingPending paints Connection as Engine not connected', async () => {
+		const capabilities = createEmptyTestCapabilitySnapshot();
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				sessionToken: 'tok',
+				pairingPending: true,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: { ...capabilities, models: { support: 'UNKNOWN' } },
+			}),
+		});
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const section = store.add(instantiationService.createInstance(EngineOverviewSection, parent));
+		section.setSectionActive(true);
+		await flushOverview();
+		const connectionValue = overviewRowValue(section.getDomNode(), 'Connection');
+		assert.strictEqual(
+			connectionValue?.textContent,
+			getConnectionPhaseStatusBarText({ kind: 'connected', path: 'direct' }, true),
+		);
+		assert.strictEqual(connectionValue?.textContent, 'Engine not connected');
+		assert.ok(!(connectionValue?.textContent ?? '').includes('Engine · Direct'));
+		parent.remove();
+	});
 
 	test('successful listModels then capability UNKNOWN keeps last model count', async () => {
 		let listModelsCalls = 0;
