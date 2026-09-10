@@ -114,6 +114,114 @@ suite('conversation lens dispose gate', () => {
 		lifetime.dispose();
 	});
 
+	test('bindSessionView empty sessionId still clears leftover while engine roster is in-flight', () => {
+		const lifetime = new DisposableStore();
+		let applyEntries = 0;
+		let acquire = 0;
+		let appliedEmpty = 0;
+		const host = {
+			isDisposed: false,
+			sessionViewLifetime: lifetime,
+			sessionViewLease: { sessionId: 'sess-leftover' },
+			lastAttachedEntries: [{ id: 't1' }, { id: 't2' }],
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => false,
+				acquireSessionView: () => {
+					acquire++;
+					return { sessionId: 'sess-leftover', snapshot: { sessionId: 'sess-leftover' } };
+				},
+			},
+			timelineTree: {
+				applyEntries: (entries: readonly unknown[]) => {
+					applyEntries++;
+					if (entries.length === 0) {
+						appliedEmpty++;
+					}
+				},
+			},
+		} as unknown as IConversationLensSessionBindingHost;
+		bindSessionView(host, '');
+		assert.strictEqual(applyEntries, 1);
+		assert.strictEqual(appliedEmpty, 1);
+		assert.strictEqual(acquire, 0);
+		assert.strictEqual(host.sessionViewLease, undefined);
+		assert.strictEqual(host.lastAttachedEntries.length, 0);
+		lifetime.dispose();
+	});
+
+	test('bindSessionView keeps leftover timeline while engine roster is in-flight', () => {
+		const lifetime = new DisposableStore();
+		const priorLease = { sessionId: 'sess-leftover' };
+		const leftover = [{ id: 't1' }, { id: 't2' }];
+		let applyEntries = 0;
+		let acquire = 0;
+		const lifetimeMarker = {
+			disposed: false,
+			dispose() { this.disposed = true; },
+		};
+		lifetime.add(lifetimeMarker);
+		const host = {
+			isDisposed: false,
+			sessionViewLifetime: lifetime,
+			sessionViewLease: priorLease,
+			lastAttachedEntries: leftover,
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => false,
+				acquireSessionView: () => {
+					acquire++;
+					return { sessionId: 'sess-leftover', snapshot: { sessionId: 'sess-leftover' } };
+				},
+			},
+			timelineTree: { applyEntries: () => { applyEntries++; } },
+		} as unknown as IConversationLensSessionBindingHost;
+		bindSessionView(host, 'sess-leftover');
+		assert.strictEqual(applyEntries, 0);
+		assert.strictEqual(acquire, 0);
+		assert.strictEqual(host.sessionViewLease, priorLease);
+		assert.strictEqual(host.lastAttachedEntries.length, 2);
+		assert.strictEqual(host.lastAttachedEntries, leftover);
+		assert.strictEqual(lifetimeMarker.disposed, false);
+		lifetime.dispose();
+	});
+
+	test('bindSessionView still clears empty timeline on first pull while engine roster is in-flight', () => {
+		const lifetime = new DisposableStore();
+		let applyEntries = 0;
+		let acquire = 0;
+		let appliedEmpty = 0;
+		const host = {
+			isDisposed: false,
+			sessionViewLifetime: lifetime,
+			sessionViewLease: { sessionId: 'sess-first' },
+			lastAttachedEntries: [],
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => false,
+				acquireSessionView: () => {
+					acquire++;
+					return { sessionId: 'sess-first', snapshot: { sessionId: 'sess-first' } };
+				},
+			},
+			timelineTree: {
+				applyEntries: (entries: readonly unknown[]) => {
+					applyEntries++;
+					if (entries.length === 0) {
+						appliedEmpty++;
+					}
+				},
+			},
+		} as unknown as IConversationLensSessionBindingHost;
+		bindSessionView(host, 'sess-first');
+		assert.strictEqual(applyEntries, 1);
+		assert.strictEqual(appliedEmpty, 1);
+		assert.strictEqual(acquire, 0);
+		assert.strictEqual(host.sessionViewLease, undefined);
+		assert.strictEqual(host.lastAttachedEntries.length, 0);
+		lifetime.dispose();
+	});
+
 	test('bindSessionView acquireSessionView throw shows failed and does not leave an unhandled rejection', async () => {
 		const lifetime = new DisposableStore();
 		const failures: ConversationComposerPostFailureReason[] = [];

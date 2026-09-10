@@ -59,13 +59,25 @@ export function bindSessionView(host: IConversationLensSessionBindingHost, sessi
 	if (host.isDisposed) {
 		return;
 	}
-	host.sessionViewLifetime.clear();
-	if (!sessionId || (host.stubService.isEngineConnected() && !host.stubService.isEngineSessionReady())) {
+	if (!sessionId) {
+		host.sessionViewLifetime.clear();
 		host.sessionViewLease = undefined;
 		host.lastAttachedEntries = [];
 		host.timelineTree.applyEntries([], { kind: 'baseline' });
 		return;
 	}
+	if (host.stubService.isEngineConnected() && !host.stubService.isEngineSessionReady()) {
+		// D269: roster in-flight leftover stays painted. First pull (no leftover) still clears.
+		if (host.lastAttachedEntries.length > 0) {
+			return;
+		}
+		host.sessionViewLifetime.clear();
+		host.sessionViewLease = undefined;
+		host.lastAttachedEntries = [];
+		host.timelineTree.applyEntries([], { kind: 'baseline' });
+		return;
+	}
+	host.sessionViewLifetime.clear();
 	try {
 		const lease = host.sessionViewLifetime.add(host.stubService.acquireSessionView(sessionId));
 		host.sessionViewLease = lease;
