@@ -4,16 +4,25 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { EditorOpenSource, IResourceEditorInput } from '../../../../../platform/editor/common/editor.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { ICommandService } from '../../../../../platform/commands/common/commands.js';
+import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
-import { ISCMResource } from '../../../scm/common/scm.js';
+import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
 import { ACTIVE_GROUP, CONVERSATION_GROUP, IEditorService } from '../../../../services/editor/common/editorService.js';
+import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
 import { openSourcesChangeEntry, ISourcesChangeEntryOpenDeps } from '../../browser/sourcesChangeEntryOpen.js';
-import { sourcesGitEmptyFileDiffMessage } from '../../common/sourcesChangesGitRead.js';
+import { sourcesGitEmptyFileDiffMessage, sourcesGitReadFailureMessage } from '../../common/sourcesChangesGitRead.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
 import { ISourcesChangeEntry } from '../../common/sourcesChangesModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
@@ -281,5 +290,162 @@ suite('Sources - Changes list open', () => {
 			return true;
 		});
 		assert.strictEqual(opened, false);
+	});
+});
+
+suite('Sources - Changes list leftover honesty', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	function createEmptyScmService(): ISCMService {
+		return {
+			_serviceBrand: undefined,
+			get repositories() { return []; },
+			get repositoryCount() { return 0; },
+			onDidAddRepository: Event.None,
+			onDidRemoveRepository: Event.None,
+			registerSCMProvider: () => { throw new Error('not implemented'); },
+			getRepository: () => undefined,
+		} as unknown as ISCMService;
+	}
+
+	function createRoster(sessionId = 'session-1'): IConversationRosterService {
+		return {
+			getActiveSessionId: () => sessionId,
+			onDidChangeActiveSession: Event.None,
+		} as unknown as IConversationRosterService;
+	}
+
+	function createGitReadConnection(options: {
+		readonly onDidChangeConnection?: Event<UniverseAgentConnectionSnapshot>;
+		readonly readGitChanges: () => Promise<{
+			supported: boolean;
+			reason: string;
+			branch: string;
+			entries: Array<{ path: string; oldPath: string; kind: string; indexState: string }>;
+		}>;
+	}): IUniverseAgentConnection {
+		return {
+			isEngineConnected: () => true,
+			onDidChangeConnection: options.onDidChangeConnection ?? Event.None,
+			readGitChanges: options.readGitChanges,
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+		} as unknown as IUniverseAgentConnection;
+	}
+
+	function stubChangesListServices(connection: IUniverseAgentConnection) {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		instantiationService.stub(ISCMService, createEmptyScmService());
+		instantiationService.stub(IConversationRosterService, createRoster());
+		instantiationService.stub(IQuickDiffService, {
+			getQuickDiffs: async () => [],
+		} as unknown as IQuickDiffService);
+		instantiationService.stub(ISourcesDiffPanelService, {
+			onDidChangeRef: Event.None,
+			getCurrentRef: () => undefined,
+			show: async () => { },
+			clear: () => { },
+		} as unknown as ISourcesDiffPanelService);
+		instantiationService.stub(ICommandService, {
+			onWillExecuteCommand: Event.None,
+			onDidExecuteCommand: Event.None,
+			executeCommand: async () => undefined,
+		} as unknown as ICommandService);
+		return instantiationService;
+	}
+
+	function mountHost(): HTMLElement {
+		const host = document.createElement('div');
+		host.style.width = '400px';
+		host.style.height = '300px';
+		document.body.appendChild(host);
+		store.add({ dispose: () => host.remove() });
+		return host;
+	}
+
+	async function waitForStatusText(host: HTMLElement, contains?: string): Promise<string> {
+		const deadline = Date.now() + 2000;
+		while (Date.now() < deadline) {
+			const text = host.querySelector('.sources-changes-status')?.textContent ?? '';
+			if (text && (!contains || text.includes(contains))) {
+				return text;
+			}
+			await timeout(20);
+		}
+		throw new Error(`status stayed empty${contains ? ` (wanted ${contains})` : ''}`);
+	}
+
+	async function waitForList(owner: { list?: WorkbenchList<ISourcesChangeEntry> }): Promise<WorkbenchList<ISourcesChangeEntry>> {
+		const deadline = Date.now() + 2000;
+		while (Date.now() < deadline) {
+			const list = (owner as { list?: WorkbenchList<ISourcesChangeEntry> }).list;
+			if (list && list.length > 0) {
+				list.layout(120, 400);
+				return list;
+			}
+			await timeout(20);
+		}
+		throw new Error('list stayed empty');
+	}
+
+	test('first git-read throw stays empty and paints failure', async function () {
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(createGitReadConnection({
+			readGitChanges: async () => {
+				throw new Error('boom');
+			},
+		})).createInstance(SourcesChangesList, host));
+
+		const status = await waitForStatusText(host, 'Unable to read git changes');
+		assert.strictEqual(status, sourcesGitReadFailureMessage('boom'));
+		assert.strictEqual((widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> }).list?.length ?? 0, 0);
+		assert.ok(!host.querySelector('.sources-changes-list .monaco-list-row'));
+		assert.ok(!(host.querySelector('.sources-changes-empty')?.textContent ?? '').includes('No changes.'));
+	});
+
+	test('success then git-read throw keeps leftover rows and paints failure', async function () {
+		let readCalls = 0;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const leftover = { path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
+		const connection = createGitReadConnection({
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => {
+				readCalls++;
+				if (readCalls === 1) {
+					return {
+						supported: true,
+						reason: '',
+						branch: 'main',
+						entries: [leftover],
+					};
+				}
+				throw new Error('boom');
+			},
+		});
+
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(connection).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).name, 'leftover.ts');
+		assert.strictEqual(readCalls, 1);
+
+		onDidChangeConnection.fire({} as UniverseAgentConnectionSnapshot);
+
+		const status = await waitForStatusText(host, 'Unable to read git changes');
+		assert.strictEqual(status, sourcesGitReadFailureMessage('boom'));
+		assert.strictEqual(readCalls, 2);
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).name, 'leftover.ts');
+		assert.ok(host.querySelector('.sources-changes-list .monaco-list-row'));
+		assert.notStrictEqual((host.querySelector('.sources-changes-status') as HTMLElement).style.display, 'none');
 	});
 });

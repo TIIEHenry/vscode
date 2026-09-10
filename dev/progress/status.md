@@ -46,7 +46,7 @@ summary: "loop 关仓：D238–D241 已合入；merge compile-client 0。待 pus
 |:---|:-----|:-----|
 | **A** | mcp-runtime-tools-leftover | 已进 merge `2ee8952416b`；[D238](deferred-gaps.md) 已闭 |
 | **B** | clipboard-list-leftover | 已进 merge `78141f59aef`；[D239](deferred-gaps.md) 已闭 |
-| **C** | triggers-list-leftover | 已进 merge `8a9c2efeca8`；[D240](deferred-gaps.md) 已闭；勿 add `dev/loop` |
+| **C** | changes-git-read-leftover | [D244](deferred-gaps.md) 已闭；活画后再 git-read throw 保 leftover；勿 add `dev/loop` |
 | **D** | team-treeempty-pending-leftover | 已进 merge `aba5127add2`；[D241](deferred-gaps.md) 已闭 |
 
 <details>

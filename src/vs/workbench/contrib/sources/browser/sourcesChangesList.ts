@@ -221,6 +221,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	private usingGitRead = false;
 	private refreshSeq = 0;
 	private writeStatusMessage: string | undefined;
+	private lastGoodEntries: ISourcesChangeEntry[] = [];
 
 	constructor(
 		host: HTMLElement,
@@ -464,14 +465,17 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			if (seq !== this.refreshSeq) {
 				return;
 			}
-			this.usingGitRead = false;
+			// Honest git-read failure; leftover rows stay, this is not an empty-workspace success.
+			if (this.lastGoodEntries.length === 0) {
+				this.usingGitRead = false;
+			}
 			this.writeStatusMessage = undefined;
-			allEntries = [];
 			gitReadError = sourcesGitReadFailureMessage(error);
-			this.applyRefreshPresentation(allEntries, { gitReadError });
+			this.applyRefreshPresentation(this.lastGoodEntries, { gitReadError });
 			return;
 		}
 
+		this.lastGoodEntries = [...allEntries];
 		this.applyRefreshPresentation(allEntries, { localOnly });
 	}
 
