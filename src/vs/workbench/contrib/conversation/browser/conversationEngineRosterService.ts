@@ -184,7 +184,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	override getSessions(): readonly ConversationStubSession[] {
 		if (this.isEngineConnected()) {
 			if (!this.listCompleted) {
-				return [];
+				// In-flight refresh: last-good leftover stays visible. First pull (no leftover) stays [].
+				return this.engineSessions.length > 0 ? this.engineSessions : [];
 			}
 			if (this.isEngineSessionBindFailed()) {
 				return [this.getEngineBindFailedSession()];
