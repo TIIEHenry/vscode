@@ -1023,9 +1023,23 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		await this.refreshEngineDeviceLists();
 	}
 
-	private async refreshEngineDeviceLists(): Promise<void> {
+	private engineDeviceListsListed(): boolean {
+		return this.engineDevicesListFailed === undefined && this.pendingPairsListFailed === undefined;
+	}
+
+	private async refreshEngineDeviceLists(): Promise<boolean> {
 		await this.refreshEngineDevices();
 		await this.refreshEnginePending();
+		return this.engineDeviceListsListed();
+	}
+
+	/** Pair write-success stays only after ListDevices + ListPending listed (D212 sibling). */
+	private restorePairWriteSuccessIfListed(message: string): void {
+		if (this.engineDeviceListsListed()) {
+			writeStatus(this.hubDeviceCodeStatus, message, 'success');
+			return;
+		}
+		writeStatus(this.hubDeviceCodeStatus, '', 'neutral');
 	}
 
 	private async refreshEngineDevices(): Promise<void> {
@@ -1541,11 +1555,13 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			const request = connectionDevicePairIds(this.confirmDeviceCodeInput.value, this.selectedPending);
 			try {
 				const result = await approveHook.call(this.connectionService, request);
-				writeStatus(this.hubDeviceCodeStatus, result.message, result.success ? 'success' : 'error');
-				if (result.success) {
-					this.confirmDeviceCodeInput.value = '';
-					await this.refreshEngineDeviceLists();
+				if (!result.success) {
+					writeStatus(this.hubDeviceCodeStatus, result.message, 'error');
+					return;
 				}
+				this.confirmDeviceCodeInput.value = '';
+				await this.refreshEngineDeviceLists();
+				this.restorePairWriteSuccessIfListed(result.message);
 			} catch (error) {
 				const reason = error instanceof Error && error.message ? error.message : String(error);
 				writeStatus(this.hubDeviceCodeStatus, reason, 'error');
@@ -1582,11 +1598,13 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const request = { pairingCode: connectionDevicePairIds(this.confirmDeviceCodeInput.value, this.selectedPending).pairingCode };
 		try {
 			const result = await rejectHook.call(this.connectionService, request);
-			writeStatus(this.hubDeviceCodeStatus, result.message, result.success ? 'success' : 'error');
-			if (result.success) {
-				this.confirmDeviceCodeInput.value = '';
-				await this.refreshEngineDeviceLists();
+			if (!result.success) {
+				writeStatus(this.hubDeviceCodeStatus, result.message, 'error');
+				return;
 			}
+			this.confirmDeviceCodeInput.value = '';
+			await this.refreshEngineDeviceLists();
+			this.restorePairWriteSuccessIfListed(result.message);
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			writeStatus(this.hubDeviceCodeStatus, reason, 'error');

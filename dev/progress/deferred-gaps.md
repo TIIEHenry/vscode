@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-10
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D215 已闭；D212 Clipboard list-fail；D213 Sessions 空态；D214 Projects rebuildTree throw；D215 Sources Files fetch throw；D198 / D207–D211 已闭；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D215 / D219 已闭；D219 PairApprove/Reject list-fail；D212 Clipboard list-fail；D213 Sessions 空态；D214 Projects rebuildTree throw；D215 Sources Files fetch throw；D198 / D207–D211 已闭；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -229,6 +229,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D215 已闭；D212
 | D213 | P3 | **closed** Sessions 侧栏空态不再把 stub conversation 当产品路径。`conversationSessionsView` 空文案去 `in-memory` / stub；保留 New session 为真实本地动作，不发明引擎会话。测锁空态与接通后空名单 | 工位 A 已收 | 空/断连态不广告 stub conversation；New session 仍为真实动作；无 invented engine session 文案；补测 | conversation / sessions | closed |
 | D214 | P3 | **closed** Projects 外层 `rebuildTree` catch 静默保 last-good，throw 后 leftover 仍像活树。未撤 [D207](#d207) 干净断连 builder note。catch 保 leftover 行并复用 `NAVIGATOR_STALE_SNAPSHOT_COPY`（树 note + 既有 recents status）。未占 D212/D213 | 工位 B `navigator-projects-rebuild-throw-stale` 已收 | throw 后 leftover 行仍在且 stale / status 可见，不得装成活树；补 `navigatorProjectsList.test.ts`；D207 树测仍绿 | navigator / projects | closed |
 | D215 | P3 | **closed** Sources Files `fetchChildren` throw 不再装「No workspace files」。`collectFromItem` 上抛；成功后再 throw 保 leftover 行并画 `.sources-files-status`；首拉 throw 画 `sourcesFilesListReadFailureMessage`。未占 Sessions stub / Projects rebuildTree / catalog UNKNOWN | 工位 D `sources-files-fetch-leftover` 已收 | throw 不装空成功；leftover 行仍在 + 失败 status；补 `sourcesFilesList.test.ts` / model 测 | sources / files | closed |
+| D219 | P3 | **closed** PairApprove / PairReject 写成功后再 ListDevices / ListPending fail 不回刷 pair-success（D212 Clipboard 同胞）。`refreshEngineDeviceLists()` 返回 listed 才回写。未占 catalog write/list-fail / D22 / D24 / D26 / A2 / mic·Route / `.sessions` | 工位 C `connection-pair-write-list-fail` 已收 | list-fail 后清 pair 成功文案 + devices/pending failed；补成功→list-fail 测 | conversation / connection | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 
