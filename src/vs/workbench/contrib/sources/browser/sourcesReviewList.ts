@@ -609,8 +609,10 @@ export class SourcesReviewList extends Disposable {
 			if (seq !== this.refreshSeq) {
 				return;
 			}
-			this.usingGitRead = false;
-			this.allEntries = [];
+			// Keep a live leftover paint; first-pull stays empty+failed.
+			if (this.allEntries.length === 0) {
+				this.usingGitRead = false;
+			}
 			gitReadError = sourcesGitReadFailureMessage(error);
 		}
 
