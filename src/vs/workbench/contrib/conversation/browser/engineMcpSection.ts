@@ -548,7 +548,10 @@ export class EngineMcpSection extends Disposable {
 			this.renderStatus();
 			return true;
 		} catch (error) {
-			this.clearCatalogPresentation();
+			const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'server');
+			if (!hadLiveCatalog) {
+				this.clearCatalogPresentation();
+			}
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
 				kind: 'failed',
 				error: error instanceof Error ? error.message : undefined,

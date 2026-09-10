@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 重启：A 槽 plugins-list-leftover / D230 收 leftover。B–D 上波已合入。未 compile-client。"
+summary: "loop 本波：A D230、C D232 已合；B/D 仍在工位。未 compile-client。"
 ---
 
 # Development Progress
@@ -44,10 +44,10 @@ summary: "loop 重启：A 槽 plugins-list-leftover / D230 收 leftover。B–D 
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | plugins-list-leftover | [D230](deferred-gaps.md) 已收：活画后 `listPlugins` throw 保 leftover+failed；首拉 throw 仍 empty+failed；未 compile-client |
-| **B** | mcp-runtime-list-leftover | 已进 merge `5609a0b874f`；[D227](deferred-gaps.md) 已闭 |
-| **C** | connection-hub-refresh-rotate | 已进 merge `18954fcef6b`；[D228](deferred-gaps.md) 已闭；勿 add `dev/loop` |
-| **D** | navigator-hierarchy-fetch-leftover | 已进 merge `9b125b94a4b`；[D229](deferred-gaps.md) 已闭 |
+| **A** | plugins-list-leftover | 已进 merge `899e57da6bb`；[D230](deferred-gaps.md) 已闭 |
+| **B** | skills-list-leftover | 工位进行中 |
+| **C** | mcp-defs-list-leftover | 已进 merge `1bf59304a14`；[D232](deferred-gaps.md) 已闭；勿 add `dev/loop` |
+| **D** | agents-list-leftover | 工位进行中 |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
@@ -178,6 +178,7 @@ summary: "loop 重启：A 槽 plugins-list-leftover / D230 收 leftover。B–D 
 | [D228](deferred-gaps.md) | C `connection-hub-refresh-rotate` | **closed** Hub Refresh 非 throw fail 清 leftover；Rotate 写成功闸 listed，不得盖住 directory/device list-fail；merge compile-client 0 |
 | [D229](deferred-gaps.md) | D `navigator-hierarchy-fetch-leftover` | **closed** Hierarchy 成功后再 tree fetch-fail 保 leftover 节点 + 失败 note，不得装活树或首拉空失败；merge compile-client 0 |
 | [D230](deferred-gaps.md) | A `plugins-list-leftover` | **closed** Plugins 成功后再 listPlugins throw 保 leftover 行 + failed，不得装「No engine plugins.」；首拉 throw 仍 empty+failed；未 compile-client |
+| [D232](deferred-gaps.md) | C `mcp-defs-list-leftover` | **closed** MCP Definitions 成功后再 listMcpServers throw 保 leftover 行 + failed，不得装「No MCP servers yet.」；首拉 throw 仍 empty+failed；未 compile-client |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）
