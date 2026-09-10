@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 关仓：本波 A–D 已合入 merge。D198 / D207–D211 已闭。待一路 compile。"
+summary: "loop 关仓：本波 A–D 已合入 merge。D198 / D207–D211 已闭。D 槽本 wake 收 D212 Sources Files fetch leftover。待一路 compile。"
 ---
 
 # Development Progress
@@ -47,7 +47,7 @@ summary: "loop 关仓：本波 A–D 已合入 merge。D198 / D207–D211 已闭
 | **A** | sources-git-empty-entries-scm | 已进 merge `6a6dd1d3cdc`；[D198](deferred-gaps.md) 已闭 |
 | **B** | agents-tools-catalog-unknown-leftover | 已进 merge `c25e00faa7b`；[D208](deferred-gaps.md)/[D209](deferred-gaps.md) 已闭 |
 | **C** | catalog-unknown-leftover-provider-runtime | 已进 merge `ffb2906c5b2`；[D210](deferred-gaps.md)/[D211](deferred-gaps.md) 已闭；Rules 跳过；勿 add `dev/loop` |
-| **D** | navigator-projects-clean-disconnect-stale | 已进 merge `ea1f8897200`；[D207](deferred-gaps.md) 已闭 |
+| **D** | sources-files-fetch-leftover | 本工位收 [D212](deferred-gaps.md)；fetchChildren throw 不再装空成功；未 compile-client |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>

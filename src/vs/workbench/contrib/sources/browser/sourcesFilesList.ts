@@ -20,8 +20,8 @@ import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { ACTIVE_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
 import { IExplorerService } from '../../files/browser/files.js';
 import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
-import { collectSourcesFileEntries, ISourcesFileEntry } from '../common/sourcesFilesModel.js';
-import { sourcesFilesListEmptyMessage } from './sourcesFilesListStrings.js';
+import { collectSourcesFileEntries, ISourcesFileEntry, resolveSourcesFilesCollectResult } from '../common/sourcesFilesModel.js';
+import { sourcesFilesListEmptyMessage, sourcesFilesListReadFailureMessage } from './sourcesFilesListStrings.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
 
 const $ = dom.$;
@@ -80,9 +80,11 @@ export class SourcesFilesList extends Disposable {
 
 	private readonly listContainer: HTMLElement;
 	private readonly emptyMessage: HTMLElement;
+	private readonly statusMessage: HTMLElement;
 	private readonly filterBox: SourcesListFilterBox;
 	private list: WorkbenchList<ISourcesFileEntry> | undefined;
 	private labels: ResourceLabels | undefined;
+	private lastGoodEntries: ISourcesFileEntry[] = [];
 	private readonly refreshScheduler: RunOnceScheduler;
 
 	constructor(
@@ -105,6 +107,9 @@ export class SourcesFilesList extends Disposable {
 		this._register(this.filterBox.onDidChange(() => this.scheduleRefresh()));
 
 		this.listContainer = dom.append(host, $('.sources-files-list'));
+		this.statusMessage = dom.append(host, $('.sources-files-status'));
+		this.statusMessage.setAttribute('role', 'status');
+		this.statusMessage.style.display = 'none';
 		this.emptyMessage = dom.append(host, $('.sources-files-empty'));
 		this.emptyMessage.style.display = 'none';
 
@@ -168,18 +173,33 @@ export class SourcesFilesList extends Disposable {
 
 	private async refresh(): Promise<void> {
 		const sortOrder = this.explorerService.sortOrderConfiguration.sortOrder;
-		const allEntries = await collectSourcesFileEntries(this.explorerService.roots, sortOrder);
+		let collected: ISourcesFileEntry[] | undefined;
+		let error: unknown | undefined;
+		try {
+			collected = await collectSourcesFileEntries(this.explorerService.roots, sortOrder);
+		} catch (caught) {
+			error = caught;
+		}
+
+		const resolved = resolveSourcesFilesCollectResult(this.lastGoodEntries, collected, error);
+		if (!resolved.failed) {
+			this.lastGoodEntries = [...resolved.entries];
+		}
+
+		const allEntries = [...resolved.entries];
 		const entries = filterSourcesEntries(allEntries, this.filterBox.value);
+		const readError = resolved.failed ? sourcesFilesListReadFailureMessage(error) : undefined;
 
 		const hasAnyEntries = allEntries.length > 0;
 		const hasVisibleEntries = entries.length > 0;
 
 		if (!hasAnyEntries) {
-			this.emptyMessage.textContent = sourcesFilesListEmptyMessage;
+			this.emptyMessage.textContent = readError ?? sourcesFilesListEmptyMessage;
 		} else if (!hasVisibleEntries) {
 			this.emptyMessage.textContent = localize('sourcesFilesList.noMatching', "No matching files.");
 		}
 
+		this.setStatusMessage(hasAnyEntries ? readError : undefined);
 		this.emptyMessage.style.display = hasVisibleEntries ? 'none' : 'block';
 		this.listContainer.style.display = hasVisibleEntries ? 'block' : 'none';
 		this.filterBox.element.style.display = hasAnyEntries ? 'block' : 'none';
@@ -190,5 +210,15 @@ export class SourcesFilesList extends Disposable {
 
 		const list = this.ensureList();
 		list.splice(0, list.length, entries);
+	}
+
+	private setStatusMessage(message: string | undefined): void {
+		if (!message) {
+			this.statusMessage.textContent = '';
+			this.statusMessage.style.display = 'none';
+			return;
+		}
+		this.statusMessage.textContent = message;
+		this.statusMessage.style.display = 'block';
 	}
 }

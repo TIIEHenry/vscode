@@ -15,6 +15,17 @@ export interface ISourcesFileEntry {
 	readonly description: string;
 }
 
+export function resolveSourcesFilesCollectResult(
+	lastGood: readonly ISourcesFileEntry[],
+	collected: readonly ISourcesFileEntry[] | undefined,
+	error: unknown | undefined,
+): { readonly entries: readonly ISourcesFileEntry[]; readonly failed: boolean } {
+	if (error !== undefined) {
+		return { entries: lastGood, failed: true };
+	}
+	return { entries: collected ?? [], failed: false };
+}
+
 export async function collectSourcesFileEntries(roots: readonly ExplorerItem[], sortOrder: SortOrder): Promise<ISourcesFileEntry[]> {
 	const entries: ISourcesFileEntry[] = [];
 
@@ -51,11 +62,7 @@ async function collectFromItem(item: ExplorerItem, sortOrder: SortOrder, entries
 	if (item._isDirectoryResolved) {
 		children = [...item.children.values()];
 	} else {
-		try {
-			children = await item.fetchChildren(sortOrder);
-		} catch {
-			return;
-		}
+		children = await item.fetchChildren(sortOrder);
 	}
 
 	for (const child of children) {

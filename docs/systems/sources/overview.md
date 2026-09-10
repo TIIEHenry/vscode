@@ -4,7 +4,7 @@ type: overview
 status: accepted
 phase: N/A
 updated: 2026-09-10
-summary: "SOURCES_PART 槽 + SourcesTabsHost；Files 只读投影、Changes/Review 接通+hook+非空 roster session 走 readGit* 否则 SCM；stage/unstage/commit；Accept 仅 ApplyHunks 载荷；Changes/Review 行 openSourcesChangeEntry 按 sources.diff.defaultOwner 分派（默认 Preview Diff）；三宿主 moveTo* 已落（F1–F3）；诚实空文案"
+summary: "SOURCES_PART 槽 + SourcesTabsHost；Files 只读投影（fetchChildren throw 不装空成功）、Changes/Review 接通+hook+非空 roster session 走 readGit* 否则 SCM；stage/unstage/commit；Accept 仅 ApplyHunks 载荷；Changes/Review 行 openSourcesChangeEntry 按 sources.diff.defaultOwner 分派（默认 Preview Diff）；三宿主 moveTo* 已落（F1–F3）；诚实空文案"
 ---
 
 # Sources 系统概览
@@ -36,6 +36,7 @@ SOURCES_PART（End 列下格；minimum 尺寸与 hide − 控件在 Part）
 | 情形 | 文案（`*Strings.ts`） |
 |------|------|
 | Files 无工作区 | `No workspace files.`（实现仍是 Explorer 列表投影，不印到用户面） |
+| Files `fetchChildren` throw | `Unable to read workspace files: …`（首拉画空态失败文案；成功后再 throw 保 leftover 行并画 `.sources-files-status`，不装空成功） |
 | 筛选无匹配 | `No matching files.` / `No matching changes.` |
 | 无 SCM 提供者 | Changes / Review 空列表；不造假变更 |
 | Review | 有变更时 hint `Review progress stays in this window.`；无仓库时只留空态、不画 hint；**无假 review comment** |
@@ -59,4 +60,4 @@ SOURCES_PART（End 列下格；minimum 尺寸与 hide − 控件在 Part）
 
 ## 6. 测试与验证
 
-`contrib/sources/test/browser/`：`sourcesTabs`、`sourcesFilesModel`、`sourcesFilesListStrings`、`sourcesFilterModel`、`sourcesChangesModel`、`sourcesChangesList`、`sourcesChangesGitRead`、`sourcesReviewModel`、`sourcesReviewListStrings`、`sourcesReviewProgress`、`sourcesReviewList`、`sourcesReviewShowForPaths`。
+`contrib/sources/test/browser/`：`sourcesTabs`、`sourcesFilesModel`、`sourcesFilesList`、`sourcesFilesListStrings`、`sourcesFilterModel`、`sourcesChangesModel`、`sourcesChangesList`、`sourcesChangesGitRead`、`sourcesReviewModel`、`sourcesReviewListStrings`、`sourcesReviewProgress`、`sourcesReviewList`、`sourcesReviewShowForPaths`。
