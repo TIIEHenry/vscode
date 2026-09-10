@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 已重启。B/C 已进 merge，正在合 D Navigator 空态；A 假造 mic/Route 待合。D195–D198 已记。D8 / D16 / D147 / D194 仍开。"
+summary: "loop 已重启。A/B/C/D 诚实切片合入 merge：D194 已闭；D195–D198 仍开。待一路 compile。D8 / D16 / D147 仍开。"
 ---
 
 # Development Progress
@@ -44,10 +44,10 @@ summary: "loop 已重启。B/C 已进 merge，正在合 D Navigator 空态；A �
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **C** | `sessionList` 诚实探测（专用 snapshot 字段，不进 Overview） | 已进 merge；**勿 add `dev/loop`** |
+| **A** | D194 假 mic/Route DELETE + 断连 Stub agent/model 已删 | 正在合入 merge |
 | **B** | Sources Accept 无载荷不显示；空 session 不盖 SCM | 已进 merge；A2 仍停 |
-| **D** | Navigator leftover stub / Inspect 焦点 / Team 五态空态 | 正在合入 merge；D197 Inspect lease 另开 |
-| A | Composer 假造 mic/Route + 断连 Stub agent/model | 待合入 |
+| **C** | `sessionList` 诚实探测（专用 snapshot 字段，不进 Overview） | 已进 merge；**勿 add `dev/loop`** |
+| **D** | Navigator leftover stub / Inspect 焦点 / Team 五态空态 | 已进 merge；D197 Inspect lease 另开 |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
@@ -163,7 +163,7 @@ summary: "loop 已重启。B/C 已进 merge，正在合 D Navigator 空态；A �
 | [D191](deferred-gaps.md) | B Agents Activity reveal catch | **closed** `2bc77426082`；executeCommand reject 无未处理 rejection；merge 20 passing |
 | [D192](deferred-gaps.md) | A 草稿换目录信任 catch | **closed** `d72003f13eb`；getUriTrustInfo reject 无未处理 rejection；merge 52 passing |
 | [D193](deferred-gaps.md) | B Agents Open Connection catch | **closed** `cd87c9623fb`；executeCommand reject 无未处理 rejection；merge 51 passing |
-| [D194](deferred-gaps.md) | E 假造麦克风 / Route UI | **仍开** 只登记；原 E/D45，loop 已用 D45 收 host-open-catch |
+| [D194](deferred-gaps.md) | A 假造麦克风 / Route UI | **closed** 删假 mic 流水线与假 Route SelectBox / `routeIndex`；OV 跟进删断连 Stub agent / Stub model；测断言假造不存在。引擎仍无 voice/route RPC，不发明 |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）

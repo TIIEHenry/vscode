@@ -39,10 +39,6 @@ import {
 	conversationLensPostFailedNoSession,
 	conversationLensPostFailedNotAuthenticated,
 	type ConversationComposerPostFailureReason,
-	conversationLensDockNoRoute,
-	conversationLensDockRouteBalanced,
-	conversationLensDockRouteQuality,
-	conversationLensDockRouteSpeed,
 } from './conversationLensDockStrings.js';
 import {
 	buildSessionUserInputHistory,
@@ -56,7 +52,6 @@ import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
 import { isConversationLeafNarrow } from './conversationNarrowLayout.js';
 import { ConversationTimelineTree } from './conversationTimelineTree.js';
 import { provideTurnEditComposer } from './conversationTimelineRenderer.js';
-import { ConversationVoiceTranscriptBar } from './conversationVoiceTranscriptBar.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -85,18 +80,10 @@ export const conversationLensDockModelFailed = localize(
 	'conversationLens.dockModelFailed',
 	"Model was not applied");
 
-const COMPOSER_ROUTE_OPTIONS = [
-	conversationLensDockNoRoute,
-	conversationLensDockRouteBalanced,
-	conversationLensDockRouteSpeed,
-	conversationLensDockRouteQuality,
-] as const;
-
 export type ComposerPolicy = 'compose' | 'turnEdit' | 'queueEdit';
 
 export interface ConversationSessionConfigSelection {
 	agentIndex: number;
-	routeIndex: number;
 	permissionIndex: number;
 }
 
@@ -135,15 +122,10 @@ export interface IConversationLensComposerChromeHost {
 	prefirstHero: HTMLElement;
 	dockRoot: HTMLElement;
 	agentContainer: HTMLElement;
-	routeContainer: HTMLElement;
-	sessionBarRouteContainer: HTMLElement;
 	agentSelectBox: SelectBox;
-	routeSelectBox: SelectBox;
-	sessionBarRouteSelectBox: SelectBox;
 	permissionSelectBox: SelectBox;
 	inboxOverlay: ConversationInboxOverlay;
 	timelineTree: ConversationTimelineTree;
-	voiceTranscriptBar: ConversationVoiceTranscriptBar;
 	readonly stubService: IConversationRosterService;
 	readonly uaConnection: IUniverseAgentConnection;
 	readonly contextViewService: IContextViewService;
@@ -154,8 +136,6 @@ export interface IConversationLensComposerChromeHost {
 	renderInboxStatus(): void;
 	readComposerDraft(sessionId: string): string;
 	writeComposerDraft(sessionId: string, text: string): void;
-	renderVoiceTranscriptBar(): void;
-	updateVoiceMicChrome(): void;
 	isPreFirst(): boolean;
 	syncComposerPlacement(): void;
 	updateComposerEditChrome(): void;
@@ -373,8 +353,6 @@ export function beginTurnEdit(host: IConversationLensComposerChromeHost, turnId:
 		syncComposerPlacement(host);
 		updateComposerEditChrome(host);
 		updateSendEnabled(host);
-		host.renderVoiceTranscriptBar();
-		host.updateVoiceMicChrome();
 		host.dockTextarea.focus();
 	
 }
@@ -398,8 +376,6 @@ export function beginQueueEdit(host: IConversationLensComposerChromeHost, itemId
 		syncComposerPlacement(host);
 		updateComposerEditChrome(host);
 		updateSendEnabled(host);
-		host.renderVoiceTranscriptBar();
-		host.updateVoiceMicChrome();
 		host.dockTextarea.focus();
 	
 }
@@ -426,8 +402,6 @@ export function exitComposerEdit(host: IConversationLensComposerChromeHost, rest
 		syncComposerPlacement(host);
 		updateComposerEditChrome(host);
 		updateSendEnabled(host);
-		host.renderVoiceTranscriptBar();
-		host.updateVoiceMicChrome();
 	
 }
 
@@ -468,7 +442,6 @@ export function syncComposerPlacement(host: IConversationLensComposerChromeHost)
 
 		if (host.composerPolicy === 'turnEdit' && host.editingTurnId) {
 			ensureComposerInCluster(host);
-			host.renderVoiceTranscriptBar();
 			const editHost = host.timelineTree.getTurnEditHost(host.editingTurnId);
 			if (editHost) {
 				if (host.composer.parentElement !== editHost) {
@@ -481,7 +454,6 @@ export function syncComposerPlacement(host: IConversationLensComposerChromeHost)
 		}
 
 		ensureComposerInCluster(host);
-		host.renderVoiceTranscriptBar();
 
 		if (host.isPreFirst()) {
 			if (host.composerCluster.parentElement !== host.prefirstHero) {
@@ -604,18 +576,9 @@ export function createComposerSelectBox(host: IConversationLensComposerChromeHos
 	
 }
 
-export function createRouteSelectBox(host: IConversationLensComposerChromeHost, selectedIndex: number, ariaLabel: string): SelectBox {
-
-		return createComposerSelectBox(host, 
-			COMPOSER_ROUTE_OPTIONS.map(text => ({ text })),
-			selectedIndex,
-			ariaLabel);
-	
-}
-
 export function getSessionConfig(host: IConversationLensComposerChromeHost, sessionId: string): ConversationSessionConfigSelection {
 
-		return host.sessionConfigBySessionId.get(sessionId) ?? { agentIndex: 0, routeIndex: 0, permissionIndex: 0 };
+		return host.sessionConfigBySessionId.get(sessionId) ?? { agentIndex: 0, permissionIndex: 0 };
 	
 }
 
@@ -736,10 +699,8 @@ export async function applySessionModelIndex(host: IConversationLensComposerChro
 
 export function syncSessionConfigSelects(host: IConversationLensComposerChromeHost, sessionId: string): void {
 
-		const { agentIndex, routeIndex, permissionIndex } = getSessionConfig(host, sessionId);
+		const { agentIndex, permissionIndex } = getSessionConfig(host, sessionId);
 		host.agentSelectBox.select(agentIndex);
-		host.routeSelectBox.select(routeIndex);
-		host.sessionBarRouteSelectBox?.select(routeIndex);
 		host.permissionSelectBox.select(permissionIndex);
 	
 }
@@ -747,10 +708,6 @@ export function syncSessionConfigSelects(host: IConversationLensComposerChromeHo
 export function updateSessionConfigVisibility(host: IConversationLensComposerChromeHost, preFirst: boolean): void {
 
 		host.agentContainer.hidden = !preFirst;
-		host.routeContainer.hidden = !preFirst;
-		if (host.sessionBarRouteContainer) {
-			host.sessionBarRouteContainer.hidden = preFirst;
-		}
 	
 }
 

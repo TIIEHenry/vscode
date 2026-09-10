@@ -49,8 +49,6 @@ export interface IConversationLensSessionBindingHost {
 	updateSessionTitle(): void;
 	readComposerDraft(sessionId: string): string;
 	renderInboxStatus(): void;
-	renderVoiceTranscriptBar(): void;
-	updateVoiceMicChrome(): void;
 	postBound(msg: ConversationWriteMessage): Promise<PostOutcome>;
 	showPostFailure(reason: ConversationComposerPostFailureReason): void;
 	focusTimelineRecord(turnId: string): void;
@@ -98,8 +96,6 @@ export function applyActiveSession(host: IConversationLensSessionBindingHost, se
 	host.dockTextarea.value = host.readComposerDraft(sessionId);
 	host.bindSessionView(sessionId);
 	host.renderInboxStatus();
-	host.renderVoiceTranscriptBar();
-	host.updateVoiceMicChrome();
 
 }
 

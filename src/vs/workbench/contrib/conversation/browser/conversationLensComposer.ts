@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
@@ -11,18 +10,11 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from './conversationComposerCatalog.js';
 import {
-	conversationLensDockMicNotAvailable,
-	conversationLensDockMicStopTitle,
-	conversationLensDockMicTitle,
 	conversationLensDockNoAgent,
 	conversationLensDockNoModel,
-	conversationLensVoiceStubPhraseOne,
-	conversationLensVoiceStubPhraseThree,
-	conversationLensVoiceStubPhraseTwo,
 	type ConversationComposerPostFailureReason,
 } from './conversationLensDockStrings.js';
 import { IConversationRosterService } from './conversationStubService.js';
-import { appendVoiceTextToDraft, ConversationVoiceClip } from './conversationVoiceTranscriptModel.js';
 import {
 	loadUaClientComposerDraft,
 	pruneUaClientComposerDrafts,
@@ -32,16 +24,9 @@ import {
 	uaClientComposerDraftEntryKey,
 } from './uaClientComposerDrafts.js';
 import { shouldRestoreComposerDrafts } from '../common/uaClientSettingsHelpers.js';
-import { ConversationVoiceTranscriptBar } from './conversationVoiceTranscriptBar.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import type { ConversationSessionConfigSelection } from './conversationLensComposerChrome.js';
-
-const STUB_VOICE_TRANSCRIPT_PHRASES = [
-	conversationLensVoiceStubPhraseOne,
-	conversationLensVoiceStubPhraseTwo,
-	conversationLensVoiceStubPhraseThree,
-] as const;
 
 export interface IConversationLensComposerHost {
 	filterAgentId: string | undefined;
@@ -52,10 +37,6 @@ export interface IConversationLensComposerHost {
 	catalogToolNames: readonly string[];
 	catalogModelIds: readonly string[];
 	drafts: Map<string, string>;
-	voiceClipsBySessionId: Map<string, ConversationVoiceClip[]>;
-	voicePhraseIndexBySessionId: Map<string, number>;
-	voiceTranscriptTimeouts: Map<string, ReturnType<typeof setTimeout>>;
-	nextVoiceClipId: number;
 	editingTurnId: string | undefined;
 	editingQueueItemId: string | undefined;
 	sessionViewLease: IConversationSessionViewLease | undefined;
@@ -63,8 +44,6 @@ export interface IConversationLensComposerHost {
 	sendButton: Button;
 	agentSelectBox: SelectBox;
 	modelSelectBox: SelectBox;
-	micButton: Button;
-	voiceTranscriptBar: ConversationVoiceTranscriptBar;
 	readonly stubService: IConversationRosterService;
 	readonly configurationService: IConfigurationService;
 	readonly storageService: IStorageService;
@@ -78,8 +57,6 @@ export interface IConversationLensComposerHost {
 	showPostFailure(reason: ConversationComposerPostFailureReason): void;
 	resetInputHistoryBrowse(): void;
 	renderInboxStatus(): void;
-	renderVoiceTranscriptBar(): void;
-	updateVoiceMicChrome(): void;
 	readComposerDraft(sessionId: string): string;
 	updateConversationPhase(): void;
 }
@@ -90,14 +67,11 @@ export function refreshComposerCatalogs(host: IConversationLensComposerHost): vo
 		if (!host.stubService.isEngineConnected()) {
 			const sessionId = host.getBoundSessionId();
 			const { agentIndex } = host.getSessionConfig(sessionId);
-			host.agentSelectBox.setOptions(COMPOSER_AGENT_OPTIONS.map(text => ({ text })), agentIndex);
-			host.modelSelectBox.setOptions(
-				[
-					{ text: conversationLensDockNoModel },
-					{ text: localize('conversationLens.dockStubModel', "Stub model") },
-				],
-				host.modelSelectedIndex);
-			host.catalogModelIds = ['', ''];
+			const clampedAgentIndex = Math.min(agentIndex, COMPOSER_AGENT_OPTIONS.length - 1);
+			host.agentSelectBox.setOptions(COMPOSER_AGENT_OPTIONS.map(text => ({ text })), clampedAgentIndex);
+			host.modelSelectBox.setOptions([{ text: conversationLensDockNoModel }], 0);
+			host.modelSelectedIndex = 0;
+			host.catalogModelIds = [''];
 			host.catalogToolNames = [];
 			host.updateSendEnabled();
 			host.updateGateRow();
@@ -215,11 +189,6 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 			host.updateSendEnabled();
 			host.showPostFailure('engine_disconnected');
 			return;
-		}
-		if (!connected && host.modelSelectedIndex === 0) {
-			// "No model" is the engine catalog label, not a send lock. Local stub still posts.
-			host.modelSelectedIndex = 1;
-			host.modelSelectBox.select(1);
 		}
 		host.submitInFlight = true;
 		try {
@@ -352,118 +321,5 @@ export function pruneOrphanComposerDrafts(host: IConversationLensComposerHost): 
 			}
 		}
 		pruneUaClientComposerDrafts(host.storageService, liveIds);
-	
-}
-
-export function getVoiceClips(host: IConversationLensComposerHost, sessionId: string): readonly ConversationVoiceClip[] {
-
-		return host.voiceClipsBySessionId.get(sessionId) ?? [];
-	
-}
-
-export function setVoiceClips(host: IConversationLensComposerHost, sessionId: string, clips: readonly ConversationVoiceClip[]): void {
-
-		if (clips.length === 0) {
-			host.voiceClipsBySessionId.delete(sessionId);
-		} else {
-			host.voiceClipsBySessionId.set(sessionId, [...clips]);
-		}
-		renderVoiceTranscriptBar(host);
-		updateVoiceMicChrome(host);
-	
-}
-
-export function renderVoiceTranscriptBar(host: IConversationLensComposerHost): void {
-
-		const composeMode = host.composerPolicy === 'compose';
-		host.voiceTranscriptBar.setComposerVisible(composeMode);
-		host.voiceTranscriptBar.render(getVoiceClips(host, host.getBoundSessionId()));
-	
-}
-
-export function updateVoiceMicChrome(host: IConversationLensComposerHost): void {
-
-		const engineConnected = host.stubService.isEngineConnected();
-		const recording = getVoiceClips(host, host.getBoundSessionId())
-			.some(clip => clip.status === 'recording');
-
-		if (!engineConnected || host.composerPolicy !== 'compose') {
-			host.micButton.enabled = false;
-			host.micButton.element.classList.remove('conversation-lens-dock-control--filled');
-			host.micButton.element.classList.add('conversation-lens-dock-control--ghost');
-			const title = engineConnected
-				? conversationLensDockMicTitle
-				: `${conversationLensDockMicTitle} — ${conversationLensDockMicNotAvailable}`;
-			host.micButton.setTitle(title);
-			host.micButton.setAriaLabel(title);
-			return;
-		}
-
-		host.micButton.enabled = true;
-		if (recording) {
-			host.micButton.element.classList.remove('conversation-lens-dock-control--ghost');
-			host.micButton.element.classList.add('conversation-lens-dock-control--filled');
-			host.micButton.setTitle(conversationLensDockMicStopTitle);
-			host.micButton.setAriaLabel(conversationLensDockMicStopTitle);
-			return;
-		}
-
-		host.micButton.element.classList.remove('conversation-lens-dock-control--filled');
-		host.micButton.element.classList.add('conversation-lens-dock-control--ghost');
-		host.micButton.setTitle(conversationLensDockMicTitle);
-		host.micButton.setAriaLabel(conversationLensDockMicTitle);
-	
-}
-
-export function toggleVoiceRecording(host: IConversationLensComposerHost): void {
-
-		if (!host.stubService.isEngineConnected() || host.composerPolicy !== 'compose') {
-			return;
-		}
-		const sessionId = host.getBoundSessionId();
-		const clips = [...getVoiceClips(host, sessionId)];
-		const recording = clips.find(clip => clip.status === 'recording');
-		if (recording) {
-			finishVoiceClip(host, sessionId, recording.id);
-			return;
-		}
-		const clip: ConversationVoiceClip = {
-			id: `voice-${++host.nextVoiceClipId}`,
-			status: 'recording',
-			durationLabel: '0:01',
-		};
-		setVoiceClips(host, sessionId, [...clips, clip]);
-	
-}
-
-export function finishVoiceClip(host: IConversationLensComposerHost, sessionId: string, clipId: string): void {
-
-		const clips = getVoiceClips(host, sessionId).map(clip =>
-			clip.id === clipId ? { ...clip, status: 'transcribing' as const } : clip);
-		setVoiceClips(host, sessionId, clips);
-
-		const phraseIndex = host.voicePhraseIndexBySessionId.get(sessionId) ?? 0;
-		const phrase = STUB_VOICE_TRANSCRIPT_PHRASES[phraseIndex % STUB_VOICE_TRANSCRIPT_PHRASES.length];
-		host.voicePhraseIndexBySessionId.set(sessionId, phraseIndex + 1);
-
-		const existingTimeout = host.voiceTranscriptTimeouts.get(clipId);
-		if (existingTimeout !== undefined) {
-			clearTimeout(existingTimeout);
-		}
-		const timeout = setTimeout(() => {
-			host.voiceTranscriptTimeouts.delete(clipId);
-			const remaining = getVoiceClips(host, sessionId).filter(clip => clip.id !== clipId);
-			setVoiceClips(host, sessionId, remaining);
-			const draft = host.getBoundSessionId() === sessionId && host.composerPolicy === 'compose'
-				? host.dockTextarea.value
-				: readComposerDraft(host, sessionId);
-			const nextDraft = appendVoiceTextToDraft(draft, phrase);
-			writeComposerDraft(host, sessionId, nextDraft);
-			if (host.getBoundSessionId() === sessionId && host.composerPolicy === 'compose') {
-				host.dockTextarea.value = nextDraft;
-				host.updateSendEnabled();
-			}
-		}, 30);
-		host.voiceTranscriptTimeouts.set(clipId, timeout);
 	
 }

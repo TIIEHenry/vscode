@@ -35,8 +35,6 @@ import { IConversationTimelineRevealService } from './conversationTimelineReveal
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { IWebviewService } from '../../webview/browser/webview.js';
-import { ConversationVoiceTranscriptBar } from './conversationVoiceTranscriptBar.js';
-import { ConversationVoiceClip } from './conversationVoiceTranscriptModel.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { UA_CLIENT_CLIENT_TOOLS_SHOW_TOOL_INVOCATION_DETAILS } from '../common/uaClientSettingsKeys.js';
 import { UA_CLIENT_DISPLAY_CONVERSATION_DENSITY } from '../common/uaClientSettingsHelpers.js';
@@ -97,28 +95,21 @@ import {
 	composerChatId,
 	deleteComposerDraftsForSession,
 	draftMapKey,
-	finishVoiceClip,
-	getVoiceClips,
 	loadConnectedComposerCatalogs,
 	postBound,
 	pruneOrphanComposerDrafts,
 	readComposerDraft,
 	refreshComposerCatalogs,
-	renderVoiceTranscriptBar,
 	restoreComposerDraftToInput,
 	saveQueueEdit,
 	saveTurnEdit,
-	setVoiceClips,
 	submitDraft,
-	toggleVoiceRecording,
-	updateVoiceMicChrome,
 	writeComposerDraft,
 } from './conversationLensComposer.js';
 import {
 	beginQueueEdit,
 	beginTurnEdit,
 	createComposerSelectBox,
-	createRouteSelectBox,
 	ensureComposerInCluster,
 	exitComposerEdit,
 	exitInputHistoryBrowse,
@@ -168,8 +159,6 @@ export class ConversationLens extends Disposable {
 	sessionSelectContainer!: HTMLElement;
 	newSessionButton!: Button;
 	deleteSessionButton!: Button;
-	sessionBarRouteContainer!: HTMLElement;
-	sessionBarRouteSelectBox!: SelectBox;
 	lensTablist!: HTMLElement;
 	lensTabConversation!: HTMLButtonElement;
 	lensTabTrajectory!: HTMLButtonElement;
@@ -189,8 +178,6 @@ export class ConversationLens extends Disposable {
 	permissionSelectBox!: SelectBox;
 	agentContainer!: HTMLElement;
 	agentSelectBox!: SelectBox;
-	routeContainer!: HTMLElement;
-	routeSelectBox!: SelectBox;
 	moreButton!: Button;
 	moreContextView: IOpenContextView | undefined;
 	modelSelectBox!: SelectBox;
@@ -198,9 +185,7 @@ export class ConversationLens extends Disposable {
 	templatesButton!: Button;
 	templatesContextView: IOpenContextView | undefined;
 	maximizeInputButton!: Button;
-	micButton!: Button;
 	composerCluster!: HTMLElement;
-	voiceTranscriptBar!: ConversationVoiceTranscriptBar;
 
 	readingColumn!: HTMLElement;
 	prefirstHero!: HTMLElement;
@@ -225,10 +210,6 @@ export class ConversationLens extends Disposable {
 
 	readonly drafts = new Map<string, string>();
 	readonly sessionConfigBySessionId = new Map<string, ConversationSessionConfigSelection>();
-	readonly voiceClipsBySessionId = new Map<string, ConversationVoiceClip[]>();
-	readonly voicePhraseIndexBySessionId = new Map<string, number>();
-	readonly voiceTranscriptTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
-	nextVoiceClipId = 0;
 	inputHistoryBrowse: InputHistoryBrowseState = createInputHistoryBrowseState();
 	suppressSessionSelect = false;
 	mermaidExtensionInfo: ConversationMermaidExtensionInfo | undefined;
@@ -333,14 +314,12 @@ export class ConversationLens extends Disposable {
 			}
 		}));
 		this._register(this.stubService.onDidChangeEngineConnection(() => {
-			this.updateVoiceMicChrome();
 			this.refreshComposerCatalogs();
 			this.bindSessionView(this.getBoundSessionId());
 		}));
 		this._register(this.uaConnection.onDidChangeConnection(() => {
 			this.refreshComposerCatalogs();
 			this.updateGateRow();
-			this.updateVoiceMicChrome();
 			this.bindSessionView(this.stubService.getActiveSessionId());
 		}));
 		this.refreshComposerCatalogs();
@@ -350,10 +329,6 @@ export class ConversationLens extends Disposable {
 			this.tuneContextView?.close();
 			this.moreContextView?.close();
 			this.templatesContextView?.close();
-			for (const timeout of this.voiceTranscriptTimeouts.values()) {
-				clearTimeout(timeout);
-			}
-			this.voiceTranscriptTimeouts.clear();
 			if (slots.sessionBar) {
 				reset(slots.sessionBar);
 			}
@@ -514,10 +489,6 @@ export class ConversationLens extends Disposable {
 		return createComposerSelectBox(this, options, selectedIndex, ariaLabel);
 	}
 
-	createRouteSelectBox(selectedIndex: number, ariaLabel: string): SelectBox {
-		return createRouteSelectBox(this, selectedIndex, ariaLabel);
-	}
-
 	getSessionConfig(sessionId: string): ConversationSessionConfigSelection {
 		return getSessionConfig(this, sessionId);
 	}
@@ -613,30 +584,6 @@ export class ConversationLens extends Disposable {
 
 	exitComposerEdit(restoreComposeDraft = true, releaseQueueHold = true): void {
 		exitComposerEdit(this, restoreComposeDraft, releaseQueueHold);
-	}
-
-	getVoiceClips(sessionId: string): readonly ConversationVoiceClip[] {
-		return getVoiceClips(this, sessionId);
-	}
-
-	setVoiceClips(sessionId: string, clips: readonly ConversationVoiceClip[]): void {
-		setVoiceClips(this, sessionId, clips);
-	}
-
-	renderVoiceTranscriptBar(): void {
-		renderVoiceTranscriptBar(this);
-	}
-
-	updateVoiceMicChrome(): void {
-		updateVoiceMicChrome(this);
-	}
-
-	toggleVoiceRecording(): void {
-		toggleVoiceRecording(this);
-	}
-
-	finishVoiceClip(sessionId: string, clipId: string): void {
-		finishVoiceClip(this, sessionId, clipId);
 	}
 
 	getEditingQueueItem() {

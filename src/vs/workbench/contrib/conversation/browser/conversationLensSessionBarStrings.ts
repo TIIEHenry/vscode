@@ -16,7 +16,6 @@ export const conversationLensToolNotConnected = localize('conversationLens.toolN
 export const conversationLensSessionBarRenameTitle = localize('conversationLens.renameSessionTitle', "Rename session");
 export const conversationLensSessionBarRenameInputAria = localize('conversationLens.renameSessionInput', "Session title");
 export const conversationLensSessionBarDeleteSession = localize('conversationLens.deleteSession', "Delete session");
-export const conversationLensSessionBarRouteLabel = localize('conversationLens.sessionBarRouteLabel', "Route");
 /** SessionBar extra control — SessionService.GetHistory, not Snapshots / MessageNavigator turns. */
 export const conversationLensSessionBarHistory = localize('conversationLens.sessionBarHistory', "History");
 export const conversationLensSessionBarHistoryTitle = localize('conversationLens.sessionBarHistoryTitle', "Engine history");

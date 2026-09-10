@@ -7,13 +7,18 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { conversationLensDockNoAgent, conversationLensDockNoModel } from '../../browser/conversationLensDockStrings.js';
-import { composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from '../../browser/conversationComposerCatalog.js';
+import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from '../../browser/conversationComposerCatalog.js';
 import { loadConnectedComposerCatalogs, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('conversationComposerCatalog', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('disconnected Agent options are No agent only', () => {
+		assert.deepStrictEqual([...COMPOSER_AGENT_OPTIONS], [conversationLensDockNoAgent]);
+		assert.ok(!COMPOSER_AGENT_OPTIONS.some(text => text === 'Stub agent'));
+	});
 
 	test('agent options stay honest-empty then use profile names', () => {
 		const options = composerAgentSelectOptions([

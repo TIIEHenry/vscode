@@ -17,8 +17,6 @@ import {
 	conversationLensDockEditExit,
 	conversationLensDockEngineNotConnected,
 	conversationLensDockMaximizeInput,
-	conversationLensDockMicNotAvailable,
-	conversationLensDockMicTitle,
 	conversationLensDockMoreTitle,
 	conversationLensDockNoModel,
 	conversationLensDockPermissionAgent,
@@ -26,12 +24,10 @@ import {
 	conversationLensDockPermissionLabel,
 	conversationLensDockPermissionPermit,
 	conversationLensDockPlaceholder,
-	conversationLensDockRouteLabel,
 	conversationLensDockTemplatesTitle,
 	conversationLensDockTuneTitle,
 } from './conversationLensDockStrings.js';
 import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
-import { ConversationVoiceTranscriptBar } from './conversationVoiceTranscriptBar.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { getUaClientKeyboardEnterBehavior } from '../common/uaClientSettingsHelpers.js';
@@ -53,7 +49,6 @@ export interface IConversationLensDockHost {
 	gateLabel: HTMLElement;
 	inboxOverlay: ConversationInboxOverlay;
 	composerCluster: HTMLElement;
-	voiceTranscriptBar: ConversationVoiceTranscriptBar;
 	composer: HTMLElement;
 	composerEditHeader: HTMLElement;
 	composerEditTitle: HTMLElement;
@@ -64,25 +59,20 @@ export interface IConversationLensDockHost {
 	permissionSelectBox: SelectBox;
 	agentContainer: HTMLElement;
 	agentSelectBox: SelectBox;
-	routeContainer: HTMLElement;
-	routeSelectBox: SelectBox;
 	moreButton: Button;
 	modelSelectBox: SelectBox;
 	modelSelectedIndex: number;
 	templatesButton: Button;
 	maximizeInputButton: Button;
-	micButton: Button;
 	sendButton: Button;
 	composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
 	inputHistoryBrowse: InputHistoryBrowseState;
-	sessionBarRouteSelectBox: SelectBox;
 	readonly stubService: IConversationRosterService;
 	readonly configurationService: IConfigurationService;
 	readonly instantiationService: IInstantiationService;
 	getBoundSessionId(): string;
 	register<T extends IDisposable>(disposable: T): T;
 	createComposerSelectBox(options: { text: string }[], selectedIndex: number, ariaLabel: string): SelectBox;
-	createRouteSelectBox(selectedIndex: number, ariaLabel: string): SelectBox;
 	getSessionConfig(sessionId: string): ConversationSessionConfigSelection;
 	setSessionConfig(sessionId: string, patch: Partial<ConversationSessionConfigSelection>): void;
 	toggleAddContextView(): void;
@@ -99,8 +89,6 @@ export interface IConversationLensDockHost {
 	submitDraft(): Promise<void>;
 	writeComposerDraft(sessionId: string, text: string): void;
 	updateConversationPhase(): void;
-	updateVoiceMicChrome(): void;
-	toggleVoiceRecording(): void;
 	scrollToFirstPendingConfirmation(): void;
 }
 
@@ -121,7 +109,6 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		}));
 
 		host.composerCluster = append(host.dockRoot, $('.conversation-lens-composer-cluster'));
-		host.voiceTranscriptBar = host.register(new ConversationVoiceTranscriptBar(host.composerCluster));
 		host.composer = append(host.composerCluster, $('.conversation-lens-composer'));
 		host.composerEditHeader = append(host.composer, $('.conversation-lens-composer-edit-header'));
 		host.composerEditHeader.hidden = true;
@@ -186,22 +173,11 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		host.agentContainer = append(bottomLeading, $('.conversation-lens-dock-agent'));
 		host.agentSelectBox = host.register(host.createComposerSelectBox(
 			COMPOSER_AGENT_OPTIONS.map(text => ({ text })),
-			host.getSessionConfig(host.getBoundSessionId()).agentIndex,
+			Math.min(host.getSessionConfig(host.getBoundSessionId()).agentIndex, COMPOSER_AGENT_OPTIONS.length - 1),
 			conversationLensDockAgentLabel));
 		host.agentSelectBox.render(host.agentContainer);
 		host.register(host.agentSelectBox.onDidSelect(e => {
 			host.setSessionConfig(host.getBoundSessionId(), { agentIndex: e.index });
-		}));
-
-		host.routeContainer = append(bottomLeading, $('.conversation-lens-dock-route'));
-		host.routeSelectBox = host.register(host.createRouteSelectBox(
-			host.getSessionConfig(host.getBoundSessionId()).routeIndex,
-			conversationLensDockRouteLabel));
-		host.routeSelectBox.render(host.routeContainer);
-		host.register(host.routeSelectBox.onDidSelect(e => {
-			const sessionId = host.getBoundSessionId();
-			host.setSessionConfig(sessionId, { routeIndex: e.index });
-			host.sessionBarRouteSelectBox?.select(e.index);
 		}));
 
 		const moreContainer = append(bottomLeading, $('.conversation-lens-dock-more'));
@@ -218,10 +194,7 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 
 		const modelContainer = append(bottomTrailing, $('.conversation-lens-dock-model'));
 		host.modelSelectBox = host.register(host.createComposerSelectBox(
-			[
-				{ text: conversationLensDockNoModel },
-				{ text: localize('conversationLens.dockStubModel', "Stub model") },
-			],
+			[{ text: conversationLensDockNoModel }],
 			0,
 			localize('conversationLens.dockModelLabel', "Model")));
 		host.modelSelectBox.render(modelContainer);
@@ -249,17 +222,6 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		host.maximizeInputButton.element.setAttribute('aria-pressed', 'false');
 		host.updateMaximizeInputButton();
 		host.register(host.maximizeInputButton.onDidClick(() => host.toggleInputMaximized()));
-
-		const micContainer = append(bottomTrailing, $('.conversation-lens-dock-mic'));
-		host.micButton = host.register(new Button(micContainer, {
-			...defaultButtonStyles,
-			supportIcons: true,
-			disabled: true,
-			title: `${conversationLensDockMicTitle} — ${conversationLensDockMicNotAvailable}`,
-		}));
-		host.micButton.icon = Codicon.mic;
-		host.micButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--ghost', 'conversation-lens-dock-control--mic');
-		host.register(host.micButton.onDidClick(() => host.toggleVoiceRecording()));
 
 		const sendContainer = append(bottomTrailing, $('.conversation-lens-dock-send'));
 		host.sendButton = host.register(new Button(sendContainer, {
@@ -319,6 +281,5 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		}));
 
 		host.updateConversationPhase();
-		host.updateVoiceMicChrome();
 	
 }

@@ -4,12 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { UniverseAgentAgentProfileSummary, UniverseAgentModelEntry, UniverseAgentToolSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { conversationLensDockNoAgent, conversationLensDockNoModel, conversationLensDockStubAgent } from './conversationLensDockStrings.js';
+import { conversationLensDockNoAgent, conversationLensDockNoModel } from './conversationLensDockStrings.js';
 
-/** Disconnected stub Agent options: honest empty first, then the local stub label. */
+/** Disconnected Agent options: honest empty only. */
 export const COMPOSER_AGENT_OPTIONS = [
 	conversationLensDockNoAgent,
-	conversationLensDockStubAgent,
 ] as const;
 
 /** Display-only Agent options: honest empty first, then engine profile names. */

@@ -3,9 +3,7 @@ title: "Conversation 透镜、时间线与轨迹"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-05
-summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；SessionBar History→GetHistory（空 sessionId 原样上线；断连不发）；SessionBar Snapshots listSnapshots + overlay Restore→RestoreSnapshot（成功后保持打开再拉 listSnapshots） + overlay Delete 确认成功后保持打开再拉 listSnapshots（≠ History）；叶宽 `.is-narrow`（Q6/RWD-1）；子代理 overlay 自备 sessionBar；Accessible View；帧源投影与 Q4 live 过程折"
-updated: 2026-09-03
+updated: 2026-09-10
 summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；叶宽 `.is-narrow`（Q6/RWD-1）；子代理 overlay 自备 sessionBar；Accessible View；帧源投影与 Q4 live 过程折"
 ---
 
@@ -15,7 +13,7 @@ summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；�
 
 ## 1. 页 chrome 在哪
 
-每张 chat tab 的内容由 `ConversationEditorPane`（`workbench.editor.conversationChat`）渲染。它把 `IConversationLensSlots`（`sessionBar` / `timeline` / `dock` 三个 DOM 槽）交给 `ConversationLens` 填。**注意两层 SessionBar**：Part 级的窗口 chrome（SelectBox、←→、关非根、Route）在 `ConversationPart.sessionBar`；页级的「对话 | 轨迹」透镜切换与标题行由 `ConversationLens.mountSessionBar` 填。根 tab 的透镜栏仍挂在 Part 槽。
+每张 chat tab 的内容由 `ConversationEditorPane`（`workbench.editor.conversationChat`）渲染。它把 `IConversationLensSlots`（`sessionBar` / `timeline` / `dock` 三个 DOM 槽）交给 `ConversationLens` 填。**注意两层 SessionBar**：Part 级的窗口 chrome（SelectBox、←→、关非根）在 `ConversationPart.sessionBar`；页级的「对话 | 轨迹」透镜切换与标题行由 `ConversationLens.mountSessionBar` 填。根 tab 的透镜栏仍挂在 Part 槽。
 
 子代理对话框（`ConversationSubAgentOverlay`）**自备** overlay 内 sessionBar（透镜 tab + 标题行），不再把 Part 级 sessionBar 传入 `ConversationLens`。focus trap 根 = `overlay.element`，Tab wrap 与 Escape 才能包住透镜 / 改名。Escape 顺序：图示 overlay → 局部 inspector → 标题改名 → 对话框；不关根会话。
 

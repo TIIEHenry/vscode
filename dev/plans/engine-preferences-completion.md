@@ -3,7 +3,7 @@ title: "Engine Preferences UI 完成方案"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-04
+updated: 2026-09-10
 summary: "E2-1–E2-7 代码已落；GC-6 Overview Model 摘要已落；Overview Provider 行已省略（G-ENG-1 前不显示）；Rules/Hooks unsupported；产品验证未做，方案仍 accepted"
 ---
 
@@ -79,7 +79,7 @@ summary: "E2-1–E2-7 代码已落；GC-6 Overview Model 摘要已落；Overview
 - 数据源：`ConfigService.ListModels(include_disabled=true)` → `ModelEntryProto{ id, type, enabled, level, description, cost, speed, provider, model_id }`。
 - 呈现：按 `provider` 分组的只读列表；行显示 `type`、`model_id`、`level`、`cost`、`speed`、启用态；禁用项灰显，不隐藏。分组标题旁一句脚注「provider 名来自模型注册表，不代表已配置凭据」。
 - 没有写操作：引擎没有模型注册表写 RPC。不画 Enable/Disable。
-- 说明行：会话级模型选择与策略（`SwitchModel` / `Get|SetModelPreferences`）属于 Composer Route/Model 下拉，本节只给一句指向，不画会话级控件。
+- 说明行：会话级模型选择与策略（`SwitchModel` / `Get|SetModelPreferences`）属于 Composer Model 下拉，本节只给一句指向，不画会话级控件。
 - Agent profile 没有 `model.json` 写路径（G-ENG-4），本节与 §3.4 都不提供 model 编辑。
 
 **Provider 组（`providerConfig` capability，G-ENG-1 闭合前固定 unsupported）**

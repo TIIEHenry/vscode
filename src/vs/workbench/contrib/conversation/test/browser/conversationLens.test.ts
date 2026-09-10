@@ -27,18 +27,12 @@ import {
 	conversationLensDockInboxNoQueue,
 	conversationLensDockInboxNoTasks,
 	conversationLensDockMaximizeInput,
-	conversationLensDockMicNotAvailable,
-	conversationLensDockMicStopTitle,
-	conversationLensDockMicTitle,
 	conversationLensDockNoAttachments,
 	conversationLensDockNoGoal,
 	conversationLensDockNoModel,
-	conversationLensDockNoRoute,
 	conversationLensDockNoTools,
 	conversationLensDockNoEngineTools,
 	conversationLensDockNoAgent,
-	conversationLensDockStubAgent,
-	conversationLensDockRouteBalanced,
 	conversationLensDockPermissionAsk,
 	conversationLensDockPermissionLabel,
 	conversationLensDockPermissionPermit,
@@ -56,18 +50,14 @@ import {
 	conversationLensPrefirstHeroClass,
 	conversationLensInboxQueueEditingTag,
 	conversationLensInboxQueuePause,
-	conversationLensVoiceStubPhraseOne,
-	conversationLensVoiceTranscriptLabel,
 } from '../../browser/conversationLensDockStrings.js';
 import { conversationLensDockModelFailed, conversationLensDockPermissionUnavailable } from '../../browser/conversationLensComposerChrome.js';
-import { conversationLensVoiceTranscriptBarClass } from '../../browser/conversationVoiceTranscriptBar.js';
 import {
 	conversationLensSessionBarConversationTab,
 	conversationLensSessionBarDeleteSession,
 	conversationLensSessionBarNewSession,
 	conversationLensSessionBarNoTrajectory,
 	conversationLensSessionBarRenameTitle,
-	conversationLensSessionBarRouteLabel,
 	conversationLensSessionBarTrajectoryTab,
 	conversationLensPinnedUserPromptAria,
 	conversationLensPinnedUserPromptCopyAria,
@@ -450,23 +440,6 @@ suite('ConversationLens', () => {
 		return null;
 	}
 
-	function getDockMicButton(slots: IConversationLensSlots): HTMLButtonElement {
-		const button = (slots.dock.querySelector('.conversation-lens-dock-mic .monaco-button')
-			?? getReadingColumn(slots).querySelector('.conversation-lens-dock-mic .monaco-button')) as HTMLButtonElement | null;
-		assert.ok(button);
-		return button;
-	}
-
-	function getVoiceTranscriptBar(slots: IConversationLensSlots): HTMLElement | null {
-		return (slots.dock.querySelector(`.${conversationLensVoiceTranscriptBarClass}`)
-			?? getReadingColumn(slots).querySelector(`.${conversationLensVoiceTranscriptBarClass}`)) as HTMLElement | null;
-	}
-
-	function isVoiceTranscriptBarVisible(slots: IConversationLensSlots): boolean {
-		const bar = getVoiceTranscriptBar(slots);
-		return !!bar && !bar.hidden;
-	}
-
 	function getComposerBottomBar(slots: IConversationLensSlots): HTMLElement {
 		const bottomBar = (slots.dock.querySelector('.conversation-lens-dock-bottom-bar')
 			?? getReadingColumn(slots).querySelector('.conversation-lens-dock-bottom-bar')) as HTMLElement | null;
@@ -484,6 +457,23 @@ suite('ConversationLens', () => {
 		const select = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-model select.monaco-select-box') as HTMLSelectElement | null;
 		assert.ok(select);
 		return select;
+	}
+
+	function getAgentSelect(slots: IConversationLensSlots): HTMLSelectElement {
+		const select = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-agent select.monaco-select-box') as HTMLSelectElement | null;
+		assert.ok(select);
+		return select;
+	}
+
+	function assertDisconnectedComposerCatalogsHonest(slots: IConversationLensSlots): void {
+		const agentSelect = getAgentSelect(slots);
+		const modelSelect = getModelSelect(slots);
+		assert.strictEqual(agentSelect.options.length, 1);
+		assert.strictEqual(agentSelect.options[0]?.text, conversationLensDockNoAgent);
+		assert.ok(![...agentSelect.options].some(option => option.text === 'Stub agent'));
+		assert.strictEqual(modelSelect.options.length, 1);
+		assert.strictEqual(modelSelect.options[0]?.text, conversationLensDockNoModel);
+		assert.ok(![...modelSelect.options].some(option => option.text === 'Stub model'));
 	}
 
 	async function waitForModelOption(slots: IConversationLensSlots, text: string): Promise<void> {
@@ -520,7 +510,6 @@ suite('ConversationLens', () => {
 
 	async function sendDockDraft(slots: IConversationLensSlots, message: string): Promise<void> {
 		const textarea = getDockTextarea(slots);
-		selectDockModel(slots, 1);
 		const sendButton = getDockSendButton(slots);
 		textarea.value = message;
 		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
@@ -871,7 +860,7 @@ suite('ConversationLens', () => {
 		assert.ok(!inputRow.querySelector('.conversation-lens-dock-send'));
 	});
 
-	test('T2 composer chrome: 32px bottom bar with add tune permission model more mic send codicons', () => {
+	test('T2 composer chrome: 32px bottom bar with add tune permission model more send codicons', () => {
 		const { part } = mountLens();
 		const slots = getLensSlots(part);
 		const bottomBar = getComposerBottomBar(slots);
@@ -890,7 +879,7 @@ suite('ConversationLens', () => {
 		assert.ok(trailing.querySelector('.conversation-lens-dock-model .monaco-select-box'));
 		assert.ok(trailing.querySelector('.conversation-lens-dock-templates .codicon-notebook-template'));
 		assert.ok(trailing.querySelector('.conversation-lens-dock-maximize-input .codicon-screen-full'));
-		assert.ok(trailing.querySelector('.conversation-lens-dock-mic .codicon-mic'));
+		assert.strictEqual(trailing.querySelector('.conversation-lens-dock-mic'), null);
 		assert.ok(trailing.querySelector('.conversation-lens-dock-send .codicon-arrow-up'));
 
 		const softAdd = leading.querySelector('.conversation-lens-dock-add .monaco-button') as HTMLElement;
@@ -910,19 +899,18 @@ suite('ConversationLens', () => {
 
 		const addButton = leading.querySelector('.conversation-lens-dock-add .monaco-button') as HTMLButtonElement;
 		const tuneButton = leading.querySelector('.conversation-lens-dock-tune .monaco-button') as HTMLButtonElement;
-		const micButton = trailing.querySelector('.conversation-lens-dock-mic .monaco-button') as HTMLButtonElement;
 		assert.strictEqual(addButton.getAttribute('aria-label'), conversationLensDockAddTitle);
 		assert.strictEqual(tuneButton.getAttribute('aria-label'), conversationLensDockTuneTitle);
-		assert.strictEqual(micButton.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(leading.querySelector('.conversation-lens-dock-route'), null);
 
 		const permissionSelect = leading.querySelector('.conversation-lens-dock-permission select.monaco-select-box') as HTMLSelectElement;
 		const modelSelect = trailing.querySelector('.conversation-lens-dock-model select.monaco-select-box') as HTMLSelectElement;
 		assert.strictEqual(permissionSelect.options[permissionSelect.selectedIndex]?.text, conversationLensDockPermissionAsk);
 		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, conversationLensDockNoModel);
+		assertDisconnectedComposerCatalogsHonest(slots);
 
 		const sendButton = getDockSendButton(slots);
 		assert.strictEqual(sendButton.classList.contains('disabled'), true);
-		selectDockModel(slots, 1);
 		const textarea = getDockTextarea(slots);
 		textarea.value = 'hello';
 		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
@@ -988,12 +976,14 @@ suite('ConversationLens', () => {
 		});
 		const { part } = mountLens({ connection });
 		const slots = getLensSlots(part);
+		assertDisconnectedComposerCatalogsHonest(slots);
 
-		selectDockModel(slots, 1);
+		selectDockModel(slots, 0);
 		await Promise.resolve();
 
 		assert.strictEqual(calls.length, 0);
-		assert.strictEqual(getModelSelect(slots).selectedIndex, 1);
+		assert.strictEqual(getModelSelect(slots).selectedIndex, 0);
+		assert.strictEqual(getModelSelect(slots).options.length, 1);
 	});
 
 	test('model select writes sessionId and modelId when switchModel is available', async () => {
@@ -1115,6 +1105,7 @@ suite('ConversationLens', () => {
 		const sendButton = getDockSendButton(slots);
 		assert.strictEqual(sendButton.classList.contains('disabled'), true);
 		assert.strictEqual(stubService.hasEngineConnectionHistory(), false);
+		assertDisconnectedComposerCatalogsHonest(slots);
 		const textarea = getDockTextarea(slots);
 		textarea.value = 'hello';
 		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
@@ -1240,36 +1231,31 @@ suite('ConversationLens', () => {
 		assert.strictEqual(stubService.getTurns(sessionId).length, 2);
 	});
 
-	test('T3 SessionConfig XOR: agent and route only in PreFirst composer; Active SessionBar route; clearing turns returns PreFirst', async () => {
-		const { part, stubService } = mountLens();
+	test('T3 SessionConfig XOR: agent only in PreFirst composer; no Route SelectBox; clearing turns returns PreFirst', async () => {
+		const { part, stubService, lens } = mountLens();
 		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		const readingColumn = getReadingColumn(slots);
 
 		const getLeading = () => getComposerBottomBar(slots).querySelector('.conversation-lens-dock-bottom-leading')!;
 		const agentSlot = () => getLeading().querySelector('.conversation-lens-dock-agent') as HTMLElement;
-		const routeSlot = () => getLeading().querySelector('.conversation-lens-dock-route') as HTMLElement;
-		const sessionRoute = () => slots.sessionBar!.querySelector('.conversation-lens-session-route') as HTMLElement;
+		const queryRoute = (root: ParentNode) => root.querySelector('.conversation-lens-dock-route, .conversation-lens-session-route');
 
 		assert.ok(agentSlot());
-		assert.ok(routeSlot());
 		assert.strictEqual(agentSlot().hidden, false);
-		assert.strictEqual(routeSlot().hidden, false);
-		assert.ok(sessionRoute());
-		assert.strictEqual(sessionRoute().hidden, true);
+		assert.strictEqual(queryRoute(getLeading()), null);
+		assert.strictEqual(queryRoute(slots.sessionBar!), null);
+		assert.ok(!('routeIndex' in lens.getSessionConfig(sessionId)));
 
 		const agentSelect = agentSlot().querySelector('select.monaco-select-box') as HTMLSelectElement;
-		const routeSelect = routeSlot().querySelector('select.monaco-select-box') as HTMLSelectElement;
 		assert.strictEqual(agentSelect.options[agentSelect.selectedIndex]?.text, conversationLensDockNoAgent);
-		assert.strictEqual(routeSelect.options[routeSelect.selectedIndex]?.text, conversationLensDockNoRoute);
+		assertDisconnectedComposerCatalogsHonest(slots);
 
 		await sendDockDraft(slots, 'Hello Active');
 
 		assert.strictEqual(agentSlot().hidden, true);
-		assert.strictEqual(routeSlot().hidden, true);
-		assert.strictEqual(sessionRoute().hidden, false);
-		const sessionRouteSelect = sessionRoute().querySelector('select.monaco-select-box') as HTMLSelectElement;
-		assert.strictEqual(sessionRouteSelect.getAttribute('aria-label'), conversationLensSessionBarRouteLabel);
+		assert.strictEqual(queryRoute(getComposerBottomBar(slots)), null);
+		assert.strictEqual(queryRoute(slots.sessionBar!), null);
 
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		for (const turn of [...stubService.getTurns(sessionId)]) {
@@ -1278,19 +1264,17 @@ suite('ConversationLens', () => {
 
 		assert.strictEqual(readingColumn.classList.contains(conversationLensPhasePreFirstClass), true);
 		assert.strictEqual(agentSlot().hidden, false);
-		assert.strictEqual(routeSlot().hidden, false);
-		assert.strictEqual(sessionRoute().hidden, true);
+		assert.strictEqual(queryRoute(getLeading()), null);
+		assert.strictEqual(queryRoute(slots.sessionBar!), null);
 	});
 
-	test('T3 SessionConfig XOR: SessionBar route stays hidden when phase is already PreFirst', () => {
+	test('T3 SessionConfig XOR: SessionBar has no Route SelectBox in PreFirst', () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
 		stubService.createSession();
-		const sessionRoute = slots.sessionBar!.querySelector('.conversation-lens-session-route') as HTMLElement;
-		assert.strictEqual(sessionRoute.hidden, true);
-		sessionRoute.hidden = false;
+		assert.strictEqual(slots.sessionBar!.querySelector('.conversation-lens-session-route'), null);
 		stubService.createSession();
-		assert.strictEqual(sessionRoute.hidden, true);
+		assert.strictEqual(slots.sessionBar!.querySelector('.conversation-lens-session-route'), null);
 	});
 
 	test('PreFirst layout does not give the empty timeline the full reading height', () => {
@@ -1307,24 +1291,20 @@ suite('ConversationLens', () => {
 		assert.ok(readingColumn.querySelector('.conversation-lens-timeline'));
 	});
 
-	test('T3 SessionConfig XOR: route selection syncs between composer and SessionBar until first send', async () => {
-		const { part, stubService } = mountLens();
+	test('T3 SessionConfig: Route SelectBox is gone from composer and SessionBar', async () => {
+		const { part, stubService, lens } = mountLens();
 		const slots = getLensSlots(part);
-		stubService.createSession();
+		const sessionId = stubService.createSession();
 
-		const routeSlot = () => getComposerBottomBar(slots).querySelector('.conversation-lens-dock-route') as HTMLElement;
-		const sessionRoute = () => slots.sessionBar!.querySelector('.conversation-lens-session-route') as HTMLElement;
-		const composerRouteSelect = routeSlot().querySelector('select.monaco-select-box') as HTMLSelectElement;
+		assert.strictEqual(getComposerBottomBar(slots).querySelector('.conversation-lens-dock-route'), null);
+		assert.strictEqual(slots.sessionBar!.querySelector('.conversation-lens-session-route'), null);
+		assert.ok(!('routeIndex' in lens.getSessionConfig(sessionId)));
 
-		composerRouteSelect.selectedIndex = 1;
-		composerRouteSelect.dispatchEvent(new globalThis.Event('change', { bubbles: true }));
-		assert.strictEqual(composerRouteSelect.options[composerRouteSelect.selectedIndex]?.text, conversationLensDockRouteBalanced);
+		await sendDockDraft(slots, 'No pretend route setting');
 
-		await sendDockDraft(slots, 'Lock route on SessionBar');
-
-		const sessionRouteSelect = sessionRoute().querySelector('select.monaco-select-box') as HTMLSelectElement;
-		assert.strictEqual(sessionRouteSelect.options[sessionRouteSelect.selectedIndex]?.text, conversationLensDockRouteBalanced);
-		assert.strictEqual(routeSlot().hidden, true);
+		assert.strictEqual(getComposerBottomBar(slots).querySelector('.conversation-lens-dock-route'), null);
+		assert.strictEqual(slots.sessionBar!.querySelector('.conversation-lens-session-route'), null);
+		assert.ok(!('routeIndex' in lens.getSessionConfig(sessionId)));
 	});
 
 	test('Active inbox: left/right clusters with Task before MessageQueue', async () => {
@@ -1456,6 +1436,7 @@ suite('ConversationLens', () => {
 		assert.ok(gateRow.textContent?.includes(conversationLensDockEngineNotConnected));
 		assert.strictEqual(gateRow.hasAttribute('hidden'), false);
 		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, conversationLensDockNoModel);
+		assertDisconnectedComposerCatalogsHonest(slots);
 		assert.strictEqual(sendButton.getAttribute('aria-label'), 'Send');
 		assert.ok(sendButton.classList.contains('codicon-arrow-up'));
 		assert.strictEqual(slots.dock.querySelector('.chat-setup'), null);
@@ -1496,7 +1477,7 @@ suite('ConversationLens', () => {
 
 		const agentSelect = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-agent select.monaco-select-box') as HTMLSelectElement;
 		assert.ok([...agentSelect.options].some(option => option.text === 'Coder'));
-		assert.ok(![...agentSelect.options].some(option => option.text === conversationLensDockStubAgent));
+		assert.ok(![...agentSelect.options].some(option => option.text === 'Stub agent'));
 
 		const tuneButton = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-tune .monaco-button') as HTMLButtonElement;
 		tuneButton.click();
@@ -1534,10 +1515,11 @@ suite('ConversationLens', () => {
 		const agentSelect = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-agent select.monaco-select-box') as HTMLSelectElement;
 		assert.strictEqual(agentSelect.options[agentSelect.selectedIndex]?.text, conversationLensDockNoAgent);
 		assert.ok(![...agentSelect.options].some(option => option.text === 'Coder'));
-		assert.ok(![...agentSelect.options].some(option => option.text === conversationLensDockStubAgent));
+		assert.ok(![...agentSelect.options].some(option => option.text === 'Stub agent'));
 
 		assert.strictEqual(getModelSelect(slots).options[getModelSelect(slots).selectedIndex]?.text, conversationLensDockNoModel);
 		assert.ok(![...getModelSelect(slots).options].some(option => option.text === 'gpt-test'));
+		assert.ok(![...getModelSelect(slots).options].some(option => option.text === 'Stub model'));
 
 		const tuneButton = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-tune .monaco-button') as HTMLButtonElement;
 		tuneButton.click();
@@ -2736,7 +2718,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(slots.dock.querySelector('.conversation-lens-composer--edit'), null);
 	});
 
-	test('T6 Voice: mic left of Send, disabled without engine, stub transcript bar separate from inbox queue', async () => {
+	test('T6 Voice: no mic, no transcript bar, and no stub phrase written to draft', async () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
@@ -2748,18 +2730,14 @@ suite('ConversationLens', () => {
 		assert.deepStrictEqual(stubService.getSessionSync(sessionId), { kind: 'idle' });
 
 		const trailing = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-bottom-trailing')!;
-		const children = Array.from(trailing.children).map(node => (node as HTMLElement).className);
-		const micIndex = children.findIndex(name => name.includes('conversation-lens-dock-mic'));
-		const sendIndex = children.findIndex(name => name.includes('conversation-lens-dock-send'));
-		assert.ok(micIndex >= 0 && sendIndex >= 0);
-		assert.strictEqual(sendIndex - micIndex, 1);
-
-		const micButton = getDockMicButton(slots);
-		assert.strictEqual(micButton.getAttribute('aria-disabled'), 'true');
-		assert.strictEqual(isVoiceTranscriptBarVisible(slots), false);
+		assert.strictEqual(trailing.querySelector('.conversation-lens-dock-mic'), null);
+		assert.strictEqual(
+			slots.dock.querySelector('.conversation-lens-voice-transcript-bar')
+			?? getReadingColumn(slots).querySelector('.conversation-lens-voice-transcript-bar'),
+			null);
 
 		stubService.setEngineConnected(true);
-		assert.strictEqual(getDockMicButton(slots).getAttribute('aria-disabled'), 'false');
+		assert.strictEqual(trailing.querySelector('.conversation-lens-dock-mic'), null);
 		assert.deepStrictEqual(stubService.getSessionSync(sessionId), { kind: 'idle' });
 
 		stubService.setMessageQueueFixture(sessionId, {
@@ -2768,32 +2746,24 @@ suite('ConversationLens', () => {
 			isProcessing: false,
 		});
 
-		getDockMicButton(slots).click();
-		const voiceBar = getVoiceTranscriptBar(slots);
-		assert.ok(voiceBar);
-		assert.strictEqual(isVoiceTranscriptBarVisible(slots), true);
-		assert.strictEqual(voiceBar!.getAttribute('aria-label'), conversationLensVoiceTranscriptLabel);
-		assert.ok(voiceBar!.querySelector('.conversation-lens-voice-transcript-row-status')?.textContent?.includes('Recording'));
-		assert.strictEqual(getVisibleInboxListPanel(), null);
 		getInboxQueueChip(slots).click();
 		const queuePanel = getVisibleInboxListPanel();
 		assert.ok(queuePanel);
-		assert.strictEqual(queuePanel!.querySelector(`.${conversationLensVoiceTranscriptBarClass}`), null);
-		assert.ok(!queuePanel!.textContent?.includes(conversationLensVoiceTranscriptLabel));
+		assert.strictEqual(queuePanel!.querySelector('.conversation-lens-voice-transcript-bar'), null);
+		assert.ok(!queuePanel!.textContent?.includes('Stub voice segment'));
 
-		getDockMicButton(slots).click();
-		assert.ok(getVoiceTranscriptBar(slots)?.querySelector('.conversation-lens-voice-transcript-row-status')?.textContent?.includes('Transcribing'));
-
+		const draftBefore = getDockTextarea(slots).value;
 		await new Promise<void>(resolve => setTimeout(resolve, 50));
-		assert.strictEqual(isVoiceTranscriptBarVisible(slots), false);
-		assert.strictEqual(getDockTextarea(slots).value, conversationLensVoiceStubPhraseOne);
+		assert.strictEqual(getDockTextarea(slots).value, draftBefore);
+		assert.ok(!getDockTextarea(slots).value.includes('Stub voice segment one'));
+		assert.ok(!getDockTextarea(slots).value.includes('Stub voice segment two'));
+		assert.ok(!getDockTextarea(slots).value.includes('Stub voice segment three'));
 
 		stubService.setEngineConnected(false);
-		assert.strictEqual(getDockMicButton(slots).getAttribute('aria-disabled'), 'true');
-		assert.strictEqual(getDockMicButton(slots).getAttribute('aria-label'), `${conversationLensDockMicTitle} — ${conversationLensDockMicNotAvailable}`);
+		assert.strictEqual(trailing.querySelector('.conversation-lens-dock-mic'), null);
 	});
 
-	test('T6 Voice: recording mic uses filled surface and stop title', () => {
+	test('T6 Voice: connected engine still has no mic write-to-draft path', () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
@@ -2803,13 +2773,8 @@ suite('ConversationLens', () => {
 		assert.deepStrictEqual(stubService.getSessionSync(sessionId), { kind: 'idle' });
 		stubService.setEngineConnected(true);
 
-		const micButton = getDockMicButton(slots);
-		assert.ok(micButton.classList.contains('conversation-lens-dock-control--ghost'));
-		assert.strictEqual(micButton.getAttribute('aria-label'), conversationLensDockMicTitle);
-
-		micButton.click();
-		assert.ok(micButton.classList.contains('conversation-lens-dock-control--filled'));
-		assert.strictEqual(micButton.getAttribute('aria-label'), conversationLensDockMicStopTitle);
+		assert.strictEqual(getComposerBottomBar(slots).querySelector('.conversation-lens-dock-mic'), null);
+		assert.ok(!getDockTextarea(slots).value.includes('Stub voice segment'));
 	});
 
 	test('S3 send: dock post shows pending user row then supersedes to durable turns', async () => {

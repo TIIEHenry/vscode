@@ -110,7 +110,7 @@ export class EngineProviderModelSection extends Disposable {
 		this.sessionHint = DOM.append(modelGroup, $('.engine-provider-model-session-hint'));
 		this.sessionHint.textContent = localize(
 			'ua.engineModelSessionHint',
-			"Session model selection and preferences (SwitchModel) belong in the Composer Route/Model dropdown, not on this page.",
+			"Session model selection and preferences (SwitchModel) belong in the Composer Model dropdown, not on this page.",
 		);
 		this.sessionHint.style.display = 'none';
 

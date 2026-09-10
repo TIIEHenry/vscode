@@ -459,7 +459,7 @@ suite('conversation lens dispose gate', () => {
 		const host = {
 			composerPolicy: 'compose',
 			submitInFlight: false,
-			modelSelectedIndex: 1,
+			modelSelectedIndex: 0,
 			dockTextarea: { value: 'hello' },
 			getBoundSessionId: () => 'sess-1',
 			stubService: {

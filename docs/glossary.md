@@ -3,7 +3,7 @@ title: "术语表"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-09-05
+updated: 2026-09-10
 summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI 宿主、Conversation 系统术语（SessionBar / 叶 / Composer / Inbox / MessageQueue / stub / 帧源 / lease / ViewFrame / pendingActions / SyncChrome / attribution sidecar）、Connection Hub（Hub / Client / SAS / Grant / DirectAddress）、不变量、能力三态、页面接入与文档约定；对外可读闭集与旧称对照表"
 ---
 
@@ -62,13 +62,13 @@ summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI �
 | **SettingsEditor2** | vscode Preferences UI（`EDITOR_PART` tab）。B2 推荐作默认窗 Settings 宿主，非正式决策。 | [settings-ua-access](reference/code-oss-b2/settings-ua-access.md) |
 | **ConversationSessionsView** | Navigator 产品会话 roster（Explorer `ViewPane` + `WorkbenchList`）；数据今天是 stub。 | [session-roster-reuse](reference/code-oss-b2/session-roster-reuse.md) |
 | **ConversationLens** | 在每张 chat 页（`ConversationEditorPane`）内组装 SessionBar 槽 / Timeline / Dock 的产品面；持久化当前透镜 id。Part 级窗口 chrome 不在其中。 | [lens-and-trajectory](systems/conversation/lens-and-trajectory.md) |
-| **SessionBar** | 两层：Part 级窗口 chrome（SelectBox、←→、关非根、Active 态 Route、hide −）与页级透镜切换 / 面包屑。自研，不是 `ChatViewTitleControl`。 | [session-windows](systems/conversation/session-windows.md) |
+| **SessionBar** | 两层：Part 级窗口 chrome（SelectBox、←→、关非根、hide −）与页级透镜切换 / 面包屑。自研，不是 `ChatViewTitleControl`。无引擎 `routeIndex` 时不画 Route。 | [session-windows](systems/conversation/session-windows.md) |
 | **session 窗口 / 叶** | `CONVERSATION_PART` 内一个 session 的窗口，内嵌 Conversation `IEditorPart`；最多两叶并列，共用右侧 Preview。 | [session-windows](systems/conversation/session-windows.md) · [ADR-002](../dev/decisions/002-conversation-session-windows.md) |
 | **ConversationChatInput** | 唯一被 Conversation 组接受的 `EditorInput`（scheme `conversation-chat`）；根 tab 不可关。围栏把其余 input 弹回 Preview。 | [session-windows §2](systems/conversation/session-windows.md) |
 | **子代理对话框** | 点击时间线子代理后在 session 叶内弹出的居中 overlay（父对话仍在底下）；「打开为 tab」才成延伸 tab。不是 `MODAL_GROUP`。 | [session-windows §3](systems/conversation/session-windows.md) |
 | **Composer / Dock** | 产品输入面：PreFirst 居中、Active 落列底的同一张输入卡；`composerPolicy` 三态（compose / turnEdit / queueEdit）。不是 `ChatInputPart`。 | [composer-and-inbox](systems/conversation/composer-and-inbox.md) |
 | **Inbox** | Active 态 Composer 上方的左右分簇（左 Task · MessageQueue · Goal，右 Stop · 上下文环）；无权威整槽省略。 | [composer-and-inbox §3](systems/conversation/composer-and-inbox.md) |
-| **MessageQueue** | 待发消息队列（状态 UPLOADING / PENDING / SENDING / FAILED…，hold 原因 EDITING）；列表交互 SSOT 在 Singularity；本仓 stub 期由夹具注入。语音转写队列不是它。 | [composer-and-inbox §4](systems/conversation/composer-and-inbox.md) |
+| **MessageQueue** | 待发消息队列（状态 UPLOADING / PENDING / SENDING / FAILED…，hold 原因 EDITING）；列表交互 SSOT 在 Singularity；本仓 stub 期由夹具注入。Composer 无假语音转写队列。 | [composer-and-inbox §4](systems/conversation/composer-and-inbox.md) |
 | **轨迹透镜** | 详细对话列表：强制显示注入/chip/环境/压缩相关；长工具段可过程折（默认展开）。 | [PRD-012](product/requirements.md#prd-012-conversation-轨迹透镜) · [lens-and-trajectory](systems/conversation/lens-and-trajectory.md) |
 | **过程折** | 连续思考与工具上的显示 overlay（外层摘要 → Thinking → 工具）。对话默认收起，轨迹可复用且默认展开。不是列表身份，也不是 Copilot thinking 设置。 | [PRD-013](product/requirements.md#prd-013-conversation-过程折) · [lens-and-trajectory §4](systems/conversation/lens-and-trajectory.md) |
 | **图示卡（visualize）** | `visualize` 工具结果在时间线的卡片：`diagram`（mermaid）或 `comparison`（方案对比）；全屏为 Conversation overlay；扩展缺失降级为 fence。 | [PRD-014](product/requirements.md#prd-014-conversation-图示卡visualize) · [lens-and-trajectory §5](systems/conversation/lens-and-trajectory.md) |
