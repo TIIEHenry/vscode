@@ -149,7 +149,7 @@ export class EngineTriggersSection extends Disposable {
 		// Static list.
 	}
 
-	private async refresh(): Promise<void> {
+	private async refresh(): Promise<boolean> {
 		const generation = ++this.renderGeneration;
 		const hook = this.connection.listTriggers;
 		const canSend = canSendEngineTriggerListRequest(
@@ -180,7 +180,7 @@ export class EngineTriggersSection extends Disposable {
 				mode: 'disconnected',
 				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
 			});
-			return;
+			return false;
 		}
 
 		if (!canSend || !hook) {
@@ -189,7 +189,7 @@ export class EngineTriggersSection extends Disposable {
 				featureLabel: ENGINE_TRIGGER_LIST_FEATURE,
 				reason: getEngineSectionApiUnavailableCopy(ENGINE_TRIGGER_LIST_FEATURE),
 			});
-			return;
+			return false;
 		}
 
 		this.status.render({
@@ -201,16 +201,17 @@ export class EngineTriggersSection extends Disposable {
 		try {
 			const result = await hook.call(this.connection, engineTriggerListRequest());
 			if (generation !== this.renderGeneration) {
-				return;
+				return false;
 			}
 			if (!this.connection.isEngineConnected()) {
-				return;
+				return false;
 			}
 			this.triggers = [...result.triggers];
 			this.paintList();
+			return true;
 		} catch (error) {
 			if (generation !== this.renderGeneration) {
-				return;
+				return false;
 			}
 			const reason = error instanceof Error ? error.message : String(error);
 			this.status.render({
@@ -219,6 +220,7 @@ export class EngineTriggersSection extends Disposable {
 				reason,
 				onRetry: () => void this.refresh(),
 			});
+			return false;
 		}
 	}
 
@@ -328,9 +330,11 @@ export class EngineTriggersSection extends Disposable {
 			await hook.call(this.connection, request);
 			this.deleteStatus.textContent = ENGINE_TRIGGER_DELETE_SUCCESS_COPY;
 			this.deleteStatus.style.display = '';
-			await this.refresh();
-			this.deleteStatus.textContent = ENGINE_TRIGGER_DELETE_SUCCESS_COPY;
-			this.deleteStatus.style.display = '';
+			const listed = await this.refresh();
+			if (listed) {
+				this.deleteStatus.textContent = ENGINE_TRIGGER_DELETE_SUCCESS_COPY;
+				this.deleteStatus.style.display = '';
+			}
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.deleteStatus.textContent = reason;
@@ -348,9 +352,11 @@ export class EngineTriggersSection extends Disposable {
 			const result = await hook.call(this.connection, request);
 			this.upsertStatus.textContent = formatEngineTriggerListLabel(result.trigger);
 			this.upsertStatus.style.display = '';
-			await this.refresh();
-			this.upsertStatus.textContent = formatEngineTriggerListLabel(result.trigger);
-			this.upsertStatus.style.display = '';
+			const listed = await this.refresh();
+			if (listed) {
+				this.upsertStatus.textContent = formatEngineTriggerListLabel(result.trigger);
+				this.upsertStatus.style.display = '';
+			}
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.upsertStatus.textContent = reason;

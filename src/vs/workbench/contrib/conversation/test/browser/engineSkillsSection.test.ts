@@ -35,10 +35,17 @@ suite('EngineSkillsSection (E1)', () => {
 		getSkillInfo?: (request: { skillName: string }) => Promise<{ name: string; content: string; source: 'bundled' | 'user' | 'project' | 'unknown'; enabled: boolean }>;
 		saveSkillContent?: (request: UniverseAgentSaveSkillContentRequest) => Promise<{ ok: boolean }>;
 		setSkillEnabled?: (request: { skillName: string; enabled: boolean }) => Promise<{ ok: boolean }>;
-	} = {}): IUniverseAgentConnection & { setConnected(value: boolean): void } {
+	} = {}): IUniverseAgentConnection & {
+		setConnected(value: boolean): void;
+		setSkillsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
+	} {
+		const skillsCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'; reason: string } = {
+			support: options.skillsSupport ?? 'UNSUPPORTED',
+			reason: 'UNIMPLEMENTED',
+		};
 		const capabilities: UniverseAgentCapabilitySnapshot = {
 			...createEmptyCapabilitySnapshot(),
-			skills: { support: options.skillsSupport ?? 'UNSUPPORTED', reason: 'UNIMPLEMENTED' },
+			skills: skillsCapability,
 		};
 		let connected = options.connected ?? false;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
@@ -124,6 +131,10 @@ suite('EngineSkillsSection (E1)', () => {
 			probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
 			setConnected(value: boolean) {
 				connected = value;
+				onDidChangeConnection.fire(snapshot());
+			},
+			setSkillsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
+				skillsCapability.support = support;
 				onDidChangeConnection.fire(snapshot());
 			},
 		};
@@ -233,6 +244,36 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.strictEqual(status.dataset['catalogMode'], 'failed');
 		assert.ok(status.textContent?.includes(getCatalogFailedCopy(SKILLS_FEATURE, 'listSkills retry exploded')));
 		assert.ok(!/demo-skill/i.test(section.getDomNode().textContent ?? ''));
+	});
+
+	test('successful load then capability UNKNOWN clears leftover rows before loading', async () => {
+		let listSkillsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => {
+				listSkillsCalls++;
+				return { skills: [{ name: 'demo-skill', source: 'bundled', enabled: true }] };
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		const listCallsAfterLoad = listSkillsCalls;
+
+		connection.setSkillsSupport('UNKNOWN');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'loading');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.ok(!/demo-skill/i.test(section.getDomNode().textContent ?? ''));
+		assert.strictEqual(listSkillsCalls, listCallsAfterLoad);
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
 	});
 
 	test('SUPPORTED connected shows New toolbar and createSkill calls saveSkillContent RPC', async () => {

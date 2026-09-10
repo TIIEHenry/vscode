@@ -49,10 +49,15 @@ suite('EnginePluginsSection write-success (D155)', () => {
 		enablePlugin?: IUniverseAgentConnection['enablePlugin'];
 		reloadPlugin?: IUniverseAgentConnection['reloadPlugin'];
 		unloadPlugin?: IUniverseAgentConnection['unloadPlugin'];
-	} = {}): IUniverseAgentConnection {
+	} = {}): IUniverseAgentConnection & {
+		setPluginsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
+	} {
+		const pluginsCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN' } = {
+			support: 'SUPPORTED',
+		};
 		const capabilities: UniverseAgentCapabilitySnapshot = {
 			...createEmptyCapabilitySnapshot(),
-			plugins: { support: 'SUPPORTED' },
+			plugins: pluginsCapability,
 		};
 		let connected = options.connected ?? true;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
@@ -134,6 +139,10 @@ suite('EnginePluginsSection write-success (D155)', () => {
 			listTools: async () => ({ tools: [] }),
 			listModels: async () => ({ models: [] }),
 			probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
+			setPluginsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
+				pluginsCapability.support = support;
+				onDidChangeConnection.fire(snapshot());
+			},
 		};
 	}
 
@@ -165,6 +174,33 @@ suite('EnginePluginsSection write-success (D155)', () => {
 		assert.strictEqual(catalog.dataset['catalogMode'], 'failed');
 		assert.ok((catalog.textContent ?? '').includes(getCatalogFailedCopy(PLUGINS_FEATURE, listReason)));
 	}
+
+	test('successful load then capability UNKNOWN clears leftover rows before loading', async () => {
+		let listPluginsCalls = 0;
+		const connection = createConnectionStub({
+			listPlugins: async () => {
+				listPluginsCalls++;
+				return { plugins: [demoPlugin()] };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		const listCallsAfterLoad = listPluginsCalls;
+
+		connection.setPluginsSupport('UNKNOWN');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'loading');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.ok(!(section.getDomNode().textContent ?? '').includes('Demo Plugin'));
+		assert.strictEqual(listPluginsCalls, listCallsAfterLoad);
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+	});
 
 	test('enablePlugin ok does not keep Enabled. when subsequent listPlugins fails', async () => {
 		let listPluginsCalls = 0;

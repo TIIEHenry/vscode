@@ -428,7 +428,7 @@ suite('EngineTriggersSection', () => {
 		pane.getDomNode().parentElement?.remove();
 	});
 
-	test('DeleteTrigger success still shows delete-success when subsequent ListTriggers fails', async () => {
+	test('DeleteTrigger success does not keep delete-success when subsequent ListTriggers fails', async () => {
 		let listTriggersCalls = 0;
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -465,10 +465,11 @@ suite('EngineTriggersSection', () => {
 			del.click();
 			await flushMicrotasks();
 			assert.ok(listTriggersCalls >= 2);
+			assert.strictEqual(pane.getDomNode().querySelector('.engine-triggers-row'), null);
 			const deleteStatus = pane.getDomNode().querySelector('.engine-triggers-delete-status') as HTMLElement | null;
 			assert.ok(deleteStatus);
-			assert.strictEqual(deleteStatus.textContent, ENGINE_TRIGGER_DELETE_SUCCESS_COPY);
-			assert.notStrictEqual(deleteStatus.style.display, 'none');
+			assert.notStrictEqual(deleteStatus.textContent, ENGINE_TRIGGER_DELETE_SUCCESS_COPY);
+			assert.ok(!(deleteStatus.textContent ?? '').includes(ENGINE_TRIGGER_DELETE_SUCCESS_COPY));
 			const catalog = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement | null;
 			assert.ok(catalog);
 			assert.strictEqual(catalog.dataset['catalogMode'], 'failed');

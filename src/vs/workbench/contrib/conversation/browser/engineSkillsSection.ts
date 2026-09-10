@@ -392,6 +392,7 @@ export class EngineSkillsSection extends Disposable {
 		}
 
 		if (support === 'UNKNOWN') {
+			this.clearCatalogPresentation();
 			this.mode = resolveEngineSkillsPaneMode(true, support, { kind: 'none' });
 			this.writeToolbar.style.display = 'none';
 			this.renderStatus({ loadingKind: 'capability' });
