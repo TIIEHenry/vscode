@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-10
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D212 已闭；D212 Clipboard 写成功后 List 失败不回刷成功文案；D198 空引擎列表回落 SCM；D207 Projects 干净断连；D208–D211 catalog UNKNOWN；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D213 已闭；D212 Clipboard list-fail；D213 Sessions 空态去 stub；D198 空引擎列表回落 SCM；D207–D211 已闭；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -226,6 +226,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D212 已闭；D212
 | D210 | P3 | **closed** ProviderModel `UNKNOWN` 先 `clearModelPresentation` 再 loading（D200/D206 同胞）；成功→UNKNOWN 测 `getMode()==='loading'` 且 `getListEntryCount()===0`。Rules 无 list RPC / 无 catalog 行，`render` 已藏 scope，跳过 | 工位 C 已收 | UNKNOWN 先清行再 loading；不发 `listModels`；补成功→UNKNOWN 测 | conversation / catalog | closed |
 | D211 | P3 | **closed** McpRuntime `UNKNOWN` 先 `clearRuntimePresentation` 再 loading（D206 MCP 同胞）；成功→UNKNOWN 测 `getMode()==='loading'` 且 `getListEntryCount()===0` | 工位 C 已收 | UNKNOWN 先清行再 loading/probing；不发 `getMcpServerStatuses`；补成功→UNKNOWN 测 | conversation / catalog | closed |
 | D212 | P3 | **closed** Clipboard Write/Clear 写成功后再 `ListClipboard` fail 不回刷 clipId / removedCount 成功文案（D201 Triggers 同胞）。`refresh()` 返回 listed 才回写。未占 Sessions stub / Projects rebuildTree / catalog UNKNOWN / D22 / D24 / D25 / D26 / A2 / mic·Route / `.sessions` | 工位 C `clipboard-write-list-fail` 已收 | list-fail 后清 write/clear 成功文案 + catalog failed；补成功→list-fail 测 | conversation / catalog | closed |
+| D213 | P3 | **closed** Sessions 侧栏空态不再把 stub conversation 当产品路径。`conversationSessionsView` 空文案去 `in-memory` / stub；保留 New session 为真实本地动作，不发明引擎会话。测锁空态与接通后空名单 | 工位 A 已收 | 空/断连态不广告 stub conversation；New session 仍为真实动作；无 invented engine session 文案；补测 | conversation / sessions | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 

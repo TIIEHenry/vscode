@@ -3,8 +3,8 @@ title: "会话列表复用：Navigator roster 用哪些 vscode 零件"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-01
-summary: "对照 Singularity SessionList / Desktop Navigator Sessions：产品 roster 宿主、WorkbenchList donor、IConversationRosterService 同 token 演进；M5 切片 2 已落（roster 点击→switchSession→show+focus CONVERSATION_PART）；禁止 IChatModel / agentSessions 当真相"
+updated: 2026-09-10
+summary: "对照 Singularity SessionList / Desktop Navigator Sessions：产品 roster 宿主、WorkbenchList donor、IConversationRosterService 同 token 演进；M5 切片 2 已落（roster 点击→switchSession→show+focus CONVERSATION_PART）；空态不广告 stub conversation；禁止 IChatModel / agentSessions 当真相"
 ---
 
 # 会话列表复用：Navigator roster 用哪些 vscode 零件
@@ -53,7 +53,7 @@ ADR-061 决策 5 写了「会话列表侧边栏（sessions viewlet / `agentSessi
 | ViewPane 标题动作 New / Delete 模式（删的是 **当前活动会话** `getActiveSessionId()`，不是列表焦点行） | Copilot Archive All / Mark All Read（[widget-parts §8.1](../../systems/chat/widget-parts.md)：默认窗 F1 已 `IsSessionsWindowContext` 门闩） |
 | SessionBar 与 roster **同一服务** | 第二份列表状态 |
 
-已落地动作：`workbench.action.conversationSessions.newSession` / `deleteSession`；**M5 切片 2 @ `77d6e7cc`：** 列表 `onDidOpen`（单击 / 键盘）→ `openSessionFromRoster` 顺序：`switchSession(id)` → 若 `CONVERSATION_PART` 隐藏则 `IWorkbenchLayoutService.setPartHidden(false, …)` → `IConversationPartService.focus()`（`conversationSessionsView.ts`；**不** import `chatShellRouting`）。Alt+单击走 `openSessionBeside`。stale / 空元素不改变布局。数据 = `IConversationRosterService` / `ConversationStubModel`，**仅内存**。
+已落地动作：`workbench.action.conversationSessions.newSession` / `deleteSession`；**M5 切片 2 @ `77d6e7cc`：** 列表 `onDidOpen`（单击 / 键盘）→ `openSessionFromRoster` 顺序：`switchSession(id)` → 若 `CONVERSATION_PART` 隐藏则 `IWorkbenchLayoutService.setPartHidden(false, …)` → `IConversationPartService.focus()`（`conversationSessionsView.ts`；**不** import `chatShellRouting`）。Alt+单击走 `openSessionBeside`。stale / 空元素不改变布局。数据 = `IConversationRosterService` / `ConversationStubModel`，**仅内存**。空态文案是用户面「No sessions — use New session to start one.」，不把 stub conversation / in-memory 当产品路径（[D212](../../../dev/progress/deferred-gaps.md)）；New session 仍是真实本地动作，不发明引擎会话。
 
 SessionBar `SelectBox` 去留：**Deferred**（父方案 §1.4）；阶段 1 保持双入口，共用同一服务，高亮谓词恒 `getActiveSessionId()`。
 

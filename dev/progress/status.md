@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "C 槽 D212 Clipboard 写成功后 List 失败不回刷成功文案。D198 / D207–D211 已闭。待一路 compile。"
+summary: "关仓中：A Sessions 空态、C Clipboard list-fail 已合；B Projects rebuildTree / D leftover 仍在工位。D212=Clipboard，D213=Sessions 空态。"
 ---
 
 # Development Progress
@@ -44,10 +44,10 @@ summary: "C 槽 D212 Clipboard 写成功后 List 失败不回刷成功文案。D
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | sources-git-empty-entries-scm | 已进 merge `6a6dd1d3cdc`；[D198](deferred-gaps.md) 已闭 |
-| **B** | agents-tools-catalog-unknown-leftover | 已进 merge `c25e00faa7b`；[D208](deferred-gaps.md)/[D209](deferred-gaps.md) 已闭 |
-| **C** | clipboard-write-list-fail | 本工位；[D212](deferred-gaps.md) 已闭；Write/Clear 仅 listed 才回刷成功文案；勿 add `dev/loop` |
-| **D** | navigator-projects-clean-disconnect-stale | 已进 merge `ea1f8897200`；[D207](deferred-gaps.md) 已闭 |
+| **A** | sessions-sidebar-empty-honesty | 已进 merge `0d2b9a8e06e`；[D213](deferred-gaps.md) 已闭 |
+| **B** | projects-rebuild-tree-stale | 工位进行中 |
+| **C** | clipboard-write-list-fail | 已进 merge `394a3c2c00d`；[D212](deferred-gaps.md) 已闭；勿 add `dev/loop` |
+| **D** | leftover-from-code | 工位进行中 |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
