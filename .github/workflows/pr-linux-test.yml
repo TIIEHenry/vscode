@@ -1,3 +1,4 @@
+if: false # Permanently disabled — see DISABLED.md
 on:
   workflow_call:
     inputs:

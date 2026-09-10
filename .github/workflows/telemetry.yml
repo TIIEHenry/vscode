@@ -1,5 +1,6 @@
 name: 'Telemetry'
 on: pull_request
+if: false # Permanently disabled — see DISABLED.md
 permissions: {}
 jobs:
   check-metadata:

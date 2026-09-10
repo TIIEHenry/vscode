@@ -1,5 +1,7 @@
 name: Code OSS
 
+if: false # Permanently disabled — see DISABLED.md
+
 on:
   pull_request:
     branches:

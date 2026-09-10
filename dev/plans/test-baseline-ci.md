@@ -3,11 +3,13 @@ title: "测试基线治理 + agent-ide CI"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-04
-summary: "先按账本修/改 D16 失败使三文件基线归零；新 workflow 只跟 agent-ide，github-hosted 跑 compile / eslint / docs-health / 三域单测；门禁用失败名单差集 + 用例数下限 + skipped 不增，不恢复 valid-layers-check；签收裁定：三域新增失败挡合入"
+updated: 2026-09-10
+summary: "先按账本修/改 D16 失败使三文件基线归零；agent-ide workflow 曾 github-hosted 跑四 job（2026-09-10 起永久关闭，见 workflows/DISABLED.md）；门禁用失败名单差集 + 用例数下限 + skipped 不增，不恢复 valid-layers-check；签收裁定：三域新增失败挡合入"
 ---
 
 # 测试基线治理 + agent-ide CI
+
+> **2026-09-10 改口：** 本仓 GitHub Actions **永久关闭**（提交过频，不消耗 github-hosted 分钟）。声明：[DISABLED.md](../../.github/workflows/DISABLED.md)。切片 4 的 job 定义仍留在 `agent-ide.yml` 作本地命令对照，但 `if: false`，push / PR 不再触发。门禁以 [health-gates](../progress/health-gates.md) 本地命令为准。
 
 > **问题：** 验证债已系统化。[D8](../progress/deferred-gaps.md) 把 `valid-layers-check` 豁免出集成门；[D16](../progress/deferred-gaps.md) 十五个 conversation 失败挂着；其余失败进 [D17](../progress/deferred-gaps.md)「普通失败不进 Blockers」。[D15](../progress/deferred-gaps.md) Web 冒烟、[D18](../progress/deferred-gaps.md) 安装包、[D20](../progress/deferred-gaps.md) 300px 目视没跑过。用户要的是 **D16 基线归零 + `agent-ide` 上可落地的 compile / eslint / 三域单测门禁**，门禁语义是「不新增失败」，不是「全仓全绿」。  
 > **命令 SSOT：** [health-gates.md](../progress/health-gates.md)、[.github/copilot-instructions.md](../../.github/copilot-instructions.md)、[`scripts/test.sh`](../../scripts/test.sh)、根 [`package.json`](../../package.json)。  

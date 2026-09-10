@@ -11,6 +11,7 @@ name: Sessions E2E Tests
 
 # just commenting "on" property causes emails to be sent to everyone
 on: workflow_dispatch
+if: false # Permanently disabled — see DISABLED.md
 
 permissions:
   contents: read

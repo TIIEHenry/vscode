@@ -6,6 +6,8 @@ on:
     - cron: '17 5 * * *'
   workflow_dispatch:
 
+if: false # Permanently disabled — see DISABLED.md
+
 permissions:
   contents: read
   id-token: write

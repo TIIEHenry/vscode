@@ -4,6 +4,8 @@ on:
   pull_request:
   workflow_dispatch:
 
+if: false # Permanently disabled — see DISABLED.md
+
 permissions:
   contents: read
 

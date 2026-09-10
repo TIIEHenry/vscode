@@ -3,8 +3,8 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-07
-summary: "dev/plans 导航：sources-accept-empty-success（draft；A1 已落；P5 停线；A2 须新选定）；M7 代码完成线仍 accepted"
+updated: 2026-09-10
+summary: "dev/plans 导航：sources-accept-empty-success（draft；A1 已落；P5 停线；A2 须新选定）；M7 代码完成线仍 accepted；GitHub Actions 已关"
 ---
 
 # 方案
@@ -15,10 +15,10 @@ summary: "dev/plans 导航：sources-accept-empty-success（draft；A1 已落；
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
 | [prd-008-engine-e2e.md](prd-008-engine-e2e.md) | `accepted` | PRD-008 唯一已定义升档路径：隔离 profile + 钉死引擎 + D4 CDP；硬前置 GC-1b 配对回路（首次配对即第一份证据） |
-| [test-baseline-ci.md](test-baseline-ci.md) | `accepted` | D16 账本 + `agent-ide` workflow（compile / eslint / 三域单测 / `docs-health`）；三域账本外新红阻断合入；`min_cases` / `max_skipped` 防空跑 |
+| [test-baseline-ci.md](test-baseline-ci.md) | `accepted` | D16 账本 + `agent-ide` workflow（四 job **已关**，见 DISABLED.md）；三域账本外新红阻断合入；`min_cases` / `max_skipped` 防空跑 |
 | [packaging-and-release.md](packaging-and-release.md) | `accepted` | `gulp vscode-linux-x64` 验 `@grpc/grpc-js` 进包 + 活窗；D18 拆 Linux 子集 + 新 D 行；D20 需 300px 活窗且 dev-mode 缺包根因 |
 | [giant-file-split.md](giant-file-split.md) | `accepted` | grpcClient（先特征测）/ timeline / lens / session-actor 按状态机·投影·IO 拆；GFS-4 每文件 800 硬上限；G6 只走上游删除 |
-| [docs-burden-reduction.md](docs-burden-reduction.md) | `implemented` | INDEX/traceability 状态列脚本生成（S1 一次接通，`docs-health` job 是唯一调用方）；status 单一真相；术语对外可读 |
+| [docs-burden-reduction.md](docs-burden-reduction.md) | `implemented` | INDEX/traceability 状态列脚本生成（S1 一次接通；门禁改本地 health-gates）；status 单一真相；术语对外可读 |
 | [cross-repo-protocol.md](cross-repo-protocol.md) | `accepted` | G-ENG/NAV/REV/G3 扩消息 vs G2 session-core 对引擎仓提案清单，每行有闭合条件；D1 docs-only 修正登记处过时句 |
 | [prd-020-turn-fixture-bench.md](prd-020-turn-fixture-bench.md) | `accepted` | 1,000 回合 fixture 测 PRD-020 验收 1：Dock 提交 → 探针 user 行（含 16 ms 帧合并）p50 ≤ 200 ms；升格前先钉 requirements 操作化 |
 | [m0-topology-surgery.md](m0-topology-surgery.md) | `implemented` | M0 壳代码已落；compile/演示/EH deferred |

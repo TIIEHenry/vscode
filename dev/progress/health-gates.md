@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-09-07
-summary: "M7 UI 开发继续规则：测试债旁路；agent-ide CI 四 job 并行；universeAgent 官方 glob + excludeRunGlob；valid-layers-check 继续豁免；三域挡合入待切片 5"
+updated: 2026-09-10
+summary: "M7 UI 开发继续规则：测试债旁路；GitHub Actions 永久关闭（提交过频）；门禁改本地 compile / eslint / docs-health / unit-custom；valid-layers-check 继续豁免；三域挡合入待切片 5"
 ---
 
 # Loop 健康检查 Gate
@@ -31,9 +31,11 @@ summary: "M7 UI 开发继续规则：测试债旁路；agent-ide CI 四 job 并�
 
 > **test-baseline 切片 5（未落地）：** [test-baseline-ci](../plans/test-baseline-ci.md) 切片 5 将在 D16 closeout 后把上表与下文「普通红测进入 D17」改写成三自定义域「**新增**失败挡合入 `agent-ide`（名单加行 PR 例外）」；切片 4 只装配 CI，**尚未**翻转本文政策。
 
-## GitHub Actions（`agent-ide`，test-baseline 切片 4）
+## GitHub Actions（永久关闭，2026-09-10）
 
-HEAD 已有 [`.github/workflows/agent-ide.yml`](../../.github/workflows/agent-ide.yml)，对 `agent-ide` 分支的 push / PR 与 `workflow_dispatch` 触发。四个 job **并行**（job 间无 `needs`）：
+本仓提交过频，**不再跑 GitHub-hosted Actions**。声明：[DISABLED.md](../../.github/workflows/DISABLED.md)。所有 workflow 带 `if: false`；`agent-ide.yml` 已去掉 push / PR 触发。
+
+下列命令是 test-baseline 切片 4 装配过的对照，**只在本地跑**：
 
 | Job | 命令 / 步骤 |
 |:----|:------------|
@@ -57,7 +59,7 @@ npm run eslint
 
 **`valid-layers-check` 豁免（2026-09-02 裁决，[D8](deferred-gaps.md)）**：该命令第二阶段 `layersTypeCheck` 在本机 Node 24 / 26 均因 DOM / WebGPU / File System Access TS lib 缺失全量红（166× TS），与本仓业务变更无关，且它本就不查 import path。**D8 修好前不作集成门禁、不进 Blockers、不得作为 closeout 或 OV 的 FAIL 理由**；恢复条件见 D8 Exit。
 
-文档健康（`agent-ide` CI 的 `docs-health` job 与提交前均跑）：
+文档健康（提交前本地跑；GitHub `docs-health` job 已关）：
 
 ```bash
 python3 scripts/check-docs-health.py

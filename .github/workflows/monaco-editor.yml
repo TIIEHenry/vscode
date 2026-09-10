@@ -1,5 +1,7 @@
 name: Monaco Editor checks
 
+if: false # Permanently disabled — see DISABLED.md
+
 on:
   push:
     branches:

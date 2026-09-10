@@ -1,14 +1,14 @@
 name: agent-ide
 
+# Permanently disabled 2026-09-10. This fork commits too frequently
+# (agent-ide + loop/**). Do not consume GitHub-hosted Actions minutes.
+# Declaration: DISABLED.md in this directory.
+# Local gates: dev/progress/health-gates.md
+
 on:
-  pull_request:
-    branches:
-      - agent-ide
-  push:
-    branches:
-      - agent-ide
-      - loop/**
   workflow_dispatch:
+
+if: false
 
 permissions:
   contents: read

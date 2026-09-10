@@ -3,8 +3,8 @@ title: "文档负担收敛：状态列生成、单一真相与术语对外可读
 type: plan
 status: implemented
 phase: N/A
-updated: 2026-09-05
-summary: "S1–S5 已落：plans/traceability 状态列由 generate-docs-status.py 生成（docs-health 唯一机器调用方）；glossary 对外可读约束；status 停止复述四写枚举；归档标准入 DOCUMENTATION 规则 7"
+updated: 2026-09-10
+summary: "S1–S5 已落：plans/traceability 状态列由 generate-docs-status.py 生成（本地 health-gates 为门禁；GitHub Actions 已关）；glossary 对外可读约束；status 停止复述四写枚举；归档标准入 DOCUMENTATION 规则 7"
 ---
 
 # 文档负担收敛
@@ -15,6 +15,7 @@ summary: "S1–S5 已落：plans/traceability 状态列由 generate-docs-status.
 > **本稿用词：** 正文按 §3 对外可读约束书写。旧称只出现在 §3.2 对照表。  
 > **审查：** 规则 16 第一轮已改入；2026-09-05 第二轮对抗性审查（Reject）复核改入后**签收**。记录见文末。  
 > **机器调用方（签收裁定）：** 本方案所有「健康检查失败」都只有在被 CI 调用时才是门禁。`check-docs-health.py` 今日无任何生产调用方（`package.json` / gulp / workflows 均不调；health-gates.md 只写「建议」）。**唯一**机器调用方定为 [test-baseline-ci](test-baseline-ci.md) 的 `docs-health` job（先 `check-docs-health.py`，S1 合入后追加 `generate-docs-status.py --check`）。本方案不自建 workflow；`docs-health` job 未合入前，本方案的检查只是本地工具，不得在任何文档里写成「门禁」。
+> **2026-09-10 改口：** GitHub Actions 已永久关闭（[DISABLED.md](../../.github/workflows/DISABLED.md)）。`docs-health` job 不再跑；提交前门禁改回本地 [health-gates](../progress/health-gates.md) 的 `check-docs-health.py` / `generate-docs-status.py --check`。
 
 ## 0. 目标 / 非目标
 
