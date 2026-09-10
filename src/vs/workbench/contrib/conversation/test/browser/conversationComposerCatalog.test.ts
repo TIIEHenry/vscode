@@ -184,6 +184,95 @@ suite('conversationComposerCatalog', () => {
 		assert.ok(!modelOptions.every(option => option.text === conversationLensDockNoModel));
 	});
 
+	test('refreshComposerCatalogs keeps last-good synchronously before connected load settles', async () => {
+		let releaseSecondLoad: (() => void) | undefined;
+		const secondLoadHeld = new Promise<void>(resolve => {
+			releaseSecondLoad = resolve;
+		});
+		let listAgentProfilesCalls = 0;
+		let listModelsCalls = 0;
+		let listToolsCalls = 0;
+		const { host, agentOptions, modelOptions } = createLoadCatalogHost({
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				if (listAgentProfilesCalls === 1) {
+					return { profiles: [{ id: 'coder', name: 'Coder', source: 'user' }] };
+				}
+				await secondLoadHeld;
+				throw new Error('listAgentProfiles hung then exploded');
+			},
+			listModels: async () => {
+				listModelsCalls++;
+				if (listModelsCalls === 1) {
+					return { models: [{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' }] };
+				}
+				await secondLoadHeld;
+				throw new Error('listModels hung then exploded');
+			},
+			listTools: async () => {
+				listToolsCalls++;
+				if (listToolsCalls === 1) {
+					return { tools: [{ name: 'bash' }] };
+				}
+				await secondLoadHeld;
+				throw new Error('listTools hung then exploded');
+			},
+		});
+
+		await loadConnectedComposerCatalogs(host, host.composerCatalogGeneration);
+		assert.ok(agentOptions.some(option => option.text === 'Coder'));
+		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
+		assert.deepStrictEqual([...host.catalogToolNames], ['bash']);
+
+		refreshComposerCatalogs(host);
+
+		assert.ok(agentOptions.some(option => option.text === 'Coder'));
+		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
+		assert.deepStrictEqual([...host.catalogModelIds], ['', 'gpt-test']);
+		assert.deepStrictEqual([...host.catalogToolNames], ['bash']);
+		assert.ok(!agentOptions.every(option => option.text === conversationLensDockNoAgent));
+		assert.ok(!modelOptions.every(option => option.text === conversationLensDockNoModel));
+
+		releaseSecondLoad!();
+		await loadConnectedComposerCatalogs(host, host.composerCatalogGeneration);
+	});
+
+	test('refreshComposerCatalogs first connected pull without last-good still pre-clears', async () => {
+		let releaseFirstLoad: (() => void) | undefined;
+		const firstLoadHeld = new Promise<void>(resolve => {
+			releaseFirstLoad = resolve;
+		});
+		const { host, agentOptions, modelOptions } = createLoadCatalogHost({
+			listAgentProfiles: async () => {
+				await firstLoadHeld;
+				return { profiles: [{ id: 'coder', name: 'Coder', source: 'user' }] };
+			},
+			listModels: async () => {
+				await firstLoadHeld;
+				return { models: [{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' }] };
+			},
+			listTools: async () => {
+				await firstLoadHeld;
+				return { tools: [{ name: 'bash' }] };
+			},
+		});
+
+		refreshComposerCatalogs(host);
+
+		assert.deepStrictEqual(agentOptions, [{ text: conversationLensDockNoAgent }]);
+		assert.deepStrictEqual(modelOptions, [{ text: conversationLensDockNoModel }]);
+		assert.deepStrictEqual([...host.catalogToolNames], []);
+		assert.deepStrictEqual([...host.catalogModelIds], ['']);
+		assert.ok(!agentOptions.some(option => option.text === 'Coder'));
+		assert.ok(!modelOptions.some(option => option.text === 'gpt-test'));
+
+		releaseFirstLoad!();
+		await loadConnectedComposerCatalogs(host, host.composerCatalogGeneration);
+		assert.ok(agentOptions.some(option => option.text === 'Coder'));
+		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
+		assert.deepStrictEqual([...host.catalogToolNames], ['bash']);
+	});
+
 	test('loadConnectedComposerCatalogs UNKNOWN without last-good paints probing not empty-fail', async () => {
 		let listCalls = 0;
 		const { host, agentOptions, modelOptions } = createLoadCatalogHost({

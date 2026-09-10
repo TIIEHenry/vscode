@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 本波：A D246、C D248 已合；B/D 仍在工位。未 compile-client。"
+summary: "loop 本波：A D246、C D248、D D249 已合；B 仍在工位。未 compile-client。"
 ---
 
 # Development Progress
@@ -47,7 +47,7 @@ summary: "loop 本波：A D246、C D248 已合；B/D 仍在工位。未 compile-
 | **A** | history-list-leftover | 已进 merge `51daa8c301f`；[D246](deferred-gaps.md) 已闭 |
 | **B** | agents-tools-leftover | 工位进行中 [D247](deferred-gaps.md) |
 | **C** | hub-directory-leftover | 已进 merge `6bb7482813f`；[D248](deferred-gaps.md) 已闭；勿 add `dev/loop` |
-| **D** | composer-preclear-keep-last | 工位进行中 [D249](deferred-gaps.md) |
+| **D** | composer-preclear-keep-last | 已进 merge `a6a01bfe496`；[D249](deferred-gaps.md) 已闭 |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>

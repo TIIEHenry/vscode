@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-10
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D248 已闭；D246 History leftover；D248 Hub leftover；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D246、D248–D249 已闭；D247 仍开；D246 History；D248 Hub leftover；D249 composer preclear；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -261,6 +261,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D248 已闭；D246
 | D245 | P3 | **closed** Sources Review `refresh()` catch 在活画后不再 `this.allEntries = []` 把 leftover 审阅行卸掉（Changes leftover 同胞；D225 系）。成功后再 `readGitChanges` throw 保 leftover 行并画 git-read 失败文案；首拉 throw 仍 empty+failed。未改 Changes 列表；未发明 WriteGitUnstage；未开 A2 / F4；未重开 D195 | 工位 D `review-git-read-leftover` 已收 | 成功→git-read throw leftover 行仍在 + `sourcesGitReadFailureMessage`；首拉 throw 仍 empty+failed；补 `sourcesReviewList.test.ts` | sources / review | closed |
 | D246 | P3 | **closed** SessionBar History overlay `refresh()` catch（以及 refresh 开头 loading）走 `paintStatus()`，会 `reset(this.body)` 卸已画 history 行（Snapshots D242 同构）。成功后再 `getHistory` throw 保 leftover 行并画 failed；首拉 throw 仍 empty+failed。活画后 refresh 开头不再 `paintStatus(loading)`。不得画 `conversationLensSessionBarHistoryEmpty` 空成功、不得只剩 loading。断连清行合同不回退。未占 Snapshots / Sources / Plugins / Hub·Connection / Composer / catalog·tools / navigator / proto / 引擎仓 / F3 / A2 / D26 / mic·Route / `.sessions` | 工位 A `history-list-leftover` 已收 | 成功→getHistory throw leftover 行仍在 + failed；不得装空成功 / 只剩 loading；首拉 throw 仍 empty+failed；断连仍清行；补 `conversationEngineHistoryList.test.ts` | conversation | closed |
 | D248 | P3 | **closed** Hub directory 活画后再 `refreshDirectory` fail/throw，`applyHubDirectoryRefreshFailure` / `renderHubDirectory` 不再 `hubDevices = []` 卸 leftover（**反转 D228 leftover-clear**；本波与 D225/D236 对齐为保 leftover + failed banner）。写成功文案（confirm/rename/revoke/Rotate）在 directory list-fail 时仍清掉（D224/D228 **listed-gate 不回退**）。未重做 PairApprove/Reject、engine `listDevices` leftover（`enginePairedDevices` 支已保）、pending pairs。未发明 rotate-list RPC。 | 工位 C `hub-directory-leftover` 已收 | 成功画过后再 Refresh fail leftover 行仍在 + failed banner；首拉 fail 仍 empty+failed；listed-gate 仍诚实；补 `connectionPreferencesPane.test.ts` | conversation / connection | closed |
+| D249 | P3 | **closed** Composer `refreshComposerCatalogs()` 接通支路不再在 `void loadConnectedComposerCatalogs` 之前同步画 No agent / No model / 空 tools。有 last-good 时同步 `keepLastGoodComposerCatalogOrEmpty`（复用 D235 restore），再异步 load；无 last-good 首拉仍先空；SUPPORTED throw 无 last-good 仍空。未重开 D204 UNKNOWN probing；未改 D235 throw restore；未改断连 refresh | 工位 D `composer-preclear-keep-last` 已收 | 成功画过后再 refresh：load 完成前仍见 Coder / gpt-test / bash，不得闪空成功；首拉无 last-good 仍可先空；补 `conversationComposerCatalog.test.ts` 同步断言 | conversation / composer | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 
