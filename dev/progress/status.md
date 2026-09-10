@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 关仓：本波 A–D 已合入 merge。D226–D229 已闭。compile-client 0。"
+summary: "loop 关仓：本波 A–D 已合入 merge。D226–D229 已闭。工位 D 本切片 agents-list-leftover 收 D233。compile-client 0。"
 ---
 
 # Development Progress
@@ -47,7 +47,7 @@ summary: "loop 关仓：本波 A–D 已合入 merge。D226–D229 已闭。comp
 | **A** | tools-list-leftover | 已进 merge `6a78b9701ea`；[D226](deferred-gaps.md) 已闭 |
 | **B** | mcp-runtime-list-leftover | 已进 merge `5609a0b874f`；[D227](deferred-gaps.md) 已闭 |
 | **C** | connection-hub-refresh-rotate | 已进 merge `18954fcef6b`；[D228](deferred-gaps.md) 已闭；勿 add `dev/loop` |
-| **D** | navigator-hierarchy-fetch-leftover | 已进 merge `9b125b94a4b`；[D229](deferred-gaps.md) 已闭 |
+| **D** | agents-list-leftover | 本工位已收 [D233](deferred-gaps.md)；活画后 `listAgentProfiles` throw 保 leftover + failed；首拉 throw 仍 empty+failed |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
@@ -177,6 +177,7 @@ summary: "loop 关仓：本波 A–D 已合入 merge。D226–D229 已闭。comp
 | [D227](deferred-gaps.md) | B `mcp-runtime-list-leftover` | **closed** MCP Runtime 成功后再 `getMcpServerStatuses` throw 保 leftover 行 + failed，不得装「No MCP servers in runtime.」；首拉 throw 仍 empty+failed；merge compile-client 0 |
 | [D228](deferred-gaps.md) | C `connection-hub-refresh-rotate` | **closed** Hub Refresh 非 throw fail 清 leftover；Rotate 写成功闸 listed，不得盖住 directory/device list-fail；merge compile-client 0 |
 | [D229](deferred-gaps.md) | D `navigator-hierarchy-fetch-leftover` | **closed** Hierarchy 成功后再 tree fetch-fail 保 leftover 节点 + 失败 note，不得装活树或首拉空失败；merge compile-client 0 |
+| [D233](deferred-gaps.md) | D `agents-list-leftover` | **closed** Agents 成功后再 `listAgentProfiles` throw 保 leftover 行 + failed，不得装「No agent profiles yet.」；首拉 throw 仍 empty+failed；未重做 D223 |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）
