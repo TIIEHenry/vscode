@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 关仓：D242–D245 已合入；merge compile-client 0。待 push 后对齐工位。"
+summary: "loop 本波：A D246 已合；B/C/D 仍在工位。未 compile-client。"
 ---
 
 # Development Progress
@@ -44,10 +44,10 @@ summary: "loop 关仓：D242–D245 已合入；merge compile-client 0。待 pus
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | history-list-leftover | [D246](deferred-gaps.md) 已闭 |
-| **B** | plugins-info-leftover | 已进 merge `fb82575f013`；[D243](deferred-gaps.md) 已闭 |
-| **C** | changes-git-read-leftover | 已进 merge `777bb925c97`；[D244](deferred-gaps.md) 已闭；勿 add `dev/loop` |
-| **D** | review-git-read-leftover | 已进 merge `0fad23e55ca`；[D245](deferred-gaps.md) 已闭 |
+| **A** | history-list-leftover | 已进 merge `51daa8c301f`；[D246](deferred-gaps.md) 已闭 |
+| **B** | agents-tools-leftover | 工位进行中 [D247](deferred-gaps.md) |
+| **C** | hub-directory-leftover | 工位进行中 [D248](deferred-gaps.md)；勿 add `dev/loop` |
+| **D** | composer-preclear-keep-last | 工位进行中 [D249](deferred-gaps.md) |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
