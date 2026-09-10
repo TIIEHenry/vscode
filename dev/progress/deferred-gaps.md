@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-10
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D229 已闭；D226 Tools leftover；D227 MCP Runtime leftover；D228 Hub Refresh/Rotate；D229 Hierarchy leftover；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D231 已闭；D231 Skills leftover；D226 Tools leftover；D227 MCP Runtime leftover；D228 Hub Refresh/Rotate；D229 Hierarchy leftover；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -243,6 +243,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D229 已闭；D226
 | D227 | P3 | **closed** MCP Runtime `refresh()` catch 不再在活画后 `clearRuntimePresentation()`（D225 同胞）。成功后再 `getMcpServerStatuses` throw 保 leftover 行并画 failed；首拉 throw 仍 empty+failed。不得画「No MCP servers in runtime.」接通空成功。未发明 write RPC；未占 Tools / Agents / Plugins / connection pane / navigator / context variables | 工位 B `mcp-runtime-list-leftover` 已收 | 成功→list throw leftover 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；补 `engineMcpRuntimePanel.test.ts` | conversation / mcp-runtime | closed |
 | D228 | P3 | **closed** Hub Refresh 按钮 `refreshDirectory` 非 throw fail 不再装作活目录；RotateToken 写成功后不发明 rotate-list RPC，复用 `refreshDirectoryListed` / `applyHubDirectoryRefreshFailure`，listed（且 engine device lists 未失败）才回刷 `result.message`（D224 同胞）。未重做 PairApprove/Reject 与 D224 confirm/rename/revoke 写路径。未占 catalog / navigator / proto / 引擎仓 / D22 / D26 / A2 / mic·Route / `.sessions` | 工位 C `connection-hub-refresh-rotate` 已收 | Refresh 非 throw fail 清 leftover 或标 failed；Rotate 写-ok 不得在 directory/device list fail 上留成功横幅；补 `connectionPreferencesPane.test.ts` | conversation / connection | closed |
 | D229 | P3 | **closed** Agents Hierarchy 成功画 leftover 后 `isAgentTreeFetchFailed` 不再走 `setHierarchyState([], pendingCopy)` 把旧树节点装成首拉空失败。`setHierarchyAfterTreeFetchFail` 保 leftover 节点并画 `NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY`；首拉 fail 空态仍「Failed to read the agent tree」。未重做 Activity（仅共用空态 copy）；未占 catalog / connection / proto / 引擎仓 / D22 / D26 / A2 / mic·Route | 工位 D `navigator-hierarchy-fetch-leftover` 已收 | leftover 节点仍在 + 失败 note；不得装活树；首拉 fail 仍 empty+failed；补 `navigatorAgentsSubviews.test.ts` | navigator / agents | closed |
+| D231 | P3 | **closed** Skills `refresh()` catch 在活画后不再 `clearCatalogPresentation()`（D226/D225 同胞；不再走 D49 空失败）。成功后再 `listSkills` throw 保 leftover 行并画 failed；首拉 throw 仍 empty+failed。不得画「No skills yet.」接通空成功。未占 Plugins/MCP/Agents/Tools/connection/navigator / proto / 引擎仓 | 工位 B `skills-list-leftover` 已收 | 成功→listSkills throw leftover 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；补 `engineSkillsSection.test.ts` | conversation / skills | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 

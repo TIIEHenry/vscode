@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 关仓：本波 A–D 已合入 merge。D226–D229 已闭。compile-client 0。"
+summary: "工位 B：skills-list-leftover / D231 已闭。未 compile-client。"
 ---
 
 # Development Progress
@@ -45,7 +45,7 @@ summary: "loop 关仓：本波 A–D 已合入 merge。D226–D229 已闭。comp
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
 | **A** | tools-list-leftover | 已进 merge `6a78b9701ea`；[D226](deferred-gaps.md) 已闭 |
-| **B** | mcp-runtime-list-leftover | 已进 merge `5609a0b874f`；[D227](deferred-gaps.md) 已闭 |
+| **B** | skills-list-leftover | 本工位；[D231](deferred-gaps.md) 已闭；未 compile-client |
 | **C** | connection-hub-refresh-rotate | 已进 merge `18954fcef6b`；[D228](deferred-gaps.md) 已闭；勿 add `dev/loop` |
 | **D** | navigator-hierarchy-fetch-leftover | 已进 merge `9b125b94a4b`；[D229](deferred-gaps.md) 已闭 |
 

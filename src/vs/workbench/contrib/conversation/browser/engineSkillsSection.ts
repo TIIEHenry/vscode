@@ -430,7 +430,12 @@ export class EngineSkillsSection extends Disposable {
 			}
 			return true;
 		} catch (error) {
-			this.clearCatalogPresentation();
+			const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'skill');
+			if (!hadLiveCatalog) {
+				this.clearCatalogPresentation();
+			} else {
+				this.hideWriteStatus();
+			}
 			this.mode = resolveEngineSkillsPaneMode(true, support, {
 				kind: 'failed',
 				error: error instanceof Error ? error.message : undefined,
