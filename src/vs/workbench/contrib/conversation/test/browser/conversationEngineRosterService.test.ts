@@ -1073,7 +1073,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const connection = store.add(new MockUniverseAgentConnection());
 		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
 		const acquireLeaseCalls: string[] = [];
-		let resolveReady: ((id: string) => void) | undefined;
+		let resolveReady: (() => void) | undefined;
 		const sessionView = createSessionViewMock({
 			acquireLease: async (sessionId: string) => {
 				acquireLeaseCalls.push(sessionId);
