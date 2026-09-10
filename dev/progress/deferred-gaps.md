@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-10
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D241 已闭；D238–D241 leftover；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D241 已闭；D245 Review leftover 已闭；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -255,6 +255,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D241 已闭；D238
 | D239 | P3 | **closed** Clipboard `refresh()` 不再在 `listClipboard` 前 `entries=[]` + `DOM.clearNode`（D226 / D225 同胞）。成功后再 throw 保 leftover 行并画 failed；首拉 throw 仍 empty+failed。不得画「No clipboard entries.」接通空成功。写/清成功文案仍在 list-fail 时清掉（D212 listed-gate 不回退）。未占 Triggers / MCP Runtime / Team / Hierarchy / Composer / proto / 引擎仓 / F3 / A2 / D26 / mic·Route / `.sessions` | 工位 B `clipboard-list-leftover` 已收 | 成功→list throw leftover 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；Write/Clear 成功文案 list-fail 不回刷；补 `engineClipboardSection.test.ts` | conversation / clipboard | closed |
 | D240 | P3 | **closed** Triggers `refresh()` 打 list 前不再 `this.triggers = []` + `DOM.clearNode(this.listHost)`（Clipboard leftover / D226 同胞）。成功后再 `listTriggers` throw 保 leftover 行并画 failed；首拉 throw 仍 empty+failed。不得画「No triggers.」接通空成功。Fire/Upsert/Delete 写成功仍 `refresh()` 返回 listed 才回刷；leftover list-fail 清写成功文案。未占 Clipboard/MCP Runtime/Team/Hierarchy/Composer / proto / 引擎仓 / F3/A2/D26 / mic·Route / `.sessions` | 工位 C `triggers-list-leftover` 已收 | 成功→list throw leftover 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；listed-gate 仍诚实；补 `engineTriggersSection.test.ts` | conversation / triggers | closed |
 | D241 | P3 | **closed** Team `refreshTeamData()` 在活画后再进 `treeEmpty` / pending（非 catch throw）不再 `setMemberEntries([], treeEmpty)` + `setTaskEntries([], treeEmpty)` 把 leftover 成员/任务卸掉。`setTeamAfterTreeEmpty` 保 leftover 行并画 pending/empty-tree note；首拉 pending/treeEmpty 仍 empty+copy。未重做 D236 catch；未占 Hierarchy / catalog / conversation / proto / 引擎仓 / D22 / D26 / A2 / mic·Route | 工位 D `team-treeempty-pending-leftover` 已收 | leftover 行仍在 + pending/empty-tree note；不得装「无成员」空成功或首拉空；首拉 pending/treeEmpty 仍 empty+copy；补 `navigatorTeamSubviews.test.ts` | navigator / team | closed |
+| D245 | P3 | **closed** Sources Review `refresh()` catch 在活画后不再 `this.allEntries = []` 把 leftover 审阅行卸掉（Changes leftover 同胞；D225 系）。成功后再 `readGitChanges` throw 保 leftover 行并画 git-read 失败文案；首拉 throw 仍 empty+failed。未改 Changes 列表；未发明 WriteGitUnstage；未开 A2 / F4；未重开 D195 | 工位 D `review-git-read-leftover` 已收 | 成功→git-read throw leftover 行仍在 + `sourcesGitReadFailureMessage`；首拉 throw 仍 empty+failed；补 `sourcesReviewList.test.ts` | sources / review | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 

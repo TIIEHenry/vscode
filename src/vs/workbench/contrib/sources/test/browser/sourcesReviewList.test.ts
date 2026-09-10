@@ -7,7 +7,7 @@ import assert from 'assert';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { getErrorMessage } from '../../../../../base/common/errors.js';
-import { Event } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { localize } from '../../../../../nls.js';
@@ -402,12 +402,80 @@ suite('Sources - review list model', () => {
 		store.add({ dispose: () => host.remove() });
 
 		const instantiationService = stubSourcesGitListServices();
-		store.add(instantiationService.createInstance(SourcesReviewList, host));
+		const widget = store.add(instantiationService.createInstance(SourcesReviewList, host));
 
 		const status = await waitForStatusText(host, '.sources-review-status');
 		assert.strictEqual(status, sourcesGitReadFailureMessage('boom'));
 		assert.ok(status.includes('Unable to read git changes:'));
 		assert.ok(status.includes('boom'));
+		assert.strictEqual((widget as unknown as { list?: WorkbenchList<unknown> }).list?.length ?? 0, 0);
+		assert.ok(!host.querySelector('.sources-review-list .monaco-list-row'));
+	});
+
+	test('Review list success then git-read throw keeps leftover rows and paints failed', async function () {
+		let readCalls = 0;
+		const onDidChangeConnection = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
+		const leftoverPath = 'src/leftover.ts';
+		const connection = {
+			isEngineConnected: () => true,
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => {
+				readCalls += 1;
+				if (readCalls > 1) {
+					throw new Error('boom');
+				}
+				return {
+					supported: true,
+					reason: '',
+					branch: 'main',
+					entries: [{ path: leftoverPath, oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+				};
+			},
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+			readGitFileDiff: async () => ({
+				supported: true,
+				reason: '',
+				path: leftoverPath,
+				unifiedDiff: '@@ -1 +1 @@\n-old\n+new\n',
+			}),
+		} as unknown as IUniverseAgentConnection;
+
+		const host = mountListHost();
+		const widget = store.add(stubSourcesGitListServices({
+			connection,
+		}).createInstance(SourcesReviewList, host));
+		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<unknown> });
+		assert.strictEqual(readCalls, 1);
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual((list.element(0) as { name?: string }).name, 'leftover.ts');
+		assert.strictEqual(host.querySelector('.sources-review-status')?.textContent ?? '', '');
+		assert.strictEqual((host.querySelector('.sources-review-empty') as HTMLElement).style.display, 'none');
+
+		onDidChangeConnection.fire({
+			transport: 'ok',
+			sharedFsRootSent: false,
+			pairingPending: false,
+			channelAlive: true,
+			capabilities: {} as never,
+		});
+
+		const status = await waitForStatusText(host, '.sources-review-status', 'Unable to read git changes');
+		assert.strictEqual(status, sourcesGitReadFailureMessage('boom'));
+		assert.ok(status.includes('Unable to read git changes:'));
+		assert.ok(status.includes('boom'));
+		assert.ok(readCalls >= 2);
+		assert.strictEqual((widget as unknown as { list?: WorkbenchList<unknown> }).list?.length ?? 0, 1);
+		assert.strictEqual(((widget as unknown as { list?: WorkbenchList<unknown> }).list?.element(0) as { name?: string }).name, 'leftover.ts');
+		assert.ok(host.querySelector('.sources-review-list .monaco-list-row'));
+		assert.strictEqual((host.querySelector('.sources-review-empty') as HTMLElement).style.display, 'none');
+		assert.ok(!(host.querySelector('.sources-review-empty')?.textContent ?? '').includes(localize('sourcesReviewList.noChanges', "No changes to review.")));
 	});
 
 	test('Changes list status DOM shows git-read throw', async function () {

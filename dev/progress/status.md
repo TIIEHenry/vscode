@@ -47,7 +47,7 @@ summary: "loop 关仓：D238–D241 已合入；merge compile-client 0。待 pus
 | **A** | mcp-runtime-tools-leftover | 已进 merge `2ee8952416b`；[D238](deferred-gaps.md) 已闭 |
 | **B** | clipboard-list-leftover | 已进 merge `78141f59aef`；[D239](deferred-gaps.md) 已闭 |
 | **C** | triggers-list-leftover | 已进 merge `8a9c2efeca8`；[D240](deferred-gaps.md) 已闭；勿 add `dev/loop` |
-| **D** | team-treeempty-pending-leftover | 已进 merge `aba5127add2`；[D241](deferred-gaps.md) 已闭 |
+| **D** | review-git-read-leftover | 工位 D [D245](deferred-gaps.md) 已闭；成功画后再 throw 保 leftover 审阅行 + git-read 失败文案；首拉 throw 仍 empty+failed |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
