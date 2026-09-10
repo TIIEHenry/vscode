@@ -1643,7 +1643,50 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assertAgentsUnknownCapabilityHonesty(section, 1);
 	});
 
-	test('Tools: successful load then capability UNKNOWN clears leftover rows before loading', async () => {
+	function assertToolsUnknownCapabilityHonesty(
+		section: EngineToolsSection,
+		expectedRows: number,
+	): void {
+		assert.strictEqual(section.getMode(), 'loading');
+		assert.strictEqual(section.getListEntryCount(), expectedRows);
+		assert.strictEqual(section.canWrite(), false);
+		const listContainer = section.getDomNode().querySelector('.engine-catalog-list') as HTMLElement;
+		assert.ok(listContainer);
+		if (expectedRows > 0) {
+			assert.notStrictEqual(listContainer.style.display, 'none');
+		}
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		assert.ok(status.textContent?.includes(getCatalogUnknownCopy()));
+		assert.ok(!(status.textContent ?? '').includes(getCatalogListLoadingCopy()));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(TOOLS_EMPTY_COPY));
+	}
+
+	test('Tools: first-pull capability UNKNOWN is empty with capability loading', async () => {
+		let listToolsCalls = 0;
+		let listAgentProfilesCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'UNKNOWN' } },
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [demoBashTool()] };
+			},
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [demoToolsUserProfile()] };
+			},
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assertToolsUnknownCapabilityHonesty(section, 0);
+		assert.strictEqual(listToolsCalls, 0);
+		assert.strictEqual(listAgentProfilesCalls, 0);
+	});
+
+	test('Tools: successful load then capability UNKNOWN keeps leftover rows and paints capability loading', async () => {
 		let listToolsCalls = 0;
 		let listAgentProfilesCalls = 0;
 		const connection = createConnectionStub({
@@ -1663,19 +1706,16 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 		assert.strictEqual(section.getMode(), 'ready');
 		assert.ok(section.getListEntryCount() > 0);
+		const leftoverRows = section.getListEntryCount();
 		const listToolsAfterLoad = listToolsCalls;
 		const listProfilesAfterLoad = listAgentProfilesCalls;
 
 		connection.setToolsSupport('UNKNOWN');
 		await flushMicrotasks();
 
-		assert.strictEqual(section.getMode(), 'loading');
-		assert.strictEqual(section.getListEntryCount(), 0);
 		assert.strictEqual(listToolsCalls, listToolsAfterLoad);
 		assert.strictEqual(listAgentProfilesCalls, listProfilesAfterLoad);
-		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
-		assert.ok(status);
-		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		assertToolsUnknownCapabilityHonesty(section, leftoverRows);
 	});
 
 	function demoMcpServer() {
