@@ -363,12 +363,17 @@ export class EngineMcpRuntimePanel extends Disposable {
 			if (generation !== this.toolsGeneration) {
 				return;
 			}
-			this.tools = [];
-			this.toolsTotal = undefined;
-			this.toolsCachedAt = undefined;
-			DOM.clearNode(this.toolsList);
-			this.toolsMeta.style.display = 'none';
-			this.toolsList.style.display = 'none';
+			const hadLivePaint = this.tools.length > 0;
+			if (!hadLivePaint) {
+				this.tools = [];
+				this.toolsTotal = undefined;
+				this.toolsCachedAt = undefined;
+				DOM.clearNode(this.toolsList);
+				this.toolsMeta.style.display = 'none';
+				this.toolsList.style.display = 'none';
+			} else {
+				this.toolsList.style.display = '';
+			}
 			this.toolsStatus.render({
 				mode: 'failed',
 				featureLabel: MCP_RUNTIME_TOOLS_FEATURE,

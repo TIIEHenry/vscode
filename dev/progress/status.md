@@ -44,7 +44,7 @@ summary: "loop 关仓：D234–D237 已合入；merge compile-client 0。待 pus
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | provider-model-list-leftover | 已进 merge `fd04d8b7fed`；[D234](deferred-gaps.md) 已闭 |
+| **A** | mcp-runtime-tools-leftover | 本工位收 [D238](deferred-gaps.md)；`loadTools` 活画后再 throw 保 leftover 工具行 + failed |
 | **B** | composer-supported-throw-keep-last | 已进 merge `35c96a1002c`；[D235](deferred-gaps.md) 已闭 |
 | **C** | team-refresh-leftover | 已进 merge `1a63d0e7e2f`；[D236](deferred-gaps.md) 已闭；勿 add `dev/loop` |
 | **D** | agents-hierarchy-pending-leftover | 已进 merge `4fcdc3ad254`；[D237](deferred-gaps.md) 已闭 |

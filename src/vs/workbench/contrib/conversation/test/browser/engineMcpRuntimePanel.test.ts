@@ -22,11 +22,12 @@ import { localize } from '../../../../../nls.js';
 const MCP_RUNTIME_FEATURE = localize('ua.engineMcpRuntimeFeatureLabel', "MCP server runtime");
 const MCP_RUNTIME_TOOLS_FEATURE = localize('ua.engineMcpRuntimeToolsFeature', "MCP server tools");
 const MCP_RUNTIME_EMPTY = localize('ua.engineMcpRuntimeEmpty', "No MCP servers in runtime.");
+const MCP_RUNTIME_TOOLS_EMPTY = localize('ua.engineMcpRuntimeToolsEmpty', "No tools on this MCP server.");
 const RUNTIME_SERVER_ID = 'stdio-runtime';
 const LEFTOVER_RUNTIME_SERVER_ID = 'leftover-runtime-server';
 const LEFTOVER_TOOL_NAME = 'leftover-mcp-tool';
 
-suite('EngineMcpRuntimePanel tools leftover (D67)', () => {
+suite('EngineMcpRuntimePanel leftover (D227 / D238)', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
@@ -151,19 +152,32 @@ suite('EngineMcpRuntimePanel tools leftover (D67)', () => {
 		await new Promise(resolve => setTimeout(resolve, 0));
 	}
 
-	function assertToolsFailed(panel: EngineMcpRuntimePanel, reason: string): void {
+	function getToolsList(panel: EngineMcpRuntimePanel): HTMLElement | null {
+		return panel.getDomNode().querySelector('.engine-mcp-runtime-tools') as HTMLElement | null;
+	}
+
+	function getToolsRowCount(panel: EngineMcpRuntimePanel): number {
+		return panel.getDomNode().querySelectorAll('.engine-mcp-runtime-tools .engine-catalog-row').length;
+	}
+
+	function assertToolsFailedHonesty(panel: EngineMcpRuntimePanel, reason: string, expectedRows: number): void {
 		assert.strictEqual(panel.getMode(), 'ready');
 		assert.strictEqual(panel.getListEntryCount(), 1);
-		assert.strictEqual(panel.getToolsCount(), 0);
+		assert.strictEqual(panel.getToolsCount(), expectedRows);
 		const toolsStatus = panel.getDomNode().querySelector(
 			'.engine-catalog-status-widget[data-catalog-mode="failed"]',
 		) as HTMLElement | null;
 		assert.ok(toolsStatus);
 		assert.ok(toolsStatus.textContent?.includes(getCatalogFailedCopy(MCP_RUNTIME_TOOLS_FEATURE, reason)));
-		const toolsList = panel.getDomNode().querySelector('.engine-mcp-runtime-tools') as HTMLElement | null;
+		const toolsList = getToolsList(panel);
 		assert.ok(toolsList);
-		assert.ok(!new RegExp(LEFTOVER_TOOL_NAME, 'i').test(toolsList.textContent ?? ''));
-		assert.ok(!new RegExp(LEFTOVER_TOOL_NAME, 'i').test(panel.getDomNode().textContent ?? ''));
+		assert.strictEqual(getToolsRowCount(panel), expectedRows);
+		if (expectedRows === 0) {
+			assert.strictEqual(toolsList.style.display, 'none');
+		} else {
+			assert.notStrictEqual(toolsList.style.display, 'none');
+		}
+		assert.ok(!(panel.getDomNode().textContent ?? '').includes(MCP_RUNTIME_TOOLS_EMPTY));
 	}
 
 	test('getMcpServerTools first throw paints failed toolsStatus without leftover', async () => {
@@ -180,10 +194,10 @@ suite('EngineMcpRuntimePanel tools leftover (D67)', () => {
 		assert.ok(panel.selectServerForTest(RUNTIME_SERVER_ID));
 		await flushMicrotasks();
 
-		assertToolsFailed(panel, 'getMcpServerTools exploded');
+		assertToolsFailedHonesty(panel, 'getMcpServerTools exploded', 0);
 	});
 
-	test('getMcpServerTools success then throw clears leftover tool name and paints failed', async () => {
+	test('getMcpServerTools success then throw keeps leftover tool rows and paints failed', async () => {
 		let toolsCalls = 0;
 		const connection = createConnectionStub({
 			connected: true,
@@ -202,15 +216,18 @@ suite('EngineMcpRuntimePanel tools leftover (D67)', () => {
 		assert.ok(panel.selectServerForTest(RUNTIME_SERVER_ID));
 		await flushMicrotasks();
 
-		const toolsList = panel.getDomNode().querySelector('.engine-mcp-runtime-tools') as HTMLElement | null;
+		const toolsList = getToolsList(panel);
 		assert.ok(toolsList);
-		assert.ok(toolsList.textContent?.includes(LEFTOVER_TOOL_NAME));
 		assert.strictEqual(panel.getToolsCount(), 1);
+		assert.strictEqual(getToolsRowCount(panel), 1);
+		assert.notStrictEqual(toolsList.style.display, 'none');
+		assert.ok(!(panel.getDomNode().textContent ?? '').includes(MCP_RUNTIME_TOOLS_EMPTY));
 
 		connection.setConnected(true);
 		await flushMicrotasks();
 
-		assertToolsFailed(panel, 'getMcpServerTools retry exploded');
+		assert.strictEqual(toolsCalls, 2);
+		assertToolsFailedHonesty(panel, 'getMcpServerTools retry exploded', 1);
 	});
 
 	test('getMcpServerStatuses first throw is failed with no leftover rows', async () => {
