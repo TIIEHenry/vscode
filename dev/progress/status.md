@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 关仓：A–D 四槽已合入 merge。D197 / D199–D204 已闭；D205 仍开。待一路 compile。"
+summary: "loop 关仓：A–D 四槽已合入 merge。D197 / D199–D205 已闭。待一路 compile。"
 ---
 
 # Development Progress
@@ -44,8 +44,8 @@ summary: "loop 关仓：A–D 四槽已合入 merge。D197 / D199–D204 已闭�
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | conversation-fork-unknown-honesty | 已进 merge `5fc3c8ca092`；[D202](deferred-gaps.md)/[D204](deferred-gaps.md) 已闭 |
-| **B** | navigator-inspect-lease-honesty | 已进 merge `b77177da870`；[D197](deferred-gaps.md) 已闭；[D205](deferred-gaps.md) |
+| **A** | navigator-inspect-live-id-honesty | 本工位 [D205](deferred-gaps.md) 已闭：可见 leftover 写空 Set；隐藏 / pending / UNSUPPORTED / no-session 写 undefined；Team catch 对齐列表；GC-5d 两叶隐藏不标 stale |
+| **B** | navigator-inspect-lease-honesty | 已进 merge `b77177da870`；[D197](deferred-gaps.md) 已闭；[D205](deferred-gaps.md) 已由 A 收口 |
 | **C** | session-delete-draft-rollback | 已进 merge `d65c1afeb73`；[D203](deferred-gaps.md) 已闭；勿 add `dev/loop` |
 | **D** | catalog-defaults-unknown-triggers | 已进 merge `3664ea9249e`；[D199](deferred-gaps.md)–[D201](deferred-gaps.md) 已闭 |
 

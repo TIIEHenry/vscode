@@ -494,6 +494,56 @@ suite('Navigator Agents subviews', () => {
 		assert.notStrictEqual(hierarchyEmpty.style.display, 'block');
 	});
 
+	test('Agents leftover-empty is not used for pending / UNSUPPORTED / no-session / hidden', () => {
+		const inspectService = store.add(new AgentInspectService());
+		const roster = store.add(new RosterWithLiveTree(sampleLiveTree));
+		roster.setEngineConnected(true);
+		const view = mountAgentsView(roster, createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+		}), inspectService);
+		assert.ok(inspectService.getLiveAgentIds()?.has('sub:alpha'));
+		assert.ok(inspectService.getLiveAgentIds()?.has('root'));
+
+		view.setVisible(false);
+		assert.strictEqual(inspectService.getLiveAgentIds(), undefined);
+		view.setVisible(true);
+		assert.ok(inspectService.getLiveAgentIds()?.has('sub:alpha'));
+
+		class RosterNoSession extends ConversationStubService {
+			override getActiveSessionId(): string {
+				return '';
+			}
+		}
+		const noSessionInspect = store.add(new AgentInspectService());
+		const noSessionRoster = store.add(new RosterNoSession());
+		noSessionRoster.setEngineConnected(true);
+		mountAgentsView(noSessionRoster, createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+		}), noSessionInspect);
+		assert.strictEqual(noSessionInspect.getLiveAgentIds(), undefined);
+
+		const unsupportedInspect = store.add(new AgentInspectService());
+		const unsupportedRoster = store.add(new ConversationStubService());
+		unsupportedRoster.setEngineConnected(true);
+		mountAgentsView(unsupportedRoster, createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'UNSUPPORTED',
+		}), unsupportedInspect);
+		assert.strictEqual(unsupportedInspect.getLiveAgentIds(), undefined);
+
+		const pendingInspect = store.add(new AgentInspectService());
+		const pendingRoster = store.add(new ConversationStubService());
+		pendingRoster.setEngineConnected(true);
+		mountAgentsView(pendingRoster, createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			isAgentTreeFetchFailed: () => true,
+		}), pendingInspect);
+		assert.strictEqual(pendingInspect.getLiveAgentIds(), undefined);
+	});
+
 	test('never-connected Agents stay honest empty without a snapshot note', () => {
 		const view = mountAgentsView();
 		const note = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
