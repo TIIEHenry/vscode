@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "关仓中：A Sessions 空态、C Clipboard list-fail 已合；B Projects rebuildTree / D leftover 仍在工位。D212=Clipboard，D213=Sessions 空态。"
+summary: "关仓中：A–C 已合；D leftover 仍在工位。D212 Clipboard / D213 Sessions 空态 / D214 Projects rebuildTree stale。"
 ---
 
 # Development Progress
@@ -45,7 +45,7 @@ summary: "关仓中：A Sessions 空态、C Clipboard list-fail 已合；B Proje
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
 | **A** | sessions-sidebar-empty-honesty | 已进 merge `0d2b9a8e06e`；[D213](deferred-gaps.md) 已闭 |
-| **B** | projects-rebuild-tree-stale | 工位进行中 |
+| **B** | navigator-projects-rebuild-throw-stale | 已进 merge `eddac7e980e`；[D214](deferred-gaps.md) 已闭 |
 | **C** | clipboard-write-list-fail | 已进 merge `394a3c2c00d`；[D212](deferred-gaps.md) 已闭；勿 add `dev/loop` |
 | **D** | leftover-from-code | 工位进行中 |
 
