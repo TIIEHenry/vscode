@@ -22,6 +22,7 @@ import type {
 	UniverseAgentAgentProfileDetail,
 	UniverseAgentAgentProfileSource,
 	UniverseAgentAgentProfileSummary,
+	UniverseAgentCapabilitySupport,
 	UniverseAgentToolSummary,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles, defaultCheckboxStyles, defaultInputBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
@@ -31,6 +32,7 @@ import {
 	canShowCatalogRows,
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
+import { isConversationEngineLive } from './conversationSessionStatus.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import {
 	formatAgentsMarkdown,
@@ -867,16 +869,37 @@ export class EngineAgentsSection extends Disposable {
 		return ok;
 	}
 
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		if (!hadLiveCatalog) {
+			return false;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
+	}
+
+	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): boolean {
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			this.hideCatalogWriteStatus();
+			this.writeToolbar.style.display = 'none';
+			this.updateWriteActions();
+			this.listContainer.style.display = '';
+			this.mode = resolveEngineCatalogPaneMode(false, support);
+			this.renderStatus();
+			return false;
+		}
+		this.clearCatalogPresentation();
+		this.mode = resolveEngineCatalogPaneMode(false, support);
+		this.renderStatus();
+		return false;
+	}
+
 	private async refresh(): Promise<boolean> {
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.agentProfiles.support;
 
 		if (!connected) {
-			this.clearCatalogPresentation();
-			this.mode = resolveEngineCatalogPaneMode(false, support);
-			this.renderStatus();
-			return false;
+			return this.applyDisconnectedRefresh(support, this.listEntries.some(entry => entry.kind === 'profile'));
 		}
 
 		if (support === 'UNSUPPORTED') {
@@ -909,10 +932,7 @@ export class EngineAgentsSection extends Disposable {
 		try {
 			const result = await this.connection.listAgentProfiles();
 			if (!this.connection.isEngineConnected()) {
-				this.clearCatalogPresentation();
-				this.mode = resolveEngineCatalogPaneMode(false, support);
-				this.renderStatus();
-				return false;
+				return this.applyDisconnectedRefresh(support, this.listEntries.some(entry => entry.kind === 'profile'));
 			}
 			this.agentToolPending.clear();
 			this.setProfiles(result.profiles);

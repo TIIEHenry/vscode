@@ -19,6 +19,7 @@ import type {
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { EngineSkillsSection } from '../../browser/engineSkillsSection.js';
 import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy } from '../../browser/engineCatalog.js';
+import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { getSkillsUnsupportedCopy } from '../../browser/engineSkillCatalog.js';
 import { localize } from '../../../../../nls.js';
 
@@ -38,6 +39,7 @@ suite('EngineSkillsSection (E1)', () => {
 		setSkillEnabled?: (request: { skillName: string; enabled: boolean }) => Promise<{ ok: boolean }>;
 	} = {}): IUniverseAgentConnection & {
 		setConnected(value: boolean): void;
+		setPairingPending(value: boolean): void;
 		setSkillsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 	} {
 		const skillsCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'; reason: string } = {
@@ -49,12 +51,13 @@ suite('EngineSkillsSection (E1)', () => {
 			skills: skillsCapability,
 		};
 		let connected = options.connected ?? false;
+		let pairingPending = false;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
 			transport: connected ? 'ok' : 'idle',
 			sessionToken: connected ? 'tok' : undefined,
-			pairingPending: false,
+			pairingPending,
 			channelAlive: connected,
 			sharedFsRootSent: false,
 			capabilities,
@@ -62,7 +65,7 @@ suite('EngineSkillsSection (E1)', () => {
 
 		return {
 			_serviceBrand: undefined,
-			isEngineConnected: () => connected,
+			isEngineConnected: () => connected && !pairingPending,
 			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
 			getTransportState: () => (connected ? 'ok' : 'idle'),
 			getConnectionSnapshot: snapshot,
@@ -134,6 +137,10 @@ suite('EngineSkillsSection (E1)', () => {
 				connected = value;
 				onDidChangeConnection.fire(snapshot());
 			},
+			setPairingPending(value: boolean) {
+				pairingPending = value;
+				onDidChangeConnection.fire(snapshot());
+			},
 			setSkillsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
 				skillsCapability.support = support;
 				onDidChangeConnection.fire(snapshot());
@@ -188,6 +195,20 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.notStrictEqual(listContainer.style.display, 'none');
 	}
 
+	function assertSkillsLeftoverPairingHonesty(section: EngineSkillsSection, expectedRows: number): void {
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), expectedRows);
+		assert.strictEqual(section.canWrite(), false);
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(SKILLS_EMPTY_COPY));
+		const listContainer = section.getDomNode().querySelector('.engine-skills-list') as HTMLElement;
+		assert.ok(listContainer);
+		assert.notStrictEqual(listContainer.style.display, 'none');
+	}
+
 	test('disconnected hides skills section (§8.3 #5 honest empty)', async () => {
 		const connection = createConnectionStub({ connected: false, skillsSupport: 'SUPPORTED' });
 		const section = mountSection(connection);
@@ -225,6 +246,42 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.strictEqual(section.getMode(), 'disconnected');
 		assert.strictEqual(section.getListEntryCount(), 0);
 		assert.strictEqual(section.getDomNode().style.display, 'none');
+	});
+
+	test('connected phase with pairingPending keeps leftover catalog and paints not-connected', async () => {
+		let listSkillsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => {
+				listSkillsCalls++;
+				return { skills: [{ name: 'demo-skill', source: 'bundled', enabled: true }] };
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listSkillsCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listSkillsCalls, listCallsAfterLoad);
+		assertSkillsLeftoverPairingHonesty(section, leftoverRows);
+
+		connection.setConnected(false);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), 0);
 	});
 
 	test('listSkills reject is failed with error status and no leftover catalog', async () => {
