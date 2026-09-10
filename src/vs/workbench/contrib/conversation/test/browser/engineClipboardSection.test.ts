@@ -365,6 +365,48 @@ suite('EngineClipboardSection', () => {
 		pane.getDomNode().parentElement?.remove();
 	});
 
+	test('WriteClipboard success does not keep write-success when subsequent ListClipboard fails', async () => {
+		let listClipboardCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const pane = mountSection(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				listClipboard: async (): Promise<UniverseAgentListClipboardResult> => {
+					listClipboardCalls++;
+					if (listClipboardCalls > 1) {
+						throw new Error('list boom');
+					}
+					return { entries: [] };
+				},
+				writeClipboard: async () => {
+					return { clipId: '  new  ' };
+				},
+			}));
+			await flushMicrotasks();
+			assert.strictEqual(listClipboardCalls, 1);
+			const write = findActionButton(pane.getDomNode(), ENGINE_CLIPBOARD_WRITE_LABEL);
+			assert.ok(write);
+			write.click();
+			await flushMicrotasks();
+			assert.ok(listClipboardCalls >= 2);
+			const writeStatus = pane.getDomNode().querySelector('.engine-clipboard-write-status') as HTMLElement | null;
+			assert.ok(writeStatus);
+			assert.notStrictEqual(writeStatus.textContent, formatEngineClipboardWriteLabel('  new  '));
+			assert.ok(!(writeStatus.textContent ?? '').includes('  new  '));
+			const catalog = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement | null;
+			assert.ok(catalog);
+			assert.strictEqual(catalog.dataset['catalogMode'], 'failed');
+			assert.ok((catalog.textContent ?? '').includes('Could not load clipboard from the engine (list boom).'));
+			assert.deepStrictEqual(unhandledRejections, []);
+			pane.getDomNode().parentElement?.remove();
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
 	test('WriteClipboard throw paints write-status and leaves the row', async () => {
 		let listClipboardCalls = 0;
 		const pane = mountSection(createConversationConnectionTestStub({
@@ -497,6 +539,59 @@ suite('EngineClipboardSection', () => {
 		assert.strictEqual(clearStatus.textContent, formatEngineClipboardClearLabel(1));
 		assert.notStrictEqual(clearStatus.style.display, 'none');
 		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('ClearClipboard success does not keep clear-success when subsequent ListClipboard fails', async () => {
+		let listClipboardCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const pane = mountSection(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				listClipboard: async (): Promise<UniverseAgentListClipboardResult> => {
+					listClipboardCalls++;
+					if (listClipboardCalls > 1) {
+						throw new Error('list boom');
+					}
+					return {
+						entries: [{
+							clipId: '  clip  ',
+							label: '  Note  ',
+							type: 'CLIPBOARD_TEXT',
+							createdBy: '',
+							createdAt: 0,
+						}],
+					};
+				},
+				clearClipboard: async () => {
+					return { removedCount: 1 };
+				},
+			}));
+			await flushMicrotasks();
+			assert.strictEqual(listClipboardCalls, 1);
+			const row = pane.getDomNode().querySelector('.engine-clipboard-row') as HTMLElement | null;
+			assert.ok(row);
+			const clear = findActionButton(pane.getDomNode(), ENGINE_CLIPBOARD_CLEAR_LABEL);
+			assert.ok(clear);
+			clear.click();
+			await flushMicrotasks();
+			assert.ok(listClipboardCalls >= 2);
+			assert.strictEqual(pane.getDomNode().querySelector('.engine-clipboard-row'), null);
+			const clearStatus = pane.getDomNode().querySelector('.engine-clipboard-clear-status') as HTMLElement | null;
+			assert.ok(clearStatus);
+			assert.notStrictEqual(clearStatus.textContent, formatEngineClipboardClearLabel(1));
+			assert.ok(!(clearStatus.textContent ?? '').includes(formatEngineClipboardClearLabel(1)));
+			const catalog = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement | null;
+			assert.ok(catalog);
+			assert.strictEqual(catalog.dataset['catalogMode'], 'failed');
+			assert.ok((catalog.textContent ?? '').includes('Could not load clipboard from the engine (list boom).'));
+			assert.deepStrictEqual(unhandledRejections, []);
+			pane.getDomNode().parentElement?.remove();
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('ClearClipboard throw paints clear-status and leaves the row', async () => {
