@@ -2903,6 +2903,112 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('PairApprove success does not keep pair-success when subsequent ListDevices fails', async () => {
+		let listDevicesCalls = 0;
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+		}, {
+			isEngineConnected: () => true,
+			listDevices: async (): Promise<UniverseAgentListDevicesResult> => {
+				listDevicesCalls++;
+				if (listDevicesCalls > 1) {
+					throw new Error('list boom');
+				}
+				return { devices: [] };
+			},
+			listPending: async () => ({ pending: [] }),
+			pairApprove: async () => ({ success: true, deviceId: 'dev-1', message: 'paired' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(listDevicesCalls, 1);
+		const confirm = [...container.querySelectorAll('.connection-hub-device-code .monaco-button')]
+			.find(button => button.textContent === 'Confirm') as HTMLButtonElement | undefined;
+		assert.ok(confirm);
+		confirm.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		assert.ok(listDevicesCalls >= 2);
+		const status = container.querySelector('.connection-hub-device-code-status') as HTMLElement;
+		assert.ok(status);
+		assert.notStrictEqual(status.textContent, 'paired');
+		assert.ok(!(status.textContent ?? '').includes('paired'));
+		assert.ok(!status.classList.contains('is-success'));
+		const devicesStatus = container.querySelector('.connection-hub-devices-status') as HTMLElement;
+		assert.strictEqual(devicesStatus.textContent, connectionDeviceListFailureMessage('list boom'));
+		assert.ok(devicesStatus.classList.contains('is-error'));
+		container.remove();
+	});
+
+	test('PairReject success does not keep pair-success when subsequent ListPending fails', async () => {
+		let listPendingCalls = 0;
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+		}, {
+			isEngineConnected: () => true,
+			listPending: async () => {
+				listPendingCalls++;
+				if (listPendingCalls > 1) {
+					throw new Error('list boom');
+				}
+				return { pending: [] };
+			},
+			pairReject: async () => ({ success: true, message: 'rejected' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(listPendingCalls, 1);
+		const reject = [...container.querySelectorAll('.connection-hub-device-code .monaco-button')]
+			.find(button => button.textContent === CONNECTION_DEVICE_PAIR_REJECT_LABEL) as HTMLButtonElement | undefined;
+		assert.ok(reject);
+		reject.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		assert.ok(listPendingCalls >= 2);
+		const status = container.querySelector('.connection-hub-device-code-status') as HTMLElement;
+		assert.ok(status);
+		assert.notStrictEqual(status.textContent, 'rejected');
+		assert.ok(!(status.textContent ?? '').includes('rejected'));
+		assert.ok(!status.classList.contains('is-success'));
+		const pendingEmpty = container.querySelector('.connection-engine-pending-empty') as HTMLElement;
+		assert.strictEqual(pendingEmpty.textContent, connectionDevicePendingListFailureMessage('list boom'));
+		assert.ok(pendingEmpty.classList.contains('is-error'));
+		container.remove();
+	});
+
+	test('PairApprove success keeps pair-success when subsequent lists succeed', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+		}, {
+			isEngineConnected: () => true,
+			listDevices: async () => ({ devices: [] }),
+			listPending: async () => ({ pending: [] }),
+			pairApprove: async () => ({ success: true, deviceId: 'dev-1', message: 'paired' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		const confirm = [...container.querySelectorAll('.connection-hub-device-code .monaco-button')]
+			.find(button => button.textContent === 'Confirm') as HTMLButtonElement | undefined;
+		assert.ok(confirm);
+		confirm.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		const status = container.querySelector('.connection-hub-device-code-status') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.textContent, 'paired');
+		assert.ok(status.classList.contains('is-success'));
+		container.remove();
+	});
+
 	test('ListDevices does not send when disconnected or hook missing', async () => {
 		let listDevicesCalls = 0;
 		const disconnected = mountPane({
