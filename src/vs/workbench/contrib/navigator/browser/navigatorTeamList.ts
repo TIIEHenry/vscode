@@ -406,12 +406,10 @@ export class NavigatorTeamView extends ViewPane {
 				'team',
 				agentTreeCapability === 'UNSUPPORTED' || pending ? undefined : EMPTY_LIVE_AGENT_IDS,
 			);
-			this.setMemberEntries([], treeEmpty);
-			this.setTaskEntries([], treeEmpty);
+			this.setTeamAfterTreeEmpty(treeEmpty);
 			if (liveTree !== undefined || agentTreeCapability === 'UNSUPPORTED' || treeFetchFailed) {
 				this.hadTeamSnapshot = true;
 			}
-			this.setTeamSnapshotNote(undefined);
 			return;
 		}
 
@@ -499,6 +497,17 @@ export class NavigatorTeamView extends ViewPane {
 		return this.uaConnection.getConnectionPhase().kind === 'connecting'
 			? TEAM_CONNECTING_COPY
 			: TEAM_NEVER_CONNECTED_COPY;
+	}
+
+	private setTeamAfterTreeEmpty(treeEmpty: string): void {
+		const hadLiveTeamPaint = this.hadTeamSnapshot || this.memberEntries.length > 0 || this.taskEntries.length > 0;
+		if (hadLiveTeamPaint) {
+			this.setTeamSnapshotNote(treeEmpty);
+			return;
+		}
+		this.setMemberEntries([], treeEmpty);
+		this.setTaskEntries([], treeEmpty);
+		this.setTeamSnapshotNote(undefined);
 	}
 
 	private setTeamSnapshotNote(noteMessage: string | undefined): void {
