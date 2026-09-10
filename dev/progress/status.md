@@ -47,7 +47,7 @@ summary: "loop 关仓：D246–D249 已合入；merge compile-client 0。待 pus
 | **A** | history-list-leftover | 已进 merge `51daa8c301f`；[D246](deferred-gaps.md) 已闭 |
 | **B** | agents-tools-leftover | 已进 merge `ca37197e36d`；[D247](deferred-gaps.md) 已闭 |
 | **C** | hub-directory-leftover | 已进 merge `6bb7482813f`；[D248](deferred-gaps.md) 已闭；勿 add `dev/loop` |
-| **D** | composer-preclear-keep-last | 已进 merge `a6a01bfe496`；[D249](deferred-gaps.md) 已闭 |
+| **D** | agents-unknown-leftover | 本槽 [D253](deferred-gaps.md) 已闭；成功→UNKNOWN 保 leftover + capability loading |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
