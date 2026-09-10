@@ -29,6 +29,7 @@ import {
 import { localize } from '../../../../../nls.js';
 
 const PLUGINS_FEATURE = localize('ua.enginePluginsFeatureLabel', "engine plugins");
+const PLUGINS_EMPTY_COPY = localize('ua.enginePluginsEmpty', "No engine plugins.");
 
 suite('EnginePluginsSection write-success (D155 / D216)', () => {
 
@@ -54,6 +55,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		scanNewPlugins?: IUniverseAgentConnection['scanNewPlugins'];
 	} = {}): IUniverseAgentConnection & {
 		setPluginsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
+		setConnected(next: boolean): void;
 	} {
 		const pluginsCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN' } = {
 			support: 'SUPPORTED',
@@ -146,6 +148,10 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 				pluginsCapability.support = support;
 				onDidChangeConnection.fire(snapshot());
 			},
+			setConnected(next: boolean) {
+				connected = next;
+				onDidChangeConnection.fire(snapshot());
+			},
 		};
 	}
 
@@ -164,9 +170,23 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		await new Promise(resolve => setTimeout(resolve, 0));
 	}
 
-	function assertScanSuccessClearedAfterListFail(section: EnginePluginsSection, successCopy: string, listReason: string): void {
+	function assertPluginsLeftoverFailedHonesty(section: EnginePluginsSection, errorMessage: string, expectedRows: number): void {
 		assert.strictEqual(section.getMode(), 'failed');
-		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(section.getListEntryCount(), expectedRows);
+		assert.strictEqual(section.canWrite(), false);
+		const listContainer = section.getDomNode().querySelector('.engine-catalog-list') as HTMLElement;
+		assert.ok(listContainer);
+		assert.notStrictEqual(listContainer.style.display, 'none');
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(PLUGINS_FEATURE, errorMessage)));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(PLUGINS_EMPTY_COPY));
+	}
+
+	function assertScanSuccessClearedAfterListFail(section: EnginePluginsSection, successCopy: string, listReason: string): void {
+		assertPluginsLeftoverFailedHonesty(section, listReason, 1);
+		assert.ok(section.selectPluginForTest('demo-plugin'));
 		const scanResult = section.getDomNode().querySelector('.engine-plugins-scan-result') as HTMLElement;
 		assert.ok(scanResult);
 		assert.notStrictEqual(scanResult.textContent, successCopy);
@@ -180,8 +200,8 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 	}
 
 	function assertWriteSuccessClearedAfterListFail(section: EnginePluginsSection, successCopy: string, listReason: string): void {
-		assert.strictEqual(section.getMode(), 'failed');
-		assert.strictEqual(section.getListEntryCount(), 0);
+		assertPluginsLeftoverFailedHonesty(section, listReason, 1);
+		assert.ok(section.selectPluginForTest('demo-plugin'));
 		const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
 		assert.ok(writeStatus);
 		assert.notStrictEqual(writeStatus.textContent, successCopy);
@@ -218,6 +238,56 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
 		assert.ok(status);
 		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+	});
+
+	test('listPlugins first-pull throw is failed with no leftover rows', async () => {
+		const connection = createConnectionStub({
+			listPlugins: async () => {
+				throw new Error('listPlugins exploded');
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(section.canWrite(), false);
+		assert.strictEqual(section.selectPluginForTest('demo-plugin'), false);
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(PLUGINS_FEATURE, 'listPlugins exploded')));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(PLUGINS_EMPTY_COPY));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes('Demo Plugin'));
+	});
+
+	test('listPlugins success then throw keeps leftover rows and paints failed', async () => {
+		let listPluginsCalls = 0;
+		const leftover = { ...demoPlugin(), id: 'leftover-plugin', displayName: 'Leftover Plugin' };
+		const connection = createConnectionStub({
+			listPlugins: async () => {
+				listPluginsCalls++;
+				if (listPluginsCalls === 1) {
+					return { plugins: [leftover] };
+				}
+				throw new Error('listPlugins retry exploded');
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		assert.strictEqual(listPluginsCalls, 1);
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(PLUGINS_EMPTY_COPY));
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(listPluginsCalls, 2);
+		assertPluginsLeftoverFailedHonesty(section, 'listPlugins retry exploded', 1);
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
 	});
 
 	test('enablePlugin ok does not keep Enabled. when subsequent listPlugins fails', async () => {
