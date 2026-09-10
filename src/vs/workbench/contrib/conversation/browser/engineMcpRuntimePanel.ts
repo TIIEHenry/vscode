@@ -323,11 +323,16 @@ export class EngineMcpRuntimePanel extends Disposable {
 			if (generation !== this.refreshGeneration) {
 				return;
 			}
-			this.clearRuntimePresentation();
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
 				kind: 'failed',
 				error: getTransportErrorMessage(error),
 			});
+			this.refreshButton.enabled = false;
+			this.refreshToolbar.style.display = 'none';
+			if (this.listEntries.length > 0) {
+				this.listContainer.style.display = '';
+			}
+			this.renderCheckedAt();
 			this.renderStatus({
 				reason: getTransportErrorMessage(error),
 				onRetry: () => void this.refresh(options),
