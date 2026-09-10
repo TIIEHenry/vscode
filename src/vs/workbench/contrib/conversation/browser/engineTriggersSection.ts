@@ -45,6 +45,11 @@ const $ = DOM.$;
  * Add always sends an empty TriggerDto. Edit sends the selected trigger
  * as-is (empty DTO when none). `enabled` false is sent as-is. Empty
  * triggerId / name / type stay empty.
+ * List throw after a live paint keeps leftover rows + failed (D240);
+ * first-pull throw stays empty+failed and must not paint empty-success.
+ * Connected + missing list hook after a live paint keeps leftover rows +
+ * unsupported (D258); first-pull no-hook stays empty+unsupported.
+ * Disconnect still clears rows.
  */
 export class EngineTriggersSection extends Disposable {
 
@@ -173,7 +178,9 @@ export class EngineTriggersSection extends Disposable {
 		}
 
 		if (!canSend || !hook) {
-			this.clearListPresentation();
+			if (this.triggers.length === 0) {
+				this.clearListPresentation();
+			}
 			this.status.render({
 				mode: 'unsupported',
 				featureLabel: ENGINE_TRIGGER_LIST_FEATURE,

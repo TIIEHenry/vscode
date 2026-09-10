@@ -52,7 +52,12 @@ suite('EngineTriggersSection', () => {
 		}));
 		await flushMicrotasks();
 		assert.strictEqual(listTriggersCalls, 0);
+		assert.strictEqual(noHook.getDomNode().querySelectorAll('.engine-triggers-row').length, 0);
+		const noHookStatus = noHook.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(noHookStatus);
+		assert.strictEqual(noHookStatus.dataset['catalogMode'], 'unsupported');
 		assert.ok((noHook.getDomNode().textContent ?? '').includes('does not expose'));
+		assert.ok(!(noHook.getDomNode().textContent ?? '').includes(ENGINE_TRIGGER_LIST_EMPTY_COPY));
 		noHook.getDomNode().parentElement?.remove();
 	});
 
@@ -166,6 +171,75 @@ suite('EngineTriggersSection', () => {
 		assert.strictEqual(status.dataset['catalogMode'], 'failed');
 		assert.ok(status.textContent?.includes(getCatalogFailedCopy(ENGINE_TRIGGER_LIST_FEATURE, 'listTriggers retry exploded')));
 		assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_TRIGGER_LIST_EMPTY_COPY));
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('ListTriggers success then hook missing keeps leftover rows and paints unsupported', async () => {
+		const leftover = emptyTrigger({
+			triggerId: 'leftover-trig',
+			name: 'leftover-nightly',
+			type: 'cron',
+			target: { kind: 'self' },
+		});
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			onDidChangeConnection: onDidChangeConnection.event,
+			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => {
+				return { triggers: [leftover] };
+			},
+		});
+		const pane = mountSection(connection);
+		await flushMicrotasks();
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-triggers-row').length, 1);
+
+		delete connection.listTriggers;
+		onDidChangeConnection.fire(connection.getConnectionSnapshot());
+		await flushMicrotasks();
+
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-triggers-row').length, 1);
+		const leftoverRows = pane.getDomNode().querySelectorAll('.engine-triggers-row');
+		assert.strictEqual(leftoverRows[0].textContent, formatEngineTriggerListLabel(leftover));
+		const listHost = pane.getDomNode().querySelector('.engine-triggers-list') as HTMLElement | null;
+		assert.ok(listHost);
+		assert.notStrictEqual(listHost.style.display, 'none');
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'unsupported');
+		assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_TRIGGER_LIST_EMPTY_COPY));
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('ListTriggers success then disconnect clears leftover rows', async () => {
+		let connected = true;
+		const leftover = emptyTrigger({
+			triggerId: 'leftover-trig',
+			name: 'leftover-nightly',
+			type: 'cron',
+			target: { kind: 'self' },
+		});
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => connected,
+			getConnectionPhase: () => connected ? { kind: 'connected', path: 'loopback' } : { kind: 'disconnected' },
+			onDidChangeConnection: onDidChangeConnection.event,
+			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => {
+				return { triggers: [leftover] };
+			},
+		});
+		const pane = mountSection(connection);
+		await flushMicrotasks();
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-triggers-row').length, 1);
+
+		connected = false;
+		onDidChangeConnection.fire(connection.getConnectionSnapshot());
+		await flushMicrotasks();
+
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-triggers-row').length, 0);
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
 		pane.getDomNode().parentElement?.remove();
 	});
 
