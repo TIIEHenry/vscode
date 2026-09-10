@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 已重启。C 槽 sessionList 三态探测待合入；A 假造 mic/Route、B Accept/session 门控、D Navigator 空态并行中。D8 / D16 / D147 / D194 仍开。"
+summary: "loop 已重启。C sessionList 与 B Sources Accept/session 正在合入 merge；A 假造 mic/Route、D Navigator 空态待合。D195/D196/D198 已记。D8 / D16 / D147 / D194 仍开。"
 ---
 
 # Development Progress
@@ -44,10 +44,10 @@ summary: "loop 已重启。C 槽 sessionList 三态探测待合入；A 假造 mi
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **C** | `sessionList` 诚实探测（专用 snapshot 字段，不进 Overview） | 代码+测已落，待字母槽 commit / 波次合入；**勿 add `dev/loop`** |
-| A | Composer 假造 mic/Route + 断连 Stub agent/model | 实施中 |
-| B | Sources Accept 无载荷不显示；空 session 不盖 SCM | 实施中 |
-| D | Navigator leftover stub / Inspect / Team 空态 | 实施中 |
+| **C** | `sessionList` 诚实探测（专用 snapshot 字段，不进 Overview） | 已进 merge；**勿 add `dev/loop`** |
+| **B** | Sources Accept 无载荷不显示；空 session 不盖 SCM | 正在合入 merge；A2 仍停 |
+| A | Composer 假造 mic/Route + 断连 Stub agent/model | 待合入 |
+| D | Navigator leftover stub / Inspect / Team 空态 | 待合入 |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>

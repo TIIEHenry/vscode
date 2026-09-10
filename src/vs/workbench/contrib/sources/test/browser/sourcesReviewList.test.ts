@@ -15,6 +15,7 @@ import { CommandsRegistry, ICommandService } from '../../../../../platform/comma
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
 import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
@@ -158,9 +159,17 @@ suite('Sources - review list model', () => {
 		} as unknown as ISCMService;
 	}
 
+	function createRoster(sessionId = 'session-1'): IConversationRosterService {
+		return {
+			getActiveSessionId: () => sessionId,
+			onDidChangeActiveSession: Event.None,
+		} as unknown as IConversationRosterService;
+	}
+
 	function stubSourcesGitListServices(options: {
 		connection?: IUniverseAgentConnection;
 		scmService?: ISCMService;
+		roster?: IConversationRosterService;
 		getQuickDiffs?: () => Promise<unknown>;
 		markReviewed?: () => void;
 		executeCommand?: (...args: unknown[]) => Promise<unknown>;
@@ -168,6 +177,7 @@ suite('Sources - review list model', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, options.connection ?? createThrowingGitConnection());
 		instantiationService.stub(ISCMService, options.scmService ?? createEmptyScmService());
+		instantiationService.stub(IConversationRosterService, options.roster ?? createRoster());
 		instantiationService.stub(IQuickDiffService, {
 			getQuickDiffs: options.getQuickDiffs ?? (async () => []),
 		} as unknown as IQuickDiffService);
@@ -391,6 +401,41 @@ suite('Sources - review list model', () => {
 		assert.strictEqual(status, sourcesGitReadFailureMessage('boom'));
 		assert.ok(status.includes('Unable to read git changes:'));
 		assert.ok(status.includes('boom'));
+	});
+
+	test('empty roster session does not call git-read; Changes stay on SCM empty copy', async function () {
+		let changeCalls = 0;
+		const host = document.createElement('div');
+		document.body.appendChild(host);
+		store.add({ dispose: () => host.remove() });
+
+		const instantiationService = stubSourcesGitListServices({
+			roster: createRoster(''),
+			connection: {
+				isEngineConnected: () => true,
+				onDidChangeConnection: Event.None,
+				readGitChanges: async () => {
+					changeCalls += 1;
+					throw new Error('boom');
+				},
+				readGitSummary: async () => {
+					throw new Error('boom');
+				},
+			} as unknown as IUniverseAgentConnection,
+		});
+		store.add(instantiationService.createInstance(SourcesChangesList, host));
+
+		const deadline = Date.now() + 2000;
+		while (Date.now() < deadline) {
+			const empty = host.querySelector('.sources-changes-empty')?.textContent ?? '';
+			if (empty.includes('No source control repository')) {
+				assert.strictEqual(changeCalls, 0);
+				assert.strictEqual(host.querySelector('.sources-changes-status')?.textContent ?? '', '');
+				return;
+			}
+			await timeout(20);
+		}
+		throw new Error('Changes list did not stay on SCM empty copy');
 	});
 
 	test('Review list status DOM shows onDidOpen open-diff throw and does not mark reviewed', async function () {

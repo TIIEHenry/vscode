@@ -39,6 +39,7 @@
 
 .monaco-workbench .conversation-diff-review-pane .conversation-diff-review-revert,
 .monaco-workbench .conversation-diff-review-pane .conversation-diff-review-unstage,
+.monaco-workbench .conversation-diff-review-pane .conversation-diff-review-stage,
 .monaco-workbench .conversation-diff-review-pane .conversation-diff-review-open-preview {
 	background: var(--vscode-button-secondaryBackground);
 	color: var(--vscode-button-secondaryForeground);

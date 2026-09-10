@@ -18,6 +18,7 @@ import {
 	canSendSourcesGitStagePaths,
 	canShowSourcesReviewAccept,
 	hasSourcesGitApplyHunksPayload,
+	hasSourcesGitSessionId,
 	isSourcesGitWriteAccepted,
 	isSourcesGitWriteUnsupported,
 	resolveSourcesChangesRowAction,
@@ -45,42 +46,46 @@ suite('Sources - Changes git write', () => {
 		stdout: '',
 	};
 
-	test('Stage / Commit / Accept gates are connected + hook', () => {
-		assert.strictEqual(canSendSourcesGitStagePaths(false, true), false);
-		assert.strictEqual(canSendSourcesGitStagePaths(true, false), false);
-		assert.strictEqual(canSendSourcesGitStagePaths(true, true), true);
-		assert.strictEqual(canSendSourcesGitCommit(false, true), false);
-		assert.strictEqual(canSendSourcesGitCommit(true, false), false);
-		assert.strictEqual(canSendSourcesGitCommit(true, true), true);
+	test('Stage / Commit / Accept gates are connected + hook; Stage/Commit also need sessionId', () => {
+		assert.strictEqual(hasSourcesGitSessionId(''), false);
+		assert.strictEqual(hasSourcesGitSessionId('sess-1'), true);
+		assert.strictEqual(canSendSourcesGitStagePaths(false, true, 'sess-1'), false);
+		assert.strictEqual(canSendSourcesGitStagePaths(true, false, 'sess-1'), false);
+		assert.strictEqual(canSendSourcesGitStagePaths(true, true, ''), false);
+		assert.strictEqual(canSendSourcesGitStagePaths(true, true, 'sess-1'), true);
+		assert.strictEqual(canSendSourcesGitCommit(false, true, 'sess-1'), false);
+		assert.strictEqual(canSendSourcesGitCommit(true, false, 'sess-1'), false);
+		assert.strictEqual(canSendSourcesGitCommit(true, true, ''), false);
+		assert.strictEqual(canSendSourcesGitCommit(true, true, 'sess-1'), true);
 		assert.strictEqual(canSendSourcesGitApplyHunks(false, true), false);
 		assert.strictEqual(canSendSourcesGitApplyHunks(true, false), false);
 		assert.strictEqual(canSendSourcesGitApplyHunks(true, true), true);
 	});
 
-	test('Stage request sends empty sessionId and empty commands / argv as-is', () => {
-		assert.deepStrictEqual(sourcesGitStagePathsRequest([]), {
-			sessionId: '',
+	test('Stage request passes sessionId and empty commands / argv as-is', () => {
+		assert.deepStrictEqual(sourcesGitStagePathsRequest('sess-1', []), {
+			sessionId: 'sess-1',
 			commands: [],
 		});
-		assert.deepStrictEqual(sourcesGitStagePathsRequest(['']), {
-			sessionId: '',
+		assert.deepStrictEqual(sourcesGitStagePathsRequest('sess-1', ['']), {
+			sessionId: 'sess-1',
 			commands: [{ argv: [''] }],
 		});
-		assert.deepStrictEqual(sourcesGitStagePathsRequest(['src/a.ts', '']), {
-			sessionId: '',
+		assert.deepStrictEqual(sourcesGitStagePathsRequest('sess-1', ['src/a.ts', '']), {
+			sessionId: 'sess-1',
 			commands: [{ argv: ['src/a.ts'] }, { argv: [''] }],
 		});
 	});
 
-	test('Commit request sends empty sessionId / message as-is and false flags', () => {
-		assert.deepStrictEqual(sourcesGitCommitRequest(''), {
-			sessionId: '',
+	test('Commit request passes sessionId / message as-is and false flags', () => {
+		assert.deepStrictEqual(sourcesGitCommitRequest('sess-1', ''), {
+			sessionId: 'sess-1',
 			message: '',
 			signOff: false,
 			amend: false,
 		});
-		assert.deepStrictEqual(sourcesGitCommitRequest('  fix  '), {
-			sessionId: '',
+		assert.deepStrictEqual(sourcesGitCommitRequest('sess-1', '  fix  '), {
+			sessionId: 'sess-1',
 			message: '  fix  ',
 			signOff: false,
 			amend: false,
@@ -129,10 +134,11 @@ suite('Sources - Changes git write', () => {
 		assert.strictEqual(isSourcesGitWriteUnsupported({ ...failedWrite, supported: true, success: false }), false);
 	});
 
-	test('Accept shows when ApplyHunks hook is present even without local SCM', () => {
-		assert.strictEqual(canShowSourcesReviewAccept(true, false), true);
-		assert.strictEqual(canShowSourcesReviewAccept(false, true), true);
+	test('Accept shows only with ApplyHunks payload; hook without payload is not Accept', () => {
+		assert.strictEqual(canShowSourcesReviewAccept(true, false), false);
+		assert.strictEqual(canShowSourcesReviewAccept(false, true), false);
 		assert.strictEqual(canShowSourcesReviewAccept(false, false), false);
+		assert.strictEqual(canShowSourcesReviewAccept(true, true), true);
 	});
 
 	test('attemptSourcesGitWrite accepts only supported && success', async () => {
@@ -143,32 +149,72 @@ suite('Sources - Changes git write', () => {
 		assert.deepStrictEqual(await attemptSourcesGitWrite(async () => ({ ...failedWrite, supported: true, success: true })), { kind: 'accepted' });
 	});
 
-	test('Panel / Review write visibility: Accept is not SCM-only; Unstage has no fake button', () => {
-		const hookOnly = resolveSourcesDiffWriteActions({
+	test('Panel / Review write visibility: Accept needs payload; SCM local action is Stage', () => {
+		const hookOnlyNoPayload = resolveSourcesDiffWriteActions({
 			groupId: 'workingTree',
 			hasScmResource: false,
 			canWriteStage: true,
 			canWriteAccept: true,
+			hasApplyHunksPayload: false,
 			hasGitStageCommand: false,
 			hasGitUnstageCommand: false,
 			hasGitCleanCommand: false,
 		});
-		assert.strictEqual(hookOnly.showStage, true);
-		assert.strictEqual(hookOnly.showAccept, true);
-		assert.strictEqual(hookOnly.showRevert, false);
-		assert.strictEqual(hookOnly.showUnstage, false);
-		assert.strictEqual(hookOnly.unstageUnavailable, false);
+		assert.strictEqual(hookOnlyNoPayload.showStage, true);
+		assert.strictEqual(hookOnlyNoPayload.showAccept, false);
+		assert.strictEqual(hookOnlyNoPayload.showRevert, false);
+		assert.strictEqual(hookOnlyNoPayload.showUnstage, false);
+		assert.strictEqual(hookOnlyNoPayload.unstageUnavailable, false);
+
+		const hookWithPayload = resolveSourcesDiffWriteActions({
+			groupId: 'workingTree',
+			hasScmResource: false,
+			canWriteStage: true,
+			canWriteAccept: true,
+			hasApplyHunksPayload: true,
+			hasGitStageCommand: false,
+			hasGitUnstageCommand: false,
+			hasGitCleanCommand: false,
+		});
+		assert.strictEqual(hookWithPayload.showAccept, true);
+
+		const localScmStage = resolveSourcesDiffWriteActions({
+			groupId: 'workingTree',
+			hasScmResource: true,
+			canWriteStage: false,
+			canWriteAccept: true,
+			hasApplyHunksPayload: false,
+			hasGitStageCommand: true,
+			hasGitUnstageCommand: false,
+			hasGitCleanCommand: false,
+		});
+		assert.strictEqual(localScmStage.showStage, true);
+		assert.strictEqual(localScmStage.showAccept, false);
+
+		const noScmNoPayload = resolveSourcesDiffWriteActions({
+			groupId: 'workingTree',
+			hasScmResource: false,
+			canWriteStage: false,
+			canWriteAccept: true,
+			hasApplyHunksPayload: false,
+			hasGitStageCommand: true,
+			hasGitUnstageCommand: false,
+			hasGitCleanCommand: false,
+		});
+		assert.strictEqual(noScmNoPayload.showStage, false);
+		assert.strictEqual(noScmNoPayload.showAccept, false);
 
 		const stagedGitOnly = resolveSourcesDiffWriteActions({
 			groupId: 'index',
 			hasScmResource: false,
 			canWriteStage: false,
 			canWriteAccept: true,
+			hasApplyHunksPayload: false,
 			hasGitStageCommand: true,
 			hasGitUnstageCommand: true,
 			hasGitCleanCommand: true,
 		});
-		assert.strictEqual(stagedGitOnly.showAccept, true, 'Accept stays available via ApplyHunks hook');
+		assert.strictEqual(stagedGitOnly.showAccept, false);
 		assert.strictEqual(stagedGitOnly.showUnstage, false);
 		assert.strictEqual(stagedGitOnly.unstageUnavailable, true);
 		assert.ok(sourcesGitUnstageUnavailableMessage().length > 0);
@@ -178,6 +224,7 @@ suite('Sources - Changes git write', () => {
 			hasScmResource: true,
 			canWriteStage: false,
 			canWriteAccept: false,
+			hasApplyHunksPayload: false,
 			hasGitStageCommand: true,
 			hasGitUnstageCommand: true,
 			hasGitCleanCommand: true,
@@ -235,13 +282,21 @@ suite('Sources - Changes git write', () => {
 		assert.strictEqual(await tryWriteSourcesGitStagePaths(false, async request => {
 			stageCalls.push(request);
 			return failedWrite;
-		}, ['src/a.ts']), undefined);
-		assert.strictEqual(await tryWriteSourcesGitStagePaths(true, undefined, ['src/a.ts']), undefined);
+		}, 'sess-1', ['src/a.ts']), undefined);
+		assert.strictEqual(await tryWriteSourcesGitStagePaths(true, undefined, 'sess-1', ['src/a.ts']), undefined);
+		assert.strictEqual(await tryWriteSourcesGitStagePaths(true, async request => {
+			stageCalls.push(request);
+			return failedWrite;
+		}, '', ['src/a.ts']), undefined);
 		assert.strictEqual(await tryWriteSourcesGitCommit(false, async request => {
 			commitCalls.push(request);
 			return failedWrite;
-		}, 'msg'), undefined);
-		assert.strictEqual(await tryWriteSourcesGitCommit(true, undefined, 'msg'), undefined);
+		}, 'sess-1', 'msg'), undefined);
+		assert.strictEqual(await tryWriteSourcesGitCommit(true, undefined, 'sess-1', 'msg'), undefined);
+		assert.strictEqual(await tryWriteSourcesGitCommit(true, async request => {
+			commitCalls.push(request);
+			return failedWrite;
+		}, '', 'msg'), undefined);
 		assert.strictEqual(await tryWriteSourcesGitApplyHunks(false, async request => {
 			applyCalls.push(request);
 			return failedWrite;
@@ -252,7 +307,7 @@ suite('Sources - Changes git write', () => {
 		assert.deepStrictEqual(applyCalls, []);
 	});
 
-	test('tryWrite Stage / Commit send when connected + hook; empty Accept does not', async () => {
+	test('tryWrite Stage / Commit send roster sessionId; empty Accept does not', async () => {
 		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
 		const commitCalls: UniverseAgentWriteGitCommitRequest[] = [];
 		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
@@ -261,18 +316,18 @@ suite('Sources - Changes git write', () => {
 		const staged = await tryWriteSourcesGitStagePaths(true, async request => {
 			stageCalls.push(request);
 			return acceptedWrite;
-		}, ['']);
+		}, 'sess-1', ['']);
 		const committed = await tryWriteSourcesGitCommit(true, async request => {
 			commitCalls.push(request);
 			return acceptedWrite;
-		}, '');
+		}, 'sess-1', '');
 		const applied = await tryWriteSourcesGitApplyHunks(true, async request => {
 			applyCalls.push(request);
 			return acceptedWrite;
 		});
 
-		assert.deepStrictEqual(stageCalls, [{ sessionId: '', commands: [{ argv: [''] }] }]);
-		assert.deepStrictEqual(commitCalls, [{ sessionId: '', message: '', signOff: false, amend: false }]);
+		assert.deepStrictEqual(stageCalls, [{ sessionId: 'sess-1', commands: [{ argv: [''] }] }]);
+		assert.deepStrictEqual(commitCalls, [{ sessionId: 'sess-1', message: '', signOff: false, amend: false }]);
 		assert.deepStrictEqual(applyCalls, []);
 		assert.strictEqual(applied, undefined);
 		assert.strictEqual(isSourcesGitWriteAccepted(staged), true);
@@ -310,8 +365,8 @@ suite('Sources - Changes git write', () => {
 
 	test('tryWrite still returns unsupported results so callers do not treat them as accepted', async () => {
 		const unsupportedSuccess = { ...failedWrite, success: true };
-		const staged = await tryWriteSourcesGitStagePaths(true, async () => unsupportedSuccess, ['src/a.ts']);
-		const committed = await tryWriteSourcesGitCommit(true, async () => unsupportedSuccess, 'msg');
+		const staged = await tryWriteSourcesGitStagePaths(true, async () => unsupportedSuccess, 'sess-1', ['src/a.ts']);
+		const committed = await tryWriteSourcesGitCommit(true, async () => unsupportedSuccess, 'sess-1', 'msg');
 		const applied = await tryWriteSourcesGitApplyHunks(true, async () => unsupportedSuccess, 'sess-1', ['a'], ['p']);
 
 		assert.strictEqual(isSourcesGitWriteUnsupported(staged), true);

@@ -16,14 +16,19 @@ import {
 	isSourcesChangeUnstageable,
 } from './sourcesChangesGit.js';
 
-/** Sources Changes Stage → WriteGitStagePaths. Empty sessionId / commands / argv are still sent. */
-export function canSendSourcesGitStagePaths(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
+/** Roster / engine git RPCs require a real session. Empty sessionId → no hook. */
+export function hasSourcesGitSessionId(sessionId: string): boolean {
+	return sessionId !== '';
 }
 
-/** Sources Changes Commit → WriteGitCommit. Empty sessionId / message are still sent. */
-export function canSendSourcesGitCommit(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
+/** Sources Changes Stage → WriteGitStagePaths. Empty sessionId does not call the hook. */
+export function canSendSourcesGitStagePaths(connected: boolean, hasHook: boolean, sessionId: string): boolean {
+	return connected && hasHook && hasSourcesGitSessionId(sessionId);
+}
+
+/** Sources Changes Commit → WriteGitCommit. Empty sessionId does not call the hook. */
+export function canSendSourcesGitCommit(connected: boolean, hasHook: boolean, sessionId: string): boolean {
+	return connected && hasHook && hasSourcesGitSessionId(sessionId);
 }
 
 /** Sources Review Accept → WriteGitApplyHunks. Connection + hook only; empty session or empty patches are refused in tryWrite. */
@@ -37,25 +42,23 @@ export function hasSourcesGitApplyHunksPayload(sessionId: string, patches: reado
 }
 
 /**
- * Always send empty `sessionId` as-is.
- * Each path becomes one command `{ argv: [path] }`. Empty path / empty
- * `paths` stay as-is. This write does not invent `git add` or a session.
+ * Pass through `sessionId` as-is. Each path becomes one command `{ argv: [path] }`.
+ * Empty path / empty `paths` stay as-is. This write does not invent `git add`.
  */
-export function sourcesGitStagePathsRequest(paths: readonly string[]): UniverseAgentWriteGitStagePathsRequest {
+export function sourcesGitStagePathsRequest(sessionId: string, paths: readonly string[]): UniverseAgentWriteGitStagePathsRequest {
 	return {
-		sessionId: '',
+		sessionId,
 		commands: paths.map(path => ({ argv: [path] })),
 	};
 }
 
 /**
- * Always send empty `sessionId` as-is.
- * Pass through empty `message` as-is (no default / no trim).
+ * Pass through `sessionId` / empty `message` as-is (no default / no trim).
  * `signOff` / `amend` stay false.
  */
-export function sourcesGitCommitRequest(message: string): UniverseAgentWriteGitCommitRequest {
+export function sourcesGitCommitRequest(sessionId: string, message: string): UniverseAgentWriteGitCommitRequest {
 	return {
-		sessionId: '',
+		sessionId,
 		message,
 		signOff: false,
 		amend: false,
@@ -93,9 +96,9 @@ export function isSourcesGitWriteUnsupported(result: UniverseAgentWriteGitWriteR
 	return !!result && !result.supported;
 }
 
-/** Review Accept: GitService hook or local `git.stage`. Hook does not require SCM. */
-export function canShowSourcesReviewAccept(canWriteAccept: boolean, hasLocalStage: boolean): boolean {
-	return canWriteAccept || hasLocalStage;
+/** Review Accept is ApplyHunks only. No payload → hide Accept; local SCM stays on Stage. */
+export function canShowSourcesReviewAccept(canWriteAccept: boolean, hasApplyHunksPayload: boolean): boolean {
+	return canWriteAccept && hasApplyHunksPayload;
 }
 
 export type SourcesGitWriteAttemptResult =
@@ -135,6 +138,7 @@ export function resolveSourcesDiffWriteActions(input: {
 	readonly hasScmResource: boolean;
 	readonly canWriteStage: boolean;
 	readonly canWriteAccept: boolean;
+	readonly hasApplyHunksPayload: boolean;
 	readonly hasGitStageCommand: boolean;
 	readonly hasGitUnstageCommand: boolean;
 	readonly hasGitCleanCommand: boolean;
@@ -148,7 +152,7 @@ export function resolveSourcesDiffWriteActions(input: {
 
 	return {
 		showStage: stageable && (input.canWriteStage || hasLocalStage),
-		showAccept: canShowSourcesReviewAccept(input.canWriteAccept, hasLocalStage),
+		showAccept: canShowSourcesReviewAccept(input.canWriteAccept, input.hasApplyHunksPayload),
 		showRevert: hasLocalRevert,
 		showUnstage: hasLocalUnstage,
 		unstageUnavailable: unstageable && !hasLocalUnstage,
@@ -173,6 +177,7 @@ export function resolveSourcesChangesRowAction(input: {
 		hasScmResource: input.hasScmResource,
 		canWriteStage: input.canWriteStage,
 		canWriteAccept: false,
+		hasApplyHunksPayload: false,
 		hasGitStageCommand: input.hasGitStageCommand,
 		hasGitUnstageCommand: input.hasGitUnstageCommand,
 		hasGitCleanCommand: false,
@@ -196,23 +201,25 @@ export function sourcesGitUnstageUnavailableMessage(): string {
 export async function tryWriteSourcesGitStagePaths(
 	connected: boolean,
 	hook: ((request: UniverseAgentWriteGitStagePathsRequest) => Promise<UniverseAgentWriteGitWriteResult>) | undefined,
+	sessionId: string,
 	paths: readonly string[],
 ): Promise<UniverseAgentWriteGitWriteResult | undefined> {
-	if (!canSendSourcesGitStagePaths(connected, typeof hook === 'function') || !hook) {
+	if (!canSendSourcesGitStagePaths(connected, typeof hook === 'function', sessionId) || !hook) {
 		return undefined;
 	}
-	return hook(sourcesGitStagePathsRequest(paths));
+	return hook(sourcesGitStagePathsRequest(sessionId, paths));
 }
 
 export async function tryWriteSourcesGitCommit(
 	connected: boolean,
 	hook: ((request: UniverseAgentWriteGitCommitRequest) => Promise<UniverseAgentWriteGitWriteResult>) | undefined,
+	sessionId: string,
 	message: string,
 ): Promise<UniverseAgentWriteGitWriteResult | undefined> {
-	if (!canSendSourcesGitCommit(connected, typeof hook === 'function') || !hook) {
+	if (!canSendSourcesGitCommit(connected, typeof hook === 'function', sessionId) || !hook) {
 		return undefined;
 	}
-	return hook(sourcesGitCommitRequest(message));
+	return hook(sourcesGitCommitRequest(sessionId, message));
 }
 
 export async function tryWriteSourcesGitApplyHunks(

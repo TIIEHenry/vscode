@@ -29,6 +29,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { ViewPane, IViewPaneOptions } from '../../../browser/parts/views/viewPane.js';
 import { EditorModel } from '../../../common/editor/editorModel.js';
 import { IViewDescriptorService } from '../../../common/views.js';
+import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { ISCMResource, ISCMService } from '../../scm/common/scm.js';
 import { findScmResourceForUri, ISourcesChangeRef, sourcesDiffLocalWritePath } from '../common/sourcesChangeRef.js';
 import {
@@ -40,6 +41,7 @@ import {
 	attemptSourcesGitWrite,
 	canSendSourcesGitApplyHunks,
 	canSendSourcesGitStagePaths,
+	hasSourcesGitApplyHunksPayload,
 	resolveSourcesDiffWriteActions,
 	sourcesGitUnstageUnavailableMessage,
 	tryWriteSourcesGitApplyHunks,
@@ -118,6 +120,7 @@ export class SourcesDiffPanelView extends ViewPane {
 		@ICommandService private readonly commandService: ICommandService,
 		@ISCMService private readonly scmService: ISCMService,
 		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
+		@IConversationRosterService private readonly roster: IConversationRosterService,
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
 		this.element.classList.add('sources-diff-panel');
@@ -127,6 +130,7 @@ export class SourcesDiffPanelView extends ViewPane {
 			void this.renderRef(ref);
 		}));
 		this._register(this.uaConnection.onDidChangeConnection(() => this.updateWriteActions()));
+		this._register(this.roster.onDidChangeActiveSession(() => this.updateWriteActions()));
 
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration('diffEditor.renderSideBySide') && this.diffWidget.value) {
@@ -256,6 +260,10 @@ export class SourcesDiffPanelView extends ViewPane {
 		};
 	}
 
+	private getGitSessionId(): string {
+		return this.roster.getActiveSessionId();
+	}
+
 	private updateWriteActions(): void {
 		if (!this.stageButton || !this.acceptButton || !this.revertButton || !this.unstageButton || !this.unstageUnavailable) {
 			return;
@@ -271,17 +279,20 @@ export class SourcesDiffPanelView extends ViewPane {
 			return;
 		}
 
+		const sessionId = this.getGitSessionId();
 		const actions = resolveSourcesDiffWriteActions({
 			groupId: context.groupId,
 			hasScmResource: !!context.scmResource,
 			canWriteStage: canSendSourcesGitStagePaths(
 				this.uaConnection.isEngineConnected(),
 				typeof this.uaConnection.writeGitStagePaths === 'function',
+				sessionId,
 			),
 			canWriteAccept: canSendSourcesGitApplyHunks(
 				this.uaConnection.isEngineConnected(),
 				typeof this.uaConnection.writeGitApplyHunks === 'function',
 			),
+			hasApplyHunksPayload: hasSourcesGitApplyHunksPayload(sessionId, []),
 			hasGitStageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND),
 			hasGitUnstageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_UNSTAGE_COMMAND),
 			hasGitCleanCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_CLEAN_COMMAND),
@@ -305,6 +316,7 @@ export class SourcesDiffPanelView extends ViewPane {
 			const attempt = await attemptSourcesGitWrite(() => tryWriteSourcesGitStagePaths(
 				this.uaConnection.isEngineConnected(),
 				hook ? request => hook.call(this.uaConnection, request) : undefined,
+				this.getGitSessionId(),
 				[context.path],
 			));
 			if (attempt.kind === 'accepted') {
@@ -331,6 +343,7 @@ export class SourcesDiffPanelView extends ViewPane {
 		if (canSendSourcesGitStagePaths(
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitStagePaths === 'function',
+			this.getGitSessionId(),
 		)) {
 			this.showActionNotice(localize('sourcesDiffPanel.stageUnavailable', "Git stage is not available."));
 		}
@@ -343,11 +356,14 @@ export class SourcesDiffPanelView extends ViewPane {
 			return;
 		}
 
+		const sessionId = this.getGitSessionId();
+		const patches: readonly string[] = [];
 		const hook = this.uaConnection.writeGitApplyHunks;
 		try {
 			const attempt = await attemptSourcesGitWrite(() => tryWriteSourcesGitApplyHunks(
 				this.uaConnection.isEngineConnected(),
 				hook ? request => hook.call(this.uaConnection, request) : undefined,
+				sessionId,
 			));
 			if (attempt.kind === 'accepted') {
 				this.hideActionNotice();
@@ -365,15 +381,10 @@ export class SourcesDiffPanelView extends ViewPane {
 			return;
 		}
 
-		if (context.scmResource) {
-			await this.runGitAction(SOURCES_GIT_STAGE_COMMAND);
-			return;
-		}
-
 		if (canSendSourcesGitApplyHunks(
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitApplyHunks === 'function',
-		)) {
+		) || hasSourcesGitApplyHunksPayload(sessionId, patches)) {
 			this.showActionNotice(localize('sourcesDiffPanel.acceptUnavailable', "Git accept is not available."));
 		}
 		this.updateWriteActions();

@@ -19,47 +19,48 @@ import type {
 	UniverseAgentReadGitSummaryResult,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { ISourcesChangeEntry } from './sourcesChangesModel.js';
-import { sourcesGitStagePathsRequest } from './sourcesChangesGitWrite.js';
+import { hasSourcesGitSessionId } from './sourcesChangesGitWrite.js';
 
-/** Sources Changes / Review list → ReadGitChanges. Empty sessionId is still sent. */
-export function canSendSourcesGitChanges(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
+/** Sources Changes / Review list → ReadGitChanges. Empty sessionId does not call the hook. */
+export function canSendSourcesGitChanges(connected: boolean, hasHook: boolean, sessionId: string): boolean {
+	return connected && hasHook && hasSourcesGitSessionId(sessionId);
 }
 
-/** Sources Changes / Review list → ReadGitSummary. Empty sessionId is still sent. */
-export function canSendSourcesGitSummary(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
+/** Sources Changes / Review list → ReadGitSummary. Empty sessionId does not call the hook. */
+export function canSendSourcesGitSummary(connected: boolean, hasHook: boolean, sessionId: string): boolean {
+	return connected && hasHook && hasSourcesGitSessionId(sessionId);
 }
 
-/** Sources row open → ReadGitFileDiff. Empty sessionId / path / indexState are still sent. */
-export function canSendSourcesGitFileDiff(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
+/** Sources row open → ReadGitFileDiff. Empty sessionId does not call the hook. */
+export function canSendSourcesGitFileDiff(connected: boolean, hasHook: boolean, sessionId: string): boolean {
+	return connected && hasHook && hasSourcesGitSessionId(sessionId);
 }
 
-/** Same empty `sessionId` as write (`sourcesGitStagePathsRequest`). */
-export function sourcesGitChangesRequest(): UniverseAgentReadGitChangesRequest {
+/** Same `sessionId` as write (`sourcesGitStagePathsRequest`). */
+export function sourcesGitChangesRequest(sessionId: string): UniverseAgentReadGitChangesRequest {
 	return {
-		sessionId: sourcesGitStagePathsRequest([]).sessionId,
+		sessionId,
 	};
 }
 
-/** Same empty `sessionId` as write (`sourcesGitStagePathsRequest`). */
-export function sourcesGitSummaryRequest(): UniverseAgentReadGitSummaryRequest {
+/** Same `sessionId` as write (`sourcesGitStagePathsRequest`). */
+export function sourcesGitSummaryRequest(sessionId: string): UniverseAgentReadGitSummaryRequest {
 	return {
-		sessionId: sourcesGitStagePathsRequest([]).sessionId,
+		sessionId,
 	};
 }
 
 /**
- * Same empty `sessionId` as write.
+ * Same `sessionId` as write.
  * Pass through empty `path` / `indexState` as-is (no default / no trim).
  */
 export function sourcesGitFileDiffRequest(
+	sessionId: string,
 	path: string,
 	indexState: string,
 ): UniverseAgentReadGitFileDiffRequest {
 	return {
-		sessionId: sourcesGitStagePathsRequest([]).sessionId,
+		sessionId,
 		path,
 		indexState,
 	};
@@ -198,33 +199,36 @@ export function parseSourcesGitUnifiedDiff(unifiedDiff: string): { original: str
 export async function tryReadSourcesGitChanges(
 	connected: boolean,
 	hook: ((request: UniverseAgentReadGitChangesRequest) => Promise<UniverseAgentReadGitChangesResult>) | undefined,
+	sessionId: string,
 ): Promise<UniverseAgentReadGitChangesResult | undefined> {
-	if (!canSendSourcesGitChanges(connected, typeof hook === 'function') || !hook) {
+	if (!canSendSourcesGitChanges(connected, typeof hook === 'function', sessionId) || !hook) {
 		return undefined;
 	}
-	return hook(sourcesGitChangesRequest());
+	return hook(sourcesGitChangesRequest(sessionId));
 }
 
 export async function tryReadSourcesGitSummary(
 	connected: boolean,
 	hook: ((request: UniverseAgentReadGitSummaryRequest) => Promise<UniverseAgentReadGitSummaryResult>) | undefined,
+	sessionId: string,
 ): Promise<UniverseAgentReadGitSummaryResult | undefined> {
-	if (!canSendSourcesGitSummary(connected, typeof hook === 'function') || !hook) {
+	if (!canSendSourcesGitSummary(connected, typeof hook === 'function', sessionId) || !hook) {
 		return undefined;
 	}
-	return hook(sourcesGitSummaryRequest());
+	return hook(sourcesGitSummaryRequest(sessionId));
 }
 
 export async function tryReadSourcesGitFileDiff(
 	connected: boolean,
 	hook: ((request: UniverseAgentReadGitFileDiffRequest) => Promise<UniverseAgentReadGitFileDiffResult>) | undefined,
+	sessionId: string,
 	path: string,
 	indexState: string,
 ): Promise<UniverseAgentReadGitFileDiffResult | undefined> {
-	if (!canSendSourcesGitFileDiff(connected, typeof hook === 'function') || !hook) {
+	if (!canSendSourcesGitFileDiff(connected, typeof hook === 'function', sessionId) || !hook) {
 		return undefined;
 	}
-	return hook(sourcesGitFileDiffRequest(path, indexState));
+	return hook(sourcesGitFileDiffRequest(sessionId, path, indexState));
 }
 
 /** Honest git-read failure text for Changes / Review status lines. */
@@ -242,15 +246,16 @@ export async function tryLoadSourcesGitChangeEntries(
 	readChanges: ((request: UniverseAgentReadGitChangesRequest) => Promise<UniverseAgentReadGitChangesResult>) | undefined,
 	readSummary: ((request: UniverseAgentReadGitSummaryRequest) => Promise<UniverseAgentReadGitSummaryResult>) | undefined,
 	rootUri: URI | undefined,
+	sessionId: string,
 ): Promise<{ entries: ISourcesChangeEntry[]; summary: UniverseAgentReadGitSummaryResult | undefined } | undefined> {
-	const changes = await tryReadSourcesGitChanges(connected, readChanges);
+	const changes = await tryReadSourcesGitChanges(connected, readChanges, sessionId);
 	if (!changes || !changes.supported) {
 		return undefined;
 	}
 
 	let summary: UniverseAgentReadGitSummaryResult | undefined;
 	try {
-		summary = await tryReadSourcesGitSummary(connected, readSummary);
+		summary = await tryReadSourcesGitSummary(connected, readSummary, sessionId);
 	} catch {
 		summary = undefined;
 	}

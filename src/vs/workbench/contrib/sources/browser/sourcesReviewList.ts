@@ -25,6 +25,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { IModelService } from '../../../../editor/common/services/model.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
+import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
 import { tryLoadSourcesGitChangeEntries, tryReadSourcesGitFileDiff, sourcesGitDiffOpenFailureMessage, sourcesGitReadFailureMessage } from '../common/sourcesChangesGitRead.js';
@@ -234,6 +235,7 @@ export class SourcesReviewList extends Disposable {
 		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 		@IWorkspaceContextService private readonly workspaceContext: IWorkspaceContextService,
 		@IModelService private readonly modelService: IModelService,
+		@IConversationRosterService private readonly roster: IConversationRosterService,
 	) {
 		super();
 
@@ -292,6 +294,7 @@ export class SourcesReviewList extends Disposable {
 		this._register(this.reviewProgressService.onDidChange(() => this.scheduleRefresh()));
 		this._register(this.attributionService.onDidChange(() => this.scheduleRefresh()));
 		this._register(this.uaConnection.onDidChangeConnection(() => this.scheduleRefresh()));
+		this._register(this.roster.onDidChangeActiveSession(() => this.scheduleRefresh()));
 		this.scheduleRefresh();
 
 		this._register(this.scmService.onDidAddRepository(repo => {
@@ -547,6 +550,10 @@ export class SourcesReviewList extends Disposable {
 		return this.list;
 	}
 
+	private getGitSessionId(): string {
+		return this.roster.getActiveSessionId();
+	}
+
 	private getGitResourceRoot(): URI | undefined {
 		for (const repo of this.scmService.repositories) {
 			if (repo.provider.rootUri) {
@@ -561,6 +568,7 @@ export class SourcesReviewList extends Disposable {
 		return tryReadSourcesGitFileDiff(
 			this.uaConnection.isEngineConnected(),
 			hook ? request => hook.call(this.uaConnection, request) : undefined,
+			this.getGitSessionId(),
 			entry.gitPath ?? '',
 			entry.indexState ?? '',
 		);
@@ -574,6 +582,7 @@ export class SourcesReviewList extends Disposable {
 			changesHook ? request => changesHook.call(this.uaConnection, request) : undefined,
 			summaryHook ? request => summaryHook.call(this.uaConnection, request) : undefined,
 			this.getGitResourceRoot(),
+			this.getGitSessionId(),
 		);
 		return loaded?.entries;
 	}

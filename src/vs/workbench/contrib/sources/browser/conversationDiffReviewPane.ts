@@ -25,9 +25,10 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { EditorPane } from '../../../browser/parts/editor/editorPane.js';
 import { IEditorOpenContext } from '../../../common/editor.js';
 import { IEditorGroup } from '../../../services/editor/common/editorGroupsService.js';
+import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { ISCMService } from '../../scm/common/scm.js';
 import { ConversationDiffReviewEditorId } from '../common/conversationDiffReviewInput.js';
-import { findScmResourceForUri } from '../common/sourcesChangeRef.js';
+import { findScmResourceForUri, sourcesDiffLocalWritePath } from '../common/sourcesChangeRef.js';
 import {
 	SOURCES_GIT_CLEAN_COMMAND,
 	SOURCES_GIT_STAGE_COMMAND,
@@ -37,9 +38,11 @@ import {
 	attemptSourcesGitWrite,
 	canSendSourcesGitApplyHunks,
 	canSendSourcesGitStagePaths,
+	hasSourcesGitApplyHunksPayload,
 	resolveSourcesDiffWriteActions,
 	sourcesGitUnstageUnavailableMessage,
 	tryWriteSourcesGitApplyHunks,
+	tryWriteSourcesGitStagePaths,
 } from '../common/sourcesChangesGitWrite.js';
 import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
 
@@ -67,6 +70,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 	private revertButton: HTMLButtonElement | undefined;
 	private unstageButton: HTMLButtonElement | undefined;
 	private unstageUnavailable: HTMLElement | undefined;
+	private stageButton: HTMLButtonElement | undefined;
 	private acceptButton: HTMLButtonElement | undefined;
 	private noticeElement: HTMLElement | undefined;
 	private editorContainer: HTMLElement | undefined;
@@ -83,6 +87,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@ISCMService private readonly scmService: ISCMService,
 		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
+		@IConversationRosterService private readonly roster: IConversationRosterService,
 	) {
 		super(ConversationDiffReviewPane.ID, group, telemetryService, themeService, storageService);
 
@@ -92,6 +97,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 			}
 		}));
 		this._register(this.uaConnection.onDidChangeConnection(() => this.updateReviewActions()));
+		this._register(this.roster.onDidChangeActiveSession(() => this.updateReviewActions()));
 	}
 
 	protected override createEditor(parent: HTMLElement): void {
@@ -120,6 +126,14 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.unstageUnavailable = dom.append(this.toolbar, $('span.conversation-diff-review-unstage-unavailable'));
 		this.unstageUnavailable.textContent = sourcesGitUnstageUnavailableMessage();
 		this.unstageUnavailable.style.display = 'none';
+
+		this.stageButton = dom.append(this.toolbar, $('button.conversation-diff-review-stage')) as HTMLButtonElement;
+		this.stageButton.type = 'button';
+		this.stageButton.textContent = localize('conversationDiffReviewPane.stage', "Stage");
+		this.stageButton.style.display = 'none';
+		this._register(dom.addDisposableListener(this.stageButton, 'click', () => {
+			void this.runStage();
+		}));
 
 		this.acceptButton = dom.append(this.toolbar, $('button.conversation-diff-review-accept')) as HTMLButtonElement;
 		this.acceptButton.type = 'button';
@@ -183,6 +197,9 @@ export class ConversationDiffReviewPane extends EditorPane {
 		if (this.unstageUnavailable) {
 			this.unstageUnavailable.style.display = 'none';
 		}
+		if (this.stageButton) {
+			this.stageButton.style.display = 'none';
+		}
 		if (this.acceptButton) {
 			this.acceptButton.style.display = 'none';
 		}
@@ -217,24 +234,31 @@ export class ConversationDiffReviewPane extends EditorPane {
 		};
 	}
 
+	private getGitSessionId(): string {
+		return this.roster.getActiveSessionId();
+	}
+
 	private updateReviewActions(): void {
 		const input = this.input;
-		if (!(input instanceof ConversationDiffReviewInput) || !this.revertButton || !this.acceptButton || !this.unstageButton || !this.unstageUnavailable) {
+		if (!(input instanceof ConversationDiffReviewInput) || !this.revertButton || !this.stageButton || !this.acceptButton || !this.unstageButton || !this.unstageUnavailable) {
 			return;
 		}
 
 		const match = findScmResourceForUri(this.scmService, input.modified);
+		const sessionId = this.getGitSessionId();
 		const actions = resolveSourcesDiffWriteActions({
 			groupId: match?.groupId || input.groupId,
 			hasScmResource: !!match,
 			canWriteStage: canSendSourcesGitStagePaths(
 				this.uaConnection.isEngineConnected(),
 				typeof this.uaConnection.writeGitStagePaths === 'function',
+				sessionId,
 			),
 			canWriteAccept: canSendSourcesGitApplyHunks(
 				this.uaConnection.isEngineConnected(),
 				typeof this.uaConnection.writeGitApplyHunks === 'function',
 			),
+			hasApplyHunksPayload: hasSourcesGitApplyHunksPayload(sessionId, []),
 			hasGitStageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND),
 			hasGitUnstageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_UNSTAGE_COMMAND),
 			hasGitCleanCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_CLEAN_COMMAND),
@@ -243,20 +267,24 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.revertButton.style.display = actions.showRevert ? '' : 'none';
 		this.unstageButton.style.display = actions.showUnstage ? '' : 'none';
 		this.unstageUnavailable.style.display = actions.unstageUnavailable ? '' : 'none';
+		this.stageButton.style.display = actions.showStage ? '' : 'none';
 		this.acceptButton.style.display = actions.showAccept ? '' : 'none';
 	}
 
-	private async runAccept(): Promise<void> {
+	private async runStage(): Promise<void> {
 		const input = this.input;
 		if (!(input instanceof ConversationDiffReviewInput)) {
 			return;
 		}
 
-		const hook = this.uaConnection.writeGitApplyHunks;
+		const match = findScmResourceForUri(this.scmService, input.modified);
+		const hook = this.uaConnection.writeGitStagePaths;
 		try {
-			const attempt = await attemptSourcesGitWrite(() => tryWriteSourcesGitApplyHunks(
+			const attempt = await attemptSourcesGitWrite(() => tryWriteSourcesGitStagePaths(
 				this.uaConnection.isEngineConnected(),
 				hook ? request => hook.call(this.uaConnection, request) : undefined,
+				this.getGitSessionId(),
+				[sourcesDiffLocalWritePath({ modified: input.modified, scmResource: match?.resource })],
 			));
 			if (attempt.kind === 'accepted') {
 				this.hideNotice();
@@ -274,16 +302,56 @@ export class ConversationDiffReviewPane extends EditorPane {
 			return;
 		}
 
-		const match = findScmResourceForUri(this.scmService, input.modified);
 		if (match) {
 			await this.runGitAction(SOURCES_GIT_STAGE_COMMAND);
+			return;
+		}
+
+		if (canSendSourcesGitStagePaths(
+			this.uaConnection.isEngineConnected(),
+			typeof this.uaConnection.writeGitStagePaths === 'function',
+			this.getGitSessionId(),
+		)) {
+			this.showNotice(localize('conversationDiffReviewPane.stageUnavailable', "Git stage is not available."));
+		}
+		this.updateReviewActions();
+	}
+
+	private async runAccept(): Promise<void> {
+		const input = this.input;
+		if (!(input instanceof ConversationDiffReviewInput)) {
+			return;
+		}
+
+		const sessionId = this.getGitSessionId();
+		const patches: readonly string[] = [];
+		const hook = this.uaConnection.writeGitApplyHunks;
+		try {
+			const attempt = await attemptSourcesGitWrite(() => tryWriteSourcesGitApplyHunks(
+				this.uaConnection.isEngineConnected(),
+				hook ? request => hook.call(this.uaConnection, request) : undefined,
+				sessionId,
+			));
+			if (attempt.kind === 'accepted') {
+				this.hideNotice();
+				this.updateReviewActions();
+				return;
+			}
+			if (attempt.kind === 'failed') {
+				this.showNotice(attempt.detail);
+				this.updateReviewActions();
+				return;
+			}
+		} catch (error) {
+			this.showNotice(getErrorMessage(error));
+			this.updateReviewActions();
 			return;
 		}
 
 		if (canSendSourcesGitApplyHunks(
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitApplyHunks === 'function',
-		)) {
+		) || hasSourcesGitApplyHunksPayload(sessionId, patches)) {
 			this.showNotice(localize('conversationDiffReviewPane.acceptUnavailable', "Git accept is not available."));
 		}
 		this.updateReviewActions();
