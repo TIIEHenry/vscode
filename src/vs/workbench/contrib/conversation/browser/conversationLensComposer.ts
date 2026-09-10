@@ -79,11 +79,7 @@ export function refreshComposerCatalogs(host: IConversationLensComposerHost): vo
 			host.updateGateRow();
 			return;
 		}
-		host.agentSelectBox.setOptions([{ text: conversationLensDockNoAgent }], 0);
-		host.modelSelectBox.setOptions([{ text: conversationLensDockNoModel }], 0);
-		host.modelSelectedIndex = 0;
-		host.catalogModelIds = [''];
-		host.catalogToolNames = [];
+		keepLastGoodComposerCatalogOrEmpty(host);
 		host.updateSendEnabled();
 		host.updateGateRow();
 		void loadConnectedComposerCatalogs(host, generation);
@@ -155,6 +151,12 @@ function restoreLastGoodComposerCatalogOnSupportedThrow(host: IConversationLensC
 		return;
 	}
 	host.catalogToolNames = last?.tools ? last.tools.names : [];
+}
+
+function keepLastGoodComposerCatalogOrEmpty(host: IConversationLensComposerHost): void {
+	restoreLastGoodComposerCatalogOnSupportedThrow(host, 'agent');
+	restoreLastGoodComposerCatalogOnSupportedThrow(host, 'model');
+	restoreLastGoodComposerCatalogOnSupportedThrow(host, 'tools');
 }
 
 export async function loadConnectedComposerCatalogs(host: IConversationLensComposerHost, generation: number): Promise<void> {
