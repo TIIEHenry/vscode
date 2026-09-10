@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 关仓：D234–D237 已合入；merge compile-client 0。待 push 后对齐工位。"
+summary: "loop 本波：A D238 已合；B/C/D 仍在工位。未 compile-client。"
 ---
 
 # Development Progress
@@ -44,10 +44,10 @@ summary: "loop 关仓：D234–D237 已合入；merge compile-client 0。待 pus
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | mcp-runtime-tools-leftover | 本工位收 [D238](deferred-gaps.md)；`loadTools` 活画后再 throw 保 leftover 工具行 + failed |
-| **B** | composer-supported-throw-keep-last | 已进 merge `35c96a1002c`；[D235](deferred-gaps.md) 已闭 |
-| **C** | team-refresh-leftover | 已进 merge `1a63d0e7e2f`；[D236](deferred-gaps.md) 已闭；勿 add `dev/loop` |
-| **D** | agents-hierarchy-pending-leftover | 已进 merge `4fcdc3ad254`；[D237](deferred-gaps.md) 已闭 |
+| **A** | mcp-runtime-tools-leftover | 已进 merge `2ee8952416b`；[D238](deferred-gaps.md) 已闭 |
+| **B** | clipboard-list-leftover | 工位进行中 [D239](deferred-gaps.md) |
+| **C** | triggers-list-leftover | 工位进行中 [D240](deferred-gaps.md)；勿 add `dev/loop` |
+| **D** | team-pending-leftover | 工位进行中 [D241](deferred-gaps.md) |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
