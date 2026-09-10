@@ -481,7 +481,7 @@ export class NavigatorAgentsView extends ViewPane {
 			if (treeFetchFailed) {
 				this.setHierarchyAfterTreeFetchFail();
 			} else {
-				this.setHierarchyState([], pendingCopy);
+				this.setHierarchyAfterPending(pendingCopy);
 			}
 			this.setActivityFromSnapshot(snapshot, lease?.attribution, undefined, treeFetchFailed);
 			return;
@@ -531,6 +531,14 @@ export class NavigatorAgentsView extends ViewPane {
 			return;
 		}
 		this.setHierarchyState([], NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY);
+	}
+
+	private setHierarchyAfterPending(pendingCopy: string): void {
+		if (this.hadHierarchySnapshot) {
+			this.setHierarchyNote(pendingCopy);
+			return;
+		}
+		this.setHierarchyState([], pendingCopy);
 	}
 
 	private setActivityFromSnapshot(

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 关仓：D230–D233 已合入；merge compile-client 0。待 push 后对齐工位。"
+summary: "loop 本波：A D234、D D237 已合；B/C 仍在工位。未 compile-client。"
 ---
 
 # Development Progress
@@ -44,10 +44,10 @@ summary: "loop 关仓：D230–D233 已合入；merge compile-client 0。待 pus
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | provider-model-list-leftover | [D234](deferred-gaps.md) 已闭；未 compile-client |
-| **B** | skills-list-leftover | 已进 merge `ddf4405166c`；[D231](deferred-gaps.md) 已闭 |
-| **C** | mcp-defs-list-leftover | 已进 merge `1bf59304a14`；[D232](deferred-gaps.md) 已闭；勿 add `dev/loop` |
-| **D** | agents-list-leftover | 已进 merge `f3145bb12cf`；[D233](deferred-gaps.md) 已闭 |
+| **A** | provider-model-list-leftover | 已进 merge `fd04d8b7fed`；[D234](deferred-gaps.md) 已闭 |
+| **B** | composer-supported-leftover | 工位进行中 [D235](deferred-gaps.md) |
+| **C** | team-list-leftover | 工位进行中 [D236](deferred-gaps.md)；勿 add `dev/loop` |
+| **D** | agents-hierarchy-pending-leftover | 已进 merge `4fcdc3ad254`；[D237](deferred-gaps.md) 已闭 |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
