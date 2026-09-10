@@ -40,6 +40,8 @@ import { localize } from '../../../../../nls.js';
 const AGENTS_FEATURE = localize('ua.engineAgentsFeatureLabel', "agent profiles");
 const AGENTS_EMPTY_COPY = localize('ua.engineAgentsEmpty', "No agent profiles yet.");
 const AGENT_TOOLS_FEATURE = localize('ua.engineAgentToolsFeatureLabel', "agent profile tools");
+const AGENT_TOOLS_EMPTY_COPY = localize('ua.engineAgentsToolsEmpty', "No engine tools to enable for this profile.");
+const LEFTOVER_AGENT_TOOL_NAME = 'leftover-agent-tool';
 const MCP_FEATURE = localize('ua.engineMcpFeatureLabel', "MCP server definitions");
 const MCP_EMPTY_COPY = localize('ua.engineMcpEmpty', "No MCP servers yet.");
 const TOOLS_FEATURE = localize('ua.engineToolsFeatureLabel', "engine tools");
@@ -1307,6 +1309,38 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		}
 	});
 
+	function getAgentToolRows(section: EngineAgentsSection): NodeListOf<Element> {
+		return section.getDomNode().querySelectorAll('.engine-agents-tools-panel .engine-catalog-row');
+	}
+
+	function getAgentToolsStatus(section: EngineAgentsSection): HTMLElement | null {
+		return section.getDomNode().querySelector(
+			'.engine-agents-tools-panel .engine-catalog-status-widget[data-catalog-mode="failed"]',
+		) as HTMLElement | null;
+	}
+
+	function assertAgentToolsFailedHonesty(section: EngineAgentsSection, reason: string, expectedRows: number): void {
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.ok((section.getDomNode().textContent ?? '').includes('Demo Agent'));
+		assert.strictEqual(section.getAgentToolRowCount(), expectedRows);
+		assert.strictEqual(section.getAgentToolNames().length, expectedRows);
+		assert.strictEqual(getAgentToolRows(section).length, expectedRows);
+		const toolsStatus = getAgentToolsStatus(section);
+		assert.ok(toolsStatus);
+		assert.strictEqual(toolsStatus.dataset['catalogMode'], 'failed');
+		assert.ok(toolsStatus.textContent?.includes(getCatalogFailedCopy(AGENT_TOOLS_FEATURE, reason)));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(AGENT_TOOLS_EMPTY_COPY));
+		if (expectedRows > 0) {
+			assert.ok(section.getAgentToolNames().includes(LEFTOVER_AGENT_TOOL_NAME));
+			assert.ok((section.getDomNode().textContent ?? '').includes(LEFTOVER_AGENT_TOOL_NAME));
+			const leftoverName = section.getDomNode().querySelector('.engine-agents-tools-panel .engine-catalog-name');
+			assert.ok(leftoverName);
+			assert.strictEqual(leftoverName.textContent, LEFTOVER_AGENT_TOOL_NAME);
+			assert.notStrictEqual((leftoverName as HTMLElement).style.display, 'none');
+		}
+	}
+
 	test('Agents: tools tab listTools throw paints failed toolsStatus', async () => {
 		const connection = createConnectionStub({
 			connected: true,
@@ -1328,16 +1362,10 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		section.setActiveAgentDetailTabForTest('tools');
 		await flushMicrotasks();
 
-		const toolsStatus = section.getDomNode().querySelector(
-			'.engine-agents-tools-panel .engine-catalog-status-widget[data-catalog-mode="failed"]',
-		) as HTMLElement | null;
-		assert.ok(toolsStatus);
-		assert.ok(toolsStatus.textContent?.includes(getCatalogFailedCopy(AGENT_TOOLS_FEATURE, 'listTools exploded')));
-		assert.strictEqual(section.getMode(), 'ready');
-		assert.strictEqual(section.getListEntryCount(), 1);
+		assertAgentToolsFailedHonesty(section, 'listTools exploded', 0);
 	});
 
-	test('Agents: tools tab reconnect listTools throw drops leftover rows and keeps catalog', async () => {
+	test('Agents: tools tab reconnect listTools throw keeps leftover rows and paints failed', async () => {
 		let listToolsCalls = 0;
 		let listAgentProfilesCalls = 0;
 		const connection = createConnectionStub({
@@ -1350,7 +1378,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			listTools: async () => {
 				listToolsCalls++;
 				if (listToolsCalls === 1) {
-					return { tools: [{ name: 'leftover-agent-tool' }] };
+					return { tools: [{ name: LEFTOVER_AGENT_TOOL_NAME }] };
 				}
 				throw new Error('listTools exploded');
 			},
@@ -1365,21 +1393,18 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		section.setActiveAgentDetailTabForTest('tools');
 		await flushMicrotasks();
 
-		assert.ok((section.getDomNode().textContent ?? '').includes('leftover-agent-tool'));
+		assert.strictEqual(section.getAgentToolRowCount(), 1);
+		assert.deepStrictEqual([...section.getAgentToolNames()], [LEFTOVER_AGENT_TOOL_NAME]);
+		assert.strictEqual(getAgentToolRows(section).length, 1);
+		assert.ok((section.getDomNode().textContent ?? '').includes(LEFTOVER_AGENT_TOOL_NAME));
+		assert.strictEqual(getAgentToolsStatus(section), null);
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(AGENT_TOOLS_EMPTY_COPY));
 		assert.strictEqual(listAgentProfilesCalls, 1);
 
 		connection.setConnected(true);
 		await flushMicrotasks();
 
-		const toolsStatus = section.getDomNode().querySelector(
-			'.engine-agents-tools-panel .engine-catalog-status-widget[data-catalog-mode="failed"]',
-		) as HTMLElement | null;
-		assert.ok(toolsStatus);
-		assert.ok(toolsStatus.textContent?.includes(getCatalogFailedCopy(AGENT_TOOLS_FEATURE, 'listTools exploded')));
-		assert.ok(!(section.getDomNode().textContent ?? '').includes('leftover-agent-tool'));
-		assert.strictEqual(section.getMode(), 'ready');
-		assert.strictEqual(section.getListEntryCount(), 1);
-		assert.ok((section.getDomNode().textContent ?? '').includes('Demo Agent'));
+		assertAgentToolsFailedHonesty(section, 'listTools exploded', 1);
 		assert.strictEqual(listAgentProfilesCalls, 2);
 		assert.strictEqual(listToolsCalls, 2);
 	});

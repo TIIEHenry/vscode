@@ -427,6 +427,14 @@ export class EngineAgentsSection extends Disposable {
 		return this.activeDetailTab;
 	}
 
+	getAgentToolRowCount(): number {
+		return this.toolsListHost.querySelectorAll('.engine-catalog-row').length;
+	}
+
+	getAgentToolNames(): readonly string[] {
+		return this.agentTools.map(tool => tool.name);
+	}
+
 	setActiveAgentDetailTabForTest(tab: EngineAgentDetailTab): void {
 		this.setActiveDetailTab(tab);
 	}
@@ -599,7 +607,7 @@ export class EngineAgentsSection extends Disposable {
 		return ok;
 	}
 
-	private setActiveDetailTab(tab: EngineAgentDetailTab): void {
+	private setActiveDetailTab(tab: EngineAgentDetailTab, forceAgentToolsReload = false): void {
 		this.activeDetailTab = tab;
 		this.instructionsTab.secondary = tab !== 'instructions';
 		this.toolsTab.secondary = tab !== 'tools';
@@ -611,18 +619,18 @@ export class EngineAgentsSection extends Disposable {
 		this.toolsPanel.style.display = tab === 'tools' && this.selectedProfile ? '' : 'none';
 		this.modelPanel.style.display = tab === 'model' && this.selectedProfile ? '' : 'none';
 		if (tab === 'tools') {
-			void this.ensureAgentToolsLoaded().then(() => this.renderAgentTools());
+			void this.ensureAgentToolsLoaded(forceAgentToolsReload).then(() => this.renderAgentTools());
 		}
 		if (tab === 'model') {
 			this.renderModelTab();
 		}
 	}
 
-	private syncDetailHost(): void {
+	private syncDetailHost(forceAgentToolsReload = false): void {
 		const show = canShowCatalogRows(this.mode) && !!this.selectedProfile;
 		this.detailHost.style.display = show ? '' : 'none';
 		if (show) {
-			this.setActiveDetailTab(this.activeDetailTab);
+			this.setActiveDetailTab(this.activeDetailTab, forceAgentToolsReload);
 		}
 	}
 
@@ -709,8 +717,11 @@ export class EngineAgentsSection extends Disposable {
 		return isToolEnabledInProfile(toolName, this.selectedProfile);
 	}
 
-	private async ensureAgentToolsLoaded(): Promise<void> {
-		if (this.agentTools.length > 0 || !this.connection.isEngineConnected()) {
+	private async ensureAgentToolsLoaded(forceReload = false): Promise<void> {
+		if (!this.connection.isEngineConnected()) {
+			return;
+		}
+		if (!forceReload && this.agentTools.length > 0 && this.agentToolsLoadFailed === undefined) {
 			return;
 		}
 		try {
@@ -718,7 +729,9 @@ export class EngineAgentsSection extends Disposable {
 			this.agentTools = [...result.tools];
 			this.agentToolsLoadFailed = undefined;
 		} catch (error) {
-			this.agentTools = [];
+			if (this.agentTools.length === 0) {
+				this.agentTools = [];
+			}
 			this.agentToolsLoadFailed = error instanceof Error && error.message
 				? error.message
 				: '';
@@ -739,11 +752,12 @@ export class EngineAgentsSection extends Disposable {
 				mode: 'failed',
 				featureLabel: AGENT_TOOLS_FEATURE,
 				reason: this.agentToolsLoadFailed || undefined,
-				onRetry: () => void this.ensureAgentToolsLoaded().then(() => this.renderAgentTools()),
+				onRetry: () => void this.ensureAgentToolsLoaded(true).then(() => this.renderAgentTools()),
 			});
-			return;
-		}
-		if (this.agentTools.length === 0) {
+			if (this.agentTools.length === 0) {
+				return;
+			}
+		} else if (this.agentTools.length === 0) {
 			this.toolsStatus.render({
 				mode: this.connection.isEngineConnected() ? 'empty' : 'disconnected',
 				featureLabel: AGENT_TOOLS_FEATURE,
@@ -753,8 +767,9 @@ export class EngineAgentsSection extends Disposable {
 					: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError),
 			});
 			return;
+		} else {
+			this.toolsStatus.hide();
 		}
-		this.toolsStatus.hide();
 		for (const group of groupToolsForCatalog(this.agentTools)) {
 			const heading = DOM.append(this.toolsListHost, $('.engine-catalog-group-label'));
 			heading.textContent = group.group === 'client'
@@ -860,8 +875,6 @@ export class EngineAgentsSection extends Disposable {
 				this.renderStatus();
 				return false;
 			}
-			this.agentTools = [];
-			this.agentToolsLoadFailed = undefined;
 			this.agentToolPending.clear();
 			this.setProfiles(result.profiles);
 			this.hideCatalogWriteStatus();
@@ -872,7 +885,7 @@ export class EngineAgentsSection extends Disposable {
 			this.listContainer.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
 			this.writeToolbar.style.display = canPerformCatalogWrite(this.mode) ? '' : 'none';
 			this.updateWriteActions();
-			this.syncDetailHost();
+			this.syncDetailHost(true);
 			if (this.selectedProfile && !this.agentsMarkdownDirty && this.activeDetailTab === 'instructions') {
 				void this.loadAgentsEditorForSelection();
 			}
