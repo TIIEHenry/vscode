@@ -46,7 +46,7 @@ summary: "loop 已重启。A/B/C/D 已进 merge。本波单测 Electron 301/1（
 |:---|:-----|:-----|
 | **A** | D194 假 mic/Route DELETE + 断连 Stub agent/model 已删 | 正在合入 merge |
 | **B** | Sources Accept 无载荷不显示；空 session 不盖 SCM | 已进 merge；A2 仍停 |
-| **C** | `sessionList` 诚实探测（专用 snapshot 字段，不进 Overview） | 已进 merge；**勿 add `dev/loop`** |
+| **C** | `session-bind-ready-honesty`：roster bind 等 host Create/Resume（`whenEngineSessionReady`），不把 `acquireLease` / web-empty 当成功 | 进行中；**勿 add `dev/loop`** |
 | **D** | Navigator leftover stub / Inspect 焦点 / Team 五态空态 | 已进 merge；D197 Inspect lease 测仍红 |
 
 <details>

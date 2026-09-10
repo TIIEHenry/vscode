@@ -302,6 +302,12 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (this.isEngineConnected()) {
 			void this.ensureEngineSession().then(() => {
 				this.bindLiveTreeObservationLease();
+			}).catch(error => {
+				this._onDidFailEngineAction.fire({
+					sessionId: this.pendingEngineBindSessionId ?? this.getActiveSessionId(),
+					action: 'createSession',
+					error,
+				});
 			});
 			return '';
 		}
@@ -1311,6 +1317,13 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (pendingBind && this.activePendingBindLeaseSessionId === sessionId) {
 			return;
 		}
+		let lease: IConversationSessionViewLease;
+		try {
+			lease = this.acquireSessionView(sessionId);
+		} catch (error) {
+			this._onDidFailEngineAction.fire({ sessionId, action: 'acquireSessionView', error });
+			return;
+		}
 		this.liveTreeObservationStore.clear();
 		this.listedBindMonitorGeneration++;
 		if (pendingBind) {
@@ -1318,7 +1331,6 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		} else {
 			this.activePendingBindLeaseSessionId = undefined;
 		}
-		const lease = this.acquireSessionView(sessionId);
 		this.liveTreeObservationStore.add(lease);
 		this.liveTreeObservationStore.add(lease.onDidApplyFrame(() => this.emitLiveAgentTreeFromLease(lease)));
 		this.emitLiveAgentTreeFromLease(lease);
@@ -1368,7 +1380,11 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		this.clearPendingEngineBindClientSessionId();
 		if (ok) {
 			this.engineBoundSessionIds.add(sessionId);
-			const title = localize('conversationLens.sessionNew', "New session");
+			const engineSessionId = this.engineFrameSource.boundEngineSessionId(lease);
+			const engineTitle = this.engineSessions.find(session =>
+				session.id === sessionId || (engineSessionId !== undefined && session.id === engineSessionId)
+			)?.title.trim();
+			const title = engineTitle || localize('conversationLens.sessionNew', "New session");
 			this.suppressBindLiveTreeObservationLease = true;
 			try {
 				this.adoptEngineSession(sessionId, title, { skipBindLease: true });

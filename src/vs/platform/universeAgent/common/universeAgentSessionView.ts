@@ -40,6 +40,13 @@ export interface IUniverseAgentSessionView {
 
 	acquireLease(sessionId: string): Promise<string>;
 
+	/**
+	 * Resolves with the engine `session_id` after host Create/Resume finishes.
+	 * `acquireLease` only allocates a local lease — it is not bind success.
+	 * Web must reject; an empty `session_id` is failure, not bind-ready.
+	 */
+	whenEngineSessionReady(sessionId: string): Promise<string>;
+
 	releaseLease(leaseId: string): Promise<void>;
 
 	post(leaseId: string, msg: ConversationWriteMessage): Promise<PostOutcome>;

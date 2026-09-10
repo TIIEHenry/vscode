@@ -120,6 +120,7 @@ class MockUniverseAgentSessionView extends Disposable implements IUniverseAgentS
 	declare readonly _serviceBrand: undefined;
 	onDynamicDidApplyFrame() { return Event.None; }
 	async acquireLease(sessionId: string) { return `lease:${sessionId}`; }
+	async whenEngineSessionReady(sessionId: string) { return sessionId; }
 	async releaseLease() { }
 	async post() { return { accepted: true as const, correlation: { id: 'mock' } }; }
 	async requestResync() { }

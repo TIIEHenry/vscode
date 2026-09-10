@@ -10,7 +10,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IUniverseAgentSessionView } from '../../../../../platform/universeAgent/common/universeAgentSessionView.js';
-import type { ConversationWriteMessage } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { ConversationWriteMessage, IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type {
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentSessionEvent,
@@ -319,6 +319,7 @@ class MockUniverseAgentSessionView implements IUniverseAgentSessionView {
 	readonly postCalls: { readonly leaseId: string; readonly msg: ConversationWriteMessage }[] = [];
 	onDynamicDidApplyFrame(_leaseId: string) { return Event.None; }
 	async acquireLease(sessionId: string) { return `lease:${sessionId}`; }
+	async whenEngineSessionReady(sessionId: string) { return sessionId; }
 	async releaseLease() { }
 	async post(leaseId: string, msg: ConversationWriteMessage) {
 		this.postCalls.push({ leaseId, msg });
@@ -327,6 +328,21 @@ class MockUniverseAgentSessionView implements IUniverseAgentSessionView {
 	async requestResync() { }
 	async acknowledge() { }
 	async requestDetail() { return { ok: false as const, reason: 'unavailable' as const }; }
+}
+
+function createSessionViewMock(overrides: Partial<IUniverseAgentSessionView> = {}): IUniverseAgentSessionView {
+	return {
+		_serviceBrand: undefined,
+		onDynamicDidApplyFrame: () => Event.None,
+		acquireLease: async (sessionId: string) => `lease:${sessionId}`,
+		whenEngineSessionReady: async (sessionId: string) => sessionId,
+		releaseLease: async () => { },
+		post: async () => ({ accepted: true as const, correlation: { id: 'mock' } }),
+		requestResync: async () => { },
+		acknowledge: async () => { },
+		requestDetail: async () => ({ ok: false as const, reason: 'unavailable' as const }),
+		...overrides,
+	};
 }
 
 function createService(
@@ -552,6 +568,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			requestResync: async () => { },
 			acknowledge: async () => { },
 			requestDetail: async () => ({ ok: false as const, reason: 'unavailable' as const }),
+			whenEngineSessionReady: async (sessionId: string) => sessionId,
 		};
 		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
 		const service = store.add(new ConversationEngineRosterService(
@@ -607,6 +624,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			requestResync: async () => { },
 			acknowledge: async () => { },
 			requestDetail: async () => ({ ok: false as const, reason: 'unavailable' as const }),
+			whenEngineSessionReady: async (sessionId: string) => sessionId,
 		};
 		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
 		const service = store.add(new ConversationEngineRosterService(
@@ -638,6 +656,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			requestResync: async () => { },
 			acknowledge: async () => { },
 			requestDetail: async () => ({ ok: false as const, reason: 'unavailable' as const }),
+			whenEngineSessionReady: async (sessionId: string) => sessionId,
 		};
 		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
 		const service = store.add(new ConversationEngineRosterService(
@@ -680,6 +699,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			requestResync: async () => { },
 			acknowledge: async () => { },
 			requestDetail: async () => ({ ok: false as const, reason: 'unavailable' as const }),
+			whenEngineSessionReady: async (sessionId: string) => sessionId,
 		};
 		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
 		const service = store.add(new ConversationEngineRosterService(
@@ -715,6 +735,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			requestResync: async () => { },
 			acknowledge: async () => { },
 			requestDetail: async () => ({ ok: false as const, reason: 'unavailable' as const }),
+			whenEngineSessionReady: async (sessionId: string) => sessionId,
 		};
 		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
 		const service = store.add(new ConversationEngineRosterService(
@@ -741,6 +762,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			requestResync: async () => { },
 			acknowledge: async () => { },
 			requestDetail: async () => ({ ok: false as const, reason: 'unavailable' as const }),
+			whenEngineSessionReady: async (sessionId: string) => sessionId,
 		};
 		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
 		const service = store.add(new ConversationEngineRosterService(
@@ -775,6 +797,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			requestResync: async () => { },
 			acknowledge: async () => { },
 			requestDetail: async () => ({ ok: false as const, reason: 'unavailable' as const }),
+			whenEngineSessionReady: async (sessionId: string) => sessionId,
 		};
 		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
 		const service = store.add(new ConversationEngineRosterService(
@@ -1045,24 +1068,26 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(connection.cancelCalls.length, 3);
 	});
 
-	test('connected createSession defers Create to host lease and catalogs clientSessionId on bind', async () => {
+	test('connected createSession catalogs New session only after host Create/Resume, not acquireLease', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());
 		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
 		const acquireLeaseCalls: string[] = [];
-		const sessionView: IUniverseAgentSessionView = {
-			_serviceBrand: undefined,
-			onDynamicDidApplyFrame: () => Event.None,
+		let resolveReady: ((id: string) => void) | undefined;
+		const sessionView = createSessionViewMock({
 			acquireLease: async (sessionId: string) => {
 				acquireLeaseCalls.push(sessionId);
 				return `lease:${sessionId}`;
 			},
-			releaseLease: async () => { },
-			post: async () => ({ accepted: true as const, correlation: { id: 'mock' } }),
-			requestResync: async () => { },
-			acknowledge: async () => { },
-			requestDetail: async () => ({ ok: false as const, reason: 'unavailable' as const }),
-		};
+			whenEngineSessionReady: (sessionId: string) => {
+				if (sessionId === 'ua-only') {
+					return Promise.resolve(sessionId);
+				}
+				return new Promise<string>(resolve => {
+					resolveReady = () => resolve(sessionId);
+				});
+			},
+		});
 		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
 		const service = store.add(new ConversationEngineRosterService(
 			connection as unknown as IUniverseAgentConnection,
@@ -1088,10 +1113,126 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const newSessionId = newSessionCalls[0]!;
 		assert.ok(newSessionId.startsWith('session-'));
 		assert.notStrictEqual(newSessionId, 'ua-only');
+		assert.ok(!service.getSessions().some(session => session.id === newSessionId));
+		assert.ok(!service.getSessions().some(session => session.title === 'New session'));
+		assert.strictEqual(service.getActiveSessionId(), previous);
+		assert.strictEqual(fired, '');
+
+		resolveReady?.();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
 		assert.ok(service.getSessions().some(session => session.id === newSessionId));
+		assert.strictEqual(service.getSessions().find(session => session.id === newSessionId)?.title, 'New session');
 		assert.strictEqual(service.getActiveSessionId(), newSessionId);
 		assert.strictEqual(fired, newSessionId);
 		assert.ok(!service.getSessions().some(session => session.id === 'untitled'));
+	});
+
+	test('connected createSession acquireLease ok but Create fail keeps catalog and does not mint New session', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const sessionView = createSessionViewMock({
+			whenEngineSessionReady: async (sessionId: string) => {
+				if (sessionId === 'ua-only') {
+					return sessionId;
+				}
+				throw new Error('CreateSession returned empty session_id');
+			},
+		});
+		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
+		const service = store.add(new ConversationEngineRosterService(
+			connection as unknown as IUniverseAgentConnection,
+			sessionView,
+			workspaceToolsGate,
+			storage,
+		));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+
+		assert.strictEqual(service.createSession(), '');
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(connection.createCalls.length, 0);
+		assert.strictEqual(service.getSessions().length, 1);
+		assert.strictEqual(service.getSessions()[0]?.id, 'ua-only');
+		assert.strictEqual(service.getSessions()[0]?.title, 'Only UA');
+		assert.ok(!service.getSessions().some(session => session.title === 'New session'));
+		assert.strictEqual(service.getActiveSessionId(), 'ua-only');
+	});
+
+	test('connected createSession acquireLease ok but empty engine session_id does not mint New session', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const sessionView = createSessionViewMock({
+			whenEngineSessionReady: async (sessionId: string) => {
+				if (sessionId === 'ua-only') {
+					return sessionId;
+				}
+				return '';
+			},
+		});
+		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
+		const service = store.add(new ConversationEngineRosterService(
+			connection as unknown as IUniverseAgentConnection,
+			sessionView,
+			workspaceToolsGate,
+			storage,
+		));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+
+		assert.strictEqual(service.createSession(), '');
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(service.getSessions().length, 1);
+		assert.strictEqual(service.getSessions()[0]?.id, 'ua-only');
+		assert.ok(!service.getSessions().some(session => session.title === 'New session'));
+	});
+
+	test('bindLiveTreeObservationLease acquireSessionView throw warns without unhandled rejection or half-applied lease', async () => {
+		const boom = new Error('acquireSessionView: session pending is not engine-bound');
+		class AcquireThrowsRoster extends ConversationEngineRosterService {
+			override acquireSessionView(_sessionId: string): IConversationSessionViewLease {
+				throw boom;
+			}
+		}
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
+		const failures: { readonly sessionId: string; readonly action: string }[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const service = store.add(new AcquireThrowsRoster(
+				connection as unknown as IUniverseAgentConnection,
+				createSessionViewMock(),
+				workspaceToolsGate,
+				storage,
+			));
+			store.add(service.onDidFailEngineAction(failure => {
+				failures.push({ sessionId: failure.sessionId, action: failure.action });
+			}));
+			connection.setConnected(true);
+			service.setEngineConnected(true);
+			await awaitEngineCatalogRefresh(service);
+			assert.strictEqual(service.createSession(), '');
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			assert.ok(failures.some(failure => failure.action === 'acquireSessionView'));
+			assert.strictEqual(service.getSessions().length, 1);
+			assert.strictEqual(service.getSessions()[0]?.id, 'ua-only');
+			assert.ok(!service.getSessions().some(session => session.title === 'New session'));
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('connected createSession bind failure keeps existing catalog session', async () => {
@@ -1112,6 +1253,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			requestResync: async () => { },
 			acknowledge: async () => { },
 			requestDetail: async () => ({ ok: false as const, reason: 'unavailable' as const }),
+			whenEngineSessionReady: async (sessionId: string) => sessionId,
 		};
 		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
 		const service = store.add(new ConversationEngineRosterService(
@@ -2098,6 +2240,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			requestResync: async () => { },
 			acknowledge: async () => { },
 			requestDetail: async () => ({ ok: false as const, reason: 'unavailable' as const }),
+			whenEngineSessionReady: async (sessionId: string) => sessionId,
 		};
 		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
 		const service = store.add(new ConversationEngineRosterService(
@@ -2134,6 +2277,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			requestResync: async () => { },
 			acknowledge: async () => { },
 			requestDetail: async () => ({ ok: false as const, reason: 'unavailable' as const }),
+			whenEngineSessionReady: async (sessionId: string) => sessionId,
 		};
 		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
 		const service = store.add(new ConversationEngineRosterService(
@@ -2174,6 +2318,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			requestResync: async () => { },
 			acknowledge: async () => { },
 			requestDetail: async () => ({ ok: false as const, reason: 'unavailable' as const }),
+			whenEngineSessionReady: async (sessionId: string) => sessionId,
 		};
 		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
 		const service = store.add(new ConversationEngineRosterService(
@@ -2235,6 +2380,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			requestResync: async () => { },
 			acknowledge: async () => { },
 			requestDetail: async () => ({ ok: false as const, reason: 'unavailable' as const }),
+			whenEngineSessionReady: async (sessionId: string) => sessionId,
 		};
 		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
 		const service = store.add(new ConversationEngineRosterService(
@@ -2276,6 +2422,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			requestResync: async () => { },
 			acknowledge: async () => { },
 			requestDetail: async () => ({ ok: false as const, reason: 'unavailable' as const }),
+			whenEngineSessionReady: async (sessionId: string) => sessionId,
 		};
 		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
 		const service = store.add(new ConversationEngineRosterService(

@@ -7,10 +7,12 @@ import { Event } from '../../../base/common/event.js';
 import { InstantiationType, registerSingleton } from '../../instantiation/common/extensions.js';
 import type { ConversationWriteMessage, DetailFetchOutcome, PostOutcome } from '../common/conversationViewFrame.js';
 import { IUniverseAgentSessionView, type IUniverseAgentSessionViewFrameEvent } from '../common/universeAgentSessionView.js';
+import { rejectUnsupportedEnvironment } from './webUnsupported.js';
 
 /**
- * Web has no Engine host. Leases are accepted so consumers can hold an id, but
- * they never receive frames and writes are not authenticated.
+ * Web has no Engine host. `acquireLease` still returns a `web-empty:` id so
+ * consumers can hold a handle, but that is not bind success.
+ * `whenEngineSessionReady` rejects — do not treat a web-empty lease as Create/Resume.
  * P2b: empty leases never emit `ItemAttribution.compacted` (no L2 demux on Web).
  */
 export class WebUniverseAgentSessionView implements IUniverseAgentSessionView {
@@ -23,6 +25,10 @@ export class WebUniverseAgentSessionView implements IUniverseAgentSessionView {
 
 	async acquireLease(sessionId: string): Promise<string> {
 		return `web-empty:${sessionId}`;
+	}
+
+	whenEngineSessionReady(_sessionId: string): Promise<string> {
+		return rejectUnsupportedEnvironment();
 	}
 
 	async releaseLease(_leaseId: string): Promise<void> {

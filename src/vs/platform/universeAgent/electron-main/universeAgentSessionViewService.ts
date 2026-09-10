@@ -35,6 +35,10 @@ export class UniverseAgentSessionViewService extends Disposable implements IUniv
 		return Promise.resolve(this.host.acquireLease(sessionId));
 	}
 
+	whenEngineSessionReady(sessionId: string): Promise<string> {
+		return this.host.whenEngineSessionReady(sessionId);
+	}
+
 	releaseLease(leaseId: string): Promise<void> {
 		this.host.releaseLease(leaseId);
 		return Promise.resolve();
