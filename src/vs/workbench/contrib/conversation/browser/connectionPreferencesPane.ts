@@ -1012,12 +1012,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private async refreshHubDirectory(): Promise<void> {
-		try {
-			await this.hubService.refreshDirectory();
-		} catch (error) {
-			const reason = error instanceof Error && error.message ? error.message : String(error);
-			writeStatus(this.hubDirectoryBanner, reason, 'error');
-			this.hubDirectoryBanner.style.display = '';
+		const listed = await this.refreshDirectoryListed();
+		if (!listed) {
 			return;
 		}
 		await this.refreshEngineDeviceLists();
@@ -1538,8 +1534,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				this.hubDirectoryBanner.style.display = '';
 				return;
 			}
-			this.hubDirectoryBanner.textContent = result.message;
-			this.hubDirectoryBanner.style.display = result.message ? '' : 'none';
+			const listed = await this.refreshDirectoryListed();
+			this.restoreHubDirectoryWriteSuccessIfListed(listed && this.engineDeviceListsListed(), result.message);
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			writeStatus(this.hubDirectoryBanner, reason, 'error');

@@ -46,7 +46,7 @@ summary: "loop 关仓：本波 A–D 已合入 merge。D222–D225 已闭。comp
 |:---|:-----|:-----|
 | **A** | plugins-enable-listed-gate | 已进 merge `6c200529257`；[D222](deferred-gaps.md) 已闭 |
 | **B** | agents-markdown-listed-gate | 已进 merge `e8bf194ff63`；[D223](deferred-gaps.md) 已闭 |
-| **C** | connection-hub-write-list-fail | 已进 merge `d02ec4b2a8a`；[D224](deferred-gaps.md) 已闭；勿 add `dev/loop` |
+| **C** | connection-hub-refresh-rotate | 工位 `loop/C` [D228](deferred-gaps.md) 已闭；Refresh 非 throw fail 清 leftover；Rotate 写成功闸 listed；勿 add `dev/loop` |
 | **D** | context-variable-list-leftover | 已进 merge `677afb487ce`；[D225](deferred-gaps.md) 已闭 |
 
 <details>
