@@ -9,6 +9,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { URI } from '../../../../../base/common/uri.js';
 import { WorkbenchObjectTree } from '../../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IRecentlyOpened, IWorkspacesService } from '../../../../../platform/workspaces/common/workspaces.js';
 import { IWorkspaceContextService, WorkbenchState } from '../../../../../platform/workspace/common/workspace.js';
 import { testWorkspace, Workspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
@@ -447,7 +448,7 @@ suite('NavigatorProjectsView', () => {
 		const contextService = new TestContextService(testWorkspace(folderUri));
 		const rosterService = new ConversationStubService();
 		rosterService.setEngineConnected(true);
-		const onDidChangeConnection = store.add(new Emitter<void>());
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
 		const baseConnection = createNavigatorConnectionTestStub({
 			getNavigatorCapability: () => 'SUPPORTED',
 		});
@@ -483,7 +484,7 @@ suite('NavigatorProjectsView', () => {
 		process.on('unhandledRejection', onUnhandledRejection);
 		try {
 			throwOnSnapshot = true;
-			onDidChangeConnection.fire();
+			onDidChangeConnection.fire(baseConnection.getConnectionSnapshot());
 			await flushMicrotasks();
 			await new Promise<void>(resolve => setImmediate(() => resolve()));
 
