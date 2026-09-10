@@ -12,6 +12,9 @@ export const NAVIGATOR_STALE_SNAPSHOT_COPY = localize('navigator.staleSnapshot',
 /** Activity leftover after a tree fetch fail — keep last rows, do not paint them as live. */
 export const NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY = localize('navigatorAgentsActivity.fetchFailed', "Failed to read tool activity");
 
+/** Hierarchy leftover / first-pull empty after a tree fetch fail — same copy family as D21 pending. */
+export const NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY = localize('navigatorAgentTree.fetchFailed', "Failed to read the agent tree");
+
 /** Shared Hierarchy / Team empty copy while AgentService.Tree is pending or failed (§3 / D21). */
 export function getNavigatorAgentTreePendingCopy(
 	agentTreeCapability: UniverseAgentCapabilitySupport,
@@ -23,7 +26,7 @@ export function getNavigatorAgentTreePendingCopy(
 	}
 	if (liveTree === undefined) {
 		if (treeFetchFailed) {
-			return localize('navigatorAgentTree.fetchFailed', "Failed to read the agent tree");
+			return NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY;
 		}
 		return localize('navigatorAgentTree.loading', "Reading agent tree…");
 	}

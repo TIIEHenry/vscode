@@ -25,7 +25,7 @@ import { AgentInspectService } from '../../browser/agentInspectService.js';
 import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import type { INavigatorAgentsHierarchyNode } from '../../common/navigatorAgentHierarchy.js';
 import type { INavigatorAgentsActivityItem } from '../../common/navigatorAgentsActivity.js';
-import { NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEmptyState.js';
+import { NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEmptyState.js';
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 import { workbenchInstantiationService, TestViewsService } from '../../../../test/browser/workbenchTestServices.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
@@ -617,7 +617,7 @@ suite('Navigator Agents subviews', () => {
 			isAgentTreeFetchFailed: () => true,
 		}));
 		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty');
-		assert.strictEqual(hierarchyEmpty?.textContent, 'Failed to read the agent tree');
+		assert.strictEqual(hierarchyEmpty?.textContent, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY);
 		assert.ok(!hierarchyEmpty?.textContent?.includes('no engine'));
 		view.showActivity();
 		const activityEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty');
@@ -664,6 +664,47 @@ suite('Navigator Agents subviews', () => {
 		const activityEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(activityEmpty);
 		assert.notStrictEqual(activityEmpty.style.display, 'block', 'fetch-fail leftover must not be painted as empty success');
+	});
+
+	test('tree fetch-failed after live Hierarchy paint keeps leftover nodes and marks failed', () => {
+		const roster = store.add(new RosterWithMutableTreeAndActivity());
+		roster.setEngineConnected(true);
+		let treeFetchFailed = false;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			isAgentTreeFetchFailed: () => treeFetchFailed,
+			onDidChangeConnection: onDidChangeConnection.event,
+		});
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountAgentsView(roster, connection, inspectService);
+
+		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> }).hierarchyTree;
+		assert.ok(hierarchyTree, 'live paint must have a hierarchy tree');
+		assert.strictEqual(hierarchyTree.getNode(null)?.children.length ?? 0, 1, 'live paint must have leftover hierarchy nodes');
+		assert.strictEqual(hierarchyTree.getNode(null)?.children[0]?.element?.label, 'Root');
+		assert.strictEqual(hierarchyTree.getNode(null)?.children[0]?.element?.children?.[0]?.label, 'Alpha');
+		assert.ok(inspectService.getLiveAgentIds()?.has('root'), 'live paint must expose live agent ids');
+		const liveNote = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(liveNote);
+		assert.notStrictEqual(liveNote.style.display, 'block', 'live paint must not already look failed');
+
+		roster.liveTree = undefined;
+		treeFetchFailed = true;
+		onDidChangeConnection.fire(connection.getConnectionSnapshot());
+
+		assert.strictEqual(hierarchyTree.getNode(null)?.children.length ?? 0, 1, 'fetch-fail must keep leftover hierarchy nodes');
+		assert.strictEqual(hierarchyTree.getNode(null)?.children[0]?.element?.label, 'Root');
+		assert.strictEqual(hierarchyTree.getNode(null)?.children[0]?.element?.children?.[0]?.label, 'Alpha');
+		assert.strictEqual(inspectService.getLiveAgentIds(), undefined, 'fetch-fail leftover must not be painted as live');
+		const failedNote = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(failedNote, 'fetch-fail must mark leftover hierarchy');
+		assert.strictEqual(failedNote.style.display, 'block');
+		assert.strictEqual(failedNote.textContent, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY);
+		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
+		assert.ok(hierarchyEmpty);
+		assert.notStrictEqual(hierarchyEmpty.style.display, 'block', 'fetch-fail leftover must not be painted as first-pull empty-fail');
 	});
 
 	test('ViewTitle Inspect with hierarchy focus sets the agent target and opens Inspect', () => {

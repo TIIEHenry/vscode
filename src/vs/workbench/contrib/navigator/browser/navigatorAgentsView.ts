@@ -48,7 +48,7 @@ import {
 	isRootOnlyAgentTree,
 	liveAgentTreeToHierarchyNodes,
 } from '../common/navigatorAgentHierarchy.js';
-import { getNavigatorAgentTreePendingCopy, NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
+import { getNavigatorAgentTreePendingCopy, NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
 import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { matchesNavigatorAgentsInlineFilter } from '../common/navigatorAgentsInlineFilter.js';
 import {
@@ -478,7 +478,11 @@ export class NavigatorAgentsView extends ViewPane {
 		const pendingCopy = getNavigatorAgentTreePendingCopy(agentTreeCapability, liveTree, treeFetchFailed);
 		if (pendingCopy) {
 			this.inspectService.setLiveAgentIds('agents', undefined);
-			this.setHierarchyState([], pendingCopy);
+			if (treeFetchFailed) {
+				this.setHierarchyAfterTreeFetchFail();
+			} else {
+				this.setHierarchyState([], pendingCopy);
+			}
 			this.setActivityFromSnapshot(snapshot, lease?.attribution, undefined, treeFetchFailed);
 			return;
 		}
@@ -519,6 +523,14 @@ export class NavigatorAgentsView extends ViewPane {
 		} else {
 			this.setActivityState([], localize('navigatorAgentsActivity.empty', "No tool activity — no engine."));
 		}
+	}
+
+	private setHierarchyAfterTreeFetchFail(): void {
+		if (this.hadHierarchySnapshot) {
+			this.setHierarchyNote(NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY);
+			return;
+		}
+		this.setHierarchyState([], NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY);
 	}
 
 	private setActivityFromSnapshot(
