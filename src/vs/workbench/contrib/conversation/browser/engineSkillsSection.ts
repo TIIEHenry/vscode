@@ -675,6 +675,12 @@ export class EngineSkillsSection extends Disposable {
 
 	private async loadSkillBody(skill: UniverseAgentSkillSummary): Promise<void> {
 		if (!canShowCatalogRows(this.mode) || !this.connection.isEngineConnected()) {
+			// Keep leftover body after a live paint (D265; D263/D264).
+			// failed/loading must not unload leftover text; first-pull empty still clears.
+			const hasLeftoverBody = !!(this.loadedBodyText || this.bodyInput.value);
+			if ((this.mode === 'failed' || this.mode === 'loading') && hasLeftoverBody) {
+				return;
+			}
 			if (!this.bodyDirty) {
 				this.clearBodyEditor();
 			}

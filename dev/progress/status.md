@@ -46,7 +46,7 @@ summary: "loop 关仓：D261–D264 已合入；merge compile-client 0。待 pus
 |:---|:-----|:-----|
 | **A** | roster-inflight-leftover | 已进 merge；[D261](deferred-gaps.md) 已闭；compile 补刀对齐 title 类型 |
 | **B** | navigator-fetchfail-retained-tree | 已进 merge；[D262](deferred-gaps.md) 已闭 |
-| **C** | mcp-runtime-tools-selection-leftover | 已进 merge；[D263](deferred-gaps.md) 已闭；勿 add `dev/loop` |
+| **C** | skills-body-selection-leftover | 本工位已收；[D265](deferred-gaps.md) 已闭；勿 add `dev/loop` |
 | **D** | plugins-hooks-selection-leftover | 已进 merge；[D264](deferred-gaps.md) 已闭 |
 
 <details>

@@ -268,6 +268,10 @@ suite('EngineSkillsSection (E1)', () => {
 
 		assert.strictEqual(listSkillsCalls, 2);
 		assertSkillsLeftoverFailedHonesty(section, 'listSkills retry exploded', 1);
+		section.selectSkillForTest('leftover-skill');
+		await flushMicrotasks();
+		assertSkillsLeftoverFailedHonesty(section, 'listSkills retry exploded', 1);
+		assert.strictEqual(section.getSelectedSkillBody(), '');
 	});
 
 	test('successful load then capability UNKNOWN keeps leftover rows and paints capability loading', async () => {
@@ -293,6 +297,10 @@ suite('EngineSkillsSection (E1)', () => {
 
 		assertSkillsLeftoverUnknownHonesty(section, 1);
 		assert.strictEqual(listSkillsCalls, listCallsAfterLoad);
+		section.selectSkillForTest('demo-skill');
+		await flushMicrotasks();
+		assertSkillsLeftoverUnknownHonesty(section, 1);
+		assert.strictEqual(section.getSelectedSkillBody(), '');
 	});
 
 	test('first fetch capability UNKNOWN is empty with capability loading', async () => {
@@ -978,6 +986,95 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.ok(!textarea.value.includes('# Stale skill body'));
 		assert.ok(!section.getSelectedSkillBody().includes('# Stale skill body'));
 		assert.ok(!(section.getDomNode().textContent ?? '').includes('# Stale skill body'));
+	});
+
+	test('successful body then list throw then select leftover keeps body text', async () => {
+		let listSkillsCalls = 0;
+		let infoCalls = 0;
+		const leftoverBody = '# Leftover skill body';
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => {
+				listSkillsCalls++;
+				if (listSkillsCalls === 1) {
+					return { skills: [{ name: 'leftover-skill', source: 'bundled', enabled: true }] };
+				}
+				throw new Error('listSkills retry exploded');
+			},
+			getSkillInfo: async () => {
+				infoCalls++;
+				return { name: 'leftover-skill', content: leftoverBody, source: 'bundled', enabled: true };
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		section.selectSkillForTest('leftover-skill');
+		await flushMicrotasks();
+
+		assert.strictEqual(infoCalls, 1);
+		assert.strictEqual(section.getSelectedSkillBody(), leftoverBody);
+		assert.ok(section.isBodyEditorVisible());
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(listSkillsCalls, 2);
+		assertSkillsLeftoverFailedHonesty(section, 'listSkills retry exploded', 1);
+		section.selectSkillForTest('leftover-skill');
+		await flushMicrotasks();
+
+		assert.strictEqual(infoCalls, 1);
+		assertSkillsLeftoverFailedHonesty(section, 'listSkills retry exploded', 1);
+		assert.strictEqual(section.getSelectedSkillBody(), leftoverBody);
+		assert.ok(section.isBodyEditorVisible());
+	});
+
+	test('successful body then capability UNKNOWN then select leftover keeps body text', async () => {
+		let listSkillsCalls = 0;
+		let infoCalls = 0;
+		const leftoverBody = '# Leftover skill body';
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => {
+				listSkillsCalls++;
+				return { skills: [{ name: 'leftover-skill', source: 'bundled', enabled: true }] };
+			},
+			getSkillInfo: async () => {
+				infoCalls++;
+				return { name: 'leftover-skill', content: leftoverBody, source: 'bundled', enabled: true };
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		section.selectSkillForTest('leftover-skill');
+		await flushMicrotasks();
+
+		assert.strictEqual(infoCalls, 1);
+		assert.strictEqual(section.getSelectedSkillBody(), leftoverBody);
+		assert.ok(section.isBodyEditorVisible());
+		const listCallsAfterLoad = listSkillsCalls;
+
+		connection.setSkillsSupport('UNKNOWN');
+		await flushMicrotasks();
+
+		assertSkillsLeftoverUnknownHonesty(section, 1);
+		assert.strictEqual(listSkillsCalls, listCallsAfterLoad);
+		section.selectSkillForTest('leftover-skill');
+		await flushMicrotasks();
+
+		assert.strictEqual(infoCalls, 1);
+		assertSkillsLeftoverUnknownHonesty(section, 1);
+		assert.strictEqual(section.getSelectedSkillBody(), leftoverBody);
+		assert.ok(section.isBodyEditorVisible());
 	});
 
 	test('disconnected saveSelectedSkillBody does not call saveSkillContent RPC', async () => {
