@@ -70,6 +70,9 @@ export class ForkConversationAction extends Action2 {
 				if (await this._tryForkAsChat(instantiationService, sourceSessionResource, undefined)) {
 					return;
 				}
+				if (this.shouldSkipContributedForkFallback()) {
+					return;
+				}
 				return await this.forkContributedChatSession(sourceSessionResource, undefined, false, chatSessionsService, instantiationService);
 			}
 
@@ -172,6 +175,9 @@ export class ForkConversationAction extends Action2 {
 			if (await this._tryForkAsChat(instantiationService, sessionResource, request)) {
 				return;
 			}
+			if (this.shouldSkipContributedForkFallback()) {
+				return;
+			}
 			return await this.forkContributedChatSession(sessionResource, request, true, chatSessionsService, instantiationService);
 		}
 
@@ -251,11 +257,20 @@ export class ForkConversationAction extends Action2 {
 	/**
 	 * Hook for surfaces (the Agents window) that prefer to fork a multi-chat
 	 * session into a new peer chat in the same session rather than a brand-new
-	 * session. Returns `true` when it fully handled the fork; the default
-	 * implementation does nothing and returns `false`, so the standard
-	 * session-creating fork path runs.
+	 * session. Returns `true` only when a fork was created. `false` means no
+	 * successful fork; the default implementation does nothing so the standard
+	 * session-creating path runs, unless {@link shouldSkipContributedForkFallback}
+	 * is true (handled failure, do not treat as success).
 	 */
 	protected async _tryForkAsChat(_instantiationService: IInstantiationService, _sourceSessionResource: URI, _request: IChatSessionRequestHistoryItem | undefined): Promise<boolean> {
+		return false;
+	}
+
+	/**
+	 * When `_tryForkAsChat` returns false, `run` falls through to a contributed
+	 * / local fork unless an override already consumed the engine attempt.
+	 */
+	protected shouldSkipContributedForkFallback(): boolean {
 		return false;
 	}
 

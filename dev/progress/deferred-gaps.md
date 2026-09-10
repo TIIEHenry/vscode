@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-10
-summary: "延期缺口 SSOT；D8 / D16 / D147 / D197 / D199–D204 仍开；D45–D90 / D92–D129 / D131 / D133–D194 已闭；D194 假 mic/Route 与断连 Stub 已删；D195–D198 仍开；D199 MCP 默认 echo；D200 Skills/Plugins UNKNOWN 不清行；D201 Triggers list-fail leftover；D202 Fork return true；D203 deleteSession draft；D204 UNKNOWN catalog empty；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 / D197 / D199–D201 / D203 仍开；D45–D90 / D92–D129 / D131 / D133–D194 已闭；D194 假 mic/Route 与断连 Stub 已删；D195–D198 仍开；D199 MCP 默认 echo；D200 Skills/Plugins UNKNOWN 不清行；D201 Triggers list-fail leftover；D202 Fork handled≠forked 已闭；D203 deleteSession draft；D204 UNKNOWN catalog 保末次/probing 已闭；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -215,9 +215,9 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 / D197 / D199–D204 仍开；D45�
 | D199 | P3 | **MCP Add 无参时发明默认 `echo` / `mcp-stub`**：`engineMcpSection.addServer` 在未传 `config` 时写 `{ command:'echo', args:['mcp-stub'] }`。本刀 `catalog-write-listfail-honesty` 只收 list-fail 成功 leftover，改默认会扩大 MCP 写路径冲突 | 去掉发明默认须先有表单/必填校验，否则 Add 无载荷可发 | Add 无完整 config 不发 RPC、不发明 command；补测无 `echo`/`mcp-stub` 默认 | conversation / catalog | open |
 | D200 | P3 | **Skills / Plugins capability `UNKNOWN` 不清行**：`engineSkillsSection.refresh` / `enginePluginsSection.refresh` 在 `support === 'UNKNOWN'` 只改 mode=loading，不 `clearCatalogPresentation`。成功列出后再掉 UNKNOWN 可能 leftover 旧行。本刀可顺手但勿挡 list-fail DoD | 主 DoD 是写成功后再 list-fail；UNKNOWN 轴未测锁 | UNKNOWN 先清行再 loading；补成功→UNKNOWN 测：`getListEntryCount()===0` | conversation / catalog | open |
 | D201 | P3 | **Triggers 写成功后再 `ListTriggers` fail 仍回刷成功文案**：`engineTriggersSection.test.ts`「DeleteTrigger success still shows delete-success when subsequent ListTriggers fails」与本刀已改的 Agents/MCP/Plugins/Skills/Snapshots 同构 leftover。本刀 conflict_domain=catalog，Triggers 不在委派范围 | 同文件合同未列入 DoD；扩 Triggers 会碰另一节 | list-fail 后清行 + 不回刷 delete-success；改掉锁死 leftover 的测 | conversation / catalog | open |
-| D202 | P3 | **Fork `return true` 仍把未真正 fork 的结果标成已处理**：`conversationForkActions.contribution.ts` 在 `forkSubAgent` false 后 `error` notice 并 `return true`，挡住本地 fallthrough，但调用方读到 handled=true。本刀 `conversation-fake-chrome-honesty` 不扩 | 属 fork 冲突域，非本 slice Inbox/Dock/Snapshots 铬条 | 失败路径 `return false` 或明确 `handled` 契约；调用方不得把 notice 当成功 fork；补测 | conversation | open |
+| D202 | P3 | **Fork `return true` 仍把未真正 fork 的结果标成已处理**（原登记）。**本切片已闭**：`tryConnectedEngineFork` 分 `handled` / `forked`；`forkSubAgent` false 后 notice + `_tryForkAsChat` `return false`；`shouldSkipContributedForkFallback` 挡住本地 fallthrough。测锁 `handled !== forked` | 工位 A `conversation-fork-unknown-honesty` 已收 | 失败路径 `return false` 或明确 `handled` 契约；调用方不得把 notice 当成功 fork；补测 | conversation | closed |
 | D203 | P3 | **`deleteSession` 失败后 composer draft 未回滚**：`deleteActiveSession` 在 `deleteSession` true 后才 `deleteComposerDraftsForSession`；roster/engine 若先乐观删再回滚，draft 可能已按旧 id 清掉或留在错误 session。本刀不扩 | 属 SessionBar delete 合同，非本 slice 假铬条 | 删除失败/回滚后 draft 仍挂回原 session；`conversationLens.test.ts` 锁失败不丢草稿 | conversation | open |
-| D204 | P3 | **capability `UNKNOWN` 时 composer catalog 被画成空**：`loadConnectedComposerCatalogs` 只在 `SUPPORTED` 时拉 list；`UNKNOWN` 停在 No agent / No model / 空 tools，像失败空而不是 keep-while-probing。本刀不扩 | 父约束点名 out-of-scope；未选定 UNKNOWN 展示语义 | UNKNOWN 保末次成功行或显式 probing，不得装成「引擎没有 catalog」；补 `conversationComposerCatalog.test.ts` | conversation | open |
+| D204 | P3 | **capability `UNKNOWN` 时 composer catalog 被画成空**（原登记）。**本切片已闭**：`loadConnectedComposerCatalogs` 对 UNKNOWN 保末次成功行，无末次则画 probing（非 No agent / No model 空失败）；不打 list。`conversationComposerCatalog.test.ts` 锁 probing + keep-last | 工位 A `conversation-fork-unknown-honesty` 已收 | UNKNOWN 保末次成功行或显式 probing，不得装成「引擎没有 catalog」；补 `conversationComposerCatalog.test.ts` | conversation | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 

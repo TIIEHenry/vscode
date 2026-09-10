@@ -16,7 +16,6 @@ import { TestConfigurationService } from '../../../../../platform/configuration/
 import { IEditorOptions } from '../../../../../platform/editor/common/editor.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
-import { localize } from '../../../../../nls.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
@@ -53,6 +52,7 @@ import { ForkConversationAction } from '../../../chat/browser/actions/chatForkAc
 import { isDefaultCodeWindow } from '../../../chat/browser/chatShellRouting.js';
 import { IChatSessionsService } from '../../../chat/common/chatSessionsService.js';
 import { getChatSessionType } from '../../../chat/common/model/chatUri.js';
+import { tryConnectedEngineFork } from '../../browser/conversationForkEngine.js';
 
 const TEST_CONVERSATION_CHAT_EDITOR_ID = 'workbench.editor.conversationChat.test';
 
@@ -259,12 +259,9 @@ suite('Conversation session chat (S3)', () => {
 
 				const roster = accessor.get(IConversationRosterService);
 				const notificationService = accessor.get(INotificationService);
-				if (roster.isEngineConnected()) {
-					if (roster.forkSubAgent(roster.getActiveSessionId())) {
-						return { kind: 'handled' as const, handled: true };
-					}
-					notificationService.error(localize('conversationFork.forkSubAgentFailed', "Could not fork conversation."));
-					return { kind: 'handled' as const, handled: true };
+				const outcome = tryConnectedEngineFork(roster, notificationService);
+				if (outcome.handled) {
+					return { kind: 'engine' as const, forked: outcome.forked, handled: outcome.handled };
 				}
 
 				const chatSessionsService = accessor.get(IChatSessionsService);
@@ -283,8 +280,8 @@ suite('Conversation session chat (S3)', () => {
 			if (!context) {
 				return false;
 			}
-			if (context.kind === 'handled') {
-				return context.handled === true;
+			if (context.kind === 'engine') {
+				return context.forked;
 			}
 
 			const cts = new CancellationTokenSource();
@@ -459,7 +456,7 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(sessionChatService.getCatalog(SESSION_KEY).length, 0);
 	});
 
-	test('connected forkSubAgent false notifies error and does not fall through to local fork', async () => {
+	test('connected forkSubAgent false notifies error, is not a successful fork, and does not fall through to local fork', async () => {
 		const roster = store.add(new ConnectedForkFalseRoster());
 		const errors: string[] = [];
 		const { instantiationService, conversationPart, sessionChatService } = await createHarness(roster, {
@@ -485,11 +482,11 @@ suite('Conversation session chat (S3)', () => {
 			},
 		}));
 
-		const handled = await new TestConversationForkAction().tryForkAsChat(
+		const forked = await new TestConversationForkAction().tryForkAsChat(
 			instantiationService,
 			URI.parse('agent-host-copilot:/fork-source'),
 		);
-		assert.strictEqual(handled, true);
+		assert.strictEqual(forked, false);
 		assert.deepStrictEqual(errors, ['Could not fork conversation.']);
 		assert.deepStrictEqual(roster.forkCalls, [{ sessionId: roster.getActiveSessionId() }]);
 		assert.strictEqual(forkCalls, 0);
