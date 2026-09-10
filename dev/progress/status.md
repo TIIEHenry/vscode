@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 本波四槽已合入 merge：A 假铬条、B Sources 失败空 diff、C bind-ready、D catalog list-fail。待一路 compile。D8 / D16 / D147 / D195–D204 仍开。D194 已闭。"
+summary: "loop 本波四槽已合入 merge：A 假铬条、B Sources 失败空 diff、C bind-ready、D catalog list-fail。C 本工位 D203 delete 失败/回滚挂回 composer draft。待一路 compile。D8 / D16 / D147 / D195–D202 / D204 仍开。D194 / D203 已闭。"
 ---
 
 # Development Progress
@@ -46,7 +46,7 @@ summary: "loop 本波四槽已合入 merge：A 假铬条、B Sources 失败空 d
 |:---|:-----|:-----|
 | **A** | conversation-fake-chrome-honesty：拆 Add/Templates/Task/ring；Agent/Model/Goal/Snapshots/Retry 门控 | 已进 merge `cc7d2f396e7`；[D202](deferred-gaps.md)–[D204](deferred-gaps.md) |
 | **B** | Sources 失败与空 diff 诚实面 | 已进 merge `cfb340570a3` |
-| **C** | session-bind-ready-honesty：roster 等 Create/Resume | 已进 merge `320dc8c0ab3`；**勿 add `dev/loop`** |
+| **C** | session-delete-draft-rollback（D203）：delete 失败/回滚挂回 composer draft | 本工位已落；`conversationLens.test.ts` 锁 false + optimistic rollback；勿 add `dev/loop` |
 | **D** | catalog-write-listfail-honesty | 已进 merge `21f8d299cd8`；[D199](deferred-gaps.md)–[D201](deferred-gaps.md) |
 
 <details>
@@ -164,6 +164,7 @@ summary: "loop 本波四槽已合入 merge：A 假铬条、B Sources 失败空 d
 | [D192](deferred-gaps.md) | A 草稿换目录信任 catch | **closed** `d72003f13eb`；getUriTrustInfo reject 无未处理 rejection；merge 52 passing |
 | [D193](deferred-gaps.md) | B Agents Open Connection catch | **closed** `cd87c9623fb`；executeCommand reject 无未处理 rejection；merge 51 passing |
 | [D194](deferred-gaps.md) | A 假造麦克风 / Route UI | **closed** 删假 mic 流水线与假 Route SelectBox / `routeIndex`；OV 跟进删断连 Stub agent / Stub model；测断言假造不存在。引擎仍无 voice/route RPC，不发明 |
+| [D203](deferred-gaps.md) | C `session-delete-draft-rollback` | **closed** delete 失败/回滚后 composer draft 挂回原 session；`conversationLens.test.ts` 锁 false 与 optimistic rollback；未 compile |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）
