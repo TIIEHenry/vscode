@@ -552,8 +552,8 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 
 		assert.deepStrictEqual(service.getSessions().map(session => session.id), ['ua-a', 'ua-b']);
 
-		let releaseSecondList: ((value: { sessions: { sessionId: string; title?: string }[] }) => void) | undefined;
-		const secondListHeld = new Promise<{ sessions: { sessionId: string; title?: string }[] }>(resolve => {
+		let releaseSecondList: ((value: { sessions: { sessionId: string; title: string | undefined }[] }) => void) | undefined;
+		const secondListHeld = new Promise<{ sessions: { sessionId: string; title: string | undefined }[] }>(resolve => {
 			releaseSecondList = resolve;
 		});
 		connection.listSessions = async () => secondListHeld;
@@ -577,8 +577,8 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 
 	test('first catalog refresh without leftover still returns empty getSessions', async () => {
 		const connection = store.add(new MockUniverseAgentConnection());
-		let releaseFirstList: ((value: { sessions: { sessionId: string; title?: string }[] }) => void) | undefined;
-		const firstListHeld = new Promise<{ sessions: { sessionId: string; title?: string }[] }>(resolve => {
+		let releaseFirstList: ((value: { sessions: { sessionId: string; title: string | undefined }[] }) => void) | undefined;
+		const firstListHeld = new Promise<{ sessions: { sessionId: string; title: string | undefined }[] }>(resolve => {
 			releaseFirstList = resolve;
 		});
 		connection.listSessions = async () => firstListHeld;
