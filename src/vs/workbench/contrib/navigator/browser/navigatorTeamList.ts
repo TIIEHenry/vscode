@@ -485,8 +485,11 @@ export class NavigatorTeamView extends ViewPane {
 			}
 			this.setTeamSnapshotNote(undefined);
 		} catch {
-			this.setMemberEntries([], TEAM_FETCH_FAILED_COPY);
-			this.setTaskEntries([], TEAM_FETCH_FAILED_COPY);
+			const hadLiveTeamPaint = this.memberEntries.length > 0 || this.taskEntries.length > 0;
+			if (!hadLiveTeamPaint) {
+				this.setMemberEntries([], TEAM_FETCH_FAILED_COPY);
+				this.setTaskEntries([], TEAM_FETCH_FAILED_COPY);
+			}
 			this.setTeamSnapshotNote(TEAM_FETCH_FAILED_COPY);
 			this.inspectService.setLiveAgentIds('team', EMPTY_LIVE_AGENT_IDS);
 		}
