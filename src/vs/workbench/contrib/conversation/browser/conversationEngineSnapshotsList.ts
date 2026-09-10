@@ -112,6 +112,10 @@ function snapshotWriteFailureReason(error: unknown): string {
  * ok:false / throw paints the same write-status line without unloading rows.
  * Success copy is painted on the write-status sibling, not via paintStatus
  * (that helper unloads rows).
+ * List throw after a live paint keeps leftover rows + failed (D242);
+ * first-pull throw stays empty+failed and must not paint empty-success.
+ * Restore/Delete success copy is restored only after a successful list
+ * (D54/D154 listed-gate); leftover list-fail clears Restored./Deleted.
  * no Create.
  */
 export class ConversationEngineSnapshotsList extends Disposable {
@@ -125,6 +129,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	private readonly rowDisposables = this._register(new DisposableStore());
 	private open = false;
 	private renderGeneration = 0;
+	private paintedLiveSnapshots = false;
 
 	constructor(
 		buttonParent: HTMLElement,
@@ -244,7 +249,12 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			return false;
 		}
 
-		this.paintStatus(conversationLensSessionBarSnapshotsLoading);
+		if (!this.paintedLiveSnapshots) {
+			this.paintStatus(conversationLensSessionBarSnapshotsLoading);
+		} else {
+			this.paintWriteStatus(undefined);
+			this.removeBodyStatus();
+		}
 		try {
 			const result = await listSnapshots.call(this.connection, { sessionId });
 			if (generation !== this.renderGeneration) {
@@ -257,7 +267,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 				return false;
 			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
-			this.paintStatus(formatEngineSnapshotFailedCopy(reason));
+			this.paintListFailed(formatEngineSnapshotFailedCopy(reason));
 			return false;
 		}
 	}
@@ -376,12 +386,31 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	}
 
 	private paintStatus(text: string): void {
+		this.paintedLiveSnapshots = false;
 		this.paintWriteStatus(undefined);
 		this.rowDisposables.clear();
 		reset(this.body);
 		const status = append(this.body, $('.conversation-lens-snapshots-status'));
 		status.setAttribute('role', 'status');
 		status.textContent = text;
+	}
+
+	private paintListFailed(text: string): void {
+		this.paintWriteStatus(undefined);
+		if (!this.paintedLiveSnapshots) {
+			this.paintStatus(text);
+			return;
+		}
+		this.removeBodyStatus();
+		const status = append(this.body, $('.conversation-lens-snapshots-status'));
+		status.setAttribute('role', 'status');
+		status.textContent = text;
+	}
+
+	private removeBodyStatus(): void {
+		for (const el of [...this.body.querySelectorAll('.conversation-lens-snapshots-status')]) {
+			el.remove();
+		}
 	}
 
 	private paintSnapshots(snapshots: readonly UniverseAgentSessionSnapshotInfo[]): void {
@@ -393,6 +422,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			return;
 		}
 
+		this.paintedLiveSnapshots = true;
 		const list = append(this.body, $('.conversation-lens-snapshots-list'));
 		list.setAttribute('role', 'list');
 		for (const snapshot of snapshots) {

@@ -239,7 +239,7 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.strictEqual(overlayParent.querySelector(`.${conversationLensSnapshotsRowClass}`), null);
 	});
 
-	test('listSnapshots failure shows read failure copy', async () => {
+	test('listSnapshots first-pull throw is failed with no leftover rows', async () => {
 		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
 			isEngineConnected: () => true,
 			listSnapshots: async () => {
@@ -248,7 +248,52 @@ suite('ConversationEngineSnapshotsList', () => {
 		}));
 		list.show();
 		await Promise.resolve();
+		assert.strictEqual(overlayParent.querySelector(`.${conversationLensSnapshotsRowClass}`), null);
 		assert.ok(overlayParent.textContent?.includes(formatEngineSnapshotFailedCopy('transport reset')));
+		assert.ok(!(overlayParent.textContent ?? '').includes(conversationLensSessionBarSnapshotsEmpty));
+	});
+
+	test('listSnapshots success then throw keeps leftover rows and paints failed', async () => {
+		let listCalls = 0;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const leftover: UniverseAgentSessionSnapshotInfo = {
+			id: 'leftover-snap',
+			sessionId: 'sess-1',
+			title: 'Leftover',
+			createdAt: 1,
+			turnCount: 1,
+		};
+		const liveSnapshot: UniverseAgentConnectionSnapshot = {
+			transport: 'ok',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		};
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listSnapshots: async () => {
+				listCalls++;
+				if (listCalls === 1) {
+					return { snapshots: [leftover] };
+				}
+				throw new Error('list boom');
+			},
+		}));
+		list.show();
+		await Promise.resolve();
+		assert.strictEqual(listCalls, 1);
+		assert.ok(snapshotRow(overlayParent, 'leftover-snap'));
+
+		onDidChangeConnection.fire(liveSnapshot);
+		await flushMicrotasks();
+
+		assert.strictEqual(listCalls, 2);
+		assert.ok(snapshotRow(overlayParent, 'leftover-snap'));
+		assert.strictEqual(overlayParent.querySelectorAll(`.${conversationLensSnapshotsRowClass}`).length, 1);
+		assert.ok(overlayParent.textContent?.includes(formatEngineSnapshotFailedCopy('list boom')));
+		assert.ok(!(overlayParent.textContent ?? '').includes(conversationLensSessionBarSnapshotsEmpty));
 	});
 
 	test('connection drop while open clears rows and does not keep fixture data', async () => {
@@ -343,12 +388,13 @@ suite('ConversationEngineSnapshotsList', () => {
 			await flushMicrotasks();
 			assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }, { sessionId: 'sess-1' }]);
 			assert.strictEqual(list.isOpen(), true);
-			assert.strictEqual(snapshotRow(overlayParent, 'snap-1'), null);
+			assert.ok(snapshotRow(overlayParent, 'snap-1'));
 			const status = writeStatus(overlayParent);
 			assert.ok(status);
 			assert.notStrictEqual(status.textContent, ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY);
 			assert.ok(!(status.textContent ?? '').includes(ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY));
 			assert.ok(overlayParent.textContent?.includes(formatEngineSnapshotFailedCopy('list boom')));
+			assert.ok(!(overlayParent.textContent ?? '').includes(conversationLensSessionBarSnapshotsEmpty));
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
@@ -630,12 +676,13 @@ suite('ConversationEngineSnapshotsList', () => {
 			await flushMicrotasks();
 			assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }, { sessionId: 'sess-1' }]);
 			assert.strictEqual(list.isOpen(), true);
-			assert.strictEqual(snapshotRow(overlayParent, 'snap-1'), null);
+			assert.ok(snapshotRow(overlayParent, 'snap-1'));
 			const status = writeStatus(overlayParent);
 			assert.ok(status);
 			assert.notStrictEqual(status.textContent, ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY);
 			assert.ok(!(status.textContent ?? '').includes(ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY));
 			assert.ok(overlayParent.textContent?.includes(formatEngineSnapshotFailedCopy('list boom')));
+			assert.ok(!(overlayParent.textContent ?? '').includes(conversationLensSessionBarSnapshotsEmpty));
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);

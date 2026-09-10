@@ -44,7 +44,7 @@ summary: "loop 关仓：D238–D241 已合入；merge compile-client 0。待 pus
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | mcp-runtime-tools-leftover | 已进 merge `2ee8952416b`；[D238](deferred-gaps.md) 已闭 |
+| **A** | snapshots-list-leftover | [D242](deferred-gaps.md) 已闭；成功 list 后再 throw 保 leftover 行 + failed；首拉 throw 仍 empty+failed |
 | **B** | clipboard-list-leftover | 已进 merge `78141f59aef`；[D239](deferred-gaps.md) 已闭 |
 | **C** | triggers-list-leftover | 已进 merge `8a9c2efeca8`；[D240](deferred-gaps.md) 已闭；勿 add `dev/loop` |
 | **D** | team-treeempty-pending-leftover | 已进 merge `aba5127add2`；[D241](deferred-gaps.md) 已闭 |
