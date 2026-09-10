@@ -282,7 +282,13 @@ export class EngineMcpRuntimePanel extends Disposable {
 		}
 
 		if (support === 'UNKNOWN') {
-			this.clearRuntimePresentation();
+			// Keep leftover runtime rows after a live paint (D256; D204 / D227).
+			const hadLiveRuntime = this.listEntries.some(entry => entry.kind === 'server');
+			if (!hadLiveRuntime) {
+				this.clearRuntimePresentation();
+			} else {
+				this.listContainer.style.display = '';
+			}
 			this.mode = resolveEngineCatalogPaneMode(true, support);
 			this.renderStatus({ loadingKind: 'capability' });
 			return;
