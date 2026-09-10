@@ -19,8 +19,11 @@ import { getCatalogFailedCopy } from '../../browser/engineCatalog.js';
 import { EngineMcpRuntimePanel } from '../../browser/engineMcpRuntimePanel.js';
 import { localize } from '../../../../../nls.js';
 
+const MCP_RUNTIME_FEATURE = localize('ua.engineMcpRuntimeFeatureLabel', "MCP server runtime");
 const MCP_RUNTIME_TOOLS_FEATURE = localize('ua.engineMcpRuntimeToolsFeature', "MCP server tools");
+const MCP_RUNTIME_EMPTY = localize('ua.engineMcpRuntimeEmpty', "No MCP servers in runtime.");
 const RUNTIME_SERVER_ID = 'stdio-runtime';
+const LEFTOVER_RUNTIME_SERVER_ID = 'leftover-runtime-server';
 const LEFTOVER_TOOL_NAME = 'leftover-mcp-tool';
 
 suite('EngineMcpRuntimePanel tools leftover (D67)', () => {
@@ -208,6 +211,61 @@ suite('EngineMcpRuntimePanel tools leftover (D67)', () => {
 		await flushMicrotasks();
 
 		assertToolsFailed(panel, 'getMcpServerTools retry exploded');
+	});
+
+	test('getMcpServerStatuses first throw is failed with no leftover rows', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			getMcpServerStatuses: async () => {
+				throw new Error('getMcpServerStatuses exploded');
+			},
+		});
+		const panel = mountPanel(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(panel.getMode(), 'failed');
+		assert.strictEqual(panel.getListEntryCount(), 0);
+		assert.strictEqual(panel.selectServerForTest(RUNTIME_SERVER_ID), false);
+		const status = panel.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(MCP_RUNTIME_FEATURE, 'getMcpServerStatuses exploded')));
+		assert.ok(!(panel.getDomNode().textContent ?? '').includes(MCP_RUNTIME_EMPTY));
+	});
+
+	test('getMcpServerStatuses success then throw keeps leftover rows and paints failed', async () => {
+		let statusCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			getMcpServerStatuses: async () => {
+				statusCalls++;
+				if (statusCalls === 1) {
+					return { statuses: [{ serverId: LEFTOVER_RUNTIME_SERVER_ID, status: 'connected' }] };
+				}
+				throw new Error('getMcpServerStatuses retry exploded');
+			},
+		});
+		const panel = mountPanel(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(panel.getMode(), 'ready');
+		assert.strictEqual(panel.getListEntryCount(), 1);
+		assert.ok(panel.selectServerForTest(LEFTOVER_RUNTIME_SERVER_ID));
+		assert.strictEqual(statusCalls, 1);
+		assert.ok(!(panel.getDomNode().textContent ?? '').includes(MCP_RUNTIME_EMPTY));
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(statusCalls, 2);
+		assert.strictEqual(panel.getMode(), 'failed');
+		assert.strictEqual(panel.getListEntryCount(), 1);
+		assert.ok(panel.selectServerForTest(LEFTOVER_RUNTIME_SERVER_ID));
+		const status = panel.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(MCP_RUNTIME_FEATURE, 'getMcpServerStatuses retry exploded')));
+		assert.ok(!(panel.getDomNode().textContent ?? '').includes(MCP_RUNTIME_EMPTY));
 	});
 
 	test('successful load then capability UNKNOWN clears leftover rows before loading', async () => {
