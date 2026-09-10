@@ -163,6 +163,21 @@ suite('Sources - review progress service - 源码接线扫描', () => {
 	});
 });
 
+suite('Sources - files list leftover - 源码接线扫描', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('Files collect does not swallow fetchChildren throw as empty workspace', () => {
+		const model = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/common/sourcesFilesModel.ts'), 'utf8');
+		const list = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesFilesList.ts'), 'utf8');
+		assert.ok(!model.includes('} catch {\n\t\t\treturn;'));
+		assert.ok(model.includes('resolveSourcesFilesCollectResult'));
+		assert.ok(list.includes('sourcesFilesListReadFailureMessage'));
+		assert.ok(list.includes('lastGoodEntries'));
+		assert.ok(list.includes('sources-files-status'));
+	});
+});
+
 suite('Sources - review showForPaths - 源码接线扫描', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();

@@ -18,3 +18,9 @@
 	color: var(--vscode-descriptionForeground);
 	font-size: 13px;
 }
+
+.monaco-workbench .part.sources .sources-files-status {
+	padding: 4px 8px 6px;
+	color: var(--vscode-descriptionForeground);
+	font-size: 12px;
+}

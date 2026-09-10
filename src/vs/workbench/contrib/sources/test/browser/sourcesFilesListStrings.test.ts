@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { sourcesFilesListEmptyMessage } from '../../browser/sourcesFilesListStrings.js';
+import { sourcesFilesListEmptyMessage, sourcesFilesListReadFailureMessage } from '../../browser/sourcesFilesListStrings.js';
 
 suite('Sources - Files list strings', () => {
 
@@ -17,5 +17,12 @@ suite('Sources - Files list strings', () => {
 		assert.ok(!sourcesFilesListEmptyMessage.match(/file tree/i));
 		assert.ok(!sourcesFilesListEmptyMessage.includes('Chat'));
 		assert.ok(!sourcesFilesListEmptyMessage.match(/copilot/i), 'must not mention Copilot');
+	});
+
+	test('read failure is not empty-workspace success copy', () => {
+		const message = sourcesFilesListReadFailureMessage(new Error('boom'));
+		assert.ok(message.includes('Unable to read workspace files:'));
+		assert.ok(message.includes('boom'));
+		assert.ok(!message.includes('No workspace files'));
 	});
 });

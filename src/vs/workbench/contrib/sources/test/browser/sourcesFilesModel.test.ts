@@ -9,7 +9,7 @@ import { TestConfigurationService } from '../../../../../platform/configuration/
 import { NullFilesConfigurationService, TestFileService } from '../../../../test/common/workbenchTestServices.js';
 import { ExplorerItem } from '../../../files/common/explorerModel.js';
 import { SortOrder } from '../../../files/common/files.js';
-import { collectSourcesFileEntries } from '../../common/sourcesFilesModel.js';
+import { collectSourcesFileEntries, resolveSourcesFilesCollectResult } from '../../common/sourcesFilesModel.js';
 
 suite('Sources - Files list projection', () => {
 
@@ -59,5 +59,33 @@ suite('Sources - Files list projection', () => {
 
 		assert.strictEqual(entries.length, 1);
 		assert.strictEqual(entries[0].name, 'visible.ts');
+	});
+
+	test('collectSourcesFileEntries does not swallow fetchChildren throw as empty', async function () {
+		const root = createStat.call(this, '/project', 'project', true);
+		root.fetchChildren = async () => {
+			throw new Error('boom');
+		};
+
+		await assert.rejects(() => collectSourcesFileEntries([root], SortOrder.Default), /boom/);
+	});
+
+	test('resolveSourcesFilesCollectResult keeps last-good entries after throw', function () {
+		const leftover = {
+			resource: toResource.call(this, '/project/src/leftover.ts'),
+			name: 'leftover.ts',
+			description: 'src/leftover.ts',
+		};
+		const failed = resolveSourcesFilesCollectResult([leftover], undefined, new Error('boom'));
+		assert.strictEqual(failed.failed, true);
+		assert.deepStrictEqual(failed.entries, [leftover]);
+
+		const firstFail = resolveSourcesFilesCollectResult([], undefined, new Error('boom'));
+		assert.strictEqual(firstFail.failed, true);
+		assert.deepStrictEqual(firstFail.entries, []);
+
+		const ok = resolveSourcesFilesCollectResult([leftover], [], undefined);
+		assert.strictEqual(ok.failed, false);
+		assert.deepStrictEqual(ok.entries, []);
 	});
 });
