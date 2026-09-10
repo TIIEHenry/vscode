@@ -7,7 +7,6 @@ import './media/agentInspect.css';
 import * as dom from '../../../../base/browser/dom.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
-import { getErrorMessage } from '../../../../base/common/errors.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
@@ -16,16 +15,13 @@ import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
-import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { IViewPaneOptions, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
-import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { AgentInspectTarget, IAgentInspectService } from '../common/agentInspect.js';
 import { formatAgentStatusLabel, formatAgentTypeShort } from '../common/navigatorAgentHierarchy.js';
 import { AGENT_INSPECT_VIEW_ID } from './agentInspectIds.js';
-import { NavigatorSessionLeaseHolder } from './navigatorSessionLeaseHolder.js';
 
 const $ = dom.$;
 
@@ -98,14 +94,14 @@ export function isInspectTargetStale(
 	target: AgentInspectTarget | undefined,
 	liveAgentIds: ReadonlySet<string> | undefined,
 ): boolean {
-	if (!target || liveAgentIds === undefined) {
+	if (!target) {
 		return false;
 	}
 	switch (target.kind) {
 		case 'agent':
-			return !liveAgentIds.has(target.node.agentId);
+			return liveAgentIds === undefined || !liveAgentIds.has(target.node.agentId);
 		case 'member':
-			return !liveAgentIds.has(target.info.memberAgentId);
+			return liveAgentIds === undefined || !liveAgentIds.has(target.info.memberAgentId);
 		default:
 			return false;
 	}
@@ -163,7 +159,6 @@ export class AgentInspectView extends ViewPane {
 	private listContainer: HTMLElement | undefined;
 	private entries: IAgentInspectEntry[] = [];
 	private staleNote: HTMLElement | undefined;
-	private readonly leaseHolder: NavigatorSessionLeaseHolder;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -177,22 +172,10 @@ export class AgentInspectView extends ViewPane {
 		@IThemeService themeService: IThemeService,
 		@IHoverService hoverService: IHoverService,
 		@IAgentInspectService private readonly inspectService: IAgentInspectService,
-		@IConversationRosterService private readonly rosterService: IConversationRosterService,
-		@INotificationService private readonly notificationService: INotificationService,
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
-		this.leaseHolder = this._register(new NavigatorSessionLeaseHolder(
-			this.rosterService,
-			() => this.renderTarget(),
-			error => this.notificationService.error(getErrorMessage(error)),
-		));
 		this._register(this.inspectService.onDidChangeTarget(() => this.renderTarget()));
 		this._register(this.inspectService.onDidChangeLiveAgentIds(() => this.renderTarget()));
-	}
-
-	override setVisible(visible: boolean): void {
-		super.setVisible(visible);
-		this.leaseHolder.setVisible(visible);
 	}
 
 	override shouldShowWelcome(): boolean {

@@ -253,10 +253,88 @@ suite('Agent inspect panel', () => {
 		assert.strictEqual(staleNote.style.display, '');
 		assert.strictEqual(isInspectTargetStale(inspectService.getTarget(), inspectService.getLiveAgentIds()), true);
 
-		inspectService.setLiveAgentIds('team', undefined);
+		inspectService.setLiveAgentIds('team', new Set(['member:gone']));
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assert.strictEqual(staleNote.style.display, 'none');
 		assert.strictEqual(isInspectTargetStale(inspectService.getTarget(), inspectService.getLiveAgentIds()), false);
+	});
+
+	test('isInspectTargetStale does not treat undefined live ids as fresh', () => {
+		const agentTarget = {
+			kind: 'agent' as const,
+			node: {
+				agentId: 'sub:1',
+				name: 'Worker',
+				type: 'AGENT_TYPE_SUB',
+				status: 'AGENT_STATUS_IDLE',
+				model: 'gpt',
+				turnCount: 3,
+				createdAt: 100,
+				children: [],
+			},
+		};
+		const memberTarget = {
+			kind: 'member' as const,
+			info: {
+				memberName: 'Alice',
+				memberAgentId: 'member:gone',
+				status: 'IDLE',
+				preset: 'p',
+				dynamic: 'd',
+				turnCount: 1,
+			},
+		};
+		const taskTarget = {
+			kind: 'task' as const,
+			task: {
+				taskId: 't1',
+				subject: 'Fix bug',
+				owner: 'mgr',
+				status: 'OPEN',
+				blockedBy: '',
+				lastMessage: '',
+				description: '',
+			},
+		};
+
+		assert.strictEqual(isInspectTargetStale(undefined, undefined), false);
+		assert.strictEqual(isInspectTargetStale(taskTarget, undefined), false);
+		assert.strictEqual(isInspectTargetStale(agentTarget, undefined), true);
+		assert.strictEqual(isInspectTargetStale(memberTarget, undefined), true);
+		assert.strictEqual(isInspectTargetStale(memberTarget, new Set()), true);
+		assert.strictEqual(isInspectTargetStale(memberTarget, new Set(['member:other'])), true);
+		assert.strictEqual(isInspectTargetStale(memberTarget, new Set(['member:gone'])), false);
+		assert.strictEqual(isInspectTargetStale(agentTarget, new Set(['sub:1'])), false);
+	});
+
+	test('stale note stays visible when both live-id sources are undefined leftover', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
+		const inspectService = store.add(instantiationService.createInstance(AgentInspectService));
+		instantiationService.stub(IAgentInspectService, inspectService);
+
+		const view = await mountViewWithService(instantiationService);
+		inspectService.setTarget({
+			kind: 'agent',
+			node: {
+				agentId: 'sub:leftover',
+				name: 'Gone',
+				type: 'AGENT_TYPE_SUB',
+				status: 'AGENT_STATUS_IDLE',
+				model: 'gpt',
+				turnCount: 1,
+				createdAt: 1,
+				children: [],
+			},
+		});
+		inspectService.setLiveAgentIds('agents', undefined);
+		inspectService.setLiveAgentIds('team', undefined);
+
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		const staleNote = view.element.querySelector('.agent-inspect-stale-note') as HTMLElement;
+		assert.ok(staleNote);
+		assert.strictEqual(staleNote.style.display, '');
+		assert.strictEqual(isInspectTargetStale(inspectService.getTarget(), inspectService.getLiveAgentIds()), true);
 	});
 
 	test('AgentInspectView does not hold its own session lease', async () => {

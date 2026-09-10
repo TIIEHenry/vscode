@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 关仓中：C D203 draft 回滚已合；A Fork/UNKNOWN 合入中；B Inspect / D catalog leftover 待合。D202–D204 已闭。D8 / D16 / D147 / D195–D201 仍开。"
+summary: "loop 关仓中：A Fork/UNKNOWN、C draft 回滚已合；B Inspect 合入中；D catalog leftover 待合。D197 / D202–D204 已闭；D205 仍开。"
 ---
 
 # Development Progress
@@ -44,8 +44,8 @@ summary: "loop 关仓中：C D203 draft 回滚已合；A Fork/UNKNOWN 合入中�
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | conversation-fork-unknown-honesty | 合入中 `5fc3c8ca092`；[D202](deferred-gaps.md)/[D204](deferred-gaps.md) 已闭 |
-| **B** | navigator-inspect-lease-honesty | merge-queued `b77177da870`；[D205](deferred-gaps.md) |
+| **A** | conversation-fork-unknown-honesty | 已进 merge `5fc3c8ca092`；[D202](deferred-gaps.md)/[D204](deferred-gaps.md) 已闭 |
+| **B** | navigator-inspect-lease-honesty | 合入中 `b77177da870`；[D197](deferred-gaps.md) 已闭；[D205](deferred-gaps.md) |
 | **C** | session-delete-draft-rollback | 已进 merge `d65c1afeb73`；[D203](deferred-gaps.md) 已闭；勿 add `dev/loop` |
 | **D** | catalog-defaults-unknown-triggers | merge-queued `3664ea9249e` |
 
