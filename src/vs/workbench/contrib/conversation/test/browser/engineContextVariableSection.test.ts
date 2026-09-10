@@ -66,7 +66,12 @@ suite('EngineContextVariableSection', () => {
 		}));
 		await flushMicrotasks();
 		assert.strictEqual(listContextVariableCalls, 0);
+		assert.strictEqual(noHook.getDomNode().querySelectorAll('.engine-context-variable-row').length, 0);
+		const noHookStatus = noHook.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(noHookStatus);
+		assert.strictEqual(noHookStatus.dataset['catalogMode'], 'unsupported');
 		assert.ok((noHook.getDomNode().textContent ?? '').includes('does not expose'));
+		assert.ok(!(noHook.getDomNode().textContent ?? '').includes(ENGINE_CONTEXT_VARIABLE_LIST_EMPTY_COPY));
 		noHook.getDomNode().parentElement?.remove();
 	});
 
@@ -174,6 +179,72 @@ suite('EngineContextVariableSection', () => {
 		assert.strictEqual(status.dataset['catalogMode'], 'failed');
 		assert.ok(status.textContent?.includes(getCatalogFailedCopy(ENGINE_CONTEXT_VARIABLE_LIST_FEATURE, 'listContextVariable retry exploded')));
 		assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_CONTEXT_VARIABLE_LIST_EMPTY_COPY));
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('List success then hook missing keeps leftover rows and paints unsupported', async () => {
+		const leftover = {
+			name: 'leftover-var',
+			scope: 'VARIABLE_GLOBAL' as const,
+			updatedBy: 'agent',
+			updatedAt: 1,
+			contentPreview: 'preview',
+		};
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			onDidChangeConnection: onDidChangeConnection.event,
+			listContextVariable: async (): Promise<UniverseAgentContextVariableListResult> => {
+				return { current: [leftover], inherited: [] };
+			},
+		});
+		const pane = mountSection(connection);
+		await flushMicrotasks();
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-context-variable-row').length, 1);
+
+		delete connection.listContextVariable;
+		onDidChangeConnection.fire(connection.getConnectionSnapshot());
+		await flushMicrotasks();
+
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-context-variable-row').length, 1);
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'unsupported');
+		assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_CONTEXT_VARIABLE_LIST_EMPTY_COPY));
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('List success then disconnect clears leftover rows', async () => {
+		let connected = true;
+		const leftover = {
+			name: 'leftover-var',
+			scope: 'VARIABLE_GLOBAL' as const,
+			updatedBy: 'agent',
+			updatedAt: 1,
+			contentPreview: 'preview',
+		};
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => connected,
+			getConnectionPhase: () => connected ? { kind: 'connected', path: 'loopback' } : { kind: 'disconnected' },
+			onDidChangeConnection: onDidChangeConnection.event,
+			listContextVariable: async (): Promise<UniverseAgentContextVariableListResult> => {
+				return { current: [leftover], inherited: [] };
+			},
+		});
+		const pane = mountSection(connection);
+		await flushMicrotasks();
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-context-variable-row').length, 1);
+
+		connected = false;
+		onDidChangeConnection.fire(connection.getConnectionSnapshot());
+		await flushMicrotasks();
+
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-context-variable-row').length, 0);
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
 		pane.getDomNode().parentElement?.remove();
 	});
 

@@ -121,7 +121,9 @@ export class EngineContextVariableSection extends Disposable {
 		}
 
 		if (!canSend || !hook) {
-			this.clearListPresentation();
+			if (this.rows.length === 0) {
+				this.clearListPresentation();
+			}
 			this.status.render({
 				mode: 'unsupported',
 				featureLabel: ENGINE_CONTEXT_VARIABLE_LIST_FEATURE,
