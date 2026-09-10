@@ -500,7 +500,13 @@ export class EngineToolsSection extends Disposable {
 				const entry = e.elements[0];
 				if (entry?.kind === 'tool') {
 					this.selectedToolName = entry.tool.name;
-					void this.loadToolInfo(entry.tool.name);
+					if (canShowCatalogRows(this.mode)) {
+						void this.loadToolInfo(entry.tool.name);
+					} else if ((this.mode === 'failed' || this.mode === 'loading') && this.hasLeftoverToolInfo()) {
+						this.infoHost.style.display = '';
+					} else {
+						this.clearToolInfo();
+					}
 				} else {
 					this.selectedToolName = undefined;
 					this.clearToolInfo();
@@ -646,9 +652,18 @@ export class EngineToolsSection extends Disposable {
 		this.infoHost.style.display = 'none';
 	}
 
+	private hasLeftoverToolInfo(): boolean {
+		return this.isToolInfoVisible() && !!(this.infoHost.textContent?.trim());
+	}
+
 	private async loadToolInfo(toolName: string): Promise<void> {
 		const name = toolName.trim();
 		if (!name || !canShowCatalogRows(this.mode) || !this.connection.isEngineConnected()) {
+			// Keep leftover tool info after a live paint (D270; D264 / D265).
+			// failed/loading must not unload leftover detail; first-pull empty still clears.
+			if ((this.mode === 'failed' || this.mode === 'loading') && this.hasLeftoverToolInfo()) {
+				return;
+			}
 			this.clearToolInfo();
 			return;
 		}

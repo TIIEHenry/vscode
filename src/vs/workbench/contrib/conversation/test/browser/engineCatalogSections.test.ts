@@ -1948,6 +1948,116 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assertToolsUnknownCapabilityHonesty(section, leftoverRows);
 	});
 
+	function leftoverBashTool() {
+		return { name: 'leftover-bash', description: 'shell tool', category: 'shell' };
+	}
+
+	function leftoverBashToolInfo(): UniverseAgentToolInfoResult {
+		return {
+			name: 'leftover-bash',
+			description: 'Run leftover command',
+			category: 'shell',
+			destructive: true,
+			requiresPermission: true,
+			aliases: ['sh'],
+		};
+	}
+
+	test('Tools: successful info then list throw then select leftover keeps detail', async () => {
+		let listToolsCalls = 0;
+		let getToolInfoCalls = 0;
+		const leftover = leftoverBashTool();
+		const leftoverInfo = leftoverBashToolInfo();
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => {
+				listToolsCalls++;
+				if (listToolsCalls === 1) {
+					return { tools: [leftover] };
+				}
+				throw new Error('listTools retry exploded');
+			},
+			listAgentProfiles: async () => ({
+				profiles: [demoToolsUserProfile()],
+			}),
+			getToolInfo: async () => {
+				getToolInfoCalls++;
+				return leftoverInfo;
+			},
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(section.selectTool('leftover-bash'), true);
+		await flushMicrotasks();
+
+		assert.strictEqual(getToolInfoCalls, 1);
+		assert.ok((section.getToolInfoDetailText() ?? '').includes('Run leftover command'));
+		assert.strictEqual(section.isToolInfoVisible(), true);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(listToolsCalls, 2);
+		assertToolsLeftoverFailedHonesty(section, 'listTools retry exploded', 1);
+		assert.strictEqual(section.selectTool('leftover-bash'), true);
+		await flushMicrotasks();
+
+		assert.strictEqual(getToolInfoCalls, 1);
+		assertToolsLeftoverFailedHonesty(section, 'listTools retry exploded', 1);
+		assert.ok((section.getToolInfoDetailText() ?? '').includes('Run leftover command'));
+		assert.strictEqual(section.isToolInfoVisible(), true);
+	});
+
+	test('Tools: successful info then capability UNKNOWN then select leftover keeps detail', async () => {
+		let listToolsCalls = 0;
+		let getToolInfoCalls = 0;
+		const leftover = leftoverBashTool();
+		const leftoverInfo = leftoverBashToolInfo();
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [leftover] };
+			},
+			listAgentProfiles: async () => ({
+				profiles: [demoToolsUserProfile()],
+			}),
+			getToolInfo: async () => {
+				getToolInfoCalls++;
+				return leftoverInfo;
+			},
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.selectTool('leftover-bash'), true);
+		await flushMicrotasks();
+
+		assert.strictEqual(getToolInfoCalls, 1);
+		assert.ok((section.getToolInfoDetailText() ?? '').includes('Run leftover command'));
+		assert.strictEqual(section.isToolInfoVisible(), true);
+		const listCallsAfterLoad = listToolsCalls;
+
+		connection.setToolsSupport('UNKNOWN');
+		await flushMicrotasks();
+
+		assert.strictEqual(listToolsCalls, listCallsAfterLoad);
+		assertToolsUnknownCapabilityHonesty(section, 1);
+		assert.strictEqual(section.selectTool('leftover-bash'), true);
+		await flushMicrotasks();
+
+		assert.strictEqual(getToolInfoCalls, 1);
+		assertToolsUnknownCapabilityHonesty(section, 1);
+		assert.ok((section.getToolInfoDetailText() ?? '').includes('Run leftover command'));
+		assert.strictEqual(section.isToolInfoVisible(), true);
+	});
+
 	function demoMcpServer() {
 		return {
 			id: 'stdio-demo',
