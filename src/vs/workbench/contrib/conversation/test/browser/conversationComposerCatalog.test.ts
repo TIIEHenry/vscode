@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { conversationLensDockNoAgent, conversationLensDockNoModel } from '../../browser/conversationLensDockStrings.js';
+import { conversationLensDockCatalogProbing, conversationLensDockNoAgent, conversationLensDockNoModel } from '../../browser/conversationLensDockStrings.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from '../../browser/conversationComposerCatalog.js';
 import { loadConnectedComposerCatalogs, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
@@ -131,9 +131,83 @@ suite('conversationComposerCatalog', () => {
 		assert.ok(!agentOptions.some(option => option.text === 'Coder'));
 		assert.ok(!modelOptions.some(option => option.text === 'gpt-test'));
 	});
+
+	test('loadConnectedComposerCatalogs UNKNOWN without last-good paints probing not empty-fail', async () => {
+		let listCalls = 0;
+		const { host, agentOptions, modelOptions } = createLoadCatalogHost({
+			listAgentProfiles: async () => {
+				listCalls++;
+				return { profiles: [{ id: 'coder', name: 'Coder', source: 'user' }] };
+			},
+			listModels: async () => {
+				listCalls++;
+				return { models: [{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' }] };
+			},
+			listTools: async () => {
+				listCalls++;
+				return { tools: [{ name: 'bash' }] };
+			},
+		}, 'UNKNOWN');
+
+		await loadConnectedComposerCatalogs(host, 1);
+
+		assert.strictEqual(listCalls, 0);
+		assert.deepStrictEqual(agentOptions, [{ text: conversationLensDockCatalogProbing }]);
+		assert.deepStrictEqual(modelOptions, [{ text: conversationLensDockCatalogProbing }]);
+		assert.deepStrictEqual([...host.catalogToolNames], []);
+		assert.ok(!agentOptions.some(option => option.text === conversationLensDockNoAgent));
+		assert.ok(!modelOptions.some(option => option.text === conversationLensDockNoModel));
+	});
+
+	test('loadConnectedComposerCatalogs UNKNOWN keeps last successful catalogs', async () => {
+		let listAgentProfilesCalls = 0;
+		let listModelsCalls = 0;
+		let listToolsCalls = 0;
+		let support: 'SUPPORTED' | 'UNKNOWN' = 'SUPPORTED';
+		const { host, agentOptions, modelOptions } = createLoadCatalogHost({
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [{ id: 'coder', name: 'Coder', source: 'user' }] };
+			},
+			listModels: async () => {
+				listModelsCalls++;
+				return { models: [{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' }] };
+			},
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [{ name: 'bash' }] };
+			},
+		}, () => support);
+		await loadConnectedComposerCatalogs(host, 1);
+		assert.ok(agentOptions.some(option => option.text === 'Coder'));
+		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
+		assert.deepStrictEqual([...host.catalogToolNames], ['bash']);
+
+		support = 'UNKNOWN';
+		host.agentSelectBox.setOptions([{ text: conversationLensDockNoAgent }], 0);
+		host.modelSelectBox.setOptions([{ text: conversationLensDockNoModel }], 0);
+		host.modelSelectedIndex = 0;
+		host.catalogModelIds = [''];
+		host.catalogToolNames = [];
+
+		await loadConnectedComposerCatalogs(host, 1);
+
+		assert.strictEqual(listAgentProfilesCalls, 1);
+		assert.strictEqual(listModelsCalls, 1);
+		assert.strictEqual(listToolsCalls, 1);
+		assert.ok(agentOptions.some(option => option.text === 'Coder'));
+		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
+		assert.deepStrictEqual([...host.catalogModelIds], ['', 'gpt-test']);
+		assert.deepStrictEqual([...host.catalogToolNames], ['bash']);
+		assert.ok(!agentOptions.some(option => option.text === conversationLensDockCatalogProbing));
+		assert.ok(agentOptions.some(option => option.text === conversationLensDockNoAgent));
+	});
 });
 
-function createLoadCatalogHost(hooks: Pick<IUniverseAgentConnection, 'listAgentProfiles' | 'listModels' | 'listTools'>): {
+function createLoadCatalogHost(
+	hooks: Pick<IUniverseAgentConnection, 'listAgentProfiles' | 'listModels' | 'listTools'>,
+	support: 'SUPPORTED' | 'UNKNOWN' | (() => 'SUPPORTED' | 'UNKNOWN') = 'SUPPORTED',
+): {
 	host: IConversationLensComposerHost;
 	agentOptions: { text: string }[];
 	modelOptions: { text: string }[];
@@ -159,12 +233,15 @@ function createLoadCatalogHost(hooks: Pick<IUniverseAgentConnection, 'listAgentP
 		getBoundSessionId: () => 's1',
 		getSessionConfig: () => ({ agentIndex: 0 }),
 		uaConnection: createConversationConnectionTestStub({
-			getCapabilitySnapshot: () => ({
-				...capabilities,
-				agentProfiles: { support: 'SUPPORTED' },
-				tools: { support: 'SUPPORTED' },
-				models: { support: 'SUPPORTED' },
-			}),
+			getCapabilitySnapshot: () => {
+				const resolved = typeof support === 'function' ? support() : support;
+				return {
+					...capabilities,
+					agentProfiles: { support: resolved },
+					tools: { support: resolved },
+					models: { support: resolved },
+				};
+			},
 			listAgentProfiles: hooks.listAgentProfiles,
 			listModels: hooks.listModels,
 			listTools: hooks.listTools,

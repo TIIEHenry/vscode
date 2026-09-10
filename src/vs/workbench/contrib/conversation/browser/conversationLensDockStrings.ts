@@ -43,6 +43,8 @@ export const conversationLensDockPermissionAgent = localize('conversationLens.do
 export const conversationLensDockPermissionPermit = localize('conversationLens.dockPermissionPermit', "Permit");
 export const conversationLensDockAgentLabel = localize('conversationLens.dockAgentLabel', "Agent");
 export const conversationLensDockNoAgent = localize('conversationLens.dockNoAgent', "No agent");
+/** Connected + capability UNKNOWN: keep-while-probing, not an empty failed catalog. */
+export const conversationLensDockCatalogProbing = localize('conversationLens.dockCatalogProbing', "Confirming engine catalog…");
 export const conversationLensDockMoreTitle = localize('conversationLens.dockMoreTitle', "More");
 export const conversationLensDockTemplatesTitle = localize('conversationLens.dockTemplatesTitle', "Templates");
 export const conversationLensDockNoTemplates = localize('conversationLens.dockNoTemplates', "No templates");

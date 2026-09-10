@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 本波四槽已合入 merge：A 假铬条、B Sources 失败空 diff、C bind-ready、D catalog list-fail。C 本工位 D203 delete 失败/回滚挂回 composer draft。待一路 compile。D8 / D16 / D147 / D195–D202 / D204 仍开。D194 / D203 已闭。"
+summary: "loop 关仓中：C D203 draft 回滚已合；A Fork/UNKNOWN 合入中；B Inspect / D catalog leftover 待合。D202–D204 已闭。D8 / D16 / D147 / D195–D201 仍开。"
 ---
 
 # Development Progress
@@ -44,10 +44,10 @@ summary: "loop 本波四槽已合入 merge：A 假铬条、B Sources 失败空 d
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | conversation-fake-chrome-honesty：拆 Add/Templates/Task/ring；Agent/Model/Goal/Snapshots/Retry 门控 | 已进 merge `cc7d2f396e7`；[D202](deferred-gaps.md)–[D204](deferred-gaps.md) |
-| **B** | Sources 失败与空 diff 诚实面 | 已进 merge `cfb340570a3` |
-| **C** | session-delete-draft-rollback（D203）：delete 失败/回滚挂回 composer draft | 本工位已落；`conversationLens.test.ts` 锁 false + optimistic rollback；勿 add `dev/loop` |
-| **D** | catalog-write-listfail-honesty | 已进 merge `21f8d299cd8`；[D199](deferred-gaps.md)–[D201](deferred-gaps.md) |
+| **A** | conversation-fork-unknown-honesty | 合入中 `5fc3c8ca092`；[D202](deferred-gaps.md)/[D204](deferred-gaps.md) 已闭 |
+| **B** | navigator-inspect-lease-honesty | merge-queued `b77177da870`；[D205](deferred-gaps.md) |
+| **C** | session-delete-draft-rollback | 已进 merge `d65c1afeb73`；[D203](deferred-gaps.md) 已闭；勿 add `dev/loop` |
+| **D** | catalog-defaults-unknown-triggers | merge-queued `3664ea9249e` |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>

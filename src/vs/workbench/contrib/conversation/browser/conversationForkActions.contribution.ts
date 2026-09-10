@@ -5,7 +5,6 @@
 
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { getErrorMessage } from '../../../../base/common/errors.js';
-import { localize } from '../../../../nls.js';
 import { registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
@@ -13,15 +12,23 @@ import { ForkConversationAction } from '../../chat/browser/actions/chatForkActio
 import { isDefaultCodeWindow } from '../../chat/browser/chatShellRouting.js';
 import { IChatSessionsService } from '../../chat/common/chatSessionsService.js';
 import { getChatSessionType } from '../../chat/common/model/chatUri.js';
+import { tryConnectedEngineFork } from './conversationForkEngine.js';
 import { IConversationSessionChatService } from './conversationSessionChatService.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
 export class ConversationForkConversationAction extends ForkConversationAction {
+	private engineForkHandledWithoutSuccess = false;
+
+	protected override shouldSkipContributedForkFallback(): boolean {
+		return this.engineForkHandledWithoutSuccess;
+	}
+
 	protected override async _tryForkAsChat(
 		instantiationService: IInstantiationService,
 		sourceSessionResource: import('../../../../base/common/uri.js').URI,
 		request: import('../../chat/common/chatSessionsService.js').IChatSessionRequestHistoryItem | undefined,
 	): Promise<boolean> {
+		this.engineForkHandledWithoutSuccess = false;
 		return instantiationService.invokeFunction(async accessor => {
 			if (!isDefaultCodeWindow(accessor)) {
 				return false;
@@ -29,12 +36,10 @@ export class ConversationForkConversationAction extends ForkConversationAction {
 
 			const roster = accessor.get(IConversationRosterService);
 			const notificationService = accessor.get(INotificationService);
-			if (roster.isEngineConnected()) {
-				if (roster.forkSubAgent(roster.getActiveSessionId())) {
-					return true;
-				}
-				notificationService.error(localize('conversationFork.forkSubAgentFailed', "Could not fork conversation."));
-				return true;
+			const outcome = tryConnectedEngineFork(roster, notificationService);
+			if (outcome.handled) {
+				this.engineForkHandledWithoutSuccess = !outcome.forked;
+				return outcome.forked;
 			}
 
 			const chatSessionsService = accessor.get(IChatSessionsService);

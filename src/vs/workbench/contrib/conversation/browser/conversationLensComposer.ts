@@ -8,8 +8,10 @@ import { IStorageService } from '../../../../platform/storage/common/storage.js'
 import type { ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import type { UniverseAgentCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from './conversationComposerCatalog.js';
 import {
+	conversationLensDockCatalogProbing,
 	conversationLensDockNoAgent,
 	conversationLensDockNoModel,
 	type ConversationComposerPostFailureReason,
@@ -88,9 +90,54 @@ export function refreshComposerCatalogs(host: IConversationLensComposerHost): vo
 	
 }
 
+type LastGoodComposerCatalog = {
+	agent?: { options: { text: string }[] };
+	model?: { options: { text: string }[]; ids: readonly string[]; selectedIndex: number };
+	tools?: { names: readonly string[] };
+};
+
+const lastGoodComposerCatalogs = new WeakMap<IConversationLensComposerHost, LastGoodComposerCatalog>();
+
+function rememberLastGoodComposerCatalog(host: IConversationLensComposerHost, patch: LastGoodComposerCatalog): void {
+	const prev = lastGoodComposerCatalogs.get(host) ?? {};
+	lastGoodComposerCatalogs.set(host, { ...prev, ...patch });
+}
+
+function applyUnknownComposerCatalogHonesty(host: IConversationLensComposerHost, caps: UniverseAgentCapabilitySnapshot): void {
+	const last = lastGoodComposerCatalogs.get(host);
+	if (caps.agentProfiles.support === 'UNKNOWN') {
+		if (last?.agent) {
+			const { agentIndex } = host.getSessionConfig(host.getBoundSessionId());
+			host.agentSelectBox.setOptions(last.agent.options, Math.min(agentIndex, last.agent.options.length - 1));
+		} else {
+			host.agentSelectBox.setOptions([{ text: conversationLensDockCatalogProbing }], 0);
+		}
+	}
+	if (caps.models.support === 'UNKNOWN') {
+		if (last?.model) {
+			host.modelSelectBox.setOptions(last.model.options, last.model.selectedIndex);
+			host.modelSelectedIndex = last.model.selectedIndex;
+			host.catalogModelIds = last.model.ids;
+		} else {
+			host.modelSelectBox.setOptions([{ text: conversationLensDockCatalogProbing }], 0);
+			host.modelSelectedIndex = 0;
+			host.catalogModelIds = [''];
+		}
+	}
+	if (caps.tools.support === 'UNKNOWN') {
+		if (last?.tools) {
+			host.catalogToolNames = last.tools.names;
+		}
+	}
+}
+
 export async function loadConnectedComposerCatalogs(host: IConversationLensComposerHost, generation: number): Promise<void> {
 
 		const caps = ensureCapabilitySnapshot(host.uaConnection.getCapabilitySnapshot());
+		if (generation !== host.composerCatalogGeneration) {
+			return;
+		}
+		applyUnknownComposerCatalogHonesty(host, caps);
 		if (caps.agentProfiles.support === 'SUPPORTED') {
 			try {
 				const result = await host.uaConnection.listAgentProfiles();
@@ -100,6 +147,7 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 				const options = composerAgentSelectOptions(result.profiles);
 				const { agentIndex } = host.getSessionConfig(host.getBoundSessionId());
 				host.agentSelectBox.setOptions(options, Math.min(agentIndex, options.length - 1));
+				rememberLastGoodComposerCatalog(host, { agent: { options } });
 			} catch {
 				host.agentSelectBox.setOptions([{ text: conversationLensDockNoAgent }], 0);
 			}
@@ -110,9 +158,12 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 				if (generation !== host.composerCatalogGeneration) {
 					return;
 				}
-				host.modelSelectBox.setOptions(composerModelSelectOptions(result.models), 0);
+				const options = composerModelSelectOptions(result.models);
+				const ids = composerModelIds(result.models);
+				host.modelSelectBox.setOptions(options, 0);
 				host.modelSelectedIndex = 0;
-				host.catalogModelIds = composerModelIds(result.models);
+				host.catalogModelIds = ids;
+				rememberLastGoodComposerCatalog(host, { model: { options, ids, selectedIndex: 0 } });
 			} catch {
 				host.modelSelectBox.setOptions([{ text: conversationLensDockNoModel }], 0);
 				host.modelSelectedIndex = 0;
@@ -125,7 +176,9 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 				if (generation !== host.composerCatalogGeneration) {
 					return;
 				}
-				host.catalogToolNames = composerToolNames(result.tools);
+				const names = composerToolNames(result.tools);
+				host.catalogToolNames = names;
+				rememberLastGoodComposerCatalog(host, { tools: { names } });
 			} catch {
 				host.catalogToolNames = [];
 			}
