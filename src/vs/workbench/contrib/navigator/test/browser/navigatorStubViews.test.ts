@@ -4,23 +4,22 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
-import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainerModel, IViewContainersRegistry, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
+import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
 import { VIEWLET_ID } from '../../../files/common/files.js';
 import { VIEW_CONTAINER as EXPLORER_VIEW_CONTAINER } from '../../../files/browser/explorerViewlet.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
 import { CONVERSATION_SESSIONS_CONTAINER_ID } from '../../../conversation/browser/conversation.contribution.js';
 import { CONVERSATION_SESSIONS_VIEW_ID } from '../../../conversation/browser/conversationSessionsView.js';
-import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
 	NAVIGATOR_AGENTS_VIEW_ID,
 	NAVIGATOR_PROJECTS_VIEW_ID,
-	NAVIGATOR_STUB_VIEW_IDS,
 	NAVIGATOR_TEAM_VIEW_ID,
-	NavigatorProjectsView,
+	NAVIGATOR_VIEW_IDS,
 } from '../../browser/navigatorStubView.js';
+import { NavigatorProjectsView } from '../../browser/navigatorProjectsList.js';
+import { NavigatorAgentsView } from '../../browser/navigatorAgentsView.js';
 import { NavigatorTeamView } from '../../browser/navigatorTeamList.js';
 import {
 	NAVIGATOR_AGENTS_CONTAINER_ID,
@@ -33,7 +32,7 @@ import {
 
 suite('Navigator stub views', () => {
 
-	const store = ensureNoDisposablesAreLeakedInTestSuite();
+	ensureNoDisposablesAreLeakedInTestSuite();
 
 	const viewContainersRegistry = Registry.as<IViewContainersRegistry>(ViewContainerExtensions.ViewContainersRegistry);
 	const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
@@ -73,7 +72,7 @@ suite('Navigator stub views', () => {
 		assert.strictEqual(EXPLORER_VIEW_CONTAINER.hideIfEmpty, true, 'Explorer must keep hideIfEmpty true');
 	});
 
-	test('Navigator stub and Sessions ViewContainers are Sidebar non-default composites', () => {
+	test('Navigator and Sessions ViewContainers are Sidebar non-default composites', () => {
 		const defaultSidebarContainers = viewContainersRegistry.getDefaultViewContainers(ViewContainerLocation.Sidebar);
 		const nonDefaultContainerIds = [
 			CONVERSATION_SESSIONS_CONTAINER_ID,
@@ -96,71 +95,31 @@ suite('Navigator stub views', () => {
 		assert.ok(!defaultSidebarContainers.some(container => container.id === NAVIGATOR_TEAM_CONTAINER_ID));
 		assert.ok(!defaultSidebarContainers.some(container => container.id === CONVERSATION_SESSIONS_CONTAINER_ID));
 
-		for (const viewId of NAVIGATOR_STUB_VIEW_IDS) {
+		for (const viewId of NAVIGATOR_VIEW_IDS) {
 			assert.notStrictEqual(viewsRegistry.getViewContainer(viewId), EXPLORER_VIEW_CONTAINER);
 		}
 		assert.notStrictEqual(viewsRegistry.getViewContainer(CONVERSATION_SESSIONS_VIEW_ID), EXPLORER_VIEW_CONTAINER);
 	});
 
-	test('stub view descriptors do not reference ChatEditorInput', () => {
-		for (const viewId of NAVIGATOR_STUB_VIEW_IDS) {
+	test('view descriptors do not reference ChatEditorInput', () => {
+		for (const viewId of NAVIGATOR_VIEW_IDS) {
 			const descriptor = viewsRegistry.getView(viewId)!;
 			assert.notStrictEqual(descriptor.ctorDescriptor.ctor, ChatEditorInput);
 		}
 	});
 
-	test('Projects leftover stub view renders service-disconnected empty state without ChatEditorInput', () => {
-		const instantiationService = workbenchInstantiationService(undefined, store);
-		const stubViewContainer = {
-			id: 'navigator-stub-test-container',
-			title: { value: 'Navigator', original: 'Navigator' },
-		} as ViewContainer;
-		instantiationService.stub(IViewDescriptorService, {
-			onDidChangeLocation: Event.None,
-			getViewLocationById(_id: string): ViewContainerLocation {
-				return ViewContainerLocation.Sidebar;
-			},
-			getViewDescriptorById(_id: string): null {
-				return null;
-			},
-			getViewContainerByViewId(_id: string): ViewContainer | null {
-				return stubViewContainer;
-			},
-			getViewContainerModel(_viewContainer: ViewContainer): IViewContainerModel {
-				return {
-					title: stubViewContainer.title.value,
-					onDidChangeContainerInfo: Event.None,
-				} as IViewContainerModel;
-			},
-			getDefaultContainerById(_id: string): ViewContainer | null {
-				return stubViewContainer;
-			},
-		});
-
-		const view = store.add(instantiationService.createInstance(NavigatorProjectsView, {
-			id: NAVIGATOR_PROJECTS_VIEW_ID,
-			title: 'Projects',
-		}));
-		const container = document.createElement('div');
-		view.render();
-		container.appendChild(view.element);
-		view.setExpanded(true);
-		view.setVisible(true);
-
-		const empty = view.element.querySelector('.navigator-stub-empty');
-		assert.ok(empty, `expected empty stub body for ${NAVIGATOR_PROJECTS_VIEW_ID}`);
-		assert.ok(empty.textContent?.includes('not connected'));
-		assert.ok(empty.textContent?.includes('no engine'));
-		assert.ok(!empty.textContent?.match(/copilot/i), 'stub body must not mention Copilot');
-		assert.ok(!empty.textContent?.match(/open chat/i), 'stub body must not mention Open Chat');
-		assert.strictEqual(view.element.querySelector('.chat-widget'), null);
-		assert.strictEqual(view.element.querySelector('.chat-setup'), null);
-	});
-
-	test('Team view descriptor registers graduated NavigatorTeamView ctor', () => {
-		const descriptor = viewsRegistry.getView(NAVIGATOR_TEAM_VIEW_ID);
-		assert.ok(descriptor);
-		assert.strictEqual(descriptor.ctorDescriptor.ctor, NavigatorTeamView);
-		assert.notStrictEqual(descriptor.ctorDescriptor.ctor, NavigatorProjectsView);
+	test('Projects, Agents, and Team descriptors register the real view ctors', () => {
+		const projects = viewsRegistry.getView(NAVIGATOR_PROJECTS_VIEW_ID);
+		const agents = viewsRegistry.getView(NAVIGATOR_AGENTS_VIEW_ID);
+		const team = viewsRegistry.getView(NAVIGATOR_TEAM_VIEW_ID);
+		assert.ok(projects);
+		assert.ok(agents);
+		assert.ok(team);
+		assert.strictEqual(projects.ctorDescriptor.ctor, NavigatorProjectsView);
+		assert.strictEqual(agents.ctorDescriptor.ctor, NavigatorAgentsView);
+		assert.strictEqual(team.ctorDescriptor.ctor, NavigatorTeamView);
+		assert.notStrictEqual(projects.ctorDescriptor.ctor, agents.ctorDescriptor.ctor);
+		assert.notStrictEqual(projects.ctorDescriptor.ctor, team.ctorDescriptor.ctor);
+		assert.notStrictEqual(agents.ctorDescriptor.ctor, team.ctorDescriptor.ctor);
 	});
 });

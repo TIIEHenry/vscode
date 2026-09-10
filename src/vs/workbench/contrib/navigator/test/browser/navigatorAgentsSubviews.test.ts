@@ -503,6 +503,229 @@ suite('Navigator Agents subviews', () => {
 		assert.strictEqual(hierarchyEmpty?.textContent, 'No agents — no engine.');
 	});
 
+	test('engineReady Activity empty is connected-empty, not no-engine', () => {
+		const roster = store.add(new ConversationStubService());
+		roster.setEngineConnected(true);
+		const view = mountAgentsView(roster, createNavigatorConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'UNKNOWN',
+		}));
+		view.showActivity();
+		const activityEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty');
+		assert.strictEqual(activityEmpty?.textContent, 'No tool activity yet.');
+		assert.ok(!activityEmpty?.textContent?.includes('no engine'));
+		view.showHierarchy();
+		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty');
+		assert.ok(!hierarchyEmpty?.textContent?.includes('no engine'));
+	});
+
+	test('engineReady tree fetch-failed does not use no-engine copy', () => {
+		const roster = store.add(new ConversationStubService());
+		roster.setEngineConnected(true);
+		const view = mountAgentsView(roster, createNavigatorConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			isAgentTreeFetchFailed: () => true,
+		}));
+		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty');
+		assert.strictEqual(hierarchyEmpty?.textContent, 'Failed to read the agent tree');
+		assert.ok(!hierarchyEmpty?.textContent?.includes('no engine'));
+		view.showActivity();
+		const activityEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty');
+		assert.strictEqual(activityEmpty?.textContent, 'Failed to read tool activity');
+		assert.ok(!activityEmpty?.textContent?.includes('no engine'));
+	});
+
+	test('ViewTitle Inspect with hierarchy focus sets the agent target and opens Inspect', () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const inspectService = store.add(instantiationService.createInstance(AgentInspectService));
+		const openViewCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+		class TrackingViewsService extends TestViewsService {
+			override openView<T>(id: string, focus?: boolean): Promise<T | null> {
+				openViewCalls.push({ id, focus });
+				return Promise.resolve(null);
+			}
+			dispose(): void { }
+		}
+		instantiationService.stub(IViewsService, store.add(new TrackingViewsService()));
+		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
+		instantiationService.stub(IAgentInspectService, inspectService);
+		instantiationService.stub(ICommandService, { executeCommand: async () => undefined });
+		instantiationService.stub(IUniverseAgentConnection, createNavigatorConnectionTestStub());
+		const stubViewContainer = {
+			id: 'navigator-agents-test-container',
+			title: { value: 'Agents', original: 'Agents' },
+		} as ViewContainer;
+		instantiationService.stub(IViewDescriptorService, {
+			onDidChangeLocation: Event.None,
+			getViewLocationById(_id: string): ViewContainerLocation {
+				return ViewContainerLocation.Sidebar;
+			},
+			getViewDescriptorById(_id: string): null {
+				return null;
+			},
+			getViewContainerByViewId(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+			getViewContainerModel(_viewContainer: ViewContainer): IViewContainerModel {
+				return {
+					title: stubViewContainer.title.value,
+					onDidChangeContainerInfo: Event.None,
+				} as IViewContainerModel;
+			},
+			getDefaultContainerById(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+		});
+		const view = store.add(instantiationService.createInstance(NavigatorAgentsView, {
+			id: NAVIGATOR_AGENTS_VIEW_ID,
+			title: 'Agents',
+		}));
+		view.render();
+		document.createElement('div').appendChild(view.element);
+		view.setExpanded(true);
+		view.setVisible(true);
+
+		setHierarchyEntries(view, [{ id: 'sub:alpha', label: 'Alpha' }]);
+		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> }).hierarchyTree;
+		const focused = hierarchyTree.getNode(null)?.children[0]?.element;
+		assert.ok(focused);
+		hierarchyTree.setFocus([focused]);
+		view.inspectFocusedTitleAction();
+
+		const target = inspectService.getTarget();
+		assert.strictEqual(target?.kind, 'agent');
+		assert.strictEqual(target?.kind === 'agent' ? target.node.agentId : undefined, 'sub:alpha');
+		assert.deepStrictEqual(openViewCalls, [{ id: AGENT_INSPECT_VIEW_ID, focus: true }]);
+	});
+
+	test('ViewTitle Inspect with activity focus sets the activity target and opens Inspect', () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const inspectService = store.add(instantiationService.createInstance(AgentInspectService));
+		const openViewCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+		class TrackingViewsService extends TestViewsService {
+			override openView<T>(id: string, focus?: boolean): Promise<T | null> {
+				openViewCalls.push({ id, focus });
+				return Promise.resolve(null);
+			}
+			dispose(): void { }
+		}
+		instantiationService.stub(IViewsService, store.add(new TrackingViewsService()));
+		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
+		instantiationService.stub(IAgentInspectService, inspectService);
+		instantiationService.stub(ICommandService, { executeCommand: async () => undefined });
+		instantiationService.stub(IUniverseAgentConnection, createNavigatorConnectionTestStub());
+		const stubViewContainer = {
+			id: 'navigator-agents-test-container',
+			title: { value: 'Agents', original: 'Agents' },
+		} as ViewContainer;
+		instantiationService.stub(IViewDescriptorService, {
+			onDidChangeLocation: Event.None,
+			getViewLocationById(_id: string): ViewContainerLocation {
+				return ViewContainerLocation.Sidebar;
+			},
+			getViewDescriptorById(_id: string): null {
+				return null;
+			},
+			getViewContainerByViewId(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+			getViewContainerModel(_viewContainer: ViewContainer): IViewContainerModel {
+				return {
+					title: stubViewContainer.title.value,
+					onDidChangeContainerInfo: Event.None,
+				} as IViewContainerModel;
+			},
+			getDefaultContainerById(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+		});
+		const view = store.add(instantiationService.createInstance(NavigatorAgentsView, {
+			id: NAVIGATOR_AGENTS_VIEW_ID,
+			title: 'Agents',
+		}));
+		view.render();
+		document.createElement('div').appendChild(view.element);
+		view.setExpanded(true);
+		view.setVisible(true);
+		view.showActivity();
+		setActivityEntries(view, [{ id: 'a1', label: 'Alpha Tool Run' }]);
+		const activityList = (view as unknown as { activityList: WorkbenchList<INavigatorAgentsActivityItem> }).activityList;
+		activityList.setFocus([0]);
+		view.inspectFocusedTitleAction();
+
+		const target = inspectService.getTarget();
+		assert.strictEqual(target?.kind, 'activity');
+		assert.strictEqual(target?.kind === 'activity' ? target.item.itemId : undefined, 'a1');
+		assert.deepStrictEqual(openViewCalls, [{ id: AGENT_INSPECT_VIEW_ID, focus: true }]);
+	});
+
+	test('ViewTitle Inspect with no focus notifies and does not open blank Inspect', () => {
+		const notices: string[] = [];
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const inspectService = store.add(instantiationService.createInstance(AgentInspectService));
+		const openViewCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+		class TrackingViewsService extends TestViewsService {
+			override openView<T>(id: string, focus?: boolean): Promise<T | null> {
+				openViewCalls.push({ id, focus });
+				return Promise.resolve(null);
+			}
+			dispose(): void { }
+		}
+		instantiationService.stub(IViewsService, store.add(new TrackingViewsService()));
+		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
+		instantiationService.stub(IAgentInspectService, inspectService);
+		instantiationService.stub(ICommandService, { executeCommand: async () => undefined });
+		instantiationService.stub(IUniverseAgentConnection, createNavigatorConnectionTestStub());
+		instantiationService.stub(INotificationService, {
+			info: (message: string) => {
+				notices.push(typeof message === 'string' ? message : String(message));
+			},
+			error: () => { },
+		} as INotificationService);
+		const stubViewContainer = {
+			id: 'navigator-agents-test-container',
+			title: { value: 'Agents', original: 'Agents' },
+		} as ViewContainer;
+		instantiationService.stub(IViewDescriptorService, {
+			onDidChangeLocation: Event.None,
+			getViewLocationById(_id: string): ViewContainerLocation {
+				return ViewContainerLocation.Sidebar;
+			},
+			getViewDescriptorById(_id: string): null {
+				return null;
+			},
+			getViewContainerByViewId(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+			getViewContainerModel(_viewContainer: ViewContainer): IViewContainerModel {
+				return {
+					title: stubViewContainer.title.value,
+					onDidChangeContainerInfo: Event.None,
+				} as IViewContainerModel;
+			},
+			getDefaultContainerById(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+		});
+		const view = store.add(instantiationService.createInstance(NavigatorAgentsView, {
+			id: NAVIGATOR_AGENTS_VIEW_ID,
+			title: 'Agents',
+		}));
+		view.render();
+		document.createElement('div').appendChild(view.element);
+		view.setExpanded(true);
+		view.setVisible(true);
+
+		assert.strictEqual(inspectService.getTarget(), undefined);
+		view.inspectFocusedTitleAction();
+		assert.strictEqual(inspectService.getTarget(), undefined);
+		assert.deepStrictEqual(openViewCalls, []);
+		assert.deepStrictEqual(notices, ['Select an agent or activity item to inspect']);
+	});
+
 	test('Agents tree registers per-row Inspect and Reveal actions', () => {
 		const viewItemItems = MenuRegistry.getMenuItems(MenuId.ViewItemContext).filter(isIMenuItem);
 		const inspectItem = viewItemItems.find(item => item.command.id === NAVIGATOR_AGENTS_INSPECT_ITEM_COMMAND_ID);

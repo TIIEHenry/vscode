@@ -15,11 +15,12 @@ import type { IConversationSessionViewLease } from '../../../../../platform/univ
 import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { Extensions as ViewExtensions, IViewContainerModel, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
-import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { workbenchInstantiationService, TestViewsService } from '../../../../test/browser/workbenchTestServices.js';
+import { IViewsService } from '../../../../services/views/common/viewsService.js';
 import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IAgentInspectService } from '../../common/agentInspect.js';
 import { AgentInspectService } from '../../browser/agentInspectService.js';
-import { OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID } from '../../browser/agentInspectIds.js';
+import { AGENT_INSPECT_VIEW_ID, OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID } from '../../browser/agentInspectIds.js';
 import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEmptyState.js';
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 import '../../browser/navigator.contribution.js';
@@ -32,8 +33,12 @@ import {
 	NavigatorTeamView,
 } from '../../browser/navigatorTeamList.js';
 
+const TEAM_NEVER_CONNECTED_COPY = 'No team — engine not connected.';
+const TEAM_CONNECTING_COPY = 'Connecting to engine…';
 const TEAM_MEMBERS_EMPTY_COPY = 'No team members yet';
 const TEAM_TASKS_EMPTY_COPY = 'No tasks yet';
+const TEAM_UNSUPPORTED_COPY = 'Current engine does not provide Team';
+const TEAM_FETCH_FAILED_COPY = 'Failed to read team members and tasks';
 
 suite('Navigator Team subviews', () => {
 
@@ -85,10 +90,11 @@ suite('Navigator Team subviews', () => {
 		roster: ConversationStubService = store.add(new ConversationStubService()),
 		connection: IUniverseAgentConnection = createNavigatorConnectionTestStub(),
 		notification?: INotificationService,
+		inspectService?: IAgentInspectService,
 	): NavigatorTeamView {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, roster);
-		instantiationService.stub(IAgentInspectService, store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
+		instantiationService.stub(IAgentInspectService, inspectService ?? store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
 		instantiationService.stub(IUniverseAgentConnection, connection);
 		if (notification) {
 			instantiationService.stub(INotificationService, notification);
@@ -188,14 +194,14 @@ suite('Navigator Team subviews', () => {
 
 		const membersEmpty = view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty');
 		assert.ok(membersEmpty);
-		assert.strictEqual(membersEmpty?.textContent, TEAM_MEMBERS_EMPTY_COPY);
+		assert.strictEqual(membersEmpty?.textContent, TEAM_NEVER_CONNECTED_COPY);
 		assert.ok(!membersEmpty?.textContent?.match(/copilot/i));
-		assert.ok(!membersEmpty?.textContent?.match(/not connected/i));
-		assert.ok(!membersEmpty?.textContent?.includes('no engine'), 'Team keeps HEAD "No team members yet"; Agents owns the "— no engine" copy');
+		assert.ok(!membersEmpty?.textContent?.match(/not connected — no engine/i));
+		assert.notStrictEqual(membersEmpty?.textContent, TEAM_MEMBERS_EMPTY_COPY);
 
 		const tasksEmpty = view.element.querySelector('.navigator-team-subview:not(.active) .navigator-stub-empty');
 		assert.ok(tasksEmpty);
-		assert.strictEqual(tasksEmpty?.textContent, TEAM_TASKS_EMPTY_COPY);
+		assert.strictEqual(tasksEmpty?.textContent, TEAM_NEVER_CONNECTED_COPY);
 		assert.ok(!tasksEmpty?.textContent?.includes('no engine'));
 	});
 
@@ -211,7 +217,7 @@ suite('Navigator Team subviews', () => {
 
 		const tasksEmpty = activeSubview?.querySelector('.navigator-stub-empty');
 		assert.ok(tasksEmpty);
-		assert.strictEqual(tasksEmpty?.textContent, TEAM_TASKS_EMPTY_COPY);
+		assert.strictEqual(tasksEmpty?.textContent, TEAM_NEVER_CONNECTED_COPY);
 		assert.ok(!tasksEmpty?.textContent?.includes('no engine'));
 		assert.ok(!tasksEmpty?.textContent?.match(/copilot/i));
 		assert.ok(!tasksEmpty?.textContent?.match(/open chat/i));
@@ -326,7 +332,7 @@ suite('Navigator Team subviews', () => {
 		assert.ok(membersList);
 		assert.strictEqual(membersEmpty.style.display, 'block');
 		assert.strictEqual(membersList.style.display, 'none');
-		assert.strictEqual(membersEmpty.textContent, TEAM_MEMBERS_EMPTY_COPY);
+		assert.strictEqual(membersEmpty.textContent, TEAM_NEVER_CONNECTED_COPY);
 	});
 
 	test('Team view descriptor registers NavigatorTeamView ctor', () => {
@@ -380,7 +386,7 @@ suite('Navigator Team subviews', () => {
 		assert.ok(note);
 		assert.strictEqual(note.style.display, 'none');
 		const membersEmpty = view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty');
-		assert.strictEqual(membersEmpty?.textContent, TEAM_MEMBERS_EMPTY_COPY);
+		assert.strictEqual(membersEmpty?.textContent, TEAM_NEVER_CONNECTED_COPY);
 	});
 
 	test('successful Team load then memberStatus throw clears leftover rows and writes a failure note', async () => {
@@ -421,10 +427,12 @@ suite('Navigator Team subviews', () => {
 
 		assert.strictEqual(membersList.length, 0);
 		assert.strictEqual(tasksList.length, 0);
+		const membersEmpty = view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty');
+		assert.strictEqual(membersEmpty?.textContent, TEAM_FETCH_FAILED_COPY);
 		const note = view.element.querySelector('.navigator-team-subview.active .navigator-stub-note') as HTMLElement | null;
 		assert.ok(note);
 		assert.strictEqual(note.style.display, 'block');
-		assert.strictEqual(note.textContent, 'Failed to read team members and tasks');
+		assert.strictEqual(note.textContent, TEAM_FETCH_FAILED_COPY);
 		assert.notStrictEqual(note.textContent, NAVIGATOR_STALE_SNAPSHOT_COPY);
 	});
 
@@ -464,11 +472,221 @@ suite('Navigator Team subviews', () => {
 		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
 
 		assert.strictEqual(membersList.length, 0);
+		const membersEmpty = view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty');
+		assert.strictEqual(membersEmpty?.textContent, TEAM_FETCH_FAILED_COPY);
 		const note = view.element.querySelector('.navigator-team-subview.active .navigator-stub-note') as HTMLElement | null;
 		assert.ok(note);
 		assert.strictEqual(note.style.display, 'block');
-		assert.strictEqual(note.textContent, 'Failed to read team members and tasks');
+		assert.strictEqual(note.textContent, TEAM_FETCH_FAILED_COPY);
 		assert.notStrictEqual(note.textContent, NAVIGATOR_STALE_SNAPSHOT_COPY);
+	});
+
+	test('Team empty copy distinguishes never-connected, connecting, connected-empty, unsupported, and fetch-failed', async () => {
+		const neverView = mountTeamView();
+		await (neverView as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		const neverCopy = neverView.element.querySelector('.navigator-team-subview.active .navigator-stub-empty')?.textContent;
+
+		const connectingRoster = store.add(new ConversationStubService());
+		connectingRoster.setEngineConnected(true);
+		const connectingView = mountTeamView(connectingRoster, createNavigatorConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connecting', reason: 'initial' }),
+		}));
+		await (connectingView as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		const connectingCopy = connectingView.element.querySelector('.navigator-team-subview.active .navigator-stub-empty')?.textContent;
+
+		const connectedRoster = store.add(new RosterWithLiveTree(teamLiveTree));
+		connectedRoster.setEngineConnected(true);
+		const connectedView = mountTeamView(connectedRoster, createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			team: {
+				memberStatus: async () => [],
+				taskList: async () => [],
+				teamInfo: async () => undefined,
+			},
+		}));
+		await (connectedView as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		const connectedCopy = connectedView.element.querySelector('.navigator-team-subview.active .navigator-stub-empty')?.textContent;
+
+		const unsupportedRoster = store.add(new RosterWithLiveTree(teamLiveTree));
+		unsupportedRoster.setEngineConnected(true);
+		const unsupportedView = mountTeamView(unsupportedRoster, createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: key => key === 'team' ? 'UNSUPPORTED' : 'SUPPORTED',
+		}));
+		await (unsupportedView as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		const unsupportedCopy = unsupportedView.element.querySelector('.navigator-team-subview.active .navigator-stub-empty')?.textContent;
+
+		const failedRoster = store.add(new RosterWithLiveTree(teamLiveTree));
+		failedRoster.setEngineConnected(true);
+		const failedView = mountTeamView(failedRoster, createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			team: {
+				memberStatus: async () => {
+					throw new Error('boom');
+				},
+				taskList: async () => [],
+				teamInfo: async () => undefined,
+			},
+		}));
+		await (failedView as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		const failedCopy = failedView.element.querySelector('.navigator-team-subview.active .navigator-stub-empty')?.textContent;
+
+		assert.strictEqual(neverCopy, TEAM_NEVER_CONNECTED_COPY);
+		assert.strictEqual(connectingCopy, TEAM_CONNECTING_COPY);
+		assert.strictEqual(connectedCopy, TEAM_MEMBERS_EMPTY_COPY);
+		assert.strictEqual(unsupportedCopy, TEAM_UNSUPPORTED_COPY);
+		assert.strictEqual(failedCopy, TEAM_FETCH_FAILED_COPY);
+		assert.notStrictEqual(connectingCopy, TEAM_MEMBERS_EMPTY_COPY);
+		const distinct = new Set([neverCopy, connectingCopy, connectedCopy, unsupportedCopy, failedCopy]);
+		assert.strictEqual(distinct.size, 5);
+
+		connectedView.showTasks();
+		const connectedTasks = connectedView.element.querySelector('.navigator-team-subview.active .navigator-stub-empty')?.textContent;
+		assert.strictEqual(connectedTasks, TEAM_TASKS_EMPTY_COPY);
+	});
+
+	test('ViewTitle Inspect with member focus sets the member target and opens Inspect', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const inspectService = store.add(instantiationService.createInstance(AgentInspectService));
+		const openViewCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+		class TrackingViewsService extends TestViewsService {
+			override openView<T>(id: string, focus?: boolean): Promise<T | null> {
+				openViewCalls.push({ id, focus });
+				return Promise.resolve(null);
+			}
+			dispose(): void { }
+		}
+		instantiationService.stub(IViewsService, store.add(new TrackingViewsService()));
+		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
+		roster.setEngineConnected(true);
+		instantiationService.stub(IConversationRosterService, roster);
+		instantiationService.stub(IAgentInspectService, inspectService);
+		instantiationService.stub(IUniverseAgentConnection, createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			team: {
+				memberStatus: async () => [{
+					memberName: 'Alice',
+					memberAgentId: 'member:1',
+					status: 'IDLE',
+					preset: 'p',
+					dynamic: 'd',
+					turnCount: 1,
+				}],
+				taskList: async () => [],
+				teamInfo: async () => undefined,
+			},
+		}));
+		const stubViewContainer = {
+			id: 'navigator-team-test-container',
+			title: { value: 'Team', original: 'Team' },
+		} as ViewContainer;
+		instantiationService.stub(IViewDescriptorService, {
+			onDidChangeLocation: Event.None,
+			getViewLocationById(_id: string): ViewContainerLocation {
+				return ViewContainerLocation.Sidebar;
+			},
+			getViewDescriptorById(_id: string): null {
+				return null;
+			},
+			getViewContainerByViewId(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+			getViewContainerModel(_viewContainer: ViewContainer): IViewContainerModel {
+				return {
+					title: stubViewContainer.title.value,
+					onDidChangeContainerInfo: Event.None,
+				} as IViewContainerModel;
+			},
+			getDefaultContainerById(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+		});
+		const view = store.add(instantiationService.createInstance(NavigatorTeamView, {
+			id: NAVIGATOR_TEAM_VIEW_ID,
+			title: 'Team',
+		}));
+		view.render();
+		document.createElement('div').appendChild(view.element);
+		view.setExpanded(true);
+		view.setVisible(true);
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+
+		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList;
+		assert.strictEqual(membersList.length, 1);
+		membersList.setFocus([0]);
+		view.inspectFocusedTitleAction();
+
+		const target = inspectService.getTarget();
+		assert.strictEqual(target?.kind, 'member');
+		assert.strictEqual(target?.kind === 'member' ? target.info.memberAgentId : undefined, 'member:1');
+		assert.deepStrictEqual(openViewCalls, [{ id: AGENT_INSPECT_VIEW_ID, focus: true }]);
+	});
+
+	test('ViewTitle Inspect with no focus notifies and does not open blank Inspect', () => {
+		const notices: string[] = [];
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const inspectService = store.add(instantiationService.createInstance(AgentInspectService));
+		const openViewCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+		class TrackingViewsService extends TestViewsService {
+			override openView<T>(id: string, focus?: boolean): Promise<T | null> {
+				openViewCalls.push({ id, focus });
+				return Promise.resolve(null);
+			}
+			dispose(): void { }
+		}
+		instantiationService.stub(IViewsService, store.add(new TrackingViewsService()));
+		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
+		instantiationService.stub(IAgentInspectService, inspectService);
+		instantiationService.stub(IUniverseAgentConnection, createNavigatorConnectionTestStub());
+		instantiationService.stub(INotificationService, {
+			info: (message: string) => {
+				notices.push(typeof message === 'string' ? message : String(message));
+			},
+			error: () => { },
+		} as INotificationService);
+		const stubViewContainer = {
+			id: 'navigator-team-test-container',
+			title: { value: 'Team', original: 'Team' },
+		} as ViewContainer;
+		instantiationService.stub(IViewDescriptorService, {
+			onDidChangeLocation: Event.None,
+			getViewLocationById(_id: string): ViewContainerLocation {
+				return ViewContainerLocation.Sidebar;
+			},
+			getViewDescriptorById(_id: string): null {
+				return null;
+			},
+			getViewContainerByViewId(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+			getViewContainerModel(_viewContainer: ViewContainer): IViewContainerModel {
+				return {
+					title: stubViewContainer.title.value,
+					onDidChangeContainerInfo: Event.None,
+				} as IViewContainerModel;
+			},
+			getDefaultContainerById(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+		});
+		const view = store.add(instantiationService.createInstance(NavigatorTeamView, {
+			id: NAVIGATOR_TEAM_VIEW_ID,
+			title: 'Team',
+		}));
+		view.render();
+		document.createElement('div').appendChild(view.element);
+		view.setExpanded(true);
+		view.setVisible(true);
+
+		assert.strictEqual(inspectService.getTarget(), undefined);
+		view.inspectFocusedTitleAction();
+		assert.strictEqual(inspectService.getTarget(), undefined);
+		assert.deepStrictEqual(openViewCalls, []);
+		assert.deepStrictEqual(notices, ['Select a team member or task to inspect']);
 	});
 
 	test('acquireSessionView throw notifies error without hanging a lease or unhandled rejection', async () => {

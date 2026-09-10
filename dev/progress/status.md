@@ -3,8 +3,8 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-09-09
-summary: "gate-recovery 与人类工位 D26 改口已合入并 push origin/agent-ide、origin/loop/merge @ 484cec7538b。compile 0；四域绿；eslint 0。loop 切片已停。D8 / D16 / D147 / D194 仍开。"
+updated: 2026-09-10
+summary: "loop 已重启。D 槽 Navigator leftover stub/Inspect/Team 空态待合入；D197 Inspect lease 仍开。D8 / D16 / D147 / D194 仍开。"
 ---
 
 # Development Progress
@@ -41,8 +41,13 @@ summary: "gate-recovery 与人类工位 D26 改口已合入并 push origin/agent
 
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 进行中（2026-09-09 · 停 loop 切片 · 合入门禁线）
-人类裁定：停 loop 新切片，先收门禁；合并须包括人类工位。门禁与 D26 改口已合入并 **已 push** `origin/agent-ide` / `origin/loop/merge` @ `484cec7538b`。字母槽 A–D 与人类工位已 ff 对齐，保留各槽脏文件（C / edit 的 `dev/loop`）。**禁止再开 D194+ catch。**
+### 进行中（2026-09-10 · loop 重启 · 四槽并行）
+| 槽 | 切片 | 状态 |
+|:---|:-----|:-----|
+| **D** | Navigator leftover stub / Inspect 焦点 / Team 五态空态 | 代码+测已落，待字母槽 commit / 波次合入；D197 Inspect lease 另开 |
+| A | Composer 假造 mic/Route + 断连 Stub agent/model | 验收中 |
+| B | Sources Accept/session 门控 | 已 commit `loop/B` |
+| C | `sessionList` 诚实探测 | 已 commit `loop/C` |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
