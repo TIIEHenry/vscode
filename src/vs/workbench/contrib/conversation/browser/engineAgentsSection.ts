@@ -626,11 +626,28 @@ export class EngineAgentsSection extends Disposable {
 		}
 	}
 
+	private hasLeftoverAgentDetail(): boolean {
+		if (!this.selectedProfile) {
+			return false;
+		}
+		// Leftover AGENTS.md (D266) or leftover tools rows / painted tools panel (D271).
+		return !!(this.loadedAgentsMarkdown || this.agentsEditorInput.value)
+			|| this.agentTools.length > 0;
+	}
+
 	private syncDetailHost(forceAgentToolsReload = false): void {
-		const show = canShowCatalogRows(this.mode) && !!this.selectedProfile;
+		// Keep leftover detail after a live paint (D271; D266 / D270).
+		// failed/loading must not hide leftover detailHost; disconnect / UNSUPPORTED / first-pull empty still hide.
+		const keepLeftoverDetail = this.connection.isEngineConnected()
+			&& (this.mode === 'failed' || this.mode === 'loading')
+			&& this.hasLeftoverAgentDetail();
+		const show = (canShowCatalogRows(this.mode) && !!this.selectedProfile) || keepLeftoverDetail;
 		this.detailHost.style.display = show ? '' : 'none';
 		if (show) {
-			this.setActiveDetailTab(this.activeDetailTab, forceAgentToolsReload);
+			this.setActiveDetailTab(
+				this.activeDetailTab,
+				forceAgentToolsReload && canShowCatalogRows(this.mode),
+			);
 		}
 	}
 

@@ -1873,6 +1873,125 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assertAgentsUnknownCapabilityHonesty(section, 1);
 	});
 
+	function leftoverAgentProfile() {
+		return { id: 'leftover', name: 'Leftover Agent', source: 'user' as const };
+	}
+
+	function leftoverAgentTool() {
+		return { name: LEFTOVER_AGENT_TOOL_NAME };
+	}
+
+	function assertAgentsToolsDetailHostLeftoverVisible(section: EngineAgentsSection, expectedToolRows: number): void {
+		const detailHost = section.getDomNode().querySelector('.engine-agents-detail') as HTMLElement;
+		assert.ok(detailHost);
+		assert.notStrictEqual(detailHost.style.display, 'none');
+		const toolsPanel = section.getDomNode().querySelector('.engine-agents-tools-panel') as HTMLElement;
+		assert.ok(toolsPanel);
+		assert.notStrictEqual(toolsPanel.style.display, 'none');
+		assert.strictEqual(section.getAgentToolRowCount(), expectedToolRows);
+		assert.strictEqual(section.getAgentToolNames().length, expectedToolRows);
+		const rows = getAgentToolRows(section);
+		assert.strictEqual(rows.length, expectedToolRows);
+		for (const row of rows) {
+			assert.notStrictEqual((row as HTMLElement).style.display, 'none');
+		}
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(AGENT_TOOLS_EMPTY_COPY));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(AGENTS_EMPTY_COPY));
+		if (expectedToolRows > 0) {
+			assert.ok(section.getAgentToolNames().includes(LEFTOVER_AGENT_TOOL_NAME));
+		}
+	}
+
+	test('Agents: successful tools panel then list throw then select leftover keeps tools panel', async () => {
+		let listAgentProfilesCalls = 0;
+		let listToolsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' }, tools: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				if (listAgentProfilesCalls === 1) {
+					return { profiles: [leftoverAgentProfile()] };
+				}
+				throw new Error('listAgentProfiles retry exploded');
+			},
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [leftoverAgentTool()] };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		await section.selectProfileByIdForTest('leftover');
+		section.setActiveAgentDetailTabForTest('tools');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getAgentToolRowCount(), 1);
+		assertAgentsToolsDetailHostLeftoverVisible(section, 1);
+		const listToolsAfterLoad = listToolsCalls;
+		assert.ok(listToolsAfterLoad >= 1);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(listAgentProfilesCalls, 2);
+		assertAgentsLeftoverFailedHonesty(section, 'listAgentProfiles retry exploded', 1);
+		await section.selectProfileByIdForTest('leftover');
+		await flushMicrotasks();
+
+		assert.strictEqual(listToolsCalls, listToolsAfterLoad);
+		assertAgentsLeftoverFailedHonesty(section, 'listAgentProfiles retry exploded', 1);
+		assertAgentsToolsDetailHostLeftoverVisible(section, 1);
+	});
+
+	test('Agents: successful tools panel then capability UNKNOWN then select leftover keeps tools panel', async () => {
+		let listAgentProfilesCalls = 0;
+		let listToolsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' }, tools: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [leftoverAgentProfile()] };
+			},
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [leftoverAgentTool()] };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		await section.selectProfileByIdForTest('leftover');
+		section.setActiveAgentDetailTabForTest('tools');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getAgentToolRowCount(), 1);
+		assertAgentsToolsDetailHostLeftoverVisible(section, 1);
+		const listCallsAfterLoad = listAgentProfilesCalls;
+		const listToolsAfterLoad = listToolsCalls;
+		assert.ok(listToolsAfterLoad >= 1);
+
+		connection.setAgentProfilesSupport('UNKNOWN');
+		await flushMicrotasks();
+
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+		assertAgentsUnknownCapabilityHonesty(section, 1);
+		await section.selectProfileByIdForTest('leftover');
+		await flushMicrotasks();
+
+		assert.strictEqual(listToolsCalls, listToolsAfterLoad);
+		assertAgentsUnknownCapabilityHonesty(section, 1);
+		assertAgentsToolsDetailHostLeftoverVisible(section, 1);
+	});
+
 	function assertToolsUnknownCapabilityHonesty(
 		section: EngineToolsSection,
 		expectedRows: number,
