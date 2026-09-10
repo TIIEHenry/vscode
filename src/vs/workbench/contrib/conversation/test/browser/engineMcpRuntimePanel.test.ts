@@ -27,7 +27,7 @@ const RUNTIME_SERVER_ID = 'stdio-runtime';
 const LEFTOVER_RUNTIME_SERVER_ID = 'leftover-runtime-server';
 const LEFTOVER_TOOL_NAME = 'leftover-mcp-tool';
 
-suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256)', () => {
+suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
@@ -284,6 +284,11 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256)', () => {
 		assert.strictEqual(status.dataset['catalogMode'], 'failed');
 		assert.ok(status.textContent?.includes(getCatalogFailedCopy(MCP_RUNTIME_FEATURE, 'getMcpServerStatuses retry exploded')));
 		assert.ok(!(panel.getDomNode().textContent ?? '').includes(MCP_RUNTIME_EMPTY));
+		assert.strictEqual(panel.getToolsCount(), 0);
+		assert.strictEqual(getToolsRowCount(panel), 0);
+		const firstPullTools = getToolsList(panel);
+		assert.ok(firstPullTools);
+		assert.strictEqual(firstPullTools.style.display, 'none');
 	});
 
 	test('successful load then capability UNKNOWN keeps leftover rows and paints capability loading', async () => {
@@ -322,6 +327,99 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256)', () => {
 		assert.ok(status.textContent?.includes(getCatalogUnknownCopy()));
 		assert.ok(!(status.textContent ?? '').includes(getCatalogListLoadingCopy()));
 		assert.ok(!(panel.getDomNode().textContent ?? '').includes(MCP_RUNTIME_EMPTY));
+		assert.strictEqual(panel.getToolsCount(), 0);
+		assert.strictEqual(getToolsRowCount(panel), 0);
+		const firstPullTools = getToolsList(panel);
+		assert.ok(firstPullTools);
+		assert.strictEqual(firstPullTools.style.display, 'none');
+	});
+
+	test('successful tools load then runtime UNKNOWN then select leftover keeps tool rows', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			getMcpServerStatuses: async () => ({
+				statuses: [{ serverId: LEFTOVER_RUNTIME_SERVER_ID, status: 'connected' }],
+			}),
+			getMcpServerTools: async () => ({
+				tools: [{ name: LEFTOVER_TOOL_NAME, description: 'keep me' }],
+			}),
+		});
+		const panel = mountPanel(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(panel.getMode(), 'ready');
+		assert.ok(panel.selectServerForTest(LEFTOVER_RUNTIME_SERVER_ID));
+		await flushMicrotasks();
+
+		const toolsList = getToolsList(panel);
+		assert.ok(toolsList);
+		assert.strictEqual(panel.getToolsCount(), 1);
+		assert.strictEqual(getToolsRowCount(panel), 1);
+		assert.notStrictEqual(toolsList.style.display, 'none');
+
+		connection.setMcpRuntimeSupport('UNKNOWN');
+		await flushMicrotasks();
+
+		assert.strictEqual(panel.getMode(), 'loading');
+		assert.ok(panel.selectServerForTest(LEFTOVER_RUNTIME_SERVER_ID));
+		await flushMicrotasks();
+
+		assert.strictEqual(panel.getMode(), 'loading');
+		assert.strictEqual(panel.getToolsCount(), 1);
+		assert.strictEqual(getToolsRowCount(panel), 1);
+		assert.notStrictEqual(toolsList.style.display, 'none');
+		const status = panel.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		assert.ok(status.textContent?.includes(getCatalogUnknownCopy()));
+		assert.ok(!(status.textContent ?? '').includes(getCatalogListLoadingCopy()));
+		assert.ok(!(panel.getDomNode().textContent ?? '').includes(MCP_RUNTIME_TOOLS_EMPTY));
+	});
+
+	test('successful tools load then runtime list throw then select leftover keeps tool rows', async () => {
+		let statusCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			getMcpServerStatuses: async () => {
+				statusCalls++;
+				if (statusCalls === 1) {
+					return { statuses: [{ serverId: LEFTOVER_RUNTIME_SERVER_ID, status: 'connected' }] };
+				}
+				throw new Error('getMcpServerStatuses retry exploded');
+			},
+			getMcpServerTools: async () => ({
+				tools: [{ name: LEFTOVER_TOOL_NAME, description: 'keep me' }],
+			}),
+		});
+		const panel = mountPanel(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(panel.getMode(), 'ready');
+		assert.ok(panel.selectServerForTest(LEFTOVER_RUNTIME_SERVER_ID));
+		await flushMicrotasks();
+
+		const toolsList = getToolsList(panel);
+		assert.ok(toolsList);
+		assert.strictEqual(panel.getToolsCount(), 1);
+		assert.strictEqual(getToolsRowCount(panel), 1);
+		assert.notStrictEqual(toolsList.style.display, 'none');
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(panel.getMode(), 'failed');
+		assert.ok(panel.selectServerForTest(LEFTOVER_RUNTIME_SERVER_ID));
+		await flushMicrotasks();
+
+		assert.strictEqual(panel.getMode(), 'failed');
+		assert.strictEqual(panel.getToolsCount(), 1);
+		assert.strictEqual(getToolsRowCount(panel), 1);
+		assert.notStrictEqual(toolsList.style.display, 'none');
+		const status = panel.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(MCP_RUNTIME_FEATURE, 'getMcpServerStatuses retry exploded')));
+		assert.ok(!(panel.getDomNode().textContent ?? '').includes(MCP_RUNTIME_TOOLS_EMPTY));
 	});
 
 	test('first-pull capability UNKNOWN is empty with capability loading and does not list', async () => {

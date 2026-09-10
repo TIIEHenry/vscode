@@ -251,9 +251,15 @@ export class EngineMcpRuntimePanel extends Disposable {
 				this.selectedServerId = entry?.status.serverId;
 				if (this.selectedServerId && canShowCatalogRows(this.mode)) {
 					void this.loadTools(this.selectedServerId, false);
-				} else {
-					this.clearToolsPresentation();
+					return;
 				}
+				// Keep leftover tool rows after a live paint (D263; D238).
+				// failed/loading must not unload leftover tools; first-pull empty still clears.
+				const hadLivePaint = this.tools.length > 0;
+				if ((this.mode === 'failed' || this.mode === 'loading') && hadLivePaint) {
+					return;
+				}
+				this.clearToolsPresentation();
 			}));
 		}
 		return this.list;
