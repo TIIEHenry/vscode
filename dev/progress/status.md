@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 工位 A：D216 Plugins scanNew list-fail。D212–D215 已闭。待一路 compile。"
+summary: "关仓中：A D216、D D220 已合；B catalog listed / C leftover 仍在工位。"
 ---
 
 # Development Progress
@@ -44,10 +44,10 @@ summary: "loop 工位 A：D216 Plugins scanNew list-fail。D212–D215 已闭。
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | plugins-scan-list-fail | [D216](deferred-gaps.md) 已闭；`refresh()` 返回 listed 才回写 lastScan；勿 add `dev/loop` |
-| **B** | navigator-projects-rebuild-throw-stale | 已进 merge `eddac7e980e`；[D214](deferred-gaps.md) 已闭 |
-| **C** | clipboard-write-list-fail | 已进 merge `394a3c2c00d`；[D212](deferred-gaps.md) 已闭；勿 add `dev/loop` |
-| **D** | sources-files-fetch-leftover | 已进 merge `c1d7a9f721b`；[D215](deferred-gaps.md) 已闭 |
+| **A** | plugins-scan-list-fail | 已进 merge `19ac68c13cf`；[D216](deferred-gaps.md) 已闭 |
+| **B** | catalog-write-listed-gates | 工位进行中 |
+| **C** | leftover-from-code | 工位进行中；勿 add `dev/loop` |
+| **D** | navigator-agents-activity-fetch-leftover | 已进 merge `6b7c2002b3a`；[D220](deferred-gaps.md) 已闭 |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>

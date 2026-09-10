@@ -9,6 +9,9 @@ import type { LiveAgentTreeNodeView } from '../../../../platform/universeAgent/c
 
 export const NAVIGATOR_STALE_SNAPSHOT_COPY = localize('navigator.staleSnapshot', "Showing snapshot from before disconnect");
 
+/** Activity leftover after a tree fetch fail — keep last rows, do not paint them as live. */
+export const NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY = localize('navigatorAgentsActivity.fetchFailed', "Failed to read tool activity");
+
 /** Shared Hierarchy / Team empty copy while AgentService.Tree is pending or failed (§3 / D21). */
 export function getNavigatorAgentTreePendingCopy(
 	agentTreeCapability: UniverseAgentCapabilitySupport,
