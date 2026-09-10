@@ -296,6 +296,43 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.ok(!(overlayParent.textContent ?? '').includes(conversationLensSessionBarSnapshotsEmpty));
 	});
 
+	test('listSnapshots success then hook missing keeps leftover rows and paints unavailable', async () => {
+		const leftover: UniverseAgentSessionSnapshotInfo = {
+			id: 'leftover-snap',
+			sessionId: 'sess-1',
+			title: 'Leftover',
+			createdAt: 1,
+			turnCount: 1,
+		};
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const liveSnapshot: UniverseAgentConnectionSnapshot = {
+			transport: 'ok',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		};
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listSnapshots: async () => ({ snapshots: [leftover] }),
+		});
+		const { list, overlayParent } = mountList(connection);
+		list.show();
+		await Promise.resolve();
+		assert.ok(snapshotRow(overlayParent, 'leftover-snap'));
+		assert.strictEqual(overlayParent.querySelectorAll(`.${conversationLensSnapshotsRowClass}`).length, 1);
+
+		delete connection.listSnapshots;
+		onDidChangeConnection.fire(liveSnapshot);
+		await flushMicrotasks();
+
+		assert.ok(snapshotRow(overlayParent, 'leftover-snap'));
+		assert.strictEqual(overlayParent.querySelectorAll(`.${conversationLensSnapshotsRowClass}`).length, 1);
+		assert.ok(overlayParent.textContent?.includes(conversationLensSessionBarSnapshotsUnavailableNoHook));
+		assert.ok(!(overlayParent.textContent ?? '').includes(conversationLensSessionBarSnapshotsEmpty));
+	});
+
 	test('connection drop while open clears rows and does not keep fixture data', async () => {
 		let connected = true;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();

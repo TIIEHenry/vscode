@@ -114,6 +114,9 @@ function snapshotWriteFailureReason(error: unknown): string {
  * (that helper unloads rows).
  * List throw after a live paint keeps leftover rows + failed (D242);
  * first-pull throw stays empty+failed and must not paint empty-success.
+ * Connected no-hook after a live paint keeps leftover rows + UnavailableNoHook (D268);
+ * first-pull no-hook stays empty+unavailable and must not paint empty-success.
+ * Disconnect still unloads rows.
  * Restore/Delete success copy is restored only after a successful list
  * (D54/D154 listed-gate); leftover list-fail clears Restored./Deleted.
  * no Create.
@@ -244,7 +247,15 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		const listSnapshots = this.connection.listSnapshots;
 		const hasHook = typeof listSnapshots === 'function';
 
-		if (!canRequestEngineSnapshots(connected, hasHook, sessionId) || !listSnapshots) {
+		if (!connected) {
+			this.paintStatus(this.unavailableCopy(connected, hasHook, sessionId));
+			return false;
+		}
+		if (!hasHook || !listSnapshots) {
+			this.paintListFailed(this.unavailableCopy(connected, hasHook, sessionId));
+			return false;
+		}
+		if (!sessionId) {
 			this.paintStatus(this.unavailableCopy(connected, hasHook, sessionId));
 			return false;
 		}
