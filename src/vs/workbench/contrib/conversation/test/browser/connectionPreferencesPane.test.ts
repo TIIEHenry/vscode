@@ -2138,10 +2138,51 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(banner.textContent, 'boom');
 		assert.notStrictEqual(banner.style.display, 'none');
 		assert.ok(banner.classList.contains('is-error'));
+		const leftover = [...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent);
+		assert.ok(!leftover.includes('Studio'));
+		assert.strictEqual(leftover.length, 0);
 		container.remove();
 	});
 
-	test('Refresh devices non-throw fail clears leftover and paints failed banner', async () => {
+	test('Refresh devices throw keeps leftover and paints failed banner', async () => {
+		let listDevicesCalls = 0;
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			refreshDirectory: async () => {
+				throw new Error('boom');
+			},
+		}, {
+			isEngineConnected: () => false,
+			listDevices: async () => {
+				listDevicesCalls++;
+				return { devices: [] };
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		assert.ok([...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent).includes('Studio'));
+
+		const refresh = [...container.querySelectorAll('.connection-hub-actions .monaco-button')]
+			.find(button => button.textContent === 'Refresh devices') as HTMLButtonElement | undefined;
+		assert.ok(refresh);
+		refresh.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement;
+		assert.ok(banner);
+		assert.strictEqual(banner.textContent, 'boom');
+		assert.ok(banner.classList.contains('is-error'));
+		assert.notStrictEqual(banner.style.display, 'none');
+		const leftover = [...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent);
+		assert.ok(leftover.includes('Studio'));
+		assert.strictEqual(listDevicesCalls, 0);
+		container.remove();
+	});
+
+	test('Refresh devices non-throw fail keeps leftover and paints failed banner', async () => {
 		let listDevicesCalls = 0;
 		const pane = mountPane({
 			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
@@ -2172,8 +2213,38 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(banner.classList.contains('is-error'));
 		assert.notStrictEqual(banner.style.display, 'none');
 		const leftover = [...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent);
-		assert.ok(!leftover.includes('Studio'));
+		assert.ok(leftover.includes('Studio'));
 		assert.strictEqual(listDevicesCalls, 0);
+		container.remove();
+	});
+
+	test('Refresh devices first-pull non-throw fail is empty with failed banner', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'error', code: 'denied', reason: 'list boom' }),
+			refreshDirectory: async () => ({ kind: 'error', code: 'denied', reason: 'list boom' }),
+		}, {
+			isEngineConnected: () => false,
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		const refresh = [...container.querySelectorAll('.connection-hub-actions .monaco-button')]
+			.find(button => button.textContent === 'Refresh devices') as HTMLButtonElement | undefined;
+		assert.ok(refresh);
+		refresh.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement;
+		assert.ok(banner);
+		assert.strictEqual(banner.textContent, getHubDirectoryBannerLabel({ kind: 'error', code: 'denied', reason: 'list boom' }));
+		assert.ok(banner.classList.contains('is-error'));
+		assert.notStrictEqual(banner.style.display, 'none');
+		const leftover = [...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent);
+		assert.ok(!leftover.includes('Studio'));
+		assert.strictEqual(leftover.length, 0);
 		container.remove();
 	});
 
@@ -3078,7 +3149,7 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(banner.textContent, getHubDirectoryBannerLabel({ kind: 'error', code: 'denied', reason: 'list boom' }));
 		assert.ok(banner.classList.contains('is-error'));
 		const leftover = [...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent);
-		assert.ok(!leftover.includes('Studio'));
+		assert.ok(leftover.includes('Studio'));
 		container.remove();
 	});
 
@@ -3111,7 +3182,7 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
-	test('device Rename success does not keep leftover when subsequent refreshDirectory fails', async () => {
+	test('device Rename success keeps leftover and hides rename-success when subsequent refreshDirectory fails', async () => {
 		const pane = mountPane({
 			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
 			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
@@ -3134,7 +3205,7 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(banner.classList.contains('is-error'));
 		assert.notStrictEqual(banner.style.display, 'none');
 		const leftover = [...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent);
-		assert.ok(!leftover.includes('Studio'));
+		assert.ok(leftover.includes('Studio'));
 		container.remove();
 	});
 
@@ -3166,7 +3237,7 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
-	test('hub fallback revokeDevice success does not keep leftover when subsequent refreshDirectory fails', async () => {
+	test('hub fallback revokeDevice success keeps leftover and hides revoke-success when subsequent refreshDirectory fails', async () => {
 		const pane = mountPane({
 			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
 			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
@@ -3191,7 +3262,7 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(banner.classList.contains('is-error'));
 		assert.strictEqual(banner.textContent, getHubDirectoryBannerLabel({ kind: 'error', code: 'denied', reason: 'list boom' }));
 		const leftover = [...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent);
-		assert.ok(!leftover.includes('Studio'));
+		assert.ok(leftover.includes('Studio'));
 		container.remove();
 	});
 
@@ -3613,7 +3684,7 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(banner.classList.contains('is-error'));
 		assert.strictEqual(banner.textContent, getHubDirectoryBannerLabel({ kind: 'error', code: 'denied', reason: 'list boom' }));
 		const leftover = [...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent);
-		assert.ok(!leftover.includes('Studio'));
+		assert.ok(leftover.includes('Studio'));
 		container.remove();
 	});
 
