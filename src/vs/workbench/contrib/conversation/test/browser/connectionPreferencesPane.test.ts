@@ -27,6 +27,7 @@ import {
 	IConnectionProfileEntry,
 } from '../../browser/connectionPreferencesPane.js';
 import {
+	getEngineSectionApiUnavailableCopy,
 	getUnsupportedEnvironmentCopy,
 	shouldDrawDesktopConnectionControls,
 } from '../../browser/engineSectionChrome.js';
@@ -41,6 +42,7 @@ import type {
 	UniverseAgentRotateTokenRequest,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import {
+	CONNECTION_DEVICE_LIST_FEATURE,
 	CONNECTION_DEVICE_ROTATE_TOKEN_LABEL,
 	connectionDeviceListFailureMessage,
 	connectionDeviceRevokeFailureMessage,
@@ -49,6 +51,7 @@ import {
 import {
 	CONNECTION_DEVICE_PAIR_REJECT_LABEL,
 	CONNECTION_DEVICE_PENDING_EMPTY_COPY,
+	CONNECTION_DEVICE_PENDING_LIST_FEATURE,
 	connectionDevicePendingListFailureMessage,
 } from '../../browser/connectionDevicePair.js';
 import {
@@ -138,6 +141,25 @@ suite('ConnectionPreferencesPane', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentHubService, createHubStub(hubOverrides));
 		instantiationService.stub(IUniverseAgentConnection, createConnectionStub(connectionOverrides));
+		instantiationService.stub(IDialogService, {
+			_serviceBrand: undefined,
+			prompt: async () => ({ result: false }),
+			confirm: async () => ({ confirmed: true }),
+			input: async () => ({ confirmed: true, values: ['Renamed Studio'] }),
+		} as unknown as IDialogService);
+		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
+		const container = pane.getDomNode();
+		document.body.appendChild(container);
+		return pane;
+	}
+
+	function mountPaneWithConnection(
+		hubOverrides: Partial<IUniverseAgentHubService>,
+		connection: IUniverseAgentConnection,
+	): ConnectionPreferencesPane {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentHubService, createHubStub(hubOverrides));
+		instantiationService.stub(IUniverseAgentConnection, connection);
 		instantiationService.stub(IDialogService, {
 			_serviceBrand: undefined,
 			prompt: async () => ({ result: false }),
@@ -3466,6 +3488,201 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(pendingEmpty.classList.contains('is-error'));
 		assert.notStrictEqual(pendingEmpty.style.display, 'none');
 		assert.notStrictEqual(pendingEmpty.textContent, CONNECTION_DEVICE_PENDING_EMPTY_COPY);
+		container.remove();
+	});
+
+	test('ListPending success then hook missing keeps leftover rows and paints unsupported', async () => {
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listPending: async () => ({
+				pending: [{
+					pairingCode: '123456',
+					deviceId: 'dev-1',
+					displayName: 'Phone',
+					platform: 'ios',
+					requestedAt: 0,
+					expiresInSeconds: 0,
+				}],
+			}),
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 1);
+
+		delete connection.listPending;
+		await (pane as unknown as { refreshEngineDeviceLists(): Promise<void> }).refreshEngineDeviceLists();
+
+		const leftoverRows = container.querySelectorAll('.connection-engine-pending-row');
+		assert.strictEqual(leftoverRows.length, 1);
+		const pendingList = container.querySelector('.connection-engine-pending-list') as HTMLElement;
+		assert.notStrictEqual(pendingList.style.display, 'none');
+		const pendingEmpty = container.querySelector('.connection-engine-pending-empty') as HTMLElement;
+		assert.notStrictEqual(pendingEmpty.style.display, 'none');
+		assert.strictEqual(pendingEmpty.textContent, getEngineSectionApiUnavailableCopy(CONNECTION_DEVICE_PENDING_LIST_FEATURE));
+		assert.ok(pendingEmpty.classList.contains('is-warning'));
+		assert.notStrictEqual(pendingEmpty.textContent, CONNECTION_DEVICE_PENDING_EMPTY_COPY);
+		container.remove();
+	});
+
+	test('ListPending first-pull hook missing stays empty and paints unsupported', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+		}, {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 0);
+		const pendingEmpty = container.querySelector('.connection-engine-pending-empty') as HTMLElement;
+		assert.notStrictEqual(pendingEmpty.style.display, 'none');
+		assert.strictEqual(pendingEmpty.textContent, getEngineSectionApiUnavailableCopy(CONNECTION_DEVICE_PENDING_LIST_FEATURE));
+		assert.ok(pendingEmpty.classList.contains('is-warning'));
+		assert.notStrictEqual(pendingEmpty.textContent, CONNECTION_DEVICE_PENDING_EMPTY_COPY);
+		container.remove();
+	});
+
+	test('ListPending success then disconnect clears leftover rows', async () => {
+		let connected = true;
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => connected,
+			getConnectionPhase: () => connected ? { kind: 'connected', path: 'loopback' } : { kind: 'disconnected' },
+			listPending: async () => ({
+				pending: [{
+					pairingCode: '123456',
+					deviceId: 'dev-1',
+					displayName: 'Phone',
+					platform: 'ios',
+					requestedAt: 0,
+					expiresInSeconds: 0,
+				}],
+			}),
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 1);
+
+		connected = false;
+		await (pane as unknown as { refreshEngineDeviceLists(): Promise<void> }).refreshEngineDeviceLists();
+
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 0);
+		const pendingList = container.querySelector('.connection-engine-pending-list') as HTMLElement;
+		assert.strictEqual(pendingList.style.display, 'none');
+		const pendingEmpty = container.querySelector('.connection-engine-pending-empty') as HTMLElement;
+		assert.strictEqual(pendingEmpty.style.display, 'none');
+		assert.ok(!pendingEmpty.textContent?.includes('does not expose'));
+		container.remove();
+	});
+
+	test('ListDevices success then hook missing keeps leftover rows and paints unsupported', async () => {
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listDevices: async (): Promise<UniverseAgentListDevicesResult> => ({
+				devices: [{
+					deviceId: 'eng-1',
+					displayName: 'Phone',
+					role: '',
+					platform: '',
+					pairedAt: 0,
+					lastSeenAt: 0,
+					active: false,
+				}],
+			}),
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+			getDirectoryStatus: () => ({ kind: 'idle' }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+
+		delete connection.listDevices;
+		await (pane as unknown as { refreshEngineDeviceLists(): Promise<void> }).refreshEngineDeviceLists();
+		pane.layout(new Dimension(800, 800));
+
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+		const devicesStatus = container.querySelector('.connection-hub-devices-status') as HTMLElement;
+		assert.strictEqual(devicesStatus.textContent, getEngineSectionApiUnavailableCopy(CONNECTION_DEVICE_LIST_FEATURE));
+		assert.ok(devicesStatus.classList.contains('is-warning'));
+		container.remove();
+	});
+
+	test('ListDevices first-pull hook missing does not invent a fake list and paints unsupported', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+			getDirectoryStatus: () => ({ kind: 'idle' }),
+		}, {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 0);
+		const devicesStatus = container.querySelector('.connection-hub-devices-status') as HTMLElement;
+		assert.strictEqual(devicesStatus.textContent, getEngineSectionApiUnavailableCopy(CONNECTION_DEVICE_LIST_FEATURE));
+		assert.ok(devicesStatus.classList.contains('is-warning'));
+		container.remove();
+	});
+
+	test('ListDevices success then disconnect clears leftover rows', async () => {
+		let connected = true;
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => connected,
+			getConnectionPhase: () => connected ? { kind: 'connected', path: 'loopback' } : { kind: 'disconnected' },
+			listDevices: async (): Promise<UniverseAgentListDevicesResult> => ({
+				devices: [{
+					deviceId: 'eng-1',
+					displayName: 'Phone',
+					role: '',
+					platform: '',
+					pairedAt: 0,
+					lastSeenAt: 0,
+					active: false,
+				}],
+			}),
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+			getDirectoryStatus: () => ({ kind: 'idle' }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+
+		connected = false;
+		await (pane as unknown as { refreshEngineDeviceLists(): Promise<void> }).refreshEngineDeviceLists();
+		pane.layout(new Dimension(800, 800));
+
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 0);
+		const devicesStatus = container.querySelector('.connection-hub-devices-status') as HTMLElement;
+		assert.ok(!devicesStatus.textContent?.includes('does not expose'));
 		container.remove();
 	});
 

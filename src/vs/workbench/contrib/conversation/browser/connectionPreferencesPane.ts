@@ -24,8 +24,8 @@ import type { UniverseAgentDeviceInfo, UniverseAgentPendingPairInfo } from '../.
 import type { IPreferencesEditorPane } from '../../preferences/browser/preferencesEditorRegistry.js';
 import { asConnectionProfileList, ensureCapabilitySnapshot, isUniverseAgentPhaseConnected } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import {
-	canSendConnectionDeviceListRequest,
 	canSendConnectionDeviceRotateToken,
+	CONNECTION_DEVICE_LIST_FEATURE,
 	CONNECTION_DEVICE_ROTATE_TOKEN_LABEL,
 	connectionDeviceListFailureMessage,
 	connectionDeviceRevokeFailureMessage,
@@ -38,6 +38,7 @@ import {
 	CONNECTION_DEVICE_PAIR_REJECT_LABEL,
 	CONNECTION_DEVICE_PENDING_EMPTY_COPY,
 	CONNECTION_DEVICE_PENDING_HEADING,
+	CONNECTION_DEVICE_PENDING_LIST_FEATURE,
 	connectionDevicePairIds,
 	connectionDevicePendingListFailureMessage,
 	formatConnectionPendingPairLabel,
@@ -69,6 +70,7 @@ import { applyConnectionPaneIdentityStripReservation } from './connectionPaneIde
 import { promptRecoverTrustConfirmDialog, promptSasConfirmDialog } from './connectionPreferencesPaneSas.js';
 import { getConnectionPhaseStatusBarText } from './conversationSessionStatus.js';
 import {
+	getEngineSectionApiUnavailableCopy,
 	getUnsupportedEnvironmentCopy,
 	PREFERENCES_PANE_COMPACT_WIDTH,
 	PREFERENCES_PANE_NARROW_WIDTH,
@@ -1087,19 +1089,38 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private async refreshEngineDevices(): Promise<void> {
 		const hook = this.connectionService.listDevices;
-		if (!canSendConnectionDeviceListRequest(this.connectionService.isEngineConnected(), typeof hook === 'function') || !hook) {
+		const connected = this.connectionService.isEngineConnected();
+		// Disconnect still clears engine leftover (History/Clipboard contract).
+		if (!connected) {
 			this.enginePairedDevices = undefined;
 			this.engineDevicesListFailed = undefined;
+			this.hubDevices = [];
 			this.renderHubDirectory();
+			writeStatus(this.devicesConnectStatus, '', 'neutral');
+			return;
+		}
+		// Connected + missing hook: keep leftover rows; first-pull empty stays empty (D260).
+		if (typeof hook !== 'function') {
+			if (!this.enginePairedDevices?.length) {
+				this.enginePairedDevices = undefined;
+			}
+			this.engineDevicesListFailed = undefined;
+			this.renderHubDirectory();
+			writeStatus(
+				this.devicesConnectStatus,
+				getEngineSectionApiUnavailableCopy(CONNECTION_DEVICE_LIST_FEATURE),
+				'warning',
+			);
 			return;
 		}
 		try {
 			const result = await hook.call(this.connectionService);
 			this.enginePairedDevices = [...result.devices];
 			const hadFail = this.engineDevicesListFailed !== undefined;
+			const hadUnsupported = this.devicesConnectStatus.textContent === getEngineSectionApiUnavailableCopy(CONNECTION_DEVICE_LIST_FEATURE);
 			this.engineDevicesListFailed = undefined;
 			this.renderHubDirectory();
-			if (hadFail) {
+			if (hadFail || hadUnsupported) {
 				writeStatus(this.devicesConnectStatus, '', 'neutral');
 			}
 		} catch (error) {
@@ -1112,10 +1133,22 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private async refreshEnginePending(): Promise<void> {
 		const hook = this.connectionService.listPending;
-		if (!canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof hook === 'function') || !hook) {
+		const connected = this.connectionService.isEngineConnected();
+		// Disconnect still clears pending leftover (History/Clipboard contract).
+		if (!connected) {
 			this.pendingPairs = [];
 			this.pendingPairsListFailed = undefined;
 			this.selectedPending = undefined;
+			this.renderPendingPairs();
+			return;
+		}
+		// Connected + missing hook: keep leftover rows; first-pull empty stays empty (D260).
+		if (typeof hook !== 'function') {
+			if (this.pendingPairs.length === 0) {
+				this.pendingPairs = [];
+				this.selectedPending = undefined;
+			}
+			this.pendingPairsListFailed = undefined;
 			this.renderPendingPairs();
 			return;
 		}
@@ -1133,18 +1166,27 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private renderPendingPairs(): void {
 		const hook = this.connectionService.listPending;
-		const canList = canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof hook === 'function');
-		this.pendingPairsHeading.style.display = canList ? '' : 'none';
-		this.pendingPairsList.style.display = canList && this.pendingPairs.length > 0 ? '' : 'none';
-		this.pendingPairsEmpty.style.display = canList && (this.pendingPairs.length === 0 || !!this.pendingPairsListFailed) ? '' : 'none';
-		if (canList && this.pendingPairsListFailed) {
+		const connected = this.connectionService.isEngineConnected();
+		const canList = canSendConnectionDevicePairRequest(connected, typeof hook === 'function');
+		const showUnsupported = connected && typeof hook !== 'function';
+		const showPending = canList || showUnsupported;
+		this.pendingPairsHeading.style.display = showPending ? '' : 'none';
+		this.pendingPairsList.style.display = showPending && this.pendingPairs.length > 0 ? '' : 'none';
+		this.pendingPairsEmpty.style.display = showPending && (this.pendingPairs.length === 0 || !!this.pendingPairsListFailed || showUnsupported) ? '' : 'none';
+		if (showUnsupported) {
+			writeStatus(
+				this.pendingPairsEmpty,
+				getEngineSectionApiUnavailableCopy(CONNECTION_DEVICE_PENDING_LIST_FEATURE),
+				'warning',
+			);
+		} else if (canList && this.pendingPairsListFailed) {
 			writeStatus(this.pendingPairsEmpty, connectionDevicePendingListFailureMessage(this.pendingPairsListFailed), 'error');
 		} else {
 			writeStatus(this.pendingPairsEmpty, CONNECTION_DEVICE_PENDING_EMPTY_COPY, 'neutral');
 		}
 		this.pendingRowDisposables.clear();
 		DOM.clearNode(this.pendingPairsList);
-		if (!canList) {
+		if (!showPending) {
 			return;
 		}
 		for (const pending of this.pendingPairs) {

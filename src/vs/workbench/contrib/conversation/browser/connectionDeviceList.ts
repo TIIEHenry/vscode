@@ -44,6 +44,12 @@ export function connectionDeviceListFailureMessage(reason: string): string {
 	return localize('ua.connectionDeviceListFailed', "Unable to list devices: {0}", reason);
 }
 
+/** Feature label for connected + missing listDevices (D260 unsupported copy). */
+export const CONNECTION_DEVICE_LIST_FEATURE = localize(
+	'ua.connectionDeviceListFeature',
+	"device list",
+);
+
 /**
  * Map DeviceInfo onto the existing paired-list row. Empty `deviceId` /
  * `displayName` stay empty (no default / no trim). `active` false stays

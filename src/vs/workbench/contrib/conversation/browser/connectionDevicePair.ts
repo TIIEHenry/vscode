@@ -43,6 +43,12 @@ export const CONNECTION_DEVICE_PENDING_HEADING = localize(
 	"Pending pairs",
 );
 
+/** Feature label for connected + missing listPending (D260 unsupported copy). */
+export const CONNECTION_DEVICE_PENDING_LIST_FEATURE = localize(
+	'ua.connectionDevicePendingListFeature',
+	"pending pair list",
+);
+
 export const CONNECTION_DEVICE_PAIR_REJECT_LABEL = localize(
 	'ua.connectionDevicePairReject',
 	"Reject",
