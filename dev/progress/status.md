@@ -44,7 +44,7 @@ summary: "loop 关仓：D230–D233 已合入；merge compile-client 0。待 pus
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | plugins-list-leftover | 已进 merge `899e57da6bb`；[D230](deferred-gaps.md) 已闭 |
+| **A** | provider-model-list-leftover | [D234](deferred-gaps.md) 已闭；未 compile-client |
 | **B** | skills-list-leftover | 已进 merge `ddf4405166c`；[D231](deferred-gaps.md) 已闭 |
 | **C** | mcp-defs-list-leftover | 已进 merge `1bf59304a14`；[D232](deferred-gaps.md) 已闭；勿 add `dev/loop` |
 | **D** | agents-list-leftover | 已进 merge `f3145bb12cf`；[D233](deferred-gaps.md) 已闭 |
