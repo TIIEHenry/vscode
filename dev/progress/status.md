@@ -45,7 +45,7 @@ summary: "loop 关仓：D234–D237 已合入；merge compile-client 0。待 pus
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
 | **A** | provider-model-list-leftover | 已进 merge `fd04d8b7fed`；[D234](deferred-gaps.md) 已闭 |
-| **B** | composer-supported-throw-keep-last | 已进 merge `35c96a1002c`；[D235](deferred-gaps.md) 已闭 |
+| **B** | clipboard-list-leftover | 已落 [D239](deferred-gaps.md)；成功后再 `listClipboard` throw 保 leftover + failed；首拉 throw 仍 empty+failed；D212 listed-gate 不回退 |
 | **C** | team-refresh-leftover | 已进 merge `1a63d0e7e2f`；[D236](deferred-gaps.md) 已闭；勿 add `dev/loop` |
 | **D** | agents-hierarchy-pending-leftover | 已进 merge `4fcdc3ad254`；[D237](deferred-gaps.md) 已闭 |
 

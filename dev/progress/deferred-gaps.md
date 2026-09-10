@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-10
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D237 已闭；D234–D237 leftover；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D237 / D239 已闭；D239 Clipboard leftover；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -251,6 +251,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D237 已闭；D234
 | D235 | P3 | **closed** Composer `loadConnectedComposerCatalogs` 在 capability **SUPPORTED** 时 list throw 不再把活 catalog 画成 No agent / No model / 空 tools（D50 空失败的反面；D225 leftover 诚实）。catch 保 `rememberLastGoodComposerCatalog`，抵消 `refreshComposerCatalogs` 预清空；无 last-good 首拉 throw 仍空。未重开 D204 UNKNOWN probing；未改断连 refresh | 工位 B `composer-supported-throw-keep-last` 已收 | 成功→SUPPORTED throw 末次 agent/model/tools 仍在；首拉 throw 仍 No agent / No model / 空 tools；补 `conversationComposerCatalog.test.ts` | conversation / composer | closed |
 | D236 | P3 | **closed** Team `refreshTeamData()` catch 在活画后不再 `setMemberEntries([], TEAM_FETCH_FAILED_COPY)` + `setTaskEntries([], …)` 把 leftover 卸掉（D53 已闭为清 leftover；本波与 D225/D229 对齐为保 leftover + failed note）。成功后再 `memberStatus` / `taskList` throw 保 leftover 行并画失败 note；首拉 throw 仍 empty+failed。不得装首拉空失败或「无成员」空成功。未占 Hierarchy fetch-fail（D229）/ Team `treeEmpty` / pending wipe / catalog / connection / proto / 引擎仓 / D22 / D26 / A2 / mic·Route | 工位 C `team-refresh-leftover` 已收 | 成功→throw leftover 行仍在 + failed note；不得装空失败/「无成员」空成功；首拉 throw 仍 empty+failed；补 `navigatorTeamSubviews.test.ts` | navigator / team | closed |
 | D237 | P3 | **closed** Agents Hierarchy 成功画 leftover 后再进 pending（capability probing / liveTree 暂缺，非 `isAgentTreeFetchFailed`）不再走 `setHierarchyState([], pendingCopy)` 把旧树节点装成首拉空。`setHierarchyAfterPending` 保 leftover 节点并画 pending note；首拉 pending 仍 empty+pending copy。未重做 D229 fetch-fail helper；未占 Team list / Activity leftover / catalog / connection / proto / 引擎仓 / D22 / D26 / A2 / mic·Route | 工位 D `navigator-hierarchy-pending-leftover` 已收 | leftover 节点仍在 + pending note；不得装活树或首拉空；首拉 pending 仍 empty+pending copy；补 `navigatorAgentsSubviews.test.ts` | navigator / agents | closed |
+| D239 | P3 | **closed** Clipboard `refresh()` 不再在 `listClipboard` 前 `entries=[]` + `DOM.clearNode`（D226 / D225 同胞）。成功后再 throw 保 leftover 行并画 failed；首拉 throw 仍 empty+failed。不得画「No clipboard entries.」接通空成功。写/清成功文案仍在 list-fail 时清掉（D212 listed-gate 不回退）。未占 Triggers / MCP Runtime / Team / Hierarchy / Composer / proto / 引擎仓 / F3 / A2 / D26 / mic·Route / `.sessions` | 工位 B `clipboard-list-leftover` 已收 | 成功→list throw leftover 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；Write/Clear 成功文案 list-fail 不回刷；补 `engineClipboardSection.test.ts` | conversation / clipboard | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 
