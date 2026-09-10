@@ -326,7 +326,10 @@ function pendingDeleteDraftMap(host: IConversationLensSessionBarHost): Map<strin
 
 function restorePendingDeleteDraft(host: IConversationLensSessionBarHost, sessionId: string): void {
 	const drafts = pendingDeleteDrafts.get(host);
-	const text = drafts?.get(sessionId);
+	if (!drafts) {
+		return;
+	}
+	const text = drafts.get(sessionId);
 	if (text === undefined) {
 		return;
 	}

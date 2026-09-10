@@ -23,12 +23,12 @@ suite('conversationForkEngine', () => {
 				forkCalls.push(sessionId);
 				return false;
 			},
-		} as IConversationRosterService;
+		} as unknown as IConversationRosterService;
 		const notificationService = {
 			error(message: string | Error) {
 				errors.push(typeof message === 'string' ? message : message.message);
 			},
-		} as INotificationService;
+		} as unknown as INotificationService;
 
 		const outcome = tryConnectedEngineFork(roster, notificationService);
 
@@ -45,12 +45,12 @@ suite('conversationForkEngine', () => {
 			isEngineConnected: () => true,
 			getActiveSessionId: () => 's1',
 			forkSubAgent: () => true,
-		} as IConversationRosterService;
+		} as unknown as IConversationRosterService;
 		const notificationService = {
 			error(message: string | Error) {
 				errors.push(typeof message === 'string' ? message : message.message);
 			},
-		} as INotificationService;
+		} as unknown as INotificationService;
 
 		const outcome = tryConnectedEngineFork(roster, notificationService);
 
@@ -66,9 +66,9 @@ suite('conversationForkEngine', () => {
 			forkSubAgent: () => {
 				throw new Error('must not fork while disconnected');
 			},
-		} as IConversationRosterService;
+		} as unknown as IConversationRosterService;
 
-		const outcome = tryConnectedEngineFork(roster, { error() { } } as INotificationService);
+		const outcome = tryConnectedEngineFork(roster, { error() { } } as unknown as INotificationService);
 
 		assert.deepStrictEqual(outcome, { handled: false, forked: false });
 	});
