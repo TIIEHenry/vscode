@@ -164,7 +164,51 @@ suite('ConversationEngineHistoryList', () => {
 		}));
 		list.show();
 		await Promise.resolve();
+		assert.strictEqual(overlayParent.querySelector(`.${conversationLensHistoryRowClass}`), null);
 		assert.ok(overlayParent.textContent?.includes(formatEngineHistoryFailedCopy('transport reset')));
+		assert.ok(!(overlayParent.textContent ?? '').includes(conversationLensSessionBarHistoryEmpty));
+	});
+
+	test('getHistory success then throw keeps leftover rows and paints failed', async () => {
+		let listCalls = 0;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const leftover: UniverseAgentHistoryEnvelope = {
+			cursorSeq: 'leftover-1',
+			payload: { text: 'Leftover' },
+		};
+		const liveSnapshot: UniverseAgentConnectionSnapshot = {
+			transport: 'ok',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		};
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			onDidChangeConnection: onDidChangeConnection.event,
+			getHistory: async () => {
+				listCalls++;
+				if (listCalls === 1) {
+					return { envelopes: [leftover] };
+				}
+				throw new Error('list boom');
+			},
+		}));
+		list.show();
+		await Promise.resolve();
+		assert.strictEqual(listCalls, 1);
+		assert.ok(historyRow(overlayParent, 'leftover-1'));
+
+		onDidChangeConnection.fire(liveSnapshot);
+		await new Promise(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(listCalls, 2);
+		assert.ok(historyRow(overlayParent, 'leftover-1'));
+		assert.strictEqual(overlayParent.querySelectorAll(`.${conversationLensHistoryRowClass}`).length, 1);
+		const failed = overlayParent.querySelector('.conversation-lens-history-status');
+		assert.ok(failed);
+		assert.ok(failed.textContent?.includes(formatEngineHistoryFailedCopy('list boom')));
+		assert.ok(!(overlayParent.textContent ?? '').includes(conversationLensSessionBarHistoryEmpty));
 	});
 
 	test('connection drop while open clears rows and does not keep fixture data', async () => {

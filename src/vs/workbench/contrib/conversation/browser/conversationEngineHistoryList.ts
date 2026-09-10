@@ -79,6 +79,9 @@ function truncateHistoryPreview(text: string): string {
  * Distinct from Snapshots overlay and from {@link ConversationTrajectoryList}
  * (legacy turn-index MessageNavigator helpers). Empty sessionId is sent as-is.
  * Disconnected does not send and does not paint fixture turns as engine history.
+ * List throw after a live paint keeps leftover rows + failed (D246);
+ * first-pull throw stays empty+failed and must not paint empty-success.
+ * Live refresh skips loading `paintStatus` so leftover rows stay (D242 isomorphic).
  */
 export class ConversationEngineHistoryList extends Disposable {
 
@@ -89,6 +92,7 @@ export class ConversationEngineHistoryList extends Disposable {
 	private readonly body: HTMLElement;
 	private open = false;
 	private renderGeneration = 0;
+	private paintedLiveHistory = false;
 
 	constructor(
 		buttonParent: HTMLElement,
@@ -202,7 +206,11 @@ export class ConversationEngineHistoryList extends Disposable {
 			return;
 		}
 
-		this.paintStatus(conversationLensSessionBarHistoryLoading);
+		if (!this.paintedLiveHistory) {
+			this.paintStatus(conversationLensSessionBarHistoryLoading);
+		} else {
+			this.removeBodyStatus();
+		}
 		try {
 			const result = await this.connection.getHistory({ sessionId });
 			if (generation !== this.renderGeneration) {
@@ -214,15 +222,33 @@ export class ConversationEngineHistoryList extends Disposable {
 				return;
 			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
-			this.paintStatus(formatEngineHistoryFailedCopy(reason));
+			this.paintListFailed(formatEngineHistoryFailedCopy(reason));
 		}
 	}
 
 	private paintStatus(text: string): void {
+		this.paintedLiveHistory = false;
 		reset(this.body);
 		const status = append(this.body, $('.conversation-lens-history-status'));
 		status.setAttribute('role', 'status');
 		status.textContent = text;
+	}
+
+	private paintListFailed(text: string): void {
+		if (!this.paintedLiveHistory) {
+			this.paintStatus(text);
+			return;
+		}
+		this.removeBodyStatus();
+		const status = append(this.body, $('.conversation-lens-history-status'));
+		status.setAttribute('role', 'status');
+		status.textContent = text;
+	}
+
+	private removeBodyStatus(): void {
+		for (const el of [...this.body.querySelectorAll('.conversation-lens-history-status')]) {
+			el.remove();
+		}
 	}
 
 	private paintEnvelopes(envelopes: readonly UniverseAgentHistoryEnvelope[]): void {
@@ -232,6 +258,7 @@ export class ConversationEngineHistoryList extends Disposable {
 			return;
 		}
 
+		this.paintedLiveHistory = true;
 		const list = append(this.body, $('.conversation-lens-history-list'));
 		list.setAttribute('role', 'list');
 		for (const envelope of envelopes) {
