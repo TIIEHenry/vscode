@@ -46,7 +46,7 @@ summary: "loop 关仓：D260 已合入；merge compile-client 0。待 push 后�
 |:---|:-----|:-----|
 | **A** | roster-inflight-leftover | [D261](deferred-gaps.md) 已闭；refresh 保 leftover |
 | **B** | navigator-fetchfail-retained-tree | 已收；[D262](deferred-gaps.md) 已闭 |
-| **C** | mcp-runtime-unknown-leftover | 已进 merge；[D256](deferred-gaps.md) 已闭；勿 add `dev/loop` |
+| **C** | mcp-runtime-tools-selection-leftover | [D263](deferred-gaps.md) 已闭；failed/loading 选 leftover 不清 tools；勿 add `dev/loop` |
 | **D** | clipboard-unsupported-leftover | 已进 merge；[D257](deferred-gaps.md) 已闭 |
 
 <details>
