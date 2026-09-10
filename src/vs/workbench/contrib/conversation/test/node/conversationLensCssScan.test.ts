@@ -45,7 +45,7 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 			'getUserMedia',
 			'MediaRecorder',
 			'STUB_VOICE_TRANSCRIPT_PHRASES',
-			"durationLabel: '0:01'",
+			'durationLabel: \'0:01\'',
 			'Stub voice segment',
 			'Stub Balanced',
 			'finishVoiceClip',

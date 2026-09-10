@@ -1298,7 +1298,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(agentSlot().hidden, false);
 		assert.strictEqual(queryRoute(getLeading()), null);
 		assert.strictEqual(queryRoute(slots.sessionBar!), null);
-		assert.ok(!('routeIndex' in lens.getSessionConfig(sessionId)));
+		assert.deepStrictEqual(Object.keys(lens.getSessionConfig(sessionId)).sort(), ['agentIndex', 'permissionIndex']);
 
 		const agentSelect = agentSlot().querySelector('select.monaco-select-box') as HTMLSelectElement;
 		assert.strictEqual(agentSelect.options[agentSelect.selectedIndex]?.text, conversationLensDockNoAgent);
@@ -1353,13 +1353,13 @@ suite('ConversationLens', () => {
 
 		assert.strictEqual(getComposerBottomBar(slots).querySelector('.conversation-lens-dock-route'), null);
 		assert.strictEqual(slots.sessionBar!.querySelector('.conversation-lens-session-route'), null);
-		assert.ok(!('routeIndex' in lens.getSessionConfig(sessionId)));
+		assert.deepStrictEqual(Object.keys(lens.getSessionConfig(sessionId)).sort(), ['agentIndex', 'permissionIndex']);
 
 		await sendDockDraft(slots, 'No pretend route setting');
 
 		assert.strictEqual(getComposerBottomBar(slots).querySelector('.conversation-lens-dock-route'), null);
 		assert.strictEqual(slots.sessionBar!.querySelector('.conversation-lens-session-route'), null);
-		assert.ok(!('routeIndex' in lens.getSessionConfig(sessionId)));
+		assert.deepStrictEqual(Object.keys(lens.getSessionConfig(sessionId)).sort(), ['agentIndex', 'permissionIndex']);
 	});
 
 	test('Active inbox: left/right clusters with MessageQueue and no Task chip', async () => {

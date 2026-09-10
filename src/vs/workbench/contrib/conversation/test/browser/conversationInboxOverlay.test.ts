@@ -910,6 +910,10 @@ suite('ConversationInboxOverlay Retry', () => {
 
 	test('retryMessageQueueItem false shows failed and does not dress the row as retried', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
+		// Paint fixture rows while disconnected (connected Inbox hides the stub
+		// queue). Flip the flag without re-render so the click handler is allowed
+		// to call retry; overlay.displayQueueState still treats connected as
+		// unlisted, so do not read getMessageQueueState after the flip.
 		const roster = store.add(new class extends RetryRoster {
 			override isEngineConnected(): boolean {
 				return this.connected;
@@ -927,6 +931,7 @@ suite('ConversationInboxOverlay Retry', () => {
 		const panel = openQueuePanel(overlay);
 		const button = getRetryButton(panel, 'q-fail');
 		assert.ok(button);
+		assert.strictEqual(roster.getMessageQueueState(sessionId).items[0]?.status, 'FAILED');
 		roster.connected = true;
 		button.disabled = false;
 		button.removeAttribute('disabled');
@@ -934,7 +939,6 @@ suite('ConversationInboxOverlay Retry', () => {
 		button.click();
 		assert.deepStrictEqual(roster.retryCalls, [{ sessionId, itemId: 'q-fail', upload: false }]);
 		assert.deepStrictEqual(failures, ['failed']);
-		assert.strictEqual(roster.getMessageQueueState(sessionId).items[0]?.status, 'FAILED');
 		assert.ok(getRetryButton(panel, 'q-fail'));
 		assert.ok(panel.querySelector('.queue-item[data-item-id="q-fail"]')?.classList.contains('queue-failed'));
 		assert.ok(panel.querySelector('.queue-item[data-item-id="q-fail"]')?.textContent?.includes('send rejected'));
