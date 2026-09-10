@@ -539,6 +539,62 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(service.isEngineSessionReady(), false);
 	});
 
+	test('successful list then refresh keeps leftover while listCompleted is briefly false', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([
+			{ sessionId: 'ua-a', title: 'A' },
+			{ sessionId: 'ua-b', title: 'B' },
+		]);
+		const service = store.add(createService(connection));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), ['ua-a', 'ua-b']);
+
+		let releaseSecondList: ((value: { sessions: { sessionId: string; title?: string }[] }) => void) | undefined;
+		const secondListHeld = new Promise<{ sessions: { sessionId: string; title?: string }[] }>(resolve => {
+			releaseSecondList = resolve;
+		});
+		connection.listSessions = async () => secondListHeld;
+
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), ['ua-a', 'ua-b']);
+		assert.deepStrictEqual(service.getSessions().map(session => session.title), ['A', 'B']);
+		assert.ok(!service.getSessions().some(session => session.id === 'untitled'));
+
+		releaseSecondList!({
+			sessions: [
+				{ sessionId: 'ua-a', title: 'A' },
+				{ sessionId: 'ua-b', title: 'B' },
+			],
+		});
+		await awaitEngineCatalogRefresh(service);
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), ['ua-a', 'ua-b']);
+	});
+
+	test('first catalog refresh without leftover still returns empty getSessions', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		let releaseFirstList: ((value: { sessions: { sessionId: string; title?: string }[] }) => void) | undefined;
+		const firstListHeld = new Promise<{ sessions: { sessionId: string; title?: string }[] }>(resolve => {
+			releaseFirstList = resolve;
+		});
+		connection.listSessions = async () => firstListHeld;
+		const service = store.add(createService(connection));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.getSessions().length, 0);
+		assert.ok(!service.getSessions().some(session => session.id === 'untitled'));
+		assert.strictEqual(service.isEngineSessionReady(), false);
+
+		releaseFirstList!({ sessions: [] });
+		await awaitEngineCatalogRefresh(service);
+	});
+
 	test('connected empty list with default mock acquires host lease without roster create', async () => {
 		const connection = store.add(new MockUniverseAgentConnection());
 		connection.setListSessions([]);
