@@ -23,6 +23,7 @@ import { CONVERSATION_SESSIONS_CONTAINER_ID } from '../../browser/conversation.c
 import { CONVERSATION_SESSION_ROW_HEIGHT, CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from '../../browser/conversationSessionsView.js';
 import { ConversationStubSession } from '../../browser/conversationStubModel.js';
 import { conversationLensSessionBarNewSession } from '../../browser/conversationLensSessionBarStrings.js';
+import { conversationSessionsViewEmptyMessage } from '../../browser/conversationSessionsViewStrings.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { TestLayoutService, TestEditorService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import '../../../conversation/browser/conversation.contribution.js';
@@ -278,7 +279,12 @@ suite('ConversationSessionsView', () => {
 		const { view } = mountView({ stubService });
 		const empty = view.element.querySelector('.conversation-sessions-empty') as HTMLElement | undefined;
 		assert.ok(empty);
-		assert.ok(empty.textContent?.includes('in-memory'));
+		assert.strictEqual(empty.textContent, conversationSessionsViewEmptyMessage);
+		assert.ok(empty.textContent?.includes('No sessions'));
+		assert.ok(empty.textContent?.includes(conversationLensSessionBarNewSession));
+		assert.ok(!empty.textContent?.match(/stub conversation/i));
+		assert.ok(!empty.textContent?.match(/in-memory/i));
+		assert.ok(!empty.textContent?.match(/engine session/i));
 		assert.ok(!empty.textContent?.toLowerCase().includes('open chat'));
 		assert.strictEqual(view.element.querySelector('.chat-widget'), null);
 		assert.strictEqual(view.element.querySelector('.conversation-sessions-list')?.getAttribute('style'), 'display: none;');
@@ -527,7 +533,12 @@ suite('ConversationSessionsView', () => {
 		stubService.setEngineConnected(true);
 
 		assert.strictEqual(stubService.getSessions().length, 0);
-		assert.strictEqual(view.element.querySelector('.conversation-sessions-empty')?.getAttribute('style'), 'display: block;');
+		const empty = view.element.querySelector('.conversation-sessions-empty') as HTMLElement | undefined;
+		assert.strictEqual(empty?.getAttribute('style'), 'display: block;');
+		assert.strictEqual(empty?.textContent, conversationSessionsViewEmptyMessage);
+		assert.ok(!empty?.textContent?.match(/stub conversation/i));
+		assert.ok(!empty?.textContent?.match(/in-memory/i));
+		assert.ok(!empty?.textContent?.match(/engine session/i));
 		assert.strictEqual(view.element.querySelector('.conversation-sessions-list')?.getAttribute('style'), 'display: none;');
 		assert.ok(!isFilterVisible(view));
 	});

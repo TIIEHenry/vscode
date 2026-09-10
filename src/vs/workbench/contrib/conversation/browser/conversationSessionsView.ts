@@ -28,6 +28,7 @@ import { IViewDescriptorService } from '../../../common/views.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { matchesConversationSessionsInlineFilter } from '../common/conversationSessionsInlineFilter.js';
 import { ConversationSessionsInlineFilterBox } from './conversationSessionsInlineFilterBox.js';
+import { conversationSessionsViewEmptyMessage } from './conversationSessionsViewStrings.js';
 import { ConversationStubSession } from './conversationStubModel.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
@@ -201,10 +202,7 @@ export class ConversationSessionsView extends ViewPane {
 		container.classList.add('conversation-sessions-body');
 
 		this.emptyMessage = dom.append(container, $('.conversation-sessions-empty'));
-		this.emptyMessage.textContent = localize(
-			'conversationSessionsView.empty',
-			"No in-memory sessions — use New session to create a stub conversation.",
-		);
+		this.emptyMessage.textContent = conversationSessionsViewEmptyMessage;
 
 		const filterPlaceholder = localize('conversationSessionsFilterPlaceholder', "Filter sessions");
 		this.filterBox = this._register(new ConversationSessionsInlineFilterBox(

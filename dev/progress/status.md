@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 关仓：本波 A–D 已合入 merge。D198 / D207–D211 已闭。待一路 compile。"
+summary: "loop 重启：A 槽 Sessions 空态去 stub（D212）。B–D 上波已合入 merge。待一路 compile。"
 ---
 
 # Development Progress
@@ -44,7 +44,7 @@ summary: "loop 关仓：本波 A–D 已合入 merge。D198 / D207–D211 已闭
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | sources-git-empty-entries-scm | 已进 merge `6a6dd1d3cdc`；[D198](deferred-gaps.md) 已闭 |
+| **A** | sessions-sidebar-empty-honesty | 已收 [D212](deferred-gaps.md)；空态去 stub / in-memory，保留 New session |
 | **B** | agents-tools-catalog-unknown-leftover | 已进 merge `c25e00faa7b`；[D208](deferred-gaps.md)/[D209](deferred-gaps.md) 已闭 |
 | **C** | catalog-unknown-leftover-provider-runtime | 已进 merge `ffb2906c5b2`；[D210](deferred-gaps.md)/[D211](deferred-gaps.md) 已闭；Rules 跳过；勿 add `dev/loop` |
 | **D** | navigator-projects-clean-disconnect-stale | 已进 merge `ea1f8897200`；[D207](deferred-gaps.md) 已闭 |

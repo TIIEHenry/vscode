@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-10
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D211 已闭；D198 空引擎列表回落 SCM；D207 Projects 干净断连；D208 Agents / D209 Tools / D210 ProviderModel / D211 McpRuntime UNKNOWN；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D212 已闭；D212 Sessions 空态去 stub；D198 空引擎列表回落 SCM；D207 Projects 干净断连；D208 Agents / D209 Tools / D210 ProviderModel / D211 McpRuntime UNKNOWN；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -225,6 +225,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D211 已闭；D198
 | D207 | P3 | **closed** Projects 干净断连（`wasEverConnected && !engineConnected && !transportFailed`）不再把 leftover sessions 画成活 workdir。`buildNavigatorProjectsTree` 复用 `NAVIGATOR_STALE_SNAPSHOT_COPY`，保留 leftover 行。未改 transportFailed 注路径；未占 [D198](#d198) | 工位 D `navigator-projects-clean-disconnect-stale` 已收 | 干净断连 leftover 有 stale note 且仍见 leftover 行；补 `navigatorProjectsTree.test.ts` | navigator / projects | closed |
 | D210 | P3 | **closed** ProviderModel `UNKNOWN` 先 `clearModelPresentation` 再 loading（D200/D206 同胞）；成功→UNKNOWN 测 `getMode()==='loading'` 且 `getListEntryCount()===0`。Rules 无 list RPC / 无 catalog 行，`render` 已藏 scope，跳过 | 工位 C 已收 | UNKNOWN 先清行再 loading；不发 `listModels`；补成功→UNKNOWN 测 | conversation / catalog | closed |
 | D211 | P3 | **closed** McpRuntime `UNKNOWN` 先 `clearRuntimePresentation` 再 loading（D206 MCP 同胞）；成功→UNKNOWN 测 `getMode()==='loading'` 且 `getListEntryCount()===0` | 工位 C 已收 | UNKNOWN 先清行再 loading/probing；不发 `getMcpServerStatuses`；补成功→UNKNOWN 测 | conversation / catalog | closed |
+| D212 | P3 | **closed** Sessions 侧栏空态不再把 stub conversation 当产品路径。`conversationSessionsView` 空文案去 `in-memory` / stub；保留 New session 为真实本地动作，不发明引擎会话。测锁空态与接通后空名单 | 工位 A 已收 | 空/断连态不广告 stub conversation；New session 仍为真实动作；无 invented engine session 文案；补测 | conversation / sessions | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 
