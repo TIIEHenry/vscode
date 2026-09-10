@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 本波：A D222、B D223、D D225 已合；C 仍在工位。未 compile-client。"
+summary: "loop 关仓：本波 A–D 已合入 merge。D222–D225 已闭。待一路 compile。"
 ---
 
 # Development Progress
@@ -46,8 +46,8 @@ summary: "loop 本波：A D222、B D223、D D225 已合；C 仍在工位。未 c
 |:---|:-----|:-----|
 | **A** | plugins-enable-listed-gate | 已进 merge `6c200529257`；[D222](deferred-gaps.md) 已闭 |
 | **B** | agents-markdown-listed-gate | 已进 merge `e8bf194ff63`；[D223](deferred-gaps.md) 已闭 |
-| **C** | connection-hub-write-list-fail | 工位进行中；勿 add `dev/loop` |
-| **D** | context-variable-list-leftover | 已进 merge `677afb487ce`；[D225](deferred-gaps.md) 已闭；成功后再 list throw 保 leftover + failed |
+| **C** | connection-hub-write-list-fail | 已进 merge `d02ec4b2a8a`；[D224](deferred-gaps.md) 已闭；勿 add `dev/loop` |
+| **D** | context-variable-list-leftover | 已进 merge `677afb487ce`；[D225](deferred-gaps.md) 已闭 |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
@@ -171,6 +171,7 @@ summary: "loop 本波：A D222、B D223、D D225 已合；C 仍在工位。未 c
 | [D217](deferred-gaps.md)–[D219](deferred-gaps.md) | B `catalog-write-list-fail` | **closed** MCP/Skills/Agents 写成功后再 list fail 不回刷 Added./Created./Saved. 等；`refresh()` 返回 listed 才回写；未占 D216；merge compile-client 0 |
 | [D223](deferred-gaps.md) | B `agents-markdown-listed-gate` | **closed** markdown Save 写成功后再 list fail 不回刷 editor/catalog Saved.；二次回刷闸 listed 非 mode |
 | [D221](deferred-gaps.md) | C `connection-pair-write-list-fail` | **closed** PairApprove/Reject 写成功后再 ListDevices / ListPending fail 不回刷 pair-success；merge compile-client 0 |
+| [D224](deferred-gaps.md) | C `connection-hub-write-list-fail` | **closed** Hub confirm/rename/revoke 写成功后再 `refreshDirectory` fail 不回刷成功文案 / leftover；未 compile |
 | [D225](deferred-gaps.md) | D `context-variable-list-leftover` | **closed** Context Variables 成功后再 list throw 保 leftover 行 + failed，不得装「No context variables.」；首拉 throw 仍 empty+failed；未 compile-client |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
