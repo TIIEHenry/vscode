@@ -131,6 +131,32 @@ function applyUnknownComposerCatalogHonesty(host: IConversationLensComposerHost,
 	}
 }
 
+function restoreLastGoodComposerCatalogOnSupportedThrow(host: IConversationLensComposerHost, facet: 'agent' | 'model' | 'tools'): void {
+	const last = lastGoodComposerCatalogs.get(host);
+	if (facet === 'agent') {
+		if (last?.agent) {
+			const { agentIndex } = host.getSessionConfig(host.getBoundSessionId());
+			host.agentSelectBox.setOptions(last.agent.options, Math.min(agentIndex, last.agent.options.length - 1));
+			return;
+		}
+		host.agentSelectBox.setOptions([{ text: conversationLensDockNoAgent }], 0);
+		return;
+	}
+	if (facet === 'model') {
+		if (last?.model) {
+			host.modelSelectBox.setOptions(last.model.options, last.model.selectedIndex);
+			host.modelSelectedIndex = last.model.selectedIndex;
+			host.catalogModelIds = last.model.ids;
+			return;
+		}
+		host.modelSelectBox.setOptions([{ text: conversationLensDockNoModel }], 0);
+		host.modelSelectedIndex = 0;
+		host.catalogModelIds = [''];
+		return;
+	}
+	host.catalogToolNames = last?.tools ? last.tools.names : [];
+}
+
 export async function loadConnectedComposerCatalogs(host: IConversationLensComposerHost, generation: number): Promise<void> {
 
 		const caps = ensureCapabilitySnapshot(host.uaConnection.getCapabilitySnapshot());
@@ -149,7 +175,10 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 				host.agentSelectBox.setOptions(options, Math.min(agentIndex, options.length - 1));
 				rememberLastGoodComposerCatalog(host, { agent: { options } });
 			} catch {
-				host.agentSelectBox.setOptions([{ text: conversationLensDockNoAgent }], 0);
+				if (generation !== host.composerCatalogGeneration) {
+					return;
+				}
+				restoreLastGoodComposerCatalogOnSupportedThrow(host, 'agent');
 			}
 		}
 		if (caps.models.support === 'SUPPORTED') {
@@ -165,9 +194,10 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 				host.catalogModelIds = ids;
 				rememberLastGoodComposerCatalog(host, { model: { options, ids, selectedIndex: 0 } });
 			} catch {
-				host.modelSelectBox.setOptions([{ text: conversationLensDockNoModel }], 0);
-				host.modelSelectedIndex = 0;
-				host.catalogModelIds = [''];
+				if (generation !== host.composerCatalogGeneration) {
+					return;
+				}
+				restoreLastGoodComposerCatalogOnSupportedThrow(host, 'model');
 			}
 		}
 		if (caps.tools.support === 'SUPPORTED') {
@@ -180,7 +210,10 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 				host.catalogToolNames = names;
 				rememberLastGoodComposerCatalog(host, { tools: { names } });
 			} catch {
-				host.catalogToolNames = [];
+				if (generation !== host.composerCatalogGeneration) {
+					return;
+				}
+				restoreLastGoodComposerCatalogOnSupportedThrow(host, 'tools');
 			}
 		}
 	

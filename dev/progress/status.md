@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 本波：A D234、D D237 已合；B/C 仍在工位。未 compile-client。"
+summary: "loop 本波：A D234、B D235、D D237 已合；C 仍在工位。未 compile-client。"
 ---
 
 # Development Progress
@@ -45,7 +45,7 @@ summary: "loop 本波：A D234、D D237 已合；B/C 仍在工位。未 compile-
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
 | **A** | provider-model-list-leftover | 已进 merge `fd04d8b7fed`；[D234](deferred-gaps.md) 已闭 |
-| **B** | composer-supported-leftover | 工位进行中 [D235](deferred-gaps.md) |
+| **B** | composer-supported-throw-keep-last | 已进 merge `35c96a1002c`；[D235](deferred-gaps.md) 已闭 |
 | **C** | team-list-leftover | 工位进行中 [D236](deferred-gaps.md)；勿 add `dev/loop` |
 | **D** | agents-hierarchy-pending-leftover | 已进 merge `4fcdc3ad254`；[D237](deferred-gaps.md) 已闭 |
 
