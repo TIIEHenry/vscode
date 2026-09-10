@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop 关仓：D273–D274 已合入；D277 H4b pairing 合入中；merge compile-client 待复跑。"
+summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop 关仓：D273–D275 / D277 已合入 merge；compile-client 待复跑。"
 ---
 
 # Development Progress
@@ -45,9 +45,9 @@ summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop 关�
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
 | **A** | overview-h4b-pairing-gate | 已进 merge；[D277](deferred-gaps.md) 已闭 |
-| **B** | sources-git-read-nohook-leftover | 已进 merge；[D273](deferred-gaps.md) 已闭 |
-| **C** | overview-model-keep-last | 已进 merge；[D272](deferred-gaps.md) 已闭；勿 add `dev/loop` |
-| **D** | navigator-activity-fetchfail-leftover | 已进 merge；[D274](deferred-gaps.md) 已闭 |
+| **B** | — | idle；对齐 `ad9245ca178` |
+| **C** | catalog-detail-rpc-leftover | 已进 merge；[D275](deferred-gaps.md) 已闭；勿 add `dev/loop` |
+| **D** | — | idle；对齐 `ad9245ca178` |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
@@ -177,24 +177,24 @@ summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop 关�
 | [D230](deferred-gaps.md)–[D233](deferred-gaps.md) | A–D catalog leftover | **closed** Plugins / Skills / MCP Definitions / Agents 成功后再 list throw 保 leftover + failed；merge compile-client 0 |
 | [D234](deferred-gaps.md)–[D237](deferred-gaps.md) | A–D leftover 关仓波 | **closed** ProviderModel list throw / Composer SUPPORTED keep-last / Team catch leftover / Hierarchy pending leftover；merge compile-client 0 |
 | [D238](deferred-gaps.md)–[D241](deferred-gaps.md) | A–D leftover 关仓波 | **closed** MCP Runtime tools / Clipboard / Triggers list throw leftover；Team pending/treeEmpty leftover；merge compile-client 0 |
-| [D242](deferred-gaps.md)–[D274](deferred-gaps.md) / [D277](deferred-gaps.md) | A–D leftover + H4b pairing | **closed** catalog leftover + Overview Model + Sources git no-hook + Activity fetch-fail + pairing 合成闸 |
+| [D242](deferred-gaps.md)–[D275](deferred-gaps.md) / [D277](deferred-gaps.md) | leftover + pairing | **closed** catalog leftover + Overview Model + Sources no-hook + Activity fetch-fail + 详情二次 throw + H4b pairing |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `484cec7538b` | 干净 | 0 | 已 push 同 SHA |
-| A | `vscode-WorkTrees/A` | `loop/A` | `484cec7538b` | 干净 | 0 | idle；已对齐；切片已停 |
-| B | `vscode-WorkTrees/B` | `loop/B` | `484cec7538b` | 干净 | 0 | idle；已对齐；切片已停 |
-| C | `vscode-WorkTrees/C` | `loop/C` | `484cec7538b` | 未提交 `dev/loop` | 0 | idle；已对齐；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `484cec7538b` | 干净 | 0 | idle；已对齐；切片已停 |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | 本 C 合入 | 干净 | 0 | 已合 A+C；未 push |
+| A | `vscode-WorkTrees/A` | `loop/A` | `6f73b0d56b8` | 干净 | 0 | 已合入 merge（D277）；cascade 留给父 |
+| B | `vscode-WorkTrees/B` | `loop/B` | `ad9245ca178` | 干净 | 0 | idle |
+| C | `vscode-WorkTrees/C` | `loop/C` | `01f4c90497c` | 未提交 `dev/loop` | 0 | 已合入 merge（D275）；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `ad9245ca178` | 干净 | 0 | idle |
 | E | `vscode-WorkTrees/E` | `fix/gate-recovery` | `4140eab214c` | 干净 | 0 | 已合入 merge；勿再开 catch |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `484cec7538b` | `dev/loop` + `.idea` | 0 | 已对齐并 push；勿 add `dev/loop` |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
 | **引擎 store 迁移卡死** | [D26](deferred-gaps.md) 病因已改口（2026-09-09）：`user_version=0` + 表已建 ⇒ 迁移抛错 ⇒ 库永久打不开 ⇒ `LookupFailed` fail-closed deny ⇒ `ALREADY_EXISTS`（**设计内拒绝**）。根因与交接见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md)；D25 同源。**禁改引擎仓代码**；原闭合条件「Create 先写 meta」已撤回；不要再清 store |
-| **loop 切片** | D273–D274 已 compile-client 0。D277 H4b pairing 本 merge 合入。未合入：D275 catalog-detail。排队 D276 Read leftover、Team UNKNOWN。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto |
+| **loop 切片** | D273–D275 / D277 已进 merge。排队 D276 Read leftover、Team UNKNOWN。compile-client 待复跑。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。

@@ -1021,7 +1021,11 @@ export class EngineAgentsSection extends Disposable {
 		}
 
 		const generation = ++this.agentsEditorLoadGeneration;
-		this.agentsEditorInput.value = formatAgentsMarkdown(summaryToProfileDetail(selected));
+		// D275: keep leftover AGENTS.md while the load RPC is in-flight. First-pull empty still paints the summary placeholder.
+		const hasLeftoverMarkdown = !!(this.loadedAgentsMarkdown || this.agentsEditorInput.value);
+		if (!hasLeftoverMarkdown) {
+			this.agentsEditorInput.value = formatAgentsMarkdown(summaryToProfileDetail(selected));
+		}
 
 		try {
 			const result = await this.connection.saveAgentProfile({
