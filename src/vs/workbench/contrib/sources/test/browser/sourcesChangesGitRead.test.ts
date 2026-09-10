@@ -28,6 +28,8 @@ import {
 	sourcesGitFileDiffRequest,
 	sourcesGitSummaryRequest,
 	sourcesGitDiffOpenFailureMessage,
+	sourcesGitEmptyFileDiffMessage,
+	sourcesGitLocalOnlyMessage,
 	sourcesGitReadFailureMessage,
 	tryLoadSourcesGitChangeEntries,
 	tryReadSourcesGitChanges,
@@ -259,6 +261,11 @@ suite('Sources - Changes git read', () => {
 		const message = sourcesGitDiffOpenFailureMessage(new Error('boom'));
 		assert.ok(message.includes('Unable to open diff'));
 		assert.ok(message.includes('boom'));
+	});
+
+	test('empty file-diff and local-only messages stay explicit', () => {
+		assert.ok(sourcesGitEmptyFileDiffMessage().includes('empty'));
+		assert.ok(sourcesGitLocalOnlyMessage().includes('local source control'));
 	});
 
 });

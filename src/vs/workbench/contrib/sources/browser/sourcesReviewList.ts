@@ -28,7 +28,7 @@ import { IEditorService } from '../../../services/editor/common/editorService.js
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
-import { tryLoadSourcesGitChangeEntries, tryReadSourcesGitFileDiff, sourcesGitDiffOpenFailureMessage, sourcesGitReadFailureMessage } from '../common/sourcesChangesGitRead.js';
+import { tryLoadSourcesGitChangeEntries, tryReadSourcesGitFileDiff, sourcesGitDiffOpenFailureMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage } from '../common/sourcesChangesGitRead.js';
 import { sourcesChangeEntryIdentity } from '../common/sourcesChangesModel.js';
 import { collectSourcesReviewEntries, ISourcesReviewEntry } from '../common/sourcesReviewModel.js';
 import {
@@ -590,19 +590,25 @@ export class SourcesReviewList extends Disposable {
 	private async refresh(): Promise<void> {
 		const seq = ++this.refreshSeq;
 		let gitReadError: string | undefined;
+		let localOnly = false;
 		try {
 			const loaded = await this.tryLoadGitEntries();
 			if (seq !== this.refreshSeq) {
 				return;
 			}
 			this.usingGitRead = !!loaded;
-			this.allEntries = loaded ?? collectSourcesReviewEntries(this.scmService.repositories);
+			if (loaded) {
+				this.allEntries = loaded;
+			} else {
+				this.allEntries = collectSourcesReviewEntries(this.scmService.repositories);
+				localOnly = this.allEntries.length > 0;
+			}
 		} catch (error) {
 			if (seq !== this.refreshSeq) {
 				return;
 			}
 			this.usingGitRead = false;
-			this.allEntries = collectSourcesReviewEntries(this.scmService.repositories);
+			this.allEntries = [];
 			gitReadError = sourcesGitReadFailureMessage(error);
 		}
 
@@ -653,13 +659,18 @@ export class SourcesReviewList extends Disposable {
 		this.filterRow.style.display = hasAnyEntries ? 'flex' : 'none';
 		this.progressHeader.style.display = hasAnyEntries ? 'flex' : 'none';
 		this.headerHint.style.display = hasAnyEntries ? '' : 'none';
-		this.setStatusMessage(gitReadError);
-
-		if (!hasVisibleEntries) {
-			return;
+		if (gitReadError) {
+			this.setStatusMessage(gitReadError);
+		} else if (localOnly) {
+			this.setStatusMessage(sourcesGitLocalOnlyMessage());
+		} else {
+			this.setStatusMessage(undefined);
 		}
 
-		const list = this.ensureList();
-		list.splice(0, list.length, this.visibleEntries);
+		if (this.list) {
+			this.list.splice(0, this.list.length, this.visibleEntries);
+		} else if (hasVisibleEntries) {
+			this.ensureList().splice(0, 0, this.visibleEntries);
+		}
 	}
 }

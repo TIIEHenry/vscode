@@ -13,6 +13,7 @@ import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISCMResource } from '../../../scm/common/scm.js';
 import { ACTIVE_GROUP, CONVERSATION_GROUP, IEditorService } from '../../../../services/editor/common/editorService.js';
 import { openSourcesChangeEntry, ISourcesChangeEntryOpenDeps } from '../../browser/sourcesChangeEntryOpen.js';
+import { sourcesGitEmptyFileDiffMessage } from '../../common/sourcesChangesGitRead.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
 import { ISourcesChangeEntry } from '../../common/sourcesChangesModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
@@ -241,5 +242,44 @@ suite('Sources - Changes list open', () => {
 		}), { preserveFocus: false });
 		assert.deepStrictEqual(diffCalls, [{ path: 'src/a.ts', indexState: 'WORKTREE' }]);
 		assert.strictEqual(openedUnsupported, resource.toString());
+	});
+
+	test('openSourcesChangeEntry does not open supported empty unifiedDiff as a new file', async function () {
+		const resource = toResource.call(this, '/project/src/a.ts');
+		const entry: ISourcesChangeEntry = {
+			resource,
+			name: 'a.ts',
+			description: 'Unstaged Changes',
+			groupId: 'workingTree',
+			gitPath: 'src/a.ts',
+			indexState: 'WORKTREE',
+		};
+		let opened = false;
+
+		await assert.rejects(async () => {
+			await openSourcesChangeEntry(entry, createDeps({
+				editorService: {
+					openEditor: async () => {
+						opened = true;
+						return undefined;
+					},
+				} as unknown as IEditorService,
+				modelService: {
+					getModel: () => null,
+					updateModel: () => { },
+					createModel: () => { assert.fail('must not invent a diff model for empty unifiedDiff'); },
+				} as unknown as ISourcesChangeEntryOpenDeps['modelService'],
+				readGitFileDiff: async () => ({
+					supported: true,
+					reason: '',
+					path: 'src/a.ts',
+					unifiedDiff: '',
+				}),
+			}), { preserveFocus: false });
+		}, (error: Error) => {
+			assert.strictEqual(error.message, sourcesGitEmptyFileDiffMessage());
+			return true;
+		});
+		assert.strictEqual(opened, false);
 	});
 });

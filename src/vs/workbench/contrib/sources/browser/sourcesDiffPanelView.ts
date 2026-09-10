@@ -103,6 +103,7 @@ export class SourcesDiffPanelView extends ViewPane {
 	private actionNoticeElement: HTMLElement | undefined;
 	private dimension: dom.Dimension | undefined;
 	private currentRef: ISourcesChangeRef | undefined;
+	private comparisonLoadFailed = false;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -200,32 +201,45 @@ export class SourcesDiffPanelView extends ViewPane {
 	private async renderRef(ref: ISourcesChangeRef | undefined): Promise<void> {
 		this.bodyDisposables.clear();
 		this.clearEditors();
+		this.comparisonLoadFailed = false;
 
 		if (!this.headerElement || !this.headerTitle || !this.newFileNoticeElement || !this.editorContainer) {
 			return;
 		}
 
 		this.hideActionNotice();
+		this.hideWriteChrome();
 
 		if (!ref) {
 			this.headerTitle.textContent = '';
 			this.headerTitle.title = '';
 			this.newFileNoticeElement.style.display = 'none';
-			this.updateWriteActions();
+			return;
+		}
+
+		let loaded = false;
+		if (!ref.original) {
+			loaded = await this.renderModifiedOnly(ref.modified);
+			if (loaded) {
+				this.newFileNoticeElement.textContent = localize('sourcesDiffPanel.newFile', "New file with no previous version to compare.");
+				this.newFileNoticeElement.style.display = '';
+			}
+		} else {
+			this.newFileNoticeElement.style.display = 'none';
+			loaded = await this.renderDiff(ref.original, ref.modified);
+		}
+
+		if (!loaded) {
+			this.comparisonLoadFailed = true;
+			this.headerTitle.textContent = '';
+			this.headerTitle.title = '';
+			this.hideWriteChrome();
+			this.showLoadNotice(localize('sourcesDiffPanel.loadFailed', "Unable to load this comparison."));
 			return;
 		}
 
 		this.headerTitle.textContent = basename(ref.modified);
 		this.headerTitle.title = ref.modified.fsPath;
-
-		if (!ref.original) {
-			this.newFileNoticeElement.textContent = localize('sourcesDiffPanel.newFile', "New file with no previous version to compare.");
-			this.newFileNoticeElement.style.display = '';
-			await this.renderModifiedOnly(ref.modified);
-		} else {
-			this.newFileNoticeElement.style.display = 'none';
-			await this.renderDiff(ref.original, ref.modified);
-		}
 
 		if (this.dimension) {
 			this.layoutBody(this.dimension.height, this.dimension.width);
@@ -264,18 +278,30 @@ export class SourcesDiffPanelView extends ViewPane {
 		return this.roster.getActiveSessionId();
 	}
 
+	private hideWriteChrome(): void {
+		if (!this.stageButton || !this.acceptButton || !this.revertButton || !this.unstageButton || !this.unstageUnavailable) {
+			return;
+		}
+		this.stageButton.style.display = 'none';
+		this.acceptButton.style.display = 'none';
+		this.revertButton.style.display = 'none';
+		this.unstageButton.style.display = 'none';
+		this.unstageUnavailable.style.display = 'none';
+	}
+
 	private updateWriteActions(): void {
 		if (!this.stageButton || !this.acceptButton || !this.revertButton || !this.unstageButton || !this.unstageUnavailable) {
 			return;
 		}
 
+		if (this.comparisonLoadFailed) {
+			this.hideWriteChrome();
+			return;
+		}
+
 		const context = this.getWriteContext();
 		if (!context) {
-			this.stageButton.style.display = 'none';
-			this.acceptButton.style.display = 'none';
-			this.revertButton.style.display = 'none';
-			this.unstageButton.style.display = 'none';
-			this.unstageUnavailable.style.display = 'none';
+			this.hideWriteChrome();
 			return;
 		}
 
@@ -430,9 +456,9 @@ export class SourcesDiffPanelView extends ViewPane {
 		this.newFileNoticeElement.style.display = '';
 	}
 
-	private async renderDiff(original: URI, modified: URI): Promise<void> {
+	private async renderDiff(original: URI, modified: URI): Promise<boolean> {
 		if (!this.editorContainer) {
-			return;
+			return false;
 		}
 
 		let originalRef: IReference<IResolvedTextEditorModel> | undefined;
@@ -443,8 +469,7 @@ export class SourcesDiffPanelView extends ViewPane {
 		} catch {
 			originalRef?.dispose();
 			modifiedRef?.dispose();
-			this.showLoadNotice(localize('sourcesDiffPanel.loadFailed', "Unable to load this comparison."));
-			return;
+			return false;
 		}
 
 		this.bodyDisposables.add(originalRef);
@@ -463,19 +488,19 @@ export class SourcesDiffPanelView extends ViewPane {
 			const headerHeight = this.headerElement?.offsetHeight ?? 0;
 			widget.layout(new dom.Dimension(this.dimension.width, Math.max(0, this.dimension.height - headerHeight)));
 		}
+		return true;
 	}
 
-	private async renderModifiedOnly(modified: URI): Promise<void> {
+	private async renderModifiedOnly(modified: URI): Promise<boolean> {
 		if (!this.editorContainer) {
-			return;
+			return false;
 		}
 
 		let modifiedRef: IReference<IResolvedTextEditorModel>;
 		try {
 			modifiedRef = await this.textModelService.createModelReference(modified);
 		} catch {
-			this.showLoadNotice(localize('sourcesDiffPanel.loadFailed', "Unable to load this comparison."));
-			return;
+			return false;
 		}
 		this.modifiedModelRef.value = modifiedRef;
 		this.bodyDisposables.add(modifiedRef);
@@ -493,6 +518,7 @@ export class SourcesDiffPanelView extends ViewPane {
 			const noticeHeight = this.newFileNoticeElement?.offsetHeight ?? 0;
 			widget.layout(new dom.Dimension(this.dimension.width, Math.max(0, this.dimension.height - headerHeight - noticeHeight)));
 		}
+		return true;
 	}
 
 	private clearEditors(): void {

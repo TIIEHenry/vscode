@@ -241,6 +241,19 @@ export function sourcesGitDiffOpenFailureMessage(error: unknown): string {
 	return localize('sourcesChangesGitRead.diffOpenFailed', "Unable to open diff: {0}", getErrorMessage(error));
 }
 
+/** Supported ReadGitFileDiff with empty `unifiedDiff` is not a new file and must not open. */
+export function sourcesGitEmptyFileDiffMessage(): string {
+	return localize('sourcesChangesGitRead.emptyFileDiff', "Git file diff is empty.");
+}
+
+/**
+ * SCM leftover is local-only when the engine list is unavailable
+ * (no session / disconnected / `supported: false`). Not authoritative.
+ */
+export function sourcesGitLocalOnlyMessage(): string {
+	return localize('sourcesChangesGitRead.localOnly', "Showing local source control changes only.");
+}
+
 export async function tryLoadSourcesGitChangeEntries(
 	connected: boolean,
 	readChanges: ((request: UniverseAgentReadGitChangesRequest) => Promise<UniverseAgentReadGitChangesResult>) | undefined,
