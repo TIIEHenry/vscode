@@ -62,7 +62,7 @@ import {
 	conversationLensTurnCopy,
 	conversationLensTurnDelete,
 } from '../../browser/conversationLensSessionBarStrings.js';
-import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { ConversationStubService, IConversationRosterService, type IConversationEngineActionFailure } from '../../browser/conversationStubService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 import { entriesToLegacyTurns, projectSnapshotToEntries } from '../../browser/conversationSessionView.js';
@@ -72,7 +72,7 @@ import { getConversationSessionStatusText } from '../../browser/conversationSess
 import { shouldRenderTurnAsMarkdown } from '../../browser/conversationTurnMarkdown.js';
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
 import { TestClipboardService } from '../../../../../platform/clipboard/test/common/testClipboardService.js';
-import { Event } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { observableValue } from '../../../../../base/common/observable.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { IExplorerService } from '../../../files/browser/files.js';
@@ -2418,6 +2418,93 @@ suite('ConversationLens', () => {
 		assert.ok(gateRow);
 		assert.strictEqual(gateRow.hidden, false);
 		assert.ok(gateRow.textContent?.includes(conversationLensPostFailedDisconnected));
+	});
+
+	test('SessionBar deleteSession false keeps composer draft on the original session', () => {
+		class RejectingDeleteRoster extends ConversationStubService {
+			override deleteSession(_sessionId: string): boolean {
+				return false;
+			}
+		}
+		const roster = store.add(new RejectingDeleteRoster());
+		const { part, lens } = mountLens({ stubService: roster });
+		const slots = getLensSlots(part);
+		const deleteButton = slots.sessionBar!.querySelector('.conversation-lens-session-delete .monaco-button') as HTMLButtonElement;
+		const textarea = getDockTextarea(slots);
+		const sessionId = roster.getActiveSessionId();
+		const draft = 'keep this draft after rejected delete';
+		textarea.value = draft;
+		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+
+		assert.ok(deleteButton);
+		deleteButton.click();
+
+		assert.strictEqual(roster.getActiveSessionId(), sessionId);
+		assert.strictEqual(roster.getSessions().some(s => s.id === sessionId), true);
+		assert.strictEqual(textarea.value, draft);
+		assert.strictEqual(lens.readComposerDraft(sessionId), draft);
+	});
+
+	test('SessionBar deleteSession optimistic true then rollback restores composer draft', async () => {
+		class OptimisticRollbackDeleteRoster extends ConversationStubService {
+			private readonly _onDidFail = this._register(new Emitter<IConversationEngineActionFailure>());
+			override readonly onDidFailEngineAction = this._onDidFail.event;
+			private hiddenId: string | undefined;
+
+			override getSessions() {
+				return super.getSessions().filter(session => session.id !== this.hiddenId);
+			}
+
+			override getActiveSessionId() {
+				const id = super.getActiveSessionId();
+				if (id === this.hiddenId) {
+					return this.getSessions()[0]?.id ?? id;
+				}
+				return id;
+			}
+
+			override getActiveSession() {
+				const id = this.getActiveSessionId();
+				return this.getSessions().find(session => session.id === id) ?? super.getActiveSession();
+			}
+
+			override deleteSession(sessionId: string): boolean {
+				if (!super.getSessions().some(session => session.id === sessionId)) {
+					return false;
+				}
+				this.hiddenId = sessionId;
+				this._onDidChangeActiveSession.fire(this.getActiveSessionId());
+				this._onDidChangeSession.fire(sessionId);
+				queueMicrotask(() => {
+					this.hiddenId = undefined;
+					this._onDidChangeActiveSession.fire(sessionId);
+					this._onDidChangeSession.fire(sessionId);
+					this._onDidFail.fire({ sessionId, action: 'deleteSession', error: new Error('engine refused') });
+				});
+				return true;
+			}
+		}
+		const roster = store.add(new OptimisticRollbackDeleteRoster());
+		const sessionId = roster.getActiveSessionId();
+		roster.createSession();
+		roster.switchSession(sessionId);
+		const { part, lens } = mountLens({ stubService: roster });
+		const slots = getLensSlots(part);
+		const deleteButton = slots.sessionBar!.querySelector('.conversation-lens-session-delete .monaco-button') as HTMLButtonElement;
+		const textarea = getDockTextarea(slots);
+		const draft = 'restore this draft after delete rollback';
+		textarea.value = draft;
+		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+
+		assert.ok(deleteButton);
+		deleteButton.click();
+		assert.strictEqual(roster.getSessions().some(s => s.id === sessionId), false);
+		await new Promise<void>(resolve => queueMicrotask(resolve));
+
+		assert.strictEqual(roster.getActiveSessionId(), sessionId);
+		assert.strictEqual(roster.getSessions().some(s => s.id === sessionId), true);
+		assert.strictEqual(lens.readComposerDraft(sessionId), draft);
+		assert.strictEqual(getDockTextarea(slots).value, draft);
 	});
 
 	test('SessionBar createNewSession after engine-cache disconnect shows disconnected notice and does not create', () => {

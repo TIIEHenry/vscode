@@ -140,6 +140,7 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 		}));
 		host.deleteSessionButton.icon = Codicon.trash;
 		host.register(host.deleteSessionButton.onDidClick(() => deleteActiveSession(host)));
+		bindDeleteDraftRollback(host);
 
 		host.engineHistoryList = host.register(host.instantiationService.createInstance(
 			ConversationEngineHistoryList,
@@ -312,11 +313,60 @@ export function createNewSession(host: IConversationLensSessionBarHost): void {
 	
 }
 
+const pendingDeleteDrafts = new WeakMap<IConversationLensSessionBarHost, Map<string, string>>();
+
+function pendingDeleteDraftMap(host: IConversationLensSessionBarHost): Map<string, string> {
+	let drafts = pendingDeleteDrafts.get(host);
+	if (!drafts) {
+		drafts = new Map();
+		pendingDeleteDrafts.set(host, drafts);
+	}
+	return drafts;
+}
+
+function restorePendingDeleteDraft(host: IConversationLensSessionBarHost, sessionId: string): void {
+	const drafts = pendingDeleteDrafts.get(host);
+	const text = drafts?.get(sessionId);
+	if (text === undefined) {
+		return;
+	}
+	if (!host.stubService.getSessions().some(session => session.id === sessionId)) {
+		return;
+	}
+	host.writeComposerDraft(sessionId, text);
+	drafts.delete(sessionId);
+	if (host.getBoundSessionId() === sessionId) {
+		host.dockTextarea.value = text;
+	}
+}
+
+function bindDeleteDraftRollback(host: IConversationLensSessionBarHost): void {
+	host.register(host.stubService.onDidChangeActiveSession(sessionId => {
+		restorePendingDeleteDraft(host, sessionId);
+	}));
+	host.register(host.stubService.onDidChangeSession(sessionId => {
+		restorePendingDeleteDraft(host, sessionId);
+	}));
+	host.register(host.stubService.onDidFailEngineAction(failure => {
+		if (failure.action === 'deleteSession') {
+			restorePendingDeleteDraft(host, failure.sessionId);
+		}
+	}));
+}
+
 export function deleteActiveSession(host: IConversationLensSessionBarHost): void {
 
 		const sessionId = host.stubService.getActiveSessionId();
+		const draftText = host.dockTextarea.value;
+		host.writeComposerDraft(sessionId, draftText);
+		pendingDeleteDraftMap(host).set(sessionId, draftText);
 		const deleted = host.stubService.deleteSession(sessionId);
 		if (!deleted) {
+			pendingDeleteDraftMap(host).delete(sessionId);
+			host.writeComposerDraft(sessionId, draftText);
+			if (host.getBoundSessionId() === sessionId) {
+				host.dockTextarea.value = draftText;
+			}
 			host.showPostFailure(
 				!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
 					? 'engine_disconnected'
