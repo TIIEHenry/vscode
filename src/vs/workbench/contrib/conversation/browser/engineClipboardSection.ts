@@ -40,7 +40,8 @@ const $ = DOM.$;
  * Connected + hook only. Empty sessionId / agentId / clipId / label /
  * content / filePath / url are sent as-is. Write always sends TEXT +
  * empty fields. Clear always sends empty sessionId. Empty clipId and
- * removedCount 0 stay as-is.
+ * removedCount 0 stay as-is. Write/Clear success is restored after
+ * refresh only when ListClipboard listed (D201 sibling).
  */
 export class EngineClipboardSection extends Disposable {
 
@@ -126,7 +127,7 @@ export class EngineClipboardSection extends Disposable {
 		// Static list.
 	}
 
-	private async refresh(): Promise<void> {
+	private async refresh(): Promise<boolean> {
 		const generation = ++this.renderGeneration;
 		const hook = this.connection.listClipboard;
 		const canSend = canSendEngineClipboardListRequest(
@@ -154,7 +155,7 @@ export class EngineClipboardSection extends Disposable {
 				mode: 'disconnected',
 				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
 			});
-			return;
+			return false;
 		}
 
 		if (!canSend || !hook) {
@@ -163,7 +164,7 @@ export class EngineClipboardSection extends Disposable {
 				featureLabel: ENGINE_CLIPBOARD_LIST_FEATURE,
 				reason: getEngineSectionApiUnavailableCopy(ENGINE_CLIPBOARD_LIST_FEATURE),
 			});
-			return;
+			return false;
 		}
 
 		this.status.render({
@@ -175,16 +176,17 @@ export class EngineClipboardSection extends Disposable {
 		try {
 			const result = await hook.call(this.connection, engineClipboardListRequest());
 			if (generation !== this.renderGeneration) {
-				return;
+				return false;
 			}
 			if (!this.connection.isEngineConnected()) {
-				return;
+				return false;
 			}
 			this.entries = [...result.entries];
 			this.paintList();
+			return true;
 		} catch (error) {
 			if (generation !== this.renderGeneration) {
-				return;
+				return false;
 			}
 			const reason = error instanceof Error ? error.message : String(error);
 			this.status.render({
@@ -193,6 +195,7 @@ export class EngineClipboardSection extends Disposable {
 				reason,
 				onRetry: () => void this.refresh(),
 			});
+			return false;
 		}
 	}
 
@@ -257,9 +260,11 @@ export class EngineClipboardSection extends Disposable {
 			const result = await hook.call(this.connection, request);
 			this.writeStatus.textContent = formatEngineClipboardWriteLabel(result.clipId);
 			this.writeStatus.style.display = '';
-			await this.refresh();
-			this.writeStatus.textContent = formatEngineClipboardWriteLabel(result.clipId);
-			this.writeStatus.style.display = '';
+			const listed = await this.refresh();
+			if (listed) {
+				this.writeStatus.textContent = formatEngineClipboardWriteLabel(result.clipId);
+				this.writeStatus.style.display = '';
+			}
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.writeStatus.textContent = reason;
@@ -294,9 +299,11 @@ export class EngineClipboardSection extends Disposable {
 			const result = await hook.call(this.connection, request);
 			this.clearStatus.textContent = formatEngineClipboardClearLabel(result.removedCount);
 			this.clearStatus.style.display = '';
-			await this.refresh();
-			this.clearStatus.textContent = formatEngineClipboardClearLabel(result.removedCount);
-			this.clearStatus.style.display = '';
+			const listed = await this.refresh();
+			if (listed) {
+				this.clearStatus.textContent = formatEngineClipboardClearLabel(result.removedCount);
+				this.clearStatus.style.display = '';
+			}
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.clearStatus.textContent = reason;
