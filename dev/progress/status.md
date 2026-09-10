@@ -47,7 +47,7 @@ summary: "loop 关仓：D250–D253 已合入；merge compile-client 0。待 pus
 | **A** | plugins-unknown-leftover | 已进 merge `a5ea70d3232`；[D250](deferred-gaps.md) 已闭 |
 | **B** | skills-unknown-leftover | 已进 merge `5c818823dac`；[D251](deferred-gaps.md) 已闭 |
 | **C** | provider-model-unknown-leftover | 已进 merge `02895938256`；[D252](deferred-gaps.md) 已闭；勿 add `dev/loop` |
-| **D** | agents-unknown-leftover | 已进 merge `039da2366bf`；[D253](deferred-gaps.md) 已闭 |
+| **D** | clipboard-unsupported-leftover | [D257](deferred-gaps.md) 已闭；connected+no-hook leftover |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>

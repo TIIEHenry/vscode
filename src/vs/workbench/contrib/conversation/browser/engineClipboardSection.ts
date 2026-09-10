@@ -44,6 +44,9 @@ const $ = DOM.$;
  * refresh only when ListClipboard listed (D212 / D201 sibling).
  * List throw after a live paint keeps leftover rows + failed (D239);
  * first-pull throw stays empty+failed and must not paint empty-success.
+ * Connected + missing list hook after a live paint keeps leftover rows +
+ * unsupported (D257); first-pull no-hook stays empty+unsupported.
+ * Disconnect still clears rows.
  */
 export class EngineClipboardSection extends Disposable {
 
@@ -157,7 +160,9 @@ export class EngineClipboardSection extends Disposable {
 		}
 
 		if (!canSend || !hook) {
-			this.clearListPresentation();
+			if (this.entries.length === 0) {
+				this.clearListPresentation();
+			}
 			this.status.render({
 				mode: 'unsupported',
 				featureLabel: ENGINE_CLIPBOARD_LIST_FEATURE,
