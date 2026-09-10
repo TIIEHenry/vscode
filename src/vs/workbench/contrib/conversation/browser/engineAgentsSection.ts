@@ -963,10 +963,17 @@ export class EngineAgentsSection extends Disposable {
 
 		if (!canShowCatalogRows(this.mode) || !this.connection.isEngineConnected() || !this.selectedProfile) {
 			if (!this.agentsMarkdownDirty) {
-				this.agentsEditorContainer.style.display = 'none';
-				this.agentsEditorInput.value = '';
-				this.agentsEditorInput.inputElement.readOnly = true;
-				this.agentsEditorSaveButton.enabled = false;
+				// Keep leftover AGENTS.md after a live paint (D266; D233 / D253).
+				// failed/loading must not unload leftover markdown; disconnect / UNSUPPORTED / first-pull empty still clear.
+				const keepLeftoverMarkdown = this.connection.isEngineConnected()
+					&& (this.mode === 'failed' || this.mode === 'loading')
+					&& !!(this.loadedAgentsMarkdown || this.agentsEditorInput.value);
+				if (!keepLeftoverMarkdown) {
+					this.agentsEditorContainer.style.display = 'none';
+					this.agentsEditorInput.value = '';
+					this.agentsEditorInput.inputElement.readOnly = true;
+					this.agentsEditorSaveButton.enabled = false;
+				}
 			}
 			this.syncDetailHost();
 			return;
