@@ -23,12 +23,14 @@ import {
 	ENGINE_PLUGINS_RELOAD_SUCCESS_COPY,
 	ENGINE_PLUGINS_UNLOAD_SUCCESS_COPY,
 	EnginePluginsSection,
+	formatEnginePluginsScanEmptyCopy,
+	formatEnginePluginsScanFoundCopy,
 } from '../../browser/enginePluginsSection.js';
 import { localize } from '../../../../../nls.js';
 
 const PLUGINS_FEATURE = localize('ua.enginePluginsFeatureLabel', "engine plugins");
 
-suite('EnginePluginsSection write-success (D155)', () => {
+suite('EnginePluginsSection write-success (D155 / D216)', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
@@ -49,6 +51,7 @@ suite('EnginePluginsSection write-success (D155)', () => {
 		enablePlugin?: IUniverseAgentConnection['enablePlugin'];
 		reloadPlugin?: IUniverseAgentConnection['reloadPlugin'];
 		unloadPlugin?: IUniverseAgentConnection['unloadPlugin'];
+		scanNewPlugins?: IUniverseAgentConnection['scanNewPlugins'];
 	} = {}): IUniverseAgentConnection & {
 		setPluginsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 	} {
@@ -131,7 +134,7 @@ suite('EnginePluginsSection write-success (D155)', () => {
 			enablePlugin: options.enablePlugin ?? (async () => ({ plugin })),
 			reloadPlugin: options.reloadPlugin ?? (async () => ({ plugin })),
 			unloadPlugin: options.unloadPlugin ?? (async () => ({ removedHookCount: 0 })),
-			scanNewPlugins: async () => ({ newPlugins: [], skippedCount: 0 }),
+			scanNewPlugins: options.scanNewPlugins ?? (async () => ({ newPlugins: [], skippedCount: 0 })),
 			toggleMcpServer: async () => ({ ok: true }),
 			addMcpServer: async () => ({ ok: true }),
 			updateMcpServer: async () => ({ ok: true }),
@@ -159,6 +162,21 @@ suite('EnginePluginsSection write-success (D155)', () => {
 
 	async function flushMicrotasks(): Promise<void> {
 		await new Promise(resolve => setTimeout(resolve, 0));
+	}
+
+	function assertScanSuccessClearedAfterListFail(section: EnginePluginsSection, successCopy: string, listReason: string): void {
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		const scanResult = section.getDomNode().querySelector('.engine-plugins-scan-result') as HTMLElement;
+		assert.ok(scanResult);
+		assert.notStrictEqual(scanResult.textContent, successCopy);
+		assert.ok(!(scanResult.textContent ?? '').includes(successCopy));
+		assert.ok(scanResult.style.display === 'none' || !(scanResult.textContent ?? '').trim());
+
+		const catalog = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(catalog);
+		assert.strictEqual(catalog.dataset['catalogMode'], 'failed');
+		assert.ok((catalog.textContent ?? '').includes(getCatalogFailedCopy(PLUGINS_FEATURE, listReason)));
 	}
 
 	function assertWriteSuccessClearedAfterListFail(section: EnginePluginsSection, successCopy: string, listReason: string): void {
@@ -328,6 +346,100 @@ suite('EnginePluginsSection write-success (D155)', () => {
 			assert.notStrictEqual(status.style.display, 'none');
 			assert.strictEqual(status.dataset['catalogMode'], 'failed');
 			assert.ok(status.textContent?.includes(getCatalogFailedCopy(PLUGINS_FEATURE, 'enable exploded')));
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('scanNewPlugins empty ok does not keep scan-success when subsequent listPlugins fails', async () => {
+		let listPluginsCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				listPlugins: async () => {
+					listPluginsCalls++;
+					if (listPluginsCalls > 1) {
+						throw new Error('list boom');
+					}
+					return { plugins: [demoPlugin()] };
+				},
+				scanNewPlugins: async () => ({ newPlugins: [], skippedCount: 3 }),
+			});
+			const section = mountSection(connection);
+			await flushMicrotasks();
+			assert.strictEqual(listPluginsCalls, 1);
+			assert.strictEqual(section.getMode(), 'ready');
+
+			await section.scanNewForTest();
+			assert.ok(listPluginsCalls >= 2);
+			assertScanSuccessClearedAfterListFail(section, formatEnginePluginsScanEmptyCopy(3), 'list boom');
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('scanNewPlugins found ok does not keep scan-success when subsequent listPlugins fails', async () => {
+		let listPluginsCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const found = { ...demoPlugin(), id: 'fresh-plugin', displayName: 'Fresh Plugin' };
+			const connection = createConnectionStub({
+				listPlugins: async () => {
+					listPluginsCalls++;
+					if (listPluginsCalls > 1) {
+						throw new Error('list boom');
+					}
+					return { plugins: [demoPlugin()] };
+				},
+				scanNewPlugins: async () => ({ newPlugins: [found], skippedCount: 1 }),
+			});
+			const section = mountSection(connection);
+			await flushMicrotasks();
+			assert.strictEqual(listPluginsCalls, 1);
+			assert.strictEqual(section.getMode(), 'ready');
+
+			await section.scanNewForTest();
+			assert.ok(listPluginsCalls >= 2);
+			assertScanSuccessClearedAfterListFail(section, formatEnginePluginsScanFoundCopy('Fresh Plugin', 1), 'list boom');
+			assert.ok(!(section.getDomNode().textContent ?? '').includes('Fresh Plugin'));
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('scanNewPlugins ok keeps scan-success when subsequent listPlugins succeeds', async () => {
+		let listPluginsCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				listPlugins: async () => {
+					listPluginsCalls++;
+					return { plugins: [demoPlugin()] };
+				},
+				scanNewPlugins: async () => ({ newPlugins: [], skippedCount: 2 }),
+			});
+			const section = mountSection(connection);
+			await flushMicrotasks();
+			assert.strictEqual(listPluginsCalls, 1);
+			assert.strictEqual(section.getMode(), 'ready');
+
+			await section.scanNewForTest();
+			assert.ok(listPluginsCalls >= 2);
+			assert.strictEqual(section.getMode(), 'ready');
+			assert.strictEqual(section.getListEntryCount(), 1);
+			const scanResult = section.getDomNode().querySelector('.engine-plugins-scan-result') as HTMLElement;
+			assert.ok(scanResult);
+			assert.strictEqual(scanResult.textContent, formatEnginePluginsScanEmptyCopy(2));
+			assert.notStrictEqual(scanResult.style.display, 'none');
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
