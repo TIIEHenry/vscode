@@ -164,13 +164,13 @@ summary: "gate-recovery 已合入；人类工位 D26 改口与跨仓 bug 车道�
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `f1e894554ec`+ | 合人类账 | 0 | 含 D26 改口；compile/eslint/四域绿；**不 push** |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `1e69f56aeae` | 干净 | 0 | 含 D26 改口；compile/eslint/四域绿；**不 push** |
 | A | `vscode-WorkTrees/A` | `loop/A` | `b2d8bc37f08` | `__pycache__` | 0 | idle；切片已停，勿占 |
 | B | `vscode-WorkTrees/B` | `loop/B` | `b2d8bc37f08` | `__pycache__` | 0 | idle；切片已停，勿占 |
 | C | `vscode-WorkTrees/C` | `loop/C` | `b2d8bc37f08` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
 | D | `vscode-WorkTrees/D` | `loop/D` | `b2d8bc37f08` | `__pycache__` | 0 | idle；切片已停，勿占 |
 | E | `vscode-WorkTrees/E` | `fix/gate-recovery` | `4140eab214c` | 干净 | 0 | 已合入 merge；勿再开 catch |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `056172bea9c` | `dev/loop` | 0 | 已合入 merge；对齐中；勿 add `dev/loop` |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `1e69f56aeae` | `dev/loop` | 0 | 已对齐 loop/merge；勿 add `dev/loop` |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
