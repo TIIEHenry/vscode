@@ -27,6 +27,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { IModelService } from '../../../../editor/common/services/model.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
+import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
 import {
@@ -230,6 +231,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 		@IWorkspaceContextService private readonly workspaceContext: IWorkspaceContextService,
 		@IModelService private readonly modelService: IModelService,
+		@IConversationRosterService private readonly roster: IConversationRosterService,
 	) {
 		super();
 
@@ -300,6 +302,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			}
 		}));
 		this._register(this.uaConnection.onDidChangeConnection(() => this.scheduleRefresh()));
+		this._register(this.roster.onDidChangeActiveSession(() => this.scheduleRefresh()));
 
 		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refresh(), 250));
 		this.scheduleRefresh();
@@ -326,6 +329,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		return canSendSourcesGitStagePaths(
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitStagePaths === 'function',
+			this.getGitSessionId(),
 		);
 	}
 
@@ -333,7 +337,12 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		return canSendSourcesGitCommit(
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitCommit === 'function',
+			this.getGitSessionId(),
 		);
+	}
+
+	private getGitSessionId(): string {
+		return this.roster.getActiveSessionId();
 	}
 
 	onRowAction(entry: ISourcesChangeEntry, action: SourcesChangeRowAction): void {
@@ -503,6 +512,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			changesHook ? request => changesHook.call(this.uaConnection, request) : undefined,
 			summaryHook ? request => summaryHook.call(this.uaConnection, request) : undefined,
 			this.getGitResourceRoot(),
+			this.getGitSessionId(),
 		);
 		return loaded?.entries;
 	}
@@ -520,6 +530,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		return tryReadSourcesGitFileDiff(
 			this.uaConnection.isEngineConnected(),
 			hook ? request => hook.call(this.uaConnection, request) : undefined,
+			this.getGitSessionId(),
 			entry.gitPath ?? '',
 			entry.indexState ?? '',
 		);
@@ -597,6 +608,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			const result = await tryWriteSourcesGitStagePaths(
 				this.uaConnection.isEngineConnected(),
 				hook ? request => hook.call(this.uaConnection, request) : undefined,
+				this.getGitSessionId(),
 				paths,
 			);
 			if (!result || isSourcesGitWriteUnsupported(result)) {
@@ -670,6 +682,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			const written = await tryWriteSourcesGitCommit(
 				this.uaConnection.isEngineConnected(),
 				writeHook ? request => writeHook.call(this.uaConnection, request) : undefined,
+				this.getGitSessionId(),
 				message,
 			);
 			if (isSourcesGitWriteAccepted(written)) {

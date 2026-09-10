@@ -59,29 +59,32 @@ suite('Sources - Changes git read', () => {
 		unifiedDiff: '',
 	};
 
-	test('Changes / Summary / FileDiff gates are connected + hook', () => {
-		assert.strictEqual(canSendSourcesGitChanges(false, true), false);
-		assert.strictEqual(canSendSourcesGitChanges(true, false), false);
-		assert.strictEqual(canSendSourcesGitChanges(true, true), true);
-		assert.strictEqual(canSendSourcesGitSummary(false, true), false);
-		assert.strictEqual(canSendSourcesGitSummary(true, false), false);
-		assert.strictEqual(canSendSourcesGitSummary(true, true), true);
-		assert.strictEqual(canSendSourcesGitFileDiff(false, true), false);
-		assert.strictEqual(canSendSourcesGitFileDiff(true, false), false);
-		assert.strictEqual(canSendSourcesGitFileDiff(true, true), true);
+	test('Changes / Summary / FileDiff gates are connected + hook + sessionId', () => {
+		assert.strictEqual(canSendSourcesGitChanges(false, true, 'sess-1'), false);
+		assert.strictEqual(canSendSourcesGitChanges(true, false, 'sess-1'), false);
+		assert.strictEqual(canSendSourcesGitChanges(true, true, ''), false);
+		assert.strictEqual(canSendSourcesGitChanges(true, true, 'sess-1'), true);
+		assert.strictEqual(canSendSourcesGitSummary(false, true, 'sess-1'), false);
+		assert.strictEqual(canSendSourcesGitSummary(true, false, 'sess-1'), false);
+		assert.strictEqual(canSendSourcesGitSummary(true, true, ''), false);
+		assert.strictEqual(canSendSourcesGitSummary(true, true, 'sess-1'), true);
+		assert.strictEqual(canSendSourcesGitFileDiff(false, true, 'sess-1'), false);
+		assert.strictEqual(canSendSourcesGitFileDiff(true, false, 'sess-1'), false);
+		assert.strictEqual(canSendSourcesGitFileDiff(true, true, ''), false);
+		assert.strictEqual(canSendSourcesGitFileDiff(true, true, 'sess-1'), true);
 	});
 
-	test('read requests share write empty sessionId and pass empty fields as-is', () => {
-		const sessionId = sourcesGitStagePathsRequest([]).sessionId;
-		assert.strictEqual(sessionId, '');
-		assert.deepStrictEqual(sourcesGitChangesRequest(), { sessionId });
-		assert.deepStrictEqual(sourcesGitSummaryRequest(), { sessionId });
-		assert.deepStrictEqual(sourcesGitFileDiffRequest('', ''), {
+	test('read requests share write sessionId and pass empty fields as-is', () => {
+		const sessionId = sourcesGitStagePathsRequest('sess-1', []).sessionId;
+		assert.strictEqual(sessionId, 'sess-1');
+		assert.deepStrictEqual(sourcesGitChangesRequest(sessionId), { sessionId });
+		assert.deepStrictEqual(sourcesGitSummaryRequest(sessionId), { sessionId });
+		assert.deepStrictEqual(sourcesGitFileDiffRequest(sessionId, '', ''), {
 			sessionId,
 			path: '',
 			indexState: '',
 		});
-		assert.deepStrictEqual(sourcesGitFileDiffRequest('  a.ts  ', '  INDEX  '), {
+		assert.deepStrictEqual(sourcesGitFileDiffRequest(sessionId, '  a.ts  ', '  INDEX  '), {
 			sessionId,
 			path: '  a.ts  ',
 			indexState: '  INDEX  ',
@@ -96,24 +99,36 @@ suite('Sources - Changes git read', () => {
 		assert.strictEqual(await tryReadSourcesGitChanges(false, async request => {
 			changeCalls.push(request);
 			return unsupportedChanges;
-		}), undefined);
-		assert.strictEqual(await tryReadSourcesGitChanges(true, undefined), undefined);
+		}, 'sess-1'), undefined);
+		assert.strictEqual(await tryReadSourcesGitChanges(true, undefined, 'sess-1'), undefined);
+		assert.strictEqual(await tryReadSourcesGitChanges(true, async request => {
+			changeCalls.push(request);
+			return unsupportedChanges;
+		}, ''), undefined);
 		assert.strictEqual(await tryReadSourcesGitSummary(false, async request => {
 			summaryCalls.push(request);
 			return unsupportedSummary;
-		}), undefined);
-		assert.strictEqual(await tryReadSourcesGitSummary(true, undefined), undefined);
+		}, 'sess-1'), undefined);
+		assert.strictEqual(await tryReadSourcesGitSummary(true, undefined, 'sess-1'), undefined);
+		assert.strictEqual(await tryReadSourcesGitSummary(true, async request => {
+			summaryCalls.push(request);
+			return unsupportedSummary;
+		}, ''), undefined);
 		assert.strictEqual(await tryReadSourcesGitFileDiff(false, async request => {
 			diffCalls.push(request);
 			return unsupportedDiff;
-		}, 'src/a.ts', 'WORKTREE'), undefined);
-		assert.strictEqual(await tryReadSourcesGitFileDiff(true, undefined, 'src/a.ts', 'WORKTREE'), undefined);
+		}, 'sess-1', 'src/a.ts', 'WORKTREE'), undefined);
+		assert.strictEqual(await tryReadSourcesGitFileDiff(true, undefined, 'sess-1', 'src/a.ts', 'WORKTREE'), undefined);
+		assert.strictEqual(await tryReadSourcesGitFileDiff(true, async request => {
+			diffCalls.push(request);
+			return unsupportedDiff;
+		}, '', 'src/a.ts', 'WORKTREE'), undefined);
 		assert.deepStrictEqual(changeCalls, []);
 		assert.deepStrictEqual(summaryCalls, []);
 		assert.deepStrictEqual(diffCalls, []);
 	});
 
-	test('tryRead sends when connected + hook', async () => {
+	test('tryRead sends roster sessionId when connected + hook', async () => {
 		const changeCalls: UniverseAgentReadGitChangesRequest[] = [];
 		const summaryCalls: UniverseAgentReadGitSummaryRequest[] = [];
 		const diffCalls: UniverseAgentReadGitFileDiffRequest[] = [];
@@ -121,19 +136,19 @@ suite('Sources - Changes git read', () => {
 		const changes = await tryReadSourcesGitChanges(true, async request => {
 			changeCalls.push(request);
 			return { ...unsupportedChanges, supported: true, entries: [{ path: '', oldPath: '', kind: '', indexState: '' }] };
-		});
+		}, 'sess-1');
 		const summary = await tryReadSourcesGitSummary(true, async request => {
 			summaryCalls.push(request);
 			return { ...unsupportedSummary, supported: true, branch: '', changeCount: 0 };
-		});
+		}, 'sess-1');
 		const diff = await tryReadSourcesGitFileDiff(true, async request => {
 			diffCalls.push(request);
 			return { ...unsupportedDiff, supported: true };
-		}, '', '');
+		}, 'sess-1', '', '');
 
-		assert.deepStrictEqual(changeCalls, [{ sessionId: '' }]);
-		assert.deepStrictEqual(summaryCalls, [{ sessionId: '' }]);
-		assert.deepStrictEqual(diffCalls, [{ sessionId: '', path: '', indexState: '' }]);
+		assert.deepStrictEqual(changeCalls, [{ sessionId: 'sess-1' }]);
+		assert.deepStrictEqual(summaryCalls, [{ sessionId: 'sess-1' }]);
+		assert.deepStrictEqual(diffCalls, [{ sessionId: 'sess-1', path: '', indexState: '' }]);
 		assert.strictEqual(changes?.supported, true);
 		assert.strictEqual(summary?.supported, true);
 		assert.strictEqual(diff?.supported, true);
@@ -159,10 +174,10 @@ suite('Sources - Changes git read', () => {
 		}, async request => {
 			summaryCalls.push(request);
 			return { supported: true, reason: '', branch: 'main', changeCount: 3 };
-		}, root);
+		}, root, 'sess-1');
 
-		assert.deepStrictEqual(changeCalls, [{ sessionId: '' }]);
-		assert.deepStrictEqual(summaryCalls, [{ sessionId: '' }]);
+		assert.deepStrictEqual(changeCalls, [{ sessionId: 'sess-1' }]);
+		assert.deepStrictEqual(summaryCalls, [{ sessionId: 'sess-1' }]);
 		assert.strictEqual(loaded?.summary?.branch, 'main');
 		assert.strictEqual(loaded?.entries.length, 3);
 		const byPath = new Map(loaded?.entries.map(entry => [entry.gitPath, entry]));
@@ -175,10 +190,12 @@ suite('Sources - Changes git read', () => {
 		assert.strictEqual(byPath.get('')?.groupId, '');
 		assert.strictEqual(byPath.get('')?.name, '');
 
-		const closed = await tryLoadSourcesGitChangeEntries(false, async () => unsupportedChanges, async () => unsupportedSummary, root);
+		const closed = await tryLoadSourcesGitChangeEntries(false, async () => unsupportedChanges, async () => unsupportedSummary, root, 'sess-1');
 		assert.strictEqual(closed, undefined);
-		const unsupported = await tryLoadSourcesGitChangeEntries(true, async () => unsupportedChanges, async () => unsupportedSummary, root);
+		const unsupported = await tryLoadSourcesGitChangeEntries(true, async () => unsupportedChanges, async () => unsupportedSummary, root, 'sess-1');
 		assert.strictEqual(unsupported, undefined);
+		const emptySession = await tryLoadSourcesGitChangeEntries(true, async () => ({ ...unsupportedChanges, supported: true }), async () => unsupportedSummary, root, '');
+		assert.strictEqual(emptySession, undefined);
 	});
 
 	test('index_state maps to SCM group ids without inventing empty state', () => {

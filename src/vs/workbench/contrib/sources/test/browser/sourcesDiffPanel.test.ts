@@ -18,6 +18,7 @@ import { SOURCES_DIFF_MOVE_TO_CONVERSATION_COMMAND, SOURCES_DIFF_MOVE_TO_PREVIEW
 import { SOURCES_DIFF_PANEL_VIEW_CONTAINER } from '../../browser/sourcesDiffPanel.contribution.js';
 import { SOURCES_DIFF_PANEL_CONTAINER_ID, SOURCES_DIFF_PANEL_VIEW_ID } from '../../browser/sourcesDiffPanelIds.js';
 import { SourcesDiffPanelService } from '../../browser/sourcesDiffPanelService.js';
+import { canShowSourcesReviewAccept, resolveSourcesDiffWriteActions } from '../../common/sourcesChangesGitWrite.js';
 
 function evalWhen(when: ContextKeyExpression | undefined, values: Record<string, ContextKeyValue>): boolean {
 	if (!when) {
@@ -159,5 +160,21 @@ suite('Sources diff panel', () => {
 			evalWhen(moveToPreview.when, { activeEditor: 'workbench.editor.files.textFileEditor' }),
 			false
 		);
+	});
+
+	test('Panel Accept is hidden without ApplyHunks payload; SCM local action is Stage', () => {
+		assert.strictEqual(canShowSourcesReviewAccept(true, false), false);
+		const scmOnly = resolveSourcesDiffWriteActions({
+			groupId: 'workingTree',
+			hasScmResource: true,
+			canWriteStage: false,
+			canWriteAccept: true,
+			hasApplyHunksPayload: false,
+			hasGitStageCommand: true,
+			hasGitUnstageCommand: false,
+			hasGitCleanCommand: false,
+		});
+		assert.strictEqual(scmOnly.showStage, true);
+		assert.strictEqual(scmOnly.showAccept, false);
 	});
 });
