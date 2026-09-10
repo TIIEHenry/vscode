@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 关仓：A–D 四槽已合入 merge。D195–D197 / D199–D207 已闭；D198 仍开。待一路 compile。"
+summary: "loop 关仓中：B Agents/Tools、D Projects stale 已合；A D198 / C catalog 仍在工位。D207=Projects，D208=Agents UNKNOWN，D209=Tools UNKNOWN。D198 仍开。"
 ---
 
 # Development Progress
@@ -44,10 +44,10 @@ summary: "loop 关仓：A–D 四槽已合入 merge。D195–D197 / D199–D207 
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | navigator-inspect-live-id-honesty | 已进 merge `119f5d63b25`；[D205](deferred-gaps.md) 已闭 |
-| **B** | sources-git-summary-throw | 已进 merge `e08ceb4ebae`；[D195](deferred-gaps.md) 已闭 |
-| **C** | mcp-catalog-unknown-leftover | 已进 merge `9667f3a8eba`；[D206](deferred-gaps.md) 已闭；勿 add `dev/loop` |
-| **D** | navigator-projects-clean-disconnect-stale | 本刀 [D207](deferred-gaps.md) 已闭；干净断连 leftover 不再装活会话 |
+| **A** | sources-git-empty-list-scm | 工位进行中 [D198](deferred-gaps.md) |
+| **B** | agents-tools-catalog-unknown-leftover | 已进 merge `c25e00faa7b`；[D208](deferred-gaps.md)/[D209](deferred-gaps.md) 已闭 |
+| **C** | provider-rules-catalog-unknown | 工位进行中；勿 add `dev/loop` |
+| **D** | navigator-projects-clean-disconnect-stale | 已进 merge `ea1f8897200`；[D207](deferred-gaps.md) 已闭 |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>

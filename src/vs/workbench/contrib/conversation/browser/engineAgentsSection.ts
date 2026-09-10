@@ -816,6 +816,7 @@ export class EngineAgentsSection extends Disposable {
 		}
 
 		if (support === 'UNKNOWN') {
+			this.clearCatalogPresentation();
 			this.mode = resolveEngineCatalogPaneMode(true, support);
 			this.writeToolbar.style.display = 'none';
 			this.updateWriteActions();

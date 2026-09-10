@@ -530,6 +530,7 @@ export class EngineToolsSection extends Disposable {
 		}
 
 		if (support === 'UNKNOWN') {
+			this.clearCatalogPresentation();
 			this.mode = resolveEngineCatalogPaneMode(true, support);
 			this.updateSaveChrome();
 			this.renderStatus({ loadingKind: 'capability' });
