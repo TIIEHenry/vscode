@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-10
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D211 已闭；D198 空引擎列表回落 SCM；D207 Projects 干净断连；D208 Agents / D209 Tools / D210 ProviderModel / D211 McpRuntime UNKNOWN；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D211 / D214 已闭；D198 空引擎列表回落 SCM；D207 Projects 干净断连；D214 Projects rebuildTree throw 标 stale；D208 Agents / D209 Tools / D210 ProviderModel / D211 McpRuntime UNKNOWN；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -225,6 +225,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D211 已闭；D198
 | D207 | P3 | **closed** Projects 干净断连（`wasEverConnected && !engineConnected && !transportFailed`）不再把 leftover sessions 画成活 workdir。`buildNavigatorProjectsTree` 复用 `NAVIGATOR_STALE_SNAPSHOT_COPY`，保留 leftover 行。未改 transportFailed 注路径；未占 [D198](#d198) | 工位 D `navigator-projects-clean-disconnect-stale` 已收 | 干净断连 leftover 有 stale note 且仍见 leftover 行；补 `navigatorProjectsTree.test.ts` | navigator / projects | closed |
 | D210 | P3 | **closed** ProviderModel `UNKNOWN` 先 `clearModelPresentation` 再 loading（D200/D206 同胞）；成功→UNKNOWN 测 `getMode()==='loading'` 且 `getListEntryCount()===0`。Rules 无 list RPC / 无 catalog 行，`render` 已藏 scope，跳过 | 工位 C 已收 | UNKNOWN 先清行再 loading；不发 `listModels`；补成功→UNKNOWN 测 | conversation / catalog | closed |
 | D211 | P3 | **closed** McpRuntime `UNKNOWN` 先 `clearRuntimePresentation` 再 loading（D206 MCP 同胞）；成功→UNKNOWN 测 `getMode()==='loading'` 且 `getListEntryCount()===0` | 工位 C 已收 | UNKNOWN 先清行再 loading/probing；不发 `getMcpServerStatuses`；补成功→UNKNOWN 测 | conversation / catalog | closed |
+| D214 | P3 | **closed** Projects 外层 `rebuildTree` catch 静默保 last-good，throw 后 leftover 仍像活树。未撤 [D207](#d207) 干净断连 builder note。catch 保 leftover 行并复用 `NAVIGATOR_STALE_SNAPSHOT_COPY`（树 note + 既有 recents status）。未占 D212/D213（A/C 已用；merge 已占到 D213） | 工位 B `navigator-projects-rebuild-throw-stale` 已收 | throw 后 leftover 行仍在且 stale / status 可见，不得装成活树；补 `navigatorProjectsList.test.ts`；D207 树测仍绿 | navigator / projects | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 

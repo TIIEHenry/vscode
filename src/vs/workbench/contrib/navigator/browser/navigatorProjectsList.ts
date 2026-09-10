@@ -31,9 +31,10 @@ import { IHostService } from '../../../services/host/browser/host.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
+import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
+import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { matchesNavigatorProjectsInlineFilter } from '../common/navigatorProjectsInlineFilter.js';
 import { buildNavigatorProjectsTree, countLocalFolders, INavigatorLocalFolderEntry, INavigatorProjectsTreeNode } from './navigatorProjectsTree.js';
-import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { NavigatorProjectsInlineFilterBox } from './navigatorProjectsInlineFilterBox.js';
 import { NAVIGATOR_PROJECTS_VIEW_ID } from './navigatorStubView.js';
 
@@ -42,6 +43,8 @@ const $ = dom.$;
 export type { INavigatorLocalFolderEntry };
 
 const RECENTS_FAILED_NOTE_ID = 'local:recents-failed';
+const STALE_SNAPSHOT_NOTE_ID = 'engine:stale-snapshot';
+const TRANSPORT_FAILED_NOTE_ID = 'engine:transport-failed';
 
 export function navigatorProjectsRecentsFailureMessage(error: unknown): string {
 	return localize('navigatorProjects.recentsFailed', "Unable to load recent folders: {0}", getErrorMessage(error));
@@ -311,8 +314,61 @@ export class NavigatorProjectsView extends ViewPane {
 			this.applyFilterToTree();
 			this._onDidChangeViewWelcomeState.fire();
 		} catch {
-			// Keep last-good localFolderEntries / treeNodes.
+			try {
+				this.surfaceLastGoodAsStale();
+			} catch {
+				// Keep last-good localFolderEntries / treeNodes.
+			}
 		}
+	}
+
+	private surfaceLastGoodAsStale(): void {
+		if (this.treeNodes.length === 0 && this.localFolderEntries.length === 0) {
+			return;
+		}
+		this.treeNodes = this.withStaleSnapshotNote(this.treeNodes);
+		if (!this.hasVisibleRecentsStatus()) {
+			this.setRecentsStatus(NAVIGATOR_STALE_SNAPSHOT_COPY);
+		}
+		this.filterBox?.setVisible(this.treeNodes.length > 0);
+		try {
+			this.applyFilterToTree();
+		} catch {
+			// Status / in-memory note already surface the failure.
+		}
+		this._onDidChangeViewWelcomeState.fire();
+	}
+
+	private hasVisibleRecentsStatus(): boolean {
+		return !!this.recentsStatus
+			&& this.recentsStatus.style.display !== 'none'
+			&& !!this.recentsStatus.textContent;
+	}
+
+	private withStaleSnapshotNote(nodes: INavigatorProjectsTreeNode[]): INavigatorProjectsTreeNode[] {
+		if (
+			this.findNodeById(nodes, STALE_SNAPSHOT_NOTE_ID)
+			|| this.findNodeById(nodes, TRANSPORT_FAILED_NOTE_ID)
+		) {
+			return nodes;
+		}
+		const staleNote: INavigatorProjectsTreeNode = {
+			id: STALE_SNAPSHOT_NOTE_ID,
+			kind: 'note',
+			label: NAVIGATOR_STALE_SNAPSHOT_COPY,
+		};
+		let sawEngineRoot = false;
+		const next = nodes.map(node => {
+			if (node.kind !== 'engine-root') {
+				return node;
+			}
+			sawEngineRoot = true;
+			return {
+				...node,
+				children: [staleNote, ...(node.children ?? [])],
+			};
+		});
+		return sawEngineRoot ? next : [...next, staleNote];
 	}
 
 	private setRecentsStatus(copy: string | undefined): void {

@@ -19,6 +19,7 @@ import { IWorkbenchLayoutService } from '../../../../services/layout/browser/lay
 import { TestContextService } from '../../../../test/common/workbenchTestServices.js';
 import { TestHostService, TestWorkspacesService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
+import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEmptyState.js';
 import { NAVIGATOR_PROJECTS_VIEW_ID } from '../../browser/navigatorStubView.js';
 import { INavigatorLocalFolderEntry, NavigatorProjectsView, navigatorProjectsRecentsFailureMessage } from '../../browser/navigatorProjectsList.js';
 import { INavigatorProjectsTreeNode } from '../../browser/navigatorProjectsTree.js';
@@ -98,6 +99,19 @@ suite('NavigatorProjectsView', () => {
 			}
 		}
 		return undefined;
+	}
+
+	function collectSessionIds(nodes: readonly INavigatorProjectsTreeNode[]): string[] {
+		const ids: string[] = [];
+		for (const node of nodes) {
+			if (node.kind === 'session' && node.sessionId) {
+				ids.push(node.sessionId);
+			}
+			if (node.children) {
+				ids.push(...collectSessionIds(node.children));
+			}
+		}
+		return ids;
 	}
 
 	function openTreeNode(view: NavigatorProjectsView, node: INavigatorProjectsTreeNode, browserEvent?: UIEvent): void {
@@ -423,6 +437,69 @@ suite('NavigatorProjectsView', () => {
 			assert.deepStrictEqual(getViewEntries(view).map(entry => entry.id), lastGoodEntries);
 			assert.strictEqual(countTreeLeaves(view), lastGoodLeaves);
 			assert.strictEqual(getViewEntries(view)[0]?.resource.toString(), recentFolder.toString());
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('rebuildTree throw after live paint keeps leftover rows and marks stale', async () => {
+		const folderUri = URI.file('/projects/live-keep');
+		const contextService = new TestContextService(testWorkspace(folderUri));
+		const rosterService = new ConversationStubService();
+		rosterService.setEngineConnected(true);
+		const onDidChangeConnection = store.add(new Emitter<void>());
+		const baseConnection = createNavigatorConnectionTestStub({
+			getNavigatorCapability: () => 'SUPPORTED',
+		});
+		let throwOnSnapshot = false;
+		const uaConnection = createNavigatorConnectionTestStub({
+			getNavigatorCapability: () => 'SUPPORTED',
+			onDidChangeConnection: onDidChangeConnection.event,
+			getConnectionSnapshot: () => {
+				if (throwOnSnapshot) {
+					throw new Error('snapshot boom');
+				}
+				return baseConnection.getConnectionSnapshot();
+			},
+		});
+		const view = await mountView({
+			contextService,
+			rosterService,
+			uaConnection,
+		});
+
+		const leftoverSessionIds = collectSessionIds(getViewTreeNodes(view));
+		const leftoverFolderIds = getViewEntries(view).map(entry => entry.id);
+		assert.ok(leftoverSessionIds.length > 0, 'live paint must have leftover session rows');
+		assert.ok(leftoverFolderIds.length > 0, 'live paint must have leftover folder rows');
+		assert.strictEqual(
+			findTreeNode(getViewTreeNodes(view), node => node.id === 'engine:stale-snapshot'),
+			undefined,
+			'live paint must not already look stale',
+		);
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			throwOnSnapshot = true;
+			onDidChangeConnection.fire();
+			await flushMicrotasks();
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.deepStrictEqual(getViewEntries(view).map(entry => entry.id), leftoverFolderIds);
+			assert.deepStrictEqual(collectSessionIds(getViewTreeNodes(view)), leftoverSessionIds);
+
+			const staleNote = findTreeNode(getViewTreeNodes(view), node => node.id === 'engine:stale-snapshot' && node.kind === 'note');
+			assert.ok(staleNote, 'rebuild throw must mark leftover stale');
+			assert.strictEqual(staleNote.label, NAVIGATOR_STALE_SNAPSHOT_COPY);
+
+			const status = view.element.querySelector('.navigator-projects-recents-status') as HTMLElement | null;
+			assert.ok(status, 'existing recents status must surface the rebuild failure');
+			assert.notStrictEqual(status.style.display, 'none');
+			assert.strictEqual(status.textContent, NAVIGATOR_STALE_SNAPSHOT_COPY);
+			assert.strictEqual(view.shouldShowWelcome(), false);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
