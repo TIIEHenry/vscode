@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 本波：A D226、B D227、D D229 已合；C 仍在工位。未 compile-client。"
+summary: "loop 关仓：本波 A–D 已合入 merge。D226–D229 已闭。待一路 compile。"
 ---
 
 # Development Progress
@@ -46,7 +46,7 @@ summary: "loop 本波：A D226、B D227、D D229 已合；C 仍在工位。未 c
 |:---|:-----|:-----|
 | **A** | tools-list-leftover | 已进 merge `6a78b9701ea`；[D226](deferred-gaps.md) 已闭 |
 | **B** | mcp-runtime-list-leftover | 已进 merge `5609a0b874f`；[D227](deferred-gaps.md) 已闭 |
-| **C** | connection-hub-refresh-rotate | 工位进行中；勿 add `dev/loop` |
+| **C** | connection-hub-refresh-rotate | 已进 merge `18954fcef6b`；[D228](deferred-gaps.md) 已闭；勿 add `dev/loop` |
 | **D** | navigator-hierarchy-fetch-leftover | 已进 merge `9b125b94a4b`；[D229](deferred-gaps.md) 已闭 |
 
 <details>
@@ -175,6 +175,7 @@ summary: "loop 本波：A D226、B D227、D D229 已合；C 仍在工位。未 c
 | [D225](deferred-gaps.md) | D `context-variable-list-leftover` | **closed** Context Variables 成功后再 list throw 保 leftover 行 + failed，不得装「No context variables.」；首拉 throw 仍 empty+failed；merge compile-client 0 |
 | [D226](deferred-gaps.md) | A `tools-list-leftover` | **closed** Tools 成功后再 listTools / listAgentProfiles throw 保 leftover 行 + failed，不得装「No engine tools yet.」；首拉 throw 仍 empty+failed；未 compile-client |
 | [D227](deferred-gaps.md) | B `mcp-runtime-list-leftover` | **closed** MCP Runtime 成功后再 `getMcpServerStatuses` throw 保 leftover 行 + failed，不得装「No MCP servers in runtime.」；首拉 throw 仍 empty+failed；未 compile-client |
+| [D228](deferred-gaps.md) | C `connection-hub-refresh-rotate` | **closed** Hub Refresh 非 throw fail 清 leftover；Rotate 写成功闸 listed，不得盖住 directory/device list-fail；未 compile-client |
 | [D229](deferred-gaps.md) | D `navigator-hierarchy-fetch-leftover` | **closed** Hierarchy 成功后再 tree fetch-fail 保 leftover 节点 + 失败 note，不得装活树或首拉空失败；未 compile-client |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |

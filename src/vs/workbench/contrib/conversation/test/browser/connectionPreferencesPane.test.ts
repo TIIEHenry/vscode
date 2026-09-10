@@ -2141,6 +2141,42 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('Refresh devices non-throw fail clears leftover and paints failed banner', async () => {
+		let listDevicesCalls = 0;
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			refreshDirectory: async () => ({ kind: 'error', code: 'denied', reason: 'list boom' }),
+		}, {
+			isEngineConnected: () => false,
+			listDevices: async () => {
+				listDevicesCalls++;
+				return { devices: [] };
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		assert.ok([...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent).includes('Studio'));
+
+		const refresh = [...container.querySelectorAll('.connection-hub-actions .monaco-button')]
+			.find(button => button.textContent === 'Refresh devices') as HTMLButtonElement | undefined;
+		assert.ok(refresh);
+		refresh.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement;
+		assert.ok(banner);
+		assert.strictEqual(banner.textContent, getHubDirectoryBannerLabel({ kind: 'error', code: 'denied', reason: 'list boom' }));
+		assert.ok(banner.classList.contains('is-error'));
+		assert.notStrictEqual(banner.style.display, 'none');
+		const leftover = [...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent);
+		assert.ok(!leftover.includes('Studio'));
+		assert.strictEqual(listDevicesCalls, 0);
+		container.remove();
+	});
+
 	test('hub login throw paints hub auth badge', async () => {
 		const pane = mountPane({
 			login: async () => {
@@ -3547,6 +3583,97 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(banner.textContent, connectionDeviceRotateTokenFailureMessage(''));
 		assert.ok(banner.classList.contains('is-error'));
 		assert.notStrictEqual(banner.style.display, 'none');
+		container.remove();
+	});
+
+	test('RotateToken success does not keep rotate-success when subsequent refreshDirectory fails', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			refreshDirectory: async () => ({ kind: 'error', code: 'denied', reason: 'list boom' }),
+		}, {
+			isEngineConnected: () => true,
+			rotateToken: async () => ({ success: true, message: 'rotated' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		const rotate = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === CONNECTION_DEVICE_ROTATE_TOKEN_LABEL) as HTMLButtonElement | undefined;
+		assert.ok(rotate);
+		rotate.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement;
+		assert.ok(banner);
+		assert.notStrictEqual(banner.textContent, 'rotated');
+		assert.ok(!(banner.textContent ?? '').includes('rotated'));
+		assert.ok(banner.classList.contains('is-error'));
+		assert.strictEqual(banner.textContent, getHubDirectoryBannerLabel({ kind: 'error', code: 'denied', reason: 'list boom' }));
+		const leftover = [...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent);
+		assert.ok(!leftover.includes('Studio'));
+		container.remove();
+	});
+
+	test('RotateToken success keeps rotate-success when subsequent refreshDirectory listed', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			refreshDirectory: async () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+		}, {
+			isEngineConnected: () => true,
+			rotateToken: async () => ({ success: true, message: 'rotated' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		const rotate = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === CONNECTION_DEVICE_ROTATE_TOKEN_LABEL) as HTMLButtonElement | undefined;
+		assert.ok(rotate);
+		rotate.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement;
+		assert.ok(banner);
+		assert.strictEqual(banner.textContent, 'rotated');
+		assert.notStrictEqual(banner.style.display, 'none');
+		container.remove();
+	});
+
+	test('RotateToken success does not hide already-failed ListDevices', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			refreshDirectory: async () => ({ kind: 'ok', devices: [] }),
+		}, {
+			isEngineConnected: () => true,
+			listDevices: async () => {
+				throw new Error('list boom');
+			},
+			rotateToken: async () => ({ success: true, message: 'rotated' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		const bannerBefore = container.querySelector('.connection-hub-directory-banner') as HTMLElement;
+		assert.strictEqual(bannerBefore.textContent, connectionDeviceListFailureMessage('list boom'));
+		const rotate = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === CONNECTION_DEVICE_ROTATE_TOKEN_LABEL) as HTMLButtonElement | undefined;
+		assert.ok(rotate);
+		rotate.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement;
+		assert.ok(banner);
+		assert.notStrictEqual(banner.textContent, 'rotated');
+		assert.ok(!(banner.textContent ?? '').includes('rotated'));
+		assert.strictEqual(banner.textContent, connectionDeviceListFailureMessage('list boom'));
 		container.remove();
 	});
 });
