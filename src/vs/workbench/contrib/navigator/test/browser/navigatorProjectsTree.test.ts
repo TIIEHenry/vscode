@@ -7,6 +7,7 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ConversationStubSession } from '../../../conversation/browser/conversationStubModel.js';
+import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEmptyState.js';
 import {
 	buildNavigatorProjectsTree,
 	countLocalFolders,
@@ -102,5 +103,21 @@ suite('NavigatorProjectsTree (N1)', () => {
 		});
 		assert.strictEqual(tree[0]?.kind, 'engine-root');
 		assert.ok(tree[0]?.children?.some(child => child.kind === 'note' && child.label.includes('snapshot from before disconnect')));
+	});
+
+	test('clean disconnect leftover sessions keep workdir but mark stale snapshot', () => {
+		const tree = buildNavigatorProjectsTree({
+			engineConnected: false,
+			wasEverConnected: true,
+			transportFailed: false,
+			sessionListCapability: 'SUPPORTED',
+			workDir: '/engine/work',
+			sessions: [{ id: 'ua-1', title: 'Cached', turns: [] }],
+			localFolders: [],
+		});
+		assert.strictEqual(tree[0]?.kind, 'engine-root');
+		assert.ok(tree[0]?.children?.some(child => child.kind === 'note' && child.label === NAVIGATOR_STALE_SNAPSHOT_COPY));
+		const workdir = tree[0]?.children?.find(child => child.kind === 'workdir');
+		assert.strictEqual(workdir?.children?.[0]?.label, 'Cached');
 	});
 });
