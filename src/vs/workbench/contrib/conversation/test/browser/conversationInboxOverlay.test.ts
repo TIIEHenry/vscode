@@ -6,18 +6,19 @@
 import assert from 'assert';
 import { CancellationError } from '../../../../../base/common/errors.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { localize } from '../../../../../nls.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
 	ConversationInboxOverlay,
 	conversationLensInboxOverlayClass,
 } from '../../browser/conversationInboxOverlay.js';
 import { IQuickInputService } from '../../../../../platform/quickinput/common/quickInput.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import {
 	conversationLensDockGoal,
+	conversationLensDockGoalUnavailable,
 	conversationLensDockInboxNoQueue,
 	conversationLensDockInboxQueueNotListed,
-	conversationLensDockInboxTaskLabel,
 	conversationLensDockNoGoal,
 	conversationLensDockStop,
 	conversationLensDockStopGenerating,
@@ -31,6 +32,21 @@ import {
 import { ConversationMessageQueueItem } from '../../browser/conversationMessageQueueModel.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+
+function stubInboxServices(
+	instantiationService: ReturnType<typeof workbenchInstantiationService>,
+	roster: ConversationStubService,
+	connection: IUniverseAgentConnection = createConversationConnectionTestStub(),
+): void {
+	instantiationService.stub(IConversationRosterService, roster);
+	instantiationService.stub(IUniverseAgentConnection, connection);
+}
+
+function connectionWithSetSessionGoal(): IUniverseAgentConnection {
+	return createConversationConnectionTestStub({
+		setSessionGoal: async () => ({ ok: true }),
+	});
+}
 
 class GoalRoster extends ConversationStubService {
 	readonly setGoalCalls: { sessionId: string; goal: string }[] = [];
@@ -157,7 +173,7 @@ suite('ConversationInboxOverlay Stop', () => {
 
 	function createOverlay(roster: ConversationStubService, failures: ConversationComposerPostFailureReason[] = []): ConversationInboxOverlay {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		instantiationService.stub(IConversationRosterService, roster);
+		stubInboxServices(instantiationService, roster);
 		const parent = document.createElement('div');
 		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, {
 			onQueueItemHold() { },
@@ -228,9 +244,10 @@ suite('ConversationInboxOverlay Goal', () => {
 		failures: ConversationComposerPostFailureReason[] = [],
 		beforeResolve?: () => void,
 		inputError?: unknown,
+		connection: IUniverseAgentConnection = createConversationConnectionTestStub(),
 	): ConversationInboxOverlay {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		instantiationService.stub(IConversationRosterService, roster);
+		stubInboxServices(instantiationService, roster, connection);
 		instantiationService.stub(IQuickInputService, {
 			input: async () => {
 				beforeResolve?.();
@@ -259,15 +276,25 @@ suite('ConversationInboxOverlay Goal', () => {
 		const overlay = createOverlay(roster, 'Should not apply');
 		const goal = getGoalButton(overlay);
 		assert.strictEqual(goal.getAttribute('aria-disabled'), 'true');
-		assert.strictEqual(goal.getAttribute('aria-label'), `${conversationLensDockGoal}, ${conversationLensDockNoGoal}`);
+		assert.strictEqual(goal.getAttribute('aria-label'), `${conversationLensDockGoal} — ${conversationLensDockGoalUnavailable}`);
 		goal.click();
 		assert.strictEqual(roster.setSessionGoal(roster.getActiveSessionId(), 'Should not apply'), false);
 		assert.strictEqual(roster.getSessionGoal(roster.getActiveSessionId()), undefined);
 	});
 
+	test('connected Goal without setSessionGoal stays disabled', () => {
+		const roster = store.add(new GoalRoster());
+		const overlay = createOverlay(roster, 'Should not apply');
+		const goal = getGoalButton(overlay);
+		assert.strictEqual(goal.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(goal.getAttribute('aria-label'), `${conversationLensDockGoal} — ${conversationLensDockGoalUnavailable}`);
+		goal.click();
+		assert.deepStrictEqual(roster.setGoalCalls, []);
+	});
+
 	test('connected Goal forwards setSessionGoal', async () => {
 		const roster = store.add(new GoalRoster());
-		const overlay = createOverlay(roster, '  Ship the slice  ');
+		const overlay = createOverlay(roster, '  Ship the slice  ', [], undefined, undefined, connectionWithSetSessionGoal());
 		const goal = getGoalButton(overlay);
 		assert.strictEqual(goal.getAttribute('aria-disabled'), 'false');
 		assert.strictEqual(goal.getAttribute('aria-label'), `${conversationLensDockGoal}, ${conversationLensDockNoGoal}`);
@@ -280,7 +307,7 @@ suite('ConversationInboxOverlay Goal', () => {
 
 	test('connected Goal prompt cancel does not set', async () => {
 		const roster = store.add(new GoalRoster());
-		const overlay = createOverlay(roster, undefined);
+		const overlay = createOverlay(roster, undefined, [], undefined, undefined, connectionWithSetSessionGoal());
 		getGoalButton(overlay).click();
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assert.deepStrictEqual(roster.setGoalCalls, []);
@@ -290,7 +317,7 @@ suite('ConversationInboxOverlay Goal', () => {
 	test('connected Goal empty confirm cancels an existing goal', async () => {
 		const roster = store.add(new GoalRoster());
 		roster.setSessionGoal(roster.getActiveSessionId(), 'Existing');
-		const overlay = createOverlay(roster, '   ');
+		const overlay = createOverlay(roster, '   ', [], undefined, undefined, connectionWithSetSessionGoal());
 		getGoalButton(overlay).click();
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assert.deepStrictEqual(roster.cancelGoalCalls, [roster.getActiveSessionId()]);
@@ -301,7 +328,7 @@ suite('ConversationInboxOverlay Goal', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const roster = store.add(new GoalRoster());
 		roster.setGoalResult = false;
-		const overlay = createOverlay(roster, 'Ship the slice', failures);
+		const overlay = createOverlay(roster, 'Ship the slice', failures, undefined, undefined, connectionWithSetSessionGoal());
 		getGoalButton(overlay).click();
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assert.deepStrictEqual(roster.setGoalCalls, [{ sessionId: roster.getActiveSessionId(), goal: 'Ship the slice' }]);
@@ -315,7 +342,7 @@ suite('ConversationInboxOverlay Goal', () => {
 		const roster = store.add(new GoalRoster());
 		roster.setSessionGoal(roster.getActiveSessionId(), 'Existing');
 		roster.cancelGoalResult = false;
-		const overlay = createOverlay(roster, '   ', failures);
+		const overlay = createOverlay(roster, '   ', failures, undefined, undefined, connectionWithSetSessionGoal());
 		getGoalButton(overlay).click();
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assert.deepStrictEqual(roster.cancelGoalCalls, [roster.getActiveSessionId()]);
@@ -331,7 +358,7 @@ suite('ConversationInboxOverlay Goal', () => {
 		const overlay = createOverlay(roster, 'Ship the slice', failures, () => {
 			roster.connected = false;
 			roster.history = true;
-		});
+		}, undefined, connectionWithSetSessionGoal());
 		assert.strictEqual(getGoalButton(overlay).getAttribute('aria-disabled'), 'false');
 		getGoalButton(overlay).click();
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
@@ -340,17 +367,18 @@ suite('ConversationInboxOverlay Goal', () => {
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
 	});
 
-	test('disconnected Goal with history is enabled and shows engine_disconnected without set or cancel', async () => {
+	test('disconnected Goal stays disabled without setSessionGoal', async () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const roster = store.add(new GoalRoster());
 		roster.connected = false;
 		roster.history = true;
-		const overlay = createOverlay(roster, 'Should not apply', failures);
+		const overlay = createOverlay(roster, 'Should not apply', failures, undefined, undefined, connectionWithSetSessionGoal());
 		const goal = getGoalButton(overlay);
-		assert.strictEqual(goal.getAttribute('aria-disabled'), 'false');
+		assert.strictEqual(goal.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(goal.getAttribute('aria-label'), `${conversationLensDockGoal} — ${conversationLensDockGoalUnavailable}`);
 		goal.click();
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
-		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.deepStrictEqual(failures, []);
 		assert.deepStrictEqual(roster.setGoalCalls, []);
 		assert.deepStrictEqual(roster.cancelGoalCalls, []);
 		assert.strictEqual(roster.getSessionGoal(roster.getActiveSessionId()), undefined);
@@ -359,7 +387,7 @@ suite('ConversationInboxOverlay Goal', () => {
 	test('connected Goal input reject does not leak unhandled rejection or show notice', async () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const roster = store.add(new GoalRoster());
-		const overlay = createOverlay(roster, undefined, failures, undefined, new CancellationError());
+		const overlay = createOverlay(roster, undefined, failures, undefined, new CancellationError(), connectionWithSetSessionGoal());
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
 		process.on('unhandledRejection', onUnhandledRejection);
@@ -382,7 +410,7 @@ suite('ConversationInboxOverlay context ring', () => {
 
 	function createOverlay(roster: ConversationStubService): ConversationInboxOverlay {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		instantiationService.stub(IConversationRosterService, roster);
+		stubInboxServices(instantiationService, roster);
 		const parent = document.createElement('div');
 		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, {
 			onQueueItemHold() { },
@@ -391,19 +419,12 @@ suite('ConversationInboxOverlay context ring', () => {
 		}));
 	}
 
-	test('right cluster shows an honest empty context ring with no fake usage', () => {
+	test('right cluster has Stop and no fake context-usage ring', () => {
 		const overlay = createOverlay(store.add(new ConversationStubService()));
 		const right = overlay.element.querySelector('.conversation-lens-inbox-right');
 		assert.ok(right);
 		assert.ok(right.querySelector('.conversation-lens-inbox-stop'));
-		const ring = right.querySelector('.conversation-lens-inbox-context-ring') as HTMLElement | null;
-		assert.ok(ring);
-		const noContextUsage = localize('conversationLens.inboxNoContextUsage', "No context usage");
-		assert.strictEqual(ring.getAttribute('aria-label'), noContextUsage);
-		assert.strictEqual(ring.title, noContextUsage);
-		assert.ok(!/\d/.test(ring.textContent ?? ''));
-		assert.ok(!/%/.test(ring.textContent ?? ''));
-		assert.ok(!/%/.test(ring.getAttribute('aria-label') ?? ''));
+		assert.strictEqual(right.querySelector('.conversation-lens-inbox-context-ring'), null);
 	});
 });
 
@@ -413,7 +434,7 @@ suite('ConversationInboxOverlay list panel host', () => {
 
 	function createOverlay(roster: ConversationStubService): ConversationInboxOverlay {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		instantiationService.stub(IConversationRosterService, roster);
+		stubInboxServices(instantiationService, roster);
 		const parent = document.createElement('div');
 		document.body.appendChild(parent);
 		store.add({ dispose: () => parent.remove() });
@@ -493,7 +514,7 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		inputError?: unknown,
 	): ConversationInboxOverlay {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		instantiationService.stub(IConversationRosterService, roster);
+		stubInboxServices(instantiationService, roster);
 		instantiationService.stub(IQuickInputService, {
 			input: async () => {
 				beforeResolve?.();
@@ -529,12 +550,11 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		return button;
 	}
 
-	test('PRD-015 验收 5: Task 左于 MessageQueue，空队列诚实空且有 Enqueue 入口', () => {
+	test('PRD-015 验收 5: 无 Task 芯片，空队列诚实空且有 Enqueue 入口', () => {
 		const overlay = createOverlay(store.add(new ConversationStubService()));
 		const left = overlay.element.querySelector('.conversation-lens-inbox-left')!;
-		const chips = [...left.querySelectorAll('.conversation-lens-inbox-task, .conversation-lens-inbox-queue')];
-		assert.deepStrictEqual(chips.map(el => el.classList.contains('conversation-lens-inbox-task') ? 'task' : 'queue'), ['task', 'queue']);
-		assert.ok(chips[0]?.textContent?.includes(conversationLensDockInboxTaskLabel));
+		assert.strictEqual(left.querySelector('.conversation-lens-inbox-task'), null);
+		assert.ok(left.querySelector('.conversation-lens-inbox-queue'));
 
 		const panel = openQueuePanel(overlay);
 		assert.ok(panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxNoQueue));
@@ -701,16 +721,19 @@ suite('ConversationInboxOverlay Retry', () => {
 		};
 	}
 
-	function createOverlay(roster: ConversationStubService): ConversationInboxOverlay {
+	function createOverlay(
+		roster: ConversationStubService,
+		failures: ConversationComposerPostFailureReason[] = [],
+	): ConversationInboxOverlay {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		instantiationService.stub(IConversationRosterService, roster);
+		stubInboxServices(instantiationService, roster);
 		const parent = document.createElement('div');
 		document.body.appendChild(parent);
 		store.add({ dispose: () => parent.remove() });
 		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, {
 			onQueueItemHold() { },
 			onScrollToPendingConfirmation() { },
-			showPostFailure() { },
+			showPostFailure(reason) { failures.push(reason); },
 		}));
 	}
 
@@ -805,6 +828,38 @@ suite('ConversationInboxOverlay Retry', () => {
 		assert.strictEqual(roster.retryMessageQueueItem(sessionId, 'q-fail'), false);
 		assert.strictEqual(roster.getMessageQueueState(sessionId).items[0]?.status, 'FAILED');
 		assert.ok(getRetryButton(panel, 'q-fail'));
+	});
+
+	test('retryMessageQueueItem false shows failed and does not dress the row as retried', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const roster = store.add(new class extends RetryRoster {
+			override isEngineConnected(): boolean {
+				return this.connected;
+			}
+			connected = false;
+		}());
+		roster.retryResult = false;
+		const sessionId = roster.getActiveSessionId();
+		roster.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [failedItem('q-fail', 'FAILED', 'send rejected')],
+		});
+		const overlay = createOverlay(roster, failures);
+		const panel = openQueuePanel(overlay);
+		const button = getRetryButton(panel, 'q-fail');
+		assert.ok(button);
+		roster.connected = true;
+		button.disabled = false;
+		button.removeAttribute('disabled');
+		button.setAttribute('aria-disabled', 'false');
+		button.click();
+		assert.deepStrictEqual(roster.retryCalls, [{ sessionId, itemId: 'q-fail', upload: false }]);
+		assert.deepStrictEqual(failures, ['failed']);
+		assert.strictEqual(roster.getMessageQueueState(sessionId).items[0]?.status, 'FAILED');
+		assert.ok(getRetryButton(panel, 'q-fail'));
+		assert.ok(panel.querySelector('.queue-item[data-item-id="q-fail"]')?.classList.contains('queue-failed'));
+		assert.ok(panel.querySelector('.queue-item[data-item-id="q-fail"]')?.textContent?.includes('send rejected'));
 	});
 
 	test('connected Inbox does not show fixture FAILED rows as the engine queue', () => {

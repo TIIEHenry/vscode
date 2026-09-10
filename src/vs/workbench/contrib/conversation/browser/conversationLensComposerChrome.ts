@@ -18,10 +18,9 @@ import {
 	conversationLensDockEditingMessage,
 	conversationLensDockEditingQueued,
 	conversationLensDockEngineNotConnected,
+	conversationLensDockAgentLabel,
 	conversationLensDockMaximizeInput,
-	conversationLensDockNoAttachments,
 	conversationLensDockNoEngineTools,
-	conversationLensDockNoTemplates,
 	conversationLensDockNoTools,
 	conversationLensDockMoreTitle,
 	conversationLensDockPermissionAgent,
@@ -30,7 +29,6 @@ import {
 	conversationLensDockPermissionPermit,
 	conversationLensDockRestoreTimeline,
 	conversationLensDockSaveQueued,
-	conversationLensDockTemplatesTitle,
 	conversationLensDockToolsEngineHint,
 	conversationLensDockTuneTitle,
 	conversationLensPostFailed,
@@ -76,6 +74,13 @@ export const conversationLensDockPermissionUnavailable = localize(
 const conversationLensDockPermissionFailed = localize(
 	'conversationLens.dockPermissionFailed',
 	"Permission mode was not applied");
+export const conversationLensDockAgentUnavailable = localize(
+	'conversationLens.dockAgentUnavailable',
+	"Needs an engine connection");
+export const conversationLensDockModelUnavailable = localize(
+	'conversationLens.dockModelUnavailable',
+	"Needs an engine connection");
+export const conversationLensDockModelLabel = localize('conversationLens.dockModelLabel', "Model");
 export const conversationLensDockModelFailed = localize(
 	'conversationLens.dockModelFailed',
 	"Model was not applied");
@@ -102,16 +107,12 @@ export interface IConversationLensComposerChromeHost {
 	modelSelectBox: SelectBox;
 	inputHistoryBrowse: InputHistoryBrowseState;
 	sessionConfigBySessionId: Map<string, ConversationSessionConfigSelection>;
-	addContextView: IOpenContextView | undefined;
 	tuneContextView: IOpenContextView | undefined;
 	moreContextView: IOpenContextView | undefined;
-	templatesContextView: IOpenContextView | undefined;
 	dockTextarea: HTMLTextAreaElement;
 	sendButton: Button;
-	addButton: Button;
 	tuneButton: Button;
 	moreButton: Button;
-	templatesButton: Button;
 	maximizeInputButton: Button;
 	gateRow: HTMLElement;
 	gateLabel: HTMLElement;
@@ -140,37 +141,6 @@ export interface IConversationLensComposerChromeHost {
 	syncComposerPlacement(): void;
 	updateComposerEditChrome(): void;
 	ensureComposerInCluster(): void;
-}
-
-export function toggleAddContextView(host: IConversationLensComposerChromeHost): void {
-
-		if (host.addContextView) {
-			host.addContextView.close();
-			return;
-		}
-		host.addContextView = host.contextViewService.showContextView({
-			getAnchor: () => host.addButton.element,
-			anchorAlignment: AnchorAlignment.RIGHT,
-			anchorPosition: AnchorPosition.ABOVE,
-			render: container => {
-				append(container, $('.conversation-lens-dock-add-popup')).textContent = conversationLensDockNoAttachments;
-				return toDisposable(() => {
-					host.addContextView = undefined;
-				});
-			},
-			onDOMEvent: e => {
-				if (e.type === 'click') {
-					const target = e.target as HTMLElement | null;
-					if (target && !host.addButton.element.contains(target)) {
-						host.addContextView?.close();
-					}
-				}
-			},
-			onHide: () => {
-				host.addContextView = undefined;
-			},
-		});
-	
 }
 
 export function toggleTuneContextView(host: IConversationLensComposerChromeHost, anchor?: HTMLElement): void {
@@ -276,7 +246,6 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 						void applySessionPermissionIndex(host, sessionId, index);
 					}));
 				}
-				addAction(conversationLensDockTemplatesTitle, () => toggleTemplatesContextView(host, host.moreButton.element));
 				addAction(conversationLensDockMaximizeInput, () => toggleInputMaximized(host));
 				return toDisposable(() => {
 					store.dispose();
@@ -294,38 +263,6 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 			},
 			onHide: () => {
 				host.moreContextView = undefined;
-			},
-		});
-	
-}
-
-export function toggleTemplatesContextView(host: IConversationLensComposerChromeHost, anchor?: HTMLElement): void {
-
-		if (host.templatesContextView) {
-			host.templatesContextView.close();
-			return;
-		}
-		host.templatesContextView = host.contextViewService.showContextView({
-			getAnchor: () => anchor ?? host.templatesButton.element,
-			anchorAlignment: AnchorAlignment.RIGHT,
-			anchorPosition: AnchorPosition.ABOVE,
-			render: container => {
-				append(container, $('.conversation-lens-dock-templates-popup')).textContent = conversationLensDockNoTemplates;
-				return toDisposable(() => {
-					host.templatesContextView = undefined;
-				});
-			},
-			onDOMEvent: e => {
-				if (e.type === 'click') {
-					const target = e.target as HTMLElement | null;
-					const owner = anchor ?? host.templatesButton.element;
-					if (target && !owner.contains(target)) {
-						host.templatesContextView?.close();
-					}
-				}
-			},
-			onHide: () => {
-				host.templatesContextView = undefined;
 			},
 		});
 	
@@ -614,6 +551,37 @@ export function updatePermissionSelectEnabled(host: IConversationLensComposerChr
 	
 }
 
+export function isSessionSwitchAgentAvailable(host: IConversationLensComposerChromeHost): boolean {
+
+		return host.stubService.isEngineConnected() && typeof (host.uaConnection as { switchAgent?: unknown }).switchAgent === 'function';
+	
+}
+
+export function updateAgentSelectEnabled(host: IConversationLensComposerChromeHost): void {
+
+		if (!host.agentSelectBox) {
+			return;
+		}
+		const available = isSessionSwitchAgentAvailable(host);
+		host.agentSelectBox.setEnabled(available);
+		const label = available
+			? conversationLensDockAgentLabel
+			: `${conversationLensDockAgentLabel} — ${conversationLensDockAgentUnavailable}`;
+		host.agentSelectBox.setAriaLabel(label);
+		if (host.agentContainer) {
+			host.agentContainer.title = available ? conversationLensDockAgentLabel : conversationLensDockAgentUnavailable;
+		}
+	
+}
+
+export function updateComposerSessionSelectsEnabled(host: IConversationLensComposerChromeHost): void {
+
+		updatePermissionSelectEnabled(host);
+		updateAgentSelectEnabled(host);
+		updateModelSelectEnabled(host);
+	
+}
+
 function restoreSessionPermissionIndex(host: IConversationLensComposerChromeHost, sessionId: string, permissionIndex: number): void {
 
 		setSessionConfig(host, sessionId, { permissionIndex });
@@ -654,6 +622,25 @@ export function isSessionSwitchModelAvailable(host: IConversationLensComposerChr
 	
 }
 
+export function updateModelSelectEnabled(host: IConversationLensComposerChromeHost): void {
+
+		if (!host.modelSelectBox) {
+			return;
+		}
+		const available = isSessionSwitchModelAvailable(host);
+		host.modelSelectBox.setEnabled(available);
+		const label = available
+			? conversationLensDockModelLabel
+			: `${conversationLensDockModelLabel} — ${conversationLensDockModelUnavailable}`;
+		host.modelSelectBox.setAriaLabel(label);
+		// eslint-disable-next-line no-restricted-syntax -- the model host is built by the dock, not by this chrome
+		const container = host.dockRoot?.querySelector('.conversation-lens-dock-model') as HTMLElement | null;
+		if (container) {
+			container.title = available ? conversationLensDockModelLabel : conversationLensDockModelUnavailable;
+		}
+	
+}
+
 function restoreSessionModelIndex(host: IConversationLensComposerChromeHost, modelIndex: number): void {
 
 		host.modelSelectedIndex = modelIndex;
@@ -668,14 +655,16 @@ export async function applySessionModelIndex(host: IConversationLensComposerChro
 		if (modelIndex === previous) {
 			return;
 		}
+		if (!isSessionSwitchModelAvailable(host) || !host.uaConnection.switchModel) {
+			restoreSessionModelIndex(host, previous);
+			return;
+		}
 		host.modelSelectedIndex = modelIndex;
 		host.modelSelectBox.select(modelIndex);
 		updateSendEnabled(host);
-		if (!isSessionSwitchModelAvailable(host) || !host.uaConnection.switchModel) {
-			return;
-		}
 		const modelId = host.catalogModelIds[modelIndex] ?? '';
 		if (!modelId) {
+			restoreSessionModelIndex(host, previous);
 			return;
 		}
 		try {

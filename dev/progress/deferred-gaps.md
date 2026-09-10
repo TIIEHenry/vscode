@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-10
-summary: "延期缺口 SSOT；D8 / D16 / D147 / D197 仍开；D45–D90 / D92–D129 / D131 / D133–D194 已闭；D194 假 mic/Route 与断连 Stub 已删；D195 ReadGitSummary 吞错、D196 patches:[''] length 门、D198 非空 session 空引擎列表盖 SCM；gate-recovery 已合入；D25/D26 同源（store 迁移卡死，report 已交接，禁改引擎仓代码）；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 / D197 / D202–D204 仍开；D45–D90 / D92–D129 / D131 / D133–D194 已闭；D194 假 mic/Route 与断连 Stub 已删；D195 ReadGitSummary 吞错、D196 patches:[''] length 门、D198 非空 session 空引擎列表盖 SCM；D202 Fork return true、D203 deleteSession draft rollback、D204 UNKNOWN catalog empty；gate-recovery 已合入；D25/D26 同源（store 迁移卡死，report 已交接，禁改引擎仓代码）；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -212,6 +212,9 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 / D197 仍开；D45–D90 / D92–
 | D196 | P3 | **`hasSourcesGitApplyHunksPayload` 只查 `patches.length > 0`**：`patches: ['']` 过 length 门，仍不是真实 apply stdin。A1 / [sources-accept-empty-success](../plans/sources-accept-empty-success.md) 已记。本刀不发 `WriteGitApplyHunks`、不发明 hunk，故不收 | A2 仍 blocked（P5 停线）；本切片 Accept 无载荷不显示 | payload 谓词拒绝空串 patch，或 A2 选定真实 patches 源后锁非空 hunk；补测 `['']` 不得发 RPC | sources-git | open |
 | D197 | P3 | **Inspect 叶仍持有 `NavigatorSessionLeaseHolder`**（`agentInspectView.ts` `private readonly leaseHolder`），与方案 [navigator-engine-segments §2.5](../plans/navigator-engine-segments.md)「不给 Inspect 单独 lease」及 `agentInspectPanel.test.ts`「AgentInspectView does not hold its own session lease」断言相反。本 slice `navigator-leftover-stub-and-empty-honesty` 未改 `agentInspectView.ts`（只收 ViewTitle Inspect 选中传递）。该测在 tip `8fd03c1236d` 已红 | 本 slice DoD 不含拆 Inspect lease；ctor 改动会碰到 stale 跟随路径 | 去掉 Inspect 的 leaseHolder，跟随只读 Agents/Team `setLiveAgentIds`；该测绿 | navigator / inspect | open |
 | D198 | P3 | **非空 session + `ReadGitChanges` `supported:true` + `entries=[]` 仍盖掉本地 SCM**：`tryLoadGitEntries` 把空数组当 truthy，`usingGitRead=true`，Changes/Review 显示「No changes」，本地改动消失。本刀只修空 `sessionId` 不发 hook | 空 session 门已落；有 session 的空引擎列表语义未选定 | 空引擎列表与 `supported:false` 一样回落 SCM，或显式「引擎无变更」且不藏 SCM；补测 | sources-git | open |
+| D202 | P3 | **Fork `return true` 仍把未真正 fork 的结果标成已处理**：`conversationForkActions.contribution.ts` 在 `forkSubAgent` false 后 `error` notice 并 `return true`，挡住本地 fallthrough，但调用方读到 handled=true。本刀 `conversation-fake-chrome-honesty` 不扩 | 属 fork 冲突域，非本 slice Inbox/Dock/Snapshots 铬条 | 失败路径 `return false` 或明确 `handled` 契约；调用方不得把 notice 当成功 fork；补测 | conversation | open |
+| D203 | P3 | **`deleteSession` 失败后 composer draft 未回滚**：`deleteActiveSession` 在 `deleteSession` true 后才 `deleteComposerDraftsForSession`；roster/engine 若先乐观删再回滚，draft 可能已按旧 id 清掉或留在错误 session。本刀不扩 | 属 SessionBar delete 合同，非本 slice 假铬条 | 删除失败/回滚后 draft 仍挂回原 session；`conversationLens.test.ts` 锁失败不丢草稿 | conversation | open |
+| D204 | P3 | **capability `UNKNOWN` 时 composer catalog 被画成空**：`loadConnectedComposerCatalogs` 只在 `SUPPORTED` 时拉 list；`UNKNOWN` 停在 No agent / No model / 空 tools，像失败空而不是 keep-while-probing。本刀不扩 | 父约束点名 out-of-scope；未选定 UNKNOWN 展示语义 | UNKNOWN 保末次成功行或显式 probing，不得装成「引擎没有 catalog」；补 `conversationComposerCatalog.test.ts` | conversation | open |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 

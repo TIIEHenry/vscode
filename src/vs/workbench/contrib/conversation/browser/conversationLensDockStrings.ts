@@ -27,6 +27,7 @@ export const conversationLensInboxQueueUploadingTag = localize('conversationLens
 export const conversationLensInboxQueueFailedTag = localize('conversationLens.inboxQueueFailedTag', "Failed");
 export const conversationLensDockGoal = localize('conversationLens.dockGoal', "Goal");
 export const conversationLensDockNoGoal = localize('conversationLens.dockNoGoal', "No goal");
+export const conversationLensDockGoalUnavailable = localize('conversationLens.dockGoalUnavailable', "Needs an engine connection");
 export const conversationLensDockGoalPrompt = localize('conversationLens.dockGoalPrompt', "Session goal");
 export const conversationLensDockGoalPlaceholder = localize('conversationLens.dockGoalPlaceholder', "What should this session accomplish?");
 export const conversationLensDockNoModel = localize('conversationLens.dockNoModel', "No model");

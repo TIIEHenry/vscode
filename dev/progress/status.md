@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 已重启。A/B/C/D 已进 merge。本波单测 Electron 301/1（D197）+ node connection 360。待一路 compile。D8 / D16 / D147 / D195–D198 仍开。D194 已闭。"
+summary: "loop 已重启。A 槽 conversation-fake-chrome-honesty：拆 Add/Templates/Task/context ring，Agent/Model/Goal/Snapshots/Retry 门控。D8 / D16 / D147 / D195–D198 / D202–D204 仍开。D194 已闭。"
 ---
 
 # Development Progress
@@ -44,7 +44,7 @@ summary: "loop 已重启。A/B/C/D 已进 merge。本波单测 Electron 301/1（
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | D194 假 mic/Route DELETE + 断连 Stub agent/model 已删 | 正在合入 merge |
+| **A** | conversation-fake-chrome-honesty：拆 Add/Templates/Task/context ring；Agent 无 SwitchAgent 不写 agentIndex；Model/Goal 对齐 Permission；Snapshots 行 CTA 无 hook 禁用；Retry false → showPostFailure | 工位改动未 commit |
 | **B** | Sources Accept 无载荷不显示；空 session 不盖 SCM | 已进 merge；A2 仍停 |
 | **C** | `sessionList` 诚实探测（专用 snapshot 字段，不进 Overview） | 已进 merge；**勿 add `dev/loop`** |
 | **D** | Navigator leftover stub / Inspect 焦点 / Team 五态空态 | 已进 merge；D197 Inspect lease 测仍红 |

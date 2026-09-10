@@ -18,11 +18,10 @@ import {
 	conversationLensDockGoal,
 	conversationLensDockGoalPlaceholder,
 	conversationLensDockGoalPrompt,
+	conversationLensDockGoalUnavailable,
 	conversationLensDockInboxNoQueue,
 	conversationLensDockInboxQueueNotListed,
-	conversationLensDockInboxNoTasks,
 	conversationLensDockInboxQueueLabel,
-	conversationLensDockInboxTaskLabel,
 	conversationLensDockNoGoal,
 	conversationLensDockStop,
 	conversationLensDockStopGenerating,
@@ -47,12 +46,13 @@ import {
 	conversationMessageQueuePendingCount,
 	createEmptyMessageQueueState,
 } from './conversationMessageQueueModel.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { formatSyncChromeLabel } from './conversationSessionView.js';
 
 export const conversationLensInboxOverlayClass = 'conversation-lens-inbox-overlay';
 
-type InboxListPanel = 'task' | 'queue';
+type InboxListPanel = 'queue';
 
 export interface IConversationInboxOverlayDelegate {
 	onQueueItemHold(itemId: string): void;
@@ -70,7 +70,6 @@ export class ConversationInboxOverlay extends Disposable {
 
 	private readonly leftCluster: HTMLElement;
 	private readonly rightCluster: HTMLElement;
-	private readonly taskChip!: HTMLButtonElement;
 	private readonly queueChip!: HTMLButtonElement;
 	private readonly goalButton!: Button;
 	private readonly stopButton!: Button;
@@ -85,6 +84,7 @@ export class ConversationInboxOverlay extends Disposable {
 		parent: HTMLElement,
 		private readonly delegate: IConversationInboxOverlayDelegate,
 		@IConversationRosterService private readonly stubService: IConversationRosterService,
+		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 		@IContextViewService private readonly contextViewService: IContextViewService,
 		@IQuickInputService private readonly quickInputService: IQuickInputService,
 	) {
@@ -96,10 +96,6 @@ export class ConversationInboxOverlay extends Disposable {
 
 		this.leftCluster = append(this.element, $('.conversation-lens-inbox-left'));
 		this.rightCluster = append(this.element, $('.conversation-lens-inbox-right'));
-
-		this.taskChip = append(this.leftCluster, $('button.conversation-lens-inbox-chip.conversation-lens-inbox-task')) as HTMLButtonElement;
-		this.taskChip.type = 'button';
-		this._register(addDisposableListener(this.taskChip, 'click', () => this.togglePanel('task')));
 
 		this.queueChip = append(this.leftCluster, $('button.conversation-lens-inbox-chip.conversation-lens-inbox-queue')) as HTMLButtonElement;
 		this.queueChip.type = 'button';
@@ -140,14 +136,9 @@ export class ConversationInboxOverlay extends Disposable {
 		this.stopButton.setAriaLabel(`${conversationLensDockStop}, ${conversationLensDockStopNotGenerating}`);
 		this._register(this.stopButton.onDidClick(() => this.onStopClicked()));
 
-		const noContextUsage = localize('conversationLens.inboxNoContextUsage', "No context usage");
-		const contextRing = append(this.rightCluster, $('span.conversation-lens-inbox-context-ring'));
-		contextRing.setAttribute('role', 'img');
-		contextRing.setAttribute('aria-label', noContextUsage);
-		contextRing.title = noContextUsage;
-
 		this._register(this.stubService.onDidChangeEngineConnection(() => this.render()));
 		this._register(this.stubService.onDidChangeSession(() => this.render()));
+		this._register(this.uaConnection.onDidChangeConnection(() => this.render()));
 		this._register(toDisposable(() => this.closeListPanel()));
 
 		this.render();
@@ -160,10 +151,8 @@ export class ConversationInboxOverlay extends Disposable {
 	render(): void {
 		const sessionId = this.stubService.getActiveSessionId();
 		const queueState = this.displayQueueState(sessionId);
-		const taskCount = this.stubService.getAutoDriveTaskCount(sessionId);
 		const pendingConfirmations = this.stubService.countPendingConfirmations(sessionId);
 
-		this.renderTaskChip(taskCount);
 		this.renderQueueChip(queueState);
 		this.renderPending(pendingConfirmations);
 		this.renderSyncStatus(this.stubService.getSessionSync(sessionId));
@@ -186,15 +175,6 @@ export class ConversationInboxOverlay extends Disposable {
 			this.syncStatus.textContent = '';
 			this.syncStatus.removeAttribute('aria-label');
 		}
-	}
-
-	private renderTaskChip(taskCount: number): void {
-		const label = taskCount > 0
-			? localize('conversationLens.inboxTaskCount', "{0} tasks", taskCount)
-			: conversationLensDockInboxNoTasks;
-		this.taskChip.textContent = `${conversationLensDockInboxTaskLabel} · ${label}`;
-		this.taskChip.setAttribute('aria-label', `${conversationLensDockInboxTaskLabel}, ${label}`);
-		this.taskChip.setAttribute('aria-pressed', String(this.openPanel === 'task'));
 	}
 
 	private isEngineQueueUnlisted(): boolean {
@@ -236,16 +216,29 @@ export class ConversationInboxOverlay extends Disposable {
 		return this.stubService.isEngineConnected() && this.stubService.getTurns(sessionId).some(turn => turn.streaming);
 	}
 
+	private isSessionGoalAvailable(): boolean {
+		return this.stubService.isEngineConnected() && typeof this.uaConnection.setSessionGoal === 'function';
+	}
+
 	private renderGoal(sessionId: string): void {
 		const goal = this.stubService.getSessionGoal(sessionId)?.trim();
 		const label = goal || conversationLensDockNoGoal;
-		this.goalButton.enabled = this.stubService.isEngineConnected() || this.stubService.hasEngineConnectionHistory();
+		const available = this.isSessionGoalAvailable();
+		this.goalButton.enabled = available;
 		this.goalButton.label = label;
-		this.goalButton.setTitle(label);
-		this.goalButton.setAriaLabel(`${conversationLensDockGoal}, ${label}`);
+		if (available) {
+			this.goalButton.setTitle(label);
+			this.goalButton.setAriaLabel(`${conversationLensDockGoal}, ${label}`);
+		} else {
+			this.goalButton.setTitle(conversationLensDockGoalUnavailable);
+			this.goalButton.setAriaLabel(`${conversationLensDockGoal} — ${conversationLensDockGoalUnavailable}`);
+		}
 	}
 
 	private async onGoalClicked(): Promise<void> {
+		if (!this.isSessionGoalAvailable()) {
+			return;
+		}
 		if (!this.stubService.isEngineConnected()) {
 			if (this.stubService.hasEngineConnectionHistory()) {
 				this.delegate.showPostFailure('engine_disconnected');
@@ -331,7 +324,7 @@ export class ConversationInboxOverlay extends Disposable {
 		this.listContextView?.close();
 		// close()/onHide clears openPanel; assign the next panel after that wipe.
 		this.openPanel = panel;
-		const anchor = panel === 'task' ? this.taskChip : this.queueChip;
+		const anchor = this.queueChip;
 		this.listContextView = this.contextViewService.showContextView({
 			getAnchor: () => anchor,
 			anchorAlignment: AnchorAlignment.LEFT,
@@ -339,11 +332,7 @@ export class ConversationInboxOverlay extends Disposable {
 			render: container => {
 				const listRoot = append(container, $('.conversation-lens-inbox-list-panel'));
 				this.listPanelHost = listRoot;
-				if (panel === 'task') {
-					this.renderTaskList(listRoot);
-				} else {
-					this.renderQueueList(listRoot);
-				}
+				this.renderQueueList(listRoot);
 				this.render();
 				return toDisposable(() => {
 					this.listPanelHost = undefined;
@@ -376,27 +365,7 @@ export class ConversationInboxOverlay extends Disposable {
 			return;
 		}
 		reset(host);
-		if (panel === 'task') {
-			this.renderTaskList(host);
-		} else {
-			this.renderQueueList(host);
-		}
-	}
-
-	private renderTaskList(host: HTMLElement): void {
-		const sessionId = this.stubService.getActiveSessionId();
-		const tasks = this.stubService.getAutoDriveTasks(sessionId);
-		const list = append(host, $('.conversation-lens-inbox-list.conversation-lens-inbox-task-list'));
-		list.setAttribute('role', 'list');
-		if (tasks.length === 0) {
-			append(list, $('.conversation-lens-inbox-list-empty')).textContent = conversationLensDockInboxNoTasks;
-			return;
-		}
-		for (const task of tasks) {
-			const row = append(list, $('.conversation-lens-inbox-list-item'));
-			row.setAttribute('role', 'listitem');
-			row.textContent = task;
-		}
+		this.renderQueueList(host);
 	}
 
 	private renderQueueList(host: HTMLElement): void {
@@ -588,9 +557,17 @@ export class ConversationInboxOverlay extends Disposable {
 		if (!this.stubService.isEngineConnected()) {
 			return;
 		}
-		this.stubService.retryMessageQueueItem(sessionId, item.id, {
+		const retried = this.stubService.retryMessageQueueItem(sessionId, item.id, {
 			upload: item.status === 'UPLOAD_FAILED',
 		});
+		if (!retried) {
+			this.delegate.showPostFailure(
+				!this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory()
+					? 'engine_disconnected'
+					: 'failed'
+			);
+			return;
+		}
 		this.render();
 		this.refreshOpenListPanel();
 	}

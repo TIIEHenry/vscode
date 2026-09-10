@@ -122,10 +122,8 @@ import {
 	showPostFailure,
 	syncComposerPlacement,
 	syncSessionConfigSelects,
-	toggleAddContextView,
 	toggleInputMaximized,
 	toggleMoreContextView,
-	toggleTemplatesContextView,
 	toggleTuneContextView,
 	updateComposerEditChrome,
 	updateGateRow,
@@ -171,8 +169,6 @@ export class ConversationLens extends Disposable {
 	engineSnapshotsList: ConversationEngineSnapshotsList | undefined;
 	dockTextarea!: HTMLTextAreaElement;
 	sendButton!: Button;
-	addButton!: Button;
-	addContextView: IOpenContextView | undefined;
 	tuneButton!: Button;
 	tuneContextView: IOpenContextView | undefined;
 	permissionSelectBox!: SelectBox;
@@ -182,8 +178,6 @@ export class ConversationLens extends Disposable {
 	moreContextView: IOpenContextView | undefined;
 	modelSelectBox!: SelectBox;
 	modelSelectedIndex = 0;
-	templatesButton!: Button;
-	templatesContextView: IOpenContextView | undefined;
 	maximizeInputButton!: Button;
 	composerCluster!: HTMLElement;
 
@@ -325,10 +319,8 @@ export class ConversationLens extends Disposable {
 		this.refreshComposerCatalogs();
 
 		this._register(toDisposable(() => {
-			this.addContextView?.close();
 			this.tuneContextView?.close();
 			this.moreContextView?.close();
-			this.templatesContextView?.close();
 			if (slots.sessionBar) {
 				reset(slots.sessionBar);
 			}
@@ -533,20 +525,12 @@ export class ConversationLens extends Disposable {
 		mountDock(this, host);
 	}
 
-	toggleAddContextView(): void {
-		toggleAddContextView(this);
-	}
-
 	toggleTuneContextView(): void {
 		toggleTuneContextView(this);
 	}
 
 	toggleMoreContextView(): void {
 		toggleMoreContextView(this);
-	}
-
-	toggleTemplatesContextView(): void {
-		toggleTemplatesContextView(this);
 	}
 
 	isPreFirst(): boolean {
