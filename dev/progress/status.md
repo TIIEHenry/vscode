@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 本波：A D230、C D232、D D233 已合；B 仍在工位。未 compile-client。"
+summary: "loop 关仓：本波 A–D 已合入 merge。D230–D233 已闭。待一路 compile。"
 ---
 
 # Development Progress
@@ -45,7 +45,7 @@ summary: "loop 本波：A D230、C D232、D D233 已合；B 仍在工位。未 c
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
 | **A** | plugins-list-leftover | 已进 merge `899e57da6bb`；[D230](deferred-gaps.md) 已闭 |
-| **B** | skills-list-leftover | 工位进行中 |
+| **B** | skills-list-leftover | 已进 merge `ddf4405166c`；[D231](deferred-gaps.md) 已闭 |
 | **C** | mcp-defs-list-leftover | 已进 merge `1bf59304a14`；[D232](deferred-gaps.md) 已闭；勿 add `dev/loop` |
 | **D** | agents-list-leftover | 已进 merge `f3145bb12cf`；[D233](deferred-gaps.md) 已闭 |
 
@@ -178,6 +178,7 @@ summary: "loop 本波：A D230、C D232、D D233 已合；B 仍在工位。未 c
 | [D228](deferred-gaps.md) | C `connection-hub-refresh-rotate` | **closed** Hub Refresh 非 throw fail 清 leftover；Rotate 写成功闸 listed，不得盖住 directory/device list-fail；merge compile-client 0 |
 | [D229](deferred-gaps.md) | D `navigator-hierarchy-fetch-leftover` | **closed** Hierarchy 成功后再 tree fetch-fail 保 leftover 节点 + 失败 note，不得装活树或首拉空失败；merge compile-client 0 |
 | [D230](deferred-gaps.md) | A `plugins-list-leftover` | **closed** Plugins 成功后再 listPlugins throw 保 leftover 行 + failed，不得装「No engine plugins.」；首拉 throw 仍 empty+failed；未 compile-client |
+| [D231](deferred-gaps.md) | B `skills-list-leftover` | **closed** Skills 成功后再 listSkills throw 保 leftover 行 + failed，不得装「No skills yet.」；首拉 throw 仍 empty+failed；未 compile-client |
 | [D232](deferred-gaps.md) | C `mcp-defs-list-leftover` | **closed** MCP Definitions 成功后再 listMcpServers throw 保 leftover 行 + failed，不得装「No MCP servers yet.」；首拉 throw 仍 empty+failed；未 compile-client |
 | [D233](deferred-gaps.md) | D `agents-list-leftover` | **closed** Agents 成功后再 `listAgentProfiles` throw 保 leftover 行 + failed，不得装「No agent profiles yet.」；首拉 throw 仍 empty+failed；未重做 D223 |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |

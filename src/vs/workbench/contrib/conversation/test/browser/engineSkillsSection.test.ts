@@ -23,6 +23,7 @@ import { getSkillsUnsupportedCopy } from '../../browser/engineSkillCatalog.js';
 import { localize } from '../../../../../nls.js';
 
 const SKILLS_FEATURE = localize('ua.engineSkillsFeatureLabel', "a skills API");
+const SKILLS_EMPTY_COPY = localize('ua.engineSkillsEmpty', "No skills yet.");
 
 suite('EngineSkillsSection (E1)', () => {
 
@@ -154,6 +155,24 @@ suite('EngineSkillsSection (E1)', () => {
 		await new Promise(resolve => setTimeout(resolve, 0));
 	}
 
+	function assertSkillsFailedHonesty(section: EngineSkillsSection, errorMessage: string, expectedRows: number): void {
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), expectedRows);
+		assert.strictEqual(section.canWrite(), false);
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(SKILLS_FEATURE, errorMessage)));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(SKILLS_EMPTY_COPY));
+	}
+
+	function assertSkillsLeftoverFailedHonesty(section: EngineSkillsSection, errorMessage: string, expectedRows: number): void {
+		assertSkillsFailedHonesty(section, errorMessage, expectedRows);
+		const listContainer = section.getDomNode().querySelector('.engine-skills-list') as HTMLElement;
+		assert.ok(listContainer);
+		assert.notStrictEqual(listContainer.style.display, 'none');
+	}
+
 	test('disconnected hides skills section (§8.3 #5 honest empty)', async () => {
 		const connection = createConnectionStub({ connected: false, skillsSupport: 'SUPPORTED' });
 		const section = mountSection(connection);
@@ -205,16 +224,11 @@ suite('EngineSkillsSection (E1)', () => {
 		section.setSectionActive(true);
 		await flushMicrotasks();
 
-		assert.strictEqual(section.getMode(), 'failed');
-		assert.strictEqual(section.getListEntryCount(), 0);
-		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
-		assert.ok(status);
-		assert.strictEqual(status.dataset['catalogMode'], 'failed');
-		assert.ok(status.textContent?.includes(getCatalogFailedCopy(SKILLS_FEATURE, 'listSkills exploded')));
+		assertSkillsFailedHonesty(section, 'listSkills exploded', 0);
 		assert.ok(!/demo-skill/i.test(section.getDomNode().textContent ?? ''));
 	});
 
-	test('successful load then refresh throw is failed with no leftover catalog', async () => {
+	test('successful load then refresh throw keeps leftover catalog and paints failed', async () => {
 		let listSkillsCalls = 0;
 		const connection = createConnectionStub({
 			connected: true,
@@ -222,7 +236,7 @@ suite('EngineSkillsSection (E1)', () => {
 			listSkills: async () => {
 				listSkillsCalls++;
 				if (listSkillsCalls === 1) {
-					return { skills: [{ name: 'demo-skill', source: 'bundled', enabled: true }] };
+					return { skills: [{ name: 'leftover-skill', source: 'bundled', enabled: true }] };
 				}
 				throw new Error('listSkills retry exploded');
 			},
@@ -232,18 +246,13 @@ suite('EngineSkillsSection (E1)', () => {
 		await flushMicrotasks();
 
 		assert.strictEqual(section.getMode(), 'ready');
-		assert.ok(section.getListEntryCount() > 0);
+		assert.strictEqual(section.getListEntryCount(), 1);
 
 		connection.setConnected(true);
 		await flushMicrotasks();
 
-		assert.strictEqual(section.getMode(), 'failed');
-		assert.strictEqual(section.getListEntryCount(), 0);
-		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
-		assert.ok(status);
-		assert.strictEqual(status.dataset['catalogMode'], 'failed');
-		assert.ok(status.textContent?.includes(getCatalogFailedCopy(SKILLS_FEATURE, 'listSkills retry exploded')));
-		assert.ok(!/demo-skill/i.test(section.getDomNode().textContent ?? ''));
+		assert.strictEqual(listSkillsCalls, 2);
+		assertSkillsLeftoverFailedHonesty(section, 'listSkills retry exploded', 1);
 	});
 
 	test('successful load then capability UNKNOWN clears leftover rows before loading', async () => {
@@ -476,12 +485,7 @@ suite('EngineSkillsSection (E1)', () => {
 			assert.ok(writeStatus);
 			assert.ok(!(writeStatus.textContent ?? '').includes(toggleSuccess));
 
-			assert.strictEqual(section.getMode(), 'failed');
-			assert.strictEqual(section.getListEntryCount(), 0);
-			const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
-			assert.ok(status);
-			assert.strictEqual(status.dataset['catalogMode'], 'failed');
-			assert.ok(status.textContent?.includes(getCatalogFailedCopy(SKILLS_FEATURE, 'listSkills exploded')));
+			assertSkillsLeftoverFailedHonesty(section, 'listSkills exploded', 1);
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
@@ -574,12 +578,7 @@ suite('EngineSkillsSection (E1)', () => {
 			assert.ok(writeStatus);
 			assert.ok(!(writeStatus.textContent ?? '').includes(createSuccess));
 
-			assert.strictEqual(section.getMode(), 'failed');
-			assert.strictEqual(section.getListEntryCount(), 0);
-			const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
-			assert.ok(status);
-			assert.strictEqual(status.dataset['catalogMode'], 'failed');
-			assert.ok(status.textContent?.includes(getCatalogFailedCopy(SKILLS_FEATURE, 'listSkills exploded')));
+			assertSkillsLeftoverFailedHonesty(section, 'listSkills exploded', 1);
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
@@ -767,12 +766,7 @@ suite('EngineSkillsSection (E1)', () => {
 			assert.ok(writeStatus);
 			assert.ok(!(writeStatus.textContent ?? '').includes(saveSuccess));
 
-			assert.strictEqual(section.getMode(), 'failed');
-			assert.strictEqual(section.getListEntryCount(), 0);
-			const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
-			assert.ok(status);
-			assert.strictEqual(status.dataset['catalogMode'], 'failed');
-			assert.ok(status.textContent?.includes(getCatalogFailedCopy(SKILLS_FEATURE, 'listSkills exploded')));
+			assertSkillsLeftoverFailedHonesty(section, 'listSkills exploded', 1);
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
