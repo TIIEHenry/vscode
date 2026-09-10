@@ -1203,5 +1203,8 @@ export const UniverseAgentGrpcServices = {
 /** ConnectResponse.capabilities.methods advertisement key for SaveSkillContent. */
 export const UniverseAgentSaveSkillContentMethodKey = 'ToolService.SaveSkillContent';
 
+/** ConnectResponse.capabilities.methods advertisement key for SessionService.List. */
+export const UniverseAgentSessionListMethodKey = 'SessionService.List';
+
 /** ConnectResponse.capabilities.methods advertisement key for FetchToolDetail. */
 export const UniverseAgentFetchToolDetailMethodKey = 'AgentService.FetchToolDetail';

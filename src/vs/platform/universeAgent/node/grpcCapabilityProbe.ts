@@ -14,7 +14,7 @@ import {
 	UNSUPPORTED_CAPABILITY,
 	createEmptyCapabilitySnapshot,
 } from '../common/universeAgentCapabilities.js';
-import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentGrpcServices } from './grpc/grpcTransport.js';
+import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentGrpcServices, UniverseAgentSessionListMethodKey } from './grpc/grpcTransport.js';
 
 /** Maps Connect-advertised methods to probe targets (Singularity GrpcCapabilityProbe equivalent). */
 const PROBE_TARGETS: Partial<Record<UniverseAgentCapabilityKey, { service: string; method: string; methodKey: string }>> = {
@@ -110,4 +110,25 @@ export async function probeEngineCapabilities(input: GrpcCapabilityProbeInput): 
 	snapshot.providerConfig = { support: 'UNSUPPORTED', reason: PROVIDER_CONFIG_UNSUPPORTED_REASON };
 
 	return snapshot;
+}
+
+/**
+ * Session.List three-state for Navigator. Not a {@link UniverseAgentCapabilityKey}
+ * (Engine Overview must not gain a sessionList row).
+ */
+export async function probeSessionListCapability(input: GrpcCapabilityProbeInput): Promise<UniverseAgentCapabilityEntry> {
+	if (!input.methods.includes(UniverseAgentSessionListMethodKey)) {
+		return { support: 'UNSUPPORTED', reason: 'method not advertised' };
+	}
+	const status = await input.transport.probeRpc(
+		UniverseAgentGrpcServices.Session.service,
+		UniverseAgentGrpcServices.Session.List,
+	);
+	if (status === GrpcStatusCode.UNIMPLEMENTED) {
+		return { support: 'UNSUPPORTED', reason: 'UNIMPLEMENTED' };
+	}
+	if (status === GrpcStatusCode.OK) {
+		return { ...SUPPORTED_CAPABILITY };
+	}
+	return { support: 'UNKNOWN', reason: `probe status ${status}` };
 }

@@ -313,7 +313,7 @@ import type {
 	UniverseAgentSaveSkillContentRequest,
 	UniverseAgentSaveSkillContentResult,
 } from '../../common/universeAgentTypes.js';
-import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequest, UniverseAgentAuthNonceResult, UniverseAgentDeviceAuthConnectRequest, UniverseAgentGrpcServices, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
+import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequest, UniverseAgentAuthNonceResult, UniverseAgentDeviceAuthConnectRequest, UniverseAgentGrpcServices, UniverseAgentSessionListMethodKey, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
 import type { IUniverseAgentConnection } from '../../common/universeAgentConnection.js';
 import { createStreamCloseGate } from '../../common/sessionStreamClose.js';
 import { UniverseAgentConnectionService } from '../../node/universeAgentConnectionService.js';
@@ -10087,6 +10087,88 @@ suite('UniverseAgentConnectionService', () => {
 
 		assert.strictEqual(service.getCapabilitySnapshot().skills.support, 'UNSUPPORTED');
 		assert.strictEqual(service.getCapabilitySnapshot().skills.reason, 'UNIMPLEMENTED');
+		service.dispose();
+	});
+
+	test('SessionService.List advertised + probe OK => sessionList SUPPORTED (not in Overview keys)', async () => {
+		const probed: Array<{ service: string; method: string }> = [];
+		const transport = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				sessionToken: 'token-1',
+				methods: [UniverseAgentSessionListMethodKey],
+				events: [],
+			}),
+			probeRpc: async (service, method) => {
+				probed.push({ service, method });
+				return GrpcStatusCode.OK;
+			},
+		});
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		assert.strictEqual(service.getNavigatorCapability('sessionList'), 'SUPPORTED');
+		assert.strictEqual(service.getConnectionSnapshot().sessionListCapability, 'SUPPORTED');
+		assert.strictEqual('sessionList' in service.getCapabilitySnapshot(), false);
+		assert.ok(probed.some(call =>
+			call.service === UniverseAgentGrpcServices.Session.service
+			&& call.method === UniverseAgentGrpcServices.Session.List));
+		await service.disconnect();
+		assert.strictEqual(service.getNavigatorCapability('sessionList'), 'UNKNOWN');
+		service.dispose();
+	});
+
+	test('SessionService.List not advertised => sessionList UNSUPPORTED without List probe', async () => {
+		const probed: Array<{ service: string; method: string }> = [];
+		const transport = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				sessionToken: 'token-1',
+				methods: ['ToolService.ListSkills'],
+				events: [],
+			}),
+			probeRpc: async (service, method) => {
+				probed.push({ service, method });
+				return GrpcStatusCode.OK;
+			},
+		});
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		assert.strictEqual(service.getNavigatorCapability('sessionList'), 'UNSUPPORTED');
+		assert.strictEqual(service.getConnectionSnapshot().sessionListCapability, 'UNSUPPORTED');
+		assert.ok(!probed.some(call =>
+			call.service === UniverseAgentGrpcServices.Session.service
+			&& call.method === UniverseAgentGrpcServices.Session.List));
+		service.dispose();
+	});
+
+	test('SessionService.List advertised + UNIMPLEMENTED probe => sessionList UNSUPPORTED', async () => {
+		const transport = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				sessionToken: 'token-1',
+				methods: [UniverseAgentSessionListMethodKey],
+				events: [],
+			}),
+			probeRpc: async (_service, method) => {
+				if (method === UniverseAgentGrpcServices.Session.List) {
+					return GrpcStatusCode.UNIMPLEMENTED;
+				}
+				return GrpcStatusCode.OK;
+			},
+		});
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		assert.strictEqual(service.getNavigatorCapability('sessionList'), 'UNSUPPORTED');
+		assert.strictEqual(service.getConnectionSnapshot().sessionListCapability, 'UNSUPPORTED');
 		service.dispose();
 	});
 

@@ -73,6 +73,23 @@ suite('NavigatorProjectsTree (N1)', () => {
 		assert.ok(note?.label.includes('session list'));
 	});
 
+	test('connected empty sessions with SUPPORTED sessionList shows workdir without loading note', () => {
+		const tree = buildNavigatorProjectsTree({
+			engineConnected: true,
+			wasEverConnected: true,
+			transportFailed: false,
+			sessionListCapability: 'SUPPORTED',
+			workDir: '/engine/work',
+			sessions: [],
+			localFolders: [],
+		});
+		const engine = tree[0];
+		assert.strictEqual(engine?.kind, 'engine-root');
+		assert.ok(!engine?.children?.some(child => child.id === 'engine:session-list-loading'));
+		assert.strictEqual(engine?.children?.[0]?.kind, 'workdir');
+		assert.deepStrictEqual(engine?.children?.[0]?.children ?? [], []);
+	});
+
 	test('disconnect retains engine root with transport note', () => {
 		const tree = buildNavigatorProjectsTree({
 			engineConnected: false,

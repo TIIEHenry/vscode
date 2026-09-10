@@ -1502,6 +1502,11 @@ export interface UniverseAgentConnectionSnapshot {
 	readonly pairingPending: boolean;
 	readonly channelAlive: boolean;
 	readonly capabilities: UniverseAgentCapabilitySnapshot;
+	/**
+	 * Navigator session-list three-state. Dedicated snapshot field so this key
+	 * is not added to {@link UniverseAgentCapabilityKey} / Engine Overview.
+	 */
+	readonly sessionListCapability?: UniverseAgentCapabilitySupport;
 }
 
 /** Joined file mutation record (m6 §11 / sources-review §8); produced only after lifecycle join. */

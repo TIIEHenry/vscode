@@ -367,7 +367,7 @@ import type {
 	ITurnSettleSignal,
 } from '../common/universeAgentTypes.js';
 import { createEmptyCapabilitySnapshot } from '../common/universeAgentCapabilities.js';
-import { probeEngineCapabilities } from './grpcCapabilityProbe.js';
+import { probeEngineCapabilities, probeSessionListCapability } from './grpcCapabilityProbe.js';
 import { createGrpcUniverseAgentClient, createPinnedGrpcUniverseAgentClient } from './grpc/grpcClient.js';
 import { loadGrpcModule } from './universeAgentChannel.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, isTransportFailureCode, UniverseAgentFetchToolDetailMethodKey, UniverseAgentGrpcServices, UniverseAgentSaveSkillContentMethodKey, UniverseAgentTransportError } from './grpc/grpcTransport.js';
@@ -462,6 +462,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private _fetchToolDetailUnsupported = false;
 	private _advertisedMethods: readonly string[] = [];
 	private _capabilities: UniverseAgentCapabilitySnapshot = createEmptyCapabilitySnapshot();
+	private _sessionListCapability: UniverseAgentCapabilitySupport = 'UNKNOWN';
 	private _connectionPhase: ConnectionPhase = { kind: 'disconnected' };
 	private _activeProfileId: string | undefined;
 
@@ -531,7 +532,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	getNavigatorCapability(key: UniverseAgentNavigatorCapabilityKey): UniverseAgentCapabilitySupport {
 		if (key === 'sessionList') {
-			return 'UNKNOWN';
+			return this._sessionListCapability;
 		}
 		return this._capabilities[key]?.support ?? 'UNKNOWN';
 	}
@@ -629,6 +630,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 					methods: result.methods,
 					transport: this._transport,
 				});
+				await this._refreshSessionListCapability(result.methods);
 				await this._refreshSaveSkillContentBinding(result.methods);
 			}
 			this._connectionPhase = this._pairingPending
@@ -785,6 +787,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				methods: handshake.result.methods,
 				transport: this._transport,
 			});
+			await this._refreshSessionListCapability(handshake.result.methods);
 			await this._refreshSaveSkillContentBinding(handshake.result.methods);
 			this._connectionPhase = { kind: 'connected', path: endpoint.path };
 			this._agentTreeFetchFailed = false;
@@ -908,6 +911,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._clearSaveSkillContentBinding();
 		this._transportState = 'idle';
 		this._capabilities = createEmptyCapabilitySnapshot();
+		this._sessionListCapability = 'UNKNOWN';
 		this._connectionPhase = { kind: 'closed' };
 		this._activeProfileId = undefined;
 		this._fireSnapshotChanged();
@@ -1931,6 +1935,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			pairingPending: this._pairingPending,
 			channelAlive: !!this._transport?.isChannelAlive,
 			capabilities: sanitizeDesktopCapabilitySnapshot(this._capabilities),
+			sessionListCapability: this._sessionListCapability,
 		};
 	}
 
@@ -2114,6 +2119,17 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private _rememberAdvertisedMethods(methods: readonly string[]): void {
 		this._advertisedMethods = methods;
 		this._fetchToolDetailUnsupported = false;
+	}
+
+	private async _refreshSessionListCapability(methods: readonly string[]): Promise<void> {
+		if (!this._transport) {
+			this._sessionListCapability = 'UNKNOWN';
+			return;
+		}
+		this._sessionListCapability = (await probeSessionListCapability({
+			methods,
+			transport: this._transport,
+		})).support;
 	}
 
 	private async _refreshSaveSkillContentBinding(methods: readonly string[]): Promise<void> {

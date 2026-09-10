@@ -115,6 +115,7 @@ export class WebUniverseAgentConnection implements IUniverseAgentConnection {
 			channelAlive: false,
 			sharedFsRootSent: false,
 			capabilities: this.getCapabilitySnapshot(),
+			sessionListCapability: 'UNSUPPORTED',
 		};
 	}
 

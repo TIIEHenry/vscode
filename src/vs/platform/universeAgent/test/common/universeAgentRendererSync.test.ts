@@ -112,6 +112,31 @@ suite('universeAgentRendererSync', () => {
 		assert.strictEqual(cache.capabilities.providerConfig.support, 'UNKNOWN');
 	});
 
+	test('connection cache reads sessionListCapability from snapshot dedicated field', () => {
+		const cache = new UniverseAgentConnectionSyncCache();
+		assert.strictEqual(cache.navigatorCapability('sessionList'), 'UNKNOWN');
+		cache.applySnapshot({
+			transport: 'ok',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+			sessionListCapability: 'SUPPORTED',
+		});
+		assert.strictEqual(cache.navigatorCapability('sessionList'), 'SUPPORTED');
+		assert.strictEqual(cache.snapshot.sessionListCapability, 'SUPPORTED');
+		assert.strictEqual('sessionList' in cache.capabilities, false);
+		cache.applySnapshot({
+			transport: 'ok',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+			sessionListCapability: 'UNSUPPORTED',
+		});
+		assert.strictEqual(cache.navigatorCapability('sessionList'), 'UNSUPPORTED');
+	});
+
 	test('hub cache maps a Promise list to empty until a real array arrives', () => {
 		const cache = new UniverseAgentHubSyncCache();
 		cache.applyProfiles(Promise.resolve([{ profileId: 'x' }]));
@@ -311,6 +336,7 @@ suite('universeAgentRendererSync', () => {
 			channelAlive: false,
 			sharedFsRootSent: false,
 			capabilities: createIdleCapabilitySnapshot(),
+			sessionListCapability: 'SUPPORTED' as const,
 		};
 		const channel: IChannel = {
 			call: (command: string): Promise<any> => {
@@ -335,6 +361,8 @@ suite('universeAgentRendererSync', () => {
 		assert.strictEqual(client.isEngineConnected(), false);
 		assert.strictEqual(client.getCapabilitySnapshot().providerConfig.support, 'UNKNOWN');
 		assert.notStrictEqual(typeof (client.getCapabilitySnapshot() as { then?: unknown }).then, 'function');
+		assert.strictEqual(client.getNavigatorCapability('sessionList'), 'SUPPORTED');
+		assert.strictEqual(client.getConnectionSnapshot().sessionListCapability, 'SUPPORTED');
 	});
 
 	test('connection channel client hydrate IPC reject keeps pre-hydrate defaults without unhandled rejection', async () => {

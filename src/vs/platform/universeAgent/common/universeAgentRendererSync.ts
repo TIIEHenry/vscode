@@ -86,7 +86,13 @@ export function createIdleConnectionSnapshot(): UniverseAgentConnectionSnapshot 
 		channelAlive: false,
 		sharedFsRootSent: false,
 		capabilities: createIdleCapabilitySnapshot(),
+		sessionListCapability: 'UNKNOWN',
 	};
+}
+
+export function readSessionListCapability(snapshot: UniverseAgentConnectionSnapshot | undefined): UniverseAgentCapabilitySupport {
+	const support = snapshot?.sessionListCapability;
+	return support === 'SUPPORTED' || support === 'UNSUPPORTED' || support === 'UNKNOWN' ? support : 'UNKNOWN';
 }
 
 export function readCapabilityEntry(
@@ -196,6 +202,7 @@ export class UniverseAgentConnectionSyncCache {
 		this._snapshot = {
 			...snapshot,
 			capabilities: sanitizeDesktopCapabilitySnapshot(normalizeCapabilities(snapshot.capabilities)),
+			sessionListCapability: readSessionListCapability(snapshot),
 		};
 	}
 
@@ -208,10 +215,8 @@ export class UniverseAgentConnectionSyncCache {
 	}
 
 	navigatorCapability(key: UniverseAgentNavigatorCapabilityKey): UniverseAgentCapabilitySupport {
-		// Session listing is not carried in the capability snapshot; the node service
-		// answers the same way.
 		if (key === 'sessionList') {
-			return 'UNKNOWN';
+			return readSessionListCapability(this._snapshot);
 		}
 		return this._snapshot.capabilities[key]?.support ?? 'UNKNOWN';
 	}
