@@ -25,7 +25,7 @@ import { AgentInspectService } from '../../browser/agentInspectService.js';
 import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import type { INavigatorAgentsHierarchyNode } from '../../common/navigatorAgentHierarchy.js';
 import type { INavigatorAgentsActivityItem } from '../../common/navigatorAgentsActivity.js';
-import { NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEmptyState.js';
+import { getNavigatorAgentTreePendingCopy, NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEmptyState.js';
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 import { workbenchInstantiationService, TestViewsService } from '../../../../test/browser/workbenchTestServices.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
@@ -705,6 +705,70 @@ suite('Navigator Agents subviews', () => {
 		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(hierarchyEmpty);
 		assert.notStrictEqual(hierarchyEmpty.style.display, 'block', 'fetch-fail leftover must not be painted as first-pull empty-fail');
+	});
+
+	test('pending after live Hierarchy paint keeps leftover nodes and marks pending', () => {
+		const roster = store.add(new RosterWithMutableTreeAndActivity());
+		roster.setEngineConnected(true);
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			isAgentTreeFetchFailed: () => false,
+			onDidChangeConnection: onDidChangeConnection.event,
+		});
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountAgentsView(roster, connection, inspectService);
+
+		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> }).hierarchyTree;
+		assert.ok(hierarchyTree, 'live paint must have a hierarchy tree');
+		assert.strictEqual(hierarchyTree.getNode(null)?.children.length ?? 0, 1, 'live paint must have leftover hierarchy nodes');
+		assert.strictEqual(hierarchyTree.getNode(null)?.children[0]?.element?.label, 'Root');
+		assert.strictEqual(hierarchyTree.getNode(null)?.children[0]?.element?.children?.[0]?.label, 'Alpha');
+		assert.ok(inspectService.getLiveAgentIds()?.has('root'), 'live paint must expose live agent ids');
+		const liveNote = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(liveNote);
+		assert.notStrictEqual(liveNote.style.display, 'block', 'live paint must not already look pending');
+
+		roster.liveTree = undefined;
+		onDidChangeConnection.fire(connection.getConnectionSnapshot());
+
+		const pendingCopy = getNavigatorAgentTreePendingCopy('SUPPORTED', undefined, false);
+		assert.ok(pendingCopy, 'pending path must have pending copy');
+		assert.strictEqual(hierarchyTree.getNode(null)?.children.length ?? 0, 1, 'pending must keep leftover hierarchy nodes');
+		assert.strictEqual(hierarchyTree.getNode(null)?.children[0]?.element?.label, 'Root');
+		assert.strictEqual(hierarchyTree.getNode(null)?.children[0]?.element?.children?.[0]?.label, 'Alpha');
+		assert.strictEqual(inspectService.getLiveAgentIds(), undefined, 'pending leftover must not be painted as live');
+		const pendingNote = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(pendingNote, 'pending must mark leftover hierarchy');
+		assert.strictEqual(pendingNote.style.display, 'block');
+		assert.strictEqual(pendingNote.textContent, pendingCopy);
+		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
+		assert.ok(hierarchyEmpty);
+		assert.notStrictEqual(hierarchyEmpty.style.display, 'block', 'pending leftover must not be painted as first-pull empty');
+	});
+
+	test('first-pull Hierarchy pending stays empty with pending copy', () => {
+		const roster = store.add(new ConversationStubService());
+		roster.setEngineConnected(true);
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountAgentsView(roster, createNavigatorConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			isAgentTreeFetchFailed: () => false,
+		}), inspectService);
+
+		const pendingCopy = getNavigatorAgentTreePendingCopy('SUPPORTED', undefined, false);
+		assert.ok(pendingCopy, 'first-pull pending must have pending copy');
+		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
+		assert.ok(hierarchyEmpty);
+		assert.strictEqual(hierarchyEmpty.style.display, 'block');
+		assert.strictEqual(hierarchyEmpty.textContent, pendingCopy);
+		assert.ok(!hierarchyEmpty.textContent?.includes('no engine'));
+		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> | undefined }).hierarchyTree;
+		assert.strictEqual(hierarchyTree?.getNode(null)?.children.length ?? 0, 0, 'first-pull pending must not install leftover nodes');
+		assert.strictEqual(inspectService.getLiveAgentIds(), undefined, 'first-pull pending must not be painted as live');
 	});
 
 	test('ViewTitle Inspect with hierarchy focus sets the agent target and opens Inspect', () => {
