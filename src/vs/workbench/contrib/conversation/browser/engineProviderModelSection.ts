@@ -83,6 +83,8 @@ export class EngineProviderModelSection extends Disposable {
 	private readonly modelList: HTMLElement;
 	private readonly sessionHint: HTMLElement;
 
+	private modelMode: EngineCatalogPaneMode = 'disconnected';
+	private modelCount = 0;
 	private modelListPhase: EngineCatalogListPhase = { kind: 'none' };
 	private refreshGeneration = 0;
 
@@ -128,6 +130,14 @@ export class EngineProviderModelSection extends Disposable {
 
 	setShowSectionHeading(_show: boolean): void {
 		// Pane detail title only.
+	}
+
+	getMode(): EngineCatalogPaneMode {
+		return this.modelMode;
+	}
+
+	getListEntryCount(): number {
+		return this.modelCount;
 	}
 
 	layout(_width: number, _height: number): void {
@@ -191,6 +201,7 @@ export class EngineProviderModelSection extends Disposable {
 		}
 
 		if (entry.support === 'UNKNOWN') {
+			this.clearModelPresentation();
 			this.modelListPhase = { kind: 'none' };
 			this.renderModelStatus(resolveEngineCatalogPaneMode(true, entry.support), undefined, 'capability');
 			return;
@@ -216,8 +227,7 @@ export class EngineProviderModelSection extends Disposable {
 			if (canShowCatalogRows(mode)) {
 				this.renderModelList(result.models);
 			} else {
-				DOM.clearNode(this.modelList);
-				this.modelList.style.display = 'none';
+				this.clearModelPresentation();
 			}
 			this.sessionHint.style.display = (mode === 'ready' || mode === 'empty') ? '' : 'none';
 		} catch (error) {
@@ -242,6 +252,7 @@ export class EngineProviderModelSection extends Disposable {
 		loadingKind?: 'capability' | 'list',
 		onRetry?: () => void,
 	): void {
+		this.modelMode = mode;
 		this.modelStatus.render({
 			mode,
 			featureLabel: MODEL_FEATURE,
@@ -256,6 +267,7 @@ export class EngineProviderModelSection extends Disposable {
 	}
 
 	private renderModelList(models: readonly UniverseAgentModelEntry[]): void {
+		this.modelCount = models.length;
 		DOM.clearNode(this.modelList);
 		for (const group of groupModelsByProvider(models)) {
 			const groupEl = DOM.append(this.modelList, $('.engine-provider-model-provider-group'));
@@ -278,6 +290,7 @@ export class EngineProviderModelSection extends Disposable {
 	}
 
 	private clearModelPresentation(): void {
+		this.modelCount = 0;
 		DOM.clearNode(this.modelList);
 		this.modelList.style.display = 'none';
 		this.sessionHint.style.display = 'none';

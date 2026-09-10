@@ -282,6 +282,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 		}
 
 		if (support === 'UNKNOWN') {
+			this.clearRuntimePresentation();
 			this.mode = resolveEngineCatalogPaneMode(true, support);
 			this.renderStatus({ loadingKind: 'capability' });
 			return;
