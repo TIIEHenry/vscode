@@ -435,7 +435,16 @@ export class EnginePluginsSection extends Disposable {
 			if (generation !== this.refreshGeneration) {
 				return false;
 			}
-			this.clearCatalogPresentation();
+			const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'plugin');
+			if (!hadLiveCatalog) {
+				this.clearCatalogPresentation();
+			} else {
+				this.lastScan = undefined;
+				this.scanResult.style.display = 'none';
+				this.scanResult.textContent = '';
+				this.hideCatalogWriteStatus();
+				this.listContainer.style.display = '';
+			}
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
 				kind: 'failed',
 				error: getTransportErrorMessage(error),
