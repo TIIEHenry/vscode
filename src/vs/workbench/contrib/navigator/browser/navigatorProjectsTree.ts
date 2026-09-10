@@ -8,6 +8,7 @@ import { localize } from '../../../../nls.js';
 import type { IWindowOpenable } from '../../../../platform/window/common/window.js';
 import { URI } from '../../../../base/common/uri.js';
 import type { ConversationStubSession } from '../../conversation/browser/conversationStubModel.js';
+import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
 import type { NavigatorCapabilitySupport } from '../common/navigatorEngineBridge.js';
 
 export type NavigatorProjectsNodeKind =
@@ -81,6 +82,13 @@ export function buildNavigatorProjectsTree(input: {
 				label: session.title,
 				sessionId: session.id,
 			}));
+			if (!input.engineConnected && input.wasEverConnected) {
+				engineChildren.push({
+					id: 'engine:stale-snapshot',
+					kind: 'note',
+					label: NAVIGATOR_STALE_SNAPSHOT_COPY,
+				});
+			}
 			engineChildren.push({
 				id: `workdir:${input.workDir ?? 'default'}`,
 				kind: 'workdir',
