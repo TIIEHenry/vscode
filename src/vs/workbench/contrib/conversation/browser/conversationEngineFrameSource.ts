@@ -54,6 +54,12 @@ export class ConversationEngineFrameSource extends Disposable implements IConver
 		return candidate.whenBindReady?.();
 	}
 
+	boundEngineSessionId(lease: IConversationSessionViewLease): string | undefined {
+		const candidate = lease as { boundEngineSessionId?: string };
+		const id = candidate.boundEngineSessionId?.trim();
+		return id || undefined;
+	}
+
 	/**
 	 * Post on an already-held lease for `sessionId`. Returns undefined when this
 	 * source does not currently hold one (caller may acquire).
@@ -92,6 +98,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 	readonly onDidApplyFrame = this._onDidApplyFrame.event;
 	private readonly lifetime = this._register(new DisposableStore());
 	leaseId = '';
+	boundEngineSessionId = '';
 	private readonly ready: Promise<boolean>;
 	private disposed = false;
 
@@ -102,7 +109,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 		private readonly onAcquired: (leaseId: string) => void,
 	) {
 		super();
-		this.ready = this.sessionView.acquireLease(sessionId).then(id => {
+		this.ready = this.sessionView.acquireLease(sessionId).then(async id => {
 			if (this.disposed) {
 				void this.sessionView.releaseLease(id).catch(() => undefined);
 				return false;
@@ -115,7 +122,19 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 				this.onRelease(id);
 			} });
 			this.onAcquired(id);
-			return true;
+			try {
+				const engineSessionId = await this.sessionView.whenEngineSessionReady(sessionId);
+				if (this.disposed) {
+					return false;
+				}
+				if (!engineSessionId) {
+					return false;
+				}
+				this.boundEngineSessionId = engineSessionId;
+				return true;
+			} catch {
+				return false;
+			}
 		}, () => false);
 	}
 

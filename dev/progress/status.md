@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 已重启。A/B/C 已进 merge。D 工位 `catalog-write-listfail-honesty`：写成功后再 list-fail 不得回刷成功文案；Overview 无 list 证据不写 Supported；Web Profiles 省略 Connect/Forget。D8 / D16 / D147 / D195–D201 仍开。D194 已闭。"
+summary: "loop 本波关仓中。D catalog list-fail 诚实已合；C bind-ready / B Sources 失败空 diff / A 假铬条待合。D8 / D16 / D147 / D195–D204 仍开。D194 已闭。"
 ---
 
 # Development Progress
@@ -44,10 +44,10 @@ summary: "loop 已重启。A/B/C 已进 merge。D 工位 `catalog-write-listfail
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | D194 假 mic/Route DELETE + 断连 Stub agent/model 已删 | 正在合入 merge |
-| **B** | Sources Accept 无载荷不显示；空 session 不盖 SCM | 已进 merge；A2 仍停 |
-| **C** | `sessionList` 诚实探测（专用 snapshot 字段，不进 Overview） | 已进 merge；**勿 add `dev/loop`** |
-| **D** | `catalog-write-listfail-honesty`：写成功后再 list-fail 清行 + 不回刷 Created/Enabled/Restored；Overview 无假 Supported；Web Profiles 省略桌面连接控件 | 工位实施中；未 commit；[D199](deferred-gaps.md)–[D201](deferred-gaps.md) 新开 |
+| **A** | conversation-fake-chrome-honesty | merge-queued `cc7d2f396e7` |
+| **B** | Sources 失败与空 diff 诚实面 | merge-queued `cfb340570a3` |
+| **C** | session-bind-ready-honesty：roster 等 Create/Resume，不把 acquireLease / web-empty 当成功 | 合入中；**勿 add `dev/loop`** |
+| **D** | catalog-write-listfail-honesty：list-fail 不回刷成功文案；Overview 无假 Supported；Web Profiles 省略桌面控件 | 已进 merge `21f8d299cd8`；[D199](deferred-gaps.md)–[D201](deferred-gaps.md) |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>

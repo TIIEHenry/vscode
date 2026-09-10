@@ -42,6 +42,10 @@ class BufferedMockUniverseAgentSessionView implements IUniverseAgentSessionView 
 		return leaseId;
 	}
 
+	async whenEngineSessionReady(sessionId: string): Promise<string> {
+		return sessionId;
+	}
+
 	releaseLeaseFn: (leaseId: string) => Promise<void> = async () => { };
 
 	async releaseLease(leaseId: string): Promise<void> {
@@ -132,6 +136,7 @@ class PostOutcomeMockSessionView implements IUniverseAgentSessionView {
 	declare readonly _serviceBrand: undefined;
 
 	acquireLeaseFn: (sessionId: string) => Promise<string> = async sessionId => `lease:${sessionId}`;
+	whenEngineSessionReadyFn: (sessionId: string) => Promise<string> = async sessionId => sessionId;
 	postFn: (leaseId: string, msg: ConversationWriteMessage) => Promise<PostOutcome> = async () => ({
 		accepted: true,
 		correlation: { id: 'host-corr' },
@@ -145,6 +150,10 @@ class PostOutcomeMockSessionView implements IUniverseAgentSessionView {
 
 	async acquireLease(sessionId: string): Promise<string> {
 		return this.acquireLeaseFn(sessionId);
+	}
+
+	async whenEngineSessionReady(sessionId: string): Promise<string> {
+		return this.whenEngineSessionReadyFn(sessionId);
 	}
 
 	readonly releaseLeaseCalls: string[] = [];
@@ -266,6 +275,45 @@ suite('ConversationEngineFrameSource post outcome', () => {
 
 		assert.deepStrictEqual(await pending, { accepted: false, reason: 'no_such_session' });
 		assert.strictEqual(sessionView.lastPost?.leaseId, 'lease:sess-d');
+	});
+
+	test('whenBindReady waits for whenEngineSessionReady after acquireLease', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		let resolveReady!: (id: string) => void;
+		sessionView.whenEngineSessionReadyFn = () => new Promise<string>(resolve => {
+			resolveReady = resolve;
+		});
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-bind'));
+		let settled: boolean | undefined;
+		const pending = source.whenLeaseBindReady(lease)?.then(ok => {
+			settled = ok;
+			return ok;
+		});
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(settled, undefined);
+		resolveReady('engine-sess-bind');
+		assert.strictEqual(await pending, true);
+		assert.strictEqual((lease as { boundEngineSessionId?: string }).boundEngineSessionId, 'engine-sess-bind');
+	});
+
+	test('whenBindReady is false when Create/Resume throws after acquireLease', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		sessionView.whenEngineSessionReadyFn = async () => {
+			throw new Error('CreateSession returned empty session_id');
+		};
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-create-fail'));
+		assert.strictEqual(await source.whenLeaseBindReady(lease), false);
+	});
+
+	test('whenBindReady is false when Create/Resume returns empty session_id', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		sessionView.whenEngineSessionReadyFn = async () => '';
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-empty-id'));
+		assert.strictEqual(await source.whenLeaseBindReady(lease), false);
+		assert.strictEqual((lease as { boundEngineSessionId?: string }).boundEngineSessionId, '');
 	});
 
 	test('acquireLease failure is no_such_session, not silent accepted', async () => {

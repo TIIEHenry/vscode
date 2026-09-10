@@ -119,6 +119,10 @@ suite('Web universeAgent disconnect (P0)', () => {
 		const sessionView = new WebUniverseAgentSessionView();
 		const leaseId = await sessionView.acquireLease('sess-1');
 		assert.ok(leaseId.startsWith('web-empty:'));
+		await assert.rejects(
+			() => sessionView.whenEngineSessionReady('sess-1'),
+			(error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON,
+		);
 		assert.strictEqual(typeof sessionView.onDynamicDidApplyFrame, 'function');
 		assert.strictEqual(sessionView.onDynamicDidApplyFrame(leaseId), Event.None);
 		assert.strictEqual(sessionView.onDynamicDidApplyFrame('unknown'), Event.None);
