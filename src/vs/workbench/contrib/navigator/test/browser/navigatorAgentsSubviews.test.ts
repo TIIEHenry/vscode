@@ -83,6 +83,7 @@ suite('Navigator Agents subviews', () => {
 
 	class RosterWithMutableTreeAndActivity extends ConversationStubService {
 		liveTree: LiveAgentTreeNodeView | undefined = sampleLiveTree;
+		includeActivityTools = true;
 
 		override acquireSessionView(sessionId: string): IConversationSessionViewLease {
 			const lease = super.acquireSessionView(sessionId);
@@ -95,14 +96,22 @@ suite('Navigator Agents subviews', () => {
 				get: () => ({
 					...originalSnapshot,
 					liveAgentTree: self.liveTree,
-					timeline: [
-						...originalSnapshot.timeline,
-						{
-							id: toolId,
-							orderKey: 'leftover',
-							summary: { kind: 'tool' as const, title: 'Run', toolName: 'grep', status: 'completed' as const },
+					overlay: self.includeActivityTools
+						? originalSnapshot.overlay
+						: {
+							...originalSnapshot.overlay,
+							blocks: originalSnapshot.overlay.blocks.filter(block => block.summary.kind !== 'tool'),
 						},
-					],
+					timeline: self.includeActivityTools
+						? [
+							...originalSnapshot.timeline,
+							{
+								id: toolId,
+								orderKey: 'leftover',
+								summary: { kind: 'tool' as const, title: 'Run', toolName: 'grep', status: 'completed' as const },
+							},
+						]
+						: originalSnapshot.timeline.filter(item => item.summary.kind !== 'tool'),
 				}),
 			});
 			Object.defineProperty(lease, 'attribution', {
@@ -659,6 +668,48 @@ suite('Navigator Agents subviews', () => {
 		);
 		const failedNote = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
 		assert.ok(failedNote, 'fetch-fail must mark leftover activity');
+		assert.strictEqual(failedNote.style.display, 'block');
+		assert.strictEqual(failedNote.textContent, NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY);
+		const activityEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
+		assert.ok(activityEmpty);
+		assert.notStrictEqual(activityEmpty.style.display, 'block', 'fetch-fail leftover must not be painted as empty success');
+	});
+
+	test('tree fetch-failed after live Activity paint with zero collected rows keeps leftover rows and marks failed', () => {
+		const roster = store.add(new RosterWithMutableTreeAndActivity());
+		roster.setEngineConnected(true);
+		let treeFetchFailed = false;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			isAgentTreeFetchFailed: () => treeFetchFailed,
+			onDidChangeConnection: onDidChangeConnection.event,
+		});
+		const view = mountAgentsView(roster, connection);
+		view.showActivity();
+
+		const activityList = (view as unknown as { activityList: WorkbenchList<INavigatorAgentsActivityItem> }).activityList;
+		assert.ok(activityList, 'live paint must have an activity list');
+		assert.ok(activityList.length > 0, 'live paint must have leftover activity rows');
+		const leftoverLabels = Array.from({ length: activityList.length }, (_, i) => activityList.element(i)?.label);
+		assert.ok(leftoverLabels.some(label => label?.includes('grep')), 'live paint must show leftover tool activity');
+		const liveNote = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(liveNote);
+		assert.notStrictEqual(liveNote.style.display, 'block', 'live paint must not already look failed');
+
+		roster.includeActivityTools = false;
+		roster.liveTree = undefined;
+		treeFetchFailed = true;
+		onDidChangeConnection.fire(connection.getConnectionSnapshot());
+
+		assert.strictEqual(activityList.length, leftoverLabels.length, 'fetch-fail with empty collect must keep leftover activity rows');
+		assert.deepStrictEqual(
+			Array.from({ length: activityList.length }, (_, i) => activityList.element(i)?.label),
+			leftoverLabels,
+		);
+		const failedNote = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(failedNote, 'fetch-fail with empty collect must mark leftover activity');
 		assert.strictEqual(failedNote.style.display, 'block');
 		assert.strictEqual(failedNote.textContent, NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY);
 		const activityEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;

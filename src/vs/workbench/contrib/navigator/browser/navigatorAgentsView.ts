@@ -558,14 +558,23 @@ export class NavigatorAgentsView extends ViewPane {
 			this.setActivityState([], leftoverNote ?? localize('navigatorAgentsActivity.emptyConnected', "No tool activity yet."));
 			return;
 		}
-		this.hadActivitySnapshot = true;
 		const items = collectNavigatorActivityItems(snapshot, attribution);
+		if (fetchFailed && items.length === 0) {
+			if (this.hadActivitySnapshot || this.activityEntries.length > 0) {
+				this.setActivityNote(leftoverNote ?? NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY);
+				return;
+			}
+			this.hadActivitySnapshot = true;
+			this.setActivityState([], leftoverNote ?? NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY);
+			return;
+		}
+		this.hadActivitySnapshot = true;
 		const truncated = navigatorActivityTruncated(snapshot);
 		const note = leftoverNote ?? (truncated ? localize('navigatorAgentsActivity.truncated', "Showing the latest 200 items") : undefined);
 		this.setActivityState(
 			items,
 			items.length === 0
-				? (fetchFailed ? NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY : localize('navigatorAgentsActivity.emptyConnected', "No tool activity yet."))
+				? localize('navigatorAgentsActivity.emptyConnected', "No tool activity yet.")
 				: undefined,
 			note,
 		);

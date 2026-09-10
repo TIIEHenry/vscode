@@ -47,7 +47,7 @@ summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop 关�
 | **A** | tools-info-selection-leftover | 已进 merge；[D270](deferred-gaps.md) 已闭 |
 | **B** | sources-git-read-nohook-leftover | [D273](deferred-gaps.md) 已闭；失 hook 保 leftover；勿 add `dev/loop` |
 | **C** | overview-model-keep-last | 已进 merge；[D272](deferred-gaps.md) 已闭；勿 add `dev/loop` |
-| **D** | snapshots-nohook-leftover | 已进 merge；[D268](deferred-gaps.md) 已闭 |
+| **D** | navigator-activity-fetchfail-leftover | 本刀；[D274](deferred-gaps.md) 已闭 |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
