@@ -46,7 +46,7 @@ summary: "loop 关仓：D242–D245 已合入；merge compile-client 0。待 pus
 |:---|:-----|:-----|
 | **A** | snapshots-list-leftover | 已进 merge `539a4f30302`；[D242](deferred-gaps.md) 已闭 |
 | **B** | plugins-info-leftover | 已进 merge `fb82575f013`；[D243](deferred-gaps.md) 已闭 |
-| **C** | changes-git-read-leftover | 已进 merge `777bb925c97`；[D244](deferred-gaps.md) 已闭；勿 add `dev/loop` |
+| **C** | hub-directory-leftover | [D248](deferred-gaps.md) 已闭（反转 D228 leftover-clear；listed-gate 不回退）；勿 add `dev/loop` |
 | **D** | review-git-read-leftover | 已进 merge `0fad23e55ca`；[D245](deferred-gaps.md) 已闭 |
 
 <details>

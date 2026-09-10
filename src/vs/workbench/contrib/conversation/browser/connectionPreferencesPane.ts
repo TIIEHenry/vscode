@@ -1045,12 +1045,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private applyHubDirectoryRefreshFailure(reason: string): void {
 		writeStatus(this.hubDirectoryBanner, reason, 'error');
 		this.hubDirectoryBanner.style.display = '';
-		if (this.enginePairedDevices !== undefined) {
-			return;
-		}
-		this.hubDevices = [];
-		this.hubDevicesList.splice(0, this.hubDevicesList.length, this.hubDevices);
-		this.updateDeviceActions();
+		// Keep leftover hubDevices (D248). First-pull leftover is already [].
 	}
 
 	/** Hub write-success stays only after refreshDirectory listed (D221 sibling). */
@@ -1697,9 +1692,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.hubDevices = this.enginePairedDevices.map(toConnectionPairedDevice);
 		} else if (directory.kind === 'ok') {
 			this.hubDevices = [...directory.devices];
-		} else {
-			this.hubDevices = [];
 		}
+		// else: keep leftover (may be [] on first-pull fail)
 		this.hubDevicesList.splice(0, this.hubDevicesList.length, this.hubDevices);
 		this.updateDeviceActions();
 		if (shouldDrawDesktopConnectionControls(this.desktopConnectionControlContext())) {
