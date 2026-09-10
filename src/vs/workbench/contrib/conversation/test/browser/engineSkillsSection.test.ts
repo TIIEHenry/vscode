@@ -18,7 +18,7 @@ import type {
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { EngineSkillsSection } from '../../browser/engineSkillsSection.js';
-import { getCatalogFailedCopy } from '../../browser/engineCatalog.js';
+import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy } from '../../browser/engineCatalog.js';
 import { getSkillsUnsupportedCopy } from '../../browser/engineSkillCatalog.js';
 import { localize } from '../../../../../nls.js';
 
@@ -173,6 +173,21 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.notStrictEqual(listContainer.style.display, 'none');
 	}
 
+	function assertSkillsLeftoverUnknownHonesty(section: EngineSkillsSection, expectedRows: number): void {
+		assert.strictEqual(section.getMode(), 'loading');
+		assert.strictEqual(section.getListEntryCount(), expectedRows);
+		assert.strictEqual(section.canWrite(), false);
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		assert.ok(status.textContent?.includes(getCatalogUnknownCopy()));
+		assert.ok(!status.textContent?.includes(getCatalogListLoadingCopy()));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(SKILLS_EMPTY_COPY));
+		const listContainer = section.getDomNode().querySelector('.engine-skills-list') as HTMLElement;
+		assert.ok(listContainer);
+		assert.notStrictEqual(listContainer.style.display, 'none');
+	}
+
 	test('disconnected hides skills section (§8.3 #5 honest empty)', async () => {
 		const connection = createConnectionStub({ connected: false, skillsSupport: 'SUPPORTED' });
 		const section = mountSection(connection);
@@ -255,7 +270,7 @@ suite('EngineSkillsSection (E1)', () => {
 		assertSkillsLeftoverFailedHonesty(section, 'listSkills retry exploded', 1);
 	});
 
-	test('successful load then capability UNKNOWN clears leftover rows before loading', async () => {
+	test('successful load then capability UNKNOWN keeps leftover rows and paints capability loading', async () => {
 		let listSkillsCalls = 0;
 		const connection = createConnectionStub({
 			connected: true,
@@ -276,13 +291,34 @@ suite('EngineSkillsSection (E1)', () => {
 		connection.setSkillsSupport('UNKNOWN');
 		await flushMicrotasks();
 
+		assertSkillsLeftoverUnknownHonesty(section, 1);
+		assert.strictEqual(listSkillsCalls, listCallsAfterLoad);
+	});
+
+	test('first fetch capability UNKNOWN is empty with capability loading', async () => {
+		let listSkillsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'UNKNOWN',
+			listSkills: async () => {
+				listSkillsCalls++;
+				return { skills: [{ name: 'demo-skill', source: 'bundled', enabled: true }] };
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
 		assert.strictEqual(section.getMode(), 'loading');
 		assert.strictEqual(section.getListEntryCount(), 0);
-		assert.ok(!/demo-skill/i.test(section.getDomNode().textContent ?? ''));
-		assert.strictEqual(listSkillsCalls, listCallsAfterLoad);
+		assert.strictEqual(listSkillsCalls, 0);
 		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
 		assert.ok(status);
 		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		assert.ok(status.textContent?.includes(getCatalogUnknownCopy()));
+		assert.ok(!status.textContent?.includes(getCatalogListLoadingCopy()));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(SKILLS_EMPTY_COPY));
+		assert.ok(!/demo-skill/i.test(section.getDomNode().textContent ?? ''));
 	});
 
 	test('SUPPORTED connected shows New toolbar and createSkill calls saveSkillContent RPC', async () => {

@@ -396,7 +396,12 @@ export class EngineSkillsSection extends Disposable {
 		}
 
 		if (support === 'UNKNOWN') {
-			this.clearCatalogPresentation();
+			const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'skill');
+			if (!hadLiveCatalog) {
+				this.clearCatalogPresentation();
+			} else {
+				this.hideWriteStatus();
+			}
 			this.mode = resolveEngineSkillsPaneMode(true, support, { kind: 'none' });
 			this.writeToolbar.style.display = 'none';
 			this.renderStatus({ loadingKind: 'capability' });
