@@ -36,8 +36,8 @@ import {
 	INavigatorTeamMemberEntry,
 	INavigatorTeamTaskEntry,
 } from '../common/navigatorTeamData.js';
-import { collectLiveAgentTreeAgentIds } from '../common/navigatorAgentHierarchy.js';
-import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
+import { collectLiveAgentTreeAgentIds, EMPTY_LIVE_AGENT_IDS } from '../common/navigatorAgentHierarchy.js';
+import { getNavigatorAgentTreePendingCopy, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
 import {
 	AGENT_INSPECT_VIEW_ID,
 	OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID,
@@ -401,7 +401,11 @@ export class NavigatorTeamView extends ViewPane {
 
 		const treeEmpty = getTeamTreeEmptyCopy(agentTreeCapability, liveTree, treeFetchFailed);
 		if (treeEmpty) {
-			this.inspectService.setLiveAgentIds('team', undefined);
+			const pending = getNavigatorAgentTreePendingCopy(agentTreeCapability, liveTree, treeFetchFailed);
+			this.inspectService.setLiveAgentIds(
+				'team',
+				agentTreeCapability === 'UNSUPPORTED' || pending ? undefined : EMPTY_LIVE_AGENT_IDS,
+			);
 			this.setMemberEntries([], treeEmpty);
 			this.setTaskEntries([], treeEmpty);
 			if (liveTree !== undefined || agentTreeCapability === 'UNSUPPORTED' || treeFetchFailed) {
@@ -411,18 +415,19 @@ export class NavigatorTeamView extends ViewPane {
 			return;
 		}
 
-		this.inspectService.setLiveAgentIds('team', collectLiveAgentTreeAgentIds(liveTree!));
-
-		const managers = findManagerNodes(liveTree!);
-
 		const teamCapability = getNavigatorCapability(this.uaConnection, 'team');
 		if (teamCapability === 'UNSUPPORTED') {
+			this.inspectService.setLiveAgentIds('team', undefined);
 			this.setMemberEntries([], TEAM_UNSUPPORTED_COPY);
 			this.setTaskEntries([], TEAM_UNSUPPORTED_COPY);
 			this.hadTeamSnapshot = true;
 			this.setTeamSnapshotNote(undefined);
 			return;
 		}
+
+		this.inspectService.setLiveAgentIds('team', collectLiveAgentTreeAgentIds(liveTree!));
+
+		const managers = findManagerNodes(liveTree!);
 
 		const teamApi = this.uaConnection.team;
 		const sessionId = this.rosterService.getActiveSessionId();
@@ -483,6 +488,7 @@ export class NavigatorTeamView extends ViewPane {
 			this.setMemberEntries([], TEAM_FETCH_FAILED_COPY);
 			this.setTaskEntries([], TEAM_FETCH_FAILED_COPY);
 			this.setTeamSnapshotNote(TEAM_FETCH_FAILED_COPY);
+			this.inspectService.setLiveAgentIds('team', EMPTY_LIVE_AGENT_IDS);
 		}
 	}
 

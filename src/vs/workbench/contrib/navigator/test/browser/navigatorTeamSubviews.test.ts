@@ -415,13 +415,15 @@ suite('Navigator Team subviews', () => {
 				teamInfo: async () => undefined,
 			},
 		});
-		const view = mountTeamView(roster, connection);
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountTeamView(roster, connection, undefined, inspectService);
 		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
 
 		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList;
 		const tasksList = (view as unknown as { tasksList: WorkbenchList<{ id: string; label: string }> }).tasksList;
 		assert.strictEqual(membersList.length, 1);
 		assert.ok(membersList.element(0)?.label.includes('Alice'));
+		assert.ok(inspectService.getLiveAgentIds()?.has('member:1'));
 
 		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
 
@@ -434,6 +436,9 @@ suite('Navigator Team subviews', () => {
 		assert.strictEqual(note.style.display, 'block');
 		assert.strictEqual(note.textContent, TEAM_FETCH_FAILED_COPY);
 		assert.notStrictEqual(note.textContent, NAVIGATOR_STALE_SNAPSHOT_COPY);
+		const leftoverIds = inspectService.getLiveAgentIds();
+		assert.ok(leftoverIds, 'visible leftover must write an empty Set, not undefined');
+		assert.strictEqual(leftoverIds.size, 0);
 	});
 
 	test('successful Team load then taskList throw clears leftover rows and writes a failure note', async () => {
@@ -462,12 +467,14 @@ suite('Navigator Team subviews', () => {
 				teamInfo: async () => undefined,
 			},
 		});
-		const view = mountTeamView(roster, connection);
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountTeamView(roster, connection, undefined, inspectService);
 		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
 
 		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList;
 		assert.strictEqual(membersList.length, 1);
 		assert.ok(membersList.element(0)?.label.includes('Alice'));
+		assert.ok(inspectService.getLiveAgentIds()?.has('member:1'));
 
 		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
 
@@ -479,6 +486,9 @@ suite('Navigator Team subviews', () => {
 		assert.strictEqual(note.style.display, 'block');
 		assert.strictEqual(note.textContent, TEAM_FETCH_FAILED_COPY);
 		assert.notStrictEqual(note.textContent, NAVIGATOR_STALE_SNAPSHOT_COPY);
+		const leftoverIds = inspectService.getLiveAgentIds();
+		assert.ok(leftoverIds, 'visible leftover must write an empty Set, not undefined');
+		assert.strictEqual(leftoverIds.size, 0);
 	});
 
 	test('Team empty copy distinguishes never-connected, connecting, connected-empty, unsupported, and fetch-failed', async () => {
@@ -687,6 +697,74 @@ suite('Navigator Team subviews', () => {
 		assert.strictEqual(inspectService.getTarget(), undefined);
 		assert.deepStrictEqual(openViewCalls, []);
 		assert.deepStrictEqual(notices, ['Select a team member or task to inspect']);
+	});
+
+	test('Team leftover empty tree writes empty live ids; pending / UNSUPPORTED / hidden write undefined', async () => {
+		const rootOnlyTree: LiveAgentTreeNodeView = {
+			agentId: 'root',
+			name: 'Root',
+			type: 'AGENT_TYPE_ROOT',
+			status: 'AGENT_STATUS_IDLE',
+			model: 'm',
+			turnCount: 0,
+			createdAt: 0,
+			children: [],
+		};
+		const leftoverInspect = store.add(new AgentInspectService());
+		const leftoverRoster = store.add(new RosterWithLiveTree(rootOnlyTree));
+		leftoverRoster.setEngineConnected(true);
+		const leftoverView = mountTeamView(leftoverRoster, createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+		}), undefined, leftoverInspect);
+		await (leftoverView as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		const leftoverIds = leftoverInspect.getLiveAgentIds();
+		assert.ok(leftoverIds, 'no-team leftover must write an empty Set');
+		assert.strictEqual(leftoverIds.size, 0);
+
+		const pendingInspect = store.add(new AgentInspectService());
+		const pendingRoster = store.add(new ConversationStubService());
+		pendingRoster.setEngineConnected(true);
+		const pendingView = mountTeamView(pendingRoster, createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+		}), undefined, pendingInspect);
+		await (pendingView as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		assert.strictEqual(pendingInspect.getLiveAgentIds(), undefined);
+
+		const unsupportedInspect = store.add(new AgentInspectService());
+		const unsupportedRoster = store.add(new ConversationStubService());
+		unsupportedRoster.setEngineConnected(true);
+		const unsupportedView = mountTeamView(unsupportedRoster, createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'UNSUPPORTED',
+		}), undefined, unsupportedInspect);
+		await (unsupportedView as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		assert.strictEqual(unsupportedInspect.getLiveAgentIds(), undefined);
+
+		const hiddenInspect = store.add(new AgentInspectService());
+		const hiddenRoster = store.add(new RosterWithLiveTree(teamLiveTree));
+		hiddenRoster.setEngineConnected(true);
+		const hiddenView = mountTeamView(hiddenRoster, createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			team: {
+				memberStatus: async () => [{
+					memberName: 'Alice',
+					memberAgentId: 'member:1',
+					status: 'IDLE',
+					preset: 'p',
+					dynamic: 'd',
+					turnCount: 1,
+				}],
+				taskList: async () => [],
+				teamInfo: async () => undefined,
+			},
+		}), undefined, hiddenInspect);
+		await (hiddenView as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		assert.ok(hiddenInspect.getLiveAgentIds()?.has('member:1'));
+		hiddenView.setVisible(false);
+		assert.strictEqual(hiddenInspect.getLiveAgentIds(), undefined);
 	});
 
 	test('acquireSessionView throw notifies error without hanging a lease or unhandled rejection', async () => {

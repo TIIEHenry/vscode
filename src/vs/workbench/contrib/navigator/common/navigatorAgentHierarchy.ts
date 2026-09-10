@@ -90,6 +90,9 @@ export function findLiveAgentNode(
 	return undefined;
 }
 
+/** Visible leftover: leaf is following and the live set is known empty. Distinct from `undefined` (hidden / pending / UNSUPPORTED / no-session). */
+export const EMPTY_LIVE_AGENT_IDS: ReadonlySet<string> = new Set();
+
 export function collectLiveAgentTreeAgentIds(tree: LiveAgentTreeNodeView | undefined): ReadonlySet<string> | undefined {
 	if (!tree) {
 		return undefined;

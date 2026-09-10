@@ -94,14 +94,16 @@ export function isInspectTargetStale(
 	target: AgentInspectTarget | undefined,
 	liveAgentIds: ReadonlySet<string> | undefined,
 ): boolean {
-	if (!target) {
+	if (!target || liveAgentIds === undefined) {
+		// GC-5d: both leaves hidden / not following — do not mark stale.
+		// Leftover writes an empty Set, which is stale below.
 		return false;
 	}
 	switch (target.kind) {
 		case 'agent':
-			return liveAgentIds === undefined || !liveAgentIds.has(target.node.agentId);
+			return !liveAgentIds.has(target.node.agentId);
 		case 'member':
-			return liveAgentIds === undefined || !liveAgentIds.has(target.info.memberAgentId);
+			return !liveAgentIds.has(target.info.memberAgentId);
 		default:
 			return false;
 	}
