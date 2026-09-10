@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
-import { Event } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
@@ -15,7 +15,8 @@ import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { Extensions as ViewExtensions, IViewContainerModel, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
-import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
+import type { LiveAgentTreeNodeView, SessionViewSnapshot } from '../../../../../platform/universeAgent/common/sessionView/index.js';
+import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IConversationSessionChatService } from '../../../conversation/browser/conversationSessionChatService.js';
 import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
@@ -24,7 +25,7 @@ import { AgentInspectService } from '../../browser/agentInspectService.js';
 import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import type { INavigatorAgentsHierarchyNode } from '../../common/navigatorAgentHierarchy.js';
 import type { INavigatorAgentsActivityItem } from '../../common/navigatorAgentsActivity.js';
-import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEmptyState.js';
+import { NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEmptyState.js';
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 import { workbenchInstantiationService, TestViewsService } from '../../../../test/browser/workbenchTestServices.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
@@ -79,6 +80,42 @@ suite('Navigator Agents subviews', () => {
 			children: [],
 		}],
 	};
+
+	class RosterWithMutableTreeAndActivity extends ConversationStubService {
+		liveTree: LiveAgentTreeNodeView | undefined = sampleLiveTree;
+
+		override acquireSessionView(sessionId: string): IConversationSessionViewLease {
+			const lease = super.acquireSessionView(sessionId);
+			const originalSnapshot = lease.snapshot;
+			const originalAttribution = lease.attribution;
+			const toolId = 'tool-leftover' as SessionViewSnapshot['timeline'][number]['id'];
+			const self = this;
+			Object.defineProperty(lease, 'snapshot', {
+				configurable: true,
+				get: () => ({
+					...originalSnapshot,
+					liveAgentTree: self.liveTree,
+					timeline: [
+						...originalSnapshot.timeline,
+						{
+							id: toolId,
+							orderKey: 'leftover',
+							summary: { kind: 'tool' as const, title: 'Run', toolName: 'grep', status: 'completed' as const },
+						},
+					],
+				}),
+			});
+			Object.defineProperty(lease, 'attribution', {
+				configurable: true,
+				get: () => {
+					const next = new Map(originalAttribution);
+					next.set(String(toolId), { role: 'tool', agentId: 'sub:alpha' });
+					return next;
+				},
+			});
+			return lease;
+		}
+	}
 
 	function mountAgentsView(
 		roster: ConversationStubService = store.add(new ConversationStubService()),
@@ -586,6 +623,47 @@ suite('Navigator Agents subviews', () => {
 		const activityEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty');
 		assert.strictEqual(activityEmpty?.textContent, 'Failed to read tool activity');
 		assert.ok(!activityEmpty?.textContent?.includes('no engine'));
+	});
+
+	test('tree fetch-failed after live Activity paint keeps leftover rows and marks failed', () => {
+		const roster = store.add(new RosterWithMutableTreeAndActivity());
+		roster.setEngineConnected(true);
+		let treeFetchFailed = false;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			isAgentTreeFetchFailed: () => treeFetchFailed,
+			onDidChangeConnection: onDidChangeConnection.event,
+		});
+		const view = mountAgentsView(roster, connection);
+		view.showActivity();
+
+		const activityList = (view as unknown as { activityList: WorkbenchList<INavigatorAgentsActivityItem> }).activityList;
+		assert.ok(activityList, 'live paint must have an activity list');
+		assert.ok(activityList.length > 0, 'live paint must have leftover activity rows');
+		const leftoverLabels = Array.from({ length: activityList.length }, (_, i) => activityList.element(i)?.label);
+		assert.ok(leftoverLabels.some(label => label?.includes('grep')), 'live paint must show leftover tool activity');
+		const liveNote = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(liveNote);
+		assert.notStrictEqual(liveNote.style.display, 'block', 'live paint must not already look failed');
+
+		roster.liveTree = undefined;
+		treeFetchFailed = true;
+		onDidChangeConnection.fire(connection.getConnectionSnapshot());
+
+		assert.strictEqual(activityList.length, leftoverLabels.length, 'fetch-fail must keep leftover activity rows');
+		assert.deepStrictEqual(
+			Array.from({ length: activityList.length }, (_, i) => activityList.element(i)?.label),
+			leftoverLabels,
+		);
+		const failedNote = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(failedNote, 'fetch-fail must mark leftover activity');
+		assert.strictEqual(failedNote.style.display, 'block');
+		assert.strictEqual(failedNote.textContent, NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY);
+		const activityEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
+		assert.ok(activityEmpty);
+		assert.notStrictEqual(activityEmpty.style.display, 'block', 'fetch-fail leftover must not be painted as empty success');
 	});
 
 	test('ViewTitle Inspect with hierarchy focus sets the agent target and opens Inspect', () => {

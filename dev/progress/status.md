@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 关仓：本波 A–D 已合入 merge。D212 Clipboard / D213 Sessions / D214 Projects rebuildTree / D215 Sources Files fetch。待一路 compile。"
+summary: "loop 工位 D：D220 Agents Activity leftover。成功画过工具行后树拉取失败不再装活数据。未 push；未 compile-client。"
 ---
 
 # Development Progress
@@ -47,7 +47,7 @@ summary: "loop 关仓：本波 A–D 已合入 merge。D212 Clipboard / D213 Ses
 | **A** | sessions-sidebar-empty-honesty | 已进 merge `0d2b9a8e06e`；[D213](deferred-gaps.md) 已闭 |
 | **B** | navigator-projects-rebuild-throw-stale | 已进 merge `eddac7e980e`；[D214](deferred-gaps.md) 已闭 |
 | **C** | clipboard-write-list-fail | 已进 merge `394a3c2c00d`；[D212](deferred-gaps.md) 已闭；勿 add `dev/loop` |
-| **D** | sources-files-fetch-leftover | 已进 merge `c1d7a9f721b`；[D215](deferred-gaps.md) 已闭 |
+| **D** | navigator-agents-activity-fetch-leftover | 本工位待合；[D220](deferred-gaps.md) 已闭 |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>

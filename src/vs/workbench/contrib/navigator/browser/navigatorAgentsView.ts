@@ -48,7 +48,7 @@ import {
 	isRootOnlyAgentTree,
 	liveAgentTreeToHierarchyNodes,
 } from '../common/navigatorAgentHierarchy.js';
-import { getNavigatorAgentTreePendingCopy, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
+import { getNavigatorAgentTreePendingCopy, NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
 import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { matchesNavigatorAgentsInlineFilter } from '../common/navigatorAgentsInlineFilter.js';
 import {
@@ -527,23 +527,28 @@ export class NavigatorAgentsView extends ViewPane {
 		staleNote?: string,
 		fetchFailed = false,
 	): void {
+		const leftoverNote = staleNote ?? (fetchFailed ? NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY : undefined);
 		if (!snapshot || !attribution) {
 			if (this.hadActivitySnapshot) {
-				if (staleNote) {
-					this.setActivityNote(staleNote);
+				if (leftoverNote) {
+					this.setActivityNote(leftoverNote);
 				}
 				return;
 			}
-			this.setActivityState([], fetchFailed
-				? localize('navigatorAgentsActivity.fetchFailed', "Failed to read tool activity")
-				: localize('navigatorAgentsActivity.emptyConnected', "No tool activity yet."));
+			this.setActivityState([], leftoverNote ?? localize('navigatorAgentsActivity.emptyConnected', "No tool activity yet."));
 			return;
 		}
 		this.hadActivitySnapshot = true;
 		const items = collectNavigatorActivityItems(snapshot, attribution);
 		const truncated = navigatorActivityTruncated(snapshot);
-		const note = staleNote ?? (truncated ? localize('navigatorAgentsActivity.truncated', "Showing the latest 200 items") : undefined);
-		this.setActivityState(items, items.length === 0 ? localize('navigatorAgentsActivity.emptyConnected', "No tool activity yet.") : undefined, note);
+		const note = leftoverNote ?? (truncated ? localize('navigatorAgentsActivity.truncated', "Showing the latest 200 items") : undefined);
+		this.setActivityState(
+			items,
+			items.length === 0
+				? (fetchFailed ? NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY : localize('navigatorAgentsActivity.emptyConnected', "No tool activity yet."))
+				: undefined,
+			note,
+		);
 	}
 
 	private setHierarchyState(
