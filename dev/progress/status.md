@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 本波：A D238、C D240、D D241 已合；B 仍在工位。未 compile-client。"
+summary: "loop 关仓：本波 A–D 已合入 merge。D238–D241 已闭。待一路 compile。"
 ---
 
 # Development Progress
@@ -45,7 +45,7 @@ summary: "loop 本波：A D238、C D240、D D241 已合；B 仍在工位。未 c
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
 | **A** | mcp-runtime-tools-leftover | 已进 merge `2ee8952416b`；[D238](deferred-gaps.md) 已闭 |
-| **B** | clipboard-list-leftover | 工位进行中 [D239](deferred-gaps.md) |
+| **B** | clipboard-list-leftover | 已进 merge `78141f59aef`；[D239](deferred-gaps.md) 已闭 |
 | **C** | triggers-list-leftover | 已进 merge `8a9c2efeca8`；[D240](deferred-gaps.md) 已闭；勿 add `dev/loop` |
 | **D** | team-treeempty-pending-leftover | 已进 merge `aba5127add2`；[D241](deferred-gaps.md) 已闭 |
 

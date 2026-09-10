@@ -41,7 +41,9 @@ const $ = DOM.$;
  * content / filePath / url are sent as-is. Write always sends TEXT +
  * empty fields. Clear always sends empty sessionId. Empty clipId and
  * removedCount 0 stay as-is. Write/Clear success is restored after
- * refresh only when ListClipboard listed (D201 sibling).
+ * refresh only when ListClipboard listed (D212 / D201 sibling).
+ * List throw after a live paint keeps leftover rows + failed (D239);
+ * first-pull throw stays empty+failed and must not paint empty-success.
  */
 export class EngineClipboardSection extends Disposable {
 
@@ -135,22 +137,18 @@ export class EngineClipboardSection extends Disposable {
 			typeof hook === 'function',
 		);
 
-		this.entries = [];
-		this.selectedEntry = undefined;
-		this.listHost.style.display = 'none';
 		this.writeStatus.style.display = 'none';
 		this.writeStatus.textContent = '';
 		this.readStatus.style.display = 'none';
 		this.readStatus.textContent = '';
 		this.clearStatus.style.display = 'none';
 		this.clearStatus.textContent = '';
-		DOM.clearNode(this.listHost);
-		this.renderedRows = [];
 		this.updateWriteAction();
 		this.updateReadAction();
 		this.updateClearAction();
 
 		if (!this.connection.isEngineConnected()) {
+			this.clearListPresentation();
 			this.status.render({
 				mode: 'disconnected',
 				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
@@ -159,6 +157,7 @@ export class EngineClipboardSection extends Disposable {
 		}
 
 		if (!canSend || !hook) {
+			this.clearListPresentation();
 			this.status.render({
 				mode: 'unsupported',
 				featureLabel: ENGINE_CLIPBOARD_LIST_FEATURE,
@@ -199,8 +198,21 @@ export class EngineClipboardSection extends Disposable {
 		}
 	}
 
+	private clearListPresentation(): void {
+		this.entries = [];
+		this.selectedEntry = undefined;
+		this.listHost.style.display = 'none';
+		DOM.clearNode(this.listHost);
+		this.renderedRows = [];
+	}
+
 	private paintList(): void {
+		this.selectedEntry = undefined;
+		DOM.clearNode(this.listHost);
+		this.renderedRows = [];
+
 		if (this.entries.length === 0) {
+			this.listHost.style.display = 'none';
 			this.status.render({
 				mode: 'empty',
 				featureLabel: ENGINE_CLIPBOARD_LIST_FEATURE,

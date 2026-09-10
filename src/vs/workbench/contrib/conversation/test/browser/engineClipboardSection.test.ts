@@ -4,17 +4,20 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
 	UniverseAgentClearClipboardRequest,
+	UniverseAgentConnectionSnapshot,
 	UniverseAgentListClipboardRequest,
 	UniverseAgentListClipboardResult,
 	UniverseAgentReadClipboardRequest,
 	UniverseAgentWriteClipboardRequest,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { ENGINE_CLIPBOARD_CLEAR_LABEL, ENGINE_CLIPBOARD_READ_LABEL, ENGINE_CLIPBOARD_WRITE_LABEL, formatEngineClipboardClearLabel, formatEngineClipboardWriteLabel } from '../../browser/engineClipboardList.js';
+import { getCatalogFailedCopy } from '../../browser/engineCatalog.js';
+import { ENGINE_CLIPBOARD_CLEAR_LABEL, ENGINE_CLIPBOARD_LIST_EMPTY_COPY, ENGINE_CLIPBOARD_LIST_FEATURE, ENGINE_CLIPBOARD_READ_LABEL, ENGINE_CLIPBOARD_WRITE_LABEL, formatEngineClipboardClearLabel, formatEngineClipboardListLabel, formatEngineClipboardWriteLabel } from '../../browser/engineClipboardList.js';
 import { EngineClipboardSection } from '../../browser/engineClipboardSection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 
@@ -109,7 +112,69 @@ suite('EngineClipboardSection', () => {
 		await flushMicrotasks();
 		assert.strictEqual(listClipboardCalls, 1);
 		assert.strictEqual(pane.getDomNode().querySelector('.engine-clipboard-row'), null);
-		assert.ok((pane.getDomNode().textContent ?? '').includes('No clipboard entries.'));
+		assert.ok((pane.getDomNode().textContent ?? '').includes(ENGINE_CLIPBOARD_LIST_EMPTY_COPY));
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('List first-pull throw is failed with no leftover rows', async () => {
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listClipboard: async () => {
+				throw new Error('listClipboard exploded');
+			},
+		}));
+		await flushMicrotasks();
+		assert.strictEqual(pane.getDomNode().querySelector('.engine-clipboard-row'), null);
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(ENGINE_CLIPBOARD_LIST_FEATURE, 'listClipboard exploded')));
+		assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_CLIPBOARD_LIST_EMPTY_COPY));
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('List success then throw keeps leftover rows and paints failed', async () => {
+		let listClipboardCalls = 0;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const leftover = {
+			clipId: 'leftover-clip',
+			label: 'Leftover Note',
+			type: 'CLIPBOARD_TEXT' as const,
+			createdBy: '',
+			createdAt: 0,
+		};
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			onDidChangeConnection: onDidChangeConnection.event,
+			listClipboard: async (): Promise<UniverseAgentListClipboardResult> => {
+				listClipboardCalls++;
+				if (listClipboardCalls === 1) {
+					return { entries: [leftover] };
+				}
+				throw new Error('listClipboard retry exploded');
+			},
+		});
+		const pane = mountSection(connection);
+		await flushMicrotasks();
+		const liveRow = pane.getDomNode().querySelector('.engine-clipboard-row');
+		assert.ok(liveRow);
+		assert.strictEqual(liveRow.textContent, formatEngineClipboardListLabel(leftover));
+		assert.strictEqual(listClipboardCalls, 1);
+
+		onDidChangeConnection.fire(connection.getConnectionSnapshot());
+		await flushMicrotasks();
+
+		assert.strictEqual(listClipboardCalls, 2);
+		const leftoverRows = pane.getDomNode().querySelectorAll('.engine-clipboard-row');
+		assert.strictEqual(leftoverRows.length, 1);
+		assert.strictEqual(leftoverRows[0].textContent, formatEngineClipboardListLabel(leftover));
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(ENGINE_CLIPBOARD_LIST_FEATURE, 'listClipboard retry exploded')));
+		assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_CLIPBOARD_LIST_EMPTY_COPY));
 		pane.getDomNode().parentElement?.remove();
 	});
 
@@ -392,6 +457,7 @@ suite('EngineClipboardSection', () => {
 			write.click();
 			await flushMicrotasks();
 			assert.ok(listClipboardCalls >= 2);
+			assert.strictEqual(pane.getDomNode().querySelector('.engine-clipboard-row'), null);
 			const writeStatus = pane.getDomNode().querySelector('.engine-clipboard-write-status') as HTMLElement | null;
 			assert.ok(writeStatus);
 			assert.notStrictEqual(writeStatus.textContent, formatEngineClipboardWriteLabel('  new  '));
@@ -399,12 +465,61 @@ suite('EngineClipboardSection', () => {
 			const catalog = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement | null;
 			assert.ok(catalog);
 			assert.strictEqual(catalog.dataset['catalogMode'], 'failed');
-			assert.ok((catalog.textContent ?? '').includes('Could not load clipboard from the engine (list boom).'));
+			assert.ok((catalog.textContent ?? '').includes(getCatalogFailedCopy(ENGINE_CLIPBOARD_LIST_FEATURE, 'list boom')));
+			assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_CLIPBOARD_LIST_EMPTY_COPY));
 			assert.deepStrictEqual(unhandledRejections, []);
 			pane.getDomNode().parentElement?.remove();
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('WriteClipboard leftover list-fail keeps leftover rows and hides write-success', async () => {
+		let listClipboardCalls = 0;
+		const leftover = {
+			clipId: 'leftover-clip',
+			label: 'Leftover Note',
+			type: 'CLIPBOARD_TEXT' as const,
+			createdBy: '',
+			createdAt: 0,
+		};
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listClipboard: async (): Promise<UniverseAgentListClipboardResult> => {
+				listClipboardCalls++;
+				if (listClipboardCalls > 1) {
+					throw new Error('list boom');
+				}
+				return { entries: [leftover] };
+			},
+			writeClipboard: async () => {
+				return { clipId: '  new  ' };
+			},
+		}));
+		await flushMicrotasks();
+		assert.strictEqual(listClipboardCalls, 1);
+		const liveRow = pane.getDomNode().querySelector('.engine-clipboard-row');
+		assert.ok(liveRow);
+		assert.strictEqual(liveRow.textContent, formatEngineClipboardListLabel(leftover));
+		const write = findActionButton(pane.getDomNode(), ENGINE_CLIPBOARD_WRITE_LABEL);
+		assert.ok(write);
+		write.click();
+		await flushMicrotasks();
+		assert.ok(listClipboardCalls >= 2);
+		const leftoverRows = pane.getDomNode().querySelectorAll('.engine-clipboard-row');
+		assert.strictEqual(leftoverRows.length, 1);
+		assert.strictEqual(leftoverRows[0].textContent, formatEngineClipboardListLabel(leftover));
+		const writeStatus = pane.getDomNode().querySelector('.engine-clipboard-write-status') as HTMLElement | null;
+		assert.ok(writeStatus);
+		assert.notStrictEqual(writeStatus.textContent, formatEngineClipboardWriteLabel('  new  '));
+		assert.ok(!(writeStatus.textContent ?? '').includes('  new  '));
+		const catalog = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement | null;
+		assert.ok(catalog);
+		assert.strictEqual(catalog.dataset['catalogMode'], 'failed');
+		assert.ok((catalog.textContent ?? '').includes(getCatalogFailedCopy(ENGINE_CLIPBOARD_LIST_FEATURE, 'list boom')));
+		assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_CLIPBOARD_LIST_EMPTY_COPY));
+		pane.getDomNode().parentElement?.remove();
 	});
 
 	test('WriteClipboard throw paints write-status and leaves the row', async () => {
@@ -578,7 +693,15 @@ suite('EngineClipboardSection', () => {
 			clear.click();
 			await flushMicrotasks();
 			assert.ok(listClipboardCalls >= 2);
-			assert.strictEqual(pane.getDomNode().querySelector('.engine-clipboard-row'), null);
+			const leftoverRows = pane.getDomNode().querySelectorAll('.engine-clipboard-row');
+			assert.strictEqual(leftoverRows.length, 1);
+			assert.strictEqual(leftoverRows[0].textContent, formatEngineClipboardListLabel({
+				clipId: '  clip  ',
+				label: '  Note  ',
+				type: 'CLIPBOARD_TEXT',
+				createdBy: '',
+				createdAt: 0,
+			}));
 			const clearStatus = pane.getDomNode().querySelector('.engine-clipboard-clear-status') as HTMLElement | null;
 			assert.ok(clearStatus);
 			assert.notStrictEqual(clearStatus.textContent, formatEngineClipboardClearLabel(1));
@@ -586,7 +709,8 @@ suite('EngineClipboardSection', () => {
 			const catalog = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement | null;
 			assert.ok(catalog);
 			assert.strictEqual(catalog.dataset['catalogMode'], 'failed');
-			assert.ok((catalog.textContent ?? '').includes('Could not load clipboard from the engine (list boom).'));
+			assert.ok((catalog.textContent ?? '').includes(getCatalogFailedCopy(ENGINE_CLIPBOARD_LIST_FEATURE, 'list boom')));
+			assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_CLIPBOARD_LIST_EMPTY_COPY));
 			assert.deepStrictEqual(unhandledRejections, []);
 			pane.getDomNode().parentElement?.remove();
 		} finally {
