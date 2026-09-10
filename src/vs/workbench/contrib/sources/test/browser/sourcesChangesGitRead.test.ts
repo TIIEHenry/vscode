@@ -200,6 +200,37 @@ suite('Sources - Changes git read', () => {
 		assert.strictEqual(emptySession, undefined);
 	});
 
+	test('tryLoad Summary throw is the same failure class as Changes throw', async () => {
+		const root = URI.file('/project');
+		const supportedChanges: UniverseAgentReadGitChangesResult = {
+			supported: true,
+			reason: '',
+			branch: 'main',
+			entries: [{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+		};
+
+		await assert.rejects(
+			() => tryLoadSourcesGitChangeEntries(true, async () => {
+				throw new Error('boom');
+			}, async () => unsupportedSummary, root, 'sess-1'),
+			(error: unknown) => error instanceof Error && error.message === 'boom',
+		);
+
+		let loaded: Awaited<ReturnType<typeof tryLoadSourcesGitChangeEntries>> | undefined;
+		let summaryError: unknown;
+		try {
+			loaded = await tryLoadSourcesGitChangeEntries(true, async () => supportedChanges, async () => {
+				throw new Error('boom');
+			}, root, 'sess-1');
+		} catch (error) {
+			summaryError = error;
+		}
+		assert.ok(summaryError instanceof Error && summaryError.message === 'boom');
+		assert.strictEqual(loaded, undefined);
+		assert.ok(sourcesGitReadFailureMessage(summaryError).includes('Unable to read git changes'));
+		assert.ok(sourcesGitReadFailureMessage(summaryError).includes('boom'));
+	});
+
 	test('index_state maps to SCM group ids without inventing empty state', () => {
 		assert.strictEqual(sourcesGitChangeGroupId('', 'MODIFIED'), '');
 		assert.strictEqual(sourcesGitChangeGroupId('INDEX', 'MODIFIED'), 'index');
