@@ -63,16 +63,28 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 	} = {}): IUniverseAgentConnection & {
 		setConnected(value: boolean): void;
 		setMcpSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
+		setAgentProfilesSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
+		setToolsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 	} {
 		const emptyCapabilities = createEmptyCapabilitySnapshot();
 		const mcpCapability = {
 			...emptyCapabilities.mcp,
 			...options.capabilities?.mcp,
 		};
+		const agentProfilesCapability = {
+			...emptyCapabilities.agentProfiles,
+			...options.capabilities?.agentProfiles,
+		};
+		const toolsCapability = {
+			...emptyCapabilities.tools,
+			...options.capabilities?.tools,
+		};
 		const capabilities: UniverseAgentCapabilitySnapshot = {
 			...emptyCapabilities,
 			...options.capabilities,
 			mcp: mcpCapability,
+			agentProfiles: agentProfilesCapability,
+			tools: toolsCapability,
 		};
 		let connected = options.connected ?? false;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
@@ -162,6 +174,14 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			},
 			setMcpSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
 				mcpCapability.support = support;
+				onDidChangeConnection.fire(snapshot());
+			},
+			setAgentProfilesSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
+				agentProfilesCapability.support = support;
+				onDidChangeConnection.fire(snapshot());
+			},
+			setToolsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
+				toolsCapability.support = support;
 				onDidChangeConnection.fire(snapshot());
 			},
 		};
@@ -1437,6 +1457,69 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(section.getMode(), 'loading');
 		assert.strictEqual(section.getListEntryCount(), 0);
 		assert.strictEqual(listMcpServersCalls, listCallsAfterLoad);
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+	});
+
+	test('Agents: successful load then capability UNKNOWN clears leftover rows before loading', async () => {
+		let listAgentProfilesCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }] };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		const listCallsAfterLoad = listAgentProfilesCalls;
+
+		connection.setAgentProfilesSupport('UNKNOWN');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'loading');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+	});
+
+	test('Tools: successful load then capability UNKNOWN clears leftover rows before loading', async () => {
+		let listToolsCalls = 0;
+		let listAgentProfilesCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [demoBashTool()] };
+			},
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [demoToolsUserProfile()] };
+			},
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		const listToolsAfterLoad = listToolsCalls;
+		const listProfilesAfterLoad = listAgentProfilesCalls;
+
+		connection.setToolsSupport('UNKNOWN');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'loading');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(listToolsCalls, listToolsAfterLoad);
+		assert.strictEqual(listAgentProfilesCalls, listProfilesAfterLoad);
 		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
 		assert.ok(status);
 		assert.strictEqual(status.dataset['catalogMode'], 'loading');

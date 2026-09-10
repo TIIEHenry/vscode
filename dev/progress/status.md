@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 关仓：A–D 四槽已合入 merge。D195–D197 / D199–D206 已闭；D198 仍开。待一路 compile。"
+summary: "loop 关仓：A–D 四槽已合入 merge。D195–D197 / D199–D208 已闭；D198 仍开。待一路 compile。"
 ---
 
 # Development Progress
@@ -45,7 +45,7 @@ summary: "loop 关仓：A–D 四槽已合入 merge。D195–D197 / D199–D206 
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
 | **A** | navigator-inspect-live-id-honesty | 已进 merge `119f5d63b25`；[D205](deferred-gaps.md) 已闭 |
-| **B** | sources-git-summary-throw | 已进 merge `e08ceb4ebae`；[D195](deferred-gaps.md) 已闭 |
+| **B** | agents-tools-catalog-unknown-leftover | 本刀 Agents/Tools UNKNOWN 先清行再 loading；[D207](deferred-gaps.md)/[D208](deferred-gaps.md) 已闭；勿 add `dev/loop` |
 | **C** | mcp-catalog-unknown-leftover | 已进 merge `9667f3a8eba`；[D206](deferred-gaps.md) 已闭；勿 add `dev/loop` |
 | **D** | sources-git-apply-hunks-payload | 已进 merge `62a20244ca2`；[D196](deferred-gaps.md) 已闭 |
 
