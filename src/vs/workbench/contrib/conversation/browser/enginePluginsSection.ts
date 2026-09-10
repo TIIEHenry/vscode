@@ -460,7 +460,6 @@ export class EnginePluginsSection extends Disposable {
 	private async loadInfo(id: string): Promise<void> {
 		const generation = ++this.infoGeneration;
 		this.hooksTable.style.display = 'none';
-		this.clearHookRows();
 		this.infoStatus.render({
 			mode: 'loading',
 			loadingKind: 'list',
@@ -489,9 +488,14 @@ export class EnginePluginsSection extends Disposable {
 			if (generation !== this.infoGeneration) {
 				return;
 			}
-			this.hookEntries = [];
-			this.clearHookRows();
-			this.hooksTable.style.display = 'none';
+			const hadLivePaint = this.hookEntries.length > 0;
+			if (!hadLivePaint) {
+				this.hookEntries = [];
+				this.clearHookRows();
+				this.hooksTable.style.display = 'none';
+			} else {
+				this.hooksTable.style.display = '';
+			}
 			this.infoStatus.render({
 				mode: 'failed',
 				featureLabel: localize('ua.enginePluginInfoFeature', "plugin info"),

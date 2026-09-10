@@ -30,6 +30,9 @@ import { localize } from '../../../../../nls.js';
 
 const PLUGINS_FEATURE = localize('ua.enginePluginsFeatureLabel', "engine plugins");
 const PLUGINS_EMPTY_COPY = localize('ua.enginePluginsEmpty', "No engine plugins.");
+const PLUGIN_INFO_FEATURE = localize('ua.enginePluginInfoFeature', "plugin info");
+const PLUGIN_HOOKS_EMPTY_COPY = localize('ua.enginePluginHooksEmpty', "No hooks.");
+const LEFTOVER_HOOK_CLASS = 'LeftoverHook';
 
 suite('EnginePluginsSection write-success (D155 / D216)', () => {
 
@@ -53,6 +56,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		reloadPlugin?: IUniverseAgentConnection['reloadPlugin'];
 		unloadPlugin?: IUniverseAgentConnection['unloadPlugin'];
 		scanNewPlugins?: IUniverseAgentConnection['scanNewPlugins'];
+		getPluginInfo?: IUniverseAgentConnection['getPluginInfo'];
 	} = {}): IUniverseAgentConnection & {
 		setPluginsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setConnected(next: boolean): void;
@@ -132,7 +136,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 			getMcpServerStatuses: async () => ({ statuses: [] }),
 			getMcpServerTools: async () => ({ tools: [] }),
 			listPlugins: options.listPlugins ?? (async () => ({ plugins: [plugin] })),
-			getPluginInfo: async () => ({ summary: plugin, hooks: [] }),
+			getPluginInfo: options.getPluginInfo ?? (async () => ({ summary: plugin, hooks: [] })),
 			enablePlugin: options.enablePlugin ?? (async () => ({ plugin })),
 			reloadPlugin: options.reloadPlugin ?? (async () => ({ plugin })),
 			unloadPlugin: options.unloadPlugin ?? (async () => ({ removedHookCount: 0 })),
@@ -211,6 +215,31 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		assert.ok(catalog);
 		assert.strictEqual(catalog.dataset['catalogMode'], 'failed');
 		assert.ok((catalog.textContent ?? '').includes(getCatalogFailedCopy(PLUGINS_FEATURE, listReason)));
+	}
+
+	function getHooksTable(section: EnginePluginsSection): HTMLTableElement | null {
+		return section.getDomNode().querySelector('table.engine-plugins-hooks-table');
+	}
+
+	function assertPluginInfoFailedHonesty(section: EnginePluginsSection, reason: string, expectedRows: number): void {
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(section.getHookRowCount(), expectedRows);
+		assert.strictEqual(section.getHookEntries().length, expectedRows);
+		const infoStatus = [...section.getDomNode().querySelectorAll('.engine-catalog-status-widget')].find(
+			el => (el.textContent ?? '').includes(getCatalogFailedCopy(PLUGIN_INFO_FEATURE, reason)),
+		) as HTMLElement | undefined;
+		assert.ok(infoStatus);
+		assert.strictEqual(infoStatus.dataset['catalogMode'], 'failed');
+		const hooksTable = getHooksTable(section);
+		assert.ok(hooksTable);
+		if (expectedRows === 0) {
+			assert.strictEqual(hooksTable.style.display, 'none');
+		} else {
+			assert.notStrictEqual(hooksTable.style.display, 'none');
+			assert.ok((section.getDomNode().textContent ?? '').includes(LEFTOVER_HOOK_CLASS));
+		}
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(PLUGIN_HOOKS_EMPTY_COPY));
 	}
 
 	test('successful load then capability UNKNOWN clears leftover rows before loading', async () => {
@@ -514,5 +543,57 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('getPluginInfo first-pull throw is failed with no leftover hook rows', async () => {
+		const connection = createConnectionStub({
+			getPluginInfo: async () => {
+				throw new Error('getPluginInfo exploded');
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.ok(section.selectPluginForTest('demo-plugin'));
+		await flushMicrotasks();
+
+		assertPluginInfoFailedHonesty(section, 'getPluginInfo exploded', 0);
+	});
+
+	test('getPluginInfo success then throw keeps leftover hook rows and paints failed', async () => {
+		let infoCalls = 0;
+		const leftoverHook = { hookType: 'onChat', priority: 10, className: LEFTOVER_HOOK_CLASS };
+		const connection = createConnectionStub({
+			getPluginInfo: async () => {
+				infoCalls++;
+				if (infoCalls === 1) {
+					return { summary: demoPlugin(), hooks: [leftoverHook] };
+				}
+				throw new Error('getPluginInfo retry exploded');
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.selectPluginForTest('demo-plugin'));
+		await flushMicrotasks();
+
+		const hooksTable = getHooksTable(section);
+		assert.ok(hooksTable);
+		assert.strictEqual(section.getHookRowCount(), 1);
+		assert.strictEqual(section.getHookEntries().length, 1);
+		assert.notStrictEqual(hooksTable.style.display, 'none');
+		assert.ok((section.getDomNode().textContent ?? '').includes(LEFTOVER_HOOK_CLASS));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(PLUGIN_HOOKS_EMPTY_COPY));
+		assert.strictEqual(infoCalls, 1);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(infoCalls, 2);
+		assertPluginInfoFailedHonesty(section, 'getPluginInfo retry exploded', 1);
 	});
 });

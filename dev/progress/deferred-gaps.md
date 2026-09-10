@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-10
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D241 已闭；D238–D241 leftover；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D243 已闭；D243 plugins hook leftover；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -255,6 +255,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D241 已闭；D238
 | D239 | P3 | **closed** Clipboard `refresh()` 不再在 `listClipboard` 前 `entries=[]` + `DOM.clearNode`（D226 / D225 同胞）。成功后再 throw 保 leftover 行并画 failed；首拉 throw 仍 empty+failed。不得画「No clipboard entries.」接通空成功。写/清成功文案仍在 list-fail 时清掉（D212 listed-gate 不回退）。未占 Triggers / MCP Runtime / Team / Hierarchy / Composer / proto / 引擎仓 / F3 / A2 / D26 / mic·Route / `.sessions` | 工位 B `clipboard-list-leftover` 已收 | 成功→list throw leftover 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；Write/Clear 成功文案 list-fail 不回刷；补 `engineClipboardSection.test.ts` | conversation / clipboard | closed |
 | D240 | P3 | **closed** Triggers `refresh()` 打 list 前不再 `this.triggers = []` + `DOM.clearNode(this.listHost)`（Clipboard leftover / D226 同胞）。成功后再 `listTriggers` throw 保 leftover 行并画 failed；首拉 throw 仍 empty+failed。不得画「No triggers.」接通空成功。Fire/Upsert/Delete 写成功仍 `refresh()` 返回 listed 才回刷；leftover list-fail 清写成功文案。未占 Clipboard/MCP Runtime/Team/Hierarchy/Composer / proto / 引擎仓 / F3/A2/D26 / mic·Route / `.sessions` | 工位 C `triggers-list-leftover` 已收 | 成功→list throw leftover 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；listed-gate 仍诚实；补 `engineTriggersSection.test.ts` | conversation / triggers | closed |
 | D241 | P3 | **closed** Team `refreshTeamData()` 在活画后再进 `treeEmpty` / pending（非 catch throw）不再 `setMemberEntries([], treeEmpty)` + `setTaskEntries([], treeEmpty)` 把 leftover 成员/任务卸掉。`setTeamAfterTreeEmpty` 保 leftover 行并画 pending/empty-tree note；首拉 pending/treeEmpty 仍 empty+copy。未重做 D236 catch；未占 Hierarchy / catalog / conversation / proto / 引擎仓 / D22 / D26 / A2 / mic·Route | 工位 D `team-treeempty-pending-leftover` 已收 | leftover 行仍在 + pending/empty-tree note；不得装「无成员」空成功或首拉空；首拉 pending/treeEmpty 仍 empty+copy；补 `navigatorTeamSubviews.test.ts` | navigator / team | closed |
+| D243 | P3 | **closed** Plugins `loadInfo()` / `getPluginInfo` catch 在活画 hook 行后不再 `hookEntries = []` + `clearHookRows()`（D238 MCP Runtime tools 同胞）。成功后再 `getPluginInfo` throw 保 leftover hook 行并画 failed；首拉 throw 仍 empty+failed。不得画「No hooks.」接通空成功。未重做 D230 catalog list leftover；未重做 D216/D222 listed-gate。未占 Snapshots/Sources/Triggers/Clipboard/Team / proto / 引擎仓 / F3/A2/D26 / mic·Route / `.sessions` | 工位 B `plugins-info-leftover` 已收 | 成功→getPluginInfo throw leftover hook 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；补 `enginePluginsSection.test.ts`（`getHookRowCount()` / 可见性 + failed） | conversation / plugins | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 
