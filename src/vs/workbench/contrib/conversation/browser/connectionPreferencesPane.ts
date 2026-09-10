@@ -18,7 +18,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { defaultButtonStyles, defaultCheckboxStyles, defaultInputBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import type { ConnectionPhase, ConnectionProbeResult, UniverseAgentConnectProfileResult } from '../../../../platform/universeAgent/common/connectionHubTypes.js';
-import { type ConnectionProfileProjection, type HubDeviceProjection, IUniverseAgentHubService } from '../../../../platform/universeAgent/common/hub.js';
+import { type ConnectionProfileProjection, type HubDeviceProjection, type HubDirectoryStatus, IUniverseAgentHubService } from '../../../../platform/universeAgent/common/hub.js';
 import { IUniverseAgentConnection, type UniverseAgentProbeEngineResult } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentDeviceInfo, UniverseAgentPendingPairInfo } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import type { IPreferencesEditorPane } from '../../preferences/browser/preferencesEditorRegistry.js';
@@ -1042,6 +1042,58 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		writeStatus(this.hubDeviceCodeStatus, '', 'neutral');
 	}
 
+	private hubDirectoryRefreshListed(status: HubDirectoryStatus): boolean {
+		return status.kind === 'ok';
+	}
+
+	private applyHubDirectoryRefreshFailure(reason: string): void {
+		writeStatus(this.hubDirectoryBanner, reason, 'error');
+		this.hubDirectoryBanner.style.display = '';
+		if (this.enginePairedDevices !== undefined) {
+			return;
+		}
+		this.hubDevices = [];
+		this.hubDevicesList.splice(0, this.hubDevicesList.length, this.hubDevices);
+		this.updateDeviceActions();
+	}
+
+	/** Hub write-success stays only after refreshDirectory listed (D221 sibling). */
+	private async refreshDirectoryListed(): Promise<boolean> {
+		try {
+			const status = await this.hubService.refreshDirectory();
+			if (this.hubDirectoryRefreshListed(status)) {
+				this.renderHubDirectory();
+				return true;
+			}
+			const banner = getHubDirectoryBannerLabel(status);
+			this.applyHubDirectoryRefreshFailure(
+				banner
+				?? (status.kind === 'error' || status.kind === 'unreachable' ? status.reason : status.kind),
+			);
+			return false;
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			this.applyHubDirectoryRefreshFailure(reason);
+			return false;
+		}
+	}
+
+	private restoreHubDeviceCodeSuccessIfListed(listed: boolean, message: string): void {
+		if (listed) {
+			writeStatus(this.hubDeviceCodeStatus, message, 'success');
+			return;
+		}
+		writeStatus(this.hubDeviceCodeStatus, '', 'neutral');
+	}
+
+	private restoreHubDirectoryWriteSuccessIfListed(listed: boolean, message: string): void {
+		if (listed) {
+			this.hubDirectoryBanner.textContent = message;
+			this.hubDirectoryBanner.style.display = message ? '' : 'none';
+			return;
+		}
+	}
+
 	private async refreshEngineDevices(): Promise<void> {
 		const hook = this.connectionService.listDevices;
 		if (!canSendConnectionDeviceListRequest(this.connectionService.isEngineConnected(), typeof hook === 'function') || !hook) {
@@ -1465,7 +1517,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				this.hubDirectoryBanner.style.display = '';
 				return;
 			}
-			await this.hubService.refreshDirectory();
+			await this.refreshDirectoryListed();
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			writeStatus(this.hubDirectoryBanner, reason, 'error');
@@ -1522,9 +1574,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 					this.hubDirectoryBanner.style.display = '';
 					return;
 				}
-				this.hubDirectoryBanner.textContent = result.message;
-				this.hubDirectoryBanner.style.display = '';
-				await this.hubService.refreshDirectory();
+				const listed = await this.refreshDirectoryListed();
+				this.restoreHubDirectoryWriteSuccessIfListed(listed, result.message);
 				this.renderProfiles();
 			} catch (error) {
 				const reason = error instanceof Error && error.message ? error.message : String(error);
@@ -1540,7 +1591,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				this.hubDirectoryBanner.style.display = '';
 				return;
 			}
-			await this.hubService.refreshDirectory();
+			await this.refreshDirectoryListed();
 			this.renderProfiles();
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
@@ -1575,15 +1626,16 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 		try {
 			const result = await this.hubService.confirmDeviceCode(code);
-			writeStatus(
-				this.hubDeviceCodeStatus,
-				result.ok ? localize('ua.connectionConfirmDeviceCodeOk', "Device code confirmed") : result.reason,
-				result.ok ? 'success' : 'error',
-			);
-			if (result.ok) {
-				this.confirmDeviceCodeInput.value = '';
-				await this.hubService.refreshDirectory();
+			if (!result.ok) {
+				writeStatus(this.hubDeviceCodeStatus, result.reason, 'error');
+				return;
 			}
+			this.confirmDeviceCodeInput.value = '';
+			const listed = await this.refreshDirectoryListed();
+			this.restoreHubDeviceCodeSuccessIfListed(
+				listed,
+				localize('ua.connectionConfirmDeviceCodeOk', "Device code confirmed"),
+			);
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			writeStatus(this.hubDeviceCodeStatus, reason, 'error');

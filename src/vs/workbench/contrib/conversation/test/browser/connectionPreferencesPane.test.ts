@@ -2717,6 +2717,7 @@ suite('ConnectionPreferencesPane', () => {
 		revoke.click();
 		await Promise.resolve();
 		await Promise.resolve();
+		await timeout(0);
 		const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement;
 		assert.ok(banner);
 		assert.strictEqual(banner.textContent, 'revoked');
@@ -3006,6 +3007,155 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(status);
 		assert.strictEqual(status.textContent, 'paired');
 		assert.ok(status.classList.contains('is-success'));
+		container.remove();
+	});
+
+	test('confirmDeviceCode success does not keep confirm-success when subsequent refreshDirectory fails', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			confirmDeviceCode: async () => ({ ok: true }),
+			refreshDirectory: async () => ({ kind: 'error', code: 'denied', reason: 'list boom' }),
+		}, {
+			isEngineConnected: () => false,
+			pairApprove: async () => ({ success: true, deviceId: '', message: '' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		const codeInput = container.querySelector('.connection-hub-device-code input') as HTMLInputElement | null;
+		const confirm = [...container.querySelectorAll('.connection-hub-device-code .monaco-button')]
+			.find(button => button.textContent === 'Confirm') as HTMLButtonElement | undefined;
+		assert.ok(codeInput);
+		assert.ok(confirm);
+		codeInput.value = 'ABCD-1234';
+		confirm.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		const status = container.querySelector('.connection-hub-device-code-status') as HTMLElement;
+		assert.ok(status);
+		assert.notStrictEqual(status.textContent, 'Device code confirmed');
+		assert.ok(!(status.textContent ?? '').includes('Device code confirmed'));
+		assert.ok(!status.classList.contains('is-success'));
+		const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement;
+		assert.strictEqual(banner.textContent, getHubDirectoryBannerLabel({ kind: 'error', code: 'denied', reason: 'list boom' }));
+		assert.ok(banner.classList.contains('is-error'));
+		const leftover = [...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent);
+		assert.ok(!leftover.includes('Studio'));
+		container.remove();
+	});
+
+	test('confirmDeviceCode success keeps confirm-success when subsequent refreshDirectory listed', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			confirmDeviceCode: async () => ({ ok: true }),
+			refreshDirectory: async () => ({ kind: 'ok', devices: [] }),
+		}, {
+			isEngineConnected: () => false,
+			pairApprove: async () => ({ success: true, deviceId: '', message: '' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		const codeInput = container.querySelector('.connection-hub-device-code input') as HTMLInputElement | null;
+		const confirm = [...container.querySelectorAll('.connection-hub-device-code .monaco-button')]
+			.find(button => button.textContent === 'Confirm') as HTMLButtonElement | undefined;
+		assert.ok(codeInput);
+		assert.ok(confirm);
+		codeInput.value = 'ABCD-1234';
+		confirm.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		const status = container.querySelector('.connection-hub-device-code-status') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.textContent, 'Device code confirmed');
+		assert.ok(status.classList.contains('is-success'));
+		container.remove();
+	});
+
+	test('device Rename success does not keep leftover when subsequent refreshDirectory fails', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			renameDevice: async () => ({ ok: true }),
+			refreshDirectory: async () => ({ kind: 'unreachable', reason: 'list boom' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
+		assert.ok(rename);
+		rename.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement;
+		assert.ok(banner);
+		assert.strictEqual(banner.textContent, getHubDirectoryBannerLabel({ kind: 'unreachable', reason: 'list boom' }));
+		assert.ok(banner.classList.contains('is-error'));
+		assert.notStrictEqual(banner.style.display, 'none');
+		const leftover = [...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent);
+		assert.ok(!leftover.includes('Studio'));
+		container.remove();
+	});
+
+	test('Revoke success does not keep revoke-success when subsequent refreshDirectory fails', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			refreshDirectory: async () => ({ kind: 'error', code: 'denied', reason: 'list boom' }),
+		}, {
+			isEngineConnected: () => true,
+			revoke: async () => ({ success: true, message: 'revoked' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
+		assert.ok(revoke);
+		revoke.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement;
+		assert.ok(banner);
+		assert.notStrictEqual(banner.textContent, 'revoked');
+		assert.ok(!(banner.textContent ?? '').includes('revoked'));
+		assert.ok(banner.classList.contains('is-error'));
+		assert.strictEqual(banner.textContent, getHubDirectoryBannerLabel({ kind: 'error', code: 'denied', reason: 'list boom' }));
+		container.remove();
+	});
+
+	test('hub fallback revokeDevice success does not keep leftover when subsequent refreshDirectory fails', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			revokeDevice: async () => ({ ok: true }),
+			refreshDirectory: async () => ({ kind: 'error', code: 'denied', reason: 'list boom' }),
+		}, {
+			isEngineConnected: () => false,
+			revoke: async () => ({ success: true, message: '' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
+		assert.ok(revoke);
+		revoke.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement;
+		assert.ok(banner);
+		assert.ok(banner.classList.contains('is-error'));
+		assert.strictEqual(banner.textContent, getHubDirectoryBannerLabel({ kind: 'error', code: 'denied', reason: 'list boom' }));
+		const leftover = [...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent);
+		assert.ok(!leftover.includes('Studio'));
 		container.remove();
 	});
 
