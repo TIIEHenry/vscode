@@ -153,6 +153,7 @@ export class EngineOverviewSection extends Disposable {
 	private readonly status: EngineCatalogStatusWidget;
 	private sectionActive = false;
 	private modelDataLoaded = false;
+	private lastGoodModelSummary: string | undefined;
 	private renderGeneration = 0;
 
 	constructor(
@@ -213,10 +214,19 @@ export class EngineOverviewSection extends Disposable {
 			case 'UNSUPPORTED':
 				return { value: formatOverviewModelUnsupportedCopy(), title: reason };
 			case 'UNKNOWN':
-				return { value: formatOverviewModelUnknownCopy() };
+				// Keep leftover model count after a live paint (D272; D252 / D204).
+				// First-pull UNKNOWN still confirming; this branch must not listModels.
+				return this.keepLastGoodModelRow(formatOverviewModelUnknownCopy(), formatOverviewModelUnknownCopy());
 			default:
-				return { value: formatOverviewModelLoadingCopy() };
+				return this.keepLastGoodModelRow(formatOverviewModelLoadingCopy(), formatOverviewModelLoadingCopy());
 		}
+	}
+
+	private keepLastGoodModelRow(fallback: string, hint: string): { value: string; title?: string } {
+		if (this.lastGoodModelSummary) {
+			return { value: this.lastGoodModelSummary, title: hint };
+		}
+		return { value: fallback };
 	}
 
 	private async renderAsync(): Promise<void> {
@@ -225,6 +235,7 @@ export class EngineOverviewSection extends Disposable {
 		this.status.hide();
 
 		if (!this.connection.isEngineConnected()) {
+			this.lastGoodModelSummary = undefined;
 			this.status.render({
 				mode: 'disconnected',
 				onOpenConnection: () => {
@@ -238,6 +249,9 @@ export class EngineOverviewSection extends Disposable {
 		const phase = this.connection.getConnectionPhase();
 		const modelsEntry = snapshot.capabilities?.models;
 		const modelsSupport = modelsEntry?.support ?? 'UNKNOWN';
+		if (modelsSupport === 'UNSUPPORTED') {
+			this.lastGoodModelSummary = undefined;
+		}
 		let modelRow = this.resolveModelRow(modelsSupport, modelsEntry?.reason);
 
 		this.paintSummary(snapshot, phase, modelRow.value, modelRow.title);
@@ -255,16 +269,22 @@ export class EngineOverviewSection extends Disposable {
 				return;
 			}
 			if (!this.connection.isEngineConnected()) {
+				this.lastGoodModelSummary = undefined;
 				return;
 			}
 			this.modelDataLoaded = true;
-			modelRow = { value: formatOverviewModelSummary(result.models.length) };
+			const summary = formatOverviewModelSummary(result.models.length);
+			this.lastGoodModelSummary = summary;
+			modelRow = { value: summary };
 		} catch (error) {
 			if (generation !== this.renderGeneration) {
 				return;
 			}
 			const reason = error instanceof Error ? error.message : String(error);
-			modelRow = { value: formatOverviewModelFailedCopy(reason) };
+			const failed = formatOverviewModelFailedCopy(reason);
+			modelRow = this.lastGoodModelSummary
+				? { value: this.lastGoodModelSummary, title: failed }
+				: { value: failed };
 		}
 
 		this.paintSummary(this.connection.getConnectionSnapshot(), this.connection.getConnectionPhase(), modelRow.value, modelRow.title);
