@@ -39,9 +39,11 @@ import {
 } from '../common/sourcesChangesGit.js';
 import {
 	hasSourcesGitReadEntries,
+	shouldKeepSourcesGitReadNoHookLeftover,
 	sourcesGitDiffOpenFailureMessage,
 	sourcesGitLocalOnlyMessage,
 	sourcesGitReadFailureMessage,
+	sourcesGitReadUnavailableNoHookMessage,
 	tryLoadSourcesGitChangeEntries,
 	tryReadSourcesGitFileDiff,
 } from '../common/sourcesChangesGitRead.js';
@@ -448,6 +450,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		let allEntries: ISourcesChangeEntry[];
 		let gitReadError: string | undefined;
 		let localOnly = false;
+		let gitReadNoHook = false;
 		try {
 			const loaded = await this.tryLoadGitEntries();
 			if (seq !== this.refreshSeq) {
@@ -457,9 +460,20 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				this.usingGitRead = true;
 				allEntries = loaded;
 			} else {
-				this.usingGitRead = false;
-				allEntries = collectSourcesChangeEntries(this.scmService.repositories);
-				localOnly = allEntries.length > 0;
+				// Connected + missing hook: keep leftover rows; first-pull empty stays SCM (D273).
+				const leftoverCount = this.usingGitRead ? this.lastGoodEntries.length : 0;
+				if (shouldKeepSourcesGitReadNoHookLeftover(
+					this.uaConnection.isEngineConnected(),
+					typeof this.uaConnection.readGitChanges === 'function',
+					leftoverCount,
+				)) {
+					allEntries = this.lastGoodEntries;
+					gitReadNoHook = true;
+				} else {
+					this.usingGitRead = false;
+					allEntries = collectSourcesChangeEntries(this.scmService.repositories);
+					localOnly = allEntries.length > 0;
+				}
 			}
 		} catch (error) {
 			if (seq !== this.refreshSeq) {
@@ -476,12 +490,13 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		}
 
 		this.lastGoodEntries = [...allEntries];
-		this.applyRefreshPresentation(allEntries, { localOnly });
+		this.applyRefreshPresentation(allEntries, { localOnly, gitReadNoHook });
 	}
 
 	private applyRefreshPresentation(allEntries: ISourcesChangeEntry[], options?: {
 		readonly gitReadError?: string;
 		readonly localOnly?: boolean;
+		readonly gitReadNoHook?: boolean;
 	}): void {
 		const hasRepository = this.usingGitRead || this.scmService.repositoryCount > 0;
 		const entries = filterSourcesEntries(allEntries, this.filterBox.value);
@@ -510,6 +525,8 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.setStatusMessage(options.gitReadError);
 		} else if (this.writeStatusMessage) {
 			this.setStatusMessage(this.writeStatusMessage);
+		} else if (options?.gitReadNoHook) {
+			this.setStatusMessage(sourcesGitReadUnavailableNoHookMessage());
 		} else if (options?.localOnly) {
 			this.setStatusMessage(sourcesGitLocalOnlyMessage());
 		} else if (hasRepository && !this.gitCommandsAvailable && !this.canWriteStage() && !this.canWriteCommit()) {

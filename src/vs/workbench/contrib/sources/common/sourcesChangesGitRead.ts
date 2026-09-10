@@ -248,11 +248,30 @@ export function sourcesGitEmptyFileDiffMessage(): string {
 
 /**
  * SCM leftover is local-only when the engine list is unavailable
- * (no session / disconnected / `supported: false` / empty supported entries).
- * Not authoritative.
+ * (no session / disconnected / `supported: false` / empty supported entries /
+ * first-pull missing hook). Not authoritative.
+ * Connected no-hook after a live git-read paint is not this message.
  */
 export function sourcesGitLocalOnlyMessage(): string {
 	return localize('sourcesChangesGitRead.localOnly', "Showing local source control changes only.");
+}
+
+/** Honest status when ReadGitChanges is missing after a live engine paint. */
+export function sourcesGitReadUnavailableNoHookMessage(): string {
+	return localize('sourcesChangesGitRead.unavailableNoHook', "Engine git changes unavailable — this client has no git changes API.");
+}
+
+/**
+ * Connected + missing `readGitChanges` after a live git-read paint keeps leftover
+ * engine rows. First-pull (leftoverCount 0) still falls through to SCM / local-only.
+ * Disconnect and hook-present `supported:false` are not this gate.
+ */
+export function shouldKeepSourcesGitReadNoHookLeftover(
+	connected: boolean,
+	hasReadGitChangesHook: boolean,
+	leftoverCount: number,
+): boolean {
+	return connected && !hasReadGitChangesHook && leftoverCount > 0;
 }
 
 /**

@@ -22,7 +22,7 @@ import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
 import { ACTIVE_GROUP, CONVERSATION_GROUP, IEditorService } from '../../../../services/editor/common/editorService.js';
 import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
 import { openSourcesChangeEntry, ISourcesChangeEntryOpenDeps } from '../../browser/sourcesChangeEntryOpen.js';
-import { sourcesGitEmptyFileDiffMessage, sourcesGitReadFailureMessage } from '../../common/sourcesChangesGitRead.js';
+import { sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadUnavailableNoHookMessage } from '../../common/sourcesChangesGitRead.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
 import { ISourcesChangeEntry } from '../../common/sourcesChangesModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
@@ -338,10 +338,51 @@ suite('Sources - Changes list leftover honesty', () => {
 		} as unknown as IUniverseAgentConnection;
 	}
 
-	function stubChangesListServices(connection: IUniverseAgentConnection) {
+	function createIndexScmService(resource: URI): ISCMService {
+		const group = {
+			id: 'index',
+			label: 'Staged Changes',
+			resources: [] as ISCMResource[],
+		};
+		const scmResource = {
+			sourceUri: resource,
+			resourceGroup: group,
+			decorations: {},
+			contextValue: undefined,
+			command: undefined,
+			multiDiffEditorOriginalUri: undefined,
+			multiDiffEditorModifiedUri: undefined,
+			open: async () => { },
+		} as unknown as ISCMResource;
+		group.resources.push(scmResource);
+		const repository = {
+			provider: {
+				groups: [group],
+				onDidChangeResources: Event.None,
+				onDidChangeResourceGroups: Event.None,
+				inputBoxTextModel: { setValue: () => { } },
+			},
+			input: {
+				value: '',
+				setValue: () => { },
+				onDidChange: Event.None,
+			},
+		};
+		return {
+			_serviceBrand: undefined,
+			get repositories() { return [repository]; },
+			get repositoryCount() { return 1; },
+			onDidAddRepository: Event.None,
+			onDidRemoveRepository: Event.None,
+			registerSCMProvider: () => { throw new Error('not implemented'); },
+			getRepository: () => undefined,
+		} as unknown as ISCMService;
+	}
+
+	function stubChangesListServices(connection: IUniverseAgentConnection, scmService: ISCMService = createEmptyScmService()) {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
-		instantiationService.stub(ISCMService, createEmptyScmService());
+		instantiationService.stub(ISCMService, scmService);
 		instantiationService.stub(IConversationRosterService, createRoster());
 		instantiationService.stub(IQuickDiffService, {
 			getQuickDiffs: async () => [],
@@ -447,5 +488,38 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.strictEqual(list.element(0).name, 'leftover.ts');
 		assert.ok(host.querySelector('.sources-changes-list .monaco-list-row'));
 		assert.notStrictEqual((host.querySelector('.sources-changes-status') as HTMLElement).style.display, 'none');
+	});
+
+	test('success then missing readGitChanges keeps leftover rows and does not paint local-only', async function () {
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const leftover = { path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
+		const connection = createGitReadConnection({
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				entries: [leftover],
+			}),
+		});
+		const scmStub = toResource.call(this, '/project/src/scm-stub.ts');
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub)).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+
+		delete (connection as { readGitChanges?: unknown }).readGitChanges;
+		onDidChangeConnection.fire({} as UniverseAgentConnectionSnapshot);
+
+		const status = await waitForStatusText(host, 'no git changes API');
+		assert.strictEqual(status, sourcesGitReadUnavailableNoHookMessage());
+		assert.ok(!status.includes('local source control'));
+		assert.notStrictEqual(status, sourcesGitLocalOnlyMessage());
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		assert.strictEqual(list.element(0).scmResource, undefined);
 	});
 });

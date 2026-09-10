@@ -23,6 +23,7 @@ import {
 	hasSourcesGitReadEntries,
 	needsSourcesGitFileDiff,
 	parseSourcesGitUnifiedDiff,
+	shouldKeepSourcesGitReadNoHookLeftover,
 	sourcesGitChangeGroupId,
 	sourcesGitChangeResource,
 	sourcesGitChangesRequest,
@@ -32,6 +33,7 @@ import {
 	sourcesGitEmptyFileDiffMessage,
 	sourcesGitLocalOnlyMessage,
 	sourcesGitReadFailureMessage,
+	sourcesGitReadUnavailableNoHookMessage,
 	tryLoadSourcesGitChangeEntries,
 	tryReadSourcesGitChanges,
 	tryReadSourcesGitFileDiff,
@@ -320,6 +322,14 @@ suite('Sources - Changes git read', () => {
 	test('empty file-diff and local-only messages stay explicit', () => {
 		assert.ok(sourcesGitEmptyFileDiffMessage().includes('empty'));
 		assert.ok(sourcesGitLocalOnlyMessage().includes('local source control'));
+		assert.ok(sourcesGitReadUnavailableNoHookMessage().includes('no git changes API'));
+	});
+
+	test('no-hook leftover gate keeps only live git-read rows while connected', () => {
+		assert.strictEqual(shouldKeepSourcesGitReadNoHookLeftover(true, false, 1), true);
+		assert.strictEqual(shouldKeepSourcesGitReadNoHookLeftover(true, false, 0), false);
+		assert.strictEqual(shouldKeepSourcesGitReadNoHookLeftover(false, false, 1), false);
+		assert.strictEqual(shouldKeepSourcesGitReadNoHookLeftover(true, true, 1), false);
 	});
 
 });

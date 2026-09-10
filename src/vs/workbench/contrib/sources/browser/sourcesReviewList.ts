@@ -28,7 +28,7 @@ import { IEditorService } from '../../../services/editor/common/editorService.js
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
-import { hasSourcesGitReadEntries, tryLoadSourcesGitChangeEntries, tryReadSourcesGitFileDiff, sourcesGitDiffOpenFailureMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage } from '../common/sourcesChangesGitRead.js';
+import { hasSourcesGitReadEntries, shouldKeepSourcesGitReadNoHookLeftover, tryLoadSourcesGitChangeEntries, tryReadSourcesGitFileDiff, sourcesGitDiffOpenFailureMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadUnavailableNoHookMessage } from '../common/sourcesChangesGitRead.js';
 import { sourcesChangeEntryIdentity } from '../common/sourcesChangesModel.js';
 import { collectSourcesReviewEntries, ISourcesReviewEntry } from '../common/sourcesReviewModel.js';
 import {
@@ -592,6 +592,7 @@ export class SourcesReviewList extends Disposable {
 		const seq = ++this.refreshSeq;
 		let gitReadError: string | undefined;
 		let localOnly = false;
+		let gitReadNoHook = false;
 		try {
 			const loaded = await this.tryLoadGitEntries();
 			if (seq !== this.refreshSeq) {
@@ -601,9 +602,19 @@ export class SourcesReviewList extends Disposable {
 				this.usingGitRead = true;
 				this.allEntries = loaded;
 			} else {
-				this.usingGitRead = false;
-				this.allEntries = collectSourcesReviewEntries(this.scmService.repositories);
-				localOnly = this.allEntries.length > 0;
+				// Connected + missing hook: keep leftover rows; first-pull empty stays SCM (D273).
+				const leftoverCount = this.usingGitRead ? this.allEntries.length : 0;
+				if (shouldKeepSourcesGitReadNoHookLeftover(
+					this.uaConnection.isEngineConnected(),
+					typeof this.uaConnection.readGitChanges === 'function',
+					leftoverCount,
+				)) {
+					gitReadNoHook = true;
+				} else {
+					this.usingGitRead = false;
+					this.allEntries = collectSourcesReviewEntries(this.scmService.repositories);
+					localOnly = this.allEntries.length > 0;
+				}
 			}
 		} catch (error) {
 			if (seq !== this.refreshSeq) {
@@ -665,6 +676,8 @@ export class SourcesReviewList extends Disposable {
 		this.headerHint.style.display = hasAnyEntries ? '' : 'none';
 		if (gitReadError) {
 			this.setStatusMessage(gitReadError);
+		} else if (gitReadNoHook) {
+			this.setStatusMessage(sourcesGitReadUnavailableNoHookMessage());
 		} else if (localOnly) {
 			this.setStatusMessage(sourcesGitLocalOnlyMessage());
 		} else {
