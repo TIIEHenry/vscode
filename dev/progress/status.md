@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 关仓：本波 A–D 已合入 merge。D222–D225 已闭。待一路 compile。"
+summary: "loop 关仓：本波 A–D 已合入 merge。D222–D225 已闭。compile-client 0。"
 ---
 
 # Development Progress
@@ -167,11 +167,11 @@ summary: "loop 关仓：本波 A–D 已合入 merge。D222–D225 已闭。待�
 | [D203](deferred-gaps.md) | C `session-delete-draft-rollback` | **closed** delete 失败/回滚后 composer draft 挂回原 session；`conversationLens.test.ts` 锁 false 与 optimistic rollback；未 compile |
 | [D212](deferred-gaps.md) | C `clipboard-write-list-fail` | **closed** Write/Clear 写成功后再 ListClipboard fail 不回刷 clipId / removedCount；`refresh()` 返回 listed 才回写；未 compile |
 | [D216](deferred-gaps.md) | A `plugins-scan-list-fail` | **closed** scanNew 写成功后再 listPlugins fail 不回刷 lastScan；`refresh()` 返回 listed 才回写；merge compile-client 0 |
-| [D222](deferred-gaps.md) | A `plugins-enable-listed-gate` | **closed** Enable/Reload/Unload 写成功后再 listPlugins fail 不回刷 Enabled./Reloaded./Unloaded.；`refresh()` 返回 listed 才回写（不再用 mode 代理）；未 compile-client |
+| [D222](deferred-gaps.md) | A `plugins-enable-listed-gate` | **closed** Enable/Reload/Unload 写成功后再 listPlugins fail 不回刷 Enabled./Reloaded./Unloaded.；`refresh()` 返回 listed 才回写（不再用 mode 代理）；merge compile-client 0 |
 | [D217](deferred-gaps.md)–[D219](deferred-gaps.md) | B `catalog-write-list-fail` | **closed** MCP/Skills/Agents 写成功后再 list fail 不回刷 Added./Created./Saved. 等；`refresh()` 返回 listed 才回写；未占 D216；merge compile-client 0 |
-| [D223](deferred-gaps.md) | B `agents-markdown-listed-gate` | **closed** markdown Save 写成功后再 list fail 不回刷 editor/catalog Saved.；二次回刷闸 listed 非 mode |
+| [D223](deferred-gaps.md) | B `agents-markdown-listed-gate` | **closed** markdown Save 写成功后再 list fail 不回刷 editor/catalog Saved.；二次回刷闸 listed 非 mode；merge compile-client 0 |
 | [D221](deferred-gaps.md) | C `connection-pair-write-list-fail` | **closed** PairApprove/Reject 写成功后再 ListDevices / ListPending fail 不回刷 pair-success；merge compile-client 0 |
-| [D224](deferred-gaps.md) | C `connection-hub-write-list-fail` | **closed** Hub confirm/rename/revoke 写成功后再 `refreshDirectory` fail 不回刷成功文案 / leftover；未 compile |
+| [D224](deferred-gaps.md) | C `connection-hub-write-list-fail` | **closed** Hub confirm/rename/revoke 写成功后再 `refreshDirectory` fail 不回刷成功文案 / leftover；merge compile-client 0 |
 | [D225](deferred-gaps.md) | D `context-variable-list-leftover` | **closed** Context Variables 成功后再 list throw 保 leftover 行 + failed，不得装「No context variables.」；首拉 throw 仍 empty+failed；未 compile-client |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
