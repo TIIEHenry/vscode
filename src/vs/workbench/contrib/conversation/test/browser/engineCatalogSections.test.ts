@@ -40,6 +40,7 @@ import { localize } from '../../../../../nls.js';
 const AGENTS_FEATURE = localize('ua.engineAgentsFeatureLabel', "agent profiles");
 const AGENT_TOOLS_FEATURE = localize('ua.engineAgentToolsFeatureLabel', "agent profile tools");
 const MCP_FEATURE = localize('ua.engineMcpFeatureLabel', "MCP server definitions");
+const MCP_EMPTY_COPY = localize('ua.engineMcpEmpty', "No MCP servers yet.");
 const TOOLS_FEATURE = localize('ua.engineToolsFeatureLabel', "engine tools");
 const TOOLS_EMPTY_COPY = localize('ua.engineToolsEmpty', "No engine tools yet.");
 
@@ -700,6 +701,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		await flushMicrotasks();
 
 		assertFailedCatalogHonesty(section, MCP_FEATURE, 'listMcpServers exploded');
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(MCP_EMPTY_COPY));
 	});
 
 	function assertToolsLeftoverFailedHonesty(
@@ -1456,7 +1458,25 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok(saveCalls >= 2);
 	});
 
-	test('MCP: successful load then refresh throw is failed with no leftover catalog', async () => {
+	function assertMcpLeftoverFailedHonesty(
+		section: EngineMcpSection,
+		errorMessage: string,
+		expectedRows: number,
+	): void {
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), expectedRows);
+		assert.strictEqual(section.canWrite(), false);
+		const listContainer = section.getDomNode().querySelector('.engine-catalog-list') as HTMLElement;
+		assert.ok(listContainer);
+		assert.notStrictEqual(listContainer.style.display, 'none');
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(MCP_FEATURE, errorMessage)));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(MCP_EMPTY_COPY));
+	}
+
+	test('MCP: successful load then listMcpServers throw keeps leftover catalog and paints failed', async () => {
 		let listMcpServersCalls = 0;
 		const connection = createConnectionStub({
 			connected: true,
@@ -1464,15 +1484,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			listMcpServers: async () => {
 				listMcpServersCalls++;
 				if (listMcpServersCalls === 1) {
-					return {
-						servers: [{
-							id: 'stdio-demo',
-							name: 'Demo MCP',
-							transport: 'stdio' as const,
-							origin: 'global' as const,
-							enabled: true,
-						}],
-					};
+					return { servers: [demoMcpServer()] };
 				}
 				throw new Error('listMcpServers retry exploded');
 			},
@@ -1481,15 +1493,13 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		await flushMicrotasks();
 
 		assert.strictEqual(section.getMode(), 'ready');
-		assert.ok(section.getListEntryCount() > 0);
+		assert.strictEqual(section.getListEntryCount(), 1);
 
 		connection.setConnected(true);
 		await flushMicrotasks();
 
-		assert.strictEqual(section.getMode(), 'failed');
-		assert.strictEqual(section.getListEntryCount(), 0);
-		assertFailedCatalogHonesty(section, MCP_FEATURE, 'listMcpServers retry exploded');
-		assert.ok(!/Demo MCP/i.test(section.getDomNode().textContent ?? ''));
+		assert.strictEqual(listMcpServersCalls, 2);
+		assertMcpLeftoverFailedHonesty(section, 'listMcpServers retry exploded', 1);
 	});
 
 	test('MCP: successful load then capability UNKNOWN clears leftover rows before loading', async () => {
@@ -1754,7 +1764,8 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 	function assertMcpWriteSuccessClearedAfterListFail(section: EngineMcpSection, successCopy: string, listReason: string): void {
 		assert.strictEqual(section.getMode(), 'failed');
-		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(section.canWrite(), false);
 		const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
 		assert.ok(writeStatus);
 		assert.notStrictEqual(writeStatus.textContent, successCopy);
@@ -1764,6 +1775,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok(catalog);
 		assert.strictEqual(catalog.dataset['catalogMode'], 'failed');
 		assert.ok((catalog.textContent ?? '').includes(getCatalogFailedCopy(MCP_FEATURE, listReason)));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(MCP_EMPTY_COPY));
 	}
 
 	test('MCP: updateMcpServer ok does not keep update-success when subsequent listMcpServers fails', async () => {
