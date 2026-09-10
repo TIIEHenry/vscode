@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 关仓：本波 A–D 已合入 merge。D234–D237 已闭。待一路 compile。"
+summary: "loop 关仓：D234–D237 已合入；merge compile-client 0。待 push 后对齐工位。"
 ---
 
 # Development Progress
@@ -175,6 +175,7 @@ summary: "loop 关仓：本波 A–D 已合入 merge。D234–D237 已闭。待�
 | [D225](deferred-gaps.md) | D `context-variable-list-leftover` | **closed** Context Variables 成功后再 list throw 保 leftover 行 + failed，不得装「No context variables.」；首拉 throw 仍 empty+failed；merge compile-client 0 |
 | [D226](deferred-gaps.md)–[D229](deferred-gaps.md) | A–D leftover 关仓波 | **closed** Tools / MCP Runtime / Hub Refresh·Rotate / Hierarchy fetch-fail leftover；compile-client 0 |
 | [D230](deferred-gaps.md)–[D233](deferred-gaps.md) | A–D catalog leftover | **closed** Plugins / Skills / MCP Definitions / Agents 成功后再 list throw 保 leftover + failed；merge compile-client 0 |
+| [D234](deferred-gaps.md)–[D237](deferred-gaps.md) | A–D leftover 关仓波 | **closed** ProviderModel list throw / Composer SUPPORTED keep-last / Team catch leftover / Hierarchy pending leftover；merge compile-client 0 |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）
@@ -191,7 +192,7 @@ summary: "loop 关仓：本波 A–D 已合入 merge。D234–D237 已闭。待�
 | 项 | 指针 |
 |:---|:-----|
 | **引擎 store 迁移卡死** | [D26](deferred-gaps.md) 病因已改口（2026-09-09）：`user_version=0` + 表已建 ⇒ 迁移抛错 ⇒ 库永久打不开 ⇒ `LookupFailed` fail-closed deny ⇒ `ALREADY_EXISTS`（**设计内拒绝**）。根因与交接见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md)；D25 同源。**禁改引擎仓代码**；原闭合条件「Create 先写 meta」已撤回；不要再清 store |
-| **loop 切片** | D230–D233 已 compile-client 0；下一波从代码搜 leftover（D234+）。勿派 D147 / 勿开 F3·A2 / 勿发明 proto / 勿改引擎仓 |
+| **loop 切片** | D234–D237 已 compile-client 0；下一波从代码搜 leftover（D238+）。勿派 D147 / 勿开 F3·A2 / 勿发明 proto / 勿改引擎仓 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + CI 绿 + merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
