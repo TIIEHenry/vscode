@@ -3,9 +3,7 @@ title: "Engine 页 Customizations catalog（ua.engine）"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-04
-summary: "九节两栏 @ HEAD：Overview / Provider & Model / Skills / Agents / Rules / Hooks / MCP / Plugins / Tools；六态；GC-6 Model 摘要已落；Overview Provider 行 G-ENG-1 前省略；Tools 选中行读 ToolInfo 只读详情；PRD-025 待产品验证"
-updated: 2026-09-03
+updated: 2026-09-10
 summary: "HEAD 九节壳已挂：四节写路径 + Overview/Model/MCP Runtime/Plugins；Provider/Rules/Hooks 仍 unsupported；产品验证未做"
 ---
 
@@ -100,14 +98,14 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 | Provider 凭据 / endpoint / Test | 无（G-ENG-1） | 节内 unsupported；**零**输入控件 |
 | Agent profile `model.json` 独立 UI | `SaveAgentProfile` 不承载 | G-ENG-4；不得用自由文本冒充已写入 |
 | Rules / Hooks 列表与写 | 引擎补 gRPC 前无 | 壳在、行数恒 0 |
-| Composer 下拉 | Route / AgentProfile / Model / Permission / Tools | Engine 页 list **不等于** Composer 已填引擎选项 |
+| Composer 下拉 | AgentProfile / Model / Permission / Tools | Engine 页 list **不等于** Composer 已填引擎选项；Route 省略 |
 | Plugins marketplace | — | 不做 |
 | 产品验证 / 隔离 profile 冒烟 | PRD-025 § / PRD-008 | 未做；不升 `implemented` |
 | Agent profile `model.json` 独立编辑器 | `SaveAgentProfile` proto 无 `model` 字段 | `AGENTS.md` 正文已落；`tools.json` 经 Tools 节；**G-ENG-4** |
 | Provider 凭据读/写/测试 | 无 Provider 列表 RPC | 节壳在；G-ENG-1 闭合前零输入控件 |
 | Rules / Hooks 真数据 | RulesBridge 仅 Desktop 进程内；无 `ListHookPoints` | 节壳在；G-ENG-2 / G-ENG-3 |
 | 完整插件市场 | — | Plugins 只接 Engine `PluginService`，无 marketplace |
-| Composer 选择进发送载荷 | `submitInput` / `SwitchModel` | Agent / Tools / Model **只读填表**（`conversationComposerCatalog.ts`）；选择不进 `submitInput`；`SwitchModel` 不做。Route / Permission 仍本地 stub |
+| Composer 选择进发送载荷 | `submitInput` / `SwitchModel` | Agent / Tools / Model **只读填表**（`conversationComposerCatalog.ts`）；选择不进 `submitInput`；`SwitchModel` 不做。Permission 接通后走 `setPermissionMode`。Route 省略（无引擎 `routeIndex`） |
 
 ## 5. 九节与差距（代码已落后仍缺的协议）
 
@@ -138,7 +136,7 @@ UI 可先交付 unsupported/failed，不等待全部 RPC；没有真实数据与
 
 ## 6. 与 Composer 下拉
 
-`Route` / `Permission` 在 Composer 仍是本地 stub。接通且能力 `SUPPORTED` 时，Agent / Tools / Model **只读填 catalog**（`listAgentProfiles` / `listTools` / `listModels`）；选择不进 `submitInput`，也不做会话级 `SwitchModel`。Engine 页写路径仍是 catalog 权威。
+`Permission` 接通后走 `setPermissionMode`。接通且能力 `SUPPORTED` 时，Agent / Tools / Model **只读填 catalog**（`listAgentProfiles` / `listTools` / `listModels`）；选择不进 `submitInput`，也不做会话级 `SwitchModel`。Route **不画**（无引擎 `routeIndex`）。Engine 页写路径仍是 catalog 权威。
 
 ## 相关
 

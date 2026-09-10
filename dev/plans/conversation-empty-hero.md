@@ -3,8 +3,8 @@ title: "Conversation 空会话与输入面"
 type: plan
 status: implemented
 phase: N/A
-updated: 2026-09-01
-summary: "PreFirst 居中 Composer + 身份条；Active 底栏同一 Composer；Agent/Route XOR；Inbox 分簇；T1–T6 已合入 `ea0104c0`–`d4064ba0`"
+updated: 2026-09-10
+summary: "PreFirst 居中 Composer + 身份条；Active 底栏同一 Composer；Agent XOR；Inbox 分簇；T1–T6 已合入 `ea0104c0`–`d4064ba0`；D194 后假 Route XOR / 假麦克风已删"
 ---
 
 # Conversation 空会话与输入面
@@ -25,14 +25,14 @@ summary: "PreFirst 居中 Composer + 身份条；Active 底栏同一 Composer；
 | 空会话布局 | Wide：身份条在居中 Composer **上方**；无 Inbox | 空态「No messages yet」+ 输入永远钉底；Cursor 式 Inbox 叠在空会话上 |
 | During 布局 | Composer **BottomDocked**；身份 = 阅读列一行 | 身份进 SessionBar；第二行 Locked SessionConfig |
 | Composer | **一张**组件：Init / During / 列表编辑 / 队列编辑 | `ChatInputPart` 整块；Singularity 2×2 Material 配置卡；展示态再画一套带按钮的用户输入 |
-| 底栏视觉 | 同行同高（32px 命中）；`+` 浅底圆、语音无底、发送实心圆；下拉/工具图标无背景 | 16px `IconButton` 与 32px 圆钮混高；`+`/语音描边实心底；发送变 Stop |
+| 底栏视觉 | 同行同高（32px 命中）；`+` 浅底圆、发送实心圆；下拉/工具图标无背景。不画假麦克风 | 16px `IconButton` 与 32px 圆钮混高；`+`/语音描边实心底；发送变 Stop |
 | AgentProfile | **仅空会话**可改；首条后从 Composer 消失 | During 仍下拉；进 SessionBar；CompactStrip 锁定行当第二 chrome |
 | Route | 空会话在 Composer；首条后 **只**在 SessionBar | During 仍在 Composer；只藏在 More |
 | Model / Permission / Tools | During **仍**在 Composer 底栏 | 全部挪到 SessionBar；Tools 做成第二颗 labeled pill（Tune 图标保留） |
 | Inbox 槽位 | Active 才出现；左 Task · MessageQueue · Goal，右 Stop · ctx 环；独立浮层无共用底条 | 一条 Inbox 标签把 Queue/Goal/Stop 挤在同一行；Queue/Tasks 融成一颗 chip；Init 显示 Inbox |
 | MessageQueue 列表 UI | 跟 Singularity Queue Tab 设计稿（hold/edit、Pause/Clear、行状态、reorder/inject 等） | 自造一套列表行；把已退役 QueueBar 常驻条挂回 Composer；用 StatusPanel 当本仓 Inbox owner |
 | 编辑 | 展示 = 纯文本用户卡；点击才 mount Composer + Exit；队列编辑 XOR 主 Composer | 展示卡带 Edit/Copy 按钮；列表编辑与底栏 Composer 同时存在 |
-| 语音 | 麦克风紧贴发送左侧；转写队列 ≠ MessageQueue | 语音进 MessageQueue；麦克风放在 `+` 旁 |
+| 语音 | 无假麦克风；无 stub 转写条（D194） | 语音进 MessageQueue；麦克风放在 `+` 旁 |
 
 ## 2. HEAD 事实锚点（写入时核对）
 
@@ -91,7 +91,7 @@ Heal：清空消息 / 新建会话 → 回到 PreFirst（身份回到 Composer �
 | Mic | 默认 ghost；录音中 filled | 有 | 有 |
 | Send | 实心圆；恒为 Send | 有 | 队列编辑 = Save |
 
-图标产品复用 Codicon / ActionBar（`add`、tune/`settings-gear`、`ellipsis`、`arrowUp`、mic、screen-full）。Canvas 字形只是对照。
+图标产品复用 Codicon / ActionBar（`add`、tune/`settings-gear`、`ellipsis`、`arrowUp`、screen-full）。Canvas 字形只是对照。无假 mic。
 
 **XOR 输入：** `turnEdit` 或 `queueEdit` 时 **不** 再挂主 `compose` Composer。Exit 退出 hold，回到 `compose`。
 
@@ -132,11 +132,11 @@ Heal：清空消息 / 新建会话 → 回到 PreFirst（身份回到 Composer �
 
 ### 3.5 语音队列
 
-麦克风在 Send 左侧。停止一段可立刻再录；转写按序拼进当前 draft。该队列 **不是** MessageQueue（候发）。无引擎时录音控件可 disabled + 诚实 title，或本地 stub 转写；不得把 clip 画进 Queue 列表。
+无引擎转写 capability 时 **不画**麦克风、转写条或预设台词（D194）。真语音须等引擎 capability。该队列不是 MessageQueue。
 
 ### 3.6 SessionBar
 
-保持自研。Active 增加 **Route** 下拉（无策略则省略）。SelectBox 去留仍是 page-access **Deferred**，本方案不改。
+保持自研。无引擎 `routeIndex` 时 **不画** Route 下拉（D194）。SelectBox 去留仍是 page-access **Deferred**，本方案不改。
 
 身份条继续禁止进 SessionBar。
 
@@ -147,11 +147,11 @@ Heal：清空消息 / 新建会话 → 回到 PreFirst（身份回到 Composer �
 | 切片 | 交付 | 验证 |
 |------|------|------|
 | **T1 Placement** | PreFirst 居中 Composer + 身份 XOR；隐藏 Inbox/gate 或把 gate 收到 Composer 内诚实一行；空态去掉「Send a message below」把输入钉死的暗示 | `conversationLens.test.ts` + `conversationIdentityStrip.test.ts`：空会话身份不在 timeline 顶而在 composer 簇；dock 无 inbox-row |
-| **T2 Composer chrome** | 32px 底栏；`+`/mic/Send 表面；Tune · Permission · Model · ⋯；Codicon | 测命中高度与 DOM 结构；无 `ChatInputPart` import |
-| **T3 SessionConfig XOR** | `showAgent`/`showRoute` 仅 PreFirst；Active SessionBar Route；清空 turns 回到 PreFirst | 空会话 Composer 有 Agent+Route；发送后 Composer 无、SessionBar 有 Route |
+| **T2 Composer chrome** | 32px 底栏；`+`/Send 表面；Tune · Permission · Model · ⋯；Codicon。无假 mic | 测命中高度与 DOM 结构；无 `ChatInputPart` import；无 `.conversation-lens-dock-mic` |
+| **T3 SessionConfig XOR** | `showAgent` 仅 PreFirst。Route 假下拉已删（D194） | 空会话 Composer 有 Agent；无 Route SelectBox |
 | **T4 Inbox** | 左右分簇；Task 左于 Queue；列表 XOR；诚实空。Queue **列表**按 Singularity 设计稿接线，不自造行 chrome | 不再断言单行含 label+queue+goal+stop 融在一起；有队列 fixture 时行/hold 语义对得上 message-queue-bar |
 | **T5 Edit XOR** | 用户卡展示无按钮；click → Composer+Exit；队列编辑 XOR 主输入 | 同时只存在一个 `.conversation-lens-composer` |
-| **T6 Voice** | mic 槽位；可选 stub 转写条。无引擎可先 disabled | mic 在 Send 左；Voice 列表 ≠ inbox queue |
+| **T6 Voice** | 假麦克风流水线已删（D194）；无 stub 转写条 | 无 mic / 转写条；草稿不被预设台词写入 |
 
 T1–T3 可串行同一写者；T4 依赖 T1（Inbox 仅 Active）。T5 依赖 T2。T6 可与 T4 后并行但同冲突域故仍串行。
 

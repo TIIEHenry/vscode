@@ -3,8 +3,8 @@ title: "Conversation Composer、身份条与 Inbox"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-08
-summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 列表 Enqueue 接通后转 EnqueueQueueItem（无引擎禁用、失败不造假项）；FAILED / UPLOAD_FAILED 行 Retry 走 retryMessageQueueItem（接通后按 upload 转 RetryQueueItem / RetryQueueItemUpload；无引擎禁用、失败行仍可操作）；接通后转 Pause/Resume/Clear/Hold/Release/Edit/Retry；catalog 无 GetQueue，接通 / 断连缓存 Inbox 文案 Queue not listed、不把 fixture 当引擎队列；Inbox AutoDrive 接通 / 断连缓存诚实空；turnEdit 保存接通后转 AgentService.EditMessage（空 turnId / 空正文不发）；断连 Send 未连不锁、引擎缓存不得 stub echo / 已同步；语音转写条；输入历史；StatusBar 芯片与诚实降级"
+updated: 2026-09-10
+summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 列表 Enqueue 接通后转 EnqueueQueueItem（无引擎禁用、失败不造假项）；FAILED / UPLOAD_FAILED 行 Retry 走 retryMessageQueueItem（接通后按 upload 转 RetryQueueItem / RetryQueueItemUpload；无引擎禁用、失败行仍可操作）；接通后转 Pause/Resume/Clear/Hold/Release/Edit/Retry；catalog 无 GetQueue，接通 / 断连缓存 Inbox 文案 Queue not listed、不把 fixture 当引擎队列；Inbox AutoDrive 接通 / 断连缓存诚实空；turnEdit 保存接通后转 AgentService.EditMessage（空 turnId / 空正文不发）；断连 Send 未连不锁、引擎缓存不得 stub echo / 已同步；断连 Agent/Model 仅 No agent / No model；无假麦克风 / 假 Route；输入历史；StatusBar 芯片与诚实降级"
 ---
 
 # Conversation Composer、身份条与 Inbox
@@ -18,15 +18,15 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 | Composer 位置 | 阅读列居中 | 列底 Dock（32 px 底栏） |
 | 身份条（引擎 · 文件夹 · 分支） | Composer 上方 | 阅读列顶（`ConversationIdentityStrip`），**不**进 SessionBar / 工具栏 |
 | Agent 选择 | 在 Composer 行 | 消失，不进 SessionBar |
-| Route | 在 Composer 行 | 移到 Part 级 SessionBar |
+| Route | **省略**（引擎无 `routeIndex` RPC，不画假下拉） | **省略** |
 | Model / Permission / Tools | Composer 行 | 仍在 Composer 行 |
 | Inbox / Goal / Stop | 无 | Composer 上方 Inbox overlay |
 
-底栏控件：`+` 浅底圆、语音无底、发送实心圆，其余无背景；Enter 发送、Shift+Enter 换行。同一时刻只有一个输入（PRD-015 验收 1–4、7）。叶宽 < 600（`.is-narrow`）时次要控件进溢出菜单（`…`），底栏不用横向滚动藏发送/输入；< 300（`.is-compact`）仍保留主输入、发送与返回路径。
+底栏控件：`+` 浅底圆、发送实心圆，其余无背景；**不画**假麦克风。Enter 发送、Shift+Enter 换行。同一时刻只有一个输入（PRD-015 验收 1–4）。叶宽 < 600（`.is-narrow`）时次要控件进溢出菜单（`…`），底栏不用横向滚动藏发送/输入；< 300（`.is-compact`）仍保留主输入、发送与返回路径。
 
 身份条数据：`getConversationIdentityFolder`（首个工作区文件夹）、`getConversationIdentityBranchName`（`ISCMService` HEAD ref）；无文件夹 / 无仓库时对应 chip 省略。引擎 chip 文案 = `getConnectionPhaseStatusBarText(getConnectionPhase(), pairingPending)`（与 StatusBar `status.conversation.engine` 同函数）；点击路由 = B10（`getEngineStatusCommandId(phase, pairingPending)` / `isConversationEngineLive` → `workbench.action.openEnginePreferences`，否则 `workbench.action.openConnectionPreferences`；`pairingPending` 开 Connection/SAS）；订阅 `IUniverseAgentConnection.onDidChangeConnection` 与 `IConversationRosterService.onDidChangeEngineConnection`。
 
-接通且能力 `SUPPORTED` 时，Agent / Tools / Model 下拉由 `conversationComposerCatalog.ts` **只读填表**（`listAgentProfiles` / `listTools` / `listModels`）；选择不进 `submitInput`，也不做会话级 `SwitchModel`。无引擎或能力未就绪时诚实空（「No agent」/「No model」）。Route / Permission 仍本地 stub。
+接通且能力 `SUPPORTED` 时，Agent / Tools / Model 下拉由 `conversationComposerCatalog.ts` **只读填表**（`listAgentProfiles` / `listTools` / `listModels`）；选择不进 `submitInput`，也不做会话级 `SwitchModel`。无引擎或能力未就绪时诚实空：Agent 选项**只有**「No agent」（无 Stub agent）；Model **只有**「No model」（无 Stub model）；Send 不要求选假模型。Permission 接通后走 `setPermissionMode`。Route **不画**（无引擎 `routeIndex`，不留只回显的 SelectBox）。
 
 ## 2. `composerPolicy`：同一张 Composer 的三种用途
 
@@ -63,9 +63,9 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 - `conversationMessageQueuePendingCount` 供 Inbox 徽标。
 - stub / 从未连过：状态由 `setMessageQueueFixture` 注入。引擎接通后 Inbox 操作转发 `AgentService` Pause / Resume / Clear / Hold / Release / Edit / Retry（未知 session / 空 item / 空正文 / 断连缓存 / 无 hook 不发）。`enqueueMessageQueueItem` 接通后转发 `EnqueueQueueItem`（空正文 / 未知 session / 断连缓存不发）；`retryMessageQueueItem` 接通后按 `upload` 转发 RetryQueueItem / RetryQueueItemUpload（空 item / 未知 session / 断连缓存 / 无 hook 不发）；stub / 从未连过诚实失败且不改 fixture。Composer **接通**发送仍走 `submitInput`，**断连引擎缓存**先试 Enqueue，拒收则保留 draft。catalog / connection 无 GetQueue（未发明 RPC）；接通 / 断连缓存 `getMessageQueueState` 诚实空，Inbox 文案「Queue not listed」，fixture 不得冒充引擎队列。Inbox 列表仅 stub / 从未连过消费 fixture；Composer 无队列入口。
 
-## 5. 语音转写条
+## 5. 语音输入（诚实省略）
 
-`conversationVoiceTranscriptBar.ts` / `conversationVoiceTranscriptModel.ts`：Composer 上方的 **stub 转写队列**，语音钮在发送左侧。它**不是** MessageQueue（PRD-015 验收 7），今天无真实 speech 服务接入。
+`IUniverseAgentConnection` 无 voice/transcript 方法，也无对应 capability key。Composer **不画**麦克风按钮、转写条或预设台词；不得用 `durationLabel '0:01'` / stub phrase 冒充用户说过话。真转写须等引擎 capability 后再开门控。语音队列不是 MessageQueue。
 
 ## 6. 输入历史
 
@@ -89,11 +89,11 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 |------|------|
 | 1 空会话无 Inbox；输入不永钉列底 | §1 |
 | 2 Init / During 同一张 Composer；底栏样式 | §1 / `media/conversationLens.css` |
-| 3 Agent / Route XOR | §1 |
+| 3 Agent XOR（Route 省略，无假下拉） | §1 |
 | 4 Model / Permission / Tools 留在输入行 | §1 |
 | 5 Inbox 分簇、Task 左于 MQ、XOR、诚实空 | §3 |
 | 6 列表编辑与队列编辑复用 Composer | §2 |
-| 7 语音钮位置；转写队列 ≠ MQ | §5 |
+| 7 无假麦克风；无转写条冒充 MQ | §5 |
 | 8 不是 `ChatInputPart` picker、不是 Material 配置卡 | INV-NO-COPILOT；Dock 为自研 textarea |
 
 ## 9. 测试

@@ -3,7 +3,7 @@ title: "Conversation 系统概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-09-07
+updated: 2026-09-10
 summary: "三层：Part 槽宿主 → contrib 产品 chrome → EngineRoster / stub 帧源；关键符号表；与 Chat / Sessions / Agent Host 边界"
 ---
 
@@ -22,7 +22,7 @@ summary: "三层：Part 槽宿主 → contrib 产品 chrome → EngineRoster / s
 └──────────────────────────────┬──────────────────────────────────────────┘
                                │ 填
 ┌─ 产品 chrome（workbench/contrib/conversation）─────────────────────────┐
-│ Part 级：SessionBar（SelectBox、←→、关非根、Route）                      │
+│ Part 级：SessionBar（SelectBox、←→、关非根）                      │
 │ 窗口级：IConversationSessionWindowService — 最多两叶 session 窗口       │
 │ 叶内：Conversation IEditorPart（CONVERSATION_GROUP）+ ConversationChatInput │
 │ 页内：ConversationEditorPane → 「对话 | 轨迹」+ 阅读列 + Composer/Dock   │

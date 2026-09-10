@@ -3,7 +3,7 @@ title: "Agent IDE 产品需求"
 type: demand
 status: accepted
 phase: N/A
-updated: 2026-09-03
+updated: 2026-09-10
 summary: "PRD-001–026：M7 UI 代码完成线已尽；PRD-010/018/019/025/026 仍 accepted（缺产品验证）；PRD-008 仍待接通证据"
 ---
 
@@ -30,13 +30,13 @@ summary: "PRD-001–026：M7 UI 代码完成线已尽；PRD-010/018/019/025/026 
 
 - **状态**：`accepted`
 - **用户价值**：用户知道自己在哪个会话里，并能在多个会话之间切换。
-- **用户可观察陈述**：会话标题条显示当前会话标题；用户可以在至少两个本地会话之间切换；无 History / Snapshots 能力时这些控件不出现。Route 控件的位置与无引擎行为以 [PRD-015](#prd-015-conversation-空会话与输入面) 为准（Active 态在 SessionBar，无引擎时为诚实空或 stub 选项，不伪装成已接到引擎策略表）。
+- **用户可观察陈述**：会话标题条显示当前会话标题；用户可以在至少两个本地会话之间切换；无 History / Snapshots 能力时这些控件不出现。Route 在引擎无 `routeIndex` 前整槽省略，不画只回显的 stub 下拉。
 - **产品验收标准**：
   1. 切换会话后，时间线换成该会话的内容。
   2. 没有云端或引擎会话权威时，不出现「已同步远程会话」之类文案。
   3. 导航区里可以有配套会话列表，但它不是中心工作区。
-  4. History / Snapshots 在无能力时整槽省略；不与 Route 混用同一条「不出现」规则。
-- **依赖或未决**：真实会话权威依赖引擎（PRD-008），本条只约束无引擎时的本地上下文。会话跨重启是否保留见 [PRD-017](#prd-017-本地会话持久化)。2026-09-02 修订：原文「无 Route 能力时不出现」与 PRD-015「Active 态 Route 在 SessionBar」冲突，以 PRD-015 为准。
+  4. History / Snapshots 在无能力时整槽省略；Route 同样无能力时省略，不与 History 混用同一条规则。
+- **依赖或未决**：真实会话权威依赖引擎（PRD-008），本条只约束无引擎时的本地上下文。会话跨重启是否保留见 [PRD-017](#prd-017-本地会话持久化)。2026-09-10 修订：无 Route RPC 时省略控件（D194），不再以 PRD-015「Active 态 Route 在 SessionBar」为假下拉开脱。
 
 ### PRD-003 时间线与输入
 
@@ -94,7 +94,7 @@ summary: "PRD-001–026：M7 UI 代码完成线已尽；PRD-010/018/019/025/026 
 - **用户可观察陈述**：没有队列/任务权威时，收件箱不显示假任务列表；没有引擎时，界面不显示已连接引擎。
 - **产品验收标准**：
   1. Queue / Tasks 要么整槽省略，要么诚实空（例如 “No queue”）。
-  2. 无可用能力时，History / Snapshots 不画假按钮；Route 按 [PRD-015](#prd-015-conversation-空会话与输入面) 允许诚实空或带 Stub 标识的本地选项，但不得暗示已接到引擎策略表。
+  2. 无可用能力时，History / Snapshots 不画假按钮；Route 无引擎 `routeIndex` 时整槽省略，不画 Stub Balanced 之类只回显的选项。
   3. 文档与 UI 都不把未完成的引擎或 Diff 写成已齐。
   4. 连接态分两层、各说各的：**连接级**（是否接到引擎）显示在状态栏 / Engine 页；**会话级**（当前会话的订阅是否同步）显示在会话标题条，取值为「未连接 / 同步中 / 已连接 / 降级（附原因）/ 已断开（附原因）」五者之一。只有会话级「已连接」可以使用「已连接」措辞；不得用任一层的状态冒充另一层。
   5. 会话订阅断开后，时间线保留断开前的内容只读可见，并在列顶明示「显示为断开前快照」；不得显示「已同步」，也不得把断开后的内容换回本地占位会话。
@@ -170,17 +170,17 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
 
 - **状态**：`accepted`
 - **用户价值**：空会话时用户能在安静画布上配好会话并开始说话；对话开始后输入不换一套控件，Inbox 也不挡阅读。
-- **用户可观察陈述**：空会话（尚无可见消息）时，身份条（文件夹 · 引擎 · 分支）在居中输入卡上方；输入卡上可改 Agent、Model、Permission、Tools、Route；没有 Inbox / Goal / Stop。发出第一条消息后，同一张输入卡落到列底；身份条只出现在阅读列顶部（不在 SessionBar、不在输入工具栏）；Agent 不再出现在输入行；Route 出现在 SessionBar；Inbox 在输入卡上方左右分簇（左 Task · MessageQueue · Goal，右 Stop · 上下文环）。用户回合展示为纯文本卡片；点卡片才进入编辑。同一时刻只有一个输入。
+- **用户可观察陈述**：空会话（尚无可见消息）时，身份条（文件夹 · 引擎 · 分支）在居中输入卡上方；输入卡上可改 Agent、Model、Permission、Tools；没有 Inbox / Goal / Stop。发出第一条消息后，同一张输入卡落到列底；身份条只出现在阅读列顶部（不在 SessionBar、不在输入工具栏）；Agent 不再出现在输入行；Route 在引擎无 `routeIndex` 前不出现；Inbox 在输入卡上方左右分簇（左 Task · MessageQueue · Goal，右 Stop · 上下文环）。用户回合展示为纯文本卡片；点卡片才进入编辑。同一时刻只有一个输入。
 - **产品验收标准**：
   1. 空会话没有 Inbox 浮层，也没有把输入永远钉在列底当成唯一布局。
-  2. Init 与 During 共用一张 Composer：底栏同一高度；`+` 浅底圆、语音无底、发送实心圆；其余底栏控件无背景。
-  3. Agent 只在空会话可改；首条发送后从输入行消失，不进 SessionBar。Route 只在空会话出现在输入行；首条发送后只在 SessionBar。
+  2. Init 与 During 共用一张 Composer：底栏同一高度；`+` 浅底圆、发送实心圆；其余底栏控件无背景。不画假麦克风。
+  3. Agent 只在空会话可改；首条发送后从输入行消失，不进 SessionBar。Route 无引擎 RPC 时不出现在输入行或 SessionBar。
   4. Model、Permission、Tools 在 During 仍留在输入行。不画第二行「锁定 SessionConfig」卡片。
   5. Inbox 左簇 Task 在 MessageQueue 左侧；两列表互斥展开；无权威时整槽省略或诚实空，不造假任务。MessageQueue **列表与行交互**跟 Singularity MessageQueue 设计稿，不另造一套。
   6. 列表内编辑与队列编辑复用同一 Composer（含 Exit）；展示态用户卡没有按钮。
-  7. 语音钮在发送左侧。语音转写队列不是 MessageQueue。
+  7. 无引擎转写 capability 时不画语音钮，也不把预设台词写入草稿。语音转写队列不是 MessageQueue。
   8. 输入面不是 Copilot `ChatInputPart` 的一排 picker，也不是 Singularity 2×2 Material 配置卡。
-- **依赖或未决**：活队列 / 路由策略 / AgentProfile 数据依赖 PRD-008。无引擎时 Route 与 Agent 用诚实空或 stub 选项，不假装已接到引擎策略表。MessageQueue 列表 UI SSOT = Singularity [message-queue-bar](../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md)（槽位仍以本仓 Inbox 为准）。方案见 [conversation-empty-hero](../../dev/plans/conversation-empty-hero.md)。
+- **依赖或未决**：活队列 / 路由策略 / AgentProfile 数据依赖 PRD-008。无引擎时 Agent 用诚实空；Route 省略，不假装已接到引擎策略表。MessageQueue 列表 UI SSOT = Singularity [message-queue-bar](../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md)（槽位仍以本仓 Inbox 为准）。方案见 [conversation-empty-hero](../../dev/plans/conversation-empty-hero.md)。D194：假麦克风与假 Route 已删。
 
 ### PRD-016 Conversation session 窗口与 chat tab
 

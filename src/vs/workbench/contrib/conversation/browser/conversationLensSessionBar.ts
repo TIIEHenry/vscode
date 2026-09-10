@@ -16,13 +16,12 @@ import { defaultButtonStyles, defaultSelectBoxStyles } from '../../../../platfor
 import { hasNativeContextMenu } from '../../../../platform/window/common/window.js';
 import { ConversationEngineHistoryList } from './conversationEngineHistoryList.js';
 import { ConversationEngineSnapshotsList } from './conversationEngineSnapshotsList.js';
-import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle, conversationLensSessionBarRouteLabel, conversationLensSessionBarTrajectoryTab } from './conversationLensSessionBarStrings.js';
+import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle, conversationLensSessionBarTrajectoryTab } from './conversationLensSessionBarStrings.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
-import type { ConversationSessionConfigSelection } from './conversationLensComposerChrome.js';
 import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
 import { showConversationPart } from './conversationSessionStatus.js';
 
@@ -36,8 +35,6 @@ export interface IConversationLensSessionBarHost {
 	sessionSelectContainer: HTMLElement;
 	newSessionButton: Button;
 	deleteSessionButton: Button;
-	sessionBarRouteContainer: HTMLElement;
-	sessionBarRouteSelectBox: SelectBox;
 	lensTablist: HTMLElement;
 	lensTabConversation: HTMLButtonElement;
 	lensTabTrajectory: HTMLButtonElement;
@@ -46,7 +43,6 @@ export interface IConversationLensSessionBarHost {
 	readingColumn: HTMLElement;
 	engineHistoryList: ConversationEngineHistoryList | undefined;
 	engineSnapshotsList: ConversationEngineSnapshotsList | undefined;
-	routeSelectBox: SelectBox;
 	dockTextarea: HTMLTextAreaElement;
 	readonly stubService: IConversationRosterService;
 	readonly contextViewService: IContextViewService;
@@ -55,9 +51,6 @@ export interface IConversationLensSessionBarHost {
 	readonly visualizeOverlay: ConversationVisualizeOverlay;
 	register<T extends IDisposable>(disposable: T): T;
 	getBoundSessionId(): string;
-	createRouteSelectBox(selectedIndex: number, ariaLabel: string): SelectBox;
-	getSessionConfig(sessionId: string): ConversationSessionConfigSelection;
-	setSessionConfig(sessionId: string, patch: Partial<ConversationSessionConfigSelection>): void;
 	setLensId(lensId: ConversationLensId): void;
 	handleLensTablistKeyDown(event: KeyboardEvent): void;
 	beginSessionTitleEdit(): void;
@@ -118,17 +111,6 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 		}));
 
 		const controls = append(bar, $('.conversation-lens-session-controls'));
-
-		host.sessionBarRouteContainer = append(controls, $('.conversation-lens-session-route'));
-		const activeSessionId = host.getBoundSessionId();
-		const activeRouteIndex = host.getSessionConfig(activeSessionId).routeIndex;
-		host.sessionBarRouteSelectBox = host.register(host.createRouteSelectBox(activeRouteIndex, conversationLensSessionBarRouteLabel));
-		host.sessionBarRouteSelectBox.render(host.sessionBarRouteContainer);
-		host.register(host.sessionBarRouteSelectBox.onDidSelect(e => {
-			const sessionId = host.getBoundSessionId();
-			host.setSessionConfig(sessionId, { routeIndex: e.index });
-			host.routeSelectBox.select(e.index);
-		}));
 
 		const switcherLabel = append(controls, $('span.conversation-lens-session-switcher-label'));
 		switcherLabel.textContent = localize('conversationLens.sessionLabel', "Session");

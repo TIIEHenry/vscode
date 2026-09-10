@@ -3,8 +3,8 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-09-09
-summary: "gate-recovery 与人类工位 D26 改口已合入并 push origin/agent-ide、origin/loop/merge @ 484cec7538b。compile 0；四域绿；eslint 0。loop 切片已停。D8 / D16 / D147 / D194 仍开。"
+updated: 2026-09-10
+summary: "loop 已重启。A 槽 D194 假 mic/Route 与断连 Stub agent/model 已删，待合入。D8 / D16 / D147 仍开。"
 ---
 
 # Development Progress
@@ -41,8 +41,13 @@ summary: "gate-recovery 与人类工位 D26 改口已合入并 push origin/agent
 
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 进行中（2026-09-09 · 停 loop 切片 · 合入门禁线）
-人类裁定：停 loop 新切片，先收门禁；合并须包括人类工位。门禁与 D26 改口已合入并 **已 push** `origin/agent-ide` / `origin/loop/merge` @ `484cec7538b`。字母槽 A–D 与人类工位已 ff 对齐，保留各槽脏文件（C / edit 的 `dev/loop`）。**禁止再开 D194+ catch。**
+### 进行中（2026-09-10 · loop 重启 · 四槽并行）
+| 槽 | 切片 | 状态 |
+|:---|:-----|:-----|
+| **A** | D194 假 mic/Route DELETE + 断连 Stub agent/model 已删 | 代码+测已落，待字母槽 commit / 波次合入 |
+| B | Sources Accept/session 门控 | 已 commit `loop/B` |
+| C | `sessionList` 诚实探测 | 已 commit `loop/C` |
+| D | Navigator leftover stub / Inspect / Team 空态 | 验收后待 commit |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
@@ -158,7 +163,7 @@ summary: "gate-recovery 与人类工位 D26 改口已合入并 push origin/agent
 | [D191](deferred-gaps.md) | B Agents Activity reveal catch | **closed** `2bc77426082`；executeCommand reject 无未处理 rejection；merge 20 passing |
 | [D192](deferred-gaps.md) | A 草稿换目录信任 catch | **closed** `d72003f13eb`；getUriTrustInfo reject 无未处理 rejection；merge 52 passing |
 | [D193](deferred-gaps.md) | B Agents Open Connection catch | **closed** `cd87c9623fb`；executeCommand reject 无未处理 rejection；merge 51 passing |
-| [D194](deferred-gaps.md) | E 假造麦克风 / Route UI | **仍开** 只登记；原 E/D45，loop 已用 D45 收 host-open-catch |
+| [D194](deferred-gaps.md) | A 假造麦克风 / Route UI | **closed** 删假 mic 流水线与假 Route SelectBox / `routeIndex`；OV 跟进删断连 Stub agent / Stub model；测断言假造不存在。引擎仍无 voice/route RPC，不发明 |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）

@@ -3,7 +3,7 @@ title: "Conversation session 窗口与 chat tab"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-07
+updated: 2026-09-10
 summary: "PRD-016 / ADR-002 的系统规格：Part 内最多两叶 session 窗口；fork / 子代理 catalog（GC-4 观察 liveAgentTree；接通后 Fork 转 AgentService.Fork；接通后 killSubAgent / Kill 动作转 AgentService.Kill，空 agentId 不默认 root）；overlay、面包屑、导航栈、split"
 ---
 
@@ -15,7 +15,7 @@ summary: "PRD-016 / ADR-002 的系统规格：Part 内最多两叶 session 窗�
 
 ```text
 CONVERSATION_PART
-├── sessionBar（Part 级窗口 chrome：SelectBox、←→、关非根、Route、hide −）
+├── sessionBar（Part 级窗口 chrome：SelectBox、←→、关非根、hide −）
 └── sessionWindowGrid
     ├── leaf[primary]  session A ── Conversation IEditorPart
     │                               ├── CONVERSATION_GROUP: [root tab] [fork tab] [sub-agent tab]

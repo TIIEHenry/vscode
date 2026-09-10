@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-09-09
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / D131 / D133–D193 已闭；D194 麦克风与 Route 假造 UI；gate-recovery 已合入；D25/D26 同源（store 迁移卡死，report 已交接，禁改引擎仓代码）；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+updated: 2026-09-10
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / D131 / D133–D193 / D194 已闭；D194 假麦克风与假 Route 已删，断连 Stub agent/Stub model 已删；gate-recovery 已合入；D25/D26 同源（store 迁移卡死，report 已交接，禁改引擎仓代码）；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -207,7 +207,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D45–D90 / D92–D129 / 
 | D192 | P3 | **草稿换 cwd `void _changeWorkingDirectory` 无 catch** → `getUriTrustInfo` reject 漏 | A `d72003f13eb` 三处 `.catch(onUnexpectedError)`。merge 复测 provisional 52 passing。未改 `_queue` / 信任语义 | trust reject 无未处理 rejection | workbench | closed |
 | D193 | P3 | **Agents 断连 Open Connection `executeCommand` 无 catch** → 开 Connection 页 reject 漏 | B `cd87c9623fb` 两处 `.catch(onUnexpectedError)`。merge 复测 catalog 51 passing。未改其它 catalog 节 | Open Connection reject 无未处理 rejection | conversation | closed |
 | D167 | P3 | **桌面布局 `void openView/openViewContainer` 无 catch** → 视图打开 reject 漏 | D `f535773c208` 7 处 `.catch(onUnexpectedError)`。merge 复测 layout 140 passing | untitled/restore reject 无未处理 rejection | sessions | closed |
-| D194 | P2 | **Composer 麦克风与 Route 下拉是假造 UI，且有测试在锁定这份假造**。麦克风：`contrib/conversation` 全树 `getUserMedia` / `MediaRecorder` / `mediaDevices` **0 处命中**；按钮只要引擎连上就 `enabled = true`（`conversationLensComposer.ts`）；`durationLabel` 硬编码 `'0:01'`；`finishVoiceClip` 在 30ms 后把 `STUB_VOICE_TRANSCRIPT_PHRASES` 里的预设台词写进草稿，形同用户说过话；`conversationLens.test.ts` 断言点完麦克风后输入框等于 `conversationLensVoiceStubPhraseOne`——**测试在验证假造能工作**。`IUniverseAgentConnection` 无任何语音/转写方法，capability key 也没有对应项，即没有可接的真实后端。Route 下拉：`routeIndex` 只在 dock 与 sessionBar 两个 SelectBox 之间互相回显，从不进引擎；选项文案本身写着 "Stub Balanced / Speed / Quality" | **用户裁定 @2026-09-07**：本刀只登记不动代码。E 原登记为 D45，loop 已用 D45 收 host-open-catch，故改号。整套横跨 7 个文件（含专用转写条 `conversationVoiceTranscriptBar.ts`） | 麦克风：**要么**删整条流水线（按钮 + 转写条 + 预设台词 + 那条锁定假造的测试），**要么**门控到真实引擎转写 capability 之后再放开；不接受「按钮可点但产出预设文案」。Route：**要么** `routeIndex` 真的进引擎请求，**要么**删控件；不接受「唯一作用是记住你点了哪一项」的控件。任一路径都须有测试断言**不存在**预设台词写入草稿 | UI / conversation | open |
+| D194 | P2 | **Composer 麦克风与 Route 下拉是假造 UI**（原登记）。**本切片已闭**：删整条假麦克风流水线与 dock/sessionBar Route SelectBox / `routeIndex`。**OV 跟进已闭**：断连 Agent 只留「No agent」（删 Stub agent）；Model 只留「No model」（无 Stub model）；`sendDockDraft` / 发送不再 `select` 假模型 index 1。**残留（非假造 UI）**：`IUniverseAgentConnection` 仍无 voice/transcript 方法与 routeIndex RPC；将来若产品要真语音/Route，须先有引擎 capability | 用户裁定 DELETE。工位 A `loop/A` 按删流水线 / 删 Route / 删断连 Stub agent·model 落地；未发明引擎 RPC | 麦克风/Route 假造 UI 与锁定假造的测试均不存在；断连 composer 无 Stub agent / Stub model；conversation contrib 无 `getUserMedia` / stub phrase / `'0:01'` 假转写路径 | UI / conversation | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 

@@ -3,7 +3,7 @@ title: "Conversation 透镜组装：零件如何嵌进 CONVERSATION_PART"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-05
+updated: 2026-09-10
 summary: "三槽自研 chrome 冻结；ConversationLens 门面仍在 conversationLens.ts，GFS-3 拆 projection/sessionBar/dock/composer/composerChrome + residue（readingColumn/sessionBinding）同级模块；timeline 仍 ConversationTimelineTree；PRD-015/016 已落；禁止 ChatWidget 整块；3a → conversation-stream-timeline（accepted）"
 ---
 
@@ -38,7 +38,7 @@ Part 级窗口 chrome（SelectBox、←→、关非根 tab）在 `ConversationPa
 
 | 槽 | 今天（已落地） | 所有权 |
 |----|----------------|--------|
-| `sessionBar?` | 「对话｜轨迹」透镜 tab、标题 rename、session `SelectBox`、New、Delete、Active Route；History→No history | **必须自研**（根 tab；overlay 无此槽） |
+| `sessionBar?` | 「对话｜轨迹」透镜 tab、标题 rename、session `SelectBox`、New、Delete；History→No history | **必须自研**（根 tab；overlay 无此槽） |
 | `timeline` | `ConversationTimelineTree` + markdown + `ConversationConfirmationSeat` | chrome 自研；**禁止**整棵 `ChatListWidget` |
 | `dock` | textarea + Send + Inbox 状态 + Maximize input（列内 `setInputMaximized`） | **必须自研表面** |
 
@@ -58,9 +58,9 @@ Part 级窗口 chrome（SelectBox、←→、关非根 tab）在 `ConversationPa
 | `conversationLensProjection.ts` | `applySessionViewTimeline`、`updateSyncChrome` / `updateConversationPhase` / `updateReadingColumn`、`refreshTrajectoryRecords`、透镜 tab 状态（`setLensId` / `updateLensTabs`）、轨迹↔时间线互跳 |
 | `conversationLensReadingColumn.ts` | `mountTimeline`（阅读列 DOM、identity strip、timeline 挂载）、`bindReadingColumnLayout`、密度 / 宽度布局 |
 | `conversationLensSessionBinding.ts` | `bindSessionView` / `applyActiveSession`、lease 帧订阅与 coalescer、`renderInboxStatus`、turn 动作（copy / delete / cancel / visualize / focus） |
-| `conversationLensSessionBar.ts` | `mountSessionBar`（含透镜 tab DOM）、session select、Active Route、标题 rename、New / Delete |
+| `conversationLensSessionBar.ts` | `mountSessionBar`（含透镜 tab DOM）、session select、标题 rename、New / Delete |
 | `conversationLensDock.ts` | `mountDock`（Dock 槽：composer cluster、Inbox overlay、Send 绑定等） |
-| `conversationLensComposer.ts` | `postBound` / `submitDraft`、`saveTurnEdit` / `saveQueueEdit`、draft 读写、voice、composer catalog |
+| `conversationLensComposer.ts` | `postBound` / `submitDraft`、`saveTurnEdit` / `saveQueueEdit`、draft 读写、composer catalog |
 | `conversationLensComposerChrome.ts` | Send / gate / maximize、context views（Add/Tune/More/Templates）、edit chrome、input history、session config selects |
 
 i18n 字符串另抽出 `conversationLensDockStrings.ts` / `conversationLensSessionBarStrings.ts`（纯搬迁，不改语义）。
@@ -98,11 +98,11 @@ i18n 字符串另抽出 `conversationLensDockStrings.ts` / `conversationLensSess
 
 `ChatInputPart` 是 donor 对照，不是 Dock 合同。外仓条款只链 §8.3，本文不发明例外。
 
-**已落地（[PRD-015](../../product/requirements.md#prd-015-conversation-空会话与输入面) / [conversation-empty-hero](../../../dev/plans/conversation-empty-hero.md)，`ea0104c0`–`d4064ba0` T1–T6）：** PreFirst 居中 Composer + `ConversationIdentityStrip`、无 Inbox；Active Composer BottomDocked（32px 底栏）；Agent/Route XOR（PreFirst 在 Composer、Active Route 在 SessionBar）；Inbox 左右分簇且 Task 左于 MessageQueue。Dock 槽仍是自研表面，不是 `ChatInputPart`。
+**已落地（[PRD-015](../../product/requirements.md#prd-015-conversation-空会话与输入面) / [conversation-empty-hero](../../../dev/plans/conversation-empty-hero.md)，`ea0104c0`–`d4064ba0` T1–T6；D194 后无假 Route / 假麦克风）：** PreFirst 居中 Composer + `ConversationIdentityStrip`、无 Inbox；Active Composer BottomDocked（32px 底栏）；Agent XOR（PreFirst 在 Composer）；Inbox 左右分簇且 Task 左于 MessageQueue。Dock 槽仍是自研表面，不是 `ChatInputPart`。
 
 ## 5. SessionBar
 
-**已落地、保持自研。** 不在此做 Settings 齿轮。与 Navigator roster 共用同一会话服务（见 [session-roster-reuse.md](session-roster-reuse.md)），今天是 `IConversationRosterService`（decorator id 仍 `'conversationStubService'`）内存标题；引擎后换 UA session，不换槽位。SelectBox 去留 **Deferred**（父方案 §1.4）。Active **Route** 下拉在 SessionBar（PRD-015 T3）。身份条在 PreFirst 居中区 / Active 阅读列顶，不进 SessionBar。
+**已落地、保持自研。** 不在此做 Settings 齿轮。与 Navigator roster 共用同一会话服务（见 [session-roster-reuse.md](session-roster-reuse.md)），今天是 `IConversationRosterService`（decorator id 仍 `'conversationStubService'`）内存标题；引擎后换 UA session，不换槽位。SelectBox 去留 **Deferred**（父方案 §1.4）。无引擎 `routeIndex` 时 **不画** Route 下拉（D194）。身份条在 PreFirst 居中区 / Active 阅读列顶，不进 SessionBar。
 
 ## 6. 分阶段
 
@@ -141,4 +141,4 @@ i18n 字符串另抽出 `conversationLensDockStrings.ts` / `conversationLensSess
 
 2026-09-05 GFS-3 诚实同步：新增 §2.1（门面 `conversationLens.ts` + projection / sessionBar / dock / composer / composerChrome 同级模块）；§2 槽宿主改为 EditorPane + 可选 `sessionBar?`；重申三槽冻结与 timeline 仍 `ConversationTimelineTree`；不发明 compile/smoke 证据。审查后改：职责表补 `refreshTrajectoryRecords` / Route / save*；GFS 验收指针 §6；门面 ~949 行残留注记。
 
-2026-09-05 GFS-3 residue 诚实同步：§2.1 补 `conversationLensReadingColumn.ts` / `conversationLensSessionBinding.ts`；门面 783 行 @ `533fc6c42d5`。
+2026-09-10 D194：删假麦克风流水线与假 Route SelectBox；§2 / §2.1 / §4 / §5 改口。
