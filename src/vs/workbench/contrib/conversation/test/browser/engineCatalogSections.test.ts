@@ -60,10 +60,19 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		removeMcpServer?: (request: UniverseAgentRemoveMcpServerRequest) => Promise<{ ok: boolean }>;
 		toggleMcpServer?: (request: UniverseAgentToggleMcpServerRequest) => Promise<UniverseAgentToggleMcpServerResult>;
 		getToolInfo?: (request: UniverseAgentToolInfoRequest) => Promise<UniverseAgentToolInfoResult>;
-	} = {}): IUniverseAgentConnection & { setConnected(value: boolean): void } {
+	} = {}): IUniverseAgentConnection & {
+		setConnected(value: boolean): void;
+		setMcpSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
+	} {
+		const emptyCapabilities = createEmptyCapabilitySnapshot();
+		const mcpCapability = {
+			...emptyCapabilities.mcp,
+			...options.capabilities?.mcp,
+		};
 		const capabilities: UniverseAgentCapabilitySnapshot = {
-			...createEmptyCapabilitySnapshot(),
+			...emptyCapabilities,
 			...options.capabilities,
+			mcp: mcpCapability,
 		};
 		let connected = options.connected ?? false;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
@@ -149,6 +158,10 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
 			setConnected(value: boolean) {
 				connected = value;
+				onDidChangeConnection.fire(snapshot());
+			},
+			setMcpSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
+				mcpCapability.support = support;
 				onDidChangeConnection.fire(snapshot());
 			},
 		};
@@ -1399,6 +1412,34 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(section.getListEntryCount(), 0);
 		assertFailedCatalogHonesty(section, MCP_FEATURE, 'listMcpServers retry exploded');
 		assert.ok(!/Demo MCP/i.test(section.getDomNode().textContent ?? ''));
+	});
+
+	test('MCP: successful load then capability UNKNOWN clears leftover rows before loading', async () => {
+		let listMcpServersCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => {
+				listMcpServersCalls++;
+				return { servers: [demoMcpServer()] };
+			},
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		const listCallsAfterLoad = listMcpServersCalls;
+
+		connection.setMcpSupport('UNKNOWN');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'loading');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(listMcpServersCalls, listCallsAfterLoad);
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
 	});
 
 	function demoMcpServer() {

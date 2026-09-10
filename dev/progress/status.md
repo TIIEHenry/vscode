@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 关仓：A–D 四槽已合入 merge。D197 / D199–D204 已闭；D205 仍开。待一路 compile。"
+summary: "loop 关仓：A–D 四槽已合入 merge。D197 / D199–D204 / D206 已闭；D205 仍开。待一路 compile。"
 ---
 
 # Development Progress
@@ -46,7 +46,7 @@ summary: "loop 关仓：A–D 四槽已合入 merge。D197 / D199–D204 已闭�
 |:---|:-----|:-----|
 | **A** | conversation-fork-unknown-honesty | 已进 merge `5fc3c8ca092`；[D202](deferred-gaps.md)/[D204](deferred-gaps.md) 已闭 |
 | **B** | navigator-inspect-lease-honesty | 已进 merge `b77177da870`；[D197](deferred-gaps.md) 已闭；[D205](deferred-gaps.md) |
-| **C** | session-delete-draft-rollback | 已进 merge `d65c1afeb73`；[D203](deferred-gaps.md) 已闭；勿 add `dev/loop` |
+| **C** | mcp-catalog-unknown-leftover | 本刀 MCP UNKNOWN 先清行再 loading；[D206](deferred-gaps.md) 已闭；勿 add `dev/loop` |
 | **D** | catalog-defaults-unknown-triggers | 已进 merge `3664ea9249e`；[D199](deferred-gaps.md)–[D201](deferred-gaps.md) 已闭 |
 
 <details>
