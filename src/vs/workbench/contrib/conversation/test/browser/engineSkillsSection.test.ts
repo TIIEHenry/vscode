@@ -938,7 +938,7 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.strictEqual(ok, false);
 	});
 
-	test('successful refresh reloads selected skill body and drops stale content', async () => {
+	test('successful refresh then getSkillInfo throw keeps leftover body and paints load-failed', async () => {
 		let getSkillInfoCalls = 0;
 		const connection = createConnectionStub({
 			connected: true,
@@ -983,9 +983,9 @@ suite('EngineSkillsSection (E1)', () => {
 		)));
 		const textarea = section.getDomNode().querySelector('.engine-skill-body-input textarea') as HTMLTextAreaElement | null;
 		assert.ok(textarea);
-		assert.ok(!textarea.value.includes('# Stale skill body'));
-		assert.ok(!section.getSelectedSkillBody().includes('# Stale skill body'));
-		assert.ok(!(section.getDomNode().textContent ?? '').includes('# Stale skill body'));
+		assert.ok(textarea.value.includes('# Stale skill body'));
+		assert.ok(section.getSelectedSkillBody().includes('# Stale skill body'));
+		assert.ok((section.getDomNode().textContent ?? '').includes('# Stale skill body'));
 	});
 
 	test('successful body then list throw then select leftover keeps body text', async () => {

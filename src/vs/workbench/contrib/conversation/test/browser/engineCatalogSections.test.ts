@@ -76,6 +76,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		setMcpSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setAgentProfilesSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setToolsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
+		clearGetToolInfo(): void;
 	} {
 		const emptyCapabilities = createEmptyCapabilitySnapshot();
 		const mcpCapability = {
@@ -98,6 +99,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			tools: toolsCapability,
 		};
 		let connected = options.connected ?? false;
+		let getToolInfo = options.getToolInfo;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
@@ -176,7 +178,9 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			updateMcpServer: options.updateMcpServer ?? (async () => ({ ok: true })),
 			removeMcpServer: options.removeMcpServer ?? (async () => ({ ok: true })),
 			listTools: options.listTools ?? (async () => ({ tools: [] })),
-			getToolInfo: options.getToolInfo,
+			get getToolInfo() {
+				return getToolInfo;
+			},
 			listModels: async () => ({ models: [] }),
 			probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
 			setConnected(value: boolean) {
@@ -194,6 +198,9 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			setToolsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
 				toolsCapability.support = support;
 				onDidChangeConnection.fire(snapshot());
+			},
+			clearGetToolInfo() {
+				getToolInfo = undefined;
 			},
 		};
 	}
@@ -582,7 +589,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(parent.querySelector('textarea'), null);
 	});
 
-	test('Tools: successful refresh reloads selected tool info and drops stale detail', async () => {
+	test('Tools: successful refresh then getToolInfo throw keeps leftover detail and paints failed', async () => {
 		let getToolInfoCalls = 0;
 		const connection = createConnectionStub({
 			connected: true,
@@ -626,7 +633,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			'ua.engineToolsInfoFailed',
 			"Could not load tool details from the engine.",
 		)));
-		assert.ok(!detail.includes('Run a command'));
+		assert.ok(detail.includes('Run a command'));
 	});
 
 	test('Tools: missing getToolInfo hook explains the detail API is unavailable', async () => {
@@ -648,6 +655,43 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		await flushMicrotasks();
 		assert.strictEqual(section.isToolInfoVisible(), true);
 		assert.ok((section.getToolInfoDetailText() ?? '').includes('does not expose'));
+	});
+
+	test('Tools: live paint then missing getToolInfo keeps leftover detail and paints unavailable', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => ({ tools: [{ name: 'bash', description: 'list desc', category: 'shell' }] }),
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+			}),
+			getToolInfo: async (request) => ({
+				name: request.toolName,
+				description: 'Run a command',
+				category: 'shell',
+				destructive: false,
+				requiresPermission: false,
+				aliases: [],
+			}),
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.selectTool('bash'), true);
+		await flushMicrotasks();
+		assert.ok((section.getToolInfoDetailText() ?? '').includes('Run a command'));
+
+		connection.clearGetToolInfo();
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		const detail = section.getToolInfoDetailText() ?? '';
+		assert.ok(detail.includes('Run a command'));
+		assert.ok(detail.includes('does not expose'));
+		assert.strictEqual(section.isToolInfoVisible(), true);
 	});
 
 	test('Tools: listTools reject is failed with error status and no fake catalog', async () => {
@@ -1539,7 +1583,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assertAgentToolsUnknownCapabilityHonesty(section, 1);
 	});
 
-	test('Agents: instructions tab refresh reloads editor and paints load-failed without leftover markdown', async () => {
+	test('Agents: instructions tab refresh then saveAgentProfile throw keeps leftover markdown and paints load-failed', async () => {
 		let listAgentProfilesCalls = 0;
 		let saveCalls = 0;
 		const connection = createConnectionStub({
@@ -1587,7 +1631,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			'ua.engineAgentsMdLoadFailed',
 			"Could not load AGENTS.md from the engine.",
 		)));
-		assert.ok(!section.getAgentsMarkdownValue().includes('Stale agents md'));
+		assert.ok(section.getAgentsMarkdownValue().includes('Stale agents md'));
 		assert.strictEqual(section.getMode(), 'ready');
 		assert.strictEqual(section.getListEntryCount(), 1);
 		assert.ok((section.getDomNode().textContent ?? '').includes('Demo Agent'));

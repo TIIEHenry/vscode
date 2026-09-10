@@ -579,7 +579,7 @@ export class EngineToolsSection extends Disposable {
 			this.renderStatus();
 			if (selectedToolName) {
 				this.selectedToolName = selectedToolName;
-				this.clearToolInfo();
+				// D275: keep leftover detail while the next getToolInfo is in-flight.
 				void this.loadToolInfo(selectedToolName);
 			}
 		} catch (error) {
@@ -653,7 +653,22 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	private hasLeftoverToolInfo(): boolean {
-		return this.isToolInfoVisible() && !!(this.infoHost.textContent?.trim());
+		return this.isToolInfoVisible() && !!this.infoHost.querySelector('.engine-tools-info-name');
+	}
+
+	private paintToolInfoHonesty(message: string): void {
+		if (this.hasLeftoverToolInfo()) {
+			let status = this.infoHost.querySelector('.engine-tools-info-status') as HTMLElement | null;
+			if (!status) {
+				status = DOM.append(this.infoHost, $('.engine-tools-info-status'));
+				status.setAttribute('role', 'status');
+			}
+			status.textContent = message;
+			this.infoHost.style.display = '';
+			return;
+		}
+		this.infoHost.textContent = message;
+		this.infoHost.style.display = '';
 	}
 
 	private async loadToolInfo(toolName: string): Promise<void> {
@@ -669,8 +684,7 @@ export class EngineToolsSection extends Disposable {
 		}
 		if (!this.connection.getToolInfo) {
 			this.infoLoadGeneration++;
-			this.infoHost.textContent = getEngineSectionApiUnavailableCopy(TOOL_DETAIL_FEATURE);
-			this.infoHost.style.display = '';
+			this.paintToolInfoHonesty(getEngineSectionApiUnavailableCopy(TOOL_DETAIL_FEATURE));
 			return;
 		}
 		const generation = ++this.infoLoadGeneration;
@@ -684,8 +698,7 @@ export class EngineToolsSection extends Disposable {
 			if (generation !== this.infoLoadGeneration || this.selectedToolName !== toolName) {
 				return;
 			}
-			this.infoHost.textContent = localize('ua.engineToolsInfoFailed', "Could not load tool details from the engine.");
-			this.infoHost.style.display = '';
+			this.paintToolInfoHonesty(localize('ua.engineToolsInfoFailed', "Could not load tool details from the engine."));
 		}
 	}
 

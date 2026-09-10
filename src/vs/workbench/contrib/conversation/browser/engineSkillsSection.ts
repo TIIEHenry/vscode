@@ -691,7 +691,11 @@ export class EngineSkillsSection extends Disposable {
 			return;
 		}
 		const generation = ++this.bodyLoadGeneration;
-		this.bodyInput.value = '';
+		// D275: keep leftover body while the detail RPC is in-flight. First-pull empty still clears.
+		const hasLeftoverBody = !!(this.loadedBodyText || this.bodyInput.value);
+		if (!hasLeftoverBody) {
+			this.bodyInput.value = '';
+		}
 		this.showBodyStatus(getCatalogListLoadingCopy());
 		try {
 			const info = await this.connection.getSkillInfo({ skillName: skill.name });
@@ -711,10 +715,12 @@ export class EngineSkillsSection extends Disposable {
 			if (generation !== this.bodyLoadGeneration || this.selectedSkill?.name !== skill.name) {
 				return;
 			}
-			this.loadedBodySource = undefined;
-			this.bodyInput.value = '';
-			this.bodyInput.inputElement.readOnly = true;
-			this.bodyToolbar.style.display = 'none';
+			if (!hasLeftoverBody) {
+				this.loadedBodySource = undefined;
+				this.bodyInput.value = '';
+				this.bodyInput.inputElement.readOnly = true;
+				this.bodyToolbar.style.display = 'none';
+			}
 			this.showBodyStatus(localize('ua.engineSkillBodyLoadFailed', "Could not load skill content from the engine."));
 		}
 	}
