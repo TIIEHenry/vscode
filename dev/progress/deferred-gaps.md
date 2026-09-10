@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-10
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D233 已闭；D230–D233 catalog leftover；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D233 / D236 已闭；D230–D233 catalog leftover；D236 Team leftover；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -247,6 +247,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D233 已闭；D230
 | D231 | P3 | **closed** Skills `refresh()` catch 在活画后不再 `clearCatalogPresentation()`（D226/D225 同胞；不再走 D49 空失败）。成功后再 `listSkills` throw 保 leftover 行并画 failed；首拉 throw 仍 empty+failed。不得画「No skills yet.」接通空成功。未占 Plugins/MCP/Agents/Tools/connection/navigator / proto / 引擎仓 | 工位 B `skills-list-leftover` 已收 | 成功→listSkills throw leftover 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；补 `engineSkillsSection.test.ts` | conversation / skills | closed |
 | D232 | P3 | **closed** MCP Definitions `refresh()` catch 在活画后不再 `clearCatalogPresentation()`（D226 / D225 同胞；不再走 D49 空失败）。成功后再 `listMcpServers` throw 保 leftover 行并画 failed；首拉 throw 仍 empty+failed。不得画「No MCP servers yet.」接通空成功。未占 MCP Runtime（D227）/ Skills/Plugins/Agents/Tools / connection pane / navigator / proto / 引擎仓 | 工位 C `mcp-defs-list-leftover` 已收 | 成功→list throw leftover 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；补 `engineCatalogSections.test.ts` | conversation / mcp-definitions | closed |
 | D233 | P3 | **closed** Agents `refresh()` catch 在活画后不再 `clearCatalogPresentation()`（D226 / D225 同胞；不再走 D46 空失败）。成功后再 `listAgentProfiles` throw 保 leftover 行并画 failed；首拉 throw 仍 empty+failed。不得画「No agent profiles yet.」接通空成功。未重做 markdown listed 闸（D223）；未占 Tools / MCP / Skills / Plugins / connection pane / navigator / proto / 引擎仓 | 工位 D `agents-list-leftover` 已收 | 成功→list throw leftover 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；补 `engineCatalogSections.test.ts` | conversation / agents | closed |
+| D236 | P3 | **closed** Team `refreshTeamData()` catch 在活画后不再 `setMemberEntries([], TEAM_FETCH_FAILED_COPY)` + `setTaskEntries([], …)` 把 leftover 卸掉（D53 已闭为清 leftover；本波与 D225/D229 对齐为保 leftover + failed note）。成功后再 `memberStatus` / `taskList` throw 保 leftover 行并画失败 note；首拉 throw 仍 empty+failed。不得装首拉空失败或「无成员」空成功。未占 Hierarchy fetch-fail（D229）/ Team `treeEmpty` / pending wipe / catalog / connection / proto / 引擎仓 / D22 / D26 / A2 / mic·Route | 工位 C `team-refresh-leftover` 已收 | 成功→throw leftover 行仍在 + failed note；不得装空失败/「无成员」空成功；首拉 throw 仍 empty+failed；补 `navigatorTeamSubviews.test.ts` | navigator / team | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 

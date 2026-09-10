@@ -389,7 +389,7 @@ suite('Navigator Team subviews', () => {
 		assert.strictEqual(membersEmpty?.textContent, TEAM_NEVER_CONNECTED_COPY);
 	});
 
-	test('successful Team load then memberStatus throw clears leftover rows and writes a failure note', async () => {
+	test('successful Team load then memberStatus throw keeps leftover rows and writes a failure note', async () => {
 		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
 		roster.setEngineConnected(true);
 		let memberStatusCalls = 0;
@@ -421,16 +421,29 @@ suite('Navigator Team subviews', () => {
 
 		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList;
 		const tasksList = (view as unknown as { tasksList: WorkbenchList<{ id: string; label: string }> }).tasksList;
-		assert.strictEqual(membersList.length, 1);
-		assert.ok(membersList.element(0)?.label.includes('Alice'));
+		const leftoverMemberCount = membersList.length;
+		const leftoverTaskCount = tasksList.length;
+		assert.ok(leftoverMemberCount > 0, 'live paint must have leftover member rows');
 		assert.ok(inspectService.getLiveAgentIds()?.has('member:1'));
+		const liveEmpty = view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty') as HTMLElement | null;
+		const liveList = view.element.querySelector('.navigator-team-subview.active .navigator-team-list') as HTMLElement | null;
+		assert.ok(liveEmpty);
+		assert.ok(liveList);
+		assert.notStrictEqual(liveEmpty.style.display, 'block', 'live paint must not already look empty');
+		assert.notStrictEqual(liveList.style.display, 'none', 'live paint must show leftover member list');
 
 		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
 
-		assert.strictEqual(membersList.length, 0);
-		assert.strictEqual(tasksList.length, 0);
-		const membersEmpty = view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty');
-		assert.strictEqual(membersEmpty?.textContent, TEAM_FETCH_FAILED_COPY);
+		assert.strictEqual(membersList.length, leftoverMemberCount, 'memberStatus throw must keep leftover member rows');
+		assert.strictEqual(tasksList.length, leftoverTaskCount, 'memberStatus throw must keep leftover task rows');
+		const membersEmpty = view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty') as HTMLElement | null;
+		const membersListEl = view.element.querySelector('.navigator-team-subview.active .navigator-team-list') as HTMLElement | null;
+		assert.ok(membersEmpty);
+		assert.ok(membersListEl);
+		assert.notStrictEqual(membersEmpty.style.display, 'block', 'leftover must not be painted as first-pull empty-fail or empty success');
+		assert.notStrictEqual(membersListEl.style.display, 'none', 'leftover member list must stay visible');
+		assert.notStrictEqual(membersEmpty.textContent, TEAM_MEMBERS_EMPTY_COPY);
+		assert.notStrictEqual(membersEmpty.textContent, TEAM_FETCH_FAILED_COPY);
 		const note = view.element.querySelector('.navigator-team-subview.active .navigator-stub-note') as HTMLElement | null;
 		assert.ok(note);
 		assert.strictEqual(note.style.display, 'block');
@@ -441,7 +454,7 @@ suite('Navigator Team subviews', () => {
 		assert.strictEqual(leftoverIds.size, 0);
 	});
 
-	test('successful Team load then taskList throw clears leftover rows and writes a failure note', async () => {
+	test('successful Team load then taskList throw keeps leftover rows and writes a failure note', async () => {
 		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
 		roster.setEngineConnected(true);
 		let taskListCalls = 0;
@@ -460,7 +473,15 @@ suite('Navigator Team subviews', () => {
 				taskList: async () => {
 					taskListCalls++;
 					if (taskListCalls === 1) {
-						return [];
+						return [{
+							taskId: 't1',
+							subject: 'Leftover task',
+							owner: 'Alice',
+							status: 'OPEN',
+							blockedBy: '',
+							lastMessage: '',
+							description: '',
+						}];
 					}
 					throw new Error('taskList boom');
 				},
@@ -472,15 +493,26 @@ suite('Navigator Team subviews', () => {
 		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
 
 		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList;
-		assert.strictEqual(membersList.length, 1);
-		assert.ok(membersList.element(0)?.label.includes('Alice'));
+		const tasksList = (view as unknown as { tasksList: WorkbenchList<{ id: string; label: string }> }).tasksList;
+		const leftoverMemberCount = membersList.length;
+		const leftoverTaskCount = tasksList.length;
+		assert.ok(leftoverMemberCount > 0, 'live paint must have leftover member rows');
+		assert.ok(leftoverTaskCount > 0, 'live paint must have leftover task rows');
 		assert.ok(inspectService.getLiveAgentIds()?.has('member:1'));
 
 		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
 
-		assert.strictEqual(membersList.length, 0);
-		const membersEmpty = view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty');
-		assert.strictEqual(membersEmpty?.textContent, TEAM_FETCH_FAILED_COPY);
+		assert.strictEqual(membersList.length, leftoverMemberCount, 'taskList throw must keep leftover member rows');
+		assert.strictEqual(tasksList.length, leftoverTaskCount, 'taskList throw must keep leftover task rows');
+		view.showTasks();
+		const tasksEmpty = view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty') as HTMLElement | null;
+		const tasksListEl = view.element.querySelector('.navigator-team-subview.active .navigator-team-tasks-list') as HTMLElement | null;
+		assert.ok(tasksEmpty);
+		assert.ok(tasksListEl);
+		assert.notStrictEqual(tasksEmpty.style.display, 'block', 'leftover must not be painted as first-pull empty-fail or empty success');
+		assert.notStrictEqual(tasksListEl.style.display, 'none', 'leftover task list must stay visible');
+		assert.notStrictEqual(tasksEmpty.textContent, TEAM_TASKS_EMPTY_COPY);
+		assert.notStrictEqual(tasksEmpty.textContent, TEAM_FETCH_FAILED_COPY);
 		const note = view.element.querySelector('.navigator-team-subview.active .navigator-stub-note') as HTMLElement | null;
 		assert.ok(note);
 		assert.strictEqual(note.style.display, 'block');
