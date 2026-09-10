@@ -1553,7 +1553,29 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assertMcpLeftoverFailedHonesty(section, 'listMcpServers retry exploded', 1);
 	});
 
-	test('MCP: successful load then capability UNKNOWN clears leftover rows before loading', async () => {
+	function assertMcpUnknownCapabilityHonesty(
+		section: EngineMcpSection,
+		expectedRows: number,
+	): void {
+		assert.strictEqual(section.getMode(), 'loading');
+		assert.strictEqual(section.getListEntryCount(), expectedRows);
+		assert.strictEqual(section.canWrite(), false);
+		const listContainer = section.getDomNode().querySelector('.engine-catalog-list') as HTMLElement;
+		assert.ok(listContainer);
+		if (expectedRows > 0) {
+			assert.notStrictEqual(listContainer.style.display, 'none');
+		} else {
+			assert.strictEqual(listContainer.style.display, 'none');
+		}
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		assert.ok(status.textContent?.includes(getCatalogUnknownCopy()));
+		assert.ok(!(status.textContent ?? '').includes(getCatalogListLoadingCopy()));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(MCP_EMPTY_COPY));
+	}
+
+	test('MCP: successful load then capability UNKNOWN keeps leftover rows and paints capability loading', async () => {
 		let listMcpServersCalls = 0;
 		const connection = createConnectionStub({
 			connected: true,
@@ -1568,17 +1590,32 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 		assert.strictEqual(section.getMode(), 'ready');
 		assert.ok(section.getListEntryCount() > 0);
+		const leftoverRows = section.getListEntryCount();
 		const listCallsAfterLoad = listMcpServersCalls;
 
 		connection.setMcpSupport('UNKNOWN');
 		await flushMicrotasks();
 
-		assert.strictEqual(section.getMode(), 'loading');
-		assert.strictEqual(section.getListEntryCount(), 0);
 		assert.strictEqual(listMcpServersCalls, listCallsAfterLoad);
-		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
-		assert.ok(status);
-		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		assert.ok(section.getListEntryCount() > 0);
+		assertMcpUnknownCapabilityHonesty(section, leftoverRows);
+	});
+
+	test('MCP: first-pull capability UNKNOWN is empty with capability loading', async () => {
+		let listMcpServersCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'UNKNOWN' } },
+			listMcpServers: async () => {
+				listMcpServersCalls++;
+				return { servers: [demoMcpServer()] };
+			},
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+
+		assertMcpUnknownCapabilityHonesty(section, 0);
+		assert.strictEqual(listMcpServersCalls, 0);
 	});
 
 	function assertAgentsUnknownCapabilityHonesty(

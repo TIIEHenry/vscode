@@ -44,7 +44,7 @@ summary: "loop 关仓：D250–D253 已合入；merge compile-client 0。待 pus
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | plugins-unknown-leftover | 已进 merge `a5ea70d3232`；[D250](deferred-gaps.md) 已闭 |
+| **A** | mcp-unknown-leftover | 本工位已收 [D254](deferred-gaps.md)；待 merge |
 | **B** | skills-unknown-leftover | 已进 merge `5c818823dac`；[D251](deferred-gaps.md) 已闭 |
 | **C** | provider-model-unknown-leftover | 已进 merge `02895938256`；[D252](deferred-gaps.md) 已闭；勿 add `dev/loop` |
 | **D** | agents-unknown-leftover | 已进 merge `039da2366bf`；[D253](deferred-gaps.md) 已闭 |

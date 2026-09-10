@@ -519,7 +519,14 @@ export class EngineMcpSection extends Disposable {
 		}
 
 		if (support === 'UNKNOWN') {
-			this.clearCatalogPresentation();
+			// Keep leftover server rows after a live paint (D254; D232).
+			const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'server');
+			if (!hadLiveCatalog) {
+				this.clearCatalogPresentation();
+			} else {
+				this.hideCatalogWriteStatus();
+				this.listContainer.style.display = '';
+			}
 			this.mode = resolveEngineCatalogPaneMode(true, support);
 			this.writeToolbar.style.display = 'none';
 			this.renderStatus({ loadingKind: 'capability' });
