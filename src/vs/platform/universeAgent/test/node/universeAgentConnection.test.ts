@@ -10111,7 +10111,7 @@ suite('UniverseAgentConnectionService', () => {
 
 		assert.strictEqual(service.getNavigatorCapability('sessionList'), 'SUPPORTED');
 		assert.strictEqual(service.getConnectionSnapshot().sessionListCapability, 'SUPPORTED');
-		assert.strictEqual('sessionList' in service.getCapabilitySnapshot(), false);
+		assert.strictEqual(Object.hasOwn(service.getCapabilitySnapshot(), 'sessionList'), false);
 		assert.ok(probed.some(call =>
 			call.service === UniverseAgentGrpcServices.Session.service
 			&& call.method === UniverseAgentGrpcServices.Session.List));

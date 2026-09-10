@@ -125,7 +125,7 @@ suite('universeAgentRendererSync', () => {
 		});
 		assert.strictEqual(cache.navigatorCapability('sessionList'), 'SUPPORTED');
 		assert.strictEqual(cache.snapshot.sessionListCapability, 'SUPPORTED');
-		assert.strictEqual('sessionList' in cache.capabilities, false);
+		assert.strictEqual(Object.hasOwn(cache.capabilities, 'sessionList'), false);
 		cache.applySnapshot({
 			transport: 'ok',
 			pairingPending: false,
