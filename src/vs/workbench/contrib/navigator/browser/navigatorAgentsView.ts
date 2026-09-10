@@ -483,7 +483,14 @@ export class NavigatorAgentsView extends ViewPane {
 			} else {
 				this.setHierarchyAfterPending(pendingCopy);
 			}
-			this.setActivityFromSnapshot(snapshot, lease?.attribution, undefined, treeFetchFailed);
+			const keepActivityLeftover = !treeFetchFailed
+				&& agentTreeCapability === 'UNKNOWN'
+				&& (this.hadActivitySnapshot || this.activityEntries.length > 0);
+			if (keepActivityLeftover) {
+				this.setActivityNote(pendingCopy);
+			} else {
+				this.setActivityFromSnapshot(snapshot, lease?.attribution, undefined, treeFetchFailed);
+			}
 			return;
 		}
 

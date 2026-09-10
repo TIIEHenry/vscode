@@ -835,6 +835,112 @@ suite('Navigator Agents subviews', () => {
 		assert.notStrictEqual(hierarchyEmpty.style.display, 'block', 'retained-tree fetch-fail leftover must not be painted as first-pull empty-fail');
 	});
 
+	test('successful Hierarchy load then agentTree UNKNOWN with retained liveTree keeps leftover nodes and marks loading', () => {
+		const roster = store.add(new RosterWithMutableTreeAndActivity());
+		roster.setEngineConnected(true);
+		let agentTreeCapability: 'SUPPORTED' | 'UNKNOWN' = 'SUPPORTED';
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => agentTreeCapability,
+			isAgentTreeFetchFailed: () => false,
+			onDidChangeConnection: onDidChangeConnection.event,
+		});
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountAgentsView(roster, connection, inspectService);
+
+		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> }).hierarchyTree;
+		assert.ok(hierarchyTree, 'live paint must have a hierarchy tree');
+		const leftoverCount = hierarchyTree.getNode(null)?.children.length ?? 0;
+		assert.ok(leftoverCount > 0, 'live paint must have leftover hierarchy nodes');
+		assert.ok(inspectService.getLiveAgentIds()?.has('root'), 'live paint must expose live agent ids');
+		const liveNote = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(liveNote);
+		assert.notStrictEqual(liveNote.style.display, 'block', 'live paint must not already look pending');
+
+		agentTreeCapability = 'UNKNOWN';
+		onDidChangeConnection.fire(connection.getConnectionSnapshot());
+
+		assert.ok(roster.liveTree, 'lease must still retain liveAgentTree');
+		const pendingCopy = getNavigatorAgentTreePendingCopy('UNKNOWN', roster.liveTree, false);
+		assert.ok(pendingCopy, 'UNKNOWN + retained tree must have pending copy');
+		assert.strictEqual(hierarchyTree.getNode(null)?.children.length ?? 0, leftoverCount, 'UNKNOWN leftover must keep leftover hierarchy nodes');
+		assert.strictEqual(inspectService.getLiveAgentIds(), undefined, 'UNKNOWN leftover must not be painted as live');
+		const pendingNote = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(pendingNote, 'UNKNOWN leftover must mark leftover hierarchy');
+		assert.strictEqual(pendingNote.style.display, 'block');
+		assert.strictEqual(pendingNote.textContent, pendingCopy);
+		assert.notStrictEqual(pendingNote.textContent, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY);
+		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
+		assert.ok(hierarchyEmpty);
+		assert.notStrictEqual(hierarchyEmpty.style.display, 'block', 'UNKNOWN leftover must not be painted as first-pull empty');
+	});
+
+	test('successful Activity load then agentTree UNKNOWN with retained liveTree keeps leftover rows and marks loading', () => {
+		const roster = store.add(new RosterWithMutableTreeAndActivity());
+		roster.setEngineConnected(true);
+		let agentTreeCapability: 'SUPPORTED' | 'UNKNOWN' = 'SUPPORTED';
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => agentTreeCapability,
+			isAgentTreeFetchFailed: () => false,
+			onDidChangeConnection: onDidChangeConnection.event,
+		});
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountAgentsView(roster, connection, inspectService);
+		view.showActivity();
+
+		const activityList = (view as unknown as { activityList: WorkbenchList<INavigatorAgentsActivityItem> }).activityList;
+		assert.ok(activityList, 'live paint must have an activity list');
+		const leftoverCount = activityList.length;
+		assert.ok(leftoverCount > 0, 'live paint must have leftover activity rows');
+		assert.ok(inspectService.getLiveAgentIds()?.has('root'), 'live paint must expose live agent ids');
+		const liveNote = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(liveNote);
+		assert.notStrictEqual(liveNote.style.display, 'block', 'live paint must not already look pending');
+
+		agentTreeCapability = 'UNKNOWN';
+		onDidChangeConnection.fire(connection.getConnectionSnapshot());
+
+		assert.ok(roster.liveTree, 'lease must still retain liveAgentTree');
+		const pendingCopy = getNavigatorAgentTreePendingCopy('UNKNOWN', roster.liveTree, false);
+		assert.ok(pendingCopy, 'UNKNOWN + retained tree must have pending copy');
+		assert.strictEqual(activityList.length, leftoverCount, 'UNKNOWN leftover must keep leftover activity rows');
+		assert.strictEqual(inspectService.getLiveAgentIds(), undefined, 'UNKNOWN leftover must not be painted as live');
+		const pendingNote = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(pendingNote, 'UNKNOWN leftover must mark leftover activity');
+		assert.strictEqual(pendingNote.style.display, 'block');
+		assert.strictEqual(pendingNote.textContent, pendingCopy);
+		assert.notStrictEqual(pendingNote.textContent, NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY);
+		const activityEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
+		assert.ok(activityEmpty);
+		assert.notStrictEqual(activityEmpty.style.display, 'block', 'UNKNOWN leftover must not be painted as empty success');
+	});
+
+	test('first-pull Hierarchy agentTree UNKNOWN stays empty with pending copy', () => {
+		const roster = store.add(new ConversationStubService());
+		roster.setEngineConnected(true);
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountAgentsView(roster, createNavigatorConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'UNKNOWN',
+			isAgentTreeFetchFailed: () => false,
+		}), inspectService);
+
+		const pendingCopy = getNavigatorAgentTreePendingCopy('UNKNOWN', undefined, false);
+		assert.ok(pendingCopy, 'first-pull UNKNOWN must have pending copy');
+		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
+		assert.ok(hierarchyEmpty);
+		assert.strictEqual(hierarchyEmpty.style.display, 'block');
+		assert.strictEqual(hierarchyEmpty.textContent, pendingCopy);
+		assert.ok(!hierarchyEmpty.textContent?.includes('no engine'));
+		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> | undefined }).hierarchyTree;
+		assert.strictEqual(hierarchyTree?.getNode(null)?.children.length ?? 0, 0, 'first-pull UNKNOWN must not install leftover nodes');
+		assert.strictEqual(inspectService.getLiveAgentIds(), undefined, 'first-pull UNKNOWN must not be painted as live');
+	});
+
 	test('pending after live Hierarchy paint keeps leftover nodes and marks pending', () => {
 		const roster = store.add(new RosterWithMutableTreeAndActivity());
 		roster.setEngineConnected(true);
