@@ -4,11 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentDeleteTriggerRequest, UniverseAgentFireTriggerRequest, UniverseAgentListTriggersRequest, UniverseAgentListTriggersResult, UniverseAgentSetTriggerEnabledRequest, UniverseAgentTrigger, UniverseAgentUpsertTriggerRequest } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentConnectionSnapshot, UniverseAgentDeleteTriggerRequest, UniverseAgentFireTriggerRequest, UniverseAgentListTriggersRequest, UniverseAgentListTriggersResult, UniverseAgentSetTriggerEnabledRequest, UniverseAgentTrigger, UniverseAgentUpsertTriggerRequest } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { ENGINE_TRIGGER_ADD_LABEL, ENGINE_TRIGGER_DELETE_LABEL, ENGINE_TRIGGER_DELETE_SUCCESS_COPY, ENGINE_TRIGGER_DISABLE_LABEL, ENGINE_TRIGGER_EDIT_LABEL, ENGINE_TRIGGER_ENABLE_LABEL, ENGINE_TRIGGER_FIRE_LABEL, formatEngineTriggerListLabel } from '../../browser/engineTriggerList.js';
+import { getCatalogFailedCopy } from '../../browser/engineCatalog.js';
+import { ENGINE_TRIGGER_ADD_LABEL, ENGINE_TRIGGER_DELETE_LABEL, ENGINE_TRIGGER_DELETE_SUCCESS_COPY, ENGINE_TRIGGER_DISABLE_LABEL, ENGINE_TRIGGER_EDIT_LABEL, ENGINE_TRIGGER_ENABLE_LABEL, ENGINE_TRIGGER_FIRE_LABEL, ENGINE_TRIGGER_LIST_EMPTY_COPY, ENGINE_TRIGGER_LIST_FEATURE, formatEngineTriggerListLabel } from '../../browser/engineTriggerList.js';
 import { EngineTriggersSection } from '../../browser/engineTriggersSection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 
@@ -99,7 +101,71 @@ suite('EngineTriggersSection', () => {
 		await flushMicrotasks();
 		assert.strictEqual(listTriggersCalls, 1);
 		assert.strictEqual(pane.getDomNode().querySelector('.engine-triggers-row'), null);
-		assert.ok((pane.getDomNode().textContent ?? '').includes('No triggers.'));
+		assert.ok((pane.getDomNode().textContent ?? '').includes(ENGINE_TRIGGER_LIST_EMPTY_COPY));
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('ListTriggers first-pull throw is failed with no leftover rows', async () => {
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async () => {
+				throw new Error('listTriggers exploded');
+			},
+		}));
+		await flushMicrotasks();
+		assert.strictEqual(pane.getDomNode().querySelector('.engine-triggers-row'), null);
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(ENGINE_TRIGGER_LIST_FEATURE, 'listTriggers exploded')));
+		assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_TRIGGER_LIST_EMPTY_COPY));
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('ListTriggers success then throw keeps leftover rows and paints failed', async () => {
+		let listTriggersCalls = 0;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const leftover = emptyTrigger({
+			triggerId: 'leftover-trig',
+			name: 'leftover-nightly',
+			type: 'cron',
+			target: { kind: 'self' },
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			onDidChangeConnection: onDidChangeConnection.event,
+			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => {
+				listTriggersCalls++;
+				if (listTriggersCalls === 1) {
+					return { triggers: [leftover] };
+				}
+				throw new Error('listTriggers retry exploded');
+			},
+		});
+		const pane = mountSection(connection);
+		await flushMicrotasks();
+		const liveRow = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
+		assert.ok(liveRow);
+		assert.strictEqual(liveRow.textContent, formatEngineTriggerListLabel(leftover));
+		assert.strictEqual(listTriggersCalls, 1);
+
+		onDidChangeConnection.fire(connection.getConnectionSnapshot());
+		await flushMicrotasks();
+
+		assert.strictEqual(listTriggersCalls, 2);
+		const leftoverRows = pane.getDomNode().querySelectorAll('.engine-triggers-row');
+		assert.strictEqual(leftoverRows.length, 1);
+		assert.strictEqual(leftoverRows[0].textContent, formatEngineTriggerListLabel(leftover));
+		const listHost = pane.getDomNode().querySelector('.engine-triggers-list') as HTMLElement | null;
+		assert.ok(listHost);
+		assert.notStrictEqual(listHost.style.display, 'none');
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(ENGINE_TRIGGER_LIST_FEATURE, 'listTriggers retry exploded')));
+		assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_TRIGGER_LIST_EMPTY_COPY));
 		pane.getDomNode().parentElement?.remove();
 	});
 
@@ -465,7 +531,17 @@ suite('EngineTriggersSection', () => {
 			del.click();
 			await flushMicrotasks();
 			assert.ok(listTriggersCalls >= 2);
-			assert.strictEqual(pane.getDomNode().querySelector('.engine-triggers-row'), null);
+			const leftover = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
+			assert.ok(leftover);
+			assert.strictEqual(leftover.textContent, formatEngineTriggerListLabel(emptyTrigger({
+				triggerId: '  trig  ',
+				name: '  Nightly  ',
+				type: 'cron',
+				target: { kind: 'self' },
+			})));
+			const listHost = pane.getDomNode().querySelector('.engine-triggers-list') as HTMLElement | null;
+			assert.ok(listHost);
+			assert.notStrictEqual(listHost.style.display, 'none');
 			const deleteStatus = pane.getDomNode().querySelector('.engine-triggers-delete-status') as HTMLElement | null;
 			assert.ok(deleteStatus);
 			assert.notStrictEqual(deleteStatus.textContent, ENGINE_TRIGGER_DELETE_SUCCESS_COPY);
@@ -473,7 +549,8 @@ suite('EngineTriggersSection', () => {
 			const catalog = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement | null;
 			assert.ok(catalog);
 			assert.strictEqual(catalog.dataset['catalogMode'], 'failed');
-			assert.ok((catalog.textContent ?? '').includes('Could not load triggers from the engine (list boom).'));
+			assert.ok((catalog.textContent ?? '').includes(getCatalogFailedCopy(ENGINE_TRIGGER_LIST_FEATURE, 'list boom')));
+			assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_TRIGGER_LIST_EMPTY_COPY));
 			assert.deepStrictEqual(unhandledRejections, []);
 			pane.getDomNode().parentElement?.remove();
 		} finally {
@@ -694,6 +771,64 @@ suite('EngineTriggersSection', () => {
 		assert.strictEqual(upsertStatus.textContent, formatEngineTriggerListLabel(created));
 		assert.notStrictEqual(upsertStatus.style.display, 'none');
 		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('UpsertTrigger success does not keep upsert-success when subsequent ListTriggers fails', async () => {
+		const leftover = emptyTrigger({
+			triggerId: 'leftover-trig',
+			name: 'leftover-nightly',
+			type: 'cron',
+			target: { kind: 'self' },
+		});
+		const created = emptyTrigger({
+			triggerId: 'trig-nightly',
+			name: 'Nightly',
+			type: 'cron',
+			target: { kind: 'self' },
+		});
+		let listTriggersCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const pane = mountSection(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				listTriggers: async (): Promise<UniverseAgentListTriggersResult> => {
+					listTriggersCalls++;
+					if (listTriggersCalls > 1) {
+						throw new Error('list boom');
+					}
+					return { triggers: [leftover] };
+				},
+				upsertTrigger: async () => {
+					return { trigger: created };
+				},
+			}));
+			await flushMicrotasks();
+			assert.strictEqual(listTriggersCalls, 1);
+			const add = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ADD_LABEL);
+			assert.ok(add);
+			add.click();
+			await flushMicrotasks();
+			assert.ok(listTriggersCalls >= 2);
+			const leftoverRow = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
+			assert.ok(leftoverRow);
+			assert.strictEqual(leftoverRow.textContent, formatEngineTriggerListLabel(leftover));
+			const upsertStatus = pane.getDomNode().querySelector('.engine-triggers-upsert-status') as HTMLElement | null;
+			assert.ok(upsertStatus);
+			assert.notStrictEqual(upsertStatus.textContent, formatEngineTriggerListLabel(created));
+			assert.ok(!(upsertStatus.textContent ?? '').includes(formatEngineTriggerListLabel(created)));
+			const catalog = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement | null;
+			assert.ok(catalog);
+			assert.strictEqual(catalog.dataset['catalogMode'], 'failed');
+			assert.ok((catalog.textContent ?? '').includes(getCatalogFailedCopy(ENGINE_TRIGGER_LIST_FEATURE, 'list boom')));
+			assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_TRIGGER_LIST_EMPTY_COPY));
+			assert.deepStrictEqual(unhandledRejections, []);
+			pane.getDomNode().parentElement?.remove();
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('UpsertTrigger throw paints upsert-status and leaves the row', async () => {

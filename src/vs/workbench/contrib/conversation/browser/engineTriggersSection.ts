@@ -157,25 +157,14 @@ export class EngineTriggersSection extends Disposable {
 			typeof hook === 'function',
 		);
 
-		this.triggers = [];
-		this.selectedTrigger = undefined;
-		this.listHost.style.display = 'none';
-		this.fireStatus.style.display = 'none';
-		this.fireStatus.textContent = '';
-		this.enabledStatus.style.display = 'none';
-		this.enabledStatus.textContent = '';
-		this.deleteStatus.style.display = 'none';
-		this.deleteStatus.textContent = '';
-		this.upsertStatus.style.display = 'none';
-		this.upsertStatus.textContent = '';
-		DOM.clearNode(this.listHost);
-		this.renderedRows = [];
+		this.clearWriteStatuses();
 		this.updateFireAction();
 		this.updateSetEnabledAction();
 		this.updateDeleteAction();
 		this.updateUpsertAction();
 
 		if (!this.connection.isEngineConnected()) {
+			this.clearListPresentation();
 			this.status.render({
 				mode: 'disconnected',
 				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
@@ -184,6 +173,7 @@ export class EngineTriggersSection extends Disposable {
 		}
 
 		if (!canSend || !hook) {
+			this.clearListPresentation();
 			this.status.render({
 				mode: 'unsupported',
 				featureLabel: ENGINE_TRIGGER_LIST_FEATURE,
@@ -224,8 +214,32 @@ export class EngineTriggersSection extends Disposable {
 		}
 	}
 
+	private clearWriteStatuses(): void {
+		this.fireStatus.style.display = 'none';
+		this.fireStatus.textContent = '';
+		this.enabledStatus.style.display = 'none';
+		this.enabledStatus.textContent = '';
+		this.deleteStatus.style.display = 'none';
+		this.deleteStatus.textContent = '';
+		this.upsertStatus.style.display = 'none';
+		this.upsertStatus.textContent = '';
+	}
+
+	private clearListPresentation(): void {
+		this.triggers = [];
+		this.selectedTrigger = undefined;
+		this.listHost.style.display = 'none';
+		DOM.clearNode(this.listHost);
+		this.renderedRows = [];
+	}
+
 	private paintList(): void {
+		this.selectedTrigger = undefined;
+		DOM.clearNode(this.listHost);
+		this.renderedRows = [];
+
 		if (this.triggers.length === 0) {
+			this.listHost.style.display = 'none';
 			this.status.render({
 				mode: 'empty',
 				featureLabel: ENGINE_TRIGGER_LIST_FEATURE,
