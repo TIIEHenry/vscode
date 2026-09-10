@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-10
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D243 已闭；D242 Snapshots leftover；D243 plugins hook leftover；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D244 已闭；D242 Snapshots leftover；D243 plugins hook leftover；D244 Changes leftover；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -257,6 +257,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D243 已闭；D242
 | D241 | P3 | **closed** Team `refreshTeamData()` 在活画后再进 `treeEmpty` / pending（非 catch throw）不再 `setMemberEntries([], treeEmpty)` + `setTaskEntries([], treeEmpty)` 把 leftover 成员/任务卸掉。`setTeamAfterTreeEmpty` 保 leftover 行并画 pending/empty-tree note；首拉 pending/treeEmpty 仍 empty+copy。未重做 D236 catch；未占 Hierarchy / catalog / conversation / proto / 引擎仓 / D22 / D26 / A2 / mic·Route | 工位 D `team-treeempty-pending-leftover` 已收 | leftover 行仍在 + pending/empty-tree note；不得装「无成员」空成功或首拉空；首拉 pending/treeEmpty 仍 empty+copy；补 `navigatorTeamSubviews.test.ts` | navigator / team | closed |
 | D242 | P3 | **closed** Snapshots overlay `refresh()` catch 走 `paintStatus`（会 `reset(this.body)` 卸活行）。成功后再 `listSnapshots` throw 保 leftover 行并画 failed；首拉 throw 仍 empty+failed。不得画 `conversationLensSessionBarSnapshotsEmpty` 空成功。Restore/Delete 写成功仍 `refresh()` 返回 listed 才回刷；leftover list-fail 清 Restored./Deleted.（D54/D154 listed-gate 不回退）。未占 catalog / connection / navigator / proto / 引擎仓 / F3 / A2 / D26 / mic·Route / `.sessions` | 工位 A `snapshots-list-leftover` 已收 | 成功→list throw leftover 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；listed-gate 仍诚实；补 `conversationEngineSnapshotsList.test.ts` | conversation | closed |
 | D243 | P3 | **closed** Plugins `loadInfo()` / `getPluginInfo` catch 在活画 hook 行后不再 `hookEntries = []` + `clearHookRows()`（D238 MCP Runtime tools 同胞）。成功后再 `getPluginInfo` throw 保 leftover hook 行并画 failed；首拉 throw 仍 empty+failed。不得画「No hooks.」接通空成功。未重做 D230 catalog list leftover；未重做 D216/D222 listed-gate。未占 Snapshots/Sources/Triggers/Clipboard/Team / proto / 引擎仓 / F3/A2/D26 / mic·Route / `.sessions` | 工位 B `plugins-info-leftover` 已收 | 成功→getPluginInfo throw leftover hook 行仍在 + failed；不得装空成功；首拉 throw 仍 empty+failed；补 `enginePluginsSection.test.ts`（`getHookRowCount()` / 可见性 + failed） | conversation / plugins | closed |
+| D244 | P3 | **closed** Sources Changes `refresh()` catch 在活画后不再 `allEntries = []` 把 leftover 变更行卸掉（Files leftover / D225 同胞）。成功后再 git-read throw 保 leftover 行并画 `sourcesGitReadFailureMessage`；首拉 throw 仍 empty+failed。未重开 D195 summary swallow；未实施 A2 / F4 / WriteGitUnstage；未改 Review list。 | 工位 C `changes-git-read-leftover` 已收 | 成功→git-read throw leftover 行仍在 + 失败文案；不得装空工作区成功；首拉 throw 仍 empty+failed；补 `sourcesChangesList.test.ts` | sources / changes | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 本波：A D242、B D243 已合；C/D 仍在工位。未 compile-client。"
+summary: "loop 本波：A D242、B D243、C D244 已合；D 仍在工位。未 compile-client。"
 ---
 
 # Development Progress
@@ -46,7 +46,7 @@ summary: "loop 本波：A D242、B D243 已合；C/D 仍在工位。未 compile-
 |:---|:-----|:-----|
 | **A** | snapshots-list-leftover | 已进 merge `539a4f30302`；[D242](deferred-gaps.md) 已闭 |
 | **B** | plugins-info-leftover | 已进 merge `fb82575f013`；[D243](deferred-gaps.md) 已闭 |
-| **C** | changes-git-leftover | 工位进行中 [D244](deferred-gaps.md)；勿 add `dev/loop` |
+| **C** | changes-git-read-leftover | 已进 merge `777bb925c97`；[D244](deferred-gaps.md) 已闭；勿 add `dev/loop` |
 | **D** | review-git-leftover | 工位进行中 [D245](deferred-gaps.md) |
 
 <details>
