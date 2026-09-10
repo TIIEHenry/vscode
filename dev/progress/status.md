@@ -44,6 +44,7 @@ summary: "loop 本波四槽已合入 merge：A 假铬条、B Sources 失败空 d
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
+| **E** | [composer-fake-chrome](../plans/composer-fake-chrome.md) 签收 + CI eslint / Inbox Retry 断言 | `fix/ci-gate-reds`；方案 `accepted` |
 | **A** | conversation-fake-chrome-honesty：拆 Add/Templates/Task/ring；Agent/Model/Goal/Snapshots/Retry 门控 | 已进 merge `cc7d2f396e7`；[D202](deferred-gaps.md)–[D204](deferred-gaps.md) |
 | **B** | Sources 失败与空 diff 诚实面 | 已进 merge `cfb340570a3` |
 | **C** | session-bind-ready-honesty：roster 等 Create/Resume | 已进 merge `320dc8c0ab3`；**勿 add `dev/loop`** |
