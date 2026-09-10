@@ -44,7 +44,7 @@ summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop 关�
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | agents-tools-unknown-leftover | 已进 merge；[D267](deferred-gaps.md) 已闭 |
+| **A** | tools-info-selection-leftover | 本槽；failed/loading 保 leftover 详情；[D270](deferred-gaps.md) 已闭 |
 | **B** | lens-timeline-inflight-leftover | 已进 merge；[D269](deferred-gaps.md) 已闭 |
 | **C** | skills-body-selection-leftover | 已进 merge；[D265](deferred-gaps.md) 已闭；勿 add `dev/loop` |
 | **D** | snapshots-nohook-leftover | 已进 merge；[D268](deferred-gaps.md) 已闭 |
