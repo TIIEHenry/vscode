@@ -41,6 +41,7 @@ const AGENTS_FEATURE = localize('ua.engineAgentsFeatureLabel', "agent profiles")
 const AGENT_TOOLS_FEATURE = localize('ua.engineAgentToolsFeatureLabel', "agent profile tools");
 const MCP_FEATURE = localize('ua.engineMcpFeatureLabel', "MCP server definitions");
 const TOOLS_FEATURE = localize('ua.engineToolsFeatureLabel', "engine tools");
+const TOOLS_EMPTY_COPY = localize('ua.engineToolsEmpty', "No engine tools yet.");
 
 suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
@@ -654,6 +655,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		await flushMicrotasks();
 
 		assertFailedCatalogHonesty(section, TOOLS_FEATURE, 'listTools exploded');
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(TOOLS_EMPTY_COPY));
 	});
 
 	test('Tools: listAgentProfiles reject is failed with error status and no fake catalog', async () => {
@@ -669,6 +671,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		await flushMicrotasks();
 
 		assertFailedCatalogHonesty(section, TOOLS_FEATURE, 'listAgentProfiles exploded');
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(TOOLS_EMPTY_COPY));
 	});
 
 	test('Agents: listAgentProfiles reject is failed with error status and no fake catalog', async () => {
@@ -699,7 +702,25 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assertFailedCatalogHonesty(section, MCP_FEATURE, 'listMcpServers exploded');
 	});
 
-	test('Tools: successful load then refresh throw is failed with no leftover catalog', async () => {
+	function assertToolsLeftoverFailedHonesty(
+		section: EngineToolsSection,
+		errorMessage: string,
+		expectedRows: number,
+	): void {
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), expectedRows);
+		assert.strictEqual(section.canWrite(), false);
+		const listContainer = section.getDomNode().querySelector('.engine-catalog-list') as HTMLElement;
+		assert.ok(listContainer);
+		assert.notStrictEqual(listContainer.style.display, 'none');
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(TOOLS_FEATURE, errorMessage)));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(TOOLS_EMPTY_COPY));
+	}
+
+	test('Tools: successful load then listTools throw keeps leftover catalog and paints failed', async () => {
 		let listToolsCalls = 0;
 		const connection = createConnectionStub({
 			connected: true,
@@ -707,7 +728,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			listTools: async () => {
 				listToolsCalls++;
 				if (listToolsCalls === 1) {
-					return { tools: [{ name: 'bash', description: 'shell tool', category: 'shell' }] };
+					return { tools: [{ name: 'leftover-bash', description: 'shell tool', category: 'shell' }] };
 				}
 				throw new Error('listTools retry exploded');
 			},
@@ -719,14 +740,42 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		await flushMicrotasks();
 
 		assert.strictEqual(section.getMode(), 'ready');
-		assert.ok(section.getListEntryCount() > 0);
+		assert.strictEqual(section.getListEntryCount(), 1);
 
 		connection.setConnected(true);
 		await flushMicrotasks();
 
-		assert.strictEqual(section.getMode(), 'failed');
-		assert.strictEqual(section.getListEntryCount(), 0);
-		assertFailedCatalogHonesty(section, TOOLS_FEATURE, 'listTools retry exploded');
+		assert.strictEqual(listToolsCalls, 2);
+		assertToolsLeftoverFailedHonesty(section, 'listTools retry exploded', 1);
+	});
+
+	test('Tools: successful load then listAgentProfiles throw keeps leftover catalog and paints failed', async () => {
+		let listAgentProfilesCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => ({
+				tools: [{ name: 'leftover-bash', description: 'shell tool', category: 'shell' }],
+			}),
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				if (listAgentProfilesCalls === 1) {
+					return { profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }] };
+				}
+				throw new Error('listAgentProfiles retry exploded');
+			},
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(listAgentProfilesCalls, 2);
+		assertToolsLeftoverFailedHonesty(section, 'listAgentProfiles retry exploded', 1);
 	});
 
 	function demoToolsUserProfile() {

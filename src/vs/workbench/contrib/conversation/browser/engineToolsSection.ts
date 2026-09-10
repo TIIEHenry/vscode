@@ -571,7 +571,10 @@ export class EngineToolsSection extends Disposable {
 				void this.loadToolInfo(selectedToolName);
 			}
 		} catch (error) {
-			this.clearCatalogPresentation();
+			const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'tool');
+			if (!hadLiveCatalog) {
+				this.clearCatalogPresentation();
+			}
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
 				kind: 'failed',
 				error: error instanceof Error ? error.message : undefined,
