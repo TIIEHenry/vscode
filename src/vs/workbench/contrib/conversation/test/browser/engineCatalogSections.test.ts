@@ -1411,6 +1411,14 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		};
 	}
 
+	function completeMcpAddConfig() {
+		return {
+			name: 'Added MCP',
+			transport: 'stdio' as const,
+			command: 'npx',
+		};
+	}
+
 	function assertMcpWriteFailureKeepsRows(section: EngineMcpSection, reason: string, expectedRows: number): void {
 		assert.strictEqual(section.getMode(), 'ready');
 		assert.strictEqual(section.getListEntryCount(), expectedRows);
@@ -1442,7 +1450,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(section.getListEntryCount(), 1);
 		assert.strictEqual(listMcpServersCalls, 1);
 
-		assert.strictEqual(await section.addServer(), false);
+		assert.strictEqual(await section.addServer(completeMcpAddConfig()), false);
 		assertMcpWriteFailureKeepsRows(section, 'add denied', 1);
 		assert.strictEqual(listMcpServersCalls, 1);
 
@@ -1482,7 +1490,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(section.getListEntryCount(), 1);
 		assert.strictEqual(listMcpServersCalls, 1);
 
-		assert.strictEqual(await section.addServer(), false);
+		assert.strictEqual(await section.addServer(completeMcpAddConfig()), false);
 		assertMcpWriteFailureKeepsRows(section, 'add exploded', 1);
 		assert.strictEqual(listMcpServersCalls, 1);
 
@@ -1494,6 +1502,39 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(await section.removeSelectedServer(), false);
 		assertMcpWriteFailureKeepsRows(section, 'remove exploded', 1);
 		assert.strictEqual(listMcpServersCalls, 1);
+	});
+
+	test('MCP: addServer without complete config does not invent echo/mcp-stub and does not send RPC', async () => {
+		const addRequests: UniverseAgentAddMcpServerRequest[] = [];
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => ({ servers: [demoMcpServer()] }),
+			addMcpServer: async (request) => {
+				addRequests.push(request);
+				return { ok: true };
+			},
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+
+		assert.strictEqual(await section.addServer(), false);
+		assert.strictEqual(await section.addServer({ name: '', transport: 'stdio', command: 'echo', args: ['mcp-stub'] }), false);
+		assert.strictEqual(await section.addServer({ name: 'x', transport: 'stdio' }), false);
+		assert.strictEqual(await section.addServer({ name: 'x', transport: 'stdio', command: '   ' }), false);
+		assert.strictEqual(await section.addServer({ name: 'x', transport: 'sse' }), false);
+		assert.strictEqual(await section.addServer({ name: 'x', transport: 'streamable_http' }), false);
+
+		assert.deepStrictEqual(addRequests, []);
+		const serialized = JSON.stringify(addRequests);
+		assert.ok(!/echo/i.test(serialized));
+		assert.ok(!/mcp-stub/i.test(serialized));
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement | null;
+		assert.ok(!writeStatus?.textContent || writeStatus.style.display === 'none');
 	});
 
 	test('MCP: addMcpServer ok does not keep add-success when subsequent listMcpServers fails', async () => {
@@ -1519,7 +1560,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			assert.strictEqual(listMcpServersCalls, 1);
 			assert.strictEqual(section.getMode(), 'ready');
 
-			assert.strictEqual(await section.addServer(), true);
+			assert.strictEqual(await section.addServer(completeMcpAddConfig()), true);
 			assert.ok(listMcpServersCalls >= 2);
 
 			assertMcpWriteSuccessClearedAfterListFail(section, ENGINE_MCP_ADD_SUCCESS_COPY, 'list boom');

@@ -370,6 +370,7 @@ export class EnginePluginsSection extends Disposable {
 		}
 
 		if (support === 'UNKNOWN') {
+			this.clearCatalogPresentation();
 			this.mode = resolveEngineCatalogPaneMode(true, support);
 			this.writeToolbar.style.display = 'none';
 			this.rowToolbar.style.display = 'none';

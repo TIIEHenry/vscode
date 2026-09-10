@@ -38,6 +38,19 @@ export const ENGINE_MCP_UPDATE_SUCCESS_COPY = localize('ua.engineMcpUpdateSucces
 export const ENGINE_MCP_REMOVE_SUCCESS_COPY = localize('ua.engineMcpRemoveSuccess', "Removed.");
 export const ENGINE_MCP_TOGGLE_SUCCESS_COPY = localize('ua.engineMcpToggleSuccess', "Toggled.");
 
+function isCompleteMcpAddConfig(config: UniverseAgentMcpServerConfig | undefined): config is UniverseAgentMcpServerConfig {
+	if (!config || !config.name.trim()) {
+		return false;
+	}
+	if (config.transport === 'stdio') {
+		return typeof config.command === 'string' && config.command.trim().length > 0;
+	}
+	if (config.transport === 'sse' || config.transport === 'streamable_http') {
+		return typeof config.url === 'string' && config.url.trim().length > 0;
+	}
+	return false;
+}
+
 type EngineMcpListEntry =
 	| { readonly kind: 'group'; readonly origin: UniverseAgentMcpServerOrigin; readonly label: string }
 	| { readonly kind: 'server'; readonly server: UniverseAgentMcpServerSummary };
@@ -338,21 +351,14 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	async addServer(config?: UniverseAgentMcpServerConfig): Promise<boolean> {
-		if (!this.canWrite()) {
+		if (!this.canWrite() || !isCompleteMcpAddConfig(config)) {
 			return false;
 		}
 		this.writeFailedReason = undefined;
 		this.hideCatalogWriteStatus();
-		const payload: UniverseAgentMcpServerConfig = config ?? {
-			name: localize('ua.engineMcpNewDefaultName', "New MCP Server"),
-			transport: 'stdio',
-			command: 'echo',
-			args: ['mcp-stub'],
-			enabled: true,
-		};
 		const scope = 'global';
 		try {
-			const result = await this.connection.addMcpServer({ config: payload, scope });
+			const result = await this.connection.addMcpServer({ config, scope });
 			if (!result.ok) {
 				this.showWriteFailed(result.reason);
 				return false;
