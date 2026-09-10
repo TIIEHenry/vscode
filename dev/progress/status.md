@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 本波四槽已合入 merge：A 假铬条、B Sources 失败空 diff、C bind-ready、D catalog list-fail。待一路 compile。D8 / D16 / D147 / D195–D204 仍开。D194 已闭。"
+summary: "loop 本波四槽已合入 merge：A 假铬条、B Sources 失败空 diff、C bind-ready、D catalog list-fail。B 工位本刀 `navigator-inspect-lease-honesty`：Inspect 去自持 lease，undefined live ids 标 stale。[D197](deferred-gaps.md) 已闭；[D205](deferred-gaps.md) 写端同哨兵仍开。D8 / D16 / D147 / D195–D196 / D198–D205 仍开。"
 ---
 
 # Development Progress
@@ -45,7 +45,7 @@ summary: "loop 本波四槽已合入 merge：A 假铬条、B Sources 失败空 d
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
 | **A** | conversation-fake-chrome-honesty：拆 Add/Templates/Task/ring；Agent/Model/Goal/Snapshots/Retry 门控 | 已进 merge `cc7d2f396e7`；[D202](deferred-gaps.md)–[D204](deferred-gaps.md) |
-| **B** | Sources 失败与空 diff 诚实面 | 已进 merge `cfb340570a3` |
+| **B** | navigator-inspect-lease-honesty：Inspect 去自持 lease，跟随 `setLiveAgentIds`；`undefined` 不一律当不 stale | 未提交；[D197](deferred-gaps.md) 已闭；[D205](deferred-gaps.md) 写端同哨兵 |
 | **C** | session-bind-ready-honesty：roster 等 Create/Resume | 已进 merge `320dc8c0ab3`；**勿 add `dev/loop`** |
 | **D** | catalog-write-listfail-honesty | 已进 merge `21f8d299cd8`；[D199](deferred-gaps.md)–[D201](deferred-gaps.md) |
 
