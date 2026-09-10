@@ -39,6 +39,23 @@ export const ENGINE_PLUGINS_ENABLE_SUCCESS_COPY = localize('ua.enginePluginsEnab
 export const ENGINE_PLUGINS_RELOAD_SUCCESS_COPY = localize('ua.enginePluginsReloadSuccess', "Reloaded.");
 export const ENGINE_PLUGINS_UNLOAD_SUCCESS_COPY = localize('ua.enginePluginsUnloadSuccess', "Unloaded.");
 
+export function formatEnginePluginsScanEmptyCopy(skippedCount: number): string {
+	return localize(
+		'ua.enginePluginsScanEmpty',
+		"No new plugins found (skipped {0}).",
+		skippedCount,
+	);
+}
+
+export function formatEnginePluginsScanFoundCopy(names: string, skippedCount: number): string {
+	return localize(
+		'ua.enginePluginsScanFound',
+		"New plugins: {0} (skipped {1}).",
+		names,
+		skippedCount,
+	);
+}
+
 type EnginePluginListEntry = { readonly kind: 'plugin'; readonly plugin: UniverseAgentPluginSummary };
 type PluginWriteMethod = 'enablePlugin' | 'reloadPlugin' | 'unloadPlugin' | 'scanNewPlugins';
 
@@ -314,6 +331,10 @@ export class EnginePluginsSection extends Disposable {
 		await this.unloadSelected();
 	}
 
+	async scanNewForTest(): Promise<void> {
+		await this.scanNew();
+	}
+
 	private ensureList(): WorkbenchList<EnginePluginListEntry> {
 		if (!this.list) {
 			this.list = this._register(this.instantiationService.createInstance(
@@ -346,7 +367,7 @@ export class EnginePluginsSection extends Disposable {
 		return this.list;
 	}
 
-	private async refresh(): Promise<void> {
+	private async refresh(): Promise<boolean> {
 		const generation = ++this.refreshGeneration;
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
@@ -359,14 +380,14 @@ export class EnginePluginsSection extends Disposable {
 			this.clearCatalogPresentation();
 			this.mode = resolveEngineCatalogPaneMode(false, support);
 			this.renderStatus();
-			return;
+			return false;
 		}
 
 		if (support === 'UNSUPPORTED') {
 			this.clearCatalogPresentation();
 			this.mode = resolveEngineCatalogPaneMode(true, support);
 			this.renderStatus({ reason: capabilities.plugins.reason });
-			return;
+			return false;
 		}
 
 		if (support === 'UNKNOWN') {
@@ -375,7 +396,7 @@ export class EnginePluginsSection extends Disposable {
 			this.writeToolbar.style.display = 'none';
 			this.rowToolbar.style.display = 'none';
 			this.renderStatus({ loadingKind: 'capability' });
-			return;
+			return false;
 		}
 
 		this.mode = resolveEngineCatalogPaneMode(true, support, { kind: 'inFlight' });
@@ -386,13 +407,13 @@ export class EnginePluginsSection extends Disposable {
 		try {
 			const result = await this.connection.listPlugins();
 			if (generation !== this.refreshGeneration) {
-				return;
+				return false;
 			}
 			if (!this.connection.isEngineConnected()) {
 				this.clearCatalogPresentation();
 				this.mode = resolveEngineCatalogPaneMode(false, support);
 				this.renderStatus();
-				return;
+				return false;
 			}
 			this.setPlugins(result.plugins);
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
@@ -409,9 +430,10 @@ export class EnginePluginsSection extends Disposable {
 			} else {
 				this.clearInfoPresentation();
 			}
+			return true;
 		} catch (error) {
 			if (generation !== this.refreshGeneration) {
-				return;
+				return false;
 			}
 			this.clearCatalogPresentation();
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
@@ -422,6 +444,7 @@ export class EnginePluginsSection extends Disposable {
 				reason: getTransportErrorMessage(error),
 				onRetry: () => void this.refresh(),
 			});
+			return false;
 		}
 	}
 
@@ -541,9 +564,11 @@ export class EnginePluginsSection extends Disposable {
 			this.lastScan = result;
 			this.writeFailedReason = undefined;
 			this.renderScanResult();
-			await this.refresh();
-			this.lastScan = result;
-			this.renderScanResult();
+			const listed = await this.refresh();
+			if (listed) {
+				this.lastScan = result;
+				this.renderScanResult();
+			}
 		} catch (error) {
 			this.showWriteFailed(error);
 		}
@@ -598,19 +623,10 @@ export class EnginePluginsSection extends Disposable {
 			return;
 		}
 		if (this.lastScan.newPlugins.length === 0) {
-			this.scanResult.textContent = localize(
-				'ua.enginePluginsScanEmpty',
-				"No new plugins found (skipped {0}).",
-				this.lastScan.skippedCount,
-			);
+			this.scanResult.textContent = formatEnginePluginsScanEmptyCopy(this.lastScan.skippedCount);
 		} else {
 			const names = this.lastScan.newPlugins.map(plugin => plugin.displayName || plugin.id).join(', ');
-			this.scanResult.textContent = localize(
-				'ua.enginePluginsScanFound',
-				"New plugins: {0} (skipped {1}).",
-				names,
-				this.lastScan.skippedCount,
-			);
+			this.scanResult.textContent = formatEnginePluginsScanFoundCopy(names, this.lastScan.skippedCount);
 		}
 		this.scanResult.style.display = '';
 	}

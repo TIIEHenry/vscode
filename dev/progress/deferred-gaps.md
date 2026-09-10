@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-10
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D215 已闭；D212 Clipboard list-fail；D213 Sessions 空态；D214 Projects rebuildTree throw；D215 Sources Files fetch throw；D198 / D207–D211 已闭；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D216 已闭；D212 Clipboard list-fail；D216 Plugins scanNew list-fail；D213 Sessions 空态；D214 Projects rebuildTree throw；D215 Sources Files fetch throw；D198 / D207–D211 已闭；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -168,7 +168,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D215 已闭；D212
 | D152 | P3 | **MCP update/remove/toggle 与 Skills toggle/saveBody 成功后 refresh 仍冲掉成功文案**（D151 只收 add/create） | A `9814d192022` MCP 三写回写 Updated./Removed./Toggled.；B `92b722b8f31` Skills Updated./Saved.。merge 复测 catalog 45 / skills 23 passing。未关 D16 | 成功后 list-fail 仍见 write-success | conversation | closed |
 | D153 | P3 | **Agents create/delete/reset / save markdown 成功后 refresh 仍冲成功文案**（D151/D152 只收 MCP+Skills） | A `d4a8d8d5309` 回写 Created./Deleted./Reset./Saved.；merge 复测 catalog 50 passing。未关 D16。残留：选中 profile 用 `saveAgentProfile` 当加载；`refresh()` 里 `void loadAgentsEditorForSelection` 不 await | 成功后 list-fail 仍见 write-success | conversation | closed |
 | D154 | P3 | **Snapshots Restore/Delete 成功后 `refresh()` 冲掉写成功**：`listSnapshots` throw 后用户只见 list-fail | B `f011e26d5f3` 回写 Restored./Deleted.；成功测用 `flushMicrotasks`。merge 复测 31 passing。未关 D16；未改 ok:false/throw 不 refresh | 成功后 list-fail 仍见 write-success；overlay 仍开 | conversation | closed |
-| D155 | P3 | **Plugins Enable/Reload/Unload 成功后 list-fail 无写成功态**。`scanNew` 已回写 lastScan，不重做 | D `e56636a0fbb` 回写 Enabled./Reloaded./Unloaded.；新测 `enginePluginsSection.test.ts`。merge 复测 5 passing。未关 D16；未改 scanNew | 成功后 list-fail 仍见 write-success | conversation | closed |
+| D155 | P3 | **Plugins Enable/Reload/Unload 成功后 list-fail 无写成功态**。`scanNew` leftover 见 [D216](#d216) | D `e56636a0fbb` 回写 Enabled./Reloaded./Unloaded.；新测 `enginePluginsSection.test.ts`。merge 复测 5 passing。未关 D16；scanNew 回写 leftover 已由 [D216](#d216) 收 | 成功后 list-fail 仍见 write-success | conversation | closed |
 | D156 | P3 | **空工作区首绘 recents throw 仍 welcome**：CSS 藏 recents status / `local:recents-failed`，用户只见空态 | A `15ef116e957` `shouldShowWelcome` 遇失败 note/status 返 false。merge 复测 15 passing。未关 D16；未改 last-good / openWindow / D150 有文件夹路径。残留：`setRecentsStatus` 未立即 `layoutBody` | 空工作区 recents throw 关 welcome 且失败文案可见；空成功 welcome 仍在 | navigator | closed |
 | D157 | P3 | **工作区选择器 `commandId` 路径 `void executeCommand` 不 catch reject** → 未处理 rejection | A `1db937a63ae` `.catch(onUnexpectedError)`。merge 复测 picker 69 passing。未改 identity-strip。残留 `item.run()` 已由 D158 收 | reject 无未处理 rejection；成功 Sign in 测仍绿 | sessions | closed |
 | D158 | P3 | **工作区选择器 `item.run()` 同步调用不 catch reject** → Manage 项走 `run` 优先，D157 覆盖不到 | A `9a0e83bc66e` `Promise.resolve(item.run()).catch(onUnexpectedError)`。merge 复测 picker 70 passing。未改 commandId / identity-strip | reject 无未处理 rejection；D157 Sign in 测仍绿 | sessions | closed |
@@ -229,6 +229,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D215 已闭；D212
 | D213 | P3 | **closed** Sessions 侧栏空态不再把 stub conversation 当产品路径。`conversationSessionsView` 空文案去 `in-memory` / stub；保留 New session 为真实本地动作，不发明引擎会话。测锁空态与接通后空名单 | 工位 A 已收 | 空/断连态不广告 stub conversation；New session 仍为真实动作；无 invented engine session 文案；补测 | conversation / sessions | closed |
 | D214 | P3 | **closed** Projects 外层 `rebuildTree` catch 静默保 last-good，throw 后 leftover 仍像活树。未撤 [D207](#d207) 干净断连 builder note。catch 保 leftover 行并复用 `NAVIGATOR_STALE_SNAPSHOT_COPY`（树 note + 既有 recents status）。未占 D212/D213 | 工位 B `navigator-projects-rebuild-throw-stale` 已收 | throw 后 leftover 行仍在且 stale / status 可见，不得装成活树；补 `navigatorProjectsList.test.ts`；D207 树测仍绿 | navigator / projects | closed |
 | D215 | P3 | **closed** Sources Files `fetchChildren` throw 不再装「No workspace files」。`collectFromItem` 上抛；成功后再 throw 保 leftover 行并画 `.sources-files-status`；首拉 throw 画 `sourcesFilesListReadFailureMessage`。未占 Sessions stub / Projects rebuildTree / catalog UNKNOWN | 工位 D `sources-files-fetch-leftover` 已收 | throw 不装空成功；leftover 行仍在 + 失败 status；补 `sourcesFilesList.test.ts` / model 测 | sources / files | closed |
+| D216 | P3 | **closed** Plugins `scanNew` 写成功后再 `listPlugins` fail 不回刷 lastScan 成功文案（D201 Triggers / D212 Clipboard 同胞；D155 未收 scanNew）。`refresh()` 返回 listed 才回写 lastScan。未占 D22 / D24 / D25 / D26 / A2 / mic·Route / proto / 引擎仓 / `.sessions` | 工位 A `plugins-scan-list-fail` 已收 | list-fail 后清 scan-success + catalog failed；补成功→list-fail 测；listed 成功路径仍见 scan-success | conversation / catalog | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 
