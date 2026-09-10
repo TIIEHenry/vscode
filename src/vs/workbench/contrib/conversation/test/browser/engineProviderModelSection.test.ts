@@ -16,9 +16,12 @@ import type {
 	UniverseAgentSessionStreamCloseCause,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { getCatalogFailedCopy } from '../../browser/engineCatalog.js';
 import { EngineProviderModelSection } from '../../browser/engineProviderModelSection.js';
 
 const LEFTOVER_MODEL_ID = 'gpt-leftover';
+const MODEL_FEATURE = 'model registry';
+const MODEL_EMPTY_COPY = 'No models in the registry.';
 
 suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 
@@ -30,6 +33,7 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 		listModels?: () => Promise<UniverseAgentListModelsResult>;
 	} = {}): IUniverseAgentConnection & {
 		setModelsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
+		setConnected(next: boolean): void;
 	} {
 		const modelsCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN' } = {
 			support: options.modelsSupport ?? 'SUPPORTED',
@@ -121,6 +125,10 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 				modelsCapability.support = support;
 				onDidChangeConnection.fire(snapshot());
 			},
+			setConnected(next: boolean) {
+				connected = next;
+				onDidChangeConnection.fire(snapshot());
+			},
 		};
 	}
 
@@ -178,5 +186,89 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 		) as HTMLElement;
 		assert.ok(status);
 		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+	});
+
+	function getModelList(section: EngineProviderModelSection): HTMLElement {
+		return section.getDomNode().querySelector('.engine-provider-model-list') as HTMLElement;
+	}
+
+	function getModelStatus(section: EngineProviderModelSection): HTMLElement {
+		return section.getDomNode().querySelector(
+			'.engine-provider-model-group--model .engine-catalog-status-widget',
+		) as HTMLElement;
+	}
+
+	function assertModelsFailedHonesty(
+		section: EngineProviderModelSection,
+		errorMessage: string,
+		expectedRows: number,
+	): void {
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), expectedRows);
+		const status = getModelStatus(section);
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(MODEL_FEATURE, errorMessage)));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(MODEL_EMPTY_COPY));
+	}
+
+	test('listModels first-pull throw is failed with no leftover rows', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			modelsSupport: 'SUPPORTED',
+			listModels: async () => {
+				throw new Error('listModels exploded');
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assertModelsFailedHonesty(section, 'listModels exploded', 0);
+		const list = getModelList(section);
+		assert.ok(list);
+		assert.strictEqual(list.style.display, 'none');
+	});
+
+	test('listModels success then throw keeps leftover rows and paints failed', async () => {
+		let listModelsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			modelsSupport: 'SUPPORTED',
+			listModels: async () => {
+				listModelsCalls++;
+				if (listModelsCalls === 1) {
+					return {
+						models: [{
+							id: 'leftover',
+							type: 'chat',
+							enabled: true,
+							level: 1,
+							provider: 'demo',
+							modelId: LEFTOVER_MODEL_ID,
+						}],
+					};
+				}
+				throw new Error('listModels retry exploded');
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		const listAfterLoad = getModelList(section);
+		assert.ok(listAfterLoad);
+		assert.notStrictEqual(listAfterLoad.style.display, 'none');
+		assert.strictEqual(listModelsCalls, 1);
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(MODEL_EMPTY_COPY));
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(listModelsCalls, 2);
+		assertModelsFailedHonesty(section, 'listModels retry exploded', 1);
+		const leftoverList = getModelList(section);
+		assert.ok(leftoverList);
+		assert.notStrictEqual(leftoverList.style.display, 'none');
 	});
 });

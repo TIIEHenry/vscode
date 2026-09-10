@@ -234,7 +234,13 @@ export class EngineProviderModelSection extends Disposable {
 			if (generation !== this.refreshGeneration) {
 				return;
 			}
-			this.clearModelPresentation();
+			const hadLivePaint = this.modelCount > 0;
+			if (!hadLivePaint) {
+				this.clearModelPresentation();
+			} else {
+				this.sessionHint.style.display = 'none';
+				this.modelList.style.display = '';
+			}
 			const reason = getTransportErrorMessage(error);
 			this.modelListPhase = { kind: 'failed', error: reason };
 			this.renderModelStatus(
