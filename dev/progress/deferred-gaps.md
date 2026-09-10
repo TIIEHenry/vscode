@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-10
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D221 已闭；D216–D219 catalog list-fail；D220 Agents Activity leftover；D221 PairApprove/Reject list-fail；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D222 已闭；D216–D219 catalog list-fail；D220 Agents Activity leftover；D221 PairApprove/Reject list-fail；D222 Plugins Enable/Reload/Unload listed 门；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -235,6 +235,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D221 已闭；D216
 | D219 | P3 | **closed** Agents New/Delete/Reset/Save 写成功后再 `listAgentProfiles` fail 不回刷 Created./Deleted./Reset./Saved.（D201 同胞）。`refresh()` 返回 listed 才回写。未发明 Add forms | 工位 B `catalog-write-list-fail` 已收 | list-fail 后清成功文案 + catalog failed；既有成功→list-fail 测 | conversation / catalog | closed |
 | D220 | P3 | **closed** Agents Activity 成功画 leftover 后 `isAgentTreeFetchFailed` 不再把旧工具行装成活数据。`setActivityFromSnapshot` 在 fetch-fail 时保 leftover 行并画 `NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY`；首拉 fail 空态仍「Failed to read tool activity」。未占 catalog write/list-fail / conversation leftover / D22 / D24 / D26 / A2 / mic·Route / 引擎仓 | 工位 D `navigator-agents-activity-fetch-leftover` 已收 | leftover 行仍在 + 失败 note；不得装空成功；补 `navigatorAgentsSubviews.test.ts`；首拉 fail 测仍绿 | navigator / agents | closed |
 | D221 | P3 | **closed** PairApprove / PairReject 写成功后再 ListDevices / ListPending fail 不回刷 pair-success（D212 Clipboard 同胞）。`refreshEngineDeviceLists()` 返回 listed 才回写。未占 catalog write/list-fail / D22 / D24 / D26 / A2 / mic·Route / `.sessions` | 工位 C `connection-pair-write-list-fail` 已收 | list-fail 后清 pair 成功文案 + devices/pending failed；补成功→list-fail 测 | conversation / connection | closed |
+| D222 | P3 | **closed** Plugins Enable/Reload/Unload 写成功后再 `listPlugins` fail 不回刷 Enabled./Reloaded./Unloaded.（D201 / D216 同胞；D155 用 `canPerformCatalogWrite(this.mode)` 代理回写）。`refresh()` 返回 listed 才回写。未占 MCP/Skills/Agents / connection / navigator / D22 / D24 / D26 / A2 / mic·Route / proto / 引擎仓 / `.sessions` | 工位 A `plugins-enable-listed-gate` 已收 | write-ok + list-fail 不回刷三成功文案；既有 `enginePluginsSection.test.ts` enable/reload/unload list-fail 测仍绿 | conversation / catalog | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 

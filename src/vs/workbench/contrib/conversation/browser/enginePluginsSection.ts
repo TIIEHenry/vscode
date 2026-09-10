@@ -581,8 +581,8 @@ export class EnginePluginsSection extends Disposable {
 		try {
 			await op();
 			this.showCatalogWriteStatus(successCopy);
-			await this.refresh();
-			if (canPerformCatalogWrite(this.mode)) {
+			const listed = await this.refresh();
+			if (listed) {
 				this.showCatalogWriteStatus(successCopy);
 			}
 		} catch (error) {

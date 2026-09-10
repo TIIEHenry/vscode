@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-10
-summary: "loop 关仓：本波 A–D 已合入 merge。D216–D221 已闭。compile-client 0。"
+summary: "loop 重启：A 槽 plugins-enable-listed-gate。D222 已闭（Enable/Reload/Unload 仅 listed 回刷）。未 compile-client。"
 ---
 
 # Development Progress
@@ -44,7 +44,7 @@ summary: "loop 关仓：本波 A–D 已合入 merge。D216–D221 已闭。comp
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | plugins-scan-list-fail | 已进 merge `19ac68c13cf`；[D216](deferred-gaps.md) 已闭 |
+| **A** | plugins-enable-listed-gate | [D222](deferred-gaps.md) 已闭：Enable/Reload/Unload `runWrite` 仅 `listed === true` 回刷成功文案；既有 list-fail 测仍绿；未 compile-client |
 | **B** | catalog-write-list-fail | 已进 merge `a92db1b8cf4`；[D217](deferred-gaps.md)–[D219](deferred-gaps.md) 已闭 |
 | **C** | connection-pair-write-list-fail | 已进 merge `58e5b701902`；[D221](deferred-gaps.md) 已闭；勿 add `dev/loop` |
 | **D** | navigator-agents-activity-fetch-leftover | 已进 merge `6b7c2002b3a`；[D220](deferred-gaps.md) 已闭 |
@@ -167,6 +167,7 @@ summary: "loop 关仓：本波 A–D 已合入 merge。D216–D221 已闭。comp
 | [D203](deferred-gaps.md) | C `session-delete-draft-rollback` | **closed** delete 失败/回滚后 composer draft 挂回原 session；`conversationLens.test.ts` 锁 false 与 optimistic rollback；未 compile |
 | [D212](deferred-gaps.md) | C `clipboard-write-list-fail` | **closed** Write/Clear 写成功后再 ListClipboard fail 不回刷 clipId / removedCount；`refresh()` 返回 listed 才回写；未 compile |
 | [D216](deferred-gaps.md) | A `plugins-scan-list-fail` | **closed** scanNew 写成功后再 listPlugins fail 不回刷 lastScan；`refresh()` 返回 listed 才回写；merge compile-client 0 |
+| [D222](deferred-gaps.md) | A `plugins-enable-listed-gate` | **closed** Enable/Reload/Unload 写成功后再 listPlugins fail 不回刷 Enabled./Reloaded./Unloaded.；`refresh()` 返回 listed 才回写（不再用 mode 代理）；未 compile-client |
 | [D217](deferred-gaps.md)–[D219](deferred-gaps.md) | B `catalog-write-list-fail` | **closed** MCP/Skills/Agents 写成功后再 list fail 不回刷 Added./Created./Saved. 等；`refresh()` 返回 listed 才回写；未占 D216；merge compile-client 0 |
 | [D221](deferred-gaps.md) | C `connection-pair-write-list-fail` | **closed** PairApprove/Reject 写成功后再 ListDevices / ListPending fail 不回刷 pair-success；merge compile-client 0 |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
