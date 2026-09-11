@@ -14,7 +14,7 @@ import type {
 	UniverseAgentReadGitSummaryRequest,
 	UniverseAgentReadGitSummaryResult,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { sourcesGitStagePathsRequest } from '../../common/sourcesChangesGitWrite.js';
+import { isSourcesGitWriteLive, sourcesGitStagePathsRequest } from '../../common/sourcesChangesGitWrite.js';
 import {
 	canSendSourcesGitChanges,
 	canSendSourcesGitFileDiff,
@@ -81,6 +81,15 @@ suite('Sources - Changes git read', () => {
 		assert.strictEqual(canSendSourcesGitFileDiff(true, true, 'sess-1'), true);
 	});
 
+	test('pairing-hold leftover-looks-live refuses Changes / Summary reads', () => {
+		assert.strictEqual(isSourcesGitWriteLive(true, false), true);
+		assert.strictEqual(isSourcesGitWriteLive(true, true), false);
+		assert.strictEqual(canSendSourcesGitChanges(true, true, 'sess-1', true), false);
+		assert.strictEqual(canSendSourcesGitSummary(true, true, 'sess-1', true), false);
+		assert.strictEqual(canSendSourcesGitChanges(true, true, 'sess-1', false), true);
+		assert.strictEqual(canSendSourcesGitSummary(true, true, 'sess-1', false), true);
+	});
+
 	test('read requests share write sessionId and pass empty fields as-is', () => {
 		const sessionId = sourcesGitStagePathsRequest('sess-1', []).sessionId;
 		assert.strictEqual(sessionId, 'sess-1');
@@ -130,6 +139,14 @@ suite('Sources - Changes git read', () => {
 			diffCalls.push(request);
 			return unsupportedDiff;
 		}, '', 'src/a.ts', 'WORKTREE'), undefined);
+		assert.strictEqual(await tryReadSourcesGitChanges(true, async request => {
+			changeCalls.push(request);
+			return unsupportedChanges;
+		}, 'sess-1', true), undefined);
+		assert.strictEqual(await tryReadSourcesGitSummary(true, async request => {
+			summaryCalls.push(request);
+			return unsupportedSummary;
+		}, 'sess-1', true), undefined);
 		assert.deepStrictEqual(changeCalls, []);
 		assert.deepStrictEqual(summaryCalls, []);
 		assert.deepStrictEqual(diffCalls, []);
@@ -216,6 +233,16 @@ suite('Sources - Changes git read', () => {
 		assert.deepStrictEqual(emptySupportedCalls, [{ sessionId: 'sess-1' }]);
 		assert.strictEqual(emptySupportedSummaryCalls, 0);
 		assert.strictEqual(emptySupported, undefined);
+
+		const pairingHoldCalls: UniverseAgentReadGitChangesRequest[] = [];
+		const pairingHold = await tryLoadSourcesGitChangeEntries(true, async request => {
+			pairingHoldCalls.push(request);
+			return { supported: true, reason: '', branch: 'main', entries: [{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }] };
+		}, async () => {
+			throw new Error('must not readGitSummary while pairing-hold');
+		}, root, 'sess-1', true);
+		assert.deepStrictEqual(pairingHoldCalls, []);
+		assert.strictEqual(pairingHold, undefined);
 	});
 
 	test('empty supported engine list is not authoritative', () => {

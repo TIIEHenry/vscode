@@ -22,6 +22,7 @@ import type {
 	UniverseAgentWriteGitWriteResult,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
@@ -604,6 +605,109 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.ok((list.element(0).resource.path ?? '').includes('scm-stub.ts'));
 	});
 
+	test('leftover-looks-live pairing-hold keeps leftover rows and skips git-read', async function () {
+		let connected = true;
+		let pairingPending = false;
+		let readCalls = 0;
+		const leftover = { path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: connected ? 'ok' : 'idle',
+			sharedFsRootSent: false,
+			pairingPending,
+			channelAlive: connected,
+			capabilities: {} as never,
+		});
+		const connection = {
+			isEngineConnected: () => connected,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' as const : 'disconnected' as const }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => {
+				readCalls += 1;
+				return {
+					supported: true,
+					reason: '',
+					branch: 'main',
+					entries: [leftover],
+				};
+			},
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+		} as unknown as IUniverseAgentConnection;
+		const scmStub = toResource.call(this, '/project/src/scm-stub.ts');
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub)).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		const listCallsAfterLoad = readCalls;
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		const pairingStatus = await waitForStatusText(host, 'not connected');
+		assert.strictEqual(pairingStatus, sourcesGitReadPairingHoldMessage());
+		assert.ok(!pairingStatus.includes('local source control'));
+		assert.notStrictEqual(pairingStatus, sourcesGitLocalOnlyMessage());
+		assert.strictEqual(readCalls, listCallsAfterLoad, 'leftover-looks-live must not extra readGitChanges');
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		assert.strictEqual(list.element(0).scmResource, undefined);
+
+		connected = false;
+		pairingPending = false;
+		onDidChangeConnection.fire(snapshot());
+
+		const disconnectStatus = await waitForStatusText(host, 'local source control');
+		assert.strictEqual(disconnectStatus, sourcesGitLocalOnlyMessage());
+		assert.strictEqual(readCalls, listCallsAfterLoad);
+		assert.strictEqual(list.length, 1);
+		assert.ok(list.element(0).scmResource);
+		assert.ok((list.element(0).resource.path ?? '').includes('scm-stub.ts'));
+	});
+
+	test('leftover-looks-live first-pull pairing without leftover stays SCM and skips git-read', async function () {
+		let readCalls = 0;
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: true }),
+			onDidChangeConnection: Event.None,
+			readGitChanges: async () => {
+				readCalls += 1;
+				throw new Error('must not readGitChanges while leftover-looks-live first-pull');
+			},
+			readGitSummary: async () => {
+				readCalls += 1;
+				throw new Error('must not readGitSummary while leftover-looks-live first-pull');
+			},
+		} as unknown as IUniverseAgentConnection;
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		const scmStub = toResource.call(this, '/project/src/scm-stub.ts');
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub)).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		const status = await waitForStatusText(host, 'local source control');
+		assert.strictEqual(status, sourcesGitLocalOnlyMessage());
+		assert.strictEqual(readCalls, 0);
+		assert.strictEqual(list.length, 1);
+		assert.ok(list.element(0).scmResource);
+		assert.ok((list.element(0).resource.path ?? '').includes('scm-stub.ts'));
+	});
+
 	const acceptedWrite: UniverseAgentWriteGitWriteResult = {
 		supported: true,
 		reason: '',
@@ -781,6 +885,7 @@ suite('Sources - Changes list leftover honesty', () => {
 
 		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
 		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		const listCallsAfterLoad = readCalls;
 		list.setFocus([0]);
 		list.setSelection([0]);
 		const commitInput = host.querySelector('.sources-changes-commit-input') as HTMLInputElement;
@@ -798,7 +903,7 @@ suite('Sources - Changes list leftover honesty', () => {
 		await waitForWriteButtonsDisabled(host);
 		assert.strictEqual(list.length, 1);
 		assert.strictEqual(list.element(0).gitPath, leftover.path);
-		assert.ok(readCalls >= 1);
+		assert.strictEqual(readCalls, listCallsAfterLoad);
 
 		forceClick(stageSelectedButton(host));
 		forceClick(commitButton(host));
