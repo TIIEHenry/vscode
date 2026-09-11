@@ -12,7 +12,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../..
 import { URI } from '../../../../../base/common/uri.js';
 import { EditorOpenSource, IResourceEditorInput } from '../../../../../platform/editor/common/editor.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
-import { ICommandService } from '../../../../../platform/commands/common/commands.js';
+import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
@@ -387,7 +387,11 @@ suite('Sources - Changes list leftover honesty', () => {
 		} as unknown as ISCMService;
 	}
 
-	function stubChangesListServices(connection: IUniverseAgentConnection, scmService: ISCMService = createEmptyScmService()) {
+	function stubChangesListServices(
+		connection: IUniverseAgentConnection,
+		scmService: ISCMService = createEmptyScmService(),
+		executeCommand?: (commandId: string, ...args: unknown[]) => Promise<unknown>,
+	) {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
 		instantiationService.stub(ISCMService, scmService);
@@ -404,7 +408,7 @@ suite('Sources - Changes list leftover honesty', () => {
 		instantiationService.stub(ICommandService, {
 			onWillExecuteCommand: Event.None,
 			onDidExecuteCommand: Event.None,
-			executeCommand: async () => undefined,
+			executeCommand: executeCommand ?? (async () => undefined),
 		} as unknown as ICommandService);
 		return instantiationService;
 	}
@@ -624,6 +628,10 @@ suite('Sources - Changes list leftover honesty', () => {
 
 	function stageSelectedButton(host: HTMLElement): HTMLElement | null {
 		return host.querySelector('.sources-changes-toolbar .monaco-button');
+	}
+
+	function unstageSelectedButton(host: HTMLElement): HTMLElement | null {
+		return host.querySelector('.sources-changes-toolbar .monaco-button:nth-child(2)');
 	}
 
 	function commitButton(host: HTMLElement): HTMLElement | null {
@@ -872,5 +880,89 @@ suite('Sources - Changes list leftover honesty', () => {
 			signOff: false,
 			amend: false,
 		}]);
+	});
+
+	test('leftover-looks-live pairing-hold Unstage stays disabled and 0 git.unstage', async function () {
+		const gitUnstageCommands: string[] = [];
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: true }),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+
+		const unstageCommand = CommandsRegistry.registerCommand('git.unstage', () => { });
+		try {
+			const scmStub = toResource.call(this, '/project/src/leftover-unstage.ts');
+			const host = mountHost();
+			const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub), async (commandId: string) => {
+				if (commandId === 'git.unstage') {
+					gitUnstageCommands.push(commandId);
+				}
+			}).createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			assert.ok(list.element(0).scmResource);
+			list.setFocus([0]);
+			list.setSelection([0]);
+			await timeout(20);
+
+			const unstage = unstageSelectedButton(host);
+			assert.ok(unstage, 'Unstage Selected is the toolbar second button');
+			assert.strictEqual(unstage.classList.contains('disabled'), true);
+			const rowAction = host.querySelector('.sources-change-action') as HTMLElement | null;
+			assert.ok(!rowAction || rowAction.style.display === 'none' || rowAction.classList.contains('disabled'));
+
+			forceClick(unstage);
+			forceClick(rowAction);
+			await (widget as unknown as { runOnSelected: (action: 'unstage') => Promise<void> }).runOnSelected('unstage');
+			await timeout(20);
+			assert.strictEqual(gitUnstageCommands.length, 0);
+		} finally {
+			unstageCommand.dispose();
+		}
+	});
+
+	test('connected leftover without pairing Unstage still runs git.unstage', async function () {
+		const gitUnstageCommands: string[] = [];
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, false);
+
+		const unstageCommand = CommandsRegistry.registerCommand('git.unstage', () => { });
+		try {
+			const scmStub = toResource.call(this, '/project/src/leftover-live-unstage.ts');
+			const host = mountHost();
+			const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub), async (commandId: string) => {
+				if (commandId === 'git.unstage') {
+					gitUnstageCommands.push(commandId);
+				}
+			}).createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			assert.ok(list.element(0).scmResource);
+			list.setFocus([0]);
+			list.setSelection([0]);
+			await timeout(20);
+
+			const unstage = unstageSelectedButton(host);
+			assert.ok(unstage, 'Unstage Selected is the toolbar second button');
+			assert.strictEqual(unstage.classList.contains('disabled'), false);
+
+			await (widget as unknown as { runOnSelected: (action: 'unstage') => Promise<void> }).runOnSelected('unstage');
+			await timeout(20);
+			assert.deepStrictEqual(gitUnstageCommands, ['git.unstage']);
+		} finally {
+			unstageCommand.dispose();
+		}
 	});
 });

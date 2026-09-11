@@ -95,6 +95,7 @@ interface ISourcesChangeTemplateData {
 interface ISourcesChangesRendererDelegate {
 	isGitCommandAvailable(commandId: string): boolean;
 	canWriteStage(): boolean;
+	isSourcesGitWritePairingHold(): boolean;
 	onRowAction(entry: ISourcesChangeEntry, action: SourcesChangeRowAction): void;
 }
 
@@ -157,12 +158,16 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 		}
 
 		if (rowAction === 'unstage') {
+			const pairingHold = this.delegate.isSourcesGitWritePairingHold();
 			const label = localize('sourcesChangesList.unstage', "Unstage");
-			templateData.actionButton.element.style.display = '';
+			templateData.actionButton.element.style.display = pairingHold ? 'none' : '';
 			templateData.actionButton.icon = Codicon.remove;
-			templateData.actionButton.enabled = true;
+			templateData.actionButton.enabled = !pairingHold;
 			templateData.actionButton.setAriaLabel(label);
 			templateData.actionButton.setTitle(label);
+			if (pairingHold) {
+				return;
+			}
 			templateData.elementDisposables.add(templateData.actionButton.onDidClick(e => {
 				dom.EventHelper.stop(e, true);
 				this.delegate.onRowAction(element, 'unstage');
@@ -334,7 +339,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	/** Phase connected + pairingPending — leftover-looks-live still refuses writes. */
-	private isSourcesGitWritePairingHold(): boolean {
+	isSourcesGitWritePairingHold(): boolean {
 		return this.uaConnection.getConnectionPhase().kind === 'connected'
 			&& !!this.uaConnection.getConnectionSnapshot().pairingPending;
 	}
@@ -612,7 +617,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			&& this.isGitCommandAvailable(SOURCES_GIT_UNSTAGE_COMMAND));
 
 		this.stageSelectedButton.enabled = canStage && !this.isSourcesGitWritePairingHold();
-		this.unstageSelectedButton.enabled = canUnstage;
+		this.unstageSelectedButton.enabled = canUnstage && !this.isSourcesGitWritePairingHold();
 	}
 
 	private async runOnSelected(action: SourcesChangeRowAction): Promise<void> {
@@ -636,6 +641,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			return;
 		}
 		if (action === 'unstage' && !isSourcesChangeUnstageable(entry.groupId)) {
+			return;
+		}
+		if (action === 'unstage' && this.isSourcesGitWritePairingHold()) {
 			return;
 		}
 
