@@ -81,13 +81,15 @@ suite('Sources - Changes git read', () => {
 		assert.strictEqual(canSendSourcesGitFileDiff(true, true, 'sess-1'), true);
 	});
 
-	test('pairing-hold leftover-looks-live refuses Changes / Summary reads', () => {
+	test('pairing-hold leftover-looks-live refuses Changes / Summary / FileDiff reads', () => {
 		assert.strictEqual(isSourcesGitWriteLive(true, false), true);
 		assert.strictEqual(isSourcesGitWriteLive(true, true), false);
 		assert.strictEqual(canSendSourcesGitChanges(true, true, 'sess-1', true), false);
 		assert.strictEqual(canSendSourcesGitSummary(true, true, 'sess-1', true), false);
+		assert.strictEqual(canSendSourcesGitFileDiff(true, true, 'sess-1', true), false);
 		assert.strictEqual(canSendSourcesGitChanges(true, true, 'sess-1', false), true);
 		assert.strictEqual(canSendSourcesGitSummary(true, true, 'sess-1', false), true);
+		assert.strictEqual(canSendSourcesGitFileDiff(true, true, 'sess-1', false), true);
 	});
 
 	test('read requests share write sessionId and pass empty fields as-is', () => {
@@ -147,6 +149,10 @@ suite('Sources - Changes git read', () => {
 			summaryCalls.push(request);
 			return unsupportedSummary;
 		}, 'sess-1', true), undefined);
+		assert.strictEqual(await tryReadSourcesGitFileDiff(true, async request => {
+			diffCalls.push(request);
+			return unsupportedDiff;
+		}, 'sess-1', 'src/a.ts', 'WORKTREE', true), undefined);
 		assert.deepStrictEqual(changeCalls, []);
 		assert.deepStrictEqual(summaryCalls, []);
 		assert.deepStrictEqual(diffCalls, []);

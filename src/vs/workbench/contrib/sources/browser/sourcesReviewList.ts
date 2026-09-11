@@ -572,6 +572,7 @@ export class SourcesReviewList extends Disposable {
 			this.getGitSessionId(),
 			entry.gitPath ?? '',
 			entry.indexState ?? '',
+			isConversationPairingHold(this.uaConnection),
 		);
 	}
 

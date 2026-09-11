@@ -623,6 +623,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.getGitSessionId(),
 			entry.gitPath ?? '',
 			entry.indexState ?? '',
+			isConversationPairingHold(this.uaConnection),
 		);
 	}
 
