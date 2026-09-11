@@ -13,10 +13,12 @@ import { IConversationRosterService } from './conversationStubService.js';
  * action (notice on failure, no local fallthrough). `forked` is a successful
  * `forkSubAgent`. Callers must not treat `handled` as a successful fork.
  *
- * Pairing-hold + leftover/history is also `handled` (D298): `isEngineConnected()`
- * is false then, but falling through to a local stub tab is a false success
- * while the lens still shows engine leftover. True disconnect-with-history and
- * never-connected stub stay unhandled so local fork can proceed.
+ * Same honesty class as Kill leftover writes (D318): pairing-hold leftover
+ * and leftover-looks-live (`isEngineConnected()===true` + pairingPending)
+ * are checked before `isEngineConnected()` (D320) so a looks-live stub cannot
+ * take the unary path. Both notice and must not call `forkSubAgent`. True
+ * disconnect leftover and never-connected stub stay unhandled so local fork
+ * can proceed (D298).
  */
 export type ConversationEngineForkOutcome = {
 	readonly handled: boolean;
@@ -33,15 +35,18 @@ export function tryConnectedEngineFork(
 	notificationService: INotificationService,
 	ua?: IConversationPairingHoldSource,
 ): ConversationEngineForkOutcome {
+	if (isConversationPairingHold(ua)) {
+		if (roster.hasEngineConnectionHistory()) {
+			notificationService.error(conversationForkEngineDisconnectedCopy);
+			return { handled: true, forked: false };
+		}
+		return { handled: false, forked: false };
+	}
 	if (roster.isEngineConnected()) {
 		if (roster.forkSubAgent(roster.getActiveSessionId())) {
 			return { handled: true, forked: true };
 		}
 		notificationService.error(localize('conversationFork.forkSubAgentFailed', "Could not fork conversation."));
-		return { handled: true, forked: false };
-	}
-	if (isConversationPairingHold(ua) && roster.hasEngineConnectionHistory()) {
-		notificationService.error(conversationForkEngineDisconnectedCopy);
 		return { handled: true, forked: false };
 	}
 	return { handled: false, forked: false };
