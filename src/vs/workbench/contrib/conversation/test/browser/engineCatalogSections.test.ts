@@ -61,6 +61,8 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 	function createConnectionStub(options: {
 		connected?: boolean;
+		pairingPending?: boolean;
+		looksLive?: boolean;
 		capabilities?: Partial<UniverseAgentCapabilitySnapshot>;
 		listAgentProfiles?: () => Promise<UniverseAgentListAgentProfilesResult>;
 		listMcpServers?: () => Promise<UniverseAgentListMcpServersResult>;
@@ -103,8 +105,8 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			tools: toolsCapability,
 		};
 		let connected = options.connected ?? false;
-		let pairingPending = false;
-		let looksLive = false;
+		let pairingPending = options.pairingPending ?? false;
+		let looksLive = options.looksLive ?? false;
 		let getToolInfo = options.getToolInfo;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 
@@ -581,6 +583,39 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.deepStrictEqual(removeCalls, []);
 		assert.deepStrictEqual(toggleCalls, []);
 		assert.strictEqual(listMcpServersCalls, listCallsAfterLoad);
+	});
+
+	test('MCP: leftover-looks-live first-pull pairing without leftover stays empty and skips list', async () => {
+		let listMcpServersCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			pairingPending: true,
+			looksLive: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => {
+				listMcpServersCalls++;
+				return { servers: [demoMcpServer()] };
+			},
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listMcpServersCalls, 0);
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(section.canWrite(), false);
+		assert.strictEqual(section.isWriteToolbarVisible(), false);
+		const listContainer = section.getDomNode().querySelector('.engine-catalog-list') as HTMLElement;
+		assert.ok(listContainer);
+		assert.strictEqual(listContainer.style.display, 'none');
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(MCP_EMPTY_COPY));
 	});
 
 	test('Agents: leftover-looks-live pairing-hold writes stay 0 unary', async () => {
