@@ -16,7 +16,9 @@ import { type ContextKeyExpression, type ContextKeyValue, IContextKeyService } f
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentWriteGitApplyHunksRequest, UniverseAgentWriteGitWriteResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { ITextModelService } from '../../../../../editor/common/services/resolverService.js';
+import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainerModel, IViewContainersRegistry, IViewDescriptorService, IViewPaneContainer, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
 import { workbenchInstantiationService, TestEditorGroupView, TestViewsService } from '../../../../test/browser/workbenchTestServices.js';
@@ -31,7 +33,7 @@ import { SOURCES_DIFF_PANEL_CONTAINER_ID, SOURCES_DIFF_PANEL_VIEW_ID } from '../
 import { SourcesDiffPanelService } from '../../browser/sourcesDiffPanelService.js';
 import { SourcesDiffPanelView } from '../../browser/sourcesDiffPanelView.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
-import { canShowSourcesReviewAccept, resolveSourcesDiffWriteActions } from '../../common/sourcesChangesGitWrite.js';
+import { canSendSourcesGitApplyHunks, canShowSourcesReviewAccept, resolveSourcesDiffWriteActions } from '../../common/sourcesChangesGitWrite.js';
 
 function evalWhen(when: ContextKeyExpression | undefined, values: Record<string, ContextKeyValue>): boolean {
 	if (!when) {
@@ -228,10 +230,11 @@ suite('Sources diff panel', () => {
 		throwOnLoad?: boolean;
 		executeCommand?: (...args: unknown[]) => Promise<unknown>;
 		resource?: URI;
+		connection?: IUniverseAgentConnection;
 	} = {}) {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IViewDescriptorService, createViewDescriptorServiceStub());
-		instantiationService.stub(IUniverseAgentConnection, {
+		instantiationService.stub(IUniverseAgentConnection, options.connection ?? {
 			isEngineConnected: () => false,
 			onDidChangeConnection: Event.None,
 		} as unknown as IUniverseAgentConnection);
@@ -374,5 +377,98 @@ suite('Sources diff panel', () => {
 		await runner.runGitAction('git.stage');
 		assert.strictEqual(parent.querySelector('.conversation-diff-review-notice')?.textContent ?? '', 'boom');
 		assert.notStrictEqual((parent.querySelector('.conversation-diff-review-notice') as HTMLElement | null)?.style.display, 'none');
+	});
+
+	function forceClick(button: HTMLElement | null): void {
+		if (!button) {
+			return;
+		}
+		button.style.display = '';
+		button.removeAttribute('disabled');
+		button.setAttribute('aria-disabled', 'false');
+		if ('disabled' in button) {
+			(button as HTMLButtonElement).disabled = false;
+		}
+		button.click();
+	}
+
+	function leftoverLooksLiveApplyConnection(applyCalls: UniverseAgentWriteGitApplyHunksRequest[]): IUniverseAgentConnection {
+		const acceptedWrite: UniverseAgentWriteGitWriteResult = {
+			supported: true,
+			reason: '',
+			success: true,
+			errorMessage: '',
+			exitCode: 0,
+			stdout: '',
+		};
+		return {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: true }),
+			onDidChangeConnection: Event.None,
+			writeGitApplyHunks: async (request: UniverseAgentWriteGitApplyHunksRequest) => {
+				applyCalls.push(request);
+				return acceptedWrite;
+			},
+		} as unknown as IUniverseAgentConnection;
+	}
+
+	test('leftover-looks-live pairing-hold Accept chrome stays hidden and 0 unary', async function () {
+		const resource = toResource.call(this, '/project/src/leftover.ts');
+		const original = toResource.call(this, '/project/src/leftover.ts.git');
+		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
+		const connection = leftoverLooksLiveApplyConnection(applyCalls);
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(canSendSourcesGitApplyHunks(true, true, isConversationPairingHold(connection)), false);
+
+		const instantiationService = stubDiffHonestyServices({
+			throwOnLoad: true,
+			resource,
+			connection,
+		});
+		instantiationService.stub(IViewsService, {
+			openView: async () => null,
+			onDidChangeViewVisibility: Event.None,
+			onDidChangeViewContainerVisibility: Event.None,
+		} as unknown as IViewsService);
+		const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+		instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+		const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+			id: SOURCES_DIFF_PANEL_VIEW_ID,
+			title: 'Diff',
+		}));
+		view.render();
+		await panelService.show({
+			modified: resource,
+			original,
+			groupId: 'workingTree',
+		});
+		await timeout(50);
+
+		const panelAccept = view.element.querySelector('.sources-diff-panel-accept') as HTMLButtonElement | null;
+		assert.strictEqual(panelAccept?.style.display, 'none');
+		forceClick(panelAccept);
+		await (view as unknown as { runAccept: () => Promise<void> }).runAccept();
+		await timeout(20);
+		assert.deepStrictEqual(applyCalls, []);
+
+		const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		pane.create(parent);
+		const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+		await timeout(20);
+
+		const reviewAccept = parent.querySelector('.conversation-diff-review-accept') as HTMLButtonElement | null;
+		assert.strictEqual(reviewAccept?.style.display, 'none');
+		forceClick(reviewAccept);
+		await (pane as unknown as { runAccept: () => Promise<void> }).runAccept();
+		await timeout(20);
+		assert.deepStrictEqual(applyCalls, []);
 	});
 });

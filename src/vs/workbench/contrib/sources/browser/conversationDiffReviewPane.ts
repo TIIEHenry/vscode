@@ -25,6 +25,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { EditorPane } from '../../../browser/parts/editor/editorPane.js';
 import { IEditorOpenContext } from '../../../common/editor.js';
 import { IEditorGroup } from '../../../services/editor/common/editorGroupsService.js';
+import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { ISCMService } from '../../scm/common/scm.js';
 import { ConversationDiffReviewEditorId } from '../common/conversationDiffReviewInput.js';
@@ -295,6 +296,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 			canWriteAccept: canSendSourcesGitApplyHunks(
 				this.uaConnection.isEngineConnected(),
 				typeof this.uaConnection.writeGitApplyHunks === 'function',
+				isConversationPairingHold(this.uaConnection),
 			),
 			hasApplyHunksPayload: hasSourcesGitApplyHunksPayload(sessionId, []),
 			hasGitStageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND),
@@ -369,6 +371,9 @@ export class ConversationDiffReviewPane extends EditorPane {
 				this.uaConnection.isEngineConnected(),
 				hook ? request => hook.call(this.uaConnection, request) : undefined,
 				sessionId,
+				[],
+				patches,
+				isConversationPairingHold(this.uaConnection),
 			));
 			if (attempt.kind === 'accepted') {
 				this.hideNotice();
@@ -389,6 +394,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		if (canSendSourcesGitApplyHunks(
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitApplyHunks === 'function',
+			isConversationPairingHold(this.uaConnection),
 		) || hasSourcesGitApplyHunksPayload(sessionId, patches)) {
 			this.showNotice(localize('conversationDiffReviewPane.acceptUnavailable', "Git accept is not available."));
 		}

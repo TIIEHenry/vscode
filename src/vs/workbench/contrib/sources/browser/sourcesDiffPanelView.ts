@@ -29,6 +29,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { ViewPane, IViewPaneOptions } from '../../../browser/parts/views/viewPane.js';
 import { EditorModel } from '../../../common/editor/editorModel.js';
 import { IViewDescriptorService } from '../../../common/views.js';
+import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { ISCMResource, ISCMService } from '../../scm/common/scm.js';
 import { findScmResourceForUri, ISourcesChangeRef, sourcesDiffLocalWritePath } from '../common/sourcesChangeRef.js';
@@ -317,6 +318,7 @@ export class SourcesDiffPanelView extends ViewPane {
 			canWriteAccept: canSendSourcesGitApplyHunks(
 				this.uaConnection.isEngineConnected(),
 				typeof this.uaConnection.writeGitApplyHunks === 'function',
+				isConversationPairingHold(this.uaConnection),
 			),
 			hasApplyHunksPayload: hasSourcesGitApplyHunksPayload(sessionId, []),
 			hasGitStageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND),
@@ -390,6 +392,9 @@ export class SourcesDiffPanelView extends ViewPane {
 				this.uaConnection.isEngineConnected(),
 				hook ? request => hook.call(this.uaConnection, request) : undefined,
 				sessionId,
+				[],
+				patches,
+				isConversationPairingHold(this.uaConnection),
 			));
 			if (attempt.kind === 'accepted') {
 				this.hideActionNotice();
@@ -410,6 +415,7 @@ export class SourcesDiffPanelView extends ViewPane {
 		if (canSendSourcesGitApplyHunks(
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitApplyHunks === 'function',
+			isConversationPairingHold(this.uaConnection),
 		) || hasSourcesGitApplyHunksPayload(sessionId, patches)) {
 			this.showActionNotice(localize('sourcesDiffPanel.acceptUnavailable', "Git accept is not available."));
 		}
