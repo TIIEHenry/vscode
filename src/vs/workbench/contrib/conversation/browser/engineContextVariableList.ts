@@ -16,9 +16,12 @@ export function canSendEngineContextVariableListRequest(connected: boolean, hasH
 	return connected && hasHook;
 }
 
-/** Engine Preferences Context Variables list action → Read. Empty ids are still sent. */
-export function canSendEngineContextVariableRead(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
+/**
+ * Engine Preferences Context Variables list action → Read. Empty ids are still sent.
+ * Pairing-hold leftover-looks-live (`connected===true`) still refuses (D316).
+ */
+export function canSendEngineContextVariableRead(connected: boolean, hasHook: boolean, pairingHold = false): boolean {
+	return connected && hasHook && !pairingHold;
 }
 
 /**
