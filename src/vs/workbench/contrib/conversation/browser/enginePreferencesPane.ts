@@ -30,7 +30,7 @@ import { EngineToolsSection } from './engineToolsSection.js';
 import { EngineClipboardSection } from './engineClipboardSection.js';
 import { EngineContextVariableSection } from './engineContextVariableSection.js';
 import { EngineTriggersSection } from './engineTriggersSection.js';
-import { getConnectionPhaseStatusBarText } from './conversationSessionStatus.js';
+import { getConnectionPhaseStatusBarText, isConversationPairingHold } from './conversationSessionStatus.js';
 import {
 	getUnsupportedEnvironmentCopy,
 	isUnsupportedLocalEngineEnvironment,
@@ -385,7 +385,8 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		this.testRow.style.display = drawDesktop ? '' : 'none';
 		this.bannerTestButton.element.style.display = drawDesktop ? '' : 'none';
 
-		const disconnected = !this.connectionService.isEngineConnected();
+		// D354 leftover-looks-live: pairing-hold first. KEEP chrome is not only `!connected`.
+		const disconnected = isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected();
 		this.disconnectedBanner.style.display = disconnected || unsupportedEnvironment ? '' : 'none';
 		// Disconnected is an ordinary resting state and reads as a neutral notice; an environment
 		// that cannot host an engine at all is the exception that earns the warning surface.
