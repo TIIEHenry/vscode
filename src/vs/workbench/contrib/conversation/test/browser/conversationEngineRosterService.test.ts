@@ -106,7 +106,9 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		return this.createSessionResult;
 	}
 	deleteError: Error | undefined;
-	async deleteSession() {
+	readonly deleteCalls: { sessionId: string }[] = [];
+	async deleteSession(request: { sessionId: string }) {
+		this.deleteCalls.push({ sessionId: request.sessionId });
 		if (this.deleteError) {
 			throw this.deleteError;
 		}
@@ -1158,6 +1160,34 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(isConversationPairingHold(connection), false);
 		assert.strictEqual(service.renameSession('ua-a', 'Live again'), true);
 		assert.strictEqual(service.getSessions().find(s => s.id === 'ua-a')?.title, 'Live again');
+	});
+
+	test('leftover-looks-live renameSession and deleteSession reject while pairingPending and skip unary', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		assert.strictEqual(service.renameSession('ua-only', 'Live title'), true);
+		assert.strictEqual(connection.renameCalls.length, 1);
+		assert.strictEqual(connection.deleteCalls.length, 0);
+
+		connection.setPairingPending(true);
+		service.setEngineConnected(true);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		const titlesBefore = service.getSessions().map(s => s.title);
+		const idsBefore = service.getSessions().map(s => s.id);
+		assert.strictEqual(service.renameSession('ua-only', 'Looks-live title'), false);
+		assert.strictEqual(service.deleteSession('ua-only'), false);
+		assert.strictEqual(connection.renameCalls.length, 1);
+		assert.strictEqual(connection.deleteCalls.length, 0);
+		assert.deepStrictEqual(service.getSessions().map(s => s.title), titlesBefore);
+		assert.deepStrictEqual(service.getSessions().map(s => s.id), idsBefore);
 	});
 
 	test('disconnected after engine renameSession stays local and skips unary', async () => {
