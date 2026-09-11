@@ -20,7 +20,7 @@ import {
 	formatOverviewRegistryUnavailable,
 } from '../../browser/engineOverviewSection.js';
 import { formatCapabilitySupportLabel } from '../../browser/engineSectionChrome.js';
-import { getConnectionPhaseStatusBarText } from '../../browser/conversationSessionStatus.js';
+import { getConnectionPhaseStatusBarText, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
@@ -278,6 +278,7 @@ suite('EngineOverviewSection', () => {
 
 	function createMutableOverviewConnection(options: {
 		modelsSupport: OverviewModelsSupport;
+		looksLive?: boolean;
 		listModels?: () => Promise<{ models: UniverseAgentModelEntry[] }>;
 	}): IUniverseAgentConnection & {
 		setModelsSupport(support: OverviewModelsSupport): void;
@@ -301,7 +302,7 @@ suite('EngineOverviewSection', () => {
 			capabilities: { ...capabilities, models: modelsCapability },
 		});
 		const connection = createConversationConnectionTestStub({
-			isEngineConnected: () => connected && !pairingPending,
+			isEngineConnected: () => options.looksLive ? connected : (connected && !pairingPending),
 			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
 			getConnectionSnapshot: snapshot,
 			onDidChangeConnection: onDidChangeConnection.event,
@@ -336,6 +337,7 @@ suite('EngineOverviewSection', () => {
 
 	test('connected phase with pairingPending paints Connection as Engine not connected', async () => {
 		const capabilities = createEmptyTestCapabilitySnapshot();
+		let listModelsCalls = 0;
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => true,
 			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
@@ -347,6 +349,10 @@ suite('EngineOverviewSection', () => {
 				sharedFsRootSent: false,
 				capabilities: { ...capabilities, models: { support: 'UNKNOWN' } },
 			}),
+			listModels: async () => {
+				listModelsCalls++;
+				return { models };
+			},
 		});
 		const parent = document.createElement('div');
 		document.body.appendChild(parent);
@@ -355,13 +361,19 @@ suite('EngineOverviewSection', () => {
 		const section = store.add(instantiationService.createInstance(EngineOverviewSection, parent));
 		section.setSectionActive(true);
 		await flushOverview();
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(listModelsCalls, 0, 'first-pull pairing-hold must not listModels');
 		const connectionValue = overviewRowValue(section.getDomNode(), 'Connection');
+		assert.strictEqual(connectionValue, null, 'first-pull pairing-hold without leftover hides summary');
 		assert.strictEqual(
-			connectionValue?.textContent,
 			getConnectionPhaseStatusBarText({ kind: 'connected', path: 'direct' }, true),
+			'Engine not connected',
 		);
-		assert.strictEqual(connectionValue?.textContent, 'Engine not connected');
-		assert.ok(!(connectionValue?.textContent ?? '').includes('Engine · Direct'));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes('Engine · Direct'));
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
 		parent.remove();
 	});
 
@@ -419,6 +431,53 @@ suite('EngineOverviewSection', () => {
 		assert.ok(cleared);
 		assert.strictEqual(cleared.dataset['catalogMode'], 'disconnected');
 		assert.strictEqual(listModelsCalls, listCallsAfterLoad);
+		parent.remove();
+	});
+
+	test('leftover-looks-live pairing-hold keeps leftover summary and skips listModels', async () => {
+		let listModelsCalls = 0;
+		const connection = createMutableOverviewConnection({
+			modelsSupport: 'SUPPORTED',
+			looksLive: true,
+			listModels: async () => {
+				listModelsCalls++;
+				return { models };
+			},
+		});
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const section = store.add(instantiationService.createInstance(EngineOverviewSection, parent));
+		section.setSectionActive(true);
+		await flushOverview();
+
+		const summary = formatOverviewModelSummary(models.length);
+		assert.strictEqual(overviewRowValue(section.getDomNode(), 'Model')?.textContent, summary);
+		const listCallsAfterLoad = listModelsCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		connection.setPairingPending(true);
+		await flushOverview();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(listModelsCalls, listCallsAfterLoad, 'leftover-looks-live must not extra listModels');
+		const modelValue = overviewRowValue(section.getDomNode(), 'Model');
+		assert.strictEqual(modelValue?.textContent, summary);
+		const summaryGrid = section.getDomNode().querySelector('.engine-overview-grid') as HTMLElement | null;
+		assert.ok(summaryGrid);
+		assert.notStrictEqual(summaryGrid.style.display, 'none');
+		const connectionValue = overviewRowValue(section.getDomNode(), 'Connection');
+		assert.strictEqual(connectionValue?.textContent, 'Engine not connected');
+		assert.ok(!(connectionValue?.textContent ?? '').includes('Engine · Direct'));
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
 		parent.remove();
 	});
 

@@ -13,7 +13,7 @@ import type {
 	UniverseAgentCapabilitySupport,
 	UniverseAgentModelEntry,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { isConversationEngineLive } from './conversationSessionStatus.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 import {
 	canShowCatalogRows,
 	type EngineCatalogListPhase,
@@ -183,11 +183,7 @@ export class EngineProviderModelSection extends Disposable {
 	}
 
 	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		if (!hadLiveCatalog) {
-			return false;
-		}
-		const snapshot = this.connection.getConnectionSnapshot();
-		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
+		return hadLiveCatalog && isConversationPairingHold(this.connection);
 	}
 
 	private applyDisconnectedModelsRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): void {
@@ -208,7 +204,8 @@ export class EngineProviderModelSection extends Disposable {
 		const connected = this.connection.isEngineConnected();
 		const entry = readCapabilityEntry(this.connection.getCapabilitySnapshot(), 'models');
 
-		if (!connected) {
+		// D340 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connection) || !connected) {
 			this.applyDisconnectedModelsRefresh(entry.support, this.modelCount > 0);
 			return;
 		}
@@ -243,7 +240,7 @@ export class EngineProviderModelSection extends Disposable {
 			if (generation !== this.refreshGeneration) {
 				return;
 			}
-			if (!this.connection.isEngineConnected()) {
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				this.applyDisconnectedModelsRefresh(entry.support, this.modelCount > 0);
 				return;
 			}
