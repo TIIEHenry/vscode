@@ -343,11 +343,125 @@ suite('conversationComposerCatalog', () => {
 		assert.ok(!agentOptions.some(option => option.text === conversationLensDockCatalogProbing));
 		assert.ok(agentOptions.some(option => option.text === conversationLensDockNoAgent));
 	});
+
+	test('refreshComposerCatalogs pairing-hold keeps leftover catalogs then true disconnect clears', async () => {
+		let connected = true;
+		let pairingPending = false;
+		let listAgentProfilesCalls = 0;
+		let listModelsCalls = 0;
+		let listToolsCalls = 0;
+		const snapshot = () => ({
+			transport: connected ? 'ok' as const : 'idle' as const,
+			pairingPending,
+			channelAlive: connected,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const { host, agentOptions, modelOptions } = createLoadCatalogHost({
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [{ id: 'coder', name: 'Coder', source: 'user' }] };
+			},
+			listModels: async () => {
+				listModelsCalls++;
+				return { models: [{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' }] };
+			},
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [{ name: 'bash' }] };
+			},
+		}, 'SUPPORTED', {
+			isEngineConnected: () => connected && !pairingPending,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+		});
+
+		await loadConnectedComposerCatalogs(host, host.composerCatalogGeneration);
+		assert.ok(agentOptions.some(option => option.text === 'Coder'));
+		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
+		assert.deepStrictEqual([...host.catalogToolNames], ['bash']);
+		assert.strictEqual(host.stubService.isEngineConnected(), true);
+		const listsAfterLoad = { listAgentProfilesCalls, listModelsCalls, listToolsCalls };
+
+		pairingPending = true;
+		assert.strictEqual(host.stubService.isEngineConnected(), false);
+		assert.strictEqual(host.uaConnection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(host.uaConnection.getConnectionSnapshot().pairingPending, true);
+
+		refreshComposerCatalogs(host);
+
+		assert.strictEqual(listAgentProfilesCalls, listsAfterLoad.listAgentProfilesCalls);
+		assert.strictEqual(listModelsCalls, listsAfterLoad.listModelsCalls);
+		assert.strictEqual(listToolsCalls, listsAfterLoad.listToolsCalls);
+		assert.ok(agentOptions.some(option => option.text === 'Coder'));
+		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
+		assert.deepStrictEqual([...host.catalogModelIds], ['', 'gpt-test']);
+		assert.deepStrictEqual([...host.catalogToolNames], ['bash']);
+		assert.ok(!agentOptions.every(option => option.text === conversationLensDockNoAgent));
+		assert.ok(!modelOptions.every(option => option.text === conversationLensDockNoModel));
+
+		pairingPending = false;
+		connected = false;
+		refreshComposerCatalogs(host);
+
+		assert.strictEqual(listAgentProfilesCalls, listsAfterLoad.listAgentProfilesCalls);
+		assert.strictEqual(listModelsCalls, listsAfterLoad.listModelsCalls);
+		assert.strictEqual(listToolsCalls, listsAfterLoad.listToolsCalls);
+		assert.deepStrictEqual(agentOptions, COMPOSER_AGENT_OPTIONS.map(text => ({ text })));
+		assert.deepStrictEqual(modelOptions, [{ text: conversationLensDockNoModel }]);
+		assert.deepStrictEqual([...host.catalogToolNames], []);
+		assert.deepStrictEqual([...host.catalogModelIds], ['']);
+		assert.strictEqual(host.modelSelectedIndex, 0);
+	});
+
+	test('refreshComposerCatalogs pairing-hold without last-good still resets empty', () => {
+		let pairingPending = true;
+		let listCalls = 0;
+		const { host, agentOptions, modelOptions } = createLoadCatalogHost({
+			listAgentProfiles: async () => {
+				listCalls++;
+				return { profiles: [{ id: 'coder', name: 'Coder', source: 'user' }] };
+			},
+			listModels: async () => {
+				listCalls++;
+				return { models: [{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' }] };
+			},
+			listTools: async () => {
+				listCalls++;
+				return { tools: [{ name: 'bash' }] };
+			},
+		}, 'SUPPORTED', {
+			isEngineConnected: () => !pairingPending,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+
+		refreshComposerCatalogs(host);
+
+		assert.strictEqual(listCalls, 0);
+		assert.deepStrictEqual(agentOptions, COMPOSER_AGENT_OPTIONS.map(text => ({ text })));
+		assert.deepStrictEqual(modelOptions, [{ text: conversationLensDockNoModel }]);
+		assert.deepStrictEqual([...host.catalogToolNames], []);
+		assert.deepStrictEqual([...host.catalogModelIds], ['']);
+		assert.ok(!agentOptions.some(option => option.text === 'Coder'));
+		assert.ok(!modelOptions.some(option => option.text === 'gpt-test'));
+	});
 });
 
 function createLoadCatalogHost(
 	hooks: Pick<IUniverseAgentConnection, 'listAgentProfiles' | 'listModels' | 'listTools'>,
 	support: 'SUPPORTED' | 'UNKNOWN' | (() => 'SUPPORTED' | 'UNKNOWN') = 'SUPPORTED',
+	engine?: {
+		isEngineConnected?: () => boolean;
+		getConnectionPhase?: IUniverseAgentConnection['getConnectionPhase'];
+		getConnectionSnapshot?: IUniverseAgentConnection['getConnectionSnapshot'];
+	},
 ): {
 	host: IConversationLensComposerHost;
 	agentOptions: { text: string }[];
@@ -373,7 +487,7 @@ function createLoadCatalogHost(
 		},
 		getBoundSessionId: () => 's1',
 		getSessionConfig: () => ({ agentIndex: 0 }),
-		stubService: { isEngineConnected: () => true },
+		stubService: { isEngineConnected: engine?.isEngineConnected ?? (() => true) },
 		updateSendEnabled() { },
 		updateGateRow() { },
 		uaConnection: createConversationConnectionTestStub({
@@ -389,6 +503,8 @@ function createLoadCatalogHost(
 			listAgentProfiles: hooks.listAgentProfiles,
 			listModels: hooks.listModels,
 			listTools: hooks.listTools,
+			...(engine?.getConnectionPhase ? { getConnectionPhase: engine.getConnectionPhase } : {}),
+			...(engine?.getConnectionSnapshot ? { getConnectionSnapshot: engine.getConnectionSnapshot } : {}),
 		}),
 	} as unknown as IConversationLensComposerHost;
 	return { host, agentOptions, modelOptions };
