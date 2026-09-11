@@ -384,6 +384,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override forkSubAgent(sessionId: string, options?: { name?: string; task?: string; parentAgentId?: string }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.forkEngineSubAgent(sessionId, options, true);
 		}
@@ -394,6 +397,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override killSubAgent(sessionId: string, options?: { agentId?: string; force?: boolean }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.killEngineSubAgent(sessionId, options, true);
 		}
