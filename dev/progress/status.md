@@ -11,7 +11,7 @@ summary: "关仓：D276–D300 leftover+pairing 已进 merge；compile-client 0�
 > **当前迭代账**（规则 3a）。产品状态 → [traceability](../../docs/product/traceability.md)（生成列）；方案状态 → [plans INDEX](../plans/INDEX.md)（生成列）；延期 → [deferred-gaps](deferred-gaps.md)。历史槽位 catalog 流水 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
 
-### 已合入（关仓 tip `056738ba0d6` D300；`origin/agent-ide` 仍停 D265）
+### 已合入（`MERGE_SHA=cb78b1ca9fa`，已 push `origin/agent-ide`）
 | 切片 | 提交 / 落点 |
 |:-----|:------------|
 | **GFS-1** | `32f71812` / `32198d0b` — [giant-file-split](../plans/giant-file-split.md)：`grpcClient` mapper 特征测 + facade / mappers / calls 拆分 |
@@ -52,7 +52,7 @@ summary: "关仓：D276–D300 leftover+pairing 已进 merge；compile-client 0�
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
 
-集成 tip **`056738ba0d6`**（`loop/merge`；关仓 compile-client 0）。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 / PRD-019 不升 `implemented`**。[R8](research-queue.md) **已闭**（[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 引擎空 `patches` = 成功空操作）。Accept 产品选项 A 见 [sources-accept-empty-success](../plans/sources-accept-empty-success.md)（`draft`；**A1 已落**；**P5 停线**——只批准停线，不批准 A2；A2 须新选定 + 新 Arch-First）。
+集成 tip **`cb78b1ca9fa`**（`loop/merge`；已 push；compile-client 0）。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 / PRD-019 不升 `implemented`**。[R8](research-queue.md) **已闭**（[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 引擎空 `patches` = 成功空操作）。Accept 产品选项 A 见 [sources-accept-empty-success](../plans/sources-accept-empty-success.md)（`draft`；**A1 已落**；**P5 停线**——只批准停线，不批准 A2；A2 须新选定 + 新 Arch-First）。
 
 1. **集成 tip** 以 merge 本关仓提交为准（FileMutationJoin A=`10d8dd3b143`；createScoped B=`9c49eb5b978`；Review 委托 D=`60dbf139ac1`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。D22/F3 已撤回。不跑 F4 / 不实施 A2。
 2. 本波字母槽已进 merge：**A** `filemutation-join`（无 `diff_stats` 时 omit）；**B** createScoped + SessionsView 夹具 + [D42](deferred-gaps.md) Maximize 已闭；**C** inbox-getqueue-honesty（无 GetQueue）；**D** review-entries + [D43](deferred-gaps.md) layout 扇出已闭。**[D16](deferred-gaps.md) 仍开**。
@@ -183,13 +183,13 @@ summary: "关仓：D276–D300 leftover+pairing 已进 merge；compile-client 0�
 ## 工位表（P0 盘点 · 2026-09-11 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `056738ba0d6` | 干净 | 0 | 本波已齐；compile-client 0 |
-| A | `vscode-WorkTrees/A` | `loop/A` | `056738ba0d6` | 干净 | 0 | idle；已对齐 |
-| B | `vscode-WorkTrees/B` | `loop/B` | `056738ba0d6` | 干净 | 0 | idle；已对齐 |
-| C | `vscode-WorkTrees/C` | `loop/C` | `056738ba0d6` | 未提交 `dev/loop` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `056738ba0d6` | 干净 | 0 | idle；已对齐 |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `cb78b1ca9fa` | 干净 | 0 | `parked`；已 push 同 SHA |
+| A | `vscode-WorkTrees/A` | `loop/A` | `cb78b1ca9fa` | 干净 | 0 | idle；已对齐 MERGE_SHA |
+| B | `vscode-WorkTrees/B` | `loop/B` | `cb78b1ca9fa` | 干净 | 0 | idle；已对齐 MERGE_SHA |
+| C | `vscode-WorkTrees/C` | `loop/C` | `cb78b1ca9fa` | 未提交 `dev/loop` | 0 | idle；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `cb78b1ca9fa` | 干净 | 0 | idle；已对齐 MERGE_SHA |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked`；2 独有提交未进本波 |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `ad9245ca178` | `dev/loop` + `.idea` | 0 | 人类工位；禁止代对齐 |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `ad9245ca178` | `dev/loop` + `.idea` | 0 | 请自行对齐 MERGE_SHA |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
