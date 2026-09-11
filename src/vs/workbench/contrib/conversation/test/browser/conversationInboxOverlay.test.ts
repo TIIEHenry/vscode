@@ -1013,6 +1013,8 @@ suite('ConversationInboxOverlay pending click', () => {
 		const overlay = createOverlay(roster, scrolls, connection);
 		const button = getPendingButton(overlay);
 		assert.strictEqual(button.hidden, false);
+		assert.strictEqual(button.disabled, true);
+		assert.strictEqual(button.getAttribute('aria-disabled'), 'true');
 		assert.ok(roster.countPendingConfirmations(roster.getActiveSessionId()) > 0);
 		button.click();
 		assert.deepStrictEqual(scrolls, []);
@@ -1032,6 +1034,8 @@ suite('ConversationInboxOverlay pending click', () => {
 		const overlay = createOverlay(roster, scrolls, connection);
 		const button = getPendingButton(overlay);
 		assert.strictEqual(button.hidden, false);
+		assert.strictEqual(button.disabled, false);
+		assert.strictEqual(button.getAttribute('aria-disabled'), 'false');
 		assert.ok(roster.countPendingConfirmations(roster.getActiveSessionId()) > 0);
 		button.click();
 		assert.deepStrictEqual(scrolls, ['scroll']);
