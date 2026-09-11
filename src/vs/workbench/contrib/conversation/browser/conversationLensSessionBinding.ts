@@ -20,7 +20,7 @@ import { ConversationTrajectory } from './conversationTrajectory.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
 import type { ConversationMermaidExtensionInfo } from './conversationMermaidHost.js';
 import { findFirstPendingConfirmationTurnId as findFirstPendingConfirmationTurnIdFromTurns } from './conversationPendingSeat.js';
-import { isConversationEngineLive } from './conversationSessionStatus.js';
+import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
 export interface IConversationLensSessionBindingHost {
@@ -68,6 +68,15 @@ function shouldKeepLeftoverTimelineForPairingHold(host: IConversationLensSession
 	}
 	const snapshot = ua.getConnectionSnapshot();
 	return snapshot.pairingPending && isConversationEngineLive(ua.getConnectionPhase(), false);
+}
+
+/** D294: leftover engine lease stays readable; writes use the disconnect notice. */
+function rejectPairingHoldWrite(host: IConversationLensSessionBindingHost): boolean {
+	if (!isConversationPairingHold(host.uaConnection)) {
+		return false;
+	}
+	host.showPostFailure('engine_disconnected');
+	return true;
 }
 
 export function bindSessionView(host: IConversationLensSessionBindingHost, sessionId: string): void {
@@ -168,6 +177,9 @@ export async function resolveConfirmation(host: IConversationLensSessionBindingH
 		host.focusTimelineRecord(turnId);
 		return;
 	}
+	if (rejectPairingHoldWrite(host)) {
+		return;
+	}
 	try {
 		const outcome = await host.postBound({
 			kind: 'permissionRespond',
@@ -203,6 +215,9 @@ export async function resolveQuestion(host: IConversationLensSessionBindingHost,
 			return;
 		}
 		host.focusTimelineRecord(turnId);
+		return;
+	}
+	if (rejectPairingHoldWrite(host)) {
 		return;
 	}
 	try {
@@ -280,6 +295,9 @@ export function retryError(host: IConversationLensSessionBindingHost, turn: { re
 	}
 	const turnId = turn.turnId?.trim() || messageId;
 	const agentId = turn.agentId?.trim() || 'root';
+	if (rejectPairingHoldWrite(host)) {
+		return;
+	}
 	void host.postBound({
 		kind: 'continueGeneration',
 		agentId,

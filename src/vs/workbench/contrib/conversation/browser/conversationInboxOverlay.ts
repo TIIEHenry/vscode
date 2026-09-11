@@ -48,6 +48,7 @@ import {
 } from './conversationMessageQueueModel.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IConversationRosterService } from './conversationStubService.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { formatSyncChromeLabel } from './conversationSessionView.js';
 
 export const conversationLensInboxOverlayClass = 'conversation-lens-inbox-overlay';
@@ -427,7 +428,8 @@ export class ConversationInboxOverlay extends Disposable {
 		const enqueueButton = append(actions, $('button.queue-bar-action.conversation-lens-inbox-queue-enqueue')) as HTMLButtonElement;
 		enqueueButton.type = 'button';
 		enqueueButton.textContent = conversationLensInboxQueueEnqueue;
-		const enabled = this.stubService.isEngineConnected() || this.stubService.hasEngineConnectionHistory();
+		const enabled = !isConversationPairingHold(this.uaConnection)
+			&& (this.stubService.isEngineConnected() || this.stubService.hasEngineConnectionHistory());
 		enqueueButton.disabled = !enabled;
 		enqueueButton.setAttribute('aria-disabled', String(!enabled));
 		enqueueButton.title = enabled ? conversationLensInboxQueueEnqueue : conversationLensInboxQueueEnqueueUnavailable;
@@ -438,6 +440,9 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private async onEnqueueClicked(): Promise<void> {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return;
+		}
 		if (!this.stubService.isEngineConnected()) {
 			if (this.stubService.hasEngineConnectionHistory()) {
 				this.delegate.showPostFailure('engine_disconnected');

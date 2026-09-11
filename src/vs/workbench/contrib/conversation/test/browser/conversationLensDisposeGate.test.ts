@@ -7,7 +7,7 @@ import assert from 'assert';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { applySessionViewTimeline, refreshTrajectoryRecords, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
-import { saveQueueEdit, saveTurnEdit, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
+import { postBound, saveQueueEdit, saveTurnEdit, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
 import { showPostFailure, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
 import {
 	conversationLensPostFailed,
@@ -737,6 +737,81 @@ suite('conversation lens dispose gate', () => {
 
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
 		assert.strictEqual(focused, 0);
+	});
+
+	function pairingHoldLeftoverWriteHost(failures: ConversationComposerPostFailureReason[]): {
+		host: IConversationLensSessionBindingHost;
+		posted: number;
+	} {
+		const state = { posted: 0 };
+		const host = {
+			getBoundSessionId: () => 'sess-leftover',
+			sessionViewLease: {
+				post: async () => {
+					state.posted++;
+					return { accepted: true, correlation: { id: 'x' } };
+				},
+			},
+			postBound: async (msg: ConversationWriteMessage): Promise<PostOutcome> => {
+				return postBound(host as unknown as IConversationLensComposerHost, msg);
+			},
+			stubService: {
+				isEngineConnected: () => false,
+				isEngineSessionReady: () => false,
+				hasEngineConnectionHistory: () => true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: true }),
+			},
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+			focusTimelineRecord: () => { },
+		};
+		return { host: host as unknown as IConversationLensSessionBindingHost, get posted() { return state.posted; } };
+	}
+
+	test('postBound pairing-hold leftover lease rejects without lease.post', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host, posted } = pairingHoldLeftoverWriteHost(failures);
+		const outcome = await postBound(host as unknown as IConversationLensComposerHost, {
+			kind: 'continueGeneration',
+			agentId: 'root',
+			turnId: 'turn-1',
+			messageId: 'msg-1',
+		});
+		assert.strictEqual(posted, 0);
+		assert.strictEqual(outcome.accepted, false);
+		if (!outcome.accepted) {
+			assert.strictEqual(outcome.reason, 'no_such_session');
+		}
+		assert.deepStrictEqual(failures, []);
+	});
+
+	test('resolveConfirmation pairing-hold leftover lease does not post and shows engine_disconnected', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host, posted } = pairingHoldLeftoverWriteHost(failures);
+		await resolveConfirmation(host, 'turn-1', 'allowed');
+		assert.strictEqual(posted, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('resolveQuestion pairing-hold leftover lease does not post and shows engine_disconnected', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host, posted } = pairingHoldLeftoverWriteHost(failures);
+		await resolveQuestion(host, 'turn-1', 'req-1', { q1: { selectedLabels: ['a'] } });
+		assert.strictEqual(posted, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('retryError pairing-hold leftover lease does not post and shows engine_disconnected', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host, posted } = pairingHoldLeftoverWriteHost(failures);
+		retryError(host, { id: 'msg-1', turnId: 'turn-1', agentId: 'root' });
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		assert.strictEqual(posted, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
 	});
 
 	test('submitDraft postBound reject shows failed and does not leave an unhandled rejection', async () => {

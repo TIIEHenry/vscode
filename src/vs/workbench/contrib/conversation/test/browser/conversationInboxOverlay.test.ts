@@ -512,9 +512,10 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		failures: ConversationComposerPostFailureReason[] = [],
 		beforeResolve?: () => void,
 		inputError?: unknown,
+		connection?: IUniverseAgentConnection,
 	): ConversationInboxOverlay {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		stubInboxServices(instantiationService, roster);
+		stubInboxServices(instantiationService, roster, connection);
 		instantiationService.stub(IQuickInputService, {
 			input: async () => {
 				beforeResolve?.();
@@ -633,6 +634,33 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		assert.deepStrictEqual(roster.getMessageQueueState(roster.getActiveSessionId()).items, []);
 		assert.ok(panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxQueueNotListed));
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('live Enqueue disables when pairingPending', () => {
+		const roster = store.add(new EnqueueRoster());
+		let pairingPending = false;
+		const base = createConversationConnectionTestStub();
+		const connection = createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected' }),
+			getConnectionSnapshot: () => ({
+				...base.getConnectionSnapshot(),
+				pairingPending,
+			}),
+		});
+		const overlay = createOverlay(roster, undefined, [], undefined, undefined, connection);
+		const panel = openQueuePanel(overlay);
+		assert.strictEqual(getEnqueueButton(panel).disabled, false);
+		assert.strictEqual(getEnqueueButton(panel).getAttribute('aria-disabled'), 'false');
+
+		pairingPending = true;
+		roster.connected = false;
+		roster.history = true;
+		overlay.render();
+		assert.strictEqual(getEnqueueButton(panel).disabled, true);
+		assert.strictEqual(getEnqueueButton(panel).getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(getEnqueueButton(panel).title, conversationLensInboxQueueEnqueueUnavailable);
+		getEnqueueButton(panel).click();
+		assert.deepStrictEqual(roster.enqueueCalls, []);
 	});
 
 	test('disconnected Enqueue with history is enabled and shows engine_disconnected without enqueue', async () => {

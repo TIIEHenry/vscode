@@ -10,7 +10,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from './conversationComposerCatalog.js';
-import { isConversationEngineLive } from './conversationSessionStatus.js';
+import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
 import {
 	conversationLensDockCatalogProbing,
 	conversationLensDockNoAgent,
@@ -255,6 +255,11 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 
 export function postBound(host: IConversationLensComposerHost, msg: ConversationWriteMessage): Promise<PostOutcome> {
 
+		// D294: pairing-hold keeps the leftover engine lease for reads (D289).
+		// Writes must not fall through to lease.post — same closed outcome as a missing session.
+		if (isConversationPairingHold(host.uaConnection)) {
+			return Promise.resolve({ accepted: false, reason: 'no_such_session' });
+		}
 		if (msg.kind === 'clientToolRespond' && host.stubService.isEngineConnected()) {
 			const forwarded = host.stubService.respondClientTool(
 				host.getBoundSessionId(),
