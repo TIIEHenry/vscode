@@ -12,7 +12,8 @@ import { workbenchInstantiationService } from '../../../../test/browser/workbenc
 import { getCatalogFailedCopy } from '../../browser/engineCatalog.js';
 import { ENGINE_TRIGGER_ADD_LABEL, ENGINE_TRIGGER_DELETE_LABEL, ENGINE_TRIGGER_DELETE_SUCCESS_COPY, ENGINE_TRIGGER_DISABLE_LABEL, ENGINE_TRIGGER_EDIT_LABEL, ENGINE_TRIGGER_ENABLE_LABEL, ENGINE_TRIGGER_FIRE_LABEL, ENGINE_TRIGGER_LIST_EMPTY_COPY, ENGINE_TRIGGER_LIST_FEATURE, formatEngineTriggerListLabel } from '../../browser/engineTriggerList.js';
 import { EngineTriggersSection } from '../../browser/engineTriggersSection.js';
-import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
+import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('EngineTriggersSection', () => {
 
@@ -240,6 +241,69 @@ suite('EngineTriggersSection', () => {
 		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
 		assert.ok(status);
 		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('connected phase with pairingPending keeps leftover rows and paints not-connected', async () => {
+		let connected = true;
+		let pairingPending = false;
+		let listTriggersCalls = 0;
+		const leftover = emptyTrigger({
+			triggerId: 'leftover-trig',
+			name: 'leftover-nightly',
+			type: 'cron',
+			target: { kind: 'self' },
+		});
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: connected ? 'ok' : 'idle',
+			pairingPending,
+			channelAlive: connected,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => connected && !pairingPending,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => {
+				listTriggersCalls++;
+				return { triggers: [leftover] };
+			},
+		});
+		const pane = mountSection(connection);
+		await flushMicrotasks();
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-triggers-row').length, 1);
+		const listCallsAfterLoad = listTriggersCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listTriggersCalls, listCallsAfterLoad);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-triggers-row').length, 1);
+		const listHost = pane.getDomNode().querySelector('.engine-triggers-list') as HTMLElement | null;
+		assert.ok(listHost);
+		assert.notStrictEqual(listHost.style.display, 'none');
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_TRIGGER_LIST_EMPTY_COPY));
+
+		connected = false;
+		onDidChangeConnection.fire(snapshot());
+		await flushMicrotasks();
+
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-triggers-row').length, 0);
+		const cleared = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(cleared);
+		assert.strictEqual(cleared.dataset['catalogMode'], 'disconnected');
 		pane.getDomNode().parentElement?.remove();
 	});
 

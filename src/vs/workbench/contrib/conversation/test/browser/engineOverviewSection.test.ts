@@ -21,6 +21,7 @@ import {
 } from '../../browser/engineOverviewSection.js';
 import { formatCapabilitySupportLabel } from '../../browser/engineSectionChrome.js';
 import { getConnectionPhaseStatusBarText } from '../../browser/conversationSessionStatus.js';
+import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 function overviewRowValue(root: HTMLElement, label: string): HTMLElement | null {
@@ -282,22 +283,26 @@ suite('EngineOverviewSection', () => {
 		setModelsSupport(support: OverviewModelsSupport): void;
 		setListModels(impl: () => Promise<{ models: UniverseAgentModelEntry[] }>): void;
 		fireConnection(): void;
+		setPairingPending(value: boolean): void;
+		setConnected(value: boolean): void;
 	} {
 		const capabilities = createEmptyTestCapabilitySnapshot();
 		const modelsCapability: { support: OverviewModelsSupport } = { support: options.modelsSupport };
 		let listModelsImpl = options.listModels;
+		let connected = true;
+		let pairingPending = false;
 		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
 			transport: 'ok',
 			sessionToken: 'tok',
-			pairingPending: false,
+			pairingPending,
 			channelAlive: true,
 			sharedFsRootSent: false,
 			capabilities: { ...capabilities, models: modelsCapability },
 		});
 		const connection = createConversationConnectionTestStub({
-			isEngineConnected: () => true,
-			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			isEngineConnected: () => connected && !pairingPending,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
 			getConnectionSnapshot: snapshot,
 			onDidChangeConnection: onDidChangeConnection.event,
 			listModels: async () => {
@@ -316,6 +321,14 @@ suite('EngineOverviewSection', () => {
 				listModelsImpl = impl;
 			},
 			fireConnection() {
+				onDidChangeConnection.fire(snapshot());
+			},
+			setPairingPending(value: boolean) {
+				pairingPending = value;
+				onDidChangeConnection.fire(snapshot());
+			},
+			setConnected(value: boolean) {
+				connected = value;
 				onDidChangeConnection.fire(snapshot());
 			},
 		});
@@ -349,6 +362,63 @@ suite('EngineOverviewSection', () => {
 		);
 		assert.strictEqual(connectionValue?.textContent, 'Engine not connected');
 		assert.ok(!(connectionValue?.textContent ?? '').includes('Engine · Direct'));
+		parent.remove();
+	});
+
+	test('connected phase with pairingPending keeps leftover summary and paints not-connected', async () => {
+		let listModelsCalls = 0;
+		const connection = createMutableOverviewConnection({
+			modelsSupport: 'SUPPORTED',
+			listModels: async () => {
+				listModelsCalls++;
+				return { models };
+			},
+		});
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const section = store.add(instantiationService.createInstance(EngineOverviewSection, parent));
+		section.setSectionActive(true);
+		await flushOverview();
+
+		const summary = formatOverviewModelSummary(models.length);
+		assert.strictEqual(overviewRowValue(section.getDomNode(), 'Model')?.textContent, summary);
+		const listCallsAfterLoad = listModelsCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		connection.setPairingPending(true);
+		await flushOverview();
+
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listModelsCalls, listCallsAfterLoad);
+		const modelValue = overviewRowValue(section.getDomNode(), 'Model');
+		assert.strictEqual(modelValue?.textContent, summary);
+		const summaryGrid = section.getDomNode().querySelector('.engine-overview-grid') as HTMLElement | null;
+		assert.ok(summaryGrid);
+		assert.notStrictEqual(summaryGrid.style.display, 'none');
+		const connectionValue = overviewRowValue(section.getDomNode(), 'Connection');
+		assert.strictEqual(connectionValue?.textContent, 'Engine not connected');
+		assert.ok(!(connectionValue?.textContent ?? '').includes('Engine · Direct'));
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+
+		connection.setConnected(false);
+		await flushOverview();
+
+		assert.strictEqual(overviewRowValue(section.getDomNode(), 'Model'), null);
+		const disconnectedGrid = section.getDomNode().querySelector('.engine-overview-grid') as HTMLElement | null;
+		assert.ok(disconnectedGrid);
+		assert.strictEqual(disconnectedGrid.style.display, 'none');
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(summary));
+		const cleared = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(cleared);
+		assert.strictEqual(cleared.dataset['catalogMode'], 'disconnected');
+		assert.strictEqual(listModelsCalls, listCallsAfterLoad);
 		parent.remove();
 	});
 

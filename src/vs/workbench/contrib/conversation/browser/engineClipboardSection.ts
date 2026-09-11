@@ -32,6 +32,7 @@ import {
 	formatEngineClipboardWriteLabel,
 } from './engineClipboardList.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
+import { isConversationEngineLive } from './conversationSessionStatus.js';
 
 const $ = DOM.$;
 
@@ -151,12 +152,7 @@ export class EngineClipboardSection extends Disposable {
 		this.updateClearAction();
 
 		if (!this.connection.isEngineConnected()) {
-			this.clearListPresentation();
-			this.status.render({
-				mode: 'disconnected',
-				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
-			});
-			return false;
+			return this.applyDisconnectedRefresh(this.entries.length > 0);
 		}
 
 		if (!canSend || !hook) {
@@ -183,7 +179,7 @@ export class EngineClipboardSection extends Disposable {
 				return false;
 			}
 			if (!this.connection.isEngineConnected()) {
-				return false;
+				return this.applyDisconnectedRefresh(this.entries.length > 0);
 			}
 			this.entries = [...result.entries];
 			this.paintList();
@@ -201,6 +197,30 @@ export class EngineClipboardSection extends Disposable {
 			});
 			return false;
 		}
+	}
+
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		if (!hadLiveCatalog) {
+			return false;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
+	}
+
+	private applyDisconnectedRefresh(hadLiveCatalog: boolean): boolean {
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			this.status.render({
+				mode: 'disconnected',
+				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+			});
+			return false;
+		}
+		this.clearListPresentation();
+		this.status.render({
+			mode: 'disconnected',
+			onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+		});
+		return false;
 	}
 
 	private clearListPresentation(): void {

@@ -19,7 +19,8 @@ import { workbenchInstantiationService } from '../../../../test/browser/workbenc
 import { getCatalogFailedCopy } from '../../browser/engineCatalog.js';
 import { ENGINE_CLIPBOARD_CLEAR_LABEL, ENGINE_CLIPBOARD_LIST_EMPTY_COPY, ENGINE_CLIPBOARD_LIST_FEATURE, ENGINE_CLIPBOARD_READ_LABEL, ENGINE_CLIPBOARD_WRITE_LABEL, formatEngineClipboardClearLabel, formatEngineClipboardListLabel, formatEngineClipboardWriteLabel } from '../../browser/engineClipboardList.js';
 import { EngineClipboardSection } from '../../browser/engineClipboardSection.js';
-import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
+import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('EngineClipboardSection', () => {
 
@@ -246,6 +247,70 @@ suite('EngineClipboardSection', () => {
 		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
 		assert.ok(status);
 		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('connected phase with pairingPending keeps leftover rows and paints not-connected', async () => {
+		let connected = true;
+		let pairingPending = false;
+		let listClipboardCalls = 0;
+		const leftover = {
+			clipId: 'leftover-clip',
+			label: 'Leftover Note',
+			type: 'CLIPBOARD_TEXT' as const,
+			createdBy: '',
+			createdAt: 0,
+		};
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: connected ? 'ok' : 'idle',
+			pairingPending,
+			channelAlive: connected,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => connected && !pairingPending,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listClipboard: async (): Promise<UniverseAgentListClipboardResult> => {
+				listClipboardCalls++;
+				return { entries: [leftover] };
+			},
+		});
+		const pane = mountSection(connection);
+		await flushMicrotasks();
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-clipboard-row').length, 1);
+		const listCallsAfterLoad = listClipboardCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listClipboardCalls, listCallsAfterLoad);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-clipboard-row').length, 1);
+		const listHost = pane.getDomNode().querySelector('.engine-clipboard-list') as HTMLElement | null;
+		assert.ok(listHost);
+		assert.notStrictEqual(listHost.style.display, 'none');
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_CLIPBOARD_LIST_EMPTY_COPY));
+
+		connected = false;
+		onDidChangeConnection.fire(snapshot());
+		await flushMicrotasks();
+
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-clipboard-row').length, 0);
+		const cleared = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(cleared);
+		assert.strictEqual(cleared.dataset['catalogMode'], 'disconnected');
 		pane.getDomNode().parentElement?.remove();
 	});
 
