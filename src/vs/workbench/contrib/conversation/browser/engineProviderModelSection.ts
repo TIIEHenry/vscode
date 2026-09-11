@@ -151,7 +151,8 @@ export class EngineProviderModelSection extends Disposable {
 	}
 
 	private renderProviderGroup(): void {
-		const connected = this.connection.isEngineConnected();
+		// D359 leftover-looks-live: pairing-hold first. KEEP-chrome is not only `isEngineConnected()`.
+		const connected = !(isConversationPairingHold(this.connection) || !this.connection.isEngineConnected());
 		const entry = readCapabilityEntry(this.connection.getCapabilitySnapshot(), 'providerConfig');
 		const mode = this.resolveProviderMode(connected, entry.support);
 
