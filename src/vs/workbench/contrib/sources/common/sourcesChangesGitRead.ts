@@ -32,8 +32,8 @@ export function canSendSourcesGitSummary(connected: boolean, hasHook: boolean, s
 }
 
 /** Sources row open → ReadGitFileDiff. Empty sessionId does not call the hook. */
-export function canSendSourcesGitFileDiff(connected: boolean, hasHook: boolean, sessionId: string): boolean {
-	return connected && hasHook && hasSourcesGitSessionId(sessionId);
+export function canSendSourcesGitFileDiff(connected: boolean, hasHook: boolean, sessionId: string, pairingHold = false): boolean {
+	return isSourcesGitWriteLive(connected, pairingHold) && hasHook && hasSourcesGitSessionId(sessionId);
 }
 
 /** Same `sessionId` as write (`sourcesGitStagePathsRequest`). */
@@ -226,8 +226,9 @@ export async function tryReadSourcesGitFileDiff(
 	sessionId: string,
 	path: string,
 	indexState: string,
+	pairingHold = false,
 ): Promise<UniverseAgentReadGitFileDiffResult | undefined> {
-	if (!canSendSourcesGitFileDiff(connected, typeof hook === 'function', sessionId) || !hook) {
+	if (!canSendSourcesGitFileDiff(connected, typeof hook === 'function', sessionId, pairingHold) || !hook) {
 		return undefined;
 	}
 	return hook(sourcesGitFileDiffRequest(sessionId, path, indexState));

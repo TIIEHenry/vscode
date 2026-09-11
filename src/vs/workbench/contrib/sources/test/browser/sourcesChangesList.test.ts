@@ -13,7 +13,7 @@ import { URI } from '../../../../../base/common/uri.js';
 import { EditorOpenSource, IResourceEditorInput } from '../../../../../platform/editor/common/editor.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
-import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
+import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
 	UniverseAgentConnectionSnapshot,
@@ -448,6 +448,12 @@ suite('Sources - Changes list leftover honesty', () => {
 		throw new Error('list stayed empty');
 	}
 
+	async function openFirstListRow(owner: { list?: WorkbenchList<ISourcesChangeEntry> }): Promise<void> {
+		const list = await waitForList(owner);
+		list.setFocus([0]);
+		list.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
+	}
+
 	test('first git-read throw stays empty and paints failure', async function () {
 		const host = mountHost();
 		const widget = store.add(stubChangesListServices(createGitReadConnection({
@@ -609,6 +615,7 @@ suite('Sources - Changes list leftover honesty', () => {
 		let connected = true;
 		let pairingPending = false;
 		let readCalls = 0;
+		let diffCalls = 0;
 		const leftover = { path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
 		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
@@ -638,6 +645,10 @@ suite('Sources - Changes list leftover honesty', () => {
 				branch: 'main',
 				changeCount: 1,
 			}),
+			readGitFileDiff: async () => {
+				diffCalls += 1;
+				throw new Error('must not readGitFileDiff while leftover-looks-live');
+			},
 		} as unknown as IUniverseAgentConnection;
 		const scmStub = toResource.call(this, '/project/src/scm-stub.ts');
 		const host = mountHost();
@@ -665,6 +676,12 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.strictEqual(list.element(0).gitPath, leftover.path);
 		assert.strictEqual(list.element(0).scmResource, undefined);
 
+		await openFirstListRow(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		await timeout(20);
+		assert.strictEqual(diffCalls, 0, 'leftover-looks-live must not extra readGitFileDiff');
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+
 		connected = false;
 		pairingPending = false;
 		onDidChangeConnection.fire(snapshot());
@@ -672,6 +689,7 @@ suite('Sources - Changes list leftover honesty', () => {
 		const disconnectStatus = await waitForStatusText(host, 'local source control');
 		assert.strictEqual(disconnectStatus, sourcesGitLocalOnlyMessage());
 		assert.strictEqual(readCalls, listCallsAfterLoad);
+		assert.strictEqual(diffCalls, 0);
 		assert.strictEqual(list.length, 1);
 		assert.ok(list.element(0).scmResource);
 		assert.ok((list.element(0).resource.path ?? '').includes('scm-stub.ts'));
@@ -691,6 +709,10 @@ suite('Sources - Changes list leftover honesty', () => {
 			readGitSummary: async () => {
 				readCalls += 1;
 				throw new Error('must not readGitSummary while leftover-looks-live first-pull');
+			},
+			readGitFileDiff: async () => {
+				readCalls += 1;
+				throw new Error('must not readGitFileDiff while leftover-looks-live first-pull');
 			},
 		} as unknown as IUniverseAgentConnection;
 		assert.strictEqual(isConversationPairingHold(connection), true);

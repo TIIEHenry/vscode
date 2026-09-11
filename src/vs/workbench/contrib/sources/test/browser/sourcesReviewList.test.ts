@@ -612,6 +612,7 @@ suite('Sources - review list model', () => {
 		let connected = true;
 		let pairingPending = false;
 		let readCalls = 0;
+		let diffCalls = 0;
 		const leftoverPath = 'src/leftover.ts';
 		const onDidChangeConnection = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
 		const snapshot = (): import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot => ({
@@ -641,6 +642,10 @@ suite('Sources - review list model', () => {
 				branch: 'main',
 				changeCount: 1,
 			}),
+			readGitFileDiff: async () => {
+				diffCalls += 1;
+				throw new Error('must not readGitFileDiff while leftover-looks-live');
+			},
 		} as unknown as IUniverseAgentConnection;
 		const scmStub = toResource.call(this, '/project/src/scm-stub.ts');
 		const host = mountListHost();
@@ -671,6 +676,12 @@ suite('Sources - review list model', () => {
 		assert.strictEqual((list.element(0) as { gitPath?: string }).gitPath, leftoverPath);
 		assert.strictEqual((list.element(0) as { scmResource?: unknown }).scmResource, undefined);
 
+		await openFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+		await timeout(20);
+		assert.strictEqual(diffCalls, 0, 'leftover-looks-live must not extra readGitFileDiff');
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual((list.element(0) as { gitPath?: string }).gitPath, leftoverPath);
+
 		connected = false;
 		pairingPending = false;
 		onDidChangeConnection.fire(snapshot());
@@ -678,6 +689,7 @@ suite('Sources - review list model', () => {
 		const disconnectStatus = await waitForStatusText(host, '.sources-review-status', 'local source control');
 		assert.strictEqual(disconnectStatus, sourcesGitLocalOnlyMessage());
 		assert.strictEqual(readCalls, listCallsAfterLoad);
+		assert.strictEqual(diffCalls, 0);
 		assert.strictEqual(list.length, 1);
 		assert.ok((list.element(0) as { scmResource?: unknown }).scmResource);
 		assert.ok((((list.element(0) as { resource?: { path?: string } }).resource?.path) ?? '').includes('scm-stub.ts'));
