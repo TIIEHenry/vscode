@@ -46,6 +46,7 @@ import {
 	getCatalogUnknownCopy,
 	getCatalogUnsupportedCopy,
 } from '../../browser/engineCatalog.js';
+import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { localize } from '../../../../../nls.js';
 
@@ -895,6 +896,130 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok(listToolsCalls >= 1);
 		assert.ok(section.getAgentToolNames().includes(LEFTOVER_AGENT_TOOL_NAME));
 		assert.strictEqual(section.getAgentToolRowCount(), 1);
+	});
+
+	function getAgentToolsPanelStatus(section: EngineAgentsSection): HTMLElement | null {
+		return section.getDomNode().querySelector(
+			'.engine-agents-tools-panel .engine-catalog-status-widget',
+		) as HTMLElement | null;
+	}
+
+	function findOpenConnectionButton(root: HTMLElement): HTMLElement | undefined {
+		return Array.from(root.querySelectorAll('.monaco-button'))
+			.find(button => (button.textContent ?? '').includes('Open Connection')) as HTMLElement | undefined;
+	}
+
+	test('Agents: leftover-looks-live empty tools paints disconnected KEEP-chrome, not empty-as-live', async () => {
+		let listToolsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' }, tools: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({
+				profiles: [demoUserAgent()],
+			}),
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [{ name: LEFTOVER_AGENT_TOOL_NAME }] };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		await section.selectProfileByIdForTest('demo');
+		assert.strictEqual(section.getAgentToolNames().length, 0);
+		const leftoverRows = section.getListEntryCount();
+		const listToolsAfterLoad = listToolsCalls;
+
+		connection.setLooksLive(true);
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(listToolsCalls, listToolsAfterLoad);
+		assert.strictEqual(section.getListEntryCount(), leftoverRows);
+
+		section.setActiveAgentDetailTabForTest('tools');
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(listToolsCalls, listToolsAfterLoad);
+		assert.strictEqual(section.getAgentToolRowCount(), 0);
+		assert.deepStrictEqual([...section.getAgentToolNames()], []);
+		const toolsStatus = getAgentToolsPanelStatus(section);
+		assert.ok(toolsStatus);
+		assert.strictEqual(toolsStatus.dataset['catalogMode'], 'disconnected');
+		assert.ok((toolsStatus.textContent ?? '').includes(getEngineSectionDisconnectedCopy()));
+		assert.ok(!(toolsStatus.textContent ?? '').includes(AGENT_TOOLS_EMPTY_COPY));
+		assert.ok(findOpenConnectionButton(toolsStatus));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(AGENT_TOOLS_EMPTY_COPY));
+	});
+
+	test('Agents: true connected without pairing empty tools still paints empty', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			pairingPending: false,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' }, tools: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({
+				profiles: [demoUserAgent()],
+			}),
+			listTools: async () => ({ tools: [] }),
+		});
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		await section.selectProfileByIdForTest('demo');
+		section.setActiveAgentDetailTabForTest('tools');
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(section.getAgentToolRowCount(), 0);
+		const toolsStatus = getAgentToolsPanelStatus(section);
+		assert.ok(toolsStatus);
+		assert.strictEqual(toolsStatus.dataset['catalogMode'], 'empty');
+		assert.ok((toolsStatus.textContent ?? '').includes(AGENT_TOOLS_EMPTY_COPY));
+		assert.ok(!(toolsStatus.textContent ?? '').includes(getEngineSectionDisconnectedCopy()));
+		assert.strictEqual(findOpenConnectionButton(toolsStatus), undefined);
+	});
+
+	test('Agents: true disconnect empty tools still paints disconnected KEEP-chrome', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' }, tools: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({
+				profiles: [demoUserAgent()],
+			}),
+			listTools: async () => ({ tools: [] }),
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		await section.selectProfileByIdForTest('demo');
+		section.setActiveAgentDetailTabForTest('tools');
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		const emptyStatus = getAgentToolsPanelStatus(section);
+		assert.ok(emptyStatus);
+		assert.strictEqual(emptyStatus.dataset['catalogMode'], 'empty');
+
+		connection.setConnected(false);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'disconnected');
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		assert.strictEqual(section.getMode(), 'disconnected');
 	});
 
 	test('Tools: leftover-looks-live pairing-hold writes stay 0 unary', async () => {
