@@ -275,6 +275,25 @@ export function shouldKeepSourcesGitReadNoHookLeftover(
 }
 
 /**
+ * Phase `connected` + pairingPending after a live git-read paint keeps leftover
+ * engine rows. `isEngineConnected()` is false during pairing (D277), so git-read
+ * is skipped; this gate must win over SCM / local-only. First-pull leftoverCount 0
+ * and true disconnect (phase not connected) are not this gate.
+ */
+export function shouldKeepSourcesGitReadPairingHoldLeftover(
+	phaseConnected: boolean,
+	pairingPending: boolean,
+	leftoverCount: number,
+): boolean {
+	return phaseConnected && pairingPending && leftoverCount > 0;
+}
+
+/** Honest status when git-read leftover is held through pairing (not SCM local-only). */
+export function sourcesGitReadPairingHoldMessage(): string {
+	return localize('sourcesChangesGitRead.pairingHold', "Engine not connected — pairing in progress.");
+}
+
+/**
  * Non-empty engine list is the only authoritative git-read result.
  * Empty `entries` is the same SCM fallback as `supported: false`.
  */

@@ -40,9 +40,11 @@ import {
 import {
 	hasSourcesGitReadEntries,
 	shouldKeepSourcesGitReadNoHookLeftover,
+	shouldKeepSourcesGitReadPairingHoldLeftover,
 	sourcesGitDiffOpenFailureMessage,
 	sourcesGitLocalOnlyMessage,
 	sourcesGitReadFailureMessage,
+	sourcesGitReadPairingHoldMessage,
 	sourcesGitReadUnavailableNoHookMessage,
 	tryLoadSourcesGitChangeEntries,
 	tryReadSourcesGitFileDiff,
@@ -451,6 +453,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		let gitReadError: string | undefined;
 		let localOnly = false;
 		let gitReadNoHook = false;
+		let gitReadPairingHold = false;
 		try {
 			const loaded = await this.tryLoadGitEntries();
 			if (seq !== this.refreshSeq) {
@@ -460,9 +463,16 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				this.usingGitRead = true;
 				allEntries = loaded;
 			} else {
-				// Connected + missing hook: keep leftover rows; first-pull empty stays SCM (D273).
+				// Pairing-hold leftover wins over SCM (D283); no-hook keep-last stays (D273).
 				const leftoverCount = this.usingGitRead ? this.lastGoodEntries.length : 0;
-				if (shouldKeepSourcesGitReadNoHookLeftover(
+				if (shouldKeepSourcesGitReadPairingHoldLeftover(
+					this.uaConnection.getConnectionPhase().kind === 'connected',
+					this.uaConnection.getConnectionSnapshot().pairingPending,
+					leftoverCount,
+				)) {
+					allEntries = this.lastGoodEntries;
+					gitReadPairingHold = true;
+				} else if (shouldKeepSourcesGitReadNoHookLeftover(
 					this.uaConnection.isEngineConnected(),
 					typeof this.uaConnection.readGitChanges === 'function',
 					leftoverCount,
@@ -490,13 +500,14 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		}
 
 		this.lastGoodEntries = [...allEntries];
-		this.applyRefreshPresentation(allEntries, { localOnly, gitReadNoHook });
+		this.applyRefreshPresentation(allEntries, { localOnly, gitReadNoHook, gitReadPairingHold });
 	}
 
 	private applyRefreshPresentation(allEntries: ISourcesChangeEntry[], options?: {
 		readonly gitReadError?: string;
 		readonly localOnly?: boolean;
 		readonly gitReadNoHook?: boolean;
+		readonly gitReadPairingHold?: boolean;
 	}): void {
 		const hasRepository = this.usingGitRead || this.scmService.repositoryCount > 0;
 		const entries = filterSourcesEntries(allEntries, this.filterBox.value);
@@ -525,6 +536,8 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.setStatusMessage(options.gitReadError);
 		} else if (this.writeStatusMessage) {
 			this.setStatusMessage(this.writeStatusMessage);
+		} else if (options?.gitReadPairingHold) {
+			this.setStatusMessage(sourcesGitReadPairingHoldMessage());
 		} else if (options?.gitReadNoHook) {
 			this.setStatusMessage(sourcesGitReadUnavailableNoHookMessage());
 		} else if (options?.localOnly) {

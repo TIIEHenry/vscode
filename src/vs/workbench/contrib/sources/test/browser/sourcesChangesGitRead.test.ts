@@ -24,6 +24,7 @@ import {
 	needsSourcesGitFileDiff,
 	parseSourcesGitUnifiedDiff,
 	shouldKeepSourcesGitReadNoHookLeftover,
+	shouldKeepSourcesGitReadPairingHoldLeftover,
 	sourcesGitChangeGroupId,
 	sourcesGitChangeResource,
 	sourcesGitChangesRequest,
@@ -33,6 +34,7 @@ import {
 	sourcesGitEmptyFileDiffMessage,
 	sourcesGitLocalOnlyMessage,
 	sourcesGitReadFailureMessage,
+	sourcesGitReadPairingHoldMessage,
 	sourcesGitReadUnavailableNoHookMessage,
 	tryLoadSourcesGitChangeEntries,
 	tryReadSourcesGitChanges,
@@ -323,6 +325,8 @@ suite('Sources - Changes git read', () => {
 		assert.ok(sourcesGitEmptyFileDiffMessage().includes('empty'));
 		assert.ok(sourcesGitLocalOnlyMessage().includes('local source control'));
 		assert.ok(sourcesGitReadUnavailableNoHookMessage().includes('no git changes API'));
+		assert.ok(sourcesGitReadPairingHoldMessage().includes('not connected'));
+		assert.ok(sourcesGitReadPairingHoldMessage().includes('pairing'));
 	});
 
 	test('no-hook leftover gate keeps only live git-read rows while connected', () => {
@@ -330,6 +334,14 @@ suite('Sources - Changes git read', () => {
 		assert.strictEqual(shouldKeepSourcesGitReadNoHookLeftover(true, false, 0), false);
 		assert.strictEqual(shouldKeepSourcesGitReadNoHookLeftover(false, false, 1), false);
 		assert.strictEqual(shouldKeepSourcesGitReadNoHookLeftover(true, true, 1), false);
+	});
+
+	test('pairing-hold leftover gate keeps live git-read rows while phase is connected', () => {
+		assert.strictEqual(shouldKeepSourcesGitReadPairingHoldLeftover(true, true, 1), true);
+		assert.strictEqual(shouldKeepSourcesGitReadPairingHoldLeftover(true, true, 0), false);
+		assert.strictEqual(shouldKeepSourcesGitReadPairingHoldLeftover(false, true, 1), false);
+		assert.strictEqual(shouldKeepSourcesGitReadPairingHoldLeftover(true, false, 1), false);
+		assert.strictEqual(shouldKeepSourcesGitReadPairingHoldLeftover(false, false, 1), false);
 	});
 
 });
