@@ -456,11 +456,12 @@ export class NavigatorAgentsView extends ViewPane {
 		const treeChanged = liveTree !== this.lastLiveAgentTree;
 		this.lastLiveAgentTree = liveTree;
 
-		if (!engineReady) {
-			if (isConversationPairingHold(this.uaConnection) && this.hasAgentsLeftoverRows()) {
-				this.showPairingHoldLeftover();
-				return;
-			}
+		const pairingHold = isConversationPairingHold(this.uaConnection);
+		if (pairingHold && this.hasAgentsLeftoverRows()) {
+			this.showPairingHoldLeftover();
+			return;
+		}
+		if (pairingHold || !engineReady) {
 			this.showDisconnectedSnapshot();
 			return;
 		}
