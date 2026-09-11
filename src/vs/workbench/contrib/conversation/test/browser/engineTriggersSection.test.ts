@@ -13,6 +13,7 @@ import { getCatalogFailedCopy } from '../../browser/engineCatalog.js';
 import { ENGINE_TRIGGER_ADD_LABEL, ENGINE_TRIGGER_DELETE_LABEL, ENGINE_TRIGGER_DELETE_SUCCESS_COPY, ENGINE_TRIGGER_DISABLE_LABEL, ENGINE_TRIGGER_EDIT_LABEL, ENGINE_TRIGGER_ENABLE_LABEL, ENGINE_TRIGGER_FIRE_LABEL, ENGINE_TRIGGER_LIST_EMPTY_COPY, ENGINE_TRIGGER_LIST_FEATURE, formatEngineTriggerListLabel } from '../../browser/engineTriggerList.js';
 import { EngineTriggersSection } from '../../browser/engineTriggersSection.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
+import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('EngineTriggersSection', () => {
@@ -398,6 +399,51 @@ suite('EngineTriggersSection', () => {
 		assertWriteButtonsDisabled(pane.getDomNode());
 		await assertForcedWriteClicksStayUnary(pane.getDomNode(), fireCalls, setCalls, deleteCalls, upsertCalls);
 		assert.strictEqual(listTriggersCalls, listCallsAfterLoad);
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('leftover-looks-live first-pull pairing without leftover stays empty and skips list', async () => {
+		let listTriggersCalls = 0;
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			pairingPending: true,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => {
+				listTriggersCalls++;
+				return {
+					triggers: [emptyTrigger({
+						triggerId: 'should-not-list',
+						name: 'First Pull',
+						type: 'cron',
+						target: { kind: 'self' },
+					})],
+				};
+			},
+		});
+		const pane = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(listTriggersCalls, 0);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-triggers-row').length, 0);
+		const listHost = pane.getDomNode().querySelector('.engine-triggers-list') as HTMLElement | null;
+		assert.ok(listHost);
+		assert.strictEqual(listHost.style.display, 'none');
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_TRIGGER_LIST_EMPTY_COPY));
 		pane.getDomNode().parentElement?.remove();
 	});
 

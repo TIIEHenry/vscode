@@ -13,9 +13,12 @@ import type {
 	UniverseAgentUpsertTriggerRequest,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 
-/** Engine Preferences Triggers → ListTriggers. Empty ids are still sent. */
-export function canSendEngineTriggerListRequest(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
+/**
+ * Engine Preferences Triggers → ListTriggers. Empty ids are still sent.
+ * Pairing-hold leftover-looks-live (`connected===true`) still refuses (D350).
+ */
+export function canSendEngineTriggerListRequest(connected: boolean, hasHook: boolean, pairingHold = false): boolean {
+	return connected && hasHook && !pairingHold;
 }
 
 /**

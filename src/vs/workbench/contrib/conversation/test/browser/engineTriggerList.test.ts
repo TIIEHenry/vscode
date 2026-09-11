@@ -31,10 +31,12 @@ suite('Engine trigger list bind', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('ListTriggers gate is connected + hook; empty ids stay empty', () => {
+	test('ListTriggers gate is connected + hook; pairing-hold leftover-looks-live refuses; empty ids stay empty', () => {
 		assert.strictEqual(canSendEngineTriggerListRequest(false, true), false);
 		assert.strictEqual(canSendEngineTriggerListRequest(true, false), false);
 		assert.strictEqual(canSendEngineTriggerListRequest(true, true), true);
+		assert.strictEqual(canSendEngineTriggerListRequest(true, true, true), false);
+		assert.strictEqual(canSendEngineTriggerListRequest(true, true, false), true);
 		assert.deepStrictEqual(engineTriggerListRequest(), {
 			scope: '',
 			scopeId: '',
