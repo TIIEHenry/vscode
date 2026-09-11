@@ -327,11 +327,12 @@ export class SourcesDiffPanelView extends ViewPane {
 			hasGitCleanCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_CLEAN_COMMAND),
 		});
 
+		const pairingHold = isConversationPairingHold(this.uaConnection);
 		this.stageButton.style.display = actions.showStage ? '' : 'none';
 		this.acceptButton.style.display = actions.showAccept ? '' : 'none';
-		this.revertButton.style.display = actions.showRevert ? '' : 'none';
-		this.unstageButton.style.display = actions.showUnstage ? '' : 'none';
-		this.unstageUnavailable.style.display = actions.unstageUnavailable ? '' : 'none';
+		this.revertButton.style.display = actions.showRevert && !pairingHold ? '' : 'none';
+		this.unstageButton.style.display = actions.showUnstage && !pairingHold ? '' : 'none';
+		this.unstageUnavailable.style.display = actions.unstageUnavailable && !pairingHold ? '' : 'none';
 	}
 
 	private async runStage(): Promise<void> {
@@ -426,6 +427,13 @@ export class SourcesDiffPanelView extends ViewPane {
 	}
 
 	private async runGitAction(commandId: string): Promise<void> {
+		if (
+			(commandId === SOURCES_GIT_UNSTAGE_COMMAND || commandId === SOURCES_GIT_CLEAN_COMMAND)
+			&& isConversationPairingHold(this.uaConnection)
+		) {
+			return;
+		}
+
 		const context = this.getWriteContext();
 		if (!context?.scmResource) {
 			return;
