@@ -651,6 +651,66 @@ suite('ConversationSessionsView', () => {
 		assert.strictEqual(stubService.getSessions().length, countBefore + 1);
 	});
 
+	test('deleteActiveSession leftover history while pairingPending shows notice and does not delete', () => {
+		class PairingHoldDeleteRoster extends ConversationStubService {
+			deleteSessionCalls = 0;
+			override hasEngineConnectionHistory(): boolean {
+				return true;
+			}
+			override isEngineConnected(): boolean {
+				return true;
+			}
+			override deleteSession(sessionId: string): boolean {
+				this.deleteSessionCalls++;
+				return super.deleteSession(sessionId);
+			}
+		}
+		const stubService = store.add(new PairingHoldDeleteRoster());
+		const base = createConversationConnectionTestStub();
+		const { view, errors } = mountView({
+			stubService,
+			connection: createConversationConnectionTestStub({
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({
+					...base.getConnectionSnapshot(),
+					pairingPending: true,
+				}),
+			}),
+		});
+		const activeId = stubService.getActiveSessionId();
+		const titlesBefore = stubService.getSessions().map(session => session.title);
+
+		view.deleteActiveSession();
+
+		assert.deepStrictEqual(errors, ['Could not delete session — engine disconnected.']);
+		assert.strictEqual(stubService.deleteSessionCalls, 0);
+		assert.strictEqual(stubService.getActiveSessionId(), activeId);
+		assert.deepStrictEqual(stubService.getSessions().map(session => session.title), titlesBefore);
+		assert.ok(getVisibleSessionTitles(view).includes(stubService.getActiveSession().title));
+	});
+
+	test('deleteActiveSession when engine connected still calls deleteSession', () => {
+		class ConnectedDeleteRoster extends ConversationStubService {
+			deleteSessionCalls = 0;
+			override isEngineConnected(): boolean {
+				return true;
+			}
+			override deleteSession(sessionId: string): boolean {
+				this.deleteSessionCalls++;
+				return super.deleteSession(sessionId);
+			}
+		}
+		const stubService = store.add(new ConnectedDeleteRoster());
+		const { view, errors } = mountView({ stubService });
+		const activeId = stubService.getActiveSessionId();
+
+		view.deleteActiveSession();
+
+		assert.deepStrictEqual(errors, []);
+		assert.strictEqual(stubService.deleteSessionCalls, 1);
+		assert.ok(!stubService.getSessions().some(session => session.id === activeId));
+	});
+
 	test('deleteActiveSession false shows failed notice and keeps the session', () => {
 		class RejectingDeleteRoster extends ConversationStubService {
 			override deleteSession(_sessionId: string): boolean {

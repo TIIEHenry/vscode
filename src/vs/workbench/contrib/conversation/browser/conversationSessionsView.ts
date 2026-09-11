@@ -184,6 +184,12 @@ export class ConversationSessionsView extends ViewPane {
 	}
 
 	deleteActiveSession(): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			this.notificationService.error(
+				localize('conversationSessionsView.deleteSessionDisconnected', "Could not delete session — engine disconnected."),
+			);
+			return;
+		}
 		if (this.stubService.deleteSession(this.stubService.getActiveSessionId())) {
 			return;
 		}
