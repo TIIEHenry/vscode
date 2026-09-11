@@ -51,7 +51,9 @@ const $ = DOM.$;
  * Pairing-hold leftover keeps rows + disconnected note (D281) and disables
  * Write/Clear (D314) and Read (D319); leftover-looks-live
  * (`isEngineConnected()===true` + pairingPending) also refuses writes/Read
- * and skips extra list. Connected leftover still writes and Reads.
+ * and skips extra list. First-pull leftover-looks-live (no leftover) stays
+ * empty and skips list (D347 pairing-hold-first). Connected leftover still
+ * writes and Reads.
  */
 export class EngineClipboardSection extends Disposable {
 
@@ -140,9 +142,11 @@ export class EngineClipboardSection extends Disposable {
 	private async refresh(): Promise<boolean> {
 		const generation = ++this.renderGeneration;
 		const hook = this.connection.listClipboard;
+		const pairingHold = isConversationPairingHold(this.connection);
 		const canSend = canSendEngineClipboardListRequest(
 			this.connection.isEngineConnected(),
 			typeof hook === 'function',
+			pairingHold,
 		);
 
 		this.writeStatus.style.display = 'none';
@@ -155,10 +159,8 @@ export class EngineClipboardSection extends Disposable {
 		this.updateReadAction();
 		this.updateClearAction();
 
-		if (this.entries.length > 0 && isConversationPairingHold(this.connection)) {
-			return this.applyDisconnectedRefresh(true);
-		}
-		if (!this.connection.isEngineConnected()) {
+		// D347 leftover-looks-live: pairing-hold first. KEEP is not only leftover + pairingHold.
+		if (pairingHold || !this.connection.isEngineConnected()) {
 			return this.applyDisconnectedRefresh(this.entries.length > 0);
 		}
 
@@ -185,10 +187,7 @@ export class EngineClipboardSection extends Disposable {
 			if (generation !== this.renderGeneration) {
 				return false;
 			}
-			if (this.entries.length > 0 && isConversationPairingHold(this.connection)) {
-				return this.applyDisconnectedRefresh(true);
-			}
-			if (!this.connection.isEngineConnected()) {
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				return this.applyDisconnectedRefresh(this.entries.length > 0);
 			}
 			this.entries = [...result.entries];

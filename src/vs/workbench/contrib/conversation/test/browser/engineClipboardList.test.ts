@@ -28,10 +28,12 @@ suite('Engine clipboard list bind', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('List gate is connected + hook; empty sessionId stays empty', () => {
+	test('List gate is connected + hook; pairing-hold leftover-looks-live refuses; empty sessionId stays empty', () => {
 		assert.strictEqual(canSendEngineClipboardListRequest(false, true), false);
 		assert.strictEqual(canSendEngineClipboardListRequest(true, false), false);
 		assert.strictEqual(canSendEngineClipboardListRequest(true, true), true);
+		assert.strictEqual(canSendEngineClipboardListRequest(true, true, true), false);
+		assert.strictEqual(canSendEngineClipboardListRequest(true, true, false), true);
 		assert.deepStrictEqual(engineClipboardListRequest(), {
 			sessionId: '',
 		});
