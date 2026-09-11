@@ -305,9 +305,10 @@ export class ConversationDiffReviewPane extends EditorPane {
 			hasGitCleanCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_CLEAN_COMMAND),
 		});
 
-		this.revertButton.style.display = actions.showRevert ? '' : 'none';
-		this.unstageButton.style.display = actions.showUnstage ? '' : 'none';
-		this.unstageUnavailable.style.display = actions.unstageUnavailable ? '' : 'none';
+		const pairingHold = isConversationPairingHold(this.uaConnection);
+		this.revertButton.style.display = actions.showRevert && !pairingHold ? '' : 'none';
+		this.unstageButton.style.display = actions.showUnstage && !pairingHold ? '' : 'none';
+		this.unstageUnavailable.style.display = actions.unstageUnavailable && !pairingHold ? '' : 'none';
 		this.stageButton.style.display = actions.showStage ? '' : 'none';
 		this.acceptButton.style.display = actions.showAccept ? '' : 'none';
 	}
@@ -405,6 +406,13 @@ export class ConversationDiffReviewPane extends EditorPane {
 	}
 
 	private async runGitAction(commandId: string): Promise<void> {
+		if (
+			(commandId === SOURCES_GIT_UNSTAGE_COMMAND || commandId === SOURCES_GIT_CLEAN_COMMAND)
+			&& isConversationPairingHold(this.uaConnection)
+		) {
+			return;
+		}
+
 		const input = this.input;
 		if (!(input instanceof ConversationDiffReviewInput)) {
 			return;
