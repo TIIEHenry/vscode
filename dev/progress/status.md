@@ -4,14 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-12
-summary: "合入 A D315 Diff/Review Accept + B D316 Context Variables leftover 写闸。D8/D16/D147 仍开。"
+summary: "D315–D316 已关仓。D8/D16/D147 仍开。D317 Diff/Review Stage leftover 仍开。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。产品状态 → [traceability](../../docs/product/traceability.md)（生成列）；方案状态 → [plans INDEX](../plans/INDEX.md)（生成列）；延期 → [deferred-gaps](deferred-gaps.md)。历史槽位 catalog 流水 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
 
-### 已合入（`MERGE_SHA=1889be38def` compile-client 0；push 后以 `origin/agent-ide` 为准）
+### 已合入（`MERGE_SHA` 以本关仓 tip 为准；compile-client 0；push 后以 `origin/agent-ide` 为准）
 | 切片 | 提交 / 落点 |
 |:-----|:------------|
 | **GFS-1** | `32f71812` / `32198d0b` — [giant-file-split](../plans/giant-file-split.md)：`grpcClient` mapper 特征测 + facade / mappers / calls 拆分 |
@@ -181,18 +181,18 @@ summary: "合入 A D315 Diff/Review Accept + B D316 Context Variables leftover �
 ## 工位表（P0 盘点 · 2026-09-12 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `1889be38def` | 干净 | 0 | `parked`；compile-client 0；本账 +1 以远程 tip 为准 |
-| A | `vscode-WorkTrees/A` | `loop/A` | `7cf0e3389d6` | 干净 | 0 | merge-queued D315 Diff/Review Accept leftover 写闸 |
-| B | `vscode-WorkTrees/B` | `loop/B` | `2774f0aaa40` | 干净 | 0 | merge-queued D316 leftover Read |
-| C | `vscode-WorkTrees/C` | `loop/C` | `1889be38def` | 未提交 `dev/loop` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `1889be38def` | 干净 | 0 | idle；跟 MERGE_SHA |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | 本关仓 tip | 干净 | 0 | `parked`；compile-client 0；本账 +1 以远程 tip 为准 |
+| A | `vscode-WorkTrees/A` | `loop/A` | 跟 MERGE_SHA | 干净 | 0 | idle；跟 MERGE_SHA |
+| B | `vscode-WorkTrees/B` | `loop/B` | 跟 MERGE_SHA | 干净 | 0 | idle；跟 MERGE_SHA |
+| C | `vscode-WorkTrees/C` | `loop/C` | 跟 MERGE_SHA | 未提交 `dev/loop` | 0 | idle；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | 跟 MERGE_SHA | 干净 | 0 | idle；跟 MERGE_SHA |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | leftover 已合入 merge；勿 `checkout -B` |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `ad9245ca178` | `dev/loop` + `.idea` | 0 | 请自行对齐 `origin/agent-ide`（勿对齐本表旧 SHA） |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
 | **引擎 store 迁移卡死** | [D26](deferred-gaps.md) 病因已改口（2026-09-09）：`user_version=0` + 表已建 ⇒ 迁移抛错 ⇒ 库永久打不开 ⇒ `LookupFailed` fail-closed deny ⇒ `ALREADY_EXISTS`（**设计内拒绝**）。根因与交接见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md)；D25 同源。**禁改引擎仓代码**；原闭合条件「Create 先写 meta」已撤回；不要再清 store |
-| **loop 切片** | 合入 [D315](deferred-gaps.md)+[D316](deferred-gaps.md)。D311–D314 已在库。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto |
+| **loop 切片** | [D315](deferred-gaps.md)+[D316](deferred-gaps.md) 已关仓。[D317](deferred-gaps.md) Stage leftover 仍开。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
