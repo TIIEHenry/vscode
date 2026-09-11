@@ -11,9 +11,24 @@ import { conversationLensStaleSnapshotClass, refreshStaleSnapshotBanner, shouldS
 import { formatSyncChromeLabel } from '../../browser/conversationSessionView.js';
 import type { SyncChrome } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { postBound, saveQueueEdit, saveTurnEdit, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
-import { beginQueueEdit, beginTurnEdit, showPostFailure, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
+import {
+	applySessionModelIndex,
+	applySessionPermissionIndex,
+	beginQueueEdit,
+	beginTurnEdit,
+	isSessionPermissionModeAvailable,
+	isSessionSwitchModelAvailable,
+	showPostFailure,
+	toggleMoreContextView,
+	toggleTuneContextView,
+	updateComposerSessionSelectsEnabled,
+	updateSendEnabled,
+	type IConversationLensComposerChromeHost,
+} from '../../browser/conversationLensComposerChrome.js';
 import { updateSessionBarWriteChrome, type IConversationLensSessionBarHost } from '../../browser/conversationLensSessionBar.js';
 import {
+	conversationLensDockNoEngineTools,
+	conversationLensDockNoTools,
 	conversationLensPostFailed,
 	conversationLensPostFailedDisconnected,
 	conversationLensPostFailedNoSession,
@@ -1151,6 +1166,204 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(title.getAttribute('aria-disabled'), 'true');
 		assert.strictEqual(newButton.enabled, false);
 		assert.strictEqual(deleteButton.enabled, false);
+	});
+
+	function leftoverLooksLiveSessionSelectsHost(options?: {
+		catalogToolNames?: readonly string[];
+		catalogModelIds?: readonly string[];
+		permissionIndex?: number;
+		modelSelectedIndex?: number;
+		lastReadingWidth?: number;
+	}): {
+		host: IConversationLensComposerChromeHost;
+		permissionCalls: { sessionId: string; mode: string }[];
+		modelCalls: { sessionId: string; modelId: string }[];
+		permissionSelect: HTMLSelectElement;
+		modelSelect: HTMLSelectElement;
+		dispose(): void;
+	} {
+		const store = new DisposableStore();
+		const permissionCalls: { sessionId: string; mode: string }[] = [];
+		const modelCalls: { sessionId: string; modelId: string }[] = [];
+		const dockRoot = document.createElement('div');
+		document.body.appendChild(dockRoot);
+		store.add({ dispose: () => dockRoot.remove() });
+		const permissionContainer = document.createElement('div');
+		permissionContainer.className = 'conversation-lens-dock-permission';
+		const permissionSelect = document.createElement('select');
+		permissionSelect.add(new Option('Ask', '0'));
+		permissionSelect.add(new Option('Agent', '1'));
+		permissionSelect.add(new Option('Permit', '2'));
+		permissionContainer.appendChild(permissionSelect);
+		dockRoot.appendChild(permissionContainer);
+		const modelContainer = document.createElement('div');
+		modelContainer.className = 'conversation-lens-dock-model';
+		const modelSelect = document.createElement('select');
+		modelSelect.add(new Option('No model', ''));
+		modelSelect.add(new Option('gpt-test', 'gpt-test'));
+		modelContainer.appendChild(modelSelect);
+		dockRoot.appendChild(modelContainer);
+		const moreButton = document.createElement('button');
+		const sessionConfigBySessionId = new Map<string, { agentIndex: number; permissionIndex: number }>([
+			['sess-leftover', { agentIndex: 0, permissionIndex: options?.permissionIndex ?? 0 }],
+		]);
+		permissionSelect.selectedIndex = options?.permissionIndex ?? 0;
+		modelSelect.selectedIndex = options?.modelSelectedIndex ?? 0;
+		const host = {
+			catalogToolNames: options?.catalogToolNames ?? ['bash'],
+			catalogModelIds: options?.catalogModelIds ?? ['', 'gpt-test'],
+			modelSelectedIndex: options?.modelSelectedIndex ?? 0,
+			sessionConfigBySessionId,
+			lastReadingWidth: options?.lastReadingWidth ?? 300,
+			tuneContextView: undefined as { close(): void } | undefined,
+			moreContextView: undefined as { close(): void } | undefined,
+			dockRoot,
+			sendButton: { enabled: true },
+			permissionSelectBox: {
+				setEnabled(enabled: boolean) { permissionSelect.disabled = !enabled; },
+				setAriaLabel() { },
+				select(index: number) { permissionSelect.selectedIndex = index; },
+			},
+			agentSelectBox: {
+				setEnabled() { },
+				setAriaLabel() { },
+				select() { },
+			},
+			modelSelectBox: {
+				setEnabled(enabled: boolean) { modelSelect.disabled = !enabled; },
+				setAriaLabel() { },
+				select(index: number) {
+					modelSelect.selectedIndex = index;
+					host.modelSelectedIndex = index;
+				},
+			},
+			agentContainer: document.createElement('div'),
+			moreButton: { element: moreButton },
+			tuneButton: { element: document.createElement('button') },
+			stubService: {
+				isEngineConnected: () => true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: true }),
+				setPermissionMode: async (request: { sessionId: string; mode: string }) => {
+					permissionCalls.push(request);
+					return { ok: true };
+				},
+				switchModel: async (request: { sessionId: string; modelId: string }) => {
+					modelCalls.push({ sessionId: request.sessionId, modelId: request.modelId });
+					return { resolvedModelId: request.modelId, provider: '', level: 0, cost: '', speed: '' };
+				},
+			},
+			contextViewService: {
+				showContextView(delegate: { render: (container: HTMLElement) => { dispose(): void } }) {
+					const container = document.createElement('div');
+					document.body.appendChild(container);
+					const rendered = delegate.render(container);
+					store.add({ dispose: () => container.remove() });
+					return {
+						close() {
+							rendered.dispose();
+							container.remove();
+						},
+					};
+				},
+			},
+			getBoundSessionId: () => 'sess-leftover',
+		};
+		return {
+			host: host as unknown as IConversationLensComposerChromeHost,
+			permissionCalls,
+			modelCalls,
+			permissionSelect,
+			modelSelect,
+			dispose: () => {
+				host.tuneContextView?.close();
+				host.moreContextView?.close();
+				store.dispose();
+			},
+		};
+	}
+
+	test('leftover-looks-live pairing-hold session selects stay disabled and do not write', async () => {
+		const fixture = leftoverLooksLiveSessionSelectsHost();
+		try {
+			assert.strictEqual(isSessionPermissionModeAvailable(fixture.host), false);
+			assert.strictEqual(isSessionSwitchModelAvailable(fixture.host), false);
+			updateComposerSessionSelectsEnabled(fixture.host);
+			assert.strictEqual(fixture.permissionSelect.disabled, true);
+			assert.strictEqual(fixture.permissionSelect.getAttribute('aria-disabled'), 'true');
+			assert.strictEqual(fixture.modelSelect.disabled, true);
+			assert.strictEqual(fixture.modelSelect.getAttribute('aria-disabled'), 'true');
+
+			await applySessionPermissionIndex(fixture.host, 'sess-leftover', 2);
+			await applySessionModelIndex(fixture.host, 'sess-leftover', 1);
+			assert.deepStrictEqual(fixture.permissionCalls, []);
+			assert.deepStrictEqual(fixture.modelCalls, []);
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.modelSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.modelSelectedIndex, 0);
+
+			fixture.permissionSelect.disabled = false;
+			fixture.permissionSelect.removeAttribute('disabled');
+			fixture.permissionSelect.setAttribute('aria-disabled', 'false');
+			fixture.modelSelect.disabled = false;
+			fixture.modelSelect.removeAttribute('disabled');
+			fixture.modelSelect.setAttribute('aria-disabled', 'false');
+			fixture.permissionSelect.selectedIndex = 2;
+			fixture.modelSelect.selectedIndex = 1;
+			await applySessionPermissionIndex(fixture.host, 'sess-leftover', 2);
+			await applySessionModelIndex(fixture.host, 'sess-leftover', 1);
+			assert.deepStrictEqual(fixture.permissionCalls, []);
+			assert.deepStrictEqual(fixture.modelCalls, []);
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.modelSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.modelSelectedIndex, 0);
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('leftover-looks-live pairing-hold More radios stay disabled and forced click does not write', async () => {
+		const fixture = leftoverLooksLiveSessionSelectsHost();
+		try {
+			toggleMoreContextView(fixture.host);
+			const radios = [...document.querySelectorAll('.conversation-lens-dock-more-permission [role="menuitemradio"]')] as HTMLButtonElement[];
+			assert.strictEqual(radios.length, 3);
+			for (const radio of radios) {
+				assert.strictEqual(radio.disabled, true);
+				assert.strictEqual(radio.getAttribute('aria-disabled'), 'true');
+			}
+			const permit = radios[2];
+			permit.disabled = false;
+			permit.removeAttribute('disabled');
+			permit.setAttribute('aria-disabled', 'false');
+			permit.click();
+			await Promise.resolve();
+			assert.deepStrictEqual(fixture.permissionCalls, []);
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('leftover-looks-live pairing-hold Tune overlay still paints leftover catalog', () => {
+		const fixture = leftoverLooksLiveSessionSelectsHost({ catalogToolNames: ['bash', 'read'] });
+		try {
+			assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
+			toggleTuneContextView(fixture.host);
+			const popup = document.querySelector('.conversation-lens-dock-tune-popup');
+			assert.ok(popup);
+			assert.ok(popup.textContent?.includes('bash'));
+			assert.ok(popup.textContent?.includes('read'));
+			assert.ok(!popup.textContent?.includes(conversationLensDockNoTools));
+			assert.ok(!popup.textContent?.includes(conversationLensDockNoEngineTools));
+		} finally {
+			fixture.dispose();
+		}
 	});
 
 	test('cancelToolCall pairing-hold leftover does not write and shows engine_disconnected', () => {
