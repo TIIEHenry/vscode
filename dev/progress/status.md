@@ -41,10 +41,10 @@ summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop：D2
 
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 进行中（2026-09-11 · D294 pairing-hold writes）
+### 进行中（2026-09-11 · D294 已进 merge）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | pairing-hold-lens-writes | 本槽 [D294](deferred-gaps.md) 已闭（未进 merge） |
+| **A** | pairing-hold-lens-writes | 已进 merge；[D294](deferred-gaps.md) 已闭 |
 | **B** | roster-pairing-live-sync-demote | 已进 merge；[D293](deferred-gaps.md) 已闭 |
 | **C** | live-tree-pairing-session-switch | 已进 merge；[D292](deferred-gaps.md) 已闭 |
 | **D** | navigator-pairing-hold-leftover | 已进 merge；[D290](deferred-gaps.md) 已闭 |
