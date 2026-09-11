@@ -10,7 +10,7 @@ import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { type IConversationSessionViewLease, type ConversationQuestionRespondAnswers } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import { type IConversationSessionViewLease, type ConversationQuestionRespondAnswers, type DetailFetchOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
@@ -92,13 +92,7 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 		detailContext: {
 			supportsDetailFetch: () => typeof host.sessionViewLease?.requestDetail === 'function',
 			getDetailBody: ref => host.sessionViewLease?.details.get(ref),
-			requestDetail: ref => {
-				const lease = host.sessionViewLease;
-				if (!lease?.requestDetail) {
-					return Promise.resolve({ ok: false as const, reason: 'unavailable' as const });
-				}
-				return lease.requestDetail(ref);
-			},
+			requestDetail: ref => requestReadingColumnDetail(host, ref),
 		},
 	}));
 	host.timelineTree.domNode.id = 'conversation-lens-panel-conversation';
@@ -123,6 +117,34 @@ function resolveReadingColumnSessionId(host: {
 	readonly sessionViewLease?: { readonly sessionId: string };
 }): string {
 	return host.sessionViewLease?.sessionId ?? host.stubService.getActiveSessionId();
+}
+
+export interface IReadingColumnDetailHost {
+	readonly uaConnection: IConversationPairingHoldSource;
+	readonly sessionViewLease?: Pick<IConversationSessionViewLease, 'details' | 'requestDetail'>;
+}
+
+/**
+ * D353 leftover-looks-live: pairing-hold first on the reading-column
+ * `requestDetail` wrapper. Leftover lease (D289) still has `requestDetail`;
+ * leftover-looks-live (`isEngineConnected()===true` + pairingPending) must
+ * not extra `sessionView.requestDetail`. Cached leftover body stays; missing
+ * ref is `{ ok:false, reason:'unavailable' }`. Connected leftover still
+ * fetches. First-pull pairing without lease already has no `requestDetail`.
+ */
+export function requestReadingColumnDetail(host: IReadingColumnDetailHost, ref: string): Promise<DetailFetchOutcome> {
+	const lease = host.sessionViewLease;
+	if (!lease?.requestDetail) {
+		return Promise.resolve({ ok: false as const, reason: 'unavailable' as const });
+	}
+	if (isConversationPairingHold(host.uaConnection)) {
+		const cached = lease.details.get(ref);
+		if (cached !== undefined) {
+			return Promise.resolve({ ok: true as const, truncated: false as const, content: cached });
+		}
+		return Promise.resolve({ ok: false as const, reason: 'unavailable' as const });
+	}
+	return lease.requestDetail(ref);
 }
 
 /**

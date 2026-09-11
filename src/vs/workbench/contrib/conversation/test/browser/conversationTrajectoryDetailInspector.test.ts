@@ -7,6 +7,7 @@ import assert from 'assert';
 import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { DetailFetchOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import { requestReadingColumnDetail } from '../../browser/conversationLensReadingColumn.js';
 import {
 	formatConversationTrajectoryDetailPartial,
 	TrajectoryDetailInspectorModel,
@@ -126,6 +127,40 @@ suite('TrajectoryDetailInspectorModel (Q2)', () => {
 		const model = createModel();
 		const view = model.resolve(record(undefined), context({ hasRequestDetail: true }));
 		assert.strictEqual(view.state, 'unavailable');
+	});
+
+	test('leftover-looks-live leftover lease expand stays 0 requestDetail via reading-column wrapper', async () => {
+		let requestDetailCalls = 0;
+		const details = new Map<string, string>();
+		const host = {
+			stubService: {
+				isEngineConnected: () => true,
+			},
+			sessionViewLease: {
+				details,
+				requestDetail: async () => {
+					requestDetailCalls++;
+					return { ok: true as const, truncated: false as const, content: 'live-fetched' };
+				},
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected' as const, path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: true }),
+			},
+		};
+		assert.strictEqual(host.stubService.isEngineConnected(), true);
+		assert.strictEqual(host.uaConnection.getConnectionSnapshot().pairingPending, true);
+		const ctx: ITrajectoryDetailContext = {
+			supportsDetailFetch: () => typeof host.sessionViewLease.requestDetail === 'function',
+			getDetailBody: ref => host.sessionViewLease.details.get(ref),
+			requestDetail: ref => requestReadingColumnDetail(host, ref),
+		};
+		const model = createModel();
+		assert.strictEqual(model.resolve(record('detail:leftover'), ctx).state, 'loading');
+		await eventOnce(model);
+		const view = model.resolve(record('detail:leftover'), ctx);
+		assert.strictEqual(view.state, 'unavailable');
+		assert.strictEqual(requestDetailCalls, 0);
 	});
 });
 
