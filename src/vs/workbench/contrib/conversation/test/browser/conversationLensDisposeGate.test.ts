@@ -7,7 +7,7 @@ import assert from 'assert';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { applySessionViewTimeline, refreshTrajectoryRecords, updateSyncChrome, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
-import { conversationLensStaleSnapshotClass, refreshStaleSnapshotBanner, shouldShowReadingColumnLiveChrome } from '../../browser/conversationLensReadingColumn.js';
+import { conversationLensStaleSnapshotClass, refreshStaleSnapshotBanner, requestReadingColumnDetail, shouldShowReadingColumnLiveChrome } from '../../browser/conversationLensReadingColumn.js';
 import { formatSyncChromeLabel } from '../../browser/conversationSessionView.js';
 import type { SyncChrome } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { postBound, saveQueueEdit, saveTurnEdit, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
@@ -248,6 +248,78 @@ suite('conversation lens dispose gate', () => {
 			},
 		};
 		assert.strictEqual(shouldShowReadingColumnLiveChrome(asLiveChromeHost(host)), false);
+	});
+
+	function leftoverLooksLiveDetailHost(options: {
+		readonly pairingPending: boolean;
+		readonly cachedBody?: string;
+		readonly hasLease?: boolean;
+	}): {
+		host: Parameters<typeof requestReadingColumnDetail>[0] & { readonly stubService: { isEngineConnected(): boolean } };
+		requestDetailCalls: number;
+	} {
+		const state = { requestDetailCalls: 0 };
+		const details = new Map<string, string>();
+		if (options.cachedBody !== undefined) {
+			details.set('detail:leftover', options.cachedBody);
+		}
+		const hasLease = options.hasLease !== false;
+		const host = {
+			stubService: {
+				isEngineConnected: () => true,
+			},
+			sessionViewLease: hasLease
+				? {
+					details,
+					requestDetail: async () => {
+						state.requestDetailCalls++;
+						return { ok: true as const, truncated: false as const, content: 'live-fetched' };
+					},
+				}
+				: undefined,
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected' as const, path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: options.pairingPending }),
+			},
+		};
+		return {
+			host,
+			get requestDetailCalls() { return state.requestDetailCalls; },
+		};
+	}
+
+	test('leftover-looks-live leftover lease requestDetail stays 0 unary', async () => {
+		const fixture = leftoverLooksLiveDetailHost({ pairingPending: true });
+		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
+		assert.strictEqual(fixture.host.uaConnection.getConnectionSnapshot().pairingPending, true);
+		const outcome = await requestReadingColumnDetail(fixture.host, 'detail:leftover');
+		assert.deepStrictEqual(outcome, { ok: false, reason: 'unavailable' });
+		assert.strictEqual(fixture.requestDetailCalls, 0);
+	});
+
+	test('leftover-looks-live leftover lease serves cached leftover body without requestDetail', async () => {
+		const fixture = leftoverLooksLiveDetailHost({ pairingPending: true, cachedBody: 'cached leftover' });
+		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
+		const outcome = await requestReadingColumnDetail(fixture.host, 'detail:leftover');
+		assert.deepStrictEqual(outcome, { ok: true, truncated: false, content: 'cached leftover' });
+		assert.strictEqual(fixture.requestDetailCalls, 0);
+	});
+
+	test('connected leftover still requestDetail', async () => {
+		const fixture = leftoverLooksLiveDetailHost({ pairingPending: false });
+		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
+		assert.strictEqual(fixture.host.uaConnection.getConnectionSnapshot().pairingPending, false);
+		const outcome = await requestReadingColumnDetail(fixture.host, 'detail:leftover');
+		assert.deepStrictEqual(outcome, { ok: true, truncated: false, content: 'live-fetched' });
+		assert.strictEqual(fixture.requestDetailCalls, 1);
+	});
+
+	test('first-pull pairing without lease requestDetail stays unavailable', async () => {
+		const fixture = leftoverLooksLiveDetailHost({ pairingPending: true, hasLease: false });
+		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
+		const outcome = await requestReadingColumnDetail(fixture.host, 'detail:leftover');
+		assert.deepStrictEqual(outcome, { ok: false, reason: 'unavailable' });
+		assert.strictEqual(fixture.requestDetailCalls, 0);
 	});
 
 	function asLiveChromeHost(host: object): Parameters<typeof shouldShowReadingColumnLiveChrome>[0] {
