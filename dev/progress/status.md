@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-12
-summary: "关仓合入 D303 Inbox chip aria + D304 读面 live chrome。D8/D16/D147 仍开。"
+summary: "关仓合入 D303 chip aria + D304 live chrome + D305 Sessions create 闸。D8/D16/D147 仍开。"
 ---
 
 # Development Progress
@@ -45,9 +45,8 @@ summary: "关仓合入 D303 Inbox chip aria + D304 读面 live chrome。D8/D16/D
 |:---|:-----|:---------|
 | **A** | `inbox-pending-click-pairing` [D301](deferred-gaps.md) | `already-committed` `8989b54326e`；pairing-hold leftover pending 点击 0 scroll |
 | **B** | `navigator-projects-pairing-leftover` [D302](deferred-gaps.md) | `already-committed` `191224ee48b`；pairing-hold 保 Projects 树 |
+| **C** | `sessions-view-pairing-create-guard` [D305](deferred-gaps.md) | `already-committed` `bd9ce69371b`；pairing-hold 不 createSession |
 | **E** | [composer-fake-chrome](../plans/composer-fake-chrome.md) | 有价值 leftover 已在库；勿 `checkout -B` |
-### 进行中
-**A** occupied `inbox-pending-chip-aria` [D303](deferred-gaps.md)
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
@@ -186,7 +185,7 @@ summary: "关仓合入 D303 Inbox chip aria + D304 读面 live chrome。D8/D16/D
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | `dd99b988de4` | 干净 | 0 | `parked`；已 push 同 SHA |
 | A | `vscode-WorkTrees/A` | `loop/A` | `7fa3568b747` | 干净 | 0 | `merge-queued` D303 |
 | B | `vscode-WorkTrees/B` | `loop/B` | `15e96247e92` | 干净 | 0 | `merge-queued` D304 |
-| C | `vscode-WorkTrees/C` | `loop/C` | `dd99b988de4` | 未提交 `dev/loop` | 0 | idle；勿 add `dev/loop` |
+| C | `vscode-WorkTrees/C` | `loop/C` | `bd9ce69371b` | 未提交 `dev/loop` | 0 | `merge-queued` D305；勿 add `dev/loop` |
 | D | `vscode-WorkTrees/D` | `loop/D` | `dd99b988de4` | 干净 | 0 | idle；已对齐 MERGE_SHA |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | leftover 已合入 merge；勿 `checkout -B` |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `ad9245ca178` | `dev/loop` + `.idea` | 0 | 请自行对齐 `dd99b988de4` |
@@ -194,7 +193,7 @@ summary: "关仓合入 D303 Inbox chip aria + D304 读面 live chrome。D8/D16/D
 | 项 | 指针 |
 |:---|:-----|
 | **引擎 store 迁移卡死** | [D26](deferred-gaps.md) 病因已改口（2026-09-09）：`user_version=0` + 表已建 ⇒ 迁移抛错 ⇒ 库永久打不开 ⇒ `LookupFailed` fail-closed deny ⇒ `ALREADY_EXISTS`（**设计内拒绝**）。根因与交接见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md)；D25 同源。**禁改引擎仓代码**；原闭合条件「Create 先写 meta」已撤回；不要再清 store |
-| **loop 切片** | 合入 [D303](deferred-gaps.md)/[D304](deferred-gaps.md)；C [D305](deferred-gaps.md) 待合。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto |
+| **loop 切片** | 本波合入 [D303](deferred-gaps.md)–[D305](deferred-gaps.md)。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。

@@ -11,6 +11,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ConversationPart, IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainerModel, IViewContainersRegistry, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
 import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
@@ -25,6 +26,7 @@ import { ConversationStubSession } from '../../browser/conversationStubModel.js'
 import { conversationLensSessionBarNewSession } from '../../browser/conversationLensSessionBarStrings.js';
 import { conversationSessionsViewEmptyMessage } from '../../browser/conversationSessionsViewStrings.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { TestLayoutService, TestEditorService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import '../../../conversation/browser/conversation.contribution.js';
 
@@ -117,6 +119,7 @@ suite('ConversationSessionsView', () => {
 	function mountView(options?: {
 		stubService?: ConversationStubService;
 		conversationVisible?: boolean;
+		connection?: IUniverseAgentConnection;
 	}): {
 		view: ConversationSessionsView;
 		stubService: ConversationStubService;
@@ -132,6 +135,7 @@ suite('ConversationSessionsView', () => {
 		instantiationService.stub(IConversationRosterService, service);
 		instantiationService.stub(IWorkbenchLayoutService, layoutService);
 		instantiationService.stub(IViewDescriptorService, createViewDescriptorServiceStub());
+		instantiationService.stub(IUniverseAgentConnection, options?.connection ?? createConversationConnectionTestStub());
 		instantiationService.stub(INotificationService, {
 			error: (message: string | Error) => {
 				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
@@ -329,6 +333,7 @@ suite('ConversationSessionsView', () => {
 		instantiationService.stub(IWorkbenchLayoutService, layoutService);
 		instantiationService.stub(IEditorService, editorService);
 		instantiationService.stub(IViewDescriptorService, createViewDescriptorServiceStub());
+		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
 
 		const conversationPart = store.add(instantiationService.createInstance(ConversationPart));
 		conversationPart.create(document.createElement('div'));
@@ -559,6 +564,44 @@ suite('ConversationSessionsView', () => {
 		label.click();
 
 		assert.strictEqual(stubService.getActiveSessionId(), secondId);
+	});
+
+	test('createNewSession leftover history while pairingPending shows notice and does not create', () => {
+		class PairingHoldCreateRoster extends ConversationStubService {
+			createSessionCalls = 0;
+			override hasEngineConnectionHistory(): boolean {
+				return true;
+			}
+			override isEngineConnected(): boolean {
+				return true;
+			}
+			override createSession(): string {
+				this.createSessionCalls++;
+				return super.createSession();
+			}
+		}
+		const stubService = store.add(new PairingHoldCreateRoster());
+		const base = createConversationConnectionTestStub();
+		const { view, errors } = mountView({
+			stubService,
+			connection: createConversationConnectionTestStub({
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({
+					...base.getConnectionSnapshot(),
+					pairingPending: true,
+				}),
+			}),
+		});
+		const activeId = stubService.getActiveSessionId();
+		const titlesBefore = stubService.getSessions().map(session => session.title);
+
+		view.createNewSession();
+
+		assert.deepStrictEqual(errors, ['Could not create session — engine disconnected.']);
+		assert.strictEqual(stubService.createSessionCalls, 0);
+		assert.strictEqual(stubService.getActiveSessionId(), activeId);
+		assert.deepStrictEqual(stubService.getSessions().map(session => session.title), titlesBefore);
+		assert.ok(getVisibleSessionTitles(view).includes(stubService.getActiveSession().title));
 	});
 
 	test('createNewSession after engine-cache disconnect shows disconnected notice and does not create', () => {

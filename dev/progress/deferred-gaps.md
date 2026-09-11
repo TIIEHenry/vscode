@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-12
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D304 已闭；D276–D304 leftover+pairing；D250–D275 leftover honesty；D277 H4b；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D305 已闭；D276–D305 leftover+pairing；D250–D275 leftover honesty；D277 H4b；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -318,6 +318,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D304 已闭；D276
 | D302 | P3 | **closed** D290 后 Projects 仍按 `!isEngineConnected()` 把 pairing-hold 当真断连：活画 leftover workDir / sessions / local folders 走 stale/welcome。本刀：`isConversationPairingHold` + leftover → 保 tree 行，不翻 welcome / 空 disconnected；真断连仍 stale/welcome；首拉 pairing 无 leftover 仍 empty。未改 Agents Hierarchy/Activity 或 Team。未发明 proto / sessionList RPC。未关 D16。未碰 D8/D147。 | 工位 B `navigator-projects-pairing-leftover` 已收 @2026-09-12 | 活画后 pairingPending + phase connected：行数不变 + 非 welcome；随后真断连仍 stale；首拉 pairing 仍 empty。`navigatorProjectsList.test.ts` | navigator / projects | closed |
 | D303 | P3 | **closed** D301 已闸 leftover pending **点击**（`shouldAutoRevealPendingConfirmation`）；chip 仍是可指点的 link 样式、无 `aria-disabled`，读屏仍像“去处理”。本刀：`!shouldAutoRevealPendingConfirmation(ua)` 时 pending chip 对齐 Enqueue（`disabled` + `aria-disabled="true"`），**不隐藏**（D291 leftover 计数仍可见）。接通 leftover/live 仍 `aria-disabled="false"` 且点击 1 scroll（D301）。真断连合同不改。未改 CS-4 / 通知 Show / `showLiveChrome` / D285–D302 keep·write·kill·Projects。未发明 proto。未关 D8/D16/D147。 | 工位 A `inbox-pending-chip-aria` 已收 @2026-09-12 | pairing-hold leftover pending 可见且 `aria-disabled="true"`；接通 `"false"`；D301 0/1 scroll 仍绿。`conversationInboxOverlay.test.ts`。leftover：`.conversation-lens-inbox-pending` 仍是 link 色/下划线，未加 `:disabled` 视觉 | conversation / inbox | closed |
 | D304 | P3 | **closed** D288–D302 多次「未改 `showLiveChrome`」。`mountTimeline` 两处 `showLiveChrome: () => host.stubService.isEngineConnected()` 在 pairing-hold 为 false，leftover `· Running` / `· Loading` 被卸。本刀：pairing-hold + leftover（D287 cached turns / D289 leftover lease）读面 live chrome 仍开；首拉 pairing 无 leftover 不假造；真断连仍藏。`writesEnabled` 仍 `!isConversationPairingHold`。未改 Inbox / Sessions / navigator / CS-4。未发明 proto / 新 chrome kind。未关 D8/D16/D147。 | 工位 B `pairing-hold-show-live-chrome-read` 已收 @2026-09-12 | leftover + pairingPending：`shouldShowReadingColumnLiveChrome` true；首拉 pairing false；真断连 false；writesEnabled 仍关。`conversationLensDisposeGate.test.ts` / `conversationProcessFold.test.ts` | conversation / lens | closed |
+| D305 | P3 | **closed** D141 后 Sessions 侧栏 `createNewSession` 只闸 `!isEngineConnected() && hasEngineConnectionHistory()`。pairing-hold leftover 碰巧命中断连闸，但未测且耦合断连文案而非 pairing 写合同（同 D290→D302 类洞）。本刀：先 `isConversationPairingHold` 再 create，对齐 SessionBar；pairing-hold → 既有 disconnected notice、0 `createSession`；真断连+history 仍 notice；从未接通 stub 仍可 create。未改 delete/beside / Inbox / `showLiveChrome` / navigator。未发明 proto / sessionList RPC。未关 D8/D16/D147。 | 工位 C `sessions-view-pairing-create-guard` 已收 @2026-09-12 | leftover/history + pairingPending：notice + `createSession` 0；接通仍 create；真断连仍 notice。`conversationSessionsView.test.ts` | conversation / sessions | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 
