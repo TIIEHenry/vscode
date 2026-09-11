@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { ConversationQuestionSeat } from '../../browser/conversationQuestionSeat.js';
 import { conversationLensErrorRetry, renderHonestTimelineRow, renderStandaloneThinkingOrToolRow } from '../../browser/conversationTimelineRenderer.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 
@@ -67,6 +68,48 @@ suite('renderHonestTimelineRow error retry (PRD-021)', () => {
 		const container = render({ id: 'err-4', kind: 'error', text: 'boom', retryable: true });
 		assert.ok(container.querySelector('.conversation-lens-turn-honest-status')?.textContent?.includes('Retryable'));
 		assert.strictEqual(retryButton(container), null);
+	});
+
+	test('retryable true with writesEnabled false stays disabled and does not retry', () => {
+		const clicks: string[] = [];
+		const disposables = store.add(new DisposableStore());
+		const container = document.createElement('div');
+		renderHonestTimelineRow(
+			container,
+			{ id: 'err-hold', kind: 'error', text: 'boom', retryable: true, turnId: 'turn-1', agentId: 'sub:a' },
+			'error',
+			disposables,
+			turn => clicks.push(turn.id),
+			false,
+		);
+		const button = retryButton(container);
+		assert.ok(button);
+		assert.strictEqual(button.getAttribute('aria-disabled'), 'true');
+		button.click();
+		assert.deepStrictEqual(clicks, []);
+	});
+});
+
+suite('ConversationQuestionSeat pairing-hold writes', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('writesEnabled false keeps Submit disabled and does not respond', () => {
+		const responds: string[] = [];
+		const seat = store.add(new ConversationQuestionSeat({
+			message: 'Pick one',
+			status: 'pending',
+			questionItems: [{ id: 'q1', title: 'Choice', options: ['a', 'b'], multiSelect: true }],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+			onRespond: requestId => responds.push(requestId),
+			writesEnabled: false,
+		}));
+		const submit = seat.element.querySelector('.conversation-lens-question-actions .monaco-button') as HTMLElement | null;
+		assert.ok(submit);
+		assert.strictEqual(submit.getAttribute('aria-disabled'), 'true');
+		submit.click();
+		assert.deepStrictEqual(responds, []);
 	});
 });
 

@@ -500,6 +500,56 @@ suite('ConversationInboxOverlay list panel host', () => {
 		assert.strictEqual(ownPanel.querySelector('.queue-item[data-item-id="q1"]'), null);
 		assert.ok(ownPanel.querySelector('.queue-item[data-item-id="q2"]'));
 	});
+
+	test('pairing-hold leftover queue row does not start edit', () => {
+		const roster = store.add(new ConversationStubService());
+		const sessionId = roster.getActiveSessionId();
+		roster.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [{
+				id: 'q-hold',
+				content: 'Cached queued',
+				status: 'PENDING',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 0,
+				lastError: undefined,
+				locked: false,
+				pinned: false,
+			}],
+		});
+		const holds: string[] = [];
+		const base = createConversationConnectionTestStub();
+		const connection = createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...base.getConnectionSnapshot(),
+				pairingPending: true,
+			}),
+		});
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		stubInboxServices(instantiationService, roster, connection);
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		const overlay = store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, {
+			onQueueItemHold(itemId) { holds.push(itemId); },
+			onScrollToPendingConfirmation() { },
+			showPostFailure() { },
+		}));
+		const queueChip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		queueChip.click();
+		const panel = [...document.querySelectorAll('.conversation-lens-inbox-list-panel')]
+			.filter(host => host.querySelector('.conversation-lens-message-queue-list'))
+			.at(-1) as HTMLElement | undefined;
+		assert.ok(panel);
+		const row = panel.querySelector('.queue-item[data-item-id="q-hold"]') as HTMLElement | null;
+		assert.ok(row);
+		row.click();
+		assert.deepStrictEqual(holds, []);
+		assert.strictEqual(roster.getMessageQueueState(sessionId).items[0]?.hold, undefined);
+	});
 });
 
 suite('ConversationInboxOverlay Enqueue', () => {

@@ -271,6 +271,9 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 
 export function beginTurnEdit(host: IConversationLensComposerChromeHost, turnId: string): void {
 
+		if (isConversationPairingHold(host.uaConnection)) {
+			return;
+		}
 		if (host.isPreFirst()) {
 			return;
 		}
@@ -297,6 +300,9 @@ export function beginTurnEdit(host: IConversationLensComposerChromeHost, turnId:
 
 export function beginQueueEdit(host: IConversationLensComposerChromeHost, itemId: string): void {
 
+		if (isConversationPairingHold(host.uaConnection)) {
+			return;
+		}
 		const sessionId = host.getBoundSessionId();
 		const item = host.stubService.getMessageQueueState(sessionId).items.find(row => row.id === itemId);
 		if (!item) {

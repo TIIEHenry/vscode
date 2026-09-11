@@ -2132,6 +2132,54 @@ suite('ConversationLens', () => {
 		assert.strictEqual(pendingButton.hidden, true);
 	});
 
+	test('pairing-hold leftover pending confirmation stays disabled and does not resolve', async () => {
+		const base = createConversationConnectionTestStub();
+		const connection = createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...base.getConnectionSnapshot(),
+				pairingPending: true,
+			}),
+		});
+		const { part, stubService, layoutReadingColumn } = mountLens({ layoutHeight: 1200, connection });
+		const slots = getLensSlots(part);
+		const sessionId = await seedPendingConfirmation(stubService, layoutReadingColumn);
+		const seat = queryTimeline(slots, '.conversation-lens-confirmation-seat');
+		assert.ok(seat);
+		const allowButton = seat.querySelector('.conversation-lens-confirmation-actions .monaco-button') as HTMLElement | null;
+		assert.ok(allowButton);
+		assert.strictEqual(allowButton.getAttribute('aria-disabled'), 'true');
+		allowButton.click();
+		await flushProjectedTimeline(layoutReadingColumn);
+		const seatAfter = queryTimeline(slots, '.conversation-lens-confirmation-seat')!;
+		assert.ok(seatAfter.textContent?.includes('confirmation pending'));
+		assert.ok(!seatAfter.textContent?.includes('Allowed'));
+		assert.strictEqual(stubService.getTurns(sessionId).find(turn => turn.kind === 'confirmation')?.status, 'pending');
+	});
+
+	test('pairing-hold leftover assistant delete stays disabled and does not delete', async () => {
+		const base = createConversationConnectionTestStub();
+		const connection = createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...base.getConnectionSnapshot(),
+				pairingPending: true,
+			}),
+		});
+		const { part, stubService, layoutReadingColumn } = mountLens({ connection });
+		const slots = getLensSlots(part);
+		const sessionId = stubService.createSession();
+		stubService.appendUserTurn(sessionId, 'Keep this leftover');
+		stubService.appendStubEchoAssistant(sessionId, 'Cached assistant');
+		await flushProjectedTimeline(layoutReadingColumn);
+		const deleteButton = queryTimeline(slots, '.conversation-lens-turn-action-delete .monaco-button') as HTMLElement | null;
+		assert.ok(deleteButton);
+		assert.strictEqual(deleteButton.getAttribute('aria-disabled'), 'true');
+		deleteButton.click();
+		await flushProjectedTimeline(layoutReadingColumn);
+		assert.ok(stubService.getTurns(sessionId).some(turn => turn.kind === 'assistant' && turn.text === 'Cached assistant'));
+	});
+
 	test('allow on confirmation hides CTAs and updates inbox pending count', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
@@ -2224,6 +2272,34 @@ suite('ConversationLens', () => {
 
 		assert.strictEqual(lens.isInputMaximized(), false);
 		assert.ok(queryTimeline(slots, '.conversation-lens-confirmation-seat'));
+	});
+
+	test('SessionBar write chrome disables while pairing-hold leftover', () => {
+		const base = createConversationConnectionTestStub();
+		const connection = createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...base.getConnectionSnapshot(),
+				pairingPending: true,
+			}),
+		});
+		const { part, stubService } = mountLens({ connection });
+		const slots = getLensSlots(part);
+		const titleButton = slots.sessionBar!.querySelector('button.conversation-lens-session-title') as HTMLButtonElement;
+		const newButton = slots.sessionBar!.querySelector('.conversation-lens-session-new .monaco-button') as HTMLButtonElement;
+		const deleteButton = slots.sessionBar!.querySelector('.conversation-lens-session-delete .monaco-button') as HTMLButtonElement;
+		const previousTitle = stubService.getActiveSession().title;
+		const previousCount = stubService.getSessions().length;
+		assert.strictEqual(titleButton.disabled, true);
+		assert.strictEqual(titleButton.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(newButton.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(deleteButton.getAttribute('aria-disabled'), 'true');
+		titleButton.click();
+		assert.ok(!titleButton.hidden);
+		newButton.click();
+		deleteButton.click();
+		assert.strictEqual(stubService.getActiveSession().title, previousTitle);
+		assert.strictEqual(stubService.getSessions().length, previousCount);
 	});
 
 	test('SessionBar title button enters rename mode and commits on Enter', () => {

@@ -11,7 +11,8 @@ import { conversationLensStaleSnapshotClass, refreshStaleSnapshotBanner } from '
 import { formatSyncChromeLabel } from '../../browser/conversationSessionView.js';
 import type { SyncChrome } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { postBound, saveQueueEdit, saveTurnEdit, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
-import { showPostFailure, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
+import { beginQueueEdit, beginTurnEdit, showPostFailure, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
+import { updateSessionBarWriteChrome, type IConversationLensSessionBarHost } from '../../browser/conversationLensSessionBar.js';
 import {
 	conversationLensPostFailed,
 	conversationLensPostFailedDisconnected,
@@ -1043,6 +1044,50 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(deleteCalls, 0);
 		assert.strictEqual(posted, 0);
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('beginTurnEdit pairing-hold leftover does not enter edit', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host } = pairingHoldComposerWriteHost(failures);
+		const chromeHost = host as unknown as IConversationLensComposerChromeHost;
+		chromeHost.composerPolicy = 'compose';
+		chromeHost.editingTurnId = undefined;
+		beginTurnEdit(chromeHost, 'turn-1');
+		assert.strictEqual(chromeHost.composerPolicy, 'compose');
+		assert.strictEqual(chromeHost.editingTurnId, undefined);
+		assert.deepStrictEqual(failures, []);
+	});
+
+	test('beginQueueEdit pairing-hold leftover does not enter edit', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host } = pairingHoldComposerWriteHost(failures);
+		const chromeHost = host as unknown as IConversationLensComposerChromeHost;
+		chromeHost.composerPolicy = 'compose';
+		chromeHost.editingQueueItemId = undefined;
+		beginQueueEdit(chromeHost, 'q1');
+		assert.strictEqual(chromeHost.composerPolicy, 'compose');
+		assert.strictEqual(chromeHost.editingQueueItemId, undefined);
+		assert.deepStrictEqual(failures, []);
+	});
+
+	test('updateSessionBarWriteChrome pairing-hold disables title delete and new', () => {
+		const title = document.createElement('button');
+		const newButton = { enabled: true };
+		const deleteButton = { enabled: true };
+		const host = {
+			sessionTitleButton: title,
+			newSessionButton: newButton,
+			deleteSessionButton: deleteButton,
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: true }),
+			},
+		} as unknown as IConversationLensSessionBarHost;
+		updateSessionBarWriteChrome(host);
+		assert.strictEqual(title.disabled, true);
+		assert.strictEqual(title.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(newButton.enabled, false);
+		assert.strictEqual(deleteButton.enabled, false);
 	});
 
 	test('cancelToolCall pairing-hold leftover does not write and shows engine_disconnected', () => {

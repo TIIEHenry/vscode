@@ -31,6 +31,8 @@ export interface IConversationTimelineTreeOptions {
 	readonly contentAdapter?: IConversationTurnContentAdapter;
 	readonly paddingBottom?: number;
 	readonly showLiveChrome?: () => boolean;
+	/** Pairing-hold leftover stays readable; write CTAs stay painted but disabled (D297). */
+	readonly writesEnabled?: () => boolean;
 	readonly showToolInvocationDetails?: () => boolean;
 }
 

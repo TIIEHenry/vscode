@@ -1125,6 +1125,41 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.deepStrictEqual(service.getSessions().map(s => s.id), ['ua-a', 'ua-b']);
 	});
 
+	test('leftover renameSession and deleteSession reject while pairingPending and leave roster unchanged', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([
+			{ sessionId: 'ua-a', title: 'A' },
+			{ sessionId: 'ua-b', title: 'B' },
+		]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		assert.strictEqual(service.renameSession('ua-a', 'Connected A'), true);
+		assert.strictEqual(service.getSessions().find(s => s.id === 'ua-a')?.title, 'Connected A');
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		connection.setPairingPending(true);
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(service.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		const titlesBefore = service.getSessions().map(s => s.title);
+		const idsBefore = service.getSessions().map(s => s.id);
+		assert.strictEqual(service.renameSession('ua-a', 'Pairing title'), false);
+		assert.strictEqual(service.deleteSession('ua-a'), false);
+		assert.deepStrictEqual(service.getSessions().map(s => s.title), titlesBefore);
+		assert.deepStrictEqual(service.getSessions().map(s => s.id), idsBefore);
+		assert.strictEqual(connection.renameCalls.filter(call => call.title === 'Pairing title').length, 0);
+
+		connection.setPairingPending(false);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		assert.strictEqual(service.renameSession('ua-a', 'Live again'), true);
+		assert.strictEqual(service.getSessions().find(s => s.id === 'ua-a')?.title, 'Live again');
+	});
+
 	test('disconnected after engine renameSession stays local and skips unary', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());

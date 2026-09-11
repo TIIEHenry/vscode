@@ -12,6 +12,7 @@ import { ICommandService } from '../../../../platform/commands/common/commands.j
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { type IConversationSessionViewLease, type ConversationQuestionRespondAnswers } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND } from '../../sources/browser/sourcesReview.contribution.js';
 import { applyConversationDensityClass, shouldShowClientToolInvocationDetails } from '../common/uaClientSettingsHelpers.js';
@@ -21,6 +22,7 @@ import { ConversationTrajectory } from './conversationTrajectory.js';
 import { conversationLensPhasePreFirstClass, conversationLensPrefirstHeroClass } from './conversationLensDockStrings.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
 import { conversationLeafWidthBucket, isConversationLeafCompact, isConversationLeafNarrow } from './conversationNarrowLayout.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
 export const conversationLensStaleSnapshotClass = 'conversation-lens-stale-snapshot';
@@ -37,6 +39,7 @@ export interface IConversationLensReadingColumnHost {
 	sessionViewLease: IConversationSessionViewLease | undefined;
 	readonly slotHosts: IConversationLensSlots;
 	readonly stubService: IConversationRosterService;
+	readonly uaConnection: IUniverseAgentConnection;
 	readonly configurationService: IConfigurationService;
 	readonly commandService: ICommandService;
 	readonly instantiationService: IInstantiationService;
@@ -80,6 +83,7 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 		},
 		onOpenVisualizeFullscreen: (source, title) => host.openVisualizeOverlay(source, title),
 		showLiveChrome: () => host.stubService.isEngineConnected(),
+		writesEnabled: () => !isConversationPairingHold(host.uaConnection),
 		showToolInvocationDetails: () => shouldShowClientToolInvocationDetails(host.configurationService),
 	}));
 	host.trajectoryView = host.register(host.instantiationService.createInstance(ConversationTrajectory, host.readingColumn, {

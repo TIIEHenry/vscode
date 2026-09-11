@@ -264,6 +264,41 @@ suite('ConversationProcessFold', () => {
 		disposables.dispose();
 	});
 
+	test('pairing-hold leftover executing cancel stays disabled and does not fire', () => {
+		const turns: ConversationStubTurn[] = [{
+			id: 'tc-hold',
+			kind: 'tool',
+			text: 'read',
+			toolStatus: 'running',
+			agentId: 'sub:a',
+		}];
+		const span = projectProcessFoldSpans(turns)[0];
+		assert.ok(span);
+		const calls: ConversationStubTurn[] = [];
+		const disposables = new DisposableStore();
+		const host = document.createElement('div');
+		renderProcessFoldSpan(host, span, {
+			defaultOuterExpanded: true,
+			isOuterExpanded: () => true,
+			setOuterExpanded: () => { },
+			isThinkingExpanded: () => false,
+			setThinkingExpanded: () => { },
+			isToolExpanded: () => false,
+			setToolExpanded: () => { },
+			onLayoutChange: () => { },
+			showLiveChrome: true,
+			writesEnabled: false,
+			onCancelToolCall: turn => { calls.push(turn); },
+		}, disposables);
+		const button = host.querySelector('.conversation-process-fold-tool-cancel') as HTMLButtonElement | null;
+		assert.ok(button);
+		assert.strictEqual(button.disabled, true);
+		assert.strictEqual(button.getAttribute('aria-disabled'), 'true');
+		button.click();
+		assert.deepStrictEqual(calls, []);
+		disposables.dispose();
+	});
+
 	test('stub fixture tool row has no cancel control', () => {
 		const turns: ConversationStubTurn[] = [{ id: 'tool1', kind: 'tool', text: 'read' }];
 		const span = projectProcessFoldSpans(turns)[0];

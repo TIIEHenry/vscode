@@ -88,6 +88,7 @@ import {
 	refreshSessionSelectOptions,
 	shouldRefreshActiveSessionChrome,
 	switchToSession,
+	updateSessionBarWriteChrome,
 	updateSessionTitle,
 } from './conversationLensSessionBar.js';
 import { mountDock } from './conversationLensDock.js';
@@ -310,11 +311,15 @@ export class ConversationLens extends Disposable {
 		this._register(this.stubService.onDidChangeEngineConnection(() => {
 			this.refreshComposerCatalogs();
 			this.bindSessionView(this.getBoundSessionId());
+			this.updateSessionBarWriteChrome();
+			this.timelineTree.refreshPresentation();
 		}));
 		this._register(this.uaConnection.onDidChangeConnection(() => {
 			this.refreshComposerCatalogs();
 			this.updateGateRow();
 			this.bindSessionView(this.stubService.getActiveSessionId());
+			this.updateSessionBarWriteChrome();
+			this.timelineTree.refreshPresentation();
 		}));
 		this.refreshComposerCatalogs();
 
@@ -700,6 +705,10 @@ export class ConversationLens extends Disposable {
 
 	updateSessionTitle(): void {
 		updateSessionTitle(this);
+	}
+
+	updateSessionBarWriteChrome(): void {
+		updateSessionBarWriteChrome(this);
 	}
 
 	beginSessionTitleEdit(): void {

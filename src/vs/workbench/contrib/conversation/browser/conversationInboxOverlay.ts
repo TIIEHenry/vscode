@@ -531,6 +531,9 @@ export class ConversationInboxOverlay extends Disposable {
 		}
 
 		addDisposableListener(row, 'click', () => {
+			if (isConversationPairingHold(this.uaConnection)) {
+				return;
+			}
 			if (item.hold !== 'EDITING') {
 				this.stubService.holdMessageQueueItem(sessionId, item.id, 'EDITING');
 				this.delegate.onQueueItemHold(item.id);

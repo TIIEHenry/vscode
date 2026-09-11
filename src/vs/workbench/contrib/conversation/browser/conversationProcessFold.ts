@@ -48,6 +48,8 @@ export interface ProcessFoldDomOptions {
 	readonly onLayoutChange: () => void;
 	/** When false (stub fixture), omit loading / live / duration chrome (Q4). */
 	readonly showLiveChrome: boolean;
+	/** When false, Cancel stays painted but aria-disabled (D297 pairing-hold). */
+	readonly writesEnabled?: boolean;
 	/**
 	 * When false, every tool row (including client-tool) shows only name + status.
 	 * Payload body is not rendered and the row is not expandable.
@@ -341,14 +343,20 @@ function appendProcessFoldToolCancel(
 	if (!executing || !options.onCancelToolCall || !turn.id.trim()) {
 		return;
 	}
+	const writesEnabled = options.writesEnabled !== false;
 	const cancel = append(parent, $('button.conversation-process-fold-tool-cancel')) as HTMLButtonElement;
 	cancel.type = 'button';
 	cancel.classList.add(...ThemeIcon.asClassNameArray(Codicon.debugStop));
 	cancel.title = conversationProcessFoldToolCancel;
 	cancel.setAttribute('aria-label', conversationProcessFoldToolCancel);
 	cancel.setAttribute('data-tool-call-id', turn.id);
+	cancel.disabled = !writesEnabled;
+	cancel.setAttribute('aria-disabled', String(!writesEnabled));
 	disposables.add(addDisposableListener(cancel, 'click', (e) => {
 		e.stopPropagation();
+		if (!writesEnabled) {
+			return;
+		}
 		options.onCancelToolCall!(turn);
 	}));
 }
