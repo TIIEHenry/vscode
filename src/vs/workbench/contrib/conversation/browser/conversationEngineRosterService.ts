@@ -325,11 +325,11 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override renameSession(sessionId: string, title: string): boolean {
-		if (this.isEngineConnected()) {
-			return this.renameEngineSession(sessionId, title, true);
-		}
 		if (isConversationPairingHold(this.uaConnection)) {
 			return false;
+		}
+		if (this.isEngineConnected()) {
+			return this.renameEngineSession(sessionId, title, true);
 		}
 		if (this.wasEverConnected) {
 			return this.renameEngineSession(sessionId, title, false);
@@ -600,11 +600,11 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override deleteSession(sessionId: string): boolean {
-		if (this.isEngineConnected()) {
-			return this.deleteEngineSession(sessionId, true);
-		}
 		if (isConversationPairingHold(this.uaConnection)) {
 			return false;
+		}
+		if (this.isEngineConnected()) {
+			return this.deleteEngineSession(sessionId, true);
 		}
 		if (this.wasEverConnected) {
 			return this.deleteEngineSession(sessionId, false);
