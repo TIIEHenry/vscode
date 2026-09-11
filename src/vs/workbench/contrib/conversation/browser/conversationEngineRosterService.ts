@@ -281,7 +281,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.getTurns(sessionId);
 	}
 
-	/** D287: leftover cached projection stays readable while pairing-hold; true disconnect does not. */
+	/** D287/D288: leftover cached projection stays readable while pairing-hold; true disconnect does not. */
 	private canReadCachedEngineProjection(): boolean {
 		return this.isEngineConnected() || isConversationPairingHold(this.uaConnection);
 	}
@@ -629,12 +629,14 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override getSessionSync(sessionId: string): SyncChrome {
-		if (this.isEngineConnected()) {
+		if (this.canReadCachedEngineProjection()) {
 			const projection = this.engineFrameSource.getCachedProjection(sessionId);
 			if (projection) {
 				return projection.snapshot.sync;
 			}
-			return { kind: 'idle' };
+			if (this.isEngineConnected()) {
+				return { kind: 'idle' };
+			}
 		}
 		return super.getSessionSync(sessionId);
 	}
