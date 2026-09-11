@@ -8,6 +8,7 @@ import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { IClipboardService } from '../../../../platform/clipboard/common/clipboardService.js';
 import { IWebviewService } from '../../webview/browser/webview.js';
 import type { ConversationQuestionRespondAnswers, ConversationViewFrameApplied, ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { ConversationTimelineEntry } from './conversationSessionView.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { ConversationEngineHistoryList } from './conversationEngineHistoryList.js';
@@ -19,6 +20,7 @@ import { ConversationTrajectory } from './conversationTrajectory.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
 import type { ConversationMermaidExtensionInfo } from './conversationMermaidHost.js';
 import { findFirstPendingConfirmationTurnId as findFirstPendingConfirmationTurnIdFromTurns } from './conversationPendingSeat.js';
+import { isConversationEngineLive } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
 export interface IConversationLensSessionBindingHost {
@@ -36,6 +38,7 @@ export interface IConversationLensSessionBindingHost {
 	mermaidExtensionInfo: ConversationMermaidExtensionInfo | undefined;
 	readonly slotHosts: IConversationLensSlots;
 	readonly stubService: IConversationRosterService;
+	readonly uaConnection: IUniverseAgentConnection;
 	readonly clipboardService: IClipboardService;
 	readonly webviewService: IWebviewService;
 	readonly visualizeOverlay: ConversationVisualizeOverlay;
@@ -52,6 +55,19 @@ export interface IConversationLensSessionBindingHost {
 	postBound(msg: ConversationWriteMessage): Promise<PostOutcome>;
 	showPostFailure(reason: ConversationComposerPostFailureReason): void;
 	focusTimelineRecord(turnId: string): void;
+}
+
+/** D285: phase still connected, pairing pending — do not treat as true disconnect. */
+function shouldKeepLeftoverTimelineForPairingHold(host: IConversationLensSessionBindingHost): boolean {
+	if (host.lastAttachedEntries.length === 0) {
+		return false;
+	}
+	const ua = host.uaConnection;
+	if (!ua) {
+		return false;
+	}
+	const snapshot = ua.getConnectionSnapshot();
+	return snapshot.pairingPending && isConversationEngineLive(ua.getConnectionPhase(), false);
 }
 
 export function bindSessionView(host: IConversationLensSessionBindingHost, sessionId: string): void {
@@ -75,6 +91,10 @@ export function bindSessionView(host: IConversationLensSessionBindingHost, sessi
 		host.sessionViewLease = undefined;
 		host.lastAttachedEntries = [];
 		host.timelineTree.applyEntries([], { kind: 'baseline' });
+		return;
+	}
+	if (shouldKeepLeftoverTimelineForPairingHold(host)) {
+		// D285: pairing-hold leftover stays painted (same keep as D269). First pull (no leftover) still rebinds.
 		return;
 	}
 	host.sessionViewLifetime.clear();

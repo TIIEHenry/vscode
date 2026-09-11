@@ -222,6 +222,83 @@ suite('conversation lens dispose gate', () => {
 		lifetime.dispose();
 	});
 
+	test('bindSessionView keeps leftover timeline while pairingPending then true disconnect rebinds', () => {
+		const lifetime = new DisposableStore();
+		const priorLease = { sessionId: 'sess-leftover' };
+		const leftover = [{ id: 't1' }, { id: 't2' }];
+		let connected = true;
+		let pairingPending = false;
+		let applyEntries = 0;
+		let appliedEmpty = 0;
+		let applyBaseline = 0;
+		let acquire = 0;
+		const lifetimeMarker = {
+			disposed: false,
+			dispose() { this.disposed = true; },
+		};
+		lifetime.add(lifetimeMarker);
+		const host = {
+			isDisposed: false,
+			sessionViewLifetime: lifetime,
+			sessionViewLease: priorLease,
+			lastAttachedEntries: leftover,
+			stubService: {
+				isEngineConnected: () => connected && !pairingPending,
+				isEngineSessionReady: () => connected && !pairingPending,
+				acquireSessionView: () => {
+					acquire++;
+					return {
+						sessionId: 'sess-leftover',
+						snapshot: { sessionId: 'sess-leftover' },
+						dispose() { },
+						onDidApplyFrame: () => ({ dispose() { } }),
+					};
+				},
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending }),
+			},
+			timelineTree: {
+				applyEntries: (entries: readonly unknown[]) => {
+					applyEntries++;
+					if (entries.length === 0) {
+						appliedEmpty++;
+					}
+				},
+			},
+			applySessionViewTimeline: (applied: { kind: string }) => {
+				if (applied.kind === 'baseline') {
+					applyBaseline++;
+				}
+			},
+		} as unknown as IConversationLensSessionBindingHost;
+
+		pairingPending = true;
+		assert.strictEqual(host.stubService.isEngineConnected(), false);
+		assert.strictEqual(host.uaConnection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(host.uaConnection.getConnectionSnapshot().pairingPending, true);
+
+		bindSessionView(host, 'sess-leftover');
+		assert.strictEqual(applyEntries, 0);
+		assert.strictEqual(appliedEmpty, 0);
+		assert.strictEqual(applyBaseline, 0);
+		assert.strictEqual(acquire, 0);
+		assert.strictEqual(host.sessionViewLease, priorLease);
+		assert.strictEqual(host.lastAttachedEntries.length, 2);
+		assert.strictEqual(host.lastAttachedEntries, leftover);
+		assert.strictEqual(lifetimeMarker.disposed, false);
+
+		pairingPending = false;
+		connected = false;
+		bindSessionView(host, 'sess-leftover');
+		assert.ok(acquire > 0);
+		assert.ok(applyBaseline > 0);
+		assert.strictEqual(appliedEmpty, 0);
+		assert.strictEqual(lifetimeMarker.disposed, true);
+		lifetime.dispose();
+	});
+
 	test('bindSessionView acquireSessionView throw shows failed and does not leave an unhandled rejection', async () => {
 		const lifetime = new DisposableStore();
 		const failures: ConversationComposerPostFailureReason[] = [];
