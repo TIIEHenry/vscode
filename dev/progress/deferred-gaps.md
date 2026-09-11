@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-09-11
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D300 已闭；D276–D300 leftover+pairing；D250–D275 leftover honesty；D277 H4b；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+updated: 2026-09-12
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D302 已闭；D302 Projects pairing leftover；D276–D300 leftover+pairing；D250–D275 leftover honesty；D277 H4b；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -314,6 +314,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D300 已闭；D276
 | D298 | P3 | **closed** pairing-hold 时 `isEngineConnected()` 为 false，`tryConnectedEngineFork` 原回 `{ handled:false, forked:false }`，`ConversationForkConversationAction` 落到 `forkChatSession` + `openForkTab`，透镜仍画 leftover 却开出本地 stub 页（假成功）。本刀：pairing-hold + history → `handled:true` / `forked:false` + 既有断连 notice，不调 `forkChatSession` / `openForkTab`。真断连+history 与从未接通 stub 仍 fallthrough。接通 fork 不变。Create Snapshot `!connected`+history 同 notice（不再静默）。未改 `showLiveChrome` / D285–D297 keep·write chrome·sync demote。未发明 proto。 | 工位 A `pairing-hold-fork-fallthrough` 已收 @2026-09-11 | leftover + pairingPending：handled 且不 fork、`forkChatSession` 0、notice；真断连+history / stub 仍本地 fork；接通仍 `forkSubAgent`。`conversationForkEngine.test.ts` / `conversationSessionChat.test.ts` | conversation / fork | closed |
 | D299 | P3 | **closed** pairing-hold 时 `isEngineConnected()` 为 false，F1 Kill 原 `!isEngineConnected()` 静默 return，透镜仍画 leftover engine session。Kill 无本地成功路径（不像 fork），故对齐 Create Snapshot 闸：接通才 `killSubAgent`，false → failed notice；`!connected`+history（pairing-hold leftover 与真断连 leftover）→ disconnected notice 且不调 `killSubAgent`；从未接通仍静默。未改 `showLiveChrome` / D285–D298 keep·write chrome·fork fallthrough。未发明 proto / 本地 catalog id / 关 Fork tab。 | 工位 B `kill-leftover-notice` 已收 @2026-09-11 | leftover + !connected+history：notice、kill 0 次；接通 true 静默且 kill 1 次；接通 false → failed notice；从未接通静默。`conversationKillEngine.test.ts` | conversation / kill | closed |
 | D300 | P3 | **closed** D291 leftover pending 仍计数、D297 座已 `aria-disabled`。CS-4 `openPendingOnFocus` 与通知 Show 仍 `scrollToFirstPendingConfirmation`，焦点跳到不可确认 leftover 座（假“去处理”）。本刀：`shouldAutoRevealPendingConfirmation` 在 pairing-hold 跳过自动滚；Show 仍 `switchSession`+`showConversationPart`。Inbox 待确认点击不闸。未改 `showLiveChrome` / D285–D299 keep·write·kill。未发明 proto。 | 工位 C `cs4-pairing-pending-scroll` 已收 @2026-09-11 | pairing-hold pending：CS-4 / Show 0 scroll；接通仍滚；Show 仍切会话。`conversationPendingSeat.test.ts` / openPendingOnFocus / notifications | conversation / pending-reveal | closed |
+| D302 | P3 | **closed** D290 后 Projects 仍按 `!isEngineConnected()` 把 pairing-hold 当真断连：活画 leftover workDir / sessions / local folders 走 stale/welcome。本刀：`isConversationPairingHold` + leftover → 保 tree 行，不翻 welcome / 空 disconnected；真断连仍 stale/welcome；首拉 pairing 无 leftover 仍 empty。未改 Agents Hierarchy/Activity 或 Team。未发明 proto / sessionList RPC。未关 D16。未碰 D8/D147。 | 工位 B `navigator-projects-pairing-leftover` 已收 @2026-09-12 | 活画后 pairingPending + phase connected：行数不变 + 非 welcome；随后真断连仍 stale；首拉 pairing 仍 empty。`navigatorProjectsList.test.ts` | navigator / projects | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 
