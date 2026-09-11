@@ -43,8 +43,10 @@ import { conversationSubAgentOverlayClass, conversationSubAgentOverlayBackdropCl
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { IConversationLensSlots } from '../../../../browser/parts/conversation/conversationPart.js';
 import { ConversationStubService, IConversationRosterService, type ILiveAgentTreeChangeEvent } from '../../browser/conversationStubService.js';
-import type { IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { ConversationViewFrameApplied, IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
 import { ConversationDiffReviewInputTypeId } from '../../../sources/common/conversationDiffReviewInput.js';
 import { registerTestConversationDiffReviewEditor } from './conversationDiffReviewTestEditor.js';
@@ -311,13 +313,14 @@ suite('Conversation session chat (S3)', () => {
 		}
 	});
 
-	async function createHarness(rosterService: IConversationRosterService = new ConversationStubService(), notificationService?: INotificationService) {
+	async function createHarness(rosterService: IConversationRosterService = new ConversationStubService(), notificationService?: INotificationService, uaConnection?: IUniverseAgentConnection) {
 		const instantiationService = workbenchInstantiationService({
 			configurationService: () => new TestConfigurationService({
 				workbench: { editor: { enablePreview: false } },
 			}),
 		}, store);
 		instantiationService.stub(IConversationRosterService, rosterService);
+		instantiationService.stub(IUniverseAgentConnection, uaConnection ?? createConversationConnectionTestStub());
 		if (notificationService) {
 			instantiationService.stub(INotificationService, notificationService);
 		}
@@ -558,6 +561,122 @@ suite('Conversation session chat (S3)', () => {
 			children,
 		};
 	}
+
+	test('bindLiveTreeLease keeps leftover lease while pairingPending then true disconnect clears', async () => {
+		let connected = true;
+		let pairingPending = false;
+		class PairingLiveTreeRoster extends ConversationStubService {
+			acquireCount = 0;
+			leaseDisposed = false;
+			private readonly leaseEmitter = this._register(new Emitter<ConversationViewFrameApplied>());
+			liveAgentTree: LiveAgentTreeNodeView = makeLiveAgentTree([makeSubAgent('research', 'Research')]);
+
+			override isEngineConnected(): boolean {
+				return connected && !pairingPending;
+			}
+			override isEngineSessionReady(): boolean {
+				return connected && !pairingPending;
+			}
+			override getActiveSessionId(): string {
+				return SESSION_KEY;
+			}
+			override acquireSessionView(sessionId: string): IConversationSessionViewLease {
+				this.acquireCount++;
+				const roster = this;
+				return {
+					sessionId,
+					get snapshot() {
+						return { liveAgentTree: roster.liveAgentTree } as IConversationSessionViewLease['snapshot'];
+					},
+					attribution: new Map(),
+					details: new Map(),
+					onDidApplyFrame: this.leaseEmitter.event,
+					post: async () => ({ accepted: true, correlation: { id: 't' } }),
+					requestResync: () => { },
+					dispose: () => { roster.leaseDisposed = true; },
+				};
+			}
+			setPairingPending(value: boolean): void {
+				pairingPending = value;
+				this._onDidChangeEngineConnection.fire(this.isEngineConnected());
+			}
+			setDisconnected(): void {
+				pairingPending = false;
+				connected = false;
+				this._onDidChangeEngineConnection.fire(false);
+			}
+			fireLeaseFrame(): void {
+				this.leaseEmitter.fire({ kind: 'baseline' });
+			}
+		}
+		const roster = store.add(new PairingLiveTreeRoster());
+		const uaConnection = createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'idle',
+				pairingPending,
+				channelAlive: false,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+		const { sessionChatService } = await createHarness(roster, undefined, uaConnection);
+		assert.ok(roster.acquireCount >= 1);
+		assert.ok(sessionChatService.getCatalog(SESSION_KEY).some(entry => entry.chatId === 'research'));
+		const acquireAfterBind = roster.acquireCount;
+
+		pairingPending = true;
+		assert.strictEqual(roster.isEngineConnected(), false);
+		roster.setPairingPending(true);
+		assert.strictEqual(roster.leaseDisposed, false);
+		assert.strictEqual(roster.acquireCount, acquireAfterBind);
+		assert.ok(sessionChatService.getCatalog(SESSION_KEY).some(entry => entry.chatId === 'research'));
+
+		roster.liveAgentTree = makeLiveAgentTree([
+			makeSubAgent('research', 'Research'),
+			makeSubAgent('web', 'Web search'),
+		]);
+		roster.fireLeaseFrame();
+		assert.ok(sessionChatService.getCatalog(SESSION_KEY).some(entry => entry.chatId === 'web'));
+
+		pairingPending = false;
+		connected = false;
+		roster.setDisconnected();
+		assert.strictEqual(roster.leaseDisposed, true);
+		roster.liveAgentTree = makeLiveAgentTree([makeSubAgent('ghost', 'Ghost')]);
+		roster.fireLeaseFrame();
+		assert.ok(!sessionChatService.getCatalog(SESSION_KEY).some(entry => entry.chatId === 'ghost'));
+	});
+
+	test('bindLiveTreeLease first-pull pairingPending never-connected still has no lease', async () => {
+		class NeverConnectedPairingRoster extends ConversationStubService {
+			acquireCount = 0;
+			override isEngineConnected(): boolean {
+				return false;
+			}
+			override isEngineSessionReady(): boolean {
+				return false;
+			}
+			override acquireSessionView(sessionId: string): IConversationSessionViewLease {
+				this.acquireCount++;
+				return super.acquireSessionView(sessionId);
+			}
+		}
+		const roster = store.add(new NeverConnectedPairingRoster());
+		const uaConnection = createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'idle',
+				pairingPending: true,
+				channelAlive: false,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+		const { sessionChatService } = await createHarness(roster, undefined, uaConnection);
+		assert.strictEqual(roster.acquireCount, 0);
+		assert.deepStrictEqual(sessionChatService.getCatalog(SESSION_KEY), []);
+	});
 
 	test('bindLiveTreeLease acquireSessionView throw notifies error without unhandled rejection', async () => {
 		const boom = new Error('acquireSessionView: session untitled is not engine-bound');
