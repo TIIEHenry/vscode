@@ -333,11 +333,18 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		return !!CommandsRegistry.getCommand(commandId);
 	}
 
+	/** Phase connected + pairingPending — leftover-looks-live still refuses writes. */
+	private isSourcesGitWritePairingHold(): boolean {
+		return this.uaConnection.getConnectionPhase().kind === 'connected'
+			&& !!this.uaConnection.getConnectionSnapshot().pairingPending;
+	}
+
 	canWriteStage(): boolean {
 		return canSendSourcesGitStagePaths(
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitStagePaths === 'function',
 			this.getGitSessionId(),
+			this.isSourcesGitWritePairingHold(),
 		);
 	}
 
@@ -346,6 +353,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitCommit === 'function',
 			this.getGitSessionId(),
+			this.isSourcesGitWritePairingHold(),
 		);
 	}
 
@@ -603,7 +611,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			&& !!entry.scmResource
 			&& this.isGitCommandAvailable(SOURCES_GIT_UNSTAGE_COMMAND));
 
-		this.stageSelectedButton.enabled = canStage;
+		this.stageSelectedButton.enabled = canStage && !this.isSourcesGitWritePairingHold();
 		this.unstageSelectedButton.enabled = canUnstage;
 	}
 
@@ -660,6 +668,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private async tryStagePaths(paths: readonly string[]): Promise<boolean> {
+		if (this.isSourcesGitWritePairingHold()) {
+			return true;
+		}
 		const hook = this.uaConnection.writeGitStagePaths;
 		try {
 			const result = await tryWriteSourcesGitStagePaths(
@@ -667,6 +678,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				hook ? request => hook.call(this.uaConnection, request) : undefined,
 				this.getGitSessionId(),
 				paths,
+				this.isSourcesGitWritePairingHold(),
 			);
 			if (!result || isSourcesGitWriteUnsupported(result)) {
 				return false;
@@ -721,10 +733,16 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			|| this.isGitCommandAvailable(SOURCES_GIT_COMMIT_COMMAND);
 
 		this.commitInput.disabled = !repo && !this.canWriteCommit();
-		this.commitButton.enabled = (!!repo || this.canWriteCommit()) && hasMessage && commitAvailable;
+		this.commitButton.enabled = !this.isSourcesGitWritePairingHold()
+			&& (!!repo || this.canWriteCommit())
+			&& hasMessage
+			&& commitAvailable;
 	}
 
 	private async runCommit(): Promise<void> {
+		if (this.isSourcesGitWritePairingHold()) {
+			return;
+		}
 		const repo = this.activeRepository;
 		const message = this.commitInput.value;
 		if (!message.trim()) {
@@ -746,6 +764,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				writeHook ? request => writeHook.call(this.uaConnection, request) : undefined,
 				this.getGitSessionId(),
 				message,
+				this.isSourcesGitWritePairingHold(),
 			);
 			if (isSourcesGitWriteAccepted(written)) {
 				this.setWriteStatusMessage(undefined);
