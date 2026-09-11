@@ -171,7 +171,10 @@ export class NavigatorProjectsView extends ViewPane {
 		if (isConversationPairingHold(this.uaConnection) && this.hasProjectsLeftoverRows()) {
 			return false;
 		}
-		return countLocalFolders(this.treeNodes) === 0 && !this.rosterService.isEngineConnected() && !this.wasEverConnected;
+		// D360 leftover-looks-live: pairing-hold-first. First-pull KEEP-chrome
+		// is not only `!isEngineConnected()`.
+		const engineConnected = !isConversationPairingHold(this.uaConnection) && this.rosterService.isEngineConnected();
+		return countLocalFolders(this.treeNodes) === 0 && !engineConnected && !this.wasEverConnected;
 	}
 
 	private hasProjectsLeftoverRows(): boolean {
@@ -302,16 +305,20 @@ export class NavigatorProjectsView extends ViewPane {
 				? currentFolders
 				: [...currentFolders, ...recentFolders];
 
-			const engineConnected = this.rosterService.isEngineConnected();
-			if (engineConnected) {
-				this.wasEverConnected = true;
-			}
-
 			if (isConversationPairingHold(this.uaConnection) && this.hasProjectsLeftoverRows()) {
 				this.filterBox?.setVisible(this.treeNodes.length > 0);
 				this.applyFilterToTree();
 				this._onDidChangeViewWelcomeState.fire();
 				return;
+			}
+
+			// D360 leftover-looks-live: pairing-hold first. KEEP leftover WITH
+			// leftover rows still early-returns above. leftover-looks-live
+			// first-pull (`isEngineConnected()===true` + pairingPending, no
+			// leftover) must not paint live engine projects chrome.
+			const engineConnected = !isConversationPairingHold(this.uaConnection) && this.rosterService.isEngineConnected();
+			if (engineConnected) {
+				this.wasEverConnected = true;
 			}
 
 			const snapshot = this.uaConnection.getConnectionSnapshot();
