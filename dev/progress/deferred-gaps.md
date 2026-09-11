@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-12
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D302 已闭；D276–D302 leftover+pairing；D250–D275 leftover honesty；D277 H4b；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D305 已闭；D276–D305 leftover+pairing；D250–D275 leftover honesty；D277 H4b；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -316,6 +316,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D302 已闭；D276
 | D300 | P3 | **closed** D291 leftover pending 仍计数、D297 座已 `aria-disabled`。CS-4 `openPendingOnFocus` 与通知 Show 仍 `scrollToFirstPendingConfirmation`，焦点跳到不可确认 leftover 座（假“去处理”）。本刀：`shouldAutoRevealPendingConfirmation` 在 pairing-hold 跳过自动滚；Show 仍 `switchSession`+`showConversationPart`。Inbox 待确认点击不闸。未改 `showLiveChrome` / D285–D299 keep·write·kill。未发明 proto。 | 工位 C `cs4-pairing-pending-scroll` 已收 @2026-09-11 | pairing-hold pending：CS-4 / Show 0 scroll；接通仍滚；Show 仍切会话。`conversationPendingSeat.test.ts` / openPendingOnFocus / notifications | conversation / pending-reveal | closed |
 | D301 | P3 | **closed** D300 已闸 CS-4 / 通知 Show；Inbox `.conversation-lens-inbox-pending` 点击仍无条件 `onScrollToPendingConfirmation` → `scrollToFirstPendingConfirmation`，跳到 leftover 已禁用确认座（假“去处理”）。本刀：复用 `shouldAutoRevealPendingConfirmation`（`!isConversationPairingHold`）闸 Inbox 点击；D291 leftover 计数仍可见。接通 leftover/live 仍 1 scroll。真断连合同不改。未改 CS-4 / Show / `showLiveChrome` / D285–D300 keep·write·kill·scroll skip。未发明 proto。 | 工位 A `inbox-pending-click-pairing` 已收 @2026-09-12 | leftover pending 可见 → pairingPending 点击 0 scroll；接通仍 1 scroll。`conversationInboxOverlay.test.ts` | conversation / inbox | closed |
 | D302 | P3 | **closed** D290 后 Projects 仍按 `!isEngineConnected()` 把 pairing-hold 当真断连：活画 leftover workDir / sessions / local folders 走 stale/welcome。本刀：`isConversationPairingHold` + leftover → 保 tree 行，不翻 welcome / 空 disconnected；真断连仍 stale/welcome；首拉 pairing 无 leftover 仍 empty。未改 Agents Hierarchy/Activity 或 Team。未发明 proto / sessionList RPC。未关 D16。未碰 D8/D147。 | 工位 B `navigator-projects-pairing-leftover` 已收 @2026-09-12 | 活画后 pairingPending + phase connected：行数不变 + 非 welcome；随后真断连仍 stale；首拉 pairing 仍 empty。`navigatorProjectsList.test.ts` | navigator / projects | closed |
+| D305 | P3 | **closed** D141 后 Sessions 侧栏 `createNewSession` 只闸 `!isEngineConnected() && hasEngineConnectionHistory()`。pairing-hold leftover 碰巧命中断连闸，但未测且耦合断连文案而非 pairing 写合同（同 D290→D302 类洞）。本刀：先 `isConversationPairingHold` 再 create，对齐 SessionBar；pairing-hold → 既有 disconnected notice、0 `createSession`；真断连+history 仍 notice；从未接通 stub 仍可 create。未改 delete/beside / Inbox / `showLiveChrome` / navigator。未发明 proto / sessionList RPC。未关 D8/D16/D147。 | 工位 C `sessions-view-pairing-create-guard` 已收 @2026-09-12 | leftover/history + pairingPending：notice + `createSession` 0；接通仍 create；真断连仍 notice。`conversationSessionsView.test.ts` | conversation / sessions | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 

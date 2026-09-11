@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-12
-summary: "关仓已 push D301 Inbox 点击闸 + D302 Projects leftover @ dd99b988de4。D8/D16/D147 仍开。"
+summary: "关仓已 push D301 Inbox 点击闸 + D302 Projects leftover。工位 C 占 D305 Sessions pairing-hold create 闸。D8/D16/D147 仍开。"
 ---
 
 # Development Progress
@@ -46,7 +46,7 @@ summary: "关仓已 push D301 Inbox 点击闸 + D302 Projects leftover @ dd99b98
 |:---|:-----|:---------|
 | **A** | `inbox-pending-click-pairing` [D301](deferred-gaps.md) | `already-committed` `8989b54326e`；pairing-hold leftover pending 点击 0 scroll |
 | **B** | `navigator-projects-pairing-leftover` [D302](deferred-gaps.md) | `already-committed` `191224ee48b`；pairing-hold 保 Projects 树 |
-| **C–D** | — | idle；未占本波 |
+| **C** | `sessions-view-pairing-create-guard` [D305](deferred-gaps.md) | occupied；pairing-hold New session 闸（D 仍 idle） |
 | **E** | [composer-fake-chrome](../plans/composer-fake-chrome.md) | 有价值 leftover 已在库；勿 `checkout -B` |
 
 <details>
@@ -186,7 +186,7 @@ summary: "关仓已 push D301 Inbox 点击闸 + D302 Projects leftover @ dd99b98
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | `dd99b988de4` | 干净 | 0 | `parked`；已 push 同 SHA |
 | A | `vscode-WorkTrees/A` | `loop/A` | `dd99b988de4` | 干净 | 0 | idle；已对齐 MERGE_SHA |
 | B | `vscode-WorkTrees/B` | `loop/B` | `dd99b988de4` | 干净 | 0 | idle；已对齐 MERGE_SHA |
-| C | `vscode-WorkTrees/C` | `loop/C` | `dd99b988de4` | 未提交 `dev/loop` | 0 | idle；勿 add `dev/loop` |
+| C | `vscode-WorkTrees/C` | `loop/C` | `f683232a41d` | 未提交 `dev/loop` | 0 | occupied D305；勿 add `dev/loop` |
 | D | `vscode-WorkTrees/D` | `loop/D` | `dd99b988de4` | 干净 | 0 | idle；已对齐 MERGE_SHA |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | leftover 已合入 merge；勿 `checkout -B` |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `ad9245ca178` | `dev/loop` + `.idea` | 0 | 请自行对齐 `dd99b988de4` |
@@ -194,7 +194,7 @@ summary: "关仓已 push D301 Inbox 点击闸 + D302 Projects leftover @ dd99b98
 | 项 | 指针 |
 |:---|:-----|
 | **引擎 store 迁移卡死** | [D26](deferred-gaps.md) 病因已改口（2026-09-09）：`user_version=0` + 表已建 ⇒ 迁移抛错 ⇒ 库永久打不开 ⇒ `LookupFailed` fail-closed deny ⇒ `ALREADY_EXISTS`（**设计内拒绝**）。根因与交接见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md)；D25 同源。**禁改引擎仓代码**；原闭合条件「Create 先写 meta」已撤回；不要再清 store |
-| **loop 切片** | D301/D302 已关仓。继续 leftover-honesty。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto |
+| **loop 切片** | 工位 C 占 [D305](deferred-gaps.md) Sessions pairing-hold create。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。

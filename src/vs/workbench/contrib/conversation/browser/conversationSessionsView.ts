@@ -22,6 +22,7 @@ import { WorkbenchList } from '../../../../platform/list/browser/listService.js'
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
@@ -30,8 +31,9 @@ import { matchesConversationSessionsInlineFilter } from '../common/conversationS
 import { ConversationSessionsInlineFilterBox } from './conversationSessionsInlineFilterBox.js';
 import { conversationSessionsViewEmptyMessage } from './conversationSessionsViewStrings.js';
 import { ConversationStubSession } from './conversationStubModel.js';
-import { IConversationRosterService } from './conversationStubService.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
+import { IConversationRosterService } from './conversationStubService.js';
 
 export const CONVERSATION_SESSIONS_VIEW_ID = 'workbench.view.conversationSessions';
 
@@ -147,6 +149,7 @@ export class ConversationSessionsView extends ViewPane {
 		@IConversationPartService private readonly conversationPartService: IConversationPartService,
 		@IConversationSessionWindowService private readonly sessionWindowService: IConversationSessionWindowService,
 		@INotificationService private readonly notificationService: INotificationService,
+		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 		@IKeybindingService keybindingService: IKeybindingService,
 		@IContextMenuService contextMenuService: IContextMenuService,
 		@IConfigurationService configurationService: IConfigurationService,
@@ -165,6 +168,12 @@ export class ConversationSessionsView extends ViewPane {
 	}
 
 	createNewSession(): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			this.notificationService.error(
+				localize('conversationSessionsView.createSessionDisconnected', "Could not create session — engine disconnected."),
+			);
+			return;
+		}
 		if (!this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory()) {
 			this.notificationService.error(
 				localize('conversationSessionsView.createSessionDisconnected', "Could not create session — engine disconnected."),
