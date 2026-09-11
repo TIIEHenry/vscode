@@ -625,7 +625,20 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			}
 			return this.engineFrameSource.acquire(sessionId);
 		}
+		// D289: pairing-hold leftover still acquires engine frames (notifications/reveal new lease).
+		if (this.shouldKeepEngineSessionViewLeaseWhilePairing(sessionId)) {
+			return this.engineFrameSource.acquire(sessionId);
+		}
 		return super.acquireSessionView(sessionId);
+	}
+
+	/** Pairing-hold + leftover engine session/cache. True disconnect and placeholders stay stub. */
+	private shouldKeepEngineSessionViewLeaseWhilePairing(sessionId: string): boolean {
+		if (!isConversationPairingHold(this.uaConnection) || isEngineRosterPlaceholderSessionId(sessionId)) {
+			return false;
+		}
+		return (this.wasEverConnected && this.engineSessions.some(session => session.id === sessionId))
+			|| !!this.engineFrameSource.getCachedProjection(sessionId);
 	}
 
 	override getSessionSync(sessionId: string): SyncChrome {
