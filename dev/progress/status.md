@@ -41,13 +41,13 @@ summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop：D2
 
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 进行中（2026-09-11 · D297 本槽已闭）
+### 进行中（2026-09-11 · D297 已进 merge）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
 | **A** | pairing-hold-lens-writes | 已进 merge；[D294](deferred-gaps.md) 已闭 |
 | **B** | pairing-hold-remaining-writes | 已进 merge；[D295](deferred-gaps.md) 已闭 |
 | **C** | session-bar-sync-demote | 已进 merge；[D296](deferred-gaps.md) 已闭 |
-| **D** | pairing-hold-write-affordance | 本槽已闭；[D297](deferred-gaps.md) 已闭 |
+| **D** | pairing-hold-write-affordance | 已进 merge；[D297](deferred-gaps.md) 已闭 |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
