@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-11
-summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop：D276–D284 leftover+pairing；A 已收 D284 catalog-detail-pairing-hold。"
+summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop：D276–D284 已进 merge；compile-client 待本合入。"
 ---
 
 # Development Progress
@@ -41,10 +41,10 @@ summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop：D2
 
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 进行中（2026-09-11 · A 已收 D284）
+### 进行中（2026-09-11 · D284 已进 merge）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | catalog-detail-pairing-hold | 已收；[D284](deferred-gaps.md) 详情 pairing leftover 已闭 |
+| **A** | catalog-detail-pairing-hold | 已进 merge；[D284](deferred-gaps.md) 已闭 |
 | **B** | pairing-composer-catalog-keep-last | 已进 merge；[D282](deferred-gaps.md) 已闭 |
 | **C** | — | idle；勿 add `dev/loop` |
 | **D** | sources-git-pairing-keep-last | 已进 merge；[D283](deferred-gaps.md) 已闭 |
@@ -183,8 +183,8 @@ summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop：D2
 ## 工位表（P0 盘点 · 2026-09-11 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `32aca534202` | 干净 | 0 | D282+D283；compile 0 已 push |
-| A | `vscode-WorkTrees/A` | `loop/A` | `32aca534202` | 干净 | 0 | 已收 D284 |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `1ee56613820` | 干净 | 0 | D284 已合；compile 待跑 |
+| A | `vscode-WorkTrees/A` | `loop/A` | `b389d1b2063` | 干净 | 0 | 已进 merge；D284 已闭 |
 | B | `vscode-WorkTrees/B` | `loop/B` | `32aca534202` | 干净 | 0 | idle；D282 已闭 |
 | C | `vscode-WorkTrees/C` | `loop/C` | `32aca534202` | 未提交 `dev/loop` | 0 | idle；勿 add `dev/loop` |
 | D | `vscode-WorkTrees/D` | `loop/D` | `32aca534202` | 干净 | 0 | idle；D283 已闭 |
