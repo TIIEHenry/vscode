@@ -630,15 +630,6 @@ suite('Sources - Changes list leftover honesty', () => {
 		return host.querySelector('.sources-changes-commit .monaco-button');
 	}
 
-	function assertWriteButtonsDisabled(host: HTMLElement): void {
-		const stage = stageSelectedButton(host);
-		const commit = commitButton(host);
-		assert.ok(stage);
-		assert.ok(commit);
-		assert.strictEqual(stage.classList.contains('disabled'), true);
-		assert.strictEqual(commit.classList.contains('disabled'), true);
-	}
-
 	async function waitForWriteButtonsDisabled(host: HTMLElement): Promise<void> {
 		const deadline = Date.now() + 2000;
 		while (Date.now() < deadline) {
