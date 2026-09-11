@@ -3,8 +3,8 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-10
-summary: "dev/plans 导航：sources-accept-empty-success（draft；A1 已落；P5 停线；A2 须新选定）；M7 代码完成线仍 accepted；GitHub Actions 已关"
+updated: 2026-09-12
+summary: "dev/plans 导航：sources-accept-empty-success（draft；A1 已落；P5 停线；A2 须新选定）；composer-fake-chrome（accepted；D194 选定删）；M7 代码完成线仍 accepted；GitHub Actions 已关"
 ---
 
 # 方案
@@ -42,6 +42,7 @@ summary: "dev/plans 导航：sources-accept-empty-success（draft；A1 已落；
 | [navigator-engine-segments.md](navigator-engine-segments.md) | `accepted` | PRD-022：**N1–N4 已落**；**GC-5** Inspect/Team 读取态已落；**N5** 隔离 profile 验收待冒烟；缺口 G-NAV-1 / G-NAV-2 |
 | [sources-review-progress.md](sources-review-progress.md) | `accepted` | PRD-023：**R1–R4b 已落** @ `05007b60`–`f1065288`；**R5** 验收 + 知识层待冒烟；缺口 G-REV-1 |
 | [sources-accept-empty-success.md](sources-accept-empty-success.md) | `draft` | ADR-008 之后的产品 Accept：A1 已落；P5 停线（只批准停线）；A2 须新选定 + Arch-First；D31 F4 仍开 |
+| [composer-fake-chrome.md](composer-fake-chrome.md) | `accepted` | D194 出口选定「删」：无 voice/transcript/route capability，不门控不接 RPC；S1 四刀已落 `4156c6528f1`，本稿回补方案层与复开门禁 |
 | [chat-compare-split.md](chat-compare-split.md) | `implemented` | PRD-011 并排比对已落；D4 已验 |
 | [page-access-schemes.md](page-access-schemes.md) | `implemented` | 切片 1a–5 已落；M7 不重开混合宿主、同 token 与 Navigator 拓扑 |
 | [settings-two-surfaces.md](settings-two-surfaces.md) | `implemented` | 两主面边界 + C5/H0–H3 已落；Engine E2 / Client CS 代码完成线见 M7 方案（仍 accepted） |

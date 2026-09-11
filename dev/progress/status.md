@@ -3,8 +3,8 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-09-11
-summary: "关仓：D276–D300 leftover+pairing 已进 merge；compile-client 0。E 槽 leftover 不合入。"
+updated: 2026-09-12
+summary: "关仓后收 E leftover：composer-fake-chrome 合同 + eslint/Inbox 断言。D276–D300 已 push。"
 ---
 
 # Development Progress
@@ -41,13 +41,14 @@ summary: "关仓：D276–D300 leftover+pairing 已进 merge；compile-client 0�
 
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 关仓（2026-09-11 · 本波 A–D leftover+pairing D276–D300）
+### 关仓（2026-09-12 · A–D D276–D300；E leftover 有价值部分保留）
 | 槽 | 切片 | 关仓状态 |
 |:---|:-----|:---------|
 | **A** | pairing-hold-fork-fallthrough | `already-committed`；[D298](deferred-gaps.md) 已闭 |
 | **B** | kill leftover notice | `already-committed`；[D299](deferred-gaps.md) 已闭 |
 | **C** | CS-4 pairing pending scroll | `already-committed`；[D300](deferred-gaps.md) 已闭 |
 | **D** | leftover+pairing D294–D297 | `already-committed` |
+| **E** | [composer-fake-chrome](../plans/composer-fake-chrome.md) + eslint/Inbox 断言 | 有价值 leftover 合入；方案 `accepted` |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
@@ -194,7 +195,7 @@ summary: "关仓：D276–D300 leftover+pairing 已进 merge；compile-client 0�
 | 项 | 指针 |
 |:---|:-----|
 | **引擎 store 迁移卡死** | [D26](deferred-gaps.md) 病因已改口（2026-09-09）：`user_version=0` + 表已建 ⇒ 迁移抛错 ⇒ 库永久打不开 ⇒ `LookupFailed` fail-closed deny ⇒ `ALREADY_EXISTS`（**设计内拒绝**）。根因与交接见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md)；D25 同源。**禁改引擎仓代码**；原闭合条件「Create 先写 meta」已撤回；不要再清 store |
-| **loop 切片** | D276–D300 已关仓。E 槽 `fix/ci-gate-reds` leftover 不合入。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto |
+| **loop 切片** | D276–D300 已关仓。E leftover 有价值部分（D194 合同 + 断言）已合。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
