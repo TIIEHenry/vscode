@@ -436,6 +436,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override retryError(sessionId: string, options: { messageId: string; turnId?: string; agentId?: string }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.continueEngineGeneration(sessionId, options, true);
 		}
@@ -446,6 +449,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override deleteTurn(sessionId: string, turnId: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.deleteEngineMessage(sessionId, turnId, true);
 		}
@@ -456,6 +462,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override updateUserTurnText(sessionId: string, turnId: string, text: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.editEngineMessage(sessionId, turnId, text, true);
 		}
@@ -612,6 +621,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.respondEnginePermission(sessionId, turnId, status, true);
 		}
@@ -622,6 +634,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override respondClientTool(sessionId: string, callId: string, options?: { content?: string; isError?: boolean; metadataJson?: string }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.sendEngineClientToolResponse(sessionId, callId, options, true);
 		}
@@ -632,6 +647,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override respondQuestion(sessionId: string, questionId: string, answers?: ConversationQuestionRespondAnswers, customText?: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.respondEngineQuestion(sessionId, questionId, answers, customText, true);
 		}
