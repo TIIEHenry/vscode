@@ -1190,6 +1190,47 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.deepStrictEqual(service.getSessions().map(s => s.id), idsBefore);
 	});
 
+	test('leftover-looks-live cancelGeneration, setSessionGoal and cancelSessionGoal reject while pairingPending and skip unary', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		assert.strictEqual(service.setSessionGoal('ua-only', 'Live goal'), true);
+		assert.strictEqual(service.cancelGeneration('ua-only'), true);
+		assert.strictEqual(connection.setGoalCalls.length, 1);
+		assert.strictEqual(connection.cancelCalls.length, 1);
+		assert.strictEqual(connection.cancelGoalCalls.length, 0);
+
+		connection.setPairingPending(true);
+		service.setEngineConnected(true);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(service.cancelGeneration('ua-only'), false);
+		assert.strictEqual(service.setSessionGoal('ua-only', 'Looks-live goal'), false);
+		assert.strictEqual(service.cancelSessionGoal('ua-only'), false);
+		assert.strictEqual(connection.cancelCalls.length, 1);
+		assert.strictEqual(connection.setGoalCalls.length, 1);
+		assert.strictEqual(connection.cancelGoalCalls.length, 0);
+		assert.strictEqual(service.getSessionGoal('ua-only'), 'Live goal');
+
+		connection.setPairingPending(false);
+		service.setEngineConnected(true);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		assert.strictEqual(service.setSessionGoal('ua-only', 'Live again'), true);
+		assert.strictEqual(service.cancelGeneration('ua-only'), true);
+		assert.strictEqual(service.cancelSessionGoal('ua-only'), true);
+		assert.strictEqual(connection.setGoalCalls.length, 2);
+		assert.strictEqual(connection.cancelCalls.length, 2);
+		assert.strictEqual(connection.cancelGoalCalls.length, 1);
+		assert.strictEqual(service.getSessionGoal('ua-only'), undefined);
+	});
+
 	test('disconnected after engine renameSession stays local and skips unary', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());

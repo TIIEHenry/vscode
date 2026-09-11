@@ -338,6 +338,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override cancelGeneration(sessionId: string, agentId?: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.cancelEngineGeneration(sessionId, agentId, true);
 		}
@@ -348,6 +351,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override setSessionGoal(sessionId: string, goal: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.setEngineSessionGoal(sessionId, goal, true);
 		}
@@ -358,6 +364,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override cancelSessionGoal(sessionId: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.cancelEngineSessionGoal(sessionId, true);
 		}
