@@ -44,10 +44,7 @@ summary: "关仓后收 E leftover：composer-fake-chrome 合同 + eslint/Inbox �
 ### 关仓（2026-09-12 · A–D D276–D300；E leftover 有价值部分保留）
 | 槽 | 切片 | 关仓状态 |
 |:---|:-----|:---------|
-| **A** | pairing-hold-fork-fallthrough | `already-committed`；[D298](deferred-gaps.md) 已闭 |
-| **B** | kill leftover notice | `already-committed`；[D299](deferred-gaps.md) 已闭 |
-| **C** | CS-4 pairing pending scroll | `already-committed`；[D300](deferred-gaps.md) 已闭 |
-| **D** | leftover+pairing D294–D297 | `already-committed` |
+| **A–D** | leftover+pairing D276–D300 | `already-committed`；[D298](deferred-gaps.md)–[D300](deferred-gaps.md) 已闭 |
 | **E** | [composer-fake-chrome](../plans/composer-fake-chrome.md) + eslint/Inbox 断言 | 有价值 leftover 合入；方案 `accepted` |
 
 <details>
@@ -189,7 +186,7 @@ summary: "关仓后收 E leftover：composer-fake-chrome 合同 + eslint/Inbox �
 | B | `vscode-WorkTrees/B` | `loop/B` | `cb78b1ca9fa` | 干净 | 0 | idle；已对齐 MERGE_SHA |
 | C | `vscode-WorkTrees/C` | `loop/C` | `cb78b1ca9fa` | 未提交 `dev/loop` | 0 | idle；勿 add `dev/loop` |
 | D | `vscode-WorkTrees/D` | `loop/D` | `cb78b1ca9fa` | 干净 | 0 | idle；已对齐 MERGE_SHA |
-| E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked`；2 独有提交未进本波 |
+| E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | leftover 已合入 merge；勿 `checkout -B` |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `ad9245ca178` | `dev/loop` + `.idea` | 0 | 请自行对齐 MERGE_SHA |
 ## Next（Blockers：无）
 | 项 | 指针 |
