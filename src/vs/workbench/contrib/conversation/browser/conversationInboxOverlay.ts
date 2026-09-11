@@ -48,6 +48,7 @@ import {
 } from './conversationMessageQueueModel.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IConversationRosterService } from './conversationStubService.js';
+import { shouldAutoRevealPendingConfirmation } from './conversationPendingSeat.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { formatSyncChromeLabel } from './conversationSessionView.js';
 
@@ -118,7 +119,12 @@ export class ConversationInboxOverlay extends Disposable {
 		this.pendingButton = append(this.leftCluster, $('button.conversation-lens-inbox-pending')) as HTMLButtonElement;
 		this.pendingButton.type = 'button';
 		this.pendingButton.hidden = true;
-		this._register(addDisposableListener(this.pendingButton, 'click', () => this.delegate.onScrollToPendingConfirmation()));
+		this._register(addDisposableListener(this.pendingButton, 'click', () => {
+			if (!shouldAutoRevealPendingConfirmation(this.uaConnection)) {
+				return;
+			}
+			this.delegate.onScrollToPendingConfirmation();
+		}));
 
 		this.syncStatus = append(this.leftCluster, $('span.conversation-lens-inbox-sync'));
 		this.syncStatus.hidden = true;

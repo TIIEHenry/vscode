@@ -972,3 +972,68 @@ suite('ConversationInboxOverlay Retry', () => {
 		assert.deepStrictEqual(roster.holdCalls, []);
 	});
 });
+
+suite('ConversationInboxOverlay pending click', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	function createOverlay(
+		roster: ConversationStubService,
+		scrolls: string[] = [],
+		connection?: IUniverseAgentConnection,
+	): ConversationInboxOverlay {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		stubInboxServices(instantiationService, roster, connection);
+		const parent = document.createElement('div');
+		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, {
+			onQueueItemHold() { },
+			onScrollToPendingConfirmation() { scrolls.push('scroll'); },
+			showPostFailure() { },
+		}));
+	}
+
+	function getPendingButton(overlay: ConversationInboxOverlay): HTMLButtonElement {
+		const button = overlay.element.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement | null;
+		assert.ok(button);
+		return button;
+	}
+
+	test('leftover pending visible while pairingPending does not scroll', () => {
+		const roster = store.add(new ConversationStubService());
+		roster.appendConfirmationTurn(roster.getActiveSessionId(), 'Allow write?');
+		const base = createConversationConnectionTestStub();
+		const connection = createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...base.getConnectionSnapshot(),
+				pairingPending: true,
+			}),
+		});
+		const scrolls: string[] = [];
+		const overlay = createOverlay(roster, scrolls, connection);
+		const button = getPendingButton(overlay);
+		assert.strictEqual(button.hidden, false);
+		assert.ok(roster.countPendingConfirmations(roster.getActiveSessionId()) > 0);
+		button.click();
+		assert.deepStrictEqual(scrolls, []);
+	});
+
+	test('connected leftover pending click still scrolls', () => {
+		const roster = store.add(new ConversationStubService());
+		roster.appendConfirmationTurn(roster.getActiveSessionId(), 'Allow write?');
+		const connection = createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...createConversationConnectionTestStub().getConnectionSnapshot(),
+				pairingPending: false,
+			}),
+		});
+		const scrolls: string[] = [];
+		const overlay = createOverlay(roster, scrolls, connection);
+		const button = getPendingButton(overlay);
+		assert.strictEqual(button.hidden, false);
+		assert.ok(roster.countPendingConfirmations(roster.getActiveSessionId()) > 0);
+		button.click();
+		assert.deepStrictEqual(scrolls, ['scroll']);
+	});
+});
