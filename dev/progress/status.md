@@ -177,7 +177,7 @@ summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop：D2
 | [D230](deferred-gaps.md)–[D233](deferred-gaps.md) | A–D catalog leftover | **closed** Plugins / Skills / MCP Definitions / Agents 成功后再 list throw 保 leftover + failed；merge compile-client 0 |
 | [D234](deferred-gaps.md)–[D237](deferred-gaps.md) | A–D leftover 关仓波 | **closed** ProviderModel list throw / Composer SUPPORTED keep-last / Team catch leftover / Hierarchy pending leftover；merge compile-client 0 |
 | [D238](deferred-gaps.md)–[D241](deferred-gaps.md) | A–D leftover 关仓波 | **closed** MCP Runtime tools / Clipboard / Triggers list throw leftover；Team pending/treeEmpty leftover；merge compile-client 0 |
-| [D242](deferred-gaps.md)–[D287](deferred-gaps.md) | leftover + pairing | **closed** catalog leftover + pairing keep-last（含 roster 缓存 turns） |
+| [D242](deferred-gaps.md)–[D288](deferred-gaps.md) | leftover + pairing | **closed** catalog leftover + pairing keep-last（含 roster turns / session sync） |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
 ## 工位表（P0 盘点 · 2026-09-11 · 与 `git worktree list` 对照）
