@@ -19,6 +19,7 @@ import { IHostService } from '../../../../services/host/browser/host.js';
 import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
 import { TestContextService } from '../../../../test/common/workbenchTestServices.js';
 import { TestHostService, TestWorkspacesService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEmptyState.js';
 import { NAVIGATOR_PROJECTS_VIEW_ID } from '../../browser/navigatorStubView.js';
@@ -559,5 +560,133 @@ suite('NavigatorProjectsView', () => {
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('live paint leftover stays while pairingPending then true disconnect stays stale', async () => {
+		const folderUri = URI.file('/projects/pairing-keep');
+		const contextService = new TestContextService(testWorkspace(folderUri));
+		class ProductionLikeRoster extends ConversationStubService {
+			private connected = false;
+			pairingPending = false;
+			override isEngineConnected(): boolean {
+				return this.connected && !this.pairingPending;
+			}
+			override setEngineConnected(connected: boolean): void {
+				this.connected = connected;
+				super.setEngineConnected(this.connected && !this.pairingPending);
+			}
+			setPairingPending(pending: boolean): void {
+				this.pairingPending = pending;
+				super.setEngineConnected(this.connected && !this.pairingPending);
+			}
+		}
+		const rosterService = new ProductionLikeRoster();
+		rosterService.setEngineConnected(true);
+		let pairingPending = false;
+		let phaseKind: 'connected' | 'disconnected' = 'connected';
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const baseConnection = createNavigatorConnectionTestStub({
+			getNavigatorCapability: () => 'SUPPORTED',
+		});
+		const uaConnection = createNavigatorConnectionTestStub({
+			getNavigatorCapability: () => 'SUPPORTED',
+			getConnectionPhase: () => phaseKind === 'connected' ? { kind: 'connected', path: 'direct' } : { kind: 'disconnected' },
+			getConnectionSnapshot: () => ({
+				...baseConnection.getConnectionSnapshot(),
+				workDir: '/engine/work',
+				pairingPending,
+			}),
+			onDidChangeConnection: onDidChangeConnection.event,
+		});
+		const view = await mountView({
+			contextService,
+			rosterService,
+			uaConnection,
+		});
+
+		const leftoverSessionIds = collectSessionIds(getViewTreeNodes(view));
+		const leftoverFolderIds = getViewEntries(view).map(entry => entry.id);
+		assert.ok(leftoverSessionIds.length > 0, 'live paint must have leftover session rows');
+		assert.ok(leftoverFolderIds.length > 0, 'live paint must have leftover folder rows');
+		assert.ok(
+			findTreeNode(getViewTreeNodes(view), node => node.kind === 'workdir'),
+			'live paint must have leftover workDir',
+		);
+		assert.strictEqual(
+			findTreeNode(getViewTreeNodes(view), node => node.id === 'engine:stale-snapshot'),
+			undefined,
+			'live paint must not already look stale',
+		);
+		assert.strictEqual(view.shouldShowWelcome(), false);
+		assert.strictEqual(isConversationPairingHold(uaConnection), false);
+
+		pairingPending = true;
+		rosterService.setPairingPending(true);
+		onDidChangeConnection.fire(uaConnection.getConnectionSnapshot());
+		await flushMicrotasks();
+		await new Promise<void>(resolve => setImmediate(() => resolve()));
+
+		assert.strictEqual(uaConnection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(uaConnection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(uaConnection), true);
+		assert.strictEqual(rosterService.isEngineConnected(), false, 'production stub is connected && !pairingPending');
+		assert.deepStrictEqual(collectSessionIds(getViewTreeNodes(view)), leftoverSessionIds, 'pairing-hold must keep leftover session rows');
+		assert.deepStrictEqual(getViewEntries(view).map(entry => entry.id), leftoverFolderIds, 'pairing-hold must keep leftover folder rows');
+		assert.ok(
+			findTreeNode(getViewTreeNodes(view), node => node.kind === 'workdir'),
+			'pairing-hold must keep leftover workDir',
+		);
+		assert.strictEqual(view.shouldShowWelcome(), false, 'pairing-hold leftover must not flip to welcome');
+		assert.strictEqual(
+			findTreeNode(getViewTreeNodes(view), node => node.id === 'engine:stale-snapshot'),
+			undefined,
+			'pairing-hold leftover must not flip to disconnected stale as if never connected',
+		);
+
+		pairingPending = false;
+		phaseKind = 'disconnected';
+		rosterService.setEngineConnected(false);
+		onDidChangeConnection.fire(uaConnection.getConnectionSnapshot());
+		await flushMicrotasks();
+		await new Promise<void>(resolve => setImmediate(() => resolve()));
+
+		assert.strictEqual(isConversationPairingHold(uaConnection), false);
+		assert.deepStrictEqual(collectSessionIds(getViewTreeNodes(view)), leftoverSessionIds, 'true disconnect after pairing must keep leftover session rows');
+		assert.deepStrictEqual(getViewEntries(view).map(entry => entry.id), leftoverFolderIds, 'true disconnect after pairing must keep leftover folder rows');
+		const staleNote = findTreeNode(getViewTreeNodes(view), node => node.id === 'engine:stale-snapshot' && node.kind === 'note');
+		assert.ok(staleNote, 'true disconnect after pairing must mark leftover stale');
+		assert.strictEqual(staleNote.label, NAVIGATOR_STALE_SNAPSHOT_COPY);
+		assert.strictEqual(view.shouldShowWelcome(), false);
+	});
+
+	test('first-pull pairingPending without leftover stays empty and welcome', async () => {
+		const rosterService = new ConversationStubService();
+		const uaConnection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
+				pairingPending: true,
+			}),
+		});
+		const view = await mountView({
+			rosterService,
+			uaConnection,
+		});
+
+		assert.strictEqual(isConversationPairingHold(uaConnection), true);
+		assert.strictEqual(rosterService.isEngineConnected(), false);
+		assert.strictEqual(collectSessionIds(getViewTreeNodes(view)).length, 0, 'first-pull pairing must not install leftover session rows');
+		assert.strictEqual(getViewEntries(view).length, 0, 'first-pull pairing must not install leftover folder rows');
+		assert.strictEqual(
+			findTreeNode(getViewTreeNodes(view), node => node.kind === 'workdir'),
+			undefined,
+			'first-pull pairing must not install leftover workDir',
+		);
+		assert.strictEqual(
+			findTreeNode(getViewTreeNodes(view), node => node.id === 'engine:stale-snapshot'),
+			undefined,
+			'first-pull pairing must stay honest empty without a leftover stale note',
+		);
+		assert.strictEqual(view.shouldShowWelcome(), true, 'first-pull pairing with no leftover stays welcome');
 	});
 });

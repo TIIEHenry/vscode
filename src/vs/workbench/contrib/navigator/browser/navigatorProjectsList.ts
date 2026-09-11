@@ -31,6 +31,7 @@ import { IHostService } from '../../../services/host/browser/host.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
+import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
 import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { matchesNavigatorProjectsInlineFilter } from '../common/navigatorProjectsInlineFilter.js';
@@ -167,7 +168,14 @@ export class NavigatorProjectsView extends ViewPane {
 		if (this.hasRecentsFailure()) {
 			return false;
 		}
+		if (isConversationPairingHold(this.uaConnection) && this.hasProjectsLeftoverRows()) {
+			return false;
+		}
 		return countLocalFolders(this.treeNodes) === 0 && !this.rosterService.isEngineConnected() && !this.wasEverConnected;
+	}
+
+	private hasProjectsLeftoverRows(): boolean {
+		return this.treeNodes.length > 0 || this.localFolderEntries.length > 0;
 	}
 
 	private hasRecentsFailure(): boolean {
@@ -297,6 +305,13 @@ export class NavigatorProjectsView extends ViewPane {
 			const engineConnected = this.rosterService.isEngineConnected();
 			if (engineConnected) {
 				this.wasEverConnected = true;
+			}
+
+			if (isConversationPairingHold(this.uaConnection) && this.hasProjectsLeftoverRows()) {
+				this.filterBox?.setVisible(this.treeNodes.length > 0);
+				this.applyFilterToTree();
+				this._onDidChangeViewWelcomeState.fire();
+				return;
 			}
 
 			const snapshot = this.uaConnection.getConnectionSnapshot();
