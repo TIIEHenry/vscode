@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-12
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D303 已闭；D276–D303 leftover+pairing；D250–D275 leftover honesty；D277 H4b；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D304 已闭；D276–D304 leftover+pairing；D250–D275 leftover honesty；D277 H4b；gate-recovery 已合入；D25/D26 同源；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -317,6 +317,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D195–D303 已闭；D276
 | D301 | P3 | **closed** D300 已闸 CS-4 / 通知 Show；Inbox `.conversation-lens-inbox-pending` 点击仍无条件 `onScrollToPendingConfirmation` → `scrollToFirstPendingConfirmation`，跳到 leftover 已禁用确认座（假“去处理”）。本刀：复用 `shouldAutoRevealPendingConfirmation`（`!isConversationPairingHold`）闸 Inbox 点击；D291 leftover 计数仍可见。接通 leftover/live 仍 1 scroll。真断连合同不改。未改 CS-4 / Show / `showLiveChrome` / D285–D300 keep·write·kill·scroll skip。未发明 proto。 | 工位 A `inbox-pending-click-pairing` 已收 @2026-09-12 | leftover pending 可见 → pairingPending 点击 0 scroll；接通仍 1 scroll。`conversationInboxOverlay.test.ts` | conversation / inbox | closed |
 | D302 | P3 | **closed** D290 后 Projects 仍按 `!isEngineConnected()` 把 pairing-hold 当真断连：活画 leftover workDir / sessions / local folders 走 stale/welcome。本刀：`isConversationPairingHold` + leftover → 保 tree 行，不翻 welcome / 空 disconnected；真断连仍 stale/welcome；首拉 pairing 无 leftover 仍 empty。未改 Agents Hierarchy/Activity 或 Team。未发明 proto / sessionList RPC。未关 D16。未碰 D8/D147。 | 工位 B `navigator-projects-pairing-leftover` 已收 @2026-09-12 | 活画后 pairingPending + phase connected：行数不变 + 非 welcome；随后真断连仍 stale；首拉 pairing 仍 empty。`navigatorProjectsList.test.ts` | navigator / projects | closed |
 | D303 | P3 | **closed** D301 已闸 leftover pending **点击**（`shouldAutoRevealPendingConfirmation`）；chip 仍是可指点的 link 样式、无 `aria-disabled`，读屏仍像“去处理”。本刀：`!shouldAutoRevealPendingConfirmation(ua)` 时 pending chip 对齐 Enqueue（`disabled` + `aria-disabled="true"`），**不隐藏**（D291 leftover 计数仍可见）。接通 leftover/live 仍 `aria-disabled="false"` 且点击 1 scroll（D301）。真断连合同不改。未改 CS-4 / 通知 Show / `showLiveChrome` / D285–D302 keep·write·kill·Projects。未发明 proto。未关 D8/D16/D147。 | 工位 A `inbox-pending-chip-aria` 已收 @2026-09-12 | pairing-hold leftover pending 可见且 `aria-disabled="true"`；接通 `"false"`；D301 0/1 scroll 仍绿。`conversationInboxOverlay.test.ts`。leftover：`.conversation-lens-inbox-pending` 仍是 link 色/下划线，未加 `:disabled` 视觉 | conversation / inbox | closed |
+| D304 | P3 | **closed** D288–D302 多次「未改 `showLiveChrome`」。`mountTimeline` 两处 `showLiveChrome: () => host.stubService.isEngineConnected()` 在 pairing-hold 为 false，leftover `· Running` / `· Loading` 被卸。本刀：pairing-hold + leftover（D287 cached turns / D289 leftover lease）读面 live chrome 仍开；首拉 pairing 无 leftover 不假造；真断连仍藏。`writesEnabled` 仍 `!isConversationPairingHold`。未改 Inbox / Sessions / navigator / CS-4。未发明 proto / 新 chrome kind。未关 D8/D16/D147。 | 工位 B `pairing-hold-show-live-chrome-read` 已收 @2026-09-12 | leftover + pairingPending：`shouldShowReadingColumnLiveChrome` true；首拉 pairing false；真断连 false；writesEnabled 仍关。`conversationLensDisposeGate.test.ts` / `conversationProcessFold.test.ts` | conversation / lens | closed |
 
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 

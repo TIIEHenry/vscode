@@ -82,13 +82,13 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 			);
 		},
 		onOpenVisualizeFullscreen: (source, title) => host.openVisualizeOverlay(source, title),
-		showLiveChrome: () => host.stubService.isEngineConnected(),
+		showLiveChrome: () => shouldShowReadingColumnLiveChrome(host),
 		writesEnabled: () => !isConversationPairingHold(host.uaConnection),
 		showToolInvocationDetails: () => shouldShowClientToolInvocationDetails(host.configurationService),
 	}));
 	host.trajectoryView = host.register(host.instantiationService.createInstance(ConversationTrajectory, host.readingColumn, {
 		onNavigateToLinkedTurn: turnId => host.navigateToTurnFromTrajectory(turnId),
-		showLiveChrome: () => host.stubService.isEngineConnected(),
+		showLiveChrome: () => shouldShowReadingColumnLiveChrome(host),
 		detailContext: {
 			supportsDetailFetch: () => typeof host.sessionViewLease?.requestDetail === 'function',
 			getDetailBody: ref => host.sessionViewLease?.details.get(ref),
@@ -123,6 +123,33 @@ function resolveReadingColumnSessionId(host: {
 	readonly sessionViewLease?: IConversationSessionViewLease;
 }): string {
 	return host.sessionViewLease?.sessionId ?? host.stubService.getActiveSessionId();
+}
+
+/**
+ * D304: pairing-hold leftover (D287 cached turns / D289 leftover lease) keeps
+ * read live chrome (`· Running` / `· Loading`). First-pull pairing without
+ * leftover must not fake it. True disconnect still hides it.
+ */
+export function shouldShowReadingColumnLiveChrome(host: {
+	readonly stubService: IConversationRosterService;
+	readonly uaConnection: IUniverseAgentConnection;
+	readonly sessionViewLease?: IConversationSessionViewLease;
+}): boolean {
+	if (host.stubService.isEngineConnected()) {
+		return true;
+	}
+	if (!isConversationPairingHold(host.uaConnection)) {
+		return false;
+	}
+	const sessionId = resolveReadingColumnSessionId(host);
+	if (!sessionId) {
+		return false;
+	}
+	const lease = host.sessionViewLease?.sessionId === sessionId ? host.sessionViewLease : undefined;
+	if (lease) {
+		return true;
+	}
+	return host.stubService.getTurns(sessionId).length > 0;
 }
 
 function formatStaleSnapshotLabel(sync: SyncChrome): string | undefined {
