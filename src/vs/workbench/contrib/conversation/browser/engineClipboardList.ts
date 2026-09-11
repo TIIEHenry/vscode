@@ -13,9 +13,12 @@ import type {
 	UniverseAgentWriteClipboardRequest,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 
-/** Engine Preferences Clipboard → List. Empty ids are still sent. */
-export function canSendEngineClipboardListRequest(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
+/**
+ * Engine Preferences Clipboard → List. Empty ids are still sent.
+ * Pairing-hold leftover-looks-live (`connected===true`) still refuses (D347).
+ */
+export function canSendEngineClipboardListRequest(connected: boolean, hasHook: boolean, pairingHold = false): boolean {
+	return connected && hasHook && !pairingHold;
 }
 
 /**

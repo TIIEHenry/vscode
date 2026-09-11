@@ -16,6 +16,7 @@ import type {
 	UniverseAgentWriteClipboardRequest,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { getCatalogFailedCopy } from '../../browser/engineCatalog.js';
 import { ENGINE_CLIPBOARD_CLEAR_LABEL, ENGINE_CLIPBOARD_LIST_EMPTY_COPY, ENGINE_CLIPBOARD_LIST_FEATURE, ENGINE_CLIPBOARD_READ_LABEL, ENGINE_CLIPBOARD_WRITE_LABEL, formatEngineClipboardClearLabel, formatEngineClipboardListLabel, formatEngineClipboardWriteLabel } from '../../browser/engineClipboardList.js';
 import { EngineClipboardSection } from '../../browser/engineClipboardSection.js';
@@ -523,6 +524,52 @@ suite('EngineClipboardSection', () => {
 		assertReadButtonDisabled(pane.getDomNode());
 		await assertForcedReadClickStaysUnary(pane.getDomNode(), readCalls);
 		assert.strictEqual(listClipboardCalls, listCallsAfterLoad);
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('leftover-looks-live first-pull pairing without leftover stays empty and skips list', async () => {
+		let listClipboardCalls = 0;
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			pairingPending: true,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			listClipboard: async (): Promise<UniverseAgentListClipboardResult> => {
+				listClipboardCalls++;
+				return {
+					entries: [{
+						clipId: 'should-not-list',
+						label: 'First Pull',
+						type: 'CLIPBOARD_TEXT',
+						createdBy: '',
+						createdAt: 0,
+					}],
+				};
+			},
+		});
+		const pane = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(listClipboardCalls, 0);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-clipboard-row').length, 0);
+		const listHost = pane.getDomNode().querySelector('.engine-clipboard-list') as HTMLElement | null;
+		assert.ok(listHost);
+		assert.strictEqual(listHost.style.display, 'none');
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_CLIPBOARD_LIST_EMPTY_COPY));
 		pane.getDomNode().parentElement?.remove();
 	});
 
