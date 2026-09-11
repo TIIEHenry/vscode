@@ -22,7 +22,7 @@ import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
 import { ACTIVE_GROUP, CONVERSATION_GROUP, IEditorService } from '../../../../services/editor/common/editorService.js';
 import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
 import { openSourcesChangeEntry, ISourcesChangeEntryOpenDeps } from '../../browser/sourcesChangeEntryOpen.js';
-import { sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadUnavailableNoHookMessage } from '../../common/sourcesChangesGitRead.js';
+import { sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadPairingHoldMessage, sourcesGitReadUnavailableNoHookMessage } from '../../common/sourcesChangesGitRead.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
 import { ISourcesChangeEntry } from '../../common/sourcesChangesModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
@@ -327,6 +327,8 @@ suite('Sources - Changes list leftover honesty', () => {
 	}): IUniverseAgentConnection {
 		return {
 			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
 			onDidChangeConnection: options.onDidChangeConnection ?? Event.None,
 			readGitChanges: options.readGitChanges,
 			readGitSummary: async () => ({
@@ -521,5 +523,74 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.strictEqual(list.length, 1);
 		assert.strictEqual(list.element(0).gitPath, leftover.path);
 		assert.strictEqual(list.element(0).scmResource, undefined);
+	});
+
+	test('success then pairingPending keeps leftover rows and does not paint local-only', async function () {
+		let connected = true;
+		let pairingPending = false;
+		let readCalls = 0;
+		const leftover = { path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: connected ? 'ok' : 'idle',
+			sharedFsRootSent: false,
+			pairingPending,
+			channelAlive: connected,
+			capabilities: {} as never,
+		});
+		const connection = {
+			isEngineConnected: () => connected && !pairingPending,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' as const : 'disconnected' as const }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => {
+				readCalls += 1;
+				return {
+					supported: true,
+					reason: '',
+					branch: 'main',
+					entries: [leftover],
+				};
+			},
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+		} as unknown as IUniverseAgentConnection;
+		const scmStub = toResource.call(this, '/project/src/scm-stub.ts');
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub)).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		assert.strictEqual(readCalls, 1);
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+
+		const pairingStatus = await waitForStatusText(host, 'not connected');
+		assert.strictEqual(pairingStatus, sourcesGitReadPairingHoldMessage());
+		assert.ok(pairingStatus.includes('pairing'));
+		assert.ok(!pairingStatus.includes('local source control'));
+		assert.notStrictEqual(pairingStatus, sourcesGitLocalOnlyMessage());
+		assert.strictEqual(readCalls, 1);
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		assert.strictEqual(list.element(0).scmResource, undefined);
+
+		connected = false;
+		pairingPending = false;
+		onDidChangeConnection.fire(snapshot());
+
+		const disconnectStatus = await waitForStatusText(host, 'local source control');
+		assert.strictEqual(disconnectStatus, sourcesGitLocalOnlyMessage());
+		assert.strictEqual(readCalls, 1);
+		assert.strictEqual(list.length, 1);
+		assert.ok(list.element(0).scmResource);
+		assert.ok((list.element(0).resource.path ?? '').includes('scm-stub.ts'));
 	});
 });
