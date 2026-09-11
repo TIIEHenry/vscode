@@ -11,6 +11,7 @@ import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/com
 import type { UniverseAgentCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from './conversationComposerCatalog.js';
 import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
+import { rejectPairingHoldWrite } from './conversationLensSessionBinding.js';
 import {
 	conversationLensDockCatalogProbing,
 	conversationLensDockNoAgent,
@@ -297,6 +298,9 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 		if (!text) {
 			return;
 		}
+		if (rejectPairingHoldWrite(host)) {
+			return;
+		}
 		const sessionId = host.getBoundSessionId();
 		const connected = host.stubService.isEngineConnected();
 		if (!connected && host.stubService.hasEngineConnectionHistory()) {
@@ -340,6 +344,9 @@ export function saveTurnEdit(host: IConversationLensComposerHost): void {
 		if (!text || !host.editingTurnId) {
 			return;
 		}
+		if (rejectPairingHoldWrite(host)) {
+			return;
+		}
 		const sessionId = host.getBoundSessionId();
 		const turnId = host.editingTurnId;
 		const saved = host.stubService.updateUserTurnText(sessionId, turnId, text);
@@ -360,6 +367,9 @@ export function saveQueueEdit(host: IConversationLensComposerHost): void {
 		const text = host.dockTextarea.value.trim();
 		const item = host.getEditingQueueItem();
 		if (!text || !item || text === item.content) {
+			return;
+		}
+		if (rejectPairingHoldWrite(host)) {
 			return;
 		}
 		const sessionId = host.getBoundSessionId();

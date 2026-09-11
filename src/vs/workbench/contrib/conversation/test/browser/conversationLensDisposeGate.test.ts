@@ -8,7 +8,7 @@ import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { applySessionViewTimeline, refreshTrajectoryRecords, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
 import { postBound, saveQueueEdit, saveTurnEdit, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
-import { showPostFailure, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
+import { showPostFailure, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
 import {
 	conversationLensPostFailed,
 	conversationLensPostFailedDisconnected,
@@ -810,6 +810,139 @@ suite('conversation lens dispose gate', () => {
 		const { host, posted } = pairingHoldLeftoverWriteHost(failures);
 		retryError(host, { id: 'msg-1', turnId: 'turn-1', agentId: 'root' });
 		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		assert.strictEqual(posted, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	function pairingHoldComposerWriteHost(failures: ConversationComposerPostFailureReason[]): {
+		host: IConversationLensComposerHost;
+		posted: number;
+		enqueueCalls: number;
+		turnWrites: number;
+		queueWrites: number;
+	} {
+		const state = { posted: 0, enqueueCalls: 0, turnWrites: 0, queueWrites: 0 };
+		const host = {
+			composerPolicy: 'compose' as const,
+			submitInFlight: false,
+			editingTurnId: 'turn-1',
+			editingQueueItemId: 'q1',
+			dockTextarea: { value: 'leftover draft' },
+			sendButton: { enabled: true },
+			getBoundSessionId: () => 'sess-leftover',
+			getEditingQueueItem: () => ({ id: 'q1', content: 'queued' }),
+			sessionViewLease: {
+				post: async () => {
+					state.posted++;
+					return { accepted: true, correlation: { id: 'x' } };
+				},
+			},
+			stubService: {
+				isEngineConnected: () => false,
+				isEngineSessionReady: () => false,
+				hasEngineConnectionHistory: () => true,
+				enqueueMessageQueueItem: () => {
+					state.enqueueCalls++;
+					return true;
+				},
+				updateUserTurnText: () => {
+					state.turnWrites++;
+					return true;
+				},
+				updateMessageQueueItemContent: () => {
+					state.queueWrites++;
+					return true;
+				},
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: true }),
+			},
+			exitComposerEdit: () => { },
+			renderInboxStatus: () => { },
+			updateSendEnabled: () => { },
+			updateConversationPhase: () => { },
+			resetInputHistoryBrowse: () => { },
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+		};
+		return {
+			host: host as unknown as IConversationLensComposerHost,
+			get posted() { return state.posted; },
+			get enqueueCalls() { return state.enqueueCalls; },
+			get turnWrites() { return state.turnWrites; },
+			get queueWrites() { return state.queueWrites; },
+		};
+	}
+
+	test('updateSendEnabled pairing-hold leftover draft disables Send', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host } = pairingHoldComposerWriteHost(failures);
+		const chromeHost = host as unknown as IConversationLensComposerChromeHost;
+		updateSendEnabled(chromeHost);
+		assert.strictEqual(chromeHost.sendButton.enabled, false);
+		assert.deepStrictEqual(failures, []);
+	});
+
+	test('submitDraft pairing-hold leftover draft does not enqueue or post', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host, posted, enqueueCalls } = pairingHoldComposerWriteHost(failures);
+		await submitDraft(host);
+		assert.strictEqual(posted, 0);
+		assert.strictEqual(enqueueCalls, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.strictEqual(host.dockTextarea.value, 'leftover draft');
+	});
+
+	test('saveTurnEdit pairing-hold leftover does not write and stays in edit', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host, turnWrites } = pairingHoldComposerWriteHost(failures);
+		host.composerPolicy = 'turnEdit';
+		saveTurnEdit(host);
+		assert.strictEqual(turnWrites, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.strictEqual(host.editingTurnId, 'turn-1');
+		assert.strictEqual(host.composerPolicy, 'turnEdit');
+		assert.strictEqual(host.dockTextarea.value, 'leftover draft');
+	});
+
+	test('saveQueueEdit pairing-hold leftover does not write and stays in edit', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host, queueWrites } = pairingHoldComposerWriteHost(failures);
+		host.composerPolicy = 'queueEdit';
+		saveQueueEdit(host);
+		assert.strictEqual(queueWrites, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.strictEqual(host.editingQueueItemId, 'q1');
+		assert.strictEqual(host.composerPolicy, 'queueEdit');
+		assert.strictEqual(host.dockTextarea.value, 'leftover draft');
+	});
+
+	test('deleteTurn pairing-hold leftover does not write and shows engine_disconnected', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host, posted } = pairingHoldLeftoverWriteHost(failures);
+		let deleteCalls = 0;
+		(host as unknown as { stubService: { deleteTurn: () => boolean } }).stubService.deleteTurn = () => {
+			deleteCalls++;
+			return true;
+		};
+		deleteTurn(host, 'turn-1');
+		assert.strictEqual(deleteCalls, 0);
+		assert.strictEqual(posted, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('cancelToolCall pairing-hold leftover does not write and shows engine_disconnected', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host, posted } = pairingHoldLeftoverWriteHost(failures);
+		let cancelCalls = 0;
+		(host as unknown as { stubService: { cancelToolCall: () => boolean } }).stubService.cancelToolCall = () => {
+			cancelCalls++;
+			return true;
+		};
+		cancelToolCall(host, { id: 'tc-1', agentId: 'sub:a' });
+		assert.strictEqual(cancelCalls, 0);
 		assert.strictEqual(posted, 0);
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
 	});

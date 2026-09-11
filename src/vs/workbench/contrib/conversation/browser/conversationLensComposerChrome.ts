@@ -51,6 +51,7 @@ import { isConversationLeafNarrow } from './conversationNarrowLayout.js';
 import { ConversationTimelineTree } from './conversationTimelineTree.js';
 import { provideTurnEditComposer } from './conversationTimelineRenderer.js';
 import { IConversationRosterService } from './conversationStubService.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentSessionToolPermissionMode } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
@@ -431,6 +432,10 @@ export function updateMaximizeInputButton(host: IConversationLensComposerChromeH
 
 export function updateSendEnabled(host: IConversationLensComposerChromeHost): void {
 
+		if (isConversationPairingHold(host.uaConnection)) {
+			host.sendButton.enabled = false;
+			return;
+		}
 		const hasDraft = host.dockTextarea.value.trim().length > 0;
 		if (host.composerPolicy === 'queueEdit') {
 			const item = getEditingQueueItem(host);

@@ -70,8 +70,14 @@ function shouldKeepLeftoverTimelineForPairingHold(host: IConversationLensSession
 	return snapshot.pairingPending && isConversationEngineLive(ua.getConnectionPhase(), false);
 }
 
+/** Host surface shared by binding + composer leftover write gates (D294 / D295). */
+export interface IConversationPairingHoldWriteHost {
+	readonly uaConnection: IUniverseAgentConnection;
+	showPostFailure(reason: ConversationComposerPostFailureReason): void;
+}
+
 /** D294: leftover engine lease stays readable; writes use the disconnect notice. */
-function rejectPairingHoldWrite(host: IConversationLensSessionBindingHost): boolean {
+export function rejectPairingHoldWrite(host: IConversationPairingHoldWriteHost): boolean {
 	if (!isConversationPairingHold(host.uaConnection)) {
 		return false;
 	}
@@ -255,6 +261,9 @@ export function copyTurn(host: IConversationLensSessionBindingHost, text: string
 
 export function deleteTurn(host: IConversationLensSessionBindingHost, turnId: string): void {
 
+	if (rejectPairingHoldWrite(host)) {
+		return;
+	}
 	const deleted = host.stubService.deleteTurn(host.getBoundSessionId(), turnId);
 	if (!deleted) {
 		host.showPostFailure(
@@ -270,6 +279,9 @@ export function cancelToolCall(host: IConversationLensSessionBindingHost, turn: 
 
 	const toolCallId = turn.id.trim();
 	if (!toolCallId) {
+		return;
+	}
+	if (rejectPairingHoldWrite(host)) {
 		return;
 	}
 	const agentId = turn.agentId?.trim();
