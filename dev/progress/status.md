@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-12
-summary: "关仓后收 E leftover：composer-fake-chrome 合同 + eslint/Inbox 断言。D276–D300 已 push。"
+summary: "工位 A 进行中：inbox-pending-click-pairing（D301）。D276–D300 已关仓。"
 ---
 
 # Development Progress
@@ -41,6 +41,8 @@ summary: "关仓后收 E leftover：composer-fake-chrome 合同 + eslint/Inbox �
 
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
+### 进行中（2026-09-12 · 仅工位 A） **A** `inbox-pending-click-pairing` [D301](deferred-gaps.md)：代码+测已写（pairing-hold leftover pending 点击 0 scroll；接通仍 1 scroll）。未 commit。未关仓。
+
 ### 关仓（2026-09-12 · A–D D276–D300；E leftover 有价值部分保留）
 | 槽 | 切片 | 关仓状态 |
 |:---|:-----|:---------|
@@ -182,7 +184,7 @@ summary: "关仓后收 E leftover：composer-fake-chrome 合同 + eslint/Inbox �
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | `cb78b1ca9fa` | 干净 | 0 | `parked`；已 push 同 SHA |
-| A | `vscode-WorkTrees/A` | `loop/A` | `cb78b1ca9fa` | 干净 | 0 | idle；已对齐 MERGE_SHA |
+| A | `vscode-WorkTrees/A` | `loop/A` | `1df2d01b870` | D301 未提交 | 0 | `inbox-pending-click-pairing`；未 commit |
 | B | `vscode-WorkTrees/B` | `loop/B` | `cb78b1ca9fa` | 干净 | 0 | idle；已对齐 MERGE_SHA |
 | C | `vscode-WorkTrees/C` | `loop/C` | `cb78b1ca9fa` | 未提交 `dev/loop` | 0 | idle；勿 add `dev/loop` |
 | D | `vscode-WorkTrees/D` | `loop/D` | `cb78b1ca9fa` | 干净 | 0 | idle；已对齐 MERGE_SHA |
@@ -192,7 +194,7 @@ summary: "关仓后收 E leftover：composer-fake-chrome 合同 + eslint/Inbox �
 | 项 | 指针 |
 |:---|:-----|
 | **引擎 store 迁移卡死** | [D26](deferred-gaps.md) 病因已改口（2026-09-09）：`user_version=0` + 表已建 ⇒ 迁移抛错 ⇒ 库永久打不开 ⇒ `LookupFailed` fail-closed deny ⇒ `ALREADY_EXISTS`（**设计内拒绝**）。根因与交接见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md)；D25 同源。**禁改引擎仓代码**；原闭合条件「Create 先写 meta」已撤回；不要再清 store |
-| **loop 切片** | D276–D300 已关仓。E leftover 有价值部分（D194 合同 + 断言）已合。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto |
+| **loop 切片** | D276–D300 已关仓。A 进行中 D301。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。

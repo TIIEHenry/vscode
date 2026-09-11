@@ -42,9 +42,9 @@ export function findFirstPendingConfirmationTurnId(turns: readonly ConversationS
 }
 
 /**
- * CS-4 / notification Show auto-scroll. Pairing-hold leftover seats stay
- * counted (D291) but are write-disabled (D297); jumping there implies the
- * user can confirm. Explicit Inbox pending-click is not gated here.
+ * CS-4 / notification Show / Inbox pending-click. Pairing-hold leftover
+ * seats stay counted (D291) but are write-disabled (D297); jumping there
+ * implies the user can confirm.
  */
 export function shouldAutoRevealPendingConfirmation(ua?: IConversationPairingHoldSource): boolean {
 	return !isConversationPairingHold(ua);
