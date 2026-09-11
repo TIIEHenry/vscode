@@ -10,6 +10,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from './conversationComposerCatalog.js';
+import { isConversationEngineLive } from './conversationSessionStatus.js';
 import {
 	conversationLensDockCatalogProbing,
 	conversationLensDockNoAgent,
@@ -67,6 +68,12 @@ export function refreshComposerCatalogs(host: IConversationLensComposerHost): vo
 
 		const generation = ++host.composerCatalogGeneration;
 		if (!host.stubService.isEngineConnected()) {
+			if (keepComposerCatalogForPairingHold(host)) {
+				restoreComposerCatalogLeftoverOrKeepPainted(host);
+				host.updateSendEnabled();
+				host.updateGateRow();
+				return;
+			}
 			const sessionId = host.getBoundSessionId();
 			const { agentIndex } = host.getSessionConfig(sessionId);
 			const clampedAgentIndex = Math.min(agentIndex, COMPOSER_AGENT_OPTIONS.length - 1);
@@ -157,6 +164,31 @@ function keepLastGoodComposerCatalogOrEmpty(host: IConversationLensComposerHost)
 	restoreLastGoodComposerCatalogOnSupportedThrow(host, 'agent');
 	restoreLastGoodComposerCatalogOnSupportedThrow(host, 'model');
 	restoreLastGoodComposerCatalogOnSupportedThrow(host, 'tools');
+}
+
+function hasComposerCatalogLeftover(host: IConversationLensComposerHost): boolean {
+	const last = lastGoodComposerCatalogs.get(host);
+	if (last?.agent || last?.model || last?.tools) {
+		return true;
+	}
+	if (host.catalogToolNames.length > 0) {
+		return true;
+	}
+	return host.catalogModelIds.some(id => id.length > 0);
+}
+
+function keepComposerCatalogForPairingHold(host: IConversationLensComposerHost): boolean {
+	const snapshot = host.uaConnection.getConnectionSnapshot();
+	if (!snapshot.pairingPending || !isConversationEngineLive(host.uaConnection.getConnectionPhase(), false)) {
+		return false;
+	}
+	return hasComposerCatalogLeftover(host);
+}
+
+function restoreComposerCatalogLeftoverOrKeepPainted(host: IConversationLensComposerHost): void {
+	if (lastGoodComposerCatalogs.get(host)) {
+		keepLastGoodComposerCatalogOrEmpty(host);
+	}
 }
 
 export async function loadConnectedComposerCatalogs(host: IConversationLensComposerHost, generation: number): Promise<void> {
