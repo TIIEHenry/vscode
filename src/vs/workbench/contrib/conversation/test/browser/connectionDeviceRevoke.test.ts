@@ -18,6 +18,8 @@ suite('Connection device revoke bind', () => {
 		assert.strictEqual(canSendConnectionDeviceRevokeRequest(false, true), false);
 		assert.strictEqual(canSendConnectionDeviceRevokeRequest(true, false), false);
 		assert.strictEqual(canSendConnectionDeviceRevokeRequest(true, true), true);
+		assert.strictEqual(canSendConnectionDeviceRevokeRequest(true, true, true), false);
+		assert.strictEqual(canSendConnectionDeviceRevokeRequest(true, true, false), true);
 		assert.deepStrictEqual(connectionDeviceRevokeIds(undefined), { deviceId: '' });
 		assert.deepStrictEqual(connectionDeviceRevokeIds(''), { deviceId: '' });
 		assert.deepStrictEqual(connectionDeviceRevokeIds('  dev  '), { deviceId: '  dev  ' });
