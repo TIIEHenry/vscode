@@ -423,6 +423,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override cancelToolCall(sessionId: string, options: { toolCallId: string; agentId?: string }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.cancelEngineToolCall(sessionId, options, true);
 		}
@@ -463,6 +466,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override enqueueMessageQueueItem(sessionId: string, text: string, options?: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.enqueueEngineQueueItem(sessionId, text, options, true);
 		}
@@ -473,6 +479,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override retryMessageQueueItem(sessionId: string, itemId: string, options?: { upload?: boolean }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.retryEngineQueueItem(sessionId, itemId, options, true);
 		}
@@ -518,6 +527,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override pauseMessageQueue(sessionId: string): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return;
+		}
 		if (this.isEngineConnected()) {
 			this.forwardEngineQueueRef(sessionId, 'pauseQueue', true, () => this.uaConnection.pauseQueue({ sessionId }));
 			return;
@@ -528,6 +540,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override resumeMessageQueue(sessionId: string): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return;
+		}
 		if (this.isEngineConnected()) {
 			this.forwardEngineQueueRef(sessionId, 'resumeQueue', true, () => this.uaConnection.resumeQueue({ sessionId }));
 			return;
@@ -538,6 +553,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override clearMessageQueue(sessionId: string): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return;
+		}
 		if (this.isEngineConnected()) {
 			this.forwardEngineQueueRef(sessionId, 'clearQueue', true, () => this.uaConnection.clearQueue({ sessionId }));
 			return;
@@ -548,6 +566,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override holdMessageQueueItem(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return;
+		}
 		if (this.isEngineConnected()) {
 			this.forwardEngineQueueItem(sessionId, itemId, 'holdQueueItem', true, id => this.uaConnection.holdQueueItem({
 				sessionId,
@@ -562,6 +583,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override releaseMessageQueueItemHold(sessionId: string, itemId: string): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return;
+		}
 		if (this.isEngineConnected()) {
 			this.forwardEngineQueueItem(sessionId, itemId, 'releaseQueueItemHold', true, id => this.uaConnection.releaseQueueItemHold({
 				sessionId,
@@ -575,6 +599,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override updateMessageQueueItemContent(sessionId: string, itemId: string, content: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.editEngineQueueItem(sessionId, itemId, content, true);
 		}
