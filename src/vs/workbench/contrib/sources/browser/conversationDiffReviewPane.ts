@@ -344,7 +344,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 			return;
 		}
 
-		if (match) {
+		if (match && !isConversationPairingHold(this.uaConnection)) {
 			await this.runGitAction(SOURCES_GIT_STAGE_COMMAND);
 			return;
 		}
