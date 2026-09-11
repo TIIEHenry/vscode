@@ -10,6 +10,7 @@ import { INotificationService } from '../../../../platform/notification/common/n
 import { IQuickInputService } from '../../../../platform/quickinput/common/quickInput.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { isDefaultCodeWindow } from '../../chat/browser/chatShellRouting.js';
+import { isConversationPairingHold, type IConversationPairingHoldSource } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
 export const CONVERSATION_CREATE_SNAPSHOT_COMMAND_ID = 'workbench.action.conversation.createSnapshot';
@@ -31,6 +32,16 @@ export function canCreateEngineSnapshot(
 	sessionId: string | undefined,
 ): boolean {
 	return connected && hasCreateSnapshot && !!sessionId?.trim();
+}
+
+/**
+ * D310 F1 write gate: pairing-hold leftover and leftover-looks-live
+ * (`connected===true` + pairingPending) must not prompt or call
+ * `roster.createSnapshot`. Pairing-hold is checked first so
+ * `testEngineConnected===true` cannot take the live path.
+ */
+export function shouldHoldCreateSnapshotWrite(ua: IConversationPairingHoldSource | undefined): boolean {
+	return isConversationPairingHold(ua);
 }
 
 /**
@@ -87,10 +98,11 @@ export function notifyCreateSnapshotUnavailable(
  * Connected user Create Snapshot → AgentService.CreateSnapshot for the
  * active session. Does not list, restore, or delete snapshots, and does
  * not replace SessionBar History (GetHistory). Disconnected / no hook / empty
- * sessionId / cancelled prompt no-op. `!isEngineConnected()` + history
- * (including pairing-hold leftover) shows the disconnected notice instead of
- * a silent return. `createSnapshot` false → notice (D110 failed /
- * engine_disconnected); true stays silent.
+ * sessionId / cancelled prompt no-op. Pairing-hold leftover (including
+ * leftover-looks-live) is checked before `isEngineConnected()` and shows
+ * the disconnected notice. `!isEngineConnected()` + history (true disconnect)
+ * also notices instead of a silent return. `createSnapshot` false → notice
+ * (D110 failed / engine_disconnected); true stays silent.
  */
 registerAction2(class ConversationCreateSnapshotAction extends Action2 {
 
@@ -112,6 +124,10 @@ registerAction2(class ConversationCreateSnapshotAction extends Action2 {
 		const notificationService = accessor.get(INotificationService);
 		const quickInputService = accessor.get(IQuickInputService);
 		const sessionId = roster.getActiveSessionId();
+		if (shouldHoldCreateSnapshotWrite(connection)) {
+			notifyCreateSnapshotUnavailable(false, roster.hasEngineConnectionHistory(), notificationService);
+			return;
+		}
 		if (!canCreateEngineSnapshot(roster.isEngineConnected(), !!connection.createSnapshot, sessionId)) {
 			notifyCreateSnapshotUnavailable(roster.isEngineConnected(), roster.hasEngineConnectionHistory(), notificationService);
 			return;

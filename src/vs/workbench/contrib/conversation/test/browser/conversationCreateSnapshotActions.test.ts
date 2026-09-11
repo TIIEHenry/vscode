@@ -13,6 +13,7 @@ import {
 	notifyCreateSnapshotRejected,
 	notifyCreateSnapshotUnavailable,
 	resolveCreateSnapshotTitle,
+	shouldHoldCreateSnapshotWrite,
 } from '../../browser/conversationCreateSnapshotActions.contribution.js';
 
 suite('ConversationCreateSnapshotActions', () => {
@@ -72,5 +73,26 @@ suite('ConversationCreateSnapshotActions', () => {
 			error: message => { errors.push(String(message)); },
 		});
 		assert.deepStrictEqual(errors, []);
+	});
+
+	test('pairing-hold leftover-looks-live holds write and shows disconnected copy', () => {
+		const looksLive = {
+			getConnectionSnapshot: () => ({ pairingPending: true }),
+			getConnectionPhase: () => ({ kind: 'connected' as const, path: 'direct' as const }),
+		};
+		const live = {
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			getConnectionPhase: () => ({ kind: 'connected' as const, path: 'direct' as const }),
+		};
+		assert.strictEqual(shouldHoldCreateSnapshotWrite(looksLive), true);
+		assert.strictEqual(shouldHoldCreateSnapshotWrite(live), false);
+		assert.strictEqual(canCreateEngineSnapshot(true, true, 'ua-only'), true);
+		const errors: string[] = [];
+		if (shouldHoldCreateSnapshotWrite(looksLive)) {
+			notifyCreateSnapshotUnavailable(false, true, {
+				error: message => { errors.push(String(message)); },
+			});
+		}
+		assert.deepStrictEqual(errors, [conversationCreateSnapshotDisconnectedCopy]);
 	});
 });
