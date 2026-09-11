@@ -314,6 +314,7 @@ export class SourcesDiffPanelView extends ViewPane {
 				this.uaConnection.isEngineConnected(),
 				typeof this.uaConnection.writeGitStagePaths === 'function',
 				sessionId,
+				isConversationPairingHold(this.uaConnection),
 			),
 			canWriteAccept: canSendSourcesGitApplyHunks(
 				this.uaConnection.isEngineConnected(),
@@ -346,6 +347,7 @@ export class SourcesDiffPanelView extends ViewPane {
 				hook ? request => hook.call(this.uaConnection, request) : undefined,
 				this.getGitSessionId(),
 				[context.path],
+				isConversationPairingHold(this.uaConnection),
 			));
 			if (attempt.kind === 'accepted') {
 				this.hideActionNotice();
@@ -372,6 +374,7 @@ export class SourcesDiffPanelView extends ViewPane {
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitStagePaths === 'function',
 			this.getGitSessionId(),
+			isConversationPairingHold(this.uaConnection),
 		)) {
 			this.showActionNotice(localize('sourcesDiffPanel.stageUnavailable', "Git stage is not available."));
 		}
