@@ -90,6 +90,9 @@ suite('Sources - Changes git write - 源码接线扫描', () => {
 		assert.ok(!runAccept.includes('git.stage'));
 		const runStageStart = source.indexOf('private async runStage(');
 		assert.ok(runStageStart >= 0);
+		const runStageEnd = source.indexOf('\n\tprivate ', runStageStart + 1);
+		const runStage = source.slice(runStageStart, runStageEnd > runStageStart ? runStageEnd : undefined);
+		assert.ok(runStage.includes('isConversationPairingHold'));
 		const runGitActionStart = source.indexOf('private async runGitAction(');
 		assert.ok(runGitActionStart >= 0);
 		const runGitActionEnd = source.indexOf('\n\tprivate ', runGitActionStart + 1);
@@ -121,6 +124,11 @@ suite('Sources - Changes git write - 源码接线扫描', () => {
 		assert.ok(runAccept.includes('isConversationPairingHold'));
 		assert.ok(!runAccept.includes('SOURCES_GIT_STAGE_COMMAND'));
 		assert.ok(!runAccept.includes('git.stage'));
+		const runStageStart = source.indexOf('private async runStage(');
+		assert.ok(runStageStart >= 0);
+		const runStageEnd = source.indexOf('\n\tprivate ', runStageStart + 1);
+		const runStage = source.slice(runStageStart, runStageEnd > runStageStart ? runStageEnd : undefined);
+		assert.ok(runStage.includes('isConversationPairingHold'));
 	});
 });
 

@@ -292,6 +292,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 				this.uaConnection.isEngineConnected(),
 				typeof this.uaConnection.writeGitStagePaths === 'function',
 				sessionId,
+				isConversationPairingHold(this.uaConnection),
 			),
 			canWriteAccept: canSendSourcesGitApplyHunks(
 				this.uaConnection.isEngineConnected(),
@@ -325,6 +326,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 				hook ? request => hook.call(this.uaConnection, request) : undefined,
 				this.getGitSessionId(),
 				[sourcesDiffLocalWritePath({ modified: input.modified, scmResource: match?.resource })],
+				isConversationPairingHold(this.uaConnection),
 			));
 			if (attempt.kind === 'accepted') {
 				this.hideNotice();
@@ -351,6 +353,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitStagePaths === 'function',
 			this.getGitSessionId(),
+			isConversationPairingHold(this.uaConnection),
 		)) {
 			this.showNotice(localize('conversationDiffReviewPane.stageUnavailable', "Git stage is not available."));
 		}

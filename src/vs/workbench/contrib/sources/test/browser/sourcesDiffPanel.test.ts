@@ -16,7 +16,7 @@ import { type ContextKeyExpression, type ContextKeyValue, IContextKeyService } f
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentWriteGitApplyHunksRequest, UniverseAgentWriteGitWriteResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentWriteGitApplyHunksRequest, UniverseAgentWriteGitStagePathsRequest, UniverseAgentWriteGitWriteResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { ITextModelService } from '../../../../../editor/common/services/resolverService.js';
 import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainerModel, IViewContainersRegistry, IViewDescriptorService, IViewPaneContainer, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
@@ -33,7 +33,7 @@ import { SOURCES_DIFF_PANEL_CONTAINER_ID, SOURCES_DIFF_PANEL_VIEW_ID } from '../
 import { SourcesDiffPanelService } from '../../browser/sourcesDiffPanelService.js';
 import { SourcesDiffPanelView } from '../../browser/sourcesDiffPanelView.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
-import { canSendSourcesGitApplyHunks, canShowSourcesReviewAccept, resolveSourcesDiffWriteActions } from '../../common/sourcesChangesGitWrite.js';
+import { canSendSourcesGitApplyHunks, canSendSourcesGitStagePaths, canShowSourcesReviewAccept, resolveSourcesDiffWriteActions } from '../../common/sourcesChangesGitWrite.js';
 
 function evalWhen(when: ContextKeyExpression | undefined, values: Record<string, ContextKeyValue>): boolean {
 	if (!when) {
@@ -392,7 +392,10 @@ suite('Sources diff panel', () => {
 		button.click();
 	}
 
-	function leftoverLooksLiveApplyConnection(applyCalls: UniverseAgentWriteGitApplyHunksRequest[]): IUniverseAgentConnection {
+	function leftoverLooksLiveApplyConnection(
+		applyCalls: UniverseAgentWriteGitApplyHunksRequest[],
+		stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [],
+	): IUniverseAgentConnection {
 		const acceptedWrite: UniverseAgentWriteGitWriteResult = {
 			supported: true,
 			reason: '',
@@ -408,6 +411,10 @@ suite('Sources diff panel', () => {
 			onDidChangeConnection: Event.None,
 			writeGitApplyHunks: async (request: UniverseAgentWriteGitApplyHunksRequest) => {
 				applyCalls.push(request);
+				return acceptedWrite;
+			},
+			writeGitStagePaths: async (request: UniverseAgentWriteGitStagePathsRequest) => {
+				stageCalls.push(request);
 				return acceptedWrite;
 			},
 		} as unknown as IUniverseAgentConnection;
@@ -469,6 +476,67 @@ suite('Sources diff panel', () => {
 		forceClick(reviewAccept);
 		await (pane as unknown as { runAccept: () => Promise<void> }).runAccept();
 		await timeout(20);
+		assert.deepStrictEqual(applyCalls, []);
+	});
+
+	test('leftover-looks-live pairing-hold Stage chrome stays hidden and 0 unary', async function () {
+		const resource = toResource.call(this, '/project/src/leftover-stage.ts');
+		const original = toResource.call(this, '/project/src/leftover-stage.ts.git');
+		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const connection = leftoverLooksLiveApplyConnection(applyCalls, stageCalls);
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(canSendSourcesGitStagePaths(true, true, 'session-1', isConversationPairingHold(connection)), false);
+
+		const instantiationService = stubDiffHonestyServices({
+			throwOnLoad: true,
+			resource,
+			connection,
+		});
+		instantiationService.stub(IViewsService, {
+			openView: async () => null,
+			onDidChangeViewVisibility: Event.None,
+			onDidChangeViewContainerVisibility: Event.None,
+		} as unknown as IViewsService);
+		const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+		instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+		const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+			id: SOURCES_DIFF_PANEL_VIEW_ID,
+			title: 'Diff',
+		}));
+		view.render();
+		await panelService.show({
+			modified: resource,
+			original,
+			groupId: 'workingTree',
+		});
+		await timeout(50);
+
+		const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null;
+		assert.strictEqual(panelStage?.style.display, 'none');
+		forceClick(panelStage);
+		await (view as unknown as { runStage: () => Promise<void> }).runStage();
+		await timeout(20);
+		assert.deepStrictEqual(stageCalls, []);
+
+		const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		pane.create(parent);
+		const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+		await timeout(20);
+
+		const reviewStage = parent.querySelector('.conversation-diff-review-stage') as HTMLButtonElement | null;
+		assert.strictEqual(reviewStage?.style.display, 'none');
+		forceClick(reviewStage);
+		await (pane as unknown as { runStage: () => Promise<void> }).runStage();
+		await timeout(20);
+		assert.deepStrictEqual(stageCalls, []);
 		assert.deepStrictEqual(applyCalls, []);
 	});
 });
