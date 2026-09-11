@@ -21,7 +21,7 @@ import {
 	conversationLensSessionBarHistoryUnavailableDisconnected,
 } from './conversationLensSessionBarStrings.js';
 import { IConversationRosterService } from './conversationStubService.js';
-import { isConversationEngineLive } from './conversationSessionStatus.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 
 export const conversationLensHistoryButtonClass = 'conversation-lens-session-history';
 export const conversationLensHistoryOverlayClass = 'conversation-lens-history-overlay';
@@ -197,16 +197,8 @@ export class ConversationEngineHistoryList extends Disposable {
 		super.dispose();
 	}
 
-	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		if (!hadLiveCatalog) {
-			return false;
-		}
-		const snapshot = this.connection.getConnectionSnapshot();
-		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
-	}
-
 	private applyDisconnectedRefresh(): void {
-		if (this.paintedLiveHistory && this.keepLeftoverCatalogForPairingHold(true)) {
+		if (this.paintedLiveHistory && isConversationPairingHold(this.connection)) {
 			this.paintListFailed(conversationLensSessionBarHistoryUnavailableDisconnected);
 			return;
 		}
@@ -216,8 +208,13 @@ export class ConversationEngineHistoryList extends Disposable {
 	private async refresh(): Promise<void> {
 		const generation = ++this.renderGeneration;
 		const sessionId = this.roster.getActiveSessionId() ?? '';
-		const connected = this.connection.isEngineConnected();
 
+		if (isConversationPairingHold(this.connection)) {
+			this.applyDisconnectedRefresh();
+			return;
+		}
+
+		const connected = this.connection.isEngineConnected();
 		if (!canRequestEngineHistory(connected)) {
 			this.applyDisconnectedRefresh();
 			return;
