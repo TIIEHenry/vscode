@@ -70,7 +70,7 @@ import {
 } from '../../browser/connectionPreferencesPaneLabels.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 import { promptSasConfirmDialog, promptSasConfirmInPane } from '../../browser/connectionPreferencesPaneSas.js';
-import { getConnectionPhaseStatusBarText, getConversationEngineStatusText } from '../../browser/conversationSessionStatus.js';
+import { getConnectionPhaseStatusBarText, getConversationEngineStatusText, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { conversationIdentityStripClass } from '../../browser/conversationIdentityStrip.js';
 import {
 	applyConnectionPaneIdentityStripReservation,
@@ -3812,6 +3812,136 @@ suite('ConnectionPreferencesPane', () => {
 		await (pane as unknown as { refreshEngineDeviceLists(): Promise<void> }).refreshEngineDeviceLists();
 
 		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 0);
+		container.remove();
+	});
+
+	test('leftover-looks-live pairing-hold keeps leftover device rows and skips listDevices', async () => {
+		let pairingPending = false;
+		let listDevicesCalls = 0;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			pairingPending,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listDevices: async (): Promise<UniverseAgentListDevicesResult> => {
+				listDevicesCalls++;
+				return {
+					devices: [{
+						deviceId: 'eng-1',
+						displayName: 'Phone',
+						role: '',
+						platform: '',
+						pairedAt: 0,
+						lastSeenAt: 0,
+						active: false,
+					}],
+				};
+			},
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+			getDirectoryStatus: () => ({ kind: 'idle' }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+		const listCallsAfterLoad = listDevicesCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		pairingPending = true;
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		onDidChangeConnection.fire(snapshot());
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		assert.strictEqual(listDevicesCalls, listCallsAfterLoad, 'leftover-looks-live must not extra listDevices');
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+		const leftover = [...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent);
+		assert.ok(leftover.includes('Phone'));
+		const devicesStatus = container.querySelector('.connection-hub-devices-status') as HTMLElement;
+		assert.strictEqual(devicesStatus.textContent, getEngineSectionDisconnectedCopy());
+		assert.ok(devicesStatus.classList.contains('is-warning'));
+		container.remove();
+	});
+
+	test('leftover-looks-live pairing-hold keeps leftover pending rows and skips listPending', async () => {
+		let pairingPending = false;
+		let listPendingCalls = 0;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			pairingPending,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listPending: async () => {
+				listPendingCalls++;
+				return {
+					pending: [{
+						pairingCode: '123456',
+						deviceId: 'dev-1',
+						displayName: 'Phone',
+						platform: 'ios',
+						requestedAt: 0,
+						expiresInSeconds: 0,
+					}],
+				};
+			},
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 1);
+		const listCallsAfterLoad = listPendingCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		pairingPending = true;
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		onDidChangeConnection.fire(snapshot());
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		assert.strictEqual(listPendingCalls, listCallsAfterLoad, 'leftover-looks-live must not extra listPending');
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 1);
+		const leftover = container.querySelector('.connection-engine-pending-row') as HTMLElement;
+		assert.ok(leftover);
+		assert.strictEqual(leftover.textContent, 'Phone — 123456 — ios');
+		const pendingEmpty = container.querySelector('.connection-engine-pending-empty') as HTMLElement;
+		assert.notStrictEqual(pendingEmpty.style.display, 'none');
+		assert.strictEqual(pendingEmpty.textContent, getEngineSectionDisconnectedCopy());
+		assert.ok(pendingEmpty.classList.contains('is-warning'));
 		container.remove();
 	});
 

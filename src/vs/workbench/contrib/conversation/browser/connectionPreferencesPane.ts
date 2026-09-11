@@ -68,7 +68,7 @@ import {
 } from './connectionPreferencesPaneLabels.js';
 import { applyConnectionPaneIdentityStripReservation } from './connectionPaneIdentityStripReservation.js';
 import { promptRecoverTrustConfirmDialog, promptSasConfirmDialog } from './connectionPreferencesPaneSas.js';
-import { getConnectionPhaseStatusBarText, isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
+import { getConnectionPhaseStatusBarText, isConversationPairingHold } from './conversationSessionStatus.js';
 import {
 	getEngineSectionApiUnavailableCopy,
 	getEngineSectionDisconnectedCopy,
@@ -1089,11 +1089,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		if (!hadLiveCatalog) {
-			return false;
-		}
-		const snapshot = this.connectionService.getConnectionSnapshot();
-		return snapshot.pairingPending && isConversationEngineLive(this.connectionService.getConnectionPhase(), false);
+		return hadLiveCatalog && isConversationPairingHold(this.connectionService);
 	}
 
 	private isDeviceWritePairingHold(): boolean {
@@ -1129,7 +1125,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private async refreshEngineDevices(): Promise<void> {
 		const hook = this.connectionService.listDevices;
 		const connected = this.connectionService.isEngineConnected();
-		if (!connected) {
+		// D341 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connectionService) || !connected) {
 			this.applyDisconnectedDevicesRefresh();
 			return;
 		}
@@ -1149,7 +1146,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 		try {
 			const result = await hook.call(this.connectionService);
-			if (!this.connectionService.isEngineConnected()) {
+			if (isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected()) {
 				this.applyDisconnectedDevicesRefresh();
 				return;
 			}
@@ -1172,7 +1169,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private async refreshEnginePending(): Promise<void> {
 		const hook = this.connectionService.listPending;
 		const connected = this.connectionService.isEngineConnected();
-		if (!connected) {
+		// D341 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connectionService) || !connected) {
 			this.applyDisconnectedPendingRefresh();
 			return;
 		}
@@ -1188,7 +1186,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 		try {
 			const result = await hook.call(this.connectionService);
-			if (!this.connectionService.isEngineConnected()) {
+			if (isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected()) {
 				this.applyDisconnectedPendingRefresh();
 				return;
 			}
