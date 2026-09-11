@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Event } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -21,7 +21,7 @@ import type {
 	UniverseAgentSessionEvent,
 	UniverseAgentSessionStreamCloseCause,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { getConnectionPhaseStatusBarText } from '../../browser/conversationSessionStatus.js';
+import { getConnectionPhaseStatusBarText, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { Dimension } from '../../../../../base/browser/dom.js';
 
 const ENGINE_DISCONNECTED_COPY = getConnectionPhaseStatusBarText({ kind: 'disconnected' });
@@ -31,17 +31,23 @@ suite('EnginePreferencesPane', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function createConnectionStub(connected = false, overrides: Partial<IUniverseAgentConnection> = {}): IUniverseAgentConnection {
+	function createConnectionStub(
+		connected = false,
+		overrides: Partial<IUniverseAgentConnection> = {},
+		options: { pairingPending?: boolean; looksLive?: boolean } = {},
+	): IUniverseAgentConnection {
 		const capabilities = createEmptyCapabilitySnapshot();
+		const pairingPending = options.pairingPending ?? false;
+		const looksLive = options.looksLive ?? false;
 		return {
 			_serviceBrand: undefined,
-			isEngineConnected: () => connected,
+			isEngineConnected: () => connected && (looksLive || !pairingPending),
 			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
 			getTransportState: () => (connected ? 'ok' : 'idle'),
 			getConnectionSnapshot: () => ({
 				transport: connected ? 'ok' : 'idle',
 				sessionToken: connected ? 'tok' : undefined,
-				pairingPending: false,
+				pairingPending,
 				channelAlive: connected,
 				sharedFsRootSent: false,
 				capabilities,
@@ -111,13 +117,64 @@ suite('EnginePreferencesPane', () => {
 		};
 	}
 
-	function mountPane(connected = false, overrides: Partial<IUniverseAgentConnection> = {}): EnginePreferencesPane {
+	function mountPane(
+		connected = false,
+		overrides: Partial<IUniverseAgentConnection> = {},
+		options: { pairingPending?: boolean; looksLive?: boolean } = {},
+	): EnginePreferencesPane {
+		return mountPaneWithConnection(createConnectionStub(connected, overrides, options));
+	}
+
+	function mountPaneWithConnection(connection: IUniverseAgentConnection): EnginePreferencesPane {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		instantiationService.stub(IUniverseAgentConnection, createConnectionStub(connected, overrides));
+		instantiationService.stub(IUniverseAgentConnection, connection);
 		const pane = store.add(instantiationService.createInstance(EnginePreferencesPane));
 		const container = pane.getDomNode();
 		document.body.appendChild(container);
 		return pane;
+	}
+
+	function createMutableConnection(options: {
+		connected?: boolean;
+		pairingPending?: boolean;
+		looksLive?: boolean;
+	} = {}): IUniverseAgentConnection & {
+		setPairingPending(value: boolean): void;
+		setConnected(value: boolean): void;
+	} {
+		let connected = options.connected ?? false;
+		let pairingPending = options.pairingPending ?? false;
+		const looksLive = options.looksLive ?? false;
+		const capabilities = createEmptyCapabilitySnapshot();
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: connected ? 'ok' : 'idle',
+			sessionToken: connected ? 'tok' : undefined,
+			pairingPending,
+			channelAlive: connected,
+			sharedFsRootSent: false,
+			capabilities,
+		});
+		const connection = createConnectionStub(true, {
+			isEngineConnected: () => connected && (looksLive || !pairingPending),
+			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+		});
+		return Object.assign(connection, {
+			setPairingPending(value: boolean) {
+				pairingPending = value;
+				onDidChangeConnection.fire(snapshot());
+			},
+			setConnected(value: boolean) {
+				connected = value;
+				onDidChangeConnection.fire(snapshot());
+			},
+		});
+	}
+
+	function disconnectedBanner(container: HTMLElement): HTMLElement {
+		return container.querySelector('.engine-preferences-disconnected-banner') as HTMLElement;
 	}
 
 	test('getEngineTestStatusText reuses StatusBar phase copy', () => {
@@ -310,6 +367,88 @@ suite('EnginePreferencesPane', () => {
 		assert.strictEqual(banner.textContent, getUnsupportedEnvironmentCopy());
 		assert.strictEqual(getUnsupportedEnvironmentCopy(), '此环境不支持本机 Engine 连接');
 		assert.notStrictEqual(banner.textContent, ENGINE_DISCONNECTED_COPY);
+
+		container.remove();
+	});
+
+	test('leftover-looks-live pairing-hold still shows disconnected banner', () => {
+		const connection = createMutableConnection({ connected: true, pairingPending: true, looksLive: true });
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		const pane = mountPaneWithConnection(connection);
+		const container = pane.getDomNode();
+		const banner = disconnectedBanner(container);
+		const copy = container.querySelector('.engine-preferences-disconnected-copy') as HTMLElement;
+		const testRow = container.querySelector('.engine-test-row') as HTMLElement;
+
+		assert.ok(banner);
+		assert.notStrictEqual(banner.style.display, 'none');
+		assert.strictEqual(copy.textContent, getConnectionPhaseStatusBarText({ kind: 'connected', path: 'loopback' }, true));
+		assert.strictEqual(copy.textContent, ENGINE_DISCONNECTED_COPY);
+		assert.ok(!banner.classList.contains('is-warning'));
+		// Chrome only: leftover-looks-live must not hide Test Engine / Open Connection.
+		assert.notStrictEqual(testRow.style.display, 'none');
+		assert.ok((container.textContent ?? '').includes('Open Connection'));
+
+		container.remove();
+	});
+
+	test('pairing-hold with isEngineConnected false still shows disconnected banner', () => {
+		const connection = createMutableConnection({ connected: true, pairingPending: true, looksLive: false });
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		const pane = mountPaneWithConnection(connection);
+		const container = pane.getDomNode();
+		const banner = disconnectedBanner(container);
+		const copy = container.querySelector('.engine-preferences-disconnected-copy') as HTMLElement;
+
+		assert.notStrictEqual(banner.style.display, 'none');
+		assert.strictEqual(copy.textContent, ENGINE_DISCONNECTED_COPY);
+
+		container.remove();
+	});
+
+	test('true connected without pairing hides disconnected banner', () => {
+		const pane = mountPane(true);
+		const container = pane.getDomNode();
+		const banner = disconnectedBanner(container);
+
+		assert.ok(banner);
+		assert.strictEqual(banner.style.display, 'none');
+		assert.ok(!(container.querySelector('.engine-preferences-disconnected-copy') as HTMLElement).textContent);
+
+		container.remove();
+	});
+
+	test('leftover-looks-live then true disconnect still shows disconnected banner', () => {
+		const connection = createMutableConnection({ connected: true, pairingPending: false, looksLive: true });
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		const pane = mountPaneWithConnection(connection);
+		const container = pane.getDomNode();
+		const banner = disconnectedBanner(container);
+		const copy = container.querySelector('.engine-preferences-disconnected-copy') as HTMLElement;
+		assert.strictEqual(banner.style.display, 'none');
+
+		connection.setPairingPending(true);
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.notStrictEqual(banner.style.display, 'none');
+		assert.strictEqual(copy.textContent, ENGINE_DISCONNECTED_COPY);
+
+		connection.setConnected(false);
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'disconnected');
+		assert.notStrictEqual(banner.style.display, 'none');
+		assert.strictEqual(copy.textContent, ENGINE_DISCONNECTED_COPY);
 
 		container.remove();
 	});
