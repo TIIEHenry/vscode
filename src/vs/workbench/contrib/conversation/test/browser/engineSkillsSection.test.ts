@@ -40,6 +40,7 @@ suite('EngineSkillsSection (E1)', () => {
 	} = {}): IUniverseAgentConnection & {
 		setConnected(value: boolean): void;
 		setPairingPending(value: boolean): void;
+		setLooksLive(value: boolean): void;
 		setSkillsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 	} {
 		const skillsCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'; reason: string } = {
@@ -52,6 +53,7 @@ suite('EngineSkillsSection (E1)', () => {
 		};
 		let connected = options.connected ?? false;
 		let pairingPending = false;
+		let looksLive = false;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
@@ -65,7 +67,7 @@ suite('EngineSkillsSection (E1)', () => {
 
 		return {
 			_serviceBrand: undefined,
-			isEngineConnected: () => connected && !pairingPending,
+			isEngineConnected: () => connected && (looksLive || !pairingPending),
 			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
 			getTransportState: () => (connected ? 'ok' : 'idle'),
 			getConnectionSnapshot: snapshot,
@@ -140,6 +142,9 @@ suite('EngineSkillsSection (E1)', () => {
 			setPairingPending(value: boolean) {
 				pairingPending = value;
 				onDidChangeConnection.fire(snapshot());
+			},
+			setLooksLive(value: boolean) {
+				looksLive = value;
 			},
 			setSkillsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
 				skillsCapability.support = support;
@@ -282,6 +287,48 @@ suite('EngineSkillsSection (E1)', () => {
 
 		assert.strictEqual(section.getMode(), 'disconnected');
 		assert.strictEqual(section.getListEntryCount(), 0);
+	});
+
+	test('leftover-looks-live pairing-hold writes stay 0 unary', async () => {
+		const saveCalls: UniverseAgentSaveSkillContentRequest[] = [];
+		const toggleCalls: Array<{ skillName: string; enabled: boolean }> = [];
+		let listSkillsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => {
+				listSkillsCalls++;
+				return { skills: [{ name: 'leftover-skill', source: 'user', enabled: true }] };
+			},
+			saveSkillContent: async (request) => {
+				saveCalls.push(request);
+				return { ok: true };
+			},
+			setSkillEnabled: async (request) => {
+				toggleCalls.push(request);
+				return { ok: true };
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listSkillsCalls;
+		assert.strictEqual(section.canWrite(), true);
+		connection.setLooksLive(true);
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(listSkillsCalls, listCallsAfterLoad);
+		assert.strictEqual(section.getListEntryCount(), leftoverRows);
+		assert.strictEqual(section.canWrite(), false);
+		assert.strictEqual(section.isWriteToolbarVisible(), false);
+		assert.strictEqual(await section.createSkill({ skillName: 'should-not-create', content: '# Nope' }), false);
+		await section.toggleSkillForTest('leftover-skill', false);
+		assert.deepStrictEqual(saveCalls, []);
+		assert.deepStrictEqual(toggleCalls, []);
+		assert.strictEqual(listSkillsCalls, listCallsAfterLoad);
 	});
 
 	test('listSkills reject is failed with error status and no leftover catalog', async () => {

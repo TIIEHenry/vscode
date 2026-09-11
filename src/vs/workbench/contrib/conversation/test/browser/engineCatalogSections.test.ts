@@ -36,6 +36,7 @@ import { ENGINE_MCP_ADD_SUCCESS_COPY, ENGINE_MCP_REMOVE_SUCCESS_COPY, ENGINE_MCP
 import { EngineToolsSection } from '../../browser/engineToolsSection.js';
 import {
 	canPerformCatalogWrite,
+	canPerformCatalogWriteLive,
 	getCatalogFailedCopy,
 	getCatalogListLoadingCopy,
 	getCatalogUnknownCopy,
@@ -75,6 +76,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 	} = {}): IUniverseAgentConnection & {
 		setConnected(value: boolean): void;
 		setPairingPending(value: boolean): void;
+		setLooksLive(value: boolean): void;
 		setMcpSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setAgentProfilesSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setToolsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
@@ -102,6 +104,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		};
 		let connected = options.connected ?? false;
 		let pairingPending = false;
+		let looksLive = false;
 		let getToolInfo = options.getToolInfo;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 
@@ -116,7 +119,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 		return {
 			_serviceBrand: undefined,
-			isEngineConnected: () => connected && !pairingPending,
+			isEngineConnected: () => connected && (looksLive || !pairingPending),
 			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
 			getTransportState: () => (connected ? 'ok' : 'idle'),
 			getConnectionSnapshot: snapshot,
@@ -193,6 +196,9 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			setPairingPending(value: boolean) {
 				pairingPending = value;
 				onDidChangeConnection.fire(snapshot());
+			},
+			setLooksLive(value: boolean) {
+				looksLive = value;
 			},
 			setMcpSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
 				mcpCapability.support = support;
@@ -274,6 +280,16 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(canPerformCatalogWrite('loading'), false);
 		assert.strictEqual(canPerformCatalogWrite('ready'), true);
 		assert.strictEqual(canPerformCatalogWrite('empty'), true);
+	});
+
+	test('canPerformCatalogWriteLive refuses pairing-hold leftover-looks-live', () => {
+		assert.strictEqual(canPerformCatalogWriteLive('ready', true, false), true);
+		assert.strictEqual(canPerformCatalogWriteLive('empty', true, false), true);
+		assert.strictEqual(canPerformCatalogWriteLive('ready', true, true), false);
+		assert.strictEqual(canPerformCatalogWriteLive('empty', true, true), false);
+		assert.strictEqual(canPerformCatalogWriteLive('ready', false, false), false);
+		assert.strictEqual(canPerformCatalogWriteLive('disconnected', true, false), false);
+		assert.strictEqual(canPerformCatalogWriteLive('failed', true, false), false);
 	});
 
 	for (const [label, capabilityKey, featureLabel] of [
@@ -454,6 +470,220 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 		assert.strictEqual(section.getMode(), 'disconnected');
 		assert.strictEqual(section.getListEntryCount(), 0);
+	});
+
+	test('MCP: leftover + pairingPending write buttons stay 0 unary', async () => {
+		const addCalls: UniverseAgentAddMcpServerRequest[] = [];
+		const updateCalls: UniverseAgentUpdateMcpServerRequest[] = [];
+		const removeCalls: UniverseAgentRemoveMcpServerRequest[] = [];
+		const toggleCalls: UniverseAgentToggleMcpServerRequest[] = [];
+		let listMcpServersCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => {
+				listMcpServersCalls++;
+				return { servers: [demoMcpServer()] };
+			},
+			addMcpServer: async (request) => {
+				addCalls.push(request);
+				return { ok: true };
+			},
+			updateMcpServer: async (request) => {
+				updateCalls.push(request);
+				return { ok: true };
+			},
+			removeMcpServer: async (request) => {
+				removeCalls.push(request);
+				return { ok: true };
+			},
+			toggleMcpServer: async (request) => {
+				toggleCalls.push(request);
+				return { ok: true };
+			},
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listMcpServersCalls;
+		assert.strictEqual(section.canWrite(), true);
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assertCatalogLeftoverPairingHonesty(section, leftoverRows, MCP_EMPTY_COPY);
+		assert.strictEqual(section.isWriteToolbarVisible(), false);
+		assert.strictEqual(listMcpServersCalls, listCallsAfterLoad);
+		assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
+		assert.strictEqual(await section.addServer(completeMcpAddConfig()), false);
+		assert.strictEqual(await section.updateSelectedServer({ name: 'Renamed' }), false);
+		assert.strictEqual(await section.removeSelectedServer(), false);
+		await section.toggleServerForTest('stdio-demo', false);
+		assert.deepStrictEqual(addCalls, []);
+		assert.deepStrictEqual(updateCalls, []);
+		assert.deepStrictEqual(removeCalls, []);
+		assert.deepStrictEqual(toggleCalls, []);
+		assert.strictEqual(listMcpServersCalls, listCallsAfterLoad);
+		assert.strictEqual(section.getListEntryCount(), leftoverRows);
+	});
+
+	test('MCP: leftover-looks-live pairing-hold writes stay 0 unary', async () => {
+		const addCalls: UniverseAgentAddMcpServerRequest[] = [];
+		const updateCalls: UniverseAgentUpdateMcpServerRequest[] = [];
+		const removeCalls: UniverseAgentRemoveMcpServerRequest[] = [];
+		const toggleCalls: UniverseAgentToggleMcpServerRequest[] = [];
+		let listMcpServersCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => {
+				listMcpServersCalls++;
+				return { servers: [demoMcpServer()] };
+			},
+			addMcpServer: async (request) => {
+				addCalls.push(request);
+				return { ok: true };
+			},
+			updateMcpServer: async (request) => {
+				updateCalls.push(request);
+				return { ok: true };
+			},
+			removeMcpServer: async (request) => {
+				removeCalls.push(request);
+				return { ok: true };
+			},
+			toggleMcpServer: async (request) => {
+				toggleCalls.push(request);
+				return { ok: true };
+			},
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listMcpServersCalls;
+		connection.setLooksLive(true);
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listMcpServersCalls, listCallsAfterLoad);
+		assert.strictEqual(section.getListEntryCount(), leftoverRows);
+		assert.strictEqual(section.canWrite(), false);
+		assert.strictEqual(section.isWriteToolbarVisible(), false);
+		assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
+		assert.strictEqual(await section.addServer(completeMcpAddConfig()), false);
+		assert.strictEqual(await section.updateSelectedServer({ name: 'Renamed' }), false);
+		assert.strictEqual(await section.removeSelectedServer(), false);
+		await section.toggleServerForTest('stdio-demo', false);
+		assert.deepStrictEqual(addCalls, []);
+		assert.deepStrictEqual(updateCalls, []);
+		assert.deepStrictEqual(removeCalls, []);
+		assert.deepStrictEqual(toggleCalls, []);
+		assert.strictEqual(listMcpServersCalls, listCallsAfterLoad);
+	});
+
+	test('Agents: leftover-looks-live pairing-hold writes stay 0 unary', async () => {
+		const saveCalls: UniverseAgentSaveAgentProfileRequest[] = [];
+		const deleteCalls: UniverseAgentDeleteAgentProfileRequest[] = [];
+		let listAgentProfilesCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [{ id: 'leftover', name: 'Leftover Agent', source: 'user' as const }] };
+			},
+			saveAgentProfile: async (request) => {
+				saveCalls.push(request);
+				return { profile: request.profile };
+			},
+			deleteAgentProfile: async (request) => {
+				deleteCalls.push(request);
+				return { ok: true };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listAgentProfilesCalls;
+		connection.setLooksLive(true);
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+		assert.strictEqual(section.getListEntryCount(), leftoverRows);
+		assert.strictEqual(section.canWrite(), false);
+		assert.strictEqual(section.isWriteToolbarVisible(), false);
+		assert.strictEqual(await section.createProfile({ id: 'new-agent', name: 'New', source: 'user' }), false);
+		await section.selectProfileByIdForTest('leftover');
+		assert.strictEqual(await section.deleteSelectedProfile(), false);
+		assert.deepStrictEqual(saveCalls, []);
+		assert.deepStrictEqual(deleteCalls, []);
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+	});
+
+	test('Tools: leftover-looks-live pairing-hold writes stay 0 unary', async () => {
+		const saveCalls: UniverseAgentSaveAgentProfileRequest[] = [];
+		let listToolsCalls = 0;
+		const leftover = { name: 'leftover-bash', description: 'shell tool', category: 'shell' };
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: {
+				tools: { support: 'SUPPORTED' },
+				agentProfiles: { support: 'SUPPORTED' },
+			},
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [leftover] };
+			},
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+			}),
+			saveAgentProfile: async (request) => {
+				saveCalls.push(request);
+				return { profile: request.profile };
+			},
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listToolsCalls;
+		assert.strictEqual(section.canWrite(), true);
+		connection.setLooksLive(true);
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(listToolsCalls, listCallsAfterLoad);
+		assert.strictEqual(section.getListEntryCount(), leftoverRows);
+		assert.strictEqual(section.canWrite(), false);
+		assert.strictEqual(section.isSaveToolbarVisible(), false);
+		assert.strictEqual(await section.toggleTool(leftover, false), false);
+		assert.strictEqual(await section.savePendingEnablement(), false);
+		assert.deepStrictEqual(saveCalls, []);
+		assert.strictEqual(listToolsCalls, listCallsAfterLoad);
+	});
+
+	test('MCP: connected leftover still writes', async () => {
+		const addCalls: UniverseAgentAddMcpServerRequest[] = [];
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => ({ servers: [demoMcpServer()] }),
+			addMcpServer: async (request) => {
+				addCalls.push(request);
+				return { ok: true };
+			},
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(section.canWrite(), true);
+		assert.strictEqual(await section.addServer(completeMcpAddConfig()), true);
+		assert.strictEqual(addCalls.length, 1);
 	});
 
 	test('Agents: disconnected Open Connection executeCommand reject does not leak unhandled rejection', async () => {

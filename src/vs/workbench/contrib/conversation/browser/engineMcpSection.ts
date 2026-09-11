@@ -17,10 +17,10 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentCapabilitySupport, UniverseAgentMcpServerConfig, UniverseAgentMcpServerOrigin, UniverseAgentMcpServerSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles, defaultCheckboxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { isConversationEngineLive } from './conversationSessionStatus.js';
+import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
 import {
 	type EngineCatalogPaneMode,
-	canPerformCatalogWrite,
+	canPerformCatalogWriteLive,
 	canShowCatalogRows,
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
@@ -322,7 +322,11 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	canWrite(): boolean {
-		return canPerformCatalogWrite(this.mode) && this.connection.isEngineConnected();
+		return canPerformCatalogWriteLive(
+			this.mode,
+			this.connection.isEngineConnected(),
+			isConversationPairingHold(this.connection),
+		);
 	}
 
 	getSelectedServerId(): string | undefined {
@@ -528,8 +532,12 @@ export class EngineMcpSection extends Disposable {
 		this.writeFailedReason = undefined;
 		this.hideCatalogWriteStatus();
 
+		const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'server');
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			return this.applyDisconnectedRefresh(support, hadLiveCatalog);
+		}
 		if (!connected) {
-			return this.applyDisconnectedRefresh(support, this.listEntries.some(entry => entry.kind === 'server'));
+			return this.applyDisconnectedRefresh(support, hadLiveCatalog);
 		}
 
 		if (support === 'UNSUPPORTED') {
@@ -560,8 +568,12 @@ export class EngineMcpSection extends Disposable {
 
 		try {
 			const result = await this.connection.listMcpServers();
+			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'server');
+			if (this.keepLeftoverCatalogForPairingHold(leftoverAfterList)) {
+				return this.applyDisconnectedRefresh(support, leftoverAfterList);
+			}
 			if (!this.connection.isEngineConnected()) {
-				return this.applyDisconnectedRefresh(support, this.listEntries.some(entry => entry.kind === 'server'));
+				return this.applyDisconnectedRefresh(support, leftoverAfterList);
 			}
 			this.setServers(result.servers);
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
@@ -569,7 +581,7 @@ export class EngineMcpSection extends Disposable {
 				itemCount: result.servers.length,
 			});
 			this.listContainer.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
-			this.writeToolbar.style.display = canPerformCatalogWrite(this.mode) ? '' : 'none';
+			this.writeToolbar.style.display = this.canWrite() ? '' : 'none';
 			this.renderStatus();
 			return true;
 		} catch (error) {
@@ -661,7 +673,7 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private async toggleServer(server: UniverseAgentMcpServerSummary, enabled: boolean): Promise<void> {
-		if (!canShowCatalogRows(this.mode) || !this.connection.isEngineConnected()) {
+		if (!this.canWrite()) {
 			return;
 		}
 		const scope = server.origin === 'project' ? 'project' : 'global';

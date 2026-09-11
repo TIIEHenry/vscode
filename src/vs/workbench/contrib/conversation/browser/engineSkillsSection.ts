@@ -19,8 +19,8 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentCapabilitySupport, UniverseAgentSkillSource, UniverseAgentSkillSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles, defaultCheckboxStyles, defaultInputBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { isConversationEngineLive } from './conversationSessionStatus.js';
-import { canPerformCatalogWrite, canShowCatalogRows, getCatalogListLoadingCopy } from './engineCatalog.js';
+import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
+import { canPerformCatalogWriteLive, canShowCatalogRows, getCatalogListLoadingCopy } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionApiUnavailableCopy, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
 import {
@@ -279,7 +279,11 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	canWrite(): boolean {
-		return canPerformCatalogWrite(this.mode) && this.connection.isEngineConnected();
+		return canPerformCatalogWriteLive(
+			this.mode,
+			this.connection.isEngineConnected(),
+			isConversationPairingHold(this.connection),
+		);
 	}
 
 	isBodyEditorVisible(): boolean {
@@ -405,8 +409,12 @@ export class EngineSkillsSection extends Disposable {
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.skills.support;
 
+		const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'skill');
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			return this.applyDisconnectedRefresh(support, hadLiveCatalog);
+		}
 		if (!connected) {
-			return this.applyDisconnectedRefresh(support, this.listEntries.some(entry => entry.kind === 'skill'));
+			return this.applyDisconnectedRefresh(support, hadLiveCatalog);
 		}
 
 		if (support === 'UNSUPPORTED') {
@@ -435,8 +443,12 @@ export class EngineSkillsSection extends Disposable {
 
 		try {
 			const result = await this.connection.listSkills();
+			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'skill');
+			if (this.keepLeftoverCatalogForPairingHold(leftoverAfterList)) {
+				return this.applyDisconnectedRefresh(support, leftoverAfterList);
+			}
 			if (!this.connection.isEngineConnected()) {
-				return this.applyDisconnectedRefresh(support, this.listEntries.some(entry => entry.kind === 'skill'));
+				return this.applyDisconnectedRefresh(support, leftoverAfterList);
 			}
 			this.setSkills(result.skills);
 			this.mode = resolveEngineSkillsPaneMode(true, support, {
@@ -672,7 +684,7 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private async toggleSkill(skill: UniverseAgentSkillSummary, enabled: boolean): Promise<void> {
-		if (!canShowCatalogRows(this.mode) || !this.connection.isEngineConnected()) {
+		if (!this.canWrite()) {
 			return;
 		}
 		try {
