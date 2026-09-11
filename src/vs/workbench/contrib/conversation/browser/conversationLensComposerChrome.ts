@@ -465,7 +465,8 @@ export function updateGateRow(host: IConversationLensComposerChromeHost): void {
 			host.gateRow.hidden = false;
 			return;
 		}
-		const connected = host.stubService.isEngineConnected();
+		// D339 leftover-looks-live: pairing-hold first. Gate is not hidden just because isEngineConnected()===true.
+		const connected = !isConversationPairingHold(host.uaConnection) && host.stubService.isEngineConnected();
 		host.gateRow.hidden = connected;
 		if (connected) {
 			host.gateLabel.textContent = '';
