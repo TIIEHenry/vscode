@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-12
-summary: "已合入 D355 / D356（未编译）。D8/D16/D147 仍开。"
+summary: "已合入 D355–D357（未编译）。D8/D16/D147 仍开。"
 ---
 
 # Development Progress
@@ -44,7 +44,7 @@ summary: "已合入 D355 / D356（未编译）。D8/D16/D147 仍开。"
 |:---|:-----|:---------|
 | **A** | `reading-column-live-chrome-leftover-looks-live` [D355](deferred-gaps.md) | 已合入 `fd314598696`；pairing-hold-first 闸阅读列 live chrome |
 | **B** | `rules-render-leftover-looks-live` [D356](deferred-gaps.md) | 已合入 `394f631a636`；Rules leftover-looks-live 画 disconnected |
-| **D** | `engine-preferences-banner-leftover-looks-live` [D354](deferred-gaps.md) | `already-committed` `7f6911cc086`；Preferences 断连横幅 KEEP-chrome |
+| **D** | `hooks-render-leftover-looks-live` [D357](deferred-gaps.md) | 已合入 `7ab30be22f2`；Hooks leftover-looks-live 画 disconnected |
 | **E** | [composer-fake-chrome](../plans/composer-fake-chrome.md) | leftover 已在库；勿 `checkout -B` |
 
 <details>
@@ -185,14 +185,14 @@ summary: "已合入 D355 / D356（未编译）。D8/D16/D147 仍开。"
 | A | `vscode-WorkTrees/A` | `loop/A` | `fd314598696` | 干净 | 0 | 已收 D355 |
 | B | `vscode-WorkTrees/B` | `loop/B` | `394f631a636` | 干净 | 0 | 已收 D356 |
 | C | `vscode-WorkTrees/C` | `loop/C` | 跟 MERGE_SHA | 未提交 `dev/loop` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | 跟 MERGE_SHA | 干净 | 0 | 已收 D354 |
+| D | `vscode-WorkTrees/D` | `loop/D` | `7ab30be22f2` | 干净 | 0 | 已收 D357 |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | leftover 已合入 merge；勿 `checkout -B` |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `ad9245ca178` | `dev/loop` + `.idea` | 0 | 请自行对齐 `origin/agent-ide`（勿对齐本表旧 SHA） |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
 | **引擎 store 迁移卡死** | [D26](deferred-gaps.md) 病因已改口（2026-09-09）：`user_version=0` + 表已建 ⇒ 迁移抛错 ⇒ 库永久打不开 ⇒ `LookupFailed` fail-closed deny ⇒ `ALREADY_EXISTS`（**设计内拒绝**）。根因与交接见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md)；D25 同源。**禁改引擎仓代码**；原闭合条件「Create 先写 meta」已撤回；不要再清 store |
-| **loop 切片** | [D355](deferred-gaps.md)–[D356](deferred-gaps.md) 已合入（未编译）。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto；未宣称 leftover-honesty 程序完成 |
+| **loop 切片** | [D355](deferred-gaps.md)–[D357](deferred-gaps.md) 已合入（未编译）。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto；未宣称 leftover-honesty 程序完成 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
