@@ -281,6 +281,7 @@ suite('Navigator Agents subviews', () => {
 		document.createElement('div').appendChild(view.element);
 		view.setExpanded(true);
 		view.setVisible(true);
+		assert.strictEqual(UA_ENGINE_CONNECTED_KEY.getValue(view['scopedContextKeyService']), true);
 		view.refreshAgentTree();
 		assert.strictEqual(refreshedSessionId, roster.getActiveSessionId());
 	});
@@ -356,6 +357,7 @@ suite('Navigator Agents subviews', () => {
 		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
 		assert.strictEqual(isConversationPairingHold(connection), true);
 		assert.ok(roster.getActiveSessionId());
+		assert.strictEqual(UA_ENGINE_CONNECTED_KEY.getValue(view['scopedContextKeyService']), false);
 		view.refreshAgentTree();
 		assert.strictEqual(treeRefreshCalls, 0);
 	});
