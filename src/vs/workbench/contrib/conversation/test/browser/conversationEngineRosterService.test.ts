@@ -2663,6 +2663,42 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.deepStrictEqual(disconnected, { kind: 'idle' });
 	});
 
+	test('getSessionSync demotes leftover live and syncing chrome while pairingPending then true disconnect uses stub', async () => {
+		for (const leftover of [{ kind: 'live' as const }, { kind: 'syncing' as const }]) {
+			const connection = store.add(new MockUniverseAgentConnection());
+			const sessionView = store.add(new LeftoverProjectionSessionView(leftover));
+			connection.setListSessions([{ sessionId: 'ua-cache', title: 'Cached UA' }]);
+			const service = store.add(createService(connection, undefined, sessionView));
+			connection.setConnected(true);
+			await awaitEngineCatalogRefresh(service);
+			const lease = store.add(service.acquireSessionView('ua-cache'));
+			assert.ok(await (lease as { whenBindReady?: () => Promise<boolean> }).whenBindReady?.());
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+			assert.strictEqual(service.isEngineConnected(), true);
+			assert.strictEqual(isConversationPairingHold(connection), false);
+			assert.deepStrictEqual(service.getSessionSync('ua-cache'), leftover);
+
+			connection.setPairingPending(true);
+			assert.strictEqual(connection.isEngineConnected(), false);
+			assert.strictEqual(service.isEngineConnected(), false);
+			assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+			assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+			assert.strictEqual(isConversationPairingHold(connection), true);
+			const pairing = service.getSessionSync('ua-cache');
+			assert.notStrictEqual(pairing.kind, 'live');
+			assert.notStrictEqual(pairing.kind, 'syncing');
+			assert.strictEqual(pairing.kind, 'closed');
+
+			connection.setPairingPending(false);
+			connection.setConnected(false);
+			assert.strictEqual(service.isEngineConnected(), false);
+			assert.strictEqual(connection.getConnectionPhase().kind, 'disconnected');
+			assert.strictEqual(isConversationPairingHold(connection), false);
+			assert.deepStrictEqual(service.getSessionSync('ua-cache'), { kind: 'idle' });
+		}
+	});
+
 	test('pairingPending first-pull without leftover cache getSessionSync stays stub idle', async () => {
 		const connection = store.add(new MockUniverseAgentConnection());
 		connection.setListSessions([{ sessionId: 'ua-empty', title: 'Empty UA' }]);

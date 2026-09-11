@@ -646,13 +646,28 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (this.canReadCachedEngineProjection()) {
 			const projection = this.engineFrameSource.getCachedProjection(sessionId);
 			if (projection) {
-				return projection.snapshot.sync;
+				return this.sessionSyncFromCachedProjection(projection.snapshot.sync);
 			}
 			if (this.isEngineConnected()) {
 				return { kind: 'idle' };
 			}
 		}
 		return super.getSessionSync(sessionId);
+	}
+
+	/**
+	 * D293: pairing-hold leftover live/syncing/degraded still says "Session live"
+	 * while writes are closed. Keep literal closed leftover (D288); demote active
+	 * kinds to the existing engine-cache closed chrome.
+	 */
+	private sessionSyncFromCachedProjection(sync: SyncChrome): SyncChrome {
+		if (this.isEngineConnected() || sync.kind === 'closed' || sync.kind === 'idle') {
+			return sync;
+		}
+		return {
+			kind: 'closed',
+			reason: localize('conversationRoster.engineCacheReason', "Cached snapshot (read-only)"),
+		};
 	}
 
 	override countPendingConfirmations(sessionId: string): number {
