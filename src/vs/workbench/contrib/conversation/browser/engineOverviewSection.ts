@@ -9,7 +9,7 @@ import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
-import { getConnectionPhaseStatusBarText, isConversationEngineLive } from './conversationSessionStatus.js';
+import { getConnectionPhaseStatusBarText, isConversationPairingHold } from './conversationSessionStatus.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { formatCapabilitySupportLabel } from './engineSectionChrome.js';
 import type {
@@ -230,11 +230,7 @@ export class EngineOverviewSection extends Disposable {
 	}
 
 	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		if (!hadLiveCatalog) {
-			return false;
-		}
-		const snapshot = this.connection.getConnectionSnapshot();
-		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
+		return hadLiveCatalog && isConversationPairingHold(this.connection);
 	}
 
 	private applyDisconnectedOverview(hadLiveCatalog: boolean): void {
@@ -269,7 +265,8 @@ export class EngineOverviewSection extends Disposable {
 		const generation = ++this.renderGeneration;
 		const hadLiveCatalog = !!this.lastGoodModelSummary || this.summaryGrid.childElementCount > 0;
 
-		if (!this.connection.isEngineConnected()) {
+		// D340 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 			this.applyDisconnectedOverview(hadLiveCatalog);
 			return;
 		}
@@ -300,7 +297,7 @@ export class EngineOverviewSection extends Disposable {
 			if (generation !== this.renderGeneration) {
 				return;
 			}
-			if (!this.connection.isEngineConnected()) {
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				this.applyDisconnectedOverview(!!this.lastGoodModelSummary || this.summaryGrid.childElementCount > 0);
 				return;
 			}
