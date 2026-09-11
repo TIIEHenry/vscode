@@ -288,6 +288,17 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override switchSession(sessionId: string): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			if (this.engineSessions.some(s => s.id === sessionId)) {
+				const previous = this.getActiveSessionId();
+				this.activeEngineSessionId = sessionId;
+				if (previous !== sessionId) {
+					this._onDidChangeActiveSession.fire(sessionId);
+				}
+				this.persistEngineAwareRoster();
+			}
+			return;
+		}
 		if ((this.isEngineConnected() || this.wasEverConnected) && this.engineSessions.some(s => s.id === sessionId)) {
 			const previous = this.getActiveSessionId();
 			this.activeEngineSessionId = sessionId;
@@ -306,6 +317,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override createSession(): string {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return '';
+		}
 		if (this.isEngineConnected()) {
 			void this.ensureEngineSession().then(() => {
 				this.bindLiveTreeObservationLease();
