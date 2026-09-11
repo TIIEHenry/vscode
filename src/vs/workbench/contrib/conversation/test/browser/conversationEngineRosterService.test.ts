@@ -1523,6 +1523,41 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(acquireLeaseCalls.filter(id => id.startsWith('session-')).length, 1);
 	});
 
+	test('leftover-looks-live activateEngineSession skips tree refresh while pairingPending', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([
+			{ sessionId: 'ua-a', title: 'A' },
+			{ sessionId: 'ua-b', title: 'B' },
+		]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		assert.strictEqual(service.getActiveSessionId(), 'ua-a');
+		const treeRefreshBeforePairing = connection.treeRefreshCalls.length;
+		assert.ok(treeRefreshBeforePairing > 0);
+
+		connection.setPairingPending(true);
+		service.setEngineConnected(true);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		await awaitEngineCatalogRefresh(service);
+		assert.strictEqual(service.getActiveSessionId(), 'ua-a');
+		assert.strictEqual(connection.treeRefreshCalls.length, treeRefreshBeforePairing);
+
+		connection.setListSessions([{ sessionId: 'ua-b', title: 'B' }]);
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(service.getActiveSessionId(), 'ua-b');
+		assert.deepStrictEqual(service.getSessions().map(s => s.id), ['ua-b']);
+		assert.strictEqual(connection.treeRefreshCalls.length, treeRefreshBeforePairing);
+	});
+
 	test('disconnected after engine renameSession stays local and skips unary', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());
