@@ -7,7 +7,7 @@ import assert from 'assert';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { applySessionViewTimeline, refreshTrajectoryRecords, updateSyncChrome, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
-import { conversationLensStaleSnapshotClass, refreshStaleSnapshotBanner } from '../../browser/conversationLensReadingColumn.js';
+import { conversationLensStaleSnapshotClass, refreshStaleSnapshotBanner, shouldShowReadingColumnLiveChrome } from '../../browser/conversationLensReadingColumn.js';
 import { formatSyncChromeLabel } from '../../browser/conversationSessionView.js';
 import type { SyncChrome } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { postBound, saveQueueEdit, saveTurnEdit, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
@@ -174,6 +174,65 @@ suite('conversation lens dispose gate', () => {
 		} as unknown as IConversationLensProjectionHost;
 		refreshTrajectoryRecords(host, 'sess-first');
 		assert.strictEqual(setRecords, 1);
+	});
+
+	test('shouldShowReadingColumnLiveChrome keeps leftover lease while pairingPending then true disconnect hides', () => {
+		let connected = true;
+		let pairingPending = false;
+		const host = {
+			sessionViewLease: leftoverLeaseSnapshot({ kind: 'live' }),
+			stubService: {
+				isEngineConnected: () => connected && !pairingPending,
+				getActiveSessionId: () => 'ua-cache',
+				getTurns: () => [],
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending }),
+			},
+		};
+
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(host), true);
+
+		pairingPending = true;
+		assert.strictEqual(host.stubService.isEngineConnected(), false);
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(host), true);
+
+		pairingPending = false;
+		connected = false;
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(host), false);
+	});
+
+	test('shouldShowReadingColumnLiveChrome keeps leftover cached turns without lease while pairingPending', () => {
+		const host = {
+			sessionViewLease: undefined,
+			stubService: {
+				isEngineConnected: () => false,
+				getActiveSessionId: () => 'ua-cache',
+				getTurns: () => [{ id: 't-leftover', kind: 'thinking', text: 'leftover think', streaming: true }],
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: true }),
+			},
+		};
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(host), true);
+	});
+
+	test('shouldShowReadingColumnLiveChrome first-pull pairingPending without leftover stays false', () => {
+		const host = {
+			sessionViewLease: undefined,
+			stubService: {
+				isEngineConnected: () => false,
+				getActiveSessionId: () => 'sess-first',
+				getTurns: () => [],
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: true }),
+			},
+		};
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(host), false);
 	});
 
 	function leftoverLeaseSnapshot(sync: SyncChrome) {

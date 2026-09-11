@@ -294,6 +294,7 @@ suite('ConversationProcessFold', () => {
 		assert.ok(button);
 		assert.strictEqual(button.disabled, true);
 		assert.strictEqual(button.getAttribute('aria-disabled'), 'true');
+		assert.ok((host.textContent ?? '').includes('· Running'));
 		button.click();
 		assert.deepStrictEqual(calls, []);
 		disposables.dispose();
