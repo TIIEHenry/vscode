@@ -279,7 +279,10 @@ export class NavigatorAgentsView extends ViewPane {
 		}));
 		this._register(this.rosterService.onDidChangeActiveSession(() => this.refreshFromLease()));
 		// Tree first-fetch fail/clear fires via connection snapshot (D21), not lease patches.
-		this._register(this.uaConnection.onDidChangeConnection(() => this.refreshFromLease()));
+		this._register(this.uaConnection.onDidChangeConnection(() => {
+			this.updateEngineConnectedContextKey();
+			this.refreshFromLease();
+		}));
 		this.updateSubviewContextKeys();
 		this.updateEngineConnectedContextKey();
 	}
@@ -323,7 +326,7 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 
 	private updateEngineConnectedContextKey(): void {
-		this.engineConnectedContextKey.set(this.rosterService.isEngineConnected());
+		this.engineConnectedContextKey.set(!isConversationPairingHold(this.uaConnection) && this.rosterService.isEngineConnected());
 	}
 
 	protected override renderBody(container: HTMLElement): void {
