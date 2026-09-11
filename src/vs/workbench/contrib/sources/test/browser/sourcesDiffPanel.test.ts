@@ -621,7 +621,7 @@ suite('Sources diff panel', () => {
 			await (view as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.clean');
 			await (view as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.unstage');
 			await timeout(20);
-			assert.deepStrictEqual(gitMutateCommands, []);
+			assert.strictEqual(gitMutateCommands.length, 0);
 
 			const indexInstantiation = stubDiffHonestyServices({
 				throwOnLoad: true,
