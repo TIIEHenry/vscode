@@ -22,6 +22,7 @@ import {
 } from '../../browser/engineContextVariableList.js';
 import { EngineContextVariableSection } from '../../browser/engineContextVariableSection.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
+import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('EngineContextVariableSection', () => {
@@ -417,6 +418,53 @@ suite('EngineContextVariableSection', () => {
 		assertReadButtonDisabled(pane.getDomNode());
 		await assertForcedReadClickStaysUnary(pane.getDomNode(), readCalls);
 		assert.strictEqual(listContextVariableCalls, listCallsAfterLoad);
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('leftover-looks-live first-pull pairing without leftover stays empty and skips list', async () => {
+		let listContextVariableCalls = 0;
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			pairingPending: true,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			listContextVariable: async (): Promise<UniverseAgentContextVariableListResult> => {
+				listContextVariableCalls++;
+				return {
+					current: [{
+						name: 'should-not-list',
+						scope: 'VARIABLE_GLOBAL',
+						updatedBy: 'agent',
+						updatedAt: 1,
+						contentPreview: 'preview',
+					}],
+					inherited: [],
+				};
+			},
+		});
+		const pane = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(listContextVariableCalls, 0);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-context-variable-row').length, 0);
+		const listHost = pane.getDomNode().querySelector('.engine-context-variable-list') as HTMLElement | null;
+		assert.ok(listHost);
+		assert.strictEqual(listHost.style.display, 'none');
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_CONTEXT_VARIABLE_LIST_EMPTY_COPY));
 		pane.getDomNode().parentElement?.remove();
 	});
 

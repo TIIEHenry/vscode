@@ -34,9 +34,10 @@ const $ = DOM.$;
  * + hook only. Empty sessionId / agentId / name are sent as-is. Empty
  * name / updatedBy / contentPreview stay empty. updatedAt 0 stays as-is.
  * Pairing-hold leftover keeps rows + disconnected note and disables Read
- * (D316); leftover-looks-live (`isEngineConnected()===true` + pairingPending)
- * also refuses Read and skips extra list. Connected leftover still Reads.
- * Disconnect still clears rows.
+ * (D316). Pairing-hold-first refresh (D351): leftover-looks-live first-pull
+ * (`isEngineConnected()===true` + pairingPending, no leftover) paints empty
+ * / disconnected and skips list; leftover WITH leftover still KEEP.
+ * Connected leftover still Reads. Disconnect still clears rows.
  */
 export class EngineContextVariableSection extends Disposable {
 
@@ -107,20 +108,19 @@ export class EngineContextVariableSection extends Disposable {
 	private async refresh(): Promise<void> {
 		const generation = ++this.renderGeneration;
 		const hook = this.connection.listContextVariable;
+		const pairingHold = isConversationPairingHold(this.connection);
 		const canSend = canSendEngineContextVariableListRequest(
 			this.connection.isEngineConnected(),
 			typeof hook === 'function',
+			pairingHold,
 		);
 
 		this.readStatus.style.display = 'none';
 		this.readStatus.textContent = '';
 		this.updateReadAction();
 
-		if (this.rows.length > 0 && isConversationPairingHold(this.connection)) {
-			this.applyDisconnectedRefresh(true);
-			return;
-		}
-		if (!this.connection.isEngineConnected()) {
+		// D351 leftover-looks-live: pairing-hold first. KEEP is not only leftover + pairingHold.
+		if (pairingHold || !this.connection.isEngineConnected()) {
 			this.applyDisconnectedRefresh(this.rows.length > 0);
 			return;
 		}
@@ -148,11 +148,7 @@ export class EngineContextVariableSection extends Disposable {
 			if (generation !== this.renderGeneration) {
 				return;
 			}
-			if (this.rows.length > 0 && isConversationPairingHold(this.connection)) {
-				this.applyDisconnectedRefresh(true);
-				return;
-			}
-			if (!this.connection.isEngineConnected()) {
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				this.applyDisconnectedRefresh(this.rows.length > 0);
 				return;
 			}
