@@ -1567,6 +1567,10 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	private refreshEngineCatalog(): Promise<void> {
+		// D344 leftover-looks-live: pairing-hold first. KEEP leftover roster; do not extra listSessions.
+		if (isConversationPairingHold(this.uaConnection)) {
+			return this.refreshEngineCatalogInflight ?? Promise.resolve();
+		}
 		if (this.refreshEngineCatalogInflight) {
 			return this.refreshEngineCatalogInflight;
 		}
