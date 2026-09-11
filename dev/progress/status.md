@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-11
-summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop：D276–D298 leftover+pairing；compile-client 0。"
+summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop：D276–D299 leftover+pairing；compile-client 0。"
 ---
 
 # Development Progress
@@ -41,11 +41,12 @@ summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop：D2
 
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 进行中（2026-09-11 · D298 已进 merge）
+### 进行中（2026-09-11 · D299 工位 B）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
 | **A** | pairing-hold-fork-fallthrough | 已进 merge；[D298](deferred-gaps.md) 已闭 |
-| **B–D** | leftover+pairing D294–D297 | 已进 merge |
+| **B** | kill leftover notice | 本槽 [D299](deferred-gaps.md) |
+| **C–D** | leftover+pairing D294–D297 | 已进 merge |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>

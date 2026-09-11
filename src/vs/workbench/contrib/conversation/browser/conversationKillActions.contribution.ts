@@ -6,19 +6,21 @@
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { localize2 } from '../../../../nls.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { isDefaultCodeWindow } from '../../chat/browser/chatShellRouting.js';
+import { tryKillSubAgent, type ConversationKillSubAgentArgs } from './conversationKillEngine.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
 export const CONVERSATION_KILL_SUB_AGENT_COMMAND_ID = 'workbench.action.conversation.killSubAgent';
 
-export interface ConversationKillSubAgentArgs {
-	readonly agentId?: string;
-	readonly force?: boolean;
-}
+export type { ConversationKillSubAgentArgs };
 
 /**
  * Connected user Kill → AgentService.Kill. Does not invent a local catalog
- * id or close a Fork tab. Disconnected / non-default windows no-op.
+ * id or close a Fork tab. `!isEngineConnected()` + history (including
+ * pairing-hold leftover) shows the disconnected notice and does not call
+ * `killSubAgent`. `killSubAgent` false → failed notice; true stays silent.
+ * Never-connected / non-default windows stay a silent no-op.
  */
 registerAction2(class ConversationKillSubAgentAction extends Action2 {
 
@@ -36,9 +38,7 @@ registerAction2(class ConversationKillSubAgentAction extends Action2 {
 			return;
 		}
 		const roster = accessor.get(IConversationRosterService);
-		if (!roster.isEngineConnected()) {
-			return;
-		}
-		roster.killSubAgent(roster.getActiveSessionId(), args);
+		const notificationService = accessor.get(INotificationService);
+		tryKillSubAgent(roster, notificationService, args);
 	}
 });
