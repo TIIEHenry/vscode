@@ -151,6 +151,10 @@ export function requestReadingColumnDetail(host: IReadingColumnDetailHost, ref: 
  * D304: pairing-hold leftover (D287 cached turns / D289 leftover lease) keeps
  * read live chrome (`· Running` / `· Loading`). First-pull pairing without
  * leftover must not fake it. True disconnect still hides it.
+ * D355 leftover-looks-live: pairing-hold first. Do not take the
+ * `isEngineConnected()` short-circuit while `isConversationPairingHold`;
+ * fall through to leftover lease / `getTurns`. looks-live first-pull
+ * (connected===true + pairingPending, no leftover) stays false.
  */
 export function shouldShowReadingColumnLiveChrome(host: {
 	readonly stubService: {
@@ -161,11 +165,8 @@ export function shouldShowReadingColumnLiveChrome(host: {
 	readonly uaConnection: IConversationPairingHoldSource;
 	readonly sessionViewLease?: { readonly sessionId: string };
 }): boolean {
-	if (host.stubService.isEngineConnected()) {
-		return true;
-	}
 	if (!isConversationPairingHold(host.uaConnection)) {
-		return false;
+		return host.stubService.isEngineConnected();
 	}
 	const sessionId = resolveReadingColumnSessionId(host);
 	if (!sessionId) {
