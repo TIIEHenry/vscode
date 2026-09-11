@@ -11,7 +11,7 @@ import { StorageScope, StorageTarget } from '../../../../../platform/storage/com
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IUniverseAgentSessionView, type IUniverseAgentSessionViewFrameEvent } from '../../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
-import type { ViewLeaseId } from '../../../../../platform/universeAgent/common/sessionView/types.js';
+import type { SyncChrome, ViewLeaseId } from '../../../../../platform/universeAgent/common/sessionView/types.js';
 import type {
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentSessionEvent,
@@ -340,14 +340,19 @@ class MockUniverseAgentSessionView implements IUniverseAgentSessionView {
 }
 
 const LEFTOVER_CACHE_TURN_TEXT = 'leftover-cached-turn';
+const LEFTOVER_ENGINE_SYNC: SyncChrome = { kind: 'closed', reason: 'leftover-engine-sync' };
 
-/** Host mock that baselines a leftover user turn on every lease listener (D287). */
+/** Host mock that baselines a leftover user turn on every lease listener (D287/D288). */
 class LeftoverProjectionSessionView extends Disposable implements IUniverseAgentSessionView {
 	declare readonly _serviceBrand: undefined;
 	readonly postCalls: { readonly leaseId: string; readonly msg: ConversationWriteMessage }[] = [];
 	private leaseSeq = 0;
 	private readonly leaseSessions = new Map<string, string>();
 	private readonly emitters = new Map<string, Emitter<IUniverseAgentSessionViewFrameEvent>>();
+
+	constructor(private readonly leftoverSync: SyncChrome = { kind: 'idle' }) {
+		super();
+	}
 
 	onDynamicDidApplyFrame(leaseId: string) {
 		let emitter = this.emitters.get(leaseId);
@@ -396,7 +401,7 @@ class LeftoverProjectionSessionView extends Disposable implements IUniverseAgent
 					generation: 1,
 					frameId: 1,
 					version: 1,
-					body: { kind: 'baseline', snapshot: projection.snapshot },
+					body: { kind: 'baseline', snapshot: { ...projection.snapshot, sync: this.leftoverSync } },
 				},
 				attribution: [...projection.attribution.entries()].map(([itemId, attribution]) => ({
 					op: 'upsertAttribution' as const,
@@ -2621,5 +2626,52 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(isConversationPairingHold(connection), true);
 		assert.strictEqual(service.getTurns('ua-empty').length, 0);
 		assert.ok(!service.getTrajectoryRecords('ua-empty').some(record => record.text.includes(LEFTOVER_CACHE_TURN_TEXT)));
+	});
+
+	test('getSessionSync keeps leftover engine sync while pairingPending then true disconnect uses stub', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		const sessionView = store.add(new LeftoverProjectionSessionView(LEFTOVER_ENGINE_SYNC));
+		connection.setListSessions([{ sessionId: 'ua-cache', title: 'Cached UA' }]);
+		const service = store.add(createService(connection, undefined, sessionView));
+		connection.setConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		const lease = store.add(service.acquireSessionView('ua-cache'));
+		assert.ok(await (lease as { whenBindReady?: () => Promise<boolean> }).whenBindReady?.());
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		assert.deepStrictEqual(service.getSessionSync('ua-cache'), LEFTOVER_ENGINE_SYNC);
+
+		connection.setPairingPending(true);
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(service.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.deepStrictEqual(service.getSessionSync('ua-cache'), LEFTOVER_ENGINE_SYNC);
+
+		connection.setPairingPending(false);
+		connection.setConnected(false);
+		assert.strictEqual(service.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'disconnected');
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		const disconnected = service.getSessionSync('ua-cache');
+		assert.notDeepStrictEqual(disconnected, LEFTOVER_ENGINE_SYNC);
+		assert.deepStrictEqual(disconnected, { kind: 'idle' });
+	});
+
+	test('pairingPending first-pull without leftover cache getSessionSync stays stub idle', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-empty', title: 'Empty UA' }]);
+		const service = store.add(createService(connection));
+		connection.setPairingPending(true);
+		connection.setConnected(true);
+		await awaitEngineCatalogRefresh(service);
+
+		assert.strictEqual(service.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.deepStrictEqual(service.getSessionSync('ua-empty'), { kind: 'idle' });
 	});
 });
