@@ -1455,6 +1455,74 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(connection.respondQuestionCalls.length, 2);
 	});
 
+	test('leftover-looks-live createSession and switchSession skip engine write while pairingPending', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		const acquireLeaseCalls: string[] = [];
+		const sessionView = createSessionViewMock({
+			acquireLease: async (sessionId: string) => {
+				acquireLeaseCalls.push(sessionId);
+				return `lease:${sessionId}`;
+			},
+		});
+		connection.setListSessions([
+			{ sessionId: 'ua-a', title: 'A' },
+			{ sessionId: 'ua-b', title: 'B' },
+		]);
+		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
+		const service = store.add(new ConversationEngineRosterService(
+			connection as unknown as IUniverseAgentConnection,
+			sessionView,
+			workspaceToolsGate,
+			storage,
+		));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		assert.strictEqual(service.getActiveSessionId(), 'ua-a');
+		service.switchSession('ua-b');
+		assert.strictEqual(service.getActiveSessionId(), 'ua-b');
+		assert.ok(connection.treeRefreshCalls.includes('ua-b'));
+		const treeRefreshBeforePairing = connection.treeRefreshCalls.length;
+		const createCallsBefore = connection.createCalls.length;
+
+		connection.setPairingPending(true);
+		service.setEngineConnected(true);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		assert.strictEqual(service.createSession(), '');
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(connection.createCalls.length, createCallsBefore);
+		assert.strictEqual(acquireLeaseCalls.filter(id => id.startsWith('session-')).length, 0);
+		assert.deepStrictEqual(service.getSessions().map(s => s.id), ['ua-a', 'ua-b']);
+		assert.ok(!service.getSessions().some(s => s.title === 'New session'));
+		assert.strictEqual(service.getActiveSessionId(), 'ua-b');
+
+		const treeRefreshAtPairing = connection.treeRefreshCalls.length;
+		service.switchSession('ua-a');
+		assert.strictEqual(service.getActiveSessionId(), 'ua-a');
+		assert.strictEqual(connection.treeRefreshCalls.length, treeRefreshAtPairing);
+		assert.ok(treeRefreshAtPairing >= treeRefreshBeforePairing);
+
+		connection.setPairingPending(false);
+		service.setEngineConnected(true);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		service.switchSession('ua-b');
+		assert.strictEqual(service.getActiveSessionId(), 'ua-b');
+		assert.strictEqual(connection.treeRefreshCalls.length, treeRefreshAtPairing + 1);
+		assert.strictEqual(connection.treeRefreshCalls.at(-1), 'ua-b');
+
+		assert.strictEqual(service.createSession(), '');
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(acquireLeaseCalls.filter(id => id.startsWith('session-')).length, 1);
+	});
+
 	test('disconnected after engine renameSession stays local and skips unary', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());
