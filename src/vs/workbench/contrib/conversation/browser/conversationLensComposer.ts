@@ -10,7 +10,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from './conversationComposerCatalog.js';
-import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { rejectPairingHoldWrite } from './conversationLensSessionBinding.js';
 import {
 	conversationLensDockCatalogProbing,
@@ -68,7 +68,8 @@ export interface IConversationLensComposerHost {
 export function refreshComposerCatalogs(host: IConversationLensComposerHost): void {
 
 		const generation = ++host.composerCatalogGeneration;
-		if (!host.stubService.isEngineConnected()) {
+		// D339 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(host.uaConnection) || !host.stubService.isEngineConnected()) {
 			if (keepComposerCatalogForPairingHold(host)) {
 				restoreComposerCatalogLeftoverOrKeepPainted(host);
 				host.updateSendEnabled();
@@ -179,11 +180,7 @@ function hasComposerCatalogLeftover(host: IConversationLensComposerHost): boolea
 }
 
 function keepComposerCatalogForPairingHold(host: IConversationLensComposerHost): boolean {
-	const snapshot = host.uaConnection.getConnectionSnapshot();
-	if (!snapshot.pairingPending || !isConversationEngineLive(host.uaConnection.getConnectionPhase(), false)) {
-		return false;
-	}
-	return hasComposerCatalogLeftover(host);
+	return isConversationPairingHold(host.uaConnection) && hasComposerCatalogLeftover(host);
 }
 
 function restoreComposerCatalogLeftoverOrKeepPainted(host: IConversationLensComposerHost): void {
