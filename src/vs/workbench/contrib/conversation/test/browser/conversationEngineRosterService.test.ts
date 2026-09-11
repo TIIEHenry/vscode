@@ -1231,6 +1231,40 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(service.getSessionGoal('ua-only'), undefined);
 	});
 
+	test('leftover-looks-live forkSubAgent and killSubAgent reject while pairingPending and skip unary', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		assert.strictEqual(service.forkSubAgent('ua-only', { name: 'reviewer' }), true);
+		assert.strictEqual(service.killSubAgent('ua-only', { agentId: 'sub:reviewer' }), true);
+		assert.strictEqual(connection.forkCalls.length, 1);
+		assert.strictEqual(connection.killCalls.length, 1);
+
+		connection.setPairingPending(true);
+		service.setEngineConnected(true);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(service.forkSubAgent('ua-only', { name: 'Looks-live fork' }), false);
+		assert.strictEqual(service.killSubAgent('ua-only', { agentId: 'sub:looks-live' }), false);
+		assert.strictEqual(connection.forkCalls.length, 1);
+		assert.strictEqual(connection.killCalls.length, 1);
+
+		connection.setPairingPending(false);
+		service.setEngineConnected(true);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		assert.strictEqual(service.forkSubAgent('ua-only', { name: 'Live again' }), true);
+		assert.strictEqual(service.killSubAgent('ua-only', { agentId: 'sub:again' }), true);
+		assert.strictEqual(connection.forkCalls.length, 2);
+		assert.strictEqual(connection.killCalls.length, 2);
+	});
+
 	test('disconnected after engine renameSession stays local and skips unary', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());
