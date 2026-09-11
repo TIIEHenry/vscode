@@ -65,7 +65,7 @@ export interface IConversationLensProjectionHost {
 	updateLensTabs(): void;
 	updateReadingColumn(): void;
 	refreshTrajectoryRecords(sessionId: string): void;
-	updateSyncChrome(sync: SyncChrome): void;
+	updateSyncChrome(sync?: SyncChrome): void;
 	updateConversationPhase(): void;
 	syncComposerPlacement(): void;
 	applyConversationDensity(): void;
@@ -124,15 +124,21 @@ export function applySessionViewTimeline(host: IConversationLensProjectionHost, 
 			refreshTrajectoryRecords(host, host.sessionViewLease.sessionId);
 			host.trajectoryView.refreshDetailInspector();
 		}
-		updateSyncChrome(host, host.sessionViewLease.snapshot.sync);
+		updateSyncChrome(host, host.stubService.getSessionSync(host.sessionViewLease.sessionId));
 		updateConversationPhase(host);
 		host.syncComposerPlacement();
 		host.applyConversationDensity();
 	
 }
 
-export function updateSyncChrome(host: IConversationLensProjectionHost, sync: SyncChrome): void {
+/** SessionBar / stale banner follow roster `getSessionSync` (D293 demote), not raw lease sync. */
+export function resolveLensSessionSync(host: IConversationLensProjectionHost): SyncChrome {
+	return host.stubService.getSessionSync(host.sessionViewLease?.sessionId ?? host.getBoundSessionId());
+}
 
+export function updateSyncChrome(host: IConversationLensProjectionHost, _sync?: SyncChrome): void {
+
+		const sync = resolveLensSessionSync(host);
 		const label = formatSyncChromeLabel(sync);
 		if (host.sessionSyncBadge) {
 			if (label) {
@@ -146,7 +152,7 @@ export function updateSyncChrome(host: IConversationLensProjectionHost, sync: Sy
 			}
 		}
 		host.renderInboxStatus();
-		refreshStaleSnapshotBanner(host, sync);
+		refreshStaleSnapshotBanner(host);
 	
 }
 

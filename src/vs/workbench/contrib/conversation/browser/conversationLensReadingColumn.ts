@@ -137,14 +137,14 @@ export function refreshStaleSnapshotBanner(
 		readonly stubService: IConversationRosterService;
 		readonly sessionViewLease?: IConversationSessionViewLease;
 	},
-	sync?: SyncChrome,
+	_sync?: SyncChrome,
 ): void {
 	// eslint-disable-next-line no-restricted-syntax -- the banner is appended by the lens, not by this column
 	const banner = host.readingColumn?.querySelector<HTMLElement>(`.${conversationLensStaleSnapshotClass}`);
 	if (!banner) {
 		return;
 	}
-	const chrome = sync ?? host.stubService.getSessionSync(resolveReadingColumnSessionId(host));
+	const chrome = host.stubService.getSessionSync(resolveReadingColumnSessionId(host));
 	const label = formatStaleSnapshotLabel(chrome);
 	if (label) {
 		banner.hidden = false;

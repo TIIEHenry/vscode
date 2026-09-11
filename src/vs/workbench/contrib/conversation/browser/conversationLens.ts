@@ -690,8 +690,8 @@ export class ConversationLens extends Disposable {
 		applyConversationWidth(this, width);
 	}
 
-	updateSyncChrome(sync: SyncChrome): void {
-		updateSyncChrome(this, sync);
+	updateSyncChrome(_sync?: SyncChrome): void {
+		updateSyncChrome(this);
 	}
 
 	showPostFailure(reason: ConversationComposerPostFailureReason): void {

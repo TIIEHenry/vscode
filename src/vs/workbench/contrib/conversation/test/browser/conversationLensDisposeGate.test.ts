@@ -6,7 +6,10 @@
 import assert from 'assert';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { applySessionViewTimeline, refreshTrajectoryRecords, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
+import { applySessionViewTimeline, refreshTrajectoryRecords, updateSyncChrome, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
+import { conversationLensStaleSnapshotClass, refreshStaleSnapshotBanner } from '../../browser/conversationLensReadingColumn.js';
+import { formatSyncChromeLabel } from '../../browser/conversationSessionView.js';
+import type { SyncChrome } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { postBound, saveQueueEdit, saveTurnEdit, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
 import { showPostFailure, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
 import {
@@ -170,6 +173,115 @@ suite('conversation lens dispose gate', () => {
 		} as unknown as IConversationLensProjectionHost;
 		refreshTrajectoryRecords(host, 'sess-first');
 		assert.strictEqual(setRecords, 1);
+	});
+
+	function leftoverLeaseSnapshot(sync: SyncChrome) {
+		return {
+			sessionId: 'ua-cache',
+			snapshot: {
+				sessionId: 'ua-cache',
+				sync,
+				timeline: [],
+				overlay: { blocks: [] },
+				pendingActions: [],
+				localPendingSends: [],
+			},
+			attribution: new Map(),
+			details: new Map(),
+		};
+	}
+
+	function pairingSyncChromeHost(options: {
+		readonly leftover: SyncChrome;
+		readonly rosterSync: SyncChrome;
+		readonly getSessionSync?: (sessionId: string) => SyncChrome;
+	}): IConversationLensProjectionHost & { readonly sessionSyncBadge: HTMLSpanElement; readonly staleBanner: HTMLDivElement; getSessionSyncCalls: number } {
+		const leftover = options.leftover;
+		const rosterSync = options.rosterSync;
+		const calls = { count: 0 };
+		const badge = document.createElement('span');
+		const banner = document.createElement('div');
+		banner.className = conversationLensStaleSnapshotClass;
+		banner.hidden = true;
+		const readingColumn = document.createElement('div');
+		readingColumn.appendChild(banner);
+		const host = {
+			isDisposed: false,
+			lensId: 'conversation' as const,
+			filterAgentId: undefined,
+			composerPolicy: 'compose' as const,
+			conversationPhase: 'prefirst' as const,
+			lastAttachedEntries: [],
+			sessionViewLease: leftoverLeaseSnapshot(leftover),
+			sessionSyncBadge: badge,
+			readingColumn,
+			staleBanner: banner,
+			get getSessionSyncCalls() { return calls.count; },
+			stubService: {
+				getSessionSync: (sessionId: string) => {
+					calls.count++;
+					assert.strictEqual(sessionId, 'ua-cache');
+					return options.getSessionSync?.(sessionId) ?? rosterSync;
+				},
+				getTurns: () => [],
+				getActiveSessionId: () => 'ua-cache',
+			},
+			getBoundSessionId: () => 'ua-cache',
+			reviewNavService: { getReviewNavForSession: () => [] },
+			timelineTree: { applyEntries: () => { } },
+			trajectoryView: {},
+			renderInboxStatus: () => { },
+			syncComposerPlacement: () => { },
+			applyConversationDensity: () => { },
+			updateSessionConfigVisibility: () => { },
+			exitComposerEdit: () => { },
+			updateGateRow: () => { },
+			relayoutReadingSurfaces: () => { },
+			slotHosts: { dock: { classList: { toggle: () => { } } } },
+			prefirstHero: { hidden: false, appendChild: () => { } },
+			dockRoot: { insertBefore: () => { } },
+			gateRow: {},
+			identityStrip: { element: {} },
+			inboxOverlay: { element: { hidden: true } },
+		};
+		return host as unknown as IConversationLensProjectionHost & { readonly sessionSyncBadge: HTMLSpanElement; readonly staleBanner: HTMLDivElement; getSessionSyncCalls: number };
+	}
+
+	test('applySessionViewTimeline pairing leftover live/syncing lease paints roster demoted sync not Session live', () => {
+		const demoted: SyncChrome = { kind: 'closed', reason: 'Cached snapshot (read-only)' };
+		for (const leftover of [{ kind: 'live' as const }, { kind: 'syncing' as const }]) {
+			const host = pairingSyncChromeHost({ leftover, rosterSync: demoted });
+			applySessionViewTimeline(host, { kind: 'baseline' });
+			assert.ok(host.getSessionSyncCalls > 0);
+			assert.deepStrictEqual(host.stubService.getSessionSync('ua-cache'), demoted);
+			assert.notStrictEqual(host.sessionSyncBadge.textContent, 'Session live');
+			assert.notStrictEqual(host.sessionSyncBadge.textContent, 'Session syncing');
+			assert.strictEqual(host.sessionSyncBadge.textContent, formatSyncChromeLabel(demoted));
+			assert.strictEqual(host.sessionSyncBadge.getAttribute('aria-label'), formatSyncChromeLabel(demoted));
+			assert.strictEqual(host.staleBanner.hidden, false);
+			assert.ok(host.staleBanner.textContent?.includes('Cached snapshot (read-only)'));
+			assert.ok(!/Session live|Session syncing/i.test(host.staleBanner.textContent ?? ''));
+		}
+	});
+
+	test('applySessionViewTimeline connected leftover live still paints Session live', () => {
+		const live: SyncChrome = { kind: 'live' };
+		const host = pairingSyncChromeHost({ leftover: live, rosterSync: live });
+		applySessionViewTimeline(host, { kind: 'baseline' });
+		assert.ok(host.getSessionSyncCalls > 0);
+		assert.strictEqual(host.sessionSyncBadge.textContent, 'Session live');
+		assert.strictEqual(host.staleBanner.hidden, true);
+	});
+
+	test('updateSyncChrome and stale banner ignore leftover live lease and follow getSessionSync', () => {
+		const demoted: SyncChrome = { kind: 'closed', reason: 'Cached snapshot (read-only)' };
+		const host = pairingSyncChromeHost({ leftover: { kind: 'live' }, rosterSync: demoted });
+		updateSyncChrome(host, { kind: 'live' });
+		assert.notStrictEqual(host.sessionSyncBadge.textContent, 'Session live');
+		assert.strictEqual(host.sessionSyncBadge.textContent, formatSyncChromeLabel(demoted));
+		refreshStaleSnapshotBanner(host, { kind: 'live' });
+		assert.strictEqual(host.staleBanner.hidden, false);
+		assert.ok(host.staleBanner.textContent?.includes('Cached snapshot (read-only)'));
 	});
 
 	test('bindSessionView skips applyEntries after dispose', () => {
