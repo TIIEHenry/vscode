@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { PendingActionView } from '../../../../platform/universeAgent/common/sessionView/index.js';
+import { isConversationPairingHold, type IConversationPairingHoldSource } from './conversationSessionStatus.js';
 import type { ConversationStubTurn } from './conversationStubModel.js';
 
 /** Host surface for the shared pending-seat scroll helper (CS-3). */
@@ -38,6 +39,15 @@ export function findFirstPendingConfirmationTurnId(turns: readonly ConversationS
 	return turns.find(turn =>
 		(turn.kind === 'confirmation' || turn.kind === 'question') && turn.status === 'pending'
 	)?.id;
+}
+
+/**
+ * CS-4 / notification Show auto-scroll. Pairing-hold leftover seats stay
+ * counted (D291) but are write-disabled (D297); jumping there implies the
+ * user can confirm. Explicit Inbox pending-click is not gated here.
+ */
+export function shouldAutoRevealPendingConfirmation(ua?: IConversationPairingHoldSource): boolean {
+	return !isConversationPairingHold(ua);
 }
 
 export function scrollToFirstPendingConfirmation(host: IConversationPendingSeatHost): void {
