@@ -11,6 +11,7 @@ import {
 	conversationCreateSnapshotDisconnectedCopy,
 	conversationCreateSnapshotFailedCopy,
 	notifyCreateSnapshotRejected,
+	notifyCreateSnapshotUnavailable,
 	resolveCreateSnapshotTitle,
 } from '../../browser/conversationCreateSnapshotActions.contribution.js';
 
@@ -55,5 +56,21 @@ suite('ConversationCreateSnapshotActions', () => {
 			error: message => { errors.push(String(message)); },
 		}), false);
 		assert.deepStrictEqual(errors, [conversationCreateSnapshotDisconnectedCopy]);
+	});
+
+	test('notifyCreateSnapshotUnavailable disconnected with history shows disconnected copy', () => {
+		const errors: string[] = [];
+		notifyCreateSnapshotUnavailable(false, true, {
+			error: message => { errors.push(String(message)); },
+		});
+		assert.deepStrictEqual(errors, [conversationCreateSnapshotDisconnectedCopy]);
+	});
+
+	test('notifyCreateSnapshotUnavailable never-connected stays silent', () => {
+		const errors: string[] = [];
+		notifyCreateSnapshotUnavailable(false, false, {
+			error: message => { errors.push(String(message)); },
+		});
+		assert.deepStrictEqual(errors, []);
 	});
 });

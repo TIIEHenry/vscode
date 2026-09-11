@@ -72,12 +72,25 @@ export function notifyCreateSnapshotRejected(
 	return false;
 }
 
+/** Silent gate used to skip the unary. Disconnected + history (incl. pairing-hold leftover) is not silent. */
+export function notifyCreateSnapshotUnavailable(
+	connected: boolean,
+	history: boolean,
+	notificationService: Pick<INotificationService, 'error'>,
+): void {
+	if (!connected && history) {
+		notifyCreateSnapshotRejected(false, false, true, notificationService);
+	}
+}
+
 /**
  * Connected user Create Snapshot → AgentService.CreateSnapshot for the
  * active session. Does not list, restore, or delete snapshots, and does
  * not replace SessionBar History (GetHistory). Disconnected / no hook / empty
- * sessionId / cancelled prompt no-op. `createSnapshot` false → notice
- * (D110 failed / engine_disconnected); true stays silent.
+ * sessionId / cancelled prompt no-op. `!isEngineConnected()` + history
+ * (including pairing-hold leftover) shows the disconnected notice instead of
+ * a silent return. `createSnapshot` false → notice (D110 failed /
+ * engine_disconnected); true stays silent.
  */
 registerAction2(class ConversationCreateSnapshotAction extends Action2 {
 
@@ -100,6 +113,7 @@ registerAction2(class ConversationCreateSnapshotAction extends Action2 {
 		const quickInputService = accessor.get(IQuickInputService);
 		const sessionId = roster.getActiveSessionId();
 		if (!canCreateEngineSnapshot(roster.isEngineConnected(), !!connection.createSnapshot, sessionId)) {
+			notifyCreateSnapshotUnavailable(roster.isEngineConnected(), roster.hasEngineConnectionHistory(), notificationService);
 			return;
 		}
 		let title = args?.title;

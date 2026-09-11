@@ -54,7 +54,7 @@ import { ForkConversationAction } from '../../../chat/browser/actions/chatForkAc
 import { isDefaultCodeWindow } from '../../../chat/browser/chatShellRouting.js';
 import { IChatSessionsService } from '../../../chat/common/chatSessionsService.js';
 import { getChatSessionType } from '../../../chat/common/model/chatUri.js';
-import { tryConnectedEngineFork } from '../../browser/conversationForkEngine.js';
+import { conversationForkEngineDisconnectedCopy, tryConnectedEngineFork } from '../../browser/conversationForkEngine.js';
 
 const TEST_CONVERSATION_CHAT_EDITOR_ID = 'workbench.editor.conversationChat.test';
 
@@ -151,6 +151,34 @@ suite('Conversation session chat (S3)', () => {
 		override forkSubAgent(sessionId: string): boolean {
 			this.forkCalls.push({ sessionId });
 			return false;
+		}
+	}
+
+	class PairingHoldHistoryForkRoster extends ConversationStubService {
+		override isEngineConnected(): boolean {
+			return false;
+		}
+
+		override hasEngineConnectionHistory(): boolean {
+			return true;
+		}
+
+		override forkSubAgent(): boolean {
+			throw new Error('must not engine-fork while pairing-hold');
+		}
+	}
+
+	class DisconnectHistoryForkRoster extends ConversationStubService {
+		override isEngineConnected(): boolean {
+			return false;
+		}
+
+		override hasEngineConnectionHistory(): boolean {
+			return true;
+		}
+
+		override forkSubAgent(): boolean {
+			throw new Error('must not engine-fork while disconnected');
 		}
 	}
 
@@ -261,7 +289,7 @@ suite('Conversation session chat (S3)', () => {
 
 				const roster = accessor.get(IConversationRosterService);
 				const notificationService = accessor.get(INotificationService);
-				const outcome = tryConnectedEngineFork(roster, notificationService);
+				const outcome = tryConnectedEngineFork(roster, notificationService, accessor.get(IUniverseAgentConnection));
 				if (outcome.handled) {
 					return { kind: 'engine' as const, forked: outcome.forked, handled: outcome.handled };
 				}
@@ -495,6 +523,80 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(forkCalls, 0);
 		assert.strictEqual(conversationPart.activeGroup.count, 1);
 		assert.strictEqual(sessionChatService.getCatalog(SESSION_KEY).length, 0);
+	});
+
+	test('pairing-hold leftover fork is handled, not forked, and does not fall through to local stub tab', async () => {
+		const roster = store.add(new PairingHoldHistoryForkRoster());
+		const errors: string[] = [];
+		const ua = createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...createConversationConnectionTestStub().getConnectionSnapshot(),
+				pairingPending: true,
+			}),
+		});
+		const { instantiationService, conversationPart, sessionChatService } = await createHarness(roster, {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService, ua);
+		instantiationService.stub(IWorkbenchEnvironmentService, upcastPartial<IWorkbenchEnvironmentService>({ isSessionsWindow: false }));
+		instantiationService.stub(IConversationSessionChatService, sessionChatService);
+		instantiationService.stub(IConversationRosterService, roster);
+
+		let forkCalls = 0;
+		instantiationService.stub(IChatSessionsService, upcastPartial<IChatSessionsService>({
+			getContentProviderSchemes: () => ['agent-host-copilot'],
+			forkChatSession: async () => {
+				forkCalls++;
+				return {
+					resource: URI.parse('agent-host-copilot:/fork-source#peer-1'),
+					label: 'Forked peer',
+					iconPath: undefined,
+					timing: { created: 0, lastRequestStarted: 0, lastRequestEnded: 0 },
+				};
+			},
+		}));
+
+		const forked = await new TestConversationForkAction().tryForkAsChat(
+			instantiationService,
+			URI.parse('agent-host-copilot:/fork-source'),
+		);
+		assert.strictEqual(forked, false);
+		assert.deepStrictEqual(errors, [conversationForkEngineDisconnectedCopy]);
+		assert.strictEqual(forkCalls, 0);
+		assert.strictEqual(conversationPart.activeGroup.count, 1);
+		assert.strictEqual(sessionChatService.getCatalog(SESSION_KEY).length, 0);
+	});
+
+	test('disconnected with history still falls through to local fork tab', async () => {
+		const roster = store.add(new DisconnectHistoryForkRoster());
+		const { instantiationService, conversationPart, sessionChatService } = await createHarness(roster);
+		instantiationService.stub(IWorkbenchEnvironmentService, upcastPartial<IWorkbenchEnvironmentService>({ isSessionsWindow: false }));
+		instantiationService.stub(IConversationSessionChatService, sessionChatService);
+		instantiationService.stub(IConversationRosterService, roster);
+
+		const sourceSessionResource = URI.parse('agent-host-copilot:/fork-source');
+		const forkedResource = URI.parse('agent-host-copilot:/fork-source#peer-1');
+		let forkCalls = 0;
+		instantiationService.stub(IChatSessionsService, upcastPartial<IChatSessionsService>({
+			getContentProviderSchemes: () => ['agent-host-copilot'],
+			forkChatSession: async () => {
+				forkCalls++;
+				return {
+					resource: forkedResource,
+					label: 'Forked peer',
+					iconPath: undefined,
+					timing: { created: 0, lastRequestStarted: 0, lastRequestEnded: 0 },
+				};
+			},
+		}));
+
+		const handled = await new TestConversationForkAction().tryForkAsChat(instantiationService, sourceSessionResource);
+		assert.strictEqual(handled, true);
+		assert.strictEqual(forkCalls, 1);
+		assert.strictEqual(conversationPart.activeGroup.count, 2);
+		assert.ok(sessionChatService.findOpenTabForChat(SESSION_KEY, 'peer-1'));
 	});
 
 	test('fork openForkTab throw notifies error without unhandled rejection', async () => {

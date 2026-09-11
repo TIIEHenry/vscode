@@ -8,6 +8,7 @@ import { getErrorMessage } from '../../../../base/common/errors.js';
 import { registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ForkConversationAction } from '../../chat/browser/actions/chatForkActions.js';
 import { isDefaultCodeWindow } from '../../chat/browser/chatShellRouting.js';
 import { IChatSessionsService } from '../../chat/common/chatSessionsService.js';
@@ -36,7 +37,7 @@ export class ConversationForkConversationAction extends ForkConversationAction {
 
 			const roster = accessor.get(IConversationRosterService);
 			const notificationService = accessor.get(INotificationService);
-			const outcome = tryConnectedEngineFork(roster, notificationService);
+			const outcome = tryConnectedEngineFork(roster, notificationService, accessor.get(IUniverseAgentConnection));
 			if (outcome.handled) {
 				this.engineForkHandledWithoutSuccess = !outcome.forked;
 				return outcome.forked;
