@@ -23,6 +23,7 @@ import {
 	conversationLensSessionBarHistoryEmpty,
 	conversationLensSessionBarHistoryUnavailableDisconnected,
 } from '../../browser/conversationLensSessionBarStrings.js';
+import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../browser/conversationStubService.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
@@ -286,5 +287,53 @@ suite('ConversationEngineHistoryList', () => {
 
 		assert.strictEqual(historyRow(overlayParent, 'leftover-1'), null);
 		assert.ok(overlayParent.textContent?.includes(conversationLensSessionBarHistoryUnavailableDisconnected));
+	});
+
+	test('leftover-looks-live pairing-hold keeps leftover history and skips getHistory', async () => {
+		let pairingPending = false;
+		let listCalls = 0;
+		const leftover: UniverseAgentHistoryEnvelope = {
+			cursorSeq: 'leftover-1',
+			payload: { text: 'Leftover' },
+		};
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			pairingPending,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			getHistory: async () => {
+				listCalls++;
+				return { envelopes: [leftover] };
+			},
+		});
+		const { list, overlayParent } = mountList(connection);
+		list.show();
+		await Promise.resolve();
+		assert.strictEqual(listCalls, 1);
+		assert.ok(historyRow(overlayParent, 'leftover-1'));
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		const listCallsAfterLoad = listCalls;
+
+		pairingPending = true;
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		onDidChangeConnection.fire(snapshot());
+		await new Promise(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(listCalls, listCallsAfterLoad, 'leftover-looks-live must not extra getHistory');
+		assert.ok(historyRow(overlayParent, 'leftover-1'));
+		assert.strictEqual(overlayParent.querySelectorAll(`.${conversationLensHistoryRowClass}`).length, 1);
+		assert.ok(overlayParent.textContent?.includes(conversationLensSessionBarHistoryUnavailableDisconnected));
+		assert.ok(!(overlayParent.textContent ?? '').includes(conversationLensSessionBarHistoryEmpty));
 	});
 });
