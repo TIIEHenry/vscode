@@ -156,12 +156,12 @@ export function toggleTuneContextView(host: IConversationLensComposerChromeHost,
 			anchorPosition: AnchorPosition.ABOVE,
 			render: container => {
 				const popup = append(container, $('.conversation-lens-dock-tune-popup'));
-				if (host.stubService.isEngineConnected() && host.catalogToolNames.length > 0) {
+				if (host.catalogToolNames.length > 0) {
 					for (const name of host.catalogToolNames) {
 						append(popup, $('div.conversation-lens-dock-tune-tool')).textContent = name;
 					}
 					append(popup, $('div.conversation-lens-dock-tune-note')).textContent = conversationLensDockToolsEngineHint;
-				} else if (host.stubService.isEngineConnected()) {
+				} else if (isComposerSessionWriteLive(host)) {
 					popup.textContent = conversationLensDockNoEngineTools;
 				} else {
 					popup.textContent = conversationLensDockNoTools;
@@ -238,7 +238,6 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 						item.setAttribute('aria-disabled', 'true');
 						item.title = conversationLensDockPermissionUnavailable;
 						item.setAttribute('aria-label', `${COMPOSER_PERMISSION_OPTIONS[index]} — ${conversationLensDockPermissionUnavailable}`);
-						continue;
 					}
 					store.add(addDisposableListener(item, 'click', e => {
 						e.preventDefault();
@@ -537,9 +536,33 @@ export function setSessionConfig(host: IConversationLensComposerChromeHost, sess
 	
 }
 
+function isComposerSessionWriteLive(host: IConversationLensComposerChromeHost): boolean {
+	return host.stubService.isEngineConnected() && !isConversationPairingHold(host.uaConnection);
+}
+
+function syncComposerSelectEnabledChrome(
+	selectBox: SelectBox,
+	container: HTMLElement | null,
+	available: boolean,
+	availableLabel: string,
+	unavailableLabel: string,
+): void {
+	selectBox.setEnabled(available);
+	selectBox.setAriaLabel(available ? availableLabel : `${availableLabel} — ${unavailableLabel}`);
+	if (!container) {
+		return;
+	}
+	container.title = available ? availableLabel : unavailableLabel;
+	container.setAttribute('aria-disabled', String(!available));
+	const select = container.querySelector('select');
+	if (select) {
+		select.setAttribute('aria-disabled', String(!available));
+	}
+}
+
 export function isSessionPermissionModeAvailable(host: IConversationLensComposerChromeHost): boolean {
 
-		return host.stubService.isEngineConnected() && typeof host.uaConnection.setPermissionMode === 'function';
+		return isComposerSessionWriteLive(host) && typeof host.uaConnection.setPermissionMode === 'function';
 	
 }
 
@@ -549,22 +572,21 @@ export function updatePermissionSelectEnabled(host: IConversationLensComposerChr
 			return;
 		}
 		const available = isSessionPermissionModeAvailable(host);
-		host.permissionSelectBox.setEnabled(available);
-		const label = available
-			? conversationLensDockPermissionLabel
-			: `${conversationLensDockPermissionLabel} — ${conversationLensDockPermissionUnavailable}`;
-		host.permissionSelectBox.setAriaLabel(label);
 		// eslint-disable-next-line no-restricted-syntax -- the permission host is built by the dock, not by this chrome
 		const container = host.dockRoot?.querySelector('.conversation-lens-dock-permission') as HTMLElement | null;
-		if (container) {
-			container.title = available ? conversationLensDockPermissionLabel : conversationLensDockPermissionUnavailable;
-		}
+		syncComposerSelectEnabledChrome(
+			host.permissionSelectBox,
+			container,
+			available,
+			conversationLensDockPermissionLabel,
+			conversationLensDockPermissionUnavailable);
+
 	
 }
 
 export function isSessionSwitchAgentAvailable(host: IConversationLensComposerChromeHost): boolean {
 
-		return host.stubService.isEngineConnected() && typeof (host.uaConnection as { switchAgent?: unknown }).switchAgent === 'function';
+		return isComposerSessionWriteLive(host) && typeof (host.uaConnection as { switchAgent?: unknown }).switchAgent === 'function';
 	
 }
 
@@ -574,14 +596,13 @@ export function updateAgentSelectEnabled(host: IConversationLensComposerChromeHo
 			return;
 		}
 		const available = isSessionSwitchAgentAvailable(host);
-		host.agentSelectBox.setEnabled(available);
-		const label = available
-			? conversationLensDockAgentLabel
-			: `${conversationLensDockAgentLabel} — ${conversationLensDockAgentUnavailable}`;
-		host.agentSelectBox.setAriaLabel(label);
-		if (host.agentContainer) {
-			host.agentContainer.title = available ? conversationLensDockAgentLabel : conversationLensDockAgentUnavailable;
-		}
+		syncComposerSelectEnabledChrome(
+			host.agentSelectBox,
+			host.agentContainer,
+			available,
+			conversationLensDockAgentLabel,
+			conversationLensDockAgentUnavailable);
+
 	
 }
 
@@ -607,6 +628,7 @@ export async function applySessionPermissionIndex(host: IConversationLensCompose
 			return;
 		}
 		if (!isSessionPermissionModeAvailable(host) || !host.uaConnection.setPermissionMode) {
+			restoreSessionPermissionIndex(host, sessionId, previous);
 			return;
 		}
 		setSessionConfig(host, sessionId, { permissionIndex });
@@ -629,7 +651,7 @@ export async function applySessionPermissionIndex(host: IConversationLensCompose
 
 export function isSessionSwitchModelAvailable(host: IConversationLensComposerChromeHost): boolean {
 
-		return host.stubService.isEngineConnected() && typeof host.uaConnection.switchModel === 'function';
+		return isComposerSessionWriteLive(host) && typeof host.uaConnection.switchModel === 'function';
 	
 }
 
@@ -639,16 +661,14 @@ export function updateModelSelectEnabled(host: IConversationLensComposerChromeHo
 			return;
 		}
 		const available = isSessionSwitchModelAvailable(host);
-		host.modelSelectBox.setEnabled(available);
-		const label = available
-			? conversationLensDockModelLabel
-			: `${conversationLensDockModelLabel} — ${conversationLensDockModelUnavailable}`;
-		host.modelSelectBox.setAriaLabel(label);
 		// eslint-disable-next-line no-restricted-syntax -- the model host is built by the dock, not by this chrome
 		const container = host.dockRoot?.querySelector('.conversation-lens-dock-model') as HTMLElement | null;
-		if (container) {
-			container.title = available ? conversationLensDockModelLabel : conversationLensDockModelUnavailable;
-		}
+		syncComposerSelectEnabledChrome(
+			host.modelSelectBox,
+			container,
+			available,
+			conversationLensDockModelLabel,
+			conversationLensDockModelUnavailable);
 	
 }
 
