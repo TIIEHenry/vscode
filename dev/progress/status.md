@@ -11,7 +11,7 @@ summary: "合入 D306 Sessions 删除闸 + D307 Inbox 余写闸。D8/D16/D147 �
 > **当前迭代账**（规则 3a）。产品状态 → [traceability](../../docs/product/traceability.md)（生成列）；方案状态 → [plans INDEX](../plans/INDEX.md)（生成列）；延期 → [deferred-gaps](deferred-gaps.md)。历史槽位 catalog 流水 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
 
-### 已合入（`MERGE_SHA=bf6efe58730` compile-client 0；push 后以 `origin/agent-ide` 为准）
+### 已合入（`MERGE_SHA=6c4edda2bb9` compile-client 0；push 后以 `origin/agent-ide` 为准）
 | 切片 | 提交 / 落点 |
 |:-----|:------------|
 | **GFS-1** | `32f71812` / `32198d0b` — [giant-file-split](../plans/giant-file-split.md)：`grpcClient` mapper 特征测 + facade / mappers / calls 拆分 |
@@ -181,11 +181,11 @@ summary: "合入 D306 Sessions 删除闸 + D307 Inbox 余写闸。D8/D16/D147 �
 ## 工位表（P0 盘点 · 2026-09-12 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `bf6efe58730` | 干净 | 0 | `parked`；compile-client 0；本账 +1 以远程 tip 为准 |
-| A | `vscode-WorkTrees/A` | `loop/A` | `bf6efe58730` | 干净 | 0 | idle；跟 MERGE_SHA |
-| B | `vscode-WorkTrees/B` | `loop/B` | `bf6efe58730` | 干净 | 0 | idle；跟 MERGE_SHA |
-| C | `vscode-WorkTrees/C` | `loop/C` | `bf6efe58730` | 未提交 `dev/loop` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `bf6efe58730` | 干净 | 0 | idle；跟 MERGE_SHA |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `6c4edda2bb9` | 干净 | 0 | `parked`；compile-client 0；本账 +1 以远程 tip 为准 |
+| A | `vscode-WorkTrees/A` | `loop/A` | `6c4edda2bb9` | 干净 | 0 | idle；跟 MERGE_SHA |
+| B | `vscode-WorkTrees/B` | `loop/B` | `6c4edda2bb9` | 干净 | 0 | idle；跟 MERGE_SHA |
+| C | `vscode-WorkTrees/C` | `loop/C` | `6c4edda2bb9` | 未提交 `dev/loop` | 0 | idle；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `6c4edda2bb9` | 干净 | 0 | idle；跟 MERGE_SHA |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | leftover 已合入 merge；勿 `checkout -B` |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `ad9245ca178` | `dev/loop` + `.idea` | 0 | 请自行对齐 `origin/agent-ide`（勿对齐本表旧 SHA） |
 ## Next（Blockers：无）
