@@ -9,6 +9,7 @@ import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { resolveEngineCatalogPaneMode } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
@@ -72,7 +73,8 @@ export class EngineRulesSection extends Disposable {
 	private render(): void {
 		this.scopePanels.style.display = 'none';
 
-		if (!this.connection.isEngineConnected()) {
+		// D356 leftover-looks-live: pairing-hold first. KEEP chrome is not only `!connected`.
+		if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 			this.status.render({
 				mode: 'disconnected',
 				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
