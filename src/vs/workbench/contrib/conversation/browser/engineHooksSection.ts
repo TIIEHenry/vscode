@@ -12,6 +12,7 @@ import { readCapabilityEntry } from '../../../../platform/universeAgent/common/u
 import { resolveEngineCatalogPaneMode } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 
 const $ = DOM.$;
@@ -72,7 +73,8 @@ export class EngineHooksSection extends Disposable {
 	private render(): void {
 		this.layoutHost.style.display = 'none';
 
-		if (!this.connection.isEngineConnected()) {
+		// D357 leftover-looks-live: pairing-hold first. KEEP-chrome is not only `!connected`.
+		if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 			this.status.render({
 				mode: 'disconnected',
 				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
