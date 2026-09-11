@@ -15,11 +15,13 @@ import { WorkbenchList } from '../../../../platform/list/browser/listService.js'
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type {
+	UniverseAgentCapabilitySupport,
 	UniverseAgentMcpRuntimeStatus,
 	UniverseAgentMcpServerStatus,
 	UniverseAgentMcpToolDefinition,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { isConversationEngineLive } from './conversationSessionStatus.js';
 import {
 	type EngineCatalogPaneMode,
 	canShowCatalogRows,
@@ -265,6 +267,28 @@ export class EngineMcpRuntimePanel extends Disposable {
 		return this.list;
 	}
 
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		if (!hadLiveCatalog) {
+			return false;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
+	}
+
+	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): void {
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			this.listContainer.style.display = '';
+			this.mode = resolveEngineCatalogPaneMode(false, support);
+			this.refreshButton.enabled = false;
+			this.refreshToolbar.style.display = 'none';
+			this.renderStatus();
+			return;
+		}
+		this.clearRuntimePresentation();
+		this.mode = resolveEngineCatalogPaneMode(false, support);
+		this.renderStatus();
+	}
+
 	private async refresh(options?: { readonly forceTools?: boolean }): Promise<void> {
 		const generation = ++this.refreshGeneration;
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
@@ -274,9 +298,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 		this.refreshToolbar.style.display = 'none';
 
 		if (!connected) {
-			this.clearRuntimePresentation();
-			this.mode = resolveEngineCatalogPaneMode(false, support);
-			this.renderStatus();
+			this.applyDisconnectedRefresh(support, this.listEntries.some(entry => entry.kind === 'server'));
 			return;
 		}
 
@@ -309,9 +331,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 				return;
 			}
 			if (!this.connection.isEngineConnected()) {
-				this.clearRuntimePresentation();
-				this.mode = resolveEngineCatalogPaneMode(false, support);
-				this.renderStatus();
+				this.applyDisconnectedRefresh(support, this.listEntries.some(entry => entry.kind === 'server'));
 				return;
 			}
 			this.checkedAt = result.checkedAt;

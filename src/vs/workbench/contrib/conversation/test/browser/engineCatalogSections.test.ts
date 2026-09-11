@@ -329,7 +329,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 	}
 
 	function assertCatalogLeftoverPairingHonesty(
-		section: EngineAgentsSection | EngineToolsSection,
+		section: EngineAgentsSection | EngineToolsSection | EngineMcpSection,
 		expectedRows: number,
 		emptyCopy: string,
 	): void {
@@ -413,6 +413,41 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
 		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
 		assertCatalogLeftoverPairingHonesty(section, leftoverRows, AGENTS_EMPTY_COPY);
+
+		connection.setConnected(false);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), 0);
+	});
+
+	test('MCP: connected phase with pairingPending keeps leftover catalog and paints not-connected', async () => {
+		let listMcpServersCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => {
+				listMcpServersCalls++;
+				return { servers: [demoMcpServer()] };
+			},
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listMcpServersCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listMcpServersCalls, listCallsAfterLoad);
+		assertCatalogLeftoverPairingHonesty(section, leftoverRows, MCP_EMPTY_COPY);
 
 		connection.setConnected(false);
 		await flushMicrotasks();

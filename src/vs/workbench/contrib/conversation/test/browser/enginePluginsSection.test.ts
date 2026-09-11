@@ -18,6 +18,7 @@ import type {
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy, getCatalogUnsupportedCopy } from '../../browser/engineCatalog.js';
+import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import {
 	ENGINE_PLUGINS_ENABLE_SUCCESS_COPY,
 	ENGINE_PLUGINS_RELOAD_SUCCESS_COPY,
@@ -61,6 +62,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 	} = {}): IUniverseAgentConnection & {
 		setPluginsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setConnected(next: boolean): void;
+		setPairingPending(value: boolean): void;
 		clearGetPluginInfo(): void;
 	} {
 		const pluginsCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN' } = {
@@ -71,6 +73,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 			plugins: pluginsCapability,
 		};
 		let connected = options.connected ?? true;
+		let pairingPending = false;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 		const plugin = demoPlugin();
 		let getPluginInfo: IUniverseAgentConnection['getPluginInfo'] | undefined = 'getPluginInfo' in options
@@ -80,7 +83,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
 			transport: connected ? 'ok' : 'idle',
 			sessionToken: connected ? 'tok' : undefined,
-			pairingPending: false,
+			pairingPending,
 			channelAlive: connected,
 			sharedFsRootSent: false,
 			capabilities,
@@ -88,7 +91,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 
 		return {
 			_serviceBrand: undefined,
-			isEngineConnected: () => connected,
+			isEngineConnected: () => connected && !pairingPending,
 			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
 			getTransportState: () => (connected ? 'ok' : 'idle'),
 			getConnectionSnapshot: snapshot,
@@ -163,6 +166,10 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 				connected = next;
 				onDidChangeConnection.fire(snapshot());
 			},
+			setPairingPending(value: boolean) {
+				pairingPending = value;
+				onDidChangeConnection.fire(snapshot());
+			},
 			clearGetPluginInfo() {
 				getPluginInfo = undefined;
 			},
@@ -182,6 +189,20 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 
 	async function flushMicrotasks(): Promise<void> {
 		await new Promise(resolve => setTimeout(resolve, 0));
+	}
+
+	function assertPluginsLeftoverPairingHonesty(section: EnginePluginsSection, expectedRows: number): void {
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), expectedRows);
+		assert.strictEqual(section.canWrite(), false);
+		const listContainer = section.getDomNode().querySelector('.engine-catalog-list') as HTMLElement;
+		assert.ok(listContainer);
+		assert.notStrictEqual(listContainer.style.display, 'none');
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(PLUGINS_EMPTY_COPY));
 	}
 
 	function assertPluginsLeftoverFailedHonesty(section: EnginePluginsSection, errorMessage: string, expectedRows: number): void {
@@ -384,6 +405,40 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		assert.strictEqual(listPluginsCalls, 2);
 		assertPluginsLeftoverFailedHonesty(section, 'listPlugins retry exploded', 1);
 		assert.ok(section.selectPluginForTest('leftover-plugin'));
+	});
+
+	test('connected phase with pairingPending keeps leftover catalog and paints not-connected', async () => {
+		let listPluginsCalls = 0;
+		const leftover = { ...demoPlugin(), id: 'leftover-plugin', displayName: 'Leftover Plugin' };
+		const connection = createConnectionStub({
+			listPlugins: async () => {
+				listPluginsCalls++;
+				return { plugins: [leftover] };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listPluginsCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listPluginsCalls, listCallsAfterLoad);
+		assertPluginsLeftoverPairingHonesty(section, leftoverRows);
+
+		connection.setConnected(false);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), 0);
 	});
 
 	test('enablePlugin ok does not keep Enabled. when subsequent listPlugins fails', async () => {

@@ -26,6 +26,7 @@ import {
 	conversationLensSessionBarSnapshotsUnavailableNoHook,
 	conversationLensSessionBarSnapshotsUnavailableNoSession,
 } from './conversationLensSessionBarStrings.js';
+import { isConversationEngineLive } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
 export const conversationLensSnapshotsButtonClass = 'conversation-lens-session-snapshots';
@@ -240,6 +241,26 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		super.dispose();
 	}
 
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		if (!hadLiveCatalog) {
+			return false;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
+	}
+
+	private applyDisconnectedRefresh(): boolean {
+		const sessionId = this.roster.getActiveSessionId();
+		const hasHook = typeof this.connection.listSnapshots === 'function';
+		const disconnectedCopy = this.unavailableCopy(false, hasHook, sessionId);
+		if (this.paintedLiveSnapshots && this.keepLeftoverCatalogForPairingHold(true)) {
+			this.paintListFailed(conversationLensSessionBarSnapshotsUnavailableDisconnected);
+			return false;
+		}
+		this.paintStatus(disconnectedCopy);
+		return false;
+	}
+
 	private async refresh(): Promise<boolean> {
 		const generation = ++this.renderGeneration;
 		const sessionId = this.roster.getActiveSessionId();
@@ -248,8 +269,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		const hasHook = typeof listSnapshots === 'function';
 
 		if (!connected) {
-			this.paintStatus(this.unavailableCopy(connected, hasHook, sessionId));
-			return false;
+			return this.applyDisconnectedRefresh();
 		}
 		if (!hasHook || !listSnapshots) {
 			this.paintListFailed(this.unavailableCopy(connected, hasHook, sessionId));
@@ -270,6 +290,9 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			const result = await listSnapshots.call(this.connection, { sessionId });
 			if (generation !== this.renderGeneration) {
 				return false;
+			}
+			if (!this.connection.isEngineConnected()) {
+				return this.applyDisconnectedRefresh();
 			}
 			this.paintSnapshots(result.snapshots);
 			return true;

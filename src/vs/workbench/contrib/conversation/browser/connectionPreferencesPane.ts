@@ -68,9 +68,10 @@ import {
 } from './connectionPreferencesPaneLabels.js';
 import { applyConnectionPaneIdentityStripReservation } from './connectionPaneIdentityStripReservation.js';
 import { promptRecoverTrustConfirmDialog, promptSasConfirmDialog } from './connectionPreferencesPaneSas.js';
-import { getConnectionPhaseStatusBarText } from './conversationSessionStatus.js';
+import { getConnectionPhaseStatusBarText, isConversationEngineLive } from './conversationSessionStatus.js';
 import {
 	getEngineSectionApiUnavailableCopy,
+	getEngineSectionDisconnectedCopy,
 	getUnsupportedEnvironmentCopy,
 	PREFERENCES_PANE_COMPACT_WIDTH,
 	PREFERENCES_PANE_NARROW_WIDTH,
@@ -1087,16 +1088,45 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 	}
 
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		if (!hadLiveCatalog) {
+			return false;
+		}
+		const snapshot = this.connectionService.getConnectionSnapshot();
+		return snapshot.pairingPending && isConversationEngineLive(this.connectionService.getConnectionPhase(), false);
+	}
+
+	private applyDisconnectedDevicesRefresh(): void {
+		if (this.keepLeftoverCatalogForPairingHold(!!this.enginePairedDevices?.length)) {
+			this.renderHubDirectory();
+			writeStatus(this.devicesConnectStatus, getEngineSectionDisconnectedCopy(), 'warning');
+			return;
+		}
+		// Disconnect still clears engine leftover (History/Clipboard contract).
+		this.enginePairedDevices = undefined;
+		this.engineDevicesListFailed = undefined;
+		this.hubDevices = [];
+		this.renderHubDirectory();
+		writeStatus(this.devicesConnectStatus, '', 'neutral');
+	}
+
+	private applyDisconnectedPendingRefresh(): void {
+		if (this.keepLeftoverCatalogForPairingHold(this.pendingPairs.length > 0)) {
+			this.renderPendingPairs();
+			return;
+		}
+		// Disconnect still clears pending leftover (History/Clipboard contract).
+		this.pendingPairs = [];
+		this.pendingPairsListFailed = undefined;
+		this.selectedPending = undefined;
+		this.renderPendingPairs();
+	}
+
 	private async refreshEngineDevices(): Promise<void> {
 		const hook = this.connectionService.listDevices;
 		const connected = this.connectionService.isEngineConnected();
-		// Disconnect still clears engine leftover (History/Clipboard contract).
 		if (!connected) {
-			this.enginePairedDevices = undefined;
-			this.engineDevicesListFailed = undefined;
-			this.hubDevices = [];
-			this.renderHubDirectory();
-			writeStatus(this.devicesConnectStatus, '', 'neutral');
+			this.applyDisconnectedDevicesRefresh();
 			return;
 		}
 		// Connected + missing hook: keep leftover rows; first-pull empty stays empty (D260).
@@ -1115,6 +1145,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 		try {
 			const result = await hook.call(this.connectionService);
+			if (!this.connectionService.isEngineConnected()) {
+				this.applyDisconnectedDevicesRefresh();
+				return;
+			}
 			this.enginePairedDevices = [...result.devices];
 			const hadFail = this.engineDevicesListFailed !== undefined;
 			const hadUnsupported = this.devicesConnectStatus.textContent === getEngineSectionApiUnavailableCopy(CONNECTION_DEVICE_LIST_FEATURE);
@@ -1134,12 +1168,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private async refreshEnginePending(): Promise<void> {
 		const hook = this.connectionService.listPending;
 		const connected = this.connectionService.isEngineConnected();
-		// Disconnect still clears pending leftover (History/Clipboard contract).
 		if (!connected) {
-			this.pendingPairs = [];
-			this.pendingPairsListFailed = undefined;
-			this.selectedPending = undefined;
-			this.renderPendingPairs();
+			this.applyDisconnectedPendingRefresh();
 			return;
 		}
 		// Connected + missing hook: keep leftover rows; first-pull empty stays empty (D260).
@@ -1154,6 +1184,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 		try {
 			const result = await hook.call(this.connectionService);
+			if (!this.connectionService.isEngineConnected()) {
+				this.applyDisconnectedPendingRefresh();
+				return;
+			}
 			this.pendingPairs = [...result.pending];
 			this.pendingPairsListFailed = undefined;
 			this.selectedPending = undefined;
@@ -1169,10 +1203,11 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const connected = this.connectionService.isEngineConnected();
 		const canList = canSendConnectionDevicePairRequest(connected, typeof hook === 'function');
 		const showUnsupported = connected && typeof hook !== 'function';
-		const showPending = canList || showUnsupported;
+		const pairingHoldLeftover = this.keepLeftoverCatalogForPairingHold(this.pendingPairs.length > 0);
+		const showPending = canList || showUnsupported || pairingHoldLeftover;
 		this.pendingPairsHeading.style.display = showPending ? '' : 'none';
 		this.pendingPairsList.style.display = showPending && this.pendingPairs.length > 0 ? '' : 'none';
-		this.pendingPairsEmpty.style.display = showPending && (this.pendingPairs.length === 0 || !!this.pendingPairsListFailed || showUnsupported) ? '' : 'none';
+		this.pendingPairsEmpty.style.display = showPending && (this.pendingPairs.length === 0 || !!this.pendingPairsListFailed || showUnsupported || pairingHoldLeftover) ? '' : 'none';
 		if (showUnsupported) {
 			writeStatus(
 				this.pendingPairsEmpty,
@@ -1181,6 +1216,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			);
 		} else if (canList && this.pendingPairsListFailed) {
 			writeStatus(this.pendingPairsEmpty, connectionDevicePendingListFailureMessage(this.pendingPairsListFailed), 'error');
+		} else if (pairingHoldLeftover) {
+			writeStatus(this.pendingPairsEmpty, getEngineSectionDisconnectedCopy(), 'warning');
 		} else {
 			writeStatus(this.pendingPairsEmpty, CONNECTION_DEVICE_PENDING_EMPTY_COPY, 'neutral');
 		}
@@ -1741,7 +1778,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (shouldDrawDesktopConnectionControls(this.desktopConnectionControlContext())) {
 			const hubSignedIn = this.hubService.getAuthStatus().kind !== 'signedOut';
 			const enginePairSeat = this.connectionService.isEngineConnected();
-			this.hubDevicesSection.style.display = hubSignedIn || enginePairSeat ? '' : 'none';
+			const pairingHoldDevices = this.keepLeftoverCatalogForPairingHold(!!this.enginePairedDevices?.length);
+			this.hubDevicesSection.style.display = hubSignedIn || enginePairSeat || pairingHoldDevices ? '' : 'none';
 		}
 		this.updateDeviceActions();
 	}

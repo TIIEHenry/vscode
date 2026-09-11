@@ -28,6 +28,7 @@ import {
 } from '../../browser/connectionPreferencesPane.js';
 import {
 	getEngineSectionApiUnavailableCopy,
+	getEngineSectionDisconnectedCopy,
 	getUnsupportedEnvironmentCopy,
 	shouldDrawDesktopConnectionControls,
 } from '../../browser/engineSectionChrome.js';
@@ -3683,6 +3684,134 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 0);
 		const devicesStatus = container.querySelector('.connection-hub-devices-status') as HTMLElement;
 		assert.ok(!devicesStatus.textContent?.includes('does not expose'));
+		container.remove();
+	});
+
+	test('ListDevices success then pairingPending keeps leftover rows and paints not-connected', async () => {
+		let connected = true;
+		let pairingPending = false;
+		let listDevicesCalls = 0;
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => connected && !pairingPending,
+			getConnectionPhase: () => connected ? { kind: 'connected', path: 'loopback' } : { kind: 'disconnected' },
+			getConnectionSnapshot: () => ({
+				transport: connected ? 'ok' : 'idle',
+				pairingPending,
+				channelAlive: connected,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+			listDevices: async (): Promise<UniverseAgentListDevicesResult> => {
+				listDevicesCalls++;
+				return {
+					devices: [{
+						deviceId: 'eng-1',
+						displayName: 'Phone',
+						role: '',
+						platform: '',
+						pairedAt: 0,
+						lastSeenAt: 0,
+						active: false,
+					}],
+				};
+			},
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+			getDirectoryStatus: () => ({ kind: 'idle' }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+		const listCallsAfterLoad = listDevicesCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		pairingPending = true;
+		await (pane as unknown as { refreshEngineDeviceLists(): Promise<void> }).refreshEngineDeviceLists();
+		pane.layout(new Dimension(800, 800));
+
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listDevicesCalls, listCallsAfterLoad);
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+		const leftover = [...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent);
+		assert.ok(leftover.includes('Phone'));
+		const devicesStatus = container.querySelector('.connection-hub-devices-status') as HTMLElement;
+		assert.strictEqual(devicesStatus.textContent, getEngineSectionDisconnectedCopy());
+		assert.ok(devicesStatus.classList.contains('is-warning'));
+
+		connected = false;
+		await (pane as unknown as { refreshEngineDeviceLists(): Promise<void> }).refreshEngineDeviceLists();
+		pane.layout(new Dimension(800, 800));
+
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 0);
+		container.remove();
+	});
+
+	test('ListPending success then pairingPending keeps leftover rows and paints not-connected', async () => {
+		let connected = true;
+		let pairingPending = false;
+		let listPendingCalls = 0;
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => connected && !pairingPending,
+			getConnectionPhase: () => connected ? { kind: 'connected', path: 'loopback' } : { kind: 'disconnected' },
+			getConnectionSnapshot: () => ({
+				transport: connected ? 'ok' : 'idle',
+				pairingPending,
+				channelAlive: connected,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+			listPending: async () => {
+				listPendingCalls++;
+				return {
+					pending: [{
+						pairingCode: '123456',
+						deviceId: 'dev-1',
+						displayName: 'Phone',
+						platform: 'ios',
+						requestedAt: 0,
+						expiresInSeconds: 0,
+					}],
+				};
+			},
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 1);
+		const listCallsAfterLoad = listPendingCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		pairingPending = true;
+		await (pane as unknown as { refreshEngineDeviceLists(): Promise<void> }).refreshEngineDeviceLists();
+
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listPendingCalls, listCallsAfterLoad);
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 1);
+		const leftover = container.querySelector('.connection-engine-pending-row') as HTMLElement;
+		assert.ok(leftover);
+		assert.strictEqual(leftover.textContent, 'Phone — 123456 — ios');
+		const pendingEmpty = container.querySelector('.connection-engine-pending-empty') as HTMLElement;
+		assert.notStrictEqual(pendingEmpty.style.display, 'none');
+		assert.strictEqual(pendingEmpty.textContent, getEngineSectionDisconnectedCopy());
+		assert.ok(pendingEmpty.classList.contains('is-warning'));
+
+		connected = false;
+		await (pane as unknown as { refreshEngineDeviceLists(): Promise<void> }).refreshEngineDeviceLists();
+
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 0);
 		container.remove();
 	});
 
