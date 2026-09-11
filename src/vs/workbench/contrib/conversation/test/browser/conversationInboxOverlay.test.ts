@@ -641,7 +641,7 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		let pairingPending = false;
 		const base = createConversationConnectionTestStub();
 		const connection = createConversationConnectionTestStub({
-			getConnectionPhase: () => ({ kind: 'connected' }),
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
 			getConnectionSnapshot: () => ({
 				...base.getConnectionSnapshot(),
 				pairingPending,
