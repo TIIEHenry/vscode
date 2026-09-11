@@ -18,24 +18,36 @@ export function canSendEngineTriggerListRequest(connected: boolean, hasHook: boo
 	return connected && hasHook;
 }
 
-/** Engine Preferences Triggers list action → FireTrigger. Empty ids are still sent. */
-export function canSendEngineTriggerFire(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
+/**
+ * Engine Preferences Triggers list action → FireTrigger. Empty ids are still sent.
+ * Pairing-hold leftover-looks-live (`connected===true`) still refuses (D311).
+ */
+export function canSendEngineTriggerFire(connected: boolean, hasHook: boolean, pairingHold = false): boolean {
+	return connected && hasHook && !pairingHold;
 }
 
-/** Engine Preferences Triggers list action → SetTriggerEnabled. Empty ids are still sent. */
-export function canSendEngineTriggerSetEnabled(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
+/**
+ * Engine Preferences Triggers list action → SetTriggerEnabled. Empty ids are still sent.
+ * Pairing-hold leftover-looks-live (`connected===true`) still refuses (D311).
+ */
+export function canSendEngineTriggerSetEnabled(connected: boolean, hasHook: boolean, pairingHold = false): boolean {
+	return connected && hasHook && !pairingHold;
 }
 
-/** Engine Preferences Triggers list action → DeleteTrigger. Empty ids are still sent. */
-export function canSendEngineTriggerDelete(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
+/**
+ * Engine Preferences Triggers list action → DeleteTrigger. Empty ids are still sent.
+ * Pairing-hold leftover-looks-live (`connected===true`) still refuses (D311).
+ */
+export function canSendEngineTriggerDelete(connected: boolean, hasHook: boolean, pairingHold = false): boolean {
+	return connected && hasHook && !pairingHold;
 }
 
-/** Engine Preferences Triggers add/edit → UpsertTrigger. Empty ids are still sent. */
-export function canSendEngineTriggerUpsert(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
+/**
+ * Engine Preferences Triggers add/edit → UpsertTrigger. Empty ids are still sent.
+ * Pairing-hold leftover-looks-live (`connected===true`) still refuses (D311).
+ */
+export function canSendEngineTriggerUpsert(connected: boolean, hasHook: boolean, pairingHold = false): boolean {
+	return connected && hasHook && !pairingHold;
 }
 
 /** Honest empty TriggerDto. Empty ids / enabled false / 0 intervals stay as-is. */

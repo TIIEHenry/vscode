@@ -35,7 +35,7 @@ import {
 	formatEngineTriggerListLabel,
 } from './engineTriggerList.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
-import { isConversationEngineLive } from './conversationSessionStatus.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 
 const $ = DOM.$;
 
@@ -51,6 +51,10 @@ const $ = DOM.$;
  * Connected + missing list hook after a live paint keeps leftover rows +
  * unsupported (D258); first-pull no-hook stays empty+unsupported.
  * Disconnect still clears rows.
+ * Pairing-hold leftover keeps rows + disconnected note (D281) and disables
+ * Fire/Enable/Disable/Delete/Upsert (D311); leftover-looks-live
+ * (`isEngineConnected()===true` + pairingPending) also refuses writes and
+ * skips extra list. Connected leftover still writes.
  */
 export class EngineTriggersSection extends Disposable {
 
@@ -164,11 +168,11 @@ export class EngineTriggersSection extends Disposable {
 		);
 
 		this.clearWriteStatuses();
-		this.updateFireAction();
-		this.updateSetEnabledAction();
-		this.updateDeleteAction();
-		this.updateUpsertAction();
+		this.updateWriteActions();
 
+		if (this.triggers.length > 0 && isConversationPairingHold(this.connection)) {
+			return this.applyDisconnectedRefresh(true);
+		}
 		if (!this.connection.isEngineConnected()) {
 			return this.applyDisconnectedRefresh(this.triggers.length > 0);
 		}
@@ -195,6 +199,9 @@ export class EngineTriggersSection extends Disposable {
 			const result = await hook.call(this.connection, engineTriggerListRequest());
 			if (generation !== this.renderGeneration) {
 				return false;
+			}
+			if (this.triggers.length > 0 && isConversationPairingHold(this.connection)) {
+				return this.applyDisconnectedRefresh(true);
 			}
 			if (!this.connection.isEngineConnected()) {
 				return this.applyDisconnectedRefresh(this.triggers.length > 0);
@@ -229,14 +236,22 @@ export class EngineTriggersSection extends Disposable {
 	}
 
 	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		if (!hadLiveCatalog) {
-			return false;
-		}
-		const snapshot = this.connection.getConnectionSnapshot();
-		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
+		return hadLiveCatalog && isConversationPairingHold(this.connection);
+	}
+
+	private isTriggerWritePairingHold(): boolean {
+		return isConversationPairingHold(this.connection);
+	}
+
+	private updateWriteActions(): void {
+		this.updateFireAction();
+		this.updateSetEnabledAction();
+		this.updateDeleteAction();
+		this.updateUpsertAction();
 	}
 
 	private applyDisconnectedRefresh(hadLiveCatalog: boolean): boolean {
+		this.updateWriteActions();
 		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
 			this.status.render({
 				mode: 'disconnected',
@@ -299,6 +314,7 @@ export class EngineTriggersSection extends Disposable {
 		this.fireButton.enabled = canSendEngineTriggerFire(
 			this.connection.isEngineConnected(),
 			typeof this.connection.fireTrigger === 'function',
+			this.isTriggerWritePairingHold(),
 		);
 	}
 
@@ -306,6 +322,7 @@ export class EngineTriggersSection extends Disposable {
 		const enabled = canSendEngineTriggerSetEnabled(
 			this.connection.isEngineConnected(),
 			typeof this.connection.setTriggerEnabled === 'function',
+			this.isTriggerWritePairingHold(),
 		);
 		this.enableButton.enabled = enabled;
 		this.disableButton.enabled = enabled;
@@ -315,6 +332,7 @@ export class EngineTriggersSection extends Disposable {
 		this.deleteButton.enabled = canSendEngineTriggerDelete(
 			this.connection.isEngineConnected(),
 			typeof this.connection.deleteTrigger === 'function',
+			this.isTriggerWritePairingHold(),
 		);
 	}
 
@@ -322,6 +340,7 @@ export class EngineTriggersSection extends Disposable {
 		const enabled = canSendEngineTriggerUpsert(
 			this.connection.isEngineConnected(),
 			typeof this.connection.upsertTrigger === 'function',
+			this.isTriggerWritePairingHold(),
 		);
 		this.addButton.enabled = enabled;
 		this.editButton.enabled = enabled;
@@ -329,7 +348,7 @@ export class EngineTriggersSection extends Disposable {
 
 	private async handleSetEnabled(enabled: boolean): Promise<void> {
 		const hook = this.connection.setTriggerEnabled;
-		if (!canSendEngineTriggerSetEnabled(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
+		if (!canSendEngineTriggerSetEnabled(this.connection.isEngineConnected(), typeof hook === 'function', this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineTriggerSetEnabledRequest(this.selectedTrigger, enabled);
@@ -346,7 +365,7 @@ export class EngineTriggersSection extends Disposable {
 
 	private async handleFire(): Promise<void> {
 		const hook = this.connection.fireTrigger;
-		if (!canSendEngineTriggerFire(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
+		if (!canSendEngineTriggerFire(this.connection.isEngineConnected(), typeof hook === 'function', this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineTriggerFireRequest(this.selectedTrigger);
@@ -363,7 +382,7 @@ export class EngineTriggersSection extends Disposable {
 
 	private async handleDelete(): Promise<void> {
 		const hook = this.connection.deleteTrigger;
-		if (!canSendEngineTriggerDelete(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
+		if (!canSendEngineTriggerDelete(this.connection.isEngineConnected(), typeof hook === 'function', this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineTriggerDeleteRequest(this.selectedTrigger);
@@ -385,7 +404,7 @@ export class EngineTriggersSection extends Disposable {
 
 	private async handleUpsert(mode: 'add' | 'edit'): Promise<void> {
 		const hook = this.connection.upsertTrigger;
-		if (!canSendEngineTriggerUpsert(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
+		if (!canSendEngineTriggerUpsert(this.connection.isEngineConnected(), typeof hook === 'function', this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineTriggerUpsertRequest(this.selectedTrigger, mode);
