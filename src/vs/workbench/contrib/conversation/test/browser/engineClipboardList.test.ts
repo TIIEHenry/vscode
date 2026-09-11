@@ -86,6 +86,8 @@ suite('Engine clipboard list bind', () => {
 		assert.strictEqual(canSendEngineClipboardWrite(false, true), false);
 		assert.strictEqual(canSendEngineClipboardWrite(true, false), false);
 		assert.strictEqual(canSendEngineClipboardWrite(true, true), true);
+		assert.strictEqual(canSendEngineClipboardWrite(true, true, true), false);
+		assert.strictEqual(canSendEngineClipboardWrite(true, true, false), true);
 		assert.deepStrictEqual(engineClipboardWriteRequest(), {
 			sessionId: '',
 			agentId: '',
@@ -104,6 +106,8 @@ suite('Engine clipboard list bind', () => {
 		assert.strictEqual(canSendEngineClipboardClear(false, true), false);
 		assert.strictEqual(canSendEngineClipboardClear(true, false), false);
 		assert.strictEqual(canSendEngineClipboardClear(true, true), true);
+		assert.strictEqual(canSendEngineClipboardClear(true, true, true), false);
+		assert.strictEqual(canSendEngineClipboardClear(true, true, false), true);
 		assert.deepStrictEqual(engineClipboardClearRequest(), {
 			sessionId: '',
 		});
