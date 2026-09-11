@@ -336,6 +336,30 @@ suite('Navigator Agents subviews', () => {
 		assert.strictEqual(refreshCalls, 0);
 	});
 
+	test('leftover-looks-live pairing-hold Refresh stays 0 requestAgentTreeRefresh', () => {
+		let treeRefreshCalls = 0;
+		const roster = store.add(new ConversationStubService());
+		roster.setEngineConnected(true);
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
+				pairingPending: true,
+			}),
+			requestAgentTreeRefresh: () => {
+				treeRefreshCalls++;
+			},
+		});
+		const view = mountAgentsView(roster, connection);
+
+		assert.strictEqual(roster.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.ok(roster.getActiveSessionId());
+		view.refreshAgentTree();
+		assert.strictEqual(treeRefreshCalls, 0);
+	});
+
 	test('connecting phase is honest empty, not Agent tree loading', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const roster = store.add(new ConversationStubService());

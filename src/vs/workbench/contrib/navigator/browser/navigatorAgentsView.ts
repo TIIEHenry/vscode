@@ -316,7 +316,7 @@ export class NavigatorAgentsView extends ViewPane {
 
 	refreshAgentTree(): void {
 		const sessionId = this.rosterService.getActiveSessionId();
-		if (this.rosterService.isEngineConnected() && sessionId) {
+		if (!isConversationPairingHold(this.uaConnection) && this.rosterService.isEngineConnected() && sessionId) {
 			this.uaConnection.requestAgentTreeRefresh(sessionId);
 		}
 		this.refreshFromLease();
