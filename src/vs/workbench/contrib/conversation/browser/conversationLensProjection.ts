@@ -6,6 +6,7 @@
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import type { ConversationViewFrameApplied, IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { IConversationReviewNavService, attachReviewEntries, computeReviewNavSidecarApplied } from './conversationReviewEntry.js';
@@ -26,6 +27,7 @@ import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
 import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
 import { refreshStaleSnapshotBanner } from './conversationLensReadingColumn.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 
 export const CONVERSATION_LENS_ID_STORAGE_KEY = 'conversation.lensId';
 
@@ -44,6 +46,7 @@ export interface IConversationLensProjectionHost {
 	relayoutReadingSurfaces(): void;
 	readonly slotHosts: IConversationLensSlots;
 	readonly stubService: IConversationRosterService;
+	readonly uaConnection: IUniverseAgentConnection;
 	readonly storageService: IStorageService;
 	readonly reviewNavService: IConversationReviewNavService;
 	getBoundSessionId(): string;
@@ -207,10 +210,16 @@ export function refreshTrajectoryRecords(host: IConversationLensProjectionHost, 
 		const options = trajectoryProjectionOptions(host);
 		const records = host.stubService.getTrajectoryRecords(sessionId, options);
 		const lease = host.sessionViewLease?.sessionId === sessionId ? host.sessionViewLease : undefined;
-		const turnIds = host.stubService.isEngineConnected() && lease
-			? collectTrajectoryTurnIdsFromSnapshot(lease.snapshot)
-			: collectConversationTrajectoryTurnIds(host.stubService.getTurns(sessionId));
-		host.trajectoryView.setRecords(records, turnIds);
+		const pairingHold = isConversationPairingHold(host.uaConnection);
+		if ((host.stubService.isEngineConnected() || pairingHold) && lease) {
+			host.trajectoryView.setRecords(records, collectTrajectoryTurnIdsFromSnapshot(lease.snapshot));
+			return;
+		}
+		const stubTurnIds = collectConversationTrajectoryTurnIds(host.stubService.getTurns(sessionId));
+		if (pairingHold && host.trajectoryView.getPaintedRecordCount() > 0 && stubTurnIds.size === 0) {
+			return;
+		}
+		host.trajectoryView.setRecords(records, stubTurnIds);
 	
 }
 

@@ -70,6 +70,108 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(setRecords, 1);
 	});
 
+	test('refreshTrajectoryRecords keeps leftover lease turn ids while pairingPending then true disconnect uses stub ids', () => {
+		let connected = true;
+		let pairingPending = false;
+		let setRecords = 0;
+		let lastTurnIds: ReadonlySet<string> | undefined;
+		const leftoverRecords = [{ id: 'rec-1' }];
+		const host = {
+			isDisposed: false,
+			filterAgentId: undefined,
+			sessionViewLease: {
+				sessionId: 'sess-leftover',
+				snapshot: {
+					timeline: [
+						{ id: 'turn-lease-1', summary: { kind: 'user' } },
+						{ id: 'turn-lease-2', summary: { kind: 'assistant' } },
+					],
+				},
+			},
+			stubService: {
+				getTrajectoryRecords: () => leftoverRecords,
+				isEngineConnected: () => connected && !pairingPending,
+				getTurns: () => [],
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending }),
+			},
+			trajectoryView: {
+				getPaintedRecordCount: () => leftoverRecords.length,
+				setRecords: (_records: readonly unknown[], turnIds?: ReadonlySet<string>) => {
+					setRecords++;
+					lastTurnIds = turnIds;
+				},
+			},
+		} as unknown as IConversationLensProjectionHost;
+
+		pairingPending = true;
+		assert.strictEqual(host.stubService.isEngineConnected(), false);
+		assert.strictEqual(host.uaConnection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(host.uaConnection.getConnectionSnapshot().pairingPending, true);
+
+		refreshTrajectoryRecords(host, 'sess-leftover');
+		assert.strictEqual(setRecords, 1);
+		assert.ok(lastTurnIds?.has('turn-lease-1'));
+		assert.ok(lastTurnIds?.has('turn-lease-2'));
+
+		pairingPending = false;
+		connected = false;
+		refreshTrajectoryRecords(host, 'sess-leftover');
+		assert.strictEqual(setRecords, 2);
+		assert.strictEqual(lastTurnIds?.size, 0);
+	});
+
+	test('refreshTrajectoryRecords keeps leftover painted records when pairingPending has no lease', () => {
+		let setRecords = 0;
+		const leftoverRecords = [{ id: 'rec-leftover' }];
+		const host = {
+			isDisposed: false,
+			filterAgentId: undefined,
+			sessionViewLease: undefined,
+			stubService: {
+				getTrajectoryRecords: () => [],
+				isEngineConnected: () => false,
+				getTurns: () => [],
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: true }),
+			},
+			trajectoryView: {
+				getPaintedRecordCount: () => leftoverRecords.length,
+				setRecords: () => { setRecords++; },
+			},
+		} as unknown as IConversationLensProjectionHost;
+		refreshTrajectoryRecords(host, 'sess-leftover');
+		assert.strictEqual(setRecords, 0);
+	});
+
+	test('refreshTrajectoryRecords first-pull pairingPending without leftover still setRecords', () => {
+		let setRecords = 0;
+		const host = {
+			isDisposed: false,
+			filterAgentId: undefined,
+			sessionViewLease: undefined,
+			stubService: {
+				getTrajectoryRecords: () => [],
+				isEngineConnected: () => false,
+				getTurns: () => [],
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: true }),
+			},
+			trajectoryView: {
+				getPaintedRecordCount: () => 0,
+				setRecords: () => { setRecords++; },
+			},
+		} as unknown as IConversationLensProjectionHost;
+		refreshTrajectoryRecords(host, 'sess-first');
+		assert.strictEqual(setRecords, 1);
+	});
+
 	test('bindSessionView skips applyEntries after dispose', () => {
 		const lifetime = new DisposableStore();
 		lifetime.dispose();

@@ -19,6 +19,7 @@ import { IConversationSessionChatEntry } from '../common/conversationSessionChat
 import { collectLiveAgentTreeCatalogEntries } from '../common/conversationLiveAgentCatalog.js';
 import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { LiveAgentTreeNodeView } from '../../../../platform/universeAgent/common/sessionView/index.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import {
 	ConversationChatInput,
 	deriveConversationChatIdFromForkResource,
@@ -27,6 +28,7 @@ import {
 } from '../common/conversationChatInput.js';
 import { ConversationSubAgentOverlay } from './conversationSubAgentOverlay.js';
 import { IConversationRosterService } from './conversationStubService.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 
 export const IConversationSessionChatService = createDecorator<IConversationSessionChatService>('conversationSessionChatService');
 
@@ -105,6 +107,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		@IConversationRosterService private readonly rosterService: IConversationRosterService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@INotificationService private readonly notificationService: INotificationService,
+		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 	) {
 		super();
 		this._register(this.rosterService.onDidChangeLiveAgentTree(event => {
@@ -116,6 +119,11 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	private bindLiveTreeLease(): void {
+		if ((!this.rosterService.isEngineConnected() || !this.rosterService.isEngineSessionReady())
+			&& this.liveTreeLease && isConversationPairingHold(this.uaConnection)) {
+			// D286: pairing-hold leftover lease stays; keep applying frames. First pull still no lease.
+			return;
+		}
 		this.liveTreeLeaseStore.clear();
 		this.liveTreeLease = undefined;
 		if (!this.rosterService.isEngineConnected() || !this.rosterService.isEngineSessionReady()) {

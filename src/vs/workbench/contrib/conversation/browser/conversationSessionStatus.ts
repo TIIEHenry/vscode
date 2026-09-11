@@ -33,6 +33,20 @@ export function isConversationEngineLive(phase: ConnectionPhase | undefined, pai
 	return isUniverseAgentPhaseConnected(phase) && !pairingPending;
 }
 
+/** Connection surface needed to detect D277 pairing-hold (phase connected + pairingPending). */
+export interface IConversationPairingHoldSource {
+	getConnectionSnapshot(): { pairingPending?: boolean };
+	getConnectionPhase(): ConnectionPhase | undefined;
+}
+
+/** D286: phase still connected, pairing pending — do not treat as true disconnect. */
+export function isConversationPairingHold(ua: IConversationPairingHoldSource | undefined): boolean {
+	if (!ua) {
+		return false;
+	}
+	return !!ua.getConnectionSnapshot().pairingPending && isConversationEngineLive(ua.getConnectionPhase(), false);
+}
+
 /** Legacy boolean helper for panes that only need connected vs not-connected copy. */
 export function getConversationEngineStatusText(isConnected = false): string {
 	if (isConnected) {

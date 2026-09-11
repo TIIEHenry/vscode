@@ -19,6 +19,8 @@ import { getDefaultConversationChatResource } from '../../common/conversationCha
 import '../../browser/conversationEditor.contribution.js';
 import { ConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 
 suite('Conversation session split (S4)', () => {
 
@@ -41,6 +43,7 @@ suite('Conversation session split (S4)', () => {
 		const rosterService = new ConversationStubService();
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, rosterService);
+		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
 		instantiationService.invokeFunction(accessor => Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor));
 
 		const parts = await createEditorParts(instantiationService, disposables);
