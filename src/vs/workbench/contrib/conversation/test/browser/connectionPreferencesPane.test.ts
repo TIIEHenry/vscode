@@ -3949,6 +3949,186 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('leftover-looks-live pairing-hold Rename stays 0 unary', async () => {
+		let pairingPending = false;
+		const renameCalls: { id: string; name: string }[] = [];
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			pairingPending,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listDevices: async (): Promise<UniverseAgentListDevicesResult> => ({
+				devices: [{
+					deviceId: 'dev-1',
+					displayName: 'Phone',
+					role: '',
+					platform: '',
+					pairedAt: 0,
+					lastSeenAt: 0,
+					active: false,
+				}],
+			}),
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+			renameDevice: async (id, name) => {
+				renameCalls.push({ id, name });
+				return { ok: true };
+			},
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
+		assert.ok(rename);
+		assert.strictEqual(rename.classList.contains('disabled'), false);
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+		assert.strictEqual(rename.classList.contains('disabled'), true);
+		assert.strictEqual(rename.getAttribute('aria-disabled'), 'true');
+
+		rename.classList.remove('disabled');
+		rename.removeAttribute('disabled');
+		rename.setAttribute('aria-disabled', 'false');
+		rename.disabled = false;
+		rename.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		assert.deepStrictEqual(renameCalls, []);
+		container.remove();
+	});
+
+	test('connected leftover still Renames', async () => {
+		const renameCalls: { id: string; name: string }[] = [];
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+			listDevices: async (): Promise<UniverseAgentListDevicesResult> => ({
+				devices: [{
+					deviceId: 'dev-1',
+					displayName: 'Phone',
+					role: '',
+					platform: '',
+					pairedAt: 0,
+					lastSeenAt: 0,
+					active: false,
+				}],
+			}),
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+			renameDevice: async (id, name) => {
+				renameCalls.push({ id, name });
+				return { ok: true };
+			},
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+
+		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
+		assert.ok(rename);
+		assert.strictEqual(rename.classList.contains('disabled'), false);
+		rename.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		assert.deepStrictEqual(renameCalls, [{ id: 'dev-1', name: 'Renamed Studio' }]);
+		container.remove();
+	});
+
+	test('true disconnect leftover refuses Rename', async () => {
+		let connected = true;
+		const renameCalls: { id: string; name: string }[] = [];
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => connected,
+			getConnectionPhase: () => connected ? { kind: 'connected', path: 'loopback' } : { kind: 'disconnected' },
+			listDevices: async (): Promise<UniverseAgentListDevicesResult> => ({
+				devices: [{
+					deviceId: 'dev-1',
+					displayName: 'Phone',
+					role: '',
+					platform: '',
+					pairedAt: 0,
+					lastSeenAt: 0,
+					active: false,
+				}],
+			}),
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+			getDirectoryStatus: () => ({ kind: 'idle' }),
+			renameDevice: async (id, name) => {
+				renameCalls.push({ id, name });
+				return { ok: true };
+			},
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+
+		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
+		assert.ok(rename);
+
+		connected = false;
+		await (pane as unknown as { refreshEngineDeviceLists(): Promise<void> }).refreshEngineDeviceLists();
+		pane.layout(new Dimension(800, 800));
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 0);
+		assert.strictEqual(rename.classList.contains('disabled'), true);
+
+		rename.classList.remove('disabled');
+		rename.removeAttribute('disabled');
+		rename.setAttribute('aria-disabled', 'false');
+		rename.disabled = false;
+		rename.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		assert.deepStrictEqual(renameCalls, []);
+		container.remove();
+	});
+
 	test('RotateToken does not send when disconnected or hook missing', async () => {
 		const rotateCalls: UniverseAgentRotateTokenRequest[] = [];
 		const disconnected = mountPane({

@@ -1525,7 +1525,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const device = this.getSelectedDevice();
 		const hasDevice = !!device && !device.revoked;
 		const pairingHold = this.isDeviceWritePairingHold();
-		this.renameDeviceButton.enabled = hasDevice;
+		this.renameDeviceButton.enabled = hasDevice && !pairingHold;
 		this.revokeDeviceButton.enabled = hasDevice && !pairingHold;
 		this.rotateTokenButton.enabled = canSendConnectionDeviceRotateToken(
 			this.connectionService.isEngineConnected(),
@@ -1576,6 +1576,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (!device || device.revoked) {
 			return;
 		}
+		if (this.isDeviceWritePairingHold()) {
+			return;
+		}
 		const input = await this.dialogService.input({
 			type: 'question',
 			message: localize('ua.connectionRenameDeviceTitle', "Rename device"),
@@ -1584,6 +1587,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		});
 		const name = input.confirmed ? input.values?.[0]?.trim() : undefined;
 		if (!name || name === device.name) {
+			return;
+		}
+		if (this.isDeviceWritePairingHold()) {
 			return;
 		}
 		try {
