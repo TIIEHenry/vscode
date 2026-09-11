@@ -22,7 +22,7 @@ import { defaultButtonStyles, defaultCheckboxStyles, defaultInputBoxStyles } fro
 import { isConversationEngineLive } from './conversationSessionStatus.js';
 import { canPerformCatalogWrite, canShowCatalogRows, getCatalogListLoadingCopy } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
-import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
+import { getEngineSectionApiUnavailableCopy, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
 import {
 	EngineSkillsPaneMode,
 	canEditSkillBody,
@@ -697,6 +697,10 @@ export class EngineSkillsSection extends Disposable {
 			// failed/loading must not unload leftover text; first-pull empty still clears.
 			const hasLeftoverBody = !!(this.loadedBodyText || this.bodyInput.value);
 			if ((this.mode === 'failed' || this.mode === 'loading') && hasLeftoverBody) {
+				return;
+			}
+			if (this.keepLeftoverCatalogForPairingHold(hasLeftoverBody)) {
+				this.showBodyStatus(getEngineSectionDisconnectedCopy());
 				return;
 			}
 			if (!this.bodyDirty) {
