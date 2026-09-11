@@ -15,6 +15,7 @@ import { CommandsRegistry, ICommandService } from '../../../../../platform/comma
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
@@ -602,6 +603,81 @@ suite('Sources - review list model', () => {
 		const disconnectStatus = await waitForStatusText(host, '.sources-review-status', 'local source control');
 		assert.strictEqual(disconnectStatus, sourcesGitLocalOnlyMessage());
 		assert.strictEqual(readCalls, 1);
+		assert.strictEqual(list.length, 1);
+		assert.ok((list.element(0) as { scmResource?: unknown }).scmResource);
+		assert.ok((((list.element(0) as { resource?: { path?: string } }).resource?.path) ?? '').includes('scm-stub.ts'));
+	});
+
+	test('leftover-looks-live pairing-hold keeps leftover rows and skips git-read', async function () {
+		let connected = true;
+		let pairingPending = false;
+		let readCalls = 0;
+		const leftoverPath = 'src/leftover.ts';
+		const onDidChangeConnection = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
+		const snapshot = (): import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot => ({
+			transport: connected ? 'ok' : 'idle',
+			sharedFsRootSent: false,
+			pairingPending,
+			channelAlive: connected,
+			capabilities: {} as never,
+		});
+		const connection = {
+			isEngineConnected: () => connected,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' as const : 'disconnected' as const }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => {
+				readCalls += 1;
+				return {
+					supported: true,
+					reason: '',
+					branch: 'main',
+					entries: [{ path: leftoverPath, oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+				};
+			},
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+		} as unknown as IUniverseAgentConnection;
+		const scmStub = toResource.call(this, '/project/src/scm-stub.ts');
+		const host = mountListHost();
+		const widget = store.add(stubSourcesGitListServices({
+			connection,
+			scmService: createIndexScmService(scmStub),
+		}).createInstance(SourcesReviewList, host));
+		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<unknown> });
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual((list.element(0) as { gitPath?: string }).gitPath, leftoverPath);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		const listCallsAfterLoad = readCalls;
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		const pairingStatus = await waitForStatusText(host, '.sources-review-status', 'not connected');
+		assert.strictEqual(pairingStatus, sourcesGitReadPairingHoldMessage());
+		assert.ok(!pairingStatus.includes('local source control'));
+		assert.notStrictEqual(pairingStatus, sourcesGitLocalOnlyMessage());
+		assert.strictEqual(readCalls, listCallsAfterLoad, 'leftover-looks-live must not extra readGitChanges');
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual((list.element(0) as { gitPath?: string }).gitPath, leftoverPath);
+		assert.strictEqual((list.element(0) as { scmResource?: unknown }).scmResource, undefined);
+
+		connected = false;
+		pairingPending = false;
+		onDidChangeConnection.fire(snapshot());
+
+		const disconnectStatus = await waitForStatusText(host, '.sources-review-status', 'local source control');
+		assert.strictEqual(disconnectStatus, sourcesGitLocalOnlyMessage());
+		assert.strictEqual(readCalls, listCallsAfterLoad);
 		assert.strictEqual(list.length, 1);
 		assert.ok((list.element(0) as { scmResource?: unknown }).scmResource);
 		assert.ok((((list.element(0) as { resource?: { path?: string } }).resource?.path) ?? '').includes('scm-stub.ts'));

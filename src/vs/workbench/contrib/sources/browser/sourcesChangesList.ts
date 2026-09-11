@@ -27,6 +27,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { IModelService } from '../../../../editor/common/services/model.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
+import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
@@ -467,6 +468,25 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		let localOnly = false;
 		let gitReadNoHook = false;
 		let gitReadPairingHold = false;
+		// D342 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.uaConnection)) {
+			const leftoverCount = this.usingGitRead ? this.lastGoodEntries.length : 0;
+			if (shouldKeepSourcesGitReadPairingHoldLeftover(
+				this.uaConnection.getConnectionPhase().kind === 'connected',
+				this.uaConnection.getConnectionSnapshot().pairingPending,
+				leftoverCount,
+			)) {
+				allEntries = this.lastGoodEntries;
+				gitReadPairingHold = true;
+			} else {
+				this.usingGitRead = false;
+				allEntries = collectSourcesChangeEntries(this.scmService.repositories);
+				localOnly = allEntries.length > 0;
+			}
+			this.lastGoodEntries = [...allEntries];
+			this.applyRefreshPresentation(allEntries, { localOnly, gitReadPairingHold });
+			return;
+		}
 		try {
 			const loaded = await this.tryLoadGitEntries();
 			if (seq !== this.refreshSeq) {
@@ -581,6 +601,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			summaryHook ? request => summaryHook.call(this.uaConnection, request) : undefined,
 			this.getGitResourceRoot(),
 			this.getGitSessionId(),
+			isConversationPairingHold(this.uaConnection),
 		);
 		const entries = loaded?.entries;
 		return hasSourcesGitReadEntries(entries) ? entries : undefined;
