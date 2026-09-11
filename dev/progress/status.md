@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-12
-summary: "已合入 D358 / D359（未编译）。D8/D16/D147 仍开。"
+summary: "已合入 D358–D360（未编译）。D8/D16/D147 仍开。"
 ---
 
 # Development Progress
@@ -39,12 +39,12 @@ summary: "已合入 D358 / D359（未编译）。D8/D16/D147 仍开。"
 | **settings chrome** | Connection/Engine 两页改用 `InputBox`/`Checkbox`/`WorkbenchList` 左栏与状态色；窄宽两栏；Test Engine 下沉页脚；「回 Client」链入 Preferences tab 条；会话栏图标改 ghost toolbar。无新 RPC / 无新节 |
 | **settings chrome follow-up** | Back-to-Client 先取出 Preferences 服务再关 pane（`await` 后 accessor 已失效）；Direct Address Connect 状态写回本区并先标 Connecting…。已随本轮合入 `loop/merge` |
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。[m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 关仓（2026-09-12 · A D358 / B D359 已合入；未 compile-client）
+### 关仓（2026-09-12 · A D358 / B D359 / D D360 已合入；未 compile-client）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
 | **A** | `agents-tools-empty-keep-chrome` [D358](deferred-gaps.md) | 未提交；empty tools leftover-looks-live 画 disconnected |
 | **B** | `engine-provider-group-leftover-looks-live` [D359](deferred-gaps.md) | 已合入 `a8e8f42c74e`；Provider leftover-looks-live 画 disconnected |
-| **D** | `hooks-render-leftover-looks-live` [D357](deferred-gaps.md) | `already-committed` `7ab30be22f2`；Hooks leftover-looks-live 画 disconnected |
+| **D** | `navigator-projects-leftover-looks-live-first-pull` [D360](deferred-gaps.md) | 已合入 `a9fd2cffc08`；Projects first-pull leftover-looks-live 空树 |
 | **E** | [composer-fake-chrome](../plans/composer-fake-chrome.md) | leftover 已在库；勿 `checkout -B` |
 
 <details>
@@ -185,14 +185,14 @@ summary: "已合入 D358 / D359（未编译）。D8/D16/D147 仍开。"
 | A | `vscode-WorkTrees/A` | `loop/A` | `710fb4ea6bf` | 干净 | 0 | 已收 D358 |
 | B | `vscode-WorkTrees/B` | `loop/B` | `a8e8f42c74e` | 干净 | 0 | 已收 D359 |
 | C | `vscode-WorkTrees/C` | `loop/C` | 跟 MERGE_SHA | 未提交 `dev/loop` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | 跟 MERGE_SHA | 干净 | 0 | 已收 D357 |
+| D | `vscode-WorkTrees/D` | `loop/D` | `a9fd2cffc08` | 干净 | 0 | 已收 D360 |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | leftover 已合入 merge；勿 `checkout -B` |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `ad9245ca178` | `dev/loop` + `.idea` | 0 | 请自行对齐 `origin/agent-ide`（勿对齐本表旧 SHA） |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
 | **引擎 store 迁移卡死** | [D26](deferred-gaps.md) 病因已改口（2026-09-09）：`user_version=0` + 表已建 ⇒ 迁移抛错 ⇒ 库永久打不开 ⇒ `LookupFailed` fail-closed deny ⇒ `ALREADY_EXISTS`（**设计内拒绝**）。根因与交接见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md)；D25 同源。**禁改引擎仓代码**；原闭合条件「Create 先写 meta」已撤回；不要再清 store |
-| **loop 切片** | [D358](deferred-gaps.md)–[D359](deferred-gaps.md) 已合入（未编译）。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto；未宣称 leftover-honesty 程序完成 |
+| **loop 切片** | [D358](deferred-gaps.md)–[D360](deferred-gaps.md) 已合入（未编译）。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto；未宣称 leftover-honesty 程序完成 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
