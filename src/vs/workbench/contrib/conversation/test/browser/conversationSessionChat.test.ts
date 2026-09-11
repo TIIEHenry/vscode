@@ -648,6 +648,96 @@ suite('Conversation session chat (S3)', () => {
 		assert.ok(!sessionChatService.getCatalog(SESSION_KEY).some(entry => entry.chatId === 'ghost'));
 	});
 
+	test('bindLiveTreeLease rebinds leftover to new session while pairingPending then same-session keeps', async () => {
+		const sessionA = 'ua-a';
+		const sessionB = 'ua-b';
+		let connected = true;
+		let pairingPending = false;
+		let activeSessionId = sessionA;
+		const trees: Record<string, LiveAgentTreeNodeView> = {
+			[sessionA]: makeLiveAgentTree([makeSubAgent('research', 'Research')]),
+			[sessionB]: makeLiveAgentTree([makeSubAgent('web', 'Web search')]),
+		};
+		class PairingSwitchLiveTreeRoster extends ConversationStubService {
+			acquireCount = 0;
+			readonly acquireIds: string[] = [];
+			private readonly leaseEmitters = new Map<string, Emitter<ConversationViewFrameApplied>>();
+
+			override isEngineConnected(): boolean {
+				return connected && !pairingPending;
+			}
+			override isEngineSessionReady(): boolean {
+				return connected && !pairingPending;
+			}
+			override getActiveSessionId(): string {
+				return activeSessionId;
+			}
+			override acquireSessionView(sessionId: string): IConversationSessionViewLease {
+				this.acquireCount++;
+				this.acquireIds.push(sessionId);
+				let leaseEmitter = this.leaseEmitters.get(sessionId);
+				if (!leaseEmitter) {
+					leaseEmitter = this._register(new Emitter<ConversationViewFrameApplied>());
+					this.leaseEmitters.set(sessionId, leaseEmitter);
+				}
+				return {
+					sessionId,
+					get snapshot() {
+						return { liveAgentTree: trees[sessionId] } as IConversationSessionViewLease['snapshot'];
+					},
+					attribution: new Map(),
+					details: new Map(),
+					onDidApplyFrame: leaseEmitter.event,
+					post: async () => ({ accepted: true, correlation: { id: 't' } }),
+					requestResync: () => { },
+					dispose: () => { },
+				};
+			}
+			setPairingPending(value: boolean): void {
+				pairingPending = value;
+				this._onDidChangeEngineConnection.fire(this.isEngineConnected());
+			}
+			switchTo(sessionId: string): void {
+				activeSessionId = sessionId;
+				this._onDidChangeActiveSession.fire(sessionId);
+			}
+		}
+		const roster = store.add(new PairingSwitchLiveTreeRoster());
+		const uaConnection = createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'idle',
+				pairingPending,
+				channelAlive: false,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+		const { sessionChatService } = await createHarness(roster, undefined, uaConnection);
+		assert.ok(roster.acquireIds.includes(sessionA));
+		assert.ok(sessionChatService.getCatalog(sessionA).some(entry => entry.chatId === 'research'));
+		assert.ok(!sessionChatService.getCatalog(sessionB).some(entry => entry.chatId === 'web'));
+		const acquireAfterBind = roster.acquireCount;
+
+		pairingPending = true;
+		assert.strictEqual(roster.isEngineConnected(), false);
+		roster.setPairingPending(true);
+		assert.strictEqual(roster.acquireCount, acquireAfterBind);
+		assert.ok(sessionChatService.getCatalog(sessionA).some(entry => entry.chatId === 'research'));
+
+		roster.switchTo(sessionB);
+		assert.ok(roster.acquireIds.includes(sessionB));
+		assert.ok(sessionChatService.getCatalog(sessionB).some(entry => entry.chatId === 'web'));
+		assert.ok(!sessionChatService.getCatalog(sessionB).some(entry => entry.chatId === 'research'));
+		assert.ok(sessionChatService.getCatalog(sessionA).some(entry => entry.chatId === 'research'));
+		const acquireAfterSwitch = roster.acquireCount;
+
+		roster.setPairingPending(true);
+		assert.strictEqual(roster.acquireCount, acquireAfterSwitch);
+		assert.ok(sessionChatService.getCatalog(sessionB).some(entry => entry.chatId === 'web'));
+		assert.ok(!sessionChatService.getCatalog(sessionB).some(entry => entry.chatId === 'research'));
+	});
+
 	test('bindLiveTreeLease first-pull pairingPending never-connected still has no lease', async () => {
 		class NeverConnectedPairingRoster extends ConversationStubService {
 			acquireCount = 0;

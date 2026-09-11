@@ -10,6 +10,8 @@ import {
 	getConversationModelEchoStatusText,
 	getConversationSessionStatusText,
 	getEngineStatusCommandId,
+	shouldKeepLiveTreeLeaseWhilePairing,
+	shouldRebindLiveTreeLeaseWhilePairing,
 	shouldShowConversationModelEchoInStatusBar,
 } from '../../browser/conversationSessionStatus.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../../common/uaPreferencesPanes.js';
@@ -65,6 +67,25 @@ suite('ConversationSessionStatus', () => {
 		assert.strictEqual(getEngineStatusCommandId({ kind: 'connected', path: 'direct' }, true), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
 		assert.strictEqual(getEngineStatusCommandId({ kind: 'connecting', reason: 'initial' }, true), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
 		assert.strictEqual(getEngineStatusCommandId({ kind: 'disconnected' }), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+	});
+
+	test('D292 pairing live-tree guard keeps same session and rebinds on switch', () => {
+		const pairing = {
+			getConnectionPhase: () => ({ kind: 'connected' as const, path: 'loopback' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: true }),
+		};
+		const disconnected = {
+			getConnectionPhase: () => ({ kind: 'disconnected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+		};
+		assert.strictEqual(shouldKeepLiveTreeLeaseWhilePairing(pairing, 'ua-a', 'ua-a'), true);
+		assert.strictEqual(shouldRebindLiveTreeLeaseWhilePairing(pairing, 'ua-a', 'ua-a'), false);
+		assert.strictEqual(shouldKeepLiveTreeLeaseWhilePairing(pairing, 'ua-a', 'ua-b'), false);
+		assert.strictEqual(shouldRebindLiveTreeLeaseWhilePairing(pairing, 'ua-a', 'ua-b'), true);
+		assert.strictEqual(shouldKeepLiveTreeLeaseWhilePairing(pairing, undefined, 'ua-a'), false);
+		assert.strictEqual(shouldRebindLiveTreeLeaseWhilePairing(pairing, undefined, 'ua-a'), false);
+		assert.strictEqual(shouldKeepLiveTreeLeaseWhilePairing(disconnected, 'ua-a', 'ua-a'), false);
+		assert.strictEqual(shouldRebindLiveTreeLeaseWhilePairing(disconnected, 'ua-a', 'ua-b'), false);
 	});
 
 	test('does not export session usage helpers that paint zero placeholders', () => {

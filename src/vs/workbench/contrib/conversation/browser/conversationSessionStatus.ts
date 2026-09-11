@@ -47,6 +47,38 @@ export function isConversationPairingHold(ua: IConversationPairingHoldSource | u
 	return !!ua.getConnectionSnapshot().pairingPending && isConversationEngineLive(ua.getConnectionPhase(), false);
 }
 
+/**
+ * D292 session-id guard shared by chat `bindLiveTreeLease` and roster
+ * `bindLiveTreeObservationLease`. Pairing-hold leftover stays only when the
+ * held lease already belongs to the active session.
+ */
+export function shouldKeepLiveTreeLeaseWhilePairing(
+	ua: IConversationPairingHoldSource | undefined,
+	leaseSessionId: string | undefined,
+	activeSessionId: string | undefined,
+): boolean {
+	return isConversationPairingHold(ua)
+		&& !!leaseSessionId
+		&& !!activeSessionId
+		&& leaseSessionId === activeSessionId;
+}
+
+/**
+ * D292: pairing-hold + leftover lease for a different session → rebind to that
+ * session's leftover (`acquireSessionView` D289). First-pull (no lease) and
+ * true disconnect stay `false`.
+ */
+export function shouldRebindLiveTreeLeaseWhilePairing(
+	ua: IConversationPairingHoldSource | undefined,
+	leaseSessionId: string | undefined,
+	activeSessionId: string | undefined,
+): boolean {
+	return isConversationPairingHold(ua)
+		&& !!leaseSessionId
+		&& !!activeSessionId
+		&& leaseSessionId !== activeSessionId;
+}
+
 /** Legacy boolean helper for panes that only need connected vs not-connected copy. */
 export function getConversationEngineStatusText(isConnected = false): string {
 	if (isConnected) {

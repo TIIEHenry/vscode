@@ -10,7 +10,7 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { shouldRestoreLastSessionOnStartup } from '../common/uaClientSettingsHelpers.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
+import { isConversationEngineLive, isConversationPairingHold, shouldKeepLiveTreeLeaseWhilePairing, shouldRebindLiveTreeLeaseWhilePairing } from './conversationSessionStatus.js';
 import { IUniverseAgentSessionView } from '../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import type { ConversationQuestionRespondAnswers, IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { ConversationEngineFrameSource } from './conversationEngineFrameSource.js';
@@ -62,6 +62,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	private readonly engineFrameSource: ConversationEngineFrameSource;
 	private readonly liveTreeObservationStore = this._register(new DisposableStore());
+	private liveTreeObservationLease: IConversationSessionViewLease | undefined;
 	protected readonly _onDidChangeLiveAgentTree = this._register(new Emitter<ILiveAgentTreeChangeEvent>());
 	override readonly onDidChangeLiveAgentTree = this._onDidChangeLiveAgentTree.event;
 	private readonly _onDidFailEngineAction = this._register(new Emitter<IConversationEngineActionFailure>());
@@ -1333,10 +1334,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (this._store.isDisposed || this.suppressBindLiveTreeObservationLease) {
 			return;
 		}
-		if (!this.isEngineConnected()) {
-			return;
-		}
 		const sessionId = this.pendingEngineBindSessionId || this.getActiveSessionId();
+		if (!this.isEngineConnected()) {
+			const leaseSessionId = this.liveTreeObservationLease?.sessionId;
+			if (shouldKeepLiveTreeLeaseWhilePairing(this.uaConnection, leaseSessionId, sessionId)
+				|| !shouldRebindLiveTreeLeaseWhilePairing(this.uaConnection, leaseSessionId, sessionId)) {
+				// D286/D292: pairing-hold same session keeps observation. True disconnect
+				// still returns without clearing. Session switch while pairing falls through.
+				return;
+			}
+		}
 		if (!sessionId || isEngineRosterPlaceholderSessionId(sessionId)) {
 			return;
 		}
@@ -1362,6 +1369,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		} else {
 			this.activePendingBindLeaseSessionId = undefined;
 		}
+		this.liveTreeObservationLease = lease;
 		this.liveTreeObservationStore.add(lease);
 		this.liveTreeObservationStore.add(lease.onDidApplyFrame(() => this.emitLiveAgentTreeFromLease(lease)));
 		this.emitLiveAgentTreeFromLease(lease);
