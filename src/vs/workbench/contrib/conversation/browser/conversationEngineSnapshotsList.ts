@@ -120,7 +120,10 @@ function snapshotWriteFailureReason(error: unknown): string {
  * Disconnect still unloads rows.
  * Pairing-hold leftover keeps rows + disconnected copy (D280) and disables
  * Restore/Delete (D309); leftover-looks-live (`isEngineConnected()===true`
- * + pairingPending) also refuses writes. Connected leftover still writes.
+ * + pairingPending) also refuses writes. Pairing-hold-first refresh (D346)
+ * first-pull leftover-looks-live (no leftover) paints empty / disconnected
+ * and skips listSnapshots; leftover WITH leftover still KEEP + 0 extra list.
+ * Connected leftover still writes.
  * Restore/Delete success copy is restored only after a successful list
  * (D54/D154 listed-gate); leftover list-fail clears Restored./Deleted.
  * no Create.
@@ -287,8 +290,8 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		const listSnapshots = this.connection.listSnapshots;
 		const hasHook = typeof listSnapshots === 'function';
 
-		if (this.paintedLiveSnapshots && isConversationPairingHold(this.connection)) {
-			return this.applyPairingHoldLeftoverRefresh();
+		if (isConversationPairingHold(this.connection)) {
+			return this.applyDisconnectedRefresh();
 		}
 		if (!connected) {
 			return this.applyDisconnectedRefresh();

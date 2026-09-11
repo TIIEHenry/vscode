@@ -39,6 +39,7 @@ import {
 	conversationLensSessionBarSnapshotsUnavailableNoHook,
 	conversationLensSessionBarSnapshotsUnavailableNoSession,
 } from '../../browser/conversationLensSessionBarStrings.js';
+import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../browser/conversationStubService.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
@@ -425,6 +426,42 @@ suite('ConversationEngineSnapshotsList', () => {
 
 		assert.strictEqual(snapshotRow(overlayParent, 'leftover-snap'), null);
 		assert.ok(overlayParent.textContent?.includes(conversationLensSessionBarSnapshotsUnavailableDisconnected));
+	});
+
+	test('leftover-looks-live first-pull pairing without leftover stays empty and skips listSnapshots', async () => {
+		const calls: UniverseAgentListSnapshotsRequest[] = [];
+		const snapshot: UniverseAgentConnectionSnapshot = {
+			transport: 'ok',
+			pairingPending: true,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		};
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => snapshot,
+			listSnapshots: async request => {
+				calls.push(request);
+				return {
+					snapshots: [{ id: 'fixture', sessionId: 'sess-1', title: 'fixture', createdAt: 1, turnCount: 9 }],
+				};
+			},
+		});
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		const { list, overlayParent } = mountList(connection);
+		list.show();
+		await Promise.resolve();
+
+		assert.deepStrictEqual(calls, []);
+		assert.ok(overlayParent.textContent?.includes(conversationLensSessionBarSnapshotsUnavailableDisconnected));
+		assert.strictEqual(snapshotRow(overlayParent, 'fixture'), null);
+		assert.strictEqual(overlayParent.querySelector(`.${conversationLensSnapshotsRowClass}`), null);
+		assert.ok(!(overlayParent.textContent ?? '').includes(conversationLensSessionBarSnapshotsEmpty));
 	});
 
 	test('leftover-looks-live pairing-hold restore and delete stay 0 unary', async () => {
