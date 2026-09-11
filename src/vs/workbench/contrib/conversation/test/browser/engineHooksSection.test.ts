@@ -32,10 +32,12 @@ suite('EngineHooksSection', () => {
 		setPairingPending(value: boolean): void;
 		setConnected(value: boolean): void;
 	} {
-		const capabilities = createEmptyTestCapabilitySnapshot();
-		capabilities.hooksMetadata = {
-			support: options.hooksSupport ?? 'UNSUPPORTED',
-			reason: options.hooksReason ?? HOOKS_UNSUPPORTED_REASON,
+		const capabilities = {
+			...createEmptyTestCapabilitySnapshot(),
+			hooksMetadata: {
+				support: options.hooksSupport ?? 'UNSUPPORTED',
+				reason: options.hooksReason ?? HOOKS_UNSUPPORTED_REASON,
+			},
 		};
 		let connected = options.connected ?? true;
 		let pairingPending = options.pairingPending ?? false;
