@@ -224,7 +224,9 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private isSessionGoalAvailable(): boolean {
-		return this.stubService.isEngineConnected() && typeof this.uaConnection.setSessionGoal === 'function';
+		return !isConversationPairingHold(this.uaConnection)
+			&& this.stubService.isEngineConnected()
+			&& typeof this.uaConnection.setSessionGoal === 'function';
 	}
 
 	private renderGoal(sessionId: string): void {
@@ -243,7 +245,7 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private async onGoalClicked(): Promise<void> {
-		if (!this.isSessionGoalAvailable()) {
+		if (isConversationPairingHold(this.uaConnection) || !this.isSessionGoalAvailable()) {
 			return;
 		}
 		if (!this.stubService.isEngineConnected()) {
@@ -261,6 +263,9 @@ export class ConversationInboxOverlay extends Disposable {
 			value: current,
 		});
 		if (next === undefined) {
+			return;
+		}
+		if (isConversationPairingHold(this.uaConnection)) {
 			return;
 		}
 		const trimmed = next.trim();
@@ -282,7 +287,7 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private renderStop(sessionId: string): void {
-		const generating = this.isGenerating(sessionId);
+		const generating = this.isGenerating(sessionId) && !isConversationPairingHold(this.uaConnection);
 		this.stopButton.enabled = generating;
 		if (generating) {
 			this.stopButton.setTitle(conversationLensDockStop);
@@ -294,6 +299,9 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private onStopClicked(): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return;
+		}
 		const sessionId = this.stubService.getActiveSessionId();
 		if (!this.isGenerating(sessionId) && !this.stopButton.enabled) {
 			return;
@@ -396,30 +404,18 @@ export class ConversationInboxOverlay extends Disposable {
 				const resumeButton = append(actions, $('button.queue-bar-action')) as HTMLButtonElement;
 				resumeButton.type = 'button';
 				resumeButton.textContent = conversationLensInboxQueueResume;
-				addDisposableListener(resumeButton, 'click', () => {
-					this.stubService.resumeMessageQueue(sessionId);
-					this.render();
-					this.refreshOpenListPanel();
-				});
+				this.bindLeftoverQueueWrite(resumeButton, () => this.stubService.resumeMessageQueue(sessionId));
 			} else {
 				const pauseButton = append(actions, $('button.queue-bar-action')) as HTMLButtonElement;
 				pauseButton.type = 'button';
 				pauseButton.textContent = conversationLensInboxQueuePause;
-				addDisposableListener(pauseButton, 'click', () => {
-					this.stubService.pauseMessageQueue(sessionId);
-					this.render();
-					this.refreshOpenListPanel();
-				});
+				this.bindLeftoverQueueWrite(pauseButton, () => this.stubService.pauseMessageQueue(sessionId));
 			}
 
 			const clearButton = append(actions, $('button.queue-bar-action')) as HTMLButtonElement;
 			clearButton.type = 'button';
 			clearButton.textContent = conversationLensInboxQueueClear;
-			addDisposableListener(clearButton, 'click', () => {
-				this.stubService.clearMessageQueue(sessionId);
-				this.render();
-				this.refreshOpenListPanel();
-			});
+			this.bindLeftoverQueueWrite(clearButton, () => this.stubService.clearMessageQueue(sessionId));
 		}
 
 		this.renderEnqueueAction(actions);
@@ -433,6 +429,20 @@ export class ConversationInboxOverlay extends Disposable {
 		for (const item of state.items) {
 			body.appendChild(this.renderQueueItem(sessionId, item));
 		}
+	}
+
+	private bindLeftoverQueueWrite(button: HTMLButtonElement, run: () => void): void {
+		const enabled = !isConversationPairingHold(this.uaConnection);
+		button.disabled = !enabled;
+		button.setAttribute('aria-disabled', String(!enabled));
+		addDisposableListener(button, 'click', () => {
+			if (isConversationPairingHold(this.uaConnection)) {
+				return;
+			}
+			run();
+			this.render();
+			this.refreshOpenListPanel();
+		});
 	}
 
 	private renderEnqueueAction(actions: HTMLElement): void {
@@ -560,7 +570,7 @@ export class ConversationInboxOverlay extends Disposable {
 		const retryButton = $('button.queue-bar-action.conversation-lens-inbox-queue-retry') as HTMLButtonElement;
 		retryButton.type = 'button';
 		retryButton.textContent = conversationLensInboxQueueRetry;
-		const connected = this.stubService.isEngineConnected();
+		const connected = !isConversationPairingHold(this.uaConnection) && this.stubService.isEngineConnected();
 		retryButton.disabled = !connected;
 		retryButton.setAttribute('aria-disabled', String(!connected));
 		retryButton.title = connected ? conversationLensInboxQueueRetry : conversationLensInboxQueueRetryUnavailable;
@@ -573,7 +583,7 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private onQueueRetryClicked(sessionId: string, item: ConversationMessageQueueItem): void {
-		if (!this.stubService.isEngineConnected()) {
+		if (isConversationPairingHold(this.uaConnection) || !this.stubService.isEngineConnected()) {
 			return;
 		}
 		const retried = this.stubService.retryMessageQueueItem(sessionId, item.id, {
