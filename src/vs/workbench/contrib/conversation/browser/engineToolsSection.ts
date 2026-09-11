@@ -19,10 +19,10 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentAgentProfileSummary, UniverseAgentCapabilitySupport, UniverseAgentToolInfoResult, UniverseAgentToolSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles, defaultCheckboxStyles, defaultSelectBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { isConversationEngineLive } from './conversationSessionStatus.js';
+import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
 import {
 	type EngineCatalogPaneMode,
-	canPerformCatalogWrite,
+	canPerformCatalogWriteLive,
 	canShowCatalogRows,
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
@@ -297,8 +297,11 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	canWrite(): boolean {
-		return canPerformCatalogWrite(this.mode)
-			&& this.connection.isEngineConnected()
+		return canPerformCatalogWriteLive(
+			this.mode,
+			this.connection.isEngineConnected(),
+			isConversationPairingHold(this.connection),
+		)
 			&& !!this.activeProfile
 			&& this.activeProfile.source !== 'built_in';
 	}
@@ -546,8 +549,13 @@ export class EngineToolsSection extends Disposable {
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.tools.support;
 
+		const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'tool');
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			this.applyDisconnectedRefresh(support, hadLiveCatalog);
+			return;
+		}
 		if (!connected) {
-			this.applyDisconnectedRefresh(support, this.listEntries.some(entry => entry.kind === 'tool'));
+			this.applyDisconnectedRefresh(support, hadLiveCatalog);
 			return;
 		}
 
@@ -581,8 +589,13 @@ export class EngineToolsSection extends Disposable {
 				this.connection.listTools(),
 				this.connection.listAgentProfiles(),
 			]);
+			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'tool');
+			if (this.keepLeftoverCatalogForPairingHold(leftoverAfterList)) {
+				this.applyDisconnectedRefresh(support, leftoverAfterList);
+				return;
+			}
 			if (!this.connection.isEngineConnected()) {
-				this.applyDisconnectedRefresh(support, this.listEntries.some(entry => entry.kind === 'tool'));
+				this.applyDisconnectedRefresh(support, leftoverAfterList);
 				return;
 			}
 			this.profiles = profilesResult.profiles.filter(profile => profile.source !== 'built_in');

@@ -22,10 +22,10 @@ import type {
 	UniverseAgentScanNewPluginsResult,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { isConversationEngineLive } from './conversationSessionStatus.js';
+import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
 import {
 	type EngineCatalogPaneMode,
-	canPerformCatalogWrite,
+	canPerformCatalogWriteLive,
 	canShowCatalogRows,
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
@@ -309,7 +309,11 @@ export class EnginePluginsSection extends Disposable {
 	}
 
 	canWrite(): boolean {
-		return canPerformCatalogWrite(this.mode) && this.connection.isEngineConnected();
+		return canPerformCatalogWriteLive(
+			this.mode,
+			this.connection.isEngineConnected(),
+			isConversationPairingHold(this.connection),
+		);
 	}
 
 	selectPluginForTest(id: string): boolean {
@@ -412,8 +416,12 @@ export class EnginePluginsSection extends Disposable {
 		this.lastWritePermissionDenied = false;
 		this.hideCatalogWriteStatus();
 
+		const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'plugin');
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			return this.applyDisconnectedRefresh(support, hadLiveCatalog);
+		}
 		if (!connected) {
-			return this.applyDisconnectedRefresh(support, this.listEntries.some(entry => entry.kind === 'plugin'));
+			return this.applyDisconnectedRefresh(support, hadLiveCatalog);
 		}
 
 		if (support === 'UNSUPPORTED') {
@@ -447,8 +455,12 @@ export class EnginePluginsSection extends Disposable {
 			if (generation !== this.refreshGeneration) {
 				return false;
 			}
+			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'plugin');
+			if (this.keepLeftoverCatalogForPairingHold(leftoverAfterList)) {
+				return this.applyDisconnectedRefresh(support, leftoverAfterList);
+			}
 			if (!this.connection.isEngineConnected()) {
-				return this.applyDisconnectedRefresh(support, this.listEntries.some(entry => entry.kind === 'plugin'));
+				return this.applyDisconnectedRefresh(support, leftoverAfterList);
 			}
 			this.setPlugins(result.plugins);
 			this.mode = resolveEngineCatalogPaneMode(true, support, {

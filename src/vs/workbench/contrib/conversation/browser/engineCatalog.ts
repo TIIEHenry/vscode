@@ -59,6 +59,18 @@ export function canPerformCatalogWrite(mode: EngineCatalogPaneMode): boolean {
 }
 
 /**
+ * Catalog write door. Pairing-hold leftover-looks-live (`connected===true`)
+ * still refuses (D313).
+ */
+export function canPerformCatalogWriteLive(
+	mode: EngineCatalogPaneMode,
+	connected: boolean,
+	pairingHold = false,
+): boolean {
+	return canPerformCatalogWrite(mode) && connected && !pairingHold;
+}
+
+/**
  * @deprecated E2-1 abolished hide-on-disconnect. Navigation stays reachable;
  * use {@link canShowCatalogRows} for list visibility.
  */

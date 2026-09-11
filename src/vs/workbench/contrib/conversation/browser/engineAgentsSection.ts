@@ -28,11 +28,11 @@ import type {
 import { defaultButtonStyles, defaultCheckboxStyles, defaultInputBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import {
 	type EngineCatalogPaneMode,
-	canPerformCatalogWrite,
+	canPerformCatalogWriteLive,
 	canShowCatalogRows,
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
-import { isConversationEngineLive } from './conversationSessionStatus.js';
+import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
 import {
@@ -398,7 +398,11 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	canWrite(): boolean {
-		return canPerformCatalogWrite(this.mode) && this.connection.isEngineConnected();
+		return canPerformCatalogWriteLive(
+			this.mode,
+			this.connection.isEngineConnected(),
+			isConversationPairingHold(this.connection),
+		);
 	}
 
 	isWriteToolbarVisible(): boolean {
@@ -907,8 +911,12 @@ export class EngineAgentsSection extends Disposable {
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.agentProfiles.support;
 
+		const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'profile');
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			return this.applyDisconnectedRefresh(support, hadLiveCatalog);
+		}
 		if (!connected) {
-			return this.applyDisconnectedRefresh(support, this.listEntries.some(entry => entry.kind === 'profile'));
+			return this.applyDisconnectedRefresh(support, hadLiveCatalog);
 		}
 
 		if (support === 'UNSUPPORTED') {
@@ -940,8 +948,12 @@ export class EngineAgentsSection extends Disposable {
 
 		try {
 			const result = await this.connection.listAgentProfiles();
+			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'profile');
+			if (this.keepLeftoverCatalogForPairingHold(leftoverAfterList)) {
+				return this.applyDisconnectedRefresh(support, leftoverAfterList);
+			}
 			if (!this.connection.isEngineConnected()) {
-				return this.applyDisconnectedRefresh(support, this.listEntries.some(entry => entry.kind === 'profile'));
+				return this.applyDisconnectedRefresh(support, leftoverAfterList);
 			}
 			this.agentToolPending.clear();
 			this.setProfiles(result.profiles);
@@ -951,7 +963,7 @@ export class EngineAgentsSection extends Disposable {
 				itemCount: result.profiles.length,
 			});
 			this.listContainer.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
-			this.writeToolbar.style.display = canPerformCatalogWrite(this.mode) ? '' : 'none';
+			this.writeToolbar.style.display = this.canWrite() ? '' : 'none';
 			this.updateWriteActions();
 			this.syncDetailHost(true);
 			if (this.selectedProfile && !this.agentsMarkdownDirty && this.activeDetailTab === 'instructions') {

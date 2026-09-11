@@ -63,6 +63,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		setPluginsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setConnected(next: boolean): void;
 		setPairingPending(value: boolean): void;
+		setLooksLive(value: boolean): void;
 		clearGetPluginInfo(): void;
 	} {
 		const pluginsCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN' } = {
@@ -74,6 +75,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		};
 		let connected = options.connected ?? true;
 		let pairingPending = false;
+		let looksLive = false;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 		const plugin = demoPlugin();
 		let getPluginInfo: IUniverseAgentConnection['getPluginInfo'] | undefined = 'getPluginInfo' in options
@@ -91,7 +93,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 
 		return {
 			_serviceBrand: undefined,
-			isEngineConnected: () => connected && !pairingPending,
+			isEngineConnected: () => connected && (looksLive || !pairingPending),
 			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
 			getTransportState: () => (connected ? 'ok' : 'idle'),
 			getConnectionSnapshot: snapshot,
@@ -169,6 +171,9 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 			setPairingPending(value: boolean) {
 				pairingPending = value;
 				onDidChangeConnection.fire(snapshot());
+			},
+			setLooksLive(value: boolean) {
+				looksLive = value;
 			},
 			clearGetPluginInfo() {
 				getPluginInfo = undefined;
@@ -439,6 +444,46 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 
 		assert.strictEqual(section.getMode(), 'disconnected');
 		assert.strictEqual(section.getListEntryCount(), 0);
+	});
+
+	test('leftover-looks-live pairing-hold writes stay 0 unary', async () => {
+		const leftover = { ...demoPlugin(), id: 'leftover-plugin', displayName: 'Leftover Plugin' };
+		const enableCalls: string[] = [];
+		const scanCalls: number[] = [];
+		let listPluginsCalls = 0;
+		const connection = createConnectionStub({
+			listPlugins: async () => {
+				listPluginsCalls++;
+				return { plugins: [leftover] };
+			},
+			enablePlugin: async (id) => {
+				enableCalls.push(id);
+				return { plugin: leftover };
+			},
+			scanNewPlugins: async () => {
+				scanCalls.push(1);
+				return { newPlugins: [], skippedCount: 0 };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listPluginsCalls;
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		connection.setLooksLive(true);
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(listPluginsCalls, listCallsAfterLoad);
+		assert.strictEqual(section.getListEntryCount(), leftoverRows);
+		assert.strictEqual(section.canWrite(), false);
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		await section.enableSelectedForTest();
+		await section.scanNewForTest();
+		assert.deepStrictEqual(enableCalls, []);
+		assert.deepStrictEqual(scanCalls, []);
+		assert.strictEqual(listPluginsCalls, listCallsAfterLoad);
 	});
 
 	test('enablePlugin ok does not keep Enabled. when subsequent listPlugins fails', async () => {
