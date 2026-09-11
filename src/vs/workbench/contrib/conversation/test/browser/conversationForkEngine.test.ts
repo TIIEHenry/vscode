@@ -42,22 +42,57 @@ suite('conversationForkEngine', () => {
 
 	test('forkSubAgent true is handled and a successful fork', () => {
 		const errors: string[] = [];
+		const forkCalls: string[] = [];
 		const roster = {
 			isEngineConnected: () => true,
 			getActiveSessionId: () => 's1',
-			forkSubAgent: () => true,
+			forkSubAgent(sessionId: string) {
+				forkCalls.push(sessionId);
+				return true;
+			},
 		} as unknown as IConversationRosterService;
 		const notificationService = {
 			error(message: string | Error) {
 				errors.push(typeof message === 'string' ? message : message.message);
 			},
 		} as unknown as INotificationService;
+		const ua: IConversationPairingHoldSource = {
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+		};
 
-		const outcome = tryConnectedEngineFork(roster, notificationService);
+		const outcome = tryConnectedEngineFork(roster, notificationService, ua);
 
 		assert.strictEqual(outcome.handled, true);
 		assert.strictEqual(outcome.forked, true);
+		assert.deepStrictEqual(forkCalls, ['s1']);
 		assert.deepStrictEqual(errors, []);
+	});
+
+	test('leftover-looks-live pairing-hold skips fork unary and shows disconnected copy', () => {
+		const errors: string[] = [];
+		const roster = {
+			isEngineConnected: () => true,
+			hasEngineConnectionHistory: () => true,
+			getActiveSessionId: () => 's1',
+			forkSubAgent: () => {
+				throw new Error('must not fork while leftover-looks-live');
+			},
+		} as unknown as IConversationRosterService;
+		const ua: IConversationPairingHoldSource = {
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({ pairingPending: true }),
+		};
+
+		const outcome = tryConnectedEngineFork(roster, {
+			error(message: string | Error) {
+				errors.push(typeof message === 'string' ? message : message.message);
+			},
+		} as unknown as INotificationService, ua);
+
+		assert.strictEqual(outcome.handled, true);
+		assert.strictEqual(outcome.forked, false);
+		assert.deepStrictEqual(errors, [conversationForkEngineDisconnectedCopy]);
 	});
 
 	test('disconnected engine fork is neither handled nor forked', () => {
