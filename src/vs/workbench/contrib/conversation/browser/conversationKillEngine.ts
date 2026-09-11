@@ -5,6 +5,7 @@
 
 import { localize } from '../../../../nls.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
+import { isConversationPairingHold, type IConversationPairingHoldSource } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
 /**
@@ -12,10 +13,11 @@ import { IConversationRosterService } from './conversationStubService.js';
  * (notice on leftover/disconnect-with-history or connected false; silent on
  * connected true). `killed` is a successful `killSubAgent`.
  *
- * Same honesty class as Create Snapshot (D299): pairing-hold leftover and
- * true disconnect leftover both have `isEngineConnected()` false + history,
- * so they notice and must not call `killSubAgent` (roster would still take
- * the wasEverConnected engine path). Never-connected stays a silent no-op.
+ * Same honesty class as other leftover writes (D318): pairing-hold leftover
+ * and leftover-looks-live (`isEngineConnected()===true` + pairingPending)
+ * are checked before `isEngineConnected()` so a looks-live stub cannot take
+ * the unary path. Both notice and must not call `killSubAgent`. True
+ * disconnect leftover still notices. Never-connected stays a silent no-op.
  * Kill has no local success path (unlike fork).
  */
 export type ConversationEngineKillOutcome = {
@@ -42,7 +44,15 @@ export function tryKillSubAgent(
 	roster: IConversationRosterService,
 	notificationService: Pick<INotificationService, 'error'>,
 	args?: ConversationKillSubAgentArgs,
+	ua?: IConversationPairingHoldSource,
 ): ConversationEngineKillOutcome {
+	if (isConversationPairingHold(ua)) {
+		if (roster.hasEngineConnectionHistory()) {
+			notificationService.error(conversationKillEngineDisconnectedCopy);
+			return { handled: true, killed: false };
+		}
+		return { handled: false, killed: false };
+	}
 	if (roster.isEngineConnected()) {
 		const killed = roster.killSubAgent(roster.getActiveSessionId(), args);
 		if (!killed) {
