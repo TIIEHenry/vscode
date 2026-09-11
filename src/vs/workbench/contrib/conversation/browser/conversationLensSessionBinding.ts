@@ -166,6 +166,9 @@ export function findFirstPendingConfirmationTurnId(host: IConversationLensSessio
 
 export async function resolveConfirmation(host: IConversationLensSessionBindingHost, turnId: string, status: 'allowed' | 'skipped'): Promise<void> {
 
+	if (rejectPairingHoldWrite(host)) {
+		return;
+	}
 	if (host.stubService.isEngineConnected()) {
 		const forwarded = host.stubService.resolveConfirmation(
 			host.getBoundSessionId(),
@@ -181,9 +184,6 @@ export async function resolveConfirmation(host: IConversationLensSessionBindingH
 			return;
 		}
 		host.focusTimelineRecord(turnId);
-		return;
-	}
-	if (rejectPairingHoldWrite(host)) {
 		return;
 	}
 	try {
@@ -205,6 +205,9 @@ export async function resolveConfirmation(host: IConversationLensSessionBindingH
 
 export async function resolveQuestion(host: IConversationLensSessionBindingHost, turnId: string, requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string): Promise<void> {
 
+	if (rejectPairingHoldWrite(host)) {
+		return;
+	}
 	if (host.stubService.isEngineConnected()) {
 		const forwarded = host.stubService.respondQuestion(
 			host.getBoundSessionId(),
@@ -221,9 +224,6 @@ export async function resolveQuestion(host: IConversationLensSessionBindingHost,
 			return;
 		}
 		host.focusTimelineRecord(turnId);
-		return;
-	}
-	if (rejectPairingHoldWrite(host)) {
 		return;
 	}
 	try {

@@ -996,6 +996,91 @@ suite('conversation lens dispose gate', () => {
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
 	});
 
+	function leftoverLooksLiveConfirmQuestionHost(failures: ConversationComposerPostFailureReason[], pairingPending: boolean): {
+		host: IConversationLensSessionBindingHost;
+		resolveConfirmationCalls: number;
+		respondQuestionCalls: number;
+		posted: number;
+		focused: number;
+	} {
+		const state = { resolveConfirmationCalls: 0, respondQuestionCalls: 0, posted: 0, focused: 0 };
+		const host = {
+			getBoundSessionId: () => 'sess-leftover',
+			postBound: async (): Promise<PostOutcome> => {
+				state.posted++;
+				return { accepted: true, correlation: { id: 'x' } };
+			},
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+				hasEngineConnectionHistory: () => true,
+				resolveConfirmation: () => {
+					state.resolveConfirmationCalls++;
+					return true;
+				},
+				respondQuestion: () => {
+					state.respondQuestionCalls++;
+					return true;
+				},
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending }),
+			},
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+			focusTimelineRecord: () => { state.focused++; },
+		};
+		return {
+			host: host as unknown as IConversationLensSessionBindingHost,
+			get resolveConfirmationCalls() { return state.resolveConfirmationCalls; },
+			get respondQuestionCalls() { return state.respondQuestionCalls; },
+			get posted() { return state.posted; },
+			get focused() { return state.focused; },
+		};
+	}
+
+	test('leftover-looks-live resolveConfirmation skips unary and shows engine_disconnected', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, true);
+		await resolveConfirmation(fixture.host, 'turn-1', 'allowed');
+		assert.strictEqual(fixture.resolveConfirmationCalls, 0);
+		assert.strictEqual(fixture.posted, 0);
+		assert.strictEqual(fixture.focused, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('leftover-looks-live resolveQuestion skips unary and shows engine_disconnected', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, true);
+		await resolveQuestion(fixture.host, 'turn-1', 'req-1', { q1: { selectedLabels: ['a'] } });
+		assert.strictEqual(fixture.respondQuestionCalls, 0);
+		assert.strictEqual(fixture.posted, 0);
+		assert.strictEqual(fixture.focused, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('connected without pairing resolveConfirmation still forwards', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, false);
+		await resolveConfirmation(fixture.host, 'turn-1', 'allowed');
+		assert.strictEqual(fixture.resolveConfirmationCalls, 1);
+		assert.strictEqual(fixture.posted, 0);
+		assert.strictEqual(fixture.focused, 1);
+		assert.deepStrictEqual(failures, []);
+	});
+
+	test('connected without pairing resolveQuestion still forwards', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, false);
+		await resolveQuestion(fixture.host, 'turn-1', 'req-1', { q1: { selectedLabels: ['a'] } });
+		assert.strictEqual(fixture.respondQuestionCalls, 1);
+		assert.strictEqual(fixture.posted, 0);
+		assert.strictEqual(fixture.focused, 1);
+		assert.deepStrictEqual(failures, []);
+	});
+
 	test('retryError pairing-hold leftover lease does not post and shows engine_disconnected', async () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const { host, posted } = pairingHoldLeftoverWriteHost(failures);
