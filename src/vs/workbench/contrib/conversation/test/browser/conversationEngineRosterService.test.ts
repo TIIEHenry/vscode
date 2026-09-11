@@ -2738,4 +2738,50 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.ok(!lease.snapshot.timeline.some(item => item.summary.kind === 'text' && item.summary.preview === LEFTOVER_CACHE_TURN_TEXT));
 		assert.strictEqual(lease.snapshot.pendingActions.length, 0);
 	});
+
+	test('countPendingConfirmations keeps leftover pending while pairingPending then true disconnect uses stub', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		const sessionView = store.add(new LeftoverProjectionSessionView());
+		connection.setListSessions([{ sessionId: 'ua-cache', title: 'Cached UA' }]);
+		const service = store.add(createService(connection, undefined, sessionView));
+		connection.setConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		const lease = store.add(service.acquireSessionView('ua-cache'));
+		assert.ok(await (lease as { whenBindReady?: () => Promise<boolean> }).whenBindReady?.());
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		const leftoverPending = service.countPendingConfirmations('ua-cache');
+		assert.ok(leftoverPending > 0);
+
+		connection.setPairingPending(true);
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(service.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(service.countPendingConfirmations('ua-cache'), leftoverPending);
+
+		connection.setPairingPending(false);
+		connection.setConnected(false);
+		assert.strictEqual(service.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'disconnected');
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		assert.strictEqual(service.countPendingConfirmations('ua-cache'), 0);
+	});
+
+	test('pairingPending first-pull without leftover cache countPendingConfirmations stays 0', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-empty', title: 'Empty UA' }]);
+		const service = store.add(createService(connection));
+		connection.setPairingPending(true);
+		connection.setConnected(true);
+		await awaitEngineCatalogRefresh(service);
+
+		assert.strictEqual(service.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(service.countPendingConfirmations('ua-empty'), 0);
+	});
 });

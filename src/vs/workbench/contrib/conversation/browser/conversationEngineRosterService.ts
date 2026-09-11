@@ -281,7 +281,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.getTurns(sessionId);
 	}
 
-	/** D287/D288: leftover cached projection stays readable while pairing-hold; true disconnect does not. */
+	/** D287–D289/D291: leftover cached projection stays readable while pairing-hold; true disconnect does not. */
 	private canReadCachedEngineProjection(): boolean {
 		return this.isEngineConnected() || isConversationPairingHold(this.uaConnection);
 	}
@@ -652,6 +652,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			}
 		}
 		return super.getSessionSync(sessionId);
+	}
+
+	override countPendingConfirmations(sessionId: string): number {
+		if (this.canReadCachedEngineProjection()) {
+			const projection = this.engineFrameSource.getCachedProjection(sessionId);
+			if (projection) {
+				return projection.snapshot.pendingActions.length;
+			}
+		}
+		return super.countPendingConfirmations(sessionId);
 	}
 
 	protected override shouldSkipLocalPersistence(): boolean {
