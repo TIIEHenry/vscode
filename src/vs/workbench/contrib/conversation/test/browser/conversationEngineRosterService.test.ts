@@ -2166,6 +2166,66 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(connection.createSnapshotCalls.length, 0);
 	});
 
+	test('leftover createSnapshot rejects while pairingPending and leaves roster unchanged', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([
+			{ sessionId: 'ua-a', title: 'A' },
+			{ sessionId: 'ua-b', title: 'B' },
+		]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		assert.strictEqual(service.createSnapshot('ua-a', { title: 'Live checkpoint' }), true);
+		assert.strictEqual(connection.createSnapshotCalls.length, 1);
+
+		connection.setPairingPending(true);
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(service.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		const titlesBefore = service.getSessions().map(s => s.title);
+		const idsBefore = service.getSessions().map(s => s.id);
+		assert.strictEqual(service.createSnapshot('ua-a', { title: 'Pairing checkpoint' }), false);
+		assert.strictEqual(connection.createSnapshotCalls.length, 1);
+		assert.deepStrictEqual(service.getSessions().map(s => s.title), titlesBefore);
+		assert.deepStrictEqual(service.getSessions().map(s => s.id), idsBefore);
+
+		connection.setPairingPending(false);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		assert.strictEqual(service.createSnapshot('ua-a', { title: 'Live again' }), true);
+		assert.strictEqual(connection.createSnapshotCalls.length, 2);
+		assert.strictEqual(connection.createSnapshotCalls[1]?.title, 'Live again');
+	});
+
+	test('leftover-looks-live createSnapshot rejects while pairingPending and skips unary', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		assert.strictEqual(service.createSnapshot('ua-only', { title: 'Live checkpoint' }), true);
+		assert.strictEqual(connection.createSnapshotCalls.length, 1);
+
+		connection.setPairingPending(true);
+		service.setEngineConnected(true);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		const titlesBefore = service.getSessions().map(s => s.title);
+		const idsBefore = service.getSessions().map(s => s.id);
+		assert.strictEqual(service.createSnapshot('ua-only', { title: 'Looks-live checkpoint' }), false);
+		assert.strictEqual(connection.createSnapshotCalls.length, 1);
+		assert.deepStrictEqual(service.getSessions().map(s => s.title), titlesBefore);
+		assert.deepStrictEqual(service.getSessions().map(s => s.id), idsBefore);
+	});
+
 	test('disconnected after engine setSessionGoal skips unary', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());

@@ -395,6 +395,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override createSnapshot(sessionId: string, options?: { title?: string; description?: string }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.createEngineSnapshot(sessionId, options, true);
 		}
