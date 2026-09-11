@@ -22,7 +22,7 @@ import { ConversationTrajectory } from './conversationTrajectory.js';
 import { conversationLensPhasePreFirstClass, conversationLensPrefirstHeroClass } from './conversationLensDockStrings.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
 import { conversationLeafWidthBucket, isConversationLeafCompact, isConversationLeafNarrow } from './conversationNarrowLayout.js';
-import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold, type IConversationPairingHoldSource } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
 export const conversationLensStaleSnapshotClass = 'conversation-lens-stale-snapshot';
@@ -119,8 +119,8 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 }
 
 function resolveReadingColumnSessionId(host: {
-	readonly stubService: IConversationRosterService;
-	readonly sessionViewLease?: IConversationSessionViewLease;
+	readonly stubService: { getActiveSessionId(): string };
+	readonly sessionViewLease?: { readonly sessionId: string };
 }): string {
 	return host.sessionViewLease?.sessionId ?? host.stubService.getActiveSessionId();
 }
@@ -131,9 +131,13 @@ function resolveReadingColumnSessionId(host: {
  * leftover must not fake it. True disconnect still hides it.
  */
 export function shouldShowReadingColumnLiveChrome(host: {
-	readonly stubService: IConversationRosterService;
-	readonly uaConnection: IUniverseAgentConnection;
-	readonly sessionViewLease?: IConversationSessionViewLease;
+	readonly stubService: {
+		isEngineConnected(): boolean;
+		getActiveSessionId(): string;
+		getTurns(sessionId: string): readonly unknown[];
+	};
+	readonly uaConnection: IConversationPairingHoldSource;
+	readonly sessionViewLease?: { readonly sessionId: string };
 }): boolean {
 	if (host.stubService.isEngineConnected()) {
 		return true;

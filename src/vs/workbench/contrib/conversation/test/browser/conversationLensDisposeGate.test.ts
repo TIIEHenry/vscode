@@ -192,15 +192,15 @@ suite('conversation lens dispose gate', () => {
 			},
 		};
 
-		assert.strictEqual(shouldShowReadingColumnLiveChrome(host), true);
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(asLiveChromeHost(host)), true);
 
 		pairingPending = true;
 		assert.strictEqual(host.stubService.isEngineConnected(), false);
-		assert.strictEqual(shouldShowReadingColumnLiveChrome(host), true);
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(asLiveChromeHost(host)), true);
 
 		pairingPending = false;
 		connected = false;
-		assert.strictEqual(shouldShowReadingColumnLiveChrome(host), false);
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(asLiveChromeHost(host)), false);
 	});
 
 	test('shouldShowReadingColumnLiveChrome keeps leftover cached turns without lease while pairingPending', () => {
@@ -212,11 +212,11 @@ suite('conversation lens dispose gate', () => {
 				getTurns: () => [{ id: 't-leftover', kind: 'thinking', text: 'leftover think', streaming: true }],
 			},
 			uaConnection: {
-				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionPhase: () => ({ kind: 'connected' as const, path: 'loopback' }),
 				getConnectionSnapshot: () => ({ pairingPending: true }),
 			},
 		};
-		assert.strictEqual(shouldShowReadingColumnLiveChrome(host), true);
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(asLiveChromeHost(host)), true);
 	});
 
 	test('shouldShowReadingColumnLiveChrome first-pull pairingPending without leftover stays false', () => {
@@ -228,12 +228,16 @@ suite('conversation lens dispose gate', () => {
 				getTurns: () => [],
 			},
 			uaConnection: {
-				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionPhase: () => ({ kind: 'connected' as const, path: 'loopback' }),
 				getConnectionSnapshot: () => ({ pairingPending: true }),
 			},
 		};
-		assert.strictEqual(shouldShowReadingColumnLiveChrome(host), false);
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(asLiveChromeHost(host)), false);
 	});
+
+	function asLiveChromeHost(host: object): Parameters<typeof shouldShowReadingColumnLiveChrome>[0] {
+		return host as Parameters<typeof shouldShowReadingColumnLiveChrome>[0];
+	}
 
 	function leftoverLeaseSnapshot(sync: SyncChrome) {
 		return {
