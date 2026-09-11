@@ -807,13 +807,15 @@ export class EngineAgentsSection extends Disposable {
 				return;
 			}
 		} else if (this.agentTools.length === 0) {
+			// D358 leftover-looks-live: pairing-hold first. KEEP-chrome is not only `!connected`.
+			const disconnectedChrome = isConversationPairingHold(this.connection) || !this.connection.isEngineConnected();
 			this.toolsStatus.render({
-				mode: this.connection.isEngineConnected() ? 'empty' : 'disconnected',
+				mode: disconnectedChrome ? 'disconnected' : 'empty',
 				featureLabel: AGENT_TOOLS_FEATURE,
 				emptyCopy: localize('ua.engineAgentsToolsEmpty', "No engine tools to enable for this profile."),
-				onOpenConnection: this.connection.isEngineConnected()
-					? undefined
-					: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError),
+				onOpenConnection: disconnectedChrome
+					? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError)
+					: undefined,
 			});
 			return;
 		} else {
