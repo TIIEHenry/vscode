@@ -52,9 +52,10 @@ const $ = DOM.$;
  * unsupported (D258); first-pull no-hook stays empty+unsupported.
  * Disconnect still clears rows.
  * Pairing-hold leftover keeps rows + disconnected note (D281) and disables
- * Fire/Enable/Disable/Delete/Upsert (D311); leftover-looks-live
- * (`isEngineConnected()===true` + pairingPending) also refuses writes and
- * skips extra list. Connected leftover still writes.
+ * Fire/Enable/Disable/Delete/Upsert (D311). Pairing-hold-first refresh (D350)
+ * leftover-looks-live first-pull (`isEngineConnected()===true` + pairingPending,
+ * no leftover) stays empty + disconnected and skips list. Leftover WITH leftover
+ * still KEEP + 0 extra list. Connected leftover still writes.
  */
 export class EngineTriggersSection extends Disposable {
 
@@ -162,18 +163,18 @@ export class EngineTriggersSection extends Disposable {
 	private async refresh(): Promise<boolean> {
 		const generation = ++this.renderGeneration;
 		const hook = this.connection.listTriggers;
+		const pairingHold = isConversationPairingHold(this.connection);
 		const canSend = canSendEngineTriggerListRequest(
 			this.connection.isEngineConnected(),
 			typeof hook === 'function',
+			pairingHold,
 		);
 
 		this.clearWriteStatuses();
 		this.updateWriteActions();
 
-		if (this.triggers.length > 0 && isConversationPairingHold(this.connection)) {
-			return this.applyDisconnectedRefresh(true);
-		}
-		if (!this.connection.isEngineConnected()) {
+		// D350 leftover-looks-live: pairing-hold first. KEEP is not only leftover + pairingHold.
+		if (pairingHold || !this.connection.isEngineConnected()) {
 			return this.applyDisconnectedRefresh(this.triggers.length > 0);
 		}
 
@@ -200,10 +201,7 @@ export class EngineTriggersSection extends Disposable {
 			if (generation !== this.renderGeneration) {
 				return false;
 			}
-			if (this.triggers.length > 0 && isConversationPairingHold(this.connection)) {
-				return this.applyDisconnectedRefresh(true);
-			}
-			if (!this.connection.isEngineConnected()) {
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				return this.applyDisconnectedRefresh(this.triggers.length > 0);
 			}
 			this.triggers = [...result.triggers];
