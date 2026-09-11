@@ -33,6 +33,7 @@ import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/v
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { CONVERSATION_REVEAL_ITEM_COMMAND_ID } from '../../conversation/browser/conversationRevealItem.contribution.js';
+import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { IAgentInspectService } from '../common/agentInspect.js';
 import {
@@ -453,6 +454,10 @@ export class NavigatorAgentsView extends ViewPane {
 		this.lastLiveAgentTree = liveTree;
 
 		if (!engineReady) {
+			if (isConversationPairingHold(this.uaConnection) && this.hasAgentsLeftoverRows()) {
+				this.showPairingHoldLeftover();
+				return;
+			}
 			this.showDisconnectedSnapshot();
 			return;
 		}
@@ -512,8 +517,24 @@ export class NavigatorAgentsView extends ViewPane {
 		}
 	}
 
+	private hasAgentsLeftoverRows(): boolean {
+		return this.hadHierarchySnapshot || this.hadActivitySnapshot
+			|| this.hierarchyEntries.length > 0
+			|| this.activityEntries.length > 0;
+	}
+
+	private showPairingHoldLeftover(): void {
+		this.inspectService.setLiveAgentIds('agents', undefined);
+		if (this.hadHierarchySnapshot || this.hierarchyEntries.length > 0) {
+			this.setHierarchyNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
+		}
+		if (this.hadActivitySnapshot || this.activityEntries.length > 0) {
+			this.setActivityNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
+		}
+	}
+
 	private showDisconnectedSnapshot(): void {
-		if (!this.hadHierarchySnapshot && !this.hadActivitySnapshot) {
+		if (!this.hadHierarchySnapshot && !this.hadActivitySnapshot && this.activityEntries.length === 0) {
 			this.inspectService.setLiveAgentIds('agents', undefined);
 			this.setHierarchyState([], localize('navigatorAgentsHierarchy.empty', "No agents — no engine."));
 			this.setActivityState([], localize('navigatorAgentsActivity.empty', "No tool activity — no engine."));
@@ -525,7 +546,7 @@ export class NavigatorAgentsView extends ViewPane {
 			this.inspectService.setLiveAgentIds('agents', undefined);
 			this.setHierarchyState([], localize('navigatorAgentsHierarchy.empty', "No agents — no engine."));
 		}
-		if (this.hadActivitySnapshot) {
+		if (this.hadActivitySnapshot || this.activityEntries.length > 0) {
 			this.setActivityNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
 		} else {
 			this.setActivityState([], localize('navigatorAgentsActivity.empty', "No tool activity — no engine."));

@@ -26,6 +26,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
+import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { IAgentInspectService } from '../common/agentInspect.js';
 import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
@@ -383,7 +384,13 @@ export class NavigatorTeamView extends ViewPane {
 		const phaseKind = this.uaConnection.getConnectionPhase().kind;
 		const engineReady = this.rosterService.isEngineConnected() && phaseKind === 'connected';
 		if (!engineReady) {
-			if (this.hadTeamSnapshot) {
+			const hadLiveTeamPaint = this.hadTeamSnapshot || this.memberEntries.length > 0 || this.taskEntries.length > 0;
+			if (isConversationPairingHold(this.uaConnection) && hadLiveTeamPaint) {
+				this.inspectService.setLiveAgentIds('team', undefined);
+				this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
+				return;
+			}
+			if (hadLiveTeamPaint) {
 				this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
 				return;
 			}

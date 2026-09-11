@@ -17,6 +17,7 @@ import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/
 import type { IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { LiveAgentTreeNodeView, SessionViewSnapshot } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IConversationSessionChatService } from '../../../conversation/browser/conversationSessionChatService.js';
 import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
@@ -1003,6 +1004,105 @@ suite('Navigator Agents subviews', () => {
 		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> | undefined }).hierarchyTree;
 		assert.strictEqual(hierarchyTree?.getNode(null)?.children.length ?? 0, 0, 'first-pull pending must not install leftover nodes');
 		assert.strictEqual(inspectService.getLiveAgentIds(), undefined, 'first-pull pending must not be painted as live');
+	});
+
+	test('live Hierarchy and Activity keep leftover while pairingPending then true disconnect stays stale', () => {
+		const roster = store.add(new RosterWithMutableTreeAndActivity());
+		roster.setEngineConnected(true);
+		let pairingPending = false;
+		let phaseKind: 'connected' | 'disconnected' = 'connected';
+		let treeRefreshCalls = 0;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const baseSnapshot = createNavigatorConnectionTestStub().getConnectionSnapshot();
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => phaseKind === 'connected' ? { kind: 'connected', path: 'direct' } : { kind: 'disconnected' },
+			getConnectionSnapshot: () => ({ ...baseSnapshot, pairingPending }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			isAgentTreeFetchFailed: () => false,
+			requestAgentTreeRefresh: () => { treeRefreshCalls++; },
+			onDidChangeConnection: onDidChangeConnection.event,
+		});
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountAgentsView(roster, connection, inspectService);
+
+		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> }).hierarchyTree;
+		assert.ok(hierarchyTree, 'live paint must have a hierarchy tree');
+		const leftoverHierarchyCount = hierarchyTree.getNode(null)?.children.length ?? 0;
+		assert.ok(leftoverHierarchyCount > 0, 'live paint must have leftover hierarchy nodes');
+		view.showActivity();
+		const activityList = (view as unknown as { activityList: WorkbenchList<INavigatorAgentsActivityItem> }).activityList;
+		assert.ok(activityList, 'live paint must have an activity list');
+		const leftoverActivityCount = activityList.length;
+		assert.ok(leftoverActivityCount > 0, 'live paint must have leftover activity rows');
+		assert.ok(inspectService.getLiveAgentIds()?.has('root'), 'live paint must expose live agent ids');
+		assert.strictEqual(treeRefreshCalls, 0);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		pairingPending = true;
+		roster.setEngineConnected(false);
+
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(hierarchyTree.getNode(null)?.children.length ?? 0, leftoverHierarchyCount, 'pairing-hold must keep leftover hierarchy nodes');
+		assert.strictEqual(activityList.length, leftoverActivityCount, 'pairing-hold must keep leftover activity rows');
+		assert.strictEqual(inspectService.getLiveAgentIds(), undefined, 'pairing-hold leftover must not be painted as live');
+		assert.strictEqual(treeRefreshCalls, 0, 'pairing-hold must not request an extra agent tree refresh');
+		const activityNote = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(activityNote, 'pairing-hold must mark leftover activity');
+		assert.strictEqual(activityNote.style.display, 'block');
+		assert.strictEqual(activityNote.textContent, NAVIGATOR_STALE_SNAPSHOT_COPY);
+		view.showHierarchy();
+		const hierarchyNote = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(hierarchyNote, 'pairing-hold must mark leftover hierarchy');
+		assert.strictEqual(hierarchyNote.style.display, 'block');
+		assert.strictEqual(hierarchyNote.textContent, NAVIGATOR_STALE_SNAPSHOT_COPY);
+		view.refreshAgentTree();
+		assert.strictEqual(treeRefreshCalls, 0, 'pairing-hold Refresh must not request an extra agent tree refresh');
+		assert.strictEqual(hierarchyTree.getNode(null)?.children.length ?? 0, leftoverHierarchyCount);
+
+		pairingPending = false;
+		phaseKind = 'disconnected';
+		onDidChangeConnection.fire(connection.getConnectionSnapshot());
+
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		assert.strictEqual(hierarchyTree.getNode(null)?.children.length ?? 0, leftoverHierarchyCount, 'true disconnect after pairing must keep leftover hierarchy');
+		assert.strictEqual(activityList.length, leftoverActivityCount, 'true disconnect after pairing must keep leftover activity');
+		const staleNote = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(staleNote);
+		assert.strictEqual(staleNote.style.display, 'block');
+		assert.strictEqual(staleNote.textContent, NAVIGATOR_STALE_SNAPSHOT_COPY);
+	});
+
+	test('first-pull pairingPending without leftover stays empty', () => {
+		const roster = store.add(new ConversationStubService());
+		let treeRefreshCalls = 0;
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
+				pairingPending: true,
+			}),
+			requestAgentTreeRefresh: () => { treeRefreshCalls++; },
+		});
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountAgentsView(roster, connection, inspectService);
+
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
+		assert.ok(hierarchyEmpty);
+		assert.strictEqual(hierarchyEmpty.style.display, 'block');
+		assert.strictEqual(hierarchyEmpty.textContent, 'No agents — no engine.');
+		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> | undefined }).hierarchyTree;
+		assert.strictEqual(hierarchyTree?.getNode(null)?.children.length ?? 0, 0, 'first-pull pairing must not install leftover nodes');
+		assert.strictEqual(inspectService.getLiveAgentIds(), undefined, 'first-pull pairing must not be painted as live');
+		const note = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(note);
+		assert.strictEqual(note.style.display, 'none', 'first-pull pairing must stay honest empty without a leftover note');
+		assert.strictEqual(treeRefreshCalls, 0);
+		view.showActivity();
+		const activityEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty');
+		assert.strictEqual(activityEmpty?.textContent, 'No tool activity — no engine.');
 	});
 
 	test('ViewTitle Inspect with hierarchy focus sets the agent target and opens Inspect', () => {
