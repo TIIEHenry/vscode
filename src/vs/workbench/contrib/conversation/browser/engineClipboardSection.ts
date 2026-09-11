@@ -32,7 +32,7 @@ import {
 	formatEngineClipboardWriteLabel,
 } from './engineClipboardList.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
-import { isConversationEngineLive } from './conversationSessionStatus.js';
+import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
 
 const $ = DOM.$;
 
@@ -48,6 +48,10 @@ const $ = DOM.$;
  * Connected + missing list hook after a live paint keeps leftover rows +
  * unsupported (D257); first-pull no-hook stays empty+unsupported.
  * Disconnect still clears rows.
+ * Pairing-hold leftover keeps rows + disconnected note (D281) and disables
+ * Write/Clear (D314); leftover-looks-live (`isEngineConnected()===true` +
+ * pairingPending) also refuses writes and skips extra list. Read does not
+ * mutate leftover rows. Connected leftover still writes.
  */
 export class EngineClipboardSection extends Disposable {
 
@@ -151,6 +155,9 @@ export class EngineClipboardSection extends Disposable {
 		this.updateReadAction();
 		this.updateClearAction();
 
+		if (this.entries.length > 0 && isConversationPairingHold(this.connection)) {
+			return this.applyDisconnectedRefresh(true);
+		}
 		if (!this.connection.isEngineConnected()) {
 			return this.applyDisconnectedRefresh(this.entries.length > 0);
 		}
@@ -177,6 +184,9 @@ export class EngineClipboardSection extends Disposable {
 			const result = await hook.call(this.connection, engineClipboardListRequest());
 			if (generation !== this.renderGeneration) {
 				return false;
+			}
+			if (this.entries.length > 0 && isConversationPairingHold(this.connection)) {
+				return this.applyDisconnectedRefresh(true);
 			}
 			if (!this.connection.isEngineConnected()) {
 				return this.applyDisconnectedRefresh(this.entries.length > 0);
@@ -207,7 +217,14 @@ export class EngineClipboardSection extends Disposable {
 		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
 	}
 
+	private isClipboardWritePairingHold(): boolean {
+		return isConversationPairingHold(this.connection);
+	}
+
 	private applyDisconnectedRefresh(hadLiveCatalog: boolean): boolean {
+		this.updateWriteAction();
+		this.updateReadAction();
+		this.updateClearAction();
 		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
 			this.status.render({
 				mode: 'disconnected',
@@ -270,6 +287,7 @@ export class EngineClipboardSection extends Disposable {
 		this.writeButton.enabled = canSendEngineClipboardWrite(
 			this.connection.isEngineConnected(),
 			typeof this.connection.writeClipboard === 'function',
+			this.isClipboardWritePairingHold(),
 		);
 	}
 
@@ -284,12 +302,13 @@ export class EngineClipboardSection extends Disposable {
 		this.clearButton.enabled = canSendEngineClipboardClear(
 			this.connection.isEngineConnected(),
 			typeof this.connection.clearClipboard === 'function',
+			this.isClipboardWritePairingHold(),
 		);
 	}
 
 	private async handleWrite(): Promise<void> {
 		const hook = this.connection.writeClipboard;
-		if (!canSendEngineClipboardWrite(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
+		if (!canSendEngineClipboardWrite(this.connection.isEngineConnected(), typeof hook === 'function', this.isClipboardWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineClipboardWriteRequest();
@@ -328,7 +347,7 @@ export class EngineClipboardSection extends Disposable {
 
 	private async handleClear(): Promise<void> {
 		const hook = this.connection.clearClipboard;
-		if (!canSendEngineClipboardClear(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
+		if (!canSendEngineClipboardClear(this.connection.isEngineConnected(), typeof hook === 'function', this.isClipboardWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineClipboardClearRequest();
