@@ -316,10 +316,15 @@ export class ConversationInboxOverlay extends Disposable {
 				: localize('conversationLens.inboxManyPending', "{0} confirmations pending", pending);
 			this.pendingButton.textContent = label;
 			this.pendingButton.setAttribute('aria-label', label);
+			const enabled = shouldAutoRevealPendingConfirmation(this.uaConnection);
+			this.pendingButton.disabled = !enabled;
+			this.pendingButton.setAttribute('aria-disabled', String(!enabled));
 		} else {
 			this.pendingButton.hidden = true;
+			this.pendingButton.disabled = false;
 			this.pendingButton.textContent = '';
 			this.pendingButton.removeAttribute('aria-label');
+			this.pendingButton.removeAttribute('aria-disabled');
 		}
 	}
 
