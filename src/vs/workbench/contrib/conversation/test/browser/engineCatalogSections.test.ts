@@ -2171,6 +2171,77 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assertAgentsToolsDetailHostLeftoverVisible(section, 1);
 	});
 
+	test('Agents: leftover markdown and tools stay after pairing re-select and tab, then true disconnect clears', async () => {
+		let listAgentProfilesCalls = 0;
+		let saveCalls = 0;
+		let listToolsCalls = 0;
+		const leftoverMarkdown = 'Leftover agents md';
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' }, tools: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [leftoverAgentProfile()] };
+			},
+			saveAgentProfile: async () => {
+				saveCalls++;
+				return {
+					profile: {
+						id: 'leftover',
+						name: 'Leftover Agent',
+						source: 'user' as const,
+						systemPrompt: leftoverMarkdown,
+					},
+				};
+			},
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [leftoverAgentTool()] };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		await section.selectProfileByIdForTest('leftover');
+		assert.ok(section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+		assert.ok(section.isAgentsEditorVisible());
+		section.setActiveAgentDetailTabForTest('tools');
+		await flushMicrotasks();
+		assertAgentsToolsDetailHostLeftoverVisible(section, 1);
+		const saveCallsAfterLoad = saveCalls;
+		const listToolsAfterLoad = listToolsCalls;
+		const listCallsAfterLoad = listAgentProfilesCalls;
+		assert.ok(saveCallsAfterLoad >= 1);
+		assert.ok(listToolsAfterLoad >= 1);
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+		assertCatalogLeftoverPairingHonesty(section, 1, AGENTS_EMPTY_COPY);
+		await section.selectProfileByIdForTest('leftover');
+		await flushMicrotasks();
+
+		assert.strictEqual(saveCalls, saveCallsAfterLoad);
+		assert.strictEqual(listToolsCalls, listToolsAfterLoad);
+		assertCatalogLeftoverPairingHonesty(section, 1, AGENTS_EMPTY_COPY);
+		assertAgentsToolsDetailHostLeftoverVisible(section, 1);
+		section.setActiveAgentDetailTabForTest('instructions');
+		assert.ok(section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+		assert.ok(section.isAgentsEditorVisible());
+		assert.ok((section.getDomNode().textContent ?? '').includes(getEngineSectionDisconnectedCopy()));
+
+		connection.setConnected(false);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(section.isAgentsEditorVisible(), false);
+		assert.strictEqual(section.getAgentToolRowCount(), 0);
+		assert.ok(!section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+	});
+
 	function assertToolsUnknownCapabilityHonesty(
 		section: EngineToolsSection,
 		expectedRows: number,
@@ -2354,6 +2425,62 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assertToolsUnknownCapabilityHonesty(section, 1);
 		assert.ok((section.getToolInfoDetailText() ?? '').includes('Run leftover command'));
 		assert.strictEqual(section.isToolInfoVisible(), true);
+	});
+
+	test('Tools: leftover info stays after pairing re-select, then true disconnect clears', async () => {
+		let listToolsCalls = 0;
+		let getToolInfoCalls = 0;
+		const leftover = leftoverBashTool();
+		const leftoverInfo = leftoverBashToolInfo();
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [leftover] };
+			},
+			listAgentProfiles: async () => ({
+				profiles: [demoToolsUserProfile()],
+			}),
+			getToolInfo: async () => {
+				getToolInfoCalls++;
+				return leftoverInfo;
+			},
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.selectTool('leftover-bash'), true);
+		await flushMicrotasks();
+
+		assert.strictEqual(getToolInfoCalls, 1);
+		assert.ok((section.getToolInfoDetailText() ?? '').includes('Run leftover command'));
+		assert.strictEqual(section.isToolInfoVisible(), true);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listToolsCalls;
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(listToolsCalls, listCallsAfterLoad);
+		assertCatalogLeftoverPairingHonesty(section, leftoverRows, TOOLS_EMPTY_COPY);
+		assert.strictEqual(section.selectTool('leftover-bash'), true);
+		await flushMicrotasks();
+
+		assert.strictEqual(getToolInfoCalls, 1);
+		assert.strictEqual(listToolsCalls, listCallsAfterLoad);
+		assertCatalogLeftoverPairingHonesty(section, leftoverRows, TOOLS_EMPTY_COPY);
+		assert.ok((section.getToolInfoDetailText() ?? '').includes('Run leftover command'));
+		assert.strictEqual(section.isToolInfoVisible(), true);
+		assert.ok((section.getToolInfoDetailText() ?? '').includes(getEngineSectionDisconnectedCopy()));
+
+		connection.setConnected(false);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(section.isToolInfoVisible(), false);
+		assert.ok(!(section.getToolInfoDetailText() ?? '').includes('Run leftover command'));
 	});
 
 	function demoMcpServer() {

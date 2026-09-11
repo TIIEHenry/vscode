@@ -503,6 +503,67 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 		assert.ok(!(panel.getDomNode().textContent ?? '').includes(MCP_RUNTIME_TOOLS_EMPTY));
 	});
 
+	test('leftover tools stay after pairing re-select, then true disconnect clears', async () => {
+		let statusCalls = 0;
+		let toolsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			getMcpServerStatuses: async () => {
+				statusCalls++;
+				return { statuses: [{ serverId: LEFTOVER_RUNTIME_SERVER_ID, status: 'connected' }] };
+			},
+			getMcpServerTools: async () => {
+				toolsCalls++;
+				return { tools: [{ name: LEFTOVER_TOOL_NAME, description: 'keep me' }] };
+			},
+		});
+		const panel = mountPanel(connection);
+		await flushMicrotasks();
+
+		assert.ok(panel.selectServerForTest(LEFTOVER_RUNTIME_SERVER_ID));
+		await flushMicrotasks();
+
+		const toolsList = getToolsList(panel);
+		assert.ok(toolsList);
+		assert.strictEqual(panel.getToolsCount(), 1);
+		assert.strictEqual(getToolsRowCount(panel), 1);
+		assert.notStrictEqual(toolsList.style.display, 'none');
+		const leftoverRows = panel.getListEntryCount();
+		const statusCallsAfterLoad = statusCalls;
+		const toolsCallsAfterLoad = toolsCalls;
+		assert.ok(toolsCallsAfterLoad >= 1);
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(statusCalls, statusCallsAfterLoad);
+		assert.strictEqual(panel.getMode(), 'disconnected');
+		assert.strictEqual(panel.getListEntryCount(), leftoverRows);
+		assert.ok(panel.selectServerForTest(LEFTOVER_RUNTIME_SERVER_ID));
+		await flushMicrotasks();
+
+		assert.strictEqual(toolsCalls, toolsCallsAfterLoad);
+		assert.strictEqual(statusCalls, statusCallsAfterLoad);
+		assert.strictEqual(panel.getMode(), 'disconnected');
+		assert.strictEqual(panel.getToolsCount(), 1);
+		assert.strictEqual(getToolsRowCount(panel), 1);
+		assert.notStrictEqual(toolsList.style.display, 'none');
+		const status = panel.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		assert.ok((panel.getDomNode().textContent ?? '').includes(LEFTOVER_TOOL_NAME));
+		assert.ok(!(panel.getDomNode().textContent ?? '').includes(MCP_RUNTIME_TOOLS_EMPTY));
+
+		connection.setConnected(false);
+		await flushMicrotasks();
+
+		assert.strictEqual(panel.getMode(), 'disconnected');
+		assert.strictEqual(panel.getListEntryCount(), 0);
+		assert.strictEqual(panel.getToolsCount(), 0);
+		assert.strictEqual(getToolsRowCount(panel), 0);
+	});
+
 	test('first-pull capability UNKNOWN is empty with capability loading and does not list', async () => {
 		let statusCalls = 0;
 		const connection = createConnectionStub({

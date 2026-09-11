@@ -261,6 +261,14 @@ export class EngineMcpRuntimePanel extends Disposable {
 				if ((this.mode === 'failed' || this.mode === 'loading') && hadLivePaint) {
 					return;
 				}
+				if (this.keepLeftoverCatalogForPairingHold(this.hasLeftoverRuntimeTools() || hadLivePaint)) {
+					this.toolsStatus.render({
+						mode: 'disconnected',
+						featureLabel: MCP_RUNTIME_TOOLS_FEATURE,
+						onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+					});
+					return;
+				}
 				this.clearToolsPresentation();
 			}));
 		}

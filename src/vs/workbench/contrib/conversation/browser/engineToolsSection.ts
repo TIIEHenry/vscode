@@ -27,7 +27,7 @@ import {
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
-import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
+import { getEngineSectionApiUnavailableCopy, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
 import {
 	applyToolEnablementChange,
 	applyToolEnablementChanges,
@@ -505,6 +505,8 @@ export class EngineToolsSection extends Disposable {
 						void this.loadToolInfo(entry.tool.name);
 					} else if ((this.mode === 'failed' || this.mode === 'loading') && this.hasLeftoverToolInfo()) {
 						this.infoHost.style.display = '';
+					} else if (this.keepLeftoverCatalogForPairingHold(this.hasLeftoverToolInfo())) {
+						this.paintToolInfoHonesty(getEngineSectionDisconnectedCopy());
 					} else {
 						this.clearToolInfo();
 					}
@@ -696,6 +698,10 @@ export class EngineToolsSection extends Disposable {
 			// Keep leftover tool info after a live paint (D270; D264 / D265).
 			// failed/loading must not unload leftover detail; first-pull empty still clears.
 			if ((this.mode === 'failed' || this.mode === 'loading') && this.hasLeftoverToolInfo()) {
+				return;
+			}
+			if (this.keepLeftoverCatalogForPairingHold(this.hasLeftoverToolInfo())) {
+				this.paintToolInfoHonesty(getEngineSectionDisconnectedCopy());
 				return;
 			}
 			this.clearToolInfo();

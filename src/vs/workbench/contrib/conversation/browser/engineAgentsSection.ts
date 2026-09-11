@@ -34,6 +34,7 @@ import {
 } from './engineCatalog.js';
 import { isConversationEngineLive } from './conversationSessionStatus.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
+import { getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
 import {
 	formatAgentsMarkdown,
 	getAgentProfileModelUnsupportedReason,
@@ -640,9 +641,11 @@ export class EngineAgentsSection extends Disposable {
 	private syncDetailHost(forceAgentToolsReload = false): void {
 		// Keep leftover detail after a live paint (D271; D266 / D270).
 		// failed/loading must not hide leftover detailHost; disconnect / UNSUPPORTED / first-pull empty still hide.
-		const keepLeftoverDetail = this.connection.isEngineConnected()
+		const keepLeftoverDetail = (
+			this.connection.isEngineConnected()
 			&& (this.mode === 'failed' || this.mode === 'loading')
-			&& this.hasLeftoverAgentDetail();
+			&& this.hasLeftoverAgentDetail()
+		) || this.keepLeftoverCatalogForPairingHold(this.hasLeftoverAgentDetail());
 		const show = (canShowCatalogRows(this.mode) && !!this.selectedProfile) || keepLeftoverDetail;
 		this.detailHost.style.display = show ? '' : 'none';
 		if (show) {
@@ -782,6 +785,12 @@ export class EngineAgentsSection extends Disposable {
 			if (this.agentTools.length === 0) {
 				return;
 			}
+		} else if (this.keepLeftoverCatalogForPairingHold(this.agentTools.length > 0)) {
+			this.toolsStatus.render({
+				mode: 'disconnected',
+				featureLabel: AGENT_TOOLS_FEATURE,
+				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError),
+			});
 		} else if (this.agentToolsLoadFailed !== undefined) {
 			this.toolsStatus.render({
 				mode: 'failed',
@@ -1018,14 +1027,19 @@ export class EngineAgentsSection extends Disposable {
 			if (!this.agentsMarkdownDirty) {
 				// Keep leftover AGENTS.md after a live paint (D266; D233 / D253).
 				// failed/loading must not unload leftover markdown; disconnect / UNSUPPORTED / first-pull empty still clear.
-				const keepLeftoverMarkdown = this.connection.isEngineConnected()
+				const hasLeftoverMarkdown = !!(this.loadedAgentsMarkdown || this.agentsEditorInput.value);
+				const keepLeftoverMarkdown = (
+					this.connection.isEngineConnected()
 					&& (this.mode === 'failed' || this.mode === 'loading')
-					&& !!(this.loadedAgentsMarkdown || this.agentsEditorInput.value);
+					&& hasLeftoverMarkdown
+				) || this.keepLeftoverCatalogForPairingHold(hasLeftoverMarkdown);
 				if (!keepLeftoverMarkdown) {
 					this.agentsEditorContainer.style.display = 'none';
 					this.agentsEditorInput.value = '';
 					this.agentsEditorInput.inputElement.readOnly = true;
 					this.agentsEditorSaveButton.enabled = false;
+				} else if (this.keepLeftoverCatalogForPairingHold(hasLeftoverMarkdown)) {
+					this.showAgentsEditorStatus(getEngineSectionDisconnectedCopy());
 				}
 			}
 			this.syncDetailHost();

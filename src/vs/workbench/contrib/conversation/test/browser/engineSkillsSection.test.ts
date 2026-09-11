@@ -1134,6 +1134,58 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.ok(section.isBodyEditorVisible());
 	});
 
+	test('leftover body stays after pairing re-select, then true disconnect clears', async () => {
+		let listSkillsCalls = 0;
+		let infoCalls = 0;
+		const leftoverBody = '# Leftover skill body';
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => {
+				listSkillsCalls++;
+				return { skills: [{ name: 'leftover-skill', source: 'bundled', enabled: true }] };
+			},
+			getSkillInfo: async () => {
+				infoCalls++;
+				return { name: 'leftover-skill', content: leftoverBody, source: 'bundled', enabled: true };
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		section.selectSkillForTest('leftover-skill');
+		await flushMicrotasks();
+
+		assert.strictEqual(infoCalls, 1);
+		assert.strictEqual(section.getSelectedSkillBody(), leftoverBody);
+		assert.ok(section.isBodyEditorVisible());
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listSkillsCalls;
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(listSkillsCalls, listCallsAfterLoad);
+		assertSkillsLeftoverPairingHonesty(section, leftoverRows);
+		section.selectSkillForTest('leftover-skill');
+		await flushMicrotasks();
+
+		assert.strictEqual(infoCalls, 1);
+		assert.strictEqual(listSkillsCalls, listCallsAfterLoad);
+		assertSkillsLeftoverPairingHonesty(section, leftoverRows);
+		assert.strictEqual(section.getSelectedSkillBody(), leftoverBody);
+		assert.ok(section.isBodyEditorVisible());
+		assert.ok((section.getDomNode().textContent ?? '').includes(getEngineSectionDisconnectedCopy()));
+
+		connection.setConnected(false);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(section.getSelectedSkillBody(), '');
+	});
+
 	test('disconnected saveSelectedSkillBody does not call saveSkillContent RPC', async () => {
 		let saveCalled = false;
 		const connection = createConnectionStub({

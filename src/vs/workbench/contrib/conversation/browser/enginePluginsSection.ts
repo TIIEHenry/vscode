@@ -364,6 +364,13 @@ export class EnginePluginsSection extends Disposable {
 					void this.loadInfo(this.selectedPlugin.id);
 				} else if ((this.mode === 'failed' || this.mode === 'loading') && this.hookEntries.length > 0) {
 					this.hooksTable.style.display = '';
+				} else if (this.keepLeftoverCatalogForPairingHold(this.hasLeftoverHooks())) {
+					this.hooksTable.style.display = '';
+					this.infoStatus.render({
+						mode: 'disconnected',
+						featureLabel: PLUGIN_INFO_FEATURE,
+						onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+					});
 				} else {
 					this.clearInfoPresentation();
 				}

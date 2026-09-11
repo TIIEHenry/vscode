@@ -771,6 +771,56 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		assert.ok(!(section.getDomNode().textContent ?? '').includes(PLUGINS_EMPTY_COPY));
 	});
 
+	test('leftover hooks stay after pairing re-select, then true disconnect clears', async () => {
+		let listPluginsCalls = 0;
+		let infoCalls = 0;
+		const leftover = leftoverPlugin();
+		const connection = createConnectionStub({
+			listPlugins: async () => {
+				listPluginsCalls++;
+				return { plugins: [leftover] };
+			},
+			getPluginInfo: async () => {
+				infoCalls++;
+				return { summary: leftover, hooks: [leftoverHook()] };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		await flushMicrotasks();
+
+		assert.strictEqual(infoCalls, 1);
+		assertLeftoverHooksKeptAfterCatalogHonesty(section, 1);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listPluginsCalls;
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(listPluginsCalls, listCallsAfterLoad);
+		assertPluginsLeftoverPairingHonesty(section, leftoverRows);
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		await flushMicrotasks();
+
+		assert.strictEqual(infoCalls, 1);
+		assert.strictEqual(listPluginsCalls, listCallsAfterLoad);
+		assertPluginsLeftoverPairingHonesty(section, leftoverRows);
+		assertLeftoverHooksKeptAfterCatalogHonesty(section, 1);
+		assert.ok((section.getDomNode().textContent ?? '').includes(getEngineSectionDisconnectedCopy()));
+
+		connection.setConnected(false);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(section.getHookRowCount(), 0);
+		const hooksTable = getHooksTable(section);
+		assert.ok(hooksTable);
+		assert.strictEqual(hooksTable.style.display, 'none');
+	});
+
 	test('getPluginInfo first-pull throw is failed with no leftover hook rows', async () => {
 		const connection = createConnectionStub({
 			getPluginInfo: async () => {
