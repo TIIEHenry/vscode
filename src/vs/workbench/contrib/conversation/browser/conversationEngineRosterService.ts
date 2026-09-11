@@ -10,7 +10,7 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { shouldRestoreLastSessionOnStartup } from '../common/uaClientSettingsHelpers.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { isConversationEngineLive } from './conversationSessionStatus.js';
+import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
 import { IUniverseAgentSessionView } from '../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import type { ConversationQuestionRespondAnswers, IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { ConversationEngineFrameSource } from './conversationEngineFrameSource.js';
@@ -254,7 +254,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override getTrajectoryRecords(sessionId: string, options?: TrajectoryProjectionOptions): readonly ConversationTrajectoryRecord[] {
 		if ((this.isEngineConnected() || this.wasEverConnected) && this.engineSessions.some(session => session.id === sessionId)) {
-			if (this.isEngineConnected()) {
+			if (this.canReadCachedEngineProjection()) {
 				const projection = this.engineFrameSource.getCachedProjection(sessionId);
 				if (projection) {
 					return projectSnapshotToTrajectory(projection.snapshot, projection.attribution, projection.details, options);
@@ -270,7 +270,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return [];
 		}
 		if ((this.isEngineConnected() || this.wasEverConnected) && this.engineSessions.some(session => session.id === sessionId)) {
-			if (this.isEngineConnected()) {
+			if (this.canReadCachedEngineProjection()) {
 				const projection = this.engineFrameSource.getCachedProjection(sessionId);
 				if (projection) {
 					return entriesToLegacyTurns(projectSnapshotToEntries(projection.snapshot, projection.attribution, projection.details));
@@ -279,6 +279,11 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return this.engineSessions.find(session => session.id === sessionId)?.turns ?? [];
 		}
 		return super.getTurns(sessionId);
+	}
+
+	/** D287: leftover cached projection stays readable while pairing-hold; true disconnect does not. */
+	private canReadCachedEngineProjection(): boolean {
+		return this.isEngineConnected() || isConversationPairingHold(this.uaConnection);
 	}
 
 	override switchSession(sessionId: string): void {
