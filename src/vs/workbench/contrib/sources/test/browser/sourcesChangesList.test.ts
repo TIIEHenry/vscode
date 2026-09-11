@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { mainWindow } from '../../../../../base/browser/window.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
@@ -14,7 +15,12 @@ import { TestConfigurationService } from '../../../../../platform/configuration/
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type {
+	UniverseAgentConnectionSnapshot,
+	UniverseAgentWriteGitCommitRequest,
+	UniverseAgentWriteGitStagePathsRequest,
+	UniverseAgentWriteGitWriteResult,
+} from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
@@ -592,5 +598,288 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.strictEqual(list.length, 1);
 		assert.ok(list.element(0).scmResource);
 		assert.ok((list.element(0).resource.path ?? '').includes('scm-stub.ts'));
+	});
+
+	const acceptedWrite: UniverseAgentWriteGitWriteResult = {
+		supported: true,
+		reason: '',
+		success: true,
+		errorMessage: '',
+		exitCode: 0,
+		stdout: '',
+	};
+
+	function forceClick(button: HTMLElement | null): void {
+		if (!button) {
+			return;
+		}
+		button.classList.remove('disabled');
+		button.removeAttribute('disabled');
+		button.setAttribute('aria-disabled', 'false');
+		if ('disabled' in button) {
+			(button as HTMLButtonElement).disabled = false;
+		}
+		button.click();
+	}
+
+	function stageSelectedButton(host: HTMLElement): HTMLElement | null {
+		return host.querySelector('.sources-changes-toolbar .monaco-button');
+	}
+
+	function commitButton(host: HTMLElement): HTMLElement | null {
+		return host.querySelector('.sources-changes-commit .monaco-button');
+	}
+
+	function assertWriteButtonsDisabled(host: HTMLElement): void {
+		const stage = stageSelectedButton(host);
+		const commit = commitButton(host);
+		assert.ok(stage);
+		assert.ok(commit);
+		assert.strictEqual(stage.classList.contains('disabled'), true);
+		assert.strictEqual(commit.classList.contains('disabled'), true);
+	}
+
+	async function waitForWriteButtonsDisabled(host: HTMLElement): Promise<void> {
+		const deadline = Date.now() + 2000;
+		while (Date.now() < deadline) {
+			const stage = stageSelectedButton(host);
+			const commit = commitButton(host);
+			if (stage?.classList.contains('disabled') && commit?.classList.contains('disabled')) {
+				return;
+			}
+			await timeout(20);
+		}
+		throw new Error('Stage / Commit stayed enabled');
+	}
+
+	test('success then pairingPending disables Stage / Commit and forced click stays 0 unary', async function () {
+		let connected = true;
+		let pairingPending = false;
+		let readCalls = 0;
+		const leftover = { path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const commitCalls: UniverseAgentWriteGitCommitRequest[] = [];
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: connected ? 'ok' : 'idle',
+			sharedFsRootSent: false,
+			pairingPending,
+			channelAlive: connected,
+			capabilities: {} as never,
+		});
+		const connection = {
+			isEngineConnected: () => connected && !pairingPending,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' as const : 'disconnected' as const }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => {
+				readCalls += 1;
+				return {
+					supported: true,
+					reason: '',
+					branch: 'main',
+					entries: [leftover],
+				};
+			},
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+			writeGitStagePaths: async (request: UniverseAgentWriteGitStagePathsRequest) => {
+				stageCalls.push(request);
+				return acceptedWrite;
+			},
+			writeGitCommit: async (request: UniverseAgentWriteGitCommitRequest) => {
+				commitCalls.push(request);
+				return acceptedWrite;
+			},
+		} as unknown as IUniverseAgentConnection;
+		const scmStub = toResource.call(this, '/project/src/scm-stub.ts');
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub)).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		list.setFocus([0]);
+		list.setSelection([0]);
+		const commitInput = host.querySelector('.sources-changes-commit-input') as HTMLInputElement;
+		commitInput.value = 'fix leftover';
+		commitInput.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+		await timeout(20);
+		assert.strictEqual(stageSelectedButton(host)?.classList.contains('disabled'), false);
+		assert.strictEqual(commitButton(host)?.classList.contains('disabled'), false);
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+
+		const pairingStatus = await waitForStatusText(host, 'not connected');
+		assert.strictEqual(pairingStatus, sourcesGitReadPairingHoldMessage());
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		assert.strictEqual(readCalls, 1);
+		list.setFocus([0]);
+		list.setSelection([0]);
+		commitInput.value = 'fix leftover';
+		commitInput.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+		await waitForWriteButtonsDisabled(host);
+
+		forceClick(stageSelectedButton(host));
+		forceClick(commitButton(host));
+		await timeout(20);
+		assert.deepStrictEqual(stageCalls, []);
+		assert.deepStrictEqual(commitCalls, []);
+	});
+
+	test('leftover-looks-live pairing-hold Stage / Commit stay 0 unary', async function () {
+		let pairingPending = false;
+		let readCalls = 0;
+		const leftover = { path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const commitCalls: UniverseAgentWriteGitCommitRequest[] = [];
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			sharedFsRootSent: false,
+			pairingPending,
+			channelAlive: true,
+			capabilities: {} as never,
+		});
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => {
+				readCalls += 1;
+				return {
+					supported: true,
+					reason: '',
+					branch: 'main',
+					entries: [leftover],
+				};
+			},
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+			writeGitStagePaths: async (request: UniverseAgentWriteGitStagePathsRequest) => {
+				stageCalls.push(request);
+				return acceptedWrite;
+			},
+			writeGitCommit: async (request: UniverseAgentWriteGitCommitRequest) => {
+				commitCalls.push(request);
+				return acceptedWrite;
+			},
+		} as unknown as IUniverseAgentConnection;
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(connection).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		list.setFocus([0]);
+		list.setSelection([0]);
+		const commitInput = host.querySelector('.sources-changes-commit-input') as HTMLInputElement;
+		commitInput.value = 'looks live';
+		commitInput.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+		await timeout(20);
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+
+		list.setFocus([0]);
+		list.setSelection([0]);
+		commitInput.value = 'looks live';
+		commitInput.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+		await waitForWriteButtonsDisabled(host);
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		assert.ok(readCalls >= 1);
+
+		forceClick(stageSelectedButton(host));
+		forceClick(commitButton(host));
+		await timeout(20);
+		assert.deepStrictEqual(stageCalls, []);
+		assert.deepStrictEqual(commitCalls, []);
+	});
+
+	test('connected leftover still stages and commits', async function () {
+		let readCalls = 0;
+		const leftover = { path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const commitCalls: UniverseAgentWriteGitCommitRequest[] = [];
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => {
+				readCalls += 1;
+				if (readCalls === 1) {
+					return {
+						supported: true,
+						reason: '',
+						branch: 'main',
+						entries: [leftover],
+					};
+				}
+				throw new Error('boom');
+			},
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+			writeGitStagePaths: async (request: UniverseAgentWriteGitStagePathsRequest) => {
+				stageCalls.push(request);
+				return acceptedWrite;
+			},
+			writeGitCommit: async (request: UniverseAgentWriteGitCommitRequest) => {
+				commitCalls.push(request);
+				return acceptedWrite;
+			},
+		} as unknown as IUniverseAgentConnection;
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(connection).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		onDidChangeConnection.fire({} as UniverseAgentConnectionSnapshot);
+		const status = await waitForStatusText(host, 'Unable to read git changes');
+		assert.ok(status.includes('boom'));
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+
+		list.setFocus([0]);
+		list.setSelection([0]);
+		const commitInput = host.querySelector('.sources-changes-commit-input') as HTMLInputElement;
+		commitInput.value = 'keep leftover';
+		commitInput.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+		await timeout(20);
+		assert.strictEqual(stageSelectedButton(host)?.classList.contains('disabled'), false);
+		assert.strictEqual(commitButton(host)?.classList.contains('disabled'), false);
+
+		stageSelectedButton(host)?.click();
+		await timeout(50);
+		assert.deepStrictEqual(stageCalls, [{
+			sessionId: 'session-1',
+			commands: [{ argv: ['src/leftover.ts'] }],
+		}]);
+
+		commitButton(host)?.click();
+		await timeout(50);
+		assert.deepStrictEqual(commitCalls, [{
+			sessionId: 'session-1',
+			message: 'keep leftover',
+			signOff: false,
+			amend: false,
+		}]);
 	});
 });
