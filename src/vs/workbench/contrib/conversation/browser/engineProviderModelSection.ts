@@ -13,6 +13,7 @@ import type {
 	UniverseAgentCapabilitySupport,
 	UniverseAgentModelEntry,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { isConversationEngineLive } from './conversationSessionStatus.js';
 import {
 	canShowCatalogRows,
 	type EngineCatalogListPhase,
@@ -181,15 +182,34 @@ export class EngineProviderModelSection extends Disposable {
 		return mode;
 	}
 
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		if (!hadLiveCatalog) {
+			return false;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
+	}
+
+	private applyDisconnectedModelsRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): void {
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			this.sessionHint.style.display = 'none';
+			this.modelList.style.display = '';
+			this.modelListPhase = { kind: 'none' };
+			this.renderModelStatus(resolveEngineCatalogPaneMode(false, support));
+			return;
+		}
+		this.clearModelPresentation();
+		this.modelListPhase = { kind: 'none' };
+		this.renderModelStatus(resolveEngineCatalogPaneMode(false, support));
+	}
+
 	private async refreshModels(): Promise<void> {
 		const generation = ++this.refreshGeneration;
 		const connected = this.connection.isEngineConnected();
 		const entry = readCapabilityEntry(this.connection.getCapabilitySnapshot(), 'models');
 
 		if (!connected) {
-			this.clearModelPresentation();
-			this.modelListPhase = { kind: 'none' };
-			this.renderModelStatus(resolveEngineCatalogPaneMode(false, entry.support));
+			this.applyDisconnectedModelsRefresh(entry.support, this.modelCount > 0);
 			return;
 		}
 
@@ -224,9 +244,7 @@ export class EngineProviderModelSection extends Disposable {
 				return;
 			}
 			if (!this.connection.isEngineConnected()) {
-				this.clearModelPresentation();
-				this.modelListPhase = { kind: 'none' };
-				this.renderModelStatus(resolveEngineCatalogPaneMode(false, entry.support));
+				this.applyDisconnectedModelsRefresh(entry.support, this.modelCount > 0);
 				return;
 			}
 			this.modelListPhase = { kind: 'success', itemCount: result.models.length };

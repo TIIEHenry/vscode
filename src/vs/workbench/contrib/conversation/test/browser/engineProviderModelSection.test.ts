@@ -17,6 +17,7 @@ import type {
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy } from '../../browser/engineCatalog.js';
+import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { EngineProviderModelSection } from '../../browser/engineProviderModelSection.js';
 
 const LEFTOVER_MODEL_ID = 'gpt-leftover';
@@ -34,6 +35,7 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 	} = {}): IUniverseAgentConnection & {
 		setModelsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setConnected(next: boolean): void;
+		setPairingPending(value: boolean): void;
 	} {
 		const modelsCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN' } = {
 			support: options.modelsSupport ?? 'SUPPORTED',
@@ -43,12 +45,13 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 			models: modelsCapability,
 		};
 		let connected = options.connected ?? true;
+		let pairingPending = false;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
 			transport: connected ? 'ok' : 'idle',
 			sessionToken: connected ? 'tok' : undefined,
-			pairingPending: false,
+			pairingPending,
 			channelAlive: connected,
 			sharedFsRootSent: false,
 			capabilities,
@@ -56,7 +59,7 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 
 		return {
 			_serviceBrand: undefined,
-			isEngineConnected: () => connected,
+			isEngineConnected: () => connected && !pairingPending,
 			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
 			getTransportState: () => (connected ? 'ok' : 'idle'),
 			getConnectionSnapshot: snapshot,
@@ -127,6 +130,10 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 			},
 			setConnected(next: boolean) {
 				connected = next;
+				onDidChangeConnection.fire(snapshot());
+			},
+			setPairingPending(value: boolean) {
+				pairingPending = value;
 				onDidChangeConnection.fire(snapshot());
 			},
 		};
@@ -314,5 +321,59 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 		const leftoverList = getModelList(section);
 		assert.ok(leftoverList);
 		assert.notStrictEqual(leftoverList.style.display, 'none');
+	});
+
+	test('connected phase with pairingPending keeps leftover models and paints not-connected', async () => {
+		let listModelsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			modelsSupport: 'SUPPORTED',
+			listModels: async () => {
+				listModelsCalls++;
+				return {
+					models: [{
+						id: 'leftover',
+						type: 'chat',
+						enabled: true,
+						level: 1,
+						provider: 'demo',
+						modelId: LEFTOVER_MODEL_ID,
+					}],
+				};
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listModelsCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listModelsCalls, listCallsAfterLoad);
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), leftoverRows);
+		assert.ok((section.getDomNode().textContent ?? '').includes(LEFTOVER_MODEL_ID));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(MODEL_EMPTY_COPY));
+		const leftoverList = getModelList(section);
+		assert.ok(leftoverList);
+		assert.notStrictEqual(leftoverList.style.display, 'none');
+		const status = getModelStatus(section);
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+
+		connection.setConnected(false);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), 0);
 	});
 });

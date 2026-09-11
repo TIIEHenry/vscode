@@ -45,7 +45,7 @@ summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop：D2
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
 | **A** | — | idle；已对齐 merge |
-| **B** | pairing-remaining-keep-last | 在途；[D280](deferred-gaps.md) 其余 pairing 清行 |
+| **B** | pairing-remaining-keep-last | 代码已写；待父 Commit Gate |
 | **C** | — | idle；勿 add `dev/loop` |
 | **D** | — | idle；已对齐 merge |
 

@@ -333,6 +333,59 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.ok(!(overlayParent.textContent ?? '').includes(conversationLensSessionBarSnapshotsEmpty));
 	});
 
+	test('connected phase with pairingPending keeps leftover snapshots and paints disconnected', async () => {
+		let connected = true;
+		let pairingPending = false;
+		let listCalls = 0;
+		const leftover: UniverseAgentSessionSnapshotInfo = {
+			id: 'leftover-snap',
+			sessionId: 'sess-1',
+			title: 'Leftover',
+			createdAt: 1,
+			turnCount: 1,
+		};
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: connected ? 'ok' : 'idle',
+			pairingPending,
+			channelAlive: connected,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => connected && !pairingPending,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listSnapshots: async () => {
+				listCalls++;
+				return { snapshots: [leftover] };
+			},
+		}));
+		list.show();
+		await Promise.resolve();
+		assert.strictEqual(listCalls, 1);
+		assert.ok(snapshotRow(overlayParent, 'leftover-snap'));
+		const listCallsAfterLoad = listCalls;
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+		await flushMicrotasks();
+
+		assert.strictEqual(listCalls, listCallsAfterLoad);
+		assert.ok(snapshotRow(overlayParent, 'leftover-snap'));
+		assert.strictEqual(overlayParent.querySelectorAll(`.${conversationLensSnapshotsRowClass}`).length, 1);
+		assert.ok(overlayParent.textContent?.includes(conversationLensSessionBarSnapshotsUnavailableDisconnected));
+		assert.ok(!(overlayParent.textContent ?? '').includes(conversationLensSessionBarSnapshotsEmpty));
+
+		connected = false;
+		onDidChangeConnection.fire(snapshot());
+		await flushMicrotasks();
+
+		assert.strictEqual(snapshotRow(overlayParent, 'leftover-snap'), null);
+		assert.ok(overlayParent.textContent?.includes(conversationLensSessionBarSnapshotsUnavailableDisconnected));
+	});
+
 	test('connection drop while open clears rows and does not keep fixture data', async () => {
 		let connected = true;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();

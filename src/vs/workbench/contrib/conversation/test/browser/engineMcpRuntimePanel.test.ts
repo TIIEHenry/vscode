@@ -16,6 +16,7 @@ import type {
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy, getCatalogUnsupportedCopy } from '../../browser/engineCatalog.js';
+import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { EngineMcpRuntimePanel } from '../../browser/engineMcpRuntimePanel.js';
 import { localize } from '../../../../../nls.js';
 
@@ -38,6 +39,7 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 		getMcpServerTools?: IUniverseAgentConnection['getMcpServerTools'];
 	} = {}): IUniverseAgentConnection & {
 		setConnected(value: boolean): void;
+		setPairingPending(value: boolean): void;
 		setMcpRuntimeSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		clearGetMcpServerTools(): void;
 	} {
@@ -49,6 +51,7 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 			mcpRuntime: mcpRuntimeCapability,
 		};
 		let connected = options.connected ?? false;
+		let pairingPending = false;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 		let getMcpServerTools: IUniverseAgentConnection['getMcpServerTools'] | undefined = 'getMcpServerTools' in options
 			? options.getMcpServerTools
@@ -57,7 +60,7 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
 			transport: connected ? 'ok' : 'idle',
 			sessionToken: connected ? 'tok' : undefined,
-			pairingPending: false,
+			pairingPending,
 			channelAlive: connected,
 			sharedFsRootSent: false,
 			capabilities,
@@ -65,7 +68,7 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 
 		return {
 			_serviceBrand: undefined,
-			isEngineConnected: () => connected,
+			isEngineConnected: () => connected && !pairingPending,
 			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
 			getTransportState: () => (connected ? 'ok' : 'idle'),
 			getConnectionSnapshot: snapshot,
@@ -136,6 +139,10 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 			probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
 			setConnected(value: boolean) {
 				connected = value;
+				onDidChangeConnection.fire(snapshot());
+			},
+			setPairingPending(value: boolean) {
+				pairingPending = value;
 				onDidChangeConnection.fire(snapshot());
 			},
 			setMcpRuntimeSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
@@ -319,6 +326,50 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 		const firstPullTools = getToolsList(panel);
 		assert.ok(firstPullTools);
 		assert.strictEqual(firstPullTools.style.display, 'none');
+	});
+
+	test('connected phase with pairingPending keeps leftover runtime rows and paints not-connected', async () => {
+		let statusCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			getMcpServerStatuses: async () => {
+				statusCalls++;
+				return { statuses: [{ serverId: LEFTOVER_RUNTIME_SERVER_ID, status: 'connected' }] };
+			},
+		});
+		const panel = mountPanel(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(panel.getMode(), 'ready');
+		assert.ok(panel.getListEntryCount() > 0);
+		const leftoverRows = panel.getListEntryCount();
+		const listCallsAfterLoad = statusCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(statusCalls, listCallsAfterLoad);
+		assert.strictEqual(panel.getMode(), 'disconnected');
+		assert.strictEqual(panel.getListEntryCount(), leftoverRows);
+		assert.ok(panel.selectServerForTest(LEFTOVER_RUNTIME_SERVER_ID));
+		const leftoverList = panel.getDomNode().querySelector('.engine-mcp-runtime-list') as HTMLElement;
+		assert.ok(leftoverList);
+		assert.notStrictEqual(leftoverList.style.display, 'none');
+		const status = panel.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		assert.ok(!(panel.getDomNode().textContent ?? '').includes(MCP_RUNTIME_EMPTY));
+
+		connection.setConnected(false);
+		await flushMicrotasks();
+
+		assert.strictEqual(panel.getMode(), 'disconnected');
+		assert.strictEqual(panel.getListEntryCount(), 0);
 	});
 
 	test('successful load then capability UNKNOWN keeps leftover rows and paints capability loading', async () => {
