@@ -381,15 +381,17 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	private async refreshTeamData(): Promise<void> {
+		const hadLiveTeamPaint = this.hadTeamSnapshot || this.memberEntries.length > 0 || this.taskEntries.length > 0;
+		const pairingHold = isConversationPairingHold(this.uaConnection);
+		if (pairingHold && hadLiveTeamPaint) {
+			this.inspectService.setLiveAgentIds('team', undefined);
+			this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
+			return;
+		}
+
 		const phaseKind = this.uaConnection.getConnectionPhase().kind;
 		const engineReady = this.rosterService.isEngineConnected() && phaseKind === 'connected';
-		if (!engineReady) {
-			const hadLiveTeamPaint = this.hadTeamSnapshot || this.memberEntries.length > 0 || this.taskEntries.length > 0;
-			if (isConversationPairingHold(this.uaConnection) && hadLiveTeamPaint) {
-				this.inspectService.setLiveAgentIds('team', undefined);
-				this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
-				return;
-			}
+		if (pairingHold || !engineReady) {
 			if (hadLiveTeamPaint) {
 				this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
 				return;
