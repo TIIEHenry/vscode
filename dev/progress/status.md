@@ -11,7 +11,7 @@ summary: "关仓合入 D303 chip aria + D304 live chrome + D305 Sessions create 
 > **当前迭代账**（规则 3a）。产品状态 → [traceability](../../docs/product/traceability.md)（生成列）；方案状态 → [plans INDEX](../plans/INDEX.md)（生成列）；延期 → [deferred-gaps](deferred-gaps.md)。历史槽位 catalog 流水 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
 
-### 已合入（`MERGE_SHA=5fcfb8581bf`，待 push；P7 文档可能再 +1）
+### 已合入（`MERGE_SHA=fd4ae0e535d` 已 push `origin/agent-ide`；本账若再 +1 以远程 tip 为准）
 | 切片 | 提交 / 落点 |
 |:-----|:------------|
 | **GFS-1** | `32f71812` / `32198d0b` — [giant-file-split](../plans/giant-file-split.md)：`grpcClient` mapper 特征测 + facade / mappers / calls 拆分 |
@@ -182,13 +182,13 @@ summary: "关仓合入 D303 chip aria + D304 live chrome + D305 Sessions create 
 ## 工位表（P0 盘点 · 2026-09-12 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `5fcfb8581bf` | 干净 | 0 | `parked`（P7 或 +1 SHA 滞后） |
-| A | `vscode-WorkTrees/A` | `loop/A` | `5fcfb8581bf` | 干净 | 0 | idle；已对齐 MERGE_SHA |
-| B | `vscode-WorkTrees/B` | `loop/B` | `5fcfb8581bf` | 干净 | 0 | idle；已对齐 MERGE_SHA |
-| C | `vscode-WorkTrees/C` | `loop/C` | `5fcfb8581bf` | 未提交 `dev/loop` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `5fcfb8581bf` | 干净 | 0 | idle；已对齐 MERGE_SHA |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `fd4ae0e535d` | 干净 | 0 | `parked`；代码 tip 已 push（本账 +1 以 `origin/agent-ide` 为准） |
+| A | `vscode-WorkTrees/A` | `loop/A` | `fd4ae0e535d` | 干净 | 0 | idle；跟远程 tip |
+| B | `vscode-WorkTrees/B` | `loop/B` | `fd4ae0e535d` | 干净 | 0 | idle；跟远程 tip |
+| C | `vscode-WorkTrees/C` | `loop/C` | `fd4ae0e535d` | 未提交 `dev/loop` | 0 | idle；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `fd4ae0e535d` | 干净 | 0 | idle；跟远程 tip |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | leftover 已合入 merge；勿 `checkout -B` |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `ad9245ca178` | `dev/loop` + `.idea` | 0 | 请自行对齐已 push tip |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `ad9245ca178` | `dev/loop` + `.idea` | 0 | 请自行对齐 `origin/agent-ide`（勿对齐本表旧 SHA） |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
