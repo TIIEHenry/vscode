@@ -55,10 +55,12 @@ suite('Engine clipboard list bind', () => {
 		assert.strictEqual(ENGINE_CLIPBOARD_LIST_EMPTY_COPY, 'No clipboard entries.');
 	});
 
-	test('Read gate is connected + hook; empty ids stay empty', () => {
+	test('Read gate is connected + hook; pairing-hold leftover-looks-live refuses; empty ids stay empty', () => {
 		assert.strictEqual(canSendEngineClipboardRead(false, true), false);
 		assert.strictEqual(canSendEngineClipboardRead(true, false), false);
 		assert.strictEqual(canSendEngineClipboardRead(true, true), true);
+		assert.strictEqual(canSendEngineClipboardRead(true, true, true), false);
+		assert.strictEqual(canSendEngineClipboardRead(true, true, false), true);
 		assert.deepStrictEqual(engineClipboardReadRequest(undefined), {
 			sessionId: '',
 			clipId: '',

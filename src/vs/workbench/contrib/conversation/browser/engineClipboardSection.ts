@@ -49,9 +49,9 @@ const $ = DOM.$;
  * unsupported (D257); first-pull no-hook stays empty+unsupported.
  * Disconnect still clears rows.
  * Pairing-hold leftover keeps rows + disconnected note (D281) and disables
- * Write/Clear (D314); leftover-looks-live (`isEngineConnected()===true` +
- * pairingPending) also refuses writes and skips extra list. Read does not
- * mutate leftover rows. Connected leftover still writes.
+ * Write/Clear (D314) and Read (D319); leftover-looks-live
+ * (`isEngineConnected()===true` + pairingPending) also refuses writes/Read
+ * and skips extra list. Connected leftover still writes and Reads.
  */
 export class EngineClipboardSection extends Disposable {
 
@@ -295,6 +295,7 @@ export class EngineClipboardSection extends Disposable {
 		this.readButton.enabled = canSendEngineClipboardRead(
 			this.connection.isEngineConnected(),
 			typeof this.connection.readClipboard === 'function',
+			this.isClipboardWritePairingHold(),
 		);
 	}
 
@@ -330,7 +331,7 @@ export class EngineClipboardSection extends Disposable {
 
 	private async handleRead(): Promise<void> {
 		const hook = this.connection.readClipboard;
-		if (!canSendEngineClipboardRead(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
+		if (!canSendEngineClipboardRead(this.connection.isEngineConnected(), typeof hook === 'function', this.isClipboardWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineClipboardReadRequest(this.selectedEntry);

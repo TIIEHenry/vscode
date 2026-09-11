@@ -18,9 +18,12 @@ export function canSendEngineClipboardListRequest(connected: boolean, hasHook: b
 	return connected && hasHook;
 }
 
-/** Engine Preferences Clipboard list action → Read. Empty ids are still sent. */
-export function canSendEngineClipboardRead(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
+/**
+ * Engine Preferences Clipboard list action → Read. Empty ids are still sent.
+ * Pairing-hold leftover-looks-live (`connected===true`) still refuses (D319).
+ */
+export function canSendEngineClipboardRead(connected: boolean, hasHook: boolean, pairingHold = false): boolean {
+	return connected && hasHook && !pairingHold;
 }
 
 /**
