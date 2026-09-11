@@ -1265,6 +1265,107 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(connection.killCalls.length, 2);
 	});
 
+	test('leftover-looks-live cancelToolCall rejects while pairingPending and skips unary', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		assert.strictEqual(service.cancelToolCall('ua-only', { toolCallId: 'tc-live' }), true);
+		assert.strictEqual(connection.cancelToolCallCalls.length, 1);
+
+		connection.setPairingPending(true);
+		service.setEngineConnected(true);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(service.cancelToolCall('ua-only', { toolCallId: 'tc-looks-live' }), false);
+		assert.strictEqual(connection.cancelToolCallCalls.length, 1);
+
+		connection.setPairingPending(false);
+		service.setEngineConnected(true);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		assert.strictEqual(service.cancelToolCall('ua-only', { toolCallId: 'tc-again' }), true);
+		assert.strictEqual(connection.cancelToolCallCalls.length, 2);
+	});
+
+	test('leftover-looks-live queue mutates reject while pairingPending and skip unary', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		assert.strictEqual(service.enqueueMessageQueueItem('ua-only', 'live item'), true);
+		assert.strictEqual(service.retryMessageQueueItem('ua-only', 'q-live'), true);
+		service.pauseMessageQueue('ua-only');
+		service.resumeMessageQueue('ua-only');
+		service.clearMessageQueue('ua-only');
+		service.holdMessageQueueItem('ua-only', 'q-live', 'EDITING');
+		service.releaseMessageQueueItemHold('ua-only', 'q-live');
+		assert.strictEqual(service.updateMessageQueueItemContent('ua-only', 'q-live', 'live edit'), true);
+		assert.strictEqual(connection.enqueueCalls.length, 1);
+		assert.strictEqual(connection.retryQueueItemCalls.length, 1);
+		assert.strictEqual(connection.pauseQueueCalls.length, 1);
+		assert.strictEqual(connection.resumeQueueCalls.length, 1);
+		assert.strictEqual(connection.clearQueueCalls.length, 1);
+		assert.strictEqual(connection.holdQueueCalls.length, 1);
+		assert.strictEqual(connection.releaseQueueCalls.length, 1);
+		assert.strictEqual(connection.editQueueCalls.length, 1);
+
+		connection.setPairingPending(true);
+		service.setEngineConnected(true);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(service.enqueueMessageQueueItem('ua-only', 'looks-live item'), false);
+		assert.strictEqual(service.retryMessageQueueItem('ua-only', 'q-looks-live'), false);
+		assert.strictEqual(service.retryMessageQueueItem('ua-only', 'q-looks-live', { upload: true }), false);
+		service.pauseMessageQueue('ua-only');
+		service.resumeMessageQueue('ua-only');
+		service.clearMessageQueue('ua-only');
+		service.holdMessageQueueItem('ua-only', 'q-looks-live', 'EDITING');
+		service.releaseMessageQueueItemHold('ua-only', 'q-looks-live');
+		assert.strictEqual(service.updateMessageQueueItemContent('ua-only', 'q-looks-live', 'looks-live edit'), false);
+		assert.strictEqual(connection.enqueueCalls.length, 1);
+		assert.strictEqual(connection.retryQueueItemCalls.length, 1);
+		assert.strictEqual(connection.retryQueueItemUploadCalls.length, 0);
+		assert.strictEqual(connection.pauseQueueCalls.length, 1);
+		assert.strictEqual(connection.resumeQueueCalls.length, 1);
+		assert.strictEqual(connection.clearQueueCalls.length, 1);
+		assert.strictEqual(connection.holdQueueCalls.length, 1);
+		assert.strictEqual(connection.releaseQueueCalls.length, 1);
+		assert.strictEqual(connection.editQueueCalls.length, 1);
+
+		connection.setPairingPending(false);
+		service.setEngineConnected(true);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		assert.strictEqual(service.enqueueMessageQueueItem('ua-only', 'live again'), true);
+		assert.strictEqual(service.retryMessageQueueItem('ua-only', 'q-again'), true);
+		service.pauseMessageQueue('ua-only');
+		service.resumeMessageQueue('ua-only');
+		service.clearMessageQueue('ua-only');
+		service.holdMessageQueueItem('ua-only', 'q-again', 'EDITING');
+		service.releaseMessageQueueItemHold('ua-only', 'q-again');
+		assert.strictEqual(service.updateMessageQueueItemContent('ua-only', 'q-again', 'live again'), true);
+		assert.strictEqual(connection.enqueueCalls.length, 2);
+		assert.strictEqual(connection.retryQueueItemCalls.length, 2);
+		assert.strictEqual(connection.retryQueueItemUploadCalls.length, 0);
+		assert.strictEqual(connection.pauseQueueCalls.length, 2);
+		assert.strictEqual(connection.resumeQueueCalls.length, 2);
+		assert.strictEqual(connection.clearQueueCalls.length, 2);
+		assert.strictEqual(connection.holdQueueCalls.length, 2);
+		assert.strictEqual(connection.releaseQueueCalls.length, 2);
+		assert.strictEqual(connection.editQueueCalls.length, 2);
+	});
+
 	test('disconnected after engine renameSession stays local and skips unary', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());
