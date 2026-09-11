@@ -17,8 +17,9 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
-import type { UniverseAgentSkillSource, UniverseAgentSkillSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentCapabilitySupport, UniverseAgentSkillSource, UniverseAgentSkillSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles, defaultCheckboxStyles, defaultInputBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { isConversationEngineLive } from './conversationSessionStatus.js';
 import { canPerformCatalogWrite, canShowCatalogRows, getCatalogListLoadingCopy } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
@@ -376,16 +377,36 @@ export class EngineSkillsSection extends Disposable {
 		}
 	}
 
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		if (!hadLiveCatalog) {
+			return false;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
+	}
+
+	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): boolean {
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			this.hideWriteStatus();
+			this.writeToolbar.style.display = 'none';
+			this.listContainer.style.display = '';
+			this.mode = resolveEngineSkillsPaneMode(false, support);
+			this.renderStatus();
+			return false;
+		}
+		this.clearCatalogPresentation();
+		this.mode = resolveEngineSkillsPaneMode(false, support);
+		this.renderStatus();
+		return false;
+	}
+
 	private async refresh(): Promise<boolean> {
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.skills.support;
 
 		if (!connected) {
-			this.clearCatalogPresentation();
-			this.mode = resolveEngineSkillsPaneMode(false, support);
-			this.renderStatus();
-			return false;
+			return this.applyDisconnectedRefresh(support, this.listEntries.some(entry => entry.kind === 'skill'));
 		}
 
 		if (support === 'UNSUPPORTED') {
@@ -415,10 +436,7 @@ export class EngineSkillsSection extends Disposable {
 		try {
 			const result = await this.connection.listSkills();
 			if (!this.connection.isEngineConnected()) {
-				this.clearCatalogPresentation();
-				this.mode = resolveEngineSkillsPaneMode(false, support);
-				this.renderStatus();
-				return false;
+				return this.applyDisconnectedRefresh(support, this.listEntries.some(entry => entry.kind === 'skill'));
 			}
 			this.setSkills(result.skills);
 			this.mode = resolveEngineSkillsPaneMode(true, support, {

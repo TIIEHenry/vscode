@@ -41,6 +41,7 @@ import {
 	getCatalogUnknownCopy,
 	getCatalogUnsupportedCopy,
 } from '../../browser/engineCatalog.js';
+import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { localize } from '../../../../../nls.js';
 
 const AGENTS_FEATURE = localize('ua.engineAgentsFeatureLabel', "agent profiles");
@@ -73,6 +74,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		getToolInfo?: (request: UniverseAgentToolInfoRequest) => Promise<UniverseAgentToolInfoResult>;
 	} = {}): IUniverseAgentConnection & {
 		setConnected(value: boolean): void;
+		setPairingPending(value: boolean): void;
 		setMcpSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setAgentProfilesSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setToolsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
@@ -99,13 +101,14 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			tools: toolsCapability,
 		};
 		let connected = options.connected ?? false;
+		let pairingPending = false;
 		let getToolInfo = options.getToolInfo;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
 			transport: connected ? 'ok' : 'idle',
 			sessionToken: connected ? 'tok' : undefined,
-			pairingPending: false,
+			pairingPending,
 			channelAlive: connected,
 			sharedFsRootSent: false,
 			capabilities,
@@ -113,7 +116,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 		return {
 			_serviceBrand: undefined,
-			isEngineConnected: () => connected,
+			isEngineConnected: () => connected && !pairingPending,
 			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
 			getTransportState: () => (connected ? 'ok' : 'idle'),
 			getConnectionSnapshot: snapshot,
@@ -185,6 +188,10 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
 			setConnected(value: boolean) {
 				connected = value;
+				onDidChangeConnection.fire(snapshot());
+			},
+			setPairingPending(value: boolean) {
+				pairingPending = value;
 				onDidChangeConnection.fire(snapshot());
 			},
 			setMcpSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
@@ -320,6 +327,99 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			assert.ok(!/\.vscode\/mcp\.json/i.test(combined));
 		});
 	}
+
+	function assertCatalogLeftoverPairingHonesty(
+		section: EngineAgentsSection | EngineToolsSection,
+		expectedRows: number,
+		emptyCopy: string,
+	): void {
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), expectedRows);
+		assert.strictEqual(section.canWrite(), false);
+		section.setSectionActive(true);
+		const listContainer = section.getDomNode().querySelector('.engine-catalog-list') as HTMLElement;
+		assert.ok(listContainer);
+		assert.notStrictEqual(listContainer.style.display, 'none');
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(emptyCopy));
+	}
+
+	test('Tools: connected phase with pairingPending keeps leftover catalog and paints not-connected', async () => {
+		let listToolsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [{ name: 'leftover-bash', description: 'shell tool', category: 'shell' }] };
+			},
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+			}),
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listToolsCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listToolsCalls, listCallsAfterLoad);
+		assertCatalogLeftoverPairingHonesty(section, leftoverRows, TOOLS_EMPTY_COPY);
+
+		connection.setConnected(false);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), 0);
+	});
+
+	test('Agents: connected phase with pairingPending keeps leftover catalog and paints not-connected', async () => {
+		let listAgentProfilesCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [{ id: 'leftover', name: 'Leftover Agent', source: 'user' as const }] };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listAgentProfilesCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+		assertCatalogLeftoverPairingHonesty(section, leftoverRows, AGENTS_EMPTY_COPY);
+
+		connection.setConnected(false);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), 0);
+	});
 
 	test('Agents: disconnected Open Connection executeCommand reject does not leak unhandled rejection', async () => {
 		const unhandledRejections: unknown[] = [];
