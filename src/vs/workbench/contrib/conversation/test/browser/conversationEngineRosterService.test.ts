@@ -86,7 +86,9 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 	async cancelPairing() { }
 	async probeConnectionProfile() { return { ok: false as const, code: 'transport_failed' as const, reason: 'stub' }; }
 	async disconnect() { this.setConnected(false); }
+	readonly listSessionsCalls: Record<string, never>[] = [];
 	async listSessions() {
+		this.listSessionsCalls.push({});
 		if (this.listSessionsError) {
 			throw this.listSessionsError;
 		}
@@ -1546,6 +1548,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(isConversationPairingHold(connection), true);
 		await awaitEngineCatalogRefresh(service);
 		assert.strictEqual(service.getActiveSessionId(), 'ua-a');
+		assert.deepStrictEqual(service.getSessions().map(s => s.id), ['ua-a', 'ua-b']);
 		assert.strictEqual(connection.treeRefreshCalls.length, treeRefreshBeforePairing);
 
 		connection.setListSessions([{ sessionId: 'ua-b', title: 'B' }]);
@@ -1553,9 +1556,62 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		await awaitEngineCatalogRefresh(service);
 		assert.strictEqual(service.isEngineConnected(), true);
 		assert.strictEqual(isConversationPairingHold(connection), true);
-		assert.strictEqual(service.getActiveSessionId(), 'ua-b');
-		assert.deepStrictEqual(service.getSessions().map(s => s.id), ['ua-b']);
+		assert.strictEqual(service.getActiveSessionId(), 'ua-a');
+		assert.deepStrictEqual(service.getSessions().map(s => s.id), ['ua-a', 'ua-b']);
 		assert.strictEqual(connection.treeRefreshCalls.length, treeRefreshBeforePairing);
+	});
+
+	test('leftover-looks-live catalog refresh keeps leftover roster and skips listSessions', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([
+			{ sessionId: 'ua-a', title: 'A' },
+			{ sessionId: 'ua-b', title: 'B' },
+		]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		assert.deepStrictEqual(service.getSessions().map(s => s.id), ['ua-a', 'ua-b']);
+		assert.strictEqual(service.getActiveSessionId(), 'ua-a');
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		const listsAfterLoad = connection.listSessionsCalls.length;
+		const createCallsAfterLoad = connection.createCalls.length;
+		assert.ok(listsAfterLoad > 0);
+
+		connection.setPairingPending(true);
+		service.setEngineConnected(true);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		await awaitEngineCatalogRefresh(service);
+
+		assert.strictEqual(connection.listSessionsCalls.length, listsAfterLoad, 'leftover-looks-live must not extra listSessions');
+		assert.strictEqual(connection.createCalls.length, createCallsAfterLoad, 'leftover-looks-live must not ensureEngineSession');
+		assert.deepStrictEqual(service.getSessions().map(s => s.id), ['ua-a', 'ua-b']);
+		assert.strictEqual(service.getActiveSessionId(), 'ua-a');
+
+		connection.setListSessions([{ sessionId: 'ua-live', title: 'Live' }]);
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(connection.listSessionsCalls.length, listsAfterLoad, 'leftover-looks-live must not re-list leftover as live');
+		assert.strictEqual(connection.createCalls.length, createCallsAfterLoad);
+		assert.deepStrictEqual(service.getSessions().map(s => s.id), ['ua-a', 'ua-b']);
+		assert.ok(!service.getSessions().some(s => s.id === 'ua-live'));
+		assert.strictEqual(service.getActiveSessionId(), 'ua-a');
+
+		connection.setPairingPending(false);
+		service.setEngineConnected(true);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		await awaitEngineCatalogRefresh(service);
+		assert.ok(connection.listSessionsCalls.length > listsAfterLoad, 'connected leftover must still refresh');
+		assert.deepStrictEqual(service.getSessions().map(s => s.id), ['ua-live']);
+		assert.strictEqual(service.getActiveSessionId(), 'ua-live');
 	});
 
 	test('disconnected after engine renameSession stays local and skips unary', async () => {
