@@ -7,7 +7,8 @@ import assert from 'assert';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { applySessionViewTimeline, refreshTrajectoryRecords, updateSyncChrome, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
-import { conversationLensStaleSnapshotClass, refreshStaleSnapshotBanner, requestReadingColumnDetail, shouldShowReadingColumnLiveChrome } from '../../browser/conversationLensReadingColumn.js';
+import { conversationLensStaleSnapshotClass, refreshStaleSnapshotBanner, requestReadingColumnDetail, shouldShowReadingColumnLiveChrome, type IReadingColumnDetailHost } from '../../browser/conversationLensReadingColumn.js';
+import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
 import { formatSyncChromeLabel } from '../../browser/conversationSessionView.js';
 import type { SyncChrome } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { postBound, saveQueueEdit, saveTurnEdit, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
@@ -255,7 +256,7 @@ suite('conversation lens dispose gate', () => {
 		readonly cachedBody?: string;
 		readonly hasLease?: boolean;
 	}): {
-		host: Parameters<typeof requestReadingColumnDetail>[0] & { readonly stubService: { isEngineConnected(): boolean } };
+		host: IReadingColumnDetailHost & { readonly stubService: { isEngineConnected(): boolean } };
 		requestDetailCalls: number;
 	} {
 		const state = { requestDetailCalls: 0 };
@@ -264,21 +265,21 @@ suite('conversation lens dispose gate', () => {
 			details.set('detail:leftover', options.cachedBody);
 		}
 		const hasLease = options.hasLease !== false;
-		const host = {
+		const host: IReadingColumnDetailHost & { readonly stubService: { isEngineConnected(): boolean } } = {
 			stubService: {
 				isEngineConnected: () => true,
 			},
 			sessionViewLease: hasLease
 				? {
 					details,
-					requestDetail: async () => {
+					requestDetail: async (_ref: string) => {
 						state.requestDetailCalls++;
 						return { ok: true as const, truncated: false as const, content: 'live-fetched' };
 					},
 				}
 				: undefined,
 			uaConnection: {
-				getConnectionPhase: () => ({ kind: 'connected' as const, path: 'loopback' }),
+				getConnectionPhase: (): ConnectionPhase => ({ kind: 'connected', path: 'loopback' }),
 				getConnectionSnapshot: () => ({ pairingPending: options.pairingPending }),
 			},
 		};
