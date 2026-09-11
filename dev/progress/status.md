@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-11
-summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop：D276–D280 已合入且 compile-client 0；A 在途 D281。"
+summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop：D276–D280 已合入且 compile-client 0；A D281 代码已写；待父 Commit Gate。"
 ---
 
 # Development Progress
@@ -41,10 +41,10 @@ summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop：D2
 
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 进行中（2026-09-11 · A 在途 D281）
+### 进行中（2026-09-11 · A D281 代码已写；待父 Commit Gate）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:-----|
-| **A** | pairing-overview-lists-keep-last | 在途；[D281](deferred-gaps.md) Overview/Context/Triggers/Clipboard/History |
+| **A** | pairing-overview-lists-keep-last | 代码已写；待父 Commit Gate；[D281](deferred-gaps.md) |
 | **B** | pairing-remaining-keep-last | 已进 merge；[D280](deferred-gaps.md) 已闭 |
 | **C** | — | idle；勿 add `dev/loop` |
 | **D** | — | idle |
@@ -184,7 +184,7 @@ summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop：D2
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | `b5232eeb34f` | 干净 | 0 | D280 已合；compile 0 已 push |
-| A | `vscode-WorkTrees/A` | `loop/A` | `b5232eeb34f` | 干净 | 0 | 在途 D281 |
+| A | `vscode-WorkTrees/A` | `loop/A` | `b5232eeb34f` | 干净 | 0 | D281 代码已写；待父 Commit Gate |
 | B | `vscode-WorkTrees/B` | `loop/B` | `b5232eeb34f` | 干净 | 0 | idle；D280 已闭 |
 | C | `vscode-WorkTrees/C` | `loop/C` | `b5232eeb34f` | 未提交 `dev/loop` | 0 | idle；勿 add `dev/loop` |
 | D | `vscode-WorkTrees/D` | `loop/D` | `b5232eeb34f` | 干净 | 0 | idle |
@@ -194,7 +194,7 @@ summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop：D2
 | 项 | 指针 |
 |:---|:-----|
 | **引擎 store 迁移卡死** | [D26](deferred-gaps.md) 病因已改口（2026-09-09）：`user_version=0` + 表已建 ⇒ 迁移抛错 ⇒ 库永久打不开 ⇒ `LookupFailed` fail-closed deny ⇒ `ALREADY_EXISTS`（**设计内拒绝**）。根因与交接见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md)；D25 同源。**禁改引擎仓代码**；原闭合条件「Create 先写 meta」已撤回；不要再清 store |
-| **loop 切片** | [D280](deferred-gaps.md) 已合入且 compile-client 0。[D281](deferred-gaps.md) 在途 A。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto |
+| **loop 切片** | [D280](deferred-gaps.md) 已合入且 compile-client 0。[D281](deferred-gaps.md) 代码已写；待父 Commit Gate。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。

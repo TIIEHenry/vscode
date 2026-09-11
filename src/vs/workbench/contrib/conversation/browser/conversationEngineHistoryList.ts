@@ -21,6 +21,7 @@ import {
 	conversationLensSessionBarHistoryUnavailableDisconnected,
 } from './conversationLensSessionBarStrings.js';
 import { IConversationRosterService } from './conversationStubService.js';
+import { isConversationEngineLive } from './conversationSessionStatus.js';
 
 export const conversationLensHistoryButtonClass = 'conversation-lens-session-history';
 export const conversationLensHistoryOverlayClass = 'conversation-lens-history-overlay';
@@ -196,13 +197,29 @@ export class ConversationEngineHistoryList extends Disposable {
 		super.dispose();
 	}
 
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		if (!hadLiveCatalog) {
+			return false;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
+	}
+
+	private applyDisconnectedRefresh(): void {
+		if (this.paintedLiveHistory && this.keepLeftoverCatalogForPairingHold(true)) {
+			this.paintListFailed(conversationLensSessionBarHistoryUnavailableDisconnected);
+			return;
+		}
+		this.paintStatus(conversationLensSessionBarHistoryUnavailableDisconnected);
+	}
+
 	private async refresh(): Promise<void> {
 		const generation = ++this.renderGeneration;
 		const sessionId = this.roster.getActiveSessionId() ?? '';
 		const connected = this.connection.isEngineConnected();
 
 		if (!canRequestEngineHistory(connected)) {
-			this.paintStatus(conversationLensSessionBarHistoryUnavailableDisconnected);
+			this.applyDisconnectedRefresh();
 			return;
 		}
 

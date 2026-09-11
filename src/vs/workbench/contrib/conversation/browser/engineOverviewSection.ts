@@ -9,7 +9,7 @@ import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
-import { getConnectionPhaseStatusBarText } from './conversationSessionStatus.js';
+import { getConnectionPhaseStatusBarText, isConversationEngineLive } from './conversationSessionStatus.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { formatCapabilitySupportLabel } from './engineSectionChrome.js';
 import type {
@@ -229,13 +229,23 @@ export class EngineOverviewSection extends Disposable {
 		return { value: fallback };
 	}
 
-	private async renderAsync(): Promise<void> {
-		const generation = ++this.renderGeneration;
-		this.summaryGrid.style.display = 'none';
-		this.status.hide();
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		if (!hadLiveCatalog) {
+			return false;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
+	}
 
-		if (!this.connection.isEngineConnected()) {
-			this.lastGoodModelSummary = undefined;
+	private applyDisconnectedOverview(hadLiveCatalog: boolean): void {
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			const snapshot = this.connection.getConnectionSnapshot();
+			const phase = this.connection.getConnectionPhase();
+			const modelsEntry = snapshot.capabilities?.models;
+			const modelRow = this.lastGoodModelSummary
+				? { value: this.lastGoodModelSummary }
+				: this.resolveModelRow(modelsEntry?.support ?? 'UNKNOWN', modelsEntry?.reason);
+			this.paintSummary(snapshot, phase, modelRow.value, modelRow.title);
 			this.status.render({
 				mode: 'disconnected',
 				onOpenConnection: () => {
@@ -244,6 +254,28 @@ export class EngineOverviewSection extends Disposable {
 			});
 			return;
 		}
+		this.lastGoodModelSummary = undefined;
+		this.summaryGrid.style.display = 'none';
+		DOM.clearNode(this.summaryGrid);
+		this.status.render({
+			mode: 'disconnected',
+			onOpenConnection: () => {
+				void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+			},
+		});
+	}
+
+	private async renderAsync(): Promise<void> {
+		const generation = ++this.renderGeneration;
+		const hadLiveCatalog = !!this.lastGoodModelSummary || this.summaryGrid.childElementCount > 0;
+
+		if (!this.connection.isEngineConnected()) {
+			this.applyDisconnectedOverview(hadLiveCatalog);
+			return;
+		}
+
+		this.summaryGrid.style.display = 'none';
+		this.status.hide();
 
 		const snapshot = this.connection.getConnectionSnapshot();
 		const phase = this.connection.getConnectionPhase();
@@ -269,7 +301,7 @@ export class EngineOverviewSection extends Disposable {
 				return;
 			}
 			if (!this.connection.isEngineConnected()) {
-				this.lastGoodModelSummary = undefined;
+				this.applyDisconnectedOverview(!!this.lastGoodModelSummary || this.summaryGrid.childElementCount > 0);
 				return;
 			}
 			this.modelDataLoaded = true;

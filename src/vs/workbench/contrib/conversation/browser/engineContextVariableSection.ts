@@ -25,6 +25,7 @@ import {
 	type EngineContextVariableListRow,
 } from './engineContextVariableList.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
+import { isConversationEngineLive } from './conversationSessionStatus.js';
 
 const $ = DOM.$;
 
@@ -112,11 +113,7 @@ export class EngineContextVariableSection extends Disposable {
 		this.updateReadAction();
 
 		if (!this.connection.isEngineConnected()) {
-			this.clearListPresentation();
-			this.status.render({
-				mode: 'disconnected',
-				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
-			});
+			this.applyDisconnectedRefresh(this.rows.length > 0);
 			return;
 		}
 
@@ -144,6 +141,7 @@ export class EngineContextVariableSection extends Disposable {
 				return;
 			}
 			if (!this.connection.isEngineConnected()) {
+				this.applyDisconnectedRefresh(this.rows.length > 0);
 				return;
 			}
 			this.rows = flattenEngineContextVariableList(result.current, result.inherited);
@@ -160,6 +158,29 @@ export class EngineContextVariableSection extends Disposable {
 				onRetry: () => void this.refresh(),
 			});
 		}
+	}
+
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		if (!hadLiveCatalog) {
+			return false;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
+	}
+
+	private applyDisconnectedRefresh(hadLiveCatalog: boolean): void {
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			this.status.render({
+				mode: 'disconnected',
+				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+			});
+			return;
+		}
+		this.clearListPresentation();
+		this.status.render({
+			mode: 'disconnected',
+			onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+		});
 	}
 
 	private clearListPresentation(): void {

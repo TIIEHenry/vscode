@@ -35,6 +35,7 @@ import {
 	formatEngineTriggerListLabel,
 } from './engineTriggerList.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
+import { isConversationEngineLive } from './conversationSessionStatus.js';
 
 const $ = DOM.$;
 
@@ -169,12 +170,7 @@ export class EngineTriggersSection extends Disposable {
 		this.updateUpsertAction();
 
 		if (!this.connection.isEngineConnected()) {
-			this.clearListPresentation();
-			this.status.render({
-				mode: 'disconnected',
-				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
-			});
-			return false;
+			return this.applyDisconnectedRefresh(this.triggers.length > 0);
 		}
 
 		if (!canSend || !hook) {
@@ -201,7 +197,7 @@ export class EngineTriggersSection extends Disposable {
 				return false;
 			}
 			if (!this.connection.isEngineConnected()) {
-				return false;
+				return this.applyDisconnectedRefresh(this.triggers.length > 0);
 			}
 			this.triggers = [...result.triggers];
 			this.paintList();
@@ -230,6 +226,30 @@ export class EngineTriggersSection extends Disposable {
 		this.deleteStatus.textContent = '';
 		this.upsertStatus.style.display = 'none';
 		this.upsertStatus.textContent = '';
+	}
+
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		if (!hadLiveCatalog) {
+			return false;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
+	}
+
+	private applyDisconnectedRefresh(hadLiveCatalog: boolean): boolean {
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			this.status.render({
+				mode: 'disconnected',
+				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+			});
+			return false;
+		}
+		this.clearListPresentation();
+		this.status.render({
+			mode: 'disconnected',
+			onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+		});
+		return false;
 	}
 
 	private clearListPresentation(): void {
