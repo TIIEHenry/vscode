@@ -3815,6 +3815,140 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('leftover-looks-live pairing-hold Rotate / Pair / Revoke stay 0 unary', async () => {
+		let pairingPending = false;
+		const rotateCalls: UniverseAgentRotateTokenRequest[] = [];
+		const revokeCalls: UniverseAgentRevokeRequest[] = [];
+		const approveCalls: UniverseAgentPairApproveRequest[] = [];
+		const rejectCalls: UniverseAgentPairRejectRequest[] = [];
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			pairingPending,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listDevices: async (): Promise<UniverseAgentListDevicesResult> => ({
+				devices: [{
+					deviceId: 'dev-1',
+					displayName: 'Phone',
+					role: '',
+					platform: '',
+					pairedAt: 0,
+					lastSeenAt: 0,
+					active: false,
+				}],
+			}),
+			listPending: async () => ({
+				pending: [{
+					pairingCode: '123456',
+					deviceId: 'dev-1',
+					displayName: 'Phone',
+					platform: 'ios',
+					requestedAt: 0,
+					expiresInSeconds: 0,
+				}],
+			}),
+			rotateToken: async request => {
+				rotateCalls.push(request);
+				return { success: true, message: '' };
+			},
+			revoke: async request => {
+				revokeCalls.push(request);
+				return { success: true, message: '' };
+			},
+			pairApprove: async request => {
+				approveCalls.push(request);
+				return { success: true, deviceId: 'dev-1', message: '' };
+			},
+			pairReject: async request => {
+				rejectCalls.push(request);
+				return { success: true, message: '' };
+			},
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+			revokeDevice: async () => {
+				throw new Error('must not hub-revoke while leftover-looks-live');
+			},
+			confirmDeviceCode: async () => {
+				throw new Error('must not hub-confirm while leftover-looks-live');
+			},
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 1);
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		const findDeviceAction = (label: string) => [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === label) as HTMLButtonElement | undefined;
+		const findPairAction = (label: string) => [...container.querySelectorAll('.connection-hub-device-code .monaco-button')]
+			.find(button => button.textContent === label) as HTMLButtonElement | undefined;
+		const rotate = findDeviceAction(CONNECTION_DEVICE_ROTATE_TOKEN_LABEL);
+		const revoke = findDeviceAction('Revoke');
+		const confirm = findPairAction('Confirm');
+		const reject = findPairAction(CONNECTION_DEVICE_PAIR_REJECT_LABEL);
+		assert.ok(rotate);
+		assert.ok(revoke);
+		assert.ok(confirm);
+		assert.ok(reject);
+		assert.strictEqual(rotate.classList.contains('disabled'), false);
+		assert.strictEqual(revoke.classList.contains('disabled'), false);
+		assert.strictEqual(confirm.classList.contains('disabled'), false);
+		assert.strictEqual(reject.classList.contains('disabled'), false);
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 1);
+		assert.strictEqual(rotate.classList.contains('disabled'), true);
+		assert.strictEqual(rotate.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(revoke.classList.contains('disabled'), true);
+		assert.strictEqual(revoke.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(confirm.classList.contains('disabled'), true);
+		assert.strictEqual(confirm.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(reject.classList.contains('disabled'), true);
+		assert.strictEqual(reject.getAttribute('aria-disabled'), 'true');
+
+		const forceClick = (button: HTMLButtonElement) => {
+			button.classList.remove('disabled');
+			button.removeAttribute('disabled');
+			button.setAttribute('aria-disabled', 'false');
+			button.disabled = false;
+			button.click();
+		};
+		(container.querySelector('.connection-engine-pending-row') as HTMLElement | null)?.click();
+		forceClick(rotate);
+		forceClick(revoke);
+		forceClick(confirm);
+		forceClick(reject);
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		assert.deepStrictEqual(rotateCalls, []);
+		assert.deepStrictEqual(revokeCalls, []);
+		assert.deepStrictEqual(approveCalls, []);
+		assert.deepStrictEqual(rejectCalls, []);
+		container.remove();
+	});
+
 	test('RotateToken does not send when disconnected or hook missing', async () => {
 		const rotateCalls: UniverseAgentRotateTokenRequest[] = [];
 		const disconnected = mountPane({

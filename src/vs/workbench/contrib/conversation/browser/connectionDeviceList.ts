@@ -13,8 +13,8 @@ export function canSendConnectionDeviceListRequest(connected: boolean, hasHook: 
 }
 
 /** Connection Devices paired-list action → RotateToken. Empty ids are still sent. */
-export function canSendConnectionDeviceRotateToken(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
+export function canSendConnectionDeviceRotateToken(connected: boolean, hasHook: boolean, pairingHold = false): boolean {
+	return connected && hasHook && !pairingHold;
 }
 
 /** Pass through empty `deviceId` as-is (no default / no trim). */

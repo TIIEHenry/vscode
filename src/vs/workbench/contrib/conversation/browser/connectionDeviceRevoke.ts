@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 /** Connection Devices Revoke → DeviceService.Revoke. Empty ids are still sent. */
-export function canSendConnectionDeviceRevokeRequest(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
+export function canSendConnectionDeviceRevokeRequest(connected: boolean, hasHook: boolean, pairingHold = false): boolean {
+	return connected && hasHook && !pairingHold;
 }
 
 /** Pass through empty `deviceId` as-is (no default / no trim). */
