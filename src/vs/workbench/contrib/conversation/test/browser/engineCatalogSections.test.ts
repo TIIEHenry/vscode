@@ -15,6 +15,8 @@ import type {
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentListAgentProfilesResult,
 	UniverseAgentListMcpServersResult,
+	UniverseAgentListPluginsResult,
+	UniverseAgentListSkillsResult,
 	UniverseAgentListToolsResult,
 	UniverseAgentSaveAgentProfileRequest,
 	UniverseAgentSaveAgentProfileResult,
@@ -33,6 +35,8 @@ import type {
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ENGINE_AGENTS_CREATE_SUCCESS_COPY, ENGINE_AGENTS_DELETE_SUCCESS_COPY, ENGINE_AGENTS_RESET_SUCCESS_COPY, ENGINE_AGENTS_SAVE_SUCCESS_COPY, EngineAgentsSection } from '../../browser/engineAgentsSection.js';
 import { ENGINE_MCP_ADD_SUCCESS_COPY, ENGINE_MCP_REMOVE_SUCCESS_COPY, ENGINE_MCP_TOGGLE_SUCCESS_COPY, ENGINE_MCP_UPDATE_SUCCESS_COPY, EngineMcpSection } from '../../browser/engineMcpSection.js';
+import { EnginePluginsSection } from '../../browser/enginePluginsSection.js';
+import { EngineSkillsSection } from '../../browser/engineSkillsSection.js';
 import { EngineToolsSection } from '../../browser/engineToolsSection.js';
 import {
 	canPerformCatalogWrite,
@@ -54,6 +58,8 @@ const MCP_FEATURE = localize('ua.engineMcpFeatureLabel', "MCP server definitions
 const MCP_EMPTY_COPY = localize('ua.engineMcpEmpty', "No MCP servers yet.");
 const TOOLS_FEATURE = localize('ua.engineToolsFeatureLabel', "engine tools");
 const TOOLS_EMPTY_COPY = localize('ua.engineToolsEmpty', "No engine tools yet.");
+const SKILLS_EMPTY_COPY = localize('ua.engineSkillsEmpty', "No skills yet.");
+const PLUGINS_EMPTY_COPY = localize('ua.enginePluginsEmpty', "No engine plugins.");
 
 suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
@@ -66,6 +72,8 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		capabilities?: Partial<UniverseAgentCapabilitySnapshot>;
 		listAgentProfiles?: () => Promise<UniverseAgentListAgentProfilesResult>;
 		listMcpServers?: () => Promise<UniverseAgentListMcpServersResult>;
+		listPlugins?: () => Promise<UniverseAgentListPluginsResult>;
+		listSkills?: () => Promise<UniverseAgentListSkillsResult>;
 		listTools?: () => Promise<UniverseAgentListToolsResult>;
 		saveAgentProfile?: (request: UniverseAgentSaveAgentProfileRequest) => Promise<UniverseAgentSaveAgentProfileResult>;
 		deleteAgentProfile?: (request: UniverseAgentDeleteAgentProfileRequest) => Promise<{ ok: boolean }>;
@@ -163,7 +171,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 				_onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 			) => ({ dispose: () => { } }),
 			chat: async () => { },
-			listSkills: async () => ({ skills: [] }),
+			listSkills: options.listSkills ?? (async () => ({ skills: [] })),
 			setSkillEnabled: async () => ({ ok: true }),
 			getSkillInfo: async () => ({ name: '', content: '', source: 'unknown', enabled: false }),
 			listAgentProfiles: options.listAgentProfiles ?? (async () => ({
@@ -175,7 +183,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			listMcpServers: options.listMcpServers ?? (async () => ({ servers: [] })),
 			getMcpServerStatuses: async () => ({ statuses: [] }),
 			getMcpServerTools: async () => ({ tools: [] }),
-			listPlugins: async () => ({ plugins: [] }),
+			listPlugins: options.listPlugins ?? (async () => ({ plugins: [] })),
 			getPluginInfo: async () => ({ summary: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const }, hooks: [] }),
 			enablePlugin: async () => ({ plugin: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const } }),
 			reloadPlugin: async () => ({ plugin: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const } }),
@@ -247,6 +255,28 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
 		const section = store.add(instantiationService.createInstance(EngineToolsSection, parent));
+		section.setSectionActive(true);
+		section.layout(640, 160);
+		return section;
+	}
+
+	function mountSkillsSection(connection: IUniverseAgentConnection): EngineSkillsSection {
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const section = store.add(instantiationService.createInstance(EngineSkillsSection, parent));
+		section.setSectionActive(true);
+		section.layout(640, 160);
+		return section;
+	}
+
+	function mountPluginsSection(connection: IUniverseAgentConnection): EnginePluginsSection {
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const section = store.add(instantiationService.createInstance(EnginePluginsSection, parent));
 		section.setSectionActive(true);
 		section.layout(640, 160);
 		return section;
@@ -616,6 +646,154 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
 		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
 		assert.ok(!(section.getDomNode().textContent ?? '').includes(MCP_EMPTY_COPY));
+	});
+
+	test('Skills: leftover-looks-live first-pull pairing without leftover stays empty and skips list', async () => {
+		let listSkillsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			pairingPending: true,
+			looksLive: true,
+			capabilities: { skills: { support: 'SUPPORTED' } },
+			listSkills: async () => {
+				listSkillsCalls++;
+				return { skills: [{ name: 'should-not-list', source: 'user', enabled: true }] };
+			},
+		});
+		const section = mountSkillsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listSkillsCalls, 0);
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(section.canWrite(), false);
+		assert.strictEqual(section.isWriteToolbarVisible(), false);
+		const listContainer = section.getDomNode().querySelector('.engine-skills-list') as HTMLElement;
+		assert.ok(listContainer);
+		assert.strictEqual(listContainer.style.display, 'none');
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(SKILLS_EMPTY_COPY));
+	});
+
+	test('Tools: leftover-looks-live first-pull pairing without leftover stays empty and skips list', async () => {
+		let listToolsCalls = 0;
+		let listAgentProfilesCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			pairingPending: true,
+			looksLive: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [{ name: 'should-not-list', description: 'shell', category: 'shell' }] };
+			},
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [{ id: 'should-not-list', name: 'Should Not List', source: 'user' as const }] };
+			},
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listToolsCalls, 0);
+		assert.strictEqual(listAgentProfilesCalls, 0);
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(section.canWrite(), false);
+		assert.strictEqual(section.isSaveToolbarVisible(), false);
+		const listContainer = section.getDomNode().querySelector('.engine-catalog-list') as HTMLElement;
+		assert.ok(listContainer);
+		assert.strictEqual(listContainer.style.display, 'none');
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(TOOLS_EMPTY_COPY));
+	});
+
+	test('Agents: leftover-looks-live first-pull pairing without leftover stays empty and skips list', async () => {
+		let listAgentProfilesCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			pairingPending: true,
+			looksLive: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [{ id: 'should-not-list', name: 'Should Not List', source: 'user' as const }] };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listAgentProfilesCalls, 0);
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(section.canWrite(), false);
+		assert.strictEqual(section.isWriteToolbarVisible(), false);
+		const listContainer = section.getDomNode().querySelector('.engine-catalog-list') as HTMLElement;
+		assert.ok(listContainer);
+		assert.strictEqual(listContainer.style.display, 'none');
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(AGENTS_EMPTY_COPY));
+	});
+
+	test('Plugins: leftover-looks-live first-pull pairing without leftover stays empty and skips list', async () => {
+		let listPluginsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			pairingPending: true,
+			looksLive: true,
+			capabilities: { plugins: { support: 'SUPPORTED' } },
+			listPlugins: async () => {
+				listPluginsCalls++;
+				return {
+					plugins: [{
+						id: 'should-not-list',
+						displayName: 'Should Not List',
+						version: '1.0.0',
+						source: 'jar',
+						hookCount: 0,
+						status: 'disabled',
+					}],
+				};
+			},
+		});
+		const section = mountPluginsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listPluginsCalls, 0);
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(section.canWrite(), false);
+		assert.strictEqual(section.isScanNewVisible(), false);
+		const listContainer = section.getDomNode().querySelector('.engine-catalog-list') as HTMLElement;
+		assert.ok(listContainer);
+		assert.strictEqual(listContainer.style.display, 'none');
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(PLUGINS_EMPTY_COPY));
 	});
 
 	test('Agents: leftover-looks-live pairing-hold writes stay 0 unary', async () => {

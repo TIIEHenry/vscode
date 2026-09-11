@@ -410,10 +410,8 @@ export class EngineSkillsSection extends Disposable {
 		const support = capabilities.skills.support;
 
 		const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'skill');
-		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
-			return this.applyDisconnectedRefresh(support, hadLiveCatalog);
-		}
-		if (!connected) {
+		// D349 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connection) || !connected) {
 			return this.applyDisconnectedRefresh(support, hadLiveCatalog);
 		}
 
@@ -444,10 +442,7 @@ export class EngineSkillsSection extends Disposable {
 		try {
 			const result = await this.connection.listSkills();
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'skill');
-			if (this.keepLeftoverCatalogForPairingHold(leftoverAfterList)) {
-				return this.applyDisconnectedRefresh(support, leftoverAfterList);
-			}
-			if (!this.connection.isEngineConnected()) {
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				return this.applyDisconnectedRefresh(support, leftoverAfterList);
 			}
 			this.setSkills(result.skills);
