@@ -479,11 +479,12 @@ suite('Sources diff panel', () => {
 		assert.deepStrictEqual(applyCalls, []);
 	});
 
-	test('leftover-looks-live pairing-hold Stage chrome stays hidden and 0 unary', async function () {
+	test('leftover-looks-live pairing-hold Stage chrome stays hidden and 0 unary / 0 git.stage', async function () {
 		const resource = toResource.call(this, '/project/src/leftover-stage.ts');
 		const original = toResource.call(this, '/project/src/leftover-stage.ts.git');
 		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
 		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const gitStageCommands: unknown[] = [];
 		const connection = leftoverLooksLiveApplyConnection(applyCalls, stageCalls);
 		assert.strictEqual(connection.isEngineConnected(), true);
 		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
@@ -494,6 +495,11 @@ suite('Sources diff panel', () => {
 			throwOnLoad: true,
 			resource,
 			connection,
+			executeCommand: async (commandId: unknown) => {
+				if (commandId === 'git.stage') {
+					gitStageCommands.push(commandId);
+				}
+			},
 		});
 		instantiationService.stub(IViewsService, {
 			openView: async () => null,
@@ -521,6 +527,7 @@ suite('Sources diff panel', () => {
 		await (view as unknown as { runStage: () => Promise<void> }).runStage();
 		await timeout(20);
 		assert.deepStrictEqual(stageCalls, []);
+		assert.deepStrictEqual(gitStageCommands, []);
 
 		const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
 		const parent = document.createElement('div');
@@ -537,6 +544,7 @@ suite('Sources diff panel', () => {
 		await (pane as unknown as { runStage: () => Promise<void> }).runStage();
 		await timeout(20);
 		assert.deepStrictEqual(stageCalls, []);
+		assert.deepStrictEqual(gitStageCommands, []);
 		assert.deepStrictEqual(applyCalls, []);
 	});
 });

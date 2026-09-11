@@ -365,7 +365,7 @@ export class SourcesDiffPanelView extends ViewPane {
 			return;
 		}
 
-		if (context.scmResource) {
+		if (context.scmResource && !isConversationPairingHold(this.uaConnection)) {
 			await this.runGitAction(SOURCES_GIT_STAGE_COMMAND);
 			return;
 		}
