@@ -251,6 +251,55 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(shouldShowReadingColumnLiveChrome(asLiveChromeHost(host)), false);
 	});
 
+	function leftoverLooksLiveChromeHost(options: {
+		readonly pairingPending: boolean;
+		readonly looksLive?: boolean;
+		readonly connected?: boolean;
+		readonly hasLease?: boolean;
+		readonly turns?: readonly unknown[];
+	}): Parameters<typeof shouldShowReadingColumnLiveChrome>[0] {
+		const connected = options.connected ?? true;
+		const pairingPending = options.pairingPending;
+		const looksLive = options.looksLive ?? false;
+		const hasLease = options.hasLease === true;
+		return {
+			sessionViewLease: hasLease ? leftoverLeaseSnapshot({ kind: 'live' }) : undefined,
+			stubService: {
+				isEngineConnected: () => connected && (looksLive || !pairingPending),
+				getActiveSessionId: () => hasLease ? 'ua-cache' : 'sess-first',
+				getTurns: () => options.turns ?? [],
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending }),
+			},
+		};
+	}
+
+	test('leftover-looks-live first-pull shouldShowReadingColumnLiveChrome stays false', () => {
+		const host = leftoverLooksLiveChromeHost({ pairingPending: true, looksLive: true });
+		assert.strictEqual(host.stubService.isEngineConnected(), true);
+		assert.strictEqual(host.uaConnection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(host), false);
+	});
+
+	test('leftover-looks-live keeps leftover lease shouldShowReadingColumnLiveChrome', () => {
+		const host = leftoverLooksLiveChromeHost({ pairingPending: true, looksLive: true, hasLease: true });
+		assert.strictEqual(host.stubService.isEngineConnected(), true);
+		assert.strictEqual(host.uaConnection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(host), true);
+	});
+
+	test('leftover-looks-live keeps leftover cached turns shouldShowReadingColumnLiveChrome', () => {
+		const host = leftoverLooksLiveChromeHost({
+			pairingPending: true,
+			looksLive: true,
+			turns: [{ id: 't-leftover', kind: 'thinking', text: 'leftover think', streaming: true }],
+		});
+		assert.strictEqual(host.stubService.isEngineConnected(), true);
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(host), true);
+	});
+
 	function leftoverLooksLiveDetailHost(options: {
 		readonly pairingPending: boolean;
 		readonly cachedBody?: string;
