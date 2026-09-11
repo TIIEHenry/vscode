@@ -25,7 +25,7 @@ import {
 	type EngineContextVariableListRow,
 } from './engineContextVariableList.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
-import { isConversationEngineLive } from './conversationSessionStatus.js';
+import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
 
 const $ = DOM.$;
 
@@ -33,6 +33,10 @@ const $ = DOM.$;
  * Engine Preferences Context Variables — honest List + Read. Connected
  * + hook only. Empty sessionId / agentId / name are sent as-is. Empty
  * name / updatedBy / contentPreview stay empty. updatedAt 0 stays as-is.
+ * Pairing-hold leftover keeps rows + disconnected note and disables Read
+ * (D316); leftover-looks-live (`isEngineConnected()===true` + pairingPending)
+ * also refuses Read and skips extra list. Connected leftover still Reads.
+ * Disconnect still clears rows.
  */
 export class EngineContextVariableSection extends Disposable {
 
@@ -112,6 +116,10 @@ export class EngineContextVariableSection extends Disposable {
 		this.readStatus.textContent = '';
 		this.updateReadAction();
 
+		if (this.rows.length > 0 && isConversationPairingHold(this.connection)) {
+			this.applyDisconnectedRefresh(true);
+			return;
+		}
 		if (!this.connection.isEngineConnected()) {
 			this.applyDisconnectedRefresh(this.rows.length > 0);
 			return;
@@ -138,6 +146,10 @@ export class EngineContextVariableSection extends Disposable {
 		try {
 			const result = await hook.call(this.connection, engineContextVariableListRequest());
 			if (generation !== this.renderGeneration) {
+				return;
+			}
+			if (this.rows.length > 0 && isConversationPairingHold(this.connection)) {
+				this.applyDisconnectedRefresh(true);
 				return;
 			}
 			if (!this.connection.isEngineConnected()) {
@@ -169,6 +181,7 @@ export class EngineContextVariableSection extends Disposable {
 	}
 
 	private applyDisconnectedRefresh(hadLiveCatalog: boolean): void {
+		this.updateReadAction();
 		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
 			this.status.render({
 				mode: 'disconnected',
@@ -226,16 +239,21 @@ export class EngineContextVariableSection extends Disposable {
 		}
 	}
 
+	private isContextVariableReadPairingHold(): boolean {
+		return isConversationPairingHold(this.connection);
+	}
+
 	private updateReadAction(): void {
 		this.readButton.enabled = canSendEngineContextVariableRead(
 			this.connection.isEngineConnected(),
 			typeof this.connection.readContextVariable === 'function',
+			this.isContextVariableReadPairingHold(),
 		);
 	}
 
 	private async handleRead(): Promise<void> {
 		const hook = this.connection.readContextVariable;
-		if (!canSendEngineContextVariableRead(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
+		if (!canSendEngineContextVariableRead(this.connection.isEngineConnected(), typeof hook === 'function', this.isContextVariableReadPairingHold()) || !hook) {
 			return;
 		}
 		const request = engineContextVariableReadRequest(this.selectedRow?.entry);

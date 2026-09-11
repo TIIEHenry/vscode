@@ -47,6 +47,32 @@ suite('EngineContextVariableSection', () => {
 			.find(button => button.textContent === ENGINE_CONTEXT_VARIABLE_READ_LABEL) as HTMLButtonElement | undefined;
 	}
 
+	function forceClick(button: HTMLButtonElement | undefined): void {
+		if (!button) {
+			return;
+		}
+		button.classList.remove('disabled');
+		button.removeAttribute('disabled');
+		button.setAttribute('aria-disabled', 'false');
+		button.disabled = false;
+		button.click();
+	}
+
+	function assertReadButtonDisabled(root: HTMLElement): void {
+		const button = findReadButton(root);
+		assert.ok(button);
+		assert.strictEqual(button.classList.contains('disabled'), true);
+		assert.strictEqual(button.getAttribute('aria-disabled'), 'true');
+	}
+
+	async function assertForcedReadClickStaysUnary(root: HTMLElement, readCalls: unknown[]): Promise<void> {
+		const row = root.querySelector('.engine-context-variable-row') as HTMLElement | null;
+		row?.click();
+		forceClick(findReadButton(root));
+		await flushMicrotasks();
+		assert.deepStrictEqual(readCalls, []);
+	}
+
 	test('List does not send when disconnected or hook missing', async () => {
 		let listContextVariableCalls = 0;
 		const disconnected = mountSection(createConversationConnectionTestStub({
@@ -268,6 +294,7 @@ suite('EngineContextVariableSection', () => {
 			sharedFsRootSent: false,
 			capabilities: createEmptyTestCapabilitySnapshot(),
 		});
+		const readCalls: UniverseAgentContextVariableReadRequest[] = [];
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => connected && !pairingPending,
 			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
@@ -276,6 +303,18 @@ suite('EngineContextVariableSection', () => {
 			listContextVariable: async (): Promise<UniverseAgentContextVariableListResult> => {
 				listContextVariableCalls++;
 				return { current: [leftover], inherited: [] };
+			},
+			readContextVariable: async request => {
+				readCalls.push(request);
+				return {
+					entry: {
+						name: leftover.name,
+						content: leftover.contentPreview,
+						scope: leftover.scope,
+						updatedBy: leftover.updatedBy,
+						updatedAt: leftover.updatedAt,
+					},
+				};
 			},
 		});
 		const pane = mountSection(connection);
@@ -301,6 +340,9 @@ suite('EngineContextVariableSection', () => {
 		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
 		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
 		assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_CONTEXT_VARIABLE_LIST_EMPTY_COPY));
+		assertReadButtonDisabled(pane.getDomNode());
+		await assertForcedReadClickStaysUnary(pane.getDomNode(), readCalls);
+		assert.strictEqual(listContextVariableCalls, listCallsAfterLoad);
 
 		connected = false;
 		onDidChangeConnection.fire(snapshot());
@@ -310,6 +352,136 @@ suite('EngineContextVariableSection', () => {
 		const cleared = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
 		assert.ok(cleared);
 		assert.strictEqual(cleared.dataset['catalogMode'], 'disconnected');
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('leftover-looks-live pairing-hold Read stays 0 unary and skip extra list', async () => {
+		let pairingPending = false;
+		let listContextVariableCalls = 0;
+		const leftover = {
+			name: 'leftover-live',
+			scope: 'VARIABLE_GLOBAL' as const,
+			updatedBy: 'agent',
+			updatedAt: 1,
+			contentPreview: 'preview',
+		};
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			pairingPending,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const readCalls: UniverseAgentContextVariableReadRequest[] = [];
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listContextVariable: async (): Promise<UniverseAgentContextVariableListResult> => {
+				listContextVariableCalls++;
+				return { current: [leftover], inherited: [] };
+			},
+			readContextVariable: async request => {
+				readCalls.push(request);
+				return {
+					entry: {
+						name: leftover.name,
+						content: leftover.contentPreview,
+						scope: leftover.scope,
+						updatedBy: leftover.updatedBy,
+						updatedAt: leftover.updatedAt,
+					},
+				};
+			},
+		});
+		const pane = mountSection(connection);
+		await flushMicrotasks();
+		assert.strictEqual(listContextVariableCalls, 1);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-context-variable-row').length, 1);
+		const listCallsAfterLoad = listContextVariableCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listContextVariableCalls, listCallsAfterLoad);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-context-variable-row').length, 1);
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assertReadButtonDisabled(pane.getDomNode());
+		await assertForcedReadClickStaysUnary(pane.getDomNode(), readCalls);
+		assert.strictEqual(listContextVariableCalls, listCallsAfterLoad);
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('connected leftover list-fail still Reads', async () => {
+		let listContextVariableCalls = 0;
+		const leftover = {
+			name: 'leftover-var',
+			scope: 'VARIABLE_GLOBAL' as const,
+			updatedBy: 'agent',
+			updatedAt: 1,
+			contentPreview: 'preview',
+		};
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const liveSnapshot: UniverseAgentConnectionSnapshot = {
+			transport: 'ok',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		};
+		const readCalls: UniverseAgentContextVariableReadRequest[] = [];
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => liveSnapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listContextVariable: async (): Promise<UniverseAgentContextVariableListResult> => {
+				listContextVariableCalls++;
+				if (listContextVariableCalls === 1) {
+					return { current: [leftover], inherited: [] };
+				}
+				throw new Error('list boom');
+			},
+			readContextVariable: async request => {
+				readCalls.push(request);
+				return {
+					entry: {
+						name: leftover.name,
+						content: leftover.contentPreview,
+						scope: leftover.scope,
+						updatedBy: leftover.updatedBy,
+						updatedAt: leftover.updatedAt,
+					},
+				};
+			},
+		});
+		const pane = mountSection(connection);
+		await flushMicrotasks();
+		assert.strictEqual(listContextVariableCalls, 1);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-context-variable-row').length, 1);
+
+		onDidChangeConnection.fire(liveSnapshot);
+		await flushMicrotasks();
+		assert.strictEqual(listContextVariableCalls, 2);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-context-variable-row').length, 1);
+
+		const row = pane.getDomNode().querySelector('.engine-context-variable-row') as HTMLElement;
+		assert.ok(row);
+		row.click();
+		const read = findReadButton(pane.getDomNode());
+		assert.ok(read);
+		assert.strictEqual(read.classList.contains('disabled'), false);
+		read.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(readCalls, [{ sessionId: '', name: leftover.name, agentId: '' }]);
 		pane.getDomNode().parentElement?.remove();
 	});
 
