@@ -744,7 +744,8 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private async ensureAgentToolsLoaded(forceReload = false): Promise<void> {
-		if (!this.connection.isEngineConnected()) {
+		// D352 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 			return;
 		}
 		const toolsSupport = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot()).tools.support;

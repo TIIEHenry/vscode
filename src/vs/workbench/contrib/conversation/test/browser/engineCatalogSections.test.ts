@@ -838,6 +838,65 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
 	});
 
+	test('Agents: leftover-looks-live Tools tab skips extra listTools with empty agentTools', async () => {
+		let listToolsCalls = 0;
+		let listAgentProfilesCalls = 0;
+		const leftover = { name: LEFTOVER_AGENT_TOOL_NAME };
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' }, tools: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [demoUserAgent()] };
+			},
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [leftover] };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		await section.selectProfileByIdForTest('demo');
+		const leftoverRows = section.getListEntryCount();
+		const listProfilesAfterLoad = listAgentProfilesCalls;
+		assert.strictEqual(listToolsCalls, 0);
+		assert.strictEqual(section.getAgentToolNames().length, 0);
+
+		connection.setLooksLive(true);
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listAgentProfilesCalls, listProfilesAfterLoad);
+		assert.strictEqual(listToolsCalls, 0);
+		assert.strictEqual(section.getListEntryCount(), leftoverRows);
+
+		section.setActiveAgentDetailTabForTest('tools');
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(listToolsCalls, 0);
+		assert.strictEqual(listAgentProfilesCalls, listProfilesAfterLoad);
+		assert.strictEqual(section.getListEntryCount(), leftoverRows);
+		assert.strictEqual(section.getAgentToolRowCount(), 0);
+		assert.deepStrictEqual([...section.getAgentToolNames()], []);
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(LEFTOVER_AGENT_TOOL_NAME));
+
+		connection.setPairingPending(false);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.ok(listToolsCalls >= 1);
+		assert.ok(section.getAgentToolNames().includes(LEFTOVER_AGENT_TOOL_NAME));
+		assert.strictEqual(section.getAgentToolRowCount(), 1);
+	});
+
 	test('Tools: leftover-looks-live pairing-hold writes stay 0 unary', async () => {
 		const saveCalls: UniverseAgentSaveAgentProfileRequest[] = [];
 		let listToolsCalls = 0;
