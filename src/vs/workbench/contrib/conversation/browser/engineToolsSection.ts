@@ -550,11 +550,8 @@ export class EngineToolsSection extends Disposable {
 		const support = capabilities.tools.support;
 
 		const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'tool');
-		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
-			this.applyDisconnectedRefresh(support, hadLiveCatalog);
-			return;
-		}
-		if (!connected) {
+		// D349 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connection) || !connected) {
 			this.applyDisconnectedRefresh(support, hadLiveCatalog);
 			return;
 		}
@@ -590,11 +587,7 @@ export class EngineToolsSection extends Disposable {
 				this.connection.listAgentProfiles(),
 			]);
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'tool');
-			if (this.keepLeftoverCatalogForPairingHold(leftoverAfterList)) {
-				this.applyDisconnectedRefresh(support, leftoverAfterList);
-				return;
-			}
-			if (!this.connection.isEngineConnected()) {
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				this.applyDisconnectedRefresh(support, leftoverAfterList);
 				return;
 			}
