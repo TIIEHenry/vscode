@@ -658,6 +658,10 @@ export class EnginePluginsSection extends Disposable {
 		this.renderScanResult();
 		try {
 			const result = await this.connection.scanNewPlugins();
+			// D381 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+				return;
+			}
 			this.lastScan = result;
 			this.writeFailedReason = undefined;
 			this.renderScanResult();

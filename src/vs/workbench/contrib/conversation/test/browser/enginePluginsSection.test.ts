@@ -36,6 +36,7 @@ const PLUGIN_INFO_FEATURE = localize('ua.enginePluginInfoFeature', "plugin info"
 const PLUGIN_HOOKS_EMPTY_COPY = localize('ua.enginePluginHooksEmpty', "No hooks.");
 const LEFTOVER_HOOK_CLASS = 'LeftoverHook';
 const FRESH_LIVE_HOOK_CLASS = 'InflightLiveHook';
+const FRESH_LIVE_SCAN_NAME = 'InflightLiveScan';
 
 suite('EnginePluginsSection write-success (D155 / D216)', () => {
 
@@ -974,6 +975,61 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		const hooksTable = getHooksTable(section);
 		assert.ok(hooksTable);
 		assert.notStrictEqual(hooksTable.style.display, 'none');
+	});
+
+	test('in-flight scanNew leftover-looks-live keeps leftover and does not paint live scan', async () => {
+		let scanStarted: (() => void) | undefined;
+		let releaseScan: (() => void) | undefined;
+		const scanEntered = new Promise<void>(resolve => { scanStarted = resolve; });
+		const scanHold = new Promise<void>(resolve => { releaseScan = resolve; });
+		const leftover = leftoverPlugin();
+		const liveFound = { ...demoPlugin(), id: 'inflight-live-plugin', displayName: FRESH_LIVE_SCAN_NAME };
+		const connection = createConnectionStub({
+			looksLive: true,
+			listPlugins: async () => ({ plugins: [leftover] }),
+			scanNewPlugins: async () => {
+				scanStarted?.();
+				await scanHold;
+				return { newPlugins: [liveFound], skippedCount: 0 };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		const leftoverRows = section.getListEntryCount();
+		assert.ok(leftoverRows > 0);
+		assert.strictEqual(section.canWrite(), true);
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		connection.setLooksLive(true);
+		const scanPromise = section.scanNewForTest();
+		await scanEntered;
+
+		connection.setPairingPending(true);
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		releaseScan!();
+		await scanPromise;
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assertPluginsLeftoverPairingHonesty(section, leftoverRows);
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		const liveCopy = formatEnginePluginsScanFoundCopy(FRESH_LIVE_SCAN_NAME, 0);
+		const scanResult = section.getDomNode().querySelector('.engine-plugins-scan-result') as HTMLElement;
+		assert.ok(scanResult);
+		assert.ok(!(scanResult.textContent ?? '').includes(FRESH_LIVE_SCAN_NAME), 'in-flight leftover-looks-live must not paint live scan');
+		assert.ok(!(scanResult.textContent ?? '').includes(liveCopy), 'in-flight leftover-looks-live must not paint live scan');
+		assert.ok(scanResult.style.display === 'none' || !(scanResult.textContent ?? '').trim());
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(FRESH_LIVE_SCAN_NAME), 'in-flight leftover-looks-live must not paint live scan');
 	});
 
 	test('getPluginInfo first-pull throw is failed with no leftover hook rows', async () => {
