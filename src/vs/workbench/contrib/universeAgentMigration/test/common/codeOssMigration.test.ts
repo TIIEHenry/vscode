@@ -4,9 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { basename } from '../../../../../base/common/resources.js';
+import { VSBuffer } from '../../../../../base/common/buffer.js';
+import { basename, joinPath } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { FileService } from '../../../../../platform/files/common/fileService.js';
+import { InMemoryFileSystemProvider } from '../../../../../platform/files/common/inMemoryFilesystemProvider.js';
+import { NullLogService } from '../../../../../platform/log/common/log.js';
 import {
 	getCodeOssUserDataFolderName,
 	getDestSettingsResource,
@@ -14,6 +18,7 @@ import {
 	ICodeOssMigrationOfferInput,
 	MIGRATE_FROM_CODE_OSS_COMMAND_ID,
 	MIGRATION_OFFERED_STORAGE_KEY,
+	migrateCodeOssUserData,
 	resolveCodeOssUserDataUri,
 	shouldOfferCodeOssMigration,
 } from '../../common/codeOssMigration.js';
@@ -42,7 +47,7 @@ function copyPathStrings(sourceProfileHome: URI, targetProfileHome: URI): string
 
 suite('codeOssMigration (I5 windowless contract)', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	suite('shouldOfferCodeOssMigration', () => {
 
@@ -163,6 +168,97 @@ suite('codeOssMigration (I5 windowless contract)', () => {
 
 		test('offered storage key is universeAgent.migration.offered', () => {
 			assert.strictEqual(MIGRATION_OFFERED_STORAGE_KEY, 'universeAgent.migration.offered');
+		});
+	});
+
+	suite('migrateCodeOssUserData', () => {
+
+		const ROOT = URI.file('tests').with({ scheme: 'vscode-tests' });
+
+		function createFileService(): FileService {
+			const fileService = store.add(new FileService(new NullLogService()));
+			store.add(fileService.registerProvider(ROOT.scheme, store.add(new InMemoryFileSystemProvider())));
+			return fileService;
+		}
+
+		async function writeFile(fileService: FileService, resource: URI, contents: string): Promise<void> {
+			await fileService.writeFile(resource, VSBuffer.fromString(contents));
+		}
+
+		async function seedSourceUser(fileService: FileService, sourceUser: URI, includeDefaultKeybindings: boolean): Promise<void> {
+			await writeFile(fileService, joinPath(sourceUser, 'settings.json'), '{"editor.fontSize":14}');
+			if (includeDefaultKeybindings) {
+				await writeFile(fileService, joinPath(sourceUser, 'keybindings.json'), '[]');
+			}
+			await writeFile(fileService, joinPath(sourceUser, 'snippets', 'x.json'), '{}');
+			await writeFile(fileService, joinPath(sourceUser, 'profiles', 'p1', 'settings.json'), '{"window.zoomLevel":1}');
+			await writeFile(fileService, joinPath(sourceUser, 'globalStorage', 'foo'), 'secret');
+			await writeFile(fileService, joinPath(sourceUser, 'state.vscdb'), 'db');
+			await writeFile(fileService, joinPath(sourceUser, 'workspaceStorage', 'ws'), 'ws-state');
+		}
+
+		async function collectRelativePaths(fileService: FileService, root: URI): Promise<string[]> {
+			const paths: string[] = [];
+			async function walk(uri: URI, prefix: string): Promise<void> {
+				const stat = await fileService.resolve(uri);
+				for (const child of stat.children ?? []) {
+					const relative = prefix ? `${prefix}/${child.name}` : child.name;
+					paths.push(relative);
+					if (child.isDirectory) {
+						await walk(child.resource, relative);
+					}
+				}
+			}
+			if (await fileService.exists(root)) {
+				await walk(root, '');
+			}
+			return paths;
+		}
+
+		test('copies allow-list including named profile settings and skips excluded families', async () => {
+			const fileService = createFileService();
+			const logService = new NullLogService();
+			const source = joinPath(ROOT, 'code-oss-dev');
+			const dest = joinPath(ROOT, 'universe-agent-studio-dev');
+			await seedSourceUser(fileService, joinPath(source, 'User'), true);
+
+			const copied = await migrateCodeOssUserData(fileService, logService, source, dest);
+			const destPaths = await collectRelativePaths(fileService, dest);
+
+			assert.strictEqual(copied, 4);
+			assert.ok(destPaths.includes('User/settings.json'));
+			assert.ok(destPaths.includes('User/keybindings.json'));
+			assert.ok(destPaths.includes('User/snippets/x.json'));
+			assert.ok(destPaths.includes('User/profiles/p1/settings.json'));
+			assert.strictEqual((await fileService.readFile(joinPath(dest, 'User', 'settings.json'))).value.toString(), '{"editor.fontSize":14}');
+			assert.strictEqual((await fileService.readFile(joinPath(dest, 'User', 'profiles', 'p1', 'settings.json'))).value.toString(), '{"window.zoomLevel":1}');
+			for (const path of destPaths) {
+				for (const fragment of EXCLUDED_PATH_FRAGMENTS) {
+					assert.ok(!path.includes(fragment), `${path} must not contain ${fragment}`);
+				}
+			}
+			assert.strictEqual(await fileService.exists(joinPath(dest, 'User', 'globalStorage', 'foo')), false);
+			assert.strictEqual(await fileService.exists(joinPath(dest, 'User', 'state.vscdb')), false);
+			assert.strictEqual(await fileService.exists(joinPath(dest, 'User', 'workspaceStorage', 'ws')), false);
+		});
+
+		test('missing allow-list files are skipped and not counted', async () => {
+			const fileService = createFileService();
+			const logService = new NullLogService();
+			const source = joinPath(ROOT, 'code-oss-dev-partial');
+			const dest = joinPath(ROOT, 'universe-agent-studio-dev-partial');
+			await seedSourceUser(fileService, joinPath(source, 'User'), false);
+
+			const copied = await migrateCodeOssUserData(fileService, logService, source, dest);
+
+			assert.strictEqual(copied, 3);
+			assert.strictEqual(await fileService.exists(joinPath(dest, 'User', 'settings.json')), true);
+			assert.strictEqual(await fileService.exists(joinPath(dest, 'User', 'keybindings.json')), false);
+			assert.strictEqual(await fileService.exists(joinPath(dest, 'User', 'snippets', 'x.json')), true);
+			assert.strictEqual(await fileService.exists(joinPath(dest, 'User', 'profiles', 'p1', 'settings.json')), true);
+			assert.strictEqual(await fileService.exists(joinPath(dest, 'User', 'globalStorage', 'foo')), false);
+			assert.strictEqual(await fileService.exists(joinPath(dest, 'User', 'state.vscdb')), false);
+			assert.strictEqual(await fileService.exists(joinPath(dest, 'User', 'workspaceStorage', 'ws')), false);
 		});
 	});
 });

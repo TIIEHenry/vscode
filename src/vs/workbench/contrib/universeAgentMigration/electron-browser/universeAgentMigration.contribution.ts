@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Disposable } from '../../../../base/common/lifecycle.js';
-import { isEqual, joinPath } from '../../../../base/common/resources.js';
+import { isEqual } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { Categories } from '../../../../platform/action/common/actionCommonCategories.js';
@@ -22,67 +22,12 @@ import { IWorkbenchEnvironmentService } from '../../../services/environment/comm
 import { IHostService } from '../../../services/host/browser/host.js';
 import {
 	getDestSettingsResource,
-	getProfileMigrationCopies,
-	ICodeOssMigrationCopy,
 	MIGRATE_FROM_CODE_OSS_COMMAND_ID,
 	MIGRATION_OFFERED_STORAGE_KEY,
-	PROFILES_FOLDER_NAME,
+	migrateCodeOssUserData,
 	resolveCodeOssUserDataUri,
 	shouldOfferCodeOssMigration,
-	USER_FOLDER_NAME,
 } from '../common/codeOssMigration.js';
-
-async function copyIfExists(fileService: IFileService, logService: ILogService, item: ICodeOssMigrationCopy): Promise<boolean> {
-	if (!(await fileService.exists(item.source))) {
-		return false;
-	}
-
-	await fileService.copy(item.source, item.target, true);
-	logService.info(`[universeAgentMigration] copied ${item.source.toString()} -> ${item.target.toString()}`);
-	return true;
-}
-
-async function copyProfileAllowList(fileService: IFileService, logService: ILogService, sourceProfileHome: URI, targetProfileHome: URI): Promise<number> {
-	let copied = 0;
-
-	for (const item of getProfileMigrationCopies(sourceProfileHome, targetProfileHome)) {
-		if (await copyIfExists(fileService, logService, item)) {
-			copied++;
-		}
-	}
-
-	return copied;
-}
-
-/**
- * Copies only settings.json, keybindings.json, and snippets/ from the default
- * profile and each named profile. Never copies globalStorage, state.vscdb, or
- * workspaceStorage.
- */
-async function migrateCodeOssUserData(fileService: IFileService, logService: ILogService, sourceUserData: URI, targetUserData: URI): Promise<number> {
-	const sourceUserHome = joinPath(sourceUserData, USER_FOLDER_NAME);
-	const targetUserHome = joinPath(targetUserData, USER_FOLDER_NAME);
-	let copied = await copyProfileAllowList(fileService, logService, sourceUserHome, targetUserHome);
-
-	const sourceProfilesHome = joinPath(sourceUserHome, PROFILES_FOLDER_NAME);
-	if (await fileService.exists(sourceProfilesHome)) {
-		const stat = await fileService.resolve(sourceProfilesHome);
-		for (const child of stat.children ?? []) {
-			if (!child.isDirectory) {
-				continue;
-			}
-
-			copied += await copyProfileAllowList(
-				fileService,
-				logService,
-				child.resource,
-				joinPath(targetUserHome, PROFILES_FOLDER_NAME, child.name)
-			);
-		}
-	}
-
-	return copied;
-}
 
 async function runMigrateFromCodeOss(accessor: ServicesAccessor): Promise<void> {
 	const environmentService = accessor.get(INativeEnvironmentService);
