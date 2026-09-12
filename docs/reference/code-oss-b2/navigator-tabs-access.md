@@ -80,7 +80,7 @@ Singularity 意图（只取问题，不取 Compose 树合同）：「有哪些�
 |------|---------|-------------|------|
 | 无工作区 | 空态 + Open Folder / Recent CTA | `registerViewWelcomeContent`（`workbench.action.files.openFolder` / `openRecent`） | **已落**（`navigator.contribution.ts`） |
 | 无引擎、有本地工作区 | 仅「本地文件夹」组 | `IWorkspaceContextService` + `IWorkspacesService.getRecentlyOpened()` → 树中 `local-folder` 叶 + 内联 filter | **已落**（N1）；**不是** UA session catalog |
-| 有引擎 | Engine → work_dir → Session **只读发现** | `WorkbenchObjectTree`（`buildNavigatorProjectsTree`）：引擎根 + connection 快照 `workDir` 分组（G-NAV-1 未补前单 work_dir）+ roster 同一份 `getSessions()`；本地文件夹组仍在引擎根下。Engine / work_dir = **分组轴**；行点击只 `switchSession` | **已落**（N1）；细节 [navigator-engine-segments §2.1](../../../dev/plans/navigator-engine-segments.md) |
+| 有引擎 | Engine → work_dir → Session **只读发现** | `WorkbenchObjectTree`（`buildNavigatorProjectsTree`）：引擎根 + 按会话 `workDir`（缺则 connection）分组；当前 vscode 工作区置顶并标「current workspace」+ roster 同一份 `getSessions()`；本地文件夹组仍在引擎根下。Engine / work_dir = **分组轴**；行点击只 `switchSession` | **已落**（N1 + G-NAV-1）；细节 [navigator-engine-segments §2.1](../../../dev/plans/navigator-engine-segments.md) |
 
 **禁止：**
 

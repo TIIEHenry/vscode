@@ -120,4 +120,46 @@ suite('NavigatorProjectsTree (N1)', () => {
 		const workdir = tree[0]?.children?.find(child => child.kind === 'workdir');
 		assert.strictEqual(workdir?.children?.[0]?.label, 'Cached');
 	});
+
+	test('sessions with distinct workDir split into separate groups', () => {
+		const tree = buildNavigatorProjectsTree({
+			engineConnected: true,
+			wasEverConnected: true,
+			transportFailed: false,
+			sessionListCapability: 'SUPPORTED',
+			workDir: '/engine/work',
+			workspaceRoots: ['/home/me/current'],
+			sessions: [
+				{ id: 'ua-1', title: 'Here', turns: [], workDir: '/home/me/current' },
+				{ id: 'ua-2', title: 'There', turns: [], workDir: '/other/project' },
+			],
+			localFolders: [],
+		});
+		const groups = tree[0]?.children?.filter(child => child.kind === 'workdir') ?? [];
+		assert.strictEqual(groups.length, 2);
+		assert.strictEqual(groups[0]?.currentWorkspace, true);
+		assert.ok(groups[0]?.label.includes('current workspace'));
+		assert.deepStrictEqual(groups[0]?.children?.map(child => child.sessionId), ['ua-1']);
+		assert.strictEqual(groups[1]?.currentWorkspace, false);
+		assert.deepStrictEqual(groups[1]?.children?.map(child => child.sessionId), ['ua-2']);
+	});
+
+	test('session without workDir falls back to connection workDir group', () => {
+		const tree = buildNavigatorProjectsTree({
+			engineConnected: true,
+			wasEverConnected: true,
+			transportFailed: false,
+			sessionListCapability: 'SUPPORTED',
+			workDir: '/engine/work',
+			sessions: [
+				{ id: 'ua-1', title: 'A', turns: [] },
+				{ id: 'ua-2', title: 'B', turns: [], workDir: '/engine/work' },
+			],
+			localFolders: [],
+		});
+		const groups = tree[0]?.children?.filter(child => child.kind === 'workdir') ?? [];
+		assert.strictEqual(groups.length, 1);
+		assert.strictEqual(groups[0]?.description, '/engine/work');
+		assert.strictEqual(groups[0]?.children?.length, 2);
+	});
 });

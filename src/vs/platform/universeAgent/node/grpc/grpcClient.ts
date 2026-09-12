@@ -192,8 +192,18 @@ import type {
 	UniverseAgentSkillInfoResult,
 	UniverseAgentListAgentProfilesRequest,
 	UniverseAgentListAgentProfilesResult,
-	UniverseAgentAgentProfileSource,
-	UniverseAgentAgentProfileDetail,
+	UniverseAgentListProviderStatusResult,
+	UniverseAgentUpsertProviderCredentialsRequest,
+	UniverseAgentClearProviderCredentialsRequest,
+	UniverseAgentProviderStatus,
+	UniverseAgentListProjectRulesRequest,
+	UniverseAgentListProjectRulesResult,
+	UniverseAgentUpsertProjectRuleRequest,
+	UniverseAgentDeleteProjectRuleRequest,
+	UniverseAgentDeleteProjectRuleResult,
+	UniverseAgentProjectRule,
+	UniverseAgentListHookPointsResult,
+	UniverseAgentListTeamsResult,
 	UniverseAgentSaveAgentProfileRequest,
 	UniverseAgentSaveAgentProfileResult,
 	UniverseAgentDeleteAgentProfileRequest,
@@ -429,6 +439,13 @@ import {
 	mapHealthCheckResponse,
 	mapHistoryResponse,
 	mapListAgentProfilesResponse,
+	mapListHookPointsResponse,
+	mapListProjectRulesResponse,
+	mapListProviderStatusResponse,
+	mapListTeamsResponse,
+	mapProjectRule,
+	mapProviderStatus,
+	mapDeleteProjectRuleResponse,
 	mapListAgentsResponse,
 	mapListCommandsResponse,
 	mapListConfigsResponse,
@@ -590,7 +607,6 @@ import {
 	type RemoteChatResponseWire,
 	type RemoteResponseWire,
 	type RemoveMcpServerResponseWire,
-	type ResetAgentProfileResponseWire,
 	type ResetErrorResponseWire,
 	type ResolveAnchorResponseWire,
 	type ResolveModelResponseWire,
@@ -599,11 +615,9 @@ import {
 	type ResumeRemoteSessionResponseWire,
 	type RevokeDeviceResponseWire,
 	type RotateTokenResponseWire,
-	type SaveAgentProfileResponseWire,
 	type SaveRemoteAgentConfigResponseWire,
 	type SaveSkillContentResponseWire,
 	type ScanNewPluginsResponseWire,
-	type SessionInfoResponseWire,
 	type SetMaintenanceResponseWire,
 	type SetSkillEnabledResponseWire,
 	type SetTriggerEnabledResponseWire,
@@ -663,15 +677,36 @@ import {
 	decodeListAgentProfilesResponse,
 	decodeListAgentsResponse,
 	decodeListDevicesResponse,
+	decodeListHookPointsResponse,
 	decodeListModelsResponse,
+	decodeListProjectRulesResponse,
+	decodeListProviderStatusResponse,
 	decodeListSessionsResponse,
+	decodeListTeamsResponse,
+	decodeProjectRuleResponse,
+	decodeProviderStatus,
+	decodeResetAgentProfileResponse,
+	decodeSaveAgentProfileResponse,
+	decodeSessionInfoResponse,
+	decodeDeleteProjectRuleResponse,
 	encodeAgentTreeRequest,
+	encodeClearProviderCredentialsRequest,
+	encodeDeleteProjectRuleRequest,
 	encodeListAgentProfilesRequest,
 	encodeListAgentsRequest,
 	encodeListDevicesRequest,
+	encodeListHookPointsRequest,
 	encodeListModelsRequest,
+	encodeListProjectRulesRequest,
+	encodeListProviderStatusRequest,
 	encodeListSessionsRequest,
+	encodeListTeamsRequest,
 	encodeProbeRpcRequest,
+	encodeResetAgentProfileRequest,
+	encodeSaveAgentProfileRequest,
+	encodeSessionInfoRequest,
+	encodeUpsertProjectRuleRequest,
+	encodeUpsertProviderCredentialsRequest,
 } from './grpcCatalogUnaryWire.js';
 
 function queueRefWire(request: UniverseAgentQueueRefRequest): Record<string, unknown> {
@@ -885,65 +920,6 @@ function syncInputDeliveryRequestWire(request: UniverseAgentSyncInputDeliveryReq
 		session_id: request.sessionId,
 		last_known_message_ids: request.lastKnownMessageIds ?? [],
 	};
-}
-function mapAgentProfileSourceToWire(source: UniverseAgentAgentProfileSource | undefined): string | undefined {
-	if (!source) {
-		return undefined;
-	}
-	switch (source) {
-		case 'built_in':
-			return 'BUILT_IN';
-		case 'user':
-			return 'USER';
-		case 'project':
-			return 'PROJECT';
-		default:
-			return undefined;
-	}
-}
-function mapAgentProfileDetailToWire(profile: UniverseAgentAgentProfileDetail): Record<string, unknown> {
-	const wire: Record<string, unknown> = {
-		id: profile.id,
-		name: profile.name,
-	};
-	if (profile.description !== undefined) {
-		wire.description = profile.description;
-	}
-	if (profile.systemPrompt !== undefined) {
-		wire.system_prompt = profile.systemPrompt;
-	}
-	if (profile.disabledTools !== undefined) {
-		wire.disabled_tools = [...profile.disabledTools];
-	}
-	if (profile.enabledTools !== undefined) {
-		wire.enabled_tools = [...profile.enabledTools];
-	}
-	if (profile.permissionMode !== undefined) {
-		wire.permission_mode = profile.permissionMode;
-	}
-	if (profile.summary !== undefined) {
-		wire.summary = profile.summary;
-	}
-	if (profile.usage !== undefined) {
-		wire.usage = profile.usage;
-	}
-	if (profile.detailLevel !== undefined) {
-		wire.detail_level = profile.detailLevel;
-	}
-	const source = mapAgentProfileSourceToWire(profile.source);
-	if (source !== undefined) {
-		wire.source = source;
-	}
-	if (profile.enabled !== undefined) {
-		wire.enabled = profile.enabled;
-	}
-	if (profile.whitelistMode !== undefined) {
-		wire.whitelist_mode = profile.whitelistMode;
-	}
-	if (profile.builtinDefault !== undefined) {
-		wire.builtin_default = profile.builtinDefault;
-	}
-	return wire;
 }
 function mapMcpTransportToWire(transport: UniverseAgentMcpTransport): string {
 	switch (transport) {
@@ -1310,15 +1286,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async getSessionInfo(request: UniverseAgentSessionInfoRequest): Promise<UniverseAgentSessionInfoResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, SessionInfoResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Session.service,
 			UniverseAgentGrpcServices.Session.Info,
+			decodeSessionInfoResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-		});
-		return mapSessionInfoResponse(wire);
+		return mapSessionInfoResponse(await unary(encodeSessionInfoRequest(request.sessionId)));
 	}
 
 	async resumeSession(request: UniverseAgentResumeSessionRequest): Promise<UniverseAgentResumeSessionResult> {
@@ -2600,15 +2574,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async saveAgentProfile(request: UniverseAgentSaveAgentProfileRequest): Promise<UniverseAgentSaveAgentProfileResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, SaveAgentProfileResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.SaveAgentProfile,
+			decodeSaveAgentProfileResponse,
 		);
-		const wire = await unary({
-			profile: mapAgentProfileDetailToWire(request.profile),
-		});
-		return mapSaveAgentProfileResponse(wire);
+		return mapSaveAgentProfileResponse(await unary(encodeSaveAgentProfileRequest(request.profile)));
 	}
 
 	async deleteAgentProfile(request: UniverseAgentDeleteAgentProfileRequest): Promise<UniverseAgentDeleteAgentProfileResult> {
@@ -2622,13 +2594,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async resetAgentProfile(request: UniverseAgentResetAgentProfileRequest): Promise<UniverseAgentResetAgentProfileResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ResetAgentProfileResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.ResetAgentProfile,
+			decodeResetAgentProfileResponse,
 		);
-		const wire = await unary({ id: request.id });
-		return mapResetAgentProfileResponse(wire);
+		return mapResetAgentProfileResponse(await unary(encodeResetAgentProfileRequest(request.id)));
 	}
 
 	async listMcpServers(request: UniverseAgentListMcpServersRequest): Promise<UniverseAgentListMcpServersResult> {
@@ -3923,6 +3895,86 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			return undefined;
 		}
 		return { teamId: wire.team_id, status: wire.status ?? '' };
+	}
+
+	async listProviderStatus(): Promise<UniverseAgentListProviderStatusResult> {
+		const unary = makeUnaryBytesClient(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.ListProviderStatus,
+			decodeListProviderStatusResponse,
+		);
+		return mapListProviderStatusResponse(await unary(encodeListProviderStatusRequest()));
+	}
+
+	async upsertProviderCredentials(request: UniverseAgentUpsertProviderCredentialsRequest): Promise<UniverseAgentProviderStatus> {
+		const unary = makeUnaryBytesClient(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.UpsertProviderCredentials,
+			decodeProviderStatus,
+		);
+		return mapProviderStatus(await unary(encodeUpsertProviderCredentialsRequest(request)));
+	}
+
+	async clearProviderCredentials(request: UniverseAgentClearProviderCredentialsRequest): Promise<UniverseAgentProviderStatus> {
+		const unary = makeUnaryBytesClient(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.ClearProviderCredentials,
+			decodeProviderStatus,
+		);
+		return mapProviderStatus(await unary(encodeClearProviderCredentialsRequest(request)));
+	}
+
+	async listProjectRules(request: UniverseAgentListProjectRulesRequest): Promise<UniverseAgentListProjectRulesResult> {
+		const unary = makeUnaryBytesClient(
+			this._channel,
+			UniverseAgentGrpcServices.ProjectRule.service,
+			UniverseAgentGrpcServices.ProjectRule.List,
+			decodeListProjectRulesResponse,
+		);
+		return mapListProjectRulesResponse(await unary(encodeListProjectRulesRequest(request)));
+	}
+
+	async upsertProjectRule(request: UniverseAgentUpsertProjectRuleRequest): Promise<UniverseAgentProjectRule> {
+		const unary = makeUnaryBytesClient(
+			this._channel,
+			UniverseAgentGrpcServices.ProjectRule.service,
+			UniverseAgentGrpcServices.ProjectRule.Upsert,
+			decodeProjectRuleResponse,
+		);
+		return mapProjectRule(await unary(encodeUpsertProjectRuleRequest(request)));
+	}
+
+	async deleteProjectRule(request: UniverseAgentDeleteProjectRuleRequest): Promise<UniverseAgentDeleteProjectRuleResult> {
+		const unary = makeUnaryBytesClient(
+			this._channel,
+			UniverseAgentGrpcServices.ProjectRule.service,
+			UniverseAgentGrpcServices.ProjectRule.Delete,
+			decodeDeleteProjectRuleResponse,
+		);
+		return mapDeleteProjectRuleResponse(await unary(encodeDeleteProjectRuleRequest(request)));
+	}
+
+	async listHookPoints(): Promise<UniverseAgentListHookPointsResult> {
+		const unary = makeUnaryBytesClient(
+			this._channel,
+			UniverseAgentGrpcServices.System.service,
+			UniverseAgentGrpcServices.System.ListHookPoints,
+			decodeListHookPointsResponse,
+		);
+		return mapListHookPointsResponse(await unary(encodeListHookPointsRequest()));
+	}
+
+	async listTeams(sessionId: string): Promise<UniverseAgentListTeamsResult> {
+		const unary = makeUnaryBytesClient(
+			this._channel,
+			UniverseAgentGrpcServices.Team.service,
+			UniverseAgentGrpcServices.Team.ListTeams,
+			decodeListTeamsResponse,
+		);
+		return mapListTeamsResponse(await unary(encodeListTeamsRequest(sessionId)));
 	}
 }
 

@@ -8,6 +8,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/c
 import {
 	mapConnectResponse,
 	mapListAgentProfilesResponse,
+	mapListTeamsResponse,
 	mapListMcpServersResponse,
 	mapListModelsResponse,
 	mapListPluginsResponse,
@@ -60,6 +61,7 @@ suite('grpcClient mappers', () => {
 			last_accessed_at: 1700001000,
 			provider: 'openai',
 			model: 'gpt-test',
+			work_dir: '/engine/only',
 		});
 
 		assert.deepStrictEqual(result, {
@@ -78,6 +80,7 @@ suite('grpcClient mappers', () => {
 			lastAccessedAt: 1700001000,
 			provider: 'openai',
 			model: 'gpt-test',
+			workDir: '/engine/only',
 		});
 	});
 
@@ -114,6 +117,9 @@ suite('grpcClient mappers', () => {
 				disabled_tools: ['bash'],
 				enabled_tools: ['read'],
 				whitelist_mode: false,
+				model: 'gpt-fast',
+				model_type: 'chat',
+				max_turns: 8,
 			}],
 		});
 
@@ -127,8 +133,16 @@ suite('grpcClient mappers', () => {
 				disabledTools: ['bash'],
 				enabledTools: ['read'],
 				whitelistMode: false,
+				model: 'gpt-fast',
+				modelType: 'chat',
+				maxTurns: 8,
 			}],
 		});
+	});
+
+	test('mapListTeamsResponse keeps empty list and does not invent persistence', () => {
+		assert.deepStrictEqual(mapListTeamsResponse({}), { teams: [] });
+		assert.deepStrictEqual(mapListTeamsResponse({ teams: [] }), { teams: [] });
 	});
 
 	test('mapListMcpServersResponse maps Mcp wire JSON', () => {

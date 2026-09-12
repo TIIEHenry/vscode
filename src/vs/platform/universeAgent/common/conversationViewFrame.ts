@@ -196,7 +196,7 @@ export type ConversationQuestionRespondAnswers = Readonly<Record<string, { reado
 
 /** Write messages accepted by a lease. The Actor allocates message / operation / lease ids (Desktop ADR-012 §6.1). */
 export type ConversationWriteMessage =
-	| { readonly kind: 'submitInput'; readonly text: string }
+	| { readonly kind: 'submitInput'; readonly text: string; readonly modelProfileId?: string }
 	| { readonly kind: 'permissionRespond'; readonly requestId: string; readonly decision: 'allow' | 'deny' }
 	| { readonly kind: 'questionRespond'; readonly requestId: string; readonly answers: ConversationQuestionRespondAnswers; readonly customText?: string }
 	| { readonly kind: 'clientToolRespond'; readonly requestId: string; readonly resultJson: string }

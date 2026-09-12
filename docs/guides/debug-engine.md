@@ -3,8 +3,8 @@ title: "钉死 UniverseAgent 引擎（IDE 调试）"
 type: guide
 status: accepted
 phase: M7
-updated: 2026-09-06
-summary: "仓外隔离 worktree 编 HeadlessServer，供本仓 Direct Address 调试；不对 UA 开发树与 ~/.universe-agent 共享身份"
+updated: 2026-09-12
+summary: "仓外隔离 worktree 编 HeadlessServer，供本仓 Direct Address 调试；不对 UA 开发树与 ~/.universe-agent 共享身份。换钉已完成，以仓外 PIN 为准；D25/D26 已闭（List/Create 复验 PASS）。"
 ---
 
 # 钉死 UniverseAgent 引擎（IDE 调试）
@@ -61,11 +61,13 @@ loopback skip-auth 只跳过 session_token 拦截器；TLS pin 与 Device Grant 
 
 Logback 仍写 `~/.universe-agent/logs`（硬编码 `user.home`）。身份、会话、Grant 在 `agent-home/`。
 
-占位 `ANTHROPIC_API_KEY` 只够 Connect / catalog。真发消息须设置 Claude Code 环境或 `ANTHROPIC_API_KEY`；`start-engine.sh` 会从 `~/.claude/settings.json` 导出。
+占位 `ANTHROPIC_API_KEY` 只够 Connect。Chat 还要 ConfigStore 里的 `provider:state`（或 `provider:providers` + `provider:model_profiles`）以及 `models.json`：进程环境变量不会自动变成 model profile。`start-engine.sh` 会从 `~/.claude/settings.json` 导出 key / base / model，并跑 `seed-model-catalog.sh` 写入隔离 `agent-home/`（不打印 key）。改完须重启引擎。**2026-09-12** 重启后 grpcurl `ListModels` 非空、`AgentService/Chat` 带 `SessionInput.model_profile_id` **PASS**（`turnComplete`/`end_turn`）。本仓 Composer 发送时带同一字段（选中 catalog 的 `id`；诚实空选项不带）。这不是 IDE 接通冒烟，不升 PRD-008。
 
 ## 5. 换钉
 
-只在本仓协议对不上、或要吃进已签收的引擎 RPC 时换。步骤见仓外 README。换完更新 `PIN`，不要把新 SHA 抄进本页。
+换钉触发已满足：要吃进引擎仓已合并的 IDE 远程协议 A–F（以及 store 自愈）。步骤见仓外 README。**仓外 PIN 已换**；不要把新 SHA 抄进本页。
+
+[D25](../../dev/progress/deferred-gaps.md) / [D26](../../dev/progress/deferred-gaps.md) 已在这份钉上复验 List / Create 后关闭。空 catalog 当时不并入那两行；seed 后 Chat 已过引擎面。本仓不加兼容层。
 
 ## 相关
 

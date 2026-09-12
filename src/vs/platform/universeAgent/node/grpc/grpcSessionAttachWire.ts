@@ -8,6 +8,7 @@ import type {
 	UniverseAgentChatResponse,
 	UniverseAgentCreateSessionRequest,
 	UniverseAgentCreateSessionResult,
+	UniverseAgentFetchToolDetailRequest,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentHistoryEnvelope,
@@ -177,6 +178,7 @@ function encodeSessionInput(input: Record<string, unknown>): Uint8Array {
 	return Buffer.concat([
 		encodeStringField(1, readString(input, 'messageId', 'message_id')),
 		encodeStringField(2, readString(input, 'text')),
+		encodeStringField(5, readString(input, 'modelProfileId', 'model_profile_id')),
 		encodeStringField(10, readString(input, 'operationId', 'operation_id')),
 	]);
 }
@@ -266,6 +268,10 @@ function decodeMessageEnvelope(bytes: Uint8Array): Record<string, unknown> {
 	if (role !== undefined) {
 		envelope.role = Number(role);
 	}
+	const agentId = lastString(fields, 8);
+	if (agentId) {
+		envelope.agent_id = agentId;
+	}
 	const turnId = lastString(fields, 10);
 	if (turnId) {
 		envelope.turn_id = turnId;
@@ -289,11 +295,20 @@ function decodeBlock(bytes: Uint8Array): Record<string, unknown> {
 	const toolCall = lastBytes(fields, 3);
 	if (toolCall) {
 		const inner = readProtoFields(toolCall);
-		block.tool_call_block = {
+		const toolCallBlock: Record<string, unknown> = {
 			tool_call_id: lastString(inner, 1) ?? '',
 			tool_name: lastString(inner, 2) ?? '',
 			arguments_json: lastString(inner, 3) ?? '',
 		};
+		const detailRef = lastBytes(inner, 4);
+		if (detailRef) {
+			toolCallBlock.detail_ref = decodeToolDetailRef(detailRef);
+		}
+		const fileMutation = lastBytes(inner, 5);
+		if (fileMutation) {
+			toolCallBlock.file_mutation = decodeFileMutation(fileMutation);
+		}
+		block.tool_call_block = toolCallBlock;
 	}
 	const toolResult = lastBytes(fields, 4);
 	if (toolResult) {
@@ -310,6 +325,75 @@ function decodeBlock(bytes: Uint8Array): Record<string, unknown> {
 		block.thinking_block = { text: lastString(readProtoFields(thinking), 1) ?? '' };
 	}
 	return block;
+}
+
+export function fetchToolDetailRequestFromHistoryToolCall(
+	sessionId: string,
+	toolCallBlock: Record<string, unknown> | undefined,
+): UniverseAgentFetchToolDetailRequest | undefined {
+	if (!toolCallBlock) {
+		return undefined;
+	}
+	const toolCallId = typeof toolCallBlock.tool_call_id === 'string' ? toolCallBlock.tool_call_id : '';
+	const detailRef = isRecord(toolCallBlock.detail_ref) ? toolCallBlock.detail_ref : undefined;
+	const refId = detailRef && typeof detailRef.ref_id === 'string' ? detailRef.ref_id : '';
+	if (!toolCallId || !refId) {
+		return undefined;
+	}
+	const kind = detailRef && typeof detailRef.kind === 'number' ? detailRef.kind : 0;
+	return {
+		sessionId,
+		toolCallId,
+		detailKind: kind,
+		refId,
+	};
+}
+
+function decodeToolDetailRef(bytes: Uint8Array): Record<string, unknown> {
+	const fields = readProtoFields(bytes);
+	const ref: Record<string, unknown> = {
+		kind: numberOrZero(lastVarint(fields, 1)),
+		ref_id: lastString(fields, 2) ?? '',
+	};
+	const mimeType = lastString(fields, 3);
+	if (mimeType) {
+		ref.mime_type = mimeType;
+	}
+	const sizeBytes = lastVarint(fields, 4);
+	if (sizeBytes !== undefined) {
+		ref.size_bytes = Number(sizeBytes);
+	}
+	const revision = lastVarint(fields, 5);
+	if (revision !== undefined) {
+		ref.revision = Number(revision);
+	}
+	return ref;
+}
+
+function decodeFileMutation(bytes: Uint8Array): Record<string, unknown> {
+	const fields = readProtoFields(bytes);
+	const mutation: Record<string, unknown> = {
+		path: lastString(fields, 2) ?? '',
+		operation: lastString(fields, 3) ?? '',
+	};
+	const schemaVersion = lastVarint(fields, 1);
+	if (schemaVersion !== undefined) {
+		mutation.schema_version = Number(schemaVersion);
+	}
+	const stats = lastBytes(fields, 4);
+	if (stats) {
+		const statFields = readProtoFields(stats);
+		mutation.diff_stats = {
+			added_lines: numberOrZero(lastVarint(statFields, 1)),
+			removed_lines: numberOrZero(lastVarint(statFields, 2)),
+			changed_files: numberOrZero(lastVarint(statFields, 3)),
+		};
+	}
+	const previewRef = lastBytes(fields, 5);
+	if (previewRef) {
+		mutation.preview_ref = decodeToolDetailRef(previewRef);
+	}
+	return mutation;
 }
 
 function parseCursorSeq(value: string | undefined): number {

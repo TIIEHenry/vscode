@@ -3,7 +3,7 @@ title: "Agent IDE 产品需求"
 type: demand
 status: accepted
 phase: N/A
-updated: 2026-09-10
+updated: 2026-09-12
 summary: "PRD-001–026：M7 UI 代码完成线已尽；PRD-010/018/019/025/026 仍 accepted（缺产品验证）；PRD-008 仍待接通证据"
 ---
 
@@ -308,7 +308,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
   4. 引擎不提供 Agent 树或 Team 能力时，对应段写「当前引擎不提供 …」，不用空列表冒充「没有 agent / 没有团队」；当前会话只有根 Agent 时写「只有根 Agent」而不是「no agents」。
   5. 引擎断开后三段保留断开前内容并标明「显示为断开前快照」；不写「已同步」。
   6. 三段与 Inspect Panel 里没有任何会改变引擎状态的按钮。
-- **依赖或未决**：活数据依赖 PRD-008（M6-A2 之后）。方案见 [navigator-engine-segments](../../dev/plans/navigator-engine-segments.md)（`accepted` @2026-09-02；N1–N5 全排 M6-A2 后）。按工作目录分组依赖引擎补 `SessionSummary.work_dir`（缺口 G-NAV-1）；重连后团队整体状态依赖引擎补 `ListTeams`（缺口 G-NAV-2）。Agent 树只读会话视图（由 M6-A2 host 填充）；成员与任务经引擎连接层的三个只读查询取得（实现在 M6-A1 / A2，导航区不直接碰协议）；团队整体状态仅在会话视图已有 team id 时查询。根 Agent 对应对话窗口的根 tab；非根子代理 / 成员的对话 id 逐字等于引擎 `agent_id`。指挥类操作（Kill / StartMember / MessageMember / TaskUpdate）不在本条，需另立需求与权限座位设计。Desktop 侧这三段同样是 not-wired 空 chrome，本条无外仓需求可继承。
+- **依赖或未决**：活数据依赖 PRD-008（M6-A2 之后）。方案见 [navigator-engine-segments](../../dev/plans/navigator-engine-segments.md)（`accepted` @2026-09-02；N1–N5 全排 M6-A2 后）。按工作目录分组已接引擎 `SessionSummary.work_dir`（G-NAV-1）；重连后团队标题已接 `ListTeams`（G-NAV-2；引擎 v1 内存面，冷启动仍可能无标题）。Agent 树只读会话视图（由 M6-A2 host 填充）；成员与任务经引擎连接层的三个只读查询取得（实现在 M6-A1 / A2，导航区不直接碰协议）；团队整体状态优先会话视图 `liveTeamId`，否则 `ListTeams`。根 Agent 对应对话窗口的根 tab；非根子代理 / 成员的对话 id 逐字等于引擎 `agent_id`。指挥类操作（Kill / StartMember / MessageMember / TaskUpdate）不在本条，需另立需求与权限座位设计。Desktop 侧这三段同样是 not-wired 空 chrome，本条无外仓需求可继承。
 
 ### PRD-023 Sources Review 审阅进度与归因
 
@@ -322,7 +322,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
   4. 引擎工作目录与当前工作区不同（或远程引擎无共享文件系统）时，面板顶写明列表来自本地 SCM、未做归因；不改用引擎侧的变更列表。
   5. 归因标签是装饰：列表的成员与顺序仍由本地 SCM 决定，Agent 未改过的本地改动不带标签也不带「未归因」占位。
   6. 面板顶的只读说明不再写「review 引擎未接线」——Review 的产品定义里不存在 review 引擎。
-- **依赖或未决**：审阅进度 = 验收 1、2 与验收 3 的前半句，无引擎即可实施；归因标签 = 验收 5；「查看更改」= 用户陈述与验收 3 后半句；工作目录不匹配 = 验收 4；文案 = 验收 6。归因与「查看更改」依赖 PRD-008（M6-A2 之后）及 [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) S2 / S4。方案见 [sources-review-progress](../../dev/plans/sources-review-progress.md)（`accepted` @2026-09-02；R1 / R2 / R4a 无引擎可开）。对照 Desktop ADR-043（Review 只导航、审阅进度 scope-local、不做门禁）与 UI-INV-09 / UI-REVIEW-01，作为 `source` 引用；本仓分叉：审阅进度放在 Review 而非 Changes。历史会话的归因依赖引擎在 `GetHistory` 里带归一化的文件改动载荷（缺口 G-REV-1）。PRD-005 用户陈述中「review 引擎未接线」一句已随本条签收改口。
+- **依赖或未决**：审阅进度 = 验收 1、2 与验收 3 的前半句，无引擎即可实施；归因标签 = 验收 5；「查看更改」= 用户陈述与验收 3 后半句；工作目录不匹配 = 验收 4；文案 = 验收 6。归因与「查看更改」依赖 PRD-008（M6-A2 之后）及 [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) S2 / S4。方案见 [sources-review-progress](../../dev/plans/sources-review-progress.md)（`accepted` @2026-09-02；R1 / R2 / R4a 无引擎可开）。对照 Desktop ADR-043（Review 只导航、审阅进度 scope-local、不做门禁）与 UI-INV-09 / UI-REVIEW-01，作为 `source` 引用；本仓分叉：审阅进度放在 Review 而非 Changes。历史会话的归因已接 `GetHistory` `ToolCallBlock.file_mutation`（G-REV-1；不解析 `arguments_json`）。R5 冒烟未做，本条不升 `implemented`。PRD-005 用户陈述中「review 引擎未接线」一句已随本条签收改口。
 
 ### PRD-024 远程引擎连接（Connection Hub）
 
@@ -352,7 +352,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
   4. Rules 不把 Copilot instructions 当 UA 权威；Hooks 无 metadata RPC 时不抄静态点位；Plugins 无 marketplace。
   5. MCP Definitions 与 Runtime 共用 Engine server id，但不读取 vscode `IMcpService` 作为 UA 运行态。
   6. Skills / Agents / Tools 已有编辑状态迁入新宿主后不丢选择、未保存内容或能力门控。
-- **依赖或未决**：UI 不等待所有 RPC；缺能力先交付完整 unsupported/failed 状态，真实数据接线后只替换数据源。实施见 [engine-preferences-completion](../../dev/plans/engine-preferences-completion.md)（`accepted` @2026-09-02）。**引擎面核对（2026-09-02，[protocol-surface §1b](../reference/universe-agent/engine-protocol-surface.md)）**：Model 组数据源是 `ConfigService.ListModels` 只读注册表（无「上下文上限 / 能力标签」，无写 RPC）；会话级 `SwitchModel` / 模型策略属 Composer，不在本条；Provider 凭据、Instructions Rules、Hook 点位**没有引擎 RPC**（G-ENG-1/2/3），本条验收 1「九节可达」在这三节以 unsupported 完整态满足，不画表单；MCP 运行态与 Plugins 的 IDE 绑定由 M7 P 槽提供。测试失败进入非阻塞验证债，但没有用户可观察证据不得升 `implemented`。
+- **依赖或未决**：UI 不等待所有 RPC；缺能力先交付完整 unsupported/failed 状态，真实数据接线后只替换数据源。实施见 [engine-preferences-completion](../../dev/plans/engine-preferences-completion.md)（`accepted` @2026-09-02）。**引擎面核对（2026-09-02，[protocol-surface §1b](../reference/universe-agent/engine-protocol-surface.md)）**：Model 组数据源是 `ConfigService.ListModels` 只读注册表（无「上下文上限 / 能力标签」，无写 RPC）；会话级 `SwitchModel` / 模型策略属 Composer，不在本条；Provider 凭据、Instructions Rules、Hook 点位的引擎 RPC 已合，本仓 connection 只读列表已接（G-ENG-1/2/3），**不**画凭据/规则写表单；无 hook 时这三节仍以 unsupported 完整态满足；MCP 运行态与 Plugins 的 IDE 绑定由 M7 P 槽提供。测试失败进入非阻塞验证债，但没有用户可观察证据不得升 `implemented`。
 
 ### PRD-026 Client 设置完整性
 

@@ -1611,6 +1611,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 					title: s.title ?? localize('conversationLens.sessionUntitled', "Untitled session"),
 					turns: [],
 					source: 'engine-cache' as const,
+					...(s.workDir ? { workDir: s.workDir } : {}),
 				}));
 			this.listCompleted = true;
 			if (this.activeEngineSessionId && !this.engineSessions.some(s => s.id === this.activeEngineSessionId)) {
@@ -1650,6 +1651,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			title: session.title,
 			turns: session.turns.map(turn => ({ ...turn })),
 			source: 'engine-cache' as const,
+			...(session.workDir ? { workDir: session.workDir } : {}),
 		}));
 		const restoreLast = shouldRestoreLastSessionOnStartup(this.configurationService);
 		this.activeEngineSessionId = restoreLast && cache.activeSessionId && this.engineSessions.some(session => session.id === cache.activeSessionId)
@@ -1677,6 +1679,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				title: session.title,
 				turns: [...turns],
 				source: 'engine-cache',
+				...(session.workDir ? { workDir: session.workDir } : {}),
 			};
 			this.model.upsertCachedSession(cached);
 			return {
@@ -1684,6 +1687,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				title: cached.title,
 				turns: cached.turns,
 				source: 'engine-cache' as const,
+				...(cached.workDir ? { workDir: cached.workDir } : {}),
 			};
 		});
 		this.engineSessions = sessions.map(session => ({
@@ -1691,6 +1695,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			title: session.title,
 			turns: session.turns.map(turn => ({ ...turn })),
 			source: 'engine-cache',
+			...(session.workDir ? { workDir: session.workDir } : {}),
 		}));
 		this.persistEngineAwareRoster(true, {
 			activeSessionId: isEngineRosterPlaceholderSessionId(this.activeEngineSessionId)

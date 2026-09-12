@@ -16,6 +16,7 @@ export interface PersistedConversationSession {
 	readonly title: string;
 	readonly turns: readonly ConversationStubTurn[];
 	readonly source: ConversationSessionSource;
+	readonly workDir?: string;
 }
 
 export interface ConversationRosterEngineCache {
@@ -78,6 +79,7 @@ export function buildLocalSessionsFromModel(model: ConversationStubModel): Persi
 			title: session.title,
 			turns: model.getTurns(session.id).map(cloneTurn),
 			source: 'local' as const,
+			...(session.workDir ? { workDir: session.workDir } : {}),
 		}));
 }
 
@@ -87,6 +89,7 @@ export function persistedSessionsToStubSessions(sessions: readonly PersistedConv
 		title: session.title,
 		source: session.source,
 		turns: session.turns.map(cloneTurn),
+		...(session.workDir ? { workDir: session.workDir } : {}),
 	}));
 }
 
@@ -108,6 +111,7 @@ function sanitizeSessions(
 			title: session.title,
 			turns: session.turns.filter(isTurn).map(cloneTurn),
 			source,
+			...(typeof session.workDir === 'string' && session.workDir ? { workDir: session.workDir } : {}),
 		});
 	}
 	return result;

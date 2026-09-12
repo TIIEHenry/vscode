@@ -152,4 +152,86 @@ suite('FileMutationJoin', () => {
 
 		assert.strictEqual(emitted.length, 1);
 	});
+
+	test('history envelope file_mutation emits without lifecycle join', () => {
+		const join = new FileMutationJoin('sess-hist');
+		const emitted: unknown[] = [];
+		join.handleHistoryPayload({
+			id: 'env-1',
+			turn_id: 'turn-h',
+			agent_id: 'agent-h',
+			blocks: [{
+				tool_call_block: {
+					tool_call_id: 'tc-h',
+					tool_name: 'edit_file',
+					arguments_json: '{"path":"/guessed/from/args.ts"}',
+					file_mutation: { path: 'src/hist.ts', operation: 'edit' },
+				},
+			}],
+		}, record => emitted.push(record));
+
+		assert.strictEqual(emitted.length, 1);
+		assert.deepStrictEqual(emitted[0], {
+			sessionId: 'sess-hist',
+			toolCallId: 'tc-h',
+			turnId: 'turn-h',
+			agentId: 'agent-h',
+			path: 'src/hist.ts',
+			operation: 'edit',
+		});
+	});
+
+	test('history envelope without file_mutation does not parse arguments_json', () => {
+		const join = new FileMutationJoin('sess-hist-args');
+		const emitted: unknown[] = [];
+		join.handleHistoryPayload({
+			id: 'env-2',
+			turn_id: 'turn-h',
+			agent_id: 'agent-h',
+			blocks: [{
+				tool_call_block: {
+					tool_call_id: 'tc-args',
+					arguments_json: '{"path":"/guessed/from/args.ts"}',
+				},
+			}],
+		}, record => emitted.push(record));
+		assert.strictEqual(emitted.length, 0);
+	});
+
+	test('history envelope skips when turn_id or agent_id is missing', () => {
+		const join = new FileMutationJoin('sess-hist-skip');
+		const emitted: unknown[] = [];
+		const mutation = {
+			blocks: [{
+				tool_call_block: {
+					tool_call_id: 'tc-skip',
+					file_mutation: { path: 'x.ts', operation: 'edit' },
+				},
+			}],
+		};
+		join.handleHistoryPayload({ ...mutation, agent_id: 'agent-h' }, record => emitted.push(record));
+		join.handleHistoryPayload({ ...mutation, turn_id: 'turn-h' }, record => emitted.push(record));
+		assert.strictEqual(emitted.length, 0);
+	});
+
+	test('history payload wrapped as envelope_appended still emits', () => {
+		const join = new FileMutationJoin('sess-hist-wrap');
+		const emitted: unknown[] = [];
+		join.handleHistoryPayload({
+			envelope_appended: {
+				envelope: {
+					turn_id: 'turn-w',
+					agent_id: 'agent-w',
+					blocks: [{
+						tool_call_block: {
+							tool_call_id: 'tc-w',
+							file_mutation: { path: 'wrap.ts', operation: 'create' },
+						},
+					}],
+				},
+			},
+		}, record => emitted.push(record));
+		assert.strictEqual(emitted.length, 1);
+		assert.strictEqual((emitted[0] as { path: string }).path, 'wrap.ts');
+	});
 });

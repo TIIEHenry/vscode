@@ -132,7 +132,11 @@ function writeMessageToCoreFact(msg: ConversationWriteMessage, leaseId: ViewLeas
 			return {
 				kind: 'submitInput',
 				correlation,
-				payload: { text: msg.text, originLeaseId: leaseId },
+				payload: {
+					text: msg.text,
+					originLeaseId: leaseId,
+					...(msg.modelProfileId ? { modelProfileId: msg.modelProfileId } : {}),
+				},
 			};
 		case 'permissionRespond':
 			return { kind: 'permissionRespond', requestId: msg.requestId, decision: msg.decision };
@@ -1514,6 +1518,10 @@ export class SessionViewHost extends Disposable {
 				payload => {
 					this.captureEnvelopeAttributionHint(sessionId, payload);
 					this.captureRangeReplacedCompactHint(sessionId, payload);
+					const sidecar = this.ensureSessionSidecar(sessionId);
+					sidecar.fileJoin.handleHistoryPayload(payload, record => {
+						this.host.notifyFileMutation(record);
+					});
 				},
 			);
 			this.postAndDrain(sid, {

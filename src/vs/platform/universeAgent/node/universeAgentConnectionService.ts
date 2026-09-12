@@ -338,6 +338,11 @@ import type {
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
+	UniverseAgentListProviderStatusResult,
+	UniverseAgentListProjectRulesRequest,
+	UniverseAgentListProjectRulesResult,
+	UniverseAgentListHookPointsResult,
+	UniverseAgentListTeamsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
 	UniverseAgentSwitchModelRequest,
@@ -1786,6 +1791,22 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async listModels(): Promise<UniverseAgentListModelsResult> {
 		return this._withTransport(transport => transport.listModels());
+	}
+
+	async listProviderStatus(): Promise<UniverseAgentListProviderStatusResult> {
+		return this._withTransport(transport => transport.listProviderStatus());
+	}
+
+	async listProjectRules(request: UniverseAgentListProjectRulesRequest): Promise<UniverseAgentListProjectRulesResult> {
+		return this._withTransport(transport => transport.listProjectRules(request));
+	}
+
+	async listHookPoints(): Promise<UniverseAgentListHookPointsResult> {
+		return this._withTransport(transport => transport.listHookPoints());
+	}
+
+	async listTeams(sessionId: string): Promise<UniverseAgentListTeamsResult> {
+		return this._withTransport(transport => transport.listTeams(sessionId));
 	}
 
 	async getConfig(request: UniverseAgentGetConfigRequest): Promise<UniverseAgentGetConfigResult> {

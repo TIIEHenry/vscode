@@ -6,6 +6,8 @@
 import type {
 	UniverseAgentTeamMemberInfo,
 	UniverseAgentTeamTaskInfo,
+	UniverseAgentTeamListEntry,
+	UniverseAgentListTeamsResult,
 } from '../../common/universeAgentTypes.js';
 
 export interface MemberInfoWire {
@@ -60,6 +62,30 @@ export function mapTaskInfo(wire: BlackboardTaskWire): UniverseAgentTeamTaskInfo
 		blockedBy: wire.blocked_by ?? '',
 		lastMessage: wire.last_message ?? '',
 		description: wire.description ?? '',
+	};
+}
+
+export interface TeamListEntryWire {
+	team_id?: number;
+	status?: string;
+	manager_agent_id?: string;
+}
+
+export interface ListTeamsResponseWire {
+	teams?: TeamListEntryWire[];
+}
+
+export function mapTeamListEntry(wire: TeamListEntryWire): UniverseAgentTeamListEntry {
+	return {
+		teamId: wire.team_id ?? 0,
+		status: wire.status ?? '',
+		managerAgentId: wire.manager_agent_id ?? '',
+	};
+}
+
+export function mapListTeamsResponse(wire: ListTeamsResponseWire): UniverseAgentListTeamsResult {
+	return {
+		teams: (wire.teams ?? []).map(mapTeamListEntry),
 	};
 }
 

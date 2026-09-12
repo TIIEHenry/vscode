@@ -3,8 +3,8 @@ title: "跨仓协议提案：引擎缺口 → 本仓解锁映射"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-09
-summary: "按提案性质拆：引擎仓须给新面或扩已有消息（G-ENG-1/2/3 新面；G-ENG-4、G3、G-REV-1 扩已有消息）vs 确认 Desktop session-core（G2）；每行有闭合条件；映射本仓 UI/PRD 解锁；附 docs-only 切片 D1 修正登记处过时句；不推翻 M7 本波不做引擎仓新增 RPC / 不为 G-ENG 画表单。2026-09-05 第二轮对抗审查后签收。2026-09-09 新增 §3.4 引擎侧 bug 上报车道（只读分析 + report + 双向登记；禁改引擎仓代码，但不禁读）"
+updated: 2026-09-12
+summary: "2026-09-12：引擎 A–F 已合 @ 748e7698e6；本仓 node+connection list 已挂，Provider/Rules/Hooks 只读列表已接（无写表单）。五 ADR 在引擎仓仍 proposed，本仓不标 accepted。G2 仍待 Desktop session-core。不推翻 M7 本波不为 G-ENG 画表单。2026-09-09 新增 §3.4 引擎侧 bug 上报车道。"
 ---
 
 # 跨仓协议提案：引擎缺口 → 本仓解锁映射
@@ -18,7 +18,7 @@ summary: "按提案性质拆：引擎仓须给新面或扩已有消息（G-ENG-1
 
 **目标**
 
-1. 按提案性质把已登记、UI 只能写 unsupported 的缺口写成清单（每行标「待引擎仓确认」）：**引擎仓须给新面**（G-ENG-1/2/3）、**扩已有消息**（G-ENG-4 `AgentProfileProto` 字段、G-NAV-1/2、G-REV-1、**G3** `GetHistory`/L2 带 `DetailRef`）vs **确认 Desktop session-core**（G2 typed arm）。G2/G3 **不是** surface §4 行，但 G3 的性质是扩消息。
+1. 按提案性质把已登记、UI 只能写 unsupported 的缺口写成清单。**2026-09-12：** 引擎仓 IDE 远程协议 A–F 已合 @ `748e7698e6`；本仓 **node transport/probe 已绑**，**未**挂 `IUniverseAgentConnection` / 设置表单。**确认 Desktop session-core**（G2 typed arm）仍待。G2/G3 **不是** surface §4 行，但 G3 的性质是扩消息（引擎面已合，本仓 History 已解码，透镜/Review 未接）。
 1a. 为**引擎侧 bug**（不是缺功能，而是已有面坏了）建立上报车道，见 §3.4。该车道产出 report + 双向登记，**不产出**引擎仓代码改动。
 2. 每条缺口写清：现状、引擎须给出什么（提案级，不写本仓将实现该 RPC）、**闭合条件**（哪种引擎回复或合并算闭；「不做」也算闭）、本仓闭合后解锁哪条 UI / PRD、优先级。
 3. 约定跨仓流程：本仓登记落点、引擎仓谁开 issue/PR（建议，不假装已开）、何时换钉 [debug-engine](../../docs/guides/debug-engine.md)。
@@ -47,7 +47,7 @@ summary: "按提案性质拆：引擎仓须给新面或扩已有消息（G-ENG-1
 | 3 | **G-ENG-3** Hook 点位表 | **高** | Hooks 整节恒 unsupported，与 Rules 同属九节空态 |
 | 4 | **G-ENG-4** Agent profile `model.json` 写路径 | **中高** | 不是整节真空，是 Agents Model **子 tab** 空态；闭合前禁止假编辑器 |
 | 5 | **G2** visualize typed arm / DetailRef 全文 | **中** | [PRD-014](../../docs/product/requirements.md#prd-014-conversation-图示卡visualize) 活数据；壳与 stub 卡已落，引擎 admitted 全文通道未闭合 |
-| 6 | **G3** `GetHistory` / L2 项带 `DetailRef` | **中** | 传输 RPC **已有**（`FetchToolDetail`，P2a 已绑）；缺的是**历史项 / L2 消息携带可交给它的 `DetailRef`**——这是扩已有消息，与 G-REV-1 同性质。「RPC 已有」**不是**闭合 |
+| 6 | **G3** `GetHistory` / L2 项带 `DetailRef` | **中** | 传输 RPC **已有**（`FetchToolDetail`，P2a 已绑）。引擎 History 已带 `DetailRef` @ `748e7698e6`；本仓 History 已解码；Review 历史 chip 已接（G-REV-1）；轨迹检查器未接。「RPC 已有」单独仍**不是**本仓闭合 |
 | 7 | **G-NAV-1** 每会话 `work_dir` | **产品** | [PRD-022](../../docs/product/requirements.md#prd-022-navigator-引擎段) Projects 按项目分组；未补前单组，树结构已建对 |
 | 8 | **G-NAV-2** 重连后 `team_id` | **产品** | Members / Tasks 不依赖 `team_id`；缺的是重连后节标题团队状态 |
 | 9 | **G-REV-1** 历史 `file_mutation` | **产品** | [PRD-023](../../docs/product/requirements.md#prd-023-sources-review-审阅进度与归因) 本连接归因已落；历史会话零归因 |
@@ -59,25 +59,27 @@ summary: "按提案性质拆：引擎仓须给新面或扩已有消息（G-ENG-1
 | **引擎仓须给新面或扩已有消息** | 新面：G-ENG-1/2/3。扩已有消息：G-ENG-4（`AgentProfileProto` 字段）；G-NAV-1/2、G-REV-1（surface §4）；**G3**（`GetHistory` / L2 项带 `DetailRef`） | G-ENG / G-NAV / G-REV → [engine-protocol-surface §4](../../docs/reference/universe-agent/engine-protocol-surface.md)；G3 → [conversation-stream-timeline §6](conversation-stream-timeline.md)（登记处不变，栏位变） |
 | **确认 Desktop session-core** | G2（admitted `visualize` typed arm；若引擎侧走 `DetailRef` 全文则并入 G3 那条扩消息） | [conversation-stream-timeline §6](conversation-stream-timeline.md)；**不在** surface §4 |
 
-**G3 单独说明（避免两个方向的误读）：** [engine-protocol-surface §1b](../../docs/reference/universe-agent/engine-protocol-surface.md) 已绑定 `AgentService.FetchToolDetail`（P2a，`subscribe=false`），所以 G3 **不是缺一条新 RPC**；但 `GetHistory` / L2 项今天**不带**可交给该 RPC 的 `DetailRef`，所以 G3 **也不是已闭**。闭合条件是引擎仓在历史 / L2 消息上给出 `DetailRef`（或明确「不做」）。[conversation-stream-timeline §6](conversation-stream-timeline.md) G3 行仍写「DetailRef 按需通道 IDE 侧未实施」，与 HEAD 不符——**D1 切片改该原句**（§5），不是本稿宣布「以本稿为准」了事。
+**G3 单独说明（避免两个方向的误读）：** [engine-protocol-surface §1b](../../docs/reference/universe-agent/engine-protocol-surface.md) 已绑定 `AgentService.FetchToolDetail`（P2a，`subscribe=false`），所以 G3 **不是缺一条新 RPC**。引擎仓已在 History `ToolCallBlock` 上给出 `detail_ref` / `file_mutation`（`748e7698e6`）。本仓 History 已解码；Review 历史 chip 已接（G-REV-1）；轨迹检查器未接——**不要**写「IDE 侧未实施」把传输也说成没有。引擎侧 History ADR 仍 **proposed**，本仓不标 accepted。
 
 ## 2. 缺口表
 
-每行「需要引擎给什么」均为**提案级**，标 **待引擎仓确认**。提案性质见 §1 两栏：G-ENG / G-NAV / G-REV 是引擎仓须给新面或扩已有消息；G2/G3 是确认已有面或 Desktop session-core。本仓对应动作是：缺口闭合后另立解锁切片（§5），把 capability 从固定 `UNSUPPORTED` 改为探测，并替换已有壳的数据源。每行的**闭合条件**见 §2.1。**没有一行写成「本仓将实现该 RPC」。**
+**2026-09-12：** 引擎仓 A–F 已合 @ `748e7698e6`。下表第三列改口为「引擎已合并；本仓 node 已绑 / connection+UI 未接」，不再标「待引擎仓确认」。G2 仍待 Desktop session-core。probe 已可把 capability 从固定 `UNSUPPORTED` 改为探测；**未**挂 connection / 表单（**不在本稿另立解锁 plan**）。每行的**闭合条件**见 §2.1。**没有一行写成「本仓将实现该 RPC」。**
 
-字段名只复用 surface / 已签收方案已写出的说法；未写出的服务名、RPC 名、config key **不编造**。
+字段名抄自该 SHA 的 proto；未写出的服务名、RPC 名、config key **不编造**。
 
-| 缺口 | 现状（本仓 @ HEAD） | 需要引擎给什么（提案级 · **待引擎仓确认**） | 本仓解锁（UI / PRD） | 优先级 |
-|------|---------------------|-----------------------------------------------|----------------------|--------|
-| **G-ENG-1** | `providerConfig` 固定 `UNSUPPORTED`，reason「Provider 配置键合同未定」。引擎已有通用 `ConfigService.Get` / `Set` / `Watch`；`TestModelProfile` 在 **`AgentService`**（不在 ConfigService），且本仓 adapter 的 Config 服务目前只绑 `ListModels`——「复用已有 Get/Set/Test」在 adapter 上**无生产路径**。**没有** Provider 列表 / 凭据已配置查询。Engine 页 Provider 组完整 unsupported；Overview 的 Provider 行今日用 `ListModels` 的 provider 去重数填（文案已注明「不代表已配凭据」，[m7-gap-closeout](m7-gap-closeout.md) GC-6 要回退这一点）。凭据实际来自引擎宿主环境变量，不走 IDE。 | 给出 **provider 已配置 / 未配置查询**与「写入但不回显」语义；是否复用已有 `ConfigService.Get`/`Set` + `AgentService.TestModelProfile`，由引擎仓定。**不**在本稿发明 key 名或新 RPC 名。 | [PRD-025](../../docs/product/requirements.md#prd-025-engine-设置完整性) 验收 3 从「空态满足」变为可接线（验收 3/4 今日已被空态满足，**不是**解锁成功条件；成功条件见 §2.1）；[engine-preferences §3.2](engine-preferences-completion.md) Provider 组；Overview Provider 摘要改为真实「已配凭据」而非模型注册表去重数。闭合前 **零输入控件**。 | 高 |
-| **G-ENG-2** | `RulesBridge` 是 Desktop/Singularity **进程内**接口（list/create/update/delete/preview/health × global / workDir）。**Remote gRPC 不存在**。`globalRules` / `projectRules` 固定 `UNSUPPORTED`。Rules 节壳在、两组行数恒 0。 | **Rules Remote gRPC**（服务名与 RPC 名待引擎仓确认；本稿不自造 `ListRules` 一类名字）。对齐范围收到**本仓壳已有字段 + 远程可达**（[engine-preferences §3.5](engine-preferences-completion.md)：Global / Project 两组，行含标题、启用态、优先级、范围；IDE 经 gRPC 可达的 list / 写）。**不要**扫 `{AgentHome}/rules`。Desktop `RulesBridge` **12 面**是进程内形状，**不是**本稿绑死的 gRPC 合同；哪些面上远程由引擎仓定。 | [PRD-025](../../docs/product/requirements.md#prd-025-engine-设置完整性) 验收 4（不把 Copilot instructions 当 UA 权威）；[engine-preferences §3.5](engine-preferences-completion.md) Rules 节从空壳接线。闭合前 **不画假行、不扫本机 AgentHome**。 | 高 |
-| **G-ENG-3** | 钉死引擎 proto 无 `ListHookPoints`（本仓零 `.proto`，以引擎仓为准）；`hooksMetadata` 固定 `UNSUPPORTED`。Hooks 节两栏壳、行数恒 0。不从 `points.md` 抄静态点位，不读 `{AgentHome}/hooks.json`。 | `ListHookPoints`（surface §4 已写此名）**或**握手带版本化点位表——这是 G-ENG-3 **闭合条件**；点位表必须由引擎**运行时**给出（随引擎版本变化），引擎仓把 `points.md` 静态抄成常量返回**不算闭合**。Hooks **定义列**写路径**超出** surface §4，另询引擎仓是否需要；**不是** G-ENG-3 闭合条件。本稿不另发明写 RPC 名。 | [PRD-025](../../docs/product/requirements.md#prd-025-engine-设置完整性) 验收 4（无 metadata 不抄静态点位）；[engine-preferences §3.6](engine-preferences-completion.md) Hooks 节。Plugins 节的 `hook_count` / `PluginHookEntry` **不得**充当本节省。闭合前两栏行数恒 0。 | 高 |
-| **G-ENG-4** | `SaveAgentProfileRequest.AgentProfileProto` 无 `model` / `modelType` / `maxTurns`（surface §4 已写这三项缺失），引擎 mapper 写死 `modelType = null` / `maxTurns = 0`，`model.json` 永不落盘。Agents Model 子 tab 仅 unsupported。 | 让 `SaveAgentProfile`（及对称读）**承载** surface 已点名的 `model` / `modelType` / `maxTurns`（或引擎仓给出等价写路径）。待引擎仓确认字段是否进现有 `AgentProfileProto`。 | [engine-preferences §3.4](engine-preferences-completion.md) Agents Model 子 tab；[engine-catalog §4](../../docs/systems/workbench/engine-catalog.md)。闭合前 **禁止**自由文本 + `SaveAgentProfile` 冒充已写入。 | 中高 |
-| **G-NAV-1** | `SessionSummary` / `SessionInfoResponse` **无** `work_dir`。Projects 用 connection `workDir`（`ConnectResponse.work_dir`）单组挂全部会话。N1 树已落。 | 每会话带 `work_dir`（surface / [navigator-engine-segments §7](navigator-engine-segments.md) 已写缺在 `SessionSummary` / `SessionInfoResponse`）。**不要**用 `AgentService.SwitchWorkDir` 探测。 | [PRD-022](../../docs/product/requirements.md#prd-022-navigator-引擎段)「引擎提供工作目录时按它分组」；N1 只改分组函数，与当前工作区根一致的组置顶并标「当前工作区」。 | 产品 |
-| **G-NAV-2** | 无 `ListTeams(session_id)`；`team_id` 只在不落库事件 / 写响应出现。重连后 `liveTeamId` 空 → 不调 `TeamInfo`，节标题省略团队状态。Members / Tasks 仍可用。 | `ListTeams(session_id)` **或**在 `AgentInfo` 上带 `team_id`（[navigator-engine-segments §7](navigator-engine-segments.md) 已写这两种选项）。待引擎仓二选一或给等价持久面。 | [PRD-022](../../docs/product/requirements.md#prd-022-navigator-引擎段) Team 节标题在重连后仍能显示整体状态（ACTIVE / COMPLETED / ABORTED）。Members / Tasks **不**阻塞于此条。 | 产品 |
-| **G-REV-1** | L3 `tool_runtime_snapshot.payload.file_mutation_payload` **不落库**；L2 `ToolCallBlock` 的 path 在工具专有 `arguments_json`（**禁止**当 admitted correlation 解析）。归因 / reviewNav 仅限本连接（含重播种）。R1–R4b 已落。 | `GetHistory` 工具项带归一化 `file_mutation_payload` **或** `DetailRef(kind=DIFF)`（[sources-review-progress §6](sources-review-progress.md) 已写这两种选项）。待引擎仓确认落在 History 哪条臂。 | [PRD-023](../../docs/product/requirements.md#prd-023-sources-review-审阅进度与归因) 历史会话归因；重开历史后 Review chip / 「查看更改」不再只覆盖本连接。闭合前 header 不写归因总数、chip 缺席不占位。 | 产品 |
+> **脚注：** 引擎仓五份 ADR（provider / rules / hooks / list-teams / history）仍 **proposed**。本仓只登记「引擎面已合、node+connection list 已绑、写表单未接；Projects/`ListTeams`/Review 历史已接」，**不**把它们标 `accepted`。
+
+| 缺口 | 现状（本仓 @ HEAD） | 引擎面（2026-09-12） | 本仓解锁（UI / PRD） | 优先级 |
+|------|---------------------|----------------------|----------------------|--------|
+| **G-ENG-1** | connection `listProviderStatus?` + 只读列表已接；**无**凭据表单。凭据实际来自引擎宿主环境变量，不走 IDE。 | **引擎已合并 @ `748e7698e6`；本仓 node+connection 已绑 / 写表单未接。** `AgentService.ListProviderStatus` / `UpsertProviderCredentials` / `ClearProviderCredentials`。`ProviderStatus{ provider_id, brand, protocol, configured, credential_source, has_base_url, enabled }`；响应无 key / mask。 | [PRD-025](../../docs/product/requirements.md#prd-025-engine-设置完整性) 验收 3 从「空态满足」变为可接线（验收 3/4 今日已被空态满足，**不是**解锁成功条件）；[engine-preferences §3.2](engine-preferences-completion.md) Provider 组。表单未接前 **零输入控件**。 | 高 |
+| **G-ENG-2** | connection `listProjectRules?` + 只读列表已接；**无** Upsert/Delete。 | **引擎已合并 @ `748e7698e6`；本仓 node+connection 已绑 / 写表单未接。** `ProjectRuleService.List` / `Upsert` / `Delete`。请求不得带 `work_dir` / `agent_home`；WORKDIR 用 `session_id` → `SessionMeta.workDir`。 | [PRD-025](../../docs/product/requirements.md#prd-025-engine-设置完整性) 验收 4；[engine-preferences §3.5](engine-preferences-completion.md) Rules 节。表单未接前 **不画假行、不扫本机 AgentHome**。 | 高 |
+| **G-ENG-3** | connection `listHookPoints?` + 点位只读列表已接。不从 `points.md` 抄静态点位，不读 `{AgentHome}/hooks.json`。 | **引擎已合并 @ `748e7698e6`；本仓 node+connection 已绑 / Definitions 无 RPC。** `SystemService.ListHookPoints`；目录来自 `HookRegistry` `fire*`（不是 `points.md`）；`installed_count` 取 factory 列表。 | [PRD-025](../../docs/product/requirements.md#prd-025-engine-设置完整性) 验收 4；[engine-preferences §3.6](engine-preferences-completion.md) Hooks 节。Plugins `hook_count` **不得**充当本节省。表单未接前两栏行数恒 0。 | 高 |
+| **G-ENG-4** | Save/List proto3 已读写 `model` / `model_type` / `max_turns`；Agents Model 子 tab 仍 unsupported。 | **引擎已合并 @ `748e7698e6`；本仓 node 已绑 / Model 子 tab 未接。** `AgentProfileProto.model = 17` / `model_type = 18` / `max_turns = 19`。 | [engine-preferences §3.4](engine-preferences-completion.md) Agents Model 子 tab；[engine-catalog §4](../../docs/systems/workbench/engine-catalog.md)。表单未接前 **禁止**自由文本冒充已写入。 | 中高 |
+| **G-NAV-1** | roster stamp 会话 `workDir`；Projects 按会话 `workDir`（缺则 connection）分组；当前工作区置顶。N1 树已落。 | **引擎已合并 @ `748e7698e6`；本仓 Projects 分组已接。** `SessionSummary.work_dir = 9`、`SessionInfoResponse.work_dir = 7`（只 stamp `SessionMeta.workDir`）。**不要**用 `AgentService.SwitchWorkDir` 探测。 | [PRD-022](../../docs/product/requirements.md#prd-022-navigator-引擎段)「引擎提供工作目录时按它分组」。N5 冒烟未做，不升 `implemented`。 | 产品 |
+| **G-NAV-2** | `liveTeamId` 空则 `listTeams(sessionId)` 取标题；匹配 manager 否则第一队；空列表省略。Members / Tasks 不依赖 team id。 | **引擎已合并 @ `748e7698e6`；本仓 Navigator 标题已接。** `TeamService.ListTeams(session_id)`；可选 `AgentInfo.team_id = 10`。引擎 v1 = **进程内内存**面，冷启动无标题（不是落盘）。 | [PRD-022](../../docs/product/requirements.md#prd-022-navigator-引擎段) Team 节标题。Members / Tasks **不**阻塞于此条。 | 产品 |
+| **G-REV-1** | History `file_mutation` → `FileMutationJoin.handleHistoryPayload` → `onDidFileMutation`（与本连接 chip 同路径）。禁止解析 L2 `arguments_json`。 | **引擎已合并 @ `748e7698e6`；本仓 History chip 已接。** `GetHistory` `ToolCallBlock.detail_ref` / `file_mutation`。 | [PRD-023](../../docs/product/requirements.md#prd-023-sources-review-审阅进度与归因) 历史会话归因。R5 冒烟未做，不升 `implemented`。 | 产品 |
 | **G2** | `visualize` 只是 `tool` 行；`resultPreview` / `argPreview` 有界；`canvasRefs` 不承载 mermaid 正文。对话页 stub 卡已落（[thinkrail-visualize-port](thinkrail-visualize-port.md)）；活引擎仍 fixture / 有界 preview。登记处是 [conversation-stream-timeline §6](conversation-stream-timeline.md)，**不在** surface §4。 | session-core **typed arm**，**或**经已有 `DetailRef` / `FetchToolDetail` 取全文（stream-timeline §6 已写这两种归属）。待引擎仓 + Desktop session-core 确认 admitted `visualize` 如何给出 diagram / comparison 全文。本稿 **不**发明新 visualize RPC 名。 | [PRD-014](../../docs/product/requirements.md#prd-014-conversation-图示卡visualize) 活数据图示卡（`visualization` kind，不进过程折）。闭合前：tool 行 + 「打开完整结果」；**不**把截断 preview 当图。 | 中 |
-| **G3** | `AgentService.FetchToolDetail(session_id, tool_call_id, detail_kind, ref_id, offset/length)` **引擎 proto 已有**；本仓 P2a `requestDetail` + Q2 六态 **已绑定**。仍 open 的是：`GetHistory` / L2 项**不带** `DetailRef`，历史轨迹无法按需取全文；`truncated=true` 仍是 partial。[conversation-stream-timeline §6](conversation-stream-timeline.md) 仍写「IDE 侧未实施」（D1 改）。登记处是该稿 §6，**不在** surface §4。 | **扩已有消息，不是新 RPC。** 引擎仓在 `GetHistory` 工具项 / L2 `ToolCallBlock` 上带可交给已有 `FetchToolDetail` 的 `DetailRef`；编码规则由 session-core 定（stream-timeline §6）。`SubscribeToolDetail` 终端 tail **不**在本提案（M7 明确不纳入）。 | [PRD-012](../../docs/product/requirements.md#prd-012-conversation-轨迹透镜) 轨迹局部检查器全文；长工具输出；并与 G2 共用 DetailRef 取图示正文。闭合前不把 preview 当全文。 | 中 |
+| **G3** | `AgentService.FetchToolDetail` **引擎 proto 已有**；本仓 P2a `requestDetail` + Q2 六态 **已绑定**。History 已解码 `detail_ref`/`file_mutation`。`truncated=true` 仍是 partial。登记处是 [conversation-stream-timeline §6](conversation-stream-timeline.md)，**不在** surface §4。 | **引擎已合并 @ `748e7698e6`；本仓 History 已解码；Review 历史 chip 已接（G-REV-1）；透镜未接。** History `ToolCallBlock.detail_ref` / `file_mutation` 已在。不是新 RPC。不要写「IDE 侧未实施」把传输也说成没有。`SubscribeToolDetail` 终端 tail **不**在本提案。 | [PRD-012](../../docs/product/requirements.md#prd-012-conversation-轨迹透镜) 轨迹局部检查器全文；长工具输出。透镜未接前不把 preview 当全文。 | 中 |
 
 **刻意不列入本表（避免和「已闭 / 本波不做」搅在一起）：** G-CONV-1（P2b + Q3 已消费）；独立 CreateSkill（新建 UI 已落，独立 RPC 仍缺但非九节空态）；`SaveSkillContent` 传输（已闭）；`plugins` probe（M7 P1a 已闭）。
 
@@ -92,12 +94,12 @@ summary: "按提案性质拆：引擎仓须给新面或扩已有消息（G-ENG-1
 | G-ENG-3 | 运行时 `ListHookPoints` 或握手点位表合入；或「不做」 | 静态抄 `points.md` 为常量 |
 | G-ENG-4 | `AgentProfileProto` 含 `model` / `modelType` / `maxTurns` 且 mapper 落盘 `model.json`；或给等价写路径；或「不做」 | 只加字段不落盘（今日 `maxTurns` 写死 `0`） |
 | G-NAV-1 | `SessionSummary` / `SessionInfoResponse` 带 `work_dir`；或「不做」 | 让本仓用 `SwitchWorkDir` 探测 |
-| G-NAV-2 | `ListTeams(session_id)` 或 `AgentInfo.team_id` 持久面；或「不做」 | 只在不落库事件里带 `team_id`（今日已是如此） |
+| G-NAV-2 | `ListTeams(session_id)` 合入（引擎 v1 = **进程内内存**面，冷启动无标题；这是引擎自己的闭合口径，**不是落盘**）；或「不做」 | 只在不落库事件里带 `team_id`；把「持久」读成「已落盘」 |
 | G-REV-1 | `GetHistory` 工具项带归一化 `file_mutation_payload` 或 `DetailRef(kind=DIFF)`；或「不做」 | 让本仓解析 `arguments_json` |
 | G2 | session-core admitted `visualize` typed arm 合入 Desktop 并 sync 到本仓；或引擎经 `DetailRef` 给全文（并入 G3 路径）；或「不做」 | 有界 preview 加长 |
 | G3 | `GetHistory` / L2 项带 `DetailRef` 且 `FetchToolDetail` 能解；或「不做」 | 「`FetchToolDetail` 已有」「P2a 已绑」 |
 
-任一行到达终态：先改登记处（surface §4 或 stream-timeline §6）该行，再按 §5 立解锁切片或改 PRD 文案。本稿不跟踪终态，只定义它。
+A–F 引擎面已在 `748e7698e6` 合入（五 ADR 仍 proposed）。本仓登记处已回填「引擎已给面 / node 已绑 / connection+UI 未接」。本稿不另立解锁 plan。G2 仍待 Desktop session-core。
 
 ## 3. 跨仓流程
 
@@ -111,11 +113,11 @@ summary: "按提案性质拆：引擎仓须给新面或扩已有消息（G-ENG-1
 | 本稿 | 优先级与解锁映射。不重复枚举 RPC；外仓改名只改 surface。 |
 | `dev/reports/` + 引擎仓 `dev/progress/deferred-gaps.md` | **§3.4 bug 车道**的两个落点：本仓 report 是分析 SSOT，引擎仓缺口账只放一行指针（**docs-only**，跨仓写入的唯一例外）。要功能车道不走这里。 |
 
-### 3.2 引擎仓 issue / PR（建议 · 未开）
+### 3.2 引擎仓 issue / PR（A–F 已合；五 ADR 仍 proposed）
 
-**截至签收日（2026-09-05），不声称 UniverseAgent 引擎仓已有对应 issue 或 PR。**
+**2026-09-12：** 引擎仓已合并 IDE 远程协议 A–F @ `748e7698e6`。不要再假装 issue 未开且引擎没做。五份 ADR 在引擎仓仍 **proposed**——本仓可脚注，**不**标它们 `accepted`。
 
-建议（待本仓协议负责人与引擎仓维护者当面确认后执行，不是已发生的事实）：
+签收日（2026-09-05）当时的建议流程保留作背景：
 
 1. **谁开 issue：** 本仓协议面维护者（消费方）在 **UniverseAgent 引擎仓**开跟踪 issue，**不要**在本仓开「实现该 RPC」的实施 ticket 冒充引擎工作。
 2. **怎么拆：** 建议 **两个史诗**，不要一篇史诗把九行都写成「实现 RPC」：
@@ -128,7 +130,7 @@ summary: "按提案性质拆：引擎仓须给新面或扩已有消息（G-ENG-1
 
 ### 3.3 换钉 debug-engine 的触发条件
 
-钉死工位操作 SSOT 在仓外 `vscode-debug-engine/`（[debug-engine](../../docs/guides/debug-engine.md)）。**换钉不是提案起草的下一步。**
+钉死工位操作 SSOT 在仓外 `vscode-debug-engine/`（[debug-engine](../../docs/guides/debug-engine.md)）。**2026-09-12：换钉触发已满足**（要吃已合并的 A–F RPC）。换钉中，以仓外 PIN 为准；**不要**把新 SHA 抄进 `debug-engine.md`。不抬升 PRD-008。
 
 | 触发 | 不触发 |
 |------|--------|
