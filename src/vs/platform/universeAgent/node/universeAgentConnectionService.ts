@@ -2035,6 +2035,19 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		}, delay);
 	}
 
+	private _isReconnectHaltCode(code: ConnectionFailureCode): boolean {
+		return code === 'pairing_required' || code === 'hub_auth_expired' || code === 'hub_session_required';
+	}
+
+	private _rescheduleReconnectAfterAttempt(): void {
+		if (this._reconnectDisposed || this._userDisconnecting || this._pairingPending) {
+			return;
+		}
+		// `_markTransportFailed` may already have a timer; `_canScheduleReconnect`
+		// no-ops when one is pending so attempt is not incremented twice.
+		this._scheduleReconnect();
+	}
+
 	private async _fireReconnect(profileId: string): Promise<void> {
 		if (this._reconnectDisposed || this._userDisconnecting || this._pairingPending || this._activeProfileId !== profileId) {
 			return;
@@ -2052,12 +2065,20 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				this._cancelReconnectTimer();
 				return;
 			}
-			if (!result.ok && (result.code === 'pairing_required' || result.code === 'hub_auth_expired' || result.code === 'hub_session_required')) {
+			if (!result.ok && this._isReconnectHaltCode(result.code)) {
 				this._cancelReconnectTimer();
 				return;
 			}
+			// D410: transport_failed / other non-halt !ok must keep the same backoff
+			// loop. `_connectProfileRaw` cancels any pending timer on entry, and
+			// `{ok:false}` is often not a `UniverseAgentTransportError`, so
+			// `_markTransportFailed` will not have re-armed.
+			this._rescheduleReconnectAfterAttempt();
 		} catch {
-			// Transport failures already scheduled via `_markTransportFailed`.
+			if (this._activeProfileId !== profileId) {
+				return;
+			}
+			this._rescheduleReconnectAfterAttempt();
 		}
 	}
 

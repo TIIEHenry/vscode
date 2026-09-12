@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-12
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D405 手测仍开；D406/D407/D408/D409 已闭；下号 D410"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D405 手测仍开；D406/D407/D408/D409/D410 已闭；下号 D413（D411/D412 属 B 槽）"
 ---
 
 # Deferred Gaps
@@ -423,6 +423,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D405 手测仍开；D406/
 | D407 | P2 | **closed** Engine Preferences「Test Engine」改走 `probeEngine()` + `formatConnectionProbeStatus`；disconnected / 无 transport 走 probe 失败 reason，不写「Connected」。测锁 `probeEngine` 被调用且文案以 `Reachable —` / `Unreachable —` 开头。已合入 merge `9f8ca6a236d`。未升 PRD-008。merge compile-client 红属 D405 类型错，不挡本行闭合。 | 工位 D `engine-test-probe`；`enginePreferencesPane.test.ts` **16 passing / 0 fail** | `runEngineTest` 调 `probeEngine`；失败 `Unreachable —` + reason；成功 `Reachable —` + H4b phase。不把「仅 phase 文案」当成功。 | conversation / engine-preferences | closed |
 | D408 | P3 | **closed** 连接级自动重连：`_markTransportFailed` 在已有 `_activeProfileId`、非 pairingPending、非用户 disconnect 时退避后 `connectProfile(id, { reconnect: true })`（base 1000 / cap 30000 / ±20% jitter，可注入 timer；成功归零 n；disconnect/dispose/cancelPairing 取消定时器）。pairing_required / unauthenticated / 无 active profile 不重拨。未改 proto / sessionCore / S2 `scheduleStreamReopen`。已合入 `e09eab0a1f6`。 | 工位 A `connection-reconnect-backoff`；合入 merge | 断连无需再点 Connect 即可回到 `connected`。未升 PRD-008。未关 D405 手测。 | universeAgent / connection | closed |
 | D409 | P3 | **closed** `NavigatorSessionLeaseHolder.refreshLease` acquire throw 后只 `lease=undefined` + `onAcquireError`，不调 `onLeaseChanged`。`setVisible` 本身不 `scheduleRefresh`。hide→show 再 acquire throw 时 Team/Agents 旧行继续像 live。本刀 catch 仍通知；holder 回到无 lease。补 hide→show throw 测：不是旧 lease 仍 live。既有 Team 首拉 notice 测仍绿。未碰 connection reconnect / conversation host / proto / Sources / `dev/loop`。已合入 `c061be1cbbb`。不占 D408。 | 工位 B `navigator-lease-acquire-throw`；`scripts/test.sh --run` holder + Team + Agents **76 passing / 0 fail**（holder 1 + Team 既有含首拉 + hide→show 1 + Agents 既有） | acquire throw 后 `onLeaseChanged`；`getLease()===undefined`；hide→show 不是 leftover-looks-live。Team 首拉 notice 仍绿。**不得**宣称 leftover wave 完成。未关 D16。 | M7 navigator | closed |
+| D410 | P2 | **closed** `_fireReconnect` 在 `connectProfile({reconnect:true})` 失败后再走同一 `_scheduleReconnect` 退避（attempt 递增，不 tight-loop）。覆盖 `{ok:false, code:'transport_failed'}` 与非 `UniverseAgentTransportError` throw；pairing_required / hub_auth_expired / hub_session_required 仍停拨。D408 合同（base 1000 / cap 30000 / ±20% jitter；成功归零；disconnect/dispose/cancelPairing 取消）保持。未改 `_connectProfileRaw` 开头 cancel（手动 Connect 仍取消挂起自动重拨）。未改 proto / sessionCore / S2 `scheduleStreamReopen` / pairing 产品流。未 compile。未提交。不占 D411/D412。 | 工位 A `d410-reconnect-fail-reschedule`；`node test/unit/node/index.js --run src/vs/platform/universeAgent/test/node/universeAgentConnection.test.ts` **375 passing / 0 fail**（D408 既有 11 + 新 3） | 失败后再调度测绿；既有 D408 suite 仍绿；不断成「只能再点 Connect」。未升 PRD-008。未关 D405 手测。 | universeAgent / connection | closed |
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 
 `loop/merge` @ `793ff6e201f`（提交信息为「关仓：T5a Uncaught 闸门与 statusbar 二次注册幂等**已复测**」）在**仓外独立 detached 工位**上实测：
