@@ -21,6 +21,23 @@ function patchesOf(frames: readonly IUniverseAgentSessionViewFrameEvent[]): View
 	return patches;
 }
 
+type CorePostMessage = { readonly t: string };
+
+function spyCorePosts(viewHost: SessionViewHost): CorePostMessage[] {
+	const core = (viewHost as unknown as { core: { post(sessionId: string, msg: CorePostMessage): unknown } }).core;
+	const posts: CorePostMessage[] = [];
+	const original = core.post.bind(core);
+	core.post = (sessionId, msg) => {
+		posts.push(msg);
+		return original(sessionId, msg);
+	};
+	return posts;
+}
+
+function countCorePosts(posts: readonly CorePostMessage[], t: string): number {
+	return posts.filter(msg => msg.t === t).length;
+}
+
 suite('SessionViewHost overlay delta + frameAck', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -75,7 +92,29 @@ suite('SessionViewHost overlay delta + frameAck', () => {
 		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), { orphanTimeoutMs: 0 }));
 		viewHost.onEngineConnectionChanged();
 		const leaseId = viewHost.acquireLease('sess-ack');
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, false);
+		const posts = spyCorePosts(viewHost);
+		viewHost.requestResync(leaseId);
 		viewHost.acknowledge(leaseId, { generation: 1, frameId: 1, appliedVersion: 1 });
 		viewHost.acknowledge('forged-lease', { generation: 1, frameId: 1, appliedVersion: 1 });
+		assert.strictEqual(countCorePosts(posts, 'requestResync'), 1);
+		assert.strictEqual(countCorePosts(posts, 'frameAck'), 1);
+	});
+
+	test('leftover-looks-live requestResync and acknowledge post nothing', () => {
+		const connection = new TestConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), { orphanTimeoutMs: 0 }));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease('sess-ack-looks-live');
+		connection.setPairingPending(true);
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		const posts = spyCorePosts(viewHost);
+		viewHost.requestResync(leaseId);
+		viewHost.acknowledge(leaseId, { generation: 1, frameId: 1, appliedVersion: 1 });
+		viewHost.acknowledge('forged-lease', { generation: 1, frameId: 1, appliedVersion: 1 });
+		assert.strictEqual(countCorePosts(posts, 'requestResync'), 0);
+		assert.strictEqual(countCorePosts(posts, 'frameAck'), 0);
 	});
 });
