@@ -617,7 +617,22 @@ export class SourcesReviewList extends Disposable {
 				if (seq !== this.refreshSeq) {
 					return;
 				}
-				if (hasSourcesGitReadEntries(loaded)) {
+				// D367 leftover-looks-live: pairing-hold-first after await. KEEP leftover;
+				// do not paint in-flight live. D342 entry KEEP is unchanged.
+				if (isConversationPairingHold(this.uaConnection)) {
+					const leftoverCount = this.usingGitRead ? this.allEntries.length : 0;
+					if (shouldKeepSourcesGitReadPairingHoldLeftover(
+						this.uaConnection.getConnectionPhase().kind === 'connected',
+						this.uaConnection.getConnectionSnapshot().pairingPending,
+						leftoverCount,
+					)) {
+						gitReadPairingHold = true;
+					} else {
+						this.usingGitRead = false;
+						this.allEntries = collectSourcesReviewEntries(this.scmService.repositories);
+						localOnly = this.allEntries.length > 0;
+					}
+				} else if (hasSourcesGitReadEntries(loaded)) {
 					this.usingGitRead = true;
 					this.allEntries = loaded;
 				} else {
