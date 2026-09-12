@@ -27,6 +27,7 @@ import {
 	conversationLensSessionBarSnapshotsUnavailableNoSession,
 } from './conversationLensSessionBarStrings.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { writeStatus } from './connectionPreferencesPane.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
 export const conversationLensSnapshotsButtonClass = 'conversation-lens-session-snapshots';
@@ -364,20 +365,20 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		try {
 			const result = await restore.call(this.connection, { sessionId, snapshotId });
 			if (!result.ok) {
-				this.paintWriteStatus(formatEngineSnapshotRestoreFailedCopy(result.message ?? ''));
+				this.paintWriteStatus(formatEngineSnapshotRestoreFailedCopy(result.message ?? ''), 'error');
 				return;
 			}
 		} catch (error) {
-			this.paintWriteStatus(formatEngineSnapshotRestoreFailedCopy(snapshotWriteFailureReason(error)));
+			this.paintWriteStatus(formatEngineSnapshotRestoreFailedCopy(snapshotWriteFailureReason(error)), 'error');
 			return;
 		}
 		if (!this.open) {
 			return;
 		}
-		this.paintWriteStatus(ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY);
+		this.paintWriteStatus(ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY, 'success');
 		const listed = await this.refresh();
 		if (listed) {
-			this.paintWriteStatus(ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY);
+			this.paintWriteStatus(ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY, 'success');
 		}
 	}
 
@@ -411,20 +412,20 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		try {
 			const result = await remove.call(this.connection, { sessionId, snapshotId });
 			if (!result.ok) {
-				this.paintWriteStatus(formatEngineSnapshotDeleteFailedCopy(result.message ?? ''));
+				this.paintWriteStatus(formatEngineSnapshotDeleteFailedCopy(result.message ?? ''), 'error');
 				return;
 			}
 		} catch (error) {
-			this.paintWriteStatus(formatEngineSnapshotDeleteFailedCopy(snapshotWriteFailureReason(error)));
+			this.paintWriteStatus(formatEngineSnapshotDeleteFailedCopy(snapshotWriteFailureReason(error)), 'error');
 			return;
 		}
 		if (!this.open) {
 			return;
 		}
-		this.paintWriteStatus(ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY);
+		this.paintWriteStatus(ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY, 'success');
 		const listed = await this.refresh();
 		if (listed) {
-			this.paintWriteStatus(ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY);
+			this.paintWriteStatus(ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY, 'success');
 		}
 	}
 
@@ -434,13 +435,13 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		return canDeleteEngineSnapshot(this.isSnapshotWriteLive(), hasHook, snapshotId, sessionId);
 	}
 
-	private paintWriteStatus(text: string | undefined): void {
+	private paintWriteStatus(text: string | undefined, tone: 'neutral' | 'success' | 'error' = 'neutral'): void {
 		if (!text) {
-			this.writeStatus.textContent = '';
+			writeStatus(this.writeStatus, '');
 			this.writeStatus.hidden = true;
 			return;
 		}
-		this.writeStatus.textContent = text;
+		writeStatus(this.writeStatus, text, tone);
 		this.writeStatus.hidden = false;
 	}
 

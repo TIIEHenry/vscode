@@ -954,6 +954,7 @@ suite('EngineClipboardSection', () => {
 		assert.ok(writeStatus);
 		assert.strictEqual(writeStatus.textContent, formatEngineClipboardWriteLabel('  new  '));
 		assert.notStrictEqual(writeStatus.style.display, 'none');
+		assert.deepStrictEqual([...writeStatus.classList], ['engine-clipboard-write-status', 'is-success']);
 		pane.getDomNode().parentElement?.remove();
 	});
 
@@ -1085,6 +1086,7 @@ suite('EngineClipboardSection', () => {
 		assert.ok(writeStatus);
 		assert.strictEqual(writeStatus.textContent, 'boom');
 		assert.notStrictEqual(writeStatus.style.display, 'none');
+		assert.deepStrictEqual([...writeStatus.classList], ['engine-clipboard-write-status', 'is-error']);
 		pane.getDomNode().parentElement?.remove();
 	});
 

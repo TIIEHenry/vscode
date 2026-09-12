@@ -341,8 +341,16 @@
 	font-weight: 400;
 	text-transform: none;
 	letter-spacing: normal;
-	color: var(--vscode-errorForeground, var(--vscode-descriptionForeground));
+	color: var(--vscode-descriptionForeground);
 	border-top: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
+}
+
+.monaco-workbench .part.conversation .conversation-lens-snapshots-write-status.is-success {
+	color: var(--vscode-testing-iconPassed);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-snapshots-write-status.is-error {
+	color: var(--vscode-errorForeground);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-snapshots-write-status[hidden] {

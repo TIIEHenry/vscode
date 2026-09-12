@@ -35,6 +35,7 @@ import {
 	resolveEngineSkillsPaneMode,
 } from './engineSkillCatalog.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
+import { writeStatus } from './connectionPreferencesPane.js';
 
 const $ = DOM.$;
 
@@ -553,19 +554,19 @@ export class EngineSkillsSection extends Disposable {
 		this.showBodyStatus(localize('ua.engineSkillBodyNoSelection', "Select a skill to read its content."));
 	}
 
-	private showBodyStatus(message: string): void {
+	private showBodyStatus(message: string, tone: 'neutral' | 'error' = 'neutral'): void {
 		this.bodyStatus.style.display = '';
-		this.bodyStatus.textContent = message;
+		writeStatus(this.bodyStatus, message, tone);
 	}
 
 	private hideBodyStatus(): void {
 		this.bodyStatus.style.display = 'none';
-		this.bodyStatus.textContent = '';
+		writeStatus(this.bodyStatus, '');
 	}
 
 	private hideWriteStatus(): void {
 		this.writeStatus.style.display = 'none';
-		this.writeStatus.textContent = '';
+		writeStatus(this.writeStatus, '');
 	}
 
 	private paintSkillCreateFailed(): void {
@@ -589,7 +590,7 @@ export class EngineSkillsSection extends Disposable {
 
 	private paintSkillWriteSucceeded(copy: string): void {
 		this.writeStatus.style.display = '';
-		this.writeStatus.textContent = copy;
+		writeStatus(this.writeStatus, copy, 'success');
 	}
 
 	private async restoreWriteSuccessAfterRefresh(paintSucceeded: () => void): Promise<void> {
@@ -615,9 +616,9 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private paintSkillWriteFailed(message: string): void {
-		this.showBodyStatus(message);
+		this.showBodyStatus(message, 'error');
 		this.writeStatus.style.display = '';
-		this.writeStatus.textContent = message;
+		writeStatus(this.writeStatus, message, 'error');
 	}
 
 	private updateBodyEditorChrome(source: UniverseAgentSkillSource | undefined): void {
@@ -767,7 +768,7 @@ export class EngineSkillsSection extends Disposable {
 				this.bodyInput.inputElement.readOnly = true;
 				this.bodyToolbar.style.display = 'none';
 			}
-			this.showBodyStatus(localize('ua.engineSkillBodyLoadFailed', "Could not load skill content from the engine."));
+			this.showBodyStatus(localize('ua.engineSkillBodyLoadFailed', "Could not load skill content from the engine."), 'error');
 		}
 	}
 }

@@ -49,6 +49,7 @@ import {
 	toolEnablementPendingKey,
 } from './engineToolProfile.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
+import { writeStatus } from './connectionPreferencesPane.js';
 
 const $ = DOM.$;
 
@@ -609,7 +610,7 @@ export class EngineAgentsSection extends Disposable {
 			this.showAgentsEditorStatus(localize(
 				'ua.engineAgentsMdSaveFailed',
 				"Could not save AGENTS.md to the engine.",
-			));
+			), 'error');
 		}
 		return ok;
 	}
@@ -669,12 +670,12 @@ export class EngineAgentsSection extends Disposable {
 
 	private hideCatalogWriteStatus(): void {
 		this.catalogWriteStatus.style.display = 'none';
-		this.catalogWriteStatus.textContent = '';
+		writeStatus(this.catalogWriteStatus, '');
 	}
 
-	private showCatalogWriteStatus(message: string): void {
+	private showCatalogWriteStatus(message: string, tone: 'success' | 'error' = 'success'): void {
 		this.catalogWriteStatus.style.display = '';
-		this.catalogWriteStatus.textContent = message;
+		writeStatus(this.catalogWriteStatus, message, tone);
 	}
 
 	private async restoreCatalogWriteSuccessAfterRefresh(copy: string): Promise<boolean> {
@@ -692,7 +693,7 @@ export class EngineAgentsSection extends Disposable {
 			return;
 		}
 		await this.selectProfileByIdForTest(profileId);
-		this.showAgentsEditorStatus(ENGINE_AGENTS_SAVE_SUCCESS_COPY);
+		this.showAgentsEditorStatus(ENGINE_AGENTS_SAVE_SUCCESS_COPY, 'success');
 		this.showCatalogWriteStatus(ENGINE_AGENTS_SAVE_SUCCESS_COPY);
 	}
 
@@ -707,17 +708,17 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private showCatalogWriteFailed(message: string): void {
-		this.showCatalogWriteStatus(message);
+		this.showCatalogWriteStatus(message, 'error');
 	}
 
 	private hideAgentsEditorStatus(): void {
 		this.agentsEditorStatus.style.display = 'none';
-		this.agentsEditorStatus.textContent = '';
+		writeStatus(this.agentsEditorStatus, '');
 	}
 
-	private showAgentsEditorStatus(message: string): void {
+	private showAgentsEditorStatus(message: string, tone: 'neutral' | 'success' | 'error' = 'neutral'): void {
 		this.agentsEditorStatus.style.display = '';
-		this.agentsEditorStatus.textContent = message;
+		writeStatus(this.agentsEditorStatus, message, tone);
 	}
 
 	private renderModelTab(): void {
@@ -1096,7 +1097,7 @@ export class EngineAgentsSection extends Disposable {
 			this.showAgentsEditorStatus(localize(
 				'ua.engineAgentsMdLoadFailed',
 				"Could not load AGENTS.md from the engine.",
-			));
+			), 'error');
 		}
 	}
 

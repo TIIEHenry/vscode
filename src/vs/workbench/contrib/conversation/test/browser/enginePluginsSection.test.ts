@@ -620,6 +620,11 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 			assert.notStrictEqual(status.style.display, 'none');
 			assert.strictEqual(status.dataset['catalogMode'], 'failed');
 			assert.ok(status.textContent?.includes(getCatalogFailedCopy(PLUGINS_FEATURE, 'enable exploded')));
+			const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+			assert.ok(writeStatus);
+			assert.notStrictEqual(writeStatus.style.display, 'none');
+			assert.ok(writeStatus.textContent?.includes('enable exploded'));
+			assert.deepStrictEqual([...writeStatus.classList], ['engine-catalog-write-status', 'is-error']);
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
