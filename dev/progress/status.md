@@ -183,7 +183,7 @@ summary: "关仓 A/B/D 已合入 merge `9f8ca6a236d`；compile-client 1 未 push
 ## 工位表（P0 盘点 · 2026-09-12 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `9f8ca6a236d` | 本账 | 0 | 未 parked；compile-client 1 未 push |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `9f8ca6a236d` | 干净 | 0 | 未 parked；compile-client 1 未 push；账 `03e1e68edb4` |
 | A | `vscode-WorkTrees/A` | `loop/A` | `b2211b23fa5` | 干净 | 0 | `occupied`；已合入未 cascade |
 | B | `vscode-WorkTrees/B` | `loop/B` | `b86cda09fa8` | 干净 | 0 | `occupied`；已合入未 cascade |
 | C | `vscode-WorkTrees/C` | `loop/C` | `74f36dbacdf` | 未提交 `dev/loop` | 0 | `idle`；跳过 ff-only；勿 add |
