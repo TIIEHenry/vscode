@@ -1,19 +1,19 @@
 ---
 title: "D388 packaging-p1-asar-machine（无窗 P1 子集）"
 type: roadmap
-status: active
+status: closed
 phase: packaging
 updated: 2026-09-12
-summary: "规则 16 Approve with changes 已并入 dest 锁；未实施 gulp/asar"
+summary: "空 .map 已复原；第二次 gulp exit 0；asar 见 grpc-js 与 proto-loader；D388 已闭（未提交）"
 ---
 
 # D388 packaging-p1-asar-machine
 
 > **父方案：** [packaging-and-release.md](../../plans/packaging-and-release.md) §4.3 / §6 / §8 P1。  
 > **P0 证据：** [packaging-p0-evidence.md](../../progress/packaging-p0-evidence.md)（仓内 require 绿；production 图含 `@grpc/grpc-js` + `@grpc/proto-loader`；无 `.node`）。  
-> **延期行：** [deferred-gaps D388](../../progress/deferred-gaps.md)（`planned`，未实施）。  
+> **延期行：** [deferred-gaps D388](../../progress/deferred-gaps.md)（`closed`；第二次 gulp 绿；首次红记录保留）。  
 > **冲突域：** `packaging / gulp-desktop`。  
-> **本切片状态：** 规则 16 Approve with changes 已并入 dest 独占锁。**未实施**。**禁止**把 checkbox 勾成已做；**禁止**本 tick 跑 gulp / 改 prod。  
+> **本切片状态：** 空 `.map` 已从兄弟扩展复原（gitignored，未 `git add`）；第二次冻结 gulp **exit 0**。dest 为本包装树本次产物。asar 见 `@grpc/grpc-js` 与 `@grpc/proto-loader` 的 `package.json`。证据：[d388-packaging-p1-asar-evidence](../../progress/d388-packaging-p1-asar-evidence.md)。未改 gulp / `.moduleignore`。  
 > **Architecture-First：** 审查 verdict = Approve with changes（dest 独占锁已并入）。**不自宣裸 Approve**。不再开放「待审」。
 
 ## 1. 范围
@@ -61,7 +61,7 @@ summary: "规则 16 Approve with changes 已并入 dest 锁；未实施 gulp/asa
 
 **dest 锁：** WT 池内桌面包 dest **只有一份**（上列 `vscode-WorkTrees/VSCode-linux-x64`）。gulp 打包前会 `rimraf` 该目录。A–J 与 merge 的 `dirname` 相同，并行第二工位打同一 dest 会互删产物。主仓 dest 与 WT 池 dest 不同，不互撞。禁止只对比 A vs 主仓就当「不撞」。
 
-## 3. Architecture-First（Approve with changes 已并入 dest 锁；未实施）
+## 3. Architecture-First（Approve with changes 已并入 dest 锁；实施已跑）
 
 ### 3.1 Problem class
 
@@ -96,9 +96,9 @@ summary: "规则 16 Approve with changes 已并入 dest 锁；未实施 gulp/asa
 7. 证据 SHA **必须等于打包装树的 HEAD**；禁止拿别的槽留下的目录勾 checkbox。
 8. 勾 `$PRODUCT` 存在之前，须确认该目录是**本包装树本次 gulp** 的产物，不是别人残留。
 
-## 4. 冻结命令（实施时原样跑；本 tick 禁止执行 gulp）
+## 4. 冻结命令（实施时原样跑）
 
-**dest 独占（实施前必读，本 tick 禁止执行 gulp）：**
+**dest 独占（实施前必读）：**
 
 - WT 池 dest 只有一份：`/home/clarence/Projects/Agents/vscode-WorkTrees/VSCode-linux-x64`。gulp 会 `rimraf` 该目录。
 - 实施选 **merge 槽**。字母槽禁止与 merge（或彼此）并行再打同一 dest。
@@ -141,16 +141,16 @@ rg -n 'grpc' remote/package.json remote/web/package.json
 
 证据写入新建 `dev/progress/` 目录即可（命令、exit、asar 优先 `…/package.json` 命中行、`$PRODUCT`、打包装树 HEAD SHA）。**不提交** `VSCode-linux-x64`。
 
-## 5. Checkbox（实施 tick 才勾；本 tick 全空）
+## 5. Checkbox（实施 tick 才勾）
 
-- [ ] `npm run gulp vscode-linux-x64` exit 0
-- [ ] `$PRODUCT/universe-agent-studio` 产物根可执行（`test -x`；不是 `bin/` 包装脚本；`PRODUCT="$(dirname "$REPO")/VSCode-linux-x64"`）
-- [ ] dest 独占 + SHA=包装树 HEAD：仅 merge 槽本次 gulp；证据 SHA = 打包装树 HEAD；`$PRODUCT` 经确认为本包装树本次产物（非残留）
-- [ ] `npx asar list` 见 `@grpc/grpc-js`（证据优先记 `…/package.json` 命中行）
-- [ ] `npx asar list` 见 `@grpc/proto-loader`（证据优先记 `…/package.json` 命中行）
-- [ ] `remote/package.json` + `remote/web/package.json` 无 grpc
-- [ ] 证据目录已记命令 / 路径 / 打包装树 HEAD SHA；未提交产物
-- [ ] **仅当 asar 缺包：** 已改 gulp / `.moduleignore*` 并重跑 A–C（未缺则本条 N/A，不得改）
+- [x] `npm run gulp vscode-linux-x64` exit 0 — 第二次 exit 0（`Finished 'vscode-linux-x64' after 2.83 min`）；首次 exit 1 记录保留
+- [x] `$PRODUCT/universe-agent-studio` 产物根可执行（`test -x`；不是 `bin/` 包装脚本；`PRODUCT="$(dirname "$REPO")/VSCode-linux-x64"`）
+- [x] dest 独占 + SHA=包装树 HEAD：仅 merge 槽本次 gulp；证据 SHA = `3b4cc89f6e53f14935d8396e7061c11fc74907df`；`$PRODUCT` 经确认为本包装树第二次 gulp 产物（gulp 前 dest 不存在；asar mtime 对齐 `package-linux-x64`）
+- [x] `npx asar list` 见 `@grpc/grpc-js`（证据优先记 `…/package.json` 命中行）— `/@grpc/grpc-js/package.json`
+- [x] `npx asar list` 见 `@grpc/proto-loader`（证据优先记 `…/package.json` 命中行）— `/@grpc/proto-loader/package.json`
+- [x] `remote/package.json` + `remote/web/package.json` 无 grpc
+- [x] 证据目录已记命令 / 路径 / 打包装树 HEAD SHA；未提交产物
+- [x] **仅当 asar 缺包：** 已改 gulp / `.moduleignore*` 并重跑 A–C（未缺则本条 N/A，不得改）— **N/A**（asar 未缺包；未改 gulp / `.moduleignore`）
 
 同质断言已合成上列 batch，不拆并行槽。
 
@@ -169,13 +169,13 @@ rg -n 'grpc' remote/package.json remote/web/package.json
 
 ## 7. 退出条件
 
-**方案（本 tick）：** 本文件已并入 dest 独占锁 + D388 `planned` 行存在。**不等于**已实施。
+**方案：** dest 独占锁已并入。
 
-**实施（日后）：** §5 除「缺包才改」外全部勾选；D388 行才能从 `planned` 改为 `closed`。仍不得关 D18/D20（两行）/D12。
+**实施：** 空 `.map` 已复原；第二次冻结 gulp exit 0；§5（缺包条 N/A）已齐。D388 可闭。仍不得关 D18/D20（两行）/D12。未提交。
 
 ## 8. 开放项
 
-- 审查 verdict = Approve with changes；本 tick 已并入 dest 独占锁；不再开放「待审」。**未实施**。不自宣裸 Approve。
+- 审查 verdict = Approve with changes；dest 独占锁已并入。第二次实施 gulp **exit 0**；首次 exit 1 记录保留。不再开放「待审」。不自宣裸 Approve。
 - asar 断言：证据优先记 `…/package.json` 命中行（父方案 §4.3）；list 含包名仍可过 checkbox，但防空目录/许可文件假绿。
 - `protobufjs` 在 P0 生产图内；本切片不强制 `asar list`，实施时可可选补记。
 - `$PRODUCT/universe-agent-studio` 验收对象是产物根二进制（`test -x`）；`bin/universe-agent-studio` 包装脚本不是同一条。
