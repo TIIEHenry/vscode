@@ -307,6 +307,7 @@ export class SourcesDiffPanelView extends ViewPane {
 		}
 
 		const sessionId = this.getGitSessionId();
+		const pairingHold = isConversationPairingHold(this.uaConnection);
 		const actions = resolveSourcesDiffWriteActions({
 			groupId: context.groupId,
 			hasScmResource: !!context.scmResource,
@@ -314,21 +315,20 @@ export class SourcesDiffPanelView extends ViewPane {
 				this.uaConnection.isEngineConnected(),
 				typeof this.uaConnection.writeGitStagePaths === 'function',
 				sessionId,
-				isConversationPairingHold(this.uaConnection),
+				pairingHold,
 			),
 			canWriteAccept: canSendSourcesGitApplyHunks(
 				this.uaConnection.isEngineConnected(),
 				typeof this.uaConnection.writeGitApplyHunks === 'function',
-				isConversationPairingHold(this.uaConnection),
+				pairingHold,
 			),
 			hasApplyHunksPayload: hasSourcesGitApplyHunksPayload(sessionId, []),
 			hasGitStageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND),
 			hasGitUnstageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_UNSTAGE_COMMAND),
 			hasGitCleanCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_CLEAN_COMMAND),
+			pairingHold,
 		});
-
-		const pairingHold = isConversationPairingHold(this.uaConnection);
-		this.stageButton.style.display = actions.showStage ? '' : 'none';
+		this.stageButton.style.display = actions.showStage && !pairingHold ? '' : 'none';
 		this.acceptButton.style.display = actions.showAccept ? '' : 'none';
 		this.revertButton.style.display = actions.showRevert && !pairingHold ? '' : 'none';
 		this.unstageButton.style.display = actions.showUnstage && !pairingHold ? '' : 'none';

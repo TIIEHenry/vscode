@@ -151,6 +151,8 @@ export function resolveSourcesDiffWriteActions(input: {
 	readonly hasGitStageCommand: boolean;
 	readonly hasGitUnstageCommand: boolean;
 	readonly hasGitCleanCommand: boolean;
+	/** leftover-looks-live pairing-hold: hide Stage the same way chrome hides Unstage. */
+	readonly pairingHold?: boolean;
 }): ISourcesDiffWriteActionVisibility {
 	const stageable = isSourcesChangeStageable(input.groupId);
 	const unstageable = isSourcesChangeUnstageable(input.groupId);
@@ -160,7 +162,7 @@ export function resolveSourcesDiffWriteActions(input: {
 	const hasLocalRevert = revertible && input.hasScmResource && input.hasGitCleanCommand;
 
 	return {
-		showStage: stageable && (input.canWriteStage || hasLocalStage),
+		showStage: stageable && !input.pairingHold && (input.canWriteStage || hasLocalStage),
 		showAccept: canShowSourcesReviewAccept(input.canWriteAccept, input.hasApplyHunksPayload),
 		showRevert: hasLocalRevert,
 		showUnstage: hasLocalUnstage,
