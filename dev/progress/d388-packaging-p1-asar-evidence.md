@@ -219,6 +219,7 @@ rg_exit=1
 
 - 未启动产物 / 未 300px / 未 Dial
 - 未关 D18 / D20（两行）/ D12
+- 未做 prepare-deb / build-deb / hicolor 进包 → [D389](../roadmap/active/d389-packaging-p3-linux-deb-machine.md)
 - 未改 `gulpfile` / `.moduleignore*`
 - 未 `compile-client` / 未 commit / 未 `git add -A` / 未 `git add` `node_modules`
 - 未宣称 leftover-honesty 完成
