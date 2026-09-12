@@ -1600,6 +1600,10 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		this.clearPendingEngineBindClientSessionId();
 		try {
 			const result = await this.uaConnection.listSessions({});
+			// D379 leftover-looks-live: pairing-hold first after await. KEEP leftover; 0 Create / activate-as-live.
+			if (isConversationPairingHold(this.uaConnection)) {
+				return;
+			}
 			this.engineSessions = result.sessions
 				.filter(s => s.sessionId && !STUB_SEED_IDS.has(s.sessionId))
 				.map(s => ({
