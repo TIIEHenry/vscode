@@ -1382,6 +1382,71 @@ suite('ConnectionPreferencesPane', () => {
 		workbench.remove();
 	});
 
+	test('narrow Back lifts live SAS host outside hidden preferences detail', async () => {
+		if (!document.getElementById('connection-pane-detail-hide-css')) {
+			const style = document.createElement('style');
+			style.id = 'connection-pane-detail-hide-css';
+			style.textContent = '.monaco-workbench .connection-preferences-pane.is-narrow:not(.is-showing-detail) .connection-preferences-detail { display: none; }';
+			document.head.appendChild(style);
+		}
+		const handshakeSas = 'R6X5-F0R1';
+		const { pane, workbench } = mountPaneInWorkbench({
+			addDirectAddressProfile: async () => ({ ok: true, profileId: 'direct-profile-1' }),
+			listConnectionProfiles: () => [{
+				profileId: 'direct-profile-1',
+				displayName: '127.0.0.1:50061',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'directAddress',
+			}],
+		}, {
+			connectProfile: async () => ({
+				ok: true,
+				path: 'direct',
+				pairingPending: true,
+				sasCode: handshakeSas,
+				engineIdentityId: '0123456789abcdef',
+			}),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(599, 800));
+		pane.selectZone('direct');
+
+		const hostInput = (pane as unknown as { directHostInput: { value: string } }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: { value: string } }).directPortInput;
+		const allowPrivate = (pane as unknown as { directAllowPrivateCheckbox: { checked: boolean } }).directAllowPrivateCheckbox;
+		hostInput.value = '127.0.0.1';
+		portInput.value = '50061';
+		allowPrivate.checked = true;
+
+		const flow = (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
+		await waitForPairingDialog(container);
+		assertSasVisibleBesideActiveZone(container, '.connection-direct-address', handshakeSas);
+
+		const back = container.querySelector('.connection-preferences-back') as HTMLButtonElement;
+		assert.ok(back);
+		assert.strictEqual(back.hidden, false);
+		assert.ok(container.classList.contains('is-showing-detail'));
+		back.click();
+
+		assert.ok(!container.classList.contains('is-showing-detail'));
+		const detail = container.querySelector('.connection-preferences-detail') as HTMLElement;
+		const host = (pane as unknown as { pairingConfirmHost: HTMLElement }).pairingConfirmHost;
+		assert.ok(detail);
+		assert.ok(!detail.contains(host), 'live SAS host must leave hidden preferences detail after Back');
+		assert.ok(container.contains(host), 'live SAS host must remain in the pane');
+		const dialog = host.querySelector('.monaco-dialog-box') as HTMLElement | null;
+		assert.ok(dialog, 'SAS dialog must remain after Back');
+		assert.ok(dialog.textContent?.includes(handshakeSas));
+		assert.notStrictEqual(getWindow(host).getComputedStyle(host).display, 'none');
+		assert.notStrictEqual(getWindow(dialog).getComputedStyle(dialog).display, 'none');
+		assert.strictEqual(getWindow(detail).getComputedStyle(detail).display, 'none');
+
+		clickPairingCancel(container);
+		await flow;
+		workbench.remove();
+	});
+
 	test('pairing pending after Direct Connect shows SAS confirm even if host was parked under Profiles', async () => {
 		const handshakeSas = 'R6X5-F0R1';
 		const { pane, workbench } = mountPaneInWorkbench({

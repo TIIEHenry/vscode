@@ -830,6 +830,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.getZoneElement(zoneId).classList.toggle('is-active-zone', zoneId === id);
 		}
 		this.layoutLists();
+		this.syncPairingConfirmHostParent();
 	}
 
 	private showNarrowNav(): void {
@@ -857,6 +858,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.getZoneElement(id).classList.toggle('is-active-zone', id === this.activeZoneId);
 		}
 		this.refreshZoneNav();
+		this.syncPairingConfirmHostParent();
 	}
 
 	private desktopConnectionControlContext() {
@@ -1364,13 +1366,38 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	/**
-	 * Park SAS / recoverTrust as a sibling of the Connect-initiating zone.
-	 * Putting the host *inside* a `.connection-zone` lets
-	 * `.connection-zone:not(.is-active-zone) { display: none }` swallow the box
-	 * (Direct Connect historically parked it under hidden Profiles).
+	 * Park SAS / recoverTrust for Connect-start. May `selectZone` first so the
+	 * initiating zone is visible, then remount via `sync`. Invariant: a live
+	 * host must not be a descendant of any layout-hide ancestor (inactive
+	 * zone *or* narrow `.connection-preferences-detail`). Do not call from
+	 * `showNarrowNav` / Back — `selectZone` would undo Back.
 	 */
 	private attachPairingConfirmHostToVisibleZone(): HTMLElement {
 		this.selectZone(this.activeZoneId);
+		this.syncPairingConfirmHostParent();
+		return this.pairingConfirmHost;
+	}
+
+	/** Live host: SAS / recoverTrust is mounted — remount on liveness, not `sasCode`. */
+	private isPairingConfirmHostLive(): boolean {
+		return this.pairingConfirmHost.classList.contains('connection-pairing-confirm')
+			|| !!this.pairingConfirmHost.querySelector('.connection-pairing-confirm')
+			|| this.pairingConfirmHost.style.display !== 'none';
+	}
+
+	/**
+	 * Remount only. Never calls `selectZone`. Narrow nav + live host → pane
+	 * root (outside `.connection-preferences-detail`); otherwise zone sibling.
+	 */
+	private syncPairingConfirmHostParent(): void {
+		const live = this.isPairingConfirmHostLive();
+		const narrow = this.lastLayoutWidth < PREFERENCES_PANE_NARROW_WIDTH;
+		if (live && narrow && !this.narrowShowingDetail) {
+			if (this.pairingConfirmHost.parentElement !== this.container) {
+				this.container.appendChild(this.pairingConfirmHost);
+			}
+			return;
+		}
 		const zone = this.isZoneAvailable(this.activeZoneId)
 			? this.getZoneElement(this.activeZoneId)
 			: undefined;
@@ -1381,7 +1408,6 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		} else if (this.pairingConfirmHost.parentElement !== this.scrollBody) {
 			this.scrollBody.appendChild(this.pairingConfirmHost);
 		}
-		return this.pairingConfirmHost;
 	}
 
 	private async connectProfileWithPairing(profileId: string): Promise<void> {
