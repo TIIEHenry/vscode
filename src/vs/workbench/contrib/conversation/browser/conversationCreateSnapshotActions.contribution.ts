@@ -95,14 +95,37 @@ export function notifyCreateSnapshotUnavailable(
 }
 
 /**
+ * D371 post-await write gate. After the title prompt resolves (cancel already
+ * returned), leftover-looks-live (`isEngineConnected()===true` + pairingPending)
+ * must notice and not invoke `create`. Pairing-hold is checked first so
+ * looks-live cannot take the live path. Returns whether the snapshot was
+ * created; `undefined` when the write is held.
+ */
+export function tryCreateSnapshotAfterPrompt(
+	ua: IConversationPairingHoldSource | undefined,
+	history: boolean,
+	notificationService: Pick<INotificationService, 'error'>,
+	create: () => boolean,
+	connected: boolean,
+): boolean | undefined {
+	if (shouldHoldCreateSnapshotWrite(ua)) {
+		notifyCreateSnapshotUnavailable(false, history, notificationService);
+		return undefined;
+	}
+	return notifyCreateSnapshotRejected(create(), connected, history, notificationService);
+}
+
+/**
  * Connected user Create Snapshot → AgentService.CreateSnapshot for the
  * active session. Does not list, restore, or delete snapshots, and does
  * not replace SessionBar History (GetHistory). Disconnected / no hook / empty
  * sessionId / cancelled prompt no-op. Pairing-hold leftover (including
  * leftover-looks-live) is checked before `isEngineConnected()` and shows
- * the disconnected notice. `!isEngineConnected()` + history (true disconnect)
- * also notices instead of a silent return. `createSnapshot` false → notice
- * (D110 failed / engine_disconnected); true stays silent.
+ * the disconnected notice. After the title prompt resolves, pairing-hold is
+ * checked again (D371) so leftover-looks-live in-flight cannot create.
+ * `!isEngineConnected()` + history (true disconnect) also notices instead
+ * of a silent return. `createSnapshot` false → notice (D110 failed /
+ * engine_disconnected); true stays silent.
  */
 registerAction2(class ConversationCreateSnapshotAction extends Action2 {
 
@@ -144,14 +167,15 @@ registerAction2(class ConversationCreateSnapshotAction extends Action2 {
 			}
 			title = resolveCreateSnapshotTitle(next);
 		}
-		notifyCreateSnapshotRejected(
-			roster.createSnapshot(sessionId, {
+		tryCreateSnapshotAfterPrompt(
+			connection,
+			roster.hasEngineConnectionHistory(),
+			notificationService,
+			() => roster.createSnapshot(sessionId, {
 				title,
 				...(args?.description !== undefined ? { description: args.description } : {}),
 			}),
 			roster.isEngineConnected(),
-			roster.hasEngineConnectionHistory(),
-			notificationService,
 		);
 	}
 });
