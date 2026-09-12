@@ -32,6 +32,7 @@ import {
 	conversationLensInboxQueueRetryUnavailable,
 	type ConversationComposerPostFailureReason,
 } from '../../browser/conversationLensDockStrings.js';
+import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { ConversationMessageQueueItem } from '../../browser/conversationMessageQueueModel.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
@@ -731,7 +732,7 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		assert.deepStrictEqual(failures, ['failed']);
 	});
 
-	test('Enqueue false after disconnect during prompt shows engine_disconnected', async () => {
+	test('Enqueue after disconnect during prompt shows engine_disconnected without enqueue', async () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const roster = store.add(new EnqueueRoster());
 		roster.enqueueResult = false;
@@ -742,7 +743,7 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		const panel = openQueuePanel(overlay);
 		getEnqueueButton(panel).click();
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
-		assert.deepStrictEqual(roster.enqueueCalls, [{ sessionId: roster.getActiveSessionId(), text: 'Nope' }]);
+		assert.deepStrictEqual(roster.enqueueCalls, []);
 		assert.deepStrictEqual(roster.getMessageQueueState(roster.getActiveSessionId()).items, []);
 		assert.ok(panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxQueueNotListed));
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
@@ -773,6 +774,43 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		assert.strictEqual(getEnqueueButton(panel).title, conversationLensInboxQueueEnqueueUnavailable);
 		getEnqueueButton(panel).click();
 		assert.deepStrictEqual(roster.enqueueCalls, []);
+	});
+
+	test('leftover-looks-live Enqueue post-await pairing-hold does not enqueue', async () => {
+		const roster = store.add(new EnqueueRoster());
+		const sessionId = roster.getActiveSessionId();
+		let pairingPending = false;
+		const base = createConversationConnectionTestStub();
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...base.getConnectionSnapshot(),
+				pairingPending,
+			}),
+		});
+		assert.strictEqual(roster.isEngineConnected(), true);
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		const overlay = createOverlay(roster, 'later leftover', [], () => {
+			pairingPending = true;
+			assert.strictEqual(roster.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+			assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+			assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+			assert.strictEqual(isConversationPairingHold(connection), true);
+		}, undefined, connection);
+		const panel = openQueuePanel(overlay);
+		assert.strictEqual(getEnqueueButton(panel).disabled, false);
+		getEnqueueButton(panel).click();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(roster.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.deepStrictEqual(roster.enqueueCalls, []);
+		assert.deepStrictEqual(roster.getMessageQueueState(sessionId).items, []);
 	});
 
 	test('disconnected Enqueue with history is enabled and shows engine_disconnected without enqueue', async () => {

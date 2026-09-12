@@ -460,14 +460,21 @@ export class ConversationInboxOverlay extends Disposable {
 		});
 	}
 
-	private async onEnqueueClicked(): Promise<void> {
+	private shouldRejectEnqueueWrite(): boolean {
 		if (isConversationPairingHold(this.uaConnection)) {
-			return;
+			return true;
 		}
 		if (!this.stubService.isEngineConnected()) {
 			if (this.stubService.hasEngineConnectionHistory()) {
 				this.delegate.showPostFailure('engine_disconnected');
 			}
+			return true;
+		}
+		return false;
+	}
+
+	private async onEnqueueClicked(): Promise<void> {
+		if (this.shouldRejectEnqueueWrite()) {
 			return;
 		}
 		const sessionId = this.stubService.getActiveSessionId();
@@ -477,6 +484,9 @@ export class ConversationInboxOverlay extends Disposable {
 			placeHolder: conversationLensInboxQueueEnqueuePlaceholder,
 		});
 		if (next === undefined) {
+			return;
+		}
+		if (this.shouldRejectEnqueueWrite()) {
 			return;
 		}
 		const queued = this.stubService.enqueueMessageQueueItem(sessionId, next.trim());
