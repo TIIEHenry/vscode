@@ -7,9 +7,21 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { GrpcStatusCode, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
 import { encodeDetailRef } from '../../common/conversationViewFrame.js';
+import type { SyncChrome, ViewPatch } from '../../common/sessionView/types.js';
+import type { IUniverseAgentSessionViewFrameEvent } from '../../common/universeAgentSessionView.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
 import type { UniverseAgentCreateSessionRequest, UniverseAgentCreateSessionResult, UniverseAgentListSessionsResult } from '../../common/universeAgentTypes.js';
 import { TestConnection, TestHost } from './sessionViewHostTestHelpers.js';
+
+function closedChromeFromFrames(frames: readonly IUniverseAgentSessionViewFrameEvent[]): Extract<SyncChrome, { kind: 'closed' }>[] {
+	return frames.flatMap(event => {
+		const body = event.frame.frame.body;
+		if (body.kind !== 'patches') {
+			return [];
+		}
+		return body.patches.filter((patch): patch is Extract<ViewPatch, { op: 'setSyncChrome' }> => patch.op === 'setSyncChrome');
+	}).map(patch => patch.sync).filter((sync): sync is Extract<SyncChrome, { kind: 'closed' }> => sync.kind === 'closed');
+}
 
 class BindConnection extends TestConnection {
 	readonly chatSessionIds: string[] = [];
@@ -440,5 +452,35 @@ suite('SessionViewHost engine session bind', () => {
 		if (!outcome.ok) {
 			assert.strictEqual(outcome.reason, 'unavailable');
 		}
+	});
+
+	test('leftover-looks-live onEngineConnectionChanged does not bring-up as live reconnect', async () => {
+		const connection = new BindConnection();
+		const host = new TestHost(async () => undefined);
+		const viewHost = store.add(new SessionViewHost(connection, host, {
+			orphanTimeoutMs: 0,
+		}));
+		const leaseId = viewHost.acquireLease('local-looks-live');
+		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(event => frames.push(event)));
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		connection.setPairingPending(true);
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+
+		viewHost.onEngineConnectionChanged();
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		await new Promise<void>(resolve => setImmediate(() => resolve()));
+
+		assert.strictEqual(connection.createSessionCalls.length, 0);
+		assert.deepStrictEqual(connection.resumeSessionCalls, []);
+		assert.deepStrictEqual(connection.streamSessionIds, []);
+		assert.deepStrictEqual(connection.chatSessionIds, []);
+		assert.strictEqual(host.treeFetchCount, 0);
+		assert.ok(
+			!closedChromeFromFrames(frames).some(sync => sync.reason === 'connection_down'),
+			'leftover-looks-live must not post connectionDown',
+		);
 	});
 });
