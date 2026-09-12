@@ -4,7 +4,7 @@ type: roadmap
 status: active
 phase: packaging
 updated: 2026-09-12
-summary: "已收无窗 vscode-web 排除面合同（未实施）；不关 D389/D18/D20/D12；待独立 Arch-First"
+summary: "实施 blocked：D391 后 mangler 过；8192/env/直接 CLI 16g·32g 仍 OOM exit 134；dest 未写；不关 D389/D18/D20/D12"
 ---
 
 # D390 packaging-p2-vscode-web-machine
@@ -12,10 +12,10 @@ summary: "已收无窗 vscode-web 排除面合同（未实施）；不关 D389/D
 > **父方案：** [packaging-and-release.md](../../plans/packaging-and-release.md) §3.4 / §6 / §8 P2 / §9.5。  
 > **P1 证据：** [d388-packaging-p1-asar-evidence](../../progress/d388-packaging-p1-asar-evidence.md)（桌面包 dest **仍活** → **禁止**再 gulp `vscode-linux-x64`）。  
 > **P3 阻断：** [D389](d389-packaging-p3-linux-deb-machine.md) 仍 `planned` / 实施 blocked（`prepare-deb` 三次 GitHub sysroot `TimeoutError`）。**不得**把第四次 prepare-deb / sysroot 镜像折进本切片。  
-> **延期行：** [deferred-gaps D390](../../progress/deferred-gaps.md)（`planned`；方案已收，**未实施**）。  
+> **延期行：** [deferred-gaps D390](../../progress/deferred-gaps.md)（`planned`；实施 blocked：compile-src 后 OOM）。  
 > **冲突域：** `packaging / gulp-vscode-web`（WT 池 dest = `vscode-web`，**≠** D388/D389 的 `VSCode-linux-x64`）。  
-> **本切片状态：** **方案已收，未实施。** 本 tick **不跑** gulp。§5 未勾。**不得**关 D390 实施、D389、D18、D20（两行）、D12。  
-> **Architecture-First：** 正文含问题类 / 选项 / 选定。**无新 ADR。主笔不自宣 Approve。** 交父 agent 独立审查。
+> **本切片状态：** 实施 **blocked**（§4 A 首败 **exit 1** mangler；D391 后 8192 / env / 直接 CLI 16g·32g 均 **exit 134**；dest **未写出**）。§5 未齐，**不得**关 D390 / D391 / D392 / D389 / D18 / D20（两行）/ D12。D393 **未占用**。证据：[d390-packaging-p2-vscode-web-evidence](../../progress/d390-packaging-p2-vscode-web-evidence.md) §A4。  
+> **Architecture-First：** 正文含问题类 / 选项 / 选定。**无新 ADR。主笔不自宣 Approve。**
 
 ## 1. 范围
 
@@ -106,7 +106,7 @@ summary: "已收无窗 vscode-web 排除面合同（未实施）；不关 D389/D
 8. 勾 `$PRODUCT` 存在之前，须确认该目录是**本包装树本次 gulp** 的产物（gulp 会先 rimraf；空目录 / 他槽残留「扫不到 grpc」= 假绿）。
 9. 主笔 **不自宣** Architecture-First Approve。
 
-## 4. 冻结命令（实施时原样跑；本方案 tick **不跑**）
+## 4. 冻结命令（实施已原样跑 A；A 红后停）
 
 **dest 独占（实施前必读）：**
 
@@ -149,14 +149,14 @@ rg -n 'grpc' remote/web/package.json
 
 ## 5. Checkbox（实施 tick 才勾）
 
-- [ ] `npm run gulp vscode-web` exit 0（不要跑 `vscode-web-min`）
-- [ ] `$PRODUCT` 身份：`test -f "$PRODUCT/package.json"` **且** `test -d "$PRODUCT/out"`；`PRODUCT="$(dirname "$REPO")/vscode-web"`
-- [ ] dest 独占 + SHA=包装树 HEAD：仅 merge 槽本次 gulp；`$PRODUCT` 经确认为本包装树本次 gulp 产物（gulp 会先 rimraf；空目录/他槽残留不得勾）
-- [ ] 产物树无 `@grpc/grpc-js`（`rg --fixed-strings` 无匹配 **且** `test ! -e "$PRODUCT/node_modules/@grpc/grpc-js"`；**不用** asar）
-- [ ] `remote/web/package.json` 无 grpc
-- [ ] 证据目录已记命令 / 路径 / 打包装树 HEAD SHA；未提交产物
-- [ ] **仅当产物树见 grpc：** 已改 `remote/web` 依赖 / `.webignore*` 并重跑 A–C（未见到则本条 N/A，不得改）
-- [ ] **N/A / 禁跑：** 未再跑 `vscode-linux-x64`；未再跑 `prepare-deb`（含第四次）
+- [ ] `npm run gulp vscode-web` exit 0（不要跑 `vscode-web-min`）— 首败 **exit 1**（mangler；记录保留）；D391 后 8192 / env / 直接 CLI 16g·32g 均 **exit 134**（dest 未写出）
+- [ ] `$PRODUCT` 身份：`test -f "$PRODUCT/package.json"` **且** `test -d "$PRODUCT/out"`；`PRODUCT="$(dirname "$REPO")/vscode-web"` — **未跑**（A 红；dest 不存在；缺目录不得当身份）
+- [ ] dest 独占 + SHA=包装树 HEAD：仅 merge 槽本次 gulp；`$PRODUCT` 经确认为本包装树本次 gulp 产物（gulp 会先 rimraf；空目录/他槽残留不得勾）— gulp **仅** merge；dest **未写出**，不得勾产物身份
+- [ ] 产物树无 `@grpc/grpc-js`（`rg --fixed-strings` 无匹配 **且** `test ! -e "$PRODUCT/node_modules/@grpc/grpc-js"`；**不用** asar）— **未跑**（无 dest；禁止空目录假绿）
+- [x] `remote/web/package.json` 无 grpc
+- [x] 证据目录已记命令 / 路径 / 打包装树 HEAD SHA；未提交产物 — [d390-packaging-p2-vscode-web-evidence](../../progress/d390-packaging-p2-vscode-web-evidence.md)（首败 + D391 + 8192/env + 直接 CLI 16g/32g）
+- [x] **仅当产物树见 grpc：** 已改 `remote/web` 依赖 / `.webignore*` 并重跑 A–C（未见到则本条 N/A，不得改）— **N/A**（dest 未写出，未见产物 grpc；未改 gulp / `.webignore` / `remote/web` / allowlist）
+- [x] **N/A / 禁跑：** 未再跑 `vscode-linux-x64`；未再跑 `prepare-deb`（含第四次）
 
 同质断言已合成上列 batch，不拆并行槽。
 
@@ -180,12 +180,12 @@ rg -n 'grpc' remote/web/package.json
 
 **方案：** dest 独占锁与无 asar 排除面合同已写入 §3.3 / §4 / §5 / §6。**待独立 Arch-First 审查。** 不自宣 Approve。
 
-**实施（尚未开始）：** §5 未勾 → **不关 D390 实施行**。仍不得关 D389 / D18 / D20（两行）/ D12。未跑 gulp。未提交产物。
+**实施（本 tick）：** A 首败 **exit 1**（mangler；记录保留）。D391 可见性修复保留。8192 / env 仍 **exit 134**。直接 node CLI 16g / 32g 各一次仍 **exit 134**（heap 旗标已生效；GC ~3 GB）。dest **未写出**。B/C 未跑（不假绿）。§5 未齐 → **不关 D390**。D391 / D392 仍 planned。D393 未占用。仍不得关 D389 / D18 / D20（两行）/ D12。未改 gulp / `.webignore` / allowlist / `package.json`。未跑 `vscode-linux-x64` / `prepare-deb` / `vscode-web-min`。未提交产物。
 
 ## 8. 开放项
 
-- Architecture-First **待独立审查**。主笔不自宣 Approve。
+- 实施 **blocked** 于 A 重跑 OOM（D392）：D391 已消 implicit-public。直接 CLI 16g/32g heap **已生效**仍 exit 134（~3 GB）。只改 `package.json` 8192→16384 会复现已红命令。未见产物 grpc，**不得**改 gulp allowlist / `.webignore` / `package.json`（除非父再授权）。不自宣 Approve / 完成。
 - 「不关 D20」对着 deferred-gaps **两行** D20（均 open、均 CS-6 Settings 300px 活窗目视）。不是 vscode-web 行。两行都不关。
 - 「不关 D18」对着 **原文**三平台安装包行（open）。本切片即使产物树排除绿，也只关 **D390**，不改写、不闭合 D18。
 - D389 仍 `planned` / blocked（sysroot）。本切片不承接第四次 prepare-deb。
-- dest 路径见 §2；禁止只对比 A vs 主仓就当「不撞」。`vscode-web` 与 `VSCode-linux-x64` 不互删，仍禁再打桌面包。
+- dest 路径见 §2；禁止只对比 A vs 主仓就当「不撞」。`vscode-web` 与 `VSCode-linux-x64` 不互删，仍禁再打桌面包。桌面包 dest 本 tick 仍活、未碰。
