@@ -1033,7 +1033,8 @@ export class EngineAgentsSection extends Disposable {
 	private async loadAgentsEditorForSelection(): Promise<void> {
 		this.hideAgentsEditorStatus();
 
-		if (!canShowCatalogRows(this.mode) || !this.connection.isEngineConnected() || !this.selectedProfile) {
+		// D364 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connection) || !canShowCatalogRows(this.mode) || !this.connection.isEngineConnected() || !this.selectedProfile) {
 			if (!this.agentsMarkdownDirty) {
 				// Keep leftover AGENTS.md after a live paint (D266; D233 / D253).
 				// failed/loading must not unload leftover markdown; disconnect / UNSUPPORTED / first-pull empty still clear.
@@ -1079,7 +1080,8 @@ export class EngineAgentsSection extends Disposable {
 					source: selected.source,
 				},
 			});
-			if (generation !== this.agentsEditorLoadGeneration || this.selectedProfile?.id !== selected.id || this.agentsMarkdownDirty) {
+			if (generation !== this.agentsEditorLoadGeneration || this.selectedProfile?.id !== selected.id || this.agentsMarkdownDirty
+				|| isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				return;
 			}
 			const text = formatAgentsMarkdown(result.profile);
@@ -1087,7 +1089,8 @@ export class EngineAgentsSection extends Disposable {
 			this.agentsEditorInput.value = text;
 			this.agentsMarkdownDirty = false;
 		} catch {
-			if (generation !== this.agentsEditorLoadGeneration || this.selectedProfile?.id !== selected.id) {
+			if (generation !== this.agentsEditorLoadGeneration || this.selectedProfile?.id !== selected.id
+				|| isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				return;
 			}
 			this.showAgentsEditorStatus(localize(

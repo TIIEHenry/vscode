@@ -1022,6 +1022,108 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(section.getMode(), 'disconnected');
 	});
 
+	test('Agents: leftover-looks-live pairing-hold Instructions skips extra saveAgentProfile', async () => {
+		let saveCalls = 0;
+		let listAgentProfilesCalls = 0;
+		const leftoverMarkdown = 'Leftover agents md';
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [demoUserAgent()] };
+			},
+			saveAgentProfile: async () => {
+				saveCalls++;
+				return {
+					profile: {
+						id: 'demo',
+						name: 'Demo Agent',
+						source: 'user' as const,
+						systemPrompt: leftoverMarkdown,
+					},
+				};
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		await section.selectProfileByIdForTest('demo');
+		assert.strictEqual(section.getActiveAgentDetailTab(), 'instructions');
+		assert.ok(section.isAgentsEditorVisible());
+		assert.ok(section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+		const leftoverRows = section.getListEntryCount();
+		const saveCallsAfterLoad = saveCalls;
+		const listCallsAfterLoad = listAgentProfilesCalls;
+		assert.ok(saveCallsAfterLoad >= 1);
+
+		connection.setLooksLive(true);
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+		assert.strictEqual(saveCalls, saveCallsAfterLoad);
+		assert.strictEqual(section.getListEntryCount(), leftoverRows);
+
+		section.setActiveAgentDetailTabForTest('instructions');
+		await section.selectProfileByIdForTest('demo');
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(saveCalls, saveCallsAfterLoad, 'leftover-looks-live must not extra saveAgentProfile');
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+		assert.strictEqual(section.getListEntryCount(), leftoverRows);
+		assert.ok(section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+		assert.ok(section.isAgentsEditorVisible());
+		assert.ok((section.getDomNode().textContent ?? '').includes(getEngineSectionDisconnectedCopy()));
+	});
+
+	test('Agents: true connected without pairing Instructions still loads saveAgentProfile', async () => {
+		let saveCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			pairingPending: false,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({
+				profiles: [demoUserAgent()],
+			}),
+			saveAgentProfile: async () => {
+				saveCalls++;
+				return {
+					profile: {
+						id: 'demo',
+						name: 'Demo Agent',
+						source: 'user' as const,
+						systemPrompt: 'Live agents md',
+					},
+				};
+			},
+		});
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		await section.selectProfileByIdForTest('demo');
+		section.setActiveAgentDetailTabForTest('instructions');
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.ok(saveCalls >= 1);
+		assert.ok(section.getAgentsMarkdownValue().includes('Live agents md'));
+		assert.ok(section.isAgentsEditorVisible());
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(getEngineSectionDisconnectedCopy()));
+	});
+
 	test('Tools: leftover-looks-live pairing-hold writes stay 0 unary', async () => {
 		const saveCalls: UniverseAgentSaveAgentProfileRequest[] = [];
 		let listToolsCalls = 0;
