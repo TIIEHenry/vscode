@@ -1394,6 +1394,124 @@ suite('Navigator Team subviews', () => {
 		assert.notStrictEqual(membersListEl.style.display, 'none', 'leftover member list must stay visible');
 	});
 
+	test('in-flight memberStatus leftover-looks-live keeps leftover and does not paint fresh live', async () => {
+		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
+		roster.setEngineConnected(true);
+		let pairingPending = false;
+		let memberStatusCalls = 0;
+		let taskListCalls = 0;
+		let resolveMemberStatus: ((rows: Array<{
+			memberName: string;
+			memberAgentId: string;
+			status: string;
+			preset: string;
+			dynamic: string;
+			turnCount: number;
+		}>) => void) | undefined;
+		let memberStatusStarted: (() => void) | undefined;
+		const memberStatusEntered = new Promise<void>(resolve => { memberStatusStarted = resolve; });
+		const leftoverMember = {
+			memberName: 'Alice',
+			memberAgentId: 'member:1',
+			status: 'IDLE',
+			preset: 'p',
+			dynamic: 'd',
+			turnCount: 1,
+		};
+		const leftoverTask = {
+			taskId: 't1',
+			subject: 'Leftover task',
+			owner: 'Alice',
+			status: 'OPEN',
+			blockedBy: '',
+			lastMessage: '',
+			description: '',
+		};
+		const freshLiveMember = {
+			memberName: 'Bob',
+			memberAgentId: 'member:fresh',
+			status: 'BUSY',
+			preset: 'p',
+			dynamic: 'd',
+			turnCount: 9,
+		};
+		const freshLiveTask = {
+			taskId: 't-fresh',
+			subject: 'Fresh live',
+			owner: 'Bob',
+			status: 'OPEN',
+			blockedBy: '',
+			lastMessage: '',
+			description: '',
+		};
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
+				pairingPending,
+			}),
+			getNavigatorCapability: () => 'SUPPORTED',
+			team: {
+				memberStatus: async () => {
+					memberStatusCalls++;
+					if (memberStatusCalls === 1) {
+						return [leftoverMember];
+					}
+					memberStatusStarted?.();
+					return new Promise(resolve => {
+						resolveMemberStatus = resolve;
+					});
+				},
+				taskList: async () => {
+					taskListCalls++;
+					if (taskListCalls === 1) {
+						return [leftoverTask];
+					}
+					return [freshLiveTask];
+				},
+				teamInfo: async () => undefined,
+			},
+		});
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountTeamView(roster, connection, undefined, inspectService);
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+
+		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList;
+		const tasksList = (view as unknown as { tasksList: WorkbenchList<{ id: string; label: string }> }).tasksList;
+		const leftoverMemberCount = membersList.length;
+		const leftoverTaskCount = tasksList.length;
+		assert.ok(leftoverMemberCount > 0, 'live paint must have leftover member rows');
+		assert.ok(leftoverTaskCount > 0, 'live paint must have leftover task rows');
+		assert.ok(membersList.element(0)?.label.includes('Alice'));
+		assert.ok(tasksList.element(0)?.label.includes('Leftover task'));
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		const inflightRefresh = (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		await memberStatusEntered;
+		assert.ok(resolveMemberStatus);
+
+		pairingPending = true;
+		assert.strictEqual(roster.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		resolveMemberStatus!([freshLiveMember]);
+		await inflightRefresh;
+
+		assert.strictEqual(membersList.length, leftoverMemberCount, 'in-flight leftover-looks-live must keep leftover member rows');
+		assert.strictEqual(tasksList.length, leftoverTaskCount, 'in-flight leftover-looks-live must keep leftover task rows');
+		assert.ok(membersList.element(0)?.label.includes('Alice'), 'in-flight leftover-looks-live must keep leftover member');
+		assert.ok(!(membersList.element(0)?.label.includes('Bob')), 'in-flight leftover-looks-live must not paint fresh live member');
+		assert.ok(tasksList.element(0)?.label.includes('Leftover task'), 'in-flight leftover-looks-live must keep leftover task');
+		assert.ok(!(tasksList.element(0)?.label.includes('Fresh live')), 'in-flight leftover-looks-live must not paint fresh live task');
+		assert.strictEqual(inspectService.getLiveAgentIds(), undefined, 'in-flight leftover-looks-live leftover must not be painted as live');
+		const pairingNote = view.element.querySelector('.navigator-team-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(pairingNote, 'in-flight leftover-looks-live must mark leftover team rows');
+		assert.strictEqual(pairingNote.style.display, 'block', 'in-flight leftover-looks-live must not clear stale-note');
+		assert.strictEqual(pairingNote.textContent, NAVIGATOR_STALE_SNAPSHOT_COPY);
+	});
+
 	test('first-pull pairingPending without leftover stays empty and does not call unary', async () => {
 		const roster = store.add(new ConversationStubService());
 		let memberStatusCalls = 0;
