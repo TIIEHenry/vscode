@@ -11621,3 +11621,421 @@ suite('UniverseAgentConnectionService revokeDevice disconnect (GC-2)', () => {
 		service.dispose();
 	});
 });
+
+function createReconnectClock() {
+	const delays: number[] = [];
+	const pending = new Map<number, () => void>();
+	let nextId = 1;
+	const setTimeoutFn = (fn: () => void, delay?: number) => {
+		delays.push(delay ?? 0);
+		const id = nextId++;
+		pending.set(id, fn);
+		return id as unknown as ReturnType<typeof setTimeout>;
+	};
+	const clearTimeoutFn = (handle: ReturnType<typeof setTimeout>) => {
+		pending.delete(handle as unknown as number);
+	};
+	const fireAll = (): void => {
+		const jobs = [...pending.values()];
+		pending.clear();
+		for (const job of jobs) {
+			job();
+		}
+	};
+	return { delays, setTimeoutFn, clearTimeoutFn, fireAll, pending };
+}
+
+suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	const identityStore: IClientIdentityStore = {
+		getState: async () => ({
+			kind: 'ready',
+			identity: {
+				clientIdentityId: 'a'.repeat(64),
+				clientPublicKey: new Uint8Array(32),
+				privateKeyPkcs8: new Uint8Array(32),
+			},
+		}),
+		getOrCreateIdentity: async () => ({
+			kind: 'ready',
+			identity: {
+				clientIdentityId: 'a'.repeat(64),
+				clientPublicKey: new Uint8Array(32),
+				privateKeyPkcs8: new Uint8Array(32),
+			},
+		}),
+		createSigner: async () => undefined,
+	};
+
+	const okEndpoint = {
+		attemptId: 'a1',
+		authority: '127.0.0.1',
+		port: 50051,
+		resolvedIp: '127.0.0.1',
+		servername: '127.0.0.1',
+		relayTicketId: null,
+		tls: null,
+		expiresAtMs: Date.now() + 60_000,
+		path: 'direct' as const,
+	};
+
+	function createOkResolver(onResolve?: (options?: { readonly forceNewTicket?: boolean }) => void) {
+		return {
+			resolve: async (_profileId: string, options?: { readonly forceNewTicket?: boolean }) => {
+				onResolve?.(options);
+				return { ok: true as const, allowRelayFallback: false, endpoint: okEndpoint };
+			},
+			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+		};
+	}
+
+	async function flushReconnect(): Promise<void> {
+		await timeout(0);
+		await timeout(0);
+	}
+
+	test('transport_lost with active profile schedules connectProfile({ reconnect: true })', async () => {
+		const clock = createReconnectClock();
+		const reconnectOpts: Array<boolean | undefined> = [];
+		const forceTickets: Array<boolean | undefined> = [];
+		let created = 0;
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => {
+				created++;
+				if (created === 1) {
+					return new MockUniverseAgentGrpcTransport({
+						listSessions: async () => {
+							throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+						},
+					});
+				}
+				return new MockUniverseAgentGrpcTransport();
+			},
+			connectionResolver: createOkResolver(options => forceTickets.push(options?.forceNewTicket)) as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+		const original = service.connectProfile.bind(service);
+		service.connectProfile = async (profileId, options) => {
+			reconnectOpts.push(options?.reconnect);
+			return original(profileId, options);
+		};
+
+		const first = await service.connectProfile('p1');
+		assert.strictEqual(first.ok, true);
+		await assert.rejects(() => service.listSessions({}));
+		assert.strictEqual(service.getConnectionPhase().kind, 'connecting');
+		assert.strictEqual((service.getConnectionPhase() as { reason?: string }).reason, 'transport_lost');
+		assert.deepStrictEqual(clock.delays, [1000]);
+		assert.strictEqual(clock.pending.size, 1);
+
+		clock.fireAll();
+		await flushReconnect();
+		assert.ok(reconnectOpts.includes(true), 'scheduled redial must pass reconnect: true');
+		assert.ok(forceTickets.includes(true), 'reconnect resolve must forceNewTicket');
+		assert.strictEqual(service.getConnectionPhase().kind, 'connected');
+		service.dispose();
+	});
+
+	test('backoff doubles then caps at 30000', async () => {
+		const clock = createReconnectClock();
+		let connects = 0;
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport({
+				connect: async () => {
+					connects++;
+					if (connects === 1) {
+						return { sessionToken: 'token-1', workDir: '/tmp/work', methods: [], events: [] };
+					}
+					throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+				},
+				listSessions: async () => {
+					throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+				},
+			}),
+			connectionResolver: createOkResolver() as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			reconnectBaseMs: 10_000,
+			reconnectMaxMs: 30_000,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+
+		await service.connectProfile('p1');
+		await assert.rejects(() => service.listSessions({}));
+		assert.deepStrictEqual(clock.delays, [10_000]);
+
+		clock.fireAll();
+		await flushReconnect();
+		assert.deepStrictEqual(clock.delays, [10_000, 20_000]);
+
+		clock.fireAll();
+		await flushReconnect();
+		assert.deepStrictEqual(clock.delays, [10_000, 20_000, 30_000]);
+
+		clock.fireAll();
+		await flushReconnect();
+		assert.deepStrictEqual(clock.delays, [10_000, 20_000, 30_000, 30_000]);
+		service.dispose();
+	});
+
+	test('jitter is ±20% of raw delay', async () => {
+		const originalRandom = Math.random;
+		try {
+			Math.random = () => 1;
+			const high = createReconnectClock();
+			const highService = new UniverseAgentConnectionService({
+				createTransport: () => new MockUniverseAgentGrpcTransport({
+					listSessions: async () => {
+						throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+					},
+				}),
+				connectionResolver: createOkResolver() as unknown as ConnectionResolver,
+				clientIdentityStore: identityStore,
+				setTimeoutFn: high.setTimeoutFn,
+				clearTimeoutFn: high.clearTimeoutFn,
+			});
+			await highService.connectProfile('p1');
+			await assert.rejects(() => highService.listSessions({}));
+			assert.deepStrictEqual(high.delays, [1200]);
+			highService.dispose();
+
+			Math.random = () => 0;
+			const low = createReconnectClock();
+			const lowService = new UniverseAgentConnectionService({
+				createTransport: () => new MockUniverseAgentGrpcTransport({
+					listSessions: async () => {
+						throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+					},
+				}),
+				connectionResolver: createOkResolver() as unknown as ConnectionResolver,
+				clientIdentityStore: identityStore,
+				setTimeoutFn: low.setTimeoutFn,
+				clearTimeoutFn: low.clearTimeoutFn,
+			});
+			await lowService.connectProfile('p1');
+			await assert.rejects(() => lowService.listSessions({}));
+			assert.deepStrictEqual(low.delays, [800]);
+			lowService.dispose();
+		} finally {
+			Math.random = originalRandom;
+		}
+	});
+
+	test('successful reconnect resets attempt count', async () => {
+		const clock = createReconnectClock();
+		let created = 0;
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => {
+				created++;
+				if (created % 2 === 1) {
+					return new MockUniverseAgentGrpcTransport({
+						listSessions: async () => {
+							throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+						},
+					});
+				}
+				return new MockUniverseAgentGrpcTransport({
+					listSessions: async () => {
+						throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+					},
+				});
+			},
+			connectionResolver: createOkResolver() as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+
+		await service.connectProfile('p1');
+		await assert.rejects(() => service.listSessions({}));
+		assert.deepStrictEqual(clock.delays, [1000]);
+		clock.fireAll();
+		await flushReconnect();
+		assert.strictEqual(service.getConnectionPhase().kind, 'connected');
+
+		await assert.rejects(() => service.listSessions({}));
+		assert.deepStrictEqual(clock.delays, [1000, 1000]);
+		service.dispose();
+	});
+
+	test('disconnect cancels pending reconnect', async () => {
+		const clock = createReconnectClock();
+		const forceTickets: Array<boolean | undefined> = [];
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport({
+				listSessions: async () => {
+					throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+				},
+			}),
+			connectionResolver: createOkResolver(options => forceTickets.push(options?.forceNewTicket)) as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+		await service.connectProfile('p1');
+		const resolvesAfterConnect = forceTickets.length;
+		await assert.rejects(() => service.listSessions({}));
+		assert.strictEqual(clock.pending.size, 1);
+		await service.disconnect();
+		assert.strictEqual(clock.pending.size, 0);
+		clock.fireAll();
+		await flushReconnect();
+		assert.strictEqual(forceTickets.length, resolvesAfterConnect);
+		service.dispose();
+	});
+
+	test('dispose cancels pending reconnect', async () => {
+		const clock = createReconnectClock();
+		const forceTickets: Array<boolean | undefined> = [];
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport({
+				listSessions: async () => {
+					throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+				},
+			}),
+			connectionResolver: createOkResolver(options => forceTickets.push(options?.forceNewTicket)) as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+		await service.connectProfile('p1');
+		const resolvesAfterConnect = forceTickets.length;
+		await assert.rejects(() => service.listSessions({}));
+		assert.strictEqual(clock.pending.size, 1);
+		service.dispose();
+		assert.strictEqual(clock.pending.size, 0);
+		clock.fireAll();
+		await flushReconnect();
+		assert.strictEqual(forceTickets.length, resolvesAfterConnect);
+	});
+
+	test('cancelPairing cancels pending reconnect', async () => {
+		const clock = createReconnectClock();
+		const forceTickets: Array<boolean | undefined> = [];
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport({
+				listSessions: async () => {
+					throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+				},
+			}),
+			connectionResolver: createOkResolver(options => forceTickets.push(options?.forceNewTicket)) as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+		await service.connectProfile('p1');
+		const resolvesAfterConnect = forceTickets.length;
+		await assert.rejects(() => service.listSessions({}));
+		assert.strictEqual(clock.pending.size, 1);
+		await service.cancelPairing();
+		assert.strictEqual(clock.pending.size, 0);
+		clock.fireAll();
+		await flushReconnect();
+		assert.strictEqual(forceTickets.length, resolvesAfterConnect);
+		service.dispose();
+	});
+
+	test('pairingPending does not schedule reconnect', async () => {
+		const clock = createReconnectClock();
+		const transport = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				pairingNonce: 'nonce-1',
+				sasCode: 'ABCD-EFGH',
+				methods: [],
+				events: [],
+			}),
+			listSessions: async () => {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+			},
+		});
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		(service as unknown as { _activeProfileId: string })._activeProfileId = 'p1';
+		assert.strictEqual(service.getConnectionSnapshot().pairingPending, true);
+		await assert.rejects(() => service.listSessions({}));
+		assert.strictEqual(clock.delays.length, 0);
+		service.dispose();
+	});
+
+	test('pairing_required resolve does not schedule reconnect', async () => {
+		const clock = createReconnectClock();
+		const mockResolver = {
+			resolve: async () => ({
+				ok: false as const,
+				code: 'pairing_required' as const,
+				reason: 'pairing required',
+				allowRelayFallback: true,
+			}),
+			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+		};
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport(),
+			connectionResolver: mockResolver as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+		const result = await service.connectProfile('p1');
+		assert.strictEqual(result.ok, false);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'pairing_required');
+		}
+		assert.strictEqual(clock.delays.length, 0);
+		service.dispose();
+	});
+
+	test('unauthenticated transport error does not schedule reconnect', async () => {
+		const clock = createReconnectClock();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport({
+				listSessions: async () => {
+					throw new UniverseAgentTransportError(16, 'unauthenticated');
+				},
+			}),
+			connectionResolver: createOkResolver() as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+		await service.connectProfile('p1');
+		await assert.rejects(() => service.listSessions({}));
+		assert.strictEqual(clock.delays.length, 0);
+		assert.notStrictEqual((service.getConnectionPhase() as { reason?: string }).reason, 'transport_lost');
+		service.dispose();
+	});
+
+	test('no active profile does not schedule reconnect', async () => {
+		const clock = createReconnectClock();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport({
+				listSessions: async () => {
+					throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+				},
+			}),
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await assert.rejects(() => service.listSessions({}));
+		assert.strictEqual(clock.delays.length, 0);
+		service.dispose();
+	});
+});
