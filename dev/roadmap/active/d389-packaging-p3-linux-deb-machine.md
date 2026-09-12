@@ -4,16 +4,16 @@ type: roadmap
 status: active
 phase: packaging
 updated: 2026-09-12
-summary: "实施 blocked：prepare-deb 两次 sysroot GitHub TimeoutError；dest 身份锁绿未再 gulp；不关 D18/D20/D12"
+summary: "实施 blocked：prepare-deb 三次 sysroot GitHub TimeoutError；dest 身份锁绿未再 gulp；不关 D18/D20/D12"
 ---
 
 # D389 packaging-p3-linux-deb-machine
 
 > **父方案：** [packaging-and-release.md](../../plans/packaging-and-release.md) §7 / §8 P3 / §9.6。  
 > **P1 证据：** [d388-packaging-p1-asar-evidence](../../progress/d388-packaging-p1-asar-evidence.md)（第二次 `vscode-linux-x64` exit 0；dest 仍活则**禁止**再 gulp 桌面包）。  
-> **延期行：** [deferred-gaps D389](../../progress/deferred-gaps.md)（`planned`；实施 blocked：sysroot；retry 2 同红）。  
+> **延期行：** [deferred-gaps D389](../../progress/deferred-gaps.md)（`planned`；实施 blocked：sysroot；retry 3 同红）。  
 > **冲突域：** `packaging / gulp-linux-deb`（与 D388 同 WT 池 dest）。  
-> **本切片状态：** 实施 **blocked**（§4 B `prepare-deb` **两次** exit 1；失败诚实表 **sysroot**）。dest 身份锁绿，**未**再 gulp 桌面包。§5 未齐，**不得**关 D389 / D18 / D20（两行）/ D12。证据：[d389-packaging-p3-linux-deb-evidence](../../progress/d389-packaging-p3-linux-deb-evidence.md)。规则 16 **Approve with changes** 已并入；**不自宣裸 Approve**。  
+> **本切片状态：** 实施 **blocked**（§4 B `prepare-deb` **三次** exit 1；失败诚实表 **sysroot**）。dest 身份锁绿，**未**再 gulp 桌面包。§5 未齐，**不得**关 D389 / D18 / D20（两行）/ D12。证据：[d389-packaging-p3-linux-deb-evidence](../../progress/d389-packaging-p3-linux-deb-evidence.md)。规则 16 **Approve with changes** 已并入；**不自宣裸 Approve**。  
 > **Architecture-First：** 正文含问题类 / 选项 / 选定。**无新 ADR。**
 
 ## 1. 范围
@@ -67,7 +67,7 @@ summary: "实施 blocked：prepare-deb 两次 sysroot GitHub TimeoutError；dest
 
 **路径前缀裁定：** Discovery 的 `.build/linux/deb/amd64/universe-agent-studio-amd64/usr/share/icons/hicolor/${sz}x${sz}/apps/universe-agent-studio.png` 与 `destination` + `linuxHicolorIcons` **一致**，冻结时不改前缀。
 
-## 3. Architecture-First（规则 16 Approve with changes 已并入；实施 **blocked**（sysroot；retry 2 同红）；不自宣裸 Approve）
+## 3. Architecture-First（规则 16 Approve with changes 已并入；实施 **blocked**（sysroot；retry 3 同红）；不自宣裸 Approve）
 
 ### 3.1 Problem class
 
@@ -100,7 +100,7 @@ summary: "实施 blocked：prepare-deb 两次 sysroot GitHub TimeoutError；dest
 5. sysroot / `dpkg-shlibdeps` / dep-lists 硬比对失败 → 记 **环境不足 + 哪一步失败**；不发明工具；**除非**已与 `build/linux/debian/dep-lists.ts` 比对，否则不改清单。可改的是对照后的 `dep-lists.ts`，不是随便改 `gulpfile.vscode.linux.ts`（hicolor/包名未进树才动 linux gulpfile，见父 P3）。即使改了也**不**关 D18 原文。
 6. D18 / D20（[deferred-gaps](../../progress/deferred-gaps.md) **两行**）/ D12 **不得**随本切片闭合。
 7. WT 池 dest **只有一份**（§2 表）。证据须同时记录 dest 产出 SHA（复用 D388 dest 时为 `3b4cc89f6e53f14935d8396e7061c11fc74907df`）**与**跑 prepare/build 的包装树 HEAD。复用允许 dest SHA ≠ 当前 prepare HEAD，但必须能证明 dest 身份（asar + SHA 入证），不是只 `test -x`。禁止拿别的槽 `.build` 勾 checkbox。
-8. 规则 16 Approve with changes 已并入本切片合同；实施 **blocked**（§4 B sysroot；retry 2 同 URL `TimeoutError`）。不自宣裸 Approve。
+8. 规则 16 Approve with changes 已并入本切片合同；实施 **blocked**（§4 B sysroot；retry 3 同 URL `TimeoutError`）。不自宣裸 Approve。
 
 ## 4. 冻结命令（实施时原样跑；本方案 tick **不跑**）
 
@@ -180,9 +180,9 @@ done
 
 - [x] dest 身份锁：`test -x "$PRODUCT/universe-agent-studio"` **且** `test -f "$PRODUCT/resources/app/node_modules.asar"` 都绿则**未**再跑 `vscode-linux-x64`；半残 / 他槽残留不得当仍活；仅缺失或身份锁失败才重 gulp 且 exit 0
 - [x] dest 独占 + 双 SHA 入证：仅 merge 槽；WT 池 dest 一份；证据记 dest 产出 SHA（复用 D388 dest = `3b4cc89f6e53f14935d8396e7061c11fc74907df`）**与**跑 prepare/build 的 HEAD（允许 dest SHA ≠ HEAD）
-- [ ] `npm run gulp vscode-linux-x64-prepare-deb` exit 0 — **两次 exit 1**（失败诚实表 **sysroot**；retry 2 同红，未假绿）
-- [ ] 八档 hicolor **进树**（`NxN` 八条 `test -f`；`hicolor/<N>/` 不算）— **未跑**（B 两次红）
-- [ ] `npm run gulp vscode-linux-x64-build-deb` exit 0 — **未跑**（B 两次红）
+- [ ] `npm run gulp vscode-linux-x64-prepare-deb` exit 0 — **三次 exit 1**（失败诚实表 **sysroot**；retry 3 同红，未假绿）
+- [ ] 八档 hicolor **进树**（`NxN` 八条 `test -f`；`hicolor/<N>/` 不算）— **未跑**（B 三次红）
+- [ ] `npm run gulp vscode-linux-x64-build-deb` exit 0 — **未跑**（B 三次红）
 - [ ] `.build/linux/deb/amd64/deb/` 有 `.deb`；`dpkg-deb -c` 按 `for sz in 16 24 32 48 64 128 256 512` **逐档**断言同一八条路径，缺一 `exit 1`；证据只写 **Linux deb 进包**（本切片唯一 in-package 断言；禁止单条 `rg` 交替正则）— **未跑**（无 `.deb`）
 - [x] 证据目录已记命令 / 路径 / asar / dest 产出 SHA / 失败诚实（若红）/ 包装树 HEAD SHA；未提交产物 — [d389-packaging-p3-linux-deb-evidence](../../progress/d389-packaging-p3-linux-deb-evidence.md)
 - [x] **N/A** dep-lists：未到硬比对、未改 `dep-lists.ts` / `gulpfile.vscode.linux.ts`。**即使改了也不关 D18 原文**
@@ -209,12 +209,12 @@ done
 
 **方案：** dest 身份锁与进包八档硬计数已写入 §3.3 / §4 / §5 / §6。规则 16 **Approve with changes** 已并入（进包硬计数 + dest 身份锁）。不自宣裸 Approve。
 
-**实施（本 tick + retry 2）：** dest 身份锁绿，跳过 A（retry 2 复测仍绿）。B `prepare-deb` **两次 exit 1**。失败诚实表行 = **sysroot**（`install-sysroot.ts` `fetchUrl` GitHub asset `354882747` `TimeoutError`；retry 2 同 URL / 11 attempts / 5.68 min）。C/D/E 未跑（不假绿）。§5 未齐 → **不关 D389**。仍不得关 D18/D20（两行）/D12。未发明镜像。未改 `install-sysroot.ts` / gulp / `dep-lists.ts`。未提交产物。不假绿 leftover `.build`。
+**实施（本 tick + retry 2 + retry 3）：** dest 身份锁绿，跳过 A（retry 2 / retry 3 复测仍绿）。B `prepare-deb` **三次 exit 1**。失败诚实表行 = **sysroot**（`install-sysroot.ts` `fetchUrl` GitHub asset `354882747` `TimeoutError`；retry 3 同 URL / 11 attempts / 5.7 min）。C/D/E 未跑（不假绿）。§5 未齐 → **不关 D389**。仍不得关 D18/D20（两行）/D12。未发明镜像。未改 `install-sysroot.ts` / gulp / `dep-lists.ts`。未提交产物。不假绿 leftover `.build`。
 
 ## 8. 开放项
 
-- 规则 16 **Approve with changes** 已并入进包硬计数 + dest 身份锁。实施 **blocked** 于 B sysroot（retry 2 同红）。不自宣裸 Approve。不再「待审」。
-- dest 身份锁已重测（`test -x` **且** asar）都绿 → 跳过 A；retry 2 后再测仍绿。DEST_SHA=`3b4cc89f6e53f14935d8396e7061c11fc74907df`；PREPARE_HEAD=`45185dd756ffab94b52c8869b374ce3e7faecea9`。
+- 规则 16 **Approve with changes** 已并入进包硬计数 + dest 身份锁。实施 **blocked** 于 B sysroot（retry 3 同红）。不自宣裸 Approve。不再「待审」。
+- dest 身份锁已重测（`test -x` **且** asar）都绿 → 跳过 A；retry 2 / retry 3 后再测仍绿。DEST_SHA=`3b4cc89f6e53f14935d8396e7061c11fc74907df`；PREPARE_HEAD（retry 3）=`442b5457e39e563e4d8c2fce0a46b5d20bf44df6`。
 - 「不关 D20」对着 deferred-gaps **两行** D20（均 open、均 CS-6 Settings 300px 活窗目视）。不是 deb 行。两行都不关。
 - 「不关 D18」对着 **原文**三平台安装包行（open）。本切片即使 Linux deb 进包绿，也只关 **D389**，不改写、不闭合 D18。
 - dest 路径见 §2；禁止只对比 A vs 主仓就当「不撞」。

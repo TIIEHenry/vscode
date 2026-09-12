@@ -4,23 +4,24 @@ type: progress
 status: in_progress
 phase: packaging
 updated: 2026-09-12
-summary: "dest 身份锁绿、未再 gulp 桌面包；prepare-deb 两次 exit 1（同 GitHub sysroot TimeoutError）。未进树、未成包。未关 D18/D20/D12。"
+summary: "dest 身份锁绿、未再 gulp 桌面包；prepare-deb 三次 exit 1（同 GitHub sysroot TimeoutError）。未进树、未成包。未关 D18/D20/D12。"
 ---
 
 # D389 无窗 Linux-deb 机器断言证据
 
 > **切片：** [d389-packaging-p3-linux-deb-machine](../roadmap/active/d389-packaging-p3-linux-deb-machine.md)  
 > **包装树：** `/home/clarence/Projects/Agents/vscode-WorkTrees/merge`  
-> **PREPARE_HEAD：** `45185dd756ffab94b52c8869b374ce3e7faecea9`（`git rev-parse HEAD`；`== origin/agent-ide`；未 commit）  
+> **PREPARE_HEAD（retry 3）：** `442b5457e39e563e4d8c2fce0a46b5d20bf44df6`（`git rev-parse HEAD`；`== origin/agent-ide`；blocker 证据已合入；本 wake **未** commit）  
+> **PREPARE_HEAD（首两败）：** `45185dd756ffab94b52c8869b374ce3e7faecea9`  
 > **DEST_SHA：** `3b4cc89f6e53f14935d8396e7061c11fc74907df`（D388 包装树写出 dest；复用允许 ≠ PREPARE_HEAD）  
 > **dest 锁：** 仅 merge 槽；WT 池 dest = `/home/clarence/Projects/Agents/vscode-WorkTrees/VSCode-linux-x64`  
-> **裁定：** **blocker。** dest 身份锁绿 → **未**跑 `gulp vscode-linux-x64`。`prepare-deb` **两次** **exit 1**（首败保留；retry 2 同 URL / 同 `TimeoutError`）。失败诚实表行 = **sysroot**（`install-sysroot.ts` `fetchUrl` GitHub asset `TimeoutError`）。未跑 C/D/E。未改 `dep-lists.ts` / `gulpfile.vscode.linux.ts` / `install-sysroot.ts`。未发明镜像 / 代理。未关 D18 / D20（两行）/ D12。未启动产物。未提交 dest / `.deb`。
+> **裁定：** **blocker。** dest 身份锁绿 → **未**跑 `gulp vscode-linux-x64`。`prepare-deb` **三次** **exit 1**（首两败保留；retry 3 同 URL / 同 `TimeoutError`）。失败诚实表行 = **sysroot**（`install-sysroot.ts` `fetchUrl` GitHub asset `TimeoutError`）。未跑 C/D/E。未改 `dep-lists.ts` / `gulpfile.vscode.linux.ts` / `install-sysroot.ts`。未发明镜像 / 代理。未关 D18 / D20（两行）/ D12。未启动产物。未提交 dest / `.deb`。
 
 ## Current facts
 
 | 项 | 结论 |
 |:---|:-----|
-| 包装树 HEAD（PREPARE_HEAD） | `45185dd756ffab94b52c8869b374ce3e7faecea9` |
+| 包装树 HEAD（PREPARE_HEAD） | retry 3：`442b5457e39e563e4d8c2fce0a46b5d20bf44df6`；首两败：`45185dd756ffab94b52c8869b374ce3e7faecea9` |
 | dest 产出 SHA（DEST_SHA） | `3b4cc89f6e53f14935d8396e7061c11fc74907df`（D388） |
 | DEST_SHA ≠ PREPARE_HEAD | **允许**（合同：复用 dest） |
 | `$PRODUCT` | `/home/clarence/Projects/Agents/vscode-WorkTrees/VSCode-linux-x64` |
@@ -28,17 +29,17 @@ summary: "dest 身份锁绿、未再 gulp 桌面包；prepare-deb 两次 exit 1�
 | `test -f "$PRODUCT/resources/app/node_modules.asar"` | **绿**（91339671 字节；mtime `2026-09-12 11:38:53 +08`，对齐 D388 第二次 gulp） |
 | dest 身份锁后是否再 gulp 桌面包 | **否**（`FORBID gulp vscode-linux-x64`） |
 | 准备前 leftover `.build/linux/deb` | **无** |
-| `npm run gulp vscode-linux-x64-prepare-deb` | **两次 exit 1**。首败 2026-09-12T12:00:35 → 12:06:33 +08（5.95 min）；retry 2 12:09:52 → 12:15:34 +08（5.68 min） |
+| `npm run gulp vscode-linux-x64-prepare-deb` | **三次 exit 1**。首败 2026-09-12T12:00:35 → 12:06:33 +08（5.95 min）；retry 2 12:09:52 → 12:15:34 +08（5.68 min）；retry 3 13:00:50 → 13:06:43 +08（5.7 min） |
 | 失败诚实表行 | **sysroot**（prepare-deb / getDependencies / sysroot） |
-| 八档 hicolor 进树 | **未跑**（B 红） |
-| `npm run gulp vscode-linux-x64-build-deb` | **未跑**（B 红） |
+| 八档 hicolor 进树 | **未跑**（B 三次红） |
+| `npm run gulp vscode-linux-x64-build-deb` | **未跑**（B 三次红） |
 | `.deb` 路径 | **无**（`.build/linux/deb` 在失败后不存在；clean-amd64 已 rimraf，未写出树） |
-| 八档 Linux deb 进包 | **未跑**（B 红） |
+| 八档 Linux deb 进包 | **未跑**（B 三次红） |
 | `dep-lists.ts` | **未改**（未到硬比对） |
 | `fakeroot` / `dpkg-deb` | **在 PATH**（未用到） |
 | `rpmbuild` / `snapcraft` | **MISSING**（未发明） |
 | D18 / D20（两行）/ D12 | **仍 open** |
-| D389 | **仍 planned**（§5 未齐，不得关） |
+| D389 | **仍 planned**（§5 未齐；三次 B 红，不得关） |
 
 ---
 
@@ -61,14 +62,15 @@ fi
 |:-----|:---|
 | `$REPO` | `/home/clarence/Projects/Agents/vscode-WorkTrees/merge` |
 | `$PRODUCT` | `/home/clarence/Projects/Agents/vscode-WorkTrees/VSCode-linux-x64` |
-| `PREPARE_HEAD` | `45185dd756ffab94b52c8869b374ce3e7faecea9` |
+| `PREPARE_HEAD`（首两败） | `45185dd756ffab94b52c8869b374ce3e7faecea9` |
+| `PREPARE_HEAD`（retry 3） | `442b5457e39e563e4d8c2fce0a46b5d20bf44df6` |
 | `DEST_SHA` | `3b4cc89f6e53f14935d8396e7061c11fc74907df` |
 | `test -x` 二进制 | **绿** |
 | `test -f` asar | **绿** |
 | asar 路径 | `/home/clarence/Projects/Agents/vscode-WorkTrees/VSCode-linux-x64/resources/app/node_modules.asar` |
 | 桌面包 gulp | **未跑** |
 
-失败后复测 dest 仍活：asar mtime 仍为 `2026-09-12 11:38:53 +08`（D388 写出，本 tick **未** `rimraf` dest）。retry 2 后再测：`test -x` / asar 仍绿，asar mtime 未变。
+失败后复测 dest 仍活：asar mtime 仍为 `2026-09-12 11:38:53 +08`（D388 写出，本 tick **未** `rimraf` dest）。retry 2 / retry 3 后再测：`test -x` / asar 仍绿，asar mtime 未变。
 
 ---
 
@@ -153,11 +155,54 @@ retry 2 **未**再拉 Azure Chromium sysroot（`/tmp/debian_bullseye_amd64-sysro
 
 ---
 
+## B retry 3（2026-09-12；同冻结命令；未改超时 / 镜像 / gulp）
+
+```bash
+npm run gulp vscode-linux-x64-prepare-deb
+```
+
+| 字段 | 值 |
+|:-----|:---|
+| 开始 | `2026-09-12T13:00:50+08:00`（gulp 任务 `13:01:00`） |
+| 结束 | `2026-09-12T13:06:43+08:00` |
+| 时长 | **5.7 min** |
+| exit | **1** |
+| 任务 | `'vscode-linux-x64-prepare-deb' errored after 5.7 min` |
+| 失败步 | `getVSCodeSysroot` → `fetchUrl`（`build/linux/debian/install-sysroot.ts`） |
+| URL | `https://api.github.com/repos/microsoft/vscode-linux-build-agent/releases/assets/354882747` |
+| asset | `x86_64-linux-gnu-glibc-2.28-gcc-10.5.0.tar.gz`（`x86_64-linux-gnu`） |
+| dest 目录 | `/tmp/vscode-amd64-sysroot`（仍空；**无** `.stamp`） |
+| attempts | `Fetching failed: TimeoutError` **10 次** onRetry + 终局 throw（`download.ts` 默认 `timeout=30_000`、`fetchUrl` `attempts: 11`） |
+| 失败诚实表行 | **sysroot**：环境不足 + **prepare-deb / getDependencies / sysroot** |
+| 包装树 HEAD | `442b5457e39e563e4d8c2fce0a46b5d20bf44df6` |
+
+**日志（原文）：**
+
+```
+[13:01:00] Starting 'vscode-linux-x64-prepare-deb'...
+[13:01:00] Starting clean-amd64 ...
+[13:01:00] Finished clean-amd64 after 1 ms
+[13:01:00] Starting vscode-linux-x64-prepare-deb ...
+Fetching x86_64-linux-gnu-glibc-2.28-gcc-10.5.0.tar.gz for x86_64-linux-gnu
+Installing amd64 root image: /tmp/vscode-amd64-sysroot
+Found asset x86_64-linux-gnu-glibc-2.28-gcc-10.5.0.tar.gz @ https://api.github.com/repos/microsoft/vscode-linux-build-agent/releases/assets/354882747.
+Fetching failed: TimeoutError: The operation was aborted due to timeout
+（上句共 10 次 onRetry）
+[13:06:43] 'vscode-linux-x64-prepare-deb' errored after 5.7 min
+[13:06:43] TimeoutError: The operation was aborted due to timeout
+```
+
+retry 3 **未**再拉 Azure Chromium sysroot（`/tmp/debian_bullseye_amd64-sysroot/.stamp` 仍为首次 12:00 写出）。父 probe 仅证 GitHub API asset `354882747` HTTP 200 ~1.5s，**不是** tarball 下载。未改超时、未发明镜像 / 代理、未设 `GITHUB_TOKEN`、未改 `install-sysroot.ts` / gulp / `dep-lists.ts`。C/D/E **未跑**（不假绿）。
+
+仓外日志碎片：`/tmp/d389-prepare-deb-retry3-start.txt` / `/tmp/d389-prepare-deb-retry3-exit.txt`（`PREPARE_DEB_EXIT=1`）/ `/tmp/d389-prepare-deb-retry3-end.txt` / `/tmp/d389-prepare-deb-retry3.log`。
+
+---
+
 ## 失败诚实表（本 tick 记账）
 
 | 失败步 | 本 tick | 记录 |
 |:-------|:--------|:-----|
-| **sysroot 拉失败**（`install-sysroot.ts`：GitHub asset / checksum / `curl` `sysroots.json` / tarball 校验 / `tar` 解压） | **命中（两次）** | 环境不足 + **prepare-deb / getDependencies / sysroot**。具体：`getVSCodeSysroot` 拉 `x86_64-linux-gnu-glibc-2.28-gcc-10.5.0.tar.gz`（release tag `v20260212-405735`，asset `354882747` @ `https://api.github.com/repos/microsoft/vscode-linux-build-agent/releases/assets/354882747`）`TimeoutError`。首败 11 attempts / 5.95 min；retry 2 同 URL / 11 attempts / 5.68 min |
+| **sysroot 拉失败**（`install-sysroot.ts`：GitHub asset / checksum / `curl` `sysroots.json` / tarball 校验 / `tar` 解压） | **命中（三次）** | 环境不足 + **prepare-deb / getDependencies / sysroot**。具体：`getVSCodeSysroot` 拉 `x86_64-linux-gnu-glibc-2.28-gcc-10.5.0.tar.gz`（release tag `v20260212-405735`，asset `354882747` @ `https://api.github.com/repos/microsoft/vscode-linux-build-agent/releases/assets/354882747`）`TimeoutError`。首败 11 attempts / 5.95 min；retry 2 同 URL / 11 attempts / 5.68 min；retry 3 同 URL / 11 attempts / 5.7 min |
 | `dpkg-shlibdeps` 红 | 未到 | — |
 | `find` native `.node` 空返回 | 未到 | 不得把「prepare 未完成」当 native 扫描已过 |
 | dep-lists 硬比对 | 未到 | **未改** `dep-lists.ts` |
