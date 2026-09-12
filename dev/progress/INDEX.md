@@ -3,7 +3,7 @@ title: "进度索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-05
+updated: 2026-09-12
 summary: "行动层进度入口；调试引擎指南在 docs/guides"
 ---
 
@@ -17,6 +17,6 @@ summary: "行动层进度入口；调试引擎指南在 docs/guides"
 | [health-gates.md](health-gates.md) | Loop 集成门禁命令（本仓） |
 | [deferred-gaps.md](deferred-gaps.md) | Loop 延期缺口 SSOT |
 | [research-queue.md](research-queue.md) | Loop 待研究队列 SSOT |
-| [packaging-p0-evidence.md](packaging-p0-evidence.md) | packaging-and-release §4.0–4.2 只读证实（工位 B / loop/B） |
+| [packaging-p0-evidence.md](packaging-p0-evidence.md) | packaging-and-release §4.0–4.2 只读证实（工位 B / loop/B）；无窗 P1 子集见 [D388](../roadmap/active/d388-packaging-p1-asar-machine.md) |
 | [worktree-pool.md](worktree-pool.md) | 仓外 `vscode-WorkTrees` 工位表 |
 | [钉死引擎调试](../../docs/guides/debug-engine.md) | 仓外 HeadlessServer，不是 Loop 槽 |

@@ -3,7 +3,7 @@ title: "打包 P0 只读证实（packaging-and-release §4.0–4.2）"
 type: progress
 status: in_progress
 phase: packaging
-updated: 2026-09-05
+updated: 2026-09-12
 summary: "工位 B / loop/B：品牌源与 grpc 开发态证据已采；§4.3 gulp 未跑（P1）；22×22 hicolor 缺失且 I3a 生成器不含该档"
 ---
 
@@ -181,6 +181,6 @@ src/vs/platform/universeAgent/node/universeAgentChannel.ts
 
 ## 未做（P1+）
 
-- `npm run gulp vscode-linux-x64`（§4.3）
-- 产物 asar 扫描、隔离 profile 启动、Settings 300px（§5 / D20）
-- Web/REH 排除面（P2）
+- `npm run gulp vscode-linux-x64`（§4.3）— 无窗子集合同已拆到 [D388](../roadmap/active/d388-packaging-p1-asar-machine.md)（`planned`，**未实施**）
+- 产物 asar 扫描（归 D388）；隔离 profile 启动、Settings 300px（§5 / D20，**不**在 D388）
+- Web/REH 排除面全量产物（P2）；D388 只锁两份 `remote/**/package.json` 静态检查
