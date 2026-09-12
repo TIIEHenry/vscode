@@ -12,6 +12,7 @@ import { type SessionViewSnapshot, type TimelineItemSummary, emptySessionViewSna
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import type { IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { SourcesReviewAttributionService } from '../../browser/sourcesReviewAttributionService.js';
@@ -70,6 +71,8 @@ suite('Sources - review attribution', () => {
 		activeSessionId?: string;
 		workDir?: string;
 		connected?: boolean;
+		pairingPending?: boolean;
+		looksLive?: boolean;
 		snapshot?: SessionViewSnapshot;
 		attribution?: ReadonlyMap<string, IReviewItemAttribution>;
 		acquireSessionView?: () => IConversationSessionViewLease;
@@ -81,13 +84,16 @@ suite('Sources - review attribution', () => {
 		const workspaceRoot = workspaceRootFor(testContext);
 		const workDirValue = options.workDir ?? workspaceRoot.fsPath;
 		const connected = options.connected ?? true;
+		const pairingPending = options.pairingPending ?? false;
+		const looksLive = options.looksLive ?? false;
 
 		const connection = {
-			isEngineConnected: () => connected,
+			isEngineConnected: () => looksLive ? connected : (connected && !pairingPending),
+			getConnectionPhase: () => ({ kind: (connected || pairingPending) ? 'connected' as const : 'disconnected' as const, path: 'direct' as const }),
 			getConnectionSnapshot: () => ({
 				transport: connected ? 'ok' : 'idle',
 				workDir: workDirValue,
-				pairingPending: false,
+				pairingPending,
 				channelAlive: connected,
 				capabilities: {} as never,
 			}),
@@ -250,6 +256,129 @@ suite('Sources - review attribution', () => {
 		const chipMap = service.buildChipMapForEntries([{ resource }]);
 		assert.strictEqual(chipMap.size, 0);
 		assert.strictEqual(service.isAttributionEnabled(), false);
+	});
+
+	test('leftover-looks-live first-pull pairing without leftover does not enable connected-engine attribution', function () {
+		const workspaceRoot = workspaceRootFor(this);
+		const workDir = '/other-workspace';
+		const mutationEmitter = store.add(new Emitter<IFileMutationRecord>());
+		const connectionChangeEmitter = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
+		const pairingPending = true;
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const, path: 'direct' as const }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				workDir,
+				pairingPending,
+				channelAlive: true,
+				capabilities: {} as never,
+			}),
+			onDidFileMutation: mutationEmitter.event,
+			onDidTurnSettle: Event.None,
+			onDidChangeConnection: connectionChangeEmitter.event,
+		} as unknown as IUniverseAgentConnection;
+
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		const lease: IConversationSessionViewLease = {
+			sessionId: 'session-1',
+			snapshot: makeSnapshot([]),
+			attribution: makeAttribution([]),
+			details: new Map(),
+			onDidApplyFrame: Event.None,
+			post: async () => ({ accepted: false, reason: 'no_such_session' }),
+			requestResync: () => undefined,
+			dispose: () => undefined,
+		};
+		const roster = {
+			getActiveSessionId: () => 'session-1',
+			onDidChangeActiveSession: Event.None,
+			acquireSessionView: () => lease,
+		} as unknown as IConversationRosterService;
+		const workspace = {
+			getWorkspace: () => ({ folders: [{ uri: workspaceRoot, name: 'project', index: 0, toResource: () => workspaceRoot }] }),
+		} as unknown as IWorkspaceContextService;
+
+		const service = store.add(new SourcesReviewAttributionService(connection, roster, workspace, stubNotification()));
+		assert.strictEqual(service.isAttributionEnabled(), false);
+		assert.strictEqual(service.getAttributionHeaderSuffix(), undefined);
+		assert.strictEqual(service.getWorkDirMismatchNote(), undefined);
+	});
+
+	test('leftover records plus prior everConnected keep connected-engine attribution while pairing-hold', function () {
+		const workspaceRoot = workspaceRootFor(this);
+		const workDir = workspaceRoot.fsPath;
+		const mutationEmitter = store.add(new Emitter<IFileMutationRecord>());
+		const connectionChangeEmitter = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
+		let pairingPending = false;
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const, path: 'direct' as const }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				workDir,
+				pairingPending,
+				channelAlive: true,
+				capabilities: {} as never,
+			}),
+			onDidFileMutation: mutationEmitter.event,
+			onDidTurnSettle: Event.None,
+			onDidChangeConnection: connectionChangeEmitter.event,
+		} as unknown as IUniverseAgentConnection;
+
+		const lease: IConversationSessionViewLease = {
+			sessionId: 'session-1',
+			snapshot: makeSnapshot([]),
+			attribution: makeAttribution([]),
+			details: new Map(),
+			onDidApplyFrame: Event.None,
+			post: async () => ({ accepted: false, reason: 'no_such_session' }),
+			requestResync: () => undefined,
+			dispose: () => undefined,
+		};
+		const roster = {
+			getActiveSessionId: () => 'session-1',
+			onDidChangeActiveSession: Event.None,
+			acquireSessionView: () => lease,
+		} as unknown as IConversationRosterService;
+		const workspace = {
+			getWorkspace: () => ({ folders: [{ uri: workspaceRoot, name: 'project', index: 0, toResource: () => workspaceRoot }] }),
+		} as unknown as IWorkspaceContextService;
+
+		const service = store.add(new SourcesReviewAttributionService(connection, roster, workspace, stubNotification()));
+		mutationEmitter.fire(makeRecord({ path: 'src/a.ts', toolCallId: 'tc-1', turnId: 'turn-1' }));
+		assert.strictEqual(service.isAttributionEnabled(), true);
+		assert.match(service.getAttributionHeaderSuffix() ?? '', /connected engine/);
+
+		pairingPending = true;
+		connectionChangeEmitter.fire(connection.getConnectionSnapshot());
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(service.isAttributionEnabled(), true, 'prior everConnected + leftover records KEEP while pairing-hold');
+		assert.match(service.getAttributionHeaderSuffix() ?? '', /connected engine/);
+	});
+
+	test('true connect without pairing enables attribution when records exist', function () {
+		const service = createService(this, {
+			connected: true,
+			pairingPending: false,
+			records: [makeRecord({ path: 'src/a.ts', toolCallId: 'tc-1', turnId: 'turn-1' })],
+		});
+		assert.strictEqual(service.isAttributionEnabled(), true);
+		assert.match(service.getAttributionHeaderSuffix() ?? '', /connected engine/);
+	});
+
+	test('true disconnect first-pull does not invent everConnected attribution', function () {
+		const service = createService(this, {
+			connected: false,
+			pairingPending: false,
+			records: [],
+		});
+		assert.strictEqual(service.isAttributionEnabled(), false);
+		assert.strictEqual(service.getAttributionHeaderSuffix(), undefined);
 	});
 
 	test('resolveRevealItemId returns item id or undefined silently', () => {
