@@ -699,6 +699,18 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private async loadSkillBody(skill: UniverseAgentSkillSummary): Promise<void> {
+		// D376 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connection)) {
+			const hasLeftoverBody = !!(this.loadedBodyText || this.bodyInput.value);
+			if (hasLeftoverBody) {
+				this.showBodyStatus(getEngineSectionDisconnectedCopy());
+				return;
+			}
+			if (!this.bodyDirty) {
+				this.clearBodyEditor();
+			}
+			return;
+		}
 		if (!canShowCatalogRows(this.mode) || !this.connection.isEngineConnected()) {
 			// Keep leftover body after a live paint (D265; D263/D264).
 			// failed/loading must not unload leftover text; first-pull empty still clears.
@@ -728,10 +740,15 @@ export class EngineSkillsSection extends Disposable {
 		this.showBodyStatus(getCatalogListLoadingCopy());
 		try {
 			const info = await this.connection.getSkillInfo({ skillName: skill.name });
-			if (generation !== this.bodyLoadGeneration
+			if (generation !== this.bodyLoadGeneration || this.selectedSkill?.name !== skill.name) {
+				return;
+			}
+			if (isConversationPairingHold(this.connection)
 				|| !canShowCatalogRows(this.mode)
-				|| !this.connection.isEngineConnected()
-				|| this.selectedSkill?.name !== skill.name) {
+				|| !this.connection.isEngineConnected()) {
+				if (isConversationPairingHold(this.connection) && hasLeftoverBody) {
+					this.showBodyStatus(getEngineSectionDisconnectedCopy());
+				}
 				return;
 			}
 			this.loadedBodySource = info.source;
