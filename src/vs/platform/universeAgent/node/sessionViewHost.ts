@@ -515,6 +515,9 @@ export class SessionViewHost extends Disposable {
 	}
 
 	private scheduleAgentTreeRefresh(sessionId: string, immediate = false): void {
+		if (this.connection.getConnectionSnapshot().pairingPending) {
+			return;
+		}
 		if (!this.connection.isEngineConnected() || this.host.isAgentTreeUnsupported()) {
 			return;
 		}
