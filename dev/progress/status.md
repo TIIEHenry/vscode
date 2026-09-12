@@ -4,14 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-12
-summary: "D410/D411 已合入；MERGE_SHA 0ae05e427f9；compile-client 0；A/B idle-ready；D412 未派；下号 D413；未升 PRD-008"
+summary: "D410/D411 已合入；MERGE_SHA 4a1bac55c1b 已 push；compile-client 0；A/B idle；D412 未派；下号 D413；未升 PRD-008"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。产品状态 → [traceability](../../docs/product/traceability.md)（生成列）；方案状态 → [plans INDEX](../plans/INDEX.md)（生成列）；延期 → [deferred-gaps](deferred-gaps.md)。历史槽位 catalog 流水 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
 
-### 已合入（`MERGE_SHA`=`0ae05e427f9`；已 push `origin/agent-ide`；compile-client 0）
+### 已合入（`MERGE_SHA`=`4a1bac55c1b`；merge `parked`；已 push `origin/agent-ide`；compile-client 0）
 | 切片 | 提交 / 落点 |
 |:-----|:------------|
 | **GFS-1** | `32f71812` / `32198d0b` — [giant-file-split](../plans/giant-file-split.md)：`grpcClient` mapper 特征测 + facade / mappers / calls 拆分 |
@@ -42,10 +42,10 @@ summary: "D410/D411 已合入；MERGE_SHA 0ae05e427f9；compile-client 0；A/B i
 ### 进行中（2026-09-12 · 叠 tick 当一轮）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
-| **A** | — | `idle`；D410 已合 `9974bfa2822`；待父 cascade |
-| **B** | — | `idle`；D411 已合 `0ae05e427f9`；待父 cascade |
+| **A** | — | `idle`；HEAD == MERGE_SHA；D410=`9974bfa2822` |
+| **B** | — | `idle`；HEAD == MERGE_SHA；D411=`0ae05e427f9` |
 | **C** | — | `idle`；脏 `dev/loop` 勿 add |
-| **D** | — | `idle`；已 ff `03aef120e5a`；本波未占 |
+| **D** | — | `idle`；HEAD == MERGE_SHA；本波未占 |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 
 <details>
@@ -183,18 +183,18 @@ summary: "D410/D411 已合入；MERGE_SHA 0ae05e427f9；compile-client 0；A/B i
 ## 工位表（P0 盘点 · 2026-09-12 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `0ae05e427f9` | 干净 | 0 | compile-client 0；A/B idle-ready |
-| A | `vscode-WorkTrees/A` | `loop/A` | `f4acb938092` | 干净 | 0 | `idle`；待父 cascade |
-| B | `vscode-WorkTrees/B` | `loop/B` | `cf5a51c1eb7` | 干净 | 0 | `idle`；待父 cascade |
-| C | `vscode-WorkTrees/C` | `loop/C` | `74f36dbacdf` | 未提交 `dev/loop` | 0 | `idle`；跳过 ff-only；勿 add |
-| D | `vscode-WorkTrees/D` | `loop/D` | `03aef120e5a` | 干净 | 0 | `idle`；已 cascade |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `4a1bac55c1b` | 干净 | 0 | `parked`；已 push `origin/agent-ide`；compile-client 0 |
+| A | `vscode-WorkTrees/A` | `loop/A` | `4a1bac55c1b` | 干净 | 0 | `idle`；HEAD == MERGE_SHA |
+| B | `vscode-WorkTrees/B` | `loop/B` | `4a1bac55c1b` | 干净 | 0 | `idle`；HEAD == MERGE_SHA |
+| C | `vscode-WorkTrees/C` | `loop/C` | `74f36dbacdf` | 未提交 `dev/loop` | 0 | `idle`；跳过 cascade；勿 add |
+| D | `vscode-WorkTrees/D` | `loop/D` | `4a1bac55c1b` | 干净 | 0 | `idle`；HEAD == MERGE_SHA |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked` leftover；勿 `checkout -B` |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `3c81973bcf5` | status/gaps/debug-engine + `.idea` | 0 | 请自行对齐 `origin/agent-ide` |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `3c81973bcf5` | status/gaps/debug-engine + `.idea` | 0 | 请自行对齐 `origin/agent-ide`（loop 不代做） |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
 | **引擎 store 迁移卡死** | [D26](deferred-gaps.md) 病因已改口（2026-09-09）：`user_version=0` + 表已建 ⇒ 迁移抛错 ⇒ 库永久打不开 ⇒ `LookupFailed` fail-closed deny ⇒ `ALREADY_EXISTS`（**设计内拒绝**）。根因与交接见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md)；D25 同源。**禁改引擎仓代码**；原闭合条件「Create 先写 meta」已撤回；不要再清 store |
-| **loop 切片** | D410=`9974bfa2822`、D411=`0ae05e427f9` 已合；compile-client 0。A/B idle-ready 待父 cascade。**D412** 未派。**D405** 手测仍开。不关 D8/D16/D147。下号 **D413**。未升 PRD-008。 |
+| **loop 切片** | MERGE_SHA=`4a1bac55c1b` 已 push；compile-client 0。D410=`9974bfa2822`、D411=`0ae05e427f9` 切片已合。A/B/D `idle`。**D412** 未派。**D405** 手测仍开。不关 D8/D16/D147。下号 **D413**。未升 PRD-008。edit 请自行对齐 `origin/agent-ide`（loop 不代做）。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
