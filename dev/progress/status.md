@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-12
-summary: "已关仓 D370–D372 compile-client 0。D8/D16/D147 仍开。"
+summary: "已关仓 D370–D372 compile-client 0。已收 D374（未提交）。D8/D16/D147 仍开。"
 ---
 
 # Development Progress
@@ -46,6 +46,8 @@ summary: "已关仓 D370–D372 compile-client 0。D8/D16/D147 仍开。"
 | **B** | `create-snapshot-post-await leftover-looks-live` [D371](deferred-gaps.md) | 已关仓 `34660517c96`；prompt 后 leftover-looks-live 0 createSnapshot |
 | **D** | `plugins-loadInfo leftover-looks-live` [D372](deferred-gaps.md) | 已关仓 `d7781b61708`；loadInfo leftover-looks-live 0 extra |
 | **E** | [composer-fake-chrome](../plans/composer-fake-chrome.md) | leftover 已在库；勿 `checkout -B` |
+
+已收 D374（未提交）：roster leftover-looks-live KEEP-chrome 降 live/syncing、首拉不翻 `wasEverConnected`、pairing-hold 不 advertise。
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
@@ -183,7 +185,7 @@ summary: "已关仓 D370–D372 compile-client 0。D8/D16/D147 仍开。"
 |----|------|------|-----|:--|:------|:---------|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | 本关仓 tip | 干净 | 0 | `parked`；compile-client 0；本账 +1 以远程 tip 为准 |
 | A | `vscode-WorkTrees/A` | `loop/A` | `8ce500447aa` | 干净 | 0 | 已收 D370 |
-| B | `vscode-WorkTrees/B` | `loop/B` | `34660517c96` | 干净 | 0 | 已收 D371 |
+| B | `vscode-WorkTrees/B` | `loop/B` | `17db18ffc2f` | 脏 | 0 | 已收 D374（未提交） |
 | C | `vscode-WorkTrees/C` | `loop/C` | 跟 MERGE_SHA | 未提交 `dev/loop` | 0 | idle；勿 add `dev/loop` |
 | D | `vscode-WorkTrees/D` | `loop/D` | `d7781b61708` | 干净 | 0 | 已收 D372 |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | leftover 已合入 merge；勿 `checkout -B` |
@@ -192,7 +194,7 @@ summary: "已关仓 D370–D372 compile-client 0。D8/D16/D147 仍开。"
 | 项 | 指针 |
 |:---|:-----|
 | **引擎 store 迁移卡死** | [D26](deferred-gaps.md) 病因已改口（2026-09-09）：`user_version=0` + 表已建 ⇒ 迁移抛错 ⇒ 库永久打不开 ⇒ `LookupFailed` fail-closed deny ⇒ `ALREADY_EXISTS`（**设计内拒绝**）。根因与交接见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md)；D25 同源。**禁改引擎仓代码**；原闭合条件「Create 先写 meta」已撤回；不要再清 store |
-| **loop 切片** | [D370](deferred-gaps.md)–[D372](deferred-gaps.md) 已关仓 compile-client 0。下一未占用 ID **D373**。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto；未宣称 leftover-honesty 程序完成 |
+| **loop 切片** | [D370](deferred-gaps.md)–[D372](deferred-gaps.md) 已关仓 compile-client 0。工位 B **已收 D374（未提交）**。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto；未宣称 leftover-honesty 程序完成 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。

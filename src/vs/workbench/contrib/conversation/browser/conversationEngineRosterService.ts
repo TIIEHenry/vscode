@@ -112,6 +112,14 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return isConversationEngineLive(this.uaConnection.getConnectionPhase(), snapshot.pairingPending);
 	}
 
+	/**
+	 * D374 leftover-looks-live: pairing-hold first. `isEngineConnected()===true`
+	 * + pairingPending / `isConversationPairingHold` is not live KEEP-chrome.
+	 */
+	private isEngineLiveChrome(): boolean {
+		return this.isEngineConnected() && !isConversationPairingHold(this.uaConnection);
+	}
+
 	override isEngineSessionReady(): boolean {
 		if (!this.isEngineConnected()) {
 			return true;
@@ -161,7 +169,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	/** Client setting gate for advertising IDE workspace tools to Engine (PRD-026). */
 	shouldAdvertiseClientWorkspaceTools(): boolean {
-		return this.isEngineConnected() && this.workspaceToolsGate.shouldAdvertise();
+		return this.isEngineLiveChrome() && this.workspaceToolsGate.shouldAdvertise();
 	}
 
 	override setEngineConnected(connected: boolean): void {
@@ -171,7 +179,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		this.testEngineConnected = connected;
 		super.setEngineConnected(connected);
 		if (connected) {
-			this.wasEverConnected = true;
+			if (this.isEngineLiveChrome()) {
+				this.wasEverConnected = true;
+			}
 			if (!this.shouldAdvertiseClientWorkspaceTools()) {
 				// Workspace-tool advertisement withheld by ua.client.clientTools.advertiseWorkspaceTools.
 			}
@@ -739,12 +749,13 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	/**
-	 * D293: pairing-hold leftover live/syncing/degraded still says "Session live"
-	 * while writes are closed. Keep literal closed leftover (D288); demote active
-	 * kinds to the existing engine-cache closed chrome.
+	 * D293 / D374: pairing-hold leftover live/syncing/degraded still says
+	 * "Session live" while writes are closed — including leftover-looks-live
+	 * (`isEngineConnected()===true` + pairing-hold). Keep literal closed leftover
+	 * (D288); demote active kinds to the existing engine-cache closed chrome.
 	 */
 	private sessionSyncFromCachedProjection(sync: SyncChrome): SyncChrome {
-		if (this.isEngineConnected() || sync.kind === 'closed' || sync.kind === 'idle') {
+		if (this.isEngineLiveChrome() || sync.kind === 'closed' || sync.kind === 'idle') {
 			return sync;
 		}
 		return {
@@ -1417,7 +1428,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	private onUaConnectionChanged(): void {
 		const connected = this.isEngineConnected();
 		if (connected) {
-			this.wasEverConnected = true;
+			if (this.isEngineLiveChrome()) {
+				this.wasEverConnected = true;
+			}
 			this.testEngineConnected = undefined;
 			super.setEngineConnected(true);
 			void this.refreshEngineCatalog();
