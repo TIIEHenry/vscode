@@ -135,7 +135,7 @@ async function readPackageMain(packageJsonPath) {
 	return main;
 }
 
-function encodeBmp24(width, height, rgba) {
+export function encodeBmp24(width, height, rgba) {
 	const rowSize = Math.floor((width * 3 + 3) / 4) * 4;
 	const pixelSize = rowSize * height;
 	const buf = Buffer.alloc(54 + pixelSize);
@@ -175,7 +175,7 @@ function xpmKey(index, cpp) {
 	return key;
 }
 
-function encodeXpm(width, height, rgba, name) {
+export function encodeXpm(width, height, rgba, name) {
 	const palette = new Map();
 	const order = [];
 	const pixelIdx = new Uint32Array(width * height);
@@ -226,7 +226,7 @@ function encodeXpm(width, height, rgba, name) {
 	return lines.join('\n');
 }
 
-function fillCanvas(width, height, iconRgba, iconSize) {
+export function fillCanvas(width, height, iconRgba, iconSize) {
 	const out = Buffer.alloc(width * height * 4);
 	for (let i = 0; i < width * height; i++) {
 		out[i * 4] = BRAND_BG.r;
