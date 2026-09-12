@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-12
-summary: "D389 实施 blocked：prepare-deb 三次 sysroot TimeoutError（未提交）。dest 身份锁绿。不关 D18/D20/D12。下一 ID D390。"
+summary: "已收 D390 方案（未实施）。D389 仍 planned/blocked。不关 D18/D20/D12。下一 ID D391。"
 ---
 
 # Development Progress
@@ -192,7 +192,7 @@ summary: "D389 实施 blocked：prepare-deb 三次 sysroot TimeoutError（未提
 | 项 | 指针 |
 |:---|:-----|
 | **引擎 store 迁移卡死** | [D26](deferred-gaps.md) 病因已改口（2026-09-09）：`user_version=0` + 表已建 ⇒ 迁移抛错 ⇒ 库永久打不开 ⇒ `LookupFailed` fail-closed deny ⇒ `ALREADY_EXISTS`（**设计内拒绝**）。根因与交接见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md)；D25 同源。**禁改引擎仓代码**；原闭合条件「Create 先写 meta」已撤回；不要再清 store |
-| **loop 切片** | D389 实施 **blocked**（`prepare-deb` **三次** exit 1 / 失败诚实表 **sysroot**；retry 3 同 GitHub asset `354882747` `TimeoutError` 5.7 min；dest 身份锁绿未再 gulp）。证据 [d389-packaging-p3-linux-deb-evidence](d389-packaging-p3-linux-deb-evidence.md)。不关 D18/D20（两行）/D12。下一未占用 ID **D390**。未宣称 leftover-honesty 完成 |
+| **loop 切片** | 已收 [D390](deferred-gaps.md) 方案（未实施）：无窗 `vscode-web` 排除面。[D389](deferred-gaps.md) 仍 planned/blocked（prepare-deb 三次 sysroot）。不关 D18/D20（两行）/D12。下一未占用 ID **D391**。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
