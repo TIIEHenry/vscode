@@ -290,6 +290,12 @@ export class SessionViewHost extends Disposable {
 		if (!binding) {
 			return;
 		}
+		if (this.connection.getConnectionSnapshot().pairingPending) {
+			return;
+		}
+		if (!this.connection.isEngineConnected()) {
+			return;
+		}
 		this.postAndDrain(binding.sessionId as SessionId, { t: 'requestResync', leaseId: binding.leaseId });
 	}
 
@@ -297,6 +303,12 @@ export class SessionViewHost extends Disposable {
 	acknowledge(leaseId: string, ack: ViewFrameAck): void {
 		const binding = this.leases.get(leaseId);
 		if (!binding) {
+			return;
+		}
+		if (this.connection.getConnectionSnapshot().pairingPending) {
+			return;
+		}
+		if (!this.connection.isEngineConnected()) {
 			return;
 		}
 		this.postAndDrain(binding.sessionId as SessionId, {
