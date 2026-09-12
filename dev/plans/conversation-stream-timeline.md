@@ -3,8 +3,8 @@ title: "Conversation 订阅流与时间线增量模型（M6 时间线专章）"
 type: plan
 status: accepted
 phase: M6
-updated: 2026-09-07
-summary: "m6-engine-wave / ADR-003 时间线专章：S1–S6 代码已落；宿主 HistoryFill 按 Actor historyResult 合同分页+demux（不再贴 {cursorSeq,payload}）；F1 宿主 per-lease 动态事件 + 首帧缓冲；G2/G3 上游缺口仍 open（G3：P2a 传输已绑，缺 GetHistory/L2 DetailRef）；compacted 投影 S6 已落（G-CONV-1 已闭）；PRD-008 未升 implemented"
+updated: 2026-09-12
+summary: "m6-engine-wave / ADR-003 时间线专章：S1–S6 代码已落；宿主 HistoryFill 按 Actor historyResult 合同分页+demux；F1 宿主 per-lease 动态事件 + 首帧缓冲；流级关闭后宿主退避重开（G-CORE-2）；G2/G3 上游缺口仍 open；compacted 投影 S6 已落（G-CONV-1 已闭）；PRD-008 未升 implemented"
 ---
 
 # Conversation 订阅流与时间线增量模型
@@ -260,8 +260,9 @@ S3 前**不改**公开形状。**同步点写死：**
 | `syncing` | 订阅中 / HistoryFill / reseed | 徽标「同步中」；时间线保留旧 baseline 可读，不闪空 |
 | `live` | hello 对齐、无 gap | 徽标「已连接」；**唯一**允许该措辞的会话态 |
 | `degraded(reason)` | L2 gap 未补、mailbox 溢出重试、stale 终态 anomaly | 徽标「降级：reason」；输入仍可用（走 outbox） |
-| `closed(reason)` | `session_closed` / `session_purged` / 连接下线且 linger 到期 | 徽标「已断开」；保留 baseline，列顶「显示为断开前快照」；Send **不锁**；不得假装已送达 / 已同步；先试 `enqueueMessageQueueItem`，否则保留 draft + 明确失败；不回填 stub 种子（m6 §6） |
+| `closed(reason)` | `session_closed` / `session_purged` / 连接下线且 linger 到期 / SessionEventStream remote·error 关流 | 徽标「已断开」；保留 baseline，列顶「显示为断开前快照」；Send **不锁**；不得假装已送达 / 已同步；先试 `enqueueMessageQueueItem`，否则保留 draft + 明确失败；不回填 stub 种子（m6 §6）。**连接仍 up 时宿主会自动重试**（退避重开 `connectionUp`，G-CORE-2 闭合前） |
 
+- 流级关闭（`SessionEventStream` remote / error）≠ 连接级翻转：连接仍 up 且仍有 lease 时，宿主按指数退避 `postAndDrain(connectionUp)` 开新 attempt，无需用户切换会话。连接级自动重连不在本切片（见 [D408](../progress/deferred-gaps.md)）。
 - 连接级 StatusBar 芯片 / Engine 页仍按 `isEngineConnected()` 与能力三态（m6 §5、customizations-engine §2）；两层各说各的，**互不代称**。
 - 非预期 `frameId` / `generation` → `requestResync` → 等新 baseline；renderer 不补洞、不重排。
 - 多 chat tab / 对话框 / split（PRD-016）= 同 session 多 lease，共享一条 **session-core** 订阅；最后一个 lease 释放进 linger（默认 30s）。帧出站是宿主 **per-lease** 动态事件（上节 F1），不是渲染端过滤。

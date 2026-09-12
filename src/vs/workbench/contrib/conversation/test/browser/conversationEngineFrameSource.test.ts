@@ -152,7 +152,10 @@ class PostOutcomeMockSessionView implements IUniverseAgentSessionView {
 		return this.acquireLeaseFn(sessionId);
 	}
 
+	whenEngineSessionReadyCalls = 0;
+
 	async whenEngineSessionReady(sessionId: string): Promise<string> {
+		this.whenEngineSessionReadyCalls += 1;
 		return this.whenEngineSessionReadyFn(sessionId);
 	}
 
@@ -314,6 +317,53 @@ suite('ConversationEngineFrameSource post outcome', () => {
 		const lease = store.add(source.acquire('sess-empty-id'));
 		assert.strictEqual(await source.whenLeaseBindReady(lease), false);
 		assert.strictEqual((lease as { boundEngineSessionId?: string }).boundEngineSessionId, '');
+	});
+
+	test('first post after bind reject is no_such_session; second post retries and forwards', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		let failFirst = true;
+		sessionView.whenEngineSessionReadyFn = async sessionId => {
+			if (failFirst) {
+				failFirst = false;
+				throw new Error('transient bind fail');
+			}
+			return sessionId;
+		};
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-rebind'));
+
+		assert.deepStrictEqual(await lease.post({ kind: 'submitInput', text: 'first' }), {
+			accepted: false,
+			reason: 'no_such_session',
+		});
+		assert.strictEqual(sessionView.lastPost, undefined);
+		assert.deepStrictEqual(await lease.post({ kind: 'submitInput', text: 'second' }), {
+			accepted: true,
+			correlation: { id: 'host-corr' },
+		});
+		assert.strictEqual(sessionView.lastPost?.leaseId, 'lease:sess-rebind');
+		assert.deepStrictEqual(sessionView.lastPost?.msg, { kind: 'submitInput', text: 'second' });
+	});
+
+	test('in-flight bind reuses one whenEngineSessionReady call', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		let resolveReady!: (id: string) => void;
+		sessionView.whenEngineSessionReadyFn = () => new Promise<string>(resolve => {
+			resolveReady = resolve;
+		});
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-inflight'));
+
+		const first = lease.post({ kind: 'submitInput', text: 'a' });
+		const second = lease.post({ kind: 'submitInput', text: 'b' });
+		for (let i = 0; i < 20 && sessionView.whenEngineSessionReadyCalls === 0; i++) {
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		}
+		assert.strictEqual(sessionView.whenEngineSessionReadyCalls, 1);
+		resolveReady('engine-sess-inflight');
+		assert.deepStrictEqual(await first, { accepted: true, correlation: { id: 'host-corr' } });
+		assert.deepStrictEqual(await second, { accepted: true, correlation: { id: 'host-corr' } });
+		assert.strictEqual(sessionView.whenEngineSessionReadyCalls, 1);
 	});
 
 	test('acquireLease failure is no_such_session, not silent accepted', async () => {

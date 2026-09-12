@@ -175,7 +175,7 @@ suite('SessionViewHost engine session bind', () => {
 		assert.deepStrictEqual(connection.chatSessionIds, ['session-100']);
 	});
 
-	test('Resume of cached engine id failure is not treated as bind success', async () => {
+	test('Resume of cached engine id failure falls back to Create', async () => {
 		const connection = new BindConnection();
 		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
 			orphanTimeoutMs: 0,
@@ -187,14 +187,18 @@ suite('SessionViewHost engine session bind', () => {
 
 		await connection.disconnect();
 		viewHost.onEngineConnectionChanged();
-		connection['connected'] = true;
+		connection.setEngineConnected(true);
 		connection.resumeSessionResult = { ok: false, message: 'dead shell' };
+		connection.createdEngineId = 'eng-recreated';
 		viewHost.onEngineConnectionChanged();
-		await assert.rejects(
-			() => viewHost.whenEngineSessionReady('local-dead'),
-			(error: unknown) => error instanceof Error && /Resume bound session eng-real failed: dead shell/.test(error.message),
-		);
-		assert.strictEqual(connection.createSessionCalls.length, 1);
+		const engineId = await viewHost.whenEngineSessionReady('local-dead');
+		assert.strictEqual(engineId, 'eng-recreated');
+		assert.strictEqual(connection.createSessionCalls.length, 2);
+		assert.deepStrictEqual(connection.resumeSessionCalls, [
+			{ sessionId: 'local-dead' },
+			{ sessionId: 'eng-real' },
+			{ sessionId: 'local-dead' },
+		]);
 	});
 
 	test('Create ALREADY_EXISTS Resumes listed session_id and does not Create again', async () => {

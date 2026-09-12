@@ -99,11 +99,16 @@ export class TestConnection implements IUniverseAgentConnection {
 	async releaseQueueItemHold() { return { ok: false, error: 'test' }; }
 	async editQueueItem() { return { ok: false, error: 'test' }; }
 	async getHistory(): Promise<UniverseAgentGetHistoryResult> { return { envelopes: [] }; }
+	readonly subscribeCalls: string[] = [];
+	setEngineConnected(value: boolean): void {
+		this.connected = value;
+	}
 	subscribeSessionEventStream(
 		sessionId: string,
 		listener: (event: { payload: unknown }) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	) {
+		this.subscribeCalls.push(sessionId);
 		const list = this.streamListeners.get(sessionId) ?? [];
 		list.push(listener);
 		this.streamListeners.set(sessionId, list);

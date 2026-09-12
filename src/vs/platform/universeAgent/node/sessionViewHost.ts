@@ -89,6 +89,7 @@ type ActiveLease = {
 	readonly sessionId: string;
 	readonly leaseId: ViewLeaseId;
 	readonly sink: ViewFrameSink;
+	readonly owner?: string;
 	emitter: Emitter<IUniverseAgentSessionViewFrameEvent>;
 	readonly pending: IUniverseAgentSessionViewFrameEvent[];
 	hadSubscriber: boolean;
@@ -106,6 +107,16 @@ export type SessionViewHostOptions = {
 	readonly lingerMs?: number;
 	/** Queued chat flush timeout (session-core default 30s). */
 	readonly chatFlushTimeoutMs?: number;
+	/** Actor mailbox capacity (session-core default 256). */
+	readonly mailboxCapacity?: number;
+	/** SessionEventStream reopen backoff base. Default 1000. */
+	readonly reopenBaseMs?: number;
+	/** SessionEventStream reopen backoff cap. Default 30_000. */
+	readonly reopenMaxMs?: number;
+	/** ± ratio applied to reopen delay. `0` disables jitter. Default 0.2. */
+	readonly reopenJitterRatio?: number;
+	readonly setTimeoutFn?: typeof setTimeout;
+	readonly clearTimeoutFn?: typeof clearTimeout;
 };
 
 const DEFAULT_ORPHAN_TIMEOUT_MS = 5000;
@@ -192,6 +203,13 @@ export class SessionViewHost extends Disposable {
 	private readonly timerOwners = new Map<TimerId, string>();
 	private connectionGeneration = 0;
 	private connectionUp = false;
+	private readonly reopenBaseMs: number;
+	private readonly reopenMaxMs: number;
+	private readonly reopenJitterRatio: number;
+	private readonly setTimeoutFn: typeof setTimeout;
+	private readonly clearTimeoutFn: typeof clearTimeout;
+	private readonly reopenTimers = new Map<string, { timer: ReturnType<typeof setTimeout>; attempt: number }>();
+	private readonly reopenAttemptBySession = new Map<string, number>();
 
 	constructor(
 		private readonly connection: IUniverseAgentConnection,
@@ -202,12 +220,18 @@ export class SessionViewHost extends Disposable {
 		this.diagnostics = options.diagnostics ?? createSessionViewDiagnosticsPort();
 		this.orphanTimeoutMs = options.orphanTimeoutMs ?? DEFAULT_ORPHAN_TIMEOUT_MS;
 		this.pendingFrameLimit = options.pendingFrameLimit ?? DEFAULT_PENDING_FRAME_LIMIT;
+		this.reopenBaseMs = options.reopenBaseMs ?? 1000;
+		this.reopenMaxMs = options.reopenMaxMs ?? 30_000;
+		this.reopenJitterRatio = options.reopenJitterRatio ?? 0.2;
+		this.setTimeoutFn = options.setTimeoutFn ?? ((fn, delay) => setTimeout(fn, delay)) as typeof setTimeout;
+		this.clearTimeoutFn = options.clearTimeoutFn ?? (handle => clearTimeout(handle)) as typeof clearTimeout;
 		this.core = createSessionCore({
 			scheduler: this.scheduler,
 			ids: this.ids,
 			diagnostics: this.diagnostics,
 			lingerMs: options.lingerMs,
 			chatFlushTimeoutMs: options.chatFlushTimeoutMs,
+			mailboxCapacity: options.mailboxCapacity,
 		});
 		this._register(host.onRequestAgentTreeRefresh(({ sessionId }) => {
 			this.scheduleAgentTreeRefresh(sessionId);
@@ -218,7 +242,7 @@ export class SessionViewHost extends Disposable {
 		return this.leases.get(leaseId)?.emitter.event ?? Event.None;
 	}
 
-	acquireLease(sessionId: string): string {
+	acquireLease(sessionId: string, owner?: string): string {
 		const leaseId = this.ids.nextAttemptId() as unknown as ViewLeaseId;
 		const sid = sessionId as SessionId;
 		this.knownSessions.add(sessionId);
@@ -227,7 +251,7 @@ export class SessionViewHost extends Disposable {
 			enqueue: frame => this.onFrameEnqueued(leaseId, sessionId, frame),
 			acknowledge: () => { },
 		};
-		const binding = this.createActiveLease(sessionId, leaseId, sink);
+		const binding = this.createActiveLease(sessionId, leaseId, sink, owner);
 		this.leases.set(String(leaseId), binding);
 		this.leaseAttribution.set(String(leaseId), new Map());
 		this.leaseDetails.set(String(leaseId), new Map());
@@ -264,6 +288,31 @@ export class SessionViewHost extends Disposable {
 		this.leaseAttribution.delete(leaseId);
 		this.leaseDetails.delete(leaseId);
 		this.postAndDrain(binding.sessionId as SessionId, { t: 'releaseLease', leaseId: binding.leaseId });
+		if (this.core.leaseCount(binding.sessionId as SessionId) === 0) {
+			this.cancelStreamReopen(binding.sessionId);
+			this.reopenAttemptBySession.delete(binding.sessionId);
+		}
+	}
+
+	releaseLeasesOwnedBy(owner: string): number {
+		const toRelease: string[] = [];
+		for (const [leaseId, binding] of this.leases) {
+			if (binding.owner === owner) {
+				toRelease.push(leaseId);
+			}
+		}
+		for (const leaseId of toRelease) {
+			this.releaseLease(leaseId);
+		}
+		if (toRelease.length > 0) {
+			this.diagnostics.count('view.lease_released_by_owner' as DiagnosticMetric);
+		}
+		return toRelease.length;
+	}
+
+	override dispose(): void {
+		this.clearAllReopenTimers();
+		super.dispose();
 	}
 
 	post(leaseId: string, msg: ConversationWriteMessage) {
@@ -377,6 +426,7 @@ export class SessionViewHost extends Disposable {
 			}
 		} else {
 			this.connectionUp = false;
+			this.clearAllReopenTimers();
 			this.engineBoundForGeneration.clear();
 			this.engineBroughtUpForGeneration.clear();
 			for (const sidecar of this.sessionSidecars.values()) {
@@ -476,7 +526,13 @@ export class SessionViewHost extends Disposable {
 			if (result.ok) {
 				return cached;
 			}
-			throw new Error(`Resume bound session ${cached} failed: ${result.message ?? 'ok=false'}`);
+			this.engineSessionByLocal.delete(localId);
+			this.diagnostics.warn('cached Resume failed; falling back', {
+				sessionId: localId,
+				cachedSessionId: cached,
+				error: result.message ?? 'ok=false',
+			});
+			this.diagnostics.count('bind.cached_resume_failed' as DiagnosticMetric);
 		}
 		const resumed = await callResumeSession(this.connection, localId);
 		if (resumed.ok) {
@@ -790,12 +846,13 @@ export class SessionViewHost extends Disposable {
 		}
 	}
 
-	private createActiveLease(sessionId: string, leaseId: ViewLeaseId, sink: ViewFrameSink): ActiveLease {
+	private createActiveLease(sessionId: string, leaseId: ViewLeaseId, sink: ViewFrameSink, owner?: string): ActiveLease {
 		const pending: IUniverseAgentSessionViewFrameEvent[] = [];
 		const binding: ActiveLease = {
 			sessionId,
 			leaseId,
 			sink,
+			owner,
 			emitter: undefined!,
 			pending,
 			hadSubscriber: false,
@@ -1191,6 +1248,7 @@ export class SessionViewHost extends Disposable {
 				}
 				if (!streamOpened) {
 					streamOpened = true;
+					this.reopenAttemptBySession.set(sessionId, 0);
 					this.scheduleAgentTreeRefresh(sessionId, true);
 				}
 				this.handleHostStreamPayload(sessionId, event.payload);
@@ -1224,6 +1282,7 @@ export class SessionViewHost extends Disposable {
 					attemptId,
 					cause,
 				});
+				this.scheduleStreamReopen(sessionId);
 			});
 			this.streams.set(key, {
 				attemptId,
@@ -1245,7 +1304,81 @@ export class SessionViewHost extends Disposable {
 				attemptId,
 				cause: { kind: 'error', message },
 			});
+			this.scheduleStreamReopen(sessionId);
 		}
+	}
+
+	private streamReopenSkipReason(sessionId: string): 'no_lease' | 'connection_down' | 'attempt_open' | undefined {
+		if (!this.connectionUp || !this.connection.isEngineConnected()) {
+			return 'connection_down';
+		}
+		const sid = sessionId as SessionId;
+		if (this.core.leaseCount(sid) <= 0) {
+			return 'no_lease';
+		}
+		if (this.core.attemptId(sid) !== null) {
+			return 'attempt_open';
+		}
+		return undefined;
+	}
+
+	private computeReopenDelay(attempt: number): number {
+		const n = Math.max(0, attempt - 1);
+		const raw = Math.min(this.reopenBaseMs * (2 ** n), this.reopenMaxMs);
+		if (this.reopenJitterRatio <= 0) {
+			return raw;
+		}
+		const jitter = raw * this.reopenJitterRatio * (2 * Math.random() - 1);
+		return Math.max(0, Math.round(raw + jitter));
+	}
+
+	private scheduleStreamReopen(sessionId: string): void {
+		const why = this.streamReopenSkipReason(sessionId);
+		if (why) {
+			this.diagnostics.count('stream.reopen_skipped' as DiagnosticMetric, { why });
+			return;
+		}
+		if (this.reopenTimers.has(sessionId)) {
+			return;
+		}
+		const attempt = (this.reopenAttemptBySession.get(sessionId) ?? 0) + 1;
+		this.reopenAttemptBySession.set(sessionId, attempt);
+		const delay = this.computeReopenDelay(attempt);
+		this.diagnostics.count('stream.reopen_scheduled' as DiagnosticMetric, { attempt: String(attempt) });
+		const timer = this.setTimeoutFn(() => {
+			this.reopenTimers.delete(sessionId);
+			this.fireStreamReopen(sessionId);
+		}, delay) as ReturnType<typeof setTimeout>;
+		this.reopenTimers.set(sessionId, { timer, attempt });
+	}
+
+	private fireStreamReopen(sessionId: string): void {
+		const why = this.streamReopenSkipReason(sessionId);
+		if (why) {
+			this.diagnostics.count('stream.reopen_skipped' as DiagnosticMetric, { why });
+			return;
+		}
+		this.diagnostics.count('stream.reopen_fired' as DiagnosticMetric);
+		this.postAndDrain(sessionId as SessionId, {
+			t: 'connectionUp',
+			connectionGeneration: this.connectionGeneration,
+		});
+	}
+
+	private cancelStreamReopen(sessionId: string): void {
+		const entry = this.reopenTimers.get(sessionId);
+		if (!entry) {
+			return;
+		}
+		this.clearTimeoutFn(entry.timer);
+		this.reopenTimers.delete(sessionId);
+	}
+
+	private clearAllReopenTimers(): void {
+		for (const sessionId of [...this.reopenTimers.keys()]) {
+			this.cancelStreamReopen(sessionId);
+		}
+		this.reopenAttemptBySession.clear();
 	}
 
 	private async sendHeartbeatAck(sessionId: string): Promise<void> {
