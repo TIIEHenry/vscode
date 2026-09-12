@@ -4,14 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-12
-summary: "D403+D404 已收；下号 D405"
+summary: "关仓 MERGE_SHA 74f36dbacdf；D403+D404 已收；下号 D405"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。产品状态 → [traceability](../../docs/product/traceability.md)（生成列）；方案状态 → [plans INDEX](../plans/INDEX.md)（生成列）；延期 → [deferred-gaps](deferred-gaps.md)。历史槽位 catalog 流水 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
 
-### 已合入（`MERGE_SHA` 以本关仓 tip 为准；compile-client 0；push 后以 `origin/agent-ide` 为准）
+### 已合入（`MERGE_SHA`=`74f36dbacdf`；已 push `origin/agent-ide`；compile-client 0）
 | 切片 | 提交 / 落点 |
 |:-----|:------------|
 | **GFS-1** | `32f71812` / `32198d0b` — [giant-file-split](../plans/giant-file-split.md)：`grpcClient` mapper 特征测 + facade / mappers / calls 拆分 |
@@ -39,13 +39,14 @@ summary: "D403+D404 已收；下号 D405"
 | **settings chrome** | Connection/Engine 两页改用 `InputBox`/`Checkbox`/`WorkbenchList` 左栏与状态色；窄宽两栏；Test Engine 下沉页脚；「回 Client」链入 Preferences tab 条；会话栏图标改 ghost toolbar。无新 RPC / 无新节 |
 | **settings chrome follow-up** | Back-to-Client 先取出 Preferences 服务再关 pane（`await` 后 accessor 已失效）；Direct Address Connect 状态写回本区并先标 Connecting…。已随本轮合入 `loop/merge` |
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。[m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 关仓（2026-09-12 · A D387 compile-client 0）
+### 关仓（2026-09-12 · P0–P7 · `MERGE_SHA`=`74f36dbacdf`）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
-| **A** | `sessions-delete-toolbar leftover-looks-live` [D387](deferred-gaps.md) | 已关仓 `be3058d35f4`；Delete KEEP-chrome disabled |
-| **B** | `attribution leftover-looks-live invent` [D385](deferred-gaps.md) | 已关仓 `ca80b313c9c`；不发明 everConnected / live suffix |
-| **D** | `sources-stage-chrome leftover-looks-live` [D386](deferred-gaps.md) | 已关仓 `1af912fc527`；Stage hidden + 0 git.stage |
-| **E** | [composer-fake-chrome](../plans/composer-fake-chrome.md) | leftover 已在库；勿 `checkout -B` |
+| **A** | D403+D404 / D387 | `idle`；HEAD == MERGE_SHA；P1 `already-committed` |
+| **B** | D385 | `idle`；HEAD == MERGE_SHA |
+| **C** | — | `idle`；HEAD == MERGE_SHA；勿 add `dev/loop` |
+| **D** | D386 | `idle`；HEAD == MERGE_SHA |
+| **E** | leftover `fix/ci-gate-reds` | `blocked`；`41f0d8c912f` 不合入；勿 `checkout -B` |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
@@ -181,13 +182,13 @@ summary: "D403+D404 已收；下号 D405"
 ## 工位表（P0 盘点 · 2026-09-12 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | 本关仓 tip | 干净 | 0 | `parked`；compile-client 0；本账 +1 以远程 tip 为准 |
-| A | `vscode-WorkTrees/A` | `loop/A` | 跟 MERGE_SHA | 干净 | 0 | 已关仓 D387 |
-| B | `vscode-WorkTrees/B` | `loop/B` | 跟 MERGE_SHA | 干净 | 0 | 已关仓 D385 |
-| C | `vscode-WorkTrees/C` | `loop/C` | 跟 MERGE_SHA | 未提交 `dev/loop` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | 跟 MERGE_SHA | 干净 | 0 | 已关仓 D386 |
-| E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | leftover 已合入 merge；勿 `checkout -B` |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `ad9245ca178` | `dev/loop` + `.idea` | 0 | 请自行对齐 `origin/agent-ide`（勿对齐本表旧 SHA） |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `74f36dbacdf` | 干净 | 0 | `parked`；== `origin/agent-ide` |
+| A | `vscode-WorkTrees/A` | `loop/A` | `74f36dbacdf` | 干净 | 0 | `idle` |
+| B | `vscode-WorkTrees/B` | `loop/B` | `74f36dbacdf` | 干净 | 0 | `idle` |
+| C | `vscode-WorkTrees/C` | `loop/C` | `74f36dbacdf` | 未提交 `dev/loop` | 0 | `idle`；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `74f36dbacdf` | 干净 | 0 | `idle` |
+| E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked` leftover；勿 `checkout -B` |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `3c81973bcf5` | status/gaps/debug-engine + `.idea` | 0 | 请自行对齐 `origin/agent-ide` |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
