@@ -68,9 +68,10 @@ import {
 } from './connectionPreferencesPaneLabels.js';
 import { applyConnectionPaneIdentityStripReservation } from './connectionPaneIdentityStripReservation.js';
 import { promptRecoverTrustConfirmDialog, promptSasConfirmDialog } from './connectionPreferencesPaneSas.js';
-import { getConnectionPhaseStatusBarText } from './conversationSessionStatus.js';
+import { getConnectionPhaseStatusBarText, isConversationPairingHold } from './conversationSessionStatus.js';
 import {
 	getEngineSectionApiUnavailableCopy,
+	getEngineSectionDisconnectedCopy,
 	getUnsupportedEnvironmentCopy,
 	PREFERENCES_PANE_COMPACT_WIDTH,
 	PREFERENCES_PANE_NARROW_WIDTH,
@@ -80,7 +81,7 @@ import {
 const $ = DOM.$;
 
 /** Every status line in the pane is written through here so tone and copy never drift apart. */
-function writeStatus(element: HTMLElement, text: string, tone: ConnectionStatusTone = 'neutral'): void {
+export function writeStatus(element: HTMLElement, text: string, tone: ConnectionStatusTone = 'neutral'): void {
 	element.textContent = text;
 	element.classList.toggle('is-success', tone === 'success');
 	element.classList.toggle('is-warning', tone === 'warning');
@@ -829,6 +830,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.getZoneElement(zoneId).classList.toggle('is-active-zone', zoneId === id);
 		}
 		this.layoutLists();
+		this.syncPairingConfirmHostParent();
 	}
 
 	private showNarrowNav(): void {
@@ -856,6 +858,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.getZoneElement(id).classList.toggle('is-active-zone', id === this.activeZoneId);
 		}
 		this.refreshZoneNav();
+		this.syncPairingConfirmHostParent();
 	}
 
 	private desktopConnectionControlContext() {
@@ -879,7 +882,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			return;
 		}
 		const hubSignedIn = this.hubService.getAuthStatus().kind !== 'signedOut';
-		const enginePairSeat = this.connectionService.isEngineConnected();
+		// D362 leftover-looks-live: pairing-hold-first. KEEP is not only `isEngineConnected()`.
+		const enginePairSeat = !(isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected());
 		this.hubDevicesSection.style.display = hubSignedIn || enginePairSeat ? '' : 'none';
 	}
 
@@ -1087,16 +1091,46 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 	}
 
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		return hadLiveCatalog && isConversationPairingHold(this.connectionService);
+	}
+
+	private isDeviceWritePairingHold(): boolean {
+		return isConversationPairingHold(this.connectionService);
+	}
+
+	private applyDisconnectedDevicesRefresh(): void {
+		if (this.keepLeftoverCatalogForPairingHold(!!this.enginePairedDevices?.length)) {
+			this.renderHubDirectory();
+			writeStatus(this.devicesConnectStatus, getEngineSectionDisconnectedCopy(), 'warning');
+			return;
+		}
+		// Disconnect still clears engine leftover (History/Clipboard contract).
+		this.enginePairedDevices = undefined;
+		this.engineDevicesListFailed = undefined;
+		this.hubDevices = [];
+		this.renderHubDirectory();
+		writeStatus(this.devicesConnectStatus, '', 'neutral');
+	}
+
+	private applyDisconnectedPendingRefresh(): void {
+		if (this.keepLeftoverCatalogForPairingHold(this.pendingPairs.length > 0)) {
+			this.renderPendingPairs();
+			return;
+		}
+		// Disconnect still clears pending leftover (History/Clipboard contract).
+		this.pendingPairs = [];
+		this.pendingPairsListFailed = undefined;
+		this.selectedPending = undefined;
+		this.renderPendingPairs();
+	}
+
 	private async refreshEngineDevices(): Promise<void> {
 		const hook = this.connectionService.listDevices;
 		const connected = this.connectionService.isEngineConnected();
-		// Disconnect still clears engine leftover (History/Clipboard contract).
-		if (!connected) {
-			this.enginePairedDevices = undefined;
-			this.engineDevicesListFailed = undefined;
-			this.hubDevices = [];
-			this.renderHubDirectory();
-			writeStatus(this.devicesConnectStatus, '', 'neutral');
+		// D341 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connectionService) || !connected) {
+			this.applyDisconnectedDevicesRefresh();
 			return;
 		}
 		// Connected + missing hook: keep leftover rows; first-pull empty stays empty (D260).
@@ -1115,6 +1149,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 		try {
 			const result = await hook.call(this.connectionService);
+			if (isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected()) {
+				this.applyDisconnectedDevicesRefresh();
+				return;
+			}
 			this.enginePairedDevices = [...result.devices];
 			const hadFail = this.engineDevicesListFailed !== undefined;
 			const hadUnsupported = this.devicesConnectStatus.textContent === getEngineSectionApiUnavailableCopy(CONNECTION_DEVICE_LIST_FEATURE);
@@ -1134,12 +1172,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private async refreshEnginePending(): Promise<void> {
 		const hook = this.connectionService.listPending;
 		const connected = this.connectionService.isEngineConnected();
-		// Disconnect still clears pending leftover (History/Clipboard contract).
-		if (!connected) {
-			this.pendingPairs = [];
-			this.pendingPairsListFailed = undefined;
-			this.selectedPending = undefined;
-			this.renderPendingPairs();
+		// D341 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connectionService) || !connected) {
+			this.applyDisconnectedPendingRefresh();
 			return;
 		}
 		// Connected + missing hook: keep leftover rows; first-pull empty stays empty (D260).
@@ -1154,6 +1189,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 		try {
 			const result = await hook.call(this.connectionService);
+			if (isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected()) {
+				this.applyDisconnectedPendingRefresh();
+				return;
+			}
 			this.pendingPairs = [...result.pending];
 			this.pendingPairsListFailed = undefined;
 			this.selectedPending = undefined;
@@ -1169,10 +1208,11 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const connected = this.connectionService.isEngineConnected();
 		const canList = canSendConnectionDevicePairRequest(connected, typeof hook === 'function');
 		const showUnsupported = connected && typeof hook !== 'function';
-		const showPending = canList || showUnsupported;
+		const pairingHoldLeftover = this.keepLeftoverCatalogForPairingHold(this.pendingPairs.length > 0);
+		const showPending = canList || showUnsupported || pairingHoldLeftover;
 		this.pendingPairsHeading.style.display = showPending ? '' : 'none';
 		this.pendingPairsList.style.display = showPending && this.pendingPairs.length > 0 ? '' : 'none';
-		this.pendingPairsEmpty.style.display = showPending && (this.pendingPairs.length === 0 || !!this.pendingPairsListFailed || showUnsupported) ? '' : 'none';
+		this.pendingPairsEmpty.style.display = showPending && (this.pendingPairs.length === 0 || !!this.pendingPairsListFailed || showUnsupported || pairingHoldLeftover) ? '' : 'none';
 		if (showUnsupported) {
 			writeStatus(
 				this.pendingPairsEmpty,
@@ -1181,6 +1221,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			);
 		} else if (canList && this.pendingPairsListFailed) {
 			writeStatus(this.pendingPairsEmpty, connectionDevicePendingListFailureMessage(this.pendingPairsListFailed), 'error');
+		} else if (pairingHoldLeftover) {
+			writeStatus(this.pendingPairsEmpty, getEngineSectionDisconnectedCopy(), 'warning');
 		} else {
 			writeStatus(this.pendingPairsEmpty, CONNECTION_DEVICE_PENDING_EMPTY_COPY, 'neutral');
 		}
@@ -1324,13 +1366,38 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	/**
-	 * Park SAS / recoverTrust as a sibling of the Connect-initiating zone.
-	 * Putting the host *inside* a `.connection-zone` lets
-	 * `.connection-zone:not(.is-active-zone) { display: none }` swallow the box
-	 * (Direct Connect historically parked it under hidden Profiles).
+	 * Park SAS / recoverTrust for Connect-start. May `selectZone` first so the
+	 * initiating zone is visible, then remount via `sync`. Invariant: a live
+	 * host must not be a descendant of any layout-hide ancestor (inactive
+	 * zone *or* narrow `.connection-preferences-detail`). Do not call from
+	 * `showNarrowNav` / Back — `selectZone` would undo Back.
 	 */
 	private attachPairingConfirmHostToVisibleZone(): HTMLElement {
 		this.selectZone(this.activeZoneId);
+		this.syncPairingConfirmHostParent();
+		return this.pairingConfirmHost;
+	}
+
+	/** Live host: SAS / recoverTrust is mounted — remount on liveness, not `sasCode`. */
+	private isPairingConfirmHostLive(): boolean {
+		return this.pairingConfirmHost.classList.contains('connection-pairing-confirm')
+			|| !!this.pairingConfirmHost.querySelector('.connection-pairing-confirm')
+			|| this.pairingConfirmHost.style.display !== 'none';
+	}
+
+	/**
+	 * Remount only. Never calls `selectZone`. Narrow nav + live host → pane
+	 * root (outside `.connection-preferences-detail`); otherwise zone sibling.
+	 */
+	private syncPairingConfirmHostParent(): void {
+		const live = this.isPairingConfirmHostLive();
+		const narrow = this.lastLayoutWidth < PREFERENCES_PANE_NARROW_WIDTH;
+		if (live && narrow && !this.narrowShowingDetail) {
+			if (this.pairingConfirmHost.parentElement !== this.container) {
+				this.container.appendChild(this.pairingConfirmHost);
+			}
+			return;
+		}
 		const zone = this.isZoneAvailable(this.activeZoneId)
 			? this.getZoneElement(this.activeZoneId)
 			: undefined;
@@ -1341,7 +1408,6 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		} else if (this.pairingConfirmHost.parentElement !== this.scrollBody) {
 			this.scrollBody.appendChild(this.pairingConfirmHost);
 		}
-		return this.pairingConfirmHost;
 	}
 
 	private async connectProfileWithPairing(profileId: string): Promise<void> {
@@ -1483,11 +1549,13 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private updateDeviceActions(): void {
 		const device = this.getSelectedDevice();
 		const hasDevice = !!device && !device.revoked;
-		this.renameDeviceButton.enabled = hasDevice;
-		this.revokeDeviceButton.enabled = !!device && !device.revoked;
+		const pairingHold = this.isDeviceWritePairingHold();
+		this.renameDeviceButton.enabled = hasDevice && !pairingHold;
+		this.revokeDeviceButton.enabled = hasDevice && !pairingHold;
 		this.rotateTokenButton.enabled = canSendConnectionDeviceRotateToken(
 			this.connectionService.isEngineConnected(),
 			typeof this.connectionService.rotateToken === 'function',
+			pairingHold,
 		);
 	}
 
@@ -1533,6 +1601,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (!device || device.revoked) {
 			return;
 		}
+		if (this.isDeviceWritePairingHold()) {
+			return;
+		}
 		const input = await this.dialogService.input({
 			type: 'question',
 			message: localize('ua.connectionRenameDeviceTitle', "Rename device"),
@@ -1541,6 +1612,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		});
 		const name = input.confirmed ? input.values?.[0]?.trim() : undefined;
 		if (!name || name === device.name) {
+			return;
+		}
+		if (this.isDeviceWritePairingHold()) {
 			return;
 		}
 		try {
@@ -1560,7 +1634,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private async handleRotateSelectedDeviceToken(): Promise<void> {
 		const hook = this.connectionService.rotateToken;
-		if (!canSendConnectionDeviceRotateToken(this.connectionService.isEngineConnected(), typeof hook === 'function') || !hook) {
+		if (!canSendConnectionDeviceRotateToken(this.connectionService.isEngineConnected(), typeof hook === 'function', this.isDeviceWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = connectionDeviceRotateTokenIds(this.hubDevicesList.getSelectedElements()[0]);
@@ -1597,8 +1671,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (!confirm.confirmed) {
 			return;
 		}
+		const pairingHold = this.isDeviceWritePairingHold();
 		const revokeHook = this.connectionService.revoke;
-		if (canSendConnectionDeviceRevokeRequest(this.connectionService.isEngineConnected(), typeof revokeHook === 'function') && revokeHook) {
+		if (canSendConnectionDeviceRevokeRequest(this.connectionService.isEngineConnected(), typeof revokeHook === 'function', pairingHold) && revokeHook) {
 			const request = connectionDeviceRevokeIds(device.id);
 			try {
 				const result = await revokeHook.call(this.connectionService, request);
@@ -1615,6 +1690,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				writeStatus(this.hubDirectoryBanner, reason, 'error');
 				this.hubDirectoryBanner.style.display = '';
 			}
+			return;
+		}
+		if (pairingHold) {
 			return;
 		}
 		try {
@@ -1634,8 +1712,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private async handleConfirmDeviceCode(): Promise<void> {
+		const pairingHold = this.isDeviceWritePairingHold();
 		const approveHook = this.connectionService.pairApprove;
-		if (canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof approveHook === 'function') && approveHook) {
+		if (canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof approveHook === 'function', pairingHold) && approveHook) {
 			const request = connectionDevicePairIds(this.confirmDeviceCodeInput.value, this.selectedPending);
 			try {
 				const result = await approveHook.call(this.connectionService, request);
@@ -1650,6 +1729,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				const reason = error instanceof Error && error.message ? error.message : String(error);
 				writeStatus(this.hubDeviceCodeStatus, reason, 'error');
 			}
+			return;
+		}
+		if (pairingHold) {
 			return;
 		}
 		const code = this.confirmDeviceCodeInput.value.trim();
@@ -1677,7 +1759,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private async handleRejectDevicePair(): Promise<void> {
 		const rejectHook = this.connectionService.pairReject;
-		if (!canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof rejectHook === 'function') || !rejectHook) {
+		if (!canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof rejectHook === 'function', this.isDeviceWritePairingHold()) || !rejectHook) {
 			return;
 		}
 		const request = { pairingCode: connectionDevicePairIds(this.confirmDeviceCodeInput.value, this.selectedPending).pairingCode };
@@ -1712,13 +1794,15 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			? HUB_CHANGE_PASSWORD_BUTTON_LABEL
 			: HUB_LOGIN_BUTTON_LABEL;
 		this.hubLoginButton.enabled = !signedIn;
-		const deviceCodeEnabled = signedIn
-			|| canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof this.connectionService.pairApprove === 'function');
+		const pairingHold = this.isDeviceWritePairingHold();
+		const deviceCodeEnabled = !pairingHold && (signedIn
+			|| canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof this.connectionService.pairApprove === 'function', pairingHold));
 		this.confirmDeviceCodeInput.setEnabled(deviceCodeEnabled);
 		this.confirmDeviceCodeButton.enabled = deviceCodeEnabled;
 		this.rejectDevicePairButton.enabled = canSendConnectionDevicePairRequest(
 			this.connectionService.isEngineConnected(),
 			typeof this.connectionService.pairReject === 'function',
+			pairingHold,
 		);
 	}
 
@@ -1740,8 +1824,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.updateDeviceActions();
 		if (shouldDrawDesktopConnectionControls(this.desktopConnectionControlContext())) {
 			const hubSignedIn = this.hubService.getAuthStatus().kind !== 'signedOut';
-			const enginePairSeat = this.connectionService.isEngineConnected();
-			this.hubDevicesSection.style.display = hubSignedIn || enginePairSeat ? '' : 'none';
+			// D362 leftover-looks-live: pairing-hold-first. KEEP leftover rows still use pairingHoldDevices.
+			const enginePairSeat = !(isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected());
+			const pairingHoldDevices = this.keepLeftoverCatalogForPairingHold(!!this.enginePairedDevices?.length);
+			this.hubDevicesSection.style.display = hubSignedIn || enginePairSeat || pairingHoldDevices ? '' : 'none';
 		}
 		this.updateDeviceActions();
 	}

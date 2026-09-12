@@ -17,16 +17,17 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
-import type { UniverseAgentAgentProfileSummary, UniverseAgentToolInfoResult, UniverseAgentToolSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentAgentProfileSummary, UniverseAgentCapabilitySupport, UniverseAgentToolInfoResult, UniverseAgentToolSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles, defaultCheckboxStyles, defaultSelectBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
 import {
 	type EngineCatalogPaneMode,
-	canPerformCatalogWrite,
+	canPerformCatalogWriteLive,
 	canShowCatalogRows,
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
-import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
+import { getEngineSectionApiUnavailableCopy, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
 import {
 	applyToolEnablementChange,
 	applyToolEnablementChanges,
@@ -296,8 +297,11 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	canWrite(): boolean {
-		return canPerformCatalogWrite(this.mode)
-			&& this.connection.isEngineConnected()
+		return canPerformCatalogWriteLive(
+			this.mode,
+			this.connection.isEngineConnected(),
+			isConversationPairingHold(this.connection),
+		)
 			&& !!this.activeProfile
 			&& this.activeProfile.source !== 'built_in';
 	}
@@ -504,6 +508,8 @@ export class EngineToolsSection extends Disposable {
 						void this.loadToolInfo(entry.tool.name);
 					} else if ((this.mode === 'failed' || this.mode === 'loading') && this.hasLeftoverToolInfo()) {
 						this.infoHost.style.display = '';
+					} else if (this.keepLeftoverCatalogForPairingHold(this.hasLeftoverToolInfo())) {
+						this.paintToolInfoHonesty(getEngineSectionDisconnectedCopy());
 					} else {
 						this.clearToolInfo();
 					}
@@ -516,15 +522,37 @@ export class EngineToolsSection extends Disposable {
 		return this.list;
 	}
 
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		if (!hadLiveCatalog) {
+			return false;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
+	}
+
+	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): void {
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			this.hideCatalogWriteStatus();
+			this.listContainer.style.display = '';
+			this.mode = resolveEngineCatalogPaneMode(false, support);
+			this.updateSaveChrome();
+			this.renderStatus();
+			return;
+		}
+		this.clearCatalogPresentation();
+		this.mode = resolveEngineCatalogPaneMode(false, support);
+		this.renderStatus();
+	}
+
 	private async refresh(): Promise<void> {
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.tools.support;
 
-		if (!connected) {
-			this.clearCatalogPresentation();
-			this.mode = resolveEngineCatalogPaneMode(false, support);
-			this.renderStatus();
+		const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'tool');
+		// D349 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connection) || !connected) {
+			this.applyDisconnectedRefresh(support, hadLiveCatalog);
 			return;
 		}
 
@@ -558,10 +586,9 @@ export class EngineToolsSection extends Disposable {
 				this.connection.listTools(),
 				this.connection.listAgentProfiles(),
 			]);
-			if (!this.connection.isEngineConnected()) {
-				this.clearCatalogPresentation();
-				this.mode = resolveEngineCatalogPaneMode(false, support);
-				this.renderStatus();
+			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'tool');
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+				this.applyDisconnectedRefresh(support, leftoverAfterList);
 				return;
 			}
 			this.profiles = profilesResult.profiles.filter(profile => profile.source !== 'built_in');
@@ -579,7 +606,7 @@ export class EngineToolsSection extends Disposable {
 			this.renderStatus();
 			if (selectedToolName) {
 				this.selectedToolName = selectedToolName;
-				this.clearToolInfo();
+				// D275: keep leftover detail while the next getToolInfo is in-flight.
 				void this.loadToolInfo(selectedToolName);
 			}
 		} catch (error) {
@@ -653,12 +680,44 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	private hasLeftoverToolInfo(): boolean {
-		return this.isToolInfoVisible() && !!(this.infoHost.textContent?.trim());
+		return this.isToolInfoVisible() && !!this.infoHost.querySelector('.engine-tools-info-name');
+	}
+
+	private paintToolInfoHonesty(message: string): void {
+		if (this.hasLeftoverToolInfo()) {
+			let status = this.infoHost.querySelector('.engine-tools-info-status') as HTMLElement | null;
+			if (!status) {
+				status = DOM.append(this.infoHost, $('.engine-tools-info-status'));
+				status.setAttribute('role', 'status');
+			}
+			status.textContent = message;
+			this.infoHost.style.display = '';
+			return;
+		}
+		this.infoHost.textContent = message;
+		this.infoHost.style.display = '';
+	}
+
+	private keepLeftoverToolInfoDisconnected(): void {
+		if (this.hasLeftoverToolInfo()) {
+			this.paintToolInfoHonesty(getEngineSectionDisconnectedCopy());
+			return;
+		}
+		this.clearToolInfo();
 	}
 
 	private async loadToolInfo(toolName: string): Promise<void> {
 		const name = toolName.trim();
-		if (!name || !canShowCatalogRows(this.mode) || !this.connection.isEngineConnected()) {
+		if (!name) {
+			this.clearToolInfo();
+			return;
+		}
+		// D377 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+			this.keepLeftoverToolInfoDisconnected();
+			return;
+		}
+		if (!canShowCatalogRows(this.mode)) {
 			// Keep leftover tool info after a live paint (D270; D264 / D265).
 			// failed/loading must not unload leftover detail; first-pull empty still clears.
 			if ((this.mode === 'failed' || this.mode === 'loading') && this.hasLeftoverToolInfo()) {
@@ -669,8 +728,7 @@ export class EngineToolsSection extends Disposable {
 		}
 		if (!this.connection.getToolInfo) {
 			this.infoLoadGeneration++;
-			this.infoHost.textContent = getEngineSectionApiUnavailableCopy(TOOL_DETAIL_FEATURE);
-			this.infoHost.style.display = '';
+			this.paintToolInfoHonesty(getEngineSectionApiUnavailableCopy(TOOL_DETAIL_FEATURE));
 			return;
 		}
 		const generation = ++this.infoLoadGeneration;
@@ -679,13 +737,16 @@ export class EngineToolsSection extends Disposable {
 			if (generation !== this.infoLoadGeneration || this.selectedToolName !== toolName) {
 				return;
 			}
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+				this.keepLeftoverToolInfoDisconnected();
+				return;
+			}
 			this.renderToolInfo(info);
 		} catch {
 			if (generation !== this.infoLoadGeneration || this.selectedToolName !== toolName) {
 				return;
 			}
-			this.infoHost.textContent = localize('ua.engineToolsInfoFailed', "Could not load tool details from the engine.");
-			this.infoHost.style.display = '';
+			this.paintToolInfoHonesty(localize('ua.engineToolsInfoFailed', "Could not load tool details from the engine."));
 		}
 	}
 

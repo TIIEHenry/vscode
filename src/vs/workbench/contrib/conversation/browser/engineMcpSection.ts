@@ -15,11 +15,12 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
-import type { UniverseAgentMcpServerConfig, UniverseAgentMcpServerOrigin, UniverseAgentMcpServerSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentCapabilitySupport, UniverseAgentMcpServerConfig, UniverseAgentMcpServerOrigin, UniverseAgentMcpServerSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles, defaultCheckboxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 import {
 	type EngineCatalogPaneMode,
-	canPerformCatalogWrite,
+	canPerformCatalogWriteLive,
 	canShowCatalogRows,
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
@@ -321,7 +322,11 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	canWrite(): boolean {
-		return canPerformCatalogWrite(this.mode) && this.connection.isEngineConnected();
+		return canPerformCatalogWriteLive(
+			this.mode,
+			this.connection.isEngineConnected(),
+			isConversationPairingHold(this.connection),
+		);
 	}
 
 	getSelectedServerId(): string | undefined {
@@ -497,6 +502,25 @@ export class EngineMcpSection extends Disposable {
 		return this.list;
 	}
 
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		return hadLiveCatalog && isConversationPairingHold(this.connection);
+	}
+
+	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): boolean {
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			this.hideCatalogWriteStatus();
+			this.writeToolbar.style.display = 'none';
+			this.listContainer.style.display = '';
+			this.mode = resolveEngineCatalogPaneMode(false, support);
+			this.renderStatus();
+			return false;
+		}
+		this.clearCatalogPresentation();
+		this.mode = resolveEngineCatalogPaneMode(false, support);
+		this.renderStatus();
+		return false;
+	}
+
 	private async refresh(): Promise<boolean> {
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
@@ -504,11 +528,10 @@ export class EngineMcpSection extends Disposable {
 		this.writeFailedReason = undefined;
 		this.hideCatalogWriteStatus();
 
-		if (!connected) {
-			this.clearCatalogPresentation();
-			this.mode = resolveEngineCatalogPaneMode(false, support);
-			this.renderStatus();
-			return false;
+		const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'server');
+		// D348 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connection) || !connected) {
+			return this.applyDisconnectedRefresh(support, hadLiveCatalog);
 		}
 
 		if (support === 'UNSUPPORTED') {
@@ -539,11 +562,9 @@ export class EngineMcpSection extends Disposable {
 
 		try {
 			const result = await this.connection.listMcpServers();
-			if (!this.connection.isEngineConnected()) {
-				this.clearCatalogPresentation();
-				this.mode = resolveEngineCatalogPaneMode(false, support);
-				this.renderStatus();
-				return false;
+			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'server');
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+				return this.applyDisconnectedRefresh(support, leftoverAfterList);
 			}
 			this.setServers(result.servers);
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
@@ -551,7 +572,7 @@ export class EngineMcpSection extends Disposable {
 				itemCount: result.servers.length,
 			});
 			this.listContainer.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
-			this.writeToolbar.style.display = canPerformCatalogWrite(this.mode) ? '' : 'none';
+			this.writeToolbar.style.display = this.canWrite() ? '' : 'none';
 			this.renderStatus();
 			return true;
 		} catch (error) {
@@ -643,7 +664,7 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private async toggleServer(server: UniverseAgentMcpServerSummary, enabled: boolean): Promise<void> {
-		if (!canShowCatalogRows(this.mode) || !this.connection.isEngineConnected()) {
+		if (!this.canWrite()) {
 			return;
 		}
 		const scope = server.origin === 'project' ? 'project' : 'global';

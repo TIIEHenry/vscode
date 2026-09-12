@@ -15,15 +15,17 @@ import { WorkbenchList } from '../../../../platform/list/browser/listService.js'
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type {
+	UniverseAgentCapabilitySupport,
 	UniverseAgentPluginHookEntry,
 	UniverseAgentPluginStatus,
 	UniverseAgentPluginSummary,
 	UniverseAgentScanNewPluginsResult,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
 import {
 	type EngineCatalogPaneMode,
-	canPerformCatalogWrite,
+	canPerformCatalogWriteLive,
 	canShowCatalogRows,
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
@@ -33,6 +35,7 @@ import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesP
 const $ = DOM.$;
 
 const PLUGINS_FEATURE = localize('ua.enginePluginsFeatureLabel', "engine plugins");
+const PLUGIN_INFO_FEATURE = localize('ua.enginePluginInfoFeature', "plugin info");
 const EMBEDDED_SOURCE = 'embedded';
 
 export const ENGINE_PLUGINS_ENABLE_SUCCESS_COPY = localize('ua.enginePluginsEnableSuccess', "Enabled.");
@@ -306,7 +309,11 @@ export class EnginePluginsSection extends Disposable {
 	}
 
 	canWrite(): boolean {
-		return canPerformCatalogWrite(this.mode) && this.connection.isEngineConnected();
+		return canPerformCatalogWriteLive(
+			this.mode,
+			this.connection.isEngineConnected(),
+			isConversationPairingHold(this.connection),
+		);
 	}
 
 	selectPluginForTest(id: string): boolean {
@@ -361,12 +368,38 @@ export class EnginePluginsSection extends Disposable {
 					void this.loadInfo(this.selectedPlugin.id);
 				} else if ((this.mode === 'failed' || this.mode === 'loading') && this.hookEntries.length > 0) {
 					this.hooksTable.style.display = '';
+				} else if (this.keepLeftoverCatalogForPairingHold(this.hasLeftoverHooks())) {
+					this.keepLeftoverHooksDisconnected();
 				} else {
 					this.clearInfoPresentation();
 				}
 			}));
 		}
 		return this.list;
+	}
+
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		if (!hadLiveCatalog) {
+			return false;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
+	}
+
+	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): boolean {
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			this.hideCatalogWriteStatus();
+			this.writeToolbar.style.display = 'none';
+			this.rowToolbar.style.display = 'none';
+			this.listContainer.style.display = '';
+			this.mode = resolveEngineCatalogPaneMode(false, support);
+			this.renderStatus();
+			return false;
+		}
+		this.clearCatalogPresentation();
+		this.mode = resolveEngineCatalogPaneMode(false, support);
+		this.renderStatus();
+		return false;
 	}
 
 	private async refresh(): Promise<boolean> {
@@ -378,11 +411,10 @@ export class EnginePluginsSection extends Disposable {
 		this.lastWritePermissionDenied = false;
 		this.hideCatalogWriteStatus();
 
-		if (!connected) {
-			this.clearCatalogPresentation();
-			this.mode = resolveEngineCatalogPaneMode(false, support);
-			this.renderStatus();
-			return false;
+		const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'plugin');
+		// D349 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connection) || !connected) {
+			return this.applyDisconnectedRefresh(support, hadLiveCatalog);
 		}
 
 		if (support === 'UNSUPPORTED') {
@@ -416,11 +448,9 @@ export class EnginePluginsSection extends Disposable {
 			if (generation !== this.refreshGeneration) {
 				return false;
 			}
-			if (!this.connection.isEngineConnected()) {
-				this.clearCatalogPresentation();
-				this.mode = resolveEngineCatalogPaneMode(false, support);
-				this.renderStatus();
-				return false;
+			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'plugin');
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+				return this.applyDisconnectedRefresh(support, leftoverAfterList);
 			}
 			this.setPlugins(result.plugins);
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
@@ -464,18 +494,66 @@ export class EnginePluginsSection extends Disposable {
 		}
 	}
 
+	private hasLeftoverHooks(): boolean {
+		return this.hookEntries.length > 0 && this.hooksBody.rows.length > 0;
+	}
+
+	private keepLeftoverHooksDisconnected(): void {
+		if (this.hasLeftoverHooks()) {
+			this.hooksTable.style.display = '';
+		}
+		this.infoStatus.render({
+			mode: 'disconnected',
+			featureLabel: PLUGIN_INFO_FEATURE,
+			onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+		});
+	}
+
+	private paintHookHonestyUnavailable(): void {
+		if (this.hasLeftoverHooks()) {
+			this.hooksTable.style.display = '';
+		} else {
+			this.hookEntries = [];
+			this.clearHookRows();
+			this.hooksTable.style.display = 'none';
+		}
+		this.infoStatus.render({
+			mode: 'unsupported',
+			featureLabel: PLUGIN_INFO_FEATURE,
+		});
+	}
+
 	private async loadInfo(id: string): Promise<void> {
+		// D372 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+			this.keepLeftoverHooksDisconnected();
+			return;
+		}
+
 		const generation = ++this.infoGeneration;
-		this.hooksTable.style.display = 'none';
+		// D279: keep leftover hooks while the next getPluginInfo is in-flight.
+		// First-pull empty still hides.
+		if (!this.hasLeftoverHooks()) {
+			this.hooksTable.style.display = 'none';
+		}
+		if (typeof this.connection.getPluginInfo !== 'function') {
+			this.paintHookHonestyUnavailable();
+			return;
+		}
+
 		this.infoStatus.render({
 			mode: 'loading',
 			loadingKind: 'list',
-			featureLabel: localize('ua.enginePluginInfoFeature', "plugin info"),
+			featureLabel: PLUGIN_INFO_FEATURE,
 		});
 
 		try {
 			const result = await this.connection.getPluginInfo(id);
 			if (generation !== this.infoGeneration) {
+				return;
+			}
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+				this.keepLeftoverHooksDisconnected();
 				return;
 			}
 			// hooks empty → empty table. Never invent rows from hook_count.
@@ -484,7 +562,7 @@ export class EnginePluginsSection extends Disposable {
 			if (result.hooks.length === 0) {
 				this.infoStatus.render({
 					mode: 'empty',
-					featureLabel: localize('ua.enginePluginInfoFeature', "plugin info"),
+					featureLabel: PLUGIN_INFO_FEATURE,
 					emptyCopy: localize('ua.enginePluginHooksEmpty', "No hooks."),
 				});
 			} else {
@@ -495,8 +573,7 @@ export class EnginePluginsSection extends Disposable {
 			if (generation !== this.infoGeneration) {
 				return;
 			}
-			const hadLivePaint = this.hookEntries.length > 0;
-			if (!hadLivePaint) {
+			if (!this.hasLeftoverHooks()) {
 				this.hookEntries = [];
 				this.clearHookRows();
 				this.hooksTable.style.display = 'none';
@@ -505,7 +582,7 @@ export class EnginePluginsSection extends Disposable {
 			}
 			this.infoStatus.render({
 				mode: 'failed',
-				featureLabel: localize('ua.enginePluginInfoFeature', "plugin info"),
+				featureLabel: PLUGIN_INFO_FEATURE,
 				reason: getTransportErrorMessage(error),
 				onRetry: () => void this.loadInfo(id),
 			});
@@ -581,6 +658,10 @@ export class EnginePluginsSection extends Disposable {
 		this.renderScanResult();
 		try {
 			const result = await this.connection.scanNewPlugins();
+			// D381 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+				return;
+			}
 			this.lastScan = result;
 			this.writeFailedReason = undefined;
 			this.renderScanResult();

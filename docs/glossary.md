@@ -3,7 +3,7 @@ title: "术语表"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-09-10
+updated: 2026-09-12
 summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI 宿主、Conversation 系统术语（SessionBar / 叶 / Composer / Inbox / MessageQueue / stub / 帧源 / lease / ViewFrame / pendingActions / SyncChrome / attribution sidecar）、Connection Hub（Hub / Client / SAS / Grant / DirectAddress）、不变量、能力三态、页面接入与文档约定；对外可读闭集与旧称对照表"
 ---
 
@@ -82,7 +82,7 @@ summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI �
 | **INV-052-NO-DUAL-HIDE** | `Conversation ∨ (Editor ∨ Sources)` 至少一个可见；由 `enforceAgentShellVisible` 维持。 | [ADR-006](../dev/decisions/006-shell-invariants.md) |
 | **INV-NO-COPILOT** | 产品 Conversation 零 import Copilot Chat Widget / 输入 / 会话模型；默认窗不以 Copilot 为入口。 | [ADR-006](../dev/decisions/006-shell-invariants.md) |
 | **Engine pane / `ua.engine`** | vscode Preferences 内的 UA 引擎页（与 `ua.connection` 并列）：左栏九节（Overview / Provider & Model / Skills / Agents / Rules / Hooks / MCP / Plugins / Tools）始终可达；断连是右栏零条目零写按钮，**不是**藏导航。UNSUPPORTED 诚实空。@ HEAD 见 [engine-catalog](systems/workbench/engine-catalog.md)。 | [settings-two-surfaces](../dev/plans/settings-two-surfaces.md) · [engine-preferences-completion](../dev/plans/engine-preferences-completion.md) |
-| **`universe-agent://`** | 页面访问 scheme（`IURLHandler`），`universe-agent://settings/<page>` 打开对应 Settings 页；不绑 `product.urlProtocol`。 | [commands §4](systems/conversation/commands.md) · [page-access-schemes](../dev/plans/page-access-schemes.md) |
+| **`universe-agent://`** | 页面访问 scheme（`IURLHandler`），`universe-agent://settings/<page>` 打开对应 Settings 页；scheme 与 `product.urlProtocol` 统一为 `universe-agent`（handler 路由不变）。 | [commands §4](systems/conversation/commands.md) · [page-access-schemes](../dev/plans/page-access-schemes.md) |
 | **Navigator tab** | Activity 上一段 = Sidebar 一个 `ViewContainer`（Files / Sessions / Projects / Agents / Team）。子页按 vscode 列表/树重设计，不抄 Compose panel。 | [navigator-tabs-access](reference/code-oss-b2/navigator-tabs-access.md) |
 | **Hub** | Connection Hub：上游 HTTPS 控制面 + relay ticket 数据面；提供账号登录、设备目录与到中继 authority 的传输，**不是**会话权威、不持有可冒充客户端的凭证。 | [connection-hub-client](../dev/plans/connection-hub-client.md) · [hub-control-plane-surface](reference/universe-agent/hub-control-plane-surface.md) |
 | **Client 设备** | Hub 体系里 IDE / Singularity / UniverseAgentDesktop 的角色：用 Hub 发现 Engine、经 relay 或直连拨号，用 Device Grant 向 Engine 证明身份。不是 Engine 侧的 `hub-client` 隧道模块。 | [connection-hub-client §0](../dev/plans/connection-hub-client.md) |

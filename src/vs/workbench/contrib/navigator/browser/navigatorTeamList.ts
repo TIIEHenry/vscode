@@ -27,6 +27,7 @@ import type { UniverseAgentTeamListEntry } from '../../../../platform/universeAg
 import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
+import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { IAgentInspectService } from '../common/agentInspect.js';
 import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
@@ -37,6 +38,7 @@ import {
 	INavigatorTeamMemberEntry,
 	INavigatorTeamTaskEntry,
 	resolveTeamIdForInfo,
+	NAVIGATOR_TEAM_LOADING_COPY,
 } from '../common/navigatorTeamData.js';
 import { collectLiveAgentTreeAgentIds, EMPTY_LIVE_AGENT_IDS } from '../common/navigatorAgentHierarchy.js';
 import { getNavigatorAgentTreePendingCopy, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
@@ -381,10 +383,18 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	private async refreshTeamData(): Promise<void> {
+		const hadLiveTeamPaint = this.hadTeamSnapshot || this.memberEntries.length > 0 || this.taskEntries.length > 0;
+		const pairingHold = isConversationPairingHold(this.uaConnection);
+		if (pairingHold && hadLiveTeamPaint) {
+			this.inspectService.setLiveAgentIds('team', undefined);
+			this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
+			return;
+		}
+
 		const phaseKind = this.uaConnection.getConnectionPhase().kind;
 		const engineReady = this.rosterService.isEngineConnected() && phaseKind === 'connected';
-		if (!engineReady) {
-			if (this.hadTeamSnapshot) {
+		if (pairingHold || !engineReady) {
+			if (hadLiveTeamPaint) {
 				this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
 				return;
 			}
@@ -418,10 +428,12 @@ export class NavigatorTeamView extends ViewPane {
 		const teamCapability = getNavigatorCapability(this.uaConnection, 'team');
 		if (teamCapability === 'UNSUPPORTED') {
 			this.inspectService.setLiveAgentIds('team', undefined);
-			this.setMemberEntries([], TEAM_UNSUPPORTED_COPY);
-			this.setTaskEntries([], TEAM_UNSUPPORTED_COPY);
-			this.hadTeamSnapshot = true;
-			this.setTeamSnapshotNote(undefined);
+			this.setTeamAfterTreeEmpty(TEAM_UNSUPPORTED_COPY);
+			return;
+		}
+		if (teamCapability === 'UNKNOWN') {
+			this.inspectService.setLiveAgentIds('team', undefined);
+			this.setTeamAfterTreeEmpty(NAVIGATOR_TEAM_LOADING_COPY);
 			return;
 		}
 
@@ -478,13 +490,16 @@ export class NavigatorTeamView extends ViewPane {
 				}
 			}
 
-			this.hadTeamSnapshot = true;
-			this.setMemberEntries(members, members.length === 0 ? TEAM_MEMBERS_EMPTY_COPY : undefined);
-			this.setTaskEntries(tasks, tasks.length === 0 ? TEAM_TASKS_EMPTY_COPY : undefined);
-			if (!this.rosterService.isEngineConnected() || this.uaConnection.getConnectionPhase().kind !== 'connected') {
+			// D369 leftover-looks-live: pairing-hold-first after await. KEEP leftover;
+			// do not paint in-flight members/tasks as live. D336 entry KEEP is unchanged.
+			if (isConversationPairingHold(this.uaConnection) || !this.rosterService.isEngineConnected() || this.uaConnection.getConnectionPhase().kind !== 'connected') {
+				this.inspectService.setLiveAgentIds('team', undefined);
 				this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
 				return;
 			}
+			this.hadTeamSnapshot = true;
+			this.setMemberEntries(members, members.length === 0 ? TEAM_MEMBERS_EMPTY_COPY : undefined);
+			this.setTaskEntries(tasks, tasks.length === 0 ? TEAM_TASKS_EMPTY_COPY : undefined);
 			this.setTeamSnapshotNote(undefined);
 		} catch {
 			const hadLiveTeamPaint = this.memberEntries.length > 0 || this.taskEntries.length > 0;

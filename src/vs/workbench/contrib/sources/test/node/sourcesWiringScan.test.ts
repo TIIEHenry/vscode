@@ -74,6 +74,7 @@ suite('Sources - Changes git write - 源码接线扫描', () => {
 		assert.ok(source.includes('attemptSourcesGitWrite'));
 		assert.ok(source.includes('resolveSourcesDiffWriteActions'));
 		assert.ok(source.includes('hasSourcesGitApplyHunksPayload'));
+		assert.ok(source.includes('isConversationPairingHold'));
 		assert.ok(source.includes('getActiveSessionId'));
 		assert.ok(source.includes('SOURCES_GIT_CLEAN_COMMAND'));
 		assert.ok(source.includes('SOURCES_GIT_UNSTAGE_COMMAND'));
@@ -84,10 +85,14 @@ suite('Sources - Changes git write - 源码接线扫描', () => {
 		assert.ok(runAcceptStart >= 0);
 		const runAcceptEnd = source.indexOf('\n\tprivate ', runAcceptStart + 1);
 		const runAccept = source.slice(runAcceptStart, runAcceptEnd > runAcceptStart ? runAcceptEnd : undefined);
+		assert.ok(runAccept.includes('isConversationPairingHold'));
 		assert.ok(!runAccept.includes('SOURCES_GIT_STAGE_COMMAND'));
 		assert.ok(!runAccept.includes('git.stage'));
 		const runStageStart = source.indexOf('private async runStage(');
 		assert.ok(runStageStart >= 0);
+		const runStageEnd = source.indexOf('\n\tprivate ', runStageStart + 1);
+		const runStage = source.slice(runStageStart, runStageEnd > runStageStart ? runStageEnd : undefined);
+		assert.ok(runStage.includes('isConversationPairingHold'));
 		const runGitActionStart = source.indexOf('private async runGitAction(');
 		assert.ok(runGitActionStart >= 0);
 		const runGitActionEnd = source.indexOf('\n\tprivate ', runGitActionStart + 1);
@@ -105,6 +110,7 @@ suite('Sources - Changes git write - 源码接线扫描', () => {
 		assert.ok(source.includes('attemptSourcesGitWrite'));
 		assert.ok(source.includes('resolveSourcesDiffWriteActions'));
 		assert.ok(source.includes('hasSourcesGitApplyHunksPayload'));
+		assert.ok(source.includes('isConversationPairingHold'));
 		assert.ok(source.includes('getActiveSessionId'));
 		assert.ok(source.includes('SOURCES_GIT_CLEAN_COMMAND'));
 		assert.ok(source.includes('SOURCES_GIT_UNSTAGE_COMMAND'));
@@ -115,8 +121,14 @@ suite('Sources - Changes git write - 源码接线扫描', () => {
 		assert.ok(runAcceptStart >= 0);
 		const runAcceptEnd = source.indexOf('\n\tprivate ', runAcceptStart + 1);
 		const runAccept = source.slice(runAcceptStart, runAcceptEnd > runAcceptStart ? runAcceptEnd : undefined);
+		assert.ok(runAccept.includes('isConversationPairingHold'));
 		assert.ok(!runAccept.includes('SOURCES_GIT_STAGE_COMMAND'));
 		assert.ok(!runAccept.includes('git.stage'));
+		const runStageStart = source.indexOf('private async runStage(');
+		assert.ok(runStageStart >= 0);
+		const runStageEnd = source.indexOf('\n\tprivate ', runStageStart + 1);
+		const runStage = source.slice(runStageStart, runStageEnd > runStageStart ? runStageEnd : undefined);
+		assert.ok(runStage.includes('isConversationPairingHold'));
 	});
 });
 

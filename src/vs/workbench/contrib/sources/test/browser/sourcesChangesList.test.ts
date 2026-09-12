@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { mainWindow } from '../../../../../base/browser/window.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
@@ -11,18 +12,24 @@ import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../..
 import { URI } from '../../../../../base/common/uri.js';
 import { EditorOpenSource, IResourceEditorInput } from '../../../../../platform/editor/common/editor.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
-import { ICommandService } from '../../../../../platform/commands/common/commands.js';
-import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
+import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
+import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type {
+	UniverseAgentConnectionSnapshot,
+	UniverseAgentWriteGitCommitRequest,
+	UniverseAgentWriteGitStagePathsRequest,
+	UniverseAgentWriteGitWriteResult,
+} from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
 import { ACTIVE_GROUP, CONVERSATION_GROUP, IEditorService } from '../../../../services/editor/common/editorService.js';
 import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
 import { openSourcesChangeEntry, ISourcesChangeEntryOpenDeps } from '../../browser/sourcesChangeEntryOpen.js';
-import { sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadUnavailableNoHookMessage } from '../../common/sourcesChangesGitRead.js';
+import { sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadPairingHoldMessage, sourcesGitReadUnavailableNoHookMessage } from '../../common/sourcesChangesGitRead.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
 import { ISourcesChangeEntry } from '../../common/sourcesChangesModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
@@ -327,6 +334,8 @@ suite('Sources - Changes list leftover honesty', () => {
 	}): IUniverseAgentConnection {
 		return {
 			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
 			onDidChangeConnection: options.onDidChangeConnection ?? Event.None,
 			readGitChanges: options.readGitChanges,
 			readGitSummary: async () => ({
@@ -338,10 +347,10 @@ suite('Sources - Changes list leftover honesty', () => {
 		} as unknown as IUniverseAgentConnection;
 	}
 
-	function createIndexScmService(resource: URI): ISCMService {
+	function createIndexScmService(resource: URI, groupId = 'index'): ISCMService {
 		const group = {
-			id: 'index',
-			label: 'Staged Changes',
+			id: groupId,
+			label: groupId === 'index' ? 'Staged Changes' : 'Changes',
 			resources: [] as ISCMResource[],
 		};
 		const scmResource = {
@@ -379,7 +388,11 @@ suite('Sources - Changes list leftover honesty', () => {
 		} as unknown as ISCMService;
 	}
 
-	function stubChangesListServices(connection: IUniverseAgentConnection, scmService: ISCMService = createEmptyScmService()) {
+	function stubChangesListServices(
+		connection: IUniverseAgentConnection,
+		scmService: ISCMService = createEmptyScmService(),
+		executeCommand?: (commandId: string, ...args: unknown[]) => Promise<unknown>,
+	) {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
 		instantiationService.stub(ISCMService, scmService);
@@ -396,7 +409,7 @@ suite('Sources - Changes list leftover honesty', () => {
 		instantiationService.stub(ICommandService, {
 			onWillExecuteCommand: Event.None,
 			onDidExecuteCommand: Event.None,
-			executeCommand: async () => undefined,
+			executeCommand: executeCommand ?? (async () => undefined),
 		} as unknown as ICommandService);
 		return instantiationService;
 	}
@@ -433,6 +446,12 @@ suite('Sources - Changes list leftover honesty', () => {
 			await timeout(20);
 		}
 		throw new Error('list stayed empty');
+	}
+
+	async function openFirstListRow(owner: { list?: WorkbenchList<ISourcesChangeEntry> }): Promise<void> {
+		const list = await waitForList(owner);
+		list.setFocus([0]);
+		list.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
 	}
 
 	test('first git-read throw stays empty and paints failure', async function () {
@@ -521,5 +540,693 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.strictEqual(list.length, 1);
 		assert.strictEqual(list.element(0).gitPath, leftover.path);
 		assert.strictEqual(list.element(0).scmResource, undefined);
+	});
+
+	test('success then pairingPending keeps leftover rows and does not paint local-only', async function () {
+		let connected = true;
+		let pairingPending = false;
+		let readCalls = 0;
+		const leftover = { path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: connected ? 'ok' : 'idle',
+			sharedFsRootSent: false,
+			pairingPending,
+			channelAlive: connected,
+			capabilities: {} as never,
+		});
+		const connection = {
+			isEngineConnected: () => connected && !pairingPending,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' as const : 'disconnected' as const }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => {
+				readCalls += 1;
+				return {
+					supported: true,
+					reason: '',
+					branch: 'main',
+					entries: [leftover],
+				};
+			},
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+		} as unknown as IUniverseAgentConnection;
+		const scmStub = toResource.call(this, '/project/src/scm-stub.ts');
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub)).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		assert.strictEqual(readCalls, 1);
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+
+		const pairingStatus = await waitForStatusText(host, 'not connected');
+		assert.strictEqual(pairingStatus, sourcesGitReadPairingHoldMessage());
+		assert.ok(pairingStatus.includes('pairing'));
+		assert.ok(!pairingStatus.includes('local source control'));
+		assert.notStrictEqual(pairingStatus, sourcesGitLocalOnlyMessage());
+		assert.strictEqual(readCalls, 1);
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		assert.strictEqual(list.element(0).scmResource, undefined);
+
+		connected = false;
+		pairingPending = false;
+		onDidChangeConnection.fire(snapshot());
+
+		const disconnectStatus = await waitForStatusText(host, 'local source control');
+		assert.strictEqual(disconnectStatus, sourcesGitLocalOnlyMessage());
+		assert.strictEqual(readCalls, 1);
+		assert.strictEqual(list.length, 1);
+		assert.ok(list.element(0).scmResource);
+		assert.ok((list.element(0).resource.path ?? '').includes('scm-stub.ts'));
+	});
+
+	test('leftover-looks-live pairing-hold keeps leftover rows and skips git-read', async function () {
+		let connected = true;
+		let pairingPending = false;
+		let readCalls = 0;
+		let diffCalls = 0;
+		const leftover = { path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: connected ? 'ok' : 'idle',
+			sharedFsRootSent: false,
+			pairingPending,
+			channelAlive: connected,
+			capabilities: {} as never,
+		});
+		const connection = {
+			isEngineConnected: () => connected,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' as const : 'disconnected' as const }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => {
+				readCalls += 1;
+				return {
+					supported: true,
+					reason: '',
+					branch: 'main',
+					entries: [leftover],
+				};
+			},
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+			readGitFileDiff: async () => {
+				diffCalls += 1;
+				throw new Error('must not readGitFileDiff while leftover-looks-live');
+			},
+		} as unknown as IUniverseAgentConnection;
+		const scmStub = toResource.call(this, '/project/src/scm-stub.ts');
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub)).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		const listCallsAfterLoad = readCalls;
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		const pairingStatus = await waitForStatusText(host, 'not connected');
+		assert.strictEqual(pairingStatus, sourcesGitReadPairingHoldMessage());
+		assert.ok(!pairingStatus.includes('local source control'));
+		assert.notStrictEqual(pairingStatus, sourcesGitLocalOnlyMessage());
+		assert.strictEqual(readCalls, listCallsAfterLoad, 'leftover-looks-live must not extra readGitChanges');
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		assert.strictEqual(list.element(0).scmResource, undefined);
+
+		await openFirstListRow(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		await timeout(20);
+		assert.strictEqual(diffCalls, 0, 'leftover-looks-live must not extra readGitFileDiff');
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+
+		connected = false;
+		pairingPending = false;
+		onDidChangeConnection.fire(snapshot());
+
+		const disconnectStatus = await waitForStatusText(host, 'local source control');
+		assert.strictEqual(disconnectStatus, sourcesGitLocalOnlyMessage());
+		assert.strictEqual(readCalls, listCallsAfterLoad);
+		assert.strictEqual(diffCalls, 0);
+		assert.strictEqual(list.length, 1);
+		assert.ok(list.element(0).scmResource);
+		assert.ok((list.element(0).resource.path ?? '').includes('scm-stub.ts'));
+	});
+
+	test('in-flight readGitChanges leftover-looks-live keeps leftover and does not paint fresh live', async function () {
+		let connected = true;
+		let pairingPending = false;
+		let readCalls = 0;
+		let resolveInFlight: ((value: {
+			supported: boolean;
+			reason: string;
+			branch: string;
+			entries: Array<{ path: string; oldPath: string; kind: string; indexState: string }>;
+		}) => void) | undefined;
+		const leftover = { path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
+		const freshLive = { path: 'src/fresh-live.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: connected ? 'ok' : 'idle',
+			sharedFsRootSent: false,
+			pairingPending,
+			channelAlive: connected,
+			capabilities: {} as never,
+		});
+		const connection = {
+			isEngineConnected: () => connected,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' as const : 'disconnected' as const }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => {
+				readCalls += 1;
+				if (readCalls === 1) {
+					return {
+						supported: true,
+						reason: '',
+						branch: 'main',
+						entries: [leftover],
+					};
+				}
+				return new Promise(resolve => {
+					resolveInFlight = resolve;
+				});
+			},
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+		} as unknown as IUniverseAgentConnection;
+		const scmStub = toResource.call(this, '/project/src/scm-stub.ts');
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub)).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		assert.strictEqual(readCalls, 1);
+
+		onDidChangeConnection.fire(snapshot());
+		const inflightDeadline = Date.now() + 2000;
+		while (!resolveInFlight && Date.now() < inflightDeadline) {
+			await timeout(20);
+		}
+		assert.ok(resolveInFlight, 'in-flight readGitChanges must start while still live');
+		assert.strictEqual(readCalls, 2);
+
+		pairingPending = true;
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		resolveInFlight({
+			supported: true,
+			reason: '',
+			branch: 'main',
+			entries: [freshLive],
+		});
+		const pairingStatus = await waitForStatusText(host, 'not connected');
+		assert.strictEqual(pairingStatus, sourcesGitReadPairingHoldMessage());
+		assert.ok(!pairingStatus.includes('local source control'));
+		assert.notStrictEqual(pairingStatus, sourcesGitLocalOnlyMessage());
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		assert.notStrictEqual(list.element(0).gitPath, freshLive.path, 'in-flight leftover-looks-live must not paint fresh live');
+		assert.strictEqual(list.element(0).scmResource, undefined);
+	});
+
+	test('leftover-looks-live first-pull pairing without leftover stays SCM and skips git-read', async function () {
+		let readCalls = 0;
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: true }),
+			onDidChangeConnection: Event.None,
+			readGitChanges: async () => {
+				readCalls += 1;
+				throw new Error('must not readGitChanges while leftover-looks-live first-pull');
+			},
+			readGitSummary: async () => {
+				readCalls += 1;
+				throw new Error('must not readGitSummary while leftover-looks-live first-pull');
+			},
+			readGitFileDiff: async () => {
+				readCalls += 1;
+				throw new Error('must not readGitFileDiff while leftover-looks-live first-pull');
+			},
+		} as unknown as IUniverseAgentConnection;
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		const scmStub = toResource.call(this, '/project/src/scm-stub.ts');
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub)).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		const status = await waitForStatusText(host, 'local source control');
+		assert.strictEqual(status, sourcesGitLocalOnlyMessage());
+		assert.strictEqual(readCalls, 0);
+		assert.strictEqual(list.length, 1);
+		assert.ok(list.element(0).scmResource);
+		assert.ok((list.element(0).resource.path ?? '').includes('scm-stub.ts'));
+	});
+
+	const acceptedWrite: UniverseAgentWriteGitWriteResult = {
+		supported: true,
+		reason: '',
+		success: true,
+		errorMessage: '',
+		exitCode: 0,
+		stdout: '',
+	};
+
+	function forceClick(button: HTMLElement | null): void {
+		if (!button) {
+			return;
+		}
+		button.classList.remove('disabled');
+		button.removeAttribute('disabled');
+		button.setAttribute('aria-disabled', 'false');
+		if ('disabled' in button) {
+			(button as HTMLButtonElement).disabled = false;
+		}
+		button.click();
+	}
+
+	function stageSelectedButton(host: HTMLElement): HTMLElement | null {
+		return host.querySelector('.sources-changes-toolbar .monaco-button');
+	}
+
+	function unstageSelectedButton(host: HTMLElement): HTMLElement | null {
+		return host.querySelector('.sources-changes-toolbar .monaco-button:nth-child(2)');
+	}
+
+	function commitButton(host: HTMLElement): HTMLElement | null {
+		return host.querySelector('.sources-changes-commit .monaco-button');
+	}
+
+	async function waitForWriteButtonsDisabled(host: HTMLElement): Promise<void> {
+		const deadline = Date.now() + 2000;
+		while (Date.now() < deadline) {
+			const stage = stageSelectedButton(host);
+			const commit = commitButton(host);
+			if (stage?.classList.contains('disabled') && commit?.classList.contains('disabled')) {
+				return;
+			}
+			await timeout(20);
+		}
+		throw new Error('Stage / Commit stayed enabled');
+	}
+
+	test('success then pairingPending disables Stage / Commit and forced click stays 0 unary', async function () {
+		let connected = true;
+		let pairingPending = false;
+		let readCalls = 0;
+		const leftover = { path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const commitCalls: UniverseAgentWriteGitCommitRequest[] = [];
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: connected ? 'ok' : 'idle',
+			sharedFsRootSent: false,
+			pairingPending,
+			channelAlive: connected,
+			capabilities: {} as never,
+		});
+		const connection = {
+			isEngineConnected: () => connected && !pairingPending,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' as const : 'disconnected' as const }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => {
+				readCalls += 1;
+				return {
+					supported: true,
+					reason: '',
+					branch: 'main',
+					entries: [leftover],
+				};
+			},
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+			writeGitStagePaths: async (request: UniverseAgentWriteGitStagePathsRequest) => {
+				stageCalls.push(request);
+				return acceptedWrite;
+			},
+			writeGitCommit: async (request: UniverseAgentWriteGitCommitRequest) => {
+				commitCalls.push(request);
+				return acceptedWrite;
+			},
+		} as unknown as IUniverseAgentConnection;
+		const scmStub = toResource.call(this, '/project/src/scm-stub.ts');
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub)).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		list.setFocus([0]);
+		list.setSelection([0]);
+		const commitInput = host.querySelector('.sources-changes-commit-input') as HTMLInputElement;
+		commitInput.value = 'fix leftover';
+		commitInput.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+		await timeout(20);
+		assert.strictEqual(stageSelectedButton(host)?.classList.contains('disabled'), false);
+		assert.strictEqual(commitButton(host)?.classList.contains('disabled'), false);
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+
+		const pairingStatus = await waitForStatusText(host, 'not connected');
+		assert.strictEqual(pairingStatus, sourcesGitReadPairingHoldMessage());
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		assert.strictEqual(readCalls, 1);
+		list.setFocus([0]);
+		list.setSelection([0]);
+		commitInput.value = 'fix leftover';
+		commitInput.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+		await waitForWriteButtonsDisabled(host);
+
+		forceClick(stageSelectedButton(host));
+		forceClick(commitButton(host));
+		await timeout(20);
+		assert.deepStrictEqual(stageCalls, []);
+		assert.deepStrictEqual(commitCalls, []);
+	});
+
+	test('leftover-looks-live pairing-hold Stage / Commit stay 0 unary', async function () {
+		let pairingPending = false;
+		let readCalls = 0;
+		const leftover = { path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const commitCalls: UniverseAgentWriteGitCommitRequest[] = [];
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			sharedFsRootSent: false,
+			pairingPending,
+			channelAlive: true,
+			capabilities: {} as never,
+		});
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => {
+				readCalls += 1;
+				return {
+					supported: true,
+					reason: '',
+					branch: 'main',
+					entries: [leftover],
+				};
+			},
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+			writeGitStagePaths: async (request: UniverseAgentWriteGitStagePathsRequest) => {
+				stageCalls.push(request);
+				return acceptedWrite;
+			},
+			writeGitCommit: async (request: UniverseAgentWriteGitCommitRequest) => {
+				commitCalls.push(request);
+				return acceptedWrite;
+			},
+		} as unknown as IUniverseAgentConnection;
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(connection).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		const listCallsAfterLoad = readCalls;
+		list.setFocus([0]);
+		list.setSelection([0]);
+		const commitInput = host.querySelector('.sources-changes-commit-input') as HTMLInputElement;
+		commitInput.value = 'looks live';
+		commitInput.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+		await timeout(20);
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+
+		list.setFocus([0]);
+		list.setSelection([0]);
+		commitInput.value = 'looks live';
+		commitInput.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+		await waitForWriteButtonsDisabled(host);
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		assert.strictEqual(readCalls, listCallsAfterLoad);
+
+		forceClick(stageSelectedButton(host));
+		forceClick(commitButton(host));
+		await timeout(20);
+		assert.deepStrictEqual(stageCalls, []);
+		assert.deepStrictEqual(commitCalls, []);
+	});
+
+	test('connected leftover still stages and commits', async function () {
+		let readCalls = 0;
+		const leftover = { path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const commitCalls: UniverseAgentWriteGitCommitRequest[] = [];
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => {
+				readCalls += 1;
+				if (readCalls === 1) {
+					return {
+						supported: true,
+						reason: '',
+						branch: 'main',
+						entries: [leftover],
+					};
+				}
+				throw new Error('boom');
+			},
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+			writeGitStagePaths: async (request: UniverseAgentWriteGitStagePathsRequest) => {
+				stageCalls.push(request);
+				return acceptedWrite;
+			},
+			writeGitCommit: async (request: UniverseAgentWriteGitCommitRequest) => {
+				commitCalls.push(request);
+				return acceptedWrite;
+			},
+		} as unknown as IUniverseAgentConnection;
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(connection).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		onDidChangeConnection.fire({} as UniverseAgentConnectionSnapshot);
+		const status = await waitForStatusText(host, 'Unable to read git changes');
+		assert.ok(status.includes('boom'));
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+
+		list.setFocus([0]);
+		list.setSelection([0]);
+		const commitInput = host.querySelector('.sources-changes-commit-input') as HTMLInputElement;
+		commitInput.value = 'keep leftover';
+		commitInput.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+		await timeout(20);
+		assert.strictEqual(stageSelectedButton(host)?.classList.contains('disabled'), false);
+		assert.strictEqual(commitButton(host)?.classList.contains('disabled'), false);
+
+		stageSelectedButton(host)?.click();
+		await timeout(50);
+		assert.deepStrictEqual(stageCalls, [{
+			sessionId: 'session-1',
+			commands: [{ argv: ['src/leftover.ts'] }],
+		}]);
+
+		commitButton(host)?.click();
+		await timeout(50);
+		assert.deepStrictEqual(commitCalls, [{
+			sessionId: 'session-1',
+			message: 'keep leftover',
+			signOff: false,
+			amend: false,
+		}]);
+	});
+
+	test('leftover-looks-live pairing-hold Stage with local SCM stays hidden and 0 git.stage', async function () {
+		const gitStageCommands: string[] = [];
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: true }),
+			onDidChangeConnection: Event.None,
+			writeGitStagePaths: async (request: UniverseAgentWriteGitStagePathsRequest) => {
+				stageCalls.push(request);
+				return acceptedWrite;
+			},
+		} as unknown as IUniverseAgentConnection;
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const scmStub = toResource.call(this, '/project/src/leftover-stage.ts');
+			const host = mountHost();
+			const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub, 'workingTree'), async (commandId: string) => {
+				if (commandId === 'git.stage') {
+					gitStageCommands.push(commandId);
+				}
+			}).createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			assert.ok(list.element(0).scmResource);
+			list.setFocus([0]);
+			list.setSelection([0]);
+			await timeout(20);
+
+			const stage = stageSelectedButton(host);
+			assert.ok(stage, 'Stage Selected is the toolbar first button');
+			assert.strictEqual(stage.classList.contains('disabled'), true);
+			const rowAction = host.querySelector('.sources-change-action') as HTMLElement | null;
+			assert.ok(!rowAction || rowAction.style.display === 'none' || rowAction.classList.contains('disabled'));
+
+			forceClick(stage);
+			forceClick(rowAction);
+			await (widget as unknown as { runOnSelected: (action: 'stage') => Promise<void> }).runOnSelected('stage');
+			await timeout(20);
+			assert.strictEqual(gitStageCommands.length, 0);
+			assert.deepStrictEqual(stageCalls, []);
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	test('leftover-looks-live pairing-hold Unstage stays disabled and 0 git.unstage', async function () {
+		const gitUnstageCommands: string[] = [];
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: true }),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+
+		const unstageCommand = CommandsRegistry.registerCommand('git.unstage', () => { });
+		try {
+			const scmStub = toResource.call(this, '/project/src/leftover-unstage.ts');
+			const host = mountHost();
+			const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub), async (commandId: string) => {
+				if (commandId === 'git.unstage') {
+					gitUnstageCommands.push(commandId);
+				}
+			}).createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			assert.ok(list.element(0).scmResource);
+			list.setFocus([0]);
+			list.setSelection([0]);
+			await timeout(20);
+
+			const unstage = unstageSelectedButton(host);
+			assert.ok(unstage, 'Unstage Selected is the toolbar second button');
+			assert.strictEqual(unstage.classList.contains('disabled'), true);
+			const rowAction = host.querySelector('.sources-change-action') as HTMLElement | null;
+			assert.ok(!rowAction || rowAction.style.display === 'none' || rowAction.classList.contains('disabled'));
+
+			forceClick(unstage);
+			forceClick(rowAction);
+			await (widget as unknown as { runOnSelected: (action: 'unstage') => Promise<void> }).runOnSelected('unstage');
+			await timeout(20);
+			assert.strictEqual(gitUnstageCommands.length, 0);
+		} finally {
+			unstageCommand.dispose();
+		}
+	});
+
+	test('connected leftover without pairing Unstage still runs git.unstage', async function () {
+		const gitUnstageCommands: string[] = [];
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, false);
+
+		const unstageCommand = CommandsRegistry.registerCommand('git.unstage', () => { });
+		try {
+			const scmStub = toResource.call(this, '/project/src/leftover-live-unstage.ts');
+			const host = mountHost();
+			const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub), async (commandId: string) => {
+				if (commandId === 'git.unstage') {
+					gitUnstageCommands.push(commandId);
+				}
+			}).createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			assert.ok(list.element(0).scmResource);
+			list.setFocus([0]);
+			list.setSelection([0]);
+			await timeout(20);
+
+			const unstage = unstageSelectedButton(host);
+			assert.ok(unstage, 'Unstage Selected is the toolbar second button');
+			assert.strictEqual(unstage.classList.contains('disabled'), false);
+
+			await (widget as unknown as { runOnSelected: (action: 'unstage') => Promise<void> }).runOnSelected('unstage');
+			await timeout(20);
+			assert.deepStrictEqual(gitUnstageCommands, ['git.unstage']);
+		} finally {
+			unstageCommand.dispose();
+		}
 	});
 });

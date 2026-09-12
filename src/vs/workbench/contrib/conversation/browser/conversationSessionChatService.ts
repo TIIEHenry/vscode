@@ -19,6 +19,7 @@ import { IConversationSessionChatEntry } from '../common/conversationSessionChat
 import { collectLiveAgentTreeCatalogEntries } from '../common/conversationLiveAgentCatalog.js';
 import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { LiveAgentTreeNodeView } from '../../../../platform/universeAgent/common/sessionView/index.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import {
 	ConversationChatInput,
 	deriveConversationChatIdFromForkResource,
@@ -27,6 +28,7 @@ import {
 } from '../common/conversationChatInput.js';
 import { ConversationSubAgentOverlay } from './conversationSubAgentOverlay.js';
 import { IConversationRosterService } from './conversationStubService.js';
+import { shouldKeepLiveTreeLeaseWhilePairing, shouldRebindLiveTreeLeaseWhilePairing } from './conversationSessionStatus.js';
 
 export const IConversationSessionChatService = createDecorator<IConversationSessionChatService>('conversationSessionChatService');
 
@@ -105,6 +107,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		@IConversationRosterService private readonly rosterService: IConversationRosterService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@INotificationService private readonly notificationService: INotificationService,
+		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 	) {
 		super();
 		this._register(this.rosterService.onDidChangeLiveAgentTree(event => {
@@ -116,12 +119,20 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	private bindLiveTreeLease(): void {
-		this.liveTreeLeaseStore.clear();
-		this.liveTreeLease = undefined;
-		if (!this.rosterService.isEngineConnected() || !this.rosterService.isEngineSessionReady()) {
+		const sessionId = this.rosterService.getActiveSessionId();
+		const leaseSessionId = this.liveTreeLease?.sessionId;
+		const disconnected = !this.rosterService.isEngineConnected() || !this.rosterService.isEngineSessionReady();
+		if (disconnected && shouldKeepLiveTreeLeaseWhilePairing(this.uaConnection, leaseSessionId, sessionId)) {
+			// D286/D292: pairing-hold same-session leftover lease stays; keep applying frames.
 			return;
 		}
-		const sessionId = this.rosterService.getActiveSessionId();
+		const pairingRebind = disconnected && shouldRebindLiveTreeLeaseWhilePairing(this.uaConnection, leaseSessionId, sessionId);
+		this.liveTreeLeaseStore.clear();
+		this.liveTreeLease = undefined;
+		if (disconnected && !pairingRebind) {
+			// True disconnect clears. First-pull pairing still has no lease.
+			return;
+		}
 		try {
 			const lease = this.rosterService.acquireSessionView(sessionId);
 			this.liveTreeLease = lease;

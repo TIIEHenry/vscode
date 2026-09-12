@@ -13,7 +13,7 @@ import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
-import { ContextKeyExpr, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
+import { ContextKeyExpr, IContextKey, IContextKeyService, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
@@ -22,6 +22,7 @@ import { WorkbenchList } from '../../../../platform/list/browser/listService.js'
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
@@ -30,10 +31,15 @@ import { matchesConversationSessionsInlineFilter } from '../common/conversationS
 import { ConversationSessionsInlineFilterBox } from './conversationSessionsInlineFilterBox.js';
 import { conversationSessionsViewEmptyMessage } from './conversationSessionsViewStrings.js';
 import { ConversationStubSession } from './conversationStubModel.js';
-import { IConversationRosterService } from './conversationStubService.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
+import { IConversationRosterService } from './conversationStubService.js';
 
 export const CONVERSATION_SESSIONS_VIEW_ID = 'workbench.view.conversationSessions';
+export const CONVERSATION_SESSIONS_DELETE_SESSION_COMMAND_ID = 'workbench.action.conversationSessions.deleteSession';
+
+/** Sessions ViewTitle Delete KEEP-chrome — false on leftover-looks-live / pairing-hold. Do not reuse Navigator `UA_ENGINE_CONNECTED_KEY`. */
+export const CONVERSATION_SESSIONS_DELETE_ENABLED_KEY = new RawContextKey<boolean>('conversationSessions.deleteEnabled', false);
 
 /** Two-line compact SessionCard row height (workbench list delegate). */
 export const CONVERSATION_SESSION_ROW_HEIGHT = 44;
@@ -139,6 +145,7 @@ export class ConversationSessionsView extends ViewPane {
 	private emptyMessage: HTMLElement | undefined;
 	private filterBox: ConversationSessionsInlineFilterBox | undefined;
 	private filterQuery = '';
+	private readonly deleteEnabledContextKey: IContextKey<boolean>;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -147,6 +154,7 @@ export class ConversationSessionsView extends ViewPane {
 		@IConversationPartService private readonly conversationPartService: IConversationPartService,
 		@IConversationSessionWindowService private readonly sessionWindowService: IConversationSessionWindowService,
 		@INotificationService private readonly notificationService: INotificationService,
+		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 		@IKeybindingService keybindingService: IKeybindingService,
 		@IContextMenuService contextMenuService: IContextMenuService,
 		@IConfigurationService configurationService: IConfigurationService,
@@ -159,12 +167,28 @@ export class ConversationSessionsView extends ViewPane {
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
 
+		this.deleteEnabledContextKey = CONVERSATION_SESSIONS_DELETE_ENABLED_KEY.bindTo(this.scopedContextKeyService);
 		this._register(this.stubService.onDidChangeActiveSession(() => this.refreshList()));
 		this._register(this.stubService.onDidChangeSession(() => this.refreshList()));
-		this._register(this.stubService.onDidChangeEngineConnection(() => this.refreshList()));
+		this._register(this.stubService.onDidChangeEngineConnection(() => {
+			this.updateDeleteEnabledContextKey();
+			this.refreshList();
+		}));
+		this._register(this.uaConnection.onDidChangeConnection(() => this.updateDeleteEnabledContextKey()));
+		this.updateDeleteEnabledContextKey();
+	}
+
+	private updateDeleteEnabledContextKey(): void {
+		this.deleteEnabledContextKey.set(!isConversationPairingHold(this.uaConnection));
 	}
 
 	createNewSession(): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			this.notificationService.error(
+				localize('conversationSessionsView.createSessionDisconnected', "Could not create session — engine disconnected."),
+			);
+			return;
+		}
 		if (!this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory()) {
 			this.notificationService.error(
 				localize('conversationSessionsView.createSessionDisconnected', "Could not create session — engine disconnected."),
@@ -175,6 +199,12 @@ export class ConversationSessionsView extends ViewPane {
 	}
 
 	deleteActiveSession(): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			this.notificationService.error(
+				localize('conversationSessionsView.deleteSessionDisconnected', "Could not delete session — engine disconnected."),
+			);
+			return;
+		}
 		if (this.stubService.deleteSession(this.stubService.getActiveSessionId())) {
 			return;
 		}
@@ -388,10 +418,11 @@ registerAction2(class ConversationSessionsNewSessionAction extends ViewAction<Co
 registerAction2(class ConversationSessionsDeleteSessionAction extends ViewAction<ConversationSessionsView> {
 	constructor() {
 		super({
-			id: 'workbench.action.conversationSessions.deleteSession',
+			id: CONVERSATION_SESSIONS_DELETE_SESSION_COMMAND_ID,
 			viewId: CONVERSATION_SESSIONS_VIEW_ID,
 			title: localize2('conversationSessionsView.deleteSession', "Delete session"),
 			icon: Codicon.trash,
+			precondition: CONVERSATION_SESSIONS_DELETE_ENABLED_KEY,
 			menu: {
 				id: MenuId.ViewTitle,
 				group: 'navigation',

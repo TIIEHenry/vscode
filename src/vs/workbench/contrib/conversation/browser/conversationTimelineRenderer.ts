@@ -118,6 +118,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 		private readonly onOpenVisualizeFullscreen: ((source: string, title?: string) => void) | undefined,
 		private readonly getMermaidExtensionInfo: () => ConversationMermaidExtensionInfo | undefined,
 		private readonly showLiveChrome: () => boolean,
+		private readonly writesEnabled: () => boolean,
 		private readonly showToolInvocationDetails: () => boolean,
 		private readonly webviewService: IWebviewService,
 		private readonly getTimelineScrollHost: () => HTMLElement | undefined,
@@ -141,6 +142,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			renderProcessFoldSpan(templateData.container, span, {
 				defaultOuterExpanded: false,
 				showLiveChrome: this.showLiveChrome(),
+				writesEnabled: this.writesEnabled(),
 				showToolInvocationDetails: this.showToolInvocationDetails(),
 				isOuterExpanded: (spanId) => this.processFoldOuterExpanded.get(spanId) ?? false,
 				setOuterExpanded: (spanId, expanded) => {
@@ -205,6 +207,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				onRespond: turn.status !== 'allowed' && this.onQuestionRespond
 					? (requestId, answers, customText) => this.onQuestionRespond!(turn.id, requestId, answers, customText)
 					: undefined,
+				writesEnabled: this.writesEnabled(),
 			}));
 			seat.element.setAttribute('data-turn-id', turn.id);
 			this.questionSeats.set(turn.id, seat);
@@ -213,7 +216,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			return;
 		}
 		if (honestKind === 'error' || honestKind === 'unknown' || honestKind === 'system') {
-			renderHonestTimelineRow(templateData.container, turn, honestKind, templateData.disposables, this.onRetryError);
+			renderHonestTimelineRow(templateData.container, turn, honestKind, templateData.disposables, this.onRetryError, this.writesEnabled());
 			this.scheduleHeightUpdate(item, templateData.container);
 			return;
 		}
@@ -256,6 +259,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				onSkip: turn.status === 'pending' && this.onResolveConfirmation
 					? () => this.onResolveConfirmation!(turn.id, 'skipped')
 					: undefined,
+				writesEnabled: this.writesEnabled(),
 			}));
 			seat.element.setAttribute('data-turn-id', turn.id);
 			seat.element.classList.add('conversation-lens-turn', 'conversation-lens-turn--permission');
@@ -368,6 +372,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 					ariaLabel: conversationLensTurnDelete,
 				}));
 				deleteButton.icon = Codicon.trash;
+				deleteButton.enabled = this.writesEnabled();
 				if (this.onDeleteTurn) {
 					templateData.disposables.add(deleteButton.onDidClick(() => this.onDeleteTurn!(turn.id)));
 				}
@@ -507,6 +512,7 @@ export function renderHonestTimelineRow(
 	kind: 'error' | 'unknown' | 'system',
 	disposables: DisposableStore,
 	onRetryError?: (turn: ConversationStubTurn) => void,
+	writesEnabled = true,
 ): void {
 	const fields = getConversationHonestFields(turn);
 	const el = append(container, $(`div.conversation-lens-turn.conversation-lens-turn--${kind}`));
@@ -539,6 +545,7 @@ export function renderHonestTimelineRow(
 				ariaLabel: conversationLensErrorRetry,
 			}));
 			retry.label = conversationLensErrorRetry;
+			retry.enabled = writesEnabled;
 			disposables.add(retry.onDidClick(() => onRetryError(turn)));
 		}
 	} else if (kind === 'unknown') {

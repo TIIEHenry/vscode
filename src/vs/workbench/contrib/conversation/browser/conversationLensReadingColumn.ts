@@ -10,8 +10,9 @@ import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { type IConversationSessionViewLease, type ConversationQuestionRespondAnswers } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import { type IConversationSessionViewLease, type ConversationQuestionRespondAnswers, type DetailFetchOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND } from '../../sources/browser/sourcesReview.contribution.js';
 import { applyConversationDensityClass, shouldShowClientToolInvocationDetails } from '../common/uaClientSettingsHelpers.js';
@@ -21,6 +22,7 @@ import { ConversationTrajectory } from './conversationTrajectory.js';
 import { conversationLensPhasePreFirstClass, conversationLensPrefirstHeroClass } from './conversationLensDockStrings.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
 import { conversationLeafWidthBucket, isConversationLeafCompact, isConversationLeafNarrow } from './conversationNarrowLayout.js';
+import { isConversationPairingHold, type IConversationPairingHoldSource } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
 export const conversationLensStaleSnapshotClass = 'conversation-lens-stale-snapshot';
@@ -37,6 +39,7 @@ export interface IConversationLensReadingColumnHost {
 	sessionViewLease: IConversationSessionViewLease | undefined;
 	readonly slotHosts: IConversationLensSlots;
 	readonly stubService: IConversationRosterService;
+	readonly uaConnection: IUniverseAgentConnection;
 	readonly configurationService: IConfigurationService;
 	readonly commandService: ICommandService;
 	readonly instantiationService: IInstantiationService;
@@ -79,22 +82,17 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 			);
 		},
 		onOpenVisualizeFullscreen: (source, title) => host.openVisualizeOverlay(source, title),
-		showLiveChrome: () => host.stubService.isEngineConnected(),
+		showLiveChrome: () => shouldShowReadingColumnLiveChrome(host),
+		writesEnabled: () => !isConversationPairingHold(host.uaConnection),
 		showToolInvocationDetails: () => shouldShowClientToolInvocationDetails(host.configurationService),
 	}));
 	host.trajectoryView = host.register(host.instantiationService.createInstance(ConversationTrajectory, host.readingColumn, {
 		onNavigateToLinkedTurn: turnId => host.navigateToTurnFromTrajectory(turnId),
-		showLiveChrome: () => host.stubService.isEngineConnected(),
+		showLiveChrome: () => shouldShowReadingColumnLiveChrome(host),
 		detailContext: {
 			supportsDetailFetch: () => typeof host.sessionViewLease?.requestDetail === 'function',
 			getDetailBody: ref => host.sessionViewLease?.details.get(ref),
-			requestDetail: ref => {
-				const lease = host.sessionViewLease;
-				if (!lease?.requestDetail) {
-					return Promise.resolve({ ok: false as const, reason: 'unavailable' as const });
-				}
-				return lease.requestDetail(ref);
-			},
+			requestDetail: ref => requestReadingColumnDetail(host, ref),
 		},
 	}));
 	host.timelineTree.domNode.id = 'conversation-lens-panel-conversation';
@@ -115,10 +113,70 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 }
 
 function resolveReadingColumnSessionId(host: {
-	readonly stubService: IConversationRosterService;
-	readonly sessionViewLease?: IConversationSessionViewLease;
+	readonly stubService: { getActiveSessionId(): string };
+	readonly sessionViewLease?: { readonly sessionId: string };
 }): string {
 	return host.sessionViewLease?.sessionId ?? host.stubService.getActiveSessionId();
+}
+
+export interface IReadingColumnDetailHost {
+	readonly uaConnection: IConversationPairingHoldSource;
+	readonly sessionViewLease?: Pick<IConversationSessionViewLease, 'details' | 'requestDetail'>;
+}
+
+/**
+ * D353 leftover-looks-live: pairing-hold first on the reading-column
+ * `requestDetail` wrapper. Leftover lease (D289) still has `requestDetail`;
+ * leftover-looks-live (`isEngineConnected()===true` + pairingPending) must
+ * not extra `sessionView.requestDetail`. Cached leftover body stays; missing
+ * ref is `{ ok:false, reason:'unavailable' }`. Connected leftover still
+ * fetches. First-pull pairing without lease already has no `requestDetail`.
+ */
+export function requestReadingColumnDetail(host: IReadingColumnDetailHost, ref: string): Promise<DetailFetchOutcome> {
+	const lease = host.sessionViewLease;
+	if (!lease?.requestDetail) {
+		return Promise.resolve({ ok: false as const, reason: 'unavailable' as const });
+	}
+	if (isConversationPairingHold(host.uaConnection)) {
+		const cached = lease.details.get(ref);
+		if (cached !== undefined) {
+			return Promise.resolve({ ok: true as const, truncated: false as const, content: cached });
+		}
+		return Promise.resolve({ ok: false as const, reason: 'unavailable' as const });
+	}
+	return lease.requestDetail(ref);
+}
+
+/**
+ * D304: pairing-hold leftover (D287 cached turns / D289 leftover lease) keeps
+ * read live chrome (`· Running` / `· Loading`). First-pull pairing without
+ * leftover must not fake it. True disconnect still hides it.
+ * D355 leftover-looks-live: pairing-hold first. Do not take the
+ * `isEngineConnected()` short-circuit while `isConversationPairingHold`;
+ * fall through to leftover lease / `getTurns`. looks-live first-pull
+ * (connected===true + pairingPending, no leftover) stays false.
+ */
+export function shouldShowReadingColumnLiveChrome(host: {
+	readonly stubService: {
+		isEngineConnected(): boolean;
+		getActiveSessionId(): string;
+		getTurns(sessionId: string): readonly unknown[];
+	};
+	readonly uaConnection: IConversationPairingHoldSource;
+	readonly sessionViewLease?: { readonly sessionId: string };
+}): boolean {
+	if (!isConversationPairingHold(host.uaConnection)) {
+		return host.stubService.isEngineConnected();
+	}
+	const sessionId = resolveReadingColumnSessionId(host);
+	if (!sessionId) {
+		return false;
+	}
+	const lease = host.sessionViewLease?.sessionId === sessionId ? host.sessionViewLease : undefined;
+	if (lease) {
+		return true;
+	}
+	return host.stubService.getTurns(sessionId).length > 0;
 }
 
 function formatStaleSnapshotLabel(sync: SyncChrome): string | undefined {
@@ -137,14 +195,14 @@ export function refreshStaleSnapshotBanner(
 		readonly stubService: IConversationRosterService;
 		readonly sessionViewLease?: IConversationSessionViewLease;
 	},
-	sync?: SyncChrome,
+	_sync?: SyncChrome,
 ): void {
 	// eslint-disable-next-line no-restricted-syntax -- the banner is appended by the lens, not by this column
 	const banner = host.readingColumn?.querySelector<HTMLElement>(`.${conversationLensStaleSnapshotClass}`);
 	if (!banner) {
 		return;
 	}
-	const chrome = sync ?? host.stubService.getSessionSync(resolveReadingColumnSessionId(host));
+	const chrome = host.stubService.getSessionSync(resolveReadingColumnSessionId(host));
 	const label = formatStaleSnapshotLabel(chrome);
 	if (label) {
 		banner.hidden = false;

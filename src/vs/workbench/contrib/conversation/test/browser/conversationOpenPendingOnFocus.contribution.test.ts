@@ -8,11 +8,13 @@ import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationOpenPendingOnFocusContribution } from '../../browser/conversationOpenPendingOnFocus.contribution.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { UA_CLIENT_PERMISSIONS_OPEN_PENDING_ON_FOCUS } from '../../common/uaClientSettingsKeys.js';
 import { shouldOpenPendingOnFocus } from '../../common/uaClientSettingsHelpers.js';
 
@@ -21,6 +23,7 @@ suite('ConversationOpenPendingOnFocusContribution', () => {
 
 	function mount(options?: {
 		readonly configuration?: Record<string, unknown>;
+		readonly connection?: IUniverseAgentConnection;
 	}): {
 		readonly roster: ConversationStubService;
 		readonly revealCalls: string[];
@@ -40,6 +43,7 @@ suite('ConversationOpenPendingOnFocusContribution', () => {
 			onDidFocus: onDidFocus.event,
 			focus: () => onDidFocus.fire(),
 		} as IConversationPartService);
+		instantiationService.stub(IUniverseAgentConnection, options?.connection ?? createConversationConnectionTestStub());
 		instantiationService.stub(IConversationTimelineRevealService, {
 			_serviceBrand: undefined,
 			registerLens: () => ({ dispose: () => { } }),
@@ -80,6 +84,22 @@ suite('ConversationOpenPendingOnFocusContribution', () => {
 		const { roster, revealCalls, fireFocus } = mount();
 		roster.createSession();
 		assert.strictEqual(roster.countPendingConfirmations(roster.getActiveSessionId()), 0);
+		fireFocus();
+		assert.deepStrictEqual(revealCalls, []);
+	});
+
+	test('pairing-hold leftover pending does not auto-scroll', () => {
+		const { roster, revealCalls, fireFocus } = mount({
+			connection: createConversationConnectionTestStub({
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({
+					...createConversationConnectionTestStub().getConnectionSnapshot(),
+					pairingPending: true,
+				}),
+			}),
+		});
+		roster.appendConfirmationTurn(roster.getActiveSessionId(), 'Allow write?');
+		assert.ok(roster.countPendingConfirmations(roster.getActiveSessionId()) > 0);
 		fireFocus();
 		assert.deepStrictEqual(revealCalls, []);
 	});

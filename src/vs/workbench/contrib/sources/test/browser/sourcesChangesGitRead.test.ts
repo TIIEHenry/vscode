@@ -14,7 +14,7 @@ import type {
 	UniverseAgentReadGitSummaryRequest,
 	UniverseAgentReadGitSummaryResult,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { sourcesGitStagePathsRequest } from '../../common/sourcesChangesGitWrite.js';
+import { isSourcesGitWriteLive, sourcesGitStagePathsRequest } from '../../common/sourcesChangesGitWrite.js';
 import {
 	canSendSourcesGitChanges,
 	canSendSourcesGitFileDiff,
@@ -24,6 +24,7 @@ import {
 	needsSourcesGitFileDiff,
 	parseSourcesGitUnifiedDiff,
 	shouldKeepSourcesGitReadNoHookLeftover,
+	shouldKeepSourcesGitReadPairingHoldLeftover,
 	sourcesGitChangeGroupId,
 	sourcesGitChangeResource,
 	sourcesGitChangesRequest,
@@ -33,6 +34,7 @@ import {
 	sourcesGitEmptyFileDiffMessage,
 	sourcesGitLocalOnlyMessage,
 	sourcesGitReadFailureMessage,
+	sourcesGitReadPairingHoldMessage,
 	sourcesGitReadUnavailableNoHookMessage,
 	tryLoadSourcesGitChangeEntries,
 	tryReadSourcesGitChanges,
@@ -77,6 +79,17 @@ suite('Sources - Changes git read', () => {
 		assert.strictEqual(canSendSourcesGitFileDiff(true, false, 'sess-1'), false);
 		assert.strictEqual(canSendSourcesGitFileDiff(true, true, ''), false);
 		assert.strictEqual(canSendSourcesGitFileDiff(true, true, 'sess-1'), true);
+	});
+
+	test('pairing-hold leftover-looks-live refuses Changes / Summary / FileDiff reads', () => {
+		assert.strictEqual(isSourcesGitWriteLive(true, false), true);
+		assert.strictEqual(isSourcesGitWriteLive(true, true), false);
+		assert.strictEqual(canSendSourcesGitChanges(true, true, 'sess-1', true), false);
+		assert.strictEqual(canSendSourcesGitSummary(true, true, 'sess-1', true), false);
+		assert.strictEqual(canSendSourcesGitFileDiff(true, true, 'sess-1', true), false);
+		assert.strictEqual(canSendSourcesGitChanges(true, true, 'sess-1', false), true);
+		assert.strictEqual(canSendSourcesGitSummary(true, true, 'sess-1', false), true);
+		assert.strictEqual(canSendSourcesGitFileDiff(true, true, 'sess-1', false), true);
 	});
 
 	test('read requests share write sessionId and pass empty fields as-is', () => {
@@ -128,6 +141,18 @@ suite('Sources - Changes git read', () => {
 			diffCalls.push(request);
 			return unsupportedDiff;
 		}, '', 'src/a.ts', 'WORKTREE'), undefined);
+		assert.strictEqual(await tryReadSourcesGitChanges(true, async request => {
+			changeCalls.push(request);
+			return unsupportedChanges;
+		}, 'sess-1', true), undefined);
+		assert.strictEqual(await tryReadSourcesGitSummary(true, async request => {
+			summaryCalls.push(request);
+			return unsupportedSummary;
+		}, 'sess-1', true), undefined);
+		assert.strictEqual(await tryReadSourcesGitFileDiff(true, async request => {
+			diffCalls.push(request);
+			return unsupportedDiff;
+		}, 'sess-1', 'src/a.ts', 'WORKTREE', true), undefined);
 		assert.deepStrictEqual(changeCalls, []);
 		assert.deepStrictEqual(summaryCalls, []);
 		assert.deepStrictEqual(diffCalls, []);
@@ -214,6 +239,16 @@ suite('Sources - Changes git read', () => {
 		assert.deepStrictEqual(emptySupportedCalls, [{ sessionId: 'sess-1' }]);
 		assert.strictEqual(emptySupportedSummaryCalls, 0);
 		assert.strictEqual(emptySupported, undefined);
+
+		const pairingHoldCalls: UniverseAgentReadGitChangesRequest[] = [];
+		const pairingHold = await tryLoadSourcesGitChangeEntries(true, async request => {
+			pairingHoldCalls.push(request);
+			return { supported: true, reason: '', branch: 'main', entries: [{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }] };
+		}, async () => {
+			throw new Error('must not readGitSummary while pairing-hold');
+		}, root, 'sess-1', true);
+		assert.deepStrictEqual(pairingHoldCalls, []);
+		assert.strictEqual(pairingHold, undefined);
 	});
 
 	test('empty supported engine list is not authoritative', () => {
@@ -323,6 +358,8 @@ suite('Sources - Changes git read', () => {
 		assert.ok(sourcesGitEmptyFileDiffMessage().includes('empty'));
 		assert.ok(sourcesGitLocalOnlyMessage().includes('local source control'));
 		assert.ok(sourcesGitReadUnavailableNoHookMessage().includes('no git changes API'));
+		assert.ok(sourcesGitReadPairingHoldMessage().includes('not connected'));
+		assert.ok(sourcesGitReadPairingHoldMessage().includes('pairing'));
 	});
 
 	test('no-hook leftover gate keeps only live git-read rows while connected', () => {
@@ -330,6 +367,14 @@ suite('Sources - Changes git read', () => {
 		assert.strictEqual(shouldKeepSourcesGitReadNoHookLeftover(true, false, 0), false);
 		assert.strictEqual(shouldKeepSourcesGitReadNoHookLeftover(false, false, 1), false);
 		assert.strictEqual(shouldKeepSourcesGitReadNoHookLeftover(true, true, 1), false);
+	});
+
+	test('pairing-hold leftover gate keeps live git-read rows while phase is connected', () => {
+		assert.strictEqual(shouldKeepSourcesGitReadPairingHoldLeftover(true, true, 1), true);
+		assert.strictEqual(shouldKeepSourcesGitReadPairingHoldLeftover(true, true, 0), false);
+		assert.strictEqual(shouldKeepSourcesGitReadPairingHoldLeftover(false, true, 1), false);
+		assert.strictEqual(shouldKeepSourcesGitReadPairingHoldLeftover(true, false, 1), false);
+		assert.strictEqual(shouldKeepSourcesGitReadPairingHoldLeftover(false, false, 1), false);
 	});
 
 });

@@ -18,6 +18,8 @@ export interface IConversationConfirmationSeatOptions {
 	readonly status: ConfirmationStatus;
 	readonly onAllow?: () => void;
 	readonly onSkip?: () => void;
+	/** When false, Allow/Skip stay visible but aria-disabled (D297 pairing-hold). */
+	readonly writesEnabled?: boolean;
 }
 
 export interface IConversationOptionGroupKeysOptions {
@@ -181,14 +183,17 @@ export class ConversationConfirmationSeat extends Disposable {
 			const actions = append(this.element, $('.conversation-lens-confirmation-actions'));
 			actions.setAttribute('role', 'toolbar');
 			actions.setAttribute('aria-label', localize('conversationLens.permissionDecision', "Permission decision"));
+			const writesEnabled = options.writesEnabled !== false;
 			const allowLabel = localize('conversationLens.allow', "Allow");
 			const allow = this._register(new Button(actions, { ...defaultButtonStyles, ariaLabel: allowLabel }));
 			allow.label = allowLabel;
+			allow.enabled = writesEnabled;
 			this._register(allow.onDidClick(() => options.onAllow!()));
 
 			const skipLabel = localize('conversationLens.skip', "Skip");
 			const skip = this._register(new Button(actions, { ...defaultButtonStyles, secondary: true, ariaLabel: skipLabel }));
 			skip.label = skipLabel;
+			skip.enabled = writesEnabled;
 			this._register(skip.onDidClick(() => options.onSkip!()));
 
 			const keys = this._register(new DisposableStore());

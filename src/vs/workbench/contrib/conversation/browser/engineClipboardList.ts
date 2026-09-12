@@ -13,24 +13,36 @@ import type {
 	UniverseAgentWriteClipboardRequest,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 
-/** Engine Preferences Clipboard → List. Empty ids are still sent. */
-export function canSendEngineClipboardListRequest(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
+/**
+ * Engine Preferences Clipboard → List. Empty ids are still sent.
+ * Pairing-hold leftover-looks-live (`connected===true`) still refuses (D347).
+ */
+export function canSendEngineClipboardListRequest(connected: boolean, hasHook: boolean, pairingHold = false): boolean {
+	return connected && hasHook && !pairingHold;
 }
 
-/** Engine Preferences Clipboard list action → Read. Empty ids are still sent. */
-export function canSendEngineClipboardRead(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
+/**
+ * Engine Preferences Clipboard list action → Read. Empty ids are still sent.
+ * Pairing-hold leftover-looks-live (`connected===true`) still refuses (D319).
+ */
+export function canSendEngineClipboardRead(connected: boolean, hasHook: boolean, pairingHold = false): boolean {
+	return connected && hasHook && !pairingHold;
 }
 
-/** Engine Preferences Clipboard list action → Write. Empty ids are still sent. */
-export function canSendEngineClipboardWrite(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
+/**
+ * Engine Preferences Clipboard list action → Write. Empty ids are still sent.
+ * Pairing-hold leftover-looks-live (`connected===true`) still refuses (D314).
+ */
+export function canSendEngineClipboardWrite(connected: boolean, hasHook: boolean, pairingHold = false): boolean {
+	return connected && hasHook && !pairingHold;
 }
 
-/** Engine Preferences Clipboard list action → Clear. Empty ids are still sent. */
-export function canSendEngineClipboardClear(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
+/**
+ * Engine Preferences Clipboard list action → Clear. Empty ids are still sent.
+ * Pairing-hold leftover-looks-live (`connected===true`) still refuses (D314).
+ */
+export function canSendEngineClipboardClear(connected: boolean, hasHook: boolean, pairingHold = false): boolean {
+	return connected && hasHook && !pairingHold;
 }
 
 /**

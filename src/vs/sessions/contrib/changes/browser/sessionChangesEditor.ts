@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/sessionChangesEditor.css';
-import { $, append, Dimension } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, Dimension, EventType } from '../../../../base/browser/dom.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { Disposable, DisposableStore, IDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { autorun, derivedObservableWithCache, IObservable, observableValue } from '../../../../base/common/observable.js';
@@ -466,18 +466,25 @@ class ChangesetReviewActionViewItem extends CheckboxActionViewItem {
 	override render(container: HTMLElement): void {
 		super.render(container);
 		container.classList.add('changeset-review-action');
+		this.applyReviewTooltip();
+		// Do not override protected updateChecked/getTooltip from another file
+		// (mangler implicit-public). Refresh title/aria after the checkbox flips.
+		this._register(addDisposableListener(container, EventType.CLICK, () => {
+			queueMicrotask(() => this.applyReviewTooltip());
+		}, true));
+		this._register(addDisposableListener(container, EventType.KEY_DOWN, () => {
+			queueMicrotask(() => this.applyReviewTooltip());
+		}, true));
 	}
 
-	override updateChecked(): void {
-		super.updateChecked();
-
-		this.updateAriaLabel();
-		this.updateTooltip();
-	}
-
-	override getTooltip(): string {
-		return this.action.checked
+	private applyReviewTooltip(): void {
+		const title = this.action.checked
 			? localize('changeset.viewed.tooltip', "Mark as Not Viewed")
 			: localize('changeset.notViewed.tooltip', "Mark as Viewed");
+		if (!this.element) {
+			return;
+		}
+		this.element.title = title;
+		this.element.setAttribute('aria-label', title);
 	}
 }

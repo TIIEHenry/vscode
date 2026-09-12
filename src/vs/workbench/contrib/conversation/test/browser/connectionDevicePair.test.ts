@@ -19,6 +19,8 @@ suite('Connection device pair bind', () => {
 		assert.strictEqual(canSendConnectionDevicePairRequest(false, true), false);
 		assert.strictEqual(canSendConnectionDevicePairRequest(true, false), false);
 		assert.strictEqual(canSendConnectionDevicePairRequest(true, true), true);
+		assert.strictEqual(canSendConnectionDevicePairRequest(true, true, true), false);
+		assert.strictEqual(canSendConnectionDevicePairRequest(true, true, false), true);
 		assert.deepStrictEqual(connectionDevicePairIds(undefined, undefined), {
 			pairingCode: '',
 			displayName: '',

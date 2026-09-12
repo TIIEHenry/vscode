@@ -29,6 +29,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { ViewPane, IViewPaneOptions } from '../../../browser/parts/views/viewPane.js';
 import { EditorModel } from '../../../common/editor/editorModel.js';
 import { IViewDescriptorService } from '../../../common/views.js';
+import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { ISCMResource, ISCMService } from '../../scm/common/scm.js';
 import { findScmResourceForUri, ISourcesChangeRef, sourcesDiffLocalWritePath } from '../common/sourcesChangeRef.js';
@@ -306,6 +307,7 @@ export class SourcesDiffPanelView extends ViewPane {
 		}
 
 		const sessionId = this.getGitSessionId();
+		const pairingHold = isConversationPairingHold(this.uaConnection);
 		const actions = resolveSourcesDiffWriteActions({
 			groupId: context.groupId,
 			hasScmResource: !!context.scmResource,
@@ -313,22 +315,24 @@ export class SourcesDiffPanelView extends ViewPane {
 				this.uaConnection.isEngineConnected(),
 				typeof this.uaConnection.writeGitStagePaths === 'function',
 				sessionId,
+				pairingHold,
 			),
 			canWriteAccept: canSendSourcesGitApplyHunks(
 				this.uaConnection.isEngineConnected(),
 				typeof this.uaConnection.writeGitApplyHunks === 'function',
+				pairingHold,
 			),
 			hasApplyHunksPayload: hasSourcesGitApplyHunksPayload(sessionId, []),
 			hasGitStageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND),
 			hasGitUnstageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_UNSTAGE_COMMAND),
 			hasGitCleanCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_CLEAN_COMMAND),
+			pairingHold,
 		});
-
-		this.stageButton.style.display = actions.showStage ? '' : 'none';
+		this.stageButton.style.display = actions.showStage && !pairingHold ? '' : 'none';
 		this.acceptButton.style.display = actions.showAccept ? '' : 'none';
-		this.revertButton.style.display = actions.showRevert ? '' : 'none';
-		this.unstageButton.style.display = actions.showUnstage ? '' : 'none';
-		this.unstageUnavailable.style.display = actions.unstageUnavailable ? '' : 'none';
+		this.revertButton.style.display = actions.showRevert && !pairingHold ? '' : 'none';
+		this.unstageButton.style.display = actions.showUnstage && !pairingHold ? '' : 'none';
+		this.unstageUnavailable.style.display = actions.unstageUnavailable && !pairingHold ? '' : 'none';
 	}
 
 	private async runStage(): Promise<void> {
@@ -344,6 +348,7 @@ export class SourcesDiffPanelView extends ViewPane {
 				hook ? request => hook.call(this.uaConnection, request) : undefined,
 				this.getGitSessionId(),
 				[context.path],
+				isConversationPairingHold(this.uaConnection),
 			));
 			if (attempt.kind === 'accepted') {
 				this.hideActionNotice();
@@ -361,7 +366,7 @@ export class SourcesDiffPanelView extends ViewPane {
 			return;
 		}
 
-		if (context.scmResource) {
+		if (context.scmResource && !isConversationPairingHold(this.uaConnection)) {
 			await this.runGitAction(SOURCES_GIT_STAGE_COMMAND);
 			return;
 		}
@@ -370,6 +375,7 @@ export class SourcesDiffPanelView extends ViewPane {
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitStagePaths === 'function',
 			this.getGitSessionId(),
+			isConversationPairingHold(this.uaConnection),
 		)) {
 			this.showActionNotice(localize('sourcesDiffPanel.stageUnavailable', "Git stage is not available."));
 		}
@@ -390,6 +396,9 @@ export class SourcesDiffPanelView extends ViewPane {
 				this.uaConnection.isEngineConnected(),
 				hook ? request => hook.call(this.uaConnection, request) : undefined,
 				sessionId,
+				[],
+				patches,
+				isConversationPairingHold(this.uaConnection),
 			));
 			if (attempt.kind === 'accepted') {
 				this.hideActionNotice();
@@ -410,6 +419,7 @@ export class SourcesDiffPanelView extends ViewPane {
 		if (canSendSourcesGitApplyHunks(
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitApplyHunks === 'function',
+			isConversationPairingHold(this.uaConnection),
 		) || hasSourcesGitApplyHunksPayload(sessionId, patches)) {
 			this.showActionNotice(localize('sourcesDiffPanel.acceptUnavailable', "Git accept is not available."));
 		}
@@ -417,6 +427,13 @@ export class SourcesDiffPanelView extends ViewPane {
 	}
 
 	private async runGitAction(commandId: string): Promise<void> {
+		if (
+			(commandId === SOURCES_GIT_UNSTAGE_COMMAND || commandId === SOURCES_GIT_CLEAN_COMMAND)
+			&& isConversationPairingHold(this.uaConnection)
+		) {
+			return;
+		}
+
 		const context = this.getWriteContext();
 		if (!context?.scmResource) {
 			return;

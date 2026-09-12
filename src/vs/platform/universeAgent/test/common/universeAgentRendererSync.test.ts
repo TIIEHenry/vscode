@@ -125,7 +125,7 @@ suite('universeAgentRendererSync', () => {
 		});
 		assert.strictEqual(cache.navigatorCapability('sessionList'), 'SUPPORTED');
 		assert.strictEqual(cache.snapshot.sessionListCapability, 'SUPPORTED');
-		assert.strictEqual('sessionList' in cache.capabilities, false);
+		assert.strictEqual(Object.hasOwn(cache.capabilities, 'sessionList'), false);
 		cache.applySnapshot({
 			transport: 'ok',
 			pairingPending: false,
@@ -327,6 +327,36 @@ suite('universeAgentRendererSync', () => {
 		const client = createRemoteForwardingProxy(local, remote);
 		assert.strictEqual(client.getCapabilitySnapshot().providerConfig.support, 'UNKNOWN');
 		assert.deepStrictEqual(await (client as unknown as typeof remote).connectProfile(), { ok: true, path: 'direct', pairingPending: false });
+	});
+
+	test('connection channel client connected phase with pairingPending is not engine connected', async () => {
+		const snapshot = {
+			transport: 'ok' as const,
+			pairingPending: true,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+		};
+		const channel: IChannel = {
+			call: (command: string): Promise<any> => {
+				switch (command) {
+					case 'getConnectionSnapshot':
+						return Promise.resolve(snapshot);
+					case 'getConnectionPhase':
+						return Promise.resolve({ kind: 'connected', path: 'direct' });
+					case 'isAgentTreeFetchFailed':
+						return Promise.resolve(false);
+					default:
+						return Promise.resolve(undefined);
+				}
+			},
+			listen: () => Event.None,
+		};
+		const client = store.add(new UniverseAgentConnectionChannelClient(channel));
+		await timeout(0);
+		assert.strictEqual(client.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(client.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(client.isEngineConnected(), false);
 	});
 
 	test('connection channel client hydrates sync getters from async IPC', async () => {

@@ -14,6 +14,7 @@ import type {
 	UniverseAgentModelEntry,
 	UniverseAgentProviderStatus,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 import {
 	canShowCatalogRows,
 	type EngineCatalogListPhase,
@@ -205,15 +206,26 @@ export class EngineProviderModelSection extends Disposable {
 		return mode;
 	}
 
+	private applyDisconnectedProvidersRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): void {
+		// D359 leftover-looks-live: pairing-hold first. KEEP-chrome is not only `isEngineConnected()`.
+		if (hadLiveCatalog && isConversationPairingHold(this.connection)) {
+			this.providerList.style.display = '';
+			this.providerListPhase = { kind: 'none' };
+			this.renderProviderStatus(this.resolveProviderMode(false, support));
+			return;
+		}
+		this.clearProviderPresentation();
+		this.providerListPhase = { kind: 'none' };
+		this.renderProviderStatus(this.resolveProviderMode(false, support));
+	}
+
 	private async refreshProviders(): Promise<void> {
 		const generation = ++this.providerRefreshGeneration;
 		const connected = this.connection.isEngineConnected();
 		const entry = readCapabilityEntry(this.connection.getCapabilitySnapshot(), 'providerConfig');
 
-		if (!connected) {
-			this.clearProviderPresentation();
-			this.providerListPhase = { kind: 'none' };
-			this.renderProviderStatus(this.resolveProviderMode(false, entry.support));
+		if (isConversationPairingHold(this.connection) || !connected) {
+			this.applyDisconnectedProvidersRefresh(entry.support, this.providerCount > 0);
 			return;
 		}
 
@@ -251,10 +263,8 @@ export class EngineProviderModelSection extends Disposable {
 			if (generation !== this.providerRefreshGeneration) {
 				return;
 			}
-			if (!this.connection.isEngineConnected()) {
-				this.clearProviderPresentation();
-				this.providerListPhase = { kind: 'none' };
-				this.renderProviderStatus(this.resolveProviderMode(false, entry.support));
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+				this.applyDisconnectedProvidersRefresh(entry.support, this.providerCount > 0);
 				return;
 			}
 			this.providerListPhase = { kind: 'success', itemCount: result.providers.length };
@@ -327,15 +337,31 @@ export class EngineProviderModelSection extends Disposable {
 		this.providerList.style.display = 'none';
 	}
 
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		return hadLiveCatalog && isConversationPairingHold(this.connection);
+	}
+
+	private applyDisconnectedModelsRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): void {
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			this.sessionHint.style.display = 'none';
+			this.modelList.style.display = '';
+			this.modelListPhase = { kind: 'none' };
+			this.renderModelStatus(resolveEngineCatalogPaneMode(false, support));
+			return;
+		}
+		this.clearModelPresentation();
+		this.modelListPhase = { kind: 'none' };
+		this.renderModelStatus(resolveEngineCatalogPaneMode(false, support));
+	}
+
 	private async refreshModels(): Promise<void> {
 		const generation = ++this.refreshGeneration;
 		const connected = this.connection.isEngineConnected();
 		const entry = readCapabilityEntry(this.connection.getCapabilitySnapshot(), 'models');
 
-		if (!connected) {
-			this.clearModelPresentation();
-			this.modelListPhase = { kind: 'none' };
-			this.renderModelStatus(resolveEngineCatalogPaneMode(false, entry.support));
+		// D340 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connection) || !connected) {
+			this.applyDisconnectedModelsRefresh(entry.support, this.modelCount > 0);
 			return;
 		}
 
@@ -369,10 +395,8 @@ export class EngineProviderModelSection extends Disposable {
 			if (generation !== this.refreshGeneration) {
 				return;
 			}
-			if (!this.connection.isEngineConnected()) {
-				this.clearModelPresentation();
-				this.modelListPhase = { kind: 'none' };
-				this.renderModelStatus(resolveEngineCatalogPaneMode(false, entry.support));
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+				this.applyDisconnectedModelsRefresh(entry.support, this.modelCount > 0);
 				return;
 			}
 			this.modelListPhase = { kind: 'success', itemCount: result.models.length };

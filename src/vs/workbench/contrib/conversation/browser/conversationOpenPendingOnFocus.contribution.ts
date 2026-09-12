@@ -7,6 +7,8 @@ import { Disposable } from '../../../../base/common/lifecycle.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { shouldAutoRevealPendingConfirmation } from './conversationPendingSeat.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { IConversationTimelineRevealService } from './conversationTimelineRevealService.js';
 import { shouldOpenPendingOnFocus } from '../common/uaClientSettingsHelpers.js';
@@ -25,6 +27,7 @@ export class ConversationOpenPendingOnFocusContribution extends Disposable imple
 		@IConversationPartService conversationPartService: IConversationPartService,
 		@IConversationRosterService private readonly rosterService: IConversationRosterService,
 		@IConversationTimelineRevealService private readonly revealService: IConversationTimelineRevealService,
+		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 	) {
 		super();
 		this._register(conversationPartService.onDidFocus(() => this.onConversationPartFocus()));
@@ -36,6 +39,9 @@ export class ConversationOpenPendingOnFocusContribution extends Disposable imple
 		}
 		const sessionId = this.rosterService.getActiveSessionId();
 		if (this.rosterService.countPendingConfirmations(sessionId) <= 0) {
+			return;
+		}
+		if (!shouldAutoRevealPendingConfirmation(this.uaConnection)) {
 			return;
 		}
 		this.revealService.scrollToFirstPendingConfirmation();

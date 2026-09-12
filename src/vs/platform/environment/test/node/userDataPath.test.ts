@@ -4,10 +4,19 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { basename } from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { OPTIONS, parseArgs } from '../../node/argv.js';
-import { getUserDataPath } from '../../node/userDataPath.js';
+import { getDefaultUserDataPath, getUserDataPath } from '../../node/userDataPath.js';
 import product from '../../../product/common/product.js';
+
+function restoreEnv(key: string, original: string | undefined): void {
+	if (typeof original === 'string') {
+		process.env[key] = original;
+	} else {
+		delete process.env[key];
+	}
+}
 
 suite('User data path', () => {
 
@@ -57,6 +66,49 @@ suite('User data path', () => {
 				delete process.env['VSCODE_APPDATA'];
 			}
 		}
+	});
+
+	test('getUserDataPath - I2 VSCODE_DEV hardcodes universe-agent-studio-dev over passed productName', () => {
+		const origDev = process.env['VSCODE_DEV'];
+		const origAppData = process.env['VSCODE_APPDATA'];
+		try {
+			process.env['VSCODE_DEV'] = '1';
+			process.env['VSCODE_APPDATA'] = 'i2-appdata-dir';
+
+			for (const productName of ['code-oss-dev', 'Code - OSS'] as const) {
+				const path = getUserDataPath(parseArgs(process.argv, OPTIONS), productName);
+				assert.ok(path.includes('universe-agent-studio-dev'), `expected I2 folder when productName=${productName}, got ${path}`);
+				assert.ok(!path.includes('code-oss-dev'), `expected no code-oss-dev when productName=${productName}, got ${path}`);
+			}
+		} finally {
+			restoreEnv('VSCODE_DEV', origDev);
+			restoreEnv('VSCODE_APPDATA', origAppData);
+		}
+	});
+
+	test('getUserDataPath - --user-data-dir wins over I2 VSCODE_DEV rename', () => {
+		const origDev = process.env['VSCODE_DEV'];
+		const origAppData = process.env['VSCODE_APPDATA'];
+		try {
+			process.env['VSCODE_DEV'] = '1';
+			delete process.env['VSCODE_APPDATA'];
+
+			const cliUserDataDir = 'cli-data-dir-i2';
+			const args = parseArgs(process.argv, OPTIONS);
+			args['user-data-dir'] = cliUserDataDir;
+
+			const path = getUserDataPath(args, 'code-oss-dev');
+			assert.ok(path.includes(cliUserDataDir), `expected CLI dir to win, got ${path}`);
+			assert.ok(!path.includes('universe-agent-studio-dev'), `expected CLI dir to beat I2 rename, got ${path}`);
+		} finally {
+			restoreEnv('VSCODE_DEV', origDev);
+			restoreEnv('VSCODE_APPDATA', origAppData);
+		}
+	});
+
+	test('getDefaultUserDataPath - UniverseAgentStudio basename', () => {
+		const path = getDefaultUserDataPath('UniverseAgentStudio');
+		assert.strictEqual(basename(path), 'UniverseAgentStudio');
 	});
 
 	ensureNoDisposablesAreLeakedInTestSuite();

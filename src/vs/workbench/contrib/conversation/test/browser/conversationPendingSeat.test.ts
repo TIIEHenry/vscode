@@ -16,12 +16,33 @@ import {
 	hasNewPendingAttention,
 	isConversationSessionInactive,
 	scrollToFirstPendingConfirmation,
+	shouldAutoRevealPendingConfirmation,
 } from '../../browser/conversationPendingSeat.js';
+import type { IConversationPairingHoldSource } from '../../browser/conversationSessionStatus.js';
 import type { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import { ConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 
 suite('conversationPendingSeat', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('shouldAutoRevealPendingConfirmation skips pairing-hold leftover seats', () => {
+		const pairingHold: IConversationPairingHoldSource = {
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({ pairingPending: true }),
+		};
+		const connected: IConversationPairingHoldSource = {
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+		};
+		const disconnected: IConversationPairingHoldSource = {
+			getConnectionPhase: () => ({ kind: 'disconnected' }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+		};
+		assert.strictEqual(shouldAutoRevealPendingConfirmation(pairingHold), false);
+		assert.strictEqual(shouldAutoRevealPendingConfirmation(connected), true);
+		assert.strictEqual(shouldAutoRevealPendingConfirmation(disconnected), true);
+		assert.strictEqual(shouldAutoRevealPendingConfirmation(undefined), true);
+	});
 
 	test('inactive when session is not active or Conversation part is hidden', () => {
 		assert.strictEqual(isConversationSessionInactive('a', 'a', true), false);

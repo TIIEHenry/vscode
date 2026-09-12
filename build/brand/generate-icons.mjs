@@ -81,7 +81,7 @@ async function writeOut(absPath, data) {
  * ≤48px 粗线派生（方案 §4.2.2，脚本内写死）：
  * stroke-width 3→24；删除从圆心出发的三条辐射线；中心点 r 12→20。
  */
-function deriveBoldSvg(svg) {
+export function deriveBoldSvg(svg) {
 	return svg
 		.replace(/stroke-width="3"/, 'stroke-width="24"')
 		.replace(/\s*<line x1="256" y1="256"[^/\n]*\/>/g, '')
@@ -89,7 +89,7 @@ function deriveBoldSvg(svg) {
 }
 
 /** 浅底变体：对主源填色 / 描边做通道反色，不引用 singular-white.svg。 */
-function deriveInvertedSvg(svg) {
+export function deriveInvertedSvg(svg) {
 	return svg
 		.replace(/#546E7A/gi, '#__BRAND_BG__')
 		.replace(/#FFFFFF/gi, '#__BRAND_FG__')
@@ -98,7 +98,7 @@ function deriveInvertedSvg(svg) {
 		.replace('aria-label="UniverseAgentStudio"', 'aria-label="UniverseAgentStudio Light"');
 }
 
-function svgForSize(fullSvg, boldSvg, size) {
+export function svgForSize(fullSvg, boldSvg, size) {
 	return size <= 48 ? boldSvg : fullSvg;
 }
 
@@ -135,7 +135,7 @@ async function readPackageMain(packageJsonPath) {
 	return main;
 }
 
-function encodeBmp24(width, height, rgba) {
+export function encodeBmp24(width, height, rgba) {
 	const rowSize = Math.floor((width * 3 + 3) / 4) * 4;
 	const pixelSize = rowSize * height;
 	const buf = Buffer.alloc(54 + pixelSize);
@@ -175,7 +175,7 @@ function xpmKey(index, cpp) {
 	return key;
 }
 
-function encodeXpm(width, height, rgba, name) {
+export function encodeXpm(width, height, rgba, name) {
 	const palette = new Map();
 	const order = [];
 	const pixelIdx = new Uint32Array(width * height);
@@ -226,7 +226,7 @@ function encodeXpm(width, height, rgba, name) {
 	return lines.join('\n');
 }
 
-function fillCanvas(width, height, iconRgba, iconSize) {
+export function fillCanvas(width, height, iconRgba, iconSize) {
 	const out = Buffer.alloc(width * height * 4);
 	for (let i = 0; i < width * height; i++) {
 		out[i * 4] = BRAND_BG.r;
@@ -407,7 +407,9 @@ function printReport() {
 	}
 }
 
-main().catch(err => {
-	console.error(err);
-	process.exitCode = 1;
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+	main().catch(err => {
+		console.error(err);
+		process.exitCode = 1;
+	});
+}

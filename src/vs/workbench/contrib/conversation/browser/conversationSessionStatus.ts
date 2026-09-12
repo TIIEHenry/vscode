@@ -33,6 +33,52 @@ export function isConversationEngineLive(phase: ConnectionPhase | undefined, pai
 	return isUniverseAgentPhaseConnected(phase) && !pairingPending;
 }
 
+/** Connection surface needed to detect D277 pairing-hold (phase connected + pairingPending). */
+export interface IConversationPairingHoldSource {
+	getConnectionSnapshot(): { pairingPending?: boolean };
+	getConnectionPhase(): ConnectionPhase | undefined;
+}
+
+/** D286: phase still connected, pairing pending — do not treat as true disconnect. */
+export function isConversationPairingHold(ua: IConversationPairingHoldSource | undefined): boolean {
+	if (!ua) {
+		return false;
+	}
+	return !!ua.getConnectionSnapshot().pairingPending && isConversationEngineLive(ua.getConnectionPhase(), false);
+}
+
+/**
+ * D292 session-id guard shared by chat `bindLiveTreeLease` and roster
+ * `bindLiveTreeObservationLease`. Pairing-hold leftover stays only when the
+ * held lease already belongs to the active session.
+ */
+export function shouldKeepLiveTreeLeaseWhilePairing(
+	ua: IConversationPairingHoldSource | undefined,
+	leaseSessionId: string | undefined,
+	activeSessionId: string | undefined,
+): boolean {
+	return isConversationPairingHold(ua)
+		&& !!leaseSessionId
+		&& !!activeSessionId
+		&& leaseSessionId === activeSessionId;
+}
+
+/**
+ * D292: pairing-hold + leftover lease for a different session → rebind to that
+ * session's leftover (`acquireSessionView` D289). First-pull (no lease) and
+ * true disconnect stay `false`.
+ */
+export function shouldRebindLiveTreeLeaseWhilePairing(
+	ua: IConversationPairingHoldSource | undefined,
+	leaseSessionId: string | undefined,
+	activeSessionId: string | undefined,
+): boolean {
+	return isConversationPairingHold(ua)
+		&& !!leaseSessionId
+		&& !!activeSessionId
+		&& leaseSessionId !== activeSessionId;
+}
+
 /** Legacy boolean helper for panes that only need connected vs not-connected copy. */
 export function getConversationEngineStatusText(isConnected = false): string {
 	if (isConnected) {

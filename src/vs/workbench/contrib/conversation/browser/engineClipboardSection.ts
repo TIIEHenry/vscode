@@ -32,6 +32,7 @@ import {
 	formatEngineClipboardWriteLabel,
 } from './engineClipboardList.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
+import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
 
 const $ = DOM.$;
 
@@ -47,6 +48,12 @@ const $ = DOM.$;
  * Connected + missing list hook after a live paint keeps leftover rows +
  * unsupported (D257); first-pull no-hook stays empty+unsupported.
  * Disconnect still clears rows.
+ * Pairing-hold leftover keeps rows + disconnected note (D281) and disables
+ * Write/Clear (D314) and Read (D319); leftover-looks-live
+ * (`isEngineConnected()===true` + pairingPending) also refuses writes/Read
+ * and skips extra list. First-pull leftover-looks-live (no leftover) stays
+ * empty and skips list (D347 pairing-hold-first). Connected leftover still
+ * writes and Reads.
  */
 export class EngineClipboardSection extends Disposable {
 
@@ -135,9 +142,11 @@ export class EngineClipboardSection extends Disposable {
 	private async refresh(): Promise<boolean> {
 		const generation = ++this.renderGeneration;
 		const hook = this.connection.listClipboard;
+		const pairingHold = isConversationPairingHold(this.connection);
 		const canSend = canSendEngineClipboardListRequest(
 			this.connection.isEngineConnected(),
 			typeof hook === 'function',
+			pairingHold,
 		);
 
 		this.writeStatus.style.display = 'none';
@@ -150,13 +159,9 @@ export class EngineClipboardSection extends Disposable {
 		this.updateReadAction();
 		this.updateClearAction();
 
-		if (!this.connection.isEngineConnected()) {
-			this.clearListPresentation();
-			this.status.render({
-				mode: 'disconnected',
-				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
-			});
-			return false;
+		// D347 leftover-looks-live: pairing-hold first. KEEP is not only leftover + pairingHold.
+		if (pairingHold || !this.connection.isEngineConnected()) {
+			return this.applyDisconnectedRefresh(this.entries.length > 0);
 		}
 
 		if (!canSend || !hook) {
@@ -182,8 +187,8 @@ export class EngineClipboardSection extends Disposable {
 			if (generation !== this.renderGeneration) {
 				return false;
 			}
-			if (!this.connection.isEngineConnected()) {
-				return false;
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+				return this.applyDisconnectedRefresh(this.entries.length > 0);
 			}
 			this.entries = [...result.entries];
 			this.paintList();
@@ -201,6 +206,37 @@ export class EngineClipboardSection extends Disposable {
 			});
 			return false;
 		}
+	}
+
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		if (!hadLiveCatalog) {
+			return false;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
+	}
+
+	private isClipboardWritePairingHold(): boolean {
+		return isConversationPairingHold(this.connection);
+	}
+
+	private applyDisconnectedRefresh(hadLiveCatalog: boolean): boolean {
+		this.updateWriteAction();
+		this.updateReadAction();
+		this.updateClearAction();
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			this.status.render({
+				mode: 'disconnected',
+				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+			});
+			return false;
+		}
+		this.clearListPresentation();
+		this.status.render({
+			mode: 'disconnected',
+			onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+		});
+		return false;
 	}
 
 	private clearListPresentation(): void {
@@ -250,6 +286,7 @@ export class EngineClipboardSection extends Disposable {
 		this.writeButton.enabled = canSendEngineClipboardWrite(
 			this.connection.isEngineConnected(),
 			typeof this.connection.writeClipboard === 'function',
+			this.isClipboardWritePairingHold(),
 		);
 	}
 
@@ -257,6 +294,7 @@ export class EngineClipboardSection extends Disposable {
 		this.readButton.enabled = canSendEngineClipboardRead(
 			this.connection.isEngineConnected(),
 			typeof this.connection.readClipboard === 'function',
+			this.isClipboardWritePairingHold(),
 		);
 	}
 
@@ -264,12 +302,13 @@ export class EngineClipboardSection extends Disposable {
 		this.clearButton.enabled = canSendEngineClipboardClear(
 			this.connection.isEngineConnected(),
 			typeof this.connection.clearClipboard === 'function',
+			this.isClipboardWritePairingHold(),
 		);
 	}
 
 	private async handleWrite(): Promise<void> {
 		const hook = this.connection.writeClipboard;
-		if (!canSendEngineClipboardWrite(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
+		if (!canSendEngineClipboardWrite(this.connection.isEngineConnected(), typeof hook === 'function', this.isClipboardWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineClipboardWriteRequest();
@@ -291,7 +330,7 @@ export class EngineClipboardSection extends Disposable {
 
 	private async handleRead(): Promise<void> {
 		const hook = this.connection.readClipboard;
-		if (!canSendEngineClipboardRead(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
+		if (!canSendEngineClipboardRead(this.connection.isEngineConnected(), typeof hook === 'function', this.isClipboardWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineClipboardReadRequest(this.selectedEntry);
@@ -308,7 +347,7 @@ export class EngineClipboardSection extends Disposable {
 
 	private async handleClear(): Promise<void> {
 		const hook = this.connection.clearClipboard;
-		if (!canSendEngineClipboardClear(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
+		if (!canSendEngineClipboardClear(this.connection.isEngineConnected(), typeof hook === 'function', this.isClipboardWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineClipboardClearRequest();

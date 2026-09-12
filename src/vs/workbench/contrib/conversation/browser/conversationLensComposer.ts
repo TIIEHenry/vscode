@@ -10,6 +10,8 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from './conversationComposerCatalog.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { rejectPairingHoldWrite } from './conversationLensSessionBinding.js';
 import {
 	conversationLensDockCatalogProbing,
 	conversationLensDockNoAgent,
@@ -66,7 +68,14 @@ export interface IConversationLensComposerHost {
 export function refreshComposerCatalogs(host: IConversationLensComposerHost): void {
 
 		const generation = ++host.composerCatalogGeneration;
-		if (!host.stubService.isEngineConnected()) {
+		// D339 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(host.uaConnection) || !host.stubService.isEngineConnected()) {
+			if (keepComposerCatalogForPairingHold(host)) {
+				restoreComposerCatalogLeftoverOrKeepPainted(host);
+				host.updateSendEnabled();
+				host.updateGateRow();
+				return;
+			}
 			const sessionId = host.getBoundSessionId();
 			const { agentIndex } = host.getSessionConfig(sessionId);
 			const clampedAgentIndex = Math.min(agentIndex, COMPOSER_AGENT_OPTIONS.length - 1);
@@ -159,6 +168,27 @@ function keepLastGoodComposerCatalogOrEmpty(host: IConversationLensComposerHost)
 	restoreLastGoodComposerCatalogOnSupportedThrow(host, 'tools');
 }
 
+function hasComposerCatalogLeftover(host: IConversationLensComposerHost): boolean {
+	const last = lastGoodComposerCatalogs.get(host);
+	if (last?.agent || last?.model || last?.tools) {
+		return true;
+	}
+	if (host.catalogToolNames.length > 0) {
+		return true;
+	}
+	return host.catalogModelIds.some(id => id.length > 0);
+}
+
+function keepComposerCatalogForPairingHold(host: IConversationLensComposerHost): boolean {
+	return isConversationPairingHold(host.uaConnection) && hasComposerCatalogLeftover(host);
+}
+
+function restoreComposerCatalogLeftoverOrKeepPainted(host: IConversationLensComposerHost): void {
+	if (lastGoodComposerCatalogs.get(host)) {
+		keepLastGoodComposerCatalogOrEmpty(host);
+	}
+}
+
 export async function loadConnectedComposerCatalogs(host: IConversationLensComposerHost, generation: number): Promise<void> {
 
 		const caps = ensureCapabilitySnapshot(host.uaConnection.getCapabilitySnapshot());
@@ -223,6 +253,11 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 
 export function postBound(host: IConversationLensComposerHost, msg: ConversationWriteMessage): Promise<PostOutcome> {
 
+		// D294: pairing-hold keeps the leftover engine lease for reads (D289).
+		// Writes must not fall through to lease.post — same closed outcome as a missing session.
+		if (isConversationPairingHold(host.uaConnection)) {
+			return Promise.resolve({ accepted: false, reason: 'no_such_session' });
+		}
 		if (msg.kind === 'clientToolRespond' && host.stubService.isEngineConnected()) {
 			const forwarded = host.stubService.respondClientTool(
 				host.getBoundSessionId(),
@@ -258,6 +293,9 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 		}
 		const text = host.dockTextarea.value.trim();
 		if (!text) {
+			return;
+		}
+		if (rejectPairingHoldWrite(host)) {
 			return;
 		}
 		const sessionId = host.getBoundSessionId();
@@ -308,6 +346,9 @@ export function saveTurnEdit(host: IConversationLensComposerHost): void {
 		if (!text || !host.editingTurnId) {
 			return;
 		}
+		if (rejectPairingHoldWrite(host)) {
+			return;
+		}
 		const sessionId = host.getBoundSessionId();
 		const turnId = host.editingTurnId;
 		const saved = host.stubService.updateUserTurnText(sessionId, turnId, text);
@@ -328,6 +369,9 @@ export function saveQueueEdit(host: IConversationLensComposerHost): void {
 		const text = host.dockTextarea.value.trim();
 		const item = host.getEditingQueueItem();
 		if (!text || !item || text === item.content) {
+			return;
+		}
+		if (rejectPairingHoldWrite(host)) {
 			return;
 		}
 		const sessionId = host.getBoundSessionId();

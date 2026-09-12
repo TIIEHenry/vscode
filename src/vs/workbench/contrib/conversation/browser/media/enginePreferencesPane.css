@@ -266,6 +266,18 @@
 	overflow-wrap: anywhere;
 }
 
+.monaco-workbench .engine-test-status.is-success {
+	color: var(--vscode-testing-iconPassed);
+}
+
+.monaco-workbench .engine-test-status.is-warning {
+	color: var(--vscode-editorWarning-foreground);
+}
+
+.monaco-workbench .engine-test-status.is-error {
+	color: var(--vscode-errorForeground);
+}
+
 /* ---------------------------------------------------------------------------------------------
  * Shared section chrome — the contract EnginePreferencesSectionBase renders against
  * ------------------------------------------------------------------------------------------ */

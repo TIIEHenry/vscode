@@ -28,6 +28,7 @@ import {
 } from '../../browser/connectionPreferencesPane.js';
 import {
 	getEngineSectionApiUnavailableCopy,
+	getEngineSectionDisconnectedCopy,
 	getUnsupportedEnvironmentCopy,
 	shouldDrawDesktopConnectionControls,
 } from '../../browser/engineSectionChrome.js';
@@ -69,7 +70,7 @@ import {
 } from '../../browser/connectionPreferencesPaneLabels.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 import { promptSasConfirmDialog, promptSasConfirmInPane } from '../../browser/connectionPreferencesPaneSas.js';
-import { getConnectionPhaseStatusBarText, getConversationEngineStatusText } from '../../browser/conversationSessionStatus.js';
+import { getConnectionPhaseStatusBarText, getConversationEngineStatusText, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { conversationIdentityStripClass } from '../../browser/conversationIdentityStrip.js';
 import {
 	applyConnectionPaneIdentityStripReservation,
@@ -1378,6 +1379,71 @@ suite('ConnectionPreferencesPane', () => {
 		clickPairingConfirm(container);
 		await flow;
 		assert.strictEqual(confirmCalls, 1);
+		workbench.remove();
+	});
+
+	test('narrow Back lifts live SAS host outside hidden preferences detail', async () => {
+		if (!document.getElementById('connection-pane-detail-hide-css')) {
+			const style = document.createElement('style');
+			style.id = 'connection-pane-detail-hide-css';
+			style.textContent = '.monaco-workbench .connection-preferences-pane.is-narrow:not(.is-showing-detail) .connection-preferences-detail { display: none; }';
+			document.head.appendChild(style);
+		}
+		const handshakeSas = 'R6X5-F0R1';
+		const { pane, workbench } = mountPaneInWorkbench({
+			addDirectAddressProfile: async () => ({ ok: true, profileId: 'direct-profile-1' }),
+			listConnectionProfiles: () => [{
+				profileId: 'direct-profile-1',
+				displayName: '127.0.0.1:50061',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'directAddress',
+			}],
+		}, {
+			connectProfile: async () => ({
+				ok: true,
+				path: 'direct',
+				pairingPending: true,
+				sasCode: handshakeSas,
+				engineIdentityId: '0123456789abcdef',
+			}),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(599, 800));
+		pane.selectZone('direct');
+
+		const hostInput = (pane as unknown as { directHostInput: { value: string } }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: { value: string } }).directPortInput;
+		const allowPrivate = (pane as unknown as { directAllowPrivateCheckbox: { checked: boolean } }).directAllowPrivateCheckbox;
+		hostInput.value = '127.0.0.1';
+		portInput.value = '50061';
+		allowPrivate.checked = true;
+
+		const flow = (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
+		await waitForPairingDialog(container);
+		assertSasVisibleBesideActiveZone(container, '.connection-direct-address', handshakeSas);
+
+		const back = container.querySelector('.connection-preferences-back') as HTMLButtonElement;
+		assert.ok(back);
+		assert.strictEqual(back.hidden, false);
+		assert.ok(container.classList.contains('is-showing-detail'));
+		back.click();
+
+		assert.ok(!container.classList.contains('is-showing-detail'));
+		const detail = container.querySelector('.connection-preferences-detail') as HTMLElement;
+		const host = (pane as unknown as { pairingConfirmHost: HTMLElement }).pairingConfirmHost;
+		assert.ok(detail);
+		assert.ok(!detail.contains(host), 'live SAS host must leave hidden preferences detail after Back');
+		assert.ok(container.contains(host), 'live SAS host must remain in the pane');
+		const dialog = host.querySelector('.monaco-dialog-box') as HTMLElement | null;
+		assert.ok(dialog, 'SAS dialog must remain after Back');
+		assert.ok(dialog.textContent?.includes(handshakeSas));
+		assert.notStrictEqual(getWindow(host).getComputedStyle(host).display, 'none');
+		assert.notStrictEqual(getWindow(dialog).getComputedStyle(dialog).display, 'none');
+		assert.strictEqual(getWindow(detail).getComputedStyle(detail).display, 'none');
+
+		clickPairingCancel(container);
+		await flow;
 		workbench.remove();
 	});
 
@@ -3683,6 +3749,696 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 0);
 		const devicesStatus = container.querySelector('.connection-hub-devices-status') as HTMLElement;
 		assert.ok(!devicesStatus.textContent?.includes('does not expose'));
+		container.remove();
+	});
+
+	test('ListDevices success then pairingPending keeps leftover rows and paints not-connected', async () => {
+		let connected = true;
+		let pairingPending = false;
+		let listDevicesCalls = 0;
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => connected && !pairingPending,
+			getConnectionPhase: () => connected ? { kind: 'connected', path: 'loopback' } : { kind: 'disconnected' },
+			getConnectionSnapshot: () => ({
+				transport: connected ? 'ok' : 'idle',
+				pairingPending,
+				channelAlive: connected,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+			listDevices: async (): Promise<UniverseAgentListDevicesResult> => {
+				listDevicesCalls++;
+				return {
+					devices: [{
+						deviceId: 'eng-1',
+						displayName: 'Phone',
+						role: '',
+						platform: '',
+						pairedAt: 0,
+						lastSeenAt: 0,
+						active: false,
+					}],
+				};
+			},
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+			getDirectoryStatus: () => ({ kind: 'idle' }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+		const listCallsAfterLoad = listDevicesCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		pairingPending = true;
+		await (pane as unknown as { refreshEngineDeviceLists(): Promise<void> }).refreshEngineDeviceLists();
+		pane.layout(new Dimension(800, 800));
+
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listDevicesCalls, listCallsAfterLoad);
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+		const leftover = [...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent);
+		assert.ok(leftover.includes('Phone'));
+		const devicesStatus = container.querySelector('.connection-hub-devices-status') as HTMLElement;
+		assert.strictEqual(devicesStatus.textContent, getEngineSectionDisconnectedCopy());
+		assert.ok(devicesStatus.classList.contains('is-warning'));
+
+		connected = false;
+		await (pane as unknown as { refreshEngineDeviceLists(): Promise<void> }).refreshEngineDeviceLists();
+		pane.layout(new Dimension(800, 800));
+
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 0);
+		container.remove();
+	});
+
+	test('ListPending success then pairingPending keeps leftover rows and paints not-connected', async () => {
+		let connected = true;
+		let pairingPending = false;
+		let listPendingCalls = 0;
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => connected && !pairingPending,
+			getConnectionPhase: () => connected ? { kind: 'connected', path: 'loopback' } : { kind: 'disconnected' },
+			getConnectionSnapshot: () => ({
+				transport: connected ? 'ok' : 'idle',
+				pairingPending,
+				channelAlive: connected,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+			listPending: async () => {
+				listPendingCalls++;
+				return {
+					pending: [{
+						pairingCode: '123456',
+						deviceId: 'dev-1',
+						displayName: 'Phone',
+						platform: 'ios',
+						requestedAt: 0,
+						expiresInSeconds: 0,
+					}],
+				};
+			},
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 1);
+		const listCallsAfterLoad = listPendingCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		pairingPending = true;
+		await (pane as unknown as { refreshEngineDeviceLists(): Promise<void> }).refreshEngineDeviceLists();
+
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listPendingCalls, listCallsAfterLoad);
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 1);
+		const leftover = container.querySelector('.connection-engine-pending-row') as HTMLElement;
+		assert.ok(leftover);
+		assert.strictEqual(leftover.textContent, 'Phone — 123456 — ios');
+		const pendingEmpty = container.querySelector('.connection-engine-pending-empty') as HTMLElement;
+		assert.notStrictEqual(pendingEmpty.style.display, 'none');
+		assert.strictEqual(pendingEmpty.textContent, getEngineSectionDisconnectedCopy());
+		assert.ok(pendingEmpty.classList.contains('is-warning'));
+
+		connected = false;
+		await (pane as unknown as { refreshEngineDeviceLists(): Promise<void> }).refreshEngineDeviceLists();
+
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 0);
+		container.remove();
+	});
+
+	test('leftover-looks-live pairing-hold keeps leftover device rows and skips listDevices', async () => {
+		let pairingPending = false;
+		let listDevicesCalls = 0;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			pairingPending,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listDevices: async (): Promise<UniverseAgentListDevicesResult> => {
+				listDevicesCalls++;
+				return {
+					devices: [{
+						deviceId: 'eng-1',
+						displayName: 'Phone',
+						role: '',
+						platform: '',
+						pairedAt: 0,
+						lastSeenAt: 0,
+						active: false,
+					}],
+				};
+			},
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+			getDirectoryStatus: () => ({ kind: 'idle' }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+		const listCallsAfterLoad = listDevicesCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		pairingPending = true;
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		onDidChangeConnection.fire(snapshot());
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		assert.strictEqual(listDevicesCalls, listCallsAfterLoad, 'leftover-looks-live must not extra listDevices');
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+		const leftover = [...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent);
+		assert.ok(leftover.includes('Phone'));
+		const devicesStatus = container.querySelector('.connection-hub-devices-status') as HTMLElement;
+		assert.strictEqual(devicesStatus.textContent, getEngineSectionDisconnectedCopy());
+		assert.ok(devicesStatus.classList.contains('is-warning'));
+		container.remove();
+	});
+
+	test('leftover-looks-live pairing-hold keeps leftover pending rows and skips listPending', async () => {
+		let pairingPending = false;
+		let listPendingCalls = 0;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			pairingPending,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listPending: async () => {
+				listPendingCalls++;
+				return {
+					pending: [{
+						pairingCode: '123456',
+						deviceId: 'dev-1',
+						displayName: 'Phone',
+						platform: 'ios',
+						requestedAt: 0,
+						expiresInSeconds: 0,
+					}],
+				};
+			},
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 1);
+		const listCallsAfterLoad = listPendingCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		pairingPending = true;
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		onDidChangeConnection.fire(snapshot());
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		assert.strictEqual(listPendingCalls, listCallsAfterLoad, 'leftover-looks-live must not extra listPending');
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 1);
+		const leftover = container.querySelector('.connection-engine-pending-row') as HTMLElement;
+		assert.ok(leftover);
+		assert.strictEqual(leftover.textContent, 'Phone — 123456 — ios');
+		const pendingEmpty = container.querySelector('.connection-engine-pending-empty') as HTMLElement;
+		assert.notStrictEqual(pendingEmpty.style.display, 'none');
+		assert.strictEqual(pendingEmpty.textContent, getEngineSectionDisconnectedCopy());
+		assert.ok(pendingEmpty.classList.contains('is-warning'));
+		container.remove();
+	});
+
+	test('leftover-looks-live signedOut hides hub devices pair-seat', async () => {
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: true,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		const devices = container.querySelector('.connection-hub-devices') as HTMLElement;
+		assert.strictEqual(devices.style.display, 'none');
+		container.remove();
+	});
+
+	test('true connect no pairing signedOut still shows hub devices', async () => {
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		const devices = container.querySelector('.connection-hub-devices') as HTMLElement;
+		assert.notStrictEqual(devices.style.display, 'none');
+		container.remove();
+	});
+
+	test('true disconnect signedOut hides hub devices', async () => {
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => false,
+			getConnectionPhase: () => ({ kind: 'disconnected' }),
+			getConnectionSnapshot: () => ({
+				transport: 'idle',
+				pairingPending: false,
+				channelAlive: false,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		const devices = container.querySelector('.connection-hub-devices') as HTMLElement;
+		assert.strictEqual(devices.style.display, 'none');
+		container.remove();
+	});
+
+	test('leftover-looks-live hubSignedIn still shows hub devices', async () => {
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: true,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		const devices = container.querySelector('.connection-hub-devices') as HTMLElement;
+		assert.notStrictEqual(devices.style.display, 'none');
+		container.remove();
+	});
+
+	test('leftover-looks-live pairing-hold Rotate / Pair / Revoke stay 0 unary', async () => {
+		let pairingPending = false;
+		const rotateCalls: UniverseAgentRotateTokenRequest[] = [];
+		const revokeCalls: UniverseAgentRevokeRequest[] = [];
+		const approveCalls: UniverseAgentPairApproveRequest[] = [];
+		const rejectCalls: UniverseAgentPairRejectRequest[] = [];
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			pairingPending,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listDevices: async (): Promise<UniverseAgentListDevicesResult> => ({
+				devices: [{
+					deviceId: 'dev-1',
+					displayName: 'Phone',
+					role: '',
+					platform: '',
+					pairedAt: 0,
+					lastSeenAt: 0,
+					active: false,
+				}],
+			}),
+			listPending: async () => ({
+				pending: [{
+					pairingCode: '123456',
+					deviceId: 'dev-1',
+					displayName: 'Phone',
+					platform: 'ios',
+					requestedAt: 0,
+					expiresInSeconds: 0,
+				}],
+			}),
+			rotateToken: async request => {
+				rotateCalls.push(request);
+				return { success: true, message: '' };
+			},
+			revoke: async request => {
+				revokeCalls.push(request);
+				return { success: true, message: '' };
+			},
+			pairApprove: async request => {
+				approveCalls.push(request);
+				return { success: true, deviceId: 'dev-1', message: '' };
+			},
+			pairReject: async request => {
+				rejectCalls.push(request);
+				return { success: true, message: '' };
+			},
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+			revokeDevice: async () => {
+				throw new Error('must not hub-revoke while leftover-looks-live');
+			},
+			confirmDeviceCode: async () => {
+				throw new Error('must not hub-confirm while leftover-looks-live');
+			},
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 1);
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		const findDeviceAction = (label: string) => [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === label) as HTMLButtonElement | undefined;
+		const findPairAction = (label: string) => [...container.querySelectorAll('.connection-hub-device-code .monaco-button')]
+			.find(button => button.textContent === label) as HTMLButtonElement | undefined;
+		const rotate = findDeviceAction(CONNECTION_DEVICE_ROTATE_TOKEN_LABEL);
+		const revoke = findDeviceAction('Revoke');
+		const confirm = findPairAction('Confirm');
+		const reject = findPairAction(CONNECTION_DEVICE_PAIR_REJECT_LABEL);
+		assert.ok(rotate);
+		assert.ok(revoke);
+		assert.ok(confirm);
+		assert.ok(reject);
+		assert.strictEqual(rotate.classList.contains('disabled'), false);
+		assert.strictEqual(revoke.classList.contains('disabled'), false);
+		assert.strictEqual(confirm.classList.contains('disabled'), false);
+		assert.strictEqual(reject.classList.contains('disabled'), false);
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 1);
+		assert.strictEqual(rotate.classList.contains('disabled'), true);
+		assert.strictEqual(rotate.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(revoke.classList.contains('disabled'), true);
+		assert.strictEqual(revoke.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(confirm.classList.contains('disabled'), true);
+		assert.strictEqual(confirm.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(reject.classList.contains('disabled'), true);
+		assert.strictEqual(reject.getAttribute('aria-disabled'), 'true');
+
+		const forceClick = (button: HTMLButtonElement) => {
+			button.classList.remove('disabled');
+			button.removeAttribute('disabled');
+			button.setAttribute('aria-disabled', 'false');
+			button.disabled = false;
+			button.click();
+		};
+		(container.querySelector('.connection-engine-pending-row') as HTMLElement | null)?.click();
+		forceClick(rotate);
+		forceClick(revoke);
+		forceClick(confirm);
+		forceClick(reject);
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		assert.deepStrictEqual(rotateCalls, []);
+		assert.deepStrictEqual(revokeCalls, []);
+		assert.deepStrictEqual(approveCalls, []);
+		assert.deepStrictEqual(rejectCalls, []);
+		container.remove();
+	});
+
+	test('leftover-looks-live pairing-hold Rename stays 0 unary', async () => {
+		let pairingPending = false;
+		const renameCalls: { id: string; name: string }[] = [];
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			pairingPending,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listDevices: async (): Promise<UniverseAgentListDevicesResult> => ({
+				devices: [{
+					deviceId: 'dev-1',
+					displayName: 'Phone',
+					role: '',
+					platform: '',
+					pairedAt: 0,
+					lastSeenAt: 0,
+					active: false,
+				}],
+			}),
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+			renameDevice: async (id, name) => {
+				renameCalls.push({ id, name });
+				return { ok: true };
+			},
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
+		assert.ok(rename);
+		assert.strictEqual(rename.classList.contains('disabled'), false);
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+		assert.strictEqual(rename.classList.contains('disabled'), true);
+		assert.strictEqual(rename.getAttribute('aria-disabled'), 'true');
+
+		rename.classList.remove('disabled');
+		rename.removeAttribute('disabled');
+		rename.setAttribute('aria-disabled', 'false');
+		rename.disabled = false;
+		rename.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		assert.deepStrictEqual(renameCalls, []);
+		container.remove();
+	});
+
+	test('connected leftover still Renames', async () => {
+		const renameCalls: { id: string; name: string }[] = [];
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+			listDevices: async (): Promise<UniverseAgentListDevicesResult> => ({
+				devices: [{
+					deviceId: 'dev-1',
+					displayName: 'Phone',
+					role: '',
+					platform: '',
+					pairedAt: 0,
+					lastSeenAt: 0,
+					active: false,
+				}],
+			}),
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+			renameDevice: async (id, name) => {
+				renameCalls.push({ id, name });
+				return { ok: true };
+			},
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+
+		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
+		assert.ok(rename);
+		assert.strictEqual(rename.classList.contains('disabled'), false);
+		rename.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		assert.deepStrictEqual(renameCalls, [{ id: 'dev-1', name: 'Renamed Studio' }]);
+		container.remove();
+	});
+
+	test('true disconnect leftover refuses Rename', async () => {
+		let connected = true;
+		const renameCalls: { id: string; name: string }[] = [];
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => connected,
+			getConnectionPhase: () => connected ? { kind: 'connected', path: 'loopback' } : { kind: 'disconnected' },
+			listDevices: async (): Promise<UniverseAgentListDevicesResult> => ({
+				devices: [{
+					deviceId: 'dev-1',
+					displayName: 'Phone',
+					role: '',
+					platform: '',
+					pairedAt: 0,
+					lastSeenAt: 0,
+					active: false,
+				}],
+			}),
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+			getDirectoryStatus: () => ({ kind: 'idle' }),
+			renameDevice: async (id, name) => {
+				renameCalls.push({ id, name });
+				return { ok: true };
+			},
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+
+		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
+		assert.ok(rename);
+
+		connected = false;
+		await (pane as unknown as { refreshEngineDeviceLists(): Promise<void> }).refreshEngineDeviceLists();
+		pane.layout(new Dimension(800, 800));
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 0);
+		assert.strictEqual(rename.classList.contains('disabled'), true);
+
+		rename.classList.remove('disabled');
+		rename.removeAttribute('disabled');
+		rename.setAttribute('aria-disabled', 'false');
+		rename.disabled = false;
+		rename.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		assert.deepStrictEqual(renameCalls, []);
 		container.remove();
 	});
 

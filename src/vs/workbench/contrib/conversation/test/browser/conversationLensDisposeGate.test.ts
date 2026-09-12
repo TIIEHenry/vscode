@@ -6,16 +6,37 @@
 import assert from 'assert';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { applySessionViewTimeline, refreshTrajectoryRecords, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
-import { saveQueueEdit, saveTurnEdit, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
-import { showPostFailure, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
+import { applySessionViewTimeline, refreshTrajectoryRecords, updateSyncChrome, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
+import { conversationLensStaleSnapshotClass, refreshStaleSnapshotBanner, requestReadingColumnDetail, shouldShowReadingColumnLiveChrome, type IReadingColumnDetailHost } from '../../browser/conversationLensReadingColumn.js';
+import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
+import { formatSyncChromeLabel } from '../../browser/conversationSessionView.js';
+import type { SyncChrome } from '../../../../../platform/universeAgent/common/sessionView/index.js';
+import { postBound, saveQueueEdit, saveTurnEdit, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
 import {
+	applySessionModelIndex,
+	applySessionPermissionIndex,
+	beginQueueEdit,
+	beginTurnEdit,
+	isSessionPermissionModeAvailable,
+	isSessionSwitchModelAvailable,
+	showPostFailure,
+	toggleMoreContextView,
+	toggleTuneContextView,
+	updateComposerSessionSelectsEnabled,
+	updateSendEnabled,
+	type IConversationLensComposerChromeHost,
+} from '../../browser/conversationLensComposerChrome.js';
+import { updateSessionBarWriteChrome, type IConversationLensSessionBarHost } from '../../browser/conversationLensSessionBar.js';
+import {
+	conversationLensDockNoEngineTools,
+	conversationLensDockNoTools,
 	conversationLensPostFailed,
 	conversationLensPostFailedDisconnected,
 	conversationLensPostFailedNoSession,
 	type ConversationComposerPostFailureReason,
 } from '../../browser/conversationLensDockStrings.js';
 import { bindSessionView, cancelToolCall, copyTurn, deleteTurn, resolveConfirmation, resolveQuestion, retryError, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
+import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import type { ConversationWriteMessage, PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 
 suite('conversation lens dispose gate', () => {
@@ -68,6 +89,401 @@ suite('conversation lens dispose gate', () => {
 		} as unknown as IConversationLensProjectionHost;
 		refreshTrajectoryRecords(host, 's1');
 		assert.strictEqual(setRecords, 1);
+	});
+
+	test('refreshTrajectoryRecords keeps leftover lease turn ids while pairingPending then true disconnect uses stub ids', () => {
+		let connected = true;
+		let pairingPending = false;
+		let setRecords = 0;
+		let lastTurnIds: ReadonlySet<string> | undefined;
+		const leftoverRecords = [{ id: 'rec-1' }];
+		const host = {
+			isDisposed: false,
+			filterAgentId: undefined,
+			sessionViewLease: {
+				sessionId: 'sess-leftover',
+				snapshot: {
+					timeline: [
+						{ id: 'turn-lease-1', summary: { kind: 'user' } },
+						{ id: 'turn-lease-2', summary: { kind: 'assistant' } },
+					],
+				},
+			},
+			stubService: {
+				getTrajectoryRecords: () => leftoverRecords,
+				isEngineConnected: () => connected && !pairingPending,
+				getTurns: () => [],
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending }),
+			},
+			trajectoryView: {
+				getPaintedRecordCount: () => leftoverRecords.length,
+				setRecords: (_records: readonly unknown[], turnIds?: ReadonlySet<string>) => {
+					setRecords++;
+					lastTurnIds = turnIds;
+				},
+			},
+		} as unknown as IConversationLensProjectionHost;
+
+		pairingPending = true;
+		assert.strictEqual(host.stubService.isEngineConnected(), false);
+		assert.strictEqual(host.uaConnection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(host.uaConnection.getConnectionSnapshot().pairingPending, true);
+
+		refreshTrajectoryRecords(host, 'sess-leftover');
+		assert.strictEqual(setRecords, 1);
+		assert.ok(lastTurnIds?.has('turn-lease-1'));
+		assert.ok(lastTurnIds?.has('turn-lease-2'));
+
+		pairingPending = false;
+		connected = false;
+		refreshTrajectoryRecords(host, 'sess-leftover');
+		assert.strictEqual(setRecords, 2);
+		assert.strictEqual(lastTurnIds?.size, 0);
+	});
+
+	test('refreshTrajectoryRecords keeps leftover painted records when pairingPending has no lease', () => {
+		let setRecords = 0;
+		const leftoverRecords = [{ id: 'rec-leftover' }];
+		const host = {
+			isDisposed: false,
+			filterAgentId: undefined,
+			sessionViewLease: undefined,
+			stubService: {
+				getTrajectoryRecords: () => [],
+				isEngineConnected: () => false,
+				getTurns: () => [],
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: true }),
+			},
+			trajectoryView: {
+				getPaintedRecordCount: () => leftoverRecords.length,
+				setRecords: () => { setRecords++; },
+			},
+		} as unknown as IConversationLensProjectionHost;
+		refreshTrajectoryRecords(host, 'sess-leftover');
+		assert.strictEqual(setRecords, 0);
+	});
+
+	test('refreshTrajectoryRecords first-pull pairingPending without leftover still setRecords', () => {
+		let setRecords = 0;
+		const host = {
+			isDisposed: false,
+			filterAgentId: undefined,
+			sessionViewLease: undefined,
+			stubService: {
+				getTrajectoryRecords: () => [],
+				isEngineConnected: () => false,
+				getTurns: () => [],
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: true }),
+			},
+			trajectoryView: {
+				getPaintedRecordCount: () => 0,
+				setRecords: () => { setRecords++; },
+			},
+		} as unknown as IConversationLensProjectionHost;
+		refreshTrajectoryRecords(host, 'sess-first');
+		assert.strictEqual(setRecords, 1);
+	});
+
+	test('shouldShowReadingColumnLiveChrome keeps leftover lease while pairingPending then true disconnect hides', () => {
+		let connected = true;
+		let pairingPending = false;
+		const host = {
+			sessionViewLease: leftoverLeaseSnapshot({ kind: 'live' }),
+			stubService: {
+				isEngineConnected: () => connected && !pairingPending,
+				getActiveSessionId: () => 'ua-cache',
+				getTurns: () => [],
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending }),
+			},
+		};
+
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(asLiveChromeHost(host)), true);
+
+		pairingPending = true;
+		assert.strictEqual(host.stubService.isEngineConnected(), false);
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(asLiveChromeHost(host)), true);
+
+		pairingPending = false;
+		connected = false;
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(asLiveChromeHost(host)), false);
+	});
+
+	test('shouldShowReadingColumnLiveChrome keeps leftover cached turns without lease while pairingPending', () => {
+		const host = {
+			sessionViewLease: undefined,
+			stubService: {
+				isEngineConnected: () => false,
+				getActiveSessionId: () => 'ua-cache',
+				getTurns: () => [{ id: 't-leftover', kind: 'thinking', text: 'leftover think', streaming: true }],
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected' as const, path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: true }),
+			},
+		};
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(asLiveChromeHost(host)), true);
+	});
+
+	test('shouldShowReadingColumnLiveChrome first-pull pairingPending without leftover stays false', () => {
+		const host = {
+			sessionViewLease: undefined,
+			stubService: {
+				isEngineConnected: () => false,
+				getActiveSessionId: () => 'sess-first',
+				getTurns: () => [],
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected' as const, path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: true }),
+			},
+		};
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(asLiveChromeHost(host)), false);
+	});
+
+	function leftoverLooksLiveChromeHost(options: {
+		readonly pairingPending: boolean;
+		readonly looksLive?: boolean;
+		readonly connected?: boolean;
+		readonly hasLease?: boolean;
+		readonly turns?: readonly unknown[];
+	}): Parameters<typeof shouldShowReadingColumnLiveChrome>[0] {
+		const connected = options.connected ?? true;
+		const pairingPending = options.pairingPending;
+		const looksLive = options.looksLive ?? false;
+		const hasLease = options.hasLease === true;
+		return {
+			sessionViewLease: hasLease ? leftoverLeaseSnapshot({ kind: 'live' }) : undefined,
+			stubService: {
+				isEngineConnected: () => connected && (looksLive || !pairingPending),
+				getActiveSessionId: () => hasLease ? 'ua-cache' : 'sess-first',
+				getTurns: () => options.turns ?? [],
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending }),
+			},
+		};
+	}
+
+	test('leftover-looks-live first-pull shouldShowReadingColumnLiveChrome stays false', () => {
+		const host = leftoverLooksLiveChromeHost({ pairingPending: true, looksLive: true });
+		assert.strictEqual(host.stubService.isEngineConnected(), true);
+		assert.strictEqual(host.uaConnection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(host), false);
+	});
+
+	test('leftover-looks-live keeps leftover lease shouldShowReadingColumnLiveChrome', () => {
+		const host = leftoverLooksLiveChromeHost({ pairingPending: true, looksLive: true, hasLease: true });
+		assert.strictEqual(host.stubService.isEngineConnected(), true);
+		assert.strictEqual(host.uaConnection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(host), true);
+	});
+
+	test('leftover-looks-live keeps leftover cached turns shouldShowReadingColumnLiveChrome', () => {
+		const host = leftoverLooksLiveChromeHost({
+			pairingPending: true,
+			looksLive: true,
+			turns: [{ id: 't-leftover', kind: 'thinking', text: 'leftover think', streaming: true }],
+		});
+		assert.strictEqual(host.stubService.isEngineConnected(), true);
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(host), true);
+	});
+
+	function leftoverLooksLiveDetailHost(options: {
+		readonly pairingPending: boolean;
+		readonly cachedBody?: string;
+		readonly hasLease?: boolean;
+	}): {
+		host: IReadingColumnDetailHost & { readonly stubService: { isEngineConnected(): boolean } };
+		requestDetailCalls: number;
+	} {
+		const state = { requestDetailCalls: 0 };
+		const details = new Map<string, string>();
+		if (options.cachedBody !== undefined) {
+			details.set('detail:leftover', options.cachedBody);
+		}
+		const hasLease = options.hasLease !== false;
+		const host: IReadingColumnDetailHost & { readonly stubService: { isEngineConnected(): boolean } } = {
+			stubService: {
+				isEngineConnected: () => true,
+			},
+			sessionViewLease: hasLease
+				? {
+					details,
+					requestDetail: async (_ref: string) => {
+						state.requestDetailCalls++;
+						return { ok: true as const, truncated: false as const, content: 'live-fetched' };
+					},
+				}
+				: undefined,
+			uaConnection: {
+				getConnectionPhase: (): ConnectionPhase => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: options.pairingPending }),
+			},
+		};
+		return {
+			host,
+			get requestDetailCalls() { return state.requestDetailCalls; },
+		};
+	}
+
+	test('leftover-looks-live leftover lease requestDetail stays 0 unary', async () => {
+		const fixture = leftoverLooksLiveDetailHost({ pairingPending: true });
+		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
+		assert.strictEqual(fixture.host.uaConnection.getConnectionSnapshot().pairingPending, true);
+		const outcome = await requestReadingColumnDetail(fixture.host, 'detail:leftover');
+		assert.deepStrictEqual(outcome, { ok: false, reason: 'unavailable' });
+		assert.strictEqual(fixture.requestDetailCalls, 0);
+	});
+
+	test('leftover-looks-live leftover lease serves cached leftover body without requestDetail', async () => {
+		const fixture = leftoverLooksLiveDetailHost({ pairingPending: true, cachedBody: 'cached leftover' });
+		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
+		const outcome = await requestReadingColumnDetail(fixture.host, 'detail:leftover');
+		assert.deepStrictEqual(outcome, { ok: true, truncated: false, content: 'cached leftover' });
+		assert.strictEqual(fixture.requestDetailCalls, 0);
+	});
+
+	test('connected leftover still requestDetail', async () => {
+		const fixture = leftoverLooksLiveDetailHost({ pairingPending: false });
+		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
+		assert.strictEqual(fixture.host.uaConnection.getConnectionSnapshot().pairingPending, false);
+		const outcome = await requestReadingColumnDetail(fixture.host, 'detail:leftover');
+		assert.deepStrictEqual(outcome, { ok: true, truncated: false, content: 'live-fetched' });
+		assert.strictEqual(fixture.requestDetailCalls, 1);
+	});
+
+	test('first-pull pairing without lease requestDetail stays unavailable', async () => {
+		const fixture = leftoverLooksLiveDetailHost({ pairingPending: true, hasLease: false });
+		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
+		const outcome = await requestReadingColumnDetail(fixture.host, 'detail:leftover');
+		assert.deepStrictEqual(outcome, { ok: false, reason: 'unavailable' });
+		assert.strictEqual(fixture.requestDetailCalls, 0);
+	});
+
+	function asLiveChromeHost(host: object): Parameters<typeof shouldShowReadingColumnLiveChrome>[0] {
+		return host as Parameters<typeof shouldShowReadingColumnLiveChrome>[0];
+	}
+
+	function leftoverLeaseSnapshot(sync: SyncChrome) {
+		return {
+			sessionId: 'ua-cache',
+			snapshot: {
+				sessionId: 'ua-cache',
+				sync,
+				timeline: [],
+				overlay: { blocks: [] },
+				pendingActions: [],
+				localPendingSends: [],
+			},
+			attribution: new Map(),
+			details: new Map(),
+		};
+	}
+
+	function pairingSyncChromeHost(options: {
+		readonly leftover: SyncChrome;
+		readonly rosterSync: SyncChrome;
+		readonly getSessionSync?: (sessionId: string) => SyncChrome;
+	}): IConversationLensProjectionHost & { readonly sessionSyncBadge: HTMLSpanElement; readonly staleBanner: HTMLDivElement; getSessionSyncCalls: number } {
+		const leftover = options.leftover;
+		const rosterSync = options.rosterSync;
+		const calls = { count: 0 };
+		const badge = document.createElement('span');
+		const banner = document.createElement('div');
+		banner.className = conversationLensStaleSnapshotClass;
+		banner.hidden = true;
+		const readingColumn = document.createElement('div');
+		readingColumn.appendChild(banner);
+		const host = {
+			isDisposed: false,
+			lensId: 'conversation' as const,
+			filterAgentId: undefined,
+			composerPolicy: 'compose' as const,
+			conversationPhase: 'prefirst' as const,
+			lastAttachedEntries: [],
+			sessionViewLease: leftoverLeaseSnapshot(leftover),
+			sessionSyncBadge: badge,
+			readingColumn,
+			staleBanner: banner,
+			get getSessionSyncCalls() { return calls.count; },
+			stubService: {
+				getSessionSync: (sessionId: string) => {
+					calls.count++;
+					assert.strictEqual(sessionId, 'ua-cache');
+					return options.getSessionSync?.(sessionId) ?? rosterSync;
+				},
+				getTurns: () => [],
+				getActiveSessionId: () => 'ua-cache',
+			},
+			getBoundSessionId: () => 'ua-cache',
+			reviewNavService: { getReviewNavForSession: () => [] },
+			timelineTree: { applyEntries: () => { } },
+			trajectoryView: {},
+			renderInboxStatus: () => { },
+			syncComposerPlacement: () => { },
+			applyConversationDensity: () => { },
+			updateSessionConfigVisibility: () => { },
+			exitComposerEdit: () => { },
+			updateGateRow: () => { },
+			relayoutReadingSurfaces: () => { },
+			slotHosts: { dock: { classList: { toggle: () => { } } } },
+			prefirstHero: { hidden: false, appendChild: () => { } },
+			dockRoot: { insertBefore: () => { } },
+			gateRow: {},
+			identityStrip: { element: {} },
+			inboxOverlay: { element: { hidden: true } },
+		};
+		return host as unknown as IConversationLensProjectionHost & { readonly sessionSyncBadge: HTMLSpanElement; readonly staleBanner: HTMLDivElement; getSessionSyncCalls: number };
+	}
+
+	test('applySessionViewTimeline pairing leftover live/syncing lease paints roster demoted sync not Session live', () => {
+		const demoted: SyncChrome = { kind: 'closed', reason: 'Cached snapshot (read-only)' };
+		for (const leftover of [{ kind: 'live' as const }, { kind: 'syncing' as const }]) {
+			const host = pairingSyncChromeHost({ leftover, rosterSync: demoted });
+			applySessionViewTimeline(host, { kind: 'baseline' });
+			assert.ok(host.getSessionSyncCalls > 0);
+			assert.deepStrictEqual(host.stubService.getSessionSync('ua-cache'), demoted);
+			assert.notStrictEqual(host.sessionSyncBadge.textContent, 'Session live');
+			assert.notStrictEqual(host.sessionSyncBadge.textContent, 'Session syncing');
+			assert.strictEqual(host.sessionSyncBadge.textContent, formatSyncChromeLabel(demoted));
+			assert.strictEqual(host.sessionSyncBadge.getAttribute('aria-label'), formatSyncChromeLabel(demoted));
+			assert.strictEqual(host.staleBanner.hidden, false);
+			assert.ok(host.staleBanner.textContent?.includes('Cached snapshot (read-only)'));
+			assert.ok(!/Session live|Session syncing/i.test(host.staleBanner.textContent ?? ''));
+		}
+	});
+
+	test('applySessionViewTimeline connected leftover live still paints Session live', () => {
+		const live: SyncChrome = { kind: 'live' };
+		const host = pairingSyncChromeHost({ leftover: live, rosterSync: live });
+		applySessionViewTimeline(host, { kind: 'baseline' });
+		assert.ok(host.getSessionSyncCalls > 0);
+		assert.strictEqual(host.sessionSyncBadge.textContent, 'Session live');
+		assert.strictEqual(host.staleBanner.hidden, true);
+	});
+
+	test('updateSyncChrome and stale banner ignore leftover live lease and follow getSessionSync', () => {
+		const demoted: SyncChrome = { kind: 'closed', reason: 'Cached snapshot (read-only)' };
+		const host = pairingSyncChromeHost({ leftover: { kind: 'live' }, rosterSync: demoted });
+		updateSyncChrome(host, { kind: 'live' });
+		assert.notStrictEqual(host.sessionSyncBadge.textContent, 'Session live');
+		assert.strictEqual(host.sessionSyncBadge.textContent, formatSyncChromeLabel(demoted));
+		refreshStaleSnapshotBanner(host, { kind: 'live' });
+		assert.strictEqual(host.staleBanner.hidden, false);
+		assert.ok(host.staleBanner.textContent?.includes('Cached snapshot (read-only)'));
 	});
 
 	test('bindSessionView skips applyEntries after dispose', () => {
@@ -219,6 +635,83 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(acquire, 0);
 		assert.strictEqual(host.sessionViewLease, undefined);
 		assert.strictEqual(host.lastAttachedEntries.length, 0);
+		lifetime.dispose();
+	});
+
+	test('bindSessionView keeps leftover timeline while pairingPending then true disconnect rebinds', () => {
+		const lifetime = new DisposableStore();
+		const priorLease = { sessionId: 'sess-leftover' };
+		const leftover = [{ id: 't1' }, { id: 't2' }];
+		let connected = true;
+		let pairingPending = false;
+		let applyEntries = 0;
+		let appliedEmpty = 0;
+		let applyBaseline = 0;
+		let acquire = 0;
+		const lifetimeMarker = {
+			disposed: false,
+			dispose() { this.disposed = true; },
+		};
+		lifetime.add(lifetimeMarker);
+		const host = {
+			isDisposed: false,
+			sessionViewLifetime: lifetime,
+			sessionViewLease: priorLease,
+			lastAttachedEntries: leftover,
+			stubService: {
+				isEngineConnected: () => connected && !pairingPending,
+				isEngineSessionReady: () => connected && !pairingPending,
+				acquireSessionView: () => {
+					acquire++;
+					return {
+						sessionId: 'sess-leftover',
+						snapshot: { sessionId: 'sess-leftover' },
+						dispose() { },
+						onDidApplyFrame: () => ({ dispose() { } }),
+					};
+				},
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending }),
+			},
+			timelineTree: {
+				applyEntries: (entries: readonly unknown[]) => {
+					applyEntries++;
+					if (entries.length === 0) {
+						appliedEmpty++;
+					}
+				},
+			},
+			applySessionViewTimeline: (applied: { kind: string }) => {
+				if (applied.kind === 'baseline') {
+					applyBaseline++;
+				}
+			},
+		} as unknown as IConversationLensSessionBindingHost;
+
+		pairingPending = true;
+		assert.strictEqual(host.stubService.isEngineConnected(), false);
+		assert.strictEqual(host.uaConnection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(host.uaConnection.getConnectionSnapshot().pairingPending, true);
+
+		bindSessionView(host, 'sess-leftover');
+		assert.strictEqual(applyEntries, 0);
+		assert.strictEqual(appliedEmpty, 0);
+		assert.strictEqual(applyBaseline, 0);
+		assert.strictEqual(acquire, 0);
+		assert.strictEqual(host.sessionViewLease, priorLease);
+		assert.strictEqual(host.lastAttachedEntries.length, 2);
+		assert.strictEqual(host.lastAttachedEntries, leftover);
+		assert.strictEqual(lifetimeMarker.disposed, false);
+
+		pairingPending = false;
+		connected = false;
+		bindSessionView(host, 'sess-leftover');
+		assert.ok(acquire > 0);
+		assert.ok(applyBaseline > 0);
+		assert.strictEqual(appliedEmpty, 0);
+		assert.strictEqual(lifetimeMarker.disposed, true);
 		lifetime.dispose();
 	});
 
@@ -558,6 +1051,697 @@ suite('conversation lens dispose gate', () => {
 
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
 		assert.strictEqual(focused, 0);
+	});
+
+	function pairingHoldLeftoverWriteHost(failures: ConversationComposerPostFailureReason[]): {
+		host: IConversationLensSessionBindingHost;
+		posted: number;
+	} {
+		const state = { posted: 0 };
+		const host = {
+			getBoundSessionId: () => 'sess-leftover',
+			sessionViewLease: {
+				post: async () => {
+					state.posted++;
+					return { accepted: true, correlation: { id: 'x' } };
+				},
+			},
+			postBound: async (msg: ConversationWriteMessage): Promise<PostOutcome> => {
+				return postBound(host as unknown as IConversationLensComposerHost, msg);
+			},
+			stubService: {
+				isEngineConnected: () => false,
+				isEngineSessionReady: () => false,
+				hasEngineConnectionHistory: () => true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: true }),
+			},
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+			focusTimelineRecord: () => { },
+		};
+		return { host: host as unknown as IConversationLensSessionBindingHost, get posted() { return state.posted; } };
+	}
+
+	test('postBound pairing-hold leftover lease rejects without lease.post', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host, posted } = pairingHoldLeftoverWriteHost(failures);
+		const outcome = await postBound(host as unknown as IConversationLensComposerHost, {
+			kind: 'continueGeneration',
+			agentId: 'root',
+			turnId: 'turn-1',
+			messageId: 'msg-1',
+		});
+		assert.strictEqual(posted, 0);
+		assert.strictEqual(outcome.accepted, false);
+		if (!outcome.accepted) {
+			assert.strictEqual(outcome.reason, 'no_such_session');
+		}
+		assert.deepStrictEqual(failures, []);
+	});
+
+	test('resolveConfirmation pairing-hold leftover lease does not post and shows engine_disconnected', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host, posted } = pairingHoldLeftoverWriteHost(failures);
+		await resolveConfirmation(host, 'turn-1', 'allowed');
+		assert.strictEqual(posted, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('resolveQuestion pairing-hold leftover lease does not post and shows engine_disconnected', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host, posted } = pairingHoldLeftoverWriteHost(failures);
+		await resolveQuestion(host, 'turn-1', 'req-1', { q1: { selectedLabels: ['a'] } });
+		assert.strictEqual(posted, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	function leftoverLooksLiveConfirmQuestionHost(failures: ConversationComposerPostFailureReason[], pairingPending: boolean): {
+		host: IConversationLensSessionBindingHost;
+		resolveConfirmationCalls: number;
+		respondQuestionCalls: number;
+		posted: number;
+		focused: number;
+	} {
+		const state = { resolveConfirmationCalls: 0, respondQuestionCalls: 0, posted: 0, focused: 0 };
+		const host = {
+			getBoundSessionId: () => 'sess-leftover',
+			postBound: async (): Promise<PostOutcome> => {
+				state.posted++;
+				return { accepted: true, correlation: { id: 'x' } };
+			},
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+				hasEngineConnectionHistory: () => true,
+				resolveConfirmation: () => {
+					state.resolveConfirmationCalls++;
+					return true;
+				},
+				respondQuestion: () => {
+					state.respondQuestionCalls++;
+					return true;
+				},
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending }),
+			},
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+			focusTimelineRecord: () => { state.focused++; },
+		};
+		return {
+			host: host as unknown as IConversationLensSessionBindingHost,
+			get resolveConfirmationCalls() { return state.resolveConfirmationCalls; },
+			get respondQuestionCalls() { return state.respondQuestionCalls; },
+			get posted() { return state.posted; },
+			get focused() { return state.focused; },
+		};
+	}
+
+	test('leftover-looks-live resolveConfirmation skips unary and shows engine_disconnected', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, true);
+		await resolveConfirmation(fixture.host, 'turn-1', 'allowed');
+		assert.strictEqual(fixture.resolveConfirmationCalls, 0);
+		assert.strictEqual(fixture.posted, 0);
+		assert.strictEqual(fixture.focused, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('leftover-looks-live resolveQuestion skips unary and shows engine_disconnected', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, true);
+		await resolveQuestion(fixture.host, 'turn-1', 'req-1', { q1: { selectedLabels: ['a'] } });
+		assert.strictEqual(fixture.respondQuestionCalls, 0);
+		assert.strictEqual(fixture.posted, 0);
+		assert.strictEqual(fixture.focused, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('connected without pairing resolveConfirmation still forwards', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, false);
+		await resolveConfirmation(fixture.host, 'turn-1', 'allowed');
+		assert.strictEqual(fixture.resolveConfirmationCalls, 1);
+		assert.strictEqual(fixture.posted, 0);
+		assert.strictEqual(fixture.focused, 1);
+		assert.deepStrictEqual(failures, []);
+	});
+
+	test('connected without pairing resolveQuestion still forwards', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, false);
+		await resolveQuestion(fixture.host, 'turn-1', 'req-1', { q1: { selectedLabels: ['a'] } });
+		assert.strictEqual(fixture.respondQuestionCalls, 1);
+		assert.strictEqual(fixture.posted, 0);
+		assert.strictEqual(fixture.focused, 1);
+		assert.deepStrictEqual(failures, []);
+	});
+
+	test('retryError pairing-hold leftover lease does not post and shows engine_disconnected', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host, posted } = pairingHoldLeftoverWriteHost(failures);
+		retryError(host, { id: 'msg-1', turnId: 'turn-1', agentId: 'root' });
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		assert.strictEqual(posted, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	function pairingHoldComposerWriteHost(failures: ConversationComposerPostFailureReason[]): {
+		host: IConversationLensComposerHost;
+		posted: number;
+		enqueueCalls: number;
+		turnWrites: number;
+		queueWrites: number;
+	} {
+		const state = { posted: 0, enqueueCalls: 0, turnWrites: 0, queueWrites: 0 };
+		const host = {
+			composerPolicy: 'compose' as const,
+			submitInFlight: false,
+			editingTurnId: 'turn-1',
+			editingQueueItemId: 'q1',
+			dockTextarea: { value: 'leftover draft' },
+			sendButton: { enabled: true },
+			getBoundSessionId: () => 'sess-leftover',
+			getEditingQueueItem: () => ({ id: 'q1', content: 'queued' }),
+			sessionViewLease: {
+				post: async () => {
+					state.posted++;
+					return { accepted: true, correlation: { id: 'x' } };
+				},
+			},
+			stubService: {
+				isEngineConnected: () => false,
+				isEngineSessionReady: () => false,
+				hasEngineConnectionHistory: () => true,
+				enqueueMessageQueueItem: () => {
+					state.enqueueCalls++;
+					return true;
+				},
+				updateUserTurnText: () => {
+					state.turnWrites++;
+					return true;
+				},
+				updateMessageQueueItemContent: () => {
+					state.queueWrites++;
+					return true;
+				},
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: true }),
+			},
+			exitComposerEdit: () => { },
+			renderInboxStatus: () => { },
+			updateSendEnabled: () => { },
+			updateConversationPhase: () => { },
+			resetInputHistoryBrowse: () => { },
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+		};
+		return {
+			host: host as unknown as IConversationLensComposerHost,
+			get posted() { return state.posted; },
+			get enqueueCalls() { return state.enqueueCalls; },
+			get turnWrites() { return state.turnWrites; },
+			get queueWrites() { return state.queueWrites; },
+		};
+	}
+
+	test('updateSendEnabled pairing-hold leftover draft disables Send', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host } = pairingHoldComposerWriteHost(failures);
+		const chromeHost = host as unknown as IConversationLensComposerChromeHost;
+		updateSendEnabled(chromeHost);
+		assert.strictEqual(chromeHost.sendButton.enabled, false);
+		assert.deepStrictEqual(failures, []);
+	});
+
+	test('submitDraft pairing-hold leftover draft does not enqueue or post', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host, posted, enqueueCalls } = pairingHoldComposerWriteHost(failures);
+		await submitDraft(host);
+		assert.strictEqual(posted, 0);
+		assert.strictEqual(enqueueCalls, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.strictEqual(host.dockTextarea.value, 'leftover draft');
+	});
+
+	test('saveTurnEdit pairing-hold leftover does not write and stays in edit', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host, turnWrites } = pairingHoldComposerWriteHost(failures);
+		host.composerPolicy = 'turnEdit';
+		saveTurnEdit(host);
+		assert.strictEqual(turnWrites, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.strictEqual(host.editingTurnId, 'turn-1');
+		assert.strictEqual(host.composerPolicy, 'turnEdit');
+		assert.strictEqual(host.dockTextarea.value, 'leftover draft');
+	});
+
+	test('saveQueueEdit pairing-hold leftover does not write and stays in edit', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host, queueWrites } = pairingHoldComposerWriteHost(failures);
+		host.composerPolicy = 'queueEdit';
+		saveQueueEdit(host);
+		assert.strictEqual(queueWrites, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.strictEqual(host.editingQueueItemId, 'q1');
+		assert.strictEqual(host.composerPolicy, 'queueEdit');
+		assert.strictEqual(host.dockTextarea.value, 'leftover draft');
+	});
+
+	test('deleteTurn pairing-hold leftover does not write and shows engine_disconnected', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host, posted } = pairingHoldLeftoverWriteHost(failures);
+		let deleteCalls = 0;
+		(host as unknown as { stubService: { deleteTurn: () => boolean } }).stubService.deleteTurn = () => {
+			deleteCalls++;
+			return true;
+		};
+		deleteTurn(host, 'turn-1');
+		assert.strictEqual(deleteCalls, 0);
+		assert.strictEqual(posted, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('beginTurnEdit pairing-hold leftover does not enter edit', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host } = pairingHoldComposerWriteHost(failures);
+		const chromeHost = host as unknown as IConversationLensComposerChromeHost;
+		chromeHost.composerPolicy = 'compose';
+		chromeHost.editingTurnId = undefined;
+		beginTurnEdit(chromeHost, 'turn-1');
+		assert.strictEqual(chromeHost.composerPolicy, 'compose');
+		assert.strictEqual(chromeHost.editingTurnId, undefined);
+		assert.deepStrictEqual(failures, []);
+	});
+
+	test('beginQueueEdit pairing-hold leftover does not enter edit', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host } = pairingHoldComposerWriteHost(failures);
+		const chromeHost = host as unknown as IConversationLensComposerChromeHost;
+		chromeHost.composerPolicy = 'compose';
+		chromeHost.editingQueueItemId = undefined;
+		beginQueueEdit(chromeHost, 'q1');
+		assert.strictEqual(chromeHost.composerPolicy, 'compose');
+		assert.strictEqual(chromeHost.editingQueueItemId, undefined);
+		assert.deepStrictEqual(failures, []);
+	});
+
+	test('updateSessionBarWriteChrome pairing-hold disables title delete and new', () => {
+		const title = document.createElement('button');
+		const newButton = { enabled: true };
+		const deleteButton = { enabled: true };
+		const host = {
+			sessionTitleButton: title,
+			newSessionButton: newButton,
+			deleteSessionButton: deleteButton,
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: true }),
+			},
+		} as unknown as IConversationLensSessionBarHost;
+		updateSessionBarWriteChrome(host);
+		assert.strictEqual(title.disabled, true);
+		assert.strictEqual(title.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(newButton.enabled, false);
+		assert.strictEqual(deleteButton.enabled, false);
+	});
+
+	test('updateSessionBarWriteChrome leftover-looks-live keeps title delete and new disabled', () => {
+		const title = document.createElement('button');
+		const newButton = { enabled: true };
+		const deleteButton = { enabled: true };
+		const host = {
+			sessionTitleButton: title,
+			newSessionButton: newButton,
+			deleteSessionButton: deleteButton,
+			stubService: {
+				isEngineConnected: () => true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: true }),
+			},
+		} as unknown as IConversationLensSessionBarHost;
+		assert.strictEqual(host.stubService.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(isConversationPairingHold(host.uaConnection), true);
+		updateSessionBarWriteChrome(host);
+		assert.strictEqual(title.disabled, true);
+		assert.strictEqual(title.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(newButton.enabled, false);
+		assert.strictEqual(deleteButton.enabled, false);
+	});
+
+	function leftoverLooksLiveSessionSelectsHost(options?: {
+		catalogToolNames?: readonly string[];
+		catalogModelIds?: readonly string[];
+		permissionIndex?: number;
+		modelSelectedIndex?: number;
+		lastReadingWidth?: number;
+	}): {
+		host: IConversationLensComposerChromeHost;
+		permissionCalls: { sessionId: string; mode: string }[];
+		modelCalls: { sessionId: string; modelId: string }[];
+		permissionSelect: HTMLSelectElement;
+		modelSelect: HTMLSelectElement;
+		dispose(): void;
+	} {
+		const store = new DisposableStore();
+		const permissionCalls: { sessionId: string; mode: string }[] = [];
+		const modelCalls: { sessionId: string; modelId: string }[] = [];
+		const dockRoot = document.createElement('div');
+		document.body.appendChild(dockRoot);
+		store.add({ dispose: () => dockRoot.remove() });
+		const permissionContainer = document.createElement('div');
+		permissionContainer.className = 'conversation-lens-dock-permission';
+		const permissionSelect = document.createElement('select');
+		permissionSelect.add(new Option('Ask', '0'));
+		permissionSelect.add(new Option('Agent', '1'));
+		permissionSelect.add(new Option('Permit', '2'));
+		permissionContainer.appendChild(permissionSelect);
+		dockRoot.appendChild(permissionContainer);
+		const modelContainer = document.createElement('div');
+		modelContainer.className = 'conversation-lens-dock-model';
+		const modelSelect = document.createElement('select');
+		modelSelect.add(new Option('No model', ''));
+		modelSelect.add(new Option('gpt-test', 'gpt-test'));
+		modelContainer.appendChild(modelSelect);
+		dockRoot.appendChild(modelContainer);
+		const moreButton = document.createElement('button');
+		const sessionConfigBySessionId = new Map<string, { agentIndex: number; permissionIndex: number }>([
+			['sess-leftover', { agentIndex: 0, permissionIndex: options?.permissionIndex ?? 0 }],
+		]);
+		permissionSelect.selectedIndex = options?.permissionIndex ?? 0;
+		modelSelect.selectedIndex = options?.modelSelectedIndex ?? 0;
+		const host = {
+			catalogToolNames: options?.catalogToolNames ?? ['bash'],
+			catalogModelIds: options?.catalogModelIds ?? ['', 'gpt-test'],
+			modelSelectedIndex: options?.modelSelectedIndex ?? 0,
+			sessionConfigBySessionId,
+			lastReadingWidth: options?.lastReadingWidth ?? 300,
+			tuneContextView: undefined as { close(): void } | undefined,
+			moreContextView: undefined as { close(): void } | undefined,
+			dockRoot,
+			sendButton: { enabled: true },
+			permissionSelectBox: {
+				setEnabled(enabled: boolean) { permissionSelect.disabled = !enabled; },
+				setAriaLabel() { },
+				select(index: number) { permissionSelect.selectedIndex = index; },
+			},
+			agentSelectBox: {
+				setEnabled() { },
+				setAriaLabel() { },
+				select() { },
+			},
+			modelSelectBox: {
+				setEnabled(enabled: boolean) { modelSelect.disabled = !enabled; },
+				setAriaLabel() { },
+				select(index: number) {
+					modelSelect.selectedIndex = index;
+					host.modelSelectedIndex = index;
+				},
+			},
+			agentContainer: document.createElement('div'),
+			moreButton: { element: moreButton },
+			tuneButton: { element: document.createElement('button') },
+			stubService: {
+				isEngineConnected: () => true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: true }),
+				setPermissionMode: async (request: { sessionId: string; mode: string }) => {
+					permissionCalls.push(request);
+					return { ok: true };
+				},
+				switchModel: async (request: { sessionId: string; modelId: string }) => {
+					modelCalls.push({ sessionId: request.sessionId, modelId: request.modelId });
+					return { resolvedModelId: request.modelId, provider: '', level: 0, cost: '', speed: '' };
+				},
+			},
+			contextViewService: {
+				showContextView(delegate: { render: (container: HTMLElement) => { dispose(): void } }) {
+					const container = document.createElement('div');
+					document.body.appendChild(container);
+					const rendered = delegate.render(container);
+					store.add({ dispose: () => container.remove() });
+					return {
+						close() {
+							rendered.dispose();
+							container.remove();
+						},
+					};
+				},
+			},
+			getBoundSessionId: () => 'sess-leftover',
+			composerPolicy: 'compose' as const,
+			dockTextarea: { value: '' },
+		};
+		const typedHost = host as unknown as IConversationLensComposerChromeHost;
+		assert.strictEqual(typedHost.stubService.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(isConversationPairingHold(typedHost.uaConnection), true);
+		return {
+			host: typedHost,
+			permissionCalls,
+			modelCalls,
+			permissionSelect,
+			modelSelect,
+			dispose: () => {
+				host.tuneContextView?.close();
+				host.moreContextView?.close();
+				store.dispose();
+			},
+		};
+	}
+
+	test('leftover-looks-live pairing-hold session selects stay disabled and do not write', async () => {
+		const fixture = leftoverLooksLiveSessionSelectsHost();
+		try {
+			assert.strictEqual(isSessionPermissionModeAvailable(fixture.host), false);
+			assert.strictEqual(isSessionSwitchModelAvailable(fixture.host), false);
+			updateComposerSessionSelectsEnabled(fixture.host);
+			assert.strictEqual(fixture.permissionSelect.disabled, true);
+			assert.strictEqual(fixture.permissionSelect.getAttribute('aria-disabled'), 'true');
+			assert.strictEqual(fixture.modelSelect.disabled, true);
+			assert.strictEqual(fixture.modelSelect.getAttribute('aria-disabled'), 'true');
+
+			await applySessionPermissionIndex(fixture.host, 'sess-leftover', 2);
+			await applySessionModelIndex(fixture.host, 'sess-leftover', 1);
+			assert.deepStrictEqual(fixture.permissionCalls, []);
+			assert.deepStrictEqual(fixture.modelCalls, []);
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.modelSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.modelSelectedIndex, 0);
+
+			fixture.permissionSelect.disabled = false;
+			fixture.permissionSelect.removeAttribute('disabled');
+			fixture.permissionSelect.setAttribute('aria-disabled', 'false');
+			fixture.modelSelect.disabled = false;
+			fixture.modelSelect.removeAttribute('disabled');
+			fixture.modelSelect.setAttribute('aria-disabled', 'false');
+			fixture.permissionSelect.selectedIndex = 2;
+			fixture.modelSelect.selectedIndex = 1;
+			await applySessionPermissionIndex(fixture.host, 'sess-leftover', 2);
+			await applySessionModelIndex(fixture.host, 'sess-leftover', 1);
+			assert.deepStrictEqual(fixture.permissionCalls, []);
+			assert.deepStrictEqual(fixture.modelCalls, []);
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.modelSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.modelSelectedIndex, 0);
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('leftover-looks-live pairing-hold More radios stay disabled and forced click does not write', async () => {
+		const fixture = leftoverLooksLiveSessionSelectsHost();
+		try {
+			toggleMoreContextView(fixture.host);
+			const radios = [...document.querySelectorAll('.conversation-lens-dock-more-permission [role="menuitemradio"]')] as HTMLButtonElement[];
+			assert.strictEqual(radios.length, 3);
+			for (const radio of radios) {
+				assert.strictEqual(radio.disabled, true);
+				assert.strictEqual(radio.getAttribute('aria-disabled'), 'true');
+			}
+			const permit = radios[2];
+			permit.disabled = false;
+			permit.removeAttribute('disabled');
+			permit.setAttribute('aria-disabled', 'false');
+			permit.click();
+			await Promise.resolve();
+			assert.deepStrictEqual(fixture.permissionCalls, []);
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('in-flight leftover-looks-live permission and model apply restore leftover index', async () => {
+		const store = new DisposableStore();
+		const permissionCalls: { sessionId: string; mode: string }[] = [];
+		const modelCalls: { sessionId: string; modelId: string }[] = [];
+		const dockRoot = document.createElement('div');
+		document.body.appendChild(dockRoot);
+		store.add({ dispose: () => dockRoot.remove() });
+		const permissionSelect = document.createElement('select');
+		permissionSelect.add(new Option('Ask', '0'));
+		permissionSelect.add(new Option('Agent', '1'));
+		permissionSelect.add(new Option('Permit', '2'));
+		const permissionContainer = document.createElement('div');
+		permissionContainer.className = 'conversation-lens-dock-permission';
+		permissionContainer.appendChild(permissionSelect);
+		dockRoot.appendChild(permissionContainer);
+		const modelSelect = document.createElement('select');
+		modelSelect.add(new Option('No model', ''));
+		modelSelect.add(new Option('gpt-test', 'gpt-test'));
+		const modelContainer = document.createElement('div');
+		modelContainer.className = 'conversation-lens-dock-model';
+		modelContainer.appendChild(modelSelect);
+		dockRoot.appendChild(modelContainer);
+		const sessionConfigBySessionId = new Map<string, { agentIndex: number; permissionIndex: number }>([
+			['sess-leftover', { agentIndex: 0, permissionIndex: 0 }],
+		]);
+		let pairingPending = false;
+		let releasePermission: ((value: { ok: true }) => void) | undefined;
+		let permissionStarted: (() => void) | undefined;
+		const permissionEntered = new Promise<void>(resolve => { permissionStarted = resolve; });
+		const permissionHold = new Promise<{ ok: true }>(resolve => { releasePermission = resolve; });
+		let releaseModel: ((value: { resolvedModelId: string; provider: string; level: number; cost: string; speed: string }) => void) | undefined;
+		let modelStarted: (() => void) | undefined;
+		const modelEntered = new Promise<void>(resolve => { modelStarted = resolve; });
+		const modelHold = new Promise<{ resolvedModelId: string; provider: string; level: number; cost: string; speed: string }>(resolve => {
+			releaseModel = resolve;
+		});
+		const host = {
+			catalogToolNames: ['bash'],
+			catalogModelIds: ['', 'gpt-test'],
+			modelSelectedIndex: 0,
+			sessionConfigBySessionId,
+			lastReadingWidth: 300,
+			tuneContextView: undefined as { close(): void } | undefined,
+			moreContextView: undefined as { close(): void } | undefined,
+			dockRoot,
+			sendButton: { enabled: true },
+			composerPolicy: 'compose' as const,
+			dockTextarea: { value: '' },
+			permissionSelectBox: {
+				setEnabled(enabled: boolean) { permissionSelect.disabled = !enabled; },
+				setAriaLabel() { },
+				select(index: number) { permissionSelect.selectedIndex = index; },
+			},
+			agentSelectBox: {
+				setEnabled() { },
+				setAriaLabel() { },
+				select() { },
+			},
+			modelSelectBox: {
+				setEnabled(enabled: boolean) { modelSelect.disabled = !enabled; },
+				setAriaLabel() { },
+				select(index: number) {
+					modelSelect.selectedIndex = index;
+					host.modelSelectedIndex = index;
+				},
+			},
+			agentContainer: document.createElement('div'),
+			moreButton: { element: document.createElement('button') },
+			tuneButton: { element: document.createElement('button') },
+			stubService: {
+				isEngineConnected: () => true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending }),
+				setPermissionMode: async (request: { sessionId: string; mode: string }) => {
+					permissionCalls.push(request);
+					permissionStarted?.();
+					return permissionHold;
+				},
+				switchModel: async (request: { sessionId: string; modelId: string }) => {
+					modelCalls.push({ sessionId: request.sessionId, modelId: request.modelId });
+					modelStarted?.();
+					return modelHold;
+				},
+			},
+			getBoundSessionId: () => 'sess-leftover',
+		};
+		const typedHost = host as unknown as IConversationLensComposerChromeHost;
+		try {
+			assert.strictEqual(typedHost.stubService.isEngineConnected(), true);
+			assert.strictEqual(isConversationPairingHold(typedHost.uaConnection), false);
+			assert.strictEqual(isSessionPermissionModeAvailable(typedHost), true);
+			assert.strictEqual(isSessionSwitchModelAvailable(typedHost), true);
+
+			const permissionApply = applySessionPermissionIndex(typedHost, 'sess-leftover', 2);
+			const modelApply = applySessionModelIndex(typedHost, 'sess-leftover', 1);
+			await permissionEntered;
+			await modelEntered;
+			assert.strictEqual(permissionCalls.length, 1);
+			assert.strictEqual(modelCalls.length, 1);
+			assert.strictEqual(permissionSelect.selectedIndex, 2);
+			assert.strictEqual(modelSelect.selectedIndex, 1);
+			assert.strictEqual(typedHost.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 2);
+			assert.strictEqual(typedHost.modelSelectedIndex, 1);
+
+			pairingPending = true;
+			assert.strictEqual(typedHost.stubService.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+			assert.strictEqual(isConversationPairingHold(typedHost.uaConnection), true);
+
+			releasePermission!({ ok: true });
+			releaseModel!({ resolvedModelId: 'gpt-test', provider: '', level: 0, cost: '', speed: '' });
+			await permissionApply;
+			await modelApply;
+
+			assert.strictEqual(typedHost.stubService.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+			assert.strictEqual(isConversationPairingHold(typedHost.uaConnection), true);
+			assert.strictEqual(permissionSelect.selectedIndex, 0);
+			assert.strictEqual(modelSelect.selectedIndex, 0);
+			assert.strictEqual(typedHost.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.strictEqual(typedHost.modelSelectedIndex, 0);
+		} finally {
+			store.dispose();
+		}
+	});
+
+	test('leftover-looks-live pairing-hold Tune overlay still paints leftover catalog', () => {
+		const fixture = leftoverLooksLiveSessionSelectsHost({ catalogToolNames: ['bash', 'read'] });
+		try {
+			assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
+			toggleTuneContextView(fixture.host);
+			const popup = document.querySelector('.conversation-lens-dock-tune-popup');
+			assert.ok(popup);
+			assert.ok(popup.textContent?.includes('bash'));
+			assert.ok(popup.textContent?.includes('read'));
+			assert.ok(!popup.textContent?.includes(conversationLensDockNoTools));
+			assert.ok(!popup.textContent?.includes(conversationLensDockNoEngineTools));
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('cancelToolCall pairing-hold leftover does not write and shows engine_disconnected', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host, posted } = pairingHoldLeftoverWriteHost(failures);
+		let cancelCalls = 0;
+		(host as unknown as { stubService: { cancelToolCall: () => boolean } }).stubService.cancelToolCall = () => {
+			cancelCalls++;
+			return true;
+		};
+		cancelToolCall(host, { id: 'tc-1', agentId: 'sub:a' });
+		assert.strictEqual(cancelCalls, 0);
+		assert.strictEqual(posted, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
 	});
 
 	test('submitDraft postBound reject shows failed and does not leave an unhandled rejection', async () => {

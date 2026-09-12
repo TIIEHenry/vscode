@@ -33,6 +33,7 @@ import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/v
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { CONVERSATION_REVEAL_ITEM_COMMAND_ID } from '../../conversation/browser/conversationRevealItem.contribution.js';
+import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { IAgentInspectService } from '../common/agentInspect.js';
 import {
@@ -278,7 +279,10 @@ export class NavigatorAgentsView extends ViewPane {
 		}));
 		this._register(this.rosterService.onDidChangeActiveSession(() => this.refreshFromLease()));
 		// Tree first-fetch fail/clear fires via connection snapshot (D21), not lease patches.
-		this._register(this.uaConnection.onDidChangeConnection(() => this.refreshFromLease()));
+		this._register(this.uaConnection.onDidChangeConnection(() => {
+			this.updateEngineConnectedContextKey();
+			this.refreshFromLease();
+		}));
 		this.updateSubviewContextKeys();
 		this.updateEngineConnectedContextKey();
 	}
@@ -315,14 +319,14 @@ export class NavigatorAgentsView extends ViewPane {
 
 	refreshAgentTree(): void {
 		const sessionId = this.rosterService.getActiveSessionId();
-		if (this.rosterService.isEngineConnected() && sessionId) {
+		if (!isConversationPairingHold(this.uaConnection) && this.rosterService.isEngineConnected() && sessionId) {
 			this.uaConnection.requestAgentTreeRefresh(sessionId);
 		}
 		this.refreshFromLease();
 	}
 
 	private updateEngineConnectedContextKey(): void {
-		this.engineConnectedContextKey.set(this.rosterService.isEngineConnected());
+		this.engineConnectedContextKey.set(!isConversationPairingHold(this.uaConnection) && this.rosterService.isEngineConnected());
 	}
 
 	protected override renderBody(container: HTMLElement): void {
@@ -452,7 +456,12 @@ export class NavigatorAgentsView extends ViewPane {
 		const treeChanged = liveTree !== this.lastLiveAgentTree;
 		this.lastLiveAgentTree = liveTree;
 
-		if (!engineReady) {
+		const pairingHold = isConversationPairingHold(this.uaConnection);
+		if (pairingHold && this.hasAgentsLeftoverRows()) {
+			this.showPairingHoldLeftover();
+			return;
+		}
+		if (pairingHold || !engineReady) {
 			this.showDisconnectedSnapshot();
 			return;
 		}
@@ -469,9 +478,15 @@ export class NavigatorAgentsView extends ViewPane {
 		const transportFailed = this.uaConnection.getConnectionSnapshot().transport === 'failed';
 
 		if (agentTreeCapability === 'UNSUPPORTED') {
+			const unsupportedCopy = localize('navigatorAgentsHierarchy.unsupported', "Current engine does not provide an agent tree");
 			this.inspectService.setLiveAgentIds('agents', undefined);
-			this.setHierarchyState([], localize('navigatorAgentsHierarchy.unsupported', "Current engine does not provide an agent tree"));
-			this.setActivityFromSnapshot(snapshot, lease?.attribution);
+			this.setHierarchyAfterPending(unsupportedCopy);
+			const keepActivityLeftover = this.hadActivitySnapshot || this.activityEntries.length > 0;
+			if (keepActivityLeftover) {
+				this.setActivityNote(unsupportedCopy);
+			} else {
+				this.setActivityState([], unsupportedCopy);
+			}
 			return;
 		}
 
@@ -483,7 +498,14 @@ export class NavigatorAgentsView extends ViewPane {
 			} else {
 				this.setHierarchyAfterPending(pendingCopy);
 			}
-			this.setActivityFromSnapshot(snapshot, lease?.attribution, undefined, treeFetchFailed);
+			const keepActivityLeftover = !treeFetchFailed
+				&& agentTreeCapability === 'UNKNOWN'
+				&& (this.hadActivitySnapshot || this.activityEntries.length > 0);
+			if (keepActivityLeftover) {
+				this.setActivityNote(pendingCopy);
+			} else {
+				this.setActivityFromSnapshot(snapshot, lease?.attribution, undefined, treeFetchFailed);
+			}
 			return;
 		}
 
@@ -505,8 +527,24 @@ export class NavigatorAgentsView extends ViewPane {
 		}
 	}
 
+	private hasAgentsLeftoverRows(): boolean {
+		return this.hadHierarchySnapshot || this.hadActivitySnapshot
+			|| this.hierarchyEntries.length > 0
+			|| this.activityEntries.length > 0;
+	}
+
+	private showPairingHoldLeftover(): void {
+		this.inspectService.setLiveAgentIds('agents', undefined);
+		if (this.hadHierarchySnapshot || this.hierarchyEntries.length > 0) {
+			this.setHierarchyNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
+		}
+		if (this.hadActivitySnapshot || this.activityEntries.length > 0) {
+			this.setActivityNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
+		}
+	}
+
 	private showDisconnectedSnapshot(): void {
-		if (!this.hadHierarchySnapshot && !this.hadActivitySnapshot) {
+		if (!this.hadHierarchySnapshot && !this.hadActivitySnapshot && this.activityEntries.length === 0) {
 			this.inspectService.setLiveAgentIds('agents', undefined);
 			this.setHierarchyState([], localize('navigatorAgentsHierarchy.empty', "No agents — no engine."));
 			this.setActivityState([], localize('navigatorAgentsActivity.empty', "No tool activity — no engine."));
@@ -518,7 +556,7 @@ export class NavigatorAgentsView extends ViewPane {
 			this.inspectService.setLiveAgentIds('agents', undefined);
 			this.setHierarchyState([], localize('navigatorAgentsHierarchy.empty', "No agents — no engine."));
 		}
-		if (this.hadActivitySnapshot) {
+		if (this.hadActivitySnapshot || this.activityEntries.length > 0) {
 			this.setActivityNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
 		} else {
 			this.setActivityState([], localize('navigatorAgentsActivity.empty', "No tool activity — no engine."));

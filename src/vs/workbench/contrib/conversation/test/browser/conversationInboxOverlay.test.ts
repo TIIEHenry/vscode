@@ -23,12 +23,16 @@ import {
 	conversationLensDockStop,
 	conversationLensDockStopGenerating,
 	conversationLensDockStopNotGenerating,
+	conversationLensInboxQueueClear,
 	conversationLensInboxQueueEnqueue,
 	conversationLensInboxQueueEnqueueUnavailable,
+	conversationLensInboxQueuePause,
+	conversationLensInboxQueueResume,
 	conversationLensInboxQueueRetry,
 	conversationLensInboxQueueRetryUnavailable,
 	type ConversationComposerPostFailureReason,
 } from '../../browser/conversationLensDockStrings.js';
+import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { ConversationMessageQueueItem } from '../../browser/conversationMessageQueueModel.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
@@ -139,6 +143,65 @@ class RecordingStubRoster extends ConversationStubService {
 
 	override retryMessageQueueItem(sessionId: string, itemId: string, options?: { upload?: boolean }): boolean {
 		this.retryCalls.push({ sessionId, itemId, upload: options?.upload });
+		return super.retryMessageQueueItem(sessionId, itemId, options);
+	}
+}
+
+class LeftoverPairingWritesRoster extends ConversationStubService {
+	readonly setGoalCalls: { sessionId: string; goal: string }[] = [];
+	readonly cancelCalls: { sessionId: string; agentId?: string }[] = [];
+	readonly pauseCalls: string[] = [];
+	readonly resumeCalls: string[] = [];
+	readonly clearCalls: string[] = [];
+	readonly retryCalls: { sessionId: string; itemId: string }[] = [];
+	connected = true;
+	history = false;
+	private goal: string | undefined;
+
+	override isEngineConnected(): boolean {
+		return this.connected;
+	}
+
+	override hasEngineConnectionHistory(): boolean {
+		return this.history;
+	}
+
+	override getTurns(): readonly ConversationStubTurn[] {
+		return [{ id: 'a1', kind: 'assistant', text: 'live', streaming: true, agentId: 'sub:a' }];
+	}
+
+	override setSessionGoal(sessionId: string, goal: string): boolean {
+		this.setGoalCalls.push({ sessionId, goal });
+		this.goal = goal;
+		return true;
+	}
+
+	override getSessionGoal(_sessionId: string): string | undefined {
+		return this.goal;
+	}
+
+	override cancelGeneration(sessionId: string, agentId?: string): boolean {
+		this.cancelCalls.push({ sessionId, agentId });
+		return true;
+	}
+
+	override pauseMessageQueue(sessionId: string): void {
+		this.pauseCalls.push(sessionId);
+		super.pauseMessageQueue(sessionId);
+	}
+
+	override resumeMessageQueue(sessionId: string): void {
+		this.resumeCalls.push(sessionId);
+		super.resumeMessageQueue(sessionId);
+	}
+
+	override clearMessageQueue(sessionId: string): void {
+		this.clearCalls.push(sessionId);
+		super.clearMessageQueue(sessionId);
+	}
+
+	override retryMessageQueueItem(sessionId: string, itemId: string, options?: { upload?: boolean }): boolean {
+		this.retryCalls.push({ sessionId, itemId });
 		return super.retryMessageQueueItem(sessionId, itemId, options);
 	}
 }
@@ -500,6 +563,56 @@ suite('ConversationInboxOverlay list panel host', () => {
 		assert.strictEqual(ownPanel.querySelector('.queue-item[data-item-id="q1"]'), null);
 		assert.ok(ownPanel.querySelector('.queue-item[data-item-id="q2"]'));
 	});
+
+	test('pairing-hold leftover queue row does not start edit', () => {
+		const roster = store.add(new ConversationStubService());
+		const sessionId = roster.getActiveSessionId();
+		roster.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [{
+				id: 'q-hold',
+				content: 'Cached queued',
+				status: 'PENDING',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 0,
+				lastError: undefined,
+				locked: false,
+				pinned: false,
+			}],
+		});
+		const holds: string[] = [];
+		const base = createConversationConnectionTestStub();
+		const connection = createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...base.getConnectionSnapshot(),
+				pairingPending: true,
+			}),
+		});
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		stubInboxServices(instantiationService, roster, connection);
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		const overlay = store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, {
+			onQueueItemHold(itemId) { holds.push(itemId); },
+			onScrollToPendingConfirmation() { },
+			showPostFailure() { },
+		}));
+		const queueChip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		queueChip.click();
+		const panel = [...document.querySelectorAll('.conversation-lens-inbox-list-panel')]
+			.filter(host => host.querySelector('.conversation-lens-message-queue-list'))
+			.at(-1) as HTMLElement | undefined;
+		assert.ok(panel);
+		const row = panel.querySelector('.queue-item[data-item-id="q-hold"]') as HTMLElement | null;
+		assert.ok(row);
+		row.click();
+		assert.deepStrictEqual(holds, []);
+		assert.strictEqual(roster.getMessageQueueState(sessionId).items[0]?.hold, undefined);
+	});
 });
 
 suite('ConversationInboxOverlay Enqueue', () => {
@@ -512,9 +625,10 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		failures: ConversationComposerPostFailureReason[] = [],
 		beforeResolve?: () => void,
 		inputError?: unknown,
+		connection?: IUniverseAgentConnection,
 	): ConversationInboxOverlay {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		stubInboxServices(instantiationService, roster);
+		stubInboxServices(instantiationService, roster, connection);
 		instantiationService.stub(IQuickInputService, {
 			input: async () => {
 				beforeResolve?.();
@@ -618,7 +732,7 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		assert.deepStrictEqual(failures, ['failed']);
 	});
 
-	test('Enqueue false after disconnect during prompt shows engine_disconnected', async () => {
+	test('Enqueue after disconnect during prompt shows engine_disconnected without enqueue', async () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const roster = store.add(new EnqueueRoster());
 		roster.enqueueResult = false;
@@ -629,10 +743,74 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		const panel = openQueuePanel(overlay);
 		getEnqueueButton(panel).click();
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
-		assert.deepStrictEqual(roster.enqueueCalls, [{ sessionId: roster.getActiveSessionId(), text: 'Nope' }]);
+		assert.deepStrictEqual(roster.enqueueCalls, []);
 		assert.deepStrictEqual(roster.getMessageQueueState(roster.getActiveSessionId()).items, []);
 		assert.ok(panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxQueueNotListed));
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('live Enqueue disables when pairingPending', () => {
+		const roster = store.add(new EnqueueRoster());
+		let pairingPending = false;
+		const base = createConversationConnectionTestStub();
+		const connection = createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...base.getConnectionSnapshot(),
+				pairingPending,
+			}),
+		});
+		const overlay = createOverlay(roster, undefined, [], undefined, undefined, connection);
+		const panel = openQueuePanel(overlay);
+		assert.strictEqual(getEnqueueButton(panel).disabled, false);
+		assert.strictEqual(getEnqueueButton(panel).getAttribute('aria-disabled'), 'false');
+
+		pairingPending = true;
+		roster.connected = false;
+		roster.history = true;
+		overlay.render();
+		assert.strictEqual(getEnqueueButton(panel).disabled, true);
+		assert.strictEqual(getEnqueueButton(panel).getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(getEnqueueButton(panel).title, conversationLensInboxQueueEnqueueUnavailable);
+		getEnqueueButton(panel).click();
+		assert.deepStrictEqual(roster.enqueueCalls, []);
+	});
+
+	test('leftover-looks-live Enqueue post-await pairing-hold does not enqueue', async () => {
+		const roster = store.add(new EnqueueRoster());
+		const sessionId = roster.getActiveSessionId();
+		let pairingPending = false;
+		const base = createConversationConnectionTestStub();
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...base.getConnectionSnapshot(),
+				pairingPending,
+			}),
+		});
+		assert.strictEqual(roster.isEngineConnected(), true);
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		const overlay = createOverlay(roster, 'later leftover', [], () => {
+			pairingPending = true;
+			assert.strictEqual(roster.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+			assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+			assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+			assert.strictEqual(isConversationPairingHold(connection), true);
+		}, undefined, connection);
+		const panel = openQueuePanel(overlay);
+		assert.strictEqual(getEnqueueButton(panel).disabled, false);
+		getEnqueueButton(panel).click();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(roster.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.deepStrictEqual(roster.enqueueCalls, []);
+		assert.deepStrictEqual(roster.getMessageQueueState(sessionId).items, []);
 	});
 
 	test('disconnected Enqueue with history is enabled and shows engine_disconnected without enqueue', async () => {
@@ -832,6 +1010,10 @@ suite('ConversationInboxOverlay Retry', () => {
 
 	test('retryMessageQueueItem false shows failed and does not dress the row as retried', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
+		// Paint fixture rows while disconnected (connected Inbox hides the stub
+		// queue). Flip the flag without re-render so the click handler is allowed
+		// to call retry; overlay.displayQueueState still treats connected as
+		// unlisted, so do not read getMessageQueueState after the flip.
 		const roster = store.add(new class extends RetryRoster {
 			override isEngineConnected(): boolean {
 				return this.connected;
@@ -849,6 +1031,7 @@ suite('ConversationInboxOverlay Retry', () => {
 		const panel = openQueuePanel(overlay);
 		const button = getRetryButton(panel, 'q-fail');
 		assert.ok(button);
+		assert.strictEqual(roster.getMessageQueueState(sessionId).items[0]?.status, 'FAILED');
 		roster.connected = true;
 		button.disabled = false;
 		button.removeAttribute('disabled');
@@ -856,7 +1039,6 @@ suite('ConversationInboxOverlay Retry', () => {
 		button.click();
 		assert.deepStrictEqual(roster.retryCalls, [{ sessionId, itemId: 'q-fail', upload: false }]);
 		assert.deepStrictEqual(failures, ['failed']);
-		assert.strictEqual(roster.getMessageQueueState(sessionId).items[0]?.status, 'FAILED');
 		assert.ok(getRetryButton(panel, 'q-fail'));
 		assert.ok(panel.querySelector('.queue-item[data-item-id="q-fail"]')?.classList.contains('queue-failed'));
 		assert.ok(panel.querySelector('.queue-item[data-item-id="q-fail"]')?.textContent?.includes('send rejected'));
@@ -888,5 +1070,464 @@ suite('ConversationInboxOverlay Retry', () => {
 		assert.ok(panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxQueueNotListed));
 		assert.deepStrictEqual(roster.retryCalls, []);
 		assert.deepStrictEqual(roster.holdCalls, []);
+	});
+});
+
+suite('ConversationInboxOverlay pending click', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	function createOverlay(
+		roster: ConversationStubService,
+		scrolls: string[] = [],
+		connection?: IUniverseAgentConnection,
+	): ConversationInboxOverlay {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		stubInboxServices(instantiationService, roster, connection);
+		const parent = document.createElement('div');
+		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, {
+			onQueueItemHold() { },
+			onScrollToPendingConfirmation() { scrolls.push('scroll'); },
+			showPostFailure() { },
+		}));
+	}
+
+	function getPendingButton(overlay: ConversationInboxOverlay): HTMLButtonElement {
+		const button = overlay.element.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement | null;
+		assert.ok(button);
+		return button;
+	}
+
+	test('leftover pending visible while pairingPending does not scroll', () => {
+		const roster = store.add(new ConversationStubService());
+		roster.appendConfirmationTurn(roster.getActiveSessionId(), 'Allow write?');
+		const base = createConversationConnectionTestStub();
+		const connection = createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...base.getConnectionSnapshot(),
+				pairingPending: true,
+			}),
+		});
+		const scrolls: string[] = [];
+		const overlay = createOverlay(roster, scrolls, connection);
+		const button = getPendingButton(overlay);
+		assert.strictEqual(button.hidden, false);
+		assert.strictEqual(button.disabled, true);
+		assert.strictEqual(button.getAttribute('aria-disabled'), 'true');
+		assert.ok(roster.countPendingConfirmations(roster.getActiveSessionId()) > 0);
+		button.click();
+		assert.deepStrictEqual(scrolls, []);
+	});
+
+	test('connected leftover pending click still scrolls', () => {
+		const roster = store.add(new ConversationStubService());
+		roster.appendConfirmationTurn(roster.getActiveSessionId(), 'Allow write?');
+		const connection = createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...createConversationConnectionTestStub().getConnectionSnapshot(),
+				pairingPending: false,
+			}),
+		});
+		const scrolls: string[] = [];
+		const overlay = createOverlay(roster, scrolls, connection);
+		const button = getPendingButton(overlay);
+		assert.strictEqual(button.hidden, false);
+		assert.strictEqual(button.disabled, false);
+		assert.strictEqual(button.getAttribute('aria-disabled'), 'false');
+		assert.ok(roster.countPendingConfirmations(roster.getActiveSessionId()) > 0);
+		button.click();
+		assert.deepStrictEqual(scrolls, ['scroll']);
+	});
+});
+
+suite('ConversationInboxOverlay leftover pairing remaining writes', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	function leftoverQueueItem(id: string, status: 'PENDING' | 'FAILED', lastError?: string): ConversationMessageQueueItem {
+		return {
+			id,
+			content: `body-${id}`,
+			status,
+			hold: undefined,
+			uploadProgress: undefined,
+			retryCount: status === 'FAILED' ? 1 : 0,
+			lastError,
+			locked: false,
+			pinned: false,
+		};
+	}
+
+	function createOverlay(
+		roster: LeftoverPairingWritesRoster,
+		connection: IUniverseAgentConnection,
+		inputResult = 'Should not apply',
+	): ConversationInboxOverlay {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		stubInboxServices(instantiationService, roster, connection);
+		instantiationService.stub(IQuickInputService, {
+			input: async () => inputResult,
+		} as IQuickInputService);
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, {
+			onQueueItemHold() { },
+			onScrollToPendingConfirmation() { },
+			showPostFailure() { },
+		}));
+	}
+
+	function getGoalButton(overlay: ConversationInboxOverlay): HTMLElement {
+		const button = overlay.element.querySelector('.conversation-lens-inbox-goal-button') as HTMLElement | null;
+		assert.ok(button);
+		return button;
+	}
+
+	function getStopButton(overlay: ConversationInboxOverlay): HTMLElement {
+		const button = overlay.element.querySelector('.conversation-lens-inbox-stop-button') as HTMLElement | null;
+		assert.ok(button);
+		return button;
+	}
+
+	function getOpenQueuePanel(): HTMLElement {
+		const panel = [...document.querySelectorAll('.conversation-lens-inbox-list-panel')]
+			.filter(host => host.querySelector('.conversation-lens-message-queue-list'))
+			.at(-1) as HTMLElement | undefined;
+		assert.ok(panel);
+		return panel;
+	}
+
+	function openQueuePanel(overlay: ConversationInboxOverlay): HTMLElement {
+		if (!document.querySelector('.conversation-lens-inbox-list-panel .conversation-lens-message-queue-list')) {
+			const queueChip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+			queueChip.click();
+		}
+		return getOpenQueuePanel();
+	}
+
+	function getQueueAction(panel: HTMLElement, label: string): HTMLButtonElement {
+		const button = [...panel.querySelectorAll('button.queue-bar-action')]
+			.find(entry => entry.textContent === label) as HTMLButtonElement | undefined;
+		assert.ok(button, `missing queue action ${label}`);
+		return button;
+	}
+
+	function getRetryButton(panel: HTMLElement, itemId: string): HTMLButtonElement {
+		const button = panel.querySelector(`.queue-item[data-item-id="${itemId}"] .conversation-lens-inbox-queue-retry`) as HTMLButtonElement | null;
+		assert.ok(button);
+		return button;
+	}
+
+	function assertNoWriteCalls(roster: LeftoverPairingWritesRoster): void {
+		assert.deepStrictEqual(roster.setGoalCalls, []);
+		assert.deepStrictEqual(roster.cancelCalls, []);
+		assert.deepStrictEqual(roster.pauseCalls, []);
+		assert.deepStrictEqual(roster.resumeCalls, []);
+		assert.deepStrictEqual(roster.clearCalls, []);
+		assert.deepStrictEqual(roster.retryCalls, []);
+	}
+
+	function assertLeftoverQueueUnchanged(roster: LeftoverPairingWritesRoster, sessionId: string, paused: boolean, itemCount: number): void {
+		assertNoWriteCalls(roster);
+		assert.strictEqual(roster.getMessageQueueState(sessionId).isPaused, paused);
+		assert.strictEqual(roster.getMessageQueueState(sessionId).items.length, itemCount);
+	}
+
+	test('leftover pairing-hold remaining writes stay gated', async () => {
+		const roster = store.add(new LeftoverPairingWritesRoster());
+		const sessionId = roster.getActiveSessionId();
+		let pairingPending = false;
+		const base = createConversationConnectionTestStub();
+		const connection = createConversationConnectionTestStub({
+			setSessionGoal: async () => ({ ok: true }),
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...base.getConnectionSnapshot(),
+				pairingPending,
+			}),
+		});
+		const overlay = createOverlay(roster, connection);
+
+		assert.strictEqual(roster.isEngineConnected(), true);
+		assert.strictEqual(getGoalButton(overlay).getAttribute('aria-disabled'), 'false');
+		assert.strictEqual(getStopButton(overlay).getAttribute('aria-disabled'), 'false');
+
+		pairingPending = true;
+		getStopButton(overlay).click();
+		getGoalButton(overlay).click();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(roster.cancelCalls, []);
+		assert.deepStrictEqual(roster.setGoalCalls, []);
+
+		overlay.render();
+		assert.strictEqual(getGoalButton(overlay).getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(getStopButton(overlay).getAttribute('aria-disabled'), 'true');
+		getStopButton(overlay).click();
+		getGoalButton(overlay).click();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(roster.cancelCalls, []);
+		assert.deepStrictEqual(roster.setGoalCalls, []);
+
+		roster.connected = false;
+		pairingPending = false;
+		roster.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [
+				leftoverQueueItem('q-pending', 'PENDING'),
+				leftoverQueueItem('q-fail', 'FAILED', 'boom'),
+			],
+		});
+		overlay.render();
+		const panel = openQueuePanel(overlay);
+		const pause = getQueueAction(panel, conversationLensInboxQueuePause);
+		const clear = getQueueAction(panel, conversationLensInboxQueueClear);
+		const retry = getRetryButton(panel, 'q-fail');
+		assert.strictEqual(pause.disabled, false);
+		assert.strictEqual(clear.disabled, false);
+
+		pairingPending = true;
+		pause.click();
+		clear.click();
+		assertLeftoverQueueUnchanged(roster, sessionId, false, 2);
+		retry.disabled = false;
+		retry.removeAttribute('disabled');
+		retry.setAttribute('aria-disabled', 'false');
+		roster.connected = true;
+		retry.click();
+		assertNoWriteCalls(roster);
+
+		overlay.render();
+		assert.ok(!getOpenQueuePanel().querySelector('.queue-item'), 'connected leftover queue stays unlisted');
+		roster.connected = false;
+		overlay.render();
+		const leftoverPanel = getOpenQueuePanel();
+		assert.strictEqual(getQueueAction(leftoverPanel, conversationLensInboxQueuePause).disabled, true);
+		assert.strictEqual(getQueueAction(leftoverPanel, conversationLensInboxQueuePause).getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(getQueueAction(leftoverPanel, conversationLensInboxQueueClear).disabled, true);
+		assert.strictEqual(getQueueAction(leftoverPanel, conversationLensInboxQueueClear).getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(getRetryButton(leftoverPanel, 'q-fail').disabled, true);
+		getQueueAction(leftoverPanel, conversationLensInboxQueuePause).click();
+		getQueueAction(leftoverPanel, conversationLensInboxQueueClear).click();
+		getRetryButton(leftoverPanel, 'q-fail').click();
+		assertLeftoverQueueUnchanged(roster, sessionId, false, 2);
+
+		roster.setMessageQueueFixture(sessionId, {
+			isPaused: true,
+			isProcessing: false,
+			items: [
+				leftoverQueueItem('q-pending', 'PENDING'),
+				leftoverQueueItem('q-fail', 'FAILED', 'boom'),
+			],
+		});
+		overlay.render();
+		const resumePanel = openQueuePanel(overlay);
+		const resume = getQueueAction(resumePanel, conversationLensInboxQueueResume);
+		assert.strictEqual(resume.disabled, true);
+		assert.strictEqual(resume.getAttribute('aria-disabled'), 'true');
+		resume.click();
+		assertLeftoverQueueUnchanged(roster, sessionId, true, 2);
+
+		pairingPending = false;
+		roster.connected = true;
+		overlay.render();
+		assert.strictEqual(getGoalButton(overlay).getAttribute('aria-disabled'), 'false');
+		assert.strictEqual(getStopButton(overlay).getAttribute('aria-disabled'), 'false');
+		assertNoWriteCalls(roster);
+	});
+});
+
+suite('ConversationInboxOverlay leftover-looks-live KEEP-chrome', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	class LooksLiveChromeRoster extends ConversationStubService {
+		history = false;
+
+		override isEngineConnected(): boolean {
+			return true;
+		}
+
+		override hasEngineConnectionHistory(): boolean {
+			return this.history;
+		}
+
+		override getTurns(): readonly ConversationStubTurn[] {
+			return [{ id: 'a1', kind: 'assistant', text: 'leftover stream', streaming: true, agentId: 'sub:a' }];
+		}
+
+		protected override hidesMessageQueueFixture(): boolean {
+			return this.history;
+		}
+	}
+
+	class DisconnectHistoryRoster extends ConversationStubService {
+		override isEngineConnected(): boolean {
+			return false;
+		}
+
+		override hasEngineConnectionHistory(): boolean {
+			return true;
+		}
+
+		override getTurns(): readonly ConversationStubTurn[] {
+			return [{ id: 'a1', kind: 'assistant', text: 'leftover stream', streaming: true, agentId: 'sub:a' }];
+		}
+	}
+
+	function looksLiveConnection(): IUniverseAgentConnection {
+		const base = createConversationConnectionTestStub();
+		return createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...base.getConnectionSnapshot(),
+				pairingPending: true,
+			}),
+		});
+	}
+
+	function createOverlay(
+		roster: ConversationStubService,
+		connection: IUniverseAgentConnection,
+	): ConversationInboxOverlay {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		stubInboxServices(instantiationService, roster, connection);
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, {
+			onQueueItemHold() { },
+			onScrollToPendingConfirmation() { },
+			showPostFailure() { },
+		}));
+	}
+
+	function openQueuePanel(overlay: ConversationInboxOverlay): HTMLElement {
+		const queueChip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		queueChip.click();
+		const panel = [...document.querySelectorAll('.conversation-lens-inbox-list-panel')]
+			.filter(host => host.querySelector('.conversation-lens-message-queue-list'))
+			.at(-1) as HTMLElement | undefined;
+		assert.ok(panel);
+		return panel;
+	}
+
+	function assertLooksLiveFixture(roster: ConversationStubService, connection: IUniverseAgentConnection): void {
+		assert.strictEqual(roster.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+	}
+
+	test('leftover-looks-live queue uses leftover chrome, not live not-listed', () => {
+		const roster = store.add(new LooksLiveChromeRoster());
+		const sessionId = roster.getActiveSessionId();
+		roster.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [{
+				id: 'q-leftover',
+				content: 'Cached leftover',
+				status: 'PENDING',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 0,
+				lastError: undefined,
+				locked: false,
+				pinned: false,
+			}],
+		});
+		const connection = looksLiveConnection();
+		assertLooksLiveFixture(roster, connection);
+
+		const overlay = createOverlay(roster, connection);
+		assertLooksLiveFixture(roster, connection);
+		const chip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		assert.ok(chip.textContent?.includes('queued'), chip.textContent);
+		assert.ok(!chip.textContent?.includes(conversationLensDockInboxQueueNotListed), chip.textContent);
+		assert.ok(!chip.textContent?.includes(conversationLensDockInboxNoQueue), chip.textContent);
+
+		const panel = openQueuePanel(overlay);
+		assert.ok(panel.querySelector('.queue-item[data-item-id="q-leftover"]'));
+		assert.ok(panel.textContent?.includes('Cached leftover'));
+		assert.ok(!panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxQueueNotListed));
+		assertLooksLiveFixture(roster, connection);
+	});
+
+	test('leftover-looks-live empty queue uses leftover copy, not live not-listed', () => {
+		const roster = store.add(new LooksLiveChromeRoster());
+		const connection = looksLiveConnection();
+		assertLooksLiveFixture(roster, connection);
+
+		const overlay = createOverlay(roster, connection);
+		const chip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		assert.ok(chip.textContent?.includes(conversationLensDockInboxNoQueue), chip.textContent);
+		assert.ok(!chip.textContent?.includes(conversationLensDockInboxQueueNotListed), chip.textContent);
+
+		const panel = openQueuePanel(overlay);
+		assert.ok(panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxNoQueue));
+		assert.ok(!panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxQueueNotListed));
+		assertLooksLiveFixture(roster, connection);
+	});
+
+	test('leftover-looks-live Stop does not paint generating', () => {
+		const roster = store.add(new LooksLiveChromeRoster());
+		const connection = looksLiveConnection();
+		assertLooksLiveFixture(roster, connection);
+		assert.ok(roster.getTurns().some(turn => turn.streaming));
+
+		const overlay = createOverlay(roster, connection);
+		const stop = overlay.element.querySelector('.conversation-lens-inbox-stop-button') as HTMLElement | null;
+		assert.ok(stop);
+		assert.strictEqual(stop.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(stop.getAttribute('aria-label'), `${conversationLensDockStop}, ${conversationLensDockStopNotGenerating}`);
+		stop.click();
+		assertLooksLiveFixture(roster, connection);
+	});
+
+	test('true disconnect+history queue stays not-listed and not generating', () => {
+		const roster = store.add(new DisconnectHistoryRoster());
+		const overlay = createOverlay(roster, createConversationConnectionTestStub());
+		assert.strictEqual(roster.isEngineConnected(), false);
+		assert.strictEqual(roster.hasEngineConnectionHistory(), true);
+		assert.strictEqual(isConversationPairingHold(createConversationConnectionTestStub()), false);
+
+		const chip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		assert.ok(chip.textContent?.includes(conversationLensDockInboxQueueNotListed), chip.textContent);
+		assert.ok(!chip.textContent?.includes(conversationLensDockInboxNoQueue), chip.textContent);
+
+		const stop = overlay.element.querySelector('.conversation-lens-inbox-stop-button') as HTMLElement | null;
+		assert.ok(stop);
+		assert.strictEqual(stop.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(stop.getAttribute('aria-label'), `${conversationLensDockStop}, ${conversationLensDockStopNotGenerating}`);
+	});
+
+	test('true connected without pairing still uses live not-listed', () => {
+		const roster = store.add(new LooksLiveChromeRoster());
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...createConversationConnectionTestStub().getConnectionSnapshot(),
+				pairingPending: false,
+			}),
+		});
+		assert.strictEqual(roster.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		const overlay = createOverlay(roster, connection);
+		const chip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		assert.ok(chip.textContent?.includes(conversationLensDockInboxQueueNotListed), chip.textContent);
+		assert.ok(!chip.textContent?.includes(conversationLensDockInboxNoQueue), chip.textContent);
+
+		const stop = overlay.element.querySelector('.conversation-lens-inbox-stop-button') as HTMLElement | null;
+		assert.ok(stop);
+		assert.strictEqual(stop.getAttribute('aria-disabled'), 'false');
+		assert.strictEqual(stop.getAttribute('aria-label'), `${conversationLensDockStop}, ${conversationLensDockStopGenerating}`);
 	});
 });

@@ -16,6 +16,7 @@ import {
 	canSendSourcesGitApplyHunks,
 	canSendSourcesGitCommit,
 	canSendSourcesGitStagePaths,
+	isSourcesGitWriteLive,
 	canShowSourcesReviewAccept,
 	hasSourcesGitApplyHunksPayload,
 	hasSourcesGitSessionId,
@@ -60,6 +61,18 @@ suite('Sources - Changes git write', () => {
 		assert.strictEqual(canSendSourcesGitApplyHunks(false, true), false);
 		assert.strictEqual(canSendSourcesGitApplyHunks(true, false), false);
 		assert.strictEqual(canSendSourcesGitApplyHunks(true, true), true);
+	});
+
+	test('pairing-hold leftover-looks-live refuses Stage / Commit / Accept', () => {
+		assert.strictEqual(isSourcesGitWriteLive(true, false), true);
+		assert.strictEqual(isSourcesGitWriteLive(true, true), false);
+		assert.strictEqual(isSourcesGitWriteLive(false, true), false);
+		assert.strictEqual(canSendSourcesGitStagePaths(true, true, 'sess-1', true), false);
+		assert.strictEqual(canSendSourcesGitCommit(true, true, 'sess-1', true), false);
+		assert.strictEqual(canSendSourcesGitApplyHunks(true, true, true), false);
+		assert.strictEqual(canSendSourcesGitStagePaths(true, true, 'sess-1', false), true);
+		assert.strictEqual(canSendSourcesGitCommit(true, true, 'sess-1', false), true);
+		assert.strictEqual(canSendSourcesGitApplyHunks(true, true, false), true);
 	});
 
 	test('Stage request passes sessionId and empty commands / argv as-is', () => {
@@ -181,7 +194,7 @@ suite('Sources - Changes git write', () => {
 		});
 		assert.strictEqual(hookWithPayload.showAccept, true);
 
-		const localScmStage = resolveSourcesDiffWriteActions({
+		const localScmStageInput = {
 			groupId: 'workingTree',
 			hasScmResource: true,
 			canWriteStage: false,
@@ -190,9 +203,16 @@ suite('Sources - Changes git write', () => {
 			hasGitStageCommand: true,
 			hasGitUnstageCommand: false,
 			hasGitCleanCommand: false,
-		});
+		};
+		const localScmStage = resolveSourcesDiffWriteActions(localScmStageInput);
 		assert.strictEqual(localScmStage.showStage, true);
 		assert.strictEqual(localScmStage.showAccept, false);
+
+		const pairingHoldLocalScmStage = resolveSourcesDiffWriteActions({
+			...localScmStageInput,
+			pairingHold: true,
+		});
+		assert.strictEqual(pairingHoldLocalScmStage.showStage, false);
 
 		const noScmNoPayload = resolveSourcesDiffWriteActions({
 			groupId: 'workingTree',
@@ -275,6 +295,28 @@ suite('Sources - Changes git write', () => {
 			hasGitUnstageCommand: false,
 		}), 'hidden');
 		assert.ok(sourcesGitUnstageUnavailableMessage().includes('Unstage is not available'));
+	});
+
+	test('tryWrite leftover-looks-live pairing-hold stays 0 unary', async () => {
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const commitCalls: UniverseAgentWriteGitCommitRequest[] = [];
+		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
+
+		assert.strictEqual(await tryWriteSourcesGitStagePaths(true, async request => {
+			stageCalls.push(request);
+			return failedWrite;
+		}, 'sess-1', ['src/a.ts'], true), undefined);
+		assert.strictEqual(await tryWriteSourcesGitCommit(true, async request => {
+			commitCalls.push(request);
+			return failedWrite;
+		}, 'sess-1', 'msg', true), undefined);
+		assert.strictEqual(await tryWriteSourcesGitApplyHunks(true, async request => {
+			applyCalls.push(request);
+			return failedWrite;
+		}, 'sess-1', ['a'], ['p'], true), undefined);
+		assert.deepStrictEqual(stageCalls, []);
+		assert.deepStrictEqual(commitCalls, []);
+		assert.deepStrictEqual(applyCalls, []);
 	});
 
 	test('tryWrite Stage / Commit / Accept skip when disconnected or hook missing', async () => {

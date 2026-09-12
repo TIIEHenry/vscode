@@ -27,6 +27,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { IModelService } from '../../../../editor/common/services/model.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
+import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
@@ -40,9 +41,11 @@ import {
 import {
 	hasSourcesGitReadEntries,
 	shouldKeepSourcesGitReadNoHookLeftover,
+	shouldKeepSourcesGitReadPairingHoldLeftover,
 	sourcesGitDiffOpenFailureMessage,
 	sourcesGitLocalOnlyMessage,
 	sourcesGitReadFailureMessage,
+	sourcesGitReadPairingHoldMessage,
 	sourcesGitReadUnavailableNoHookMessage,
 	tryLoadSourcesGitChangeEntries,
 	tryReadSourcesGitFileDiff,
@@ -93,6 +96,7 @@ interface ISourcesChangeTemplateData {
 interface ISourcesChangesRendererDelegate {
 	isGitCommandAvailable(commandId: string): boolean;
 	canWriteStage(): boolean;
+	isSourcesGitWritePairingHold(): boolean;
 	onRowAction(entry: ISourcesChangeEntry, action: SourcesChangeRowAction): void;
 }
 
@@ -141,12 +145,16 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 		});
 
 		if (rowAction === 'stage') {
+			const pairingHold = this.delegate.isSourcesGitWritePairingHold();
 			const label = localize('sourcesChangesList.stage', "Stage");
-			templateData.actionButton.element.style.display = '';
+			templateData.actionButton.element.style.display = pairingHold ? 'none' : '';
 			templateData.actionButton.icon = Codicon.add;
-			templateData.actionButton.enabled = true;
+			templateData.actionButton.enabled = !pairingHold;
 			templateData.actionButton.setAriaLabel(label);
 			templateData.actionButton.setTitle(label);
+			if (pairingHold) {
+				return;
+			}
 			templateData.elementDisposables.add(templateData.actionButton.onDidClick(e => {
 				dom.EventHelper.stop(e, true);
 				this.delegate.onRowAction(element, 'stage');
@@ -155,12 +163,16 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 		}
 
 		if (rowAction === 'unstage') {
+			const pairingHold = this.delegate.isSourcesGitWritePairingHold();
 			const label = localize('sourcesChangesList.unstage', "Unstage");
-			templateData.actionButton.element.style.display = '';
+			templateData.actionButton.element.style.display = pairingHold ? 'none' : '';
 			templateData.actionButton.icon = Codicon.remove;
-			templateData.actionButton.enabled = true;
+			templateData.actionButton.enabled = !pairingHold;
 			templateData.actionButton.setAriaLabel(label);
 			templateData.actionButton.setTitle(label);
+			if (pairingHold) {
+				return;
+			}
 			templateData.elementDisposables.add(templateData.actionButton.onDidClick(e => {
 				dom.EventHelper.stop(e, true);
 				this.delegate.onRowAction(element, 'unstage');
@@ -331,11 +343,18 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		return !!CommandsRegistry.getCommand(commandId);
 	}
 
+	/** Phase connected + pairingPending — leftover-looks-live still refuses writes. */
+	isSourcesGitWritePairingHold(): boolean {
+		return this.uaConnection.getConnectionPhase().kind === 'connected'
+			&& !!this.uaConnection.getConnectionSnapshot().pairingPending;
+	}
+
 	canWriteStage(): boolean {
 		return canSendSourcesGitStagePaths(
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitStagePaths === 'function',
 			this.getGitSessionId(),
+			this.isSourcesGitWritePairingHold(),
 		);
 	}
 
@@ -344,6 +363,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitCommit === 'function',
 			this.getGitSessionId(),
+			this.isSourcesGitWritePairingHold(),
 		);
 	}
 
@@ -451,18 +471,61 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		let gitReadError: string | undefined;
 		let localOnly = false;
 		let gitReadNoHook = false;
+		let gitReadPairingHold = false;
+		// D342 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.uaConnection)) {
+			const leftoverCount = this.usingGitRead ? this.lastGoodEntries.length : 0;
+			if (shouldKeepSourcesGitReadPairingHoldLeftover(
+				this.uaConnection.getConnectionPhase().kind === 'connected',
+				this.uaConnection.getConnectionSnapshot().pairingPending,
+				leftoverCount,
+			)) {
+				allEntries = this.lastGoodEntries;
+				gitReadPairingHold = true;
+			} else {
+				this.usingGitRead = false;
+				allEntries = collectSourcesChangeEntries(this.scmService.repositories);
+				localOnly = allEntries.length > 0;
+			}
+			this.lastGoodEntries = [...allEntries];
+			this.applyRefreshPresentation(allEntries, { localOnly, gitReadPairingHold });
+			return;
+		}
 		try {
 			const loaded = await this.tryLoadGitEntries();
 			if (seq !== this.refreshSeq) {
 				return;
 			}
-			if (hasSourcesGitReadEntries(loaded)) {
+			// D367 leftover-looks-live: pairing-hold-first after await. KEEP leftover;
+			// do not paint in-flight live. D342 entry KEEP is unchanged.
+			if (isConversationPairingHold(this.uaConnection)) {
+				const leftoverCount = this.usingGitRead ? this.lastGoodEntries.length : 0;
+				if (shouldKeepSourcesGitReadPairingHoldLeftover(
+					this.uaConnection.getConnectionPhase().kind === 'connected',
+					this.uaConnection.getConnectionSnapshot().pairingPending,
+					leftoverCount,
+				)) {
+					allEntries = this.lastGoodEntries;
+					gitReadPairingHold = true;
+				} else {
+					this.usingGitRead = false;
+					allEntries = collectSourcesChangeEntries(this.scmService.repositories);
+					localOnly = allEntries.length > 0;
+				}
+			} else if (hasSourcesGitReadEntries(loaded)) {
 				this.usingGitRead = true;
 				allEntries = loaded;
 			} else {
-				// Connected + missing hook: keep leftover rows; first-pull empty stays SCM (D273).
+				// Pairing-hold leftover wins over SCM (D283); no-hook keep-last stays (D273).
 				const leftoverCount = this.usingGitRead ? this.lastGoodEntries.length : 0;
-				if (shouldKeepSourcesGitReadNoHookLeftover(
+				if (shouldKeepSourcesGitReadPairingHoldLeftover(
+					this.uaConnection.getConnectionPhase().kind === 'connected',
+					this.uaConnection.getConnectionSnapshot().pairingPending,
+					leftoverCount,
+				)) {
+					allEntries = this.lastGoodEntries;
+					gitReadPairingHold = true;
+				} else if (shouldKeepSourcesGitReadNoHookLeftover(
 					this.uaConnection.isEngineConnected(),
 					typeof this.uaConnection.readGitChanges === 'function',
 					leftoverCount,
@@ -490,13 +553,14 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		}
 
 		this.lastGoodEntries = [...allEntries];
-		this.applyRefreshPresentation(allEntries, { localOnly, gitReadNoHook });
+		this.applyRefreshPresentation(allEntries, { localOnly, gitReadNoHook, gitReadPairingHold });
 	}
 
 	private applyRefreshPresentation(allEntries: ISourcesChangeEntry[], options?: {
 		readonly gitReadError?: string;
 		readonly localOnly?: boolean;
 		readonly gitReadNoHook?: boolean;
+		readonly gitReadPairingHold?: boolean;
 	}): void {
 		const hasRepository = this.usingGitRead || this.scmService.repositoryCount > 0;
 		const entries = filterSourcesEntries(allEntries, this.filterBox.value);
@@ -525,6 +589,8 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.setStatusMessage(options.gitReadError);
 		} else if (this.writeStatusMessage) {
 			this.setStatusMessage(this.writeStatusMessage);
+		} else if (options?.gitReadPairingHold) {
+			this.setStatusMessage(sourcesGitReadPairingHoldMessage());
 		} else if (options?.gitReadNoHook) {
 			this.setStatusMessage(sourcesGitReadUnavailableNoHookMessage());
 		} else if (options?.localOnly) {
@@ -555,6 +621,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			summaryHook ? request => summaryHook.call(this.uaConnection, request) : undefined,
 			this.getGitResourceRoot(),
 			this.getGitSessionId(),
+			isConversationPairingHold(this.uaConnection),
 		);
 		const entries = loaded?.entries;
 		return hasSourcesGitReadEntries(entries) ? entries : undefined;
@@ -576,6 +643,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.getGitSessionId(),
 			entry.gitPath ?? '',
 			entry.indexState ?? '',
+			isConversationPairingHold(this.uaConnection),
 		);
 	}
 
@@ -590,8 +658,8 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			&& !!entry.scmResource
 			&& this.isGitCommandAvailable(SOURCES_GIT_UNSTAGE_COMMAND));
 
-		this.stageSelectedButton.enabled = canStage;
-		this.unstageSelectedButton.enabled = canUnstage;
+		this.stageSelectedButton.enabled = canStage && !this.isSourcesGitWritePairingHold();
+		this.unstageSelectedButton.enabled = canUnstage && !this.isSourcesGitWritePairingHold();
 	}
 
 	private async runOnSelected(action: SourcesChangeRowAction): Promise<void> {
@@ -615,6 +683,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			return;
 		}
 		if (action === 'unstage' && !isSourcesChangeUnstageable(entry.groupId)) {
+			return;
+		}
+		if ((action === 'stage' || action === 'unstage') && this.isSourcesGitWritePairingHold()) {
 			return;
 		}
 
@@ -647,6 +718,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private async tryStagePaths(paths: readonly string[]): Promise<boolean> {
+		if (this.isSourcesGitWritePairingHold()) {
+			return true;
+		}
 		const hook = this.uaConnection.writeGitStagePaths;
 		try {
 			const result = await tryWriteSourcesGitStagePaths(
@@ -654,6 +728,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				hook ? request => hook.call(this.uaConnection, request) : undefined,
 				this.getGitSessionId(),
 				paths,
+				this.isSourcesGitWritePairingHold(),
 			);
 			if (!result || isSourcesGitWriteUnsupported(result)) {
 				return false;
@@ -708,10 +783,16 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			|| this.isGitCommandAvailable(SOURCES_GIT_COMMIT_COMMAND);
 
 		this.commitInput.disabled = !repo && !this.canWriteCommit();
-		this.commitButton.enabled = (!!repo || this.canWriteCommit()) && hasMessage && commitAvailable;
+		this.commitButton.enabled = !this.isSourcesGitWritePairingHold()
+			&& (!!repo || this.canWriteCommit())
+			&& hasMessage
+			&& commitAvailable;
 	}
 
 	private async runCommit(): Promise<void> {
+		if (this.isSourcesGitWritePairingHold()) {
+			return;
+		}
 		const repo = this.activeRepository;
 		const message = this.commitInput.value;
 		if (!message.trim()) {
@@ -733,6 +814,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				writeHook ? request => writeHook.call(this.uaConnection, request) : undefined,
 				this.getGitSessionId(),
 				message,
+				this.isSourcesGitWritePairingHold(),
 			);
 			if (isSourcesGitWriteAccepted(written)) {
 				this.setWriteStatusMessage(undefined);

@@ -22,16 +22,19 @@ import type {
 	UniverseAgentAgentProfileDetail,
 	UniverseAgentAgentProfileSource,
 	UniverseAgentAgentProfileSummary,
+	UniverseAgentCapabilitySupport,
 	UniverseAgentToolSummary,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles, defaultCheckboxStyles, defaultInputBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import {
 	type EngineCatalogPaneMode,
-	canPerformCatalogWrite,
+	canPerformCatalogWriteLive,
 	canShowCatalogRows,
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
+import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
+import { getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
 import {
 	formatAgentsMarkdown,
 	getAgentProfileModelUnsupportedReason,
@@ -395,7 +398,11 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	canWrite(): boolean {
-		return canPerformCatalogWrite(this.mode) && this.connection.isEngineConnected();
+		return canPerformCatalogWriteLive(
+			this.mode,
+			this.connection.isEngineConnected(),
+			isConversationPairingHold(this.connection),
+		);
 	}
 
 	isWriteToolbarVisible(): boolean {
@@ -638,9 +645,11 @@ export class EngineAgentsSection extends Disposable {
 	private syncDetailHost(forceAgentToolsReload = false): void {
 		// Keep leftover detail after a live paint (D271; D266 / D270).
 		// failed/loading must not hide leftover detailHost; disconnect / UNSUPPORTED / first-pull empty still hide.
-		const keepLeftoverDetail = this.connection.isEngineConnected()
+		const keepLeftoverDetail = (
+			this.connection.isEngineConnected()
 			&& (this.mode === 'failed' || this.mode === 'loading')
-			&& this.hasLeftoverAgentDetail();
+			&& this.hasLeftoverAgentDetail()
+		) || this.keepLeftoverCatalogForPairingHold(this.hasLeftoverAgentDetail());
 		const show = (canShowCatalogRows(this.mode) && !!this.selectedProfile) || keepLeftoverDetail;
 		this.detailHost.style.display = show ? '' : 'none';
 		if (show) {
@@ -735,7 +744,8 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private async ensureAgentToolsLoaded(forceReload = false): Promise<void> {
-		if (!this.connection.isEngineConnected()) {
+		// D352 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 			return;
 		}
 		const toolsSupport = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot()).tools.support;
@@ -780,6 +790,12 @@ export class EngineAgentsSection extends Disposable {
 			if (this.agentTools.length === 0) {
 				return;
 			}
+		} else if (this.keepLeftoverCatalogForPairingHold(this.agentTools.length > 0)) {
+			this.toolsStatus.render({
+				mode: 'disconnected',
+				featureLabel: AGENT_TOOLS_FEATURE,
+				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError),
+			});
 		} else if (this.agentToolsLoadFailed !== undefined) {
 			this.toolsStatus.render({
 				mode: 'failed',
@@ -791,13 +807,15 @@ export class EngineAgentsSection extends Disposable {
 				return;
 			}
 		} else if (this.agentTools.length === 0) {
+			// D358 leftover-looks-live: pairing-hold first. KEEP-chrome is not only `!connected`.
+			const disconnectedChrome = isConversationPairingHold(this.connection) || !this.connection.isEngineConnected();
 			this.toolsStatus.render({
-				mode: this.connection.isEngineConnected() ? 'empty' : 'disconnected',
+				mode: disconnectedChrome ? 'disconnected' : 'empty',
 				featureLabel: AGENT_TOOLS_FEATURE,
 				emptyCopy: localize('ua.engineAgentsToolsEmpty', "No engine tools to enable for this profile."),
-				onOpenConnection: this.connection.isEngineConnected()
-					? undefined
-					: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError),
+				onOpenConnection: disconnectedChrome
+					? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError)
+					: undefined,
 			});
 			return;
 		} else {
@@ -867,16 +885,39 @@ export class EngineAgentsSection extends Disposable {
 		return ok;
 	}
 
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		if (!hadLiveCatalog) {
+			return false;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
+	}
+
+	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): boolean {
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			this.hideCatalogWriteStatus();
+			this.writeToolbar.style.display = 'none';
+			this.updateWriteActions();
+			this.listContainer.style.display = '';
+			this.mode = resolveEngineCatalogPaneMode(false, support);
+			this.renderStatus();
+			return false;
+		}
+		this.clearCatalogPresentation();
+		this.mode = resolveEngineCatalogPaneMode(false, support);
+		this.renderStatus();
+		return false;
+	}
+
 	private async refresh(): Promise<boolean> {
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.agentProfiles.support;
 
-		if (!connected) {
-			this.clearCatalogPresentation();
-			this.mode = resolveEngineCatalogPaneMode(false, support);
-			this.renderStatus();
-			return false;
+		const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'profile');
+		// D349 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connection) || !connected) {
+			return this.applyDisconnectedRefresh(support, hadLiveCatalog);
 		}
 
 		if (support === 'UNSUPPORTED') {
@@ -908,11 +949,9 @@ export class EngineAgentsSection extends Disposable {
 
 		try {
 			const result = await this.connection.listAgentProfiles();
-			if (!this.connection.isEngineConnected()) {
-				this.clearCatalogPresentation();
-				this.mode = resolveEngineCatalogPaneMode(false, support);
-				this.renderStatus();
-				return false;
+			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'profile');
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+				return this.applyDisconnectedRefresh(support, leftoverAfterList);
 			}
 			this.agentToolPending.clear();
 			this.setProfiles(result.profiles);
@@ -922,7 +961,7 @@ export class EngineAgentsSection extends Disposable {
 				itemCount: result.profiles.length,
 			});
 			this.listContainer.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
-			this.writeToolbar.style.display = canPerformCatalogWrite(this.mode) ? '' : 'none';
+			this.writeToolbar.style.display = this.canWrite() ? '' : 'none';
 			this.updateWriteActions();
 			this.syncDetailHost(true);
 			if (this.selectedProfile && !this.agentsMarkdownDirty && this.activeDetailTab === 'instructions') {
@@ -994,18 +1033,24 @@ export class EngineAgentsSection extends Disposable {
 	private async loadAgentsEditorForSelection(): Promise<void> {
 		this.hideAgentsEditorStatus();
 
-		if (!canShowCatalogRows(this.mode) || !this.connection.isEngineConnected() || !this.selectedProfile) {
+		// D364 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connection) || !canShowCatalogRows(this.mode) || !this.connection.isEngineConnected() || !this.selectedProfile) {
 			if (!this.agentsMarkdownDirty) {
 				// Keep leftover AGENTS.md after a live paint (D266; D233 / D253).
 				// failed/loading must not unload leftover markdown; disconnect / UNSUPPORTED / first-pull empty still clear.
-				const keepLeftoverMarkdown = this.connection.isEngineConnected()
+				const hasLeftoverMarkdown = !!(this.loadedAgentsMarkdown || this.agentsEditorInput.value);
+				const keepLeftoverMarkdown = (
+					this.connection.isEngineConnected()
 					&& (this.mode === 'failed' || this.mode === 'loading')
-					&& !!(this.loadedAgentsMarkdown || this.agentsEditorInput.value);
+					&& hasLeftoverMarkdown
+				) || this.keepLeftoverCatalogForPairingHold(hasLeftoverMarkdown);
 				if (!keepLeftoverMarkdown) {
 					this.agentsEditorContainer.style.display = 'none';
 					this.agentsEditorInput.value = '';
 					this.agentsEditorInput.inputElement.readOnly = true;
 					this.agentsEditorSaveButton.enabled = false;
+				} else if (this.keepLeftoverCatalogForPairingHold(hasLeftoverMarkdown)) {
+					this.showAgentsEditorStatus(getEngineSectionDisconnectedCopy());
 				}
 			}
 			this.syncDetailHost();
@@ -1021,7 +1066,11 @@ export class EngineAgentsSection extends Disposable {
 		}
 
 		const generation = ++this.agentsEditorLoadGeneration;
-		this.agentsEditorInput.value = formatAgentsMarkdown(summaryToProfileDetail(selected));
+		// D275: keep leftover AGENTS.md while the load RPC is in-flight. First-pull empty still paints the summary placeholder.
+		const hasLeftoverMarkdown = !!(this.loadedAgentsMarkdown || this.agentsEditorInput.value);
+		if (!hasLeftoverMarkdown) {
+			this.agentsEditorInput.value = formatAgentsMarkdown(summaryToProfileDetail(selected));
+		}
 
 		try {
 			const result = await this.connection.saveAgentProfile({
@@ -1031,7 +1080,8 @@ export class EngineAgentsSection extends Disposable {
 					source: selected.source,
 				},
 			});
-			if (generation !== this.agentsEditorLoadGeneration || this.selectedProfile?.id !== selected.id || this.agentsMarkdownDirty) {
+			if (generation !== this.agentsEditorLoadGeneration || this.selectedProfile?.id !== selected.id || this.agentsMarkdownDirty
+				|| isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				return;
 			}
 			const text = formatAgentsMarkdown(result.profile);
@@ -1039,7 +1089,8 @@ export class EngineAgentsSection extends Disposable {
 			this.agentsEditorInput.value = text;
 			this.agentsMarkdownDirty = false;
 		} catch {
-			if (generation !== this.agentsEditorLoadGeneration || this.selectedProfile?.id !== selected.id) {
+			if (generation !== this.agentsEditorLoadGeneration || this.selectedProfile?.id !== selected.id
+				|| isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				return;
 			}
 			this.showAgentsEditorStatus(localize(

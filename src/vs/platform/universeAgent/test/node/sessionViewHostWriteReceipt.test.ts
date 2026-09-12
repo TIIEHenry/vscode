@@ -140,4 +140,43 @@ suite('SessionViewHost host write receipt', () => {
 			process.off('unhandledRejection', onUnhandled);
 		}
 	});
+
+	test('leftover-looks-live post is rejected and does not writeChat on resident handle', async () => {
+		const connection = new ResidentWriteConnection();
+		const { viewHost, leaseId } = await connectWithPermissionSeat('sess-write-looks-live', connection);
+		connection.setPairingPending(true);
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+
+		const writesBefore = connection.residentWrites.length;
+		const outcome = viewHost.post(leaseId, { kind: 'permissionRespond', requestId: 'perm-live', decision: 'allow' });
+		assert.strictEqual(outcome.accepted, false);
+		assert.strictEqual(outcome.reason, 'not_authenticated');
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		await new Promise<void>(resolve => setImmediate(() => resolve()));
+		assert.strictEqual(connection.residentWrites.length, writesBefore);
+	});
+
+	test('leftover-looks-live post is rejected and does not writeChat over one-shot chat()', async () => {
+		const connection = new class extends TestConnection {
+			readonly chatCalls: unknown[] = [];
+			override async chat(request?: { readonly sessionId: string; readonly payload: unknown }): Promise<void> {
+				if (request !== undefined) {
+					this.chatCalls.push(request);
+				}
+			}
+		}();
+		assert.strictEqual(typeof (connection as IUniverseAgentConnection).openChatStream, 'undefined');
+		const { viewHost, leaseId } = await connectWithPermissionSeat('sess-oneshot-looks-live', connection);
+		connection.setPairingPending(true);
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+
+		const outcome = viewHost.post(leaseId, { kind: 'permissionRespond', requestId: 'perm-live', decision: 'allow' });
+		assert.strictEqual(outcome.accepted, false);
+		assert.strictEqual(outcome.reason, 'not_authenticated');
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		await new Promise<void>(resolve => setImmediate(() => resolve()));
+		assert.deepStrictEqual(connection.chatCalls, []);
+	});
 });

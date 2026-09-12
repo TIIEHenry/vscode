@@ -25,10 +25,11 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { IModelService } from '../../../../editor/common/services/model.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
+import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
-import { hasSourcesGitReadEntries, shouldKeepSourcesGitReadNoHookLeftover, tryLoadSourcesGitChangeEntries, tryReadSourcesGitFileDiff, sourcesGitDiffOpenFailureMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadUnavailableNoHookMessage } from '../common/sourcesChangesGitRead.js';
+import { hasSourcesGitReadEntries, shouldKeepSourcesGitReadNoHookLeftover, shouldKeepSourcesGitReadPairingHoldLeftover, tryLoadSourcesGitChangeEntries, tryReadSourcesGitFileDiff, sourcesGitDiffOpenFailureMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadPairingHoldMessage, sourcesGitReadUnavailableNoHookMessage } from '../common/sourcesChangesGitRead.js';
 import { sourcesChangeEntryIdentity } from '../common/sourcesChangesModel.js';
 import { collectSourcesReviewEntries, ISourcesReviewEntry } from '../common/sourcesReviewModel.js';
 import {
@@ -571,6 +572,7 @@ export class SourcesReviewList extends Disposable {
 			this.getGitSessionId(),
 			entry.gitPath ?? '',
 			entry.indexState ?? '',
+			isConversationPairingHold(this.uaConnection),
 		);
 	}
 
@@ -583,6 +585,7 @@ export class SourcesReviewList extends Disposable {
 			summaryHook ? request => summaryHook.call(this.uaConnection, request) : undefined,
 			this.getGitResourceRoot(),
 			this.getGitSessionId(),
+			isConversationPairingHold(this.uaConnection),
 		);
 		const entries = loaded?.entries;
 		return hasSourcesGitReadEntries(entries) ? entries : undefined;
@@ -593,38 +596,76 @@ export class SourcesReviewList extends Disposable {
 		let gitReadError: string | undefined;
 		let localOnly = false;
 		let gitReadNoHook = false;
-		try {
-			const loaded = await this.tryLoadGitEntries();
-			if (seq !== this.refreshSeq) {
-				return;
-			}
-			if (hasSourcesGitReadEntries(loaded)) {
-				this.usingGitRead = true;
-				this.allEntries = loaded;
+		let gitReadPairingHold = false;
+		// D342 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.uaConnection)) {
+			const leftoverCount = this.usingGitRead ? this.allEntries.length : 0;
+			if (shouldKeepSourcesGitReadPairingHoldLeftover(
+				this.uaConnection.getConnectionPhase().kind === 'connected',
+				this.uaConnection.getConnectionSnapshot().pairingPending,
+				leftoverCount,
+			)) {
+				gitReadPairingHold = true;
 			} else {
-				// Connected + missing hook: keep leftover rows; first-pull empty stays SCM (D273).
-				const leftoverCount = this.usingGitRead ? this.allEntries.length : 0;
-				if (shouldKeepSourcesGitReadNoHookLeftover(
-					this.uaConnection.isEngineConnected(),
-					typeof this.uaConnection.readGitChanges === 'function',
-					leftoverCount,
-				)) {
-					gitReadNoHook = true;
-				} else {
-					this.usingGitRead = false;
-					this.allEntries = collectSourcesReviewEntries(this.scmService.repositories);
-					localOnly = this.allEntries.length > 0;
-				}
-			}
-		} catch (error) {
-			if (seq !== this.refreshSeq) {
-				return;
-			}
-			// Keep a live leftover paint; first-pull stays empty+failed.
-			if (this.allEntries.length === 0) {
 				this.usingGitRead = false;
+				this.allEntries = collectSourcesReviewEntries(this.scmService.repositories);
+				localOnly = this.allEntries.length > 0;
 			}
-			gitReadError = sourcesGitReadFailureMessage(error);
+		} else {
+			try {
+				const loaded = await this.tryLoadGitEntries();
+				if (seq !== this.refreshSeq) {
+					return;
+				}
+				// D367 leftover-looks-live: pairing-hold-first after await. KEEP leftover;
+				// do not paint in-flight live. D342 entry KEEP is unchanged.
+				if (isConversationPairingHold(this.uaConnection)) {
+					const leftoverCount = this.usingGitRead ? this.allEntries.length : 0;
+					if (shouldKeepSourcesGitReadPairingHoldLeftover(
+						this.uaConnection.getConnectionPhase().kind === 'connected',
+						this.uaConnection.getConnectionSnapshot().pairingPending,
+						leftoverCount,
+					)) {
+						gitReadPairingHold = true;
+					} else {
+						this.usingGitRead = false;
+						this.allEntries = collectSourcesReviewEntries(this.scmService.repositories);
+						localOnly = this.allEntries.length > 0;
+					}
+				} else if (hasSourcesGitReadEntries(loaded)) {
+					this.usingGitRead = true;
+					this.allEntries = loaded;
+				} else {
+					// Pairing-hold leftover wins over SCM (D283); no-hook keep-last stays (D273).
+					const leftoverCount = this.usingGitRead ? this.allEntries.length : 0;
+					if (shouldKeepSourcesGitReadPairingHoldLeftover(
+						this.uaConnection.getConnectionPhase().kind === 'connected',
+						this.uaConnection.getConnectionSnapshot().pairingPending,
+						leftoverCount,
+					)) {
+						gitReadPairingHold = true;
+					} else if (shouldKeepSourcesGitReadNoHookLeftover(
+						this.uaConnection.isEngineConnected(),
+						typeof this.uaConnection.readGitChanges === 'function',
+						leftoverCount,
+					)) {
+						gitReadNoHook = true;
+					} else {
+						this.usingGitRead = false;
+						this.allEntries = collectSourcesReviewEntries(this.scmService.repositories);
+						localOnly = this.allEntries.length > 0;
+					}
+				}
+			} catch (error) {
+				if (seq !== this.refreshSeq) {
+					return;
+				}
+				// Keep a live leftover paint; first-pull stays empty+failed.
+				if (this.allEntries.length === 0) {
+					this.usingGitRead = false;
+				}
+				gitReadError = sourcesGitReadFailureMessage(error);
+			}
 		}
 
 		const hasRepository = this.usingGitRead || this.scmService.repositoryCount > 0;
@@ -676,6 +717,8 @@ export class SourcesReviewList extends Disposable {
 		this.headerHint.style.display = hasAnyEntries ? '' : 'none';
 		if (gitReadError) {
 			this.setStatusMessage(gitReadError);
+		} else if (gitReadPairingHold) {
+			this.setStatusMessage(sourcesGitReadPairingHoldMessage());
 		} else if (gitReadNoHook) {
 			this.setStatusMessage(sourcesGitReadUnavailableNoHookMessage());
 		} else if (localOnly) {

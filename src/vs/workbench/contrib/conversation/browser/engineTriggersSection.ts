@@ -35,6 +35,7 @@ import {
 	formatEngineTriggerListLabel,
 } from './engineTriggerList.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 
 const $ = DOM.$;
 
@@ -50,6 +51,11 @@ const $ = DOM.$;
  * Connected + missing list hook after a live paint keeps leftover rows +
  * unsupported (D258); first-pull no-hook stays empty+unsupported.
  * Disconnect still clears rows.
+ * Pairing-hold leftover keeps rows + disconnected note (D281) and disables
+ * Fire/Enable/Disable/Delete/Upsert (D311). Pairing-hold-first refresh (D350)
+ * leftover-looks-live first-pull (`isEngineConnected()===true` + pairingPending,
+ * no leftover) stays empty + disconnected and skips list. Leftover WITH leftover
+ * still KEEP + 0 extra list. Connected leftover still writes.
  */
 export class EngineTriggersSection extends Disposable {
 
@@ -157,24 +163,19 @@ export class EngineTriggersSection extends Disposable {
 	private async refresh(): Promise<boolean> {
 		const generation = ++this.renderGeneration;
 		const hook = this.connection.listTriggers;
+		const pairingHold = isConversationPairingHold(this.connection);
 		const canSend = canSendEngineTriggerListRequest(
 			this.connection.isEngineConnected(),
 			typeof hook === 'function',
+			pairingHold,
 		);
 
 		this.clearWriteStatuses();
-		this.updateFireAction();
-		this.updateSetEnabledAction();
-		this.updateDeleteAction();
-		this.updateUpsertAction();
+		this.updateWriteActions();
 
-		if (!this.connection.isEngineConnected()) {
-			this.clearListPresentation();
-			this.status.render({
-				mode: 'disconnected',
-				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
-			});
-			return false;
+		// D350 leftover-looks-live: pairing-hold first. KEEP is not only leftover + pairingHold.
+		if (pairingHold || !this.connection.isEngineConnected()) {
+			return this.applyDisconnectedRefresh(this.triggers.length > 0);
 		}
 
 		if (!canSend || !hook) {
@@ -200,8 +201,8 @@ export class EngineTriggersSection extends Disposable {
 			if (generation !== this.renderGeneration) {
 				return false;
 			}
-			if (!this.connection.isEngineConnected()) {
-				return false;
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+				return this.applyDisconnectedRefresh(this.triggers.length > 0);
 			}
 			this.triggers = [...result.triggers];
 			this.paintList();
@@ -230,6 +231,38 @@ export class EngineTriggersSection extends Disposable {
 		this.deleteStatus.textContent = '';
 		this.upsertStatus.style.display = 'none';
 		this.upsertStatus.textContent = '';
+	}
+
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		return hadLiveCatalog && isConversationPairingHold(this.connection);
+	}
+
+	private isTriggerWritePairingHold(): boolean {
+		return isConversationPairingHold(this.connection);
+	}
+
+	private updateWriteActions(): void {
+		this.updateFireAction();
+		this.updateSetEnabledAction();
+		this.updateDeleteAction();
+		this.updateUpsertAction();
+	}
+
+	private applyDisconnectedRefresh(hadLiveCatalog: boolean): boolean {
+		this.updateWriteActions();
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			this.status.render({
+				mode: 'disconnected',
+				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+			});
+			return false;
+		}
+		this.clearListPresentation();
+		this.status.render({
+			mode: 'disconnected',
+			onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+		});
+		return false;
 	}
 
 	private clearListPresentation(): void {
@@ -279,6 +312,7 @@ export class EngineTriggersSection extends Disposable {
 		this.fireButton.enabled = canSendEngineTriggerFire(
 			this.connection.isEngineConnected(),
 			typeof this.connection.fireTrigger === 'function',
+			this.isTriggerWritePairingHold(),
 		);
 	}
 
@@ -286,6 +320,7 @@ export class EngineTriggersSection extends Disposable {
 		const enabled = canSendEngineTriggerSetEnabled(
 			this.connection.isEngineConnected(),
 			typeof this.connection.setTriggerEnabled === 'function',
+			this.isTriggerWritePairingHold(),
 		);
 		this.enableButton.enabled = enabled;
 		this.disableButton.enabled = enabled;
@@ -295,6 +330,7 @@ export class EngineTriggersSection extends Disposable {
 		this.deleteButton.enabled = canSendEngineTriggerDelete(
 			this.connection.isEngineConnected(),
 			typeof this.connection.deleteTrigger === 'function',
+			this.isTriggerWritePairingHold(),
 		);
 	}
 
@@ -302,6 +338,7 @@ export class EngineTriggersSection extends Disposable {
 		const enabled = canSendEngineTriggerUpsert(
 			this.connection.isEngineConnected(),
 			typeof this.connection.upsertTrigger === 'function',
+			this.isTriggerWritePairingHold(),
 		);
 		this.addButton.enabled = enabled;
 		this.editButton.enabled = enabled;
@@ -309,7 +346,7 @@ export class EngineTriggersSection extends Disposable {
 
 	private async handleSetEnabled(enabled: boolean): Promise<void> {
 		const hook = this.connection.setTriggerEnabled;
-		if (!canSendEngineTriggerSetEnabled(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
+		if (!canSendEngineTriggerSetEnabled(this.connection.isEngineConnected(), typeof hook === 'function', this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineTriggerSetEnabledRequest(this.selectedTrigger, enabled);
@@ -326,7 +363,7 @@ export class EngineTriggersSection extends Disposable {
 
 	private async handleFire(): Promise<void> {
 		const hook = this.connection.fireTrigger;
-		if (!canSendEngineTriggerFire(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
+		if (!canSendEngineTriggerFire(this.connection.isEngineConnected(), typeof hook === 'function', this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineTriggerFireRequest(this.selectedTrigger);
@@ -343,7 +380,7 @@ export class EngineTriggersSection extends Disposable {
 
 	private async handleDelete(): Promise<void> {
 		const hook = this.connection.deleteTrigger;
-		if (!canSendEngineTriggerDelete(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
+		if (!canSendEngineTriggerDelete(this.connection.isEngineConnected(), typeof hook === 'function', this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineTriggerDeleteRequest(this.selectedTrigger);
@@ -365,7 +402,7 @@ export class EngineTriggersSection extends Disposable {
 
 	private async handleUpsert(mode: 'add' | 'edit'): Promise<void> {
 		const hook = this.connection.upsertTrigger;
-		if (!canSendEngineTriggerUpsert(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
+		if (!canSendEngineTriggerUpsert(this.connection.isEngineConnected(), typeof hook === 'function', this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineTriggerUpsertRequest(this.selectedTrigger, mode);

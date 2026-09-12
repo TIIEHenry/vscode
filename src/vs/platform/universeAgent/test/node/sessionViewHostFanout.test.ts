@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { Event } from '../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import type { ViewFrame, ViewLeaseId } from '../../common/sessionView/types.js';
+import type { SessionId, ViewFrame, ViewLeaseId } from '../../common/sessionView/types.js';
 import type { IUniverseAgentSessionViewFrameEvent } from '../../common/universeAgentSessionView.js';
 import type { DiagnosticMetric, DiagnosticsPort } from '../../node/sessionCore/ports.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
@@ -156,6 +156,36 @@ suite('SessionViewHost per-lease fanout (F1)', () => {
 
 		assert.notStrictEqual(viewHost.onDynamicDidApplyFrame(leaseId), Event.None);
 		assert.strictEqual(diagnostics.counts.get('view.lease_orphaned' as DiagnosticMetric), undefined);
+	});
+
+	test('releaseLeasesOwnedBy releases only that owner and ignores ownerless leases', () => {
+		const diagnostics = new CountingDiagnostics();
+		const connection = new TestConnection();
+		const host = new TestHost(async () => undefined);
+		const viewHost = store.add(new SessionViewHost(connection, host, {
+			orphanTimeoutMs: 0,
+			diagnostics,
+		}));
+		viewHost.onEngineConnectionChanged();
+
+		const leaseA = viewHost.acquireLease('sess-owner', 'A');
+		const leaseB = viewHost.acquireLease('sess-owner', 'B');
+		const leaseNone = viewHost.acquireLease('sess-owner');
+		const core = (viewHost as unknown as { core: { leaseCount(id: SessionId): number } }).core;
+		assert.strictEqual(core.leaseCount('sess-owner' as SessionId), 3);
+
+		const released = viewHost.releaseLeasesOwnedBy('A');
+		assert.strictEqual(released, 1);
+		assert.strictEqual(core.leaseCount('sess-owner' as SessionId), 2);
+		assert.strictEqual(viewHost.onDynamicDidApplyFrame(leaseA), Event.None);
+		assert.notStrictEqual(viewHost.onDynamicDidApplyFrame(leaseB), Event.None);
+		assert.notStrictEqual(viewHost.onDynamicDidApplyFrame(leaseNone), Event.None);
+		assert.strictEqual(diagnostics.counts.get('view.lease_orphaned' as DiagnosticMetric), undefined);
+		assert.strictEqual(diagnostics.counts.get('view.lease_released_by_owner' as DiagnosticMetric), 1);
+
+		assert.strictEqual(viewHost.releaseLeasesOwnedBy('unknown'), 0);
+		assert.strictEqual(core.leaseCount('sess-owner' as SessionId), 2);
+		assert.strictEqual(diagnostics.counts.get('view.lease_released_by_owner' as DiagnosticMetric), 1);
 	});
 
 	test('released lease returns Event.None', () => {

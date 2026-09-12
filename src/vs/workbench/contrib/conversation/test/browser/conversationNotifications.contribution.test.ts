@@ -53,6 +53,7 @@ suite('ConversationNotificationsContribution', () => {
 		readonly configuration?: Record<string, unknown>;
 		readonly settleEmitter?: Emitter<ITurnSettleSignal>;
 		readonly createRoster?: () => ConversationStubService;
+		readonly connection?: IUniverseAgentConnection;
 	}): {
 		readonly roster: ConversationStubService;
 		readonly notifications: RecordingNotificationService;
@@ -94,7 +95,7 @@ suite('ConversationNotificationsContribution', () => {
 			focusAccessibleTurn: () => { },
 			scrollToFirstPendingConfirmation: () => revealCalls.push('scroll'),
 		});
-		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub(
+		instantiationService.stub(IUniverseAgentConnection, options?.connection ?? createConversationConnectionTestStub(
 			settleEmitter ? { onDidTurnSettle: settleEmitter.event } : {},
 		));
 		store.add(instantiationService.createInstance(ConversationNotificationsContribution));
@@ -138,6 +139,29 @@ suite('ConversationNotificationsContribution', () => {
 		await toast.actions!.primary![0]!.run();
 		assert.deepStrictEqual(switched, [firstId]);
 		assert.deepStrictEqual(revealCalls, ['scroll']);
+	});
+
+	test('Show while pairing-hold still opens the session but does not auto-scroll', async () => {
+		const { roster, notifications, revealCalls, switched } = mount({
+			connection: createConversationConnectionTestStub({
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({
+					...createConversationConnectionTestStub().getConnectionSnapshot(),
+					pairingPending: true,
+				}),
+			}),
+		});
+		const firstId = roster.getActiveSessionId();
+		const secondId = roster.createSession();
+		roster.switchSession(secondId);
+		notifications.notifications.length = 0;
+		switched.length = 0;
+
+		roster.appendConfirmationTurn(firstId, 'Allow write?');
+		assert.strictEqual(notifications.notifications.length, 1);
+		await notifications.notifications[0]!.actions!.primary![0]!.run();
+		assert.deepStrictEqual(switched, [firstId]);
+		assert.deepStrictEqual(revealCalls, []);
 	});
 
 	test('active session still toasts when Conversation part is hidden', () => {

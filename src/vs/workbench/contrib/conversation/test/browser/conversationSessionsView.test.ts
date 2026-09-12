@@ -4,13 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { ActionViewItem } from '../../../../../base/browser/ui/actionbar/actionViewItems.js';
 import { getErrorMessage } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { isIMenuItem, MenuId, MenuItemAction, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
+import type { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ConversationPart, IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainerModel, IViewContainersRegistry, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
 import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
@@ -20,11 +24,13 @@ import { IEditorOptions } from '../../../../../platform/editor/common/editor.js'
 import { IEditorService, PreferredGroup } from '../../../../services/editor/common/editorService.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
 import { CONVERSATION_SESSIONS_CONTAINER_ID } from '../../browser/conversation.contribution.js';
-import { CONVERSATION_SESSION_ROW_HEIGHT, CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from '../../browser/conversationSessionsView.js';
+import { CONVERSATION_SESSION_ROW_HEIGHT, CONVERSATION_SESSIONS_DELETE_ENABLED_KEY, CONVERSATION_SESSIONS_DELETE_SESSION_COMMAND_ID, CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from '../../browser/conversationSessionsView.js';
 import { ConversationStubSession } from '../../browser/conversationStubModel.js';
 import { conversationLensSessionBarNewSession } from '../../browser/conversationLensSessionBarStrings.js';
+import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { conversationSessionsViewEmptyMessage } from '../../browser/conversationSessionsViewStrings.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { TestLayoutService, TestEditorService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import '../../../conversation/browser/conversation.contribution.js';
 
@@ -117,6 +123,7 @@ suite('ConversationSessionsView', () => {
 	function mountView(options?: {
 		stubService?: ConversationStubService;
 		conversationVisible?: boolean;
+		connection?: IUniverseAgentConnection;
 	}): {
 		view: ConversationSessionsView;
 		stubService: ConversationStubService;
@@ -132,6 +139,7 @@ suite('ConversationSessionsView', () => {
 		instantiationService.stub(IConversationRosterService, service);
 		instantiationService.stub(IWorkbenchLayoutService, layoutService);
 		instantiationService.stub(IViewDescriptorService, createViewDescriptorServiceStub());
+		instantiationService.stub(IUniverseAgentConnection, options?.connection ?? createConversationConnectionTestStub());
 		instantiationService.stub(INotificationService, {
 			error: (message: string | Error) => {
 				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
@@ -329,6 +337,7 @@ suite('ConversationSessionsView', () => {
 		instantiationService.stub(IWorkbenchLayoutService, layoutService);
 		instantiationService.stub(IEditorService, editorService);
 		instantiationService.stub(IViewDescriptorService, createViewDescriptorServiceStub());
+		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
 
 		const conversationPart = store.add(instantiationService.createInstance(ConversationPart));
 		conversationPart.create(document.createElement('div'));
@@ -561,6 +570,44 @@ suite('ConversationSessionsView', () => {
 		assert.strictEqual(stubService.getActiveSessionId(), secondId);
 	});
 
+	test('createNewSession leftover history while pairingPending shows notice and does not create', () => {
+		class PairingHoldCreateRoster extends ConversationStubService {
+			createSessionCalls = 0;
+			override hasEngineConnectionHistory(): boolean {
+				return true;
+			}
+			override isEngineConnected(): boolean {
+				return true;
+			}
+			override createSession(): string {
+				this.createSessionCalls++;
+				return super.createSession();
+			}
+		}
+		const stubService = store.add(new PairingHoldCreateRoster());
+		const base = createConversationConnectionTestStub();
+		const { view, errors } = mountView({
+			stubService,
+			connection: createConversationConnectionTestStub({
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({
+					...base.getConnectionSnapshot(),
+					pairingPending: true,
+				}),
+			}),
+		});
+		const activeId = stubService.getActiveSessionId();
+		const titlesBefore = stubService.getSessions().map(session => session.title);
+
+		view.createNewSession();
+
+		assert.deepStrictEqual(errors, ['Could not create session — engine disconnected.']);
+		assert.strictEqual(stubService.createSessionCalls, 0);
+		assert.strictEqual(stubService.getActiveSessionId(), activeId);
+		assert.deepStrictEqual(stubService.getSessions().map(session => session.title), titlesBefore);
+		assert.ok(getVisibleSessionTitles(view).includes(stubService.getActiveSession().title));
+	});
+
 	test('createNewSession after engine-cache disconnect shows disconnected notice and does not create', () => {
 		class EngineCacheDisconnectCreateRoster extends ConversationStubService {
 			createSessionCalls = 0;
@@ -606,6 +653,122 @@ suite('ConversationSessionsView', () => {
 		assert.deepStrictEqual(errors, []);
 		assert.strictEqual(stubService.createSessionCalls, 1);
 		assert.strictEqual(stubService.getSessions().length, countBefore + 1);
+	});
+
+	function createLeftoverLooksLiveDeleteRoster(): ConversationStubService & { deleteSessionCalls: number } {
+		class PairingHoldDeleteRoster extends ConversationStubService {
+			deleteSessionCalls = 0;
+			override hasEngineConnectionHistory(): boolean {
+				return true;
+			}
+			override isEngineConnected(): boolean {
+				return true;
+			}
+			override deleteSession(sessionId: string): boolean {
+				this.deleteSessionCalls++;
+				return super.deleteSession(sessionId);
+			}
+		}
+		return store.add(new PairingHoldDeleteRoster());
+	}
+
+	function createLeftoverLooksLiveConnection(): IUniverseAgentConnection {
+		const base = createConversationConnectionTestStub();
+		return createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...base.getConnectionSnapshot(),
+				pairingPending: true,
+			}),
+		});
+	}
+
+	function assertLeftoverLooksLiveFixture(stubService: ConversationStubService, connection: IUniverseAgentConnection): void {
+		assert.strictEqual(stubService.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+	}
+
+	test('deleteActiveSession leftover history while pairingPending shows notice and does not delete', () => {
+		const stubService = createLeftoverLooksLiveDeleteRoster();
+		const connection = createLeftoverLooksLiveConnection();
+		const { view, errors } = mountView({ stubService, connection });
+		assertLeftoverLooksLiveFixture(stubService, connection);
+		const activeId = stubService.getActiveSessionId();
+		const titlesBefore = stubService.getSessions().map(session => session.title);
+
+		view.deleteActiveSession();
+
+		assert.deepStrictEqual(errors, ['Could not delete session — engine disconnected.']);
+		assert.strictEqual(stubService.deleteSessionCalls, 0);
+		assert.strictEqual(stubService.getActiveSessionId(), activeId);
+		assert.deepStrictEqual(stubService.getSessions().map(session => session.title), titlesBefore);
+		assert.ok(getVisibleSessionTitles(view).includes(stubService.getActiveSession().title));
+	});
+
+	test('delete ViewTitle leftover-looks-live disables toolbar and does not delete', () => {
+		const stubService = createLeftoverLooksLiveDeleteRoster();
+		const connection = createLeftoverLooksLiveConnection();
+		const { view } = mountView({ stubService, connection });
+		assertLeftoverLooksLiveFixture(stubService, connection);
+
+		const scopedContextKeyService = (view as unknown as { scopedContextKeyService: IContextKeyService }).scopedContextKeyService;
+		assert.strictEqual(
+			scopedContextKeyService.getContextKeyValue(CONVERSATION_SESSIONS_DELETE_ENABLED_KEY.key),
+			false,
+			'leftover-looks-live Delete precondition must be false',
+		);
+
+		const deleteItem = MenuRegistry.getMenuItems(MenuId.ViewTitle).filter(isIMenuItem)
+			.find(item => item.command.id === CONVERSATION_SESSIONS_DELETE_SESSION_COMMAND_ID);
+		assert.ok(deleteItem, 'Sessions ViewTitle must register Delete');
+		assert.ok(deleteItem.command.precondition, 'Delete ViewTitle must have pairing-hold precondition');
+		assert.strictEqual(scopedContextKeyService.contextMatchesRules(deleteItem.command.precondition), false);
+
+		const deleteAction = new MenuItemAction(
+			deleteItem.command,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			scopedContextKeyService,
+			{ executeCommand: async () => undefined } as never,
+		);
+		assert.strictEqual(deleteAction.enabled, false);
+
+		const deleteViewItem = store.add(new ActionViewItem(undefined, deleteAction, { icon: true, label: false }));
+		const host = document.createElement('div');
+		deleteViewItem.render(host);
+		const deleteLabel = host.querySelector('.action-label') as HTMLElement | null;
+		assert.ok(deleteLabel, 'Sessions ViewTitle Delete chrome must paint');
+		assert.strictEqual(deleteLabel.getAttribute('aria-disabled'), 'true');
+		deleteLabel.click();
+
+		assert.strictEqual(stubService.deleteSessionCalls, 0);
+		view.deleteActiveSession();
+		assert.strictEqual(stubService.deleteSessionCalls, 0);
+	});
+
+	test('deleteActiveSession when engine connected still calls deleteSession', () => {
+		class ConnectedDeleteRoster extends ConversationStubService {
+			deleteSessionCalls = 0;
+			override isEngineConnected(): boolean {
+				return true;
+			}
+			override deleteSession(sessionId: string): boolean {
+				this.deleteSessionCalls++;
+				return super.deleteSession(sessionId);
+			}
+		}
+		const stubService = store.add(new ConnectedDeleteRoster());
+		const { view, errors } = mountView({ stubService });
+		const activeId = stubService.getActiveSessionId();
+
+		view.deleteActiveSession();
+
+		assert.deepStrictEqual(errors, []);
+		assert.strictEqual(stubService.deleteSessionCalls, 1);
+		assert.ok(!stubService.getSessions().some(session => session.id === activeId));
 	});
 
 	test('deleteActiveSession false shows failed notice and keeps the session', () => {

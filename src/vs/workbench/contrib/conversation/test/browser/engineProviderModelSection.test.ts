@@ -17,11 +17,15 @@ import type {
 	UniverseAgentSessionStreamCloseCause,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy } from '../../browser/engineCatalog.js';
+import { PROVIDER_CONFIG_UNSUPPORTED_REASON } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
+import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy, getCatalogUnsupportedCopy } from '../../browser/engineCatalog.js';
+import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
+import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { EngineProviderModelSection } from '../../browser/engineProviderModelSection.js';
 
 const LEFTOVER_MODEL_ID = 'gpt-leftover';
 const MODEL_FEATURE = 'model registry';
+const PROVIDER_FEATURE = 'provider configuration';
 const MODEL_EMPTY_COPY = 'No models in the registry.';
 
 suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
@@ -30,6 +34,8 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 
 	function createConnectionStub(options: {
 		connected?: boolean;
+		looksLive?: boolean;
+		pairingPending?: boolean;
 		modelsSupport?: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN';
 		providerSupport?: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN';
 		listModels?: () => Promise<UniverseAgentListModelsResult>;
@@ -38,12 +44,14 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 		setModelsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setProviderSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setConnected(next: boolean): void;
+		setPairingPending(value: boolean): void;
 	} {
 		const modelsCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN' } = {
 			support: options.modelsSupport ?? 'SUPPORTED',
 		};
-		const providerCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN' } = {
+		const providerCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'; reason?: string } = {
 			support: options.providerSupport ?? 'UNSUPPORTED',
+			reason: PROVIDER_CONFIG_UNSUPPORTED_REASON,
 		};
 		const capabilities: UniverseAgentCapabilitySnapshot = {
 			...createEmptyCapabilitySnapshot(),
@@ -51,12 +59,13 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 			providerConfig: providerCapability,
 		};
 		let connected = options.connected ?? true;
+		let pairingPending = options.pairingPending ?? false;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
 			transport: connected ? 'ok' : 'idle',
 			sessionToken: connected ? 'tok' : undefined,
-			pairingPending: false,
+			pairingPending,
 			channelAlive: connected,
 			sharedFsRootSent: false,
 			capabilities,
@@ -64,7 +73,7 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 
 		return {
 			_serviceBrand: undefined,
-			isEngineConnected: () => connected,
+			isEngineConnected: () => options.looksLive ? connected : (connected && !pairingPending),
 			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
 			getTransportState: () => (connected ? 'ok' : 'idle'),
 			getConnectionSnapshot: snapshot,
@@ -140,6 +149,10 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 			},
 			setConnected(next: boolean) {
 				connected = next;
+				onDidChangeConnection.fire(snapshot());
+			},
+			setPairingPending(value: boolean) {
+				pairingPending = value;
 				onDidChangeConnection.fire(snapshot());
 			},
 		};
@@ -255,6 +268,24 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 		) as HTMLElement;
 	}
 
+	function getProviderStatus(section: EngineProviderModelSection): HTMLElement {
+		return section.getDomNode().querySelector(
+			'.engine-provider-model-group--provider .engine-catalog-status-widget',
+		) as HTMLElement;
+	}
+
+	function assertProviderDisconnectedNotLive(section: EngineProviderModelSection): void {
+		const status = getProviderStatus(section);
+		const text = status?.textContent ?? '';
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(text.includes(getEngineSectionDisconnectedCopy()), text);
+		assert.ok(!text.includes(getCatalogUnsupportedCopy(PROVIDER_FEATURE, PROVIDER_CONFIG_UNSUPPORTED_REASON)), text);
+		assert.ok(!text.includes(getCatalogUnknownCopy()), text);
+		assert.notStrictEqual(status.dataset['catalogMode'], 'unsupported');
+		assert.notStrictEqual(status.dataset['catalogMode'], 'loading');
+	}
+
 	function assertModelsFailedHonesty(
 		section: EngineProviderModelSection,
 		errorMessage: string,
@@ -327,6 +358,197 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 		const leftoverList = getModelList(section);
 		assert.ok(leftoverList);
 		assert.notStrictEqual(leftoverList.style.display, 'none');
+	});
+
+	test('connected phase with pairingPending keeps leftover models and paints not-connected', async () => {
+		let listModelsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			modelsSupport: 'SUPPORTED',
+			listModels: async () => {
+				listModelsCalls++;
+				return {
+					models: [{
+						id: 'leftover',
+						type: 'chat',
+						enabled: true,
+						level: 1,
+						provider: 'demo',
+						modelId: LEFTOVER_MODEL_ID,
+					}],
+				};
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listModelsCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listModelsCalls, listCallsAfterLoad);
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), leftoverRows);
+		assert.ok((section.getDomNode().textContent ?? '').includes(LEFTOVER_MODEL_ID));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(MODEL_EMPTY_COPY));
+		const leftoverList = getModelList(section);
+		assert.ok(leftoverList);
+		assert.notStrictEqual(leftoverList.style.display, 'none');
+		const status = getModelStatus(section);
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+
+		connection.setConnected(false);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), 0);
+	});
+
+	test('leftover-looks-live pairing-hold keeps leftover models and skips listModels', async () => {
+		let listModelsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			looksLive: true,
+			modelsSupport: 'SUPPORTED',
+			listModels: async () => {
+				listModelsCalls++;
+				return {
+					models: [{
+						id: 'leftover',
+						type: 'chat',
+						enabled: true,
+						level: 1,
+						provider: 'demo',
+						modelId: LEFTOVER_MODEL_ID,
+					}],
+				};
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listModelsCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(listModelsCalls, listCallsAfterLoad, 'leftover-looks-live must not extra listModels');
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), leftoverRows);
+		assert.ok((section.getDomNode().textContent ?? '').includes(LEFTOVER_MODEL_ID));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(MODEL_EMPTY_COPY));
+		const leftoverList = getModelList(section);
+		assert.ok(leftoverList);
+		assert.notStrictEqual(leftoverList.style.display, 'none');
+		const status = getModelStatus(section);
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		assertProviderDisconnectedNotLive(section);
+	});
+
+	test('leftover-looks-live pairing-hold paints provider group disconnected, not capability/unsupported-as-live', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			pairingPending: true,
+			looksLive: true,
+			providerSupport: 'UNSUPPORTED',
+		});
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		assertProviderDisconnectedNotLive(section);
+	});
+
+	test('leftover-looks-live UNKNOWN provider capability still paints disconnected, not capability loading', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			pairingPending: true,
+			looksLive: true,
+			providerSupport: 'UNKNOWN',
+		});
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		assertProviderDisconnectedNotLive(section);
+	});
+
+	test('true connected without pairing keeps provider capability/unsupported fold', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			pairingPending: false,
+			providerSupport: 'UNSUPPORTED',
+		});
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		const status = getProviderStatus(section);
+		const text = status?.textContent ?? '';
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'unsupported');
+		assert.ok(text.includes(getCatalogUnsupportedCopy(PROVIDER_FEATURE, PROVIDER_CONFIG_UNSUPPORTED_REASON)), text);
+		assert.ok(!text.includes(getEngineSectionDisconnectedCopy()), text);
+	});
+
+	test('true connected UNKNOWN provider capability still paints capability loading', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			pairingPending: false,
+			providerSupport: 'UNKNOWN',
+		});
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		const status = getProviderStatus(section);
+		const text = status?.textContent ?? '';
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		assert.ok(text.includes(getCatalogUnknownCopy()), text);
+		assert.ok(!text.includes(getEngineSectionDisconnectedCopy()), text);
+	});
+
+	test('true disconnect still paints provider group disconnected', async () => {
+		const connection = createConnectionStub({
+			connected: false,
+			pairingPending: false,
+			providerSupport: 'UNSUPPORTED',
+		});
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'disconnected');
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		assertProviderDisconnectedNotLive(section);
 	});
 
 	test('listProviderStatus paints read-only rows and never shows api_key', async () => {
@@ -409,4 +631,6 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 		assert.strictEqual(section.getProviderListEntryCount(), 1);
 		assert.ok((section.getDomNode().textContent ?? '').includes('Anthropic leftover'));
 	});
+
+
 });

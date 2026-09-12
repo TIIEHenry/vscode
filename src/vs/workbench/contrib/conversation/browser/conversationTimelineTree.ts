@@ -173,6 +173,7 @@ export class ConversationTimelineTree extends Disposable {
 			options.onOpenVisualizeFullscreen,
 			() => this.mermaidExtensionInfo,
 			() => options.showLiveChrome?.() ?? false,
+			() => options.writesEnabled?.() ?? true,
 			() => options.showToolInvocationDetails?.() ?? true,
 			this.webviewService,
 			() => this.scrollHost,

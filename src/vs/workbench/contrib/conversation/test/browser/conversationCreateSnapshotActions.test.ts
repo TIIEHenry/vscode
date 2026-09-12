@@ -11,7 +11,10 @@ import {
 	conversationCreateSnapshotDisconnectedCopy,
 	conversationCreateSnapshotFailedCopy,
 	notifyCreateSnapshotRejected,
+	notifyCreateSnapshotUnavailable,
 	resolveCreateSnapshotTitle,
+	shouldHoldCreateSnapshotWrite,
+	tryCreateSnapshotAfterPrompt,
 } from '../../browser/conversationCreateSnapshotActions.contribution.js';
 
 suite('ConversationCreateSnapshotActions', () => {
@@ -54,6 +57,76 @@ suite('ConversationCreateSnapshotActions', () => {
 		assert.strictEqual(notifyCreateSnapshotRejected(false, false, true, {
 			error: message => { errors.push(String(message)); },
 		}), false);
+		assert.deepStrictEqual(errors, [conversationCreateSnapshotDisconnectedCopy]);
+	});
+
+	test('notifyCreateSnapshotUnavailable disconnected with history shows disconnected copy', () => {
+		const errors: string[] = [];
+		notifyCreateSnapshotUnavailable(false, true, {
+			error: message => { errors.push(String(message)); },
+		});
+		assert.deepStrictEqual(errors, [conversationCreateSnapshotDisconnectedCopy]);
+	});
+
+	test('notifyCreateSnapshotUnavailable never-connected stays silent', () => {
+		const errors: string[] = [];
+		notifyCreateSnapshotUnavailable(false, false, {
+			error: message => { errors.push(String(message)); },
+		});
+		assert.deepStrictEqual(errors, []);
+	});
+
+	test('pairing-hold leftover-looks-live holds write and shows disconnected copy', () => {
+		const looksLive = {
+			getConnectionSnapshot: () => ({ pairingPending: true }),
+			getConnectionPhase: () => ({ kind: 'connected' as const, path: 'direct' as const }),
+			isEngineConnected: () => true,
+		};
+		const live = {
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			getConnectionPhase: () => ({ kind: 'connected' as const, path: 'direct' as const }),
+			isEngineConnected: () => true,
+		};
+		assert.strictEqual(looksLive.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(shouldHoldCreateSnapshotWrite(looksLive), true);
+		assert.strictEqual(shouldHoldCreateSnapshotWrite(live), false);
+		assert.strictEqual(canCreateEngineSnapshot(true, true, 'ua-only'), true);
+		const errors: string[] = [];
+		if (shouldHoldCreateSnapshotWrite(looksLive)) {
+			notifyCreateSnapshotUnavailable(false, true, {
+				error: message => { errors.push(String(message)); },
+			});
+		}
+		assert.deepStrictEqual(errors, [conversationCreateSnapshotDisconnectedCopy]);
+	});
+
+	test('after prompt leftover-looks-live holds write: 0 createSnapshot + unavailable notice', () => {
+		const looksLive = {
+			getConnectionSnapshot: () => ({ pairingPending: true }),
+			getConnectionPhase: () => ({ kind: 'connected' as const, path: 'direct' as const }),
+			isEngineConnected: () => true,
+		};
+		assert.strictEqual(looksLive.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(looksLive.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(shouldHoldCreateSnapshotWrite(looksLive), true);
+		assert.strictEqual(canCreateEngineSnapshot(looksLive.isEngineConnected(), true, 'ua-only'), true);
+
+		const title = resolveCreateSnapshotTitle('After prompt');
+		const createSnapshotCalls: { title: string }[] = [];
+		const errors: string[] = [];
+		const created = tryCreateSnapshotAfterPrompt(
+			looksLive,
+			true,
+			{ error: message => { errors.push(String(message)); } },
+			() => {
+				createSnapshotCalls.push({ title });
+				return true;
+			},
+			looksLive.isEngineConnected(),
+		);
+
+		assert.strictEqual(created, undefined);
+		assert.strictEqual(createSnapshotCalls.length, 0, 'after-prompt leftover-looks-live must not createSnapshot');
 		assert.deepStrictEqual(errors, [conversationCreateSnapshotDisconnectedCopy]);
 	});
 });

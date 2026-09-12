@@ -8,6 +8,7 @@ import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { IClipboardService } from '../../../../platform/clipboard/common/clipboardService.js';
 import { IWebviewService } from '../../webview/browser/webview.js';
 import type { ConversationQuestionRespondAnswers, ConversationViewFrameApplied, ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { ConversationTimelineEntry } from './conversationSessionView.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { ConversationEngineHistoryList } from './conversationEngineHistoryList.js';
@@ -19,6 +20,7 @@ import { ConversationTrajectory } from './conversationTrajectory.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
 import type { ConversationMermaidExtensionInfo } from './conversationMermaidHost.js';
 import { findFirstPendingConfirmationTurnId as findFirstPendingConfirmationTurnIdFromTurns } from './conversationPendingSeat.js';
+import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
 export interface IConversationLensSessionBindingHost {
@@ -36,6 +38,7 @@ export interface IConversationLensSessionBindingHost {
 	mermaidExtensionInfo: ConversationMermaidExtensionInfo | undefined;
 	readonly slotHosts: IConversationLensSlots;
 	readonly stubService: IConversationRosterService;
+	readonly uaConnection: IUniverseAgentConnection;
 	readonly clipboardService: IClipboardService;
 	readonly webviewService: IWebviewService;
 	readonly visualizeOverlay: ConversationVisualizeOverlay;
@@ -52,6 +55,34 @@ export interface IConversationLensSessionBindingHost {
 	postBound(msg: ConversationWriteMessage): Promise<PostOutcome>;
 	showPostFailure(reason: ConversationComposerPostFailureReason): void;
 	focusTimelineRecord(turnId: string): void;
+}
+
+/** D285: phase still connected, pairing pending — do not treat as true disconnect. */
+function shouldKeepLeftoverTimelineForPairingHold(host: IConversationLensSessionBindingHost): boolean {
+	if (host.lastAttachedEntries.length === 0) {
+		return false;
+	}
+	const ua = host.uaConnection;
+	if (!ua) {
+		return false;
+	}
+	const snapshot = ua.getConnectionSnapshot();
+	return snapshot.pairingPending && isConversationEngineLive(ua.getConnectionPhase(), false);
+}
+
+/** Host surface shared by binding + composer leftover write gates (D294 / D295). */
+export interface IConversationPairingHoldWriteHost {
+	readonly uaConnection: IUniverseAgentConnection;
+	showPostFailure(reason: ConversationComposerPostFailureReason): void;
+}
+
+/** D294: leftover engine lease stays readable; writes use the disconnect notice. */
+export function rejectPairingHoldWrite(host: IConversationPairingHoldWriteHost): boolean {
+	if (!isConversationPairingHold(host.uaConnection)) {
+		return false;
+	}
+	host.showPostFailure('engine_disconnected');
+	return true;
 }
 
 export function bindSessionView(host: IConversationLensSessionBindingHost, sessionId: string): void {
@@ -75,6 +106,10 @@ export function bindSessionView(host: IConversationLensSessionBindingHost, sessi
 		host.sessionViewLease = undefined;
 		host.lastAttachedEntries = [];
 		host.timelineTree.applyEntries([], { kind: 'baseline' });
+		return;
+	}
+	if (shouldKeepLeftoverTimelineForPairingHold(host)) {
+		// D285: pairing-hold leftover stays painted (same keep as D269). First pull (no leftover) still rebinds.
 		return;
 	}
 	host.sessionViewLifetime.clear();
@@ -131,6 +166,9 @@ export function findFirstPendingConfirmationTurnId(host: IConversationLensSessio
 
 export async function resolveConfirmation(host: IConversationLensSessionBindingHost, turnId: string, status: 'allowed' | 'skipped'): Promise<void> {
 
+	if (rejectPairingHoldWrite(host)) {
+		return;
+	}
 	if (host.stubService.isEngineConnected()) {
 		const forwarded = host.stubService.resolveConfirmation(
 			host.getBoundSessionId(),
@@ -167,6 +205,9 @@ export async function resolveConfirmation(host: IConversationLensSessionBindingH
 
 export async function resolveQuestion(host: IConversationLensSessionBindingHost, turnId: string, requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string): Promise<void> {
 
+	if (rejectPairingHoldWrite(host)) {
+		return;
+	}
 	if (host.stubService.isEngineConnected()) {
 		const forwarded = host.stubService.respondQuestion(
 			host.getBoundSessionId(),
@@ -220,6 +261,9 @@ export function copyTurn(host: IConversationLensSessionBindingHost, text: string
 
 export function deleteTurn(host: IConversationLensSessionBindingHost, turnId: string): void {
 
+	if (rejectPairingHoldWrite(host)) {
+		return;
+	}
 	const deleted = host.stubService.deleteTurn(host.getBoundSessionId(), turnId);
 	if (!deleted) {
 		host.showPostFailure(
@@ -235,6 +279,9 @@ export function cancelToolCall(host: IConversationLensSessionBindingHost, turn: 
 
 	const toolCallId = turn.id.trim();
 	if (!toolCallId) {
+		return;
+	}
+	if (rejectPairingHoldWrite(host)) {
 		return;
 	}
 	const agentId = turn.agentId?.trim();
@@ -260,6 +307,9 @@ export function retryError(host: IConversationLensSessionBindingHost, turn: { re
 	}
 	const turnId = turn.turnId?.trim() || messageId;
 	const agentId = turn.agentId?.trim() || 'root';
+	if (rejectPairingHoldWrite(host)) {
+		return;
+	}
 	void host.postBound({
 		kind: 'continueGeneration',
 		agentId,

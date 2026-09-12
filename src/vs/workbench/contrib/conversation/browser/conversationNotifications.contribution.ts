@@ -18,6 +18,7 @@ import {
 	collectPendingAttentionRequestIds,
 	hasNewPendingAttention,
 	isConversationSessionInactive,
+	shouldAutoRevealPendingConfirmation,
 } from './conversationPendingSeat.js';
 import { showConversationPart } from './conversationSessionStatus.js';
 import { IConversationRosterService, type IConversationEngineActionFailure } from './conversationStubService.js';
@@ -140,7 +141,9 @@ export class ConversationNotificationsContribution extends Disposable implements
 	private openSessionAndRevealPending(sessionId: string): void {
 		this.rosterService.switchSession(sessionId);
 		this.instantiationService.invokeFunction(showConversationPart);
-		this.revealService.scrollToFirstPendingConfirmation();
+		if (shouldAutoRevealPendingConfirmation(this.uaConnection)) {
+			this.revealService.scrollToFirstPendingConfirmation();
+		}
 	}
 
 	private isInactiveSession(sessionId: string): boolean {

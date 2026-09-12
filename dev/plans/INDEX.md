@@ -3,8 +3,8 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-10
-summary: "dev/plans 导航：sources-accept-empty-success（draft；A1 已落；P5 停线；A2 须新选定）；M7 代码完成线仍 accepted；GitHub Actions 已关"
+updated: 2026-09-12
+summary: "dev/plans 导航：conversation-chrome-visibility（accepted；D403/D404 方案稿）；sources-accept-empty-success（draft；A1 已落；P5 停线）；composer-fake-chrome（accepted）；M7 仍 accepted；GitHub Actions 已关"
 ---
 
 # 方案
@@ -14,9 +14,10 @@ summary: "dev/plans 导航：sources-accept-empty-success（draft；A1 已落；
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
+| [conversation-chrome-visibility.md](conversation-chrome-visibility.md) | `accepted` | Maximize 藏 fail/Stop（D403）+ 窄宽 Back 藏 SAS 盒（D404）；仅可见性，不重开 D42 / Hub pairing |
 | [prd-008-engine-e2e.md](prd-008-engine-e2e.md) | `accepted` | PRD-008 唯一已定义升档路径：隔离 profile + 钉死引擎 + D4 CDP；硬前置 GC-1b 配对回路（首次配对即第一份证据） |
 | [test-baseline-ci.md](test-baseline-ci.md) | `accepted` | D16 账本 + `agent-ide` workflow（四 job **已关**，见 DISABLED.md）；三域账本外新红阻断合入；`min_cases` / `max_skipped` 防空跑 |
-| [packaging-and-release.md](packaging-and-release.md) | `accepted` | `gulp vscode-linux-x64` 验 `@grpc/grpc-js` 进包 + 活窗；D18 拆 Linux 子集 + 新 D 行；D20 需 300px 活窗且 dev-mode 缺包根因 |
+| [packaging-and-release.md](packaging-and-release.md) | `accepted` | `gulp vscode-linux-x64` 验 `@grpc/grpc-js` 进包 + 活窗；无窗 asar [D388](../roadmap/active/d388-packaging-p1-asar-machine.md) 已闭（未提交）；无窗 Linux-deb [D389](../roadmap/active/d389-packaging-p3-linux-deb-machine.md) planned（prepare-deb 三次 sysroot blocked）；无窗 vscode-web [D390](../roadmap/active/d390-packaging-p2-vscode-web-machine.md) planned（直接 CLI 16g/32g 仍 OOM，dest 未写）；D18/D20/D12 仍开 |
 | [giant-file-split.md](giant-file-split.md) | `accepted` | grpcClient（先特征测）/ timeline / lens / session-actor 按状态机·投影·IO 拆；GFS-4 每文件 800 硬上限；G6 只走上游删除 |
 | [docs-burden-reduction.md](docs-burden-reduction.md) | `implemented` | INDEX/traceability 状态列脚本生成（S1 一次接通；门禁改本地 health-gates）；status 单一真相；术语对外可读 |
 | [cross-repo-protocol.md](cross-repo-protocol.md) | `accepted` | G-ENG/NAV/REV/G3 扩消息 vs G2 session-core 对引擎仓提案清单，每行有闭合条件；D1 docs-only 修正登记处过时句 |
@@ -42,6 +43,7 @@ summary: "dev/plans 导航：sources-accept-empty-success（draft；A1 已落；
 | [navigator-engine-segments.md](navigator-engine-segments.md) | `accepted` | PRD-022：**N1–N4 已落**；**GC-5** Inspect/Team 读取态已落；**N5** 隔离 profile 验收待冒烟；缺口 G-NAV-1 / G-NAV-2 |
 | [sources-review-progress.md](sources-review-progress.md) | `accepted` | PRD-023：**R1–R4b 已落** @ `05007b60`–`f1065288`；**R5** 验收 + 知识层待冒烟；缺口 G-REV-1 |
 | [sources-accept-empty-success.md](sources-accept-empty-success.md) | `draft` | ADR-008 之后的产品 Accept：A1 已落；P5 停线（只批准停线）；A2 须新选定 + Arch-First；D31 F4 仍开 |
+| [composer-fake-chrome.md](composer-fake-chrome.md) | `accepted` | D194 出口选定「删」：无 voice/transcript/route capability，不门控不接 RPC；S1 四刀已落 `4156c6528f1`，本稿回补方案层与复开门禁 |
 | [chat-compare-split.md](chat-compare-split.md) | `implemented` | PRD-011 并排比对已落；D4 已验 |
 | [page-access-schemes.md](page-access-schemes.md) | `implemented` | 切片 1a–5 已落；M7 不重开混合宿主、同 token 与 Navigator 拓扑 |
 | [settings-two-surfaces.md](settings-two-surfaces.md) | `implemented` | 两主面边界 + C5/H0–H3 已落；Engine E2 / Client CS 代码完成线见 M7 方案（仍 accepted） |

@@ -25,6 +25,7 @@ import {
 	type EngineContextVariableListRow,
 } from './engineContextVariableList.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
+import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
 
 const $ = DOM.$;
 
@@ -32,6 +33,11 @@ const $ = DOM.$;
  * Engine Preferences Context Variables — honest List + Read. Connected
  * + hook only. Empty sessionId / agentId / name are sent as-is. Empty
  * name / updatedBy / contentPreview stay empty. updatedAt 0 stays as-is.
+ * Pairing-hold leftover keeps rows + disconnected note and disables Read
+ * (D316). Pairing-hold-first refresh (D351): leftover-looks-live first-pull
+ * (`isEngineConnected()===true` + pairingPending, no leftover) paints empty
+ * / disconnected and skips list; leftover WITH leftover still KEEP.
+ * Connected leftover still Reads. Disconnect still clears rows.
  */
 export class EngineContextVariableSection extends Disposable {
 
@@ -102,21 +108,20 @@ export class EngineContextVariableSection extends Disposable {
 	private async refresh(): Promise<void> {
 		const generation = ++this.renderGeneration;
 		const hook = this.connection.listContextVariable;
+		const pairingHold = isConversationPairingHold(this.connection);
 		const canSend = canSendEngineContextVariableListRequest(
 			this.connection.isEngineConnected(),
 			typeof hook === 'function',
+			pairingHold,
 		);
 
 		this.readStatus.style.display = 'none';
 		this.readStatus.textContent = '';
 		this.updateReadAction();
 
-		if (!this.connection.isEngineConnected()) {
-			this.clearListPresentation();
-			this.status.render({
-				mode: 'disconnected',
-				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
-			});
+		// D351 leftover-looks-live: pairing-hold first. KEEP is not only leftover + pairingHold.
+		if (pairingHold || !this.connection.isEngineConnected()) {
+			this.applyDisconnectedRefresh(this.rows.length > 0);
 			return;
 		}
 
@@ -143,7 +148,8 @@ export class EngineContextVariableSection extends Disposable {
 			if (generation !== this.renderGeneration) {
 				return;
 			}
-			if (!this.connection.isEngineConnected()) {
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+				this.applyDisconnectedRefresh(this.rows.length > 0);
 				return;
 			}
 			this.rows = flattenEngineContextVariableList(result.current, result.inherited);
@@ -160,6 +166,30 @@ export class EngineContextVariableSection extends Disposable {
 				onRetry: () => void this.refresh(),
 			});
 		}
+	}
+
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		if (!hadLiveCatalog) {
+			return false;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
+	}
+
+	private applyDisconnectedRefresh(hadLiveCatalog: boolean): void {
+		this.updateReadAction();
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			this.status.render({
+				mode: 'disconnected',
+				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+			});
+			return;
+		}
+		this.clearListPresentation();
+		this.status.render({
+			mode: 'disconnected',
+			onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+		});
 	}
 
 	private clearListPresentation(): void {
@@ -205,16 +235,21 @@ export class EngineContextVariableSection extends Disposable {
 		}
 	}
 
+	private isContextVariableReadPairingHold(): boolean {
+		return isConversationPairingHold(this.connection);
+	}
+
 	private updateReadAction(): void {
 		this.readButton.enabled = canSendEngineContextVariableRead(
 			this.connection.isEngineConnected(),
 			typeof this.connection.readContextVariable === 'function',
+			this.isContextVariableReadPairingHold(),
 		);
 	}
 
 	private async handleRead(): Promise<void> {
 		const hook = this.connection.readContextVariable;
-		if (!canSendEngineContextVariableRead(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
+		if (!canSendEngineContextVariableRead(this.connection.isEngineConnected(), typeof hook === 'function', this.isContextVariableReadPairingHold()) || !hook) {
 			return;
 		}
 		const request = engineContextVariableReadRequest(this.selectedRow?.entry);

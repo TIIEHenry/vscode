@@ -7,9 +7,48 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { GrpcStatusCode, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
 import { encodeDetailRef } from '../../common/conversationViewFrame.js';
+import type { SyncChrome, ViewPatch } from '../../common/sessionView/types.js';
+import type { IUniverseAgentSessionViewFrameEvent } from '../../common/universeAgentSessionView.js';
+import { AgentTreeCoordinator, flushAgentTreeCoordinator } from '../../node/agentTreeCoordinator.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
-import type { UniverseAgentCreateSessionRequest, UniverseAgentCreateSessionResult, UniverseAgentListSessionsResult } from '../../common/universeAgentTypes.js';
+import type { UniverseAgentAgentTreeNode, UniverseAgentCreateSessionRequest, UniverseAgentCreateSessionResult, UniverseAgentListSessionsResult } from '../../common/universeAgentTypes.js';
 import { TestConnection, TestHost } from './sessionViewHostTestHelpers.js';
+
+const ROOT_TREE: UniverseAgentAgentTreeNode = {
+	agentId: 'root',
+	name: 'Root',
+	type: 'AGENT_TYPE_ROOT',
+	status: 'AGENT_STATUS_IDLE',
+	model: 'test-model',
+	turnCount: 0,
+	createdAt: 0,
+	children: [],
+};
+
+function closedChromeFromFrames(frames: readonly IUniverseAgentSessionViewFrameEvent[]): Extract<SyncChrome, { kind: 'closed' }>[] {
+	return frames.flatMap(event => {
+		const body = event.frame.frame.body;
+		if (body.kind !== 'patches') {
+			return [];
+		}
+		return body.patches.filter((patch): patch is Extract<ViewPatch, { op: 'setSyncChrome' }> => patch.op === 'setSyncChrome');
+	}).map(patch => patch.sync).filter((sync): sync is Extract<SyncChrome, { kind: 'closed' }> => sync.kind === 'closed');
+}
+
+function liveTreePatchesFromFrames(frames: readonly IUniverseAgentSessionViewFrameEvent[]): Extract<ViewPatch, { op: 'setLiveAgentTree' }>[] {
+	return frames.flatMap(event => {
+		const body = event.frame.frame.body;
+		if (body.kind !== 'patches') {
+			return [];
+		}
+		return body.patches.filter((patch): patch is Extract<ViewPatch, { op: 'setLiveAgentTree' }> => patch.op === 'setLiveAgentTree');
+	});
+}
+
+function getTreeCoordinator(viewHost: SessionViewHost, sessionId: string): AgentTreeCoordinator | undefined {
+	const sidecars = (viewHost as unknown as { sessionSidecars: Map<string, { tree: AgentTreeCoordinator }> }).sessionSidecars;
+	return sidecars.get(sessionId)?.tree;
+}
 
 class BindConnection extends TestConnection {
 	readonly chatSessionIds: string[] = [];
@@ -136,7 +175,7 @@ suite('SessionViewHost engine session bind', () => {
 		assert.deepStrictEqual(connection.chatSessionIds, ['session-100']);
 	});
 
-	test('Resume of cached engine id failure is not treated as bind success', async () => {
+	test('Resume of cached engine id failure falls back to Create', async () => {
 		const connection = new BindConnection();
 		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
 			orphanTimeoutMs: 0,
@@ -148,14 +187,18 @@ suite('SessionViewHost engine session bind', () => {
 
 		await connection.disconnect();
 		viewHost.onEngineConnectionChanged();
-		connection['connected'] = true;
+		connection.setEngineConnected(true);
 		connection.resumeSessionResult = { ok: false, message: 'dead shell' };
+		connection.createdEngineId = 'eng-recreated';
 		viewHost.onEngineConnectionChanged();
-		await assert.rejects(
-			() => viewHost.whenEngineSessionReady('local-dead'),
-			(error: unknown) => error instanceof Error && /Resume bound session eng-real failed: dead shell/.test(error.message),
-		);
-		assert.strictEqual(connection.createSessionCalls.length, 1);
+		const engineId = await viewHost.whenEngineSessionReady('local-dead');
+		assert.strictEqual(engineId, 'eng-recreated');
+		assert.strictEqual(connection.createSessionCalls.length, 2);
+		assert.deepStrictEqual(connection.resumeSessionCalls, [
+			{ sessionId: 'local-dead' },
+			{ sessionId: 'eng-real' },
+			{ sessionId: 'local-dead' },
+		]);
 	});
 
 	test('Create ALREADY_EXISTS Resumes listed session_id and does not Create again', async () => {
@@ -440,5 +483,97 @@ suite('SessionViewHost engine session bind', () => {
 		if (!outcome.ok) {
 			assert.strictEqual(outcome.reason, 'unavailable');
 		}
+	});
+
+	test('leftover-looks-live onEngineConnectionChanged does not bring-up as live reconnect', async () => {
+		const connection = new BindConnection();
+		const host = new TestHost(async () => undefined);
+		const viewHost = store.add(new SessionViewHost(connection, host, {
+			orphanTimeoutMs: 0,
+		}));
+		const leaseId = viewHost.acquireLease('local-looks-live');
+		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(event => frames.push(event)));
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		connection.setPairingPending(true);
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+
+		viewHost.onEngineConnectionChanged();
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		await new Promise<void>(resolve => setImmediate(() => resolve()));
+
+		assert.strictEqual(connection.createSessionCalls.length, 0);
+		assert.deepStrictEqual(connection.resumeSessionCalls, []);
+		assert.deepStrictEqual(connection.streamSessionIds, []);
+		assert.deepStrictEqual(connection.chatSessionIds, []);
+		assert.strictEqual(host.treeFetchCount, 0);
+		assert.ok(
+			!closedChromeFromFrames(frames).some(sync => sync.reason === 'connection_down'),
+			'leftover-looks-live must not post connectionDown',
+		);
+	});
+
+	test('leftover-looks-live scheduleAgentTreeRefresh does not fetch or post live tree', async () => {
+		const connection = new BindConnection();
+		const host = new TestHost(async () => ROOT_TREE);
+		const viewHost = store.add(new SessionViewHost(connection, host, {
+			orphanTimeoutMs: 0,
+		}));
+		const leaseId = viewHost.acquireLease('local-tree-refresh-hold');
+		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(event => frames.push(event)));
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		connection.setPairingPending(true);
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+
+		host.requestRefresh('local-tree-refresh-hold');
+		connection.pushStreamEvent('eng-real', { sub_agent_completed: {} });
+		const coordinator = getTreeCoordinator(viewHost, 'local-tree-refresh-hold');
+		if (coordinator) {
+			await flushAgentTreeCoordinator(coordinator);
+		} else {
+			await new Promise<void>(resolve => setTimeout(resolve, 270));
+		}
+
+		assert.strictEqual(host.treeFetchCount, 0, 'leftover-looks-live must not fetchAgentTree');
+		assert.strictEqual(liveTreePatchesFromFrames(frames).length, 0, 'leftover-looks-live must not postAgentTreeBound');
+	});
+
+	test('leftover-looks-live scheduleAgentTreeRefresh is a no-op', async () => {
+		const connection = new BindConnection();
+		const host = new TestHost(async () => ROOT_TREE);
+		const viewHost = store.add(new SessionViewHost(connection, host, {
+			orphanTimeoutMs: 0,
+		}));
+		const leaseId = viewHost.acquireLease('local-tree-looks-live');
+		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(event => frames.push(event)));
+		viewHost.onEngineConnectionChanged();
+		await viewHost.whenEngineSessionReady('local-tree-looks-live');
+		const coordinator = getTreeCoordinator(viewHost, 'local-tree-looks-live');
+		if (coordinator) {
+			await flushAgentTreeCoordinator(coordinator);
+		}
+		const fetchesAfterBringUp = host.treeFetchCount;
+		const liveTreesAfterBringUp = liveTreePatchesFromFrames(frames).length;
+
+		connection.setPairingPending(true);
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+
+		host.requestRefresh('local-tree-looks-live');
+		connection.pushStreamEvent('eng-real', { sub_agent_completed: {} });
+		if (coordinator) {
+			await flushAgentTreeCoordinator(coordinator);
+		} else {
+			await new Promise<void>(resolve => setTimeout(resolve, 270));
+		}
+
+		assert.strictEqual(host.treeFetchCount, fetchesAfterBringUp, 'leftover-looks-live must not fetchAgentTree');
+		assert.strictEqual(liveTreePatchesFromFrames(frames).length, liveTreesAfterBringUp, 'leftover-looks-live must not postAgentTreeBound');
 	});
 });

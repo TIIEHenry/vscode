@@ -19,21 +19,21 @@ import type {
 	UniverseAgentReadGitSummaryResult,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { ISourcesChangeEntry } from './sourcesChangesModel.js';
-import { hasSourcesGitSessionId } from './sourcesChangesGitWrite.js';
+import { hasSourcesGitSessionId, isSourcesGitWriteLive } from './sourcesChangesGitWrite.js';
 
 /** Sources Changes / Review list → ReadGitChanges. Empty sessionId does not call the hook. */
-export function canSendSourcesGitChanges(connected: boolean, hasHook: boolean, sessionId: string): boolean {
-	return connected && hasHook && hasSourcesGitSessionId(sessionId);
+export function canSendSourcesGitChanges(connected: boolean, hasHook: boolean, sessionId: string, pairingHold = false): boolean {
+	return isSourcesGitWriteLive(connected, pairingHold) && hasHook && hasSourcesGitSessionId(sessionId);
 }
 
 /** Sources Changes / Review list → ReadGitSummary. Empty sessionId does not call the hook. */
-export function canSendSourcesGitSummary(connected: boolean, hasHook: boolean, sessionId: string): boolean {
-	return connected && hasHook && hasSourcesGitSessionId(sessionId);
+export function canSendSourcesGitSummary(connected: boolean, hasHook: boolean, sessionId: string, pairingHold = false): boolean {
+	return isSourcesGitWriteLive(connected, pairingHold) && hasHook && hasSourcesGitSessionId(sessionId);
 }
 
 /** Sources row open → ReadGitFileDiff. Empty sessionId does not call the hook. */
-export function canSendSourcesGitFileDiff(connected: boolean, hasHook: boolean, sessionId: string): boolean {
-	return connected && hasHook && hasSourcesGitSessionId(sessionId);
+export function canSendSourcesGitFileDiff(connected: boolean, hasHook: boolean, sessionId: string, pairingHold = false): boolean {
+	return isSourcesGitWriteLive(connected, pairingHold) && hasHook && hasSourcesGitSessionId(sessionId);
 }
 
 /** Same `sessionId` as write (`sourcesGitStagePathsRequest`). */
@@ -200,8 +200,9 @@ export async function tryReadSourcesGitChanges(
 	connected: boolean,
 	hook: ((request: UniverseAgentReadGitChangesRequest) => Promise<UniverseAgentReadGitChangesResult>) | undefined,
 	sessionId: string,
+	pairingHold = false,
 ): Promise<UniverseAgentReadGitChangesResult | undefined> {
-	if (!canSendSourcesGitChanges(connected, typeof hook === 'function', sessionId) || !hook) {
+	if (!canSendSourcesGitChanges(connected, typeof hook === 'function', sessionId, pairingHold) || !hook) {
 		return undefined;
 	}
 	return hook(sourcesGitChangesRequest(sessionId));
@@ -211,8 +212,9 @@ export async function tryReadSourcesGitSummary(
 	connected: boolean,
 	hook: ((request: UniverseAgentReadGitSummaryRequest) => Promise<UniverseAgentReadGitSummaryResult>) | undefined,
 	sessionId: string,
+	pairingHold = false,
 ): Promise<UniverseAgentReadGitSummaryResult | undefined> {
-	if (!canSendSourcesGitSummary(connected, typeof hook === 'function', sessionId) || !hook) {
+	if (!canSendSourcesGitSummary(connected, typeof hook === 'function', sessionId, pairingHold) || !hook) {
 		return undefined;
 	}
 	return hook(sourcesGitSummaryRequest(sessionId));
@@ -224,8 +226,9 @@ export async function tryReadSourcesGitFileDiff(
 	sessionId: string,
 	path: string,
 	indexState: string,
+	pairingHold = false,
 ): Promise<UniverseAgentReadGitFileDiffResult | undefined> {
-	if (!canSendSourcesGitFileDiff(connected, typeof hook === 'function', sessionId) || !hook) {
+	if (!canSendSourcesGitFileDiff(connected, typeof hook === 'function', sessionId, pairingHold) || !hook) {
 		return undefined;
 	}
 	return hook(sourcesGitFileDiffRequest(sessionId, path, indexState));
@@ -275,6 +278,25 @@ export function shouldKeepSourcesGitReadNoHookLeftover(
 }
 
 /**
+ * Phase `connected` + pairingPending after a live git-read paint keeps leftover
+ * engine rows. `isEngineConnected()` is false during pairing (D277), so git-read
+ * is skipped; this gate must win over SCM / local-only. First-pull leftoverCount 0
+ * and true disconnect (phase not connected) are not this gate.
+ */
+export function shouldKeepSourcesGitReadPairingHoldLeftover(
+	phaseConnected: boolean,
+	pairingPending: boolean,
+	leftoverCount: number,
+): boolean {
+	return phaseConnected && pairingPending && leftoverCount > 0;
+}
+
+/** Honest status when git-read leftover is held through pairing (not SCM local-only). */
+export function sourcesGitReadPairingHoldMessage(): string {
+	return localize('sourcesChangesGitRead.pairingHold', "Engine not connected — pairing in progress.");
+}
+
+/**
  * Non-empty engine list is the only authoritative git-read result.
  * Empty `entries` is the same SCM fallback as `supported: false`.
  */
@@ -288,15 +310,16 @@ export async function tryLoadSourcesGitChangeEntries(
 	readSummary: ((request: UniverseAgentReadGitSummaryRequest) => Promise<UniverseAgentReadGitSummaryResult>) | undefined,
 	rootUri: URI | undefined,
 	sessionId: string,
+	pairingHold = false,
 ): Promise<{ entries: ISourcesChangeEntry[]; summary: UniverseAgentReadGitSummaryResult | undefined } | undefined> {
-	const changes = await tryReadSourcesGitChanges(connected, readChanges, sessionId);
+	const changes = await tryReadSourcesGitChanges(connected, readChanges, sessionId, pairingHold);
 	if (!changes || !changes.supported || changes.entries.length === 0) {
 		return undefined;
 	}
 
 	// Summary throw is the same failure class as Changes throw: callers paint
 	// sourcesGitReadFailureMessage and must not keep engine entries as "no summary".
-	const summary = await tryReadSourcesGitSummary(connected, readSummary, sessionId);
+	const summary = await tryReadSourcesGitSummary(connected, readSummary, sessionId, pairingHold);
 
 	return {
 		entries: collectSourcesGitChangeEntries(changes.entries, rootUri),

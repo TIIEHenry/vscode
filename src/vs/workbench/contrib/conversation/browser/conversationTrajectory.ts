@@ -523,6 +523,10 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		return this.visible;
 	}
 
+	getPaintedRecordCount(): number {
+		return this.currentRecords.length;
+	}
+
 	setRecords(records: readonly ConversationTrajectoryRecord[], linkedTurnIds?: ReadonlySet<string>): void {
 		this.currentRecords = records;
 		if (linkedTurnIds) {

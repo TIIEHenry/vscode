@@ -10,7 +10,7 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { shouldRestoreLastSessionOnStartup } from '../common/uaClientSettingsHelpers.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { isConversationEngineLive } from './conversationSessionStatus.js';
+import { isConversationEngineLive, isConversationPairingHold, shouldKeepLiveTreeLeaseWhilePairing, shouldRebindLiveTreeLeaseWhilePairing } from './conversationSessionStatus.js';
 import { IUniverseAgentSessionView } from '../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import type { ConversationQuestionRespondAnswers, IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { ConversationEngineFrameSource } from './conversationEngineFrameSource.js';
@@ -62,6 +62,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	private readonly engineFrameSource: ConversationEngineFrameSource;
 	private readonly liveTreeObservationStore = this._register(new DisposableStore());
+	private liveTreeObservationLease: IConversationSessionViewLease | undefined;
 	protected readonly _onDidChangeLiveAgentTree = this._register(new Emitter<ILiveAgentTreeChangeEvent>());
 	override readonly onDidChangeLiveAgentTree = this._onDidChangeLiveAgentTree.event;
 	private readonly _onDidFailEngineAction = this._register(new Emitter<IConversationEngineActionFailure>());
@@ -109,6 +110,14 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 		const snapshot = this.uaConnection.getConnectionSnapshot();
 		return isConversationEngineLive(this.uaConnection.getConnectionPhase(), snapshot.pairingPending);
+	}
+
+	/**
+	 * D374 leftover-looks-live: pairing-hold first. `isEngineConnected()===true`
+	 * + pairingPending / `isConversationPairingHold` is not live KEEP-chrome.
+	 */
+	private isEngineLiveChrome(): boolean {
+		return this.isEngineConnected() && !isConversationPairingHold(this.uaConnection);
 	}
 
 	override isEngineSessionReady(): boolean {
@@ -160,7 +169,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	/** Client setting gate for advertising IDE workspace tools to Engine (PRD-026). */
 	shouldAdvertiseClientWorkspaceTools(): boolean {
-		return this.isEngineConnected() && this.workspaceToolsGate.shouldAdvertise();
+		return this.isEngineLiveChrome() && this.workspaceToolsGate.shouldAdvertise();
 	}
 
 	override setEngineConnected(connected: boolean): void {
@@ -170,7 +179,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		this.testEngineConnected = connected;
 		super.setEngineConnected(connected);
 		if (connected) {
-			this.wasEverConnected = true;
+			if (this.isEngineLiveChrome()) {
+				this.wasEverConnected = true;
+			}
 			if (!this.shouldAdvertiseClientWorkspaceTools()) {
 				// Workspace-tool advertisement withheld by ua.client.clientTools.advertiseWorkspaceTools.
 			}
@@ -254,7 +265,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override getTrajectoryRecords(sessionId: string, options?: TrajectoryProjectionOptions): readonly ConversationTrajectoryRecord[] {
 		if ((this.isEngineConnected() || this.wasEverConnected) && this.engineSessions.some(session => session.id === sessionId)) {
-			if (this.isEngineConnected()) {
+			if (this.canReadCachedEngineProjection()) {
 				const projection = this.engineFrameSource.getCachedProjection(sessionId);
 				if (projection) {
 					return projectSnapshotToTrajectory(projection.snapshot, projection.attribution, projection.details, options);
@@ -270,7 +281,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return [];
 		}
 		if ((this.isEngineConnected() || this.wasEverConnected) && this.engineSessions.some(session => session.id === sessionId)) {
-			if (this.isEngineConnected()) {
+			if (this.canReadCachedEngineProjection()) {
 				const projection = this.engineFrameSource.getCachedProjection(sessionId);
 				if (projection) {
 					return entriesToLegacyTurns(projectSnapshotToEntries(projection.snapshot, projection.attribution, projection.details));
@@ -281,7 +292,23 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.getTurns(sessionId);
 	}
 
+	/** D287–D289/D291: leftover cached projection stays readable while pairing-hold; true disconnect does not. */
+	private canReadCachedEngineProjection(): boolean {
+		return this.isEngineConnected() || isConversationPairingHold(this.uaConnection);
+	}
+
 	override switchSession(sessionId: string): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			if (this.engineSessions.some(s => s.id === sessionId)) {
+				const previous = this.getActiveSessionId();
+				this.activeEngineSessionId = sessionId;
+				if (previous !== sessionId) {
+					this._onDidChangeActiveSession.fire(sessionId);
+				}
+				this.persistEngineAwareRoster();
+			}
+			return;
+		}
 		if ((this.isEngineConnected() || this.wasEverConnected) && this.engineSessions.some(s => s.id === sessionId)) {
 			const previous = this.getActiveSessionId();
 			this.activeEngineSessionId = sessionId;
@@ -300,6 +327,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override createSession(): string {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return '';
+		}
 		if (this.isEngineConnected()) {
 			void this.ensureEngineSession().then(() => {
 				this.bindLiveTreeObservationLease();
@@ -319,6 +349,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override renameSession(sessionId: string, title: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.renameEngineSession(sessionId, title, true);
 		}
@@ -329,6 +362,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override cancelGeneration(sessionId: string, agentId?: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.cancelEngineGeneration(sessionId, agentId, true);
 		}
@@ -339,6 +375,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override setSessionGoal(sessionId: string, goal: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.setEngineSessionGoal(sessionId, goal, true);
 		}
@@ -349,6 +388,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override cancelSessionGoal(sessionId: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.cancelEngineSessionGoal(sessionId, true);
 		}
@@ -366,6 +408,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override forkSubAgent(sessionId: string, options?: { name?: string; task?: string; parentAgentId?: string }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.forkEngineSubAgent(sessionId, options, true);
 		}
@@ -376,6 +421,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override killSubAgent(sessionId: string, options?: { agentId?: string; force?: boolean }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.killEngineSubAgent(sessionId, options, true);
 		}
@@ -386,6 +434,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override createSnapshot(sessionId: string, options?: { title?: string; description?: string }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.createEngineSnapshot(sessionId, options, true);
 		}
@@ -396,6 +447,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override cancelToolCall(sessionId: string, options: { toolCallId: string; agentId?: string }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.cancelEngineToolCall(sessionId, options, true);
 		}
@@ -406,6 +460,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override retryError(sessionId: string, options: { messageId: string; turnId?: string; agentId?: string }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.continueEngineGeneration(sessionId, options, true);
 		}
@@ -416,6 +473,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override deleteTurn(sessionId: string, turnId: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.deleteEngineMessage(sessionId, turnId, true);
 		}
@@ -426,6 +486,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override updateUserTurnText(sessionId: string, turnId: string, text: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.editEngineMessage(sessionId, turnId, text, true);
 		}
@@ -436,6 +499,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override enqueueMessageQueueItem(sessionId: string, text: string, options?: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.enqueueEngineQueueItem(sessionId, text, options, true);
 		}
@@ -446,6 +512,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override retryMessageQueueItem(sessionId: string, itemId: string, options?: { upload?: boolean }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.retryEngineQueueItem(sessionId, itemId, options, true);
 		}
@@ -491,6 +560,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override pauseMessageQueue(sessionId: string): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return;
+		}
 		if (this.isEngineConnected()) {
 			this.forwardEngineQueueRef(sessionId, 'pauseQueue', true, () => this.uaConnection.pauseQueue({ sessionId }));
 			return;
@@ -501,6 +573,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override resumeMessageQueue(sessionId: string): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return;
+		}
 		if (this.isEngineConnected()) {
 			this.forwardEngineQueueRef(sessionId, 'resumeQueue', true, () => this.uaConnection.resumeQueue({ sessionId }));
 			return;
@@ -511,6 +586,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override clearMessageQueue(sessionId: string): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return;
+		}
 		if (this.isEngineConnected()) {
 			this.forwardEngineQueueRef(sessionId, 'clearQueue', true, () => this.uaConnection.clearQueue({ sessionId }));
 			return;
@@ -521,6 +599,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override holdMessageQueueItem(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return;
+		}
 		if (this.isEngineConnected()) {
 			this.forwardEngineQueueItem(sessionId, itemId, 'holdQueueItem', true, id => this.uaConnection.holdQueueItem({
 				sessionId,
@@ -535,6 +616,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override releaseMessageQueueItemHold(sessionId: string, itemId: string): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return;
+		}
 		if (this.isEngineConnected()) {
 			this.forwardEngineQueueItem(sessionId, itemId, 'releaseQueueItemHold', true, id => this.uaConnection.releaseQueueItemHold({
 				sessionId,
@@ -548,6 +632,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override updateMessageQueueItemContent(sessionId: string, itemId: string, content: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.editEngineQueueItem(sessionId, itemId, content, true);
 		}
@@ -558,6 +645,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.respondEnginePermission(sessionId, turnId, status, true);
 		}
@@ -568,6 +658,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override respondClientTool(sessionId: string, callId: string, options?: { content?: string; isError?: boolean; metadataJson?: string }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.sendEngineClientToolResponse(sessionId, callId, options, true);
 		}
@@ -578,6 +671,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override respondQuestion(sessionId: string, questionId: string, answers?: ConversationQuestionRespondAnswers, customText?: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.respondEngineQuestion(sessionId, questionId, answers, customText, true);
 		}
@@ -588,6 +684,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override deleteSession(sessionId: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.deleteEngineSession(sessionId, true);
 		}
@@ -620,18 +719,59 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			}
 			return this.engineFrameSource.acquire(sessionId);
 		}
+		// D289: pairing-hold leftover still acquires engine frames (notifications/reveal new lease).
+		if (this.shouldKeepEngineSessionViewLeaseWhilePairing(sessionId)) {
+			return this.engineFrameSource.acquire(sessionId);
+		}
 		return super.acquireSessionView(sessionId);
 	}
 
+	/** Pairing-hold + leftover engine session/cache. True disconnect and placeholders stay stub. */
+	private shouldKeepEngineSessionViewLeaseWhilePairing(sessionId: string): boolean {
+		if (!isConversationPairingHold(this.uaConnection) || isEngineRosterPlaceholderSessionId(sessionId)) {
+			return false;
+		}
+		return (this.wasEverConnected && this.engineSessions.some(session => session.id === sessionId))
+			|| !!this.engineFrameSource.getCachedProjection(sessionId);
+	}
+
 	override getSessionSync(sessionId: string): SyncChrome {
-		if (this.isEngineConnected()) {
+		if (this.canReadCachedEngineProjection()) {
 			const projection = this.engineFrameSource.getCachedProjection(sessionId);
 			if (projection) {
-				return projection.snapshot.sync;
+				return this.sessionSyncFromCachedProjection(projection.snapshot.sync);
 			}
-			return { kind: 'idle' };
+			if (this.isEngineConnected()) {
+				return { kind: 'idle' };
+			}
 		}
 		return super.getSessionSync(sessionId);
+	}
+
+	/**
+	 * D293 / D374: pairing-hold leftover live/syncing/degraded still says
+	 * "Session live" while writes are closed — including leftover-looks-live
+	 * (`isEngineConnected()===true` + pairing-hold). Keep literal closed leftover
+	 * (D288); demote active kinds to the existing engine-cache closed chrome.
+	 */
+	private sessionSyncFromCachedProjection(sync: SyncChrome): SyncChrome {
+		if (this.isEngineLiveChrome() || sync.kind === 'closed' || sync.kind === 'idle') {
+			return sync;
+		}
+		return {
+			kind: 'closed',
+			reason: localize('conversationRoster.engineCacheReason', "Cached snapshot (read-only)"),
+		};
+	}
+
+	override countPendingConfirmations(sessionId: string): number {
+		if (this.canReadCachedEngineProjection()) {
+			const projection = this.engineFrameSource.getCachedProjection(sessionId);
+			if (projection) {
+				return projection.snapshot.pendingActions.length;
+			}
+		}
+		return super.countPendingConfirmations(sessionId);
 	}
 
 	protected override shouldSkipLocalPersistence(): boolean {
@@ -691,6 +831,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		this.activeEngineSessionId = sessionId;
 		if (previous !== sessionId) {
 			this._onDidChangeActiveSession.fire(sessionId);
+		}
+		if (isConversationPairingHold(this.uaConnection)) {
+			return;
 		}
 		if (this.isEngineConnected()) {
 			this.uaConnection.requestAgentTreeRefresh(sessionId);
@@ -1285,7 +1428,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	private onUaConnectionChanged(): void {
 		const connected = this.isEngineConnected();
 		if (connected) {
-			this.wasEverConnected = true;
+			if (this.isEngineLiveChrome()) {
+				this.wasEverConnected = true;
+			}
 			this.testEngineConnected = undefined;
 			super.setEngineConnected(true);
 			void this.refreshEngineCatalog();
@@ -1303,10 +1448,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (this._store.isDisposed || this.suppressBindLiveTreeObservationLease) {
 			return;
 		}
-		if (!this.isEngineConnected()) {
-			return;
-		}
 		const sessionId = this.pendingEngineBindSessionId || this.getActiveSessionId();
+		if (!this.isEngineConnected()) {
+			const leaseSessionId = this.liveTreeObservationLease?.sessionId;
+			if (shouldKeepLiveTreeLeaseWhilePairing(this.uaConnection, leaseSessionId, sessionId)
+				|| !shouldRebindLiveTreeLeaseWhilePairing(this.uaConnection, leaseSessionId, sessionId)) {
+				// D286/D292: pairing-hold same session keeps observation. True disconnect
+				// still returns without clearing. Session switch while pairing falls through.
+				return;
+			}
+		}
 		if (!sessionId || isEngineRosterPlaceholderSessionId(sessionId)) {
 			return;
 		}
@@ -1332,6 +1483,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		} else {
 			this.activePendingBindLeaseSessionId = undefined;
 		}
+		this.liveTreeObservationLease = lease;
 		this.liveTreeObservationStore.add(lease);
 		this.liveTreeObservationStore.add(lease.onDidApplyFrame(() => this.emitLiveAgentTreeFromLease(lease)));
 		this.emitLiveAgentTreeFromLease(lease);
@@ -1428,6 +1580,10 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	private refreshEngineCatalog(): Promise<void> {
+		// D344 leftover-looks-live: pairing-hold first. KEEP leftover roster; do not extra listSessions.
+		if (isConversationPairingHold(this.uaConnection)) {
+			return this.refreshEngineCatalogInflight ?? Promise.resolve();
+		}
 		if (this.refreshEngineCatalogInflight) {
 			return this.refreshEngineCatalogInflight;
 		}
@@ -1444,6 +1600,10 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		this.clearPendingEngineBindClientSessionId();
 		try {
 			const result = await this.uaConnection.listSessions({});
+			// D379 leftover-looks-live: pairing-hold first after await. KEEP leftover; 0 Create / activate-as-live.
+			if (isConversationPairingHold(this.uaConnection)) {
+				return;
+			}
 			this.engineSessions = result.sessions
 				.filter(s => s.sessionId && !STUB_SEED_IDS.has(s.sessionId))
 				.map(s => ({

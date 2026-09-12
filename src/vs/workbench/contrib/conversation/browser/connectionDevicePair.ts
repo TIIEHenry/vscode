@@ -7,8 +7,8 @@ import { localize } from '../../../../nls.js';
 import type { UniverseAgentPendingPairInfo } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 
 /** Connection Devices → ListPending / PairApprove / PairReject. Empty ids are still sent. */
-export function canSendConnectionDevicePairRequest(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
+export function canSendConnectionDevicePairRequest(connected: boolean, hasHook: boolean, pairingHold = false): boolean {
+	return connected && hasHook && !pairingHold;
 }
 
 /** Pass through empty `pairingCode` / `displayName` / `role` as-is (no default / no trim). */

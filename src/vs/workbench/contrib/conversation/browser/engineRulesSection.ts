@@ -22,6 +22,7 @@ import {
 } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 
 const $ = DOM.$;
@@ -133,6 +134,23 @@ export class EngineRulesSection extends Disposable {
 		return mode;
 	}
 
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		return hadLiveCatalog && isConversationPairingHold(this.connection);
+	}
+
+	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): void {
+		// D356 leftover-looks-live: pairing-hold first. KEEP chrome is not only `!connected`.
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			this.scopePanels.style.display = '';
+			this.listPhase = { kind: 'none' };
+			this.renderStatus(this.resolveMode(false, support));
+			return;
+		}
+		this.clearPresentation();
+		this.listPhase = { kind: 'none' };
+		this.renderStatus(this.resolveMode(false, support));
+	}
+
 	private async refresh(): Promise<void> {
 		const generation = ++this.refreshGeneration;
 		const connected = this.connection.isEngineConnected();
@@ -140,10 +158,8 @@ export class EngineRulesSection extends Disposable {
 		const support = combineRulesSupport(capabilities.globalRules.support, capabilities.projectRules.support);
 		const reason = capabilities.globalRules.reason ?? capabilities.projectRules.reason;
 
-		if (!connected) {
-			this.clearPresentation();
-			this.listPhase = { kind: 'none' };
-			this.renderStatus(this.resolveMode(false, support));
+		if (isConversationPairingHold(this.connection) || !connected) {
+			this.applyDisconnectedRefresh(support, this.ruleCount > 0);
 			return;
 		}
 
@@ -184,10 +200,8 @@ export class EngineRulesSection extends Disposable {
 			if (generation !== this.refreshGeneration) {
 				return;
 			}
-			if (!this.connection.isEngineConnected()) {
-				this.clearPresentation();
-				this.listPhase = { kind: 'none' };
-				this.renderStatus(this.resolveMode(false, support));
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+				this.applyDisconnectedRefresh(support, this.ruleCount > 0);
 				return;
 			}
 			const itemCount = global.rules.length + project.rules.length;

@@ -43,8 +43,10 @@ import { conversationSubAgentOverlayClass, conversationSubAgentOverlayBackdropCl
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { IConversationLensSlots } from '../../../../browser/parts/conversation/conversationPart.js';
 import { ConversationStubService, IConversationRosterService, type ILiveAgentTreeChangeEvent } from '../../browser/conversationStubService.js';
-import type { IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { ConversationViewFrameApplied, IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
 import { ConversationDiffReviewInputTypeId } from '../../../sources/common/conversationDiffReviewInput.js';
 import { registerTestConversationDiffReviewEditor } from './conversationDiffReviewTestEditor.js';
@@ -52,7 +54,7 @@ import { ForkConversationAction } from '../../../chat/browser/actions/chatForkAc
 import { isDefaultCodeWindow } from '../../../chat/browser/chatShellRouting.js';
 import { IChatSessionsService } from '../../../chat/common/chatSessionsService.js';
 import { getChatSessionType } from '../../../chat/common/model/chatUri.js';
-import { tryConnectedEngineFork } from '../../browser/conversationForkEngine.js';
+import { conversationForkEngineDisconnectedCopy, tryConnectedEngineFork } from '../../browser/conversationForkEngine.js';
 
 const TEST_CONVERSATION_CHAT_EDITOR_ID = 'workbench.editor.conversationChat.test';
 
@@ -149,6 +151,34 @@ suite('Conversation session chat (S3)', () => {
 		override forkSubAgent(sessionId: string): boolean {
 			this.forkCalls.push({ sessionId });
 			return false;
+		}
+	}
+
+	class PairingHoldHistoryForkRoster extends ConversationStubService {
+		override isEngineConnected(): boolean {
+			return false;
+		}
+
+		override hasEngineConnectionHistory(): boolean {
+			return true;
+		}
+
+		override forkSubAgent(): boolean {
+			throw new Error('must not engine-fork while pairing-hold');
+		}
+	}
+
+	class DisconnectHistoryForkRoster extends ConversationStubService {
+		override isEngineConnected(): boolean {
+			return false;
+		}
+
+		override hasEngineConnectionHistory(): boolean {
+			return true;
+		}
+
+		override forkSubAgent(): boolean {
+			throw new Error('must not engine-fork while disconnected');
 		}
 	}
 
@@ -259,7 +289,7 @@ suite('Conversation session chat (S3)', () => {
 
 				const roster = accessor.get(IConversationRosterService);
 				const notificationService = accessor.get(INotificationService);
-				const outcome = tryConnectedEngineFork(roster, notificationService);
+				const outcome = tryConnectedEngineFork(roster, notificationService, accessor.get(IUniverseAgentConnection));
 				if (outcome.handled) {
 					return { kind: 'engine' as const, forked: outcome.forked, handled: outcome.handled };
 				}
@@ -311,13 +341,14 @@ suite('Conversation session chat (S3)', () => {
 		}
 	});
 
-	async function createHarness(rosterService: IConversationRosterService = new ConversationStubService(), notificationService?: INotificationService) {
+	async function createHarness(rosterService: IConversationRosterService = new ConversationStubService(), notificationService?: INotificationService, uaConnection?: IUniverseAgentConnection) {
 		const instantiationService = workbenchInstantiationService({
 			configurationService: () => new TestConfigurationService({
 				workbench: { editor: { enablePreview: false } },
 			}),
 		}, store);
 		instantiationService.stub(IConversationRosterService, rosterService);
+		instantiationService.stub(IUniverseAgentConnection, uaConnection ?? createConversationConnectionTestStub());
 		if (notificationService) {
 			instantiationService.stub(INotificationService, notificationService);
 		}
@@ -494,6 +525,80 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(sessionChatService.getCatalog(SESSION_KEY).length, 0);
 	});
 
+	test('pairing-hold leftover fork is handled, not forked, and does not fall through to local stub tab', async () => {
+		const roster = store.add(new PairingHoldHistoryForkRoster());
+		const errors: string[] = [];
+		const ua = createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...createConversationConnectionTestStub().getConnectionSnapshot(),
+				pairingPending: true,
+			}),
+		});
+		const { instantiationService, conversationPart, sessionChatService } = await createHarness(roster, {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService, ua);
+		instantiationService.stub(IWorkbenchEnvironmentService, upcastPartial<IWorkbenchEnvironmentService>({ isSessionsWindow: false }));
+		instantiationService.stub(IConversationSessionChatService, sessionChatService);
+		instantiationService.stub(IConversationRosterService, roster);
+
+		let forkCalls = 0;
+		instantiationService.stub(IChatSessionsService, upcastPartial<IChatSessionsService>({
+			getContentProviderSchemes: () => ['agent-host-copilot'],
+			forkChatSession: async () => {
+				forkCalls++;
+				return {
+					resource: URI.parse('agent-host-copilot:/fork-source#peer-1'),
+					label: 'Forked peer',
+					iconPath: undefined,
+					timing: { created: 0, lastRequestStarted: 0, lastRequestEnded: 0 },
+				};
+			},
+		}));
+
+		const forked = await new TestConversationForkAction().tryForkAsChat(
+			instantiationService,
+			URI.parse('agent-host-copilot:/fork-source'),
+		);
+		assert.strictEqual(forked, false);
+		assert.deepStrictEqual(errors, [conversationForkEngineDisconnectedCopy]);
+		assert.strictEqual(forkCalls, 0);
+		assert.strictEqual(conversationPart.activeGroup.count, 1);
+		assert.strictEqual(sessionChatService.getCatalog(SESSION_KEY).length, 0);
+	});
+
+	test('disconnected with history still falls through to local fork tab', async () => {
+		const roster = store.add(new DisconnectHistoryForkRoster());
+		const { instantiationService, conversationPart, sessionChatService } = await createHarness(roster);
+		instantiationService.stub(IWorkbenchEnvironmentService, upcastPartial<IWorkbenchEnvironmentService>({ isSessionsWindow: false }));
+		instantiationService.stub(IConversationSessionChatService, sessionChatService);
+		instantiationService.stub(IConversationRosterService, roster);
+
+		const sourceSessionResource = URI.parse('agent-host-copilot:/fork-source');
+		const forkedResource = URI.parse('agent-host-copilot:/fork-source#peer-1');
+		let forkCalls = 0;
+		instantiationService.stub(IChatSessionsService, upcastPartial<IChatSessionsService>({
+			getContentProviderSchemes: () => ['agent-host-copilot'],
+			forkChatSession: async () => {
+				forkCalls++;
+				return {
+					resource: forkedResource,
+					label: 'Forked peer',
+					iconPath: undefined,
+					timing: { created: 0, lastRequestStarted: 0, lastRequestEnded: 0 },
+				};
+			},
+		}));
+
+		const handled = await new TestConversationForkAction().tryForkAsChat(instantiationService, sourceSessionResource);
+		assert.strictEqual(handled, true);
+		assert.strictEqual(forkCalls, 1);
+		assert.strictEqual(conversationPart.activeGroup.count, 2);
+		assert.ok(sessionChatService.findOpenTabForChat(SESSION_KEY, 'peer-1'));
+	});
+
 	test('fork openForkTab throw notifies error without unhandled rejection', async () => {
 		const boom = new Error(`Conversation editor part for session ${SESSION_KEY} is not available`);
 		const errors: string[] = [];
@@ -558,6 +663,212 @@ suite('Conversation session chat (S3)', () => {
 			children,
 		};
 	}
+
+	test('bindLiveTreeLease keeps leftover lease while pairingPending then true disconnect clears', async () => {
+		let connected = true;
+		let pairingPending = false;
+		class PairingLiveTreeRoster extends ConversationStubService {
+			acquireCount = 0;
+			leaseDisposed = false;
+			private readonly leaseEmitter = this._register(new Emitter<ConversationViewFrameApplied>());
+			liveAgentTree: LiveAgentTreeNodeView = makeLiveAgentTree([makeSubAgent('research', 'Research')]);
+
+			override isEngineConnected(): boolean {
+				return connected && !pairingPending;
+			}
+			override isEngineSessionReady(): boolean {
+				return connected && !pairingPending;
+			}
+			override getActiveSessionId(): string {
+				return SESSION_KEY;
+			}
+			override acquireSessionView(sessionId: string): IConversationSessionViewLease {
+				this.acquireCount++;
+				const roster = this;
+				return {
+					sessionId,
+					get snapshot() {
+						return { liveAgentTree: roster.liveAgentTree } as IConversationSessionViewLease['snapshot'];
+					},
+					attribution: new Map(),
+					details: new Map(),
+					onDidApplyFrame: this.leaseEmitter.event,
+					post: async () => ({ accepted: true, correlation: { id: 't' } }),
+					requestResync: () => { },
+					dispose: () => { roster.leaseDisposed = true; },
+				};
+			}
+			setPairingPending(value: boolean): void {
+				pairingPending = value;
+				this._onDidChangeEngineConnection.fire(this.isEngineConnected());
+			}
+			setDisconnected(): void {
+				pairingPending = false;
+				connected = false;
+				this._onDidChangeEngineConnection.fire(false);
+			}
+			fireLeaseFrame(): void {
+				this.leaseEmitter.fire({ kind: 'baseline' });
+			}
+		}
+		const roster = store.add(new PairingLiveTreeRoster());
+		const uaConnection = createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'idle',
+				pairingPending,
+				channelAlive: false,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+		const { sessionChatService } = await createHarness(roster, undefined, uaConnection);
+		assert.ok(roster.acquireCount >= 1);
+		assert.ok(sessionChatService.getCatalog(SESSION_KEY).some(entry => entry.chatId === 'research'));
+		const acquireAfterBind = roster.acquireCount;
+
+		pairingPending = true;
+		assert.strictEqual(roster.isEngineConnected(), false);
+		roster.setPairingPending(true);
+		assert.strictEqual(roster.leaseDisposed, false);
+		assert.strictEqual(roster.acquireCount, acquireAfterBind);
+		assert.ok(sessionChatService.getCatalog(SESSION_KEY).some(entry => entry.chatId === 'research'));
+
+		roster.liveAgentTree = makeLiveAgentTree([
+			makeSubAgent('research', 'Research'),
+			makeSubAgent('web', 'Web search'),
+		]);
+		roster.fireLeaseFrame();
+		assert.ok(sessionChatService.getCatalog(SESSION_KEY).some(entry => entry.chatId === 'web'));
+
+		pairingPending = false;
+		connected = false;
+		roster.setDisconnected();
+		assert.strictEqual(roster.leaseDisposed, true);
+		roster.liveAgentTree = makeLiveAgentTree([makeSubAgent('ghost', 'Ghost')]);
+		roster.fireLeaseFrame();
+		assert.ok(!sessionChatService.getCatalog(SESSION_KEY).some(entry => entry.chatId === 'ghost'));
+	});
+
+	test('bindLiveTreeLease rebinds leftover to new session while pairingPending then same-session keeps', async () => {
+		const sessionA = 'ua-a';
+		const sessionB = 'ua-b';
+		let connected = true;
+		let pairingPending = false;
+		let activeSessionId = sessionA;
+		const trees: Record<string, LiveAgentTreeNodeView> = {
+			[sessionA]: makeLiveAgentTree([makeSubAgent('research', 'Research')]),
+			[sessionB]: makeLiveAgentTree([makeSubAgent('web', 'Web search')]),
+		};
+		class PairingSwitchLiveTreeRoster extends ConversationStubService {
+			acquireCount = 0;
+			readonly acquireIds: string[] = [];
+			private readonly leaseEmitters = new Map<string, Emitter<ConversationViewFrameApplied>>();
+
+			override isEngineConnected(): boolean {
+				return connected && !pairingPending;
+			}
+			override isEngineSessionReady(): boolean {
+				return connected && !pairingPending;
+			}
+			override getActiveSessionId(): string {
+				return activeSessionId;
+			}
+			override acquireSessionView(sessionId: string): IConversationSessionViewLease {
+				this.acquireCount++;
+				this.acquireIds.push(sessionId);
+				let leaseEmitter = this.leaseEmitters.get(sessionId);
+				if (!leaseEmitter) {
+					leaseEmitter = this._register(new Emitter<ConversationViewFrameApplied>());
+					this.leaseEmitters.set(sessionId, leaseEmitter);
+				}
+				return {
+					sessionId,
+					get snapshot() {
+						return { liveAgentTree: trees[sessionId] } as IConversationSessionViewLease['snapshot'];
+					},
+					attribution: new Map(),
+					details: new Map(),
+					onDidApplyFrame: leaseEmitter.event,
+					post: async () => ({ accepted: true, correlation: { id: 't' } }),
+					requestResync: () => { },
+					dispose: () => { },
+				};
+			}
+			setPairingPending(value: boolean): void {
+				pairingPending = value;
+				this._onDidChangeEngineConnection.fire(this.isEngineConnected());
+			}
+			switchTo(sessionId: string): void {
+				activeSessionId = sessionId;
+				this._onDidChangeActiveSession.fire(sessionId);
+			}
+		}
+		const roster = store.add(new PairingSwitchLiveTreeRoster());
+		const uaConnection = createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'idle',
+				pairingPending,
+				channelAlive: false,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+		const { sessionChatService } = await createHarness(roster, undefined, uaConnection);
+		assert.ok(roster.acquireIds.includes(sessionA));
+		assert.ok(sessionChatService.getCatalog(sessionA).some(entry => entry.chatId === 'research'));
+		assert.ok(!sessionChatService.getCatalog(sessionB).some(entry => entry.chatId === 'web'));
+		const acquireAfterBind = roster.acquireCount;
+
+		pairingPending = true;
+		assert.strictEqual(roster.isEngineConnected(), false);
+		roster.setPairingPending(true);
+		assert.strictEqual(roster.acquireCount, acquireAfterBind);
+		assert.ok(sessionChatService.getCatalog(sessionA).some(entry => entry.chatId === 'research'));
+
+		roster.switchTo(sessionB);
+		assert.ok(roster.acquireIds.includes(sessionB));
+		assert.ok(sessionChatService.getCatalog(sessionB).some(entry => entry.chatId === 'web'));
+		assert.ok(!sessionChatService.getCatalog(sessionB).some(entry => entry.chatId === 'research'));
+		assert.ok(sessionChatService.getCatalog(sessionA).some(entry => entry.chatId === 'research'));
+		const acquireAfterSwitch = roster.acquireCount;
+
+		roster.setPairingPending(true);
+		assert.strictEqual(roster.acquireCount, acquireAfterSwitch);
+		assert.ok(sessionChatService.getCatalog(sessionB).some(entry => entry.chatId === 'web'));
+		assert.ok(!sessionChatService.getCatalog(sessionB).some(entry => entry.chatId === 'research'));
+	});
+
+	test('bindLiveTreeLease first-pull pairingPending never-connected still has no lease', async () => {
+		class NeverConnectedPairingRoster extends ConversationStubService {
+			acquireCount = 0;
+			override isEngineConnected(): boolean {
+				return false;
+			}
+			override isEngineSessionReady(): boolean {
+				return false;
+			}
+			override acquireSessionView(sessionId: string): IConversationSessionViewLease {
+				this.acquireCount++;
+				return super.acquireSessionView(sessionId);
+			}
+		}
+		const roster = store.add(new NeverConnectedPairingRoster());
+		const uaConnection = createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'idle',
+				pairingPending: true,
+				channelAlive: false,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+		const { sessionChatService } = await createHarness(roster, undefined, uaConnection);
+		assert.strictEqual(roster.acquireCount, 0);
+		assert.deepStrictEqual(sessionChatService.getCatalog(SESSION_KEY), []);
+	});
 
 	test('bindLiveTreeLease acquireSessionView throw notifies error without unhandled rejection', async () => {
 		const boom = new Error('acquireSessionView: session untitled is not engine-bound');

@@ -9,7 +9,7 @@ import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
-import { getConnectionPhaseStatusBarText } from './conversationSessionStatus.js';
+import { getConnectionPhaseStatusBarText, isConversationPairingHold } from './conversationSessionStatus.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { formatCapabilitySupportLabel } from './engineSectionChrome.js';
 import type {
@@ -229,13 +229,19 @@ export class EngineOverviewSection extends Disposable {
 		return { value: fallback };
 	}
 
-	private async renderAsync(): Promise<void> {
-		const generation = ++this.renderGeneration;
-		this.summaryGrid.style.display = 'none';
-		this.status.hide();
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		return hadLiveCatalog && isConversationPairingHold(this.connection);
+	}
 
-		if (!this.connection.isEngineConnected()) {
-			this.lastGoodModelSummary = undefined;
+	private applyDisconnectedOverview(hadLiveCatalog: boolean): void {
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			const snapshot = this.connection.getConnectionSnapshot();
+			const phase = this.connection.getConnectionPhase();
+			const modelsEntry = snapshot.capabilities?.models;
+			const modelRow = this.lastGoodModelSummary
+				? { value: this.lastGoodModelSummary }
+				: this.resolveModelRow(modelsEntry?.support ?? 'UNKNOWN', modelsEntry?.reason);
+			this.paintSummary(snapshot, phase, modelRow.value, modelRow.title);
 			this.status.render({
 				mode: 'disconnected',
 				onOpenConnection: () => {
@@ -244,6 +250,29 @@ export class EngineOverviewSection extends Disposable {
 			});
 			return;
 		}
+		this.lastGoodModelSummary = undefined;
+		this.summaryGrid.style.display = 'none';
+		DOM.clearNode(this.summaryGrid);
+		this.status.render({
+			mode: 'disconnected',
+			onOpenConnection: () => {
+				void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+			},
+		});
+	}
+
+	private async renderAsync(): Promise<void> {
+		const generation = ++this.renderGeneration;
+		const hadLiveCatalog = !!this.lastGoodModelSummary || this.summaryGrid.childElementCount > 0;
+
+		// D340 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+			this.applyDisconnectedOverview(hadLiveCatalog);
+			return;
+		}
+
+		this.summaryGrid.style.display = 'none';
+		this.status.hide();
 
 		const snapshot = this.connection.getConnectionSnapshot();
 		const phase = this.connection.getConnectionPhase();
@@ -268,8 +297,8 @@ export class EngineOverviewSection extends Disposable {
 			if (generation !== this.renderGeneration) {
 				return;
 			}
-			if (!this.connection.isEngineConnected()) {
-				this.lastGoodModelSummary = undefined;
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+				this.applyDisconnectedOverview(!!this.lastGoodModelSummary || this.summaryGrid.childElementCount > 0);
 				return;
 			}
 			this.modelDataLoaded = true;
@@ -299,7 +328,7 @@ export class EngineOverviewSection extends Disposable {
 		this.summaryGrid.style.display = '';
 		DOM.clearNode(this.summaryGrid);
 
-		this.appendSummaryRow(localize('ua.engineOverviewConnection', "Connection"), getConnectionPhaseStatusBarText(phase));
+		this.appendSummaryRow(localize('ua.engineOverviewConnection', "Connection"), getConnectionPhaseStatusBarText(phase, snapshot.pairingPending));
 		this.appendSummaryRow(localize('ua.engineOverviewWorkDir', "Working directory"), snapshot.workDir ?? localize('ua.engineOverviewWorkDirUnknown', "Unknown"));
 		this.appendSummaryRow(localize('ua.engineOverviewTransport', "Transport"), getOverviewTransportLabel(snapshot.transport));
 		// G-ENG-1: Provider summary stays omitted until a provider-config contract exists.

@@ -12,7 +12,9 @@ import { workbenchInstantiationService } from '../../../../test/browser/workbenc
 import { getCatalogFailedCopy } from '../../browser/engineCatalog.js';
 import { ENGINE_TRIGGER_ADD_LABEL, ENGINE_TRIGGER_DELETE_LABEL, ENGINE_TRIGGER_DELETE_SUCCESS_COPY, ENGINE_TRIGGER_DISABLE_LABEL, ENGINE_TRIGGER_EDIT_LABEL, ENGINE_TRIGGER_ENABLE_LABEL, ENGINE_TRIGGER_FIRE_LABEL, ENGINE_TRIGGER_LIST_EMPTY_COPY, ENGINE_TRIGGER_LIST_FEATURE, formatEngineTriggerListLabel } from '../../browser/engineTriggerList.js';
 import { EngineTriggersSection } from '../../browser/engineTriggersSection.js';
-import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
+import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
+import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('EngineTriggersSection', () => {
 
@@ -243,6 +245,276 @@ suite('EngineTriggersSection', () => {
 		pane.getDomNode().parentElement?.remove();
 	});
 
+	test('connected phase with pairingPending keeps leftover rows and paints not-connected', async () => {
+		let connected = true;
+		let pairingPending = false;
+		let listTriggersCalls = 0;
+		const leftover = emptyTrigger({
+			triggerId: 'leftover-trig',
+			name: 'leftover-nightly',
+			type: 'cron',
+			target: { kind: 'self' },
+		});
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: connected ? 'ok' : 'idle',
+			pairingPending,
+			channelAlive: connected,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const fireCalls: UniverseAgentFireTriggerRequest[] = [];
+		const setCalls: UniverseAgentSetTriggerEnabledRequest[] = [];
+		const deleteCalls: UniverseAgentDeleteTriggerRequest[] = [];
+		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => connected && !pairingPending,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => {
+				listTriggersCalls++;
+				return { triggers: [leftover] };
+			},
+			fireTrigger: async request => {
+				fireCalls.push(request);
+				return { status: '', eventId: '', reason: '' };
+			},
+			setTriggerEnabled: async request => {
+				setCalls.push(request);
+				return { trigger: leftover };
+			},
+			deleteTrigger: async request => {
+				deleteCalls.push(request);
+				return {};
+			},
+			upsertTrigger: async request => {
+				upsertCalls.push(request);
+				return { trigger: leftover };
+			},
+		});
+		const pane = mountSection(connection);
+		await flushMicrotasks();
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-triggers-row').length, 1);
+		const listCallsAfterLoad = listTriggersCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listTriggersCalls, listCallsAfterLoad);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-triggers-row').length, 1);
+		const listHost = pane.getDomNode().querySelector('.engine-triggers-list') as HTMLElement | null;
+		assert.ok(listHost);
+		assert.notStrictEqual(listHost.style.display, 'none');
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_TRIGGER_LIST_EMPTY_COPY));
+		assertWriteButtonsDisabled(pane.getDomNode());
+		await assertForcedWriteClicksStayUnary(pane.getDomNode(), fireCalls, setCalls, deleteCalls, upsertCalls);
+		assert.strictEqual(listTriggersCalls, listCallsAfterLoad);
+
+		connected = false;
+		onDidChangeConnection.fire(snapshot());
+		await flushMicrotasks();
+
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-triggers-row').length, 0);
+		const cleared = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(cleared);
+		assert.strictEqual(cleared.dataset['catalogMode'], 'disconnected');
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('leftover-looks-live pairing-hold write buttons stay 0 unary and skip extra list', async () => {
+		let pairingPending = false;
+		let listTriggersCalls = 0;
+		const leftover = emptyTrigger({
+			triggerId: 'leftover-live',
+			name: 'looks-live-nightly',
+			type: 'cron',
+			target: { kind: 'self' },
+		});
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			pairingPending,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const fireCalls: UniverseAgentFireTriggerRequest[] = [];
+		const setCalls: UniverseAgentSetTriggerEnabledRequest[] = [];
+		const deleteCalls: UniverseAgentDeleteTriggerRequest[] = [];
+		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => {
+				listTriggersCalls++;
+				return { triggers: [leftover] };
+			},
+			fireTrigger: async request => {
+				fireCalls.push(request);
+				return { status: '', eventId: '', reason: '' };
+			},
+			setTriggerEnabled: async request => {
+				setCalls.push(request);
+				return { trigger: leftover };
+			},
+			deleteTrigger: async request => {
+				deleteCalls.push(request);
+				return {};
+			},
+			upsertTrigger: async request => {
+				upsertCalls.push(request);
+				return { trigger: leftover };
+			},
+		});
+		const pane = mountSection(connection);
+		await flushMicrotasks();
+		assert.strictEqual(listTriggersCalls, 1);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-triggers-row').length, 1);
+		const listCallsAfterLoad = listTriggersCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listTriggersCalls, listCallsAfterLoad);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-triggers-row').length, 1);
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assertWriteButtonsDisabled(pane.getDomNode());
+		await assertForcedWriteClicksStayUnary(pane.getDomNode(), fireCalls, setCalls, deleteCalls, upsertCalls);
+		assert.strictEqual(listTriggersCalls, listCallsAfterLoad);
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('leftover-looks-live first-pull pairing without leftover stays empty and skips list', async () => {
+		let listTriggersCalls = 0;
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			pairingPending: true,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => {
+				listTriggersCalls++;
+				return {
+					triggers: [emptyTrigger({
+						triggerId: 'should-not-list',
+						name: 'First Pull',
+						type: 'cron',
+						target: { kind: 'self' },
+					})],
+				};
+			},
+		});
+		const pane = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(listTriggersCalls, 0);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-triggers-row').length, 0);
+		const listHost = pane.getDomNode().querySelector('.engine-triggers-list') as HTMLElement | null;
+		assert.ok(listHost);
+		assert.strictEqual(listHost.style.display, 'none');
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		assert.ok(!(pane.getDomNode().textContent ?? '').includes(ENGINE_TRIGGER_LIST_EMPTY_COPY));
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('connected leftover list-fail still fires and upserts', async () => {
+		let listTriggersCalls = 0;
+		const leftover = emptyTrigger({
+			triggerId: 'leftover-trig',
+			name: 'leftover-nightly',
+			type: 'cron',
+			target: { kind: 'self' },
+		});
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const liveSnapshot: UniverseAgentConnectionSnapshot = {
+			transport: 'ok',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		};
+		const fireCalls: UniverseAgentFireTriggerRequest[] = [];
+		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => liveSnapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => {
+				listTriggersCalls++;
+				if (listTriggersCalls === 1) {
+					return { triggers: [leftover] };
+				}
+				throw new Error('list boom');
+			},
+			fireTrigger: async request => {
+				fireCalls.push(request);
+				return { status: '', eventId: '', reason: '' };
+			},
+			upsertTrigger: async request => {
+				upsertCalls.push(request);
+				return { trigger: leftover };
+			},
+		});
+		const pane = mountSection(connection);
+		await flushMicrotasks();
+		assert.strictEqual(listTriggersCalls, 1);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-triggers-row').length, 1);
+
+		onDidChangeConnection.fire(liveSnapshot);
+		await flushMicrotasks();
+		assert.strictEqual(listTriggersCalls, 2);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-triggers-row').length, 1);
+
+		const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
+		assert.ok(row);
+		row.click();
+		const fire = findFireButton(pane.getDomNode());
+		assert.ok(fire);
+		assert.strictEqual(fire.classList.contains('disabled'), false);
+		fire.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(fireCalls, [{ scope: '', scopeId: '', triggerId: leftover.triggerId }]);
+
+		const add = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ADD_LABEL);
+		assert.ok(add);
+		assert.strictEqual(add.classList.contains('disabled'), false);
+		add.click();
+		await flushMicrotasks();
+		assert.strictEqual(upsertCalls.length, 1);
+		pane.getDomNode().parentElement?.remove();
+	});
+
 	function findActionButton(root: HTMLElement, label: string): HTMLButtonElement | undefined {
 		return [...root.querySelectorAll('.engine-triggers-actions .monaco-button')]
 			.find(button => button.textContent === label) as HTMLButtonElement | undefined;
@@ -250,6 +522,54 @@ suite('EngineTriggersSection', () => {
 
 	function findFireButton(root: HTMLElement): HTMLButtonElement | undefined {
 		return findActionButton(root, ENGINE_TRIGGER_FIRE_LABEL);
+	}
+
+	const WRITE_BUTTON_LABELS = [
+		ENGINE_TRIGGER_ADD_LABEL,
+		ENGINE_TRIGGER_EDIT_LABEL,
+		ENGINE_TRIGGER_FIRE_LABEL,
+		ENGINE_TRIGGER_ENABLE_LABEL,
+		ENGINE_TRIGGER_DISABLE_LABEL,
+		ENGINE_TRIGGER_DELETE_LABEL,
+	] as const;
+
+	function forceClick(button: HTMLButtonElement | undefined): void {
+		if (!button) {
+			return;
+		}
+		button.classList.remove('disabled');
+		button.removeAttribute('disabled');
+		button.setAttribute('aria-disabled', 'false');
+		button.disabled = false;
+		button.click();
+	}
+
+	function assertWriteButtonsDisabled(root: HTMLElement): void {
+		for (const label of WRITE_BUTTON_LABELS) {
+			const button = findActionButton(root, label);
+			assert.ok(button, label);
+			assert.strictEqual(button.classList.contains('disabled'), true, label);
+			assert.strictEqual(button.getAttribute('aria-disabled'), 'true', label);
+		}
+	}
+
+	async function assertForcedWriteClicksStayUnary(
+		root: HTMLElement,
+		fireCalls: unknown[],
+		setCalls: unknown[],
+		deleteCalls: unknown[],
+		upsertCalls: unknown[],
+	): Promise<void> {
+		const row = root.querySelector('.engine-triggers-row') as HTMLElement | null;
+		row?.click();
+		for (const label of WRITE_BUTTON_LABELS) {
+			forceClick(findActionButton(root, label));
+		}
+		await flushMicrotasks();
+		assert.deepStrictEqual(fireCalls, []);
+		assert.deepStrictEqual(setCalls, []);
+		assert.deepStrictEqual(deleteCalls, []);
+		assert.deepStrictEqual(upsertCalls, []);
 	}
 
 	function emptyTrigger(overrides: Partial<UniverseAgentTrigger> = {}): UniverseAgentTrigger {

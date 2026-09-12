@@ -24,6 +24,8 @@ export interface IConversationQuestionSeatOptions {
 	readonly payload?: string;
 	readonly agentId?: string;
 	readonly onRespond?: (requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string) => void;
+	/** When false, options/Submit stay painted but do not respond (D297 pairing-hold). */
+	readonly writesEnabled?: boolean;
 }
 
 /**
@@ -100,7 +102,11 @@ export class ConversationQuestionSeat extends Disposable {
 			}
 			return answers;
 		};
+		const writesEnabled = options.writesEnabled !== false;
 		const submit = (): void => {
+			if (!writesEnabled) {
+				return;
+			}
 			respond(requestId, collectAnswers(), customText);
 		};
 		const submitIfComplete = (): void => {
@@ -201,6 +207,7 @@ export class ConversationQuestionSeat extends Disposable {
 			const submitLabel = localize('conversationLens.questionSubmit', "Submit");
 			const submitButton = this._register(new Button(actions, { ...defaultButtonStyles, ariaLabel: submitLabel }));
 			submitButton.label = submitLabel;
+			submitButton.enabled = writesEnabled;
 			this._register(submitButton.onDidClick(() => submit()));
 		}
 	}

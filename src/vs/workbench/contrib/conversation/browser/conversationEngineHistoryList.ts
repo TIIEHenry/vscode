@@ -21,6 +21,7 @@ import {
 	conversationLensSessionBarHistoryUnavailableDisconnected,
 } from './conversationLensSessionBarStrings.js';
 import { IConversationRosterService } from './conversationStubService.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 
 export const conversationLensHistoryButtonClass = 'conversation-lens-session-history';
 export const conversationLensHistoryOverlayClass = 'conversation-lens-history-overlay';
@@ -196,13 +197,26 @@ export class ConversationEngineHistoryList extends Disposable {
 		super.dispose();
 	}
 
+	private applyDisconnectedRefresh(): void {
+		if (this.paintedLiveHistory && isConversationPairingHold(this.connection)) {
+			this.paintListFailed(conversationLensSessionBarHistoryUnavailableDisconnected);
+			return;
+		}
+		this.paintStatus(conversationLensSessionBarHistoryUnavailableDisconnected);
+	}
+
 	private async refresh(): Promise<void> {
 		const generation = ++this.renderGeneration;
 		const sessionId = this.roster.getActiveSessionId() ?? '';
-		const connected = this.connection.isEngineConnected();
 
+		if (isConversationPairingHold(this.connection)) {
+			this.applyDisconnectedRefresh();
+			return;
+		}
+
+		const connected = this.connection.isEngineConnected();
 		if (!canRequestEngineHistory(connected)) {
-			this.paintStatus(conversationLensSessionBarHistoryUnavailableDisconnected);
+			this.applyDisconnectedRefresh();
 			return;
 		}
 
@@ -214,6 +228,16 @@ export class ConversationEngineHistoryList extends Disposable {
 		try {
 			const result = await this.connection.getHistory({ sessionId });
 			if (generation !== this.renderGeneration) {
+				return;
+			}
+			// D366 leftover-looks-live: pairing-hold-first after await. KEEP leftover;
+			// do not paint in-flight live. D338 entry KEEP is unchanged.
+			if (isConversationPairingHold(this.connection)) {
+				this.applyDisconnectedRefresh();
+				return;
+			}
+			if (!canRequestEngineHistory(this.connection.isEngineConnected())) {
+				this.applyDisconnectedRefresh();
 				return;
 			}
 			this.paintEnvelopes(result.envelopes);

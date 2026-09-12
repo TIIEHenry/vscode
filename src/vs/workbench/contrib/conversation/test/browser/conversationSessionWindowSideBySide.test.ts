@@ -23,6 +23,8 @@ import { ConversationSessionWindowService } from '../../browser/conversationSess
 import { ConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { conversationSessionLeafHiddenClass } from '../../common/conversationSessionWindow.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 
 suite('Conversation session window side-by-side (S5)', () => {
 
@@ -58,6 +60,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 		const rosterService = new ConversationStubService();
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, rosterService);
+		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
 		instantiationService.invokeFunction(accessor => Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor));
 
 		const parts = await createEditorParts(instantiationService, disposables);

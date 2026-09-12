@@ -59,6 +59,7 @@ export class NavigatorSessionLeaseHolder extends Disposable {
 		} catch (error) {
 			this.lease = undefined;
 			this.onAcquireError?.(error);
+			this.onLeaseChanged();
 		}
 	}
 

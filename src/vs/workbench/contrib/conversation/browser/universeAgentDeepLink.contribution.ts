@@ -6,6 +6,7 @@
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
+import { UNIVERSE_AGENT_SCHEME } from '../../../../platform/product/common/universeAgentScheme.js';
 import { IURLHandler, IURLService } from '../../../../platform/url/common/url.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
@@ -13,7 +14,7 @@ import { IPreferencesService } from '../../../services/preferences/common/prefer
 import { UA_CONNECTION_PANE_ID, UA_ENGINE_PANE_ID } from '../common/uaPreferencesPanes.js';
 import { closeAllSettingsEditor2ForService, ensurePreviewVisibleForPreferences } from './uaPreferencesNavigation.js';
 
-export const UNIVERSE_AGENT_SCHEME = 'universe-agent';
+export { UNIVERSE_AGENT_SCHEME };
 
 const CLIENT_GROUP_ALIASES = new Set([
 	'display',

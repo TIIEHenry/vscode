@@ -12,18 +12,19 @@ import { IDisposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
+import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { defaultButtonStyles, defaultSelectBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { hasNativeContextMenu } from '../../../../platform/window/common/window.js';
 import { ConversationEngineHistoryList } from './conversationEngineHistoryList.js';
 import { ConversationEngineSnapshotsList } from './conversationEngineSnapshotsList.js';
 import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle, conversationLensSessionBarTrajectoryTab } from './conversationLensSessionBarStrings.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
 import { IConversationRosterService } from './conversationStubService.js';
-import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
 import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
-import { showConversationPart } from './conversationSessionStatus.js';
+import { isConversationPairingHold, showConversationPart } from './conversationSessionStatus.js';
 
 export interface IConversationLensSessionBarHost {
 	sessionTitleButton: HTMLButtonElement;
@@ -45,6 +46,7 @@ export interface IConversationLensSessionBarHost {
 	engineSnapshotsList: ConversationEngineSnapshotsList | undefined;
 	dockTextarea: HTMLTextAreaElement;
 	readonly stubService: IConversationRosterService;
+	readonly uaConnection: IUniverseAgentConnection;
 	readonly contextViewService: IContextViewService;
 	readonly configurationService: IConfigurationService;
 	readonly instantiationService: IInstantiationService;
@@ -141,6 +143,7 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 		host.deleteSessionButton.icon = Codicon.trash;
 		host.register(host.deleteSessionButton.onDidClick(() => deleteActiveSession(host)));
 		bindDeleteDraftRollback(host);
+		updateSessionBarWriteChrome(host);
 
 		host.engineHistoryList = host.register(host.instantiationService.createInstance(
 			ConversationEngineHistoryList,
@@ -240,8 +243,25 @@ export function updateSessionTitle(host: IConversationLensSessionBarHost): void 
 	
 }
 
+export function updateSessionBarWriteChrome(host: IConversationLensSessionBarHost): void {
+	const writesEnabled = !isConversationPairingHold(host.uaConnection);
+	if (host.sessionTitleButton) {
+		host.sessionTitleButton.disabled = !writesEnabled;
+		host.sessionTitleButton.setAttribute('aria-disabled', String(!writesEnabled));
+	}
+	if (host.newSessionButton) {
+		host.newSessionButton.enabled = writesEnabled;
+	}
+	if (host.deleteSessionButton) {
+		host.deleteSessionButton.enabled = writesEnabled;
+	}
+}
+
 export function beginSessionTitleEdit(host: IConversationLensSessionBarHost): void {
 
+		if (isConversationPairingHold(host.uaConnection)) {
+			return;
+		}
 		if (host.sessionTitleEditing) {
 			return;
 		}
@@ -305,6 +325,10 @@ export function commitSessionTitleEdit(host: IConversationLensSessionBarHost): v
 export function createNewSession(host: IConversationLensSessionBarHost): void {
 
 		host.writeComposerDraft(host.getBoundSessionId(), host.dockTextarea.value);
+		if (isConversationPairingHold(host.uaConnection)) {
+			host.showPostFailure('engine_disconnected');
+			return;
+		}
 		if (!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()) {
 			host.showPostFailure('engine_disconnected');
 			return;
@@ -359,6 +383,10 @@ function bindDeleteDraftRollback(host: IConversationLensSessionBarHost): void {
 
 export function deleteActiveSession(host: IConversationLensSessionBarHost): void {
 
+		if (isConversationPairingHold(host.uaConnection)) {
+			host.showPostFailure('engine_disconnected');
+			return;
+		}
 		const sessionId = host.stubService.getActiveSessionId();
 		const draftText = host.dockTextarea.value;
 		host.writeComposerDraft(sessionId, draftText);

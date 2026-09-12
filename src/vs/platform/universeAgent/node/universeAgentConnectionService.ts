@@ -6,7 +6,7 @@
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { finalizeConnectProfileResult, readConnectProfileSasCode } from '../common/connectProfileResult.js';
-import { PAIRING_REQUIRED_USE_CONNECT_REASON, type ConnectionPhase, type ConnectionFailureCode, type ConnectionProbeResult, type UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
+import { PAIRING_REQUIRED_USE_CONNECT_REASON, type ConnectionPath, type ConnectionPhase, type ConnectionFailureCode, type ConnectionProbeResult, type UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
 import { sanitizeDesktopCapabilitySnapshot } from '../common/universeAgentRendererSync.js';
 import type { IUniverseAgentConnection, IUniverseAgentTeamApi, UniverseAgentNavigatorCapabilityKey, UniverseAgentProbeEngineResult } from '../common/universeAgentConnection.js';
 import type { IUniverseAgentHostConnection } from '../common/universeAgentHostConnection.js';
@@ -387,6 +387,10 @@ import { createPairingOrchestrator, isPairingOrchestratorProfile, PairingOrchest
 import type { IUniverseAgentHubService } from '../common/hub.js';
 import { UniverseAgentHubService, type UniverseAgentHubServiceOptions } from './universeAgentHubService.js';
 
+type UniverseAgentReconnectTimeoutHandle = ReturnType<typeof setTimeout>;
+type UniverseAgentSetTimeoutFn = (callback: () => void, delay?: number) => UniverseAgentReconnectTimeoutHandle;
+type UniverseAgentClearTimeoutFn = (handle: UniverseAgentReconnectTimeoutHandle) => void;
+
 export interface UniverseAgentConnectionServiceOptions extends UniverseAgentHubServiceOptions {
 	readonly loopbackAddress?: string;
 	readonly createTransport?: (address: string) => IUniverseAgentGrpcTransport;
@@ -395,6 +399,14 @@ export interface UniverseAgentConnectionServiceOptions extends UniverseAgentHubS
 	readonly clientIdentityStore?: IClientIdentityStore;
 	readonly engineTrustStore?: IEngineTrustStore;
 	readonly pairingOrchestrator?: PairingOrchestrator;
+	/** Connection-level reconnect backoff base. Default 1000. Aligns with S2 stream reopen. */
+	readonly reconnectBaseMs?: number;
+	/** Connection-level reconnect backoff cap. Default 30_000. */
+	readonly reconnectMaxMs?: number;
+	/** ± ratio applied to reconnect delay. `0` disables jitter. Default 0.2. */
+	readonly reconnectJitterRatio?: number;
+	readonly setTimeoutFn?: UniverseAgentSetTimeoutFn;
+	readonly clearTimeoutFn?: UniverseAgentClearTimeoutFn;
 }
 
 function isPairingPending(sessionToken: string | undefined, pairingNonce: string | undefined): boolean {
@@ -469,7 +481,12 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private _capabilities: UniverseAgentCapabilitySnapshot = createEmptyCapabilitySnapshot();
 	private _sessionListCapability: UniverseAgentCapabilitySupport = 'UNKNOWN';
 	private _connectionPhase: ConnectionPhase = { kind: 'disconnected' };
+	private _lastConnectedPath: ConnectionPath | undefined;
 	private _activeProfileId: string | undefined;
+	private _reconnectAttempt = 0;
+	private _reconnectTimer: UniverseAgentReconnectTimeoutHandle | undefined;
+	private _userDisconnecting = false;
+	private _reconnectDisposed = false;
 
 	private readonly _createSessionInflight = new Map<string, Promise<UniverseAgentCreateSessionResult>>();
 	private readonly _loopbackAddress: string;
@@ -478,6 +495,11 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private readonly _connectionProfileStore: IConnectionProfileStore | undefined;
 	private readonly _clientIdentityStore: IClientIdentityStore | undefined;
 	private readonly _pairingOrchestrator: PairingOrchestrator | undefined;
+	private readonly _reconnectBaseMs: number;
+	private readonly _reconnectMaxMs: number;
+	private readonly _reconnectJitterRatio: number;
+	private readonly _setTimeoutFn: UniverseAgentSetTimeoutFn;
+	private readonly _clearTimeoutFn: UniverseAgentClearTimeoutFn;
 
 	constructor(options: UniverseAgentConnectionServiceOptions = {}) {
 		super();
@@ -506,6 +528,11 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				confirmRecoverTrust: async () => true,
 			});
 		}
+		this._reconnectBaseMs = options.reconnectBaseMs ?? 1000;
+		this._reconnectMaxMs = options.reconnectMaxMs ?? 30_000;
+		this._reconnectJitterRatio = options.reconnectJitterRatio ?? 0.2;
+		this._setTimeoutFn = options.setTimeoutFn ?? ((callback: () => void, delay?: number) => setTimeout(callback, delay));
+		this._clearTimeoutFn = options.clearTimeoutFn ?? ((handle: UniverseAgentReconnectTimeoutHandle) => clearTimeout(handle));
 		this.team = {
 			memberStatus: (sessionId, agentId) => this._withTransport(t => t.memberStatus(sessionId, agentId)),
 			taskList: (sessionId, agentId) => this._withTransport(t => t.taskList(sessionId, agentId)),
@@ -641,8 +668,16 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			this._connectionPhase = this._pairingPending
 				? { kind: 'connecting', reason: 'initial' }
 				: { kind: 'connected', path: 'loopback' };
+			if (!this._pairingPending) {
+				this._lastConnectedPath = 'loopback';
+			}
 			this._agentTreeFetchFailed = false;
 			this._fireSnapshotChanged();
+			if (!this._pairingPending) {
+				this._resetReconnectBackoff();
+			} else {
+				this._cancelReconnectTimer();
+			}
 			return result;
 		} catch (error) {
 			this._markTransportFailed(error);
@@ -655,6 +690,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	private async _connectProfileRaw(profileId: string, options: { readonly reconnect?: boolean } = {}): Promise<UniverseAgentConnectProfileResult> {
+		this._cancelReconnectTimer();
 		// Pairing path (pairing_required → orchestrator) only needs the resolver + orchestrator.
 		// Client identity is required later for formal/pinned dial after trust exists.
 		if (!this._connectionResolver) {
@@ -716,14 +752,20 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			return this.connect({
 				clientId: identityState.identity.clientIdentityId,
 				protocolVersion: '1',
-			}).then(result => ({
-				ok: true as const,
-				path: endpoint.path,
-				sessionToken: result.sessionToken,
-				workDir: result.workDir,
-				pairingPending: isPairingPending(result.sessionToken, result.pairingNonce),
-				sasCode: result.sasCode,
-			}));
+			}).then(result => {
+				this._lastConnectedPath = endpoint.path;
+				if (this._connectionPhase.kind === 'connected') {
+					this._connectionPhase = { kind: 'connected', path: endpoint.path };
+				}
+				return {
+					ok: true as const,
+					path: endpoint.path,
+					sessionToken: result.sessionToken,
+					workDir: result.workDir,
+					pairingPending: isPairingPending(result.sessionToken, result.pairingNonce),
+					sasCode: result.sasCode,
+				};
+			});
 		}
 
 		const profile = this._connectionProfileStore?.get(profileId);
@@ -767,6 +809,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				this._sessionToken = undefined;
 				this._workDir = handshake.result.workDir;
 				this._pairingPending = true;
+				this._cancelReconnectTimer();
 				this._transportState = 'ok';
 				this._connectionPhase = { kind: 'connecting', reason: 'initial' };
 				this._fireSnapshotChanged();
@@ -795,7 +838,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			await this._refreshSessionListCapability(handshake.result.methods);
 			await this._refreshSaveSkillContentBinding(handshake.result.methods);
 			this._connectionPhase = { kind: 'connected', path: endpoint.path };
+			this._lastConnectedPath = endpoint.path;
 			this._agentTreeFetchFailed = false;
+			this._resetReconnectBackoff();
 			this._fireSnapshotChanged();
 			return {
 				ok: true,
@@ -844,6 +889,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 		if (confirmResult.snapshot.phase === 'grant_pending') {
 			this._pairingPending = true;
+			this._cancelReconnectTimer();
 			this._connectionPhase = { kind: 'connecting', reason: 'initial' };
 			this._fireSnapshotChanged();
 			const sasCode = readConnectProfileSasCode(confirmResult.snapshot);
@@ -903,6 +949,8 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	async disconnect(): Promise<void> {
+		this._userDisconnecting = true;
+		this._resetReconnectBackoff();
 		this._transport?.close();
 		this._transport = undefined;
 		this._sessionToken = undefined;
@@ -920,6 +968,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._connectionPhase = { kind: 'closed' };
 		this._activeProfileId = undefined;
 		this._fireSnapshotChanged();
+		this._userDisconnecting = false;
 	}
 
 	async listSessions(request: UniverseAgentListSessionsRequest): Promise<UniverseAgentListSessionsResult> {
@@ -1902,6 +1951,8 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	override dispose(): void {
+		this._reconnectDisposed = true;
+		this._resetReconnectBackoff();
 		this._transport?.close();
 		this._transport = undefined;
 		super.dispose();
@@ -1921,11 +1972,22 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	private async _withTransport<T>(operation: (transport: IUniverseAgentGrpcTransport) => Promise<T>): Promise<T> {
-		this._assertTransportReady();
+		if (!this._transport) {
+			throw new UniverseAgentTransportError(14, 'UniverseAgent transport is not available');
+		}
 		try {
-			const result = await operation(this._transport!);
+			const result = await operation(this._transport);
 			if (this._transportState !== 'ok') {
 				this._transportState = 'ok';
+				if (
+					this._connectionPhase.kind === 'connecting'
+					&& this._connectionPhase.reason === 'transport_lost'
+					&& this.isEngineConnected()
+					&& this._lastConnectedPath
+				) {
+					this._connectionPhase = { kind: 'connected', path: this._lastConnectedPath };
+				}
+				this._resetReconnectBackoff();
 				this._fireSnapshotChanged();
 			}
 			return result;
@@ -1940,10 +2002,104 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			this._transportState = 'failed';
 			if (this._activeProfileId) {
 				this._connectionPhase = { kind: 'connecting', reason: 'transport_lost' };
+				this._scheduleReconnect();
 			} else if (this._connectionPhase.kind === 'connecting') {
 				this._connectionPhase = { kind: 'failed', code: 'transport_failed', reason: error.message };
 			}
 			this._fireSnapshotChanged();
+		}
+	}
+
+	private _computeReconnectDelay(attempt: number): number {
+		const n = Math.max(0, attempt - 1);
+		const raw = Math.min(this._reconnectBaseMs * (2 ** n), this._reconnectMaxMs);
+		if (this._reconnectJitterRatio <= 0) {
+			return raw;
+		}
+		const jitter = raw * this._reconnectJitterRatio * (2 * Math.random() - 1);
+		return Math.max(0, Math.round(raw + jitter));
+	}
+
+	private _canScheduleReconnect(): boolean {
+		return !this._reconnectDisposed
+			&& !this._userDisconnecting
+			&& !this._pairingPending
+			&& !!this._activeProfileId
+			&& this._reconnectTimer === undefined;
+	}
+
+	private _cancelReconnectTimer(): void {
+		if (this._reconnectTimer !== undefined) {
+			this._clearTimeoutFn(this._reconnectTimer);
+			this._reconnectTimer = undefined;
+		}
+	}
+
+	private _resetReconnectBackoff(): void {
+		this._cancelReconnectTimer();
+		this._reconnectAttempt = 0;
+	}
+
+	private _scheduleReconnect(): void {
+		if (!this._canScheduleReconnect()) {
+			return;
+		}
+		const profileId = this._activeProfileId;
+		if (!profileId) {
+			return;
+		}
+		this._reconnectAttempt += 1;
+		const delay = this._computeReconnectDelay(this._reconnectAttempt);
+		this._reconnectTimer = this._setTimeoutFn(() => {
+			this._reconnectTimer = undefined;
+			void this._fireReconnect(profileId);
+		}, delay);
+	}
+
+	private _isReconnectHaltCode(code: ConnectionFailureCode): boolean {
+		return code === 'pairing_required' || code === 'hub_auth_expired' || code === 'hub_session_required';
+	}
+
+	private _rescheduleReconnectAfterAttempt(): void {
+		if (this._reconnectDisposed || this._userDisconnecting || this._pairingPending) {
+			return;
+		}
+		// `_markTransportFailed` may already have a timer; `_canScheduleReconnect`
+		// no-ops when one is pending so attempt is not incremented twice.
+		this._scheduleReconnect();
+	}
+
+	private async _fireReconnect(profileId: string): Promise<void> {
+		if (this._reconnectDisposed || this._userDisconnecting || this._pairingPending || this._activeProfileId !== profileId) {
+			return;
+		}
+		try {
+			const result = await this.connectProfile(profileId, { reconnect: true });
+			if (this._reconnectDisposed || this._userDisconnecting) {
+				return;
+			}
+			if (result.ok && !result.pairingPending) {
+				this._resetReconnectBackoff();
+				return;
+			}
+			if (result.ok && result.pairingPending) {
+				this._cancelReconnectTimer();
+				return;
+			}
+			if (!result.ok && this._isReconnectHaltCode(result.code)) {
+				this._cancelReconnectTimer();
+				return;
+			}
+			// D410: transport_failed / other non-halt !ok must keep the same backoff
+			// loop. `_connectProfileRaw` cancels any pending timer on entry, and
+			// `{ok:false}` is often not a `UniverseAgentTransportError`, so
+			// `_markTransportFailed` will not have re-armed.
+			this._rescheduleReconnectAfterAttempt();
+		} catch {
+			if (this._activeProfileId !== profileId) {
+				return;
+			}
+			this._rescheduleReconnectAfterAttempt();
 		}
 	}
 
@@ -2012,6 +2168,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._transport = undefined;
 		this._sessionToken = undefined;
 		this._pairingPending = true;
+		this._cancelReconnectTimer();
 		this._transportState = 'idle';
 		this._fireSnapshotChanged();
 

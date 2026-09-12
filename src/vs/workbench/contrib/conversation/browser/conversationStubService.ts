@@ -293,11 +293,20 @@ export class ConversationStubService extends Disposable implements IConversation
 		this.frameSource = source;
 	}
 
-	/** Used by test/browser to construct TestConversationFrameSource against this roster. */
-	createTestFrameSourceCallback(): { readonly model: ConversationStubModel; readonly onSessionChanged: (sessionId: string) => void } {
+	/**
+	 * Used by test/browser to construct TestConversationFrameSource against this roster.
+	 * `refresh` is test-only: catalog replace must call `frameSource.refresh` (same as
+	 * private `notifySessionChanged` minus persist). `onSessionChanged` stays fire-only.
+	 */
+	createTestFrameSourceCallback(): {
+		readonly model: ConversationStubModel;
+		readonly onSessionChanged: (sessionId: string) => void;
+		readonly refresh: (sessionId: string) => void;
+	} {
 		return {
 			model: this.model,
 			onSessionChanged: sessionId => this._onDidChangeSession.fire(sessionId),
+			refresh: sessionId => this.frameSource.refresh(sessionId),
 		};
 	}
 

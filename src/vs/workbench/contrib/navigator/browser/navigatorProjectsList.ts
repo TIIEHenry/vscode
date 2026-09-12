@@ -31,6 +31,7 @@ import { IHostService } from '../../../services/host/browser/host.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
+import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
 import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { matchesNavigatorProjectsInlineFilter } from '../common/navigatorProjectsInlineFilter.js';
@@ -155,7 +156,13 @@ export class NavigatorProjectsView extends ViewPane {
 		this._register(this.rosterService.onDidChangeSession(() => this.refresh()));
 		this._register(this.rosterService.onDidChangeActiveSession(() => this.refresh()));
 		this._register(this.rosterService.onDidChangeEngineConnection(connected => {
-			if (connected) {
+			// D363 leftover-looks-live: pairing-hold-first for wasEverConnected.
+			// onDidChangeEngineConnection(true) is leftover-looks-live when
+			// pairingPending / isConversationPairingHold. First-pull must not
+			// flip wasEverConnected (ever-connected / leftover-as-live chrome).
+			// KEEP leftover with rows still early-returns in rebuildTree (D360).
+			// True connect no pairing still sets it. True disconnect does not.
+			if (connected && !isConversationPairingHold(this.uaConnection)) {
 				this.wasEverConnected = true;
 			}
 			this.refresh();
@@ -167,7 +174,17 @@ export class NavigatorProjectsView extends ViewPane {
 		if (this.hasRecentsFailure()) {
 			return false;
 		}
-		return countLocalFolders(this.treeNodes) === 0 && !this.rosterService.isEngineConnected() && !this.wasEverConnected;
+		if (isConversationPairingHold(this.uaConnection) && this.hasProjectsLeftoverRows()) {
+			return false;
+		}
+		// D360 leftover-looks-live: pairing-hold-first. First-pull KEEP-chrome
+		// is not only `!isEngineConnected()`.
+		const engineConnected = !isConversationPairingHold(this.uaConnection) && this.rosterService.isEngineConnected();
+		return countLocalFolders(this.treeNodes) === 0 && !engineConnected && !this.wasEverConnected;
+	}
+
+	private hasProjectsLeftoverRows(): boolean {
+		return this.treeNodes.length > 0 || this.localFolderEntries.length > 0;
 	}
 
 	private hasRecentsFailure(): boolean {
@@ -294,7 +311,18 @@ export class NavigatorProjectsView extends ViewPane {
 				? currentFolders
 				: [...currentFolders, ...recentFolders];
 
-			const engineConnected = this.rosterService.isEngineConnected();
+			if (isConversationPairingHold(this.uaConnection) && this.hasProjectsLeftoverRows()) {
+				this.filterBox?.setVisible(this.treeNodes.length > 0);
+				this.applyFilterToTree();
+				this._onDidChangeViewWelcomeState.fire();
+				return;
+			}
+
+			// D360 leftover-looks-live: pairing-hold first. KEEP leftover WITH
+			// leftover rows still early-returns above. leftover-looks-live
+			// first-pull (`isEngineConnected()===true` + pairingPending, no
+			// leftover) must not paint live engine projects chrome.
+			const engineConnected = !isConversationPairingHold(this.uaConnection) && this.rosterService.isEngineConnected();
 			if (engineConnected) {
 				this.wasEverConnected = true;
 			}

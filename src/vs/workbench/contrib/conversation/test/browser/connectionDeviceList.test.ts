@@ -60,6 +60,8 @@ suite('Connection device list bind', () => {
 		assert.strictEqual(canSendConnectionDeviceRotateToken(false, true), false);
 		assert.strictEqual(canSendConnectionDeviceRotateToken(true, false), false);
 		assert.strictEqual(canSendConnectionDeviceRotateToken(true, true), true);
+		assert.strictEqual(canSendConnectionDeviceRotateToken(true, true, true), false);
+		assert.strictEqual(canSendConnectionDeviceRotateToken(true, true, false), true);
 		assert.deepStrictEqual(connectionDeviceRotateTokenIds(undefined), { deviceId: '' });
 		assert.deepStrictEqual(connectionDeviceRotateTokenIds({ id: '' }), { deviceId: '' });
 		assert.deepStrictEqual(connectionDeviceRotateTokenIds({ id: '  dev  ' }), { deviceId: '  dev  ' });

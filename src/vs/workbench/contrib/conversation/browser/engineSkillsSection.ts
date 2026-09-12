@@ -17,11 +17,12 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
-import type { UniverseAgentSkillSource, UniverseAgentSkillSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentCapabilitySupport, UniverseAgentSkillSource, UniverseAgentSkillSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles, defaultCheckboxStyles, defaultInputBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { canPerformCatalogWrite, canShowCatalogRows, getCatalogListLoadingCopy } from './engineCatalog.js';
+import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
+import { canPerformCatalogWriteLive, canShowCatalogRows, getCatalogListLoadingCopy } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
-import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
+import { getEngineSectionApiUnavailableCopy, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
 import {
 	EngineSkillsPaneMode,
 	canEditSkillBody,
@@ -278,7 +279,11 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	canWrite(): boolean {
-		return canPerformCatalogWrite(this.mode) && this.connection.isEngineConnected();
+		return canPerformCatalogWriteLive(
+			this.mode,
+			this.connection.isEngineConnected(),
+			isConversationPairingHold(this.connection),
+		);
 	}
 
 	isBodyEditorVisible(): boolean {
@@ -376,16 +381,38 @@ export class EngineSkillsSection extends Disposable {
 		}
 	}
 
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		if (!hadLiveCatalog) {
+			return false;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
+	}
+
+	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): boolean {
+		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+			this.hideWriteStatus();
+			this.writeToolbar.style.display = 'none';
+			this.listContainer.style.display = '';
+			this.mode = resolveEngineSkillsPaneMode(false, support);
+			this.renderStatus();
+			return false;
+		}
+		this.clearCatalogPresentation();
+		this.mode = resolveEngineSkillsPaneMode(false, support);
+		this.renderStatus();
+		return false;
+	}
+
 	private async refresh(): Promise<boolean> {
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.skills.support;
 
-		if (!connected) {
-			this.clearCatalogPresentation();
-			this.mode = resolveEngineSkillsPaneMode(false, support);
-			this.renderStatus();
-			return false;
+		const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'skill');
+		// D349 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connection) || !connected) {
+			return this.applyDisconnectedRefresh(support, hadLiveCatalog);
 		}
 
 		if (support === 'UNSUPPORTED') {
@@ -414,11 +441,9 @@ export class EngineSkillsSection extends Disposable {
 
 		try {
 			const result = await this.connection.listSkills();
-			if (!this.connection.isEngineConnected()) {
-				this.clearCatalogPresentation();
-				this.mode = resolveEngineSkillsPaneMode(false, support);
-				this.renderStatus();
-				return false;
+			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'skill');
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+				return this.applyDisconnectedRefresh(support, leftoverAfterList);
 			}
 			this.setSkills(result.skills);
 			this.mode = resolveEngineSkillsPaneMode(true, support, {
@@ -654,7 +679,7 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private async toggleSkill(skill: UniverseAgentSkillSummary, enabled: boolean): Promise<void> {
-		if (!canShowCatalogRows(this.mode) || !this.connection.isEngineConnected()) {
+		if (!this.canWrite()) {
 			return;
 		}
 		try {
@@ -674,11 +699,27 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private async loadSkillBody(skill: UniverseAgentSkillSummary): Promise<void> {
+		// D376 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connection)) {
+			const hasLeftoverBody = !!(this.loadedBodyText || this.bodyInput.value);
+			if (hasLeftoverBody) {
+				this.showBodyStatus(getEngineSectionDisconnectedCopy());
+				return;
+			}
+			if (!this.bodyDirty) {
+				this.clearBodyEditor();
+			}
+			return;
+		}
 		if (!canShowCatalogRows(this.mode) || !this.connection.isEngineConnected()) {
 			// Keep leftover body after a live paint (D265; D263/D264).
 			// failed/loading must not unload leftover text; first-pull empty still clears.
 			const hasLeftoverBody = !!(this.loadedBodyText || this.bodyInput.value);
 			if ((this.mode === 'failed' || this.mode === 'loading') && hasLeftoverBody) {
+				return;
+			}
+			if (this.keepLeftoverCatalogForPairingHold(hasLeftoverBody)) {
+				this.showBodyStatus(getEngineSectionDisconnectedCopy());
 				return;
 			}
 			if (!this.bodyDirty) {
@@ -691,14 +732,23 @@ export class EngineSkillsSection extends Disposable {
 			return;
 		}
 		const generation = ++this.bodyLoadGeneration;
-		this.bodyInput.value = '';
+		// D275: keep leftover body while the detail RPC is in-flight. First-pull empty still clears.
+		const hasLeftoverBody = !!(this.loadedBodyText || this.bodyInput.value);
+		if (!hasLeftoverBody) {
+			this.bodyInput.value = '';
+		}
 		this.showBodyStatus(getCatalogListLoadingCopy());
 		try {
 			const info = await this.connection.getSkillInfo({ skillName: skill.name });
-			if (generation !== this.bodyLoadGeneration
+			if (generation !== this.bodyLoadGeneration || this.selectedSkill?.name !== skill.name) {
+				return;
+			}
+			if (isConversationPairingHold(this.connection)
 				|| !canShowCatalogRows(this.mode)
-				|| !this.connection.isEngineConnected()
-				|| this.selectedSkill?.name !== skill.name) {
+				|| !this.connection.isEngineConnected()) {
+				if (isConversationPairingHold(this.connection) && hasLeftoverBody) {
+					this.showBodyStatus(getEngineSectionDisconnectedCopy());
+				}
 				return;
 			}
 			this.loadedBodySource = info.source;
@@ -711,10 +761,12 @@ export class EngineSkillsSection extends Disposable {
 			if (generation !== this.bodyLoadGeneration || this.selectedSkill?.name !== skill.name) {
 				return;
 			}
-			this.loadedBodySource = undefined;
-			this.bodyInput.value = '';
-			this.bodyInput.inputElement.readOnly = true;
-			this.bodyToolbar.style.display = 'none';
+			if (!hasLeftoverBody) {
+				this.loadedBodySource = undefined;
+				this.bodyInput.value = '';
+				this.bodyInput.inputElement.readOnly = true;
+				this.bodyToolbar.style.display = 'none';
+			}
 			this.showBodyStatus(localize('ua.engineSkillBodyLoadFailed', "Could not load skill content from the engine."));
 		}
 	}

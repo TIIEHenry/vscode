@@ -21,10 +21,12 @@ suite('Engine context-variable list bind', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('List gate is connected + hook; empty sessionId / agentId stay empty', () => {
+	test('List gate is connected + hook; pairing-hold leftover-looks-live refuses; empty sessionId / agentId stay empty', () => {
 		assert.strictEqual(canSendEngineContextVariableListRequest(false, true), false);
 		assert.strictEqual(canSendEngineContextVariableListRequest(true, false), false);
 		assert.strictEqual(canSendEngineContextVariableListRequest(true, true), true);
+		assert.strictEqual(canSendEngineContextVariableListRequest(true, true, true), false);
+		assert.strictEqual(canSendEngineContextVariableListRequest(true, true, false), true);
 		assert.deepStrictEqual(engineContextVariableListRequest(), {
 			sessionId: '',
 			agentId: '',
@@ -57,10 +59,12 @@ suite('Engine context-variable list bind', () => {
 		]);
 	});
 
-	test('Read gate is connected + hook; empty ids stay empty', () => {
+	test('Read gate is connected + hook; pairing-hold leftover-looks-live refuses; empty ids stay empty', () => {
 		assert.strictEqual(canSendEngineContextVariableRead(false, true), false);
 		assert.strictEqual(canSendEngineContextVariableRead(true, false), false);
 		assert.strictEqual(canSendEngineContextVariableRead(true, true), true);
+		assert.strictEqual(canSendEngineContextVariableRead(true, true, true), false);
+		assert.strictEqual(canSendEngineContextVariableRead(true, true, false), true);
 		assert.deepStrictEqual(engineContextVariableReadRequest(undefined), {
 			sessionId: '',
 			name: '',

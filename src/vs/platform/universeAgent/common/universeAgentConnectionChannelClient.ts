@@ -64,6 +64,7 @@ export class UniverseAgentConnectionChannelClient extends Disposable {
 		return createRemoteForwardingProxy(this, this.remote) as this;
 	}
 
+	/** H4b: `isConversationEngineLive(phase, snapshot.pairingPending)` via cache.connected. */
 	isEngineConnected(): boolean {
 		return this.cache.connected;
 	}

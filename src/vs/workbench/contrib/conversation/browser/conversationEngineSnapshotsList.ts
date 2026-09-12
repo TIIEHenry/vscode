@@ -26,6 +26,7 @@ import {
 	conversationLensSessionBarSnapshotsUnavailableNoHook,
 	conversationLensSessionBarSnapshotsUnavailableNoSession,
 } from './conversationLensSessionBarStrings.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
 export const conversationLensSnapshotsButtonClass = 'conversation-lens-session-snapshots';
@@ -117,6 +118,14 @@ function snapshotWriteFailureReason(error: unknown): string {
  * Connected no-hook after a live paint keeps leftover rows + UnavailableNoHook (D268);
  * first-pull no-hook stays empty+unavailable and must not paint empty-success.
  * Disconnect still unloads rows.
+ * Pairing-hold leftover keeps rows + disconnected copy (D280) and disables
+ * Restore/Delete (D309); leftover-looks-live (`isEngineConnected()===true`
+ * + pairingPending) also refuses writes. Pairing-hold-first refresh (D346)
+ * first-pull leftover-looks-live (no leftover) paints empty / disconnected
+ * and skips listSnapshots; leftover WITH leftover still KEEP + 0 extra list.
+ * Post-await leftover-looks-live (D365) also KEEP + disconnected and
+ * refuses paintSnapshots as live.
+ * Connected leftover still writes.
  * Restore/Delete success copy is restored only after a successful list
  * (D54/D154 listed-gate); leftover list-fail clears Restored./Deleted.
  * no Create.
@@ -240,6 +249,42 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		super.dispose();
 	}
 
+	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
+		return hadLiveCatalog && isConversationPairingHold(this.connection);
+	}
+
+	private isSnapshotWriteLive(): boolean {
+		return this.connection.isEngineConnected() && !isConversationPairingHold(this.connection);
+	}
+
+	private disableLeftoverWriteButtons(): void {
+		const writeButtons = this.body.querySelectorAll(
+			`.${conversationLensSnapshotsRestoreClass} .monaco-button, .${conversationLensSnapshotsDeleteClass} .monaco-button`,
+		);
+		for (const button of writeButtons) {
+			button.classList.add('disabled');
+			button.setAttribute('aria-disabled', 'true');
+			button.setAttribute('disabled', 'true');
+		}
+	}
+
+	private applyPairingHoldLeftoverRefresh(): boolean {
+		this.paintListFailed(conversationLensSessionBarSnapshotsUnavailableDisconnected);
+		this.disableLeftoverWriteButtons();
+		return false;
+	}
+
+	private applyDisconnectedRefresh(): boolean {
+		const sessionId = this.roster.getActiveSessionId();
+		const hasHook = typeof this.connection.listSnapshots === 'function';
+		const disconnectedCopy = this.unavailableCopy(false, hasHook, sessionId);
+		if (this.paintedLiveSnapshots && this.keepLeftoverCatalogForPairingHold(true)) {
+			return this.applyPairingHoldLeftoverRefresh();
+		}
+		this.paintStatus(disconnectedCopy);
+		return false;
+	}
+
 	private async refresh(): Promise<boolean> {
 		const generation = ++this.renderGeneration;
 		const sessionId = this.roster.getActiveSessionId();
@@ -247,9 +292,11 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		const listSnapshots = this.connection.listSnapshots;
 		const hasHook = typeof listSnapshots === 'function';
 
+		if (isConversationPairingHold(this.connection)) {
+			return this.applyDisconnectedRefresh();
+		}
 		if (!connected) {
-			this.paintStatus(this.unavailableCopy(connected, hasHook, sessionId));
-			return false;
+			return this.applyDisconnectedRefresh();
 		}
 		if (!hasHook || !listSnapshots) {
 			this.paintListFailed(this.unavailableCopy(connected, hasHook, sessionId));
@@ -270,6 +317,9 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			const result = await listSnapshots.call(this.connection, { sessionId });
 			if (generation !== this.renderGeneration) {
 				return false;
+			}
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+				return this.applyDisconnectedRefresh();
 			}
 			this.paintSnapshots(result.snapshots);
 			return true;
@@ -298,10 +348,9 @@ export class ConversationEngineSnapshotsList extends Disposable {
 
 	private restoreSnapshot(snapshotId: string): void {
 		const sessionId = this.roster.getActiveSessionId();
-		const connected = this.connection.isEngineConnected();
 		const restore = this.connection.restoreSnapshot;
 		const hasHook = typeof restore === 'function';
-		if (!canRestoreEngineSnapshot(connected, hasHook, snapshotId, sessionId) || !restore || !sessionId) {
+		if (!canRestoreEngineSnapshot(this.isSnapshotWriteLive(), hasHook, snapshotId, sessionId) || !restore || !sessionId) {
 			return;
 		}
 		void this.restoreThenRefreshList(restore, sessionId, snapshotId);
@@ -381,9 +430,8 @@ export class ConversationEngineSnapshotsList extends Disposable {
 
 	private canSendDelete(snapshotId: string): boolean {
 		const sessionId = this.roster.getActiveSessionId();
-		const connected = this.connection.isEngineConnected();
 		const hasHook = typeof this.connection.deleteSnapshot === 'function';
-		return canDeleteEngineSnapshot(connected, hasHook, snapshotId, sessionId);
+		return canDeleteEngineSnapshot(this.isSnapshotWriteLive(), hasHook, snapshotId, sessionId);
 	}
 
 	private paintWriteStatus(text: string | undefined): void {
@@ -460,21 +508,21 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			}
 
 			const sessionId = this.roster.getActiveSessionId();
-			const connected = this.connection.isEngineConnected();
+			const writeLive = this.isSnapshotWriteLive();
 			const canRestore = canRestoreEngineSnapshot(
-				connected,
+				writeLive,
 				typeof this.connection.restoreSnapshot === 'function',
 				snapshot.id,
 				sessionId,
 			);
 			const canDelete = canDeleteEngineSnapshot(
-				connected,
+				writeLive,
 				typeof this.connection.deleteSnapshot === 'function',
 				snapshot.id,
 				sessionId,
 			);
-			const restoreUnavailable = this.unavailableCopy(connected, typeof this.connection.restoreSnapshot === 'function', sessionId);
-			const deleteUnavailable = this.unavailableCopy(connected, typeof this.connection.deleteSnapshot === 'function', sessionId);
+			const restoreUnavailable = this.unavailableCopy(writeLive, typeof this.connection.restoreSnapshot === 'function', sessionId);
+			const deleteUnavailable = this.unavailableCopy(writeLive, typeof this.connection.deleteSnapshot === 'function', sessionId);
 
 			const restoreContainer = append(row, $(`.${conversationLensSnapshotsRestoreClass}`));
 			const restoreButton = this.rowDisposables.add(new Button(restoreContainer, {

@@ -99,7 +99,9 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 	private readonly lifetime = this._register(new DisposableStore());
 	leaseId = '';
 	boundEngineSessionId = '';
-	private readonly ready: Promise<boolean>;
+	private readonly acquired: Promise<string | undefined>;
+	private bind: Promise<boolean> | undefined;
+	private bindSucceeded = false;
 	private disposed = false;
 
 	constructor(
@@ -109,10 +111,10 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 		private readonly onAcquired: (leaseId: string) => void,
 	) {
 		super();
-		this.ready = this.sessionView.acquireLease(sessionId).then(async id => {
+		this.acquired = this.sessionView.acquireLease(sessionId).then(id => {
 			if (this.disposed) {
 				void this.sessionView.releaseLease(id).catch(() => undefined);
-				return false;
+				return undefined;
 			}
 			this.leaseId = id;
 			this.lifetime.add(this.sessionView.onDynamicDidApplyFrame(id)(event =>
@@ -122,24 +124,44 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 				this.onRelease(id);
 			} });
 			this.onAcquired(id);
-			try {
-				const engineSessionId = await this.sessionView.whenEngineSessionReady(sessionId);
-				if (this.disposed) {
-					return false;
-				}
-				if (!engineSessionId) {
-					return false;
-				}
-				this.boundEngineSessionId = engineSessionId;
-				return true;
-			} catch {
-				return false;
-			}
-		}, () => false);
+			return id;
+		}, () => undefined);
 	}
 
 	whenBindReady(): Promise<boolean> {
-		return this.ready;
+		if (this.bindSucceeded && this.bind) {
+			return this.bind;
+		}
+		if (this.bind) {
+			return this.bind;
+		}
+		this.bind = this.runBind();
+		return this.bind;
+	}
+
+	private async runBind(): Promise<boolean> {
+		const leaseId = await this.acquired;
+		if (!leaseId || this.disposed) {
+			this.bind = undefined;
+			return false;
+		}
+		try {
+			const engineSessionId = await this.sessionView.whenEngineSessionReady(this.sessionId);
+			if (this.disposed) {
+				this.bind = undefined;
+				return false;
+			}
+			if (!engineSessionId) {
+				this.bind = undefined;
+				return false;
+			}
+			this.boundEngineSessionId = engineSessionId;
+			this.bindSucceeded = true;
+			return true;
+		} catch {
+			this.bind = undefined;
+			return false;
+		}
 	}
 
 	get snapshot(): SessionViewSnapshot {
@@ -155,7 +177,11 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 	}
 
 	async post(msg: ConversationWriteMessage): Promise<PostOutcome> {
-		const bound = await this.ready;
+		const leaseId = await this.acquired;
+		if (!leaseId) {
+			return { accepted: false, reason: 'no_such_session' };
+		}
+		const bound = await this.whenBindReady();
 		if (!bound || !this.leaseId) {
 			return { accepted: false, reason: 'no_such_session' };
 		}
@@ -173,7 +199,11 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 	}
 
 	async requestDetail(ref: string): Promise<DetailFetchOutcome> {
-		const bound = await this.ready;
+		const leaseId = await this.acquired;
+		if (!leaseId) {
+			return { ok: false, reason: 'failed', message: 'lease acquire failed' };
+		}
+		const bound = await this.whenBindReady();
 		if (!bound || !this.leaseId) {
 			return { ok: false, reason: 'failed', message: 'lease acquire failed' };
 		}
