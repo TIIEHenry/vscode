@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-12
-summary: "D25/D26 已闭。A–F 只读面已挂。Composer 发送带 model_profile_id。钉死工位 seed 后 grpcurl Chat PASS。PRD-008 仍待 IDE 接通冒烟。D410/D411 已合；本波 D412 占 D；下号 D413。GitHub Actions 永久关闭。"
+summary: "D25/D26 已闭。A–F 只读面已挂。钉死工位 seed 后 grpcurl Chat PASS。PRD-008 仍待 IDE 接通冒烟。D410/D411 已合；本波 D412 占 D（代码+测未 letter-commit）。下号 D413。"
 ---
 
 # Development Progress
@@ -44,7 +44,7 @@ summary: "D25/D26 已闭。A–F 只读面已挂。Composer 发送带 model_prof
 | **A** | — | `idle`；HEAD == MERGE_SHA；D410=`9974bfa2822` |
 | **B** | — | `idle`；HEAD == MERGE_SHA；D411=`0ae05e427f9` |
 | **C** | — | `idle`；跳过 cascade；脏 `dev/loop` 勿 add |
-| **D** | D412 catalog 写状态色调 | `occupied` @ `0da52a7d3a5` |
+| **D** | D412 catalog 写状态色调 | `occupied`；19 文件脏未 letter-commit；勿 `checkout -B` |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 
 <details>
@@ -186,14 +186,14 @@ summary: "D25/D26 已闭。A–F 只读面已挂。Composer 发送带 model_prof
 | A | `vscode-WorkTrees/A` | `loop/A` | `0da52a7d3a5` | 干净 | 0 | `idle`；跟 MERGE_SHA |
 | B | `vscode-WorkTrees/B` | `loop/B` | `0da52a7d3a5` | 干净 | 0 | `idle`；跟 MERGE_SHA |
 | C | `vscode-WorkTrees/C` | `loop/C` | `74f36dbacdf` | 未提交 `dev/loop` | 0 | 合入后仍脏 gitlink；勿 add |
-| D | `vscode-WorkTrees/D` | `loop/D` | `0da52a7d3a5` | 干净 | 0 | `occupied` D412；勿 `checkout -B` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `0da52a7d3a5` | 19 文件脏 | 0 | `occupied` D412 未 letter-commit；勿 `checkout -B` |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked` leftover；跳过 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | 本 tick merge | `dev/loop` + `.idea` | 0 | 已授权合入；勿 add `dev/loop` |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。本仓只读面 + Composer `model_profile_id` **已挂**。钉死工位 seed 后 grpcurl **Chat PASS**。下一刀是 IDE Direct Address 接通后 Composer 发送（PRD-008 仍要隔离 profile 冒烟）。**不升 PRD-008**。不要再清 store。D26 store 已闭，旧「迁移卡死」账见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md) |
-| **loop 切片** | 上波 D410/D411 已合。本波 **D412** 占 D。**D405** 手测仍开。不关 D8/D16/D147。下号 **D413**。未升 PRD-008。 |
+| **loop 切片** | 上波 D410/D411 已合。本波 **D412** 占 D（代码+测未 letter-commit）。**D405** 手测仍开。不关 D8/D16/D147。下号 **D413**。未升 PRD-008。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
