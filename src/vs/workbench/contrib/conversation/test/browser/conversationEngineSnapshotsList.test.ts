@@ -428,6 +428,76 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.ok(overlayParent.textContent?.includes(conversationLensSessionBarSnapshotsUnavailableDisconnected));
 	});
 
+	test('leftover-looks-live in-flight list resolve keeps leftover and does not paint live', async () => {
+		let pairingPending = false;
+		let listCalls = 0;
+		let releaseSecond: (() => void) | undefined;
+		let secondStarted: (() => void) | undefined;
+		const secondEntered = new Promise<void>(resolve => { secondStarted = resolve; });
+		const secondHold = new Promise<void>(resolve => { releaseSecond = resolve; });
+		const leftover: UniverseAgentSessionSnapshotInfo = {
+			id: 'leftover-snap',
+			sessionId: 'sess-1',
+			title: 'Leftover',
+			createdAt: 1,
+			turnCount: 1,
+		};
+		const inflightLive: UniverseAgentSessionSnapshotInfo = {
+			id: 'inflight-live',
+			sessionId: 'sess-1',
+			title: 'In-flight live',
+			createdAt: 2,
+			turnCount: 9,
+		};
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			pairingPending,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listSnapshots: async () => {
+				listCalls++;
+				if (listCalls === 1) {
+					return { snapshots: [leftover] };
+				}
+				secondStarted?.();
+				await secondHold;
+				return { snapshots: [inflightLive] };
+			},
+		});
+		const { list, overlayParent } = mountList(connection);
+		list.show();
+		await Promise.resolve();
+		assert.strictEqual(listCalls, 1);
+		assert.ok(snapshotRow(overlayParent, 'leftover-snap'));
+
+		onDidChangeConnection.fire(snapshot());
+		await secondEntered;
+		assert.strictEqual(listCalls, 2);
+
+		pairingPending = true;
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		releaseSecond?.();
+		await flushMicrotasks();
+
+		assert.ok(snapshotRow(overlayParent, 'leftover-snap'));
+		assert.strictEqual(snapshotRow(overlayParent, 'inflight-live'), null);
+		assert.strictEqual(overlayParent.querySelectorAll(`.${conversationLensSnapshotsRowClass}`).length, 1);
+		assert.ok(overlayParent.textContent?.includes(conversationLensSessionBarSnapshotsUnavailableDisconnected));
+		assert.ok(!(overlayParent.textContent ?? '').includes(conversationLensSessionBarSnapshotsEmpty));
+		assertWriteButtonsDisabled(snapshotRow(overlayParent, 'leftover-snap'));
+	});
+
 	test('leftover-looks-live first-pull pairing without leftover stays empty and skips listSnapshots', async () => {
 		const calls: UniverseAgentListSnapshotsRequest[] = [];
 		const snapshot: UniverseAgentConnectionSnapshot = {

@@ -123,6 +123,8 @@ function snapshotWriteFailureReason(error: unknown): string {
  * + pairingPending) also refuses writes. Pairing-hold-first refresh (D346)
  * first-pull leftover-looks-live (no leftover) paints empty / disconnected
  * and skips listSnapshots; leftover WITH leftover still KEEP + 0 extra list.
+ * Post-await leftover-looks-live (D365) also KEEP + disconnected and
+ * refuses paintSnapshots as live.
  * Connected leftover still writes.
  * Restore/Delete success copy is restored only after a successful list
  * (D54/D154 listed-gate); leftover list-fail clears Restored./Deleted.
@@ -316,7 +318,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			if (generation !== this.renderGeneration) {
 				return false;
 			}
-			if (!this.connection.isEngineConnected()) {
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				return this.applyDisconnectedRefresh();
 			}
 			this.paintSnapshots(result.snapshots);
