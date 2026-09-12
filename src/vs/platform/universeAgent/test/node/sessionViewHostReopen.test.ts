@@ -35,15 +35,15 @@ function createDeferredTimeout() {
 	const delays: number[] = [];
 	const pending = new Map<number, () => void>();
 	let nextId = 1;
-	const setTimeoutFn = ((fn: () => void, delay?: number) => {
+	const setTimeoutFn = (fn: () => void, delay?: number) => {
 		delays.push(delay ?? 0);
 		const id = nextId++;
 		pending.set(id, fn);
 		return id as unknown as ReturnType<typeof setTimeout>;
-	}) as typeof setTimeout;
-	const clearTimeoutFn = ((handle: ReturnType<typeof setTimeout>) => {
+	};
+	const clearTimeoutFn = (handle: ReturnType<typeof setTimeout>) => {
 		pending.delete(handle as unknown as number);
-	}) as typeof clearTimeout;
+	};
 	const fireAll = (): void => {
 		const jobs = [...pending.values()];
 		pending.clear();

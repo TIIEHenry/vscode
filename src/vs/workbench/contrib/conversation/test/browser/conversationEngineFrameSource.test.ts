@@ -336,13 +336,15 @@ suite('ConversationEngineFrameSource post outcome', () => {
 			accepted: false,
 			reason: 'no_such_session',
 		});
-		assert.strictEqual(sessionView.lastPost, undefined);
+		const lastPostAfterReject = sessionView.lastPost;
+		assert.strictEqual(lastPostAfterReject, undefined);
 		assert.deepStrictEqual(await lease.post({ kind: 'submitInput', text: 'second' }), {
 			accepted: true,
 			correlation: { id: 'host-corr' },
 		});
-		assert.strictEqual(sessionView.lastPost?.leaseId, 'lease:sess-rebind');
-		assert.deepStrictEqual(sessionView.lastPost?.msg, { kind: 'submitInput', text: 'second' });
+		const lastPostAfterRetry = sessionView.lastPost;
+		assert.strictEqual(lastPostAfterRetry?.leaseId, 'lease:sess-rebind');
+		assert.deepStrictEqual(lastPostAfterRetry?.msg, { kind: 'submitInput', text: 'second' });
 	});
 
 	test('in-flight bind reuses one whenEngineSessionReady call', async () => {

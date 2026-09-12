@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { CancellationToken } from '../../../base/common/cancellation.js';
 import { ErrorNoTelemetry } from '../../../base/common/errors.js';
 import { Event } from '../../../base/common/event.js';
 import { revive } from '../../../base/common/marshalling.js';
@@ -48,36 +49,36 @@ export class UniverseAgentSessionViewChannel implements IServerChannel<string> {
 		private readonly service: UniverseAgentSessionViewChannelService,
 	) { }
 
-	call(_ctx: string, command: string, arg?: unknown): Promise<unknown> {
-		const ctx = String(_ctx);
+	call<T>(ctx: string, command: string, arg?: any, _cancellationToken?: CancellationToken): Promise<T> {
+		const owner = String(ctx);
 		const args = Array.isArray(arg) ? arg.map(value => revive(value)) : [];
 		if (command === 'acquireLease') {
-			return this.service.acquireLeaseFor(ctx, String(args[0] ?? ''));
+			return this.service.acquireLeaseFor(owner, String(args[0] ?? '')) as Promise<T>;
 		}
 		if (!(command in FORWARDED_CALLS)) {
 			throw new ErrorNoTelemetry(`Method not found: ${command}`);
 		}
 		switch (command as SessionViewCallName) {
 			case 'acquireLease':
-				return this.service.acquireLeaseFor(ctx, String(args[0] ?? ''));
+				return this.service.acquireLeaseFor(owner, String(args[0] ?? '')) as Promise<T>;
 			case 'whenEngineSessionReady':
-				return this.service.whenEngineSessionReady(String(args[0] ?? ''));
+				return this.service.whenEngineSessionReady(String(args[0] ?? '')) as Promise<T>;
 			case 'releaseLease':
-				return this.service.releaseLease(String(args[0] ?? ''));
+				return this.service.releaseLease(String(args[0] ?? '')) as Promise<T>;
 			case 'post':
-				return this.service.post(String(args[0] ?? ''), args[1] as ConversationWriteMessage);
+				return this.service.post(String(args[0] ?? ''), args[1] as ConversationWriteMessage) as Promise<T>;
 			case 'requestResync':
-				return this.service.requestResync(String(args[0] ?? ''));
+				return this.service.requestResync(String(args[0] ?? '')) as Promise<T>;
 			case 'acknowledge':
-				return this.service.acknowledge(String(args[0] ?? ''), args[1] as { readonly generation: number; readonly frameId: number; readonly appliedVersion: number });
+				return this.service.acknowledge(String(args[0] ?? ''), args[1] as { readonly generation: number; readonly frameId: number; readonly appliedVersion: number }) as Promise<T>;
 			case 'requestDetail':
-				return this.service.requestDetail(String(args[0] ?? ''), String(args[1] ?? ''));
+				return this.service.requestDetail(String(args[0] ?? ''), String(args[1] ?? '')) as Promise<T>;
 		}
 	}
 
-	listen(_ctx: string, event: string, arg?: unknown): Event<IUniverseAgentSessionViewFrameEvent> {
+	listen<T>(_ctx: string, event: string, arg?: any): Event<T> {
 		if (event === 'onDynamicDidApplyFrame') {
-			return this.service.onDynamicDidApplyFrame(String(arg ?? ''));
+			return this.service.onDynamicDidApplyFrame(String(arg ?? '')) as Event<T>;
 		}
 		throw new ErrorNoTelemetry(`Event not found: ${event}`);
 	}

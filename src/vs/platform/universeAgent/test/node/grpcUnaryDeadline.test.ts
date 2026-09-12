@@ -5,14 +5,14 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { applyDefaultUnaryDeadline } from '../../node/grpc/grpcClientCalls.js';
+import { applyDefaultUnaryDeadline, type UnaryDeadlineCallProperties } from '../../node/grpc/grpcClientCalls.js';
 
 suite('applyDefaultUnaryDeadline', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('writes deadline for unary when unset', () => {
-		const next = applyDefaultUnaryDeadline({
+		const next = applyDefaultUnaryDeadline<UnaryDeadlineCallProperties>({
 			methodDefinition: { requestStream: false, responseStream: false },
 			callOptions: {},
 		}, 30_000, 1_000);
@@ -20,12 +20,12 @@ suite('applyDefaultUnaryDeadline', () => {
 	});
 
 	test('does not write deadline for streaming methods', () => {
-		const server = applyDefaultUnaryDeadline({
+		const server = applyDefaultUnaryDeadline<UnaryDeadlineCallProperties>({
 			methodDefinition: { requestStream: false, responseStream: true },
 			callOptions: {},
 		}, 30_000, 1_000);
 		assert.strictEqual(server.callOptions.deadline, undefined);
-		const bidi = applyDefaultUnaryDeadline({
+		const bidi = applyDefaultUnaryDeadline<UnaryDeadlineCallProperties>({
 			methodDefinition: { requestStream: true, responseStream: true },
 			callOptions: {},
 		}, 30_000, 1_000);
@@ -33,7 +33,7 @@ suite('applyDefaultUnaryDeadline', () => {
 	});
 
 	test('does not override an existing deadline', () => {
-		const next = applyDefaultUnaryDeadline({
+		const next = applyDefaultUnaryDeadline<UnaryDeadlineCallProperties>({
 			methodDefinition: { requestStream: false, responseStream: false },
 			callOptions: { deadline: 9 },
 		}, 30_000, 1_000);
@@ -41,7 +41,7 @@ suite('applyDefaultUnaryDeadline', () => {
 	});
 
 	test('0 disables the default', () => {
-		const next = applyDefaultUnaryDeadline({
+		const next = applyDefaultUnaryDeadline<UnaryDeadlineCallProperties>({
 			methodDefinition: { requestStream: false, responseStream: false },
 			callOptions: {},
 		}, 0, 1_000);

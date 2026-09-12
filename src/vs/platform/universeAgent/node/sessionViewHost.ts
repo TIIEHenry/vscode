@@ -115,9 +115,13 @@ export type SessionViewHostOptions = {
 	readonly reopenMaxMs?: number;
 	/** ± ratio applied to reopen delay. `0` disables jitter. Default 0.2. */
 	readonly reopenJitterRatio?: number;
-	readonly setTimeoutFn?: typeof setTimeout;
-	readonly clearTimeoutFn?: typeof clearTimeout;
+	readonly setTimeoutFn?: SessionViewHostSetTimeoutFn;
+	readonly clearTimeoutFn?: SessionViewHostClearTimeoutFn;
 };
+
+type SessionViewHostTimeoutHandle = ReturnType<typeof setTimeout>;
+type SessionViewHostSetTimeoutFn = (callback: () => void, delay?: number) => SessionViewHostTimeoutHandle;
+type SessionViewHostClearTimeoutFn = (handle: SessionViewHostTimeoutHandle) => void;
 
 const DEFAULT_ORPHAN_TIMEOUT_MS = 5000;
 const DEFAULT_PENDING_FRAME_LIMIT = 64;
@@ -206,8 +210,8 @@ export class SessionViewHost extends Disposable {
 	private readonly reopenBaseMs: number;
 	private readonly reopenMaxMs: number;
 	private readonly reopenJitterRatio: number;
-	private readonly setTimeoutFn: typeof setTimeout;
-	private readonly clearTimeoutFn: typeof clearTimeout;
+	private readonly setTimeoutFn: SessionViewHostSetTimeoutFn;
+	private readonly clearTimeoutFn: SessionViewHostClearTimeoutFn;
 	private readonly reopenTimers = new Map<string, { timer: ReturnType<typeof setTimeout>; attempt: number }>();
 	private readonly reopenAttemptBySession = new Map<string, number>();
 
@@ -223,8 +227,8 @@ export class SessionViewHost extends Disposable {
 		this.reopenBaseMs = options.reopenBaseMs ?? 1000;
 		this.reopenMaxMs = options.reopenMaxMs ?? 30_000;
 		this.reopenJitterRatio = options.reopenJitterRatio ?? 0.2;
-		this.setTimeoutFn = options.setTimeoutFn ?? ((fn, delay) => setTimeout(fn, delay)) as typeof setTimeout;
-		this.clearTimeoutFn = options.clearTimeoutFn ?? (handle => clearTimeout(handle)) as typeof clearTimeout;
+		this.setTimeoutFn = options.setTimeoutFn ?? ((callback: () => void, delay?: number) => setTimeout(callback, delay));
+		this.clearTimeoutFn = options.clearTimeoutFn ?? ((handle: SessionViewHostTimeoutHandle) => clearTimeout(handle));
 		this.core = createSessionCore({
 			scheduler: this.scheduler,
 			ids: this.ids,
@@ -1345,10 +1349,11 @@ export class SessionViewHost extends Disposable {
 		this.reopenAttemptBySession.set(sessionId, attempt);
 		const delay = this.computeReopenDelay(attempt);
 		this.diagnostics.count('stream.reopen_scheduled' as DiagnosticMetric, { attempt: String(attempt) });
-		const timer = this.setTimeoutFn(() => {
+		const onReopen: () => void = () => {
 			this.reopenTimers.delete(sessionId);
 			this.fireStreamReopen(sessionId);
-		}, delay) as ReturnType<typeof setTimeout>;
+		};
+		const timer = this.setTimeoutFn(onReopen, delay);
 		this.reopenTimers.set(sessionId, { timer, attempt });
 	}
 
