@@ -2265,14 +2265,6 @@
 	flex-direction: column;
 }
 
-.monaco-workbench .part.conversation .conversation-dock.conversation-lens-input-maximized .conversation-lens-dock-gate-row {
-	display: none;
-}
-
-.monaco-workbench .part.conversation .conversation-dock.conversation-lens-input-maximized .conversation-lens-inbox-overlay:not(:has(.conversation-lens-inbox-pending:not([hidden]))) {
-	display: none;
-}
-
 .monaco-workbench .part.conversation .conversation-dock.conversation-lens-input-maximized .conversation-lens-composer {
 	flex: 1;
 	min-height: 0;
