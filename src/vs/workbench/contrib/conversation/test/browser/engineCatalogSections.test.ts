@@ -87,6 +87,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 	} = {}): IUniverseAgentConnection & {
 		setConnected(value: boolean): void;
 		setPairingPending(value: boolean): void;
+		setPairingPendingQuiet(value: boolean): void;
 		setLooksLive(value: boolean): void;
 		setMcpSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setAgentProfilesSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
@@ -207,6 +208,9 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			setPairingPending(value: boolean) {
 				pairingPending = value;
 				onDidChangeConnection.fire(snapshot());
+			},
+			setPairingPendingQuiet(value: boolean) {
+				pairingPending = value;
 			},
 			setLooksLive(value: boolean) {
 				looksLive = value;
@@ -3046,6 +3050,9 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assertToolsUnknownCapabilityHonesty(section, leftoverRows);
 	});
 
+	const LEFTOVER_TOOL_INFO_DESC = 'Run leftover command';
+	const FRESH_LIVE_TOOL_INFO_DESC = 'Run inflight live command';
+
 	function leftoverBashTool() {
 		return { name: 'leftover-bash', description: 'shell tool', category: 'shell' };
 	}
@@ -3053,12 +3060,31 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 	function leftoverBashToolInfo(): UniverseAgentToolInfoResult {
 		return {
 			name: 'leftover-bash',
-			description: 'Run leftover command',
+			description: LEFTOVER_TOOL_INFO_DESC,
 			category: 'shell',
 			destructive: true,
 			requiresPermission: true,
 			aliases: ['sh'],
 		};
+	}
+
+	function freshLiveBashToolInfo(): UniverseAgentToolInfoResult {
+		return {
+			name: 'leftover-bash',
+			description: FRESH_LIVE_TOOL_INFO_DESC,
+			category: 'shell',
+			destructive: false,
+			requiresPermission: false,
+			aliases: [],
+		};
+	}
+
+	function assertToolsLeftoverLooksLiveDisconnected(section: EngineToolsSection): void {
+		assert.strictEqual(section.isToolInfoVisible(), true);
+		const detail = section.getToolInfoDetailText() ?? '';
+		assert.ok(detail.includes(LEFTOVER_TOOL_INFO_DESC));
+		assert.ok(!detail.includes(FRESH_LIVE_TOOL_INFO_DESC));
+		assert.ok(detail.includes(getEngineSectionDisconnectedCopy()));
 	}
 
 	test('Tools: successful info then list throw then select leftover keeps detail', async () => {
@@ -3093,7 +3119,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		await flushMicrotasks();
 
 		assert.strictEqual(getToolInfoCalls, 1);
-		assert.ok((section.getToolInfoDetailText() ?? '').includes('Run leftover command'));
+		assert.ok((section.getToolInfoDetailText() ?? '').includes(LEFTOVER_TOOL_INFO_DESC));
 		assert.strictEqual(section.isToolInfoVisible(), true);
 
 		connection.setConnected(true);
@@ -3106,7 +3132,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 		assert.strictEqual(getToolInfoCalls, 1);
 		assertToolsLeftoverFailedHonesty(section, 'listTools retry exploded', 1);
-		assert.ok((section.getToolInfoDetailText() ?? '').includes('Run leftover command'));
+		assert.ok((section.getToolInfoDetailText() ?? '').includes(LEFTOVER_TOOL_INFO_DESC));
 		assert.strictEqual(section.isToolInfoVisible(), true);
 	});
 
@@ -3138,7 +3164,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		await flushMicrotasks();
 
 		assert.strictEqual(getToolInfoCalls, 1);
-		assert.ok((section.getToolInfoDetailText() ?? '').includes('Run leftover command'));
+		assert.ok((section.getToolInfoDetailText() ?? '').includes(LEFTOVER_TOOL_INFO_DESC));
 		assert.strictEqual(section.isToolInfoVisible(), true);
 		const listCallsAfterLoad = listToolsCalls;
 
@@ -3152,7 +3178,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 		assert.strictEqual(getToolInfoCalls, 1);
 		assertToolsUnknownCapabilityHonesty(section, 1);
-		assert.ok((section.getToolInfoDetailText() ?? '').includes('Run leftover command'));
+		assert.ok((section.getToolInfoDetailText() ?? '').includes(LEFTOVER_TOOL_INFO_DESC));
 		assert.strictEqual(section.isToolInfoVisible(), true);
 	});
 
@@ -3183,7 +3209,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		await flushMicrotasks();
 
 		assert.strictEqual(getToolInfoCalls, 1);
-		assert.ok((section.getToolInfoDetailText() ?? '').includes('Run leftover command'));
+		assert.ok((section.getToolInfoDetailText() ?? '').includes(LEFTOVER_TOOL_INFO_DESC));
 		assert.strictEqual(section.isToolInfoVisible(), true);
 		const leftoverRows = section.getListEntryCount();
 		const listCallsAfterLoad = listToolsCalls;
@@ -3199,7 +3225,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(getToolInfoCalls, 1);
 		assert.strictEqual(listToolsCalls, listCallsAfterLoad);
 		assertCatalogLeftoverPairingHonesty(section, leftoverRows, TOOLS_EMPTY_COPY);
-		assert.ok((section.getToolInfoDetailText() ?? '').includes('Run leftover command'));
+		assert.ok((section.getToolInfoDetailText() ?? '').includes(LEFTOVER_TOOL_INFO_DESC));
 		assert.strictEqual(section.isToolInfoVisible(), true);
 		assert.ok((section.getToolInfoDetailText() ?? '').includes(getEngineSectionDisconnectedCopy()));
 
@@ -3209,8 +3235,103 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(section.getMode(), 'disconnected');
 		assert.strictEqual(section.getListEntryCount(), 0);
 		assert.strictEqual(section.isToolInfoVisible(), false);
-		assert.ok(!(section.getToolInfoDetailText() ?? '').includes('Run leftover command'));
+		assert.ok(!(section.getToolInfoDetailText() ?? '').includes(LEFTOVER_TOOL_INFO_DESC));
+	}
+
+	test('Tools: leftover-looks-live pairing-hold loadToolInfo skips extra getToolInfo', async () => {
+		let getToolInfoCalls = 0;
+		const leftover = leftoverBashTool();
+		const leftoverInfo = leftoverBashToolInfo();
+		const connection = createConnectionStub({
+			connected: true,
+			looksLive: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => ({ tools: [leftover] }),
+			listAgentProfiles: async () => ({
+				profiles: [demoToolsUserProfile()],
+			}),
+			getToolInfo: async () => {
+				getToolInfoCalls++;
+				return leftoverInfo;
+			},
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.selectTool('leftover-bash'), true);
+		await flushMicrotasks();
+
+		assert.ok((section.getToolInfoDetailText() ?? '').includes(LEFTOVER_TOOL_INFO_DESC));
+		assert.strictEqual(section.isToolInfoVisible(), true);
+		const infoCallsAfterLoad = getToolInfoCalls;
+		assert.ok(infoCallsAfterLoad >= 1);
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		connection.setPairingPendingQuiet(true);
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		assert.strictEqual(section.selectTool('leftover-bash'), true);
+		await flushMicrotasks();
+
+		assert.strictEqual(getToolInfoCalls, infoCallsAfterLoad, 'leftover-looks-live must not extra getToolInfo');
+		assertToolsLeftoverLooksLiveDisconnected(section);
 	});
+
+	test('Tools: in-flight getToolInfo leftover-looks-live keeps leftover and does not paint live', async () => {
+		let getToolInfoCalls = 0;
+		let releaseSecond: (() => void) | undefined;
+		let secondStarted: (() => void) | undefined;
+		const secondEntered = new Promise<void>(resolve => { secondStarted = resolve; });
+		const secondHold = new Promise<void>(resolve => { releaseSecond = resolve; });
+		const leftover = leftoverBashTool();
+		const leftoverInfo = leftoverBashToolInfo();
+		const connection = createConnectionStub({
+			connected: true,
+			looksLive: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => ({ tools: [leftover] }),
+			listAgentProfiles: async () => ({
+				profiles: [demoToolsUserProfile()],
+			}),
+			getToolInfo: async () => {
+				getToolInfoCalls++;
+				if (getToolInfoCalls === 1) {
+					return leftoverInfo;
+				}
+				secondStarted?.();
+				await secondHold;
+				return freshLiveBashToolInfo();
+			},
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.selectTool('leftover-bash'), true);
+		await flushMicrotasks();
+
+		assert.ok((section.getToolInfoDetailText() ?? '').includes(LEFTOVER_TOOL_INFO_DESC));
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		connection.setConnected(true);
+		await secondEntered;
+		assert.strictEqual(getToolInfoCalls, 2);
+
+		connection.setPairingPending(true);
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		releaseSecond!();
+		await flushMicrotasks();
+
+		assertToolsLeftoverLooksLiveDisconnected(section);
+		assert.ok(!(section.getToolInfoDetailText() ?? '').includes(FRESH_LIVE_TOOL_INFO_DESC), 'in-flight leftover-looks-live must not paint live');
+	}););
 
 	function demoMcpServer() {
 		return {

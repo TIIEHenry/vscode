@@ -698,16 +698,29 @@ export class EngineToolsSection extends Disposable {
 		this.infoHost.style.display = '';
 	}
 
+	private keepLeftoverToolInfoDisconnected(): void {
+		if (this.hasLeftoverToolInfo()) {
+			this.paintToolInfoHonesty(getEngineSectionDisconnectedCopy());
+			return;
+		}
+		this.clearToolInfo();
+	}
+
 	private async loadToolInfo(toolName: string): Promise<void> {
 		const name = toolName.trim();
-		if (!name || !canShowCatalogRows(this.mode) || !this.connection.isEngineConnected()) {
+		if (!name) {
+			this.clearToolInfo();
+			return;
+		}
+		// D377 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+			this.keepLeftoverToolInfoDisconnected();
+			return;
+		}
+		if (!canShowCatalogRows(this.mode)) {
 			// Keep leftover tool info after a live paint (D270; D264 / D265).
 			// failed/loading must not unload leftover detail; first-pull empty still clears.
 			if ((this.mode === 'failed' || this.mode === 'loading') && this.hasLeftoverToolInfo()) {
-				return;
-			}
-			if (this.keepLeftoverCatalogForPairingHold(this.hasLeftoverToolInfo())) {
-				this.paintToolInfoHonesty(getEngineSectionDisconnectedCopy());
 				return;
 			}
 			this.clearToolInfo();
@@ -722,6 +735,10 @@ export class EngineToolsSection extends Disposable {
 		try {
 			const info = await this.connection.getToolInfo({ toolName: name });
 			if (generation !== this.infoLoadGeneration || this.selectedToolName !== toolName) {
+				return;
+			}
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+				this.keepLeftoverToolInfoDisconnected();
 				return;
 			}
 			this.renderToolInfo(info);
