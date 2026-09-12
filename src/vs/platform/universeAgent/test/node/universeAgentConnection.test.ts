@@ -12038,4 +12038,118 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 		assert.strictEqual(clock.delays.length, 0);
 		service.dispose();
 	});
+
+	test('reconnect transport_failed still reschedules backoff (D410)', async () => {
+		const clock = createReconnectClock();
+		let resolves = 0;
+		const resolver = {
+			resolve: async () => {
+				resolves++;
+				if (resolves === 1) {
+					return { ok: true as const, allowRelayFallback: false, endpoint: okEndpoint };
+				}
+				return { ok: false as const, code: 'transport_failed' as const, reason: 'dial refused', allowRelayFallback: false };
+			},
+			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+		};
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport({
+				listSessions: async () => {
+					throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+				},
+			}),
+			connectionResolver: resolver as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+
+		await service.connectProfile('p1');
+		await assert.rejects(() => service.listSessions({}));
+		assert.deepStrictEqual(clock.delays, [1000]);
+		assert.strictEqual(clock.pending.size, 1);
+
+		clock.fireAll();
+		await flushReconnect();
+		assert.deepStrictEqual(clock.delays, [1000, 2000]);
+		assert.strictEqual(clock.pending.size, 1);
+
+		clock.fireAll();
+		await flushReconnect();
+		assert.deepStrictEqual(clock.delays, [1000, 2000, 4000]);
+		assert.strictEqual(clock.pending.size, 1);
+		service.dispose();
+	});
+
+	test('reconnect non-TransportError throw still reschedules backoff (D410)', async () => {
+		const clock = createReconnectClock();
+		let connects = 0;
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport({
+				connect: async () => {
+					connects++;
+					if (connects === 1) {
+						return { sessionToken: 'token-1', workDir: '/tmp/work', methods: [], events: [] };
+					}
+					throw new Error('plain connect blowup');
+				},
+				listSessions: async () => {
+					throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+				},
+			}),
+			connectionResolver: createOkResolver() as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+
+		await service.connectProfile('p1');
+		await assert.rejects(() => service.listSessions({}));
+		assert.deepStrictEqual(clock.delays, [1000]);
+
+		clock.fireAll();
+		await flushReconnect();
+		assert.deepStrictEqual(clock.delays, [1000, 2000]);
+		assert.strictEqual(clock.pending.size, 1);
+		service.dispose();
+	});
+
+	test('reconnect pairing_required still does not reschedule (D410)', async () => {
+		const clock = createReconnectClock();
+		let resolves = 0;
+		const resolver = {
+			resolve: async () => {
+				resolves++;
+				if (resolves === 1) {
+					return { ok: true as const, allowRelayFallback: false, endpoint: okEndpoint };
+				}
+				return { ok: false as const, code: 'pairing_required' as const, reason: 'pairing required', allowRelayFallback: true };
+			},
+			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+		};
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport({
+				listSessions: async () => {
+					throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+				},
+			}),
+			connectionResolver: resolver as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+
+		await service.connectProfile('p1');
+		await assert.rejects(() => service.listSessions({}));
+		assert.deepStrictEqual(clock.delays, [1000]);
+
+		clock.fireAll();
+		await flushReconnect();
+		assert.deepStrictEqual(clock.delays, [1000]);
+		assert.strictEqual(clock.pending.size, 0);
+		service.dispose();
+	});
 });
