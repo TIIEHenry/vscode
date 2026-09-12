@@ -489,13 +489,16 @@ export class NavigatorTeamView extends ViewPane {
 				}
 			}
 
-			this.hadTeamSnapshot = true;
-			this.setMemberEntries(members, members.length === 0 ? TEAM_MEMBERS_EMPTY_COPY : undefined);
-			this.setTaskEntries(tasks, tasks.length === 0 ? TEAM_TASKS_EMPTY_COPY : undefined);
-			if (!this.rosterService.isEngineConnected() || this.uaConnection.getConnectionPhase().kind !== 'connected') {
+			// D369 leftover-looks-live: pairing-hold-first after await. KEEP leftover;
+			// do not paint in-flight members/tasks as live. D336 entry KEEP is unchanged.
+			if (isConversationPairingHold(this.uaConnection) || !this.rosterService.isEngineConnected() || this.uaConnection.getConnectionPhase().kind !== 'connected') {
+				this.inspectService.setLiveAgentIds('team', undefined);
 				this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
 				return;
 			}
+			this.hadTeamSnapshot = true;
+			this.setMemberEntries(members, members.length === 0 ? TEAM_MEMBERS_EMPTY_COPY : undefined);
+			this.setTaskEntries(tasks, tasks.length === 0 ? TEAM_TASKS_EMPTY_COPY : undefined);
 			this.setTeamSnapshotNote(undefined);
 		} catch {
 			const hadLiveTeamPaint = this.memberEntries.length > 0 || this.taskEntries.length > 0;
