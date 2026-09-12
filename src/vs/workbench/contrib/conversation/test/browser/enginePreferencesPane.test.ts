@@ -298,8 +298,14 @@ suite('EnginePreferencesPane', () => {
 		container.remove();
 	});
 
-	test('Test Engine click surfaces honest status without faking success when disconnected', () => {
-		const pane = mountPane(false);
+	test('Test Engine click probes the engine instead of echoing phase only', async () => {
+		let probed = false;
+		const pane = mountPane(false, {
+			probeEngine: async () => {
+				probed = true;
+				return { ok: false as const, reason: 'Engine is not connected.' };
+			},
+		});
 		const container = pane.getDomNode();
 
 		const testButton = container.querySelector('.engine-test-row .monaco-button') as HTMLButtonElement;
@@ -309,7 +315,36 @@ suite('EnginePreferencesPane', () => {
 		assert.strictEqual(testStatus.textContent, '');
 
 		testButton.click();
-		assert.strictEqual(testStatus.textContent, getEngineTestStatusText());
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(probed, true);
+		assert.ok(testStatus.textContent?.startsWith('Unreachable —'));
+		assert.notStrictEqual(testStatus.textContent, 'Connected');
+		assert.notStrictEqual(testStatus.textContent, getEngineTestStatusText());
+
+		container.remove();
+	});
+
+	test('Test Engine reachable probe uses Reachable prefix', async () => {
+		let probed = false;
+		const pane = mountPane(true, {
+			probeEngine: async () => {
+				probed = true;
+				return { ok: true as const, engineIdentityId: 'eng-1' };
+			},
+		});
+		const container = pane.getDomNode();
+
+		const testButton = container.querySelector('.engine-test-row .monaco-button') as HTMLButtonElement;
+		const testStatus = container.querySelector('.engine-test-status') as HTMLElement;
+		assert.ok(testButton);
+		assert.ok(testStatus);
+
+		testButton.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(probed, true);
+		assert.ok(testStatus.textContent?.startsWith('Reachable —'));
 		assert.notStrictEqual(testStatus.textContent, 'Connected');
 
 		container.remove();

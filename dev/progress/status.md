@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-12
-summary: "关仓 MERGE_SHA 74f36dbacdf；D403+D404 已收；下号 D405"
+summary: "关仓 MERGE_SHA 74f36dbacdf；工位 D 本刀 D407（Test Engine→probeEngine）；不宣称 wave 完成"
 ---
 
 # Development Progress
@@ -45,7 +45,7 @@ summary: "关仓 MERGE_SHA 74f36dbacdf；D403+D404 已收；下号 D405"
 | **A** | D403+D404 / D387 | `idle`；HEAD == MERGE_SHA；P1 `already-committed` |
 | **B** | D385 | `idle`；HEAD == MERGE_SHA |
 | **C** | — | `idle`；HEAD == MERGE_SHA；勿 add `dev/loop` |
-| **D** | D386 | `idle`；HEAD == MERGE_SHA |
+| **D** | D407 `engine-test-probe` | 本刀未提交；Test Engine 改 `probeEngine()`；勿宣称 wave |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；`41f0d8c912f` 不合入；勿 `checkout -B` |
 
 <details>
@@ -186,14 +186,14 @@ summary: "关仓 MERGE_SHA 74f36dbacdf；D403+D404 已收；下号 D405"
 | A | `vscode-WorkTrees/A` | `loop/A` | `74f36dbacdf` | 干净 | 0 | `idle` |
 | B | `vscode-WorkTrees/B` | `loop/B` | `74f36dbacdf` | 干净 | 0 | `idle` |
 | C | `vscode-WorkTrees/C` | `loop/C` | `74f36dbacdf` | 未提交 `dev/loop` | 0 | `idle`；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `74f36dbacdf` | 干净 | 0 | `idle` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `4b5f2ffc34b` | D407 未提交 | 0 | D407 `engine-test-probe`；勿宣称 wave |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked` leftover；勿 `checkout -B` |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `3c81973bcf5` | status/gaps/debug-engine + `.idea` | 0 | 请自行对齐 `origin/agent-ide` |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
 | **引擎 store 迁移卡死** | [D26](deferred-gaps.md) 病因已改口（2026-09-09）：`user_version=0` + 表已建 ⇒ 迁移抛错 ⇒ 库永久打不开 ⇒ `LookupFailed` fail-closed deny ⇒ `ALREADY_EXISTS`（**设计内拒绝**）。根因与交接见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md)；D25 同源。**禁改引擎仓代码**；原闭合条件「Create 先写 meta」已撤回；不要再清 store |
-| **loop 切片** | **D403+D404 已收** Maximize 不再 CSS-hide gate/Stop；窄宽 Back 不再藏 live SAS（见 [conversation-chrome-visibility](../plans/conversation-chrome-visibility.md)）。不关 D10/D16/D18/D20（两行）/D12/D389–D392。下号 **D405** 未占用。 |
+| **loop 切片** | **D407** 工位 D：Engine Preferences「Test Engine」改走 `probeEngine()` + `formatConnectionProbeStatus`（未提交、不宣称 wave）。**D403+D404 已收** Maximize 不再 CSS-hide gate/Stop；窄宽 Back 不再藏 live SAS（见 [conversation-chrome-visibility](../plans/conversation-chrome-visibility.md)）。不关 D10/D16/D18/D20（两行）/D12/D389–D392。D405/D406 本槽未占。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
