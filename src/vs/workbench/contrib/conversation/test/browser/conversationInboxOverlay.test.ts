@@ -1478,7 +1478,7 @@ suite('ConversationInboxOverlay leftover-looks-live KEEP-chrome', () => {
 		const roster = store.add(new LooksLiveChromeRoster());
 		const connection = looksLiveConnection();
 		assertLooksLiveFixture(roster, connection);
-		assert.ok(roster.getTurns(roster.getActiveSessionId()).some(turn => turn.streaming));
+		assert.ok(roster.getTurns().some(turn => turn.streaming));
 
 		const overlay = createOverlay(roster, connection);
 		const stop = overlay.element.querySelector('.conversation-lens-inbox-stop-button') as HTMLElement | null;
