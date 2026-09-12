@@ -271,6 +271,9 @@ export class SessionViewHost extends Disposable {
 		if (!binding) {
 			return { accepted: false as const, reason: 'no_such_session' as const };
 		}
+		if (this.connection.getConnectionSnapshot().pairingPending) {
+			return { accepted: false as const, reason: 'not_authenticated' as const };
+		}
 		if (!this.connection.isEngineConnected()) {
 			return { accepted: false as const, reason: 'not_authenticated' as const };
 		}
@@ -1228,6 +1231,9 @@ export class SessionViewHost extends Disposable {
 	}
 
 	private async sendHeartbeatAck(sessionId: string): Promise<void> {
+		if (this.connection.getConnectionSnapshot().pairingPending) {
+			return;
+		}
 		if (!this.connection.isEngineConnected()) {
 			return;
 		}
@@ -1273,6 +1279,10 @@ export class SessionViewHost extends Disposable {
 				},
 			});
 		};
+		if (this.connection.getConnectionSnapshot().pairingPending) {
+			mark('failed', 'Engine not connected');
+			return;
+		}
 		if (!this.connection.isEngineConnected()) {
 			mark('failed', 'Engine not connected');
 			return;

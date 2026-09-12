@@ -159,4 +159,29 @@ suite('SessionViewHost heartbeat_ack', () => {
 		assert.deepStrictEqual(connection.residentWrites, []);
 		assert.deepStrictEqual(connection.chatCalls, []);
 	});
+
+	test('leftover-looks-live acks nothing on resident or one-shot path', async () => {
+		const resident = new ResidentChatConnection();
+		const residentHost = createHost(resident);
+		await leaseAndSettle(residentHost, 'sess-hb-looks-live');
+		resident.setPairingPending(true);
+		assert.strictEqual(resident.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(resident.getConnectionSnapshot().pairingPending, true);
+
+		resident.pushStreamEvent('sess-hb-looks-live', { heartbeat: {} });
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		assert.deepStrictEqual(resident.residentWrites, []);
+		assert.deepStrictEqual(resident.chatCalls, []);
+
+		const oneshot = new OneShotChatConnection();
+		const oneshotHost = createHost(oneshot);
+		await leaseAndSettle(oneshotHost, 'sess-hb-looks-live-oneshot');
+		oneshot.setPairingPending(true);
+		assert.strictEqual(oneshot.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(oneshot.getConnectionSnapshot().pairingPending, true);
+
+		oneshot.pushStreamEvent('sess-hb-looks-live-oneshot', { heartbeat: {} });
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		assert.deepStrictEqual(oneshot.chatCalls, []);
+	});
 });
