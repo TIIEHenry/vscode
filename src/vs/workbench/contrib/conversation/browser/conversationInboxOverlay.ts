@@ -185,6 +185,11 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private isEngineQueueUnlisted(): boolean {
+		// D373 leftover-looks-live: pairing-hold first. Live "not listed" is not
+		// only `connected || history` — leftover-looks-live uses leftover chrome.
+		if (isConversationPairingHold(this.uaConnection)) {
+			return !this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory();
+		}
 		return this.stubService.isEngineConnected() || this.stubService.hasEngineConnectionHistory();
 	}
 
@@ -220,7 +225,10 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private isGenerating(sessionId: string): boolean {
-		return this.stubService.isEngineConnected() && this.stubService.getTurns(sessionId).some(turn => turn.streaming);
+		// D373 leftover-looks-live: pairing-hold first. Streaming leftover is not live generating.
+		return !isConversationPairingHold(this.uaConnection)
+			&& this.stubService.isEngineConnected()
+			&& this.stubService.getTurns(sessionId).some(turn => turn.streaming);
 	}
 
 	private isSessionGoalAvailable(): boolean {

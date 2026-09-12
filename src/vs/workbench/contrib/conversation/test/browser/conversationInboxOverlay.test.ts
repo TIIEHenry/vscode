@@ -1339,3 +1339,195 @@ suite('ConversationInboxOverlay leftover pairing remaining writes', () => {
 		assertNoWriteCalls(roster);
 	});
 });
+
+suite('ConversationInboxOverlay leftover-looks-live KEEP-chrome', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	class LooksLiveChromeRoster extends ConversationStubService {
+		history = false;
+
+		override isEngineConnected(): boolean {
+			return true;
+		}
+
+		override hasEngineConnectionHistory(): boolean {
+			return this.history;
+		}
+
+		override getTurns(): readonly ConversationStubTurn[] {
+			return [{ id: 'a1', kind: 'assistant', text: 'leftover stream', streaming: true, agentId: 'sub:a' }];
+		}
+
+		protected override hidesMessageQueueFixture(): boolean {
+			return this.history;
+		}
+	}
+
+	class DisconnectHistoryRoster extends ConversationStubService {
+		override isEngineConnected(): boolean {
+			return false;
+		}
+
+		override hasEngineConnectionHistory(): boolean {
+			return true;
+		}
+
+		override getTurns(): readonly ConversationStubTurn[] {
+			return [{ id: 'a1', kind: 'assistant', text: 'leftover stream', streaming: true, agentId: 'sub:a' }];
+		}
+	}
+
+	function looksLiveConnection(): IUniverseAgentConnection {
+		const base = createConversationConnectionTestStub();
+		return createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...base.getConnectionSnapshot(),
+				pairingPending: true,
+			}),
+		});
+	}
+
+	function createOverlay(
+		roster: ConversationStubService,
+		connection: IUniverseAgentConnection,
+	): ConversationInboxOverlay {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		stubInboxServices(instantiationService, roster, connection);
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, {
+			onQueueItemHold() { },
+			onScrollToPendingConfirmation() { },
+			showPostFailure() { },
+		}));
+	}
+
+	function openQueuePanel(overlay: ConversationInboxOverlay): HTMLElement {
+		const queueChip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		queueChip.click();
+		const panel = [...document.querySelectorAll('.conversation-lens-inbox-list-panel')]
+			.filter(host => host.querySelector('.conversation-lens-message-queue-list'))
+			.at(-1) as HTMLElement | undefined;
+		assert.ok(panel);
+		return panel;
+	}
+
+	function assertLooksLiveFixture(roster: ConversationStubService, connection: IUniverseAgentConnection): void {
+		assert.strictEqual(roster.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+	}
+
+	test('leftover-looks-live queue uses leftover chrome, not live not-listed', () => {
+		const roster = store.add(new LooksLiveChromeRoster());
+		const sessionId = roster.getActiveSessionId();
+		roster.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [{
+				id: 'q-leftover',
+				content: 'Cached leftover',
+				status: 'PENDING',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 0,
+				lastError: undefined,
+				locked: false,
+				pinned: false,
+			}],
+		});
+		const connection = looksLiveConnection();
+		assertLooksLiveFixture(roster, connection);
+
+		const overlay = createOverlay(roster, connection);
+		assertLooksLiveFixture(roster, connection);
+		const chip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		assert.ok(chip.textContent?.includes('queued'), chip.textContent);
+		assert.ok(!chip.textContent?.includes(conversationLensDockInboxQueueNotListed), chip.textContent);
+		assert.ok(!chip.textContent?.includes(conversationLensDockInboxNoQueue), chip.textContent);
+
+		const panel = openQueuePanel(overlay);
+		assert.ok(panel.querySelector('.queue-item[data-item-id="q-leftover"]'));
+		assert.ok(panel.textContent?.includes('Cached leftover'));
+		assert.ok(!panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxQueueNotListed));
+		assertLooksLiveFixture(roster, connection);
+	});
+
+	test('leftover-looks-live empty queue uses leftover copy, not live not-listed', () => {
+		const roster = store.add(new LooksLiveChromeRoster());
+		const connection = looksLiveConnection();
+		assertLooksLiveFixture(roster, connection);
+
+		const overlay = createOverlay(roster, connection);
+		const chip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		assert.ok(chip.textContent?.includes(conversationLensDockInboxNoQueue), chip.textContent);
+		assert.ok(!chip.textContent?.includes(conversationLensDockInboxQueueNotListed), chip.textContent);
+
+		const panel = openQueuePanel(overlay);
+		assert.ok(panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxNoQueue));
+		assert.ok(!panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxQueueNotListed));
+		assertLooksLiveFixture(roster, connection);
+	});
+
+	test('leftover-looks-live Stop does not paint generating', () => {
+		const roster = store.add(new LooksLiveChromeRoster());
+		const connection = looksLiveConnection();
+		assertLooksLiveFixture(roster, connection);
+		assert.ok(roster.getTurns(roster.getActiveSessionId()).some(turn => turn.streaming));
+
+		const overlay = createOverlay(roster, connection);
+		const stop = overlay.element.querySelector('.conversation-lens-inbox-stop-button') as HTMLElement | null;
+		assert.ok(stop);
+		assert.strictEqual(stop.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(stop.getAttribute('aria-label'), `${conversationLensDockStop}, ${conversationLensDockStopNotGenerating}`);
+		stop.click();
+		assertLooksLiveFixture(roster, connection);
+	});
+
+	test('true disconnect+history queue stays not-listed and not generating', () => {
+		const roster = store.add(new DisconnectHistoryRoster());
+		const overlay = createOverlay(roster, createConversationConnectionTestStub());
+		assert.strictEqual(roster.isEngineConnected(), false);
+		assert.strictEqual(roster.hasEngineConnectionHistory(), true);
+		assert.strictEqual(isConversationPairingHold(createConversationConnectionTestStub()), false);
+
+		const chip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		assert.ok(chip.textContent?.includes(conversationLensDockInboxQueueNotListed), chip.textContent);
+		assert.ok(!chip.textContent?.includes(conversationLensDockInboxNoQueue), chip.textContent);
+
+		const stop = overlay.element.querySelector('.conversation-lens-inbox-stop-button') as HTMLElement | null;
+		assert.ok(stop);
+		assert.strictEqual(stop.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(stop.getAttribute('aria-label'), `${conversationLensDockStop}, ${conversationLensDockStopNotGenerating}`);
+	});
+
+	test('true connected without pairing still uses live not-listed', () => {
+		const roster = store.add(new LooksLiveChromeRoster());
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...createConversationConnectionTestStub().getConnectionSnapshot(),
+				pairingPending: false,
+			}),
+		});
+		assert.strictEqual(roster.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		const overlay = createOverlay(roster, connection);
+		const chip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		assert.ok(chip.textContent?.includes(conversationLensDockInboxQueueNotListed), chip.textContent);
+		assert.ok(!chip.textContent?.includes(conversationLensDockInboxNoQueue), chip.textContent);
+
+		const stop = overlay.element.querySelector('.conversation-lens-inbox-stop-button') as HTMLElement | null;
+		assert.ok(stop);
+		assert.strictEqual(stop.getAttribute('aria-disabled'), 'false');
+		assert.strictEqual(stop.getAttribute('aria-label'), `${conversationLensDockStop}, ${conversationLensDockStopGenerating}`);
+	});
+});
