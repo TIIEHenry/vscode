@@ -1376,6 +1376,31 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(deleteButton.enabled, false);
 	});
 
+	test('updateSessionBarWriteChrome leftover-looks-live keeps title delete and new disabled', () => {
+		const title = document.createElement('button');
+		const newButton = { enabled: true };
+		const deleteButton = { enabled: true };
+		const host = {
+			sessionTitleButton: title,
+			newSessionButton: newButton,
+			deleteSessionButton: deleteButton,
+			stubService: {
+				isEngineConnected: () => true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: true }),
+			},
+		} as unknown as IConversationLensSessionBarHost;
+		assert.strictEqual(host.stubService.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(isConversationPairingHold(host.uaConnection), true);
+		updateSessionBarWriteChrome(host);
+		assert.strictEqual(title.disabled, true);
+		assert.strictEqual(title.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(newButton.enabled, false);
+		assert.strictEqual(deleteButton.enabled, false);
+	});
+
 	function leftoverLooksLiveSessionSelectsHost(options?: {
 		catalogToolNames?: readonly string[];
 		catalogModelIds?: readonly string[];
