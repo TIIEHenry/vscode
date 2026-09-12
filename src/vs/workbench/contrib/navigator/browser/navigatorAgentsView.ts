@@ -478,9 +478,15 @@ export class NavigatorAgentsView extends ViewPane {
 		const transportFailed = this.uaConnection.getConnectionSnapshot().transport === 'failed';
 
 		if (agentTreeCapability === 'UNSUPPORTED') {
+			const unsupportedCopy = localize('navigatorAgentsHierarchy.unsupported', "Current engine does not provide an agent tree");
 			this.inspectService.setLiveAgentIds('agents', undefined);
-			this.setHierarchyState([], localize('navigatorAgentsHierarchy.unsupported', "Current engine does not provide an agent tree"));
-			this.setActivityFromSnapshot(snapshot, lease?.attribution);
+			this.setHierarchyAfterPending(unsupportedCopy);
+			const keepActivityLeftover = this.hadActivitySnapshot || this.activityEntries.length > 0;
+			if (keepActivityLeftover) {
+				this.setActivityNote(unsupportedCopy);
+			} else {
+				this.setActivityState([], unsupportedCopy);
+			}
 			return;
 		}
 

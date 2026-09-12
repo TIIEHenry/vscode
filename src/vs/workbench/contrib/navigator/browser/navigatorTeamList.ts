@@ -426,10 +426,7 @@ export class NavigatorTeamView extends ViewPane {
 		const teamCapability = getNavigatorCapability(this.uaConnection, 'team');
 		if (teamCapability === 'UNSUPPORTED') {
 			this.inspectService.setLiveAgentIds('team', undefined);
-			this.setMemberEntries([], TEAM_UNSUPPORTED_COPY);
-			this.setTaskEntries([], TEAM_UNSUPPORTED_COPY);
-			this.hadTeamSnapshot = true;
-			this.setTeamSnapshotNote(undefined);
+			this.setTeamAfterTreeEmpty(TEAM_UNSUPPORTED_COPY);
 			return;
 		}
 		if (teamCapability === 'UNKNOWN') {

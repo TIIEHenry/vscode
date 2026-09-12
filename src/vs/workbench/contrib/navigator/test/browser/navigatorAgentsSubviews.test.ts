@@ -945,6 +945,93 @@ suite('Navigator Agents subviews', () => {
 		assert.notStrictEqual(activityEmpty.style.display, 'block', 'UNKNOWN leftover must not be painted as empty success');
 	});
 
+	test('successful Hierarchy load then agentTree UNSUPPORTED keeps leftover nodes and marks unsupported', () => {
+		const roster = store.add(new RosterWithMutableTreeAndActivity());
+		roster.setEngineConnected(true);
+		let agentTreeCapability: 'SUPPORTED' | 'UNSUPPORTED' = 'SUPPORTED';
+		let treeRefreshCalls = 0;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => agentTreeCapability,
+			isAgentTreeFetchFailed: () => false,
+			onDidChangeConnection: onDidChangeConnection.event,
+			requestAgentTreeRefresh: () => { treeRefreshCalls++; },
+		});
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountAgentsView(roster, connection, inspectService);
+
+		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> }).hierarchyTree;
+		assert.ok(hierarchyTree, 'live paint must have a hierarchy tree');
+		const leftoverCount = hierarchyTree.getNode(null)?.children.length ?? 0;
+		assert.ok(leftoverCount > 0, 'live paint must have leftover hierarchy nodes');
+		assert.ok(inspectService.getLiveAgentIds()?.has('root'), 'live paint must expose live agent ids');
+		const liveNote = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(liveNote);
+		assert.notStrictEqual(liveNote.style.display, 'block', 'live paint must not already look unsupported');
+		assert.strictEqual(treeRefreshCalls, 0);
+
+		agentTreeCapability = 'UNSUPPORTED';
+		onDidChangeConnection.fire(connection.getConnectionSnapshot());
+
+		assert.ok(roster.liveTree, 'lease must still retain liveAgentTree');
+		assert.strictEqual(treeRefreshCalls, 0, 'UNSUPPORTED leftover must not request an extra agent tree refresh');
+		assert.strictEqual(hierarchyTree.getNode(null)?.children.length ?? 0, leftoverCount, 'UNSUPPORTED leftover must keep leftover hierarchy nodes');
+		assert.strictEqual(inspectService.getLiveAgentIds(), undefined, 'UNSUPPORTED leftover must not be painted as live');
+		const unsupportedNote = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(unsupportedNote, 'UNSUPPORTED leftover must mark leftover hierarchy');
+		assert.strictEqual(unsupportedNote.style.display, 'block');
+		assert.strictEqual(unsupportedNote.textContent, 'Current engine does not provide an agent tree');
+		assert.notStrictEqual(unsupportedNote.textContent, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY);
+		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
+		assert.ok(hierarchyEmpty);
+		assert.notStrictEqual(hierarchyEmpty.style.display, 'block', 'UNSUPPORTED leftover must not be painted as first-pull empty');
+	});
+
+	test('successful Activity load then agentTree UNSUPPORTED keeps leftover rows and marks unsupported', () => {
+		const roster = store.add(new RosterWithMutableTreeAndActivity());
+		roster.setEngineConnected(true);
+		let agentTreeCapability: 'SUPPORTED' | 'UNSUPPORTED' = 'SUPPORTED';
+		let treeRefreshCalls = 0;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => agentTreeCapability,
+			isAgentTreeFetchFailed: () => false,
+			onDidChangeConnection: onDidChangeConnection.event,
+			requestAgentTreeRefresh: () => { treeRefreshCalls++; },
+		});
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountAgentsView(roster, connection, inspectService);
+		view.showActivity();
+
+		const activityList = (view as unknown as { activityList: WorkbenchList<INavigatorAgentsActivityItem> }).activityList;
+		assert.ok(activityList, 'live paint must have an activity list');
+		const leftoverCount = activityList.length;
+		assert.ok(leftoverCount > 0, 'live paint must have leftover activity rows');
+		assert.ok(inspectService.getLiveAgentIds()?.has('root'), 'live paint must expose live agent ids');
+		const liveNote = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(liveNote);
+		assert.notStrictEqual(liveNote.style.display, 'block', 'live paint must not already look unsupported');
+		assert.strictEqual(treeRefreshCalls, 0);
+
+		agentTreeCapability = 'UNSUPPORTED';
+		onDidChangeConnection.fire(connection.getConnectionSnapshot());
+
+		assert.ok(roster.liveTree, 'lease must still retain liveAgentTree');
+		assert.strictEqual(treeRefreshCalls, 0, 'UNSUPPORTED leftover must not request an extra agent tree refresh');
+		assert.strictEqual(activityList.length, leftoverCount, 'UNSUPPORTED leftover must keep leftover activity rows');
+		assert.strictEqual(inspectService.getLiveAgentIds(), undefined, 'UNSUPPORTED leftover must not be painted as live');
+		const unsupportedNote = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(unsupportedNote, 'UNSUPPORTED leftover must mark leftover activity');
+		assert.strictEqual(unsupportedNote.style.display, 'block');
+		assert.strictEqual(unsupportedNote.textContent, 'Current engine does not provide an agent tree');
+		assert.notStrictEqual(unsupportedNote.textContent, NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY);
+		const activityEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
+		assert.ok(activityEmpty);
+		assert.notStrictEqual(activityEmpty.style.display, 'block', 'UNSUPPORTED leftover must not be painted as empty success');
+	});
+
 	test('first-pull Hierarchy agentTree UNKNOWN stays empty with pending copy', () => {
 		const roster = store.add(new ConversationStubService());
 		roster.setEngineConnected(true);

@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-12
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D405 已记（S1–S3 单元已收、V-* 手测未跑）；D408 连接级自动重连；D406/D407 他槽预留；D403+D404 已闭；D18/D20/D12 仍开"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D405 手测仍开；D406 已闭（Navigator UNSUPPORTED leftover KEEP）；D407 待合；D408 连接级重连仍开；下号 D409"
 ---
 
 # Deferred Gaps
@@ -419,6 +419,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D405 已记（S1–S3 单
 | D403 | P1 | **closed** Maximize 不再对 `.conversation-lens-dock-gate-row` / `.conversation-lens-inbox-overlay` 写 `display:none`；CssScan 锁 class 合同，D42 三断言仍绿。 | 工位 A D403 已收；`scripts/test.sh --run …/conversationLensCssScan.test.ts` 4 passing / 0 fail | CssScan class 合同 0 fail；D42 三断言仍绿。不重开 D42。未关 D404。 | conversation / lens-css | closed |
 | D404 | P1 | **closed** 窄宽 Back 后 live `pairingConfirmHost` 在 `.connection-preferences-detail` 外；`syncPairingConfirmHostParent` 只 remount、永不 `selectZone`。 | 工位 A D404；`connectionPreferencesPane.test.ts` 136 passing / 0 fail | 窄宽 + live host + Back：`!detail.contains(host)`；宽栏 / showing-detail 仍走 `assertSasVisibleBesideActiveZone`。未改 pairing 产品流。 | conversation / connection-pane | closed |
 | D405 | P2 | **[session-subscription-lifecycle](../plans/session-subscription-lifecycle.md) S1–S3 收口**：`releaseLeasesOwnedBy` + channel `acquireLeaseFor` + app 双钩；`scheduleStreamReopen`；`applyDefaultUnaryDeadline` + `_withTransport` 相位恢复；缓存 Resume 失败回落 + 渲染端 `whenBindReady` 可重臂。G-CORE-2 已登记。§4 单元 Exit 已绿。**§5 V-S1–V-S3 手测未跑**（kill -9 渲染进程 / Reload / 引擎重启 / Resume 挂起）。不占 D406/D407。 | 本槽禁 compile / 禁引擎仓 / 无隔离 profile 开窗；单元已覆盖 §4 | 隔离 profile 过 V-S1-1/2 · V-S2-1/2 · V-S3-1/2/3；或产品确认手测非本行闭合条件 | universeAgent / session-lifecycle | open |
+| D406 | P3 | **Navigator Agents / Team 活画→UNSUPPORTED 卸 leftover**：capability 从 live 落到 `UNSUPPORTED` 时 Agents `setHierarchyState([], unsupported)` + `setActivityFromSnapshot`、Team `setMemberEntries([], …)` 会卸成首拉空。本刀 KEEP：Agents 走 `setHierarchyAfterPending(unsupported)` + Activity leftover 只 `setActivityNote`（不重画 live snapshot）；Team 走 `setTeamAfterTreeEmpty(TEAM_UNSUPPORTED_COPY)`。补「活画 → UNSUPPORTED」测。首拉 empty+unsupported / UNKNOWN / fetch-fail / pairing leftover 既有测保持绿。未碰 Sources / lens / pairing 产品流 / proto / `dev/loop`。未 compile-client。未提交。 | 工位 B `navigator-unsupported-leftover`；`scripts/test.sh --run …/navigatorAgentsSubviews.test.ts --run …/navigatorTeamSubviews.test.ts` **74 passing / 0 fail**（既有 71 + 新 3） | 活画→UNSUPPORTED：行还在、note=unsupported、`getLiveAgentIds()===undefined`、0 额外 unary；首拉 UNSUPPORTED 仍 empty+unsupported；UNKNOWN / fetch-fail / pairing leftover 既有测绿。**不得**宣称 leftover wave 完成。未关 D16。 | M7 navigator | closed |
 | D408 | P3 | **连接级自动重连缺失**：`connectProfile({ reconnect: true })` 无生产调度；`transport_lost` 无退避重拨。S2 只管「连接 up、流 down」。见 [session-subscription-lifecycle](../plans/session-subscription-lifecycle.md) §2 非目标。 | 另一层生命周期；本稿 S1–S3 不混 | 独立切片落地连接级 `reconnect` 调度 + `transport_lost` 退避；断连后无需用户再点 Connect 即可回到 `connected` | universeAgent / connection | open |
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 

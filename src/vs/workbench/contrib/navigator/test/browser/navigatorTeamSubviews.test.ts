@@ -758,6 +758,91 @@ suite('Navigator Team subviews', () => {
 		assert.strictEqual(inspectService.getLiveAgentIds(), undefined, 'team UNKNOWN leftover must not be painted as live');
 	});
 
+	test('successful Team load then team UNSUPPORTED keeps leftover rows and marks unsupported without unary', async () => {
+		const roster = store.add(new RosterWithMutableTree(teamLiveTree));
+		roster.setEngineConnected(true);
+		let teamCapability: 'SUPPORTED' | 'UNSUPPORTED' = 'SUPPORTED';
+		let memberStatusCalls = 0;
+		let taskListCalls = 0;
+		let teamInfoCalls = 0;
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: key => key === 'team' ? teamCapability : 'SUPPORTED',
+			isAgentTreeFetchFailed: () => false,
+			team: {
+				memberStatus: async () => {
+					memberStatusCalls++;
+					return [{
+						memberName: 'Alice',
+						memberAgentId: 'member:1',
+						status: 'IDLE',
+						preset: 'p',
+						dynamic: 'd',
+						turnCount: 1,
+					}];
+				},
+				taskList: async () => {
+					taskListCalls++;
+					return [{
+						taskId: 't1',
+						subject: 'Leftover task',
+						owner: 'Alice',
+						status: 'OPEN',
+						blockedBy: '',
+						lastMessage: '',
+						description: '',
+					}];
+				},
+				teamInfo: async () => {
+					teamInfoCalls++;
+					return undefined;
+				},
+			},
+		});
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountTeamView(roster, connection, undefined, inspectService);
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+
+		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList;
+		const tasksList = (view as unknown as { tasksList: WorkbenchList<{ id: string; label: string }> }).tasksList;
+		const leftoverMemberCount = membersList.length;
+		const leftoverTaskCount = tasksList.length;
+		assert.ok(leftoverMemberCount > 0, 'live paint must have leftover member rows');
+		assert.ok(leftoverTaskCount > 0, 'live paint must have leftover task rows');
+		assert.strictEqual(memberStatusCalls, 1);
+		assert.strictEqual(taskListCalls, 1);
+		const liveTeamInfoCalls = teamInfoCalls;
+		assert.ok(inspectService.getLiveAgentIds()?.has('member:1'));
+		const liveNote = view.element.querySelector('.navigator-team-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(liveNote);
+		assert.notStrictEqual(liveNote.style.display, 'block', 'live paint must not already look unsupported');
+
+		teamCapability = 'UNSUPPORTED';
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+
+		assert.strictEqual(memberStatusCalls, 1, 'team UNSUPPORTED leftover must not call memberStatus');
+		assert.strictEqual(taskListCalls, 1, 'team UNSUPPORTED leftover must not call taskList');
+		assert.strictEqual(teamInfoCalls, liveTeamInfoCalls, 'team UNSUPPORTED leftover must not call teamInfo');
+		assert.strictEqual(membersList.length, leftoverMemberCount, 'team UNSUPPORTED leftover must keep leftover member rows');
+		assert.strictEqual(tasksList.length, leftoverTaskCount, 'team UNSUPPORTED leftover must keep leftover task rows');
+		const membersEmpty = view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty') as HTMLElement | null;
+		const membersListEl = view.element.querySelector('.navigator-team-subview.active .navigator-team-list') as HTMLElement | null;
+		assert.ok(membersEmpty);
+		assert.ok(membersListEl);
+		assert.notStrictEqual(membersEmpty.style.display, 'block', 'team UNSUPPORTED leftover must not be painted as first-pull empty');
+		assert.notStrictEqual(membersListEl.style.display, 'none', 'leftover member list must stay visible');
+		assert.notStrictEqual(membersEmpty.textContent, TEAM_MEMBERS_EMPTY_COPY);
+		assert.notStrictEqual(membersEmpty.textContent, TEAM_UNSUPPORTED_COPY);
+		const unsupportedNote = view.element.querySelector('.navigator-team-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(unsupportedNote, 'team UNSUPPORTED leftover must mark leftover team rows');
+		assert.strictEqual(unsupportedNote.style.display, 'block');
+		assert.strictEqual(unsupportedNote.textContent, TEAM_UNSUPPORTED_COPY);
+		assert.notStrictEqual(unsupportedNote.textContent, TEAM_FETCH_FAILED_COPY);
+		assert.notStrictEqual(unsupportedNote.textContent, NAVIGATOR_STALE_SNAPSHOT_COPY);
+		assert.notStrictEqual(unsupportedNote.textContent, NAVIGATOR_TEAM_LOADING_COPY);
+		assert.strictEqual(inspectService.getLiveAgentIds(), undefined, 'team UNSUPPORTED leftover must not be painted as live');
+	});
+
 	test('first-pull Team team UNKNOWN stays empty with loading copy and does not call unary', async () => {
 		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
 		roster.setEngineConnected(true);
