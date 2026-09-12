@@ -6,7 +6,7 @@
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { finalizeConnectProfileResult, readConnectProfileSasCode } from '../common/connectProfileResult.js';
-import { PAIRING_REQUIRED_USE_CONNECT_REASON, type ConnectionPhase, type ConnectionFailureCode, type ConnectionProbeResult, type UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
+import { PAIRING_REQUIRED_USE_CONNECT_REASON, type ConnectionPath, type ConnectionPhase, type ConnectionFailureCode, type ConnectionProbeResult, type UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
 import { sanitizeDesktopCapabilitySnapshot } from '../common/universeAgentRendererSync.js';
 import type { IUniverseAgentConnection, IUniverseAgentTeamApi, UniverseAgentNavigatorCapabilityKey, UniverseAgentProbeEngineResult } from '../common/universeAgentConnection.js';
 import type { IUniverseAgentHostConnection } from '../common/universeAgentHostConnection.js';
@@ -464,6 +464,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private _capabilities: UniverseAgentCapabilitySnapshot = createEmptyCapabilitySnapshot();
 	private _sessionListCapability: UniverseAgentCapabilitySupport = 'UNKNOWN';
 	private _connectionPhase: ConnectionPhase = { kind: 'disconnected' };
+	private _lastConnectedPath: ConnectionPath | undefined;
 	private _activeProfileId: string | undefined;
 
 	private readonly _createSessionInflight = new Map<string, Promise<UniverseAgentCreateSessionResult>>();
@@ -636,6 +637,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			this._connectionPhase = this._pairingPending
 				? { kind: 'connecting', reason: 'initial' }
 				: { kind: 'connected', path: 'loopback' };
+			if (!this._pairingPending) {
+				this._lastConnectedPath = 'loopback';
+			}
 			this._agentTreeFetchFailed = false;
 			this._fireSnapshotChanged();
 			return result;
@@ -711,14 +715,20 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			return this.connect({
 				clientId: identityState.identity.clientIdentityId,
 				protocolVersion: '1',
-			}).then(result => ({
-				ok: true as const,
-				path: endpoint.path,
-				sessionToken: result.sessionToken,
-				workDir: result.workDir,
-				pairingPending: isPairingPending(result.sessionToken, result.pairingNonce),
-				sasCode: result.sasCode,
-			}));
+			}).then(result => {
+				this._lastConnectedPath = endpoint.path;
+				if (this._connectionPhase.kind === 'connected') {
+					this._connectionPhase = { kind: 'connected', path: endpoint.path };
+				}
+				return {
+					ok: true as const,
+					path: endpoint.path,
+					sessionToken: result.sessionToken,
+					workDir: result.workDir,
+					pairingPending: isPairingPending(result.sessionToken, result.pairingNonce),
+					sasCode: result.sasCode,
+				};
+			});
 		}
 
 		const profile = this._connectionProfileStore?.get(profileId);
@@ -790,6 +800,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			await this._refreshSessionListCapability(handshake.result.methods);
 			await this._refreshSaveSkillContentBinding(handshake.result.methods);
 			this._connectionPhase = { kind: 'connected', path: endpoint.path };
+			this._lastConnectedPath = endpoint.path;
 			this._agentTreeFetchFailed = false;
 			this._fireSnapshotChanged();
 			return {
@@ -1900,11 +1911,21 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	private async _withTransport<T>(operation: (transport: IUniverseAgentGrpcTransport) => Promise<T>): Promise<T> {
-		this._assertTransportReady();
+		if (!this._transport) {
+			throw new UniverseAgentTransportError(14, 'UniverseAgent transport is not available');
+		}
 		try {
-			const result = await operation(this._transport!);
+			const result = await operation(this._transport);
 			if (this._transportState !== 'ok') {
 				this._transportState = 'ok';
+				if (
+					this._connectionPhase.kind === 'connecting'
+					&& this._connectionPhase.reason === 'transport_lost'
+					&& this.isEngineConnected()
+					&& this._lastConnectedPath
+				) {
+					this._connectionPhase = { kind: 'connected', path: this._lastConnectedPath };
+				}
 				this._fireSnapshotChanged();
 			}
 			return result;

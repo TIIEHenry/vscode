@@ -39,6 +39,7 @@ import { EncryptionMainService } from '../../platform/encryption/electron-main/e
 import { IUniverseAgentConnection, universeAgentConnectionChannelName } from '../../platform/universeAgent/common/universeAgentConnection.js';
 import { IUniverseAgentSessionView, universeAgentSessionViewChannelName } from '../../platform/universeAgent/common/universeAgentSessionView.js';
 import { UniverseAgentConnectionService } from '../../platform/universeAgent/electron-main/universeAgentMainService.js';
+import { UniverseAgentSessionViewChannel, windowConnectionContext } from '../../platform/universeAgent/electron-main/universeAgentSessionViewChannel.js';
 import { UniverseAgentSessionViewService } from '../../platform/universeAgent/electron-main/universeAgentSessionViewMainService.js';
 import { ipcBrowserViewChannelName } from '../../platform/browserView/common/browserView.js';
 import { ipcBrowserViewGroupChannelName } from '../../platform/browserView/common/browserViewGroup.js';
@@ -1398,8 +1399,15 @@ export class CodeApplication extends Disposable {
 		// UniverseAgent gRPC adapter
 		const universeAgentConnectionChannel = ProxyChannel.fromService(accessor.get(IUniverseAgentConnection), disposables);
 		mainProcessElectronServer.registerChannel(universeAgentConnectionChannelName, universeAgentConnectionChannel);
-		const universeAgentSessionViewChannel = ProxyChannel.fromService(accessor.get(IUniverseAgentSessionView), disposables);
+		const universeAgentSessionViewService = accessor.get(IUniverseAgentSessionView) as UniverseAgentSessionViewService;
+		const universeAgentSessionViewChannel = new UniverseAgentSessionViewChannel(universeAgentSessionViewService);
 		mainProcessElectronServer.registerChannel(universeAgentSessionViewChannelName, universeAgentSessionViewChannel);
+		this._register(mainProcessElectronServer.onDidRemoveConnection(c => {
+			universeAgentSessionViewService.releaseLeasesOwnedBy(String(c.ctx));
+		}));
+		this._register(accessor.get(IWindowsMainService).onDidDestroyWindow(w => {
+			universeAgentSessionViewService.releaseLeasesOwnedBy(windowConnectionContext(w.id));
+		}));
 
 		// Browser View
 		const browserViewChannel = ProxyChannel.fromService(accessor.get(IBrowserViewMainService), disposables);

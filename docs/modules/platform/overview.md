@@ -3,10 +3,8 @@ title: "platform 层概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-09-10
-summary: "platform 层角色、可导入范围、DI 约定；universeAgent 会话帧走 onDynamicDidApplyFrame(leaseId) 宿主缓冲；bind 等 whenEngineSessionReady（Create/Resume），不把 acquireLease / web-empty 当成功"
-updated: 2026-09-03
-summary: "platform 层角色、可导入范围、DI 约定，以及 instantiation / configuration / commands / agentHost / universeAgent 等代表服务"
+updated: 2026-09-12
+summary: "platform 层角色、可导入范围、DI 约定；universeAgent 会话帧走 onDynamicDidApplyFrame(leaseId) 宿主缓冲；lease 按 owner 回收；unary 默认 deadline；bind 等 whenEngineSessionReady（Create/Resume），不把 acquireLease / web-empty 当成功"
 ---
 
 # platform 层概览
@@ -125,10 +123,8 @@ registerSingleton(IUriIdentityService, UriIdentityService, InstantiationType.Del
 
 `universeAgent/` 是 **UniverseAgent gRPC 传输 adapter**（[ADR-003](../../../dev/decisions/003-engine-adapter-boundary.md)），与 `agentHost/` **隔离命名**——不得继承 `IAgentHostService` / `IAgentConnection`：
 
-- `IUniverseAgentConnection`（`common`）：Connect 生命周期、`isEngineConnected`（`session_token` + 活 channel）、`getConnectionPhase()`、`getCapabilitySnapshot()`（`grpcCapabilityProbe`：`skills` / `agentProfiles` / `mcp` / `tools` / `agentTree` / `team`）、session / chat / team / **catalog list** 面、**`confirmPairing` / `cancelPairing` / `probeConnectionProfile`**（GC-1b / GC-3）；renderer 经 electron-main ProxyChannel 代理
-- `IUniverseAgentSessionView`（`common`）：`acquireLease` / `whenEngineSessionReady` / `releaseLease` / `post` / `requestResync` / `requestDetail`；帧事件为 **`onDynamicDidApplyFrame(leaseId)`**（F1）：宿主按 lease 过滤并在首个订阅者前缓冲，IPC 按帧发送。已删除全窗 `onDidApplyFrame`。`whenEngineSessionReady` 等宿主 Create/Resume，不是 `acquireLease`；Web 对该方法诚实失败，不得把 `web-empty:` lease 当 bind 成功
-- `IUniverseAgentConnection`（`common`）：Connect 生命周期、`isEngineConnected`（`session_token` + 活 channel）、`getConnectionPhase()`、`getCapabilitySnapshot()`（`grpcCapabilityProbe`：`skills` / `agentProfiles` / `mcp` / `mcpRuntime` / `tools` / `plugins` / `models` / `agentTree` / `team`）、session / chat / team / **catalog list** 面；可选 `openChatStream` 常驻 Chat bidi；renderer 经 electron-main ProxyChannel 代理
-- `IUniverseAgentSessionView`（`common`）：lease acquire / `whenEngineSessionReady`（Create/Resume）/ post / `acknowledge`（→ Actor `frameAck`）/ `requestDetail`；Web `acquireLease` 仍可发 `web-empty:` id，但 `whenEngineSessionReady` 拒绝。宿主 `node/sessionViewHost.ts`：`drainIntents` 按 attempt/timer/chat id 归属会话；无 snapshot 时 `overlayDeltaJoin` 累积 L3 delta
+- `IUniverseAgentConnection`（`common`）：Connect 生命周期、`isEngineConnected`（`session_token` + 活 channel）、`getConnectionPhase()`、`getCapabilitySnapshot()`（`grpcCapabilityProbe`：`skills` / `agentProfiles` / `mcp` / `mcpRuntime` / `tools` / `plugins` / `models` / `agentTree` / `team`）、session / chat / team / **catalog list** 面、**`confirmPairing` / `cancelPairing` / `probeConnectionProfile`**（GC-1b / GC-3）；可选 `openChatStream` 常驻 Chat bidi；unary 默认 30s deadline（流/bidi 不加）；`DEADLINE_EXCEEDED` 后成功 unary 且仍 connected 则相位回到 `connected`。renderer 经 electron-main ProxyChannel 代理
+- `IUniverseAgentSessionView`（`common`）：`acquireLease` / `whenEngineSessionReady`（Create/Resume）/ `releaseLease` / `post` / `requestResync` / `acknowledge`（→ Actor `frameAck`）/ `requestDetail`；帧事件为 **`onDynamicDidApplyFrame(leaseId)`**（F1）：宿主按 lease 过滤并在首个订阅者前缓冲。已删除全窗 `onDidApplyFrame`。宿主按 IPC owner 回收 lease（连接移除 / 窗口销毁）；Web `acquireLease` 仍可发 `web-empty:` id，但 `whenEngineSessionReady` 拒绝，不得把 `web-empty:` 当 bind 成功。宿主 `node/sessionViewHost.ts`：`drainIntents` 按 attempt/timer/chat id 归属会话；无 snapshot 时 `overlayDeltaJoin` 累积 L3 delta
 - `IUniverseAgentHubService`（`common`）：Hub 控制面投影（登录 / 目录 / 设备管理）；**不**暴露 token / ticket / 私钥
 - `universeAgent/node`：`@grpc/grpc-js` 客户端（`SystemService` / `SessionService` / …）；**`hub/`**（vendored Desktop：auth / relay-ticket / host-normalize；`loginHub` 解析 `hub_refresh` Set-Cookie）、**`deviceGrant/`**（transcript / SAS / tls-pin / observe-candidate-leaf）、`hubDirectoryClient` / `hubSessionStore` / `clientIdentityStore` / `engineTrustStore` / `connectionProfileStore` / `connectionResolver` / `pairingOrchestrator`；catalog @ HEAD = `ListSkills` · `SetSkillEnabled` · `SaveSkillContent` @ `45fa7a35`/`040c823d` · Agents/MCP/Tools 写 RPC @ `f49615a1`；`sessionCore` Actor fold；host-only `AgentService.Tree`
 - **Secret 落盘 @ `321a4e0b`：** `electron-main/universeAgentMainService.ts` 装配 `HubSessionStore` + `ClientIdentityStore`，经 `IEncryptionMainService` + `IApplicationStorageMainService`（`APPLICATION` / `MACHINE`，键前缀 `universeAgent.secret.`）加密写 refresh 与 Ed25519 身份；access token 仅内存。`isEncryptionAvailable()===false` → refresh / 身份**不落盘**，`ClientIdentityStore.getOrCreateIdentity()` 返回 `encryption_unavailable`，Connection pane 诚实报错。**Hub 会话 refresh @ `dba63c70` / `23fd9d70`：** 启动 `restorePersistedHubSessionIfNeeded` / `whenStartupRestoreComplete` / `listPersistedHubBaseUrls`（加密 refresh 在盘则重启免重登）；运行中 `withHubAccessRetry`（`hubAuthAccess.ts`）在 access 过期或控制面 401/403 时强制 refresh 并重试一次。

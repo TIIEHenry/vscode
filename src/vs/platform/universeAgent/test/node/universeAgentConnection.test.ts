@@ -2438,6 +2438,30 @@ suite('UniverseAgentConnectionService', () => {
 		service.dispose();
 	});
 
+	test('successful unary after DEADLINE_EXCEEDED restores connected phase', async () => {
+		let failOnce = true;
+		const transport = new MockUniverseAgentGrpcTransport({
+			listSessions: async () => {
+				if (failOnce) {
+					failOnce = false;
+					throw new UniverseAgentTransportError(GrpcStatusCode.DEADLINE_EXCEEDED, 'deadline');
+				}
+				return { sessions: [], totalCount: 0 };
+			},
+		});
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		(service as unknown as { _activeProfileId: string })._activeProfileId = 'p1';
+		await assert.rejects(() => service.listSessions({}));
+		assert.strictEqual(service.getConnectionPhase().kind, 'connecting');
+		assert.strictEqual((service.getConnectionPhase() as { reason?: string }).reason, 'transport_lost');
+		await service.listSessions({});
+		assert.strictEqual(service.getConnectionPhase().kind, 'connected');
+		service.dispose();
+	});
+
 	test('subscribeSessionEventStream forwards transport onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({

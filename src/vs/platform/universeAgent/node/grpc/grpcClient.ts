@@ -638,6 +638,7 @@ import {
 	makeBidiBytesClient,
 	asUnaryProtoBytes,
 	grpcErrorCode,
+	applyDefaultUnaryDeadline,
 } from './grpcClientCalls.js';
 import {
 	decodeAuthNonceResponse,
@@ -1114,6 +1115,8 @@ export interface GrpcUniverseAgentClientOptions {
 	readonly address: string;
 	readonly credentials?: grpc.ChannelCredentials;
 	readonly channelOptions?: grpc.ChannelOptions;
+	/** Default unary deadline in ms. Default 30_000; `0` disables. */
+	readonly unaryDeadlineMs?: number;
 }
 
 /**
@@ -1126,10 +1129,18 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 
 	constructor(options: GrpcUniverseAgentClientOptions) {
 		const grpcModule = loadedGrpcModule();
+		const unaryDeadlineMs = options.unaryDeadlineMs ?? 30_000;
 		this._channel = new grpcModule.Client(
 			options.address,
 			options.credentials ?? grpcModule.credentials.createInsecure(),
-			options.channelOptions,
+			{
+				...options.channelOptions,
+				callInvocationTransformer: (props) => {
+					const withDeadline = applyDefaultUnaryDeadline(props, unaryDeadlineMs, Date.now());
+					const existing = (options.channelOptions as { callInvocationTransformer?: (next: typeof props) => typeof props } | undefined)?.callInvocationTransformer;
+					return existing ? existing(withDeadline) : withDeadline;
+				},
+			},
 		);
 	}
 

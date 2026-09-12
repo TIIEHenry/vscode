@@ -13,6 +13,40 @@ export function grpcErrorCode(error: grpc.ServiceError | null | undefined): numb
 	return error?.code ?? GrpcStatusCode.OK;
 }
 
+export type UnaryDeadlineCallProperties = {
+	readonly methodDefinition: {
+		readonly requestStream?: boolean;
+		readonly responseStream?: boolean;
+	};
+	readonly callOptions: {
+		readonly deadline?: unknown;
+	};
+};
+
+/** Apply a default deadline to unary calls only. Streams / bidi and explicit deadlines are unchanged. */
+export function applyDefaultUnaryDeadline<T extends UnaryDeadlineCallProperties>(
+	props: T,
+	deadlineMs: number,
+	now: number,
+): T {
+	if (deadlineMs <= 0) {
+		return props;
+	}
+	if (props.methodDefinition.requestStream || props.methodDefinition.responseStream) {
+		return props;
+	}
+	if (props.callOptions.deadline !== undefined) {
+		return props;
+	}
+	return {
+		...props,
+		callOptions: {
+			...props.callOptions,
+			deadline: now + deadlineMs,
+		},
+	};
+}
+
 export function makeUnaryClient<TRequest, TResponse>(
 	channel: grpc.Client,
 	servicePath: string,

@@ -3,8 +3,8 @@ title: "会话视图帧扇出：per-lease 动态事件、首帧缓冲与 intent 
 type: plan
 status: implemented
 phase: M7
-updated: 2026-09-07
-summary: "规则 16 已审、2026-09-03 签收；F1/F2 已落 @ c37bbc6e / 917a7f8d：onDynamicDidApplyFrame(leaseId) + 宿主首帧缓冲 + postAndDrain；G-CORE-1 已登记；F3 渲染端共享 lease 见 D22"
+updated: 2026-09-12
+summary: "规则 16 已审、2026-09-03 签收；F1/F2 已落 @ c37bbc6e / 917a7f8d：onDynamicDidApplyFrame(leaseId) + 宿主首帧缓冲 + postAndDrain；acknowledge 已由订阅流 Actor 回路加入合同；G-CORE-1 已登记；F3 渲染端共享 lease 见 D22"
 ---
 
 # 会话视图帧扇出
@@ -97,7 +97,7 @@ export interface IUniverseAgentSessionView {
 ```
 
 - **删除** `onDidApplyFrame: Event<…>`（不保留双轨；HEAD 生产消费者只有 `ConversationEngineFrameSource`，同刀改；测试侧 `conversationEngineRosterService.test.ts` 的 `MockUniverseAgentSessionView` 同刀改）。
-- 方法集**只**在 HEAD 六个方法的基础上把事件换名；**不**顺带加 `acknowledge` 等 HEAD 没有的面（工作树在途的 `acknowledge` / `frameAck` 归订阅流 Actor 回路那条线，不在本稿）。
+- 方法集**只**在 HEAD 六个方法的基础上把事件换名；**不**顺带加 `acknowledge` 等当时 HEAD 没有的面。`acknowledge` 后由订阅流 Actor 回路切片加入合同（HEAD 已有）。
 - 方法名必须以 `onDynamic` 开头（`ipc.ts` 用正则识别），参数只有一个 `leaseId: string`。
 - `IUniverseAgentSessionViewFrameEvent` 形状不变（仍含 `leaseId`，便于渲染端断言与日志）。
 
