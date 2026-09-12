@@ -3262,6 +3262,77 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.deepStrictEqual(service.getSessionSync('ua-empty'), { kind: 'idle' });
 	});
 
+	test('leftover-looks-live getSessionSync demotes leftover live and syncing chrome', async () => {
+		for (const leftover of [{ kind: 'live' as const }, { kind: 'syncing' as const }]) {
+			const connection = store.add(new MockUniverseAgentConnection());
+			const sessionView = store.add(new LeftoverProjectionSessionView(leftover));
+			connection.setListSessions([{ sessionId: 'ua-cache', title: 'Cached UA' }]);
+			const service = store.add(createService(connection, undefined, sessionView));
+			connection.setConnected(true);
+			service.setEngineConnected(true);
+			await awaitEngineCatalogRefresh(service);
+			const lease = store.add(service.acquireSessionView('ua-cache'));
+			assert.ok(await (lease as { whenBindReady?: () => Promise<boolean> }).whenBindReady?.());
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+			assert.strictEqual(service.isEngineConnected(), true);
+			assert.strictEqual(isConversationPairingHold(connection), false);
+			assert.deepStrictEqual(service.getSessionSync('ua-cache'), leftover);
+			assert.strictEqual(service.shouldAdvertiseClientWorkspaceTools(), true);
+			assert.strictEqual(service.hasEngineConnectionHistory(), true);
+
+			connection.setPairingPending(true);
+			service.setEngineConnected(true);
+			assert.strictEqual(service.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+			assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+			assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+			assert.strictEqual(isConversationPairingHold(connection), true);
+			const pairing = service.getSessionSync('ua-cache');
+			assert.notStrictEqual(pairing.kind, 'live');
+			assert.notStrictEqual(pairing.kind, 'syncing');
+			assert.strictEqual(pairing.kind, 'closed');
+			assert.strictEqual(service.shouldAdvertiseClientWorkspaceTools(), false, 'leftover-looks-live must not advertise workspace tools');
+			assert.strictEqual(service.hasEngineConnectionHistory(), true, 'leftover-looks-live after live connect keeps wasEverConnected');
+		}
+	});
+
+	test('leftover-looks-live first-pull does not flip wasEverConnected or advertise workspace tools', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-empty', title: 'Empty UA' }]);
+		const service = store.add(createService(connection));
+		assert.strictEqual(service.hasEngineConnectionHistory(), false);
+		assert.strictEqual(service.shouldAdvertiseClientWorkspaceTools(), false);
+
+		connection.setPairingPending(true);
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+
+		assert.strictEqual(service.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(service.hasEngineConnectionHistory(), false, 'leftover-looks-live first-pull must not flip wasEverConnected');
+		assert.strictEqual(service.shouldAdvertiseClientWorkspaceTools(), false, 'leftover-looks-live must not advertise workspace tools');
+		assert.deepStrictEqual(service.getSessionSync('ua-empty'), { kind: 'idle' });
+
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		assert.strictEqual(service.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(service.hasEngineConnectionHistory(), false, 'leftover-looks-live first-pull onUaConnectionChanged must not flip wasEverConnected');
+		assert.strictEqual(service.shouldAdvertiseClientWorkspaceTools(), false);
+
+		connection.setPairingPending(false);
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		assert.strictEqual(service.hasEngineConnectionHistory(), true, 'true connect no pairing still flips wasEverConnected');
+		assert.strictEqual(service.shouldAdvertiseClientWorkspaceTools(), true);
+	});
+
 	test('acquireSessionView keeps leftover engine snapshot while pairingPending then true disconnect uses stub', async () => {
 		const connection = store.add(new MockUniverseAgentConnection());
 		const sessionView = store.add(new LeftoverProjectionSessionView());
