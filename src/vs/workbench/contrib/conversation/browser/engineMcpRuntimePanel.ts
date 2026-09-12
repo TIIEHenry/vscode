@@ -400,7 +400,25 @@ export class EngineMcpRuntimePanel extends Disposable {
 		});
 	}
 
+	private keepLeftoverRuntimeToolsDisconnected(): void {
+		if (this.hasLeftoverRuntimeTools()) {
+			this.toolsList.style.display = '';
+			this.toolsMeta.style.display = '';
+		}
+		this.toolsStatus.render({
+			mode: 'disconnected',
+			featureLabel: MCP_RUNTIME_TOOLS_FEATURE,
+			onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+		});
+	}
+
 	private async loadTools(serverId: string, forceRefresh: boolean): Promise<void> {
+		// D368 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+			this.keepLeftoverRuntimeToolsDisconnected();
+			return;
+		}
+
 		const generation = ++this.toolsGeneration;
 		// D279: keep leftover tools while the next getMcpServerTools is in-flight.
 		// First-pull empty still hides.
@@ -422,6 +440,10 @@ export class EngineMcpRuntimePanel extends Disposable {
 		try {
 			const result = await this.connection.getMcpServerTools(serverId, forceRefresh);
 			if (generation !== this.toolsGeneration) {
+				return;
+			}
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+				this.keepLeftoverRuntimeToolsDisconnected();
 				return;
 			}
 			this.tools = result.tools;
