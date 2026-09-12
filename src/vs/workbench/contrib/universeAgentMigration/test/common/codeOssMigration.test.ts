@@ -12,6 +12,8 @@ import {
 	getDestSettingsResource,
 	getProfileMigrationCopies,
 	ICodeOssMigrationOfferInput,
+	MIGRATE_FROM_CODE_OSS_COMMAND_ID,
+	MIGRATION_OFFERED_STORAGE_KEY,
 	resolveCodeOssUserDataUri,
 	shouldOfferCodeOssMigration,
 } from '../../common/codeOssMigration.js';
@@ -150,6 +152,17 @@ suite('codeOssMigration (I5 windowless contract)', () => {
 				getDestSettingsResource(URI.file('/tmp/universe-agent-studio-dev')).path,
 				'/tmp/universe-agent-studio-dev/User/settings.json',
 			);
+		});
+	});
+
+	suite('MIGRATE_FROM_CODE_OSS_COMMAND_ID / MIGRATION_OFFERED_STORAGE_KEY', () => {
+
+		test('command id is universeAgent.migrateFromCodeOss', () => {
+			assert.strictEqual(MIGRATE_FROM_CODE_OSS_COMMAND_ID, 'universeAgent.migrateFromCodeOss');
+		});
+
+		test('offered storage key is universeAgent.migration.offered', () => {
+			assert.strictEqual(MIGRATION_OFFERED_STORAGE_KEY, 'universeAgent.migration.offered');
 		});
 	});
 });
