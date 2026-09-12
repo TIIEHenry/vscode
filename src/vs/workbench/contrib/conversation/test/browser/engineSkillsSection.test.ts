@@ -17,6 +17,7 @@ import type {
 	UniverseAgentSessionStreamCloseCause,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { EngineSkillsSection } from '../../browser/engineSkillsSection.js';
 import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy } from '../../browser/engineCatalog.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
@@ -25,6 +26,8 @@ import { localize } from '../../../../../nls.js';
 
 const SKILLS_FEATURE = localize('ua.engineSkillsFeatureLabel', "a skills API");
 const SKILLS_EMPTY_COPY = localize('ua.engineSkillsEmpty', "No skills yet.");
+const LEFTOVER_SKILL_BODY = '# Leftover skill body';
+const INFLIGHT_LIVE_SKILL_BODY = '# Inflight live skill body';
 
 suite('EngineSkillsSection (E1)', () => {
 
@@ -33,6 +36,7 @@ suite('EngineSkillsSection (E1)', () => {
 	function createConnectionStub(options: {
 		connected?: boolean;
 		skillsSupport?: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN';
+		looksLive?: boolean;
 		listSkills?: () => Promise<UniverseAgentListSkillsResult>;
 		getSkillInfo?: (request: { skillName: string }) => Promise<{ name: string; content: string; source: 'bundled' | 'user' | 'project' | 'unknown'; enabled: boolean }>;
 		saveSkillContent?: (request: UniverseAgentSaveSkillContentRequest) => Promise<{ ok: boolean }>;
@@ -40,6 +44,7 @@ suite('EngineSkillsSection (E1)', () => {
 	} = {}): IUniverseAgentConnection & {
 		setConnected(value: boolean): void;
 		setPairingPending(value: boolean): void;
+		setPairingPendingQuiet(value: boolean): void;
 		setLooksLive(value: boolean): void;
 		setSkillsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 	} {
@@ -53,7 +58,7 @@ suite('EngineSkillsSection (E1)', () => {
 		};
 		let connected = options.connected ?? false;
 		let pairingPending = false;
-		let looksLive = false;
+		let looksLive = options.looksLive ?? false;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
@@ -142,6 +147,9 @@ suite('EngineSkillsSection (E1)', () => {
 			setPairingPending(value: boolean) {
 				pairingPending = value;
 				onDidChangeConnection.fire(snapshot());
+			},
+			setPairingPendingQuiet(value: boolean) {
+				pairingPending = value;
 			},
 			setLooksLive(value: boolean) {
 				looksLive = value;
@@ -1231,6 +1239,99 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.strictEqual(section.getMode(), 'disconnected');
 		assert.strictEqual(section.getListEntryCount(), 0);
 		assert.strictEqual(section.getSelectedSkillBody(), '');
+	});
+
+	test('leftover-looks-live pairing-hold loadSkillBody skips extra getSkillInfo', async () => {
+		let infoCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			looksLive: true,
+			listSkills: async () => ({ skills: [{ name: 'leftover-skill', source: 'bundled', enabled: true }] }),
+			getSkillInfo: async () => {
+				infoCalls++;
+				return { name: 'leftover-skill', content: LEFTOVER_SKILL_BODY, source: 'bundled', enabled: true };
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		section.selectSkillForTest('leftover-skill');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getSelectedSkillBody(), LEFTOVER_SKILL_BODY);
+		const infoCallsAfterLoad = infoCalls;
+		assert.ok(infoCallsAfterLoad >= 1);
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		connection.setLooksLive(true);
+		connection.setPairingPendingQuiet(true);
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		section.selectSkillForTest('leftover-skill');
+		await flushMicrotasks();
+
+		assert.strictEqual(infoCalls, infoCallsAfterLoad, 'leftover-looks-live must not extra getSkillInfo');
+		assert.strictEqual(section.getSelectedSkillBody(), LEFTOVER_SKILL_BODY);
+		assert.ok(section.isBodyEditorVisible());
+		assert.ok((section.getDomNode().textContent ?? '').includes(getEngineSectionDisconnectedCopy()));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(INFLIGHT_LIVE_SKILL_BODY));
+	});
+
+	test('in-flight getSkillInfo leftover-looks-live keeps leftover and does not paint live', async () => {
+		let infoCalls = 0;
+		let releaseSecond: (() => void) | undefined;
+		let secondStarted: (() => void) | undefined;
+		const secondEntered = new Promise<void>(resolve => { secondStarted = resolve; });
+		const secondHold = new Promise<void>(resolve => { releaseSecond = resolve; });
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			looksLive: true,
+			listSkills: async () => ({ skills: [{ name: 'leftover-skill', source: 'bundled', enabled: true }] }),
+			getSkillInfo: async () => {
+				infoCalls++;
+				if (infoCalls === 1) {
+					return { name: 'leftover-skill', content: LEFTOVER_SKILL_BODY, source: 'bundled', enabled: true };
+				}
+				secondStarted?.();
+				await secondHold;
+				return { name: 'leftover-skill', content: INFLIGHT_LIVE_SKILL_BODY, source: 'bundled', enabled: true };
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		section.selectSkillForTest('leftover-skill');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getSelectedSkillBody(), LEFTOVER_SKILL_BODY);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		section.selectSkillForTest('leftover-skill');
+		await secondEntered;
+		assert.strictEqual(infoCalls, 2);
+
+		connection.setLooksLive(true);
+		connection.setPairingPendingQuiet(true);
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		releaseSecond!();
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getSelectedSkillBody(), LEFTOVER_SKILL_BODY);
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(INFLIGHT_LIVE_SKILL_BODY), 'in-flight leftover-looks-live must not paint live');
+		assert.ok((section.getDomNode().textContent ?? '').includes(getEngineSectionDisconnectedCopy()));
+		assert.ok(section.isBodyEditorVisible());
 	});
 
 	test('disconnected saveSelectedSkillBody does not call saveSkillContent RPC', async () => {
