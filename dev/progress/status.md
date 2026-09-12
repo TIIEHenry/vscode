@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-12
-summary: "本波关仓中：A D410 f4acb938092 合入中；B D411 cf5a51c1eb7 仍 queued；D412 未派；下号 D413；未升 PRD-008"
+summary: "本波关仓中：A D410 f4acb938092 已合；B D411 cf5a51c1eb7 合入中；D412 未派；下号 D413；未升 PRD-008"
 ---
 
 # Development Progress
@@ -42,8 +42,8 @@ summary: "本波关仓中：A D410 f4acb938092 合入中；B D411 cf5a51c1eb7 �
 ### 进行中（2026-09-12 · 叠 tick 当一轮）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
-| **A** | D410 重连失败再调度 | `integrating` `f4acb938092`（375/0；OV PASS） |
-| **B** | D411 Engine Test tone | `merge-queued` `cf5a51c1eb7`（19/0） |
+| **A** | D410 重连失败再调度 | `integrating` `f4acb938092`（375/0；已进 merge） |
+| **B** | D411 Engine Test tone | `integrating` `cf5a51c1eb7`（19/0） |
 | **C** | — | `idle`；脏 `dev/loop` 勿 add |
 | **D** | — | `idle`；已 ff `03aef120e5a`；本波未占 |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
@@ -179,13 +179,13 @@ summary: "本波关仓中：A D410 f4acb938092 合入中；B D411 cf5a51c1eb7 �
 | [D242](deferred-gaps.md)–[D288](deferred-gaps.md) | leftover + pairing | **closed** catalog leftover + pairing keep-last（含 roster turns / session sync） |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
-| [D405](deferred-gaps.md)–[D412](deferred-gaps.md) | A/B 本波 | D405 手测仍开；D406–D409 closed；D410 A `f4acb938092` 375/0 合入中；D411 B `cf5a51c1eb7` queued；D412 未派 |
+| [D405](deferred-gaps.md)–[D412](deferred-gaps.md) | A/B 本波 | D405 手测仍开；D406–D409 closed；D410 A `f4acb938092` 375/0 已进 merge；D411 B `cf5a51c1eb7` 19/0 合入中；D412 未派 |
 ## 工位表（P0 盘点 · 2026-09-12 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `a91e0ff8aba` | P2 合入中 | 0 | integrating A D410 |
-| A | `vscode-WorkTrees/A` | `loop/A` | `f4acb938092` | 干净 | 0 | `integrating` D410 |
-| B | `vscode-WorkTrees/B` | `loop/B` | `cf5a51c1eb7` | 干净 | 0 | `merge-queued` D411 |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `9974bfa2822` | P2 合入 B | 0 | integrating B D411 |
+| A | `vscode-WorkTrees/A` | `loop/A` | `f4acb938092` | 干净 | 0 | `integrating` D410 已进 merge |
+| B | `vscode-WorkTrees/B` | `loop/B` | `cf5a51c1eb7` | 干净 | 0 | `integrating` D411 |
 | C | `vscode-WorkTrees/C` | `loop/C` | `74f36dbacdf` | 未提交 `dev/loop` | 0 | `idle`；跳过 ff-only；勿 add |
 | D | `vscode-WorkTrees/D` | `loop/D` | `03aef120e5a` | 干净 | 0 | `idle`；已 cascade |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked` leftover；勿 `checkout -B` |
@@ -194,7 +194,7 @@ summary: "本波关仓中：A D410 f4acb938092 合入中；B D411 cf5a51c1eb7 �
 | 项 | 指针 |
 |:---|:-----|
 | **引擎 store 迁移卡死** | [D26](deferred-gaps.md) 病因已改口（2026-09-09）：`user_version=0` + 表已建 ⇒ 迁移抛错 ⇒ 库永久打不开 ⇒ `LookupFailed` fail-closed deny ⇒ `ALREADY_EXISTS`（**设计内拒绝**）。根因与交接见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md)；D25 同源。**禁改引擎仓代码**；原闭合条件「Create 先写 meta」已撤回；不要再清 store |
-| **loop 切片** | P2 合入 A `f4acb938092` 再 B `cf5a51c1eb7`。compile-client 0 才 push。**D412** 未派。**D405** 手测仍开。不关 D8/D16/D147。下号 **D413**。未升 PRD-008。 |
+| **loop 切片** | A `f4acb938092` 已进 merge；P2 合入 B `cf5a51c1eb7`（19/0）。compile-client 0 才 push。**D412** 未派。**D405** 手测仍开。不关 D8/D16/D147。下号 **D413**。未升 PRD-008。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
