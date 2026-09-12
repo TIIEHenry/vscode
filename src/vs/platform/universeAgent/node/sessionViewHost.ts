@@ -354,6 +354,9 @@ export class SessionViewHost extends Disposable {
 	}
 
 	onEngineConnectionChanged(): void {
+		if (this.connection.getConnectionSnapshot().pairingPending) {
+			return;
+		}
 		if (this.connection.isEngineConnected()) {
 			this.connectionGeneration += 1;
 			this.connectionUp = true;
