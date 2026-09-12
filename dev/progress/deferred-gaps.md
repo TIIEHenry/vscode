@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-12
-summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D405 手测+merge compile-client 红仍开；D406 已闭；D407 已闭；D408 连接级重连仍开；下号 D409"
+summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D405 手测仍开；D406/D407/D408 已闭；D409 仍在 B；下号 D410"
 ---
 
 # Deferred Gaps
@@ -421,7 +421,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 仍开；D405 手测+merge compile
 | D405 | P2 | **[session-subscription-lifecycle](../plans/session-subscription-lifecycle.md) S1–S3 收口**：`releaseLeasesOwnedBy` + channel `acquireLeaseFor` + app 双钩；`scheduleStreamReopen`；`applyDefaultUnaryDeadline` + `_withTransport` 相位恢复；缓存 Resume 失败回落 + 渲染端 `whenBindReady` 可重臂。G-CORE-2 已登记。§4 单元 Exit 已绿。**§5 V-S1–V-S3 手测未跑**。已合入 merge `9f8ca6a236d` 后 **compile-client 1**（`IServerChannel` ctx / `setTimeout` implicit any / unary `deadline` / frameSource `leaseId`）。不占 D406/D407。 | 本槽禁 compile / 无隔离 profile 开窗；单元已覆盖 §4；merge 复跑 compile-client 12 错 | 隔离 profile 过 V-S1–V-S3；且 merge compile-client 0 才可 push | universeAgent / session-lifecycle | open |
 | D406 | P3 | **Navigator Agents / Team 活画→UNSUPPORTED 卸 leftover**：capability 从 live 落到 `UNSUPPORTED` 时 Agents `setHierarchyState([], unsupported)` + `setActivityFromSnapshot`、Team `setMemberEntries([], …)` 会卸成首拉空。本刀 KEEP：Agents 走 `setHierarchyAfterPending(unsupported)` + Activity leftover 只 `setActivityNote`（不重画 live snapshot）；Team 走 `setTeamAfterTreeEmpty(TEAM_UNSUPPORTED_COPY)`。补「活画 → UNSUPPORTED」测。首拉 empty+unsupported / UNKNOWN / fetch-fail / pairing leftover 既有测保持绿。未碰 Sources / lens / pairing 产品流 / proto / `dev/loop`。未 compile-client。未提交。 | 工位 B `navigator-unsupported-leftover`；`scripts/test.sh --run …/navigatorAgentsSubviews.test.ts --run …/navigatorTeamSubviews.test.ts` **74 passing / 0 fail**（既有 71 + 新 3） | 活画→UNSUPPORTED：行还在、note=unsupported、`getLiveAgentIds()===undefined`、0 额外 unary；首拉 UNSUPPORTED 仍 empty+unsupported；UNKNOWN / fetch-fail / pairing leftover 既有测绿。**不得**宣称 leftover wave 完成。未关 D16。 | M7 navigator | closed |
 | D407 | P2 | **closed** Engine Preferences「Test Engine」改走 `probeEngine()` + `formatConnectionProbeStatus`；disconnected / 无 transport 走 probe 失败 reason，不写「Connected」。测锁 `probeEngine` 被调用且文案以 `Reachable —` / `Unreachable —` 开头。已合入 merge `9f8ca6a236d`。未升 PRD-008。merge compile-client 红属 D405 类型错，不挡本行闭合。 | 工位 D `engine-test-probe`；`enginePreferencesPane.test.ts` **16 passing / 0 fail** | `runEngineTest` 调 `probeEngine`；失败 `Unreachable —` + reason；成功 `Reachable —` + H4b phase。不把「仅 phase 文案」当成功。 | conversation / engine-preferences | closed |
-| D408 | P3 | **连接级自动重连缺失**：`connectProfile({ reconnect: true })` 无生产调度；`transport_lost` 无退避重拨。S2 只管「连接 up、流 down」。见 [session-subscription-lifecycle](../plans/session-subscription-lifecycle.md) §2 非目标。 | 另一层生命周期；本稿 S1–S3 不混 | 独立切片落地连接级 `reconnect` 调度 + `transport_lost` 退避；断连后无需用户再点 Connect 即可回到 `connected` | universeAgent / connection | open |
+| D408 | P3 | **closed** 连接级自动重连：`_markTransportFailed` 在已有 `_activeProfileId`、非 pairingPending、非用户 disconnect 时退避后 `connectProfile(id, { reconnect: true })`（base 1000 / cap 30000 / ±20% jitter，可注入 timer；成功归零 n；disconnect/dispose/cancelPairing 取消定时器）。pairing_required / unauthenticated / 无 active profile 不重拨。未改 proto / sessionCore / S2 `scheduleStreamReopen`。已合入 `e09eab0a1f6`。 | 工位 A `connection-reconnect-backoff`；合入 merge | 断连无需再点 Connect 即可回到 `connected`。未升 PRD-008。未关 D405 手测。 | universeAgent / connection | closed |
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 
 `loop/merge` @ `793ff6e201f`（提交信息为「关仓：T5a Uncaught 闸门与 statusbar 二次注册幂等**已复测**」）在**仓外独立 detached 工位**上实测：
