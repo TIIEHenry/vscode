@@ -1636,6 +1636,77 @@ suite('Navigator Team subviews', () => {
 		assert.strictEqual(note.style.display, 'none', 'first-pull pairing must stay honest empty without a leftover note');
 	});
 
+	test('hide then show acquire throw is not leftover-looks-live', async () => {
+		const boom = new Error('acquireSessionView: session untitled is not engine-bound');
+		class RosterAcquireThenThrow extends RosterWithLiveTree {
+			throwOnAcquire = false;
+			override acquireSessionView(sessionId: string): IConversationSessionViewLease {
+				if (this.throwOnAcquire) {
+					throw boom;
+				}
+				return super.acquireSessionView(sessionId);
+			}
+		}
+		const roster = store.add(new RosterAcquireThenThrow(teamLiveTree));
+		roster.setEngineConnected(true);
+		const errors: string[] = [];
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountTeamView(roster, createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			team: {
+				memberStatus: async () => [{
+					memberName: 'Alice',
+					memberAgentId: 'member:1',
+					status: 'IDLE',
+					preset: 'p',
+					dynamic: 'd',
+					turnCount: 1,
+				}],
+				taskList: async () => [],
+				teamInfo: async () => undefined,
+			},
+		}), {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService, inspectService);
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+
+		const holder = (view as unknown as { leaseHolder: NavigatorSessionLeaseHolder }).leaseHolder;
+		const liveLease = holder.getLease();
+		assert.ok(liveLease, 'live paint must hang a lease');
+		assert.ok(inspectService.getLiveAgentIds()?.has('member:1'));
+		const leftoverMemberCount = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList.length;
+		assert.ok(leftoverMemberCount > 0, 'live paint must have leftover member rows');
+
+		view.setVisible(false);
+		assert.strictEqual(holder.getLease(), undefined);
+		assert.strictEqual(inspectService.getLiveAgentIds(), undefined);
+
+		roster.throwOnAcquire = true;
+		view.setVisible(true);
+		assert.strictEqual(holder.getLease(), undefined, 'acquire throw must not re-hang the old lease');
+		assert.notStrictEqual(holder.getLease(), liveLease);
+		assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+
+		const refreshScheduler = (view as unknown as { refreshScheduler: { isScheduled(): boolean } }).refreshScheduler;
+		assert.ok(refreshScheduler.isScheduled(), 'acquire throw must notify so Team can scheduleRefresh');
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+
+		assert.strictEqual(inspectService.getLiveAgentIds(), undefined, 'hide→show acquire throw must not paint leftover as live');
+		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList;
+		assert.strictEqual(membersList.length, leftoverMemberCount, 'acquire throw leftover must keep member rows');
+		const pendingCopy = getNavigatorAgentTreePendingCopy('SUPPORTED', undefined, false);
+		const note = view.element.querySelector('.navigator-team-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(note);
+		assert.strictEqual(note.style.display, 'block');
+		assert.strictEqual(note.textContent, pendingCopy);
+		const membersEmpty = view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty') as HTMLElement | null;
+		assert.ok(membersEmpty);
+		assert.notStrictEqual(membersEmpty.style.display, 'block', 'leftover must not be painted as first-pull empty');
+	});
+
 	test('acquireSessionView throw notifies error without hanging a lease or unhandled rejection', async () => {
 		const boom = new Error('acquireSessionView: session untitled is not engine-bound');
 		class RosterAcquireThrows extends ConversationStubService {
