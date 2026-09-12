@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-12
-summary: "关仓 MERGE_SHA 3c07195f6bf 已 push origin/agent-ide；compile-client 0；D405 手测仍开；D406/D407 已闭；D408 已合入可闭；D409 仍在 B；下号 D410；未升 PRD-008"
+summary: "关仓 MERGE_SHA 3c07195f6bf 已 push origin/agent-ide；compile-client 0；D405 手测仍开；D406/D407/D408/D409 已闭；下号 D410；未升 PRD-008"
 ---
 
 # Development Progress
@@ -42,8 +42,8 @@ summary: "关仓 MERGE_SHA 3c07195f6bf 已 push origin/agent-ide；compile-clien
 ### 进行中（2026-09-12 · 叠 tick 当一轮）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
-| **A** | D408 连接级 `reconnect` 调度 | 已合入 `e09eab0a1f6`；D408 可闭 |
-| **B** | D409 navigator lease acquire-throw | `occupied` @ `c061be1cbbb` |
+| **A** | D408 连接级 `reconnect` 调度 | 已合入 `e09eab0a1f6`；D408 已闭 |
+| **B** | D409 navigator lease acquire-throw | 已合入 `c061be1cbbb`；D409 已闭 |
 | **C** | — | `idle`；脏 `dev/loop` 勿 add |
 | **D** | — | `idle` |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；`41f0d8c912f` 不合入；勿 `checkout -B` |
@@ -179,13 +179,13 @@ summary: "关仓 MERGE_SHA 3c07195f6bf 已 push origin/agent-ide；compile-clien
 | [D242](deferred-gaps.md)–[D288](deferred-gaps.md) | leftover + pairing | **closed** catalog leftover + pairing keep-last（含 roster turns / session sync） |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
-| [D405](deferred-gaps.md)–[D408](deferred-gaps.md) | A/B/D 本波 | D405 **仍开**（§5 手测未跑；合入后 compile-client 类型已修为 0）；D406 **closed** KEEP leftover；D407 **closed** probeEngine；D408 **已合入可闭**；D409 仍在 B |
+| [D405](deferred-gaps.md)–[D409](deferred-gaps.md) | A/B 本波 | D405 **仍开**（§5 手测未跑；合入后 compile-client 类型已修为 0）；D406 **closed** KEEP leftover；D407 **closed** probeEngine；D408 **closed** reconnect；D409 **closed** acquire-throw 通知 |
 ## 工位表（P0 盘点 · 2026-09-12 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | `3c07195f6bf` | 干净（本提交前） | 0 | parked；已 push `origin/agent-ide` |
 | A | `vscode-WorkTrees/A` | `loop/A` | `e09eab0a1f6` | 干净 | 0 | D408 已合入；待 cascade |
-| B | `vscode-WorkTrees/B` | `loop/B` | `3c07195f6bf` | 干净 | 0 | `idle`；已 cascade |
+| B | `vscode-WorkTrees/B` | `loop/B` | `c061be1cbbb` | 干净 | 0 | D409 已合入；待 cascade |
 | C | `vscode-WorkTrees/C` | `loop/C` | `74f36dbacdf` | 未提交 `dev/loop` | 0 | `idle`；跳过 ff-only；勿 add |
 | D | `vscode-WorkTrees/D` | `loop/D` | `3c07195f6bf` | 干净 | 0 | `idle`；已 cascade |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked` leftover；勿 `checkout -B` |
@@ -194,7 +194,7 @@ summary: "关仓 MERGE_SHA 3c07195f6bf 已 push origin/agent-ide；compile-clien
 | 项 | 指针 |
 |:---|:-----|
 | **引擎 store 迁移卡死** | [D26](deferred-gaps.md) 病因已改口（2026-09-09）：`user_version=0` + 表已建 ⇒ 迁移抛错 ⇒ 库永久打不开 ⇒ `LookupFailed` fail-closed deny ⇒ `ALREADY_EXISTS`（**设计内拒绝**）。根因与交接见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md)；D25 同源。**禁改引擎仓代码**；原闭合条件「Create 先写 meta」已撤回；不要再清 store |
-| **loop 切片** | **D408** 已合入可闭。**D409** 仍在 B。D405 手测仍开（不本轮 verify-only）。不关 D10/D16。下号 **D410**。未升 PRD-008。 |
+| **loop 切片** | **D408/D409** 已合入已闭。D405 手测仍开（不本轮 verify-only）。不关 D10/D16。下号 **D410**。未升 PRD-008。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
