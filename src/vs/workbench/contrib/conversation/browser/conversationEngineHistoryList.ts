@@ -230,6 +230,16 @@ export class ConversationEngineHistoryList extends Disposable {
 			if (generation !== this.renderGeneration) {
 				return;
 			}
+			// D366 leftover-looks-live: pairing-hold-first after await. KEEP leftover;
+			// do not paint in-flight live. D338 entry KEEP is unchanged.
+			if (isConversationPairingHold(this.connection)) {
+				this.applyDisconnectedRefresh();
+				return;
+			}
+			if (!canRequestEngineHistory(this.connection.isEngineConnected())) {
+				this.applyDisconnectedRefresh();
+				return;
+			}
 			this.paintEnvelopes(result.envelopes);
 		} catch (error) {
 			if (generation !== this.renderGeneration) {

@@ -336,4 +336,67 @@ suite('ConversationEngineHistoryList', () => {
 		assert.ok(overlayParent.textContent?.includes(conversationLensSessionBarHistoryUnavailableDisconnected));
 		assert.ok(!(overlayParent.textContent ?? '').includes(conversationLensSessionBarHistoryEmpty));
 	});
+
+	test('in-flight getHistory leftover-looks-live keeps leftover and does not paint fresh live', async () => {
+		let pairingPending = false;
+		let listCalls = 0;
+		let resolveInFlight: ((value: { envelopes: UniverseAgentHistoryEnvelope[] }) => void) | undefined;
+		const leftover: UniverseAgentHistoryEnvelope = {
+			cursorSeq: 'leftover-1',
+			payload: { text: 'Leftover' },
+		};
+		const freshLive: UniverseAgentHistoryEnvelope = {
+			cursorSeq: 'fresh-live',
+			payload: { text: 'Fresh live' },
+		};
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			pairingPending,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			getHistory: async () => {
+				listCalls++;
+				if (listCalls === 1) {
+					return { envelopes: [leftover] };
+				}
+				return new Promise(resolve => {
+					resolveInFlight = resolve;
+				});
+			},
+		});
+		const { list, overlayParent } = mountList(connection);
+		list.show();
+		await Promise.resolve();
+		assert.strictEqual(listCalls, 1);
+		assert.ok(historyRow(overlayParent, 'leftover-1'));
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		onDidChangeConnection.fire(snapshot());
+		await new Promise(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(listCalls, 2);
+		assert.ok(resolveInFlight);
+
+		pairingPending = true;
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		resolveInFlight!({ envelopes: [freshLive] });
+		await new Promise(resolve => setTimeout(resolve, 0));
+
+		assert.ok(historyRow(overlayParent, 'leftover-1'));
+		assert.strictEqual(historyRow(overlayParent, 'fresh-live'), null, 'in-flight leftover-looks-live must not paint fresh live');
+		assert.strictEqual(overlayParent.querySelectorAll(`.${conversationLensHistoryRowClass}`).length, 1);
+		assert.ok(overlayParent.textContent?.includes(conversationLensSessionBarHistoryUnavailableDisconnected));
+		assert.ok(!(overlayParent.textContent ?? '').includes(conversationLensSessionBarHistoryEmpty));
+	});
 });
