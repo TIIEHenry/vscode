@@ -178,7 +178,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 			},
 			setPairingPendingQuiet(value: boolean) {
 				pairingPending = value;
-			},,
+			},
 			setLooksLive(value: boolean) {
 				looksLive = value;
 			},
