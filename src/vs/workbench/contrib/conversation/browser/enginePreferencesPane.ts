@@ -30,6 +30,7 @@ import { EngineToolsSection } from './engineToolsSection.js';
 import { EngineClipboardSection } from './engineClipboardSection.js';
 import { EngineContextVariableSection } from './engineContextVariableSection.js';
 import { EngineTriggersSection } from './engineTriggersSection.js';
+import { formatConnectionProbeStatus } from './connectionPreferencesPane.js';
 import { getConnectionPhaseStatusBarText, isConversationPairingHold } from './conversationSessionStatus.js';
 import {
 	getUnsupportedEnvironmentCopy,
@@ -165,7 +166,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		this.disconnectedActions = DOM.append(this.disconnectedBanner, $('.engine-preferences-disconnected-actions'));
 		this.bannerTestButton = this._register(new Button(this.disconnectedActions, { ...defaultButtonStyles, secondary: true }));
 		this.bannerTestButton.label = localize('ua.engineTest', "Test Engine");
-		this._register(this.bannerTestButton.onDidClick(() => this.runEngineTest()));
+		this._register(this.bannerTestButton.onDidClick(() => void this.runEngineTest()));
 		const bannerOpenConnection = this._register(new Button(this.disconnectedActions, defaultButtonStyles));
 		bannerOpenConnection.label = localize('ua.engineOpenConnection', "Open Connection");
 		this._register(bannerOpenConnection.onDidClick(() => {
@@ -222,7 +223,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		this.testRow = DOM.append(this.container, $('.engine-test-row'));
 		const testButton = this._register(new Button(this.testRow, { ...defaultButtonStyles, secondary: true }));
 		testButton.label = localize('ua.engineTest', "Test Engine");
-		this._register(testButton.onDidClick(() => this.runEngineTest()));
+		this._register(testButton.onDidClick(() => void this.runEngineTest()));
 		this.testStatus = DOM.append(this.testRow, $('.engine-test-status'));
 		this.testStatus.setAttribute('role', 'status');
 		this.testStatus.setAttribute('aria-live', 'polite');
@@ -255,8 +256,25 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		this.updateDisconnectedBanner();
 	}
 
-	/** Both Test Engine affordances report the same phase copy as the status bar. */
-	private runEngineTest(): void {
+	/** Same no-profile probe path as Connection Test: `probeEngine()` + H4b phase copy. */
+	private async runEngineTest(): Promise<void> {
+		if (typeof this.connectionService.probeEngine === 'function') {
+			this.testStatus.textContent = localize('ua.engineTestRunning', "Testing…");
+			try {
+				const result = await this.connectionService.probeEngine();
+				this.testStatus.textContent = formatConnectionProbeStatus(
+					result,
+					getEngineTestStatusText(
+						this.connectionService.getConnectionPhase(),
+						this.connectionService.getConnectionSnapshot().pairingPending,
+					),
+				);
+			} catch (error) {
+				const reason = error instanceof Error && error.message ? error.message : String(error);
+				this.testStatus.textContent = reason;
+			}
+			return;
+		}
 		this.testStatus.textContent = getEngineTestStatusText(
 			this.connectionService.getConnectionPhase(),
 			this.connectionService.getConnectionSnapshot().pairingPending,
