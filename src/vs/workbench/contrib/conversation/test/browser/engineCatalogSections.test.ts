@@ -3236,7 +3236,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(section.getListEntryCount(), 0);
 		assert.strictEqual(section.isToolInfoVisible(), false);
 		assert.ok(!(section.getToolInfoDetailText() ?? '').includes(LEFTOVER_TOOL_INFO_DESC));
-	}
+	});
 
 	test('Tools: leftover-looks-live pairing-hold loadToolInfo skips extra getToolInfo', async () => {
 		let getToolInfoCalls = 0;
@@ -3331,7 +3331,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 		assertToolsLeftoverLooksLiveDisconnected(section);
 		assert.ok(!(section.getToolInfoDetailText() ?? '').includes(FRESH_LIVE_TOOL_INFO_DESC), 'in-flight leftover-looks-live must not paint live');
-	}););
+	});
 
 	function demoMcpServer() {
 		return {
