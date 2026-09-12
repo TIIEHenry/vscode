@@ -13,6 +13,7 @@ import { INotificationService } from '../../../../platform/notification/common/n
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentConnectionSnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import {
 	buildAttributionChips,
@@ -57,7 +58,9 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 
 		this.activeSessionId = roster.getActiveSessionId();
 		this.connectionSnapshot = connection.getConnectionSnapshot();
-		if (connection.isEngineConnected()) {
+		// leftover-looks-live first-pull (`isEngineConnected()===true` + pairing
+		// hold) must not invent everConnected. Prior live / mutations KEEP.
+		if (!isConversationPairingHold(connection) && connection.isEngineConnected()) {
 			this.everConnected = true;
 		}
 
