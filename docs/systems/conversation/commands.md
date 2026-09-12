@@ -3,7 +3,7 @@ title: "Agent IDE 壳命令、菜单落点与快捷键"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-07
+updated: 2026-09-12
 summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、UA Preferences、深链的用户可见命令清单；chat tab 复用 editor group 命令；对话框 Escape / Accessible View；窄宽度见透镜页"
 ---
 
@@ -60,7 +60,7 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 | `workbench.action.openEnginePreferences` | Open Engine Preferences | `ua.engine` 页；`f1: false` |
 | `workbench.action.backToClientSettings` | 返回 vscode 客户端 Settings | 两页顶部返回 |
 
-深链 scheme `universe-agent://`（`UniverseAgentDeepLinkHandler`，`IURLHandler`）：`universe-agent://settings/<page>` 或 `universe-agent://<page>` 打开对应 Settings 页；`<page>` 为 `client`（默认）、`connection`、`engine`，以及客户端分组别名（`display`、`chat-input`、`startup`、`keyboard-enter`、`notifications`、`permissions`、`client-tools`）。不绑 `product.urlProtocol`（[page-access-schemes](../../../dev/plans/page-access-schemes.md)）。
+深链 scheme `universe-agent://`（`UniverseAgentDeepLinkHandler`，`IURLHandler`）：`universe-agent://settings/<page>` 或 `universe-agent://<page>` 打开对应 Settings 页；`<page>` 为 `client`（默认）、`connection`、`engine`，以及客户端分组别名（`display`、`chat-input`、`startup`、`keyboard-enter`、`notifications`、`permissions`、`client-tools`）。scheme 与 `product.urlProtocol` 统一为 `universe-agent`；handler 路由不变（[page-access-schemes](../../../dev/plans/page-access-schemes.md)）。
 
 ## 5. Sources（`contrib/sources`）
 
