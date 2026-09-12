@@ -492,7 +492,23 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			if (seq !== this.refreshSeq) {
 				return;
 			}
-			if (hasSourcesGitReadEntries(loaded)) {
+			// D367 leftover-looks-live: pairing-hold-first after await. KEEP leftover;
+			// do not paint in-flight live. D342 entry KEEP is unchanged.
+			if (isConversationPairingHold(this.uaConnection)) {
+				const leftoverCount = this.usingGitRead ? this.lastGoodEntries.length : 0;
+				if (shouldKeepSourcesGitReadPairingHoldLeftover(
+					this.uaConnection.getConnectionPhase().kind === 'connected',
+					this.uaConnection.getConnectionSnapshot().pairingPending,
+					leftoverCount,
+				)) {
+					allEntries = this.lastGoodEntries;
+					gitReadPairingHold = true;
+				} else {
+					this.usingGitRead = false;
+					allEntries = collectSourcesChangeEntries(this.scmService.repositories);
+					localOnly = allEntries.length > 0;
+				}
+			} else if (hasSourcesGitReadEntries(loaded)) {
 				this.usingGitRead = true;
 				allEntries = loaded;
 			} else {

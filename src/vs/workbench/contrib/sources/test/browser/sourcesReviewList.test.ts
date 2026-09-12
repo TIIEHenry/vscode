@@ -695,6 +695,96 @@ suite('Sources - review list model', () => {
 		assert.ok((((list.element(0) as { resource?: { path?: string } }).resource?.path) ?? '').includes('scm-stub.ts'));
 	});
 
+	test('in-flight readGitChanges leftover-looks-live keeps leftover and does not paint fresh live', async function () {
+		let connected = true;
+		let pairingPending = false;
+		let readCalls = 0;
+		let resolveInFlight: ((value: {
+			supported: boolean;
+			reason: string;
+			branch: string;
+			entries: Array<{ path: string; oldPath: string; kind: string; indexState: string }>;
+		}) => void) | undefined;
+		const leftoverPath = 'src/leftover.ts';
+		const freshLivePath = 'src/fresh-live.ts';
+		const onDidChangeConnection = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
+		const snapshot = (): import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot => ({
+			transport: connected ? 'ok' : 'idle',
+			sharedFsRootSent: false,
+			pairingPending,
+			channelAlive: connected,
+			capabilities: {} as never,
+		});
+		const connection = {
+			isEngineConnected: () => connected,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' as const : 'disconnected' as const }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => {
+				readCalls += 1;
+				if (readCalls === 1) {
+					return {
+						supported: true,
+						reason: '',
+						branch: 'main',
+						entries: [{ path: leftoverPath, oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+					};
+				}
+				return new Promise(resolve => {
+					resolveInFlight = resolve;
+				});
+			},
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+		} as unknown as IUniverseAgentConnection;
+		const scmStub = toResource.call(this, '/project/src/scm-stub.ts');
+		const host = mountListHost();
+		const widget = store.add(stubSourcesGitListServices({
+			connection,
+			scmService: createIndexScmService(scmStub),
+		}).createInstance(SourcesReviewList, host));
+		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<unknown> });
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual((list.element(0) as { gitPath?: string }).gitPath, leftoverPath);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		assert.strictEqual(readCalls, 1);
+
+		onDidChangeConnection.fire(snapshot());
+		const inflightDeadline = Date.now() + 2000;
+		while (!resolveInFlight && Date.now() < inflightDeadline) {
+			await timeout(20);
+		}
+		assert.ok(resolveInFlight, 'in-flight readGitChanges must start while still live');
+		assert.strictEqual(readCalls, 2);
+
+		pairingPending = true;
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		resolveInFlight({
+			supported: true,
+			reason: '',
+			branch: 'main',
+			entries: [{ path: freshLivePath, oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+		});
+		const pairingStatus = await waitForStatusText(host, '.sources-review-status', 'not connected');
+		assert.strictEqual(pairingStatus, sourcesGitReadPairingHoldMessage());
+		assert.ok(!pairingStatus.includes('local source control'));
+		assert.notStrictEqual(pairingStatus, sourcesGitLocalOnlyMessage());
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual((list.element(0) as { gitPath?: string }).gitPath, leftoverPath);
+		assert.notStrictEqual((list.element(0) as { gitPath?: string }).gitPath, freshLivePath, 'in-flight leftover-looks-live must not paint fresh live');
+		assert.strictEqual((list.element(0) as { scmResource?: unknown }).scmResource, undefined);
+	});
+
 	test('Changes list status DOM shows git-read throw', async function () {
 		const host = document.createElement('div');
 		document.body.appendChild(host);

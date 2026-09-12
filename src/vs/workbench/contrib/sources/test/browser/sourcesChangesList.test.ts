@@ -695,6 +695,93 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.ok((list.element(0).resource.path ?? '').includes('scm-stub.ts'));
 	});
 
+	test('in-flight readGitChanges leftover-looks-live keeps leftover and does not paint fresh live', async function () {
+		let connected = true;
+		let pairingPending = false;
+		let readCalls = 0;
+		let resolveInFlight: ((value: {
+			supported: boolean;
+			reason: string;
+			branch: string;
+			entries: Array<{ path: string; oldPath: string; kind: string; indexState: string }>;
+		}) => void) | undefined;
+		const leftover = { path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
+		const freshLive = { path: 'src/fresh-live.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: connected ? 'ok' : 'idle',
+			sharedFsRootSent: false,
+			pairingPending,
+			channelAlive: connected,
+			capabilities: {} as never,
+		});
+		const connection = {
+			isEngineConnected: () => connected,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' as const : 'disconnected' as const }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => {
+				readCalls += 1;
+				if (readCalls === 1) {
+					return {
+						supported: true,
+						reason: '',
+						branch: 'main',
+						entries: [leftover],
+					};
+				}
+				return new Promise(resolve => {
+					resolveInFlight = resolve;
+				});
+			},
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+		} as unknown as IUniverseAgentConnection;
+		const scmStub = toResource.call(this, '/project/src/scm-stub.ts');
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub)).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		assert.strictEqual(readCalls, 1);
+
+		onDidChangeConnection.fire(snapshot());
+		const inflightDeadline = Date.now() + 2000;
+		while (!resolveInFlight && Date.now() < inflightDeadline) {
+			await timeout(20);
+		}
+		assert.ok(resolveInFlight, 'in-flight readGitChanges must start while still live');
+		assert.strictEqual(readCalls, 2);
+
+		pairingPending = true;
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		resolveInFlight({
+			supported: true,
+			reason: '',
+			branch: 'main',
+			entries: [freshLive],
+		});
+		const pairingStatus = await waitForStatusText(host, 'not connected');
+		assert.strictEqual(pairingStatus, sourcesGitReadPairingHoldMessage());
+		assert.ok(!pairingStatus.includes('local source control'));
+		assert.notStrictEqual(pairingStatus, sourcesGitLocalOnlyMessage());
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		assert.notStrictEqual(list.element(0).gitPath, freshLive.path, 'in-flight leftover-looks-live must not paint fresh live');
+		assert.strictEqual(list.element(0).scmResource, undefined);
+	});
+
 	test('leftover-looks-live first-pull pairing without leftover stays SCM and skips git-read', async function () {
 		let readCalls = 0;
 		const connection = {
