@@ -9,8 +9,10 @@ import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import {
 	getCodeOssUserDataFolderName,
+	getDestSettingsResource,
 	getProfileMigrationCopies,
 	ICodeOssMigrationOfferInput,
+	resolveCodeOssUserDataUri,
 	shouldOfferCodeOssMigration,
 } from '../../common/codeOssMigration.js';
 
@@ -121,6 +123,33 @@ suite('codeOssMigration (I5 windowless contract)', () => {
 
 		test('release (isBuilt=true) is Code - OSS', () => {
 			assert.strictEqual(getCodeOssUserDataFolderName(true), 'Code - OSS');
+		});
+	});
+
+	suite('resolveCodeOssUserDataUri', () => {
+
+		test('dev sibling of dest folder is hard-coded code-oss-dev, not dest nameShort', () => {
+			const resolved = resolveCodeOssUserDataUri(URI.file('/tmp/universe-agent-studio-dev'), false);
+			assert.ok(resolved.path.endsWith('/code-oss-dev'), `${resolved.path} must end with /code-oss-dev`);
+			assert.ok(
+				!resolved.path.includes('universe-agent-studio-dev'),
+				`${resolved.path} must not contain dest name universe-agent-studio-dev`,
+			);
+		});
+
+		test('release sibling of dest folder is hard-coded Code - OSS', () => {
+			const resolved = resolveCodeOssUserDataUri(URI.file('/tmp/UniverseAgentStudio'), true);
+			assert.ok(resolved.path.endsWith('/Code - OSS'), `${resolved.path} must end with /Code - OSS`);
+		});
+	});
+
+	suite('getDestSettingsResource', () => {
+
+		test('dest settings.json is User/settings.json under current userData', () => {
+			assert.strictEqual(
+				getDestSettingsResource(URI.file('/tmp/universe-agent-studio-dev')).path,
+				'/tmp/universe-agent-studio-dev/User/settings.json',
+			);
 		});
 	});
 });
