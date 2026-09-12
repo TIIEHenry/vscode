@@ -30,6 +30,7 @@ export async function bindEngineSession(host: SessionViewHost, sessionId: string
 export class TestConnection implements IUniverseAgentConnection {
 	declare readonly _serviceBrand: undefined;
 	private connected = true;
+	private pairingPending = false;
 	private readonly streamListeners = new Map<string, ((event: { payload: unknown }) => void)[]>();
 	private readonly streamCloseListeners = new Map<string, ((cause: UniverseAgentSessionStreamCloseCause) => void)[]>();
 
@@ -43,13 +44,16 @@ export class TestConnection implements IUniverseAgentConnection {
 	};
 
 	isEngineConnected(): boolean { return this.connected; }
+	setPairingPending(value: boolean): void {
+		this.pairingPending = value;
+	}
 	getTransportState() { return 'ok' as const; }
 	getConnectionPhase() { return { kind: 'connected' as const, path: 'loopback' as const }; }
 	getConnectionSnapshot(): UniverseAgentConnectionSnapshot {
 		return {
 			transport: 'ok',
 			sessionToken: 'tok',
-			pairingPending: false,
+			pairingPending: this.pairingPending,
 			channelAlive: true,
 			sharedFsRootSent: false,
 			capabilities: createEmptyCapabilitySnapshot(),
