@@ -172,6 +172,18 @@ import type {
 	UniverseAgentListSkillsResult,
 	UniverseAgentListAgentProfilesRequest,
 	UniverseAgentListAgentProfilesResult,
+	UniverseAgentListProviderStatusResult,
+	UniverseAgentUpsertProviderCredentialsRequest,
+	UniverseAgentClearProviderCredentialsRequest,
+	UniverseAgentProviderStatus,
+	UniverseAgentListProjectRulesRequest,
+	UniverseAgentListProjectRulesResult,
+	UniverseAgentUpsertProjectRuleRequest,
+	UniverseAgentDeleteProjectRuleRequest,
+	UniverseAgentDeleteProjectRuleResult,
+	UniverseAgentProjectRule,
+	UniverseAgentListHookPointsResult,
+	UniverseAgentListTeamsResult,
 	UniverseAgentSaveAgentProfileRequest,
 	UniverseAgentSaveAgentProfileResult,
 	UniverseAgentDeleteAgentProfileRequest,
@@ -938,6 +950,30 @@ export interface IUniverseAgentGrpcTransport {
 	taskList(sessionId: string, agentId: string): Promise<readonly UniverseAgentTeamTaskInfo[]>;
 
 	teamInfo(sessionId: string, agentId: string, teamId: number): Promise<UniverseAgentTeamInfo | undefined>;
+
+	/** AgentService.ListProviderStatus — never returns api_key. */
+	listProviderStatus(): Promise<UniverseAgentListProviderStatusResult>;
+
+	/** AgentService.UpsertProviderCredentials — api_key outbound only. */
+	upsertProviderCredentials(request: UniverseAgentUpsertProviderCredentialsRequest): Promise<UniverseAgentProviderStatus>;
+
+	/** AgentService.ClearProviderCredentials. */
+	clearProviderCredentials(request: UniverseAgentClearProviderCredentialsRequest): Promise<UniverseAgentProviderStatus>;
+
+	/** ProjectRuleService.List — scope + session_id only. */
+	listProjectRules(request: UniverseAgentListProjectRulesRequest): Promise<UniverseAgentListProjectRulesResult>;
+
+	/** ProjectRuleService.Upsert — scope + session_id + rule; no work_dir. */
+	upsertProjectRule(request: UniverseAgentUpsertProjectRuleRequest): Promise<UniverseAgentProjectRule>;
+
+	/** ProjectRuleService.Delete — scope + session_id + id; no work_dir. */
+	deleteProjectRule(request: UniverseAgentDeleteProjectRuleRequest): Promise<UniverseAgentDeleteProjectRuleResult>;
+
+	/** SystemService.ListHookPoints. */
+	listHookPoints(): Promise<UniverseAgentListHookPointsResult>;
+
+	/** TeamService.ListTeams — empty list is valid. */
+	listTeams(sessionId: string): Promise<UniverseAgentListTeamsResult>;
 }
 
 /** Service / method paths: UA grpc-api `package agentservice` + service name. */
@@ -949,6 +985,7 @@ export const UniverseAgentGrpcServices = {
 		HealthCheck: 'HealthCheck',
 		Doctor: 'Doctor',
 		Shutdown: 'Shutdown',
+		ListHookPoints: 'ListHookPoints',
 	},
 	Session: {
 		service: 'agentservice.SessionService',
@@ -1044,8 +1081,17 @@ export const UniverseAgentGrpcServices = {
 		SaveAgentProfile: 'SaveAgentProfile',
 		DeleteAgentProfile: 'DeleteAgentProfile',
 		ResetAgentProfile: 'ResetAgentProfile',
+		ListProviderStatus: 'ListProviderStatus',
+		UpsertProviderCredentials: 'UpsertProviderCredentials',
+		ClearProviderCredentials: 'ClearProviderCredentials',
 		FetchToolDetail: 'FetchToolDetail',
 		SubscribeToolDetail: 'SubscribeToolDetail',
+	},
+	ProjectRule: {
+		service: 'agentservice.ProjectRuleService',
+		List: 'List',
+		Upsert: 'Upsert',
+		Delete: 'Delete',
 	},
 	Mcp: {
 		service: 'agentservice.McpService',
@@ -1090,6 +1136,7 @@ export const UniverseAgentGrpcServices = {
 		KillMember: 'KillMember',
 		Abort: 'Abort',
 		TeamInfo: 'TeamInfo',
+		ListTeams: 'ListTeams',
 	},
 	Tool: {
 		service: 'agentservice.ToolService',

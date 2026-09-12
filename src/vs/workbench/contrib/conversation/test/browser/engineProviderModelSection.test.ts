@@ -12,6 +12,7 @@ import type {
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentListModelsResult,
+	UniverseAgentListProviderStatusResult,
 	UniverseAgentSessionEvent,
 	UniverseAgentSessionStreamCloseCause,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
@@ -30,17 +31,24 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 	function createConnectionStub(options: {
 		connected?: boolean;
 		modelsSupport?: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN';
+		providerSupport?: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN';
 		listModels?: () => Promise<UniverseAgentListModelsResult>;
+		listProviderStatus?: () => Promise<UniverseAgentListProviderStatusResult>;
 	} = {}): IUniverseAgentConnection & {
 		setModelsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
+		setProviderSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setConnected(next: boolean): void;
 	} {
 		const modelsCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN' } = {
 			support: options.modelsSupport ?? 'SUPPORTED',
 		};
+		const providerCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN' } = {
+			support: options.providerSupport ?? 'UNSUPPORTED',
+		};
 		const capabilities: UniverseAgentCapabilitySnapshot = {
 			...createEmptyCapabilitySnapshot(),
 			models: modelsCapability,
+			providerConfig: providerCapability,
 		};
 		let connected = options.connected ?? true;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
@@ -120,9 +128,14 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 			removeMcpServer: async () => ({ ok: true }),
 			listTools: async () => ({ tools: [] }),
 			listModels: options.listModels ?? (async () => ({ models: [] })),
+			listProviderStatus: options.listProviderStatus,
 			probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
 			setModelsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
 				modelsCapability.support = support;
+				onDidChangeConnection.fire(snapshot());
+			},
+			setProviderSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
+				providerCapability.support = support;
 				onDidChangeConnection.fire(snapshot());
 			},
 			setConnected(next: boolean) {
@@ -314,5 +327,86 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 		const leftoverList = getModelList(section);
 		assert.ok(leftoverList);
 		assert.notStrictEqual(leftoverList.style.display, 'none');
+	});
+
+	test('listProviderStatus paints read-only rows and never shows api_key', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			providerSupport: 'SUPPORTED',
+			listProviderStatus: async () => ({
+				providers: [{
+					providerId: 'anthropic',
+					brand: 'Anthropic',
+					protocol: 'anthropic',
+					configured: true,
+					credentialSource: 'PROVIDER_ENV',
+					hasBaseUrl: true,
+					enabled: true,
+				}],
+			}),
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getProviderMode(), 'ready');
+		assert.strictEqual(section.getProviderListEntryCount(), 1);
+		const text = section.getDomNode().textContent ?? '';
+		assert.ok(text.includes('Anthropic'), text);
+		assert.ok(text.includes('Configured'), text);
+		assert.ok(!text.includes('api_key'), text);
+		assert.ok(!section.getDomNode().querySelector('input'), 'no credential inputs');
+	});
+
+	test('listProviderStatus first-pull throw is failed with no leftover rows', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			providerSupport: 'SUPPORTED',
+			listProviderStatus: async () => {
+				throw new Error('listProviderStatus exploded');
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getProviderMode(), 'failed');
+		assert.strictEqual(section.getProviderListEntryCount(), 0);
+		assert.ok((section.getDomNode().textContent ?? '').includes(getCatalogFailedCopy('provider configuration', 'listProviderStatus exploded')));
+	});
+
+	test('listProviderStatus success then throw keeps leftover rows', async () => {
+		let calls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			providerSupport: 'SUPPORTED',
+			listProviderStatus: async () => {
+				calls++;
+				if (calls === 1) {
+					return {
+						providers: [{
+							providerId: 'anthropic',
+							brand: 'Anthropic leftover',
+							protocol: 'anthropic',
+							configured: false,
+							credentialSource: 'NONE',
+							hasBaseUrl: false,
+							enabled: true,
+						}],
+					};
+				}
+				throw new Error('listProviderStatus retry exploded');
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		assert.strictEqual(section.getProviderMode(), 'ready');
+		assert.strictEqual(section.getProviderListEntryCount(), 1);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(calls, 2);
+		assert.strictEqual(section.getProviderMode(), 'failed');
+		assert.strictEqual(section.getProviderListEntryCount(), 1);
+		assert.ok((section.getDomNode().textContent ?? '').includes('Anthropic leftover'));
 	});
 });

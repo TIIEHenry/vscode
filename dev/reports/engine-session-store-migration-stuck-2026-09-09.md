@@ -1,10 +1,10 @@
 ---
 title: "引擎侧根因分析：session store 迁移半途卡死导致 Create 回 ALREADY_EXISTS"
 type: report
-status: open
+status: completed
 phase: M7
-updated: 2026-09-09
-summary: "D25/D26 是同一个 bug。store 在 user_version=0 且表已存在的状态下走迁移分支，某条迁移抛 xerial「Query does not return results」，writeUserVersion 永不执行 ⇒ 库永久打不开；09-04 resolvedOwner fail-closed 把这个打不开翻译成 ALREADY_EXISTS。本仓不改引擎代码，本篇是交接给引擎侧的分析。"
+updated: 2026-09-12
+summary: "D25/D26 同源。2026-09-09 根因：卡住态 + 迁移半途不可自愈 + LookupFailed deny → ALREADY_EXISTS。2026-09-12：UA 已闭自愈；仓外 PIN 已换；grpcurl List/Create PASS，本仓 D25/D26 已闭。Chat 空 catalog 不并入。"
 ---
 
 # 引擎侧根因分析：session store 迁移半途卡死
@@ -136,6 +136,7 @@ summary: "D25/D26 是同一个 bug。store 在 user_version=0 且表已存在的
 - **D26 原病因与闭合条件均有误**，已按本篇改口：病因不是「建目录后按目录存在回 6 且不写 meta」，闭合条件不是「Create 先写 meta 再回成功」。
 - **本仓侧无可修之处**。宿主面（Tree 抛出、Create recover 收敛、ghost/List-fail 显示 bind-failed）在 A 槽 `host-bind-safety` / `ghost-bind-failed-ui` 已收口。剩余部分完全在引擎仓。
 - **PRD-008 保持 `blocked`**，闭合依赖引擎侧本行。
+- **2026-09-12**：引擎侧本行已闭；仓外 PIN 已换；List/Create 复验 PASS，本仓 D25/D26 已闭。不得升 PRD-008（Chat 另卡空 model catalog）。
 
 ## 8. 复现与验证边界
 
@@ -150,3 +151,20 @@ summary: "D25/D26 是同一个 bug。store 在 user_version=0 且表已存在的
 - §5「未确认」段落列的具体抛错语句**是推断**，需引擎侧按 §6.1 坐实
 - 本仓未运行引擎、未改引擎仓**源码 / proto / 构建文件**、未跑 gradle。**例外**：按 [cross-repo-protocol §3.4](../plans/cross-repo-protocol.md) 步骤 4，在引擎仓 `dev/progress/deferred-gaps.md` 追加了一行指针（docs-only，`D-SESSION-STORE-MIGRATION-STUCK-1`）
 - `session-100` / `session-101` 在本仓 `src/` 内出现于四个单测文件（`sessionViewHostEngineBind.test.ts` 31 处 / `sessionCreateRecover.test.ts` 20 处 / `universeAgentRendererSync.test.ts` 3 处 / `conversationEngineRosterService.test.ts` 4 处，共 58 处）。**这两个 id 与钉死工位 `.sessions/` 下同名目录是否同源、落盘目录的实际创建方是谁，本仓均未追**——不排除 E2E 路径把夹具 id 送到了活引擎。取样合理性不依赖这一点（§2 的卡死指纹对任何一个该状态的库都成立），但引擎侧若要按 id 溯源需自行确认。（2026-09-09 修正：本行初稿写「不来自本仓 `src/`（已全文搜索确认）」，实为一次带 `!*test*` 过滤的搜索；措辞与结论均已改。）
+
+## 9. 2026-09-12 账更正（引擎已修；本仓 PIN 未吃进）
+
+引擎仓**没有**砍掉旧库迁移，也**没有**改成「只认新 schema」。9 月 10 日修的是迁移半途失败后不能自愈，不是放弃兼容。
+
+当前 UA `SCHEMA_VERSION = 7`。`ensureSchema` 仍是版本门控：
+
+| 落盘状态 | 行为 |
+|----------|------|
+| 没有 `message_envelope` | `Schema.create`，一次盖成 7 |
+| `user_version=0` 或落后（含卡住态） | 按列/表检查跑 9 段增量：`visibility` → `last_mutated_from_seq` → `owner_identity_id` → pairing 摘要 → **`work_dir`** → idempotent 表 → envelope 索引… |
+| 已等于 7 | 跳过全部 DDL |
+| **高于** 7 | fail-closed，不降级 |
+
+每成功一段就写 `user_version`（未完成不盖 7），写语句走 `driver.execute`。卡住态夹具已锁。引擎缺口 `D-SESSION-STORE-MIGRATION-STUCK-1` **已闭**（`7e498e7092`）。`LookupFailed` deny **没放宽**。
+
+对本仓：2026-09-12 仓外 PIN 已换；grpcurl List / Create **PASS**（新 id + 旧 session-100/101）。[D25](../progress/deferred-gaps.md) / [D26](../progress/deferred-gaps.md) **已闭**。Chat 另卡空 model catalog（`MODEL_PROFILE_*`），不是 store，不升 PRD-008。本仓不加兼容层。

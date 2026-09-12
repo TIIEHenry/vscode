@@ -2418,6 +2418,38 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async teamInfo() {
 		return undefined;
 	}
+
+	async listProviderStatus() {
+		return { providers: [] };
+	}
+
+	async upsertProviderCredentials() {
+		return { providerId: '', brand: '', protocol: '', configured: false, credentialSource: 'NONE', hasBaseUrl: false, enabled: false };
+	}
+
+	async clearProviderCredentials() {
+		return { providerId: '', brand: '', protocol: '', configured: false, credentialSource: 'NONE', hasBaseUrl: false, enabled: false };
+	}
+
+	async listProjectRules() {
+		return { rules: [] };
+	}
+
+	async upsertProjectRule() {
+		return { id: '', title: '', enabled: false, priority: 0 as const, body: '', scope: 0 as const, globs: [], appliesTo: [] };
+	}
+
+	async deleteProjectRule() {
+		return { deleted: false };
+	}
+
+	async listHookPoints() {
+		return { points: [], catalogRevision: '' };
+	}
+
+	async listTeams() {
+		return { teams: [] };
+	}
 }
 
 suite('UniverseAgentConnectionService', () => {

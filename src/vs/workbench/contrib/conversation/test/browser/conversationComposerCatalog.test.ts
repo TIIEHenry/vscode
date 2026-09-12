@@ -5,10 +5,11 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import type { ConversationWriteMessage } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { conversationLensDockCatalogProbing, conversationLensDockNoAgent, conversationLensDockNoModel } from '../../browser/conversationLensDockStrings.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from '../../browser/conversationComposerCatalog.js';
-import { loadConnectedComposerCatalogs, refreshComposerCatalogs, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
+import { loadConnectedComposerCatalogs, refreshComposerCatalogs, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('conversationComposerCatalog', () => {
@@ -343,7 +344,61 @@ suite('conversationComposerCatalog', () => {
 		assert.ok(!agentOptions.some(option => option.text === conversationLensDockCatalogProbing));
 		assert.ok(agentOptions.some(option => option.text === conversationLensDockNoAgent));
 	});
+
+	test('submitDraft sends catalog model id as Chat modelProfileId', async () => {
+		const posted: ConversationWriteMessage[] = [];
+		const host = createSubmitDraftHost(posted, 1);
+
+		await submitDraft(host);
+
+		assert.deepStrictEqual(posted, [{
+			kind: 'submitInput',
+			text: 'hello',
+			modelProfileId: 'claude-code',
+		}]);
+		assert.strictEqual(host.dockTextarea.value, '');
+	});
+
+	test('submitDraft omits modelProfileId when the honest empty model is selected', async () => {
+		const posted: ConversationWriteMessage[] = [];
+		const host = createSubmitDraftHost(posted, 0);
+
+		await submitDraft(host);
+
+		assert.deepStrictEqual(posted, [{ kind: 'submitInput', text: 'hello' }]);
+	});
 });
+
+function createSubmitDraftHost(
+	posted: ConversationWriteMessage[],
+	modelSelectedIndex: number,
+): IConversationLensComposerHost {
+	return {
+		composerPolicy: 'compose',
+		submitInFlight: false,
+		filterAgentId: undefined,
+		catalogModelIds: ['', 'claude-code'],
+		modelSelectedIndex,
+		drafts: new Map<string, string>(),
+		dockTextarea: { value: 'hello' },
+		configurationService: { getValue: () => false },
+		getBoundSessionId: () => 'sess-1',
+		stubService: {
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => true,
+		},
+		sessionViewLease: {
+			post: async (msg: ConversationWriteMessage) => {
+				posted.push(msg);
+				return { accepted: true, correlation: { id: 'c1' } };
+			},
+		},
+		resetInputHistoryBrowse() { },
+		updateSendEnabled() { },
+		updateConversationPhase() { },
+		showPostFailure() { },
+	} as unknown as IConversationLensComposerHost;
+}
 
 function createLoadCatalogHost(
 	hooks: Pick<IUniverseAgentConnection, 'listAgentProfiles' | 'listModels' | 'listTools'>,

@@ -12,6 +12,7 @@ import { readCapabilityEntry } from '../../../../platform/universeAgent/common/u
 import type {
 	UniverseAgentCapabilitySupport,
 	UniverseAgentModelEntry,
+	UniverseAgentProviderStatus,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import {
 	canShowCatalogRows,
@@ -43,6 +44,26 @@ function getModelEnabledLabel(enabled: boolean): string {
 	return enabled
 		? localize('ua.engineModelEnabled', "Enabled")
 		: localize('ua.engineModelDisabled', "Disabled");
+}
+
+function formatProviderConfiguredLabel(configured: boolean): string {
+	return configured
+		? localize('ua.engineProviderConfigured', "Configured")
+		: localize('ua.engineProviderNotConfigured', "Not configured");
+}
+
+function formatProviderRowSummary(provider: UniverseAgentProviderStatus): string {
+	const parts: string[] = [
+		provider.providerId,
+		provider.protocol,
+		formatProviderConfiguredLabel(provider.configured),
+		provider.credentialSource,
+		provider.hasBaseUrl
+			? localize('ua.engineProviderHasBaseUrl', "base URL set")
+			: localize('ua.engineProviderNoBaseUrl', "no base URL"),
+		getModelEnabledLabel(provider.enabled),
+	];
+	return parts.filter(part => part.length > 0).join(' · ');
 }
 
 function formatModelRowSummary(model: UniverseAgentModelEntry): string {
@@ -79,10 +100,15 @@ export class EngineProviderModelSection extends Disposable {
 
 	private readonly container: HTMLElement;
 	private readonly providerStatus: EngineCatalogStatusWidget;
+	private readonly providerList: HTMLElement;
 	private readonly modelStatus: EngineCatalogStatusWidget;
 	private readonly modelList: HTMLElement;
 	private readonly sessionHint: HTMLElement;
 
+	private providerMode: EngineCatalogPaneMode = 'disconnected';
+	private providerCount = 0;
+	private providerListPhase: EngineCatalogListPhase = { kind: 'none' };
+	private providerRefreshGeneration = 0;
 	private modelMode: EngineCatalogPaneMode = 'disconnected';
 	private modelCount = 0;
 	private modelListPhase: EngineCatalogListPhase = { kind: 'none' };
@@ -103,6 +129,8 @@ export class EngineProviderModelSection extends Disposable {
 		const providerGroup = DOM.append(form, $('.engine-provider-model-group.engine-provider-model-group--provider'));
 		DOM.append(providerGroup, $('h4.engine-provider-model-heading')).textContent = localize('ua.engineProviderHeading', "Provider");
 		this.providerStatus = this._register(new EngineCatalogStatusWidget(providerGroup));
+		this.providerList = DOM.append(providerGroup, $('.engine-provider-status-list.engine-catalog-list'));
+		this.providerList.style.display = 'none';
 
 		const modelGroup = DOM.append(form, $('.engine-provider-model-group.engine-provider-model-group--model'));
 		DOM.append(modelGroup, $('h4.engine-provider-model-heading')).textContent = localize('ua.engineModelHeading', "Model");
@@ -140,45 +168,163 @@ export class EngineProviderModelSection extends Disposable {
 		return this.modelCount;
 	}
 
+	getProviderMode(): EngineCatalogPaneMode {
+		return this.providerMode;
+	}
+
+	getProviderListEntryCount(): number {
+		return this.providerCount;
+	}
+
 	layout(_width: number, _height: number): void {
 		// Static grouped list.
 	}
 
 	private refresh(): void {
-		this.renderProviderGroup();
+		void this.refreshProviders();
 		void this.refreshModels();
 	}
 
-	private renderProviderGroup(): void {
+	private hasProviderListHook(): boolean {
+		return typeof this.connection.listProviderStatus === 'function';
+	}
+
+	/**
+	 * Without a connection list hook, SUPPORTED would stall in loading
+	 * (`listPhase: none`) — fold it to unsupported (zero engine data).
+	 */
+	private resolveProviderMode(
+		connected: boolean,
+		support: UniverseAgentCapabilitySupport,
+		listPhase: EngineCatalogListPhase = { kind: 'none' },
+	): EngineCatalogPaneMode {
+		const mode = resolveEngineCatalogPaneMode(connected, support, listPhase);
+		if (!this.hasProviderListHook() && (mode === 'ready' || mode === 'empty' || (connected && support === 'SUPPORTED'))) {
+			return 'unsupported';
+		}
+		return mode;
+	}
+
+	private async refreshProviders(): Promise<void> {
+		const generation = ++this.providerRefreshGeneration;
 		const connected = this.connection.isEngineConnected();
 		const entry = readCapabilityEntry(this.connection.getCapabilitySnapshot(), 'providerConfig');
-		const mode = this.resolveProviderMode(connected, entry.support);
 
+		if (!connected) {
+			this.clearProviderPresentation();
+			this.providerListPhase = { kind: 'none' };
+			this.renderProviderStatus(this.resolveProviderMode(false, entry.support));
+			return;
+		}
+
+		if (entry.support === 'UNSUPPORTED') {
+			this.clearProviderPresentation();
+			this.providerListPhase = { kind: 'none' };
+			this.renderProviderStatus(this.resolveProviderMode(true, entry.support), entry.reason);
+			return;
+		}
+
+		if (!this.hasProviderListHook()) {
+			this.clearProviderPresentation();
+			this.providerListPhase = { kind: 'none' };
+			this.renderProviderStatus(this.resolveProviderMode(true, entry.support), entry.reason);
+			return;
+		}
+
+		if (entry.support === 'UNKNOWN') {
+			const hadLivePaint = this.providerCount > 0;
+			if (!hadLivePaint) {
+				this.clearProviderPresentation();
+			} else {
+				this.providerList.style.display = '';
+			}
+			this.providerListPhase = { kind: 'none' };
+			this.renderProviderStatus(this.resolveProviderMode(true, entry.support), undefined, 'capability');
+			return;
+		}
+
+		this.providerListPhase = { kind: 'inFlight' };
+		this.renderProviderStatus(this.resolveProviderMode(true, entry.support, this.providerListPhase), undefined, 'list');
+
+		try {
+			const result = await this.connection.listProviderStatus!();
+			if (generation !== this.providerRefreshGeneration) {
+				return;
+			}
+			if (!this.connection.isEngineConnected()) {
+				this.clearProviderPresentation();
+				this.providerListPhase = { kind: 'none' };
+				this.renderProviderStatus(this.resolveProviderMode(false, entry.support));
+				return;
+			}
+			this.providerListPhase = { kind: 'success', itemCount: result.providers.length };
+			const mode = this.resolveProviderMode(true, entry.support, this.providerListPhase);
+			this.renderProviderStatus(mode);
+			if (canShowCatalogRows(mode)) {
+				this.renderProviderList(result.providers);
+			} else {
+				this.clearProviderPresentation();
+			}
+		} catch (error) {
+			if (generation !== this.providerRefreshGeneration) {
+				return;
+			}
+			const hadLivePaint = this.providerCount > 0;
+			if (!hadLivePaint) {
+				this.clearProviderPresentation();
+			} else {
+				this.providerList.style.display = '';
+			}
+			const reason = getTransportErrorMessage(error);
+			this.providerListPhase = { kind: 'failed', error: reason };
+			this.renderProviderStatus(
+				this.resolveProviderMode(true, entry.support, this.providerListPhase),
+				reason,
+				undefined,
+				() => void this.refreshProviders(),
+			);
+		}
+	}
+
+	private renderProviderStatus(
+		mode: EngineCatalogPaneMode,
+		reason?: string,
+		loadingKind?: 'capability' | 'list',
+		onRetry?: () => void,
+	): void {
+		this.providerMode = mode;
 		this.providerStatus.render({
 			mode,
 			featureLabel: PROVIDER_FEATURE,
-			reason: entry.reason,
-			loadingKind: 'capability',
+			reason,
+			loadingKind,
+			emptyCopy: localize('ua.engineProviderListEmpty', "No providers reported."),
+			onRetry,
 			onOpenConnection: mode === 'disconnected'
 				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID)
 				: undefined,
 		});
 	}
 
-	/**
-	 * Provider has no list/CRUD RPC until G-ENG-1. Follow capability six-state,
-	 * but never paint a list or inputs. SUPPORTED would otherwise stall in
-	 * loading (`listPhase: none`) — fold it to unsupported (zero engine data).
-	 */
-	private resolveProviderMode(
-		connected: boolean,
-		support: UniverseAgentCapabilitySupport,
-	): EngineCatalogPaneMode {
-		const mode = resolveEngineCatalogPaneMode(connected, support);
-		if (mode === 'ready' || mode === 'empty' || (connected && support === 'SUPPORTED')) {
-			return 'unsupported';
+	private renderProviderList(providers: readonly UniverseAgentProviderStatus[]): void {
+		this.providerCount = providers.length;
+		DOM.clearNode(this.providerList);
+		for (const provider of providers) {
+			const row = DOM.append(this.providerList, $('.engine-catalog-row.engine-provider-status-row'));
+			if (!provider.enabled) {
+				row.classList.add('engine-provider-status-row--disabled');
+			}
+			const text = DOM.append(row, $('.engine-catalog-text'));
+			DOM.append(text, $('.engine-catalog-name')).textContent = provider.brand || provider.providerId;
+			DOM.append(text, $('.engine-catalog-description')).textContent = formatProviderRowSummary(provider);
 		}
-		return mode;
+		this.providerList.style.display = '';
+	}
+
+	private clearProviderPresentation(): void {
+		this.providerCount = 0;
+		DOM.clearNode(this.providerList);
+		this.providerList.style.display = 'none';
 	}
 
 	private async refreshModels(): Promise<void> {

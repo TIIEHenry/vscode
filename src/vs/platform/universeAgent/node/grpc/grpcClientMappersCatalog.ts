@@ -17,6 +17,15 @@ import type {
 	UniverseAgentSaveAgentProfileResult,
 	UniverseAgentDeleteAgentProfileResult,
 	UniverseAgentResetAgentProfileResult,
+	UniverseAgentProviderStatus,
+	UniverseAgentListProviderStatusResult,
+	UniverseAgentProjectRule,
+	UniverseAgentProjectRulePriority,
+	UniverseAgentProjectRuleScope,
+	UniverseAgentListProjectRulesResult,
+	UniverseAgentDeleteProjectRuleResult,
+	UniverseAgentHookPoint,
+	UniverseAgentListHookPointsResult,
 	UniverseAgentListMcpServersResult,
 	UniverseAgentGetMcpServerStatusesResult,
 	UniverseAgentGetMcpServerToolsResult,
@@ -247,6 +256,9 @@ export interface ListAgentProfilesResponseWire {
 		usage?: string;
 		detail_level?: string;
 		builtin_default?: boolean;
+		model?: string;
+		model_type?: string;
+		max_turns?: number;
 	}>;
 }
 
@@ -281,6 +293,9 @@ export function mapAgentProfileDetail(wire: NonNullable<ListAgentProfilesRespons
 		enabled: wire.enabled,
 		whitelistMode: wire.whitelist_mode,
 		builtinDefault: wire.builtin_default,
+		...(wire.model ? { model: wire.model } : {}),
+		...(wire.model_type ? { modelType: wire.model_type } : {}),
+		...(typeof wire.max_turns === 'number' && wire.max_turns > 0 ? { maxTurns: wire.max_turns } : {}),
 	};
 }
 
@@ -294,6 +309,9 @@ export function mapAgentProfileSummary(wire: NonNullable<ListAgentProfilesRespon
 		disabledTools: wire.disabled_tools,
 		enabledTools: wire.enabled_tools,
 		whitelistMode: wire.whitelist_mode,
+		...(wire.model ? { model: wire.model } : {}),
+		...(wire.model_type ? { modelType: wire.model_type } : {}),
+		...(typeof wire.max_turns === 'number' && wire.max_turns > 0 ? { maxTurns: wire.max_turns } : {}),
 	};
 }
 
@@ -334,6 +352,117 @@ export function mapResetAgentProfileResponse(wire: ResetAgentProfileResponseWire
 		ok: wire.success === true,
 		profile: wire.profile ? mapAgentProfileDetail(wire.profile) : undefined,
 	};
+}
+
+export interface ProviderStatusWire {
+	provider_id?: string;
+	brand?: string;
+	protocol?: string;
+	configured?: boolean;
+	credential_source?: string;
+	has_base_url?: boolean;
+	enabled?: boolean;
+}
+
+export interface ListProviderStatusResponseWire {
+	providers?: ProviderStatusWire[];
+}
+
+export function mapProviderStatus(wire: ProviderStatusWire): UniverseAgentProviderStatus {
+	return {
+		providerId: wire.provider_id ?? '',
+		brand: wire.brand ?? '',
+		protocol: wire.protocol ?? '',
+		configured: wire.configured === true,
+		credentialSource: wire.credential_source ?? 'NONE',
+		hasBaseUrl: wire.has_base_url === true,
+		enabled: wire.enabled === true,
+	};
+}
+
+export function mapListProviderStatusResponse(wire: ListProviderStatusResponseWire): UniverseAgentListProviderStatusResult {
+	return {
+		providers: (wire.providers ?? []).map(mapProviderStatus),
+	};
+}
+
+export interface ProjectRuleWire {
+	id?: string;
+	title?: string;
+	enabled?: boolean;
+	priority?: number;
+	body?: string;
+	scope?: number;
+	globs?: string[];
+	applies_to?: string[];
+}
+
+export interface ListProjectRulesResponseWire {
+	rules?: ProjectRuleWire[];
+}
+
+export function mapProjectRule(wire: ProjectRuleWire): UniverseAgentProjectRule {
+	const priority = clampEnum(wire.priority, 3) as UniverseAgentProjectRulePriority;
+	const scope = clampEnum(wire.scope, 2) as UniverseAgentProjectRuleScope;
+	return {
+		id: wire.id ?? '',
+		title: wire.title ?? '',
+		enabled: wire.enabled === true,
+		priority,
+		body: wire.body ?? '',
+		scope,
+		globs: wire.globs ?? [],
+		appliesTo: wire.applies_to ?? [],
+	};
+}
+
+export function mapListProjectRulesResponse(wire: ListProjectRulesResponseWire): UniverseAgentListProjectRulesResult {
+	return {
+		rules: (wire.rules ?? []).map(mapProjectRule),
+	};
+}
+
+export interface DeleteProjectRuleResponseWire {
+	deleted?: boolean;
+}
+
+export function mapDeleteProjectRuleResponse(wire: DeleteProjectRuleResponseWire): UniverseAgentDeleteProjectRuleResult {
+	return { deleted: wire.deleted === true };
+}
+
+export interface HookPointWire {
+	id?: string;
+	family?: string;
+	method_name?: string;
+	installed_count?: number;
+}
+
+export interface ListHookPointsResponseWire {
+	points?: HookPointWire[];
+	catalog_revision?: string;
+}
+
+export function mapHookPoint(wire: HookPointWire): UniverseAgentHookPoint {
+	return {
+		id: wire.id ?? '',
+		family: wire.family ?? '',
+		methodName: wire.method_name ?? '',
+		installedCount: wire.installed_count ?? 0,
+	};
+}
+
+export function mapListHookPointsResponse(wire: ListHookPointsResponseWire): UniverseAgentListHookPointsResult {
+	return {
+		points: (wire.points ?? []).map(mapHookPoint),
+		catalogRevision: wire.catalog_revision ?? '',
+	};
+}
+
+function clampEnum(value: number | undefined, max: number): number {
+	if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > max) {
+		return 0;
+	}
+	return value;
 }
 
 

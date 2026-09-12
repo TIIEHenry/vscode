@@ -3,12 +3,36 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { UniverseAgentListSessionsRequest } from '../../common/universeAgentTypes.js';
-import type { DeviceInfoWire, ListAgentProfilesResponseWire, ListDevicesResponseWire, ListModelsResponseWire } from './grpcClientMappersCatalog.js';
-import type { AgentInfoWire, AgentTreeResponseWire, ListAgentsResponseWire, ListSessionsResponseWire } from './grpcClientMappersSession.js';
+import type {
+	UniverseAgentAgentProfileDetail,
+	UniverseAgentClearProviderCredentialsRequest,
+	UniverseAgentDeleteProjectRuleRequest,
+	UniverseAgentListProjectRulesRequest,
+	UniverseAgentListSessionsRequest,
+	UniverseAgentProjectRule,
+	UniverseAgentUpsertProjectRuleRequest,
+	UniverseAgentUpsertProviderCredentialsRequest,
+} from '../../common/universeAgentTypes.js';
+import type {
+	DeleteProjectRuleResponseWire,
+	DeviceInfoWire,
+	ListAgentProfilesResponseWire,
+	ListDevicesResponseWire,
+	ListHookPointsResponseWire,
+	ListModelsResponseWire,
+	ListProjectRulesResponseWire,
+	ListProviderStatusResponseWire,
+	ProjectRuleWire,
+	ProviderStatusWire,
+	ResetAgentProfileResponseWire,
+	SaveAgentProfileResponseWire,
+} from './grpcClientMappersCatalog.js';
+import type { AgentInfoWire, AgentTreeResponseWire, ListAgentsResponseWire, ListSessionsResponseWire, SessionInfoResponseWire } from './grpcClientMappersSession.js';
+import type { ListTeamsResponseWire } from './grpcClientMappersTeam.js';
 import {
 	allLengthDelimited,
 	encodeInt32Field,
+	encodeMessageField,
 	encodeStringField,
 	lastBytes,
 	lastString,
@@ -127,6 +151,7 @@ export function decodeAgentTreeResponse(bytes: Uint8Array): AgentTreeResponseWir
 function decodeSessionSummary(bytes: Uint8Array): NonNullable<ListSessionsResponseWire['sessions']>[number] {
 	const fields = readProtoFields(bytes);
 	const status = lastVarint(fields, 2);
+	const workDir = lastString(fields, 9);
 	return {
 		session_id: lastString(fields, 1) ?? '',
 		status: enumName(AGENT_STATUS_NAMES, status),
@@ -135,6 +160,26 @@ function decodeSessionSummary(bytes: Uint8Array): NonNullable<ListSessionsRespon
 		turn_count: numberOrUndefined(lastVarint(fields, 5)),
 		model: lastString(fields, 6),
 		title: lastString(fields, 7),
+		...(workDir ? { work_dir: workDir } : {}),
+	};
+}
+
+export function encodeSessionInfoRequest(sessionId: string): Uint8Array {
+	return encodeStringField(1, sessionId);
+}
+
+export function decodeSessionInfoResponse(bytes: Uint8Array): SessionInfoResponseWire {
+	const fields = readProtoFields(bytes);
+	const root = lastBytes(fields, 2);
+	const workDir = lastString(fields, 7);
+	return {
+		session_id: lastString(fields, 1) ?? '',
+		root_agent: root ? decodeAgentInfo(root) : undefined,
+		created_at: numberOrUndefined(lastVarint(fields, 3)),
+		last_accessed_at: numberOrUndefined(lastVarint(fields, 4)),
+		provider: lastString(fields, 5),
+		model: lastString(fields, 6),
+		...(workDir ? { work_dir: workDir } : {}),
 	};
 }
 
@@ -185,6 +230,126 @@ function decodeAgentProfile(bytes: Uint8Array): NonNullable<ListAgentProfilesRes
 		source: lastString(fields, 14),
 		enabled: lastVarint(fields, 15) === 1n,
 		builtin_default: lastVarint(fields, 16) === 1n,
+		model: lastString(fields, 17),
+		model_type: lastString(fields, 18),
+		...omitZeroMaxTurns(numberOrUndefined(lastVarint(fields, 19))),
+	};
+}
+
+export function encodeSaveAgentProfileRequest(profile: UniverseAgentAgentProfileDetail): Uint8Array {
+	return encodeMessageField(1, encodeAgentProfile(profile));
+}
+
+export function decodeSaveAgentProfileResponse(bytes: Uint8Array): SaveAgentProfileResponseWire {
+	const profile = lastBytes(readProtoFields(bytes), 1);
+	return { profile: profile ? decodeAgentProfile(profile) : undefined };
+}
+
+export function encodeResetAgentProfileRequest(id: string): Uint8Array {
+	return encodeStringField(1, id);
+}
+
+export function decodeResetAgentProfileResponse(bytes: Uint8Array): ResetAgentProfileResponseWire {
+	const fields = readProtoFields(bytes);
+	const profile = lastBytes(fields, 2);
+	return {
+		success: lastVarint(fields, 1) === 1n,
+		profile: profile ? decodeAgentProfile(profile) : undefined,
+	};
+}
+
+export function encodeListProviderStatusRequest(): Uint8Array {
+	return encodeEmptyProtoMessage();
+}
+
+export function decodeListProviderStatusResponse(bytes: Uint8Array): ListProviderStatusResponseWire {
+	return {
+		providers: allLengthDelimited(readProtoFields(bytes), 1).map(decodeProviderStatus),
+	};
+}
+
+export function encodeUpsertProviderCredentialsRequest(request: UniverseAgentUpsertProviderCredentialsRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.providerId),
+		encodeStringField(2, request.apiKey),
+		encodeStringField(3, request.baseUrl),
+		encodeStringField(4, request.protocol),
+	]);
+}
+
+export function encodeClearProviderCredentialsRequest(request: UniverseAgentClearProviderCredentialsRequest): Uint8Array {
+	return encodeStringField(1, request.providerId);
+}
+
+export function decodeProviderStatus(bytes: Uint8Array): ProviderStatusWire {
+	const fields = readProtoFields(bytes);
+	return {
+		provider_id: lastString(fields, 1) ?? '',
+		brand: lastString(fields, 2) ?? '',
+		protocol: lastString(fields, 3) ?? '',
+		configured: lastVarint(fields, 4) === 1n,
+		credential_source: lastString(fields, 5) ?? '',
+		has_base_url: lastVarint(fields, 6) === 1n,
+		enabled: lastVarint(fields, 7) === 1n,
+	};
+}
+
+export function encodeListProjectRulesRequest(request: UniverseAgentListProjectRulesRequest): Uint8Array {
+	return Buffer.concat([
+		encodeInt32Field(1, request.scope),
+		encodeStringField(2, request.sessionId),
+	]);
+}
+
+export function decodeListProjectRulesResponse(bytes: Uint8Array): ListProjectRulesResponseWire {
+	return {
+		rules: allLengthDelimited(readProtoFields(bytes), 1).map(decodeProjectRule),
+	};
+}
+
+export function encodeUpsertProjectRuleRequest(request: UniverseAgentUpsertProjectRuleRequest): Uint8Array {
+	return Buffer.concat([
+		encodeInt32Field(1, request.scope),
+		encodeStringField(2, request.sessionId),
+		encodeMessageField(3, encodeProjectRule(request.rule)),
+	]);
+}
+
+export function decodeProjectRuleResponse(bytes: Uint8Array): ProjectRuleWire {
+	return decodeProjectRule(bytes);
+}
+
+export function encodeDeleteProjectRuleRequest(request: UniverseAgentDeleteProjectRuleRequest): Uint8Array {
+	return Buffer.concat([
+		encodeInt32Field(1, request.scope),
+		encodeStringField(2, request.sessionId),
+		encodeStringField(3, request.id),
+	]);
+}
+
+export function decodeDeleteProjectRuleResponse(bytes: Uint8Array): DeleteProjectRuleResponseWire {
+	return { deleted: lastVarint(readProtoFields(bytes), 1) === 1n };
+}
+
+export function encodeListHookPointsRequest(): Uint8Array {
+	return encodeEmptyProtoMessage();
+}
+
+export function decodeListHookPointsResponse(bytes: Uint8Array): ListHookPointsResponseWire {
+	const fields = readProtoFields(bytes);
+	return {
+		points: allLengthDelimited(fields, 1).map(decodeHookPoint),
+		catalog_revision: lastString(fields, 2),
+	};
+}
+
+export function encodeListTeamsRequest(sessionId: string): Uint8Array {
+	return encodeStringField(1, sessionId);
+}
+
+export function decodeListTeamsResponse(bytes: Uint8Array): ListTeamsResponseWire {
+	return {
+		teams: allLengthDelimited(readProtoFields(bytes), 1).map(decodeTeamListEntry),
 	};
 }
 
@@ -210,4 +375,99 @@ function enumName(names: readonly string[], value: bigint | undefined): string |
 
 function numberOrUndefined(value: bigint | undefined): number | undefined {
 	return value === undefined ? undefined : Number(value);
+}
+
+function omitZeroMaxTurns(value: number | undefined): { max_turns?: number } {
+	if (value === undefined || value <= 0) {
+		return {};
+	}
+	return { max_turns: value };
+}
+
+function encodeRepeatedString(field: number, values: readonly string[] | undefined): Buffer {
+	if (!values || values.length === 0) {
+		return Buffer.alloc(0);
+	}
+	return Buffer.concat(values.map(value => encodeStringField(field, value)));
+}
+
+function encodeAgentProfileSource(source: UniverseAgentAgentProfileDetail['source']): string | undefined {
+	switch (source) {
+		case 'built_in':
+			return 'BUILT_IN';
+		case 'user':
+			return 'USER';
+		case 'project':
+			return 'PROJECT';
+		default:
+			return undefined;
+	}
+}
+
+function encodeAgentProfile(profile: UniverseAgentAgentProfileDetail): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, profile.id),
+		encodeStringField(2, profile.name),
+		encodeStringField(3, profile.description),
+		encodeStringField(4, profile.systemPrompt),
+		encodeRepeatedString(5, profile.disabledTools),
+		encodeRepeatedString(6, profile.enabledTools),
+		encodeStringField(7, profile.permissionMode),
+		encodeInt32Field(10, profile.whitelistMode ? 1 : 0),
+		encodeStringField(11, profile.summary),
+		encodeStringField(12, profile.usage),
+		encodeStringField(13, profile.detailLevel),
+		encodeStringField(14, encodeAgentProfileSource(profile.source)),
+		encodeInt32Field(15, profile.enabled ? 1 : 0),
+		encodeInt32Field(16, profile.builtinDefault ? 1 : 0),
+		encodeStringField(17, profile.model),
+		encodeStringField(18, profile.modelType),
+		encodeInt32Field(19, profile.maxTurns && profile.maxTurns > 0 ? profile.maxTurns : 0),
+	]);
+}
+
+function encodeProjectRule(rule: UniverseAgentProjectRule): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, rule.id),
+		encodeStringField(2, rule.title),
+		encodeInt32Field(3, rule.enabled ? 1 : 0),
+		encodeInt32Field(4, rule.priority),
+		encodeStringField(5, rule.body),
+		encodeInt32Field(6, rule.scope),
+		encodeRepeatedString(7, rule.globs),
+		encodeRepeatedString(8, rule.appliesTo),
+	]);
+}
+
+function decodeProjectRule(bytes: Uint8Array): ProjectRuleWire {
+	const fields = readProtoFields(bytes);
+	return {
+		id: lastString(fields, 1) ?? '',
+		title: lastString(fields, 2) ?? '',
+		enabled: lastVarint(fields, 3) === 1n,
+		priority: numberOrUndefined(lastVarint(fields, 4)),
+		body: lastString(fields, 5) ?? '',
+		scope: numberOrUndefined(lastVarint(fields, 6)),
+		globs: allLengthDelimited(fields, 7).map(value => Buffer.from(value).toString('utf8')),
+		applies_to: allLengthDelimited(fields, 8).map(value => Buffer.from(value).toString('utf8')),
+	};
+}
+
+function decodeHookPoint(bytes: Uint8Array): { id?: string; family?: string; method_name?: string; installed_count?: number } {
+	const fields = readProtoFields(bytes);
+	return {
+		id: lastString(fields, 1) ?? '',
+		family: lastString(fields, 2) ?? '',
+		method_name: lastString(fields, 3) ?? '',
+		installed_count: numberOrUndefined(lastVarint(fields, 4)),
+	};
+}
+
+function decodeTeamListEntry(bytes: Uint8Array): { team_id?: number; status?: string; manager_agent_id?: string } {
+	const fields = readProtoFields(bytes);
+	return {
+		team_id: numberOrUndefined(lastVarint(fields, 1)),
+		status: lastString(fields, 2) ?? '',
+		manager_agent_id: lastString(fields, 3) ?? '',
+	};
 }

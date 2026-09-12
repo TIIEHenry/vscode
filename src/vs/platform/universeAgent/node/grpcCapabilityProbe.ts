@@ -11,7 +11,6 @@ import type {
 import {
 	PROVIDER_CONFIG_UNSUPPORTED_REASON,
 	SUPPORTED_CAPABILITY,
-	UNSUPPORTED_CAPABILITY,
 	createEmptyCapabilitySnapshot,
 } from '../common/universeAgentCapabilities.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentGrpcServices, UniverseAgentSessionListMethodKey } from './grpc/grpcTransport.js';
@@ -63,11 +62,47 @@ const PROBE_TARGETS: Partial<Record<UniverseAgentCapabilityKey, { service: strin
 		method: UniverseAgentGrpcServices.Team.MemberStatus,
 		methodKey: 'TeamService.MemberStatus',
 	},
+	providerConfig: {
+		service: UniverseAgentGrpcServices.Agent.service,
+		method: UniverseAgentGrpcServices.Agent.ListProviderStatus,
+		methodKey: 'AgentService.ListProviderStatus',
+	},
+	globalRules: {
+		service: UniverseAgentGrpcServices.ProjectRule.service,
+		method: UniverseAgentGrpcServices.ProjectRule.List,
+		methodKey: 'ProjectRuleService.List',
+	},
+	projectRules: {
+		service: UniverseAgentGrpcServices.ProjectRule.service,
+		method: UniverseAgentGrpcServices.ProjectRule.List,
+		methodKey: 'ProjectRuleService.List',
+	},
+	hooksMetadata: {
+		service: UniverseAgentGrpcServices.System.service,
+		method: UniverseAgentGrpcServices.System.ListHookPoints,
+		methodKey: 'SystemService.ListHookPoints',
+	},
 };
 
 export interface GrpcCapabilityProbeInput {
 	readonly methods: readonly string[];
 	readonly transport: IUniverseAgentGrpcTransport;
+}
+
+/**
+ * Handshake may advertise `FooService.*` as a wildcard for every method on that
+ * service. Exact `FooService.Bar` still matches only itself.
+ */
+export function isAdvertisedMethod(methods: ReadonlySet<string> | readonly string[], methodKey: string): boolean {
+	const methodSet = methods instanceof Set ? methods : new Set(methods);
+	if (methodSet.has(methodKey)) {
+		return true;
+	}
+	const dot = methodKey.indexOf('.');
+	if (dot <= 0) {
+		return false;
+	}
+	return methodSet.has(`${methodKey.slice(0, dot)}.*`);
 }
 
 /**
@@ -83,8 +118,11 @@ export async function probeEngineCapabilities(input: GrpcCapabilityProbeInput): 
 		if (!target) {
 			continue;
 		}
-		if (!methodSet.has(target.methodKey)) {
-			snapshot[key] = { support: 'UNSUPPORTED', reason: 'method not advertised' };
+		if (!isAdvertisedMethod(methodSet, target.methodKey)) {
+			snapshot[key] = {
+				support: 'UNSUPPORTED',
+				reason: key === 'providerConfig' ? PROVIDER_CONFIG_UNSUPPORTED_REASON : 'method not advertised',
+			};
 			continue;
 		}
 		const status = await input.transport.probeRpc(target.service, target.method);
@@ -99,16 +137,6 @@ export async function probeEngineCapabilities(input: GrpcCapabilityProbeInput): 
 		snapshot[key] = { support: 'UNKNOWN', reason: `probe status ${status}` };
 	}
 
-	// Remaining IDE-local derived keys without dedicated probes in this slice.
-	for (const key of ['projectRules', 'hooksMetadata', 'globalRules'] as const) {
-		if (snapshot[key].support === 'UNKNOWN' && snapshot[key].reason === 'not probed') {
-			snapshot[key] = { ...UNSUPPORTED_CAPABILITY, reason: 'probe not implemented in M6-A1' };
-		}
-	}
-
-	// G-ENG-1: never probe ConfigService.Get/Set as a provider catalog.
-	snapshot.providerConfig = { support: 'UNSUPPORTED', reason: PROVIDER_CONFIG_UNSUPPORTED_REASON };
-
 	return snapshot;
 }
 
@@ -117,7 +145,7 @@ export async function probeEngineCapabilities(input: GrpcCapabilityProbeInput): 
  * (Engine Overview must not gain a sessionList row).
  */
 export async function probeSessionListCapability(input: GrpcCapabilityProbeInput): Promise<UniverseAgentCapabilityEntry> {
-	if (!input.methods.includes(UniverseAgentSessionListMethodKey)) {
+	if (!isAdvertisedMethod(input.methods, UniverseAgentSessionListMethodKey)) {
 		return { support: 'UNSUPPORTED', reason: 'method not advertised' };
 	}
 	const status = await input.transport.probeRpc(

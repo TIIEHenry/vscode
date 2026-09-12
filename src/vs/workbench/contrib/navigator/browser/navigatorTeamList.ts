@@ -23,6 +23,7 @@ import { INotificationService } from '../../../../platform/notification/common/n
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentTeamListEntry } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
@@ -35,6 +36,7 @@ import {
 	getTeamTreeEmptyCopy,
 	INavigatorTeamMemberEntry,
 	INavigatorTeamTaskEntry,
+	resolveTeamIdForInfo,
 } from '../common/navigatorTeamData.js';
 import { collectLiveAgentTreeAgentIds, EMPTY_LIVE_AGENT_IDS } from '../common/navigatorAgentHierarchy.js';
 import { getNavigatorAgentTreePendingCopy, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
@@ -430,16 +432,18 @@ export class NavigatorTeamView extends ViewPane {
 		const teamApi = this.uaConnection.team;
 		const sessionId = this.rosterService.getActiveSessionId();
 		const liveTeamId = lease?.snapshot.liveTeamId;
+		const listedTeams = await this.listTeamsForInfo(sessionId, liveTeamId);
 		const members: INavigatorTeamMemberEntry[] = [];
 		const tasks: INavigatorTeamTaskEntry[] = [];
 
 		try {
 			for (const manager of managers) {
 				let managerLabel = manager.name || manager.agentId;
-				if (liveTeamId !== undefined) {
+				const teamId = resolveTeamIdForInfo(liveTeamId, listedTeams, manager.agentId);
+				if (teamId !== undefined) {
 					try {
 						this.teamInfoCallCount++;
-						const info = await teamApi.teamInfo(sessionId, manager.agentId, liveTeamId);
+						const info = await teamApi.teamInfo(sessionId, manager.agentId, teamId);
 						if (info?.status) {
 							managerLabel = `${managerLabel} (${info.status})`;
 						}
@@ -490,6 +494,17 @@ export class NavigatorTeamView extends ViewPane {
 			}
 			this.setTeamSnapshotNote(TEAM_FETCH_FAILED_COPY);
 			this.inspectService.setLiveAgentIds('team', EMPTY_LIVE_AGENT_IDS);
+		}
+	}
+
+	private async listTeamsForInfo(sessionId: string, liveTeamId: number | undefined): Promise<readonly UniverseAgentTeamListEntry[]> {
+		if (liveTeamId !== undefined || typeof this.uaConnection.listTeams !== 'function') {
+			return [];
+		}
+		try {
+			return (await this.uaConnection.listTeams(sessionId)).teams;
+		} catch {
+			return [];
 		}
 	}
 

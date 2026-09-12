@@ -7,7 +7,7 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { getNavigatorAgentTreePendingCopy } from '../../common/navigatorAgentTreeEmptyState.js';
-import { findManagerNodes, getTeamTreeEmptyCopy } from '../../common/navigatorTeamData.js';
+import { findManagerNodes, getTeamTreeEmptyCopy, resolveTeamIdForInfo } from '../../common/navigatorTeamData.js';
 
 suite('NavigatorTeam (N4)', () => {
 
@@ -103,12 +103,24 @@ suite('NavigatorTeam (N4)', () => {
 		);
 	});
 
-	test('liveTeamId empty must skip teamInfo (contract)', () => {
-		const liveTeamId: number | undefined = undefined;
-		let teamInfoCalls = 0;
-		if (liveTeamId !== undefined) {
-			teamInfoCalls++;
-		}
-		assert.strictEqual(teamInfoCalls, 0);
+	test('liveTeamId empty and empty ListTeams omits teamInfo id', () => {
+		assert.strictEqual(resolveTeamIdForInfo(undefined, [], 'mgr:1'), undefined);
+	});
+
+	test('liveTeamId wins over ListTeams', () => {
+		assert.strictEqual(resolveTeamIdForInfo(7, [{
+			teamId: 3,
+			status: 'ACTIVE',
+			managerAgentId: 'mgr:1',
+		}], 'mgr:1'), 7);
+	});
+
+	test('empty liveTeamId uses matching manager team, else first', () => {
+		const teams = [
+			{ teamId: 1, status: 'ACTIVE', managerAgentId: 'mgr:other' },
+			{ teamId: 2, status: 'ACTIVE', managerAgentId: 'mgr:1' },
+		];
+		assert.strictEqual(resolveTeamIdForInfo(undefined, teams, 'mgr:1'), 2);
+		assert.strictEqual(resolveTeamIdForInfo(undefined, teams, 'mgr:missing'), 1);
 	});
 });

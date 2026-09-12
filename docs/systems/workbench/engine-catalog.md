@@ -3,18 +3,18 @@ title: "Engine 页 Customizations catalog（ua.engine）"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-10
-summary: "HEAD 九节壳已挂：四节写路径 + Overview/Model/MCP Runtime/Plugins；MCP/Skills/Agents 与 Plugins Enable/Reload/Unload/scanNew 写成功仅 list listed 才回刷成功文案（含 Agents markdown Save）；Provider/Rules/Hooks 仍 unsupported；产品验证未做"
+updated: 2026-09-12
+summary: "HEAD 九节壳已挂：四节写路径 + Overview/Model/MCP Runtime/Plugins；Provider/Rules/Hooks 只读列表已接（无写表单）；产品验证未做"
 ---
 
 # Engine 页 Customizations catalog（`ua.engine`）
 
 > 宿主与 TOC 见 [Settings UA 接入](../../reference/code-oss-b2/settings-ua-access.md)。权威表与协议缺口见 [customizations-engine](../../../dev/plans/customizations-engine.md)。传输 RPC 登记见 [engine-protocol-surface §1/§7](../../reference/universe-agent/engine-protocol-surface.md)。
 
-`EnginePreferencesPane` 是 Preferences 子 pane（`ua.engine`），左栏 `WorkbenchList` 九节、右栏一次一节。本节记 **@ HEAD 代码事实**（E2-1–E2-7 @ `482b611a` 一带；**GC-6** Overview Model 摘要 @ `f583073b` / `d98d888a`）。**不得**把 Provider 凭据、Rules/Hooks 列表或 Composer 下拉写成已接通；§8.3 产品验收与 PRD-008 隔离 profile 冒烟仍待。
+`EnginePreferencesPane` 是 Preferences 子 pane（`ua.engine`），左栏 `WorkbenchList` 九节、右栏一次一节。本节记 **@ HEAD 代码事实**（E2-1–E2-7 @ `482b611a` 一带；**GC-6** Overview Model 摘要 @ `f583073b` / `d98d888a`）。**不得**把 Provider 凭据写、Rules/Hooks 写表单或 Composer 下拉写成已接通；§8.3 产品验收与 PRD-008 隔离 profile 冒烟仍待。
 
 [PRD-025](../../product/requirements.md#prd-025-engine-设置完整性) / [engine-preferences-completion](../../../dev/plans/engine-preferences-completion.md)（`accepted`）的 **代码完成线已落**；产品验证未做，PRD **不**升 `implemented`。下文表是当前代码，不是「待实施目标」。
-Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产品主面。本节记 **@ HEAD 九节两栏壳**：四节 list/toggle/写（Skills / Agents / MCP Definitions / Tools）、Overview 摘要、Model 只读注册表、MCP Runtime tab、Plugins probe/列表。**不得**把 Provider / Rules / Hooks 写成已接通（[G-ENG-1/2/3](../../reference/universe-agent/engine-protocol-surface.md)）；产品验收与 PRD-008 隔离 profile 冒烟仍待。
+Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产品主面。本节记 **@ HEAD 九节两栏壳**：四节 list/toggle/写（Skills / Agents / MCP Definitions / Tools）、Overview 摘要、Model 只读注册表、MCP Runtime tab、Plugins probe/列表。**不得**把 Provider / Rules / Hooks **写表单**写成已接通（[G-ENG-1/2/3](../../reference/universe-agent/engine-protocol-surface.md) 只读列表已接）；产品验收与 PRD-008 隔离 profile 冒烟仍待。
 
 **M7 代码完成线（产品验证未做）：** [PRD-025](../../product/requirements.md#prd-025-engine-设置完整性) E2-1–E2-7 九节六态已挂。实施方案见 [engine-preferences-completion](../../../dev/plans/engine-preferences-completion.md)（`accepted`）。本页以下 `@ HEAD` 表只陈述当前代码。没有用户可观察证据不得升 `implemented`。
 
@@ -23,27 +23,27 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 | Engine 页节 | 能力键 | `IUniverseAgentConnection.getCapabilitySnapshot()` 来源 |
 |-------------|--------|-----------------------------------------------------------|
 | Overview | （聚合） | 连接 phase / `workDir` / transport；capability 摘要；Model 行读 `models` |
-| Provider & Model | `providerConfig` / `models` | Provider：G-ENG-1 前无 RPC，节内恒 unsupported 完整态。Model：Connect 广告 + `ConfigService.ListModels` probe（P1b） |
+| Provider & Model | `providerConfig` / `models` | Provider：connection `listProviderStatus?` 只读列表（无凭据输入）。Model：Connect 广告 + `ConfigService.ListModels` probe（P1b） |
 | Skills | `skills` | Connect 广告 + `ToolService.ListSkills` probe |
 | Agents | `agentProfiles` | Connect 广告 + `AgentService.ListAgentProfiles` probe |
-| Rules | `globalRules` / `projectRules` | 无 Rules gRPC（G-ENG-2）；节壳在，列表恒不接线 |
-| Hooks | `hooksMetadata` | 无 Hook RPC（G-ENG-3）；节壳在，两栏恒不接线 |
+| Rules | `globalRules` / `projectRules` | connection `listProjectRules?` 只读 Global(2)/Project(1)；无 Upsert/Delete |
+| Hooks | `hooksMetadata` | connection `listHookPoints?` 只读点位；Definitions 栏无 RPC |
 | MCP Servers | `mcp` / `mcpRuntime` | Definitions：`McpService.ListMcpServers`。Runtime：`GetMcpServerStatuses` / `GetMcpServerTools`（P1a） |
 | Plugins | `plugins` | `PluginService.List` 真探测（P1a）；无 marketplace |
 | Tools | `tools` | Connect 广告 + `ToolService.ListTools` probe |
 
 禁止用 Copilot 盘或 `{AgentHome}` 扫盘顶替任何一节。
 | Overview | （聚合，无独立键） | 连接路径 / workDir / 各能力摘要；不暴露 secret |
-| Provider & Model | `models` / `providerConfig` | Model = Connect 广告 + `ConfigService.ListModels` probe（P1b）；Provider 固定 `UNSUPPORTED`（G-ENG-1） |
+| Provider & Model | `models` / `providerConfig` | Model = `ListModels`；Provider = `listProviderStatus?` 只读（G-ENG-1 无写表单） |
 | Skills | `skills` | Connect 广告 + `ToolService.ListSkills` 运行时 probe（`grpcCapabilityProbe.ts`） |
 | Agents | `agentProfiles` | Connect 广告 + `AgentService.ListAgentProfiles` probe |
-| Rules | `globalRules` / `projectRules` | 固定 `UNSUPPORTED`（G-ENG-2）；节壳在、零表单 |
-| Hooks | `hooksMetadata` | 固定 `UNSUPPORTED`（G-ENG-3）；节壳在、点位表行数恒 0 |
+| Rules | `globalRules` / `projectRules` | `listProjectRules?` 只读列表（G-ENG-2 无写表单） |
+| Hooks | `hooksMetadata` | `listHookPoints?` 只读点位（G-ENG-3 Definitions 无 RPC） |
 | MCP Servers | `mcp` + `mcpRuntime` | Definitions = `ListMcpServers`；Runtime tab = `GetMcpServerStatuses` / `GetMcpServerTools`（P1a） |
 | Plugins | `plugins` | Connect 广告 + `PluginService.List` probe（P1a）；无 marketplace |
 | Tools | `tools` | Connect 广告 + `ToolService.ListTools` probe |
 
-禁止用 Copilot 盘或 `{AgentHome}` 扫盘顶替任何 catalog。Rules / Hooks / Provider 无引擎 RPC，节可达但必须是完整 unsupported 态。
+禁止用 Copilot 盘或 `{AgentHome}` 扫盘顶替任何 catalog。Rules / Hooks / Provider 只读列表来自引擎 RPC；无 hook 时仍完整 unsupported。不画凭据/规则写表单。
 
 ## 2. 渲染模式（六态 @ HEAD）
 
@@ -82,10 +82,10 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 | **MCP Servers** | `ListMcpServers` · `ToggleMcpServer` · `AddMcpServer` · `UpdateMcpServer` · `RemoveMcpServer` | `EngineMcpSection`：global/project 分组 + 启用 checkbox；`supported` 时写工具栏 **Add / Update / Remove** | list + toggle @ `4833c008`；定义 CRUD @ `7f10e65c` / `f49615a1` |
 | **Tools** | `ListTools` · `SaveAgentProfile`（profile `tools.json`） | `EngineToolsSection`：`ListTools` 目录 + profile 下拉（user/project，不含 built_in）+ 启用 checkbox；经 `engineToolProfile.ts` 写 `disabledTools` / `enabledTools` | list @ `4833c008`；profile 启用集 @ `7f10e65c` / `f49615a1` |
 | **Overview** | 无独立 RPC | `EngineOverviewSection`：连接路径 / workDir / 能力摘要 | E2 壳 |
-| **Provider & Model** | `ListModels`（只读） | `EngineProviderModelSection`：Model 注册表；Provider 组恒 unsupported | P1b；G-ENG-1 |
+| **Provider & Model** | `ListModels` + `listProviderStatus?`（只读） | `EngineProviderModelSection`：Model 注册表 + Provider 只读行；零凭据输入 | P1b；G-ENG-1 |
 | **MCP Runtime** | `GetMcpServerStatuses` · `GetMcpServerTools` | `EngineMcpRuntimePanel`（MCP 节 Runtime tab） | P1a；能力键 `mcpRuntime` |
 | **Plugins** | `PluginService.List` / `Info` / `Enable` / `Reload` / `Unload` / `ScanNew` | `EnginePluginsSection`：列表 + 行工具栏 + Hooks 表（行数随引擎；无 marketplace） | P1a |
-| **Rules / Hooks** | **无 Remote gRPC** | `EngineRulesSection` / `EngineHooksSection`：节可达、完整 unsupported | G-ENG-2 / G-ENG-3 |
+| **Rules / Hooks** | `listProjectRules?` / `listHookPoints?` | `EngineRulesSection` / `EngineHooksSection`：只读列表；无写控件 | G-ENG-2 / G-ENG-3 |
 
 单测：`engineCatalogSections.test.ts` · `enginePreferencesPane.test.ts` · `engineAgentAgentsMd.test.ts` · `engineSkillsSection.test.ts` · `engineToolProfile.test.ts`（能力三态、断连路径、Skills 正文 Save 形状、AGENTS.md 保存与写 RPC 形状、九节导航）。
 
@@ -95,37 +95,37 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 
 | 操作 | RPC / 面 | 状态 |
 |------|----------|------|
-| Provider 凭据 / endpoint / Test | 无（G-ENG-1） | 节内 unsupported；**零**输入控件 |
+| Provider 凭据 / endpoint / Test | `listProviderStatus?` 只读；Upsert/Clear 未进 UI | **零**输入控件 |
 | Agent profile `model.json` 独立 UI | `SaveAgentProfile` 不承载 | G-ENG-4；不得用自由文本冒充已写入 |
-| Rules / Hooks 列表与写 | 引擎补 gRPC 前无 | 壳在、行数恒 0 |
+| Rules / Hooks 写 | Upsert/Delete 未进 UI | 只读列表已接；不扫 Copilot / AgentHome |
 | Composer 下拉 | AgentProfile / Model / Permission / Tools | Engine 页 list **不等于** Composer 已填引擎选项；Route 省略 |
 | Plugins marketplace | — | 不做 |
 | 产品验证 / 隔离 profile 冒烟 | PRD-025 § / PRD-008 | 未做；不升 `implemented` |
-| Agent profile `model.json` 独立编辑器 | `SaveAgentProfile` proto 无 `model` 字段 | `AGENTS.md` 正文已落；`tools.json` 经 Tools 节；**G-ENG-4** |
-| Provider 凭据读/写/测试 | 无 Provider 列表 RPC | 节壳在；G-ENG-1 闭合前零输入控件 |
-| Rules / Hooks 真数据 | RulesBridge 仅 Desktop 进程内；无 `ListHookPoints` | 节壳在；G-ENG-2 / G-ENG-3 |
+| Agent profile `model.json` 独立编辑器 | proto 已有 `model`/`model_type`/`max_turns`；Model 子 tab 未接 | `AGENTS.md` 正文已落；`tools.json` 经 Tools 节；**G-ENG-4** |
+| Provider 凭据读/写/测试 | node 已绑、未进 connection | 节壳在；表单未接前零输入控件 |
+| Rules / Hooks 真数据 | node 已绑、未进 connection | 节壳在；G-ENG-2 / G-ENG-3 |
 | 完整插件市场 | — | Plugins 只接 Engine `PluginService`，无 marketplace |
-| Composer 选择进发送载荷 | `submitInput` / `SwitchModel` | Agent / Tools / Model **只读填表**（`conversationComposerCatalog.ts`）；选择不进 `submitInput`；`SwitchModel` 不做。Permission 接通后走 `setPermissionMode`。Route 省略（无引擎 `routeIndex`） |
+| Composer 选择进发送载荷 | `submitInput` / `SwitchModel` | Agent / Tools / Model **只读填表**（`conversationComposerCatalog.ts`）。Model 选中 catalog id 进 `submitInput.modelProfileId`（Chat `SessionInput.model_profile_id`；诚实空不带）。下拉变更可走已有 `switchModel?`。Agent / Tools 选择不进发送载荷。Permission 接通后走 `setPermissionMode`。Route 省略（无引擎 `routeIndex`） |
 
 ## 5. 九节与差距（代码已落后仍缺的协议）
 
 | 节 | HEAD UI | 仍缺 |
 |----|---------|------|
 | Overview | 已有；GC-6 Model 计数；Provider 行已隐藏 | 产品验证 |
-| Provider & Model | Model 只读注册表；Provider unsupported | G-ENG-1 凭据合同 |
+| Provider & Model | Model 只读注册表；Provider 只读列表 | G-ENG-1 凭据写 / Test |
 | Skills / Agents / Tools | 已有 list/toggle/写 | Composer 下拉；Agents Model 子 tab 仍 unsupported |
-| Rules | unsupported 壳 | G-ENG-2 |
-| Hooks | unsupported 壳 | G-ENG-3 |
+| Rules | 只读列表 | G-ENG-2 写 |
+| Hooks | 只读点位 | G-ENG-3 Definitions / 写 |
 | MCP Servers | Definitions + Runtime | 无 |
 | Plugins | list + 启停/重载/扫描 | marketplace（明确不做） |
 | M7 节 | HEAD | 数据姿态 |
 |-------|------|----------|
 | Overview | 壳已挂 | 聚合连接路径、workDir、capability；Model 摘要仅在 `models=SUPPORTED`；不暴露 secret |
-| Provider & Model | Model 只读已挂；Provider unsupported | **Model** = `ListModels`；**Provider** = G-ENG-1；不跳 Copilot Models |
+| Provider & Model | Model + Provider 只读已挂 | **Model** = `ListModels`；**Provider** = `listProviderStatus?`；不跳 Copilot Models |
 | Skills | 已有 | 两栏宿主，保留 list/toggle/body/New |
 | Agents | 已有 | Instructions/Tools 经正文与 Tools 节；**Model 子 tab unsupported**（G-ENG-4） |
-| Rules | 节壳 + unsupported | 引擎补 gRPC 前恒 unsupported；不扫 Copilot rules |
-| Hooks | 节壳 + unsupported | 无 Hook RPC；点位表不抄静态点位 |
+| Rules | 只读列表 | 无 Upsert/Delete；不扫 Copilot rules |
+| Hooks | 只读点位 | Definitions 无 RPC；点位表不抄静态点位 |
 | MCP Servers | Definitions + Runtime tab | Runtime 走 `mcpRuntime`，不混 vscode `IMcpService` |
 | Plugins | probe + 列表已挂 | Engine `PluginService`，无 marketplace |
 | Tools | 已有 | 保留 profile enablement，分开 client-tool 运行态 |
@@ -136,7 +136,7 @@ UI 可先交付 unsupported/failed，不等待全部 RPC；没有真实数据与
 
 ## 6. 与 Composer 下拉
 
-`Permission` 接通后走 `setPermissionMode`。接通且能力 `SUPPORTED` 时，Agent / Tools / Model **只读填 catalog**（`listAgentProfiles` / `listTools` / `listModels`）；选择不进 `submitInput`，也不做会话级 `SwitchModel`。Route **不画**（无引擎 `routeIndex`）。Engine 页写路径仍是 catalog 权威。
+`Permission` 接通后走 `setPermissionMode`。接通且能力 `SUPPORTED` 时，Agent / Tools / Model **只读填 catalog**（`listAgentProfiles` / `listTools` / `listModels`）。Model 选中 id 进 `submitInput.modelProfileId`；下拉变更可走 `switchModel?`。Agent / Tools 选择不进发送载荷。Route **不画**（无引擎 `routeIndex`）。Engine 页写路径仍是 catalog 权威。
 
 ## 相关
 

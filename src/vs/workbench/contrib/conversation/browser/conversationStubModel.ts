@@ -71,6 +71,8 @@ export interface ConversationStubSession {
 	turns: ConversationStubTurn[];
 	/** PRD-017: `local` stub vs read-only UA disconnect cache. */
 	source?: ConversationSessionSource;
+	/** SessionSummary.work_dir stamp; omit when the engine left it blank. */
+	workDir?: string;
 }
 
 function createUntitledFixtureTurns(): ConversationStubTurn[] {

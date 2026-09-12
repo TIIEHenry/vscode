@@ -26,7 +26,7 @@ summary: "规则 16 已审、2026-09-03 签收；GC-1–GC-6 已落（merge d98d
 | 会话级 `SwitchModel` / 模型策略；Composer Route / Permission 模式 | [status.md](../progress/status.md)「不做」；无会话级 RPC |
 | 订阅流 4 L3/L4 demux（Ask-user 座位进时间线） | [conversation-stream-timeline](conversation-stream-timeline.md) 未合入前不在本稿 |
 | `AgentService.Rename` 进 transport；MessageQueue / Stop / Goal；Fork catalog | 无 RPC 或未进传输原语 |
-| Provider / Rules / Hooks / Agents Model 子 tab（G-ENG-1/2/3/4）；Projects 按 `work_dir` 分组（G-NAV-1）；重连后团队状态后缀（G-NAV-2）；历史会话 Review 归因（G-REV-1） | [engine-protocol-surface §4](../../docs/reference/universe-agent/engine-protocol-surface.md) |
+| Provider / Rules / Hooks 写表单 / Agents Model 子 tab（G-ENG-1/2/3/4） | [engine-protocol-surface §4](../../docs/reference/universe-agent/engine-protocol-surface.md) |
 | Preferences 模态高对比描边 | [D19](../progress/deferred-gaps.md) 已 closed（T1 HC 已覆盖 Preferences pane）。本稿只留一个核对项（§4 GC-7），不算切片 |
 
 ## 1. HEAD 事实与在途改动

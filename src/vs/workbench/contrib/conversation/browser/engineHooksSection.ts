@@ -9,7 +9,13 @@ import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { readCapabilityEntry } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
-import { resolveEngineCatalogPaneMode } from './engineCatalog.js';
+import type { UniverseAgentCapabilitySupport, UniverseAgentHookPoint } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import {
+	canShowCatalogRows,
+	type EngineCatalogListPhase,
+	type EngineCatalogPaneMode,
+	resolveEngineCatalogPaneMode,
+} from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
@@ -18,11 +24,24 @@ const $ = DOM.$;
 
 const HOOKS_FEATURE = localize('ua.engineHooksFeatureLabel', "hook metadata");
 
+function getTransportErrorMessage(error: unknown): string | undefined {
+	if (error instanceof Error && error.message) {
+		return error.message;
+	}
+	return undefined;
+}
+
 export class EngineHooksSection extends Disposable {
 
 	private readonly container: HTMLElement;
 	private readonly status: EngineCatalogStatusWidget;
 	private readonly layoutHost: HTMLElement;
+	private readonly pointsList: HTMLElement;
+
+	private mode: EngineCatalogPaneMode = 'disconnected';
+	private pointCount = 0;
+	private listPhase: EngineCatalogListPhase = { kind: 'none' };
+	private refreshGeneration = 0;
 
 	constructor(
 		parent: HTMLElement,
@@ -39,18 +58,17 @@ export class EngineHooksSection extends Disposable {
 		this.layoutHost = DOM.append(this.container, $('.engine-hooks-layout'));
 		this.layoutHost.style.display = 'none';
 
-		const definitionsColumn = DOM.append(this.layoutHost, $('.engine-hooks-column'));
+		const definitionsColumn = DOM.append(this.layoutHost, $('.engine-hooks-column.engine-hooks-column--definitions'));
 		DOM.append(definitionsColumn, $('h4')).textContent = localize('ua.engineHooksDefinitions', "Definitions");
 		const definitionsList = DOM.append(definitionsColumn, $('.engine-hooks-list'));
 		definitionsList.textContent = localize('ua.engineHooksDefinitionsEmpty', "No hook definitions.");
 
-		const pointsColumn = DOM.append(this.layoutHost, $('.engine-hooks-column'));
+		const pointsColumn = DOM.append(this.layoutHost, $('.engine-hooks-column.engine-hooks-column--points'));
 		DOM.append(pointsColumn, $('h4')).textContent = localize('ua.engineHooksPoints', "Hook points");
-		const pointsList = DOM.append(pointsColumn, $('.engine-hooks-list'));
-		pointsList.textContent = localize('ua.engineHooksPointsUnavailable', "Current engine does not provide hook metadata.");
+		this.pointsList = DOM.append(pointsColumn, $('.engine-hooks-list.engine-catalog-list'));
 
-		this._register(this.connection.onDidChangeConnection(() => this.render()));
-		this.render();
+		this._register(this.connection.onDidChangeConnection(() => void this.refresh()));
+		void this.refresh();
 	}
 
 	getDomNode(): HTMLElement {
@@ -65,43 +83,166 @@ export class EngineHooksSection extends Disposable {
 		// Pane detail title only.
 	}
 
-	layout(_width: number, _height: number): void {
-		// Static two-column chrome until APIs exist.
+	getMode(): EngineCatalogPaneMode {
+		return this.mode;
 	}
 
-	private render(): void {
-		this.layoutHost.style.display = 'none';
+	getListEntryCount(): number {
+		return this.pointCount;
+	}
 
-		if (!this.connection.isEngineConnected()) {
-			this.status.render({
-				mode: 'disconnected',
-				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
-			});
-			return;
+	layout(_width: number, _height: number): void {
+		// Static two-column chrome.
+	}
+
+	private hasHookPointsListHook(): boolean {
+		return typeof this.connection.listHookPoints === 'function';
+	}
+
+	private resolveMode(
+		connected: boolean,
+		support: UniverseAgentCapabilitySupport,
+		listPhase: EngineCatalogListPhase = { kind: 'none' },
+	): EngineCatalogPaneMode {
+		const mode = resolveEngineCatalogPaneMode(connected, support, listPhase);
+		if (!this.hasHookPointsListHook() && (mode === 'ready' || mode === 'empty' || (connected && support === 'SUPPORTED'))) {
+			return 'unsupported';
 		}
+		return mode;
+	}
 
+	private async refresh(): Promise<void> {
+		const generation = ++this.refreshGeneration;
+		const connected = this.connection.isEngineConnected();
 		const hooksMetadata = readCapabilityEntry(this.connection.getCapabilitySnapshot(), 'hooksMetadata');
-		const mode = resolveEngineCatalogPaneMode(true, hooksMetadata.support);
-		if (mode === 'loading') {
-			this.status.render({ mode, loadingKind: 'capability', featureLabel: HOOKS_FEATURE });
+
+		if (!connected) {
+			this.clearPresentation();
+			this.listPhase = { kind: 'none' };
+			this.renderStatus(this.resolveMode(false, hooksMetadata.support));
 			return;
 		}
-		if (mode === 'unsupported') {
-			this.status.render({
-				mode,
-				featureLabel: HOOKS_FEATURE,
-				reason: hooksMetadata.reason ?? localize(
+
+		if (hooksMetadata.support === 'UNSUPPORTED') {
+			this.clearPresentation();
+			this.listPhase = { kind: 'none' };
+			this.renderStatus(
+				this.resolveMode(true, hooksMetadata.support),
+				hooksMetadata.reason ?? localize(
 					'ua.engineHooksMetadataUnsupported',
 					"Current engine does not provide hook metadata.",
 				),
-			});
+			);
 			return;
 		}
 
+		if (!this.hasHookPointsListHook()) {
+			this.clearPresentation();
+			this.listPhase = { kind: 'none' };
+			this.renderStatus(this.resolveMode(true, hooksMetadata.support), getEngineSectionApiUnavailableCopy(HOOKS_FEATURE));
+			return;
+		}
+
+		if (hooksMetadata.support === 'UNKNOWN') {
+			const hadLivePaint = this.pointCount > 0;
+			if (!hadLivePaint) {
+				this.clearPresentation();
+			} else {
+				this.layoutHost.style.display = '';
+			}
+			this.listPhase = { kind: 'none' };
+			this.renderStatus(this.resolveMode(true, hooksMetadata.support), undefined, 'capability');
+			return;
+		}
+
+		this.listPhase = { kind: 'inFlight' };
+		this.renderStatus(this.resolveMode(true, hooksMetadata.support, this.listPhase), undefined, 'list');
+
+		try {
+			const result = await this.connection.listHookPoints!();
+			if (generation !== this.refreshGeneration) {
+				return;
+			}
+			if (!this.connection.isEngineConnected()) {
+				this.clearPresentation();
+				this.listPhase = { kind: 'none' };
+				this.renderStatus(this.resolveMode(false, hooksMetadata.support));
+				return;
+			}
+			this.listPhase = { kind: 'success', itemCount: result.points.length };
+			const mode = this.resolveMode(true, hooksMetadata.support, this.listPhase);
+			this.renderStatus(mode);
+			if (canShowCatalogRows(mode) || result.points.length === 0) {
+				this.renderPoints(result.points);
+				this.layoutHost.style.display = mode === 'ready' || mode === 'empty' ? '' : 'none';
+				if (mode !== 'ready') {
+					this.pointCount = result.points.length;
+				}
+			} else {
+				this.clearPresentation();
+			}
+		} catch (error) {
+			if (generation !== this.refreshGeneration) {
+				return;
+			}
+			const hadLivePaint = this.pointCount > 0;
+			if (!hadLivePaint) {
+				this.clearPresentation();
+			} else {
+				this.layoutHost.style.display = '';
+			}
+			const reason = getTransportErrorMessage(error);
+			this.listPhase = { kind: 'failed', error: reason };
+			this.renderStatus(
+				this.resolveMode(true, hooksMetadata.support, this.listPhase),
+				reason,
+				undefined,
+				() => void this.refresh(),
+			);
+		}
+	}
+
+	private renderStatus(
+		mode: EngineCatalogPaneMode,
+		reason?: string,
+		loadingKind?: 'capability' | 'list',
+		onRetry?: () => void,
+	): void {
+		this.mode = mode;
 		this.status.render({
-			mode: 'unsupported',
+			mode,
 			featureLabel: HOOKS_FEATURE,
-			reason: getEngineSectionApiUnavailableCopy(HOOKS_FEATURE),
+			reason,
+			loadingKind,
+			emptyCopy: localize('ua.engineHooksPointsEmpty', "No hook points."),
+			onRetry,
+			onOpenConnection: mode === 'disconnected'
+				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID)
+				: undefined,
 		});
+	}
+
+	private renderPoints(points: readonly UniverseAgentHookPoint[]): void {
+		this.pointCount = points.length;
+		DOM.clearNode(this.pointsList);
+		if (points.length === 0) {
+			this.pointsList.textContent = localize('ua.engineHooksPointsEmpty', "No hook points.");
+			return;
+		}
+		for (const point of points) {
+			const row = DOM.append(this.pointsList, $('.engine-catalog-row.engine-hooks-row'));
+			const text = DOM.append(row, $('.engine-catalog-text'));
+			DOM.append(text, $('.engine-catalog-name')).textContent = point.methodName || point.id;
+			DOM.append(text, $('.engine-catalog-description')).textContent = [
+				point.family,
+				localize('ua.engineHooksInstalledCount', "{0} installed", point.installedCount),
+			].filter(part => part.length > 0).join(' · ');
+		}
+	}
+
+	private clearPresentation(): void {
+		this.pointCount = 0;
+		DOM.clearNode(this.pointsList);
+		this.layoutHost.style.display = 'none';
 	}
 }

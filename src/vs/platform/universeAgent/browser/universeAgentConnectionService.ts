@@ -65,6 +65,11 @@ import type {
 	UniverseAgentRemoveMcpServerResult,
 	UniverseAgentListToolsResult,
 	UniverseAgentListModelsResult,
+	UniverseAgentListProviderStatusResult,
+	UniverseAgentListProjectRulesRequest,
+	UniverseAgentListProjectRulesResult,
+	UniverseAgentListHookPointsResult,
+	UniverseAgentListTeamsResult,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
@@ -320,6 +325,22 @@ export class WebUniverseAgentConnection implements IUniverseAgentConnection {
 	}
 
 	listModels(): Promise<UniverseAgentListModelsResult> {
+		return rejectUnsupportedEnvironment();
+	}
+
+	listProviderStatus(): Promise<UniverseAgentListProviderStatusResult> {
+		return rejectUnsupportedEnvironment();
+	}
+
+	listProjectRules(_request: UniverseAgentListProjectRulesRequest): Promise<UniverseAgentListProjectRulesResult> {
+		return rejectUnsupportedEnvironment();
+	}
+
+	listHookPoints(): Promise<UniverseAgentListHookPointsResult> {
+		return rejectUnsupportedEnvironment();
+	}
+
+	listTeams(_sessionId: string): Promise<UniverseAgentListTeamsResult> {
 		return rejectUnsupportedEnvironment();
 	}
 

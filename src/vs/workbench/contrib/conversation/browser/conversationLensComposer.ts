@@ -280,7 +280,12 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 		}
 		host.submitInFlight = true;
 		try {
-			const outcome = await postBound(host, { kind: 'submitInput', text });
+			const modelProfileId = host.catalogModelIds?.[host.modelSelectedIndex] ?? '';
+			const outcome = await postBound(host, {
+				kind: 'submitInput',
+				text,
+				...(modelProfileId ? { modelProfileId } : {}),
+			});
 			if (!outcome.accepted) {
 				host.showPostFailure(outcome.reason);
 				return;

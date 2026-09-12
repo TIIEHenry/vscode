@@ -306,6 +306,7 @@ export class NavigatorProjectsView extends ViewPane {
 				transportFailed: snapshot.transport === 'failed',
 				sessionListCapability: getNavigatorCapability(this.uaConnection, 'sessionList'),
 				workDir: snapshot.workDir,
+				workspaceRoots: this.contextService.getWorkspace().folders.map(folder => folder.uri.fsPath),
 				sessions: this.rosterService.getSessions(),
 				localFolders: this.localFolderEntries,
 			}), recentsFailureCopy);

@@ -54,6 +54,8 @@ export interface UniverseAgentSessionSummary {
 	readonly lastAccessedAt?: number;
 	readonly turnCount?: number;
 	readonly model?: string;
+	/** SessionSummary.work_dir = 9. Engine stamp only; omit when blank. */
+	readonly workDir?: string;
 }
 
 export interface UniverseAgentListSessionsRequest {
@@ -95,6 +97,8 @@ export interface UniverseAgentSessionInfoResult {
 	readonly lastAccessedAt: number;
 	readonly provider: string;
 	readonly model: string;
+	/** SessionInfoResponse.work_dir = 7. Engine stamp only; omit when blank. */
+	readonly workDir?: string;
 }
 
 /** SessionService.Resume — restore a persisted session (≠ Agent.ResumeQueue / Chat resume). */
@@ -1555,6 +1559,99 @@ export interface UniverseAgentTeamInfo {
 	readonly status: string;
 }
 
+/** TeamService.ListTeams — in-memory roster; empty list is valid. */
+export interface UniverseAgentTeamListEntry {
+	readonly teamId: number;
+	readonly status: string;
+	readonly managerAgentId: string;
+}
+
+export interface UniverseAgentListTeamsResult {
+	readonly teams: readonly UniverseAgentTeamListEntry[];
+}
+
+/** AgentService.ListProviderStatus — status only; never includes api_key. */
+export type UniverseAgentProviderCredentialSource = 'FILE' | 'PROVIDER_ENV' | 'BUILTIN_ENV' | 'NONE' | string;
+
+export interface UniverseAgentProviderStatus {
+	readonly providerId: string;
+	readonly brand: string;
+	readonly protocol: string;
+	readonly configured: boolean;
+	readonly credentialSource: UniverseAgentProviderCredentialSource;
+	readonly hasBaseUrl: boolean;
+	readonly enabled: boolean;
+}
+
+export interface UniverseAgentListProviderStatusResult {
+	readonly providers: readonly UniverseAgentProviderStatus[];
+}
+
+/** api_key is node/electron-main outbound only; blank = keep existing. */
+export interface UniverseAgentUpsertProviderCredentialsRequest {
+	readonly providerId: string;
+	readonly apiKey?: string;
+	readonly baseUrl?: string;
+	readonly protocol?: string;
+}
+
+export interface UniverseAgentClearProviderCredentialsRequest {
+	readonly providerId: string;
+}
+
+/** ProjectRuleService — requests must not carry work_dir / agent_home. */
+export type UniverseAgentProjectRuleScope = 0 | 1 | 2;
+export type UniverseAgentProjectRulePriority = 0 | 1 | 2 | 3;
+
+export interface UniverseAgentProjectRule {
+	readonly id: string;
+	readonly title: string;
+	readonly enabled: boolean;
+	readonly priority: UniverseAgentProjectRulePriority;
+	readonly body: string;
+	readonly scope: UniverseAgentProjectRuleScope;
+	readonly globs: readonly string[];
+	readonly appliesTo: readonly string[];
+}
+
+export interface UniverseAgentListProjectRulesRequest {
+	readonly scope: UniverseAgentProjectRuleScope;
+	readonly sessionId: string;
+}
+
+export interface UniverseAgentListProjectRulesResult {
+	readonly rules: readonly UniverseAgentProjectRule[];
+}
+
+export interface UniverseAgentUpsertProjectRuleRequest {
+	readonly scope: UniverseAgentProjectRuleScope;
+	readonly sessionId: string;
+	readonly rule: UniverseAgentProjectRule;
+}
+
+export interface UniverseAgentDeleteProjectRuleRequest {
+	readonly scope: UniverseAgentProjectRuleScope;
+	readonly sessionId: string;
+	readonly id: string;
+}
+
+export interface UniverseAgentDeleteProjectRuleResult {
+	readonly deleted: boolean;
+}
+
+/** SystemService.ListHookPoints */
+export interface UniverseAgentHookPoint {
+	readonly id: string;
+	readonly family: string;
+	readonly methodName: string;
+	readonly installedCount: number;
+}
+
+export interface UniverseAgentListHookPointsResult {
+	readonly points: readonly UniverseAgentHookPoint[];
+	readonly catalogRevision: string;
+}
+
 /** AgentService.Tree node (host-only RPC; proto enum names for type/status). */
 export interface UniverseAgentAgentTreeNode {
 	readonly agentId: string;
@@ -1647,6 +1744,10 @@ export interface UniverseAgentAgentProfileSummary {
 	readonly disabledTools?: readonly string[];
 	readonly enabledTools?: readonly string[];
 	readonly whitelistMode?: boolean;
+	readonly model?: string;
+	readonly modelType?: string;
+	/** proto max_turns; omit when 0/unset (engine default, not unlimited). */
+	readonly maxTurns?: number;
 }
 
 /** Full agent profile from SaveAgentProfile / ResetAgentProfile (customizations-engine §3.2). */
@@ -1665,6 +1766,10 @@ export interface UniverseAgentAgentProfileDetail {
 	readonly enabled?: boolean;
 	readonly whitelistMode?: boolean;
 	readonly builtinDefault?: boolean;
+	readonly model?: string;
+	readonly modelType?: string;
+	/** proto max_turns; omit when 0/unset (engine default, not unlimited). */
+	readonly maxTurns?: number;
 }
 
 export interface UniverseAgentSaveAgentProfileRequest {

@@ -9,7 +9,7 @@ export const UNKNOWN_CAPABILITY: UniverseAgentCapabilityEntry = { support: 'UNKN
 export const UNSUPPORTED_CAPABILITY: UniverseAgentCapabilityEntry = { support: 'UNSUPPORTED' };
 export const SUPPORTED_CAPABILITY: UniverseAgentCapabilityEntry = { support: 'SUPPORTED' };
 
-/** G-ENG-1: Provider config keys are not a closed contract yet. */
+/** G-ENG-1: used when ListProviderStatus is not advertised. */
 export const PROVIDER_CONFIG_UNSUPPORTED_REASON = 'Provider 配置键合同未定';
 
 export function createEmptyCapabilitySnapshot(): UniverseAgentCapabilitySnapshot {
@@ -19,7 +19,7 @@ export function createEmptyCapabilitySnapshot(): UniverseAgentCapabilitySnapshot
 		mcpRuntime: { ...UNKNOWN_CAPABILITY },
 		plugins: { ...UNKNOWN_CAPABILITY },
 		models: { ...UNKNOWN_CAPABILITY },
-		providerConfig: { support: 'UNSUPPORTED', reason: PROVIDER_CONFIG_UNSUPPORTED_REASON },
+		providerConfig: { ...UNKNOWN_CAPABILITY },
 		globalRules: { ...UNKNOWN_CAPABILITY },
 		agentProfiles: { ...UNKNOWN_CAPABILITY },
 		projectRules: { ...UNKNOWN_CAPABILITY },

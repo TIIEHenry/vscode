@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize } from '../../../../nls.js';
-import type { UniverseAgentCapabilitySupport } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentCapabilitySupport, UniverseAgentTeamListEntry } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import type { LiveAgentTreeNodeView } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { getNavigatorAgentTreePendingCopy } from './navigatorAgentTreeEmptyState.js';
 
@@ -82,4 +82,20 @@ export function getTeamTreeEmptyCopy(
 		return localize('navigatorTeam.noTeam', "No team in the current session");
 	}
 	return undefined;
+}
+
+/**
+ * G-NAV-2: prefer the live snapshot team id; otherwise pick from
+ * TeamService.ListTeams (v1 in-memory). Empty list omits the title.
+ */
+export function resolveTeamIdForInfo(
+	liveTeamId: number | undefined,
+	teams: readonly UniverseAgentTeamListEntry[],
+	managerAgentId: string,
+): number | undefined {
+	if (liveTeamId !== undefined) {
+		return liveTeamId;
+	}
+	const match = teams.find(team => team.managerAgentId === managerAgentId);
+	return match?.teamId ?? teams[0]?.teamId;
 }

@@ -18,6 +18,7 @@ import {
 	encodeGetHistoryRequest,
 	encodeResumeSessionRequest,
 	encodeSessionStreamHandshake,
+	fetchToolDetailRequestFromHistoryToolCall,
 	resolveCreateSessionClientId,
 } from '../../node/grpc/grpcSessionAttachWire.js';
 import {
@@ -180,6 +181,23 @@ suite('grpc first-send / attach protobuf wire', () => {
 		const inputFields = readProtoFields(sessionInput);
 		assert.strictEqual(Buffer.from(inputFields[0].wireType === 2 ? inputFields[0].bytes : []).toString('utf8'), 'msg-1');
 		assert.strictEqual(Buffer.from(inputFields[1].wireType === 2 ? inputFields[1].bytes : []).toString('utf8'), 'ping from debug agent');
+		assert.ok(!inputFields.some(field => field.field === 5));
+	});
+
+	test('encodeChatRequest writes SessionInput model_profile_id field 5', () => {
+		const encoded = encodeChatRequest('sess-1', {
+			agentId: 'root',
+			messageId: 'msg-2',
+			text: 'ping',
+			modelProfileId: 'claude-code',
+		});
+		const fields = readProtoFields(encoded);
+		const sessionInput = fields.find(field => field.field === 30 && field.wireType === 2);
+		assert.ok(sessionInput && sessionInput.wireType === 2);
+		const inputFields = readProtoFields(sessionInput.bytes);
+		const profile = inputFields.find(field => field.field === 5 && field.wireType === 2);
+		assert.ok(profile && profile.wireType === 2);
+		assert.strictEqual(Buffer.from(profile.bytes).toString('utf8'), 'claude-code');
 	});
 
 	test('encodeChatRequest heartbeat_ack is present even when empty', () => {
@@ -196,6 +214,87 @@ suite('grpc first-send / attach protobuf wire', () => {
 		]);
 		const decoded = decodeChatResponse(encoded);
 		assert.strictEqual((decoded.payload as { session_id?: string }).session_id, 'sess-1');
+	});
+
+	test('decodeGetHistoryResponse ToolCallBlock detail_ref can feed fetchToolDetail', () => {
+		const detailRef = Buffer.concat([
+			encodeInt32Field(1, 5),
+			encodeStringField(2, 'ref-diff-1'),
+		]);
+		const fileMutation = Buffer.concat([
+			encodeStringField(2, '/workspace/a.ts'),
+			encodeStringField(3, 'edit'),
+			encodeMessageField(4, Buffer.concat([
+				encodeInt32Field(1, 3),
+				encodeInt32Field(2, 1),
+				encodeInt32Field(3, 1),
+			])),
+		]);
+		const toolCall = Buffer.concat([
+			encodeStringField(1, 'call-1'),
+			encodeStringField(2, 'edit_file'),
+			encodeStringField(3, '{"path":"/guessed/from/args.ts"}'),
+			encodeMessageField(4, detailRef),
+			encodeMessageField(5, fileMutation),
+		]);
+		const envelope = Buffer.concat([
+			encodeStringField(1, 'env-1'),
+			encodeInt64Field(3, 9),
+			encodeStringField(8, 'agent-hist'),
+			encodeStringField(10, 'turn-hist'),
+			encodeMessageField(17, Buffer.concat([
+				encodeInt32Field(1, 2),
+				encodeMessageField(3, toolCall),
+			])),
+		]);
+		const decoded = decodeGetHistoryResponse(encodeMessageField(1, envelope));
+		const payload = decoded.envelopes[0].payload as {
+			agent_id?: string;
+			turn_id?: string;
+			blocks?: Array<{ tool_call_block?: Record<string, unknown> }>;
+		};
+		assert.strictEqual(payload.agent_id, 'agent-hist');
+		assert.strictEqual(payload.turn_id, 'turn-hist');
+		const block = payload.blocks?.[0]?.tool_call_block;
+		assert.ok(block);
+		const ref = block.detail_ref as { kind?: number; ref_id?: string };
+		assert.strictEqual(ref.kind, 5);
+		assert.strictEqual(ref.ref_id, 'ref-diff-1');
+		const mutation = block.file_mutation as { path?: string; diff_stats?: { added_lines?: number } };
+		assert.strictEqual(mutation.path, '/workspace/a.ts');
+		assert.strictEqual(mutation.diff_stats?.added_lines, 3);
+		const fetch = fetchToolDetailRequestFromHistoryToolCall('sess-1', block);
+		assert.deepStrictEqual(fetch, {
+			sessionId: 'sess-1',
+			toolCallId: 'call-1',
+			detailKind: 5,
+			refId: 'ref-diff-1',
+		});
+	});
+
+	test('decodeGetHistoryResponse does not guess file path from arguments_json', () => {
+		const toolCall = Buffer.concat([
+			encodeStringField(1, 'call-2'),
+			encodeStringField(2, 'edit_file'),
+			encodeStringField(3, '{"path":"/guessed/from/args.ts"}'),
+		]);
+		const envelope = Buffer.concat([
+			encodeStringField(1, 'env-2'),
+			encodeInt64Field(3, 10),
+			encodeMessageField(17, Buffer.concat([
+				encodeInt32Field(1, 2),
+				encodeMessageField(3, toolCall),
+			])),
+		]);
+		const decoded = decodeGetHistoryResponse(encodeMessageField(1, envelope));
+		const payload = decoded.envelopes[0].payload as {
+			blocks?: Array<{ tool_call_block?: Record<string, unknown> }>;
+		};
+		const block = payload.blocks?.[0]?.tool_call_block;
+		assert.ok(block);
+		assert.strictEqual(block.file_mutation, undefined);
+		assert.strictEqual(block.detail_ref, undefined);
+		assert.strictEqual(fetchToolDetailRequestFromHistoryToolCall('sess-1', block), undefined);
 	});
 
 	test('encodePresentMessageField keeps empty oneof arm', () => {

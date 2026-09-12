@@ -99,6 +99,7 @@ export interface ListSessionsResponseWire {
 		last_accessed_at?: number;
 		turn_count?: number;
 		model?: string;
+		work_dir?: string;
 	}>;
 	total_count?: number;
 }
@@ -114,6 +115,7 @@ export interface SessionInfoResponseWire {
 	last_accessed_at?: number;
 	provider?: string;
 	model?: string;
+	work_dir?: string;
 }
 
 export interface ResumeSessionResponseWire {
@@ -629,6 +631,7 @@ export function mapSessionInfoResponse(wire: SessionInfoResponseWire): UniverseA
 		lastAccessedAt: wire.last_accessed_at ?? 0,
 		provider: wire.provider ?? '',
 		model: wire.model ?? '',
+		...(wire.work_dir ? { workDir: wire.work_dir } : {}),
 	};
 }
 
@@ -649,6 +652,7 @@ export function mapListSessionsResponse(wire: ListSessionsResponseWire): Univers
 			lastAccessedAt: session.last_accessed_at,
 			turnCount: session.turn_count,
 			model: session.model,
+			...(session.work_dir ? { workDir: session.work_dir } : {}),
 		})),
 		totalCount: wire.total_count,
 	};

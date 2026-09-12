@@ -333,6 +333,11 @@ import type {
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
+	UniverseAgentListProviderStatusResult,
+	UniverseAgentListProjectRulesRequest,
+	UniverseAgentListProjectRulesResult,
+	UniverseAgentListHookPointsResult,
+	UniverseAgentListTeamsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
 	UniverseAgentSwitchModelRequest,
@@ -2117,6 +2122,32 @@ export interface IUniverseAgentConnection {
 
 	/** ConfigService.ListModels — always `include_disabled=true` (Engine Model registry). */
 	listModels(): Promise<UniverseAgentListModelsResult>;
+
+	/**
+	 * AgentService.ListProviderStatus. Optional so Web / tests can omit it
+	 * until the Provider group consumes it. Status only; never includes
+	 * api_key. No credential form / Test button on this hook.
+	 */
+	listProviderStatus?(): Promise<UniverseAgentListProviderStatusResult>;
+
+	/**
+	 * ProjectRuleService.List. Optional so Web / tests can omit it.
+	 * Request must not carry work_dir / agent_home; empty `sessionId` is
+	 * sent as-is. Scope is proto `ProjectRuleScopeProto`.
+	 */
+	listProjectRules?(request: UniverseAgentListProjectRulesRequest): Promise<UniverseAgentListProjectRulesResult>;
+
+	/**
+	 * SystemService.ListHookPoints. Optional so Web / tests can omit it.
+	 * Catalog from HookRegistry `fire*`; not `points.md`.
+	 */
+	listHookPoints?(): Promise<UniverseAgentListHookPointsResult>;
+
+	/**
+	 * TeamService.ListTeams. Optional so Web / tests can omit it.
+	 * Engine v1 is in-process memory; empty list is legal.
+	 */
+	listTeams?(sessionId: string): Promise<UniverseAgentListTeamsResult>;
 
 	/**
 	 * ConfigService.Get unary (generic config read). Optional so Web / tests

@@ -3,8 +3,8 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-09-10
-summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop 关仓：D273–D274 已合入；merge compile-client 0。"
+updated: 2026-09-12
+summary: "D25/D26 已闭。A–F node+connection 已挂。Provider/Rules/Hooks 只读列表已接。Projects/ListTeams/Review 历史已接。Composer 发送带 model_profile_id。Chat 仍要钉死工位 seed-model-catalog + 重启。不升 PRD-008。GitHub Actions 永久关闭。loop 关仓：D273–D274 已合入。"
 ---
 
 # Development Progress
@@ -39,7 +39,7 @@ summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop 关�
 | **settings chrome** | Connection/Engine 两页改用 `InputBox`/`Checkbox`/`WorkbenchList` 左栏与状态色；窄宽两栏；Test Engine 下沉页脚；「回 Client」链入 Preferences tab 条；会话栏图标改 ghost toolbar。无新 RPC / 无新节 |
 | **settings chrome follow-up** | Back-to-Client 先取出 Preferences 服务再关 pane（`await` 后 accessor 已失效）；Direct Address Connect 状态写回本区并先标 Connecting…。已随本轮合入 `loop/merge` |
 
-并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
+并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。**2026-09-12**：仓外 PIN 已换。grpcurl 复验 **List/Create PASS**（含旧 session-100/101）；**[D25](deferred-gaps.md)/[D26](deferred-gaps.md) 已闭**。Chat FAIL 是空 model catalog（`MODEL_PROFILE_*`），不是 store：引擎 Chat 读 ConfigStore `provider:state`，不是进程 env。本仓 Composer 已带 `SessionInput.model_profile_id`；钉死工位用 `seed-model-catalog.sh`（`start-engine.sh` 会跑）。未升 PRD-008。引擎 A–F 已合；本仓 **node + `IUniverseAgentConnection` 已挂**。Provider/Rules/Hooks **只读列表**已接（无凭据/规则写表单）。Projects 按会话 `work_dir` 分组、Navigator `ListTeams` 标题、Review 历史 chip **已接**。
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
 ### 进行中（2026-09-10 · loop 重启 · 四槽并行）
 | 槽 | 切片 | 状态 |
@@ -131,8 +131,8 @@ summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop 关�
 | [D39](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `requestDetail` bind 已 catch |
 | [D40](deferred-gaps.md) | A 槽 `request-detail-fetch-catch` | **closed** `fetchToolDetail` throw 已 catch 回 `{ok:false}`；host `{ok:false}` 原样返回 |
 | [D24](deferred-gaps.md) | A 槽 `live-rpc-bytes` | **仍开**：`probeRpc` 已 empty proto；`listTools` 仍 JSON；其余活 JSON 缺本仓 proto 字段号未转 |
-| [D25](deferred-gaps.md) | A 槽 `ghost-bind-failed-ui` | **host leftover 已收；行仍开**：List-fail / ghost bind-fail 显示 bind-failed，不造 `sessionNew`；引擎 List 真空未修 |
-| [D26](deferred-gaps.md) | A 槽 host / 引擎仓 | host Tree+recover 已收；引擎空壳 Create 回 6 仍开；不要再清 store |
+| [D25](deferred-gaps.md) | A 槽 `ghost-bind-failed-ui` | **closed**：host leftover 已收；换钉后 List PASS（含旧卡住目录） |
+| [D26](deferred-gaps.md) | A 槽 host / 引擎仓 | **closed**：Create 新 id + session-100/101 PASS；日志无 schema 卡死。Chat 空 catalog 不并入本行。不要再清 store。未升 PRD-008 |
 | [D37](deferred-gaps.md) | C 槽 `inbox-getqueue-honesty` | **closed** Retry 仍按 `upload` 转发；无 GetQueue 已诚实化（Queue not listed + fixture 不冒充）；活引擎失败行仍不可见记 D24 |
 | [D41](deferred-gaps.md) | C 槽 `inbox-fail-class` | **closed** Inbox `FAILED` 行 class 为 `queue-failed`，`UPLOAD_FAILED` 仍 `upload-failed`；Retry 接线未改 |
 | [D28](deferred-gaps.md) | C 槽 `identity-strip-occlusion` | **closed** Connection 模态按身份条底边布局预留；几何测锁不重叠；(2)(3) 仍闭；未改 session bar |
@@ -193,7 +193,7 @@ summary: "GitHub Actions 永久关闭（见 workflows/DISABLED.md）。loop 关�
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
-| **引擎 store 迁移卡死** | [D26](deferred-gaps.md) 病因已改口（2026-09-09）：`user_version=0` + 表已建 ⇒ 迁移抛错 ⇒ 库永久打不开 ⇒ `LookupFailed` fail-closed deny ⇒ `ALREADY_EXISTS`（**设计内拒绝**）。根因与交接见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md)；D25 同源。**禁改引擎仓代码**；原闭合条件「Create 先写 meta」已撤回；不要再清 store |
+| **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。本仓 **node + connection list 已挂**。设置页 Provider/Rules/Hooks **只读列表**已接（零写控件）。Projects / `ListTeams` / Review 历史 **已接**。Composer 发送带 `SessionInput.model_profile_id`。Chat 仍要钉死工位 `seed-model-catalog.sh` + 重启（`provider:state`，不是裸 env）。**不升 PRD-008**。不要再清 store |
 | **loop 切片** | D273–D274 已 compile-client 0。在途 D275 catalog-detail / D277 H4b pairing。排队 D276 Read leftover、Team UNKNOWN。勿派 D8/D147 / 勿开 F3·A2 / 勿发明 proto |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
