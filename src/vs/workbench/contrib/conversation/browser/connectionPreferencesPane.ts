@@ -880,7 +880,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			return;
 		}
 		const hubSignedIn = this.hubService.getAuthStatus().kind !== 'signedOut';
-		const enginePairSeat = this.connectionService.isEngineConnected();
+		// D362 leftover-looks-live: pairing-hold-first. KEEP is not only `isEngineConnected()`.
+		const enginePairSeat = !(isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected());
 		this.hubDevicesSection.style.display = hubSignedIn || enginePairSeat ? '' : 'none';
 	}
 
@@ -1797,7 +1798,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.updateDeviceActions();
 		if (shouldDrawDesktopConnectionControls(this.desktopConnectionControlContext())) {
 			const hubSignedIn = this.hubService.getAuthStatus().kind !== 'signedOut';
-			const enginePairSeat = this.connectionService.isEngineConnected();
+			// D362 leftover-looks-live: pairing-hold-first. KEEP leftover rows still use pairingHoldDevices.
+			const enginePairSeat = !(isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected());
 			const pairingHoldDevices = this.keepLeftoverCatalogForPairingHold(!!this.enginePairedDevices?.length);
 			this.hubDevicesSection.style.display = hubSignedIn || enginePairSeat || pairingHoldDevices ? '' : 'none';
 		}

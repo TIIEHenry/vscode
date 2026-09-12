@@ -3945,6 +3945,124 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('leftover-looks-live signedOut hides hub devices pair-seat', async () => {
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: true,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		const devices = container.querySelector('.connection-hub-devices') as HTMLElement;
+		assert.strictEqual(devices.style.display, 'none');
+		container.remove();
+	});
+
+	test('true connect no pairing signedOut still shows hub devices', async () => {
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		const devices = container.querySelector('.connection-hub-devices') as HTMLElement;
+		assert.notStrictEqual(devices.style.display, 'none');
+		container.remove();
+	});
+
+	test('true disconnect signedOut hides hub devices', async () => {
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => false,
+			getConnectionPhase: () => ({ kind: 'disconnected' }),
+			getConnectionSnapshot: () => ({
+				transport: 'idle',
+				pairingPending: false,
+				channelAlive: false,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		const devices = container.querySelector('.connection-hub-devices') as HTMLElement;
+		assert.strictEqual(devices.style.display, 'none');
+		container.remove();
+	});
+
+	test('leftover-looks-live hubSignedIn still shows hub devices', async () => {
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: true,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		const devices = container.querySelector('.connection-hub-devices') as HTMLElement;
+		assert.notStrictEqual(devices.style.display, 'none');
+		container.remove();
+	});
+
 	test('leftover-looks-live pairing-hold Rotate / Pair / Revoke stay 0 unary', async () => {
 		let pairingPending = false;
 		const rotateCalls: UniverseAgentRotateTokenRequest[] = [];
