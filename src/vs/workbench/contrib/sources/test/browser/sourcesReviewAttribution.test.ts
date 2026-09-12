@@ -353,6 +353,7 @@ suite('Sources - review attribution', () => {
 			details: new Map(),
 			onDidApplyFrame: Event.None,
 			post: async () => ({ accepted: false, reason: 'no_such_session' }),
+			requestResync: () => undefined,
 			dispose: () => undefined,
 		};
 		const roster = {
