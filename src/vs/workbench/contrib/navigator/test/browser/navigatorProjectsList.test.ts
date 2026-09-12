@@ -734,6 +734,62 @@ suite('NavigatorProjectsView', () => {
 		assert.strictEqual(view.shouldShowWelcome(), true, 'leftover-looks-live first-pull with no leftover stays welcome');
 	});
 
+	test('leftover-looks-live first-pull after onDidChangeEngineConnection(true) stays empty and welcome', async () => {
+		const rosterService = new ConversationStubService();
+		const uaConnection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
+				pairingPending: true,
+			}),
+		});
+		const view = await mountView({
+			rosterService,
+			uaConnection,
+		});
+
+		assert.strictEqual(isConversationPairingHold(uaConnection), true);
+		assert.strictEqual(rosterService.isEngineConnected(), false);
+		assert.strictEqual(view.shouldShowWelcome(), true, 'pairing-hold first-pull before leftover-looks-live event stays welcome');
+
+		rosterService.setEngineConnected(true);
+		await flushMicrotasks();
+		await new Promise<void>(resolve => setImmediate(() => resolve()));
+
+		assert.strictEqual(rosterService.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(uaConnection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(uaConnection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(uaConnection), true);
+		assert.strictEqual(
+			(view as unknown as { wasEverConnected: boolean }).wasEverConnected,
+			false,
+			'leftover-looks-live onDidChangeEngineConnection(true) must not flip wasEverConnected',
+		);
+		assert.strictEqual(collectSessionIds(getViewTreeNodes(view)).length, 0, 'leftover-looks-live event first-pull must not paint live session chrome');
+		assert.strictEqual(getViewEntries(view).length, 0, 'leftover-looks-live event first-pull must not install leftover folder rows');
+		assert.strictEqual(
+			findTreeNode(getViewTreeNodes(view), node => node.kind === 'workdir'),
+			undefined,
+			'leftover-looks-live event first-pull must not paint live workDir chrome',
+		);
+		assert.strictEqual(
+			findTreeNode(getViewTreeNodes(view), node => node.id === 'engine:root'),
+			undefined,
+			'leftover-looks-live event first-pull must not paint ever-connected engine root chrome',
+		);
+		assert.strictEqual(
+			findTreeNode(getViewTreeNodes(view), node => node.id === 'engine:session-list-loading'),
+			undefined,
+			'leftover-looks-live event first-pull must not paint live Reading chrome',
+		);
+		assert.strictEqual(
+			findTreeNode(getViewTreeNodes(view), node => node.id === 'engine:stale-snapshot'),
+			undefined,
+			'leftover-looks-live event first-pull must stay honest empty without leftover-as-live stale chrome',
+		);
+		assert.strictEqual(view.shouldShowWelcome(), true, 'leftover-looks-live event first-pull with no leftover stays welcome');
+	});
+
 	test('leftover-looks-live pairing-hold keeps leftover rows without live chrome rebuild', async () => {
 		const folderUri = URI.file('/projects/looks-live-keep');
 		const contextService = new TestContextService(testWorkspace(folderUri));

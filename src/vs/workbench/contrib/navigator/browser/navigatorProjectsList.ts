@@ -156,7 +156,13 @@ export class NavigatorProjectsView extends ViewPane {
 		this._register(this.rosterService.onDidChangeSession(() => this.refresh()));
 		this._register(this.rosterService.onDidChangeActiveSession(() => this.refresh()));
 		this._register(this.rosterService.onDidChangeEngineConnection(connected => {
-			if (connected) {
+			// D363 leftover-looks-live: pairing-hold-first for wasEverConnected.
+			// onDidChangeEngineConnection(true) is leftover-looks-live when
+			// pairingPending / isConversationPairingHold. First-pull must not
+			// flip wasEverConnected (ever-connected / leftover-as-live chrome).
+			// KEEP leftover with rows still early-returns in rebuildTree (D360).
+			// True connect no pairing still sets it. True disconnect does not.
+			if (connected && !isConversationPairingHold(this.uaConnection)) {
 				this.wasEverConnected = true;
 			}
 			this.refresh();
