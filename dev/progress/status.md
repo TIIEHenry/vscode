@@ -39,14 +39,14 @@ summary: "关仓 MERGE_SHA 3c07195f6bf 已 push origin/agent-ide；compile-clien
 | **settings chrome** | Connection/Engine 两页改用 `InputBox`/`Checkbox`/`WorkbenchList` 左栏与状态色；窄宽两栏；Test Engine 下沉页脚；「回 Client」链入 Preferences tab 条；会话栏图标改 ghost toolbar。无新 RPC / 无新节 |
 | **settings chrome follow-up** | Back-to-Client 先取出 Preferences 服务再关 pane（`await` 后 accessor 已失效）；Direct Address Connect 状态写回本区并先标 Connecting…。已随本轮合入 `loop/merge` |
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。[m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 关仓（2026-09-12 · P0–P7 · `MERGE_SHA`=`3c07195f6bf`）
+### 进行中（2026-09-12 · 叠 tick 当一轮）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
-| **A** | D405 S1–S3 | `idle`；HEAD == MERGE_SHA；手测仍开 |
-| **B** | D406 leftover KEEP | `idle`；HEAD == MERGE_SHA |
-| **C** | — | `idle`；脏 `dev/loop` 未 ff；勿 add |
-| **D** | D407 probeEngine | `idle`；HEAD == MERGE_SHA |
-| **E** | leftover `fix/ci-gate-reds` | `blocked`；`41f0d8c912f` 不合入；勿 `checkout -B` |
+| **A** | D408 连接级 `reconnect` 调度 | `occupied` @ `082c43506fa` |
+| **B** | D409 navigator lease acquire-throw | `occupied` @ `082c43506fa` |
+| **C** | — | `idle`；脏 `dev/loop` 勿 add |
+| **D** | — | `idle` |
+| **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
@@ -194,7 +194,7 @@ summary: "关仓 MERGE_SHA 3c07195f6bf 已 push origin/agent-ide；compile-clien
 | 项 | 指针 |
 |:---|:-----|
 | **引擎 store 迁移卡死** | [D26](deferred-gaps.md) 病因已改口（2026-09-09）：`user_version=0` + 表已建 ⇒ 迁移抛错 ⇒ 库永久打不开 ⇒ `LookupFailed` fail-closed deny ⇒ `ALREADY_EXISTS`（**设计内拒绝**）。根因与交接见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md)；D25 同源。**禁改引擎仓代码**；原闭合条件「Create 先写 meta」已撤回；不要再清 store |
-| **loop 切片** | **MERGE_SHA `3c07195f6bf`** 已 push。**D405 仍开**（§5 手测）。**D406/D407** 已闭。**D408** 连接级重连仍开。不关 D10/D16/D18/D20/D12。下号 **D409**。未升 PRD-008。 |
+| **loop 切片** | 本波 **D408/D409** 已派。D405 手测仍开（不本轮 verify-only）。不关 D10/D16。下号 **D410**。未升 PRD-008。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
