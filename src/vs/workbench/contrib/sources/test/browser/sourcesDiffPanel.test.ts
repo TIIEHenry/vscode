@@ -568,6 +568,82 @@ suite('Sources diff panel', () => {
 		host.updateReviewActions();
 	}
 
+	test('leftover-looks-live pairing-hold Stage with local SCM stays hidden and 0 git.stage', async function () {
+		const resource = toResource.call(this, '/project/src/leftover-scm-stage.ts');
+		const original = toResource.call(this, '/project/src/leftover-scm-stage.ts.git');
+		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const gitStageCommands: unknown[] = [];
+		const connection = leftoverLooksLiveApplyConnection(applyCalls, stageCalls);
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+				connection,
+				executeCommand: async (commandId: unknown) => {
+					if (commandId === 'git.stage') {
+						gitStageCommands.push(commandId);
+					}
+				},
+			});
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null;
+			assert.strictEqual(panelStage?.style.display, 'none');
+			forceClick(panelStage);
+			await (view as unknown as { runStage: () => Promise<void> }).runStage();
+			await timeout(20);
+			assert.deepStrictEqual(stageCalls, []);
+			assert.deepStrictEqual(gitStageCommands, []);
+
+			const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			store.add({ dispose: () => parent.remove() });
+			pane.create(parent);
+			const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+			await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+			await timeout(20);
+			paintReviewWriteChrome(pane);
+
+			const reviewStage = parent.querySelector('.conversation-diff-review-stage') as HTMLButtonElement | null;
+			assert.strictEqual(reviewStage?.style.display, 'none');
+			forceClick(reviewStage);
+			await (pane as unknown as { runStage: () => Promise<void> }).runStage();
+			await timeout(20);
+			assert.deepStrictEqual(stageCalls, []);
+			assert.deepStrictEqual(gitStageCommands, []);
+			assert.deepStrictEqual(applyCalls, []);
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
 	test('leftover-looks-live pairing-hold Unstage / Revert chrome stays hidden and 0 git.unstage / git.clean', async function () {
 		const resource = toResource.call(this, '/project/src/leftover-unstage.ts');
 		const original = toResource.call(this, '/project/src/leftover-unstage.ts.git');

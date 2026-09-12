@@ -347,10 +347,10 @@ suite('Sources - Changes list leftover honesty', () => {
 		} as unknown as IUniverseAgentConnection;
 	}
 
-	function createIndexScmService(resource: URI): ISCMService {
+	function createIndexScmService(resource: URI, groupId = 'index'): ISCMService {
 		const group = {
-			id: 'index',
-			label: 'Staged Changes',
+			id: groupId,
+			label: groupId === 'index' ? 'Staged Changes' : 'Changes',
 			resources: [] as ISCMResource[],
 		};
 		const scmResource = {
@@ -1094,6 +1094,56 @@ suite('Sources - Changes list leftover honesty', () => {
 			signOff: false,
 			amend: false,
 		}]);
+	});
+
+	test('leftover-looks-live pairing-hold Stage with local SCM stays hidden and 0 git.stage', async function () {
+		const gitStageCommands: string[] = [];
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: true }),
+			onDidChangeConnection: Event.None,
+			writeGitStagePaths: async (request: UniverseAgentWriteGitStagePathsRequest) => {
+				stageCalls.push(request);
+				return acceptedWrite;
+			},
+		} as unknown as IUniverseAgentConnection;
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const scmStub = toResource.call(this, '/project/src/leftover-stage.ts');
+			const host = mountHost();
+			const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub, 'workingTree'), async (commandId: string) => {
+				if (commandId === 'git.stage') {
+					gitStageCommands.push(commandId);
+				}
+			}).createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			assert.ok(list.element(0).scmResource);
+			list.setFocus([0]);
+			list.setSelection([0]);
+			await timeout(20);
+
+			const stage = stageSelectedButton(host);
+			assert.ok(stage, 'Stage Selected is the toolbar first button');
+			assert.strictEqual(stage.classList.contains('disabled'), true);
+			const rowAction = host.querySelector('.sources-change-action') as HTMLElement | null;
+			assert.ok(!rowAction || rowAction.style.display === 'none' || rowAction.classList.contains('disabled'));
+
+			forceClick(stage);
+			forceClick(rowAction);
+			await (widget as unknown as { runOnSelected: (action: 'stage') => Promise<void> }).runOnSelected('stage');
+			await timeout(20);
+			assert.strictEqual(gitStageCommands.length, 0);
+			assert.deepStrictEqual(stageCalls, []);
+		} finally {
+			stageCommand.dispose();
+		}
 	});
 
 	test('leftover-looks-live pairing-hold Unstage stays disabled and 0 git.unstage', async function () {

@@ -194,7 +194,7 @@ suite('Sources - Changes git write', () => {
 		});
 		assert.strictEqual(hookWithPayload.showAccept, true);
 
-		const localScmStage = resolveSourcesDiffWriteActions({
+		const localScmStageInput = {
 			groupId: 'workingTree',
 			hasScmResource: true,
 			canWriteStage: false,
@@ -203,9 +203,16 @@ suite('Sources - Changes git write', () => {
 			hasGitStageCommand: true,
 			hasGitUnstageCommand: false,
 			hasGitCleanCommand: false,
-		});
+		};
+		const localScmStage = resolveSourcesDiffWriteActions(localScmStageInput);
 		assert.strictEqual(localScmStage.showStage, true);
 		assert.strictEqual(localScmStage.showAccept, false);
+
+		const pairingHoldLocalScmStage = resolveSourcesDiffWriteActions({
+			...localScmStageInput,
+			pairingHold: true,
+		});
+		assert.strictEqual(pairingHoldLocalScmStage.showStage, false);
 
 		const noScmNoPayload = resolveSourcesDiffWriteActions({
 			groupId: 'workingTree',

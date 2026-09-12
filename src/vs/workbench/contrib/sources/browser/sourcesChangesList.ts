@@ -145,12 +145,16 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 		});
 
 		if (rowAction === 'stage') {
+			const pairingHold = this.delegate.isSourcesGitWritePairingHold();
 			const label = localize('sourcesChangesList.stage', "Stage");
-			templateData.actionButton.element.style.display = '';
+			templateData.actionButton.element.style.display = pairingHold ? 'none' : '';
 			templateData.actionButton.icon = Codicon.add;
-			templateData.actionButton.enabled = true;
+			templateData.actionButton.enabled = !pairingHold;
 			templateData.actionButton.setAriaLabel(label);
 			templateData.actionButton.setTitle(label);
+			if (pairingHold) {
+				return;
+			}
 			templateData.elementDisposables.add(templateData.actionButton.onDidClick(e => {
 				dom.EventHelper.stop(e, true);
 				this.delegate.onRowAction(element, 'stage');
@@ -681,7 +685,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		if (action === 'unstage' && !isSourcesChangeUnstageable(entry.groupId)) {
 			return;
 		}
-		if (action === 'unstage' && this.isSourcesGitWritePairingHold()) {
+		if ((action === 'stage' || action === 'unstage') && this.isSourcesGitWritePairingHold()) {
 			return;
 		}
 
