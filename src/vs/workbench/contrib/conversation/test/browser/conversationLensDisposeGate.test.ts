@@ -36,6 +36,7 @@ import {
 	type ConversationComposerPostFailureReason,
 } from '../../browser/conversationLensDockStrings.js';
 import { bindSessionView, cancelToolCall, copyTurn, deleteTurn, resolveConfirmation, resolveQuestion, retryError, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
+import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import type { ConversationWriteMessage, PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 
 suite('conversation lens dispose gate', () => {
@@ -1477,9 +1478,14 @@ suite('conversation lens dispose gate', () => {
 				},
 			},
 			getBoundSessionId: () => 'sess-leftover',
+			composerPolicy: 'compose' as const,
+			dockTextarea: { value: '' },
 		};
+		const typedHost = host as unknown as IConversationLensComposerChromeHost;
+		assert.strictEqual(typedHost.stubService.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(isConversationPairingHold(typedHost.uaConnection), true);
 		return {
-			host: host as unknown as IConversationLensComposerChromeHost,
+			host: typedHost,
 			permissionCalls,
 			modelCalls,
 			permissionSelect,
@@ -1554,6 +1560,132 @@ suite('conversation lens dispose gate', () => {
 			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
 		} finally {
 			fixture.dispose();
+		}
+	});
+
+	test('in-flight leftover-looks-live permission and model apply restore leftover index', async () => {
+		const store = new DisposableStore();
+		const permissionCalls: { sessionId: string; mode: string }[] = [];
+		const modelCalls: { sessionId: string; modelId: string }[] = [];
+		const dockRoot = document.createElement('div');
+		document.body.appendChild(dockRoot);
+		store.add({ dispose: () => dockRoot.remove() });
+		const permissionSelect = document.createElement('select');
+		permissionSelect.add(new Option('Ask', '0'));
+		permissionSelect.add(new Option('Agent', '1'));
+		permissionSelect.add(new Option('Permit', '2'));
+		const permissionContainer = document.createElement('div');
+		permissionContainer.className = 'conversation-lens-dock-permission';
+		permissionContainer.appendChild(permissionSelect);
+		dockRoot.appendChild(permissionContainer);
+		const modelSelect = document.createElement('select');
+		modelSelect.add(new Option('No model', ''));
+		modelSelect.add(new Option('gpt-test', 'gpt-test'));
+		const modelContainer = document.createElement('div');
+		modelContainer.className = 'conversation-lens-dock-model';
+		modelContainer.appendChild(modelSelect);
+		dockRoot.appendChild(modelContainer);
+		const sessionConfigBySessionId = new Map<string, { agentIndex: number; permissionIndex: number }>([
+			['sess-leftover', { agentIndex: 0, permissionIndex: 0 }],
+		]);
+		let pairingPending = false;
+		let releasePermission: ((value: { ok: true }) => void) | undefined;
+		let permissionStarted: (() => void) | undefined;
+		const permissionEntered = new Promise<void>(resolve => { permissionStarted = resolve; });
+		const permissionHold = new Promise<{ ok: true }>(resolve => { releasePermission = resolve; });
+		let releaseModel: ((value: { resolvedModelId: string; provider: string; level: number; cost: string; speed: string }) => void) | undefined;
+		let modelStarted: (() => void) | undefined;
+		const modelEntered = new Promise<void>(resolve => { modelStarted = resolve; });
+		const modelHold = new Promise<{ resolvedModelId: string; provider: string; level: number; cost: string; speed: string }>(resolve => {
+			releaseModel = resolve;
+		});
+		const host = {
+			catalogToolNames: ['bash'],
+			catalogModelIds: ['', 'gpt-test'],
+			modelSelectedIndex: 0,
+			sessionConfigBySessionId,
+			lastReadingWidth: 300,
+			tuneContextView: undefined as { close(): void } | undefined,
+			moreContextView: undefined as { close(): void } | undefined,
+			dockRoot,
+			sendButton: { enabled: true },
+			composerPolicy: 'compose' as const,
+			dockTextarea: { value: '' },
+			permissionSelectBox: {
+				setEnabled(enabled: boolean) { permissionSelect.disabled = !enabled; },
+				setAriaLabel() { },
+				select(index: number) { permissionSelect.selectedIndex = index; },
+			},
+			agentSelectBox: {
+				setEnabled() { },
+				setAriaLabel() { },
+				select() { },
+			},
+			modelSelectBox: {
+				setEnabled(enabled: boolean) { modelSelect.disabled = !enabled; },
+				setAriaLabel() { },
+				select(index: number) {
+					modelSelect.selectedIndex = index;
+					host.modelSelectedIndex = index;
+				},
+			},
+			agentContainer: document.createElement('div'),
+			moreButton: { element: document.createElement('button') },
+			tuneButton: { element: document.createElement('button') },
+			stubService: {
+				isEngineConnected: () => true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending }),
+				setPermissionMode: async (request: { sessionId: string; mode: string }) => {
+					permissionCalls.push(request);
+					permissionStarted?.();
+					return permissionHold;
+				},
+				switchModel: async (request: { sessionId: string; modelId: string }) => {
+					modelCalls.push({ sessionId: request.sessionId, modelId: request.modelId });
+					modelStarted?.();
+					return modelHold;
+				},
+			},
+			getBoundSessionId: () => 'sess-leftover',
+		};
+		const typedHost = host as unknown as IConversationLensComposerChromeHost;
+		try {
+			assert.strictEqual(typedHost.stubService.isEngineConnected(), true);
+			assert.strictEqual(isConversationPairingHold(typedHost.uaConnection), false);
+			assert.strictEqual(isSessionPermissionModeAvailable(typedHost), true);
+			assert.strictEqual(isSessionSwitchModelAvailable(typedHost), true);
+
+			const permissionApply = applySessionPermissionIndex(typedHost, 'sess-leftover', 2);
+			const modelApply = applySessionModelIndex(typedHost, 'sess-leftover', 1);
+			await permissionEntered;
+			await modelEntered;
+			assert.strictEqual(permissionCalls.length, 1);
+			assert.strictEqual(modelCalls.length, 1);
+			assert.strictEqual(permissionSelect.selectedIndex, 2);
+			assert.strictEqual(modelSelect.selectedIndex, 1);
+			assert.strictEqual(typedHost.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 2);
+			assert.strictEqual(typedHost.modelSelectedIndex, 1);
+
+			pairingPending = true;
+			assert.strictEqual(typedHost.stubService.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+			assert.strictEqual(isConversationPairingHold(typedHost.uaConnection), true);
+
+			releasePermission!({ ok: true });
+			releaseModel!({ resolvedModelId: 'gpt-test', provider: '', level: 0, cost: '', speed: '' });
+			await permissionApply;
+			await modelApply;
+
+			assert.strictEqual(typedHost.stubService.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+			assert.strictEqual(isConversationPairingHold(typedHost.uaConnection), true);
+			assert.strictEqual(permissionSelect.selectedIndex, 0);
+			assert.strictEqual(modelSelect.selectedIndex, 0);
+			assert.strictEqual(typedHost.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.strictEqual(typedHost.modelSelectedIndex, 0);
+		} finally {
+			store.dispose();
 		}
 	});
 

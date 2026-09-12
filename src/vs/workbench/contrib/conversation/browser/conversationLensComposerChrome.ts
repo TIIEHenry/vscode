@@ -637,6 +637,11 @@ export async function applySessionPermissionIndex(host: IConversationLensCompose
 		const mode = SESSION_TOOL_PERMISSION_MODES[permissionIndex] ?? SESSION_TOOL_PERMISSION_MODES[0];
 		try {
 			const result = await host.uaConnection.setPermissionMode({ sessionId, mode });
+			// D383 leftover-looks-live: pairing-hold first. KEEP leftover index; do not keep live apply.
+			if (isConversationPairingHold(host.uaConnection) || !host.stubService.isEngineConnected()) {
+				restoreSessionPermissionIndex(host, sessionId, previous);
+				return;
+			}
 			if (result.ok) {
 				return;
 			}
@@ -706,6 +711,11 @@ export async function applySessionModelIndex(host: IConversationLensComposerChro
 				modelType: '',
 				modelId,
 			});
+			// D383 leftover-looks-live: pairing-hold first. KEEP leftover index; do not keep live model.
+			if (isConversationPairingHold(host.uaConnection) || !host.stubService.isEngineConnected()) {
+				restoreSessionModelIndex(host, previous);
+				return;
+			}
 			if (!result.resolvedModelId.trim()) {
 				restoreSessionModelIndex(host, previous);
 				showGateNotice(host, conversationLensDockModelFailed);
