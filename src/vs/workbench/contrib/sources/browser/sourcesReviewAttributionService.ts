@@ -49,7 +49,7 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 	readonly onDidChange = this._onDidChange.event;
 
 	constructor(
-		@IUniverseAgentConnection connection: IUniverseAgentConnection,
+		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@IConversationRosterService private readonly roster: IConversationRosterService,
 		@IWorkspaceContextService private readonly workspaceContext: IWorkspaceContextService,
 		@INotificationService private readonly notificationService: INotificationService,
@@ -65,6 +65,11 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 		}
 
 		this._register(subscribeFileMutations(connection, record => {
+			// leftover-looks-live: do not invent everConnected or ingest live
+			// mutations. Prior leftover records KEEP.
+			if (isConversationPairingHold(connection)) {
+				return;
+			}
 			this.everConnected = true;
 			const bucket = this.buckets.get(record.sessionId) ?? [];
 			bucket.push(record);
@@ -79,7 +84,9 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 
 		this._register(connection.onDidChangeConnection(snapshot => {
 			this.connectionSnapshot = snapshot;
-			if (snapshot.sessionToken) {
+			// leftover-looks-live first-pull must not invent everConnected from
+			// sessionToken. Pairing-hold-first; KEEP prior leftover records.
+			if (!isConversationPairingHold(connection) && snapshot.sessionToken) {
 				this.everConnected = true;
 			}
 			this._onDidChange.fire();
@@ -114,6 +121,11 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 
 	getAttributionHeaderSuffix(): string | undefined {
 		if (!this.isAttributionEnabled()) {
+			return undefined;
+		}
+		// leftover-looks-live KEEP chips stay; suffix is disconnected KEEP-chrome,
+		// not “Attribution from the connected engine.”
+		if (isConversationPairingHold(this.connection)) {
 			return undefined;
 		}
 		return localize(
