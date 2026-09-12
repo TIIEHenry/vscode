@@ -321,6 +321,8 @@ suite('EnginePreferencesPane', () => {
 		assert.ok(testStatus.textContent?.startsWith('Unreachable —'));
 		assert.notStrictEqual(testStatus.textContent, 'Connected');
 		assert.notStrictEqual(testStatus.textContent, getEngineTestStatusText());
+		assert.ok(testStatus.classList.contains('is-error'), 'an unreachable probe must read as an error');
+		assert.ok(!testStatus.classList.contains('is-success'));
 
 		container.remove();
 	});
@@ -346,6 +348,75 @@ suite('EnginePreferencesPane', () => {
 		assert.strictEqual(probed, true);
 		assert.ok(testStatus.textContent?.startsWith('Reachable —'));
 		assert.notStrictEqual(testStatus.textContent, 'Connected');
+		assert.ok(testStatus.classList.contains('is-success'), 'a reachable probe must read as success');
+		assert.ok(!testStatus.classList.contains('is-error'));
+
+		container.remove();
+	});
+
+	test('Test Engine throw paints error tone', async () => {
+		const pane = mountPane(false, {
+			probeEngine: async () => {
+				throw new Error('probe boom');
+			},
+		});
+		const container = pane.getDomNode();
+		const testButton = container.querySelector('.engine-test-row .monaco-button') as HTMLButtonElement;
+		const testStatus = container.querySelector('.engine-test-status') as HTMLElement;
+
+		testButton.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(testStatus.textContent, 'probe boom');
+		assert.ok(testStatus.classList.contains('is-error'), 'a thrown probe must read as an error');
+		assert.ok(!testStatus.classList.contains('is-success'));
+
+		container.remove();
+	});
+
+	test('Test Engine Testing… stays neutral until the probe settles', async () => {
+		let resolveProbe!: (value: { ok: true; engineIdentityId: string }) => void;
+		const probe = new Promise<{ ok: true; engineIdentityId: string }>(resolve => {
+			resolveProbe = resolve;
+		});
+		const pane = mountPane(true, {
+			probeEngine: () => probe,
+		});
+		const container = pane.getDomNode();
+		const testButton = container.querySelector('.engine-test-row .monaco-button') as HTMLButtonElement;
+		const testStatus = container.querySelector('.engine-test-status') as HTMLElement;
+
+		testButton.click();
+		await Promise.resolve();
+		assert.strictEqual(testStatus.textContent, 'Testing…');
+		assert.ok(!testStatus.classList.contains('is-success'));
+		assert.ok(!testStatus.classList.contains('is-error'));
+
+		resolveProbe({ ok: true, engineIdentityId: 'eng-1' });
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.ok(testStatus.textContent?.startsWith('Reachable —'));
+		assert.ok(testStatus.classList.contains('is-success'));
+
+		container.remove();
+	});
+
+	test('banner Test Engine shares runEngineTest success tone', async () => {
+		const pane = mountPane(false, {
+			probeEngine: async () => ({ ok: true as const, engineIdentityId: 'eng-1' }),
+		});
+		const container = pane.getDomNode();
+		const bannerTest = [...container.querySelectorAll('.engine-preferences-disconnected-actions .monaco-button')]
+			.find(el => (el.textContent ?? '').includes('Test Engine')) as HTMLButtonElement | undefined;
+		const testStatus = container.querySelector('.engine-test-status') as HTMLElement;
+		assert.ok(bannerTest);
+
+		bannerTest.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.ok(testStatus.textContent?.startsWith('Reachable —'));
+		assert.ok(testStatus.classList.contains('is-success'));
+		assert.ok(!testStatus.classList.contains('is-error'));
 
 		container.remove();
 	});

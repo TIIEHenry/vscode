@@ -30,7 +30,7 @@ import { EngineToolsSection } from './engineToolsSection.js';
 import { EngineClipboardSection } from './engineClipboardSection.js';
 import { EngineContextVariableSection } from './engineContextVariableSection.js';
 import { EngineTriggersSection } from './engineTriggersSection.js';
-import { formatConnectionProbeStatus } from './connectionPreferencesPane.js';
+import { formatConnectionProbeStatus, writeStatus } from './connectionPreferencesPane.js';
 import { getConnectionPhaseStatusBarText, isConversationPairingHold } from './conversationSessionStatus.js';
 import {
 	getUnsupportedEnvironmentCopy,
@@ -259,25 +259,32 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 	/** Same no-profile probe path as Connection Test: `probeEngine()` + H4b phase copy. */
 	private async runEngineTest(): Promise<void> {
 		if (typeof this.connectionService.probeEngine === 'function') {
-			this.testStatus.textContent = localize('ua.engineTestRunning', "Testing…");
+			writeStatus(this.testStatus, localize('ua.engineTestRunning', "Testing…"));
 			try {
 				const result = await this.connectionService.probeEngine();
-				this.testStatus.textContent = formatConnectionProbeStatus(
-					result,
-					getEngineTestStatusText(
-						this.connectionService.getConnectionPhase(),
-						this.connectionService.getConnectionSnapshot().pairingPending,
+				writeStatus(
+					this.testStatus,
+					formatConnectionProbeStatus(
+						result,
+						getEngineTestStatusText(
+							this.connectionService.getConnectionPhase(),
+							this.connectionService.getConnectionSnapshot().pairingPending,
+						),
 					),
+					result.ok ? 'success' : 'error',
 				);
 			} catch (error) {
 				const reason = error instanceof Error && error.message ? error.message : String(error);
-				this.testStatus.textContent = reason;
+				writeStatus(this.testStatus, reason, 'error');
 			}
 			return;
 		}
-		this.testStatus.textContent = getEngineTestStatusText(
-			this.connectionService.getConnectionPhase(),
-			this.connectionService.getConnectionSnapshot().pairingPending,
+		writeStatus(
+			this.testStatus,
+			getEngineTestStatusText(
+				this.connectionService.getConnectionPhase(),
+				this.connectionService.getConnectionSnapshot().pairingPending,
+			),
 		);
 	}
 

@@ -81,7 +81,7 @@ import {
 const $ = DOM.$;
 
 /** Every status line in the pane is written through here so tone and copy never drift apart. */
-function writeStatus(element: HTMLElement, text: string, tone: ConnectionStatusTone = 'neutral'): void {
+export function writeStatus(element: HTMLElement, text: string, tone: ConnectionStatusTone = 'neutral'): void {
 	element.textContent = text;
 	element.classList.toggle('is-success', tone === 'success');
 	element.classList.toggle('is-warning', tone === 'warning');
