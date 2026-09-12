@@ -18,6 +18,7 @@ import type {
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy, getCatalogUnsupportedCopy } from '../../browser/engineCatalog.js';
+import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import {
 	ENGINE_PLUGINS_ENABLE_SUCCESS_COPY,
@@ -34,6 +35,7 @@ const PLUGINS_EMPTY_COPY = localize('ua.enginePluginsEmpty', "No engine plugins.
 const PLUGIN_INFO_FEATURE = localize('ua.enginePluginInfoFeature', "plugin info");
 const PLUGIN_HOOKS_EMPTY_COPY = localize('ua.enginePluginHooksEmpty', "No hooks.");
 const LEFTOVER_HOOK_CLASS = 'LeftoverHook';
+const FRESH_LIVE_HOOK_CLASS = 'InflightLiveHook';
 
 suite('EnginePluginsSection write-success (D155 / D216)', () => {
 
@@ -59,10 +61,12 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		unloadPlugin?: IUniverseAgentConnection['unloadPlugin'];
 		scanNewPlugins?: IUniverseAgentConnection['scanNewPlugins'];
 		getPluginInfo?: IUniverseAgentConnection['getPluginInfo'];
+		looksLive?: boolean;
 	} = {}): IUniverseAgentConnection & {
 		setPluginsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setConnected(next: boolean): void;
 		setPairingPending(value: boolean): void;
+		setPairingPendingQuiet(value: boolean): void;
 		setLooksLive(value: boolean): void;
 		clearGetPluginInfo(): void;
 	} {
@@ -75,7 +79,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		};
 		let connected = options.connected ?? true;
 		let pairingPending = false;
-		let looksLive = false;
+		let looksLive = options.looksLive ?? false;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 		const plugin = demoPlugin();
 		let getPluginInfo: IUniverseAgentConnection['getPluginInfo'] | undefined = 'getPluginInfo' in options
@@ -172,6 +176,9 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 				pairingPending = value;
 				onDidChangeConnection.fire(snapshot());
 			},
+			setPairingPendingQuiet(value: boolean) {
+				pairingPending = value;
+			},,
 			setLooksLive(value: boolean) {
 				looksLive = value;
 			},
@@ -720,6 +727,21 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		return { ...demoPlugin(), id: 'leftover-plugin', displayName: 'Leftover Plugin' };
 	}
 
+	function freshLiveHook(): { hookType: string; priority: number; className: string } {
+		return { hookType: 'onChat', priority: 99, className: FRESH_LIVE_HOOK_CLASS };
+	}
+
+	function assertLeftoverHooksLooksLiveDisconnected(section: EnginePluginsSection, expectedRows: number): void {
+		assertLeftoverHooksKeptAfterCatalogHonesty(section, expectedRows);
+		assert.ok((section.getDomNode().textContent ?? '').includes(LEFTOVER_HOOK_CLASS));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(FRESH_LIVE_HOOK_CLASS));
+		const infoStatus = [...section.getDomNode().querySelectorAll('.engine-catalog-status-widget')].find(
+			el => el instanceof HTMLElement && el.dataset['catalogMode'] === 'disconnected'
+				&& (el.textContent ?? '').includes(getEngineSectionDisconnectedCopy()),
+		) as HTMLElement | undefined;
+		assert.ok(infoStatus);
+	}
+
 	function assertLeftoverHooksKeptAfterCatalogHonesty(section: EnginePluginsSection, expectedRows: number): void {
 		assert.strictEqual(section.getHookRowCount(), expectedRows);
 		assert.strictEqual(section.getHookEntries().length, expectedRows);
@@ -864,6 +886,94 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		const hooksTable = getHooksTable(section);
 		assert.ok(hooksTable);
 		assert.strictEqual(hooksTable.style.display, 'none');
+	});
+
+	test('leftover-looks-live pairing-hold loadInfo skips extra getPluginInfo', async () => {
+		let infoCalls = 0;
+		const leftover = leftoverPlugin();
+		const connection = createConnectionStub({
+			looksLive: true,
+			listPlugins: async () => ({ plugins: [leftover] }),
+			getPluginInfo: async () => {
+				infoCalls++;
+				return { summary: leftover, hooks: [leftoverHook()] };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getHookRowCount(), 1);
+		assert.strictEqual(getHooksTable(section)?.style.display === 'none', false);
+		assert.ok((section.getDomNode().textContent ?? '').includes(LEFTOVER_HOOK_CLASS));
+		const infoCallsAfterLoad = infoCalls;
+		assert.ok(infoCallsAfterLoad >= 1);
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		connection.setPairingPendingQuiet(true);
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		await flushMicrotasks();
+
+		assert.strictEqual(infoCalls, infoCallsAfterLoad, 'leftover-looks-live must not extra getPluginInfo');
+		assertLeftoverHooksLooksLiveDisconnected(section, 1);
+	});
+
+	test('in-flight getPluginInfo leftover-looks-live keeps leftover and does not paint live', async () => {
+		let infoCalls = 0;
+		let releaseSecond: (() => void) | undefined;
+		let secondStarted: (() => void) | undefined;
+		const secondEntered = new Promise<void>(resolve => { secondStarted = resolve; });
+		const secondHold = new Promise<void>(resolve => { releaseSecond = resolve; });
+		const leftover = leftoverPlugin();
+		const connection = createConnectionStub({
+			looksLive: true,
+			listPlugins: async () => ({ plugins: [leftover] }),
+			getPluginInfo: async () => {
+				infoCalls++;
+				if (infoCalls === 1) {
+					return { summary: leftover, hooks: [leftoverHook()] };
+				}
+				secondStarted?.();
+				await secondHold;
+				return { summary: leftover, hooks: [freshLiveHook()] };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getHookRowCount(), 1);
+		assert.ok((section.getDomNode().textContent ?? '').includes(LEFTOVER_HOOK_CLASS));
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		connection.setConnected(true);
+		await secondEntered;
+		assert.strictEqual(infoCalls, 2);
+
+		connection.setPairingPending(true);
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		releaseSecond!();
+		await flushMicrotasks();
+
+		assertLeftoverHooksLooksLiveDisconnected(section, 1);
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(FRESH_LIVE_HOOK_CLASS), 'in-flight leftover-looks-live must not paint live');
+		const hooksTable = getHooksTable(section);
+		assert.ok(hooksTable);
+		assert.notStrictEqual(hooksTable.style.display, 'none');
 	});
 
 	test('getPluginInfo first-pull throw is failed with no leftover hook rows', async () => {

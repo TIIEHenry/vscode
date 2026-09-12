@@ -369,12 +369,7 @@ export class EnginePluginsSection extends Disposable {
 				} else if ((this.mode === 'failed' || this.mode === 'loading') && this.hookEntries.length > 0) {
 					this.hooksTable.style.display = '';
 				} else if (this.keepLeftoverCatalogForPairingHold(this.hasLeftoverHooks())) {
-					this.hooksTable.style.display = '';
-					this.infoStatus.render({
-						mode: 'disconnected',
-						featureLabel: PLUGIN_INFO_FEATURE,
-						onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
-					});
+					this.keepLeftoverHooksDisconnected();
 				} else {
 					this.clearInfoPresentation();
 				}
@@ -503,6 +498,17 @@ export class EnginePluginsSection extends Disposable {
 		return this.hookEntries.length > 0 && this.hooksBody.rows.length > 0;
 	}
 
+	private keepLeftoverHooksDisconnected(): void {
+		if (this.hasLeftoverHooks()) {
+			this.hooksTable.style.display = '';
+		}
+		this.infoStatus.render({
+			mode: 'disconnected',
+			featureLabel: PLUGIN_INFO_FEATURE,
+			onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+		});
+	}
+
 	private paintHookHonestyUnavailable(): void {
 		if (this.hasLeftoverHooks()) {
 			this.hooksTable.style.display = '';
@@ -518,6 +524,12 @@ export class EnginePluginsSection extends Disposable {
 	}
 
 	private async loadInfo(id: string): Promise<void> {
+		// D372 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
+		if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+			this.keepLeftoverHooksDisconnected();
+			return;
+		}
+
 		const generation = ++this.infoGeneration;
 		// D279: keep leftover hooks while the next getPluginInfo is in-flight.
 		// First-pull empty still hides.
@@ -538,6 +550,10 @@ export class EnginePluginsSection extends Disposable {
 		try {
 			const result = await this.connection.getPluginInfo(id);
 			if (generation !== this.infoGeneration) {
+				return;
+			}
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+				this.keepLeftoverHooksDisconnected();
 				return;
 			}
 			// hooks empty → empty table. Never invent rows from hook_count.
