@@ -764,7 +764,8 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 					protocolVersion: '1',
 				});
 				this._lastConnectedPath = endpoint.path;
-				if (this._connectionPhase.kind === 'connected') {
+				const phaseKind = this._connectionPhase.kind as ConnectionPhase['kind'];
+				if (phaseKind === 'connected') {
 					this._connectionPhase = { kind: 'connected', path: endpoint.path };
 				}
 				return {

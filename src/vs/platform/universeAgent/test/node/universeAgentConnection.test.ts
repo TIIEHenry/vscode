@@ -12307,7 +12307,7 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
 		};
 		class HandshakeTransportFailed extends MockUniverseAgentGrpcTransport {
-			override async getAuthNonce() {
+			override async getAuthNonce(): Promise<UniverseAgentAuthNonceResult> {
 				throw new Error('GetAuthNonce down');
 			}
 		}
