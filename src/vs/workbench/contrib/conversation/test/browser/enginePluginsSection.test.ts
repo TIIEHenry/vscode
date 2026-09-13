@@ -240,6 +240,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		assert.notStrictEqual(scanResult.textContent, successCopy);
 		assert.ok(!(scanResult.textContent ?? '').includes(successCopy));
 		assert.ok(scanResult.style.display === 'none' || !(scanResult.textContent ?? '').trim());
+		assert.deepStrictEqual([...scanResult.classList], ['engine-catalog-description', 'engine-plugins-scan-result']);
 
 		const catalog = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
 		assert.ok(catalog);
@@ -693,6 +694,53 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		}
 	});
 
+	test('scanNewPlugins found ok paints scan-result success tone', async () => {
+		const found = { ...demoPlugin(), id: 'fresh-plugin', displayName: 'Fresh Plugin' };
+		const connection = createConnectionStub({
+			scanNewPlugins: async () => ({ newPlugins: [found], skippedCount: 1 }),
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		await section.scanNewForTest();
+		const scanResult = section.getDomNode().querySelector('.engine-plugins-scan-result') as HTMLElement;
+		assert.ok(scanResult);
+		assert.strictEqual(scanResult.textContent, formatEnginePluginsScanFoundCopy('Fresh Plugin', 1));
+		assert.notStrictEqual(scanResult.style.display, 'none');
+		assert.deepStrictEqual([...scanResult.classList], ['engine-catalog-description', 'engine-plugins-scan-result', 'is-success']);
+	});
+
+	test('scanNewPlugins throw paints write-status error and clears scan-result', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				scanNewPlugins: async () => {
+					throw new Error('scan exploded');
+				},
+			});
+			const section = mountSection(connection);
+			await flushMicrotasks();
+			assert.strictEqual(section.getMode(), 'ready');
+
+			await section.scanNewForTest();
+			const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+			assert.ok(writeStatus);
+			assert.notStrictEqual(writeStatus.style.display, 'none');
+			assert.ok(writeStatus.textContent?.includes('scan exploded'));
+			assert.deepStrictEqual([...writeStatus.classList], ['engine-catalog-write-status', 'is-error']);
+
+			const scanResult = section.getDomNode().querySelector('.engine-plugins-scan-result') as HTMLElement;
+			assert.ok(scanResult);
+			assert.ok(scanResult.style.display === 'none' || !(scanResult.textContent ?? '').trim());
+			assert.deepStrictEqual([...scanResult.classList], ['engine-catalog-description', 'engine-plugins-scan-result']);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
 	test('scanNewPlugins ok keeps scan-success when subsequent listPlugins succeeds', async () => {
 		let listPluginsCalls = 0;
 		const unhandledRejections: unknown[] = [];
@@ -719,6 +767,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 			assert.ok(scanResult);
 			assert.strictEqual(scanResult.textContent, formatEnginePluginsScanEmptyCopy(2));
 			assert.notStrictEqual(scanResult.style.display, 'none');
+			assert.deepStrictEqual([...scanResult.classList], ['engine-catalog-description', 'engine-plugins-scan-result', 'is-success']);
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
