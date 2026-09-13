@@ -573,73 +573,7 @@ suite('EngineClipboardSection', () => {
 		pane.getDomNode().parentElement?.remove();
 	});
 
-	test('connected leftover list-fail still Reads', async () => {
-		let listClipboardCalls = 0;
-		const leftover = {
-			clipId: 'leftover-clip',
-			label: 'Leftover Note',
-			type: 'CLIPBOARD_TEXT' as const,
-			createdBy: '',
-			createdAt: 0,
-		};
-		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
-		const liveSnapshot: UniverseAgentConnectionSnapshot = {
-			transport: 'ok',
-			pairingPending: false,
-			channelAlive: true,
-			sharedFsRootSent: false,
-			capabilities: createEmptyTestCapabilitySnapshot(),
-		};
-		const readCalls: UniverseAgentReadClipboardRequest[] = [];
-		const connection = createConversationConnectionTestStub({
-			isEngineConnected: () => true,
-			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
-			getConnectionSnapshot: () => liveSnapshot,
-			onDidChangeConnection: onDidChangeConnection.event,
-			listClipboard: async (): Promise<UniverseAgentListClipboardResult> => {
-				listClipboardCalls++;
-				if (listClipboardCalls === 1) {
-					return { entries: [leftover] };
-				}
-				throw new Error('list boom');
-			},
-			readClipboard: async request => {
-				readCalls.push(request);
-				return {
-					entry: {
-						clipId: leftover.clipId,
-						label: leftover.label,
-						type: leftover.type,
-						content: leftover.label,
-						createdBy: leftover.createdBy,
-						createdAt: leftover.createdAt,
-					},
-				};
-			},
-		});
-		const pane = mountSection(connection);
-		await flushMicrotasks();
-		assert.strictEqual(listClipboardCalls, 1);
-		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-clipboard-row').length, 1);
-
-		onDidChangeConnection.fire(liveSnapshot);
-		await flushMicrotasks();
-		assert.strictEqual(listClipboardCalls, 2);
-		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-clipboard-row').length, 1);
-
-		const row = pane.getDomNode().querySelector('.engine-clipboard-row') as HTMLElement;
-		assert.ok(row);
-		row.click();
-		const read = findReadButton(pane.getDomNode());
-		assert.ok(read);
-		assert.strictEqual(read.classList.contains('disabled'), false);
-		read.click();
-		await flushMicrotasks();
-		assert.deepStrictEqual(readCalls, [{ sessionId: '', clipId: leftover.clipId }]);
-		pane.getDomNode().parentElement?.remove();
-	});
-
-	test('connected leftover list-fail still writes and clears', async () => {
+	test('list-fail leftover closes write chrome without reselect', async () => {
 		let listClipboardCalls = 0;
 		const leftover = {
 			clipId: 'leftover-clip',
@@ -657,6 +591,7 @@ suite('EngineClipboardSection', () => {
 			capabilities: createEmptyTestCapabilitySnapshot(),
 		};
 		const writeCalls: UniverseAgentWriteClipboardRequest[] = [];
+		const readCalls: UniverseAgentReadClipboardRequest[] = [];
 		const clearCalls: UniverseAgentClearClipboardRequest[] = [];
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => true,
@@ -674,6 +609,19 @@ suite('EngineClipboardSection', () => {
 				writeCalls.push(request);
 				return { clipId: leftover.clipId };
 			},
+			readClipboard: async request => {
+				readCalls.push(request);
+				return {
+					entry: {
+						clipId: leftover.clipId,
+						label: leftover.label,
+						type: leftover.type,
+						content: leftover.label,
+						createdBy: leftover.createdBy,
+						createdAt: leftover.createdAt,
+					},
+				};
+			},
 			clearClipboard: async request => {
 				clearCalls.push(request);
 				return { removedCount: 0 };
@@ -683,25 +631,25 @@ suite('EngineClipboardSection', () => {
 		await flushMicrotasks();
 		assert.strictEqual(listClipboardCalls, 1);
 		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-clipboard-row').length, 1);
+		const liveWrite = findActionButton(pane.getDomNode(), ENGINE_CLIPBOARD_WRITE_LABEL);
+		assert.ok(liveWrite);
+		assert.strictEqual(liveWrite.classList.contains('disabled'), false);
 
 		onDidChangeConnection.fire(liveSnapshot);
 		await flushMicrotasks();
 		assert.strictEqual(listClipboardCalls, 2);
 		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-clipboard-row').length, 1);
-
-		const write = findActionButton(pane.getDomNode(), ENGINE_CLIPBOARD_WRITE_LABEL);
-		assert.ok(write);
-		assert.strictEqual(write.classList.contains('disabled'), false);
-		write.click();
-		await flushMicrotasks();
-		assert.strictEqual(writeCalls.length, 1);
-
-		const clear = findActionButton(pane.getDomNode(), ENGINE_CLIPBOARD_CLEAR_LABEL);
-		assert.ok(clear);
-		assert.strictEqual(clear.classList.contains('disabled'), false);
-		clear.click();
-		await flushMicrotasks();
-		assert.strictEqual(clearCalls.length, 1);
+		const leftoverRow = pane.getDomNode().querySelector('.engine-clipboard-row') as HTMLElement | null;
+		assert.ok(leftoverRow);
+		assert.strictEqual(leftoverRow.textContent, formatEngineClipboardListLabel(leftover));
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assertWriteButtonsDisabled(pane.getDomNode());
+		assertReadButtonDisabled(pane.getDomNode());
+		await assertForcedWriteClicksStayUnary(pane.getDomNode(), writeCalls, clearCalls);
+		await assertForcedReadClickStaysUnary(pane.getDomNode(), readCalls);
+		assert.strictEqual(listClipboardCalls, 2);
 		pane.getDomNode().parentElement?.remove();
 	});
 
