@@ -56,7 +56,10 @@ const $ = DOM.$;
  * Fire/Enable/Disable/Delete/Upsert (D311). Pairing-hold-first refresh (D350)
  * leftover-looks-live first-pull (`isEngineConnected()===true` + pairingPending,
  * no leftover) stays empty + disconnected and skips list. Leftover WITH leftover
- * still KEEP + 0 extra list. Connected leftover still writes.
+ * still KEEP + 0 extra list. KEEP `applyDisconnectedRefresh` already closes
+ * write buttons (D311); do not redo KEEP. List-fail leftover keeps rows +
+ * failed and closes Fire/Enable/Delete/Upsert (D437); write gate is not only
+ * connected+pairingHold (`leftoverListFailed` / mode failed).
  */
 export class EngineTriggersSection extends Disposable {
 
@@ -76,6 +79,7 @@ export class EngineTriggersSection extends Disposable {
 
 	private sectionActive = false;
 	private renderGeneration = 0;
+	private leftoverListFailed = false;
 	private triggers: UniverseAgentTrigger[] = [];
 	private selectedTrigger: UniverseAgentTrigger | undefined;
 	private renderedRows: { readonly element: HTMLElement; readonly model: UniverseAgentTrigger }[] = [];
@@ -205,20 +209,25 @@ export class EngineTriggersSection extends Disposable {
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				return this.applyDisconnectedRefresh(this.triggers.length > 0);
 			}
+			this.leftoverListFailed = false;
 			this.triggers = [...result.triggers];
 			this.paintList();
+			this.updateWriteActions();
 			return true;
 		} catch (error) {
 			if (generation !== this.renderGeneration) {
 				return false;
 			}
 			const reason = error instanceof Error ? error.message : String(error);
+			this.leftoverListFailed = true;
 			this.status.render({
 				mode: 'failed',
 				featureLabel: ENGINE_TRIGGER_LIST_FEATURE,
 				reason,
 				onRetry: () => void this.refresh(),
 			});
+			// D437: leftover rows stay; write chrome must close after list-fail.
+			this.updateWriteActions();
 			return false;
 		}
 	}
@@ -240,6 +249,11 @@ export class EngineTriggersSection extends Disposable {
 
 	private isTriggerWritePairingHold(): boolean {
 		return isConversationPairingHold(this.connection);
+	}
+
+	/** Catalog leftover contract: list-fail leftover is not a live write surface. */
+	private isTriggerWriteListFailed(): boolean {
+		return this.leftoverListFailed;
 	}
 
 	private updateWriteActions(): void {
@@ -310,7 +324,7 @@ export class EngineTriggersSection extends Disposable {
 	}
 
 	private updateFireAction(): void {
-		this.fireButton.enabled = canSendEngineTriggerFire(
+		this.fireButton.enabled = !this.isTriggerWriteListFailed() && canSendEngineTriggerFire(
 			this.connection.isEngineConnected(),
 			typeof this.connection.fireTrigger === 'function',
 			this.isTriggerWritePairingHold(),
@@ -318,7 +332,7 @@ export class EngineTriggersSection extends Disposable {
 	}
 
 	private updateSetEnabledAction(): void {
-		const enabled = canSendEngineTriggerSetEnabled(
+		const enabled = !this.isTriggerWriteListFailed() && canSendEngineTriggerSetEnabled(
 			this.connection.isEngineConnected(),
 			typeof this.connection.setTriggerEnabled === 'function',
 			this.isTriggerWritePairingHold(),
@@ -328,7 +342,7 @@ export class EngineTriggersSection extends Disposable {
 	}
 
 	private updateDeleteAction(): void {
-		this.deleteButton.enabled = canSendEngineTriggerDelete(
+		this.deleteButton.enabled = !this.isTriggerWriteListFailed() && canSendEngineTriggerDelete(
 			this.connection.isEngineConnected(),
 			typeof this.connection.deleteTrigger === 'function',
 			this.isTriggerWritePairingHold(),
@@ -336,7 +350,7 @@ export class EngineTriggersSection extends Disposable {
 	}
 
 	private updateUpsertAction(): void {
-		const enabled = canSendEngineTriggerUpsert(
+		const enabled = !this.isTriggerWriteListFailed() && canSendEngineTriggerUpsert(
 			this.connection.isEngineConnected(),
 			typeof this.connection.upsertTrigger === 'function',
 			this.isTriggerWritePairingHold(),
@@ -347,7 +361,7 @@ export class EngineTriggersSection extends Disposable {
 
 	private async handleSetEnabled(enabled: boolean): Promise<void> {
 		const hook = this.connection.setTriggerEnabled;
-		if (!canSendEngineTriggerSetEnabled(this.connection.isEngineConnected(), typeof hook === 'function', this.isTriggerWritePairingHold()) || !hook) {
+		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerSetEnabled(this.connection.isEngineConnected(), typeof hook === 'function', this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineTriggerSetEnabledRequest(this.selectedTrigger, enabled);
@@ -364,7 +378,7 @@ export class EngineTriggersSection extends Disposable {
 
 	private async handleFire(): Promise<void> {
 		const hook = this.connection.fireTrigger;
-		if (!canSendEngineTriggerFire(this.connection.isEngineConnected(), typeof hook === 'function', this.isTriggerWritePairingHold()) || !hook) {
+		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerFire(this.connection.isEngineConnected(), typeof hook === 'function', this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineTriggerFireRequest(this.selectedTrigger);
@@ -381,7 +395,7 @@ export class EngineTriggersSection extends Disposable {
 
 	private async handleDelete(): Promise<void> {
 		const hook = this.connection.deleteTrigger;
-		if (!canSendEngineTriggerDelete(this.connection.isEngineConnected(), typeof hook === 'function', this.isTriggerWritePairingHold()) || !hook) {
+		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerDelete(this.connection.isEngineConnected(), typeof hook === 'function', this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineTriggerDeleteRequest(this.selectedTrigger);
@@ -403,7 +417,7 @@ export class EngineTriggersSection extends Disposable {
 
 	private async handleUpsert(mode: 'add' | 'edit'): Promise<void> {
 		const hook = this.connection.upsertTrigger;
-		if (!canSendEngineTriggerUpsert(this.connection.isEngineConnected(), typeof hook === 'function', this.isTriggerWritePairingHold()) || !hook) {
+		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerUpsert(this.connection.isEngineConnected(), typeof hook === 'function', this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineTriggerUpsertRequest(this.selectedTrigger, mode);
