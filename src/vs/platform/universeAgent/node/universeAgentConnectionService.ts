@@ -656,7 +656,18 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			reason: this._keepTransportLostOnConnect() ? 'transport_lost' : 'initial',
 		};
 		this._sharedFsRootSent = !!request.workDir;
-		await this._ensureTransport();
+		try {
+			await this._ensureTransport();
+		} catch (error) {
+			// D420: `loadGrpcModule` / `_createTransport` sit before the
+			// connect() try/catch. `connectProfile` already built a transport,
+			// so `_ensureTransport` is a no-op there; a direct `connect()`
+			// still throws here and D416/D417 never see it. `_scheduleReconnect`
+			// no-ops without an active profile, while pairingPending, or after
+			// user disconnect (`_canScheduleReconnect`).
+			this._scheduleReconnect();
+			throw error;
+		}
 		try {
 			const result = await this._transport!.connect(request);
 			this._sessionToken = result.sessionToken;
