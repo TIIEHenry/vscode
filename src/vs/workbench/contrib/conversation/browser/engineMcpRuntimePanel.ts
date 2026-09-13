@@ -330,6 +330,13 @@ export class EngineMcpRuntimePanel extends Disposable {
 			}
 			this.mode = resolveEngineCatalogPaneMode(true, support);
 			this.renderStatus({ loadingKind: 'capability' });
+			// D434: leftover after capability UNKNOWN must paint leftover tools
+			// honesty on refresh; do not wait for another selectServer.
+			// D424 KEEP only covers pairing-hold applyDisconnectedRefresh.
+			// Hide Refresh + renderStatus() left leftover tool names looking live.
+			if (hadLiveRuntime) {
+				this.keepLeftoverRuntimeToolsUnknownHonesty();
+			}
 			return;
 		}
 
@@ -380,6 +387,13 @@ export class EngineMcpRuntimePanel extends Disposable {
 				reason: getTransportErrorMessage(error),
 				onRetry: () => void this.refresh(options),
 			});
+			// D434: leftover after list throw must paint leftover tools failed
+			// honesty on refresh; do not wait for another selectServer.
+			// Do not extra getMcpServerStatuses / invent listTools.
+			this.keepLeftoverRuntimeToolsFailed(
+				getTransportErrorMessage(error),
+				() => void this.refresh(options),
+			);
 		}
 	}
 
@@ -414,6 +428,37 @@ export class EngineMcpRuntimePanel extends Disposable {
 			mode: 'disconnected',
 			featureLabel: MCP_RUNTIME_TOOLS_FEATURE,
 			onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+		});
+	}
+
+	private keepLeftoverRuntimeToolsUnknownHonesty(): void {
+		if (!this.hasLeftoverRuntimeTools()) {
+			return;
+		}
+		this.toolsList.style.display = '';
+		this.toolsMeta.style.display = '';
+		if (typeof this.connection.getMcpServerTools !== 'function') {
+			this.paintRuntimeToolsHonestyUnavailable();
+			return;
+		}
+		this.toolsStatus.render({
+			mode: 'loading',
+			loadingKind: 'capability',
+			featureLabel: MCP_RUNTIME_TOOLS_FEATURE,
+		});
+	}
+
+	private keepLeftoverRuntimeToolsFailed(reason?: string, onRetry?: () => void): void {
+		if (!this.hasLeftoverRuntimeTools()) {
+			return;
+		}
+		this.toolsList.style.display = '';
+		this.toolsMeta.style.display = '';
+		this.toolsStatus.render({
+			mode: 'failed',
+			featureLabel: MCP_RUNTIME_TOOLS_FEATURE,
+			reason,
+			onRetry,
 		});
 	}
 

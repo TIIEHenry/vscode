@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-13
-summary: "MERGE_SHA=`deb16236c65` 已 push；compile-client 0；D429/D431/D430 已合；D405/D432 仍开；下号 D433"
+summary: "工位 D 收口 D434（MCP Runtime UNKNOWN/list-fail leftover tools 诚实态）；D405/D432 仍开；D435 只登记；下号 D436"
 ---
 
 # Development Progress
@@ -44,7 +44,7 @@ summary: "MERGE_SHA=`deb16236c65` 已 push；compile-client 0；D429/D431/D430 �
 | **A** | — | `idle`；HEAD == MERGE_SHA |
 | **B** | — | `idle`；HEAD == MERGE_SHA；脏 `worktree-pool.md` 勿 add |
 | **C** | — | `idle`；脏 `dev/loop` 勿 add |
-| **D** | — | `idle`；HEAD == MERGE_SHA |
+| **D** | D434 MCP Runtime UNKNOWN/list-fail leftover tools 诚实态 | `dirty`；本槽收口 D434；未 commit；不占 D432/D433/D435 |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 
 <details>
@@ -178,7 +178,7 @@ summary: "MERGE_SHA=`deb16236c65` 已 push；compile-client 0；D429/D431/D430 �
 | [D242](deferred-gaps.md)–[D288](deferred-gaps.md) | leftover + pairing | **closed** catalog leftover + pairing keep-last（含 roster turns / session sync） |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
-| [D405](deferred-gaps.md)–[D432](deferred-gaps.md) | A/B/D 本波 | D405 手测仍开；D413–D431 closed（D429 Tools UNKNOWN leftover toggle；D430 Plugins UNKNOWN leftover Enable chrome；D431 Skills UNKNOWN leftover Save chrome）；[D432](deferred-gaps.md) Skills leftover 行 toggle；不得宣称 leftover wave 完成 |
+| [D405](deferred-gaps.md)–[D435](deferred-gaps.md) | A/B/D 本波 | D405 手测仍开；D413–D431 / [D434](deferred-gaps.md) closed（D434 MCP Runtime UNKNOWN/list-fail leftover tools 诚实态）；[D432](deferred-gaps.md) Skills leftover 行 toggle仍开；[D435](deferred-gaps.md) in-flight tools 只登记；不得宣称 leftover wave 完成 |
 ## 工位表（P7 · 2026-09-13 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
@@ -193,7 +193,7 @@ summary: "MERGE_SHA=`deb16236c65` 已 push；compile-client 0；D429/D431/D430 �
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。本仓只读面 + Composer `model_profile_id` **已挂**。钉死工位 seed 后 grpcurl **Chat PASS**。下一刀是 IDE Direct Address 接通后 Composer 发送（PRD-008 仍要隔离 profile 冒烟）。**不升 PRD-008**。不要再清 store。D26 store 已闭，旧「迁移卡死」账见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md) |
-| **loop 切片** | `MERGE_SHA`=`deb16236c65`（D429/D431/D430 已合；已 push `loop/merge`/`agent-ide`）。compile-client 0。**D405** 手测仍开。**D432** Skills leftover 行 toggle 仍开。不关 D8/D16/D147。下号 **D433**。未升 PRD-008。不得宣称 leftover wave 完成。 |
+| **loop 切片** | 工位 D 本槽收口 **D434**（MCP Runtime UNKNOWN/list-fail leftover tools 诚实态；未 commit）。**D405** 手测仍开。**D432** Skills leftover 行 toggle 仍开。**D435** in-flight tools 只登记。不关 D8/D16/D147。下号 **D436**。未升 PRD-008。不得宣称 leftover wave 完成。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
