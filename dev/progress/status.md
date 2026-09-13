@@ -182,7 +182,7 @@ summary: "P2 合 A+B 于 `2ef98aa2217`；compile-client 1 未 push；D405/D415/D
 ## 工位表（P7 · 2026-09-13 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `2ef98aa2217` | 账 | 0 | compile-client 1；未 push |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `243566ab65c` | 干净 | 0 | compile-client 1；未 push |
 | A | `vscode-WorkTrees/A` | `loop/A` | `a615755bb8b` | 干净 | 0 | `merge-queued`；未 `-B` |
 | B | `vscode-WorkTrees/B` | `loop/B` | `a2a12199684` | 干净 | 0 | `merge-queued`；未 `-B` |
 | C | `vscode-WorkTrees/C` | `loop/C` | `815b4ad48e3` | 脏 `dev/loop` | 0 | 跳过；勿 add |
