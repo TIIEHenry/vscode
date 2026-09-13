@@ -473,6 +473,18 @@ export class EngineAgentsSection extends Disposable {
 		return false;
 	}
 
+	isAgentToolsToolbarVisible(): boolean {
+		return this.toolsToolbar.style.display !== 'none';
+	}
+
+	isAgentToolsSaveEnabled(): boolean {
+		return this.toolsSaveButton.enabled;
+	}
+
+	async saveAgentToolEnablementForTest(): Promise<boolean> {
+		return this.saveAgentToolEnablement();
+	}
+
 	setAgentToolPendingForTest(tool: UniverseAgentToolSummary, enabled: boolean): void {
 		if (!this.selectedProfile || !this.canEditAgentTools()) {
 			return;
@@ -923,6 +935,17 @@ export class EngineAgentsSection extends Disposable {
 		}
 	}
 
+	private closeLeftoverAgentsToolsChrome(): void {
+		// D435: UNKNOWN leftover / list-fail leftover must close leftover
+		// Tools page toggle/Save chrome on refresh; do not wait for another
+		// selectProfile. D433 only closed AGENTS.md Save. Match KEEP:
+		// leftover tools re-render so canEditAgentTools() / checkbox follow
+		// canWrite(). Do not invent catalog row toggle.
+		if (this.agentTools.length > 0) {
+			this.renderAgentTools();
+		}
+	}
+
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): boolean {
 		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
 			this.hideCatalogWriteStatus();
@@ -983,6 +1006,7 @@ export class EngineAgentsSection extends Disposable {
 			this.renderStatus({ loadingKind: 'capability' });
 			if (hadLiveCatalog) {
 				this.closeLeftoverAgentsEditorChrome();
+				this.closeLeftoverAgentsToolsChrome();
 			}
 			return false;
 		}
@@ -1032,6 +1056,7 @@ export class EngineAgentsSection extends Disposable {
 			});
 			if (hadLiveCatalog) {
 				this.closeLeftoverAgentsEditorChrome();
+				this.closeLeftoverAgentsToolsChrome();
 			}
 			return false;
 		}
