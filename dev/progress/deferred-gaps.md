@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-09-12
-summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 仍开；D25/D26 已闭（2026-09-12 换钉复验 List/Create；seed 后 Chat PASS）；D406–D412 已闭；D410=`9974bfa2822`；D411=`0ae05e427f9`；D412 已合入；下号 D413"
+updated: 2026-09-13
+summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 / D415 仍开；D25/D26 已闭；D406–D412 已闭；D414 工位 B 已收；下号 D416"
 ---
 
 # Deferred Gaps
@@ -426,6 +426,8 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 仍开；D25/D26 已闭（2
 | D410 | P2 | **closed** `_fireReconnect` 在 `connectProfile({reconnect:true})` 失败后再走同一 `_scheduleReconnect` 退避（attempt 递增，不 tight-loop）。覆盖 `{ok:false, code:'transport_failed'}` 与非 `UniverseAgentTransportError` throw；pairing_required / hub_auth_expired / hub_session_required 仍停拨。D408 合同保持。A letter-commit `f4acb938092`（375/0；OV PASS）。已合入 `9974bfa2822`。未升 PRD-008。未关 D405。不占 D411/D412。 | 工位 A `d410-reconnect-fail-reschedule`；375/0；merge compile-client 0 | 失败后再调度测绿；既有 D408 suite 仍绿。未升 PRD-008。未关 D405 手测。 | universeAgent / connection | closed |
 | D411 | P2 | **closed** Engine Preferences「Test Engine」`runEngineTest` 复用 Connection 导出的 `writeStatus`：成功 `success` tone、失败/throw `error` tone、`Testing…` 中性。页脚与 banner 按钮同走 `runEngineTest`。Engine CSS `.engine-test-status.is-success/.is-error` 对齐 Connection 色。B `cf5a51c1eb7`（19/0）。已合入 `0ae05e427f9`。未升 PRD-008。未关 D8/D16/D147/D405。 | 工位 B `engine-test-tone`；19/0；merge compile-client 0 | `runEngineTest` 走 `writeStatus`；Reachable `.is-success`；Unreachable/throw `.is-error`；Testing 无 success/error。未关 D16。 | conversation / engine-preferences | closed |
 | D412 | P3 | **closed** Engine catalog / section 写状态复用 Connection 导出的 `writeStatus`：成功 `.is-success`、失败/`ok:false`/throw `.is-error`、clear/pending 中性。覆盖 MCP/Skills/Tools/Agents/Plugins/Triggers/Clipboard/Context Variable 与 Snapshots overlay（不重做 leftover-keep）。写失败不 `clearCatalogPresentation`。未 compile-client。未关 D8/D16/D147/D405。未升 PRD-008。 | 工位 D `d412-catalog-write-tone`；`scripts/test.sh --run` catalog/skills/clipboard/triggers/snapshots/plugins **244/0** | 各写状态走同一 `writeStatus` + 测锁 classList。未关 D16。 | conversation / engine-preferences | closed |
+| D414 | P3 | **closed** leftover 工具详情诚实态 + Plugins scan 结果复用 Connection `writeStatus`（D412 只收 catalog *写* 状态）。leftover `paintToolInfoHonesty` 失败/断连/API 不可用 error；成功详情 layout 未改。scan 空/找到 success（scan 完成即成功）；clear / list-fail 后 scan 中性；scan throw 仍走既有 `showWriteFailed` write-status error（scanResult 中性）。CSS `.engine-tools-info-status` / `.engine-plugins-scan-result` 对齐 D411/D412 色变量。未 compile-client。未关 D8/D16/D147/D405。未升 PRD-008。不得宣称 leftover wave 完成。 | 工位 B `d414-leftover-scan-tone`；`scripts/test.sh --run` tools+plugins **30/0**；catalog Tools leftover KEEP **9/0** | leftover `.engine-tools-info-status.is-error`；scan 空/找到 `.is-success`；clear 无 tone；scan throw write-status `.is-error`。未关 D16。 | conversation / engine-preferences | closed |
+| D415 | P3 | **pairing-hold `applyDisconnectedRefresh` 不自动画工具详情诚实态**：`setPairingPending` 后 leftover 详情仍可见，须再 `selectTool` 才 `paintToolInfoHonesty`。既有 KEEP 测靠重选锁断连文案。D414 只收 leftover 已画诚实态的 tone，不扩修本路径。 | 工位 B D414 发现；不扩修 | pairing-hold refresh 后无需重选即见 disconnected copy + error tone；补测锁。未关 D16。 | conversation / engine-tools | open |
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 
 `loop/merge` @ `793ff6e201f`（提交信息为「关仓：T5a Uncaught 闸门与 statusbar 二次注册幂等**已复测**」）在**仓外独立 detached 工位**上实测：

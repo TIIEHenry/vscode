@@ -478,9 +478,8 @@ export class EnginePluginsSection extends Disposable {
 				this.clearCatalogPresentation();
 			} else {
 				this.lastScan = undefined;
-				this.scanResult.style.display = 'none';
-				this.scanResult.textContent = '';
 				this.hideCatalogWriteStatus();
+				this.renderScanResult();
 				this.listContainer.style.display = '';
 			}
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
@@ -722,15 +721,16 @@ export class EnginePluginsSection extends Disposable {
 	private renderScanResult(): void {
 		if (!this.lastScan) {
 			this.scanResult.style.display = 'none';
-			this.scanResult.textContent = '';
+			writeStatus(this.scanResult, '');
 			return;
 		}
-		if (this.lastScan.newPlugins.length === 0) {
-			this.scanResult.textContent = formatEnginePluginsScanEmptyCopy(this.lastScan.skippedCount);
-		} else {
-			const names = this.lastScan.newPlugins.map(plugin => plugin.displayName || plugin.id).join(', ');
-			this.scanResult.textContent = formatEnginePluginsScanFoundCopy(names, this.lastScan.skippedCount);
-		}
+		const text = this.lastScan.newPlugins.length === 0
+			? formatEnginePluginsScanEmptyCopy(this.lastScan.skippedCount)
+			: formatEnginePluginsScanFoundCopy(
+				this.lastScan.newPlugins.map(plugin => plugin.displayName || plugin.id).join(', '),
+				this.lastScan.skippedCount,
+			);
+		writeStatus(this.scanResult, text, 'success');
 		this.scanResult.style.display = '';
 	}
 
@@ -795,8 +795,7 @@ export class EnginePluginsSection extends Disposable {
 		this.listContainer.style.display = 'none';
 		this.writeToolbar.style.display = 'none';
 		this.rowToolbar.style.display = 'none';
-		this.scanResult.style.display = 'none';
-		this.scanResult.textContent = '';
+		this.renderScanResult();
 		this.clearInfoPresentation();
 	}
 

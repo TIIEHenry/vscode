@@ -395,7 +395,9 @@
 .monaco-workbench .engine-skill-write-status.is-success,
 .monaco-workbench .engine-skill-body-status.is-success,
 .monaco-workbench .engine-catalog-write-status.is-success,
-.monaco-workbench .engine-agents-editor-status.is-success {
+.monaco-workbench .engine-agents-editor-status.is-success,
+.monaco-workbench .engine-tools-info-status.is-success,
+.monaco-workbench .engine-plugins-scan-result.is-success {
 	color: var(--vscode-testing-iconPassed);
 }
 
@@ -410,7 +412,9 @@
 .monaco-workbench .engine-skill-write-status.is-error,
 .monaco-workbench .engine-skill-body-status.is-error,
 .monaco-workbench .engine-catalog-write-status.is-error,
-.monaco-workbench .engine-agents-editor-status.is-error {
+.monaco-workbench .engine-agents-editor-status.is-error,
+.monaco-workbench .engine-tools-info-status.is-error,
+.monaco-workbench .engine-plugins-scan-result.is-error {
 	color: var(--vscode-errorForeground);
 }
 
@@ -616,6 +620,12 @@
 
 .monaco-workbench .engine-tools-info-meta {
 	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .engine-tools-info-status {
+	margin-top: 8px;
+	color: var(--vscode-descriptionForeground);
+	overflow-wrap: anywhere;
 }
 
 .monaco-workbench .engine-skill-body-editor,

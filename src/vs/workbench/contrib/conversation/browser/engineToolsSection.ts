@@ -691,7 +691,7 @@ export class EngineToolsSection extends Disposable {
 				status = DOM.append(this.infoHost, $('.engine-tools-info-status'));
 				status.setAttribute('role', 'status');
 			}
-			status.textContent = message;
+			writeStatus(status, message, 'error');
 			this.infoHost.style.display = '';
 			return;
 		}
