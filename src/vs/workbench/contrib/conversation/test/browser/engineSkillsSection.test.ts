@@ -228,6 +228,17 @@ suite('EngineSkillsSection (E1)', () => {
 		return status;
 	}
 
+	function leftoverBodyTextarea(section: EngineSkillsSection): HTMLTextAreaElement {
+		const textarea = section.getDomNode().querySelector('.engine-skill-body-input textarea') as HTMLTextAreaElement;
+		assert.ok(textarea);
+		return textarea;
+	}
+
+	function assertLeftoverBodyEditorClosed(section: EngineSkillsSection): void {
+		assert.ok(leftoverBodyTextarea(section).readOnly);
+		assert.strictEqual(section.isSaveToolbarVisible(), false);
+	}
+
 	test('disconnected hides skills section (§8.3 #5 honest empty)', async () => {
 		const connection = createConnectionStub({ connected: false, skillsSupport: 'SUPPORTED' });
 		const section = mountSection(connection);
@@ -1322,6 +1333,7 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.strictEqual(infoCalls, infoCallsAfterLoad, 'KEEP must not extra getSkillInfo');
 		assert.strictEqual(section.getSelectedSkillBody(), LEFTOVER_SKILL_BODY);
 		assert.ok(section.isBodyEditorVisible());
+		assertLeftoverBodyEditorClosed(section);
 		const bodyStatus = leftoverBodyStatus(section);
 		assert.notStrictEqual(bodyStatus.style.display, 'none');
 		assert.ok(bodyStatus.textContent?.includes(getEngineSectionDisconnectedCopy()));
@@ -1357,6 +1369,81 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.strictEqual(infoCalls, infoCallsAfterLoad, 'KEEP must not extra getSkillInfo');
 		assert.strictEqual(section.getSelectedSkillBody(), LEFTOVER_SKILL_BODY);
 		assert.ok(section.isBodyEditorVisible());
+		assertLeftoverBodyEditorClosed(section);
+		const bodyStatus = leftoverBodyStatus(section);
+		assert.notStrictEqual(bodyStatus.style.display, 'none');
+		assert.ok(bodyStatus.textContent?.includes(getEngineSectionDisconnectedCopy()));
+	});
+
+	test('pairing-hold refresh closes leftover user body Save chrome without reselect', async () => {
+		let infoCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({ skills: [{ name: 'leftover-skill', source: 'user', enabled: true }] }),
+			getSkillInfo: async () => {
+				infoCalls++;
+				return { name: 'leftover-skill', content: LEFTOVER_SKILL_BODY, source: 'user', enabled: true };
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		section.selectSkillForTest('leftover-skill');
+		await flushMicrotasks();
+		assert.strictEqual(section.getSelectedSkillBody(), LEFTOVER_SKILL_BODY);
+		assert.strictEqual(section.isSaveToolbarVisible(), true);
+		assert.strictEqual(leftoverBodyTextarea(section).readOnly, false);
+		assert.ok(!(leftoverBodyStatus(section).textContent ?? '').includes(getEngineSectionDisconnectedCopy()));
+		const infoCallsAfterLoad = infoCalls;
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(infoCalls, infoCallsAfterLoad, 'KEEP must not extra getSkillInfo');
+		assert.strictEqual(section.getSelectedSkillBody(), LEFTOVER_SKILL_BODY);
+		assert.ok(section.isBodyEditorVisible());
+		assertLeftoverBodyEditorClosed(section);
+		const bodyStatus = leftoverBodyStatus(section);
+		assert.notStrictEqual(bodyStatus.style.display, 'none');
+		assert.ok(bodyStatus.textContent?.includes(getEngineSectionDisconnectedCopy()));
+	});
+
+	test('leftover-looks-live refresh closes leftover user body Save chrome without reselect', async () => {
+		let infoCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			looksLive: true,
+			listSkills: async () => ({ skills: [{ name: 'leftover-skill', source: 'user', enabled: true }] }),
+			getSkillInfo: async () => {
+				infoCalls++;
+				return { name: 'leftover-skill', content: LEFTOVER_SKILL_BODY, source: 'user', enabled: true };
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		section.selectSkillForTest('leftover-skill');
+		await flushMicrotasks();
+		assert.strictEqual(section.getSelectedSkillBody(), LEFTOVER_SKILL_BODY);
+		assert.strictEqual(section.isSaveToolbarVisible(), true);
+		assert.strictEqual(leftoverBodyTextarea(section).readOnly, false);
+		assert.ok(!(leftoverBodyStatus(section).textContent ?? '').includes(getEngineSectionDisconnectedCopy()));
+		const infoCallsAfterLoad = infoCalls;
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(infoCalls, infoCallsAfterLoad, 'KEEP must not extra getSkillInfo');
+		assert.strictEqual(section.getSelectedSkillBody(), LEFTOVER_SKILL_BODY);
+		assert.ok(section.isBodyEditorVisible());
+		assertLeftoverBodyEditorClosed(section);
 		const bodyStatus = leftoverBodyStatus(section);
 		assert.notStrictEqual(bodyStatus.style.display, 'none');
 		assert.ok(bodyStatus.textContent?.includes(getEngineSectionDisconnectedCopy()));

@@ -401,9 +401,12 @@ export class EngineSkillsSection extends Disposable {
 			this.listContainer.style.display = '';
 			this.mode = resolveEngineSkillsPaneMode(false, support);
 			this.renderStatus();
-			// D418: pairing-hold / leftover-looks-live KEEP must paint leftover
-			// body honesty on refresh; do not wait for another selectSkill.
+			// D418/D421: pairing-hold / leftover-looks-live KEEP must paint leftover
+			// body honesty and editor chrome on refresh; do not wait for another
+			// selectSkill. Chrome first (D415 Tools KEEP `updateSaveChrome()`),
+			// then disconnected copy so bundled leftover stays honesty-disconnected.
 			if (this.hasLeftoverSkillBody()) {
+				this.updateBodyEditorChrome(this.loadedBodySource ?? this.selectedSkill?.source);
 				this.showBodyStatus(getEngineSectionDisconnectedCopy());
 			}
 			return false;
