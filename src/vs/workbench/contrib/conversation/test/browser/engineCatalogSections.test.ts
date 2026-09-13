@@ -3068,6 +3068,62 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 		assert.strictEqual(listMcpServersCalls, 2);
 		assertMcpLeftoverFailedHonesty(section, 'listMcpServers retry exploded', 1);
+	}
+
+	test('MCP: list-fail leftover closes leftover row toggle chrome without reselect', async () => {
+		const updateCalls: UniverseAgentUpdateMcpServerRequest[] = [];
+		const removeCalls: UniverseAgentRemoveMcpServerRequest[] = [];
+		const toggleCalls: UniverseAgentToggleMcpServerRequest[] = [];
+		let listMcpServersCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => {
+				listMcpServersCalls++;
+				if (listMcpServersCalls === 1) {
+					return { servers: [demoMcpServer()] };
+				}
+				throw new Error('listMcpServers retry exploded');
+			},
+			updateMcpServer: async (request) => {
+				updateCalls.push(request);
+				return { ok: true };
+			},
+			removeMcpServer: async (request) => {
+				removeCalls.push(request);
+				return { ok: true };
+			},
+			toggleMcpServer: async (request) => {
+				toggleCalls.push(request);
+				return { ok: true };
+			},
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+		section.layout(640, 160);
+
+		assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
+		assert.strictEqual(section.getSelectedServerId(), 'stdio-demo');
+		assert.strictEqual(section.canWrite(), true);
+		assert.strictEqual(section.isWriteToolbarVisible(), true);
+		assertLeftoverMcpRowTogglesLive(section);
+		const leftoverRows = section.getListEntryCount();
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(listMcpServersCalls, 2);
+		assertMcpLeftoverFailedHonesty(section, 'listMcpServers retry exploded', leftoverRows);
+		assert.strictEqual(section.isWriteToolbarVisible(), false);
+		assert.strictEqual(section.getSelectedServerId(), 'stdio-demo');
+		assertLeftoverMcpRowTogglesClosed(section);
+		assert.strictEqual(await section.updateSelectedServer({ name: 'Renamed' }), false);
+		assert.strictEqual(await section.removeSelectedServer(), false);
+		await section.toggleServerForTest('stdio-demo', false);
+		assert.deepStrictEqual(updateCalls, []);
+		assert.deepStrictEqual(removeCalls, []);
+		assert.deepStrictEqual(toggleCalls, []);
+		assert.strictEqual(listMcpServersCalls, 2);
 	});
 
 	function assertMcpUnknownCapabilityHonesty(
@@ -3116,6 +3172,60 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(listMcpServersCalls, listCallsAfterLoad);
 		assert.ok(section.getListEntryCount() > 0);
 		assertMcpUnknownCapabilityHonesty(section, leftoverRows);
+	}
+
+	test('MCP: capability UNKNOWN leftover closes leftover row toggle chrome without reselect', async () => {
+		const updateCalls: UniverseAgentUpdateMcpServerRequest[] = [];
+		const removeCalls: UniverseAgentRemoveMcpServerRequest[] = [];
+		const toggleCalls: UniverseAgentToggleMcpServerRequest[] = [];
+		let listMcpServersCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => {
+				listMcpServersCalls++;
+				return { servers: [demoMcpServer()] };
+			},
+			updateMcpServer: async (request) => {
+				updateCalls.push(request);
+				return { ok: true };
+			},
+			removeMcpServer: async (request) => {
+				removeCalls.push(request);
+				return { ok: true };
+			},
+			toggleMcpServer: async (request) => {
+				toggleCalls.push(request);
+				return { ok: true };
+			},
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+		section.layout(640, 160);
+
+		assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
+		assert.strictEqual(section.getSelectedServerId(), 'stdio-demo');
+		assert.strictEqual(section.canWrite(), true);
+		assert.strictEqual(section.isWriteToolbarVisible(), true);
+		assertLeftoverMcpRowTogglesLive(section);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listMcpServersCalls;
+
+		connection.setMcpSupport('UNKNOWN');
+		await flushMicrotasks();
+
+		assert.strictEqual(listMcpServersCalls, listCallsAfterLoad, 'UNKNOWN leftover must not extra listMcpServers');
+		assertMcpUnknownCapabilityHonesty(section, leftoverRows);
+		assert.strictEqual(section.isWriteToolbarVisible(), false);
+		assert.strictEqual(section.getSelectedServerId(), 'stdio-demo');
+		assertLeftoverMcpRowTogglesClosed(section);
+		assert.strictEqual(await section.updateSelectedServer({ name: 'Renamed' }), false);
+		assert.strictEqual(await section.removeSelectedServer(), false);
+		await section.toggleServerForTest('stdio-demo', false);
+		assert.deepStrictEqual(updateCalls, []);
+		assert.deepStrictEqual(removeCalls, []);
+		assert.deepStrictEqual(toggleCalls, []);
+		assert.strictEqual(listMcpServersCalls, listCallsAfterLoad);
 	});
 
 	test('MCP: first-pull capability UNKNOWN is empty with capability loading', async () => {
