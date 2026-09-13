@@ -186,7 +186,7 @@ summary: "关仓中：A D426 Tools KEEP 已进 merge；B D427 / D D428 待合；
 | A | `vscode-WorkTrees/A` | `loop/A` | `26895965f20` | 干净 | 0 | `merge-queued`；D426 已进 merge |
 | B | `vscode-WorkTrees/B` | `loop/B` | `a705feca58e` | 脏 `worktree-pool.md` | 0 | `occupied` D427；勿 add |
 | C | `vscode-WorkTrees/C` | `loop/C` | `815b4ad48e3` | 脏 `dev/loop` | 0 | 跳过；勿 add |
-| D | `vscode-WorkTrees/D` | `loop/D` | `654e44ea50a` | 干净 | 0 | `idle`；跟 MERGE_SHA |
+| D | `vscode-WorkTrees/D` | `loop/D` | `47cb69c8f5a` | 干净 | 0 | `occupied` D428 Plugins KEEP 写钮 |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked` leftover；跳过 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `815b4ad48e3` | `dev/loop` + `.idea` | 0 | 未代拉；勿 add `dev/loop` |
 ## Next（Blockers：无）
