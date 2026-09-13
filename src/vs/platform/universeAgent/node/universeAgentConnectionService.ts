@@ -374,7 +374,7 @@ import type {
 import { createEmptyCapabilitySnapshot } from '../common/universeAgentCapabilities.js';
 import { probeEngineCapabilities, probeSessionListCapability } from './grpcCapabilityProbe.js';
 import { createGrpcUniverseAgentClient, createPinnedGrpcUniverseAgentClient } from './grpc/grpcClient.js';
-import { loadGrpcModule } from './universeAgentChannel.js';
+import { loadGrpcModule, type UniverseAgentPinnedTlsTarget } from './universeAgentChannel.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, isTransportFailureCode, UniverseAgentFetchToolDetailMethodKey, UniverseAgentGrpcServices, UniverseAgentSaveSkillContentMethodKey, UniverseAgentTransportError } from './grpc/grpcTransport.js';
 import { createSessionRecoveringAlreadyExists, runCreateSessionSingleFlight } from './sessionCreateRecover.js';
 import type { ConnectionResolver, ResolvedEndpoint } from './connectionResolver.js';
@@ -394,6 +394,7 @@ type UniverseAgentClearTimeoutFn = (handle: UniverseAgentReconnectTimeoutHandle)
 export interface UniverseAgentConnectionServiceOptions extends UniverseAgentHubServiceOptions {
 	readonly loopbackAddress?: string;
 	readonly createTransport?: (address: string) => IUniverseAgentGrpcTransport;
+	readonly createPinnedTransport?: (target: UniverseAgentPinnedTlsTarget) => IUniverseAgentGrpcTransport;
 	readonly connectionResolver?: ConnectionResolver;
 	readonly connectionProfileStore?: IConnectionProfileStore;
 	readonly clientIdentityStore?: IClientIdentityStore;
@@ -487,10 +488,12 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private _reconnectTimer: UniverseAgentReconnectTimeoutHandle | undefined;
 	private _userDisconnecting = false;
 	private _reconnectDisposed = false;
+	private _profileReconnectDial = false;
 
 	private readonly _createSessionInflight = new Map<string, Promise<UniverseAgentCreateSessionResult>>();
 	private readonly _loopbackAddress: string;
 	private readonly _createTransport: (address: string) => IUniverseAgentGrpcTransport;
+	private readonly _createPinnedTransport: (target: UniverseAgentPinnedTlsTarget) => IUniverseAgentGrpcTransport;
 	private readonly _connectionResolver: ConnectionResolver | undefined;
 	private readonly _connectionProfileStore: IConnectionProfileStore | undefined;
 	private readonly _clientIdentityStore: IClientIdentityStore | undefined;
@@ -506,6 +509,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._hub = this._register(new UniverseAgentHubService(options));
 		this._loopbackAddress = options.loopbackAddress ?? '127.0.0.1:50051';
 		this._createTransport = options.createTransport ?? createGrpcUniverseAgentClient;
+		this._createPinnedTransport = options.createPinnedTransport ?? createPinnedGrpcUniverseAgentClient;
 		this._connectionResolver = options.connectionResolver;
 		this._connectionProfileStore = options.connectionProfileStore;
 		this._clientIdentityStore = options.clientIdentityStore;
@@ -647,7 +651,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	async connect(request: UniverseAgentConnectRequest): Promise<UniverseAgentConnectResult> {
-		this._connectionPhase = { kind: 'connecting', reason: 'initial' };
+		this._connectionPhase = {
+			kind: 'connecting',
+			reason: this._keepTransportLostOnConnect() ? 'transport_lost' : 'initial',
+		};
 		this._sharedFsRootSent = !!request.workDir;
 		await this._ensureTransport();
 		try {
@@ -716,6 +723,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			}
 			this._connectionPhase = { kind: 'failed', code: resolved.code, reason: resolved.reason };
 			this._fireSnapshotChanged();
+			this._maybeScheduleReconnectAfterTransportFailedReturn(resolved.code, reconnect);
 			return { ok: false, code: resolved.code, reason: resolved.reason };
 		}
 
@@ -731,7 +739,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		const endpoint = resolved.endpoint;
 		const dialAddress = `${endpoint.resolvedIp}:${endpoint.port}`;
 		if (endpoint.tls) {
-			this._transport = createPinnedGrpcUniverseAgentClient({
+			this._transport = this._createPinnedTransport({
 				address: dialAddress,
 				tls: endpoint.tls,
 				sslTargetNameOverride: endpoint.servername,
@@ -749,10 +757,12 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		}
 
 		if (!endpoint.tls) {
-			return this.connect({
-				clientId: identityState.identity.clientIdentityId,
-				protocolVersion: '1',
-			}).then(result => {
+			this._profileReconnectDial = reconnect;
+			try {
+				const result = await this.connect({
+					clientId: identityState.identity.clientIdentityId,
+					protocolVersion: '1',
+				});
 				this._lastConnectedPath = endpoint.path;
 				if (this._connectionPhase.kind === 'connected') {
 					this._connectionPhase = { kind: 'connected', path: endpoint.path };
@@ -765,7 +775,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 					pairingPending: isPairingPending(result.sessionToken, result.pairingNonce),
 					sasCode: result.sasCode,
 				};
-			});
+			} finally {
+				this._profileReconnectDial = false;
+			}
 		}
 
 		const profile = this._connectionProfileStore?.get(profileId);
@@ -802,6 +814,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				const code = handshake.code === 'transport_failed' ? 'transport_failed' : 'pin_mismatch';
 				this._connectionPhase = { kind: 'failed', code, reason: handshake.reason };
 				this._fireSnapshotChanged();
+				this._maybeScheduleReconnectAfterTransportFailedReturn(code, reconnect);
 				return { ok: false, code, reason: handshake.reason };
 			}
 
@@ -2056,8 +2069,28 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		}, delay);
 	}
 
+	private _keepTransportLostOnConnect(): boolean {
+		return this._profileReconnectDial
+			|| this._transportState === 'failed'
+			|| (this._connectionPhase.kind === 'connecting' && this._connectionPhase.reason === 'transport_lost');
+	}
+
 	private _isReconnectHaltCode(code: ConnectionFailureCode): boolean {
-		return code === 'pairing_required' || code === 'hub_auth_expired' || code === 'hub_session_required';
+		return code === 'pairing_required'
+			|| code === 'hub_session_required'
+			|| code === 'trust_missing'
+			|| code === 'pin_mismatch'
+			|| code.startsWith('hub_auth_');
+	}
+
+	private _maybeScheduleReconnectAfterTransportFailedReturn(code: ConnectionFailureCode, reconnect: boolean): void {
+		if (code !== 'transport_failed' || this._isReconnectHaltCode(code)) {
+			return;
+		}
+		if (!this._activeProfileId || (!reconnect && this._transportState !== 'failed')) {
+			return;
+		}
+		this._scheduleReconnect();
 	}
 
 	private _rescheduleReconnectAfterAttempt(): void {
