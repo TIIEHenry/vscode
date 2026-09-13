@@ -44,7 +44,7 @@ summary: "合入 A D420；B D421 / D D422 occupied；D421 Skills KEEP Save chrom
 | **A** | D420 `connect()` `_ensureTransport` 再拨 | `merge-queued` @ `7a7f5cfa6a6`；394/0 |
 | **B** | D421 Skills KEEP Save chrome | `occupied` @ `0baa88fbff1`；脏 `worktree-pool.md` 勿 add |
 | **C** | — | `idle`；脏 `dev/loop` 勿 add |
-| **D** | D422 Agents KEEP leftover 详情 | `occupied` @ `c005262152f` |
+| **D** | D422 Agents KEEP leftover 详情 | `occupied` @ `5064ec31a29` |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 
 <details>
