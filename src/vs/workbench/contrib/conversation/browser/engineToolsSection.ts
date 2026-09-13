@@ -556,6 +556,19 @@ export class EngineToolsSection extends Disposable {
 		this.list.setSelection([index]);
 	}
 
+	private closeLeftoverRowToggleChrome(): void {
+		// D426 / D429: leftover KEEP / UNKNOWN / list-fail must close leftover
+		// row toggle chrome on refresh; do not wait for another selectTool.
+		// Save hide / D415 honesty alone left leftover checkboxes looking live.
+		// `list.rerender()` is a no-op unless supportDynamicHeights; splice
+		// the leftover entries so renderElement can disable toggles via canWrite().
+		this.relayoutLeftoverList();
+		if (this.list && this.listEntries.length > 0) {
+			this.list.splice(0, this.list.length, this.listEntries);
+			this.restoreToolSelection();
+		}
+	}
+
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): void {
 		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
 			this.hideCatalogWriteStatus();
@@ -568,16 +581,7 @@ export class EngineToolsSection extends Disposable {
 			if (this.hasLeftoverToolInfo()) {
 				this.paintToolInfoHonesty(getEngineSectionDisconnectedCopy());
 			}
-			// D426: pairing-hold / leftover-looks-live KEEP must close leftover
-			// row toggle chrome on refresh; do not wait for another selectTool.
-			// Save hide / D415 honesty alone left leftover checkboxes looking live.
-			// `list.rerender()` is a no-op unless supportDynamicHeights; splice
-			// the leftover entries so renderElement can disable toggles.
-			this.relayoutLeftoverList();
-			if (this.list && this.listEntries.length > 0) {
-				this.list.splice(0, this.list.length, this.listEntries);
-				this.restoreToolSelection();
-			}
+			this.closeLeftoverRowToggleChrome();
 			return;
 		}
 		this.clearCatalogPresentation();
@@ -606,8 +610,8 @@ export class EngineToolsSection extends Disposable {
 
 		if (support === 'UNKNOWN') {
 			// Keep leftover tool rows after a live paint (D255; D253 / D250).
-			const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'tool');
-			if (!hadLiveCatalog) {
+			const leftoverAfterUnknown = this.listEntries.some(entry => entry.kind === 'tool');
+			if (!leftoverAfterUnknown) {
 				this.clearCatalogPresentation();
 			} else {
 				this.hideCatalogWriteStatus();
@@ -615,6 +619,9 @@ export class EngineToolsSection extends Disposable {
 			this.mode = resolveEngineCatalogPaneMode(true, support);
 			this.updateSaveChrome();
 			this.renderStatus({ loadingKind: 'capability' });
+			if (leftoverAfterUnknown) {
+				this.closeLeftoverRowToggleChrome();
+			}
 			return;
 		}
 
@@ -651,8 +658,8 @@ export class EngineToolsSection extends Disposable {
 				void this.loadToolInfo(selectedToolName);
 			}
 		} catch (error) {
-			const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'tool');
-			if (!hadLiveCatalog) {
+			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'tool');
+			if (!leftoverAfterList) {
 				this.clearCatalogPresentation();
 			}
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
@@ -664,6 +671,9 @@ export class EngineToolsSection extends Disposable {
 				reason: error instanceof Error ? error.message : undefined,
 				onRetry: () => void this.refresh(),
 			});
+			if (leftoverAfterList) {
+				this.closeLeftoverRowToggleChrome();
+			}
 		}
 	}
 
