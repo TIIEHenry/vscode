@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-13
-summary: "MERGE_SHA=`2c66dad74c0` 已 push；compile-client 0；D432/D433/D434 已合；D405/D435/D436 仍开；下号 D437"
+summary: "MERGE_SHA=`2c66dad74c0` 已 push；compile-client 0；D436 本槽已收口（未 commit）；D405/D435 仍开；下号 D438"
 ---
 
 # Development Progress
@@ -44,7 +44,7 @@ summary: "MERGE_SHA=`2c66dad74c0` 已 push；compile-client 0；D432/D433/D434 �
 | **A** | — | `idle`；HEAD == MERGE_SHA |
 | **B** | — | `idle`；HEAD == MERGE_SHA；脏 `worktree-pool.md` 勿 add |
 | **C** | — | `idle`；脏 `dev/loop` 勿 add |
-| **D** | — | `idle`；HEAD == MERGE_SHA |
+| **D** | D436 MCP Runtime in-flight leftover tools | 本槽已收口；未 commit；勿占 D435/D437 |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 
 <details>
@@ -178,7 +178,7 @@ summary: "MERGE_SHA=`2c66dad74c0` 已 push；compile-client 0；D432/D433/D434 �
 | [D242](deferred-gaps.md)–[D288](deferred-gaps.md) | leftover + pairing | **closed** catalog leftover + pairing keep-last（含 roster turns / session sync） |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
-| [D405](deferred-gaps.md)–[D436](deferred-gaps.md) | A/B/D 本波 | D405 手测仍开；D413–D434 closed（D432 Skills leftover 行 toggle；D433 Agents UNKNOWN leftover AGENTS.md Save；D434 MCP Runtime UNKNOWN leftover tools 诚实）；[D435](deferred-gaps.md) Agents leftover Tools 页 chrome、[D436](deferred-gaps.md) MCP Runtime in-flight tools 仍开；不得宣称 leftover wave 完成 |
+| [D405](deferred-gaps.md)–[D436](deferred-gaps.md) | A/B/D 本波 | D405 手测仍开；D413–D434 / [D436](deferred-gaps.md) closed（D436：`loadTools` UNKNOWN / list-fail leftover 期间 in-flight `getMcpServerTools` 不画 live）；[D435](deferred-gaps.md) Agents leftover Tools 页 chrome 仍开；不得宣称 leftover wave 完成 |
 ## 工位表（P7 · 2026-09-13 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
@@ -186,14 +186,14 @@ summary: "MERGE_SHA=`2c66dad74c0` 已 push；compile-client 0；D432/D433/D434 �
 | A | `vscode-WorkTrees/A` | `loop/A` | `2c66dad74c0` | 干净 | 0 | `idle`；跟 MERGE_SHA |
 | B | `vscode-WorkTrees/B` | `loop/B` | `2c66dad74c0` | 脏 `worktree-pool.md` | 0 | `idle`；跟 MERGE_SHA；勿 add |
 | C | `vscode-WorkTrees/C` | `loop/C` | `815b4ad48e3` | 脏 `dev/loop` | 0 | 跳过；勿 add |
-| D | `vscode-WorkTrees/D` | `loop/D` | `2c66dad74c0` | 干净 | 0 | `idle`；跟 MERGE_SHA |
+| D | `vscode-WorkTrees/D` | `loop/D` | `80cb8648473` | D436 未 commit | 0 | D436 已收口；勿 add `dev/loop` / `worktree-pool` |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked` leftover；跳过 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `815b4ad48e3` | `dev/loop` + `.idea` | 0 | 未代拉；勿 add `dev/loop` |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。本仓只读面 + Composer `model_profile_id` **已挂**。钉死工位 seed 后 grpcurl **Chat PASS**。下一刀是 IDE Direct Address 接通后 Composer 发送（PRD-008 仍要隔离 profile 冒烟）。**不升 PRD-008**。不要再清 store。D26 store 已闭，旧「迁移卡死」账见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md) |
-| **loop 切片** | `MERGE_SHA`=`2c66dad74c0`（D432/D433/D434 已合；已 push `loop/merge`/`agent-ide`）。compile-client 0。**D405** 手测仍开。**D435** Agents leftover Tools 页 chrome、**D436** MCP Runtime in-flight tools 仍开。不关 D8/D16/D147。下号 **D437**。未升 PRD-008。不得宣称 leftover wave 完成。 |
+| **loop 切片** | `MERGE_SHA`=`2c66dad74c0`（D432/D433/D434 已合；已 push `loop/merge`/`agent-ide`）。本槽 **D436** 已收口（未 commit）。compile-client 未跑。**D405** 手测仍开。**D435** Agents leftover Tools 页 chrome 仍开。不关 D8/D16/D147。下号 **D438**。未升 PRD-008。不得宣称 leftover wave 完成。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
