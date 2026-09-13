@@ -195,6 +195,7 @@ export class EngineToolsSection extends Disposable {
 	private readonly infoHost: HTMLElement;
 	private readonly instantiationService: IInstantiationService;
 	private list: WorkbenchList<EngineToolListEntry> | undefined;
+	private lastLayout: { readonly width: number; readonly listHeight: number } | undefined;
 
 	private mode: EngineCatalogPaneMode = 'disconnected';
 	private listEntries: EngineToolListEntry[] = [];
@@ -264,6 +265,7 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	layout(width: number, listHeight: number): void {
+		this.lastLayout = { width, listHeight };
 		this.list?.layout(Math.max(80, listHeight), width);
 	}
 
@@ -330,6 +332,10 @@ export class EngineToolsSection extends Disposable {
 
 	isSaveToolbarVisible(): boolean {
 		return this.writeToolbar.style.display !== 'none';
+	}
+
+	getSelectedToolName(): string | undefined {
+		return this.selectedToolName;
 	}
 
 	isToolInfoVisible(): boolean {
@@ -531,6 +537,25 @@ export class EngineToolsSection extends Disposable {
 		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
 	}
 
+	private relayoutLeftoverList(): void {
+		if (this.lastLayout && this.list) {
+			this.list.layout(Math.max(80, this.lastLayout.listHeight), this.lastLayout.width);
+		}
+	}
+
+	private restoreToolSelection(): void {
+		const name = this.selectedToolName;
+		if (!name || !this.list) {
+			return;
+		}
+		const index = this.listEntries.findIndex(entry => entry.kind === 'tool' && entry.tool.name === name);
+		if (index < 0) {
+			this.selectedToolName = undefined;
+			return;
+		}
+		this.list.setSelection([index]);
+	}
+
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): void {
 		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
 			this.hideCatalogWriteStatus();
@@ -542,6 +567,16 @@ export class EngineToolsSection extends Disposable {
 			// detail honesty on refresh; do not wait for another selectTool.
 			if (this.hasLeftoverToolInfo()) {
 				this.paintToolInfoHonesty(getEngineSectionDisconnectedCopy());
+			}
+			// D426: pairing-hold / leftover-looks-live KEEP must close leftover
+			// row toggle chrome on refresh; do not wait for another selectTool.
+			// Save hide / D415 honesty alone left leftover checkboxes looking live.
+			// `list.rerender()` is a no-op unless supportDynamicHeights; splice
+			// the leftover entries so renderElement can disable toggles.
+			this.relayoutLeftoverList();
+			if (this.list && this.listEntries.length > 0) {
+				this.list.splice(0, this.list.length, this.listEntries);
+				this.restoreToolSelection();
 			}
 			return;
 		}
