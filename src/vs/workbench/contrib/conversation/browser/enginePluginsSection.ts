@@ -419,6 +419,19 @@ export class EnginePluginsSection extends Disposable {
 		return false;
 	}
 
+	private closeLeftoverWriteChrome(): void {
+		// D430: leftover after capability UNKNOWN / list-fail must close leftover
+		// Enable/Reload/Unload/Scan chrome on refresh; do not wait for
+		// another selectPlugin. D428 only covered pairing-hold KEEP.
+		// Hide toolbar + renderStatus() left leftover write buttons looking
+		// live (`enabled` / aria-disabled=false). Plugins have no row toggle.
+		// `list.rerender()` is a no-op unless supportDynamicHeights; splice
+		// would not paint write chrome (rows are name+summary only).
+		// Equivalent: disable after mode via canWrite().
+		this.updateWriteToolbar();
+		this.updateRowActions();
+	}
+
 	private async refresh(): Promise<boolean> {
 		const generation = ++this.refreshGeneration;
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
@@ -452,6 +465,9 @@ export class EnginePluginsSection extends Disposable {
 			this.writeToolbar.style.display = 'none';
 			this.rowToolbar.style.display = 'none';
 			this.renderStatus({ loadingKind: 'capability' });
+			if (hadLiveCatalog) {
+				this.closeLeftoverWriteChrome();
+			}
 			return false;
 		}
 
@@ -506,6 +522,9 @@ export class EnginePluginsSection extends Disposable {
 				reason: getTransportErrorMessage(error),
 				onRetry: () => void this.refresh(),
 			});
+			if (hadLiveCatalog) {
+				this.closeLeftoverWriteChrome();
+			}
 			return false;
 		}
 	}
