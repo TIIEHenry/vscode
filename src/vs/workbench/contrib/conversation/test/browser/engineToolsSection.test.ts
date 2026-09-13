@@ -10,8 +10,10 @@ import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeA
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
 	UniverseAgentCapabilitySnapshot,
+	UniverseAgentCapabilitySupport,
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentListToolsResult,
+	UniverseAgentSaveAgentProfileRequest,
 	UniverseAgentSessionEvent,
 	UniverseAgentSessionStreamCloseCause,
 	UniverseAgentToolInfoRequest,
@@ -19,9 +21,12 @@ import type {
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
+import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy } from '../../browser/engineCatalog.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { EngineToolsSection } from '../../browser/engineToolsSection.js';
 import { localize } from '../../../../../nls.js';
+
+const TOOLS_FEATURE = localize('ua.engineToolsFeatureLabel', "engine tools");
 
 const LEFTOVER_TOOL_INFO_DESC = 'Run leftover command';
 const TOOLS_INFO_FAILED_COPY = localize('ua.engineToolsInfoFailed', "Could not load tool details from the engine.");
@@ -48,16 +53,19 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 	function createConnectionStub(options: {
 		connected?: boolean;
 		looksLive?: boolean;
+		toolsSupport?: UniverseAgentCapabilitySupport;
 		listTools?: () => Promise<UniverseAgentListToolsResult>;
+		saveAgentProfile?: (request: UniverseAgentSaveAgentProfileRequest) => Promise<{ profile: UniverseAgentSaveAgentProfileRequest['profile'] }>;
 		getToolInfo?: (request: UniverseAgentToolInfoRequest) => Promise<UniverseAgentToolInfoResult>;
 	} = {}): IUniverseAgentConnection & {
 		setConnected(value: boolean): void;
 		setPairingPending(value: boolean): void;
+		setToolsSupport(support: UniverseAgentCapabilitySupport): void;
 		clearGetToolInfo(): void;
 	} {
 		const toolsCapability = {
 			...createEmptyCapabilitySnapshot().tools,
-			support: 'SUPPORTED' as const,
+			support: options.toolsSupport ?? 'SUPPORTED',
 		};
 		const capabilities: UniverseAgentCapabilitySnapshot = {
 			...createEmptyCapabilitySnapshot(),
@@ -128,7 +136,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 			listAgentProfiles: async () => ({
 				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
 			}),
-			saveAgentProfile: async (request) => ({ profile: request.profile }),
+			saveAgentProfile: options.saveAgentProfile ?? (async (request) => ({ profile: request.profile })),
 			deleteAgentProfile: async () => ({ ok: true }),
 			resetAgentProfile: async () => ({ ok: true }),
 			listMcpServers: async () => ({ servers: [] }),
@@ -156,6 +164,10 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 			},
 			setPairingPending(value: boolean) {
 				pairingPending = value;
+				onDidChangeConnection.fire(snapshot());
+			},
+			setToolsSupport(support: UniverseAgentCapabilitySupport) {
+				toolsCapability.support = support;
 				onDidChangeConnection.fire(snapshot());
 			},
 			clearGetToolInfo() {
@@ -378,5 +390,125 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		assert.ok(detail.includes(LEFTOVER_TOOL_INFO_DESC));
 		assert.ok(detail.includes('does not expose'));
 		assert.deepStrictEqual([...leftoverInfoStatus(section).classList], ['engine-tools-info-status', 'is-error']);
+	});
+
+	test('first-pull capability UNKNOWN is empty with capability loading', async () => {
+		let listToolsCalls = 0;
+		const connection = createConnectionStub({
+			toolsSupport: 'UNKNOWN',
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [leftoverBashTool()] };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'loading');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(section.canWrite(), false);
+		assert.strictEqual(listToolsCalls, 0, 'first-pull UNKNOWN must not listTools');
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		assert.ok(status.textContent?.includes(getCatalogUnknownCopy()));
+		assert.ok(!(status.textContent ?? '').includes(getCatalogListLoadingCopy()));
+	});
+
+	test('capability UNKNOWN leftover closes leftover row toggle chrome without reselect', async () => {
+		const leftover = leftoverBashTool();
+		const saveCalls: UniverseAgentSaveAgentProfileRequest[] = [];
+		let listToolsCalls = 0;
+		const connection = createConnectionStub({
+			getToolInfo: async () => leftoverBashToolInfo(),
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [leftover] };
+			},
+			saveAgentProfile: async (request) => {
+				saveCalls.push(request);
+				return { profile: request.profile };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		section.layout(640, 160);
+
+		assert.strictEqual(section.selectTool('leftover-bash'), true);
+		await flushMicrotasks();
+		assert.strictEqual(section.getSelectedToolName(), 'leftover-bash');
+		assert.strictEqual(section.canWrite(), true);
+		assert.strictEqual(section.isSaveToolbarVisible(), true);
+		assertLeftoverToolsRowTogglesLive(section);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listToolsCalls;
+
+		connection.setToolsSupport('UNKNOWN');
+		await flushMicrotasks();
+
+		assert.strictEqual(listToolsCalls, listCallsAfterLoad, 'UNKNOWN leftover must not extra listTools');
+		assert.strictEqual(section.getMode(), 'loading');
+		assert.strictEqual(section.getListEntryCount(), leftoverRows);
+		assert.strictEqual(section.getSelectedToolName(), 'leftover-bash');
+		assert.strictEqual(section.canWrite(), false);
+		assert.strictEqual(section.isSaveToolbarVisible(), false);
+		assertLeftoverToolsRowTogglesClosed(section);
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		assert.ok(status.textContent?.includes(getCatalogUnknownCopy()));
+		assert.ok(!(status.textContent ?? '').includes(getCatalogListLoadingCopy()));
+		assert.strictEqual(await section.toggleTool(leftover, false), false);
+		assert.strictEqual(await section.savePendingEnablement(), false);
+		assert.deepStrictEqual(saveCalls, []);
+	});
+
+	test('list-fail leftover closes leftover row toggle chrome without reselect', async () => {
+		const leftover = leftoverBashTool();
+		const saveCalls: UniverseAgentSaveAgentProfileRequest[] = [];
+		let listToolsCalls = 0;
+		const connection = createConnectionStub({
+			getToolInfo: async () => leftoverBashToolInfo(),
+			listTools: async () => {
+				listToolsCalls++;
+				if (listToolsCalls === 1) {
+					return { tools: [leftover] };
+				}
+				throw new Error('listTools retry exploded');
+			},
+			saveAgentProfile: async (request) => {
+				saveCalls.push(request);
+				return { profile: request.profile };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		section.layout(640, 160);
+
+		assert.strictEqual(section.selectTool('leftover-bash'), true);
+		await flushMicrotasks();
+		assert.strictEqual(section.getSelectedToolName(), 'leftover-bash');
+		assert.strictEqual(section.canWrite(), true);
+		assert.strictEqual(section.isSaveToolbarVisible(), true);
+		assertLeftoverToolsRowTogglesLive(section);
+		const leftoverRows = section.getListEntryCount();
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(listToolsCalls, 2);
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), leftoverRows);
+		assert.strictEqual(section.getSelectedToolName(), 'leftover-bash');
+		assert.strictEqual(section.canWrite(), false);
+		assert.strictEqual(section.isSaveToolbarVisible(), false);
+		assertLeftoverToolsRowTogglesClosed(section);
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(TOOLS_FEATURE, 'listTools retry exploded')));
+		assert.strictEqual(await section.toggleTool(leftover, false), false);
+		assert.strictEqual(await section.savePendingEnablement(), false);
+		assert.deepStrictEqual(saveCalls, []);
 	});
 });
