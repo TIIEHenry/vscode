@@ -38,6 +38,7 @@ import {
 	type EngineToolCatalogGroup,
 } from './engineToolProfile.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
+import { writeStatus } from './connectionPreferencesPane.js';
 
 const $ = DOM.$;
 
@@ -462,12 +463,12 @@ export class EngineToolsSection extends Disposable {
 
 	private hideCatalogWriteStatus(): void {
 		this.catalogWriteStatus.style.display = 'none';
-		this.catalogWriteStatus.textContent = '';
+		writeStatus(this.catalogWriteStatus, '');
 	}
 
 	private showCatalogWriteFailed(message: string): void {
 		this.catalogWriteStatus.style.display = '';
-		this.catalogWriteStatus.textContent = message;
+		writeStatus(this.catalogWriteStatus, message, 'error');
 	}
 
 	private updateSaveChrome(): void {

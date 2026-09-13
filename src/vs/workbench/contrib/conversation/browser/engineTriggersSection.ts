@@ -36,6 +36,7 @@ import {
 } from './engineTriggerList.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { writeStatus } from './connectionPreferencesPane.js';
 
 const $ = DOM.$;
 
@@ -224,13 +225,13 @@ export class EngineTriggersSection extends Disposable {
 
 	private clearWriteStatuses(): void {
 		this.fireStatus.style.display = 'none';
-		this.fireStatus.textContent = '';
+		writeStatus(this.fireStatus, '');
 		this.enabledStatus.style.display = 'none';
-		this.enabledStatus.textContent = '';
+		writeStatus(this.enabledStatus, '');
 		this.deleteStatus.style.display = 'none';
-		this.deleteStatus.textContent = '';
+		writeStatus(this.deleteStatus, '');
 		this.upsertStatus.style.display = 'none';
-		this.upsertStatus.textContent = '';
+		writeStatus(this.upsertStatus, '');
 	}
 
 	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
@@ -352,12 +353,12 @@ export class EngineTriggersSection extends Disposable {
 		const request = engineTriggerSetEnabledRequest(this.selectedTrigger, enabled);
 		try {
 			const result = await hook.call(this.connection, request);
-			this.enabledStatus.textContent = `${formatEngineTriggerListLabel(result.trigger)} — ${result.trigger.enabled}`;
 			this.enabledStatus.style.display = '';
+			writeStatus(this.enabledStatus, `${formatEngineTriggerListLabel(result.trigger)} — ${result.trigger.enabled}`, 'success');
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
-			this.enabledStatus.textContent = reason;
 			this.enabledStatus.style.display = '';
+			writeStatus(this.enabledStatus, reason, 'error');
 		}
 	}
 
@@ -369,12 +370,12 @@ export class EngineTriggersSection extends Disposable {
 		const request = engineTriggerFireRequest(this.selectedTrigger);
 		try {
 			const result = await hook.call(this.connection, request);
-			this.fireStatus.textContent = `${result.status} — ${result.eventId} — ${result.reason}`;
 			this.fireStatus.style.display = '';
+			writeStatus(this.fireStatus, `${result.status} — ${result.eventId} — ${result.reason}`, 'success');
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
-			this.fireStatus.textContent = reason;
 			this.fireStatus.style.display = '';
+			writeStatus(this.fireStatus, reason, 'error');
 		}
 	}
 
@@ -386,17 +387,17 @@ export class EngineTriggersSection extends Disposable {
 		const request = engineTriggerDeleteRequest(this.selectedTrigger);
 		try {
 			await hook.call(this.connection, request);
-			this.deleteStatus.textContent = ENGINE_TRIGGER_DELETE_SUCCESS_COPY;
 			this.deleteStatus.style.display = '';
+			writeStatus(this.deleteStatus, ENGINE_TRIGGER_DELETE_SUCCESS_COPY, 'success');
 			const listed = await this.refresh();
 			if (listed) {
-				this.deleteStatus.textContent = ENGINE_TRIGGER_DELETE_SUCCESS_COPY;
 				this.deleteStatus.style.display = '';
+				writeStatus(this.deleteStatus, ENGINE_TRIGGER_DELETE_SUCCESS_COPY, 'success');
 			}
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
-			this.deleteStatus.textContent = reason;
 			this.deleteStatus.style.display = '';
+			writeStatus(this.deleteStatus, reason, 'error');
 		}
 	}
 
@@ -408,17 +409,17 @@ export class EngineTriggersSection extends Disposable {
 		const request = engineTriggerUpsertRequest(this.selectedTrigger, mode);
 		try {
 			const result = await hook.call(this.connection, request);
-			this.upsertStatus.textContent = formatEngineTriggerListLabel(result.trigger);
 			this.upsertStatus.style.display = '';
+			writeStatus(this.upsertStatus, formatEngineTriggerListLabel(result.trigger), 'success');
 			const listed = await this.refresh();
 			if (listed) {
-				this.upsertStatus.textContent = formatEngineTriggerListLabel(result.trigger);
 				this.upsertStatus.style.display = '';
+				writeStatus(this.upsertStatus, formatEngineTriggerListLabel(result.trigger), 'success');
 			}
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
-			this.upsertStatus.textContent = reason;
 			this.upsertStatus.style.display = '';
+			writeStatus(this.upsertStatus, reason, 'error');
 		}
 	}
 }

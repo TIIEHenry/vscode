@@ -31,6 +31,7 @@ import {
 } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
+import { writeStatus } from './connectionPreferencesPane.js';
 
 const $ = DOM.$;
 
@@ -693,12 +694,12 @@ export class EnginePluginsSection extends Disposable {
 
 	private hideCatalogWriteStatus(): void {
 		this.catalogWriteStatus.style.display = 'none';
-		this.catalogWriteStatus.textContent = '';
+		writeStatus(this.catalogWriteStatus, '');
 	}
 
 	private showCatalogWriteStatus(message: string): void {
 		this.catalogWriteStatus.style.display = '';
-		this.catalogWriteStatus.textContent = message;
+		writeStatus(this.catalogWriteStatus, message, 'success');
 	}
 
 	private showWriteFailed(error: unknown): void {
@@ -707,7 +708,8 @@ export class EnginePluginsSection extends Disposable {
 		this.lastWritePermissionDenied = isPermissionDeniedError(error);
 		this.writeFailedReason = reason;
 		this.lastScan = undefined;
-		this.hideCatalogWriteStatus();
+		this.catalogWriteStatus.style.display = '';
+		writeStatus(this.catalogWriteStatus, reason, 'error');
 		this.renderScanResult();
 		this.status.render({
 			mode: 'failed',

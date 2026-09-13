@@ -539,6 +539,8 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.ok(writeStatus);
 		assert.notStrictEqual(writeStatus.style.display, 'none');
 		assert.ok(writeStatus.textContent?.includes(createFailed));
+		assert.deepStrictEqual([...writeStatus.classList], ['engine-skill-write-status', 'is-error']);
+		assert.deepStrictEqual([...bodyStatus.classList], ['engine-skill-body-status', 'is-error']);
 	});
 
 	test('toggleSkill ok:false paints write-status and keeps catalog', async () => {
@@ -571,6 +573,7 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.ok(writeStatus);
 		assert.notStrictEqual(writeStatus.style.display, 'none');
 		assert.ok(writeStatus.textContent?.includes(toggleFailed));
+		assert.deepStrictEqual([...writeStatus.classList], ['engine-skill-write-status', 'is-error']);
 	});
 
 	test('toggleSkill throw paints write-status and keeps catalog', async () => {
@@ -605,6 +608,7 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.ok(writeStatus);
 		assert.notStrictEqual(writeStatus.style.display, 'none');
 		assert.ok(writeStatus.textContent?.includes(toggleFailed));
+		assert.deepStrictEqual([...writeStatus.classList], ['engine-skill-write-status', 'is-error']);
 	});
 
 	test('toggleSkill success does not keep toggle-success when subsequent listSkills fails', async () => {
@@ -692,6 +696,7 @@ suite('EngineSkillsSection (E1)', () => {
 			assert.ok(writeStatus);
 			assert.notStrictEqual(writeStatus.style.display, 'none');
 			assert.ok(writeStatus.textContent?.includes(toggleSuccess));
+			assert.deepStrictEqual([...writeStatus.classList], ['engine-skill-write-status', 'is-success']);
 			assert.strictEqual(section.getMode(), 'ready');
 			assert.strictEqual(section.getListEntryCount(), 1);
 			assert.deepStrictEqual(unhandledRejections, []);

@@ -718,6 +718,7 @@ suite('ConversationEngineSnapshotsList', () => {
 		const status = writeStatus(overlayParent);
 		assert.strictEqual(status?.textContent, ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY);
 		assert.ok(!status?.hidden);
+		assert.deepStrictEqual([...(status?.classList ?? [])], [conversationLensSnapshotsWriteStatusClass, 'is-success']);
 	});
 
 	test('restore success does not keep restore-success when subsequent listSnapshots fails', async () => {
@@ -782,6 +783,7 @@ suite('ConversationEngineSnapshotsList', () => {
 		const status = writeStatus(overlayParent);
 		assert.strictEqual(status?.textContent, formatEngineSnapshotRestoreFailedCopy('denied'));
 		assert.ok(!status?.hidden);
+		assert.deepStrictEqual([...(status?.classList ?? [])], [conversationLensSnapshotsWriteStatusClass, 'is-error']);
 	});
 
 	test('restore throw does not refresh list', async () => {
@@ -809,6 +811,7 @@ suite('ConversationEngineSnapshotsList', () => {
 		const status = writeStatus(overlayParent);
 		assert.strictEqual(status?.textContent, formatEngineSnapshotRestoreFailedCopy('transport reset'));
 		assert.ok(!status?.hidden);
+		assert.deepStrictEqual([...(status?.classList ?? [])], [conversationLensSnapshotsWriteStatusClass, 'is-error']);
 	});
 
 	test('empty snapshotId restore does not send or refresh', async () => {

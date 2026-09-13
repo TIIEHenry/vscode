@@ -885,6 +885,7 @@ suite('EngineTriggersSection', () => {
 		assert.ok(deleteStatus);
 		assert.strictEqual(deleteStatus.textContent, ENGINE_TRIGGER_DELETE_SUCCESS_COPY);
 		assert.notStrictEqual(deleteStatus.style.display, 'none');
+		assert.deepStrictEqual([...deleteStatus.classList], ['engine-triggers-delete-status', 'is-success']);
 		pane.getDomNode().parentElement?.remove();
 	});
 
@@ -988,6 +989,7 @@ suite('EngineTriggersSection', () => {
 		assert.ok(deleteStatus);
 		assert.strictEqual(deleteStatus.textContent, 'boom');
 		assert.notStrictEqual(deleteStatus.style.display, 'none');
+		assert.deepStrictEqual([...deleteStatus.classList], ['engine-triggers-delete-status', 'is-error']);
 		pane.getDomNode().parentElement?.remove();
 	});
 

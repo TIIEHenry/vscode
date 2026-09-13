@@ -33,6 +33,7 @@ import {
 } from './engineClipboardList.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
+import { writeStatus } from './connectionPreferencesPane.js';
 
 const $ = DOM.$;
 
@@ -150,11 +151,11 @@ export class EngineClipboardSection extends Disposable {
 		);
 
 		this.writeStatus.style.display = 'none';
-		this.writeStatus.textContent = '';
+		writeStatus(this.writeStatus, '');
 		this.readStatus.style.display = 'none';
-		this.readStatus.textContent = '';
+		writeStatus(this.readStatus, '');
 		this.clearStatus.style.display = 'none';
-		this.clearStatus.textContent = '';
+		writeStatus(this.clearStatus, '');
 		this.updateWriteAction();
 		this.updateReadAction();
 		this.updateClearAction();
@@ -314,17 +315,17 @@ export class EngineClipboardSection extends Disposable {
 		const request = engineClipboardWriteRequest();
 		try {
 			const result = await hook.call(this.connection, request);
-			this.writeStatus.textContent = formatEngineClipboardWriteLabel(result.clipId);
 			this.writeStatus.style.display = '';
+			writeStatus(this.writeStatus, formatEngineClipboardWriteLabel(result.clipId), 'success');
 			const listed = await this.refresh();
 			if (listed) {
-				this.writeStatus.textContent = formatEngineClipboardWriteLabel(result.clipId);
 				this.writeStatus.style.display = '';
+				writeStatus(this.writeStatus, formatEngineClipboardWriteLabel(result.clipId), 'success');
 			}
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
-			this.writeStatus.textContent = reason;
 			this.writeStatus.style.display = '';
+			writeStatus(this.writeStatus, reason, 'error');
 		}
 	}
 
@@ -336,12 +337,12 @@ export class EngineClipboardSection extends Disposable {
 		const request = engineClipboardReadRequest(this.selectedEntry);
 		try {
 			const result = await hook.call(this.connection, request);
-			this.readStatus.textContent = formatEngineClipboardReadLabel(result.entry);
 			this.readStatus.style.display = '';
+			writeStatus(this.readStatus, formatEngineClipboardReadLabel(result.entry), 'success');
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
-			this.readStatus.textContent = reason;
 			this.readStatus.style.display = '';
+			writeStatus(this.readStatus, reason, 'error');
 		}
 	}
 
@@ -353,17 +354,17 @@ export class EngineClipboardSection extends Disposable {
 		const request = engineClipboardClearRequest();
 		try {
 			const result = await hook.call(this.connection, request);
-			this.clearStatus.textContent = formatEngineClipboardClearLabel(result.removedCount);
 			this.clearStatus.style.display = '';
+			writeStatus(this.clearStatus, formatEngineClipboardClearLabel(result.removedCount), 'success');
 			const listed = await this.refresh();
 			if (listed) {
-				this.clearStatus.textContent = formatEngineClipboardClearLabel(result.removedCount);
 				this.clearStatus.style.display = '';
+				writeStatus(this.clearStatus, formatEngineClipboardClearLabel(result.removedCount), 'success');
 			}
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
-			this.clearStatus.textContent = reason;
 			this.clearStatus.style.display = '';
+			writeStatus(this.clearStatus, reason, 'error');
 		}
 	}
 }

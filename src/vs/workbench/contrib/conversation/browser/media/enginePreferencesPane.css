@@ -384,6 +384,36 @@
 	word-break: break-word;
 }
 
+.monaco-workbench .engine-triggers-fire-status.is-success,
+.monaco-workbench .engine-triggers-enabled-status.is-success,
+.monaco-workbench .engine-triggers-delete-status.is-success,
+.monaco-workbench .engine-triggers-upsert-status.is-success,
+.monaco-workbench .engine-clipboard-write-status.is-success,
+.monaco-workbench .engine-clipboard-read-status.is-success,
+.monaco-workbench .engine-clipboard-clear-status.is-success,
+.monaco-workbench .engine-context-variable-read-status.is-success,
+.monaco-workbench .engine-skill-write-status.is-success,
+.monaco-workbench .engine-skill-body-status.is-success,
+.monaco-workbench .engine-catalog-write-status.is-success,
+.monaco-workbench .engine-agents-editor-status.is-success {
+	color: var(--vscode-testing-iconPassed);
+}
+
+.monaco-workbench .engine-triggers-fire-status.is-error,
+.monaco-workbench .engine-triggers-enabled-status.is-error,
+.monaco-workbench .engine-triggers-delete-status.is-error,
+.monaco-workbench .engine-triggers-upsert-status.is-error,
+.monaco-workbench .engine-clipboard-write-status.is-error,
+.monaco-workbench .engine-clipboard-read-status.is-error,
+.monaco-workbench .engine-clipboard-clear-status.is-error,
+.monaco-workbench .engine-context-variable-read-status.is-error,
+.monaco-workbench .engine-skill-write-status.is-error,
+.monaco-workbench .engine-skill-body-status.is-error,
+.monaco-workbench .engine-catalog-write-status.is-error,
+.monaco-workbench .engine-agents-editor-status.is-error {
+	color: var(--vscode-errorForeground);
+}
+
 /* ---------------------------------------------------------------------------------------------
  * Section content
  * ------------------------------------------------------------------------------------------ */

@@ -27,6 +27,7 @@ import {
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { EngineMcpRuntimePanel } from './engineMcpRuntimePanel.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
+import { writeStatus } from './connectionPreferencesPane.js';
 
 const $ = DOM.$;
 
@@ -451,12 +452,12 @@ export class EngineMcpSection extends Disposable {
 
 	private hideCatalogWriteStatus(): void {
 		this.catalogWriteStatus.style.display = 'none';
-		this.catalogWriteStatus.textContent = '';
+		writeStatus(this.catalogWriteStatus, '');
 	}
 
 	private showCatalogWriteStatus(message: string): void {
 		this.catalogWriteStatus.style.display = '';
-		this.catalogWriteStatus.textContent = message;
+		writeStatus(this.catalogWriteStatus, message, 'success');
 	}
 
 	private showWriteFailed(error: unknown): void {
@@ -466,6 +467,8 @@ export class EngineMcpSection extends Disposable {
 				? error.message
 				: localize('ua.engineMcpWriteFailed', "The engine rejected the MCP write."));
 		this.writeFailedReason = reason;
+		this.catalogWriteStatus.style.display = '';
+		writeStatus(this.catalogWriteStatus, reason, 'error');
 		this.status.render({
 			mode: 'failed',
 			featureLabel: MCP_FEATURE,

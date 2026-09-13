@@ -26,6 +26,7 @@ import {
 } from './engineContextVariableList.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
+import { writeStatus } from './connectionPreferencesPane.js';
 
 const $ = DOM.$;
 
@@ -116,7 +117,7 @@ export class EngineContextVariableSection extends Disposable {
 		);
 
 		this.readStatus.style.display = 'none';
-		this.readStatus.textContent = '';
+		writeStatus(this.readStatus, '');
 		this.updateReadAction();
 
 		// D351 leftover-looks-live: pairing-hold first. KEEP is not only leftover + pairingHold.
@@ -255,12 +256,12 @@ export class EngineContextVariableSection extends Disposable {
 		const request = engineContextVariableReadRequest(this.selectedRow?.entry);
 		try {
 			const result = await hook.call(this.connection, request);
-			this.readStatus.textContent = formatEngineContextVariableReadLabel(result.entry);
 			this.readStatus.style.display = '';
+			writeStatus(this.readStatus, formatEngineContextVariableReadLabel(result.entry), 'success');
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
-			this.readStatus.textContent = reason;
 			this.readStatus.style.display = '';
+			writeStatus(this.readStatus, reason, 'error');
 		}
 	}
 }

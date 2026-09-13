@@ -1187,6 +1187,11 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(section.canWrite(), true);
 		assert.strictEqual(await section.addServer(completeMcpAddConfig()), true);
 		assert.strictEqual(addCalls.length, 1);
+		const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+		assert.ok(writeStatus);
+		assert.notStrictEqual(writeStatus.style.display, 'none');
+		assert.strictEqual(writeStatus.textContent, ENGINE_MCP_ADD_SUCCESS_COPY);
+		assert.deepStrictEqual([...writeStatus.classList], ['engine-catalog-write-status', 'is-success']);
 	});
 
 	test('Agents: disconnected Open Connection executeCommand reject does not leak unhandled rejection', async () => {
@@ -1727,6 +1732,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.notStrictEqual(writeStatus.style.display, 'none');
 		assert.ok(writeStatus.textContent?.includes(expectedReason));
 		assert.ok(writeStatus.textContent?.includes('Unable to save:'));
+		assert.deepStrictEqual([...writeStatus.classList], ['engine-catalog-write-status', 'is-error']);
 	}
 
 	test('Tools: savePendingEnablement / toggleTool empty id paints write-status and keeps catalog rows', async () => {
@@ -1891,6 +1897,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(writeStatus.getAttribute('role'), 'status');
 		assert.notStrictEqual(writeStatus.style.display, 'none');
 		assert.ok(writeStatus.textContent?.includes(expectedReason));
+		assert.deepStrictEqual([...writeStatus.classList], ['engine-catalog-write-status', 'is-error']);
 	}
 
 	test('Agents: create/delete/reset ok:false paints write-status and keeps catalog rows', async () => {
@@ -2036,6 +2043,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok(writeStatus);
 		assert.notStrictEqual(writeStatus.textContent, successCopy);
 		assert.ok(!(writeStatus.textContent ?? '').includes(successCopy));
+		assert.deepStrictEqual([...writeStatus.classList], ['engine-catalog-write-status']);
 
 		const catalog = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
 		assert.ok(catalog);
@@ -3360,6 +3368,11 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.notStrictEqual(status.style.display, 'none');
 		assert.strictEqual(status.dataset['catalogMode'], 'failed');
 		assert.ok(status.textContent?.includes(getCatalogFailedCopy(MCP_FEATURE, reason)));
+		const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+		assert.ok(writeStatus);
+		assert.notStrictEqual(writeStatus.style.display, 'none');
+		assert.ok(writeStatus.textContent?.includes(reason));
+		assert.deepStrictEqual([...writeStatus.classList], ['engine-catalog-write-status', 'is-error']);
 	}
 
 	test('MCP: add/update/remove ok:false shows write-failure status and keeps catalog rows', async () => {
@@ -3510,6 +3523,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok(writeStatus);
 		assert.notStrictEqual(writeStatus.textContent, successCopy);
 		assert.ok(!(writeStatus.textContent ?? '').includes(successCopy));
+		assert.deepStrictEqual([...writeStatus.classList], ['engine-catalog-write-status']);
 
 		const catalog = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
 		assert.ok(catalog);

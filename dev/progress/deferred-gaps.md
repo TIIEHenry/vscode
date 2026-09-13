@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-12
-summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 仍开；D25/D26 已闭（2026-09-12 换钉复验 List/Create；seed 后 Chat PASS）；D195–D274 / D406–D411 已闭；D410=`9974bfa2822`；D411=`0ae05e427f9`；D412 占 D；下号 D413；D22 F3；D24 其余 JSON RPC；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
+summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 仍开；D25/D26 已闭（2026-09-12 换钉复验 List/Create；seed 后 Chat PASS）；D406–D412 已闭；D410=`9974bfa2822`；D411=`0ae05e427f9`；D412 已合入；下号 D413"
 ---
 
 # Deferred Gaps
@@ -425,7 +425,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 仍开；D25/D26 已闭（2
 | D409 | P3 | **closed** `NavigatorSessionLeaseHolder.refreshLease` acquire throw 后只 `lease=undefined` + `onAcquireError`，不调 `onLeaseChanged`。`setVisible` 本身不 `scheduleRefresh`。hide→show 再 acquire throw 时 Team/Agents 旧行继续像 live。本刀 catch 仍通知；holder 回到无 lease。补 hide→show throw 测：不是旧 lease 仍 live。既有 Team 首拉 notice 测仍绿。未碰 connection reconnect / conversation host / proto / Sources / `dev/loop`。已合入 `c061be1cbbb`。不占 D408。 | 工位 B `navigator-lease-acquire-throw`；`scripts/test.sh --run` holder + Team + Agents **76 passing / 0 fail**（holder 1 + Team 既有含首拉 + hide→show 1 + Agents 既有） | acquire throw 后 `onLeaseChanged`；`getLease()===undefined`；hide→show 不是 leftover-looks-live。Team 首拉 notice 仍绿。**不得**宣称 leftover wave 完成。未关 D16。 | M7 navigator | closed |
 | D410 | P2 | **closed** `_fireReconnect` 在 `connectProfile({reconnect:true})` 失败后再走同一 `_scheduleReconnect` 退避（attempt 递增，不 tight-loop）。覆盖 `{ok:false, code:'transport_failed'}` 与非 `UniverseAgentTransportError` throw；pairing_required / hub_auth_expired / hub_session_required 仍停拨。D408 合同保持。A letter-commit `f4acb938092`（375/0；OV PASS）。已合入 `9974bfa2822`。未升 PRD-008。未关 D405。不占 D411/D412。 | 工位 A `d410-reconnect-fail-reschedule`；375/0；merge compile-client 0 | 失败后再调度测绿；既有 D408 suite 仍绿。未升 PRD-008。未关 D405 手测。 | universeAgent / connection | closed |
 | D411 | P2 | **closed** Engine Preferences「Test Engine」`runEngineTest` 复用 Connection 导出的 `writeStatus`：成功 `success` tone、失败/throw `error` tone、`Testing…` 中性。页脚与 banner 按钮同走 `runEngineTest`。Engine CSS `.engine-test-status.is-success/.is-error` 对齐 Connection 色。B `cf5a51c1eb7`（19/0）。已合入 `0ae05e427f9`。未升 PRD-008。未关 D8/D16/D147/D405。 | 工位 B `engine-test-tone`；19/0；merge compile-client 0 | `runEngineTest` 走 `writeStatus`；Reachable `.is-success`；Unreachable/throw `.is-error`；Testing 无 success/error。未关 D16。 | conversation / engine-preferences | closed |
-| D412 | P3 | Engine catalog / section 写状态（`.engine-catalog-write-status` / `.engine-skill-write-status` / Triggers·Clipboard·Context Variable 等同组）只写 `textContent`，无 success/error 色。D411 只收 Test Engine。本波占 D，未实施。 | D411 不扩修 catalog 写状态 | 各写状态走同一 `writeStatus` + 测锁 class | conversation / engine-preferences | open |
+| D412 | P3 | **closed** Engine catalog / section 写状态复用 Connection 导出的 `writeStatus`：成功 `.is-success`、失败/`ok:false`/throw `.is-error`、clear/pending 中性。覆盖 MCP/Skills/Tools/Agents/Plugins/Triggers/Clipboard/Context Variable 与 Snapshots overlay（不重做 leftover-keep）。写失败不 `clearCatalogPresentation`。未 compile-client。未关 D8/D16/D147/D405。未升 PRD-008。 | 工位 D `d412-catalog-write-tone`；`scripts/test.sh --run` catalog/skills/clipboard/triggers/snapshots/plugins **244/0** | 各写状态走同一 `writeStatus` + 测锁 classList。未关 D16。 | conversation / engine-preferences | closed |
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 
 `loop/merge` @ `793ff6e201f`（提交信息为「关仓：T5a Uncaught 闸门与 statusbar 二次注册幂等**已复测**」）在**仓外独立 detached 工位**上实测：

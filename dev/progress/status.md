@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-12
-summary: "D25/D26 已闭。A–F 只读面已挂。钉死工位 seed 后 grpcurl Chat PASS。PRD-008 仍待 IDE 接通冒烟。D410/D411 已合；本波 D412 占 D（代码+测未 letter-commit）。下号 D413。"
+summary: "D25/D26 已闭。A–F 只读面已挂。钉死工位 seed 后 grpcurl Chat PASS。PRD-008 仍待 IDE 接通冒烟。D410/D411/D412 已合。下号 D413。"
 ---
 
 # Development Progress
@@ -44,7 +44,7 @@ summary: "D25/D26 已闭。A–F 只读面已挂。钉死工位 seed 后 grpcurl
 | **A** | — | `idle`；HEAD == MERGE_SHA；D410=`9974bfa2822` |
 | **B** | — | `idle`；HEAD == MERGE_SHA；D411=`0ae05e427f9` |
 | **C** | — | `idle`；跳过 cascade；脏 `dev/loop` 勿 add |
-| **D** | D412 catalog 写状态色调 | `occupied`；19 文件脏未 letter-commit；勿 `checkout -B` |
+| **D** | — | `idle`；HEAD == MERGE_SHA；D412 已合入 |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 
 <details>
@@ -178,22 +178,22 @@ summary: "D25/D26 已闭。A–F 只读面已挂。钉死工位 seed 后 grpcurl
 | [D242](deferred-gaps.md)–[D288](deferred-gaps.md) | leftover + pairing | **closed** catalog leftover + pairing keep-last（含 roster turns / session sync） |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
-| [D405](deferred-gaps.md)–[D412](deferred-gaps.md) | A/B/D 本波 | D405 手测仍开；D406–D411 closed；D410=`9974bfa2822`；D411=`0ae05e427f9`；D412 占 D |
+| [D405](deferred-gaps.md)–[D412](deferred-gaps.md) | A/B/D 本波 | D405 手测仍开；D406–D412 closed；D410=`9974bfa2822`；D411=`0ae05e427f9`；D412 已合入；下号 D413 |
 ## 工位表（P0 盘点 · 2026-09-12 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `0da52a7d3a5` | status 脏（D412 占 D） | 0 | 本 tick 合入人类 unique |
-| A | `vscode-WorkTrees/A` | `loop/A` | `0da52a7d3a5` | 干净 | 0 | `idle`；跟 MERGE_SHA |
-| B | `vscode-WorkTrees/B` | `loop/B` | `0da52a7d3a5` | 干净 | 0 | `idle`；跟 MERGE_SHA |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | MERGE_SHA | 干净 | 0 | 本 tick 合入人类 unique 与 D412 |
+| A | `vscode-WorkTrees/A` | `loop/A` | MERGE_SHA | 干净 | 0 | `idle`；跟 MERGE_SHA |
+| B | `vscode-WorkTrees/B` | `loop/B` | MERGE_SHA | 干净 | 0 | `idle`；跟 MERGE_SHA |
 | C | `vscode-WorkTrees/C` | `loop/C` | `74f36dbacdf` | 未提交 `dev/loop` | 0 | 合入后仍脏 gitlink；勿 add |
-| D | `vscode-WorkTrees/D` | `loop/D` | `0da52a7d3a5` | 19 文件脏 | 0 | `occupied` D412 未 letter-commit；勿 `checkout -B` |
+| D | `vscode-WorkTrees/D` | `loop/D` | MERGE_SHA | 干净 | 0 | `idle`；跟 MERGE_SHA |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked` leftover；跳过 |
-| edit | `Projects/Agents/vscode` | `agent-ide` | 本 tick merge | `dev/loop` + `.idea` | 0 | 已授权合入；勿 add `dev/loop` |
+| edit | `Projects/Agents/vscode` | `agent-ide` | MERGE_SHA | `dev/loop` + `.idea` | 0 | 已授权合入；勿 add `dev/loop` |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。本仓只读面 + Composer `model_profile_id` **已挂**。钉死工位 seed 后 grpcurl **Chat PASS**。下一刀是 IDE Direct Address 接通后 Composer 发送（PRD-008 仍要隔离 profile 冒烟）。**不升 PRD-008**。不要再清 store。D26 store 已闭，旧「迁移卡死」账见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md) |
-| **loop 切片** | 上波 D410/D411 已合。本波 **D412** 占 D（代码+测未 letter-commit）。**D405** 手测仍开。不关 D8/D16/D147。下号 **D413**。未升 PRD-008。 |
+| **loop 切片** | D410/D411/D412 已合入。**D405** 手测仍开。不关 D8/D16/D147。下号 **D413**。未升 PRD-008。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
