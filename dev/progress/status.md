@@ -10,7 +10,7 @@ summary: "D25/D26 已闭。A–F 只读面已挂。钉死工位 seed 后 grpcurl
 # Development Progress
 > **当前迭代账**（规则 3a）。产品状态 → [traceability](../../docs/product/traceability.md)（生成列）；方案状态 → [plans INDEX](../plans/INDEX.md)（生成列）；延期 → [deferred-gaps](deferred-gaps.md)。历史槽位 catalog 流水 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
-### 已合入（`MERGE_SHA`=`0da52a7d3a5`；merge `parked` tip；已 push `origin/agent-ide`；compile-client 0）
+### 已合入（`MERGE_SHA` 见下；merge `parked` tip；compile-client 0）
 | 切片 | 提交 / 落点 |
 |:-----|:------------|
 | **GFS-1** | `32f71812` / `32198d0b` — [giant-file-split](../plans/giant-file-split.md)：`grpcClient` mapper 特征测 + facade / mappers / calls 拆分 |
