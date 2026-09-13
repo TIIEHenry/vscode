@@ -634,13 +634,16 @@ export class EngineAgentsSection extends Disposable {
 		}
 	}
 
+	private hasLeftoverAgentsMarkdown(): boolean {
+		return !!(this.loadedAgentsMarkdown || this.agentsEditorInput.value);
+	}
+
 	private hasLeftoverAgentDetail(): boolean {
 		if (!this.selectedProfile) {
 			return false;
 		}
 		// Leftover AGENTS.md (D266) or leftover tools rows / painted tools panel (D271).
-		return !!(this.loadedAgentsMarkdown || this.agentsEditorInput.value)
-			|| this.agentTools.length > 0;
+		return this.hasLeftoverAgentsMarkdown() || this.agentTools.length > 0;
 	}
 
 	private syncDetailHost(forceAgentToolsReload = false): void {
@@ -902,6 +905,14 @@ export class EngineAgentsSection extends Disposable {
 			this.listContainer.style.display = '';
 			this.mode = resolveEngineCatalogPaneMode(false, support);
 			this.renderStatus();
+			// D422: pairing-hold / leftover-looks-live KEEP must paint leftover
+			// AGENTS.md honesty on refresh; do not wait for another selectProfile.
+			if (this.hasLeftoverAgentsMarkdown()) {
+				this.showAgentsEditorStatus(getEngineSectionDisconnectedCopy(), 'error');
+			}
+			if (this.agentTools.length > 0) {
+				this.renderAgentTools();
+			}
 			return false;
 		}
 		this.clearCatalogPresentation();
@@ -1039,7 +1050,7 @@ export class EngineAgentsSection extends Disposable {
 			if (!this.agentsMarkdownDirty) {
 				// Keep leftover AGENTS.md after a live paint (D266; D233 / D253).
 				// failed/loading must not unload leftover markdown; disconnect / UNSUPPORTED / first-pull empty still clear.
-				const hasLeftoverMarkdown = !!(this.loadedAgentsMarkdown || this.agentsEditorInput.value);
+				const hasLeftoverMarkdown = this.hasLeftoverAgentsMarkdown();
 				const keepLeftoverMarkdown = (
 					this.connection.isEngineConnected()
 					&& (this.mode === 'failed' || this.mode === 'loading')
@@ -1051,7 +1062,7 @@ export class EngineAgentsSection extends Disposable {
 					this.agentsEditorInput.inputElement.readOnly = true;
 					this.agentsEditorSaveButton.enabled = false;
 				} else if (this.keepLeftoverCatalogForPairingHold(hasLeftoverMarkdown)) {
-					this.showAgentsEditorStatus(getEngineSectionDisconnectedCopy());
+					this.showAgentsEditorStatus(getEngineSectionDisconnectedCopy(), 'error');
 				}
 			}
 			this.syncDetailHost();
@@ -1068,7 +1079,7 @@ export class EngineAgentsSection extends Disposable {
 
 		const generation = ++this.agentsEditorLoadGeneration;
 		// D275: keep leftover AGENTS.md while the load RPC is in-flight. First-pull empty still paints the summary placeholder.
-		const hasLeftoverMarkdown = !!(this.loadedAgentsMarkdown || this.agentsEditorInput.value);
+		const hasLeftoverMarkdown = this.hasLeftoverAgentsMarkdown();
 		if (!hasLeftoverMarkdown) {
 			this.agentsEditorInput.value = formatAgentsMarkdown(summaryToProfileDetail(selected));
 		}
