@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-13
-summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 / D417 / D418 / D419 仍开；D25/D26 已闭；D406–D416 已闭（D415 pairing-hold 详情诚实态；D416 用户重连非 TE throw 再拨）；下号 D420"
+summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 / D417 / D418 仍开；D25/D26 已闭；D406–D416 / D419 已闭（D415 pairing-hold 详情诚实态；D416 用户重连非 TE throw 再拨；D419 Plugins leftover hooks）；下号 D420"
 ---
 
 # Deferred Gaps
@@ -432,7 +432,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 / D417 / D418 / D419 仍开
 | D416 | P3 | **closed** 用户点 Connect（`connectProfile({reconnect:true})` 或 `_transportState==='failed'` 隐式重连，非 `_fireReconnect`）时，明文 `connect()` / handshake `catch` 的**非** `UniverseAgentTransportError` throw 再走 `_maybeScheduleReconnectAfterTransportFailedReturn`（仍有 active profile、非 halt、非 pairingPending、非用户 disconnect）。`_markTransportFailed` 仍只臂 TransportError；首连 throw / pairingPending 不拨。D408/D410/D413 测仍绿。未升 PRD-008。未关 D8/D16/D147/D405。未开 D405 手测。不占 D415。 | 工位 A `d416-user-reconnect-throw`；`node test/unit/node/index.js --run …/universeAgentConnection.test.ts` **385/0**（既有 380 + 新 5） | 用户重连非 TE throw 再拨；首连 / pairingPending 不拨；既有 D410 `_fireReconnect` 测仍绿。未升 PRD-008。未关 D405 手测。 | universeAgent / connection | closed |
 | D417 | P3 | `_connectProfileRaw` 在 `connect()` / handshake `catch` 之外的 throw（`loadGrpcModule` / `getOrCreateIdentity` / `createSigner`）仍无 catch：入口已 `_cancelReconnectTimer()`，用户重连会停拨。D416 只收明文 `connect()` 与 handshake `catch` 的非 TE throw。不扩修。 | 本槽只做 D416 用户重连非 TE throw 再拨 | 上述 throw 在仍有 active profile、非 halt、非 pairingPending、非用户 disconnect 时再走 `_scheduleReconnect`；既有 D416 测仍绿 | universeAgent / connection | open |
 | D418 | P3 | **Skills pairing-hold `applyDisconnectedRefresh` 不自动画 leftover body 诚实态**：`setPairingPending` 后 leftover body 仍可见，须再 `selectSkillForTest` 才 `showBodyStatus(disconnected)`。既有 KEEP 测靠重选锁断连文案。D415 只收 Tools 详情。 | 本槽只做 D415 Tools 详情 | pairing-hold refresh 后无需重选即见 leftover body disconnected copy；补测锁。未关 D16。 | conversation / engine-skills | open |
-| D419 | P3 | **Plugins pairing-hold `applyDisconnectedRefresh` 不自动画 leftover hooks 诚实态**：KEEP 后 leftover hooks 仍像 live，须再 `selectPlugin` / `loadInfo` 才 `keepLeftoverHooksDisconnected`。既有 leftover-looks-live 测靠 `setPairingPendingQuiet` + 重选。D415 只收 Tools 详情。 | 本槽只做 D415 Tools 详情 | pairing-hold refresh 后无需重选即见 leftover hooks 断连诚实态；补测锁。未关 D16。 | conversation / engine-plugins | open |
+| D419 | P3 | **closed** pairing-hold / leftover-looks-live `applyDisconnectedRefresh` KEEP 后自动 `keepLeftoverHooksDisconnected`（disconnected copy + leftover hooks 仍在）。无需再 `selectPlugin`。既有 KEEP leftover / leftover-looks-live 重选测仍绿。未关 D8/D16/D147/D405。未升 PRD-008。不得宣称 leftover wave 完成。不占 D417/D418。 | 工位 D `d419-pairing-hold-plugin-hooks`；`scripts/test.sh --run` `enginePluginsSection.test.ts` **27/0**（含 2 条无重选） | pairing-hold / leftover-looks-live refresh 后无需重选即见 leftover hooks 断连诚实态。未关 D16。 | conversation / engine-plugins | closed |
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 
 `loop/merge` @ `793ff6e201f`（提交信息为「关仓：T5a Uncaught 闸门与 statusbar 二次注册幂等**已复测**」）在**仓外独立 detached 工位**上实测：
