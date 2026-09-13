@@ -912,6 +912,17 @@ export class EngineAgentsSection extends Disposable {
 		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
 	}
 
+	private closeLeftoverAgentsEditorChrome(): void {
+		// D433: UNKNOWN leftover / list-fail leftover must close leftover
+		// user AGENTS.md Save chrome on refresh; do not wait for another
+		// selectProfile. Toolbar hide + updateWriteActions() alone left
+		// leftover textarea looking live.
+		// Do not invent row toggle (D422/D423 KEEP chrome stays pairing-hold only).
+		if (this.hasLeftoverAgentsMarkdown()) {
+			this.updateAgentsEditorChrome();
+		}
+	}
+
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): boolean {
 		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
 			this.hideCatalogWriteStatus();
@@ -970,6 +981,9 @@ export class EngineAgentsSection extends Disposable {
 			this.writeToolbar.style.display = 'none';
 			this.updateWriteActions();
 			this.renderStatus({ loadingKind: 'capability' });
+			if (hadLiveCatalog) {
+				this.closeLeftoverAgentsEditorChrome();
+			}
 			return false;
 		}
 
@@ -1016,6 +1030,9 @@ export class EngineAgentsSection extends Disposable {
 				reason: error instanceof Error ? error.message : undefined,
 				onRetry: () => void this.refresh(),
 			});
+			if (hadLiveCatalog) {
+				this.closeLeftoverAgentsEditorChrome();
+			}
 			return false;
 		}
 	}

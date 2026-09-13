@@ -1539,6 +1539,116 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok(editorStatus.textContent?.includes(getEngineSectionDisconnectedCopy()));
 	});
 
+	test('Agents: capability UNKNOWN leftover closes leftover user AGENTS.md Save chrome without reselect', async () => {
+		let writeCalls = 0;
+		let listAgentProfilesCalls = 0;
+		const leftoverMarkdown = 'Leftover user agents md';
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [demoUserAgent()] };
+			},
+			saveAgentProfile: async (request) => {
+				const extraKeys = Object.keys(request.profile).filter(key => key !== 'id' && key !== 'name' && key !== 'source');
+				if (extraKeys.length > 0) {
+					writeCalls++;
+				}
+				return {
+					profile: {
+						id: 'demo',
+						name: 'Demo Agent',
+						source: 'user' as const,
+						systemPrompt: leftoverMarkdown,
+					},
+				};
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		await section.selectProfileByIdForTest('demo');
+		assert.strictEqual(section.getActiveAgentDetailTab(), 'instructions');
+		assert.ok(section.isAgentsEditorVisible());
+		assert.ok(section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+		assert.strictEqual(section.isAgentsEditorSaveEnabled(), true);
+		assert.strictEqual(leftoverAgentsEditorTextarea(section).readOnly, false);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listAgentProfilesCalls;
+		assert.strictEqual(writeCalls, 0);
+
+		connection.setAgentProfilesSupport('UNKNOWN');
+		await flushMicrotasks();
+
+		assertAgentsUnknownCapabilityHonesty(section, leftoverRows);
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad, 'UNKNOWN leftover must not extra listAgentProfiles');
+		assert.strictEqual(section.getSelectedProfileId(), 'demo');
+		assert.ok(section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+		assert.ok(section.isAgentsEditorVisible());
+		assertLeftoverAgentsEditorClosed(section);
+		const ok = await section.saveAgentsMarkdown();
+		assert.strictEqual(ok, false);
+		assert.strictEqual(writeCalls, 0);
+	});
+
+	test('Agents: list-fail leftover closes leftover user AGENTS.md Save chrome without reselect', async () => {
+		let writeCalls = 0;
+		let listAgentProfilesCalls = 0;
+		const leftoverMarkdown = 'Leftover user agents md';
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				if (listAgentProfilesCalls === 1) {
+					return { profiles: [demoUserAgent()] };
+				}
+				throw new Error('listAgentProfiles retry exploded');
+			},
+			saveAgentProfile: async (request) => {
+				const extraKeys = Object.keys(request.profile).filter(key => key !== 'id' && key !== 'name' && key !== 'source');
+				if (extraKeys.length > 0) {
+					writeCalls++;
+				}
+				return {
+					profile: {
+						id: 'demo',
+						name: 'Demo Agent',
+						source: 'user' as const,
+						systemPrompt: leftoverMarkdown,
+					},
+				};
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		await section.selectProfileByIdForTest('demo');
+		assert.strictEqual(section.getActiveAgentDetailTab(), 'instructions');
+		assert.ok(section.isAgentsEditorVisible());
+		assert.ok(section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+		assert.strictEqual(section.isAgentsEditorSaveEnabled(), true);
+		assert.strictEqual(leftoverAgentsEditorTextarea(section).readOnly, false);
+		const leftoverRows = section.getListEntryCount();
+		assert.strictEqual(writeCalls, 0);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(listAgentProfilesCalls, 2);
+		assertAgentsLeftoverFailedHonesty(section, 'listAgentProfiles retry exploded', leftoverRows);
+		assert.strictEqual(section.getSelectedProfileId(), 'demo');
+		assert.ok(section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+		assert.ok(section.isAgentsEditorVisible());
+		assertLeftoverAgentsEditorClosed(section);
+		const ok = await section.saveAgentsMarkdown();
+		assert.strictEqual(ok, false);
+		assert.strictEqual(writeCalls, 0);
+	});
+
 	test('Tools: leftover-looks-live pairing-hold writes stay 0 unary', async () => {
 		const saveCalls: UniverseAgentSaveAgentProfileRequest[] = [];
 		let listToolsCalls = 0;
