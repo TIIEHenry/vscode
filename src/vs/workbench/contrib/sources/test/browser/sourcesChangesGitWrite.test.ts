@@ -76,6 +76,7 @@ suite('Sources - Changes git write', () => {
 		assert.strictEqual(canSendSourcesGitApplyHunks(true, true, false), true);
 		assert.strictEqual(canSendSourcesGitStagePaths(true, true, 'sess-1', false, true), false);
 		assert.strictEqual(canSendSourcesGitCommit(true, true, 'sess-1', false, true), false);
+		assert.strictEqual(canSendSourcesGitApplyHunks(true, true, false, true), false);
 	});
 
 	test('Stage request passes sessionId and empty commands / argv as-is', () => {
@@ -325,6 +326,10 @@ suite('Sources - Changes git write', () => {
 			commitCalls.push(request);
 			return failedWrite;
 		}, 'sess-1', 'msg', false, true), undefined);
+		assert.strictEqual(await tryWriteSourcesGitApplyHunks(true, async request => {
+			applyCalls.push(request);
+			return failedWrite;
+		}, 'sess-1', ['a'], ['p'], false, true), undefined);
 		assert.deepStrictEqual(stageCalls, []);
 		assert.deepStrictEqual(commitCalls, []);
 		assert.deepStrictEqual(applyCalls, []);

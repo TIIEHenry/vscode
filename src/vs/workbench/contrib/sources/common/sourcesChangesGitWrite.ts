@@ -25,8 +25,8 @@ export function hasSourcesGitSessionId(sessionId: string): boolean {
  * Write door for Stage / Commit / Accept.
  * `connected` is still `isEngineConnected()` (D283). Pairing-hold leftover
  * and leftover-looks-live (`connected===true` + pairingPending) both refuse.
- * List-fail leftover (`leftoverListFailed`) also refuses Stage / Commit when
- * callers pass the flag (D442). Accept / git-read keep the default false.
+ * List-fail leftover (`leftoverListFailed`) also refuses Stage / Commit /
+ * Accept when callers pass the flag (D443). git-read may keep the default false.
  */
 export function isSourcesGitWriteLive(connected: boolean, pairingHold = false, leftoverListFailed = false): boolean {
 	return connected && !pairingHold && !leftoverListFailed;
@@ -43,8 +43,8 @@ export function canSendSourcesGitCommit(connected: boolean, hasHook: boolean, se
 }
 
 /** Sources Review Accept → WriteGitApplyHunks. Connection + hook only; empty session or empty patches are refused in tryWrite. */
-export function canSendSourcesGitApplyHunks(connected: boolean, hasHook: boolean, pairingHold = false): boolean {
-	return isSourcesGitWriteLive(connected, pairingHold) && hasHook;
+export function canSendSourcesGitApplyHunks(connected: boolean, hasHook: boolean, pairingHold = false, leftoverListFailed = false): boolean {
+	return isSourcesGitWriteLive(connected, pairingHold, leftoverListFailed) && hasHook;
 }
 
 /** Accept RPC payload: both sides required. Empty sessionId or empty / whitespace-only patches → no hook. */
@@ -246,8 +246,9 @@ export async function tryWriteSourcesGitApplyHunks(
 	argv: readonly string[] = [],
 	patches: readonly string[] = [],
 	pairingHold = false,
+	leftoverListFailed = false,
 ): Promise<UniverseAgentWriteGitWriteResult | undefined> {
-	if (!canSendSourcesGitApplyHunks(connected, typeof hook === 'function', pairingHold) || !hook) {
+	if (!canSendSourcesGitApplyHunks(connected, typeof hook === 'function', pairingHold, leftoverListFailed) || !hook) {
 		return undefined;
 	}
 	if (!hasSourcesGitApplyHunksPayload(sessionId, patches)) {
