@@ -1649,6 +1649,157 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(writeCalls, 0);
 	});
 
+	function leftoverAgentToolToggles(section: EngineAgentsSection): HTMLElement[] {
+		return Array.from(section.getDomNode().querySelectorAll('.engine-agents-tools-panel .monaco-custom-toggle'));
+	}
+
+	function assertLeftoverAgentToolsChromeLive(section: EngineAgentsSection): void {
+		assert.strictEqual(section.isAgentToolsToolbarVisible(), true);
+		const toggles = leftoverAgentToolToggles(section);
+		assert.ok(toggles.length > 0, 'live Tools page must paint leftover tool toggle chrome');
+		for (const toggle of toggles) {
+			assert.notStrictEqual(toggle.getAttribute('aria-disabled'), 'true');
+			assert.ok(!toggle.classList.contains('disabled'));
+		}
+	}
+
+	function assertLeftoverAgentToolsChromeClosed(section: EngineAgentsSection): void {
+		assert.strictEqual(section.isAgentToolsToolbarVisible(), false);
+		assert.strictEqual(section.isAgentToolsSaveEnabled(), false);
+		const toggles = leftoverAgentToolToggles(section);
+		assert.ok(toggles.length > 0, 'leftover Tools page must keep leftover tool rows');
+		for (const toggle of toggles) {
+			assert.strictEqual(toggle.getAttribute('aria-disabled'), 'true');
+			assert.ok(toggle.classList.contains('disabled'));
+		}
+	}
+
+	test('Agents: capability UNKNOWN leftover closes leftover Tools page chrome without reselect', async () => {
+		let toolsSaveCalls = 0;
+		let listAgentProfilesCalls = 0;
+		let listToolsCalls = 0;
+		const leftover = leftoverAgentTool();
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' }, tools: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [demoUserAgent()] };
+			},
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [leftover] };
+			},
+			saveAgentProfile: async (request) => {
+				if (request.profile.disabledTools !== undefined || request.profile.enabledTools !== undefined) {
+					toolsSaveCalls++;
+				}
+				return { profile: request.profile };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		await section.selectProfileByIdForTest('demo');
+		section.setActiveAgentDetailTabForTest('tools');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getActiveAgentDetailTab(), 'tools');
+		assert.strictEqual(section.getAgentToolRowCount(), 1);
+		assert.ok(section.getAgentToolNames().includes(LEFTOVER_AGENT_TOOL_NAME));
+		assert.strictEqual(section.canWrite(), true);
+		assertLeftoverAgentToolsChromeLive(section);
+		section.setAgentToolPendingForTest(leftover, false);
+		assert.strictEqual(section.isAgentToolEnablementDirty(), true);
+		assert.strictEqual(section.isAgentToolsSaveEnabled(), true);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listAgentProfilesCalls;
+		const listToolsAfterLoad = listToolsCalls;
+		assert.ok(listToolsAfterLoad >= 1);
+		assert.strictEqual(toolsSaveCalls, 0);
+
+		connection.setAgentProfilesSupport('UNKNOWN');
+		await flushMicrotasks();
+
+		assertAgentsUnknownCapabilityHonesty(section, leftoverRows);
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad, 'UNKNOWN leftover must not extra listAgentProfiles');
+		assert.strictEqual(listToolsCalls, listToolsAfterLoad, 'UNKNOWN leftover must not extra listTools');
+		assert.strictEqual(section.getSelectedProfileId(), 'demo');
+		assert.strictEqual(section.getActiveAgentDetailTab(), 'tools');
+		assert.strictEqual(section.getAgentToolRowCount(), 1);
+		assert.ok(section.getAgentToolNames().includes(LEFTOVER_AGENT_TOOL_NAME));
+		assert.strictEqual(section.canWrite(), false);
+		assertLeftoverAgentToolsChromeClosed(section);
+		const ok = await section.saveAgentToolEnablementForTest();
+		assert.strictEqual(ok, false);
+		assert.strictEqual(toolsSaveCalls, 0);
+	});
+
+	test('Agents: list-fail leftover closes leftover Tools page chrome without reselect', async () => {
+		let toolsSaveCalls = 0;
+		let listAgentProfilesCalls = 0;
+		let listToolsCalls = 0;
+		const leftover = leftoverAgentTool();
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' }, tools: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				if (listAgentProfilesCalls === 1) {
+					return { profiles: [demoUserAgent()] };
+				}
+				throw new Error('listAgentProfiles retry exploded');
+			},
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [leftover] };
+			},
+			saveAgentProfile: async (request) => {
+				if (request.profile.disabledTools !== undefined || request.profile.enabledTools !== undefined) {
+					toolsSaveCalls++;
+				}
+				return { profile: request.profile };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		await section.selectProfileByIdForTest('demo');
+		section.setActiveAgentDetailTabForTest('tools');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getActiveAgentDetailTab(), 'tools');
+		assert.strictEqual(section.getAgentToolRowCount(), 1);
+		assert.ok(section.getAgentToolNames().includes(LEFTOVER_AGENT_TOOL_NAME));
+		assert.strictEqual(section.canWrite(), true);
+		assertLeftoverAgentToolsChromeLive(section);
+		section.setAgentToolPendingForTest(leftover, false);
+		assert.strictEqual(section.isAgentToolEnablementDirty(), true);
+		assert.strictEqual(section.isAgentToolsSaveEnabled(), true);
+		const leftoverRows = section.getListEntryCount();
+		const listToolsAfterLoad = listToolsCalls;
+		assert.ok(listToolsAfterLoad >= 1);
+		assert.strictEqual(toolsSaveCalls, 0);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(listAgentProfilesCalls, 2);
+		assertAgentsLeftoverFailedHonesty(section, 'listAgentProfiles retry exploded', leftoverRows);
+		assert.strictEqual(listToolsCalls, listToolsAfterLoad, 'list-fail leftover must not extra listTools');
+		assert.strictEqual(section.getSelectedProfileId(), 'demo');
+		assert.strictEqual(section.getActiveAgentDetailTab(), 'tools');
+		assert.strictEqual(section.getAgentToolRowCount(), 1);
+		assert.ok(section.getAgentToolNames().includes(LEFTOVER_AGENT_TOOL_NAME));
+		assert.strictEqual(section.canWrite(), false);
+		assertLeftoverAgentToolsChromeClosed(section);
+		const ok = await section.saveAgentToolEnablementForTest();
+		assert.strictEqual(ok, false);
+		assert.strictEqual(toolsSaveCalls, 0);
+	});
+
 	test('Tools: leftover-looks-live pairing-hold writes stay 0 unary', async () => {
 		const saveCalls: UniverseAgentSaveAgentProfileRequest[] = [];
 		let listToolsCalls = 0;
