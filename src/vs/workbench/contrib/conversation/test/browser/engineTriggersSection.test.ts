@@ -447,7 +447,7 @@ suite('EngineTriggersSection', () => {
 		pane.getDomNode().parentElement?.remove();
 	});
 
-	test('connected leftover list-fail still fires and upserts', async () => {
+	test('list-fail leftover closes write chrome without reselect', async () => {
 		let listTriggersCalls = 0;
 		const leftover = emptyTrigger({
 			triggerId: 'leftover-trig',
@@ -464,6 +464,8 @@ suite('EngineTriggersSection', () => {
 			capabilities: createEmptyTestCapabilitySnapshot(),
 		};
 		const fireCalls: UniverseAgentFireTriggerRequest[] = [];
+		const setCalls: UniverseAgentSetTriggerEnabledRequest[] = [];
+		const deleteCalls: UniverseAgentDeleteTriggerRequest[] = [];
 		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => true,
@@ -481,6 +483,14 @@ suite('EngineTriggersSection', () => {
 				fireCalls.push(request);
 				return { status: '', eventId: '', reason: '' };
 			},
+			setTriggerEnabled: async request => {
+				setCalls.push(request);
+				return { trigger: leftover };
+			},
+			deleteTrigger: async request => {
+				deleteCalls.push(request);
+				return {};
+			},
 			upsertTrigger: async request => {
 				upsertCalls.push(request);
 				return { trigger: leftover };
@@ -490,28 +500,23 @@ suite('EngineTriggersSection', () => {
 		await flushMicrotasks();
 		assert.strictEqual(listTriggersCalls, 1);
 		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-triggers-row').length, 1);
+		const liveFire = findFireButton(pane.getDomNode());
+		assert.ok(liveFire);
+		assert.strictEqual(liveFire.classList.contains('disabled'), false);
 
 		onDidChangeConnection.fire(liveSnapshot);
 		await flushMicrotasks();
 		assert.strictEqual(listTriggersCalls, 2);
 		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-triggers-row').length, 1);
-
-		const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
-		assert.ok(row);
-		row.click();
-		const fire = findFireButton(pane.getDomNode());
-		assert.ok(fire);
-		assert.strictEqual(fire.classList.contains('disabled'), false);
-		fire.click();
-		await flushMicrotasks();
-		assert.deepStrictEqual(fireCalls, [{ scope: '', scopeId: '', triggerId: leftover.triggerId }]);
-
-		const add = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ADD_LABEL);
-		assert.ok(add);
-		assert.strictEqual(add.classList.contains('disabled'), false);
-		add.click();
-		await flushMicrotasks();
-		assert.strictEqual(upsertCalls.length, 1);
+		const leftoverRow = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
+		assert.ok(leftoverRow);
+		assert.strictEqual(leftoverRow.textContent, formatEngineTriggerListLabel(leftover));
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assertWriteButtonsDisabled(pane.getDomNode());
+		await assertForcedWriteClicksStayUnary(pane.getDomNode(), fireCalls, setCalls, deleteCalls, upsertCalls);
+		assert.strictEqual(listTriggersCalls, 2);
 		pane.getDomNode().parentElement?.remove();
 	});
 
