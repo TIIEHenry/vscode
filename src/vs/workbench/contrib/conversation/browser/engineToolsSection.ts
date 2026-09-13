@@ -538,6 +538,11 @@ export class EngineToolsSection extends Disposable {
 			this.mode = resolveEngineCatalogPaneMode(false, support);
 			this.updateSaveChrome();
 			this.renderStatus();
+			// D415: pairing-hold / leftover-looks-live KEEP must paint leftover
+			// detail honesty on refresh; do not wait for another selectTool.
+			if (this.hasLeftoverToolInfo()) {
+				this.paintToolInfoHonesty(getEngineSectionDisconnectedCopy());
+			}
 			return;
 		}
 		this.clearCatalogPresentation();

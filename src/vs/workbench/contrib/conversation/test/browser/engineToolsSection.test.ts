@@ -235,6 +235,50 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		assert.deepStrictEqual([...leftoverInfoStatus(section).classList], ['engine-tools-info-status', 'is-error']);
 	});
 
+	test('pairing-hold refresh paints leftover info honesty without reselect', async () => {
+		const connection = createConnectionStub({
+			getToolInfo: async () => leftoverBashToolInfo(),
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.selectTool('leftover-bash'), true);
+		await flushMicrotasks();
+		assert.ok((section.getToolInfoDetailText() ?? '').includes(LEFTOVER_TOOL_INFO_DESC));
+		assert.ok(!(section.getToolInfoDetailText() ?? '').includes(getEngineSectionDisconnectedCopy()));
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.ok((section.getToolInfoDetailText() ?? '').includes(LEFTOVER_TOOL_INFO_DESC));
+		assert.ok((section.getToolInfoDetailText() ?? '').includes(getEngineSectionDisconnectedCopy()));
+		assert.deepStrictEqual([...leftoverInfoStatus(section).classList], ['engine-tools-info-status', 'is-error']);
+	});
+
+	test('leftover-looks-live refresh paints leftover info honesty without reselect', async () => {
+		const connection = createConnectionStub({
+			looksLive: true,
+			getToolInfo: async () => leftoverBashToolInfo(),
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.selectTool('leftover-bash'), true);
+		await flushMicrotasks();
+		assert.ok((section.getToolInfoDetailText() ?? '').includes(LEFTOVER_TOOL_INFO_DESC));
+		assert.ok(!(section.getToolInfoDetailText() ?? '').includes(getEngineSectionDisconnectedCopy()));
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.ok((section.getToolInfoDetailText() ?? '').includes(LEFTOVER_TOOL_INFO_DESC));
+		assert.ok((section.getToolInfoDetailText() ?? '').includes(getEngineSectionDisconnectedCopy()));
+		assert.deepStrictEqual([...leftoverInfoStatus(section).classList], ['engine-tools-info-status', 'is-error']);
+	});
+
 	test('leftover missing getToolInfo keeps detail and paints info-status error', async () => {
 		const connection = createConnectionStub({
 			getToolInfo: async () => leftoverBashToolInfo(),
