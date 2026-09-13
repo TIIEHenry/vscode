@@ -395,6 +395,11 @@ export class EnginePluginsSection extends Disposable {
 			this.listContainer.style.display = '';
 			this.mode = resolveEngineCatalogPaneMode(false, support);
 			this.renderStatus();
+			// D419: pairing-hold / leftover-looks-live KEEP must paint leftover
+			// hooks honesty on refresh; do not wait for another selectPlugin.
+			if (this.hasLeftoverHooks()) {
+				this.keepLeftoverHooksDisconnected();
+			}
 			return false;
 		}
 		this.clearCatalogPresentation();
