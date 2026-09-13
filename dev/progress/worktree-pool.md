@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: M7
 created: 2026-08-30
-updated: 2026-09-12
-summary: "仓外 vscode-WorkTrees；基线 agent-ide；MERGE_SHA 74f36dbacdf 已 push"
+updated: 2026-09-13
+summary: "仓外 vscode-WorkTrees；基线 agent-ide；MERGE_SHA 200fa7c3172 已 push"
 ---
 
 # Loop 并行工位池（本仓）
@@ -23,20 +23,20 @@ summary: "仓外 vscode-WorkTrees；基线 agent-ide；MERGE_SHA 74f36dbacdf 已
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（merge 槽对齐此分支；非上游 `main`） |
-| 集成本次 HEAD | `74f36dbacdf`（`loop/merge` · 2026-09-12 关仓；已 push `origin/agent-ide`） |
-| 工位池 compile | 上次记录 compile-client 0 @ 本 tip；本关仓未复跑 |
+| 集成本次 HEAD | `200fa7c3172`（`loop/merge` · 2026-09-13 关仓；已 push `origin/agent-ide`） |
+| 工位池 compile | compile-client 0 @ `200fa7c3172` |
 
-## 槽位表（2026-09-12 · `MERGE_SHA`=`74f36dbacdf`）
+## 槽位表（2026-09-13 · `MERGE_SHA`=`200fa7c3172`）
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `74f36dbacdf` | `parked`；== `origin/agent-ide` |
-| A | `vscode-WorkTrees/A` | `loop/A` | `74f36dbacdf` | `idle` |
-| B | `vscode-WorkTrees/B` | `loop/B` | `74f36dbacdf` | `idle` |
-| C | `vscode-WorkTrees/C` | `loop/C` | `74f36dbacdf` | `idle`；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `74f36dbacdf` | `idle` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `200fa7c3172` | `parked`；== `origin/agent-ide` |
+| A | `vscode-WorkTrees/A` | `loop/A` | `200fa7c3172` | `idle` |
+| B | `vscode-WorkTrees/B` | `loop/B` | `200fa7c3172` | `idle` |
+| C | `vscode-WorkTrees/C` | `loop/C` | `815b4ad48e3` | 脏 `dev/loop`；勿 add；未 `-B` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `200fa7c3172` | `idle` |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | `blocked` leftover；勿 `checkout -B` |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `3c81973bcf5` | 请人类自行对齐 |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `815b4ad48e3` | 未代拉；脏 `dev/loop` + `.idea` |
 
 并行归属见 [status.md](status.md)。M7 看板已归档：[m7-ui-completion](../parallel/archive/m7-ui-completion.md)。本波无独立 parallel board。
 
