@@ -12825,4 +12825,124 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 		assert.strictEqual(clock.pending.size, 0);
 		service.dispose();
 	});
+
+	function wipeTransport(service: UniverseAgentConnectionService): void {
+		(service as unknown as { _transport?: unknown })._transport = undefined;
+	}
+
+	test('direct connect() _createTransport throw with active profile reschedules (D420)', async () => {
+		const clock = createReconnectClock();
+		let created = 0;
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => {
+				created++;
+				if (created === 1) {
+					return new MockUniverseAgentGrpcTransport();
+				}
+				throw new Error('createTransport blowup');
+			},
+			connectionResolver: createOkResolver() as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+
+		await service.connectProfile('p1');
+		assert.strictEqual(clock.delays.length, 0);
+		wipeTransport(service);
+		await assert.rejects(
+			() => service.connect({ clientId: 'vscode-test', protocolVersion: '1' }),
+			(error: unknown) => error instanceof Error && error.message === 'createTransport blowup',
+		);
+		assert.deepStrictEqual(clock.delays, [1000]);
+		assert.strictEqual(clock.pending.size, 1);
+		service.dispose();
+	});
+
+	test('direct connect() _createTransport throw without active profile does not schedule (D420)', async () => {
+		const clock = createReconnectClock();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => {
+				throw new Error('createTransport blowup');
+			},
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+
+		await assert.rejects(
+			() => service.connect({ clientId: 'vscode-test', protocolVersion: '1' }),
+			(error: unknown) => error instanceof Error && error.message === 'createTransport blowup',
+		);
+		assert.strictEqual(clock.delays.length, 0);
+		assert.strictEqual(clock.pending.size, 0);
+		service.dispose();
+	});
+
+	test('direct connect() _createTransport throw while pairingPending does not schedule (D420)', async () => {
+		const clock = createReconnectClock();
+		let created = 0;
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => {
+				created++;
+				if (created === 1) {
+					return new MockUniverseAgentGrpcTransport({
+						connect: async () => ({
+							pairingNonce: 'nonce-1',
+							sasCode: 'ABCD-EFGH',
+							methods: [],
+							events: [],
+						}),
+					});
+				}
+				throw new Error('createTransport blowup');
+			},
+			connectionResolver: createOkResolver() as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+
+		await service.connectProfile('p1');
+		assert.strictEqual(service.getConnectionSnapshot().pairingPending, true);
+		wipeTransport(service);
+		await assert.rejects(
+			() => service.connect({ clientId: 'vscode-test', protocolVersion: '1' }),
+			(error: unknown) => error instanceof Error && error.message === 'createTransport blowup',
+		);
+		assert.strictEqual(clock.delays.length, 0);
+		assert.strictEqual(clock.pending.size, 0);
+		service.dispose();
+	});
+
+	test('direct connect() _createTransport throw after user disconnect does not schedule (D420)', async () => {
+		const clock = createReconnectClock();
+		let created = 0;
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => {
+				created++;
+				if (created === 1) {
+					return new MockUniverseAgentGrpcTransport();
+				}
+				throw new Error('createTransport blowup');
+			},
+			connectionResolver: createOkResolver() as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+
+		await service.connectProfile('p1');
+		await service.disconnect();
+		await assert.rejects(
+			() => service.connect({ clientId: 'vscode-test', protocolVersion: '1' }),
+			(error: unknown) => error instanceof Error && error.message === 'createTransport blowup',
+		);
+		assert.strictEqual(clock.delays.length, 0);
+		assert.strictEqual(clock.pending.size, 0);
+		service.dispose();
+	});
 });
