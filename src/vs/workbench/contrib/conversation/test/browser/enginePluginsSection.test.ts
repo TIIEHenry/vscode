@@ -611,6 +611,127 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		assert.strictEqual(listPluginsCalls, listCallsAfterLoad);
 	});
 
+	test('capability UNKNOWN leftover closes leftover Enable/write chrome without reselect', async () => {
+		const leftover = leftoverPlugin();
+		const enableCalls: string[] = [];
+		const reloadCalls: string[] = [];
+		const unloadCalls: string[] = [];
+		const scanCalls: number[] = [];
+		let listPluginsCalls = 0;
+		const connection = createConnectionStub({
+			listPlugins: async () => {
+				listPluginsCalls++;
+				return { plugins: [leftover] };
+			},
+			enablePlugin: async (id) => {
+				enableCalls.push(id);
+				return { plugin: leftover };
+			},
+			reloadPlugin: async (id) => {
+				reloadCalls.push(id);
+				return { plugin: leftover };
+			},
+			unloadPlugin: async (id) => {
+				unloadCalls.push(id);
+				return { removedHookCount: 0 };
+			},
+			scanNewPlugins: async () => {
+				scanCalls.push(1);
+				return { newPlugins: [], skippedCount: 0 };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		assert.strictEqual(section.getSelectedPluginId(), 'leftover-plugin');
+		assertLeftoverPluginWriteChromeLive(section);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listPluginsCalls;
+
+		connection.setPluginsSupport('UNKNOWN');
+		await flushMicrotasks();
+
+		assert.strictEqual(listPluginsCalls, listCallsAfterLoad, 'UNKNOWN leftover must not extra listPlugins');
+		assert.strictEqual(section.getMode(), 'loading');
+		assert.strictEqual(section.getListEntryCount(), leftoverRows);
+		assert.strictEqual(section.getSelectedPluginId(), 'leftover-plugin');
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		assert.ok(status.textContent?.includes(getCatalogUnknownCopy()));
+		assert.ok(!(status.textContent ?? '').includes(getCatalogListLoadingCopy()));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(PLUGINS_EMPTY_COPY));
+		assertLeftoverPluginWriteChromeClosed(section);
+		await section.enableSelectedForTest();
+		await section.reloadSelectedForTest();
+		await section.unloadSelectedForTest();
+		await section.scanNewForTest();
+		assert.deepStrictEqual(enableCalls, []);
+		assert.deepStrictEqual(reloadCalls, []);
+		assert.deepStrictEqual(unloadCalls, []);
+		assert.deepStrictEqual(scanCalls, []);
+		assert.strictEqual(listPluginsCalls, listCallsAfterLoad);
+	});
+
+	test('list-fail leftover closes leftover Enable/write chrome without reselect', async () => {
+		const leftover = leftoverPlugin();
+		const enableCalls: string[] = [];
+		const reloadCalls: string[] = [];
+		const unloadCalls: string[] = [];
+		const scanCalls: number[] = [];
+		let listPluginsCalls = 0;
+		const connection = createConnectionStub({
+			listPlugins: async () => {
+				listPluginsCalls++;
+				if (listPluginsCalls === 1) {
+					return { plugins: [leftover] };
+				}
+				throw new Error('listPlugins retry exploded');
+			},
+			enablePlugin: async (id) => {
+				enableCalls.push(id);
+				return { plugin: leftover };
+			},
+			reloadPlugin: async (id) => {
+				reloadCalls.push(id);
+				return { plugin: leftover };
+			},
+			unloadPlugin: async (id) => {
+				unloadCalls.push(id);
+				return { removedHookCount: 0 };
+			},
+			scanNewPlugins: async () => {
+				scanCalls.push(1);
+				return { newPlugins: [], skippedCount: 0 };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		assert.strictEqual(section.getSelectedPluginId(), 'leftover-plugin');
+		assertLeftoverPluginWriteChromeLive(section);
+		const leftoverRows = section.getListEntryCount();
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(listPluginsCalls, 2);
+		assertPluginsLeftoverFailedHonesty(section, 'listPlugins retry exploded', leftoverRows);
+		assert.strictEqual(section.getSelectedPluginId(), 'leftover-plugin');
+		assertLeftoverPluginWriteChromeClosed(section);
+		await section.enableSelectedForTest();
+		await section.reloadSelectedForTest();
+		await section.unloadSelectedForTest();
+		await section.scanNewForTest();
+		assert.deepStrictEqual(enableCalls, []);
+		assert.deepStrictEqual(reloadCalls, []);
+		assert.deepStrictEqual(unloadCalls, []);
+		assert.deepStrictEqual(scanCalls, []);
+		assert.strictEqual(listPluginsCalls, 2);
+	});
+
 	test('enablePlugin ok does not keep Enabled. when subsequent listPlugins fails', async () => {
 		let listPluginsCalls = 0;
 		const unhandledRejections: unknown[] = [];
