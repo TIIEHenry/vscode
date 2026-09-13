@@ -468,7 +468,7 @@ suite('EngineContextVariableSection', () => {
 		pane.getDomNode().parentElement?.remove();
 	});
 
-	test('connected leftover list-fail still Reads', async () => {
+	test('list-fail leftover closes Read without reselect', async () => {
 		let listContextVariableCalls = 0;
 		const leftover = {
 			name: 'leftover-var',
@@ -515,21 +515,23 @@ suite('EngineContextVariableSection', () => {
 		await flushMicrotasks();
 		assert.strictEqual(listContextVariableCalls, 1);
 		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-context-variable-row').length, 1);
+		const liveRead = findReadButton(pane.getDomNode());
+		assert.ok(liveRead);
+		assert.strictEqual(liveRead.classList.contains('disabled'), false);
 
 		onDidChangeConnection.fire(liveSnapshot);
 		await flushMicrotasks();
 		assert.strictEqual(listContextVariableCalls, 2);
 		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-context-variable-row').length, 1);
-
-		const row = pane.getDomNode().querySelector('.engine-context-variable-row') as HTMLElement;
-		assert.ok(row);
-		row.click();
-		const read = findReadButton(pane.getDomNode());
-		assert.ok(read);
-		assert.strictEqual(read.classList.contains('disabled'), false);
-		read.click();
-		await flushMicrotasks();
-		assert.deepStrictEqual(readCalls, [{ sessionId: '', name: leftover.name, agentId: '' }]);
+		const leftoverRow = pane.getDomNode().querySelector('.engine-context-variable-row') as HTMLElement | null;
+		assert.ok(leftoverRow);
+		assert.strictEqual(leftoverRow.textContent, 'current — leftover-var — VARIABLE_GLOBAL — agent — 1 — preview');
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assertReadButtonDisabled(pane.getDomNode());
+		await assertForcedReadClickStaysUnary(pane.getDomNode(), readCalls);
+		assert.strictEqual(listContextVariableCalls, 2);
 		pane.getDomNode().parentElement?.remove();
 	});
 

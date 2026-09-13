@@ -38,7 +38,10 @@ const $ = DOM.$;
  * (D316). Pairing-hold-first refresh (D351): leftover-looks-live first-pull
  * (`isEngineConnected()===true` + pairingPending, no leftover) paints empty
  * / disconnected and skips list; leftover WITH leftover still KEEP.
- * Connected leftover still Reads. Disconnect still clears rows.
+ * KEEP `applyDisconnectedRefresh` already closes Read; do not redo KEEP.
+ * List-fail leftover keeps rows + failed and closes Read (D439); read gate
+ * is not only connected+pairingHold (`leftoverListFailed` / mode failed).
+ * Disconnect still clears rows.
  */
 export class EngineContextVariableSection extends Disposable {
 
@@ -50,6 +53,7 @@ export class EngineContextVariableSection extends Disposable {
 
 	private sectionActive = false;
 	private renderGeneration = 0;
+	private leftoverListFailed = false;
 	private rows: EngineContextVariableListRow[] = [];
 	private selectedRow: EngineContextVariableListRow | undefined;
 	private renderedRows: { readonly element: HTMLElement; readonly model: EngineContextVariableListRow }[] = [];
@@ -153,19 +157,24 @@ export class EngineContextVariableSection extends Disposable {
 				this.applyDisconnectedRefresh(this.rows.length > 0);
 				return;
 			}
+			this.leftoverListFailed = false;
 			this.rows = flattenEngineContextVariableList(result.current, result.inherited);
 			this.paintList();
+			this.updateReadAction();
 		} catch (error) {
 			if (generation !== this.renderGeneration) {
 				return;
 			}
 			const reason = error instanceof Error ? error.message : String(error);
+			this.leftoverListFailed = true;
 			this.status.render({
 				mode: 'failed',
 				featureLabel: ENGINE_CONTEXT_VARIABLE_LIST_FEATURE,
 				reason,
 				onRetry: () => void this.refresh(),
 			});
+			// D439: leftover rows stay; Read chrome must close after list-fail.
+			this.updateReadAction();
 		}
 	}
 
@@ -240,8 +249,13 @@ export class EngineContextVariableSection extends Disposable {
 		return isConversationPairingHold(this.connection);
 	}
 
+	/** Catalog leftover contract: list-fail leftover is not a live read surface. */
+	private isContextVariableReadListFailed(): boolean {
+		return this.leftoverListFailed;
+	}
+
 	private updateReadAction(): void {
-		this.readButton.enabled = canSendEngineContextVariableRead(
+		this.readButton.enabled = !this.isContextVariableReadListFailed() && canSendEngineContextVariableRead(
 			this.connection.isEngineConnected(),
 			typeof this.connection.readContextVariable === 'function',
 			this.isContextVariableReadPairingHold(),
@@ -250,7 +264,7 @@ export class EngineContextVariableSection extends Disposable {
 
 	private async handleRead(): Promise<void> {
 		const hook = this.connection.readContextVariable;
-		if (!canSendEngineContextVariableRead(this.connection.isEngineConnected(), typeof hook === 'function', this.isContextVariableReadPairingHold()) || !hook) {
+		if (this.isContextVariableReadListFailed() || !canSendEngineContextVariableRead(this.connection.isEngineConnected(), typeof hook === 'function', this.isContextVariableReadPairingHold()) || !hook) {
 			return;
 		}
 		const request = engineContextVariableReadRequest(this.selectedRow?.entry);
