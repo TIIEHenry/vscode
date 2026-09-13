@@ -400,8 +400,34 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok(!(section.getDomNode().textContent ?? '').includes(emptyCopy));
 	}
 
-	function leftoverMcpRowToggles(section: EngineMcpSection): HTMLElement[] {
+	function leftoverCatalogRowToggles(section: EngineMcpSection | EngineToolsSection): HTMLElement[] {
 		return Array.from(section.getDomNode().querySelectorAll('.engine-catalog-row .monaco-custom-toggle'));
+	}
+
+	function leftoverMcpRowToggles(section: EngineMcpSection): HTMLElement[] {
+		return leftoverCatalogRowToggles(section);
+	}
+
+	function leftoverToolsRowToggles(section: EngineToolsSection): HTMLElement[] {
+		return leftoverCatalogRowToggles(section);
+	}
+
+	function assertLeftoverToolsRowTogglesClosed(section: EngineToolsSection): void {
+		const toggles = leftoverToolsRowToggles(section);
+		assert.ok(toggles.length > 0, 'KEEP leftover rows must paint toggle chrome');
+		for (const toggle of toggles) {
+			assert.strictEqual(toggle.getAttribute('aria-disabled'), 'true');
+			assert.ok(toggle.classList.contains('disabled'));
+		}
+	}
+
+	function assertLeftoverToolsRowTogglesLive(section: EngineToolsSection): void {
+		const toggles = leftoverToolsRowToggles(section);
+		assert.ok(toggles.length > 0, 'live leftover rows must paint toggle chrome');
+		for (const toggle of toggles) {
+			assert.notStrictEqual(toggle.getAttribute('aria-disabled'), 'true');
+			assert.ok(!toggle.classList.contains('disabled'));
+		}
 	}
 
 	function assertLeftoverMcpRowTogglesClosed(section: EngineMcpSection): void {
@@ -1549,6 +1575,105 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(section.getListEntryCount(), leftoverRows);
 		assert.strictEqual(section.canWrite(), false);
 		assert.strictEqual(section.isSaveToolbarVisible(), false);
+		assert.strictEqual(await section.toggleTool(leftover, false), false);
+		assert.strictEqual(await section.savePendingEnablement(), false);
+		assert.deepStrictEqual(saveCalls, []);
+		assert.strictEqual(listToolsCalls, listCallsAfterLoad);
+	});
+
+	test('Tools: pairing-hold refresh closes leftover row toggle chrome without reselect', async () => {
+		const saveCalls: UniverseAgentSaveAgentProfileRequest[] = [];
+		let listToolsCalls = 0;
+		const leftover = { name: 'leftover-bash', description: 'shell tool', category: 'shell' };
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: {
+				tools: { support: 'SUPPORTED' },
+				agentProfiles: { support: 'SUPPORTED' },
+			},
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [leftover] };
+			},
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+			}),
+			saveAgentProfile: async (request) => {
+				saveCalls.push(request);
+				return { profile: request.profile };
+			},
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+		section.layout(640, 160);
+
+		assert.strictEqual(section.selectTool('leftover-bash'), true);
+		assert.strictEqual(section.getSelectedToolName(), 'leftover-bash');
+		assert.strictEqual(section.canWrite(), true);
+		assert.strictEqual(section.isSaveToolbarVisible(), true);
+		assertLeftoverToolsRowTogglesLive(section);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listToolsCalls;
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(listToolsCalls, listCallsAfterLoad, 'KEEP must not extra listTools');
+		assertCatalogLeftoverPairingHonesty(section, leftoverRows, TOOLS_EMPTY_COPY);
+		assert.strictEqual(section.isSaveToolbarVisible(), false);
+		assert.strictEqual(section.getSelectedToolName(), 'leftover-bash');
+		assertLeftoverToolsRowTogglesClosed(section);
+		assert.strictEqual(await section.toggleTool(leftover, false), false);
+		assert.strictEqual(await section.savePendingEnablement(), false);
+		assert.deepStrictEqual(saveCalls, []);
+		assert.strictEqual(listToolsCalls, listCallsAfterLoad);
+	});
+
+	test('Tools: leftover-looks-live refresh closes leftover row toggle chrome without reselect', async () => {
+		const saveCalls: UniverseAgentSaveAgentProfileRequest[] = [];
+		let listToolsCalls = 0;
+		const leftover = { name: 'leftover-bash', description: 'shell tool', category: 'shell' };
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: {
+				tools: { support: 'SUPPORTED' },
+				agentProfiles: { support: 'SUPPORTED' },
+			},
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [leftover] };
+			},
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+			}),
+			saveAgentProfile: async (request) => {
+				saveCalls.push(request);
+				return { profile: request.profile };
+			},
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+		section.layout(640, 160);
+
+		assert.strictEqual(section.selectTool('leftover-bash'), true);
+		assert.strictEqual(section.getSelectedToolName(), 'leftover-bash');
+		assert.strictEqual(section.canWrite(), true);
+		assert.strictEqual(section.isSaveToolbarVisible(), true);
+		assertLeftoverToolsRowTogglesLive(section);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listToolsCalls;
+		connection.setLooksLive(true);
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(listToolsCalls, listCallsAfterLoad, 'KEEP must not extra listTools');
+		assertCatalogLeftoverPairingHonesty(section, leftoverRows, TOOLS_EMPTY_COPY);
+		assert.strictEqual(section.isSaveToolbarVisible(), false);
+		assert.strictEqual(section.getSelectedToolName(), 'leftover-bash');
+		assertLeftoverToolsRowTogglesClosed(section);
 		assert.strictEqual(await section.toggleTool(leftover, false), false);
 		assert.strictEqual(await section.savePendingEnablement(), false);
 		assert.deepStrictEqual(saveCalls, []);

@@ -185,6 +185,28 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		return status;
 	}
 
+	function leftoverToolsRowToggles(section: EngineToolsSection): HTMLElement[] {
+		return Array.from(section.getDomNode().querySelectorAll('.engine-catalog-row .monaco-custom-toggle'));
+	}
+
+	function assertLeftoverToolsRowTogglesClosed(section: EngineToolsSection): void {
+		const toggles = leftoverToolsRowToggles(section);
+		assert.ok(toggles.length > 0, 'KEEP leftover rows must paint toggle chrome');
+		for (const toggle of toggles) {
+			assert.strictEqual(toggle.getAttribute('aria-disabled'), 'true');
+			assert.ok(toggle.classList.contains('disabled'));
+		}
+	}
+
+	function assertLeftoverToolsRowTogglesLive(section: EngineToolsSection): void {
+		const toggles = leftoverToolsRowToggles(section);
+		assert.ok(toggles.length > 0, 'live leftover rows must paint toggle chrome');
+		for (const toggle of toggles) {
+			assert.notStrictEqual(toggle.getAttribute('aria-disabled'), 'true');
+			assert.ok(!toggle.classList.contains('disabled'));
+		}
+	}
+
 	test('leftover getToolInfo throw keeps detail and paints info-status error', async () => {
 		let getToolInfoCalls = 0;
 		const connection = createConnectionStub({
@@ -233,6 +255,64 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		assert.ok((section.getToolInfoDetailText() ?? '').includes(LEFTOVER_TOOL_INFO_DESC));
 		assert.ok((section.getToolInfoDetailText() ?? '').includes(getEngineSectionDisconnectedCopy()));
 		assert.deepStrictEqual([...leftoverInfoStatus(section).classList], ['engine-tools-info-status', 'is-error']);
+	});
+
+	test('pairing-hold refresh closes leftover row toggle chrome without reselect', async () => {
+		const leftover = leftoverBashTool();
+		const connection = createConnectionStub({
+			getToolInfo: async () => leftoverBashToolInfo(),
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		section.layout(640, 160);
+
+		assert.strictEqual(section.selectTool('leftover-bash'), true);
+		await flushMicrotasks();
+		assert.strictEqual(section.canWrite(), true);
+		assert.strictEqual(section.isSaveToolbarVisible(), true);
+		assertLeftoverToolsRowTogglesLive(section);
+		assert.strictEqual(section.getSelectedToolName(), 'leftover-bash');
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(section.getSelectedToolName(), 'leftover-bash');
+		assert.strictEqual(section.canWrite(), false);
+		assert.strictEqual(section.isSaveToolbarVisible(), false);
+		assertLeftoverToolsRowTogglesClosed(section);
+		assert.strictEqual(await section.toggleTool(leftover, false), false);
+		assert.strictEqual(await section.savePendingEnablement(), false);
+	});
+
+	test('leftover-looks-live refresh closes leftover row toggle chrome without reselect', async () => {
+		const leftover = leftoverBashTool();
+		const connection = createConnectionStub({
+			looksLive: true,
+			getToolInfo: async () => leftoverBashToolInfo(),
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		section.layout(640, 160);
+
+		assert.strictEqual(section.selectTool('leftover-bash'), true);
+		await flushMicrotasks();
+		assert.strictEqual(section.canWrite(), true);
+		assert.strictEqual(section.isSaveToolbarVisible(), true);
+		assertLeftoverToolsRowTogglesLive(section);
+		assert.strictEqual(section.getSelectedToolName(), 'leftover-bash');
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(section.getSelectedToolName(), 'leftover-bash');
+		assert.strictEqual(section.canWrite(), false);
+		assert.strictEqual(section.isSaveToolbarVisible(), false);
+		assertLeftoverToolsRowTogglesClosed(section);
+		assert.strictEqual(await section.toggleTool(leftover, false), false);
+		assert.strictEqual(await section.savePendingEnablement(), false);
 	});
 
 	test('pairing-hold refresh paints leftover info honesty without reselect', async () => {
