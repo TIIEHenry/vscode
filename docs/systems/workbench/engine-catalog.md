@@ -3,7 +3,7 @@ title: "Engine 页 Customizations catalog（ua.engine）"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-12
+updated: 2026-09-13
 summary: "HEAD 九节壳已挂：四节写路径 + Overview/Model/MCP Runtime/Plugins；Provider/Rules/Hooks 只读列表已接（无写表单）；产品验证未做"
 ---
 
@@ -73,7 +73,7 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 | **Rules** | **无** list/CRUD 方法 | `EngineRulesSection`：Global / Project 壳；已连接一律 unsupported 完整态（capability 或「无 API」） | 行数完成线 = 0；不扫 Copilot rules |
 | **Hooks** | **无** metadata RPC | `EngineHooksSection`：Definitions / Hook points 壳；已连接一律 unsupported | 不抄 `points.md`、不读 `{AgentHome}/hooks.json` |
 | **MCP Servers** | 定义：`List` / `Toggle` / `Add` / `Update` / `Remove`。运行态：`getMcpServerStatuses` / `getMcpServerTools` | Definitions tab + Runtime tab | 定义 CRUD @ `f49615a1`；Runtime @ E2-4 / P1a。不混 vscode `IMcpService` |
-| **Plugins** | `listPlugins` · `enablePlugin` · `reloadPlugin` · `unloadPlugin` · `scanNewPlugins` | `EnginePluginsSection`：列表 + 启停/重载/扫描（方法存在且 `canWrite` 才画） | P1a 真探测；**无** Browse Marketplace |
+| **Plugins** | `listPlugins` · `enablePlugin` · `reloadPlugin` · `unloadPlugin` · `scanNewPlugins` | `EnginePluginsSection`：列表 + 启停/重载/扫描（方法存在且 `canWrite` 才画）；pairing-hold KEEP leftover 关 Enable/Reload/Unload/Scan chrome（disable，不重选；D428） | P1a 真探测；**无** Browse Marketplace |
 | **Tools** | `ListTools` · `SaveAgentProfile`（`tools.json`）。`ToolInfo` 已进 catalog + node unary；**选中行**拉 `getToolInfo` 只读详情 | 目录 + profile 下拉 + 启用 checkbox + 只读详情 | profile 启用集 @ `7f10e65c` / `f49615a1`；无 hook 仍 list-only；不画 schema 编辑器 |
 | 节 | 传输（`platform/universeAgent`） | Engine UI（`contrib/conversation/browser`） | 备注 |
 |----|-----------------------------------|---------------------------------------------|------|

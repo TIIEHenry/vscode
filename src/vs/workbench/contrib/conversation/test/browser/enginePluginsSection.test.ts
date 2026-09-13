@@ -495,6 +495,122 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		assert.strictEqual(listPluginsCalls, listCallsAfterLoad);
 	});
 
+	test('pairing-hold refresh closes leftover Enable/write chrome without reselect', async () => {
+		const leftover = leftoverPlugin();
+		const enableCalls: string[] = [];
+		const reloadCalls: string[] = [];
+		const unloadCalls: string[] = [];
+		const scanCalls: number[] = [];
+		let listPluginsCalls = 0;
+		const connection = createConnectionStub({
+			listPlugins: async () => {
+				listPluginsCalls++;
+				return { plugins: [leftover] };
+			},
+			enablePlugin: async (id) => {
+				enableCalls.push(id);
+				return { plugin: leftover };
+			},
+			reloadPlugin: async (id) => {
+				reloadCalls.push(id);
+				return { plugin: leftover };
+			},
+			unloadPlugin: async (id) => {
+				unloadCalls.push(id);
+				return { removedHookCount: 0 };
+			},
+			scanNewPlugins: async () => {
+				scanCalls.push(1);
+				return { newPlugins: [], skippedCount: 0 };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		assert.strictEqual(section.getSelectedPluginId(), 'leftover-plugin');
+		assertLeftoverPluginWriteChromeLive(section);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listPluginsCalls;
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(listPluginsCalls, listCallsAfterLoad, 'KEEP must not extra listPlugins');
+		assertPluginsLeftoverPairingHonesty(section, leftoverRows);
+		assert.strictEqual(section.getSelectedPluginId(), 'leftover-plugin');
+		assertLeftoverPluginWriteChromeClosed(section);
+		await section.enableSelectedForTest();
+		await section.reloadSelectedForTest();
+		await section.unloadSelectedForTest();
+		await section.scanNewForTest();
+		assert.deepStrictEqual(enableCalls, []);
+		assert.deepStrictEqual(reloadCalls, []);
+		assert.deepStrictEqual(unloadCalls, []);
+		assert.deepStrictEqual(scanCalls, []);
+		assert.strictEqual(listPluginsCalls, listCallsAfterLoad);
+	});
+
+	test('leftover-looks-live refresh closes leftover Enable/write chrome without reselect', async () => {
+		const leftover = leftoverPlugin();
+		const enableCalls: string[] = [];
+		const reloadCalls: string[] = [];
+		const unloadCalls: string[] = [];
+		const scanCalls: number[] = [];
+		let listPluginsCalls = 0;
+		const connection = createConnectionStub({
+			looksLive: true,
+			listPlugins: async () => {
+				listPluginsCalls++;
+				return { plugins: [leftover] };
+			},
+			enablePlugin: async (id) => {
+				enableCalls.push(id);
+				return { plugin: leftover };
+			},
+			reloadPlugin: async (id) => {
+				reloadCalls.push(id);
+				return { plugin: leftover };
+			},
+			unloadPlugin: async (id) => {
+				unloadCalls.push(id);
+				return { removedHookCount: 0 };
+			},
+			scanNewPlugins: async () => {
+				scanCalls.push(1);
+				return { newPlugins: [], skippedCount: 0 };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		assert.strictEqual(section.getSelectedPluginId(), 'leftover-plugin');
+		assertLeftoverPluginWriteChromeLive(section);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listPluginsCalls;
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(listPluginsCalls, listCallsAfterLoad, 'KEEP must not extra listPlugins');
+		assertPluginsLeftoverPairingHonesty(section, leftoverRows);
+		assert.strictEqual(section.getSelectedPluginId(), 'leftover-plugin');
+		assertLeftoverPluginWriteChromeClosed(section);
+		await section.enableSelectedForTest();
+		await section.reloadSelectedForTest();
+		await section.unloadSelectedForTest();
+		await section.scanNewForTest();
+		assert.deepStrictEqual(enableCalls, []);
+		assert.deepStrictEqual(reloadCalls, []);
+		assert.deepStrictEqual(unloadCalls, []);
+		assert.deepStrictEqual(scanCalls, []);
+		assert.strictEqual(listPluginsCalls, listCallsAfterLoad);
+	});
+
 	test('enablePlugin ok does not keep Enabled. when subsequent listPlugins fails', async () => {
 		let listPluginsCalls = 0;
 		const unhandledRejections: unknown[] = [];
@@ -793,6 +909,40 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		assert.ok(infoStatus);
 		assert.ok(infoStatus.classList.contains('engine-catalog-status-widget'));
 		return infoStatus;
+	}
+
+	function leftoverPluginWriteButtons(section: EnginePluginsSection): HTMLElement[] {
+		const row = Array.from(section.getDomNode().querySelectorAll('.engine-plugins-row-toolbar .monaco-button')) as HTMLElement[];
+		const scan = Array.from(section.getDomNode().querySelectorAll('.engine-catalog-write-toolbar:not(.engine-plugins-row-toolbar) .monaco-button')) as HTMLElement[];
+		return [...row, ...scan];
+	}
+
+	function assertLeftoverPluginWriteChromeLive(section: EnginePluginsSection): void {
+		assert.strictEqual(section.canWrite(), true);
+		assert.strictEqual(section.isScanNewVisible(), true);
+		assert.strictEqual(section.isEnableVisible(), true);
+		assert.strictEqual(section.isReloadVisible(), true);
+		assert.strictEqual(section.isUnloadVisible(), true);
+		const buttons = leftoverPluginWriteButtons(section);
+		assert.ok(buttons.length > 0, 'live leftover must paint write chrome');
+		for (const button of buttons) {
+			assert.notStrictEqual(button.getAttribute('aria-disabled'), 'true');
+			assert.ok(!button.classList.contains('disabled'));
+		}
+	}
+
+	function assertLeftoverPluginWriteChromeClosed(section: EnginePluginsSection): void {
+		assert.strictEqual(section.canWrite(), false);
+		assert.strictEqual(section.isScanNewVisible(), false);
+		assert.strictEqual(section.isEnableVisible(), false);
+		assert.strictEqual(section.isReloadVisible(), false);
+		assert.strictEqual(section.isUnloadVisible(), false);
+		const buttons = leftoverPluginWriteButtons(section);
+		assert.ok(buttons.length > 0, 'KEEP leftover must paint write chrome');
+		for (const button of buttons) {
+			assert.strictEqual(button.getAttribute('aria-disabled'), 'true');
+			assert.ok(button.classList.contains('disabled'));
+		}
 	}
 
 	function assertLeftoverHooksLooksLiveDisconnected(section: EnginePluginsSection, expectedRows: number): void {

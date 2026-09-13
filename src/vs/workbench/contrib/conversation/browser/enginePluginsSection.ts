@@ -297,6 +297,10 @@ export class EnginePluginsSection extends Disposable {
 		return this.rowToolbar.style.display !== 'none' && this.unloadButton.element.style.display !== 'none';
 	}
 
+	getSelectedPluginId(): string | undefined {
+		return this.selectedPlugin?.id;
+	}
+
 	setSectionActive(active: boolean): void {
 		this.container.style.display = active ? '' : 'none';
 	}
@@ -390,11 +394,18 @@ export class EnginePluginsSection extends Disposable {
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): boolean {
 		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
 			this.hideCatalogWriteStatus();
-			this.writeToolbar.style.display = 'none';
-			this.rowToolbar.style.display = 'none';
 			this.listContainer.style.display = '';
 			this.mode = resolveEngineCatalogPaneMode(false, support);
 			this.renderStatus();
+			// D428: pairing-hold / leftover-looks-live KEEP must close leftover
+			// Enable/Reload/Unload/Scan chrome on refresh; do not wait for
+			// another selectPlugin. Plugins have no row toggle. Toolbar hide
+			// alone left leftover write buttons looking live (`enabled` /
+			// aria-disabled=false). `list.rerender()` is a no-op unless
+			// supportDynamicHeights; splice would not paint write chrome
+			// (rows are name+summary only). Equivalent: disable after mode.
+			this.updateWriteToolbar();
+			this.updateRowActions();
 			// D419: pairing-hold / leftover-looks-live KEEP must paint leftover
 			// hooks honesty on refresh; do not wait for another selectPlugin.
 			if (this.hasLeftoverHooks()) {
@@ -612,11 +623,15 @@ export class EnginePluginsSection extends Disposable {
 
 	private updateWriteToolbar(): void {
 		const showScan = this.canWrite() && hasPluginWriteMethod(this.connection, 'scanNewPlugins');
+		this.scanNewButton.enabled = showScan;
 		this.writeToolbar.style.display = showScan ? '' : 'none';
 	}
 
 	private updateRowActions(): void {
 		if (!this.canWrite() || !this.selectedPlugin) {
+			this.enableButton.enabled = false;
+			this.reloadButton.enabled = false;
+			this.unloadButton.enabled = false;
 			this.rowToolbar.style.display = 'none';
 			return;
 		}
@@ -624,6 +639,9 @@ export class EnginePluginsSection extends Disposable {
 		const reload = hasPluginWriteMethod(this.connection, 'reloadPlugin');
 		const unload = hasPluginWriteMethod(this.connection, 'unloadPlugin')
 			&& this.selectedPlugin.source !== EMBEDDED_SOURCE;
+		this.enableButton.enabled = enable;
+		this.reloadButton.enabled = reload;
+		this.unloadButton.enabled = unload;
 		this.enableButton.element.style.display = enable ? '' : 'none';
 		this.reloadButton.element.style.display = reload ? '' : 'none';
 		this.unloadButton.element.style.display = unload ? '' : 'none';
@@ -798,6 +816,10 @@ export class EnginePluginsSection extends Disposable {
 		this.hideCatalogWriteStatus();
 		this.status.hide();
 		this.listContainer.style.display = 'none';
+		this.scanNewButton.enabled = false;
+		this.enableButton.enabled = false;
+		this.reloadButton.enabled = false;
+		this.unloadButton.enabled = false;
 		this.writeToolbar.style.display = 'none';
 		this.rowToolbar.style.display = 'none';
 		this.renderScanResult();
