@@ -97,6 +97,7 @@ class EngineSkillRowRenderer implements IListRenderer<EngineSkillListEntry, ISki
 	readonly templateId = EngineSkillRowRenderer.TEMPLATE_ID;
 
 	constructor(
+		private readonly canToggle: () => boolean,
 		private readonly onToggle: (skill: UniverseAgentSkillSummary, enabled: boolean) => void,
 	) { }
 
@@ -105,7 +106,7 @@ class EngineSkillRowRenderer implements IListRenderer<EngineSkillListEntry, ISki
 		const checkbox = new Checkbox('', false, defaultCheckboxStyles);
 		const checkboxDisposable = checkbox.onChange(() => {
 			const skill = (row as unknown as { __skill?: UniverseAgentSkillSummary }).__skill;
-			if (skill) {
+			if (skill && this.canToggle()) {
 				this.onToggle(skill, checkbox.checked);
 			}
 		});
@@ -126,6 +127,10 @@ class EngineSkillRowRenderer implements IListRenderer<EngineSkillListEntry, ISki
 		templateData.description.textContent = entry.skill.description ?? '';
 		templateData.checkbox.setTitle(localize('ua.engineSkillRowToggle', "Enable {0}", entry.skill.name));
 		templateData.checkbox.checked = entry.skill.enabled;
+		templateData.checkbox.enable();
+		if (!this.canToggle()) {
+			templateData.checkbox.disable();
+		}
 	}
 
 	disposeTemplate(templateData: ISkillRowTemplateData): void {
@@ -167,6 +172,7 @@ export class EngineSkillsSection extends Disposable {
 	private readonly saveButton: Button;
 	private readonly instantiationService: IInstantiationService;
 	private list: WorkbenchList<EngineSkillListEntry> | undefined;
+	private lastLayout: { readonly width: number; readonly listHeight: number } | undefined;
 
 	private mode: EngineSkillsPaneMode = 'disconnected';
 	private listEntries: EngineSkillListEntry[] = [];
@@ -246,6 +252,7 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	layout(width: number, listHeight: number): void {
+		this.lastLayout = { width, listHeight };
 		this.list?.layout(Math.max(120, listHeight), width);
 	}
 
@@ -398,9 +405,27 @@ export class EngineSkillsSection extends Disposable {
 		// D431: UNKNOWN leftover / list-fail leftover must close leftover
 		// user body Save chrome on refresh; do not wait for another selectSkill.
 		// Toolbar hide alone left leftover textarea looking live.
-		// Do not invent row toggle (D421 KEEP chrome stays pairing-hold only).
 		if (this.hasLeftoverSkillBody()) {
 			this.updateBodyEditorChrome(this.loadedBodySource ?? this.selectedSkill?.source);
+		}
+	}
+
+	private relayoutLeftoverList(): void {
+		if (this.lastLayout && this.list) {
+			this.list.layout(Math.max(120, this.lastLayout.listHeight), this.lastLayout.width);
+		}
+	}
+
+	private closeLeftoverRowToggleChrome(): void {
+		// D432: leftover KEEP / UNKNOWN / list-fail must close leftover
+		// row toggle chrome on refresh; do not wait for another selectSkill.
+		// D421 / D431 Save chrome alone left leftover checkboxes looking live.
+		// `list.rerender()` is a no-op unless supportDynamicHeights; splice
+		// the leftover entries so renderElement can disable toggles via canWrite().
+		this.relayoutLeftoverList();
+		if (this.list && this.listEntries.length > 0) {
+			this.list.splice(0, this.list.length, this.listEntries);
+			this.restoreSkillSelection();
 		}
 	}
 
@@ -419,6 +444,7 @@ export class EngineSkillsSection extends Disposable {
 				this.updateBodyEditorChrome(this.loadedBodySource ?? this.selectedSkill?.source);
 				this.showBodyStatus(getEngineSectionDisconnectedCopy());
 			}
+			this.closeLeftoverRowToggleChrome();
 			return false;
 		}
 		this.clearCatalogPresentation();
@@ -457,6 +483,7 @@ export class EngineSkillsSection extends Disposable {
 			this.renderStatus({ loadingKind: 'capability' });
 			if (hadLiveCatalog) {
 				this.closeLeftoverBodyEditorChrome();
+				this.closeLeftoverRowToggleChrome();
 			}
 			return false;
 		}
@@ -503,6 +530,7 @@ export class EngineSkillsSection extends Disposable {
 			});
 			if (hadLiveCatalog) {
 				this.closeLeftoverBodyEditorChrome();
+				this.closeLeftoverRowToggleChrome();
 			}
 			return false;
 		}
@@ -531,7 +559,10 @@ export class EngineSkillsSection extends Disposable {
 				new EngineSkillListDelegate(),
 				[
 					new EngineSkillGroupRenderer(),
-					new EngineSkillRowRenderer((skill, enabled) => this.toggleSkill(skill, enabled)),
+					new EngineSkillRowRenderer(
+						() => this.canWrite(),
+						(skill, enabled) => this.toggleSkill(skill, enabled),
+					),
 				],
 				{
 					identityProvider: {

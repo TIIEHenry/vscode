@@ -239,6 +239,28 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.strictEqual(section.isSaveToolbarVisible(), false);
 	}
 
+	function leftoverSkillsRowToggles(section: EngineSkillsSection): HTMLElement[] {
+		return Array.from(section.getDomNode().querySelectorAll('.engine-skill-row .monaco-custom-toggle'));
+	}
+
+	function assertLeftoverSkillsRowTogglesClosed(section: EngineSkillsSection): void {
+		const toggles = leftoverSkillsRowToggles(section);
+		assert.ok(toggles.length > 0, 'KEEP leftover rows must paint toggle chrome');
+		for (const toggle of toggles) {
+			assert.strictEqual(toggle.getAttribute('aria-disabled'), 'true');
+			assert.ok(toggle.classList.contains('disabled'));
+		}
+	}
+
+	function assertLeftoverSkillsRowTogglesLive(section: EngineSkillsSection): void {
+		const toggles = leftoverSkillsRowToggles(section);
+		assert.ok(toggles.length > 0, 'live leftover rows must paint toggle chrome');
+		for (const toggle of toggles) {
+			assert.notStrictEqual(toggle.getAttribute('aria-disabled'), 'true');
+			assert.ok(!toggle.classList.contains('disabled'));
+		}
+	}
+
 	test('disconnected hides skills section (§8.3 #5 honest empty)', async () => {
 		const connection = createConnectionStub({ connected: false, skillsSupport: 'SUPPORTED' });
 		const section = mountSection(connection);
@@ -1545,6 +1567,160 @@ suite('EngineSkillsSection (E1)', () => {
 		const ok = await section.saveSelectedSkillBody('# should not save');
 		assert.strictEqual(ok, false);
 		assert.strictEqual(saveCalls, 0);
+	});
+
+	test('pairing-hold refresh closes leftover row toggle chrome without reselect', async () => {
+		const toggleCalls: Array<{ skillName: string; enabled: boolean }> = [];
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({ skills: [{ name: 'leftover-skill', source: 'user', enabled: true }] }),
+			getSkillInfo: async () => ({ name: 'leftover-skill', content: LEFTOVER_SKILL_BODY, source: 'user', enabled: true }),
+			setSkillEnabled: async (request) => {
+				toggleCalls.push(request);
+				return { ok: true };
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		section.layout(640, 160);
+
+		section.selectSkillForTest('leftover-skill');
+		await flushMicrotasks();
+		assert.strictEqual(section.canWrite(), true);
+		assertLeftoverSkillsRowTogglesLive(section);
+		assert.strictEqual(section.getSelectedSkillName(), 'leftover-skill');
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(section.getSelectedSkillName(), 'leftover-skill');
+		assert.strictEqual(section.canWrite(), false);
+		assertLeftoverSkillsRowTogglesClosed(section);
+		await section.toggleSkillForTest('leftover-skill', false);
+		assert.deepStrictEqual(toggleCalls, []);
+	});
+
+	test('leftover-looks-live refresh closes leftover row toggle chrome without reselect', async () => {
+		const toggleCalls: Array<{ skillName: string; enabled: boolean }> = [];
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			looksLive: true,
+			listSkills: async () => ({ skills: [{ name: 'leftover-skill', source: 'user', enabled: true }] }),
+			getSkillInfo: async () => ({ name: 'leftover-skill', content: LEFTOVER_SKILL_BODY, source: 'user', enabled: true }),
+			setSkillEnabled: async (request) => {
+				toggleCalls.push(request);
+				return { ok: true };
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		section.layout(640, 160);
+
+		section.selectSkillForTest('leftover-skill');
+		await flushMicrotasks();
+		assert.strictEqual(section.canWrite(), true);
+		assertLeftoverSkillsRowTogglesLive(section);
+		assert.strictEqual(section.getSelectedSkillName(), 'leftover-skill');
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(section.getSelectedSkillName(), 'leftover-skill');
+		assert.strictEqual(section.canWrite(), false);
+		assertLeftoverSkillsRowTogglesClosed(section);
+		await section.toggleSkillForTest('leftover-skill', false);
+		assert.deepStrictEqual(toggleCalls, []);
+	});
+
+	test('capability UNKNOWN leftover closes leftover row toggle chrome without reselect', async () => {
+		const toggleCalls: Array<{ skillName: string; enabled: boolean }> = [];
+		let listSkillsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => {
+				listSkillsCalls++;
+				return { skills: [{ name: 'leftover-skill', source: 'user', enabled: true }] };
+			},
+			getSkillInfo: async () => ({ name: 'leftover-skill', content: LEFTOVER_SKILL_BODY, source: 'user', enabled: true }),
+			setSkillEnabled: async (request) => {
+				toggleCalls.push(request);
+				return { ok: true };
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		section.layout(640, 160);
+
+		section.selectSkillForTest('leftover-skill');
+		await flushMicrotasks();
+		assert.strictEqual(section.getSelectedSkillName(), 'leftover-skill');
+		assert.strictEqual(section.canWrite(), true);
+		assertLeftoverSkillsRowTogglesLive(section);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listSkillsCalls;
+
+		connection.setSkillsSupport('UNKNOWN');
+		await flushMicrotasks();
+
+		assert.strictEqual(listSkillsCalls, listCallsAfterLoad, 'UNKNOWN leftover must not extra listSkills');
+		assertSkillsLeftoverUnknownHonesty(section, leftoverRows);
+		assert.strictEqual(section.getSelectedSkillName(), 'leftover-skill');
+		assert.strictEqual(section.canWrite(), false);
+		assertLeftoverSkillsRowTogglesClosed(section);
+		await section.toggleSkillForTest('leftover-skill', false);
+		assert.deepStrictEqual(toggleCalls, []);
+	});
+
+	test('list-fail leftover closes leftover row toggle chrome without reselect', async () => {
+		const toggleCalls: Array<{ skillName: string; enabled: boolean }> = [];
+		let listSkillsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => {
+				listSkillsCalls++;
+				if (listSkillsCalls === 1) {
+					return { skills: [{ name: 'leftover-skill', source: 'user', enabled: true }] };
+				}
+				throw new Error('listSkills retry exploded');
+			},
+			getSkillInfo: async () => ({ name: 'leftover-skill', content: LEFTOVER_SKILL_BODY, source: 'user', enabled: true }),
+			setSkillEnabled: async (request) => {
+				toggleCalls.push(request);
+				return { ok: true };
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		section.layout(640, 160);
+
+		section.selectSkillForTest('leftover-skill');
+		await flushMicrotasks();
+		assert.strictEqual(section.getSelectedSkillName(), 'leftover-skill');
+		assert.strictEqual(section.canWrite(), true);
+		assertLeftoverSkillsRowTogglesLive(section);
+		const leftoverRows = section.getListEntryCount();
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(listSkillsCalls, 2);
+		assertSkillsLeftoverFailedHonesty(section, 'listSkills retry exploded', leftoverRows);
+		assert.strictEqual(section.getSelectedSkillName(), 'leftover-skill');
+		assert.strictEqual(section.canWrite(), false);
+		assertLeftoverSkillsRowTogglesClosed(section);
+		await section.toggleSkillForTest('leftover-skill', false);
+		assert.deepStrictEqual(toggleCalls, []);
 	});
 
 	test('in-flight getSkillInfo leftover-looks-live keeps leftover and does not paint live', async () => {
