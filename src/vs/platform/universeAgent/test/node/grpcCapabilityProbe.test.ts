@@ -95,5 +95,5 @@ suite('grpc capability probe advertisement', () => {
 function probeTransport(status: number): IUniverseAgentGrpcTransport {
 	return {
 		probeRpc: async () => status,
-	} as IUniverseAgentGrpcTransport;
+	} as unknown as IUniverseAgentGrpcTransport;
 }

@@ -393,7 +393,8 @@ suite('grpc catalog unary protobuf wire', () => {
 
 		const encodedTeams = encodeListTeamsRequest('sess-1');
 		assert.notStrictEqual(encodedTeams[0], 0x7b);
-		assert.strictEqual(Buffer.from(readProtoFields(encodedTeams)[0].wireType === 2 ? readProtoFields(encodedTeams)[0].bytes : []).toString('utf8'), 'sess-1');
+		const firstField = readProtoFields(encodedTeams)[0];
+		assert.strictEqual(Buffer.from(firstField?.wireType === 2 ? firstField.bytes : []).toString('utf8'), 'sess-1');
 		assert.deepStrictEqual(mapListTeamsResponse(decodeListTeamsResponse(new Uint8Array(0))).teams, []);
 		const team = Buffer.concat([
 			encodeInt32Field(1, 7),
