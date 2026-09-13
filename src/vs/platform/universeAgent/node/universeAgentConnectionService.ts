@@ -702,7 +702,18 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	async connectProfile(profileId: string, options: { readonly reconnect?: boolean } = {}): Promise<UniverseAgentConnectProfileResult> {
-		return finalizeConnectProfileResult(await this._connectProfileRaw(profileId, options));
+		try {
+			return finalizeConnectProfileResult(await this._connectProfileRaw(profileId, options));
+		} catch (error) {
+			// D417: `_connectProfileRaw` cancels the timer on entry. Throws from
+			// resolve / loadGrpcModule / getOrCreateIdentity / createSigner sit
+			// outside connect() / handshake catch; D416 only re-arms those two.
+			this._maybeScheduleReconnectAfterTransportFailedReturn(
+				'transport_failed',
+				options.reconnect === true || this._transportState === 'failed',
+			);
+			throw error;
+		}
 	}
 
 	private async _connectProfileRaw(profileId: string, options: { readonly reconnect?: boolean } = {}): Promise<UniverseAgentConnectProfileResult> {
