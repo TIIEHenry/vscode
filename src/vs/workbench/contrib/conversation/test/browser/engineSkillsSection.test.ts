@@ -1449,6 +1449,104 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.ok(bodyStatus.textContent?.includes(getEngineSectionDisconnectedCopy()));
 	});
 
+	test('capability UNKNOWN leftover closes leftover user body Save chrome without reselect', async () => {
+		let saveCalls = 0;
+		let infoCalls = 0;
+		let listSkillsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => {
+				listSkillsCalls++;
+				return { skills: [{ name: 'leftover-skill', source: 'user', enabled: true }] };
+			},
+			getSkillInfo: async () => {
+				infoCalls++;
+				return { name: 'leftover-skill', content: LEFTOVER_SKILL_BODY, source: 'user', enabled: true };
+			},
+			saveSkillContent: async () => {
+				saveCalls++;
+				return { ok: true };
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		section.selectSkillForTest('leftover-skill');
+		await flushMicrotasks();
+		assert.strictEqual(section.getSelectedSkillBody(), LEFTOVER_SKILL_BODY);
+		assert.strictEqual(section.isSaveToolbarVisible(), true);
+		assert.strictEqual(leftoverBodyTextarea(section).readOnly, false);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listSkillsCalls;
+		const infoCallsAfterLoad = infoCalls;
+
+		connection.setSkillsSupport('UNKNOWN');
+		await flushMicrotasks();
+
+		assertSkillsLeftoverUnknownHonesty(section, leftoverRows);
+		assert.strictEqual(listSkillsCalls, listCallsAfterLoad, 'UNKNOWN leftover must not extra listSkills');
+		assert.strictEqual(infoCalls, infoCallsAfterLoad, 'UNKNOWN leftover must not extra getSkillInfo');
+		assert.strictEqual(section.getSelectedSkillName(), 'leftover-skill');
+		assert.strictEqual(section.getSelectedSkillBody(), LEFTOVER_SKILL_BODY);
+		assert.ok(section.isBodyEditorVisible());
+		assertLeftoverBodyEditorClosed(section);
+		const ok = await section.saveSelectedSkillBody('# should not save');
+		assert.strictEqual(ok, false);
+		assert.strictEqual(saveCalls, 0);
+	});
+
+	test('list-fail leftover closes leftover user body Save chrome without reselect', async () => {
+		let saveCalls = 0;
+		let infoCalls = 0;
+		let listSkillsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => {
+				listSkillsCalls++;
+				if (listSkillsCalls === 1) {
+					return { skills: [{ name: 'leftover-skill', source: 'user', enabled: true }] };
+				}
+				throw new Error('listSkills retry exploded');
+			},
+			getSkillInfo: async () => {
+				infoCalls++;
+				return { name: 'leftover-skill', content: LEFTOVER_SKILL_BODY, source: 'user', enabled: true };
+			},
+			saveSkillContent: async () => {
+				saveCalls++;
+				return { ok: true };
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		section.selectSkillForTest('leftover-skill');
+		await flushMicrotasks();
+		assert.strictEqual(section.getSelectedSkillBody(), LEFTOVER_SKILL_BODY);
+		assert.strictEqual(section.isSaveToolbarVisible(), true);
+		assert.strictEqual(leftoverBodyTextarea(section).readOnly, false);
+		const leftoverRows = section.getListEntryCount();
+		const infoCallsAfterLoad = infoCalls;
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(listSkillsCalls, 2);
+		assertSkillsLeftoverFailedHonesty(section, 'listSkills retry exploded', leftoverRows);
+		assert.strictEqual(infoCalls, infoCallsAfterLoad, 'list-fail leftover must not extra getSkillInfo');
+		assert.strictEqual(section.getSelectedSkillName(), 'leftover-skill');
+		assert.strictEqual(section.getSelectedSkillBody(), LEFTOVER_SKILL_BODY);
+		assert.ok(section.isBodyEditorVisible());
+		assertLeftoverBodyEditorClosed(section);
+		const ok = await section.saveSelectedSkillBody('# should not save');
+		assert.strictEqual(ok, false);
+		assert.strictEqual(saveCalls, 0);
+	});
+
 	test('in-flight getSkillInfo leftover-looks-live keeps leftover and does not paint live', async () => {
 		let infoCalls = 0;
 		let releaseSecond: (() => void) | undefined;

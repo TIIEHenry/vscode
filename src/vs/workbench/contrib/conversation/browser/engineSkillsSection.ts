@@ -394,6 +394,16 @@ export class EngineSkillsSection extends Disposable {
 		return !!(this.loadedBodyText || this.bodyInput.value);
 	}
 
+	private closeLeftoverBodyEditorChrome(): void {
+		// D431: UNKNOWN leftover / list-fail leftover must close leftover
+		// user body Save chrome on refresh; do not wait for another selectSkill.
+		// Toolbar hide alone left leftover textarea looking live.
+		// Do not invent row toggle (D421 KEEP chrome stays pairing-hold only).
+		if (this.hasLeftoverSkillBody()) {
+			this.updateBodyEditorChrome(this.loadedBodySource ?? this.selectedSkill?.source);
+		}
+	}
+
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): boolean {
 		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
 			this.hideWriteStatus();
@@ -445,6 +455,9 @@ export class EngineSkillsSection extends Disposable {
 			this.mode = resolveEngineSkillsPaneMode(true, support, { kind: 'none' });
 			this.writeToolbar.style.display = 'none';
 			this.renderStatus({ loadingKind: 'capability' });
+			if (hadLiveCatalog) {
+				this.closeLeftoverBodyEditorChrome();
+			}
 			return false;
 		}
 
@@ -488,6 +501,9 @@ export class EngineSkillsSection extends Disposable {
 				reason: error instanceof Error ? error.message : undefined,
 				onRetry: () => void this.refresh(),
 			});
+			if (hadLiveCatalog) {
+				this.closeLeftoverBodyEditorChrome();
+			}
 			return false;
 		}
 	}
