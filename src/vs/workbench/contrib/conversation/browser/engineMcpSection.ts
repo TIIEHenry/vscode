@@ -106,6 +106,7 @@ class EngineMcpRowRenderer implements IListRenderer<EngineMcpListEntry, IMcpRowT
 	readonly templateId = EngineMcpRowRenderer.TEMPLATE_ID;
 
 	constructor(
+		private readonly canToggle: () => boolean,
 		private readonly onToggle: (server: UniverseAgentMcpServerSummary, enabled: boolean) => void,
 	) { }
 
@@ -114,7 +115,7 @@ class EngineMcpRowRenderer implements IListRenderer<EngineMcpListEntry, IMcpRowT
 		const checkbox = new Checkbox('', false, defaultCheckboxStyles);
 		const checkboxDisposable = checkbox.onChange(() => {
 			const server = (row as unknown as { __server?: UniverseAgentMcpServerSummary }).__server;
-			if (server) {
+			if (server && this.canToggle()) {
 				this.onToggle(server, checkbox.checked);
 			}
 		});
@@ -140,6 +141,10 @@ class EngineMcpRowRenderer implements IListRenderer<EngineMcpListEntry, IMcpRowT
 		templateData.transport.textContent = entry.server.transport;
 		templateData.checkbox.setTitle(localize('ua.engineMcpRowToggle', "Enable {0}", entry.server.name || entry.server.id));
 		templateData.checkbox.checked = entry.server.effectiveEnabled ?? entry.server.enabled;
+		templateData.checkbox.enable();
+		if (!this.canToggle()) {
+			templateData.checkbox.disable();
+		}
 	}
 
 	disposeTemplate(templateData: IMcpRowTemplateData): void {
@@ -213,6 +218,7 @@ export class EngineMcpSection extends Disposable {
 	private selectedServer: UniverseAgentMcpServerSummary | undefined;
 	private writeFailedReason: string | undefined;
 	private sectionActive = false;
+	private lastLayout: { readonly width: number; readonly listHeight: number } | undefined;
 
 	constructor(
 		parent: HTMLElement,
@@ -288,6 +294,7 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	layout(width: number, listHeight: number): void {
+		this.lastLayout = { width, listHeight };
 		this.list?.layout(Math.max(80, listHeight), width);
 		this.runtimePanel.layout(width, listHeight);
 	}
@@ -486,7 +493,10 @@ export class EngineMcpSection extends Disposable {
 				new EngineMcpListDelegate(),
 				[
 					new EngineMcpGroupRenderer(),
-					new EngineMcpRowRenderer((server, enabled) => this.toggleServer(server, enabled)),
+					new EngineMcpRowRenderer(
+						() => this.canWrite(),
+						(server, enabled) => this.toggleServer(server, enabled),
+					),
 				],
 				{
 					identityProvider: {
@@ -505,6 +515,12 @@ export class EngineMcpSection extends Disposable {
 		return this.list;
 	}
 
+	private relayoutLeftoverList(): void {
+		if (this.lastLayout && this.list) {
+			this.list.layout(Math.max(80, this.lastLayout.listHeight), this.lastLayout.width);
+		}
+	}
+
 	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
 		return hadLiveCatalog && isConversationPairingHold(this.connection);
 	}
@@ -516,6 +532,16 @@ export class EngineMcpSection extends Disposable {
 			this.listContainer.style.display = '';
 			this.mode = resolveEngineCatalogPaneMode(false, support);
 			this.renderStatus();
+			// D425: pairing-hold / leftover-looks-live KEEP must close leftover
+			// row toggle chrome on refresh; do not wait for another selectServer.
+			// Toolbar hide alone left leftover checkboxes looking live.
+			// `list.rerender()` is a no-op unless supportDynamicHeights; splice
+			// the leftover entries so renderElement can disable toggles.
+			this.relayoutLeftoverList();
+			if (this.list && this.listEntries.length > 0) {
+				this.list.splice(0, this.list.length, this.listEntries);
+				this.restoreServerSelection();
+			}
 			return false;
 		}
 		this.clearCatalogPresentation();
