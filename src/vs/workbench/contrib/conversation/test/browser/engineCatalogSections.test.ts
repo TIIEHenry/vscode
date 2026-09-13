@@ -3068,7 +3068,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 		assert.strictEqual(listMcpServersCalls, 2);
 		assertMcpLeftoverFailedHonesty(section, 'listMcpServers retry exploded', 1);
-	}
+	});
 
 	test('MCP: list-fail leftover closes leftover row toggle chrome without reselect', async () => {
 		const updateCalls: UniverseAgentUpdateMcpServerRequest[] = [];
@@ -3172,7 +3172,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(listMcpServersCalls, listCallsAfterLoad);
 		assert.ok(section.getListEntryCount() > 0);
 		assertMcpUnknownCapabilityHonesty(section, leftoverRows);
-	}
+	});
 
 	test('MCP: capability UNKNOWN leftover closes leftover row toggle chrome without reselect', async () => {
 		const updateCalls: UniverseAgentUpdateMcpServerRequest[] = [];
