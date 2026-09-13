@@ -3,7 +3,7 @@ title: "Engine 页 Customizations catalog（ua.engine）"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-12
+updated: 2026-09-13
 summary: "HEAD 九节壳已挂：四节写路径 + Overview/Model/MCP Runtime/Plugins；Provider/Rules/Hooks 只读列表已接（无写表单）；产品验证未做"
 ---
 
@@ -60,7 +60,7 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 
 写入口仅 `canPerformCatalogWrite`（`empty` \| `ready`）。`canShowCatalogRows` 仅 `ready`。`shouldHideCatalogRows` 已 deprecated，不得再当 hide-on-disconnect。MCP / Skills / Agents 写成功后 `refresh()` 仅在 list listed 时回刷 Added/Created/Saved 等成功文案（D201 同胞）。Agents markdown Save 二次回刷同样闸 `listed`，不用 mode（D223）。Plugins Enable / Reload / Unload / scanNew 同样仅 `listed === true` 才回刷 Enabled./Reloaded./Unloaded. / lastScan（D216 / D222）；不得用 `canPerformCatalogWrite(this.mode)` 代理。
 
-`catch → emptyList()` **禁止**。断连后 catalog 清 RPC 缓存并回 disconnected；不得标「已同步」。Navigator「断开前快照」不适用于本页。
+`catch → emptyList()` **禁止**。断连后 catalog 清 RPC 缓存并回 disconnected；不得标「已同步」。Navigator「断开前快照」不适用于本页。MCP Definitions leftover（pairing-hold KEEP / capability UNKNOWN / list-fail）保行并关行 toggle chrome（`canWrite()` disable + splice），无需重选。
 
 ## 3. @ HEAD 已落地
 

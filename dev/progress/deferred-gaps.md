@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-13
-summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 / D426 仍开；D25/D26 已闭；D406–D425 已闭（D423 Agents KEEP Save chrome；D424 MCP Runtime leftover tools；D425 MCP KEEP leftover 行 toggle）；下号 D427"
+summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 / D426 仍开；D25/D26 已闭；D406–D425 / D427 已闭（D427 MCP UNKNOWN / list-fail leftover 行 toggle）；下号 D429"
 ---
 
 # Deferred Gaps
@@ -440,6 +440,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 / D426 仍开；D25/D26 已
 | D424 | P3 | **closed** pairing-hold / leftover-looks-live `applyDisconnectedRefresh` KEEP 后自动 `keepLeftoverRuntimeToolsDisconnected`（disconnected copy + leftover 工具行仍在）。无需再 `selectServerForTest`。既有 KEEP leftover / leftover-looks-live 重选测仍绿。未关 D8/D16/D147/D405。未升 PRD-008。不得宣称 leftover wave 完成。不占 D423/D425。 | 工位 B `d424-pairing-hold-mcp-runtime-tools`；`scripts/test.sh --run` `engineMcpRuntimePanel.test.ts` **20/0**（含 2 条无重选） | pairing-hold / leftover-looks-live refresh 后无需重选即见 leftover tools 断连诚实态。未关 D16。 | conversation / engine-mcp-runtime | closed |
 | D425 | P3 | **closed** pairing-hold / leftover-looks-live `applyDisconnectedRefresh` KEEP 只 hide write toolbar + `renderStatus()`，leftover 行 checkbox 仍像 live。本刀：row renderer 接 `canWrite()` disable；KEEP 后 `splice` leftover 行（`list.rerender()` 无 dynamic heights 是空操作）关 toggle chrome，不重选。既有 MCP KEEP leftover / 0 unary 测仍绿。未关 D8/D16/D147/D405。未升 PRD-008。不得宣称 leftover wave 完成。不占 D423/D424。 | 工位 A `d425-pairing-hold-mcp-toggle`；`scripts/test.sh --run` catalog+mcp-runtime **111/0**（catalog 既有 92 + 新 2 条无重选 + runtime 17） | KEEP leftover 后无需重选即见行 toggle `aria-disabled` + 写钮 0 unary + leftover 仍选中。未关 D16。 | conversation / engine-mcp | closed |
 | D426 | P3 | **MCP leftover after capability UNKNOWN / list-fail 不关行 toggle chrome**：D425 只收 pairing-hold KEEP。UNKNOWN leftover / list throw leftover 只 hide toolbar + `renderStatus()`，不 `splice`，leftover checkbox 仍像 live。Tools KEEP leftover 行 toggle 同洞（`rerender()` 空操作）。 | 本槽只做 D425 pairing-hold KEEP | UNKNOWN / list-fail leftover 后无需重选即见行 toggle 关；Tools KEEP 同行 toggle 另刀。未关 D16。 | conversation / engine-mcp | open |
+| D427 | P3 | **closed** MCP leftover after capability UNKNOWN / list-fail 不 `splice`，行 toggle 仍像 live（D425 只收 pairing-hold KEEP）。本刀：UNKNOWN leftover / list throw leftover 在 hide toolbar + `renderStatus()` 后复用 D425 `closeLeftoverRowToggleChrome`（`canWrite()` disable + `splice`；`list.rerender()` 无 dynamic heights 是空操作），无需重选。既有 UNKNOWN leftover / list-fail leftover / D425 KEEP 无重选测仍绿。未关 D8/D16/D147/D405。未升 PRD-008。不得宣称 leftover wave 完成。不占 D426/D428。 | 工位 B `d427-mcp-unknown-listfail-toggle`；`scripts/test.sh --run` catalog+mcp-runtime **115/0**（catalog 既有 + 新 2 条 UNKNOWN/list-fail 无重选 + D425 KEEP 无重选仍绿 + runtime 20） | UNKNOWN / list-fail leftover 后无需重选即见行 toggle `aria-disabled` + 写钮 0 unary + leftover 仍选中。未关 D16。 | conversation / engine-mcp | closed |
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 
 `loop/merge` @ `793ff6e201f`（提交信息为「关仓：T5a Uncaught 闸门与 statusbar 二次注册幂等**已复测**」）在**仓外独立 detached 工位**上实测：
