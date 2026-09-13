@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-13
-summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 / D435 / D436 仍开；D25/D26 已闭；D406–D434 已闭（D432 Skills leftover 行 toggle；D433 Agents UNKNOWN leftover AGENTS.md Save；D434 MCP Runtime UNKNOWN leftover tools 诚实）；下号 D437"
+summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 / D435 / D436 / D437 仍开；D25/D26 已闭；D406–D434 已闭；下号 D438"
 ---
 
 # Deferred Gaps
@@ -450,6 +450,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 / D435 / D436 仍开；D25/
 | D434 | P3 | **closed** MCP Runtime leftover after capability UNKNOWN / list-fail 不画 leftover tools 诚实态：D424 只收 pairing-hold KEEP（`applyDisconnectedRefresh` `keepLeftoverRuntimeToolsDisconnected`）。`refresh()` UNKNOWN / list throw leftover 只 hide Refresh + `renderStatus()`，leftover 工具名仍像 live。本刀：无需重选即 leftover tools 画 capability-loading / 不可用（UNKNOWN）或 failed（list-fail）；首拉 UNKNOWN 仍清行。不重做 D424 KEEP。Refresh 钮保持关。勿发明 listTools；勿 extra `getMcpServerStatuses`。未关 D8/D16/D147/D405。未升 PRD-008。不得宣称 leftover wave 完成。不占 D432/D433/D435。 | 工位 D `d434-mcp-runtime-unknown-listfail-tools`；`scripts/test.sh --run` `engineMcpRuntimePanel.test.ts` **22/0**（既有 KEEP/D424 无重选仍绿 + 新 UNKNOWN/list-fail 无重选 2） | UNKNOWN leftover 后无需重选即 leftover tools capability-loading / 不可用；list-fail leftover 后无需重选即 leftover tools failed；首拉 UNKNOWN 仍清行。未关 D16。 | conversation / engine-mcp-runtime | closed |
 | D435 | P3 | **Agents leftover after capability UNKNOWN / list-fail 不关 Tools 页 leftover chrome**：D433 只收 AGENTS.md Save。KEEP `applyDisconnectedRefresh` 在 leftover tools 时会 `renderAgentTools()`（`canEditAgentTools()` / checkbox 跟 `canWrite()`）；UNKNOWN leftover / list throw leftover 只 hide toolbar + `updateWriteActions()` + `closeLeftoverAgentsEditorChrome`，不 `renderAgentTools()`，leftover 工具开关/Save 仍像 live。未发明行 toggle。 | D433 本槽只做 Agents UNKNOWN/list-fail AGENTS.md Save chrome | UNKNOWN / list-fail leftover 后无需重选即见 Tools 页写 chrome 关。未关 D16。 | conversation / engine-agents | open |
 | D436 | P3 | **MCP Runtime leftover after capability UNKNOWN / list-fail 期间 in-flight `getMcpServerTools` 仍可 `renderTools()` 当 live**：D434 只在 `refresh()` UNKNOWN / list throw 画 leftover tools 诚实态。`loadTools` 仅 pairing-hold / `!connected` 再检（D368/D424），不检 capability UNKNOWN 或 catalog failed。in-flight resolve 后可把 leftover 工具名再画成 live。 | D434 本槽只做 `refresh()` 无重选诚实态；只登记不实施 | UNKNOWN / list-fail leftover 后 in-flight `getMcpServerTools` resolve 不画 live，leftover tools 仍 capability-loading / failed。未关 D16。 | conversation / engine-mcp-runtime | open |
+| D437 | P3 | **Triggers leftover after list-fail 不关写钮**：`refresh()` 开头已 `updateWriteActions()`（当时仍 connected），list throw leftover 只画 failed status，不重算写钮。leftover Fire/Enable/Delete/Upsert 仍像 live。KEEP `applyDisconnectedRefresh` 已关写钮，本刀只收 list-fail leftover。 | KEEP 已关写钮 | list-fail leftover 后无需重选即见写钮关 + 0 unary。未关 D16。 | conversation / engine-triggers | open |
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 
 `loop/merge` @ `793ff6e201f`（提交信息为「关仓：T5a Uncaught 闸门与 statusbar 二次注册幂等**已复测**」）在**仓外独立 detached 工位**上实测：
