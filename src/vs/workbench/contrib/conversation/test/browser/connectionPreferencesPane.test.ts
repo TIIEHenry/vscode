@@ -3463,12 +3463,24 @@ suite('ConnectionPreferencesPane', () => {
 
 	test('ListDevices success then throw keeps last snapshot and paints devices status', async () => {
 		let listDevicesCalls = 0;
+		const renameCalls: { id: string; name: string }[] = [];
+		const revokeCalls: UniverseAgentRevokeRequest[] = [];
+		const rotateCalls: UniverseAgentRotateTokenRequest[] = [];
+		let hubRevoked: string | undefined;
 		const pane = mountPane({
 			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
 			getDirectoryStatus: () => ({
 				kind: 'ok',
 				devices: [device({ id: 'hub-1', name: 'Hub Studio' })],
 			}),
+			renameDevice: async (id, name) => {
+				renameCalls.push({ id, name });
+				return { ok: true };
+			},
+			revokeDevice: async id => {
+				hubRevoked = id;
+				return { ok: true };
+			},
 		}, {
 			isEngineConnected: () => true,
 			listDevices: async (): Promise<UniverseAgentListDevicesResult> => {
@@ -3487,6 +3499,14 @@ suite('ConnectionPreferencesPane', () => {
 					};
 				}
 				throw new Error('boom');
+			},
+			rotateToken: async request => {
+				rotateCalls.push(request);
+				return { success: true, message: '' };
+			},
+			revoke: async request => {
+				revokeCalls.push(request);
+				return { success: true, message: '' };
 			},
 		});
 		const container = pane.getDomNode();
@@ -3508,13 +3528,51 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(banner.textContent, connectionDeviceListFailureMessage('boom'));
 		assert.notStrictEqual(banner.style.display, 'none');
 		assert.ok(!devicesStatus.textContent?.includes('No pending pairing requests'));
+		const findDeviceAction = (label: string) => [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === label) as HTMLButtonElement | undefined;
+		const rename = findDeviceAction('Rename');
+		const revoke = findDeviceAction('Revoke');
+		const rotate = findDeviceAction(CONNECTION_DEVICE_ROTATE_TOKEN_LABEL);
+		assert.ok(rename);
+		assert.ok(revoke);
+		assert.ok(rotate);
+		assert.strictEqual(rename.classList.contains('disabled'), true);
+		assert.strictEqual(rename.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(revoke.classList.contains('disabled'), true);
+		assert.strictEqual(revoke.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(rotate.classList.contains('disabled'), true);
+		assert.strictEqual(rotate.getAttribute('aria-disabled'), 'true');
+		const forceClick = (button: HTMLButtonElement) => {
+			button.classList.remove('disabled');
+			button.removeAttribute('disabled');
+			button.setAttribute('aria-disabled', 'false');
+			button.disabled = false;
+			button.click();
+		};
+		forceClick(rename);
+		forceClick(revoke);
+		forceClick(rotate);
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		assert.deepStrictEqual(renameCalls, []);
+		assert.deepStrictEqual(revokeCalls, []);
+		assert.deepStrictEqual(rotateCalls, []);
+		assert.strictEqual(hubRevoked, undefined);
 		container.remove();
 	});
 
 	test('ListPending success then throw keeps last snapshot and paints pending fail note', async () => {
 		let listPendingCalls = 0;
+		const approveCalls: UniverseAgentPairApproveRequest[] = [];
+		const rejectCalls: UniverseAgentPairRejectRequest[] = [];
+		let hubConfirmed: string | undefined;
 		const pane = mountPane({
 			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			confirmDeviceCode: async code => {
+				hubConfirmed = code;
+				return { ok: true };
+			},
 		}, {
 			isEngineConnected: () => true,
 			listPending: async () => {
@@ -3532,6 +3590,14 @@ suite('ConnectionPreferencesPane', () => {
 					};
 				}
 				throw new Error('boom');
+			},
+			pairApprove: async request => {
+				approveCalls.push(request);
+				return { success: true, deviceId: 'dev-1', message: '' };
+			},
+			pairReject: async request => {
+				rejectCalls.push(request);
+				return { success: true, message: '' };
 			},
 		});
 		const container = pane.getDomNode();
@@ -3554,6 +3620,31 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(pendingEmpty.classList.contains('is-error'));
 		assert.notStrictEqual(pendingEmpty.style.display, 'none');
 		assert.notStrictEqual(pendingEmpty.textContent, CONNECTION_DEVICE_PENDING_EMPTY_COPY);
+		const findPairAction = (label: string) => [...container.querySelectorAll('.connection-hub-device-code .monaco-button')]
+			.find(button => button.textContent === label) as HTMLButtonElement | undefined;
+		const confirm = findPairAction('Confirm');
+		const reject = findPairAction(CONNECTION_DEVICE_PAIR_REJECT_LABEL);
+		assert.ok(confirm);
+		assert.ok(reject);
+		assert.strictEqual(confirm.classList.contains('disabled'), true);
+		assert.strictEqual(confirm.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(reject.classList.contains('disabled'), true);
+		assert.strictEqual(reject.getAttribute('aria-disabled'), 'true');
+		const forceClick = (button: HTMLButtonElement) => {
+			button.classList.remove('disabled');
+			button.removeAttribute('disabled');
+			button.setAttribute('aria-disabled', 'false');
+			button.disabled = false;
+			button.click();
+		};
+		forceClick(confirm);
+		forceClick(reject);
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		assert.deepStrictEqual(approveCalls, []);
+		assert.deepStrictEqual(rejectCalls, []);
+		assert.strictEqual(hubConfirmed, undefined);
 		container.remove();
 	});
 

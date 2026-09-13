@@ -1099,6 +1099,16 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		return isConversationPairingHold(this.connectionService);
 	}
 
+	/** Catalog leftover contract: devices list-fail leftover is not a live write surface. */
+	private isDeviceWriteListFailed(): boolean {
+		return this.engineDevicesListFailed !== undefined;
+	}
+
+	/** Catalog leftover contract: pending list-fail leftover is not a live pair-write surface. */
+	private isPendingWriteListFailed(): boolean {
+		return this.pendingPairsListFailed !== undefined;
+	}
+
 	private applyDisconnectedDevicesRefresh(): void {
 		if (this.keepLeftoverCatalogForPairingHold(!!this.enginePairedDevices?.length)) {
 			this.renderHubDirectory();
@@ -1228,23 +1238,24 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 		this.pendingRowDisposables.clear();
 		DOM.clearNode(this.pendingPairsList);
-		if (!showPending) {
-			return;
-		}
-		for (const pending of this.pendingPairs) {
-			const row = DOM.append(this.pendingPairsList, DOM.$('.connection-engine-pending-row'));
-			row.setAttribute('role', 'listitem');
-			row.tabIndex = 0;
-			row.textContent = formatConnectionPendingPairLabel(pending);
-			if (pending === this.selectedPending) {
-				row.classList.add('selected');
-				row.setAttribute('aria-current', 'true');
+		if (showPending) {
+			for (const pending of this.pendingPairs) {
+				const row = DOM.append(this.pendingPairsList, DOM.$('.connection-engine-pending-row'));
+				row.setAttribute('role', 'listitem');
+				row.tabIndex = 0;
+				row.textContent = formatConnectionPendingPairLabel(pending);
+				if (pending === this.selectedPending) {
+					row.classList.add('selected');
+					row.setAttribute('aria-current', 'true');
+				}
+				this.pendingRowDisposables.add(DOM.addDisposableListener(row, 'click', () => {
+					this.selectedPending = pending;
+					this.renderPendingPairs();
+				}));
 			}
-			this.pendingRowDisposables.add(DOM.addDisposableListener(row, 'click', () => {
-				this.selectedPending = pending;
-				this.renderPendingPairs();
-			}));
 		}
+		// D441: pending list-fail leftover must close Confirm/Reject without reselect.
+		this.renderHubAccount();
 	}
 
 	private async handleAddDirectAddress(): Promise<void> {
@@ -1550,9 +1561,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const device = this.getSelectedDevice();
 		const hasDevice = !!device && !device.revoked;
 		const pairingHold = this.isDeviceWritePairingHold();
-		this.renameDeviceButton.enabled = hasDevice && !pairingHold;
-		this.revokeDeviceButton.enabled = hasDevice && !pairingHold;
-		this.rotateTokenButton.enabled = canSendConnectionDeviceRotateToken(
+		const listFailed = this.isDeviceWriteListFailed();
+		this.renameDeviceButton.enabled = hasDevice && !pairingHold && !listFailed;
+		this.revokeDeviceButton.enabled = hasDevice && !pairingHold && !listFailed;
+		this.rotateTokenButton.enabled = !listFailed && canSendConnectionDeviceRotateToken(
 			this.connectionService.isEngineConnected(),
 			typeof this.connectionService.rotateToken === 'function',
 			pairingHold,
@@ -1601,7 +1613,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (!device || device.revoked) {
 			return;
 		}
-		if (this.isDeviceWritePairingHold()) {
+		if (this.isDeviceWritePairingHold() || this.isDeviceWriteListFailed()) {
 			return;
 		}
 		const input = await this.dialogService.input({
@@ -1614,7 +1626,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (!name || name === device.name) {
 			return;
 		}
-		if (this.isDeviceWritePairingHold()) {
+		if (this.isDeviceWritePairingHold() || this.isDeviceWriteListFailed()) {
 			return;
 		}
 		try {
@@ -1634,7 +1646,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private async handleRotateSelectedDeviceToken(): Promise<void> {
 		const hook = this.connectionService.rotateToken;
-		if (!canSendConnectionDeviceRotateToken(this.connectionService.isEngineConnected(), typeof hook === 'function', this.isDeviceWritePairingHold()) || !hook) {
+		if (this.isDeviceWriteListFailed() || !canSendConnectionDeviceRotateToken(this.connectionService.isEngineConnected(), typeof hook === 'function', this.isDeviceWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = connectionDeviceRotateTokenIds(this.hubDevicesList.getSelectedElements()[0]);
@@ -1659,6 +1671,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (!device || device.revoked) {
 			return;
 		}
+		if (this.isDeviceWritePairingHold() || this.isDeviceWriteListFailed()) {
+			return;
+		}
 		const confirm = await this.dialogService.confirm({
 			type: 'warning',
 			message: localize('ua.connectionRevokeDeviceTitle', "Revoke {0}?", device.name),
@@ -1669,6 +1684,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			primaryButton: localize('ua.connectionRevokeDeviceConfirm', "Revoke"),
 		});
 		if (!confirm.confirmed) {
+			return;
+		}
+		if (this.isDeviceWritePairingHold() || this.isDeviceWriteListFailed()) {
 			return;
 		}
 		const pairingHold = this.isDeviceWritePairingHold();
@@ -1712,6 +1730,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private async handleConfirmDeviceCode(): Promise<void> {
+		if (this.isPendingWriteListFailed()) {
+			return;
+		}
 		const pairingHold = this.isDeviceWritePairingHold();
 		const approveHook = this.connectionService.pairApprove;
 		if (canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof approveHook === 'function', pairingHold) && approveHook) {
@@ -1759,7 +1780,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private async handleRejectDevicePair(): Promise<void> {
 		const rejectHook = this.connectionService.pairReject;
-		if (!canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof rejectHook === 'function', this.isDeviceWritePairingHold()) || !rejectHook) {
+		if (this.isPendingWriteListFailed() || !canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof rejectHook === 'function', this.isDeviceWritePairingHold()) || !rejectHook) {
 			return;
 		}
 		const request = { pairingCode: connectionDevicePairIds(this.confirmDeviceCodeInput.value, this.selectedPending).pairingCode };
@@ -1795,11 +1816,12 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			: HUB_LOGIN_BUTTON_LABEL;
 		this.hubLoginButton.enabled = !signedIn;
 		const pairingHold = this.isDeviceWritePairingHold();
-		const deviceCodeEnabled = !pairingHold && (signedIn
+		const pendingListFailed = this.isPendingWriteListFailed();
+		const deviceCodeEnabled = !pairingHold && !pendingListFailed && (signedIn
 			|| canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof this.connectionService.pairApprove === 'function', pairingHold));
 		this.confirmDeviceCodeInput.setEnabled(deviceCodeEnabled);
 		this.confirmDeviceCodeButton.enabled = deviceCodeEnabled;
-		this.rejectDevicePairButton.enabled = canSendConnectionDevicePairRequest(
+		this.rejectDevicePairButton.enabled = !pendingListFailed && canSendConnectionDevicePairRequest(
 			this.connectionService.isEngineConnected(),
 			typeof this.connectionService.pairReject === 'function',
 			pairingHold,
