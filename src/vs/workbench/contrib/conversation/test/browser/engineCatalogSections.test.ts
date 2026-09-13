@@ -1128,6 +1128,104 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok(!(section.getDomNode().textContent ?? '').includes(getEngineSectionDisconnectedCopy()));
 	});
 
+	function leftoverAgentsEditorStatus(section: EngineAgentsSection): HTMLElement {
+		const status = section.getDomNode().querySelector('.engine-agents-editor-status') as HTMLElement;
+		assert.ok(status);
+		return status;
+	}
+
+	test('Agents: pairing-hold refresh paints leftover editor honesty without reselect', async () => {
+		let saveCalls = 0;
+		const leftoverMarkdown = 'Leftover agents md';
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({ profiles: [demoUserAgent()] }),
+			saveAgentProfile: async () => {
+				saveCalls++;
+				return {
+					profile: {
+						id: 'demo',
+						name: 'Demo Agent',
+						source: 'user' as const,
+						systemPrompt: leftoverMarkdown,
+					},
+				};
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		await section.selectProfileByIdForTest('demo');
+		assert.strictEqual(section.getActiveAgentDetailTab(), 'instructions');
+		assert.ok(section.isAgentsEditorVisible());
+		assert.ok(section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+		const leftoverRows = section.getListEntryCount();
+		const saveCallsAfterLoad = saveCalls;
+		assert.ok(!(leftoverAgentsEditorStatus(section).textContent ?? '').includes(getEngineSectionDisconnectedCopy()));
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(saveCalls, saveCallsAfterLoad, 'KEEP must not extra saveAgentProfile');
+		assert.strictEqual(section.getListEntryCount(), leftoverRows);
+		assert.ok(section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+		assert.ok(section.isAgentsEditorVisible());
+		const editorStatus = leftoverAgentsEditorStatus(section);
+		assert.notStrictEqual(editorStatus.style.display, 'none');
+		assert.ok(editorStatus.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		assert.deepStrictEqual([...editorStatus.classList], ['engine-agents-editor-status', 'is-error']);
+	});
+
+	test('Agents: leftover-looks-live refresh paints leftover editor honesty without reselect', async () => {
+		let saveCalls = 0;
+		const leftoverMarkdown = 'Leftover agents md';
+		const connection = createConnectionStub({
+			connected: true,
+			looksLive: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({ profiles: [demoUserAgent()] }),
+			saveAgentProfile: async () => {
+				saveCalls++;
+				return {
+					profile: {
+						id: 'demo',
+						name: 'Demo Agent',
+						source: 'user' as const,
+						systemPrompt: leftoverMarkdown,
+					},
+				};
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		await section.selectProfileByIdForTest('demo');
+		assert.strictEqual(section.getActiveAgentDetailTab(), 'instructions');
+		assert.ok(section.isAgentsEditorVisible());
+		assert.ok(section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+		const leftoverRows = section.getListEntryCount();
+		const saveCallsAfterLoad = saveCalls;
+		assert.ok(!(leftoverAgentsEditorStatus(section).textContent ?? '').includes(getEngineSectionDisconnectedCopy()));
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(saveCalls, saveCallsAfterLoad, 'KEEP must not extra saveAgentProfile');
+		assert.strictEqual(section.getListEntryCount(), leftoverRows);
+		assert.ok(section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+		assert.ok(section.isAgentsEditorVisible());
+		const editorStatus = leftoverAgentsEditorStatus(section);
+		assert.notStrictEqual(editorStatus.style.display, 'none');
+		assert.ok(editorStatus.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		assert.deepStrictEqual([...editorStatus.classList], ['engine-agents-editor-status', 'is-error']);
+	});
+
 	test('Tools: leftover-looks-live pairing-hold writes stay 0 unary', async () => {
 		const saveCalls: UniverseAgentSaveAgentProfileRequest[] = [];
 		let listToolsCalls = 0;
