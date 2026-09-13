@@ -209,6 +209,36 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 		return panel.getDomNode().querySelectorAll('.engine-mcp-runtime-tools .engine-catalog-row').length;
 	}
 
+	function leftoverToolsStatus(panel: EngineMcpRuntimePanel): HTMLElement {
+		const toolsList = getToolsList(panel);
+		assert.ok(toolsList);
+		const toolsMeta = toolsList.previousElementSibling as HTMLElement | null;
+		assert.ok(toolsMeta);
+		const toolsStatus = toolsMeta.previousElementSibling as HTMLElement | null;
+		assert.ok(toolsStatus);
+		assert.ok(toolsStatus.classList.contains('engine-catalog-status-widget'));
+		return toolsStatus;
+	}
+
+	function assertLeftoverToolsKeptAfterCatalogHonesty(panel: EngineMcpRuntimePanel, expectedRows: number): void {
+		assert.strictEqual(panel.getToolsCount(), expectedRows);
+		assert.strictEqual(getToolsRowCount(panel), expectedRows);
+		const toolsList = getToolsList(panel);
+		assert.ok(toolsList);
+		assert.notStrictEqual(toolsList.style.display, 'none');
+		assert.ok((panel.getDomNode().textContent ?? '').includes(LEFTOVER_TOOL_NAME));
+		assert.ok(!(panel.getDomNode().textContent ?? '').includes(MCP_RUNTIME_TOOLS_EMPTY));
+	}
+
+	function assertLeftoverToolsLooksLiveDisconnected(panel: EngineMcpRuntimePanel, expectedRows: number): void {
+		assertLeftoverToolsKeptAfterCatalogHonesty(panel, expectedRows);
+		assert.ok(!(panel.getDomNode().textContent ?? '').includes(FRESH_LIVE_TOOL_NAME));
+		const toolsStatus = leftoverToolsStatus(panel);
+		assert.notStrictEqual(toolsStatus.style.display, 'none');
+		assert.strictEqual(toolsStatus.dataset['catalogMode'], 'disconnected');
+		assert.ok((toolsStatus.textContent ?? '').includes(getEngineSectionDisconnectedCopy()));
+	}
+
 	function assertToolsFailedHonesty(panel: EngineMcpRuntimePanel, reason: string, expectedRows: number): void {
 		assert.strictEqual(panel.getMode(), 'ready');
 		assert.strictEqual(panel.getListEntryCount(), 1);
@@ -522,6 +552,70 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 				&& (el.textContent ?? '').includes(getEngineSectionDisconnectedCopy()),
 		) as HTMLElement | undefined;
 		assert.ok(toolsStatus);
+	});
+
+	test('pairing-hold refresh paints leftover tools honesty without reselect', async () => {
+		let toolsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			getMcpServerStatuses: async () => ({
+				statuses: [{ serverId: LEFTOVER_RUNTIME_SERVER_ID, status: 'connected' }],
+			}),
+			getMcpServerTools: async () => {
+				toolsCalls++;
+				return { tools: [{ name: LEFTOVER_TOOL_NAME, description: 'keep me' }] };
+			},
+		});
+		const panel = mountPanel(connection);
+		await flushMicrotasks();
+
+		assert.ok(panel.selectServerForTest(LEFTOVER_RUNTIME_SERVER_ID));
+		await flushMicrotasks();
+		assertLeftoverToolsKeptAfterCatalogHonesty(panel, 1);
+		const toolsBefore = leftoverToolsStatus(panel);
+		assert.ok(!(toolsBefore.textContent ?? '').includes(getEngineSectionDisconnectedCopy()));
+		const toolsCallsAfterLoad = toolsCalls;
+		assert.ok(toolsCallsAfterLoad >= 1);
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(toolsCalls, toolsCallsAfterLoad, 'KEEP must not extra getMcpServerTools');
+		assertLeftoverToolsLooksLiveDisconnected(panel, 1);
+	});
+
+	test('leftover-looks-live refresh paints leftover tools honesty without reselect', async () => {
+		let toolsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			looksLive: true,
+			getMcpServerStatuses: async () => ({
+				statuses: [{ serverId: LEFTOVER_RUNTIME_SERVER_ID, status: 'connected' }],
+			}),
+			getMcpServerTools: async () => {
+				toolsCalls++;
+				return { tools: [{ name: LEFTOVER_TOOL_NAME, description: 'keep me' }] };
+			},
+		});
+		const panel = mountPanel(connection);
+		await flushMicrotasks();
+
+		assert.ok(panel.selectServerForTest(LEFTOVER_RUNTIME_SERVER_ID));
+		await flushMicrotasks();
+		assertLeftoverToolsKeptAfterCatalogHonesty(panel, 1);
+		const toolsBefore = leftoverToolsStatus(panel);
+		assert.ok(!(toolsBefore.textContent ?? '').includes(getEngineSectionDisconnectedCopy()));
+		const toolsCallsAfterLoad = toolsCalls;
+		assert.ok(toolsCallsAfterLoad >= 1);
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(toolsCalls, toolsCallsAfterLoad, 'KEEP must not extra getMcpServerTools');
+		assertLeftoverToolsLooksLiveDisconnected(panel, 1);
 	});
 
 	test('in-flight getMcpServerTools leftover-looks-live keeps leftover and does not paint live', async () => {

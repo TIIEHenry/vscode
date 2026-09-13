@@ -286,6 +286,11 @@ export class EngineMcpRuntimePanel extends Disposable {
 			this.refreshButton.enabled = false;
 			this.refreshToolbar.style.display = 'none';
 			this.renderStatus();
+			// D424: pairing-hold / leftover-looks-live KEEP must paint leftover
+			// tools honesty on refresh; do not wait for another selectServer.
+			if (this.hasLeftoverRuntimeTools()) {
+				this.keepLeftoverRuntimeToolsDisconnected();
+			}
 			return;
 		}
 		this.clearRuntimePresentation();

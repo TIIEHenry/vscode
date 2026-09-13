@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-13
-summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 / D423 仍开；D25/D26 已闭；D406–D422 已闭（D420 直接 connect() _ensureTransport throw 再拨；D421 Skills KEEP user body Save chrome；D422 Agents KEEP leftover AGENTS.md 诚实态）；下号 D424"
+summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 / D423 仍开；D25/D26 已闭；D406–D422 / D424 已闭（D424 MCP Runtime KEEP leftover tools 诚实态）；下号 D426"
 ---
 
 # Deferred Gaps
@@ -437,6 +437,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 / D423 仍开；D25/D26 已
 | D421 | P3 | **closed** pairing-hold / leftover-looks-live `applyDisconnectedRefresh` KEEP leftover user body 后自动 `updateBodyEditorChrome`（Save 关 / textarea readOnly），再 `showBodyStatus(disconnected)`（D418 诚实态仍在；bundled leftover 仍 read-only、不改成 live）。无需再 `selectSkillForTest`。既有 KEEP leftover / D418 无重选测仍绿。未关 D8/D16/D147/D405。未升 PRD-008。不得宣称 leftover wave 完成。不占 D420/D422。 | 工位 B `d421-pairing-hold-skill-save-chrome`；`scripts/test.sh --run` `engineSkillsSection.test.ts` **36/0**（含 2 条 user Save chrome 无重选 + D418 bundled 无重选仍绿）；catalog Skills leftover KEEP **1/0** | KEEP leftover user body 后无需重选即见 Save 关 / readOnly；bundled leftover 仍 read-only + disconnected copy。未关 D16。 | conversation / engine-skills | closed |
 | D422 | P3 | **closed** pairing-hold / leftover-looks-live `applyDisconnectedRefresh` KEEP 后自动 `showAgentsEditorStatus(disconnected, error)`（leftover 详情是 Instructions AGENTS.md editor，不是 Tools 面板）。无需再 `selectProfile`。既有 KEEP leftover / leftover-looks-live 重选测仍绿。未关 D8/D16/D147/D405。未升 PRD-008。不得宣称 leftover wave 完成。不占 D420/D421。 | 工位 D `d422-pairing-hold-agents-md`；`scripts/test.sh --run` `engineCatalogSections.test.ts` **94/0**（既有 92 + 新 2 条无重选） | pairing-hold / leftover-looks-live refresh 后无需重选即见 leftover AGENTS.md disconnected copy + error tone。未关 D16。 | conversation / engine-agents | closed |
 | D423 | P3 | **Agents pairing-hold KEEP leftover user AGENTS.md 不刷新 editor chrome**：KEEP 后立刻 `showAgentsEditorStatus(disconnected, error)`（D422），但不改 Save / `readOnly`。user leftover 的 Save toolbar / textarea 仍像 live（built_in leftover 本就 read-only）。D415 Tools KEEP 会 `updateSaveChrome()`；D421 是 Skills 同洞。本刀只收 editor-status。 | 本槽只做 D422 Agents leftover editor-status | KEEP leftover user AGENTS.md 后无需重选即见 Save 关 / readOnly；补测锁。未关 D16。 | conversation / engine-agents | open |
+| D424 | P3 | **closed** pairing-hold / leftover-looks-live `applyDisconnectedRefresh` KEEP 后自动 `keepLeftoverRuntimeToolsDisconnected`（disconnected copy + leftover 工具行仍在）。无需再 `selectServerForTest`。既有 KEEP leftover / leftover-looks-live 重选测仍绿。未关 D8/D16/D147/D405。未升 PRD-008。不得宣称 leftover wave 完成。不占 D423/D425。 | 工位 B `d424-pairing-hold-mcp-runtime-tools`；`scripts/test.sh --run` `engineMcpRuntimePanel.test.ts` **20/0**（含 2 条无重选） | pairing-hold / leftover-looks-live refresh 后无需重选即见 leftover tools 断连诚实态。未关 D16。 | conversation / engine-mcp-runtime | closed |
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 
 `loop/merge` @ `793ff6e201f`（提交信息为「关仓：T5a Uncaught 闸门与 statusbar 二次注册幂等**已复测**」）在**仓外独立 detached 工位**上实测：
