@@ -400,6 +400,28 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok(!(section.getDomNode().textContent ?? '').includes(emptyCopy));
 	}
 
+	function leftoverMcpRowToggles(section: EngineMcpSection): HTMLElement[] {
+		return Array.from(section.getDomNode().querySelectorAll('.engine-catalog-row .monaco-custom-toggle'));
+	}
+
+	function assertLeftoverMcpRowTogglesClosed(section: EngineMcpSection): void {
+		const toggles = leftoverMcpRowToggles(section);
+		assert.ok(toggles.length > 0, 'KEEP leftover rows must paint toggle chrome');
+		for (const toggle of toggles) {
+			assert.strictEqual(toggle.getAttribute('aria-disabled'), 'true');
+			assert.ok(toggle.classList.contains('disabled'));
+		}
+	}
+
+	function assertLeftoverMcpRowTogglesLive(section: EngineMcpSection): void {
+		const toggles = leftoverMcpRowToggles(section);
+		assert.ok(toggles.length > 0, 'live leftover rows must paint toggle chrome');
+		for (const toggle of toggles) {
+			assert.notStrictEqual(toggle.getAttribute('aria-disabled'), 'true');
+			assert.ok(!toggle.classList.contains('disabled'));
+		}
+	}
+
 	test('Tools: connected phase with pairingPending keeps leftover catalog and paints not-connected', async () => {
 		let listToolsCalls = 0;
 		const connection = createConnectionStub({
@@ -614,6 +636,117 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(await section.removeSelectedServer(), false);
 		await section.toggleServerForTest('stdio-demo', false);
 		assert.deepStrictEqual(addCalls, []);
+		assert.deepStrictEqual(updateCalls, []);
+		assert.deepStrictEqual(removeCalls, []);
+		assert.deepStrictEqual(toggleCalls, []);
+		assert.strictEqual(listMcpServersCalls, listCallsAfterLoad);
+	});
+
+	test('MCP: pairing-hold refresh closes leftover row toggle chrome without reselect', async () => {
+		const updateCalls: UniverseAgentUpdateMcpServerRequest[] = [];
+		const removeCalls: UniverseAgentRemoveMcpServerRequest[] = [];
+		const toggleCalls: UniverseAgentToggleMcpServerRequest[] = [];
+		let listMcpServersCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => {
+				listMcpServersCalls++;
+				return { servers: [demoMcpServer()] };
+			},
+			updateMcpServer: async (request) => {
+				updateCalls.push(request);
+				return { ok: true };
+			},
+			removeMcpServer: async (request) => {
+				removeCalls.push(request);
+				return { ok: true };
+			},
+			toggleMcpServer: async (request) => {
+				toggleCalls.push(request);
+				return { ok: true };
+			},
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+		section.layout(640, 160);
+
+		assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
+		assert.strictEqual(section.getSelectedServerId(), 'stdio-demo');
+		assert.strictEqual(section.canWrite(), true);
+		assert.strictEqual(section.isWriteToolbarVisible(), true);
+		assertLeftoverMcpRowTogglesLive(section);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listMcpServersCalls;
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(listMcpServersCalls, listCallsAfterLoad, 'KEEP must not extra listMcpServers');
+		assertCatalogLeftoverPairingHonesty(section, leftoverRows, MCP_EMPTY_COPY);
+		assert.strictEqual(section.isWriteToolbarVisible(), false);
+		assert.strictEqual(section.getSelectedServerId(), 'stdio-demo');
+		assertLeftoverMcpRowTogglesClosed(section);
+		assert.strictEqual(await section.updateSelectedServer({ name: 'Renamed' }), false);
+		assert.strictEqual(await section.removeSelectedServer(), false);
+		await section.toggleServerForTest('stdio-demo', false);
+		assert.deepStrictEqual(updateCalls, []);
+		assert.deepStrictEqual(removeCalls, []);
+		assert.deepStrictEqual(toggleCalls, []);
+		assert.strictEqual(listMcpServersCalls, listCallsAfterLoad);
+	});
+
+	test('MCP: leftover-looks-live refresh closes leftover row toggle chrome without reselect', async () => {
+		const updateCalls: UniverseAgentUpdateMcpServerRequest[] = [];
+		const removeCalls: UniverseAgentRemoveMcpServerRequest[] = [];
+		const toggleCalls: UniverseAgentToggleMcpServerRequest[] = [];
+		let listMcpServersCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => {
+				listMcpServersCalls++;
+				return { servers: [demoMcpServer()] };
+			},
+			updateMcpServer: async (request) => {
+				updateCalls.push(request);
+				return { ok: true };
+			},
+			removeMcpServer: async (request) => {
+				removeCalls.push(request);
+				return { ok: true };
+			},
+			toggleMcpServer: async (request) => {
+				toggleCalls.push(request);
+				return { ok: true };
+			},
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+		section.layout(640, 160);
+
+		assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
+		assert.strictEqual(section.getSelectedServerId(), 'stdio-demo');
+		assert.strictEqual(section.canWrite(), true);
+		assert.strictEqual(section.isWriteToolbarVisible(), true);
+		assertLeftoverMcpRowTogglesLive(section);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listMcpServersCalls;
+		connection.setLooksLive(true);
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(listMcpServersCalls, listCallsAfterLoad, 'KEEP must not extra listMcpServers');
+		assertCatalogLeftoverPairingHonesty(section, leftoverRows, MCP_EMPTY_COPY);
+		assert.strictEqual(section.isWriteToolbarVisible(), false);
+		assert.strictEqual(section.getSelectedServerId(), 'stdio-demo');
+		assertLeftoverMcpRowTogglesClosed(section);
+		assert.strictEqual(await section.updateSelectedServer({ name: 'Renamed' }), false);
+		assert.strictEqual(await section.removeSelectedServer(), false);
+		await section.toggleServerForTest('stdio-demo', false);
 		assert.deepStrictEqual(updateCalls, []);
 		assert.deepStrictEqual(removeCalls, []);
 		assert.deepStrictEqual(toggleCalls, []);
