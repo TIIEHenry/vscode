@@ -25,19 +25,21 @@ export function hasSourcesGitSessionId(sessionId: string): boolean {
  * Write door for Stage / Commit / Accept.
  * `connected` is still `isEngineConnected()` (D283). Pairing-hold leftover
  * and leftover-looks-live (`connected===true` + pairingPending) both refuse.
+ * List-fail leftover (`leftoverListFailed`) also refuses Stage / Commit when
+ * callers pass the flag (D442). Accept / git-read keep the default false.
  */
-export function isSourcesGitWriteLive(connected: boolean, pairingHold = false): boolean {
-	return connected && !pairingHold;
+export function isSourcesGitWriteLive(connected: boolean, pairingHold = false, leftoverListFailed = false): boolean {
+	return connected && !pairingHold && !leftoverListFailed;
 }
 
 /** Sources Changes Stage → WriteGitStagePaths. Empty sessionId does not call the hook. */
-export function canSendSourcesGitStagePaths(connected: boolean, hasHook: boolean, sessionId: string, pairingHold = false): boolean {
-	return isSourcesGitWriteLive(connected, pairingHold) && hasHook && hasSourcesGitSessionId(sessionId);
+export function canSendSourcesGitStagePaths(connected: boolean, hasHook: boolean, sessionId: string, pairingHold = false, leftoverListFailed = false): boolean {
+	return isSourcesGitWriteLive(connected, pairingHold, leftoverListFailed) && hasHook && hasSourcesGitSessionId(sessionId);
 }
 
 /** Sources Changes Commit → WriteGitCommit. Empty sessionId does not call the hook. */
-export function canSendSourcesGitCommit(connected: boolean, hasHook: boolean, sessionId: string, pairingHold = false): boolean {
-	return isSourcesGitWriteLive(connected, pairingHold) && hasHook && hasSourcesGitSessionId(sessionId);
+export function canSendSourcesGitCommit(connected: boolean, hasHook: boolean, sessionId: string, pairingHold = false, leftoverListFailed = false): boolean {
+	return isSourcesGitWriteLive(connected, pairingHold, leftoverListFailed) && hasHook && hasSourcesGitSessionId(sessionId);
 }
 
 /** Sources Review Accept → WriteGitApplyHunks. Connection + hook only; empty session or empty patches are refused in tryWrite. */
@@ -215,8 +217,9 @@ export async function tryWriteSourcesGitStagePaths(
 	sessionId: string,
 	paths: readonly string[],
 	pairingHold = false,
+	leftoverListFailed = false,
 ): Promise<UniverseAgentWriteGitWriteResult | undefined> {
-	if (!canSendSourcesGitStagePaths(connected, typeof hook === 'function', sessionId, pairingHold) || !hook) {
+	if (!canSendSourcesGitStagePaths(connected, typeof hook === 'function', sessionId, pairingHold, leftoverListFailed) || !hook) {
 		return undefined;
 	}
 	return hook(sourcesGitStagePathsRequest(sessionId, paths));
@@ -228,8 +231,9 @@ export async function tryWriteSourcesGitCommit(
 	sessionId: string,
 	message: string,
 	pairingHold = false,
+	leftoverListFailed = false,
 ): Promise<UniverseAgentWriteGitWriteResult | undefined> {
-	if (!canSendSourcesGitCommit(connected, typeof hook === 'function', sessionId, pairingHold) || !hook) {
+	if (!canSendSourcesGitCommit(connected, typeof hook === 'function', sessionId, pairingHold, leftoverListFailed) || !hook) {
 		return undefined;
 	}
 	return hook(sourcesGitCommitRequest(sessionId, message));

@@ -1021,7 +1021,7 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.deepStrictEqual(commitCalls, []);
 	});
 
-	test('connected leftover still stages and commits', async function () {
+	test('list-fail leftover closes Stage / Commit and forced click stays 0 unary', async function () {
 		let readCalls = 0;
 		const leftover = { path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
 		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
@@ -1075,25 +1075,25 @@ suite('Sources - Changes list leftover honesty', () => {
 		const commitInput = host.querySelector('.sources-changes-commit-input') as HTMLInputElement;
 		commitInput.value = 'keep leftover';
 		commitInput.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+		await waitForWriteButtonsDisabled(host);
+
+		const stage = stageSelectedButton(host);
+		const commit = commitButton(host);
+		assert.ok(stage);
+		assert.ok(commit);
+		assert.strictEqual(stage.classList.contains('disabled'), true);
+		assert.strictEqual(commit.classList.contains('disabled'), true);
+		assert.strictEqual(stage.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(commit.getAttribute('aria-disabled'), 'true');
+		const rowAction = host.querySelector('.sources-change-action') as HTMLElement | null;
+		assert.ok(!rowAction || rowAction.style.display === 'none' || rowAction.classList.contains('disabled'));
+
+		forceClick(stage);
+		forceClick(commit);
+		forceClick(rowAction);
 		await timeout(20);
-		assert.strictEqual(stageSelectedButton(host)?.classList.contains('disabled'), false);
-		assert.strictEqual(commitButton(host)?.classList.contains('disabled'), false);
-
-		stageSelectedButton(host)?.click();
-		await timeout(50);
-		assert.deepStrictEqual(stageCalls, [{
-			sessionId: 'session-1',
-			commands: [{ argv: ['src/leftover.ts'] }],
-		}]);
-
-		commitButton(host)?.click();
-		await timeout(50);
-		assert.deepStrictEqual(commitCalls, [{
-			sessionId: 'session-1',
-			message: 'keep leftover',
-			signOff: false,
-			amend: false,
-		}]);
+		assert.deepStrictEqual(stageCalls, []);
+		assert.deepStrictEqual(commitCalls, []);
 	});
 
 	test('leftover-looks-live pairing-hold Stage with local SCM stays hidden and 0 git.stage', async function () {
