@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-13
-summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 / D429 / D430 仍开；D25/D26 已闭；D406–D428 已闭（D426 Tools KEEP leftover 行 toggle；D427 MCP UNKNOWN leftover toggle；D428 Plugins KEEP 写钮）；下号 D431"
+summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 / D429 / D430 / D432 仍开；D25/D26 已闭；D406–D428 / D431 已闭（D431 Skills UNKNOWN leftover Save chrome）；下号 D433"
 ---
 
 # Deferred Gaps
@@ -444,6 +444,8 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 / D429 / D430 仍开；D25/
 | D428 | P3 | **closed** pairing-hold / leftover-looks-live `applyDisconnectedRefresh` KEEP 只 hide Scan/Enable 工具栏 + `renderStatus()`，leftover Enable/Reload/Unload/Scan 钮仍 `enabled`（`aria-disabled=false`）。无行 toggle（行只 name+summary）；`list.rerender()` 无 dynamic heights 是空操作，splice 也画不出写 chrome。本刀：KEEP 后 `updateWriteToolbar` / `updateRowActions` 按 `canWrite()` disable，不重选。既有 Plugins KEEP leftover / 0 unary / D419 hooks 测仍绿。未关 D8/D16/D147/D405。未升 PRD-008。不得宣称 leftover wave 完成。不占 D426/D427。 | 工位 D `d428-pairing-hold-plugin-enable-chrome`；`scripts/test.sh --run` `enginePluginsSection.test.ts` **31/0**（既有 29 + 新 2 条无重选） | KEEP leftover 后无需重选即见 Enable/Reload/Unload/Scan `aria-disabled` + 写钮 0 unary + leftover 仍选中。未关 D16。 | conversation / engine-plugins | closed |
 | D429 | P3 | **Tools leftover after capability UNKNOWN / list-fail 不关行 toggle chrome**：D426 只收 pairing-hold KEEP。UNKNOWN leftover / list throw leftover 只 hide toolbar + `renderStatus()`，不 `splice`，leftover checkbox 仍像 live。 | D426 本槽只做 Tools pairing-hold KEEP | UNKNOWN / list-fail leftover 后无需重选即见行 toggle 关。未关 D16。 | conversation / engine-tools | open |
 | D430 | P3 | **Plugins leftover after capability UNKNOWN / list-fail 不关 Enable/write chrome**：D428 只收 pairing-hold KEEP。UNKNOWN leftover / list throw leftover 只 hide toolbar + `renderStatus()`，不 disable，leftover Enable/Reload/Unload/Scan 仍像 live。工位 D 误标 D429，关仓改称 D430。 | D428 本槽只做 Plugins pairing-hold KEEP | UNKNOWN / list-fail leftover 后无需重选即见 Enable/write chrome 关。未关 D16。 | conversation / engine-plugins | open |
+| D431 | P3 | **closed** Skills leftover after capability UNKNOWN / list-fail 不关 leftover user body Save chrome（D421 只收 pairing-hold KEEP `applyDisconnectedRefresh`）。本刀：UNKNOWN leftover / list throw leftover 在 hide toolbar + `hideWriteStatus()` + `renderStatus()` 后 `closeLeftoverBodyEditorChrome`（`updateBodyEditorChrome`；`canWrite()` 已 false），无需重选。首拉 UNKNOWN 仍清行。未发明行 toggle。既有 KEEP leftover / D418 无重选测仍绿。未关 D8/D16/D147/D405。未升 PRD-008。不得宣称 leftover wave 完成。不占 D429/D430/D432。 | 工位 B `d431-skills-unknown-listfail-save-chrome`；`scripts/test.sh --run` `engineSkillsSection.test.ts` **38/0**（既有 36 + 新 2 条 UNKNOWN/list-fail 无重选 + D421 KEEP 无重选仍绿） | UNKNOWN / list-fail leftover 后无需重选即见 Save 关 / textarea `readOnly` + 0 `saveSkillContent` unary。未关 D16。 | conversation / engine-skills | closed |
+| D432 | P3 | **Skills leftover after capability UNKNOWN / list-fail 不关行 toggle chrome**：D431 只收 leftover user body Save。UNKNOWN leftover / list throw leftover 不 `splice`，leftover checkbox 仍像 live。D421 KEEP 亦未关行 toggle。 | D431 本槽只做 Skills UNKNOWN/list-fail Save chrome | UNKNOWN / list-fail leftover 后无需重选即见行 toggle 关。未关 D16。 | conversation / engine-skills | open |
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 
 `loop/merge` @ `793ff6e201f`（提交信息为「关仓：T5a Uncaught 闸门与 statusbar 二次注册幂等**已复测**」）在**仓外独立 detached 工位**上实测：
