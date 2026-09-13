@@ -414,6 +414,14 @@ export class EngineAgentsSection extends Disposable {
 		return this.agentsEditorContainer.style.display !== 'none';
 	}
 
+	isAgentsEditorSaveEnabled(): boolean {
+		return this.agentsEditorSaveButton.enabled;
+	}
+
+	isAgentsEditorReadOnly(): boolean {
+		return this.agentsEditorInput.inputElement.readOnly;
+	}
+
 	getAgentsMarkdownValue(): string {
 		return this.agentsEditorInput.value;
 	}
@@ -724,6 +732,13 @@ export class EngineAgentsSection extends Disposable {
 		writeStatus(this.agentsEditorStatus, message, tone);
 	}
 
+	private updateAgentsEditorChrome(): void {
+		const source = this.selectedProfile?.source;
+		const editable = this.canWrite() && !!source && source !== 'built_in';
+		this.agentsEditorInput.inputElement.readOnly = !editable;
+		this.agentsEditorSaveButton.enabled = editable;
+	}
+
 	private renderModelTab(): void {
 		this.modelStatus.render({
 			mode: 'unsupported',
@@ -905,9 +920,13 @@ export class EngineAgentsSection extends Disposable {
 			this.listContainer.style.display = '';
 			this.mode = resolveEngineCatalogPaneMode(false, support);
 			this.renderStatus();
-			// D422: pairing-hold / leftover-looks-live KEEP must paint leftover
-			// AGENTS.md honesty on refresh; do not wait for another selectProfile.
+			// D422/D423: pairing-hold / leftover-looks-live KEEP must paint leftover
+			// AGENTS.md honesty and editor chrome on refresh; do not wait for
+			// another selectProfile. Chrome first (D421 Skills KEEP
+			// `updateBodyEditorChrome()`), then disconnected copy so built_in
+			// leftover stays honesty-disconnected and read-only.
 			if (this.hasLeftoverAgentsMarkdown()) {
+				this.updateAgentsEditorChrome();
 				this.showAgentsEditorStatus(getEngineSectionDisconnectedCopy(), 'error');
 			}
 			if (this.agentTools.length > 0) {
@@ -1062,6 +1081,7 @@ export class EngineAgentsSection extends Disposable {
 					this.agentsEditorInput.inputElement.readOnly = true;
 					this.agentsEditorSaveButton.enabled = false;
 				} else if (this.keepLeftoverCatalogForPairingHold(hasLeftoverMarkdown)) {
+					this.updateAgentsEditorChrome();
 					this.showAgentsEditorStatus(getEngineSectionDisconnectedCopy(), 'error');
 				}
 			}
@@ -1071,8 +1091,7 @@ export class EngineAgentsSection extends Disposable {
 
 		const selected = this.selectedProfile;
 		this.syncDetailHost();
-		this.agentsEditorInput.inputElement.readOnly = selected.source === 'built_in';
-		this.agentsEditorSaveButton.enabled = this.canWrite() && selected.source !== 'built_in';
+		this.updateAgentsEditorChrome();
 		if (this.agentsMarkdownDirty) {
 			return;
 		}

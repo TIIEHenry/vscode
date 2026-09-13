@@ -1134,6 +1134,18 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		return status;
 	}
 
+	function leftoverAgentsEditorTextarea(section: EngineAgentsSection): HTMLTextAreaElement {
+		const textarea = section.getDomNode().querySelector('.engine-agents-editor-input textarea') as HTMLTextAreaElement;
+		assert.ok(textarea);
+		return textarea;
+	}
+
+	function assertLeftoverAgentsEditorClosed(section: EngineAgentsSection): void {
+		assert.ok(leftoverAgentsEditorTextarea(section).readOnly);
+		assert.strictEqual(section.isAgentsEditorReadOnly(), true);
+		assert.strictEqual(section.isAgentsEditorSaveEnabled(), false);
+	}
+
 	test('Agents: pairing-hold refresh paints leftover editor honesty without reselect', async () => {
 		let saveCalls = 0;
 		const leftoverMarkdown = 'Leftover agents md';
@@ -1224,6 +1236,148 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.notStrictEqual(editorStatus.style.display, 'none');
 		assert.ok(editorStatus.textContent?.includes(getEngineSectionDisconnectedCopy()));
 		assert.deepStrictEqual([...editorStatus.classList], ['engine-agents-editor-status', 'is-error']);
+	});
+
+	test('Agents: pairing-hold refresh closes leftover user AGENTS.md Save chrome without reselect', async () => {
+		let saveCalls = 0;
+		const leftoverMarkdown = 'Leftover user agents md';
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({ profiles: [demoUserAgent()] }),
+			saveAgentProfile: async () => {
+				saveCalls++;
+				return {
+					profile: {
+						id: 'demo',
+						name: 'Demo Agent',
+						source: 'user' as const,
+						systemPrompt: leftoverMarkdown,
+					},
+				};
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		await section.selectProfileByIdForTest('demo');
+		assert.strictEqual(section.getActiveAgentDetailTab(), 'instructions');
+		assert.ok(section.isAgentsEditorVisible());
+		assert.ok(section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+		assert.strictEqual(section.isAgentsEditorSaveEnabled(), true);
+		assert.strictEqual(leftoverAgentsEditorTextarea(section).readOnly, false);
+		assert.ok(!(leftoverAgentsEditorStatus(section).textContent ?? '').includes(getEngineSectionDisconnectedCopy()));
+		const leftoverRows = section.getListEntryCount();
+		const saveCallsAfterLoad = saveCalls;
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(saveCalls, saveCallsAfterLoad, 'KEEP must not extra saveAgentProfile');
+		assert.strictEqual(section.getListEntryCount(), leftoverRows);
+		assert.ok(section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+		assert.ok(section.isAgentsEditorVisible());
+		assertLeftoverAgentsEditorClosed(section);
+		const editorStatus = leftoverAgentsEditorStatus(section);
+		assert.notStrictEqual(editorStatus.style.display, 'none');
+		assert.ok(editorStatus.textContent?.includes(getEngineSectionDisconnectedCopy()));
+	});
+
+	test('Agents: leftover-looks-live refresh closes leftover user AGENTS.md Save chrome without reselect', async () => {
+		let saveCalls = 0;
+		const leftoverMarkdown = 'Leftover user agents md';
+		const connection = createConnectionStub({
+			connected: true,
+			looksLive: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({ profiles: [demoUserAgent()] }),
+			saveAgentProfile: async () => {
+				saveCalls++;
+				return {
+					profile: {
+						id: 'demo',
+						name: 'Demo Agent',
+						source: 'user' as const,
+						systemPrompt: leftoverMarkdown,
+					},
+				};
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		await section.selectProfileByIdForTest('demo');
+		assert.strictEqual(section.getActiveAgentDetailTab(), 'instructions');
+		assert.ok(section.isAgentsEditorVisible());
+		assert.ok(section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+		assert.strictEqual(section.isAgentsEditorSaveEnabled(), true);
+		assert.strictEqual(leftoverAgentsEditorTextarea(section).readOnly, false);
+		assert.ok(!(leftoverAgentsEditorStatus(section).textContent ?? '').includes(getEngineSectionDisconnectedCopy()));
+		const leftoverRows = section.getListEntryCount();
+		const saveCallsAfterLoad = saveCalls;
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(saveCalls, saveCallsAfterLoad, 'KEEP must not extra saveAgentProfile');
+		assert.strictEqual(section.getListEntryCount(), leftoverRows);
+		assert.ok(section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+		assert.ok(section.isAgentsEditorVisible());
+		assertLeftoverAgentsEditorClosed(section);
+		const editorStatus = leftoverAgentsEditorStatus(section);
+		assert.notStrictEqual(editorStatus.style.display, 'none');
+		assert.ok(editorStatus.textContent?.includes(getEngineSectionDisconnectedCopy()));
+	});
+
+	test('Agents: pairing-hold leftover built_in AGENTS.md stays read-only without reselect', async () => {
+		let saveCalls = 0;
+		const leftoverMarkdown = 'Leftover built-in agents md';
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({ profiles: [demoBuiltInAgent()] }),
+			saveAgentProfile: async () => {
+				saveCalls++;
+				return {
+					profile: {
+						id: 'builtin',
+						name: 'Built-in Agent',
+						source: 'built_in' as const,
+						systemPrompt: leftoverMarkdown,
+					},
+				};
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		await section.selectProfileByIdForTest('builtin');
+		assert.strictEqual(section.getActiveAgentDetailTab(), 'instructions');
+		assert.ok(section.isAgentsEditorVisible());
+		assert.ok(section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+		assertLeftoverAgentsEditorClosed(section);
+		assert.ok(!(leftoverAgentsEditorStatus(section).textContent ?? '').includes(getEngineSectionDisconnectedCopy()));
+		const leftoverRows = section.getListEntryCount();
+		const saveCallsAfterLoad = saveCalls;
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(saveCalls, saveCallsAfterLoad, 'KEEP must not extra saveAgentProfile');
+		assert.strictEqual(section.getListEntryCount(), leftoverRows);
+		assert.ok(section.getAgentsMarkdownValue().includes(leftoverMarkdown));
+		assert.ok(section.isAgentsEditorVisible());
+		assertLeftoverAgentsEditorClosed(section);
+		const editorStatus = leftoverAgentsEditorStatus(section);
+		assert.notStrictEqual(editorStatus.style.display, 'none');
+		assert.ok(editorStatus.textContent?.includes(getEngineSectionDisconnectedCopy()));
 	});
 
 	test('Tools: leftover-looks-live pairing-hold writes stay 0 unary', async () => {
