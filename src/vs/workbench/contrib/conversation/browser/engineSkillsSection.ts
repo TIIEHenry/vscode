@@ -390,6 +390,10 @@ export class EngineSkillsSection extends Disposable {
 		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
 	}
 
+	private hasLeftoverSkillBody(): boolean {
+		return !!(this.loadedBodyText || this.bodyInput.value);
+	}
+
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): boolean {
 		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
 			this.hideWriteStatus();
@@ -397,6 +401,11 @@ export class EngineSkillsSection extends Disposable {
 			this.listContainer.style.display = '';
 			this.mode = resolveEngineSkillsPaneMode(false, support);
 			this.renderStatus();
+			// D418: pairing-hold / leftover-looks-live KEEP must paint leftover
+			// body honesty on refresh; do not wait for another selectSkill.
+			if (this.hasLeftoverSkillBody()) {
+				this.showBodyStatus(getEngineSectionDisconnectedCopy());
+			}
 			return false;
 		}
 		this.clearCatalogPresentation();
@@ -702,7 +711,7 @@ export class EngineSkillsSection extends Disposable {
 	private async loadSkillBody(skill: UniverseAgentSkillSummary): Promise<void> {
 		// D376 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
 		if (isConversationPairingHold(this.connection)) {
-			const hasLeftoverBody = !!(this.loadedBodyText || this.bodyInput.value);
+			const hasLeftoverBody = this.hasLeftoverSkillBody();
 			if (hasLeftoverBody) {
 				this.showBodyStatus(getEngineSectionDisconnectedCopy());
 				return;
@@ -715,7 +724,7 @@ export class EngineSkillsSection extends Disposable {
 		if (!canShowCatalogRows(this.mode) || !this.connection.isEngineConnected()) {
 			// Keep leftover body after a live paint (D265; D263/D264).
 			// failed/loading must not unload leftover text; first-pull empty still clears.
-			const hasLeftoverBody = !!(this.loadedBodyText || this.bodyInput.value);
+			const hasLeftoverBody = this.hasLeftoverSkillBody();
 			if ((this.mode === 'failed' || this.mode === 'loading') && hasLeftoverBody) {
 				return;
 			}
@@ -734,7 +743,7 @@ export class EngineSkillsSection extends Disposable {
 		}
 		const generation = ++this.bodyLoadGeneration;
 		// D275: keep leftover body while the detail RPC is in-flight. First-pull empty still clears.
-		const hasLeftoverBody = !!(this.loadedBodyText || this.bodyInput.value);
+		const hasLeftoverBody = this.hasLeftoverSkillBody();
 		if (!hasLeftoverBody) {
 			this.bodyInput.value = '';
 		}
