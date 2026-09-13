@@ -149,6 +149,8 @@ export class EngineMcpRuntimePanel extends Disposable {
 	private refreshGeneration = 0;
 	private toolsGeneration = 0;
 	private ignoreSelection = false;
+	private leftoverCatalogToolsFailReason: string | undefined;
+	private leftoverCatalogToolsFailRetry: (() => void) | undefined;
 
 	constructor(
 		parent: HTMLElement,
@@ -452,20 +454,53 @@ export class EngineMcpRuntimePanel extends Disposable {
 		if (!this.hasLeftoverRuntimeTools()) {
 			return;
 		}
+		if (reason !== undefined) {
+			this.leftoverCatalogToolsFailReason = reason;
+		}
+		if (onRetry !== undefined) {
+			this.leftoverCatalogToolsFailRetry = onRetry;
+		}
 		this.toolsList.style.display = '';
 		this.toolsMeta.style.display = '';
 		this.toolsStatus.render({
 			mode: 'failed',
 			featureLabel: MCP_RUNTIME_TOOLS_FEATURE,
-			reason,
-			onRetry,
+			reason: reason ?? this.leftoverCatalogToolsFailReason,
+			onRetry: onRetry ?? this.leftoverCatalogToolsFailRetry,
 		});
+	}
+
+	/**
+	 * D436: catalog already UNKNOWN leftover / list-fail leftover.
+	 * Do not let in-flight getMcpServerTools paint leftover tools as live.
+	 * First-pull UNKNOWN has no leftover rows; refresh() still clears.
+	 */
+	private keepLeftoverRuntimeToolsIfUnknownOrListFail(): boolean {
+		const support = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot()).mcpRuntime.support;
+		if (support === 'UNKNOWN') {
+			if (this.hasLeftoverRuntimeTools()) {
+				this.keepLeftoverRuntimeToolsUnknownHonesty();
+			}
+			return true;
+		}
+		if (this.mode === 'failed') {
+			if (this.hasLeftoverRuntimeTools()) {
+				this.keepLeftoverRuntimeToolsFailed();
+			}
+			return true;
+		}
+		return false;
 	}
 
 	private async loadTools(serverId: string, forceRefresh: boolean): Promise<void> {
 		// D368 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
 		if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 			this.keepLeftoverRuntimeToolsDisconnected();
+			return;
+		}
+		// D436: refuse live paint when catalog is already UNKNOWN leftover
+		// or list-fail leftover. D434 only covers refresh() honesty.
+		if (this.keepLeftoverRuntimeToolsIfUnknownOrListFail()) {
 			return;
 		}
 
@@ -496,12 +531,19 @@ export class EngineMcpRuntimePanel extends Disposable {
 				this.keepLeftoverRuntimeToolsDisconnected();
 				return;
 			}
+			// D436: in-flight resolve after catalog UNKNOWN leftover / list-fail leftover.
+			if (this.keepLeftoverRuntimeToolsIfUnknownOrListFail()) {
+				return;
+			}
 			this.tools = result.tools;
 			this.toolsTotal = result.total ?? result.tools.length;
 			this.toolsCachedAt = result.cachedAt;
 			this.renderTools();
 		} catch (error) {
 			if (generation !== this.toolsGeneration) {
+				return;
+			}
+			if (this.keepLeftoverRuntimeToolsIfUnknownOrListFail()) {
 				return;
 			}
 			if (!this.hasLeftoverRuntimeTools()) {
@@ -618,6 +660,8 @@ export class EngineMcpRuntimePanel extends Disposable {
 
 	private clearToolsPresentation(): void {
 		this.toolsGeneration++;
+		this.leftoverCatalogToolsFailReason = undefined;
+		this.leftoverCatalogToolsFailRetry = undefined;
 		this.tools = [];
 		this.toolsTotal = undefined;
 		this.toolsCachedAt = undefined;
