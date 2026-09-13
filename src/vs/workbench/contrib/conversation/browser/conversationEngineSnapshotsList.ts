@@ -126,7 +126,10 @@ function snapshotWriteFailureReason(error: unknown): string {
  * and skips listSnapshots; leftover WITH leftover still KEEP + 0 extra list.
  * Post-await leftover-looks-live (D365) also KEEP + disconnected and
  * refuses paintSnapshots as live.
- * Connected leftover still writes.
+ * KEEP `applyPairingHoldLeftoverRefresh` already closes Restore/Delete;
+ * do not redo KEEP.
+ * List-fail leftover keeps rows + failed and closes Restore/Delete (D440);
+ * write gate is not only connected+pairingHold (`leftoverListFailed`).
  * Restore/Delete success copy is restored only after a successful list
  * (D54/D154 listed-gate); leftover list-fail clears Restored./Deleted.
  * no Create.
@@ -142,6 +145,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	private readonly rowDisposables = this._register(new DisposableStore());
 	private open = false;
 	private renderGeneration = 0;
+	private leftoverListFailed = false;
 	private paintedLiveSnapshots = false;
 
 	constructor(
@@ -254,8 +258,9 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		return hadLiveCatalog && isConversationPairingHold(this.connection);
 	}
 
+	/** Catalog leftover contract: list-fail leftover is not a live write surface. */
 	private isSnapshotWriteLive(): boolean {
-		return this.connection.isEngineConnected() && !isConversationPairingHold(this.connection);
+		return this.connection.isEngineConnected() && !isConversationPairingHold(this.connection) && !this.leftoverListFailed;
 	}
 
 	private disableLeftoverWriteButtons(): void {
@@ -322,6 +327,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				return this.applyDisconnectedRefresh();
 			}
+			this.leftoverListFailed = false;
 			this.paintSnapshots(result.snapshots);
 			return true;
 		} catch (error) {
@@ -329,7 +335,10 @@ export class ConversationEngineSnapshotsList extends Disposable {
 				return false;
 			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
+			this.leftoverListFailed = true;
 			this.paintListFailed(formatEngineSnapshotFailedCopy(reason));
+			// D440: leftover rows stay; Restore/Delete chrome must close after list-fail.
+			this.disableLeftoverWriteButtons();
 			return false;
 		}
 	}
@@ -474,6 +483,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	}
 
 	private paintSnapshots(snapshots: readonly UniverseAgentSessionSnapshotInfo[]): void {
+		this.leftoverListFailed = false;
 		this.paintWriteStatus(undefined);
 		this.rowDisposables.clear();
 		reset(this.body);

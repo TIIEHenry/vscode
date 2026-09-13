@@ -594,7 +594,7 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.deepStrictEqual(confirmCalls, []);
 	});
 
-	test('connected leftover list-fail still restores and deletes', async () => {
+	test('list-fail leftover closes Restore/Delete without reselect', async () => {
 		let listCalls = 0;
 		const leftover: UniverseAgentSessionSnapshotInfo = {
 			id: 'leftover-snap',
@@ -638,20 +638,24 @@ suite('ConversationEngineSnapshotsList', () => {
 		await Promise.resolve();
 		assert.strictEqual(listCalls, 1);
 		assert.ok(snapshotRow(overlayParent, 'leftover-snap'));
+		const liveRestore = restoreButton(snapshotRow(overlayParent, 'leftover-snap'));
+		assert.ok(liveRestore);
+		assert.strictEqual(liveRestore.classList.contains('disabled'), false);
 
 		onDidChangeConnection.fire(liveSnapshot);
 		await flushMicrotasks();
 		assert.strictEqual(listCalls, 2);
 		assert.ok(snapshotRow(overlayParent, 'leftover-snap'));
-
-		restoreButton(snapshotRow(overlayParent, 'leftover-snap'))?.click();
+		assert.strictEqual(overlayParent.querySelectorAll(`.${conversationLensSnapshotsRowClass}`).length, 1);
+		assert.ok(overlayParent.textContent?.includes(formatEngineSnapshotFailedCopy('list boom')));
+		assertWriteButtonsDisabled(snapshotRow(overlayParent, 'leftover-snap'));
+		forceClick(restoreButton(snapshotRow(overlayParent, 'leftover-snap')));
+		forceClick(deleteButton(snapshotRow(overlayParent, 'leftover-snap')));
 		await flushMicrotasks();
-		assert.deepStrictEqual(restoreCalls, [{ sessionId: 'sess-1', snapshotId: 'leftover-snap' }]);
-
-		deleteButton(snapshotRow(overlayParent, 'leftover-snap'))?.click();
-		await flushMicrotasks();
-		assert.strictEqual(confirmCalls.length, 1);
-		assert.deepStrictEqual(deleteCalls, [{ sessionId: 'sess-1', snapshotId: 'leftover-snap' }]);
+		assert.deepStrictEqual(restoreCalls, []);
+		assert.deepStrictEqual(deleteCalls, []);
+		assert.deepStrictEqual(confirmCalls, []);
+		assert.strictEqual(listCalls, 2);
 	});
 
 	test('connection drop while open clears rows and does not keep fixture data', async () => {
