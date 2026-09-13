@@ -688,6 +688,15 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			return result;
 		} catch (error) {
 			this._markTransportFailed(error);
+			// D416: `_markTransportFailed` only arms TransportError. User Connect
+			// (`connectProfile({reconnect:true})` / already-failed transport) already
+			// cancelled the timer on entry; a plain throw would otherwise stop dialing.
+			if (!(error instanceof UniverseAgentTransportError)) {
+				this._maybeScheduleReconnectAfterTransportFailedReturn(
+					'transport_failed',
+					this._keepTransportLostOnConnect(),
+				);
+			}
 			throw error;
 		}
 	}
@@ -866,6 +875,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		} catch (error) {
 			this._markTransportFailed(error);
 			const reason = error instanceof Error ? error.message : String(error);
+			if (!(error instanceof UniverseAgentTransportError)) {
+				this._maybeScheduleReconnectAfterTransportFailedReturn('transport_failed', reconnect);
+			}
 			return { ok: false, code: 'transport_failed', reason };
 		}
 	}

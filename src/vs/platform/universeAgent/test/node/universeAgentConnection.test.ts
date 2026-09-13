@@ -12430,4 +12430,200 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 		assert.strictEqual(clock.pending.size, 0);
 		service.dispose();
 	});
+
+	test('user reconnect connect() non-TransportError throw reschedules (D416)', async () => {
+		const clock = createReconnectClock();
+		let connects = 0;
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport({
+				connect: async () => {
+					connects++;
+					if (connects === 1) {
+						return { sessionToken: 'token-1', workDir: '/tmp/work', methods: [], events: [] };
+					}
+					throw new Error('plain connect blowup');
+				},
+				listSessions: async () => {
+					throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+				},
+			}),
+			connectionResolver: createOkResolver() as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+
+		await service.connectProfile('p1');
+		await assert.rejects(() => service.listSessions({}));
+		assert.deepStrictEqual(clock.delays, [1000]);
+		assert.strictEqual(clock.pending.size, 1);
+
+		await assert.rejects(
+			() => service.connectProfile('p1', { reconnect: true }),
+			(error: unknown) => error instanceof Error && error.message === 'plain connect blowup',
+		);
+		assert.deepStrictEqual(clock.delays, [1000, 2000]);
+		assert.strictEqual(clock.pending.size, 1);
+		service.dispose();
+	});
+
+	test('user Connect after failed transport connect() non-TransportError throw reschedules (D416)', async () => {
+		const clock = createReconnectClock();
+		let connects = 0;
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport({
+				connect: async () => {
+					connects++;
+					if (connects === 1) {
+						return { sessionToken: 'token-1', workDir: '/tmp/work', methods: [], events: [] };
+					}
+					throw new Error('plain connect blowup');
+				},
+				listSessions: async () => {
+					throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+				},
+			}),
+			connectionResolver: createOkResolver() as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+
+		await service.connectProfile('p1');
+		await assert.rejects(() => service.listSessions({}));
+		assert.deepStrictEqual(clock.delays, [1000]);
+
+		await assert.rejects(
+			() => service.connectProfile('p1'),
+			(error: unknown) => error instanceof Error && error.message === 'plain connect blowup',
+		);
+		assert.deepStrictEqual(clock.delays, [1000, 2000]);
+		assert.strictEqual(clock.pending.size, 1);
+		service.dispose();
+	});
+
+	test('initial connect() non-TransportError throw does not schedule (D416)', async () => {
+		const clock = createReconnectClock();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport({
+				connect: async () => {
+					throw new Error('plain connect blowup');
+				},
+			}),
+			connectionResolver: createOkResolver() as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+
+		await assert.rejects(
+			() => service.connectProfile('p1'),
+			(error: unknown) => error instanceof Error && error.message === 'plain connect blowup',
+		);
+		assert.strictEqual(clock.delays.length, 0);
+		assert.strictEqual(clock.pending.size, 0);
+		service.dispose();
+	});
+
+	test('user reconnect connect() throw while pairingPending does not schedule (D416)', async () => {
+		const clock = createReconnectClock();
+		let connects = 0;
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport({
+				connect: async () => {
+					connects++;
+					if (connects === 1) {
+						return {
+							pairingNonce: 'nonce-1',
+							sasCode: 'ABCD-EFGH',
+							methods: [],
+							events: [],
+						};
+					}
+					throw new Error('plain connect blowup');
+				},
+			}),
+			connectionResolver: createOkResolver() as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+
+		await service.connectProfile('p1');
+		assert.strictEqual(service.getConnectionSnapshot().pairingPending, true);
+		await assert.rejects(
+			() => service.connectProfile('p1', { reconnect: true }),
+			(error: unknown) => error instanceof Error && error.message === 'plain connect blowup',
+		);
+		assert.strictEqual(clock.delays.length, 0);
+		assert.strictEqual(clock.pending.size, 0);
+		service.dispose();
+	});
+
+	test('user reconnect handshake catch non-TransportError throw reschedules (D416)', async () => {
+		const clock = createReconnectClock();
+		let resolves = 0;
+		const resolver = {
+			resolve: async () => {
+				resolves++;
+				if (resolves === 1) {
+					return { ok: true as const, allowRelayFallback: false, endpoint: okEndpoint };
+				}
+				return { ok: true as const, allowRelayFallback: false, endpoint: handshakeTlsEndpoint };
+			},
+			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+		};
+		class HandshakeThenProbeThrow extends MockUniverseAgentGrpcTransport {
+			override async getAuthNonce(): Promise<UniverseAgentAuthNonceResult> {
+				return {
+					authNonce: new Uint8Array(32),
+					engineIdentityId: 'engine-id',
+					engineCertFingerprint: handshakeTrust.leafSha256Hex,
+				};
+			}
+			override async connectWithDeviceAuth(): Promise<UniverseAgentConnectResult> {
+				return {
+					sessionToken: 'token-2',
+					workDir: '/tmp/work',
+					methods: ['ToolService.ListSkills'],
+					events: [],
+				};
+			}
+			override async probeRpc(): Promise<number> {
+				throw new Error('probe boom');
+			}
+		}
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport({
+				listSessions: async () => {
+					throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+				},
+			}),
+			createPinnedTransport: () => new HandshakeThenProbeThrow(),
+			connectionResolver: resolver as unknown as ConnectionResolver,
+			connectionProfileStore: new PairingTestProfileStore(handshakeProfile),
+			clientIdentityStore: signingIdentityStore,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+
+		await service.connectProfile('p1');
+		await assert.rejects(() => service.listSessions({}));
+		assert.deepStrictEqual(clock.delays, [1000]);
+
+		const result = await service.connectProfile('p1', { reconnect: true });
+		assert.strictEqual(result.ok, false);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'transport_failed');
+			assert.strictEqual(result.reason, 'probe boom');
+		}
+		assert.deepStrictEqual(clock.delays, [1000, 2000]);
+		assert.strictEqual(clock.pending.size, 1);
+		service.dispose();
+	});
 });
