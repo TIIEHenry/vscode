@@ -4,11 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+import { ITreeNode } from '../../../../../base/browser/ui/tree/tree.js';
+import { Disposable, DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { ConversationConfirmationSeat } from '../../browser/conversationConfirmationSeat.js';
 import { ConversationQuestionSeat } from '../../browser/conversationQuestionSeat.js';
-import { conversationLensErrorRetry, renderHonestTimelineRow, renderStandaloneThinkingOrToolRow } from '../../browser/conversationTimelineRenderer.js';
+import { conversationLensErrorRetry, ConversationTimelineRenderer, renderHonestTimelineRow, renderStandaloneThinkingOrToolRow } from '../../browser/conversationTimelineRenderer.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
+import type { ConversationTimelineItem } from '../../browser/conversationTimelineTypes.js';
+import type { IWebviewService } from '../../../webview/browser/webview.js';
 
 suite('renderHonestTimelineRow error retry (PRD-021)', () => {
 
@@ -90,6 +94,29 @@ suite('renderHonestTimelineRow error retry (PRD-021)', () => {
 	});
 });
 
+suite('ConversationConfirmationSeat pairing-hold writes', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('writesEnabled false keeps Allow/Skip disabled and does not resolve', () => {
+		const decisions: string[] = [];
+		const seat = store.add(new ConversationConfirmationSeat({
+			message: 'Allow this tool?',
+			status: 'pending',
+			onAllow: () => decisions.push('allowed'),
+			onSkip: () => decisions.push('skipped'),
+			writesEnabled: false,
+		}));
+		const buttons = seat.element.querySelectorAll('.conversation-lens-confirmation-actions .monaco-button');
+		assert.strictEqual(buttons.length, 2);
+		assert.strictEqual(buttons[0].getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(buttons[1].getAttribute('aria-disabled'), 'true');
+		(buttons[0] as HTMLElement).click();
+		(buttons[1] as HTMLElement).click();
+		assert.deepStrictEqual(decisions, []);
+	});
+});
+
 suite('ConversationQuestionSeat pairing-hold writes', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -144,5 +171,72 @@ suite('renderStandaloneThinkingOrToolRow (D36)', () => {
 		assert.strictEqual(container.querySelector('.conversation-process-fold'), null);
 		assert.strictEqual(container.querySelector('.conversation-lens-turn-header')?.textContent, 'Tool');
 		assert.strictEqual(container.querySelector('.conversation-lens-turn-body')?.textContent, 'grep src');
+	});
+});
+
+suite('ConversationTimelineRenderer user-bubble writesEnabled', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	function userBubbleNode(): ITreeNode<ConversationTimelineItem, void> {
+		return {
+			element: { variant: 'turn', turn: { id: 'u1', kind: 'user', text: 'hi' } },
+			children: [],
+			depth: 0,
+			visibleChildrenCount: 0,
+			visibleChildIndex: 0,
+			collapsible: false,
+			collapsed: false,
+			filterData: undefined,
+		} as ITreeNode<ConversationTimelineItem, void>;
+	}
+
+	function renderUserBubble(writesEnabled: boolean, edits: string[]): { bubble: HTMLElement; dispose: () => void } {
+		const renderer = new ConversationTimelineRenderer(
+			{ renderTurnBody: () => Disposable.None },
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			turnId => edits.push(turnId),
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			() => undefined,
+			undefined,
+			() => undefined,
+			() => false,
+			() => writesEnabled,
+			() => false,
+			{} as IWebviewService,
+			() => undefined,
+			() => { },
+		);
+		const container = document.createElement('div');
+		const template = renderer.renderTemplate(container);
+		renderer.renderElement(userBubbleNode(), 0, template);
+		const bubble = container.querySelector('.conversation-lens-turn-body--user-bubble') as HTMLElement | null;
+		assert.ok(bubble);
+		return {
+			bubble,
+			dispose: () => template.disposables.dispose(),
+		};
+	}
+
+	test('writesEnabled false does not call onEditUserTurn', () => {
+		const edits: string[] = [];
+		const { bubble, dispose } = renderUserBubble(false, edits);
+		bubble.click();
+		assert.deepStrictEqual(edits, []);
+		dispose();
+	});
+
+	test('writesEnabled true still calls onEditUserTurn', () => {
+		const edits: string[] = [];
+		const { bubble, dispose } = renderUserBubble(true, edits);
+		bubble.click();
+		assert.deepStrictEqual(edits, ['u1']);
+		dispose();
 	});
 });

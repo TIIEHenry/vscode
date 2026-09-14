@@ -83,7 +83,7 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 		},
 		onOpenVisualizeFullscreen: (source, title) => host.openVisualizeOverlay(source, title),
 		showLiveChrome: () => shouldShowReadingColumnLiveChrome(host),
-		writesEnabled: () => !isConversationPairingHold(host.uaConnection),
+		writesEnabled: () => isReadingColumnWritesEnabled(host),
 		showToolInvocationDetails: () => shouldShowClientToolInvocationDetails(host.configurationService),
 	}));
 	host.trajectoryView = host.register(host.instantiationService.createInstance(ConversationTrajectory, host.readingColumn, {
@@ -156,6 +156,22 @@ export function requestReadingColumnDetail(host: IReadingColumnDetailHost, ref: 
  * fall through to leftover lease / `getTurns`. looks-live first-pull
  * (connected===true + pairingPending, no leftover) stays false.
  */
+/**
+ * D452 / D449 SessionBar: pairing-hold or KEEP leftover list-fail
+ * (`connected && isEngineSessionReady()===false`) is not a live write surface.
+ */
+export function isReadingColumnWritesEnabled(host: {
+	readonly stubService: {
+		isEngineConnected(): boolean;
+		isEngineSessionReady?(): boolean;
+	};
+	readonly uaConnection: IConversationPairingHoldSource;
+}): boolean {
+	const leftoverCatalogListFailed = host.stubService.isEngineConnected()
+		&& host.stubService.isEngineSessionReady?.() === false;
+	return !isConversationPairingHold(host.uaConnection) && !leftoverCatalogListFailed;
+}
+
 export function shouldShowReadingColumnLiveChrome(host: {
 	readonly stubService: {
 		isEngineConnected(): boolean;

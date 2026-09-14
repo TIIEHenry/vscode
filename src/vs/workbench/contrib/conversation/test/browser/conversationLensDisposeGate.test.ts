@@ -7,7 +7,7 @@ import assert from 'assert';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { applySessionViewTimeline, refreshTrajectoryRecords, updateSyncChrome, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
-import { conversationLensStaleSnapshotClass, refreshStaleSnapshotBanner, requestReadingColumnDetail, shouldShowReadingColumnLiveChrome, type IReadingColumnDetailHost } from '../../browser/conversationLensReadingColumn.js';
+import { conversationLensStaleSnapshotClass, isReadingColumnWritesEnabled, refreshStaleSnapshotBanner, requestReadingColumnDetail, shouldShowReadingColumnLiveChrome, type IReadingColumnDetailHost } from '../../browser/conversationLensReadingColumn.js';
 import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
 import { formatSyncChromeLabel } from '../../browser/conversationSessionView.js';
 import type { SyncChrome } from '../../../../../platform/universeAgent/common/sessionView/index.js';
@@ -1345,6 +1345,82 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(chromeHost.composerPolicy, 'compose');
 		assert.strictEqual(chromeHost.editingTurnId, undefined);
 		assert.deepStrictEqual(failures, []);
+	});
+
+	function keepLeftoverListFailWriteHost(failures: ConversationComposerPostFailureReason[]): {
+		host: IConversationLensComposerHost;
+	} {
+		const host = {
+			composerPolicy: 'compose' as const,
+			submitInFlight: false,
+			editingTurnId: undefined as string | undefined,
+			editingQueueItemId: undefined as string | undefined,
+			dockTextarea: { value: 'leftover draft' },
+			sendButton: { enabled: true },
+			getBoundSessionId: () => 'sess-leftover',
+			isPreFirst: () => false,
+			inboxOverlay: { closeListPanel: () => { } },
+			composer: document.createElement('div'),
+			timelineTree: { setEditingTurnId: () => { } },
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => false,
+				hasEngineConnectionHistory: () => true,
+				getTurns: () => [{ id: 'turn-1', kind: 'user', text: 'leftover user' }],
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+			},
+			exitComposerEdit: () => { },
+			renderInboxStatus: () => { },
+			updateSendEnabled: () => { },
+			updateConversationPhase: () => { },
+			resetInputHistoryBrowse: () => { },
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+		};
+		return { host: host as unknown as IConversationLensComposerHost };
+	}
+
+	test('KEEP leftover list-fail writesEnabled is false and beginTurnEdit does not enter edit', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host } = keepLeftoverListFailWriteHost(failures);
+		const chromeHost = host as unknown as IConversationLensComposerChromeHost;
+		assert.strictEqual(host.stubService.isEngineConnected(), true);
+		assert.strictEqual(host.stubService.isEngineSessionReady(), false);
+		assert.strictEqual(isConversationPairingHold(host.uaConnection), false);
+		assert.strictEqual(isReadingColumnWritesEnabled(chromeHost), false);
+		chromeHost.composerPolicy = 'compose';
+		chromeHost.editingTurnId = undefined;
+		beginTurnEdit(chromeHost, 'turn-1');
+		assert.strictEqual(chromeHost.composerPolicy, 'compose');
+		assert.strictEqual(chromeHost.editingTurnId, undefined);
+		assert.deepStrictEqual(failures, []);
+	});
+
+	test('pairing-hold writesEnabled stays false', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host } = pairingHoldComposerWriteHost(failures);
+		assert.strictEqual(isConversationPairingHold(host.uaConnection), true);
+		assert.strictEqual(isReadingColumnWritesEnabled(host), false);
+	});
+
+	test('connected live writesEnabled stays true when engine session is ready', () => {
+		const host = {
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+			},
+		};
+		assert.strictEqual(isConversationPairingHold(host.uaConnection), false);
+		assert.strictEqual(host.stubService.isEngineSessionReady(), true);
+		assert.strictEqual(isReadingColumnWritesEnabled(host), true);
 	});
 
 	test('beginQueueEdit pairing-hold leftover does not enter edit', () => {

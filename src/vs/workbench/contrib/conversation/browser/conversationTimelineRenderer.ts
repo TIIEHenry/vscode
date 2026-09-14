@@ -313,6 +313,9 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 					if ((e.target as HTMLElement).closest('.conversation-lens-turn-fold-button')) {
 						return;
 					}
+					if (!this.writesEnabled()) {
+						return;
+					}
 					this.onEditUserTurn?.(turn.id);
 				}));
 			} else if (turn.kind === 'assistant') {

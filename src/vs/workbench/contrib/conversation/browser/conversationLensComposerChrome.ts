@@ -273,6 +273,9 @@ export function beginTurnEdit(host: IConversationLensComposerChromeHost, turnId:
 		if (isConversationPairingHold(host.uaConnection)) {
 			return;
 		}
+		if (isComposerKeepLeftoverListFailed(host)) {
+			return;
+		}
 		if (host.isPreFirst()) {
 			return;
 		}
