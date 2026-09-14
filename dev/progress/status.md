@@ -3,8 +3,8 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-09-12
-summary: "D25/D26 已闭。A–F 只读面已挂。钉死工位 seed 后 grpcurl Chat PASS。PRD-008 仍待 IDE 接通冒烟。D410/D411/D412 已合。下号 D413。"
+updated: 2026-09-14
+summary: "D25/D26 已闭。A–F 只读面已挂。钉死工位 seed 后 grpcurl Chat PASS。PRD-008 仍待 IDE 接通冒烟。D410/D411/D412 已合。D405 手测仍开并追加 S4a/S4b 前置（session-subscription-lifecycle 规则 16 回溯审查）。下号 D413。"
 ---
 
 # Development Progress
@@ -193,7 +193,7 @@ summary: "D25/D26 已闭。A–F 只读面已挂。钉死工位 seed 后 grpcurl
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。本仓只读面 + Composer `model_profile_id` **已挂**。钉死工位 seed 后 grpcurl **Chat PASS**。下一刀是 IDE Direct Address 接通后 Composer 发送（PRD-008 仍要隔离 profile 冒烟）。**不升 PRD-008**。不要再清 store。D26 store 已闭，旧「迁移卡死」账见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md) |
-| **loop 切片** | D410/D411/D412 已合入。**D405** 手测仍开。不关 D8/D16/D147。下号 **D413**。未升 PRD-008。 |
+| **loop 切片** | D410/D411/D412 已合入。**D405** 手测仍开，且 2026-09-14 规则 16 回溯审查后追加 **S4a**（注入真 `DiagnosticsPort`，否则 V-S1-1 / V-S2-2 无观察点）+ **S4b**（fail-closed 与退避定时器竞态守卫）两刀前置，见 [session-subscription-lifecycle](../plans/session-subscription-lifecycle.md) §4.1。不关 D8/D16/D147。下号 **D413**。未升 PRD-008。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。

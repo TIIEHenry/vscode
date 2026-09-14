@@ -31,6 +31,7 @@ summary: "dev/plans 导航：conversation-chrome-visibility（accepted；D403/D4
 | [m6-engine-wave.md](m6-engine-wave.md) | `accepted` | A1–A2/B/D 已落；C 已落 Skills/Agents/MCP/Tools 读写主体与正文编辑，九节 UI 余量转 M7；PRD-008 仍须冒烟才升 `implemented` |
 | [m7-ui-completion-wave.md](m7-ui-completion-wave.md) | `accepted` | UI 主线代码已落（P0–P2b / E2 / Q / CS / I2–I5 / K/T/L1）；W1 冒烟与 I6 发行标识未完；V 槽测试债非阻塞；不升 `implemented` |
 | [session-view-frame-fanout.md](session-view-frame-fanout.md) | `implemented` | F1/F2 @ `c37bbc6e` / `917a7f8d`：`onDynamicDidApplyFrame(leaseId)` + 宿主首帧缓冲 + `postAndDrain`；G-CORE-1 已登记；F3 见 D22 |
+| [session-subscription-lifecycle.md](session-subscription-lifecycle.md) | `draft` | lease 所有权回收、流级重开与 bind 有界化；S1–S3b 代码已落 `b2211b23fa5`；规则 16 回溯审查已做（2026-09-14）；仍 draft：S4a 诊断口、S4b fail-closed 竞态守卫、§5 手测（D405） |
 | [m7-gap-closeout.md](m7-gap-closeout.md) | `implemented` | GC-1–GC-6 @ merge `d98d888a`：hubDevice/配对、设备动作与 probe、catalog 观察 lease、Navigator/Inspect、Overview Model；PRD-024 仍待真 Hub 冒烟；D21 |
 | [engine-preferences-completion.md](engine-preferences-completion.md) | `accepted` | E2-1–E2-7 **代码已落**；GC-6 Model 摘要已落；Overview Provider 行已省略（G-ENG-1 前不显示）；产品验证未做 |
 | [client-settings-completion.md](client-settings-completion.md) | `accepted` | CS-1–CS-6 **代码已落**（9 键 + 迁移 + 七组无 emptyCopy）；PRD-026 §6 产品验证未做 |
