@@ -344,14 +344,29 @@ export class NavigatorAgentsView extends ViewPane {
 
 	refreshAgentTree(): void {
 		const sessionId = this.rosterService.getActiveSessionId();
-		if (!isConversationPairingHold(this.uaConnection) && this.rosterService.isEngineConnected() && sessionId) {
+		if (
+			!isConversationPairingHold(this.uaConnection)
+			&& !this.isKeepLeftoverListFailWrite()
+			&& this.rosterService.isEngineConnected()
+			&& sessionId
+		) {
 			this.uaConnection.requestAgentTreeRefresh(sessionId);
 		}
 		this.refreshFromLease();
 	}
 
+	/** KEEP leftover list-fail (D455): connected but roster not ready is not a live Refresh surface. */
+	private isKeepLeftoverListFailWrite(): boolean {
+		return this.rosterService.isEngineConnected()
+			&& this.rosterService.isEngineSessionReady() === false;
+	}
+
 	private updateEngineConnectedContextKey(): void {
-		this.engineConnectedContextKey.set(!isConversationPairingHold(this.uaConnection) && this.rosterService.isEngineConnected());
+		this.engineConnectedContextKey.set(
+			!isConversationPairingHold(this.uaConnection)
+			&& this.rosterService.isEngineConnected()
+			&& !this.isKeepLeftoverListFailWrite(),
+		);
 	}
 
 	protected override renderBody(container: HTMLElement): void {
