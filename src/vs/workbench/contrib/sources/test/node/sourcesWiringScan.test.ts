@@ -205,6 +205,7 @@ suite('Sources - review showForPaths - 源码接线扫描', () => {
 		assert.ok(openAction.includes('sourcesGitDiffOpenFailureMessage'));
 		assert.ok(openAction.includes('setStatusMessage'));
 		assert.ok(openAction.includes('isSourcesGitFileDiffOpenSkipped'));
+		assert.ok(openAction.includes('isSourcesGitWriteClosed'));
 		assert.ok(openAction.includes('readGitFileDiff'));
 		assert.ok(!openAction.includes('} catch {'));
 	});

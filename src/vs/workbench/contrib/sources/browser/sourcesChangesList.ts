@@ -56,6 +56,7 @@ import {
 	canSendSourcesGitStagePaths,
 	isSourcesGitWriteAccepted,
 	isSourcesGitWriteUnsupported,
+	isSourcesKeepLeftoverWrite,
 	resolveSourcesChangesRowAction,
 	sourcesGitUnstageUnavailableMessage,
 	sourcesGitWriteFailureDetail,
@@ -99,6 +100,7 @@ interface ISourcesChangesRendererDelegate {
 	canWriteStage(): boolean;
 	isSourcesGitWritePairingHold(): boolean;
 	isSourcesGitWriteListFailed(): boolean;
+	isSourcesKeepLeftoverWrite(): boolean;
 	onRowAction(entry: ISourcesChangeEntry, action: SourcesChangeRowAction): void;
 }
 
@@ -149,13 +151,15 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 		if (rowAction === 'stage') {
 			const pairingHold = this.delegate.isSourcesGitWritePairingHold();
 			const listFailed = this.delegate.isSourcesGitWriteListFailed();
+			const keepLeftover = this.delegate.isSourcesKeepLeftoverWrite();
+			const writeHold = pairingHold || listFailed || keepLeftover;
 			const label = localize('sourcesChangesList.stage', "Stage");
 			templateData.actionButton.element.style.display = pairingHold ? 'none' : '';
 			templateData.actionButton.icon = Codicon.add;
-			templateData.actionButton.enabled = !pairingHold && !listFailed;
+			templateData.actionButton.enabled = !writeHold;
 			templateData.actionButton.setAriaLabel(label);
 			templateData.actionButton.setTitle(label);
-			if (pairingHold || listFailed) {
+			if (writeHold) {
 				return;
 			}
 			templateData.elementDisposables.add(templateData.actionButton.onDidClick(e => {
@@ -168,13 +172,15 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 		if (rowAction === 'unstage') {
 			const pairingHold = this.delegate.isSourcesGitWritePairingHold();
 			const listFailed = this.delegate.isSourcesGitWriteListFailed();
+			const keepLeftover = this.delegate.isSourcesKeepLeftoverWrite();
+			const writeHold = pairingHold || listFailed || keepLeftover;
 			const label = localize('sourcesChangesList.unstage', "Unstage");
 			templateData.actionButton.element.style.display = pairingHold ? 'none' : '';
 			templateData.actionButton.icon = Codicon.remove;
-			templateData.actionButton.enabled = !pairingHold && !listFailed;
+			templateData.actionButton.enabled = !writeHold;
 			templateData.actionButton.setAriaLabel(label);
 			templateData.actionButton.setTitle(label);
-			if (pairingHold || listFailed) {
+			if (writeHold) {
 				return;
 			}
 			templateData.elementDisposables.add(templateData.actionButton.onDidClick(e => {
@@ -327,6 +333,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		}));
 		this._register(this.uaConnection.onDidChangeConnection(() => this.scheduleRefresh()));
 		this._register(this.roster.onDidChangeActiveSession(() => this.scheduleRefresh()));
+		if (this.roster.onDidChangeSession) {
+			this._register(this.roster.onDidChangeSession(() => this.scheduleRefresh()));
+		}
 
 		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refresh(), 250));
 		this.scheduleRefresh();
@@ -360,6 +369,23 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		return this.leftoverListFailed;
 	}
 
+	/** D449 / D459 KEEP leftover list-fail: connected + !pairingPending + session not ready. */
+	isSourcesKeepLeftoverWrite(): boolean {
+		return isSourcesKeepLeftoverWrite(
+			this.uaConnection.isEngineConnected(),
+			!!this.uaConnection.getConnectionSnapshot?.().pairingPending,
+			this.roster.isEngineSessionReady?.() ?? true,
+		);
+	}
+
+	private isSourcesGitWriteClosed(): boolean {
+		return this.isSourcesGitWritePairingHold() || this.leftoverListFailed || this.isSourcesKeepLeftoverWrite();
+	}
+
+	private getEngineSessionReady(): boolean {
+		return this.roster.isEngineSessionReady?.() ?? true;
+	}
+
 	/** List-fail leftover or KEEP pairing-hold leftover is not a live FileDiff / preview surface (D444 / D446). */
 	isSourcesGitFileDiffOpenSkipped(): boolean {
 		return shouldSkipSourcesGitFileDiffOpen(
@@ -379,6 +405,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.getGitSessionId(),
 			this.isSourcesGitWritePairingHold(),
 			this.leftoverListFailed,
+			this.getEngineSessionReady(),
 		);
 	}
 
@@ -389,6 +416,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.getGitSessionId(),
 			this.isSourcesGitWritePairingHold(),
 			this.leftoverListFailed,
+			this.getEngineSessionReady(),
 		);
 	}
 
@@ -691,8 +719,8 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			&& !!entry.scmResource
 			&& this.isGitCommandAvailable(SOURCES_GIT_UNSTAGE_COMMAND));
 
-		this.stageSelectedButton.enabled = canStage && !this.isSourcesGitWritePairingHold() && !this.leftoverListFailed;
-		this.unstageSelectedButton.enabled = canUnstage && !this.isSourcesGitWritePairingHold() && !this.leftoverListFailed;
+		this.stageSelectedButton.enabled = canStage && !this.isSourcesGitWriteClosed();
+		this.unstageSelectedButton.enabled = canUnstage && !this.isSourcesGitWriteClosed();
 	}
 
 	private async runOnSelected(action: SourcesChangeRowAction): Promise<void> {
@@ -718,7 +746,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		if (action === 'unstage' && !isSourcesChangeUnstageable(entry.groupId)) {
 			return;
 		}
-		if ((action === 'stage' || action === 'unstage') && (this.isSourcesGitWritePairingHold() || this.leftoverListFailed)) {
+		if ((action === 'stage' || action === 'unstage') && this.isSourcesGitWriteClosed()) {
 			return;
 		}
 
@@ -751,7 +779,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private async tryStagePaths(paths: readonly string[]): Promise<boolean> {
-		if (this.isSourcesGitWritePairingHold() || this.leftoverListFailed) {
+		if (this.isSourcesGitWriteClosed()) {
 			return true;
 		}
 		const hook = this.uaConnection.writeGitStagePaths;
@@ -763,6 +791,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				paths,
 				this.isSourcesGitWritePairingHold(),
 				this.leftoverListFailed,
+				this.getEngineSessionReady(),
 			);
 			if (!result || isSourcesGitWriteUnsupported(result)) {
 				return false;
@@ -817,15 +846,14 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			|| this.isGitCommandAvailable(SOURCES_GIT_COMMIT_COMMAND);
 
 		this.commitInput.disabled = !repo && !this.canWriteCommit();
-		this.commitButton.enabled = !this.isSourcesGitWritePairingHold()
-			&& !this.leftoverListFailed
+		this.commitButton.enabled = !this.isSourcesGitWriteClosed()
 			&& (!!repo || this.canWriteCommit())
 			&& hasMessage
 			&& commitAvailable;
 	}
 
 	private async runCommit(): Promise<void> {
-		if (this.isSourcesGitWritePairingHold() || this.leftoverListFailed) {
+		if (this.isSourcesGitWriteClosed()) {
 			return;
 		}
 		const repo = this.activeRepository;
@@ -851,6 +879,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				message,
 				this.isSourcesGitWritePairingHold(),
 				this.leftoverListFailed,
+				this.getEngineSessionReady(),
 			);
 			if (isSourcesGitWriteAccepted(written)) {
 				this.setWriteStatusMessage(undefined);

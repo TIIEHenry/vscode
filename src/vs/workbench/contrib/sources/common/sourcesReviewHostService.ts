@@ -19,6 +19,8 @@ export interface ISourcesReviewListHost {
 	setStatusMessage(message: string | undefined): void;
 	/** Same FileDiff leftover / pairing-hold KEEP gate as Review list onDidOpen (D446). */
 	isSourcesGitFileDiffOpenSkipped(): boolean;
+	/** Same KEEP leftover / list-fail write gate as Review list onDidOpen mark (D459). */
+	isSourcesGitWriteClosed(): boolean;
 	readGitFileDiff(entry: ISourcesReviewEntry): Promise<UniverseAgentReadGitFileDiffResult | undefined>;
 }
 

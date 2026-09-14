@@ -30,6 +30,7 @@ import { IConversationRosterService } from '../../conversation/browser/conversat
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
 import { hasSourcesGitReadEntries, shouldKeepSourcesGitReadNoHookLeftover, shouldKeepSourcesGitReadPairingHoldLeftover, shouldSkipSourcesGitFileDiffOpen, tryLoadSourcesGitChangeEntries, tryReadSourcesGitFileDiff, sourcesGitDiffOpenFailureMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadPairingHoldMessage, sourcesGitReadUnavailableNoHookMessage } from '../common/sourcesChangesGitRead.js';
+import { isSourcesKeepLeftoverWrite } from '../common/sourcesChangesGitWrite.js';
 import { sourcesChangeEntryIdentity } from '../common/sourcesChangesModel.js';
 import { collectSourcesReviewEntries, ISourcesReviewEntry } from '../common/sourcesReviewModel.js';
 import {
@@ -78,6 +79,7 @@ interface ISourcesReviewTemplateData {
 interface ISourcesReviewRendererDelegate {
 	isReviewed(entry: ISourcesReviewEntry): boolean;
 	isSourcesGitWriteListFailed(): boolean;
+	isSourcesKeepLeftoverWrite(): boolean;
 	getChips(entry: ISourcesReviewEntry): readonly IReviewAttributionChipDisplay[];
 	getChipTitle(chip: IReviewAttributionChipDisplay): string;
 	onChipClick(toolCallId: string): void;
@@ -119,13 +121,13 @@ class SourcesReviewRenderer implements IListRenderer<ISourcesReviewEntry, ISourc
 		const reviewLabel = reviewed
 			? localize('sourcesReviewList.markUnreviewed', "Mark as unreviewed")
 			: localize('sourcesReviewList.markReviewed', "Mark as reviewed");
-		const listFailed = this.delegate.isSourcesGitWriteListFailed();
-		templateData.reviewState.disabled = listFailed;
+		const writeHold = this.delegate.isSourcesGitWriteListFailed() || this.delegate.isSourcesKeepLeftoverWrite();
+		templateData.reviewState.disabled = writeHold;
 		templateData.reviewState.setAttribute('aria-pressed', String(reviewed));
 		templateData.reviewState.setAttribute('aria-label', reviewLabel);
-		templateData.reviewState.setAttribute('aria-disabled', String(listFailed));
+		templateData.reviewState.setAttribute('aria-disabled', String(writeHold));
 		templateData.reviewState.title = reviewLabel;
-		if (!listFailed) {
+		if (!writeHold) {
 			templateData.elementDisposables.add(dom.addDisposableListener(templateData.reviewState, 'click', event => {
 				event.preventDefault();
 				event.stopPropagation();
@@ -222,6 +224,7 @@ export class SourcesReviewList extends Disposable {
 	private readonly rendererDelegate: ISourcesReviewRendererDelegate = {
 		isReviewed: (entry) => this.isEntryReviewed(entry),
 		isSourcesGitWriteListFailed: () => this.leftoverListFailed,
+		isSourcesKeepLeftoverWrite: () => this.isSourcesKeepLeftoverWrite(),
 		getChips: (entry) => this.chipMap.get(entry.resource.toString()) ?? [],
 		getChipTitle: (chip) => !chip.overflow && this.lastRevealMissToolCallId === chip.toolCallId
 			? sourcesReviewRevealMissHint
@@ -305,6 +308,9 @@ export class SourcesReviewList extends Disposable {
 		this._register(this.attributionService.onDidChange(() => this.scheduleRefresh()));
 		this._register(this.uaConnection.onDidChangeConnection(() => this.scheduleRefresh()));
 		this._register(this.roster.onDidChangeActiveSession(() => this.scheduleRefresh()));
+		if (this.roster.onDidChangeSession) {
+			this._register(this.roster.onDidChangeSession(() => this.scheduleRefresh()));
+		}
 		this.scheduleRefresh();
 
 		this._register(this.scmService.onDidAddRepository(repo => {
@@ -346,8 +352,21 @@ export class SourcesReviewList extends Disposable {
 		return this.readGitFileDiff(entry);
 	}
 
+	/** D449 / D459 KEEP leftover list-fail: connected + !pairingPending + session not ready. */
+	isSourcesKeepLeftoverWrite(): boolean {
+		return isSourcesKeepLeftoverWrite(
+			this.uaConnection.isEngineConnected(),
+			!!this.uaConnection.getConnectionSnapshot?.().pairingPending,
+			this.roster.isEngineSessionReady?.() ?? true,
+		);
+	}
+
+	isSourcesGitWriteClosed(): boolean {
+		return this.leftoverListFailed || this.isSourcesKeepLeftoverWrite();
+	}
+
 	toggleReviewedSelected(): void {
-		if (this.leftoverListFailed) {
+		if (this.isSourcesGitWriteClosed()) {
 			return;
 		}
 		const entry = this.getSelectedEntry();
@@ -407,7 +426,7 @@ export class SourcesReviewList extends Disposable {
 	}
 
 	private markAllVisibleReviewed(): void {
-		if (this.leftoverListFailed) {
+		if (this.isSourcesGitWriteClosed()) {
 			return;
 		}
 		const countEntries = filterReviewEntries(
@@ -424,7 +443,7 @@ export class SourcesReviewList extends Disposable {
 	}
 
 	private markEntryReviewed(entry: ISourcesReviewEntry): void {
-		if (this.leftoverListFailed) {
+		if (this.isSourcesGitWriteClosed()) {
 			return;
 		}
 		const key = this.entryKeys.get(entry.resource.toString());
@@ -434,7 +453,7 @@ export class SourcesReviewList extends Disposable {
 	}
 
 	private markEntryUnreviewed(entry: ISourcesReviewEntry): void {
-		if (this.leftoverListFailed) {
+		if (this.isSourcesGitWriteClosed()) {
 			return;
 		}
 		const key = this.entryKeys.get(entry.resource.toString());
@@ -444,7 +463,7 @@ export class SourcesReviewList extends Disposable {
 	}
 
 	private toggleEntryReview(entry: ISourcesReviewEntry): void {
-		if (this.leftoverListFailed) {
+		if (this.isSourcesGitWriteClosed()) {
 			return;
 		}
 		if (this.isEntryReviewed(entry)) {
@@ -504,7 +523,7 @@ export class SourcesReviewList extends Disposable {
 	private updateProgressHeader(entries: readonly ISourcesReviewEntry[]): void {
 		const { reviewed, total } = countReviewProgress(entries, entry => this.isEntryReviewed(entry));
 		this.progressCount.textContent = localize('sourcesReviewList.reviewProgress', "Reviewed {0} / {1}", reviewed, total);
-		this.markAllButton.enabled = total > 0 && reviewed < total && !this.leftoverListFailed;
+		this.markAllButton.enabled = total > 0 && reviewed < total && !this.isSourcesGitWriteClosed();
 	}
 
 	private ensureList(): WorkbenchList<ISourcesReviewEntry> {
@@ -554,7 +573,14 @@ export class SourcesReviewList extends Disposable {
 						pinned: false,
 					}),
 					resource => this.reviewProgressService.resolveKey(resource),
-					key => this.reviewProgressService.markReviewed(key),
+					key => {
+						// KEEP leftover list-fail is not a live Mark surface (D459).
+						// FileDiff open stays leftoverListFailed / pairing-hold only (D444 / D446).
+						if (this.isSourcesGitWriteClosed()) {
+							return;
+						}
+						this.reviewProgressService.markReviewed(key);
+					},
 					element.resource,
 				);
 			} catch (error) {
@@ -572,7 +598,7 @@ export class SourcesReviewList extends Disposable {
 				getAnchor: () => e.anchor,
 				getActions: () => {
 					const reviewed = this.isEntryReviewed(element);
-					const canMark = !this.leftoverListFailed;
+					const canMark = !this.isSourcesGitWriteClosed();
 					return [
 						new Action(
 							'sources.review.markReviewed',

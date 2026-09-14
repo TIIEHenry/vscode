@@ -43,6 +43,7 @@ import {
 	canSendSourcesGitApplyHunks,
 	canSendSourcesGitStagePaths,
 	hasSourcesGitApplyHunksPayload,
+	isSourcesKeepLeftoverWrite,
 	resolveSourcesDiffWriteActions,
 	sourcesGitUnstageUnavailableMessage,
 	tryWriteSourcesGitApplyHunks,
@@ -133,6 +134,9 @@ export class SourcesDiffPanelView extends ViewPane {
 		}));
 		this._register(this.uaConnection.onDidChangeConnection(() => this.updateWriteActions()));
 		this._register(this.roster.onDidChangeActiveSession(() => this.updateWriteActions()));
+		if (this.roster.onDidChangeSession) {
+			this._register(this.roster.onDidChangeSession(() => this.updateWriteActions()));
+		}
 
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration('diffEditor.renderSideBySide') && this.diffWidget.value) {
@@ -279,6 +283,22 @@ export class SourcesDiffPanelView extends ViewPane {
 		return this.roster.getActiveSessionId();
 	}
 
+	private getEngineSessionReady(): boolean {
+		return this.roster.isEngineSessionReady?.() ?? true;
+	}
+
+	private isSourcesKeepLeftoverWrite(): boolean {
+		return isSourcesKeepLeftoverWrite(
+			this.uaConnection.isEngineConnected(),
+			!!this.uaConnection.getConnectionSnapshot?.().pairingPending,
+			this.getEngineSessionReady(),
+		);
+	}
+
+	private isSourcesDiffWriteHold(): boolean {
+		return isConversationPairingHold(this.uaConnection) || this.isSourcesKeepLeftoverWrite();
+	}
+
 	private hideWriteChrome(): void {
 		if (!this.stageButton || !this.acceptButton || !this.revertButton || !this.unstageButton || !this.unstageUnavailable) {
 			return;
@@ -308,6 +328,9 @@ export class SourcesDiffPanelView extends ViewPane {
 
 		const sessionId = this.getGitSessionId();
 		const pairingHold = isConversationPairingHold(this.uaConnection);
+		const keepLeftover = this.isSourcesKeepLeftoverWrite();
+		const writeHold = pairingHold || keepLeftover;
+		const engineSessionReady = this.getEngineSessionReady();
 		const actions = resolveSourcesDiffWriteActions({
 			groupId: context.groupId,
 			hasScmResource: !!context.scmResource,
@@ -316,28 +339,33 @@ export class SourcesDiffPanelView extends ViewPane {
 				typeof this.uaConnection.writeGitStagePaths === 'function',
 				sessionId,
 				pairingHold,
+				false,
+				engineSessionReady,
 			),
 			canWriteAccept: canSendSourcesGitApplyHunks(
 				this.uaConnection.isEngineConnected(),
 				typeof this.uaConnection.writeGitApplyHunks === 'function',
 				pairingHold,
+				false,
+				engineSessionReady,
 			),
 			hasApplyHunksPayload: hasSourcesGitApplyHunksPayload(sessionId, []),
 			hasGitStageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND),
 			hasGitUnstageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_UNSTAGE_COMMAND),
 			hasGitCleanCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_CLEAN_COMMAND),
 			pairingHold,
+			keepLeftover,
 		});
-		this.stageButton.style.display = actions.showStage && !pairingHold ? '' : 'none';
+		this.stageButton.style.display = actions.showStage && !writeHold ? '' : 'none';
 		this.acceptButton.style.display = actions.showAccept ? '' : 'none';
-		this.revertButton.style.display = actions.showRevert && !pairingHold ? '' : 'none';
-		this.unstageButton.style.display = actions.showUnstage && !pairingHold ? '' : 'none';
-		this.unstageUnavailable.style.display = actions.unstageUnavailable && !pairingHold ? '' : 'none';
+		this.revertButton.style.display = actions.showRevert && !writeHold ? '' : 'none';
+		this.unstageButton.style.display = actions.showUnstage && !writeHold ? '' : 'none';
+		this.unstageUnavailable.style.display = actions.unstageUnavailable && !writeHold ? '' : 'none';
 	}
 
 	private async runStage(): Promise<void> {
 		const context = this.getWriteContext();
-		if (!context) {
+		if (!context || this.isSourcesDiffWriteHold()) {
 			return;
 		}
 
@@ -349,6 +377,8 @@ export class SourcesDiffPanelView extends ViewPane {
 				this.getGitSessionId(),
 				[context.path],
 				isConversationPairingHold(this.uaConnection),
+				false,
+				this.getEngineSessionReady(),
 			));
 			if (attempt.kind === 'accepted') {
 				this.hideActionNotice();
@@ -366,7 +396,7 @@ export class SourcesDiffPanelView extends ViewPane {
 			return;
 		}
 
-		if (context.scmResource && !isConversationPairingHold(this.uaConnection)) {
+		if (context.scmResource && !this.isSourcesDiffWriteHold()) {
 			await this.runGitAction(SOURCES_GIT_STAGE_COMMAND);
 			return;
 		}
@@ -376,6 +406,8 @@ export class SourcesDiffPanelView extends ViewPane {
 			typeof this.uaConnection.writeGitStagePaths === 'function',
 			this.getGitSessionId(),
 			isConversationPairingHold(this.uaConnection),
+			false,
+			this.getEngineSessionReady(),
 		)) {
 			this.showActionNotice(localize('sourcesDiffPanel.stageUnavailable', "Git stage is not available."));
 		}
@@ -384,7 +416,7 @@ export class SourcesDiffPanelView extends ViewPane {
 
 	private async runAccept(): Promise<void> {
 		const context = this.getWriteContext();
-		if (!context) {
+		if (!context || this.isSourcesDiffWriteHold()) {
 			return;
 		}
 
@@ -399,6 +431,8 @@ export class SourcesDiffPanelView extends ViewPane {
 				[],
 				patches,
 				isConversationPairingHold(this.uaConnection),
+				false,
+				this.getEngineSessionReady(),
 			));
 			if (attempt.kind === 'accepted') {
 				this.hideActionNotice();
@@ -420,6 +454,8 @@ export class SourcesDiffPanelView extends ViewPane {
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitApplyHunks === 'function',
 			isConversationPairingHold(this.uaConnection),
+			false,
+			this.getEngineSessionReady(),
 		) || hasSourcesGitApplyHunksPayload(sessionId, patches)) {
 			this.showActionNotice(localize('sourcesDiffPanel.acceptUnavailable', "Git accept is not available."));
 		}
@@ -429,7 +465,7 @@ export class SourcesDiffPanelView extends ViewPane {
 	private async runGitAction(commandId: string): Promise<void> {
 		if (
 			(commandId === SOURCES_GIT_UNSTAGE_COMMAND || commandId === SOURCES_GIT_CLEAN_COMMAND)
-			&& isConversationPairingHold(this.uaConnection)
+			&& this.isSourcesDiffWriteHold()
 		) {
 			return;
 		}
