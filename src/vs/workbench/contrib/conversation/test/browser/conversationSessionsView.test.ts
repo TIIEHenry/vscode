@@ -639,6 +639,9 @@ suite('ConversationSessionsView', () => {
 			override isEngineConnected(): boolean {
 				return true;
 			}
+			override isEngineSessionReady(): boolean {
+				return true;
+			}
 			override createSession(): string {
 				this.createSessionCalls++;
 				return super.createSession();
@@ -646,6 +649,8 @@ suite('ConversationSessionsView', () => {
 		}
 		const stubService = store.add(new ConnectedCreateRoster());
 		const { view, errors } = mountView({ stubService });
+		assert.strictEqual(stubService.isEngineConnected(), true);
+		assert.strictEqual(stubService.isEngineSessionReady(), true);
 		const countBefore = stubService.getSessions().length;
 
 		view.createNewSession();
@@ -755,6 +760,9 @@ suite('ConversationSessionsView', () => {
 			override isEngineConnected(): boolean {
 				return true;
 			}
+			override isEngineSessionReady(): boolean {
+				return true;
+			}
 			override deleteSession(sessionId: string): boolean {
 				this.deleteSessionCalls++;
 				return super.deleteSession(sessionId);
@@ -762,6 +770,15 @@ suite('ConversationSessionsView', () => {
 		}
 		const stubService = store.add(new ConnectedDeleteRoster());
 		const { view, errors } = mountView({ stubService });
+		assert.strictEqual(stubService.isEngineConnected(), true);
+		assert.strictEqual(stubService.isEngineSessionReady(), true);
+		assert.strictEqual(isConversationPairingHold(createConversationConnectionTestStub()), false);
+		const scopedContextKeyService = (view as unknown as { scopedContextKeyService: IContextKeyService }).scopedContextKeyService;
+		assert.strictEqual(
+			scopedContextKeyService.getContextKeyValue(CONVERSATION_SESSIONS_DELETE_ENABLED_KEY.key),
+			true,
+			'connected ready Delete precondition must be true',
+		);
 		const activeId = stubService.getActiveSessionId();
 
 		view.deleteActiveSession();
@@ -769,6 +786,134 @@ suite('ConversationSessionsView', () => {
 		assert.deepStrictEqual(errors, []);
 		assert.strictEqual(stubService.deleteSessionCalls, 1);
 		assert.ok(!stubService.getSessions().some(session => session.id === activeId));
+	});
+
+	function createKeepLeftoverListFailRoster(): ConversationStubService & {
+		createSessionCalls: number;
+		deleteSessionCalls: number;
+	} {
+		class KeepLeftoverListFailRoster extends ConversationStubService {
+			createSessionCalls = 0;
+			deleteSessionCalls = 0;
+			override hasEngineConnectionHistory(): boolean {
+				return true;
+			}
+			override isEngineConnected(): boolean {
+				return true;
+			}
+			override isEngineSessionReady(): boolean {
+				return false;
+			}
+			override createSession(): string {
+				this.createSessionCalls++;
+				return super.createSession();
+			}
+			override deleteSession(sessionId: string): boolean {
+				this.deleteSessionCalls++;
+				return super.deleteSession(sessionId);
+			}
+		}
+		return store.add(new KeepLeftoverListFailRoster());
+	}
+
+	function createKeepLeftoverListFailConnection(): IUniverseAgentConnection {
+		const base = createConversationConnectionTestStub();
+		return createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...base.getConnectionSnapshot(),
+				pairingPending: false,
+			}),
+		});
+	}
+
+	function assertKeepLeftoverListFailFixture(stubService: ConversationStubService, connection: IUniverseAgentConnection): void {
+		assert.strictEqual(stubService.isEngineConnected(), true, 'KEEP leftover list-fail must keep isEngineConnected()===true');
+		assert.strictEqual(connection.isEngineConnected(), true, 'KEEP leftover list-fail must keep isEngineConnected()===true');
+		assert.strictEqual(stubService.isEngineSessionReady(), false);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+	}
+
+	test('createNewSession KEEP leftover list-fail shows disconnected notice and does not create', () => {
+		const stubService = createKeepLeftoverListFailRoster();
+		const connection = createKeepLeftoverListFailConnection();
+		const { view, errors } = mountView({ stubService, connection });
+		assertKeepLeftoverListFailFixture(stubService, connection);
+		const activeId = stubService.getActiveSessionId();
+		const titlesBefore = stubService.getSessions().map(session => session.title);
+
+		view.createNewSession();
+
+		assert.deepStrictEqual(errors, ['Could not create session — engine disconnected.']);
+		assert.strictEqual(stubService.createSessionCalls, 0);
+		assert.strictEqual(stubService.deleteSessionCalls, 0);
+		assert.strictEqual(stubService.getActiveSessionId(), activeId);
+		assert.deepStrictEqual(stubService.getSessions().map(session => session.title), titlesBefore);
+		assert.ok(getVisibleSessionTitles(view).includes(stubService.getActiveSession().title));
+	});
+
+	test('deleteActiveSession KEEP leftover list-fail shows disconnected notice and does not delete', () => {
+		const stubService = createKeepLeftoverListFailRoster();
+		const connection = createKeepLeftoverListFailConnection();
+		const { view, errors } = mountView({ stubService, connection });
+		assertKeepLeftoverListFailFixture(stubService, connection);
+		const activeId = stubService.getActiveSessionId();
+		const titlesBefore = stubService.getSessions().map(session => session.title);
+
+		view.deleteActiveSession();
+
+		assert.deepStrictEqual(errors, ['Could not delete session — engine disconnected.']);
+		assert.strictEqual(stubService.createSessionCalls, 0);
+		assert.strictEqual(stubService.deleteSessionCalls, 0);
+		assert.strictEqual(stubService.getActiveSessionId(), activeId);
+		assert.deepStrictEqual(stubService.getSessions().map(session => session.title), titlesBefore);
+		assert.ok(getVisibleSessionTitles(view).includes(stubService.getActiveSession().title));
+	});
+
+	test('delete ViewTitle KEEP leftover list-fail disables toolbar and does not delete', () => {
+		const stubService = createKeepLeftoverListFailRoster();
+		const connection = createKeepLeftoverListFailConnection();
+		const { view } = mountView({ stubService, connection });
+		assertKeepLeftoverListFailFixture(stubService, connection);
+
+		const scopedContextKeyService = (view as unknown as { scopedContextKeyService: IContextKeyService }).scopedContextKeyService;
+		assert.strictEqual(
+			scopedContextKeyService.getContextKeyValue(CONVERSATION_SESSIONS_DELETE_ENABLED_KEY.key),
+			false,
+			'KEEP leftover list-fail Delete precondition must be false',
+		);
+
+		const deleteItem = MenuRegistry.getMenuItems(MenuId.ViewTitle).filter(isIMenuItem)
+			.find(item => item.command.id === CONVERSATION_SESSIONS_DELETE_SESSION_COMMAND_ID);
+		assert.ok(deleteItem, 'Sessions ViewTitle must register Delete');
+		assert.ok(deleteItem.command.precondition, 'Delete ViewTitle must have leftover list-fail precondition');
+		assert.strictEqual(scopedContextKeyService.contextMatchesRules(deleteItem.command.precondition), false);
+
+		const deleteAction = new MenuItemAction(
+			deleteItem.command,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			scopedContextKeyService,
+			{ executeCommand: async () => undefined } as never,
+		);
+		assert.strictEqual(deleteAction.enabled, false);
+
+		const deleteViewItem = store.add(new ActionViewItem(undefined, deleteAction, { icon: true, label: false }));
+		const host = document.createElement('div');
+		deleteViewItem.render(host);
+		const deleteLabel = host.querySelector('.action-label') as HTMLElement | null;
+		assert.ok(deleteLabel, 'Sessions ViewTitle Delete chrome must paint');
+		assert.strictEqual(deleteLabel.getAttribute('aria-disabled'), 'true');
+		deleteLabel.click();
+
+		assert.strictEqual(stubService.deleteSessionCalls, 0);
+		view.deleteActiveSession();
+		assert.strictEqual(stubService.deleteSessionCalls, 0);
+		assert.strictEqual(stubService.createSessionCalls, 0);
 	});
 
 	test('deleteActiveSession false shows failed notice and keeps the session', () => {

@@ -38,7 +38,7 @@ import { IConversationRosterService } from './conversationStubService.js';
 export const CONVERSATION_SESSIONS_VIEW_ID = 'workbench.view.conversationSessions';
 export const CONVERSATION_SESSIONS_DELETE_SESSION_COMMAND_ID = 'workbench.action.conversationSessions.deleteSession';
 
-/** Sessions ViewTitle Delete KEEP-chrome — false on leftover-looks-live / pairing-hold. Do not reuse Navigator `UA_ENGINE_CONNECTED_KEY`. */
+/** Sessions ViewTitle Delete KEEP-chrome — false on leftover-looks-live / pairing-hold / KEEP leftover list-fail. Do not reuse Navigator `UA_ENGINE_CONNECTED_KEY`. */
 export const CONVERSATION_SESSIONS_DELETE_ENABLED_KEY = new RawContextKey<boolean>('conversationSessions.deleteEnabled', false);
 
 /** Two-line compact SessionCard row height (workbench list delegate). */
@@ -169,7 +169,10 @@ export class ConversationSessionsView extends ViewPane {
 
 		this.deleteEnabledContextKey = CONVERSATION_SESSIONS_DELETE_ENABLED_KEY.bindTo(this.scopedContextKeyService);
 		this._register(this.stubService.onDidChangeActiveSession(() => this.refreshList()));
-		this._register(this.stubService.onDidChangeSession(() => this.refreshList()));
+		this._register(this.stubService.onDidChangeSession(() => {
+			this.updateDeleteEnabledContextKey();
+			this.refreshList();
+		}));
 		this._register(this.stubService.onDidChangeEngineConnection(() => {
 			this.updateDeleteEnabledContextKey();
 			this.refreshList();
@@ -178,12 +181,21 @@ export class ConversationSessionsView extends ViewPane {
 		this.updateDeleteEnabledContextKey();
 	}
 
+	/** KEEP leftover list-fail (D453): connected but roster not ready is not a live Sessions write surface. */
+	private isKeepLeftoverListFailWrite(): boolean {
+		return this.stubService.isEngineConnected?.() === true
+			&& this.stubService.isEngineSessionReady?.() === false;
+	}
+
 	private updateDeleteEnabledContextKey(): void {
-		this.deleteEnabledContextKey.set(!isConversationPairingHold(this.uaConnection));
+		this.deleteEnabledContextKey.set(
+			!isConversationPairingHold(this.uaConnection)
+			&& !this.isKeepLeftoverListFailWrite(),
+		);
 	}
 
 	createNewSession(): void {
-		if (isConversationPairingHold(this.uaConnection)) {
+		if (isConversationPairingHold(this.uaConnection) || this.isKeepLeftoverListFailWrite()) {
 			this.notificationService.error(
 				localize('conversationSessionsView.createSessionDisconnected', "Could not create session — engine disconnected."),
 			);
@@ -199,7 +211,7 @@ export class ConversationSessionsView extends ViewPane {
 	}
 
 	deleteActiveSession(): void {
-		if (isConversationPairingHold(this.uaConnection)) {
+		if (isConversationPairingHold(this.uaConnection) || this.isKeepLeftoverListFailWrite()) {
 			this.notificationService.error(
 				localize('conversationSessionsView.deleteSessionDisconnected', "Could not delete session — engine disconnected."),
 			);
