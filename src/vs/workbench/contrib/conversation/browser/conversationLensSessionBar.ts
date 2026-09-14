@@ -243,12 +243,15 @@ export function updateSessionTitle(host: IConversationLensSessionBarHost): void 
 	
 }
 
-export function updateSessionBarWriteChrome(host: IConversationLensSessionBarHost): void {
-	// KEEP leftover (D449): list-fail leftover is not a live write surface.
-	const leftoverCatalogListFailed = !!host.stubService
+/** KEEP leftover (D449 chrome / D454 handlers): list-fail leftover is not a live write surface. */
+function isKeepLeftoverListFailWrite(host: IConversationLensSessionBarHost): boolean {
+	return !!host.stubService
 		&& host.stubService.isEngineConnected()
 		&& host.stubService.isEngineSessionReady?.() === false;
-	const writesEnabled = !isConversationPairingHold(host.uaConnection) && !leftoverCatalogListFailed;
+}
+
+export function updateSessionBarWriteChrome(host: IConversationLensSessionBarHost): void {
+	const writesEnabled = !isConversationPairingHold(host.uaConnection) && !isKeepLeftoverListFailWrite(host);
 	if (host.sessionTitleButton) {
 		host.sessionTitleButton.disabled = !writesEnabled;
 		host.sessionTitleButton.setAttribute('aria-disabled', String(!writesEnabled));
@@ -263,7 +266,7 @@ export function updateSessionBarWriteChrome(host: IConversationLensSessionBarHos
 
 export function beginSessionTitleEdit(host: IConversationLensSessionBarHost): void {
 
-		if (isConversationPairingHold(host.uaConnection)) {
+		if (isConversationPairingHold(host.uaConnection) || isKeepLeftoverListFailWrite(host)) {
 			return;
 		}
 		if (host.sessionTitleEditing) {
@@ -299,6 +302,14 @@ export function commitSessionTitleEdit(host: IConversationLensSessionBarHost): v
 		if (!host.sessionTitleEditing) {
 			return;
 		}
+		if (isKeepLeftoverListFailWrite(host)) {
+			host.sessionTitleEditing = false;
+			host.sessionTitleInput.hidden = true;
+			host.sessionTitleButton.hidden = false;
+			updateSessionTitle(host);
+			host.showPostFailure('engine_disconnected');
+			return;
+		}
 		const sessionId = host.getBoundSessionId();
 		const trimmed = host.sessionTitleInput.value.trim();
 
@@ -329,7 +340,7 @@ export function commitSessionTitleEdit(host: IConversationLensSessionBarHost): v
 export function createNewSession(host: IConversationLensSessionBarHost): void {
 
 		host.writeComposerDraft(host.getBoundSessionId(), host.dockTextarea.value);
-		if (isConversationPairingHold(host.uaConnection)) {
+		if (isConversationPairingHold(host.uaConnection) || isKeepLeftoverListFailWrite(host)) {
 			host.showPostFailure('engine_disconnected');
 			return;
 		}
@@ -387,7 +398,7 @@ function bindDeleteDraftRollback(host: IConversationLensSessionBarHost): void {
 
 export function deleteActiveSession(host: IConversationLensSessionBarHost): void {
 
-		if (isConversationPairingHold(host.uaConnection)) {
+		if (isConversationPairingHold(host.uaConnection) || isKeepLeftoverListFailWrite(host)) {
 			host.showPostFailure('engine_disconnected');
 			return;
 		}

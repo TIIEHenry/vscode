@@ -28,7 +28,7 @@ import {
 	updateSendEnabled,
 	type IConversationLensComposerChromeHost,
 } from '../../browser/conversationLensComposerChrome.js';
-import { updateSessionBarWriteChrome, type IConversationLensSessionBarHost } from '../../browser/conversationLensSessionBar.js';
+import { beginSessionTitleEdit, commitSessionTitleEdit, createNewSession, deleteActiveSession, updateSessionBarWriteChrome, type IConversationLensSessionBarHost } from '../../browser/conversationLensSessionBar.js';
 import {
 	conversationLensDockEngineNotConnected,
 	conversationLensDockNoEngineTools,
@@ -1533,6 +1533,163 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(title.getAttribute('aria-disabled'), 'false');
 		assert.strictEqual(newButton.enabled, true);
 		assert.strictEqual(deleteButton.enabled, true);
+	});
+
+	function sessionBarHandlerHost(options: {
+		pairingPending: boolean;
+		engineSessionReady: boolean;
+	}): {
+		host: IConversationLensSessionBarHost;
+		failures: ConversationComposerPostFailureReason[];
+		createCalls: number[];
+		deleteCalls: number[];
+		renameCalls: number[];
+	} {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const createCalls: number[] = [];
+		const deleteCalls: number[] = [];
+		const renameCalls: number[] = [];
+		const sessions = [{ id: 'ua-a', title: 'A' }];
+		const titleButton = document.createElement('button');
+		titleButton.textContent = 'A';
+		const titleInput = document.createElement('input');
+		titleInput.hidden = true;
+		const titleLive = document.createElement('span');
+		titleLive.textContent = 'A';
+		const host = {
+			sessionTitleButton: titleButton,
+			sessionTitleInput: titleInput,
+			sessionTitleLive: titleLive,
+			sessionTitleEditing: false,
+			sessionTitleEditSnapshot: 'A',
+			dockTextarea: { value: 'leftover draft' },
+			getBoundSessionId: () => 'ua-a',
+			writeComposerDraft: () => { },
+			deleteComposerDraftsForSession: () => { },
+			refreshSessionSelectOptions: () => { },
+			updateSessionTitle: () => { },
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => options.engineSessionReady,
+				hasEngineConnectionHistory: () => true,
+				getActiveSessionId: () => 'ua-a',
+				getActiveSession: () => sessions[0],
+				getSessions: () => sessions,
+				createSession: () => {
+					createCalls.push(1);
+					sessions.push({ id: `ua-new-${createCalls.length}`, title: 'New session' });
+					return sessions[sessions.length - 1].id;
+				},
+				deleteSession: (sessionId: string) => {
+					deleteCalls.push(1);
+					const index = sessions.findIndex(session => session.id === sessionId);
+					if (index < 0) {
+						return false;
+					}
+					sessions.splice(index, 1);
+					return true;
+				},
+				renameSession: (sessionId: string, title: string) => {
+					renameCalls.push(1);
+					const session = sessions.find(entry => entry.id === sessionId);
+					if (!session) {
+						return false;
+					}
+					session.title = title;
+					return true;
+				},
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: options.pairingPending }),
+			},
+		};
+		return {
+			host: host as unknown as IConversationLensSessionBarHost,
+			failures,
+			createCalls,
+			deleteCalls,
+			renameCalls,
+		};
+	}
+
+	test('KEEP leftover SessionBar handlers refuse title edit create delete rename', () => {
+		const fixture = sessionBarHandlerHost({ pairingPending: false, engineSessionReady: false });
+		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
+		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), false);
+		assert.strictEqual(fixture.host.uaConnection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), false);
+
+		beginSessionTitleEdit(fixture.host);
+		assert.strictEqual(fixture.host.sessionTitleEditing, false);
+		assert.strictEqual(fixture.host.sessionTitleButton.hidden, false);
+		assert.strictEqual(fixture.host.sessionTitleInput.hidden, true);
+		assert.deepStrictEqual(fixture.failures, []);
+		assert.deepStrictEqual(fixture.renameCalls, []);
+
+		createNewSession(fixture.host);
+		deleteActiveSession(fixture.host);
+		assert.deepStrictEqual(fixture.createCalls, []);
+		assert.deepStrictEqual(fixture.deleteCalls, []);
+		assert.deepStrictEqual(fixture.host.stubService.getSessions().map(session => session.title), ['A']);
+		assert.deepStrictEqual(fixture.failures, ['engine_disconnected', 'engine_disconnected']);
+
+		fixture.host.sessionTitleEditing = true;
+		fixture.host.sessionTitleButton.hidden = true;
+		fixture.host.sessionTitleInput.hidden = false;
+		fixture.host.sessionTitleInput.value = 'Hacked leftover title';
+		commitSessionTitleEdit(fixture.host);
+		assert.strictEqual(fixture.host.sessionTitleEditing, false);
+		assert.strictEqual(fixture.host.sessionTitleButton.hidden, false);
+		assert.strictEqual(fixture.host.sessionTitleInput.hidden, true);
+		assert.deepStrictEqual(fixture.renameCalls, []);
+		assert.deepStrictEqual(fixture.createCalls, []);
+		assert.deepStrictEqual(fixture.deleteCalls, []);
+		assert.deepStrictEqual(fixture.host.stubService.getSessions().map(session => session.title), ['A']);
+		assert.deepStrictEqual(fixture.failures, ['engine_disconnected', 'engine_disconnected', 'engine_disconnected']);
+	});
+
+	test('pairing-hold SessionBar handlers still refuse title edit create delete', () => {
+		const fixture = sessionBarHandlerHost({ pairingPending: true, engineSessionReady: true });
+		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), true);
+
+		beginSessionTitleEdit(fixture.host);
+		assert.strictEqual(fixture.host.sessionTitleEditing, false);
+		assert.deepStrictEqual(fixture.failures, []);
+
+		createNewSession(fixture.host);
+		deleteActiveSession(fixture.host);
+		assert.deepStrictEqual(fixture.createCalls, []);
+		assert.deepStrictEqual(fixture.deleteCalls, []);
+		assert.deepStrictEqual(fixture.renameCalls, []);
+		assert.deepStrictEqual(fixture.host.stubService.getSessions().map(session => session.title), ['A']);
+		assert.deepStrictEqual(fixture.failures, ['engine_disconnected', 'engine_disconnected']);
+	});
+
+	test('connected live SessionBar handlers still write when engine session is ready', () => {
+		const fixture = sessionBarHandlerHost({ pairingPending: false, engineSessionReady: true });
+		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
+		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), true);
+		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), false);
+
+		beginSessionTitleEdit(fixture.host);
+		assert.strictEqual(fixture.host.sessionTitleEditing, true);
+		fixture.host.sessionTitleInput.value = 'Renamed live';
+		commitSessionTitleEdit(fixture.host);
+		assert.strictEqual(fixture.host.sessionTitleEditing, false);
+		assert.deepStrictEqual(fixture.renameCalls, [1]);
+		assert.strictEqual(fixture.host.stubService.getSessions()[0].title, 'Renamed live');
+
+		createNewSession(fixture.host);
+		assert.deepStrictEqual(fixture.createCalls, [1]);
+		assert.strictEqual(fixture.host.stubService.getSessions().length, 2);
+
+		deleteActiveSession(fixture.host);
+		assert.deepStrictEqual(fixture.deleteCalls, [1]);
+		assert.deepStrictEqual(fixture.failures, []);
 	});
 
 	function leftoverLooksLiveSessionSelectsHost(options?: {
