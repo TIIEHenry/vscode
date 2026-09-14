@@ -18,16 +18,19 @@ import {
 	beginQueueEdit,
 	beginTurnEdit,
 	isSessionPermissionModeAvailable,
+	isSessionSwitchAgentAvailable,
 	isSessionSwitchModelAvailable,
 	showPostFailure,
 	toggleMoreContextView,
 	toggleTuneContextView,
 	updateComposerSessionSelectsEnabled,
+	updateGateRow,
 	updateSendEnabled,
 	type IConversationLensComposerChromeHost,
 } from '../../browser/conversationLensComposerChrome.js';
 import { updateSessionBarWriteChrome, type IConversationLensSessionBarHost } from '../../browser/conversationLensSessionBar.js';
 import {
+	conversationLensDockEngineNotConnected,
 	conversationLensDockNoEngineTools,
 	conversationLensDockNoTools,
 	conversationLensPostFailed,
@@ -1462,12 +1465,15 @@ suite('conversation lens dispose gate', () => {
 		permissionIndex?: number;
 		modelSelectedIndex?: number;
 		lastReadingWidth?: number;
+		pairingPending?: boolean;
+		engineSessionReady?: boolean;
 	}): {
 		host: IConversationLensComposerChromeHost;
 		permissionCalls: { sessionId: string; mode: string }[];
 		modelCalls: { sessionId: string; modelId: string }[];
 		permissionSelect: HTMLSelectElement;
 		modelSelect: HTMLSelectElement;
+		agentSelect: HTMLSelectElement;
 		dispose(): void;
 	} {
 		const store = new DisposableStore();
@@ -1492,30 +1498,44 @@ suite('conversation lens dispose gate', () => {
 		modelContainer.appendChild(modelSelect);
 		dockRoot.appendChild(modelContainer);
 		const moreButton = document.createElement('button');
+		const pairingPending = options?.pairingPending ?? true;
+		const engineSessionReady = options?.engineSessionReady;
 		const sessionConfigBySessionId = new Map<string, { agentIndex: number; permissionIndex: number }>([
 			['sess-leftover', { agentIndex: 0, permissionIndex: options?.permissionIndex ?? 0 }],
 		]);
 		permissionSelect.selectedIndex = options?.permissionIndex ?? 0;
 		modelSelect.selectedIndex = options?.modelSelectedIndex ?? 0;
+		const agentContainer = document.createElement('div');
+		const agentSelect = document.createElement('select');
+		agentSelect.add(new Option('No agent', ''));
+		agentSelect.add(new Option('Coder', 'coder'));
+		agentContainer.appendChild(agentSelect);
+		const gateRow = document.createElement('div');
+		const gateLabel = document.createElement('span');
 		const host = {
 			catalogToolNames: options?.catalogToolNames ?? ['bash'],
 			catalogModelIds: options?.catalogModelIds ?? ['', 'gpt-test'],
 			modelSelectedIndex: options?.modelSelectedIndex ?? 0,
 			sessionConfigBySessionId,
 			lastReadingWidth: options?.lastReadingWidth ?? 300,
+			postFailureVisible: false,
 			tuneContextView: undefined as { close(): void } | undefined,
 			moreContextView: undefined as { close(): void } | undefined,
 			dockRoot,
+			dockTextarea: { value: 'leftover draft' },
 			sendButton: { enabled: true },
+			gateRow,
+			gateLabel,
+			composerPolicy: 'compose' as const,
 			permissionSelectBox: {
 				setEnabled(enabled: boolean) { permissionSelect.disabled = !enabled; },
 				setAriaLabel() { },
 				select(index: number) { permissionSelect.selectedIndex = index; },
 			},
 			agentSelectBox: {
-				setEnabled() { },
+				setEnabled(enabled: boolean) { agentSelect.disabled = !enabled; },
 				setAriaLabel() { },
-				select() { },
+				select(index: number) { agentSelect.selectedIndex = index; },
 			},
 			modelSelectBox: {
 				setEnabled(enabled: boolean) { modelSelect.disabled = !enabled; },
@@ -1525,19 +1545,21 @@ suite('conversation lens dispose gate', () => {
 					host.modelSelectedIndex = index;
 				},
 			},
-			agentContainer: document.createElement('div'),
+			agentContainer,
 			moreButton: { element: moreButton },
 			tuneButton: { element: document.createElement('button') },
 			stubService: {
 				isEngineConnected: () => true,
+				...(engineSessionReady === undefined ? {} : { isEngineSessionReady: () => engineSessionReady }),
 			},
 			uaConnection: {
 				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
-				getConnectionSnapshot: () => ({ pairingPending: true }),
+				getConnectionSnapshot: () => ({ pairingPending }),
 				setPermissionMode: async (request: { sessionId: string; mode: string }) => {
 					permissionCalls.push(request);
 					return { ok: true };
 				},
+				switchAgent: async () => ({ ok: true }),
 				switchModel: async (request: { sessionId: string; modelId: string }) => {
 					modelCalls.push({ sessionId: request.sessionId, modelId: request.modelId });
 					return { resolvedModelId: request.modelId, provider: '', level: 0, cost: '', speed: '' };
@@ -1558,18 +1580,20 @@ suite('conversation lens dispose gate', () => {
 				},
 			},
 			getBoundSessionId: () => 'sess-leftover',
-			composerPolicy: 'compose' as const,
-			dockTextarea: { value: '' },
 		};
 		const typedHost = host as unknown as IConversationLensComposerChromeHost;
 		assert.strictEqual(typedHost.stubService.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
-		assert.strictEqual(isConversationPairingHold(typedHost.uaConnection), true);
+		assert.strictEqual(isConversationPairingHold(typedHost.uaConnection), pairingPending);
+		if (engineSessionReady !== undefined) {
+			assert.strictEqual(typedHost.stubService.isEngineSessionReady(), engineSessionReady);
+		}
 		return {
 			host: typedHost,
 			permissionCalls,
 			modelCalls,
 			permissionSelect,
 			modelSelect,
+			agentSelect,
 			dispose: () => {
 				host.tuneContextView?.close();
 				host.moreContextView?.close();
@@ -1766,6 +1790,96 @@ suite('conversation lens dispose gate', () => {
 			assert.strictEqual(typedHost.modelSelectedIndex, 0);
 		} finally {
 			store.dispose();
+		}
+	});
+
+	test('KEEP leftover list-fail session selects stay disabled and do not write', async () => {
+		const fixture = leftoverLooksLiveSessionSelectsHost({
+			pairingPending: false,
+			engineSessionReady: false,
+		});
+		try {
+			assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), false);
+			assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), false);
+			assert.strictEqual(isSessionPermissionModeAvailable(fixture.host), false);
+			assert.strictEqual(isSessionSwitchAgentAvailable(fixture.host), false);
+			assert.strictEqual(isSessionSwitchModelAvailable(fixture.host), false);
+			updateComposerSessionSelectsEnabled(fixture.host);
+			updateSendEnabled(fixture.host);
+			updateGateRow(fixture.host);
+			assert.strictEqual(fixture.host.sendButton.enabled, false);
+			assert.strictEqual(fixture.host.gateRow.hidden, false, 'KEEP leftover gate must not hide as live');
+			assert.strictEqual(fixture.host.gateLabel.textContent, conversationLensDockEngineNotConnected);
+			assert.strictEqual(fixture.permissionSelect.disabled, true);
+			assert.strictEqual(fixture.permissionSelect.getAttribute('aria-disabled'), 'true');
+			assert.strictEqual(fixture.agentSelect.disabled, true);
+			assert.strictEqual(fixture.agentSelect.getAttribute('aria-disabled'), 'true');
+			assert.strictEqual(fixture.modelSelect.disabled, true);
+			assert.strictEqual(fixture.modelSelect.getAttribute('aria-disabled'), 'true');
+
+			await applySessionPermissionIndex(fixture.host, 'sess-leftover', 2);
+			await applySessionModelIndex(fixture.host, 'sess-leftover', 1);
+			assert.deepStrictEqual(fixture.permissionCalls, []);
+			assert.deepStrictEqual(fixture.modelCalls, []);
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.modelSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.modelSelectedIndex, 0);
+
+			fixture.permissionSelect.disabled = false;
+			fixture.permissionSelect.removeAttribute('disabled');
+			fixture.permissionSelect.setAttribute('aria-disabled', 'false');
+			fixture.agentSelect.disabled = false;
+			fixture.agentSelect.removeAttribute('disabled');
+			fixture.agentSelect.setAttribute('aria-disabled', 'false');
+			fixture.modelSelect.disabled = false;
+			fixture.modelSelect.removeAttribute('disabled');
+			fixture.modelSelect.setAttribute('aria-disabled', 'false');
+			fixture.permissionSelect.selectedIndex = 2;
+			fixture.modelSelect.selectedIndex = 1;
+			await applySessionPermissionIndex(fixture.host, 'sess-leftover', 2);
+			await applySessionModelIndex(fixture.host, 'sess-leftover', 1);
+			assert.deepStrictEqual(fixture.permissionCalls, []);
+			assert.deepStrictEqual(fixture.modelCalls, []);
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.modelSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.modelSelectedIndex, 0);
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('connected live session selects still write when engine session is ready', async () => {
+		const fixture = leftoverLooksLiveSessionSelectsHost({
+			pairingPending: false,
+			engineSessionReady: true,
+		});
+		try {
+			assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), false);
+			assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), true);
+			assert.strictEqual(isSessionPermissionModeAvailable(fixture.host), true);
+			assert.strictEqual(isSessionSwitchAgentAvailable(fixture.host), true);
+			assert.strictEqual(isSessionSwitchModelAvailable(fixture.host), true);
+			updateComposerSessionSelectsEnabled(fixture.host);
+			updateSendEnabled(fixture.host);
+			updateGateRow(fixture.host);
+			assert.strictEqual(fixture.host.sendButton.enabled, true);
+			assert.strictEqual(fixture.host.gateRow.hidden, true);
+			assert.strictEqual(fixture.permissionSelect.disabled, false);
+			assert.strictEqual(fixture.agentSelect.disabled, false);
+			assert.strictEqual(fixture.modelSelect.disabled, false);
+
+			await applySessionPermissionIndex(fixture.host, 'sess-leftover', 2);
+			await applySessionModelIndex(fixture.host, 'sess-leftover', 1);
+			assert.deepStrictEqual(fixture.permissionCalls, [{ sessionId: 'sess-leftover', mode: 'SESSION_TOOL_PERMISSION_MODE_PERMIT' }]);
+			assert.deepStrictEqual(fixture.modelCalls, [{ sessionId: 'sess-leftover', modelId: 'gpt-test' }]);
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 2);
+			assert.strictEqual(fixture.modelSelect.selectedIndex, 1);
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 2);
+			assert.strictEqual(fixture.host.modelSelectedIndex, 1);
+		} finally {
+			fixture.dispose();
 		}
 	});
 

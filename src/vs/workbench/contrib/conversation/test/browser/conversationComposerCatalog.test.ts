@@ -518,6 +518,71 @@ suite('conversationComposerCatalog', () => {
 		assert.strictEqual(sendButton.enabled, true);
 	});
 
+	test('KEEP leftover list-fail send and gate stay disconnected', async () => {
+		let pairingPending = false;
+		let engineSessionReady = true;
+		let listCalls = 0;
+		const snapshot = () => ({
+			transport: 'ok' as const,
+			pairingPending,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const { host, agentOptions, modelOptions, gateRow, gateLabel, sendButton } = createLoadCatalogHost({
+			listAgentProfiles: async () => {
+				listCalls++;
+				return { profiles: [{ id: 'coder', name: 'Coder', source: 'user' }] };
+			},
+			listModels: async () => {
+				listCalls++;
+				return { models: [{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' }] };
+			},
+			listTools: async () => {
+				listCalls++;
+				return { tools: [{ name: 'bash' }] };
+			},
+		}, 'SUPPORTED', {
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => engineSessionReady,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+		});
+
+		await loadConnectedComposerCatalogs(host, host.composerCatalogGeneration);
+		assert.ok(agentOptions.some(option => option.text === 'Coder'));
+		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
+		assert.strictEqual(host.stubService.isEngineConnected(), true);
+		assert.strictEqual(host.stubService.isEngineSessionReady(), true);
+		assert.strictEqual(isConversationPairingHold(host.uaConnection), false);
+		host.updateSendEnabled();
+		host.updateGateRow();
+		assert.strictEqual(sendButton.enabled, true);
+		assert.strictEqual(gateRow.hidden, true);
+		const listsAfterLoad = listCalls;
+
+		engineSessionReady = false;
+		assert.strictEqual(host.uaConnection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(host.uaConnection), false);
+		assert.strictEqual(host.stubService.isEngineSessionReady(), false);
+		host.updateSendEnabled();
+		host.updateGateRow();
+
+		assert.strictEqual(listCalls, listsAfterLoad, 'KEEP leftover list-fail must not extra list unaries');
+		assert.ok(agentOptions.some(option => option.text === 'Coder'));
+		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
+		assert.strictEqual(sendButton.enabled, false, 'KEEP leftover Send stays off');
+		assert.strictEqual(gateRow.hidden, false, 'KEEP leftover gate must not hide as live');
+		assert.strictEqual(gateLabel.textContent, conversationLensDockEngineNotConnected);
+
+		engineSessionReady = true;
+		assert.strictEqual(host.stubService.isEngineSessionReady(), true);
+		host.updateSendEnabled();
+		host.updateGateRow();
+		assert.strictEqual(sendButton.enabled, true);
+		assert.strictEqual(gateRow.hidden, true);
+	});
+
 	test('leftover-looks-live first-pull pairing without leftover stays empty and skips lists', () => {
 		let listCalls = 0;
 		const { host, agentOptions, modelOptions, gateRow, gateLabel, sendButton } = createLoadCatalogHost({
@@ -637,6 +702,7 @@ function createLoadCatalogHost(
 	support: 'SUPPORTED' | 'UNKNOWN' | (() => 'SUPPORTED' | 'UNKNOWN') = 'SUPPORTED',
 	engine?: {
 		isEngineConnected?: () => boolean;
+		isEngineSessionReady?: () => boolean;
 		getConnectionPhase?: IUniverseAgentConnection['getConnectionPhase'];
 		getConnectionSnapshot?: IUniverseAgentConnection['getConnectionSnapshot'];
 	},
@@ -681,7 +747,10 @@ function createLoadCatalogHost(
 		},
 		getBoundSessionId: () => 's1',
 		getSessionConfig: () => ({ agentIndex: 0 }),
-		stubService: { isEngineConnected: engine?.isEngineConnected ?? (() => true) },
+		stubService: {
+			isEngineConnected: engine?.isEngineConnected ?? (() => true),
+			...(engine?.isEngineSessionReady ? { isEngineSessionReady: engine.isEngineSessionReady } : {}),
+		},
 		updateSendEnabled() {
 			updateSendEnabled(this as unknown as IConversationLensComposerChromeHost);
 		},

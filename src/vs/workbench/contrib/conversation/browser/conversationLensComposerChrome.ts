@@ -437,7 +437,7 @@ export function updateMaximizeInputButton(host: IConversationLensComposerChromeH
 
 export function updateSendEnabled(host: IConversationLensComposerChromeHost): void {
 
-		if (isConversationPairingHold(host.uaConnection)) {
+		if (isConversationPairingHold(host.uaConnection) || isComposerKeepLeftoverListFailed(host)) {
 			host.sendButton.enabled = false;
 			return;
 		}
@@ -466,7 +466,10 @@ export function updateGateRow(host: IConversationLensComposerChromeHost): void {
 			return;
 		}
 		// D339 leftover-looks-live: pairing-hold first. Gate is not hidden just because isEngineConnected()===true.
-		const connected = !isConversationPairingHold(host.uaConnection) && host.stubService.isEngineConnected();
+		// D450 KEEP leftover: connected + list-fail is not live chrome (same predicate as SessionBar D449).
+		const connected = !isConversationPairingHold(host.uaConnection)
+			&& host.stubService.isEngineConnected()
+			&& !isComposerKeepLeftoverListFailed(host);
 		host.gateRow.hidden = connected;
 		if (connected) {
 			host.gateLabel.textContent = '';
@@ -537,8 +540,16 @@ export function setSessionConfig(host: IConversationLensComposerChromeHost, sess
 	
 }
 
+/** KEEP leftover (D450): same predicate as SessionBar D449. List-fail leftover is not a live write surface. */
+function isComposerKeepLeftoverListFailed(host: IConversationLensComposerChromeHost): boolean {
+	return host.stubService.isEngineConnected()
+		&& host.stubService.isEngineSessionReady?.() === false;
+}
+
 function isComposerSessionWriteLive(host: IConversationLensComposerChromeHost): boolean {
-	return host.stubService.isEngineConnected() && !isConversationPairingHold(host.uaConnection);
+	return host.stubService.isEngineConnected()
+		&& !isConversationPairingHold(host.uaConnection)
+		&& !isComposerKeepLeftoverListFailed(host);
 }
 
 function syncComposerSelectEnabledChrome(
@@ -637,8 +648,8 @@ export async function applySessionPermissionIndex(host: IConversationLensCompose
 		const mode = SESSION_TOOL_PERMISSION_MODES[permissionIndex] ?? SESSION_TOOL_PERMISSION_MODES[0];
 		try {
 			const result = await host.uaConnection.setPermissionMode({ sessionId, mode });
-			// D383 leftover-looks-live: pairing-hold first. KEEP leftover index; do not keep live apply.
-			if (isConversationPairingHold(host.uaConnection) || !host.stubService.isEngineConnected()) {
+			// D383 leftover-looks-live: pairing-hold first. D450 KEEP leftover index; do not keep live apply.
+			if (!isComposerSessionWriteLive(host)) {
 				restoreSessionPermissionIndex(host, sessionId, previous);
 				return;
 			}
@@ -711,8 +722,8 @@ export async function applySessionModelIndex(host: IConversationLensComposerChro
 				modelType: '',
 				modelId,
 			});
-			// D383 leftover-looks-live: pairing-hold first. KEEP leftover index; do not keep live model.
-			if (isConversationPairingHold(host.uaConnection) || !host.stubService.isEngineConnected()) {
+			// D383 leftover-looks-live: pairing-hold first. D450 KEEP leftover index; do not keep live model.
+			if (!isComposerSessionWriteLive(host)) {
 				restoreSessionModelIndex(host, previous);
 				return;
 			}
