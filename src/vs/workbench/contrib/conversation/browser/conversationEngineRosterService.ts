@@ -376,6 +376,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (isConversationPairingHold(this.uaConnection)) {
 			return false;
 		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.renameEngineSession(sessionId, title, true);
 		}
@@ -387,6 +390,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override cancelGeneration(sessionId: string, agentId?: string): boolean {
 		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
 			return false;
 		}
 		if (this.isEngineConnected()) {
@@ -402,6 +408,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (isConversationPairingHold(this.uaConnection)) {
 			return false;
 		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.setEngineSessionGoal(sessionId, goal, true);
 		}
@@ -413,6 +422,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override cancelSessionGoal(sessionId: string): boolean {
 		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
 			return false;
 		}
 		if (this.isEngineConnected()) {
@@ -435,6 +447,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (isConversationPairingHold(this.uaConnection)) {
 			return false;
 		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.forkEngineSubAgent(sessionId, options, true);
 		}
@@ -446,6 +461,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override killSubAgent(sessionId: string, options?: { agentId?: string; force?: boolean }): boolean {
 		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
 			return false;
 		}
 		if (this.isEngineConnected()) {
@@ -461,6 +479,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (isConversationPairingHold(this.uaConnection)) {
 			return false;
 		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.createEngineSnapshot(sessionId, options, true);
 		}
@@ -472,6 +493,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override cancelToolCall(sessionId: string, options: { toolCallId: string; agentId?: string }): boolean {
 		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
 			return false;
 		}
 		if (this.isEngineConnected()) {
@@ -487,6 +511,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (isConversationPairingHold(this.uaConnection)) {
 			return false;
 		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.continueEngineGeneration(sessionId, options, true);
 		}
@@ -498,6 +525,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override deleteTurn(sessionId: string, turnId: string): boolean {
 		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
 			return false;
 		}
 		if (this.isEngineConnected()) {
@@ -513,6 +543,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (isConversationPairingHold(this.uaConnection)) {
 			return false;
 		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.editEngineMessage(sessionId, turnId, text, true);
 		}
@@ -526,6 +559,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (isConversationPairingHold(this.uaConnection)) {
 			return false;
 		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.enqueueEngineQueueItem(sessionId, text, options, true);
 		}
@@ -537,6 +573,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override retryMessageQueueItem(sessionId: string, itemId: string, options?: { upload?: boolean }): boolean {
 		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
 			return false;
 		}
 		if (this.isEngineConnected()) {
@@ -587,6 +626,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (isConversationPairingHold(this.uaConnection)) {
 			return;
 		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return;
+		}
 		if (this.isEngineConnected()) {
 			this.forwardEngineQueueRef(sessionId, 'pauseQueue', true, () => this.uaConnection.pauseQueue({ sessionId }));
 			return;
@@ -598,6 +640,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override resumeMessageQueue(sessionId: string): void {
 		if (isConversationPairingHold(this.uaConnection)) {
+			return;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
 			return;
 		}
 		if (this.isEngineConnected()) {
@@ -613,6 +658,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (isConversationPairingHold(this.uaConnection)) {
 			return;
 		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return;
+		}
 		if (this.isEngineConnected()) {
 			this.forwardEngineQueueRef(sessionId, 'clearQueue', true, () => this.uaConnection.clearQueue({ sessionId }));
 			return;
@@ -624,6 +672,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override holdMessageQueueItem(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): void {
 		if (isConversationPairingHold(this.uaConnection)) {
+			return;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
 			return;
 		}
 		if (this.isEngineConnected()) {
@@ -643,6 +694,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (isConversationPairingHold(this.uaConnection)) {
 			return;
 		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return;
+		}
 		if (this.isEngineConnected()) {
 			this.forwardEngineQueueItem(sessionId, itemId, 'releaseQueueItemHold', true, id => this.uaConnection.releaseQueueItemHold({
 				sessionId,
@@ -659,6 +713,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (isConversationPairingHold(this.uaConnection)) {
 			return false;
 		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.editEngineQueueItem(sessionId, itemId, content, true);
 		}
@@ -670,6 +727,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): boolean {
 		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
 			return false;
 		}
 		if (this.isEngineConnected()) {
@@ -685,6 +745,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (isConversationPairingHold(this.uaConnection)) {
 			return false;
 		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.sendEngineClientToolResponse(sessionId, callId, options, true);
 		}
@@ -698,6 +761,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (isConversationPairingHold(this.uaConnection)) {
 			return false;
 		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
 		if (this.isEngineConnected()) {
 			return this.respondEngineQuestion(sessionId, questionId, answers, customText, true);
 		}
@@ -709,6 +775,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override deleteSession(sessionId: string): boolean {
 		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
 			return false;
 		}
 		if (this.isEngineConnected()) {

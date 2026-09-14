@@ -1401,6 +1401,61 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(deleteButton.enabled, false);
 	});
 
+	test('updateSessionBarWriteChrome KEEP leftover disables title delete and new', () => {
+		const title = document.createElement('button');
+		const newButton = { enabled: true };
+		const deleteButton = { enabled: true };
+		const host = {
+			sessionTitleButton: title,
+			newSessionButton: newButton,
+			deleteSessionButton: deleteButton,
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => false,
+				getSessions: () => [{ id: 'ua-a', title: 'A' }],
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+			},
+		} as unknown as IConversationLensSessionBarHost;
+		assert.strictEqual(host.stubService.isEngineConnected(), true);
+		assert.strictEqual(host.stubService.isEngineSessionReady(), false);
+		assert.strictEqual(isConversationPairingHold(host.uaConnection), false);
+		updateSessionBarWriteChrome(host);
+		assert.strictEqual(title.disabled, true);
+		assert.strictEqual(title.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(newButton.enabled, false);
+		assert.strictEqual(deleteButton.enabled, false);
+	});
+
+	test('updateSessionBarWriteChrome connected live keeps title delete and new enabled', () => {
+		const title = document.createElement('button');
+		const newButton = { enabled: true };
+		const deleteButton = { enabled: true };
+		const host = {
+			sessionTitleButton: title,
+			newSessionButton: newButton,
+			deleteSessionButton: deleteButton,
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+			},
+		} as unknown as IConversationLensSessionBarHost;
+		assert.strictEqual(host.stubService.isEngineConnected(), true);
+		assert.strictEqual(host.stubService.isEngineSessionReady(), true);
+		assert.strictEqual(isConversationPairingHold(host.uaConnection), false);
+		updateSessionBarWriteChrome(host);
+		assert.strictEqual(title.disabled, false);
+		assert.strictEqual(title.getAttribute('aria-disabled'), 'false');
+		assert.strictEqual(newButton.enabled, true);
+		assert.strictEqual(deleteButton.enabled, true);
+	});
+
 	function leftoverLooksLiveSessionSelectsHost(options?: {
 		catalogToolNames?: readonly string[];
 		catalogModelIds?: readonly string[];

@@ -244,7 +244,11 @@ export function updateSessionTitle(host: IConversationLensSessionBarHost): void 
 }
 
 export function updateSessionBarWriteChrome(host: IConversationLensSessionBarHost): void {
-	const writesEnabled = !isConversationPairingHold(host.uaConnection);
+	// KEEP leftover (D449): list-fail leftover is not a live write surface.
+	const leftoverCatalogListFailed = !!host.stubService
+		&& host.stubService.isEngineConnected()
+		&& host.stubService.isEngineSessionReady?.() === false;
+	const writesEnabled = !isConversationPairingHold(host.uaConnection) && !leftoverCatalogListFailed;
 	if (host.sessionTitleButton) {
 		host.sessionTitleButton.disabled = !writesEnabled;
 		host.sessionTitleButton.setAttribute('aria-disabled', String(!writesEnabled));

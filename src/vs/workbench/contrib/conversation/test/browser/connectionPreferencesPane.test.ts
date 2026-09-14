@@ -2235,6 +2235,9 @@ suite('ConnectionPreferencesPane', () => {
 	test('Refresh devices throw keeps leftover and paints failed banner', async () => {
 		let listDevicesCalls = 0;
 		const added: { readonly hubDeviceId: string; readonly displayName?: string }[] = [];
+		const renameCalls: { id: string; name: string }[] = [];
+		const hubRevoked: string[] = [];
+		const revokeCalls: UniverseAgentRevokeRequest[] = [];
 		const pane = mountPane({
 			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
 			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
@@ -2245,11 +2248,23 @@ suite('ConnectionPreferencesPane', () => {
 				added.push(input);
 				return { ok: true, profileId: 'hub-profile-1' };
 			},
+			renameDevice: async (id, name) => {
+				renameCalls.push({ id, name });
+				return { ok: true };
+			},
+			revokeDevice: async id => {
+				hubRevoked.push(id);
+				return { ok: true };
+			},
 		}, {
 			isEngineConnected: () => false,
 			listDevices: async () => {
 				listDevicesCalls++;
 				return { devices: [] };
+			},
+			revoke: async request => {
+				revokeCalls.push(request);
+				return { success: true, message: '' };
 			},
 		});
 		const container = pane.getDomNode();
@@ -2290,6 +2305,31 @@ suite('ConnectionPreferencesPane', () => {
 		await Promise.resolve();
 		await Promise.resolve();
 		assert.deepStrictEqual(added, []);
+		const findDeviceAction = (label: string) => [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === label) as HTMLButtonElement | undefined;
+		const rename = findDeviceAction('Rename');
+		const revoke = findDeviceAction('Revoke');
+		assert.ok(rename);
+		assert.ok(revoke);
+		assert.strictEqual(rename.classList.contains('disabled'), true);
+		assert.strictEqual(rename.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(revoke.classList.contains('disabled'), true);
+		assert.strictEqual(revoke.getAttribute('aria-disabled'), 'true');
+		const forceClick = (button: HTMLButtonElement) => {
+			button.classList.remove('disabled');
+			button.removeAttribute('disabled');
+			button.setAttribute('aria-disabled', 'false');
+			button.disabled = false;
+			button.click();
+		};
+		forceClick(rename);
+		forceClick(revoke);
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		assert.deepStrictEqual(renameCalls, []);
+		assert.deepStrictEqual(hubRevoked, []);
+		assert.deepStrictEqual(revokeCalls, []);
 		container.remove();
 	});
 
@@ -2678,6 +2718,7 @@ suite('ConnectionPreferencesPane', () => {
 		const pane = mountPane({
 			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
 			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			refreshDirectory: async () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
 			renameDevice: async (id, name) => {
 				renamed = { id, name };
 				return { ok: true };
