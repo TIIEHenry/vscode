@@ -965,6 +965,105 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(connection.treeRefreshCalls.length, treeRefreshAfterLive);
 	});
 
+	test('KEEP leftover list-fail renameSession deleteSession and mutators reject and skip unary', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([
+			{ sessionId: 'ua-a', title: 'A' },
+			{ sessionId: 'ua-b', title: 'B' },
+		]);
+		const service = store.add(createService(connection));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), ['ua-a', 'ua-b']);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		const renameAfterLive = connection.renameCalls.length;
+		const deleteAfterLive = connection.deleteCalls.length;
+		const cancelAfterLive = connection.cancelCalls.length;
+		const setGoalAfterLive = connection.setGoalCalls.length;
+		const cancelGoalAfterLive = connection.cancelGoalCalls.length;
+		const forkAfterLive = connection.forkCalls.length;
+		const killAfterLive = connection.killCalls.length;
+		const snapshotAfterLive = connection.createSnapshotCalls.length;
+		const cancelToolAfterLive = connection.cancelToolCallCalls.length;
+		const enqueueAfterLive = connection.enqueueCalls.length;
+		const retryQueueAfterLive = connection.retryQueueItemCalls.length;
+		const pauseAfterLive = connection.pauseQueueCalls.length;
+		const resumeAfterLive = connection.resumeQueueCalls.length;
+		const clearAfterLive = connection.clearQueueCalls.length;
+		const holdAfterLive = connection.holdQueueCalls.length;
+		const releaseAfterLive = connection.releaseQueueCalls.length;
+		const editQueueAfterLive = connection.editQueueCalls.length;
+		const deleteMessageAfterLive = connection.deleteMessageCalls.length;
+		const editMessageAfterLive = connection.editMessageCalls.length;
+		const permissionAfterLive = connection.respondPermissionCalls.length;
+		const clientToolAfterLive = connection.sendClientToolResponseCalls.length;
+		const questionAfterLive = connection.respondQuestionCalls.length;
+		const createAfterLive = connection.createCalls.length;
+
+		connection.listSessionsError = new Error('Query does not return results');
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+
+		assert.strictEqual(service.isEngineSessionReady(), false);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), ['ua-a', 'ua-b']);
+		const titlesBefore = service.getSessions().map(session => session.title);
+		const idsBefore = service.getSessions().map(session => session.id);
+
+		assert.strictEqual(service.renameSession('ua-a', 'Leftover title'), false);
+		assert.strictEqual(service.deleteSession('ua-a'), false);
+		assert.strictEqual(service.cancelGeneration('ua-a'), false);
+		assert.strictEqual(service.setSessionGoal('ua-a', 'Leftover goal'), false);
+		assert.strictEqual(service.cancelSessionGoal('ua-a'), false);
+		assert.strictEqual(service.forkSubAgent('ua-a', { name: 'leftover-fork' }), false);
+		assert.strictEqual(service.killSubAgent('ua-a', { agentId: 'sub:leftover' }), false);
+		assert.strictEqual(service.createSnapshot('ua-a', { title: 'Leftover snapshot' }), false);
+		assert.strictEqual(service.cancelToolCall('ua-a', { toolCallId: 'tc-leftover' }), false);
+		assert.strictEqual(service.retryError('ua-a', { messageId: 'msg-leftover' }), false);
+		assert.strictEqual(service.deleteTurn('ua-a', 'turn-leftover'), false);
+		assert.strictEqual(service.updateUserTurnText('ua-a', 'turn-leftover', 'leftover edit'), false);
+		assert.strictEqual(service.enqueueMessageQueueItem('ua-a', 'leftover item'), false);
+		assert.strictEqual(service.retryMessageQueueItem('ua-a', 'q-leftover'), false);
+		service.pauseMessageQueue('ua-a');
+		service.resumeMessageQueue('ua-a');
+		service.clearMessageQueue('ua-a');
+		service.holdMessageQueueItem('ua-a', 'q-leftover', 'EDITING');
+		service.releaseMessageQueueItemHold('ua-a', 'q-leftover');
+		assert.strictEqual(service.updateMessageQueueItemContent('ua-a', 'q-leftover', 'leftover edit'), false);
+		assert.strictEqual(service.resolveConfirmation('ua-a', 'req-leftover', 'allowed'), false);
+		assert.strictEqual(service.respondClientTool('ua-a', 'call-leftover', { content: '{}' }), false);
+		assert.strictEqual(service.respondQuestion('ua-a', 'q-leftover'), false);
+		assert.strictEqual(service.createSession(), '');
+
+		assert.strictEqual(connection.renameCalls.length, renameAfterLive);
+		assert.strictEqual(connection.deleteCalls.length, deleteAfterLive);
+		assert.strictEqual(connection.cancelCalls.length, cancelAfterLive);
+		assert.strictEqual(connection.setGoalCalls.length, setGoalAfterLive);
+		assert.strictEqual(connection.cancelGoalCalls.length, cancelGoalAfterLive);
+		assert.strictEqual(connection.forkCalls.length, forkAfterLive);
+		assert.strictEqual(connection.killCalls.length, killAfterLive);
+		assert.strictEqual(connection.createSnapshotCalls.length, snapshotAfterLive);
+		assert.strictEqual(connection.cancelToolCallCalls.length, cancelToolAfterLive);
+		assert.strictEqual(connection.enqueueCalls.length, enqueueAfterLive);
+		assert.strictEqual(connection.retryQueueItemCalls.length, retryQueueAfterLive);
+		assert.strictEqual(connection.pauseQueueCalls.length, pauseAfterLive);
+		assert.strictEqual(connection.resumeQueueCalls.length, resumeAfterLive);
+		assert.strictEqual(connection.clearQueueCalls.length, clearAfterLive);
+		assert.strictEqual(connection.holdQueueCalls.length, holdAfterLive);
+		assert.strictEqual(connection.releaseQueueCalls.length, releaseAfterLive);
+		assert.strictEqual(connection.editQueueCalls.length, editQueueAfterLive);
+		assert.strictEqual(connection.deleteMessageCalls.length, deleteMessageAfterLive);
+		assert.strictEqual(connection.editMessageCalls.length, editMessageAfterLive);
+		assert.strictEqual(connection.respondPermissionCalls.length, permissionAfterLive);
+		assert.strictEqual(connection.sendClientToolResponseCalls.length, clientToolAfterLive);
+		assert.strictEqual(connection.respondQuestionCalls.length, questionAfterLive);
+		assert.strictEqual(connection.createCalls.length, createAfterLive);
+		assert.deepStrictEqual(service.getSessions().map(session => session.title), titlesBefore);
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), idsBefore);
+	});
+
 	test('listed ghost titled New session with lease bind failure shows bind-failed', async () => {
 		const connection = store.add(new MockUniverseAgentConnection());
 		connection.setListSessions([{ sessionId: 'session-ghost', title: 'New session' }]);

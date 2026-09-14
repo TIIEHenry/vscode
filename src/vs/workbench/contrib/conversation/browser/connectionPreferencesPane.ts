@@ -1108,9 +1108,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		return isConversationPairingHold(this.connectionService);
 	}
 
-	/** Catalog leftover contract: devices list-fail leftover is not a live write surface. */
+	/** Catalog leftover contract: devices / Hub directory list-fail leftover is not a live write surface. */
 	private isDeviceWriteListFailed(): boolean {
-		return this.engineDevicesListFailed !== undefined;
+		return this.engineDevicesListFailed !== undefined || this.hubDirectoryListFailed !== undefined;
 	}
 
 	/** Catalog leftover contract: pending list-fail leftover is not a live pair-write surface. */
