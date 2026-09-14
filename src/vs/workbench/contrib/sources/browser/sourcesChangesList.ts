@@ -167,13 +167,14 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 
 		if (rowAction === 'unstage') {
 			const pairingHold = this.delegate.isSourcesGitWritePairingHold();
+			const listFailed = this.delegate.isSourcesGitWriteListFailed();
 			const label = localize('sourcesChangesList.unstage', "Unstage");
 			templateData.actionButton.element.style.display = pairingHold ? 'none' : '';
 			templateData.actionButton.icon = Codicon.remove;
-			templateData.actionButton.enabled = !pairingHold;
+			templateData.actionButton.enabled = !pairingHold && !listFailed;
 			templateData.actionButton.setAriaLabel(label);
 			templateData.actionButton.setTitle(label);
-			if (pairingHold) {
+			if (pairingHold || listFailed) {
 				return;
 			}
 			templateData.elementDisposables.add(templateData.actionButton.onDidClick(e => {
@@ -239,7 +240,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	private refreshSeq = 0;
 	private writeStatusMessage: string | undefined;
 	private lastGoodEntries: ISourcesChangeEntry[] = [];
-	/** List-fail leftover is not a live Stage / Commit / FileDiff surface (D442 / D444). */
+	/** List-fail leftover is not a live Stage / Commit / Unstage / FileDiff surface (D442 / D444 / D448). */
 	private leftoverListFailed = false;
 
 	constructor(
@@ -691,7 +692,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			&& this.isGitCommandAvailable(SOURCES_GIT_UNSTAGE_COMMAND));
 
 		this.stageSelectedButton.enabled = canStage && !this.isSourcesGitWritePairingHold() && !this.leftoverListFailed;
-		this.unstageSelectedButton.enabled = canUnstage && !this.isSourcesGitWritePairingHold();
+		this.unstageSelectedButton.enabled = canUnstage && !this.isSourcesGitWritePairingHold() && !this.leftoverListFailed;
 	}
 
 	private async runOnSelected(action: SourcesChangeRowAction): Promise<void> {
@@ -717,10 +718,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		if (action === 'unstage' && !isSourcesChangeUnstageable(entry.groupId)) {
 			return;
 		}
-		if ((action === 'stage' || action === 'unstage') && this.isSourcesGitWritePairingHold()) {
-			return;
-		}
-		if (action === 'stage' && this.leftoverListFailed) {
+		if ((action === 'stage' || action === 'unstage') && (this.isSourcesGitWritePairingHold() || this.leftoverListFailed)) {
 			return;
 		}
 

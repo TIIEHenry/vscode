@@ -1126,6 +1126,85 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.strictEqual(statusAfterOpen, sourcesGitReadFailureMessage('boom'));
 	});
 
+	test('list-fail leftover closes Unstage and forced click stays 0 git.unstage', async function () {
+		let readCalls = 0;
+		const gitUnstageCommands: string[] = [];
+		const leftover = { path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'INDEX' };
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => {
+				readCalls += 1;
+				if (readCalls === 1) {
+					return {
+						supported: true,
+						reason: '',
+						branch: 'main',
+						entries: [leftover],
+					};
+				}
+				throw new Error('boom');
+			},
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+		} as unknown as IUniverseAgentConnection;
+		const unstageCommand = CommandsRegistry.registerCommand('git.unstage', () => { });
+		try {
+			const scmStub = toResource.call(this, '/project/src/leftover-unstage.ts');
+			const scmService = createIndexScmService(scmStub);
+			const scmResource = [...scmService.repositories][0].provider.groups[0].resources[0];
+			const host = mountHost();
+			const widget = store.add(stubChangesListServices(connection, scmService, async (commandId: string) => {
+				if (commandId === 'git.unstage') {
+					gitUnstageCommands.push(commandId);
+				}
+			}).createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			onDidChangeConnection.fire({} as UniverseAgentConnectionSnapshot);
+			const status = await waitForStatusText(host, 'Unable to read git changes');
+			assert.ok(status.includes('boom'));
+			assert.strictEqual(list.length, 1);
+			assert.strictEqual(list.element(0).gitPath, leftover.path);
+
+			list.setFocus([0]);
+			list.setSelection([0]);
+			await timeout(20);
+
+			const unstage = unstageSelectedButton(host);
+			assert.ok(unstage, 'Unstage Selected is the toolbar second button');
+			assert.strictEqual(unstage.classList.contains('disabled'), true);
+			assert.strictEqual(unstage.getAttribute('aria-disabled'), 'true');
+			const rowAction = host.querySelector('.sources-change-action') as HTMLElement | null;
+			assert.ok(!rowAction || rowAction.style.display === 'none' || rowAction.classList.contains('disabled'));
+
+			forceClick(unstage);
+			forceClick(rowAction);
+			await (widget as unknown as { runOnSelected: (action: 'unstage') => Promise<void> }).runOnSelected('unstage');
+			await (widget as unknown as { runResourceAction: (entry: ISourcesChangeEntry, action: 'unstage') => Promise<void> }).runResourceAction({
+				resource: scmStub,
+				name: 'leftover-unstage.ts',
+				description: 'Staged Changes',
+				groupId: 'index',
+				scmResource,
+			}, 'unstage');
+			await timeout(20);
+			assert.strictEqual(gitUnstageCommands.length, 0);
+			assert.strictEqual(list.length, 1);
+			assert.strictEqual(list.element(0).gitPath, leftover.path);
+		} finally {
+			unstageCommand.dispose();
+		}
+	});
+
 	test('leftover-looks-live pairing-hold Stage with local SCM stays hidden and 0 git.stage', async function () {
 		const gitStageCommands: string[] = [];
 		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];

@@ -28,7 +28,9 @@ import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.j
 import { ISourcesReviewAttributionService } from '../../common/sourcesReviewAttribution.js';
 import { ISourcesReviewHostService, ISourcesReviewListHost } from '../../common/sourcesReviewHostService.js';
 import {
+	SOURCES_REVIEW_MARK_ALL_REVIEWED_COMMAND,
 	SOURCES_REVIEW_OPEN_SELECTED_COMMAND,
+	SOURCES_REVIEW_TOGGLE_REVIEWED_SELECTED_COMMAND,
 } from '../../browser/sourcesReviewCommands.contribution.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { IInstantiationService, ServiceIdentifier, ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
@@ -206,6 +208,7 @@ suite('Sources - review list model', () => {
 		roster?: IConversationRosterService;
 		getQuickDiffs?: () => Promise<unknown>;
 		markReviewed?: () => void;
+		markAllReviewed?: () => void;
 		executeCommand?: (...args: unknown[]) => Promise<unknown>;
 		openEditor?: (input: unknown) => Promise<unknown>;
 	} = {}) {
@@ -237,7 +240,7 @@ suite('Sources - review list model', () => {
 			isReviewed: () => false,
 			markReviewed: options.markReviewed ?? (() => { }),
 			markUnreviewed: () => { },
-			markAllReviewed: () => { },
+			markAllReviewed: options.markAllReviewed ?? (() => { }),
 			resolveKey: async (resource: URI) => ({ scopeKeyId: 'root', path: resource.toString(), contentHash: '' }),
 			pruneMissingKeys: () => { },
 		} as unknown as ISourcesReviewProgressService);
@@ -307,6 +310,37 @@ suite('Sources - review list model', () => {
 			setStatusMessage: message => widget.setStatusMessage(message),
 			isSourcesGitFileDiffOpenSkipped: () => widget.isSourcesGitFileDiffOpenSkipped(),
 			readGitFileDiff: entry => widget.readGitFileDiffForOpen(entry),
+		};
+	}
+
+	function forceClick(button: HTMLElement | null): void {
+		if (!button) {
+			return;
+		}
+		button.classList.remove('disabled');
+		button.removeAttribute('disabled');
+		button.setAttribute('aria-disabled', 'false');
+		if ('disabled' in button) {
+			(button as HTMLButtonElement).disabled = false;
+		}
+		button.click();
+	}
+
+	function markAllButton(host: HTMLElement): HTMLElement | null {
+		return host.querySelector('.sources-review-progress-header .monaco-button');
+	}
+
+	function stubAccessorForReviewCommands(host: ISourcesReviewListHost): ServicesAccessor {
+		const hostService = {
+			getReviewListHost: () => host,
+		};
+		return {
+			get: <T,>(id: ServiceIdentifier<T>) => {
+				if (id === ISourcesReviewHostService) {
+					return hostService as T;
+				}
+				throw new Error(`unexpected service ${String(id)}`);
+			},
 		};
 	}
 
@@ -642,6 +676,135 @@ suite('Sources - review list model', () => {
 		assert.strictEqual(openCalls, 0, 'Open Selected leftover list-fail must not fake preview');
 		assert.strictEqual(marked, 0, 'Open Selected leftover list-fail must not mark reviewed');
 		assert.strictEqual(host.querySelector('.sources-review-status')?.textContent ?? '', sourcesGitReadFailureMessage('boom'));
+	});
+
+	test('list-fail leftover closes Mark chrome and forced click stays 0 markReviewed/markAllReviewed', async function () {
+		let readCalls = 0;
+		let marked = 0;
+		let markedAll = 0;
+		const leftoverPath = 'src/leftover.ts';
+		const onDidChangeConnection = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => {
+				readCalls += 1;
+				if (readCalls > 1) {
+					throw new Error('boom');
+				}
+				return {
+					supported: true,
+					reason: '',
+					branch: 'main',
+					entries: [{ path: leftoverPath, oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+				};
+			},
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+		} as unknown as IUniverseAgentConnection;
+
+		const host = mountListHost();
+		const widget = store.add(stubSourcesGitListServices({
+			connection,
+			markReviewed: () => { marked += 1; },
+			markAllReviewed: () => { markedAll += 1; },
+		}).createInstance(SourcesReviewList, host));
+		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<unknown> });
+		onDidChangeConnection.fire({
+			transport: 'ok',
+			sharedFsRootSent: false,
+			pairingPending: false,
+			channelAlive: true,
+			capabilities: {} as never,
+		});
+		const status = await waitForStatusText(host, '.sources-review-status', 'Unable to read git changes');
+		assert.strictEqual(status, sourcesGitReadFailureMessage('boom'));
+		assert.strictEqual(list.length, 1);
+
+		await selectFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+		const markAll = markAllButton(host);
+		assert.ok(markAll, 'Mark all as reviewed is in the progress header');
+		assert.strictEqual(markAll.classList.contains('disabled'), true);
+		assert.strictEqual(markAll.getAttribute('aria-disabled'), 'true');
+		const rowMark = host.querySelector('.sources-review-state') as HTMLButtonElement | null;
+		assert.ok(rowMark);
+		assert.strictEqual(rowMark.disabled || rowMark.getAttribute('aria-disabled') === 'true' || rowMark.classList.contains('disabled'), true);
+
+		forceClick(markAll);
+		forceClick(rowMark);
+		widget.markAllReviewed();
+		widget.toggleReviewedSelected();
+		const accessor = stubAccessorForReviewCommands(hostFromReviewList(widget));
+		await CommandsRegistry.getCommand(SOURCES_REVIEW_TOGGLE_REVIEWED_SELECTED_COMMAND)?.handler?.(accessor);
+		await CommandsRegistry.getCommand(SOURCES_REVIEW_MARK_ALL_REVIEWED_COMMAND)?.handler?.(accessor);
+		await timeout(20);
+
+		assert.strictEqual(marked, 0, 'list-fail leftover must not markReviewed');
+		assert.strictEqual(markedAll, 0, 'list-fail leftover must not markAllReviewed');
+		assert.strictEqual(host.querySelector('.sources-review-status')?.textContent ?? '', sourcesGitReadFailureMessage('boom'));
+		assert.strictEqual(list.length, 1);
+	});
+
+	test('connected leftover without pairing Mark still marks', async function () {
+		let marked = 0;
+		let markedAll = 0;
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: Event.None,
+			readGitChanges: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				entries: [{ path: 'src/live.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+			}),
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+		} as unknown as IUniverseAgentConnection;
+
+		const host = mountListHost();
+		const widget = store.add(stubSourcesGitListServices({
+			connection,
+			markReviewed: () => { marked += 1; },
+			markAllReviewed: () => { markedAll += 1; },
+		}).createInstance(SourcesReviewList, host));
+		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+
+		await waitForList(widget as unknown as { list?: WorkbenchList<unknown> });
+		await selectFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+		const markAll = await waitForEnabledButton(host, '.sources-review-progress-header .monaco-button');
+		assert.strictEqual(markAll.classList.contains('disabled'), false);
+		const rowMark = host.querySelector('.sources-review-state') as HTMLButtonElement | null;
+		assert.ok(rowMark);
+		assert.strictEqual(rowMark.disabled, false);
+
+		markAll.click();
+		await timeout(20);
+		assert.strictEqual(markedAll, 1);
+
+		widget.toggleReviewedSelected();
+		await timeout(20);
+		assert.strictEqual(marked, 1);
+
+		const accessor = stubAccessorForReviewCommands(hostFromReviewList(widget));
+		await CommandsRegistry.getCommand(SOURCES_REVIEW_MARK_ALL_REVIEWED_COMMAND)?.handler?.(accessor);
+		await CommandsRegistry.getCommand(SOURCES_REVIEW_TOGGLE_REVIEWED_SELECTED_COMMAND)?.handler?.(accessor);
+		await timeout(20);
+		assert.strictEqual(markedAll, 2);
+		assert.strictEqual(marked, 2);
 	});
 
 	test('Review list success then missing readGitChanges keeps leftover rows and does not paint local-only', async function () {

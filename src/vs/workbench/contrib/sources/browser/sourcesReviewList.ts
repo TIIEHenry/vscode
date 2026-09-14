@@ -77,6 +77,7 @@ interface ISourcesReviewTemplateData {
 
 interface ISourcesReviewRendererDelegate {
 	isReviewed(entry: ISourcesReviewEntry): boolean;
+	isSourcesGitWriteListFailed(): boolean;
 	getChips(entry: ISourcesReviewEntry): readonly IReviewAttributionChipDisplay[];
 	getChipTitle(chip: IReviewAttributionChipDisplay): string;
 	onChipClick(toolCallId: string): void;
@@ -118,19 +119,24 @@ class SourcesReviewRenderer implements IListRenderer<ISourcesReviewEntry, ISourc
 		const reviewLabel = reviewed
 			? localize('sourcesReviewList.markUnreviewed', "Mark as unreviewed")
 			: localize('sourcesReviewList.markReviewed', "Mark as reviewed");
+		const listFailed = this.delegate.isSourcesGitWriteListFailed();
+		templateData.reviewState.disabled = listFailed;
 		templateData.reviewState.setAttribute('aria-pressed', String(reviewed));
 		templateData.reviewState.setAttribute('aria-label', reviewLabel);
+		templateData.reviewState.setAttribute('aria-disabled', String(listFailed));
 		templateData.reviewState.title = reviewLabel;
-		templateData.elementDisposables.add(dom.addDisposableListener(templateData.reviewState, 'click', event => {
-			event.preventDefault();
-			event.stopPropagation();
-			this.delegate.onReviewToggle(element);
-		}));
-		templateData.elementDisposables.add(dom.addDisposableListener(templateData.reviewState, 'keydown', event => {
-			if (event.key === ' ' || event.key === 'Enter') {
+		if (!listFailed) {
+			templateData.elementDisposables.add(dom.addDisposableListener(templateData.reviewState, 'click', event => {
+				event.preventDefault();
 				event.stopPropagation();
-			}
-		}));
+				this.delegate.onReviewToggle(element);
+			}));
+			templateData.elementDisposables.add(dom.addDisposableListener(templateData.reviewState, 'keydown', event => {
+				if (event.key === ' ' || event.key === 'Enter') {
+					event.stopPropagation();
+				}
+			}));
+		}
 
 		dom.clearNode(templateData.attribution);
 		const chips = this.delegate.getChips(element);
@@ -210,11 +216,12 @@ export class SourcesReviewList extends Disposable {
 	private lastRevealMissToolCallId: string | undefined;
 	private usingGitRead = false;
 	private refreshSeq = 0;
-	/** List-fail leftover is not a live FileDiff surface (D444). */
+	/** List-fail leftover is not a live FileDiff / Mark surface (D444 / D448). */
 	private leftoverListFailed = false;
 
 	private readonly rendererDelegate: ISourcesReviewRendererDelegate = {
 		isReviewed: (entry) => this.isEntryReviewed(entry),
+		isSourcesGitWriteListFailed: () => this.leftoverListFailed,
 		getChips: (entry) => this.chipMap.get(entry.resource.toString()) ?? [],
 		getChipTitle: (chip) => !chip.overflow && this.lastRevealMissToolCallId === chip.toolCallId
 			? sourcesReviewRevealMissHint
@@ -340,6 +347,9 @@ export class SourcesReviewList extends Disposable {
 	}
 
 	toggleReviewedSelected(): void {
+		if (this.leftoverListFailed) {
+			return;
+		}
 		const entry = this.getSelectedEntry();
 		if (!entry) {
 			return;
@@ -397,6 +407,9 @@ export class SourcesReviewList extends Disposable {
 	}
 
 	private markAllVisibleReviewed(): void {
+		if (this.leftoverListFailed) {
+			return;
+		}
 		const countEntries = filterReviewEntries(
 			this.allEntries,
 			this.filterBox.value,
@@ -411,6 +424,9 @@ export class SourcesReviewList extends Disposable {
 	}
 
 	private markEntryReviewed(entry: ISourcesReviewEntry): void {
+		if (this.leftoverListFailed) {
+			return;
+		}
 		const key = this.entryKeys.get(entry.resource.toString());
 		if (key) {
 			this.reviewProgressService.markReviewed(key);
@@ -418,6 +434,9 @@ export class SourcesReviewList extends Disposable {
 	}
 
 	private markEntryUnreviewed(entry: ISourcesReviewEntry): void {
+		if (this.leftoverListFailed) {
+			return;
+		}
 		const key = this.entryKeys.get(entry.resource.toString());
 		if (key) {
 			this.reviewProgressService.markUnreviewed(key);
@@ -425,6 +444,9 @@ export class SourcesReviewList extends Disposable {
 	}
 
 	private toggleEntryReview(entry: ISourcesReviewEntry): void {
+		if (this.leftoverListFailed) {
+			return;
+		}
 		if (this.isEntryReviewed(entry)) {
 			this.markEntryUnreviewed(entry);
 		} else {
@@ -482,7 +504,7 @@ export class SourcesReviewList extends Disposable {
 	private updateProgressHeader(entries: readonly ISourcesReviewEntry[]): void {
 		const { reviewed, total } = countReviewProgress(entries, entry => this.isEntryReviewed(entry));
 		this.progressCount.textContent = localize('sourcesReviewList.reviewProgress', "Reviewed {0} / {1}", reviewed, total);
-		this.markAllButton.enabled = total > 0 && reviewed < total;
+		this.markAllButton.enabled = total > 0 && reviewed < total && !this.leftoverListFailed;
 	}
 
 	private ensureList(): WorkbenchList<ISourcesReviewEntry> {
@@ -550,19 +572,20 @@ export class SourcesReviewList extends Disposable {
 				getAnchor: () => e.anchor,
 				getActions: () => {
 					const reviewed = this.isEntryReviewed(element);
+					const canMark = !this.leftoverListFailed;
 					return [
 						new Action(
 							'sources.review.markReviewed',
 							localize('sourcesReviewList.markReviewed', "Mark as reviewed"),
 							undefined,
-							!reviewed,
+							canMark && !reviewed,
 							() => this.markEntryReviewed(element),
 						),
 						new Action(
 							'sources.review.markUnreviewed',
 							localize('sourcesReviewList.markUnreviewed', "Mark as unreviewed"),
 							undefined,
-							reviewed,
+							canMark && reviewed,
 							() => this.markEntryUnreviewed(element),
 						),
 					];
