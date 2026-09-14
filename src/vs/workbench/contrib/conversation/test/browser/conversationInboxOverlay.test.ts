@@ -1286,12 +1286,21 @@ suite('ConversationInboxOverlay leftover pairing remaining writes', () => {
 		const pause = getQueueAction(panel, conversationLensInboxQueuePause);
 		const clear = getQueueAction(panel, conversationLensInboxQueueClear);
 		const retry = getRetryButton(panel, 'q-fail');
-		assert.strictEqual(pause.disabled, false);
-		assert.strictEqual(clear.disabled, false);
-
-		pairingPending = true;
+		assert.strictEqual(pause.disabled, true);
+		assert.strictEqual(pause.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(clear.disabled, true);
+		assert.strictEqual(clear.getAttribute('aria-disabled'), 'true');
+		pause.disabled = false;
+		pause.removeAttribute('disabled');
+		pause.setAttribute('aria-disabled', 'false');
+		clear.disabled = false;
+		clear.removeAttribute('disabled');
+		clear.setAttribute('aria-disabled', 'false');
 		pause.click();
 		clear.click();
+		assertLeftoverQueueUnchanged(roster, sessionId, false, 2);
+
+		pairingPending = true;
 		assertLeftoverQueueUnchanged(roster, sessionId, false, 2);
 		retry.disabled = false;
 		retry.removeAttribute('disabled');

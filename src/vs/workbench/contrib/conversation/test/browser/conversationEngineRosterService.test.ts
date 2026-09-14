@@ -930,6 +930,41 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.ok(!service.getSessions().some(session => session.id === 'untitled'));
 	});
 
+	test('successful list then listSessions throw keeps leftover and does not mint New session', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([
+			{ sessionId: 'ua-a', title: 'A' },
+			{ sessionId: 'ua-b', title: 'B' },
+		]);
+		const service = store.add(createService(connection));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), ['ua-a', 'ua-b']);
+		assert.strictEqual(service.getActiveSessionId(), 'ua-a');
+		const treeRefreshAfterLive = connection.treeRefreshCalls.length;
+		const createAfterLive = connection.createCalls.length;
+
+		connection.listSessionsError = new Error('Query does not return results');
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), ['ua-a', 'ua-b']);
+		assert.deepStrictEqual(service.getSessions().map(session => session.title), ['A', 'B']);
+		assert.ok(!service.getSessions().some(session => session.id === ENGINE_BIND_FAILED_SESSION_ID));
+		assert.ok(!service.getSessions().some(session => session.title === 'New session'));
+		assert.ok(!service.getSessions().some(session => session.id === 'untitled'));
+		assert.strictEqual(service.getActiveSessionId(), 'ua-a');
+		assert.strictEqual(service.getActiveSession().id, 'ua-a');
+		assert.strictEqual(service.isEngineSessionReady(), false);
+		assert.strictEqual(service.createSession(), '');
+		service.switchSession('ua-b');
+		assert.strictEqual(service.getActiveSessionId(), 'ua-b');
+		assert.strictEqual(connection.createCalls.length, createAfterLive);
+		assert.strictEqual(connection.treeRefreshCalls.length, treeRefreshAfterLive);
+	});
+
 	test('listed ghost titled New session with lease bind failure shows bind-failed', async () => {
 		const connection = store.add(new MockUniverseAgentConnection());
 		connection.setListSessions([{ sessionId: 'session-ghost', title: 'New session' }]);

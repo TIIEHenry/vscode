@@ -346,7 +346,7 @@ class HubDevicesRenderer implements IListRenderer<HubDeviceProjection, IHubDevic
 			connectButton,
 			device: undefined,
 			connectDisposable: connectButton.onDidClick(() => {
-				if (templateData.device) {
+				if (templateData.device && this.canConnect(templateData.device)) {
 					this.onConnect(templateData.device);
 				}
 			}),
@@ -434,6 +434,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private hubDevices: HubDeviceProjection[] = [];
 	private enginePairedDevices: UniverseAgentDeviceInfo[] | undefined;
 	private engineDevicesListFailed: string | undefined;
+	/** Hub `refreshDirectory` leftover-fail (D447): leftover rows stay; Connect is not live. */
+	private hubDirectoryListFailed: string | undefined;
 	private pendingPairs: UniverseAgentPendingPairInfo[] = [];
 	private pendingPairsListFailed: string | undefined;
 	private selectedPending: UniverseAgentPendingPairInfo | undefined;
@@ -957,6 +959,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private canConnectDevice(device: HubDeviceProjection): boolean {
+		if (this.hubDirectoryListFailed) {
+			return false;
+		}
 		return canConnectHubDevice(device, this.hubService.getDirectoryStatus());
 	}
 
@@ -1049,9 +1054,12 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private applyHubDirectoryRefreshFailure(reason: string): void {
+		this.hubDirectoryListFailed = reason;
 		writeStatus(this.hubDirectoryBanner, reason, 'error');
 		this.hubDirectoryBanner.style.display = '';
-		// Keep leftover hubDevices (D248). First-pull leftover is already [].
+		// Keep leftover hubDevices (D248). Splice so Connect closes without reselect (D447).
+		this.hubDevicesList.splice(0, this.hubDevicesList.length, this.hubDevices);
+		this.updateDeviceActions();
 	}
 
 	/** Hub write-success stays only after refreshDirectory listed (D221 sibling). */
@@ -1059,6 +1067,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		try {
 			const status = await this.hubService.refreshDirectory();
 			if (this.hubDirectoryRefreshListed(status)) {
+				this.hubDirectoryListFailed = undefined;
 				this.renderHubDirectory();
 				return true;
 			}
@@ -1535,6 +1544,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private async handleConnectDevice(device: HubDeviceProjection): Promise<void> {
+		if (!this.canConnectDevice(device)) {
+			return;
+		}
 		try {
 			const result = await this.hubService.addHubDeviceProfile({
 				hubDeviceId: device.id,
@@ -1832,9 +1844,16 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const directory = this.hubService.getDirectoryStatus();
 		const banner = this.engineDevicesListFailed
 			? connectionDeviceListFailureMessage(this.engineDevicesListFailed)
-			: getHubDirectoryBannerLabel(directory);
-		this.hubDirectoryBanner.textContent = banner ?? '';
-		this.hubDirectoryBanner.style.display = banner ? '' : 'none';
+			: this.hubDirectoryListFailed
+				? this.hubDirectoryListFailed
+				: getHubDirectoryBannerLabel(directory);
+		if (this.engineDevicesListFailed || this.hubDirectoryListFailed) {
+			writeStatus(this.hubDirectoryBanner, banner ?? '', 'error');
+			this.hubDirectoryBanner.style.display = banner ? '' : 'none';
+		} else {
+			this.hubDirectoryBanner.textContent = banner ?? '';
+			this.hubDirectoryBanner.style.display = banner ? '' : 'none';
+		}
 
 		if (this.enginePairedDevices !== undefined) {
 			this.hubDevices = this.enginePairedDevices.map(toConnectionPairedDevice);
