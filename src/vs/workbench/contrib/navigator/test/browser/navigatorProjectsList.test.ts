@@ -921,4 +921,153 @@ suite('NavigatorProjectsView', () => {
 		);
 		assert.strictEqual(view.shouldShowWelcome(), true);
 	});
+
+	function leftoverSessionSwitchClosed(view: NavigatorProjectsView): boolean {
+		return (view as unknown as { leftoverSessionSwitchClosed: boolean }).leftoverSessionSwitchClosed;
+	}
+
+	test('rebuildTree throw leftover closes leftover session switch without reselect', async () => {
+		class SwitchTrackingRoster extends ConversationStubService {
+			readonly switchSessionCalls: string[] = [];
+			override switchSession(sessionId: string): void {
+				this.switchSessionCalls.push(sessionId);
+				super.switchSession(sessionId);
+			}
+		}
+		const folderUri = URI.file('/projects/leftover-switch-throw');
+		const contextService = new TestContextService(testWorkspace(folderUri));
+		const rosterService = new SwitchTrackingRoster();
+		rosterService.setEngineConnected(true);
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const baseConnection = createNavigatorConnectionTestStub({
+			getNavigatorCapability: () => 'SUPPORTED',
+		});
+		let throwOnSnapshot = false;
+		const uaConnection = createNavigatorConnectionTestStub({
+			getNavigatorCapability: () => 'SUPPORTED',
+			onDidChangeConnection: onDidChangeConnection.event,
+			getConnectionSnapshot: () => {
+				if (throwOnSnapshot) {
+					throw new Error('snapshot boom');
+				}
+				return baseConnection.getConnectionSnapshot();
+			},
+		});
+		const view = await mountView({ contextService, rosterService, uaConnection });
+		const leftoverSessionIds = collectSessionIds(getViewTreeNodes(view));
+		const sessionNode = findTreeNode(getViewTreeNodes(view), node => node.kind === 'session' && !!node.sessionId);
+		assert.ok(sessionNode?.sessionId, 'live paint must have leftover session rows');
+		openTreeNode(view, sessionNode);
+		assert.deepStrictEqual(rosterService.switchSessionCalls, [sessionNode.sessionId]);
+		assert.strictEqual(leftoverSessionSwitchClosed(view), false);
+
+		throwOnSnapshot = true;
+		onDidChangeConnection.fire(baseConnection.getConnectionSnapshot());
+		await flushMicrotasks();
+		await new Promise<void>(resolve => setImmediate(() => resolve()));
+
+		assert.deepStrictEqual(collectSessionIds(getViewTreeNodes(view)), leftoverSessionIds, 'rebuild throw leftover rows must stay');
+		assert.strictEqual(leftoverSessionSwitchClosed(view), true);
+		openTreeNode(view, sessionNode);
+		assert.deepStrictEqual(rosterService.switchSessionCalls, [sessionNode.sessionId], 'forced leftover session switch must stay 0 leftover-as-live switchSession');
+	});
+
+	test('sessionList UNKNOWN leftover closes leftover session switch without reselect', async () => {
+		class SwitchTrackingRoster extends ConversationStubService {
+			readonly switchSessionCalls: string[] = [];
+			override switchSession(sessionId: string): void {
+				this.switchSessionCalls.push(sessionId);
+				super.switchSession(sessionId);
+			}
+		}
+		const folderUri = URI.file('/projects/leftover-switch-unknown');
+		const contextService = new TestContextService(testWorkspace(folderUri));
+		const rosterService = new SwitchTrackingRoster();
+		rosterService.setEngineConnected(true);
+		let sessionListCapability: 'SUPPORTED' | 'UNKNOWN' = 'SUPPORTED';
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const uaConnection = createNavigatorConnectionTestStub({
+			getNavigatorCapability: key => key === 'sessionList' ? sessionListCapability : 'SUPPORTED',
+			onDidChangeConnection: onDidChangeConnection.event,
+		});
+		const view = await mountView({ contextService, rosterService, uaConnection });
+		const leftoverSessionIds = collectSessionIds(getViewTreeNodes(view));
+		const sessionNode = findTreeNode(getViewTreeNodes(view), node => node.kind === 'session' && !!node.sessionId);
+		assert.ok(sessionNode?.sessionId);
+		openTreeNode(view, sessionNode);
+		assert.deepStrictEqual(rosterService.switchSessionCalls, [sessionNode.sessionId]);
+
+		sessionListCapability = 'UNKNOWN';
+		onDidChangeConnection.fire(uaConnection.getConnectionSnapshot());
+		await flushMicrotasks();
+		await new Promise<void>(resolve => setImmediate(() => resolve()));
+
+		assert.deepStrictEqual(collectSessionIds(getViewTreeNodes(view)), leftoverSessionIds, 'UNKNOWN leftover session rows must stay');
+		assert.strictEqual(leftoverSessionSwitchClosed(view), true);
+		openTreeNode(view, sessionNode);
+		assert.deepStrictEqual(rosterService.switchSessionCalls, [sessionNode.sessionId], 'forced UNKNOWN leftover session switch must stay 0');
+	});
+
+	test('pairing-hold leftover closes leftover session switch without reselect', async () => {
+		class SwitchTrackingRoster extends ConversationStubService {
+			readonly switchSessionCalls: string[] = [];
+			override switchSession(sessionId: string): void {
+				this.switchSessionCalls.push(sessionId);
+				super.switchSession(sessionId);
+			}
+		}
+		const folderUri = URI.file('/projects/leftover-switch-pairing');
+		const contextService = new TestContextService(testWorkspace(folderUri));
+		const rosterService = new SwitchTrackingRoster();
+		rosterService.setEngineConnected(true);
+		let pairingPending = false;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const uaConnection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			getConnectionSnapshot: () => ({
+				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
+				pairingPending,
+			}),
+			onDidChangeConnection: onDidChangeConnection.event,
+		});
+		const view = await mountView({ contextService, rosterService, uaConnection });
+		const leftoverSessionIds = collectSessionIds(getViewTreeNodes(view));
+		const sessionNode = findTreeNode(getViewTreeNodes(view), node => node.kind === 'session' && !!node.sessionId);
+		assert.ok(sessionNode?.sessionId);
+		assert.ok(leftoverSessionIds.length > 0);
+
+		pairingPending = true;
+		onDidChangeConnection.fire(uaConnection.getConnectionSnapshot());
+		await flushMicrotasks();
+		await new Promise<void>(resolve => setImmediate(() => resolve()));
+
+		assert.strictEqual(isConversationPairingHold(uaConnection), true);
+		assert.deepStrictEqual(collectSessionIds(getViewTreeNodes(view)), leftoverSessionIds, 'pairing-hold leftover session rows must stay');
+		assert.strictEqual(leftoverSessionSwitchClosed(view), true);
+		openTreeNode(view, sessionNode);
+		assert.deepStrictEqual(rosterService.switchSessionCalls, [], 'forced pairing-hold leftover session switch must stay 0 leftover-as-live switchSession');
+	});
+
+	test('first-pull pairing stays empty without leftover session-switch chrome', async () => {
+		class SwitchTrackingRoster extends ConversationStubService {
+			readonly switchSessionCalls: string[] = [];
+			override switchSession(sessionId: string): void {
+				this.switchSessionCalls.push(sessionId);
+				super.switchSession(sessionId);
+			}
+		}
+		const rosterService = new SwitchTrackingRoster();
+		const uaConnection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
+				pairingPending: true,
+			}),
+		});
+		const view = await mountView({ rosterService, uaConnection });
+		assert.strictEqual(collectSessionIds(getViewTreeNodes(view)).length, 0, 'first-pull pairing must not install leftover session rows');
+		openTreeNode(view, { id: 'session:ghost', kind: 'session', label: 'Ghost', sessionId: 'ghost' });
+		assert.deepStrictEqual(rosterService.switchSessionCalls, [], 'first-pull pairing must not leftover-as-live switchSession');
+	});
 });

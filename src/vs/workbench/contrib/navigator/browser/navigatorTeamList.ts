@@ -190,6 +190,8 @@ export class NavigatorTeamView extends ViewPane {
 
 	private teamInfoCallCount = 0;
 	private hadTeamSnapshot = false;
+	/** D445: leftover KEEP must close Inspect / member-task row-open without reselect. */
+	private leftoverRowActionsClosed = false;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -346,7 +348,7 @@ export class NavigatorTeamView extends ViewPane {
 		)) as WorkbenchList<INavigatorTeamMemberEntry>;
 
 		this._register(this.membersList.onDidOpen(e => {
-			if (!e.element) {
+			if (!e.element || !this.isTeamRowActionLive()) {
 				return;
 			}
 			this.inspectService.setTarget({ kind: 'member', info: e.element });
@@ -374,9 +376,10 @@ export class NavigatorTeamView extends ViewPane {
 		)) as WorkbenchList<INavigatorTeamTaskEntry>;
 
 		this._register(this.tasksList.onDidOpen(e => {
-			if (e.element) {
-				this.inspectService.setTarget({ kind: 'task', task: e.element });
+			if (!e.element || !this.isTeamRowActionLive()) {
+				return;
 			}
+			this.inspectService.setTarget({ kind: 'task', task: e.element });
 		}));
 
 		return this.tasksList;
@@ -387,6 +390,7 @@ export class NavigatorTeamView extends ViewPane {
 		const pairingHold = isConversationPairingHold(this.uaConnection);
 		if (pairingHold && hadLiveTeamPaint) {
 			this.inspectService.setLiveAgentIds('team', undefined);
+			this.markLeftoverRowActionsClosed();
 			this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
 			return;
 		}
@@ -395,6 +399,7 @@ export class NavigatorTeamView extends ViewPane {
 		const engineReady = this.rosterService.isEngineConnected() && phaseKind === 'connected';
 		if (pairingHold || !engineReady) {
 			if (hadLiveTeamPaint) {
+				this.markLeftoverRowActionsClosed();
 				this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
 				return;
 			}
@@ -418,6 +423,9 @@ export class NavigatorTeamView extends ViewPane {
 				'team',
 				agentTreeCapability === 'UNSUPPORTED' || pending ? undefined : EMPTY_LIVE_AGENT_IDS,
 			);
+			if (hadLiveTeamPaint) {
+				this.markLeftoverRowActionsClosed();
+			}
 			this.setTeamAfterTreeEmpty(treeEmpty);
 			if (liveTree !== undefined || agentTreeCapability === 'UNSUPPORTED' || treeFetchFailed) {
 				this.hadTeamSnapshot = true;
@@ -428,11 +436,17 @@ export class NavigatorTeamView extends ViewPane {
 		const teamCapability = getNavigatorCapability(this.uaConnection, 'team');
 		if (teamCapability === 'UNSUPPORTED') {
 			this.inspectService.setLiveAgentIds('team', undefined);
+			if (hadLiveTeamPaint) {
+				this.markLeftoverRowActionsClosed();
+			}
 			this.setTeamAfterTreeEmpty(TEAM_UNSUPPORTED_COPY);
 			return;
 		}
 		if (teamCapability === 'UNKNOWN') {
 			this.inspectService.setLiveAgentIds('team', undefined);
+			if (hadLiveTeamPaint) {
+				this.markLeftoverRowActionsClosed();
+			}
 			this.setTeamAfterTreeEmpty(NAVIGATOR_TEAM_LOADING_COPY);
 			return;
 		}
@@ -494,10 +508,12 @@ export class NavigatorTeamView extends ViewPane {
 			// do not paint in-flight members/tasks as live. D336 entry KEEP is unchanged.
 			if (isConversationPairingHold(this.uaConnection) || !this.rosterService.isEngineConnected() || this.uaConnection.getConnectionPhase().kind !== 'connected') {
 				this.inspectService.setLiveAgentIds('team', undefined);
+				this.markLeftoverRowActionsClosed();
 				this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
 				return;
 			}
 			this.hadTeamSnapshot = true;
+			this.markLiveRowActionsOpen();
 			this.setMemberEntries(members, members.length === 0 ? TEAM_MEMBERS_EMPTY_COPY : undefined);
 			this.setTaskEntries(tasks, tasks.length === 0 ? TEAM_TASKS_EMPTY_COPY : undefined);
 			this.setTeamSnapshotNote(undefined);
@@ -506,6 +522,8 @@ export class NavigatorTeamView extends ViewPane {
 			if (!hadLiveTeamPaint) {
 				this.setMemberEntries([], TEAM_FETCH_FAILED_COPY);
 				this.setTaskEntries([], TEAM_FETCH_FAILED_COPY);
+			} else {
+				this.markLeftoverRowActionsClosed();
 			}
 			this.setTeamSnapshotNote(TEAM_FETCH_FAILED_COPY);
 			this.inspectService.setLiveAgentIds('team', EMPTY_LIVE_AGENT_IDS);
@@ -645,17 +663,38 @@ export class NavigatorTeamView extends ViewPane {
 		this.tasksBody?.classList.toggle('active', this.subview === 'tasks');
 	}
 
+	private isTeamRowActionLive(): boolean {
+		return !this.leftoverRowActionsClosed;
+	}
+
+	private markLeftoverRowActionsClosed(): void {
+		this.leftoverRowActionsClosed = true;
+	}
+
+	private markLiveRowActionsOpen(): void {
+		this.leftoverRowActionsClosed = false;
+	}
+
 	inspectMember(member: INavigatorTeamMemberEntry): void {
+		if (!this.isTeamRowActionLive()) {
+			return;
+		}
 		this.inspectService.setTarget({ kind: 'member', info: member });
 		this.openInspectPanel();
 	}
 
 	inspectTask(task: INavigatorTeamTaskEntry): void {
+		if (!this.isTeamRowActionLive()) {
+			return;
+		}
 		this.inspectService.setTarget({ kind: 'task', task });
 		this.openInspectPanel();
 	}
 
 	inspectFocusedTitleAction(): void {
+		if (!this.isTeamRowActionLive()) {
+			return;
+		}
 		if (this.subview === 'members') {
 			const index = this.membersList?.getFocus()[0];
 			const member = typeof index === 'number' && index >= 0 ? this.membersList?.element(index) : undefined;
