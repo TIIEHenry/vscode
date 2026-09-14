@@ -188,7 +188,7 @@ suite('ConversationTimelineRenderer user-bubble writesEnabled', () => {
 			collapsible: false,
 			collapsed: false,
 			filterData: undefined,
-		} as ITreeNode<ConversationTimelineItem, void>;
+		} as unknown as ITreeNode<ConversationTimelineItem, void>;
 	}
 
 	function renderUserBubble(writesEnabled: boolean, edits: string[]): { bubble: HTMLElement; dispose: () => void } {

@@ -1414,7 +1414,7 @@ suite('conversation lens dispose gate', () => {
 				isEngineSessionReady: () => true,
 			},
 			uaConnection: {
-				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionPhase: () => ({ kind: 'connected' as const, path: 'loopback' }),
 				getConnectionSnapshot: () => ({ pairingPending: false }),
 			},
 		};
