@@ -22,29 +22,39 @@ export function hasSourcesGitSessionId(sessionId: string): boolean {
 }
 
 /**
+ * D449 / D459 KEEP leftover list-fail: connected engine, not pairing-hold,
+ * session catalog not ready. Distinct from git-read `leftoverListFailed`.
+ */
+export function isSourcesKeepLeftoverWrite(connected: boolean, pairingPending: boolean, engineSessionReady: boolean): boolean {
+	return connected && !pairingPending && !engineSessionReady;
+}
+
+/**
  * Write door for Stage / Commit / Accept.
  * `connected` is still `isEngineConnected()` (D283). Pairing-hold leftover
  * and leftover-looks-live (`connected===true` + pairingPending) both refuse.
  * List-fail leftover (`leftoverListFailed`) also refuses Stage / Commit /
  * Accept when callers pass the flag (D443). git-read may keep the default false.
+ * KEEP leftover (`engineSessionReady===false`) also refuses (D459); default
+ * true so existing git leftover / pairing-hold callers stay unchanged.
  */
-export function isSourcesGitWriteLive(connected: boolean, pairingHold = false, leftoverListFailed = false): boolean {
-	return connected && !pairingHold && !leftoverListFailed;
+export function isSourcesGitWriteLive(connected: boolean, pairingHold = false, leftoverListFailed = false, engineSessionReady = true): boolean {
+	return connected && !pairingHold && !leftoverListFailed && engineSessionReady;
 }
 
 /** Sources Changes Stage → WriteGitStagePaths. Empty sessionId does not call the hook. */
-export function canSendSourcesGitStagePaths(connected: boolean, hasHook: boolean, sessionId: string, pairingHold = false, leftoverListFailed = false): boolean {
-	return isSourcesGitWriteLive(connected, pairingHold, leftoverListFailed) && hasHook && hasSourcesGitSessionId(sessionId);
+export function canSendSourcesGitStagePaths(connected: boolean, hasHook: boolean, sessionId: string, pairingHold = false, leftoverListFailed = false, engineSessionReady = true): boolean {
+	return isSourcesGitWriteLive(connected, pairingHold, leftoverListFailed, engineSessionReady) && hasHook && hasSourcesGitSessionId(sessionId);
 }
 
 /** Sources Changes Commit → WriteGitCommit. Empty sessionId does not call the hook. */
-export function canSendSourcesGitCommit(connected: boolean, hasHook: boolean, sessionId: string, pairingHold = false, leftoverListFailed = false): boolean {
-	return isSourcesGitWriteLive(connected, pairingHold, leftoverListFailed) && hasHook && hasSourcesGitSessionId(sessionId);
+export function canSendSourcesGitCommit(connected: boolean, hasHook: boolean, sessionId: string, pairingHold = false, leftoverListFailed = false, engineSessionReady = true): boolean {
+	return isSourcesGitWriteLive(connected, pairingHold, leftoverListFailed, engineSessionReady) && hasHook && hasSourcesGitSessionId(sessionId);
 }
 
 /** Sources Review Accept → WriteGitApplyHunks. Connection + hook only; empty session or empty patches are refused in tryWrite. */
-export function canSendSourcesGitApplyHunks(connected: boolean, hasHook: boolean, pairingHold = false, leftoverListFailed = false): boolean {
-	return isSourcesGitWriteLive(connected, pairingHold, leftoverListFailed) && hasHook;
+export function canSendSourcesGitApplyHunks(connected: boolean, hasHook: boolean, pairingHold = false, leftoverListFailed = false, engineSessionReady = true): boolean {
+	return isSourcesGitWriteLive(connected, pairingHold, leftoverListFailed, engineSessionReady) && hasHook;
 }
 
 /** Accept RPC payload: both sides required. Empty sessionId or empty / whitespace-only patches → no hook. */
@@ -155,6 +165,8 @@ export function resolveSourcesDiffWriteActions(input: {
 	readonly hasGitCleanCommand: boolean;
 	/** leftover-looks-live pairing-hold: hide Stage the same way chrome hides Unstage. */
 	readonly pairingHold?: boolean;
+	/** KEEP leftover list-fail: hide Stage the same way pairing-hold hides it (D459). */
+	readonly keepLeftover?: boolean;
 }): ISourcesDiffWriteActionVisibility {
 	const stageable = isSourcesChangeStageable(input.groupId);
 	const unstageable = isSourcesChangeUnstageable(input.groupId);
@@ -162,9 +174,10 @@ export function resolveSourcesDiffWriteActions(input: {
 	const hasLocalStage = stageable && input.hasScmResource && input.hasGitStageCommand;
 	const hasLocalUnstage = unstageable && input.hasScmResource && input.hasGitUnstageCommand;
 	const hasLocalRevert = revertible && input.hasScmResource && input.hasGitCleanCommand;
+	const writeHold = !!input.pairingHold || !!input.keepLeftover;
 
 	return {
-		showStage: stageable && !input.pairingHold && (input.canWriteStage || hasLocalStage),
+		showStage: stageable && !writeHold && (input.canWriteStage || hasLocalStage),
 		showAccept: canShowSourcesReviewAccept(input.canWriteAccept, input.hasApplyHunksPayload),
 		showRevert: hasLocalRevert,
 		showUnstage: hasLocalUnstage,
@@ -218,8 +231,9 @@ export async function tryWriteSourcesGitStagePaths(
 	paths: readonly string[],
 	pairingHold = false,
 	leftoverListFailed = false,
+	engineSessionReady = true,
 ): Promise<UniverseAgentWriteGitWriteResult | undefined> {
-	if (!canSendSourcesGitStagePaths(connected, typeof hook === 'function', sessionId, pairingHold, leftoverListFailed) || !hook) {
+	if (!canSendSourcesGitStagePaths(connected, typeof hook === 'function', sessionId, pairingHold, leftoverListFailed, engineSessionReady) || !hook) {
 		return undefined;
 	}
 	return hook(sourcesGitStagePathsRequest(sessionId, paths));
@@ -232,8 +246,9 @@ export async function tryWriteSourcesGitCommit(
 	message: string,
 	pairingHold = false,
 	leftoverListFailed = false,
+	engineSessionReady = true,
 ): Promise<UniverseAgentWriteGitWriteResult | undefined> {
-	if (!canSendSourcesGitCommit(connected, typeof hook === 'function', sessionId, pairingHold, leftoverListFailed) || !hook) {
+	if (!canSendSourcesGitCommit(connected, typeof hook === 'function', sessionId, pairingHold, leftoverListFailed, engineSessionReady) || !hook) {
 		return undefined;
 	}
 	return hook(sourcesGitCommitRequest(sessionId, message));
@@ -247,8 +262,9 @@ export async function tryWriteSourcesGitApplyHunks(
 	patches: readonly string[] = [],
 	pairingHold = false,
 	leftoverListFailed = false,
+	engineSessionReady = true,
 ): Promise<UniverseAgentWriteGitWriteResult | undefined> {
-	if (!canSendSourcesGitApplyHunks(connected, typeof hook === 'function', pairingHold, leftoverListFailed) || !hook) {
+	if (!canSendSourcesGitApplyHunks(connected, typeof hook === 'function', pairingHold, leftoverListFailed, engineSessionReady) || !hook) {
 		return undefined;
 	}
 	if (!hasSourcesGitApplyHunksPayload(sessionId, patches)) {

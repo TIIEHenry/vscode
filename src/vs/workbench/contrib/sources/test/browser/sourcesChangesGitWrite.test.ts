@@ -17,6 +17,7 @@ import {
 	canSendSourcesGitCommit,
 	canSendSourcesGitStagePaths,
 	isSourcesGitWriteLive,
+	isSourcesKeepLeftoverWrite,
 	canShowSourcesReviewAccept,
 	hasSourcesGitApplyHunksPayload,
 	hasSourcesGitSessionId,
@@ -77,6 +78,17 @@ suite('Sources - Changes git write', () => {
 		assert.strictEqual(canSendSourcesGitStagePaths(true, true, 'sess-1', false, true), false);
 		assert.strictEqual(canSendSourcesGitCommit(true, true, 'sess-1', false, true), false);
 		assert.strictEqual(canSendSourcesGitApplyHunks(true, true, false, true), false);
+		assert.strictEqual(isSourcesKeepLeftoverWrite(true, false, false), true);
+		assert.strictEqual(isSourcesKeepLeftoverWrite(true, false, true), false);
+		assert.strictEqual(isSourcesKeepLeftoverWrite(true, true, false), false);
+		assert.strictEqual(isSourcesGitWriteLive(true, false, false, false), false);
+		assert.strictEqual(isSourcesGitWriteLive(true, false, false, true), true);
+		assert.strictEqual(canSendSourcesGitStagePaths(true, true, 'sess-1', false, false, false), false);
+		assert.strictEqual(canSendSourcesGitCommit(true, true, 'sess-1', false, false, false), false);
+		assert.strictEqual(canSendSourcesGitApplyHunks(true, true, false, false, false), false);
+		assert.strictEqual(canSendSourcesGitStagePaths(true, true, 'sess-1', false, false, true), true);
+		assert.strictEqual(canSendSourcesGitCommit(true, true, 'sess-1', false, false, true), true);
+		assert.strictEqual(canSendSourcesGitApplyHunks(true, true, false, false, true), true);
 	});
 
 	test('Stage request passes sessionId and empty commands / argv as-is', () => {
@@ -218,6 +230,12 @@ suite('Sources - Changes git write', () => {
 		});
 		assert.strictEqual(pairingHoldLocalScmStage.showStage, false);
 
+		const keepLeftoverLocalScmStage = resolveSourcesDiffWriteActions({
+			...localScmStageInput,
+			keepLeftover: true,
+		});
+		assert.strictEqual(keepLeftoverLocalScmStage.showStage, false);
+
 		const noScmNoPayload = resolveSourcesDiffWriteActions({
 			groupId: 'workingTree',
 			hasScmResource: false,
@@ -330,6 +348,18 @@ suite('Sources - Changes git write', () => {
 			applyCalls.push(request);
 			return failedWrite;
 		}, 'sess-1', ['a'], ['p'], false, true), undefined);
+		assert.strictEqual(await tryWriteSourcesGitStagePaths(true, async request => {
+			stageCalls.push(request);
+			return failedWrite;
+		}, 'sess-1', ['src/a.ts'], false, false, false), undefined);
+		assert.strictEqual(await tryWriteSourcesGitCommit(true, async request => {
+			commitCalls.push(request);
+			return failedWrite;
+		}, 'sess-1', 'msg', false, false, false), undefined);
+		assert.strictEqual(await tryWriteSourcesGitApplyHunks(true, async request => {
+			applyCalls.push(request);
+			return failedWrite;
+		}, 'sess-1', ['a'], ['p'], false, false, false), undefined);
 		assert.deepStrictEqual(stageCalls, []);
 		assert.deepStrictEqual(commitCalls, []);
 		assert.deepStrictEqual(applyCalls, []);

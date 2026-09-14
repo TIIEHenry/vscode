@@ -44,6 +44,7 @@ suite('Sources - review showForPaths', () => {
 			markAllReviewed: () => { },
 			setStatusMessage: () => { },
 			isSourcesGitFileDiffOpenSkipped: () => false,
+			isSourcesGitWriteClosed: () => false,
 			readGitFileDiff: async () => undefined,
 			...overrides,
 		};
@@ -382,5 +383,90 @@ suite('Sources - review showForPaths', () => {
 		assert.strictEqual(diffCalls, 1, 'live Open Selected must readGitFileDiff');
 		assert.strictEqual(openedDiff, true, 'live Open Selected must open FileDiff sides, not a fake file preview');
 		assert.strictEqual(marked, 1);
+	});
+
+	test('openSelected KEEP leftover write-closed still opens FileDiff and does not mark reviewed', async function () {
+		const resource = toResource.call(this, '/project/leftover.ts');
+		const entry = {
+			resource,
+			name: 'leftover.ts',
+			description: 'Unstaged Changes',
+			groupId: 'workingTree',
+			gitPath: 'src/leftover.ts',
+			indexState: 'WORKTREE',
+		};
+		let marked = 0;
+		let diffCalls = 0;
+		let openedDiff = false;
+		const models = new Map<string, string>();
+
+		const hostService = store.add(new SourcesReviewHostService());
+		hostService.registerReviewListHost(stubReviewListHost({
+			getSelectedEntry: () => entry,
+			isSourcesGitFileDiffOpenSkipped: () => false,
+			isSourcesGitWriteClosed: () => true,
+			readGitFileDiff: async () => {
+				diffCalls += 1;
+				return {
+					supported: true,
+					reason: '',
+					path: 'src/leftover.ts',
+					unifiedDiff: '@@ -1 +1 @@\n-old\n+new\n',
+				};
+			},
+		}));
+
+		const accessor = stubAccessor((id: unknown) => {
+			if (id === ISourcesReviewHostService) {
+				return hostService;
+			}
+			if (id === ISourcesReviewProgressService) {
+				return {
+					resolveKey: async () => ({ scopeKeyId: 'root', path: resource.toString(), contentHash: 'etag' }),
+					markReviewed: () => { marked += 1; },
+				};
+			}
+			if (id === IEditorService) {
+				return {
+					openEditor: async (input: { original?: { resource?: unknown }; modified?: { resource?: unknown }; resource?: unknown }) => {
+						openedDiff = !!(input.original && input.modified);
+						return undefined;
+					},
+				};
+			}
+			if (id === IQuickDiffService) {
+				return { getQuickDiffs: async () => [] };
+			}
+			if (id === IConfigurationService) {
+				return { getValue: () => 'preview' };
+			}
+			if (id === IInstantiationService) {
+				return {};
+			}
+			if (id === ISourcesDiffPanelService) {
+				return {};
+			}
+			if (id === IModelService) {
+				return {
+					getModel: (uri: { toString(): string }) => models.has(uri.toString()) ? {} : undefined,
+					updateModel: (model: { uri?: { toString(): string } }, value: string) => {
+						if (model.uri) {
+							models.set(model.uri.toString(), value);
+						}
+					},
+					createModel: (_value: string, _language: unknown, uri: { toString(): string }) => {
+						models.set(uri.toString(), _value);
+						return { uri };
+					},
+				};
+			}
+			throw new Error(`unexpected service ${String(id)}`);
+		});
+
+		await CommandsRegistry.getCommand(SOURCES_REVIEW_OPEN_SELECTED_COMMAND)?.handler?.(accessor);
+
+		assert.strictEqual(diffCalls, 1, 'KEEP leftover Open Selected must still readGitFileDiff');
+		assert.strictEqual(openedDiff, true, 'KEEP leftover Open Selected must still open FileDiff');
+		assert.strictEqual(marked, 0, 'KEEP leftover Open Selected must not markReviewed');
 	});
 });

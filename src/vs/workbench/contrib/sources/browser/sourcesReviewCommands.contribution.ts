@@ -58,7 +58,14 @@ registerAction2(class SourcesReviewOpenSelectedAction extends Action2 {
 					pinned: false,
 				}),
 				resource => reviewProgressService.resolveKey(resource),
-				key => reviewProgressService.markReviewed(key),
+				key => {
+					// KEEP leftover list-fail is not a live Mark surface (D459).
+					// FileDiff open stays leftoverListFailed / pairing-hold only (D444 / D446).
+					if (host.isSourcesGitWriteClosed()) {
+						return;
+					}
+					reviewProgressService.markReviewed(key);
+				},
 				entry.resource,
 			);
 		} catch (error) {

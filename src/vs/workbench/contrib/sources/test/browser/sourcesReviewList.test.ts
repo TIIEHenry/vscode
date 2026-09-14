@@ -195,10 +195,12 @@ suite('Sources - review list model', () => {
 		} as unknown as ISCMService;
 	}
 
-	function createRoster(sessionId = 'session-1'): IConversationRosterService {
+	function createRoster(sessionId = 'session-1', engineSessionReady = true): IConversationRosterService {
 		return {
 			getActiveSessionId: () => sessionId,
 			onDidChangeActiveSession: Event.None,
+			onDidChangeSession: Event.None,
+			isEngineSessionReady: () => engineSessionReady,
 		} as unknown as IConversationRosterService;
 	}
 
@@ -309,6 +311,7 @@ suite('Sources - review list model', () => {
 			markAllReviewed: () => widget.markAllReviewed(),
 			setStatusMessage: message => widget.setStatusMessage(message),
 			isSourcesGitFileDiffOpenSkipped: () => widget.isSourcesGitFileDiffOpenSkipped(),
+			isSourcesGitWriteClosed: () => widget.isSourcesGitWriteClosed(),
 			readGitFileDiff: entry => widget.readGitFileDiffForOpen(entry),
 		};
 	}
@@ -348,6 +351,7 @@ suite('Sources - review list model', () => {
 		instantiationService: ReturnType<typeof stubSourcesGitListServices>,
 		host: ISourcesReviewListHost,
 		openEditor: (input: unknown) => Promise<unknown>,
+		modelService?: IModelService,
 	): ServicesAccessor {
 		const hostService = {
 			getReviewListHost: () => host,
@@ -376,7 +380,7 @@ suite('Sources - review list model', () => {
 					return instantiationService.invokeFunction(accessor => accessor.get(ISourcesDiffPanelService)) as T;
 				}
 				if (id === IModelService) {
-					return instantiationService.invokeFunction(accessor => accessor.get(IModelService)) as T;
+					return (modelService ?? instantiationService.invokeFunction(accessor => accessor.get(IModelService))) as T;
 				}
 				throw new Error(`unexpected service ${String(id)}`);
 			},
@@ -753,6 +757,153 @@ suite('Sources - review list model', () => {
 		assert.strictEqual(list.length, 1);
 	});
 
+	test('KEEP leftover list-fail closes Mark chrome while git-read still succeeds and forced click stays 0 markReviewed/markAllReviewed', async function () {
+		let marked = 0;
+		let markedAll = 0;
+		const leftoverPath = 'src/leftover.ts';
+		const roster = createRoster('session-1', false);
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: Event.None,
+			readGitChanges: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				entries: [{ path: leftoverPath, oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+			}),
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+		} as unknown as IUniverseAgentConnection;
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(roster.isEngineSessionReady(), false);
+
+		const host = mountListHost();
+		const widget = store.add(stubSourcesGitListServices({
+			connection,
+			roster,
+			markReviewed: () => { marked += 1; },
+			markAllReviewed: () => { markedAll += 1; },
+		}).createInstance(SourcesReviewList, host));
+		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<unknown> });
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(widget.isSourcesKeepLeftoverWrite(), true);
+		assert.strictEqual(host.querySelector('.sources-review-status')?.textContent ?? '', '');
+
+		await selectFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+		const markAll = markAllButton(host);
+		assert.ok(markAll, 'Mark all as reviewed is in the progress header');
+		assert.strictEqual(markAll.classList.contains('disabled'), true);
+		assert.strictEqual(markAll.getAttribute('aria-disabled'), 'true');
+		const rowMark = host.querySelector('.sources-review-state') as HTMLButtonElement | null;
+		assert.ok(rowMark);
+		assert.strictEqual(rowMark.disabled || rowMark.getAttribute('aria-disabled') === 'true' || rowMark.classList.contains('disabled'), true);
+
+		forceClick(markAll);
+		forceClick(rowMark);
+		widget.markAllReviewed();
+		widget.toggleReviewedSelected();
+		const accessor = stubAccessorForReviewCommands(hostFromReviewList(widget));
+		await CommandsRegistry.getCommand(SOURCES_REVIEW_TOGGLE_REVIEWED_SELECTED_COMMAND)?.handler?.(accessor);
+		await CommandsRegistry.getCommand(SOURCES_REVIEW_MARK_ALL_REVIEWED_COMMAND)?.handler?.(accessor);
+		await timeout(20);
+
+		assert.strictEqual(marked, 0, 'KEEP leftover list-fail must not markReviewed');
+		assert.strictEqual(markedAll, 0, 'KEEP leftover list-fail must not markAllReviewed');
+		assert.strictEqual(list.length, 1);
+	});
+
+	test('Open Selected KEEP leftover still opens FileDiff and does not markReviewed', async function () {
+		let marked = 0;
+		let diffCalls = 0;
+		let openCalls = 0;
+		const leftoverPath = 'src/leftover.ts';
+		const roster = createRoster('session-1', false);
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: Event.None,
+			readGitChanges: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				entries: [{ path: leftoverPath, oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+			}),
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+			readGitFileDiff: async () => {
+				diffCalls += 1;
+				return {
+					supported: true,
+					reason: '',
+					path: leftoverPath,
+					unifiedDiff: '@@ -1 +1 @@\n-old\n+new\n',
+				};
+			},
+		} as unknown as IUniverseAgentConnection;
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(roster.isEngineSessionReady(), false);
+
+		const host = mountListHost();
+		const instantiationService = stubSourcesGitListServices({
+			connection,
+			roster,
+			markReviewed: () => { marked += 1; },
+			openEditor: async () => {
+				openCalls += 1;
+				return undefined;
+			},
+		});
+		const widget = store.add(instantiationService.createInstance(SourcesReviewList, host));
+		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<unknown> });
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(widget.isSourcesKeepLeftoverWrite(), true);
+		assert.strictEqual(widget.isSourcesGitWriteClosed(), true);
+		assert.strictEqual(widget.isSourcesGitFileDiffOpenSkipped(), false, 'KEEP leftover must not join the FileDiff read gate');
+		assert.strictEqual(host.querySelector('.sources-review-status')?.textContent ?? '', '');
+
+		await selectFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+		const models = new Map<string, string>();
+		const accessor = stubAccessorForOpenSelected(instantiationService, hostFromReviewList(widget), async () => {
+			openCalls += 1;
+			return undefined;
+		}, {
+			getModel: (uri: { toString(): string }) => models.has(uri.toString()) ? {} : undefined,
+			updateModel: (model: { uri?: { toString(): string } }, value: string) => {
+				if (model.uri) {
+					models.set(model.uri.toString(), value);
+				}
+			},
+			createModel: (_value: string, _language: unknown, uri: { toString(): string }) => {
+				models.set(uri.toString(), _value);
+				return { uri };
+			},
+		} as unknown as IModelService);
+		await CommandsRegistry.getCommand(SOURCES_REVIEW_OPEN_SELECTED_COMMAND)?.handler?.(accessor);
+		await timeout(20);
+
+		assert.ok(diffCalls >= 1, 'KEEP leftover Open Selected must still open FileDiff');
+		assert.ok(openCalls >= 1, 'KEEP leftover Open Selected must still open the FileDiff editor');
+		assert.strictEqual(marked, 0, 'KEEP leftover Open Selected must not markReviewed');
+		assert.strictEqual(list.length, 1);
+	});
+
 	test('connected leftover without pairing Mark still marks', async function () {
 		let marked = 0;
 		let markedAll = 0;
@@ -776,14 +927,17 @@ suite('Sources - review list model', () => {
 		} as unknown as IUniverseAgentConnection;
 
 		const host = mountListHost();
+		const roster = createRoster('session-1', true);
 		const widget = store.add(stubSourcesGitListServices({
 			connection,
+			roster,
 			markReviewed: () => { marked += 1; },
 			markAllReviewed: () => { markedAll += 1; },
 		}).createInstance(SourcesReviewList, host));
 		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
 
 		await waitForList(widget as unknown as { list?: WorkbenchList<unknown> });
+		assert.strictEqual(roster.isEngineSessionReady(), true);
 		await selectFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
 		const markAll = await waitForEnabledButton(host, '.sources-review-progress-header .monaco-button');
 		assert.strictEqual(markAll.classList.contains('disabled'), false);
