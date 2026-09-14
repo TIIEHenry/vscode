@@ -16,6 +16,8 @@ import {
 	shouldHoldCreateSnapshotWrite,
 	tryCreateSnapshotAfterPrompt,
 } from '../../browser/conversationCreateSnapshotActions.contribution.js';
+import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
+import { IConversationRosterService } from '../../browser/conversationStubService.js';
 
 suite('ConversationCreateSnapshotActions', () => {
 
@@ -128,5 +130,108 @@ suite('ConversationCreateSnapshotActions', () => {
 		assert.strictEqual(created, undefined);
 		assert.strictEqual(createSnapshotCalls.length, 0, 'after-prompt leftover-looks-live must not createSnapshot');
 		assert.deepStrictEqual(errors, [conversationCreateSnapshotDisconnectedCopy]);
+	});
+
+	test('KEEP leftover list-fail holds write and shows disconnected copy', () => {
+		const leftoverUa = {
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			getConnectionPhase: () => ({ kind: 'connected' as const, path: 'direct' as const }),
+			isEngineConnected: () => true,
+		};
+		const leftoverRoster = {
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => false,
+		} as unknown as IConversationRosterService;
+		const readyRoster = {
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => true,
+		} as unknown as IConversationRosterService;
+
+		assert.strictEqual(leftoverUa.isEngineConnected(), true, 'KEEP leftover list-fail must keep isEngineConnected()===true');
+		assert.strictEqual(leftoverUa.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(leftoverRoster.isEngineSessionReady(), false);
+		assert.strictEqual(isConversationPairingHold(leftoverUa), false);
+		assert.strictEqual(shouldHoldCreateSnapshotWrite(leftoverUa, leftoverRoster), true);
+		assert.strictEqual(shouldHoldCreateSnapshotWrite(leftoverUa, readyRoster), false);
+		assert.strictEqual(canCreateEngineSnapshot(true, true, 'ua-only'), true);
+
+		const errors: string[] = [];
+		if (shouldHoldCreateSnapshotWrite(leftoverUa, leftoverRoster)) {
+			notifyCreateSnapshotUnavailable(false, true, {
+				error: message => { errors.push(String(message)); },
+			});
+		}
+		assert.deepStrictEqual(errors, [conversationCreateSnapshotDisconnectedCopy]);
+	});
+
+	test('after prompt KEEP leftover list-fail holds write: 0 createSnapshot + unavailable notice', () => {
+		const leftoverUa = {
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			getConnectionPhase: () => ({ kind: 'connected' as const, path: 'direct' as const }),
+			isEngineConnected: () => true,
+		};
+		const leftoverRoster = {
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => false,
+		} as unknown as IConversationRosterService;
+
+		assert.strictEqual(leftoverUa.isEngineConnected(), true, 'KEEP leftover list-fail must keep isEngineConnected()===true');
+		assert.strictEqual(leftoverUa.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(leftoverRoster.isEngineSessionReady(), false);
+		assert.strictEqual(isConversationPairingHold(leftoverUa), false);
+		assert.strictEqual(shouldHoldCreateSnapshotWrite(leftoverUa, leftoverRoster), true);
+		assert.strictEqual(canCreateEngineSnapshot(leftoverUa.isEngineConnected(), true, 'ua-only'), true);
+
+		const title = resolveCreateSnapshotTitle('After prompt leftover');
+		const createSnapshotCalls: { title: string }[] = [];
+		const errors: string[] = [];
+		const created = tryCreateSnapshotAfterPrompt(
+			leftoverUa,
+			true,
+			{ error: message => { errors.push(String(message)); } },
+			() => {
+				createSnapshotCalls.push({ title });
+				return true;
+			},
+			leftoverUa.isEngineConnected(),
+			leftoverRoster,
+		);
+
+		assert.strictEqual(created, undefined);
+		assert.strictEqual(createSnapshotCalls.length, 0, 'after-prompt KEEP leftover list-fail must not createSnapshot');
+		assert.deepStrictEqual(errors, [conversationCreateSnapshotDisconnectedCopy]);
+	});
+
+	test('after prompt connected ready still creates', () => {
+		const liveUa = {
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			getConnectionPhase: () => ({ kind: 'connected' as const, path: 'direct' as const }),
+			isEngineConnected: () => true,
+		};
+		const readyRoster = {
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => true,
+		} as unknown as IConversationRosterService;
+
+		assert.strictEqual(shouldHoldCreateSnapshotWrite(liveUa, readyRoster), false);
+		assert.strictEqual(readyRoster.isEngineSessionReady(), true);
+
+		const createSnapshotCalls: { title: string }[] = [];
+		const errors: string[] = [];
+		const created = tryCreateSnapshotAfterPrompt(
+			liveUa,
+			true,
+			{ error: message => { errors.push(String(message)); } },
+			() => {
+				createSnapshotCalls.push({ title: 'ready' });
+				return true;
+			},
+			liveUa.isEngineConnected(),
+			readyRoster,
+		);
+
+		assert.strictEqual(created, true);
+		assert.strictEqual(createSnapshotCalls.length, 1);
+		assert.deepStrictEqual(errors, []);
 	});
 });

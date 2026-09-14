@@ -34,14 +34,25 @@ export function canCreateEngineSnapshot(
 	return connected && hasCreateSnapshot && !!sessionId?.trim();
 }
 
+/** KEEP leftover list-fail (D449/D456/D458): connected but roster not ready is not a live write surface. */
+function isKeepLeftoverCreateSnapshotWrite(roster: IConversationRosterService | undefined): boolean {
+	return !!roster
+		&& roster.isEngineConnected()
+		&& roster.isEngineSessionReady?.() === false;
+}
+
 /**
- * D310 F1 write gate: pairing-hold leftover and leftover-looks-live
- * (`connected===true` + pairingPending) must not prompt or call
- * `roster.createSnapshot`. Pairing-hold is checked first so
- * `testEngineConnected===true` cannot take the live path.
+ * D310 F1 / D458 write gate: pairing-hold leftover, leftover-looks-live
+ * (`connected===true` + pairingPending), and KEEP leftover list-fail
+ * (`connected===true` + pairingPending===false + `isEngineSessionReady()===false`)
+ * must not prompt or call `roster.createSnapshot`. Pairing-hold is checked
+ * first so `testEngineConnected===true` cannot take the live path.
  */
-export function shouldHoldCreateSnapshotWrite(ua: IConversationPairingHoldSource | undefined): boolean {
-	return isConversationPairingHold(ua);
+export function shouldHoldCreateSnapshotWrite(
+	ua: IConversationPairingHoldSource | undefined,
+	roster?: IConversationRosterService,
+): boolean {
+	return isConversationPairingHold(ua) || isKeepLeftoverCreateSnapshotWrite(roster);
 }
 
 /**
@@ -95,8 +106,9 @@ export function notifyCreateSnapshotUnavailable(
 }
 
 /**
- * D371 post-await write gate. After the title prompt resolves (cancel already
- * returned), leftover-looks-live (`isEngineConnected()===true` + pairingPending)
+ * D371 / D458 post-await write gate. After the title prompt resolves (cancel
+ * already returned), leftover-looks-live (`isEngineConnected()===true` +
+ * pairingPending) and KEEP leftover list-fail (`isEngineSessionReady()===false`)
  * must notice and not invoke `create`. Pairing-hold is checked first so
  * looks-live cannot take the live path. Returns whether the snapshot was
  * created; `undefined` when the write is held.
@@ -107,8 +119,9 @@ export function tryCreateSnapshotAfterPrompt(
 	notificationService: Pick<INotificationService, 'error'>,
 	create: () => boolean,
 	connected: boolean,
+	roster?: IConversationRosterService,
 ): boolean | undefined {
-	if (shouldHoldCreateSnapshotWrite(ua)) {
+	if (shouldHoldCreateSnapshotWrite(ua, roster)) {
 		notifyCreateSnapshotUnavailable(false, history, notificationService);
 		return undefined;
 	}
@@ -120,9 +133,10 @@ export function tryCreateSnapshotAfterPrompt(
  * active session. Does not list, restore, or delete snapshots, and does
  * not replace SessionBar History (GetHistory). Disconnected / no hook / empty
  * sessionId / cancelled prompt no-op. Pairing-hold leftover (including
- * leftover-looks-live) is checked before `isEngineConnected()` and shows
- * the disconnected notice. After the title prompt resolves, pairing-hold is
- * checked again (D371) so leftover-looks-live in-flight cannot create.
+ * leftover-looks-live) and KEEP leftover list-fail (D458) are checked
+ * before `isEngineConnected()` and show the disconnected notice. After the
+ * title prompt resolves, the same hold is checked again (D371/D458) so
+ * leftover-looks-live / KEEP leftover in-flight cannot create.
  * `!isEngineConnected()` + history (true disconnect) also notices instead
  * of a silent return. `createSnapshot` false → notice (D110 failed /
  * engine_disconnected); true stays silent.
@@ -147,7 +161,7 @@ registerAction2(class ConversationCreateSnapshotAction extends Action2 {
 		const notificationService = accessor.get(INotificationService);
 		const quickInputService = accessor.get(IQuickInputService);
 		const sessionId = roster.getActiveSessionId();
-		if (shouldHoldCreateSnapshotWrite(connection)) {
+		if (shouldHoldCreateSnapshotWrite(connection, roster)) {
 			notifyCreateSnapshotUnavailable(false, roster.hasEngineConnectionHistory(), notificationService);
 			return;
 		}
@@ -176,6 +190,7 @@ registerAction2(class ConversationCreateSnapshotAction extends Action2 {
 				...(args?.description !== undefined ? { description: args.description } : {}),
 			}),
 			roster.isEngineConnected(),
+			roster,
 		);
 	}
 });

@@ -130,6 +130,8 @@ function snapshotWriteFailureReason(error: unknown): string {
  * do not redo KEEP.
  * List-fail leftover keeps rows + failed and closes Restore/Delete (D440);
  * write gate is not only connected+pairingHold (`leftoverListFailed`).
+ * KEEP leftover list-fail (D458: connected + pairingPending===false +
+ * `isEngineSessionReady()===false`) also closes Restore/Delete.
  * Restore/Delete success copy is restored only after a successful list
  * (D54/D154 listed-gate); leftover list-fail clears Restored./Deleted.
  * no Create.
@@ -220,6 +222,11 @@ export class ConversationEngineSnapshotsList extends Disposable {
 				void this.refresh();
 			}
 		}));
+		this._register(this.roster.onDidChangeSession(() => {
+			if (this.open && this.paintedLiveSnapshots && this.isKeepLeftoverListFailWrite()) {
+				this.disableLeftoverWriteButtons();
+			}
+		}));
 	}
 
 	isOpen(): boolean {
@@ -258,9 +265,18 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		return hadLiveCatalog && isConversationPairingHold(this.connection);
 	}
 
-	/** Catalog leftover contract: list-fail leftover is not a live write surface. */
+	/** KEEP leftover list-fail (D449/D456/D458): connected but roster not ready is not a live write surface. */
+	private isKeepLeftoverListFailWrite(): boolean {
+		return this.roster.isEngineConnected()
+			&& this.roster.isEngineSessionReady?.() === false;
+	}
+
+	/** Catalog leftover contract: list-fail leftover / KEEP leftover is not a live write surface. */
 	private isSnapshotWriteLive(): boolean {
-		return this.connection.isEngineConnected() && !isConversationPairingHold(this.connection) && !this.leftoverListFailed;
+		return this.connection.isEngineConnected()
+			&& !isConversationPairingHold(this.connection)
+			&& !this.leftoverListFailed
+			&& !this.isKeepLeftoverListFailWrite();
 	}
 
 	private disableLeftoverWriteButtons(): void {

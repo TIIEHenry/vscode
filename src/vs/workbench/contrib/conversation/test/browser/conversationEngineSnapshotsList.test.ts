@@ -658,6 +658,79 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.strictEqual(listCalls, 2);
 	});
 
+	test('KEEP leftover list-fail closes Restore/Delete without reselect', async () => {
+		let engineSessionReady = true;
+		let listCalls = 0;
+		const leftover: UniverseAgentSessionSnapshotInfo = {
+			id: 'leftover-keep',
+			sessionId: 'sess-1',
+			title: 'KEEP leftover',
+			createdAt: 1,
+			turnCount: 1,
+		};
+		const liveSnapshot: UniverseAgentConnectionSnapshot = {
+			transport: 'ok',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		};
+		const onDidChangeSession = store.add(new Emitter<string>());
+		const restoreCalls: UniverseAgentRestoreSnapshotRequest[] = [];
+		const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
+		const roster = createRosterStub({
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => engineSessionReady,
+			onDidChangeSession: onDidChangeSession.event,
+		});
+		const { list, overlayParent, confirmCalls } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => liveSnapshot,
+			listSnapshots: async () => {
+				listCalls++;
+				return { snapshots: [leftover] };
+			},
+			restoreSnapshot: async request => {
+				restoreCalls.push(request);
+				return { ok: true };
+			},
+			deleteSnapshot: async request => {
+				deleteCalls.push(request);
+				return { ok: true };
+			},
+		}), roster, { confirmResult: true });
+		list.show();
+		await Promise.resolve();
+		assert.strictEqual(listCalls, 1);
+		assert.ok(snapshotRow(overlayParent, 'leftover-keep'));
+		const liveRestore = restoreButton(snapshotRow(overlayParent, 'leftover-keep'));
+		assert.ok(liveRestore);
+		assert.strictEqual(liveRestore.classList.contains('disabled'), false);
+		assert.strictEqual(roster.isEngineConnected(), true, 'KEEP leftover list-fail must keep isEngineConnected()===true');
+		assert.strictEqual(liveSnapshot.pairingPending, false);
+		assert.strictEqual(isConversationPairingHold({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => liveSnapshot,
+		}), false);
+
+		engineSessionReady = false;
+		assert.strictEqual(roster.isEngineSessionReady(), false);
+		onDidChangeSession.fire('sess-1');
+		await flushMicrotasks();
+
+		assert.strictEqual(listCalls, 1, 'KEEP leftover must not extra listSnapshots');
+		assert.ok(snapshotRow(overlayParent, 'leftover-keep'));
+		assert.strictEqual(overlayParent.querySelectorAll(`.${conversationLensSnapshotsRowClass}`).length, 1);
+		assertWriteButtonsDisabled(snapshotRow(overlayParent, 'leftover-keep'));
+		forceClick(restoreButton(snapshotRow(overlayParent, 'leftover-keep')));
+		forceClick(deleteButton(snapshotRow(overlayParent, 'leftover-keep')));
+		await flushMicrotasks();
+		assert.deepStrictEqual(restoreCalls, []);
+		assert.deepStrictEqual(deleteCalls, []);
+		assert.deepStrictEqual(confirmCalls, []);
+	});
+
 	test('connection drop while open clears rows and does not keep fixture data', async () => {
 		let connected = true;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
