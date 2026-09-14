@@ -2234,11 +2234,16 @@ suite('ConnectionPreferencesPane', () => {
 
 	test('Refresh devices throw keeps leftover and paints failed banner', async () => {
 		let listDevicesCalls = 0;
+		const added: { readonly hubDeviceId: string; readonly displayName?: string }[] = [];
 		const pane = mountPane({
 			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
 			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
 			refreshDirectory: async () => {
 				throw new Error('boom');
+			},
+			addHubDeviceProfile: async input => {
+				added.push(input);
+				return { ok: true, profileId: 'hub-profile-1' };
 			},
 		}, {
 			isEngineConnected: () => false,
@@ -2251,6 +2256,9 @@ suite('ConnectionPreferencesPane', () => {
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
 		assert.ok([...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent).includes('Studio'));
+		const liveConnect = container.querySelector('.connection-hub-device-row .monaco-button') as HTMLButtonElement | null;
+		assert.ok(liveConnect);
+		assert.notStrictEqual(liveConnect.style.display, 'none');
 
 		const refresh = [...container.querySelectorAll('.connection-hub-actions .monaco-button')]
 			.find(button => button.textContent === 'Refresh devices') as HTMLButtonElement | undefined;
@@ -2267,15 +2275,35 @@ suite('ConnectionPreferencesPane', () => {
 		const leftover = [...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent);
 		assert.ok(leftover.includes('Studio'));
 		assert.strictEqual(listDevicesCalls, 0);
+		const connectButton = container.querySelector('.connection-hub-device-row .monaco-button') as HTMLButtonElement | null;
+		assert.ok(connectButton);
+		assert.strictEqual(connectButton.style.display, 'none');
+		assert.strictEqual(connectButton.classList.contains('disabled'), true);
+		assert.strictEqual(connectButton.getAttribute('aria-disabled'), 'true');
+		connectButton.classList.remove('disabled');
+		connectButton.removeAttribute('disabled');
+		connectButton.setAttribute('aria-disabled', 'false');
+		connectButton.disabled = false;
+		connectButton.style.display = '';
+		connectButton.click();
+		await (pane as unknown as { handleConnectDevice(device: HubDeviceProjection): Promise<void> }).handleConnectDevice(device({ id: 'dev-1', name: 'Studio' }));
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.deepStrictEqual(added, []);
 		container.remove();
 	});
 
 	test('Refresh devices non-throw fail keeps leftover and paints failed banner', async () => {
 		let listDevicesCalls = 0;
+		const added: { readonly hubDeviceId: string; readonly displayName?: string }[] = [];
 		const pane = mountPane({
 			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
 			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
 			refreshDirectory: async () => ({ kind: 'error', code: 'denied', reason: 'list boom' }),
+			addHubDeviceProfile: async input => {
+				added.push(input);
+				return { ok: true, profileId: 'hub-profile-1' };
+			},
 		}, {
 			isEngineConnected: () => false,
 			listDevices: async () => {
@@ -2287,6 +2315,9 @@ suite('ConnectionPreferencesPane', () => {
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
 		assert.ok([...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent).includes('Studio'));
+		const liveConnect = container.querySelector('.connection-hub-device-row .monaco-button') as HTMLButtonElement | null;
+		assert.ok(liveConnect);
+		assert.notStrictEqual(liveConnect.style.display, 'none');
 
 		const refresh = [...container.querySelectorAll('.connection-hub-actions .monaco-button')]
 			.find(button => button.textContent === 'Refresh devices') as HTMLButtonElement | undefined;
@@ -2303,6 +2334,21 @@ suite('ConnectionPreferencesPane', () => {
 		const leftover = [...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent);
 		assert.ok(leftover.includes('Studio'));
 		assert.strictEqual(listDevicesCalls, 0);
+		const connectButton = container.querySelector('.connection-hub-device-row .monaco-button') as HTMLButtonElement | null;
+		assert.ok(connectButton);
+		assert.strictEqual(connectButton.style.display, 'none');
+		assert.strictEqual(connectButton.classList.contains('disabled'), true);
+		assert.strictEqual(connectButton.getAttribute('aria-disabled'), 'true');
+		connectButton.classList.remove('disabled');
+		connectButton.removeAttribute('disabled');
+		connectButton.setAttribute('aria-disabled', 'false');
+		connectButton.disabled = false;
+		connectButton.style.display = '';
+		connectButton.click();
+		await (pane as unknown as { handleConnectDevice(device: HubDeviceProjection): Promise<void> }).handleConnectDevice(device({ id: 'dev-1', name: 'Studio' }));
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.deepStrictEqual(added, []);
 		container.remove();
 	});
 

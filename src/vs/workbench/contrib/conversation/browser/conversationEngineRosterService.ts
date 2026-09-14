@@ -124,6 +124,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (!this.isEngineConnected()) {
 			return true;
 		}
+		if (this.engineSessionBindFailed) {
+			return false;
+		}
 		if (!this.listCompleted || this.pendingEngineBindSessionId) {
 			return false;
 		}
@@ -139,6 +142,11 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			&& this.listCompleted
 			&& !this.pendingEngineBindSessionId
 			&& this.engineSessionBindFailed;
+	}
+
+	/** List-fail leftover KEEP (D447): last-good rows stay; first-pull empty still uses the bind-failed placeholder. */
+	private hasLeftoverEngineCatalogListFailed(): boolean {
+		return this.isEngineSessionBindFailed() && this.engineSessions.length > 0;
 	}
 
 	private getEngineBindFailedSession(): ConversationStubSession {
@@ -199,7 +207,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				return this.engineSessions.length > 0 ? this.engineSessions : [];
 			}
 			if (this.isEngineSessionBindFailed()) {
-				return [this.getEngineBindFailedSession()];
+				return this.hasLeftoverEngineCatalogListFailed()
+					? this.engineSessions
+					: [this.getEngineBindFailedSession()];
 			}
 			return this.engineSessions;
 		}
@@ -211,6 +221,11 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override getActiveSession(): ConversationStubSession {
 		if (this.isEngineSessionBindFailed()) {
+			if (this.hasLeftoverEngineCatalogListFailed()) {
+				const sessionId = this.activeEngineSessionId;
+				return this.engineSessions.find(session => session.id === sessionId)
+					?? this.engineSessions[0]!;
+			}
 			return this.getEngineBindFailedSession();
 		}
 		if (this.isEngineConnected() || this.wasEverConnected) {
@@ -241,6 +256,12 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				return this.activeEngineSessionId ?? '';
 			}
 			if (this.isEngineSessionBindFailed()) {
+				if (this.hasLeftoverEngineCatalogListFailed()) {
+					if (this.activeEngineSessionId && this.engineSessions.some(s => s.id === this.activeEngineSessionId)) {
+						return this.activeEngineSessionId;
+					}
+					return this.engineSessions[0]!.id;
+				}
 				return ENGINE_BIND_FAILED_SESSION_ID;
 			}
 			if (this.engineSessions.length === 0) {
@@ -315,7 +336,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (previous !== sessionId) {
 				this._onDidChangeActiveSession.fire(sessionId);
 			}
-			if (this.isEngineConnected()) {
+			if (this.isEngineConnected() && !this.engineSessionBindFailed) {
 				this.uaConnection.requestAgentTreeRefresh(sessionId);
 			}
 			this.persistEngineAwareRoster();
@@ -328,6 +349,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override createSession(): string {
 		if (isConversationPairingHold(this.uaConnection)) {
+			return '';
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
 			return '';
 		}
 		if (this.isEngineConnected()) {
@@ -835,7 +859,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (isConversationPairingHold(this.uaConnection)) {
 			return;
 		}
-		if (this.isEngineConnected()) {
+		if (this.isEngineConnected() && !this.engineSessionBindFailed) {
 			this.uaConnection.requestAgentTreeRefresh(sessionId);
 		}
 	}
@@ -1632,7 +1656,12 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			this.activePendingBindLeaseSessionId = undefined;
 			this.engineSessionEnsure = undefined;
 			this.listCompleted = true;
-			this.markEngineSessionBindFailed();
+			if (this.engineSessions.length > 0) {
+				// D447: KEEP last-good leftover + failed. First-pull empty still uses bind-failed placeholder.
+				this.engineSessionBindFailed = true;
+			} else {
+				this.markEngineSessionBindFailed();
+			}
 			this._onDidChangeSession.fire(this.getActiveSessionId());
 			this.persistEngineAwareRoster();
 		} finally {

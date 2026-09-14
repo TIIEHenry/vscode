@@ -439,12 +439,16 @@ export class ConversationInboxOverlay extends Disposable {
 		}
 	}
 
+	private isLeftoverQueueWriteLive(): boolean {
+		return !isConversationPairingHold(this.uaConnection) && this.stubService.isEngineConnected();
+	}
+
 	private bindLeftoverQueueWrite(button: HTMLButtonElement, run: () => void): void {
-		const enabled = !isConversationPairingHold(this.uaConnection);
+		const enabled = this.isLeftoverQueueWriteLive();
 		button.disabled = !enabled;
 		button.setAttribute('aria-disabled', String(!enabled));
 		addDisposableListener(button, 'click', () => {
-			if (isConversationPairingHold(this.uaConnection)) {
+			if (!this.isLeftoverQueueWriteLive()) {
 				return;
 			}
 			run();
