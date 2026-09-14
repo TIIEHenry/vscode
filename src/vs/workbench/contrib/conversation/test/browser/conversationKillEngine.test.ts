@@ -13,7 +13,7 @@ import {
 	type ConversationKillSubAgentArgs,
 } from '../../browser/conversationKillEngine.js';
 import { IConversationRosterService } from '../../browser/conversationStubService.js';
-import type { IConversationPairingHoldSource } from '../../browser/conversationSessionStatus.js';
+import { isConversationPairingHold, type IConversationPairingHoldSource } from '../../browser/conversationSessionStatus.js';
 
 suite('conversationKillEngine', () => {
 
@@ -43,6 +43,7 @@ suite('conversationKillEngine', () => {
 		const args: ConversationKillSubAgentArgs = { agentId: 'sub:reviewer', force: true };
 		const roster = {
 			isEngineConnected: () => true,
+			isEngineSessionReady: () => true,
 			hasEngineConnectionHistory: () => true,
 			getActiveSessionId: () => 's1',
 			killSubAgent(sessionId: string, next?: ConversationKillSubAgentArgs) {
@@ -65,6 +66,7 @@ suite('conversationKillEngine', () => {
 		const args: ConversationKillSubAgentArgs = { agentId: 'sub:a' };
 		const roster = {
 			isEngineConnected: () => true,
+			isEngineSessionReady: () => true,
 			hasEngineConnectionHistory: () => true,
 			getActiveSessionId: () => 's1',
 			killSubAgent(sessionId: string, next?: ConversationKillSubAgentArgs) {
@@ -96,6 +98,37 @@ suite('conversationKillEngine', () => {
 
 		assert.strictEqual(outcome.handled, true);
 		assert.strictEqual(outcome.killed, false);
+		assert.deepStrictEqual(errors, [conversationKillEngineDisconnectedCopy]);
+	});
+
+	test('KEEP leftover list-fail skips kill unary and shows disconnected copy', () => {
+		const errors: string[] = [];
+		const killCalls: ConversationKillSubAgentArgs[] = [];
+		const roster = {
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => false,
+			hasEngineConnectionHistory: () => true,
+			getActiveSessionId: () => 's1',
+			killSubAgent: () => {
+				killCalls.push({ agentId: 'sub:a' });
+				throw new Error('must not kill while KEEP leftover list-fail');
+			},
+		} as unknown as IConversationRosterService;
+		const ua: IConversationPairingHoldSource = {
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+		};
+
+		assert.strictEqual(roster.isEngineConnected(), true);
+		assert.strictEqual(roster.isEngineSessionReady(), false);
+		assert.strictEqual(ua.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(ua), false);
+
+		const outcome = tryKillSubAgent(roster, notificationSink(errors), { agentId: 'sub:a' }, ua);
+
+		assert.strictEqual(outcome.handled, true);
+		assert.strictEqual(outcome.killed, false);
+		assert.deepStrictEqual(killCalls, []);
 		assert.deepStrictEqual(errors, [conversationKillEngineDisconnectedCopy]);
 	});
 

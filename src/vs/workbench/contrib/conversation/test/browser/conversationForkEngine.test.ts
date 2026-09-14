@@ -8,7 +8,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { conversationForkEngineDisconnectedCopy, tryConnectedEngineFork } from '../../browser/conversationForkEngine.js';
 import { IConversationRosterService } from '../../browser/conversationStubService.js';
-import type { IConversationPairingHoldSource } from '../../browser/conversationSessionStatus.js';
+import { isConversationPairingHold, type IConversationPairingHoldSource } from '../../browser/conversationSessionStatus.js';
 
 suite('conversationForkEngine', () => {
 
@@ -19,6 +19,7 @@ suite('conversationForkEngine', () => {
 		const forkCalls: string[] = [];
 		const roster = {
 			isEngineConnected: () => true,
+			isEngineSessionReady: () => true,
 			getActiveSessionId: () => 's1',
 			forkSubAgent(sessionId: string) {
 				forkCalls.push(sessionId);
@@ -45,6 +46,7 @@ suite('conversationForkEngine', () => {
 		const forkCalls: string[] = [];
 		const roster = {
 			isEngineConnected: () => true,
+			isEngineSessionReady: () => true,
 			getActiveSessionId: () => 's1',
 			forkSubAgent(sessionId: string) {
 				forkCalls.push(sessionId);
@@ -92,6 +94,41 @@ suite('conversationForkEngine', () => {
 
 		assert.strictEqual(outcome.handled, true);
 		assert.strictEqual(outcome.forked, false);
+		assert.deepStrictEqual(errors, [conversationForkEngineDisconnectedCopy]);
+	});
+
+	test('KEEP leftover list-fail skips fork unary and shows disconnected copy', () => {
+		const errors: string[] = [];
+		const forkCalls: string[] = [];
+		const roster = {
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => false,
+			hasEngineConnectionHistory: () => true,
+			getActiveSessionId: () => 's1',
+			forkSubAgent: () => {
+				forkCalls.push('s1');
+				throw new Error('must not fork while KEEP leftover list-fail');
+			},
+		} as unknown as IConversationRosterService;
+		const ua: IConversationPairingHoldSource = {
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+		};
+
+		assert.strictEqual(roster.isEngineConnected(), true);
+		assert.strictEqual(roster.isEngineSessionReady(), false);
+		assert.strictEqual(ua.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(ua), false);
+
+		const outcome = tryConnectedEngineFork(roster, {
+			error(message: string | Error) {
+				errors.push(typeof message === 'string' ? message : message.message);
+			},
+		} as unknown as INotificationService, ua);
+
+		assert.strictEqual(outcome.handled, true);
+		assert.strictEqual(outcome.forked, false);
+		assert.deepStrictEqual(forkCalls, []);
 		assert.deepStrictEqual(errors, [conversationForkEngineDisconnectedCopy]);
 	});
 

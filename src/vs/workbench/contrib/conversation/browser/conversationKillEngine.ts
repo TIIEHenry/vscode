@@ -16,9 +16,11 @@ import { IConversationRosterService } from './conversationStubService.js';
  * Same honesty class as other leftover writes (D318): pairing-hold leftover
  * and leftover-looks-live (`isEngineConnected()===true` + pairingPending)
  * are checked before `isEngineConnected()` so a looks-live stub cannot take
- * the unary path. Both notice and must not call `killSubAgent`. True
- * disconnect leftover still notices. Never-connected stays a silent no-op.
- * Kill has no local success path (unlike fork).
+ * the unary path. KEEP leftover list-fail (D456: connected +
+ * `isEngineSessionReady()===false`, not pairing-hold) is the same gate as
+ * D449/D454 — disconnected notice, no `killSubAgent`. True disconnect leftover
+ * still notices. Never-connected stays a silent no-op. Kill has no local
+ * success path (unlike fork).
  */
 export type ConversationEngineKillOutcome = {
 	readonly handled: boolean;
@@ -40,6 +42,12 @@ export const conversationKillEngineFailedCopy = localize(
 	"Could not kill sub-agent.",
 );
 
+/** KEEP leftover list-fail (D449/D454/D456): connected but roster not ready is not a live write surface. */
+function isKeepLeftoverListFailWrite(roster: IConversationRosterService): boolean {
+	return roster.isEngineConnected()
+		&& roster.isEngineSessionReady?.() === false;
+}
+
 export function tryKillSubAgent(
 	roster: IConversationRosterService,
 	notificationService: Pick<INotificationService, 'error'>,
@@ -47,6 +55,13 @@ export function tryKillSubAgent(
 	ua?: IConversationPairingHoldSource,
 ): ConversationEngineKillOutcome {
 	if (isConversationPairingHold(ua)) {
+		if (roster.hasEngineConnectionHistory()) {
+			notificationService.error(conversationKillEngineDisconnectedCopy);
+			return { handled: true, killed: false };
+		}
+		return { handled: false, killed: false };
+	}
+	if (isKeepLeftoverListFailWrite(roster)) {
 		if (roster.hasEngineConnectionHistory()) {
 			notificationService.error(conversationKillEngineDisconnectedCopy);
 			return { handled: true, killed: false };
