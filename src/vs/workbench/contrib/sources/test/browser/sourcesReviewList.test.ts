@@ -419,6 +419,8 @@ suite('Sources - review list model', () => {
 
 	test('Review list success then git-read throw keeps leftover rows and paints failed', async function () {
 		let readCalls = 0;
+		let diffCalls = 0;
+		let marked = 0;
 		const onDidChangeConnection = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
 		const leftoverPath = 'src/leftover.ts';
 		const connection = {
@@ -444,17 +446,21 @@ suite('Sources - review list model', () => {
 				branch: 'main',
 				changeCount: 1,
 			}),
-			readGitFileDiff: async () => ({
-				supported: true,
-				reason: '',
-				path: leftoverPath,
-				unifiedDiff: '@@ -1 +1 @@\n-old\n+new\n',
-			}),
+			readGitFileDiff: async () => {
+				diffCalls += 1;
+				return {
+					supported: true,
+					reason: '',
+					path: leftoverPath,
+					unifiedDiff: '@@ -1 +1 @@\n-old\n+new\n',
+				};
+			},
 		} as unknown as IUniverseAgentConnection;
 
 		const host = mountListHost();
 		const widget = store.add(stubSourcesGitListServices({
 			connection,
+			markReviewed: () => { marked += 1; },
 		}).createInstance(SourcesReviewList, host));
 		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
 
@@ -483,6 +489,14 @@ suite('Sources - review list model', () => {
 		assert.ok(host.querySelector('.sources-review-list .monaco-list-row'));
 		assert.strictEqual((host.querySelector('.sources-review-empty') as HTMLElement).style.display, 'none');
 		assert.ok(!(host.querySelector('.sources-review-empty')?.textContent ?? '').includes(localize('sourcesReviewList.noChanges', "No changes to review.")));
+
+		await openFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+		await timeout(20);
+		assert.strictEqual(diffCalls, 0, 'list-fail leftover must not readGitFileDiff');
+		assert.strictEqual((widget as unknown as { list?: WorkbenchList<unknown> }).list?.length ?? 0, 1);
+		assert.strictEqual(((widget as unknown as { list?: WorkbenchList<unknown> }).list?.element(0) as { name?: string }).name, 'leftover.ts');
+		assert.strictEqual(host.querySelector('.sources-review-status')?.textContent ?? '', sourcesGitReadFailureMessage('boom'));
+		assert.strictEqual(marked, 0, 'list-fail leftover open must not mark reviewed');
 	});
 
 	test('Review list success then missing readGitChanges keeps leftover rows and does not paint local-only', async function () {

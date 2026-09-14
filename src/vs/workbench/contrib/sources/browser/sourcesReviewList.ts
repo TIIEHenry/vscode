@@ -210,6 +210,8 @@ export class SourcesReviewList extends Disposable {
 	private lastRevealMissToolCallId: string | undefined;
 	private usingGitRead = false;
 	private refreshSeq = 0;
+	/** List-fail leftover is not a live FileDiff surface (D444). */
+	private leftoverListFailed = false;
 
 	private readonly rendererDelegate: ISourcesReviewRendererDelegate = {
 		isReviewed: (entry) => this.isEntryReviewed(entry),
@@ -494,6 +496,10 @@ export class SourcesReviewList extends Disposable {
 			if (!element) {
 				return;
 			}
+			// List-fail leftover is not a live FileDiff / open-diff surface (D444).
+			if (this.leftoverListFailed) {
+				return;
+			}
 
 			try {
 				await markReviewedAfterSuccessfulOpen(
@@ -573,6 +579,7 @@ export class SourcesReviewList extends Disposable {
 			entry.gitPath ?? '',
 			entry.indexState ?? '',
 			isConversationPairingHold(this.uaConnection),
+			this.leftoverListFailed,
 		);
 	}
 
@@ -611,6 +618,7 @@ export class SourcesReviewList extends Disposable {
 				this.allEntries = collectSourcesReviewEntries(this.scmService.repositories);
 				localOnly = this.allEntries.length > 0;
 			}
+			this.leftoverListFailed = false;
 		} else {
 			try {
 				const loaded = await this.tryLoadGitEntries();
@@ -656,6 +664,7 @@ export class SourcesReviewList extends Disposable {
 						localOnly = this.allEntries.length > 0;
 					}
 				}
+				this.leftoverListFailed = false;
 			} catch (error) {
 				if (seq !== this.refreshSeq) {
 					return;
@@ -663,6 +672,9 @@ export class SourcesReviewList extends Disposable {
 				// Keep a live leftover paint; first-pull stays empty+failed.
 				if (this.allEntries.length === 0) {
 					this.usingGitRead = false;
+					this.leftoverListFailed = false;
+				} else {
+					this.leftoverListFailed = true;
 				}
 				gitReadError = sourcesGitReadFailureMessage(error);
 			}

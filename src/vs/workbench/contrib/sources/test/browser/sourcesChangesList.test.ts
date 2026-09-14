@@ -1023,6 +1023,7 @@ suite('Sources - Changes list leftover honesty', () => {
 
 	test('list-fail leftover closes Stage / Commit and forced click stays 0 unary', async function () {
 		let readCalls = 0;
+		let diffCalls = 0;
 		const leftover = { path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
 		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
 		const commitCalls: UniverseAgentWriteGitCommitRequest[] = [];
@@ -1050,6 +1051,15 @@ suite('Sources - Changes list leftover honesty', () => {
 				branch: 'main',
 				changeCount: 1,
 			}),
+			readGitFileDiff: async () => {
+				diffCalls += 1;
+				return {
+					supported: true,
+					reason: '',
+					path: leftover.path,
+					unifiedDiff: '@@ -1 +1 @@\n-old\n+new\n',
+				};
+			},
 			writeGitStagePaths: async (request: UniverseAgentWriteGitStagePathsRequest) => {
 				stageCalls.push(request);
 				return acceptedWrite;
@@ -1094,6 +1104,14 @@ suite('Sources - Changes list leftover honesty', () => {
 		await timeout(20);
 		assert.deepStrictEqual(stageCalls, []);
 		assert.deepStrictEqual(commitCalls, []);
+
+		await openFirstListRow(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		await timeout(20);
+		assert.strictEqual(diffCalls, 0, 'list-fail leftover must not readGitFileDiff');
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, leftover.path);
+		const statusAfterOpen = host.querySelector('.sources-changes-status')?.textContent ?? '';
+		assert.strictEqual(statusAfterOpen, sourcesGitReadFailureMessage('boom'));
 	});
 
 	test('leftover-looks-live pairing-hold Stage with local SCM stays hidden and 0 git.stage', async function () {

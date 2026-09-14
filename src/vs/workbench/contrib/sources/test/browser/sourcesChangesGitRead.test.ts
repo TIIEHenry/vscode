@@ -87,6 +87,7 @@ suite('Sources - Changes git read', () => {
 		assert.strictEqual(canSendSourcesGitChanges(true, true, 'sess-1', true), false);
 		assert.strictEqual(canSendSourcesGitSummary(true, true, 'sess-1', true), false);
 		assert.strictEqual(canSendSourcesGitFileDiff(true, true, 'sess-1', true), false);
+		assert.strictEqual(canSendSourcesGitFileDiff(true, true, 'sess-1', false, true), false);
 		assert.strictEqual(canSendSourcesGitChanges(true, true, 'sess-1', false), true);
 		assert.strictEqual(canSendSourcesGitSummary(true, true, 'sess-1', false), true);
 		assert.strictEqual(canSendSourcesGitFileDiff(true, true, 'sess-1', false), true);
@@ -153,6 +154,10 @@ suite('Sources - Changes git read', () => {
 			diffCalls.push(request);
 			return unsupportedDiff;
 		}, 'sess-1', 'src/a.ts', 'WORKTREE', true), undefined);
+		assert.strictEqual(await tryReadSourcesGitFileDiff(true, async request => {
+			diffCalls.push(request);
+			return unsupportedDiff;
+		}, 'sess-1', 'src/a.ts', 'WORKTREE', false, true), undefined);
 		assert.deepStrictEqual(changeCalls, []);
 		assert.deepStrictEqual(summaryCalls, []);
 		assert.deepStrictEqual(diffCalls, []);

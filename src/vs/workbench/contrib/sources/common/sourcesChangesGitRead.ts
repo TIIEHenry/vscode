@@ -31,9 +31,13 @@ export function canSendSourcesGitSummary(connected: boolean, hasHook: boolean, s
 	return isSourcesGitWriteLive(connected, pairingHold) && hasHook && hasSourcesGitSessionId(sessionId);
 }
 
-/** Sources row open → ReadGitFileDiff. Empty sessionId does not call the hook. */
-export function canSendSourcesGitFileDiff(connected: boolean, hasHook: boolean, sessionId: string, pairingHold = false): boolean {
-	return isSourcesGitWriteLive(connected, pairingHold) && hasHook && hasSourcesGitSessionId(sessionId);
+/**
+ * Sources row open → ReadGitFileDiff. Empty sessionId does not call the hook.
+ * leftoverListFailed also refuses FileDiff when callers pass the flag (D444).
+ * Changes/Summary list gates stay pairingHold-only so refresh can retry.
+ */
+export function canSendSourcesGitFileDiff(connected: boolean, hasHook: boolean, sessionId: string, pairingHold = false, leftoverListFailed = false): boolean {
+	return isSourcesGitWriteLive(connected, pairingHold, leftoverListFailed) && hasHook && hasSourcesGitSessionId(sessionId);
 }
 
 /** Same `sessionId` as write (`sourcesGitStagePathsRequest`). */
@@ -227,8 +231,9 @@ export async function tryReadSourcesGitFileDiff(
 	path: string,
 	indexState: string,
 	pairingHold = false,
+	leftoverListFailed = false,
 ): Promise<UniverseAgentReadGitFileDiffResult | undefined> {
-	if (!canSendSourcesGitFileDiff(connected, typeof hook === 'function', sessionId, pairingHold) || !hook) {
+	if (!canSendSourcesGitFileDiff(connected, typeof hook === 'function', sessionId, pairingHold, leftoverListFailed) || !hook) {
 		return undefined;
 	}
 	return hook(sourcesGitFileDiffRequest(sessionId, path, indexState));

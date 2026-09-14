@@ -238,7 +238,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	private refreshSeq = 0;
 	private writeStatusMessage: string | undefined;
 	private lastGoodEntries: ISourcesChangeEntry[] = [];
-	/** List-fail leftover is not a live Stage / Commit surface (D442). */
+	/** List-fail leftover is not a live Stage / Commit / FileDiff surface (D442 / D444). */
 	private leftoverListFailed = false;
 
 	constructor(
@@ -447,6 +447,10 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this._register(this.list.onDidOpen(async e => {
 			const element = e.element;
 			if (!element) {
+				return;
+			}
+			// List-fail leftover is not a live FileDiff / open-diff surface (D444).
+			if (this.leftoverListFailed) {
 				return;
 			}
 
@@ -658,6 +662,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			entry.gitPath ?? '',
 			entry.indexState ?? '',
 			isConversationPairingHold(this.uaConnection),
+			this.leftoverListFailed,
 		);
 	}
 
