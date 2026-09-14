@@ -44,7 +44,7 @@ summary: "MERGE_SHA=`932e0c556b4` compile-client 0；D448 Unstage/Mark leftover 
 | **A** | D448 Sources leftover Unstage / Mark chrome | 已合；跟 MERGE_SHA；勿宣称 leftover wave 完成 |
 | **B** | — | 脏 `worktree-pool.md` 勿 add / 勿 `-B` |
 | **C** | — | 脏 `dev/loop`；勿 add / 勿 `-B` |
-| **D** | D449 conversation leftover KEEP 写面 | 已合；跟 MERGE_SHA |
+| **D** | D451 Inbox KEEP leftover Goal/Stop/Enqueue 关 chrome | 本刀测绿待父 OV/CG；不占 D450；勿宣称 leftover wave 完成 |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 
 <details>

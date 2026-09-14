@@ -224,16 +224,25 @@ export class ConversationInboxOverlay extends Disposable {
 		this.queueChip.setAttribute('aria-pressed', String(this.openPanel === 'queue'));
 	}
 
+	/** KEEP leftover list-fail (D451): connected but roster not ready is not a live Inbox write surface. */
+	private isKeepLeftoverListFailWrite(): boolean {
+		return this.stubService.isEngineConnected()
+			&& this.stubService.isEngineSessionReady?.() === false;
+	}
+
 	private isGenerating(sessionId: string): boolean {
 		// D373 leftover-looks-live: pairing-hold first. Streaming leftover is not live generating.
+		// D451 KEEP leftover list-fail: leftover streaming is not live Stop.
 		return !isConversationPairingHold(this.uaConnection)
 			&& this.stubService.isEngineConnected()
+			&& !this.isKeepLeftoverListFailWrite()
 			&& this.stubService.getTurns(sessionId).some(turn => turn.streaming);
 	}
 
 	private isSessionGoalAvailable(): boolean {
 		return !isConversationPairingHold(this.uaConnection)
 			&& this.stubService.isEngineConnected()
+			&& !this.isKeepLeftoverListFailWrite()
 			&& typeof this.uaConnection.setSessionGoal === 'function';
 	}
 
@@ -253,7 +262,7 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private async onGoalClicked(): Promise<void> {
-		if (isConversationPairingHold(this.uaConnection) || !this.isSessionGoalAvailable()) {
+		if (isConversationPairingHold(this.uaConnection) || this.isKeepLeftoverListFailWrite() || !this.isSessionGoalAvailable()) {
 			return;
 		}
 		if (!this.stubService.isEngineConnected()) {
@@ -273,7 +282,7 @@ export class ConversationInboxOverlay extends Disposable {
 		if (next === undefined) {
 			return;
 		}
-		if (isConversationPairingHold(this.uaConnection)) {
+		if (isConversationPairingHold(this.uaConnection) || this.isKeepLeftoverListFailWrite()) {
 			return;
 		}
 		const trimmed = next.trim();
@@ -295,7 +304,9 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private renderStop(sessionId: string): void {
-		const generating = this.isGenerating(sessionId) && !isConversationPairingHold(this.uaConnection);
+		const generating = this.isGenerating(sessionId)
+			&& !isConversationPairingHold(this.uaConnection)
+			&& !this.isKeepLeftoverListFailWrite();
 		this.stopButton.enabled = generating;
 		if (generating) {
 			this.stopButton.setTitle(conversationLensDockStop);
@@ -307,7 +318,7 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private onStopClicked(): void {
-		if (isConversationPairingHold(this.uaConnection)) {
+		if (isConversationPairingHold(this.uaConnection) || this.isKeepLeftoverListFailWrite()) {
 			return;
 		}
 		const sessionId = this.stubService.getActiveSessionId();
@@ -440,7 +451,9 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private isLeftoverQueueWriteLive(): boolean {
-		return !isConversationPairingHold(this.uaConnection) && this.stubService.isEngineConnected();
+		return !isConversationPairingHold(this.uaConnection)
+			&& this.stubService.isEngineConnected()
+			&& !this.isKeepLeftoverListFailWrite();
 	}
 
 	private bindLeftoverQueueWrite(button: HTMLButtonElement, run: () => void): void {
@@ -462,6 +475,7 @@ export class ConversationInboxOverlay extends Disposable {
 		enqueueButton.type = 'button';
 		enqueueButton.textContent = conversationLensInboxQueueEnqueue;
 		const enabled = !isConversationPairingHold(this.uaConnection)
+			&& !this.isKeepLeftoverListFailWrite()
 			&& (this.stubService.isEngineConnected() || this.stubService.hasEngineConnectionHistory());
 		enqueueButton.disabled = !enabled;
 		enqueueButton.setAttribute('aria-disabled', String(!enabled));
@@ -473,7 +487,7 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private shouldRejectEnqueueWrite(): boolean {
-		if (isConversationPairingHold(this.uaConnection)) {
+		if (isConversationPairingHold(this.uaConnection) || this.isKeepLeftoverListFailWrite()) {
 			return true;
 		}
 		if (!this.stubService.isEngineConnected()) {
