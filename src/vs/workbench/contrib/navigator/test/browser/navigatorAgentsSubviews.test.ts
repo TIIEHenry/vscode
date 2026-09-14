@@ -491,6 +491,115 @@ suite('Navigator Agents subviews', () => {
 		assert.strictEqual(treeRefreshCalls, 0);
 	});
 
+	test('KEEP leftover list-fail closes Inspect / Reveal / row-open and Refresh chrome without connection event', async () => {
+		class KeepLeftoverListFailFlipRoster extends RosterWithMutableTreeAndActivity {
+			engineSessionReady = true;
+			override isEngineSessionReady(): boolean {
+				return this.engineSessionReady;
+			}
+		}
+		let treeRefreshCalls = 0;
+		const roster = store.add(new KeepLeftoverListFailFlipRoster());
+		roster.setEngineConnected(true);
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
+				pairingPending: false,
+			}),
+			getNavigatorCapability: () => 'SUPPORTED',
+			requestAgentTreeRefresh: () => {
+				treeRefreshCalls++;
+			},
+		});
+		const revealCalls: Array<{ sessionKey: string; chatId: string; title?: string }> = [];
+		const inspectOpenCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+		const revealItemCalls: unknown[] = [];
+		const view = mountAgentsView(roster, connection, undefined, async (...args) => {
+			revealItemCalls.push(args);
+			return undefined;
+		}, { revealCalls, inspectOpenCalls });
+
+		assert.strictEqual(roster.isEngineConnected(), true);
+		assert.strictEqual(roster.isEngineSessionReady(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		const leftover = leftoverHierarchyNode(view);
+		view.revealHierarchyNode(leftover);
+		view.inspectHierarchyNode(leftover);
+		await timeout(0);
+		assert.strictEqual(revealCalls.length, 1, 'live Reveal must still open');
+		assert.strictEqual(inspectOpenCalls.length, 1, 'live Inspect must still open');
+		const scopedContextKeyService = view['scopedContextKeyService'];
+		assert.strictEqual(UA_ENGINE_CONNECTED_KEY.getValue(scopedContextKeyService), true);
+		for (const label of leftoverRowActionLabels(view)) {
+			assert.notStrictEqual(label.getAttribute('aria-disabled'), 'true', 'live Inspect / Reveal chrome must stay enabled');
+		}
+
+		roster.engineSessionReady = false;
+		roster.createTestFrameSourceCallback().onSessionChanged(roster.getActiveSessionId());
+
+		assert.strictEqual(roster.isEngineConnected(), true, 'KEEP leftover list-fail must keep isEngineConnected()===true');
+		assert.strictEqual(roster.isEngineSessionReady(), false);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, false);
+		const leftoverHierarchyCount = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> }).hierarchyTree.getNode(null)?.children.length ?? 0;
+		assert.ok(leftoverHierarchyCount > 0, 'KEEP leftover list-fail must keep leftover hierarchy rows');
+		for (const label of leftoverRowActionLabels(view)) {
+			assert.strictEqual(label.getAttribute('aria-disabled'), 'true', 'KEEP leftover Inspect / Reveal chrome must disable without connection event');
+		}
+		assert.strictEqual(UA_ENGINE_CONNECTED_KEY.getValue(scopedContextKeyService), false, 'Refresh context key must recompute on roster leftover flip');
+
+		const refreshItem = MenuRegistry.getMenuItems(MenuId.ViewTitle).filter(isIMenuItem)
+			.find(item => item.command.id === NAVIGATOR_AGENTS_REFRESH_COMMAND_ID);
+		assert.ok(refreshItem?.command.precondition);
+		assert.strictEqual(scopedContextKeyService.contextMatchesRules(refreshItem.command.precondition), false);
+		const refreshAction = new MenuItemAction(
+			refreshItem.command,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			scopedContextKeyService,
+			{ executeCommand: async () => undefined } as never,
+		);
+		assert.strictEqual(refreshAction.enabled, false);
+		const refreshViewItem = store.add(new ActionViewItem(undefined, refreshAction, { icon: true, label: false }));
+		const host = document.createElement('div');
+		refreshViewItem.render(host);
+		const refreshLabel = host.querySelector('.action-label') as HTMLElement | null;
+		assert.ok(refreshLabel);
+		assert.strictEqual(refreshLabel.getAttribute('aria-disabled'), 'true');
+		refreshLabel.click();
+		assert.strictEqual(treeRefreshCalls, 0);
+
+		view.revealHierarchyNode(leftover);
+		view.inspectHierarchyNode(leftover);
+		view.inspectFocusedTitleAction();
+		await forceOpenHierarchyRow(view, leftover);
+		await forceOpenActivityRow(view);
+		view.refreshAgentTree();
+		await timeout(0);
+		assert.strictEqual(revealCalls.length, 1, 'forced KEEP leftover Reveal must stay 0 revealNavigatorAgentInConversation');
+		assert.strictEqual(inspectOpenCalls.length, 1, 'forced KEEP leftover Inspect must stay 0 openView');
+		assert.deepStrictEqual(revealItemCalls, [], 'forced KEEP leftover activity row-open must stay 0 CONVERSATION_REVEAL_ITEM');
+		assert.strictEqual(treeRefreshCalls, 0);
+
+		roster.engineSessionReady = true;
+		roster.createTestFrameSourceCallback().onSessionChanged(roster.getActiveSessionId());
+		assert.strictEqual(roster.isEngineSessionReady(), true);
+		assert.strictEqual(UA_ENGINE_CONNECTED_KEY.getValue(scopedContextKeyService), true);
+		for (const label of leftoverRowActionLabels(view)) {
+			assert.notStrictEqual(label.getAttribute('aria-disabled'), 'true', 'ready Inspect / Reveal chrome must restore');
+		}
+		view.revealHierarchyNode(leftover);
+		view.inspectHierarchyNode(leftover);
+		view.refreshAgentTree();
+		await timeout(0);
+		assert.strictEqual(revealCalls.length, 2, 'ready Reveal must still open');
+		assert.strictEqual(inspectOpenCalls.length, 2, 'ready Inspect must still open');
+		assert.strictEqual(treeRefreshCalls, 1, 'ready Refresh must still requestAgentTreeRefresh');
+	});
+
 	test('connecting phase is honest empty, not Agent tree loading', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const roster = store.add(new ConversationStubService());
