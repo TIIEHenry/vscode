@@ -8,6 +8,7 @@ import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { IInstantiationService, ServiceIdentifier, ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
+import { IModelService } from '../../../../../editor/common/services/model.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
@@ -42,6 +43,8 @@ suite('Sources - review showForPaths', () => {
 			toggleReviewedSelected: () => { },
 			markAllReviewed: () => { },
 			setStatusMessage: () => { },
+			isSourcesGitFileDiffOpenSkipped: () => false,
+			readGitFileDiff: async () => undefined,
 			...overrides,
 		};
 	}
@@ -212,6 +215,9 @@ suite('Sources - review showForPaths', () => {
 			if (id === ISourcesDiffPanelService) {
 				return {};
 			}
+			if (id === IModelService) {
+				return {};
+			}
 			throw new Error(`unexpected service ${String(id)}`);
 		});
 
@@ -221,5 +227,160 @@ suite('Sources - review showForPaths', () => {
 		assert.ok(status?.includes('Unable to open diff'));
 		assert.ok(status?.includes('boom'));
 		assert.strictEqual(marked, 0);
+	});
+
+	test('openSelected leftover / pairing-hold skip does not fake preview or mark reviewed', async function () {
+		const resource = toResource.call(this, '/project/leftover.ts');
+		const entry = {
+			resource,
+			name: 'leftover.ts',
+			description: 'Unstaged Changes',
+			groupId: 'workingTree',
+			gitPath: 'src/leftover.ts',
+			indexState: 'WORKTREE',
+		};
+		let marked = 0;
+		let diffCalls = 0;
+		let openCalls = 0;
+
+		const hostService = store.add(new SourcesReviewHostService());
+		hostService.registerReviewListHost(stubReviewListHost({
+			getSelectedEntry: () => entry,
+			isSourcesGitFileDiffOpenSkipped: () => true,
+			readGitFileDiff: async () => {
+				diffCalls += 1;
+				return {
+					supported: true,
+					reason: '',
+					path: 'src/leftover.ts',
+					unifiedDiff: '@@ -1 +1 @@\n-old\n+new\n',
+				};
+			},
+		}));
+
+		const accessor = stubAccessor((id: unknown) => {
+			if (id === ISourcesReviewHostService) {
+				return hostService;
+			}
+			if (id === ISourcesReviewProgressService) {
+				return {
+					resolveKey: async () => ({ scopeKeyId: 'root', path: resource.toString(), contentHash: 'etag' }),
+					markReviewed: () => { marked += 1; },
+				};
+			}
+			if (id === IEditorService) {
+				return {
+					openEditor: async () => {
+						openCalls += 1;
+						return undefined;
+					},
+				};
+			}
+			if (id === IQuickDiffService) {
+				return { getQuickDiffs: async () => [] };
+			}
+			if (id === IConfigurationService) {
+				return { getValue: () => 'preview' };
+			}
+			if (id === IInstantiationService) {
+				return {};
+			}
+			if (id === ISourcesDiffPanelService) {
+				return {};
+			}
+			if (id === IModelService) {
+				return {};
+			}
+			throw new Error(`unexpected service ${String(id)}`);
+		});
+
+		await CommandsRegistry.getCommand(SOURCES_REVIEW_OPEN_SELECTED_COMMAND)?.handler?.(accessor);
+
+		assert.strictEqual(diffCalls, 0, 'leftover Open Selected must not readGitFileDiff');
+		assert.strictEqual(openCalls, 0, 'leftover Open Selected must not fake preview');
+		assert.strictEqual(marked, 0, 'leftover Open Selected must not mark reviewed');
+	});
+
+	test('openSelected live FileDiff uses host readGitFileDiff', async function () {
+		const resource = toResource.call(this, '/project/a.ts');
+		const entry = {
+			resource,
+			name: 'a.ts',
+			description: 'Unstaged Changes',
+			groupId: 'workingTree',
+			gitPath: 'src/a.ts',
+			indexState: 'WORKTREE',
+		};
+		let marked = 0;
+		let diffCalls = 0;
+		let openedDiff = false;
+		const models = new Map<string, string>();
+
+		const hostService = store.add(new SourcesReviewHostService());
+		hostService.registerReviewListHost(stubReviewListHost({
+			getSelectedEntry: () => entry,
+			readGitFileDiff: async () => {
+				diffCalls += 1;
+				return {
+					supported: true,
+					reason: '',
+					path: 'src/a.ts',
+					unifiedDiff: '@@ -1 +1 @@\n-old\n+new\n',
+				};
+			},
+		}));
+
+		const accessor = stubAccessor((id: unknown) => {
+			if (id === ISourcesReviewHostService) {
+				return hostService;
+			}
+			if (id === ISourcesReviewProgressService) {
+				return {
+					resolveKey: async () => ({ scopeKeyId: 'root', path: resource.toString(), contentHash: 'etag' }),
+					markReviewed: () => { marked += 1; },
+				};
+			}
+			if (id === IEditorService) {
+				return {
+					openEditor: async (input: { original?: { resource?: unknown }; modified?: { resource?: unknown }; resource?: unknown }) => {
+						openedDiff = !!(input.original && input.modified);
+						return undefined;
+					},
+				};
+			}
+			if (id === IQuickDiffService) {
+				return { getQuickDiffs: async () => [] };
+			}
+			if (id === IConfigurationService) {
+				return { getValue: () => 'preview' };
+			}
+			if (id === IInstantiationService) {
+				return {};
+			}
+			if (id === ISourcesDiffPanelService) {
+				return {};
+			}
+			if (id === IModelService) {
+				return {
+					getModel: (uri: { toString(): string }) => models.has(uri.toString()) ? {} : undefined,
+					updateModel: (model: { uri?: { toString(): string } }, value: string) => {
+						if (model.uri) {
+							models.set(model.uri.toString(), value);
+						}
+					},
+					createModel: (_value: string, _language: unknown, uri: { toString(): string }) => {
+						models.set(uri.toString(), _value);
+						return { uri };
+					},
+				};
+			}
+			throw new Error(`unexpected service ${String(id)}`);
+		});
+
+		await CommandsRegistry.getCommand(SOURCES_REVIEW_OPEN_SELECTED_COMMAND)?.handler?.(accessor);
+
+		assert.strictEqual(diffCalls, 1, 'live Open Selected must readGitFileDiff');
+		assert.strictEqual(openedDiff, true, 'live Open Selected must open FileDiff sides, not a fake file preview');
+		assert.strictEqual(marked, 1);
 	});
 });

@@ -19,12 +19,20 @@ import { isConversationPairingHold } from '../../../conversation/browser/convers
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
+import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
 import { SourcesReviewList } from '../../browser/sourcesReviewList.js';
 import { sourcesGitDiffOpenFailureMessage, sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadPairingHoldMessage, sourcesGitReadUnavailableNoHookMessage } from '../../common/sourcesChangesGitRead.js';
 import { ISourcesChangeEntry } from '../../common/sourcesChangesModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
 import { ISourcesReviewAttributionService } from '../../common/sourcesReviewAttribution.js';
+import { ISourcesReviewHostService, ISourcesReviewListHost } from '../../common/sourcesReviewHostService.js';
+import {
+	SOURCES_REVIEW_OPEN_SELECTED_COMMAND,
+} from '../../browser/sourcesReviewCommands.contribution.js';
+import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
+import { IInstantiationService, ServiceIdentifier, ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
+import { IModelService } from '../../../../../editor/common/services/model.js';
 import {
 	countReviewProgress,
 	filterReviewEntries,
@@ -199,6 +207,7 @@ suite('Sources - review list model', () => {
 		getQuickDiffs?: () => Promise<unknown>;
 		markReviewed?: () => void;
 		executeCommand?: (...args: unknown[]) => Promise<unknown>;
+		openEditor?: (input: unknown) => Promise<unknown>;
 	} = {}) {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, options.connection ?? createThrowingGitConnection());
@@ -207,6 +216,11 @@ suite('Sources - review list model', () => {
 		instantiationService.stub(IQuickDiffService, {
 			getQuickDiffs: options.getQuickDiffs ?? (async () => []),
 		} as unknown as IQuickDiffService);
+		if (options.openEditor) {
+			instantiationService.stub(IEditorService, {
+				openEditor: options.openEditor,
+			} as unknown as IEditorService);
+		}
 		instantiationService.stub(ISourcesDiffPanelService, {
 			onDidChangeRef: Event.None,
 			getCurrentRef: () => undefined,
@@ -281,6 +295,58 @@ suite('Sources - review list model', () => {
 		const list = await waitForList(owner);
 		list.setFocus([0]);
 		list.setSelection([0]);
+	}
+
+	function hostFromReviewList(widget: SourcesReviewList): ISourcesReviewListHost {
+		return {
+			selectReviewTab: () => { },
+			setPathFilter: () => { },
+			getSelectedEntry: () => widget.getSelectedEntry(),
+			toggleReviewedSelected: () => widget.toggleReviewedSelected(),
+			markAllReviewed: () => widget.markAllReviewed(),
+			setStatusMessage: message => widget.setStatusMessage(message),
+			isSourcesGitFileDiffOpenSkipped: () => widget.isSourcesGitFileDiffOpenSkipped(),
+			readGitFileDiff: entry => widget.readGitFileDiffForOpen(entry),
+		};
+	}
+
+	function stubAccessorForOpenSelected(
+		instantiationService: ReturnType<typeof stubSourcesGitListServices>,
+		host: ISourcesReviewListHost,
+		openEditor: (input: unknown) => Promise<unknown>,
+	): ServicesAccessor {
+		const hostService = {
+			getReviewListHost: () => host,
+		};
+		return {
+			get: <T,>(id: ServiceIdentifier<T>) => {
+				if (id === ISourcesReviewHostService) {
+					return hostService as T;
+				}
+				if (id === ISourcesReviewProgressService) {
+					return instantiationService.invokeFunction(accessor => accessor.get(ISourcesReviewProgressService)) as T;
+				}
+				if (id === IEditorService) {
+					return { openEditor } as T;
+				}
+				if (id === IQuickDiffService) {
+					return instantiationService.invokeFunction(accessor => accessor.get(IQuickDiffService)) as T;
+				}
+				if (id === IConfigurationService) {
+					return instantiationService.invokeFunction(accessor => accessor.get(IConfigurationService)) as T;
+				}
+				if (id === IInstantiationService) {
+					return instantiationService as T;
+				}
+				if (id === ISourcesDiffPanelService) {
+					return instantiationService.invokeFunction(accessor => accessor.get(ISourcesDiffPanelService)) as T;
+				}
+				if (id === IModelService) {
+					return instantiationService.invokeFunction(accessor => accessor.get(IModelService)) as T;
+				}
+				throw new Error(`unexpected service ${String(id)}`);
+			},
+		};
 	}
 
 	async function waitForEnabledButton(host: HTMLElement, selector: string): Promise<HTMLElement> {
@@ -499,6 +565,85 @@ suite('Sources - review list model', () => {
 		assert.strictEqual(marked, 0, 'list-fail leftover open must not mark reviewed');
 	});
 
+	test('Open Selected leftover list-fail uses the same FileDiff gate as onDidOpen', async function () {
+		let readCalls = 0;
+		let diffCalls = 0;
+		let marked = 0;
+		let openCalls = 0;
+		const leftoverPath = 'src/leftover.ts';
+		const onDidChangeConnection = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => {
+				readCalls += 1;
+				if (readCalls > 1) {
+					throw new Error('boom');
+				}
+				return {
+					supported: true,
+					reason: '',
+					branch: 'main',
+					entries: [{ path: leftoverPath, oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+				};
+			},
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+			readGitFileDiff: async () => {
+				diffCalls += 1;
+				return {
+					supported: true,
+					reason: '',
+					path: leftoverPath,
+					unifiedDiff: '@@ -1 +1 @@\n-old\n+new\n',
+				};
+			},
+		} as unknown as IUniverseAgentConnection;
+
+		const host = mountListHost();
+		const instantiationService = stubSourcesGitListServices({
+			connection,
+			markReviewed: () => { marked += 1; },
+			openEditor: async () => {
+				openCalls += 1;
+				return undefined;
+			},
+		});
+		const widget = store.add(instantiationService.createInstance(SourcesReviewList, host));
+		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<unknown> });
+		onDidChangeConnection.fire({
+			transport: 'ok',
+			sharedFsRootSent: false,
+			pairingPending: false,
+			channelAlive: true,
+			capabilities: {} as never,
+		});
+		const status = await waitForStatusText(host, '.sources-review-status', 'Unable to read git changes');
+		assert.strictEqual(status, sourcesGitReadFailureMessage('boom'));
+		assert.strictEqual(list.length, 1);
+
+		await selectFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+		const accessor = stubAccessorForOpenSelected(instantiationService, hostFromReviewList(widget), async () => {
+			openCalls += 1;
+			return undefined;
+		});
+		await CommandsRegistry.getCommand(SOURCES_REVIEW_OPEN_SELECTED_COMMAND)?.handler?.(accessor);
+		await timeout(20);
+
+		assert.strictEqual(diffCalls, 0, 'Open Selected leftover list-fail must not readGitFileDiff');
+		assert.strictEqual(openCalls, 0, 'Open Selected leftover list-fail must not fake preview');
+		assert.strictEqual(marked, 0, 'Open Selected leftover list-fail must not mark reviewed');
+		assert.strictEqual(host.querySelector('.sources-review-status')?.textContent ?? '', sourcesGitReadFailureMessage('boom'));
+	});
+
 	test('Review list success then missing readGitChanges keeps leftover rows and does not paint local-only', async function () {
 		const onDidChangeConnection = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
 		const leftoverPath = 'src/leftover.ts';
@@ -627,6 +772,8 @@ suite('Sources - review list model', () => {
 		let pairingPending = false;
 		let readCalls = 0;
 		let diffCalls = 0;
+		let marked = 0;
+		let openCalls = 0;
 		const leftoverPath = 'src/leftover.ts';
 		const onDidChangeConnection = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
 		const snapshot = (): import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot => ({
@@ -663,10 +810,16 @@ suite('Sources - review list model', () => {
 		} as unknown as IUniverseAgentConnection;
 		const scmStub = toResource.call(this, '/project/src/scm-stub.ts');
 		const host = mountListHost();
-		const widget = store.add(stubSourcesGitListServices({
+		const instantiationService = stubSourcesGitListServices({
 			connection,
 			scmService: createIndexScmService(scmStub),
-		}).createInstance(SourcesReviewList, host));
+			markReviewed: () => { marked += 1; },
+			openEditor: async () => {
+				openCalls += 1;
+				return undefined;
+			},
+		});
+		const widget = store.add(instantiationService.createInstance(SourcesReviewList, host));
 		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
 
 		const list = await waitForList(widget as unknown as { list?: WorkbenchList<unknown> });
@@ -693,8 +846,23 @@ suite('Sources - review list model', () => {
 		await openFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
 		await timeout(20);
 		assert.strictEqual(diffCalls, 0, 'leftover-looks-live must not extra readGitFileDiff');
+		assert.strictEqual(openCalls, 0, 'KEEP pairing-hold leftover must not fake preview');
+		assert.strictEqual(marked, 0, 'KEEP pairing-hold leftover open must not mark reviewed');
+		assert.strictEqual(host.querySelector('.sources-review-status')?.textContent ?? '', sourcesGitReadPairingHoldMessage());
 		assert.strictEqual(list.length, 1);
 		assert.strictEqual((list.element(0) as { gitPath?: string }).gitPath, leftoverPath);
+
+		await selectFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+		const accessor = stubAccessorForOpenSelected(instantiationService, hostFromReviewList(widget), async () => {
+			openCalls += 1;
+			return undefined;
+		});
+		await CommandsRegistry.getCommand(SOURCES_REVIEW_OPEN_SELECTED_COMMAND)?.handler?.(accessor);
+		await timeout(20);
+		assert.strictEqual(diffCalls, 0, 'Open Selected KEEP pairing-hold leftover must not readGitFileDiff');
+		assert.strictEqual(openCalls, 0, 'Open Selected KEEP pairing-hold leftover must not fake preview');
+		assert.strictEqual(marked, 0, 'Open Selected KEEP pairing-hold leftover must not mark reviewed');
+		assert.strictEqual(host.querySelector('.sources-review-status')?.textContent ?? '', sourcesGitReadPairingHoldMessage());
 
 		connected = false;
 		pairingPending = false;

@@ -42,6 +42,7 @@ import {
 	hasSourcesGitReadEntries,
 	shouldKeepSourcesGitReadNoHookLeftover,
 	shouldKeepSourcesGitReadPairingHoldLeftover,
+	shouldSkipSourcesGitFileDiffOpen,
 	sourcesGitDiffOpenFailureMessage,
 	sourcesGitLocalOnlyMessage,
 	sourcesGitReadFailureMessage,
@@ -358,6 +359,18 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		return this.leftoverListFailed;
 	}
 
+	/** List-fail leftover or KEEP pairing-hold leftover is not a live FileDiff / preview surface (D444 / D446). */
+	isSourcesGitFileDiffOpenSkipped(): boolean {
+		return shouldSkipSourcesGitFileDiffOpen(
+			this.leftoverListFailed,
+			shouldKeepSourcesGitReadPairingHoldLeftover(
+				this.uaConnection.getConnectionPhase().kind === 'connected',
+				this.uaConnection.getConnectionSnapshot().pairingPending,
+				this.usingGitRead ? this.lastGoodEntries.length : 0,
+			),
+		);
+	}
+
 	canWriteStage(): boolean {
 		return canSendSourcesGitStagePaths(
 			this.uaConnection.isEngineConnected(),
@@ -449,8 +462,8 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			if (!element) {
 				return;
 			}
-			// List-fail leftover is not a live FileDiff / open-diff surface (D444).
-			if (this.leftoverListFailed) {
+			// List-fail leftover and KEEP pairing-hold leftover are not live FileDiff / preview surfaces (D444 / D446).
+			if (this.isSourcesGitFileDiffOpenSkipped()) {
 				return;
 			}
 

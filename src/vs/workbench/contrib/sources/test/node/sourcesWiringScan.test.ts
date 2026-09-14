@@ -204,6 +204,24 @@ suite('Sources - review showForPaths - 源码接线扫描', () => {
 		assert.ok(openAction.includes('} catch (error)'));
 		assert.ok(openAction.includes('sourcesGitDiffOpenFailureMessage'));
 		assert.ok(openAction.includes('setStatusMessage'));
+		assert.ok(openAction.includes('isSourcesGitFileDiffOpenSkipped'));
+		assert.ok(openAction.includes('readGitFileDiff'));
 		assert.ok(!openAction.includes('} catch {'));
+	});
+	test('Changes and Review leftover onDidOpen skip KEEP pairing-hold leftover as well as list-fail', () => {
+		const changes = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts'), 'utf8');
+		const review = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts'), 'utf8');
+		const changesOpenStart = changes.indexOf('this._register(this.list.onDidOpen');
+		const changesOpenEnd = changes.indexOf('this._register(this.list.onDidChangeSelection', changesOpenStart);
+		const reviewOpenStart = review.indexOf('this._register(this.list.onDidOpen');
+		const reviewOpenEnd = review.indexOf('this._register(this.list.onContextMenu', reviewOpenStart);
+		assert.ok(changesOpenStart >= 0 && changesOpenEnd > changesOpenStart);
+		assert.ok(reviewOpenStart >= 0 && reviewOpenEnd > reviewOpenStart);
+		const changesOpen = changes.slice(changesOpenStart, changesOpenEnd);
+		const reviewOpen = review.slice(reviewOpenStart, reviewOpenEnd);
+		assert.ok(changesOpen.includes('isSourcesGitFileDiffOpenSkipped'));
+		assert.ok(reviewOpen.includes('isSourcesGitFileDiffOpenSkipped'));
+		assert.ok(changes.includes('shouldSkipSourcesGitFileDiffOpen'));
+		assert.ok(review.includes('shouldSkipSourcesGitFileDiffOpen'));
 	});
 });

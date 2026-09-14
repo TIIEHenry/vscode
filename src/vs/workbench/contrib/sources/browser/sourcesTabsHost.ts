@@ -73,6 +73,14 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 		return this.reviewList?.getSelectedEntry();
 	}
 
+	isSourcesGitFileDiffOpenSkipped(): boolean {
+		return this.reviewList?.isSourcesGitFileDiffOpenSkipped() ?? false;
+	}
+
+	readGitFileDiff(entry: ISourcesReviewEntry) {
+		return this.reviewList?.readGitFileDiffForOpen(entry) ?? Promise.resolve(undefined);
+	}
+
 	toggleReviewedSelected(): void {
 		this.reviewList?.toggleReviewedSelected();
 	}

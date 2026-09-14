@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { IModelService } from '../../../../editor/common/services/model.js';
 import { localize2 } from '../../../../nls.js';
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -33,7 +34,11 @@ registerAction2(class SourcesReviewOpenSelectedAction extends Action2 {
 	override async run(accessor: ServicesAccessor): Promise<void> {
 		const host = accessor.get(ISourcesReviewHostService).getReviewListHost();
 		const entry = host?.getSelectedEntry();
-		if (!entry) {
+		if (!host || !entry) {
+			return;
+		}
+		// Same FileDiff leftover / pairing-hold KEEP gate as Review list onDidOpen (D446).
+		if (host.isSourcesGitFileDiffOpenSkipped()) {
 			return;
 		}
 
@@ -46,6 +51,8 @@ registerAction2(class SourcesReviewOpenSelectedAction extends Action2 {
 					configurationService: accessor.get(IConfigurationService),
 					instantiationService: accessor.get(IInstantiationService),
 					sourcesDiffPanelService: accessor.get(ISourcesDiffPanelService),
+					modelService: accessor.get(IModelService),
+					readGitFileDiff: gitEntry => host.readGitFileDiff(gitEntry),
 				}, {
 					preserveFocus: false,
 					pinned: false,

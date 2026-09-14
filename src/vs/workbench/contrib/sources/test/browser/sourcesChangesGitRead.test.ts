@@ -25,6 +25,7 @@ import {
 	parseSourcesGitUnifiedDiff,
 	shouldKeepSourcesGitReadNoHookLeftover,
 	shouldKeepSourcesGitReadPairingHoldLeftover,
+	shouldSkipSourcesGitFileDiffOpen,
 	sourcesGitChangeGroupId,
 	sourcesGitChangeResource,
 	sourcesGitChangesRequest,
@@ -380,6 +381,13 @@ suite('Sources - Changes git read', () => {
 		assert.strictEqual(shouldKeepSourcesGitReadPairingHoldLeftover(false, true, 1), false);
 		assert.strictEqual(shouldKeepSourcesGitReadPairingHoldLeftover(true, false, 1), false);
 		assert.strictEqual(shouldKeepSourcesGitReadPairingHoldLeftover(false, false, 1), false);
+	});
+
+	test('FileDiff open skip covers list-fail leftover and KEEP pairing-hold leftover', () => {
+		assert.strictEqual(shouldSkipSourcesGitFileDiffOpen(false, false), false);
+		assert.strictEqual(shouldSkipSourcesGitFileDiffOpen(true, false), true);
+		assert.strictEqual(shouldSkipSourcesGitFileDiffOpen(false, true), true);
+		assert.strictEqual(shouldSkipSourcesGitFileDiffOpen(true, true), true);
 	});
 
 });

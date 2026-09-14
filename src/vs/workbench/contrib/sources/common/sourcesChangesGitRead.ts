@@ -40,6 +40,15 @@ export function canSendSourcesGitFileDiff(connected: boolean, hasHook: boolean, 
 	return isSourcesGitWriteLive(connected, pairingHold, leftoverListFailed) && hasHook && hasSourcesGitSessionId(sessionId);
 }
 
+/**
+ * FileDiff leftover / pairing-hold KEEP leftover is not a live open-diff surface
+ * (D444 / D446). List onDidOpen and Open Selected share this gate so leftover
+ * rows do not fake-preview or mark reviewed after FileDiff is refused.
+ */
+export function shouldSkipSourcesGitFileDiffOpen(leftoverListFailed: boolean, pairingHoldLeftover: boolean): boolean {
+	return leftoverListFailed || pairingHoldLeftover;
+}
+
 /** Same `sessionId` as write (`sourcesGitStagePathsRequest`). */
 export function sourcesGitChangesRequest(sessionId: string): UniverseAgentReadGitChangesRequest {
 	return {

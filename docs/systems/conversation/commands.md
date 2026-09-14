@@ -3,7 +3,7 @@ title: "Agent IDE 壳命令、菜单落点与快捷键"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-12
+updated: 2026-09-14
 summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、UA Preferences、深链的用户可见命令清单；chat tab 复用 editor group 命令；对话框 Escape / Accessible View；窄宽度见透镜页"
 ---
 
@@ -73,7 +73,7 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 
 无「宿主移动」命令（现无对应 Review 列表动作，不造）。Changes / Review 行打开后的 Diff 宿主移动走 `sources.diff.moveTo*`，见 [Sources 系统](../sources/overview.md)。
 
-选中行经 `ISourcesReviewListHost.getSelectedEntry()`（`SourcesTabsHost` → `SourcesReviewList`）。Open Selected 失败经同一 host 的 `setStatusMessage` 写 Review status。tab 切换为 title 区 tab strip（`nextSourcesTab` 支持循环）。Changes 的 stage / unstage / commit 调用 git 扩展命令 `git.stage` / `git.unstage` / `git.commit`（或 SCM `acceptInputCommand`）。
+选中行经 `ISourcesReviewListHost.getSelectedEntry()`（`SourcesTabsHost` → `SourcesReviewList`）。Open Selected 与列表 `onDidOpen` 共用 FileDiff leftover / pairing-hold KEEP 门（`isSourcesGitFileDiffOpenSkipped` + `readGitFileDiff`）；leftover 早退、0 unary、不假 preview、不标已审。失败经同一 host 的 `setStatusMessage` 写 Review status。tab 切换为 title 区 tab strip（`nextSourcesTab` 支持循环）。Changes 的 stage / unstage / commit 调用 git 扩展命令 `git.stage` / `git.unstage` / `git.commit`（或 SCM `acceptInputCommand`）。
 
 命令注册于 `sourcesReviewCommands.contribution.ts`（由 `sources.contribution.ts` 一行 import）。
 

@@ -392,6 +392,7 @@ suite('Sources - Changes list leftover honesty', () => {
 		connection: IUniverseAgentConnection,
 		scmService: ISCMService = createEmptyScmService(),
 		executeCommand?: (commandId: string, ...args: unknown[]) => Promise<unknown>,
+		openEditor?: (input: unknown) => Promise<unknown>,
 	) {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
@@ -400,6 +401,11 @@ suite('Sources - Changes list leftover honesty', () => {
 		instantiationService.stub(IQuickDiffService, {
 			getQuickDiffs: async () => [],
 		} as unknown as IQuickDiffService);
+		if (openEditor) {
+			instantiationService.stub(IEditorService, {
+				openEditor,
+			} as unknown as IEditorService);
+		}
 		instantiationService.stub(ISourcesDiffPanelService, {
 			onDidChangeRef: Event.None,
 			getCurrentRef: () => undefined,
@@ -616,6 +622,7 @@ suite('Sources - Changes list leftover honesty', () => {
 		let pairingPending = false;
 		let readCalls = 0;
 		let diffCalls = 0;
+		let openCalls = 0;
 		const leftover = { path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
 		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
@@ -652,7 +659,10 @@ suite('Sources - Changes list leftover honesty', () => {
 		} as unknown as IUniverseAgentConnection;
 		const scmStub = toResource.call(this, '/project/src/scm-stub.ts');
 		const host = mountHost();
-		const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub)).createInstance(SourcesChangesList, host));
+		const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub), undefined, async () => {
+			openCalls += 1;
+			return undefined;
+		}).createInstance(SourcesChangesList, host));
 		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
 
 		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
@@ -679,6 +689,8 @@ suite('Sources - Changes list leftover honesty', () => {
 		await openFirstListRow(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
 		await timeout(20);
 		assert.strictEqual(diffCalls, 0, 'leftover-looks-live must not extra readGitFileDiff');
+		assert.strictEqual(openCalls, 0, 'KEEP pairing-hold leftover must not fake preview');
+		assert.strictEqual(host.querySelector('.sources-changes-status')?.textContent ?? '', sourcesGitReadPairingHoldMessage());
 		assert.strictEqual(list.length, 1);
 		assert.strictEqual(list.element(0).gitPath, leftover.path);
 
