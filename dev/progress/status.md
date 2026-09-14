@@ -4,13 +4,13 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-14
-summary: "本关仓合入 D452 Timeline leftover + D453 Sessions leftover；D405 仍开；不得宣称 leftover wave 完成"
+summary: "MERGE_SHA=`ef39b942f74` compile-client 0；D452 Timeline leftover + D453 Sessions leftover 已合；D405 仍开；下号 D454；不得宣称 leftover wave 完成"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。产品状态 → [traceability](../../docs/product/traceability.md)（生成列）；方案状态 → [plans INDEX](../plans/INDEX.md)（生成列）；延期 → [deferred-gaps](deferred-gaps.md)。历史槽位 catalog 流水 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
-### 已合入（`MERGE_SHA`=`e66462273d8`；compile-client 0；将 push `loop/merge`+`agent-ide`）
+### 已合入（`MERGE_SHA`=`ef39b942f74`；compile-client 0；将 push `loop/merge`+`agent-ide`）
 | 切片 | 提交 / 落点 |
 |:-----|:------------|
 | **GFS-1** | `32f71812` / `32198d0b` — [giant-file-split](../plans/giant-file-split.md)：`grpcClient` mapper 特征测 + facade / mappers / calls 拆分 |
@@ -38,13 +38,13 @@ summary: "本关仓合入 D452 Timeline leftover + D453 Sessions leftover；D405
 | **settings chrome** | Connection/Engine 两页改用 `InputBox`/`Checkbox`/`WorkbenchList` 左栏与状态色；窄宽两栏；Test Engine 下沉页脚；「回 Client」链入 Preferences tab 条；会话栏图标改 ghost toolbar。无新 RPC / 无新节 |
 | **settings chrome follow-up** | Back-to-Client 先取出 Preferences 服务再关 pane（`await` 后 accessor 已失效）；Direct Address Connect 状态写回本区并先标 Connecting…。已随本轮合入 `loop/merge` |
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。**2026-09-12**：仓外 PIN 已换。grpcurl 复验 **List/Create PASS**（含旧 session-100/101）；**[D25](deferred-gaps.md)/[D26](deferred-gaps.md) 已闭**。同日 seed `provider:state` + `models.json` 后重启，grpcurl **Chat PASS**（`gemini-3.8-flash-high`，`textDelta`=`pong`，`turnComplete`/`end_turn`；无 `MODEL_PROFILE_*`）。这是引擎面证据，不是 IDE Conversation 接通冒烟。未升 PRD-008。引擎 A–F 已合；本仓 **node + `IUniverseAgentConnection` 已挂**。Provider/Rules/Hooks **只读列表**已接（无凭据/规则写表单）。Projects 按会话 `work_dir` 分组、Navigator `ListTeams` 标题、Review 历史 chip **已接**。[m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 进行中（2026-09-14 · 本关仓 D452 + D453）
+### 进行中（2026-09-14 · D452/D453 已合；compile-client 0）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
-| **A** | D452 Timeline KEEP leftover 写面 | `caa67368fe3` 已进 merge；勿宣称 leftover wave 完成 |
+| **A** | — | `idle`；跟 MERGE_SHA；D452=`caa67368fe3` |
 | **B** | — | 脏 `worktree-pool.md` 勿 add / 勿 `-B` |
 | **C** | — | 脏 `dev/loop`；勿 add / 勿 `-B` |
-| **D** | D453 Sessions KEEP leftover New/Delete 拒写 | `b53f9ec6624` 本关仓合入；勿宣称 leftover wave 完成 |
+| **D** | — | `idle`；跟 MERGE_SHA；D453=`b53f9ec6624` |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 
 <details>
@@ -178,22 +178,22 @@ summary: "本关仓合入 D452 Timeline leftover + D453 Sessions leftover；D405
 | [D242](deferred-gaps.md)–[D288](deferred-gaps.md) | leftover + pairing | **closed** catalog leftover + pairing keep-last（含 roster turns / session sync） |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
-| [D405](deferred-gaps.md)–[D453](deferred-gaps.md) | A/D 本波 | D405 手测仍开；D452 Timeline leftover + D453 Sessions leftover 本关仓合入；不得宣称 leftover wave 完成 |
+| [D405](deferred-gaps.md)–[D453](deferred-gaps.md) | A/D 本波 | D405 手测仍开；D452/D453 已合 `ef39b942f74`；不得宣称 leftover wave 完成 |
 ## 工位表（P7 · 2026-09-14 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `e66462273d8` | 干净 | 0 | `parked`；MERGE_SHA；compile-client 0；将 push |
-| A | `vscode-WorkTrees/A` | `loop/A` | `5f5a0e066d9` | 脏 D452 | 0 | D452 未提交；MERGE_SHA 仍 `e66462273d8` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `ef39b942f74` | 干净 | 0 | `parked`；MERGE_SHA；compile-client 0；将 push |
+| A | `vscode-WorkTrees/A` | `loop/A` | `ef39b942f74` | 干净 | 0 | `idle`；跟 MERGE_SHA；D452=`caa67368fe3` |
 | B | `vscode-WorkTrees/B` | `loop/B` | `28ffd1ae9f2` | 脏 `worktree-pool.md` | 0 | tip 已合；脏树勿 `-B` |
 | C | `vscode-WorkTrees/C` | `loop/C` | `815b4ad48e3` | 脏 `dev/loop` | 0 | 跳过；勿 add |
-| D | `vscode-WorkTrees/D` | `loop/D` | `e66462273d8` | — | 0 | D453 排队合入；勿 `-B` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `ef39b942f74` | 干净 | 0 | `idle`；跟 MERGE_SHA；D453=`b53f9ec6624` |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked` leftover；跳过 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `815b4ad48e3` | `dev/loop` + `.idea` | 0 | 脏树未代拉；请人类自行 ff |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。本仓只读面 + Composer `model_profile_id` **已挂**。钉死工位 seed 后 grpcurl **Chat PASS**。下一刀是 IDE Direct Address 接通后 Composer 发送（PRD-008 仍要隔离 profile 冒烟）。**不升 PRD-008**。不要再清 store。D26 store 已闭，旧「迁移卡死」账见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md) |
-| **loop 切片** | 本关仓合入 **D452** Timeline leftover + **D453** Sessions leftover。**D405** 手测仍开。不关 D8/D16/D147。未升 PRD-008。不得宣称 leftover wave 完成。下号 **D454**。 |
+| **loop 切片** | `MERGE_SHA`=`ef39b942f74`。**D452**–**D453** 已合（Timeline leftover + Sessions leftover）。`check-merge-both-sides.sh` 本仓不存在，已跳过。下号 **D454**。**D405** 手测仍开。不关 D8/D16/D147。未升 PRD-008。不得宣称 leftover wave 完成。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。

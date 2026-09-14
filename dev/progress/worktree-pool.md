@@ -5,7 +5,7 @@ status: accepted
 phase: M7
 created: 2026-08-30
 updated: 2026-09-14
-summary: "仓外 vscode-WorkTrees；基线 agent-ide；MERGE_SHA e66462273d8 compile-client 0"
+summary: "仓外 vscode-WorkTrees；基线 agent-ide；MERGE_SHA ef39b942f74 compile-client 0"
 ---
 
 # Loop 并行工位池（本仓）
@@ -23,18 +23,18 @@ summary: "仓外 vscode-WorkTrees；基线 agent-ide；MERGE_SHA e66462273d8 com
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（merge 槽对齐此分支；非上游 `main`） |
-| 集成本次 HEAD | `e66462273d8`（`loop/merge` · 2026-09-14 关仓；compile-client 0） |
-| 工位池 compile | compile-client 0 @ `e66462273d8` |
+| 集成本次 HEAD | `ef39b942f74`（`loop/merge` · 2026-09-14 关仓 D452+D453；compile-client 0） |
+| 工位池 compile | compile-client 0 @ `ef39b942f74` |
 
-## 槽位表（2026-09-14 · `MERGE_SHA`=`e66462273d8`）
+## 槽位表（2026-09-14 · `MERGE_SHA`=`ef39b942f74`）
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `e66462273d8` | `parked`；将 push `origin/agent-ide` |
-| A | `vscode-WorkTrees/A` | `loop/A` | `e66462273d8` | `idle` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `ef39b942f74` | `parked`；compile-client 0；将 push `origin/agent-ide` |
+| A | `vscode-WorkTrees/A` | `loop/A` | `ef39b942f74` | `idle`；D452 已合 |
 | B | `vscode-WorkTrees/B` | `loop/B` | `28ffd1ae9f2` | tip 已合；脏 `worktree-pool.md` 勿 `-B` |
 | C | `vscode-WorkTrees/C` | `loop/C` | `815b4ad48e3` | 脏 `dev/loop`；勿 add；未 `-B` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `e66462273d8` | `idle` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `ef39b942f74` | `idle`；D453 已合 |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | `blocked` leftover；勿 `checkout -B` |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `815b4ad48e3` | 脏树未代拉；请人类自行 ff |
 
