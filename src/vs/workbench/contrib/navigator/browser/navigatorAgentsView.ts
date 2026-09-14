@@ -93,8 +93,8 @@ interface IAgentsHierarchyTemplateData {
 	readonly typeIcon: HTMLElement;
 	readonly statusGlyph: HTMLElement;
 	readonly actionBar: ActionBar;
-	readonly inspectAction: Action;
-	readonly revealAction: Action;
+	inspectAction: Action;
+	revealAction: Action;
 	element: INavigatorAgentsHierarchyNode | undefined;
 }
 

@@ -143,20 +143,21 @@ suite('Navigator Agents subviews', () => {
 		instantiationService.stub(ICommandService, { executeCommand });
 		instantiationService.stub(IUniverseAgentConnection, connection);
 		if (actionSpies) {
+			const spies = actionSpies;
 			instantiationService.stub(IConversationSessionChatService, {
 				findOpenTabForChat: () => undefined,
 				isSubAgentDialogOpen: () => false,
 				closeSubAgentDialog: () => { },
 				navigateAgentBreadcrumb: async () => { },
 				openSubAgent: async (sessionKey: string, chatId: string, title?: string) => {
-					actionSpies.revealCalls?.push({ sessionKey, chatId, title });
+					spies.revealCalls?.push({ sessionKey, chatId, title });
 				},
 			} as unknown as IConversationSessionChatService);
 			instantiationService.stub(IConversationPartService, { focus: () => { } } as IConversationPartService);
-			if (actionSpies.inspectOpenCalls) {
+			if (spies.inspectOpenCalls) {
 				class TrackingViewsService extends TestViewsService {
 					override openView<T>(id: string, focus?: boolean): Promise<T | null> {
-						actionSpies.inspectOpenCalls!.push({ id, focus });
+						spies.inspectOpenCalls!.push({ id, focus });
 						return Promise.resolve(null);
 					}
 					dispose(): void { }
