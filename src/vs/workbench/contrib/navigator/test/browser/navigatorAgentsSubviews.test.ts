@@ -4,11 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { ActionViewItem } from '../../../../../base/browser/ui/actionbar/actionViewItems.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
+import { isIMenuItem, MenuId, MenuItemAction, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { getSelectionKeyboardEvent, WorkbenchList, WorkbenchObjectTree } from '../../../../../platform/list/browser/listService.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
@@ -346,6 +347,7 @@ suite('Navigator Agents subviews', () => {
 		document.createElement('div').appendChild(view.element);
 		view.setExpanded(true);
 		view.setVisible(true);
+		assert.strictEqual(roster.isEngineSessionReady(), true);
 		assert.strictEqual(UA_ENGINE_CONNECTED_KEY.getValue(view['scopedContextKeyService']), true);
 		view.refreshAgentTree();
 		assert.strictEqual(refreshedSessionId, roster.getActiveSessionId());
@@ -423,6 +425,68 @@ suite('Navigator Agents subviews', () => {
 		assert.strictEqual(isConversationPairingHold(connection), true);
 		assert.ok(roster.getActiveSessionId());
 		assert.strictEqual(UA_ENGINE_CONNECTED_KEY.getValue(view['scopedContextKeyService']), false);
+		view.refreshAgentTree();
+		assert.strictEqual(treeRefreshCalls, 0);
+	});
+
+	test('KEEP leftover list-fail Refresh stays 0 requestAgentTreeRefresh and closes chrome', () => {
+		class KeepLeftoverListFailRoster extends ConversationStubService {
+			override isEngineConnected(): boolean {
+				return true;
+			}
+			override isEngineSessionReady(): boolean {
+				return false;
+			}
+		}
+		let treeRefreshCalls = 0;
+		const roster = store.add(new KeepLeftoverListFailRoster());
+		roster.setEngineConnected(true);
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
+				pairingPending: false,
+			}),
+			requestAgentTreeRefresh: () => {
+				treeRefreshCalls++;
+			},
+		});
+		const view = mountAgentsView(roster, connection);
+
+		assert.strictEqual(roster.isEngineConnected(), true, 'KEEP leftover list-fail must keep isEngineConnected()===true');
+		assert.strictEqual(roster.isEngineSessionReady(), false);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		assert.ok(roster.getActiveSessionId());
+		const scopedContextKeyService = view['scopedContextKeyService'];
+		assert.strictEqual(UA_ENGINE_CONNECTED_KEY.getValue(scopedContextKeyService), false);
+
+		const refreshItem = MenuRegistry.getMenuItems(MenuId.ViewTitle).filter(isIMenuItem)
+			.find(item => item.command.id === NAVIGATOR_AGENTS_REFRESH_COMMAND_ID);
+		assert.ok(refreshItem, 'Agents ViewTitle must register Refresh');
+		assert.ok(refreshItem.command.precondition, 'Refresh ViewTitle must have leftover list-fail precondition');
+		assert.strictEqual(scopedContextKeyService.contextMatchesRules(refreshItem.command.precondition), false);
+
+		const refreshAction = new MenuItemAction(
+			refreshItem.command,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			scopedContextKeyService,
+			{ executeCommand: async () => undefined } as never,
+		);
+		assert.strictEqual(refreshAction.enabled, false);
+
+		const refreshViewItem = store.add(new ActionViewItem(undefined, refreshAction, { icon: true, label: false }));
+		const host = document.createElement('div');
+		refreshViewItem.render(host);
+		const refreshLabel = host.querySelector('.action-label') as HTMLElement | null;
+		assert.ok(refreshLabel, 'Agents ViewTitle Refresh chrome must paint');
+		assert.strictEqual(refreshLabel.getAttribute('aria-disabled'), 'true');
+		refreshLabel.click();
+		assert.strictEqual(treeRefreshCalls, 0);
+
 		view.refreshAgentTree();
 		assert.strictEqual(treeRefreshCalls, 0);
 	});

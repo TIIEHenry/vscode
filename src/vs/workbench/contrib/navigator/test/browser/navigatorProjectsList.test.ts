@@ -1070,4 +1070,83 @@ suite('NavigatorProjectsView', () => {
 		openTreeNode(view, { id: 'session:ghost', kind: 'session', label: 'Ghost', sessionId: 'ghost' });
 		assert.deepStrictEqual(rosterService.switchSessionCalls, [], 'first-pull pairing must not leftover-as-live switchSession');
 	});
+
+	test('KEEP leftover list-fail leftover session switch stays 0 switchSession', async () => {
+		class KeepLeftoverListFailRoster extends ConversationStubService {
+			readonly switchSessionCalls: string[] = [];
+			override isEngineConnected(): boolean {
+				return true;
+			}
+			override isEngineSessionReady(): boolean {
+				return false;
+			}
+			override switchSession(sessionId: string): void {
+				this.switchSessionCalls.push(sessionId);
+				super.switchSession(sessionId);
+			}
+		}
+		const folderUri = URI.file('/projects/keep-leftover-switch');
+		const contextService = new TestContextService(testWorkspace(folderUri));
+		const rosterService = new KeepLeftoverListFailRoster();
+		rosterService.setEngineConnected(true);
+		const uaConnection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			getConnectionSnapshot: () => ({
+				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
+				pairingPending: false,
+			}),
+		});
+		const view = await mountView({ contextService, rosterService, uaConnection });
+
+		assert.strictEqual(rosterService.isEngineConnected(), true, 'KEEP leftover list-fail must keep isEngineConnected()===true');
+		assert.strictEqual(rosterService.isEngineSessionReady(), false);
+		assert.strictEqual(uaConnection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(uaConnection), false);
+		const leftoverSessionIds = collectSessionIds(getViewTreeNodes(view));
+		assert.ok(leftoverSessionIds.length > 0, 'KEEP leftover list-fail must keep leftover session rows');
+		const sessionNode = findTreeNode(getViewTreeNodes(view), node => node.kind === 'session' && !!node.sessionId);
+		assert.ok(sessionNode?.sessionId);
+
+		openTreeNode(view, sessionNode);
+		assert.deepStrictEqual(rosterService.switchSessionCalls, [], 'KEEP leftover list-fail force-open must stay 0 switchSession');
+	});
+
+	test('true connected ready still switches session rows', async () => {
+		class SwitchTrackingRoster extends ConversationStubService {
+			readonly switchSessionCalls: string[] = [];
+			override isEngineConnected(): boolean {
+				return true;
+			}
+			override isEngineSessionReady(): boolean {
+				return true;
+			}
+			override switchSession(sessionId: string): void {
+				this.switchSessionCalls.push(sessionId);
+				super.switchSession(sessionId);
+			}
+		}
+		const folderUri = URI.file('/projects/connected-ready-switch');
+		const contextService = new TestContextService(testWorkspace(folderUri));
+		const rosterService = new SwitchTrackingRoster();
+		rosterService.setEngineConnected(true);
+		const uaConnection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			getConnectionSnapshot: () => ({
+				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
+				pairingPending: false,
+			}),
+		});
+		const view = await mountView({ contextService, rosterService, uaConnection });
+
+		assert.strictEqual(rosterService.isEngineConnected(), true);
+		assert.strictEqual(rosterService.isEngineSessionReady(), true);
+		assert.strictEqual(isConversationPairingHold(uaConnection), false);
+		const sessionNode = findTreeNode(getViewTreeNodes(view), node => node.kind === 'session' && !!node.sessionId);
+		assert.ok(sessionNode?.sessionId);
+
+		openTreeNode(view, sessionNode);
+		assert.deepStrictEqual(rosterService.switchSessionCalls, [sessionNode.sessionId]);
+	});
 });

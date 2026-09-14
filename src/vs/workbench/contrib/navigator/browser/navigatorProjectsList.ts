@@ -346,7 +346,9 @@ export class NavigatorProjectsView extends ViewPane {
 				sessions: this.rosterService.getSessions(),
 				localFolders: this.localFolderEntries,
 			}), recentsFailureCopy);
-			this.leftoverSessionSwitchClosed = !engineConnected || sessionListCapability === 'UNKNOWN';
+			this.leftoverSessionSwitchClosed = !engineConnected
+				|| sessionListCapability === 'UNKNOWN'
+				|| this.isKeepLeftoverListFailWrite();
 
 			this.filterBox?.setVisible(this.treeNodes.length > 0);
 			this.applyFilterToTree();
@@ -360,8 +362,14 @@ export class NavigatorProjectsView extends ViewPane {
 		}
 	}
 
+	/** KEEP leftover list-fail (D455): connected but roster not ready is not a live session-switch surface. */
+	private isKeepLeftoverListFailWrite(): boolean {
+		return this.rosterService.isEngineConnected()
+			&& this.rosterService.isEngineSessionReady() === false;
+	}
+
 	private isProjectsSessionSwitchLive(): boolean {
-		return !this.leftoverSessionSwitchClosed;
+		return !this.leftoverSessionSwitchClosed && !this.isKeepLeftoverListFailWrite();
 	}
 
 	private markLeftoverSessionSwitchClosed(): void {

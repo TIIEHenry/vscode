@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-14
-summary: "MERGE_SHA=`ef39b942f74` compile-client 0；D452 Timeline leftover + D453 Sessions leftover 已合；D405 仍开；下号 D454；不得宣称 leftover wave 完成"
+summary: "MERGE_SHA=`ef39b942f74`；D455 Navigator leftover Refresh/switch 本工位；D454 由 A 占用；D405 仍开；不得宣称 leftover wave 完成"
 ---
 
 # Development Progress
@@ -44,7 +44,7 @@ summary: "MERGE_SHA=`ef39b942f74` compile-client 0；D452 Timeline leftover + D4
 | **A** | — | `idle`；跟 MERGE_SHA；D452=`caa67368fe3` |
 | **B** | — | 脏 `worktree-pool.md` 勿 add / 勿 `-B` |
 | **C** | — | 脏 `dev/loop`；勿 add / 勿 `-B` |
-| **D** | — | `idle`；跟 MERGE_SHA；D453=`b53f9ec6624` |
+| **D** | D455 navigator leftover Refresh/switch | 本工位未 commit；D454 由 A 占用 |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 
 <details>
@@ -178,7 +178,7 @@ summary: "MERGE_SHA=`ef39b942f74` compile-client 0；D452 Timeline leftover + D4
 | [D242](deferred-gaps.md)–[D288](deferred-gaps.md) | leftover + pairing | **closed** catalog leftover + pairing keep-last（含 roster turns / session sync） |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
-| [D405](deferred-gaps.md)–[D453](deferred-gaps.md) | A/D 本波 | D405 手测仍开；D452/D453 已合 `ef39b942f74`；不得宣称 leftover wave 完成 |
+| [D405](deferred-gaps.md)–[D455](deferred-gaps.md) | A/D 本波 | D405 仍开；D452/D453 已合；D454 由 A 占用；D455 本工位；不得宣称 leftover wave 完成 |
 ## 工位表（P7 · 2026-09-14 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
@@ -193,7 +193,7 @@ summary: "MERGE_SHA=`ef39b942f74` compile-client 0；D452 Timeline leftover + D4
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。本仓只读面 + Composer `model_profile_id` **已挂**。钉死工位 seed 后 grpcurl **Chat PASS**。下一刀是 IDE Direct Address 接通后 Composer 发送（PRD-008 仍要隔离 profile 冒烟）。**不升 PRD-008**。不要再清 store。D26 store 已闭，旧「迁移卡死」账见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md) |
-| **loop 切片** | `MERGE_SHA`=`ef39b942f74`。**D452**–**D453** 已合（Timeline leftover + Sessions leftover）。`check-merge-both-sides.sh` 本仓不存在，已跳过。下号 **D454**。**D405** 手测仍开。不关 D8/D16/D147。未升 PRD-008。不得宣称 leftover wave 完成。 |
+| **loop 切片** | `MERGE_SHA`=`ef39b942f74`。**D455** Navigator leftover Refresh/switch 本工位（D454 由 A 占用 SessionBar）。**D405** 仍开。不关 D8/D16/D147。未升 PRD-008。不得宣称 leftover wave 完成。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
