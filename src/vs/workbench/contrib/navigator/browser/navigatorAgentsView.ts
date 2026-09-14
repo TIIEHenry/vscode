@@ -303,6 +303,8 @@ export class NavigatorAgentsView extends ViewPane {
 			this.refreshFromLease();
 		}));
 		this._register(this.rosterService.onDidChangeActiveSession(() => this.refreshFromLease()));
+		// D457: KEEP leftover list-fail flips via roster session events, not connection.
+		this._register(this.rosterService.onDidChangeSession(() => this.syncKeepLeftoverWriteChrome()));
 		// Tree first-fetch fail/clear fires via connection snapshot (D21), not lease patches.
 		this._register(this.uaConnection.onDidChangeConnection(() => {
 			this.updateEngineConnectedContextKey();
@@ -355,7 +357,7 @@ export class NavigatorAgentsView extends ViewPane {
 		this.refreshFromLease();
 	}
 
-	/** KEEP leftover list-fail (D455): connected but roster not ready is not a live Refresh surface. */
+	/** KEEP leftover list-fail (D455 Refresh / D457 Inspect): connected but roster not ready is not a live write surface. */
 	private isKeepLeftoverListFailWrite(): boolean {
 		return this.rosterService.isEngineConnected()
 			&& this.rosterService.isEngineSessionReady() === false;
@@ -367,6 +369,11 @@ export class NavigatorAgentsView extends ViewPane {
 			&& this.rosterService.isEngineConnected()
 			&& !this.isKeepLeftoverListFailWrite(),
 		);
+	}
+
+	private syncKeepLeftoverWriteChrome(): void {
+		this.updateEngineConnectedContextKey();
+		this.hierarchyRenderer?.syncRowActionChrome();
 	}
 
 	protected override renderBody(container: HTMLElement): void {
@@ -583,7 +590,7 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 
 	private isAgentsRowActionLive(): boolean {
-		return !this.leftoverRowActionsClosed;
+		return !this.leftoverRowActionsClosed && !this.isKeepLeftoverListFailWrite();
 	}
 
 	private markLeftoverRowActionsClosed(): void {

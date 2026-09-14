@@ -663,8 +663,14 @@ export class NavigatorTeamView extends ViewPane {
 		this.tasksBody?.classList.toggle('active', this.subview === 'tasks');
 	}
 
+	/** KEEP leftover list-fail (D457): connected but roster not ready is not a live Inspect/row-open surface. */
+	private isKeepLeftoverListFailWrite(): boolean {
+		return this.rosterService.isEngineConnected()
+			&& this.rosterService.isEngineSessionReady() === false;
+	}
+
 	private isTeamRowActionLive(): boolean {
-		return !this.leftoverRowActionsClosed;
+		return !this.leftoverRowActionsClosed && !this.isKeepLeftoverListFailWrite();
 	}
 
 	private markLeftoverRowActionsClosed(): void {

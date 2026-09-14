@@ -1783,6 +1783,15 @@ suite('Navigator Team subviews', () => {
 		await timeout(0);
 	}
 
+	async function forceOpenTeamTask(view: NavigatorTeamView): Promise<void> {
+		view.showTasks();
+		const tasksList = (view as unknown as { tasksList: WorkbenchList<{ id: string; label: string }> }).tasksList;
+		assert.ok(tasksList.length > 0, 'leftover task row must exist to force-open');
+		tasksList.setFocus([0]);
+		tasksList.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
+		await timeout(0);
+	}
+
 	const leftoverTeamMember = {
 		memberName: 'Alice',
 		memberAgentId: 'member:1',
@@ -1901,6 +1910,90 @@ suite('Navigator Team subviews', () => {
 		view.inspectFocusedTitleAction();
 		assert.deepStrictEqual(revealCalls, [], 'forced pairing-hold leftover member row-open must stay 0');
 		assert.deepStrictEqual(inspectOpenCalls, []);
+	});
+
+	test('KEEP leftover list-fail closes member/task row-open and Inspect without connection event', async () => {
+		class KeepLeftoverListFailFlipRoster extends RosterWithLiveTree {
+			engineSessionReady = true;
+			override isEngineSessionReady(): boolean {
+				return this.engineSessionReady;
+			}
+		}
+		class TrackingInspectService extends AgentInspectService {
+			readonly setTargetCalls: unknown[] = [];
+			override setTarget(target: Parameters<AgentInspectService['setTarget']>[0]): void {
+				this.setTargetCalls.push(target);
+				super.setTarget(target);
+			}
+		}
+		const leftoverTeamTask = {
+			taskId: 't-keep-leftover',
+			subject: 'Keep leftover task',
+			owner: 'Alice',
+			status: 'OPEN',
+			blockedBy: '',
+			lastMessage: '',
+			description: '',
+		};
+		const roster = store.add(new KeepLeftoverListFailFlipRoster(teamLiveTree));
+		roster.setEngineConnected(true);
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
+				pairingPending: false,
+			}),
+			getNavigatorCapability: () => 'SUPPORTED',
+			team: {
+				memberStatus: async () => [leftoverTeamMember],
+				taskList: async () => [leftoverTeamTask],
+				teamInfo: async () => undefined,
+			},
+		});
+		const revealCalls: Array<{ sessionKey: string; chatId: string; title?: string }> = [];
+		const inspectOpenCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+		const inspectService = store.add(new TrackingInspectService());
+		const view = mountTeamView(roster, connection, undefined, inspectService, { revealCalls, inspectOpenCalls });
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+
+		assert.strictEqual(roster.isEngineConnected(), true);
+		assert.strictEqual(roster.isEngineSessionReady(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		const leftoverMemberCount = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList.length;
+		const leftoverTaskCount = (view as unknown as { tasksList: WorkbenchList<{ id: string; label: string }> }).tasksList.length;
+		assert.ok(leftoverMemberCount > 0, 'live paint must have leftover member rows');
+		assert.ok(leftoverTaskCount > 0, 'live paint must have leftover task rows');
+		await forceOpenTeamMember(view);
+		assert.strictEqual(revealCalls.length, 1, 'live member row-open must still reveal');
+		const setTargetAfterLive = inspectService.setTargetCalls.length;
+		assert.ok(setTargetAfterLive > 0, 'live member row-open must still setTarget');
+
+		roster.engineSessionReady = false;
+		roster.createTestFrameSourceCallback().onSessionChanged(roster.getActiveSessionId());
+
+		assert.strictEqual(roster.isEngineConnected(), true, 'KEEP leftover list-fail must keep isEngineConnected()===true');
+		assert.strictEqual(roster.isEngineSessionReady(), false);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual((view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList.length, leftoverMemberCount, 'KEEP leftover member rows must stay');
+		assert.strictEqual((view as unknown as { tasksList: WorkbenchList<{ id: string; label: string }> }).tasksList.length, leftoverTaskCount, 'KEEP leftover task rows must stay');
+
+		await forceOpenTeamMember(view);
+		view.inspectFocusedTitleAction();
+		await forceOpenTeamTask(view);
+		assert.strictEqual(revealCalls.length, 1, 'forced KEEP leftover member row-open must stay 0 revealNavigatorAgentInConversation');
+		assert.deepStrictEqual(inspectOpenCalls, [], 'forced KEEP leftover Inspect must stay 0');
+		assert.strictEqual(inspectService.setTargetCalls.length, setTargetAfterLive, 'forced KEEP leftover must stay 0 Team setTarget');
+
+		roster.engineSessionReady = true;
+		roster.createTestFrameSourceCallback().onSessionChanged(roster.getActiveSessionId());
+		assert.strictEqual(roster.isEngineSessionReady(), true);
+		view.showMembers();
+		await forceOpenTeamMember(view);
+		view.inspectFocusedTitleAction();
+		assert.strictEqual(revealCalls.length, 2, 'ready member row-open must still reveal');
+		assert.ok(inspectOpenCalls.length > 0, 'ready Inspect must still open');
+		assert.ok(inspectService.setTargetCalls.length > setTargetAfterLive, 'ready Team setTarget must still run');
 	});
 
 	test('first-pull team UNKNOWN stays empty without leftover row-open chrome', async () => {
