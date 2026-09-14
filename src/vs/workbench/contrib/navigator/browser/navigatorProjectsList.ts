@@ -126,6 +126,8 @@ export class NavigatorProjectsView extends ViewPane {
 	private treeNodes: INavigatorProjectsTreeNode[] = [];
 	private localFolderEntries: INavigatorLocalFolderEntry[] = [];
 	private wasEverConnected = false;
+	/** D445: leftover KEEP must close leftover-as-live session switch without reselect. */
+	private leftoverSessionSwitchClosed = false;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -267,6 +269,9 @@ export class NavigatorProjectsView extends ViewPane {
 			return;
 		}
 		if (node.kind === 'session' && node.sessionId) {
+			if (!this.isProjectsSessionSwitchLive()) {
+				return;
+			}
 			this.rosterService.switchSession(node.sessionId);
 			if (!this.layoutService.isVisible(Parts.CONVERSATION_PART)) {
 				this.layoutService.setPartHidden(false, Parts.CONVERSATION_PART);
@@ -301,6 +306,7 @@ export class NavigatorProjectsView extends ViewPane {
 
 			if (recentsFailureCopy && (this.localFolderEntries.length > 0 || this.treeNodes.length > 0)) {
 				// Keep last-good localFolderEntries / treeNodes after a successful paint.
+				this.markLeftoverSessionSwitchClosed();
 				this.setRecentsStatus(recentsFailureCopy);
 				return;
 			}
@@ -312,6 +318,7 @@ export class NavigatorProjectsView extends ViewPane {
 				: [...currentFolders, ...recentFolders];
 
 			if (isConversationPairingHold(this.uaConnection) && this.hasProjectsLeftoverRows()) {
+				this.markLeftoverSessionSwitchClosed();
 				this.filterBox?.setVisible(this.treeNodes.length > 0);
 				this.applyFilterToTree();
 				this._onDidChangeViewWelcomeState.fire();
@@ -328,16 +335,18 @@ export class NavigatorProjectsView extends ViewPane {
 			}
 
 			const snapshot = this.uaConnection.getConnectionSnapshot();
+			const sessionListCapability = getNavigatorCapability(this.uaConnection, 'sessionList');
 			this.treeNodes = this.withRecentsFailureNote(buildNavigatorProjectsTree({
 				engineConnected,
 				wasEverConnected: this.wasEverConnected,
 				transportFailed: snapshot.transport === 'failed',
-				sessionListCapability: getNavigatorCapability(this.uaConnection, 'sessionList'),
+				sessionListCapability,
 				workDir: snapshot.workDir,
 				workspaceRoots: this.contextService.getWorkspace().folders.map(folder => folder.uri.fsPath),
 				sessions: this.rosterService.getSessions(),
 				localFolders: this.localFolderEntries,
 			}), recentsFailureCopy);
+			this.leftoverSessionSwitchClosed = !engineConnected || sessionListCapability === 'UNKNOWN';
 
 			this.filterBox?.setVisible(this.treeNodes.length > 0);
 			this.applyFilterToTree();
@@ -351,10 +360,19 @@ export class NavigatorProjectsView extends ViewPane {
 		}
 	}
 
+	private isProjectsSessionSwitchLive(): boolean {
+		return !this.leftoverSessionSwitchClosed;
+	}
+
+	private markLeftoverSessionSwitchClosed(): void {
+		this.leftoverSessionSwitchClosed = true;
+	}
+
 	private surfaceLastGoodAsStale(): void {
 		if (this.treeNodes.length === 0 && this.localFolderEntries.length === 0) {
 			return;
 		}
+		this.markLeftoverSessionSwitchClosed();
 		this.treeNodes = this.withStaleSnapshotNote(this.treeNodes);
 		if (!this.hasVisibleRecentsStatus()) {
 			this.setRecentsStatus(NAVIGATOR_STALE_SNAPSHOT_COPY);

@@ -8,7 +8,7 @@ import { getErrorMessage } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
-import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
+import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
@@ -19,6 +19,9 @@ import { workbenchInstantiationService, TestViewsService } from '../../../../tes
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
 import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
+import { IConversationSessionChatService } from '../../../conversation/browser/conversationSessionChatService.js';
+import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
+import { timeout } from '../../../../../base/common/async.js';
 import { IAgentInspectService } from '../../common/agentInspect.js';
 import { AgentInspectService } from '../../browser/agentInspectService.js';
 import { AGENT_INSPECT_VIEW_ID, OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID } from '../../browser/agentInspectIds.js';
@@ -113,6 +116,10 @@ suite('Navigator Team subviews', () => {
 		connection: IUniverseAgentConnection = createNavigatorConnectionTestStub(),
 		notification?: INotificationService,
 		inspectService?: IAgentInspectService,
+		actionSpies?: {
+			revealCalls?: Array<{ sessionKey: string; chatId: string; title?: string }>;
+			inspectOpenCalls?: Array<{ id: string; focus: boolean | undefined }>;
+		},
 	): NavigatorTeamView {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, roster);
@@ -120,6 +127,28 @@ suite('Navigator Team subviews', () => {
 		instantiationService.stub(IUniverseAgentConnection, connection);
 		if (notification) {
 			instantiationService.stub(INotificationService, notification);
+		}
+		if (actionSpies) {
+			instantiationService.stub(IConversationSessionChatService, {
+				findOpenTabForChat: () => undefined,
+				isSubAgentDialogOpen: () => false,
+				closeSubAgentDialog: () => { },
+				navigateAgentBreadcrumb: async () => { },
+				openSubAgent: async (sessionKey: string, chatId: string, title?: string) => {
+					actionSpies.revealCalls?.push({ sessionKey, chatId, title });
+				},
+			} as unknown as IConversationSessionChatService);
+			instantiationService.stub(IConversationPartService, { focus: () => { } } as IConversationPartService);
+			if (actionSpies.inspectOpenCalls) {
+				class TrackingViewsService extends TestViewsService {
+					override openView<T>(id: string, focus?: boolean): Promise<T | null> {
+						actionSpies.inspectOpenCalls!.push({ id, focus });
+						return Promise.resolve(null);
+					}
+					dispose(): void { }
+				}
+				instantiationService.stub(IViewsService, store.add(new TrackingViewsService()));
+			}
 		}
 		const stubViewContainer = {
 			id: 'navigator-team-test-container',
@@ -1739,5 +1768,156 @@ suite('Navigator Team subviews', () => {
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	function leftoverTeamRowActionsClosed(view: NavigatorTeamView): boolean {
+		return (view as unknown as { leftoverRowActionsClosed: boolean }).leftoverRowActionsClosed;
+	}
+
+	async function forceOpenTeamMember(view: NavigatorTeamView): Promise<void> {
+		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList;
+		assert.ok(membersList.length > 0, 'leftover member row must exist to force-open');
+		membersList.setFocus([0]);
+		membersList.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
+		await timeout(0);
+	}
+
+	const leftoverTeamMember = {
+		memberName: 'Alice',
+		memberAgentId: 'member:1',
+		status: 'IDLE',
+		preset: 'p',
+		dynamic: 'd',
+		turnCount: 1,
+	};
+
+	test('memberStatus throw leftover closes member row-open without reselect', async () => {
+		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
+		roster.setEngineConnected(true);
+		let memberStatusCalls = 0;
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			team: {
+				memberStatus: async () => {
+					memberStatusCalls++;
+					if (memberStatusCalls === 1) {
+						return [leftoverTeamMember];
+					}
+					throw new Error('memberStatus boom');
+				},
+				taskList: async () => [],
+				teamInfo: async () => undefined,
+			},
+		});
+		const revealCalls: Array<{ sessionKey: string; chatId: string; title?: string }> = [];
+		const inspectOpenCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+		const view = mountTeamView(roster, connection, undefined, undefined, { revealCalls, inspectOpenCalls });
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+
+		const leftoverMemberCount = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList.length;
+		assert.ok(leftoverMemberCount > 0, 'live paint must have leftover member rows');
+		await forceOpenTeamMember(view);
+		assert.strictEqual(revealCalls.length, 1, 'live member row-open must still reveal');
+		assert.strictEqual(leftoverTeamRowActionsClosed(view), false);
+
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		assert.strictEqual((view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList.length, leftoverMemberCount);
+		assert.strictEqual(leftoverTeamRowActionsClosed(view), true, 'list-fail leftover must close row-open without reselect');
+
+		await forceOpenTeamMember(view);
+		view.inspectFocusedTitleAction();
+		assert.strictEqual(revealCalls.length, 1, 'forced leftover member row-open must stay 0 revealNavigatorAgentInConversation');
+		assert.deepStrictEqual(inspectOpenCalls, [], 'forced leftover Inspect must stay 0');
+	});
+
+	test('team UNKNOWN leftover closes member row-open without reselect', async () => {
+		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
+		roster.setEngineConnected(true);
+		let teamCapability: 'SUPPORTED' | 'UNKNOWN' = 'SUPPORTED';
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: key => key === 'team' ? teamCapability : 'SUPPORTED',
+			team: {
+				memberStatus: async () => [leftoverTeamMember],
+				taskList: async () => [],
+				teamInfo: async () => undefined,
+			},
+		});
+		const revealCalls: Array<{ sessionKey: string; chatId: string; title?: string }> = [];
+		const inspectOpenCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+		const view = mountTeamView(roster, connection, undefined, undefined, { revealCalls, inspectOpenCalls });
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+
+		const leftoverMemberCount = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList.length;
+		assert.ok(leftoverMemberCount > 0);
+		await forceOpenTeamMember(view);
+		assert.strictEqual(revealCalls.length, 1);
+
+		teamCapability = 'UNKNOWN';
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		assert.strictEqual((view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList.length, leftoverMemberCount);
+		assert.strictEqual(leftoverTeamRowActionsClosed(view), true);
+
+		await forceOpenTeamMember(view);
+		view.inspectFocusedTitleAction();
+		assert.strictEqual(revealCalls.length, 1, 'forced UNKNOWN leftover member row-open must stay 0');
+		assert.deepStrictEqual(inspectOpenCalls, []);
+	});
+
+	test('pairing-hold leftover closes member row-open without reselect', async () => {
+		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
+		roster.setEngineConnected(true);
+		let pairingPending = false;
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
+				pairingPending,
+			}),
+			getNavigatorCapability: () => 'SUPPORTED',
+			team: {
+				memberStatus: async () => [leftoverTeamMember],
+				taskList: async () => [],
+				teamInfo: async () => undefined,
+			},
+		});
+		const revealCalls: Array<{ sessionKey: string; chatId: string; title?: string }> = [];
+		const inspectOpenCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+		const view = mountTeamView(roster, connection, undefined, undefined, { revealCalls, inspectOpenCalls });
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+
+		const leftoverMemberCount = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList.length;
+		assert.ok(leftoverMemberCount > 0);
+
+		pairingPending = true;
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual((view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList.length, leftoverMemberCount);
+		assert.strictEqual(leftoverTeamRowActionsClosed(view), true);
+
+		await forceOpenTeamMember(view);
+		view.inspectFocusedTitleAction();
+		assert.deepStrictEqual(revealCalls, [], 'forced pairing-hold leftover member row-open must stay 0');
+		assert.deepStrictEqual(inspectOpenCalls, []);
+	});
+
+	test('first-pull team UNKNOWN stays empty without leftover row-open chrome', async () => {
+		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
+		roster.setEngineConnected(true);
+		const revealCalls: Array<{ sessionKey: string; chatId: string; title?: string }> = [];
+		const inspectOpenCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+		const view = mountTeamView(roster, createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: key => key === 'team' ? 'UNKNOWN' : 'SUPPORTED',
+		}), undefined, undefined, { revealCalls, inspectOpenCalls });
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+
+		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> | undefined }).membersList;
+		assert.strictEqual(membersList?.length ?? 0, 0, 'first-pull team UNKNOWN must not install leftover member rows');
+		assert.strictEqual(leftoverTeamRowActionsClosed(view), false, 'first-pull UNKNOWN is empty, not leftover KEEP chrome');
+		view.inspectFocusedTitleAction();
+		assert.deepStrictEqual(inspectOpenCalls, []);
+		assert.deepStrictEqual(revealCalls, []);
 	});
 });

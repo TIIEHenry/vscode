@@ -132,12 +132,38 @@ suite('Navigator Agents subviews', () => {
 		connection: IUniverseAgentConnection = createNavigatorConnectionTestStub(),
 		inspectService?: IAgentInspectService,
 		executeCommand: ICommandService['executeCommand'] = async () => undefined,
+		actionSpies?: {
+			revealCalls?: Array<{ sessionKey: string; chatId: string; title?: string }>;
+			inspectOpenCalls?: Array<{ id: string; focus: boolean | undefined }>;
+		},
 	): NavigatorAgentsView {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, roster);
 		instantiationService.stub(IAgentInspectService, inspectService ?? store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
 		instantiationService.stub(ICommandService, { executeCommand });
 		instantiationService.stub(IUniverseAgentConnection, connection);
+		if (actionSpies) {
+			instantiationService.stub(IConversationSessionChatService, {
+				findOpenTabForChat: () => undefined,
+				isSubAgentDialogOpen: () => false,
+				closeSubAgentDialog: () => { },
+				navigateAgentBreadcrumb: async () => { },
+				openSubAgent: async (sessionKey: string, chatId: string, title?: string) => {
+					actionSpies.revealCalls?.push({ sessionKey, chatId, title });
+				},
+			} as unknown as IConversationSessionChatService);
+			instantiationService.stub(IConversationPartService, { focus: () => { } } as IConversationPartService);
+			if (actionSpies.inspectOpenCalls) {
+				class TrackingViewsService extends TestViewsService {
+					override openView<T>(id: string, focus?: boolean): Promise<T | null> {
+						actionSpies.inspectOpenCalls!.push({ id, focus });
+						return Promise.resolve(null);
+					}
+					dispose(): void { }
+				}
+				instantiationService.stub(IViewsService, store.add(new TrackingViewsService()));
+			}
+		}
 		const stubViewContainer = {
 			id: 'navigator-agents-test-container',
 			title: { value: 'Agents', original: 'Agents' },
@@ -212,6 +238,44 @@ suite('Navigator Agents subviews', () => {
 
 	function setActivityEntries(view: NavigatorAgentsView, entries: { id: string; label: string }[]): void {
 		(view as unknown as { setActivityEntries: (entries: INavigatorAgentsActivityItem[]) => void }).setActivityEntries(entries.map(entry => activityItem(entry.id, entry.label)));
+	}
+
+	function leftoverRowActionsClosed(view: NavigatorAgentsView): boolean {
+		return (view as unknown as { leftoverRowActionsClosed: boolean }).leftoverRowActionsClosed;
+	}
+
+	function leftoverRowActionLabels(view: NavigatorAgentsView): NodeListOf<Element> {
+		return view.element.querySelectorAll('.navigator-agents-row-actions .action-label');
+	}
+
+	function assertLeftoverInspectRevealClosed(view: NavigatorAgentsView): void {
+		assert.strictEqual(leftoverRowActionsClosed(view), true, 'leftover must close Inspect / Reveal without reselect');
+		for (const label of leftoverRowActionLabels(view)) {
+			assert.strictEqual(label.getAttribute('aria-disabled'), 'true', 'leftover Inspect / Reveal chrome must disable without reselect');
+		}
+	}
+
+	async function forceOpenActivityRow(view: NavigatorAgentsView): Promise<void> {
+		const activityList = (view as unknown as { activityList: WorkbenchList<INavigatorAgentsActivityItem> }).activityList;
+		assert.ok(activityList.length > 0, 'activity leftover row must exist to force-open');
+		activityList.setFocus([0]);
+		activityList.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
+		await timeout(0);
+	}
+
+	async function forceOpenHierarchyRow(view: NavigatorAgentsView, node: INavigatorAgentsHierarchyNode): Promise<void> {
+		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> }).hierarchyTree;
+		hierarchyTree.setFocus([node]);
+		hierarchyTree.setSelection([node], getSelectionKeyboardEvent('keydown', false, false));
+		await timeout(0);
+	}
+
+	function leftoverHierarchyNode(view: NavigatorAgentsView): INavigatorAgentsHierarchyNode {
+		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> }).hierarchyTree;
+		const root = hierarchyTree.getNode(null)?.children[0]?.element;
+		const child = root?.children?.[0];
+		assert.ok(child, 'leftover hierarchy child must exist');
+		return child;
 	}
 
 	async function setFilterQuery(view: NavigatorAgentsView, query: string): Promise<void> {
@@ -1730,5 +1794,154 @@ suite('Navigator Agents subviews', () => {
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('tree fetch-failed leftover closes Inspect / Reveal / row-open without reselect', async () => {
+		const roster = store.add(new RosterWithMutableTreeAndActivity());
+		roster.setEngineConnected(true);
+		let treeFetchFailed = false;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			isAgentTreeFetchFailed: () => treeFetchFailed,
+			onDidChangeConnection: onDidChangeConnection.event,
+		});
+		const revealCalls: Array<{ sessionKey: string; chatId: string; title?: string }> = [];
+		const inspectOpenCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+		const revealItemCalls: unknown[] = [];
+		const view = mountAgentsView(roster, connection, undefined, async (...args) => {
+			revealItemCalls.push(args);
+			return undefined;
+		}, { revealCalls, inspectOpenCalls });
+
+		const leftover = leftoverHierarchyNode(view);
+		view.revealHierarchyNode(leftover);
+		view.inspectHierarchyNode(leftover);
+		await timeout(0);
+		assert.strictEqual(revealCalls.length, 1, 'live Reveal must still open');
+		assert.strictEqual(inspectOpenCalls.length, 1, 'live Inspect must still open');
+		assert.strictEqual(leftoverRowActionsClosed(view), false);
+
+		treeFetchFailed = true;
+		onDidChangeConnection.fire(connection.getConnectionSnapshot());
+
+		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> }).hierarchyTree;
+		assert.strictEqual(hierarchyTree.getNode(null)?.children.length ?? 0, 1, 'fetch-fail leftover rows must stay');
+		assertLeftoverInspectRevealClosed(view);
+
+		view.revealHierarchyNode(leftover);
+		view.inspectHierarchyNode(leftover);
+		view.inspectFocusedTitleAction();
+		await forceOpenHierarchyRow(view, leftover);
+		await forceOpenActivityRow(view);
+		await timeout(0);
+		assert.strictEqual(revealCalls.length, 1, 'forced leftover Reveal must stay 0 revealNavigatorAgentInConversation');
+		assert.strictEqual(inspectOpenCalls.length, 1, 'forced leftover Inspect must stay 0 openView');
+		assert.deepStrictEqual(revealItemCalls, [], 'forced leftover activity row-open must stay 0 CONVERSATION_REVEAL_ITEM');
+	});
+
+	test('agentTree UNKNOWN leftover closes Inspect / Reveal / row-open without reselect', async () => {
+		const roster = store.add(new RosterWithMutableTreeAndActivity());
+		roster.setEngineConnected(true);
+		let agentTreeCapability: 'SUPPORTED' | 'UNKNOWN' = 'SUPPORTED';
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => agentTreeCapability,
+			onDidChangeConnection: onDidChangeConnection.event,
+		});
+		const revealCalls: Array<{ sessionKey: string; chatId: string; title?: string }> = [];
+		const inspectOpenCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+		const revealItemCalls: unknown[] = [];
+		const view = mountAgentsView(roster, connection, undefined, async (...args) => {
+			revealItemCalls.push(args);
+			return undefined;
+		}, { revealCalls, inspectOpenCalls });
+
+		const leftover = leftoverHierarchyNode(view);
+		view.revealHierarchyNode(leftover);
+		await timeout(0);
+		assert.strictEqual(revealCalls.length, 1);
+
+		agentTreeCapability = 'UNKNOWN';
+		onDidChangeConnection.fire(connection.getConnectionSnapshot());
+
+		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> }).hierarchyTree;
+		assert.strictEqual(hierarchyTree.getNode(null)?.children.length ?? 0, 1, 'UNKNOWN leftover rows must stay');
+		assertLeftoverInspectRevealClosed(view);
+
+		view.revealHierarchyNode(leftover);
+		view.inspectHierarchyNode(leftover);
+		view.inspectFocusedTitleAction();
+		await forceOpenHierarchyRow(view, leftover);
+		await forceOpenActivityRow(view);
+		await timeout(0);
+		assert.strictEqual(revealCalls.length, 1, 'forced UNKNOWN leftover Reveal must stay 0');
+		assert.deepStrictEqual(inspectOpenCalls, [], 'forced UNKNOWN leftover Inspect must stay 0');
+		assert.deepStrictEqual(revealItemCalls, [], 'forced UNKNOWN leftover activity row-open must stay 0 CONVERSATION_REVEAL_ITEM');
+	});
+
+	test('pairing-hold leftover closes Inspect / Reveal / row-open without reselect', async () => {
+		const roster = store.add(new RosterWithMutableTreeAndActivity());
+		roster.setEngineConnected(true);
+		let pairingPending = false;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
+				pairingPending,
+			}),
+			getNavigatorCapability: () => 'SUPPORTED',
+			onDidChangeConnection: onDidChangeConnection.event,
+		});
+		const revealCalls: Array<{ sessionKey: string; chatId: string; title?: string }> = [];
+		const inspectOpenCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+		const revealItemCalls: unknown[] = [];
+		const view = mountAgentsView(roster, connection, undefined, async (...args) => {
+			revealItemCalls.push(args);
+			return undefined;
+		}, { revealCalls, inspectOpenCalls });
+
+		const leftover = leftoverHierarchyNode(view);
+		const leftoverHierarchyCount = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> }).hierarchyTree.getNode(null)?.children.length ?? 0;
+		assert.ok(leftoverHierarchyCount > 0);
+
+		pairingPending = true;
+		onDidChangeConnection.fire(connection.getConnectionSnapshot());
+
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual((view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> }).hierarchyTree.getNode(null)?.children.length ?? 0, leftoverHierarchyCount);
+		assertLeftoverInspectRevealClosed(view);
+
+		view.revealHierarchyNode(leftover);
+		view.inspectHierarchyNode(leftover);
+		view.inspectFocusedTitleAction();
+		await forceOpenHierarchyRow(view, leftover);
+		await forceOpenActivityRow(view);
+		await timeout(0);
+		assert.deepStrictEqual(revealCalls, [], 'forced pairing-hold leftover Reveal must stay 0');
+		assert.deepStrictEqual(inspectOpenCalls, [], 'forced pairing-hold leftover Inspect must stay 0');
+		assert.deepStrictEqual(revealItemCalls, [], 'forced pairing-hold leftover activity row-open must stay 0 CONVERSATION_REVEAL_ITEM');
+	});
+
+	test('first-pull UNKNOWN stays empty without leftover Inspect / Reveal chrome', () => {
+		const roster = store.add(new ConversationStubService());
+		roster.setEngineConnected(true);
+		const inspectOpenCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+		const revealCalls: Array<{ sessionKey: string; chatId: string; title?: string }> = [];
+		const view = mountAgentsView(roster, createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'UNKNOWN',
+		}), undefined, async () => undefined, { revealCalls, inspectOpenCalls });
+
+		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> | undefined }).hierarchyTree;
+		assert.strictEqual(hierarchyTree?.getNode(null)?.children.length ?? 0, 0, 'first-pull UNKNOWN must not install leftover nodes');
+		assert.strictEqual(leftoverRowActionsClosed(view), false, 'first-pull UNKNOWN is empty, not leftover KEEP chrome');
+		assert.strictEqual(leftoverRowActionLabels(view).length, 0, 'first-pull UNKNOWN must not paint leftover Inspect / Reveal chrome');
+		view.inspectFocusedTitleAction();
+		assert.deepStrictEqual(inspectOpenCalls, []);
+		assert.deepStrictEqual(revealCalls, []);
 	});
 });
