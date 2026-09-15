@@ -32,6 +32,14 @@ function coreOf(viewHost: SessionViewHost) {
 	}).core;
 }
 
+function streamsOf(viewHost: SessionViewHost) {
+	return (viewHost as unknown as { streams: Map<string, { readonly attemptId: string }> }).streams;
+}
+
+function streamKey(sessionId: string, attemptId: string): string {
+	return `${sessionId}:${attemptId}`;
+}
+
 function createDeferredTimeout() {
 	const delays: number[] = [];
 	const pending = new Map<number, () => void>();
@@ -91,12 +99,57 @@ suite('SessionViewHost stream reopen (S2)', () => {
 		connection.fireStreamClosed('sess-reopen', { kind: 'remote' });
 		assert.strictEqual(coreOf(viewHost).attemptId('sess-reopen' as SessionId), null);
 		assert.strictEqual(diagnostics.counts.get('stream.reopen_scheduled' as DiagnosticMetric), 1);
+		assert.ok(!streamsOf(viewHost).has(streamKey('sess-reopen', firstAttempt)));
 		clock.fireAll();
 		assert.strictEqual(diagnostics.counts.get('stream.reopen_fired' as DiagnosticMetric), 1);
 		assert.strictEqual(connection.subscribeCalls.length, 2);
 		const secondAttempt = coreOf(viewHost).attemptId('sess-reopen' as SessionId);
 		assert.ok(secondAttempt);
 		assert.notStrictEqual(secondAttempt, firstAttempt);
+		assert.ok(!streamsOf(viewHost).has(streamKey('sess-reopen', firstAttempt)));
+		assert.ok(streamsOf(viewHost).has(streamKey('sess-reopen', secondAttempt)));
+	});
+
+	test('remote close drops the closed attempt from streams', async () => {
+		const connection = new TestConnection();
+		const clock = createDeferredTimeout();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+			reopenBaseMs: 1,
+			reopenJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('sess-drop');
+		await viewHost.whenEngineSessionReady('sess-drop');
+		const firstAttempt = coreOf(viewHost).attemptId('sess-drop' as SessionId);
+		assert.ok(firstAttempt);
+		assert.ok(streamsOf(viewHost).has(streamKey('sess-drop', firstAttempt)));
+
+		connection.fireStreamClosed('sess-drop', { kind: 'remote' });
+		assert.ok(![...streamsOf(viewHost).keys()].includes(streamKey('sess-drop', firstAttempt)));
+		assert.strictEqual(coreOf(viewHost).attemptId('sess-drop' as SessionId), null);
+	});
+
+	test('error close drops the closed attempt from streams', async () => {
+		const connection = new TestConnection();
+		const clock = createDeferredTimeout();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+			reopenBaseMs: 1,
+			reopenJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('sess-err-drop');
+		await viewHost.whenEngineSessionReady('sess-err-drop');
+		const firstAttempt = coreOf(viewHost).attemptId('sess-err-drop' as SessionId);
+		assert.ok(firstAttempt);
+
+		connection.fireStreamClosed('sess-err-drop', { kind: 'error', message: 'gone' });
+		assert.ok(![...streamsOf(viewHost).keys()].includes(streamKey('sess-err-drop', firstAttempt)));
 	});
 
 	test('consecutive failed reopens use monotonic delay when jitter is off', async () => {
@@ -118,6 +171,10 @@ suite('SessionViewHost stream reopen (S2)', () => {
 			clock.fireAll();
 		}
 		assert.deepStrictEqual(clock.delays, [1, 2, 4]);
+		const liveAttempt = coreOf(viewHost).attemptId('sess-backoff' as SessionId);
+		assert.ok(liveAttempt);
+		assert.strictEqual(streamsOf(viewHost).size, 1);
+		assert.ok(streamsOf(viewHost).has(streamKey('sess-backoff', liveAttempt)));
 	});
 
 	test('first stream event resets reopen n', async () => {
@@ -253,7 +310,8 @@ suite('SessionViewHost stream reopen (S2)', () => {
 		assert.strictEqual(clock.pending.size, 1);
 		assert.strictEqual(diagnostics.counts.get('stream.reopen_scheduled' as DiagnosticMetric), 1);
 
-		const streams = (viewHost as unknown as { streams: Map<string, unknown> }).streams;
+		const streams = streamsOf(viewHost);
+		assert.ok(![...streams.keys()].some(key => key.startsWith('sess-armed-overflow:')));
 		const streamKeysBeforeOverflow = [...streams.keys()];
 		overflowArmed = true;
 		viewHost.requestResync(leaseId);

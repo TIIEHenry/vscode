@@ -3,7 +3,7 @@ title: "会话订阅生命周期：lease 所有权回收、流级重开与 bind 
 type: plan
 status: draft
 phase: M7
-updated: 2026-09-15
+updated: 2026-09-16
 summary: "2026-09-10 订阅架构审查 1–3 项的实施方案：S1 宿主按 IPC 连接 / 窗口回收 lease；S2 SessionEventStream remote/error 关流后宿主退避重开（登记 G-CORE-2）；S3 gRPC unary deadline + 渲染端 bind 可重试。S1–S3b 代码已落 `b2211b23fa5`；S4a/S4b 代码已落（工位 D，未合）。仍 draft：§5 手测未跑（D405）"
 ---
 
@@ -56,7 +56,7 @@ summary: "2026-09-10 订阅架构审查 1–3 项的实施方案：S1 宿主按 
 | Actor `onStreamClosed(remote/error)`：`currentAttemptId = null`、`sync: closed(reason)`、emit `closeStream`；**不**再 `openAttempt` | `node/sessionCore/session-actor-stream-fold.ts` L696–715 |
 | Actor 只在 `onConnectionUp`（`leases.size > 0 && currentAttemptId === null && !subscriptionFailed`）与 `onAcquireLease`（`connectionUp && currentAttemptId === null && !subscriptionFailed`）两处 `openAttempt` | `session-actor.ts` L407–424 · L477–503 |
 | 上游 Desktop `packages/session-core/src/session-actor.ts` L2466 注释明写「No SubscriptionFsm reopen」；Desktop 宿主 `apps/desktop/src/main/session/stream-host.ts` L76 写「No retry, no backoff — SubscriptionFsm owns re-entry」——两边互指，**实际无人重开**。2026-09-14 已按外仓 HEAD `02a2ba350` 逐字复核，两处引用为真 | 外仓 `UniverseAgentDesktop`（只读对照，不改） |
-| 宿主 `openStream` 的 `onClosed(remote/error)` 只 post `streamClosed`，无后续动作 | `sessionViewHost.ts` L1195–1206 |
+| 宿主 `openStream` 的 `onClosed(remote/error)` post `streamClosed` 后 `streams.delete` 该 attempt，再 `scheduleStreamReopen`；**不**在 onClosed 本地 dispose（Actor `closeStream` 仍关订阅）。同步 throw 同样删键 —— **已落地**（D463） | `sessionViewHost.ts` `openStream` |
 | `subscribeSessionEventStream` / `openChatStream` **不走** `_withTransport`，流错误不会 `_markTransportFailed`；连接相位仍 `connected` | `node/universeAgentConnectionService.ts` L1264–1292 · L1901–1927 |
 | `GrpcUniverseAgentClient.isChannelAlive` 只是 `_alive` 标志，仅 `close()` 置 false；grpc-js channel 对 TRANSIENT_FAILURE 自动重连，**引擎进程重启后 channel 自愈但所有已开流以 UNAVAILABLE 关闭** | `node/grpc/grpcClient.ts` L1125 · L1252–1257 |
 | 渲染端唯一恢复手段 `requestResync` 只让 Actor `emitBaseline`，不重开流 | `conversationEngineFrameSource.ts` L169–173 · `session-actor.ts` L515–520 |
@@ -120,7 +120,7 @@ summary: "2026-09-10 订阅架构审查 1–3 项的实施方案：S1 宿主按 
 
 | 项 | 选定 |
 |----|------|
-| 触发点 | `openStream` 的 `onClosed` 在 post `streamClosed` 之后调 `scheduleStreamReopen(sessionId)`；`openStream` 同步 throw 分支同样调（它也 post 了 `streamClosed{error}`） |
+| 触发点 | `openStream` 的 `onClosed` 在 post `streamClosed` 之后 `streams.delete(key)` 再调 `scheduleStreamReopen(sessionId)`；`openStream` 同步 throw 分支同样删键并调（它也 post 了 `streamClosed{error}`） |
 | 不触发 | `disposed === true`（本地关：lease 释放 linger 到期、`connectionDown`、`failClosedOverflow` 的 `closeStream` intent 都走 `dispose` → `gate.closeLocal()`，`onClosed` 不会以 remote/error 到达）。**仅当 fail-closed 发生在有流可关时成立**：`failClosedOverflow`（`session-actor.ts` L540–548）在 `currentAttemptId === null` 时**不发** `closeStream` intent，因此「先关流武装定时器 → 退避窗口内溢出」的顺序下 fail-closed 会被本机制绕过 —— 见 **S4b** 与 §6 |
 | 调度条件（schedule 时与 fire 时各查一次） | `this.connectionUp && this.connection.isEngineConnected()` · `this.core.leaseCount(sid) > 0` · `this.core.attemptId(sid) === null` · 该 session 无在途 reopen 定时器 |
 | 重开动作 | `postAndDrain(sid, { t: 'connectionUp', connectionGeneration: this.connectionGeneration })`（同代号，不 +1）。Actor `onConnectionUp` 在上述条件下 `openAttempt` → `openStream` intent → 宿主开新流。**不**调 `postConnectionUp`（那会重复 `rootAgentBound`），**不**调 `finishBringUp` |

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "MERGE_SHA=`36f5f2efbf3` compile 0；D466/D468 已闭；A 做 D469+D470；D 做 D463；下号 D473；D405 手测仍开"
+summary: "MERGE_SHA=`36f5f2efbf3` compile 0；D466/D468 已闭；D 槽 D463 已关仓待合；A 做 D469+D470；下号 D473；D405 手测仍开"
 ---
 
 # Development Progress
@@ -44,7 +44,7 @@ summary: "MERGE_SHA=`36f5f2efbf3` compile 0；D466/D468 已闭；A 做 D469+D470
 | **A** | D469+D470（pills listener 谓词 + 隐藏叶全透镜 lease） | 派活；禁 compile |
 | **B** | — | 脏 `worktree-pool.md` 勿 add / 勿 `-B` |
 | **C** | — | 脏 `dev/loop`；勿 add / 勿 `-B` |
-| **D** | D463 streams `onClosed` 句柄回收 | 派活；禁 compile |
+| **D** | D463 streams `onClosed` 句柄回收 | **已关仓待合**；禁 compile |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 
 <details>
@@ -178,7 +178,7 @@ summary: "MERGE_SHA=`36f5f2efbf3` compile 0；D466/D468 已闭；A 做 D469+D470
 | [D242](deferred-gaps.md)–[D288](deferred-gaps.md) | leftover + pairing | **closed** catalog leftover + pairing keep-last（含 roster turns / session sync） |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
-| [D405](deferred-gaps.md)–[D472](deferred-gaps.md) | A/D 本波 | D405 手测仍开；S4a/S4b + pills 已进 merge；compile 0；D466/D468 已闭；D463 / D469 / D470 / D472 仍开 |
+| [D405](deferred-gaps.md)–[D472](deferred-gaps.md) | A/D 本波 | D405 手测仍开；S4a/S4b + pills 已进 merge；compile 0；D466/D468/D463 已闭（D463 待合）；D469 / D470 / D472 仍开 |
 ## 工位表（P7 · 2026-09-14 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
@@ -186,14 +186,14 @@ summary: "MERGE_SHA=`36f5f2efbf3` compile 0；D466/D468 已闭；A 做 D469+D470
 | A | `vscode-WorkTrees/A` | `loop/A` | `36f5f2efbf3` | 干净 | 0 | 占槽 D469+D470；禁 compile |
 | B | `vscode-WorkTrees/B` | `loop/B` | `28ffd1ae9f2` | 脏 `worktree-pool.md` | 0 | tip 已合；脏树勿 `-B` |
 | C | `vscode-WorkTrees/C` | `loop/C` | `815b4ad48e3` | 脏 `dev/loop` | 0 | 跳过；勿 add |
-| D | `vscode-WorkTrees/D` | `loop/D` | `36f5f2efbf3` | 干净 | 0 | 占槽 D463；禁 compile |
+| D | `vscode-WorkTrees/D` | `loop/D` | 本 commit | 干净 | 0 | D463 已关仓待合；禁 compile |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked` leftover；跳过 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `815b4ad48e3` | `dev/loop` + `.idea` | 0 | 脏树未代拉；请人类自行 ff |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。本仓只读面 + Composer `model_profile_id` **已挂**。钉死工位 seed 后 grpcurl **Chat PASS**。下一刀是 IDE Direct Address 接通后 Composer 发送（PRD-008 仍要隔离 profile 冒烟）。**不升 PRD-008**。不要再清 store。D26 store 已闭，旧「迁移卡死」账见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md) |
-| **loop 切片** | `MERGE_SHA`=`36f5f2efbf3`。compile 0。D466/D468 已闭。A=D469+D470，D=D463。下号 **D473**。**D405** 手测仍开。不关 D8/D16/D147。未升 PRD-008。不得宣称 leftover wave 完成。 |
+| **loop 切片** | `MERGE_SHA`=`36f5f2efbf3`。compile 0。D466/D468 已闭。D463 工位 D 已关仓待合。A=D469+D470。下号 **D473**。**D405** 手测仍开。不关 D8/D16/D147。未升 PRD-008。不得宣称 leftover wave 完成。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。

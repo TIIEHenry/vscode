@@ -1313,6 +1313,9 @@ export class SessionViewHost extends Disposable {
 					attemptId,
 					cause,
 				});
+				// Remote/error drops this attempt's handle. Do not dispose here —
+				// Actor closeStream still owns local dispose. S2 reopen uses a new key.
+				this.streams.delete(key);
 				this.scheduleStreamReopen(sessionId);
 			});
 			this.streams.set(key, {
@@ -1335,6 +1338,7 @@ export class SessionViewHost extends Disposable {
 				attemptId,
 				cause: { kind: 'error', message },
 			});
+			this.streams.delete(key);
 			this.scheduleStreamReopen(sessionId);
 		}
 	}
