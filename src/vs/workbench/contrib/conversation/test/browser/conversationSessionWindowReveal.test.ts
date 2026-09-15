@@ -33,7 +33,8 @@ import { ConversationSessionWindowService, IConversationSessionWindowService } f
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
-import { ENGINE_BIND_FAILED_SESSION_ID } from '../../browser/conversationEngineRosterService.js';
+import { ENGINE_BIND_FAILED_SESSION_ID, isEngineRosterPlaceholderSessionId } from '../../browser/conversationEngineRosterService.js';
+import type { ConversationLens } from '../../browser/conversationLens.js';
 import { ConversationEditorPaneId, conversationSessionLeafHiddenClass } from '../../common/conversationSessionWindow.js';
 import { UA_CLIENT_CHAT_INPUT_AUTO_FOCUS } from '../../common/uaClientSettingsKeys.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -119,6 +120,20 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 
 	function hideButton(windowService: ConversationSessionWindowService, sessionKey: string): HTMLButtonElement | null {
 		return windowService.getLeafSlots(sessionKey)?.sessionBar.querySelector('.conversation-session-leaf-hide') as HTMLButtonElement | null;
+	}
+
+	async function collectLeafConversationLenses(part: IConversationEditorPart): Promise<ConversationLens[]> {
+		const group = part.activeGroup;
+		const lenses: ConversationLens[] = [];
+		for (const editor of group.editors) {
+			await group.openEditor(editor);
+			const pane = group.activeEditorPane;
+			assert.ok(pane instanceof ConversationEditorPane, `missing ConversationEditorPane for ${editor.resource}`);
+			const lens = pane.activeConversationLens;
+			assert.ok(lens, `each conversation tab must expose a ConversationLens (${editor.resource})`);
+			lenses.push(lens);
+		}
+		return lenses;
 	}
 
 	function countLeafChrome(windowService: ConversationSessionWindowService, conversationPart: ConversationPart): { bars: number; navs: number; partSlotBars: number } {
@@ -386,6 +401,23 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		assert.ok(sessionWindowService.getLeafSlots(primaryId) || sessionWindowService.getLeafSlots(b));
 	});
 
+	test('15 stub-seed untitled onDidChangeActiveSession still reveals', async () => {
+		const harness = await createRevealHarness();
+		const { sessionWindowService, rosterService } = harness;
+		assert.ok(isEngineRosterPlaceholderSessionId('untitled'));
+		assert.ok(rosterService.getSessions().some(session => session.id === 'untitled'));
+		const b = rosterService.seedSessionQuietly();
+		await sessionWindowService.revealSessionWindow(b);
+		await waitForSessionPane(harness, b);
+		assert.strictEqual(sessionWindowService.isSessionWindowHidden('untitled'), true);
+
+		rosterService.fireActiveSession('untitled');
+		await waitForSessionPane(harness, 'untitled');
+		assert.strictEqual(sessionWindowService.isSessionWindowVisible('untitled'), true);
+		assert.deepStrictEqual(visibleLeafKeys(sessionWindowService), ['untitled']);
+		assert.strictEqual(sessionWindowService.getPrimarySessionKey(), 'untitled');
+	});
+
 	test('15 reveal create failure rolls back part + leaf and rebuilds the same key', async () => {
 		const rosterService = store.add(new QuietRosterService());
 		const gridHost = document.createElement('div');
@@ -460,7 +492,8 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		const { parts, sessionWindowService, rosterService, primaryId, sessionChatService } = harness;
 		await sessionChatService.openExtensionTab(primaryId, 'fork-lease', { title: 'Fork lease' });
 		const paneA = await waitForSessionPane(harness, primaryId);
-		const tabCount = partFor(parts, primaryId).activeGroup.count;
+		const partA = partFor(parts, primaryId);
+		const tabCount = partA.activeGroup.count;
 		assert.ok(tabCount >= 2);
 		assert.ok(paneA.activeConversationLens);
 
@@ -468,9 +501,13 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		await sessionWindowService.revealSessionWindow(b);
 		await waitForSessionPane(harness, b);
 		assert.strictEqual(sessionWindowService.isSessionWindowHidden(primaryId), true);
-		assert.strictEqual(partFor(parts, primaryId).activeGroup.count, tabCount);
-		assert.strictEqual(paneA.activeConversationLens?.sessionViewLease, undefined);
-		assert.strictEqual(partFor(parts, primaryId).sessionKey, primaryId);
+		assert.strictEqual(partA.activeGroup.count, tabCount);
+		const hiddenLenses = await collectLeafConversationLenses(partA);
+		assert.strictEqual(hiddenLenses.length, tabCount);
+		for (const lens of hiddenLenses) {
+			assert.strictEqual(lens.sessionViewLease, undefined);
+		}
+		assert.strictEqual(partA.sessionKey, primaryId);
 		const hiddenLeaf = sessionWindowService.getLeafSlots(primaryId)?.container;
 		assert.ok(hiddenLeaf?.classList.contains(conversationSessionLeafHiddenClass));
 		const staleBanner = hiddenLeaf?.querySelector('.conversation-lens-stale-snapshot') as HTMLElement | null;
@@ -478,6 +515,11 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 
 		await sessionWindowService.revealSessionWindow(primaryId);
 		const paneA2 = await waitForSessionPane(harness, primaryId);
+		const restoredLenses = await collectLeafConversationLenses(partFor(parts, primaryId));
+		assert.strictEqual(restoredLenses.length, tabCount);
+		for (const lens of restoredLenses) {
+			assert.ok(lens.sessionViewLease, 'restore must reacquire sessionViewLease on every leaf lens');
+		}
 		assert.ok(paneA2.activeConversationLens?.sessionViewLease, 'restore must reacquire sessionViewLease');
 	});
 });

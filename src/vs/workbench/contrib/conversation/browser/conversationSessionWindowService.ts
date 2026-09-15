@@ -107,6 +107,8 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		}
 
 		this._register(this.rosterService.onDidChangeActiveSession(sessionKey => {
+			// Bind-failed only — do not use isEngineRosterPlaceholderSessionId, which also
+			// matches stub seeds (untitled / visualize) that must still reveal.
 			if (sessionKey === ENGINE_BIND_FAILED_SESSION_ID) {
 				return;
 			}

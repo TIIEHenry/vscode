@@ -3,7 +3,7 @@ title: "Conversation 时间线正文：会话与子代理 pill"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-14
+updated: 2026-09-16
 summary: "助手 markdown 里的内部会话/子代理链接升级为行内 pill + 轻量 hover + 点击按 PRD-016 路由；跨会话 reveal 目标自己的叶；S3w 钉死叶级 SessionBar（方案 C，每扇一份，用户 2026-09-14 拍板）+ 隐藏叶 restore 仍单叶 + 隐藏叶释放 lease；规则 16 第五轮（fable 5.1）已审改稿，2026-09-14 用户签收"
 ---
 
@@ -207,7 +207,7 @@ summary: "助手 markdown 里的内部会话/子代理链接升级为行内 pill
 
 测试在 `ua.client.chatInput.autoFocus=false` 下锁解析结果。
 
-**in-flight 与串行：** 同 `sessionKey` 共用一条 Promise。不同 key **不得交错** hide/promote：钉死 **latest-wins**——后到的 key 取消尚未开始 DOM 变更的前一条，已进入 hide / promote 原子段的跑完再切；拒绝队列（会出现「roster active = B、可见叶 = A」窗口期，与 SelectBox 显示冲突）。`onDidChangeActiveSession` 把今天的 `ensurePrimaryWindow` 换成 `void revealSessionWindow`，但对 `isEngineRosterPlaceholderSessionId(id)`（含 `ENGINE_BIND_FAILED_SESSION_ID`）与 `getSessions()` 没有的 id **零动作、不建叶**。接通时 `activateEngineSession` 把 active 从 stub id 换成引擎 id：reveal 目标是引擎 id；若 primary 叶仍键在 stub id 上，按「无叶」路径为引擎 id 建叶并藏 stub 叶（不要假设透镜 `onDidChangeConnection` 能冒充换叶）。
+**in-flight 与串行：** 同 `sessionKey` 共用一条 Promise。不同 key **不得交错** hide/promote：钉死 **latest-wins**——后到的 key 取消尚未开始 DOM 变更的前一条，已进入 hide / promote 原子段的跑完再切；拒绝队列（会出现「roster active = B、可见叶 = A」窗口期，与 SelectBox 显示冲突）。`onDidChangeActiveSession` 把今天的 `ensurePrimaryWindow` 换成 `void revealSessionWindow`，但对 `ENGINE_BIND_FAILED_SESSION_ID` 与 `getSessions()` 没有的 id **零动作、不建叶**。生产 listener **不得**调用 `isEngineRosterPlaceholderSessionId`：该谓词还包含 stub 种子 `untitled` / `visualize`，原样挡会让种子会话永远不 reveal。接通时 `activateEngineSession` 把 active 从 stub id 换成引擎 id：reveal 目标是引擎 id；若 primary 叶仍键在 stub id 上，按「无叶」路径为引擎 id 建叶并藏 stub 叶（不要假设透镜 `onDidChangeConnection` 能冒充换叶）。
 
 **Promise 收口：** resolve 之前必须已经 `fireVisibleWindowsChange`，且目标 overlay 已 mount。测试 14 的夹具必须 **构造 `ConversationSessionChatContribution`**（或 reveal 末尾直接调同一挂载钩子，实施选定一种写进测试），禁止只测窗口服务假 part。`void openEditor` 是异步的：await reveal 之后还要等到目标 `activeEditorPane instanceof ConversationEditorPane` 再数 SessionBar / 调 `openSubAgent`。
 
@@ -229,7 +229,7 @@ SelectBox 回归面（S3 必写测试，夹具必须带 `sessionKey` 的 editor-
 | 两叶并列，选已可见的另一叶 | 聚焦该叶，不拆并列；`focusedLeafSessionKey` 与 roster active 都变成该叶；两叶各自 bar 不变。焦点不得被 `showConversationPart` 拉回 primary |
 | 两叶并列，选尚无叶的第三会话 | 藏**操作所在叶**（`revealSessionWindow(X, { replace: 本叶 })`；若本叶是 primary 先 promote 第三会话叶），第三会话补位，另一叶不动、其 bar 与时间线不变。禁止只断言「某个 textarea 附近的时间线变了」却看错叶 |
 | New Session | stub 未接通：新 session 成为唯一可见叶。引擎接通路径不在本回归表（`activateEngineSession` 异步 fire） |
-| 删除当前可见会话 | 本期不重写 delete；若 delete 后 active 变了且 id 不是 placeholder，同一 listener 会 reveal。若现有 delete 测试因此红，修测试或补 reveal，不把 delete 改成另一套切叶 |
+| 删除当前可见会话 | 本期不重写 delete；若 delete 后 active 变了且 id 不是 `ENGINE_BIND_FAILED_SESSION_ID`、且仍在 `getSessions()` 里，同一 listener 会 reveal（stub 种子 `untitled` / `visualize` 也要 reveal）。若现有 delete 测试因此红，修测试或补 reveal，不把 delete 改成另一套切叶 |
 
 **打开路由（先 `resolve`，未命中立刻 return；禁止把未命中交给 `openSubAgent`）：**
 
@@ -260,7 +260,7 @@ Composer `@` 的**宿主与发送合同**（产品方向见 §1 / §7，不在 S
 | S0 | 需求与导航 | SessionBar 所有权已拍板 C（2026-09-14，随签收落稿；PRD-016 不动）。PRD-003 按 §6 贴文增补一条可观察陈述 + 一条验收（打开形态只引用 PRD-016 / PRD-002，不复述）；glossary 加「会话 pill」；traceability PRD-003 实施方案列加本稿。系统 INDEX 与 plans INDEX 已链本稿，不要再写成从零新增 | `check-docs-health.py` PASS；`generate-docs-status.py --check` PASS；PRD-003 仍 `accepted` | 增补若开始复述对话框 / tab / 并列，改成引用 |
 | S1 | adapter 收口 | `allowedLinkSchemes.augment: ['conversation-chat']` + 显式 `actionHandler`（收 `data-href` 字符串 → `URI.parse` + §3.2 resolve）；删第二监听。内部资源未命中零动作；http/https/mailto 走 `openUaClientExternalLink`；白名单内其它 scheme 走 `openLinkFromMarkdown` | `conversation-chat:` 渲染后仍是 `<a data-href>`；http 点一次只开一次；file: 不走 `openExternal`；未知 / 畸形内部目标不走 opener、不切会话 | 外链确认测试若红则修测试，不改 `openExternal` 对 http 的语义 |
 | S2 | pill 与 hover | 先按 §3.2 断环（三选一写进 commit）；`conversationSessionPill.ts` + CSS；只升级 resolve 命中的 tool/fork/default；渲染时装饰 + 订阅 `onDidChangeCatalog(sessionKey)` / roster `onDidChangeSession` 补画；hover 用 `getDefaultHoverDelegate('element')`；catalog 只加 `model?`，并改 `collectLiveAgentTreeCatalogEntries` 与 `syncSubAgentsFromLiveTree` | 命中有 pill；sideChat/未知/畸形无 pill；晚到 catalog / roster 后补画且不重复（测试 16）；断连无模型行；adapter 零直接 import `conversationSessionChatService.js`（门禁子串新增，测试 9）；门禁零 `chatRichLink` / `agentSessions/`；`valid-layers-check` 绿（`common` 不含 DOM 类型） | `LiveAgentTreeNodeView.model` 若不存在则停，不发明字段；断环若要改 overlay 挂载，只改挂载所在文件，不重排 overlay 行为 |
-| S3 | 点击路由 + `revealSessionWindow` | **S3p 同会话三条（tool / default / fork）不依赖 S3w，可与 S2 同批落地；S3p 跨会话一条等 S3w。** S3w 按序：① 夹具先行——注册真实 `ConversationEditorPane` 的窗口夹具（HEAD 没有，§2），测试 8 / 10 / 12–17 共用；② `promoteLeaf` / `demoteLeaf` + 隐藏叶 restore 仍单叶；③ 叶级 SessionBar（C）：bar 脱离透镜、`IConversationSessionLeafSlots.sessionBar`、per-leaf window-nav、overlay 改传 `lensTablist`、「对话\|轨迹」迁 `pageChrome.lensTablist`；④ `focusedLeafSessionKey` + `onDidChangeFocusedLeaf` + 叶获焦 `switchSession`；⑤ `part.activeGroup.focus()` + `ConversationPart.focus` / `getActiveConversationEditorPart` 回退 + `switchToSession` 顺序；⑥ `revealSessionWindow` 状态机（latest-wins）+ listener 排除 placeholder；⑦ 失败回滚含 `disposeConversationEditorPart`；⑧ 隐藏叶释放 lease；⑨ [session-windows.md](../../docs/systems/conversation/session-windows.md) 改口 + [conversation-session-windows](conversation-session-windows.md) supersede 注记。S3p：pill 接同一入口；SelectBox 仍 `switchSession`（两叶时带 `replace`）。先 resolve，未命中禁止 `openSubAgent` | S3w：每个可见叶恰 1 条 `.conversation-lens-session-bar`、Part 槽下 0 条，连续单叶 reveal ≥3 与两叶并列都成立；A→B→A 可见恰 1 且无藏钮；每个可见叶恰 1 个 `.conversation-window-nav`；目标 overlay 已 mount；`autoFocus=false` 时 `getActiveConversationEditorPart` 是目标；两叶可见点已可见叶后焦点在该叶；rollback 后 `leaves` / `leafOrder` / `conversationParts` 均不含该 key；隐藏叶透镜 `sessionViewLease === undefined`、恢复后重取。S3p：同会话 tool 对话框且 `group.count === 1`；已有 tab 则聚焦；fork 可加延伸 tab；根 pill 关对话框且 **不关** 已有 tool 延伸 tab。跨会话：目标 `part.sessionKey === 目标`、该叶可见并被 `getActiveConversationEditorPart` 解析到、该叶自己的 bar 主语是目标、旧叶若曾存在则仍按其原 `sessionKey` 可查（只是 hidden）。单叶切到无叶或已藏会话后可见叶数仍为 1 | 禁止只断言 `getActiveSessionId()`；禁止就地改 `part.sessionKey`；禁止 `parts.length` 不变当成功；禁止 catalog 未命中却打开根 tab；禁止 S3p 跨会话在 SessionBar 仍会叠条时标完成；禁止 listener 为 `ENGINE_BIND_FAILED_SESSION_ID` 建叶；禁止用假 part 夹具替代 ① |
+| S3 | 点击路由 + `revealSessionWindow` | **S3p 同会话三条（tool / default / fork）不依赖 S3w，可与 S2 同批落地；S3p 跨会话一条等 S3w。** S3w 按序：① 夹具先行——注册真实 `ConversationEditorPane` 的窗口夹具（HEAD 没有，§2），测试 8 / 10 / 12–17 共用；② `promoteLeaf` / `demoteLeaf` + 隐藏叶 restore 仍单叶；③ 叶级 SessionBar（C）：bar 脱离透镜、`IConversationSessionLeafSlots.sessionBar`、per-leaf window-nav、overlay 改传 `lensTablist`、「对话\|轨迹」迁 `pageChrome.lensTablist`；④ `focusedLeafSessionKey` + `onDidChangeFocusedLeaf` + 叶获焦 `switchSession`；⑤ `part.activeGroup.focus()` + `ConversationPart.focus` / `getActiveConversationEditorPart` 回退 + `switchToSession` 顺序；⑥ `revealSessionWindow` 状态机（latest-wins）+ listener 只挡 `ENGINE_BIND_FAILED_SESSION_ID` 与 `getSessions()` miss（不调用 `isEngineRosterPlaceholderSessionId`）；⑦ 失败回滚含 `disposeConversationEditorPart`；⑧ 隐藏叶释放 lease；⑨ [session-windows.md](../../docs/systems/conversation/session-windows.md) 改口 + [conversation-session-windows](conversation-session-windows.md) supersede 注记。S3p：pill 接同一入口；SelectBox 仍 `switchSession`（两叶时带 `replace`）。先 resolve，未命中禁止 `openSubAgent` | S3w：每个可见叶恰 1 条 `.conversation-lens-session-bar`、Part 槽下 0 条，连续单叶 reveal ≥3 与两叶并列都成立；A→B→A 可见恰 1 且无藏钮；每个可见叶恰 1 个 `.conversation-window-nav`；目标 overlay 已 mount；`autoFocus=false` 时 `getActiveConversationEditorPart` 是目标；两叶可见点已可见叶后焦点在该叶；rollback 后 `leaves` / `leafOrder` / `conversationParts` 均不含该 key；隐藏叶透镜 `sessionViewLease === undefined`、恢复后重取。S3p：同会话 tool 对话框且 `group.count === 1`；已有 tab 则聚焦；fork 可加延伸 tab；根 pill 关对话框且 **不关** 已有 tool 延伸 tab。跨会话：目标 `part.sessionKey === 目标`、该叶可见并被 `getActiveConversationEditorPart` 解析到、该叶自己的 bar 主语是目标、旧叶若曾存在则仍按其原 `sessionKey` 可查（只是 hidden）。单叶切到无叶或已藏会话后可见叶数仍为 1 | 禁止只断言 `getActiveSessionId()`；禁止就地改 `part.sessionKey`；禁止 `parts.length` 不变当成功；禁止 catalog 未命中却打开根 tab；禁止 S3p 跨会话在 SessionBar 仍会叠条时标完成；禁止 listener 为 `ENGINE_BIND_FAILED_SESSION_ID` 建叶；禁止用假 part 夹具替代 ① |
 | S4 | fixture 与门禁 | stub/fixture 助手正文含 `conversation-chat:`（带 `Stub`）；知识层改口已落 | fixture 里 pill 可点；用户行仍纯文本；lens 既有断言绿 | 禁止 fixture 写引擎风格链接冒充引擎已给 |
 
 S1–S4 全部可在**无引擎**下落地：链接目标是本窗口自己的 chat 资源，catalog 在 stub 期也有（fork / 手动登记），live tree 缺席只表现为 hover 少一行。跨会话非 `default` 的 fixture 必须**同时**在目标 session catalog 里登记对应 tool/fork 条目，否则按合同不画。
@@ -281,7 +281,7 @@ S1–S4 全部可在**无引擎**下落地：链接目标是本窗口自己的 c
 12. **engine-cache 口径：** `wasEverConnected` 断连后，`IConversationRosterService.getSessions()` 仍列出的会话，对应根 pill 可画、点击会 reveal；不得因 `source === 'engine-cache'` 被滤掉。
 13. **SessionBar 计数：** 夹具注册真实 `ConversationEditorPane`（S3w ①），等到 `activeEditorPane instanceof ConversationEditorPane` 后：连续单叶 reveal 三个不同会话，以及两叶并列——每个可见叶子树里 `.conversation-lens-session-bar` 恰 1、`.conversation-window-nav` 恰 1，Part 槽下 0。隐藏叶的透镜被拆掉后计数不变，可见叶的 bar 主语仍是各自的叶。禁止直接 `part.dispose()` 冒充「dispose 隐藏叶」（`conversationEditorParts.delete` 不挂在 part 上）。
 14. **overlay 已挂：** 夹具构造 `ConversationSessionChatContribution`（或 reveal 调用同一挂载钩子）。`revealSessionWindow` await 且 pane 就绪后，目标 `openSubAgent` **不 throw**。
-15. **reveal 串行与失败：** 连点跨会话 pill A 再 B，结束后可见叶是 B，且 A 的未开始段被取消（latest-wins，不出现 A 短暂可见再被藏）。建叶抛错时 primary 不翻、旧叶不藏、`leaves` / `leafOrder` / `conversationParts` 都不含该 key；同 key 再建成功且 part 挂在新容器上。`onDidChangeActiveSession(ENGINE_BIND_FAILED_SESSION_ID)` 不建叶。
+15. **reveal 串行与失败：** 连点跨会话 pill A 再 B，结束后可见叶是 B，且 A 的未开始段被取消（latest-wins，不出现 A 短暂可见再被藏）。建叶抛错时 primary 不翻、旧叶不藏、`leaves` / `leafOrder` / `conversationParts` 都不含该 key；同 key 再建成功且 part 挂在新容器上。`onDidChangeActiveSession(ENGINE_BIND_FAILED_SESSION_ID)` 不建叶。`onDidChangeActiveSession('untitled')`（stub 种子，`isEngineRosterPlaceholderSessionId` 为真但在 `getSessions()` 内）**会** reveal。
 16. **晚到补画：** 先渲染含跨会话 tool 链接与根链接的正文，此时 catalog 无该条 / roster 尚无该会话 → 无 pill；随后 `registerSubAgentChat` / `syncSubAgentsFromLiveTree`（fire `onDidChangeCatalog`）与 roster `onDidChangeSession` → pill 出现；再 fire 一次不重复装饰、不叠 hover。adapter store dispose 后事件不再触发。
 17. **隐藏叶 lease：** A→B 后 A 叶所有透镜（根 + fork 延伸 tab）`sessionViewLease === undefined`、tab 数不变、导航栈不变；B→A 后重取 lease 且吃到 baseline；不出现「断开前快照」条。
 
@@ -329,7 +329,7 @@ S1–S4 全部可在**无引擎**下落地：链接目标是本窗口自己的 c
 | 连点两枚跨会话 pill 交错 hide/promote | §3.4 串行 + 测试 15 |
 | 跨会话 tool 画成 session pill | §3.3 / 测试 4 跟打开目标 |
 | 单叶 restore 隐藏叶变成并列 | §3.4 拆行 + 测试 8 A→B→A |
-| listener 为 bind-failed 哨兵建叶 | `isEngineRosterPlaceholderSessionId` 零动作 + 测试 15 |
+| listener 为 bind-failed 哨兵建叶 | 只挡 `ENGINE_BIND_FAILED_SESSION_ID` + `getSessions()` miss（不调用 `isEngineRosterPlaceholderSessionId`）+ 测试 15（untitled 仍 reveal） |
 | 根 pill 关掉已有 tool tab | 不走 `navigateAgentBreadcrumb`；测试 7 |
 | `toString` 往返误杀合法 key | §3.2 改 parse + authority/query/fragment |
 
@@ -366,7 +366,7 @@ S1–S4 全部可在**无引擎**下落地：链接目标是本窗口自己的 c
 - **Critical：** 「已有隐藏叶」只 `restore` 会在单叶路径变成并列；拆成 1 可见 / 2 可见两行，强制 `promoteLeaf(目标)` 再藏旧 primary；测试锁 A→B→A。
 - **Critical：** SessionBar 钉死方案 A 并写迁移表；overlay 不是无 bar 路径；拒绝 B（构造期挂载 / `void openEditor` / `reset` 清 window-nav）。`displayedSessionKey` 统一标题、SelectBox、Delete。
 - **Critical：** 聚焦改为 `part.activeGroup.focus()`；`ConversationPart.focus` 跳过 hidden 叶；`getActiveConversationEditorPart` 回退可见 primary；`autoFocus=false` 下锁解析。
-- **Important：** listener 排除 placeholder / bind-failed；reveal 失败回滚；测试 13 等 pane 且锁两叶仍 1 条；resolve 不用 `toString` 往返；非 http 白名单走 `openLinkFromMarkdown`；根 pill 不走会关 tab 的 breadcrumb；session-windows 已签收方案加 supersede；测试 14 构造 contribution。
+- **Important：** listener 只挡 bind-failed / `getSessions()` miss（D469：不得调用 `isEngineRosterPlaceholderSessionId`，stub 种子 untitled 仍 reveal）；reveal 失败回滚；测试 13 等 pane 且锁两叶仍 1 条；resolve 不用 `toString` 往返；非 http 白名单走 `openLinkFromMarkdown`；根 pill 不走会关 tab 的 breadcrumb；session-windows 已签收方案加 supersede；测试 14 构造 contribution。
 - **未采纳：** 无。Composer `@` / 群聊仍开放点。S0–S2 本身可做，S3w 未绿整稿不标 `accepted`。
 
 2026-09-14：第五轮独立审查 **Request changes（S3w）；S0–S2 改两处文本后可先签收**（[fable 5.1](77c10215-cd67-4db7-b240-cd9f7e6fcfe4)；S1 渲染链路 / 窗口服务 / EditorParts 亲自对照 HEAD，叶与 catalog 事实由两个只读子代理各核 16 / 15 条，文档交叉引用自核）。当轮已改入：
