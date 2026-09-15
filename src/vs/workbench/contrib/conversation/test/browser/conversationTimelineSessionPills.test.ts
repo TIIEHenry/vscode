@@ -38,10 +38,6 @@ suite('Conversation timeline session pills', () => {
 		return { id, kind: 'assistant', text };
 	}
 
-	function userTurn(text: string): ConversationStubTurn {
-		return { id: 'u1', kind: 'user', text };
-	}
-
 	async function clickHref(container: HTMLElement, href: string): Promise<void> {
 		const anchor = container.querySelector(`a[data-href="${href}"]`) as HTMLAnchorElement | null;
 		assert.ok(anchor, `missing anchor for ${href}`);
@@ -144,7 +140,7 @@ suite('Conversation timeline session pills', () => {
 		} as IOpenerService);
 		instantiationService.stub(IDialogService, {
 			confirm: async () => ({ confirmed: true }),
-		} as IDialogService);
+		} as unknown as IDialogService);
 		instantiationService.stub(IHoverService, {
 			setupManagedHover: (_delegate: unknown, _target: unknown, content: string) => {
 				hoverTexts.push(typeof content === 'string' ? content : '');
@@ -312,7 +308,7 @@ suite('Conversation timeline session pills', () => {
 			assert.ok(!lines.join('\n').includes('已同步'));
 		}
 
-		const { container, render, hoverTexts } = createHarness({
+		const { render, hoverTexts } = createHarness({
 			sessions: [{ id: 'untitled', title: 'Untitled', workDir: '/home/ws' }],
 			catalog: [{ sessionKey: 'untitled', chatId: 'tool-a', title: 'Writer', originKind: 'tool', model: 'm1' }],
 		});

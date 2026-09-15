@@ -38,6 +38,7 @@ suite('welcome.newWorkspaceChat', () => {
 			onDidFocus: Event.None,
 			getSlots: () => undefined,
 			focus: () => { focusTracker.called = true; },
+			setFocusedLeafContainer: () => { },
 		};
 
 		const layoutService = new ConversationHiddenLayoutService();
