@@ -17,10 +17,11 @@ import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchIn
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
 import { getDefaultConversationChatResource } from '../../common/conversationChatInput.js';
 import '../../browser/conversationEditor.contribution.js';
-import { ConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
+import { ConversationSessionChatService, IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
+import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 
 suite('Conversation session split (S4)', () => {
 
@@ -43,6 +44,7 @@ suite('Conversation session split (S4)', () => {
 		const rosterService = new ConversationStubService();
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, rosterService);
+		stubConversationTimelineLinkServices(instantiationService);
 		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
 		instantiationService.invokeFunction(accessor => Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor));
 
@@ -62,6 +64,7 @@ suite('Conversation session split (S4)', () => {
 		conversationPart.activeGroup.focus();
 
 		const sessionChatService = disposables.add(instantiationService.createInstance(ConversationSessionChatService));
+		instantiationService.stub(IConversationSessionChatService, sessionChatService);
 		store.add(sessionChatService.registerPartListeners(conversationPart));
 		store.add(rosterService);
 

@@ -204,7 +204,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 			this.lens = this.instantiationService.createInstance(ConversationLens, {
 				timeline,
 				dock,
-				sessionBar: this.sessionBarHost,
+				lensTablist: this.sessionBarHost,
 				filterAgentId,
 				sessionKey: state.sessionKey,
 			});

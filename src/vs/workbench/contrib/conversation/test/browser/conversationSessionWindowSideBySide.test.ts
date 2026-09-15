@@ -16,15 +16,35 @@ import { INotificationService } from '../../../../../platform/notification/commo
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { ConversationPart, IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { IConversationEditorPart, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
+import { EditorService } from '../../../../services/editor/browser/editorService.js';
+import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/editor.js';
+import { IEditorPaneRegistry } from '../../../../browser/editor.js';
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
 import { ConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
-import { ConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
+import { ConversationSessionChatService, IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
+import { IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { ConversationEditorPane } from '../../browser/conversationEditorPane.js';
+import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
+import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
+import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 import { conversationSessionLeafHiddenClass } from '../../common/conversationSessionWindow.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
+import { IExplorerService } from '../../../files/browser/files.js';
+import { ISCMService } from '../../../scm/common/scm.js';
+
+class QuietRosterService extends ConversationStubService {
+	seedSessionQuietly(): string {
+		const previous = this.model.getActiveSessionId();
+		const sessionId = this.model.createSession();
+		this.model.switchSession(previous);
+		this._onDidChangeSession.fire(sessionId);
+		return sessionId;
+	}
+}
 
 suite('Conversation session window side-by-side (S5)', () => {
 
@@ -56,16 +76,68 @@ suite('Conversation session window side-by-side (S5)', () => {
 		}
 	}
 
+	function isConversationEditorPaneRegistered(): boolean {
+		const registry = Registry.as<IEditorPaneRegistry & { getEditorPaneByType?(typeId: string): { typeId: string } | undefined }>(EditorExtensions.EditorPane);
+		return !!registry.getEditorPaneByType?.(ConversationEditorPane.ID);
+	}
+
+	async function settleConversationEditors(parts: Awaited<ReturnType<typeof createEditorParts>>): Promise<void> {
+		if (isConversationEditorPaneRegistered()) {
+			const deadline = Date.now() + 2000;
+			while (Date.now() < deadline) {
+				const list = parts.conversationParts;
+				if (list.length > 0 && list.every(part => {
+					const pane = part.activeGroup.activeEditorPane;
+					return pane instanceof ConversationEditorPane && !!pane.activeConversationLens;
+				})) {
+					break;
+				}
+				await timeout(20);
+			}
+		}
+		layoutConversationEditorParts(parts);
+		trackConversationEditors(parts);
+	}
+
 	async function createHarness() {
-		const rosterService = new ConversationStubService();
+		const rosterService = new QuietRosterService();
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, rosterService);
 		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
+		instantiationService.stub(IConversationTimelineRevealService, {
+			_serviceBrand: undefined,
+			registerLens: () => ({ dispose: () => { } }),
+			revealItem: () => { },
+			getAccessibleTurnContent: () => undefined,
+			focusAccessibleTurn: () => { },
+			scrollToFirstPendingConfirmation: () => { },
+		});
+		instantiationService.stub(IConversationReviewNavService, {
+			_serviceBrand: undefined,
+			onDidChange: Event.None,
+			getReviewNavForSession: () => [],
+		});
+		instantiationService.stub(IExplorerService, {
+			_serviceBrand: undefined,
+			select: async () => { },
+		} as unknown as IExplorerService);
+		instantiationService.stub(ISCMService, {
+			_serviceBrand: undefined,
+			get repositories() { return []; },
+			get repositoryCount() { return 0; },
+			onDidAddRepository: Event.None,
+			onDidRemoveRepository: Event.None,
+			registerSCMProvider: () => { throw new Error('not implemented'); },
+			getRepository: () => undefined,
+		} as unknown as ISCMService);
+		stubConversationTimelineLinkServices(instantiationService);
 		instantiationService.invokeFunction(accessor => Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor));
 
 		const parts = await createEditorParts(instantiationService, disposables);
 		store.add(parts);
 		instantiationService.stub(IEditorGroupsService, parts);
+		const editorService = disposables.add(instantiationService.createInstance(EditorService, undefined));
+		instantiationService.stub(IEditorService, editorService);
 
 		const conversationPart = store.add(instantiationService.createInstance(ConversationPart));
 		const parent = document.createElement('div');
@@ -74,32 +146,31 @@ suite('Conversation session window side-by-side (S5)', () => {
 		conversationPart.create(parent);
 		instantiationService.stub(IConversationPartService, conversationPart);
 
-		const sessionWindowService = disposables.add(instantiationService.createInstance(ConversationSessionWindowService));
 		const sessionChatService = disposables.add(instantiationService.createInstance(ConversationSessionChatService));
+		instantiationService.stub(IConversationSessionChatService, sessionChatService);
+		const sessionWindowService = disposables.add(instantiationService.createInstance(ConversationSessionWindowService));
+		instantiationService.stub(IConversationSessionWindowService, sessionWindowService);
 		store.add(rosterService);
 
 		const primaryId = rosterService.getActiveSessionId();
 		await sessionWindowService.ensurePrimaryWindow(primaryId);
-		layoutConversationEditorParts(parts);
-		trackConversationEditors(parts);
+		await settleConversationEditors(parts);
 
 		return { parts, conversationPart, rosterService, sessionWindowService, sessionChatService, primaryId };
 	}
 
 	async function createSideBySideHarness() {
 		const harness = await createHarness();
-		const secondaryId = harness.rosterService.createSession();
-		harness.rosterService.switchSession(harness.primaryId);
+		const secondaryId = harness.rosterService.seedSessionQuietly();
 
 		await harness.sessionWindowService.openSessionBeside(secondaryId);
-		layoutConversationEditorParts(harness.parts);
-		trackConversationEditors(harness.parts);
+		await settleConversationEditors(harness.parts);
 
 		return { ...harness, secondaryId };
 	}
 
 	function createPrimaryBootstrapHarness() {
-		const rosterService = store.add(new ConversationStubService());
+		const rosterService = store.add(new QuietRosterService());
 		const gridHost = document.createElement('div');
 		document.body.appendChild(gridHost);
 		store.add({ dispose: () => gridHost.remove() });
@@ -115,6 +186,14 @@ suite('Conversation session window side-by-side (S5)', () => {
 				conversationParts.push(part);
 				return part;
 			},
+			disposeConversationEditorPart: (sessionKey: string) => {
+				const index = conversationParts.findIndex(part => part.sessionKey === sessionKey);
+				if (index >= 0) {
+					conversationParts.splice(index, 1);
+				}
+			},
+			setFocusedConversationLeaf: () => { },
+			getFocusedConversationLeaf: () => undefined,
 			get conversationParts() {
 				return conversationParts;
 			},
@@ -126,6 +205,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 				onDidCreateSlots: Event.None,
 				onDidFocus: Event.None,
 				getSlots: () => ({ sessionBar: document.createElement('div'), sessionWindowGrid: gridHost, editorPartHost: undefined }),
+				setFocusedLeafContainer: () => { },
 				focus: () => { },
 			} as unknown as IConversationPartService,
 			editorGroupsService,
@@ -287,8 +367,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 			harness.setThrowOnCreate(false);
 			await harness.sessionWindowService.ensurePrimaryWindow(harness.primaryId);
 
-			const secondaryId = harness.rosterService.createSession();
-			harness.rosterService.switchSession(harness.primaryId);
+			const secondaryId = harness.rosterService.seedSessionQuietly();
 			harness.setThrowOnCreate(true);
 			void harness.sessionWindowService.openSessionBeside(secondaryId);
 			await timeout(0);
@@ -328,16 +407,14 @@ suite('Conversation session window side-by-side (S5)', () => {
 			harness.setThrowOnCreate(false);
 			await harness.sessionWindowService.ensurePrimaryWindow(harness.primaryId);
 
-			const secondaryId = harness.rosterService.createSession();
-			harness.rosterService.switchSession(harness.primaryId);
+			const secondaryId = harness.rosterService.seedSessionQuietly();
 			await harness.sessionWindowService.openSessionBeside(secondaryId);
 
 			assert.strictEqual(harness.sessionWindowService.getVisibleWindowCount(), 2);
 			assert.ok(harness.sessionWindowService.getLeafSlots(secondaryId));
 			assert.strictEqual(harness.sessionWindowService.isSessionWindowVisible(secondaryId), true);
 
-			const thirdId = harness.rosterService.createSession();
-			harness.rosterService.switchSession(harness.primaryId);
+			const thirdId = harness.rosterService.seedSessionQuietly();
 			harness.setThrowOnCreate(true);
 			void harness.sessionWindowService.openSessionBeside(thirdId);
 			await timeout(0);
@@ -380,8 +457,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 			await timeout(0);
 			assert.strictEqual(harness.sessionWindowService.getPrimarySessionKey(), undefined);
 
-			const otherId = harness.rosterService.createSession();
-			harness.rosterService.switchSession(harness.primaryId);
+			const otherId = harness.rosterService.seedSessionQuietly();
 			harness.setThrowOnCreate(true);
 			void harness.sessionWindowService.openSessionBeside(otherId);
 			await timeout(0);

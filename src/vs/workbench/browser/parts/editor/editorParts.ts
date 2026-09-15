@@ -24,6 +24,7 @@ import { IAuxiliaryWindowOpenOptions, IAuxiliaryWindowService } from '../../../s
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { ContextKeyValue, IContextKey, IContextKeyService, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
 import { getActiveElement, IDimension, isAncestor, isHTMLElement } from '../../../../base/browser/dom.js';
+import { conversationSessionLeafHiddenClass, conversationSessionLeafPrimaryClass } from '../conversation/conversationPart.js';
 import { ServiceCollection } from '../../../../platform/instantiation/common/serviceCollection.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { DeepPartial } from '../../../../base/common/types.js';
@@ -192,9 +193,19 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 	//#region Conversation Editor Parts
 
 	private readonly conversationEditorParts = new Map<string, IConversationEditorPart>();
+	private readonly conversationEditorPartStores = this._register(new DisposableMap<string, DisposableStore>());
+	private focusedConversationLeaf: string | undefined;
 
 	get conversationParts(): ReadonlyArray<IConversationEditorPart> {
 		return [...this.conversationEditorParts.values()];
+	}
+
+	setFocusedConversationLeaf(sessionKey: string | undefined): void {
+		this.focusedConversationLeaf = sessionKey;
+	}
+
+	getFocusedConversationLeaf(): string | undefined {
+		return this.focusedConversationLeaf;
 	}
 
 	getActiveConversationEditorPart(): IConversationEditorPart | undefined {
@@ -206,7 +217,36 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 			}
 		}
 
-		return this.conversationParts.at(0);
+		if (this.focusedConversationLeaf) {
+			const focused = this.conversationEditorParts.get(this.focusedConversationLeaf);
+			if (focused) {
+				return focused;
+			}
+		}
+
+		for (const part of this.conversationParts) {
+			const leaf = (part as ConversationEditorPartImpl).getContainer()?.closest('.conversation-session-leaf') as HTMLElement | null;
+			if (leaf && !leaf.classList.contains(conversationSessionLeafHiddenClass) && leaf.classList.contains(conversationSessionLeafPrimaryClass)) {
+				return part;
+			}
+		}
+
+		for (const part of this.conversationParts) {
+			const leaf = (part as ConversationEditorPartImpl).getContainer()?.closest('.conversation-session-leaf') as HTMLElement | null;
+			if (leaf && !leaf.classList.contains(conversationSessionLeafHiddenClass)) {
+				return part;
+			}
+		}
+
+		return undefined;
+	}
+
+	disposeConversationEditorPart(sessionKey: string): void {
+		this.conversationEditorPartStores.deleteAndDispose(sessionKey);
+		this.conversationEditorParts.delete(sessionKey);
+		if (this.focusedConversationLeaf === sessionKey) {
+			this.focusedConversationLeaf = undefined;
+		}
 	}
 
 	createConversationEditorPart(parent: unknown /* HTMLElement */, sessionKey: string): IConversationEditorPart {
@@ -215,7 +255,8 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 			return existing;
 		}
 
-		const disposables = this._register(new DisposableStore());
+		const disposables = new DisposableStore();
+		this.conversationEditorPartStores.set(sessionKey, disposables);
 		const host = parent as HTMLElement;
 
 		const editorPart = disposables.add(this.instantiationService.createInstance(
@@ -238,11 +279,11 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 		});
 		this.setScopedInstantiationService(editorPart, scopedInstantiationService, disposables);
 
-		const defaultInput = this.instantiationService.createInstance(
+		const defaultInput = disposables.add(this.instantiationService.createInstance(
 			ConversationChatInput,
 			getDefaultConversationChatResource(sessionKey),
 			{ isDefaultRoot: true },
-		);
+		));
 		void editorPart.activeGroup.openEditor(defaultInput);
 
 		this.conversationEditorParts.set(sessionKey, editorPart);

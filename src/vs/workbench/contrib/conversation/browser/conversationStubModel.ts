@@ -109,7 +109,7 @@ function createUntitledFixtureTurns(): ConversationStubTurn[] {
 		{
 			id: 'untitled-a1',
 			kind: 'assistant',
-			text: localize('conversationStub.untitledAssistant', "Stub: README draft ready."),
+			text: localize('conversationStub.untitledAssistant', "Stub: README draft ready. See [Visualize session (Stub)](conversation-chat:/session/visualize/chat/default) or [README agent (Stub)](conversation-chat:/session/untitled/chat/stub-readme-agent)."),
 			stubEcho: true,
 		},
 		{

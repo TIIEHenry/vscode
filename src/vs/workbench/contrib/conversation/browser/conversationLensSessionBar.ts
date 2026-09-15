@@ -53,6 +53,8 @@ export interface IConversationLensSessionBarHost {
 	readonly visualizeOverlay: ConversationVisualizeOverlay;
 	register<T extends IDisposable>(disposable: T): T;
 	getBoundSessionId(): string;
+	getSessionBarSelectId?(): string;
+	switchLeafSession?(sessionId: string): void | Promise<void>;
 	setLensId(lensId: ConversationLensId): void;
 	handleLensTablistKeyDown(event: KeyboardEvent): void;
 	beginSessionTitleEdit(): void;
@@ -68,7 +70,7 @@ export interface IConversationLensSessionBarHost {
 	showPostFailure(reason: ConversationComposerPostFailureReason): void;
 }
 
-export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: HTMLElement): void {
+export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: HTMLElement, options?: { omitLensTablist?: boolean }): void {
 
 		const bar = append(barHost, $('.conversation-lens-session-bar'));
 		bar.setAttribute('role', 'banner');
@@ -78,7 +80,9 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 		icon.setAttribute('aria-hidden', 'true');
 		icon.classList.add(...ThemeIcon.asClassNameArray(Codicon.commentDiscussion));
 
-		mountLensTablist(host, leading);
+		if (!options?.omitLensTablist) {
+			mountLensTablist(host, leading);
+		}
 
 		host.sessionSyncBadge = append(leading, $('span.conversation-lens-session-sync-badge'));
 		host.sessionSyncBadge.hidden = true;
@@ -193,7 +197,8 @@ export function mountLensTablist(host: IConversationLensSessionBarHost, tablistH
 export function createSessionSelectBox(host: IConversationLensSessionBarHost): SelectBox {
 
 		const sessions = host.stubService.getSessions();
-		const selectedIndex = Math.max(0, sessions.findIndex(s => s.id === host.stubService.getActiveSessionId()));
+		const selectedId = host.getSessionBarSelectId?.() ?? host.stubService.getActiveSessionId();
+		const selectedIndex = Math.max(0, sessions.findIndex(s => s.id === selectedId));
 		return new SelectBox(
 			sessions.map(s => ({ text: s.title })),
 			selectedIndex,
@@ -212,7 +217,8 @@ export function refreshSessionSelectOptions(host: IConversationLensSessionBarHos
 			return;
 		}
 		const sessions = host.stubService.getSessions();
-		const selectedIndex = Math.max(0, sessions.findIndex(s => s.id === host.stubService.getActiveSessionId()));
+		const selectedId = host.getSessionBarSelectId?.() ?? host.stubService.getActiveSessionId();
+		const selectedIndex = Math.max(0, sessions.findIndex(s => s.id === selectedId));
 		host.suppressSessionSelect = true;
 		host.sessionSelectBox.setOptions(sessions.map(s => ({ text: s.title })), selectedIndex);
 		host.suppressSessionSelect = false;
@@ -402,7 +408,7 @@ export function deleteActiveSession(host: IConversationLensSessionBarHost): void
 			host.showPostFailure('engine_disconnected');
 			return;
 		}
-		const sessionId = host.stubService.getActiveSessionId();
+		const sessionId = host.getSessionBarSelectId?.() ?? host.stubService.getActiveSessionId();
 		const draftText = host.dockTextarea.value;
 		host.writeComposerDraft(sessionId, draftText);
 		pendingDeleteDraftMap(host).set(sessionId, draftText);
@@ -432,6 +438,12 @@ export function switchToSession(host: IConversationLensSessionBarHost, sessionId
 			host.engineHistoryList?.close();
 			host.engineSnapshotsList?.close();
 			host.writeComposerDraft(previousId, host.dockTextarea.value);
+		}
+		if (host.switchLeafSession) {
+			void host.switchLeafSession(sessionId);
+			return;
+		}
+		if (previousId !== sessionId) {
 			host.stubService.switchSession(sessionId);
 		}
 		// CS-4 openPendingOnFocus: showConversationPart → Part.focus → onDidFocus (contrib scrolls once).

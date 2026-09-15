@@ -3,7 +3,7 @@ title: "默认窗 Conversation：session 窗口与 chat tab"
 type: plan
 status: implemented
 phase: N/A
-updated: 2026-09-04
+updated: 2026-09-15
 summary: "S1–S6 已落；GC-4 catalog-on-spawn（roster 观察 liveAgentTree）已落 @ 22ce3013"
 ---
 
@@ -14,6 +14,8 @@ summary: "S1–S6 已落；GC-4 catalog-on-spawn（roster 观察 liveAgentTree�
 > Agents 窗同 session 并排仍以 [ADR-001](../decisions/001-chat-compare-form.md) / [PRD-011](../../docs/product/requirements.md#prd-011-chat-并排比对) / [chat-compare-split](chat-compare-split.md) 为准，本方案不改。  
 > 透镜页内 chrome：[conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md)；「对话 | 轨迹」是 **每个 chat 页内** 透镜（PRD-012，经 PRD-016 修正），不是与 chat tab 平级的第三条。  
 > **签收：** 2026-09-01 用户签收。S1–S6 已落（`ad67cfe3`–`a48780ae` + S6 知识层 @ loop/C）；S1a 与 S1 同批落地。D4 rerun-2230 V1–V8 PASS。S3c 对话框 chrome（2026-09-01）对齐 `ModalEditorPart` 壳、不改宿主。
+>
+> **Supersede（2026-09-14 / S3w）：** 「`ensurePrimaryWindow` 跟随 active session」改由 [conversation-timeline-session-pills](conversation-timeline-session-pills.md) 的 `revealSessionWindow` 状态机落地。SelectBox「切当前窗/当前叶」= 所在叶 `sessionKey` + `revealSessionWindow`（两叶时带 `{ replace: 本叶 }`）。L73「每扇 session 窗一份」窗口 chrome仍成立，实现是叶级 SessionBar（方案 C）。**不**改 PRD-016 / ADR-002 正文。
 
 **Goal：** 默认窗中间 Conversation 变成「session 窗口 + chat tab」：根/默认 chat 钉死；用户 Fork 默认加 tab；子代理默认在窗口内以居中对话框打开（父对话仍在底下可见），「打开为 tab」才新建 tab、叶内最大化只铺满对话框；子代理对话框与 tab 顶有 agent 层级面包屑（点击替换当前预览或当前延伸 tab）；每扇窗口一键关掉根以外的 tab；用户可 split；另一 session 用窗口并列；只能隐藏。
 
@@ -256,7 +258,7 @@ SideChat **不**当作第三种窗口形态，也**不**自动开 tab。能力�
 
 | 层 | 放什么 | 不放什么 |
 |----|--------|----------|
-| **窗口 chrome**（session 叶 / Part） | 藏、←→、关非根、PRD-002 SelectBox（切 **当前窗** session）、roster「打开到旁边」 | 对话\|轨迹；每 tab 再画一个 SelectBox |
+| **窗口 chrome**（所在叶 + `revealSessionWindow`） | 藏、←→、关非根、PRD-002 SelectBox（切 **所在叶** session）、roster「打开到旁边」 | 对话\|轨迹；每 tab 再画一个 SelectBox |
 | **页 chrome**（ConversationEditorPane / 对话框透镜） | 「对话 \| 轨迹」、阅读列、Dock、子代理对话框与 tab 面包屑 | 切 session |
 
 每个 chat 页自己的「对话 | 轨迹」状态。切 tab 不串透镜。窄宽度已有 300px 透镜 tab 测试；chat tab 独立一行（设计选定 A），有延伸 tab 或用户 split 时再显示 chat tab 行。**开着子代理对话框不单独撑出 tab 行**。仅默认根且未 split 时可藏 chat tab 行（复制 `shouldShowChatTabs` **启发式**，**禁止** import `chatGroupsView.ts`）。推荐 **仅当存在延伸 tab 或第二组时显示 tab 行**。
@@ -355,7 +357,7 @@ S1 / S1a 可在无引擎下落地，且 **S1a 与 S1 同批**（A1 未落地即 
 | DND 跨 session 叶 / 拖到 Preview | S4/S5：禁止把 ConversationChatInput 拖进 MainEditorPart；禁止把文件拖进 Conversation 组 |
 | stub 只有 session 没有 chat | S1 只钉默认 tab；S3 等引擎或加 stub chat，禁止用「再造一个 stub session」冒充 fork |
 | 与 PRD-011 用户心智不一致 | 宿主不同；默认窗 fork 默认 tab，split 是显式手势 |
-| SelectBox 与窗口并列 | SelectBox 只切 **当前叶** session（PRD-002）；并列入口是 roster「打开到旁边」 |
+| SelectBox 与窗口并列 | SelectBox 只切 **所在叶** session（PRD-002），经 `revealSessionWindow`（两叶带 `replace`）；并列入口是 roster「打开到旁边」 |
 | 对话框与 EditorInput 双模型 | overlay = 瞬时透镜，不进 tab 模型；**弹出/打开为 tab** 才 `openEditor` |
 | 误把对话框接到 `MODAL_GROUP` | §3.3c：借壳不借宿主；Settings 单例与 Conversation 围栏都不允许 |
 | visualize 与子代理对话框双 Esc | z 序 visualize 在上；Esc 关最顶层 |

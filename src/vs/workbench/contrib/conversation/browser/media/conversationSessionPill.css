@@ -1,0 +1,37 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.monaco-workbench .part.conversation a.conversation-session-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	max-width: 100%;
+	padding: 0 6px;
+	border-radius: 3px;
+	vertical-align: baseline;
+	text-decoration: none;
+	color: var(--vscode-textLink-foreground);
+	background: var(--vscode-badge-background);
+	border: 1px solid var(--vscode-widget-border, transparent);
+}
+
+.monaco-workbench .part.conversation a.conversation-session-pill:hover,
+.monaco-workbench .part.conversation a.conversation-session-pill:focus {
+	color: var(--vscode-textLink-activeForeground);
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: 1px;
+}
+
+.monaco-workbench .part.conversation a.conversation-session-pill .conversation-session-pill-icon {
+	flex-shrink: 0;
+	font-size: 14px;
+	color: var(--vscode-icon-foreground);
+}
+
+.monaco-workbench .part.conversation a.conversation-session-pill .conversation-session-pill-label {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}

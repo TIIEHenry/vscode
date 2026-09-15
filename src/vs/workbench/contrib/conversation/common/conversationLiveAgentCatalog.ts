@@ -10,6 +10,7 @@ export interface ILiveAgentCatalogEntry {
 	readonly chatId: string;
 	readonly title: string;
 	readonly parentChatId: string;
+	readonly model?: string;
 }
 
 /** Engine root `agent_id` (typically `"root"`) maps to Conversation root chat id `default`. */
@@ -22,10 +23,12 @@ export function collectLiveAgentTreeCatalogEntries(tree: LiveAgentTreeNodeView):
 	const entries: ILiveAgentCatalogEntry[] = [];
 	const visit = (node: LiveAgentTreeNodeView, parent: LiveAgentTreeNodeView | undefined): void => {
 		if (parent && !isEngineRootAgentId(node.agentId)) {
+			const model = node.model.trim();
 			entries.push({
 				chatId: node.agentId,
 				title: node.name.trim() || node.agentId,
 				parentChatId: catalogChatIdFromAgentId(parent.agentId),
+				...(model ? { model } : {}),
 			});
 		}
 		for (const child of node.children) {

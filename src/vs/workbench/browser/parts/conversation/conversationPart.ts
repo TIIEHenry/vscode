@@ -19,6 +19,10 @@ import { IEditorGroupsService } from '../../../services/editor/common/editorGrou
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { appendPartRegionHideControl } from './partRegionHideControl.js';
 
+export const conversationSessionLeafHiddenClass = 'conversation-session-leaf-hidden';
+export const conversationSessionLeafPrimaryClass = 'conversation-session-leaf-primary';
+export const conversationSessionLeafSecondaryClass = 'conversation-session-leaf-secondary';
+
 export const IConversationPartService = createDecorator<IConversationPartService>('conversationPartService');
 
 /**
@@ -26,9 +30,9 @@ export const IConversationPartService = createDecorator<IConversationPartService
  * chrome; `workbench/contrib/conversation` fills these elements.
  */
 export interface IConversationLensSlots {
-	/** Omitted in the sub-agent overlay; that dialog owns title/actions itself. */
+	/** Test / leftover path only. Production pane does not pass this (leaf-level bar). */
 	readonly sessionBar?: HTMLElement;
-	/** Tablist-only host when sessionBar is omitted (sub-agent overlay). */
+	/** Page-chrome / overlay host for 「对话 | 轨迹」. */
 	readonly lensTablist?: HTMLElement;
 	readonly timeline: HTMLElement;
 	readonly dock: HTMLElement;
@@ -52,6 +56,7 @@ export interface IConversationPartService {
 	/** Fired at the end of {@link focus}; CS-4 contrib scrolls pending seats from here. */
 	readonly onDidFocus: Event<void>;
 	getSlots(): IConversationPartWindowSlots | undefined;
+	setFocusedLeafContainer(container: HTMLElement | undefined): void;
 	focus(): void;
 }
 
@@ -76,6 +81,7 @@ export class ConversationPart extends Part implements IConversationPartService {
 
 	//#endregion
 
+	private focusedLeafContainer: HTMLElement | undefined;
 	private _slots: IConversationPartWindowSlots | undefined;
 	private readonly _onDidCreateSlots = this._register(new Emitter<IConversationPartWindowSlots>());
 	readonly onDidCreateSlots: Event<IConversationPartWindowSlots> = this._onDidCreateSlots.event;
@@ -94,6 +100,10 @@ export class ConversationPart extends Part implements IConversationPartService {
 
 	getSlots(): IConversationPartWindowSlots | undefined {
 		return this._slots;
+	}
+
+	setFocusedLeafContainer(container: HTMLElement | undefined): void {
+		this.focusedLeafContainer = container;
 	}
 
 	override create(parent: HTMLElement): void {
@@ -161,16 +171,29 @@ export class ConversationPart extends Part implements IConversationPartService {
 	}
 
 	focus(): void {
+		const root = this.resolveFocusRoot();
 		// eslint-disable-next-line no-restricted-syntax -- the dock input belongs to the lens, which this part only hosts
-		const dockInput = this.getContainer()?.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement | null;
-		if (dockInput) {
-			if (this.configurationService.getValue<boolean>('ua.client.chatInput.autoFocus') !== false) {
-				dockInput.focus();
-			}
+		const dockInput = root?.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement | null;
+		const autoFocus = this.configurationService.getValue<boolean>('ua.client.chatInput.autoFocus') !== false;
+		if (dockInput && autoFocus) {
+			dockInput.focus();
+		} else if (root) {
+			root.focus();
 		} else {
 			this.getContainer()?.focus();
 		}
 		this._onDidFocus.fire();
+	}
+
+	private resolveFocusRoot(): HTMLElement | undefined {
+		const focused = this.focusedLeafContainer;
+		if (focused && !focused.classList.contains(conversationSessionLeafHiddenClass)) {
+			return focused;
+		}
+		const container = this.getContainer();
+		const firstVisible = container?.querySelector(`.conversation-session-leaf:not(.${conversationSessionLeafHiddenClass})`) as HTMLElement | null;
+		// No session-window leaves (direct lens mount): search the whole part so the dock textarea still receives focus.
+		return firstVisible ?? container ?? undefined;
 	}
 
 	toJSON(): object {

@@ -3,8 +3,8 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-15
-summary: "方案导航；conversation-chrome-visibility（accepted）；session-subscription-lifecycle（draft；S4a/S4b 代码已落、§5/D405 仍开）；sources-accept-empty-success（draft；A1 已落；P5 停线）；composer-fake-chrome（accepted）；M7 仍 accepted；GitHub Actions 已关"
+updated: 2026-09-16
+summary: "方案导航：conversation-timeline-session-pills（accepted；S3w 方案 C）；session-subscription-lifecycle（draft；S4a/S4b 已进 merge、§5/D405 仍开）；sources-accept-empty-success（draft；A1 已落；P5 停线）；composer-fake-chrome（accepted）；M7 仍 accepted；GitHub Actions 已关"
 ---
 
 # 方案
@@ -14,6 +14,7 @@ summary: "方案导航；conversation-chrome-visibility（accepted）；session-
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
+| [conversation-timeline-session-pills.md](conversation-timeline-session-pills.md) | `accepted` | 时间线正文会话/子代理 pill；跨会话 reveal 目标自己的叶；S3w 钉死叶级 SessionBar（方案 C，每扇一份）+ 隐藏叶 restore 仍单叶 + 隐藏叶释放 lease；规则 16 第五轮（fable 5.1）已审改稿，2026-09-14 用户签收 |
 | [conversation-chrome-visibility.md](conversation-chrome-visibility.md) | `accepted` | Maximize 藏 fail/Stop（D403）+ 窄宽 Back 藏 SAS 盒（D404）；仅可见性，不重开 D42 / Hub pairing |
 | [prd-008-engine-e2e.md](prd-008-engine-e2e.md) | `accepted` | PRD-008 唯一已定义升档路径：隔离 profile + 钉死引擎 + D4 CDP；硬前置 GC-1b 配对回路（首次配对即第一份证据） |
 | [test-baseline-ci.md](test-baseline-ci.md) | `accepted` | D16 账本 + `agent-ide` workflow（四 job **已关**，见 DISABLED.md）；三域账本外新红阻断合入；`min_cases` / `max_skipped` 防空跑 |
@@ -31,7 +32,7 @@ summary: "方案导航；conversation-chrome-visibility（accepted）；session-
 | [m6-engine-wave.md](m6-engine-wave.md) | `accepted` | A1–A2/B/D 已落；C 已落 Skills/Agents/MCP/Tools 读写主体与正文编辑，九节 UI 余量转 M7；PRD-008 仍须冒烟才升 `implemented` |
 | [m7-ui-completion-wave.md](m7-ui-completion-wave.md) | `accepted` | UI 主线代码已落（P0–P2b / E2 / Q / CS / I2–I5 / K/T/L1）；W1 冒烟与 I6 发行标识未完；V 槽测试债非阻塞；不升 `implemented` |
 | [session-view-frame-fanout.md](session-view-frame-fanout.md) | `implemented` | F1/F2 @ `c37bbc6e` / `917a7f8d`：`onDynamicDidApplyFrame(leaseId)` + 宿主首帧缓冲 + `postAndDrain`；G-CORE-1 已登记；F3 见 D22 |
-| [session-subscription-lifecycle.md](session-subscription-lifecycle.md) | `draft` | lease 所有权回收、流级重开与 bind 有界化；S1–S3b 已合 `b2211b23fa5`；S4a/S4b 代码已落（工位 D，未合）；仍 draft：§5 手测（D405） |
+| [session-subscription-lifecycle.md](session-subscription-lifecycle.md) | `draft` | lease 所有权回收、流级重开与 bind 有界化；S1–S3b 已合 `b2211b23fa5`；S4a/S4b 已进 merge（未 compile）；仍 draft：§5 手测（D405） |
 | [m7-gap-closeout.md](m7-gap-closeout.md) | `implemented` | GC-1–GC-6 @ merge `d98d888a`：hubDevice/配对、设备动作与 probe、catalog 观察 lease、Navigator/Inspect、Overview Model；PRD-024 仍待真 Hub 冒烟；D21 |
 | [engine-preferences-completion.md](engine-preferences-completion.md) | `accepted` | E2-1–E2-7 **代码已落**；GC-6 Model 摘要已落；Overview Provider 行已省略（G-ENG-1 前不显示）；产品验证未做 |
 | [client-settings-completion.md](client-settings-completion.md) | `accepted` | CS-1–CS-6 **代码已落**（9 键 + 迁移 + 七组无 emptyCopy）；PRD-026 §6 产品验证未做 |

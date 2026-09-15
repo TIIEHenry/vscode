@@ -730,6 +730,19 @@ export interface IEditorGroupsService extends IEditorGroupsContainer {
 	createConversationEditorPart(parent: unknown /* HTMLElement */, sessionKey: string): IConversationEditorPart;
 
 	/**
+	 * Disposes the conversation editor part for {@link sessionKey} and drops it
+	 * from {@link conversationParts}. Used when a half-applied leaf rolls back.
+	 */
+	disposeConversationEditorPart(sessionKey: string): void;
+
+	/**
+	 * Sticky focused conversation leaf. Written by the session-window service;
+	 * used when {@link getActiveConversationEditorPart} has no DOM hit.
+	 */
+	setFocusedConversationLeaf(sessionKey: string | undefined): void;
+	getFocusedConversationLeaf(): string | undefined;
+
+	/**
 	 * All conversation editor parts currently registered.
 	 */
 	readonly conversationParts: ReadonlyArray<IConversationEditorPart>;

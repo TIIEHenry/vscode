@@ -3,8 +3,8 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-09-15
-summary: "MERGE_SHA=`b4868ae7b23` compile-client 0；D 槽 S4a+S4b 未合；D405 手测仍开；下号 D464"
+updated: 2026-09-16
+summary: "merge 合入 S4a+S4b + session-pills（冲突已双方保留；A 原 D463 改记 D472）；未 compile；下号 D473；D405 手测仍开"
 ---
 
 # Development Progress
@@ -38,13 +38,13 @@ summary: "MERGE_SHA=`b4868ae7b23` compile-client 0；D 槽 S4a+S4b 未合；D405
 | **settings chrome** | Connection/Engine 两页改用 `InputBox`/`Checkbox`/`WorkbenchList` 左栏与状态色；窄宽两栏；Test Engine 下沉页脚；「回 Client」链入 Preferences tab 条；会话栏图标改 ghost toolbar。无新 RPC / 无新节 |
 | **settings chrome follow-up** | Back-to-Client 先取出 Preferences 服务再关 pane（`await` 后 accessor 已失效）；Direct Address Connect 状态写回本区并先标 Connecting…。已随本轮合入 `loop/merge` |
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。**2026-09-12**：仓外 PIN 已换。grpcurl 复验 **List/Create PASS**（含旧 session-100/101）；**[D25](deferred-gaps.md)/[D26](deferred-gaps.md) 已闭**。同日 seed `provider:state` + `models.json` 后重启，grpcurl **Chat PASS**（`gemini-3.8-flash-high`，`textDelta`=`pong`，`turnComplete`/`end_turn`；无 `MODEL_PROFILE_*`）。这是引擎面证据，不是 IDE Conversation 接通冒烟。未升 PRD-008。引擎 A–F 已合；本仓 **node + `IUniverseAgentConnection` 已挂**。Provider/Rules/Hooks **只读列表**已接（无凭据/规则写表单）。Projects 按会话 `work_dir` 分组、Navigator `ListTeams` 标题、Review 历史 chip **已接**。[m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 进行中（2026-09-15 · D462 已合；compile-client 0）
+### 进行中（2026-09-16 · merge 合入 A+D；未 compile）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
-| **A** | — | `idle`；跟 MERGE_SHA；D462=`b4868ae7b23` |
+| **A** | — | pills 已进 merge；空闲待 compile 后派活 |
 | **B** | — | 脏 `worktree-pool.md` 勿 add / 勿 `-B` |
 | **C** | — | 脏 `dev/loop`；勿 add / 勿 `-B` |
-| **D** | S4a+S4b | 本槽未合：诊断口 + `fail_closed`；D405 手测仍开 |
+| **D** | — | S4a+S4b 已进 merge；空闲待 compile 后派活 |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 
 <details>
@@ -178,7 +178,7 @@ summary: "MERGE_SHA=`b4868ae7b23` compile-client 0；D 槽 S4a+S4b 未合；D405
 | [D242](deferred-gaps.md)–[D288](deferred-gaps.md) | leftover + pairing | **closed** catalog leftover + pairing keep-last（含 roster turns / session sync） |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
-| [D405](deferred-gaps.md)–[D463](deferred-gaps.md) | A/D 本波 | D405 手测仍开；S4a/S4b 代码在 D 槽；D463 流句柄泄漏仍开 |
+| [D405](deferred-gaps.md)–[D472](deferred-gaps.md) | A/D 本波 | D405 手测仍开；S4a/S4b + pills 已进 merge（未 compile）；D463 流句柄泄漏仍开；D472 引擎链接改写仍开 |
 ## 工位表（P7 · 2026-09-14 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
@@ -193,7 +193,7 @@ summary: "MERGE_SHA=`b4868ae7b23` compile-client 0；D 槽 S4a+S4b 未合；D405
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。本仓只读面 + Composer `model_profile_id` **已挂**。钉死工位 seed 后 grpcurl **Chat PASS**。下一刀是 IDE Direct Address 接通后 Composer 发送（PRD-008 仍要隔离 profile 冒烟）。**不升 PRD-008**。不要再清 store。D26 store 已闭，旧「迁移卡死」账见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md) |
-| **loop 切片** | `MERGE_SHA`=`b4868ae7b23`。工位 D 落地 S4a+S4b（未合）。下号 **D464**。**D405** 手测仍开。不关 D8/D16/D147。未升 PRD-008。 |
+| **loop 切片** | 合入 S4a+S4b + session-pills（双方冲突已解；A 原 D463→D472）。未 compile。下号 **D473**。**D405** 手测仍开。不关 D8/D16/D147。未升 PRD-008。不得宣称 leftover wave 完成。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。

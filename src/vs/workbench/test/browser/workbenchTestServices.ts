@@ -943,6 +943,9 @@ export class TestEditorGroupsService implements IEditorGroupsService {
 	createAuxiliaryEditorPart(): Promise<IAuxiliaryEditorPart> { throw new Error('Method not implemented.'); }
 	createModalEditorPart(): Promise<IModalEditorPart> { throw new Error('Method not implemented.'); }
 	createConversationEditorPart(_parent: unknown, _sessionKey: string): IConversationEditorPart { throw new Error('Method not implemented.'); }
+	disposeConversationEditorPart(_sessionKey: string): void { }
+	setFocusedConversationLeaf(_sessionKey: string | undefined): void { }
+	getFocusedConversationLeaf(): string | undefined { return undefined; }
 	readonly conversationParts: readonly IConversationEditorPart[] = [];
 	getActiveConversationEditorPart(): IConversationEditorPart | undefined { return undefined; }
 }
@@ -1695,6 +1698,12 @@ export class TestEditorPart extends MainEditorPart implements IEditorGroupsServi
 	createConversationEditorPart(_parent: unknown, _sessionKey: string): IConversationEditorPart {
 		throw new Error('Method not implemented.');
 	}
+
+	disposeConversationEditorPart(_sessionKey: string): void { }
+
+	setFocusedConversationLeaf(_sessionKey: string | undefined): void { }
+
+	getFocusedConversationLeaf(): string | undefined { return undefined; }
 
 	readonly conversationParts: readonly IConversationEditorPart[] = [];
 

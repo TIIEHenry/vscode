@@ -23,6 +23,7 @@ import { IConversationTimelineRevealService } from '../../browser/conversationTi
 import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
+import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 import { ConversationTimelineTree } from '../../browser/conversationTimelineTree.js';
 import {
 	conversationIdentityBranchChipClass,
@@ -156,6 +157,7 @@ suite('ConversationIdentityStrip', () => {
 		} as unknown as IExplorerService;
 
 		instantiationService.stub(IConversationRosterService, stubService);
+		stubConversationTimelineLinkServices(instantiationService);
 		instantiationService.stub(IUniverseAgentConnection, createConnectionStub(options?.connectionOverrides));
 		instantiationService.stub(IConversationTimelineRevealService, {
 			_serviceBrand: undefined,

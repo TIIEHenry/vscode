@@ -14,6 +14,7 @@ import { TestLayoutService, workbenchInstantiationService } from '../../../../te
 import { ConversationChatInput } from '../../common/conversationChatInput.js';
 import { ConversationEditorPane } from '../../browser/conversationEditorPane.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
+import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 import { conversationLensStaleSnapshotClass } from '../../browser/conversationLensReadingColumn.js';
 import { ConversationTimelineTree, conversationLensUserBubbleShowLess, conversationLensUserBubbleShowMore } from '../../browser/conversationTimelineTree.js';
 import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
@@ -537,6 +538,7 @@ suite('ConversationLens', () => {
 		const clipboardService = new TestClipboardService();
 		const openInEditorCalls = { count: 0 };
 		instantiationService.stub(IConversationRosterService, stubService);
+		stubConversationTimelineLinkServices(instantiationService);
 		instantiationService.stub(IUniverseAgentConnection, options?.connection ?? createConversationConnectionTestStub());
 		instantiationService.stub(IConversationTimelineRevealService, {
 			_serviceBrand: undefined,

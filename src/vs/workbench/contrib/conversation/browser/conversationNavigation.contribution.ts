@@ -14,28 +14,29 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
-import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { MOUSE_BACK_FORWARD_NAVIGATION_SETTING } from '../../../services/history/common/history.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { IEditorGroupsService, IConversationEditorPart } from '../../../services/editor/common/editorGroupsService.js';
 import { registerConversationNavigationConfiguration } from '../common/conversationNavigation.js';
 import { ConversationNavigationService, IConversationNavigationService } from './conversationNavigationService.js';
 import { IConversationSessionChatService } from './conversationSessionChatService.js';
+import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
 
 registerConversationNavigationConfiguration();
 registerSingleton(IConversationNavigationService, ConversationNavigationService, InstantiationType.Delayed);
 
-class ConversationNavigationContribution extends Disposable implements IWorkbenchContribution {
+export class ConversationNavigationContribution extends Disposable implements IWorkbenchContribution {
 
 	static readonly ID = 'workbench.contrib.conversationNavigation';
 
 	private readonly registeredParts = new Set<IConversationEditorPart>();
+	private readonly leafNavStores = new Map<string, DisposableStore>();
 
 	constructor(
 		@IConversationNavigationService private readonly navigationService: IConversationNavigationService,
-		@IConversationPartService private readonly conversationPartService: IConversationPartService,
 		@IEditorGroupsService private readonly editorGroupsService: IEditorGroupsService,
 		@IConversationSessionChatService private readonly sessionChatService: IConversationSessionChatService,
+		@IConversationSessionWindowService private readonly sessionWindowService: IConversationSessionWindowService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
 	) {
@@ -43,13 +44,8 @@ class ConversationNavigationContribution extends Disposable implements IWorkbenc
 
 		this.registerExistingParts();
 		this._register(this.editorGroupsService.onDidAddGroup(() => this.registerExistingParts()));
-
-		const slots = this.conversationPartService.getSlots();
-		if (slots) {
-			this.mountWindowNav(slots.sessionBar);
-		} else {
-			this._register(this.conversationPartService.onDidCreateSlots(({ sessionBar }) => this.mountWindowNav(sessionBar)));
-		}
+		this.remountLeafNav();
+		this._register(this.sessionWindowService.onDidChangeVisibleWindows(() => this.remountLeafNav()));
 
 		this.registerMouseNavigationListener();
 	}
@@ -65,7 +61,23 @@ class ConversationNavigationContribution extends Disposable implements IWorkbenc
 		}
 	}
 
-	private mountWindowNav(sessionBarHost: HTMLElement): void {
+	private remountLeafNav(): void {
+		for (const sessionKey of this.sessionWindowService.getAllLeafSessionKeys()) {
+			if (this.leafNavStores.has(sessionKey)) {
+				continue;
+			}
+			const leaf = this.sessionWindowService.getLeafSlots(sessionKey);
+			if (!leaf) {
+				continue;
+			}
+			const store = new DisposableStore();
+			this.mountWindowNav(leaf.sessionBar, sessionKey, store);
+			this.leafNavStores.set(sessionKey, store);
+			this._register(store);
+		}
+	}
+
+	private mountWindowNav(sessionBarHost: HTMLElement, sessionKey: string, store: DisposableStore): void {
 		// eslint-disable-next-line no-restricted-syntax -- presence probe on the session bar built elsewhere
 		if (sessionBarHost.querySelector('.conversation-window-nav')) {
 			return;
@@ -75,7 +87,9 @@ class ConversationNavigationContribution extends Disposable implements IWorkbenc
 		nav.setAttribute('role', 'navigation');
 		nav.setAttribute('aria-label', localize('conversationWindowNavigation', "Conversation history"));
 
-		const backButton = this._register(new Button(nav, {
+		const resolvePart = () => this.sessionChatService.getConversationPart(sessionKey);
+
+		const backButton = store.add(new Button(nav, {
 			...defaultButtonStyles,
 			supportIcons: true,
 			small: true,
@@ -85,7 +99,7 @@ class ConversationNavigationContribution extends Disposable implements IWorkbenc
 		backButton.icon = Codicon.arrowLeft;
 		backButton.enabled = false;
 
-		const forwardButton = this._register(new Button(nav, {
+		const forwardButton = store.add(new Button(nav, {
 			...defaultButtonStyles,
 			supportIcons: true,
 			small: true,
@@ -96,21 +110,22 @@ class ConversationNavigationContribution extends Disposable implements IWorkbenc
 		forwardButton.enabled = false;
 
 		const updateButtons = () => {
-			backButton.enabled = this.navigationService.canGoBack();
-			forwardButton.enabled = this.navigationService.canGoForward();
+			const part = resolvePart();
+			backButton.enabled = this.navigationService.canGoBack(part);
+			forwardButton.enabled = this.navigationService.canGoForward(part);
 		};
 
-		this._register(this.navigationService.onDidChangeStack(() => updateButtons()));
+		store.add(this.navigationService.onDidChangeStack(() => updateButtons()));
 		updateButtons();
 
-		this._register(backButton.onDidClick(() => {
-			void this.navigationService.goBack();
+		store.add(backButton.onDidClick(() => {
+			void this.navigationService.goBack(resolvePart());
 		}));
-		this._register(forwardButton.onDidClick(() => {
-			void this.navigationService.goForward();
+		store.add(forwardButton.onDidClick(() => {
+			void this.navigationService.goForward(resolvePart());
 		}));
 
-		const closeNonRootButton = this._register(new Button(nav, {
+		const closeNonRootButton = store.add(new Button(nav, {
 			...defaultButtonStyles,
 			supportIcons: true,
 			small: true,
@@ -122,14 +137,14 @@ class ConversationNavigationContribution extends Disposable implements IWorkbenc
 		closeNonRootButton.enabled = false;
 
 		const updateCloseNonRootButton = () => {
-			closeNonRootButton.enabled = this.sessionChatService.canCloseNonRoot();
+			closeNonRootButton.enabled = this.sessionChatService.canCloseNonRoot(sessionKey);
 		};
 
-		this._register(this.sessionChatService.onDidChangeCloseNonRootState(() => updateCloseNonRootButton()));
+		store.add(this.sessionChatService.onDidChangeCloseNonRootState(() => updateCloseNonRootButton()));
 		updateCloseNonRootButton();
 
-		this._register(closeNonRootButton.onDidClick(() => {
-			void this.sessionChatService.closeNonRootTabs();
+		store.add(closeNonRootButton.onDidClick(() => {
+			void this.sessionChatService.closeNonRootTabs(sessionKey);
 		}));
 	}
 

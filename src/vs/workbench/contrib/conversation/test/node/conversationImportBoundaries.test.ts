@@ -21,6 +21,8 @@ const FORBIDDEN_IMPORT_SUBSTRINGS = [
 	'chatWidget',
 	'chat/browser/widget/input/',
 	'agentSessions/',
+	'chatRichLink',
+	'vs/sessions',
 ] as const;
 
 function isForbiddenChatImport(importPath: string): boolean {
@@ -53,6 +55,17 @@ suite('conversationImportBoundaries', () => {
 			violations,
 			[],
 			`Forbidden imports in contrib/conversation production code:\n${violations.join('\n')}`,
+		);
+	});
+
+	test('conversationTurnContentAdapter does not import conversationSessionChatService', () => {
+		const adapterPath = path.join(CONVERSATION_SRC_ROOT, 'browser/conversationTurnContentAdapter.ts');
+		const source = fs.readFileSync(adapterPath, 'utf8');
+		const imports = extractImportPaths(source);
+		assert.deepStrictEqual(
+			imports.filter(importPath => importPath.includes('conversationSessionChatService')),
+			[],
+			'adapter must inject IConversationSessionChatService from common/ to avoid the overlay→lens ESM cycle',
 		);
 	});
 });

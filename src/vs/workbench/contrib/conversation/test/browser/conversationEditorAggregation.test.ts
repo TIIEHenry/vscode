@@ -21,6 +21,7 @@ import { ConversationDiffReviewInput } from '../../../sources/browser/conversati
 import { ConversationDiffReviewInputTypeId } from '../../../sources/common/conversationDiffReviewInput.js';
 import { registerTestConversationDiffReviewEditor } from './conversationDiffReviewTestEditor.js';
 import '../../browser/conversationEditor.contribution.js';
+import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 
 suite('Conversation editor aggregation exemption (S1a)', () => {
 
@@ -40,6 +41,7 @@ suite('Conversation editor aggregation exemption (S1a)', () => {
 
 	async function createHarness() {
 		const instantiationService = workbenchInstantiationService(undefined, store);
+		stubConversationTimelineLinkServices(instantiationService);
 		instantiationService.invokeFunction(accessor => Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor));
 		const parts = await createEditorParts(instantiationService, disposables);
 		store.add(parts);

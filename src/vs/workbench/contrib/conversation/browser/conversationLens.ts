@@ -650,6 +650,11 @@ export class ConversationLens extends Disposable {
 		bindSessionView(this, sessionId);
 	}
 
+	releaseSessionViewLeaseForHiddenLeaf(): void {
+		this.sessionViewLifetime.clear();
+		this.sessionViewLease = undefined;
+	}
+
 	applySessionViewTimeline(applied: ConversationViewFrameApplied,
 		options?: { readonly sidecarOnly?: boolean },): void {
 		applySessionViewTimeline(this, applied, options);

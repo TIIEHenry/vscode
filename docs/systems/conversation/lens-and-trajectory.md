@@ -3,8 +3,8 @@ title: "Conversation 透镜、时间线与轨迹"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-10
-summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；叶宽 `.is-narrow`（Q6/RWD-1）；子代理 overlay 自备 sessionBar；Accessible View；帧源投影与 Q4 live 过程折"
+updated: 2026-09-15
+summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；叶宽 `.is-narrow`（Q6/RWD-1）；子代理 overlay 传 lensTablist；时间线会话 pill；Accessible View；帧源投影与 Q4 live 过程折"
 ---
 
 # Conversation 透镜、时间线与轨迹
@@ -13,9 +13,9 @@ summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；�
 
 ## 1. 页 chrome 在哪
 
-每张 chat tab 的内容由 `ConversationEditorPane`（`workbench.editor.conversationChat`）渲染。它把 `IConversationLensSlots`（`sessionBar` / `timeline` / `dock` 三个 DOM 槽）交给 `ConversationLens` 填。**注意两层 SessionBar**：Part 级的窗口 chrome（SelectBox、←→、关非根）在 `ConversationPart.sessionBar`；页级的「对话 | 轨迹」透镜切换与标题行由 `ConversationLens.mountSessionBar` 填。根 tab 的透镜栏仍挂在 Part 槽。
+每张 chat tab 的内容由 `ConversationEditorPane`（`workbench.editor.conversationChat`）渲染。生产路径把 `IConversationLensSlots` 的 `lensTablist` / `timeline` / `dock` 交给 `ConversationLens`（**不**再传 Part 级 `sessionBar`）。「对话 | 轨迹」在页 chrome `pageChrome.lensTablist`。窗口 chrome 是**叶级 SessionBar**（每扇一份，见 [session-windows](session-windows.md)），由 `ConversationLeafSessionBar` 挂在该叶 `sessionBar` 槽，不经过透镜。
 
-子代理对话框（`ConversationSubAgentOverlay`）**自备** overlay 内 sessionBar（透镜 tab + 标题行），不再把 Part 级 sessionBar 传入 `ConversationLens`。focus trap 根 = `overlay.element`，Tab wrap 与 Escape 才能包住透镜 / 改名。Escape 顺序：图示 overlay → 局部 inspector → 标题改名 → 对话框；不关根会话。
+子代理对话框（`ConversationSubAgentOverlay`）给透镜只传自己的 `lensTablist`（可见形态仍是「对话 | 轨迹」），不再传完整 SessionBar。focus trap 根 = `overlay.element`，Tab wrap 与 Escape 才能包住透镜 / 改名。Escape 顺序：图示 overlay → 局部 inspector → 标题改名 → 对话框；不关根会话。
 
 时间线行名由 `getConversationTurnAriaLabel` 给出（含 `system` / error 可否重试 / unknown 原始类型）。流式行只在进入 / 离开 `streaming` 时改「进行中」后缀，不按 token 更新 `aria-label`。完整回合经 `ConversationAccessibleView` 接入既有 `IAccessibleViewService`（`AccessibleViewProviderId.Conversation`），不新造 live 区。
 
@@ -29,7 +29,7 @@ summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；�
 |------|------|------|
 | `ConversationTimelineTree` | `conversationTimelineTree.ts` | `WorkbenchObjectTree<ConversationTimelineItem>` 绿field 列表；行 = turn 或 process-fold 节点 |
 | 自动滚底 | `conversationTimelineScroll.ts` | `ConversationAutoScrollHolds`：用户上滚时 hold，新回合到达不抢滚 |
-| 内容渲染 | `conversationTurnContentAdapter.ts` · `conversationTurnMarkdown.ts` | **唯一**允许触碰 `contrib/chat/browser/widget/chatContentParts/**` 的入口；只借 markdown / code block 渲染函数，不造 `IChatRequestViewModel` 影子模型 |
+| 内容渲染 | `conversationTurnContentAdapter.ts` · `conversationTurnMarkdown.ts` · `conversationSessionPill.ts` · `resolveConversationTimelineLink.ts` | **唯一**允许触碰 `contrib/chat/browser/widget/chatContentParts/**` 的入口；只借 markdown / code block 渲染函数，不造 `IChatRequestViewModel` 影子模型。助手 markdown **只**放行 `conversation-chat` scheme，显式 `actionHandler` 单点分流（http/https/mailto → 外链确认；白名单内其它 scheme → `openLinkFromMarkdown`；内部命中 → pill 路由）。resolve 命中的 tool/fork/default 升级为会话 pill + 轻量 hover；catalog / roster 晚到时补画。无状态徽标。adapter **不得**直接 import `conversationSessionChatService.js` |
 | 用户卡 | `conversationUserBubbleCollapse.ts` | 用户回合展示为纯文本卡；点卡进入编辑（PRD-015 验收 6） |
 | 置顶提示 | `conversationPinnedUserPrompt.ts` | 滚动时把当前可见段落对应的用户提问钉在列顶（对齐 Singularity `PinnedUserPromptState`） |
 | 权限座位 | `conversationConfirmationSeat.ts` | Allow / Skip；处理后按钮消失、记录留在列表（PRD-004）；不是可回收 virt 行 |
