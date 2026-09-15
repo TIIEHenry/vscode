@@ -36,8 +36,8 @@ suite('conversationLiveAgentCatalog', () => {
 			node('writer', 'Writer'),
 		]);
 		assert.deepStrictEqual(collectLiveAgentTreeCatalogEntries(tree), [
-			{ chatId: 'research', title: 'Research', parentChatId: 'default' },
-			{ chatId: 'writer', title: 'Writer', parentChatId: 'default' },
+			{ chatId: 'research', title: 'Research', parentChatId: 'default', model: 'm' },
+			{ chatId: 'writer', title: 'Writer', parentChatId: 'default', model: 'm' },
 		]);
 	});
 
@@ -46,8 +46,8 @@ suite('conversationLiveAgentCatalog', () => {
 			node('research', 'Research', [node('web', 'Web search')]),
 		]);
 		assert.deepStrictEqual(collectLiveAgentTreeCatalogEntries(tree), [
-			{ chatId: 'research', title: 'Research', parentChatId: 'default' },
-			{ chatId: 'web', title: 'Web search', parentChatId: 'research' },
+			{ chatId: 'research', title: 'Research', parentChatId: 'default', model: 'm' },
+			{ chatId: 'web', title: 'Web search', parentChatId: 'research', model: 'm' },
 		]);
 	});
 });

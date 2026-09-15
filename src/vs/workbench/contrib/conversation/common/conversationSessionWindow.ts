@@ -6,4 +6,8 @@
 /** Maximum session window leaves in the Conversation part grid (§3.1). */
 export const CONVERSATION_SESSION_WINDOW_MAX_LEAVES = 2;
 
+/** Same literals as `workbench/browser/parts/conversation/conversationPart.ts` (common cannot re-export browser). */
 export const conversationSessionLeafHiddenClass = 'conversation-session-leaf-hidden';
+export const conversationSessionLeafPrimaryClass = 'conversation-session-leaf-primary';
+export const conversationSessionLeafSecondaryClass = 'conversation-session-leaf-secondary';
+export const ConversationEditorPaneId = 'workbench.editor.conversationChat';

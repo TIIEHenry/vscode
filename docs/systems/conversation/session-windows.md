@@ -3,8 +3,8 @@ title: "Conversation session 窗口与 chat tab"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-10
-summary: "PRD-016 / ADR-002 的系统规格：Part 内最多两叶 session 窗口；fork / 子代理 catalog（GC-4 观察 liveAgentTree；接通后 Fork 转 AgentService.Fork；接通后 killSubAgent / Kill 动作转 AgentService.Kill，空 agentId 不默认 root）；overlay、面包屑、导航栈、split"
+updated: 2026-09-15
+summary: "PRD-016 / ADR-002 的系统规格：Part 内最多两叶 session 窗口；叶级 SessionBar（方案 C）；revealSessionWindow 状态机；fork / 子代理 catalog（GC-4 观察 liveAgentTree；接通后 Fork 转 AgentService.Fork；接通后 killSubAgent / Kill 动作转 AgentService.Kill，空 agentId 不默认 root）；overlay、面包屑、导航栈、split"
 ---
 
 # Conversation session 窗口与 chat tab
@@ -15,16 +15,18 @@ summary: "PRD-016 / ADR-002 的系统规格：Part 内最多两叶 session 窗�
 
 ```text
 CONVERSATION_PART
-├── sessionBar（Part 级窗口 chrome：SelectBox、←→、关非根、hide −）
+├── sessionBar（Part 槽已退役，保持空）
 └── sessionWindowGrid
-    ├── leaf[primary]  session A ── Conversation IEditorPart
-    │                               ├── CONVERSATION_GROUP: [root tab] [fork tab] [sub-agent tab]
-    │                               └── CONVERSATION_SIDE_GROUP（split 后第二列）
-    │                  └── ConversationSubAgentOverlay（居中卡片，覆盖在叶上）
-    └── leaf[beside]   session B ── Conversation IEditorPart（最多两叶）
+    ├── leaf[primary]  session A
+    │   ├── 叶级 SessionBar（SelectBox、←→、关非根、hide −；主语 = 该叶 sessionKey）
+    │   └── sessionWindow ── Conversation IEditorPart
+    │                        ├── CONVERSATION_GROUP: [root tab] [fork tab] [sub-agent tab]
+    │                        └── CONVERSATION_SIDE_GROUP（split 后第二列）
+    │             └── ConversationSubAgentOverlay（居中卡片，覆盖在叶上；透镜只收 lensTablist）
+    └── leaf[beside]   session B（最多两叶；同样一份叶级 bar）
 ```
 
-- **叶** = 一个 session 的窗口。`IConversationSessionWindowService` 维护 `leafOrder` 与 `hidden` 状态；`CONVERSATION_SESSION_WINDOW_MAX_LEAVES = 2`。`ensurePrimaryWindow(sessionKey)` 跟随 `IConversationRosterService.onDidChangeActiveSession`；`openSessionBeside` 建第二叶（Navigator roster 右键「Open beside」或 Alt+点击）；`hideSessionWindow` 后回到单窗，`restoreSessionWindow` 原样恢复。
+- **叶** = 一个 session 的窗口。`IConversationSessionWindowService` 维护 `leafOrder`、`hidden`、sticky `focusedLeafSessionKey` / `onDidChangeFocusedLeaf`；`CONVERSATION_SESSION_WINDOW_MAX_LEAVES = 2`。切会话走 `revealSessionWindow(sessionKey, { replace? })` 状态机（已有可见叶则聚焦；单叶恢复/新建目标后 `promoteLeaf` 并藏旧 primary；两叶满员走 `openSessionBeside` 或 `replace` 指定让位叶；latest-wins）。`onDidChangeActiveSession` 调用 reveal，但对 bind-failed 哨兵与 `getSessions()` 没有的 id 零动作。`ensurePrimaryWindow` **只**在尚无 primary 时引导第一叶，**不**跟随 roster。`openSessionBeside` 仍建第二叶（Navigator「Open beside」）。隐藏叶释放该叶透镜 `sessionViewLease`，恢复时重取；失败回滚必须 `disposeConversationEditorPart`。`hideSessionWindow` 后回到单窗。
 - **叶内 EditorPart** 由 `EditorParts.createConversationEditorPart` 创建，注册进 `IEditorGroupsService.parts`，共用主窗 `windowId`，`excludeFromGlobalEditorAggregation = true`（不进全局 editor 枚举、MRU `activePart`、`applyState` 工作集恢复、`IHistoryService`）。细节见 [editor-part-tabs §4](../workbench/editor-part-tabs.md)。
 - 两叶**共用**右侧 Preview / Sources / Panel；这不是 ADR-001 的双 session 孪生。
 

@@ -4,38 +4,32 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/conversationSessionWindow.css';
-import { $, append } from '../../../../base/browser/dom.js';
-import { ActionBar } from '../../../../base/browser/ui/actionbar/actionbar.js';
-import { Action } from '../../../../base/common/actions.js';
-import { Codicon } from '../../../../base/common/codicons.js';
+import { $, addDisposableListener, append, getActiveElement } from '../../../../base/browser/dom.js';
+import { timeout } from '../../../../base/common/async.js';
 import { getErrorMessage } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
-import { ThemeIcon } from '../../../../base/common/themables.js';
-import { localize } from '../../../../nls.js';
+import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
-import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import {
 	CONVERSATION_SESSION_WINDOW_MAX_LEAVES,
+	ConversationEditorPaneId,
 	conversationSessionLeafHiddenClass,
+	conversationSessionLeafPrimaryClass,
+	conversationSessionLeafSecondaryClass,
 } from '../common/conversationSessionWindow.js';
+import { ENGINE_BIND_FAILED_SESSION_ID } from './conversationEngineRosterService.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
 export const IConversationSessionWindowService = createDecorator<IConversationSessionWindowService>('conversationSessionWindowService');
 
-const sessionWindowHideIcon = registerIcon(
-	'conversation-session-window-hide',
-	Codicon.remove,
-	localize('conversationSessionWindowHideIcon', 'Icon to hide a parallel conversation session window.'),
-);
-
 export interface IConversationSessionLeafSlots {
 	readonly sessionKey: string;
 	readonly container: HTMLElement;
+	readonly sessionBar: HTMLElement;
 	readonly sessionWindow: HTMLElement;
 	readonly editorPartHost: HTMLElement;
 }
@@ -44,12 +38,14 @@ export interface IConversationSessionWindowService {
 	readonly _serviceBrand: undefined;
 
 	readonly onDidChangeVisibleWindows: Event<void>;
+	readonly onDidChangeFocusedLeaf: Event<string | undefined>;
 
 	getVisibleSessionKeys(): readonly string[];
 	getVisibleWindowCount(): number;
 	isSessionWindowVisible(sessionKey: string): boolean;
 	isSessionWindowHidden(sessionKey: string): boolean;
 	getPrimarySessionKey(): string | undefined;
+	getFocusedLeafSessionKey(): string | undefined;
 
 	getLeafSlots(sessionKey: string): IConversationSessionLeafSlots | undefined;
 
@@ -59,10 +55,20 @@ export interface IConversationSessionWindowService {
 	openSessionBeside(sessionKey: string): Promise<void>;
 	hideSessionWindow(sessionKey: string): void;
 	restoreSessionWindow(sessionKey: string): void;
+	revealSessionWindow(sessionKey: string, options?: { replace?: string }): Promise<void>;
 }
 
 interface IConversationSessionLeaf extends IConversationSessionLeafSlots {
 	hidden: boolean;
+	readonly store: DisposableStore;
+}
+
+interface IRevealInFlight {
+	sessionKey: string;
+	replace?: string;
+	promise: Promise<void>;
+	atomic: boolean;
+	cancelled: boolean;
 }
 
 export class ConversationSessionWindowService extends Disposable implements IConversationSessionWindowService {
@@ -71,12 +77,18 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 
 	private gridHost: HTMLElement | undefined;
 	private primarySessionKey: string | undefined;
+	private focusedLeafSessionKey: string | undefined;
 	private primaryBootstrapInFlight: Promise<void> | undefined;
+	private pendingReveal: { sessionKey: string; options?: { replace?: string } } | undefined;
+	private revealInFlight: IRevealInFlight | undefined;
 	private readonly leaves = new Map<string, IConversationSessionLeaf>();
 	private readonly leafOrder: string[] = [];
 
 	private readonly _onDidChangeVisibleWindows = this._register(new Emitter<void>());
 	readonly onDidChangeVisibleWindows = this._onDidChangeVisibleWindows.event;
+
+	private readonly _onDidChangeFocusedLeaf = this._register(new Emitter<string | undefined>());
+	readonly onDidChangeFocusedLeaf = this._onDidChangeFocusedLeaf.event;
 
 	constructor(
 		@IConversationPartService private readonly conversationPartService: IConversationPartService,
@@ -95,7 +107,13 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		}
 
 		this._register(this.rosterService.onDidChangeActiveSession(sessionKey => {
-			void this.ensurePrimaryWindow(sessionKey);
+			if (sessionKey === ENGINE_BIND_FAILED_SESSION_ID) {
+				return;
+			}
+			if (!this.rosterService.getSessions().some(session => session.id === sessionKey)) {
+				return;
+			}
+			void this.revealSessionWindow(sessionKey);
 		}));
 	}
 
@@ -122,6 +140,10 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 
 	getPrimarySessionKey(): string | undefined {
 		return this.primarySessionKey;
+	}
+
+	getFocusedLeafSessionKey(): string | undefined {
+		return this.focusedLeafSessionKey;
 	}
 
 	getLeafSlots(sessionKey: string): IConversationSessionLeafSlots | undefined {
@@ -206,9 +228,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			return;
 		}
 
-		leaf.hidden = true;
-		leaf.container.classList.add(conversationSessionLeafHiddenClass);
-		leaf.container.setAttribute('aria-hidden', 'true');
+		this.setLeafHidden(leaf, true);
 		this.fireVisibleWindowsChange();
 	}
 
@@ -228,10 +248,166 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			}
 		}
 
-		leaf.hidden = false;
-		leaf.container.classList.remove(conversationSessionLeafHiddenClass);
-		leaf.container.removeAttribute('aria-hidden');
+		this.setLeafHidden(leaf, false);
 		this.fireVisibleWindowsChange();
+	}
+
+	async revealSessionWindow(sessionKey: string, options?: { replace?: string }): Promise<void> {
+		if (sessionKey === ENGINE_BIND_FAILED_SESSION_ID) {
+			return;
+		}
+
+		if (!this.gridHost) {
+			this.pendingReveal = { sessionKey, options };
+			return;
+		}
+
+		if (this.revealInFlight?.sessionKey === sessionKey) {
+			if (options?.replace && !this.revealInFlight.replace) {
+				this.revealInFlight.replace = options.replace;
+			}
+			return this.revealInFlight.promise;
+		}
+
+		if (this.revealInFlight && !this.revealInFlight.atomic) {
+			this.revealInFlight.cancelled = true;
+		}
+
+		if (this.revealInFlight?.atomic) {
+			await this.revealInFlight.promise;
+		}
+
+		const state: IRevealInFlight = {
+			sessionKey,
+			replace: options?.replace,
+			promise: Promise.resolve(),
+			atomic: false,
+			cancelled: false,
+		};
+		const promise = this.runReveal(sessionKey, state);
+		state.promise = promise;
+		this.revealInFlight = state;
+		try {
+			await promise;
+		} finally {
+			if (this.revealInFlight === state) {
+				this.revealInFlight = undefined;
+			}
+		}
+	}
+
+	private async runReveal(sessionKey: string, state: IRevealInFlight): Promise<void> {
+		if (state.cancelled) {
+			return;
+		}
+
+		const existing = this.leaves.get(sessionKey);
+		if (existing && !existing.hidden) {
+			this.fireVisibleWindowsChange();
+			await this.whenLeafPaneReady(sessionKey);
+			this.focusLeaf(sessionKey);
+			return;
+		}
+
+		if (state.cancelled) {
+			return;
+		}
+
+		state.atomic = true;
+		const previousPrimary = this.primarySessionKey;
+		const previouslyVisible = new Set(this.getVisibleSessionKeys());
+		try {
+			await this.applyRevealStateTable(sessionKey, state.replace);
+			this.fireVisibleWindowsChange();
+			await this.whenLeafPaneReady(sessionKey);
+			this.focusLeaf(sessionKey);
+		} catch (error) {
+			if (!previouslyVisible.has(sessionKey)) {
+				this.rollbackHalfAppliedLeaf(sessionKey);
+			}
+			this.primarySessionKey = previousPrimary;
+			this.logService.warn(`[ConversationSessionWindowService] revealSessionWindow failed: ${getErrorMessage(error)}`);
+			this.notificationService.error(getErrorMessage(error));
+		}
+	}
+
+	private async applyRevealStateTable(sessionKey: string, replace?: string): Promise<void> {
+		const existing = this.leaves.get(sessionKey);
+		const visibleCount = this.getVisibleWindowCount();
+
+		if (existing?.hidden && visibleCount <= 1) {
+			this.setLeafHidden(existing, false);
+			this.promoteLeaf(sessionKey);
+			const oldPrimary = this.primarySessionKey;
+			this.primarySessionKey = sessionKey;
+			if (oldPrimary && oldPrimary !== sessionKey) {
+				this.demoteLeaf(oldPrimary);
+				this.hideSessionWindowWithoutFire(oldPrimary);
+			}
+			return;
+		}
+
+		if (existing?.hidden && visibleCount >= 2) {
+			if (replace && replace !== sessionKey) {
+				this.replaceVisibleLeaf(replace, sessionKey);
+				return;
+			}
+			this.restoreSessionWindowWithoutFire(sessionKey);
+			return;
+		}
+
+		if (!existing && visibleCount <= 1) {
+			const oldPrimary = this.primarySessionKey;
+			await this.ensureLeaf(sessionKey, { primary: true });
+			this.promoteLeaf(sessionKey);
+			this.primarySessionKey = sessionKey;
+			if (oldPrimary && oldPrimary !== sessionKey) {
+				this.demoteLeaf(oldPrimary);
+				this.hideSessionWindowWithoutFire(oldPrimary);
+			}
+			return;
+		}
+
+		if (!existing && visibleCount >= 2) {
+			if (replace) {
+				await this.replaceLeafWithNew(replace, sessionKey);
+				return;
+			}
+			await this.openSessionBeside(sessionKey);
+		}
+	}
+
+	private replaceVisibleLeaf(outgoingKey: string, incomingKey: string): void {
+		const incoming = this.leaves.get(incomingKey);
+		if (!incoming) {
+			return;
+		}
+		if (outgoingKey === this.primarySessionKey) {
+			this.setLeafHidden(incoming, false);
+			this.promoteLeaf(incomingKey);
+			this.primarySessionKey = incomingKey;
+			this.demoteLeaf(outgoingKey);
+			this.hideSessionWindowWithoutFire(outgoingKey);
+			return;
+		}
+		this.setLeafHidden(incoming, false);
+		this.hideSessionWindowWithoutFire(outgoingKey);
+		if (this.getVisibleWindowCount() > CONVERSATION_SESSION_WINDOW_MAX_LEAVES) {
+			this.hideSessionWindowWithoutFire(outgoingKey);
+		}
+	}
+
+	private async replaceLeafWithNew(outgoingKey: string, incomingKey: string): Promise<void> {
+		if (outgoingKey === this.primarySessionKey) {
+			await this.ensureLeaf(incomingKey, { primary: true });
+			this.promoteLeaf(incomingKey);
+			this.primarySessionKey = incomingKey;
+			this.demoteLeaf(outgoingKey);
+			this.hideSessionWindowWithoutFire(outgoingKey);
+			return;
+		}
+		this.hideSessionWindowWithoutFire(outgoingKey);
+		await this.ensureLeaf(incomingKey, { primary: false });
 	}
 
 	private attachGrid(gridHost: HTMLElement): void {
@@ -239,7 +415,15 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			return;
 		}
 		this.gridHost = gridHost;
-		void this.ensurePrimaryWindow(this.rosterService.getActiveSessionId());
+		queueMicrotask(() => {
+			const pending = this.pendingReveal;
+			this.pendingReveal = undefined;
+			if (pending) {
+				void this.revealSessionWindow(pending.sessionKey, pending.options);
+				return;
+			}
+			void this.ensurePrimaryWindow(this.rosterService.getActiveSessionId());
+		});
 	}
 
 	private async ensureLeaf(sessionKey: string, options: { primary: boolean }): Promise<IConversationSessionLeaf> {
@@ -253,28 +437,39 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 
 		const container = append(this.gridHost!, $('.conversation-session-leaf'));
 		container.dataset.sessionKey = sessionKey;
+		container.tabIndex = -1;
 		if (options.primary) {
-			container.classList.add('conversation-session-leaf-primary');
+			container.classList.add(conversationSessionLeafPrimaryClass);
 		} else {
-			container.classList.add('conversation-session-leaf-secondary');
-			this.mountSecondaryChrome(container, sessionKey);
+			container.classList.add(conversationSessionLeafSecondaryClass);
 		}
 
+		const sessionBar = append(container, $('.conversation-session-leaf-session-bar'));
 		const sessionWindow = append(container, $('.conversation-session-window'));
 		const editorPartHost = append(sessionWindow, $('.conversation-editor-part-container.part.editor'));
+		const store = this._register(new DisposableStore());
 
 		leaf = {
 			sessionKey,
 			container,
+			sessionBar,
 			sessionWindow,
 			editorPartHost,
 			hidden: false,
+			store,
 		};
 		this.leaves.set(sessionKey, leaf);
 
 		if (!this.leafOrder.includes(sessionKey)) {
 			this.leafOrder.push(sessionKey);
 		}
+
+		store.add(addDisposableListener(container, 'focusin', () => {
+			this.setFocusedLeaf(sessionKey);
+			if (this.rosterService.getActiveSessionId() !== sessionKey) {
+				this.rosterService.switchSession(sessionKey);
+			}
+		}, true));
 
 		this.editorGroupsService.createConversationEditorPart(editorPartHost, sessionKey);
 		const part = this.editorGroupsService.conversationParts.find(candidate => candidate.sessionKey === sessionKey);
@@ -285,40 +480,123 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		return leaf;
 	}
 
-	private mountSecondaryChrome(container: HTMLElement, sessionKey: string): void {
-		const chrome = append(container, $('.conversation-session-leaf-chrome'));
-		const title = append(chrome, $('.conversation-session-leaf-title'));
-		const updateTitle = () => {
-			const session = this.rosterService.getSessions().find(item => item.id === sessionKey);
-			title.textContent = session?.title ?? sessionKey;
-		};
-		updateTitle();
-		this._register(this.rosterService.onDidChangeSession(changedId => {
-			if (changedId === sessionKey) {
-				updateTitle();
-			}
-		}));
+	private promoteLeaf(sessionKey: string): void {
+		const leaf = this.leaves.get(sessionKey);
+		if (!leaf) {
+			return;
+		}
+		leaf.container.classList.remove(conversationSessionLeafSecondaryClass);
+		leaf.container.classList.add(conversationSessionLeafPrimaryClass);
+	}
 
-		const actionsContainer = append(chrome, $('.conversation-session-leaf-actions'));
-		const actionBar = new ActionBar(actionsContainer);
-		this._register(actionBar);
-		const hideAction = new Action(
-			`workbench.action.conversation.hideSessionWindow.${sessionKey}`,
-			localize('hideConversationSessionWindow', "Hide session window"),
-			ThemeIcon.asClassName(sessionWindowHideIcon),
-			true,
-			() => this.hideSessionWindow(sessionKey),
-		);
-		hideAction.tooltip = localize('hideConversationSessionWindow', "Hide session window");
-		this._register(hideAction);
-		actionBar.push(hideAction, { icon: true, label: false });
-		actionBar.setFocusable(false);
+	private demoteLeaf(sessionKey: string): void {
+		const leaf = this.leaves.get(sessionKey);
+		if (!leaf) {
+			return;
+		}
+		leaf.container.classList.remove(conversationSessionLeafPrimaryClass);
+		leaf.container.classList.add(conversationSessionLeafSecondaryClass);
+	}
+
+	private setLeafHidden(leaf: IConversationSessionLeaf, hidden: boolean): void {
+		leaf.hidden = hidden;
+		leaf.container.classList.toggle(conversationSessionLeafHiddenClass, hidden);
+		if (hidden) {
+			leaf.container.setAttribute('aria-hidden', 'true');
+		} else {
+			leaf.container.removeAttribute('aria-hidden');
+		}
+	}
+
+	private hideSessionWindowWithoutFire(sessionKey: string): void {
+		if (sessionKey === this.primarySessionKey) {
+			return;
+		}
+		const leaf = this.leaves.get(sessionKey);
+		if (!leaf || leaf.hidden) {
+			return;
+		}
+		this.setLeafHidden(leaf, true);
+	}
+
+	private restoreSessionWindowWithoutFire(sessionKey: string): void {
+		const leaf = this.leaves.get(sessionKey);
+		if (!leaf || !leaf.hidden) {
+			return;
+		}
+		const visibleOthers = this.getVisibleSessionKeys().filter(key => key !== sessionKey);
+		if (visibleOthers.length >= CONVERSATION_SESSION_WINDOW_MAX_LEAVES) {
+			for (const otherKey of visibleOthers) {
+				if (otherKey !== this.primarySessionKey) {
+					this.hideSessionWindowWithoutFire(otherKey);
+					break;
+				}
+			}
+		}
+		this.setLeafHidden(leaf, false);
+	}
+
+	private setFocusedLeaf(sessionKey: string): void {
+		const leaf = this.leaves.get(sessionKey);
+		if (!leaf) {
+			return;
+		}
+		if (this.focusedLeafSessionKey === sessionKey) {
+			this.conversationPartService.setFocusedLeafContainer(leaf.container);
+			this.editorGroupsService.setFocusedConversationLeaf(sessionKey);
+		} else {
+			this.focusedLeafSessionKey = sessionKey;
+			this.conversationPartService.setFocusedLeafContainer(leaf.container);
+			this.editorGroupsService.setFocusedConversationLeaf(sessionKey);
+			this._onDidChangeFocusedLeaf.fire(sessionKey);
+		}
+		if (this.rosterService.getActiveSessionId() !== sessionKey) {
+			this.rosterService.switchSession(sessionKey);
+		}
+	}
+
+	private focusLeaf(sessionKey: string): void {
+		const leaf = this.leaves.get(sessionKey);
+		if (!leaf) {
+			return;
+		}
+		this.setFocusedLeaf(sessionKey);
+		const part = this.editorGroupsService.conversationParts.find(candidate => candidate.sessionKey === sessionKey);
+		part?.activeGroup.focus();
+		if (!leaf.container.contains(getActiveElement())) {
+			leaf.container.focus();
+		}
+	}
+
+	private async whenLeafPaneReady(sessionKey: string): Promise<void> {
+		const part = this.editorGroupsService.conversationParts.find(candidate => candidate.sessionKey === sessionKey);
+		if (!part) {
+			return;
+		}
+		await part.whenReady;
+		if (part.activeGroup.activeEditorPane?.getId() === ConversationEditorPaneId) {
+			return;
+		}
+		if (part.activeGroup.activeEditorPane) {
+			return;
+		}
+		const paneReady = Event.toPromise(Event.filter(part.activeGroup.onDidActiveEditorChange, () => {
+			return part.activeGroup.activeEditorPane?.getId() === ConversationEditorPaneId;
+		}));
+		const wait = timeout(2000);
+		try {
+			await Promise.race([paneReady, wait]);
+		} finally {
+			paneReady.cancel();
+			wait.cancel();
+		}
 	}
 
 	private async tryBootstrapPrimaryWindow(sessionKey: string): Promise<void> {
 		try {
 			await this.ensureLeaf(sessionKey, { primary: true });
 			this.primarySessionKey = sessionKey;
+			this.setFocusedLeaf(sessionKey);
 			this.fireVisibleWindowsChange();
 		} catch (error) {
 			this.primarySessionKey = undefined;
@@ -329,7 +607,9 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 	}
 
 	private rollbackHalfAppliedLeaf(sessionKey: string): void {
+		this.editorGroupsService.disposeConversationEditorPart(sessionKey);
 		const leaf = this.leaves.get(sessionKey);
+		leaf?.store.dispose();
 		this.leaves.delete(sessionKey);
 		const orderIndex = this.leafOrder.indexOf(sessionKey);
 		if (orderIndex !== -1) {

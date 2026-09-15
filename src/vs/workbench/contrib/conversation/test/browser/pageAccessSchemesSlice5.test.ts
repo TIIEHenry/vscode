@@ -21,6 +21,7 @@ import { IStorageService } from '../../../../../platform/storage/common/storage.
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
 import { TestClipboardService } from '../../../../../platform/clipboard/test/common/testClipboardService.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
+import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
@@ -53,6 +54,7 @@ suite('Page access schemes slice 5 (UI contract)', () => {
 		const storageService = store.add(new TestStorageService());
 		instantiationService.stub(IStorageService, storageService);
 		instantiationService.stub(IConversationRosterService, stubService);
+		stubConversationTimelineLinkServices(instantiationService);
 		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
 		instantiationService.stub(IConversationTimelineRevealService, {
 			_serviceBrand: undefined,

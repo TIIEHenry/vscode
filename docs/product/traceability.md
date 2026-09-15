@@ -3,7 +3,7 @@ title: "产品需求追踪矩阵"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-12
+updated: 2026-09-16
 summary: "PRD-001–026 追踪；F1/F2 + GC-1–GC-6 代码已落；PRD-024 仍 proposed（真 Hub 冒烟未做）；PRD-008 仍 blocked"
 ---
 
@@ -18,7 +18,7 @@ summary: "PRD-001–026 追踪；F1/F2 + GC-1–GC-6 代码已落；PRD-024 仍 
 |--------|----------|---------------|----------|----------------|
 | [PRD-001](requirements.md#prd-001-以-conversation-为中心) | `accepted` | [conversation overview](../systems/conversation/overview.md) · [parts-and-grid](../systems/workbench/parts-and-grid.md) · [ADR-006](../../dev/decisions/006-shell-invariants.md) | [m0](../../dev/plans/m0-topology-surgery.md) · [m1](../../dev/plans/m1-shell-followon.md) · [m2](../../dev/plans/m2-product-shell.md) | D4 V1–V8 PASS [rerun-2230](../../dev/progress/d4-evidence/rerun-2230/) |
 | [PRD-002](requirements.md#prd-002-会话上下文) | `accepted` | [session-windows](../systems/conversation/session-windows.md) · [stub-and-fixtures](../systems/conversation/stub-and-fixtures.md) · [session-roster-reuse](../reference/code-oss-b2/session-roster-reuse.md) | [m2](../../dev/plans/m2-product-shell.md) · [page-access-schemes](../../dev/plans/page-access-schemes.md) | D4 V5 PASS；roster 单测 |
-| [PRD-003](requirements.md#prd-003-时间线与输入) | `accepted` | [lens-and-trajectory](../systems/conversation/lens-and-trajectory.md) · [composer-and-inbox](../systems/conversation/composer-and-inbox.md) | [m2](../../dev/plans/m2-product-shell.md) · [conversation-empty-hero](../../dev/plans/conversation-empty-hero.md) · 验收 4–5：[conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) S2/S3 | D4 PASS；T1–T6 单测；验收 4–5 待验证 |
+| [PRD-003](requirements.md#prd-003-时间线与输入) | `accepted` | [lens-and-trajectory](../systems/conversation/lens-and-trajectory.md) · [composer-and-inbox](../systems/conversation/composer-and-inbox.md) | [m2](../../dev/plans/m2-product-shell.md) · [conversation-empty-hero](../../dev/plans/conversation-empty-hero.md) · 验收 4–5：[conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) S2/S3 · 验收 6：[conversation-timeline-session-pills](../../dev/plans/conversation-timeline-session-pills.md) | D4 PASS；T1–T6 单测；验收 4–5 待验证 |
 | [PRD-004](requirements.md#prd-004-权限座位) | `accepted` | [lens-and-trajectory §2](../systems/conversation/lens-and-trajectory.md) · [stub-and-fixtures §5](../systems/conversation/stub-and-fixtures.md) | [m2](../../dev/plans/m2-product-shell.md) · 验收 4–5：[conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) S3/S5 | D4 PASS；验收 4–5 待验证 |
 | [PRD-005](requirements.md#prd-005-preview-与-sources) | `accepted` | [sources overview](../systems/sources/overview.md) · [companion-contribs §4](../systems/workbench/companion-contribs.md) · [parts-and-grid](../systems/workbench/parts-and-grid.md)；Review 只导航 + 窗口内存审阅进度 + 归因见 [PRD-023](requirements.md#prd-023-sources-review-审阅进度与归因) | [m1](../../dev/plans/m1-shell-followon.md) · [m2](../../dev/plans/m2-product-shell.md) · [sources-review-progress](../../dev/plans/sources-review-progress.md) R1–R4 | D4 V8 PASS（Files/Changes/Review tab）；R1–R4 @ HEAD；R5 冒烟未做、不升 `implemented` |
 | [PRD-006](requirements.md#prd-006-默认无-copilot--chat-冒充) | `accepted` | [agent-ui](../systems/chat/agent-ui.md) · [views-and-composites](../systems/workbench/views-and-composites.md) | [m5](../../dev/plans/m5-ui-shell-hardening.md) · [page-access-schemes](../../dev/plans/page-access-schemes.md) · [settings-two-surfaces](../../dev/plans/settings-two-surfaces.md) | D4 V6 PASS；H0–H3 已落 |

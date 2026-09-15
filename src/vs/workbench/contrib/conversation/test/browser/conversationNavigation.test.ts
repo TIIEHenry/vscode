@@ -29,6 +29,7 @@ import { CONVERSATION_CLOSE_CHILD_ON_BACK_SETTING } from '../../common/conversat
 import { ConversationDiffReviewInputTypeId } from '../../../sources/common/conversationDiffReviewInput.js';
 import { registerTestConversationDiffReviewEditor } from './conversationDiffReviewTestEditor.js';
 import '../../browser/conversationEditor.contribution.js';
+import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 
 suite('Conversation navigation (S2)', () => {
 
@@ -52,6 +53,7 @@ suite('Conversation navigation (S2)', () => {
 		});
 
 		const instantiationService = workbenchInstantiationService(undefined, store);
+		stubConversationTimelineLinkServices(instantiationService);
 		instantiationService.stub(IConfigurationService, configurationService);
 		if (options?.notificationService) {
 			instantiationService.stub(INotificationService, options.notificationService);

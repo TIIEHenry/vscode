@@ -19,6 +19,7 @@ import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEd
 import { ConversationChatInput, getDefaultConversationChatResource } from '../../common/conversationChatInput.js';
 import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
 import '../../browser/conversationEditor.contribution.js';
+import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 
 suite('Conversation editor fence', () => {
 
@@ -34,6 +35,7 @@ suite('Conversation editor fence', () => {
 
 	async function createHarness() {
 		const instantiationService = workbenchInstantiationService(undefined, disposables);
+		stubConversationTimelineLinkServices(instantiationService);
 		instantiationService.invokeFunction(accessor => Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor));
 		const parts = await createEditorParts(instantiationService, disposables);
 		instantiationService.stub(IEditorGroupsService, parts);

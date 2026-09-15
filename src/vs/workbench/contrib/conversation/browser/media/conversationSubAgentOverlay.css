@@ -141,13 +141,6 @@
 	background: transparent;
 }
 
-.monaco-workbench .part.conversation .conversation-subagent-overlay-session-bar .conversation-lens-session-icon,
-.monaco-workbench .part.conversation .conversation-subagent-overlay-session-bar .conversation-lens-session-sync-badge,
-.monaco-workbench .part.conversation .conversation-subagent-overlay-session-bar .conversation-lens-session-title-wrap,
-.monaco-workbench .part.conversation .conversation-subagent-overlay-session-bar .conversation-lens-session-controls {
-	display: none;
-}
-
 .monaco-workbench .part.conversation .conversation-subagent-overlay-body .conversation-lens-reading > .conversation-identity-strip {
 	display: none;
 }

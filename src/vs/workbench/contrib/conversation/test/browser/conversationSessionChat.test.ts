@@ -30,6 +30,7 @@ import { IWorkbenchEnvironmentService } from '../../../../services/environment/c
 import { TestThemeService } from '../../../../../platform/theme/test/common/testThemeService.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
 import {
 	ConversationChatInput,
@@ -348,6 +349,7 @@ suite('Conversation session chat (S3)', () => {
 			}),
 		}, store);
 		instantiationService.stub(IConversationRosterService, rosterService);
+		stubConversationTimelineLinkServices(instantiationService);
 		instantiationService.stub(IUniverseAgentConnection, uaConnection ?? createConversationConnectionTestStub());
 		if (notificationService) {
 			instantiationService.stub(INotificationService, notificationService);
@@ -381,6 +383,7 @@ suite('Conversation session chat (S3)', () => {
 		}
 
 		const sessionChatService = disposables.add(instantiationService.createInstance(TestConversationSessionChatService));
+		instantiationService.stub(IConversationSessionChatService, sessionChatService);
 		sessionChatService.mountSubAgentOverlay(SESSION_KEY, sessionWindow);
 		store.add(sessionChatService.registerPartListeners(conversationPart));
 		if (rosterService instanceof ConversationStubService) {
@@ -1043,7 +1046,7 @@ suite('Conversation session chat (S3)', () => {
 		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Research sub-agent');
 		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-1');
 
-		assert.ok(slots?.sessionBar?.classList.contains(conversationSubAgentOverlaySessionBarClass));
+		assert.ok(slots?.lensTablist?.classList.contains(conversationSubAgentOverlaySessionBarClass));
 		assert.strictEqual(slots?.filterAgentId, 'sub-1');
 		assert.strictEqual(slots?.sessionKey, SESSION_KEY);
 

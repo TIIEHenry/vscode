@@ -7,7 +7,7 @@ import { getErrorMessage } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
-import { createDecorator, IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { GroupIdentifier, IEditorIdentifier } from '../../../common/editor.js';
@@ -15,7 +15,7 @@ import { IEditorGroupsService, IConversationEditorPart, preferredSideBySideGroup
 import { CONVERSATION_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
 import { buildAgentHierarchyBreadcrumb, IConversationAgentBreadcrumbItem } from '../common/conversationAgentHierarchy.js';
 import { isConversationExtensionTab } from '../common/conversationEditorRouting.js';
-import { IConversationSessionChatEntry } from '../common/conversationSessionChat.js';
+import { IConversationSessionChatEntry, IConversationSessionChatService } from '../common/conversationSessionChat.js';
 import { collectLiveAgentTreeCatalogEntries } from '../common/conversationLiveAgentCatalog.js';
 import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { LiveAgentTreeNodeView } from '../../../../platform/universeAgent/common/sessionView/index.js';
@@ -30,60 +30,7 @@ import { ConversationSubAgentOverlay } from './conversationSubAgentOverlay.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { shouldKeepLiveTreeLeaseWhilePairing, shouldRebindLiveTreeLeaseWhilePairing } from './conversationSessionStatus.js';
 
-export const IConversationSessionChatService = createDecorator<IConversationSessionChatService>('conversationSessionChatService');
-
-export interface IConversationSessionChatService {
-	readonly _serviceBrand: undefined;
-
-	readonly onDidChangeCatalog: Event<string>;
-	readonly onDidChangeCloseNonRootState: Event<void>;
-
-	mountSubAgentOverlay(sessionKey: string, sessionWindowHost: HTMLElement): void;
-
-	registerPartListeners(part: IConversationEditorPart): IDisposable;
-
-	getAgentHierarchyBreadcrumb(sessionKey: string, chatId: string): readonly IConversationAgentBreadcrumbItem[];
-
-	navigateAgentBreadcrumb(sessionKey: string, targetChatId: string): Promise<void>;
-
-	canCloseNonRoot(sessionKey?: string): boolean;
-
-	closeNonRootTabs(sessionKey?: string): Promise<void>;
-
-	getCatalog(sessionKey: string): readonly IConversationSessionChatEntry[];
-
-	registerForkChat(sessionKey: string, chatId: string, title: string): IConversationSessionChatEntry;
-
-	registerSubAgentChat(sessionKey: string, chatId: string, title: string, parentChatId?: string): IConversationSessionChatEntry;
-
-	syncSubAgentsFromLiveTree(sessionKey: string, tree: LiveAgentTreeNodeView): void;
-
-	openForkTab(forkedResource: URI, title?: string): Promise<void>;
-
-	openExtensionTab(sessionKey: string, chatId: string, options?: { title?: string }): Promise<void>;
-
-	openSubAgent(sessionKey: string, chatId: string, title?: string): Promise<void>;
-
-	promoteSubAgentDialog(sessionKey?: string): Promise<void>;
-
-	toggleSubAgentDialogMaximized(sessionKey?: string): void;
-
-	isSubAgentDialogMaximized(sessionKey?: string): boolean;
-
-	closeSubAgentDialog(sessionKey?: string): void;
-
-	isSubAgentDialogOpen(sessionKey?: string): boolean;
-
-	findOpenTabForChat(sessionKey: string, chatId: string): ConversationChatInput | undefined;
-
-	getConversationPart(sessionKey: string): IConversationEditorPart | undefined;
-
-	splitSessionWindow(sessionKey?: string): Promise<void>;
-
-	hideSplitColumn(sessionKey?: string, groupId?: GroupIdentifier): void;
-
-	showSplitColumn(sessionKey?: string, groupId?: GroupIdentifier): void;
-}
+export { IConversationSessionChatService } from '../common/conversationSessionChat.js';
 
 export class ConversationSessionChatService extends Disposable implements IConversationSessionChatService {
 
@@ -116,6 +63,16 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		this._register(this.rosterService.onDidChangeActiveSession(() => this.bindLiveTreeLease()));
 		this._register(this.rosterService.onDidChangeEngineConnection(() => this.bindLiveTreeLease()));
 		this.bindLiveTreeLease();
+	}
+
+	seedStubTimelinePills(): void {
+		if (this.rosterService.isEngineConnected()) {
+			return;
+		}
+		if (this.rosterService.getSessions().some(session => session.id === 'untitled')
+			&& !this.getCatalog('untitled').some(entry => entry.chatId === 'stub-readme-agent')) {
+			this.registerSubAgentChat('untitled', 'stub-readme-agent', 'README agent (Stub)');
+		}
 	}
 
 	private bindLiveTreeLease(): void {
@@ -350,8 +307,8 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		for (const entry of collectLiveAgentTreeCatalogEntries(tree)) {
 			const existing = sessionCatalog.get(entry.chatId);
 			if (existing) {
-				if (existing.title !== entry.title) {
-					sessionCatalog.set(entry.chatId, { ...existing, title: entry.title });
+				if (existing.title !== entry.title || existing.model !== entry.model) {
+					sessionCatalog.set(entry.chatId, { ...existing, title: entry.title, model: entry.model });
 					changed = true;
 				}
 				continue;
@@ -362,6 +319,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 				title: entry.title,
 				originKind: 'tool',
 				parentChatId: entry.parentChatId,
+				model: entry.model,
 			});
 			changed = true;
 		}

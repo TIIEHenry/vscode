@@ -12,7 +12,7 @@ import { IConversationSessionWindowService } from './conversationSessionWindowSe
 
 registerSingleton(IConversationSessionChatService, ConversationSessionChatService, InstantiationType.Eager);
 
-class ConversationSessionChatContribution extends Disposable implements IWorkbenchContribution {
+export class ConversationSessionChatContribution extends Disposable implements IWorkbenchContribution {
 
 	static readonly ID = 'workbench.contrib.conversationSessionChat';
 
@@ -25,6 +25,7 @@ class ConversationSessionChatContribution extends Disposable implements IWorkben
 		@IConversationSessionWindowService sessionWindowService: IConversationSessionWindowService,
 	) {
 		super();
+		sessionChatService.seedStubTimelinePills();
 
 		const mountAll = () => {
 			for (const sessionKey of sessionWindowService.getAllLeafSessionKeys()) {

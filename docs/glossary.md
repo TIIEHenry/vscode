@@ -3,8 +3,8 @@ title: "术语表"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-09-12
-summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI 宿主、Conversation 系统术语（SessionBar / 叶 / Composer / Inbox / MessageQueue / stub / 帧源 / lease / ViewFrame / pendingActions / SyncChrome / attribution sidecar）、Connection Hub（Hub / Client / SAS / Grant / DirectAddress）、不变量、能力三态、页面接入与文档约定；对外可读闭集与旧称对照表"
+updated: 2026-09-16
+summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI 宿主、Conversation 系统术语（SessionBar / 会话 pill / 叶 / Composer / Inbox / MessageQueue / stub / 帧源 / lease / ViewFrame / pendingActions / SyncChrome / attribution sidecar）、Connection Hub（Hub / Client / SAS / Grant / DirectAddress）、不变量、能力三态、页面接入与文档约定；对外可读闭集与旧称对照表"
 ---
 
 # 术语表
@@ -61,8 +61,9 @@ summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI �
 | **INV-TOPO** | Layout 中心必须是 `CONVERSATION_PART`，禁止 `ChatEditor` 占中心。ADR-002 允许 Part 内嵌 Conversation `IEditorPart` 画 chat tab（**已落**，S1–S6）。 | [ADR-006](../dev/decisions/006-shell-invariants.md) · [ADR-002](../dev/decisions/002-conversation-session-windows.md) |
 | **SettingsEditor2** | vscode Preferences UI（`EDITOR_PART` tab）。B2 推荐作默认窗 Settings 宿主，非正式决策。 | [settings-ua-access](reference/code-oss-b2/settings-ua-access.md) |
 | **ConversationSessionsView** | Navigator 产品会话 roster（Explorer `ViewPane` + `WorkbenchList`）；数据今天是 stub。 | [session-roster-reuse](reference/code-oss-b2/session-roster-reuse.md) |
-| **ConversationLens** | 在每张 chat 页（`ConversationEditorPane`）内组装 SessionBar 槽 / Timeline / Dock 的产品面；持久化当前透镜 id。Part 级窗口 chrome 不在其中。 | [lens-and-trajectory](systems/conversation/lens-and-trajectory.md) |
-| **SessionBar** | 两层：Part 级窗口 chrome（SelectBox、←→、关非根、hide −）与页级透镜切换 / 面包屑。自研，不是 `ChatViewTitleControl`。无引擎 `routeIndex` 时不画 Route。 | [session-windows](systems/conversation/session-windows.md) |
+| **ConversationLens** | 在每张 chat 页（`ConversationEditorPane`）内组装 Timeline / Dock 与（测试路径下）可选 SessionBar 槽的产品面；「对话\|轨迹」在页 chrome `lensTablist`。持久化当前透镜 id。叶级窗口 chrome 不在其中。 | [lens-and-trajectory](systems/conversation/lens-and-trajectory.md) |
+| **SessionBar** | **叶级**窗口 chrome（每扇 session 窗一份）：SelectBox、←→、关非根、hide −；主语是该叶构造期 `sessionKey`。「对话\|轨迹」在页 chrome，不在本条里。自研，不是 `ChatViewTitleControl`。无引擎 `routeIndex` 时不画 Route。 | [session-windows](systems/conversation/session-windows.md) |
+| **会话 pill** | 助手时间线正文里可点的会话/子代理行内标签（`conversation-session-pill`）。只升级 `conversation-chat:` 且 resolve 命中的链接；hover 给出会话标题、工作区目录与模型三类事实中能拿到的行。打开形态见 PRD-016。 | [conversation-timeline-session-pills](../dev/plans/conversation-timeline-session-pills.md) · [PRD-003](product/requirements.md#prd-003-时间线与输入) |
 | **session 窗口 / 叶** | `CONVERSATION_PART` 内一个 session 的窗口，内嵌 Conversation `IEditorPart`；最多两叶并列，共用右侧 Preview。 | [session-windows](systems/conversation/session-windows.md) · [ADR-002](../dev/decisions/002-conversation-session-windows.md) |
 | **ConversationChatInput** | 唯一被 Conversation 组接受的 `EditorInput`（scheme `conversation-chat`）；根 tab 不可关。围栏把其余 input 弹回 Preview。 | [session-windows §2](systems/conversation/session-windows.md) |
 | **子代理对话框** | 点击时间线子代理后在 session 叶内弹出的居中 overlay（父对话仍在底下）；「打开为 tab」才成延伸 tab。不是 `MODAL_GROUP`。 | [session-windows §3](systems/conversation/session-windows.md) |
