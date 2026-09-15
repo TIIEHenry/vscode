@@ -76,6 +76,15 @@ export interface IConversationPairingHoldWriteHost {
 	showPostFailure(reason: ConversationComposerPostFailureReason): void;
 }
 
+/** KEEP leftover list-fail write host (D460/D462): roster optional so missing `isEngineSessionReady` stays live. */
+export interface IConversationKeepLeftoverWriteHost {
+	readonly stubService: {
+		isEngineConnected?(): boolean;
+		isEngineSessionReady?(): boolean;
+	};
+	showPostFailure(reason: ConversationComposerPostFailureReason): void;
+}
+
 /** D294: leftover engine lease stays readable; writes use the disconnect notice. */
 export function rejectPairingHoldWrite(host: IConversationPairingHoldWriteHost): boolean {
 	if (!isConversationPairingHold(host.uaConnection)) {
@@ -86,12 +95,12 @@ export function rejectPairingHoldWrite(host: IConversationPairingHoldWriteHost):
 }
 
 /** KEEP leftover list-fail (D449/D460): connected but roster not ready is not a live write surface. */
-function isKeepLeftoverListFailWrite(host: Pick<IConversationLensSessionBindingHost, 'stubService'>): boolean {
+function isKeepLeftoverListFailWrite(host: IConversationKeepLeftoverWriteHost): boolean {
 	return host.stubService.isEngineConnected?.() === true
 		&& host.stubService.isEngineSessionReady?.() === false;
 }
 
-function rejectKeepLeftoverListFailWrite(host: IConversationLensSessionBindingHost): boolean {
+export function rejectKeepLeftoverListFailWrite(host: IConversationKeepLeftoverWriteHost): boolean {
 	if (!isKeepLeftoverListFailWrite(host)) {
 		return false;
 	}

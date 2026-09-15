@@ -1471,6 +1471,248 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(host.dockTextarea.value, 'leftover draft');
 	});
 
+	function leftoverComposerHandlerHost(options: {
+		pairingPending: boolean;
+		engineConnected: boolean;
+		engineSessionReady?: boolean;
+		failures: ConversationComposerPostFailureReason[];
+	}): {
+		host: IConversationLensComposerHost;
+		posted: number;
+		enqueueCalls: number;
+		turnWrites: number;
+		queueWrites: number;
+		exited: number;
+	} {
+		const state = { posted: 0, enqueueCalls: 0, turnWrites: 0, queueWrites: 0, exited: 0 };
+		const host = {
+			composerPolicy: 'compose' as const,
+			submitInFlight: false,
+			filterAgentId: undefined,
+			catalogModelIds: [''],
+			modelSelectedIndex: 0,
+			drafts: new Map<string, string>(),
+			configurationService: { getValue: () => false },
+			editingTurnId: 'turn-1',
+			editingQueueItemId: 'q1',
+			dockTextarea: { value: 'leftover draft' },
+			sendButton: { enabled: true },
+			getBoundSessionId: () => 'sess-leftover',
+			getEditingQueueItem: () => ({ id: 'q1', content: 'queued' }),
+			sessionViewLease: {
+				post: async () => {
+					state.posted++;
+					return { accepted: true, correlation: { id: 'x' } };
+				},
+			},
+			stubService: {
+				isEngineConnected: () => options.engineConnected,
+				...(options.engineSessionReady === undefined ? {} : { isEngineSessionReady: () => options.engineSessionReady }),
+				hasEngineConnectionHistory: () => true,
+				enqueueMessageQueueItem: () => {
+					state.enqueueCalls++;
+					return true;
+				},
+				updateUserTurnText: () => {
+					state.turnWrites++;
+					return true;
+				},
+				updateMessageQueueItemContent: () => {
+					state.queueWrites++;
+					return true;
+				},
+				releaseMessageQueueItemHold: () => { },
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: options.pairingPending }),
+			},
+			exitComposerEdit: () => { state.exited++; },
+			renderInboxStatus: () => { },
+			updateSendEnabled: () => { },
+			updateConversationPhase: () => { },
+			resetInputHistoryBrowse: () => { },
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				options.failures.push(reason);
+			},
+		};
+		return {
+			host: host as unknown as IConversationLensComposerHost,
+			get posted() { return state.posted; },
+			get enqueueCalls() { return state.enqueueCalls; },
+			get turnWrites() { return state.turnWrites; },
+			get queueWrites() { return state.queueWrites; },
+			get exited() { return state.exited; },
+		};
+	}
+
+	test('KEEP leftover list-fail submitDraft skips postBound and shows engine_disconnected', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverComposerHandlerHost({
+			pairingPending: false,
+			engineConnected: true,
+			engineSessionReady: false,
+			failures,
+		});
+		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
+		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), false);
+		assert.strictEqual(fixture.host.uaConnection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), false);
+		await submitDraft(fixture.host);
+		assert.strictEqual(fixture.posted, 0);
+		assert.strictEqual(fixture.enqueueCalls, 0);
+		assert.strictEqual(fixture.host.submitInFlight, false);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.strictEqual(fixture.host.dockTextarea.value, 'leftover draft');
+	});
+
+	test('KEEP leftover list-fail saveTurnEdit skips updateUserTurnText and stays in edit', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverComposerHandlerHost({
+			pairingPending: false,
+			engineConnected: true,
+			engineSessionReady: false,
+			failures,
+		});
+		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
+		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), false);
+		assert.strictEqual(fixture.host.uaConnection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), false);
+		fixture.host.composerPolicy = 'turnEdit';
+		saveTurnEdit(fixture.host);
+		assert.strictEqual(fixture.turnWrites, 0);
+		assert.strictEqual(fixture.exited, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.strictEqual(fixture.host.editingTurnId, 'turn-1');
+		assert.strictEqual(fixture.host.composerPolicy, 'turnEdit');
+		assert.strictEqual(fixture.host.dockTextarea.value, 'leftover draft');
+	});
+
+	test('KEEP leftover list-fail saveQueueEdit skips queue write and stays in edit', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverComposerHandlerHost({
+			pairingPending: false,
+			engineConnected: true,
+			engineSessionReady: false,
+			failures,
+		});
+		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
+		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), false);
+		assert.strictEqual(fixture.host.uaConnection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), false);
+		fixture.host.composerPolicy = 'queueEdit';
+		saveQueueEdit(fixture.host);
+		assert.strictEqual(fixture.queueWrites, 0);
+		assert.strictEqual(fixture.exited, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.strictEqual(fixture.host.editingQueueItemId, 'q1');
+		assert.strictEqual(fixture.host.composerPolicy, 'queueEdit');
+		assert.strictEqual(fixture.host.dockTextarea.value, 'leftover draft');
+	});
+
+	test('leftover-looks-live submitDraft skips postBound and shows engine_disconnected', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverComposerHandlerHost({
+			pairingPending: true,
+			engineConnected: true,
+			engineSessionReady: true,
+			failures,
+		});
+		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
+		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), true);
+		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), true);
+		await submitDraft(fixture.host);
+		assert.strictEqual(fixture.posted, 0);
+		assert.strictEqual(fixture.enqueueCalls, 0);
+		assert.strictEqual(fixture.host.submitInFlight, false);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('leftover-looks-live saveTurnEdit skips updateUserTurnText', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverComposerHandlerHost({
+			pairingPending: true,
+			engineConnected: true,
+			engineSessionReady: true,
+			failures,
+		});
+		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), true);
+		fixture.host.composerPolicy = 'turnEdit';
+		saveTurnEdit(fixture.host);
+		assert.strictEqual(fixture.turnWrites, 0);
+		assert.strictEqual(fixture.exited, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('leftover-looks-live saveQueueEdit skips queue write', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverComposerHandlerHost({
+			pairingPending: true,
+			engineConnected: true,
+			engineSessionReady: true,
+			failures,
+		});
+		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), true);
+		fixture.host.composerPolicy = 'queueEdit';
+		saveQueueEdit(fixture.host);
+		assert.strictEqual(fixture.queueWrites, 0);
+		assert.strictEqual(fixture.exited, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('connected live submitDraft still posts when engine session is ready', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverComposerHandlerHost({
+			pairingPending: false,
+			engineConnected: true,
+			engineSessionReady: true,
+			failures,
+		});
+		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
+		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), true);
+		assert.strictEqual(fixture.host.uaConnection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), false);
+		await submitDraft(fixture.host);
+		assert.strictEqual(fixture.posted, 1);
+		assert.strictEqual(fixture.enqueueCalls, 0);
+		assert.deepStrictEqual(failures, []);
+		assert.strictEqual(fixture.host.dockTextarea.value, '');
+	});
+
+	test('connected live saveTurnEdit still writes when engine session is ready', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverComposerHandlerHost({
+			pairingPending: false,
+			engineConnected: true,
+			engineSessionReady: true,
+			failures,
+		});
+		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), true);
+		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), false);
+		fixture.host.composerPolicy = 'turnEdit';
+		saveTurnEdit(fixture.host);
+		assert.strictEqual(fixture.turnWrites, 1);
+		assert.strictEqual(fixture.exited, 1);
+		assert.deepStrictEqual(failures, []);
+	});
+
+	test('connected live saveQueueEdit still writes when engine session is ready', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverComposerHandlerHost({
+			pairingPending: false,
+			engineConnected: true,
+			engineSessionReady: true,
+			failures,
+		});
+		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), true);
+		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), false);
+		fixture.host.composerPolicy = 'queueEdit';
+		saveQueueEdit(fixture.host);
+		assert.strictEqual(fixture.queueWrites, 1);
+		assert.strictEqual(fixture.exited, 1);
+		assert.deepStrictEqual(failures, []);
+	});
+
 	test('deleteTurn pairing-hold leftover does not write and shows engine_disconnected', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const { host, posted } = pairingHoldLeftoverWriteHost(failures);

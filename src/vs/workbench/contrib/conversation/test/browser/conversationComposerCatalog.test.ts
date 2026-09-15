@@ -7,7 +7,7 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { ConversationWriteMessage } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { conversationLensDockCatalogProbing, conversationLensDockEngineNotConnected, conversationLensDockNoAgent, conversationLensDockNoModel } from '../../browser/conversationLensDockStrings.js';
+import { conversationLensDockCatalogProbing, conversationLensDockEngineNotConnected, conversationLensDockNoAgent, conversationLensDockNoModel, type ConversationComposerPostFailureReason } from '../../browser/conversationLensDockStrings.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from '../../browser/conversationComposerCatalog.js';
 import { loadConnectedComposerCatalogs, refreshComposerCatalogs, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
 import { updateGateRow, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
@@ -370,6 +370,28 @@ suite('conversationComposerCatalog', () => {
 		assert.deepStrictEqual(posted, [{ kind: 'submitInput', text: 'hello' }]);
 	});
 
+	test('KEEP leftover list-fail submitDraft skips postBound and shows engine_disconnected', async () => {
+		const posted: ConversationWriteMessage[] = [];
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const host = createSubmitDraftHost(posted, 1, {
+			engineSessionReady: false,
+			pairingPending: false,
+			failures,
+		});
+
+		assert.strictEqual(host.stubService.isEngineConnected(), true);
+		assert.strictEqual(host.stubService.isEngineSessionReady(), false);
+		assert.strictEqual(host.uaConnection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(host.uaConnection), false);
+
+		await submitDraft(host);
+
+		assert.deepStrictEqual(posted, []);
+		assert.strictEqual(host.submitInFlight, false);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.strictEqual(host.dockTextarea.value, 'hello');
+	});
+
 
 	test('refreshComposerCatalogs pairing-hold keeps leftover catalogs then true disconnect clears', async () => {
 		let connected = true;
@@ -669,7 +691,14 @@ suite('conversationComposerCatalog', () => {
 function createSubmitDraftHost(
 	posted: ConversationWriteMessage[],
 	modelSelectedIndex: number,
+	options?: {
+		engineSessionReady?: boolean;
+		pairingPending?: boolean;
+		failures?: ConversationComposerPostFailureReason[];
+	},
 ): IConversationLensComposerHost {
+	const engineSessionReady = options?.engineSessionReady ?? true;
+	const pairingPending = options?.pairingPending ?? false;
 	return {
 		composerPolicy: 'compose',
 		submitInFlight: false,
@@ -682,7 +711,11 @@ function createSubmitDraftHost(
 		getBoundSessionId: () => 'sess-1',
 		stubService: {
 			isEngineConnected: () => true,
-			isEngineSessionReady: () => true,
+			isEngineSessionReady: () => engineSessionReady,
+		},
+		uaConnection: {
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({ pairingPending }),
 		},
 		sessionViewLease: {
 			post: async (msg: ConversationWriteMessage) => {
@@ -693,7 +726,9 @@ function createSubmitDraftHost(
 		resetInputHistoryBrowse() { },
 		updateSendEnabled() { },
 		updateConversationPhase() { },
-		showPostFailure() { },
+		showPostFailure(reason: ConversationComposerPostFailureReason) {
+			options?.failures?.push(reason);
+		},
 	} as unknown as IConversationLensComposerHost;
 }
 
