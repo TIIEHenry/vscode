@@ -85,6 +85,20 @@ export function rejectPairingHoldWrite(host: IConversationPairingHoldWriteHost):
 	return true;
 }
 
+/** KEEP leftover list-fail (D449/D460): connected but roster not ready is not a live write surface. */
+function isKeepLeftoverListFailWrite(host: Pick<IConversationLensSessionBindingHost, 'stubService'>): boolean {
+	return host.stubService.isEngineConnected?.() === true
+		&& host.stubService.isEngineSessionReady?.() === false;
+}
+
+function rejectKeepLeftoverListFailWrite(host: IConversationLensSessionBindingHost): boolean {
+	if (!isKeepLeftoverListFailWrite(host)) {
+		return false;
+	}
+	host.showPostFailure('engine_disconnected');
+	return true;
+}
+
 export function bindSessionView(host: IConversationLensSessionBindingHost, sessionId: string): void {
 
 	if (host.isDisposed) {
@@ -169,6 +183,9 @@ export async function resolveConfirmation(host: IConversationLensSessionBindingH
 	if (rejectPairingHoldWrite(host)) {
 		return;
 	}
+	if (rejectKeepLeftoverListFailWrite(host)) {
+		return;
+	}
 	if (host.stubService.isEngineConnected()) {
 		const forwarded = host.stubService.resolveConfirmation(
 			host.getBoundSessionId(),
@@ -206,6 +223,9 @@ export async function resolveConfirmation(host: IConversationLensSessionBindingH
 export async function resolveQuestion(host: IConversationLensSessionBindingHost, turnId: string, requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string): Promise<void> {
 
 	if (rejectPairingHoldWrite(host)) {
+		return;
+	}
+	if (rejectKeepLeftoverListFailWrite(host)) {
 		return;
 	}
 	if (host.stubService.isEngineConnected()) {
@@ -264,6 +284,9 @@ export function deleteTurn(host: IConversationLensSessionBindingHost, turnId: st
 	if (rejectPairingHoldWrite(host)) {
 		return;
 	}
+	if (rejectKeepLeftoverListFailWrite(host)) {
+		return;
+	}
 	const deleted = host.stubService.deleteTurn(host.getBoundSessionId(), turnId);
 	if (!deleted) {
 		host.showPostFailure(
@@ -282,6 +305,9 @@ export function cancelToolCall(host: IConversationLensSessionBindingHost, turn: 
 		return;
 	}
 	if (rejectPairingHoldWrite(host)) {
+		return;
+	}
+	if (rejectKeepLeftoverListFailWrite(host)) {
 		return;
 	}
 	const agentId = turn.agentId?.trim();
@@ -308,6 +334,9 @@ export function retryError(host: IConversationLensSessionBindingHost, turn: { re
 	const turnId = turn.turnId?.trim() || messageId;
 	const agentId = turn.agentId?.trim() || 'root';
 	if (rejectPairingHoldWrite(host)) {
+		return;
+	}
+	if (rejectKeepLeftoverListFailWrite(host)) {
 		return;
 	}
 	void host.postBound({

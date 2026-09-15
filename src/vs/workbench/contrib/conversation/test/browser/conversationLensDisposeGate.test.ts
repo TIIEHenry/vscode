@@ -768,6 +768,8 @@ suite('conversation lens dispose gate', () => {
 				return { accepted: true, correlation: { id: 'x' } };
 			},
 			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
 				retryError: () => {
 					rosterRetry++;
 					return true;
@@ -796,7 +798,11 @@ suite('conversation lens dispose gate', () => {
 				posted.push(msg);
 				return { accepted: true, correlation: { id: 'x' } };
 			},
-			stubService: { retryError: () => true },
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+				retryError: () => true,
+			},
 			showPostFailure: () => { },
 		} as unknown as IConversationLensSessionBindingHost;
 
@@ -819,7 +825,11 @@ suite('conversation lens dispose gate', () => {
 				postBound++;
 				return { accepted: true, correlation: { id: 'x' } };
 			},
-			stubService: { retryError: () => true },
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+				retryError: () => true,
+			},
 			showPostFailure: () => { },
 		} as unknown as IConversationLensSessionBindingHost;
 
@@ -836,7 +846,11 @@ suite('conversation lens dispose gate', () => {
 			postBound: async (): Promise<PostOutcome> => {
 				throw new Error('postBound boom');
 			},
-			stubService: { retryError: () => true },
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+				retryError: () => true,
+			},
 			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
 				failures.push(reason);
 			},
@@ -1122,14 +1136,16 @@ suite('conversation lens dispose gate', () => {
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
 	});
 
-	function leftoverLooksLiveConfirmQuestionHost(failures: ConversationComposerPostFailureReason[], pairingPending: boolean): {
+	function leftoverLooksLiveConfirmQuestionHost(failures: ConversationComposerPostFailureReason[], pairingPending: boolean, engineSessionReady = true): {
 		host: IConversationLensSessionBindingHost;
 		resolveConfirmationCalls: number;
 		respondQuestionCalls: number;
+		deleteTurnCalls: number;
+		cancelToolCallCalls: number;
 		posted: number;
 		focused: number;
 	} {
-		const state = { resolveConfirmationCalls: 0, respondQuestionCalls: 0, posted: 0, focused: 0 };
+		const state = { resolveConfirmationCalls: 0, respondQuestionCalls: 0, deleteTurnCalls: 0, cancelToolCallCalls: 0, posted: 0, focused: 0 };
 		const host = {
 			getBoundSessionId: () => 'sess-leftover',
 			postBound: async (): Promise<PostOutcome> => {
@@ -1138,7 +1154,7 @@ suite('conversation lens dispose gate', () => {
 			},
 			stubService: {
 				isEngineConnected: () => true,
-				isEngineSessionReady: () => true,
+				isEngineSessionReady: () => engineSessionReady,
 				hasEngineConnectionHistory: () => true,
 				resolveConfirmation: () => {
 					state.resolveConfirmationCalls++;
@@ -1146,6 +1162,14 @@ suite('conversation lens dispose gate', () => {
 				},
 				respondQuestion: () => {
 					state.respondQuestionCalls++;
+					return true;
+				},
+				deleteTurn: () => {
+					state.deleteTurnCalls++;
+					return true;
+				},
+				cancelToolCall: () => {
+					state.cancelToolCallCalls++;
 					return true;
 				},
 			},
@@ -1162,6 +1186,8 @@ suite('conversation lens dispose gate', () => {
 			host: host as unknown as IConversationLensSessionBindingHost,
 			get resolveConfirmationCalls() { return state.resolveConfirmationCalls; },
 			get respondQuestionCalls() { return state.respondQuestionCalls; },
+			get deleteTurnCalls() { return state.deleteTurnCalls; },
+			get cancelToolCallCalls() { return state.cancelToolCallCalls; },
 			get posted() { return state.posted; },
 			get focused() { return state.focused; },
 		};
@@ -1187,6 +1213,33 @@ suite('conversation lens dispose gate', () => {
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
 	});
 
+	test('leftover-looks-live deleteTurn skips unary and shows engine_disconnected', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, true);
+		deleteTurn(fixture.host, 'turn-1');
+		assert.strictEqual(fixture.deleteTurnCalls, 0);
+		assert.strictEqual(fixture.posted, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('leftover-looks-live cancelToolCall skips unary and shows engine_disconnected', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, true);
+		cancelToolCall(fixture.host, { id: 'tc-1', agentId: 'sub:a' });
+		assert.strictEqual(fixture.cancelToolCallCalls, 0);
+		assert.strictEqual(fixture.posted, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('leftover-looks-live retryError skips postBound and shows engine_disconnected', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, true);
+		retryError(fixture.host, { id: 'msg-1', turnId: 'turn-1', agentId: 'root' });
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		assert.strictEqual(fixture.posted, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
 	test('connected without pairing resolveConfirmation still forwards', async () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, false);
@@ -1205,6 +1258,103 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(fixture.posted, 0);
 		assert.strictEqual(fixture.focused, 1);
 		assert.deepStrictEqual(failures, []);
+	});
+
+	test('connected without pairing deleteTurn still forwards', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, false);
+		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), true);
+		deleteTurn(fixture.host, 'turn-1');
+		assert.strictEqual(fixture.deleteTurnCalls, 1);
+		assert.strictEqual(fixture.posted, 0);
+		assert.deepStrictEqual(failures, []);
+	});
+
+	test('connected without pairing cancelToolCall still forwards', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, false);
+		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), true);
+		cancelToolCall(fixture.host, { id: 'tc-1', agentId: 'sub:a' });
+		assert.strictEqual(fixture.cancelToolCallCalls, 1);
+		assert.strictEqual(fixture.posted, 0);
+		assert.deepStrictEqual(failures, []);
+	});
+
+	test('connected without pairing retryError still posts continueGeneration', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, false);
+		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), true);
+		retryError(fixture.host, { id: 'msg-1', turnId: 'turn-1', agentId: 'root' });
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		assert.strictEqual(fixture.posted, 1);
+		assert.deepStrictEqual(failures, []);
+	});
+
+	test('KEEP leftover list-fail resolveConfirmation skips unary and shows engine_disconnected', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, false, false);
+		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
+		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), false);
+		assert.strictEqual(fixture.host.uaConnection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), false);
+		await resolveConfirmation(fixture.host, 'turn-1', 'allowed');
+		assert.strictEqual(fixture.resolveConfirmationCalls, 0);
+		assert.strictEqual(fixture.posted, 0);
+		assert.strictEqual(fixture.focused, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('KEEP leftover list-fail resolveQuestion skips unary and shows engine_disconnected', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, false, false);
+		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
+		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), false);
+		assert.strictEqual(fixture.host.uaConnection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), false);
+		await resolveQuestion(fixture.host, 'turn-1', 'req-1', { q1: { selectedLabels: ['a'] } });
+		assert.strictEqual(fixture.respondQuestionCalls, 0);
+		assert.strictEqual(fixture.posted, 0);
+		assert.strictEqual(fixture.focused, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('KEEP leftover list-fail deleteTurn skips unary and shows engine_disconnected', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, false, false);
+		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
+		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), false);
+		assert.strictEqual(fixture.host.uaConnection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), false);
+		deleteTurn(fixture.host, 'turn-1');
+		assert.strictEqual(fixture.deleteTurnCalls, 0);
+		assert.strictEqual(fixture.posted, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('KEEP leftover list-fail cancelToolCall skips unary and shows engine_disconnected', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, false, false);
+		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
+		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), false);
+		assert.strictEqual(fixture.host.uaConnection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), false);
+		cancelToolCall(fixture.host, { id: 'tc-1', agentId: 'sub:a' });
+		assert.strictEqual(fixture.cancelToolCallCalls, 0);
+		assert.strictEqual(fixture.posted, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('KEEP leftover list-fail retryError skips postBound and shows engine_disconnected', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, false, false);
+		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
+		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), false);
+		assert.strictEqual(fixture.host.uaConnection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), false);
+		retryError(fixture.host, { id: 'msg-1', turnId: 'turn-1', agentId: 'root' });
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		assert.strictEqual(fixture.posted, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
 	});
 
 	test('retryError pairing-hold leftover lease does not post and shows engine_disconnected', async () => {
