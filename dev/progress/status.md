@@ -182,11 +182,11 @@ summary: "合入 D463 + D469/D470；未 compile 本刀；下号 D473；D405 手�
 ## 工位表（P7 · 2026-09-14 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `36f5f2efbf3` | 干净 | 0 | MERGE_SHA；compile 0；未 push |
-| A | `vscode-WorkTrees/A` | `loop/A` | `d6c99da3c3b` | 本槽收 D469+D470 | 0 | 禁 compile |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | 本 merge | 干净 | 0 | D463+D469+D470 已合；本刀未 compile；未 push |
+| A | `vscode-WorkTrees/A` | `loop/A` | `c1248997b89` | 干净 | 0 | 已合入 merge；待 compile 后 reset |
 | B | `vscode-WorkTrees/B` | `loop/B` | `28ffd1ae9f2` | 脏 `worktree-pool.md` | 0 | tip 已合；脏树勿 `-B` |
 | C | `vscode-WorkTrees/C` | `loop/C` | `815b4ad48e3` | 脏 `dev/loop` | 0 | 跳过；勿 add |
-| D | `vscode-WorkTrees/D` | `loop/D` | 本 commit | 干净 | 0 | D463 已关仓待合；禁 compile |
+| D | `vscode-WorkTrees/D` | `loop/D` | `b1884d57b75` | 干净 | 0 | 已合入 merge；待 compile 后 reset |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked` leftover；跳过 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `815b4ad48e3` | `dev/loop` + `.idea` | 0 | 脏树未代拉；请人类自行 ff |
 ## Next（Blockers：无）
