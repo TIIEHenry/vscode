@@ -19,6 +19,7 @@ import { IConversationRosterService } from '../../browser/conversationStubServic
 import { IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
 import { conversationSessionPillClass, conversationSessionPillHoverLines, conversationSessionPillKindAttribute } from '../../browser/conversationSessionPill.js';
 import { resolveConversationTimelineLink } from '../../browser/resolveConversationTimelineLink.js';
+import { rewriteConversationStubTurnSessionLinks } from '../../browser/rewriteConversationStubTurnSessionLinks.js';
 import { IConversationSessionChatEntry, IConversationSessionChatService } from '../../common/conversationSessionChat.js';
 import { createEmptyConversationSessionChatService, createNoopConversationSessionWindowService } from './conversationTimelineLinkTestStubs.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
@@ -403,6 +404,45 @@ suite('Conversation timeline session pills', () => {
 		sessionChat.registerSubAgentChat('untitled', 'late-tool', 'Late');
 		assert.strictEqual(container.querySelectorAll(`.${conversationSessionPillClass}`).length, 2);
 		assert.strictEqual(hoverTexts.length, hoverCount);
+	});
+
+	test('D472 parseable stub path + catalog hit rewrites to conversation-chat and pill click still works', async () => {
+		const { container, render, openSubAgentCalls } = createHarness({
+			catalog: [{ sessionKey: 'untitled', chatId: 'tool-a', title: 'Tool A (Stub)', originKind: 'tool' }],
+		});
+		render(assistantTurn('Stub: see [Tool A (Stub)](/session/untitled/chat/tool-a).'));
+		assert.ok(container.querySelector('a[data-href="conversation-chat:/session/untitled/chat/tool-a"]'));
+		assert.strictEqual(container.querySelectorAll(`.${conversationSessionPillClass}`).length, 1);
+		await clickHref(container, 'conversation-chat:/session/untitled/chat/tool-a');
+		assert.deepStrictEqual(openSubAgentCalls, [{ sessionKey: 'untitled', chatId: 'tool-a' }]);
+	});
+
+	test('D472 catalog miss leaves original stub path text and does not paint a pill', () => {
+		const original = 'Stub: see [missing](/session/untitled/chat/no-such-agent).';
+		const { container, render } = createHarness();
+		assert.strictEqual(
+			rewriteConversationStubTurnSessionLinks(original, () => []),
+			original,
+		);
+		render(assistantTurn(original));
+		assert.strictEqual(container.querySelectorAll('a[data-href^="conversation-chat:"]').length, 0);
+		assert.strictEqual(container.querySelectorAll(`.${conversationSessionPillClass}`).length, 0);
+		assert.ok(container.textContent?.includes('missing'));
+	});
+
+	test('D472 already conversation-chat links stay unchanged', () => {
+		const original = 'Stub: see [ok](conversation-chat:/session/untitled/chat/c1).';
+		const rewritten = rewriteConversationStubTurnSessionLinks(
+			original,
+			() => [{ sessionKey: 'untitled', chatId: 'c1', title: 'Agent', originKind: 'tool' }],
+		);
+		assert.strictEqual(rewritten, original);
+		const { container, render } = createHarness({
+			catalog: [{ sessionKey: 'untitled', chatId: 'c1', title: 'Agent', originKind: 'tool' }],
+		});
+		render(assistantTurn(original));
+		assert.ok(container.querySelector('a[data-href="conversation-chat:/session/untitled/chat/c1"]'));
+		assert.strictEqual(container.querySelectorAll(`.${conversationSessionPillClass}`).length, 1);
 	});
 
 	test('S4 stub fixture copy contains Stub conversation-chat links', () => {

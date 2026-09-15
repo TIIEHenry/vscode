@@ -98,8 +98,8 @@ summary: "助手 markdown 里的内部会话/子代理链接升级为行内 pill
 
 | 来源 | 合同 | 本期 |
 |------|------|------|
-| stub 帧源种子会话 / 单测 fixture | 助手正文里直接写 `[标签](conversation-chat:/session/<sessionKey>/chat/<chatId>)`；UI 可见文案带 `Stub` | S4 落地，本期**唯一**实际来源 |
-| 引擎帧源适配器 | 引擎正文里**字面**给出会话链接时，在投影成 `ConversationStubTurn.text` 的同一步改写成 `conversation-chat:`；改写前必须能解析出 `chatId` 并在该 session catalog 命中，命中不了**原样保留**（不造内部链接） | 不在本期切片；引擎是否给、给什么格式属上游缺口，登记在 §7 |
+| stub 帧源种子会话 / 单测 fixture | 助手正文可直接写 `[标签](conversation-chat:/session/<sessionKey>/chat/<chatId>)`（S4，文案带 `Stub`）；亦可写字面 `/session/<sessionKey>/chat/<chatId>`，投影 `ConversationStubTurn.text` 时 **仅** catalog 命中 tool/fork 才改写成 `conversation-chat:`，未命中或已是该 scheme 则原样 | S4 直写已落；字面路径改写 D472 |
+| 引擎帧源适配器 | 引擎正文里**字面**给出会话链接时，在投影成 `ConversationStubTurn.text` 的同一步改写成 `conversation-chat:`；改写前必须能解析出 `chatId` 并在该 session catalog 命中，命中不了**原样保留**（不造内部链接） | 不在本期切片；live-engine scheme/path 属 [R9](../progress/research-queue.md)，不猜、不发明 RPC |
 | 自由文本推断 | **禁止**。不按 agent 名、会话标题或「看起来像会话」的字样猜引用 | — |
 
 与 [glossary](../../docs/glossary.md) 的 attribution sidecar 同一条原则：**禁止按 title 猜测**（那条禁的是猜测身份，不是禁展示 catalog 已登记的 `title`）。
@@ -314,7 +314,7 @@ S1–S4 全部可在**无引擎**下落地：链接目标是本窗口自己的 c
 | reveal-on-every-switch 让隐藏叶常驻 lease，订阅数随访问会话数线性涨 | §3.4 隐藏叶释放 lease、恢复重取；测试 17；与 [session-subscription-lifecycle](session-subscription-lifecycle.md) 的 lease 归属不冲突（那稿管重连，本稿管可见性） |
 | 删掉 container 级监听后漏掉某条既有点击路径（非 `<a>` 的可点元素） | S1 先跑 `conversationLens` 全套；`actionHandler` 只接管 `a[data-href]`，与今天 `closest('a')` 的判定面一致 |
 | 反悔复用 `chatRichLink.ts` 省事 | §1 已拒绝并给出理由（模块顶层 transitive 拖进 `agentSessions/`，门禁只扫直接 import）；测试 9 把 `chatRichLink` 写进禁止清单，机械挡住 |
-| 引擎正文到底给不给会话链接（上游缺口） | §3.1 把引擎来源整条排除在本期切片外；本期只靠 fixture。缺口按 [cross-repo-protocol](cross-repo-protocol.md) 的登记方式记一行，不在本稿发明 RPC |
+| 引擎正文到底给不给会话链接（上游缺口） | §3.1 把 live-engine 来源排除在本期切片外。stub/fixture 字面 `/session/…/chat/…` 改写已由 D472 落地（catalog 命中才改）。live-engine scheme 仍记 [R9](../progress/research-queue.md)，按 [cross-repo-protocol](cross-repo-protocol.md) 登记，不发明 RPC |
 | `LiveAgentTreeNodeView.model` 在真引擎下可能为空串 | 空串与 `undefined` 同样省略模型行；测试 5 覆盖 |
 | 跨会话只调 `switchSession`、或只改透镜、或就地改 `sessionKey` 会假绿 / throw | §2 / §3.4 / S3 / 测试 8 锁目标 `part.sessionKey` 与旧叶身份 |
 | catalog 未就绪却打开根 tab 变成半成品页 | 装饰与点击同一条 resolve；非 `default` catalog 未命中 = 不画不跳；测试 3 锁死 |
@@ -333,7 +333,7 @@ S1–S4 全部可在**无引擎**下落地：链接目标是本窗口自己的 c
 | 根 pill 关掉已有 tool tab | 不走 `navigateAgentBreadcrumb`；测试 7 |
 | `toString` 往返误杀合法 key | §3.2 改 parse + authority/query/fragment |
 
-**仍开放（不阻塞正文）：** 修饰键 / 右键「打开到旁边」与 Navigator 入口如何统一；引擎正文链接格式确定后，帧源侧改写规则写在哪个方案；`sideChat` 何时按 [conversation-session-windows](conversation-session-windows.md) §3.3b 画 pill 并走子代理对话框。已删除会话的隐藏叶 DOM / part 永不回收（lease 已释放），不在本期设上限。
+**仍开放（不阻塞正文）：** 修饰键 / 右键「打开到旁边」与 Navigator 入口如何统一；live-engine 正文链接格式（R9）确定后，帧源侧改写规则写在哪个方案（stub/fixture 路径改写已落，不闭合 R9）；`sideChat` 何时按 [conversation-session-windows](conversation-session-windows.md) §3.3b 画 pill 并走子代理对话框。已删除会话的隐藏叶 DOM / part 永不回收（lease 已释放），不在本期设上限。
 
 **群聊 / DeepThink / Team member / Advise（引擎已有，本仓 Conversation 未分面；外仓细节待核，不当事合同）：** wire 层 `AGENT_TYPE_ROOT | SUB | MEMBER | ADVISE`，`LiveAgentTreeNodeView.type` 只是 `string`。HEAD `collectLiveAgentTreeCatalogEntries` **不看 type**，`syncSubAgentsFromLiveTree` 把非根一律写成 catalog `originKind:'tool'`。DeepThink / Circle 群聊的引擎形态不在本仓 docs 落锚，本稿 **不**按 type 分 pill、**不**加 `agentType`。若这类节点已经在 catalog 里且链接命中，点击会走今天的 `openSubAgent` 对话框——可能是错面。后续要分面时另开方案，先改 PRD。
 

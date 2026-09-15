@@ -3,8 +3,8 @@ title: "Conversation 透镜、时间线与轨迹"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-15
-summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；叶宽 `.is-narrow`（Q6/RWD-1）；子代理 overlay 传 lensTablist；时间线会话 pill；Accessible View；帧源投影与 Q4 live 过程折"
+updated: 2026-09-16
+summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；叶宽 `.is-narrow`（Q6/RWD-1）；子代理 overlay 传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；Accessible View；帧源投影与 Q4 live 过程折"
 ---
 
 # Conversation 透镜、时间线与轨迹
@@ -29,7 +29,7 @@ summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨�
 |------|------|------|
 | `ConversationTimelineTree` | `conversationTimelineTree.ts` | `WorkbenchObjectTree<ConversationTimelineItem>` 绿field 列表；行 = turn 或 process-fold 节点 |
 | 自动滚底 | `conversationTimelineScroll.ts` | `ConversationAutoScrollHolds`：用户上滚时 hold，新回合到达不抢滚 |
-| 内容渲染 | `conversationTurnContentAdapter.ts` · `conversationTurnMarkdown.ts` · `conversationSessionPill.ts` · `resolveConversationTimelineLink.ts` | **唯一**允许触碰 `contrib/chat/browser/widget/chatContentParts/**` 的入口；只借 markdown / code block 渲染函数，不造 `IChatRequestViewModel` 影子模型。助手 markdown **只**放行 `conversation-chat` scheme，显式 `actionHandler` 单点分流（http/https/mailto → 外链确认；白名单内其它 scheme → `openLinkFromMarkdown`；内部命中 → pill 路由）。resolve 命中的 tool/fork/default 升级为会话 pill + 轻量 hover；catalog / roster 晚到时补画。无状态徽标。adapter **不得**直接 import `conversationSessionChatService.js` |
+| 内容渲染 | `conversationTurnContentAdapter.ts` · `conversationTurnMarkdown.ts` · `conversationSessionPill.ts` · `resolveConversationTimelineLink.ts` · `rewriteConversationStubTurnSessionLinks.ts` | **唯一**允许触碰 `contrib/chat/browser/widget/chatContentParts/**` 的入口；只借 markdown / code block 渲染函数，不造 `IChatRequestViewModel` 影子模型。助手 markdown **只**放行 `conversation-chat` scheme，显式 `actionHandler` 单点分流（http/https/mailto → 外链确认；白名单内其它 scheme → `openLinkFromMarkdown`；内部命中 → pill 路由）。投影 `ConversationStubTurn.text` 时，stub/fixture 字面 `/session/<key>/chat/<id>` **仅**在该 session catalog 命中 tool/fork 才改写成 `conversation-chat:`；已是该 scheme、catalog 未命中、以及任何带 scheme 的 live-engine / donor 链接原样保留（R9）。resolve 命中的 tool/fork/default 升级为会话 pill + 轻量 hover；catalog / roster 晚到时补画。无状态徽标。adapter **不得**直接 import `conversationSessionChatService.js`。无新 RPC |
 | 用户卡 | `conversationUserBubbleCollapse.ts` | 用户回合展示为纯文本卡；点卡进入编辑（PRD-015 验收 6） |
 | 置顶提示 | `conversationPinnedUserPrompt.ts` | 滚动时把当前可见段落对应的用户提问钉在列顶（对齐 Singularity `PinnedUserPromptState`） |
 | 权限座位 | `conversationConfirmationSeat.ts` | Allow / Skip；处理后按钮消失、记录留在列表（PRD-004）；不是可回收 virt 行 |

@@ -58,6 +58,21 @@ suite('conversationImportBoundaries', () => {
 		);
 	});
 
+	test('rewriteConversationStubTurnSessionLinks does not import engine connection or RPC', () => {
+		const rewritePath = path.join(CONVERSATION_SRC_ROOT, 'browser/rewriteConversationStubTurnSessionLinks.ts');
+		const source = fs.readFileSync(rewritePath, 'utf8');
+		const imports = extractImportPaths(source);
+		assert.deepStrictEqual(
+			imports.filter(importPath =>
+				importPath.includes('universeAgentConnection')
+				|| importPath.includes('universeAgentSessionView')
+				|| importPath.includes('grpc')
+				|| importPath.includes('IUniverseAgent')),
+			[],
+			'D472 rewrite must stay a local catalog projection with no new RPC',
+		);
+	});
+
 	test('conversationTurnContentAdapter does not import conversationSessionChatService', () => {
 		const adapterPath = path.join(CONVERSATION_SRC_ROOT, 'browser/conversationTurnContentAdapter.ts');
 		const source = fs.readFileSync(adapterPath, 'utf8');

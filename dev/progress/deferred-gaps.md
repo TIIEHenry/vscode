@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-16
-summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 仍开；D25/D26 已闭；D406–D463 / D466 / D468–D470 已闭；D464–D465 / D467 / D471–D472 仍开；不得宣称 leftover wave 完成"
+summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 仍开；D25/D26 已闭；D406–D463 / D466 / D468–D470 / D472 已闭；D464–D465 / D467 / D471 仍开；不得宣称 leftover wave 完成"
 ---
 
 # Deferred Gaps
@@ -485,7 +485,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 仍开；D25/D26 已闭；D
 | D469 | P2 | **closed** `onDidChangeActiveSession` 生产 listener 只挡 `ENGINE_BIND_FAILED_SESSION_ID` + `getSessions()` miss，**不**调用 `isEngineRosterPlaceholderSessionId`（该谓词含 stub 种子 `untitled` / `visualize`）。方案 §3.4 / S3 / 测试 15 / 风险表改口对齐。mocha 锁 `fireActiveSession('untitled')` 仍 reveal。未拆谓词。未关 D8/D16/D147/D405。未升 PRD-008。 | 工位 A `d469-d470-pills-listener-lease`；`npm run transpile-client` 后 `VSCODE_SKIP_PRELAUNCH=1 ./scripts/test.sh --run src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts` **12/0**（harness 1、`test(` 11；新 untitled listener reveal） | stub 种子 untitled listener 会 reveal；bind-failed 仍不建叶。未关 D16。 | conversation / session-pills | closed |
 | D470 | P2 | **closed** 测试 17 遍历叶 `activeGroup.editors`，对每个 tab `openEditor` 后取 `ConversationEditorPane.activeConversationLens`，隐藏后根 + fork 的 `sessionViewLease` 均 undefined，restore 后均重取。未发明 pane 大 API。未关 D8/D16/D147/D405。未升 PRD-008。 | 工位 A `d469-d470-pills-listener-lease`；同上 mocha **12/0** | 隐藏叶所有 tab 透镜 lease 释放；restore 重取。未关 D16。 | conversation / session-pills | closed |
 | D471 | P3 | **同 Electron 进程组合 mocha**：reveal 套注册真 `ConversationEditorPane`；side-by-side 若缺 EditorService + 透镜运行时 stub，`void openEditor` 会在 dispose 后建 `ConversationLens`。本刀已把 reveal 夹具 stub 拷进 side-by-side `createHarness`，组合 35 绿。其它 conversation 套若 `openEditor` 且无同样 stub，与 reveal 同进程仍可能泄漏。 | 不改其它套夹具以免扩 scope | 其它会 `openEditor` 的 conversation 测接同一 `stubConversationTimelineLinkServices` + EditorService；或分进程跑 | conversation / test-harness | open |
-| D472 | P2 | **引擎帧源改写会话链接**：方案 §3.1 / §7 规定引擎正文字面给出的会话链接须在投影 `ConversationStubTurn.text` 时改写成 `conversation-chat:`（命中 catalog 才改，否则原样）。本期唯一来源是 stub/fixture。工位 A 原记 D463，合入时与 streams 句柄泄漏撞号，改记本号。 | 不升 PRD-008，不发明引擎 RPC；上游格式未定（R9） | 帧源适配器落地改写规则 + 单测：能解析且 catalog 命中才改写；未命中原样；无新 RPC | conversation / session-pills | open |
+| D472 | P2 | **closed** stub/fixture 字面 `/session/<key>/chat/<id>` 在投影助手 `ConversationStubTurn.text` 时，catalog 命中 tool/fork 才改写成 `conversation-chat:`；未命中与已是该 scheme 原样。不猜 live-engine / `agent-host-session`（R9 仍开）。无新 RPC。未升 PRD-008。 | 工位 A `d472-stub-session-link-rewrite`；`npm run transpile-client` 后 `VSCODE_SKIP_PRELAUNCH=1 ./scripts/test.sh --run` 三文件 **23/0**（harness 1、rewrite `test(` 5、pills `test(` 14、import `test(` 3；新 hit/miss/already-chat/无 RPC） | catalog 命中改写且 pill 可点；miss 原文；已是 conversation-chat 不变；rewrite 文件零 connection/RPC import。R9 仍开。未关 D16。 | conversation / session-pills | closed |
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 
 `loop/merge` @ `793ff6e201f`（提交信息为「关仓：T5a Uncaught 闸门与 statusbar 二次注册幂等**已复测**」）在**仓外独立 detached 工位**上实测：

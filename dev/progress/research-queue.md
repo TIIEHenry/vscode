@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-09-15
-summary: "待研究队列 SSOT；R1–R8 已闭；R9 开（引擎正文会话链接格式）。R8：引擎空 patches = 成功空操作（ADR-008 accepted）。"
+updated: 2026-09-16
+summary: "待研究队列 SSOT；R1–R8 已闭；R9 开（live-engine 正文会话链接格式；D472 stub 改写不闭合本行）。R8：引擎空 patches = 成功空操作（ADR-008 accepted）。"
 ---
 
 # Research Queue
@@ -24,7 +24,7 @@ summary: "待研究队列 SSOT；R1–R8 已闭；R9 开（引擎正文会话链
 | R6 | PRD-009 Diff owner | Sources Changes 与文件级 Diff 打开位置未选；对照合同要底部面板，HEAD 落编辑器区 | 用户裁决 @2026-09-02：默认 Preview，可移对话窗口 / 底部 Panel | [ADR-005](../decisions/005-changes-diff-owner.md) · [diff-footprint](../../docs/reference/code-oss-b2/diff-footprint.md) §Diff owner | closed |
 | R7 | PRD-010 产品身份 | `proposed` 挂起；影响 `product.json`、窗口标题、图标、`urlProtocol`（page-access 已选 `universe-agent` scheme 不绑 `product.urlProtocol`） | **已裁决 @2026-09-02**：产品名 **UniverseAgentStudio**；图标复用 UniverseAgentDesktop / Singularity 现有资产；**本轮不改**，等引擎波（R5）接通后再做 | 转 [D12](deferred-gaps.md) | closed |
 | R8 | `WriteGitApplyHunks` 空 `argv` / `patches` 语义 | Review Accept 按合同不发明 hunk，现原样送空列表；引擎空 `patches` 为成功 no-op 时会假 Accept | 引擎仓 `/home/clarence/Projects/Agents/UniverseAgent` @ `1f07008f62a83f6c564ff93f15c0b69de9c0c2e1`：`GitWorkDirWriter.kt` L77–78 空 `patches` 直接 `success = true`、不跑 `git apply`；L80–82 空 argv 仅在 patches 非空时拒写；`GitGrpcService.kt` L164–168 成功路径 `supported:true`。Verdict **3** = 成功空操作 | [ADR-008](../decisions/008-write-git-apply-hunks-empty.md) `accepted` + [engine-protocol-surface](../../docs/reference/universe-agent/engine-protocol-surface.md) `WriteGitApplyHunks` 行。产品选项 A（宿主拒空）见 [sources-accept-empty-success](../plans/sources-accept-empty-success.md)（`draft`；A1 已落；**P5 停线**：只批准停线，A2 须新选定 + 新 Arch-First）；F4 / A2 仍记 [D31](deferred-gaps.md) | closed |
-| R9 | 引擎正文会话链接格式 | [conversation-timeline-session-pills](../plans/conversation-timeline-session-pills.md) §3.1 规定引擎字面链接须由帧源改写成 `conversation-chat:`；本仓不知引擎给什么 scheme / path，不能发明 RPC | 对照 UA 帧源 / proto 时间线文本：会话或子代理引用的字面格式、是否已带稳定 id、能否在投影前解析 `chatId` | 登记格式 + 改写规则写入帧源方案（闭合 [D472](deferred-gaps.md)）；不升 PRD-008 | open |
+| R9 | 引擎正文会话链接格式 | [conversation-timeline-session-pills](../plans/conversation-timeline-session-pills.md) §3.1 规定引擎字面链接须由帧源改写成 `conversation-chat:`；本仓不知 live-engine 给什么 scheme / path，不能发明 RPC。[D472](deferred-gaps.md) 只落地 stub/fixture 路径改写，**不**闭合本行 | 对照 UA 帧源 / proto 时间线文本：会话或子代理引用的字面格式、是否已带稳定 id、能否在投影前解析 `chatId` | 登记 live-engine 格式 + 帧源改写规则；不升 PRD-008 | open |
 
 ## 维护规则
 
