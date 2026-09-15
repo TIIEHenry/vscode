@@ -59,6 +59,7 @@ import {
 	canConnectHubDevice,
 	getHubAuthStatusLabel,
 	getHubDeviceRowStatusLabel,
+	hubAccountSignedInActions,
 	getHubDirectoryBannerLabel,
 	HUB_CHANGE_PASSWORD_BUTTON_LABEL,
 	HUB_LOGIN_BUTTON_LABEL,
@@ -593,7 +594,7 @@ suite('ConnectionPreferencesPane', () => {
 	test('formatConnectProfileStatusText is readable and never claims Connected', () => {
 		assert.strictEqual(
 			formatConnectProfileStatusText({ ok: true, path: 'direct', pairingPending: false }),
-			'Handshake succeeded — pairing not pending.',
+			'Profile accepted — pairing is complete.',
 		);
 		assert.strictEqual(
 			formatConnectProfileStatusText({
@@ -672,7 +673,7 @@ suite('ConnectionPreferencesPane', () => {
 		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('direct-profile-1');
 		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
-		assert.strictEqual(hubStatus.textContent, 'Handshake succeeded — pairing not pending.');
+		assert.strictEqual(hubStatus.textContent, 'Profile accepted — pairing is complete.');
 		assert.ok(!hubStatus.textContent?.includes('ok=true'));
 		assert.notStrictEqual(hubStatus.textContent, 'Connected');
 		assert.strictEqual(testStatus.textContent, '');
@@ -700,7 +701,7 @@ suite('ConnectionPreferencesPane', () => {
 		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('direct-profile-1');
 		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
-		assert.ok(hubStatus.textContent?.includes('still pairing pending'));
+		assert.ok(hubStatus.textContent?.includes('still needs pairing confirmation'));
 		assert.ok(!hubStatus.textContent?.includes('ok=true'));
 		assert.ok(!hubStatus.classList.contains('is-success'));
 		assert.strictEqual(testStatus.textContent, '');
@@ -1781,7 +1782,7 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(confirmCalls, 1);
 		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
-		assert.strictEqual(hubStatus.textContent, 'Handshake succeeded — pairing not pending.');
+		assert.strictEqual(hubStatus.textContent, 'Profile accepted — pairing is complete.');
 		assert.ok(!hubStatus.textContent?.includes('ok=true'));
 		assert.notStrictEqual(hubStatus.textContent, 'Connected');
 		assert.strictEqual(testStatus.textContent, '');
@@ -1899,7 +1900,7 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(promptedDetail);
 		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
-		assert.strictEqual(hubStatus.textContent, 'Handshake succeeded — pairing not pending.');
+		assert.strictEqual(hubStatus.textContent, 'Profile accepted — pairing is complete.');
 		assert.ok(!hubStatus.textContent?.includes('ok=true'));
 		assert.notStrictEqual(hubStatus.textContent, 'Connected');
 		assert.strictEqual(testStatus.textContent, '');
@@ -2411,6 +2412,28 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(status);
 		assert.strictEqual(status.textContent, 'boom');
 		assert.ok(status.classList.contains('is-error'));
+		container.remove();
+	});
+
+	test('unsigned Hub account hides Sign out and Refresh devices', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		const signOut = [...container.querySelectorAll('.connection-hub-actions .monaco-button')]
+			.find(button => button.textContent === 'Sign out') as HTMLButtonElement | undefined;
+		const refresh = [...container.querySelectorAll('.connection-hub-actions .monaco-button')]
+			.find(button => button.textContent === 'Refresh devices') as HTMLButtonElement | undefined;
+		assert.ok(signOut);
+		assert.ok(refresh);
+		assert.strictEqual(signOut.style.display, 'none');
+		assert.strictEqual(refresh.style.display, 'none');
+		assert.deepStrictEqual(hubAccountSignedInActions('signedOut'), { showSignOut: false, showRefreshDevices: false });
+		assert.deepStrictEqual(hubAccountSignedInActions('signedIn'), { showSignOut: true, showRefreshDevices: true });
+		assert.deepStrictEqual(hubAccountSignedInActions('mustChangePassword'), { showSignOut: true, showRefreshDevices: false });
 		container.remove();
 	});
 

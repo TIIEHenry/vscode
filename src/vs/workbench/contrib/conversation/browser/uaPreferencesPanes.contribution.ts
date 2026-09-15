@@ -15,6 +15,7 @@ import { IPreferencesService } from '../../../services/preferences/common/prefer
 import { PreferencesEditorInput } from '../../../services/preferences/common/preferencesEditorInput.js';
 import {
 	BACK_TO_CLIENT_SETTINGS_COMMAND_ID,
+	getBackToClientSettingsOpenOptions,
 	UA_CONNECTION_PANE_ID,
 	UA_CONNECTION_PANE_ORDER,
 	UA_ENGINE_PANE_ID,
@@ -64,6 +65,6 @@ registerAction2(class BackToClientSettingsAction extends Action2 {
 			}
 		}
 
-		await preferencesService.openSettings({ focusSearch: false });
+		await preferencesService.openSettings(getBackToClientSettingsOpenOptions());
 	}
 });

@@ -95,7 +95,7 @@ suite('NavigatorTeam (N4)', () => {
 	test('UNKNOWN with retained liveTree is agent-tree loading, not live or no-team', () => {
 		assert.strictEqual(getNavigatorAgentTreePendingCopy('UNKNOWN', treeWithManager), 'Reading agent tree…');
 		assert.strictEqual(getTeamTreeEmptyCopy('UNKNOWN', treeWithManager), 'Reading agent tree…');
-		assert.strictEqual(NAVIGATOR_TEAM_LOADING_COPY, '正在读取…');
+		assert.strictEqual(NAVIGATOR_TEAM_LOADING_COPY, 'Reading team…');
 		assert.notStrictEqual(NAVIGATOR_TEAM_LOADING_COPY, getNavigatorAgentTreePendingCopy('UNKNOWN', treeWithManager));
 		assert.notStrictEqual(NAVIGATOR_TEAM_LOADING_COPY, getNavigatorAgentTreePendingCopy('UNKNOWN', undefined));
 	});

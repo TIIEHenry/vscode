@@ -7,7 +7,7 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { ConversationWriteMessage } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { conversationLensDockCatalogProbing, conversationLensDockEngineNotConnected, conversationLensDockNoAgent, conversationLensDockNoModel } from '../../browser/conversationLensDockStrings.js';
+import { conversationLensDockCatalogProbing, conversationLensDockNoAgent, conversationLensDockNoModel } from '../../browser/conversationLensDockStrings.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from '../../browser/conversationComposerCatalog.js';
 import { loadConnectedComposerCatalogs, refreshComposerCatalogs, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
 import { updateGateRow, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
@@ -497,8 +497,8 @@ suite('conversationComposerCatalog', () => {
 		assert.deepStrictEqual([...host.catalogToolNames], ['bash']);
 		assert.ok(!agentOptions.every(option => option.text === conversationLensDockNoAgent));
 		assert.ok(!modelOptions.every(option => option.text === conversationLensDockNoModel));
-		assert.strictEqual(gateRow.hidden, false, 'leftover-looks-live gate stays disconnected');
-		assert.strictEqual(gateLabel.textContent, conversationLensDockEngineNotConnected);
+		assert.strictEqual(gateRow.hidden, true, 'idle engine status is not repeated on the gate');
+		assert.strictEqual(gateLabel.textContent, '');
 		assert.strictEqual(sendButton.enabled, false, 'Send stays pairing-hold-first');
 
 		pairingPending = false;
@@ -556,8 +556,8 @@ suite('conversationComposerCatalog', () => {
 		assert.deepStrictEqual([...host.catalogModelIds], ['']);
 		assert.ok(!agentOptions.some(option => option.text === 'Coder'));
 		assert.ok(!modelOptions.some(option => option.text === 'gpt-test'));
-		assert.strictEqual(gateRow.hidden, false);
-		assert.strictEqual(gateLabel.textContent, conversationLensDockEngineNotConnected);
+		assert.strictEqual(gateRow.hidden, true);
+		assert.strictEqual(gateLabel.textContent, '');
 		assert.strictEqual(sendButton.enabled, false);
 	});
 

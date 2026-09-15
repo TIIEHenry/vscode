@@ -29,7 +29,7 @@ import { IViewDescriptorService } from '../../../common/views.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { matchesConversationSessionsInlineFilter } from '../common/conversationSessionsInlineFilter.js';
 import { ConversationSessionsInlineFilterBox } from './conversationSessionsInlineFilterBox.js';
-import { conversationSessionsViewEmptyMessage } from './conversationSessionsViewStrings.js';
+import { conversationSessionsViewEmptyMessage, conversationSessionsViewNoMatches } from './conversationSessionsViewStrings.js';
 import { ConversationStubSession } from './conversationStubModel.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
@@ -104,10 +104,13 @@ class SessionsRenderer implements IListRenderer<ConversationStubSession, ISessio
 
 	renderElement(session: ConversationStubSession, _index: number, templateData: ISessionTemplateData): void {
 		templateData.label.textContent = session.title;
-		templateData.subtitle.textContent = formatSessionRosterSubtitle(
+		templateData.label.title = session.title;
+		const subtitle = formatSessionRosterSubtitle(
 			session,
 			this.countPendingConfirmations(session.id),
 		);
+		templateData.subtitle.textContent = subtitle;
+		templateData.subtitle.title = subtitle;
 		const active = session.id === this.getActiveSessionId();
 		templateData.container.classList.toggle('conversation-sessions-item-active', active);
 	}
@@ -253,6 +256,8 @@ export class ConversationSessionsView extends ViewPane {
 
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
+		this.element.classList.toggle('is-narrow', width > 0 && width < 600);
+		this.element.classList.toggle('is-compact', width > 0 && width < 300);
 		const hasSessions = this.stubService.getSessions().length > 0;
 		const filterHeight = hasSessions ? ConversationSessionsInlineFilterBox.HEIGHT : 0;
 		this.list?.layout(height - filterHeight, width);
@@ -331,20 +336,11 @@ export class ConversationSessionsView extends ViewPane {
 	}
 
 	private refreshList(): void {
-		if (!this.listContainer || !this.emptyMessage) {
-			return;
-		}
-
-		const hasSessions = this.stubService.getSessions().length > 0;
-		this.emptyMessage.style.display = hasSessions ? 'none' : 'block';
-		this.listContainer.style.display = hasSessions ? 'block' : 'none';
-		this.filterBox?.setVisible(hasSessions);
-
-		if (!hasSessions) {
-			return;
-		}
-
 		this.applyFilterToList();
+	}
+
+	private hasActiveFilter(): boolean {
+		return this.filterQuery.trim() !== '';
 	}
 
 	private getFilteredSessions(): ConversationStubSession[] {
@@ -353,11 +349,27 @@ export class ConversationSessionsView extends ViewPane {
 	}
 
 	private applyFilterToList(): void {
+		if (!this.listContainer || !this.emptyMessage) {
+			return;
+		}
+
+		const hasSessions = this.stubService.getSessions().length > 0;
+		const filtered = hasSessions ? this.getFilteredSessions() : [];
+		const filterMiss = hasSessions && this.hasActiveFilter() && filtered.length === 0;
+		this.emptyMessage.textContent = filterMiss ? conversationSessionsViewNoMatches : conversationSessionsViewEmptyMessage;
+		this.emptyMessage.style.display = (!hasSessions || filterMiss) ? 'block' : 'none';
+		this.listContainer.style.display = (hasSessions && !filterMiss) ? 'block' : 'none';
+		this.filterBox?.setVisible(hasSessions);
+
 		if (!this.list) {
 			return;
 		}
 
-		const filtered = this.getFilteredSessions();
+		if (!hasSessions || filterMiss) {
+			this.list.splice(0, this.list.length, []);
+			return;
+		}
+
 		this.list.splice(0, this.list.length, filtered);
 		this.layoutList(filtered.length);
 		this.updateActiveSession();

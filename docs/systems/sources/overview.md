@@ -3,7 +3,7 @@ title: "Sources 系统概览：Files | Changes | Review"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-09-10
+updated: 2026-09-15
 summary: "SOURCES_PART 槽 + SourcesTabsHost；Files 只读投影（fetchChildren throw 不装空成功）、Changes/Review 接通+hook+非空 roster session 走 readGit* 否则 SCM；stage/unstage/commit；Accept 仅 ApplyHunks 载荷；Changes/Review 行 openSourcesChangeEntry 按 sources.diff.defaultOwner 分派（默认 Preview Diff）；三宿主 moveTo* 已落（F1–F3）；诚实空文案"
 ---
 
@@ -29,7 +29,7 @@ SOURCES_PART（End 列下格；minimum 尺寸与 hide − 控件在 Part）
 | Changes | `sourcesChangesGitRead.ts::tryLoadSourcesGitChangeEntries` · `sourcesChangesModel.ts::collectSourcesChangeEntries` | `sourcesChangesList.ts` | 接通且 `readGitChanges` hook 在且 `roster.getActiveSessionId()` 非空：`readGitChanges` / `readGitSummary`（`sessionId` = 当前 roster 会话）；空 session / 断连 / 首拉无 hook / `supported:false` / `supported:true` 且 `entries=[]`：`ISCMService` 各仓库资源组（`usingGitRead` 保持 false）。已 `usingGitRead` leftover 后再失 hook（仍 connected）保引擎行，不切 SCM、不画 `sourcesGitLocalOnlyMessage()` | `openSourcesChangeEntry`：按 `sources.diff.defaultOwner` 分派 — `preview`（默认）有 `scmResource` → `ISCMResource.open()`（git = `vscode.diff` → **Preview Diff**）；git 行且无本地 original 时再 `readGitFileDiff`（同样要非空 session）；无 SCM 时 `openEditor` 文件本体；`conversation` → `ConversationDiffReviewInput`；`panel` → `SourcesDiffPanelView` | 行内 / 选中 **stage** / **unstage**（接通写 `writeGitStagePaths` 且非空 session，否则 `git.stage` / `git.unstage`，仅对 git 可 stage / 已 staged 组，`sourcesChangesGit.ts`）；底部 **commit** 行写 SCM input 并跑 `writeGitCommit`（同样要非空 session）或 `provider.acceptInputCommand` / `git.commit` |
 | Review | 与 Changes **同一条** git/SCM 读面（`collectSourcesReviewEntries` 是 SCM 回退） | `sourcesReviewList.ts` | 同 Changes | 同 Changes（`openSourcesChangeEntry`）；Review 行打开成功才标已审阅 | 窗口内存审阅进度（●/○，`ISourcesReviewProgressService`）；Mark reviewed / Mark all /「仅未审阅」；`sources.review.showForPaths` path-set；引擎接通后归因 chip（`onDidFileMutation` sidecar）；**无** stage/commit/写回 SCM |
 
-三个面板顶部都有紧凑 filter（`sourcesListFilterBox.ts` / `common/sourcesFilterModel.ts::filterSourcesEntries`，按文件名 / 路径子串）。
+三个面板顶部都有紧凑 filter（`sourcesListFilterBox.ts` / `common/sourcesFilterModel.ts::filterSourcesEntries`，按文件名 / 路径子串）。空态节点 `flex: 1` 居中，JS 设 `display: ''` 好让 CSS 生效。Changes 工具条在列表**上方**（filter → toolbar → content → commit）。Diff 宿主标题统一底边与 4px 8px 内边距；无 ref / 打开失败时藏 Panel 头与 Conversation「Open Diff in Preview」。
 
 ## 3. 诚实空文案
 

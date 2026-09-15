@@ -3,7 +3,7 @@ title: "Engine 页 Customizations catalog（ua.engine）"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-12
+updated: 2026-09-15
 summary: "HEAD 九节壳已挂：四节写路径 + Overview/Model/MCP Runtime/Plugins；Provider/Rules/Hooks 只读列表已接（无写表单）；产品验证未做"
 ---
 
@@ -47,11 +47,11 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 
 ## 2. 渲染模式（六态 @ HEAD）
 
-`engineCatalog.ts` 的 `EngineCatalogPaneMode`：`disconnected` \| `unsupported` \| `loading` \| `failed` \| `empty` \| `ready`。判定自上而下、命中即止（`resolveEngineCatalogPaneMode`）。E2-1 **废止** disconnected 整节隐藏：九节在左栏始终可达；「无 Engine」= 右栏零条目、零写按钮 + Open Connection，不是把导航藏掉。
+`engineCatalog.ts` 的 `EngineCatalogPaneMode`：`disconnected` \| `unsupported` \| `loading` \| `failed` \| `empty` \| `ready`。判定自上而下、命中即止（`resolveEngineCatalogPaneMode`）。E2-1 **废止** disconnected 整节隐藏：九节在左栏始终可达；「无 Engine」= 右栏零条目、零写按钮，不是把导航藏掉。断连 CTA **只在页级 banner**：Test Engine 次要 + Open Connection 主要；catalog 节 body **只出文案**（不再各节再画 Open Connection）；页脚 Test Engine **仅已连接**时出现。状态字停在可见的那颗 Test 旁边。
 
 | 模式 | 条件 | UI |
 |------|------|-----|
-| `disconnected` | `!isEngineConnected()` | 页级 / 节级复用 `getConnectionPhaseStatusBarText` + Open Connection；零条目零写按钮 |
+| `disconnected` | `!isEngineConnected()` | 页级 banner 复用 `getConnectionPhaseStatusBarText` + Test / Open Connection；节级只出文案；零条目零写按钮 |
 | `unsupported` | 已连接且能力 `UNSUPPORTED` | 节标题在；**零假条目**；`getCatalogUnsupportedCopy`（可带 `reason`） |
 | `loading` | 已连接且能力 `UNKNOWN`（「正在确认引擎能力…」）**或** list in-flight（「正在读取…」） | 两种 loading 文案不得混用 |
 | `failed` | list RPC reject | transport 错 + Retry；**不得**画成 0 条。in-flight 与 failed 互斥 |

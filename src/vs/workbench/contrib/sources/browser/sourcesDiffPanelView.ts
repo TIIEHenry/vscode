@@ -131,8 +131,18 @@ export class SourcesDiffPanelView extends ViewPane {
 			this.currentRef = ref;
 			void this.renderRef(ref);
 		}));
-		this._register(this.uaConnection.onDidChangeConnection(() => this.updateWriteActions()));
-		this._register(this.roster.onDidChangeActiveSession(() => this.updateWriteActions()));
+		this._register(this.uaConnection.onDidChangeConnection(() => {
+			this.updateWriteActions();
+			if (this.dimension) {
+				this.layoutBody(this.dimension.height, this.dimension.width);
+			}
+		}));
+		this._register(this.roster.onDidChangeActiveSession(() => {
+			this.updateWriteActions();
+			if (this.dimension) {
+				this.layoutBody(this.dimension.height, this.dimension.width);
+			}
+		}));
 
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration('diffEditor.renderSideBySide') && this.diffWidget.value) {
@@ -214,6 +224,7 @@ export class SourcesDiffPanelView extends ViewPane {
 		if (!ref) {
 			this.headerTitle.textContent = '';
 			this.headerTitle.title = '';
+			this.headerElement.style.display = 'none';
 			this.newFileNoticeElement.style.display = 'none';
 			return;
 		}
@@ -234,18 +245,23 @@ export class SourcesDiffPanelView extends ViewPane {
 			this.comparisonLoadFailed = true;
 			this.headerTitle.textContent = '';
 			this.headerTitle.title = '';
+			this.headerElement.style.display = 'none';
 			this.hideWriteChrome();
 			this.showLoadNotice(localize('sourcesDiffPanel.loadFailed', "Unable to load this comparison."));
+			if (this.dimension) {
+				this.layoutBody(this.dimension.height, this.dimension.width);
+			}
 			return;
 		}
 
+		this.headerElement.style.display = '';
 		this.headerTitle.textContent = basename(ref.modified);
 		this.headerTitle.title = ref.modified.fsPath;
 
+		this.updateWriteActions();
 		if (this.dimension) {
 			this.layoutBody(this.dimension.height, this.dimension.width);
 		}
-		this.updateWriteActions();
 	}
 
 	private createHeaderAction(parent: HTMLElement, className: string, label: string, onClick: () => void): HTMLButtonElement {

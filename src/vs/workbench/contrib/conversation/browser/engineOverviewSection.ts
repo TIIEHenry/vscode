@@ -95,7 +95,7 @@ export function formatOverviewModelUnknownCopy(): string {
 }
 
 export function formatOverviewModelLoadingCopy(): string {
-	return localize('ua.engineOverviewModelLoading', "正在读取…");
+	return localize('ua.engineOverviewModelLoading', "Reading models…");
 }
 
 export function formatOverviewModelSummary(modelCount: number): string;

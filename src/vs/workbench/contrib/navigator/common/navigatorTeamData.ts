@@ -49,7 +49,7 @@ export interface INavigatorTeamTaskEntry extends INavigatorTeamTaskInfo {
 const MEMBER_TYPE = 'AGENT_TYPE_MEMBER';
 
 /** Team capability still UNKNOWN — not “no members yet”, and not the agent-tree loading sentence. */
-export const NAVIGATOR_TEAM_LOADING_COPY = localize('navigatorTeam.loading', "正在读取…");
+export const NAVIGATOR_TEAM_LOADING_COPY = localize('navigatorTeam.loading', "Reading team…");
 
 export function findManagerNodes(tree: LiveAgentTreeNodeView | undefined): LiveAgentTreeNodeView[] {
 	if (!tree) {

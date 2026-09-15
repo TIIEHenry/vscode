@@ -407,15 +407,20 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		const context = this.desktopConnectionControlContext();
 		const unsupportedEnvironment = isUnsupportedLocalEngineEnvironment(context);
 		const drawDesktop = shouldDrawDesktopConnectionControls(context);
-		this.testRow.style.display = drawDesktop ? '' : 'none';
-		this.bannerTestButton.element.style.display = drawDesktop ? '' : 'none';
-
 		// D354 leftover-looks-live: pairing-hold first. KEEP chrome is not only `!connected`.
 		const disconnected = isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected();
-		this.disconnectedBanner.style.display = disconnected || unsupportedEnvironment ? '' : 'none';
+		const showBanner = disconnected || unsupportedEnvironment;
+		this.disconnectedBanner.style.display = showBanner ? '' : 'none';
 		// Disconnected is an ordinary resting state and reads as a neutral notice; an environment
 		// that cannot host an engine at all is the exception that earns the warning surface.
 		this.disconnectedBanner.classList.toggle('is-warning', unsupportedEnvironment);
+		this.bannerTestButton.element.style.display = drawDesktop ? '' : 'none';
+		// Footer Test Engine only when the banner is gone. Banner already has Test + Open Connection.
+		this.testRow.style.display = (!showBanner && drawDesktop) ? '' : 'none';
+		const statusHome = showBanner ? this.disconnectedBanner : this.testRow;
+		if (this.testStatus.parentElement !== statusHome) {
+			statusHome.appendChild(this.testStatus);
+		}
 		if (unsupportedEnvironment) {
 			this.disconnectedCopy.textContent = getUnsupportedEnvironmentCopy();
 		} else if (disconnected) {

@@ -3,7 +3,7 @@ title: "Navigator tab 适配：按 vscode ViewContainer 重设计子页"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-03
+updated: 2026-09-15
 summary: "五段 Activity 产品 chrome 已落；N1–N4 @ HEAD：Projects=WorkbenchObjectTree（引擎根→work_dir→roster 会话 + 本地文件夹组）；Agents Hierarchy=lease.liveAgentTree、Activity=lease timeline∪overlay tool；Team=同树 manager→connection team unary；Inspect=IAgentInspectService→Panel 单叶（第二叶不需要）；无引擎三段诚实空；Engines 不进 Activity"
 ---
 
@@ -101,7 +101,9 @@ Singularity 意图（只取问题，不取 Compose 树合同）：「有哪些�
 
 Select 行可切 Conversation 读视图（共享 session 导航态）；**不得**改引擎执行 owner。
 
-**inspect（选定，N2 @ HEAD）：** Panel 容器 **`workbench.panel.agentInspect`** + 单叶 **`workbench.panel.agentInspect.view`** + `AgentInspectView`。`IAgentInspectService` 选中总线（agent / member / task / activity 四模板）；行 action「Inspect」与行单击写入 target 再 `openView`。**v1 单叶**：Agents/Team 共用；**第二叶不需要**（page-access §5.4 留白已关）。**不是** Preview tab / editor-in-panel。容器 `hideIfEmpty: true`。
+**inspect（选定，N2 @ HEAD）：** Panel 容器 **`workbench.panel.agentInspect`** + 单叶 **`workbench.panel.agentInspect.view`** + `AgentInspectView`。`IAgentInspectService` 选中总线（agent / member / task / activity 四模板）；行 action「Inspect」与行单击写入 target 再 `openView`。字段用人话名（Agent ID / Status…）两列排；Status 色调与 Hierarchy `agentStatusTone` 同一套。过期注从列表高度扣除。欢迎文案仍是 “Select an item in Agents or Team”。**v1 单叶**：Agents/Team 共用；**第二叶不需要**（page-access §5.4 留白已关）。**不是** Preview tab / editor-in-panel。容器 `hideIfEmpty: true`。
+
+Sessions / Agents / Team / Projects 内联 filter 对齐：32px、输入框描边、底部分隔、焦点环。Agents / Team 空态仍显示 filter（测锁）。Projects 过期快照 recents 条用描述色，最近文件夹加载失败才用错误色。Hierarchy 状态点按 tone 上色，类型用 Codicon，不用首字母 / 无色 `●`。
 
 ### 3.5 Team — 成员列表，不是 SCM / Accounts
 

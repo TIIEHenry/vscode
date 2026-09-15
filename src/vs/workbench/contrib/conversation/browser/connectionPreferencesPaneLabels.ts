@@ -59,6 +59,14 @@ export function getHubAuthStatusLabel(status: HubAuthStatus): string {
 	}
 }
 
+/** Sign out / Refresh only belong on a Hub session, not the unsigned form. */
+export function hubAccountSignedInActions(kind: HubAuthStatus['kind']): { readonly showSignOut: boolean; readonly showRefreshDevices: boolean } {
+	return {
+		showSignOut: kind === 'signedIn' || kind === 'mustChangePassword',
+		showRefreshDevices: kind === 'signedIn',
+	};
+}
+
 export function getHubAuthStatusTone(status: HubAuthStatus): ConnectionStatusTone {
 	switch (status.kind) {
 		case 'signedIn':

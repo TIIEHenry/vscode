@@ -10,10 +10,11 @@
 
 .monaco-workbench .part.sources .sources-files-empty {
 	display: flex;
+	flex: 1;
 	align-items: center;
 	justify-content: center;
-	min-height: 80px;
-	padding: 16px 8px;
+	min-height: 0;
+	padding: 8px;
 	text-align: center;
 	color: var(--vscode-descriptionForeground);
 	font-size: 13px;

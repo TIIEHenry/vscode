@@ -21,7 +21,7 @@ import { ConversationTimelineTree } from './conversationTimelineTree.js';
 import { ConversationTrajectory } from './conversationTrajectory.js';
 import { conversationLensPhasePreFirstClass, conversationLensPrefirstHeroClass } from './conversationLensDockStrings.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
-import { conversationLeafWidthBucket, isConversationLeafCompact, isConversationLeafNarrow } from './conversationNarrowLayout.js';
+import { conversationLeafWidthBucket, isConversationLeafCompact, isConversationLeafMedium, isConversationLeafNarrow } from './conversationNarrowLayout.js';
 import { isConversationPairingHold, type IConversationPairingHoldSource } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
@@ -308,6 +308,7 @@ function isOverlaySessionBarHost(host: IConversationLensReadingColumnHost): bool
 
 function applyLeafWidthClasses(element: HTMLElement, width: number): void {
 	element.dataset.conversationWidth = conversationLeafWidthBucket(width);
+	element.classList.toggle('is-medium', isConversationLeafMedium(width));
 	element.classList.toggle('is-narrow', isConversationLeafNarrow(width));
 	element.classList.toggle('is-compact', isConversationLeafCompact(width));
 }

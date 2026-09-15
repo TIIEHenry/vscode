@@ -710,7 +710,7 @@ export class SourcesReviewList extends Disposable {
 			this.emptyMessage.textContent = sourcesReviewListEmptyMessage(emptyReason);
 		}
 
-		this.emptyMessage.style.display = hasVisibleEntries ? 'none' : 'block';
+		this.emptyMessage.style.display = hasVisibleEntries ? 'none' : '';
 		this.listContainer.style.display = hasVisibleEntries ? 'block' : 'none';
 		this.filterRow.style.display = hasAnyEntries ? 'flex' : 'none';
 		this.progressHeader.style.display = hasAnyEntries ? 'flex' : 'none';

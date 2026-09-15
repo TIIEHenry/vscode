@@ -22,6 +22,7 @@ export const conversationLensInboxQueueEnqueuePlaceholder = localize('conversati
 export const conversationLensInboxQueueEnqueueUnavailable = localize('conversationLens.inboxQueueEnqueueUnavailable', "Cannot enqueue without engine");
 export const conversationLensInboxQueueRetry = localize('conversationLens.inboxQueueRetry', "Retry");
 export const conversationLensInboxQueueRetryUnavailable = localize('conversationLens.inboxQueueRetryUnavailable', "Cannot retry without engine");
+export const conversationLensInboxQueueQueuedTag = localize('conversationLens.inboxQueueQueuedTag', "Queued");
 export const conversationLensInboxQueueEditingTag = localize('conversationLens.inboxQueueEditingTag', "Editing");
 export const conversationLensInboxQueueUploadingTag = localize('conversationLens.inboxQueueUploadingTag', "Uploading {0}%");
 export const conversationLensInboxQueueFailedTag = localize('conversationLens.inboxQueueFailedTag', "Failed");

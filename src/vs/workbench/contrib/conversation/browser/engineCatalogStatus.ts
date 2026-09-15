@@ -86,14 +86,6 @@ export class EngineCatalogStatusWidget extends Disposable {
 		this.element.dataset['catalogMode'] = options.mode;
 		this.messageEl.textContent = getEngineCatalogStatusMessage(options);
 
-		if (options.mode === 'disconnected' && options.onOpenConnection) {
-			const openConnection = this.actionDisposables.add(new Button(this.actionsEl, defaultButtonStyles));
-			openConnection.label = localize('ua.engineOpenConnection', "Open Connection");
-			this.actionDisposables.add(openConnection.onDidClick(() => {
-				options.onOpenConnection?.();
-			}));
-		}
-
 		if (options.mode === 'failed') {
 			const retry = this.actionDisposables.add(new Button(this.actionsEl, defaultButtonStyles));
 			retry.label = getCatalogRetryLabel();

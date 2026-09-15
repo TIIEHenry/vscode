@@ -7,6 +7,7 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import {
+	agentStatusTone,
 	formatAgentStatusLabel,
 	findLiveAgentNode,
 	isRootOnlyAgentTree,
@@ -46,6 +47,18 @@ suite('NavigatorAgentsHierarchy (N2)', () => {
 
 	test('UNKNOWN agent status maps to Unknown status', () => {
 		assert.strictEqual(formatAgentStatusLabel('AGENT_STATUS_UNKNOWN'), 'Unknown status');
+	});
+
+	test('agentStatusTone maps wire and short statuses', () => {
+		assert.strictEqual(agentStatusTone('AGENT_STATUS_UNKNOWN'), 'unknown');
+		assert.strictEqual(agentStatusTone('IDLE'), 'idle');
+		assert.strictEqual(agentStatusTone('AGENT_STATUS_GENERATING'), 'running');
+		assert.strictEqual(agentStatusTone('PENDING'), 'running');
+		assert.strictEqual(agentStatusTone('WAITING'), 'running');
+		assert.strictEqual(agentStatusTone('PAUSED'), 'paused');
+		assert.strictEqual(agentStatusTone('AGENT_STATUS_ERROR'), 'error');
+		assert.strictEqual(agentStatusTone('TIMEOUT'), 'error');
+		assert.strictEqual(agentStatusTone('COMPLETED'), 'done');
 	});
 
 	test('findLiveAgentNode walks children', () => {

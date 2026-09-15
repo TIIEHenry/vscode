@@ -3,7 +3,7 @@ title: "Settings 接入：UA 设置项如何挂进 vscode Preferences"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-07
+updated: 2026-09-15
 summary: "混合宿主已落；Client 9 键与 Engine E2-1–E2-7 代码完成线已落；PRD-025/026 仍 accepted，待产品验证"
 ---
 
@@ -62,7 +62,7 @@ Desktop：Overlay `OverlayKind.settings`；齿轮在 AppTabBar；StatusBar profi
 |----|------|
 | 开 Connection / Engine | TOC → **关闭**当前 `SettingsEditor2Input` → `openPreferences({ paneId })`。**禁止**双 Preferences 栈 |
 | 开 Customizations（C5） | TOC → `aiCustomization.openManagementEditor`。**不要**走 pane helper。可能同组两个 tab |
-| Back | PreferencesEditor 壳按 descriptor `showBackToClientSettings` 渲染「Back to Client Settings」→ `workbench.action.backToClientSettings` → 关 Preferences → `openSettings()` **不带** query / revealSetting / focusSearch。v1 **不保证**恢复 TOC 滚动 |
+| Back | PreferencesEditor 壳按 descriptor `showBackToClientSettings` 渲染「Back to Client Settings」→ `workbench.action.backToClientSettings` → 关 Preferences → `openSettings({ focusSearch: false, query: '@id:ua.client.display.conversationDensity' })`（`getBackToClientSettingsOpenOptions()`）。v1 **不保证**恢复 TOC 滚动 |
 | `useModal: 'off'` | Client 已在 Preview；Connection/Engine 链接仍关 Preview 中的 Settings → 开 Preferences **模态**；Back 再 `openSettings()` |
 
 Client 与 vscode 原生重叠的项 **不要双入口**：

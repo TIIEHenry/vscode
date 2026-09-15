@@ -262,7 +262,6 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		));
 		this._register(this.filterBox.onDidChange(() => this.scheduleRefresh()));
 
-		this.contentContainer = dom.append(host, $('.sources-changes-content'));
 		this.toolbar = dom.append(host, $('.sources-changes-toolbar'));
 		this.stageSelectedButton = this._register(new Button(this.toolbar, {
 			supportIcons: true,
@@ -277,6 +276,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		}));
 		this.unstageSelectedButton.icon = Codicon.remove;
 
+		this.contentContainer = dom.append(host, $('.sources-changes-content'));
 		this.listContainer = dom.append(this.contentContainer, $('.sources-changes-list'));
 		this.emptyMessage = dom.append(this.contentContainer, $('.sources-changes-empty'));
 		this.emptyMessage.style.display = 'none';
@@ -579,7 +579,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.emptyMessage.textContent = localize('sourcesChangesList.noMatching', "No matching changes.");
 		}
 
-		this.emptyMessage.style.display = hasVisibleEntries ? 'none' : 'block';
+		this.emptyMessage.style.display = hasVisibleEntries ? 'none' : '';
 		this.listContainer.style.display = hasVisibleEntries ? 'block' : 'none';
 		this.toolbar.style.display = hasVisibleEntries ? 'flex' : 'none';
 		this.filterBox.element.style.display = hasAnyEntries ? 'block' : 'none';

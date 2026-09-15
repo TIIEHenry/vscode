@@ -5,6 +5,7 @@
 	gap: 8px;
 	min-width: 0;
 	padding: 4px 8px;
+	border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border, var(--vscode-widget-border, var(--vscode-contrastBorder, transparent)));
 }
 
 .monaco-workbench .sources-diff-panel .sources-diff-panel-title {
@@ -32,9 +33,27 @@
 	color: var(--vscode-button-secondaryForeground);
 }
 
+.monaco-workbench .sources-diff-panel .sources-diff-panel-actions button:hover:not(:disabled) {
+	background: var(--vscode-button-secondaryHoverBackground, var(--vscode-button-secondaryBackground));
+}
+
+.monaco-workbench .sources-diff-panel .sources-diff-panel-actions button:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: 1px;
+}
+
+.monaco-workbench .sources-diff-panel .sources-diff-panel-actions button:disabled {
+	opacity: 0.6;
+	cursor: default;
+}
+
 .monaco-workbench .sources-diff-panel .sources-diff-panel-accept {
 	background: var(--vscode-button-background);
 	color: var(--vscode-button-foreground);
+}
+
+.monaco-workbench .sources-diff-panel .sources-diff-panel-accept:hover:not(:disabled) {
+	background: var(--vscode-button-hoverBackground, var(--vscode-button-background));
 }
 
 .monaco-workbench .sources-diff-panel .sources-diff-panel-unstage-unavailable,

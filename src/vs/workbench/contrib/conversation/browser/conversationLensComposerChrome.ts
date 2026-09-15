@@ -17,7 +17,6 @@ import { hasNativeContextMenu } from '../../../../platform/window/common/window.
 import {
 	conversationLensDockEditingMessage,
 	conversationLensDockEditingQueued,
-	conversationLensDockEngineNotConnected,
 	conversationLensDockAgentLabel,
 	conversationLensDockMaximizeInput,
 	conversationLensDockNoEngineTools,
@@ -465,16 +464,11 @@ export function updateGateRow(host: IConversationLensComposerChromeHost): void {
 			host.gateRow.hidden = false;
 			return;
 		}
-		// D339 leftover-looks-live: pairing-hold first. Gate is not hidden just because isEngineConnected()===true.
-		const connected = !isConversationPairingHold(host.uaConnection) && host.stubService.isEngineConnected();
-		host.gateRow.hidden = connected;
-		if (connected) {
-			host.gateLabel.textContent = '';
-			host.gateRow.removeAttribute('aria-label');
-		} else {
-			host.gateLabel.textContent = conversationLensDockEngineNotConnected;
-			host.gateRow.setAttribute('aria-label', conversationLensDockEngineNotConnected);
-		}
+		// Idle engine/session status lives on the identity strip (PreFirst) or SessionBar badge
+		// (Active). Gate is only the transient post-failure notice.
+		host.gateRow.hidden = true;
+		host.gateLabel.textContent = '';
+		host.gateRow.removeAttribute('aria-label');
 	
 }
 

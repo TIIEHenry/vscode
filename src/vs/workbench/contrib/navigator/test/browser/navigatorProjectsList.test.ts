@@ -284,6 +284,10 @@ suite('NavigatorProjectsView', () => {
 		assert.strictEqual(countTreeLeaves(view), 0);
 		assert.strictEqual(view.shouldShowWelcome(), false);
 		assert.strictEqual(getViewEntries(view).length, 1);
+		const empty = view.element.querySelector('.navigator-projects-filter-empty') as HTMLElement | null;
+		assert.ok(empty);
+		assert.strictEqual(empty.style.display, 'block');
+		assert.strictEqual(empty.textContent, 'No matches');
 	});
 
 	test('clear or empty query restores full list', async () => {
@@ -351,6 +355,8 @@ suite('NavigatorProjectsView', () => {
 			assert.strictEqual(status.textContent, expectedCopy);
 			assert.ok(status.textContent.includes('Unable to load recent folders'));
 			assert.ok(status.textContent.includes('getRecentlyOpened boom'));
+			assert.ok(status.classList.contains('is-error'));
+			assert.ok(!status.classList.contains('is-neutral'));
 
 			const paneBody = view.element.querySelector('.pane-body') as HTMLElement | null;
 			assert.ok(paneBody, 'pane body must exist');
@@ -398,6 +404,8 @@ suite('NavigatorProjectsView', () => {
 			assert.strictEqual(status.textContent, expectedCopy);
 			assert.ok(status.textContent.includes('Unable to load recent folders'));
 			assert.ok(status.textContent.includes('getRecentlyOpened boom'));
+			assert.ok(status.classList.contains('is-error'));
+			assert.ok(!status.classList.contains('is-neutral'));
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
@@ -501,6 +509,8 @@ suite('NavigatorProjectsView', () => {
 			assert.ok(status, 'existing recents status must surface the rebuild failure');
 			assert.notStrictEqual(status.style.display, 'none');
 			assert.strictEqual(status.textContent, NAVIGATOR_STALE_SNAPSHOT_COPY);
+			assert.ok(status.classList.contains('is-neutral'));
+			assert.ok(!status.classList.contains('is-error'));
 			assert.strictEqual(view.shouldShowWelcome(), false);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);

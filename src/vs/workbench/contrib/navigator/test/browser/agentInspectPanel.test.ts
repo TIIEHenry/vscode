@@ -180,9 +180,11 @@ suite('Agent inspect panel', () => {
 		});
 
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
-		const labels = getViewEntries(view).map(entry => entry.label);
-		assert.ok(labels.some(label => label.includes('agent_id: sub:1')));
-		assert.ok(labels.some(label => label.includes('name: Worker')));
+		const entries = getViewEntries(view);
+		assert.ok(entries.some(entry => entry.field === 'Agent ID' && entry.value === 'sub:1'));
+		assert.ok(entries.some(entry => entry.field === 'Name' && entry.value === 'Worker'));
+		assert.ok(entries.some(entry => entry.field === 'Status' && entry.value === 'IDLE' && entry.tone === 'idle'));
+		assert.ok(entries.some(entry => entry.label === 'Agent ID: sub:1'));
 		assert.strictEqual(inspectTitleFromTarget({
 			kind: 'agent',
 			node: {

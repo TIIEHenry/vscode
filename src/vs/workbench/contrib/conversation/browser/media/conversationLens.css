@@ -74,7 +74,7 @@
 .monaco-workbench .part.conversation .conversation-lens-session-sync-badge {
 	flex-shrink: 1;
 	min-width: 0;
-	max-width: 28ch;
+	max-width: 12ch;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -1746,8 +1746,8 @@
 	flex-shrink: 0;
 	display: flex;
 	flex-direction: column;
-	border-top: 1px solid var(--vscode-sideBar-border, var(--vscode-contrastBorder, transparent));
-	background-color: var(--vscode-sideBar-background);
+	position: relative;
+	background-color: transparent;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-gate-row {
@@ -1776,10 +1776,11 @@
 	align-items: center;
 	justify-content: space-between;
 	gap: 8px;
-	padding: 4px 8px;
+	padding: 4px 8px 2px;
 	font-size: 12px;
 	line-height: 16px;
 	color: var(--vscode-descriptionForeground);
+	background: transparent;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-inbox-left,
@@ -1822,6 +1823,12 @@
 .monaco-workbench .part.conversation .conversation-lens-inbox-chip[aria-pressed="true"] {
 	border-color: var(--vscode-focusBorder, var(--vscode-contrastBorder, transparent));
 	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-inbox-chip:focus-visible,
+.monaco-workbench .part.conversation .conversation-lens-inbox-pending:focus-visible {
+	outline: 2px solid var(--vscode-focusBorder, var(--vscode-contrastBorder, transparent));
+	outline-offset: 1px;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-inbox-goal .conversation-lens-inbox-goal-button {
@@ -2009,10 +2016,14 @@
 .monaco-workbench .part.conversation .conversation-lens-composer-cluster {
 	display: flex;
 	flex-direction: column;
+	border-top: 1px solid var(--vscode-sideBar-border, var(--vscode-contrastBorder, transparent));
+	background-color: var(--vscode-sideBar-background);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-prefirst-hero .conversation-lens-composer-cluster {
 	width: 100%;
+	border-top: none;
+	background-color: transparent;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-composer-edit-header {
@@ -2271,6 +2282,23 @@
 	min-height: 0;
 	display: flex;
 	flex-direction: column;
+	position: relative;
+}
+
+/* Stay reachable (pending confirmations). Do not display:none — overlay so composer can grow. */
+.monaco-workbench .part.conversation .conversation-dock.conversation-lens-input-maximized .conversation-lens-inbox-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 2;
+	background-color: var(--vscode-sideBar-background);
+}
+
+.monaco-workbench .part.conversation .conversation-dock.conversation-lens-input-maximized .conversation-lens-composer-cluster {
+	flex: 1;
+	min-height: 0;
+	padding-top: 32px;
 }
 
 .monaco-workbench .part.conversation .conversation-dock.conversation-lens-input-maximized .conversation-lens-composer {
@@ -2481,7 +2509,10 @@
 	display: none;
 }
 
-/* Q6 / RWD-1：`.is-narrow` < 600、`.is-compact` < 300，来自叶 layout，不是 Part / viewport */
+/* Q6 / RWD-1：`.is-medium` < 900、`.is-narrow` < 600、`.is-compact` < 300，来自叶 layout */
+.monaco-workbench .part.conversation .is-medium .conversation-lens-session-history,
+.monaco-workbench .part.conversation .is-medium .conversation-lens-session-snapshots,
+.monaco-workbench .part.conversation .is-medium .conversation-window-nav,
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-session-select,
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-session-switcher-label,
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-session-history,
@@ -2535,6 +2566,16 @@
 .monaco-workbench .part.conversation .is-compact .conversation-lens-dock-input {
 	min-width: 0;
 	flex: 1 1 auto;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-more {
+	display: none;
+}
+
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-dock-more,
+.monaco-workbench .part.conversation .is-compact .conversation-lens-dock-more {
+	display: flex;
+	align-items: center;
 }
 
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-dock-send,

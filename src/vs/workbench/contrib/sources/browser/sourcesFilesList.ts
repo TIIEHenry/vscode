@@ -200,7 +200,7 @@ export class SourcesFilesList extends Disposable {
 		}
 
 		this.setStatusMessage(hasAnyEntries ? readError : undefined);
-		this.emptyMessage.style.display = hasVisibleEntries ? 'none' : 'block';
+		this.emptyMessage.style.display = hasVisibleEntries ? 'none' : '';
 		this.listContainer.style.display = hasVisibleEntries ? 'block' : 'none';
 		this.filterBox.element.style.display = hasAnyEntries ? 'block' : 'none';
 

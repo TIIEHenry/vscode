@@ -27,6 +27,7 @@ import {
 	conversationLensDockStopGenerating,
 	conversationLensDockStopNotGenerating,
 	conversationLensInboxQueueClear,
+	conversationLensInboxQueueQueuedTag,
 	conversationLensInboxQueueEditingTag,
 	conversationLensInboxQueueEnqueue,
 	conversationLensInboxQueueEnqueuePlaceholder,
@@ -50,7 +51,6 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { IConversationRosterService } from './conversationStubService.js';
 import { shouldAutoRevealPendingConfirmation } from './conversationPendingSeat.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
-import { formatSyncChromeLabel } from './conversationSessionView.js';
 
 export const conversationLensInboxOverlayClass = 'conversation-lens-inbox-overlay';
 
@@ -171,17 +171,10 @@ export class ConversationInboxOverlay extends Disposable {
 		}
 	}
 
-	private renderSyncStatus(sync: ReturnType<IConversationRosterService['getSessionSync']>): void {
-		const label = formatSyncChromeLabel(sync);
-		if (label) {
-			this.syncStatus.hidden = false;
-			this.syncStatus.textContent = label;
-			this.syncStatus.setAttribute('aria-label', label);
-		} else {
-			this.syncStatus.hidden = true;
-			this.syncStatus.textContent = '';
-			this.syncStatus.removeAttribute('aria-label');
-		}
+	private renderSyncStatus(_sync: ReturnType<IConversationRosterService['getSessionSync']>): void {
+		this.syncStatus.hidden = true;
+		this.syncStatus.textContent = '';
+		this.syncStatus.removeAttribute('aria-label');
 	}
 
 	private isEngineQueueUnlisted(): boolean {
@@ -550,7 +543,7 @@ export class ConversationInboxOverlay extends Disposable {
 		const itemBody = append(main, $('.queue-item-body'));
 		append(itemBody, $('.queue-item-preview')).textContent = item.content;
 		const meta = append(itemBody, $('.queue-item-meta'));
-		meta.appendChild(document.createTextNode('queued'));
+		meta.appendChild(document.createTextNode(conversationLensInboxQueueQueuedTag));
 		if (item.hold === 'EDITING') {
 			meta.appendChild(document.createTextNode(' · '));
 			const tag = append(meta, $('span.tag.hold'));

@@ -28,7 +28,7 @@ import { CONVERSATION_SESSION_ROW_HEIGHT, CONVERSATION_SESSIONS_DELETE_ENABLED_K
 import { ConversationStubSession } from '../../browser/conversationStubModel.js';
 import { conversationLensSessionBarNewSession } from '../../browser/conversationLensSessionBarStrings.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
-import { conversationSessionsViewEmptyMessage } from '../../browser/conversationSessionsViewStrings.js';
+import { conversationSessionsViewEmptyMessage, conversationSessionsViewNoMatches } from '../../browser/conversationSessionsViewStrings.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { TestLayoutService, TestEditorService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
@@ -473,6 +473,21 @@ suite('ConversationSessionsView', () => {
 		assert.ok(isFilterVisible(view));
 		view.createNewSession();
 		assert.ok(isFilterVisible(view));
+	});
+
+	test('filter miss shows No matches and keeps the filter', async () => {
+		const { view, stubService } = mountView();
+		const alphaId = stubService.getActiveSessionId();
+		stubService.renameSession(alphaId, 'Alpha roster item');
+
+		await setFilterQuery(view, 'zzz-no-match');
+
+		assert.ok(isFilterVisible(view));
+		assert.strictEqual(getVisibleSessionTitles(view).length, 0);
+		const empty = view.element.querySelector('.conversation-sessions-empty') as HTMLElement | undefined;
+		assert.ok(empty);
+		assert.strictEqual(empty.style.display, 'block');
+		assert.strictEqual(empty.textContent, conversationSessionsViewNoMatches);
 	});
 
 	test('filter query hides non-matching session titles', async () => {

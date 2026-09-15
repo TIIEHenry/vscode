@@ -20,14 +20,21 @@ import { IThemeService } from '../../../../platform/theme/common/themeService.js
 import { IViewPaneOptions, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { AgentInspectTarget, IAgentInspectService } from '../common/agentInspect.js';
-import { formatAgentStatusLabel, formatAgentTypeShort } from '../common/navigatorAgentHierarchy.js';
+import { agentStatusTone, formatAgentStatusLabel, formatAgentTypeShort, type AgentStatusTone } from '../common/navigatorAgentHierarchy.js';
 import { AGENT_INSPECT_VIEW_ID } from './agentInspectIds.js';
 
 const $ = dom.$;
 
 export interface IAgentInspectEntry {
 	readonly id: string;
+	readonly field: string;
+	readonly value: string;
+	readonly tone?: AgentStatusTone;
 	readonly label: string;
+}
+
+function inspectEntry(id: string, field: string, value: string, tone?: AgentStatusTone): IAgentInspectEntry {
+	return { id, field, value, tone, label: `${field}: ${value}` };
 }
 
 class InspectDelegate implements IListVirtualDelegate<IAgentInspectEntry> {
@@ -41,7 +48,9 @@ class InspectDelegate implements IListVirtualDelegate<IAgentInspectEntry> {
 }
 
 interface IInspectTemplateData {
-	readonly label: HTMLElement;
+	readonly row: HTMLElement;
+	readonly field: HTMLElement;
+	readonly value: HTMLElement;
 }
 
 class InspectRenderer implements IListRenderer<IAgentInspectEntry, IInspectTemplateData> {
@@ -49,12 +58,19 @@ class InspectRenderer implements IListRenderer<IAgentInspectEntry, IInspectTempl
 	readonly templateId = InspectRenderer.TEMPLATE_ID;
 
 	renderTemplate(container: HTMLElement): IInspectTemplateData {
-		return { label: dom.append(container, $('.agent-inspect-entry-label')) };
+		const row = dom.append(container, $('.agent-inspect-entry'));
+		const field = dom.append(row, $('.agent-inspect-entry-field'));
+		const value = dom.append(row, $('.agent-inspect-entry-value'));
+		return { row, field, value };
 	}
 
 	renderElement(entry: IAgentInspectEntry, _index: number, templateData: IInspectTemplateData): void {
-		templateData.label.textContent = entry.label;
-		templateData.label.title = entry.label;
+		templateData.field.textContent = entry.field;
+		templateData.value.textContent = entry.value;
+		templateData.value.className = entry.tone
+			? `agent-inspect-entry-value is-${entry.tone}`
+			: 'agent-inspect-entry-value';
+		templateData.row.title = entry.label;
 	}
 
 	disposeTemplate(): void {
@@ -116,39 +132,39 @@ function entriesFromTarget(target: AgentInspectTarget | undefined): IAgentInspec
 	switch (target.kind) {
 		case 'agent':
 			return [
-				{ id: 'agent_id', label: `agent_id: ${target.node.agentId}` },
-				{ id: 'name', label: `name: ${target.node.name}` },
-				{ id: 'type', label: `type: ${formatAgentTypeShort(target.node.type)}` },
-				{ id: 'status', label: `status: ${formatAgentStatusLabel(target.node.status)}` },
-				{ id: 'model', label: `model: ${target.node.model}` },
-				{ id: 'turn_count', label: `turn_count: ${target.node.turnCount}` },
-				{ id: 'created_at', label: `created_at: ${target.node.createdAt}` },
+				inspectEntry('agent_id', localize('agentInspect.field.agentId', "Agent ID"), target.node.agentId),
+				inspectEntry('name', localize('agentInspect.field.name', "Name"), target.node.name),
+				inspectEntry('type', localize('agentInspect.field.type', "Type"), formatAgentTypeShort(target.node.type)),
+				inspectEntry('status', localize('agentInspect.field.status', "Status"), formatAgentStatusLabel(target.node.status), agentStatusTone(target.node.status)),
+				inspectEntry('model', localize('agentInspect.field.model', "Model"), target.node.model),
+				inspectEntry('turn_count', localize('agentInspect.field.turns', "Turns"), String(target.node.turnCount)),
+				inspectEntry('created_at', localize('agentInspect.field.created', "Created"), String(target.node.createdAt)),
 			];
 		case 'member':
 			return [
-				{ id: 'member_name', label: `member_name: ${target.info.memberName}` },
-				{ id: 'member_agent_id', label: `member_agent_id: ${target.info.memberAgentId}` },
-				{ id: 'status', label: `status: ${target.info.status}` },
-				{ id: 'preset', label: `preset: ${target.info.preset}` },
-				{ id: 'dynamic', label: `dynamic: ${target.info.dynamic}` },
-				{ id: 'turn_count', label: `turn_count: ${target.info.turnCount}` },
+				inspectEntry('member_name', localize('agentInspect.field.member', "Member"), target.info.memberName),
+				inspectEntry('member_agent_id', localize('agentInspect.field.memberAgentId', "Member agent ID"), target.info.memberAgentId),
+				inspectEntry('status', localize('agentInspect.field.status', "Status"), target.info.status, agentStatusTone(target.info.status)),
+				inspectEntry('preset', localize('agentInspect.field.preset', "Preset"), target.info.preset),
+				inspectEntry('dynamic', localize('agentInspect.field.dynamic', "Dynamic"), target.info.dynamic),
+				inspectEntry('turn_count', localize('agentInspect.field.turns', "Turns"), String(target.info.turnCount)),
 			];
 		case 'task':
 			return [
-				{ id: 'task_id', label: `task_id: ${target.task.taskId}` },
-				{ id: 'subject', label: `subject: ${target.task.subject}` },
-				{ id: 'owner', label: `owner: ${target.task.owner}` },
-				{ id: 'status', label: `status: ${target.task.status}` },
-				{ id: 'blocked_by', label: `blocked_by: ${target.task.blockedBy}` },
-				{ id: 'last_message', label: `last_message: ${target.task.lastMessage}` },
-				{ id: 'description', label: `description: ${target.task.description}` },
+				inspectEntry('task_id', localize('agentInspect.field.taskId', "Task ID"), target.task.taskId),
+				inspectEntry('subject', localize('agentInspect.field.subject', "Subject"), target.task.subject),
+				inspectEntry('owner', localize('agentInspect.field.owner', "Owner"), target.task.owner),
+				inspectEntry('status', localize('agentInspect.field.status', "Status"), target.task.status, agentStatusTone(target.task.status)),
+				inspectEntry('blocked_by', localize('agentInspect.field.blockedBy', "Blocked by"), target.task.blockedBy),
+				inspectEntry('last_message', localize('agentInspect.field.lastMessage', "Last message"), target.task.lastMessage),
+				inspectEntry('description', localize('agentInspect.field.description', "Description"), target.task.description),
 			];
 		case 'activity':
 			return [
-				{ id: 'tool', label: `tool: ${target.item.toolName}` },
-				{ id: 'agent', label: `agent: ${target.item.agentId ?? ''}` },
-				{ id: 'status', label: `status: ${target.item.status}` },
-				{ id: 'itemId', label: `itemId: ${target.item.itemId}` },
+				inspectEntry('tool', localize('agentInspect.field.tool', "Tool"), target.item.toolName),
+				inspectEntry('agent', localize('agentInspect.field.agent', "Agent"), target.item.agentId ?? ''),
+				inspectEntry('status', localize('agentInspect.field.status', "Status"), target.item.status, agentStatusTone(target.item.status)),
+				inspectEntry('itemId', localize('agentInspect.field.itemId', "Item ID"), target.item.itemId),
 			];
 	}
 }
@@ -161,6 +177,8 @@ export class AgentInspectView extends ViewPane {
 	private listContainer: HTMLElement | undefined;
 	private entries: IAgentInspectEntry[] = [];
 	private staleNote: HTMLElement | undefined;
+	private bodyHeight = 0;
+	private bodyWidth = 0;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -187,6 +205,7 @@ export class AgentInspectView extends ViewPane {
 	protected override renderBody(container: HTMLElement): void {
 		super.renderBody(container);
 
+		container.classList.add('agent-inspect-body');
 		this.staleNote = dom.append(container, $('.agent-inspect-stale-note'));
 		this.staleNote.textContent = localize('agentInspectView.staleTarget', "No longer in the current tree");
 		this.staleNote.style.display = 'none';
@@ -197,9 +216,18 @@ export class AgentInspectView extends ViewPane {
 
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
+		this.bodyHeight = height;
+		this.bodyWidth = width;
 		this.element.classList.toggle('is-narrow', width > 0 && width < 600);
 		this.element.classList.toggle('is-compact', width > 0 && width < 300);
-		this.list?.layout(height, width);
+		this.layoutInspectList();
+	}
+
+	private layoutInspectList(): void {
+		const staleHeight = this.staleNote && this.staleNote.style.display !== 'none'
+			? this.staleNote.offsetHeight
+			: 0;
+		this.list?.layout(Math.max(0, this.bodyHeight - staleHeight), this.bodyWidth);
 	}
 
 	private ensureList(): WorkbenchList<IAgentInspectEntry> {
@@ -230,6 +258,7 @@ export class AgentInspectView extends ViewPane {
 			this.staleNote.style.display = stale ? '' : 'none';
 		}
 		this.setEntries(entriesFromTarget(target));
+		this.layoutInspectList();
 	}
 
 	private setEntries(entries: IAgentInspectEntry[]): void {

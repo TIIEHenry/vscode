@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { UA_CLIENT_DISPLAY_CONVERSATION_DENSITY } from './uaClientSettingsKeys.js';
+
 export const UA_CONNECTION_PANE_ID = 'ua.connection';
 export const UA_ENGINE_PANE_ID = 'ua.engine';
 
@@ -12,3 +14,13 @@ export const UA_ENGINE_PANE_ORDER = 20;
 export const BACK_TO_CLIENT_SETTINGS_COMMAND_ID = 'workbench.action.backToClientSettings';
 export const OPEN_CONNECTION_PREFERENCES_COMMAND_ID = 'workbench.action.openConnectionPreferences';
 export const OPEN_ENGINE_PREFERENCES_COMMAND_ID = 'workbench.action.openEnginePreferences';
+
+/** Settings UI query that lands on the Client group, not Commonly Used. */
+export const BACK_TO_CLIENT_SETTINGS_QUERY = `@id:${UA_CLIENT_DISPLAY_CONVERSATION_DENSITY}`;
+
+export function getBackToClientSettingsOpenOptions(): { readonly focusSearch: false; readonly query: string } {
+	return {
+		focusSearch: false,
+		query: BACK_TO_CLIENT_SETTINGS_QUERY,
+	};
+}
