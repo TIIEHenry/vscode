@@ -126,6 +126,22 @@ type SessionViewHostClearTimeoutFn = (handle: SessionViewHostTimeoutHandle) => v
 const DEFAULT_ORPHAN_TIMEOUT_MS = 5000;
 const DEFAULT_PENDING_FRAME_LIMIT = 64;
 
+type StreamReopenSkipReason = 'no_lease' | 'connection_down' | 'attempt_open' | 'fail_closed';
+
+function wrapSessionViewDiagnostics(inner: DiagnosticsPort, onMailboxOverflow: (sessionId: string) => void): DiagnosticsPort {
+	return {
+		count(metric, labels) {
+			if (metric === 'mailbox.overflow' && typeof labels?.sessionId === 'string' && labels.sessionId.length > 0) {
+				onMailboxOverflow(labels.sessionId);
+			}
+			inner.count(metric, labels);
+		},
+		warn(message, fields) {
+			inner.warn(message, fields);
+		},
+	};
+}
+
 function writeMessageToCoreFact(msg: ConversationWriteMessage, leaseId: ViewLeaseId, correlation: CorrelationRef): unknown {
 	switch (msg.kind) {
 		case 'submitInput':
@@ -218,6 +234,8 @@ export class SessionViewHost extends Disposable {
 	private readonly clearTimeoutFn: SessionViewHostClearTimeoutFn;
 	private readonly reopenTimers = new Map<string, { timer: ReturnType<typeof setTimeout>; attempt: number }>();
 	private readonly reopenAttemptBySession = new Map<string, number>();
+	/** Host-side latch: last `failClosedOverflow` (mailbox.overflow) until next acquireLease / connection flip. */
+	private readonly failClosedSessions = new Set<string>();
 
 	constructor(
 		private readonly connection: IUniverseAgentConnection,
@@ -225,7 +243,10 @@ export class SessionViewHost extends Disposable {
 		options: SessionViewHostOptions = {},
 	) {
 		super();
-		this.diagnostics = options.diagnostics ?? createSessionViewDiagnosticsPort();
+		this.diagnostics = wrapSessionViewDiagnostics(
+			options.diagnostics ?? createSessionViewDiagnosticsPort(),
+			sessionId => this.failClosedSessions.add(sessionId),
+		);
 		this.orphanTimeoutMs = options.orphanTimeoutMs ?? DEFAULT_ORPHAN_TIMEOUT_MS;
 		this.pendingFrameLimit = options.pendingFrameLimit ?? DEFAULT_PENDING_FRAME_LIMIT;
 		this.reopenBaseMs = options.reopenBaseMs ?? 1000;
@@ -251,6 +272,7 @@ export class SessionViewHost extends Disposable {
 	}
 
 	acquireLease(sessionId: string, owner?: string): string {
+		this.failClosedSessions.delete(sessionId);
 		const leaseId = this.ids.nextAttemptId() as unknown as ViewLeaseId;
 		const sid = sessionId as SessionId;
 		this.knownSessions.add(sessionId);
@@ -426,6 +448,7 @@ export class SessionViewHost extends Disposable {
 		if (this.connection.getConnectionSnapshot().pairingPending) {
 			return;
 		}
+		this.failClosedSessions.clear();
 		if (this.connection.isEngineConnected()) {
 			this.connectionGeneration += 1;
 			this.connectionUp = true;
@@ -1316,13 +1339,16 @@ export class SessionViewHost extends Disposable {
 		}
 	}
 
-	private streamReopenSkipReason(sessionId: string): 'no_lease' | 'connection_down' | 'attempt_open' | undefined {
+	private streamReopenSkipReason(sessionId: string): StreamReopenSkipReason | undefined {
 		if (!this.connectionUp || !this.connection.isEngineConnected()) {
 			return 'connection_down';
 		}
 		const sid = sessionId as SessionId;
 		if (this.core.leaseCount(sid) <= 0) {
 			return 'no_lease';
+		}
+		if (this.failClosedSessions.has(sessionId)) {
+			return 'fail_closed';
 		}
 		if (this.core.attemptId(sid) !== null) {
 			return 'attempt_open';

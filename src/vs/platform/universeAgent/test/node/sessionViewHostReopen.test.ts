@@ -5,8 +5,9 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import type { SessionId } from '../../common/sessionView/types.js';
+import type { SessionId, SyncChrome, ViewPatch } from '../../common/sessionView/types.js';
 import type { DiagnosticMetric, DiagnosticsPort } from '../../node/sessionCore/ports.js';
+import type { IUniverseAgentSessionViewFrameEvent } from '../../common/universeAgentSessionView.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
 import { TestConnection, TestHost } from './sessionViewHostTestHelpers.js';
 
@@ -52,6 +53,16 @@ function createDeferredTimeout() {
 		}
 	};
 	return { delays, setTimeoutFn, clearTimeoutFn, fireAll, pending };
+}
+
+function syncChromeFromFrames(frames: readonly IUniverseAgentSessionViewFrameEvent[]): SyncChrome[] {
+	return frames.flatMap(event => {
+		const body = event.frame.frame.body;
+		if (body.kind !== 'patches') {
+			return [];
+		}
+		return body.patches.filter((patch): patch is Extract<ViewPatch, { op: 'setSyncChrome' }> => patch.op === 'setSyncChrome');
+	}).map(patch => patch.sync);
 }
 
 suite('SessionViewHost stream reopen (S2)', () => {
@@ -205,5 +216,60 @@ suite('SessionViewHost stream reopen (S2)', () => {
 		viewHost.requestResync(leaseId);
 		assert.strictEqual(diagnostics.counts.get('stream.reopen_scheduled' as DiagnosticMetric), undefined);
 		assert.strictEqual(clock.pending.size, 0);
+	});
+
+	test('armed reopen timer skips fail_closed after overflow and does not paint live', async () => {
+		const connection = new TestConnection();
+		const diagnostics = new CountingDiagnostics();
+		const clock = createDeferredTimeout();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+			diagnostics,
+			mailboxCapacity: 1,
+			reopenBaseMs: 1,
+			reopenJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease('sess-armed-overflow');
+		await viewHost.whenEngineSessionReady('sess-armed-overflow');
+		assert.strictEqual(connection.subscribeCalls.length, 1);
+
+		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
+		let overflowArmed = false;
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(event => {
+			frames.push(event);
+			if (!overflowArmed) {
+				return;
+			}
+			overflowArmed = false;
+			viewHost.post(leaseId, { kind: 'submitInput', text: 'a' });
+			viewHost.post(leaseId, { kind: 'submitInput', text: 'b' });
+		}));
+
+		connection.fireStreamClosed('sess-armed-overflow', { kind: 'remote' });
+		assert.strictEqual(coreOf(viewHost).attemptId('sess-armed-overflow' as SessionId), null);
+		assert.strictEqual(clock.pending.size, 1);
+		assert.strictEqual(diagnostics.counts.get('stream.reopen_scheduled' as DiagnosticMetric), 1);
+
+		const streams = (viewHost as unknown as { streams: Map<string, unknown> }).streams;
+		const streamKeysBeforeOverflow = [...streams.keys()];
+		overflowArmed = true;
+		viewHost.requestResync(leaseId);
+
+		assert.strictEqual(coreOf(viewHost).attemptId('sess-armed-overflow' as SessionId), null);
+		assert.deepStrictEqual([...streams.keys()], streamKeysBeforeOverflow);
+		assert.strictEqual(diagnostics.counts.get('mailbox.overflow' as DiagnosticMetric), 1);
+
+		const afterOverflow = frames.length;
+		clock.fireAll();
+		assert.ok(diagnostics.labels.some(item => item.metric === 'stream.reopen_skipped' && item.labels?.why === 'fail_closed'));
+		assert.strictEqual(diagnostics.counts.get('stream.reopen_fired' as DiagnosticMetric), undefined);
+		assert.strictEqual(connection.subscribeCalls.length, 1);
+		assert.deepStrictEqual(
+			syncChromeFromFrames(frames.slice(afterOverflow)).filter(sync => sync.kind === 'live'),
+			[],
+		);
 	});
 });

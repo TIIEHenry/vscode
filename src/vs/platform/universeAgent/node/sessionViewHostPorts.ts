@@ -66,12 +66,32 @@ export function createSessionViewIdPort(seed = 0): IdPort {
 	};
 }
 
-export function createSessionViewDiagnosticsPort(): DiagnosticsPort {
+/** Duck-typed logger so node ports do not depend on ILogService identity. */
+export type SessionViewDiagnosticsLog = {
+	readonly info: (message: string, ...args: unknown[]) => void;
+	readonly warn: (message: string, ...args: unknown[]) => void;
+};
+
+/**
+ * Default / production diagnostics port.
+ * Without `log`, count/warn stay silent (tests). With `log`, count is an info
+ * line containing the metric name (e.g. `view.lease_released_by_owner`) and
+ * warn is forwarded to the logger.
+ */
+export function createSessionViewDiagnosticsPort(log?: SessionViewDiagnosticsLog): DiagnosticsPort {
 	return {
-		count(_metric: DiagnosticMetric, _labels?: Readonly<Record<string, string>>): void {
-			// diagnostics-only; production host may wire telemetry later
+		count(metric: DiagnosticMetric, labels?: Readonly<Record<string, string>>): void {
+			if (!log) {
+				return;
+			}
+			const suffix = labels && Object.keys(labels).length > 0 ? ` ${JSON.stringify(labels)}` : '';
+			log.info(`${metric}${suffix}`);
 		},
-		warn(_message: string, _fields: Readonly<Record<string, unknown>>): void {
+		warn(message: string, fields: Readonly<Record<string, unknown>>): void {
+			if (!log) {
+				return;
+			}
+			log.warn(message, fields);
 		},
 	};
 }
