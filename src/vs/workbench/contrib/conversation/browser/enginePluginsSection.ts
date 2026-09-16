@@ -7,6 +7,7 @@ import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -253,8 +254,8 @@ export class EnginePluginsSection extends Disposable {
 		DOM.append(headRow, $('th')).textContent = localize('ua.enginePluginHookClass', "class_name");
 		this.hooksBody = DOM.append(this.hooksTable, $('tbody'));
 
-		this._register(this.connection.onDidChangeConnection(() => void this.refresh()));
-		void this.refresh();
+		this._register(this.connection.onDidChangeConnection(() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError)));
+		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	getDomNode(): HTMLElement {
@@ -370,7 +371,7 @@ export class EnginePluginsSection extends Disposable {
 				this.selectedPlugin = entry?.plugin;
 				this.updateRowActions();
 				if (this.selectedPlugin && canShowCatalogRows(this.mode)) {
-					void this.loadInfo(this.selectedPlugin.id);
+					void this.loadInfo(this.selectedPlugin.id).catch(onUnexpectedError).catch(onUnexpectedError);
 				} else if ((this.mode === 'failed' || this.mode === 'loading') && this.hookEntries.length > 0) {
 					this.hooksTable.style.display = '';
 				} else if (this.keepLeftoverCatalogForPairingHold(this.hasLeftoverHooks())) {
@@ -496,7 +497,7 @@ export class EnginePluginsSection extends Disposable {
 			this.renderScanResult();
 			this.renderStatus();
 			if (this.selectedPlugin && canShowCatalogRows(this.mode)) {
-				void this.loadInfo(this.selectedPlugin.id);
+				void this.loadInfo(this.selectedPlugin.id).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else {
 				this.clearInfoPresentation();
 			}
@@ -520,7 +521,7 @@ export class EnginePluginsSection extends Disposable {
 			});
 			this.renderStatus({
 				reason: getTransportErrorMessage(error),
-				onRetry: () => void this.refresh(),
+				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 			if (hadLiveCatalog) {
 				this.closeLeftoverWriteChrome();
@@ -619,7 +620,7 @@ export class EnginePluginsSection extends Disposable {
 				mode: 'failed',
 				featureLabel: PLUGIN_INFO_FEATURE,
 				reason: getTransportErrorMessage(error),
-				onRetry: () => void this.loadInfo(id),
+				onRetry: () => void this.loadInfo(id).catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 		}
 	}
@@ -756,7 +757,7 @@ export class EnginePluginsSection extends Disposable {
 			mode: 'failed',
 			featureLabel: PLUGINS_FEATURE,
 			reason,
-			onRetry: () => void this.refresh(),
+			onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
 		});
 	}
 
@@ -782,7 +783,7 @@ export class EnginePluginsSection extends Disposable {
 				mode: 'failed',
 				featureLabel: PLUGINS_FEATURE,
 				reason: this.writeFailedReason,
-				onRetry: () => void this.refresh(),
+				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 			return;
 		}
