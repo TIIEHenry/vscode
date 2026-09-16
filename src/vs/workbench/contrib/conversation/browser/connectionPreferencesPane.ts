@@ -559,7 +559,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			'HubDevices',
 			this.hubDevicesListContainer,
 			new HubDevicesDelegate(),
-			[new HubDevicesRenderer(device => this.handleConnectDevice(device), device => this.canConnectDevice(device))],
+			[new HubDevicesRenderer(device => void this.handleConnectDevice(device).catch(onUnexpectedError).catch(onUnexpectedError), device => this.canConnectDevice(device))],
 			{
 				identityProvider: { getId: (device: HubDeviceProjection) => device.id },
 				accessibilityProvider: new HubDevicesAccessibilityProvider(),

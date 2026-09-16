@@ -5352,6 +5352,33 @@ suite('ConnectionPreferencesPane', () => {
 			container.remove();
 		}
 	});
+
+	test('does not leak unhandled rejection when handleConnectDevice catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const studio = device({ id: 'dev-1', name: 'Studio' });
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [studio] }),
+			addHubDeviceProfile: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await timeout(0);
+		try {
+			const status = container.querySelector('.connection-hub-devices-status') as HTMLElement | null;
+			assert.ok(status);
+			const connect = [...container.querySelectorAll('.connection-hub-device-row .monaco-button')]
+				.find(button => button.textContent === 'Connect') as HTMLButtonElement | undefined;
+			assert.ok(connect);
+			poisonTextContent(status, paintBoom, value => value === 'boom');
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => connect.click());
+		} finally {
+			container.remove();
+		}
+	});
 });
 
 suite('Conversation Session StatusBar H4a negative', () => {
