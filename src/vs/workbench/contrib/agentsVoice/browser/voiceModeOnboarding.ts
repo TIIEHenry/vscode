@@ -1027,8 +1027,8 @@ export class VoiceModeOnboardingBanner extends ChatInputNoticeWidget implements 
 				callback: index => {
 					const commandId = index === '0' ? VOICE_SETTINGS_COMMAND : CONFIGURE_VOICE_INSTRUCTIONS_ACTION_ID;
 					this.logAction(index === '0' ? 'openSettings' : 'openInstructions');
-					this.commandService.executeCommand(commandId)
-						.catch(error => this.logService.error(`[voice] Failed to run ${commandId}: ${error}`));
+					void this.commandService.executeCommand(commandId)
+						.catch(onUnexpectedError).catch(onUnexpectedError);
 				},
 				disposables: this._store,
 			},
@@ -1089,8 +1089,8 @@ export class VoiceModeOnboardingBanner extends ChatInputNoticeWidget implements 
 		this.updateSelection();
 		this.player.play(voice.sampleId, voice.id);
 		status(localize('voiceMode.onboarding.voice.selected', "{0} selected.", voice.label));
-		this.configurationService.updateValue(VOICE_SETTING, voice.id, ConfigurationTarget.USER)
-			.catch(error => this.logService.error(`[voice] Failed to persist the Voice Mode voice: ${error}`));
+		void this.configurationService.updateValue(VOICE_SETTING, voice.id, ConfigurationTarget.USER)
+			.catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	/**
