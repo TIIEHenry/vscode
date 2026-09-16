@@ -4,19 +4,27 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
-import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
+import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
+import { IConversationSessionChatService } from '../../../conversation/browser/conversationSessionChatService.js';
 import { CONVERSATION_STUB_SEED_SESSIONS } from '../../../conversation/browser/conversationStubModel.js';
 import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { VIEW_CONTAINER as EXPLORER_VIEW_CONTAINER } from '../../../files/browser/explorerViewlet.js';
 import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainerModel, IViewContainersRegistry, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
-import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { workbenchInstantiationService, TestViewsService } from '../../../../test/browser/workbenchTestServices.js';
+import { IViewsService } from '../../../../services/views/common/viewsService.js';
 import { IAgentInspectService } from '../../common/agentInspect.js';
+import { INavigatorTeamMemberEntry } from '../../common/navigatorTeamData.js';
 import { AgentInspectService } from '../../browser/agentInspectService.js';
+import { AGENT_INSPECT_VIEW_ID } from '../../browser/agentInspectIds.js';
 import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
 import { NAVIGATOR_TEAM_CONTAINER_ID, NAVIGATOR_TEAM_VIEW_CONTAINER } from '../../browser/navigator.contribution.js';
 import { INavigatorTeamMember, NavigatorTeamView } from '../../browser/navigatorTeamList.js';
@@ -37,14 +45,49 @@ suite('NavigatorTeamView', () => {
 		return (view as unknown as { memberEntries: INavigatorTeamMember[] }).memberEntries;
 	}
 
+	const teamMember: INavigatorTeamMemberEntry = {
+		id: 'member:member:1',
+		label: 'Alice · IDLE',
+		memberName: 'Alice',
+		memberAgentId: 'member:1',
+		status: 'IDLE',
+		preset: 'p',
+		dynamic: 'd',
+		turnCount: 1,
+		managerAgentId: 'mgr:1',
+		managerName: 'Manager',
+	};
+
 	async function mountView(
 		connection: IUniverseAgentConnection = createNavigatorConnectionTestStub(),
 		roster: ConversationStubService = store.add(new ConversationStubService()),
+		extras?: {
+			notification?: INotificationService;
+			sessionChat?: IConversationSessionChatService;
+			openView?: (id: string, focus?: boolean) => Promise<unknown>;
+		},
 	): Promise<NavigatorTeamView> {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, roster);
 		instantiationService.stub(IAgentInspectService, store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
 		instantiationService.stub(IUniverseAgentConnection, connection);
+		instantiationService.stub(IConversationPartService, { focus: () => { } } as IConversationPartService);
+		if (extras?.notification) {
+			instantiationService.stub(INotificationService, extras.notification);
+		}
+		if (extras?.sessionChat) {
+			instantiationService.stub(IConversationSessionChatService, extras.sessionChat);
+		}
+		if (extras?.openView) {
+			const openView = extras.openView;
+			class TrackingViewsService extends TestViewsService {
+				override openView<T>(id: string, focus?: boolean): Promise<T | null> {
+					return openView(id, focus) as Promise<T | null>;
+				}
+				dispose(): void { }
+			}
+			instantiationService.stub(IViewsService, store.add(new TrackingViewsService()));
+		}
 		const stubViewContainer = {
 			id: 'navigator-team-test-container',
 			title: { value: 'Team', original: 'Team' },
@@ -138,5 +181,91 @@ suite('NavigatorTeamView', () => {
 		}
 		assert.strictEqual(entries.length, 0);
 		assert.strictEqual(getMembersList(view).length, 0);
+	});
+
+	test('does not leak unhandled rejection when member reveal notify throws', async () => {
+		// revealNavigatorAgentInConversation already catches openSubAgent; a lone inner
+		// reject does not leak. The void call site still needs `.catch` when the
+		// catch-path notify throws.
+		let openSubAgentCalls = 0;
+		let notifyCalls = 0;
+		const view = await mountView(createNavigatorConnectionTestStub(), store.add(new ConversationStubService()), {
+			sessionChat: {
+				findOpenTabForChat: () => undefined,
+				isSubAgentDialogOpen: () => false,
+				closeSubAgentDialog: () => { },
+				navigateAgentBreadcrumb: async () => { },
+				openSubAgent: async () => {
+					openSubAgentCalls++;
+					throw new Error('boom');
+				},
+			} as unknown as IConversationSessionChatService,
+			notification: {
+				error: () => {
+					notifyCalls++;
+					throw new Error('notify failed');
+				},
+			} as unknown as INotificationService,
+		});
+		(view as unknown as { setMemberEntries: (entries: INavigatorTeamMemberEntry[]) => void }).setMemberEntries([teamMember]);
+		const membersList = getMembersList(view);
+		assert.strictEqual(membersList.length, 1);
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			membersList.setFocus([0]);
+			membersList.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, openSubAgentCalls, notifyCalls }, {
+				unhandledRejections: [],
+				openSubAgentCalls: 1,
+				notifyCalls: 1,
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when inspect openView rejects and onUnexpectedError warn-then-rethrows', async () => {
+		// openInspectPanel has no inner try/catch. A lone `.catch(onUnexpectedError)`
+		// still leaks when the handler warn-then-rethrows.
+		let openViewCalls = 0;
+		const view = await mountView(createNavigatorConnectionTestStub(), store.add(new ConversationStubService()), {
+			openView: async (id: string, focus?: boolean) => {
+				openViewCalls++;
+				assert.strictEqual(id, AGENT_INSPECT_VIEW_ID);
+				assert.strictEqual(focus, true);
+				return Promise.reject('boom');
+			},
+		});
+
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			view.inspectMember(teamMember);
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, openViewCalls, unexpectedWarns }, {
+				unhandledRejections: [],
+				openViewCalls: 1,
+				unexpectedWarns: ['boom', 'boom'],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });
