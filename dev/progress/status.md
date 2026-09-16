@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "关仓 FireTriggerWebhook/InstallSessionDemoFake bytes 与 D542–D549 双链。compile-client 0。聚焦 286。D24 仍开。不是 leftover/pills 完成。"
+summary: "G Compact unary wire 已落；grpcClient 仍 JSON；D24 仍开。webhook/demoFake 已 bytes。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -30,17 +30,18 @@ summary: "关仓 FireTriggerWebhook/InstallSessionDemoFake bytes 与 D542–D549
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
+| **G** | Compact unary **wire 已落**；grpcClient compact 仍 JSON；D24 **仍开** |
 
 子 agent 发现：
 | ID | 问题 |
 |:---|:-----|
-| [D24](deferred-gaps.md) | **仍开**：webhook/demoFake **已** bytes；ClearSessionDemoFake / Get·SetModelPreferences / ResolveTurn / Connect / SaveSkillContent / Watch·Rebuild 仍 JSON |
+| [D24](deferred-gaps.md) | **仍开**：G Compact **wire 已落**、grpcClient 仍 JSON；webhook/demoFake **已** bytes；ClearSessionDemoFake / Get·SetModelPreferences / ResolveTurn / Connect / SaveSkillContent / Watch·Rebuild 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
 | [D542](deferred-gaps.md)–[D549](deferred-gaps.md) | **closed** 本文件 leftover catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |
 |:---|:-----|
-| **loop** | D24 仍开。J `common.proto` 已有 Get/SetModelPreferences message。SaveSkillContent 无 RPC。Connect/Watch 跳过。不得宣称 leftover/pills 完成 |
+| **loop** | D24 仍开。G Compact wire 已落、grpcClient 仍 JSON。J `common.proto` 已有 Get/SetModelPreferences message。SaveSkillContent 无 RPC。Connect/Watch 跳过。不得宣称 leftover/pills 完成 |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。
