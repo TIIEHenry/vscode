@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { getErrorMessage } from '../../../../base/common/errors.js';
+import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -118,10 +118,10 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		const overlay = this._register(this.instantiationService.createInstance(ConversationSubAgentOverlay, sessionWindowHost));
 		this.subAgentOverlays.set(sessionKey, overlay);
 		this._register(overlay.onDidRequestPromote(() => {
-			void this.promoteSubAgentDialog(sessionKey);
+			void this.promoteSubAgentDialog(sessionKey).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(overlay.onDidSelectBreadcrumb(chatId => {
-			void this.navigateAgentBreadcrumb(sessionKey, chatId);
+			void this.navigateAgentBreadcrumb(sessionKey, chatId).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(overlay.onDidClose(() => this.fireCloseNonRootStateChange()));
 	}

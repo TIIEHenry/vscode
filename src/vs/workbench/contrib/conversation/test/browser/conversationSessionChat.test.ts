@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
-import { getErrorMessage } from '../../../../../base/common/errors.js';
+import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { DisposableStore, IDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
@@ -397,6 +397,34 @@ suite('Conversation session chat (S3)', () => {
 		}
 
 		return { instantiationService, parts, conversationPart, sessionChatService, rosterService, sessionWindow, sessionBar };
+	}
+
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void): Promise<void> {
+		// Method bodies already catch the inner reject; catch-path notice throw still
+		// needs a call-site catch. A lone `.catch(onUnexpectedError)` still leaks when
+		// the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			run();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	}
 
 	test('parseConversationChatResource round-trips session and chat ids', () => {
@@ -1107,6 +1135,25 @@ suite('Conversation session chat (S3)', () => {
 		}
 	});
 
+	test('does not leak unhandled rejection when overlay promote catch-path notify throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		let throwOnError = false;
+		const { sessionChatService, sessionWindow } = await createHarness(undefined, {
+			error: () => {
+				if (throwOnError) {
+					throw paintBoom;
+				}
+			},
+		} as INotificationService);
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Research sub-agent');
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-1');
+		sessionChatService.getConversationPart = () => undefined;
+		const popout = sessionWindow.querySelector(`.${conversationSubAgentOverlayPopoutClass}`) as HTMLElement | null;
+		assert.ok(popout);
+		throwOnError = true;
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => popout.click());
+	});
+
 	test('leaf maximize keeps the sub-agent dialog open without adding a tab', async () => {
 		const { conversationPart, sessionChatService, sessionWindow } = await createHarness();
 		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Research sub-agent');
@@ -1293,6 +1340,33 @@ suite('Conversation session chat (S3)', () => {
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('does not leak unhandled rejection when overlay breadcrumb catch-path notify throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const boom = new Error('boom');
+		let throwOnError = false;
+		const { conversationPart, sessionChatService, sessionWindow } = await createHarness(undefined, {
+			error: () => {
+				if (throwOnError) {
+					throw paintBoom;
+				}
+			},
+		} as INotificationService);
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-2', 'Child agent', 'sub-1');
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-1', { title: 'Parent agent' });
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-2');
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
+		conversationPart.activeGroup.openEditor = async () => {
+			throw boom;
+		};
+		const ancestor = [...sessionWindow.querySelectorAll('.conversation-agent-breadcrumb-item')].find(element => {
+			return element.getAttribute('aria-current') !== 'location' && element.textContent?.includes('Parent agent');
+		}) as HTMLElement | undefined;
+		assert.ok(ancestor);
+		throwOnError = true;
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => ancestor.click());
 	});
 
 	test('closeNonRootTabs closeEditors throw notifies error without unhandled rejection', async () => {
