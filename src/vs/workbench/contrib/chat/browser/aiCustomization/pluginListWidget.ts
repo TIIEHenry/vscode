@@ -43,7 +43,7 @@ import { IAICustomizationItemsModel } from './aiCustomizationItemsModel.js';
 import { UpdateAgentPluginsCommandId } from '../chat.js';
 import { Checkbox } from '../../../../../base/browser/ui/toggle/toggle.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
-import { getErrorMessage } from '../../../../../base/common/errors.js';
+import { getErrorMessage, onUnexpectedError } from '../../../../../base/common/errors.js';
 import { getPluginInclusionLabel } from './aiCustomizationPresentation.js';
 import { status } from '../../../../../base/browser/ui/aria/aria.js';
 import { createCustomizationCardPrimaryAction, CustomizationCardListController } from './customizationCardList.js';
@@ -970,13 +970,13 @@ export class PluginListWidget extends Disposable {
 		// Listen to plugin service changes
 		this._register(autorun(reader => {
 			this.agentPluginService.plugins.read(reader);
-			void this.refresh();
+			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(this.pluginMarketplaceService.onDidChangeMarketplaces(() => {
 			this.marketplaceItems = [];
 			this.marketplaceSnapshotCts?.dispose(true);
 			this.marketplaceSnapshot.reset();
-			void this.refresh();
+			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(autorun(reader => {
 			this.pluginMarketplaceService.recommendedPlugins.read(reader);
@@ -992,7 +992,7 @@ export class PluginListWidget extends Disposable {
 			this.harnessService.activeHarness.read(reader);
 			this.updateToolbarActions();
 			if (!this.browseMode) {
-				void this.refresh();
+				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -1004,7 +1004,7 @@ export class PluginListWidget extends Disposable {
 			if (itemProvider) {
 				itemProviderChangeDisposable.value = itemProvider.onDidChange(() => {
 					if (!this.browseMode) {
-						void this.refresh();
+						void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 					}
 				});
 			} else {
@@ -1015,7 +1015,7 @@ export class PluginListWidget extends Disposable {
 		this.updateToolbarActions();
 
 		// Initial refresh
-		void this.refresh();
+		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async refresh(): Promise<void> {
@@ -1648,7 +1648,7 @@ export class PluginListWidget extends Disposable {
 				readmeUri: item.readmeUri,
 			});
 			button.label = localize('installed', "Installed");
-			void this.refresh();
+			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 		} catch (error) {
 			button.label = localize('install', "Install");
 			button.enabled = true;
@@ -1700,7 +1700,7 @@ export class PluginListWidget extends Disposable {
 		}
 		this.visible = visible;
 		if (visible) {
-			void this.refresh();
+			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
