@@ -10,7 +10,7 @@ summary: "merge 关仓：SaveConfig/CreateRemoteSession/Status/History/UploadPro
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
-### 已合入（compile-client 0 · 聚焦待跑）
+### 已合入（compile-client 0 · 聚焦 49）
 | 切片 | 提交 |
 |:-----|:-----|
 | **A six bytes** | `23e57db250f` — SaveConfig / CreateRemoteSession / Status / History / UploadProgress / ResolveModel **已** bytes。[D24](deferred-gaps.md) **仍开** |
