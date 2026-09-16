@@ -191,14 +191,16 @@ suite('grpc SystemService HealthCheck / Shutdown / Doctor protobuf wire', () => 
 		assert.ok(!/\bgrpcClient\b/.test(source));
 	});
 
-	test('doctor unary stays JSON on the System client; encode/decode not wired', () => {
+	test('grpcClient doctor uses bytes; encodeDoctorRequest() empty proto then mapDoctorResponse', () => {
 		const client = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const body = extractAsyncMethod(client, 'doctor');
-		assert.ok(body.includes('makeUnaryClient<'), 'doctor must stay JSON until a later slice wires bytes');
-		assert.ok(!body.includes('makeUnaryBytesClient'), 'doctor must not be wired yet');
-		assert.ok(!body.includes('encodeDoctorRequest'), 'doctor must not call encodeDoctorRequest');
-		assert.ok(!body.includes('decodeDoctorResponse'), 'doctor must not call decodeDoctorResponse');
+		assert.ok(body.includes('makeUnaryBytesClient'), 'doctor must use makeUnaryBytesClient');
+		assert.ok(body.includes('encodeDoctorRequest()'), 'doctor must send empty proto via encodeDoctorRequest()');
+		assert.ok(body.includes('decodeDoctorResponse'), 'doctor must call decodeDoctorResponse');
+		assert.ok(body.includes('mapDoctorResponse'), 'doctor must call mapDoctorResponse');
+		assert.ok(!body.includes('makeUnaryClient<'), 'doctor must not use JSON makeUnaryClient');
 		assert.ok(!body.includes('JSON.stringify'), 'doctor must not JSON.stringify');
+		assert.ok(!body.includes('unary({})'), 'doctor must not send JSON {}');
 	});
 
 	test('grpcClient HealthCheck / Shutdown use bytes; decode then map*', () => {

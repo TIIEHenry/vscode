@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "merge compile-client 0；聚焦 9 文件 309 passing / 0 fail。A TokenUsage+Config Get/Set 已 bytes；F SetPermissionPolicy / G Doctor wire 未接线。D503–D507 closed。D24 仍开。不是 leftover/pills 完成。"
+summary: "A 槽 SetPermissionPolicy+Doctor 已 bytes；D24 仍开（SaveSkillContent/Rebuild/Watch/model prefs 仍 JSON）。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -27,9 +27,9 @@ summary: "merge compile-client 0；聚焦 9 文件 309 passing / 0 fail。A Toke
 ### 进行中（2026-09-16 · merge 关仓；D24 仍开）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
-| **A** | TokenUsage+Config bytes | 已合入 merge。[D24](deferred-gaps.md) **仍开** |
-| **F** | SetPermissionPolicy wire | 已合入；**未接线** |
-| **G** | Doctor wire | 已合入；**勿 add `out`** |
+| **A** | SetPermissionPolicy+Doctor bytes | 本刀 `d24-grpcclient-permission-doctor` 已接线。[D24](deferred-gaps.md) **仍开** |
+| **F** | SetPermissionPolicy wire | 已合入；A 本刀已接线 |
+| **G** | Doctor wire | 已合入；A 本刀已接线；**勿 add `out`** |
 | **C** | D503 | 保持 `dev/loop` gitlink 脏；勿 add。[D503](deferred-gaps.md) closed |
 | **D/H/I/J** | D504–D507 | 已合入 merge |
 | **B** | — | 脏 `worktree-pool.md`；**跳过**；勿 `-B` |
@@ -39,7 +39,7 @@ summary: "merge compile-client 0；聚焦 9 文件 309 passing / 0 fail。A Toke
 子 agent 发现的既有代码问题（开项 + 本波）：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
-| [D24](deferred-gaps.md) | A/F/G | **仍开**：TokenUsage+Config Get/Set **已** bytes；SetPermissionPolicy/Doctor wire **未接线**；SaveSkillContent/Rebuild/Watch/model prefs 仍 JSON |
+| [D24](deferred-gaps.md) | A/F/G | **仍开**：TokenUsage+Config Get/Set **已** bytes；SetPermissionPolicy/Doctor **已** bytes；SaveSkillContent/Rebuild/Watch/model prefs 仍 JSON |
 | [D487](deferred-gaps.md) | Memory | **open**：codec 无 double；Search score 未读 |
 | [D503](deferred-gaps.md)–[D507](deferred-gaps.md) | C/D/H/I/J | **closed** ProviderModel / Rules / Hooks / MCP definitions / Connection pane void catch |
 | [D405](deferred-gaps.md) | 手测 | **仍开**（S4a/S4b 前置） |
@@ -57,7 +57,7 @@ summary: "merge compile-client 0；聚焦 9 文件 309 passing / 0 fail。A Toke
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
-| **loop 切片** | [D24](deferred-gaps.md) **仍开**（SaveSkillContent/Rebuild/Watch/GetModelPreferences/SetModelPreferences/ResolveModel 仍 JSON；SetPermissionPolicy/Doctor wire 未接线）。[D503](deferred-gaps.md)–[D507](deferred-gaps.md) **closed**。[D487](deferred-gaps.md) **open**。R9 / **D405** 仍开。不得宣称 leftover / pills 完成 |
+| **loop 切片** | [D24](deferred-gaps.md) **仍开**（SaveSkillContent/Rebuild/Watch/GetModelPreferences/SetModelPreferences/ResolveModel 仍 JSON；SetPermissionPolicy/Doctor **已** bytes）。[D503](deferred-gaps.md)–[D507](deferred-gaps.md) **closed**。[D487](deferred-gaps.md) **open**。R9 / **D405** 仍开。不得宣称 leftover / pills 完成 |
 | **test-baseline** | 本关仓聚焦 9 文件 **309 passing / 0 fail**（含各文件 assertCleanState）。conversationNavigation 整文件 afterEach ConversationLens leak 已知，未跑整文件。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 未满足前不开 U2 |
 ## 不做：**ADR-007 U2**、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。

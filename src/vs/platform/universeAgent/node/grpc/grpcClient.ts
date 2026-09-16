@@ -118,7 +118,6 @@ import type {
 	UniverseAgentSessionToolPermissionMode,
 	UniverseAgentSetPermissionModeRequest,
 	UniverseAgentSetPermissionModeResult,
-	UniverseAgentPermissionPolicy,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentTaskUpdateRequest,
@@ -527,7 +526,6 @@ import {
 	type DeleteRemoteAgentConfigResponseWire,
 	type DeliveryTargetDtoWire,
 	type DestroyRemoteSessionResponseWire,
-	type DoctorResponseWire,
 	type DownloadChunkWire,
 	type ExitMaintenanceResponseWire,
 	type ExportSessionResponseWire,
@@ -594,8 +592,10 @@ import {
 	encodeDeviceAuthConnectRequest,
 } from './grpcHandshakeWire.js';
 import {
+	decodeDoctorResponse,
 	decodeHealthCheckResponse,
 	decodeShutdownResponse,
+	encodeDoctorRequest,
 	encodeHealthCheckRequest,
 	encodeShutdownRequest,
 } from './grpcSystemUnaryWire.js';
@@ -772,6 +772,10 @@ import {
 	encodeSetConfigRequest,
 } from './grpcConfigUnaryWire.js';
 import {
+	decodeSetPermissionPolicyResponse,
+	encodeSetPermissionPolicyRequest,
+} from './grpcConfigPermissionUnaryWire.js';
+import {
 	decodeAgentMergeResponse,
 	decodeGetFileInfoResponse,
 	decodeListFilesResponse,
@@ -859,19 +863,6 @@ function sessionToolPermissionModeWire(mode: UniverseAgentSessionToolPermissionM
 		case 'SESSION_TOOL_PERMISSION_MODE_AGENT':
 			return 2;
 		case 'SESSION_TOOL_PERMISSION_MODE_PERMIT':
-			return 3;
-		default:
-			return 0;
-	}
-}
-
-function permissionPolicyWire(policy: UniverseAgentPermissionPolicy): number {
-	switch (policy) {
-		case 'PERMISSION_POLICY_ASK':
-			return 1;
-		case 'PERMISSION_POLICY_AGENT':
-			return 2;
-		case 'PERMISSION_POLICY_PERMIT':
 			return 3;
 		default:
 			return 0;
@@ -3101,13 +3092,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async doctor(): Promise<UniverseAgentDoctorResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, DoctorResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.System.service,
 			UniverseAgentGrpcServices.System.Doctor,
+			decodeDoctorResponse,
 		);
-		const wire = await unary({});
-		return mapDoctorResponse(wire);
+		return mapDoctorResponse(await unary(encodeDoctorRequest()));
 	}
 
 	async listDevices(): Promise<UniverseAgentListDevicesResult> {
@@ -3252,16 +3243,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Config.service,
 			UniverseAgentGrpcServices.Config.SetPermissionPolicy,
+			decodeSetPermissionPolicyResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			tool_name: request.toolName,
-			policy: permissionPolicyWire(request.policy),
-		});
+		const wire = await unary(encodeSetPermissionPolicyRequest(request));
 		return {
 			ok: wire.success === true,
 			message: wire.message,
