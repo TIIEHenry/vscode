@@ -452,6 +452,35 @@ suite('grpc TriggerService List/Upsert/Delete/SetEnabled/Fire protobuf wire', ()
 		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
+
+	test('listTriggers / upsertTrigger / deleteTrigger / setTriggerEnabled / fireTrigger use bytes then map*', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
+		const methods: Array<{ name: string; encoder: string; decoder: string; mapper: string }> = [
+			{ name: 'listTriggers', encoder: 'encodeListTriggersRequest', decoder: 'decodeListTriggersResponse', mapper: 'mapListTriggersResponse' },
+			{ name: 'upsertTrigger', encoder: 'encodeUpsertTriggerRequest', decoder: 'decodeUpsertTriggerResponse', mapper: 'mapUpsertTriggerResponse' },
+			{ name: 'deleteTrigger', encoder: 'encodeDeleteTriggerRequest', decoder: 'decodeDeleteTriggerResponse', mapper: 'mapDeleteTriggerResponse' },
+			{ name: 'setTriggerEnabled', encoder: 'encodeSetTriggerEnabledRequest', decoder: 'decodeSetTriggerEnabledResponse', mapper: 'mapSetTriggerEnabledResponse' },
+			{ name: 'fireTrigger', encoder: 'encodeFireTriggerRequest', decoder: 'decodeFireTriggerResponse', mapper: 'mapFireTriggerResponse' },
+		];
+		for (const { name, encoder, decoder, mapper } of methods) {
+			const body = extractAsyncMethod(source, name);
+			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
+			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
+			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
+			assert.ok(body.includes(mapper), `${name} must call ${mapper}`);
+			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
+			assert.ok(!body.includes('JSON.stringify'), `${name} must not JSON.stringify`);
+		}
+		const upsert = extractAsyncMethod(source, 'upsertTrigger');
+		assert.ok(upsert.includes('encodeUpsertTriggerRequest(request)'), 'upsertTrigger must pass TS request to encodeUpsertTriggerRequest');
+		assert.ok(!upsert.includes('triggerDtoWire'), 'upsertTrigger must not use triggerDtoWire');
+		assert.ok(!source.includes('function triggerDtoWire'));
+		assert.ok(source.includes('grpcTriggerUnaryWire'));
+		assert.ok(!/\basync registerSessionEngineTrigger\(/.test(source));
+		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'getModelPreferences').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+	});
 });
 
 function sampleTrigger(overrides: Partial<UniverseAgentTrigger> = {}): UniverseAgentTrigger {
@@ -479,6 +508,14 @@ function grpcDir(): string {
 	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcTriggerUnaryWire.ts')));
 	assert.ok(dir, 'grpcTriggerUnaryWire.ts not found from cwd or import.meta');
 	return dir;
+}
+
+function extractAsyncMethod(source: string, name: string): string {
+	const start = source.indexOf(`\tasync ${name}(`);
+	assert.ok(start >= 0, `missing async ${name}(`);
+	const nextAsync = source.indexOf('\n\tasync ', start + 1);
+	const end = nextAsync >= 0 ? nextAsync : source.length;
+	return source.slice(start, end);
 }
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {

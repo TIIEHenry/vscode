@@ -348,8 +348,6 @@ import type {
 	UniverseAgentSetTriggerEnabledResult,
 	UniverseAgentFireTriggerRequest,
 	UniverseAgentFireTriggerResult,
-	UniverseAgentTrigger,
-	UniverseAgentTriggerDeliveryTarget,
 	UniverseAgentWriteClipboardRequest,
 	UniverseAgentWriteClipboardResult,
 	UniverseAgentReadClipboardRequest,
@@ -524,20 +522,17 @@ import {
 	type ConnectionReportWire,
 	type CreateRemoteSessionResponseWire,
 	type DeleteRemoteAgentConfigResponseWire,
-	type DeliveryTargetDtoWire,
 	type DestroyRemoteSessionResponseWire,
 	type DownloadChunkWire,
 	type ExitMaintenanceResponseWire,
 	type ExportSessionResponseWire,
 	type FetchToolUsageDetailResponseWire,
-	type FireTriggerResponseWire,
 	type GetRemoteSessionHistoryResponseWire,
 	type GetRemoteSessionStatusResponseWire,
 	type HistoryResponseWire,
 	type ListConfigsResponseWire,
 	type ListLoopSnapshotsResponseWire,
 	type ListNodesResponseWire,
-	type ListTriggersResponseWire,
 	type MemoryRebuildEventWire,
 	type PrewarmSessionsResponseWire,
 	type PruneResponseWire,
@@ -556,16 +551,13 @@ import {
 	type SaveRemoteAgentConfigResponseWire,
 	type SaveSkillContentResponseWire,
 	type SetMaintenanceResponseWire,
-	type SetTriggerEnabledResponseWire,
 	type ShelveSessionResponseWire,
 	type StatusResponseWire,
 	type SubscribeToolDetailChunkWire,
 	type TodoResponseWire,
-	type TriggerDtoWire,
 	type UnshelveSessionResponseWire,
 	type UploadProgressResponseWire,
 	type UploadResponseWire,
-	type UpsertTriggerResponseWire,
 	type UsageResponseWire,
 } from './grpcClientMappers.js';
 import {
@@ -606,6 +598,18 @@ import {
 	encodeRevokeRequest,
 	encodeRotateTokenRequest,
 } from './grpcDevicePairUnaryWire.js';
+import {
+	decodeDeleteTriggerResponse,
+	decodeFireTriggerResponse,
+	decodeListTriggersResponse,
+	decodeSetTriggerEnabledResponse,
+	decodeUpsertTriggerResponse,
+	encodeDeleteTriggerRequest,
+	encodeFireTriggerRequest,
+	encodeListTriggersRequest,
+	encodeSetTriggerEnabledRequest,
+	encodeUpsertTriggerRequest,
+} from './grpcTriggerUnaryWire.js';
 import {
 	decodeChatResponse,
 	decodeCreateSessionResponse,
@@ -1028,32 +1032,6 @@ function mapPtyClientMessageWire(message: UniverseAgentPtyClientMessage): Record
 		};
 	}
 	return wire;
-}
-function deliveryTargetWire(target: UniverseAgentTriggerDeliveryTarget): DeliveryTargetDtoWire {
-	if (target.kind === 'self') {
-		return { self: {} };
-	}
-	if (target.kind === 'boundSession') {
-		return { bound_session: { session_id: target.sessionId } };
-	}
-	if (target.kind === 'newSession') {
-		return { new_session: { engine_profile_id: target.engineProfileId } };
-	}
-	return {};
-}
-function triggerDtoWire(trigger: UniverseAgentTrigger): TriggerDtoWire {
-	return {
-		trigger_id: trigger.triggerId,
-		name: trigger.name,
-		type: trigger.type,
-		prompt_template: trigger.promptTemplate,
-		enabled: trigger.enabled,
-		pause_reason: trigger.pauseReason,
-		target: deliveryTargetWire(trigger.target),
-		interval_ms: trigger.intervalMs,
-		cron_expression: trigger.cronExpression,
-		run_at_epoch_ms: trigger.runAtEpochMs,
-	};
 }
 
 export interface GrpcUniverseAgentClientOptions {
@@ -3169,74 +3147,53 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async listTriggers(request: UniverseAgentListTriggersRequest): Promise<UniverseAgentListTriggersResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ListTriggersResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Trigger.service,
 			UniverseAgentGrpcServices.Trigger.ListTriggers,
+			decodeListTriggersResponse,
 		);
-		const wire = await unary({
-			scope: request.scope,
-			scope_id: request.scopeId,
-			type_filter: request.typeFilter,
-		});
-		return mapListTriggersResponse(wire);
+		return mapListTriggersResponse(await unary(encodeListTriggersRequest(request)));
 	}
 
 	async upsertTrigger(request: UniverseAgentUpsertTriggerRequest): Promise<UniverseAgentUpsertTriggerResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, UpsertTriggerResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Trigger.service,
 			UniverseAgentGrpcServices.Trigger.UpsertTrigger,
+			decodeUpsertTriggerResponse,
 		);
-		const wire = await unary({
-			scope: request.scope,
-			scope_id: request.scopeId,
-			trigger: triggerDtoWire(request.trigger),
-		});
-		return mapUpsertTriggerResponse(wire);
+		return mapUpsertTriggerResponse(await unary(encodeUpsertTriggerRequest(request)));
 	}
 
 	async deleteTrigger(request: UniverseAgentDeleteTriggerRequest): Promise<UniverseAgentDeleteTriggerResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, Record<string, unknown>>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Trigger.service,
 			UniverseAgentGrpcServices.Trigger.DeleteTrigger,
+			decodeDeleteTriggerResponse,
 		);
-		const wire = await unary({
-			scope: request.scope,
-			scope_id: request.scopeId,
-			trigger_id: request.triggerId,
-		});
-		return mapDeleteTriggerResponse(wire);
+		return mapDeleteTriggerResponse(await unary(encodeDeleteTriggerRequest(request)));
 	}
 
 	async setTriggerEnabled(request: UniverseAgentSetTriggerEnabledRequest): Promise<UniverseAgentSetTriggerEnabledResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, SetTriggerEnabledResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Trigger.service,
 			UniverseAgentGrpcServices.Trigger.SetTriggerEnabled,
+			decodeSetTriggerEnabledResponse,
 		);
-		const wire = await unary({
-			scope: request.scope,
-			scope_id: request.scopeId,
-			trigger_id: request.triggerId,
-			enabled: request.enabled,
-		});
-		return mapSetTriggerEnabledResponse(wire);
+		return mapSetTriggerEnabledResponse(await unary(encodeSetTriggerEnabledRequest(request)));
 	}
 
 	async fireTrigger(request: UniverseAgentFireTriggerRequest): Promise<UniverseAgentFireTriggerResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, FireTriggerResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Trigger.service,
 			UniverseAgentGrpcServices.Trigger.FireTrigger,
+			decodeFireTriggerResponse,
 		);
-		const wire = await unary({
-			scope: request.scope,
-			scope_id: request.scopeId,
-			trigger_id: request.triggerId,
-		});
-		return mapFireTriggerResponse(wire);
+		return mapFireTriggerResponse(await unary(encodeFireTriggerRequest(request)));
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

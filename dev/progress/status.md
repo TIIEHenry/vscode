@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "merge 本波：A Device.Revoke 已 bytes；F Trigger 五 unary wire 未接线；D522–D527 closed。compile-client 0；聚焦 300 passing。D24 仍开。不是 leftover/pills 完成。"
+summary: "merge 本波：A Device.Revoke 已 bytes；A Trigger 五 unary grpcClient 已 bytes；D522–D527 closed。compile-client 0；聚焦 300 passing。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -34,13 +34,13 @@ summary: "merge 本波：A Device.Revoke 已 bytes；F Trigger 五 unary wire �
 子 agent 发现：
 | ID | 问题 |
 |:---|:-----|
-| [D24](deferred-gaps.md) | **仍开**：Revoke **已** bytes；Trigger wire **未接线**；SaveSkillContent/Rebuild/Watch/model prefs/Connect 仍 JSON |
+| [D24](deferred-gaps.md) | **仍开**：Revoke **已** bytes；Trigger 五 unary **已** bytes；SaveSkillContent/Rebuild/Watch/model prefs/Connect 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
 | [D522](deferred-gaps.md)–[D527](deferred-gaps.md) | **closed** 本文件 leftover catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |
 |:---|:-----|
-| **loop** | D24 仍开（Trigger 接线 / SaveSkillContent 无 proto / Watch / model prefs / Connect）。Changes `commitButton`/`runOnSelected` 仍丢 Promise。不得宣称 leftover/pills 完成 |
+| **loop** | D24 仍开（SaveSkillContent 无 proto / Watch / model prefs / Connect）。Changes `commitButton`/`runOnSelected` 仍丢 Promise。不得宣称 leftover/pills 完成 |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。
