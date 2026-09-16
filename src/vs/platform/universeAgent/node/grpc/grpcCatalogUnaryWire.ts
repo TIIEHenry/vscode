@@ -41,6 +41,8 @@ import type {
 	ListModelsResponseWire,
 	ListProjectRulesResponseWire,
 	ListProviderStatusResponseWire,
+	ListSkillsResponseWire,
+	ListToolsResponseWire,
 	ProjectRuleWire,
 	ProviderStatusWire,
 	ResetAgentProfileResponseWire,
@@ -827,5 +829,68 @@ export function decodeQueueMutationResponse(bytes: Uint8Array): UniverseAgentQue
 		error: lastString(fields, 2),
 		opId: lastString(fields, 3),
 		itemId: lastString(fields, 4),
+	};
+}
+
+/**
+ * Tool.ListTools — ListToolsRequest `category`=1 `include_hidden`=2.
+ * This client's `listTools()` does not pass either; proto3 omits both → empty.
+ */
+export function encodeListToolsRequest(): Uint8Array {
+	return encodeEmptyProtoMessage();
+}
+
+/**
+ * ListToolsResponse — repeated `ToolSummary tools`=1, `total`=2.
+ * ToolSummary: `name`=1 `description`=2 `category`=3 `destructive`=4 `requires_permission`=5.
+ * Unknown fields unread.
+ */
+export function decodeListToolsResponse(bytes: Uint8Array): ListToolsResponseWire {
+	const fields = readProtoFields(bytes);
+	const total = lastVarint(fields, 2);
+	return {
+		tools: allLengthDelimited(fields, 1).map(decodeToolSummary),
+		...(total !== undefined ? { total: Number(total) } : {}),
+	};
+}
+
+function decodeToolSummary(bytes: Uint8Array): NonNullable<ListToolsResponseWire['tools']>[number] {
+	const fields = readProtoFields(bytes);
+	return {
+		name: lastString(fields, 1) ?? '',
+		description: lastString(fields, 2),
+		category: lastString(fields, 3),
+		destructive: lastVarint(fields, 4) === 1n,
+		requires_permission: lastVarint(fields, 5) === 1n,
+	};
+}
+
+/** Tool.ListSkills — ListSkillsRequest is empty. */
+export function encodeListSkillsRequest(): Uint8Array {
+	return encodeEmptyProtoMessage();
+}
+
+/**
+ * ListSkillsResponse — repeated `SkillSummary skills`=1, `total`=2.
+ * SkillSummary: `name`=1 `description`=2 `source`=3 `slash_enabled`=4 `enabled`=5.
+ * Unknown fields unread.
+ */
+export function decodeListSkillsResponse(bytes: Uint8Array): ListSkillsResponseWire {
+	const fields = readProtoFields(bytes);
+	const total = lastVarint(fields, 2);
+	return {
+		skills: allLengthDelimited(fields, 1).map(decodeSkillSummary),
+		...(total !== undefined ? { total: Number(total) } : {}),
+	};
+}
+
+function decodeSkillSummary(bytes: Uint8Array): NonNullable<ListSkillsResponseWire['skills']>[number] {
+	const fields = readProtoFields(bytes);
+	return {
+		name: lastString(fields, 1) ?? '',
+		description: lastString(fields, 2),
+		source: lastString(fields, 3),
+		slash_enabled: lastVarint(fields, 4) === 1n,
+		enabled: lastVarint(fields, 5) === 1n,
 	};
 }

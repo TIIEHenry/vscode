@@ -567,8 +567,6 @@ import {
 	type ListNodesResponseWire,
 	type ListPendingResponseWire,
 	type ListPluginsResponseWire,
-	type ListSkillsResponseWire,
-	type ListToolsResponseWire,
 	type ListTriggersResponseWire,
 	type MemoryDeleteResponseWire,
 	type MemoryHistoryResponseWire,
@@ -685,7 +683,9 @@ import {
 	decodeListProjectRulesResponse,
 	decodeListProviderStatusResponse,
 	decodeListSessionsResponse,
+	decodeListSkillsResponse,
 	decodeListTeamsResponse,
+	decodeListToolsResponse,
 	decodeMemberStatusResponse,
 	decodeProjectRuleResponse,
 	decodeProviderStatus,
@@ -718,7 +718,9 @@ import {
 	encodeListProjectRulesRequest,
 	encodeListProviderStatusRequest,
 	encodeListSessionsRequest,
+	encodeListSkillsRequest,
 	encodeListTeamsRequest,
+	encodeListToolsRequest,
 	encodeMemberStatusRequest,
 	encodeProbeRpcRequest,
 	encodePromotePermissionRuleRequest,
@@ -2398,13 +2400,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async listSkills(): Promise<UniverseAgentListSkillsResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ListSkillsResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Tool.service,
 			UniverseAgentGrpcServices.Tool.ListSkills,
+			decodeListSkillsResponse,
 		);
-		const wire = await unary({});
-		return mapListSkillsResponse(wire);
+		return mapListSkillsResponse(await unary(encodeListSkillsRequest()));
 	}
 
 	async setSkillEnabled(request: UniverseAgentSetSkillEnabledRequest): Promise<UniverseAgentSetSkillEnabledResult> {
@@ -2667,13 +2669,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async listTools(): Promise<UniverseAgentListToolsResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ListToolsResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Tool.service,
 			UniverseAgentGrpcServices.Tool.ListTools,
+			decodeListToolsResponse,
 		);
-		const wire = await unary({});
-		return mapListToolsResponse(wire);
+		return mapListToolsResponse(await unary(encodeListToolsRequest()));
 	}
 
 	async getToolInfo(request: UniverseAgentToolInfoRequest): Promise<UniverseAgentToolInfoResult> {

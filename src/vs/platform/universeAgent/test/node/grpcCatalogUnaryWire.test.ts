@@ -20,7 +20,9 @@ import {
 	decodeListProjectRulesResponse,
 	decodeListProviderStatusResponse,
 	decodeListSessionsResponse,
+	decodeListSkillsResponse,
 	decodeListTeamsResponse,
+	decodeListToolsResponse,
 	decodeMemberStatusResponse,
 	decodeProviderStatus,
 	decodeSaveAgentProfileResponse,
@@ -45,7 +47,9 @@ import {
 	encodeListModelsRequest,
 	encodeListProjectRulesRequest,
 	encodeListSessionsRequest,
+	encodeListSkillsRequest,
 	encodeListTeamsRequest,
+	encodeListToolsRequest,
 	encodeMemberStatusRequest,
 	encodeProbeRpcRequest,
 	encodePromotePermissionRuleRequest,
@@ -77,7 +81,9 @@ import {
 	mapListProjectRulesResponse,
 	mapListProviderStatusResponse,
 	mapListSessionsResponse,
+	mapListSkillsResponse,
 	mapListTeamsResponse,
+	mapListToolsResponse,
 	mapMemberInfo,
 	mapProviderStatus,
 	mapSessionInfoResponse,
@@ -915,7 +921,105 @@ suite('grpc catalog unary protobuf wire', () => {
 		assert.deepStrictEqual(decodeQueueMutationResponse(new Uint8Array(0)), { ok: false, error: undefined, opId: undefined, itemId: undefined });
 	});
 
-	test('grpcClient snapshots + next known unaries use bytes; listTools/listSkills stay JSON', () => {
+	test('encodeListToolsRequest is empty proto; this client omits category and include_hidden', () => {
+		const encoded = encodeListToolsRequest();
+		assert.strictEqual(encoded.length, 0);
+		assert.strictEqual(encodeEmptyProtoMessage().length, 0);
+		assert.notStrictEqual(JSON.stringify({}), Buffer.from(encoded).toString('utf8'));
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const framed = asUnaryProtoBytes(encoded);
+		assert.ok(Buffer.isBuffer(framed));
+		assert.strictEqual(framed.length, 0);
+	});
+
+	test('decodeListToolsResponse reads tools=1 total=2 then mapper; unknown fields unread', () => {
+		const tool = Buffer.concat([
+			encodeStringField(1, 'bash'),
+			encodeStringField(2, 'Run a command'),
+			encodeStringField(3, 'shell'),
+			encodeInt32Field(4, 1),
+			encodeInt32Field(5, 1),
+			encodeStringField(6, 'unused-tool-field'),
+		]);
+		const encoded = Buffer.concat([
+			encodeMessageField(1, tool),
+			encodeInt32Field(2, 3),
+			encodeStringField(3, 'unused-response-field'),
+		]);
+		const wire = decodeListToolsResponse(encoded);
+		assert.deepStrictEqual(wire, {
+			tools: [{
+				name: 'bash',
+				description: 'Run a command',
+				category: 'shell',
+				destructive: true,
+				requires_permission: true,
+			}],
+			total: 3,
+		});
+		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
+		assert.deepStrictEqual(mapListToolsResponse(wire), {
+			tools: [{
+				name: 'bash',
+				description: 'Run a command',
+				category: 'shell',
+				destructive: true,
+				requiresPermission: true,
+			}],
+		});
+		assert.deepStrictEqual(decodeListToolsResponse(new Uint8Array(0)), { tools: [] });
+		assert.deepStrictEqual(mapListToolsResponse(decodeListToolsResponse(new Uint8Array(0))), { tools: [] });
+	});
+
+	test('encodeListSkillsRequest is empty proto', () => {
+		const encoded = encodeListSkillsRequest();
+		assert.strictEqual(encoded.length, 0);
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const framed = asUnaryProtoBytes(encoded);
+		assert.ok(Buffer.isBuffer(framed));
+		assert.strictEqual(framed.length, 0);
+	});
+
+	test('decodeListSkillsResponse reads skills=1 total=2 then mapper; unknown fields unread', () => {
+		const skill = Buffer.concat([
+			encodeStringField(1, 'review'),
+			encodeStringField(2, 'Code review skill'),
+			encodeStringField(3, 'project'),
+			encodeInt32Field(4, 1),
+			encodeInt32Field(5, 1),
+			encodeStringField(6, 'unused-skill-field'),
+		]);
+		const encoded = Buffer.concat([
+			encodeMessageField(1, skill),
+			encodeInt32Field(2, 4),
+			encodeStringField(3, 'unused-response-field'),
+		]);
+		const wire = decodeListSkillsResponse(encoded);
+		assert.deepStrictEqual(wire, {
+			skills: [{
+				name: 'review',
+				description: 'Code review skill',
+				source: 'project',
+				slash_enabled: true,
+				enabled: true,
+			}],
+			total: 4,
+		});
+		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
+		assert.deepStrictEqual(mapListSkillsResponse(wire), {
+			skills: [{
+				name: 'review',
+				description: 'Code review skill',
+				source: 'project',
+				enabled: true,
+				slashEnabled: true,
+			}],
+		});
+		assert.deepStrictEqual(decodeListSkillsResponse(new Uint8Array(0)), { skills: [] });
+		assert.deepStrictEqual(mapListSkillsResponse(decodeListSkillsResponse(new Uint8Array(0))), { skills: [] });
+	});
+
+	test('grpcClient snapshots + next known unaries use bytes; listTools/listSkills use bytes; MCP/plugins/clipboard stay JSON', () => {
 		const thisDir = path.dirname(fileURLToPath(import.meta.url));
 		const repoRoot = path.join(thisDir, '../../../../../../');
 		const clientPath = path.join(repoRoot, 'src/vs/platform/universeAgent/node/grpc/grpcClient.ts');
@@ -1009,7 +1113,19 @@ suite('grpc catalog unary protobuf wire', () => {
 		assert.ok(mutation.includes('makeUnaryBytesClient'), '_queueMutation must use makeUnaryBytesClient');
 		assert.ok(mutation.includes('decodeQueueMutationResponse'), '_queueMutation must decode QueueMutationResponse');
 		assert.ok(!mutation.includes('makeUnaryClient<'), '_queueMutation must not use JSON makeUnaryClient');
-		for (const name of ['listTools', 'listSkills']) {
+		const toolCatalog: Array<{ name: string; encoder: string; decoder: string; mapper: string }> = [
+			{ name: 'listTools', encoder: 'encodeListToolsRequest', decoder: 'decodeListToolsResponse', mapper: 'mapListToolsResponse' },
+			{ name: 'listSkills', encoder: 'encodeListSkillsRequest', decoder: 'decodeListSkillsResponse', mapper: 'mapListSkillsResponse' },
+		];
+		for (const { name, encoder, decoder, mapper } of toolCatalog) {
+			const body = extractAsyncMethod(source, name);
+			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
+			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
+			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
+			assert.ok(body.includes(mapper), `${name} must call ${mapper}`);
+			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
+		}
+		for (const name of ['listMcpServers', 'listPlugins', 'listClipboard', 'respondQuestion']) {
 			const body = extractAsyncMethod(source, name);
 			assert.ok(body.includes('makeUnaryClient<'), `${name} must stay JSON this slice`);
 			assert.ok(!body.includes('makeUnaryBytesClient'), `${name} must not migrate this slice`);

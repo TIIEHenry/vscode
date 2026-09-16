@@ -287,7 +287,7 @@ suite('grpc git unary protobuf wire', () => {
 		});
 	});
 
-	test('grpcClient Git six unaries use bytes; listTools/listSkills stay JSON', () => {
+	test('grpcClient Git six unaries use bytes', () => {
 		const thisDir = path.dirname(fileURLToPath(import.meta.url));
 		const repoRoot = path.join(thisDir, '../../../../../../');
 		const clientPath = path.join(repoRoot, 'src/vs/platform/universeAgent/node/grpc/grpcClient.ts');
@@ -313,11 +313,6 @@ suite('grpc git unary protobuf wire', () => {
 		assert.ok(extractAsyncMethod(source, 'writeGitStagePaths').includes('mapWriteGitWriteResponse'));
 		assert.ok(extractAsyncMethod(source, 'writeGitCommit').includes('mapWriteGitWriteResponse'));
 		assert.ok(extractAsyncMethod(source, 'writeGitApplyHunks').includes('mapWriteGitWriteResponse'));
-		for (const name of ['listTools', 'listSkills']) {
-			const body = extractAsyncMethod(source, name);
-			assert.ok(body.includes('makeUnaryClient<'), `${name} must stay JSON this slice`);
-			assert.ok(!body.includes('makeUnaryBytesClient'), `${name} must not migrate this slice`);
-		}
 	});
 });
 

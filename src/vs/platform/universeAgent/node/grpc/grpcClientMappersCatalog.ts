@@ -169,6 +169,7 @@ export interface ListSkillsResponseWire {
 		enabled?: boolean;
 		slash_enabled?: boolean;
 	}>;
+	total?: number;
 }
 
 export interface SetSkillEnabledResponseWire {
@@ -800,6 +801,7 @@ export interface ListToolsResponseWire {
 		destructive?: boolean;
 		requires_permission?: boolean;
 	}>;
+	total?: number;
 }
 
 export function mapToolSummary(wire: NonNullable<ListToolsResponseWire['tools']>[number]): UniverseAgentToolSummary {
