@@ -3586,7 +3586,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 			const sessionUri = cached.backendUri;
 			const action = { type: ActionType.SessionConfigChanged as const, config: { [property]: normalizedValue } };
 			connection.dispatch(sessionUri.toString(), action);
-			void this._resolveRunningSessionConfig(sessionId, cached, nextValues);
+			void this._resolveRunningSessionConfig(sessionId, cached, nextValues).catch(onUnexpectedError);
 		}
 	}
 
@@ -3642,7 +3642,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 				replace: true,
 			};
 			connection.dispatch(sessionUri.toString(), action);
-			void this._resolveRunningSessionConfig(sessionId, cached, nextValues);
+			void this._resolveRunningSessionConfig(sessionId, cached, nextValues).catch(onUnexpectedError);
 		}
 	}
 
