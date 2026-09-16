@@ -4,18 +4,23 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event, ValueWithChangeEvent } from '../../../../../base/common/event.js';
+import { constObservable } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
-import { mock } from '../../../../../base/test/common/mock.js';
+import { mock, upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { MultiDiffEditorViewModel } from '../../../../../editor/browser/widget/multiDiffEditor/multiDiffEditorViewModel.js';
+import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { EditorInputCapabilities } from '../../../../../workbench/common/editor.js';
 import { MultiDiffEditorInput } from '../../../../../workbench/contrib/multiDiffEditor/browser/multiDiffEditorInput.js';
 import { IPartVisibilityChangeEvent, IWorkbenchLayoutService, Parts } from '../../../../../workbench/services/layout/browser/layoutService.js';
 import { TestEditorGroupView, workbenchInstantiationService } from '../../../../../workbench/test/browser/workbenchTestServices.js';
 import { IAgentWorkbenchLayoutService } from '../../../../browser/workbench.js';
-import { SessionChangesEditor } from '../../browser/sessionChangesEditor.js';
+import { ISessionChangeset } from '../../../../services/sessions/common/session.js';
+import { CHANGESET_REVIEW_ACTION_ID, SessionChangesEditor, SessionChangesUIElementFactory } from '../../browser/sessionChangesEditor.js';
 import { SessionChangesEditorInput } from '../../browser/sessionChangesEditorInput.js';
 import { ISessionChangesService } from '../../browser/sessionChangesService.js';
 import { IChangesViewService } from '../../common/changesViewService.js';
@@ -144,5 +149,44 @@ suite('SessionChangesEditorInput', () => {
 				EditorInputCapabilities.Readonly,
 			capabilitiesChanges: 1
 		});
+	});
+
+	test('does not leak unhandled rejection when header middle-click review command rejects', async () => {
+		const resource = URI.file('/workspace/current.ts');
+		const instantiationService = workbenchInstantiationService(undefined, disposables);
+		const executed: { commandId: string; args: unknown[] }[] = [];
+		instantiationService.stub(ICommandService, new class extends mock<ICommandService>() {
+			override executeCommand<R = unknown>(commandId: string, ...args: unknown[]): Promise<R | undefined> {
+				executed.push({ commandId, args });
+				return Promise.reject(new Error('boom'));
+			}
+		}());
+		instantiationService.stub(IChangesViewService, new class extends mock<IChangesViewService>() {
+			override readonly activeSessionChangesetObs = constObservable(upcastPartial<ISessionChangeset>({ capabilities: { review: true } }));
+			override readonly activeSessionChangesObs = constObservable([{ modifiedUri: resource, insertions: 1, deletions: 0, reviewed: false }]);
+		}());
+
+		const factory = instantiationService.createInstance(SessionChangesUIElementFactory, constObservable([]));
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			const handled = factory.handleHeaderMiddleClick(resource);
+			await timeout(0);
+			assert.deepStrictEqual({
+				handled,
+				executed,
+				unhandledRejections,
+			}, {
+				handled: true,
+				executed: [{ commandId: CHANGESET_REVIEW_ACTION_ID, args: [resource] }],
+				unhandledRejections: [],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });
