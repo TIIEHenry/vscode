@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as DOM from '../../../../base/browser/dom.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -90,8 +91,10 @@ export class EngineRulesSection extends Disposable {
 		DOM.append(projectPanel, $('h4')).textContent = localize('ua.engineRulesProject', "Project");
 		this.projectList = DOM.append(projectPanel, $('.engine-rules-list.engine-catalog-list'));
 
-		this._register(this.connection.onDidChangeConnection(() => void this.refresh()));
-		void this.refresh();
+		this._register(this.connection.onDidChangeConnection(() => {
+			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		}));
+		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	getDomNode(): HTMLElement {
@@ -233,7 +236,7 @@ export class EngineRulesSection extends Disposable {
 				this.resolveMode(true, support, this.listPhase),
 				transportReason,
 				undefined,
-				() => void this.refresh(),
+				() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
 			);
 		}
 	}
