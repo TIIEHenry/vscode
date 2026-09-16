@@ -1947,12 +1947,21 @@ suite('Navigator Agents subviews', () => {
 		}
 	});
 
-	test('activity list open does not leak unhandled rejection when reveal command rejects', async () => {
+	test('activity list open does not leak unhandled rejection when reveal command rejects and onUnexpectedError warn-then-rethrows', async () => {
+		// activity onDidOpen has no inner try/catch. A lone `.catch(onUnexpectedError)`
+		// still leaks when the handler warn-then-rethrows.
+		const boom = new Error('boom');
+		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
 		let executeCommandCalls = 0;
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
-		setUnexpectedErrorHandler(() => { });
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
 		process.on('unhandledRejection', onUnhandledRejection);
 		try {
 			const view = mountAgentsView(
@@ -1961,7 +1970,7 @@ suite('Navigator Agents subviews', () => {
 				undefined,
 				async () => {
 					executeCommandCalls++;
-					throw new Error('boom');
+					throw boom;
 				},
 			);
 			setActivityEntries(view, [{ id: 'a1', label: 'Alpha Tool Run' }]);
@@ -1972,20 +1981,34 @@ suite('Navigator Agents subviews', () => {
 			activityList.setFocus([0]);
 			activityList.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
 			await timeout(0);
-			assert.strictEqual(executeCommandCalls, 1);
-			assert.deepStrictEqual(unhandledRejections, []);
+			assert.deepStrictEqual({ unhandledRejections, executeCommandCalls, unexpectedWarns }, {
+				unhandledRejections: [],
+				executeCommandCalls: 1,
+				unexpectedWarns: [boom, boom],
+			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
 
-	test('does not leak unhandled rejection when revealHierarchyNode error-path throws', async () => {
+	test('does not leak unhandled rejection when revealHierarchyNode error-path throws and onUnexpectedError warn-then-rethrows', async () => {
+		// revealNavigatorAgentInConversation already catches openSubAgent; a lone inner
+		// reject does not leak. The void call site still needs `.catch` when the
+		// catch-path notify throws. A lone `.catch(onUnexpectedError)` still leaks when
+		// the handler warn-then-rethrows.
+		const notifyBoom = new Error('error failed');
 		let errorCalls = 0;
+		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
-		setUnexpectedErrorHandler(() => { });
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
 		process.on('unhandledRejection', onUnhandledRejection);
 		try {
 			const view = mountAgentsView(undefined, undefined, undefined, async () => undefined, {
@@ -1994,24 +2017,38 @@ suite('Navigator Agents subviews', () => {
 				},
 				notificationError: () => {
 					errorCalls++;
-					throw new Error('error failed');
+					throw notifyBoom;
 				},
 			});
 			view.revealHierarchyNode(hierarchyNode('sub:alpha', 'Alpha'));
 			await timeout(0);
-			assert.deepStrictEqual({ unhandledRejections, errorCalls }, { unhandledRejections: [], errorCalls: 1 });
+			assert.deepStrictEqual({ unhandledRejections, errorCalls, unexpectedWarns }, {
+				unhandledRejections: [],
+				errorCalls: 1,
+				unexpectedWarns: [notifyBoom, notifyBoom],
+			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
 
-	test('does not leak unhandled rejection when hierarchy row-open error-path throws', async () => {
+	test('does not leak unhandled rejection when hierarchy row-open error-path throws and onUnexpectedError warn-then-rethrows', async () => {
+		// Same D478+D480 lock as revealHierarchyNode: method-body catch then notify
+		// rethrow. A lone `.catch(onUnexpectedError)` still leaks when the handler
+		// warn-then-rethrows.
+		const notifyBoom = new Error('error failed');
 		let errorCalls = 0;
+		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
-		setUnexpectedErrorHandler(() => { });
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
 		process.on('unhandledRejection', onUnhandledRejection);
 		try {
 			const view = mountAgentsView(undefined, undefined, undefined, async () => undefined, {
@@ -2020,7 +2057,7 @@ suite('Navigator Agents subviews', () => {
 				},
 				notificationError: () => {
 					errorCalls++;
-					throw new Error('error failed');
+					throw notifyBoom;
 				},
 			});
 			setHierarchyEntries(view, [{ id: 'sub:alpha', label: 'Alpha' }]);
@@ -2029,7 +2066,11 @@ suite('Navigator Agents subviews', () => {
 			assert.ok(node);
 			await forceOpenHierarchyRow(view, node);
 			await timeout(0);
-			assert.deepStrictEqual({ unhandledRejections, errorCalls }, { unhandledRejections: [], errorCalls: 1 });
+			assert.deepStrictEqual({ unhandledRejections, errorCalls, unexpectedWarns }, {
+				unhandledRejections: [],
+				errorCalls: 1,
+				unexpectedWarns: [notifyBoom, notifyBoom],
+			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
