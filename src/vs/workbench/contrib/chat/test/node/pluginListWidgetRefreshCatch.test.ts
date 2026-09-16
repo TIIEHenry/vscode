@@ -49,6 +49,16 @@ suite('pluginListWidget refresh fire-and-forget (D556)', () => {
 		assert.ok(!source.includes('void this.filterPlugins();'));
 		assert.ok(!source.includes('void this.filterPlugins().catch(onUnexpectedError);'));
 	});
+
+	test('pluginListWidget leftover installMarketplacePlugin voids double-catch onUnexpectedError (D580)', () => {
+		const source = readPluginListWidgetSource();
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const doubleInstall = `void this.installMarketplacePlugin(item, install)${doubleCatch}`;
+		assert.strictEqual((source.match(/void this\.installMarketplacePlugin\(item, install\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
+		assert.ok(source.includes(doubleInstall));
+		assert.ok(!source.includes('install.onDidClick(() => this.installMarketplacePlugin(item, install));'));
+		assert.ok(!source.includes('void this.installMarketplacePlugin(item, install).catch(onUnexpectedError);'));
+	});
 });
 
 function readPluginListWidgetSource(): string {

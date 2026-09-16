@@ -1485,7 +1485,7 @@ export class PluginListWidget extends Disposable {
 		const install = this.cardDisposables.add(new Button(actions, { ...defaultButtonStyles, ariaLabel: localize('installPluginAria', "Install {0}", item.name) }));
 		install.element.classList.add('plugin-list-item-install-button');
 		install.label = localize('install', "Install");
-		this.cardDisposables.add(install.onDidClick(() => this.installMarketplacePlugin(item, install)));
+		this.cardDisposables.add(install.onDidClick(() => void this.installMarketplacePlugin(item, install).catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.cardListControllers.get(parent)?.addItem({
 			row,
 			primaryAction,
@@ -1506,7 +1506,7 @@ export class PluginListWidget extends Disposable {
 		const actions = DOM.append(header, $('.plugin-card-actions'));
 		const install = this.cardDisposables.add(new Button(actions, { ...defaultButtonStyles, ariaLabel: localize('installPluginAria', "Install {0}", item.name) }));
 		install.label = localize('install', "Install");
-		this.cardDisposables.add(install.onDidClick(() => this.installMarketplacePlugin(item, install)));
+		this.cardDisposables.add(install.onDidClick(() => void this.installMarketplacePlugin(item, install).catch(onUnexpectedError).catch(onUnexpectedError)));
 		if (showRecommendedBadge && this.pluginMarketplaceService.recommendedPlugins.get().has(getMarketplaceRecommendationKey(item))) {
 			const badges = DOM.append(card, $('.plugin-card-badges'));
 			this.appendCardBadge(badges, localize('recommendedBadge', "Recommended"));
