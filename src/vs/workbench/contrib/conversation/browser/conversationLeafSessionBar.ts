@@ -7,6 +7,7 @@ import { $, addDisposableListener, append } from '../../../../base/browser/dom.j
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
@@ -156,7 +157,7 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 	}
 
 	switchToSession(sessionId: string): void {
-		void this.switchLeafSession(sessionId);
+		void this.switchLeafSession(sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	writeComposerDraft(sessionId: string, text: string): void {

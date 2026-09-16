@@ -427,6 +427,19 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		assert.strictEqual(sessionWindowService.isSessionWindowHidden(b), true);
 	});
 
+	test('does not leak unhandled rejection when switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const harness = await createRevealHarness();
+		const pane = await waitForSessionPane(harness, harness.primaryId);
+		assert.ok(pane.leafSessionBarHost);
+		const paintBoom = new Error('switch boom');
+		pane.leafSessionBarHost.switchLeafSession = async () => {
+			throw paintBoom;
+		};
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			pane.leafSessionBarHost!.switchToSession('other-session');
+		});
+	});
+
 	test('10 New Session in stub path becomes the only visible leaf', async () => {
 		const harness = await createRevealHarness();
 		const { sessionWindowService, rosterService, primaryId } = harness;
