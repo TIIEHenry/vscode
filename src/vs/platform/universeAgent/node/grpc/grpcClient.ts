@@ -533,10 +533,8 @@ import {
 	type ExportSessionResponseWire,
 	type FetchToolUsageDetailResponseWire,
 	type FireTriggerResponseWire,
-	type GetGlobalUsageResponseWire,
 	type GetRemoteSessionHistoryResponseWire,
 	type GetRemoteSessionStatusResponseWire,
-	type GetSessionUsageResponseWire,
 	type HistoryResponseWire,
 	type ListConfigsResponseWire,
 	type ListLoopSnapshotsResponseWire,
@@ -761,6 +759,18 @@ import {
 	encodeContextVariableListRequest,
 	encodeContextVariableReadRequest,
 } from './grpcContextVariableUnaryWire.js';
+import {
+	decodeGetGlobalUsageResponse,
+	decodeGetSessionUsageResponse,
+	encodeGetGlobalUsageRequest,
+	encodeGetSessionUsageRequest,
+} from './grpcTokenUsageUnaryWire.js';
+import {
+	decodeGetConfigResponse,
+	decodeSetConfigResponse,
+	encodeGetConfigRequest,
+	encodeSetConfigRequest,
+} from './grpcConfigUnaryWire.js';
 import {
 	decodeAgentMergeResponse,
 	decodeGetFileInfoResponse,
@@ -2625,25 +2635,23 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async getSessionUsage(request: UniverseAgentGetSessionUsageRequest): Promise<UniverseAgentGetSessionUsageResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, GetSessionUsageResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.TokenUsage.service,
 			UniverseAgentGrpcServices.TokenUsage.GetSessionUsage,
+			decodeGetSessionUsageResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-		});
-		return mapGetSessionUsageResponse(wire);
+		return mapGetSessionUsageResponse(await unary(encodeGetSessionUsageRequest(request)));
 	}
 
 	async getGlobalUsage(): Promise<UniverseAgentGetGlobalUsageResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, GetGlobalUsageResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.TokenUsage.service,
 			UniverseAgentGrpcServices.TokenUsage.GetGlobalUsage,
+			decodeGetGlobalUsageResponse,
 		);
-		const wire = await unary({});
-		return mapGetGlobalUsageResponse(wire);
+		return mapGetGlobalUsageResponse(await unary(encodeGetGlobalUsageRequest()));
 	}
 
 	async saveMemory(request: UniverseAgentSaveMemoryRequest): Promise<UniverseAgentSaveMemoryResult> {
@@ -3271,16 +3279,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async getConfig(request: UniverseAgentGetConfigRequest): Promise<UniverseAgentGetConfigResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { values?: Record<string, string>; scope?: string }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Config.service,
 			UniverseAgentGrpcServices.Config.Get,
+			decodeGetConfigResponse,
 		);
-		const wire = await unary({
-			key: request.key,
-			scope: request.scope,
-			session_id: request.sessionId,
-		});
+		const wire = await unary(encodeGetConfigRequest(request));
 		return {
 			values: wire.values && typeof wire.values === 'object' ? wire.values : {},
 			scope: wire.scope ?? '',
@@ -3310,17 +3315,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async setConfig(request: UniverseAgentSetConfigRequest): Promise<UniverseAgentSetConfigResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Config.service,
 			UniverseAgentGrpcServices.Config.Set,
+			decodeSetConfigResponse,
 		);
-		const wire = await unary({
-			key: request.key,
-			value: request.value,
-			scope: request.scope,
-			session_id: request.sessionId,
-		});
+		const wire = await unary(encodeSetConfigRequest(request));
 		return {
 			ok: wire.success === true,
 			message: wire.message,

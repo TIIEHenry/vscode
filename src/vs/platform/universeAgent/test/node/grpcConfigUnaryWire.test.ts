@@ -132,7 +132,7 @@ suite('grpc ConfigService Get/Set protobuf wire', () => {
 		assert.deepStrictEqual(mapSetConfig(rejected), { ok: false, message: undefined });
 	});
 
-	test('config unary wire is Get+Set only; no JSON.stringify; grpcClient still JSON', () => {
+	test('config unary wire is Get+Set only; no JSON.stringify; grpcClient uses bytes', () => {
 		const thisDir = path.dirname(fileURLToPath(import.meta.url));
 		const candidates = [
 			path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
@@ -150,17 +150,24 @@ suite('grpc ConfigService Get/Set protobuf wire', () => {
 		assert.ok(!/\bSwitchModel|\bListModels|\bResolveModel|\bSetPermissionPolicy|\bGetModelPreferences|\bSetModelPreferences/.test(source));
 
 		const client = fs.readFileSync(path.join(grpcDir, 'grpcClient.ts'), 'utf8');
-		assert.ok(!client.includes('grpcConfigUnaryWire'));
-		assert.ok(!client.includes('encodeGetConfigRequest'));
-		assert.ok(!client.includes('decodeGetConfigResponse'));
-		assert.ok(!client.includes('encodeSetConfigRequest'));
-		assert.ok(!client.includes('decodeSetConfigResponse'));
+		assert.ok(client.includes('grpcConfigUnaryWire'));
+		const methods: Array<{ name: string; encoder: string; decoder: string }> = [
+			{ name: 'getConfig', encoder: 'encodeGetConfigRequest', decoder: 'decodeGetConfigResponse' },
+			{ name: 'setConfig', encoder: 'encodeSetConfigRequest', decoder: 'decodeSetConfigResponse' },
+		];
+		for (const { name, encoder, decoder } of methods) {
+			const body = extractAsyncMethod(client, name);
+			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
+			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
+			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
+			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
+			assert.ok(!body.includes('JSON.stringify'), `${name} must not JSON.stringify`);
+		}
 		const getBody = extractAsyncMethod(client, 'getConfig');
 		const setBody = extractAsyncMethod(client, 'setConfig');
-		assert.ok(getBody.includes('makeUnaryClient<'), 'getConfig must stay JSON until a later slice wires bytes');
-		assert.ok(setBody.includes('makeUnaryClient<'), 'setConfig must stay JSON until a later slice wires bytes');
-		assert.ok(!getBody.includes('makeUnaryBytesClient'), 'getConfig must not be wired yet');
-		assert.ok(!setBody.includes('makeUnaryBytesClient'), 'setConfig must not be wired yet');
+		assert.ok(getBody.includes('wire.values && typeof wire.values === \'object\''), 'getConfig must keep inline values mapping');
+		assert.ok(getBody.includes('wire.scope ?? \'\''), 'getConfig must keep inline scope mapping');
+		assert.ok(setBody.includes('ok: wire.success === true'), 'setConfig must keep ok: wire.success === true');
 	});
 });
 

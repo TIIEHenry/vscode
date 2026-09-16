@@ -200,7 +200,7 @@ suite('grpc TokenUsage GetSessionUsage / GetGlobalUsage protobuf wire', () => {
 		});
 	});
 
-	test('token usage unary wire is GetSessionUsage+GetGlobalUsage only; no JSON.stringify; grpcClient still JSON', () => {
+	test('token usage unary wire is GetSessionUsage+GetGlobalUsage only; no JSON.stringify; grpcClient uses bytes', () => {
 		const thisDir = path.dirname(fileURLToPath(import.meta.url));
 		const candidates = [
 			path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
@@ -222,17 +222,23 @@ suite('grpc TokenUsage GetSessionUsage / GetGlobalUsage protobuf wire', () => {
 		assert.ok(!/\bonOpenConnection\b/.test(source));
 
 		const client = fs.readFileSync(path.join(grpcDir, 'grpcClient.ts'), 'utf8');
-		assert.ok(!client.includes('grpcTokenUsageUnaryWire'));
-		assert.ok(!client.includes('encodeGetSessionUsageRequest'));
-		assert.ok(!client.includes('decodeGetSessionUsageResponse'));
-		assert.ok(!client.includes('encodeGetGlobalUsageRequest'));
-		assert.ok(!client.includes('decodeGetGlobalUsageResponse'));
-		const sessionBody = extractAsyncMethod(client, 'getSessionUsage');
+		assert.ok(client.includes('grpcTokenUsageUnaryWire'));
+		const methods: Array<{ name: string; encoder: string; decoder: string; mapper: string }> = [
+			{ name: 'getSessionUsage', encoder: 'encodeGetSessionUsageRequest', decoder: 'decodeGetSessionUsageResponse', mapper: 'mapGetSessionUsageResponse' },
+			{ name: 'getGlobalUsage', encoder: 'encodeGetGlobalUsageRequest', decoder: 'decodeGetGlobalUsageResponse', mapper: 'mapGetGlobalUsageResponse' },
+		];
+		for (const { name, encoder, decoder, mapper } of methods) {
+			const body = extractAsyncMethod(client, name);
+			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
+			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
+			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
+			assert.ok(body.includes(mapper), `${name} must call ${mapper}`);
+			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
+			assert.ok(!body.includes('JSON.stringify'), `${name} must not JSON.stringify`);
+		}
 		const globalBody = extractAsyncMethod(client, 'getGlobalUsage');
-		assert.ok(sessionBody.includes('makeUnaryClient<'), 'getSessionUsage must stay JSON until a later slice wires bytes');
-		assert.ok(globalBody.includes('makeUnaryClient<'), 'getGlobalUsage must stay JSON until a later slice wires bytes');
-		assert.ok(!sessionBody.includes('makeUnaryBytesClient'), 'getSessionUsage must not be wired yet');
-		assert.ok(!globalBody.includes('makeUnaryBytesClient'), 'getGlobalUsage must not be wired yet');
+		assert.ok(globalBody.includes('encodeGetGlobalUsageRequest()'), 'getGlobalUsage must send empty proto via encodeGetGlobalUsageRequest()');
+		assert.ok(!globalBody.includes('unary({})'), 'getGlobalUsage must not send JSON {}');
 	});
 });
 

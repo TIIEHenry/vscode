@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "merge compile-client 0；聚焦 168 passing / 0 pending。A Health/ContextVariable 已 bytes。F TokenUsage / G Config Get+Set wire 未接线（Watch 不转）。SaveSkillContent/Rebuild 仍 JSON。D24 仍开。D487 open。D498–D502 closed。不是 leftover/pills 完成。R9/D405 仍开"
+summary: "merge compile-client 0；聚焦 168 passing / 0 pending。A Health/ContextVariable + TokenUsage GetSession/GetGlobal + Config Get/Set 已 bytes（Watch 不转）。SaveSkillContent/Rebuild 仍 JSON。D24 仍开。D487 open。D498–D502 closed。不是 leftover/pills 完成。R9/D405 仍开"
 ---
 
 # Development Progress
@@ -26,9 +26,9 @@ summary: "merge compile-client 0；聚焦 168 passing / 0 pending。A Health/Con
 ### 进行中（2026-09-16 · merge 关仓；D24 仍开）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
-| **A** | Health/ContextVariable bytes | HEAD == MERGE_SHA（ff-only）。Health/ContextVariable **已** bytes。[D24](deferred-gaps.md) **仍开** |
-| **F** | TokenUsage wire | HEAD == MERGE_SHA（ff-only）。GetSession/GetGlobal **未接线** |
-| **G** | Config Get+Set wire | HEAD == MERGE_SHA（ff-only）。Get+Set **未接线**；Watch 不转；**勿 add `out`** |
+| **A** | TokenUsage+Config bytes | 未提交。`getSessionUsage`/`getGlobalUsage`/`getConfig`/`setConfig` **已** `makeUnaryBytesClient` + 现成 wire。GetGlobalUsage 空 proto 非 JSON `{}`。Watch/SaveSkillContent/Rebuild 不转。[D24](deferred-gaps.md) **仍开** |
+| **F** | TokenUsage wire | HEAD == MERGE_SHA（ff-only）。wire 已落；A 本刀 **已接线** |
+| **G** | Config Get+Set wire | HEAD == MERGE_SHA（ff-only）。Get+Set wire 已落；A 本刀 **已接线**；Watch 不转；**勿 add `out`** |
 | **C** | D498 | 保持 `dev/loop` gitlink 脏；勿 add。[D498](deferred-gaps.md) closed |
 | **D** | D499 | HEAD == MERGE_SHA（ff-only）。[D499](deferred-gaps.md) closed |
 | **H/I/J** | D500–D502 | HEAD == MERGE_SHA（ff-only）。[D500](deferred-gaps.md)–[D502](deferred-gaps.md) closed |
@@ -39,7 +39,7 @@ summary: "merge compile-client 0；聚焦 168 passing / 0 pending。A Health/Con
 子 agent 发现的既有代码问题（开项 + 本波）：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
-| [D24](deferred-gaps.md) | A/F/G | **仍开**：HealthCheck/Shutdown + ContextVariable List/Read **已** bytes；SaveSkillContent/Rebuild/TokenUsage/Config 仍 JSON；TokenUsage GetSession/GetGlobal + Config Get+Set wire **未接线**；Watch 不转 |
+| [D24](deferred-gaps.md) | A/F/G | **仍开**：HealthCheck/Shutdown + ContextVariable List/Read + TokenUsage GetSession/GetGlobal + Config Get/Set **已** bytes；SaveSkillContent/Rebuild 仍 JSON；Watch 不转；GetModelPreferences/SetModelPreferences/ResolveModel/SetPermissionPolicy/Doctor 仍 JSON |
 | [D487](deferred-gaps.md) | F Memory wire | **open**：codec 无 double；Search score 未读；mapper `requiredDouble`→0 |
 | [D498](deferred-gaps.md)–[D502](deferred-gaps.md) | C/D/H/I/J | **closed** Triggers / Skills / Tools / MCP Runtime / Plugins void catch |
 | [D405](deferred-gaps.md) | 手测 | **仍开**（S4a/S4b 前置） |
@@ -50,13 +50,13 @@ summary: "merge compile-client 0；聚焦 168 passing / 0 pending。A Health/Con
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | MERGE_SHA | 干净 | 0 | compile-client 0；168 passing / 0 pending；D24 仍开；D487 open |
-| A | `vscode-WorkTrees/A` | `loop/A` | MERGE_SHA | 干净 | 0 | ff-only；Health/ContextVariable **已** bytes |
+| A | `vscode-WorkTrees/A` | `loop/A` | MERGE_SHA | 未提交 TokenUsage+Config bytes | 0 | Health/ContextVariable + TokenUsage GetSession/GetGlobal + Config Get/Set **已** bytes；D24 仍开 |
 | B | `vscode-WorkTrees/B` | `loop/B` | `28ffd1ae9f2` | 脏 `worktree-pool.md` | 0 | **跳过**；勿 `-B` |
 | C | `vscode-WorkTrees/C` | `loop/C` | `6ca6c4ac791` | 脏 `dev/loop` gitlink | 0 | 保持 gitlink 脏；勿 add；D498 closed |
 | D | `vscode-WorkTrees/D` | `loop/D` | MERGE_SHA | 干净 | 0 | ff-only；D499 closed |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked` leftover；跳过 |
-| F | `vscode-WorkTrees/F` | `loop/F` | MERGE_SHA | 干净 | 0 | ff-only；TokenUsage **未接线**；D487 open |
-| G | `vscode-WorkTrees/G` | `loop/G` | MERGE_SHA | 未跟踪 `out` | 0 | ff-only；**勿 add `out`**；Config **未接线** |
+| F | `vscode-WorkTrees/F` | `loop/F` | MERGE_SHA | 干净 | 0 | ff-only；TokenUsage wire 已落；A 已接线；D487 open |
+| G | `vscode-WorkTrees/G` | `loop/G` | MERGE_SHA | 未跟踪 `out` | 0 | ff-only；**勿 add `out`**；Config Get+Set wire 已落；A 已接线 |
 | H | `vscode-WorkTrees/H` | `loop/H` | MERGE_SHA | 干净 | 0 | ff-only；D500 closed |
 | I | `vscode-WorkTrees/I` | `loop/I` | MERGE_SHA | 干净 | 0 | ff-only；D501 closed |
 | J | `vscode-WorkTrees/J` | `loop/J` | MERGE_SHA | 干净 | 0 | ff-only；D502 closed |
@@ -65,7 +65,7 @@ summary: "merge compile-client 0；聚焦 168 passing / 0 pending。A Health/Con
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。下一刀 IDE Direct Address 接通后 Composer 发送。**不升 PRD-008**。不要再清 store |
-| **loop 切片** | [D24](deferred-gaps.md) **仍开**（Health/ContextVariable **已** bytes；SaveSkillContent/Rebuild/TokenUsage/Config 仍 JSON；TokenUsage + Config wire **未接线**；Watch 不转）。[D498](deferred-gaps.md)–[D502](deferred-gaps.md) **closed**。[D487](deferred-gaps.md) **open**。R9 / **D405** 仍开。不关 D8/D16/D147。不得宣称 leftover / pills 完成 |
+| **loop 切片** | [D24](deferred-gaps.md) **仍开**（Health/ContextVariable + TokenUsage GetSession/GetGlobal + Config Get/Set **已** bytes；SaveSkillContent/Rebuild 仍 JSON；Watch 不转）。[D498](deferred-gaps.md)–[D502](deferred-gaps.md) **closed**。[D487](deferred-gaps.md) **open**。R9 / **D405** 仍开。不关 D8/D16/D147。不得宣称 leftover / pills 完成 |
 | **test-baseline** | 本关仓聚焦 9 文件 **168 passing / 0 pending / 0 fail**（含 assertCleanState）。conversationNavigation 整文件 afterEach ConversationLens leak 已知，未跑整文件。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 未满足前不开 U2 |
 ## 不做：**ADR-007 U2**、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
