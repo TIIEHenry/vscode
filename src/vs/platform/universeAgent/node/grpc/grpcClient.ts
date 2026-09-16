@@ -588,9 +588,6 @@ import {
 	type PtyServerMessageWire,
 	type PurgeSessionResponseWire,
 	type ReadFileResponseWire,
-	type ReadGitChangesResponseWire,
-	type ReadGitFileDiffResponseWire,
-	type ReadGitSummaryResponseWire,
 	type ReloadPluginResponseWire,
 	type ReloadRemoteAgentsResponseWire,
 	type RemoteAgentConfigWire,
@@ -628,7 +625,6 @@ import {
 	type UpsertTriggerResponseWire,
 	type UsageResponseWire,
 	type WriteFileResponseWire,
-	type WriteGitWriteResponseWire,
 } from './grpcClientMappers.js';
 import {
 	makeUnaryClient,
@@ -744,6 +740,18 @@ import {
 	encodeUpsertProjectRuleRequest,
 	encodeUpsertProviderCredentialsRequest,
 } from './grpcCatalogUnaryWire.js';
+import {
+	decodeReadGitChangesResponse,
+	decodeReadGitFileDiffResponse,
+	decodeReadGitSummaryResponse,
+	decodeWriteGitWriteResponse,
+	encodeReadGitChangesRequest,
+	encodeReadGitFileDiffRequest,
+	encodeReadGitSummaryRequest,
+	encodeWriteGitApplyHunksRequest,
+	encodeWriteGitCommitRequest,
+	encodeWriteGitStagePathsRequest,
+} from './grpcGitUnaryWire.js';
 
 function permissionRuleActionWire(action: UniverseAgentPermissionRuleAction): number {
 	switch (action) {
@@ -2790,83 +2798,63 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async readGitSummary(request: UniverseAgentReadGitSummaryRequest): Promise<UniverseAgentReadGitSummaryResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ReadGitSummaryResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Git.service,
 			UniverseAgentGrpcServices.Git.ReadGitSummary,
+			decodeReadGitSummaryResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-		});
-		return mapReadGitSummaryResponse(wire);
+		return mapReadGitSummaryResponse(await unary(encodeReadGitSummaryRequest(request)));
 	}
 
 	async readGitChanges(request: UniverseAgentReadGitChangesRequest): Promise<UniverseAgentReadGitChangesResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ReadGitChangesResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Git.service,
 			UniverseAgentGrpcServices.Git.ReadGitChanges,
+			decodeReadGitChangesResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-		});
-		return mapReadGitChangesResponse(wire);
+		return mapReadGitChangesResponse(await unary(encodeReadGitChangesRequest(request)));
 	}
 
 	async readGitFileDiff(request: UniverseAgentReadGitFileDiffRequest): Promise<UniverseAgentReadGitFileDiffResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ReadGitFileDiffResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Git.service,
 			UniverseAgentGrpcServices.Git.ReadGitFileDiff,
+			decodeReadGitFileDiffResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			path: request.path,
-			index_state: request.indexState,
-		});
-		return mapReadGitFileDiffResponse(wire);
+		return mapReadGitFileDiffResponse(await unary(encodeReadGitFileDiffRequest(request)));
 	}
 
 	async writeGitStagePaths(request: UniverseAgentWriteGitStagePathsRequest): Promise<UniverseAgentWriteGitWriteResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, WriteGitWriteResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Git.service,
 			UniverseAgentGrpcServices.Git.WriteGitStagePaths,
+			decodeWriteGitWriteResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			commands: request.commands.map(command => ({ argv: [...command.argv] })),
-		});
-		return mapWriteGitWriteResponse(wire);
+		return mapWriteGitWriteResponse(await unary(encodeWriteGitStagePathsRequest(request)));
 	}
 
 	async writeGitCommit(request: UniverseAgentWriteGitCommitRequest): Promise<UniverseAgentWriteGitWriteResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, WriteGitWriteResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Git.service,
 			UniverseAgentGrpcServices.Git.WriteGitCommit,
+			decodeWriteGitWriteResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			message: request.message,
-			sign_off: request.signOff,
-			amend: request.amend,
-		});
-		return mapWriteGitWriteResponse(wire);
+		return mapWriteGitWriteResponse(await unary(encodeWriteGitCommitRequest(request)));
 	}
 
 	async writeGitApplyHunks(request: UniverseAgentWriteGitApplyHunksRequest): Promise<UniverseAgentWriteGitWriteResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, WriteGitWriteResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Git.service,
 			UniverseAgentGrpcServices.Git.WriteGitApplyHunks,
+			decodeWriteGitWriteResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			argv: [...request.argv],
-			patches: [...request.patches],
-		});
-		return mapWriteGitWriteResponse(wire);
+		return mapWriteGitWriteResponse(await unary(encodeWriteGitApplyHunksRequest(request)));
 	}
 
 	async getSessionUsage(request: UniverseAgentGetSessionUsageRequest): Promise<UniverseAgentGetSessionUsageResult> {

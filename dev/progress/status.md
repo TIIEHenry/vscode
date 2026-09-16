@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "merge compile-client 0；聚焦测 98 passing。D476 closed；D24 仍开。不是 leftover/pills 完成。R9/D405 仍开"
+summary: "merge compile-client 0。A Git 六条 unary bytes（未合）。D24 仍开（listTools JSON）。不是 leftover/pills 完成。R9/D405 仍开"
 ---
 
 # Development Progress
@@ -43,7 +43,7 @@ summary: "merge compile-client 0；聚焦测 98 passing。D476 closed；D24 仍�
 ### 进行中（2026-09-16 · compile-client 0 · 98 passing；D24 仍开；不是 leftover/pills 完成）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
-| **A/D** | permission leftover + D476 | A：三条 Permission unary bytes、[D24](deferred-gaps.md) **仍开**（listTools JSON）；D：middle-click catch、[D476](deferred-gaps.md) **closed**。compile-client **0**；聚焦 **98 passing / 0 fail**。不是 leftover/pills 完成 |
+| **A** | d24-git-unary-bytes | Git 六条 unary `makeUnaryBytesClient`；[D24](deferred-gaps.md) **仍开**（listTools JSON）。未 compile-client。不是 leftover/pills 完成 |
 | **B/C** | — | B 脏 `worktree-pool.md` 跳过 `-B`；C 脏 `dev/loop` gitlink 勿 add、试 ff-only |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 
@@ -178,7 +178,7 @@ summary: "merge compile-client 0；聚焦测 98 passing。D476 closed；D24 仍�
 | [D242](deferred-gaps.md)–[D288](deferred-gaps.md) | leftover + pairing | **closed** catalog leftover + pairing keep-last（含 roster turns / session sync） |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
-| [D405](deferred-gaps.md)–[D476](deferred-gaps.md) | A/D 本波 | D405 手测仍开；D471–D476 已闭；**D24 仍开**（listTools JSON；Permission leftover 三条已 bytes）；不得宣称 leftover/pills 完成 |
+| [D405](deferred-gaps.md)–[D476](deferred-gaps.md) | A/D 本波 | D405 手测仍开；D471–D476 已闭；**D24 仍开**（listTools JSON；Permission leftover + Git 六条已 bytes）；不得宣称 leftover/pills 完成 |
 ## 工位表（P0 盘点 · 2026-09-16 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
@@ -193,7 +193,7 @@ summary: "merge compile-client 0；聚焦测 98 passing。D476 closed；D24 仍�
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。本仓只读面 + Composer `model_profile_id` **已挂**。钉死工位 seed 后 grpcurl **Chat PASS**。下一刀是 IDE Direct Address 接通后 Composer 发送（PRD-008 仍要隔离 profile 冒烟）。**不升 PRD-008**。不要再清 store。D26 store 已闭，旧「迁移卡死」账见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md) |
-| **loop 切片** | compile-client **0**；聚焦 **98 passing / 0 fail**。A Permission leftover 三条 bytes + D D476 已合。[D24](deferred-gaps.md) **仍开**（`listTools` JSON）。[D476](deferred-gaps.md) **closed**。R9 仍开。**D405** 手测仍开。不关 D8/D16/D147。未升 PRD-008。不得宣称 leftover / pills 完成。 |
+| **loop 切片** | compile-client **0**；聚焦 **98 passing**。A Git 六条 unary bytes（未合）。[D24](deferred-gaps.md) **仍开**（`listTools` JSON）。[D476](deferred-gaps.md) **closed**。R9 仍开。**D405** 手测仍开。不关 D8/D16/D147。未升 PRD-008。不得宣称 leftover / pills 完成。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。

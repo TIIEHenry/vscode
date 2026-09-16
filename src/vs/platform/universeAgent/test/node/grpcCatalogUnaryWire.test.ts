@@ -945,6 +945,12 @@ suite('grpc catalog unary protobuf wire', () => {
 			{ name: 'killAgent', encoder: 'encodeKillAgentRequest' },
 			{ name: 'deleteMessage', encoder: 'encodeDeleteMessageRequest' },
 			{ name: 'editMessage', encoder: 'encodeEditMessageRequest' },
+			{ name: 'readGitSummary', encoder: 'encodeReadGitSummaryRequest' },
+			{ name: 'readGitChanges', encoder: 'encodeReadGitChangesRequest' },
+			{ name: 'readGitFileDiff', encoder: 'encodeReadGitFileDiffRequest' },
+			{ name: 'writeGitStagePaths', encoder: 'encodeWriteGitStagePathsRequest' },
+			{ name: 'writeGitCommit', encoder: 'encodeWriteGitCommitRequest' },
+			{ name: 'writeGitApplyHunks', encoder: 'encodeWriteGitApplyHunksRequest' },
 		];
 		for (const { name, encoder } of bytesMethods) {
 			const body = extractAsyncMethod(source, name);
@@ -962,6 +968,18 @@ suite('grpc catalog unary protobuf wire', () => {
 			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
 		}
 		assert.ok(extractAsyncMethod(source, 'getSessionRules').includes('mapGetSessionRulesResponse'));
+		const gitLeftover: Array<{ name: string; decoder: string }> = [
+			{ name: 'readGitSummary', decoder: 'decodeReadGitSummaryResponse' },
+			{ name: 'readGitChanges', decoder: 'decodeReadGitChangesResponse' },
+			{ name: 'readGitFileDiff', decoder: 'decodeReadGitFileDiffResponse' },
+			{ name: 'writeGitStagePaths', decoder: 'decodeWriteGitWriteResponse' },
+			{ name: 'writeGitCommit', decoder: 'decodeWriteGitWriteResponse' },
+			{ name: 'writeGitApplyHunks', decoder: 'decodeWriteGitWriteResponse' },
+		];
+		for (const { name, decoder } of gitLeftover) {
+			const body = extractAsyncMethod(source, name);
+			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
+		}
 		const queueMethods: Array<{ name: string; encoder: string }> = [
 			{ name: 'enqueueQueueItem', encoder: 'encodeEnqueueQueueItemRequest' },
 			{ name: 'insertQueueItem', encoder: 'encodeInsertQueueItemRequest' },
