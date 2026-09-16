@@ -260,13 +260,13 @@ export class EngineAgentsSection extends Disposable {
 		this.writeToolbar.style.display = 'none';
 		const newButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
 		newButton.label = localize('ua.engineAgentsNew', "New");
-		this._register(newButton.onDidClick(() => void this.createProfile()));
+		this._register(newButton.onDidClick(() => void this.createProfile().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.resetButton = this._register(new Button(this.writeToolbar, { ...defaultButtonStyles, secondary: true }));
 		this.resetButton.label = localize('ua.engineAgentsReset', "Reset");
-		this._register(this.resetButton.onDidClick(() => void this.resetSelectedProfile()));
+		this._register(this.resetButton.onDidClick(() => void this.resetSelectedProfile().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.deleteButton = this._register(new Button(this.writeToolbar, { ...defaultButtonStyles, secondary: true }));
 		this.deleteButton.label = localize('ua.engineAgentsDelete', "Delete");
-		this._register(this.deleteButton.onDidClick(() => void this.deleteSelectedProfile()));
+		this._register(this.deleteButton.onDidClick(() => void this.deleteSelectedProfile().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.catalogWriteStatus = DOM.append(this.container, $('.engine-catalog-write-status'));
 		this.catalogWriteStatus.setAttribute('role', 'status');
 		this.catalogWriteStatus.setAttribute('aria-live', 'polite');
@@ -328,7 +328,7 @@ export class EngineAgentsSection extends Disposable {
 		this.agentsEditorToolbar = DOM.append(this.agentsEditorContainer, $('.engine-agents-editor-toolbar'));
 		this.agentsEditorSaveButton = this._register(new Button(this.agentsEditorToolbar, defaultButtonStyles));
 		this.agentsEditorSaveButton.label = localize('ua.engineAgentsMdSave', "Save AGENTS.md");
-		this._register(this.agentsEditorSaveButton.onDidClick(() => void this.saveAgentsMarkdown()));
+		this._register(this.agentsEditorSaveButton.onDidClick(() => void this.saveAgentsMarkdown().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.agentsEditorStatus = DOM.append(this.agentsEditorContainer, $('.engine-agents-editor-status'));
 		this.agentsEditorStatus.setAttribute('role', 'status');
 		this.agentsEditorStatus.setAttribute('aria-live', 'polite');
@@ -343,7 +343,7 @@ export class EngineAgentsSection extends Disposable {
 		this.toolsToolbar = DOM.append(this.toolsPanel, $('.engine-catalog-write-toolbar'));
 		this.toolsSaveButton = this._register(new Button(this.toolsToolbar, defaultButtonStyles));
 		this.toolsSaveButton.label = localize('ua.engineAgentsToolsSave', "Save");
-		this._register(this.toolsSaveButton.onDidClick(() => void this.saveAgentToolEnablement()));
+		this._register(this.toolsSaveButton.onDidClick(() => void this.saveAgentToolEnablement().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.modelPanel = DOM.append(this.detailHost, $('.engine-agents-model-panel'));
 		this.modelPanel.style.display = 'none';
@@ -353,19 +353,19 @@ export class EngineAgentsSection extends Disposable {
 			const entry = e.elements[0];
 			this.selectedProfile = entry?.kind === 'profile' ? entry.profile : undefined;
 			this.updateWriteActions();
-			void this.loadAgentsEditorForSelection();
+			void this.loadAgentsEditorForSelection().catch(onUnexpectedError).catch(onUnexpectedError);
 			this.renderAgentTools();
 			this.renderModelTab();
 			this.syncDetailHost();
 		}));
 
 		this._register(this.connection.onDidChangeConnection(() => {
-			void this.refresh();
+			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this.renderModelTab();
 		this.setActiveDetailTab('instructions');
-		void this.refresh();
+		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	layout(width: number, listHeight: number): void {
@@ -647,7 +647,7 @@ export class EngineAgentsSection extends Disposable {
 		this.toolsPanel.style.display = tab === 'tools' && this.selectedProfile ? '' : 'none';
 		this.modelPanel.style.display = tab === 'model' && this.selectedProfile ? '' : 'none';
 		if (tab === 'tools') {
-			void this.ensureAgentToolsLoaded(forceAgentToolsReload).then(() => this.renderAgentTools());
+			void this.ensureAgentToolsLoaded(forceAgentToolsReload).then(() => this.renderAgentTools()).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 		if (tab === 'model') {
 			this.renderModelTab();
@@ -832,7 +832,7 @@ export class EngineAgentsSection extends Disposable {
 				mode: 'failed',
 				featureLabel: AGENT_TOOLS_FEATURE,
 				reason: this.agentToolsLoadFailed || undefined,
-				onRetry: () => void this.ensureAgentToolsLoaded(true).then(() => this.renderAgentTools()),
+				onRetry: () => void this.ensureAgentToolsLoaded(true).then(() => this.renderAgentTools()).catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 			if (this.agentTools.length === 0) {
 				return;
@@ -1034,7 +1034,7 @@ export class EngineAgentsSection extends Disposable {
 			this.updateWriteActions();
 			this.syncDetailHost(true);
 			if (this.selectedProfile && !this.agentsMarkdownDirty && this.activeDetailTab === 'instructions') {
-				void this.loadAgentsEditorForSelection();
+				void this.loadAgentsEditorForSelection().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 			this.renderStatus();
 			return true;
@@ -1052,7 +1052,7 @@ export class EngineAgentsSection extends Disposable {
 			this.updateWriteActions();
 			this.renderStatus({
 				reason: error instanceof Error ? error.message : undefined,
-				onRetry: () => void this.refresh(),
+				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 			if (hadLiveCatalog) {
 				this.closeLeftoverAgentsEditorChrome();
