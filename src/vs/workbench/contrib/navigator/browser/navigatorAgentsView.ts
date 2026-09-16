@@ -474,7 +474,7 @@ export class NavigatorAgentsView extends ViewPane {
 				return;
 			}
 			this.inspectService.setTarget({ kind: 'agent', node: e.element.source });
-			void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, e.element!.agentId, e.element!.label)).catch(onUnexpectedError);
+			void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, e.element!.agentId, e.element!.label)).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		return this.hierarchyTree;
@@ -506,7 +506,7 @@ export class NavigatorAgentsView extends ViewPane {
 				return;
 			}
 			this.inspectService.setTarget({ kind: 'activity', item: e.element });
-			void this.commandService.executeCommand(CONVERSATION_REVEAL_ITEM_COMMAND_ID, { itemId: e.element.itemId }).catch(onUnexpectedError);
+			void this.commandService.executeCommand(CONVERSATION_REVEAL_ITEM_COMMAND_ID, { itemId: e.element.itemId }).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		return this.activityList;
@@ -780,7 +780,7 @@ export class NavigatorAgentsView extends ViewPane {
 		if (!this.isAgentsRowActionLive()) {
 			return;
 		}
-		void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, node.agentId, node.label)).catch(onUnexpectedError);
+		void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, node.agentId, node.label)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	inspectFocusedHierarchyNode(): void {
