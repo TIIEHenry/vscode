@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { emptySessionViewSnapshot } from '../../../../../platform/universeAgent/common/sessionView/empty-snapshot.js';
@@ -388,6 +390,35 @@ suite('ConversationEngineFrameSource per-lease subscribe (F1)', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
+		// acknowledge() is async. A lone `.catch(onUnexpectedError)` still leaks
+		// when the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			await run();
+			await timeout(0);
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	}
+
 	test('receives pre-resolve burst after acquireLease resolves', async () => {
 		const sessionView = new BufferedMockUniverseAgentSessionView();
 		const source = store.add(new ConversationEngineFrameSource(sessionView));
@@ -505,6 +536,8 @@ suite('ConversationEngineFrameSource per-lease subscribe (F1)', () => {
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
 		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
 		try {
 			const lease = store.add(source.acquire('sess-ack-reject'));
 			const applied: ConversationViewFrameApplied[] = [];
@@ -519,8 +552,41 @@ suite('ConversationEngineFrameSource per-lease subscribe (F1)', () => {
 			assert.deepStrictEqual(lease.snapshot.sync, { kind: 'live' });
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('does not leak unhandled rejection when acknowledge rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('ack boom');
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-ack-warn-rethrow'));
+		const applied: ConversationViewFrameApplied[] = [];
+		store.add(lease.onDidApplyFrame(e => applied.push(e)));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		const appliedBefore = applied.length;
+		assert.ok(appliedBefore >= 2);
+		sessionView.acknowledgeFn = () => Promise.reject(paintBoom);
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			const frame: ConversationViewFrame = {
+				frame: {
+					leaseId: 'lease:sess-ack-warn-rethrow' as ViewLeaseId,
+					generation: 1,
+					frameId: 3,
+					version: 3,
+					body: { kind: 'patches', patches: [{ op: 'setSyncChrome', sync: { kind: 'live' } }] },
+				},
+			};
+			(lease as unknown as {
+				onHostFrame(frame: ConversationViewFrame, applied: ConversationViewFrameApplied): void;
+			}).onHostFrame(frame, {
+				kind: 'patches',
+				changedIds: new Set(['ack-warn']),
+			});
+		});
+		assert.ok(applied.length > appliedBefore);
+		assert.deepStrictEqual(lease.snapshot.sync, { kind: 'live' });
 	});
 
 	test('releaseLease reject on dispose-before-resolve still records release and does not leave an unhandled rejection', async () => {
