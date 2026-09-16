@@ -150,7 +150,7 @@ const workspace = createWorkspace(URI.parse('file:///repo'));
 suite('SessionsTelemetryContribution', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function setup(sessions: readonly ISession[], activeSession?: IObservable<IActiveSession | undefined>, getAllTasks: () => Promise<readonly ISessionTaskWithTarget[]> = async () => []): { telemetryService: TestTelemetryService; storageService: InMemoryStorageService; onDidSendRequest: Emitter<ISendRequestSentEvent>; onDidArchiveSession: Emitter<ISession>; onModelAdded: Emitter<ITextModel> } {
+	function setup(sessions: readonly ISession[], activeSession?: IObservable<IActiveSession | undefined>, getAllTasks: () => Promise<readonly ISessionTaskWithTarget[]> = async () => []): { telemetryService: TestTelemetryService; storageService: InMemoryStorageService; onDidSendRequest: Emitter<ISendRequestSentEvent>; onDidArchiveSession: Emitter<ISession>; onModelAdded: Emitter<ITextModel>; contribution: SessionsTelemetryContribution } {
 		const onDidSendRequest = disposables.add(new Emitter<ISendRequestSentEvent>());
 		const onDidArchiveSession = disposables.add(new Emitter<ISession>());
 		const onModelAdded = disposables.add(new Emitter<ITextModel>());
@@ -199,7 +199,7 @@ suite('SessionsTelemetryContribution', () => {
 			override getModels() { return []; }
 		}();
 
-		disposables.add(new SessionsTelemetryContribution(
+		const contribution = disposables.add(new SessionsTelemetryContribution(
 			sessionsManagementService,
 			sessionsService,
 			telemetryService,
@@ -217,7 +217,7 @@ suite('SessionsTelemetryContribution', () => {
 			modelService,
 		));
 
-		return { telemetryService, storageService, onDidSendRequest, onDidArchiveSession, onModelAdded };
+		return { telemetryService, storageService, onDidSendRequest, onDidArchiveSession, onModelAdded, contribution };
 	}
 
 	test('logs requestSent for new sessions, new chats, and follow-up messages', async () => {
@@ -253,6 +253,28 @@ suite('SessionsTelemetryContribution', () => {
 		setUnexpectedErrorHandler(() => { });
 		try {
 			onDidSendRequest.fire({ session, chat, isNewSession: false, isNewChat: true, options: { query: 'new chat' } });
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when requestSent workspace file-count rejects', async () => {
+		const folder: ISessionFolder = { root: URI.file('/repo'), workingDirectory: URI.file('/repo'), name: 'repo', description: undefined };
+		const tracked = { ...session, workspace: constObservable(createWorkspace(URI.file('/repo'), [folder])) };
+		const { onDidSendRequest, contribution } = setup([tracked]);
+		// `_startWorkspaceFileCountFetch` maps search reject to -1, so the void
+		// `requestSent` then only rejects when `_getOrFetchWorkspaceFileCount` itself rejects.
+		(contribution as unknown as { _getOrFetchWorkspaceFileCount: () => Promise<number> })._getOrFetchWorkspaceFileCount = () => Promise.reject('boom');
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			onDidSendRequest.fire({ session: tracked, chat, isNewSession: false, isNewChat: false, options: { query: 'hi' } });
 			await timeout(0);
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
