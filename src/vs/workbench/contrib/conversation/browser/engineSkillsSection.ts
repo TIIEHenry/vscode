@@ -562,7 +562,7 @@ export class EngineSkillsSection extends Disposable {
 					new EngineSkillGroupRenderer(),
 					new EngineSkillRowRenderer(
 						() => this.canWrite(),
-						(skill, enabled) => this.toggleSkill(skill, enabled),
+						(skill, enabled) => void this.toggleSkill(skill, enabled).catch(onUnexpectedError).catch(onUnexpectedError),
 					),
 				],
 				{

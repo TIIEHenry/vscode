@@ -2024,4 +2024,65 @@ suite('EngineSkillsSection (E1)', () => {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
+
+	test('does not leak unhandled rejection when row toggleSkill catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		// toggleSkill() already catches setSkillEnabled throw; a lone inner reject does not leak.
+		// The row checkbox onChange still needs `.catch` when the catch-path paint throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				skillsSupport: 'SUPPORTED',
+				listSkills: async () => ({
+					skills: [{ name: 'demo-skill', source: 'bundled', enabled: true }],
+				}),
+				setSkillEnabled: async () => {
+					throw new Error('setSkillEnabled exploded');
+				},
+			});
+			const section = mountSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+			section.layout(640, 160);
+			assert.strictEqual(section.getMode(), 'ready');
+			assert.strictEqual(section.canWrite(), true);
+			assertLeftoverSkillsRowTogglesLive(section);
+			const toggleFailed = localize('ua.engineSkillToggleFailed', "Could not update skill enablement on the engine.");
+			const writeStatus = section.getDomNode().querySelector('.engine-skill-write-status') as HTMLElement;
+			assert.ok(writeStatus);
+			Object.defineProperty(writeStatus, 'textContent', {
+				configurable: true,
+				get: () => '',
+				set: (value: string) => {
+					if (value === toggleFailed) {
+						throw paintBoom;
+					}
+				},
+			});
+			const toggle = leftoverSkillsRowToggles(section)[0];
+			assert.ok(toggle, 'live skill row must paint a toggle');
+			toggle.click();
+			await flushMicrotasks();
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+			section.getDomNode().parentElement?.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
 });
