@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { IObservable } from '../../../../../base/common/observable.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -103,7 +104,7 @@ export class AgentHostCodexApprovalsPicker extends AgentHostSessionEnumPicker {
 		if (item.value !== LEARN_MORE_VALUE) {
 			return false;
 		}
-		void this._openerService.open(URI.parse(CODEX_APPROVALS_LEARN_MORE_URL));
+		void this._openerService.open(URI.parse(CODEX_APPROVALS_LEARN_MORE_URL)).catch(onUnexpectedError).catch(onUnexpectedError);
 		return true;
 	}
 }
