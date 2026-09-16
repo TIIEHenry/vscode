@@ -209,17 +209,17 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		}));
 		this._register(this.connection.onDidChangeConnection(() => {
 			if (this.open) {
-				void this.refresh();
+				void this.refresh().catch(onUnexpectedError);
 			}
 		}));
 		this._register(this.roster.onDidChangeActiveSession(() => {
 			if (this.open) {
-				void this.refresh();
+				void this.refresh().catch(onUnexpectedError);
 			}
 		}));
 		this._register(this.roster.onDidChangeEngineConnection(() => {
 			if (this.open) {
-				void this.refresh();
+				void this.refresh().catch(onUnexpectedError);
 			}
 		}));
 		this._register(this.roster.onDidChangeSession(() => {
@@ -245,7 +245,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		this.open = true;
 		this.overlayElement.hidden = false;
 		this.button.element.setAttribute('aria-expanded', 'true');
-		void this.refresh();
+		void this.refresh().catch(onUnexpectedError);
 	}
 
 	close(): void {
@@ -379,7 +379,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		if (!canRestoreEngineSnapshot(this.isSnapshotWriteLive(), hasHook, snapshotId, sessionId) || !restore || !sessionId) {
 			return;
 		}
-		void this.restoreThenRefreshList(restore, sessionId, snapshotId);
+		void this.restoreThenRefreshList(restore, sessionId, snapshotId).catch(onUnexpectedError);
 	}
 
 	private async restoreThenRefreshList(
@@ -426,7 +426,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		if (!this.canSendDelete(snapshot.id) || !remove || !sessionId) {
 			return;
 		}
-		void this.deleteThenRefreshList(remove, sessionId, snapshot.id);
+		void this.deleteThenRefreshList(remove, sessionId, snapshot.id).catch(onUnexpectedError);
 	}
 
 	private async deleteThenRefreshList(
