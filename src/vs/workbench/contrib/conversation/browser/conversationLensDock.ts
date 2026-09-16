@@ -149,7 +149,7 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 			conversationLensDockPermissionLabel));
 		host.permissionSelectBox.render(permissionContainer);
 		host.register(host.permissionSelectBox.onDidSelect(e => {
-			void applySessionPermissionIndex(host, host.getBoundSessionId(), e.index);
+			void applySessionPermissionIndex(host, host.getBoundSessionId(), e.index).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		host.agentContainer = append(bottomLeading, $('.conversation-lens-dock-agent'));
@@ -181,7 +181,7 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 			localize('conversationLens.dockModelLabel', "Model")));
 		host.modelSelectBox.render(modelContainer);
 		host.register(host.modelSelectBox.onDidSelect(e => {
-			void applySessionModelIndex(host, host.getBoundSessionId(), e.index);
+			void applySessionModelIndex(host, host.getBoundSessionId(), e.index).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		updateComposerSessionSelectsEnabled(host);
 		host.register(host.stubService.onDidChangeEngineConnection(() => updateComposerSessionSelectsEnabled(host)));

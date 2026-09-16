@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
-import { Event } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -36,9 +36,11 @@ import {
 import { beginSessionTitleEdit, commitSessionTitleEdit, createNewSession, deleteActiveSession, updateSessionBarWriteChrome, type IConversationLensSessionBarHost } from '../../browser/conversationLensSessionBar.js';
 import { mountDock, type IConversationLensDockHost } from '../../browser/conversationLensDock.js';
 import {
+	conversationLensDockAgentLabel,
 	conversationLensDockEngineNotConnected,
 	conversationLensDockNoEngineTools,
 	conversationLensDockNoTools,
+	conversationLensDockPermissionLabel,
 	conversationLensPostFailed,
 	conversationLensPostFailedDisconnected,
 	conversationLensPostFailedNoSession,
@@ -152,6 +154,116 @@ suite('conversation lens dispose gate', () => {
 		} as unknown as IConversationLensDockHost & IConversationLensComposerChromeHost;
 		mountDock(host, dockHost);
 		return { host, dispose: () => store.dispose() };
+	}
+
+	function mountDockWithRejectingSessionSelectApply(paintBoom: Error): {
+		firePermissionSelect(index: number): void;
+		fireModelSelect(index: number): void;
+		dispose(): void;
+	} {
+		const store = new DisposableStore();
+		const dockHost = document.createElement('div');
+		document.body.appendChild(dockHost);
+		store.add({ dispose: () => dockHost.remove() });
+		const permissionDidSelect = store.add(new Emitter<{ index: number }>());
+		const modelDidSelect = store.add(new Emitter<{ index: number }>());
+		const dummySelectBox = (onDidSelect: typeof Event.None) => ({
+			render() { },
+			onDidSelect,
+			select() { },
+			setEnabled() { },
+			setAriaLabel() { },
+			dispose() { },
+		});
+		const host = {
+			composerPolicy: 'compose' as const,
+			inputHistoryBrowse: { browseIndex: -1, savedDraft: '' },
+			modelSelectedIndex: 0,
+			catalogToolNames: [],
+			catalogModelIds: ['', 'gpt-test'],
+			sessionConfigBySessionId: new Map([['sess-1', { agentIndex: 0, permissionIndex: 0 }]]),
+			postFailureVisible: false,
+			sendFailureTimeout: undefined,
+			lastReadingWidth: 800,
+			inputMaximized: false,
+			composeDraftSnapshot: '',
+			editingTurnId: undefined,
+			editingQueueItemId: undefined,
+			tuneContextView: undefined,
+			moreContextView: undefined,
+			configurationService: { getValue: () => undefined },
+			instantiationService: {
+				createInstance: () => ({ dispose() { } }),
+			},
+			stubService: {
+				onDidChangeEngineConnection: Event.None,
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+			},
+			uaConnection: {
+				onDidChangeConnection: Event.None,
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+				setPermissionMode: async () => {
+					throw new Error('setPermissionMode boom');
+				},
+				switchModel: async () => {
+					throw new Error('switchModel boom');
+				},
+			},
+			register: <T extends { dispose(): void }>(disposable: T) => store.add(disposable),
+			createComposerSelectBox: (_options: { text: string }[], _selectedIndex: number, ariaLabel: string) => {
+				if (ariaLabel === conversationLensDockPermissionLabel) {
+					return dummySelectBox(permissionDidSelect.event);
+				}
+				if (ariaLabel === conversationLensDockAgentLabel) {
+					return dummySelectBox(Event.None);
+				}
+				return dummySelectBox(modelDidSelect.event);
+			},
+			getSessionConfig: () => ({ agentIndex: 0, permissionIndex: 0 }),
+			setSessionConfig: () => { },
+			getBoundSessionId: () => 'sess-1',
+			toggleTuneContextView: () => { },
+			toggleMoreContextView: () => { },
+			toggleInputMaximized: () => { },
+			updateMaximizeInputButton: () => { },
+			updateSendEnabled: () => { },
+			beginQueueEdit: () => { },
+			exitComposerEdit: () => { },
+			navigateInputHistory: () => false,
+			exitInputHistoryBrowse: () => { },
+			submitDraft: async () => { },
+			writeComposerDraft: () => { },
+			updateConversationPhase: () => { },
+			scrollToFirstPendingConfirmation: () => { },
+			setInputMaximized: () => { },
+			renderInboxStatus: () => { },
+			readComposerDraft: () => '',
+			isPreFirst: () => false,
+			syncComposerPlacement: () => { },
+			updateComposerEditChrome: () => { },
+			ensureComposerInCluster: () => { },
+			slotHosts: {},
+		} as unknown as IConversationLensDockHost & IConversationLensComposerChromeHost;
+		mountDock(host, dockHost);
+		host.gateLabel = {
+			set textContent(_value: string) {
+				throw paintBoom;
+			},
+			get textContent() {
+				return '';
+			},
+		} as HTMLElement;
+		return {
+			firePermissionSelect(index: number) {
+				permissionDidSelect.fire({ index });
+			},
+			fireModelSelect(index: number) {
+				modelDidSelect.fire({ index });
+			},
+			dispose: () => store.dispose(),
+		};
 	}
 
 	test('applySessionViewTimeline skips applyEntries after dispose', () => {
@@ -2784,6 +2896,39 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(source.split(submitDraftVoid).length - 1, 3);
 		assert.ok(!source.includes('void host.submitDraft();'));
 		assert.ok(!source.includes('() => void host.submitDraft())'));
+	});
+
+	test('does not leak unhandled rejection when dock permission select applySessionPermissionIndex catch-path throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const fixture = mountDockWithRejectingSessionSelectApply(paintBoom);
+		try {
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+				fixture.firePermissionSelect(2);
+			});
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('does not leak unhandled rejection when dock model select applySessionModelIndex catch-path throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const fixture = mountDockWithRejectingSessionSelectApply(paintBoom);
+		try {
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+				fixture.fireModelSelect(1);
+			});
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('dock applySession fire-and-forget voids double-catch onUnexpectedError', async () => {
+		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationLensDock.ts`);
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		assert.ok(source.includes(`void applySessionPermissionIndex(host, host.getBoundSessionId(), e.index)${doubleCatch}`));
+		assert.ok(source.includes(`void applySessionModelIndex(host, host.getBoundSessionId(), e.index)${doubleCatch}`));
+		assert.ok(!source.includes('void applySessionPermissionIndex(host, host.getBoundSessionId(), e.index);'));
+		assert.ok(!source.includes('void applySessionModelIndex(host, host.getBoundSessionId(), e.index);'));
 	});
 
 	test('saveTurnEdit roster false after disconnect stays in edit and shows engine_disconnected', () => {
