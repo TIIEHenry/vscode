@@ -238,7 +238,7 @@ export class ConversationSessionsView extends ViewPane {
 		if (!this.layoutService.isVisible(Parts.CONVERSATION_PART)) {
 			this.layoutService.setPartHidden(false, Parts.CONVERSATION_PART);
 		}
-		void this.sessionWindowService.openSessionBeside(sessionId).catch(onUnexpectedError);
+		void this.sessionWindowService.openSessionBeside(sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
 		this.conversationPartService.focus();
 	}
 
