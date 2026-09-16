@@ -132,7 +132,12 @@ class MockAgentHostService extends mock<IAgentHostService>() {
 
 class MockChatService extends mock<IChatService>() {
 	declare readonly _serviceBrand: undefined;
-	override readonly onDidDisposeSession = Event.None;
+	readonly onDidDisposeSessionEmitter = new Emitter<{ readonly sessionResources: readonly URI[]; readonly reason: 'cleared' }>();
+	override readonly onDidDisposeSession = this.onDidDisposeSessionEmitter.event;
+
+	dispose(): void {
+		this.onDidDisposeSessionEmitter.dispose();
+	}
 }
 
 // ---- Helpers ---------------------------------------------------------------
@@ -181,10 +186,12 @@ suite('AgentHostUntitledProvisionalSessionService', () => {
 	});
 
 	let agentHost: MockAgentHostService;
+	let chatService: MockChatService;
 	let importStore: AgentHostImportConversationStore;
 	let provisional: IAgentHostUntitledProvisionalSessionService;
 	let folderService: IAgentHostNewSessionFolderService;
 	let cleanup: DisposableStore;
+	let logWarn: ((message: string) => void) | undefined;
 	let workspaceTrusted: boolean;
 	let untrustedFolders: Set<string>;
 	let rejectTrustInfo: boolean;
@@ -199,6 +206,8 @@ suite('AgentHostUntitledProvisionalSessionService', () => {
 
 	setup(async () => {
 		agentHost = ds.add(new MockAgentHostService());
+		chatService = ds.add(new MockChatService());
+		logWarn = undefined;
 		workspaceTrusted = true;
 		untrustedFolders = new Set<string>();
 		rejectTrustInfo = false;
@@ -211,8 +220,12 @@ suite('AgentHostUntitledProvisionalSessionService', () => {
 		onDidChangeWorkspaceFolders = ds.add(new Emitter<IWorkspaceFoldersChangeEvent>());
 		const insta = ds.add(new TestInstantiationService());
 		insta.stub(IAgentHostService, agentHost);
-		insta.stub(ILogService, new NullLogService());
-		insta.stub(IChatService, new MockChatService());
+		insta.stub(ILogService, new class extends NullLogService {
+			override warn(message: string, ...args: unknown[]): void {
+				logWarn?.(message);
+			}
+		}());
+		insta.stub(IChatService, chatService);
 		insta.stub(IConfigurationService, new TestConfigurationService());
 		insta.stub(IWorkbenchEnvironmentService, { get isSessionsWindow() { return isSessionsWindow; } } as Partial<IWorkbenchEnvironmentService>);
 		insta.stub(IWorkspaceContextService, new class extends mock<IWorkspaceContextService>() {
@@ -1284,6 +1297,81 @@ suite('AgentHostUntitledProvisionalSessionService', () => {
 			await flush();
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when onDidDisposeSession dispose warn throws and onUnexpectedError warn-then-rethrows', async () => {
+		const ui = untitledChatUri('dispose-session-warn-rethrow');
+		await provisional.getOrCreate(ui, 'copilot', undefined);
+		agentHost.failNextDispose = true;
+		let warnCalls = 0;
+		logWarn = message => {
+			if (message.includes('Failed to dispose provisional generation')) {
+				warnCalls++;
+				throw new Error('warn failed');
+			}
+		};
+
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			chatService.onDidDisposeSessionEmitter.fire({ sessionResources: [ui], reason: 'cleared' });
+			await flush();
+			assert.deepStrictEqual({
+				unhandledRejections,
+				warnCalls,
+				unexpectedWarnCount: unexpectedWarns.length,
+				mapping: provisional.get(ui),
+			}, {
+				unhandledRejections: [],
+				warnCalls: 1,
+				unexpectedWarnCount: 2,
+				mapping: undefined,
+			});
+		} finally {
+			logWarn = undefined;
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when pending provisional cleanup dispose warn throws', async () => {
+		const ui = untitledChatUri('pending-cleanup-warn-throw');
+		await provisional.getOrCreate(ui, 'copilot', undefined);
+		agentHost.failNextDispose = true;
+		await provisional.disposeSession(ui);
+
+		let warnCalls = 0;
+		logWarn = message => {
+			if (message.includes('Failed to dispose pending provisional cleanup')) {
+				warnCalls++;
+				throw new Error('warn failed');
+			}
+		};
+		agentHost.failNextDispose = true;
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			agentHost.fireAgentHostStart();
+			await flush();
+			assert.deepStrictEqual({ unhandledRejections, warnCalls }, { unhandledRejections: [], warnCalls: 1 });
+		} finally {
+			logWarn = undefined;
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
 		}

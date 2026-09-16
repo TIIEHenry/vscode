@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "合入中 A Memory/File 已 bytes；F ChatSync / G Team mutators wire 未接线。D24 仍开。D488–D489 closed；D487 open。不是 leftover/pills 完成。R9/D405 仍开"
+summary: "合入中 A Memory/File 已 bytes；F ChatSync / G Team mutators wire 未接线。D24 仍开。D488–D490 closed；D487 open。不是 leftover/pills 完成。R9/D405 仍开"
 ---
 
 # Development Progress
@@ -30,7 +30,7 @@ summary: "合入中 A Memory/File 已 bytes；F ChatSync / G Team mutators wire 
 | **A/F/G** | D24 wires | Memory/File unary **已接线** grpcClient bytes；Rebuild 仍 JSON；ChatSync/Team mutators wire **未接线**。[D24](deferred-gaps.md) **仍开**。[D487](deferred-gaps.md) **open** |
 | **C** | D483 / D488 | D483 **closed**；D488 Agents void catch **closed**；ff-only 保持 `dev/loop` gitlink 脏；勿 add |
 | **D** | D482 / D489 | D482 WSL **closed**；D489 Sessions beside catch **closed**。不得把 F 写成 D482 |
-| **H/I/J** | D484–D486 | **closed**（artifacts / history / snapshots void catch） |
+| **H/I/J** | D484–D486 / D490 | **closed**（artifacts / history / snapshots / untitled dispose void catch） |
 | **B** | — | 脏 `worktree-pool.md`；**跳过**；勿 `-B` |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 | **edit** | `agent-ide` | **仅 ff-only**；非祖先则失败并记录；勿 reset/checkout/stash |
@@ -40,7 +40,7 @@ summary: "合入中 A Memory/File 已 bytes；F ChatSync / G Team mutators wire 
 |:---|:-----|:-----|
 | [D24](deferred-gaps.md) | A/F/G | **仍开**：Memory/File unary **已接线** bytes；ChatSync/Team mutators wire 未接线；Health/SaveSkillContent/Rebuild 仍 JSON |
 | [D487](deferred-gaps.md) | F Memory wire | **open**：codec 无 double；Search score 未读；grpcClient 已接线，mapper `requiredDouble`→0 |
-| [D482](deferred-gaps.md)–[D486](deferred-gaps.md) / [D488](deferred-gaps.md)–[D489](deferred-gaps.md) | D/C/H/I/J | **closed** WSL / DevContainer / artifacts / history / snapshots / Agents / Sessions beside void catch |
+| [D482](deferred-gaps.md)–[D486](deferred-gaps.md) / [D488](deferred-gaps.md)–[D490](deferred-gaps.md) | D/C/H/I/J | **closed** WSL / DevContainer / artifacts / history / snapshots / Agents / Sessions beside / untitled dispose void catch |
 | [D405](deferred-gaps.md) | 手测 | **仍开**（S4a/S4b 前置） |
 | [D16](deferred-gaps.md) / [D8](deferred-gaps.md) / [D147](deferred-gaps.md) | 基线 | **仍开**；勿开切片 1；勿降 `min_cases` |
 | [D31](deferred-gaps.md) | Sources | **仍开**（剩 F4）；不升 PRD |
@@ -56,7 +56,7 @@ summary: "合入中 A Memory/File 已 bytes；F ChatSync / G Team mutators wire 
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked` leftover；跳过 |
 | F | `vscode-WorkTrees/F` | `loop/F` | MERGE_SHA | 脏 ChatSync wire | 0 | ChatSync wire 未接线；[D24](deferred-gaps.md) 仍开；D487 open |
 | G | `vscode-WorkTrees/G` | `loop/G` | MERGE_SHA | 未跟踪 `out` + Team mutators wire | 0 | ff-only；**勿 add `out`**；Team mutators **未接线** |
-| H | `vscode-WorkTrees/H` | `loop/H` | MERGE_SHA | 干净 | 0 | ff-only；D484 closed |
+| H | `vscode-WorkTrees/H` | `loop/H` | MERGE_SHA | 脏 D490 | 0 | D490 closed；D484 已合入 |
 | I | `vscode-WorkTrees/I` | `loop/I` | MERGE_SHA | 干净 | 0 | ff-only；D485 closed |
 | J | `vscode-WorkTrees/J` | `loop/J` | MERGE_SHA | 干净 | 0 | ff-only；D486 closed |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `ff278772b85` | `dev/loop`+docs | 0 | 仅 ff-only；非祖先则失败记录；勿 reset/checkout/stash |
@@ -64,7 +64,7 @@ summary: "合入中 A Memory/File 已 bytes；F ChatSync / G Team mutators wire 
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。下一刀是 IDE Direct Address 接通后 Composer 发送。**不升 PRD-008**。不要再清 store |
-| **loop 切片** | [D24](deferred-gaps.md) **仍开**（Memory/File unary 已 bytes；ChatSync/Team mutators wire 未接线；Health/SaveSkillContent/Rebuild 仍 JSON）。[D482](deferred-gaps.md)–[D486](deferred-gaps.md) / [D488](deferred-gaps.md)–[D489](deferred-gaps.md) **closed**。[D487](deferred-gaps.md) **open**。R9 / **D405** 仍开。不关 D8/D16/D147。不得宣称 leftover / pills 完成 |
+| **loop 切片** | [D24](deferred-gaps.md) **仍开**（Memory/File unary 已 bytes；ChatSync/Team mutators wire 未接线；Health/SaveSkillContent/Rebuild 仍 JSON）。[D482](deferred-gaps.md)–[D486](deferred-gaps.md) / [D488](deferred-gaps.md)–[D490](deferred-gaps.md) **closed**。[D487](deferred-gaps.md) **open**。R9 / **D405** 仍开。不关 D8/D16/D147。不得宣称 leftover / pills 完成 |
 | **test-baseline** | 本关仓聚焦 8 文件 **364 passing / 11 pending / 0 fail**。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 未满足前不开 U2 |
 ## 不做：**ADR-007 U2**、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
