@@ -770,7 +770,7 @@ suite('conversationComposerCatalog', () => {
 
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
 			refreshComposerCatalogs(host);
-			(host.agentSelectBox as { setOptions(): void }).setOptions = () => {
+			(host.agentSelectBox as unknown as { setOptions(): void }).setOptions = () => {
 				throw paintBoom;
 			};
 		});
