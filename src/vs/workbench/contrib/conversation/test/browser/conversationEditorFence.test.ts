@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
@@ -19,14 +20,15 @@ import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/edi
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
-import { ConversationChatInput, getDefaultConversationChatResource } from '../../common/conversationChatInput.js';
+import { ConversationChatInput, getConversationChatResource, getDefaultConversationChatResource } from '../../common/conversationChatInput.js';
+import { IConversationSessionChatService } from '../../common/conversationSessionChat.js';
 import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
 import '../../browser/conversationEditor.contribution.js';
 import { ConversationEditorPane } from '../../browser/conversationEditorPane.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
-import { stubConversationLensRuntimeServices, stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
+import { createEmptyConversationSessionChatService, stubConversationLensRuntimeServices, stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 import { installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
 
 suite('Conversation editor fence', () => {
@@ -67,13 +69,44 @@ suite('Conversation editor fence', () => {
 		store.add(registerTestEditor(TEST_EDITOR_ID, [new SyncDescriptor(TestFileEditorInput), new SyncDescriptor(SideBySideEditorInput)], TEST_EDITOR_INPUT_ID));
 	});
 
-	async function createHarness() {
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void): Promise<void> {
+		// Overlay leftover already locks session-chat `navigateAgentBreadcrumb`.
+		// This pane click is a separate fire-and-forget. A lone
+		// `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			run();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	}
+
+	async function createHarness(options?: { sessionChat?: IConversationSessionChatService }) {
 		const rosterService = store.add(new ConversationStubService());
 		const instantiationService = workbenchInstantiationService(undefined, disposables);
 		instantiationService.stub(IConversationRosterService, rosterService);
 		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
 		stubConversationLensRuntimeServices(instantiationService);
 		stubConversationTimelineLinkServices(instantiationService);
+		if (options?.sessionChat) {
+			instantiationService.stub(IConversationSessionChatService, options.sessionChat);
+		}
 		instantiationService.invokeFunction(accessor => Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor));
 		const parts = await createEditorParts(instantiationService, disposables);
 		store.add(parts);
@@ -175,5 +208,34 @@ suite('Conversation editor fence', () => {
 		assert.throws(() => {
 			instantiationService.invokeFunction(accessor => findGroup(accessor, reviewInput, undefined));
 		}, /explicit conversation group target/);
+	});
+
+	test('does not leak unhandled rejection when editor pane breadcrumb navigate rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const { conversationPart } = await createHarness({
+			sessionChat: {
+				...createEmptyConversationSessionChatService(),
+				getAgentHierarchyBreadcrumb: () => [
+					{ chatId: 'default', title: 'Root session', isCurrent: false },
+					{ chatId: 'sub-1', title: 'Child agent', isCurrent: true },
+				],
+				navigateAgentBreadcrumb: async () => {
+					throw paintBoom;
+				},
+			},
+		});
+		const input = store.add(new ConversationChatInput(
+			getConversationChatResource('session-a', 'sub-1'),
+			{ isDefaultRoot: false, title: 'Child agent' },
+		));
+		await conversationPart.activeGroup.openEditor(input, { pinned: true });
+		const pane = await waitForPane(conversationPart);
+		trackEditors(conversationPart);
+		pane.layout({ width: 800, height: 400 });
+		const ancestor = [...(pane.getContainer()?.querySelectorAll('.conversation-agent-breadcrumb-item') ?? [])].find(element => {
+			return element.getAttribute('aria-current') !== 'location';
+		}) as HTMLElement | undefined;
+		assert.ok(ancestor, 'missing editor pane breadcrumb ancestor');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => ancestor.click());
 	});
 });
