@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { ConversationWriteMessage } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -13,6 +15,34 @@ import { loadConnectedComposerCatalogs, refreshComposerCatalogs, submitDraft, ty
 import { updateGateRow, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
+
+declare function __readFileInTests(path: string): Promise<string>;
+
+async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
+	// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	const unexpectedWarns: unknown[] = [];
+	const unhandledRejections: unknown[] = [];
+	const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+	process.on('unhandledRejection', onUnhandledRejection);
+	const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+	setUnexpectedErrorHandler(error => {
+		unexpectedWarns.push(error);
+		if (unexpectedWarns.length === 1) {
+			throw error;
+		}
+	});
+	try {
+		await run();
+		await timeout(0);
+		assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+			unhandledRejections: [],
+			unexpectedWarns: [paintBoom, paintBoom],
+		});
+	} finally {
+		setUnexpectedErrorHandler(originalErrorHandler);
+		process.off('unhandledRejection', onUnhandledRejection);
+	}
+}
 
 suite('conversationComposerCatalog', () => {
 
@@ -723,6 +753,34 @@ suite('conversationComposerCatalog', () => {
 		assert.deepStrictEqual([...host.catalogModelIds], ['']);
 		assert.ok(!agentOptions.some(option => option.text === 'Coder'));
 		assert.ok(!modelOptions.some(option => option.text === 'gpt-test'));
+	});
+
+	test('does not leak unhandled rejection when refreshComposerCatalogs loadConnectedComposerCatalogs catch-path restore throws and onUnexpectedError warn-then-rethrows', async () => {
+		// loadConnectedComposerCatalogs already catches list throw; a lone inner reject does not leak.
+		// The void refreshComposerCatalogs call site still needs `.catch` when the catch-path restore throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const { host } = createLoadCatalogHost({
+			listAgentProfiles: async () => {
+				throw new Error('listAgentProfiles exploded');
+			},
+			listModels: async () => ({ models: [] }),
+			listTools: async () => ({ tools: [] }),
+		});
+
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			refreshComposerCatalogs(host);
+			(host.agentSelectBox as { setOptions(): void }).setOptions = () => {
+				throw paintBoom;
+			};
+		});
+	});
+
+	test('refreshComposerCatalogs loadConnectedComposerCatalogs fire-and-forget void double-catch onUnexpectedError', async () => {
+		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationLensComposer.ts`);
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		assert.ok(source.includes(`void loadConnectedComposerCatalogs(host, generation)${doubleCatch};`));
+		assert.ok(!source.includes('void loadConnectedComposerCatalogs(host, generation);'));
 	});
 });
 

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
@@ -91,7 +92,7 @@ export function refreshComposerCatalogs(host: IConversationLensComposerHost): vo
 		keepLastGoodComposerCatalogOrEmpty(host);
 		host.updateSendEnabled();
 		host.updateGateRow();
-		void loadConnectedComposerCatalogs(host, generation);
+		void loadConnectedComposerCatalogs(host, generation).catch(onUnexpectedError).catch(onUnexpectedError);
 	
 }
 
