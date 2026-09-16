@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
@@ -1242,5 +1244,97 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 		await flushMicrotasks();
 
 		assertToolsUnavailableHonesty(panel, 1);
+	});
+
+	test('does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+		// refresh() already catches getMcpServerStatuses; a lone inner reject does not leak.
+		// The void call site still needs `.catch` when the catch-path render throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const connection = createConnectionStub({
+				connected: false,
+				getMcpServerStatuses: async () => {
+					throw new Error('getMcpServerStatuses exploded');
+				},
+			});
+			const panel = mountPanel(connection);
+			await flushMicrotasks();
+			const status = (panel as unknown as { status: { render(options: { readonly mode: string }): void } }).status;
+			const originalRender = status.render.bind(status);
+			status.render = (options: { readonly mode: string }) => {
+				if (options.mode === 'failed') {
+					throw paintBoom;
+				}
+				originalRender(options);
+			};
+			connection.setConnected(true);
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+			panel.getDomNode().parentElement?.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when loadTools catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+		// loadTools() already catches getMcpServerTools; a lone inner reject does not leak.
+		// The void call site still needs `.catch` when the catch-path render throws.
+		const paintBoom = new Error('tools paint boom');
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				getMcpServerTools: async () => {
+					throw new Error('getMcpServerTools exploded');
+				},
+			});
+			const panel = mountPanel(connection);
+			await flushMicrotasks();
+			assert.strictEqual(panel.getMode(), 'ready');
+			const toolsStatus = (panel as unknown as { toolsStatus: { render(options: { readonly mode: string }): void } }).toolsStatus;
+			const originalRender = toolsStatus.render.bind(toolsStatus);
+			toolsStatus.render = (options: { readonly mode: string }) => {
+				if (options.mode === 'failed') {
+					throw paintBoom;
+				}
+				originalRender(options);
+			};
+			assert.ok(panel.selectServerForTest(RUNTIME_SERVER_ID));
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+			panel.getDomNode().parentElement?.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });
