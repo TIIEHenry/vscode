@@ -97,17 +97,20 @@ suite('grpc RemoteAgentService DeleteConfig protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('ONLY deleteRemoteAgentConfig still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
+	test('deleteRemoteAgentConfig uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const del = extractAsyncMethod(source, 'deleteRemoteAgentConfig');
-		assert.ok(del.includes('makeUnaryClient<'), 'deleteRemoteAgentConfig still uses JSON makeUnaryClient');
-		assert.ok(!del.includes('makeUnaryBytesClient'), 'deleteRemoteAgentConfig must not use makeUnaryBytesClient this slice');
-		assert.ok(!del.includes('encodeDeleteConfigRequest'), 'deleteRemoteAgentConfig must not call encodeDeleteConfigRequest this slice');
-		assert.ok(!del.includes('decodeDeleteConfigResponse'), 'deleteRemoteAgentConfig must not call decodeDeleteConfigResponse this slice');
-		assert.ok(del.includes('node_id'), 'deleteRemoteAgentConfig still sends node_id JSON key');
+		assert.ok(del.includes('makeUnaryBytesClient'), 'deleteRemoteAgentConfig must use makeUnaryBytesClient');
+		assert.ok(del.includes('encodeDeleteConfigRequest'), 'deleteRemoteAgentConfig must call encodeDeleteConfigRequest');
+		assert.ok(del.includes('decodeDeleteConfigResponse'), 'deleteRemoteAgentConfig must call decodeDeleteConfigResponse');
 		assert.ok(del.includes('mapDeleteRemoteAgentConfigResponse'), 'deleteRemoteAgentConfig still calls mapDeleteRemoteAgentConfigResponse');
-		assert.ok(!source.includes('grpcDeleteConfigUnaryWire'));
-		assert.ok(!/\bWatch\b/.test(del));
+		assert.ok(!del.includes('makeUnaryClient<'), 'deleteRemoteAgentConfig must not use JSON makeUnaryClient');
+		assert.ok(!del.includes('JSON.stringify'), 'deleteRemoteAgentConfig must not JSON.stringify');
+
+		assert.ok(source.includes('grpcDeleteConfigUnaryWire'));
+		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});
 });
 

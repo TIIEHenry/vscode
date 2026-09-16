@@ -513,26 +513,20 @@ import {
 	mapUsageResponse,
 	mapWriteFileResponse,
 	mapWriteGitWriteResponse,
-	type CancelRemoteSessionResponseWire,
 	type ConfigChangedEventWire,
 	type ConnectResponseWire,
-	type ConnectionReportWire,
 	type CreateRemoteSessionResponseWire,
-	type DeleteRemoteAgentConfigResponseWire,
-	type DestroyRemoteSessionResponseWire,
 	type DownloadChunkWire,
 	type GetRemoteSessionHistoryResponseWire,
 	type GetRemoteSessionStatusResponseWire,
 	type MemoryRebuildEventWire,
 	type PtyServerMessageWire,
-	type ReloadRemoteAgentsResponseWire,
 	type RemoteAgentConfigWire,
 	type RemoteChatResponseWire,
 	type RemoteResponseWire,
 	type ResolveAnchorResponseWire,
 	type ResolveModelResponseWire,
 	type ResolveTurnResponseWire,
-	type ResumeRemoteSessionResponseWire,
 	type SaveRemoteAgentConfigResponseWire,
 	type SaveSkillContentResponseWire,
 	type SubscribeToolDetailChunkWire,
@@ -715,6 +709,34 @@ import {
 	decodeListConfigsResponse,
 	encodeListConfigsRequest,
 } from './grpcListConfigsUnaryWire.js';
+import {
+	decodeGetConfigResponse as decodeGetConfigResponseFromRemoteAgent,
+	encodeGetConfigRequest as encodeGetConfigRequestFromRemoteAgent,
+} from './grpcGetConfigUnaryWire.js';
+import {
+	decodeDeleteConfigResponse,
+	encodeDeleteConfigRequest,
+} from './grpcDeleteConfigUnaryWire.js';
+import {
+	decodeReloadRemoteAgentsResponse,
+	encodeReloadRemoteAgentsRequest,
+} from './grpcReloadRemoteAgentsUnaryWire.js';
+import {
+	decodeDestroyRemoteSessionResponse,
+	encodeDestroyRemoteSessionRequest,
+} from './grpcDestroyRemoteSessionUnaryWire.js';
+import {
+	decodeCancelRemoteSessionResponse,
+	encodeCancelRemoteSessionRequest,
+} from './grpcCancelRemoteSessionUnaryWire.js';
+import {
+	decodeResumeRemoteSessionResponse,
+	encodeResumeRemoteSessionRequest,
+} from './grpcResumeRemoteSessionUnaryWire.js';
+import {
+	decodeCheckConnectionResponse,
+	encodeCheckConnectionRequest,
+} from './grpcCheckConnectionUnaryWire.js';
 import {
 	decodeChatResponse,
 	decodeCreateSessionResponse,
@@ -2778,24 +2800,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async checkConnection(request: UniverseAgentCheckConnectionRequest): Promise<UniverseAgentConnectionReport> {
-		const unary = makeUnaryClient<Record<string, unknown>, ConnectionReportWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.RemoteAgent.service,
 			UniverseAgentGrpcServices.RemoteAgent.CheckConnection,
+			decodeCheckConnectionResponse,
 		);
-		const wire = await unary({
-			node_id: request.nodeId,
-			session_params: {
-				preferred_model: request.sessionParams.preferredModel,
-				required_tools: [...request.sessionParams.requiredTools],
-				mode: request.sessionParams.mode,
-				max_tokens: request.sessionParams.maxTokens,
-				max_turns: request.sessionParams.maxTurns,
-				system_prompt_suffix: request.sessionParams.systemPromptSuffix,
-				max_execution_time_ms: request.sessionParams.maxExecutionTimeMs,
-			},
-		});
-		return mapConnectionReport(wire);
+		return mapConnectionReport(await unary(encodeCheckConnectionRequest(request)));
 	}
 
 	async setMaintenance(request: UniverseAgentSetMaintenanceRequest): Promise<UniverseAgentSetMaintenanceResult> {
@@ -2829,15 +2840,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async getRemoteAgentConfig(request: UniverseAgentGetRemoteAgentConfigRequest): Promise<UniverseAgentRemoteAgentConfig> {
-		const unary = makeUnaryClient<Record<string, unknown>, RemoteAgentConfigWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.RemoteAgent.service,
 			UniverseAgentGrpcServices.RemoteAgent.GetConfig,
+			decodeGetConfigResponseFromRemoteAgent,
 		);
-		const wire = await unary({
-			node_id: request.nodeId,
-		});
-		return mapRemoteAgentConfig(wire);
+		return mapRemoteAgentConfig(await unary(encodeGetConfigRequestFromRemoteAgent(request)));
 	}
 
 	async saveRemoteAgentConfig(request: UniverseAgentSaveRemoteAgentConfigRequest): Promise<UniverseAgentSaveRemoteAgentConfigResult> {
@@ -2865,25 +2874,23 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async deleteRemoteAgentConfig(request: UniverseAgentDeleteRemoteAgentConfigRequest): Promise<UniverseAgentDeleteRemoteAgentConfigResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, DeleteRemoteAgentConfigResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.RemoteAgent.service,
 			UniverseAgentGrpcServices.RemoteAgent.DeleteConfig,
+			decodeDeleteConfigResponse,
 		);
-		const wire = await unary({
-			node_id: request.nodeId,
-		});
-		return mapDeleteRemoteAgentConfigResponse(wire);
+		return mapDeleteRemoteAgentConfigResponse(await unary(encodeDeleteConfigRequest(request)));
 	}
 
 	async reloadRemoteAgents(): Promise<UniverseAgentReloadRemoteAgentsResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ReloadRemoteAgentsResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.RemoteAgent.service,
 			UniverseAgentGrpcServices.RemoteAgent.Reload,
+			decodeReloadRemoteAgentsResponse,
 		);
-		const wire = await unary({});
-		return mapReloadRemoteAgentsResponse(wire);
+		return mapReloadRemoteAgentsResponse(await unary(encodeReloadRemoteAgentsRequest()));
 	}
 
 	openRemoteChatStream(
@@ -2927,15 +2934,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async destroyRemoteSession(request: UniverseAgentDestroyRemoteSessionRequest): Promise<UniverseAgentDestroyRemoteSessionResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, DestroyRemoteSessionResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.RemoteAgent.service,
 			UniverseAgentGrpcServices.RemoteAgent.DestroyRemoteSession,
+			decodeDestroyRemoteSessionResponse,
 		);
-		const wire = await unary({
-			call_id: request.callId,
-		});
-		return mapDestroyRemoteSessionResponse(wire);
+		return mapDestroyRemoteSessionResponse(await unary(encodeDestroyRemoteSessionRequest(request)));
 	}
 
 	async getRemoteSessionStatus(request: UniverseAgentGetRemoteSessionStatusRequest): Promise<UniverseAgentGetRemoteSessionStatusResult> {
@@ -2964,28 +2969,22 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		return mapGetRemoteSessionHistoryResponse(wire);
 	}
 	async resumeRemoteSession(request: UniverseAgentResumeRemoteSessionRequest): Promise<UniverseAgentResumeRemoteSessionResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ResumeRemoteSessionResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.RemoteAgent.service,
 			UniverseAgentGrpcServices.RemoteAgent.ResumeRemoteSession,
+			decodeResumeRemoteSessionResponse,
 		);
-		const wire = await unary({
-			call_id: request.callId,
-			node_id: request.nodeId,
-		});
-		return mapResumeRemoteSessionResponse(wire);
+		return mapResumeRemoteSessionResponse(await unary(encodeResumeRemoteSessionRequest(request)));
 	}
 	async cancelRemoteSession(request: UniverseAgentCancelRemoteSessionRequest): Promise<UniverseAgentCancelRemoteSessionResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, CancelRemoteSessionResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.RemoteAgent.service,
 			UniverseAgentGrpcServices.RemoteAgent.CancelRemoteSession,
+			decodeCancelRemoteSessionResponse,
 		);
-		const wire = await unary({
-			call_id: request.callId,
-			reason: request.reason,
-		});
-		return mapCancelRemoteSessionResponse(wire);
+		return mapCancelRemoteSessionResponse(await unary(encodeCancelRemoteSessionRequest(request)));
 	}
 
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {

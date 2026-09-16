@@ -219,27 +219,27 @@ suite('grpc RemoteAgentService CheckConnection protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('ONLY checkConnection still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
+	test('checkConnection uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const check = extractAsyncMethod(source, 'checkConnection');
-		assert.ok(check.includes('makeUnaryClient<'), 'checkConnection still uses JSON makeUnaryClient');
-		assert.ok(!check.includes('makeUnaryBytesClient'), 'checkConnection must not use makeUnaryBytesClient this slice');
-		assert.ok(!check.includes('encodeCheckConnectionRequest'), 'checkConnection must not call encodeCheckConnectionRequest this slice');
-		assert.ok(!check.includes('decodeCheckConnectionResponse'), 'checkConnection must not call decodeCheckConnectionResponse this slice');
+		assert.ok(check.includes('makeUnaryBytesClient'), 'checkConnection must use makeUnaryBytesClient');
+		assert.ok(check.includes('encodeCheckConnectionRequest'), 'checkConnection must call encodeCheckConnectionRequest');
+		assert.ok(check.includes('decodeCheckConnectionResponse'), 'checkConnection must call decodeCheckConnectionResponse');
 		assert.ok(check.includes('mapConnectionReport'), 'checkConnection still calls mapConnectionReport');
-		assert.ok(check.includes('node_id'), 'checkConnection still sends node_id JSON key');
-		assert.ok(check.includes('session_params'), 'checkConnection still sends session_params JSON key');
-		assert.ok(check.includes('preferred_model'), 'checkConnection still sends preferred_model JSON key');
-		assert.ok(!source.includes('grpcCheckConnectionUnaryWire'));
-		assert.ok(!/\bWatch\b/.test(check));
-	});
+		assert.ok(!check.includes('makeUnaryClient<'), 'checkConnection must not use JSON makeUnaryClient');
+		assert.ok(!check.includes('JSON.stringify'), 'checkConnection must not JSON.stringify');
 
-	test('skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor; do not lock siblings', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
+		assert.ok(source.includes('grpcCheckConnectionUnaryWire'));
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
+	});
+
+	test('skip Connect/SaveSkillContent/Watch/ResolveTurn; do not lock siblings', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
+		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 		const watchStart = source.indexOf('\topenWatchConfigStream(');
 		assert.ok(watchStart >= 0, 'missing openWatchConfigStream(');
 		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);

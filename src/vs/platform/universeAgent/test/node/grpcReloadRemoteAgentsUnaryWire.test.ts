@@ -164,16 +164,20 @@ suite('grpc RemoteAgentService Reload protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('ONLY reloadRemoteAgents still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
+	test('reloadRemoteAgents uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const reload = extractAsyncMethod(source, 'reloadRemoteAgents');
-		assert.ok(reload.includes('makeUnaryClient<'), 'reloadRemoteAgents still uses JSON makeUnaryClient');
-		assert.ok(!reload.includes('makeUnaryBytesClient'), 'reloadRemoteAgents must not use makeUnaryBytesClient this slice');
-		assert.ok(!reload.includes('encodeReloadRemoteAgentsRequest'), 'reloadRemoteAgents must not call encodeReloadRemoteAgentsRequest this slice');
-		assert.ok(!reload.includes('decodeReloadRemoteAgentsResponse'), 'reloadRemoteAgents must not call decodeReloadRemoteAgentsResponse this slice');
+		assert.ok(reload.includes('makeUnaryBytesClient'), 'reloadRemoteAgents must use makeUnaryBytesClient');
+		assert.ok(reload.includes('encodeReloadRemoteAgentsRequest'), 'reloadRemoteAgents must call encodeReloadRemoteAgentsRequest');
+		assert.ok(reload.includes('decodeReloadRemoteAgentsResponse'), 'reloadRemoteAgents must call decodeReloadRemoteAgentsResponse');
 		assert.ok(reload.includes('mapReloadRemoteAgentsResponse'), 'reloadRemoteAgents still calls mapReloadRemoteAgentsResponse');
-		assert.ok(reload.includes('unary({})'), 'reloadRemoteAgents still sends empty JSON {}');
-		assert.ok(!source.includes('grpcReloadRemoteAgentsUnaryWire'));
+		assert.ok(!reload.includes('makeUnaryClient<'), 'reloadRemoteAgents must not use JSON makeUnaryClient');
+		assert.ok(!reload.includes('JSON.stringify'), 'reloadRemoteAgents must not JSON.stringify');
+
+		assert.ok(source.includes('grpcReloadRemoteAgentsUnaryWire'));
+		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});
 });
 
@@ -211,7 +215,8 @@ function grpcDir(): string {
 function extractAsyncMethod(source: string, name: string): string {
 	const start = source.indexOf(`\tasync ${name}(`);
 	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
+	const rest = source.slice(start + 1);
+	const next = rest.search(/\n\t(?:async )?[A-Za-z_]/);
+	const end = next >= 0 ? start + 1 + next : source.length;
 	return source.slice(start, end);
 }

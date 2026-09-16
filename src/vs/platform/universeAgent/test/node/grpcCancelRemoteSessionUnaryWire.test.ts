@@ -149,20 +149,20 @@ suite('grpc RemoteAgentService CancelRemoteSession protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('ONLY cancelRemoteSession still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
+	test('cancelRemoteSession uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const cancel = extractAsyncMethod(source, 'cancelRemoteSession');
-		assert.ok(cancel.includes('makeUnaryClient<'), 'cancelRemoteSession still uses JSON makeUnaryClient');
-		assert.ok(!cancel.includes('makeUnaryBytesClient'), 'cancelRemoteSession must not use makeUnaryBytesClient this slice');
-		assert.ok(!cancel.includes('encodeCancelRemoteSessionRequest'), 'cancelRemoteSession must not call encodeCancelRemoteSessionRequest this slice');
-		assert.ok(!cancel.includes('decodeCancelRemoteSessionResponse'), 'cancelRemoteSession must not call decodeCancelRemoteSessionResponse this slice');
-		assert.ok(cancel.includes('call_id'), 'cancelRemoteSession still sends call_id JSON key');
-		assert.ok(cancel.includes('reason'), 'cancelRemoteSession still sends reason JSON key');
+		assert.ok(cancel.includes('makeUnaryBytesClient'), 'cancelRemoteSession must use makeUnaryBytesClient');
+		assert.ok(cancel.includes('encodeCancelRemoteSessionRequest'), 'cancelRemoteSession must call encodeCancelRemoteSessionRequest');
+		assert.ok(cancel.includes('decodeCancelRemoteSessionResponse'), 'cancelRemoteSession must call decodeCancelRemoteSessionResponse');
 		assert.ok(cancel.includes('mapCancelRemoteSessionResponse'), 'cancelRemoteSession still calls mapCancelRemoteSessionResponse');
-		assert.ok(!source.includes('grpcCancelRemoteSessionUnaryWire'));
-		assert.ok(!/\bWatch\b/.test(cancel));
-		assert.ok(!/\bSaveSkillContent\b/.test(cancel));
-		assert.ok(!/\bResolveTurn\b/.test(cancel));
+		assert.ok(!cancel.includes('makeUnaryClient<'), 'cancelRemoteSession must not use JSON makeUnaryClient');
+		assert.ok(!cancel.includes('JSON.stringify'), 'cancelRemoteSession must not JSON.stringify');
+
+		assert.ok(source.includes('grpcCancelRemoteSessionUnaryWire'));
+		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});
 });
 

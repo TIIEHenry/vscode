@@ -110,27 +110,20 @@ suite('grpc RemoteAgentService DestroyRemoteSession protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('ONLY destroyRemoteSession still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
+	test('destroyRemoteSession uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const destroy = extractAsyncMethod(source, 'destroyRemoteSession');
-		assert.ok(destroy.includes('makeUnaryClient<'), 'destroyRemoteSession still uses JSON makeUnaryClient');
-		assert.ok(!destroy.includes('makeUnaryBytesClient'), 'destroyRemoteSession must not use makeUnaryBytesClient this slice');
-		assert.ok(!destroy.includes('encodeDestroyRemoteSessionRequest'), 'destroyRemoteSession must not call encodeDestroyRemoteSessionRequest this slice');
-		assert.ok(!destroy.includes('decodeDestroyRemoteSessionResponse'), 'destroyRemoteSession must not call decodeDestroyRemoteSessionResponse this slice');
-		assert.ok(destroy.includes('call_id'), 'destroyRemoteSession still sends call_id JSON key');
+		assert.ok(destroy.includes('makeUnaryBytesClient'), 'destroyRemoteSession must use makeUnaryBytesClient');
+		assert.ok(destroy.includes('encodeDestroyRemoteSessionRequest'), 'destroyRemoteSession must call encodeDestroyRemoteSessionRequest');
+		assert.ok(destroy.includes('decodeDestroyRemoteSessionResponse'), 'destroyRemoteSession must call decodeDestroyRemoteSessionResponse');
 		assert.ok(destroy.includes('mapDestroyRemoteSessionResponse'), 'destroyRemoteSession still calls mapDestroyRemoteSessionResponse');
-		assert.ok(!source.includes('grpcDestroyRemoteSessionUnaryWire'));
-		assert.ok(!/\bWatch\b/.test(destroy));
+		assert.ok(!destroy.includes('makeUnaryClient<'), 'destroyRemoteSession must not use JSON makeUnaryClient');
+		assert.ok(!destroy.includes('JSON.stringify'), 'destroyRemoteSession must not JSON.stringify');
 
+		assert.ok(source.includes('grpcDestroyRemoteSessionUnaryWire'));
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		const watchStart = source.indexOf('\topenWatchConfigStream(');
-		assert.ok(watchStart >= 0, 'missing openWatchConfigStream(');
-		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);
-		const watchBody = source.slice(watchStart, watchEnd >= 0 ? watchEnd : source.length);
-		assert.ok(watchBody.includes('makeServerStreamClient<Record<string, unknown>'));
-		assert.ok(!watchBody.includes('grpcDestroyRemoteSessionUnaryWire'));
 	});
 });
 
