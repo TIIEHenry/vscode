@@ -1019,7 +1019,7 @@ suite('grpc catalog unary protobuf wire', () => {
 		assert.deepStrictEqual(mapListSkillsResponse(decodeListSkillsResponse(new Uint8Array(0))), { skills: [] });
 	});
 
-	test('grpcClient snapshots + next known unaries use bytes; listTools/listSkills use bytes; respondQuestion stays JSON', () => {
+	test('grpcClient snapshots + next known unaries use bytes; listTools/listSkills use bytes; respondQuestion/sendClientToolResponse use bytes', () => {
 		const thisDir = path.dirname(fileURLToPath(import.meta.url));
 		const repoRoot = path.join(thisDir, '../../../../../../');
 		const clientPath = path.join(repoRoot, 'src/vs/platform/universeAgent/node/grpc/grpcClient.ts');
@@ -1125,10 +1125,16 @@ suite('grpc catalog unary protobuf wire', () => {
 			assert.ok(body.includes(mapper), `${name} must call ${mapper}`);
 			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
 		}
-		for (const name of ['respondQuestion']) {
+		const questionTool: Array<{ name: string; encoder: string; decoder: string }> = [
+			{ name: 'respondQuestion', encoder: 'encodeRespondQuestionRequest', decoder: 'decodeRespondQuestionResponse' },
+			{ name: 'sendClientToolResponse', encoder: 'encodeSendClientToolResponseRequest', decoder: 'decodeSendClientToolResponseResponse' },
+		];
+		for (const { name, encoder, decoder } of questionTool) {
 			const body = extractAsyncMethod(source, name);
-			assert.ok(body.includes('makeUnaryClient<'), `${name} must stay JSON this slice`);
-			assert.ok(!body.includes('makeUnaryBytesClient'), `${name} must not migrate this slice`);
+			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
+			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
+			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
+			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
 		}
 	});
 });

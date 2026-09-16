@@ -138,7 +138,6 @@ import type {
 	UniverseAgentAbortTeamResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
-	UniverseAgentQuestionAnswer,
 	UniverseAgentEnqueueQueueItemRequest,
 	UniverseAgentInsertQueueItemRequest,
 	UniverseAgentReorderQueueRequest,
@@ -163,7 +162,6 @@ import type {
 	UniverseAgentDeleteMessageResult,
 	UniverseAgentEditMessageRequest,
 	UniverseAgentEditMessageResult,
-	UniverseAgentCanvasRef,
 	UniverseAgentSendClientToolResponseRequest,
 	UniverseAgentSendClientToolResponseResult,
 	UniverseAgentListSnapshotsRequest,
@@ -772,6 +770,12 @@ import {
 	encodeUnloadPluginRequest,
 	encodeUpdateMcpServerRequest,
 } from './grpcMcpPluginUnaryWire.js';
+import {
+	decodeRespondQuestionResponse,
+	decodeSendClientToolResponseResponse,
+	encodeRespondQuestionRequest,
+	encodeSendClientToolResponseRequest,
+} from './grpcAgentQuestionToolWire.js';
 
 function permissionRuleActionWire(action: UniverseAgentPermissionRuleAction): number {
 	switch (action) {
@@ -810,32 +814,6 @@ function permissionPolicyWire(policy: UniverseAgentPermissionPolicy): number {
 	}
 }
 
-function questionAnswersWire(
-	answers: Readonly<Record<string, UniverseAgentQuestionAnswer>> | undefined,
-): Record<string, { selected_labels: string[] }> {
-	const wire: Record<string, { selected_labels: string[] }> = {};
-	if (!answers) {
-		return wire;
-	}
-	for (const [itemId, answer] of Object.entries(answers)) {
-		wire[itemId] = { selected_labels: [...answer.selectedLabels] };
-	}
-	return wire;
-}
-
-function canvasRefsWire(refs: readonly UniverseAgentCanvasRef[] | undefined): Array<{
-	canvas_id: string;
-	revision_id: string;
-	title: string;
-	source_hash?: string;
-}> {
-	return (refs ?? []).map(ref => ({
-		canvas_id: ref.canvasId,
-		revision_id: ref.revisionId,
-		title: ref.title,
-		...(ref.sourceHash !== undefined ? { source_hash: ref.sourceHash } : {}),
-	}));
-}
 function mapUploadChunkWire(chunk: UniverseAgentUploadChunk): Record<string, unknown> {
 	const wire: Record<string, unknown> = {
 		offset: chunk.offset,
@@ -1991,23 +1969,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async respondQuestion(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; error?: string }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.RespondQuestion,
+			decodeRespondQuestionResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			response: {
-				question_id: request.questionId,
-				answers: questionAnswersWire(request.answers),
-				custom_text: request.customText ?? '',
-			},
-		});
-		return {
-			ok: wire.success === true,
-			message: wire.error,
-		};
+		return unary(encodeRespondQuestionRequest(request));
 	}
 
 	async enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
@@ -2129,25 +2097,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async sendClientToolResponse(request: UniverseAgentSendClientToolResponseRequest): Promise<UniverseAgentSendClientToolResponseResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; error?: string }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.SendClientToolResponse,
+			decodeSendClientToolResponseResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			response: {
-				call_id: request.callId,
-				is_error: request.isError === true,
-				content: request.content ?? '',
-				metadata_json: request.metadataJson ?? '',
-				canvas_refs: canvasRefsWire(request.canvasRefs),
-			},
-		});
-		return {
-			ok: wire.success === true,
-			message: wire.error,
-		};
+		return unary(encodeSendClientToolResponseRequest(request));
 	}
 
 	async listSnapshots(request: UniverseAgentListSnapshotsRequest): Promise<UniverseAgentListSnapshotsResult> {
