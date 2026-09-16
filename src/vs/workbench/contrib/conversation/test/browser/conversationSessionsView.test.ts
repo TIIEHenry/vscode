@@ -32,6 +32,7 @@ import { conversationSessionsViewEmptyMessage, conversationSessionsViewNoMatches
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { TestLayoutService, TestEditorService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 import '../../../conversation/browser/conversation.contribution.js';
 
 suite('ConversationSessionsView', () => {
@@ -145,6 +146,9 @@ suite('ConversationSessionsView', () => {
 				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
 			},
 		} as INotificationService);
+		stubConversationTimelineLinkServices(instantiationService);
+		const editorService = store.add(new TestEditorService());
+		instantiationService.stub(IEditorService, editorService);
 
 		const conversationPart = store.add(instantiationService.createInstance(ConversationPart));
 		const partParent = document.createElement('div');
@@ -335,9 +339,10 @@ suite('ConversationSessionsView', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, service);
 		instantiationService.stub(IWorkbenchLayoutService, layoutService);
-		instantiationService.stub(IEditorService, editorService);
 		instantiationService.stub(IViewDescriptorService, createViewDescriptorServiceStub());
 		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
+		stubConversationTimelineLinkServices(instantiationService);
+		instantiationService.stub(IEditorService, editorService);
 
 		const conversationPart = store.add(instantiationService.createInstance(ConversationPart));
 		conversationPart.create(document.createElement('div'));
