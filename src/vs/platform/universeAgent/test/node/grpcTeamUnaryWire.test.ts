@@ -301,7 +301,44 @@ suite('grpc team mutator unary protobuf wire', () => {
 		assert.ok(!/\bencodeTaskListRequest|\bdecodeTaskListResponse/.test(source));
 		assert.ok(!/\bencodeTeamInfoRequest|\bdecodeTeamInfoResponse/.test(source));
 	});
+
+	test('grpcClient Team seven mutators use bytes; decode is TS result not JSON {success}', () => {
+		const thisDir = path.dirname(fileURLToPath(import.meta.url));
+		const candidates = [
+			path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc/grpcClient.ts'),
+			path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc/grpcClient.ts'),
+		];
+		const clientPath = candidates.find(candidate => fs.existsSync(candidate));
+		assert.ok(clientPath, 'grpcClient.ts not found from cwd or import.meta');
+		const source = fs.readFileSync(clientPath, 'utf8');
+		const methods: Array<{ name: string; encoder: string; decoder: string }> = [
+			{ name: 'startMember', encoder: 'encodeStartMemberRequest', decoder: 'decodeStartMemberResponse' },
+			{ name: 'killMember', encoder: 'encodeKillMemberRequest', decoder: 'decodeKillMemberResponse' },
+			{ name: 'createTeam', encoder: 'encodeCreateTeamRequest', decoder: 'decodeCreateTeamResponse' },
+			{ name: 'abort', encoder: 'encodeAbortTeamRequest', decoder: 'decodeAbortTeamResponse' },
+			{ name: 'taskUpdate', encoder: 'encodeTaskUpdateRequest', decoder: 'decodeTaskUpdateResponse' },
+			{ name: 'taskCancel', encoder: 'encodeTaskCancelRequest', decoder: 'decodeTaskCancelResponse' },
+			{ name: 'messageMember', encoder: 'encodeMessageMemberRequest', decoder: 'decodeMessageMemberResponse' },
+		];
+		for (const { name, encoder, decoder } of methods) {
+			const body = extractAsyncMethod(source, name);
+			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
+			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
+			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
+			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
+			assert.ok(!body.includes('JSON.stringify'), `${name} must not JSON.stringify`);
+			assert.ok(!body.includes('wire.success'), `${name} must not remap JSON {success}`);
+		}
+	});
 });
+
+function extractAsyncMethod(source: string, name: string): string {
+	const start = source.indexOf(`\tasync ${name}(`);
+	assert.ok(start >= 0, `missing async ${name}(`);
+	const nextAsync = source.indexOf('\n\tasync ', start + 1);
+	const end = nextAsync >= 0 ? nextAsync : source.length;
+	return source.slice(start, end);
+}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "merge compile-client 0；聚焦 206 passing / 0 pending。D24 仍开（ChatSync/Team mutators/Health/SaveSkillContent/Rebuild 仍 JSON；Memory/File 已 bytes）。D488–D492 closed；D487 open。不是 leftover/pills 完成。R9/D405 仍开"
+summary: "merge compile-client 0；聚焦 206 passing / 0 pending。D24 仍开（Health/SaveSkillContent/Rebuild 仍 JSON；Memory/File/ChatSync/Team mutators 已 bytes）。D488–D492 closed；D487 open。不是 leftover/pills 完成。R9/D405 仍开"
 ---
 
 # Development Progress
@@ -26,7 +26,7 @@ summary: "merge compile-client 0；聚焦 206 passing / 0 pending。D24 仍开�
 ### 进行中（2026-09-16 · compile-client 0 · 206 passing；D24 仍开；不是 leftover/pills 完成）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
-| **A/F/G** | D24 wires | Memory/File unary **已接线** grpcClient bytes；Rebuild 仍 JSON；ChatSync/Team mutators wire **未接线**。[D24](deferred-gaps.md) **仍开**。[D487](deferred-gaps.md) **open** |
+| **A/F/G** | D24 wires | Memory/File **已** bytes；ChatSync/SyncInputDelivery + Team 七 mutator **本槽已接线** bytes（未 commit）；Rebuild/Health/SaveSkillContent 仍 JSON。[D24](deferred-gaps.md) **仍开**。[D487](deferred-gaps.md) **open** |
 | **C** | D488 | **closed**；ff-only 保持 `dev/loop` gitlink 脏；勿 add |
 | **D** | D489 Sessions beside | **closed** |
 | **H/I/J** | D490–D492 | **closed**（untitled dispose / Team list / Codex Learn more） |
@@ -37,7 +37,7 @@ summary: "merge compile-client 0；聚焦 206 passing / 0 pending。D24 仍开�
 子 agent 发现的既有代码问题（开项 + 本波）：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
-| [D24](deferred-gaps.md) | A/F/G | **仍开**：Memory/File **已** bytes；ChatSync/Team mutators/Health/SaveSkillContent/Rebuild 仍 JSON；ChatSync/Team mutators wire 未接线 |
+| [D24](deferred-gaps.md) | A/F/G | **仍开**：Memory/File/ChatSync/Team mutators **已** bytes；Health/SaveSkillContent/Rebuild 仍 JSON |
 | [D487](deferred-gaps.md) | F Memory wire | **open**：codec 无 double；Search score 未读；grpcClient 已接线，mapper `requiredDouble`→0 |
 | [D488](deferred-gaps.md)–[D492](deferred-gaps.md) | C/D/H/I/J | **closed** Agents / Sessions beside / untitled dispose / Team list / Codex Learn more void catch |
 | [D405](deferred-gaps.md) | 手测 | **仍开**（S4a/S4b 前置） |
@@ -48,7 +48,7 @@ summary: "merge compile-client 0；聚焦 206 passing / 0 pending。D24 仍开�
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | MERGE_SHA | 干净 | 0 | compile-client 0；206 passing / 0 pending；D24 仍开；D487 open |
-| A | `vscode-WorkTrees/A` | `loop/A` | MERGE_SHA | 干净 | 0 | ff-only；Memory/File 已 bytes；D24 仍开 |
+| A | `vscode-WorkTrees/A` | `loop/A` | MERGE_SHA | grpcClient ChatSync/Team bytes | 0 | 未 commit；D24 仍开（Health/SaveSkillContent/Rebuild JSON） |
 | B | `vscode-WorkTrees/B` | `loop/B` | `28ffd1ae9f2` | 脏 `worktree-pool.md` | 0 | **跳过**；勿 `-B` |
 | C | `vscode-WorkTrees/C` | `loop/C` | MERGE_SHA | 脏 `dev/loop` gitlink | 0 | ff-only 保持 gitlink 脏；勿 add |
 | D | `vscode-WorkTrees/D` | `loop/D` | MERGE_SHA | 干净 | 0 | ff-only；D489 closed |
@@ -63,7 +63,7 @@ summary: "merge compile-client 0；聚焦 206 passing / 0 pending。D24 仍开�
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。下一刀是 IDE Direct Address 接通后 Composer 发送。**不升 PRD-008**。不要再清 store |
-| **loop 切片** | [D24](deferred-gaps.md) **仍开**（Memory/File 已 bytes；ChatSync/Team mutators/Health/SaveSkillContent/Rebuild 仍 JSON）。[D488](deferred-gaps.md)–[D492](deferred-gaps.md) **closed**。[D487](deferred-gaps.md) **open**。R9 / **D405** 仍开。不关 D8/D16/D147。不得宣称 leftover / pills 完成 |
+| **loop 切片** | [D24](deferred-gaps.md) **仍开**（Memory/File/ChatSync/Team mutators 已 bytes；Health/SaveSkillContent/Rebuild 仍 JSON）。[D488](deferred-gaps.md)–[D492](deferred-gaps.md) **closed**。[D487](deferred-gaps.md) **open**。R9 / **D405** 仍开。不关 D8/D16/D147。不得宣称 leftover / pills 完成 |
 | **test-baseline** | 本关仓聚焦 9 文件 **206 passing / 0 pending / 0 fail**。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 未满足前不开 U2 |
 ## 不做：**ADR-007 U2**、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。

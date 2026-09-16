@@ -10,7 +10,6 @@ import type {
 	UniverseAgentChatResponse,
 	UniverseAgentChatSyncRequest,
 	UniverseAgentChatSyncResult,
-	UniverseAgentChatSyncSessionInput,
 	UniverseAgentSyncInputDeliveryRequest,
 	UniverseAgentSyncInputDeliveryResult,
 	UniverseAgentChatStream,
@@ -768,6 +767,28 @@ import {
 	encodeWriteFileRequest,
 } from './grpcFileUnaryWire.js';
 import {
+	decodeChatSyncResponse,
+	decodeSyncInputDeliveryResponse,
+	encodeChatSyncRequest,
+	encodeSyncInputDeliveryRequest,
+} from './grpcChatSyncUnaryWire.js';
+import {
+	decodeAbortTeamResponse,
+	decodeCreateTeamResponse,
+	decodeKillMemberResponse,
+	decodeMessageMemberResponse,
+	decodeStartMemberResponse,
+	decodeTaskCancelResponse,
+	decodeTaskUpdateResponse,
+	encodeAbortTeamRequest,
+	encodeCreateTeamRequest,
+	encodeKillMemberRequest,
+	encodeMessageMemberRequest,
+	encodeStartMemberRequest,
+	encodeTaskCancelRequest,
+	encodeTaskUpdateRequest,
+} from './grpcTeamUnaryWire.js';
+import {
 	decodeAddMcpServerResponse,
 	decodeEnablePluginResponse,
 	decodeGetMcpServerStatusesResponse,
@@ -889,64 +910,6 @@ function resolveAnchorRequestWire(request: UniverseAgentResolveAnchorRequest): R
 		wire.current_leaf_turn_id = request.currentLeafTurnId;
 	}
 	return wire;
-}
-function chatSyncSessionInputWire(input: UniverseAgentChatSyncSessionInput): Record<string, unknown> {
-	const wire: Record<string, unknown> = {
-		message_id: input.messageId,
-		text: input.text,
-	};
-	if (input.delivery !== undefined) {
-		wire.delivery = input.delivery;
-	}
-	if (input.modelProfileId !== undefined) {
-		wire.model_profile_id = input.modelProfileId;
-	}
-	if (input.systemPrompt !== undefined) {
-		wire.system_prompt = input.systemPrompt;
-	}
-	if (input.memoryEnabled !== undefined) {
-		wire.memory_enabled = input.memoryEnabled;
-	}
-	if (input.thinkingEnabled !== undefined) {
-		wire.thinking_enabled = input.thinkingEnabled;
-	}
-	if (input.replyToId !== undefined) {
-		wire.reply_to_id = input.replyToId;
-	}
-	if (input.operationId !== undefined) {
-		wire.operation_id = input.operationId;
-	}
-	if (input.skillName !== undefined) {
-		wire.skill_name = input.skillName;
-	}
-	if (input.skillScope !== undefined) {
-		wire.skill_scope = input.skillScope;
-	}
-	if (input.skillCommandText !== undefined) {
-		wire.skill_command_text = input.skillCommandText;
-	}
-	return wire;
-}
-function chatSyncRequestWire(request: UniverseAgentChatSyncRequest): Record<string, unknown> {
-	const wire: Record<string, unknown> = {
-		session_id: request.sessionId,
-		agent_id: request.agentId,
-		last_known_message_ids: request.lastKnownMessageIds ?? [],
-		idempotency_key: request.idempotencyKey ?? '',
-	};
-	if (request.timeoutSeconds !== undefined) {
-		wire.timeout_seconds = request.timeoutSeconds;
-	}
-	if (request.sessionInput) {
-		wire.session_input = chatSyncSessionInputWire(request.sessionInput);
-	}
-	return wire;
-}
-function syncInputDeliveryRequestWire(request: UniverseAgentSyncInputDeliveryRequest): Record<string, unknown> {
-	return {
-		session_id: request.sessionId,
-		last_known_message_ids: request.lastKnownMessageIds ?? [],
-	};
 }
 function encodeRemoteResponse(response: UniverseAgentRemoteResponse): RemoteResponseWire {
 	return {
@@ -1865,132 +1828,73 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async taskUpdate(request: UniverseAgentTaskUpdateRequest): Promise<UniverseAgentTaskUpdateResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Team.service,
 			UniverseAgentGrpcServices.Team.TaskUpdate,
+			decodeTaskUpdateResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-			task_id: request.taskId,
-			new_status: request.newStatus,
-			message: request.message,
-		});
-		return {
-			ok: wire.success === true,
-			message: wire.message,
-		};
+		return unary(encodeTaskUpdateRequest(request));
 	}
 
 	async taskCancel(request: UniverseAgentTaskCancelRequest): Promise<UniverseAgentTaskCancelResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Team.service,
 			UniverseAgentGrpcServices.Team.TaskCancel,
+			decodeTaskCancelResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-			task_id: request.taskId,
-		});
-		return {
-			ok: wire.success === true,
-			message: wire.message,
-		};
+		return unary(encodeTaskCancelRequest(request));
 	}
 
 	async messageMember(request: UniverseAgentMessageMemberRequest): Promise<UniverseAgentMessageMemberResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Team.service,
 			UniverseAgentGrpcServices.Team.MessageMember,
+			decodeMessageMemberResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-			member_name: request.memberName,
-			content: request.content,
-		});
-		return {
-			ok: wire.success === true,
-			message: wire.message,
-		};
+		return unary(encodeMessageMemberRequest(request));
 	}
 
 	async createTeam(request: UniverseAgentCreateTeamRequest): Promise<UniverseAgentCreateTeamResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { team_id?: number; member_count?: number }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Team.service,
 			UniverseAgentGrpcServices.Team.CreateTeam,
+			decodeCreateTeamResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-			task_descriptions: request.taskDescriptions,
-		});
-		return {
-			teamId: wire.team_id ?? 0,
-			memberCount: wire.member_count ?? 0,
-		};
+		return unary(encodeCreateTeamRequest(request));
 	}
 
 	async startMember(request: UniverseAgentStartMemberRequest): Promise<UniverseAgentStartMemberResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { member_agent_id?: string; member_name?: string; dynamic?: boolean }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Team.service,
 			UniverseAgentGrpcServices.Team.StartMember,
+			decodeStartMemberResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-			member_name: request.memberName,
-			preset_id: request.presetId,
-			system_prompt: request.systemPrompt,
-			model_type: request.modelType,
-			dynamic: request.dynamic,
-		});
-		return {
-			memberAgentId: wire.member_agent_id ?? '',
-			memberName: wire.member_name ?? '',
-			dynamic: wire.dynamic === true,
-		};
+		return unary(encodeStartMemberRequest(request));
 	}
 
 	async killMember(request: UniverseAgentKillMemberRequest): Promise<UniverseAgentKillMemberResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Team.service,
 			UniverseAgentGrpcServices.Team.KillMember,
+			decodeKillMemberResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-			member_name: request.memberName,
-		});
-		return {
-			ok: wire.success === true,
-			message: wire.message,
-		};
+		return unary(encodeKillMemberRequest(request));
 	}
 
 	async abort(request: UniverseAgentAbortTeamRequest): Promise<UniverseAgentAbortTeamResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string; stopped_members?: string[] }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Team.service,
 			UniverseAgentGrpcServices.Team.Abort,
+			decodeAbortTeamResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-			team_id: request.teamId,
-			reason: request.reason,
-		});
-		return {
-			ok: wire.success === true,
-			message: wire.message,
-			stoppedMembers: wire.stopped_members ?? [],
-		};
+		return unary(encodeAbortTeamRequest(request));
 	}
 
 	async respondQuestion(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult> {
@@ -2221,23 +2125,23 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async chatSync(request: UniverseAgentChatSyncRequest): Promise<UniverseAgentChatSyncResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, Parameters<typeof mapChatSyncResponse>[0]>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.ChatSync,
+			decodeChatSyncResponse,
 		);
-		const wire = await unary(chatSyncRequestWire(request));
-		return mapChatSyncResponse(wire);
+		return mapChatSyncResponse(await unary(encodeChatSyncRequest(request)));
 	}
 
 	async syncInputDelivery(request: UniverseAgentSyncInputDeliveryRequest): Promise<UniverseAgentSyncInputDeliveryResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, Parameters<typeof mapSyncInputDeliveryResponse>[0]>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.SyncInputDelivery,
+			decodeSyncInputDeliveryResponse,
 		);
-		const wire = await unary(syncInputDeliveryRequestWire(request));
-		return mapSyncInputDeliveryResponse(wire);
+		return mapSyncInputDeliveryResponse(await unary(encodeSyncInputDeliveryRequest(request)));
 	}
 
 	openChatStream(
