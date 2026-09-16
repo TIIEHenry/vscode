@@ -242,14 +242,14 @@ export class SessionInputBanners extends Disposable {
 			for (const pullRequest of getGitHubPullRequestRefs(gitHubInfo)) {
 				const prModelRef = reader.store.add(this.gitHubService.createPullRequestModelReference(pullRequest.owner, pullRequest.repo, pullRequest.number));
 				const prModel = prModelRef.object;
-				void prModel.refresh();
+				void prModel.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 				reader.store.add(prModel.startPolling());
 				const livePullRequest = prModel.pullRequest.read(reader);
 				if (!livePullRequest || livePullRequest.isDraft || livePullRequest.state !== GitHubPullRequestState.Open) {
 					continue;
 				}
 				const ciModelRef = reader.store.add(this.gitHubService.createPullRequestCIModelReference(pullRequest.owner, pullRequest.repo, pullRequest.number, livePullRequest.headSha));
-				void ciModelRef.object.refresh();
+				void ciModelRef.object.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 				reader.store.add(ciModelRef.object.startPolling());
 			}
 		}));

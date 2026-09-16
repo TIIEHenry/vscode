@@ -354,7 +354,182 @@ suite('SessionInputBanners', () => {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
+
+	test('does not leak unhandled rejection when PR model refresh rejects and onUnexpectedError warn-then-rethrows', async () => {
+		// `refresh()` has no inner try/catch at this call site. A lone
+		// `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		let prRefreshCalls = 0;
+		let ciRefreshCalls = 0;
+		const { banners } = mountCompletedSessionBanners(store, {
+			isDraft: true,
+			prRefresh: () => {
+				prRefreshCalls++;
+				return Promise.reject('boom');
+			},
+			ciRefresh: () => {
+				ciRefreshCalls++;
+				return Promise.resolve();
+			},
+		});
+
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			banners.setActive(true);
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, prRefreshCalls, ciRefreshCalls, unexpectedWarns }, {
+				unhandledRejections: [],
+				prRefreshCalls: 1,
+				ciRefreshCalls: 0,
+				unexpectedWarns: ['boom', 'boom'],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when CI model refresh rejects and onUnexpectedError warn-then-rethrows', async () => {
+		// Draft PRs skip CI refresh. Open PRs still fire `ciModel.refresh()` after PR refresh.
+		let prRefreshCalls = 0;
+		let ciRefreshCalls = 0;
+		const { banners } = mountCompletedSessionBanners(store, {
+			prRefresh: () => {
+				prRefreshCalls++;
+				return Promise.resolve();
+			},
+			ciRefresh: () => {
+				ciRefreshCalls++;
+				return Promise.reject('boom');
+			},
+		});
+
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			banners.setActive(true);
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, prRefreshCalls, ciRefreshCalls, unexpectedWarns }, {
+				unhandledRejections: [],
+				prRefreshCalls: 1,
+				ciRefreshCalls: 1,
+				unexpectedWarns: ['boom', 'boom'],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
 });
+
+function mountCompletedSessionBanners(
+	store: ReturnType<typeof ensureNoDisposablesAreLeakedInTestSuite>,
+	options: {
+		isDraft?: boolean;
+		prRefresh?: () => Promise<void>;
+		ciRefresh?: () => Promise<void>;
+	} = {},
+): { banners: SessionInputBanners } {
+	const sessionResource = URI.parse('local-agent-host:/session-1');
+	const pullRequests = [pullRequest(42)];
+	const session = new class extends mock<IActiveSession>() {
+		override readonly sessionId = 'session-1';
+		override readonly resource = sessionResource;
+		override readonly providerId = LOCAL_AGENT_HOST_PROVIDER_ID;
+		override readonly status = observableValue('status', SessionStatus.Completed);
+		override readonly workspace = observableValue<ISessionWorkspace | undefined>('workspace', {
+			uri: URI.file('/workspace'),
+			label: 'workspace',
+			icon: Codicon.folder,
+			folders: [{
+				root: URI.file('/workspace'),
+				workingDirectory: URI.file('/workspace'),
+				name: 'workspace',
+				description: undefined,
+				gitRepository: {
+					uri: URI.file('/workspace'),
+					workTreeUri: undefined,
+					baseBranchName: undefined,
+					gitHubInfo: observableValue('gitHubInfo', {
+						owner: 'owner',
+						repo: 'repo',
+						pullRequests,
+						pullRequest: pullRequests[0],
+					}),
+				},
+			}],
+			requiresWorkspaceTrust: false,
+			isVirtualWorkspace: false,
+		});
+	}();
+	const sessionsService = new class extends mock<ISessionsService>() {
+		override readonly activeSession = observableValue<IActiveSession | undefined>('activeSession', session);
+	}();
+	const onDidChangeSessionConfig = store.add(new Emitter<string>());
+	const agentHostProvider = new class extends mock<IAgentHostSessionsProvider>() {
+		override readonly id = LOCAL_AGENT_HOST_PROVIDER_ID;
+		override readonly onDidChangeSessionConfig = onDidChangeSessionConfig.event;
+		override getAgentMergeSessionState() { return { enabled: false }; }
+	}();
+	const sessionsProvidersService = new class extends mock<ISessionsProvidersService>() {
+		override getProvider<T extends ISessionsProvider>(): T | undefined {
+			return agentHostProvider as unknown as T;
+		}
+	}();
+	const gitHubService = new class extends mock<IGitHubService>() {
+		override createPullRequestModelReference(): IReference<GitHubPullRequestModel> {
+			return new ImmortalReference(pullRequestModel(42, 'Newest pull request', options.prRefresh, options.isDraft === true));
+		}
+		override createPullRequestCIModelReference(): IReference<GitHubPullRequestCIModel> {
+			return new ImmortalReference(ciModel([failedCheck(1)], options.ciRefresh));
+		}
+	}();
+	const feedbackService = new class extends mock<IAgentFeedbackService>() {
+		override readonly onDidChangeFeedback = Event.None;
+		override getFeedback(): readonly IAgentFeedback[] { return []; }
+		override revealFeedback(): Promise<void> { return Promise.resolve(); }
+	}();
+	const chatWidgetService = new class extends mock<IChatWidgetService>() {
+		override readonly onDidAddWidget = Event.None;
+		override getWidgetBySessionResource(): IChatWidget | undefined { return undefined; }
+	}();
+	const instantiationService = store.add(new TestInstantiationService());
+	instantiationService.stub(IHoverService, upcastPartial<IHoverService>({
+		setupManagedHover: () => upcastPartial<IManagedHover>({ dispose() { } }),
+	}));
+	instantiationService.stub(IContextMenuService, upcastPartial<IContextMenuService>({ showContextMenu() { } }));
+
+	const banners = store.add(new SessionInputBanners(
+		sessionsService,
+		sessionsProvidersService,
+		gitHubService,
+		feedbackService,
+		new class extends mock<ICommandService>() { }(),
+		store.add(new TestStorageService()),
+		instantiationService,
+		new NullLogService(),
+		chatWidgetService,
+	));
+	return { banners };
+}
 
 function pullRequest(number: number): IGitHubPullRequestRef {
 	return {
@@ -365,26 +540,26 @@ function pullRequest(number: number): IGitHubPullRequestRef {
 	};
 }
 
-function pullRequestModel(number: number, title: string): GitHubPullRequestModel {
+function pullRequestModel(number: number, title: string, refresh: () => Promise<void> = () => Promise.resolve(), isDraft = false): GitHubPullRequestModel {
 	const pullRequest = upcastPartial<IGitHubPullRequest>({
 		number,
 		title,
 		state: GitHubPullRequestState.Open,
-		isDraft: false,
+		isDraft,
 		headSha: `sha-${number}`,
 	});
 	return new class extends mock<GitHubPullRequestModel>() {
 		override readonly pullRequest = observableValue<IGitHubPullRequest | undefined>('pullRequest', pullRequest);
-		override refresh(): Promise<void> { return Promise.resolve(); }
+		override refresh(): Promise<void> { return refresh(); }
 		override startPolling(): IDisposable { return Disposable.None; }
 	}();
 }
 
-function ciModel(checks: readonly IGitHubCICheck[]): GitHubPullRequestCIModel {
+function ciModel(checks: readonly IGitHubCICheck[], refresh: () => Promise<void> = () => Promise.resolve()): GitHubPullRequestCIModel {
 	return new class extends mock<GitHubPullRequestCIModel>() {
 		override readonly checks = observableValue('checks', checks);
 		override readonly fixRequested = observableValue('fixRequested', false);
-		override refresh(): Promise<void> { return Promise.resolve(); }
+		override refresh(): Promise<void> { return refresh(); }
 		override startPolling(): IDisposable { return Disposable.None; }
 		override getCheckRunAnnotations(): Promise<string> { return Promise.resolve('failure details'); }
 		override markFixRequested(): void { this.fixRequested.set(true, undefined); }
