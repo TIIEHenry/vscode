@@ -694,4 +694,55 @@ suite('EngineContextVariableSection', () => {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
+
+	test('does not leak unhandled rejection when ReadContextVariable rejects and onUnexpectedError warn-then-rethrows', async () => {
+		// handleRead already catches the hook; a lone inner reject does not leak.
+		// Catch-path paint throw still needs a call-site catch. A lone
+		// `.catch(onUnexpectedError)` leaks when the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error instanceof Error ? error.message : error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const pane = mountSection(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				listContextVariable: async () => ({ current: [], inherited: [] }),
+				readContextVariable: async () => {
+					throw new Error('read boom');
+				},
+			}));
+			await flushMicrotasks();
+			const readStatusEl = pane.getDomNode().querySelector('.engine-context-variable-read-status') as HTMLElement | null;
+			assert.ok(readStatusEl);
+			Object.defineProperty(readStatusEl, 'textContent', {
+				configurable: true,
+				get: () => '',
+				set: (value: string) => {
+					if (value) {
+						throw new Error('paint boom');
+					}
+				},
+			});
+			const read = findReadButton(pane.getDomNode());
+			assert.ok(read);
+			read.click();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: ['paint boom', 'paint boom'],
+			});
+			pane.getDomNode().parentElement?.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
 });

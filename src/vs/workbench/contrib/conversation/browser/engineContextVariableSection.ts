@@ -78,7 +78,7 @@ export class EngineContextVariableSection extends Disposable {
 		const actionsRow = DOM.append(this.container, $('.engine-context-variable-actions'));
 		this.readButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.readButton.label = ENGINE_CONTEXT_VARIABLE_READ_LABEL;
-		this._register(this.readButton.onDidClick(() => void this.handleRead()));
+		this._register(this.readButton.onDidClick(() => void this.handleRead().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.readStatus = DOM.append(this.container, $('.engine-context-variable-read-status'));
 		this.readStatus.style.display = 'none';
