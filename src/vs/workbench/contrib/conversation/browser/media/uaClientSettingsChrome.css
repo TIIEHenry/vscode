@@ -25,8 +25,9 @@
  * Stock already clips the label (`overflow`/`text-overflow`); it only ellipsizes once the
  * title is kept on one line, which matters when the group name outgrows a narrow window.
  */
-.monaco-workbench .settings-editor > .settings-body .settings-tree-container .settings-group-title-label {
-	white-space: nowrap;
+.monaco-workbench .settings-editor.narrow-width > .settings-body .settings-tree-container .settings-group-title-label {
+	white-space: normal;
+	overflow-wrap: anywhere;
 }
 
 .monaco-workbench .settings-editor.narrow-width > .settings-body .settings-tree-container .settings-group-title-label.settings-group-level-1 {
@@ -42,13 +43,14 @@
 }
 
 .monaco-workbench .settings-editor.narrow-width .setting-item-contents .setting-item-control,
-.monaco-workbench .settings-editor.narrow-width .setting-item-contents .setting-item-control select,
-.monaco-workbench .settings-editor.narrow-width .setting-item-contents .monaco-select-box,
-.monaco-workbench .settings-editor.narrow-width .settings-body .settings-tree-container .setting-item.setting-item-enum .setting-item-value > .setting-item-control,
-.monaco-workbench .settings-editor.narrow-width .settings-body .settings-tree-container .setting-item.setting-item-enum .setting-item-value > .setting-item-control > select,
-.monaco-workbench .settings-editor.narrow-width .settings-body .settings-tree-container .setting-item-contents .monaco-select-box {
+.monaco-workbench .settings-editor.narrow-width .settings-body .settings-tree-container .setting-item.setting-item-enum .setting-item-value > .setting-item-control {
 	width: 100%;
 	max-width: 100%;
 	min-width: 0;
 	box-sizing: border-box;
+}
+
+.monaco-workbench .settings-editor.narrow-width .setting-item-contents .setting-item-description {
+	white-space: normal;
+	overflow-wrap: anywhere;
 }

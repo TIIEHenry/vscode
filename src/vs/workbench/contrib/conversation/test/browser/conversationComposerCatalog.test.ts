@@ -648,6 +648,44 @@ suite('conversationComposerCatalog', () => {
 		assert.strictEqual(sendButton.enabled, false);
 	});
 
+	test('idle disconnected catalog refresh hides idle engine status on the gate', () => {
+		let listCalls = 0;
+		const { host, gateRow, gateLabel } = createLoadCatalogHost({
+			listAgentProfiles: async () => {
+				listCalls++;
+				return { profiles: [{ id: 'coder', name: 'Coder', source: 'user' }] };
+			},
+			listModels: async () => {
+				listCalls++;
+				return { models: [{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' }] };
+			},
+			listTools: async () => {
+				listCalls++;
+				return { tools: [{ name: 'bash' }] };
+			},
+		}, 'SUPPORTED', {
+			isEngineConnected: () => false,
+			getConnectionPhase: () => ({ kind: 'disconnected' }),
+			getConnectionSnapshot: () => ({
+				transport: 'idle',
+				pairingPending: false,
+				channelAlive: false,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+
+		assert.strictEqual(host.stubService.isEngineConnected(), false);
+		assert.strictEqual(isConversationPairingHold(host.uaConnection), false);
+		gateRow.hidden = false;
+		gateLabel.textContent = conversationLensDockEngineNotConnected;
+		refreshComposerCatalogs(host);
+
+		assert.strictEqual(listCalls, 0);
+		assert.strictEqual(gateRow.hidden, true, 'idle engine status is not repeated on the gate');
+		assert.strictEqual(gateLabel.textContent, '');
+	});
+
 	test('refreshComposerCatalogs pairing-hold without last-good still resets empty', () => {
 		let pairingPending = true;
 		let listCalls = 0;

@@ -74,6 +74,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 	private unstageUnavailable: HTMLElement | undefined;
 	private stageButton: HTMLButtonElement | undefined;
 	private acceptButton: HTMLButtonElement | undefined;
+	private previewButton: HTMLButtonElement | undefined;
 	private noticeElement: HTMLElement | undefined;
 	private editorContainer: HTMLElement | undefined;
 	private dimension: dom.Dimension | undefined;
@@ -99,10 +100,19 @@ export class ConversationDiffReviewPane extends EditorPane {
 				this.diffWidget.value.updateOptions(this.getDiffEditorOptions());
 			}
 		}));
-		this._register(this.uaConnection.onDidChangeConnection(() => this.updateReviewActions()));
-		this._register(this.roster.onDidChangeActiveSession(() => this.updateReviewActions()));
+		this._register(this.uaConnection.onDidChangeConnection(() => {
+			this.updateReviewActions();
+			this.layoutEditors();
+		}));
+		this._register(this.roster.onDidChangeActiveSession(() => {
+			this.updateReviewActions();
+			this.layoutEditors();
+		}));
 		if (this.roster.onDidChangeSession) {
-			this._register(this.roster.onDidChangeSession(() => this.updateReviewActions()));
+			this._register(this.roster.onDidChangeSession(() => {
+				this.updateReviewActions();
+				this.layoutEditors();
+			}));
 		}
 	}
 
@@ -149,12 +159,14 @@ export class ConversationDiffReviewPane extends EditorPane {
 			void this.runAccept();
 		}));
 
-		const previewButton = dom.append(this.toolbar, $('button.conversation-diff-review-open-preview')) as HTMLButtonElement;
-		previewButton.type = 'button';
-		previewButton.textContent = localize('conversationDiffReviewPane.openPreview', "Open Diff in Preview");
-		this._register(dom.addDisposableListener(previewButton, 'click', () => {
+		this.previewButton = dom.append(this.toolbar, $('button.conversation-diff-review-open-preview')) as HTMLButtonElement;
+		this.previewButton.type = 'button';
+		this.previewButton.textContent = localize('conversationDiffReviewPane.openPreview', "Open Diff in Preview");
+		this.previewButton.style.display = 'none';
+		this._register(dom.addDisposableListener(this.previewButton, 'click', () => {
 			void this.commandService.executeCommand('sources.diff.moveToPreview');
 		}));
+		this.toolbar.style.display = 'none';
 
 		this.noticeElement = dom.append(this.container, $('.conversation-diff-review-notice'));
 		this.noticeElement.style.display = 'none';
@@ -171,6 +183,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.comparisonLoadFailed = false;
 		this.hideWriteChrome();
 		this.hideNotice();
+		this.setReviewChromeVisible(false);
 
 		let loaded = false;
 		if (!input.original) {
@@ -189,12 +202,14 @@ export class ConversationDiffReviewPane extends EditorPane {
 		if (!loaded) {
 			this.comparisonLoadFailed = true;
 			this.hideWriteChrome();
+			this.setReviewChromeVisible(false);
 			this.showNotice(localize('conversationDiffReviewPane.loadFailed', "Unable to load this comparison."));
 			this.layoutEditors();
 			this._onDidChangeControl.fire();
 			return;
 		}
 
+		this.setReviewChromeVisible(true);
 		this.updateReviewActions();
 		this.layoutEditors();
 		this._onDidChangeControl.fire();
@@ -209,6 +224,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.comparisonLoadFailed = false;
 		this.clearEditors();
 		this.hideNotice();
+		this.setReviewChromeVisible(false);
 		if (this.revertButton) {
 			this.revertButton.style.display = 'none';
 		}
@@ -273,6 +289,15 @@ export class ConversationDiffReviewPane extends EditorPane {
 
 	private isSourcesDiffWriteHold(): boolean {
 		return isConversationPairingHold(this.uaConnection) || this.isSourcesKeepLeftoverWrite();
+	}
+
+	private setReviewChromeVisible(visible: boolean): void {
+		if (this.toolbar) {
+			this.toolbar.style.display = visible ? '' : 'none';
+		}
+		if (this.previewButton) {
+			this.previewButton.style.display = visible ? '' : 'none';
+		}
 	}
 
 	private hideWriteChrome(): void {

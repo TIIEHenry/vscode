@@ -14,7 +14,7 @@ const $ = dom.$;
 
 export class ConversationSessionsInlineFilterBox extends Disposable {
 
-	static readonly HEIGHT = 28;
+	static readonly HEIGHT = 32;
 
 	readonly element: HTMLElement;
 	private readonly input: HTMLInputElement;

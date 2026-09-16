@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { conversationLensSessionBarNewSession } from '../../browser/conversationLensSessionBarStrings.js';
-import { conversationSessionsViewEmptyMessage } from '../../browser/conversationSessionsViewStrings.js';
+import { conversationSessionsViewEmptyMessage, conversationSessionsViewNoMatches } from '../../browser/conversationSessionsViewStrings.js';
 
 suite('ConversationSessionsView strings', () => {
 
@@ -20,5 +20,9 @@ suite('ConversationSessionsView strings', () => {
 		assert.ok(!conversationSessionsViewEmptyMessage.match(/engine session/i));
 		assert.ok(!conversationSessionsViewEmptyMessage.toLowerCase().includes('open chat'));
 		assert.ok(!conversationSessionsViewEmptyMessage.match(/copilot/i), 'must not mention Copilot');
+	});
+
+	test('filter miss copy matches Agents / Team', () => {
+		assert.strictEqual(conversationSessionsViewNoMatches, 'No matches');
 	});
 });

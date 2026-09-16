@@ -316,6 +316,7 @@ suite('Sources diff panel', () => {
 				localize('sourcesDiffPanel.loadFailed', "Unable to load this comparison."),
 			);
 			assert.ok(!(view.element.querySelector('.sources-diff-panel-new-file-notice')?.textContent ?? '').includes('New file'));
+			assert.strictEqual((view.element.querySelector('.sources-diff-panel-header') as HTMLElement | null)?.style.display, 'none');
 		} finally {
 			stageCommand.dispose();
 		}
@@ -346,6 +347,8 @@ suite('Sources diff panel', () => {
 				localize('conversationDiffReviewPane.loadFailed', "Unable to load this comparison."),
 			);
 			assert.ok(!(parent.querySelector('.conversation-diff-review-notice')?.textContent ?? '').includes('New file'));
+			assert.strictEqual((parent.querySelector('.conversation-diff-review-toolbar') as HTMLElement | null)?.style.display, 'none');
+			assert.strictEqual((parent.querySelector('.conversation-diff-review-open-preview') as HTMLElement | null)?.style.display, 'none');
 		} finally {
 			stageCommand.dispose();
 		}

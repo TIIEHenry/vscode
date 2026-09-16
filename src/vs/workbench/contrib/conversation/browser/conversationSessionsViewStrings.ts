@@ -13,3 +13,8 @@ export const conversationSessionsViewEmptyMessage = localize(
 	'conversationSessionsView.empty',
 	"No sessions — use New session to start one.",
 );
+
+export const conversationSessionsViewNoMatches = localize(
+	'conversationSessionsView.noMatches',
+	"No matches",
+);

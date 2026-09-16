@@ -30,6 +30,11 @@ export function isConversationLeafNarrow(width: number): boolean {
 	return width > 0 && width < CONVERSATION_LEAF_NARROW_WIDTH;
 }
 
+/** 600–899：History / Snapshots / window-nav 先收，避免 22px SessionBar 裁标题。 */
+export function isConversationLeafMedium(width: number): boolean {
+	return width >= CONVERSATION_LEAF_NARROW_WIDTH && width < CONVERSATION_LEAF_FULL_WIDTH;
+}
+
 export function isConversationLeafCompact(width: number): boolean {
 	return width > 0 && width < CONVERSATION_LEAF_COMPACT_WIDTH;
 }

@@ -29,6 +29,29 @@ export function formatAgentStatusLabel(status: string): string {
 	return status.replace(/^AGENT_STATUS_/, '');
 }
 
+export type AgentStatusTone = 'unknown' | 'idle' | 'running' | 'paused' | 'error' | 'done';
+
+export function agentStatusTone(status: string): AgentStatusTone {
+	const key = status.replace(/^AGENT_STATUS_/, '').toUpperCase();
+	switch (key) {
+		case 'ERROR':
+		case 'TIMEOUT':
+			return 'error';
+		case 'GENERATING':
+		case 'PENDING':
+		case 'WAITING':
+			return 'running';
+		case 'PAUSED':
+			return 'paused';
+		case 'COMPLETED':
+			return 'done';
+		case 'IDLE':
+			return 'idle';
+		default:
+			return 'unknown';
+	}
+}
+
 export function formatAgentTypeShort(type: string): string {
 	return type.replace(/^AGENT_TYPE_/, '');
 }

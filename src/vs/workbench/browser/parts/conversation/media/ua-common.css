@@ -38,7 +38,7 @@
 .monaco-workbench.hc-black .part.sources :focus-visible,
 .monaco-workbench.hc-light .part.sources :focus-visible,
 .monaco-workbench.hc-black .preferences-editor :focus-visible,
-.monaco-workbench.hc-light .preferences-editor :focus-visible {
+.monaco-workbench.hc-light .preferences-editor :focus-visible,
 .monaco-workbench.hc-black .engine-preferences-pane :focus-visible,
 .monaco-workbench.hc-light .engine-preferences-pane :focus-visible,
 .monaco-workbench.hc-black .connection-preferences-pane :focus-visible,
@@ -64,7 +64,7 @@
 .monaco-workbench.hc-black .part.sources .monaco-list-row.selected,
 .monaco-workbench.hc-light .part.sources .monaco-list-row.selected,
 .monaco-workbench.hc-black .preferences-editor .monaco-list-row.selected,
-.monaco-workbench.hc-light .preferences-editor .monaco-list-row.selected {
+.monaco-workbench.hc-light .preferences-editor .monaco-list-row.selected,
 .monaco-workbench.hc-black .engine-preferences-pane .monaco-list-row.selected,
 .monaco-workbench.hc-light .engine-preferences-pane .monaco-list-row.selected,
 .monaco-workbench.hc-black .connection-preferences-pane .monaco-list-row.selected,

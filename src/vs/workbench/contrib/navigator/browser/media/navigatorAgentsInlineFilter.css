@@ -46,6 +46,7 @@
 	font-size: 12px;
 	line-height: 20px;
 	box-sizing: border-box;
+	text-overflow: ellipsis;
 }
 
 .monaco-workbench .navigator-agents-inline-filter.has-text .navigator-agents-inline-filter-input {

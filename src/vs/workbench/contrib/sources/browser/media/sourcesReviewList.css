@@ -35,11 +35,13 @@
 }
 
 .monaco-workbench .part.sources .sources-review-path-filter {
-	flex-shrink: 0;
+	min-width: 0;
 	padding: 2px 8px;
 	color: var(--vscode-descriptionForeground);
 	font-size: 11px;
 	line-height: 16px;
+	overflow-wrap: anywhere;
+	white-space: normal;
 }
 
 .monaco-workbench .part.sources .sources-review-path-filter-clear {
@@ -74,7 +76,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	flex-wrap: nowrap;
+	flex-wrap: wrap;
 	gap: 8px;
 	flex-shrink: 0;
 	padding: 2px 8px 4px;
@@ -173,10 +175,11 @@
 
 .monaco-workbench .part.sources .sources-review-empty {
 	display: flex;
+	flex: 1;
 	align-items: center;
 	justify-content: center;
-	min-height: 80px;
-	padding: 16px 8px;
+	min-height: 0;
+	padding: 8px;
 	text-align: center;
 	color: var(--vscode-descriptionForeground);
 	font-size: 13px;

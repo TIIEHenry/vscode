@@ -27,6 +27,15 @@ import { Dimension } from '../../../../../base/browser/dom.js';
 const ENGINE_DISCONNECTED_COPY = getConnectionPhaseStatusBarText({ kind: 'disconnected' });
 const FAKE_ENGINE_LABELS = ['Local Engine', '127.0.0.1:8080'];
 
+function getVisibleTestEngineButton(container: HTMLElement): HTMLButtonElement | undefined {
+	const banner = [...container.querySelectorAll('.engine-preferences-disconnected-actions .monaco-button')]
+		.find(el => (el.textContent ?? '').includes('Test Engine')) as HTMLButtonElement | undefined;
+	if (banner && banner.style.display !== 'none') {
+		return banner;
+	}
+	return container.querySelector('.engine-test-row .monaco-button') as HTMLButtonElement | undefined;
+}
+
 suite('EnginePreferencesPane', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -308,7 +317,7 @@ suite('EnginePreferencesPane', () => {
 		});
 		const container = pane.getDomNode();
 
-		const testButton = container.querySelector('.engine-test-row .monaco-button') as HTMLButtonElement;
+		const testButton = getVisibleTestEngineButton(container);
 		const testStatus = container.querySelector('.engine-test-status') as HTMLElement;
 		assert.ok(testButton);
 		assert.ok(testStatus);
@@ -361,9 +370,10 @@ suite('EnginePreferencesPane', () => {
 			},
 		});
 		const container = pane.getDomNode();
-		const testButton = container.querySelector('.engine-test-row .monaco-button') as HTMLButtonElement;
+		const testButton = getVisibleTestEngineButton(container);
 		const testStatus = container.querySelector('.engine-test-status') as HTMLElement;
 
+		assert.ok(testButton);
 		testButton.click();
 		await Promise.resolve();
 		await Promise.resolve();
@@ -426,13 +436,12 @@ suite('EnginePreferencesPane', () => {
 		const container = pane.getDomNode();
 
 		const testRow = container.querySelector('.engine-test-row') as HTMLElement;
-		const testButton = container.querySelector('.engine-test-row .monaco-button') as HTMLButtonElement;
+		const bannerTest = getVisibleTestEngineButton(container);
 		const banner = container.querySelector('.engine-preferences-disconnected-copy') as HTMLElement;
 		assert.ok(testRow);
-		assert.ok(testButton);
-		assert.notStrictEqual(testRow.style.display, 'none');
-		// Test Engine sits under the content as a footer utility, not above the section title.
-		assert.strictEqual(container.lastElementChild, testRow);
+		assert.strictEqual(testRow.style.display, 'none');
+		assert.ok(bannerTest);
+		assert.ok(bannerTest.closest('.engine-preferences-disconnected-actions'));
 		assert.strictEqual(banner.textContent, ENGINE_DISCONNECTED_COPY);
 		assert.notStrictEqual(banner.textContent, getUnsupportedEnvironmentCopy());
 		// A disconnected engine is an ordinary state, so the banner stays a neutral notice.
@@ -495,8 +504,9 @@ suite('EnginePreferencesPane', () => {
 		assert.strictEqual(copy.textContent, getConnectionPhaseStatusBarText({ kind: 'connected', path: 'loopback' }, true));
 		assert.strictEqual(copy.textContent, ENGINE_DISCONNECTED_COPY);
 		assert.ok(!banner.classList.contains('is-warning'));
-		// Chrome only: leftover-looks-live must not hide Test Engine / Open Connection.
-		assert.notStrictEqual(testRow.style.display, 'none');
+		// Banner keeps Test Engine / Open Connection; footer must not duplicate them.
+		assert.strictEqual(testRow.style.display, 'none');
+		assert.ok(getVisibleTestEngineButton(container));
 		assert.ok((container.textContent ?? '').includes('Open Connection'));
 
 		container.remove();

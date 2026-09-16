@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "MERGE_SHA=`43757006bbe` compile-client 0；D472 投影改写合入、聚焦测 46 passing；R9/D405 仍开；下号 D473"
+summary: "MERGE_SHA=`43757006bbe` compile-client 0；D472 已合（不重开）；A 槽接 UA 视觉审查产品面；R9/D405 仍开"
 ---
 
 # Development Progress
@@ -38,12 +38,11 @@ summary: "MERGE_SHA=`43757006bbe` compile-client 0；D472 投影改写合入、�
 | **settings chrome** | Connection/Engine 两页改用 `InputBox`/`Checkbox`/`WorkbenchList` 左栏与状态色；窄宽两栏；Test Engine 下沉页脚；「回 Client」链入 Preferences tab 条；会话栏图标改 ghost toolbar。无新 RPC / 无新节 |
 | **settings chrome follow-up** | Back-to-Client 先取出 Preferences 服务再关 pane（`await` 后 accessor 已失效）；Direct Address Connect 状态写回本区并先标 Connecting…。已随本轮合入 `loop/merge` |
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。**2026-09-12**：仓外 PIN 已换。grpcurl 复验 **List/Create PASS**（含旧 session-100/101）；**[D25](deferred-gaps.md)/[D26](deferred-gaps.md) 已闭**。同日 seed `provider:state` + `models.json` 后重启，grpcurl **Chat PASS**（`gemini-3.8-flash-high`，`textDelta`=`pong`，`turnComplete`/`end_turn`；无 `MODEL_PROFILE_*`）。这是引擎面证据，不是 IDE Conversation 接通冒烟。未升 PRD-008。引擎 A–F 已合；本仓 **node + `IUniverseAgentConnection` 已挂**。Provider/Rules/Hooks **只读列表**已接（无凭据/规则写表单）。Projects 按会话 `work_dir` 分组、Navigator `ListTeams` 标题、Review 历史 chip **已接**。[m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 进行中（2026-09-16 · compile-client 0；D472 投影改写已合）
+### 进行中（2026-09-16 · compile-client 0；D472 投影改写已合，不重开）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
-| **A** | D472 stub/fixture 会话链接改写 | 已合入 `43757006bbe`；聚焦测 46 passing；R9 仍开。**不是** pills 全方案完成 |
-| **B** | — | 脏 `worktree-pool.md` 勿 add / 勿 `-B` |
-| **C** | — | 脏 `dev/loop`；勿 add / 勿 `-B` |
+| **A** | `ua-chrome-visual-port` | **进行中（本 wake 收口源码，未 compile）**：对照 `ff278772b85` 接到 HEAD `ef5a0355f3f`。中宽 `.is-medium`、Inbox overlay 绝对定位可达、Engine 断连 CTA 去重已在树；catalog 测补 idle 断连藏 gate，leftover/KEEP 闸门未按 ff278 藏。D472 保持 closed。**不是** leftover / pills 完成 |
+| **B/C** | — | B 脏 `worktree-pool.md`；C 脏 `dev/loop`；勿 add / 勿 `-B` |
 | **D** | — | 空闲；无第二模块可执行刀 |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 
@@ -179,6 +178,7 @@ summary: "MERGE_SHA=`43757006bbe` compile-client 0；D472 投影改写合入、�
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
 | [D405](deferred-gaps.md)–[D472](deferred-gaps.md) | A/D 本波 | D405 手测仍开；D463/D466/D468–D470 / D472 已闭；compile-client 0；聚焦测 46 passing |
+| — | A `ua-chrome-visual-port` | catalog 节仍向 `EngineCatalogStatusWidget.render` 传 `onOpenConnection`，widget 已不画按钮（页级 banner 独占 CTA）。死选项，不叠两份钮。本 wake 未 compile |
 ## 工位表（P7 · 2026-09-14 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|

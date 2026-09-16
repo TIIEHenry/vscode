@@ -46,6 +46,7 @@ export type { INavigatorLocalFolderEntry };
 const RECENTS_FAILED_NOTE_ID = 'local:recents-failed';
 const STALE_SNAPSHOT_NOTE_ID = 'engine:stale-snapshot';
 const TRANSPORT_FAILED_NOTE_ID = 'engine:transport-failed';
+const PROJECTS_FILTER_NO_MATCH = localize('navigatorProjects.noMatch', "No matches");
 
 export function navigatorProjectsRecentsFailureMessage(error: unknown): string {
 	return localize('navigatorProjects.recentsFailed', "Unable to load recent folders: {0}", getErrorMessage(error));
@@ -121,6 +122,7 @@ export class NavigatorProjectsView extends ViewPane {
 	private tree: WorkbenchObjectTree<INavigatorProjectsTreeNode, void> | undefined;
 	private treeContainer: HTMLElement | undefined;
 	private recentsStatus: HTMLElement | undefined;
+	private filterEmpty: HTMLElement | undefined;
 	private filterBox: NavigatorProjectsInlineFilterBox | undefined;
 	private filterQuery = '';
 	private treeNodes: INavigatorProjectsTreeNode[] = [];
@@ -214,6 +216,10 @@ export class NavigatorProjectsView extends ViewPane {
 		this.recentsStatus = dom.append(container, $('.navigator-projects-recents-status'));
 		this.recentsStatus.setAttribute('role', 'status');
 		this.recentsStatus.style.display = 'none';
+		this.filterEmpty = dom.append(container, $('.navigator-projects-filter-empty'));
+		this.filterEmpty.setAttribute('role', 'status');
+		this.filterEmpty.textContent = PROJECTS_FILTER_NO_MATCH;
+		this.filterEmpty.style.display = 'none';
 		this.treeContainer = dom.append(container, $('.navigator-projects-list'));
 		this.ensureTree();
 		this.refresh();
@@ -227,7 +233,10 @@ export class NavigatorProjectsView extends ViewPane {
 		const statusHeight = this.recentsStatus && this.recentsStatus.style.display !== 'none'
 			? this.recentsStatus.offsetHeight
 			: 0;
-		this.tree?.layout(height - filterHeight - statusHeight, width);
+		const emptyHeight = this.filterEmpty && this.filterEmpty.style.display !== 'none'
+			? this.filterEmpty.offsetHeight
+			: 0;
+		this.tree?.layout(height - filterHeight - statusHeight - emptyHeight, width);
 	}
 
 	private ensureTree(): WorkbenchObjectTree<INavigatorProjectsTreeNode, void> {
@@ -383,7 +392,7 @@ export class NavigatorProjectsView extends ViewPane {
 		this.markLeftoverSessionSwitchClosed();
 		this.treeNodes = this.withStaleSnapshotNote(this.treeNodes);
 		if (!this.hasVisibleRecentsStatus()) {
-			this.setRecentsStatus(NAVIGATOR_STALE_SNAPSHOT_COPY);
+			this.setRecentsStatus(NAVIGATOR_STALE_SNAPSHOT_COPY, 'neutral');
 		}
 		this.filterBox?.setVisible(this.treeNodes.length > 0);
 		try {
@@ -426,17 +435,19 @@ export class NavigatorProjectsView extends ViewPane {
 		return sawEngineRoot ? next : [...next, staleNote];
 	}
 
-	private setRecentsStatus(copy: string | undefined): void {
+	private setRecentsStatus(copy: string | undefined, tone: 'error' | 'neutral' = 'error'): void {
 		if (!this.recentsStatus) {
 			return;
 		}
+		this.recentsStatus.classList.toggle('is-error', !!copy && tone === 'error');
+		this.recentsStatus.classList.toggle('is-neutral', !!copy && tone === 'neutral');
 		if (!copy) {
 			this.recentsStatus.textContent = '';
 			this.recentsStatus.style.display = 'none';
 			return;
 		}
 		this.recentsStatus.textContent = copy;
-		this.recentsStatus.style.display = 'block';
+		this.recentsStatus.style.display = '';
 	}
 
 	private withRecentsFailureNote(
@@ -459,6 +470,10 @@ export class NavigatorProjectsView extends ViewPane {
 			return;
 		}
 		const filtered = this.filterTreeNodes(this.treeNodes);
+		const filterMiss = this.hasActiveFilter() && this.treeNodes.length > 0 && filtered.length === 0;
+		if (this.filterEmpty) {
+			this.filterEmpty.style.display = filterMiss ? 'block' : 'none';
+		}
 		tree.setChildren(null, filtered.map(element => ({
 			element,
 			collapsible: (element.children?.length ?? 0) > 0,
@@ -476,6 +491,10 @@ export class NavigatorProjectsView extends ViewPane {
 			collapsible: (child.children?.length ?? 0) > 0,
 			children: this.mapFilteredChildren(child, filteredRoots),
 		}));
+	}
+
+	private hasActiveFilter(): boolean {
+		return this.filterQuery.trim() !== '';
 	}
 
 	private findNodeById(nodes: readonly INavigatorProjectsTreeNode[], id: string): INavigatorProjectsTreeNode | undefined {

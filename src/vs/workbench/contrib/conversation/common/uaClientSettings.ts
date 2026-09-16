@@ -49,7 +49,7 @@ export function registerUaClientSettings(): void {
 				],
 				description: localize(
 					'ua.client.display.conversationDensity',
-					"Conversation timeline and process-fold row spacing (window scope). Applies immediately in open Conversation views.",
+					"Row spacing for the Conversation timeline and process folds.",
 				),
 				scope: ConfigurationScope.WINDOW,
 			},
@@ -59,7 +59,7 @@ export function registerUaClientSettings(): void {
 				keywords: [localize('ua.client.chatInput.restoreDrafts.keyword', "草稿")],
 				description: localize(
 					'ua.client.chatInput.restoreDrafts',
-					"Restore unsent Composer drafts per workspace, session, and chat (window scope). Draft text is stored locally on this machine and does not sync through Settings Sync. Applies immediately.",
+					"Restore unsent Composer drafts for this window. Drafts stay on this machine.",
 				),
 				scope: ConfigurationScope.WINDOW,
 			},
@@ -69,7 +69,7 @@ export function registerUaClientSettings(): void {
 				keywords: [localize('ua.client.chatInput.autoFocus.keyword', "聚焦")],
 				description: localize(
 					'ua.client.chatInput.autoFocus',
-					"Focus the Composer textarea when opening or returning to Conversation (window scope). Applies immediately. Turning this off does not skip the rest of Conversation focus handling.",
+					"Focus the Composer when opening or returning to Conversation.",
 				),
 				scope: ConfigurationScope.WINDOW,
 			},

@@ -3,11 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+.monaco-workbench .is-compact .conversation-sessions-item-subtitle {
+	display: none;
+}
+
 .monaco-workbench .conversation-sessions-empty {
-	padding: 8px 12px;
+	padding: 8px 8px;
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
 	line-height: 1.4;
+	overflow-wrap: anywhere;
+	white-space: normal;
 }
 
 .monaco-workbench .conversation-sessions-list {

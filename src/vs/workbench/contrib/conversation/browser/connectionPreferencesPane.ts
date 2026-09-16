@@ -64,6 +64,7 @@ import {
 	readHandshakeSasCode,
 	isRecoverTrustConnectResult,
 	readRecoverTrustLeafFingerprint,
+	hubAccountSignedInActions,
 	type ConnectionStatusTone,
 } from './connectionPreferencesPaneLabels.js';
 import { applyConnectionPaneIdentityStripReservation } from './connectionPaneIdentityStripReservation.js';
@@ -215,7 +216,7 @@ export function formatConnectProfileStatusText(
 	if (extras?.profilePairingPending) {
 		return localize(
 			'ua.connectionConnectPairingStillPending',
-			"Connect reported success but this profile is still pairing pending.",
+			"This profile still needs pairing confirmation.",
 		);
 	}
 	if (isRecoverTrustConnectResult(result)) {
@@ -224,7 +225,7 @@ export function formatConnectProfileStatusText(
 	if (isConnectPairingPending(result)) {
 		return localize('ua.connectionPairingPendingStatus', "Pairing pending — not connected yet.");
 	}
-	return localize('ua.connectionHandshakeSucceeded', "Handshake succeeded — pairing not pending.");
+	return localize('ua.connectionHandshakeSucceeded', "Profile accepted — pairing is complete.");
 }
 
 /** Test Connection 结果与 StatusBar / Engine 共用 H4b 文案。 */
@@ -258,7 +259,7 @@ export function getConnectionEmptyCopy(): string {
 export function getConnectionRemoteIoHintCopy(): string {
 	return localize(
 		'ua.connectionRemoteIoHint',
-		"When connected to a remote Engine, file and shell operations run on this machine unless routed otherwise.",
+		"When this window talks to a remote Engine, files and the terminal still run on this computer.",
 	);
 }
 
@@ -449,6 +450,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly hubPasswordInput: InputBox;
 	private readonly hubNewPasswordInput: InputBox;
 	private readonly hubLoginButton: Button;
+	private readonly hubLogoutButton: Button;
+	private readonly hubRefreshButton: Button;
 
 	constructor(
 		@IInstantiationService instantiationService: IInstantiationService,
@@ -533,13 +536,13 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.hubLoginButton.label = HUB_LOGIN_BUTTON_LABEL;
 		this._register(this.hubLoginButton.onDidClick(() => this.handleLogin()));
 
-		const logoutButton = this._register(new Button(hubActions, { ...defaultButtonStyles, secondary: true }));
-		logoutButton.label = localize('ua.connectionHubLogout', "Sign out");
-		this._register(logoutButton.onDidClick(() => this.handleLogout()));
+		this.hubLogoutButton = this._register(new Button(hubActions, { ...defaultButtonStyles, secondary: true }));
+		this.hubLogoutButton.label = localize('ua.connectionHubLogout', "Sign out");
+		this._register(this.hubLogoutButton.onDidClick(() => this.handleLogout()));
 
-		const refreshButton = this._register(new Button(hubActions, { ...defaultButtonStyles, secondary: true }));
-		refreshButton.label = localize('ua.connectionHubRefreshDevices', "Refresh devices");
-		this._register(refreshButton.onDidClick(() => this.refreshHubDirectory()));
+		this.hubRefreshButton = this._register(new Button(hubActions, { ...defaultButtonStyles, secondary: true }));
+		this.hubRefreshButton.label = localize('ua.connectionHubRefreshDevices', "Refresh devices");
+		this._register(this.hubRefreshButton.onDidClick(() => this.refreshHubDirectory()));
 
 		this.hubConnectStatus = DOM.append(this.hubAccountSection, DOM.$('.connection-status.connection-hub-connect-status'));
 		this.hubConnectStatus.setAttribute('role', 'status');
@@ -608,7 +611,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const directHint = DOM.append(this.directAddressSection, DOM.$('.connection-direct-address-hint'));
 		directHint.textContent = localize(
 			'ua.connectionDirectAddressHint',
-			"Manual host and port for debugging or fallback. Private networks are blocked unless explicitly allowed.",
+			"Enter a host and port. Private networks stay blocked unless you allow them.",
 		);
 
 		this.directHostInput = this.createFieldInput(this.directAddressSection, localize('ua.connectionDirectHost', "Host"), {
@@ -1459,7 +1462,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (!awaitingPairing && profilePairingPending) {
 			statusPrefix = localize(
 				'ua.connectionConnectPairingStillPending',
-				"Connect reported success but this profile is still pairing pending.",
+				"This profile still needs pairing confirmation.",
 			);
 			this.setConnectTestStatus(statusPrefix, result, { profilePairingPending: true });
 			this.renderConnectionPhase();
@@ -1827,6 +1830,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			? HUB_CHANGE_PASSWORD_BUTTON_LABEL
 			: HUB_LOGIN_BUTTON_LABEL;
 		this.hubLoginButton.enabled = !signedIn;
+		const signedInActions = hubAccountSignedInActions(status.kind);
+		this.hubLogoutButton.element.style.display = signedInActions.showSignOut ? '' : 'none';
+		this.hubRefreshButton.element.style.display = signedInActions.showRefreshDevices ? '' : 'none';
 		const pairingHold = this.isDeviceWritePairingHold();
 		const pendingListFailed = this.isPendingWriteListFailed();
 		const deviceCodeEnabled = !pairingHold && !pendingListFailed && (signedIn

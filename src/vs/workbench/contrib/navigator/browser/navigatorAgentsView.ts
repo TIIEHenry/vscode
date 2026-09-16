@@ -42,6 +42,7 @@ import {
 	navigatorActivityTruncated,
 } from '../common/navigatorAgentsActivity.js';
 import {
+	agentStatusTone,
 	formatAgentStatusLabel,
 	formatAgentTypeShort,
 	INavigatorAgentsHierarchyNode,
@@ -98,6 +99,17 @@ interface IAgentsHierarchyTemplateData {
 	element: INavigatorAgentsHierarchyNode | undefined;
 }
 
+function iconForAgentType(type: string): ThemeIcon {
+	const short = formatAgentTypeShort(type).toUpperCase();
+	if (short === 'ROOT') {
+		return Codicon.home;
+	}
+	if (short === 'SUB') {
+		return Codicon.account;
+	}
+	return Codicon.robot;
+}
+
 class AgentsHierarchyRenderer implements ITreeRenderer<INavigatorAgentsHierarchyNode, void, IAgentsHierarchyTemplateData> {
 	static readonly TEMPLATE_ID = 'navigatorAgentsHierarchy';
 	readonly templateId = AgentsHierarchyRenderer.TEMPLATE_ID;
@@ -113,6 +125,7 @@ class AgentsHierarchyRenderer implements ITreeRenderer<INavigatorAgentsHierarchy
 	renderTemplate(container: HTMLElement): IAgentsHierarchyTemplateData {
 		const row = dom.append(container, $('.navigator-agents-hierarchy-row'));
 		const typeIcon = dom.append(row, $('.navigator-agents-type-icon'));
+		typeIcon.setAttribute('aria-hidden', 'true');
 		const statusGlyph = dom.append(row, $('.navigator-agents-status-glyph'));
 		const label = dom.append(row, $('.navigator-agents-hierarchy-label'));
 		const actionsContainer = dom.append(row, $('.navigator-agents-row-actions'));
@@ -165,9 +178,12 @@ class AgentsHierarchyRenderer implements ITreeRenderer<INavigatorAgentsHierarchy
 		const element = node.element;
 		templateData.element = element;
 		templateData.label.textContent = element.label;
-		templateData.typeIcon.textContent = formatAgentTypeShort(element.type).slice(0, 1);
-		templateData.typeIcon.title = element.type;
-		templateData.statusGlyph.textContent = '●';
+		templateData.label.title = element.label;
+		templateData.typeIcon.textContent = '';
+		templateData.typeIcon.className = `navigator-agents-type-icon ${ThemeIcon.asClassName(iconForAgentType(element.type))}`;
+		templateData.typeIcon.title = formatAgentTypeShort(element.type);
+		templateData.statusGlyph.textContent = '';
+		templateData.statusGlyph.className = `navigator-agents-status-glyph is-${agentStatusTone(element.status)}`;
 		templateData.statusGlyph.title = formatAgentStatusLabel(element.status);
 		templateData.statusGlyph.setAttribute('aria-label', formatAgentStatusLabel(element.status));
 		this.syncTemplateActions(templateData);

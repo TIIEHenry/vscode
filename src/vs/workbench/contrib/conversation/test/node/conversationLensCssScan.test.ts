@@ -72,6 +72,12 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
+	test('ua-common.css keeps balanced braces so letterpress and HC rules apply', () => {
+		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/conversation/media/ua-common.css'), 'utf8'));
+		assert.strictEqual((css.match(/\{/g) ?? []).length, (css.match(/\}/g) ?? []).length);
+		assert.ok(!/\{\s*\n\s*\.monaco-workbench/.test(css));
+	});
+
 	test('maximize CSS hides the Conversation tree, not the shared slot on Trajectory', () => {
 		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8');
 		assert.ok(css.includes('.conversation-lens-input-maximized:not(:has(.conversation-lens-phase-prefirst)) .conversation-lens-timeline'));
@@ -99,6 +105,13 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 			}
 		}
 		assert.deepStrictEqual(hits, []);
+	});
+
+	test('medium leaf CSS hides SessionBar History, Snapshots, and window-nav', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8');
+		assert.ok(css.includes('.is-medium .conversation-lens-session-history'));
+		assert.ok(css.includes('.is-medium .conversation-lens-session-snapshots'));
+		assert.ok(css.includes('.is-medium .conversation-window-nav'));
 	});
 
 	test('conversation contrib has no fake voice transcript or stub Route chrome', () => {

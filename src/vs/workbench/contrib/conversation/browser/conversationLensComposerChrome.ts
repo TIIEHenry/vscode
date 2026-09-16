@@ -468,19 +468,17 @@ export function updateGateRow(host: IConversationLensComposerChromeHost): void {
 			host.gateRow.hidden = false;
 			return;
 		}
-		// D339 leftover-looks-live: pairing-hold first. Gate is not hidden just because isEngineConnected()===true.
-		// D450 KEEP leftover: connected + list-fail is not live chrome (same predicate as SessionBar D449).
-		const connected = !isConversationPairingHold(host.uaConnection)
-			&& host.stubService.isEngineConnected()
-			&& !isComposerKeepLeftoverListFailed(host);
-		host.gateRow.hidden = connected;
-		if (connected) {
-			host.gateLabel.textContent = '';
-			host.gateRow.removeAttribute('aria-label');
-		} else {
+		// leftover-looks-live / KEEP leftover: keep disconnected gate (merge D339/D450).
+		if (isConversationPairingHold(host.uaConnection) || isComposerKeepLeftoverListFailed(host)) {
+			host.gateRow.hidden = false;
 			host.gateLabel.textContent = conversationLensDockEngineNotConnected;
 			host.gateRow.setAttribute('aria-label', conversationLensDockEngineNotConnected);
+			return;
 		}
+		// Idle engine/session status lives on identity strip / SessionBar. Gate is leftover or post-failure only.
+		host.gateRow.hidden = true;
+		host.gateLabel.textContent = '';
+		host.gateRow.removeAttribute('aria-label');
 	
 }
 

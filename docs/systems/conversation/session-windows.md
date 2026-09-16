@@ -3,7 +3,7 @@ title: "Conversation session 窗口与 chat tab"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-15
+updated: 2026-09-16
 summary: "PRD-016 / ADR-002 的系统规格：Part 内最多两叶 session 窗口；叶级 SessionBar（方案 C）；revealSessionWindow 状态机；fork / 子代理 catalog（GC-4 观察 liveAgentTree；接通后 Fork 转 AgentService.Fork；接通后 killSubAgent / Kill 动作转 AgentService.Kill，空 agentId 不默认 root）；overlay、面包屑、导航栈、split"
 ---
 
@@ -63,7 +63,7 @@ CONVERSATION_PART
 ## 5. split 与并列
 
 - **split**（`workbench.action.conversation.splitSessionWindow`，F1 可见）：同一叶内新建 `CONVERSATION_SIDE_GROUP`，两列各自 tab；`hideSplitColumn` / `showSplitColumn` 收放。仍是同一 session、同一叶；fork 不会因此被送进 Preview。
-- **并列** = 第二叶（§1）；隐藏后剩单叶；再打开恢复。每叶 `ConversationEditorPane.layout` 用自己的叶宽打 `.is-narrow`，不用 Part 宽。
+- **并列** = 第二叶（§1）；隐藏后剩单叶；再打开恢复。每叶 `ConversationEditorPane.layout` 用自己的叶宽打 `.is-medium` / `.is-narrow` / `.is-compact`，不用 Part 宽。
 - chrome / 窗口后续 `ConversationPart.layout` 按各叶 host 的 `clientWidth`/`clientHeight` 再 layout 对应 conversation editor part（创建时已有首次 layout；host 仍为 0 则跳过以免冲掉首次尺寸）。拆列后改窗口大小网格随叶尺寸更新。
 
 ## 6. 与 PRD-016 验收的对应

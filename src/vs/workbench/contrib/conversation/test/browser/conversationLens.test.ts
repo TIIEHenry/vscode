@@ -788,6 +788,8 @@ suite('ConversationLens', () => {
 		assert.ok(slots.sessionBar!.querySelector('.conversation-lens-session-select'));
 		assert.ok(slots.sessionBar!.querySelector('.conversation-lens-session-history'));
 		assert.ok(slots.sessionBar!.querySelector('.conversation-lens-session-snapshots'));
+		assert.ok(getReadingColumn(slots).classList.contains('is-medium'));
+		assert.ok(!getReadingColumn(slots).classList.contains('is-narrow'));
 		assert.ok(slots.sessionBar!.querySelector('.conversation-lens-lens-tab[data-lens-id="trajectory"]'));
 		assert.ok(slots.timeline.querySelector('.conversation-lens-trajectory'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-dock-gate-row'));
@@ -1478,12 +1480,13 @@ suite('ConversationLens', () => {
 	test('honest dock gate and model labels without Copilot CTAs', () => {
 		const { part } = mountLens();
 		const slots = getLensSlots(part);
-		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row')!;
+		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row') as HTMLElement;
+		const identityEngine = getReadingColumn(slots).querySelector('.conversation-identity-chip-engine');
 		const modelSelect = slots.dock.querySelector('.conversation-lens-dock-model select.monaco-select-box') as HTMLSelectElement;
 		const sendButton = getDockSendButton(slots);
 
-		assert.ok(gateRow.textContent?.includes(conversationLensDockEngineNotConnected));
-		assert.strictEqual(gateRow.hasAttribute('hidden'), false);
+		assert.ok(gateRow.hidden);
+		assert.ok(identityEngine?.textContent?.includes(conversationLensDockEngineNotConnected));
 		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, conversationLensDockNoModel);
 		assertDisconnectedComposerCatalogsHonest(slots);
 		assert.strictEqual(sendButton.getAttribute('aria-label'), 'Send');
