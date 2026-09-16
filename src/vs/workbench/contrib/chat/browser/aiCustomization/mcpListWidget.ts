@@ -1211,7 +1211,7 @@ export class McpListWidget extends Disposable {
 		this.donorAddButton.element.classList.add('list-add-button');
 		this.donorAddButton.label = addLabel;
 		this.donorAddButton.element.style.display = isDonorWindow ? '' : 'none';
-		this._register(this.donorAddButton.onDidClick(() => this.commandService.executeCommand(McpCommandIds.AddConfiguration)));
+		this._register(this.donorAddButton.onDidClick(() => void this.commandService.executeCommand(McpCommandIds.AddConfiguration).catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this._register(this.searchInput.onDidChange(() => {
 			this.searchQuery = this.searchInput.value;
@@ -1335,7 +1335,7 @@ export class McpListWidget extends Disposable {
 				link.setAttribute('role', 'button');
 				this.disabledLinkListener.value = DOM.addDisposableListener(link, 'click', (e) => {
 					e.preventDefault();
-					this.commandService.executeCommand('workbench.action.openSettings', `@id:${mcpAccessConfig}`);
+					void this.commandService.executeCommand('workbench.action.openSettings', `@id:${mcpAccessConfig}`).catch(onUnexpectedError).catch(onUnexpectedError);
 				});
 			}
 		} else if (accessChanged && this.visible) {
@@ -1585,7 +1585,7 @@ export class McpListWidget extends Disposable {
 		add.element.classList.add('plugin-installed-action');
 		add.label = this.narrowLayout ? localize('addServerNarrow', "Add") : addLabel;
 		this.firstCardFocusElement ??= add.element;
-		this.cardDisposables.add(add.onDidClick(() => this.commandService.executeCommand(McpCommandIds.AddConfiguration)));
+		this.cardDisposables.add(add.onDidClick(() => void this.commandService.executeCommand(McpCommandIds.AddConfiguration).catch(onUnexpectedError).catch(onUnexpectedError)));
 	}
 
 	private renderFeaturedServers(parent: HTMLElement): void {

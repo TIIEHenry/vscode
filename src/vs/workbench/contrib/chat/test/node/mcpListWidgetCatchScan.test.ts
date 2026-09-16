@@ -74,4 +74,20 @@ suite('McpListWidget leftover fire-and-forget catch scan', () => {
 		assert.ok(!source.includes('void this.installMarketplaceServer(server, install).catch(onUnexpectedError);'));
 		assert.ok(!source.includes('void result.catch(onUnexpectedError);'));
 	});
+
+	test('mcpListWidget leftover executeCommand click voids double-catch onUnexpectedError', () => {
+		const source = fs.readFileSync(mcpListWidgetSourcePath(), 'utf8');
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const doubleAddConfiguration = `void this.commandService.executeCommand(McpCommandIds.AddConfiguration)${doubleCatch}`;
+		const doubleOpenSettings = `void this.commandService.executeCommand('workbench.action.openSettings', \`@id:\${mcpAccessConfig}\`)${doubleCatch}`;
+
+		assert.strictEqual((source.match(/void this\.commandService\.executeCommand\(McpCommandIds\.AddConfiguration\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
+		assert.ok(source.includes(doubleAddConfiguration));
+		assert.ok(source.includes(doubleOpenSettings));
+		assert.ok(source.includes(`onDidClick(() => ${doubleAddConfiguration})`));
+		assert.ok(!source.includes('onDidClick(() => this.commandService.executeCommand(McpCommandIds.AddConfiguration));'));
+		assert.ok(!source.includes("this.commandService.executeCommand('workbench.action.openSettings', `@id:${mcpAccessConfig}`);"));
+		assert.ok(!source.includes(`void this.commandService.executeCommand(McpCommandIds.AddConfiguration).catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`void this.commandService.executeCommand('workbench.action.openSettings', \`@id:\${mcpAccessConfig}\`).catch(onUnexpectedError);`));
+	});
 });
