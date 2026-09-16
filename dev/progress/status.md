@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "merge 本波：A Device.Revoke 已 bytes；F Trigger 五 unary wire 未接线；D522–D527 closed。compile-client 0；聚焦 300 passing。D24 仍开。不是 leftover/pills 完成。"
+summary: "merge 本波：A Device.Revoke 已 bytes；F Trigger 五 unary wire 未接线；D522–D527 closed。G 工位 D531 copyTurn 双链 catch（未 commit）。compile-client 0；聚焦 300 passing。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -27,6 +27,7 @@ summary: "merge 本波：A Device.Revoke 已 bytes；F Trigger 五 unary wire �
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **G D531** | 未 commit — `copyTurn` writeText reject 仍 `failed`；`showPostFailure` throw 双链 catch；勿 add `out` |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
@@ -37,6 +38,7 @@ summary: "merge 本波：A Device.Revoke 已 bytes；F Trigger 五 unary wire �
 | [D24](deferred-gaps.md) | **仍开**：Revoke **已** bytes；Trigger wire **未接线**；SaveSkillContent/Rebuild/Watch/model prefs/Connect 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
 | [D522](deferred-gaps.md)–[D527](deferred-gaps.md) | **closed** 本文件 leftover catch；leftover **未**全局完成 |
+| [D531](deferred-gaps.md) | **closed** copyTurn `showPostFailure` throw 双链 catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |
