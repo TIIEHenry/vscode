@@ -538,7 +538,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 					error: () => {
 						throw paintBoom;
 					},
-				} as INotificationService,
+				} as unknown as INotificationService,
 			));
 		});
 	});
