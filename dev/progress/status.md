@@ -26,14 +26,17 @@ summary: "merge 关仓：SendShell/ListNodes/GetNode/Set·ExitMaintenance/ResetE
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **C** | GetRemoteSessionStatus wire（pending unread）未接线；5 passing；勿碰 `grpcClient`；脏 `dev/loop` 勿 add |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
 
+C 已写 GetRemoteSessionStatus wire（pending unread）未接线。仍勿关本行。
+
 子 agent 发现：
 | ID | 问题 |
 |:---|:-----|
-| [D24](deferred-gaps.md) | **仍开**：七条 **已** bytes；GetConfig/DeleteConfig/Reload/Destroy·Cancel·Resume/CheckConnection wire 未接线；Connect/SaveSkillContent/Watch 仍 JSON |
+| [D24](deferred-gaps.md) | **仍开**：七条 **已** bytes；GetConfig/DeleteConfig/Reload/Destroy·Cancel·Resume/CheckConnection/GetRemoteSessionStatus wire 未接线；Connect/SaveSkillContent/Watch 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
 | [D550](deferred-gaps.md)–[D551](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
