@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "merge 关仓：七条 loop/tool 已 bytes；SendShell/ListNodes/GetNode/Set·ExitMaintenance/ResetError/ListConfigs wire 未接线。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
+summary: "G 已写 DestroyRemoteSession wire 未接线。仍勿关本行。D24 仍开。"
 ---
 
 # Development Progress
@@ -26,14 +26,17 @@ summary: "merge 关仓：七条 loop/tool 已 bytes；SendShell/ListNodes/GetNod
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **G** | DestroyRemoteSession protobuf wire 已写、未接线。仍勿关本行。勿 add `out` |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
 
+G 已写 DestroyRemoteSession wire 未接线。仍勿关本行。
+
 子 agent 发现：
 | ID | 问题 |
 |:---|:-----|
-| [D24](deferred-gaps.md) | **仍开**：七条 loop/tool **已** bytes；SendShell/ListNodes/GetNode/Maintenance/ResetError/ListConfigs wire 未接线；ResolveTurn/Connect/SaveSkillContent 仍 JSON |
+| [D24](deferred-gaps.md) | **仍开**：七条 loop/tool **已** bytes；SendShell/ListNodes/GetNode/Maintenance/ResetError/ListConfigs/DestroyRemoteSession wire 未接线；ResolveTurn/Connect/SaveSkillContent 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
 | [D550](deferred-gaps.md)–[D551](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
