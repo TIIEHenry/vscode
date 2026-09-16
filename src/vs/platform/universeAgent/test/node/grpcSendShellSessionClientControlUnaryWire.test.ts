@@ -159,25 +159,21 @@ suite('grpc AgentService SendShellSessionClientControl protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('ONLY sendShellSessionClientControl still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
+	test('sendShellSessionClientControl uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const send = extractAsyncMethod(source, 'sendShellSessionClientControl');
-		assert.ok(send.includes('makeUnaryClient<'), 'sendShellSessionClientControl still uses JSON makeUnaryClient');
-		assert.ok(!send.includes('makeUnaryBytesClient'), 'sendShellSessionClientControl must not use makeUnaryBytesClient this slice');
-		assert.ok(!send.includes('encodeSendShellSessionClientControlRequest'), 'sendShellSessionClientControl must not call encode this slice');
-		assert.ok(!send.includes('decodeSendShellSessionClientControlResponse'), 'sendShellSessionClientControl must not call decode this slice');
-		assert.ok(send.includes('session_id'), 'sendShellSessionClientControl still sends session_id JSON key');
-		assert.ok(send.includes('tool_call_id'), 'sendShellSessionClientControl still sends tool_call_id JSON key');
-		assert.ok(send.includes('ref_id'), 'sendShellSessionClientControl still sends ref_id JSON key');
-		assert.ok(send.includes('control_payload_json'), 'sendShellSessionClientControl still sends control_payload_json JSON key');
-		assert.ok(send.includes('wire.success === true'), 'sendShellSessionClientControl still maps success');
-		assert.ok(send.includes('message: wire.error_message'), 'sendShellSessionClientControl still maps error_message');
-		assert.ok(send.includes('errorCode: wire.error_code'), 'sendShellSessionClientControl still maps error_code');
-		assert.ok(send.includes('debounced: wire.debounced'), 'sendShellSessionClientControl still maps debounced');
-		assert.ok(send.includes('deliveredToSubscribe: wire.delivered_to_subscribe'), 'sendShellSessionClientControl still maps delivered_to_subscribe');
-		assert.ok(!source.includes('grpcSendShellSessionClientControlUnaryWire'));
-		assert.ok(!/\bWatch\b/.test(send));
+		assert.ok(send.includes('makeUnaryBytesClient'), 'sendShellSessionClientControl must use makeUnaryBytesClient');
+		assert.ok(send.includes('encodeSendShellSessionClientControlRequest'), 'sendShellSessionClientControl must call encodeSendShellSessionClientControlRequest');
+		assert.ok(send.includes('decodeSendShellSessionClientControlResponse'), 'sendShellSessionClientControl must call decodeSendShellSessionClientControlResponse');
+		assert.ok(send.includes('ok: wire.success === true'), 'sendShellSessionClientControl must keep ok: wire.success === true');
+		assert.ok(send.includes('message: wire.error_message'), 'sendShellSessionClientControl must keep message: wire.error_message');
+		assert.ok(send.includes('errorCode: wire.error_code'), 'sendShellSessionClientControl must keep errorCode: wire.error_code');
+		assert.ok(send.includes('debounced: wire.debounced'), 'sendShellSessionClientControl must keep debounced: wire.debounced');
+		assert.ok(send.includes('deliveredToSubscribe: wire.delivered_to_subscribe'), 'sendShellSessionClientControl must keep deliveredToSubscribe: wire.delivered_to_subscribe');
+		assert.ok(!send.includes('makeUnaryClient<'), 'sendShellSessionClientControl must not use JSON makeUnaryClient');
+		assert.ok(!send.includes('JSON.stringify'), 'sendShellSessionClientControl must not JSON.stringify');
 
+		assert.ok(source.includes('grpcSendShellSessionClientControlUnaryWire'));
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));

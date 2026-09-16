@@ -99,17 +99,20 @@ suite('grpc RemoteAgentService SetMaintenance protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('ONLY setMaintenance still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
+	test('setMaintenance uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const setMaintenance = extractAsyncMethod(source, 'setMaintenance');
-		assert.ok(setMaintenance.includes('makeUnaryClient<'), 'setMaintenance still uses JSON makeUnaryClient');
-		assert.ok(!setMaintenance.includes('makeUnaryBytesClient'), 'setMaintenance must not use makeUnaryBytesClient this slice');
-		assert.ok(!setMaintenance.includes('encodeSetMaintenanceRequest'), 'setMaintenance must not call encodeSetMaintenanceRequest this slice');
-		assert.ok(!setMaintenance.includes('decodeSetMaintenanceResponse'), 'setMaintenance must not call decodeSetMaintenanceResponse this slice');
-		assert.ok(setMaintenance.includes('node_id'), 'setMaintenance still sends node_id JSON key');
+		assert.ok(setMaintenance.includes('makeUnaryBytesClient'), 'setMaintenance must use makeUnaryBytesClient');
+		assert.ok(setMaintenance.includes('encodeSetMaintenanceRequest'), 'setMaintenance must call encodeSetMaintenanceRequest');
+		assert.ok(setMaintenance.includes('decodeSetMaintenanceResponse'), 'setMaintenance must call decodeSetMaintenanceResponse');
 		assert.ok(setMaintenance.includes('mapSetMaintenanceResponse'), 'setMaintenance still maps via mapSetMaintenanceResponse');
-		assert.ok(!source.includes('grpcSetMaintenanceUnaryWire'));
-		assert.ok(!/\bWatch\b/.test(setMaintenance));
+		assert.ok(!setMaintenance.includes('makeUnaryClient<'), 'setMaintenance must not use JSON makeUnaryClient');
+		assert.ok(!setMaintenance.includes('JSON.stringify'), 'setMaintenance must not JSON.stringify');
+
+		assert.ok(source.includes('grpcSetMaintenanceUnaryWire'));
+		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});
 });
 

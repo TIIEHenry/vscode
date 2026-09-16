@@ -144,27 +144,20 @@ suite('grpc RemoteAgentService ListConfigs protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('ONLY listConfigs still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
+	test('listConfigs uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const list = extractAsyncMethod(source, 'listConfigs');
-		assert.ok(list.includes('makeUnaryClient<'), 'listConfigs still uses JSON makeUnaryClient');
-		assert.ok(!list.includes('makeUnaryBytesClient'), 'listConfigs must not use makeUnaryBytesClient this slice');
-		assert.ok(!list.includes('encodeListConfigsRequest'), 'listConfigs must not call encodeListConfigsRequest this slice');
-		assert.ok(!list.includes('decodeListConfigsResponse'), 'listConfigs must not call decodeListConfigsResponse this slice');
+		assert.ok(list.includes('makeUnaryBytesClient'), 'listConfigs must use makeUnaryBytesClient');
+		assert.ok(list.includes('encodeListConfigsRequest'), 'listConfigs must call encodeListConfigsRequest');
+		assert.ok(list.includes('decodeListConfigsResponse'), 'listConfigs must call decodeListConfigsResponse');
 		assert.ok(list.includes('mapListConfigsResponse'), 'listConfigs still calls mapListConfigsResponse');
-		assert.ok(list.includes('unary({})'), 'listConfigs still sends empty JSON {}');
-		assert.ok(!source.includes('grpcListConfigsUnaryWire'));
+		assert.ok(!list.includes('makeUnaryClient<'), 'listConfigs must not use JSON makeUnaryClient');
+		assert.ok(!list.includes('JSON.stringify'), 'listConfigs must not JSON.stringify');
 
+		assert.ok(source.includes('grpcListConfigsUnaryWire'));
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
-		const watchStart = source.indexOf('\topenWatchConfigStream(');
-		assert.ok(watchStart >= 0, 'missing openWatchConfigStream(');
-		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);
-		const watchBody = source.slice(watchStart, watchEnd >= 0 ? watchEnd : source.length);
-		assert.ok(watchBody.includes('makeServerStreamClient<Record<string, unknown>'));
-		assert.ok(!watchBody.includes('grpcListConfigsUnaryWire'));
 	});
 });
 

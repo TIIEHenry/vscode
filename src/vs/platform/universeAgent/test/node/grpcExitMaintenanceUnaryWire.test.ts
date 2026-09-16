@@ -93,17 +93,20 @@ suite('grpc RemoteAgentService ExitMaintenance protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('ONLY exitMaintenance still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
+	test('exitMaintenance uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const exit = extractAsyncMethod(source, 'exitMaintenance');
-		assert.ok(exit.includes('makeUnaryClient<'), 'exitMaintenance still uses JSON makeUnaryClient');
-		assert.ok(!exit.includes('makeUnaryBytesClient'), 'exitMaintenance must not use makeUnaryBytesClient this slice');
-		assert.ok(!exit.includes('encodeExitMaintenanceRequest'), 'exitMaintenance must not call encodeExitMaintenanceRequest this slice');
-		assert.ok(!exit.includes('decodeExitMaintenanceResponse'), 'exitMaintenance must not call decodeExitMaintenanceResponse this slice');
-		assert.ok(exit.includes('node_id'), 'exitMaintenance still sends node_id JSON key');
+		assert.ok(exit.includes('makeUnaryBytesClient'), 'exitMaintenance must use makeUnaryBytesClient');
+		assert.ok(exit.includes('encodeExitMaintenanceRequest'), 'exitMaintenance must call encodeExitMaintenanceRequest');
+		assert.ok(exit.includes('decodeExitMaintenanceResponse'), 'exitMaintenance must call decodeExitMaintenanceResponse');
 		assert.ok(exit.includes('mapExitMaintenanceResponse'), 'exitMaintenance still calls mapExitMaintenanceResponse');
-		assert.ok(!/\bWatch\b/.test(exit));
-		assert.ok(!source.includes('grpcExitMaintenanceUnaryWire'));
+		assert.ok(!exit.includes('makeUnaryClient<'), 'exitMaintenance must not use JSON makeUnaryClient');
+		assert.ok(!exit.includes('JSON.stringify'), 'exitMaintenance must not JSON.stringify');
+
+		assert.ok(source.includes('grpcExitMaintenanceUnaryWire'));
+		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});
 });
 

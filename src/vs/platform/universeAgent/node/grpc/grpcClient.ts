@@ -521,26 +521,20 @@ import {
 	type DeleteRemoteAgentConfigResponseWire,
 	type DestroyRemoteSessionResponseWire,
 	type DownloadChunkWire,
-	type ExitMaintenanceResponseWire,
 	type GetRemoteSessionHistoryResponseWire,
 	type GetRemoteSessionStatusResponseWire,
-	type ListConfigsResponseWire,
-	type ListNodesResponseWire,
 	type MemoryRebuildEventWire,
 	type PtyServerMessageWire,
 	type ReloadRemoteAgentsResponseWire,
 	type RemoteAgentConfigWire,
-	type RemoteAgentInfoWire,
 	type RemoteChatResponseWire,
 	type RemoteResponseWire,
-	type ResetErrorResponseWire,
 	type ResolveAnchorResponseWire,
 	type ResolveModelResponseWire,
 	type ResolveTurnResponseWire,
 	type ResumeRemoteSessionResponseWire,
 	type SaveRemoteAgentConfigResponseWire,
 	type SaveSkillContentResponseWire,
-	type SetMaintenanceResponseWire,
 	type SubscribeToolDetailChunkWire,
 	type UploadProgressResponseWire,
 	type UploadResponseWire,
@@ -686,6 +680,10 @@ import {
 	encodeStopShellTaskRequest,
 } from './grpcStopShellTaskUnaryWire.js';
 import {
+	decodeSendShellSessionClientControlResponse,
+	encodeSendShellSessionClientControlRequest,
+} from './grpcSendShellSessionClientControlUnaryWire.js';
+import {
 	decodeListLoopSnapshotsResponse,
 	encodeListLoopSnapshotsRequest,
 } from './grpcListLoopSnapshotsUnaryWire.js';
@@ -693,6 +691,30 @@ import {
 	decodeFetchToolUsageDetailResponse,
 	encodeFetchToolUsageDetailRequest,
 } from './grpcFetchToolUsageDetailUnaryWire.js';
+import {
+	decodeListNodesResponse,
+	encodeListNodesRequest,
+} from './grpcListNodesUnaryWire.js';
+import {
+	decodeGetNodeResponse,
+	encodeGetNodeRequest,
+} from './grpcGetNodeUnaryWire.js';
+import {
+	decodeSetMaintenanceResponse,
+	encodeSetMaintenanceRequest,
+} from './grpcSetMaintenanceUnaryWire.js';
+import {
+	decodeExitMaintenanceResponse,
+	encodeExitMaintenanceRequest,
+} from './grpcExitMaintenanceUnaryWire.js';
+import {
+	decodeResetErrorResponse,
+	encodeResetErrorRequest,
+} from './grpcResetErrorUnaryWire.js';
+import {
+	decodeListConfigsResponse,
+	encodeListConfigsRequest,
+} from './grpcListConfigsUnaryWire.js';
 import {
 	decodeChatResponse,
 	decodeCreateSessionResponse,
@@ -1618,23 +1640,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async sendShellSessionClientControl(request: UniverseAgentSendShellSessionClientControlRequest): Promise<UniverseAgentSendShellSessionClientControlResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, {
-			success?: boolean;
-			error_message?: string;
-			error_code?: string;
-			debounced?: boolean;
-			delivered_to_subscribe?: boolean;
-		}>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.SendShellSessionClientControl,
+			decodeSendShellSessionClientControlResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			tool_call_id: request.toolCallId,
-			ref_id: request.refId,
-			control_payload_json: request.controlPayloadJson,
-		});
+		const wire = await unary(encodeSendShellSessionClientControlRequest(request));
 		return {
 			ok: wire.success === true,
 			message: wire.error_message,
@@ -2746,28 +2758,23 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async listNodes(request: UniverseAgentListNodesRequest): Promise<UniverseAgentListNodesResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ListNodesResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.RemoteAgent.service,
 			UniverseAgentGrpcServices.RemoteAgent.ListNodes,
+			decodeListNodesResponse,
 		);
-		const wire = await unary({
-			filter_status: [...request.filterStatus],
-			filter_tags: [...request.filterTags],
-		});
-		return mapListNodesResponse(wire);
+		return mapListNodesResponse(await unary(encodeListNodesRequest(request)));
 	}
 
 	async getNode(request: UniverseAgentGetNodeRequest): Promise<UniverseAgentRemoteAgentInfo> {
-		const unary = makeUnaryClient<Record<string, unknown>, RemoteAgentInfoWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.RemoteAgent.service,
 			UniverseAgentGrpcServices.RemoteAgent.GetNode,
+			decodeGetNodeResponse,
 		);
-		const wire = await unary({
-			node_id: request.nodeId,
-		});
-		return mapRemoteAgentInfo(wire);
+		return mapRemoteAgentInfo(await unary(encodeGetNodeRequest(request)));
 	}
 
 	async checkConnection(request: UniverseAgentCheckConnectionRequest): Promise<UniverseAgentConnectionReport> {
@@ -2792,37 +2799,33 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async setMaintenance(request: UniverseAgentSetMaintenanceRequest): Promise<UniverseAgentSetMaintenanceResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, SetMaintenanceResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.RemoteAgent.service,
 			UniverseAgentGrpcServices.RemoteAgent.SetMaintenance,
+			decodeSetMaintenanceResponse,
 		);
-		const wire = await unary({
-			node_id: request.nodeId,
-		});
-		return mapSetMaintenanceResponse(wire);
+		return mapSetMaintenanceResponse(await unary(encodeSetMaintenanceRequest(request)));
 	}
 
 	async exitMaintenance(request: UniverseAgentExitMaintenanceRequest): Promise<UniverseAgentExitMaintenanceResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ExitMaintenanceResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.RemoteAgent.service,
 			UniverseAgentGrpcServices.RemoteAgent.ExitMaintenance,
+			decodeExitMaintenanceResponse,
 		);
-		const wire = await unary({
-			node_id: request.nodeId,
-		});
-		return mapExitMaintenanceResponse(wire);
+		return mapExitMaintenanceResponse(await unary(encodeExitMaintenanceRequest(request)));
 	}
 
 	async listConfigs(): Promise<UniverseAgentListConfigsResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ListConfigsResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.RemoteAgent.service,
 			UniverseAgentGrpcServices.RemoteAgent.ListConfigs,
+			decodeListConfigsResponse,
 		);
-		const wire = await unary({});
-		return mapListConfigsResponse(wire);
+		return mapListConfigsResponse(await unary(encodeListConfigsRequest()));
 	}
 
 	async getRemoteAgentConfig(request: UniverseAgentGetRemoteAgentConfigRequest): Promise<UniverseAgentRemoteAgentConfig> {
@@ -2852,15 +2855,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async resetError(request: UniverseAgentResetErrorRequest): Promise<UniverseAgentResetErrorResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ResetErrorResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.RemoteAgent.service,
 			UniverseAgentGrpcServices.RemoteAgent.ResetError,
+			decodeResetErrorResponse,
 		);
-		const wire = await unary({
-			node_id: request.nodeId,
-		});
-		return mapResetErrorResponse(wire);
+		return mapResetErrorResponse(await unary(encodeResetErrorRequest(request)));
 	}
 
 	async deleteRemoteAgentConfig(request: UniverseAgentDeleteRemoteAgentConfigRequest): Promise<UniverseAgentDeleteRemoteAgentConfigResult> {

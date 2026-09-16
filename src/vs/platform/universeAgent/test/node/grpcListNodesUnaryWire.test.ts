@@ -245,18 +245,20 @@ suite('grpc RemoteAgentService ListNodes protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('ONLY listNodes still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
+	test('listNodes uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const listNodes = extractAsyncMethod(source, 'listNodes');
-		assert.ok(listNodes.includes('makeUnaryClient<'), 'listNodes still uses JSON makeUnaryClient');
-		assert.ok(!listNodes.includes('makeUnaryBytesClient'), 'listNodes must not use makeUnaryBytesClient this slice');
-		assert.ok(!listNodes.includes('encodeListNodesRequest'), 'listNodes must not call encodeListNodesRequest this slice');
-		assert.ok(!listNodes.includes('decodeListNodesResponse'), 'listNodes must not call decodeListNodesResponse this slice');
+		assert.ok(listNodes.includes('makeUnaryBytesClient'), 'listNodes must use makeUnaryBytesClient');
+		assert.ok(listNodes.includes('encodeListNodesRequest'), 'listNodes must call encodeListNodesRequest');
+		assert.ok(listNodes.includes('decodeListNodesResponse'), 'listNodes must call decodeListNodesResponse');
 		assert.ok(listNodes.includes('mapListNodesResponse'), 'listNodes still calls mapListNodesResponse');
-		assert.ok(listNodes.includes('filter_status'), 'listNodes still sends filter_status JSON key');
-		assert.ok(listNodes.includes('filter_tags'), 'listNodes still sends filter_tags JSON key');
-		assert.ok(!source.includes('grpcListNodesUnaryWire'));
-		assert.ok(!/\bWatch\b/.test(listNodes));
+		assert.ok(!listNodes.includes('makeUnaryClient<'), 'listNodes must not use JSON makeUnaryClient');
+		assert.ok(!listNodes.includes('JSON.stringify'), 'listNodes must not JSON.stringify');
+
+		assert.ok(source.includes('grpcListNodesUnaryWire'));
+		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});
 });
 

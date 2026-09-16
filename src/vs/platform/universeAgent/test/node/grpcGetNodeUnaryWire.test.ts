@@ -128,27 +128,20 @@ suite('grpc RemoteAgentService GetNode protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('ONLY getNode still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
+	test('getNode uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const getNode = extractAsyncMethod(source, 'getNode');
-		assert.ok(getNode.includes('makeUnaryClient<'), 'getNode still uses JSON makeUnaryClient');
-		assert.ok(!getNode.includes('makeUnaryBytesClient'), 'getNode must not use makeUnaryBytesClient this slice');
-		assert.ok(!getNode.includes('encodeGetNodeRequest'), 'getNode must not call encodeGetNodeRequest this slice');
-		assert.ok(!getNode.includes('decodeGetNodeResponse'), 'getNode must not call decodeGetNodeResponse this slice');
+		assert.ok(getNode.includes('makeUnaryBytesClient'), 'getNode must use makeUnaryBytesClient');
+		assert.ok(getNode.includes('encodeGetNodeRequest'), 'getNode must call encodeGetNodeRequest');
+		assert.ok(getNode.includes('decodeGetNodeResponse'), 'getNode must call decodeGetNodeResponse');
 		assert.ok(getNode.includes('mapRemoteAgentInfo'), 'getNode still calls mapRemoteAgentInfo');
-		assert.ok(getNode.includes('node_id'), 'getNode still sends node_id JSON key');
-		assert.ok(!source.includes('grpcGetNodeUnaryWire'));
-		assert.ok(!/\bWatch\b/.test(getNode));
+		assert.ok(!getNode.includes('makeUnaryClient<'), 'getNode must not use JSON makeUnaryClient');
+		assert.ok(!getNode.includes('JSON.stringify'), 'getNode must not JSON.stringify');
 
+		assert.ok(source.includes('grpcGetNodeUnaryWire'));
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		const watchStart = source.indexOf('\topenWatchConfigStream(');
-		assert.ok(watchStart >= 0, 'missing openWatchConfigStream(');
-		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);
-		const watchBody = source.slice(watchStart, watchEnd >= 0 ? watchEnd : source.length);
-		assert.ok(watchBody.includes('makeServerStreamClient<Record<string, unknown>'));
-		assert.ok(!watchBody.includes('grpcGetNodeUnaryWire'));
 	});
 });
 
