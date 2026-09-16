@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { isEqual } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -86,7 +87,7 @@ export class UniverseAgentMigrationContribution extends Disposable implements IW
 		@ILogService private readonly logService: ILogService,
 	) {
 		super();
-		void this.maybeOffer();
+		void this.maybeOffer().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async maybeOffer(): Promise<void> {
