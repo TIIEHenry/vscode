@@ -165,6 +165,32 @@ suite('ConversationEngineSnapshotsList', () => {
 		await new Promise(resolve => setTimeout(resolve, 0));
 	}
 
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			await run();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	}
+
 	test('SessionBar control is Snapshots, not History, and overlay starts closed', () => {
 		const { list, buttonParent, overlayParent } = mountList(createConversationConnectionTestStub());
 		const button = buttonParent.querySelector(`.${conversationLensSnapshotsButtonClass} .monaco-button`) as HTMLElement | null;
@@ -891,16 +917,32 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.deepStrictEqual([...(status?.classList ?? [])], [conversationLensSnapshotsWriteStatusClass, 'is-error']);
 	});
 
-	test('does not leak unhandled rejection when restore rejects and paintWriteStatus rethrows', async () => {
+	test('does not leak unhandled rejection when refresh catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		// refresh() already catches list throw; a lone inner reject does not leak.
+		// The void call site still needs `.catch` when the catch-path paint throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			const { list } = mountList(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				listSnapshots: async () => {
+					throw new Error('list boom');
+				},
+			}));
+			(list as unknown as { paintListFailed(text: string): void }).paintListFailed = () => {
+				throw paintBoom;
+			};
+			list.show();
+		});
+	});
+
+	test('does not leak unhandled rejection when restore rejects and paintWriteStatus rethrows and onUnexpectedError warn-then-rethrows', async () => {
 		// `restoreThenRefreshList` already catches restore; a lone inner reject does not leak.
 		// The void call site still needs `.catch` when the catch-path paint throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
 		const restoreCalls: UniverseAgentRestoreSnapshotRequest[] = [];
-		const unhandledRejections: unknown[] = [];
-		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
-		process.on('unhandledRejection', onUnhandledRejection);
-		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
-		setUnexpectedErrorHandler(() => { });
-		try {
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
 			const { list, overlayParent } = mountList(createConversationConnectionTestStub({
 				isEngineConnected: () => true,
 				listSnapshots: async () => ({
@@ -921,18 +963,13 @@ suite('ConversationEngineSnapshotsList', () => {
 				get: () => '',
 				set: (value: string) => {
 					if (value) {
-						throw new Error('paint boom');
+						throw paintBoom;
 					}
 				},
 			});
 			restoreButton(snapshotRow(overlayParent, 'snap-1'))?.click();
-			await timeout(0);
-			assert.deepStrictEqual(restoreCalls, [{ sessionId: 'sess-1', snapshotId: 'snap-1' }]);
-			assert.deepStrictEqual(unhandledRejections, []);
-		} finally {
-			setUnexpectedErrorHandler(originalErrorHandler);
-			process.off('unhandledRejection', onUnhandledRejection);
-		}
+		});
+		assert.deepStrictEqual(restoreCalls, [{ sessionId: 'sess-1', snapshotId: 'snap-1' }]);
 	});
 
 	test('empty snapshotId restore does not send or refresh', async () => {
@@ -1061,13 +1098,20 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.deepStrictEqual(deleteCalls, [{ sessionId: 'sess-1', snapshotId: 'snap-1' }]);
 	});
 
-	test('does not leak unhandled rejection when delete confirm rejects', async () => {
+	test('does not leak unhandled rejection when delete confirm rejects and onUnexpectedError warn-then-rethrows', async () => {
 		const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
+		const confirmBoom = new Error('boom');
+		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
 		process.on('unhandledRejection', onUnhandledRejection);
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
-		setUnexpectedErrorHandler(() => { });
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
 		try {
 			const { list, overlayParent, confirmCalls } = mountList(createConversationConnectionTestStub({
 				isEngineConnected: () => true,
@@ -1085,11 +1129,50 @@ suite('ConversationEngineSnapshotsList', () => {
 			await timeout(0);
 			assert.strictEqual(confirmCalls.length, 1);
 			assert.deepStrictEqual(deleteCalls, []);
+			assert.strictEqual(unexpectedWarns.length, 2);
+			assert.strictEqual((unexpectedWarns[0] as Error).message, confirmBoom.message);
+			assert.strictEqual(unexpectedWarns[1], unexpectedWarns[0]);
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('does not leak unhandled rejection when deleteThenRefreshList catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		// `deleteThenRefreshList` already catches delete; a lone inner reject does not leak.
+		// The void call site still needs `.catch` when the catch-path paint throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				listSnapshots: async () => ({
+					snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
+				}),
+				deleteSnapshot: async request => {
+					deleteCalls.push(request);
+					throw new Error('delete boom');
+				},
+			}), createRosterStub(), { confirmResult: true });
+			list.show();
+			await Promise.resolve();
+			assert.ok(snapshotRow(overlayParent, 'snap-1'));
+			const status = writeStatus(overlayParent);
+			assert.ok(status);
+			Object.defineProperty(status, 'textContent', {
+				configurable: true,
+				get: () => '',
+				set: (value: string) => {
+					if (value) {
+						throw paintBoom;
+					}
+				},
+			});
+			deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		});
+		assert.deepStrictEqual(deleteCalls, [{ sessionId: 'sess-1', snapshotId: 'snap-1' }]);
 	});
 
 	test('successful delete refreshes via listSnapshots and keeps overlay open', async () => {
