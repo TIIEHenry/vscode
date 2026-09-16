@@ -230,26 +230,26 @@ export class SessionsTelemetryContribution extends Disposable implements IWorkbe
 				...this._getWorkspaceFields(workspace, workspaceFileCount),
 				...this._getWorkspaceTopologyFields(workspace),
 			});
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	private _logSessionArchived(session: ISession): void {
 		void this._getSessionActionPayload(session).then(payload => {
 			this._telemetryService.publicLog2<SessionActionEvent, SessionArchivedClassification>('agents/sessionArchived', payload);
-		});
+		}).catch(onUnexpectedError);
 		this._fireSessionSummary(session, 'archived');
 	}
 
 	private _logSessionUnarchived(session: ISession): void {
 		void this._getSessionActionPayload(session).then(payload => {
 			this._telemetryService.publicLog2<SessionActionEvent, SessionUnarchivedClassification>('agents/sessionUnarchived', payload);
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	private _logSessionDeleted(session: ISession): void {
 		void this._getSessionActionPayload(session).then(payload => {
 			this._telemetryService.publicLog2<SessionActionEvent, SessionDeletedClassification>('agents/sessionDeleted', payload);
-		});
+		}).catch(onUnexpectedError);
 		this._fireSessionSummary(session, 'deleted');
 	}
 
@@ -257,21 +257,21 @@ export class SessionsTelemetryContribution extends Disposable implements IWorkbe
 		this._lifecycleTracker.bumpCounter(session, 'chatDeleted');
 		void this._getSessionActionPayload(session).then(payload => {
 			this._telemetryService.publicLog2<SessionActionEvent, ChatDeletedClassification>('agents/chatDeleted', payload);
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	private _logChatRenamed(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'chatRenamed');
 		void this._getSessionActionPayload(session).then(payload => {
 			this._telemetryService.publicLog2<SessionActionEvent, ChatRenamedClassification>('agents/chatRenamed', payload);
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	private _logSessionRenamed(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'sessionRenamed');
 		void this._getSessionActionPayload(session).then(payload => {
 			this._telemetryService.publicLog2<SessionActionEvent, SessionRenamedClassification>('agents/sessionRenamed', payload);
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	private _logSessionStickinessToggled(session: ISession, sticky: boolean): void {
@@ -281,7 +281,7 @@ export class SessionsTelemetryContribution extends Disposable implements IWorkbe
 				...payload,
 				sticky,
 			});
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	private _logSessionMaximizeToggled(session: ISession, maximized: boolean): void {
@@ -291,77 +291,77 @@ export class SessionsTelemetryContribution extends Disposable implements IWorkbe
 				...payload,
 				maximized,
 			});
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	private _logCreatePullRequest(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'createPullRequest');
 		void this._getSessionActionPayload(session).then(payload => {
 			this._telemetryService.publicLog2<SessionActionEvent, CreatePullRequestClassification>('agents/createPullRequest', payload);
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	private _logCreateDraftPullRequest(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'createDraftPullRequest');
 		void this._getSessionActionPayload(session).then(payload => {
 			this._telemetryService.publicLog2<SessionActionEvent, CreateDraftPullRequestClassification>('agents/createDraftPullRequest', payload);
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	private _logUpdatePullRequest(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'updatePullRequest');
 		void this._getSessionActionPayload(session).then(payload => {
 			this._telemetryService.publicLog2<SessionActionEvent, UpdatePullRequestClassification>('agents/updatePullRequest', payload);
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	private _logMergePullRequest(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'mergePullRequest');
 		void this._getSessionActionPayload(session).then(payload => {
 			this._telemetryService.publicLog2<SessionActionEvent, MergePullRequestClassification>('agents/mergePullRequest', payload);
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	private _logCheckoutPullRequest(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'checkoutPullRequest');
 		void this._getSessionActionPayload(session).then(payload => {
 			this._telemetryService.publicLog2<SessionActionEvent, CheckoutPullRequestClassification>('agents/checkoutPullRequest', payload);
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	private _logInitializeRepository(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'initializeRepository');
 		void this._getSessionActionPayload(session).then(payload => {
 			this._telemetryService.publicLog2<SessionActionEvent, InitializeRepositoryClassification>('agents/initializeRepository', payload);
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	private _logCommit(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'commit');
 		void this._getSessionActionPayload(session).then(payload => {
 			this._telemetryService.publicLog2<SessionActionEvent, CommitClassification>('agents/commit', payload);
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	private _logCommitAndSync(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'commitAndSync');
 		void this._getSessionActionPayload(session).then(payload => {
 			this._telemetryService.publicLog2<SessionActionEvent, CommitAndSyncClassification>('agents/commitAndSync', payload);
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	private _logSessionRestored(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'sessionRestored');
 		void this._getSessionActionPayload(session).then(payload => {
 			this._telemetryService.publicLog2<SessionActionEvent, SessionRestoredClassification>('agents/sessionRestored', payload);
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	private _logFixCIChecks(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'fixCIChecks');
 		void this._getSessionActionPayload(session).then(payload => {
 			this._telemetryService.publicLog2<SessionActionEvent, FixCIChecksClassification>('agents/fixCIChecks', payload);
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	private _logFeedbackAdded(e: IAgentFeedbackAddedEvent): void {
@@ -378,7 +378,7 @@ export class SessionsTelemetryContribution extends Disposable implements IWorkbe
 				hasSuggestion,
 				hasExistingFeedbackForFile,
 			});
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	private _logFeedbackConverted(e: IAgentFeedbackConvertedEvent): void {
@@ -397,7 +397,7 @@ export class SessionsTelemetryContribution extends Disposable implements IWorkbe
 				hasSuggestion,
 				hasExistingFeedbackForFile,
 			});
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	private _logFeedbackReplyAdded(e: IAgentFeedbackReplyAddedEvent): void {
@@ -414,7 +414,7 @@ export class SessionsTelemetryContribution extends Disposable implements IWorkbe
 				feedbackKind,
 				replyCount,
 			});
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	private _logFeedbackSubmitted(e: IAgentFeedbackSubmittedEvent): void {
@@ -433,7 +433,7 @@ export class SessionsTelemetryContribution extends Disposable implements IWorkbe
 				prReviewCount,
 				replyCount,
 			});
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	// -- cross-client session-done detection -----------------------------------
