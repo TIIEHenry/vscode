@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as DOM from '../../../../../base/browser/dom.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Disposable, MutableDisposable } from '../../../../../base/common/lifecycle.js';
 import { basename } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -155,7 +156,7 @@ export class EmbeddedMcpServerDetail extends Disposable {
 			this.setDefinition(`${JSON.stringify({ servers: { [server.name]: server.config } }, null, '\t')}\n`);
 		} else if (server.source) {
 			this.setDefinition(undefined, localize('mcpDefinitionLoading', "Loading MCP server definition..."));
-			void this.loadSourceDefinition(server, server.source, renderGeneration);
+			void this.loadSourceDefinition(server, server.source, renderGeneration).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			this.setDefinition(undefined);
 		}
