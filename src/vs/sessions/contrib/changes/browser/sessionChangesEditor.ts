@@ -6,6 +6,7 @@
 import './media/sessionChangesEditor.css';
 import { $, addDisposableListener, append, Dimension, EventType } from '../../../../base/browser/dom.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore, IDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { autorun, derivedObservableWithCache, IObservable, observableValue } from '../../../../base/common/observable.js';
 import { Range } from '../../../../editor/common/core/range.js';
@@ -67,7 +68,7 @@ const CHANGES_DIFF_EDITOR_OPTIONS: IDiffEditorOptions = {
 	lineNumbersMinChars: 3,
 };
 
-class SessionChangesUIElementFactory implements IWorkbenchUIElementFactory {
+export class SessionChangesUIElementFactory implements IWorkbenchUIElementFactory {
 
 	readonly headerClickToCollapse = true;
 
@@ -94,7 +95,7 @@ class SessionChangesUIElementFactory implements IWorkbenchUIElementFactory {
 			return false;
 		}
 
-		void this.commandService.executeCommand(CHANGESET_REVIEW_ACTION_ID, resource);
+		void this.commandService.executeCommand(CHANGESET_REVIEW_ACTION_ID, resource).catch(onUnexpectedError);
 		return true;
 	}
 
