@@ -29,6 +29,7 @@ summary: "A：七条 SendShell/ListNodes/GetNode/Set·ExitMaintenance/ResetError
 | **A** | 七条 SendShell/ListNodes/GetNode/Set·ExitMaintenance/ResetError/ListConfigs 已 grpcClient bytes。仍勿关本行。 |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
+| **F** | F 已写 Reload wire 未接线。仍勿关本行。 |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
 
 子 agent 发现：
