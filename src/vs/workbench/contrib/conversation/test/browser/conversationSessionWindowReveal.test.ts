@@ -29,6 +29,7 @@ import { ConversationSessionChatContribution } from '../../browser/conversationS
 import { ConversationNavigationContribution } from '../../browser/conversationNavigation.contribution.js';
 import { ConversationNavigationService, IConversationNavigationService } from '../../browser/conversationNavigationService.js';
 import { ConversationSessionChatService, IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
+import { switchToSession as switchToSessionHelper } from '../../browser/conversationLensSessionBar.js';
 import { ConversationSessionWindowService, IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
@@ -438,6 +439,26 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
 			pane.leafSessionBarHost!.switchToSession('other-session');
 		});
+	});
+
+	test('does not leak unhandled rejection when SelectBox helper switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const harness = await createRevealHarness();
+		const pane = await waitForSessionPane(harness, harness.primaryId);
+		assert.ok(pane.leafSessionBarHost);
+		const paintBoom = new Error('switch boom');
+		pane.leafSessionBarHost.switchLeafSession = async () => {
+			throw paintBoom;
+		};
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			switchToSessionHelper(pane.leafSessionBarHost!, 'other-session');
+		});
+	});
+
+	test('SelectBox helper switchToSession fire-and-forget voids double-catch onUnexpectedError', async () => {
+		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationLensSessionBar.ts`);
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		assert.ok(source.includes(`void host.switchLeafSession(sessionId)${doubleCatch}`));
+		assert.ok(!source.includes('void host.switchLeafSession(sessionId);'));
 	});
 
 	test('10 New Session in stub path becomes the only visible leaf', async () => {

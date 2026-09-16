@@ -8,6 +8,7 @@ import { Button } from '../../../../base/browser/ui/button/button.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IDisposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
@@ -54,7 +55,7 @@ export interface IConversationLensSessionBarHost {
 	register<T extends IDisposable>(disposable: T): T;
 	getBoundSessionId(): string;
 	getSessionBarSelectId?(): string;
-	switchLeafSession?(sessionId: string): void | Promise<void>;
+	switchLeafSession?(sessionId: string): Promise<void>;
 	setLensId(lensId: ConversationLensId): void;
 	handleLensTablistKeyDown(event: KeyboardEvent): void;
 	beginSessionTitleEdit(): void;
@@ -440,7 +441,7 @@ export function switchToSession(host: IConversationLensSessionBarHost, sessionId
 			host.writeComposerDraft(previousId, host.dockTextarea.value);
 		}
 		if (host.switchLeafSession) {
-			void host.switchLeafSession(sessionId);
+			void host.switchLeafSession(sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
 			return;
 		}
 		if (previousId !== sessionId) {
