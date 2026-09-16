@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
@@ -1791,5 +1792,107 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.strictEqual(saveCalled, false);
 		assert.strictEqual(ok, false);
 		assert.strictEqual(section.canWrite(), false);
+	});
+
+	test('does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+		// refresh() already catches listSkills; a lone inner reject does not leak.
+		// The void call site still needs `.catch` when the catch-path render throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				skillsSupport: 'SUPPORTED',
+				listSkills: async () => {
+					throw new Error('listSkills exploded');
+				},
+			});
+			const section = mountSection(connection);
+			const status = (section as unknown as { status: { render(options: { readonly mode: string }): void } }).status;
+			const originalRender = status.render.bind(status);
+			status.render = (options: { readonly mode: string }) => {
+				if (options.mode === 'failed') {
+					throw paintBoom;
+				}
+				originalRender(options);
+			};
+			section.setSectionActive(true);
+			await flushMicrotasks();
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+			section.getDomNode().parentElement?.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when loadSkillBody catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		// loadSkillBody already catches getSkillInfo; a lone inner reject does not leak.
+		// Catch-path showBodyStatus throw still needs a call-site catch. A lone
+		// `.catch(onUnexpectedError)` leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				skillsSupport: 'SUPPORTED',
+				listSkills: async () => ({
+					skills: [{ name: 'demo-skill', source: 'bundled', enabled: true }],
+				}),
+				getSkillInfo: async () => {
+					throw new Error('getSkillInfo exploded');
+				},
+			});
+			const section = mountSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+			assert.strictEqual(section.getMode(), 'ready');
+			const loadFailed = localize('ua.engineSkillBodyLoadFailed', "Could not load skill content from the engine.");
+			const bodyStatus = section.getDomNode().querySelector('.engine-skill-body-status') as HTMLElement;
+			assert.ok(bodyStatus);
+			Object.defineProperty(bodyStatus, 'textContent', {
+				configurable: true,
+				get: () => '',
+				set: (value: string) => {
+					if (value === loadFailed) {
+						throw paintBoom;
+					}
+				},
+			});
+			section.selectSkillForTest('demo-skill');
+			await flushMicrotasks();
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+			section.getDomNode().parentElement?.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });
