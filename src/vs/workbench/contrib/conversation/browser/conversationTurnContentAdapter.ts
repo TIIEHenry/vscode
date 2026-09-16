@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
@@ -70,7 +71,7 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 						allowedLinkSchemes: { augment: [ConversationChatInputScheme] },
 					},
 					actionHandler: (href) => {
-						void this.handleTimelineLink(href);
+						void this.handleTimelineLink(href).catch(onUnexpectedError).catch(onUnexpectedError);
 					},
 				},
 				container,

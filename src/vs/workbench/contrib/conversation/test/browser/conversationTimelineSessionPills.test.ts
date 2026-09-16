@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { DisposableStore, IDisposable } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -46,6 +47,33 @@ suite('Conversation timeline session pills', () => {
 		await timeout(0);
 	}
 
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void): Promise<void> {
+		// handleTimelineLink's inner try/catch only wraps URI.parse. A lone
+		// `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			run();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	}
+
 	function createHarness(options?: {
 		sessions?: IHarnessRosterSession[];
 		catalog?: IConversationSessionChatEntry[];
@@ -70,6 +98,9 @@ suite('Conversation timeline session pills', () => {
 		let activeId = sessions[0]?.id ?? '';
 		const openedEditors: unknown[] = [];
 		const openSubAgentCalls: Array<{ sessionKey: string; chatId: string }> = [];
+		let openSubAgentImpl: (sessionKey: string, chatId: string) => Promise<void> = async (sessionKey, chatId) => {
+			openSubAgentCalls.push({ sessionKey, chatId });
+		};
 		const openExtensionTabCalls: Array<{ sessionKey: string; chatId: string }> = [];
 		const revealCalls: string[] = [];
 		const openerCalls: Array<{ resource: URI | string; options?: { openExternal?: boolean } }> = [];
@@ -100,9 +131,7 @@ suite('Conversation timeline session pills', () => {
 				onDidChangeCatalog.fire(sessionKey);
 				return entry;
 			},
-			openSubAgent: async (sessionKey: string, chatId: string) => {
-				openSubAgentCalls.push({ sessionKey, chatId });
-			},
+			openSubAgent: (sessionKey: string, chatId: string) => openSubAgentImpl(sessionKey, chatId),
 			openExtensionTab: async (sessionKey: string, chatId: string) => {
 				openExtensionTabCalls.push({ sessionKey, chatId });
 			},
@@ -177,6 +206,9 @@ suite('Conversation timeline session pills', () => {
 			openerCalls,
 			hoverTexts,
 			setDialogOpen: (value: boolean) => { dialogOpen = value; },
+			setOpenSubAgent: (impl: (sessionKey: string, chatId: string) => Promise<void>) => {
+				openSubAgentImpl = impl;
+			},
 			addSession: (session: IHarnessRosterSession) => {
 				sessions.push(session);
 				onDidChangeSession.fire();
@@ -454,6 +486,22 @@ suite('Conversation timeline session pills', () => {
 		render(assistantTurn(original));
 		assert.ok(container.querySelector('a[data-href="conversation-chat:/session/untitled/chat/c1"]'));
 		assert.strictEqual(container.querySelectorAll(`.${conversationSessionPillClass}`).length, 1);
+	});
+
+	test('does not leak unhandled rejection when handleTimelineLink rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const { container, render, setOpenSubAgent } = createHarness({
+			catalog: [{ sessionKey: 'untitled', chatId: 'tool-a', title: 'Writer', originKind: 'tool' }],
+		});
+		setOpenSubAgent(async () => {
+			throw paintBoom;
+		});
+		render(assistantTurn('[t](conversation-chat:/session/untitled/chat/tool-a)'));
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			const anchor = container.querySelector('a[data-href="conversation-chat:/session/untitled/chat/tool-a"]') as HTMLAnchorElement | null;
+			assert.ok(anchor, 'missing conversation-chat tool pill');
+			anchor.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+		});
 	});
 
 	test('S4 stub fixture copy contains Stub conversation-chat links', () => {
