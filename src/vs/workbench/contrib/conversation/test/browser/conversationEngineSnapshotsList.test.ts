@@ -891,6 +891,50 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.deepStrictEqual([...(status?.classList ?? [])], [conversationLensSnapshotsWriteStatusClass, 'is-error']);
 	});
 
+	test('does not leak unhandled rejection when restore rejects and paintWriteStatus rethrows', async () => {
+		// `restoreThenRefreshList` already catches restore; a lone inner reject does not leak.
+		// The void call site still needs `.catch` when the catch-path paint throws.
+		const restoreCalls: UniverseAgentRestoreSnapshotRequest[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				listSnapshots: async () => ({
+					snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
+				}),
+				restoreSnapshot: async request => {
+					restoreCalls.push(request);
+					throw new Error('restore boom');
+				},
+			}));
+			list.show();
+			await Promise.resolve();
+			assert.ok(snapshotRow(overlayParent, 'snap-1'));
+			const status = writeStatus(overlayParent);
+			assert.ok(status);
+			Object.defineProperty(status, 'textContent', {
+				configurable: true,
+				get: () => '',
+				set: (value: string) => {
+					if (value) {
+						throw new Error('paint boom');
+					}
+				},
+			});
+			restoreButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+			await timeout(0);
+			assert.deepStrictEqual(restoreCalls, [{ sessionId: 'sess-1', snapshotId: 'snap-1' }]);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
 	test('empty snapshotId restore does not send or refresh', async () => {
 		const restoreCalls: UniverseAgentRestoreSnapshotRequest[] = [];
 		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
