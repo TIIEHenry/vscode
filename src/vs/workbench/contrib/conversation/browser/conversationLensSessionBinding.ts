@@ -360,7 +360,7 @@ export function retryError(host: IConversationLensSessionBindingHost, turn: { re
 		}
 	}).catch(() => {
 		host.showPostFailure('failed');
-	});
+	}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 }
 

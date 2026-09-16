@@ -896,6 +896,29 @@ suite('conversation lens dispose gate', () => {
 		}
 	});
 
+	test('retryError postBound reject still shows failed and does not leak when showPostFailure throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const host = {
+			getBoundSessionId: () => 'sess-1',
+			postBound: async (): Promise<PostOutcome> => {
+				throw new Error('postBound boom');
+			},
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+				retryError: () => true,
+			},
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+				throw paintBoom;
+			},
+		} as unknown as IConversationLensSessionBindingHost;
+
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => retryError(host, { id: 'msg-1' }));
+		assert.deepStrictEqual(failures, ['failed']);
+	});
+
 	test('resolveConfirmation postBound reject shows failed and does not leave an unhandled rejection', async () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const rejections: unknown[] = [];
