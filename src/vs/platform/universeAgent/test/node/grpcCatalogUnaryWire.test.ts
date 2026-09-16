@@ -35,6 +35,7 @@ import {
 	encodeEditQueueItemRequest,
 	encodeEmptyProtoMessage,
 	encodeEnqueueQueueItemRequest,
+	encodeGetSessionRulesRequest,
 	encodeHoldQueueItemRequest,
 	encodeInsertQueueItemRequest,
 	encodeListAgentProfilesRequest,
@@ -47,6 +48,7 @@ import {
 	encodeListTeamsRequest,
 	encodeMemberStatusRequest,
 	encodeProbeRpcRequest,
+	encodePromotePermissionRuleRequest,
 	encodeQueueItemRefRequest,
 	encodeQueueRefRequest,
 	encodeReorderQueueRequest,
@@ -58,10 +60,14 @@ import {
 	encodeSetQueueItemLockedRequest,
 	encodeSetSessionGoalRequest,
 	encodeSwitchModelRequest,
+	encodeSyncPermissionRuleRequest,
 	encodeTaskListRequest,
 	encodeTeamInfoRequest,
 	encodeUpsertProjectRuleRequest,
 	encodeUpsertProviderCredentialsRequest,
+	decodeGetSessionRulesResponse,
+	decodePromotePermissionRuleResponse,
+	decodeSyncPermissionRuleResponse,
 	SESSION_LIST_FILTER_ALL,
 } from '../../node/grpc/grpcCatalogUnaryWire.js';
 import {
@@ -75,10 +81,12 @@ import {
 	mapMemberInfo,
 	mapProviderStatus,
 	mapSessionInfoResponse,
+	mapGetSessionRulesResponse,
 	mapTaskInfo,
 } from '../../node/grpc/grpcClientMappers.js';
 import {
 	encodeInt32Field,
+	encodeInt64Field,
 	encodeMessageField,
 	encodeStringField,
 	readProtoFields,
@@ -541,6 +549,103 @@ suite('grpc catalog unary protobuf wire', () => {
 		assert.strictEqual(deniedStrings.has(4), false);
 	});
 
+	test('encodeSyncPermissionRuleRequest writes fields 1-5; omits empty and action 0', () => {
+		const encoded = encodeSyncPermissionRuleRequest('sess-1', 'bash', 'command', 1, 'allow shell');
+		assert.notStrictEqual(encoded[0], 0x7b);
+		assert.strictEqual(protoStrings(encoded).get(1), 'sess-1');
+		assert.strictEqual(protoStrings(encoded).get(2), 'bash');
+		assert.strictEqual(protoStrings(encoded).get(3), 'command');
+		assert.strictEqual(protoVarints(encoded).get(4), 1);
+		assert.strictEqual(protoStrings(encoded).get(5), 'allow shell');
+		const omitted = encodeSyncPermissionRuleRequest('', '', '', 0, '');
+		assert.strictEqual(omitted.length, 0);
+		assert.ok(!protoVarints(omitted).has(4));
+	});
+
+	test('decodeSyncPermissionRuleResponse reads success=1 rule_id=2 and ignores unknown fields', () => {
+		const encoded = Buffer.concat([
+			encodeInt32Field(1, 1),
+			encodeStringField(2, 'rule-9'),
+			encodeStringField(3, 'unused'),
+		]);
+		assert.deepStrictEqual(decodeSyncPermissionRuleResponse(encoded), { ok: true, ruleId: 'rule-9' });
+		assert.deepStrictEqual(decodeSyncPermissionRuleResponse(new Uint8Array(0)), { ok: false, ruleId: '' });
+	});
+
+	test('encodePromotePermissionRuleRequest writes tool_name=1 scope=2 action=3; omits empty and action 0', () => {
+		const encoded = encodePromotePermissionRuleRequest('bash', 'command', 2);
+		assert.notStrictEqual(encoded[0], 0x7b);
+		assert.strictEqual(protoStrings(encoded).get(1), 'bash');
+		assert.strictEqual(protoStrings(encoded).get(2), 'command');
+		assert.strictEqual(protoVarints(encoded).get(3), 2);
+		assert.ok(!protoStrings(encoded).has(4));
+		const omitted = encodePromotePermissionRuleRequest('', '', 0);
+		assert.strictEqual(omitted.length, 0);
+		assert.ok(!protoVarints(omitted).has(3));
+	});
+
+	test('decodePromotePermissionRuleResponse reads success=1 and ignores unknown fields', () => {
+		const encoded = Buffer.concat([
+			encodeInt32Field(1, 1),
+			encodeStringField(2, 'unused'),
+		]);
+		assert.deepStrictEqual(decodePromotePermissionRuleResponse(encoded), { ok: true });
+		assert.deepStrictEqual(decodePromotePermissionRuleResponse(new Uint8Array(0)), { ok: false });
+	});
+
+	test('encodeGetSessionRulesRequest writes session_id field 1, not JSON', () => {
+		const encoded = encodeGetSessionRulesRequest('sess-1');
+		const info = encodeSessionInfoRequest('sess-1');
+		assert.deepStrictEqual(Buffer.from(encoded), Buffer.from(info));
+		assert.notStrictEqual(encoded[0], 0x7b);
+		assert.strictEqual(protoStrings(encoded).get(1), 'sess-1');
+		assert.ok(!protoStrings(encoded).has(2));
+		assert.strictEqual(encodeGetSessionRulesRequest('').length, 0);
+	});
+
+	test('decodeGetSessionRulesResponse maps SessionRule 1-8 then mapper; unknown fields unread', () => {
+		const rule = Buffer.concat([
+			encodeStringField(1, 'rule-1'),
+			encodeStringField(2, 'bash'),
+			encodeStringField(3, 'command'),
+			encodeInt32Field(4, 1),
+			encodeStringField(5, 'allow shell'),
+			encodeInt64Field(6, 1700000000),
+			encodeInt64Field(7, 1700003600),
+			encodeInt32Field(8, 1),
+			encodeStringField(9, 'unused-field'),
+		]);
+		const encoded = encodeMessageField(1, rule);
+		const wire = decodeGetSessionRulesResponse(encoded);
+		assert.deepStrictEqual(wire, {
+			rules: [{
+				id: 'rule-1',
+				tool_name: 'bash',
+				scope: 'command',
+				action: 1,
+				reason: 'allow shell',
+				created_at: 1700000000,
+				expires_at: 1700003600,
+				source: 1,
+			}],
+		});
+		assert.strictEqual(JSON.stringify(wire).includes('unused-field'), false);
+		assert.deepStrictEqual(mapGetSessionRulesResponse(wire), {
+			rules: [{
+				id: 'rule-1',
+				toolName: 'bash',
+				scope: 'command',
+				action: 'ALLOW',
+				reason: 'allow shell',
+				createdAt: 1700000000,
+				expiresAt: 1700003600,
+				source: 'USER_INTERACTIVE',
+			}],
+		});
+		assert.deepStrictEqual(decodeGetSessionRulesResponse(new Uint8Array(0)), { rules: [] });
+		assert.deepStrictEqual(mapGetSessionRulesResponse(decodeGetSessionRulesResponse(new Uint8Array(0))), { rules: [] });
+	});
+
 	test('encodeMemberStatusRequest and encodeTaskListRequest write session_id/agent_id fields 1-2', () => {
 		const member = encodeMemberStatusRequest('sess-1', 'root');
 		const tasks = encodeTaskListRequest('sess-1', 'root');
@@ -833,6 +938,9 @@ suite('grpc catalog unary protobuf wire', () => {
 			{ name: 'fetchToolDetail', encoder: 'encodeFetchToolDetailRequest' },
 			{ name: 'cancelSessionGoal', encoder: 'encodeCancelSessionGoalRequest' },
 			{ name: 'respondPermission', encoder: 'encodeRespondPermissionRequest' },
+			{ name: 'syncPermissionRule', encoder: 'encodeSyncPermissionRuleRequest' },
+			{ name: 'promotePermissionRule', encoder: 'encodePromotePermissionRuleRequest' },
+			{ name: 'getSessionRules', encoder: 'encodeGetSessionRulesRequest' },
 			{ name: 'forkAgent', encoder: 'encodeForkAgentRequest' },
 			{ name: 'killAgent', encoder: 'encodeKillAgentRequest' },
 			{ name: 'deleteMessage', encoder: 'encodeDeleteMessageRequest' },
@@ -844,6 +952,16 @@ suite('grpc catalog unary protobuf wire', () => {
 			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
 			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
 		}
+		const permissionLeftover: Array<{ name: string; decoder: string }> = [
+			{ name: 'syncPermissionRule', decoder: 'decodeSyncPermissionRuleResponse' },
+			{ name: 'promotePermissionRule', decoder: 'decodePromotePermissionRuleResponse' },
+			{ name: 'getSessionRules', decoder: 'decodeGetSessionRulesResponse' },
+		];
+		for (const { name, decoder } of permissionLeftover) {
+			const body = extractAsyncMethod(source, name);
+			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
+		}
+		assert.ok(extractAsyncMethod(source, 'getSessionRules').includes('mapGetSessionRulesResponse'));
 		const queueMethods: Array<{ name: string; encoder: string }> = [
 			{ name: 'enqueueQueueItem', encoder: 'encodeEnqueueQueueItemRequest' },
 			{ name: 'insertQueueItem', encoder: 'encodeInsertQueueItemRequest' },

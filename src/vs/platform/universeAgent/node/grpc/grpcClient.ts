@@ -556,7 +556,6 @@ import {
 	type GetMcpServerToolsResponseWire,
 	type GetRemoteSessionHistoryResponseWire,
 	type GetRemoteSessionStatusResponseWire,
-	type GetSessionRulesResponseWire,
 	type GetSessionUsageResponseWire,
 	type HealthCheckResponseWire,
 	type HistoryResponseWire,
@@ -701,7 +700,10 @@ import {
 	decodeTaskListResponse,
 	decodeTeamInfoResponse,
 	decodeDeleteProjectRuleResponse,
+	decodeGetSessionRulesResponse,
+	decodePromotePermissionRuleResponse,
 	decodeQueueMutationResponse,
+	decodeSyncPermissionRuleResponse,
 	encodeAgentTreeRequest,
 	encodeCancelSessionGoalRequest,
 	encodeClearProviderCredentialsRequest,
@@ -709,6 +711,7 @@ import {
 	encodeDeleteSessionRequest,
 	encodeEditQueueItemRequest,
 	encodeEnqueueQueueItemRequest,
+	encodeGetSessionRulesRequest,
 	encodeHoldQueueItemRequest,
 	encodeInsertQueueItemRequest,
 	encodeListAgentProfilesRequest,
@@ -722,6 +725,7 @@ import {
 	encodeListTeamsRequest,
 	encodeMemberStatusRequest,
 	encodeProbeRpcRequest,
+	encodePromotePermissionRuleRequest,
 	encodeQueueItemRefRequest,
 	encodeQueueRefRequest,
 	encodeReorderQueueRequest,
@@ -734,6 +738,7 @@ import {
 	encodeSetQueueItemLockedRequest,
 	encodeSetSessionGoalRequest,
 	encodeSwitchModelRequest,
+	encodeSyncPermissionRuleRequest,
 	encodeTaskListRequest,
 	encodeTeamInfoRequest,
 	encodeUpsertProjectRuleRequest,
@@ -1842,50 +1847,43 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async syncPermissionRule(request: UniverseAgentSyncPermissionRuleRequest): Promise<UniverseAgentSyncPermissionRuleResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; rule_id?: string }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Permission.service,
 			UniverseAgentGrpcServices.Permission.SyncPermissionRule,
+			decodeSyncPermissionRuleResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			tool_name: request.toolName,
-			scope: request.scope,
-			action: permissionRuleActionWire(request.action),
-			reason: request.reason,
-		});
-		return {
-			ok: wire.success === true,
-			ruleId: wire.rule_id ?? '',
-		};
+		return unary(encodeSyncPermissionRuleRequest(
+			request.sessionId,
+			request.toolName,
+			request.scope,
+			permissionRuleActionWire(request.action),
+			request.reason,
+		));
 	}
 
 	async promotePermissionRule(request: UniverseAgentPromotePermissionRuleRequest): Promise<UniverseAgentPromotePermissionRuleResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Permission.service,
 			UniverseAgentGrpcServices.Permission.PromotePermissionRule,
+			decodePromotePermissionRuleResponse,
 		);
-		const wire = await unary({
-			tool_name: request.toolName,
-			scope: request.scope,
-			action: permissionRuleActionWire(request.action),
-		});
-		return {
-			ok: wire.success === true,
-		};
+		return unary(encodePromotePermissionRuleRequest(
+			request.toolName,
+			request.scope,
+			permissionRuleActionWire(request.action),
+		));
 	}
 
 	async getSessionRules(request: UniverseAgentGetSessionRulesRequest): Promise<UniverseAgentGetSessionRulesResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, GetSessionRulesResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Permission.service,
 			UniverseAgentGrpcServices.Permission.GetSessionRules,
+			decodeGetSessionRulesResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-		});
-		return mapGetSessionRulesResponse(wire);
+		return mapGetSessionRulesResponse(await unary(encodeGetSessionRulesRequest(request.sessionId)));
 	}
 
 	async setPermissionMode(request: UniverseAgentSetPermissionModeRequest): Promise<UniverseAgentSetPermissionModeResult> {

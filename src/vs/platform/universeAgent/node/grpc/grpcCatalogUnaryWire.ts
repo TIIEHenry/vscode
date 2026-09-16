@@ -21,12 +21,14 @@ import type {
 	UniverseAgentQueuePriority,
 	UniverseAgentQueueRefRequest,
 	UniverseAgentReorderQueueRequest,
+	UniverseAgentPromotePermissionRuleResult,
 	UniverseAgentRespondPermissionRequest,
 	UniverseAgentSetQueueItemForkAnchorRequest,
 	UniverseAgentSetQueueItemLockedRequest,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSwitchModelRequest,
 	UniverseAgentSwitchModelResult,
+	UniverseAgentSyncPermissionRuleResult,
 	UniverseAgentUpsertProjectRuleRequest,
 	UniverseAgentUpsertProviderCredentialsRequest,
 } from '../../common/universeAgentTypes.js';
@@ -44,7 +46,7 @@ import type {
 	ResetAgentProfileResponseWire,
 	SaveAgentProfileResponseWire,
 } from './grpcClientMappersCatalog.js';
-import type { AgentInfoWire, AgentTreeResponseWire, ListAgentsResponseWire, ListSessionsResponseWire, SessionInfoResponseWire } from './grpcClientMappersSession.js';
+import type { AgentInfoWire, AgentTreeResponseWire, GetSessionRulesResponseWire, ListAgentsResponseWire, ListSessionsResponseWire, SessionInfoResponseWire, SessionRuleWire } from './grpcClientMappersSession.js';
 import type {
 	BlackboardTaskWire,
 	ListTeamsResponseWire,
@@ -229,6 +231,80 @@ export function encodeRespondPermissionRequest(request: UniverseAgentRespondPerm
 		encodeInt32Field(3, request.granted === true ? 1 : 0),
 		encodeStringField(4, request.metadataJson),
 	]);
+}
+
+/**
+ * Permission.SyncPermissionRule — `session_id` = 1, `tool_name` = 2, `scope` = 3,
+ * `action` = 4 (RuleAction varint via `permissionRuleActionWire`), `reason` = 5.
+ * proto3: empty strings / 0 omitted.
+ */
+export function encodeSyncPermissionRuleRequest(sessionId: string, toolName: string, scope: string, action: number, reason: string): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, sessionId),
+		encodeStringField(2, toolName),
+		encodeStringField(3, scope),
+		encodeInt32Field(4, action),
+		encodeStringField(5, reason),
+	]);
+}
+
+/** SyncRuleResponse — `success` = 1, `rule_id` = 2. Unknown fields unread. */
+export function decodeSyncPermissionRuleResponse(bytes: Uint8Array): UniverseAgentSyncPermissionRuleResult {
+	const fields = readProtoFields(bytes);
+	return {
+		ok: lastVarint(fields, 1) === 1n,
+		ruleId: lastString(fields, 2) ?? '',
+	};
+}
+
+/**
+ * Permission.PromotePermissionRule — `tool_name` = 1, `scope` = 2, `action` = 3 (RuleAction).
+ * proto3: empty strings / 0 omitted.
+ */
+export function encodePromotePermissionRuleRequest(toolName: string, scope: string, action: number): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, toolName),
+		encodeStringField(2, scope),
+		encodeInt32Field(3, action),
+	]);
+}
+
+/** PromoteRuleResponse — `success` = 1. Unknown fields unread. */
+export function decodePromotePermissionRuleResponse(bytes: Uint8Array): UniverseAgentPromotePermissionRuleResult {
+	return {
+		ok: lastVarint(readProtoFields(bytes), 1) === 1n,
+	};
+}
+
+/** Permission.GetSessionRules — `session_id` = 1. Empty omitted. */
+export function encodeGetSessionRulesRequest(sessionId: string): Uint8Array {
+	return encodeSessionInfoRequest(sessionId);
+}
+
+/**
+ * GetSessionRulesResponse — repeated `SessionRule rules` = 1.
+ * SessionRule: `id`=1 `tool_name`=2 `scope`=3 `action`=4 `reason`=5
+ * `created_at`=6 `expires_at`=7 `source`=8. Unknown fields unread.
+ */
+export function decodeGetSessionRulesResponse(bytes: Uint8Array): GetSessionRulesResponseWire {
+	return {
+		rules: allLengthDelimited(readProtoFields(bytes), 1).map(decodeSessionRule),
+	};
+}
+
+function decodeSessionRule(bytes: Uint8Array): SessionRuleWire {
+	const fields = readProtoFields(bytes);
+	const expiresAt = numberOrUndefined(lastVarint(fields, 7));
+	return {
+		id: lastString(fields, 1) ?? '',
+		tool_name: lastString(fields, 2) ?? '',
+		scope: lastString(fields, 3) ?? '',
+		action: numberOrUndefined(lastVarint(fields, 4)),
+		reason: lastString(fields, 5) ?? '',
+		created_at: numberOrUndefined(lastVarint(fields, 6)),
+		...(expiresAt !== undefined ? { expires_at: expiresAt } : {}),
+		source: numberOrUndefined(lastVarint(fields, 8)),
+	};
 }
 
 /**
