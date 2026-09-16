@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { getWindow } from '../../../../base/browser/dom.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { IClipboardService } from '../../../../platform/clipboard/common/clipboardService.js';
 import { IWebviewService } from '../../webview/browser/webview.js';
@@ -284,7 +285,7 @@ export function copyTurn(host: IConversationLensSessionBindingHost, text: string
 
 	void host.clipboardService.writeText(text).catch(() => {
 		host.showPostFailure('failed');
-	});
+	}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 }
 

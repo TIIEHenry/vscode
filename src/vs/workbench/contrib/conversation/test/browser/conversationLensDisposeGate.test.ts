@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { applySessionViewTimeline, refreshTrajectoryRecords, updateSyncChrome, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
@@ -45,6 +47,32 @@ import type { ConversationWriteMessage, PostOutcome } from '../../../../../platf
 suite('conversation lens dispose gate', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
+
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void): Promise<void> {
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			run();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	}
 
 	test('applySessionViewTimeline skips applyEntries after dispose', () => {
 		let applyEntries = 0;
@@ -2779,6 +2807,25 @@ suite('conversation lens dispose gate', () => {
 		} finally {
 			process.off('unhandledRejection', onUnhandled);
 		}
+	});
+
+	test('copyTurn writeText reject still shows failed and does not leak when showPostFailure throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const host = {
+			clipboardService: {
+				writeText: async () => {
+					throw new Error('writeText boom');
+				},
+			},
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+				throw paintBoom;
+			},
+		} as unknown as IConversationLensSessionBindingHost;
+
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => copyTurn(host, 'copied'));
+		assert.deepStrictEqual(failures, ['failed']);
 	});
 
 	test('copyTurn writeText resolve stays silent', async () => {
