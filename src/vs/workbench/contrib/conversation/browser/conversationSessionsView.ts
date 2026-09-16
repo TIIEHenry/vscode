@@ -9,6 +9,7 @@ import { IListContextMenuEvent, IListRenderer, IListVirtualDelegate } from '../.
 import { Action } from '../../../../base/common/actions.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
@@ -237,7 +238,7 @@ export class ConversationSessionsView extends ViewPane {
 		if (!this.layoutService.isVisible(Parts.CONVERSATION_PART)) {
 			this.layoutService.setPartHidden(false, Parts.CONVERSATION_PART);
 		}
-		void this.sessionWindowService.openSessionBeside(sessionId);
+		void this.sessionWindowService.openSessionBeside(sessionId).catch(onUnexpectedError);
 		this.conversationPartService.focus();
 	}
 
