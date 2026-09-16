@@ -1895,4 +1895,133 @@ suite('EngineSkillsSection (E1)', () => {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
+
+	test('does not leak unhandled rejection when createSkill catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		// createSkill() already catches saveSkillContent throw; a lone inner reject does not leak.
+		// The void New click still needs `.catch` when the catch-path paint throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				skillsSupport: 'SUPPORTED',
+				listSkills: async () => ({
+					skills: [{ name: 'demo-skill', source: 'bundled', enabled: true }],
+				}),
+				saveSkillContent: async () => {
+					throw new Error('saveSkillContent exploded');
+				},
+			});
+			const section = mountSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+			assert.strictEqual(section.getMode(), 'ready');
+			assert.strictEqual(section.isWriteToolbarVisible(), true);
+			const createFailed = localize('ua.engineSkillCreateFailed', "Could not create skill content on the engine.");
+			const writeStatus = section.getDomNode().querySelector('.engine-skill-write-status') as HTMLElement;
+			assert.ok(writeStatus);
+			Object.defineProperty(writeStatus, 'textContent', {
+				configurable: true,
+				get: () => '',
+				set: (value: string) => {
+					if (value === createFailed) {
+						throw paintBoom;
+					}
+				},
+			});
+			const newButton = Array.from(section.getDomNode().querySelectorAll('.monaco-button'))
+				.find(button => (button.textContent ?? '').includes('New')) as HTMLElement | undefined;
+			assert.ok(newButton, 'New write button must be painted');
+			newButton.click();
+			await flushMicrotasks();
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+			section.getDomNode().parentElement?.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when saveSelectedSkillBody catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		// saveSelectedSkillBody() already catches saveSkillContent throw; a lone inner reject does not leak.
+		// The void Save click still needs `.catch` when the catch-path paint throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				skillsSupport: 'SUPPORTED',
+				listSkills: async () => ({
+					skills: [{ name: 'user-skill', source: 'user', enabled: true }],
+				}),
+				getSkillInfo: async (request) => ({
+					name: request.skillName,
+					content: '# Original',
+					source: 'user',
+					enabled: true,
+				}),
+				saveSkillContent: async () => {
+					throw new Error('saveSkillContent exploded');
+				},
+			});
+			const section = mountSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+			assert.strictEqual(section.getMode(), 'ready');
+			section.selectSkillForTest('user-skill');
+			await flushMicrotasks();
+			assert.strictEqual(section.getSelectedSkillName(), 'user-skill');
+			assert.strictEqual(section.isSaveToolbarVisible(), true);
+			const saveFailed = localize('ua.engineSkillBodySaveFailed', "Could not save skill content to the engine.");
+			const writeStatus = section.getDomNode().querySelector('.engine-skill-write-status') as HTMLElement;
+			assert.ok(writeStatus);
+			Object.defineProperty(writeStatus, 'textContent', {
+				configurable: true,
+				get: () => '',
+				set: (value: string) => {
+					if (value === saveFailed) {
+						throw paintBoom;
+					}
+				},
+			});
+			const saveButton = Array.from(section.getDomNode().querySelectorAll('.monaco-button'))
+				.find(button => (button.textContent ?? '').includes('Save')) as HTMLElement | undefined;
+			assert.ok(saveButton, 'Save write button must be painted');
+			saveButton.click();
+			await flushMicrotasks();
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+			section.getDomNode().parentElement?.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
 });
