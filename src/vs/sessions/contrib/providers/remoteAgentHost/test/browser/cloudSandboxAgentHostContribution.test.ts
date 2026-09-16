@@ -146,6 +146,10 @@ interface ITestHarness {
 	runDiscovery(): Promise<void>;
 	/** Runs while a `connect` is in flight, for testing what can race with it. */
 	onConnect?: () => Promise<void>;
+	/** Stub `removeRemoteAgentHost`; default resolves. */
+	onRemoveRemoteAgentHost?: (address: string) => Promise<void>;
+	/** Stub `ILogService.warn`. */
+	onLogWarn?: (message: string, ...args: unknown[]) => void;
 	readonly created: ICloudSandboxCreateSessionRequest[];
 	readonly connectedTo: string[];
 	/** Host groups currently declared to the filter service. */
@@ -202,7 +206,9 @@ async function createContribution(store: Pick<DisposableStore, 'add'>, sessions:
 	instantiationService.stub(IRemoteAgentHostService, new class extends mock<IRemoteAgentHostService>() {
 		override readonly onDidChangeConnections = Event.None;
 		override readonly connections = [];
-		override async removeRemoteAgentHost(): Promise<void> { }
+		override async removeRemoteAgentHost(address: string): Promise<void> {
+			await harness.onRemoveRemoteAgentHost?.(address);
+		}
 	}());
 	instantiationService.stub(IRemoteAgentHostConnectionCustomizationService, new class extends mock<IRemoteAgentHostConnectionCustomizationService>() {
 		override register(): IDisposable { return toDisposable(() => { }); }
@@ -234,7 +240,11 @@ async function createContribution(store: Pick<DisposableStore, 'add'>, sessions:
 	}());
 	instantiationService.stub(INotificationService, new class extends mock<INotificationService>() { }());
 	instantiationService.stub(IChatSessionsService, new class extends mock<IChatSessionsService>() { }());
-	instantiationService.stub(ILogService, new NullLogService());
+	instantiationService.stub(ILogService, new class extends NullLogService {
+		override warn(message: string, ...args: unknown[]): void {
+			harness.onLogWarn?.(message, ...args);
+		}
+	}());
 
 	const previousSeedSessionsImpl = TestCloudSandboxContribution.seedSessionsImpl;
 	TestCloudSandboxContribution.seedSessionsImpl = () => harness.seedSessionsImpl?.();
@@ -348,6 +358,35 @@ suite('CloudSandboxAgentHostContribution', () => {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
+
+	test('does not leak unhandled rejection when teardown disconnect warn throws', async () => {
+		// `_disconnectEnvironment` already catches `removeRemoteAgentHost`; a lone inner reject
+		// does not leak. The void call site still needs `.catch` when the catch-path warn throws.
+		const harness = await createContribution(store, [discoveredSession()]);
+		let removeCalls = 0;
+		harness.onRemoveRemoteAgentHost = async () => {
+			removeCalls++;
+			throw new Error('disconnect failed');
+		};
+		harness.onLogWarn = () => {
+			throw new Error('warn failed');
+		};
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			harness.discovered = [];
+			await harness.runDiscovery();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, removeCalls }, { unhandledRejections: [], removeCalls: 1 });
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
 });
 
 suite('CloudSandboxAgentHostContribution provisioning', () => {
@@ -422,6 +461,37 @@ suite('CloudSandboxAgentHostContribution provisioning', () => {
 		};
 
 		await assert.rejects(() => harness.contribution.provisionSession({ prompt: 'fix it' }, CancellationToken.None));
+	});
+
+	test('does not leak unhandled rejection when connect-cancel disconnect warn throws', async () => {
+		// `setUserConfiguration` does not fire `onDidChangeConfiguration`, so this hits the
+		// connect-cancel `void _disconnectEnvironment` and not `_teardownAll`.
+		const harness = await createContribution(store, []);
+		let removeCalls = 0;
+		harness.onRemoveRemoteAgentHost = async () => {
+			removeCalls++;
+			throw new Error('disconnect failed');
+		};
+		harness.onLogWarn = () => {
+			throw new Error('warn failed');
+		};
+		harness.onConnect = async () => {
+			harness.configurationService.setUserConfiguration(CloudSandboxEnabledSettingId, false);
+		};
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			await assert.rejects(() => harness.contribution.provisionSession({ prompt: 'fix it' }, CancellationToken.None));
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, removeCalls }, { unhandledRejections: [], removeCalls: 1 });
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('registers nothing when the feature is disabled while the task is being created', async () => {
