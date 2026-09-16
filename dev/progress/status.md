@@ -27,6 +27,7 @@ summary: "A 槽 FireTriggerWebhook / InstallSessionDemoFake 已 bytes；D24 仍�
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **C** | D543 roster `void pending` 双链已落；未提交；勿 add `dev/loop` |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
@@ -37,6 +38,7 @@ summary: "A 槽 FireTriggerWebhook / InstallSessionDemoFake 已 bytes；D24 仍�
 | [D24](deferred-gaps.md) | **仍开**：FireTriggerWebhook / InstallSessionDemoFake **已** bytes；SaveSkillContent/Watch/model prefs/Connect/ResolveTurn 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
 | [D535](deferred-gaps.md)–[D541](deferred-gaps.md) | **closed** 本文件 leftover catch；leftover **未**全局完成 |
+| [D543](deferred-gaps.md) | **closed** roster `continueEngineGeneration` `void pending` 双链；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |
