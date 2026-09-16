@@ -3759,6 +3759,26 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		});
 	});
 
+	test('does not leak unhandled rejection when retryError continueGeneration postIfHeld rejects and onUnexpectedError warn-then-rethrows', async () => {
+		// continueEngineGeneration fire-and-forgets postIfHeld; a lone `void pending` leaks when that Promise rejects.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		const frameSource = (service as unknown as {
+			engineFrameSource: { postIfHeld: () => Promise<unknown> | undefined };
+		}).engineFrameSource;
+		frameSource.postIfHeld = () => Promise.reject(paintBoom);
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			assert.strictEqual(service.retryError('ua-only', { messageId: 'msg-1' }), true);
+		});
+	});
+
 	test('engine roster fire-and-forget voids double-catch onUnexpectedError', async () => {
 		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationEngineRosterService.ts`);
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
@@ -3768,9 +3788,11 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.ok(/void this\.ensureEngineSession\(\)\.then\(\(\) => \{\s*this\.bindLiveTreeObservationLease\(\);\s*\}\)\.catch\(error => \{[\s\S]*?\}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/.test(source));
 		assert.ok(source.includes(`void this.monitorPendingEngineSessionBind(sessionId, lease)${doubleCatch}`));
 		assert.ok(source.includes(`void this.monitorListedEngineSessionBind(sessionId, lease, this.listedBindMonitorGeneration)${doubleCatch}`));
+		assert.ok(source.includes(`void pending${doubleCatch}`));
 		assert.ok(!source.includes('void this.refreshEngineCatalog();'));
 		assert.ok(!source.includes('void this.monitorPendingEngineSessionBind(sessionId, lease);'));
 		assert.ok(!source.includes('void this.monitorListedEngineSessionBind(sessionId, lease, this.listedBindMonitorGeneration);'));
+		assert.ok(!source.includes('void pending;'));
 		assert.ok(source.includes('void this.engineSessionEnsure.finally(() => {'));
 		assert.strictEqual((source.match(/void this\.refreshEngineCatalog\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
 	});

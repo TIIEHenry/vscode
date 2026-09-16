@@ -1273,7 +1273,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (!pending) {
 				return false;
 			}
-			void pending;
+			void pending.catch(onUnexpectedError).catch(onUnexpectedError);
 			return true;
 		}
 		return false;
