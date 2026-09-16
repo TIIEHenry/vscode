@@ -6,6 +6,7 @@
 import { $, addDisposableListener, addStandardDisposableListener, append } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { IDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -235,17 +236,17 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 				const sendOnEnter = getUaClientKeyboardEnterBehavior(host.configurationService) !== 'newline';
 				if (sendOnEnter ? !e.shiftKey : e.shiftKey) {
 					e.preventDefault();
-					void host.submitDraft();
+					void host.submitDraft().catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 		}));
 		// Capture so fill-without-input automation still submits when Send stays disabled.
 		host.register(addDisposableListener(sendContainer, 'click', () => {
 			if (host.dockTextarea.value.trim()) {
-				void host.submitDraft();
+				void host.submitDraft().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}, true));
-		host.register(host.sendButton.onDidClick(() => void host.submitDraft()));
+		host.register(host.sendButton.onDidClick(() => void host.submitDraft().catch(onUnexpectedError).catch(onUnexpectedError)));
 		host.register(addDisposableListener(host.dockTextarea, 'input', () => {
 			if (host.inputHistoryBrowse.browseIndex >= 0) {
 				host.inputHistoryBrowse = createInputHistoryBrowseState();

@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
+import { Event } from '../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { applySessionViewTimeline, refreshTrajectoryRecords, updateSyncChrome, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
@@ -31,6 +32,7 @@ import {
 	type IConversationLensComposerChromeHost,
 } from '../../browser/conversationLensComposerChrome.js';
 import { beginSessionTitleEdit, commitSessionTitleEdit, createNewSession, deleteActiveSession, updateSessionBarWriteChrome, type IConversationLensSessionBarHost } from '../../browser/conversationLensSessionBar.js';
+import { mountDock, type IConversationLensDockHost } from '../../browser/conversationLensDock.js';
 import {
 	conversationLensDockEngineNotConnected,
 	conversationLensDockNoEngineTools,
@@ -43,6 +45,8 @@ import {
 import { bindSessionView, cancelToolCall, copyTurn, deleteTurn, resolveConfirmation, resolveQuestion, retryError, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import type { ConversationWriteMessage, PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+
+declare function __readFileInTests(path: string): Promise<string>;
 
 suite('conversation lens dispose gate', () => {
 
@@ -72,6 +76,80 @@ suite('conversation lens dispose gate', () => {
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	}
+
+	function mountDockWithRejectingSubmitDraft(paintBoom: Error): { host: IConversationLensDockHost; dispose(): void } {
+		const store = new DisposableStore();
+		const dockHost = document.createElement('div');
+		document.body.appendChild(dockHost);
+		store.add({ dispose: () => dockHost.remove() });
+		const dummySelectBox = () => ({
+			render() { },
+			onDidSelect: Event.None,
+			select() { },
+			setEnabled() { },
+			setAriaLabel() { },
+			dispose() { },
+		});
+		const host = {
+			composerPolicy: 'compose' as const,
+			inputHistoryBrowse: { browseIndex: -1, savedDraft: '' },
+			modelSelectedIndex: 0,
+			catalogToolNames: [],
+			catalogModelIds: [''],
+			sessionConfigBySessionId: new Map(),
+			postFailureVisible: false,
+			sendFailureTimeout: undefined,
+			lastReadingWidth: 800,
+			inputMaximized: false,
+			composeDraftSnapshot: '',
+			editingTurnId: undefined,
+			editingQueueItemId: undefined,
+			tuneContextView: undefined,
+			moreContextView: undefined,
+			configurationService: { getValue: () => undefined },
+			instantiationService: {
+				createInstance: () => ({ dispose() { } }),
+			},
+			stubService: {
+				onDidChangeEngineConnection: Event.None,
+				isEngineConnected: () => false,
+				isEngineSessionReady: () => false,
+			},
+			uaConnection: {
+				onDidChangeConnection: Event.None,
+			},
+			register: <T extends { dispose(): void }>(disposable: T) => store.add(disposable),
+			createComposerSelectBox: () => dummySelectBox(),
+			getSessionConfig: () => ({ agentIndex: 0, permissionIndex: 0 }),
+			setSessionConfig: () => { },
+			getBoundSessionId: () => 'sess-1',
+			toggleTuneContextView: () => { },
+			toggleMoreContextView: () => { },
+			toggleInputMaximized: () => { },
+			updateMaximizeInputButton: () => { },
+			updateSendEnabled: () => { },
+			beginQueueEdit: () => { },
+			exitComposerEdit: () => { },
+			navigateInputHistory: () => false,
+			exitInputHistoryBrowse: () => { },
+			submitDraft: async () => {
+				throw paintBoom;
+			},
+			writeComposerDraft: () => { },
+			updateConversationPhase: () => { },
+			scrollToFirstPendingConfirmation: () => { },
+			setInputMaximized: () => { },
+			renderInboxStatus: () => { },
+			readComposerDraft: () => '',
+			isPreFirst: () => false,
+			syncComposerPlacement: () => { },
+			updateComposerEditChrome: () => { },
+			ensureComposerInCluster: () => { },
+			slotHosts: {},
+		} as unknown as IConversationLensDockHost & IConversationLensComposerChromeHost;
+		mountDock(host, dockHost);
+		return { host, dispose: () => store.dispose() };
 	}
 
 	test('applySessionViewTimeline skips applyEntries after dispose', () => {
@@ -2601,6 +2679,60 @@ suite('conversation lens dispose gate', () => {
 		} finally {
 			process.off('unhandledRejection', onUnhandled);
 		}
+	});
+
+	test('does not leak unhandled rejection when dock send click submitDraft rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const fixture = mountDockWithRejectingSubmitDraft(paintBoom);
+		try {
+			fixture.host.dockTextarea.value = '';
+			fixture.host.sendButton.enabled = true;
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+				fixture.host.sendButton.element.click();
+			});
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('does not leak unhandled rejection when dock capture click submitDraft rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const fixture = mountDockWithRejectingSubmitDraft(paintBoom);
+		try {
+			fixture.host.dockTextarea.value = 'hello';
+			const sendContainer = fixture.host.sendButton.element.parentElement;
+			assert.ok(sendContainer);
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+				sendContainer.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			});
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('does not leak unhandled rejection when dock Enter submitDraft rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const fixture = mountDockWithRejectingSubmitDraft(paintBoom);
+		try {
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+				fixture.host.dockTextarea.dispatchEvent(new KeyboardEvent('keydown', {
+					keyCode: 13,
+					bubbles: true,
+					cancelable: true,
+				}));
+			});
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('dock submitDraft fire-and-forget voids double-catch onUnexpectedError', async () => {
+		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationLensDock.ts`);
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const submitDraftVoid = `void host.submitDraft()${doubleCatch}`;
+		assert.strictEqual(source.split(submitDraftVoid).length - 1, 3);
+		assert.ok(!source.includes('void host.submitDraft();'));
+		assert.ok(!source.includes('() => void host.submitDraft())'));
 	});
 
 	test('saveTurnEdit roster false after disconnect stays in edit and shows engine_disconnected', () => {
