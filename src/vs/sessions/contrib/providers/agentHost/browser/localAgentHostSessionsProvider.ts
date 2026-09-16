@@ -6,7 +6,7 @@
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { raceCancellationError } from '../../../../../base/common/async.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
-import { CancellationError } from '../../../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { DisposableStore, IDisposable } from '../../../../../base/common/lifecycle.js';
 import { ResourceSet } from '../../../../../base/common/map.js';
@@ -254,7 +254,7 @@ export class LocalAgentHostSessionsProvider extends BaseAgentHostSessionsProvide
 
 	override createNewSession(workspaceUri: URI, sessionTypeId: string, options?: ISessionsProviderCreateSessionOptions): ISession {
 		const session = super.createNewSession(workspaceUri, sessionTypeId, options);
-		void this._resolveDevContainerAvailability(session.sessionId, workspaceUri);
+		void this._resolveDevContainerAvailability(session.sessionId, workspaceUri).catch(onUnexpectedError);
 		return session;
 	}
 
