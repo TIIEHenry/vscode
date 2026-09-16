@@ -604,4 +604,62 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
+
+	test('does not leak unhandled rejection when savePendingEnablement catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		// savePendingEnablement() already catches saveAgentProfile throw; a lone inner reject does not leak.
+		// The void Save click still needs `.catch` when the catch-path paint throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const leftover = leftoverBashTool();
+			const connection = createConnectionStub({
+				saveAgentProfile: async () => {
+					throw new Error('saveAgentProfile exploded');
+				},
+			});
+			const section = mountSection(connection);
+			await flushMicrotasks();
+			section.layout(640, 160);
+			assert.strictEqual(section.canWrite(), true);
+			section.setPendingEnablement(leftover, false);
+			assert.strictEqual(section.isToolEnablementDirty(), true);
+			assert.strictEqual(section.isSaveToolbarVisible(), true);
+			const saveFailed = localize('ua.engineToolsSaveFailed', "Unable to save: {0}", 'saveAgentProfile exploded');
+			const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+			assert.ok(writeStatus);
+			Object.defineProperty(writeStatus, 'textContent', {
+				configurable: true,
+				get: () => '',
+				set: (value: string) => {
+					if (value === saveFailed) {
+						throw paintBoom;
+					}
+				},
+			});
+			const saveButton = Array.from(section.getDomNode().querySelectorAll('.monaco-button'))
+				.find(button => (button.textContent ?? '').includes('Save')) as HTMLElement | undefined;
+			assert.ok(saveButton, 'Save write button must be painted');
+			saveButton.click();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+			section.getDomNode().parentElement?.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
 });

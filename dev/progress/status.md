@@ -30,6 +30,7 @@ summary: "merge 本波：A Device.Revoke 已 bytes；F Trigger 五 unary wire �
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
+| **J** | D534 Engine Tools Save 双链 catch；14/0；未 commit |
 
 子 agent 发现：
 | ID | 问题 |
@@ -37,6 +38,7 @@ summary: "merge 本波：A Device.Revoke 已 bytes；F Trigger 五 unary wire �
 | [D24](deferred-gaps.md) | **仍开**：Revoke **已** bytes；Trigger wire **未接线**；SaveSkillContent/Rebuild/Watch/model prefs/Connect 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
 | [D522](deferred-gaps.md)–[D527](deferred-gaps.md) | **closed** 本文件 leftover catch；leftover **未**全局完成 |
+| [D534](deferred-gaps.md) | **closed** Engine Tools Save 双链 catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |
