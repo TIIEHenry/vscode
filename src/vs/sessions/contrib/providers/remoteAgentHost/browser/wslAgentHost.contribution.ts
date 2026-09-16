@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IntervalTimer } from '../../../../../base/common/async.js';
-import { isCancellationError } from '../../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../../base/common/errors.js';
 import { isWindows } from '../../../../../base/common/platform.js';
 import { IRemoteAgentHostService, RemoteAgentHostAutoConnectSettingId, RemoteAgentHostConnectionStatus, RemoteAgentHostEntryType, RemoteAgentHostsEnabledSettingId, getEntryTypeConfig } from '../../../../../platform/agentHost/common/remoteAgentHostService.js';
 import { computeReconnectDelay } from '../../../../../platform/agentHost/common/reconnectPolicy.js';
@@ -82,7 +82,7 @@ export class WSLAgentHostContribution extends ManagedReconnectAgentHostContribut
 		// other event fires. Cheap (`wsl --list --running --quiet`) so the
 		// 5-minute cadence has no measurable cost.
 		this._register(new IntervalTimer()).cancelAndSet(
-			() => void this._reconnectWSLEntriesIfRunning(),
+			() => void this._reconnectWSLEntriesIfRunning().catch(onUnexpectedError),
 			WSL_RUNNING_POLL_MS,
 		);
 	}
@@ -91,7 +91,7 @@ export class WSLAgentHostContribution extends ManagedReconnectAgentHostContribut
 		this._reconcileProviders();
 		this._wireConnections();
 		this._updateConnectionStatuses();
-		void this._reconnectWSLEntriesIfRunning();
+		void this._reconnectWSLEntriesIfRunning().catch(onUnexpectedError);
 	}
 
 	// -- Provider management --
@@ -243,7 +243,7 @@ export class WSLAgentHostContribution extends ManagedReconnectAgentHostContribut
 				this._logService.trace(`[WSLAgentHost] WSL reconnect for ${entry.distro}: auto-connect disabled, skipping`);
 				continue;
 			}
-			void this._attemptWSLReconnect(entry.distro, entry.name, entry.address);
+			void this._attemptWSLReconnect(entry.distro, entry.name, entry.address).catch(onUnexpectedError);
 		}
 
 		// Drop retry state for distros that are no longer cached.
@@ -315,7 +315,7 @@ export class WSLAgentHostContribution extends ManagedReconnectAgentHostContribut
 			if (this._pendingReconnects.has(distro)) {
 				return;
 			}
-			void this._attemptWSLReconnect(distro, name, address);
+			void this._attemptWSLReconnect(distro, name, address).catch(onUnexpectedError);
 		});
 	}
 
