@@ -128,17 +128,16 @@ suite('grpc ConfigService ResolveModel protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('ONLY resolveModel still JSON unary; skip Connect/SaveSkillContent/Watch', () => {
+	test('resolveModel uses bytes then existing map; skip Connect/SaveSkillContent/Watch', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const resolve = extractMethod(source, 'resolveModel');
-		assert.ok(resolve.includes('makeUnaryClient<'), 'resolveModel still uses JSON makeUnaryClient');
-		assert.ok(!resolve.includes('makeUnaryBytesClient'), 'resolveModel must not use makeUnaryBytesClient this slice');
-		assert.ok(!resolve.includes('encodeResolveModelRequest'), 'resolveModel must not call encodeResolveModelRequest this slice');
-		assert.ok(!resolve.includes('decodeResolveModelResponse'), 'resolveModel must not call decodeResolveModelResponse this slice');
-		assert.ok(resolve.includes('session_id'), 'resolveModel still sends session_id JSON key');
-		assert.ok(resolve.includes('type'), 'resolveModel still sends type JSON key');
+		assert.ok(resolve.includes('makeUnaryBytesClient'), 'resolveModel must use makeUnaryBytesClient');
+		assert.ok(resolve.includes('encodeResolveModelRequest'), 'resolveModel must call encodeResolveModelRequest');
+		assert.ok(resolve.includes('decodeResolveModelResponse'), 'resolveModel must call decodeResolveModelResponse');
 		assert.ok(resolve.includes('mapResolveModelResponse'), 'resolveModel still calls mapResolveModelResponse');
-		assert.ok(!source.includes('grpcResolveModelUnaryWire'));
+		assert.ok(!resolve.includes('makeUnaryClient<'), 'resolveModel must not use JSON makeUnaryClient');
+		assert.ok(!resolve.includes('JSON.stringify'), 'resolveModel must not JSON.stringify');
+		assert.ok(source.includes('grpcResolveModelUnaryWire'));
 		assert.ok(!/\bWatch\b/.test(resolve));
 		assert.ok(!/\bSaveSkillContent\b/.test(resolve));
 		assert.ok(!/\bConnect\b/.test(resolve));

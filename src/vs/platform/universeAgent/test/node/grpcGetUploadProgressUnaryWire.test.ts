@@ -133,17 +133,16 @@ suite('grpc FileTransferService GetUploadProgress protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('ONLY getUploadProgress still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+	test('getUploadProgress uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const getUpload = extractGetUploadProgress(source);
-		assert.ok(getUpload.includes('makeUnaryClient<'), 'getUploadProgress still uses JSON makeUnaryClient');
-		assert.ok(!getUpload.includes('makeUnaryBytesClient'), 'getUploadProgress must not use makeUnaryBytesClient this slice');
-		assert.ok(!getUpload.includes('encodeGetUploadProgressRequest'), 'getUploadProgress must not call encodeGetUploadProgressRequest this slice');
-		assert.ok(!getUpload.includes('decodeGetUploadProgressResponse'), 'getUploadProgress must not call decodeGetUploadProgressResponse this slice');
+		assert.ok(getUpload.includes('makeUnaryBytesClient'), 'getUploadProgress must use makeUnaryBytesClient');
+		assert.ok(getUpload.includes('encodeGetUploadProgressRequest'), 'getUploadProgress must call encodeGetUploadProgressRequest');
+		assert.ok(getUpload.includes('decodeGetUploadProgressResponse'), 'getUploadProgress must call decodeGetUploadProgressResponse');
 		assert.ok(getUpload.includes('mapUploadProgressResponse'), 'getUploadProgress still calls mapUploadProgressResponse');
-		assert.ok(getUpload.includes('transfer_id'), 'getUploadProgress still sends transfer_id JSON key');
-		assert.ok(getUpload.includes('session_id'), 'getUploadProgress still sends session_id JSON key');
-		assert.ok(!source.includes('grpcGetUploadProgressUnaryWire'));
+		assert.ok(!getUpload.includes('makeUnaryClient<'), 'getUploadProgress must not use JSON makeUnaryClient');
+		assert.ok(!getUpload.includes('JSON.stringify'), 'getUploadProgress must not JSON.stringify');
+		assert.ok(source.includes('grpcGetUploadProgressUnaryWire'));
 		assert.ok(!/\bWatch\b/.test(getUpload));
 
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));

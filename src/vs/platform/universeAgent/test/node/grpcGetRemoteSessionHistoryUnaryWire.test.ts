@@ -173,18 +173,16 @@ suite('grpc RemoteAgentService GetRemoteSessionHistory protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('ONLY getRemoteSessionHistory still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+	test('getRemoteSessionHistory uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const history = extractAsyncMethod(source, 'getRemoteSessionHistory');
-		assert.ok(history.includes('makeUnaryClient<'), 'getRemoteSessionHistory still uses JSON makeUnaryClient');
-		assert.ok(!history.includes('makeUnaryBytesClient'), 'getRemoteSessionHistory must not use makeUnaryBytesClient this slice');
-		assert.ok(!history.includes('encodeGetRemoteSessionHistoryRequest'), 'getRemoteSessionHistory must not call encodeGetRemoteSessionHistoryRequest this slice');
-		assert.ok(!history.includes('decodeGetRemoteSessionHistoryResponse'), 'getRemoteSessionHistory must not call decodeGetRemoteSessionHistoryResponse this slice');
-		assert.ok(history.includes('call_id'), 'getRemoteSessionHistory still sends call_id JSON key');
-		assert.ok(history.includes('since_version'), 'getRemoteSessionHistory still sends since_version JSON key');
-		assert.ok(history.includes('page_size'), 'getRemoteSessionHistory still sends page_size JSON key');
+		assert.ok(history.includes('makeUnaryBytesClient'), 'getRemoteSessionHistory must use makeUnaryBytesClient');
+		assert.ok(history.includes('encodeGetRemoteSessionHistoryRequest'), 'getRemoteSessionHistory must call encodeGetRemoteSessionHistoryRequest');
+		assert.ok(history.includes('decodeGetRemoteSessionHistoryResponse'), 'getRemoteSessionHistory must call decodeGetRemoteSessionHistoryResponse');
 		assert.ok(history.includes('mapGetRemoteSessionHistoryResponse'), 'getRemoteSessionHistory still calls mapGetRemoteSessionHistoryResponse');
-		assert.ok(!source.includes('grpcGetRemoteSessionHistoryUnaryWire'));
+		assert.ok(!history.includes('makeUnaryClient<'), 'getRemoteSessionHistory must not use JSON makeUnaryClient');
+		assert.ok(!history.includes('JSON.stringify'), 'getRemoteSessionHistory must not JSON.stringify');
+		assert.ok(source.includes('grpcGetRemoteSessionHistoryUnaryWire'));
 		assert.ok(!/\bWatch\b/.test(history));
 
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
@@ -195,6 +193,7 @@ suite('grpc RemoteAgentService GetRemoteSessionHistory protobuf wire', () => {
 		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);
 		const watchBody = source.slice(watchStart, watchEnd >= 0 ? watchEnd : source.length);
 		assert.ok(watchBody.includes('makeServerStreamClient<Record<string, unknown>'));
+		assert.ok(!watchBody.includes('makeUnaryBytesClient'));
 		assert.ok(!watchBody.includes('grpcGetRemoteSessionHistoryUnaryWire'));
 	});
 });

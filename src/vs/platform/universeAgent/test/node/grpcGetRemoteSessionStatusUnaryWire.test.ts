@@ -165,16 +165,16 @@ suite('grpc RemoteAgentService GetRemoteSessionStatus protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('ONLY getRemoteSessionStatus still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+	test('getRemoteSessionStatus uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const status = extractAsyncMethod(source, 'getRemoteSessionStatus');
-		assert.ok(status.includes('makeUnaryClient<'), 'getRemoteSessionStatus still uses JSON makeUnaryClient');
-		assert.ok(!status.includes('makeUnaryBytesClient'), 'getRemoteSessionStatus must not use makeUnaryBytesClient this slice');
-		assert.ok(!status.includes('encodeGetRemoteSessionStatusRequest'), 'getRemoteSessionStatus must not call encodeGetRemoteSessionStatusRequest this slice');
-		assert.ok(!status.includes('decodeGetRemoteSessionStatusResponse'), 'getRemoteSessionStatus must not call decodeGetRemoteSessionStatusResponse this slice');
-		assert.ok(status.includes('call_id'), 'getRemoteSessionStatus still sends call_id JSON key');
+		assert.ok(status.includes('makeUnaryBytesClient'), 'getRemoteSessionStatus must use makeUnaryBytesClient');
+		assert.ok(status.includes('encodeGetRemoteSessionStatusRequest'), 'getRemoteSessionStatus must call encodeGetRemoteSessionStatusRequest');
+		assert.ok(status.includes('decodeGetRemoteSessionStatusResponse'), 'getRemoteSessionStatus must call decodeGetRemoteSessionStatusResponse');
 		assert.ok(status.includes('mapGetRemoteSessionStatusResponse'), 'getRemoteSessionStatus still calls mapGetRemoteSessionStatusResponse');
-		assert.ok(!source.includes('grpcGetRemoteSessionStatusUnaryWire'));
+		assert.ok(!status.includes('makeUnaryClient<'), 'getRemoteSessionStatus must not use JSON makeUnaryClient');
+		assert.ok(!status.includes('JSON.stringify'), 'getRemoteSessionStatus must not JSON.stringify');
+		assert.ok(source.includes('grpcGetRemoteSessionStatusUnaryWire'));
 		assert.ok(!/\bWatch\b/.test(status));
 
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
@@ -185,6 +185,7 @@ suite('grpc RemoteAgentService GetRemoteSessionStatus protobuf wire', () => {
 		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);
 		const watchBody = source.slice(watchStart, watchEnd >= 0 ? watchEnd : source.length);
 		assert.ok(watchBody.includes('makeServerStreamClient<Record<string, unknown>'));
+		assert.ok(!watchBody.includes('makeUnaryBytesClient'));
 		assert.ok(!watchBody.includes('grpcGetRemoteSessionStatusUnaryWire'));
 	});
 });

@@ -242,20 +242,31 @@ suite('grpc RemoteAgentService SaveConfig protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('ONLY saveRemoteAgentConfig still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+	test('saveRemoteAgentConfig uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const save = extractAsyncMethod(source, 'saveRemoteAgentConfig');
-		assert.ok(save.includes('makeUnaryClient<'), 'saveRemoteAgentConfig still uses JSON makeUnaryClient');
-		assert.ok(!save.includes('makeUnaryBytesClient'), 'saveRemoteAgentConfig must not use makeUnaryBytesClient this slice');
-		assert.ok(!save.includes('encodeSaveConfigRequest'), 'saveRemoteAgentConfig must not call encodeSaveConfigRequest this slice');
-		assert.ok(!save.includes('decodeSaveConfigResponse'), 'saveRemoteAgentConfig must not call decodeSaveConfigResponse this slice');
+		assert.ok(save.includes('makeUnaryBytesClient'), 'saveRemoteAgentConfig must use makeUnaryBytesClient');
+		assert.ok(save.includes('encodeSaveConfigRequest'), 'saveRemoteAgentConfig must call encodeSaveConfigRequest');
+		assert.ok(save.includes('decodeSaveConfigResponse'), 'saveRemoteAgentConfig must call decodeSaveConfigResponse');
 		assert.ok(save.includes('mapSaveRemoteAgentConfigResponse'), 'saveRemoteAgentConfig still calls mapSaveRemoteAgentConfigResponse');
-		assert.ok(save.includes('skip_connection_test'), 'saveRemoteAgentConfig still sends skip_connection_test JSON key');
-		assert.ok(save.includes('async_test'), 'saveRemoteAgentConfig still sends async_test JSON key');
-		assert.ok(!source.includes('grpcSaveConfigUnaryWire'));
+		assert.ok(!save.includes('makeUnaryClient<'), 'saveRemoteAgentConfig must not use JSON makeUnaryClient');
+		assert.ok(!save.includes('JSON.stringify'), 'saveRemoteAgentConfig must not JSON.stringify');
+		assert.ok(source.includes('grpcSaveConfigUnaryWire'));
 		assert.ok(!/\bWatch\b/.test(save));
 		assert.ok(!/\bSaveSkillContent\b/.test(save));
 		assert.ok(!/\bResolveTurn\b/.test(save));
+		assert.ok(!/\bResolveAnchor\b/.test(save));
+
+		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
+		const watchStart = source.indexOf('\topenWatchConfigStream(');
+		assert.ok(watchStart >= 0, 'missing openWatchConfigStream(');
+		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);
+		const watchBody = source.slice(watchStart, watchEnd >= 0 ? watchEnd : source.length);
+		assert.ok(watchBody.includes('makeServerStreamClient<Record<string, unknown>'));
+		assert.ok(!watchBody.includes('makeUnaryBytesClient'));
 	});
 });
 

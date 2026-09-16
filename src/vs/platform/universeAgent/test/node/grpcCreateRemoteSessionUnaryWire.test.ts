@@ -219,18 +219,16 @@ suite('grpc RemoteAgentService CreateRemoteSession protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('ONLY createRemoteSession still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor', () => {
+	test('createRemoteSession uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const create = extractAsyncMethod(source, 'createRemoteSession');
-		assert.ok(create.includes('makeUnaryClient<'), 'createRemoteSession still uses JSON makeUnaryClient');
-		assert.ok(!create.includes('makeUnaryBytesClient'), 'createRemoteSession must not use makeUnaryBytesClient this slice');
-		assert.ok(!create.includes('encodeCreateRemoteSessionRequest'), 'createRemoteSession must not call encodeCreateRemoteSessionRequest this slice');
-		assert.ok(!create.includes('decodeCreateRemoteSessionResponse'), 'createRemoteSession must not call decodeCreateRemoteSessionResponse this slice');
+		assert.ok(create.includes('makeUnaryBytesClient'), 'createRemoteSession must use makeUnaryBytesClient');
+		assert.ok(create.includes('encodeCreateRemoteSessionRequest'), 'createRemoteSession must call encodeCreateRemoteSessionRequest');
+		assert.ok(create.includes('decodeCreateRemoteSessionResponse'), 'createRemoteSession must call decodeCreateRemoteSessionResponse');
 		assert.ok(create.includes('mapCreateRemoteSessionResponse'), 'createRemoteSession still calls mapCreateRemoteSessionResponse');
-		assert.ok(create.includes('node_id'), 'createRemoteSession still sends node_id JSON key');
-		assert.ok(create.includes('session_params'), 'createRemoteSession still sends session_params JSON key');
-		assert.ok(create.includes('preferred_model'), 'createRemoteSession still sends preferred_model JSON key');
-		assert.ok(!source.includes('grpcCreateRemoteSessionUnaryWire'));
+		assert.ok(!create.includes('makeUnaryClient<'), 'createRemoteSession must not use JSON makeUnaryClient');
+		assert.ok(!create.includes('JSON.stringify'), 'createRemoteSession must not JSON.stringify');
+		assert.ok(source.includes('grpcCreateRemoteSessionUnaryWire'));
 		assert.ok(!/\bWatch\b/.test(create));
 		assert.ok(!/\bSaveSkillContent\b/.test(create));
 		assert.ok(!/\bResolveTurn\b/.test(create));
@@ -245,6 +243,7 @@ suite('grpc RemoteAgentService CreateRemoteSession protobuf wire', () => {
 		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);
 		const watchBody = source.slice(watchStart, watchEnd >= 0 ? watchEnd : source.length);
 		assert.ok(watchBody.includes('makeServerStreamClient<Record<string, unknown>'));
+		assert.ok(!watchBody.includes('makeUnaryBytesClient'));
 		assert.ok(!watchBody.includes('grpcCreateRemoteSessionUnaryWire'));
 	});
 });
