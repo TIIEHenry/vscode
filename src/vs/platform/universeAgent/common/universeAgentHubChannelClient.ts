@@ -69,7 +69,7 @@ export class UniverseAgentHubChannelClient extends Disposable {
 
 	setActiveHubBaseUrl(hubBaseUrl: string | undefined): void {
 		this.cache.applyHubBaseUrl(hubBaseUrl);
-		void this.remote.setActiveHubBaseUrl(hubBaseUrl);
+		void this.remote.setActiveHubBaseUrl(hubBaseUrl).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	getAuthStatus(): HubAuthStatus {
