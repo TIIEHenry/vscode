@@ -6,7 +6,7 @@
 import './media/conversationSessionWindow.css';
 import { $, addDisposableListener, append, getActiveElement } from '../../../../base/browser/dom.js';
 import { timeout } from '../../../../base/common/async.js';
-import { getErrorMessage } from '../../../../base/common/errors.js';
+import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
@@ -115,7 +115,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			if (!this.rosterService.getSessions().some(session => session.id === sessionKey)) {
 				return;
 			}
-			void this.revealSessionWindow(sessionKey);
+			void this.revealSessionWindow(sessionKey).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 
@@ -421,10 +421,10 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			const pending = this.pendingReveal;
 			this.pendingReveal = undefined;
 			if (pending) {
-				void this.revealSessionWindow(pending.sessionKey, pending.options);
+				void this.revealSessionWindow(pending.sessionKey, pending.options).catch(onUnexpectedError).catch(onUnexpectedError);
 				return;
 			}
-			void this.ensurePrimaryWindow(this.rosterService.getActiveSessionId());
+			void this.ensurePrimaryWindow(this.rosterService.getActiveSessionId()).catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 	}
 

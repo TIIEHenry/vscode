@@ -7,8 +7,8 @@ import assert from 'assert';
 import { getActiveElement } from '../../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { timeout } from '../../../../../base/common/async.js';
-import { getErrorMessage } from '../../../../../base/common/errors.js';
-import { Event } from '../../../../../base/common/event.js';
+import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
@@ -16,7 +16,7 @@ import { ILogService, NullLogService } from '../../../../../platform/log/common/
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
-import { ConversationPart, IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
+import { ConversationPart, IConversationPartService, IConversationPartWindowSlots } from '../../../../browser/parts/conversation/conversationPart.js';
 import { IConversationEditorPart, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { EditorService } from '../../../../services/editor/browser/editorService.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
@@ -43,6 +43,8 @@ import { stubConversationTimelineLinkServices } from './conversationTimelineLink
 import { installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
 import { IExplorerService } from '../../../files/browser/files.js';
 import { ISCMService } from '../../../scm/common/scm.js';
+
+declare function __readFileInTests(path: string): Promise<string>;
 
 class QuietRosterService extends ConversationStubService {
 	seedSessionQuietly(): string {
@@ -120,6 +122,105 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 
 	function hideButton(windowService: ConversationSessionWindowService, sessionKey: string): HTMLButtonElement | null {
 		return windowService.getLeafSlots(sessionKey)?.sessionBar.querySelector('.conversation-session-leaf-hide') as HTMLButtonElement | null;
+	}
+
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			await run();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	}
+
+	function createLightweightWindowHarness(options?: { delaySlots?: boolean }) {
+		const rosterService = store.add(new QuietRosterService());
+		const gridHost = document.createElement('div');
+		document.body.appendChild(gridHost);
+		store.add({ dispose: () => gridHost.remove() });
+
+		const onDidCreateSlots = new Emitter<IConversationPartWindowSlots>();
+		store.add(onDidCreateSlots);
+
+		let throwOnCreate = false;
+		const conversationParts: IConversationEditorPart[] = [];
+		const editorGroupsService = {
+			createConversationEditorPart: (_parent: unknown, sessionKey: string) => {
+				if (throwOnCreate) {
+					throw new Error('reveal boom');
+				}
+				const part = { sessionKey, whenReady: Promise.resolve(), activeGroup: { focus: () => { }, activeEditorPane: { getId: () => ConversationEditorPaneId } } } as unknown as IConversationEditorPart;
+				conversationParts.push(part);
+				return part;
+			},
+			disposeConversationEditorPart: (sessionKey: string) => {
+				const index = conversationParts.findIndex(part => part.sessionKey === sessionKey);
+				if (index >= 0) {
+					conversationParts.splice(index, 1);
+				}
+			},
+			setFocusedConversationLeaf: () => { },
+			getFocusedConversationLeaf: () => undefined,
+			get conversationParts() {
+				return conversationParts;
+			},
+		} as unknown as IEditorGroupsService;
+
+		let onNotifyError: ((message: string | Error) => void) | undefined;
+		const sessionWindowService = store.add(new ConversationSessionWindowService(
+			{
+				onDidCreateSlots: onDidCreateSlots.event,
+				onDidFocus: Event.None,
+				getSlots: () => options?.delaySlots
+					? undefined
+					: { sessionBar: document.createElement('div'), sessionWindowGrid: gridHost, editorPartHost: undefined },
+				setFocusedLeafContainer: () => { },
+				focus: () => { },
+			} as unknown as IConversationPartService,
+			editorGroupsService,
+			rosterService,
+			new NullLogService(),
+			{
+				error: (message: string | Error) => {
+					onNotifyError?.(message);
+				},
+			} as INotificationService,
+		));
+
+		return {
+			sessionWindowService,
+			rosterService,
+			setThrowOnCreate(value: boolean) {
+				throwOnCreate = value;
+			},
+			setNotifyError(handler: (message: string | Error) => void) {
+				onNotifyError = handler;
+			},
+			attachSlots() {
+				onDidCreateSlots.fire({
+					sessionBar: document.createElement('div'),
+					sessionWindowGrid: gridHost,
+					editorPartHost: undefined,
+				});
+			},
+		};
 	}
 
 	async function collectLeafConversationLenses(part: IConversationEditorPart): Promise<ConversationLens[]> {
@@ -521,5 +622,52 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 			assert.ok(lens.sessionViewLease, 'restore must reacquire sessionViewLease on every leaf lens');
 		}
 		assert.ok(paneA2.activeConversationLens?.sessionViewLease, 'restore must reacquire sessionViewLease');
+	});
+
+	test('does not leak unhandled rejection when onDidChangeActiveSession reveal catch-path notice throws and onUnexpectedError warn-then-rethrows', async () => {
+		// revealSessionWindow already catches create throw; a lone inner reject does not leak.
+		// The void onDidChangeActiveSession call site still needs `.catch` when the catch-path notice throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const harness = createLightweightWindowHarness();
+		await timeout(0);
+		const primaryId = harness.rosterService.getActiveSessionId();
+		await harness.sessionWindowService.ensurePrimaryWindow(primaryId);
+		const target = harness.rosterService.seedSessionQuietly();
+		harness.setThrowOnCreate(true);
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			harness.setNotifyError(() => {
+				throw paintBoom;
+			});
+			harness.rosterService.fireActiveSession(target);
+		});
+	});
+
+	test('does not leak unhandled rejection when attachGrid pending reveal catch-path notice throws and onUnexpectedError warn-then-rethrows', async () => {
+		// revealSessionWindow already catches create throw; a lone inner reject does not leak.
+		// The void attachGrid pending call site still needs `.catch` when the catch-path notice throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const harness = createLightweightWindowHarness({ delaySlots: true });
+		const target = harness.rosterService.seedSessionQuietly();
+		harness.setThrowOnCreate(true);
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			harness.setNotifyError(() => {
+				throw paintBoom;
+			});
+			void harness.sessionWindowService.revealSessionWindow(target, { replace: harness.rosterService.getActiveSessionId() });
+			harness.attachSlots();
+		});
+	});
+
+	test('session window fire-and-forget voids double-catch onUnexpectedError', async () => {
+		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationSessionWindowService.ts`);
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		assert.ok(source.includes(`void this.revealSessionWindow(sessionKey)${doubleCatch}`));
+		assert.ok(source.includes(`void this.revealSessionWindow(pending.sessionKey, pending.options)${doubleCatch}`));
+		assert.ok(source.includes(`void this.ensurePrimaryWindow(this.rosterService.getActiveSessionId())${doubleCatch}`));
+		assert.ok(!source.includes('void this.revealSessionWindow(sessionKey);'));
+		assert.ok(!source.includes('void this.revealSessionWindow(pending.sessionKey, pending.options);'));
+		assert.ok(!source.includes('void this.ensurePrimaryWindow(this.rosterService.getActiveSessionId());'));
 	});
 });

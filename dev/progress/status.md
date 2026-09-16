@@ -37,6 +37,7 @@ summary: "merge 本波：A Device.Revoke 已 bytes；A Trigger 五 unary grpcCli
 | [D24](deferred-gaps.md) | **仍开**：Revoke **已** bytes；Trigger 五 unary **已** bytes；SaveSkillContent/Rebuild/Watch/model prefs/Connect 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
 | [D522](deferred-gaps.md)–[D527](deferred-gaps.md) | **closed** 本文件 leftover catch；leftover **未**全局完成 |
+| [D530](deferred-gaps.md) | **closed** session window 三处 void 双链 catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |
