@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { timeout } from '../../../../../base/common/async.js';
-import { getErrorMessage } from '../../../../../base/common/errors.js';
+import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
@@ -327,6 +327,32 @@ suite('Sources - review list model', () => {
 			(button as HTMLButtonElement).disabled = false;
 		}
 		button.click();
+	}
+
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			await run();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	}
 
 	function markAllButton(host: HTMLElement): HTMLElement | null {
@@ -1638,5 +1664,45 @@ suite('Sources - review list model', () => {
 		const keyA = buildSourcesReviewProgressKey({ ...base, contentHash: '1' });
 		const keyB = buildSourcesReviewProgressKey({ ...base, contentHash: '2' });
 		assert.notStrictEqual(keyA, keyB);
+	});
+
+	test('does not leak unhandled rejection when refresh catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		// refresh() already catches git-read throw; a lone inner reject does not leak.
+		// The void scheduler call site still needs `.catch` when the catch-path paint throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			const host = mountListHost();
+			const widget = store.add(stubSourcesGitListServices().createInstance(SourcesReviewList, host));
+			(widget as unknown as { setStatusMessage(message: string | undefined): void }).setStatusMessage = message => {
+				if (message) {
+					throw paintBoom;
+				}
+			};
+			(widget as unknown as { scheduleRefresh(): void }).scheduleRefresh();
+			(widget as unknown as { refreshScheduler: { flush(): void } }).refreshScheduler.flush();
+		});
+	});
+
+	test('does not leak unhandled rejection when revealAttributionItem catch-path hint throws and onUnexpectedError warn-then-rethrows', async () => {
+		// revealAttributionItem already catches executeCommand; a lone inner reject does not leak.
+		// The void chip-click call site still needs `.catch` when the catch-path hint throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const host = mountListHost();
+			const widget = store.add(stubSourcesGitListServices({
+				executeCommand: async () => {
+					throw new Error('reveal boom');
+				},
+			}).createInstance(SourcesReviewList, host));
+			(widget as unknown as { scheduleRefresh(): void }).scheduleRefresh();
+			(widget as unknown as { refreshScheduler: { flush(): void } }).refreshScheduler.flush();
+			await timeout(0);
+			(widget as unknown as { updateHeaderHint(): void }).updateHeaderHint = () => {
+				throw paintBoom;
+			};
+			(widget as unknown as { rendererDelegate: { onChipClick(toolCallId: string): void } }).rendererDelegate.onChipClick('tc-1');
+		});
 	});
 });

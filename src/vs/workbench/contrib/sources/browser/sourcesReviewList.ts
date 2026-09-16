@@ -9,6 +9,7 @@ import { Button } from '../../../../base/browser/ui/button/button.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { Action } from '../../../../base/common/actions.js';
 import { Disposable, DisposableMap, DisposableStore } from '../../../../base/common/lifecycle.js';
@@ -229,7 +230,7 @@ export class SourcesReviewList extends Disposable {
 		getChipTitle: (chip) => !chip.overflow && this.lastRevealMissToolCallId === chip.toolCallId
 			? sourcesReviewRevealMissHint
 			: chip.label,
-		onChipClick: (toolCallId) => void this.revealAttributionItem(toolCallId),
+		onChipClick: (toolCallId) => void this.revealAttributionItem(toolCallId).catch(onUnexpectedError).catch(onUnexpectedError),
 		onReviewToggle: (entry) => this.toggleEntryReview(entry),
 	};
 
@@ -303,7 +304,7 @@ export class SourcesReviewList extends Disposable {
 		this.statusMessage.style.display = 'none';
 		this.statusMessage.setAttribute('role', 'status');
 
-		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refresh(), 250));
+		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError), 250));
 		this._register(this.reviewProgressService.onDidChange(() => this.scheduleRefresh()));
 		this._register(this.attributionService.onDidChange(() => this.scheduleRefresh()));
 		this._register(this.uaConnection.onDidChangeConnection(() => this.scheduleRefresh()));
