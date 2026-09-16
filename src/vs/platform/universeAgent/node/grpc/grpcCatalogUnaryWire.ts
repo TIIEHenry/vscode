@@ -7,11 +7,23 @@ import type {
 	UniverseAgentAgentProfileDetail,
 	UniverseAgentClearProviderCredentialsRequest,
 	UniverseAgentDeleteProjectRuleRequest,
+	UniverseAgentEditQueueItemRequest,
+	UniverseAgentEnqueueQueueItemRequest,
+	UniverseAgentHoldQueueItemRequest,
+	UniverseAgentInsertQueueItemRequest,
 	UniverseAgentListProjectRulesRequest,
 	UniverseAgentCancelSessionGoalRequest,
 	UniverseAgentListSessionsRequest,
 	UniverseAgentProjectRule,
+	UniverseAgentQueueHoldReason,
+	UniverseAgentQueueItemRefRequest,
+	UniverseAgentQueueMutationResult,
+	UniverseAgentQueuePriority,
+	UniverseAgentQueueRefRequest,
+	UniverseAgentReorderQueueRequest,
 	UniverseAgentRespondPermissionRequest,
+	UniverseAgentSetQueueItemForkAnchorRequest,
+	UniverseAgentSetQueueItemLockedRequest,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSwitchModelRequest,
 	UniverseAgentSwitchModelResult,
@@ -617,5 +629,127 @@ function decodeTeamListEntry(bytes: Uint8Array): { team_id?: number; status?: st
 		team_id: numberOrUndefined(lastVarint(fields, 1)),
 		status: lastString(fields, 2) ?? '',
 		manager_agent_id: lastString(fields, 3) ?? '',
+	};
+}
+
+/** QueueItemHoldReasonProto: QIH_NONE=0, QIH_EDITING=1. proto3 default 0 omitted. */
+export function queueHoldReasonWire(reason: UniverseAgentQueueHoldReason): number {
+	return reason === 'EDITING' ? 1 : 0;
+}
+
+/** QueuePriorityProto: QP_NORMAL=0, QP_HIGH=1, QP_LOW=2. proto3 default 0 omitted. */
+export function queuePriorityWire(priority: UniverseAgentQueuePriority | undefined): number {
+	switch (priority) {
+		case 'HIGH':
+			return 1;
+		case 'LOW':
+			return 2;
+		default:
+			return 0;
+	}
+}
+
+/** QueueRefRequest: session_id=1, op_id=2. Empty strings omitted (proto3). */
+export function encodeQueueRefRequest(request: UniverseAgentQueueRefRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.sessionId),
+		encodeStringField(2, request.opId),
+	]);
+}
+
+/**
+ * QueueItemRefRequest: session_id=1, item_id=2, op_id=3.
+ * JSON helper key order was session_id/op_id/item_id — bytes must not use that as tags.
+ */
+export function encodeQueueItemRefRequest(request: UniverseAgentQueueItemRefRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.sessionId),
+		encodeStringField(2, request.itemId),
+		encodeStringField(3, request.opId),
+	]);
+}
+
+/**
+ * EnqueueQueueItemRequest: 1 session_id, 2 op_id, 3 client_message_id, 4 text, 5 QueuePriorityProto.
+ * TS has no await_attachment_upload / pending_upload_count — do not invent fields 6/7.
+ */
+export function encodeEnqueueQueueItemRequest(request: UniverseAgentEnqueueQueueItemRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.sessionId),
+		encodeStringField(2, request.opId),
+		encodeStringField(3, request.clientMessageId),
+		encodeStringField(4, request.text),
+		encodeInt32Field(5, queuePriorityWire(request.priority)),
+	]);
+}
+
+/**
+ * InsertQueueItemRequest: 1–5 same as Enqueue, 6 before_item_id.
+ * TS has no await_attachment_upload / pending_upload_count — omit 7/8.
+ */
+export function encodeInsertQueueItemRequest(request: UniverseAgentInsertQueueItemRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.sessionId),
+		encodeStringField(2, request.opId),
+		encodeStringField(3, request.clientMessageId),
+		encodeStringField(4, request.text),
+		encodeInt32Field(5, queuePriorityWire(request.priority)),
+		encodeStringField(6, request.beforeItemId),
+	]);
+}
+
+/** ReorderQueueRequest: 1 session_id, 2 op_id, 3 repeated item_ids. Empty strings omitted. */
+export function encodeReorderQueueRequest(request: UniverseAgentReorderQueueRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.sessionId),
+		encodeStringField(2, request.opId),
+		encodeRepeatedString(3, request.itemIds),
+	]);
+}
+
+/** SetQueueItemLockedRequest: 1–3 same as item ref, 4 locked (false omitted). */
+export function encodeSetQueueItemLockedRequest(request: UniverseAgentSetQueueItemLockedRequest): Uint8Array {
+	return Buffer.concat([
+		encodeQueueItemRefRequest(request),
+		encodeInt32Field(4, request.locked === true ? 1 : 0),
+	]);
+}
+
+/** SetQueueItemForkAnchorRequest: 1–3 same as item ref, 4 fork_from_turn_id, 5 fork_from_preview. */
+export function encodeSetQueueItemForkAnchorRequest(request: UniverseAgentSetQueueItemForkAnchorRequest): Uint8Array {
+	return Buffer.concat([
+		encodeQueueItemRefRequest(request),
+		encodeStringField(4, request.forkFromTurnId),
+		encodeStringField(5, request.forkFromPreview),
+	]);
+}
+
+/** HoldQueueItemRequest: 1–3 same as item ref, 4 QueueItemHoldReasonProto. */
+export function encodeHoldQueueItemRequest(request: UniverseAgentHoldQueueItemRequest): Uint8Array {
+	return Buffer.concat([
+		encodeQueueItemRefRequest(request),
+		encodeInt32Field(4, queueHoldReasonWire(request.reason)),
+	]);
+}
+
+/** EditQueueItemRequest: 1–3 same as item ref, 4 text. TS has no expected_version — omit field 5. */
+export function encodeEditQueueItemRequest(request: UniverseAgentEditQueueItemRequest): Uint8Array {
+	return Buffer.concat([
+		encodeQueueItemRefRequest(request),
+		encodeStringField(4, request.text),
+	]);
+}
+
+/**
+ * QueueMutationResponse: ok=1, error=2, op_id=3, item_id=4.
+ * Field 5 ErrorDetail is unread (same as the old JSON client).
+ */
+export function decodeQueueMutationResponse(bytes: Uint8Array): UniverseAgentQueueMutationResult {
+	const fields = readProtoFields(bytes);
+	return {
+		ok: lastVarint(fields, 1) === 1n,
+		error: lastString(fields, 2),
+		opId: lastString(fields, 3),
+		itemId: lastString(fields, 4),
 	};
 }

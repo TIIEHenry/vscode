@@ -152,10 +152,8 @@ import type {
 	UniverseAgentSetQueueItemForkAnchorRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
-	UniverseAgentQueueHoldReason,
 	UniverseAgentQueueItemRefRequest,
 	UniverseAgentQueueMutationResult,
-	UniverseAgentQueuePriority,
 	UniverseAgentQueueRefRequest,
 	UniverseAgentForkAgentRequest,
 	UniverseAgentForkAgentResult,
@@ -590,7 +588,6 @@ import {
 	type PruneResponseWire,
 	type PtyServerMessageWire,
 	type PurgeSessionResponseWire,
-	type QueueMutationResponseWire,
 	type ReadFileResponseWire,
 	type ReadGitChangesResponseWire,
 	type ReadGitFileDiffResponseWire,
@@ -704,11 +701,16 @@ import {
 	decodeTaskListResponse,
 	decodeTeamInfoResponse,
 	decodeDeleteProjectRuleResponse,
+	decodeQueueMutationResponse,
 	encodeAgentTreeRequest,
 	encodeCancelSessionGoalRequest,
 	encodeClearProviderCredentialsRequest,
 	encodeDeleteProjectRuleRequest,
 	encodeDeleteSessionRequest,
+	encodeEditQueueItemRequest,
+	encodeEnqueueQueueItemRequest,
+	encodeHoldQueueItemRequest,
+	encodeInsertQueueItemRequest,
 	encodeListAgentProfilesRequest,
 	encodeListAgentsRequest,
 	encodeListDevicesRequest,
@@ -720,11 +722,16 @@ import {
 	encodeListTeamsRequest,
 	encodeMemberStatusRequest,
 	encodeProbeRpcRequest,
+	encodeQueueItemRefRequest,
+	encodeQueueRefRequest,
+	encodeReorderQueueRequest,
 	encodeResetAgentProfileRequest,
 	encodeRespondPermissionRequest,
 	encodeSaveAgentProfileRequest,
 	encodeSessionInfoRequest,
 	encodeSetPermissionModeRequest,
+	encodeSetQueueItemForkAnchorRequest,
+	encodeSetQueueItemLockedRequest,
 	encodeSetSessionGoalRequest,
 	encodeSwitchModelRequest,
 	encodeTaskListRequest,
@@ -732,35 +739,6 @@ import {
 	encodeUpsertProjectRuleRequest,
 	encodeUpsertProviderCredentialsRequest,
 } from './grpcCatalogUnaryWire.js';
-
-function queueRefWire(request: UniverseAgentQueueRefRequest): Record<string, unknown> {
-	return {
-		session_id: request.sessionId,
-		op_id: request.opId ?? '',
-	};
-}
-
-function queueItemRefWire(request: UniverseAgentQueueItemRefRequest): Record<string, unknown> {
-	return {
-		...queueRefWire(request),
-		item_id: request.itemId,
-	};
-}
-
-function queueHoldReasonWire(reason: UniverseAgentQueueHoldReason): number {
-	return reason === 'EDITING' ? 1 : 0;
-}
-
-function queuePriorityWire(priority: UniverseAgentQueuePriority | undefined): number {
-	switch (priority) {
-		case 'HIGH':
-			return 1;
-		case 'LOW':
-			return 2;
-		default:
-			return 0;
-	}
-}
 
 function permissionRuleActionWire(action: UniverseAgentPermissionRuleAction): number {
 	switch (action) {
@@ -2070,116 +2048,81 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
-		return this._queueMutation(UniverseAgentGrpcServices.Agent.EnqueueQueueItem, {
-			session_id: request.sessionId,
-			op_id: request.opId ?? '',
-			client_message_id: request.clientMessageId ?? '',
-			text: request.text,
-			priority: queuePriorityWire(request.priority),
-		});
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.EnqueueQueueItem, encodeEnqueueQueueItemRequest(request));
 	}
 
 	async insertQueueItem(request: UniverseAgentInsertQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
-		return this._queueMutation(UniverseAgentGrpcServices.Agent.InsertQueueItem, {
-			session_id: request.sessionId,
-			op_id: request.opId ?? '',
-			client_message_id: request.clientMessageId ?? '',
-			text: request.text,
-			priority: queuePriorityWire(request.priority),
-			before_item_id: request.beforeItemId ?? '',
-		});
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.InsertQueueItem, encodeInsertQueueItemRequest(request));
 	}
 
 	async reorderQueue(request: UniverseAgentReorderQueueRequest): Promise<UniverseAgentQueueMutationResult> {
-		return this._queueMutation(UniverseAgentGrpcServices.Agent.ReorderQueue, {
-			session_id: request.sessionId,
-			op_id: request.opId ?? '',
-			item_ids: request.itemIds ?? [],
-		});
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.ReorderQueue, encodeReorderQueueRequest(request));
 	}
 
 	async deleteQueueItem(request: UniverseAgentDeleteQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
-		return this._queueMutation(UniverseAgentGrpcServices.Agent.DeleteQueueItem, queueItemRefWire(request));
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.DeleteQueueItem, encodeQueueItemRefRequest(request));
 	}
 
 	async retryQueueItem(request: UniverseAgentRetryQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
-		return this._queueMutation(UniverseAgentGrpcServices.Agent.RetryQueueItem, queueItemRefWire(request));
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.RetryQueueItem, encodeQueueItemRefRequest(request));
 	}
 
 	async retryAllFailed(request: UniverseAgentRetryAllFailedRequest): Promise<UniverseAgentQueueMutationResult> {
-		return this._queueMutation(UniverseAgentGrpcServices.Agent.RetryAllFailed, queueRefWire(request));
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.RetryAllFailed, encodeQueueRefRequest(request));
 	}
 
 	async retryQueueItemUpload(request: UniverseAgentRetryQueueItemUploadRequest): Promise<UniverseAgentQueueMutationResult> {
-		return this._queueMutation(UniverseAgentGrpcServices.Agent.RetryQueueItemUpload, queueItemRefWire(request));
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.RetryQueueItemUpload, encodeQueueItemRefRequest(request));
 	}
 
 	async pinQueueItem(request: UniverseAgentPinQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
-		return this._queueMutation(UniverseAgentGrpcServices.Agent.PinQueueItem, queueItemRefWire(request));
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.PinQueueItem, encodeQueueItemRefRequest(request));
 	}
 
 	async setQueueItemLocked(request: UniverseAgentSetQueueItemLockedRequest): Promise<UniverseAgentQueueMutationResult> {
-		return this._queueMutation(UniverseAgentGrpcServices.Agent.SetQueueItemLocked, {
-			...queueItemRefWire(request),
-			locked: request.locked,
-		});
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.SetQueueItemLocked, encodeSetQueueItemLockedRequest(request));
 	}
 
 	async injectQueueItem(request: UniverseAgentInjectQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
-		return this._queueMutation(UniverseAgentGrpcServices.Agent.InjectQueueItem, queueItemRefWire(request));
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.InjectQueueItem, encodeQueueItemRefRequest(request));
 	}
 
 	async setQueueItemForkAnchor(request: UniverseAgentSetQueueItemForkAnchorRequest): Promise<UniverseAgentQueueMutationResult> {
-		return this._queueMutation(UniverseAgentGrpcServices.Agent.SetQueueItemForkAnchor, {
-			...queueItemRefWire(request),
-			fork_from_turn_id: request.forkFromTurnId ?? '',
-			fork_from_preview: request.forkFromPreview ?? '',
-		});
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.SetQueueItemForkAnchor, encodeSetQueueItemForkAnchorRequest(request));
 	}
 
 	async pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult> {
-		return this._queueMutation(UniverseAgentGrpcServices.Agent.PauseQueue, queueRefWire(request));
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.PauseQueue, encodeQueueRefRequest(request));
 	}
 
 	async resumeQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult> {
-		return this._queueMutation(UniverseAgentGrpcServices.Agent.ResumeQueue, queueRefWire(request));
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.ResumeQueue, encodeQueueRefRequest(request));
 	}
 
 	async clearQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult> {
-		return this._queueMutation(UniverseAgentGrpcServices.Agent.ClearQueue, queueRefWire(request));
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.ClearQueue, encodeQueueRefRequest(request));
 	}
 
 	async holdQueueItem(request: UniverseAgentHoldQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
-		return this._queueMutation(UniverseAgentGrpcServices.Agent.HoldQueueItem, {
-			...queueItemRefWire(request),
-			reason: queueHoldReasonWire(request.reason),
-		});
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.HoldQueueItem, encodeHoldQueueItemRequest(request));
 	}
 
 	async releaseQueueItemHold(request: UniverseAgentQueueItemRefRequest): Promise<UniverseAgentQueueMutationResult> {
-		return this._queueMutation(UniverseAgentGrpcServices.Agent.ReleaseQueueItemHold, queueItemRefWire(request));
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.ReleaseQueueItemHold, encodeQueueItemRefRequest(request));
 	}
 
 	async editQueueItem(request: UniverseAgentEditQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
-		return this._queueMutation(UniverseAgentGrpcServices.Agent.EditQueueItem, {
-			...queueItemRefWire(request),
-			text: request.text,
-		});
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.EditQueueItem, encodeEditQueueItemRequest(request));
 	}
 
-	private async _queueMutation(method: string, wire: Record<string, unknown>): Promise<UniverseAgentQueueMutationResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, QueueMutationResponseWire>(
+	private async _queueMutation(method: string, requestBytes: Uint8Array): Promise<UniverseAgentQueueMutationResult> {
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			method,
+			decodeQueueMutationResponse,
 		);
-		const result = await unary(wire);
-		return {
-			ok: result.ok === true,
-			error: result.error,
-			opId: result.op_id,
-			itemId: result.item_id,
-		};
+		return unary(requestBytes);
 	}
 
 	async forkAgent(request: UniverseAgentForkAgentRequest): Promise<UniverseAgentForkAgentResult> {

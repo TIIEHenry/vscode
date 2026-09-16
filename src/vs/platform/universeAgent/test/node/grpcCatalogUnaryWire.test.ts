@@ -28,10 +28,15 @@ import {
 	decodeSwitchModelResponse,
 	decodeTaskListResponse,
 	decodeTeamInfoResponse,
+	decodeQueueMutationResponse,
 	encodeAgentTreeRequest,
 	encodeCancelSessionGoalRequest,
 	encodeDeleteSessionRequest,
+	encodeEditQueueItemRequest,
 	encodeEmptyProtoMessage,
+	encodeEnqueueQueueItemRequest,
+	encodeHoldQueueItemRequest,
+	encodeInsertQueueItemRequest,
 	encodeListAgentProfilesRequest,
 	encodeListAgentsRequest,
 	encodeListDevicesRequest,
@@ -42,10 +47,15 @@ import {
 	encodeListTeamsRequest,
 	encodeMemberStatusRequest,
 	encodeProbeRpcRequest,
+	encodeQueueItemRefRequest,
+	encodeQueueRefRequest,
+	encodeReorderQueueRequest,
 	encodeRespondPermissionRequest,
 	encodeSaveAgentProfileRequest,
 	encodeSessionInfoRequest,
 	encodeSetPermissionModeRequest,
+	encodeSetQueueItemForkAnchorRequest,
+	encodeSetQueueItemLockedRequest,
 	encodeSetSessionGoalRequest,
 	encodeSwitchModelRequest,
 	encodeTaskListRequest,
@@ -679,6 +689,127 @@ suite('grpc catalog unary protobuf wire', () => {
 		});
 	});
 
+	test('encodeQueueRefRequest writes session_id=1 op_id=2 and omits empty op_id', () => {
+		const encoded = encodeQueueRefRequest({ sessionId: 'sess-1', opId: 'op-9' });
+		assert.notStrictEqual(encoded[0], 0x7b);
+		assert.deepStrictEqual(Object.fromEntries(protoStrings(encoded)), { 1: 'sess-1', 2: 'op-9' });
+		assert.deepStrictEqual(Object.fromEntries(protoStrings(encodeQueueRefRequest({ sessionId: 'sess-1', opId: '' }))), { 1: 'sess-1' });
+	});
+
+	test('encodeQueueItemRefRequest tags item_id=2 op_id=3, not JSON key order', () => {
+		const encoded = encodeQueueItemRefRequest({ sessionId: 'sess-1', opId: 'op-9', itemId: 'item-4' });
+		assert.notStrictEqual(encoded[0], 0x7b);
+		assert.deepStrictEqual(Object.fromEntries(protoStrings(encoded)), {
+			1: 'sess-1',
+			2: 'item-4',
+			3: 'op-9',
+		});
+		assert.notStrictEqual(protoStrings(encoded).get(2), 'op-9');
+	});
+
+	test('encodeEnqueueQueueItemRequest writes 1-5 and does not invent fields 6/7', () => {
+		const high = encodeEnqueueQueueItemRequest({
+			sessionId: 'sess-1',
+			opId: 'op-9',
+			clientMessageId: 'c-1',
+			text: 'hello',
+			priority: 'HIGH',
+		});
+		assert.deepStrictEqual(Object.fromEntries(protoStrings(high)), {
+			1: 'sess-1',
+			2: 'op-9',
+			3: 'c-1',
+			4: 'hello',
+		});
+		assert.strictEqual(protoVarints(high).get(5), 1);
+		assert.ok(!protoVarints(high).has(6));
+		assert.ok(!protoVarints(high).has(7));
+		const normal = encodeEnqueueQueueItemRequest({ sessionId: 'sess-1', text: 'hello', clientMessageId: '', priority: 'NORMAL' });
+		assert.ok(!protoStrings(normal).has(2));
+		assert.ok(!protoStrings(normal).has(3));
+		assert.ok(!protoVarints(normal).has(5));
+	});
+
+	test('encodeInsertQueueItemRequest writes before_item_id=6 and omits 7/8', () => {
+		const encoded = encodeInsertQueueItemRequest({
+			sessionId: 'sess-1',
+			opId: 'op-9',
+			clientMessageId: 'c-1',
+			text: 'hello',
+			priority: 'LOW',
+			beforeItemId: 'item-0',
+		});
+		assert.deepStrictEqual(Object.fromEntries(protoStrings(encoded)), {
+			1: 'sess-1',
+			2: 'op-9',
+			3: 'c-1',
+			4: 'hello',
+			6: 'item-0',
+		});
+		assert.strictEqual(protoVarints(encoded).get(5), 2);
+		assert.ok(!protoVarints(encoded).has(7));
+		assert.ok(!protoVarints(encoded).has(8));
+		assert.ok(!protoStrings(encodeInsertQueueItemRequest({ sessionId: 'sess-1', text: 'hello', beforeItemId: '' })).has(6));
+	});
+
+	test('encodeReorderQueueRequest writes repeated item_ids as field 3', () => {
+		const encoded = encodeReorderQueueRequest({ sessionId: 'sess-1', opId: 'op-9', itemIds: ['a', '', 'b'] });
+		assert.strictEqual(protoStrings(encoded).get(1), 'sess-1');
+		assert.strictEqual(protoStrings(encoded).get(2), 'op-9');
+		assert.deepStrictEqual(protoRepeatedStrings(encoded, 3), ['a', 'b']);
+	});
+
+	test('encodeSetQueueItemLockedRequest writes locked=4 only when true', () => {
+		const locked = encodeSetQueueItemLockedRequest({ sessionId: 'sess-1', itemId: 'item-4', opId: 'op-9', locked: true });
+		assert.deepStrictEqual(Object.fromEntries(protoStrings(locked)), { 1: 'sess-1', 2: 'item-4', 3: 'op-9' });
+		assert.strictEqual(protoVarints(locked).get(4), 1);
+		assert.ok(!protoVarints(encodeSetQueueItemLockedRequest({ sessionId: 'sess-1', itemId: 'item-4', locked: false })).has(4));
+	});
+
+	test('encodeSetQueueItemForkAnchorRequest / Hold / Edit omit empty and do not invent extra fields', () => {
+		const fork = encodeSetQueueItemForkAnchorRequest({
+			sessionId: 'sess-1',
+			itemId: 'item-4',
+			opId: 'op-9',
+			forkFromTurnId: 'turn-2',
+			forkFromPreview: 'preview',
+		});
+		assert.deepStrictEqual(Object.fromEntries(protoStrings(fork)), {
+			1: 'sess-1',
+			2: 'item-4',
+			3: 'op-9',
+			4: 'turn-2',
+			5: 'preview',
+		});
+		assert.ok(!protoStrings(encodeSetQueueItemForkAnchorRequest({ sessionId: 'sess-1', itemId: 'item-4', forkFromTurnId: '', forkFromPreview: '' })).has(4));
+
+		const hold = encodeHoldQueueItemRequest({ sessionId: 'sess-1', itemId: 'item-4', opId: 'op-9', reason: 'EDITING' });
+		assert.strictEqual(protoVarints(hold).get(4), 1);
+		assert.ok(!protoVarints(encodeHoldQueueItemRequest({ sessionId: 'sess-1', itemId: 'item-4', reason: 'NONE' })).has(4));
+
+		const edit = encodeEditQueueItemRequest({ sessionId: 'sess-1', itemId: 'item-4', opId: 'op-9', text: 'revised' });
+		assert.strictEqual(protoStrings(edit).get(4), 'revised');
+		assert.ok(!protoVarints(edit).has(5));
+		assert.ok(!protoStrings(encodeEditQueueItemRequest({ sessionId: 'sess-1', itemId: 'item-4', text: '' })).has(4));
+	});
+
+	test('decodeQueueMutationResponse reads ok/error/op_id/item_id and ignores field 5', () => {
+		const encoded = Buffer.concat([
+			encodeInt32Field(1, 1),
+			encodeStringField(2, 'denied'),
+			encodeStringField(3, 'op-9'),
+			encodeStringField(4, 'item-4'),
+			encodeMessageField(5, encodeStringField(1, 'unused-detail')),
+		]);
+		assert.deepStrictEqual(decodeQueueMutationResponse(encoded), {
+			ok: true,
+			error: 'denied',
+			opId: 'op-9',
+			itemId: 'item-4',
+		});
+		assert.deepStrictEqual(decodeQueueMutationResponse(new Uint8Array(0)), { ok: false, error: undefined, opId: undefined, itemId: undefined });
+	});
+
 	test('grpcClient snapshots + next known unaries use bytes; listTools/listSkills stay JSON', () => {
 		const thisDir = path.dirname(fileURLToPath(import.meta.url));
 		const repoRoot = path.join(thisDir, '../../../../../../');
@@ -713,6 +844,35 @@ suite('grpc catalog unary protobuf wire', () => {
 			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
 			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
 		}
+		const queueMethods: Array<{ name: string; encoder: string }> = [
+			{ name: 'enqueueQueueItem', encoder: 'encodeEnqueueQueueItemRequest' },
+			{ name: 'insertQueueItem', encoder: 'encodeInsertQueueItemRequest' },
+			{ name: 'reorderQueue', encoder: 'encodeReorderQueueRequest' },
+			{ name: 'deleteQueueItem', encoder: 'encodeQueueItemRefRequest' },
+			{ name: 'retryQueueItem', encoder: 'encodeQueueItemRefRequest' },
+			{ name: 'retryAllFailed', encoder: 'encodeQueueRefRequest' },
+			{ name: 'retryQueueItemUpload', encoder: 'encodeQueueItemRefRequest' },
+			{ name: 'pinQueueItem', encoder: 'encodeQueueItemRefRequest' },
+			{ name: 'setQueueItemLocked', encoder: 'encodeSetQueueItemLockedRequest' },
+			{ name: 'injectQueueItem', encoder: 'encodeQueueItemRefRequest' },
+			{ name: 'setQueueItemForkAnchor', encoder: 'encodeSetQueueItemForkAnchorRequest' },
+			{ name: 'pauseQueue', encoder: 'encodeQueueRefRequest' },
+			{ name: 'resumeQueue', encoder: 'encodeQueueRefRequest' },
+			{ name: 'clearQueue', encoder: 'encodeQueueRefRequest' },
+			{ name: 'holdQueueItem', encoder: 'encodeHoldQueueItemRequest' },
+			{ name: 'releaseQueueItemHold', encoder: 'encodeQueueItemRefRequest' },
+			{ name: 'editQueueItem', encoder: 'encodeEditQueueItemRequest' },
+		];
+		for (const { name, encoder } of queueMethods) {
+			const body = extractAsyncMethod(source, name);
+			assert.ok(body.includes('_queueMutation'), `${name} must go through _queueMutation`);
+			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
+			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
+		}
+		const mutation = extractPrivateAsyncMethod(source, '_queueMutation');
+		assert.ok(mutation.includes('makeUnaryBytesClient'), '_queueMutation must use makeUnaryBytesClient');
+		assert.ok(mutation.includes('decodeQueueMutationResponse'), '_queueMutation must decode QueueMutationResponse');
+		assert.ok(!mutation.includes('makeUnaryClient<'), '_queueMutation must not use JSON makeUnaryClient');
 		for (const name of ['listTools', 'listSkills']) {
 			const body = extractAsyncMethod(source, name);
 			assert.ok(body.includes('makeUnaryClient<'), `${name} must stay JSON this slice`);
@@ -721,9 +881,47 @@ suite('grpc catalog unary protobuf wire', () => {
 	});
 });
 
+function protoStrings(encoded: Uint8Array): Map<number, string> {
+	const strings = new Map<number, string>();
+	for (const field of readProtoFields(encoded)) {
+		if (field.wireType === 2) {
+			strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+		}
+	}
+	return strings;
+}
+
+function protoRepeatedStrings(encoded: Uint8Array, fieldNumber: number): string[] {
+	const values: string[] = [];
+	for (const field of readProtoFields(encoded)) {
+		if (field.field === fieldNumber && field.wireType === 2) {
+			values.push(Buffer.from(field.bytes).toString('utf8'));
+		}
+	}
+	return values;
+}
+
+function protoVarints(encoded: Uint8Array): Map<number, number> {
+	const numbers = new Map<number, number>();
+	for (const field of readProtoFields(encoded)) {
+		if (field.wireType === 0) {
+			numbers.set(field.field, Number(field.varint));
+		}
+	}
+	return numbers;
+}
+
 function extractAsyncMethod(source: string, name: string): string {
 	const start = source.indexOf(`\tasync ${name}(`);
 	assert.ok(start >= 0, `missing async ${name}(`);
+	const nextAsync = source.indexOf('\n\tasync ', start + 1);
+	const end = nextAsync >= 0 ? nextAsync : source.length;
+	return source.slice(start, end);
+}
+
+function extractPrivateAsyncMethod(source: string, name: string): string {
+	const start = source.indexOf(`\tprivate async ${name}(`);
+	assert.ok(start >= 0, `missing private async ${name}(`);
 	const nextAsync = source.indexOf('\n\tasync ', start + 1);
 	const end = nextAsync >= 0 ? nextAsync : source.length;
 	return source.slice(start, end);
