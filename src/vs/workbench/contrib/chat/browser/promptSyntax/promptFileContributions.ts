@@ -13,6 +13,7 @@ import { MARKERS_OWNER_ID, PromptValidator } from '../../common/promptSyntax/lan
 import { PromptDocumentSemanticTokensProvider } from '../../common/promptSyntax/languageProviders/promptDocumentSemanticTokensProvider.js';
 import { PromptCodeActionProvider } from '../../common/promptSyntax/languageProviders/promptCodeActions.js';
 import { ILanguageFeaturesService } from '../../../../../editor/common/services/languageFeatures.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Disposable, DisposableMap, DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ALL_PROMPTS_LANGUAGE_SELECTOR, getPromptsTypeForLanguageId, PromptsType } from '../../common/promptSyntax/promptTypes.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
@@ -70,7 +71,7 @@ class PromptValidatorContribution extends Disposable {
 		super();
 		this.validator = instantiationService.createInstance(PromptValidator);
 
-		void this.updateRegistration();
+		void this.updateRegistration().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	async updateRegistration(): Promise<void> {
