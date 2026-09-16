@@ -5,10 +5,13 @@
 
 import type { UniverseAgentShutdownRequest } from '../../common/universeAgentTypes.js';
 import type {
+	DoctorCheckWire,
+	DoctorResponseWire,
 	HealthCheckResponseWire,
 	ShutdownResponseWire,
 } from './grpcClientMappersCatalog.js';
 import {
+	allLengthDelimited,
 	encodeInt32Field,
 	lastString,
 	lastVarint,
@@ -57,6 +60,40 @@ export function decodeShutdownResponse(bytes: Uint8Array): ShutdownResponseWire 
 	return {
 		accepted: lastVarint(fields, 1) === 1n,
 		message: lastString(fields, 2),
+	};
+}
+
+/**
+ * SystemService.Doctor — `DoctorRequest` is empty (no fields).
+ * proto3 empty message: 0 payload bytes, never JSON `{}`.
+ */
+export function encodeDoctorRequest(): Uint8Array {
+	return new Uint8Array(0);
+}
+
+/**
+ * DoctorResponse — repeated `checks`=1 `all_passed`=2.
+ * DoctorCheck: `name`=1 `passed`=2 `message`=3 `fix_hint`=4.
+ * proto3: false omitted. Unknown fields unread.
+ * Shape matches `mapDoctorResponse` input.
+ */
+export function decodeDoctorResponse(bytes: Uint8Array): DoctorResponseWire {
+	const fields = readProtoFields(bytes);
+	const allPassed = lastVarint(fields, 2);
+	return {
+		checks: allLengthDelimited(fields, 1).map(decodeDoctorCheck),
+		all_passed: allPassed === undefined ? undefined : allPassed === 1n,
+	};
+}
+
+function decodeDoctorCheck(bytes: Uint8Array): DoctorCheckWire {
+	const fields = readProtoFields(bytes);
+	const passed = lastVarint(fields, 2);
+	return {
+		name: lastString(fields, 1),
+		passed: passed === undefined ? undefined : passed === 1n,
+		message: lastString(fields, 3),
+		fix_hint: lastString(fields, 4),
 	};
 }
 
