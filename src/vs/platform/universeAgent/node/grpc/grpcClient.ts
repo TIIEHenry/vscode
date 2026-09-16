@@ -525,7 +525,6 @@ import {
 	type DestroyRemoteSessionResponseWire,
 	type DownloadChunkWire,
 	type ExitMaintenanceResponseWire,
-	type ExportSessionResponseWire,
 	type FetchToolUsageDetailResponseWire,
 	type GetRemoteSessionHistoryResponseWire,
 	type GetRemoteSessionStatusResponseWire,
@@ -534,10 +533,8 @@ import {
 	type ListLoopSnapshotsResponseWire,
 	type ListNodesResponseWire,
 	type MemoryRebuildEventWire,
-	type PrewarmSessionsResponseWire,
 	type PruneResponseWire,
 	type PtyServerMessageWire,
-	type PurgeSessionResponseWire,
 	type ReloadRemoteAgentsResponseWire,
 	type RemoteAgentConfigWire,
 	type RemoteAgentInfoWire,
@@ -551,11 +548,9 @@ import {
 	type SaveRemoteAgentConfigResponseWire,
 	type SaveSkillContentResponseWire,
 	type SetMaintenanceResponseWire,
-	type ShelveSessionResponseWire,
 	type StatusResponseWire,
 	type SubscribeToolDetailChunkWire,
 	type TodoResponseWire,
-	type UnshelveSessionResponseWire,
 	type UploadProgressResponseWire,
 	type UploadResponseWire,
 	type UsageResponseWire,
@@ -610,6 +605,18 @@ import {
 	encodeSetTriggerEnabledRequest,
 	encodeUpsertTriggerRequest,
 } from './grpcTriggerUnaryWire.js';
+import {
+	decodeExportSessionResponse,
+	decodePrewarmSessionsResponse,
+	decodePurgeSessionResponse,
+	decodeShelveSessionResponse,
+	decodeUnshelveSessionResponse,
+	encodeExportSessionRequest,
+	encodePrewarmSessionsRequest,
+	encodePurgeSessionRequest,
+	encodeShelveSessionRequest,
+	encodeUnshelveSessionRequest,
+} from './grpcSessionLifecycleUnaryWire.js';
 import {
 	decodeChatResponse,
 	decodeCreateSessionResponse,
@@ -1236,64 +1243,53 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async prewarmSessions(request: UniverseAgentPrewarmSessionsRequest): Promise<UniverseAgentPrewarmSessionsResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, PrewarmSessionsResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Session.service,
 			UniverseAgentGrpcServices.Session.Prewarm,
+			decodePrewarmSessionsResponse,
 		);
-		const wire = await unary({
-			session_ids: request.sessionIds,
-		});
-		return mapPrewarmSessionsResponse(wire);
+		return mapPrewarmSessionsResponse(await unary(encodePrewarmSessionsRequest(request)));
 	}
 
 	async shelveSession(request: UniverseAgentShelveSessionRequest): Promise<UniverseAgentShelveSessionResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ShelveSessionResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Session.service,
 			UniverseAgentGrpcServices.Session.Shelve,
+			decodeShelveSessionResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-		});
-		return mapShelveSessionResponse(wire);
+		return mapShelveSessionResponse(await unary(encodeShelveSessionRequest(request)));
 	}
 
 	async unshelveSession(request: UniverseAgentUnshelveSessionRequest): Promise<UniverseAgentUnshelveSessionResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, UnshelveSessionResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Session.service,
 			UniverseAgentGrpcServices.Session.Unshelve,
+			decodeUnshelveSessionResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-		});
-		return mapUnshelveSessionResponse(wire);
+		return mapUnshelveSessionResponse(await unary(encodeUnshelveSessionRequest(request)));
 	}
 
 	async purgeSession(request: UniverseAgentPurgeSessionRequest): Promise<UniverseAgentPurgeSessionResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, PurgeSessionResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Session.service,
 			UniverseAgentGrpcServices.Session.Purge,
+			decodePurgeSessionResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-		});
-		return mapPurgeSessionResponse(wire);
+		return mapPurgeSessionResponse(await unary(encodePurgeSessionRequest(request)));
 	}
 
 	async exportSession(request: UniverseAgentExportSessionRequest): Promise<UniverseAgentExportSessionResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ExportSessionResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Session.service,
 			UniverseAgentGrpcServices.Session.Export,
+			decodeExportSessionResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			format: request.format,
-		});
-		return mapExportSessionResponse(wire);
+		return mapExportSessionResponse(await unary(encodeExportSessionRequest(request)));
 	}
 
 	async resolveTurn(request: UniverseAgentResolveTurnRequest): Promise<UniverseAgentResolveTurnResult> {
