@@ -13,6 +13,7 @@ import { disposableTimeout, timeout } from '../../../../../base/common/async.js'
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { toErrorMessage } from '../../../../../base/common/errorMessage.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { hash } from '../../../../../base/common/hash.js';
 import { IMarkdownString, MarkdownString } from '../../../../../base/common/htmlContent.js';
@@ -2070,7 +2071,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		}));
 
 		this._register(this.listWidget.onDidFocusOutside(() => {
-			void this.cancelEditing();
+			void this.cancelEditing().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this._register(this.listWidget.onDidClickFollowup(item => {
@@ -2234,7 +2235,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 
 			this._register(this.inputPart.onDidClickOverlay(() => {
 				if (this.viewModel?.editing && this.configurationService.getValue<string>('chat.editRequests') !== 'input') {
-					void this.cancelEditing();
+					void this.cancelEditing().catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}));
 
