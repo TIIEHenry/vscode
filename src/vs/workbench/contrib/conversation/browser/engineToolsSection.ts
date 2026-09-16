@@ -9,6 +9,7 @@ import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -258,10 +259,10 @@ export class EngineToolsSection extends Disposable {
 		this.infoHost.setAttribute('aria-label', localize('ua.engineToolsInfoRegion', "Tool details"));
 
 		this._register(this.connection.onDidChangeConnection(() => {
-			void this.refresh();
+			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
-		void this.refresh();
+		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	layout(width: number, listHeight: number): void {
@@ -512,7 +513,7 @@ export class EngineToolsSection extends Disposable {
 				if (entry?.kind === 'tool') {
 					this.selectedToolName = entry.tool.name;
 					if (canShowCatalogRows(this.mode)) {
-						void this.loadToolInfo(entry.tool.name);
+						void this.loadToolInfo(entry.tool.name).catch(onUnexpectedError).catch(onUnexpectedError);
 					} else if ((this.mode === 'failed' || this.mode === 'loading') && this.hasLeftoverToolInfo()) {
 						this.infoHost.style.display = '';
 					} else if (this.keepLeftoverCatalogForPairingHold(this.hasLeftoverToolInfo())) {
@@ -655,7 +656,7 @@ export class EngineToolsSection extends Disposable {
 			if (selectedToolName) {
 				this.selectedToolName = selectedToolName;
 				// D275: keep leftover detail while the next getToolInfo is in-flight.
-				void this.loadToolInfo(selectedToolName);
+				void this.loadToolInfo(selectedToolName).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		} catch (error) {
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'tool');
@@ -669,7 +670,7 @@ export class EngineToolsSection extends Disposable {
 			this.updateSaveChrome();
 			this.renderStatus({
 				reason: error instanceof Error ? error.message : undefined,
-				onRetry: () => void this.refresh(),
+				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 			if (leftoverAfterList) {
 				this.closeLeftoverRowToggleChrome();
