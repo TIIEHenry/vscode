@@ -6,6 +6,7 @@
 import { $, addDisposableListener, append, reset } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -150,17 +151,17 @@ export class ConversationEngineHistoryList extends Disposable {
 		}));
 		this._register(this.connection.onDidChangeConnection(() => {
 			if (this.open) {
-				void this.refresh();
+				void this.refresh().catch(onUnexpectedError);
 			}
 		}));
 		this._register(this.roster.onDidChangeActiveSession(() => {
 			if (this.open) {
-				void this.refresh();
+				void this.refresh().catch(onUnexpectedError);
 			}
 		}));
 		this._register(this.roster.onDidChangeEngineConnection(() => {
 			if (this.open) {
-				void this.refresh();
+				void this.refresh().catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -181,7 +182,7 @@ export class ConversationEngineHistoryList extends Disposable {
 		this.open = true;
 		this.overlayElement.hidden = false;
 		this.button.element.setAttribute('aria-expanded', 'true');
-		void this.refresh();
+		void this.refresh().catch(onUnexpectedError);
 	}
 
 	close(): void {
