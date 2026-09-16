@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "merge 关仓：SaveConfig/CreateRemoteSession/Status/History/UploadProgress/ResolveModel 已 bytes；leftover D553–D559 关各 call site。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
+summary: "工位 I：customization editor 八处 void 双链；D566 只关这些 call site。D24 仍开。leftover 未全局完成。未 commit。"
 ---
 
 # Development Progress
@@ -26,6 +26,7 @@ summary: "merge 关仓：SaveConfig/CreateRemoteSession/Status/History/UploadPro
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **I** | `loop/I-d24-customization-editor-leftover`：八处双链；[D566](deferred-gaps.md) **closed（仅这些 call site）**；未 commit |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
@@ -36,6 +37,7 @@ summary: "merge 关仓：SaveConfig/CreateRemoteSession/Status/History/UploadPro
 | [D24](deferred-gaps.md) | **仍开**：六条 **已** bytes；Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
 | [D550](deferred-gaps.md)–[D559](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
+| [D566](deferred-gaps.md) | **closed** customization editor 八处 void 双链；**仅这些 call site**；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |

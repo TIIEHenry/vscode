@@ -751,7 +751,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 			}
 			// Candidates are only collected for enabled categories, so enabling one must re-scan.
 			if (CUSTOMIZATION_MIGRATION_CATEGORIES.some(category => e.affectsConfiguration(category.enablementSetting))) {
-				void this.refreshCustomizationMigrationInfo();
+				void this.refreshCustomizationMigrationInfo().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -1001,7 +1001,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 			}
 			const selectedCustomizations = this.getMigrationCandidates(category)
 				.filter(customization => this.isCustomizationSelectedForMigration(customization));
-			void this.migrateSelectedCustomizations(category, selectedCustomizations);
+			void this.migrateSelectedCustomizations(category, selectedCustomizations).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this.renderCustomizationMigrationPage();
 	}
@@ -1019,7 +1019,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 				this.promptsService.onDidChangeInstructions,
 				this.promptsService.onDidChangeAgentInstructions,
 			)(() => {
-				void this.refreshCustomizationMigrationInfo();
+				void this.refreshCustomizationMigrationInfo().catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 			this.registerCustomizationMigrationSessionRefresh();
 		}
@@ -1189,14 +1189,14 @@ export class AICustomizationManagementEditor extends EditorPane {
 		}
 
 		if (this.workspaceService.isSessionsWindow) {
-			void this.refreshCustomizationMigrationInfo();
+			void this.refreshCustomizationMigrationInfo().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
 	private registerCustomizationMigrationSessionRefresh(): void {
 		this.editorDisposables.add(autorun(reader => {
 			this.harnessService.activeSessionResource.read(reader);
-			void this.refreshCustomizationMigrationInfo();
+			void this.refreshCustomizationMigrationInfo().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 
@@ -1448,7 +1448,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 			? category.getMigratedWithReviewMessage(migratedCount, unsupportedKeysLabel)
 			: category.getMigratedMessage(migratedCount));
 
-		void this.revealMigratedCustomizations(migratedCustomizations);
+		void this.revealMigratedCustomizations(migratedCustomizations).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private renderCustomizationMigrationPage(): void {
@@ -1477,7 +1477,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 			this.renderCustomizationMigrationState(
 				localize('customizationMigrationLoadError', "Customizations could not be loaded"),
 				localize('customizationMigrationLoadErrorDescription', "Check the active agent connection, then try again."),
-				() => void this.refreshCustomizationMigrationInfo(),
+				() => void this.refreshCustomizationMigrationInfo().catch(onUnexpectedError).catch(onUnexpectedError),
 			);
 			this.migrationMigrateButton.enabled = false;
 			return;
@@ -2814,7 +2814,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 		if (returnViewMode === 'migration') {
 			this.renderCustomizationMigrationPage();
-			void this.refreshCustomizationMigrationInfo();
+			void this.refreshCustomizationMigrationInfo().catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			// Refresh the list to pick up newly created/edited files
 			void this.listWidget?.refresh();
