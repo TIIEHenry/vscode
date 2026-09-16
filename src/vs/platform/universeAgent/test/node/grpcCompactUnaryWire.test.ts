@@ -138,6 +138,23 @@ suite('grpc AgentService Compact protobuf wire', () => {
 		assert.ok(!/\bResolveTurn\b/.test(source));
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
+
+	test('compact uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
+		const body = extractAsyncMethod(source, 'compact');
+		assert.ok(body.includes('makeUnaryBytesClient'), 'compact must use makeUnaryBytesClient');
+		assert.ok(body.includes('encodeCompactRequest'), 'compact must call encodeCompactRequest');
+		assert.ok(body.includes('decodeCompactResponse'), 'compact must call decodeCompactResponse');
+		assert.ok(body.includes('mapCompactResponse'), 'compact still calls mapCompactResponse');
+		assert.ok(!body.includes('makeUnaryClient<'), 'compact must not use JSON makeUnaryClient');
+		assert.ok(!body.includes('JSON.stringify'), 'compact must not JSON.stringify');
+
+		assert.ok(source.includes('grpcCompactUnaryWire'));
+		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'testModelProfile').includes('makeUnaryBytesClient'));
+	});
 });
 
 function encodeEnumInclZero(field: number, value: number): Buffer {
@@ -156,6 +173,14 @@ function grpcDir(): string {
 	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcCompactUnaryWire.ts')));
 	assert.ok(dir, 'grpcCompactUnaryWire.ts not found from cwd or import.meta');
 	return dir;
+}
+
+function extractAsyncMethod(source: string, name: string): string {
+	const start = source.indexOf(`\tasync ${name}(`);
+	assert.ok(start >= 0, `missing async ${name}(`);
+	const nextAsync = source.indexOf('\n\tasync ', start + 1);
+	const end = nextAsync >= 0 ? nextAsync : source.length;
+	return source.slice(start, end);
 }
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {

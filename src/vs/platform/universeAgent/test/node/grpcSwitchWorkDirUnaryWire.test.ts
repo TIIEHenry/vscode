@@ -111,6 +111,25 @@ suite('grpc AgentService SwitchWorkDir protobuf wire', () => {
 		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
+
+	test('switchWorkDir uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
+		const body = extractAsyncMethod(source, 'switchWorkDir');
+		assert.ok(body.includes('makeUnaryBytesClient'), 'switchWorkDir must use makeUnaryBytesClient');
+		assert.ok(body.includes('encodeSwitchWorkDirRequest'), 'switchWorkDir must call encodeSwitchWorkDirRequest');
+		assert.ok(body.includes('decodeSwitchWorkDirResponse'), 'switchWorkDir must call decodeSwitchWorkDirResponse');
+		assert.ok(body.includes('ok: wire.success === true'), 'switchWorkDir must keep ok: wire.success === true');
+		assert.ok(body.includes('previousWorkDir: wire.previous_work_dir ?? \'\''), 'switchWorkDir must keep previousWorkDir map');
+		assert.ok(body.includes('currentWorkDir: wire.current_work_dir ?? \'\''), 'switchWorkDir must keep currentWorkDir map');
+		assert.ok(!body.includes('makeUnaryClient<'), 'switchWorkDir must not use JSON makeUnaryClient');
+		assert.ok(!body.includes('JSON.stringify'), 'switchWorkDir must not JSON.stringify');
+
+		assert.ok(source.includes('grpcSwitchWorkDirUnaryWire'));
+		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'testModelProfile').includes('makeUnaryBytesClient'));
+	});
 });
 
 /** Same mapping as Agent.SwitchWorkDir JSON unary (`ok: wire.success === true`). */
@@ -132,6 +151,14 @@ function grpcDir(): string {
 	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcSwitchWorkDirUnaryWire.ts')));
 	assert.ok(dir, 'grpcSwitchWorkDirUnaryWire.ts not found from cwd or import.meta');
 	return dir;
+}
+
+function extractAsyncMethod(source: string, name: string): string {
+	const start = source.indexOf(`\tasync ${name}(`);
+	assert.ok(start >= 0, `missing async ${name}(`);
+	const nextAsync = source.indexOf('\n\tasync ', start + 1);
+	const end = nextAsync >= 0 ? nextAsync : source.length;
+	return source.slice(start, end);
 }
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {

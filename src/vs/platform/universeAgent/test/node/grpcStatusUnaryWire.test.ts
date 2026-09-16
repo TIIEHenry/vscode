@@ -191,21 +191,21 @@ suite('grpc AgentService Status protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('getAgentStatus still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+	test('getAgentStatus uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const status = extractAsyncMethod(source, 'getAgentStatus');
-		assert.ok(status.includes('makeUnaryClient<'), 'getAgentStatus still uses JSON makeUnaryClient');
-		assert.ok(!status.includes('makeUnaryBytesClient'), 'getAgentStatus must not use makeUnaryBytesClient this slice');
-		assert.ok(!status.includes('encodeStatusRequest'), 'getAgentStatus must not call encodeStatusRequest this slice');
-		assert.ok(!status.includes('decodeStatusResponse'), 'getAgentStatus must not call decodeStatusResponse this slice');
+		assert.ok(status.includes('makeUnaryBytesClient'), 'getAgentStatus must use makeUnaryBytesClient');
+		assert.ok(status.includes('encodeStatusRequest'), 'getAgentStatus must call encodeStatusRequest');
+		assert.ok(status.includes('decodeStatusResponse'), 'getAgentStatus must call decodeStatusResponse');
 		assert.ok(status.includes('mapStatusResponse'), 'getAgentStatus still calls mapStatusResponse');
-		assert.ok(status.includes('session_id'), 'getAgentStatus still sends session_id JSON key');
-		assert.ok(status.includes('agent_id'), 'getAgentStatus still sends agent_id JSON key');
-		assert.ok(!source.includes('grpcStatusUnaryWire'));
+		assert.ok(!status.includes('makeUnaryClient<'), 'getAgentStatus must not use JSON makeUnaryClient');
+		assert.ok(!status.includes('JSON.stringify'), 'getAgentStatus must not JSON.stringify');
 
+		assert.ok(source.includes('grpcStatusUnaryWire'));
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'testModelProfile').includes('makeUnaryBytesClient'));
 	});
 });
 

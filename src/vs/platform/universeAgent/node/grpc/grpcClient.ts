@@ -516,7 +516,6 @@ import {
 	type BackResponseWire,
 	type BranchResponseWire,
 	type CancelRemoteSessionResponseWire,
-	type CompactResponseWire,
 	type ConfigChangedEventWire,
 	type ConnectResponseWire,
 	type ConnectionReportWire,
@@ -548,12 +547,9 @@ import {
 	type SaveRemoteAgentConfigResponseWire,
 	type SaveSkillContentResponseWire,
 	type SetMaintenanceResponseWire,
-	type StatusResponseWire,
 	type SubscribeToolDetailChunkWire,
-	type TodoResponseWire,
 	type UploadProgressResponseWire,
 	type UploadResponseWire,
-	type UsageResponseWire,
 } from './grpcClientMappers.js';
 import {
 	makeUnaryClient,
@@ -627,6 +623,26 @@ import {
 	decodeClearSessionDemoFakeResponse,
 	encodeClearSessionDemoFakeRequest,
 } from './grpcClearSessionDemoFakeUnaryWire.js';
+import {
+	decodeSwitchWorkDirResponse,
+	encodeSwitchWorkDirRequest,
+} from './grpcSwitchWorkDirUnaryWire.js';
+import {
+	decodeCompactResponse,
+	encodeCompactRequest,
+} from './grpcCompactUnaryWire.js';
+import {
+	decodeTodoResponse,
+	encodeTodoRequest,
+} from './grpcTodoUnaryWire.js';
+import {
+	decodeUsageResponse,
+	encodeUsageRequest,
+} from './grpcUsageUnaryWire.js';
+import {
+	decodeStatusResponse,
+	encodeStatusRequest,
+} from './grpcStatusUnaryWire.js';
 import {
 	decodeChatResponse,
 	decodeCreateSessionResponse,
@@ -1323,42 +1339,33 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async getAgentStatus(request: UniverseAgentAgentStatusRequest): Promise<UniverseAgentAgentStatusResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, StatusResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.Status,
+			decodeStatusResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-		});
-		return mapStatusResponse(wire);
+		return mapStatusResponse(await unary(encodeStatusRequest(request)));
 	}
 
 	async getTodo(request: UniverseAgentTodoRequest): Promise<UniverseAgentTodoResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, TodoResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.Todo,
+			decodeTodoResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-		});
-		return mapTodoResponse(wire);
+		return mapTodoResponse(await unary(encodeTodoRequest(request)));
 	}
 
 	async compact(request: UniverseAgentCompactRequest): Promise<UniverseAgentCompactResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, CompactResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.Compact,
+			decodeCompactResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-		});
-		return mapCompactResponse(wire);
+		return mapCompactResponse(await unary(encodeCompactRequest(request)));
 	}
 
 	async resolveAnchor(request: UniverseAgentResolveAnchorRequest): Promise<UniverseAgentResolveAnchorResult> {
@@ -1372,16 +1379,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async getUsage(request: UniverseAgentUsageRequest): Promise<UniverseAgentUsageResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, UsageResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.Usage,
+			decodeUsageResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-		});
-		return mapUsageResponse(wire);
+		return mapUsageResponse(await unary(encodeUsageRequest(request)));
 	}
 
 	async listAgents(request: UniverseAgentListAgentsRequest): Promise<UniverseAgentListAgentsResult> {
@@ -1683,21 +1687,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async switchWorkDir(request: UniverseAgentSwitchWorkDirRequest): Promise<UniverseAgentSwitchWorkDirResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, {
-			success?: boolean;
-			previous_work_dir?: string;
-			current_work_dir?: string;
-			message?: string;
-		}>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.SwitchWorkDir,
+			decodeSwitchWorkDirResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-			new_work_dir: request.newWorkDir,
-		});
+		const wire = await unary(encodeSwitchWorkDirRequest(request));
 		return {
 			ok: wire.success === true,
 			previousWorkDir: wire.previous_work_dir ?? '',
