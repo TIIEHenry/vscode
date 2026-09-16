@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "merge compile-client 0；聚焦 168 passing / 0 pending。A Health/ContextVariable 已 bytes。F TokenUsage / G Config Get+Set wire 未接线（Watch 不转）。SaveSkillContent/Rebuild 仍 JSON。D24 仍开。D487 open。D498–D502 closed。不是 leftover/pills 完成。R9/D405 仍开"
+summary: "merge compile-client 0；聚焦 168 passing / 0 pending。A Health/ContextVariable 已 bytes。F TokenUsage / G Config Get+Set wire 未接线（Watch 不转）。SaveSkillContent/Rebuild 仍 JSON。D24 仍开。D487 open。D498–D502 closed。H D505 closed（仅 engineHooksSection）。不是 leftover/pills 完成。R9/D405 仍开"
 ---
 
 # Development Progress
@@ -31,7 +31,8 @@ summary: "merge compile-client 0；聚焦 168 passing / 0 pending。A Health/Con
 | **G** | Config Get+Set wire | HEAD == MERGE_SHA（ff-only）。Get+Set **未接线**；Watch 不转；**勿 add `out`** |
 | **C** | D498 | 保持 `dev/loop` gitlink 脏；勿 add。[D498](deferred-gaps.md) closed |
 | **D** | D499 | HEAD == MERGE_SHA（ff-only）。[D499](deferred-gaps.md) closed |
-| **H/I/J** | D500–D502 | HEAD == MERGE_SHA（ff-only）。[D500](deferred-gaps.md)–[D502](deferred-gaps.md) closed |
+| **H** | D505 | 未 commit：Hooks `refresh` 三处双链 catch。[D505](deferred-gaps.md) **closed**（仅 `engineHooksSection.ts`）。D24 仍开。不得宣称 leftover 完成 |
+| **I/J** | D501–D502 | HEAD == MERGE_SHA（ff-only）。[D501](deferred-gaps.md)–[D502](deferred-gaps.md) closed |
 | **B** | — | 脏 `worktree-pool.md`；**跳过**；勿 `-B` |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 | **edit** | `agent-ide` | **仅 ff-only**；非祖先则失败并记录；勿 reset/checkout/stash |
@@ -42,6 +43,7 @@ summary: "merge compile-client 0；聚焦 168 passing / 0 pending。A Health/Con
 | [D24](deferred-gaps.md) | A/F/G | **仍开**：HealthCheck/Shutdown + ContextVariable List/Read **已** bytes；SaveSkillContent/Rebuild/TokenUsage/Config 仍 JSON；TokenUsage GetSession/GetGlobal + Config Get+Set wire **未接线**；Watch 不转 |
 | [D487](deferred-gaps.md) | F Memory wire | **open**：codec 无 double；Search score 未读；mapper `requiredDouble`→0 |
 | [D498](deferred-gaps.md)–[D502](deferred-gaps.md) | C/D/H/I/J | **closed** Triggers / Skills / Tools / MCP Runtime / Plugins void catch |
+| [D505](deferred-gaps.md) | H | **closed**（仅 `engineHooksSection.ts` void catch）。不得宣称 leftover 完成。D24 仍开 |
 | [D405](deferred-gaps.md) | 手测 | **仍开**（S4a/S4b 前置） |
 | [D16](deferred-gaps.md) / [D8](deferred-gaps.md) / [D147](deferred-gaps.md) | 基线 | **仍开**；勿开切片 1；勿降 `min_cases` |
 | [D31](deferred-gaps.md) | Sources | **仍开**（剩 F4）；不升 PRD |
@@ -57,7 +59,7 @@ summary: "merge compile-client 0；聚焦 168 passing / 0 pending。A Health/Con
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked` leftover；跳过 |
 | F | `vscode-WorkTrees/F` | `loop/F` | MERGE_SHA | 干净 | 0 | ff-only；TokenUsage **未接线**；D487 open |
 | G | `vscode-WorkTrees/G` | `loop/G` | MERGE_SHA | 未跟踪 `out` | 0 | ff-only；**勿 add `out`**；Config **未接线** |
-| H | `vscode-WorkTrees/H` | `loop/H` | MERGE_SHA | 干净 | 0 | ff-only；D500 closed |
+| H | `vscode-WorkTrees/H` | `loop/H` | `593f78da16c` | 脏 D505 | 0 | D505 closed（仅 hooks 文件）；未 commit；不得宣称 leftover 完成 |
 | I | `vscode-WorkTrees/I` | `loop/I` | MERGE_SHA | 干净 | 0 | ff-only；D501 closed |
 | J | `vscode-WorkTrees/J` | `loop/J` | MERGE_SHA | 干净 | 0 | ff-only；D502 closed |
 | edit | `Projects/Agents/vscode` | `agent-ide` | MERGE_SHA | `dev/loop`+docs | 0 | 仅 ff-only；勿 reset/checkout/stash |
@@ -65,7 +67,7 @@ summary: "merge compile-client 0；聚焦 168 passing / 0 pending。A Health/Con
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。下一刀 IDE Direct Address 接通后 Composer 发送。**不升 PRD-008**。不要再清 store |
-| **loop 切片** | [D24](deferred-gaps.md) **仍开**（Health/ContextVariable **已** bytes；SaveSkillContent/Rebuild/TokenUsage/Config 仍 JSON；TokenUsage + Config wire **未接线**；Watch 不转）。[D498](deferred-gaps.md)–[D502](deferred-gaps.md) **closed**。[D487](deferred-gaps.md) **open**。R9 / **D405** 仍开。不关 D8/D16/D147。不得宣称 leftover / pills 完成 |
+| **loop 切片** | [D24](deferred-gaps.md) **仍开**（Health/ContextVariable **已** bytes；SaveSkillContent/Rebuild/TokenUsage/Config 仍 JSON；TokenUsage + Config wire **未接线**；Watch 不转）。[D498](deferred-gaps.md)–[D502](deferred-gaps.md) **closed**。[D505](deferred-gaps.md) **closed**（仅 `engineHooksSection.ts`）。[D487](deferred-gaps.md) **open**。R9 / **D405** 仍开。不关 D8/D16/D147。不得宣称 leftover / pills 完成 |
 | **test-baseline** | 本关仓聚焦 9 文件 **168 passing / 0 pending / 0 fail**（含 assertCleanState）。conversationNavigation 整文件 afterEach ConversationLens leak 已知，未跑整文件。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 未满足前不开 U2 |
 ## 不做：**ADR-007 U2**、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
