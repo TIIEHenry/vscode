@@ -359,10 +359,10 @@ export class AgentPluginsListView extends AbstractExtensionsListView<IAgentPlugi
 		this._register(this.list.onContextMenu(e => this.onContextMenu(e), this));
 
 		this._register(Event.debounce(Event.filter(this.list.onDidOpen, e => e.element !== null), (_, event) => event, 75, true)(options => {
-			this.editorService.openEditor(
+			void this.editorService.openEditor(
 				this.instantiationService.createInstance(AgentPluginEditorInput, options.element!),
 				options.editorOptions
-			);
+			).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 
