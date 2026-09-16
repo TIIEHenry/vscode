@@ -39,4 +39,18 @@ suite('AgentPluginsListView leftover fire-and-forget catch scan (D567)', () => {
 		assert.ok(!source.includes('void this.show(this.currentQuery);'));
 		assert.ok(!source.includes('void this.show(this.currentQuery).catch(onUnexpectedError);'));
 	});
+
+	test('agentPluginsView list onDidOpen openEditor void double-catch onUnexpectedError (D575)', () => {
+		const source = fs.readFileSync(agentPluginsViewSourcePath(), 'utf8');
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		assert.ok(source.includes("from '../../../../base/common/errors.js'"));
+		assert.ok(source.includes('onUnexpectedError'));
+		assert.strictEqual((source.match(/this\.editorService\.openEditor\(/g) ?? []).length, 1);
+		assert.ok(source.includes('void this.editorService.openEditor('));
+		const collapsed = source.replace(/\s+/g, ' ');
+		const doubleOpen = `void this.editorService.openEditor( this.instantiationService.createInstance(AgentPluginEditorInput, options.element!), options.editorOptions )${doubleCatch};`;
+		assert.ok(collapsed.includes(doubleOpen));
+		assert.ok(!collapsed.includes('void this.editorService.openEditor( this.instantiationService.createInstance(AgentPluginEditorInput, options.element!), options.editorOptions );'));
+		assert.ok(!collapsed.includes('void this.editorService.openEditor( this.instantiationService.createInstance(AgentPluginEditorInput, options.element!), options.editorOptions ).catch(onUnexpectedError);'));
+	});
 });
