@@ -4,30 +4,29 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "A 工位 Session Prewarm/Shelve/Unshelve/Purge/Export grpcClient 已 bytes；D24 仍开。不是 leftover/pills 完成。"
+summary: "merge 本波：A Session lifecycle 五 unary 已 bytes；D535–D541 closed。compile-client 0；聚焦 299 passing。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
-### 已合入（`MERGE_SHA` 本关仓提交；`compile-client` 0；聚焦 261 passing）
+### 已合入（`MERGE_SHA` 本关仓提交；`compile-client` 0；聚焦 299 passing）
 | 切片 | 提交 |
 |:-----|:-----|
-| **A Trigger bytes** | `6ef7d0f4fda` — List/Upsert/Delete/SetEnabled/Fire **已** bytes。跳过 RegisterSessionEngineTrigger。[D24](deferred-gaps.md) **仍开** |
-| **C D528** | `1dce9aaadf3` — Changes 三按钮 click 双链；gitlink 脏勿 add |
-| **D D529** | `1fe97bac676` — Sessions View `openSessionBeside` 双链 |
-| **F D530** | `96935a3ba1f` — Session 窗三处 void 双链 |
-| **G D531** | `0f7c93f2bec` — copyTurn catch-path 双链；勿 add `out` |
-| **H D532** | `366691b1615` — handleTimelineLink 双链 |
-| **I D533** | `8bfa673e385` — Leaf `switchToSession` 双链。SelectBox helper 仍裸 void → 下刀 |
-| **J D534** | `a4e010c3edc` — Engine Tools Save 点击双链 |
-| **前波** | Device.Revoke bytes；Trigger wire；D522–D527 |
+| **A Session lifecycle bytes** | `e4eee2cada9` — Prewarm/Shelve/Unshelve/Purge/Export **已** bytes。[D24](deferred-gaps.md) **仍开** |
+| **F D535** | `7b5a98a7d9b` — SelectBox helper `switchLeafSession` 双链 |
+| **C D536** | `939957b944c` — roster 五处 void 双链；gitlink 脏勿 add |
+| **D D537** | `7459a760cb2` — dock `submitDraft` 三处双链 |
+| **G D538** | `df74a587c3a` — editor pane 面包屑双链；勿 add `out` |
+| **H D539** | `f8272ca3c26` — reading-column Sources Review `executeCommand` 双链 |
+| **I D540** | `6d215f68170` — frame `acknowledge` 双链 |
+| **J D541** | `6cda17ead20` — `retryError` catch-path 双链 |
+| **前波** | Trigger 五 unary bytes；D528–D534 |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A** | Session Prewarm/Shelve/Unshelve/Purge/Export **已** bytes（未关 D24；未 commit） |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
@@ -35,13 +34,13 @@ summary: "A 工位 Session Prewarm/Shelve/Unshelve/Purge/Export grpcClient 已 b
 子 agent 发现：
 | ID | 问题 |
 |:---|:-----|
-| [D24](deferred-gaps.md) | **仍开**：Session 五 lifecycle unary **已** bytes；SaveSkillContent/Rebuild/Watch/model prefs/Connect 仍 JSON |
+| [D24](deferred-gaps.md) | **仍开**：lifecycle 五 unary **已** bytes；SaveSkillContent/Watch/model prefs/Connect/FireTriggerWebhook/ResolveTurn 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
-| [D528](deferred-gaps.md)–[D534](deferred-gaps.md) | **closed** 本文件 leftover catch；leftover **未**全局完成 |
+| [D535](deferred-gaps.md)–[D541](deferred-gaps.md) | **closed** 本文件 leftover catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |
 |:---|:-----|
-| **loop** | D24 仍开（SaveSkillContent 无 proto / Watch / model prefs / Connect）。Session Prewarm/Shelve/Unshelve/Purge/Export 已 bytes。`conversationLensSessionBar` helper 仍裸 void。不得宣称 leftover/pills 完成 |
+| **loop** | D24 仍开（SaveSkillContent 无 proto / Watch / model prefs 无 message / Connect / FireTriggerWebhook）。dock `applySession*` 仍裸 void。不得宣称 leftover/pills 完成 |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。
