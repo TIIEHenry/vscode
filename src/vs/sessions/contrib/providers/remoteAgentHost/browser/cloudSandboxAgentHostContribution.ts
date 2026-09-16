@@ -428,7 +428,7 @@ export class CloudSandboxAgentHostContribution extends Disposable implements IWo
 		// Drop the read-only stand-in too, or disabling the feature would leave a content provider
 		// registered for a session type this contribution no longer serves.
 		this._clearReadOnly(address);
-		void this._disconnectEnvironment(address);
+		void this._disconnectEnvironment(address).catch(onUnexpectedError);
 	}
 
 	/** Tear down every known sandbox environment (feature disabled). */
@@ -654,7 +654,7 @@ export class CloudSandboxAgentHostContribution extends Disposable implements IWo
 				// The feature may have been disabled while connecting; drop the connection rather
 				// than leaving a live relay open after teardown.
 				if (token.isCancellationRequested || !this._isEnabled()) {
-					void this._disconnectEnvironment(address);
+					void this._disconnectEnvironment(address).catch(onUnexpectedError);
 					throw new CancellationError();
 				}
 				// `onDidChangeConnections` fires from addManagedConnection and wires the
