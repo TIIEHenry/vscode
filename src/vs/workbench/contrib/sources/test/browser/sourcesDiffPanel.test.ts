@@ -961,89 +961,102 @@ suite('Sources diff panel', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when Stage catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
-		// runStage already catches write throw; a lone inner reject does not leak.
-		// The void Stage click still needs `.catch` when the catch-path notice throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
-		const paintBoom = new Error('paint boom');
-		const resource = toResource.call(this, '/project/src/d524-stage.ts');
-		const original = toResource.call(this, '/project/src/d524-stage.ts.git');
-		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
-		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
-		const connection = leftoverLooksLiveApplyConnection(applyCalls, stageCalls, false);
-		connection.writeGitStagePaths = async (request: UniverseAgentWriteGitStagePathsRequest) => {
-			stageCalls.push(request);
-			throw new Error('stage boom');
+	function disconnectedHoldSafeConnection(): IUniverseAgentConnection {
+		return {
+			isEngineConnected: () => false,
+			getConnectionPhase: () => ({ kind: 'disconnected' as const }),
+			getConnectionSnapshot: () => ({}),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+	}
+
+	async function mountConversationDiffReviewPane(test: Mocha.Context, options: {
+		executeCommand?: (...args: unknown[]) => Promise<unknown>;
+		connection?: IUniverseAgentConnection;
+		groupId?: string;
+	} = {}): Promise<{ pane: ConversationDiffReviewPane; parent: HTMLElement }> {
+		const resource = toResource.call(test, '/project/src/d526-review.ts');
+		const original = toResource.call(test, '/project/src/d526-review.ts.git');
+		const instantiationService = stubDiffHonestyServices({
+			throwOnLoad: true,
+			resource,
+			groupId: options.groupId,
+			executeCommand: options.executeCommand,
+			connection: options.connection ?? disconnectedHoldSafeConnection(),
+		});
+		const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		pane.create(parent);
+		const input = store.add(new ConversationDiffReviewInput(resource, original, options.groupId ?? 'workingTree'));
+		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+		return { pane, parent };
+	}
+
+	function stubShowNoticeThrow(pane: ConversationDiffReviewPane, paintBoom: Error): void {
+		(pane as unknown as { showNotice(message: string): void }).showNotice = () => {
+			throw paintBoom;
 		};
+	}
 
-		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
-			const instantiationService = stubDiffHonestyServices({
-				throwOnLoad: true,
-				resource,
-				connection,
-			});
-			instantiationService.stub(IViewsService, {
-				openView: async () => null,
-				onDidChangeViewVisibility: Event.None,
-				onDidChangeViewContainerVisibility: Event.None,
-			} as unknown as IViewsService);
-			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
-			instantiationService.stub(ISourcesDiffPanelService, panelService);
-
-			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
-				id: SOURCES_DIFF_PANEL_VIEW_ID,
-				title: 'Diff',
-			}));
-			view.render();
-			await panelService.show({
-				modified: resource,
-				original,
-				groupId: 'workingTree',
-			});
-			await timeout(50);
-			paintPanelWriteChrome(view);
-			(view as unknown as { showActionNotice(message: string): void }).showActionNotice = () => {
-				throw paintBoom;
-			};
-			forceClick(view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null);
-			await timeout(20);
-		});
-		assert.strictEqual(stageCalls.length, 1);
-		assert.deepStrictEqual(applyCalls, []);
-	});
-
-	test('does not leak unhandled rejection when renderRef catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
-		// renderDiff/renderModifiedOnly already catch load throw; a lone inner reject does not leak.
-		// The void onDidChangeRef / renderBody call site still needs `.catch` when the catch-path notice throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('does not leak unhandled rejection when Revert click catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
 		const paintBoom = new Error('paint boom');
-		const resource = toResource.call(this, '/project/src/d524-render.ts');
-		const original = toResource.call(this, '/project/src/d524-render.ts.git');
-
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
-			const instantiationService = stubDiffHonestyServices({ throwOnLoad: true, resource });
-			instantiationService.stub(IViewsService, {
-				openView: async () => null,
-				onDidChangeViewVisibility: Event.None,
-				onDidChangeViewContainerVisibility: Event.None,
-			} as unknown as IViewsService);
-			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
-			instantiationService.stub(ISourcesDiffPanelService, panelService);
-
-			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
-				id: SOURCES_DIFF_PANEL_VIEW_ID,
-				title: 'Diff',
-			}));
-			view.render();
-			(view as unknown as { showLoadNotice(message: string): void }).showLoadNotice = () => {
-				throw paintBoom;
-			};
-			await panelService.show({
-				modified: resource,
-				original,
-				groupId: 'workingTree',
+			const { pane, parent } = await mountConversationDiffReviewPane(this, {
+				executeCommand: async () => {
+					throw new Error('git boom');
+				},
 			});
-			await timeout(50);
+			stubShowNoticeThrow(pane, paintBoom);
+			forceClick(parent.querySelector('.conversation-diff-review-revert'));
 		});
 	});
-});
+
+	test('does not leak unhandled rejection when Unstage click catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const { pane, parent } = await mountConversationDiffReviewPane(this, {
+				groupId: 'index',
+				executeCommand: async () => {
+					throw new Error('git boom');
+				},
+			});
+			stubShowNoticeThrow(pane, paintBoom);
+			forceClick(parent.querySelector('.conversation-diff-review-unstage'));
+		});
+	});
+
+	test('does not leak unhandled rejection when Stage click catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const { pane, parent } = await mountConversationDiffReviewPane(this, {
+				executeCommand: async () => {
+					throw new Error('git boom');
+				},
+			});
+			stubShowNoticeThrow(pane, paintBoom);
+			forceClick(parent.querySelector('.conversation-diff-review-stage'));
+		});
+	});
+
+	test('does not leak unhandled rejection when Accept click catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const { pane, parent } = await mountConversationDiffReviewPane(this, {
+				connection: leftoverConnectedConnection(false),
+			});
+			stubShowNoticeThrow(pane, paintBoom);
+			forceClick(parent.querySelector('.conversation-diff-review-accept'));
+		});
+	});
+
+	test('does not leak unhandled rejection when Preview executeCommand rejects and onUnexpectedError warn-then-rethrows', async function () {
+		const commandBoom = new Error('preview boom');
+		await assertWarnThenRethrowDoesNotLeak(commandBoom, async () => {
+			const { parent } = await mountConversationDiffReviewPane(this, {
+				executeCommand: async () => {
+					throw commandBoom;
+				},
+			});
+			forceClick(parent.querySelector('.conversation-diff-review-open-preview'));
