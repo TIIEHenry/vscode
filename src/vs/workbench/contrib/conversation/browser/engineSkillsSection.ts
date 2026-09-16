@@ -211,7 +211,7 @@ export class EngineSkillsSection extends Disposable {
 		this.writeToolbar.style.display = 'none';
 		const newButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
 		newButton.label = localize('ua.engineSkillsNew', "New");
-		this._register(newButton.onDidClick(() => void this.createSkill()));
+		this._register(newButton.onDidClick(() => void this.createSkill().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.writeStatus = DOM.append(this.container, $('.engine-skill-write-status'));
 		this.writeStatus.setAttribute('role', 'status');
@@ -227,7 +227,7 @@ export class EngineSkillsSection extends Disposable {
 		this.bodyToolbar.style.display = 'none';
 		this.saveButton = this._register(new Button(this.bodyToolbar, defaultButtonStyles));
 		this.saveButton.label = localize('ua.engineSkillBodySave', "Save");
-		this._register(this.saveButton.onDidClick(() => void this.saveSelectedSkillBody()));
+		this._register(this.saveButton.onDidClick(() => void this.saveSelectedSkillBody().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.bodyInput = this._register(new InputBox(this.bodyEditor, contextViewService, {
 			ariaLabel: localize('ua.engineSkillBodyEditor', "Skill body"),
