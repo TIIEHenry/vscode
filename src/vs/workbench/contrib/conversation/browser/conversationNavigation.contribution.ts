@@ -7,6 +7,7 @@ import './media/conversationNavigation.css';
 import { $, addDisposableListener, append, EventType } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -119,10 +120,10 @@ export class ConversationNavigationContribution extends Disposable implements IW
 		updateButtons();
 
 		store.add(backButton.onDidClick(() => {
-			void this.navigationService.goBack(resolvePart());
+			void this.navigationService.goBack(resolvePart()).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		store.add(forwardButton.onDidClick(() => {
-			void this.navigationService.goForward(resolvePart());
+			void this.navigationService.goForward(resolvePart()).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		const closeNonRootButton = store.add(new Button(nav, {
@@ -144,7 +145,7 @@ export class ConversationNavigationContribution extends Disposable implements IW
 		updateCloseNonRootButton();
 
 		store.add(closeNonRootButton.onDidClick(() => {
-			void this.sessionChatService.closeNonRootTabs(sessionKey);
+			void this.sessionChatService.closeNonRootTabs(sessionKey).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 
@@ -196,9 +197,9 @@ export class ConversationNavigationContribution extends Disposable implements IW
 		}
 
 		if (event.button === 3) {
-			void this.navigationService.goBack();
+			void this.navigationService.goBack().catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
-			void this.navigationService.goForward();
+			void this.navigationService.goForward().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 }
