@@ -613,7 +613,7 @@ export class DictationOnboardingBanner extends ChatInputNoticeWidget implements 
 			this.hint.setAttribute('aria-live', 'polite');
 			this.updateHint();
 
-			void this.startPreview();
+			void this.startPreview().catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			this.waveform = this._register(instantiationService.createInstance(MicrophoneWaveform, waveformContainer, {
 				getLevel: () => readMicrophoneLevel(this.dictationAnalyser, this.dictationWaveform),
@@ -635,7 +635,7 @@ export class DictationOnboardingBanner extends ChatInputNoticeWidget implements 
 		if (visible) {
 			this.waveform.start();
 			if (this.preview) {
-				void this.startPreview();
+				void this.startPreview().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		} else {
 			this.waveform.stop();
