@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "merge 本波：A Trigger 五 unary grpcClient 已 bytes；D528–D534 closed。compile-client 0；聚焦 261 passing。D24 仍开。不是 leftover/pills 完成。"
+summary: "merge 本波：A Trigger 五 unary grpcClient 已 bytes；D528–D534 closed。工位 D D537 dock submitDraft 双链（未 commit）。compile-client 0；聚焦 261 passing。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -27,6 +27,7 @@ summary: "merge 本波：A Trigger 五 unary grpcClient 已 bytes；D528–D534 
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **D D537** | 工位 `loop/D-leftover-d537-dock-submit-draft` — Dock 三处 `submitDraft` 双链（未 commit） |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
@@ -37,10 +38,11 @@ summary: "merge 本波：A Trigger 五 unary grpcClient 已 bytes；D528–D534 
 | [D24](deferred-gaps.md) | **仍开**：Trigger 五 unary **已** bytes；SaveSkillContent/Rebuild/Watch/model prefs/Connect 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
 | [D528](deferred-gaps.md)–[D534](deferred-gaps.md) | **closed** 本文件 leftover catch；leftover **未**全局完成 |
+| [D537](deferred-gaps.md) | **closed** Dock 三处 `submitDraft` 双链；同文件 permission/model `void applySession*` 仍裸 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |
 |:---|:-----|
-| **loop** | D24 仍开（SaveSkillContent 无 proto / Watch / model prefs / Connect）。`conversationLensSessionBar` helper 仍裸 void。不得宣称 leftover/pills 完成 |
+| **loop** | D24 仍开（SaveSkillContent 无 proto / Watch / model prefs / Connect）。`conversationLensSessionBar` helper 仍裸 void。Dock `void applySessionPermissionIndex` / `applySessionModelIndex` 仍裸。不得宣称 leftover/pills 完成 |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。
