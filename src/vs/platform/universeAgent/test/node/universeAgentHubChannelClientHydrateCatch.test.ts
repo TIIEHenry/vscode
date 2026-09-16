@@ -34,12 +34,12 @@ suite('UniverseAgentHubChannelClient fire-and-forget leftover catch', () => {
 		// ProxyChannel.toService always returns async functions even when the service types the member void.
 		const source = fs.readFileSync(HUB_CHANNEL_CLIENT_PATH, 'utf8');
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		const doubleCaughtSet = `void this.remote.setActiveHubBaseUrl(hubBaseUrl)${doubleCatch};`;
+		const doubleCaughtSet = `void Promise.resolve(this.remote.setActiveHubBaseUrl(hubBaseUrl))${doubleCatch};`;
 		const doubleCaughtHydrate = `void this.hydrate()${doubleCatch};`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
 		assert.ok(source.includes(doubleCaughtSet));
 		assert.ok(source.includes(doubleCaughtHydrate));
-		assert.strictEqual((source.match(/void this\.remote\.setActiveHubBaseUrl\(hubBaseUrl\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.strictEqual((source.match(/void Promise\.resolve\(this\.remote\.setActiveHubBaseUrl\(hubBaseUrl\)\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
 		assert.ok(!source.includes('void this.remote.setActiveHubBaseUrl(hubBaseUrl);'));
 		assert.ok(!source.includes('void this.remote.setActiveHubBaseUrl(hubBaseUrl).catch(onUnexpectedError);'));
 		assert.ok(!source.replace(doubleCaughtSet, '').includes('void this.remote.setActiveHubBaseUrl('));
