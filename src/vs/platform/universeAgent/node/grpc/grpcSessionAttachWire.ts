@@ -6,6 +6,7 @@
 import { generateUuid } from '../../../../base/common/uuid.js';
 import type {
 	UniverseAgentCancelGenerationRequest,
+	UniverseAgentCancelToolCallRequest,
 	UniverseAgentChatResponse,
 	UniverseAgentCreateSessionRequest,
 	UniverseAgentCreateSessionResult,
@@ -25,6 +26,7 @@ import type {
 import type {
 	CreateSnapshotResponseWire,
 	DeleteSnapshotResponseWire,
+	FetchToolDetailResponseWire,
 	ListSnapshotsResponseWire,
 	RestoreSnapshotResponseWire,
 	SessionSnapshotInfoWire,
@@ -86,6 +88,41 @@ export function encodeCancelGenerationRequest(request: UniverseAgentCancelGenera
 		encodeStringField(1, request.sessionId),
 		encodeStringField(2, request.agentId),
 	]);
+}
+
+/** Agent.CancelToolCall — `session_id` = 1, `agent_id` = 2, `tool_call_id` = 3. Empty agent wires `root`. */
+export function encodeCancelToolCallRequest(request: UniverseAgentCancelToolCallRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.sessionId),
+		encodeStringField(2, request.agentId?.trim() || 'root'),
+		encodeStringField(3, request.toolCallId),
+	]);
+}
+
+/**
+ * Agent.FetchToolDetail — `session_id` = 1, `tool_call_id` = 2, `detail_kind` = 3, `ref_id` = 4.
+ * Host always `subscribe=false` (proto3 default); field 10 omitted.
+ */
+export function encodeFetchToolDetailRequest(request: UniverseAgentFetchToolDetailRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.sessionId),
+		encodeStringField(2, request.toolCallId),
+		encodeInt32Field(3, request.detailKind),
+		encodeStringField(4, request.refId),
+	]);
+}
+
+/** FetchToolDetailResponse — `success` = 1, `content` = 2, `truncated` = 4, `total_bytes` = 5, `error_message` = 7. */
+export function decodeFetchToolDetailResponse(bytes: Uint8Array): FetchToolDetailResponseWire {
+	const fields = readProtoFields(bytes);
+	const totalBytes = lastVarint(fields, 5);
+	return {
+		success: lastVarint(fields, 1) === 1n,
+		content: lastString(fields, 2),
+		truncated: lastVarint(fields, 4) === 1n,
+		...(totalBytes !== undefined ? { total_bytes: Number(totalBytes) } : {}),
+		error_message: lastString(fields, 7),
+	};
 }
 
 /** Agent.ListSnapshots — `session_id` = 1. */

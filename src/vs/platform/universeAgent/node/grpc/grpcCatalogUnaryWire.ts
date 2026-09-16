@@ -10,6 +10,7 @@ import type {
 	UniverseAgentListProjectRulesRequest,
 	UniverseAgentListSessionsRequest,
 	UniverseAgentProjectRule,
+	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSwitchModelRequest,
 	UniverseAgentSwitchModelResult,
 	UniverseAgentUpsertProjectRuleRequest,
@@ -30,7 +31,14 @@ import type {
 	SaveAgentProfileResponseWire,
 } from './grpcClientMappersCatalog.js';
 import type { AgentInfoWire, AgentTreeResponseWire, ListAgentsResponseWire, ListSessionsResponseWire, SessionInfoResponseWire } from './grpcClientMappersSession.js';
-import type { ListTeamsResponseWire } from './grpcClientMappersTeam.js';
+import type {
+	BlackboardTaskWire,
+	ListTeamsResponseWire,
+	MemberInfoWire,
+	MemberStatusResponseWire,
+	TaskListResponseWire,
+	TeamInfoResponseWire,
+} from './grpcClientMappersTeam.js';
 import {
 	allLengthDelimited,
 	encodeInt32Field,
@@ -180,6 +188,14 @@ export function encodeSetPermissionModeRequest(sessionId: string, mode: number):
 	return Buffer.concat([
 		encodeStringField(1, sessionId),
 		encodeInt32Field(2, mode),
+	]);
+}
+
+/** Permission.SetSessionGoal — `session_id` = 1, `goal` = 2. Response is success=1 / error=2 (same tags as Resume). */
+export function encodeSetSessionGoalRequest(request: UniverseAgentSetSessionGoalRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.sessionId),
+		encodeStringField(2, request.goal),
 	]);
 }
 
@@ -384,6 +400,79 @@ export function decodeListHookPointsResponse(bytes: Uint8Array): ListHookPointsR
 
 export function encodeListTeamsRequest(sessionId: string): Uint8Array {
 	return encodeStringField(1, sessionId);
+}
+
+/** Team.MemberStatus / TaskList — `session_id` = 1, `agent_id` = 2. */
+export function encodeMemberStatusRequest(sessionId: string, agentId: string): Uint8Array {
+	return encodeSessionAgentIdRequest(sessionId, agentId);
+}
+
+export function encodeTaskListRequest(sessionId: string, agentId: string): Uint8Array {
+	return encodeSessionAgentIdRequest(sessionId, agentId);
+}
+
+/** Team.TeamInfo — `session_id` = 1, `agent_id` = 2, `team_id` = 3. */
+export function encodeTeamInfoRequest(sessionId: string, agentId: string, teamId: number): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, sessionId),
+		encodeStringField(2, agentId),
+		encodeInt32Field(3, teamId),
+	]);
+}
+
+export function decodeMemberStatusResponse(bytes: Uint8Array): MemberStatusResponseWire {
+	return {
+		members: allLengthDelimited(readProtoFields(bytes), 1).map(decodeMemberInfo),
+	};
+}
+
+export function decodeTaskListResponse(bytes: Uint8Array): TaskListResponseWire {
+	return {
+		tasks: allLengthDelimited(readProtoFields(bytes), 1).map(decodeBlackboardTask),
+	};
+}
+
+/** TeamInfoResponse — `team_id` = 1, `status` = 4 (members=2 / tasks=3 unused by this client). */
+export function decodeTeamInfoResponse(bytes: Uint8Array): TeamInfoResponseWire {
+	const fields = readProtoFields(bytes);
+	const teamId = lastVarint(fields, 1);
+	return {
+		...(teamId !== undefined ? { team_id: Number(teamId) } : {}),
+		status: lastString(fields, 4),
+	};
+}
+
+function encodeSessionAgentIdRequest(sessionId: string, agentId: string): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, sessionId),
+		encodeStringField(2, agentId),
+	]);
+}
+
+function decodeMemberInfo(bytes: Uint8Array): MemberInfoWire {
+	const fields = readProtoFields(bytes);
+	return {
+		member_name: lastString(fields, 1) ?? '',
+		member_agent_id: lastString(fields, 2) ?? '',
+		status: lastString(fields, 3) ?? '',
+		preset: lastString(fields, 4),
+		// proto `bool dynamic = 5`; mapper keeps a string.
+		dynamic: lastVarint(fields, 5) === 1n ? 'true' : '',
+		turn_count: numberOrUndefined(lastVarint(fields, 6)),
+	};
+}
+
+function decodeBlackboardTask(bytes: Uint8Array): BlackboardTaskWire {
+	const fields = readProtoFields(bytes);
+	return {
+		task_id: lastString(fields, 1) ?? '',
+		owner: lastString(fields, 2) ?? '',
+		description: lastString(fields, 3) ?? '',
+		status: lastString(fields, 4) ?? '',
+		blocked_by: lastString(fields, 5),
+		last_message: lastString(fields, 6),
+		subject: lastString(fields, 7) ?? '',
+	};
 }
 
 export function decodeListTeamsResponse(bytes: Uint8Array): ListTeamsResponseWire {

@@ -12,6 +12,7 @@ import {
 	decodeCreateSessionResponse,
 	decodeCreateSnapshotResponse,
 	decodeDeleteSnapshotResponse,
+	decodeFetchToolDetailResponse,
 	decodeGetHistoryResponse,
 	decodeListSnapshotsResponse,
 	decodeRestoreSnapshotResponse,
@@ -21,10 +22,12 @@ import {
 	encodeCreateSessionRequest,
 	encodeCreateSnapshotRequest,
 	encodeDeleteSnapshotRequest,
+	encodeFetchToolDetailRequest,
 	encodeGetHistoryRequest,
 	encodeListSnapshotsRequest,
 	encodeRenameSessionRequest,
 	encodeCancelGenerationRequest,
+	encodeCancelToolCallRequest,
 	encodeRestoreSnapshotRequest,
 	encodeResumeSessionRequest,
 	encodeSessionStreamHandshake,
@@ -358,6 +361,92 @@ suite('grpc first-send / attach protobuf wire', () => {
 		}
 		assert.strictEqual(strings.get(1), 'sess-1');
 		assert.strictEqual(strings.get(2), 'root');
+	});
+
+	test('encodeCancelToolCallRequest writes session_id/agent_id/tool_call_id fields 1-3, not JSON', () => {
+		const encoded = encodeCancelToolCallRequest({ sessionId: 'sess-1', agentId: 'sub:a', toolCallId: 'tc-9' });
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const strings = new Map<number, string>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+		}
+		assert.strictEqual(strings.get(1), 'sess-1');
+		assert.strictEqual(strings.get(2), 'sub:a');
+		assert.strictEqual(strings.get(3), 'tc-9');
+		assert.strictEqual(strings.has(4), false);
+	});
+
+	test('encodeCancelToolCallRequest empty agentId wires root field 2', () => {
+		const encoded = encodeCancelToolCallRequest({ sessionId: 'sess-1', toolCallId: 'tc-1' });
+		const strings = new Map<number, string>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+		}
+		assert.strictEqual(strings.get(2), 'root');
+		assert.strictEqual(strings.get(3), 'tc-1');
+	});
+
+	test('encodeFetchToolDetailRequest writes fields 1-4 and omits subscribe field 10', () => {
+		const encoded = encodeFetchToolDetailRequest({
+			sessionId: 'sess-1',
+			toolCallId: 'tc-1',
+			detailKind: 2,
+			refId: 'ref-9',
+		});
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const strings = new Map<number, string>();
+		const numbers = new Map<number, number>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+			if (field.wireType === 0) {
+				numbers.set(field.field, Number(field.varint));
+			}
+		}
+		assert.strictEqual(strings.get(1), 'sess-1');
+		assert.strictEqual(strings.get(2), 'tc-1');
+		assert.strictEqual(numbers.get(3), 2);
+		assert.strictEqual(strings.get(4), 'ref-9');
+		assert.strictEqual(strings.has(5), false);
+		assert.strictEqual(numbers.has(10), false);
+	});
+
+	test('encodeFetchToolDetailRequest omits default detail_kind field 3', () => {
+		const encoded = encodeFetchToolDetailRequest({
+			sessionId: 'sess-1',
+			toolCallId: 'tc-1',
+			detailKind: 0,
+			refId: 'ref-9',
+		});
+		const numbers = new Map<number, number>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 0) {
+				numbers.set(field.field, Number(field.varint));
+			}
+		}
+		assert.strictEqual(numbers.has(3), false);
+		assert.strictEqual(numbers.has(10), false);
+	});
+
+	test('decodeFetchToolDetailResponse reads success/content/truncated/total_bytes/error_message', () => {
+		const encoded = Buffer.concat([
+			encodeInt32Field(1, 1),
+			encodeStringField(2, 'detail-body'),
+			encodeInt32Field(4, 1),
+			encodeInt64Field(5, 4096),
+			encodeStringField(7, 'too large'),
+		]);
+		const decoded = decodeFetchToolDetailResponse(encoded);
+		assert.strictEqual(decoded.success, true);
+		assert.strictEqual(decoded.content, 'detail-body');
+		assert.strictEqual(decoded.truncated, true);
+		assert.strictEqual(decoded.total_bytes, 4096);
+		assert.strictEqual(decoded.error_message, 'too large');
 	});
 
 	test('encodeListSnapshotsRequest writes session_id field 1, not JSON', () => {

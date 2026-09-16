@@ -21,10 +21,13 @@ import {
 	decodeListProviderStatusResponse,
 	decodeListSessionsResponse,
 	decodeListTeamsResponse,
+	decodeMemberStatusResponse,
 	decodeProviderStatus,
 	decodeSaveAgentProfileResponse,
 	decodeSessionInfoResponse,
 	decodeSwitchModelResponse,
+	decodeTaskListResponse,
+	decodeTeamInfoResponse,
 	encodeAgentTreeRequest,
 	encodeDeleteSessionRequest,
 	encodeEmptyProtoMessage,
@@ -36,11 +39,15 @@ import {
 	encodeListProjectRulesRequest,
 	encodeListSessionsRequest,
 	encodeListTeamsRequest,
+	encodeMemberStatusRequest,
 	encodeProbeRpcRequest,
 	encodeSaveAgentProfileRequest,
 	encodeSessionInfoRequest,
 	encodeSetPermissionModeRequest,
+	encodeSetSessionGoalRequest,
 	encodeSwitchModelRequest,
+	encodeTaskListRequest,
+	encodeTeamInfoRequest,
 	encodeUpsertProjectRuleRequest,
 	encodeUpsertProviderCredentialsRequest,
 	SESSION_LIST_FILTER_ALL,
@@ -53,8 +60,10 @@ import {
 	mapListProviderStatusResponse,
 	mapListSessionsResponse,
 	mapListTeamsResponse,
+	mapMemberInfo,
 	mapProviderStatus,
 	mapSessionInfoResponse,
+	mapTaskInfo,
 } from '../../node/grpc/grpcClientMappers.js';
 import {
 	encodeInt32Field,
@@ -453,6 +462,111 @@ suite('grpc catalog unary protobuf wire', () => {
 		assert.strictEqual(numbers.has(2), false);
 	});
 
+	test('encodeSetSessionGoalRequest writes session_id field 1 and goal field 2, not JSON', () => {
+		const encoded = encodeSetSessionGoalRequest({ sessionId: 'sess-1', goal: 'Ship the slice' });
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const strings = new Map<number, string>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+		}
+		assert.strictEqual(strings.get(1), 'sess-1');
+		assert.strictEqual(strings.get(2), 'Ship the slice');
+		assert.strictEqual(strings.has(3), false);
+	});
+
+	test('encodeMemberStatusRequest and encodeTaskListRequest write session_id/agent_id fields 1-2', () => {
+		const member = encodeMemberStatusRequest('sess-1', 'root');
+		const tasks = encodeTaskListRequest('sess-1', 'root');
+		assert.deepStrictEqual(Buffer.from(member), Buffer.from(tasks));
+		assert.notStrictEqual(member[0], 0x7b);
+		const strings = new Map<number, string>();
+		for (const field of readProtoFields(member)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+		}
+		assert.strictEqual(strings.get(1), 'sess-1');
+		assert.strictEqual(strings.get(2), 'root');
+		assert.strictEqual(strings.has(3), false);
+	});
+
+	test('encodeTeamInfoRequest writes session_id/agent_id/team_id fields 1-3', () => {
+		const encoded = encodeTeamInfoRequest('sess-1', 'root', 7);
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const strings = new Map<number, string>();
+		const numbers = new Map<number, number>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+			if (field.wireType === 0) {
+				numbers.set(field.field, Number(field.varint));
+			}
+		}
+		assert.strictEqual(strings.get(1), 'sess-1');
+		assert.strictEqual(strings.get(2), 'root');
+		assert.strictEqual(numbers.get(3), 7);
+	});
+
+	test('decodeMemberStatusResponse reads MemberInfo fields 1-6; dynamic bool 5 is string', () => {
+		const member = Buffer.concat([
+			encodeStringField(1, 'Alice'),
+			encodeStringField(2, 'member:1'),
+			encodeStringField(3, 'IDLE'),
+			encodeStringField(4, 'p'),
+			encodeInt32Field(5, 1),
+			encodeInt32Field(6, 4),
+		]);
+		const decoded = decodeMemberStatusResponse(encodeMessageField(1, member));
+		const mapped = mapMemberInfo(decoded.members?.[0] ?? {});
+		assert.deepStrictEqual(mapped, {
+			memberName: 'Alice',
+			memberAgentId: 'member:1',
+			status: 'IDLE',
+			preset: 'p',
+			dynamic: 'true',
+			turnCount: 4,
+		});
+	});
+
+	test('decodeTaskListResponse reads BlackboardTask fields 1-7', () => {
+		const task = Buffer.concat([
+			encodeStringField(1, 'task-1'),
+			encodeStringField(2, 'Alice'),
+			encodeStringField(3, 'Investigate'),
+			encodeStringField(4, 'IN_PROGRESS'),
+			encodeStringField(5, 'wait-review'),
+			encodeStringField(6, 'started'),
+			encodeStringField(7, 'Look into the failure'),
+		]);
+		const decoded = decodeTaskListResponse(encodeMessageField(1, task));
+		const mapped = mapTaskInfo(decoded.tasks?.[0] ?? {});
+		assert.deepStrictEqual(mapped, {
+			taskId: 'task-1',
+			subject: 'Look into the failure',
+			owner: 'Alice',
+			status: 'IN_PROGRESS',
+			blockedBy: 'wait-review',
+			lastMessage: 'started',
+			description: 'Investigate',
+		});
+	});
+
+	test('decodeTeamInfoResponse reads team_id field 1 and status field 4', () => {
+		const encoded = Buffer.concat([
+			encodeInt32Field(1, 7),
+			encodeStringField(2, 'ignored-member'),
+			encodeStringField(3, 'ignored-task'),
+			encodeStringField(4, 'ACTIVE'),
+		]);
+		const decoded = decodeTeamInfoResponse(encoded);
+		assert.strictEqual(decoded.team_id, 7);
+		assert.strictEqual(decoded.status, 'ACTIVE');
+		assert.strictEqual(decodeTeamInfoResponse(new Uint8Array(0)).team_id, undefined);
+	});
+
 	test('encodeSwitchModelRequest writes oneof model_type field 10, not 3', () => {
 		const encoded = encodeSwitchModelRequest({
 			sessionId: 'sess-1',
@@ -510,7 +624,7 @@ suite('grpc catalog unary protobuf wire', () => {
 		});
 	});
 
-	test('grpcClient snapshots + prior session unaries use bytes; listTools/listSkills stay JSON', () => {
+	test('grpcClient snapshots + next known unaries use bytes; listTools/listSkills stay JSON', () => {
 		const thisDir = path.dirname(fileURLToPath(import.meta.url));
 		const repoRoot = path.join(thisDir, '../../../../../../');
 		const clientPath = path.join(repoRoot, 'src/vs/platform/universeAgent/node/grpc/grpcClient.ts');
@@ -525,6 +639,12 @@ suite('grpc catalog unary protobuf wire', () => {
 			{ name: 'createSnapshot', encoder: 'encodeCreateSnapshotRequest' },
 			{ name: 'restoreSnapshot', encoder: 'encodeRestoreSnapshotRequest' },
 			{ name: 'deleteSnapshot', encoder: 'encodeDeleteSnapshotRequest' },
+			{ name: 'cancelToolCall', encoder: 'encodeCancelToolCallRequest' },
+			{ name: 'setSessionGoal', encoder: 'encodeSetSessionGoalRequest' },
+			{ name: 'memberStatus', encoder: 'encodeMemberStatusRequest' },
+			{ name: 'taskList', encoder: 'encodeTaskListRequest' },
+			{ name: 'teamInfo', encoder: 'encodeTeamInfoRequest' },
+			{ name: 'fetchToolDetail', encoder: 'encodeFetchToolDetailRequest' },
 		];
 		for (const { name, encoder } of bytesMethods) {
 			const body = extractAsyncMethod(source, name);

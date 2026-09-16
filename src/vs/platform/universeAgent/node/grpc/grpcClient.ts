@@ -549,7 +549,6 @@ import {
 	type EnablePluginResponseWire,
 	type ExitMaintenanceResponseWire,
 	type ExportSessionResponseWire,
-	type FetchToolDetailResponseWire,
 	type FetchToolUsageDetailResponseWire,
 	type FireTriggerResponseWire,
 	type GetCommandDefResponseWire,
@@ -574,7 +573,6 @@ import {
 	type ListSkillsResponseWire,
 	type ListToolsResponseWire,
 	type ListTriggersResponseWire,
-	type MemberStatusResponseWire,
 	type MemoryDeleteResponseWire,
 	type MemoryHistoryResponseWire,
 	type MemoryListResponseWire,
@@ -622,8 +620,6 @@ import {
 	type SkillInfoResponseWire,
 	type StatusResponseWire,
 	type SubscribeToolDetailChunkWire,
-	type TaskListResponseWire,
-	type TeamInfoResponseWire,
 	type TodoResponseWire,
 	type ToggleMcpServerResponseWire,
 	type ToolInfoResponseWire,
@@ -661,16 +657,19 @@ import {
 	decodeCreateSessionResponse,
 	decodeCreateSnapshotResponse,
 	decodeDeleteSnapshotResponse,
+	decodeFetchToolDetailResponse,
 	decodeGetHistoryResponse,
 	decodeListSnapshotsResponse,
 	decodeRestoreSnapshotResponse,
 	decodeResumeSessionResponse,
 	decodeSessionStreamEvent,
 	encodeCancelGenerationRequest,
+	encodeCancelToolCallRequest,
 	encodeChatRequest,
 	encodeCreateSessionRequest,
 	encodeCreateSnapshotRequest,
 	encodeDeleteSnapshotRequest,
+	encodeFetchToolDetailRequest,
 	encodeGetHistoryRequest,
 	encodeListSnapshotsRequest,
 	encodeRenameSessionRequest,
@@ -689,12 +688,15 @@ import {
 	decodeListProviderStatusResponse,
 	decodeListSessionsResponse,
 	decodeListTeamsResponse,
+	decodeMemberStatusResponse,
 	decodeProjectRuleResponse,
 	decodeProviderStatus,
 	decodeResetAgentProfileResponse,
 	decodeSaveAgentProfileResponse,
 	decodeSessionInfoResponse,
 	decodeSwitchModelResponse,
+	decodeTaskListResponse,
+	decodeTeamInfoResponse,
 	decodeDeleteProjectRuleResponse,
 	encodeAgentTreeRequest,
 	encodeClearProviderCredentialsRequest,
@@ -709,12 +711,16 @@ import {
 	encodeListProviderStatusRequest,
 	encodeListSessionsRequest,
 	encodeListTeamsRequest,
+	encodeMemberStatusRequest,
 	encodeProbeRpcRequest,
 	encodeResetAgentProfileRequest,
 	encodeSaveAgentProfileRequest,
 	encodeSessionInfoRequest,
 	encodeSetPermissionModeRequest,
+	encodeSetSessionGoalRequest,
 	encodeSwitchModelRequest,
+	encodeTaskListRequest,
+	encodeTeamInfoRequest,
 	encodeUpsertProjectRuleRequest,
 	encodeUpsertProviderCredentialsRequest,
 } from './grpcCatalogUnaryWire.js';
@@ -1623,20 +1629,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async cancelToolCall(request: UniverseAgentCancelToolCallRequest): Promise<UniverseAgentCancelToolCallResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.CancelToolCall,
+			decodeResumeSessionResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId?.trim() || 'root',
-			tool_call_id: request.toolCallId,
-		});
-		return {
-			ok: wire.success === true,
-			message: wire.message,
-		};
+		return unary(encodeCancelToolCallRequest(request));
 	}
 
 	async runToolInBackground(request: UniverseAgentRunToolInBackgroundRequest): Promise<UniverseAgentRunToolInBackgroundResult> {
@@ -1827,19 +1826,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 
 
 	async setSessionGoal(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; error?: string }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Permission.service,
 			UniverseAgentGrpcServices.Permission.SetSessionGoal,
+			decodeResumeSessionResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			goal: request.goal,
-		});
-		return {
-			ok: wire.success === true,
-			message: wire.error,
-		};
+		return unary(encodeSetSessionGoalRequest(request));
 	}
 
 	async cancelSessionGoal(request: UniverseAgentCancelSessionGoalRequest): Promise<UniverseAgentCancelSessionGoalResult> {
@@ -3794,18 +3787,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async fetchToolDetail(request: UniverseAgentFetchToolDetailRequest): Promise<UniverseAgentFetchToolDetailWireResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, FetchToolDetailResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.FetchToolDetail,
+			decodeFetchToolDetailResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			tool_call_id: request.toolCallId,
-			detail_kind: request.detailKind,
-			ref_id: request.refId,
-			subscribe: false,
-		});
+		const wire = await unary(encodeFetchToolDetailRequest(request));
 		return {
 			success: wire.success === true,
 			content: wire.content ?? '',
@@ -3829,32 +3817,35 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async memberStatus(sessionId: string, agentId: string): Promise<readonly UniverseAgentTeamMemberInfo[]> {
-		const unary = makeUnaryClient<Record<string, unknown>, MemberStatusResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Team.service,
 			UniverseAgentGrpcServices.Team.MemberStatus,
+			decodeMemberStatusResponse,
 		);
-		const wire = await unary({ session_id: sessionId, agent_id: agentId });
+		const wire = await unary(encodeMemberStatusRequest(sessionId, agentId));
 		return (wire.members ?? []).map(mapMemberInfo);
 	}
 
 	async taskList(sessionId: string, agentId: string): Promise<readonly UniverseAgentTeamTaskInfo[]> {
-		const unary = makeUnaryClient<Record<string, unknown>, TaskListResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Team.service,
 			UniverseAgentGrpcServices.Team.TaskList,
+			decodeTaskListResponse,
 		);
-		const wire = await unary({ session_id: sessionId, agent_id: agentId });
+		const wire = await unary(encodeTaskListRequest(sessionId, agentId));
 		return (wire.tasks ?? []).map(mapTaskInfo);
 	}
 
 	async teamInfo(sessionId: string, agentId: string, teamId: number): Promise<UniverseAgentTeamInfo | undefined> {
-		const unary = makeUnaryClient<Record<string, unknown>, TeamInfoResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Team.service,
 			UniverseAgentGrpcServices.Team.TeamInfo,
+			decodeTeamInfoResponse,
 		);
-		const wire = await unary({ session_id: sessionId, agent_id: agentId, team_id: teamId });
+		const wire = await unary(encodeTeamInfoRequest(sessionId, agentId, teamId));
 		if (wire.team_id === undefined) {
 			return undefined;
 		}
