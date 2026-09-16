@@ -7,6 +7,7 @@ import assert from 'assert';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { Event } from '../../../../../base/common/event.js';
 import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { localize } from '../../../../../nls.js';
@@ -397,6 +398,32 @@ suite('Sources diff panel', () => {
 			(button as HTMLButtonElement).disabled = false;
 		}
 		button.click();
+	}
+
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			await run();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	}
 
 	function leftoverLooksLiveApplyConnection(
@@ -932,5 +959,107 @@ suite('Sources diff panel', () => {
 			unstageCommand.dispose();
 			cleanCommand.dispose();
 		}
+	});
+
+	function disconnectedHoldSafeConnection(): IUniverseAgentConnection {
+		return {
+			isEngineConnected: () => false,
+			getConnectionPhase: () => ({ kind: 'disconnected' as const }),
+			getConnectionSnapshot: () => ({}),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+	}
+
+	async function mountConversationDiffReviewPane(test: Mocha.Context, options: {
+		executeCommand?: (...args: unknown[]) => Promise<unknown>;
+		connection?: IUniverseAgentConnection;
+		groupId?: string;
+	} = {}): Promise<{ pane: ConversationDiffReviewPane; parent: HTMLElement }> {
+		const resource = toResource.call(test, '/project/src/d526-review.ts');
+		const original = toResource.call(test, '/project/src/d526-review.ts.git');
+		const instantiationService = stubDiffHonestyServices({
+			throwOnLoad: true,
+			resource,
+			groupId: options.groupId,
+			executeCommand: options.executeCommand,
+			connection: options.connection ?? disconnectedHoldSafeConnection(),
+		});
+		const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		pane.create(parent);
+		const input = store.add(new ConversationDiffReviewInput(resource, original, options.groupId ?? 'workingTree'));
+		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+		return { pane, parent };
+	}
+
+	function stubShowNoticeThrow(pane: ConversationDiffReviewPane, paintBoom: Error): void {
+		(pane as unknown as { showNotice(message: string): void }).showNotice = () => {
+			throw paintBoom;
+		};
+	}
+
+	test('does not leak unhandled rejection when Revert click catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const { pane, parent } = await mountConversationDiffReviewPane(this, {
+				executeCommand: async () => {
+					throw new Error('git boom');
+				},
+			});
+			stubShowNoticeThrow(pane, paintBoom);
+			forceClick(parent.querySelector('.conversation-diff-review-revert'));
+		});
+	});
+
+	test('does not leak unhandled rejection when Unstage click catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const { pane, parent } = await mountConversationDiffReviewPane(this, {
+				groupId: 'index',
+				executeCommand: async () => {
+					throw new Error('git boom');
+				},
+			});
+			stubShowNoticeThrow(pane, paintBoom);
+			forceClick(parent.querySelector('.conversation-diff-review-unstage'));
+		});
+	});
+
+	test('does not leak unhandled rejection when Stage click catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const { pane, parent } = await mountConversationDiffReviewPane(this, {
+				executeCommand: async () => {
+					throw new Error('git boom');
+				},
+			});
+			stubShowNoticeThrow(pane, paintBoom);
+			forceClick(parent.querySelector('.conversation-diff-review-stage'));
+		});
+	});
+
+	test('does not leak unhandled rejection when Accept click catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const { pane, parent } = await mountConversationDiffReviewPane(this, {
+				connection: leftoverConnectedConnection(false),
+			});
+			stubShowNoticeThrow(pane, paintBoom);
+			forceClick(parent.querySelector('.conversation-diff-review-accept'));
+		});
+	});
+
+	test('does not leak unhandled rejection when Preview executeCommand rejects and onUnexpectedError warn-then-rethrows', async function () {
+		const commandBoom = new Error('preview boom');
+		await assertWarnThenRethrowDoesNotLeak(commandBoom, async () => {
+			const { parent } = await mountConversationDiffReviewPane(this, {
+				executeCommand: async () => {
+					throw commandBoom;
+				},
+			});
+			forceClick(parent.querySelector('.conversation-diff-review-open-preview'));
+		});
 	});
 });

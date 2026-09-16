@@ -103,6 +103,20 @@ suite('Sources - Changes git write - 源码接线扫描', () => {
 		assert.ok(runGitAction.includes('finally'));
 		assert.ok(runGitAction.includes('this.updateReviewActions()'));
 	});
+	test('Review pane fire-and-forget voids double-catch onUnexpectedError', () => {
+		const source = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts'), 'utf8');
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		assert.ok(source.includes(`void this.runGitAction(SOURCES_GIT_CLEAN_COMMAND)${doubleCatch}`));
+		assert.ok(source.includes(`void this.runGitAction(SOURCES_GIT_UNSTAGE_COMMAND)${doubleCatch}`));
+		assert.ok(source.includes(`void this.runStage()${doubleCatch}`));
+		assert.ok(source.includes(`void this.runAccept()${doubleCatch}`));
+		assert.ok(source.includes(`void this.commandService.executeCommand('sources.diff.moveToPreview')${doubleCatch}`));
+		assert.ok(!source.includes('void this.runGitAction(SOURCES_GIT_CLEAN_COMMAND);'));
+		assert.ok(!source.includes('void this.runGitAction(SOURCES_GIT_UNSTAGE_COMMAND);'));
+		assert.ok(!source.includes('void this.runStage();'));
+		assert.ok(!source.includes('void this.runAccept();'));
+		assert.ok(!source.includes("void this.commandService.executeCommand('sources.diff.moveToPreview');"));
+	});
 	test('Panel Diff write actions share the Review write gate; Accept does not git.stage', () => {
 		const source = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts'), 'utf8');
 		assert.ok(source.includes('tryWriteSourcesGitStagePaths'));
