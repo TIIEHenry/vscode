@@ -1236,7 +1236,7 @@ export class PluginListWidget extends Disposable {
 
 		this.renderDiscoverySnapshot(content);
 		if (shouldLoadPluginMarketplaceSnapshot(this.visible, this.marketplaceSnapshot.state, this.isBrowseMarketplaceAvailable())) {
-			void this.queryMarketplaceSnapshot();
+			void this.queryMarketplaceSnapshot().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		const installedList = this.renderCardSection(
@@ -1569,7 +1569,7 @@ export class PluginListWidget extends Disposable {
 		retry.label = localize('retry', "Retry");
 		this.cardDisposables.add(retry.onDidClick(() => {
 			this.marketplaceSnapshot.reset();
-			void this.queryMarketplaceSnapshot();
+			void this.queryMarketplaceSnapshot().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 
@@ -1721,7 +1721,7 @@ export class PluginListWidget extends Disposable {
 		);
 
 		if (browse) {
-			void this.queryMarketplace();
+			void this.queryMarketplace().catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			this.marketplaceItems = [];
 			void this.filterPlugins();

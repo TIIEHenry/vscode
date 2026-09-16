@@ -24,6 +24,21 @@ suite('pluginListWidget refresh fire-and-forget (D556)', () => {
 		assert.ok(!source.includes('void this.refresh();'));
 		assert.ok(!source.includes('void this.refresh().catch(onUnexpectedError);'));
 	});
+
+	test('pluginListWidget fire-and-forget queryMarketplace voids double-catch onUnexpectedError (D564)', () => {
+		const source = readPluginListWidgetSource();
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const doubleSnapshot = `void this.queryMarketplaceSnapshot()${doubleCatch};`;
+		const doubleQuery = `void this.queryMarketplace()${doubleCatch};`;
+		assert.strictEqual((source.match(/void this\.queryMarketplaceSnapshot\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
+		assert.strictEqual((source.match(/void this\.queryMarketplace\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.ok(source.includes(doubleSnapshot));
+		assert.ok(source.includes(doubleQuery));
+		assert.ok(!source.includes('void this.queryMarketplaceSnapshot();'));
+		assert.ok(!source.includes('void this.queryMarketplace();'));
+		assert.ok(!source.includes('void this.queryMarketplaceSnapshot().catch(onUnexpectedError);'));
+		assert.ok(!source.includes('void this.queryMarketplace().catch(onUnexpectedError);'));
+	});
 });
 
 function readPluginListWidgetSource(): string {
