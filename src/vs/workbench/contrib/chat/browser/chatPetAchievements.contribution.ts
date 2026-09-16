@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { timeout } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import * as DOM from '../../../../base/browser/dom.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { autorun, IObservable } from '../../../../base/common/observable.js';
@@ -206,8 +207,8 @@ export class ChatPetCustomizationAchievementContribution extends Disposable impl
 				return;
 			}
 			this.observationInitializationStarted = true;
-			void this.initializeCustomizationObservation();
-			void this.initializeMcpObservation();
+			void this.initializeCustomizationObservation().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.initializeMcpObservation().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 
@@ -237,7 +238,7 @@ export class ChatPetCustomizationAchievementContribution extends Disposable impl
 			if (source !== this.observedCustomizationSource) {
 				this.observedCustomizationSource = source;
 				this.customizationBaselineReady = false;
-				void this.establishCustomizationBaseline(skills, instructions, source, true);
+				void this.establishCustomizationBaseline(skills, instructions, source, true).catch(onUnexpectedError).catch(onUnexpectedError);
 				return;
 			}
 			if (!this.customizationBaselineReady) {
