@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-16
-summary: "D24 仍开（七条 loop/tool 已 bytes；SendShell/ListNodes/GetNode/Set·ExitMaintenance/ResetError/ListConfigs 已 grpcClient bytes）。不是 leftover/pills 完成。"
+summary: "D24 仍开（SendShell/ListNodes/GetNode/Maintenance/ResetError/ListConfigs 已 bytes；七条 RemoteAgent wire 未接线）。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
