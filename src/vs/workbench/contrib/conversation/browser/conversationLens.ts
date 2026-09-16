@@ -7,6 +7,7 @@ import './media/conversationLens.css';
 import { reset } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -136,6 +137,28 @@ import {
 } from './conversationLensComposerChrome.js';
 
 /**
+ * D546: mermaid resolve is fire-and-forget. A lone `.then` leaks reject /
+ * then-throw, and a lone `.catch(onUnexpectedError)` still leaks when the
+ * handler warn-then-rethrows (D480).
+ */
+export function scheduleConversationMermaidExtensionResolve(host: {
+	readonly extensionService: IExtensionService;
+	readonly isDisposed: boolean;
+	mermaidExtensionInfo: ConversationMermaidExtensionInfo | undefined;
+	readonly timelineTree: Pick<ConversationTimelineTree, 'setMermaidExtensionInfo'>;
+	applySessionViewTimeline(applied: ConversationViewFrameApplied): void;
+}): void {
+	void resolveConversationMermaidExtension(host.extensionService).then(info => {
+		if (host.isDisposed || host.mermaidExtensionInfo === info) {
+			return;
+		}
+		host.mermaidExtensionInfo = info;
+		host.timelineTree.setMermaidExtensionInfo(info);
+		host.applySessionViewTimeline({ kind: 'baseline' });
+	}).catch(onUnexpectedError).catch(onUnexpectedError);
+}
+
+/**
  * Product Conversation lens: SessionBar + stub timeline + local dock, mounted
  * into {@link IConversationLensSlots}. Not ChatEditor / ChatViewPane.
  */
@@ -251,14 +274,7 @@ export class ConversationLens extends Disposable {
 		this.boundSessionId = slots.sessionKey;
 		this.visualizeOverlay = this._register(this.instantiationService.createInstance(ConversationVisualizeOverlay));
 
-		void resolveConversationMermaidExtension(this.extensionService).then(info => {
-			if (this._store.isDisposed || this.mermaidExtensionInfo === info) {
-				return;
-			}
-			this.mermaidExtensionInfo = info;
-			this.timelineTree.setMermaidExtensionInfo(info);
-			this.applySessionViewTimeline({ kind: 'baseline' });
-		});
+		scheduleConversationMermaidExtensionResolve(this);
 
 		this.mountTimeline(slots.timeline);
 		this.mountDock(slots.dock);
