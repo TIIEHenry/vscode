@@ -205,7 +205,6 @@ suite('grpc AgentService Status protobuf wire', () => {
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'testModelProfile').includes('makeUnaryBytesClient'));
 	});
 });
 

@@ -513,8 +513,6 @@ import {
 	mapUsageResponse,
 	mapWriteFileResponse,
 	mapWriteGitWriteResponse,
-	type BackResponseWire,
-	type BranchResponseWire,
 	type CancelRemoteSessionResponseWire,
 	type ConfigChangedEventWire,
 	type ConnectResponseWire,
@@ -527,12 +525,10 @@ import {
 	type FetchToolUsageDetailResponseWire,
 	type GetRemoteSessionHistoryResponseWire,
 	type GetRemoteSessionStatusResponseWire,
-	type HistoryResponseWire,
 	type ListConfigsResponseWire,
 	type ListLoopSnapshotsResponseWire,
 	type ListNodesResponseWire,
 	type MemoryRebuildEventWire,
-	type PruneResponseWire,
 	type PtyServerMessageWire,
 	type ReloadRemoteAgentsResponseWire,
 	type RemoteAgentConfigWire,
@@ -643,6 +639,34 @@ import {
 	decodeStatusResponse,
 	encodeStatusRequest,
 } from './grpcStatusUnaryWire.js';
+import {
+	decodePauseResponse,
+	encodePauseRequest,
+} from './grpcPauseUnaryWire.js';
+import {
+	decodeHistoryResponse,
+	encodeHistoryRequest,
+} from './grpcAgentHistoryUnaryWire.js';
+import {
+	decodeBackResponse,
+	encodeBackRequest,
+} from './grpcBackUnaryWire.js';
+import {
+	decodePruneResponse,
+	encodePruneRequest,
+} from './grpcPruneUnaryWire.js';
+import {
+	decodeBranchResponse,
+	encodeBranchRequest,
+} from './grpcBranchUnaryWire.js';
+import {
+	decodeResetResponse,
+	encodeResetRequest,
+} from './grpcResetUnaryWire.js';
+import {
+	decodeTestModelProfileResponse,
+	encodeTestModelProfileRequest,
+} from './grpcTestModelProfileUnaryWire.js';
 import {
 	decodeChatResponse,
 	decodeCreateSessionResponse,
@@ -1399,30 +1423,23 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async getAgentHistory(request: UniverseAgentAgentHistoryRequest): Promise<UniverseAgentAgentHistoryResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, HistoryResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.History,
+			decodeHistoryResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-			limit: request.limit,
-			offset: request.offset,
-		});
-		return mapHistoryResponse(wire);
+		return mapHistoryResponse(await unary(encodeHistoryRequest(request)));
 	}
 
 	async pauseAgent(request: UniverseAgentPauseAgentRequest): Promise<UniverseAgentPauseAgentResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.Pause,
+			decodePauseResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-		});
+		const wire = await unary(encodePauseRequest(request));
 		return {
 			ok: wire.success === true,
 			message: wire.message,
@@ -1430,43 +1447,33 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async back(request: UniverseAgentBackRequest): Promise<UniverseAgentBackResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, BackResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.Back,
+			decodeBackResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-			operation_id: request.operationId,
-		});
-		return mapBackResponse(wire);
+		return mapBackResponse(await unary(encodeBackRequest(request)));
 	}
 
 	async prune(request: UniverseAgentPruneRequest): Promise<UniverseAgentPruneResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, PruneResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.Prune,
+			decodePruneResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-		});
-		return mapPruneResponse(wire);
+		return mapPruneResponse(await unary(encodePruneRequest(request)));
 	}
 
 	async resetAgent(request: UniverseAgentResetAgentRequest): Promise<UniverseAgentResetAgentResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.Reset,
+			decodeResetResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-			clear_profile_only: request.clearProfileOnly === true,
-		});
+		const wire = await unary(encodeResetRequest(request));
 		return {
 			ok: wire.success === true,
 			message: wire.message,
@@ -1474,18 +1481,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async branch(request: UniverseAgentBranchRequest): Promise<UniverseAgentBranchResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, BranchResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.Branch,
+			decodeBranchResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-			branch_index: request.branchIndex,
-			turn_id: request.turnId,
-		});
-		return mapBranchResponse(wire);
+		return mapBranchResponse(await unary(encodeBranchRequest(request)));
 	}
 
 	async suspendLoop(request: UniverseAgentSuspendLoopRequest): Promise<UniverseAgentSuspendLoopResult> {
@@ -1703,22 +1705,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async testModelProfile(request: UniverseAgentTestModelProfileRequest): Promise<UniverseAgentTestModelProfileResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, {
-			success?: boolean;
-			error_message?: string;
-		}>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.TestModelProfile,
+			decodeTestModelProfileResponse,
 		);
-		const wire = await unary({
-			provider_id: request.providerId,
-			model_id: request.modelId,
-			api_key: request.apiKey,
-			base_url: request.baseUrl,
-			protocol: request.protocol,
-			params: request.params,
-		});
+		const wire = await unary(encodeTestModelProfileRequest(request));
 		return {
 			ok: wire.success === true,
 			message: wire.error_message,

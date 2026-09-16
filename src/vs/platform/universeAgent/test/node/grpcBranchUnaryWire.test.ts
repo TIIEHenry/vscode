@@ -137,20 +137,17 @@ suite('grpc AgentService Branch protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('branch still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+	test('branch uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const branch = extractAsyncMethod(source, 'branch');
-		assert.ok(branch.includes('makeUnaryClient<'), 'branch still uses JSON makeUnaryClient');
-		assert.ok(!branch.includes('makeUnaryBytesClient'), 'branch must not use makeUnaryBytesClient this slice');
-		assert.ok(!branch.includes('encodeBranchRequest'), 'branch must not call encodeBranchRequest this slice');
-		assert.ok(!branch.includes('decodeBranchResponse'), 'branch must not call decodeBranchResponse this slice');
+		assert.ok(branch.includes('makeUnaryBytesClient'), 'branch must use makeUnaryBytesClient');
+		assert.ok(branch.includes('encodeBranchRequest'), 'branch must call encodeBranchRequest');
+		assert.ok(branch.includes('decodeBranchResponse'), 'branch must call decodeBranchResponse');
 		assert.ok(branch.includes('mapBranchResponse'), 'branch still calls mapBranchResponse');
-		assert.ok(branch.includes('session_id'), 'branch still sends session_id JSON key');
-		assert.ok(branch.includes('agent_id'), 'branch still sends agent_id JSON key');
-		assert.ok(branch.includes('branch_index'), 'branch still sends branch_index JSON key');
-		assert.ok(branch.includes('turn_id'), 'branch still sends turn_id JSON key');
-		assert.ok(!source.includes('grpcBranchUnaryWire'));
+		assert.ok(!branch.includes('makeUnaryClient<'), 'branch must not use JSON makeUnaryClient');
+		assert.ok(!branch.includes('JSON.stringify'), 'branch must not JSON.stringify');
 
+		assert.ok(source.includes('grpcBranchUnaryWire'));
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));

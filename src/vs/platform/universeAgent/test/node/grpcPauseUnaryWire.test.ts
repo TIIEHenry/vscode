@@ -100,18 +100,18 @@ suite('grpc AgentService Pause protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('pauseAgent still JSON unary; skip Connect/SaveSkillContent/Watch/GetModelPreferences/ResolveTurn', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
+	test('pauseAgent uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const pause = extractAsyncMethod(source, 'pauseAgent');
-		assert.ok(pause.includes('makeUnaryClient<'), 'pauseAgent still uses JSON makeUnaryClient');
-		assert.ok(!pause.includes('makeUnaryBytesClient'), 'pauseAgent must not use makeUnaryBytesClient this slice');
-		assert.ok(!pause.includes('encodePauseRequest'), 'pauseAgent must not call encodePauseRequest this slice');
-		assert.ok(!pause.includes('decodePauseResponse'), 'pauseAgent must not call decodePauseResponse this slice');
-		assert.ok(pause.includes('session_id'), 'pauseAgent still sends session_id JSON key');
-		assert.ok(pause.includes('agent_id'), 'pauseAgent still sends agent_id JSON key');
-		assert.ok(pause.includes('wire.success === true'), 'pauseAgent still maps success');
-		assert.ok(!source.includes('grpcPauseUnaryWire'));
+		assert.ok(pause.includes('makeUnaryBytesClient'), 'pauseAgent must use makeUnaryBytesClient');
+		assert.ok(pause.includes('encodePauseRequest'), 'pauseAgent must call encodePauseRequest');
+		assert.ok(pause.includes('decodePauseResponse'), 'pauseAgent must call decodePauseResponse');
+		assert.ok(pause.includes('ok: wire.success === true'), 'pauseAgent must keep ok: wire.success === true');
+		assert.ok(pause.includes('message: wire.message'), 'pauseAgent must keep message: wire.message');
+		assert.ok(!pause.includes('makeUnaryClient<'), 'pauseAgent must not use JSON makeUnaryClient');
+		assert.ok(!pause.includes('JSON.stringify'), 'pauseAgent must not JSON.stringify');
 
+		assert.ok(source.includes('grpcPauseUnaryWire'));
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));

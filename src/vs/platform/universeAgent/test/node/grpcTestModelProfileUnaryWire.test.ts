@@ -125,19 +125,18 @@ suite('grpc AgentService TestModelProfile protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('testModelProfile still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+	test('testModelProfile uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const method = extractAsyncMethod(source, 'testModelProfile');
-		assert.ok(method.includes('makeUnaryClient<'), 'testModelProfile still uses JSON makeUnaryClient');
-		assert.ok(!method.includes('makeUnaryBytesClient'), 'testModelProfile must not use makeUnaryBytesClient this slice');
-		assert.ok(!method.includes('encodeTestModelProfileRequest'), 'testModelProfile must not call encodeTestModelProfileRequest this slice');
-		assert.ok(!method.includes('decodeTestModelProfileResponse'), 'testModelProfile must not call decodeTestModelProfileResponse this slice');
+		assert.ok(method.includes('makeUnaryBytesClient'), 'testModelProfile must use makeUnaryBytesClient');
+		assert.ok(method.includes('encodeTestModelProfileRequest'), 'testModelProfile must call encodeTestModelProfileRequest');
+		assert.ok(method.includes('decodeTestModelProfileResponse'), 'testModelProfile must call decodeTestModelProfileResponse');
 		assert.ok(method.includes('ok: wire.success === true'), 'testModelProfile must keep ok: wire.success === true');
 		assert.ok(method.includes('message: wire.error_message'), 'testModelProfile must keep message: wire.error_message');
-		assert.ok(method.includes('provider_id'), 'testModelProfile still sends provider_id JSON key');
-		assert.ok(method.includes('params: request.params'), 'testModelProfile still sends params JSON key');
-		assert.ok(!source.includes('grpcTestModelProfileUnaryWire'));
+		assert.ok(!method.includes('makeUnaryClient<'), 'testModelProfile must not use JSON makeUnaryClient');
+		assert.ok(!method.includes('JSON.stringify'), 'testModelProfile must not JSON.stringify');
 
+		assert.ok(source.includes('grpcTestModelProfileUnaryWire'));
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));

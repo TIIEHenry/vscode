@@ -118,6 +118,22 @@ suite('grpc AgentService Back protobuf wire', () => {
 		assert.ok(!/\bResolveTurn\b/.test(source));
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
+
+	test('back uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
+		const back = extractAsyncMethod(source, 'back');
+		assert.ok(back.includes('makeUnaryBytesClient'), 'back must use makeUnaryBytesClient');
+		assert.ok(back.includes('encodeBackRequest'), 'back must call encodeBackRequest');
+		assert.ok(back.includes('decodeBackResponse'), 'back must call decodeBackResponse');
+		assert.ok(back.includes('mapBackResponse'), 'back still calls mapBackResponse');
+		assert.ok(!back.includes('makeUnaryClient<'), 'back must not use JSON makeUnaryClient');
+		assert.ok(!back.includes('JSON.stringify'), 'back must not JSON.stringify');
+
+		assert.ok(source.includes('grpcBackUnaryWire'));
+		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+	});
 });
 
 function grpcDir(): string {
@@ -129,6 +145,14 @@ function grpcDir(): string {
 	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcBackUnaryWire.ts')));
 	assert.ok(dir, 'grpcBackUnaryWire.ts not found from cwd or import.meta');
 	return dir;
+}
+
+function extractAsyncMethod(source: string, name: string): string {
+	const start = source.indexOf(`\tasync ${name}(`);
+	assert.ok(start >= 0, `missing async ${name}(`);
+	const nextAsync = source.indexOf('\n\tasync ', start + 1);
+	const end = nextAsync >= 0 ? nextAsync : source.length;
+	return source.slice(start, end);
 }
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {

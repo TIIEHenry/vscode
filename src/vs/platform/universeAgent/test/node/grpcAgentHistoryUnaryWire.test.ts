@@ -183,19 +183,17 @@ suite('grpc AgentService History protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('getAgentHistory still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+	test('getAgentHistory uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const agentHistory = extractAsyncMethod(source, 'getAgentHistory');
-		assert.ok(agentHistory.includes('makeUnaryClient<'), 'getAgentHistory still uses JSON makeUnaryClient');
-		assert.ok(!agentHistory.includes('makeUnaryBytesClient'), 'getAgentHistory must not use makeUnaryBytesClient this slice');
-		assert.ok(!agentHistory.includes('encodeHistoryRequest'), 'getAgentHistory must not call encodeHistoryRequest this slice');
-		assert.ok(!agentHistory.includes('decodeHistoryResponse'), 'getAgentHistory must not call decodeHistoryResponse this slice');
+		assert.ok(agentHistory.includes('makeUnaryBytesClient'), 'getAgentHistory must use makeUnaryBytesClient');
+		assert.ok(agentHistory.includes('encodeHistoryRequest'), 'getAgentHistory must call encodeHistoryRequest');
+		assert.ok(agentHistory.includes('decodeHistoryResponse'), 'getAgentHistory must call decodeHistoryResponse');
 		assert.ok(agentHistory.includes('mapHistoryResponse'), 'getAgentHistory still calls mapHistoryResponse');
-		assert.ok(agentHistory.includes('session_id'), 'getAgentHistory still sends session_id JSON key');
-		assert.ok(agentHistory.includes('agent_id'), 'getAgentHistory still sends agent_id JSON key');
-		assert.ok(agentHistory.includes('limit'), 'getAgentHistory still sends limit JSON key');
-		assert.ok(agentHistory.includes('offset'), 'getAgentHistory still sends offset JSON key');
-		assert.ok(!source.includes('grpcAgentHistoryUnaryWire'));
+		assert.ok(!agentHistory.includes('makeUnaryClient<'), 'getAgentHistory must not use JSON makeUnaryClient');
+		assert.ok(!agentHistory.includes('JSON.stringify'), 'getAgentHistory must not JSON.stringify');
+
+		assert.ok(source.includes('grpcAgentHistoryUnaryWire'));
 
 		const sessionHistory = extractAsyncMethod(source, 'getHistory');
 		assert.ok(sessionHistory.includes('encodeGetHistoryRequest'));
@@ -210,7 +208,7 @@ suite('grpc AgentService History protobuf wire', () => {
 		assert.ok(watchStart >= 0, 'missing openWatchConfigStream(');
 		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);
 		const watchBody = source.slice(watchStart, watchEnd >= 0 ? watchEnd : source.length);
-		assert.ok(watchBody.includes('makeServerStreamClient<Record<string, unknown>'));
+		assert.ok(!watchBody.includes('makeUnaryBytesClient'));
 		assert.ok(!watchBody.includes('grpcAgentHistoryUnaryWire'));
 	});
 });

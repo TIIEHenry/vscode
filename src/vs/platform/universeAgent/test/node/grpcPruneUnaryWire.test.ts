@@ -115,22 +115,20 @@ suite('grpc AgentService Prune protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('prune still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+	test('prune uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const prune = extractAsyncMethod(source, 'prune');
-		assert.ok(prune.includes('makeUnaryClient<'), 'prune still uses JSON makeUnaryClient');
-		assert.ok(!prune.includes('makeUnaryBytesClient'), 'prune must not use makeUnaryBytesClient this slice');
-		assert.ok(!prune.includes('encodePruneRequest'), 'prune must not call encodePruneRequest this slice');
-		assert.ok(!prune.includes('decodePruneResponse'), 'prune must not call decodePruneResponse this slice');
+		assert.ok(prune.includes('makeUnaryBytesClient'), 'prune must use makeUnaryBytesClient');
+		assert.ok(prune.includes('encodePruneRequest'), 'prune must call encodePruneRequest');
+		assert.ok(prune.includes('decodePruneResponse'), 'prune must call decodePruneResponse');
 		assert.ok(prune.includes('mapPruneResponse'), 'prune still calls mapPruneResponse');
-		assert.ok(prune.includes('session_id'), 'prune still sends session_id JSON key');
-		assert.ok(prune.includes('agent_id'), 'prune still sends agent_id JSON key');
-		assert.ok(!source.includes('grpcPruneUnaryWire'));
+		assert.ok(!prune.includes('makeUnaryClient<'), 'prune must not use JSON makeUnaryClient');
+		assert.ok(!prune.includes('JSON.stringify'), 'prune must not JSON.stringify');
 
+		assert.ok(source.includes('grpcPruneUnaryWire'));
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(!/\bWatch\b/.test(prune));
 	});
 });
 
