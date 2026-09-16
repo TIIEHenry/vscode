@@ -13,16 +13,19 @@ import {
 	mapListPendingResponse,
 	mapPairApproveResponse,
 	mapPairRejectResponse,
+	mapRevokeResponse,
 	mapRotateTokenResponse,
 } from '../../node/grpc/grpcClientMappers.js';
 import {
 	decodeListPendingResponse,
 	decodePairApproveResponse,
 	decodePairRejectResponse,
+	decodeRevokeResponse,
 	decodeRotateTokenResponse,
 	encodeListPendingRequest,
 	encodePairApproveRequest,
 	encodePairRejectRequest,
+	encodeRevokeRequest,
 	encodeRotateTokenRequest,
 } from '../../node/grpc/grpcDevicePairUnaryWire.js';
 import {
@@ -117,6 +120,33 @@ suite('grpc DeviceService PairApprove / PairReject / ListPending / RotateToken p
 		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
 		assert.deepStrictEqual(mapPairRejectResponse(wire), { success: true, message: 'rejected' });
 		assert.deepStrictEqual(mapPairRejectResponse(decodePairRejectResponse(new Uint8Array(0))), {
+			success: false,
+			message: '',
+		});
+	});
+
+	test('encodeRevokeRequest writes device_id=1; omits empty; not JSON', () => {
+		const encoded = encodeRevokeRequest({ deviceId: 'dev-r' });
+		assert.ok(encoded.length > 0);
+		assert.notStrictEqual(encoded[0], 0x7b);
+		assert.notStrictEqual(Buffer.from(encoded).toString('utf8'), JSON.stringify({ device_id: 'dev-r' }));
+		assert.deepStrictEqual(Object.fromEntries(protoStrings(encoded)), { 1: 'dev-r' });
+		assert.ok(!protoStrings(encoded).has(2));
+		assert.strictEqual(encodeRevokeRequest({ deviceId: '' }).length, 0);
+	});
+
+	test('decodeRevokeResponse reads success=1 message=2; unused unread', () => {
+		const encoded = Buffer.concat([
+			encodeInt32Field(1, 1),
+			encodeStringField(2, 'revoked'),
+			encodeStringField(3, 'unused-field'),
+		]);
+		const wire = decodeRevokeResponse(encoded);
+		assert.deepStrictEqual(wire, { success: true, message: 'revoked' });
+		assert.deepStrictEqual(Object.keys(wire), ['success', 'message']);
+		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
+		assert.deepStrictEqual(mapRevokeResponse(wire), { success: true, message: 'revoked' });
+		assert.deepStrictEqual(mapRevokeResponse(decodeRevokeResponse(new Uint8Array(0))), {
 			success: false,
 			message: '',
 		});
@@ -223,6 +253,8 @@ suite('grpc DeviceService PairApprove / PairReject / ListPending / RotateToken p
 		assert.ok(/\bencodeListPendingRequest\b/.test(source));
 		assert.ok(/\bdecodeListPendingResponse\b/.test(source));
 		assert.ok(/\bencodePairApproveRequest\b/.test(source));
+		assert.ok(/\bencodeRevokeRequest\b/.test(source));
+		assert.ok(/\bdecodeRevokeResponse\b/.test(source));
 		assert.ok(/\bencodeRotateTokenRequest\b/.test(source));
 		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect/.test(source));
 		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b/.test(source));
@@ -232,13 +264,14 @@ suite('grpc DeviceService PairApprove / PairReject / ListPending / RotateToken p
 		assert.ok(!source.includes('device_token'));
 	});
 
-	test('pairApprove / pairReject / listPending / rotateToken use bytes then map*; listDevices unchanged', () => {
+	test('pairApprove / pairReject / listPending / rotateToken / revoke use bytes then map*; listDevices unchanged', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const methods: Array<{ name: string; encoder: string; decoder: string; mapper: string }> = [
 			{ name: 'pairApprove', encoder: 'encodePairApproveRequest', decoder: 'decodePairApproveResponse', mapper: 'mapPairApproveResponse' },
 			{ name: 'pairReject', encoder: 'encodePairRejectRequest', decoder: 'decodePairRejectResponse', mapper: 'mapPairRejectResponse' },
 			{ name: 'rotateToken', encoder: 'encodeRotateTokenRequest', decoder: 'decodeRotateTokenResponse', mapper: 'mapRotateTokenResponse' },
 			{ name: 'listPending', encoder: 'encodeListPendingRequest', decoder: 'decodeListPendingResponse', mapper: 'mapListPendingResponse' },
+			{ name: 'revoke', encoder: 'encodeRevokeRequest', decoder: 'decodeRevokeResponse', mapper: 'mapRevokeResponse' },
 		];
 		for (const { name, encoder, decoder, mapper } of methods) {
 			const body = extractAsyncMethod(source, name);

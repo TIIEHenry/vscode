@@ -6,6 +6,7 @@
 import type {
 	UniverseAgentPairApproveRequest,
 	UniverseAgentPairRejectRequest,
+	UniverseAgentRevokeRequest,
 	UniverseAgentRotateTokenRequest,
 } from '../../common/universeAgentTypes.js';
 import type {
@@ -13,6 +14,7 @@ import type {
 	PairApproveResponseWire,
 	PairRejectResponseWire,
 	PendingPairInfoWire,
+	RevokeDeviceResponseWire,
 	RotateTokenResponseWire,
 } from './grpcClientMappersCatalog.js';
 import {
@@ -64,6 +66,28 @@ export function encodePairRejectRequest(request: UniverseAgentPairRejectRequest)
  * Shape matches `mapPairRejectResponse` input.
  */
 export function decodePairRejectResponse(bytes: Uint8Array): PairRejectResponseWire {
+	const fields = readProtoFields(bytes);
+	const success = lastVarint(fields, 1);
+	return {
+		success: success === undefined ? undefined : success === 1n,
+		message: lastString(fields, 2),
+	};
+}
+
+/**
+ * DeviceService.Revoke — `device_id`=1.
+ * proto3: empty string omitted.
+ */
+export function encodeRevokeRequest(request: UniverseAgentRevokeRequest): Uint8Array {
+	return encodeStringField(1, request.deviceId);
+}
+
+/**
+ * RevokeDeviceResponse — `success`=1 `message`=2.
+ * proto3: false omitted. Unknown fields unread.
+ * Shape matches `mapRevokeResponse` input.
+ */
+export function decodeRevokeResponse(bytes: Uint8Array): RevokeDeviceResponseWire {
 	const fields = readProtoFields(bytes);
 	const success = lastVarint(fields, 1);
 	return {

@@ -553,7 +553,6 @@ import {
 	type ResolveModelResponseWire,
 	type ResolveTurnResponseWire,
 	type ResumeRemoteSessionResponseWire,
-	type RevokeDeviceResponseWire,
 	type SaveRemoteAgentConfigResponseWire,
 	type SaveSkillContentResponseWire,
 	type SetMaintenanceResponseWire,
@@ -599,10 +598,12 @@ import {
 	decodeListPendingResponse,
 	decodePairApproveResponse,
 	decodePairRejectResponse,
+	decodeRevokeResponse,
 	decodeRotateTokenResponse,
 	encodeListPendingRequest,
 	encodePairApproveRequest,
 	encodePairRejectRequest,
+	encodeRevokeRequest,
 	encodeRotateTokenRequest,
 } from './grpcDevicePairUnaryWire.js';
 import {
@@ -3138,15 +3139,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async revoke(request: UniverseAgentRevokeRequest): Promise<UniverseAgentRevokeResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, RevokeDeviceResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Device.service,
 			UniverseAgentGrpcServices.Device.Revoke,
+			decodeRevokeResponse,
 		);
-		const wire = await unary({
-			device_id: request.deviceId,
-		});
-		return mapRevokeResponse(wire);
+		return mapRevokeResponse(await unary(encodeRevokeRequest(request)));
 	}
 
 	async rotateToken(request: UniverseAgentRotateTokenRequest): Promise<UniverseAgentRotateTokenResult> {
