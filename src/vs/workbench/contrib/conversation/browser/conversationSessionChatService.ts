@@ -62,6 +62,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		}));
 		this._register(this.rosterService.onDidChangeActiveSession(() => this.bindLiveTreeLease()));
 		this._register(this.rosterService.onDidChangeEngineConnection(() => this.bindLiveTreeLease()));
+		this.rosterService.stubTurnSessionLinkCatalog = sessionKey => this.getCatalog(sessionKey);
 		this.bindLiveTreeLease();
 	}
 

@@ -26,7 +26,6 @@ import { decorateConversationSessionPill } from './conversationSessionPill.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
 import { resolveConversationTimelineLink, IConversationTimelineLinkHit } from './resolveConversationTimelineLink.js';
-import { rewriteConversationStubTurnSessionLinks } from './rewriteConversationStubTurnSessionLinks.js';
 import { openUaClientExternalLink } from './uaClientExternalLink.js';
 
 const WORKBENCH_LINK_SCHEMES = new Set<string>([
@@ -64,12 +63,8 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 	renderTurnBody(turn: ConversationStubTurn, container: HTMLElement): IDisposable {
 		const store = new DisposableStore();
 		if (shouldRenderTurnAsMarkdown(turn.kind)) {
-			const text = rewriteConversationStubTurnSessionLinks(
-				turn.text,
-				sessionKey => this.sessionChatService.getCatalog(sessionKey),
-			);
 			store.add(this.markdownRendererService.render(
-				new MarkdownString(text),
+				new MarkdownString(turn.text),
 				{
 					sanitizerConfig: {
 						allowedLinkSchemes: { augment: [ConversationChatInputScheme] },

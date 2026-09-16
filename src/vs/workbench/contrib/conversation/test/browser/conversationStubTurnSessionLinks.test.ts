@@ -7,6 +7,7 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { rewriteConversationStubTurnSessionLinks } from '../../browser/rewriteConversationStubTurnSessionLinks.js';
 import { IConversationSessionChatEntry } from '../../common/conversationSessionChat.js';
+import { ConversationStubService } from '../../browser/conversationStubService.js';
 
 suite('rewriteConversationStubTurnSessionLinks (D472)', () => {
 
@@ -72,5 +73,38 @@ suite('rewriteConversationStubTurnSessionLinks (D472)', () => {
 			originKind: 'sideChat',
 		}]));
 		assert.strictEqual(rewritten, original);
+	});
+});
+
+suite('D472 stub getTurns projection rewrite', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	const toolA: IConversationSessionChatEntry = {
+		sessionKey: 'untitled',
+		chatId: 'tool-a',
+		title: 'Tool A (Stub)',
+		originKind: 'tool',
+	};
+
+	test('path-only + catalog hit writes conversation-chat onto projected assistant text', () => {
+		const service = store.add(new ConversationStubService());
+		service.stubTurnSessionLinkCatalog = sessionKey => sessionKey === 'untitled' ? [toolA] : [];
+		const echo = service.appendStubEchoAssistant('untitled', 'See [Tool A (Stub)](/session/untitled/chat/tool-a).');
+		assert.ok(echo);
+		const projected = service.getTurns('untitled').find(turn => turn.id === echo.id);
+		assert.strictEqual(projected?.text, 'See [Tool A (Stub)](conversation-chat:/session/untitled/chat/tool-a).');
+		const record = service.getTrajectoryRecords('untitled').find(item => item.id === echo.id);
+		assert.strictEqual(record?.text, projected?.text);
+	});
+
+	test('catalog miss leaves getTurns assistant text byte-for-byte unchanged', () => {
+		const service = store.add(new ConversationStubService());
+		service.stubTurnSessionLinkCatalog = () => [];
+		const original = 'See [missing](/session/untitled/chat/no-such-agent).';
+		const echo = service.appendStubEchoAssistant('untitled', original);
+		assert.ok(echo);
+		const projected = service.getTurns('untitled').find(turn => turn.id === echo.id);
+		assert.strictEqual(projected?.text, original);
 	});
 });

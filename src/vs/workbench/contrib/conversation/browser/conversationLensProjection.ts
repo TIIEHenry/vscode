@@ -105,7 +105,8 @@ export function applySessionViewTimeline(host: IConversationLensProjectionHost, 
 		const baseEntries = projectSnapshotToEntries(
 			host.sessionViewLease.snapshot,
 			host.sessionViewLease.attribution,
-			host.sessionViewLease.details);
+			host.sessionViewLease.details,
+			host.stubService.stubTurnSessionLinkCatalog);
 		const reviewNav = host.reviewNavService.getReviewNavForSession(host.sessionViewLease.sessionId);
 		const entries = attachReviewEntries(baseEntries, host.sessionViewLease.snapshot, reviewNav);
 

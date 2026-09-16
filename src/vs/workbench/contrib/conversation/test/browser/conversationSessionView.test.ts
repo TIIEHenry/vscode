@@ -13,13 +13,19 @@ import {
 	entryToRenderableTurn,
 	projectSnapshotToEntries,
 	stubTurnsToSnapshot,
+	type ConversationSessionViewProjection,
 } from '../../browser/conversationSessionView.js';
 import { CONVERSATION_STUB_SEED_SESSIONS, ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import { ConversationStubService } from '../../browser/conversationStubService.js';
+import { IConversationSessionChatEntry } from '../../common/conversationSessionChat.js';
 
 function roundTrip(sessionId: string, turns: readonly ConversationStubTurn[]): ConversationStubTurn[] {
 	const projection = stubTurnsToSnapshot(sessionId, turns);
 	return entriesToLegacyTurns(projectSnapshotToEntries(projection.snapshot, projection.attribution, projection.details));
+}
+
+function projectLegacy(service: ConversationStubService, projection: ConversationSessionViewProjection): ConversationStubTurn[] {
+	return entriesToLegacyTurns(projectSnapshotToEntries(projection.snapshot, projection.attribution, projection.details, service.stubTurnSessionLinkCatalog));
 }
 
 suite('conversationSessionView (S1)', () => {
@@ -151,7 +157,7 @@ suite('conversationSessionView (S1)', () => {
 		const applied: ConversationViewFrameApplied[] = [];
 		store.add(lease.onDidApplyFrame(e => applied.push(e)));
 
-		const legacyBefore = entriesToLegacyTurns(projectSnapshotToEntries(lease.snapshot, lease.attribution, lease.details));
+		const legacyBefore = projectLegacy(service, lease);
 		assert.deepStrictEqual(legacyBefore, service.getTurns(sessionId));
 
 		const turn = service.appendUserTurn(sessionId, 'hello');
@@ -160,7 +166,7 @@ suite('conversationSessionView (S1)', () => {
 		assert.strictEqual(applied[0].kind, 'patches');
 		assert.deepStrictEqual([...(applied[0] as { changedIds: ReadonlySet<string> }).changedIds], [turn.id]);
 		assert.deepStrictEqual(
-			entriesToLegacyTurns(projectSnapshotToEntries(lease.snapshot, lease.attribution, lease.details)),
+			projectLegacy(service, lease),
 			service.getTurns(sessionId),
 		);
 
@@ -233,8 +239,65 @@ suite('conversationSessionView (S1)', () => {
 		lease.requestResync();
 		assert.deepStrictEqual(applied.map(e => e.kind), ['baseline']);
 		assert.deepStrictEqual(
-			entriesToLegacyTurns(projectSnapshotToEntries(lease.snapshot, lease.attribution, lease.details)),
+			projectLegacy(service, lease),
 			service.getTurns(sessionId),
 		);
+	});
+
+	test('D472 path-only catalog hit projects assistant text as conversation-chat', () => {
+		const original = 'See [Tool A (Stub)](/session/untitled/chat/tool-a).';
+		const toolA: IConversationSessionChatEntry = {
+			sessionKey: 'untitled',
+			chatId: 'tool-a',
+			title: 'Tool A (Stub)',
+			originKind: 'tool',
+		};
+		const { snapshot, attribution, details } = stubTurnsToSnapshot('untitled', [
+			{ id: 'a1', kind: 'assistant', text: original },
+		]);
+		const catalog = (sessionKey: string) => sessionKey === 'untitled' ? [toolA] : [];
+		const entries = projectSnapshotToEntries(snapshot, attribution, details, catalog);
+		assert.strictEqual(entries[0]!.text, 'See [Tool A (Stub)](conversation-chat:/session/untitled/chat/tool-a).');
+		assert.strictEqual(entriesToLegacyTurns(entries)[0]!.text, entries[0]!.text);
+	});
+
+	test('D472 catalog miss and omitted catalog leave original path-only bytes', () => {
+		const original = 'See [missing](/session/untitled/chat/no-such-agent).';
+		const { snapshot, attribution, details } = stubTurnsToSnapshot('untitled', [
+			{ id: 'a1', kind: 'assistant', text: original },
+		]);
+		const miss = projectSnapshotToEntries(snapshot, attribution, details, () => []);
+		assert.strictEqual(miss[0]!.text, original);
+		const omitted = projectSnapshotToEntries(snapshot, attribution, details);
+		assert.strictEqual(omitted[0]!.text, original);
+	});
+
+	test('D472 already conversation-chat assistant text is unchanged on catalog hit', () => {
+		const original = 'See [ok](conversation-chat:/session/untitled/chat/tool-a).';
+		const { snapshot, attribution, details } = stubTurnsToSnapshot('untitled', [
+			{ id: 'a1', kind: 'assistant', text: original },
+		]);
+		const entries = projectSnapshotToEntries(snapshot, attribution, details, () => [{
+			sessionKey: 'untitled',
+			chatId: 'tool-a',
+			title: 'Tool A (Stub)',
+			originKind: 'tool',
+		}]);
+		assert.strictEqual(entries[0]!.text, original);
+	});
+
+	test('D472 user path-only text is not rewritten', () => {
+		const original = 'See [Tool A (Stub)](/session/untitled/chat/tool-a).';
+		const { snapshot, attribution, details } = stubTurnsToSnapshot('untitled', [
+			{ id: 'u1', kind: 'user', text: original },
+		]);
+		const entries = projectSnapshotToEntries(snapshot, attribution, details, () => [{
+			sessionKey: 'untitled',
+			chatId: 'tool-a',
+			title: 'Tool A (Stub)',
+			originKind: 'tool',
+		}]);
+		assert.strictEqual(entries[0]!.kind, 'user');
+		assert.strictEqual(entries[0]!.text, original);
 	});
 });

@@ -406,11 +406,22 @@ suite('Conversation timeline session pills', () => {
 		assert.strictEqual(hoverTexts.length, hoverCount);
 	});
 
-	test('D472 parseable stub path + catalog hit rewrites to conversation-chat and pill click still works', async () => {
+	test('D472 adapter does not rewrite path-only hrefs even on catalog hit', () => {
+		const original = 'Stub: see [Tool A (Stub)](/session/untitled/chat/tool-a).';
+		const { container, render } = createHarness({
+			catalog: [{ sessionKey: 'untitled', chatId: 'tool-a', title: 'Tool A (Stub)', originKind: 'tool' }],
+		});
+		render(assistantTurn(original));
+		assert.strictEqual(container.querySelectorAll('a[data-href^="conversation-chat:"]').length, 0);
+		assert.strictEqual(container.querySelectorAll(`.${conversationSessionPillClass}`).length, 0);
+		assert.ok(container.textContent?.includes('Tool A (Stub)'));
+	});
+
+	test('D472 projected conversation-chat text still paints a pill and click still works', async () => {
 		const { container, render, openSubAgentCalls } = createHarness({
 			catalog: [{ sessionKey: 'untitled', chatId: 'tool-a', title: 'Tool A (Stub)', originKind: 'tool' }],
 		});
-		render(assistantTurn('Stub: see [Tool A (Stub)](/session/untitled/chat/tool-a).'));
+		render(assistantTurn('Stub: see [Tool A (Stub)](conversation-chat:/session/untitled/chat/tool-a).'));
 		assert.ok(container.querySelector('a[data-href="conversation-chat:/session/untitled/chat/tool-a"]'));
 		assert.strictEqual(container.querySelectorAll(`.${conversationSessionPillClass}`).length, 1);
 		await clickHref(container, 'conversation-chat:/session/untitled/chat/tool-a');

@@ -15,10 +15,11 @@ export type ConversationStubTurnCatalogLookup = (sessionKey: string) => readonly
 
 /**
  * Projects stub/fixture markdown session links onto `conversation-chat:` when
- * writing `ConversationStubTurn.text`. Only path-only `/session/<key>/chat/<id>`
- * hrefs are parseable here. Catalog must hit `tool` / `fork`; otherwise the
- * source is left byte-for-byte intact (including already-`conversation-chat:`
- * links and any live-engine scheme — R9). No RPC.
+ * writing `ConversationStubTurn.text` at projection (`projectSnapshotToEntries` /
+ * stub `getTurns`). Only path-only `/session/<key>/chat/<id>` hrefs are parseable
+ * here. Catalog must hit `tool` / `fork`; otherwise the source is left
+ * byte-for-byte intact (including already-`conversation-chat:` links and any
+ * live-engine scheme — R9). No RPC. The turn content adapter must not call this.
  */
 export function rewriteConversationStubTurnSessionLinks(
 	text: string,

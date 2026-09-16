@@ -22,7 +22,6 @@ import {
 	type PersistedConversationSession,
 } from './conversationRosterStorage.js';
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/types.js';
-import { entriesToLegacyTurns, projectSnapshotToEntries } from './conversationSessionView.js';
 import { projectSnapshotToTrajectory, projectTurnsToTrajectory, type ConversationTrajectoryRecord, type TrajectoryProjectionOptions } from './conversationTrajectoryModel.js';
 import {
 	ConversationStubService,
@@ -289,7 +288,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (this.canReadCachedEngineProjection()) {
 				const projection = this.engineFrameSource.getCachedProjection(sessionId);
 				if (projection) {
-					return projectSnapshotToTrajectory(projection.snapshot, projection.attribution, projection.details, options);
+					return this.rewriteTrajectoryMessageLinks(
+						projectSnapshotToTrajectory(projection.snapshot, projection.attribution, projection.details, options),
+					);
 				}
 			}
 			return projectTurnsToTrajectory(this.getTurns(sessionId));
@@ -305,7 +306,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (this.canReadCachedEngineProjection()) {
 				const projection = this.engineFrameSource.getCachedProjection(sessionId);
 				if (projection) {
-					return entriesToLegacyTurns(projectSnapshotToEntries(projection.snapshot, projection.attribution, projection.details));
+					return this.projectSnapshotToLegacyTurns(projection.snapshot, projection.attribution, projection.details);
 				}
 			}
 			return this.engineSessions.find(session => session.id === sessionId)?.turns ?? [];
@@ -1770,7 +1771,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		const sessions: PersistedConversationSession[] = this.engineSessions.map(session => {
 			const projection = this.engineFrameSource.getCachedProjection(session.id);
 			const turns = projection
-				? entriesToLegacyTurns(projectSnapshotToEntries(projection.snapshot, projection.attribution, projection.details))
+				? this.projectSnapshotToLegacyTurns(projection.snapshot, projection.attribution, projection.details)
 				: session.turns;
 			const cached: ConversationStubSession = {
 				id: session.id,
@@ -1844,7 +1845,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			sessions: this.engineSessions.map(session => {
 				const projection = this.engineFrameSource.getCachedProjection(session.id);
 				const turns = projection
-					? entriesToLegacyTurns(projectSnapshotToEntries(projection.snapshot, projection.attribution, projection.details))
+					? this.projectSnapshotToLegacyTurns(projection.snapshot, projection.attribution, projection.details)
 					: session.turns;
 				return {
 					id: session.id,

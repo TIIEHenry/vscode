@@ -73,6 +73,17 @@ suite('conversationImportBoundaries', () => {
 		);
 	});
 
+	test('conversationTurnContentAdapter does not rewrite stub session links', () => {
+		const adapterPath = path.join(CONVERSATION_SRC_ROOT, 'browser/conversationTurnContentAdapter.ts');
+		const source = fs.readFileSync(adapterPath, 'utf8');
+		const imports = extractImportPaths(source);
+		assert.deepStrictEqual(
+			imports.filter(importPath => importPath.includes('rewriteConversationStubTurnSessionLinks')),
+			[],
+			'D472 adapter must not rewrite href/text; projection writes conversation-chat',
+		);
+	});
+
 	test('conversationTurnContentAdapter does not import conversationSessionChatService', () => {
 		const adapterPath = path.join(CONVERSATION_SRC_ROOT, 'browser/conversationTurnContentAdapter.ts');
 		const source = fs.readFileSync(adapterPath, 'utf8');

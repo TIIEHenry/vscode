@@ -32,6 +32,7 @@ import {
 	entriesToLegacyTurns,
 	projectSnapshotToEntries,
 } from './conversationSessionView.js';
+import { rewriteConversationStubTurnSessionLinks, type ConversationStubTurnCatalogLookup } from './rewriteConversationStubTurnSessionLinks.js';
 import {
 	ConversationMessageQueueState,
 	ConversationQueueItemHoldReason,
@@ -158,6 +159,11 @@ export interface IConversationRosterService {
 	 */
 	deleteTurn(sessionId: string, turnId: string): boolean;
 	getTurns(sessionId: string): readonly ConversationStubTurn[];
+	/**
+	 * Catalog used when projecting stub/fixture path-only session links onto
+	 * `conversation-chat:` (D472). Bound by session-chat; omitted in tests → skip rewrite.
+	 */
+	stubTurnSessionLinkCatalog?: ConversationStubTurnCatalogLookup;
 	getTrajectoryRecords(sessionId: string, options?: TrajectoryProjectionOptions): readonly ConversationTrajectoryRecord[];
 	getSessionSync(sessionId: string): SyncChrome;
 	getSessionSource(sessionId: string): ConversationSessionSource;
@@ -266,6 +272,7 @@ export class ConversationStubService extends Disposable implements IConversation
 	readonly onDidFailEngineAction = Event.None;
 
 	protected frameSource!: ConversationStubFrameSource;
+	stubTurnSessionLinkCatalog: ConversationStubTurnCatalogLookup | undefined;
 
 	constructor(storageService?: IStorageService, configurationService?: IConfigurationService) {
 		super();
@@ -434,16 +441,46 @@ export class ConversationStubService extends Disposable implements IConversation
 
 	getTurns(sessionId: string): readonly ConversationStubTurn[] {
 		const projection = this.frameSource.project(sessionId);
-		return entriesToLegacyTurns(projectSnapshotToEntries(projection.snapshot, projection.attribution, projection.details));
+		return this.projectSnapshotToLegacyTurns(projection.snapshot, projection.attribution, projection.details);
 	}
 
 	getTrajectoryRecords(sessionId: string, options?: TrajectoryProjectionOptions): readonly ConversationTrajectoryRecord[] {
 		const projection = this.frameSource.project(sessionId);
-		const records = projectSnapshotToTrajectory(projection.snapshot, projection.attribution, projection.details, options);
+		const records = this.rewriteTrajectoryMessageLinks(
+			projectSnapshotToTrajectory(projection.snapshot, projection.attribution, projection.details, options),
+		);
 		if (shouldMergeTrajectoryFixtureExtras(sessionId, this.isEngineConnected())) {
 			return mergeTrajectoryFixtureExtras(sessionId, records);
 		}
 		return records;
+	}
+
+	protected projectSnapshotToLegacyTurns(
+		snapshot: Parameters<typeof projectSnapshotToEntries>[0],
+		attribution: Parameters<typeof projectSnapshotToEntries>[1],
+		details: Parameters<typeof projectSnapshotToEntries>[2],
+	): ConversationStubTurn[] {
+		return entriesToLegacyTurns(projectSnapshotToEntries(snapshot, attribution, details, this.stubTurnSessionLinkCatalog));
+	}
+
+	protected rewriteTrajectoryMessageLinks(records: readonly ConversationTrajectoryRecord[]): ConversationTrajectoryRecord[] {
+		const catalog = this.stubTurnSessionLinkCatalog;
+		if (!catalog) {
+			return records as ConversationTrajectoryRecord[];
+		}
+		let changed = false;
+		const next = records.map(record => {
+			if (record.kind !== 'message') {
+				return record;
+			}
+			const text = rewriteConversationStubTurnSessionLinks(record.text, catalog);
+			if (text === record.text) {
+				return record;
+			}
+			changed = true;
+			return { ...record, text };
+		});
+		return changed ? next : records as ConversationTrajectoryRecord[];
 	}
 
 	getSessionSync(sessionId: string): SyncChrome {

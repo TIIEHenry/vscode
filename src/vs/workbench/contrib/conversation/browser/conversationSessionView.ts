@@ -23,6 +23,7 @@ import type {
 import { ConversationVisualizeArgs } from '../common/conversationVisualize.js';
 import { getConversationTurnAriaLabel } from './conversationAccessibility.js';
 import { ConfirmationStatus, ConversationQuestionOptionItem, ConversationStubTurn, ConversationTurnKind, StubTurnKind } from './conversationStubModel.js';
+import { rewriteConversationStubTurnSessionLinks, type ConversationStubTurnCatalogLookup } from './rewriteConversationStubTurnSessionLinks.js';
 
 /**
  * Product view model for the Conversation timeline
@@ -32,6 +33,9 @@ import { ConfirmationStatus, ConversationQuestionOptionItem, ConversationStubTur
  * `SessionViewSnapshot` plus the VS Code attribution / detail sidecars. It is a
  * product mapping (summary kind → entry kind, role join), NOT an event fold: the
  * renderer never sees engine events, seq numbers or runtime epochs.
+ * Optional `catalogForSession` rewrites stub/fixture path-only session links onto
+ * `conversation-chat:` when writing assistant `text` (D472). The turn adapter
+ * must not rewrite.
  *
  * The stub fixture source produces the same snapshot shape via
  * `stubTurnsToSnapshot`, so the stub and the engine share one render path.
@@ -232,13 +236,14 @@ export function projectSnapshotToEntries(
 	snapshot: SessionViewSnapshot,
 	attribution: ReadonlyMap<string, ItemAttribution>,
 	details: ReadonlyMap<string, string>,
+	catalogForSession?: ConversationStubTurnCatalogLookup,
 ): ConversationTimelineEntry[] {
 	const pendingIds = new Set<string>(snapshot.pendingActions.map(action => String(action.requestId)));
 	const ordered: { readonly band: number; readonly orderKey: string; readonly entry: ConversationTimelineEntry }[] = [];
 
 	const sortedTimeline = snapshot.timeline.slice().sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey));
 	for (const item of sortedTimeline) {
-		const entry = timelineItemToEntry(item, attribution.get(String(item.id)), details, pendingIds);
+		const entry = timelineItemToEntry(item, attribution.get(String(item.id)), details, pendingIds, catalogForSession);
 		if (entry) {
 			ordered.push({ band: BAND_TIMELINE, orderKey: item.orderKey, entry });
 		}
@@ -265,13 +270,14 @@ export function projectSnapshotToEntries(
 		const attr = attribution.get(key);
 		const text = block.chunks.slice().sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey)).map(chunk => chunk.text).join('');
 		const kind: ConversationTimelineEntryKind = block.summary.kind === 'reasoning' ? 'thinking' : block.summary.kind === 'tool' ? 'tool' : 'assistant';
+		const overlayText = text.length > 0 ? text : summaryTitle(block.summary);
 		ordered.push({
 			band: BAND_OVERLAY,
 			orderKey: block.orderKey,
 			entry: {
 				id: key,
 				kind,
-				text: text.length > 0 ? text : summaryTitle(block.summary),
+				text: rewriteAssistantSessionLinks(kind, overlayText, catalogForSession),
 				streaming: true,
 				...(block.summary.kind === 'tool' ? {
 					toolName: block.summary.toolName,
@@ -310,11 +316,23 @@ function resolveQuestionRequestId(displayId: string, pendingIds: ReadonlySet<str
 	return sep > 0 ? displayId.slice(0, sep) : displayId;
 }
 
+function rewriteAssistantSessionLinks(
+	kind: ConversationTimelineEntryKind,
+	text: string,
+	catalogForSession: ConversationStubTurnCatalogLookup | undefined,
+): string {
+	if (!catalogForSession || kind !== 'assistant' || text.length === 0) {
+		return text;
+	}
+	return rewriteConversationStubTurnSessionLinks(text, catalogForSession);
+}
+
 function timelineItemToEntry(
 	item: TimelineItemView,
 	attr: ItemAttribution | undefined,
 	details: ReadonlyMap<string, string>,
 	pendingIds: ReadonlySet<string>,
+	catalogForSession: ConversationStubTurnCatalogLookup | undefined,
 ): ConversationTimelineEntry | undefined {
 	const id = String(item.id);
 	const summary = item.summary;
@@ -326,7 +344,7 @@ function timelineItemToEntry(
 			const kind: ConversationTimelineEntryKind = attr?.role === 'user' ? 'user' : attr?.role === 'system' ? 'system' : 'assistant';
 			return {
 				id, kind,
-				text: summary.preview ?? summary.title,
+				text: rewriteAssistantSessionLinks(kind, summary.preview ?? summary.title, catalogForSession),
 				...(attr?.stub && kind === 'assistant' ? { stubEcho: true } : {}),
 				...(summary.streaming ? { streaming: true } : {}),
 				...agent,

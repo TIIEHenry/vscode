@@ -3069,7 +3069,7 @@ suite('ConversationLens', () => {
 		const lease = store.add(service.acquireSessionView(sessionId));
 		assert.deepStrictEqual(
 			service.getTurns(sessionId),
-			entriesToLegacyTurns(projectSnapshotToEntries(lease.snapshot, lease.attribution, lease.details)),
+			entriesToLegacyTurns(projectSnapshotToEntries(lease.snapshot, lease.attribution, lease.details, service.stubTurnSessionLinkCatalog)),
 		);
 	});
 
