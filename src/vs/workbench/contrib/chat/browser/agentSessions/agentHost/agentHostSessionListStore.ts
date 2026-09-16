@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationToken } from '../../../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { Disposable } from '../../../../../../base/common/lifecycle.js';
 import { extUriBiasedIgnorePathCase } from '../../../../../../base/common/resources.js';
@@ -108,7 +109,7 @@ export class AgentHostSessionListStore extends Disposable {
 		this._register(this._workspaceContextService.onDidChangeWorkspaceFolders(() => {
 			this._cacheValid = false;
 			this._filterEntriesToWorkspace();
-			void this.refresh(CancellationToken.None);
+			void this.refresh(CancellationToken.None).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 
