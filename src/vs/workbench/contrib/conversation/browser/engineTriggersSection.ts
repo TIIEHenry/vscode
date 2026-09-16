@@ -5,6 +5,7 @@
 
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
@@ -140,7 +141,7 @@ export class EngineTriggersSection extends Disposable {
 
 		this._register(this.connection.onDidChangeConnection(() => {
 			if (this.sectionActive) {
-				void this.refresh();
+				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -153,7 +154,7 @@ export class EngineTriggersSection extends Disposable {
 		this.sectionActive = active;
 		this.container.style.display = active ? '' : 'none';
 		if (active) {
-			void this.refresh();
+			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -224,7 +225,7 @@ export class EngineTriggersSection extends Disposable {
 				mode: 'failed',
 				featureLabel: ENGINE_TRIGGER_LIST_FEATURE,
 				reason,
-				onRetry: () => void this.refresh(),
+				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 			// D437: leftover rows stay; write chrome must close after list-fail.
 			this.updateWriteActions();
