@@ -570,7 +570,47 @@ suite('grpc memory unary protobuf wire', () => {
 		assert.ok(!source.includes('JSON.stringify'));
 		assert.ok(!/\bencodeMemoryRebuild|\bdecodeMemoryRebuild|\bmapMemoryRebuild/.test(source));
 	});
+
+	test('grpcClient Memory unary uses bytes; Rebuild stream stays JSON', () => {
+		const thisDir = path.dirname(fileURLToPath(import.meta.url));
+		const repoRoot = path.join(thisDir, '../../../../../../');
+		const clientPath = path.join(repoRoot, 'src/vs/platform/universeAgent/node/grpc/grpcClient.ts');
+		const source = fs.readFileSync(clientPath, 'utf8');
+		const methods: Array<{ name: string; encoder: string; decoder: string; mapper: string }> = [
+			{ name: 'saveMemory', encoder: 'encodeMemorySaveRequest', decoder: 'decodeMemorySaveResponse', mapper: 'mapMemorySaveResponse' },
+			{ name: 'searchMemory', encoder: 'encodeMemorySearchRequest', decoder: 'decodeMemorySearchResponse', mapper: 'mapMemorySearchResponse' },
+			{ name: 'searchDeepMemory', encoder: 'encodeMemorySearchDeepRequest', decoder: 'decodeMemorySearchDeepResponse', mapper: 'mapMemorySearchDeepResponse' },
+			{ name: 'readMemory', encoder: 'encodeMemoryReadRequest', decoder: 'decodeMemoryReadResponse', mapper: 'mapMemoryReadResponse' },
+			{ name: 'listMemory', encoder: 'encodeMemoryListRequest', decoder: 'decodeMemoryListResponse', mapper: 'mapMemoryListResponse' },
+			{ name: 'deleteMemory', encoder: 'encodeMemoryDeleteRequest', decoder: 'decodeMemoryDeleteResponse', mapper: 'mapMemoryDeleteResponse' },
+			{ name: 'reflectMemory', encoder: 'encodeMemoryReflectRequest', decoder: 'decodeMemoryReflectResponse', mapper: 'mapMemoryReflectResponse' },
+			{ name: 'revertMemory', encoder: 'encodeMemoryRevertRequest', decoder: 'decodeMemoryRevertResponse', mapper: 'mapMemoryRevertResponse' },
+			{ name: 'historyMemory', encoder: 'encodeMemoryHistoryRequest', decoder: 'decodeMemoryHistoryResponse', mapper: 'mapMemoryHistoryResponse' },
+		];
+		for (const { name, encoder, decoder, mapper } of methods) {
+			const body = extractAsyncMethod(source, name);
+			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
+			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
+			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
+			assert.ok(body.includes(mapper), `${name} must call ${mapper}`);
+			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
+		}
+		const rebuildStart = source.indexOf('\topenRebuildMemoryStream(');
+		assert.ok(rebuildStart >= 0, 'missing openRebuildMemoryStream');
+		const rebuildEnd = source.indexOf('\n\tasync ', rebuildStart + 1);
+		const rebuild = source.slice(rebuildStart, rebuildEnd >= 0 ? rebuildEnd : source.length);
+		assert.ok(rebuild.includes('makeServerStreamClient'), 'openRebuildMemoryStream must stay JSON server-stream');
+		assert.ok(!rebuild.includes('makeUnaryBytesClient'), 'openRebuildMemoryStream must not use bytes unary');
+	});
 });
+
+function extractAsyncMethod(source: string, name: string): string {
+	const start = source.indexOf(`\tasync ${name}(`);
+	assert.ok(start >= 0, `missing async ${name}(`);
+	const nextAsync = source.indexOf('\n\tasync ', start + 1);
+	const end = nextAsync >= 0 ? nextAsync : source.length;
+	return source.slice(start, end);
+}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();

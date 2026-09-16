@@ -517,7 +517,6 @@ import {
 	mapUsageResponse,
 	mapWriteFileResponse,
 	mapWriteGitWriteResponse,
-	type AgentMergeResponseWire,
 	type BackResponseWire,
 	type BranchResponseWire,
 	type CancelRemoteSessionResponseWire,
@@ -537,7 +536,6 @@ import {
 	type ExportSessionResponseWire,
 	type FetchToolUsageDetailResponseWire,
 	type FireTriggerResponseWire,
-	type GetFileInfoResponseWire,
 	type GetGlobalUsageResponseWire,
 	type GetRemoteSessionHistoryResponseWire,
 	type GetRemoteSessionStatusResponseWire,
@@ -545,28 +543,17 @@ import {
 	type HealthCheckResponseWire,
 	type HistoryResponseWire,
 	type ListConfigsResponseWire,
-	type ListFilesResponseWire,
 	type ListLoopSnapshotsResponseWire,
 	type ListNodesResponseWire,
 	type ListPendingResponseWire,
 	type ListTriggersResponseWire,
-	type MemoryDeleteResponseWire,
-	type MemoryHistoryResponseWire,
-	type MemoryListResponseWire,
-	type MemoryReadResponseWire,
 	type MemoryRebuildEventWire,
-	type MemoryReflectResponseWire,
-	type MemoryRevertResponseWire,
-	type MemorySaveResponseWire,
-	type MemorySearchDeepResponseWire,
-	type MemorySearchResponseWire,
 	type PairApproveResponseWire,
 	type PairRejectResponseWire,
 	type PrewarmSessionsResponseWire,
 	type PruneResponseWire,
 	type PtyServerMessageWire,
 	type PurgeSessionResponseWire,
-	type ReadFileResponseWire,
 	type ReloadRemoteAgentsResponseWire,
 	type RemoteAgentConfigWire,
 	type RemoteAgentInfoWire,
@@ -594,7 +581,6 @@ import {
 	type UploadResponseWire,
 	type UpsertTriggerResponseWire,
 	type UsageResponseWire,
-	type WriteFileResponseWire,
 } from './grpcClientMappers.js';
 import {
 	makeUnaryClient,
@@ -748,6 +734,39 @@ import {
 	encodeWriteGitCommitRequest,
 	encodeWriteGitStagePathsRequest,
 } from './grpcGitUnaryWire.js';
+import {
+	decodeMemoryDeleteResponse,
+	decodeMemoryHistoryResponse,
+	decodeMemoryListResponse,
+	decodeMemoryReadResponse,
+	decodeMemoryReflectResponse,
+	decodeMemoryRevertResponse,
+	decodeMemorySaveResponse,
+	decodeMemorySearchDeepResponse,
+	decodeMemorySearchResponse,
+	encodeMemoryDeleteRequest,
+	encodeMemoryHistoryRequest,
+	encodeMemoryListRequest,
+	encodeMemoryReadRequest,
+	encodeMemoryReflectRequest,
+	encodeMemoryRevertRequest,
+	encodeMemorySaveRequest,
+	encodeMemorySearchDeepRequest,
+	encodeMemorySearchRequest,
+} from './grpcMemoryUnaryWire.js';
+import {
+	decodeAgentMergeResponse,
+	decodeGetFileInfoResponse,
+	decodeListFilesResponse,
+	decodeReadFileResponse,
+	decodeWriteFileResponse,
+	encodeAgentMergeRequest,
+	encodeForceWriteFileRequest,
+	encodeGetFileInfoRequest,
+	encodeListFilesRequest,
+	encodeReadFileRequest,
+	encodeWriteFileRequest,
+} from './grpcFileUnaryWire.js';
 import {
 	decodeAddMcpServerResponse,
 	decodeEnablePluginResponse,
@@ -2577,94 +2596,63 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async listFiles(request: UniverseAgentListFilesRequest): Promise<UniverseAgentListFilesResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ListFilesResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.File.service,
 			UniverseAgentGrpcServices.File.ListFiles,
+			decodeListFilesResponse,
 		);
-		const wire = await unary({
-			path: request.path,
-			session_id: request.sessionId,
-			recursive: request.recursive,
-			pattern: request.pattern,
-			max_results: request.maxResults,
-		});
-		return mapListFilesResponse(wire);
+		return mapListFilesResponse(await unary(encodeListFilesRequest(request)));
 	}
 
 	async readFile(request: UniverseAgentReadFileRequest): Promise<UniverseAgentReadFileResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ReadFileResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.File.service,
 			UniverseAgentGrpcServices.File.ReadFile,
+			decodeReadFileResponse,
 		);
-		const wire = await unary({
-			path: request.path,
-			session_id: request.sessionId,
-			start_line: request.startLine,
-			end_line: request.endLine,
-			max_bytes: request.maxBytes,
-		});
-		return mapReadFileResponse(wire);
+		return mapReadFileResponse(await unary(encodeReadFileRequest(request)));
 	}
 
 	async getFileInfo(request: UniverseAgentGetFileInfoRequest): Promise<UniverseAgentGetFileInfoResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, GetFileInfoResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.File.service,
 			UniverseAgentGrpcServices.File.GetFileInfo,
+			decodeGetFileInfoResponse,
 		);
-		const wire = await unary({
-			path: request.path,
-			session_id: request.sessionId,
-		});
-		return mapGetFileInfoResponse(wire);
+		return mapGetFileInfoResponse(await unary(encodeGetFileInfoRequest(request)));
 	}
 
 	async writeFile(request: UniverseAgentWriteFileRequest): Promise<UniverseAgentWriteFileResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, WriteFileResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.File.service,
 			UniverseAgentGrpcServices.File.WriteFile,
+			decodeWriteFileResponse,
 		);
-		const wire = await unary({
-			path: request.path,
-			content: bytesToBase64(request.content),
-			base_hash: request.baseHash,
-			session_id: request.sessionId,
-			base_content: bytesToBase64(request.baseContent),
-		});
-		return mapWriteFileResponse(wire);
+		return mapWriteFileResponse(await unary(encodeWriteFileRequest(request)));
 	}
 
 	async forceWriteFile(request: UniverseAgentForceWriteFileRequest): Promise<UniverseAgentWriteFileResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, WriteFileResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.File.service,
 			UniverseAgentGrpcServices.File.ForceWriteFile,
+			decodeWriteFileResponse,
 		);
-		const wire = await unary({
-			path: request.path,
-			content: bytesToBase64(request.content),
-			session_id: request.sessionId,
-		});
-		return mapWriteFileResponse(wire);
+		return mapWriteFileResponse(await unary(encodeForceWriteFileRequest(request)));
 	}
 
 	async agentMerge(request: UniverseAgentAgentMergeRequest): Promise<UniverseAgentAgentMergeResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, AgentMergeResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.File.service,
 			UniverseAgentGrpcServices.File.AgentMerge,
+			decodeAgentMergeResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			path: request.path,
-			base_content: bytesToBase64(request.baseContent),
-			current_content: bytesToBase64(request.currentContent),
-			user_content: bytesToBase64(request.userContent),
-		});
-		return mapAgentMergeResponse(wire);
+		return mapAgentMergeResponse(await unary(encodeAgentMergeRequest(request)));
 	}
 
 	async readGitSummary(request: UniverseAgentReadGitSummaryRequest): Promise<UniverseAgentReadGitSummaryResult> {
@@ -2750,106 +2738,73 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async saveMemory(request: UniverseAgentSaveMemoryRequest): Promise<UniverseAgentSaveMemoryResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, MemorySaveResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Memory.service,
 			UniverseAgentGrpcServices.Memory.Save,
+			decodeMemorySaveResponse,
 		);
-		const wire = await unary({
-			scope: request.scope,
-			content: request.content,
-			category: request.category,
-		});
-		return mapMemorySaveResponse(wire);
+		return mapMemorySaveResponse(await unary(encodeMemorySaveRequest(request)));
 	}
 
 	async searchMemory(request: UniverseAgentMemorySearchRequest): Promise<UniverseAgentMemorySearchResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, MemorySearchResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Memory.service,
 			UniverseAgentGrpcServices.Memory.Search,
+			decodeMemorySearchResponse,
 		);
-		const wire = await unary({
-			scope: request.scope,
-			query: request.query,
-			keywords: [...request.keywords],
-			limit: request.limit,
-		});
-		return mapMemorySearchResponse(wire);
+		return mapMemorySearchResponse(await unary(encodeMemorySearchRequest(request)));
 	}
 
 	async searchDeepMemory(request: UniverseAgentMemorySearchDeepRequest): Promise<UniverseAgentMemorySearchDeepResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, MemorySearchDeepResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Memory.service,
 			UniverseAgentGrpcServices.Memory.SearchDeep,
+			decodeMemorySearchDeepResponse,
 		);
-		const wire = await unary({
-			scope: request.scope,
-			query: request.query,
-			keywords: [...request.keywords],
-			categories: [...request.categories],
-			limit: request.limit,
-			include_content: request.includeContent,
-		});
-		return mapMemorySearchDeepResponse(wire);
+		return mapMemorySearchDeepResponse(await unary(encodeMemorySearchDeepRequest(request)));
 	}
 
 	async readMemory(request: UniverseAgentReadMemoryRequest): Promise<UniverseAgentReadMemoryResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, MemoryReadResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Memory.service,
 			UniverseAgentGrpcServices.Memory.Read,
+			decodeMemoryReadResponse,
 		);
-		const wire = await unary({
-			scope: request.scope,
-			category: request.category,
-			filename: request.filename,
-			section: request.section,
-			mode: request.mode,
-			forgot: request.forgot,
-		});
-		return mapMemoryReadResponse(wire);
+		return mapMemoryReadResponse(await unary(encodeMemoryReadRequest(request)));
 	}
 
 	async listMemory(request: UniverseAgentMemoryListRequest): Promise<UniverseAgentMemoryListResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, MemoryListResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Memory.service,
 			UniverseAgentGrpcServices.Memory.List,
+			decodeMemoryListResponse,
 		);
-		const wire = await unary({
-			scope: request.scope,
-			category: request.category,
-		});
-		return mapMemoryListResponse(wire);
+		return mapMemoryListResponse(await unary(encodeMemoryListRequest(request)));
 	}
 
 	async deleteMemory(request: UniverseAgentDeleteMemoryRequest): Promise<UniverseAgentDeleteMemoryResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, MemoryDeleteResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Memory.service,
 			UniverseAgentGrpcServices.Memory.Delete,
+			decodeMemoryDeleteResponse,
 		);
-		const wire = await unary({
-			scope: request.scope,
-			category: request.category,
-			filename: request.filename,
-		});
-		return mapMemoryDeleteResponse(wire);
+		return mapMemoryDeleteResponse(await unary(encodeMemoryDeleteRequest(request)));
 	}
 
 	async reflectMemory(request: UniverseAgentReflectMemoryRequest): Promise<UniverseAgentReflectMemoryResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, MemoryReflectResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Memory.service,
 			UniverseAgentGrpcServices.Memory.Reflect,
+			decodeMemoryReflectResponse,
 		);
-		const wire = await unary({
-			scope: request.scope,
-			categories: [...request.categories],
-		});
-		return mapMemoryReflectResponse(wire);
+		return mapMemoryReflectResponse(await unary(encodeMemoryReflectRequest(request)));
 	}
 
 	openRebuildMemoryStream(
@@ -2869,33 +2824,23 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async revertMemory(request: UniverseAgentRevertMemoryRequest): Promise<UniverseAgentRevertMemoryResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, MemoryRevertResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Memory.service,
 			UniverseAgentGrpcServices.Memory.Revert,
+			decodeMemoryRevertResponse,
 		);
-		const wire = await unary({
-			scope: request.scope,
-			category: request.category,
-			filename: request.filename,
-			target_version: request.targetVersion,
-		});
-		return mapMemoryRevertResponse(wire);
+		return mapMemoryRevertResponse(await unary(encodeMemoryRevertRequest(request)));
 	}
 
 	async historyMemory(request: UniverseAgentMemoryHistoryRequest): Promise<UniverseAgentMemoryHistoryResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, MemoryHistoryResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Memory.service,
 			UniverseAgentGrpcServices.Memory.History,
+			decodeMemoryHistoryResponse,
 		);
-		const wire = await unary({
-			scope: request.scope,
-			category: request.category,
-			filename: request.filename,
-			limit: request.limit,
-		});
-		return mapMemoryHistoryResponse(wire);
+		return mapMemoryHistoryResponse(await unary(encodeMemoryHistoryRequest(request)));
 	}
 
 	async listContextVariable(request: UniverseAgentContextVariableListRequest): Promise<UniverseAgentContextVariableListResult> {
