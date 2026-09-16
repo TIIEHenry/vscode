@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -141,6 +143,7 @@ class MockUniverseAgentSessionView extends Disposable implements IUniverseAgentS
 class TrackingSessionViewLease extends Disposable implements IConversationSessionViewLease {
 	readonly onDidApplyFrame = Event.None;
 	disposed = false;
+	whenBindReady: (() => Promise<boolean>) | undefined = undefined;
 
 	constructor(
 		readonly sessionId: string,
@@ -328,5 +331,95 @@ suite('ConversationEngineRosterService live agent tree observation (GC-4)', () =
 		await settle();
 		assert.strictEqual(service.acquireCalls.length, acquireAfterSwitch);
 		assert.strictEqual(treeEvents.at(-1)?.sessionId, 'ua-b');
+	});
+
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			await run();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	}
+
+	test('does not leak unhandled rejection when listed bind monitor rejects and onUnexpectedError warn-then-rethrows', async () => {
+		// monitorListedEngineSessionBind has no method-body catch; bindReady reject still needs double catch.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		class RejectListedBindHarness extends ObservableRosterHarness {
+			rejectBind = false;
+			override acquireSessionView(sessionId: string): IConversationSessionViewLease {
+				const lease = super.acquireSessionView(sessionId) as TrackingSessionViewLease;
+				if (this.rejectBind) {
+					lease.whenBindReady = () => Promise.reject(paintBoom);
+				}
+				return lease;
+			}
+		}
+		const connection = store.add(new MockUniverseAgentConnection());
+		const sessionView = store.add(new MockUniverseAgentSessionView());
+		connection.setListSessions([
+			{ sessionId: 'ua-a', title: 'A' },
+			{ sessionId: 'ua-b', title: 'B' },
+		]);
+		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
+		const service = store.add(new RejectListedBindHarness(
+			connection as unknown as IUniverseAgentConnection,
+			sessionView as unknown as IUniverseAgentSessionView,
+			workspaceToolsGate,
+		));
+		service.pairingHoldSource = connection;
+		connection.setConnected(true);
+		await service.whenEngineCatalogRefreshComplete();
+		await settle();
+		service.rejectBind = true;
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			service.switchSession('ua-b');
+		});
+	});
+
+	test('does not leak unhandled rejection when pending bind monitor rejects and onUnexpectedError warn-then-rethrows', async () => {
+		// monitorPendingEngineSessionBind has no method-body catch; bindReady reject still needs double catch.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		class RejectPendingBindHarness extends ObservableRosterHarness {
+			override acquireSessionView(sessionId: string): IConversationSessionViewLease {
+				const lease = super.acquireSessionView(sessionId) as TrackingSessionViewLease;
+				lease.whenBindReady = () => Promise.reject(paintBoom);
+				return lease;
+			}
+		}
+		const connection = store.add(new MockUniverseAgentConnection());
+		const sessionView = store.add(new MockUniverseAgentSessionView());
+		connection.setListSessions([]);
+		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
+		const service = store.add(new RejectPendingBindHarness(
+			connection as unknown as IUniverseAgentConnection,
+			sessionView as unknown as IUniverseAgentSessionView,
+			workspaceToolsGate,
+		));
+		service.pairingHoldSource = connection;
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			connection.setConnected(true);
+			service.setEngineConnected(true);
+			await service.whenEngineCatalogRefreshComplete();
+		});
 	});
 });

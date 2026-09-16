@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { localize } from '../../../../nls.js';
@@ -192,7 +193,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (!this.shouldAdvertiseClientWorkspaceTools()) {
 				// Workspace-tool advertisement withheld by ua.client.clientTools.advertiseWorkspaceTools.
 			}
-			void this.refreshEngineCatalog();
+			void this.refreshEngineCatalog().catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			this.listCompleted = this.engineSessions.length > 0;
 		}
@@ -364,7 +365,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 					action: 'createSession',
 					error,
 				});
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 			return '';
 		}
 		if (this.wasEverConnected) {
@@ -1527,7 +1528,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			}
 			this.testEngineConnected = undefined;
 			super.setEngineConnected(true);
-			void this.refreshEngineCatalog();
+			void this.refreshEngineCatalog().catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			this.captureEngineCache();
 			this.listCompleted = this.engineSessions.length > 0;
@@ -1582,9 +1583,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		this.liveTreeObservationStore.add(lease.onDidApplyFrame(() => this.emitLiveAgentTreeFromLease(lease)));
 		this.emitLiveAgentTreeFromLease(lease);
 		if (pendingBind) {
-			void this.monitorPendingEngineSessionBind(sessionId, lease);
+			void this.monitorPendingEngineSessionBind(sessionId, lease).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
-			void this.monitorListedEngineSessionBind(sessionId, lease, this.listedBindMonitorGeneration);
+			void this.monitorListedEngineSessionBind(sessionId, lease, this.listedBindMonitorGeneration).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
