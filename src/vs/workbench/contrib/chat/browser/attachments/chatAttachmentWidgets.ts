@@ -15,6 +15,7 @@ import { HoverPosition } from '../../../../../base/browser/ui/hover/hoverWidget.
 import { DomScrollableElement } from '../../../../../base/browser/ui/scrollbar/scrollableElement.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { toErrorMessage } from '../../../../../base/common/errorMessage.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import * as event from '../../../../../base/common/event.js';
 import { IMarkdownString, MarkdownString } from '../../../../../base/common/htmlContent.js';
 import { Iterable } from '../../../../../base/common/iterator.js';
@@ -555,7 +556,7 @@ export class ImageAttachmentWidget extends AbstractChatAttachmentWidget {
 
 		// Hydrated attachments need disk bytes so the preview does not fall back to a generic file icon.
 		if (!imageData && resource && omittedState !== OmittedState.Full && omittedState !== OmittedState.ImageLimitExceeded) {
-			void this.loadImageBytes(resource, renderImageElements);
+			void this.loadImageBytes(resource, renderImageElements).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 		this.attachSaveButton(resource, imageData, attachment.name, options.supportsDeletion);
 
