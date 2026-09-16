@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "关仓 FireTriggerWebhook/InstallSessionDemoFake bytes 与 D542–D549 双链。compile-client 0。聚焦 286。D24 仍开。不是 leftover/pills 完成。"
+summary: "关仓 FireTriggerWebhook/InstallSessionDemoFake bytes 与 D542–D549 双链。D551 工位 D 四处 refresh 升双链（未提交）。compile-client 0。聚焦 286。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -27,6 +27,7 @@ summary: "关仓 FireTriggerWebhook/InstallSessionDemoFake bytes 与 D542–D549
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **D** | D551 history-list 四处 refresh 升双链（未提交）。D24 仍开。不是 leftover/pills 完成 |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
@@ -36,7 +37,7 @@ summary: "关仓 FireTriggerWebhook/InstallSessionDemoFake bytes 与 D542–D549
 |:---|:-----|
 | [D24](deferred-gaps.md) | **仍开**：webhook/demoFake **已** bytes；ClearSessionDemoFake / Get·SetModelPreferences / ResolveTurn / Connect / SaveSkillContent / Watch·Rebuild 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
-| [D542](deferred-gaps.md)–[D549](deferred-gaps.md) | **closed** 本文件 leftover catch；leftover **未**全局完成 |
+| [D542](deferred-gaps.md)–[D549](deferred-gaps.md)/[D551](deferred-gaps.md) | **closed** 本文件 leftover catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |

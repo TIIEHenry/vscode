@@ -151,17 +151,17 @@ export class ConversationEngineHistoryList extends Disposable {
 		}));
 		this._register(this.connection.onDidChangeConnection(() => {
 			if (this.open) {
-				void this.refresh().catch(onUnexpectedError);
+				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 		this._register(this.roster.onDidChangeActiveSession(() => {
 			if (this.open) {
-				void this.refresh().catch(onUnexpectedError);
+				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 		this._register(this.roster.onDidChangeEngineConnection(() => {
 			if (this.open) {
-				void this.refresh().catch(onUnexpectedError);
+				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -182,7 +182,7 @@ export class ConversationEngineHistoryList extends Disposable {
 		this.open = true;
 		this.overlayElement.hidden = false;
 		this.button.element.setAttribute('aria-expanded', 'true');
-		void this.refresh().catch(onUnexpectedError);
+		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	close(): void {
