@@ -4,13 +4,13 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "A D24 四 snapshot unary 已 bytes；D471 split/fence 已收；D24 仍开。不是 leftover/pills 完成。R9/D405 仍开"
+summary: "merge compile-client 0；聚焦测 71 passing。D471 closed；D24 仍开。不是 leftover/pills 完成。R9/D405 仍开"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。产品状态 → [traceability](../../docs/product/traceability.md)（生成列）；方案状态 → [plans INDEX](../plans/INDEX.md)（生成列）；延期 → [deferred-gaps](deferred-gaps.md)。历史槽位 catalog 流水 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
-### 已合入（`MERGE_SHA` 本关仓提交；`npm run compile-client` 0；聚焦测 87 passing）
+### 已合入（`MERGE_SHA` 本关仓提交；`npm run compile-client` 0；聚焦测 71 passing）
 | 切片 | 提交 / 落点 |
 |:-----|:------------|
 | **GFS-1** | `32f71812` / `32198d0b` — [giant-file-split](../plans/giant-file-split.md)：`grpcClient` mapper 特征测 + facade / mappers / calls 拆分 |
@@ -40,11 +40,11 @@ summary: "A D24 四 snapshot unary 已 bytes；D471 split/fence 已收；D24 仍
 | **UA chrome visual** | `bb365bd7d3e` — SessionBar `.is-medium`；Inbox overlay 绝对定位；Engine 断连 CTA 去重；Client 360；Inspect+filter；Sources 空态。不升 PRD。**不是** leftover/pills 完成 |
 | **A D24 + D D471** | `a87c4da1b61` / `0f0ed29d2c8` — 四 snapshot unary bytes；split/fence 夹具。[D471](deferred-gaps.md) **closed**。[D24](deferred-gaps.md) **仍开**（listTools JSON）。不是 leftover/pills 完成 |
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。**2026-09-12**：仓外 PIN 已换。grpcurl 复验 **List/Create PASS**（含旧 session-100/101）；**[D25](deferred-gaps.md)/[D26](deferred-gaps.md) 已闭**。同日 seed `provider:state` + `models.json` 后重启，grpcurl **Chat PASS**（`gemini-3.8-flash-high`，`textDelta`=`pong`，`turnComplete`/`end_turn`；无 `MODEL_PROFILE_*`）。这是引擎面证据，不是 IDE Conversation 接通冒烟。未升 PRD-008。引擎 A–F 已合；本仓 **node + `IUniverseAgentConnection` 已挂**。Provider/Rules/Hooks **只读列表**已接（无凭据/规则写表单）。Projects 按会话 `work_dir` 分组、Navigator `ListTeams` 标题、Review 历史 chip **已接**。[m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 进行中（2026-09-16 · A snapshot bytes + D471 closed；D24 仍开；不是 leftover/pills 完成）
+### 进行中（2026-09-16 · compile-client 0 · 71 passing；D24 仍开；不是 leftover/pills 完成）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
-| **A/D** | snapshot + D471 | A：四 snapshot unary 已 bytes、[D24](deferred-gaps.md) **仍开**；D：split **6/0** + fence **9/0**、[D471](deferred-gaps.md) **closed**。未 compile-client |
-| **B/C** | — | B 脏 `worktree-pool.md` 跳过 reset；C 脏 `dev/loop` gitlink 勿 add、试 ff-only |
+| **A/D** | snapshot + D471 | A：四 snapshot unary bytes、[D24](deferred-gaps.md) **仍开**；D：split/fence 夹具、[D471](deferred-gaps.md) **closed**。compile-client **0**；聚焦 **71 passing / 0 fail** |
+| **B/C** | — | B 脏 `worktree-pool.md` 跳过 `-B`；C 脏 `dev/loop` gitlink 勿 add、试 ff-only |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 
 <details>
@@ -182,18 +182,18 @@ summary: "A D24 四 snapshot unary 已 bytes；D471 split/fence 已收；D24 仍
 ## 工位表（P0 盘点 · 2026-09-16 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | MERGE_SHA | 干净 | 0 | A D24 + D Sessions stub 已合；D471 字母槽已收未合；D24 仍开 |
-| A | `vscode-WorkTrees/A` | `loop/A` | MERGE_SHA | 干净 | 0 | `idle`；`checkout -B loop/A` 跟 MERGE_SHA |
-| B | `vscode-WorkTrees/B` | `loop/B` | `28ffd1ae9f2` | 脏 `worktree-pool.md` | 0 | 跳过 reset；脏树勿 `-B` |
-| C | `vscode-WorkTrees/C` | `loop/C` | `b71dcd46c66` | 脏 `dev/loop` gitlink | 0 | 试 ff-only；失败则跳过；勿 add |
-| D | `vscode-WorkTrees/D` | `loop/D` | MERGE_SHA | 脏 split/fence 夹具 | 0 | D471 closed 未 commit；勿宣称 leftover/pills 完成 |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | MERGE_SHA | 干净 | 0 | compile-client 0；71 passing；D471 closed；D24 仍开 |
+| A | `vscode-WorkTrees/A` | `loop/A` | MERGE_SHA | 干净 | 0 | `idle`；`checkout -B loop/A` |
+| B | `vscode-WorkTrees/B` | `loop/B` | `28ffd1ae9f2` | 脏 `worktree-pool.md` | 0 | 脏树勿 `-B`；incoming 重叠则 ff 停 |
+| C | `vscode-WorkTrees/C` | `loop/C` | MERGE_SHA | 脏 `dev/loop` gitlink | 0 | 试 ff-only；勿 add |
+| D | `vscode-WorkTrees/D` | `loop/D` | MERGE_SHA | 干净 | 0 | `idle`；ff-only / `checkout -B`；勿宣称 leftover/pills 完成 |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked` leftover；跳过 |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `ff278772b85` | `dev/loop` + 方案/docs | 0 | 仅 ff-only；失败则记录 |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `ff278772b85` | `dev/loop` + 方案/docs | 0 | 仅 ff-only；非祖先，失败则记录 |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。本仓只读面 + Composer `model_profile_id` **已挂**。钉死工位 seed 后 grpcurl **Chat PASS**。下一刀是 IDE Direct Address 接通后 Composer 发送（PRD-008 仍要隔离 profile 冒烟）。**不升 PRD-008**。不要再清 store。D26 store 已闭，旧「迁移卡死」账见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md) |
-| **loop 切片** | A D24 四 snapshot unary bytes 已合；D471 split/fence 已收。[D24](deferred-gaps.md) **仍开**（`listTools` 仍 JSON）。R9 仍开。edit 仅 ff-only。**D405** 手测仍开。不关 D8/D16/D147。未升 PRD-008。不得宣称 leftover / pills 完成。 |
+| **loop 切片** | compile-client **0**；聚焦 **71 passing / 0 fail**。A D24 bytes + D D471 已合。[D24](deferred-gaps.md) **仍开**（`listTools` JSON）。R9 仍开。**D405** 手测仍开。不关 D8/D16/D147。未升 PRD-008。不得宣称 leftover / pills 完成。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
