@@ -10,24 +10,46 @@ import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { asUnaryProtoBytes } from '../../node/grpc/grpcClientCalls.js';
 import {
+	mapAddMcpServerResponse,
 	mapGetMcpServerStatusesResponse,
 	mapGetMcpServerToolsResponse,
 	mapListMcpServersResponse,
 	mapListPluginsResponse,
+	mapMcpServerConfigFromWire,
 	mapPluginInfoResponse,
+	mapPluginSummary,
+	mapRemoveMcpServerResponse,
+	mapToggleMcpServerResponse,
+	mapUpdateMcpServerResponse,
 } from '../../node/grpc/grpcClientMappers.js';
 import { EMPTY_PROTO_MESSAGE, encodeEmptyProtoMessage } from '../../node/grpc/grpcCatalogUnaryWire.js';
 import {
+	decodeAddMcpServerResponse,
+	decodeEnablePluginResponse,
 	decodeGetMcpServerStatusesResponse,
 	decodeGetMcpServerToolsResponse,
 	decodeListMcpServersResponse,
 	decodeListPluginsResponse,
 	decodePluginInfoResponse,
+	decodeReloadPluginResponse,
+	decodeRemoveMcpServerResponse,
+	decodeScanNewPluginsResponse,
+	decodeToggleMcpServerResponse,
+	decodeUnloadPluginResponse,
+	decodeUpdateMcpServerResponse,
+	encodeAddMcpServerRequest,
+	encodeEnablePluginRequest,
 	encodeGetMcpServerStatusesRequest,
 	encodeGetMcpServerToolsRequest,
 	encodeListMcpServersRequest,
 	encodeListPluginsRequest,
 	encodePluginInfoRequest,
+	encodeReloadPluginRequest,
+	encodeRemoveMcpServerRequest,
+	encodeScanNewPluginsRequest,
+	encodeToggleMcpServerRequest,
+	encodeUnloadPluginRequest,
+	encodeUpdateMcpServerRequest,
 } from '../../node/grpc/grpcMcpPluginUnaryWire.js';
 import {
 	encodeInt32Field,
@@ -348,32 +370,453 @@ suite('grpc mcp/plugin unary protobuf wire', () => {
 		});
 	});
 
-	test('grpcClient MCP list trio and plugin list/info use bytes', () => {
+	test('encodeEnablePluginRequest writes plugin_id=1; enabled default true; false omit; not JSON', () => {
+		const encoded = encodeEnablePluginRequest('plugin-1');
+		assert.notStrictEqual(encoded[0], 0x7b);
+		assert.strictEqual(protoStrings(encoded).get(1), 'plugin-1');
+		assert.strictEqual(protoVarints(encoded).get(2), 1);
+		const omitted = encodeEnablePluginRequest('plugin-1', false);
+		assert.strictEqual(protoStrings(omitted).get(1), 'plugin-1');
+		assert.ok(!protoVarints(omitted).has(2));
+		assert.strictEqual(encodeEnablePluginRequest('', false).length, 0);
+	});
+
+	test('decodeEnablePluginResponse reads plugin=1; Summary 1-7; unknown unread', () => {
+		const plugin = Buffer.concat([
+			encodeStringField(1, 'plugin-1'),
+			encodeStringField(2, 'Hooks'),
+			encodeInt32Field(6, 1),
+			encodeStringField(8, 'unused-plugin'),
+		]);
+		const encoded = Buffer.concat([
+			encodeMessageField(1, plugin),
+			encodeStringField(2, 'unused-field'),
+		]);
+		const wire = decodeEnablePluginResponse(encoded);
+		assert.deepStrictEqual(wire, {
+			plugin: {
+				id: 'plugin-1',
+				display_name: 'Hooks',
+				version: undefined,
+				source: undefined,
+				hook_count: undefined,
+				status: 1,
+				loaded_at: undefined,
+			},
+		});
+		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
+		assert.deepStrictEqual(mapPluginSummary(wire.plugin), {
+			id: 'plugin-1',
+			displayName: 'Hooks',
+			version: '',
+			source: '',
+			hookCount: 0,
+			status: 'disabled',
+			loadedAt: undefined,
+		});
+		assert.deepStrictEqual(decodeEnablePluginResponse(new Uint8Array(0)), { plugin: undefined });
+	});
+
+	test('encodeReloadPluginRequest writes plugin_id=1; omits empty, not JSON', () => {
+		const encoded = encodeReloadPluginRequest('plugin-1');
+		assert.notStrictEqual(encoded[0], 0x7b);
+		assert.strictEqual(protoStrings(encoded).get(1), 'plugin-1');
+		assert.ok(!protoStrings(encoded).has(2));
+		assert.strictEqual(encodeReloadPluginRequest('').length, 0);
+	});
+
+	test('decodeReloadPluginResponse reads plugin=1; unknown unread', () => {
+		const plugin = Buffer.concat([
+			encodeStringField(1, 'plugin-1'),
+			encodeStringField(2, 'Hooks'),
+		]);
+		const encoded = Buffer.concat([
+			encodeMessageField(1, plugin),
+			encodeStringField(2, 'unused-field'),
+		]);
+		const wire = decodeReloadPluginResponse(encoded);
+		assert.strictEqual(wire.plugin?.id, 'plugin-1');
+		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
+		assert.deepStrictEqual(decodeReloadPluginResponse(new Uint8Array(0)), { plugin: undefined });
+	});
+
+	test('encodeUnloadPluginRequest writes plugin_id=1; omits empty, not JSON', () => {
+		const encoded = encodeUnloadPluginRequest('plugin-1');
+		assert.notStrictEqual(encoded[0], 0x7b);
+		assert.strictEqual(protoStrings(encoded).get(1), 'plugin-1');
+		assert.strictEqual(encodeUnloadPluginRequest('').length, 0);
+	});
+
+	test('decodeUnloadPluginResponse reads removed_hook_count=1; unknown unread', () => {
+		const encoded = Buffer.concat([
+			encodeInt32Field(1, 4),
+			encodeStringField(2, 'unused-field'),
+		]);
+		const wire = decodeUnloadPluginResponse(encoded);
+		assert.deepStrictEqual(wire, { removed_hook_count: 4 });
+		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
+		assert.deepStrictEqual(decodeUnloadPluginResponse(new Uint8Array(0)), {
+			removed_hook_count: undefined,
+		});
+	});
+
+	test('encodeScanNewPluginsRequest is empty proto bytes, not JSON {}', () => {
+		const encoded = encodeScanNewPluginsRequest();
+		assert.strictEqual(encoded.length, 0);
+		assert.strictEqual(encodeEmptyProtoMessage().length, 0);
+		assert.ok(encoded === EMPTY_PROTO_MESSAGE || encoded.length === 0);
+		assert.notStrictEqual(JSON.stringify({}), Buffer.from(encoded).toString('utf8'));
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const framed = asUnaryProtoBytes(encoded);
+		assert.ok(Buffer.isBuffer(framed));
+		assert.strictEqual(framed.length, 0);
+	});
+
+	test('decodeScanNewPluginsResponse reads new_plugins=1 skipped_count=2; unknown unread', () => {
+		const plugin = Buffer.concat([
+			encodeStringField(1, 'plugin-new'),
+			encodeStringField(2, 'Fresh'),
+			encodeStringField(8, 'unused-plugin'),
+		]);
+		const encoded = Buffer.concat([
+			encodeMessageField(1, plugin),
+			encodeInt32Field(2, 3),
+			encodeStringField(3, 'unused-field'),
+		]);
+		const wire = decodeScanNewPluginsResponse(encoded);
+		assert.deepStrictEqual(wire, {
+			new_plugins: [{
+				id: 'plugin-new',
+				display_name: 'Fresh',
+				version: undefined,
+				source: undefined,
+				hook_count: undefined,
+				status: 0,
+				loaded_at: undefined,
+			}],
+			skipped_count: 3,
+		});
+		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
+		assert.deepStrictEqual(decodeScanNewPluginsResponse(new Uint8Array(0)), {
+			new_plugins: [],
+			skipped_count: undefined,
+		});
+	});
+
+	test('encodeToggleMcpServerRequest writes 1-4; false/empty omit; not JSON', () => {
+		const encoded = encodeToggleMcpServerRequest({
+			id: 'mcp-1',
+			enabled: true,
+			scope: 'project',
+			workDir: '/proj',
+		});
+		assert.notStrictEqual(encoded[0], 0x7b);
+		assert.strictEqual(protoStrings(encoded).get(1), 'mcp-1');
+		assert.strictEqual(protoVarints(encoded).get(2), 1);
+		assert.strictEqual(protoStrings(encoded).get(3), 'project');
+		assert.strictEqual(protoStrings(encoded).get(4), '/proj');
+		const omitted = encodeToggleMcpServerRequest({
+			id: '',
+			enabled: false,
+			scope: 'global',
+			workDir: '',
+		});
+		assert.ok(!protoVarints(omitted).has(2));
+		assert.ok(!protoStrings(omitted).has(4));
+		assert.strictEqual(protoStrings(omitted).get(3), 'global');
+	});
+
+	test('decodeToggleMcpServerResponse reads success=1 error_message=2; actual_enabled unread', () => {
+		const encoded = Buffer.concat([
+			encodeInt32Field(1, 1),
+			encodeStringField(2, 'ok'),
+			encodeInt32Field(3, 1),
+			encodeStringField(4, 'unused-field'),
+		]);
+		const wire = decodeToggleMcpServerResponse(encoded);
+		assert.deepStrictEqual(wire, {
+			success: true,
+			error_message: 'ok',
+		});
+		assert.ok(!('actual_enabled' in wire));
+		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
+		assert.deepStrictEqual(mapToggleMcpServerResponse(wire), {
+			ok: true,
+			reason: 'ok',
+		});
+		assert.deepStrictEqual(decodeToggleMcpServerResponse(new Uint8Array(0)), {
+			success: false,
+			error_message: undefined,
+		});
+	});
+
+	test('encodeAddMcpServerRequest writes config enum+env map; false/empty omit; not JSON', () => {
+		const encoded = encodeAddMcpServerRequest({
+			config: {
+				id: 'mcp-1',
+				name: 'filesystem',
+				transport: 'stdio',
+				command: 'npx',
+				args: ['-y', 'mcp'],
+				env: { TOKEN: 'secret' },
+				url: 'http://mcp',
+				enabled: true,
+			},
+			testConnection: true,
+			scope: 'project',
+			workDir: '/proj',
+		});
+		assert.notStrictEqual(encoded[0], 0x7b);
+		assert.ok(!Buffer.from(encoded).toString('utf8').includes('STDIO'));
+		const configs = protoMessages(encoded, 1);
+		assert.strictEqual(configs.length, 1);
+		const config = configs[0]!;
+		assert.strictEqual(protoStrings(config).get(1), 'mcp-1');
+		assert.strictEqual(protoStrings(config).get(2), 'filesystem');
+		assert.strictEqual(protoVarints(config).get(3), 1);
+		assert.ok(!protoStrings(config).has(3));
+		assert.strictEqual(protoStrings(config).get(4), 'npx');
+		assert.deepStrictEqual(protoRepeatedStrings(config, 5), ['-y', 'mcp']);
+		const envEntries = protoMessages(config, 6);
+		assert.strictEqual(envEntries.length, 1);
+		assert.strictEqual(protoStrings(envEntries[0]!).get(1), 'TOKEN');
+		assert.strictEqual(protoStrings(envEntries[0]!).get(2), 'secret');
+		assert.ok(!protoStrings(envEntries[0]!).has(3));
+		assert.strictEqual(protoStrings(config).get(7), 'http://mcp');
+		assert.strictEqual(protoVarints(config).get(8), 1);
+		assert.ok(!protoStrings(config).has(10));
+		assert.strictEqual(protoVarints(encoded).get(2), 1);
+		assert.strictEqual(protoStrings(encoded).get(3), 'project');
+		assert.strictEqual(protoStrings(encoded).get(4), '/proj');
+
+		const omitted = encodeAddMcpServerRequest({
+			config: { name: '', transport: 'unknown' },
+			testConnection: false,
+			scope: 'global',
+			workDir: '',
+		});
+		assert.ok(!protoMessages(omitted, 1).length);
+		assert.ok(!protoVarints(omitted).has(2));
+		assert.strictEqual(protoStrings(omitted).get(3), 'global');
+		assert.ok(!protoStrings(omitted).has(4));
+
+		const sse = encodeAddMcpServerRequest({
+			config: { name: 'sse', transport: 'sse' },
+			scope: 'global',
+		});
+		assert.strictEqual(protoVarints(protoMessages(sse, 1)[0]!).get(3), 2);
+		const http = encodeAddMcpServerRequest({
+			config: { name: 'http', transport: 'streamable_http' },
+			scope: 'global',
+		});
+		assert.strictEqual(protoVarints(protoMessages(http, 1)[0]!).get(3), 3);
+	});
+
+	test('decodeAddMcpServerResponse reads 1-3; test_status unread; mapper unchanged', () => {
+		const encoded = Buffer.concat([
+			encodeInt32Field(1, 1),
+			encodeStringField(2, 'ok'),
+			encodeStringField(3, 'assigned-1'),
+			encodeInt32Field(4, 3),
+			encodeStringField(5, 'unused-test'),
+			encodeStringField(6, 'unused-field'),
+		]);
+		const wire = decodeAddMcpServerResponse(encoded);
+		assert.deepStrictEqual(wire, {
+			success: true,
+			error_message: 'ok',
+			assigned_id: 'assigned-1',
+		});
+		assert.ok(!('test_status' in wire));
+		assert.ok(!('test_error' in wire));
+		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
+		assert.deepStrictEqual(mapAddMcpServerResponse(wire), {
+			ok: true,
+			reason: 'ok',
+			assignedId: 'assigned-1',
+		});
+		assert.deepStrictEqual(decodeAddMcpServerResponse(new Uint8Array(0)), {
+			success: false,
+			error_message: undefined,
+			assigned_id: undefined,
+		});
+	});
+
+	test('encodeUpdateMcpServerRequest writes server_id=1 config=2; restart false omit; not JSON', () => {
+		const encoded = encodeUpdateMcpServerRequest({
+			serverId: 'mcp-1',
+			config: {
+				name: 'filesystem',
+				transport: 'sse',
+				enabled: false,
+			},
+			restartConnection: true,
+			scope: 'global',
+			workDir: '/proj',
+		});
+		assert.notStrictEqual(encoded[0], 0x7b);
+		assert.strictEqual(protoStrings(encoded).get(1), 'mcp-1');
+		const config = protoMessages(encoded, 2)[0]!;
+		assert.strictEqual(protoVarints(config).get(3), 2);
+		assert.ok(!protoVarints(config).has(8));
+		assert.strictEqual(protoVarints(encoded).get(3), 1);
+		assert.strictEqual(protoStrings(encoded).get(4), 'global');
+		assert.strictEqual(protoStrings(encoded).get(5), '/proj');
+		const omitted = encodeUpdateMcpServerRequest({
+			serverId: '',
+			config: { name: '', transport: 'unknown' },
+			restartConnection: false,
+			scope: 'global',
+			workDir: '',
+		});
+		assert.ok(!protoVarints(omitted).has(3));
+		assert.ok(!protoStrings(omitted).has(5));
+	});
+
+	test('decodeUpdateMcpServerResponse maps updated_config enum+env; unknown unread', () => {
+		const envEntry = Buffer.concat([
+			encodeStringField(1, 'TOKEN'),
+			encodeStringField(2, 'secret'),
+			encodeStringField(3, 'unused-entry'),
+		]);
+		const config = Buffer.concat([
+			encodeStringField(1, 'mcp-1'),
+			encodeStringField(2, 'filesystem'),
+			encodeInt32Field(3, 1),
+			encodeStringField(4, 'npx'),
+			encodeStringField(5, '-y'),
+			encodeMessageField(6, envEntry),
+			encodeStringField(7, 'http://mcp'),
+			encodeInt32Field(8, 1),
+			encodeStringField(9, 'unused-app'),
+			encodeStringField(10, 'project'),
+		]);
+		const encoded = Buffer.concat([
+			encodeInt32Field(1, 1),
+			encodeStringField(2, 'ok'),
+			encodeMessageField(3, config),
+			encodeStringField(4, 'unused-field'),
+		]);
+		const wire = decodeUpdateMcpServerResponse(encoded);
+		assert.deepStrictEqual(wire, {
+			success: true,
+			error_message: 'ok',
+			updated_config: {
+				id: 'mcp-1',
+				name: 'filesystem',
+				transport: 'stdio',
+				command: 'npx',
+				args: ['-y'],
+				env: { TOKEN: 'secret' },
+				url: 'http://mcp',
+				enabled: true,
+			},
+		});
+		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
+		assert.ok(!('origin' in (wire.updated_config ?? {})));
+		assert.deepStrictEqual(mapUpdateMcpServerResponse(wire), {
+			ok: true,
+			reason: 'ok',
+			config: {
+				id: 'mcp-1',
+				name: 'filesystem',
+				transport: 'stdio',
+				command: 'npx',
+				args: ['-y'],
+				env: { TOKEN: 'secret' },
+				url: 'http://mcp',
+				enabled: true,
+			},
+		});
+		assert.strictEqual(mapMcpServerConfigFromWire({ transport: 1 as unknown as string })?.transport, 'unknown');
+		assert.strictEqual(mapMcpServerConfigFromWire({ transport: 'stdio' })?.transport, 'stdio');
+		assert.deepStrictEqual(decodeUpdateMcpServerResponse(new Uint8Array(0)), {
+			success: false,
+			error_message: undefined,
+			updated_config: undefined,
+		});
+	});
+
+	test('encodeRemoveMcpServerRequest writes 1-4; force false omit; not JSON', () => {
+		const encoded = encodeRemoveMcpServerRequest({
+			serverId: 'mcp-1',
+			force: true,
+			scope: 'project',
+			workDir: '/proj',
+		});
+		assert.notStrictEqual(encoded[0], 0x7b);
+		assert.strictEqual(protoStrings(encoded).get(1), 'mcp-1');
+		assert.strictEqual(protoVarints(encoded).get(2), 1);
+		assert.strictEqual(protoStrings(encoded).get(3), 'project');
+		assert.strictEqual(protoStrings(encoded).get(4), '/proj');
+		const omitted = encodeRemoveMcpServerRequest({
+			serverId: '',
+			force: false,
+			scope: 'global',
+			workDir: '',
+		});
+		assert.ok(!protoVarints(omitted).has(2));
+		assert.ok(!protoStrings(omitted).has(4));
+	});
+
+	test('decodeRemoveMcpServerResponse reads 1-3; unknown unread', () => {
+		const encoded = Buffer.concat([
+			encodeInt32Field(1, 1),
+			encodeStringField(2, 'ok'),
+			encodeStringField(3, 'filesystem'),
+			encodeStringField(4, 'unused-field'),
+		]);
+		const wire = decodeRemoveMcpServerResponse(encoded);
+		assert.deepStrictEqual(wire, {
+			success: true,
+			error_message: 'ok',
+			removed_name: 'filesystem',
+		});
+		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
+		assert.deepStrictEqual(mapRemoveMcpServerResponse(wire), {
+			ok: true,
+			reason: 'ok',
+			removedName: 'filesystem',
+		});
+		assert.deepStrictEqual(decodeRemoveMcpServerResponse(new Uint8Array(0)), {
+			success: false,
+			error_message: undefined,
+			removed_name: undefined,
+		});
+	});
+
+	test('grpcClient MCP list/mutators and plugin list/mutators use bytes', () => {
 		const thisDir = path.dirname(fileURLToPath(import.meta.url));
 		const repoRoot = path.join(thisDir, '../../../../../../');
 		const clientPath = path.join(repoRoot, 'src/vs/platform/universeAgent/node/grpc/grpcClient.ts');
 		const source = fs.readFileSync(clientPath, 'utf8');
-		const methods: Array<{ name: string; encoder: string; decoder: string; mapper: string }> = [
+		const methods: Array<{ name: string; encoder: string; decoder: string; mapper?: string }> = [
 			{ name: 'listMcpServers', encoder: 'encodeListMcpServersRequest', decoder: 'decodeListMcpServersResponse', mapper: 'mapListMcpServersResponse' },
 			{ name: 'getMcpServerStatuses', encoder: 'encodeGetMcpServerStatusesRequest', decoder: 'decodeGetMcpServerStatusesResponse', mapper: 'mapGetMcpServerStatusesResponse' },
 			{ name: 'getMcpServerTools', encoder: 'encodeGetMcpServerToolsRequest', decoder: 'decodeGetMcpServerToolsResponse', mapper: 'mapGetMcpServerToolsResponse' },
 			{ name: 'listPlugins', encoder: 'encodeListPluginsRequest', decoder: 'decodeListPluginsResponse', mapper: 'mapListPluginsResponse' },
 			{ name: 'getPluginInfo', encoder: 'encodePluginInfoRequest', decoder: 'decodePluginInfoResponse', mapper: 'mapPluginInfoResponse' },
+			{ name: 'enablePlugin', encoder: 'encodeEnablePluginRequest', decoder: 'decodeEnablePluginResponse', mapper: 'mapPluginSummary' },
+			{ name: 'reloadPlugin', encoder: 'encodeReloadPluginRequest', decoder: 'decodeReloadPluginResponse', mapper: 'mapPluginSummary' },
+			{ name: 'unloadPlugin', encoder: 'encodeUnloadPluginRequest', decoder: 'decodeUnloadPluginResponse' },
+			{ name: 'scanNewPlugins', encoder: 'encodeScanNewPluginsRequest', decoder: 'decodeScanNewPluginsResponse', mapper: 'mapPluginSummary' },
+			{ name: 'toggleMcpServer', encoder: 'encodeToggleMcpServerRequest', decoder: 'decodeToggleMcpServerResponse', mapper: 'mapToggleMcpServerResponse' },
+			{ name: 'addMcpServer', encoder: 'encodeAddMcpServerRequest', decoder: 'decodeAddMcpServerResponse', mapper: 'mapAddMcpServerResponse' },
+			{ name: 'updateMcpServer', encoder: 'encodeUpdateMcpServerRequest', decoder: 'decodeUpdateMcpServerResponse', mapper: 'mapUpdateMcpServerResponse' },
+			{ name: 'removeMcpServer', encoder: 'encodeRemoveMcpServerRequest', decoder: 'decodeRemoveMcpServerResponse', mapper: 'mapRemoveMcpServerResponse' },
 		];
 		for (const { name, encoder, decoder, mapper } of methods) {
 			const body = extractAsyncMethod(source, name);
 			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
 			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
 			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
-			assert.ok(body.includes(mapper), `${name} must call ${mapper}`);
+			if (mapper) {
+				assert.ok(body.includes(mapper), `${name} must call ${mapper}`);
+			}
 			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
 		}
-		assert.ok(extractAsyncMethod(source, 'listPlugins').includes('encodeListPluginsRequest'));
-		for (const name of ['toggleMcpServer', 'addMcpServer', 'updateMcpServer', 'removeMcpServer', 'enablePlugin', 'reloadPlugin', 'unloadPlugin', 'scanNewPlugins']) {
-			const body = extractAsyncMethod(source, name);
-			assert.ok(body.includes('makeUnaryClient<'), `${name} must stay JSON this slice`);
-			assert.ok(!body.includes('makeUnaryBytesClient'), `${name} must not migrate this slice`);
-		}
+		assert.ok(!source.includes('mapMcpTransportToWire'));
+		assert.ok(!source.includes('mapMcpServerConfigToWire'));
 	});
 });
 
@@ -405,6 +848,16 @@ function protoVarints(encoded: Uint8Array): Map<number, number> {
 		}
 	}
 	return numbers;
+}
+
+function protoMessages(encoded: Uint8Array, fieldNumber: number): Uint8Array[] {
+	const values: Uint8Array[] = [];
+	for (const field of readProtoFields(encoded)) {
+		if (field.field === fieldNumber && field.wireType === 2) {
+			values.push(field.bytes);
+		}
+	}
+	return values;
 }
 
 function extractAsyncMethod(source: string, name: string): string {

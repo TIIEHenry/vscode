@@ -3,8 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { UniverseAgentListMcpServersRequest } from '../../common/universeAgentTypes.js';
 import type {
+	UniverseAgentAddMcpServerRequest,
+	UniverseAgentListMcpServersRequest,
+	UniverseAgentMcpServerConfig,
+	UniverseAgentMcpTransport,
+	UniverseAgentRemoveMcpServerRequest,
+	UniverseAgentToggleMcpServerRequest,
+	UniverseAgentUpdateMcpServerRequest,
+} from '../../common/universeAgentTypes.js';
+import type {
+	AddMcpServerResponseWire,
+	EnablePluginResponseWire,
 	GetMcpServerStatusesResponseWire,
 	GetMcpServerToolsResponseWire,
 	ListMcpServersResponseWire,
@@ -12,11 +22,18 @@ import type {
 	PluginHookEntryWire,
 	PluginInfoResponseWire,
 	PluginSummaryWire,
+	ReloadPluginResponseWire,
+	RemoveMcpServerResponseWire,
+	ScanNewPluginsResponseWire,
+	ToggleMcpServerResponseWire,
+	UnloadPluginResponseWire,
+	UpdateMcpServerResponseWire,
 } from './grpcClientMappersCatalog.js';
 import { encodeEmptyProtoMessage } from './grpcCatalogUnaryWire.js';
 import {
 	allLengthDelimited,
 	encodeInt32Field,
+	encodeMessageField,
 	encodeStringField,
 	lastBytes,
 	lastString,
@@ -205,6 +222,240 @@ function decodeStringStringMap(entries: readonly Uint8Array[]): Record<string, s
 		config[key] = lastString(fields, 2) ?? '';
 	}
 	return config;
+}
+
+/**
+ * PluginService.Enable — `plugin_id`=1 `enabled`=2.
+ * Production default matches JSON: `enabled !== false` (undefined → true).
+ * proto3: false omitted.
+ */
+export function encodeEnablePluginRequest(pluginId: string, enabled?: boolean): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, pluginId),
+		encodeInt32Field(2, enabled !== false ? 1 : 0),
+	]);
+}
+
+/** EnablePluginResponse — `plugin`=1 (PluginSummary 1–7). Unknown fields unread. */
+export function decodeEnablePluginResponse(bytes: Uint8Array): EnablePluginResponseWire {
+	return decodePluginHolder(bytes);
+}
+
+/** PluginService.Reload — `plugin_id`=1. proto3: empty string omitted. */
+export function encodeReloadPluginRequest(pluginId: string): Uint8Array {
+	return encodeStringField(1, pluginId);
+}
+
+/** ReloadPluginResponse — `plugin`=1. Unknown fields unread. */
+export function decodeReloadPluginResponse(bytes: Uint8Array): ReloadPluginResponseWire {
+	return decodePluginHolder(bytes);
+}
+
+/** PluginService.Unload — `plugin_id`=1. proto3: empty string omitted. */
+export function encodeUnloadPluginRequest(pluginId: string): Uint8Array {
+	return encodeStringField(1, pluginId);
+}
+
+/** UnloadPluginResponse — `removed_hook_count`=1. Unknown fields unread. */
+export function decodeUnloadPluginResponse(bytes: Uint8Array): UnloadPluginResponseWire {
+	return {
+		removed_hook_count: numberOrUndefined(lastVarint(readProtoFields(bytes), 1)),
+	};
+}
+
+/**
+ * PluginService.ScanNew — empty `ScanNewPluginsRequest`.
+ * Must still be sent as 0-payload proto (never skip sendMessage).
+ */
+export function encodeScanNewPluginsRequest(): Uint8Array {
+	return encodeEmptyProtoMessage();
+}
+
+/**
+ * ScanNewPluginsResponse — repeated `new_plugins`=1 `skipped_count`=2.
+ * Unknown fields unread.
+ */
+export function decodeScanNewPluginsResponse(bytes: Uint8Array): ScanNewPluginsResponseWire {
+	const fields = readProtoFields(bytes);
+	return {
+		new_plugins: allLengthDelimited(fields, 1).map(decodePluginSummary),
+		skipped_count: numberOrUndefined(lastVarint(fields, 2)),
+	};
+}
+
+/**
+ * McpService.ToggleMcpServer — `server_id`=1 `enabled`=2 `scope`=3 `work_dir`=4.
+ * proto3: false / empty omitted.
+ */
+export function encodeToggleMcpServerRequest(request: UniverseAgentToggleMcpServerRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.id),
+		encodeInt32Field(2, request.enabled === true ? 1 : 0),
+		encodeStringField(3, request.scope),
+		encodeStringField(4, request.workDir),
+	]);
+}
+
+/**
+ * ToggleMcpServerResponse — `success`=1 `error_message`=2.
+ * `actual_enabled`=3 is not on the existing Wire / mapper — unread.
+ */
+export function decodeToggleMcpServerResponse(bytes: Uint8Array): ToggleMcpServerResponseWire {
+	const fields = readProtoFields(bytes);
+	return {
+		success: lastVarint(fields, 1) === 1n,
+		error_message: lastString(fields, 2),
+	};
+}
+
+/**
+ * McpService.AddMcpServer — `config`=1 `test_connection`=2 `scope`=3 `work_dir`=4.
+ * proto3: false / empty omitted. Do not invent origin/apps/project_override.
+ */
+export function encodeAddMcpServerRequest(request: UniverseAgentAddMcpServerRequest): Uint8Array {
+	return Buffer.concat([
+		encodeMessageField(1, encodeMcpServerConfig(request.config)),
+		encodeInt32Field(2, request.testConnection === true ? 1 : 0),
+		encodeStringField(3, request.scope),
+		encodeStringField(4, request.workDir),
+	]);
+}
+
+/**
+ * AddMcpServerResponse — `success`=1 `error_message`=2 `assigned_id`=3.
+ * `test_status`=4 / `test_error`=5 are not on the existing Wire / mapper — unread.
+ */
+export function decodeAddMcpServerResponse(bytes: Uint8Array): AddMcpServerResponseWire {
+	const fields = readProtoFields(bytes);
+	return {
+		success: lastVarint(fields, 1) === 1n,
+		error_message: lastString(fields, 2),
+		assigned_id: lastString(fields, 3),
+	};
+}
+
+/**
+ * McpService.UpdateMcpServer — `server_id`=1 `config`=2 `restart_connection`=3
+ * `scope`=4 `work_dir`=5. proto3: false / empty omitted.
+ */
+export function encodeUpdateMcpServerRequest(request: UniverseAgentUpdateMcpServerRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.serverId),
+		encodeMessageField(2, encodeMcpServerConfig(request.config)),
+		encodeInt32Field(3, request.restartConnection === true ? 1 : 0),
+		encodeStringField(4, request.scope),
+		encodeStringField(5, request.workDir),
+	]);
+}
+
+/**
+ * UpdateMcpServerResponse — `success`=1 `error_message`=2 `updated_config`=3.
+ * Config transport enum → mapper strings. Unknown fields unread.
+ */
+export function decodeUpdateMcpServerResponse(bytes: Uint8Array): UpdateMcpServerResponseWire {
+	const fields = readProtoFields(bytes);
+	const config = lastBytes(fields, 3);
+	return {
+		success: lastVarint(fields, 1) === 1n,
+		error_message: lastString(fields, 2),
+		updated_config: config ? decodeMcpServerConfig(config) : undefined,
+	};
+}
+
+/**
+ * McpService.RemoveMcpServer — `server_id`=1 `force`=2 `scope`=3 `work_dir`=4.
+ * proto3: false / empty omitted.
+ */
+export function encodeRemoveMcpServerRequest(request: UniverseAgentRemoveMcpServerRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.serverId),
+		encodeInt32Field(2, request.force === true ? 1 : 0),
+		encodeStringField(3, request.scope),
+		encodeStringField(4, request.workDir),
+	]);
+}
+
+/**
+ * RemoveMcpServerResponse — `success`=1 `error_message`=2 `removed_name`=3.
+ * Unknown fields unread.
+ */
+export function decodeRemoveMcpServerResponse(bytes: Uint8Array): RemoveMcpServerResponseWire {
+	const fields = readProtoFields(bytes);
+	return {
+		success: lastVarint(fields, 1) === 1n,
+		error_message: lastString(fields, 2),
+		removed_name: lastString(fields, 3),
+	};
+}
+
+function decodePluginHolder(bytes: Uint8Array): { plugin?: PluginSummaryWire } {
+	const plugin = lastBytes(readProtoFields(bytes), 1);
+	return {
+		plugin: plugin ? decodePluginSummary(plugin) : undefined,
+	};
+}
+
+/**
+ * McpServerConfig (Add/Update) — `id`=1 `name`=2 `transport`=3 `command`=4
+ * repeated `args`=5 map `env`=6 `url`=7 `enabled`=8.
+ * Enum `McpTransport`: UNSPECIFIED=0 omit, STDIO=1 SSE=2 STREAMABLE_HTTP=3.
+ * Do not write the JSON string `'STDIO'` into field 3.
+ * Do not invent origin / apps / project_override request fields.
+ */
+function encodeMcpServerConfig(config: UniverseAgentMcpServerConfig): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, config.id),
+		encodeStringField(2, config.name),
+		encodeInt32Field(3, mcpTransportEnum(config.transport)),
+		encodeStringField(4, config.command),
+		encodeRepeatedString(5, config.args ?? []),
+		encodeStringStringMap(6, config.env),
+		encodeStringField(7, config.url),
+		encodeInt32Field(8, config.enabled === true ? 1 : 0),
+	]);
+}
+
+/**
+ * Decode McpServerConfig for `mapMcpServerConfigFromWire` (transport is a string).
+ * Unknown / list-only metadata unread.
+ */
+function decodeMcpServerConfig(bytes: Uint8Array): Record<string, unknown> {
+	const fields = readProtoFields(bytes);
+	const args = allLengthDelimited(fields, 5).map(value => Buffer.from(value).toString('utf8'));
+	return {
+		id: lastString(fields, 1),
+		name: lastString(fields, 2),
+		transport: mcpTransportWireName(lastVarint(fields, 3)),
+		command: lastString(fields, 4),
+		args: args.length > 0 ? args : undefined,
+		env: decodeStringStringMap(allLengthDelimited(fields, 6)),
+		url: lastString(fields, 7),
+		enabled: lastVarint(fields, 8) === 1n,
+	};
+}
+
+/** proto3 `map<string,string>` = repeated MapEntry (`key`=1 `value`=2). */
+function encodeStringStringMap(field: number, values: Readonly<Record<string, string>> | undefined): Buffer {
+	if (!values) {
+		return Buffer.alloc(0);
+	}
+	return Buffer.concat(Object.entries(values).map(([key, value]) => encodeMessageField(field, Buffer.concat([
+		encodeStringField(1, key),
+		encodeStringField(2, value),
+	]))));
+}
+
+function mcpTransportEnum(transport: UniverseAgentMcpTransport): number {
+	switch (transport) {
+		case 'stdio':
+			return 1;
+		case 'sse':
+			return 2;
+		case 'streamable_http':
+			return 3;
+		default:
+			return 0;
+	}
 }
 
 /**

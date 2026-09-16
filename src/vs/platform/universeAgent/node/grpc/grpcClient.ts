@@ -218,8 +218,6 @@ import type {
 	UniverseAgentReloadPluginResult,
 	UniverseAgentUnloadPluginResult,
 	UniverseAgentScanNewPluginsResult,
-	UniverseAgentMcpTransport,
-	UniverseAgentMcpServerConfig,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
 	UniverseAgentAddMcpServerRequest,
@@ -521,7 +519,6 @@ import {
 	mapUsageResponse,
 	mapWriteFileResponse,
 	mapWriteGitWriteResponse,
-	type AddMcpServerResponseWire,
 	type AgentMergeResponseWire,
 	type BackResponseWire,
 	type BranchResponseWire,
@@ -539,7 +536,6 @@ import {
 	type DestroyRemoteSessionResponseWire,
 	type DoctorResponseWire,
 	type DownloadChunkWire,
-	type EnablePluginResponseWire,
 	type ExitMaintenanceResponseWire,
 	type ExportSessionResponseWire,
 	type FetchToolUsageDetailResponseWire,
@@ -576,13 +572,11 @@ import {
 	type PtyServerMessageWire,
 	type PurgeSessionResponseWire,
 	type ReadFileResponseWire,
-	type ReloadPluginResponseWire,
 	type ReloadRemoteAgentsResponseWire,
 	type RemoteAgentConfigWire,
 	type RemoteAgentInfoWire,
 	type RemoteChatResponseWire,
 	type RemoteResponseWire,
-	type RemoveMcpServerResponseWire,
 	type ResetErrorResponseWire,
 	type ResolveAnchorResponseWire,
 	type ResolveModelResponseWire,
@@ -592,7 +586,6 @@ import {
 	type RotateTokenResponseWire,
 	type SaveRemoteAgentConfigResponseWire,
 	type SaveSkillContentResponseWire,
-	type ScanNewPluginsResponseWire,
 	type SetMaintenanceResponseWire,
 	type SetSkillEnabledResponseWire,
 	type SetTriggerEnabledResponseWire,
@@ -602,12 +595,9 @@ import {
 	type StatusResponseWire,
 	type SubscribeToolDetailChunkWire,
 	type TodoResponseWire,
-	type ToggleMcpServerResponseWire,
 	type ToolInfoResponseWire,
 	type TriggerDtoWire,
-	type UnloadPluginResponseWire,
 	type UnshelveSessionResponseWire,
-	type UpdateMcpServerResponseWire,
 	type UploadProgressResponseWire,
 	type UploadResponseWire,
 	type UpsertTriggerResponseWire,
@@ -755,16 +745,32 @@ import {
 	encodeWriteGitStagePathsRequest,
 } from './grpcGitUnaryWire.js';
 import {
+	decodeAddMcpServerResponse,
+	decodeEnablePluginResponse,
 	decodeGetMcpServerStatusesResponse,
 	decodeGetMcpServerToolsResponse,
 	decodeListMcpServersResponse,
 	decodeListPluginsResponse,
 	decodePluginInfoResponse,
+	decodeReloadPluginResponse,
+	decodeRemoveMcpServerResponse,
+	decodeScanNewPluginsResponse,
+	decodeToggleMcpServerResponse,
+	decodeUnloadPluginResponse,
+	decodeUpdateMcpServerResponse,
+	encodeAddMcpServerRequest,
+	encodeEnablePluginRequest,
 	encodeGetMcpServerStatusesRequest,
 	encodeGetMcpServerToolsRequest,
 	encodeListMcpServersRequest,
 	encodeListPluginsRequest,
 	encodePluginInfoRequest,
+	encodeReloadPluginRequest,
+	encodeRemoveMcpServerRequest,
+	encodeScanNewPluginsRequest,
+	encodeToggleMcpServerRequest,
+	encodeUnloadPluginRequest,
+	encodeUpdateMcpServerRequest,
 } from './grpcMcpPluginUnaryWire.js';
 
 function permissionRuleActionWire(action: UniverseAgentPermissionRuleAction): number {
@@ -938,43 +944,6 @@ function syncInputDeliveryRequestWire(request: UniverseAgentSyncInputDeliveryReq
 		session_id: request.sessionId,
 		last_known_message_ids: request.lastKnownMessageIds ?? [],
 	};
-}
-function mapMcpTransportToWire(transport: UniverseAgentMcpTransport): string {
-	switch (transport) {
-		case 'stdio':
-			return 'STDIO';
-		case 'sse':
-			return 'SSE';
-		case 'streamable_http':
-			return 'STREAMABLE_HTTP';
-		default:
-			return 'STDIO';
-	}
-}
-function mapMcpServerConfigToWire(config: UniverseAgentMcpServerConfig): Record<string, unknown> {
-	const wire: Record<string, unknown> = {
-		name: config.name,
-		transport: mapMcpTransportToWire(config.transport),
-	};
-	if (config.id !== undefined) {
-		wire.id = config.id;
-	}
-	if (config.command !== undefined) {
-		wire.command = config.command;
-	}
-	if (config.args !== undefined) {
-		wire.args = [...config.args];
-	}
-	if (config.env !== undefined) {
-		wire.env = { ...config.env };
-	}
-	if (config.url !== undefined) {
-		wire.url = config.url;
-	}
-	if (config.enabled !== undefined) {
-		wire.enabled = config.enabled;
-	}
-	return wire;
 }
 function encodeRemoteResponse(response: UniverseAgentRemoteResponse): RemoteResponseWire {
 	return {
@@ -2522,45 +2491,46 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async enablePlugin(id: string, enabled?: boolean): Promise<UniverseAgentEnablePluginResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, EnablePluginResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Plugin.service,
 			UniverseAgentGrpcServices.Plugin.Enable,
+			decodeEnablePluginResponse,
 		);
-		const wire = await unary({
-			plugin_id: id,
-			enabled: enabled !== false,
-		});
+		const wire = await unary(encodeEnablePluginRequest(id, enabled));
 		return { plugin: mapPluginSummary(wire.plugin) };
 	}
 
 	async reloadPlugin(id: string): Promise<UniverseAgentReloadPluginResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ReloadPluginResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Plugin.service,
 			UniverseAgentGrpcServices.Plugin.Reload,
+			decodeReloadPluginResponse,
 		);
-		const wire = await unary({ plugin_id: id });
+		const wire = await unary(encodeReloadPluginRequest(id));
 		return { plugin: mapPluginSummary(wire.plugin) };
 	}
 
 	async unloadPlugin(id: string): Promise<UniverseAgentUnloadPluginResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, UnloadPluginResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Plugin.service,
 			UniverseAgentGrpcServices.Plugin.Unload,
+			decodeUnloadPluginResponse,
 		);
-		const wire = await unary({ plugin_id: id });
+		const wire = await unary(encodeUnloadPluginRequest(id));
 		return { removedHookCount: wire.removed_hook_count ?? 0 };
 	}
 
 	async scanNewPlugins(): Promise<UniverseAgentScanNewPluginsResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ScanNewPluginsResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Plugin.service,
 			UniverseAgentGrpcServices.Plugin.ScanNew,
+			decodeScanNewPluginsResponse,
 		);
-		const wire = await unary({});
+		const wire = await unary(encodeScanNewPluginsRequest());
 		return {
 			newPlugins: (wire.new_plugins ?? []).map(mapPluginSummary),
 			skippedCount: wire.skipped_count ?? 0,
@@ -2568,76 +2538,43 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async toggleMcpServer(request: UniverseAgentToggleMcpServerRequest): Promise<UniverseAgentToggleMcpServerResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ToggleMcpServerResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Mcp.service,
 			UniverseAgentGrpcServices.Mcp.ToggleMcpServer,
+			decodeToggleMcpServerResponse,
 		);
-		const payload: Record<string, unknown> = {
-			server_id: request.id,
-			enabled: request.enabled,
-			scope: request.scope,
-		};
-		if (request.workDir) {
-			payload.work_dir = request.workDir;
-		}
-		const wire = await unary(payload);
-		return mapToggleMcpServerResponse(wire);
+		return mapToggleMcpServerResponse(await unary(encodeToggleMcpServerRequest(request)));
 	}
 
 	async addMcpServer(request: UniverseAgentAddMcpServerRequest): Promise<UniverseAgentAddMcpServerResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, AddMcpServerResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Mcp.service,
 			UniverseAgentGrpcServices.Mcp.AddMcpServer,
+			decodeAddMcpServerResponse,
 		);
-		const payload: Record<string, unknown> = {
-			config: mapMcpServerConfigToWire(request.config),
-			test_connection: request.testConnection === true,
-			scope: request.scope,
-		};
-		if (request.workDir) {
-			payload.work_dir = request.workDir;
-		}
-		const wire = await unary(payload);
-		return mapAddMcpServerResponse(wire);
+		return mapAddMcpServerResponse(await unary(encodeAddMcpServerRequest(request)));
 	}
 
 	async updateMcpServer(request: UniverseAgentUpdateMcpServerRequest): Promise<UniverseAgentUpdateMcpServerResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, UpdateMcpServerResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Mcp.service,
 			UniverseAgentGrpcServices.Mcp.UpdateMcpServer,
+			decodeUpdateMcpServerResponse,
 		);
-		const payload: Record<string, unknown> = {
-			server_id: request.serverId,
-			config: mapMcpServerConfigToWire(request.config),
-			restart_connection: request.restartConnection === true,
-			scope: request.scope,
-		};
-		if (request.workDir) {
-			payload.work_dir = request.workDir;
-		}
-		const wire = await unary(payload);
-		return mapUpdateMcpServerResponse(wire);
+		return mapUpdateMcpServerResponse(await unary(encodeUpdateMcpServerRequest(request)));
 	}
 
 	async removeMcpServer(request: UniverseAgentRemoveMcpServerRequest): Promise<UniverseAgentRemoveMcpServerResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, RemoveMcpServerResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Mcp.service,
 			UniverseAgentGrpcServices.Mcp.RemoveMcpServer,
+			decodeRemoveMcpServerResponse,
 		);
-		const payload: Record<string, unknown> = {
-			server_id: request.serverId,
-			force: request.force === true,
-			scope: request.scope,
-		};
-		if (request.workDir) {
-			payload.work_dir = request.workDir;
-		}
-		const wire = await unary(payload);
-		return mapRemoveMcpServerResponse(wire);
+		return mapRemoveMcpServerResponse(await unary(encodeRemoveMcpServerRequest(request)));
 	}
 
 	async listTools(): Promise<UniverseAgentListToolsResult> {
