@@ -29,6 +29,34 @@ import { isConversationPairingHold } from '../../browser/conversationSessionStat
 import { IConversationRosterService } from '../../browser/conversationStubService.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
+declare function __readFileInTests(path: string): Promise<string>;
+
+async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
+	// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	const unexpectedWarns: unknown[] = [];
+	const unhandledRejections: unknown[] = [];
+	const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+	process.on('unhandledRejection', onUnhandledRejection);
+	const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+	setUnexpectedErrorHandler(error => {
+		unexpectedWarns.push(error);
+		if (unexpectedWarns.length === 1) {
+			throw error;
+		}
+	});
+	try {
+		await run();
+		await timeout(0);
+		assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+			unhandledRejections: [],
+			unexpectedWarns: [paintBoom, paintBoom],
+		});
+	} finally {
+		setUnexpectedErrorHandler(originalErrorHandler);
+		process.off('unhandledRejection', onUnhandledRejection);
+	}
+}
+
 suite('ConversationEngineHistoryList', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -172,13 +200,12 @@ suite('ConversationEngineHistoryList', () => {
 		assert.ok(!(overlayParent.textContent ?? '').includes(conversationLensSessionBarHistoryEmpty));
 	});
 
-	test('does not leak unhandled rejection when show refresh getHistory rejects and paint throws', async () => {
-		const unhandledRejections: unknown[] = [];
-		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
-		process.on('unhandledRejection', onUnhandledRejection);
-		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
-		setUnexpectedErrorHandler(() => { });
-		try {
+	test('does not leak unhandled rejection when show refresh getHistory rejects and paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		// refresh() already catches getHistory throw; a lone inner reject does not leak.
+		// The void call site still needs `.catch` when the catch-path paint throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
 			const { list } = mountList(createConversationConnectionTestStub({
 				isEngineConnected: () => true,
 				getHistory: async () => {
@@ -186,15 +213,20 @@ suite('ConversationEngineHistoryList', () => {
 				},
 			}));
 			(list as unknown as { paintListFailed(text: string): void }).paintListFailed = () => {
-				throw new Error('paint boom');
+				throw paintBoom;
 			};
 			list.show();
-			await timeout(0);
-			assert.deepStrictEqual(unhandledRejections, []);
-		} finally {
-			setUnexpectedErrorHandler(originalErrorHandler);
-			process.off('unhandledRejection', onUnhandledRejection);
-		}
+		});
+	});
+
+	test('history list fire-and-forget refresh voids double-catch onUnexpectedError', async () => {
+		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationEngineHistoryList.ts`);
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const doubleRefresh = `void this.refresh()${doubleCatch};`;
+		assert.strictEqual((source.match(/void this\.refresh\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 4);
+		assert.ok(source.includes(doubleRefresh));
+		assert.ok(!source.includes('void this.refresh();'));
+		assert.ok(!source.includes('void this.refresh().catch(onUnexpectedError);'));
 	});
 
 	test('getHistory success then throw keeps leftover rows and paints failed', async () => {
