@@ -188,6 +188,23 @@ suite('Sources - files list leftover - 源码接线扫描', () => {
 		assert.ok(list.includes('lastGoodEntries'));
 		assert.ok(list.includes('sources-files-status'));
 	});
+	test('Files list scheduler and onDidOpen use double catch', () => {
+		const list = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesFilesList.ts'), 'utf8');
+		const schedulerStart = list.indexOf('this.refreshScheduler = this._register(new RunOnceScheduler');
+		const schedulerEnd = list.indexOf('this.scheduleRefresh();', schedulerStart);
+		assert.ok(schedulerStart >= 0 && schedulerEnd > schedulerStart);
+		const scheduler = list.slice(schedulerStart, schedulerEnd);
+		assert.ok(scheduler.includes('void this.refresh()'));
+		assert.ok(scheduler.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
+
+		const openStart = list.indexOf('this._register(this.list.onDidOpen');
+		const openEnd = list.indexOf('return this.list;', openStart);
+		assert.ok(openStart >= 0 && openEnd > openStart);
+		const openHandler = list.slice(openStart, openEnd);
+		assert.ok(openHandler.includes('openEditor'));
+		assert.ok(openHandler.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
+		assert.ok(!openHandler.includes('async e =>'));
+	});
 });
 
 suite('Sources - review showForPaths - 源码接线扫描', () => {

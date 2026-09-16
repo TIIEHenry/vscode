@@ -8,6 +8,7 @@ import * as dom from '../../../../base/browser/dom.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -113,7 +114,7 @@ export class SourcesFilesList extends Disposable {
 		this.emptyMessage = dom.append(host, $('.sources-files-empty'));
 		this.emptyMessage.style.display = 'none';
 
-		this.refreshScheduler = this._register(new RunOnceScheduler(() => this.refresh(), 250));
+		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError), 250));
 		this.scheduleRefresh();
 
 		this._register(this.fileService.onDidFilesChange(() => this.scheduleRefresh()));
@@ -152,20 +153,20 @@ export class SourcesFilesList extends Disposable {
 			}
 		)) as WorkbenchList<ISourcesFileEntry>;
 
-		this._register(this.list.onDidOpen(async e => {
+		this._register(this.list.onDidOpen(e => {
 			const element = e.element;
 			if (!element) {
 				return;
 			}
 
-			await this.editorService.openEditor({
+			void this.editorService.openEditor({
 				resource: element.resource,
 				options: {
 					preserveFocus: e.editorOptions.preserveFocus,
 					pinned: e.editorOptions.pinned,
 					source: EditorOpenSource.USER,
 				},
-			}, ACTIVE_GROUP);
+			}, ACTIVE_GROUP).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		return this.list;
