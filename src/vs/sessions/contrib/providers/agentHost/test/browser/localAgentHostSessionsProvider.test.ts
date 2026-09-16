@@ -6961,6 +6961,42 @@ suite('LocalAgentHostSessionsProvider', () => {
 		});
 	}));
 
+	test('does not leak unhandled rejection when createNewSession Dev Container isAvailable warn throws', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		// `_resolveDevContainerAvailability` already catches `isAvailable`; a lone inner reject
+		// does not leak. The void call site still needs `.catch` when the catch-path warn throws.
+		let warnCalls = 0;
+		const logService = new class extends NullLogService {
+			override warn(message: string): void {
+				if (typeof message === 'string' && message.includes('Failed to resolve Dev Container availability')) {
+					warnCalls++;
+					throw new Error('warn failed');
+				}
+			}
+		}();
+		const devContainerAgentHostService = new class extends mock<IDevContainerAgentHostService>() {
+			override async isAvailable(): Promise<boolean> {
+				throw new Error('isAvailable failed');
+			}
+		}();
+		const provider = createProvider(disposables, agentHost, undefined, {
+			devContainerAgentHostService,
+			logService,
+		});
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			provider.createNewSession(URI.file('/home/user/project'), provider.sessionTypes[0].id);
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, warnCalls }, { unhandledRejections: [], warnCalls: 1 });
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	}));
+
 	test('does not leak unhandled rejection when running session resolveSessionConfig warn throws', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
 		// `_resolveRunningSessionConfig` already catches `resolveSessionConfig`; a lone inner reject
 		// does not leak. The void call site still needs `.catch` when the catch-path warn throws.
