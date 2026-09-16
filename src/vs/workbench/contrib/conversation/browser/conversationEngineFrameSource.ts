@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import type {
@@ -256,7 +257,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 				generation: this.cursor.generation,
 				frameId: this.cursor.frameId,
 				appliedVersion: this.cursor.version,
-			}).catch(() => undefined);
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
