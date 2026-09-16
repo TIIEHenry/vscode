@@ -6,6 +6,7 @@
 import './media/conversationEditorPane.css';
 import { $, append } from '../../../../base/browser/dom.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IEditorOptions } from '../../../../platform/editor/common/editor.js';
@@ -70,7 +71,7 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 			if (!parsed) {
 				return;
 			}
-			void this.sessionChatService.navigateAgentBreadcrumb(parsed.sessionKey, chatId);
+			void this.sessionChatService.navigateAgentBreadcrumb(parsed.sessionKey, chatId).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		const content = append(pageRoot, $('.conversation-editor-page-content'));
