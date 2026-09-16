@@ -126,7 +126,35 @@ suite('grpc SystemService HealthCheck / Shutdown protobuf wire', () => {
 		assert.ok(!/\bGetAuthNonce\b|\bAuthNonce\b/.test(source));
 		assert.ok(!/\bgrpcClient\b/.test(source));
 	});
+
+	test('grpcClient HealthCheck / Shutdown use bytes; decode then map*', () => {
+		const thisDir = path.dirname(fileURLToPath(import.meta.url));
+		const repoRoot = path.join(thisDir, '../../../../../../');
+		const source = fs.readFileSync(path.join(repoRoot, 'src/vs/platform/universeAgent/node/grpc/grpcClient.ts'), 'utf8');
+		const methods: Array<{ name: string; encoder: string; decoder: string; mapper: string }> = [
+			{ name: 'healthCheck', encoder: 'encodeHealthCheckRequest', decoder: 'decodeHealthCheckResponse', mapper: 'mapHealthCheckResponse' },
+			{ name: 'shutdown', encoder: 'encodeShutdownRequest', decoder: 'decodeShutdownResponse', mapper: 'mapShutdownResponse' },
+		];
+		for (const { name, encoder, decoder, mapper } of methods) {
+			const body = extractAsyncMethod(source, name);
+			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
+			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
+			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
+			assert.ok(body.includes(mapper), `${name} must call ${mapper}`);
+			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
+			assert.ok(!body.includes('JSON.stringify'), `${name} must not JSON.stringify`);
+		}
+		assert.ok(source.includes('grpcSystemUnaryWire'));
+	});
 });
+
+function extractAsyncMethod(source: string, name: string): string {
+	const start = source.indexOf(`\tasync ${name}(`);
+	assert.ok(start >= 0, `missing async ${name}(`);
+	const nextAsync = source.indexOf('\n\tasync ', start + 1);
+	const end = nextAsync >= 0 ? nextAsync : source.length;
+	return source.slice(start, end);
+}
 
 function protoVarints(encoded: Uint8Array): Map<number, number> {
 	const numbers = new Map<number, number>();

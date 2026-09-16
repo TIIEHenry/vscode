@@ -523,8 +523,6 @@ import {
 	type ConfigChangedEventWire,
 	type ConnectResponseWire,
 	type ConnectionReportWire,
-	type ContextVariableListResponseWire,
-	type ContextVariableReadResponseWire,
 	type CreateRemoteSessionResponseWire,
 	type DeleteRemoteAgentConfigResponseWire,
 	type DeliveryTargetDtoWire,
@@ -539,7 +537,6 @@ import {
 	type GetRemoteSessionHistoryResponseWire,
 	type GetRemoteSessionStatusResponseWire,
 	type GetSessionUsageResponseWire,
-	type HealthCheckResponseWire,
 	type HistoryResponseWire,
 	type ListConfigsResponseWire,
 	type ListLoopSnapshotsResponseWire,
@@ -570,7 +567,6 @@ import {
 	type SetMaintenanceResponseWire,
 	type SetTriggerEnabledResponseWire,
 	type ShelveSessionResponseWire,
-	type ShutdownResponseWire,
 	type StatusResponseWire,
 	type SubscribeToolDetailChunkWire,
 	type TodoResponseWire,
@@ -599,6 +595,12 @@ import {
 	encodeAuthNonceRequest,
 	encodeDeviceAuthConnectRequest,
 } from './grpcHandshakeWire.js';
+import {
+	decodeHealthCheckResponse,
+	decodeShutdownResponse,
+	encodeHealthCheckRequest,
+	encodeShutdownRequest,
+} from './grpcSystemUnaryWire.js';
 import {
 	decodeChatResponse,
 	decodeCreateSessionResponse,
@@ -753,6 +755,12 @@ import {
 	encodeMemorySearchDeepRequest,
 	encodeMemorySearchRequest,
 } from './grpcMemoryUnaryWire.js';
+import {
+	decodeContextVariableListResponse,
+	decodeContextVariableReadResponse,
+	encodeContextVariableListRequest,
+	encodeContextVariableReadRequest,
+} from './grpcContextVariableUnaryWire.js';
 import {
 	decodeAgentMergeResponse,
 	decodeGetFileInfoResponse,
@@ -1102,26 +1110,23 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async healthCheck(): Promise<UniverseAgentHealthCheckResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, HealthCheckResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.System.service,
 			UniverseAgentGrpcServices.System.HealthCheck,
+			decodeHealthCheckResponse,
 		);
-		const wire = await unary({});
-		return mapHealthCheckResponse(wire);
+		return mapHealthCheckResponse(await unary(encodeHealthCheckRequest()));
 	}
 
 	async shutdown(request: UniverseAgentShutdownRequest): Promise<UniverseAgentShutdownResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ShutdownResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.System.service,
 			UniverseAgentGrpcServices.System.Shutdown,
+			decodeShutdownResponse,
 		);
-		const wire = await unary({
-			force: request.force,
-			grace_period_ms: request.gracePeriodMs,
-		});
-		return mapShutdownResponse(wire);
+		return mapShutdownResponse(await unary(encodeShutdownRequest(request)));
 	}
 
 	async writeClipboard(request: UniverseAgentWriteClipboardRequest): Promise<UniverseAgentWriteClipboardResult> {
@@ -2748,30 +2753,23 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async listContextVariable(request: UniverseAgentContextVariableListRequest): Promise<UniverseAgentContextVariableListResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ContextVariableListResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.ContextVariable.service,
 			UniverseAgentGrpcServices.ContextVariable.List,
+			decodeContextVariableListResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-		});
-		return mapContextVariableListResponse(wire);
+		return mapContextVariableListResponse(await unary(encodeContextVariableListRequest(request)));
 	}
 
 	async readContextVariable(request: UniverseAgentContextVariableReadRequest): Promise<UniverseAgentContextVariableReadResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ContextVariableReadResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.ContextVariable.service,
 			UniverseAgentGrpcServices.ContextVariable.Read,
+			decodeContextVariableReadResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			name: request.name,
-			agent_id: request.agentId,
-		});
-		return mapContextVariableReadResponse(wire);
+		return mapContextVariableReadResponse(await unary(encodeContextVariableReadRequest(request)));
 	}
 
 	async listNodes(request: UniverseAgentListNodesRequest): Promise<UniverseAgentListNodesResult> {
