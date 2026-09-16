@@ -12,20 +12,24 @@ import {
 	mapHealthCheckResponse,
 	mapShutdownResponse,
 } from '../../node/grpc/grpcClientMappers.js';
+import { mapDoctorResponse } from '../../node/grpc/grpcClientMappersCatalog.js';
 import {
+	decodeDoctorResponse,
 	decodeHealthCheckResponse,
 	decodeShutdownResponse,
+	encodeDoctorRequest,
 	encodeHealthCheckRequest,
 	encodeShutdownRequest,
 } from '../../node/grpc/grpcSystemUnaryWire.js';
 import {
 	encodeInt32Field,
 	encodeInt64Field,
+	encodeMessageField,
 	encodeStringField,
 	readProtoFields,
 } from '../../node/grpc/grpcProtoCodec.js';
 
-suite('grpc SystemService HealthCheck / Shutdown protobuf wire', () => {
+suite('grpc SystemService HealthCheck / Shutdown / Doctor protobuf wire', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
@@ -116,21 +120,89 @@ suite('grpc SystemService HealthCheck / Shutdown protobuf wire', () => {
 		assert.deepStrictEqual(mapShutdownResponse(rejected), { accepted: false, message: '' });
 	});
 
-	test('system unary wire source has no JSON.stringify and does not encode Doctor/Connect', () => {
-		const thisDir = path.dirname(fileURLToPath(import.meta.url));
-		const repoRoot = path.join(thisDir, '../../../../../../');
-		const source = fs.readFileSync(path.join(repoRoot, 'src/vs/platform/universeAgent/node/grpc/grpcSystemUnaryWire.ts'), 'utf8');
+	test('encodeDoctorRequest is empty proto, not JSON {}', () => {
+		const encoded = encodeDoctorRequest();
+		assert.strictEqual(encoded.length, 0);
+		assert.notStrictEqual(encoded[0], 0x7b);
+		assert.notStrictEqual(Buffer.from(encoded).toString('utf8'), '{}');
+		assert.notStrictEqual(Buffer.from(encoded).toString('utf8'), JSON.stringify({}));
+		assert.deepStrictEqual(Array.from(readProtoFields(encoded)), []);
+	});
+
+	test('decodeDoctorResponse reads checks=1 all_passed=2; nested DoctorCheck 1-4; unused unread', () => {
+		const passed = Buffer.concat([
+			encodeStringField(1, 'disk'),
+			encodeInt32Field(2, 1),
+			encodeStringField(3, 'ok'),
+			encodeStringField(4, 'grow volume'),
+			encodeStringField(5, 'unused-nested'),
+		]);
+		const failed = Buffer.concat([
+			encodeStringField(1, 'net'),
+			encodeStringField(3, 'down'),
+		]);
+		const encoded = Buffer.concat([
+			encodeMessageField(1, passed),
+			encodeMessageField(1, failed),
+			encodeInt32Field(2, 1),
+			encodeStringField(3, 'unused-field'),
+		]);
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const wire = decodeDoctorResponse(encoded);
+		assert.deepStrictEqual(wire, {
+			checks: [
+				{ name: 'disk', passed: true, message: 'ok', fix_hint: 'grow volume' },
+				{ name: 'net', passed: undefined, message: 'down', fix_hint: undefined },
+			],
+			all_passed: true,
+		});
+		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
+		assert.deepStrictEqual(mapDoctorResponse(wire), {
+			checks: [
+				{ name: 'disk', passed: true, message: 'ok', fixHint: 'grow volume' },
+				{ name: 'net', passed: false, message: 'down', fixHint: '' },
+			],
+			allPassed: true,
+		});
+
+		const empty = decodeDoctorResponse(new Uint8Array(0));
+		assert.deepStrictEqual(empty, { checks: [], all_passed: undefined });
+		assert.deepStrictEqual(mapDoctorResponse(empty), { checks: [], allPassed: false });
+
+		const omitted = decodeDoctorResponse(encodeMessageField(1, encodeStringField(1, 'solo')));
+		assert.deepStrictEqual(omitted, {
+			checks: [{ name: 'solo', passed: undefined, message: undefined, fix_hint: undefined }],
+			all_passed: undefined,
+		});
+		assert.deepStrictEqual(mapDoctorResponse(omitted), {
+			checks: [{ name: 'solo', passed: false, message: '', fixHint: '' }],
+			allPassed: false,
+		});
+	});
+
+	test('system unary wire source has no JSON.stringify; Doctor encoded; no Connect', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcSystemUnaryWire.ts'), 'utf8');
 		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(!/\bencodeDoctor|\bdecodeDoctor|\bmapDoctor/.test(source));
+		assert.ok(/\bencodeDoctorRequest\b/.test(source));
+		assert.ok(/\bdecodeDoctorResponse\b/.test(source));
+		assert.ok(/\bdecodeDoctorCheck\b/.test(source));
 		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect/.test(source));
 		assert.ok(!/\bGetAuthNonce\b|\bAuthNonce\b/.test(source));
 		assert.ok(!/\bgrpcClient\b/.test(source));
 	});
 
+	test('doctor unary stays JSON on the System client; encode/decode not wired', () => {
+		const client = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
+		const body = extractAsyncMethod(client, 'doctor');
+		assert.ok(body.includes('makeUnaryClient<'), 'doctor must stay JSON until a later slice wires bytes');
+		assert.ok(!body.includes('makeUnaryBytesClient'), 'doctor must not be wired yet');
+		assert.ok(!body.includes('encodeDoctorRequest'), 'doctor must not call encodeDoctorRequest');
+		assert.ok(!body.includes('decodeDoctorResponse'), 'doctor must not call decodeDoctorResponse');
+		assert.ok(!body.includes('JSON.stringify'), 'doctor must not JSON.stringify');
+	});
+
 	test('grpcClient HealthCheck / Shutdown use bytes; decode then map*', () => {
-		const thisDir = path.dirname(fileURLToPath(import.meta.url));
-		const repoRoot = path.join(thisDir, '../../../../../../');
-		const source = fs.readFileSync(path.join(repoRoot, 'src/vs/platform/universeAgent/node/grpc/grpcClient.ts'), 'utf8');
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const methods: Array<{ name: string; encoder: string; decoder: string; mapper: string }> = [
 			{ name: 'healthCheck', encoder: 'encodeHealthCheckRequest', decoder: 'decodeHealthCheckResponse', mapper: 'mapHealthCheckResponse' },
 			{ name: 'shutdown', encoder: 'encodeShutdownRequest', decoder: 'decodeShutdownResponse', mapper: 'mapShutdownResponse' },
@@ -147,6 +219,17 @@ suite('grpc SystemService HealthCheck / Shutdown protobuf wire', () => {
 		assert.ok(source.includes('grpcSystemUnaryWire'));
 	});
 });
+
+function grpcDir(): string {
+	const thisDir = path.dirname(fileURLToPath(import.meta.url));
+	const candidates = [
+		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
+		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
+	];
+	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcSystemUnaryWire.ts')));
+	assert.ok(dir, 'grpcSystemUnaryWire.ts not found from cwd or import.meta');
+	return dir;
+}
 
 function extractAsyncMethod(source: string, name: string): string {
 	const start = source.indexOf(`\tasync ${name}(`);
