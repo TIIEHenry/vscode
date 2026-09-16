@@ -3840,6 +3840,108 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok(!section.getAgentsMarkdownValue().includes(leftoverMarkdown));
 	});
 
+	test('does not leak unhandled rejection when Agents refresh catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+		// refresh() already catches list throw; a lone inner reject does not leak.
+		// The void call site still needs `.catch` when the catch-path render throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => {
+					throw new Error('list boom');
+				},
+			});
+			const section = mountAgentsSection(connection);
+			const status = (section as unknown as { status: { render(options: { readonly mode: string }): void } }).status;
+			const originalRender = status.render.bind(status);
+			status.render = (options: { readonly mode: string }) => {
+				if (options.mode === 'failed') {
+					throw paintBoom;
+				}
+				originalRender(options);
+			};
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+			section.getDomNode().parentElement?.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when createProfile catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		// createProfile() already catches RPC throw; a lone inner reject does not leak.
+		// The void call site still needs `.catch` when the catch-path paint throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => ({
+					profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+				}),
+				saveAgentProfile: async () => {
+					throw new Error('create boom');
+				},
+			});
+			const section = mountAgentsSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+			const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+			assert.ok(writeStatus);
+			Object.defineProperty(writeStatus, 'textContent', {
+				configurable: true,
+				get: () => '',
+				set: (value: string) => {
+					if (value.includes('Unable to create:')) {
+						throw paintBoom;
+					}
+				},
+			});
+			const create = Array.from(section.getDomNode().querySelectorAll('.monaco-button'))
+				.find(button => (button.textContent ?? '').includes('New')) as HTMLElement | undefined;
+			assert.ok(create, 'New write button must be painted');
+			create.click();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+			section.getDomNode().parentElement?.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
 	function assertToolsUnknownCapabilityHonesty(
 		section: EngineToolsSection,
 		expectedRows: number,
