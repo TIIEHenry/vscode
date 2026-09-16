@@ -39,6 +39,16 @@ suite('pluginListWidget refresh fire-and-forget (D556)', () => {
 		assert.ok(!source.includes('void this.queryMarketplaceSnapshot().catch(onUnexpectedError);'));
 		assert.ok(!source.includes('void this.queryMarketplace().catch(onUnexpectedError);'));
 	});
+
+	test('pluginListWidget fire-and-forget filterPlugins voids double-catch onUnexpectedError (D572)', () => {
+		const source = readPluginListWidgetSource();
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const doubleFilter = `void this.filterPlugins()${doubleCatch};`;
+		assert.strictEqual((source.match(/void this\.filterPlugins\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
+		assert.ok(source.includes(doubleFilter));
+		assert.ok(!source.includes('void this.filterPlugins();'));
+		assert.ok(!source.includes('void this.filterPlugins().catch(onUnexpectedError);'));
+	});
 });
 
 function readPluginListWidgetSource(): string {
