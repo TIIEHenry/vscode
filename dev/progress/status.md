@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "A Health/ContextVariable 已 bytes。F TokenUsage / G Config Get+Set wire 未接线（Watch 不转；勿 add out）。C–D D498–D499 / H D500 void catch。SaveSkillContent/Rebuild 仍 JSON。D24 仍开。D487 open。D493–D500 closed。不是 leftover/pills 完成。R9/D405 仍开"
+summary: "A Health/ContextVariable 已 bytes。F TokenUsage / G Config Get+Set wire 未接线（Watch 不转；勿 add out）。C–D/H–I D498–D501 void catch。SaveSkillContent/Rebuild 仍 JSON。D24 仍开。D487 open。D493–D501 closed。不是 leftover/pills 完成。R9/D405 仍开"
 ---
 
 # Development Progress
@@ -19,10 +19,11 @@ summary: "A Health/ContextVariable 已 bytes。F TokenUsage / G Config Get+Set w
 | **C D498** | `6ca6c4ac791` — Triggers `refresh` void catch。gitlink 脏 **勿 add** |
 | **D D499** | `07efeb4715f` — Skills `refresh`/`loadSkillBody` void catch。不是 D482 |
 | **H D500** | `591d9fc6c40` — Tools `refresh`/`loadToolInfo` void catch |
+| **I D501** | `fe2e0bf2770` — MCP Runtime `refresh`/`loadTools` void catch |
 | **C–J D493–D497** | Clipboard / Context Variables / nav / Projects / banners **closed** |
 | **前波** | ChatSync/Team bytes；Memory/File；D488–D492；D487 open |
 更早流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。**不升 PRD-008**。不是 leftover/pills 完成。
-### 进行中（2026-09-16 · 合入 H D500；D24 仍开）
+### 进行中（2026-09-16 · 合入 I D501；D24 仍开）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
 | **A** | Health/ContextVariable bytes | `13058933d22` 已合。[D24](deferred-gaps.md) **仍开**。[D487](deferred-gaps.md) **open** |
@@ -30,8 +31,9 @@ summary: "A Health/ContextVariable 已 bytes。F TokenUsage / G Config Get+Set w
 | **G** | Config Get+Set wire | `905df0471e6` **未接线**；Watch 不转；**勿 add `out`** |
 | **C** | D498 | `6ca6c4ac791`；gitlink 脏 **勿 add** |
 | **D** | D499 | `07efeb4715f` Skills void catch |
-| **H** | D500 | `591d9fc6c40` Tools void catch。[D500](deferred-gaps.md) **closed** |
-| **I/J** | 空闲 | [D496](deferred-gaps.md)–[D497](deferred-gaps.md) closed |
+| **H** | D500 | `591d9fc6c40` Tools void catch |
+| **I** | D501 | `fe2e0bf2770` MCP Runtime void catch。[D501](deferred-gaps.md) **closed** |
+| **J** | 空闲 | [D497](deferred-gaps.md) closed |
 | **B** | — | 脏 `worktree-pool.md`；**跳过**；勿 `-B` |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 | **edit** | `agent-ide` | **仅 ff-only**；勿 reset/checkout/stash |
@@ -41,7 +43,7 @@ summary: "A Health/ContextVariable 已 bytes。F TokenUsage / G Config Get+Set w
 |:---|:-----|:-----|
 | [D24](deferred-gaps.md) | A/F/G | **仍开**：Health/ContextVariable **已** bytes；SaveSkillContent/Rebuild/TokenUsage/Config 仍 JSON；TokenUsage + Config Get+Set wire **未接线**；Watch 不转 |
 | [D487](deferred-gaps.md) | F Memory wire | **open**：codec 无 double；Search score 未读；mapper `requiredDouble`→0 |
-| [D493](deferred-gaps.md)–[D500](deferred-gaps.md) | C/D/H/I/J | **closed** Clipboard / Context Variables / Triggers / Skills / Tools / nav / Projects / banners void catch |
+| [D493](deferred-gaps.md)–[D501](deferred-gaps.md) | C/D/H/I/J | **closed** Clipboard / Context Variables / Triggers / Skills / Tools / MCP Runtime / nav / Projects / banners void catch |
 | [D405](deferred-gaps.md) | 手测 | **仍开**（S4a/S4b 前置） |
 | [D16](deferred-gaps.md) / [D8](deferred-gaps.md) / [D147](deferred-gaps.md) | 基线 | **仍开**；勿开切片 1；勿降 `min_cases` |
 | [D31](deferred-gaps.md) | Sources | **仍开**（剩 F4）；不升 PRD |
@@ -49,7 +51,7 @@ summary: "A Health/ContextVariable 已 bytes。F TokenUsage / G Config Get+Set w
 ## 工位表（P0 盘点 · 2026-09-16 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | MERGE_SHA | 干净 | 0 | 合入 A/F/G + C–D D498–D499 + H D500；D24 仍开；D487 open |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | MERGE_SHA | 干净 | 0 | 合入 A/F/G + C–D/H–I D498–D501；D24 仍开；D487 open |
 | A | `vscode-WorkTrees/A` | `loop/A` | `13058933d22` | 干净 | 0 | Health/ContextVariable **已** bytes |
 | B | `vscode-WorkTrees/B` | `loop/B` | `28ffd1ae9f2` | 脏 `worktree-pool.md` | 0 | **跳过** |
 | C | `vscode-WorkTrees/C` | `loop/C` | `6ca6c4ac791` | 脏 `dev/loop` gitlink | 0 | **勿 add**；D498 closed |
@@ -57,15 +59,15 @@ summary: "A Health/ContextVariable 已 bytes。F TokenUsage / G Config Get+Set w
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked` leftover；跳过 |
 | F | `vscode-WorkTrees/F` | `loop/F` | `1321cb39cbb` | TokenUsage wire | 0 | **未接线**；D487 open |
 | G | `vscode-WorkTrees/G` | `loop/G` | `905df0471e6` | 未跟踪 `out` | 0 | **勿 add `out`**；Config **未接线** |
-| H | `vscode-WorkTrees/H` | `loop/H` | `591d9fc6c40` | D500 | 0 | Tools void catch closed |
-| I | `vscode-WorkTrees/I` | `loop/I` | MERGE_SHA | 干净 | 0 | ff-only；D496 closed |
+| H | `vscode-WorkTrees/H` | `loop/H` | `591d9fc6c40` | 干净 | 0 | D500 closed |
+| I | `vscode-WorkTrees/I` | `loop/I` | `fe2e0bf2770` | D501 | 0 | MCP Runtime void catch closed |
 | J | `vscode-WorkTrees/J` | `loop/J` | MERGE_SHA | 干净 | 0 | ff-only；D497 closed |
 | edit | `Projects/Agents/vscode` | `agent-ide` | MERGE_SHA | `dev/loop`+docs | 0 | 仅 ff-only；勿 reset/checkout/stash |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。下一刀 IDE Direct Address 接通后 Composer 发送。**不升 PRD-008** |
-| **loop 切片** | [D24](deferred-gaps.md) **仍开**（Health/ContextVariable **已** bytes；SaveSkillContent/Rebuild/TokenUsage/Config 仍 JSON；TokenUsage + Config wire **未接线**；Watch 不转）。[D493](deferred-gaps.md)–[D500](deferred-gaps.md) **closed**。[D487](deferred-gaps.md) **open**。R9 / **D405** 仍开。不关 D8/D16/D147。不得宣称 leftover / pills 完成 |
+| **loop 切片** | [D24](deferred-gaps.md) **仍开**（Health/ContextVariable **已** bytes；SaveSkillContent/Rebuild/TokenUsage/Config 仍 JSON；TokenUsage + Config wire **未接线**；Watch 不转）。[D493](deferred-gaps.md)–[D501](deferred-gaps.md) **closed**。[D487](deferred-gaps.md) **open**。R9 / **D405** 仍开。不关 D8/D16/D147。不得宣称 leftover / pills 完成 |
 | **test-baseline** | conversationNavigation 整文件 afterEach ConversationLens leak 已知，可跳过或只 grep D495。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 未满足前不开 U2 |
 ## 不做：**ADR-007 U2**、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。

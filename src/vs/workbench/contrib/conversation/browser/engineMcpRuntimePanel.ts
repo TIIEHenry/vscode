@@ -7,6 +7,7 @@ import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -168,7 +169,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 		this.refreshButton = this._register(new Button(this.refreshToolbar, defaultButtonStyles));
 		this.refreshButton.label = localize('ua.engineMcpRuntimeRefresh', "Refresh");
 		this.refreshButton.enabled = false;
-		this._register(this.refreshButton.onDidClick(() => void this.refresh({ forceTools: true })));
+		this._register(this.refreshButton.onDidClick(() => void this.refresh({ forceTools: true }).catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.listContainer = DOM.append(this.container, $('.engine-catalog-list.engine-mcp-runtime-list'));
 		this.listContainer.style.display = 'none';
@@ -184,8 +185,8 @@ export class EngineMcpRuntimePanel extends Disposable {
 		this.toolsList.setAttribute('aria-label', MCP_RUNTIME_TOOLS_FEATURE);
 		this.toolsList.style.display = 'none';
 
-		this._register(this.connection.onDidChangeConnection(() => void this.refresh()));
-		void this.refresh();
+		this._register(this.connection.onDidChangeConnection(() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError)));
+		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	getDomNode(): HTMLElement {
@@ -229,7 +230,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 	}
 
 	render(): void {
-		void this.refresh();
+		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private ensureList(): WorkbenchList<EngineMcpRuntimeListEntry> {
@@ -254,7 +255,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 				const entry = e.elements[0];
 				this.selectedServerId = entry?.status.serverId;
 				if (this.selectedServerId && canShowCatalogRows(this.mode)) {
-					void this.loadTools(this.selectedServerId, false);
+					void this.loadTools(this.selectedServerId, false).catch(onUnexpectedError).catch(onUnexpectedError);
 					return;
 				}
 				// Keep leftover tool rows after a live paint (D263; D238).
@@ -367,7 +368,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 			this.renderCheckedAt();
 			this.renderStatus();
 			if (this.selectedServerId && canShowCatalogRows(this.mode)) {
-				void this.loadTools(this.selectedServerId, options?.forceTools === true);
+				void this.loadTools(this.selectedServerId, options?.forceTools === true).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else {
 				this.clearToolsPresentation();
 			}
@@ -387,14 +388,14 @@ export class EngineMcpRuntimePanel extends Disposable {
 			this.renderCheckedAt();
 			this.renderStatus({
 				reason: getTransportErrorMessage(error),
-				onRetry: () => void this.refresh(options),
+				onRetry: () => void this.refresh(options).catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 			// D434: leftover after list throw must paint leftover tools failed
 			// honesty on refresh; do not wait for another selectServer.
 			// Do not extra getMcpServerStatuses / invent listTools.
 			this.keepLeftoverRuntimeToolsFailed(
 				getTransportErrorMessage(error),
-				() => void this.refresh(options),
+				() => void this.refresh(options).catch(onUnexpectedError).catch(onUnexpectedError),
 			);
 		}
 	}
@@ -561,7 +562,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 				mode: 'failed',
 				featureLabel: MCP_RUNTIME_TOOLS_FEATURE,
 				reason: getTransportErrorMessage(error),
-				onRetry: () => void this.loadTools(serverId, forceRefresh),
+				onRetry: () => void this.loadTools(serverId, forceRefresh).catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 		}
 	}
