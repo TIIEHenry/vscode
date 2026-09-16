@@ -1705,4 +1705,69 @@ suite('Sources - review list model', () => {
 			(widget as unknown as { rendererDelegate: { onChipClick(toolCallId: string): void } }).rendererDelegate.onChipClick('tc-1');
 		});
 	});
+
+	test('does not leak unhandled rejection when Changes list refresh catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		// refresh() already catches git-read throw; a lone inner reject does not leak.
+		// The void scheduler call site still needs `.catch` when the catch-path paint throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			const host = mountListHost();
+			const widget = store.add(stubSourcesGitListServices().createInstance(SourcesChangesList, host));
+			(widget as unknown as { setStatusMessage(message: string | undefined): void }).setStatusMessage = message => {
+				if (message) {
+					throw paintBoom;
+				}
+			};
+			(widget as unknown as { scheduleRefresh(): void }).scheduleRefresh();
+			(widget as unknown as { refreshScheduler: { flush(): void } }).refreshScheduler.flush();
+		});
+	});
+
+	test('does not leak unhandled rejection when Changes list runCommit catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		// runCommit() already catches writeGitCommit throw; a lone inner reject does not leak.
+		// The void Enter-key call site still needs `.catch` when the catch-path paint throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const host = mountListHost();
+			const widget = store.add(stubSourcesGitListServices({
+				connection: createGitConnection({ throwOnCommit: true }),
+			}).createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+			await selectFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+			const input = host.querySelector('.sources-changes-commit-input') as HTMLInputElement;
+			assert.ok(input);
+			input.value = 'fix';
+			input.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+			await waitForEnabledButton(host, '.sources-changes-commit .monaco-button');
+			(widget as unknown as { setStatusMessage(message: string | undefined): void }).setStatusMessage = message => {
+				if (message) {
+					throw paintBoom;
+				}
+			};
+			input.dispatchEvent(new mainWindow.KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true, cancelable: true }));
+		});
+	});
+
+	test('does not leak unhandled rejection when Changes list onRowAction catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		// runResourceAction / tryStagePaths already catch write throw; a lone inner reject does not leak.
+		// The void onRowAction call site still needs `.catch` when the catch-path paint throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const host = mountListHost();
+			const widget = store.add(stubSourcesGitListServices({
+				connection: createGitConnection({ throwOnStage: true }),
+			}).createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+			const list = await waitForList(widget as unknown as { list?: WorkbenchList<unknown> });
+			(widget as unknown as { setStatusMessage(message: string | undefined): void }).setStatusMessage = message => {
+				if (message) {
+					throw paintBoom;
+				}
+			};
+			widget.onRowAction(list.element(0) as ISourcesChangeEntry, 'stage');
+		});
+	});
 });

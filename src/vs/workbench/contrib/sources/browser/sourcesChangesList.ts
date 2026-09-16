@@ -11,7 +11,7 @@ import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/lis
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Event } from '../../../../base/common/event.js';
-import { getErrorMessage } from '../../../../base/common/errors.js';
+import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableMap, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
@@ -322,7 +322,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			}
 			if (event.keyCode === KeyCode.Enter) {
 				event.preventDefault();
-				void this.runCommit();
+				void this.runCommit().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -337,7 +337,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this._register(this.roster.onDidChangeSession(() => this.scheduleRefresh()));
 		}
 
-		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refresh(), 250));
+		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError), 250));
 		this.scheduleRefresh();
 
 		this._register(this.scmService.onDidAddRepository(repo => {
@@ -425,7 +425,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	onRowAction(entry: ISourcesChangeEntry, action: SourcesChangeRowAction): void {
-		void this.runResourceAction(entry, action);
+		void this.runResourceAction(entry, action).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private registerRepository(repo: ISCMRepository): void {
