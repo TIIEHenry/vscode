@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "merge 关仓：GetConfig/DeleteConfig/Reload/Destroy·Cancel·Resume/CheckConnection 已 bytes；Status/History/CreateRemoteSession/UploadProgress/ResolveModel/SaveConfig wire 未接线；host leftover D552 关五处 call site。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
+summary: "merge 关仓：GetConfig/DeleteConfig/Reload/Destroy·Cancel·Resume/CheckConnection 已 bytes；Status/History/CreateRemoteSession/UploadProgress/ResolveModel/SaveConfig wire 未接线；host leftover D552 关五处 call site。J maybeOffer 双链 D559 关本 call site。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -29,6 +29,7 @@ summary: "merge 关仓：GetConfig/DeleteConfig/Reload/Destroy·Cancel·Resume/C
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
+| **J** | `universeAgentMigration.contribution.ts` `void this.maybeOffer()` 双链；[D559](deferred-gaps.md) 关本 call site。D552 仍闭。D24 仍开。leftover **未**全局完成 |
 
 子 agent 发现：
 | ID | 问题 |
@@ -36,6 +37,7 @@ summary: "merge 关仓：GetConfig/DeleteConfig/Reload/Destroy·Cancel·Resume/C
 | [D24](deferred-gaps.md) | **仍开**：七条 **已** bytes；Status/History/CreateRemoteSession/UploadProgress/ResolveModel/SaveConfig wire 未接线；Connect/SaveSkillContent/Watch 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
 | [D550](deferred-gaps.md)–[D552](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
+| [D559](deferred-gaps.md) | **closed** maybeOffer 本 call site；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |
