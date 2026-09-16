@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -20,7 +22,7 @@ import type {
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { ConversationEngineRosterService, ENGINE_BIND_FAILED_SESSION_ID, isEngineRosterPlaceholderSessionId } from '../../browser/conversationEngineRosterService.js';
 import { postBound } from '../../browser/conversationLensComposer.js';
-import { CONVERSATION_ROSTER_STORAGE_KEY } from '../../browser/conversationRosterStorage.js';
+import { CONVERSATION_ROSTER_STORAGE_KEY, type ConversationRosterStorageV1 } from '../../browser/conversationRosterStorage.js';
 import { stubTurnsToSnapshot } from '../../browser/conversationSessionView.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 
@@ -454,6 +456,34 @@ function createService(
 async function awaitEngineCatalogRefresh(service: ConversationEngineRosterService): Promise<void> {
 	await service.whenEngineCatalogRefreshComplete();
 	await new Promise<void>(resolve => setTimeout(resolve, 0));
+}
+
+declare function __readFileInTests(path: string): Promise<string>;
+
+async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
+	// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	const unexpectedWarns: unknown[] = [];
+	const unhandledRejections: unknown[] = [];
+	const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+	process.on('unhandledRejection', onUnhandledRejection);
+	const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+	setUnexpectedErrorHandler(error => {
+		unexpectedWarns.push(error);
+		if (unexpectedWarns.length === 1) {
+			throw error;
+		}
+	});
+	try {
+		await run();
+		await timeout(0);
+		assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+			unhandledRejections: [],
+			unexpectedWarns: [paintBoom, paintBoom],
+		});
+	} finally {
+		setUnexpectedErrorHandler(originalErrorHandler);
+		process.off('unhandledRejection', onUnhandledRejection);
+	}
 }
 
 suite('ConversationEngineRosterService (M6-A2)', () => {
@@ -3641,5 +3671,107 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
 		assert.strictEqual(isConversationPairingHold(connection), true);
 		assert.strictEqual(service.countPendingConfirmations('ua-empty'), 0);
+	});
+
+	test('does not leak unhandled rejection when setEngineConnected refreshEngineCatalog catch-path persist throws and onUnexpectedError warn-then-rethrows', async () => {
+		// doRefreshEngineCatalog already catches listSessions throw; a lone inner reject does not leak.
+		// The void setEngineConnected call site still needs `.catch` when the catch-path persist throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		class CatchPathSaveRoster extends ConversationEngineRosterService {
+			protected override saveRosterStorage(_state: ConversationRosterStorageV1): void {
+				throw paintBoom;
+			}
+		}
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.listSessionsError = new Error('Query does not return results');
+		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
+		const service = store.add(new CatchPathSaveRoster(
+			connection as unknown as IUniverseAgentConnection,
+			new MockUniverseAgentSessionView(),
+			workspaceToolsGate,
+			storage,
+		));
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			service.setEngineConnected(true);
+		});
+	});
+
+	test('does not leak unhandled rejection when onUaConnectionChanged refreshEngineCatalog catch-path persist throws and onUnexpectedError warn-then-rethrows', async () => {
+		// doRefreshEngineCatalog already catches listSessions throw; a lone inner reject does not leak.
+		// The void onUaConnectionChanged call site still needs `.catch` when the catch-path persist throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		class CatchPathSaveRoster extends ConversationEngineRosterService {
+			protected override saveRosterStorage(_state: ConversationRosterStorageV1): void {
+				throw paintBoom;
+			}
+		}
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.listSessionsError = new Error('Query does not return results');
+		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
+		store.add(new CatchPathSaveRoster(
+			connection as unknown as IUniverseAgentConnection,
+			new MockUniverseAgentSessionView(),
+			workspaceToolsGate,
+			storage,
+		));
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			connection.setConnected(true);
+		});
+	});
+
+	test('does not leak unhandled rejection when createSession catch-path fire throws and onUnexpectedError warn-then-rethrows', async () => {
+		// ensureEngineSession().then already has a createSession fail-action catch; a lone inner reject does not leak.
+		// The void createSession call site still needs a second `.catch` when that catch-path fire throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		class CreateSessionCatchRoster extends ConversationEngineRosterService {
+			throwOnAcquire = false;
+			override acquireSessionView(sessionId: string): IConversationSessionViewLease {
+				if (this.throwOnAcquire) {
+					throw new Error('acquire boom');
+				}
+				return super.acquireSessionView(sessionId);
+			}
+		}
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
+		const service = store.add(new CreateSessionCatchRoster(
+			connection as unknown as IUniverseAgentConnection,
+			createSessionViewMock(),
+			workspaceToolsGate,
+			storage,
+		));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		(service as unknown as { _onDidFailEngineAction: { fire: () => void } })._onDidFailEngineAction.fire = () => {
+			throw paintBoom;
+		};
+		service.throwOnAcquire = true;
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			assert.strictEqual(service.createSession(), '');
+		});
+	});
+
+	test('engine roster fire-and-forget voids double-catch onUnexpectedError', async () => {
+		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationEngineRosterService.ts`);
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		assert.ok(source.includes(`void this.refreshEngineCatalog()${doubleCatch}`));
+		assert.ok(source.includes(`void this.ensureEngineSession().then(() => {`));
+		assert.ok(source.includes(`}).catch(onUnexpectedError).catch(onUnexpectedError);`));
+		assert.ok(/void this\.ensureEngineSession\(\)\.then\(\(\) => \{\s*this\.bindLiveTreeObservationLease\(\);\s*\}\)\.catch\(error => \{[\s\S]*?\}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/.test(source));
+		assert.ok(source.includes(`void this.monitorPendingEngineSessionBind(sessionId, lease)${doubleCatch}`));
+		assert.ok(source.includes(`void this.monitorListedEngineSessionBind(sessionId, lease, this.listedBindMonitorGeneration)${doubleCatch}`));
+		assert.ok(!source.includes('void this.refreshEngineCatalog();'));
+		assert.ok(!source.includes('void this.monitorPendingEngineSessionBind(sessionId, lease);'));
+		assert.ok(!source.includes('void this.monitorListedEngineSessionBind(sessionId, lease, this.listedBindMonitorGeneration);'));
+		assert.ok(source.includes('void this.engineSessionEnsure.finally(() => {'));
+		assert.strictEqual((source.match(/void this\.refreshEngineCatalog\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
 	});
 });
