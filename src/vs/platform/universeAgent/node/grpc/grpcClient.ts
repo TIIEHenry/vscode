@@ -618,6 +618,12 @@ import {
 	encodeUnshelveSessionRequest,
 } from './grpcSessionLifecycleUnaryWire.js';
 import {
+	decodeFireTriggerWebhookResponse,
+	decodeInstallSessionDemoFakeResponse,
+	encodeFireTriggerWebhookRequest,
+	encodeInstallSessionDemoFakeRequest,
+} from './grpcFireTriggerWebhookUnaryWire.js';
+import {
 	decodeChatResponse,
 	decodeCreateSessionResponse,
 	decodeCreateSnapshotResponse,
@@ -1622,20 +1628,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async fireTriggerWebhook(request: UniverseAgentFireTriggerWebhookRequest): Promise<UniverseAgentFireTriggerWebhookResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, {
-			status?: string | number;
-			event_id?: string;
-			reason?: string;
-		}>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.FireTriggerWebhook,
+			decodeFireTriggerWebhookResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			trigger_id: request.triggerId,
-			payload_json: request.payloadJson,
-		});
+		const wire = await unary(encodeFireTriggerWebhookRequest(request));
 		return {
 			status: mapFireTriggerWebhookStatus(wire.status),
 			eventId: wire.event_id ?? '',
@@ -1644,21 +1643,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async installSessionDemoFake(request: UniverseAgentInstallSessionDemoFakeRequest): Promise<UniverseAgentInstallSessionDemoFakeResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, {
-			success?: boolean;
-			message?: string;
-			reason_code?: string;
-		}>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.InstallSessionDemoFake,
+			decodeInstallSessionDemoFakeResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			queues_payload: bytesToBase64(request.queuesPayload),
-			content_type: request.contentType,
-			playbook_id: request.playbookId,
-		});
+		const wire = await unary(encodeInstallSessionDemoFakeRequest(request));
 		return {
 			ok: wire.success === true,
 			message: wire.message,
