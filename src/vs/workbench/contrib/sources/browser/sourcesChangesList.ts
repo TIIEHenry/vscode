@@ -304,9 +304,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.statusMessage = dom.append(host, $('.sources-changes-status'));
 		this.statusMessage.style.display = 'none';
 
-		this._register(this.stageSelectedButton.onDidClick(() => this.runOnSelected('stage')));
-		this._register(this.unstageSelectedButton.onDidClick(() => this.runOnSelected('unstage')));
-		this._register(this.commitButton.onDidClick(() => this.runCommit()));
+		this._register(this.stageSelectedButton.onDidClick(() => void this.runOnSelected('stage').catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.unstageSelectedButton.onDidClick(() => void this.runOnSelected('unstage').catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.commitButton.onDidClick(() => void this.runCommit().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this._register(dom.addStandardDisposableListener(this.commitInput, 'input', () => {
 			const repo = this.activeRepository;
 			if (repo && this.commitInput.value !== repo.input.value) {

@@ -67,6 +67,16 @@ suite('Sources - Changes git write - 源码接线扫描', () => {
 		assert.ok(!source.includes('tryWriteSourcesGitApplyHunks'));
 		assert.ok(!source.includes('writeGitUnstage'));
 	});
+	test('Changes list Stage / Unstage / Commit button clicks double-catch onUnexpectedError', () => {
+		const source = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts'), 'utf8');
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		assert.ok(source.includes(`this.stageSelectedButton.onDidClick(() => void this.runOnSelected('stage')${doubleCatch})`));
+		assert.ok(source.includes(`this.unstageSelectedButton.onDidClick(() => void this.runOnSelected('unstage')${doubleCatch})`));
+		assert.ok(source.includes(`this.commitButton.onDidClick(() => void this.runCommit()${doubleCatch})`));
+		assert.ok(!source.includes("this.stageSelectedButton.onDidClick(() => this.runOnSelected('stage'));"));
+		assert.ok(!source.includes("this.unstageSelectedButton.onDidClick(() => this.runOnSelected('unstage'));"));
+		assert.ok(!source.includes('this.commitButton.onDidClick(() => this.runCommit());'));
+	});
 	test('Review Accept writes ApplyHunks only with payload; empty reject does not git.stage; Stage stays on Stage', () => {
 		const source = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts'), 'utf8');
 		assert.ok(source.includes('tryWriteSourcesGitApplyHunks'));
