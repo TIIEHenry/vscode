@@ -1320,4 +1320,105 @@ suite('EngineTriggersSection', () => {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
+
+	async function assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows(options: {
+		readonly buttonLabel: string;
+		readonly statusSelector: string;
+		readonly fireTrigger?: IUniverseAgentConnection['fireTrigger'];
+		readonly setTriggerEnabled?: IUniverseAgentConnection['setTriggerEnabled'];
+		readonly deleteTrigger?: IUniverseAgentConnection['deleteTrigger'];
+		readonly upsertTrigger?: IUniverseAgentConnection['upsertTrigger'];
+	}): Promise<void> {
+		// handleUpsert / handleFire / handleSetEnabled / handleDelete already catch RPC throw;
+		// a lone inner reject does not leak. The void click site still needs `.catch` when
+		// the catch-path write-status paint throws. A lone `.catch(onUnexpectedError)` still
+		// leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const pane = mountSection(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				listTriggers: async () => ({ triggers: [] }),
+				fireTrigger: options.fireTrigger,
+				setTriggerEnabled: options.setTriggerEnabled,
+				deleteTrigger: options.deleteTrigger,
+				upsertTrigger: options.upsertTrigger,
+			}));
+			await flushMicrotasks();
+			const writeStatusEl = pane.getDomNode().querySelector(options.statusSelector) as HTMLElement | null;
+			assert.ok(writeStatusEl);
+			Object.defineProperty(writeStatusEl, 'textContent', {
+				configurable: true,
+				get: () => '',
+				set: (value: string) => {
+					if (value) {
+						throw paintBoom;
+					}
+				},
+			});
+			const button = findActionButton(pane.getDomNode(), options.buttonLabel);
+			assert.ok(button, `${options.buttonLabel} write button must be painted`);
+			button.click();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+			pane.getDomNode().parentElement?.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	}
+
+	test('does not leak unhandled rejection when handleUpsert catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		await assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows({
+			buttonLabel: ENGINE_TRIGGER_ADD_LABEL,
+			statusSelector: '.engine-triggers-upsert-status',
+			upsertTrigger: async () => {
+				throw new Error('upsert boom');
+			},
+		});
+	});
+
+	test('does not leak unhandled rejection when handleFire catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		await assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows({
+			buttonLabel: ENGINE_TRIGGER_FIRE_LABEL,
+			statusSelector: '.engine-triggers-fire-status',
+			fireTrigger: async () => {
+				throw new Error('fire boom');
+			},
+		});
+	});
+
+	test('does not leak unhandled rejection when handleSetEnabled catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		await assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows({
+			buttonLabel: ENGINE_TRIGGER_ENABLE_LABEL,
+			statusSelector: '.engine-triggers-enabled-status',
+			setTriggerEnabled: async () => {
+				throw new Error('setEnabled boom');
+			},
+		});
+	});
+
+	test('does not leak unhandled rejection when handleDelete catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		await assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows({
+			buttonLabel: ENGINE_TRIGGER_DELETE_LABEL,
+			statusSelector: '.engine-triggers-delete-status',
+			deleteTrigger: async () => {
+				throw new Error('delete boom');
+			},
+		});
+	});
 });

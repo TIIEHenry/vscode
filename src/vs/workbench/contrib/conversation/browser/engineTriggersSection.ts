@@ -104,27 +104,27 @@ export class EngineTriggersSection extends Disposable {
 		const actionsRow = DOM.append(this.container, $('.engine-triggers-actions'));
 		this.addButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.addButton.label = ENGINE_TRIGGER_ADD_LABEL;
-		this._register(this.addButton.onDidClick(() => void this.handleUpsert('add')));
+		this._register(this.addButton.onDidClick(() => void this.handleUpsert('add').catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.editButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.editButton.label = ENGINE_TRIGGER_EDIT_LABEL;
-		this._register(this.editButton.onDidClick(() => void this.handleUpsert('edit')));
+		this._register(this.editButton.onDidClick(() => void this.handleUpsert('edit').catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.fireButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.fireButton.label = ENGINE_TRIGGER_FIRE_LABEL;
-		this._register(this.fireButton.onDidClick(() => void this.handleFire()));
+		this._register(this.fireButton.onDidClick(() => void this.handleFire().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.enableButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.enableButton.label = ENGINE_TRIGGER_ENABLE_LABEL;
-		this._register(this.enableButton.onDidClick(() => void this.handleSetEnabled(true)));
+		this._register(this.enableButton.onDidClick(() => void this.handleSetEnabled(true).catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.disableButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.disableButton.label = ENGINE_TRIGGER_DISABLE_LABEL;
-		this._register(this.disableButton.onDidClick(() => void this.handleSetEnabled(false)));
+		this._register(this.disableButton.onDidClick(() => void this.handleSetEnabled(false).catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.deleteButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.deleteButton.label = ENGINE_TRIGGER_DELETE_LABEL;
-		this._register(this.deleteButton.onDidClick(() => void this.handleDelete()));
+		this._register(this.deleteButton.onDidClick(() => void this.handleDelete().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.fireStatus = DOM.append(this.container, $('.engine-triggers-fire-status'));
 		this.fireStatus.style.display = 'none';

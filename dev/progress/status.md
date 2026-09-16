@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "merge compile-client 0；聚焦 8 文件 327 passing。A SetPermissionPolicy+Doctor 已 bytes；D508–D514 closed。D24 仍开。不是 leftover/pills 完成。"
+summary: "merge compile-client 0；聚焦 8 文件 327 passing。A SetPermissionPolicy+Doctor 已 bytes；D508–D514 closed。C 本刀 D515 Triggers 写 void 双链 catch，未 commit。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -28,7 +28,7 @@ summary: "merge compile-client 0；聚焦 8 文件 327 passing。A SetPermission
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
 | **A** | Permission+Doctor bytes | 已合入 merge。[D24](deferred-gaps.md) **仍开** |
-| **C** | D508 | 保持 `dev/loop` gitlink 脏；勿 add |
+| **C** | D515 | Triggers 六处写 void 双链 catch，未提交。保持 `dev/loop` gitlink 脏；勿 add。D24 仍开。不是 leftover 完成 |
 | **D/F/G/H/I/J** | D509–D514 | 已合入 merge |
 | **B** | — | 脏 `worktree-pool.md`；**跳过**；勿 `-B` |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
@@ -39,7 +39,7 @@ summary: "merge compile-client 0；聚焦 8 文件 327 passing。A SetPermission
 |:---|:-----|:-----|
 | [D24](deferred-gaps.md) | A | **仍开**：TokenUsage+Config Get/Set + SetPermissionPolicy + Doctor **已** bytes；SaveSkillContent/Rebuild/Watch/model prefs 仍 JSON |
 | [D487](deferred-gaps.md) | Memory | **open**：codec 无 double；Search score 未读 |
-| [D508](deferred-gaps.md)–[D514](deferred-gaps.md) | C–J | **closed** 本文件 void catch；leftover **未**全局完成 |
+| [D508](deferred-gaps.md)–[D515](deferred-gaps.md) | C–J | **closed** 本文件 void catch；leftover **未**全局完成 |
 | [D405](deferred-gaps.md) / [D16](deferred-gaps.md) / [D8](deferred-gaps.md) / [D147](deferred-gaps.md) | 基线 | **仍开** |
 | [R9](research-queue.md) | — | **仍开** |
 ## 工位表（P0 · 2026-09-16）
@@ -53,7 +53,7 @@ summary: "merge compile-client 0；聚焦 8 文件 327 passing。A SetPermission
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
-| **loop 切片** | [D24](deferred-gaps.md) **仍开**（SaveSkillContent/Rebuild/Watch/GetModelPreferences/SetModelPreferences/ResolveModel 仍 JSON）。[D508](deferred-gaps.md)–[D514](deferred-gaps.md) **closed**。[D487](deferred-gaps.md) **open**。不得宣称 leftover / pills 完成 |
+| **loop 切片** | [D24](deferred-gaps.md) **仍开**（SaveSkillContent/Rebuild/Watch/GetModelPreferences/SetModelPreferences/ResolveModel 仍 JSON）。[D508](deferred-gaps.md)–[D515](deferred-gaps.md) **closed**。[D487](deferred-gaps.md) **open**。不得宣称 leftover / pills 完成 |
 | **test-baseline** | 本关仓聚焦 8 文件 **327 passing / 0 fail**。conversationNavigation 整文件 afterEach ConversationLens leak 已知，未跑整文件。**D16 仍开** |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 未满足前不开 U2 |
 ## 不做：**ADR-007 U2**、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
