@@ -6,6 +6,7 @@
 import { addDisposableListener, EventHelper, isHTMLElement } from '../../../../base/browser/dom.js';
 import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { mainWindow } from '../../../../base/browser/window.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize, localize2 } from '../../../../nls.js';
@@ -48,7 +49,7 @@ class ConversationPartFocusTracker extends Disposable implements IWorkbenchContr
 	}
 }
 
-class ConversationChatTablistKeyboard extends Disposable implements IWorkbenchContribution {
+export class ConversationChatTablistKeyboard extends Disposable implements IWorkbenchContribution {
 
 	static readonly ID = 'workbench.contrib.conversationChatTablistKeyboard';
 
@@ -89,7 +90,7 @@ class ConversationChatTablistKeyboard extends Disposable implements IWorkbenchCo
 		const tablistHost = e.target;
 		void cycleSameConversationChatTablist(this.editorGroupsService, delta).then(() => {
 			focusActiveConversationChatTab(tablistHost);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 

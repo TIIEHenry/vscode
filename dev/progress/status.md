@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "merge 本波：A Session lifecycle 五 unary 已 bytes；D535–D541 closed。compile-client 0；聚焦 299 passing。D24 仍开。不是 leftover/pills 完成。"
+summary: "merge 本波：A Session lifecycle 五 unary 已 bytes；D535–D541 closed。I 未 commit D548 split-tablist 双链。compile-client 0；聚焦 299 passing。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -29,6 +29,7 @@ summary: "merge 本波：A Session lifecycle 五 unary 已 bytes；D535–D541 c
 |:---|:-----|
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
+| **I** | D548 tablist void 双链；未 commit |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
 
 子 agent 发现：
@@ -37,6 +38,7 @@ summary: "merge 本波：A Session lifecycle 五 unary 已 bytes；D535–D541 c
 | [D24](deferred-gaps.md) | **仍开**：lifecycle 五 unary **已** bytes；SaveSkillContent/Watch/model prefs/Connect/FireTriggerWebhook/ResolveTurn 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
 | [D535](deferred-gaps.md)–[D541](deferred-gaps.md) | **closed** 本文件 leftover catch；leftover **未**全局完成 |
+| [D548](deferred-gaps.md) | **closed** split-tablist void 双链；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |

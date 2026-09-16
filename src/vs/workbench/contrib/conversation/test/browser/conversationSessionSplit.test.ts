@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -16,10 +17,12 @@ import { IEditorGroupsService, type IConversationEditorPart } from '../../../../
 import { EditorService } from '../../../../services/editor/browser/editorService.js';
 import { CONVERSATION_SIDE_GROUP, IEditorService, SIDE_GROUP } from '../../../../services/editor/common/editorService.js';
 import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/editor.js';
+import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
 import { getDefaultConversationChatResource } from '../../common/conversationChatInput.js';
 import '../../browser/conversationEditor.contribution.js';
+import { ConversationChatTablistKeyboard } from '../../browser/conversationSplitActions.contribution.js';
 import { ConversationEditorPane } from '../../browser/conversationEditorPane.js';
 import { ConversationSessionChatService, IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
@@ -27,6 +30,8 @@ import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { stubConversationLensRuntimeServices, stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 import { installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
+
+declare function __readFileInTests(path: string): Promise<string>;
 
 suite('Conversation session split (S4)', () => {
 
@@ -164,5 +169,92 @@ suite('Conversation session split (S4)', () => {
 		sessionChatService.showSplitColumn(undefined, sideGroup.id);
 
 		assert.strictEqual(conversationPart.isGroupHidden(sideGroup.id), false);
+	});
+});
+
+suite('Conversation chat tablist keyboard leftover (D548)', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void): Promise<void> {
+		// cycleSameConversationChatTablist returns a Promise. A lone
+		// `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			run();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	}
+
+	test('does not leak unhandled rejection when tablist cycle openEditor rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const editorA = { id: 'chat-a' };
+		const editorB = { id: 'chat-b' };
+		const group = {
+			count: 2,
+			activeEditor: editorA,
+			getEditors: () => [editorA, editorB],
+			openEditor: () => Promise.reject(paintBoom),
+		};
+		const part = {
+			groups: [group],
+			activeGroup: group,
+			isGroupHidden: () => false,
+		};
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const layoutService = instantiationService.get(IWorkbenchLayoutService);
+		(layoutService as { hasFocus(part: Parts): boolean }).hasFocus = (part: Parts) => part === Parts.CONVERSATION_PART;
+		instantiationService.stub(IEditorGroupsService, {
+			getActiveConversationEditorPart: () => part,
+		} as unknown as IEditorGroupsService);
+		store.add(instantiationService.createInstance(ConversationChatTablistKeyboard));
+
+		const host = document.createElement('div');
+		host.className = 'conversation-editor-part-host';
+		const tablist = document.createElement('div');
+		tablist.className = 'tabs-container';
+		tablist.setAttribute('role', 'tablist');
+		const tab = document.createElement('div');
+		tab.className = 'tab';
+		tablist.appendChild(tab);
+		host.appendChild(tablist);
+		document.body.appendChild(host);
+		store.add({ dispose: () => host.remove() });
+
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			const event = new KeyboardEvent('keydown', {
+				key: 'ArrowRight',
+				code: 'ArrowRight',
+				bubbles: true,
+				cancelable: true,
+			});
+			Object.defineProperty(event, 'keyCode', { get: () => 39 });
+			tab.dispatchEvent(event);
+		});
+	});
+
+	test('tablist cycle fire-and-forget voids double-catch onUnexpectedError', async () => {
+		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationSplitActions.contribution.ts`);
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		assert.ok(source.includes(`void cycleSameConversationChatTablist(this.editorGroupsService, delta).then(() => {\n\t\t\tfocusActiveConversationChatTab(tablistHost);\n\t\t})${doubleCatch};`));
+		assert.ok(!source.includes('void cycleSameConversationChatTablist(this.editorGroupsService, delta).then(() => {\n\t\t\tfocusActiveConversationChatTab(tablistHost);\n\t\t});'));
 	});
 });
