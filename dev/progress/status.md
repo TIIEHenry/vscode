@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "merge compile-client 0；聚焦测 80 passing。D473 closed；D174 不重开；D24 仍开。不是 leftover/pills 完成。R9/D405 仍开"
+summary: "A 槽 d24-next-known-unaries-3：六 unary bytes。D24 仍开。不是 leftover/pills 完成。R9/D405 仍开"
 ---
 
 # Development Progress
@@ -38,12 +38,12 @@ summary: "merge compile-client 0；聚焦测 80 passing。D473 closed；D174 不
 | **settings chrome** | Connection/Engine 两页改用 `InputBox`/`Checkbox`/`WorkbenchList` 左栏与状态色；窄宽两栏；Test Engine 下沉页脚；「回 Client」链入 Preferences tab 条；会话栏图标改 ghost toolbar。无新 RPC / 无新节 |
 | **settings chrome follow-up** | Back-to-Client 先取出 Preferences 服务再关 pane（`await` 后 accessor 已失效）；Direct Address Connect 状态写回本区并先标 Connecting…。已随本轮合入 `loop/merge` |
 | **UA chrome visual** | `bb365bd7d3e` — SessionBar `.is-medium`；Inbox overlay 绝对定位；Engine 断连 CTA 去重；Client 360；Inspect+filter；Sources 空态。不升 PRD。**不是** leftover/pills 完成 |
-| **A D24 + D D473** | `8f6a484b303` / `4b2c5e20fac` — 六 unary bytes；context view catch。[D473](deferred-gaps.md) **closed**（不重开 D174）。[D24](deferred-gaps.md) **仍开**（listTools JSON）。不是 leftover/pills 完成 |
+| **A D24 + D D473** | `8f6a484b303` / `4b2c5e20fac` 已合六 unary + context catch。A 本刀 `d24-next-known-unaries-3`：CancelSessionGoal / Respond / Fork / Kill / DeleteMessage / EditMessage bytes。[D473](deferred-gaps.md) **closed**。[D24](deferred-gaps.md) **仍开**。不是 leftover/pills 完成 |
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。**2026-09-12**：仓外 PIN 已换。grpcurl 复验 **List/Create PASS**（含旧 session-100/101）；**[D25](deferred-gaps.md)/[D26](deferred-gaps.md) 已闭**。同日 seed `provider:state` + `models.json` 后重启，grpcurl **Chat PASS**（`gemini-3.8-flash-high`，`textDelta`=`pong`，`turnComplete`/`end_turn`；无 `MODEL_PROFILE_*`）。这是引擎面证据，不是 IDE Conversation 接通冒烟。未升 PRD-008。引擎 A–F 已合；本仓 **node + `IUniverseAgentConnection` 已挂**。Provider/Rules/Hooks **只读列表**已接（无凭据/规则写表单）。Projects 按会话 `work_dir` 分组、Navigator `ListTeams` 标题、Review 历史 chip **已接**。[m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 进行中（2026-09-16 · compile-client 0 · 80 passing；D24 仍开；不是 leftover/pills 完成）
+### 进行中（2026-09-16 · A `d24-next-known-unaries-3`；D24 仍开；不是 leftover/pills 完成）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
-| **A/D** | 六 unary + D473 | A：六 unary bytes、[D24](deferred-gaps.md) **仍开**（listTools JSON）；D：context view catch、[D473](deferred-gaps.md) **closed**（不重开 D174）。compile-client **0**；聚焦 **80 passing / 0 fail**。不是 leftover/pills 完成 |
+| **A** | `d24-next-known-unaries-3` | 六 unary bytes（CancelSessionGoal / Respond / Fork / Kill / DeleteMessage / EditMessage）。[D24](deferred-gaps.md) **仍开**（listTools JSON）。未 compile-client。不是 leftover/pills 完成 |
 | **B/C** | — | B 脏 `worktree-pool.md` 跳过 `-B`；C 脏 `dev/loop` gitlink 勿 add、试 ff-only |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 
@@ -128,7 +128,7 @@ summary: "merge compile-client 0；聚焦测 80 passing。D473 closed；D174 不
 | [D38](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `fillHistory` bind/write 已 catch |
 | [D39](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `requestDetail` bind 已 catch |
 | [D40](deferred-gaps.md) | A 槽 `request-detail-fetch-catch` | **closed** `fetchToolDetail` throw 已 catch 回 `{ok:false}`；host `{ok:false}` 原样返回 |
-| [D24](deferred-gaps.md) | A 槽 `d24-next-known-unaries-2` | **仍开**：CancelToolCall/SetSessionGoal/Team 三元/FetchToolDetail 已 bytes；`listTools` 仍 JSON；其余活 JSON 未转 |
+| [D24](deferred-gaps.md) | A 槽 `d24-next-known-unaries-3` | **仍开**：CancelSessionGoal/Respond/Fork/Kill/DeleteMessage/EditMessage 已 bytes；`listTools` 仍 JSON；其余活 JSON 未转 |
 | [D25](deferred-gaps.md) | A 槽 `ghost-bind-failed-ui` | **closed**：host leftover 已收；换钉后 List PASS（含旧卡住目录） |
 | [D26](deferred-gaps.md) | A 槽 host / 引擎仓 | **closed**：Create 新 id + session-100/101 PASS；日志无 schema 卡死。Chat 空 catalog 不并入本行。不要再清 store。未升 PRD-008 |
 | [D37](deferred-gaps.md) | C 槽 `inbox-getqueue-honesty` | **closed** Retry 仍按 `upload` 转发；无 GetQueue 已诚实化（Queue not listed + fixture 不冒充）；活引擎失败行仍不可见记 D24 |
@@ -183,7 +183,7 @@ summary: "merge compile-client 0；聚焦测 80 passing。D473 closed；D174 不
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | MERGE_SHA | 干净 | 0 | compile-client 0；80 passing；D473 closed；D24 仍开 |
-| A | `vscode-WorkTrees/A` | `loop/A` | MERGE_SHA | 干净 | 0 | `idle`；`checkout -B loop/A` |
+| A | `vscode-WorkTrees/A` | `loop/A` | `28997c8a79d` | 本刀脏 | 0 | `d24-next-known-unaries-3`；D24 仍开 |
 | B | `vscode-WorkTrees/B` | `loop/B` | `28ffd1ae9f2` | 脏 `worktree-pool.md` | 0 | 脏树勿 `-B`；incoming 重叠则 ff 停 |
 | C | `vscode-WorkTrees/C` | `loop/C` | MERGE_SHA | 脏 `dev/loop` gitlink | 0 | 试 ff-only；勿 add |
 | D | `vscode-WorkTrees/D` | `loop/D` | MERGE_SHA | 干净 | 0 | `idle`；ff-only / `checkout -B`；勿宣称 leftover/pills 完成 |
@@ -193,7 +193,7 @@ summary: "merge compile-client 0；聚焦测 80 passing。D473 closed；D174 不
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。本仓只读面 + Composer `model_profile_id` **已挂**。钉死工位 seed 后 grpcurl **Chat PASS**。下一刀是 IDE Direct Address 接通后 Composer 发送（PRD-008 仍要隔离 profile 冒烟）。**不升 PRD-008**。不要再清 store。D26 store 已闭，旧「迁移卡死」账见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md) |
-| **loop 切片** | compile-client **0**；聚焦 **80 passing / 0 fail**。A 六 unary bytes + D D473 已合。[D24](deferred-gaps.md) **仍开**（`listTools` JSON）。[D473](deferred-gaps.md) **closed**（不重开 D174）。R9 仍开。**D405** 手测仍开。不关 D8/D16/D147。未升 PRD-008。不得宣称 leftover / pills 完成。 |
+| **loop 切片** | A 本刀六 unary bytes。[D24](deferred-gaps.md) **仍开**（`listTools` JSON）。[D473](deferred-gaps.md) **closed**（不重开 D174）。R9 仍开。**D405** 手测仍开。不关 D8/D16/D147。未升 PRD-008。不得宣称 leftover / pills 完成。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。

@@ -8,8 +8,10 @@ import type {
 	UniverseAgentClearProviderCredentialsRequest,
 	UniverseAgentDeleteProjectRuleRequest,
 	UniverseAgentListProjectRulesRequest,
+	UniverseAgentCancelSessionGoalRequest,
 	UniverseAgentListSessionsRequest,
 	UniverseAgentProjectRule,
+	UniverseAgentRespondPermissionRequest,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSwitchModelRequest,
 	UniverseAgentSwitchModelResult,
@@ -196,6 +198,24 @@ export function encodeSetSessionGoalRequest(request: UniverseAgentSetSessionGoal
 	return Buffer.concat([
 		encodeStringField(1, request.sessionId),
 		encodeStringField(2, request.goal),
+	]);
+}
+
+/** Permission.CancelSessionGoal — `session_id` = 1. Response is success=1 / error=2 (same tags as Resume). */
+export function encodeCancelSessionGoalRequest(request: UniverseAgentCancelSessionGoalRequest): Uint8Array {
+	return encodeSessionInfoRequest(request.sessionId);
+}
+
+/**
+ * Permission.Respond — `session_id` = 1, `request_id` = 2, `granted` = 3, `metadata_json` = 4.
+ * proto3: empty strings omitted; `granted` false (default) omitted.
+ */
+export function encodeRespondPermissionRequest(request: UniverseAgentRespondPermissionRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.sessionId),
+		encodeStringField(2, request.requestId),
+		encodeInt32Field(3, request.granted === true ? 1 : 0),
+		encodeStringField(4, request.metadataJson),
 	]);
 }
 

@@ -11,8 +11,10 @@ import {
 	decodeChatResponse,
 	decodeCreateSessionResponse,
 	decodeCreateSnapshotResponse,
+	decodeDeleteMessageResponse,
 	decodeDeleteSnapshotResponse,
 	decodeFetchToolDetailResponse,
+	decodeForkAgentResponse,
 	decodeGetHistoryResponse,
 	decodeListSnapshotsResponse,
 	decodeRestoreSnapshotResponse,
@@ -28,6 +30,10 @@ import {
 	encodeRenameSessionRequest,
 	encodeCancelGenerationRequest,
 	encodeCancelToolCallRequest,
+	encodeDeleteMessageRequest,
+	encodeEditMessageRequest,
+	encodeForkAgentRequest,
+	encodeKillAgentRequest,
 	encodeRestoreSnapshotRequest,
 	encodeResumeSessionRequest,
 	encodeSessionStreamHandshake,
@@ -388,6 +394,169 @@ suite('grpc first-send / attach protobuf wire', () => {
 		}
 		assert.strictEqual(strings.get(2), 'root');
 		assert.strictEqual(strings.get(3), 'tc-1');
+	});
+
+	test('encodeForkAgentRequest writes fields 1-6; empty parent wires root', () => {
+		const encoded = encodeForkAgentRequest({
+			sessionId: 'sess-1',
+			parentAgentId: '',
+			name: 'researcher',
+			task: 'Investigate',
+			modelType: 'quality',
+			systemPrompt: 'Be brief',
+		});
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const strings = new Map<number, string>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+		}
+		assert.strictEqual(strings.get(1), 'sess-1');
+		assert.strictEqual(strings.get(2), 'root');
+		assert.strictEqual(strings.get(3), 'researcher');
+		assert.strictEqual(strings.get(4), 'Investigate');
+		assert.strictEqual(strings.get(5), 'quality');
+		assert.strictEqual(strings.get(6), 'Be brief');
+	});
+
+	test('encodeForkAgentRequest omits empty name/task/model/system_prompt', () => {
+		const encoded = encodeForkAgentRequest({ sessionId: 'sess-1' });
+		const strings = new Map<number, string>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+		}
+		assert.strictEqual(strings.get(2), 'root');
+		assert.strictEqual(strings.has(3), false);
+		assert.strictEqual(strings.has(4), false);
+		assert.strictEqual(strings.has(5), false);
+		assert.strictEqual(strings.has(6), false);
+	});
+
+	test('decodeForkAgentResponse reads success field 1 and agent_id field 2', () => {
+		const encoded = Buffer.concat([
+			encodeInt32Field(1, 1),
+			encodeStringField(2, 'sub:researcher'),
+			encodeStringField(3, 'ignored-agent-message'),
+		]);
+		const decoded = decodeForkAgentResponse(encoded);
+		assert.deepStrictEqual(decoded, { ok: true, agentId: 'sub:researcher' });
+		assert.strictEqual(decodeForkAgentResponse(new Uint8Array(0)).ok, false);
+	});
+
+	test('encodeKillAgentRequest writes session_id/agent_id; force false omits field 3', () => {
+		const forced = encodeKillAgentRequest({ sessionId: 'sess-1', agentId: 'sub:a', force: true });
+		assert.notStrictEqual(forced[0], 0x7b);
+		const strings = new Map<number, string>();
+		const numbers = new Map<number, number>();
+		for (const field of readProtoFields(forced)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+			if (field.wireType === 0) {
+				numbers.set(field.field, Number(field.varint));
+			}
+		}
+		assert.strictEqual(strings.get(1), 'sess-1');
+		assert.strictEqual(strings.get(2), 'sub:a');
+		assert.strictEqual(numbers.get(3), 1);
+
+		const soft = encodeKillAgentRequest({ sessionId: 'sess-1', agentId: 'sub:a', force: false });
+		const softNumbers = new Map<number, number>();
+		for (const field of readProtoFields(soft)) {
+			if (field.wireType === 0) {
+				softNumbers.set(field.field, Number(field.varint));
+			}
+		}
+		assert.strictEqual(softNumbers.has(3), false);
+	});
+
+	test('encodeKillAgentRequest empty agentId omits field 2 and does not wire root', () => {
+		const encoded = encodeKillAgentRequest({ sessionId: 'sess-1', agentId: '' });
+		const strings = new Map<number, string>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+		}
+		assert.strictEqual(strings.get(1), 'sess-1');
+		assert.strictEqual(strings.has(2), false);
+	});
+
+	test('encodeDeleteMessageRequest writes fields 1-4; empty agent wires root', () => {
+		const encoded = encodeDeleteMessageRequest({
+			sessionId: 'sess-1',
+			turnId: 'turn-9',
+			operationId: 'op-1',
+		});
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const strings = new Map<number, string>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+		}
+		assert.strictEqual(strings.get(1), 'sess-1');
+		assert.strictEqual(strings.get(2), 'turn-9');
+		assert.strictEqual(strings.get(3), 'root');
+		assert.strictEqual(strings.get(4), 'op-1');
+	});
+
+	test('decodeDeleteMessageResponse reads success/message/current_turn_id/removed_turn_count', () => {
+		const encoded = Buffer.concat([
+			encodeInt32Field(1, 1),
+			encodeStringField(2, 'deleted'),
+			encodeStringField(3, 'turn-head'),
+			encodeInt32Field(4, 3),
+		]);
+		const decoded = decodeDeleteMessageResponse(encoded);
+		assert.deepStrictEqual(decoded, {
+			ok: true,
+			message: 'deleted',
+			currentTurnId: 'turn-head',
+			removedTurnCount: 3,
+		});
+	});
+
+	test('encodeEditMessageRequest writes fields 1-5; empty agent wires root', () => {
+		const encoded = encodeEditMessageRequest({
+			sessionId: 'sess-1',
+			turnId: 'turn-9',
+			newContent: 'revised',
+			operationId: 'op-2',
+		});
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const strings = new Map<number, string>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+		}
+		assert.strictEqual(strings.get(1), 'sess-1');
+		assert.strictEqual(strings.get(2), 'turn-9');
+		assert.strictEqual(strings.get(3), 'revised');
+		assert.strictEqual(strings.get(4), 'root');
+		assert.strictEqual(strings.get(5), 'op-2');
+	});
+
+	test('encodeEditMessageRequest omits empty new_content and operation_id', () => {
+		const encoded = encodeEditMessageRequest({
+			sessionId: 'sess-1',
+			turnId: 'turn-9',
+			newContent: '',
+			agentId: 'sub:a',
+		});
+		const strings = new Map<number, string>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+		}
+		assert.strictEqual(strings.get(4), 'sub:a');
+		assert.strictEqual(strings.has(3), false);
+		assert.strictEqual(strings.has(5), false);
 	});
 
 	test('encodeFetchToolDetailRequest writes fields 1-4 and omits subscribe field 10', () => {

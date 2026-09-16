@@ -29,6 +29,7 @@ import {
 	decodeTaskListResponse,
 	decodeTeamInfoResponse,
 	encodeAgentTreeRequest,
+	encodeCancelSessionGoalRequest,
 	encodeDeleteSessionRequest,
 	encodeEmptyProtoMessage,
 	encodeListAgentProfilesRequest,
@@ -41,6 +42,7 @@ import {
 	encodeListTeamsRequest,
 	encodeMemberStatusRequest,
 	encodeProbeRpcRequest,
+	encodeRespondPermissionRequest,
 	encodeSaveAgentProfileRequest,
 	encodeSessionInfoRequest,
 	encodeSetPermissionModeRequest,
@@ -476,6 +478,59 @@ suite('grpc catalog unary protobuf wire', () => {
 		assert.strictEqual(strings.has(3), false);
 	});
 
+	test('encodeCancelSessionGoalRequest writes session_id field 1, not JSON', () => {
+		const encoded = encodeCancelSessionGoalRequest({ sessionId: 'sess-1' });
+		const info = encodeSessionInfoRequest('sess-1');
+		assert.deepStrictEqual(Buffer.from(encoded), Buffer.from(info));
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const fields = readProtoFields(encoded);
+		assert.strictEqual(fields[0]?.field, 1);
+		assert.strictEqual(Buffer.from(fields[0]?.wireType === 2 ? fields[0].bytes : []).toString('utf8'), 'sess-1');
+		assert.strictEqual(fields.length, 1);
+	});
+
+	test('encodeRespondPermissionRequest writes fields 1-4; granted false omits field 3', () => {
+		const allowed = encodeRespondPermissionRequest({
+			sessionId: 'sess-1',
+			requestId: 'perm-9',
+			granted: true,
+			metadataJson: '{"reason":"ok"}',
+		});
+		assert.notStrictEqual(allowed[0], 0x7b);
+		const strings = new Map<number, string>();
+		const numbers = new Map<number, number>();
+		for (const field of readProtoFields(allowed)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+			if (field.wireType === 0) {
+				numbers.set(field.field, Number(field.varint));
+			}
+		}
+		assert.strictEqual(strings.get(1), 'sess-1');
+		assert.strictEqual(strings.get(2), 'perm-9');
+		assert.strictEqual(numbers.get(3), 1);
+		assert.strictEqual(strings.get(4), '{"reason":"ok"}');
+
+		const denied = encodeRespondPermissionRequest({
+			sessionId: 'sess-1',
+			requestId: 'perm-9',
+			granted: false,
+		});
+		const deniedNumbers = new Map<number, number>();
+		const deniedStrings = new Map<number, string>();
+		for (const field of readProtoFields(denied)) {
+			if (field.wireType === 0) {
+				deniedNumbers.set(field.field, Number(field.varint));
+			}
+			if (field.wireType === 2) {
+				deniedStrings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+		}
+		assert.strictEqual(deniedNumbers.has(3), false);
+		assert.strictEqual(deniedStrings.has(4), false);
+	});
+
 	test('encodeMemberStatusRequest and encodeTaskListRequest write session_id/agent_id fields 1-2', () => {
 		const member = encodeMemberStatusRequest('sess-1', 'root');
 		const tasks = encodeTaskListRequest('sess-1', 'root');
@@ -645,6 +700,12 @@ suite('grpc catalog unary protobuf wire', () => {
 			{ name: 'taskList', encoder: 'encodeTaskListRequest' },
 			{ name: 'teamInfo', encoder: 'encodeTeamInfoRequest' },
 			{ name: 'fetchToolDetail', encoder: 'encodeFetchToolDetailRequest' },
+			{ name: 'cancelSessionGoal', encoder: 'encodeCancelSessionGoalRequest' },
+			{ name: 'respondPermission', encoder: 'encodeRespondPermissionRequest' },
+			{ name: 'forkAgent', encoder: 'encodeForkAgentRequest' },
+			{ name: 'killAgent', encoder: 'encodeKillAgentRequest' },
+			{ name: 'deleteMessage', encoder: 'encodeDeleteMessageRequest' },
+			{ name: 'editMessage', encoder: 'encodeEditMessageRequest' },
 		];
 		for (const { name, encoder } of bytesMethods) {
 			const body = extractAsyncMethod(source, name);

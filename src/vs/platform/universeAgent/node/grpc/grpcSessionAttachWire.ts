@@ -9,6 +9,12 @@ import type {
 	UniverseAgentCancelToolCallRequest,
 	UniverseAgentChatResponse,
 	UniverseAgentCreateSessionRequest,
+	UniverseAgentDeleteMessageRequest,
+	UniverseAgentDeleteMessageResult,
+	UniverseAgentEditMessageRequest,
+	UniverseAgentForkAgentRequest,
+	UniverseAgentForkAgentResult,
+	UniverseAgentKillAgentRequest,
 	UniverseAgentCreateSessionResult,
 	UniverseAgentCreateSnapshotRequest,
 	UniverseAgentDeleteSnapshotRequest,
@@ -96,6 +102,84 @@ export function encodeCancelToolCallRequest(request: UniverseAgentCancelToolCall
 		encodeStringField(1, request.sessionId),
 		encodeStringField(2, request.agentId?.trim() || 'root'),
 		encodeStringField(3, request.toolCallId),
+	]);
+}
+
+/**
+ * Agent.Fork — `session_id` = 1, `parent_agent_id` = 2, `name` = 3, `task` = 4, `model_type` = 5, `system_prompt` = 6.
+ * Empty parent still wires `root` (same as the JSON client).
+ */
+export function encodeForkAgentRequest(request: UniverseAgentForkAgentRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.sessionId),
+		encodeStringField(2, request.parentAgentId?.trim() || 'root'),
+		encodeStringField(3, request.name),
+		encodeStringField(4, request.task),
+		encodeStringField(5, request.modelType),
+		encodeStringField(6, request.systemPrompt),
+	]);
+}
+
+/** ForkResponse — `success` = 1, `agent_id` = 2 (`agent` = 3 unused by this client). */
+export function decodeForkAgentResponse(bytes: Uint8Array): UniverseAgentForkAgentResult {
+	const fields = readProtoFields(bytes);
+	const agentId = lastString(fields, 2)?.trim();
+	return {
+		ok: lastVarint(fields, 1) === 1n,
+		...(agentId ? { agentId } : {}),
+	};
+}
+
+/**
+ * Agent.Kill — `session_id` = 1, `agent_id` = 2, `force` = 3.
+ * Empty agent is not defaulted to `root`. proto3: `force` false omitted.
+ */
+export function encodeKillAgentRequest(request: UniverseAgentKillAgentRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.sessionId),
+		encodeStringField(2, request.agentId),
+		encodeInt32Field(3, request.force === true ? 1 : 0),
+	]);
+}
+
+/**
+ * Agent.DeleteMessage — `session_id` = 1, `turn_id` = 2, `agent_id` = 3, `operation_id` = 4.
+ * Empty agent still wires `root`.
+ */
+export function encodeDeleteMessageRequest(request: UniverseAgentDeleteMessageRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.sessionId),
+		encodeStringField(2, request.turnId),
+		encodeStringField(3, request.agentId?.trim() || 'root'),
+		encodeStringField(4, request.operationId),
+	]);
+}
+
+/** DeleteMessageResponse — `success` = 1, `message` = 2, `current_turn_id` = 3, `removed_turn_count` = 4. */
+export function decodeDeleteMessageResponse(bytes: Uint8Array): UniverseAgentDeleteMessageResult {
+	const fields = readProtoFields(bytes);
+	const message = lastString(fields, 2);
+	const currentTurnId = lastString(fields, 3)?.trim();
+	const removedTurnCount = lastVarint(fields, 4);
+	return {
+		ok: lastVarint(fields, 1) === 1n,
+		...(message ? { message } : {}),
+		...(currentTurnId ? { currentTurnId } : {}),
+		...(removedTurnCount !== undefined ? { removedTurnCount: Number(removedTurnCount) } : {}),
+	};
+}
+
+/**
+ * Agent.EditMessage — `session_id` = 1, `turn_id` = 2, `new_content` = 3, `agent_id` = 4, `operation_id` = 5.
+ * Empty agent still wires `root`. Response mapping stays success=1 / message=2 (ignores `current_turn_id` = 3).
+ */
+export function encodeEditMessageRequest(request: UniverseAgentEditMessageRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.sessionId),
+		encodeStringField(2, request.turnId),
+		encodeStringField(3, request.newContent),
+		encodeStringField(4, request.agentId?.trim() || 'root'),
+		encodeStringField(5, request.operationId),
 	]);
 }
 
