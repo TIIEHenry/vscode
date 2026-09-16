@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "合入 A/F/G D24 wires + C D483 + D D482。D24 仍开（Memory/File grpcClient JSON）；D482/D483 closed；D487 open。不是 leftover/pills 完成。R9/D405 仍开"
+summary: "合入 A/F/G D24 wires + C D483 + D D482 + H D484。D24 仍开（Memory/File grpcClient JSON）；D482–D484 closed；D487 open。不是 leftover/pills 完成。R9/D405 仍开"
 ---
 
 # Development Progress
@@ -40,7 +40,7 @@ summary: "合入 A/F/G D24 wires + C D483 + D D482。D24 仍开（Memory/File gr
 | **UA chrome visual** | `bb365bd7d3e` — SessionBar `.is-medium`；Inbox overlay 绝对定位；Engine 断连 CTA 去重；Client 360；Inspect+filter；Sources 空态。不升 PRD。**不是** leftover/pills 完成 |
 | **A D24 + D D481** | `b7df6c535e7`/`25898088f8b` — respondQuestion/sendClientToolResponse bytes；Reveal CI void catch。[D481](deferred-gaps.md) **closed**。[D24](deferred-gaps.md) **仍开**。工位 D [D482](deferred-gaps.md) WSL void catch（未合）。不是 leftover/pills 完成 |
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。**2026-09-12**：仓外 PIN 已换。grpcurl 复验 **List/Create PASS**（含旧 session-100/101）；**[D25](deferred-gaps.md)/[D26](deferred-gaps.md) 已闭**。同日 seed `provider:state` + `models.json` 后重启，grpcurl **Chat PASS**（`gemini-3.8-flash-high`，`textDelta`=`pong`，`turnComplete`/`end_turn`；无 `MODEL_PROFILE_*`）。这是引擎面证据，不是 IDE Conversation 接通冒烟。未升 PRD-008。引擎 A–F 已合；本仓 **node + `IUniverseAgentConnection` 已挂**。Provider/Rules/Hooks **只读列表**已接（无凭据/规则写表单）。Projects 按会话 `work_dir` 分组、Navigator `ListTeams` 标题、Review 历史 chip **已接**。[m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 进行中（2026-09-16 · A/F/G/C/D 合入中；D24 仍开；不是 leftover/pills 完成）
+### 进行中（2026-09-16 · A–H 合入中；D24 仍开；不是 leftover/pills 完成）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
 | **A** | D24 Tool leftover unaries bytes | SkillInfo/SetSkillEnabled/ToolInfo/ListCommands/GetCommandDef（+DeleteAgentProfile）转 bytes。[D24](deferred-gaps.md) **仍开**。不是 leftover/pills 完成 |
@@ -50,6 +50,9 @@ summary: "合入 A/F/G D24 wires + C D483 + D D482。D24 仍开（Memory/File gr
 | **D** | D482 WSL void catch | [D482](deferred-gaps.md) **closed**（四处 `.catch`）。不是 leftover/pills 完成。不得把 F 写成 D482 |
 | **B** | — | 脏 `worktree-pool.md` 跳过 `-B` |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
+| **H** | D484 sessionArtifacts `_actions` void catch | **closed**；四处双链 `.catch(onUnexpectedError)`（无内层 catch，对齐 D480）；copy reject + handler 再抛 → 0 unhandled。未 compile-client。[D24](deferred-gaps.md) **仍开**。不是 leftover/pills 完成 |
+| **A/D** | D24 bytes + D481 | 已合；D24 仍开（Memory / ChatSync JSON）；D481 closed |
+| **B/C/E** | 脏树 / leftover | B 脏 `worktree-pool.md` 勿 `-B`；C 脏 `dev/loop` gitlink 勿 add；E leftover `blocked` |
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
 
@@ -181,7 +184,7 @@ summary: "合入 A/F/G D24 wires + C D483 + D D482。D24 仍开（Memory/File gr
 | [D242](deferred-gaps.md)–[D288](deferred-gaps.md) | leftover + pairing | **closed** catalog leftover + pairing keep-last（含 roster turns / session sync） |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
-| [D405](deferred-gaps.md)–[D483](deferred-gaps.md) | A/F/G/C/D 本波 | D405 手测仍开；D471–D483 已闭；**D24 仍开**（Memory/File grpcClient 仍 JSON）；[D487](deferred-gaps.md) **open**；不得宣称 leftover/pills 完成 |
+| [D405](deferred-gaps.md)–[D484](deferred-gaps.md) | A/F/G/C/D/H 本波 | D405 手测仍开；D471–D484 已闭；**D24 仍开**（Memory/File grpcClient 仍 JSON）；[D487](deferred-gaps.md) **open**；不得宣称 leftover/pills 完成 |
 ## 工位表（P0 盘点 · 2026-09-16 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
@@ -193,12 +196,13 @@ summary: "合入 A/F/G D24 wires + C D483 + D D482。D24 仍开（Memory/File gr
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked` leftover；跳过 |
 | F | `vscode-WorkTrees/F` | `loop/F` | `891c2c22a29` | 干净 | 0 | Memory unary wire 未接线 grpcClient；D24 仍开；D487 open |
 | G | `vscode-WorkTrees/G` | `loop/G` | `2c57e7be17f` | File wire | 0 | File unary wire+测；未接 grpcClient；D24 仍开；勿 add `out` |
+| H | `vscode-WorkTrees/H` | `loop/H` | `f988e140ea8` | 干净 | 0 | D484 artifacts 已合；D24 仍开 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `ff278772b85` | `dev/loop` + 方案/docs | 0 | 仅 ff-only；非祖先，失败则记录 |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。本仓只读面 + Composer `model_profile_id` **已挂**。钉死工位 seed 后 grpcurl **Chat PASS**。下一刀是 IDE Direct Address 接通后 Composer 发送（PRD-008 仍要隔离 profile 冒烟）。**不升 PRD-008**。不要再清 store。D26 store 已闭，旧「迁移卡死」账见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md) |
-| **loop 切片** | A/F/G D24 wires 未关 D24（Memory/File grpcClient 仍 JSON）。C [D483](deferred-gaps.md) **closed**。D [D482](deferred-gaps.md) **closed**（WSL 四处 void catch）。[D487](deferred-gaps.md) **open**。R9 / **D405** 仍开。不关 D8/D16/D147。未升 PRD-008。不得宣称 leftover / pills 完成。 |
+| **loop 切片** | A/F/G D24 wires 未关 D24（Memory/File grpcClient 仍 JSON）。C [D483](deferred-gaps.md) **closed**。D [D482](deferred-gaps.md) **closed**。H [D484](deferred-gaps.md) **closed**（sessionArtifacts `_actions` 四处 catch）。[D487](deferred-gaps.md) **open**。R9 / **D405** 仍开。不关 D8/D16/D147。未升 PRD-008。不得宣称 leftover / pills 完成。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。

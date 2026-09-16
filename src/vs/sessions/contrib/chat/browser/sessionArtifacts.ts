@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { getMediaMime } from '../../../../base/common/mime.js';
@@ -296,13 +297,13 @@ export class SessionArtifacts extends Disposable {
 			// Contributed openers make a link behave the same here as in the response
 			// markdown it came from, so a localhost page lands in the integrated
 			// browser rather than the system one.
-			openExternal: link => { void this._openerService.open(link, { openExternal: true, allowContributedOpeners: true, fromUserGesture: true }); },
+			openExternal: link => { void this._openerService.open(link, { openExternal: true, allowContributedOpeners: true, fromUserGesture: true }).catch(onUnexpectedError).catch(onUnexpectedError); },
 			openResource: uri => {
 				if (previewKind(uri)) {
-					void openChatTurnFile({ uri, kind: previewKind(uri)!, created: false }, this._openerService, this._configurationService);
+					void openChatTurnFile({ uri, kind: previewKind(uri)!, created: false }, this._openerService, this._configurationService).catch(onUnexpectedError).catch(onUnexpectedError);
 					return;
 				}
-				void this._openerService.open(uri, { fromUserGesture: true });
+				void this._openerService.open(uri, { fromUserGesture: true }).catch(onUnexpectedError).catch(onUnexpectedError);
 			},
 			openImages: (images, startIndex) => {
 				const collection: IImageCarouselCollection = {
@@ -318,9 +319,9 @@ export class SessionArtifacts extends Disposable {
 						})),
 					}],
 				};
-				void this._commandService.executeCommand(OPEN_IMAGE_CAROUSEL_COMMAND_ID, { collection, startIndex });
+				void this._commandService.executeCommand(OPEN_IMAGE_CAROUSEL_COMMAND_ID, { collection, startIndex }).catch(onUnexpectedError).catch(onUnexpectedError);
 			},
-			copy: text => { void this._clipboardService.writeText(text); },
+			copy: text => { void this._clipboardService.writeText(text).catch(onUnexpectedError).catch(onUnexpectedError); },
 		};
 	}
 }

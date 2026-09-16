@@ -4,11 +4,21 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
+import { Event } from '../../../../../base/common/event.js';
 import { isMarkdownString } from '../../../../../base/common/htmlContent.js';
+import { constObservable } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
+import { mock, upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { buildSessionArtifactSections, type ISessionArtifactActions } from '../../browser/sessionArtifacts.js';
+import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
+import { ICommandService } from '../../../../../platform/commands/common/commands.js';
+import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
+import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
+import { buildSessionArtifactSections, SessionArtifacts, type ISessionArtifactActions } from '../../browser/sessionArtifacts.js';
 import { type ISessionArtifact, SessionArtifactKind } from '../../../../services/sessions/common/session.js';
+import { IActiveSession } from '../../../../services/sessions/common/sessionsManagement.js';
 
 suite('Session Artifacts', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -95,6 +105,61 @@ suite('Session Artifacts', () => {
 			],
 			copied: [pullRequestLink.toString(true), issueLink.toString(true)],
 		});
+	});
+
+	test('does not leak unhandled rejection when copy rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const pullRequestLink = URI.parse('https://github.com/microsoft/vscode/pull/12');
+		const session = upcastPartial<IActiveSession>({
+			artifacts: constObservable<readonly ISessionArtifact[]>([
+				{ id: 'pr', kind: SessionArtifactKind.PullRequest, label: 'PR #12', isArtifact: true, link: pullRequestLink },
+			]),
+		});
+		let copyCalls = 0;
+		const clipboardService = new class extends mock<IClipboardService>() {
+			override writeText(): Promise<void> {
+				copyCalls++;
+				return Promise.reject('boom');
+			}
+		}();
+		const sessionArtifacts = new SessionArtifacts(
+			constObservable(session),
+			constObservable(new Set()),
+			clipboardService,
+			new class extends mock<ICommandService>() { }(),
+			new class extends mock<IConfigurationService>() {
+				override readonly onDidChangeConfiguration = Event.None;
+				override getValue() { return true; }
+			}(),
+			new class extends mock<IOpenerService>() { }(),
+		);
+
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const entries = sessionArtifacts.sections.get().flatMap(section => section.entries);
+			for (const entry of entries) {
+				entry.toolbarActions?.forEach(action => action.run());
+			}
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, copyCalls, unexpectedWarns }, {
+				unhandledRejections: [],
+				copyCalls: 1,
+				unexpectedWarns: ['boom', 'boom'],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+			sessionArtifacts.dispose();
+		}
 	});
 
 });
