@@ -1724,7 +1724,7 @@ export class PluginListWidget extends Disposable {
 			void this.queryMarketplace().catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			this.marketplaceItems = [];
-			void this.filterPlugins();
+			void this.filterPlugins().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		// Re-layout to account for the back link height change
@@ -2005,7 +2005,7 @@ export class PluginListWidget extends Disposable {
 		} else {
 			this.collapsedGroups.add(entry.group);
 		}
-		void this.filterPlugins();
+		void this.filterPlugins().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	/**
