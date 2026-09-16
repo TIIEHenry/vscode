@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { IChannel, ProxyChannel } from '../../../base/parts/ipc/common/ipc.js';
@@ -58,7 +59,7 @@ export class UniverseAgentHubChannelClient extends Disposable {
 			this.cache.applyProfiles(profiles);
 			this._onDidChangeProfiles.fire(this.cache.profiles);
 		}));
-		void this.hydrate();
+		void this.hydrate().catch(onUnexpectedError).catch(onUnexpectedError);
 		return createRemoteForwardingProxy(this, this.remote) as this;
 	}
 
