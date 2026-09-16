@@ -102,18 +102,21 @@ suite('grpc AgentService ResumeLoop protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('resumeLoop still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
+	test('resumeLoop uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const resumeLoop = extractAsyncMethod(source, 'resumeLoop');
-		assert.ok(resumeLoop.includes('makeUnaryClient<'), 'resumeLoop still uses JSON makeUnaryClient');
-		assert.ok(!resumeLoop.includes('makeUnaryBytesClient'), 'resumeLoop must not use makeUnaryBytesClient this slice');
-		assert.ok(!resumeLoop.includes('encodeResumeLoopRequest'), 'resumeLoop must not call encodeResumeLoopRequest this slice');
-		assert.ok(!resumeLoop.includes('decodeResumeLoopResponse'), 'resumeLoop must not call decodeResumeLoopResponse this slice');
-		assert.ok(resumeLoop.includes('session_id'), 'resumeLoop still sends session_id JSON key');
-		assert.ok(resumeLoop.includes('agent_id'), 'resumeLoop still sends agent_id JSON key');
-		assert.ok(resumeLoop.includes('wire.success === true'), 'resumeLoop still maps success');
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bConnect\b|\bResolveTurn\b/.test(resumeLoop));
-		assert.ok(!source.includes('grpcResumeLoopUnaryWire'));
+		assert.ok(resumeLoop.includes('makeUnaryBytesClient'), 'resumeLoop must use makeUnaryBytesClient');
+		assert.ok(resumeLoop.includes('encodeResumeLoopRequest'), 'resumeLoop must call encodeResumeLoopRequest');
+		assert.ok(resumeLoop.includes('decodeResumeLoopResponse'), 'resumeLoop must call decodeResumeLoopResponse');
+		assert.ok(resumeLoop.includes('ok: wire.success === true'), 'resumeLoop must keep ok: wire.success === true');
+		assert.ok(resumeLoop.includes('message: wire.message'), 'resumeLoop must keep message: wire.message');
+		assert.ok(!resumeLoop.includes('makeUnaryClient<'), 'resumeLoop must not use JSON makeUnaryClient');
+		assert.ok(!resumeLoop.includes('JSON.stringify'), 'resumeLoop must not JSON.stringify');
+
+		assert.ok(source.includes('grpcResumeLoopUnaryWire'));
+		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});
 });
 

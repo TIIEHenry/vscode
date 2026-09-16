@@ -122,21 +122,19 @@ suite('grpc AgentService RunToolInBackground protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('runToolInBackground still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
+	test('runToolInBackground uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const runBg = extractAsyncMethod(source, 'runToolInBackground');
-		assert.ok(runBg.includes('makeUnaryClient<'), 'runToolInBackground still uses JSON makeUnaryClient');
-		assert.ok(!runBg.includes('makeUnaryBytesClient'), 'runToolInBackground must not use makeUnaryBytesClient this slice');
-		assert.ok(!runBg.includes('encodeRunToolInBackgroundRequest'), 'runToolInBackground must not call encode this slice');
-		assert.ok(!runBg.includes('decodeRunToolInBackgroundResponse'), 'runToolInBackground must not call decode this slice');
-		assert.ok(runBg.includes('ok: wire.success === true'), 'runToolInBackground still maps ok: wire.success === true');
-		assert.ok(runBg.includes('reasonCode: wire.reason_code'), 'runToolInBackground still maps reasonCode: wire.reason_code');
-		assert.ok(runBg.includes('session_id'), 'runToolInBackground still sends session_id JSON key');
-		assert.ok(runBg.includes('agent_id'), 'runToolInBackground still sends agent_id JSON key');
-		assert.ok(runBg.includes('tool_call_id'), 'runToolInBackground still sends tool_call_id JSON key');
-		assert.ok(!source.includes('grpcRunToolInBackgroundUnaryWire'));
-		assert.ok(!/\bWatch\b/.test(runBg));
+		assert.ok(runBg.includes('makeUnaryBytesClient'), 'runToolInBackground must use makeUnaryBytesClient');
+		assert.ok(runBg.includes('encodeRunToolInBackgroundRequest'), 'runToolInBackground must call encodeRunToolInBackgroundRequest');
+		assert.ok(runBg.includes('decodeRunToolInBackgroundResponse'), 'runToolInBackground must call decodeRunToolInBackgroundResponse');
+		assert.ok(runBg.includes('ok: wire.success === true'), 'runToolInBackground must keep ok: wire.success === true');
+		assert.ok(runBg.includes('message: wire.message'), 'runToolInBackground must keep message: wire.message');
+		assert.ok(runBg.includes('reasonCode: wire.reason_code'), 'runToolInBackground must keep reasonCode: wire.reason_code');
+		assert.ok(!runBg.includes('makeUnaryClient<'), 'runToolInBackground must not use JSON makeUnaryClient');
+		assert.ok(!runBg.includes('JSON.stringify'), 'runToolInBackground must not JSON.stringify');
 
+		assert.ok(source.includes('grpcRunToolInBackgroundUnaryWire'));
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));

@@ -102,17 +102,21 @@ suite('grpc AgentService SuspendLoop protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('suspendLoop still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
+	test('suspendLoop uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const suspend = extractAsyncMethod(source, 'suspendLoop');
-		assert.ok(suspend.includes('makeUnaryClient<'), 'suspendLoop still uses JSON makeUnaryClient');
-		assert.ok(!suspend.includes('makeUnaryBytesClient'), 'suspendLoop must not use makeUnaryBytesClient this slice');
-		assert.ok(!suspend.includes('encodeSuspendLoopRequest'), 'suspendLoop must not call encodeSuspendLoopRequest this slice');
-		assert.ok(!suspend.includes('decodeSuspendLoopResponse'), 'suspendLoop must not call decodeSuspendLoopResponse this slice');
-		assert.ok(suspend.includes('session_id'), 'suspendLoop still sends session_id JSON key');
-		assert.ok(suspend.includes('agent_id'), 'suspendLoop still sends agent_id JSON key');
-		assert.ok(suspend.includes('wire.success === true'), 'suspendLoop still maps success');
-		assert.ok(!source.includes('grpcSuspendLoopUnaryWire'));
+		assert.ok(suspend.includes('makeUnaryBytesClient'), 'suspendLoop must use makeUnaryBytesClient');
+		assert.ok(suspend.includes('encodeSuspendLoopRequest'), 'suspendLoop must call encodeSuspendLoopRequest');
+		assert.ok(suspend.includes('decodeSuspendLoopResponse'), 'suspendLoop must call decodeSuspendLoopResponse');
+		assert.ok(suspend.includes('ok: wire.success === true'), 'suspendLoop must keep ok: wire.success === true');
+		assert.ok(suspend.includes('message: wire.message'), 'suspendLoop must keep message: wire.message');
+		assert.ok(!suspend.includes('makeUnaryClient<'), 'suspendLoop must not use JSON makeUnaryClient');
+		assert.ok(!suspend.includes('JSON.stringify'), 'suspendLoop must not JSON.stringify');
+
+		assert.ok(source.includes('grpcSuspendLoopUnaryWire'));
+		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});
 });
 

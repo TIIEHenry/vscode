@@ -100,18 +100,21 @@ suite('grpc AgentService StopShellTask protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('stopShellTask still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
+	test('stopShellTask uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const stop = extractAsyncMethod(source, 'stopShellTask');
-		assert.ok(stop.includes('makeUnaryClient<'), 'stopShellTask still uses JSON makeUnaryClient');
-		assert.ok(!stop.includes('makeUnaryBytesClient'), 'stopShellTask must not use makeUnaryBytesClient this slice');
-		assert.ok(!stop.includes('encodeStopShellTaskRequest'), 'stopShellTask must not call encodeStopShellTaskRequest this slice');
-		assert.ok(!stop.includes('decodeStopShellTaskResponse'), 'stopShellTask must not call decodeStopShellTaskResponse this slice');
-		assert.ok(stop.includes('session_id'), 'stopShellTask still sends session_id JSON key');
-		assert.ok(stop.includes('task_id'), 'stopShellTask still sends task_id JSON key');
-		assert.ok(stop.includes('wire.success === true'), 'stopShellTask still maps success');
-		assert.ok(!source.includes('grpcStopShellTaskUnaryWire'));
-		assert.ok(!/\bWatch\b/.test(stop));
+		assert.ok(stop.includes('makeUnaryBytesClient'), 'stopShellTask must use makeUnaryBytesClient');
+		assert.ok(stop.includes('encodeStopShellTaskRequest'), 'stopShellTask must call encodeStopShellTaskRequest');
+		assert.ok(stop.includes('decodeStopShellTaskResponse'), 'stopShellTask must call decodeStopShellTaskResponse');
+		assert.ok(stop.includes('ok: wire.success === true'), 'stopShellTask must keep ok: wire.success === true');
+		assert.ok(stop.includes('message: wire.message'), 'stopShellTask must keep message: wire.message');
+		assert.ok(!stop.includes('makeUnaryClient<'), 'stopShellTask must not use JSON makeUnaryClient');
+		assert.ok(!stop.includes('JSON.stringify'), 'stopShellTask must not JSON.stringify');
+
+		assert.ok(source.includes('grpcStopShellTaskUnaryWire'));
+		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});
 });
 

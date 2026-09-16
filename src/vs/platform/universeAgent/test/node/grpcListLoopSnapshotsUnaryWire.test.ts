@@ -222,33 +222,20 @@ suite('grpc AgentService ListLoopSnapshots protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('ONLY listLoopSnapshots still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
+	test('listLoopSnapshots uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const listLoop = extractAsyncMethod(source, 'listLoopSnapshots');
-		assert.ok(listLoop.includes('makeUnaryClient<'), 'listLoopSnapshots still uses JSON makeUnaryClient');
-		assert.ok(!listLoop.includes('makeUnaryBytesClient'), 'listLoopSnapshots must not use makeUnaryBytesClient this slice');
-		assert.ok(!listLoop.includes('encodeListLoopSnapshotsRequest'), 'listLoopSnapshots must not call encodeListLoopSnapshotsRequest this slice');
-		assert.ok(!listLoop.includes('decodeListLoopSnapshotsResponse'), 'listLoopSnapshots must not call decodeListLoopSnapshotsResponse this slice');
+		assert.ok(listLoop.includes('makeUnaryBytesClient'), 'listLoopSnapshots must use makeUnaryBytesClient');
+		assert.ok(listLoop.includes('encodeListLoopSnapshotsRequest'), 'listLoopSnapshots must call encodeListLoopSnapshotsRequest');
+		assert.ok(listLoop.includes('decodeListLoopSnapshotsResponse'), 'listLoopSnapshots must call decodeListLoopSnapshotsResponse');
 		assert.ok(listLoop.includes('mapListLoopSnapshotsResponse'), 'listLoopSnapshots still calls mapListLoopSnapshotsResponse');
-		assert.ok(listLoop.includes('session_id'), 'listLoopSnapshots still sends session_id JSON key');
-		assert.ok(listLoop.includes('loop_id'), 'listLoopSnapshots still sends loop_id JSON key');
-		assert.ok(!source.includes('grpcListLoopSnapshotsUnaryWire'));
+		assert.ok(!listLoop.includes('makeUnaryClient<'), 'listLoopSnapshots must not use JSON makeUnaryClient');
+		assert.ok(!listLoop.includes('JSON.stringify'), 'listLoopSnapshots must not JSON.stringify');
 
-		for (const name of ['listSnapshots', 'createSnapshot', 'restoreSnapshot', 'deleteSnapshot'] as const) {
-			const body = extractAsyncMethod(source, name);
-			assert.ok(body.includes('makeUnaryBytesClient'), `${name} already bytes`);
-			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not still be JSON`);
-		}
-
+		assert.ok(source.includes('grpcListLoopSnapshotsUnaryWire'));
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		const watchStart = source.indexOf('\topenWatchConfigStream(');
-		assert.ok(watchStart >= 0, 'missing openWatchConfigStream(');
-		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);
-		const watchBody = source.slice(watchStart, watchEnd >= 0 ? watchEnd : source.length);
-		assert.ok(watchBody.includes('makeServerStreamClient<Record<string, unknown>'));
-		assert.ok(!watchBody.includes('grpcListLoopSnapshotsUnaryWire'));
 	});
 });
 

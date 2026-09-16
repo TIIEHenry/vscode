@@ -128,19 +128,18 @@ suite('grpc AgentService StopLoop protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('stopLoop still JSON unary; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
+	test('stopLoop uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const stop = extractAsyncMethod(source, 'stopLoop');
-		assert.ok(stop.includes('makeUnaryClient<'), 'stopLoop still uses JSON makeUnaryClient');
-		assert.ok(!stop.includes('makeUnaryBytesClient'), 'stopLoop must not use makeUnaryBytesClient this slice');
-		assert.ok(!stop.includes('encodeStopLoopRequest'), 'stopLoop must not call encodeStopLoopRequest this slice');
-		assert.ok(!stop.includes('decodeStopLoopResponse'), 'stopLoop must not call decodeStopLoopResponse this slice');
-		assert.ok(stop.includes('session_id'), 'stopLoop still sends session_id JSON key');
-		assert.ok(stop.includes('agent_id'), 'stopLoop still sends agent_id JSON key');
-		assert.ok(stop.includes('detail'), 'stopLoop still sends detail JSON key');
-		assert.ok(stop.includes('wire.success === true'), 'stopLoop still maps success');
-		assert.ok(!source.includes('grpcStopLoopUnaryWire'));
+		assert.ok(stop.includes('makeUnaryBytesClient'), 'stopLoop must use makeUnaryBytesClient');
+		assert.ok(stop.includes('encodeStopLoopRequest'), 'stopLoop must call encodeStopLoopRequest');
+		assert.ok(stop.includes('decodeStopLoopResponse'), 'stopLoop must call decodeStopLoopResponse');
+		assert.ok(stop.includes('ok: wire.success === true'), 'stopLoop must keep ok: wire.success === true');
+		assert.ok(stop.includes('message: wire.message'), 'stopLoop must keep message: wire.message');
+		assert.ok(!stop.includes('makeUnaryClient<'), 'stopLoop must not use JSON makeUnaryClient');
+		assert.ok(!stop.includes('JSON.stringify'), 'stopLoop must not JSON.stringify');
 
+		assert.ok(source.includes('grpcStopLoopUnaryWire'));
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));

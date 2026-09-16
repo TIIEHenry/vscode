@@ -522,11 +522,9 @@ import {
 	type DestroyRemoteSessionResponseWire,
 	type DownloadChunkWire,
 	type ExitMaintenanceResponseWire,
-	type FetchToolUsageDetailResponseWire,
 	type GetRemoteSessionHistoryResponseWire,
 	type GetRemoteSessionStatusResponseWire,
 	type ListConfigsResponseWire,
-	type ListLoopSnapshotsResponseWire,
 	type ListNodesResponseWire,
 	type MemoryRebuildEventWire,
 	type PtyServerMessageWire,
@@ -667,6 +665,34 @@ import {
 	decodeTestModelProfileResponse,
 	encodeTestModelProfileRequest,
 } from './grpcTestModelProfileUnaryWire.js';
+import {
+	decodeSuspendLoopResponse,
+	encodeSuspendLoopRequest,
+} from './grpcSuspendLoopUnaryWire.js';
+import {
+	decodeResumeLoopResponse,
+	encodeResumeLoopRequest,
+} from './grpcResumeLoopUnaryWire.js';
+import {
+	decodeStopLoopResponse,
+	encodeStopLoopRequest,
+} from './grpcStopLoopUnaryWire.js';
+import {
+	decodeRunToolInBackgroundResponse,
+	encodeRunToolInBackgroundRequest,
+} from './grpcRunToolInBackgroundUnaryWire.js';
+import {
+	decodeStopShellTaskResponse,
+	encodeStopShellTaskRequest,
+} from './grpcStopShellTaskUnaryWire.js';
+import {
+	decodeListLoopSnapshotsResponse,
+	encodeListLoopSnapshotsRequest,
+} from './grpcListLoopSnapshotsUnaryWire.js';
+import {
+	decodeFetchToolUsageDetailResponse,
+	encodeFetchToolUsageDetailRequest,
+} from './grpcFetchToolUsageDetailUnaryWire.js';
 import {
 	decodeChatResponse,
 	decodeCreateSessionResponse,
@@ -1491,15 +1517,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async suspendLoop(request: UniverseAgentSuspendLoopRequest): Promise<UniverseAgentSuspendLoopResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.SuspendLoop,
+			decodeSuspendLoopResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-		});
+		const wire = await unary(encodeSuspendLoopRequest(request));
 		return {
 			ok: wire.success === true,
 			message: wire.message,
@@ -1507,15 +1531,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async resumeLoop(request: UniverseAgentResumeLoopRequest): Promise<UniverseAgentResumeLoopResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.ResumeLoop,
+			decodeResumeLoopResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-		});
+		const wire = await unary(encodeResumeLoopRequest(request));
 		return {
 			ok: wire.success === true,
 			message: wire.message,
@@ -1523,16 +1545,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async stopLoop(request: UniverseAgentStopLoopRequest): Promise<UniverseAgentStopLoopResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.StopLoop,
+			decodeStopLoopResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-			detail: request.detail,
-		});
+		const wire = await unary(encodeStopLoopRequest(request));
 		return {
 			ok: wire.success === true,
 			message: wire.message,
@@ -1570,16 +1589,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async runToolInBackground(request: UniverseAgentRunToolInBackgroundRequest): Promise<UniverseAgentRunToolInBackgroundResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string; reason_code?: string }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.RunToolInBackground,
+			decodeRunToolInBackgroundResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-			tool_call_id: request.toolCallId,
-		});
+		const wire = await unary(encodeRunToolInBackgroundRequest(request));
 		return {
 			ok: wire.success === true,
 			message: wire.message,
@@ -1588,15 +1604,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async stopShellTask(request: UniverseAgentStopShellTaskRequest): Promise<UniverseAgentStopShellTaskResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.StopShellTask,
+			decodeStopShellTaskResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			task_id: request.taskId,
-		});
+		const wire = await unary(encodeStopShellTaskRequest(request));
 		return {
 			ok: wire.success === true,
 			message: wire.message,
@@ -1631,16 +1645,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async fetchToolUsageDetail(request: UniverseAgentFetchToolUsageDetailRequest): Promise<UniverseAgentFetchToolUsageDetailResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, FetchToolUsageDetailResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.FetchToolUsageDetail,
+			decodeFetchToolUsageDetailResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			tool_call_id: request.toolCallId,
-		});
-		return mapFetchToolUsageDetailResponse(wire);
+		return mapFetchToolUsageDetailResponse(await unary(encodeFetchToolUsageDetailRequest(request)));
 	}
 
 	async fireTriggerWebhook(request: UniverseAgentFireTriggerWebhookRequest): Promise<UniverseAgentFireTriggerWebhookResult> {
@@ -2018,16 +2029,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async listLoopSnapshots(request: UniverseAgentListLoopSnapshotsRequest): Promise<UniverseAgentListLoopSnapshotsResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ListLoopSnapshotsResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.ListLoopSnapshots,
+			decodeListLoopSnapshotsResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			loop_id: request.loopId,
-		});
-		return mapListLoopSnapshotsResponse(wire);
+		return mapListLoopSnapshotsResponse(await unary(encodeListLoopSnapshotsRequest(request)));
 	}
 
 	async createSnapshot(request: UniverseAgentCreateSnapshotRequest): Promise<UniverseAgentCreateSnapshotResult> {
