@@ -9,6 +9,7 @@ import { InputBox } from '../../../../base/browser/ui/inputbox/inputBox.js';
 import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -245,10 +246,10 @@ export class EngineSkillsSection extends Disposable {
 		this.bodyStatus.style.display = 'none';
 
 		this._register(this.connection.onDidChangeConnection(() => {
-			void this.refresh();
+			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
-		void this.refresh();
+		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	layout(width: number, listHeight: number): void {
@@ -509,7 +510,7 @@ export class EngineSkillsSection extends Disposable {
 			this.bodyEditor.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
 			this.renderStatus();
 			if (this.selectedSkill && !this.bodyDirty) {
-				void this.loadSkillBody(this.selectedSkill);
+				void this.loadSkillBody(this.selectedSkill).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 			return true;
 		} catch (error) {
@@ -526,7 +527,7 @@ export class EngineSkillsSection extends Disposable {
 			this.writeToolbar.style.display = 'none';
 			this.renderStatus({
 				reason: error instanceof Error ? error.message : undefined,
-				onRetry: () => void this.refresh(),
+				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 			if (hadLiveCatalog) {
 				this.closeLeftoverBodyEditorChrome();
@@ -577,7 +578,7 @@ export class EngineSkillsSection extends Disposable {
 				const entry = e.elements[0];
 				if (entry?.kind === 'skill') {
 					this.selectedSkill = entry.skill;
-					void this.loadSkillBody(entry.skill);
+					void this.loadSkillBody(entry.skill).catch(onUnexpectedError).catch(onUnexpectedError);
 				} else {
 					this.selectedSkill = undefined;
 					this.clearBodyEditor();
