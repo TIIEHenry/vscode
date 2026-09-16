@@ -1144,7 +1144,7 @@ suite('Conversation session chat (S3)', () => {
 					throw paintBoom;
 				}
 			},
-		} as INotificationService);
+		} as unknown as INotificationService);
 		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Research sub-agent');
 		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-1');
 		sessionChatService.getConversationPart = () => undefined;
@@ -1352,7 +1352,7 @@ suite('Conversation session chat (S3)', () => {
 					throw paintBoom;
 				}
 			},
-		} as INotificationService);
+		} as unknown as INotificationService);
 		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
 		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-2', 'Child agent', 'sub-1');
 		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-1', { title: 'Parent agent' });
