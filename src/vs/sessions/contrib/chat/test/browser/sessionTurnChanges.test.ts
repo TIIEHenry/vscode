@@ -368,7 +368,10 @@ suite('SessionTurnChanges', () => {
 		}]);
 	});
 
-	test('does not leak unhandled rejection when openChangesEditor rejects', async () => {
+	test('does not leak unhandled rejection when openChangesEditor rejects and onUnexpectedError warn-then-rethrows', async () => {
+		// `_openSessionTurnChanges` already catches `openChangesEditor`; a lone inner reject
+		// does not leak. The void call site still needs `.catch` when onUnexpectedError
+		// warn-then-rethrows.
 		const chatResource = URI.parse('chat:session');
 		const chat = upcastPartial<IChat>({
 			resource: chatResource,
@@ -380,6 +383,7 @@ suite('SessionTurnChanges', () => {
 			chats: constObservable([chat]),
 			mainChat: constObservable(chat),
 		});
+		let openCalls = 0;
 		const service = disposables.add(new SessionsChatResponseFileChangesService(
 			new class extends mock<IEditorService>() { }(),
 			new class extends mock<ISessionsManagementService>() {
@@ -392,6 +396,7 @@ suite('SessionTurnChanges', () => {
 			}(),
 			new class extends mock<ISessionChangesService>() {
 				override async openChangesEditor(): Promise<undefined> {
+					openCalls++;
 					return Promise.reject('boom');
 				}
 			}(),
@@ -401,15 +406,25 @@ suite('SessionTurnChanges', () => {
 			createChangesViewService(),
 		));
 
+		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
 		process.on('unhandledRejection', onUnhandledRejection);
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
-		setUnexpectedErrorHandler(() => { });
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
 		try {
 			service.openChangesForRequest(chatResource, undefined, { isLastTurn: true });
 			await timeout(0);
-			assert.deepStrictEqual(unhandledRejections, []);
+			assert.deepStrictEqual({ unhandledRejections, openCalls, unexpectedWarns }, {
+				unhandledRejections: [],
+				openCalls: 1,
+				unexpectedWarns: ['boom', 'boom'],
+			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);

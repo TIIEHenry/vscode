@@ -98,7 +98,7 @@ export class SessionsChatResponseFileChangesService extends AbstractChatResponse
 		if (context.isLastTurn) {
 			if (requestId === undefined) {
 				if (isAgentHostProviderId(owner.session.providerId)) {
-					void this._openSessionTurnChanges(owner.session);
+					void this._openSessionTurnChanges(owner.session).catch(onUnexpectedError);
 				} else {
 					const changes = owner.chat.lastTurnChanges;
 					if (changes) {
@@ -109,7 +109,7 @@ export class SessionsChatResponseFileChangesService extends AbstractChatResponse
 			}
 
 			if (this._isMostRecentChat(owner.session, owner.chat)) {
-				void this._openSessionTurnChanges(owner.session);
+				void this._openSessionTurnChanges(owner.session).catch(onUnexpectedError);
 				return;
 			}
 
@@ -133,7 +133,7 @@ export class SessionsChatResponseFileChangesService extends AbstractChatResponse
 			label: localize('historicalTurnChanges.label', "Turn Changes"),
 			description: localize('historicalTurnChanges.description', "Changes from the selected chat turn."),
 			changes: this._toSessionFileChanges(owner.session, changes),
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	private _openStandaloneChanges(chatResource: URI, requestId: string | undefined): void {
@@ -191,7 +191,7 @@ export class SessionsChatResponseFileChangesService extends AbstractChatResponse
 			label: localize('lastTurnChanges.label', "Turn Changes"),
 			description: localize('lastTurnChanges.description', "Changes from the viewed chat's last turn."),
 			changes,
-		});
+		}).catch(onUnexpectedError);
 	}
 
 	private async _openSessionTurnChanges(session: ISession, transientTurn?: ISessionTransientTurnChanges): Promise<void> {
