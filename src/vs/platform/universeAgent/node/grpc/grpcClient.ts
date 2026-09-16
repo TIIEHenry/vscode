@@ -540,10 +540,8 @@ import {
 	type ContextVariableListResponseWire,
 	type ContextVariableReadResponseWire,
 	type CreateRemoteSessionResponseWire,
-	type CreateSnapshotResponseWire,
 	type DeleteAgentProfileResponseWire,
 	type DeleteRemoteAgentConfigResponseWire,
-	type DeleteSnapshotResponseWire,
 	type DeliveryTargetDtoWire,
 	type DestroyRemoteSessionResponseWire,
 	type DoctorResponseWire,
@@ -574,7 +572,6 @@ import {
 	type ListPendingResponseWire,
 	type ListPluginsResponseWire,
 	type ListSkillsResponseWire,
-	type ListSnapshotsResponseWire,
 	type ListToolsResponseWire,
 	type ListTriggersResponseWire,
 	type MemberStatusResponseWire,
@@ -611,7 +608,6 @@ import {
 	type ResolveAnchorResponseWire,
 	type ResolveModelResponseWire,
 	type ResolveTurnResponseWire,
-	type RestoreSnapshotResponseWire,
 	type ResumeRemoteSessionResponseWire,
 	type RevokeDeviceResponseWire,
 	type RotateTokenResponseWire,
@@ -663,14 +659,22 @@ import {
 import {
 	decodeChatResponse,
 	decodeCreateSessionResponse,
+	decodeCreateSnapshotResponse,
+	decodeDeleteSnapshotResponse,
 	decodeGetHistoryResponse,
+	decodeListSnapshotsResponse,
+	decodeRestoreSnapshotResponse,
 	decodeResumeSessionResponse,
 	decodeSessionStreamEvent,
 	encodeCancelGenerationRequest,
 	encodeChatRequest,
 	encodeCreateSessionRequest,
+	encodeCreateSnapshotRequest,
+	encodeDeleteSnapshotRequest,
 	encodeGetHistoryRequest,
+	encodeListSnapshotsRequest,
 	encodeRenameSessionRequest,
+	encodeRestoreSnapshotRequest,
 	encodeResumeSessionRequest,
 	encodeSessionStreamHandshake,
 } from './grpcSessionAttachWire.js';
@@ -2291,15 +2295,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async listSnapshots(request: UniverseAgentListSnapshotsRequest): Promise<UniverseAgentListSnapshotsResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ListSnapshotsResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.ListSnapshots,
+			decodeListSnapshotsResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-		});
-		return mapListSnapshotsResponse(wire);
+		return mapListSnapshotsResponse(await unary(encodeListSnapshotsRequest(request)));
 	}
 
 	async listLoopSnapshots(request: UniverseAgentListLoopSnapshotsRequest): Promise<UniverseAgentListLoopSnapshotsResult> {
@@ -2316,43 +2318,33 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async createSnapshot(request: UniverseAgentCreateSnapshotRequest): Promise<UniverseAgentCreateSnapshotResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, CreateSnapshotResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.CreateSnapshot,
+			decodeCreateSnapshotResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			title: request.title,
-			description: request.description ?? '',
-		});
-		return mapCreateSnapshotResponse(wire);
+		return mapCreateSnapshotResponse(await unary(encodeCreateSnapshotRequest(request)));
 	}
 
 	async restoreSnapshot(request: UniverseAgentRestoreSnapshotRequest): Promise<UniverseAgentRestoreSnapshotResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, RestoreSnapshotResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.RestoreSnapshot,
+			decodeRestoreSnapshotResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			snapshot_id: request.snapshotId,
-		});
-		return mapRestoreSnapshotResponse(wire);
+		return mapRestoreSnapshotResponse(await unary(encodeRestoreSnapshotRequest(request)));
 	}
 
 	async deleteSnapshot(request: UniverseAgentDeleteSnapshotRequest): Promise<UniverseAgentDeleteSnapshotResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, DeleteSnapshotResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.DeleteSnapshot,
+			decodeDeleteSnapshotResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			snapshot_id: request.snapshotId,
-		});
-		return mapDeleteSnapshotResponse(wire);
+		return mapDeleteSnapshotResponse(await unary(encodeDeleteSnapshotRequest(request)));
 	}
 
 	async getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {

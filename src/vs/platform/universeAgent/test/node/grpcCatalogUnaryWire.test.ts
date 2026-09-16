@@ -510,7 +510,7 @@ suite('grpc catalog unary protobuf wire', () => {
 		});
 	});
 
-	test('grpcClient Delete/Rename/Cancel/SetPermissionMode/SwitchModel use bytes; listTools/listSkills stay JSON', () => {
+	test('grpcClient snapshots + prior session unaries use bytes; listTools/listSkills stay JSON', () => {
 		const thisDir = path.dirname(fileURLToPath(import.meta.url));
 		const repoRoot = path.join(thisDir, '../../../../../../');
 		const clientPath = path.join(repoRoot, 'src/vs/platform/universeAgent/node/grpc/grpcClient.ts');
@@ -521,6 +521,10 @@ suite('grpc catalog unary protobuf wire', () => {
 			{ name: 'cancelGeneration', encoder: 'encodeCancelGenerationRequest' },
 			{ name: 'setPermissionMode', encoder: 'encodeSetPermissionModeRequest' },
 			{ name: 'switchModel', encoder: 'encodeSwitchModelRequest' },
+			{ name: 'listSnapshots', encoder: 'encodeListSnapshotsRequest' },
+			{ name: 'createSnapshot', encoder: 'encodeCreateSnapshotRequest' },
+			{ name: 'restoreSnapshot', encoder: 'encodeRestoreSnapshotRequest' },
+			{ name: 'deleteSnapshot', encoder: 'encodeDeleteSnapshotRequest' },
 		];
 		for (const { name, encoder } of bytesMethods) {
 			const body = extractAsyncMethod(source, name);

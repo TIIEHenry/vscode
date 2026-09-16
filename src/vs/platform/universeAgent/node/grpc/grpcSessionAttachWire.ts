@@ -9,15 +9,26 @@ import type {
 	UniverseAgentChatResponse,
 	UniverseAgentCreateSessionRequest,
 	UniverseAgentCreateSessionResult,
+	UniverseAgentCreateSnapshotRequest,
+	UniverseAgentDeleteSnapshotRequest,
 	UniverseAgentFetchToolDetailRequest,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentHistoryEnvelope,
+	UniverseAgentListSnapshotsRequest,
 	UniverseAgentRenameSessionRequest,
+	UniverseAgentRestoreSnapshotRequest,
 	UniverseAgentResumeSessionRequest,
 	UniverseAgentResumeSessionResult,
 	UniverseAgentSessionEvent,
 } from '../../common/universeAgentTypes.js';
+import type {
+	CreateSnapshotResponseWire,
+	DeleteSnapshotResponseWire,
+	ListSnapshotsResponseWire,
+	RestoreSnapshotResponseWire,
+	SessionSnapshotInfoWire,
+} from './grpcClientMappersSession.js';
 import { CONNECT_WIRE_PROTOCOL } from './grpcHandshakeWire.js';
 import {
 	allLengthDelimited,
@@ -75,6 +86,87 @@ export function encodeCancelGenerationRequest(request: UniverseAgentCancelGenera
 		encodeStringField(1, request.sessionId),
 		encodeStringField(2, request.agentId),
 	]);
+}
+
+/** Agent.ListSnapshots — `session_id` = 1. */
+export function encodeListSnapshotsRequest(request: UniverseAgentListSnapshotsRequest): Uint8Array {
+	return encodeStringField(1, request.sessionId);
+}
+
+export function decodeListSnapshotsResponse(bytes: Uint8Array): ListSnapshotsResponseWire {
+	return {
+		snapshots: allLengthDelimited(readProtoFields(bytes), 1).map(decodeSessionSnapshotInfo),
+	};
+}
+
+/** Agent.CreateSnapshot — `session_id` = 1, `title` = 2, `description` = 3. */
+export function encodeCreateSnapshotRequest(request: UniverseAgentCreateSnapshotRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.sessionId),
+		encodeStringField(2, request.title),
+		encodeStringField(3, request.description),
+	]);
+}
+
+export function decodeCreateSnapshotResponse(bytes: Uint8Array): CreateSnapshotResponseWire {
+	const fields = readProtoFields(bytes);
+	const snapshot = lastBytes(fields, 2);
+	return {
+		success: lastVarint(fields, 1) === 1n,
+		...(snapshot ? { snapshot: decodeSessionSnapshotInfo(snapshot) } : {}),
+		error_message: lastString(fields, 3),
+	};
+}
+
+/** Agent.RestoreSnapshot / DeleteSnapshot — `session_id` = 1, `snapshot_id` = 2. */
+export function encodeRestoreSnapshotRequest(request: UniverseAgentRestoreSnapshotRequest): Uint8Array {
+	return encodeSessionSnapshotIdRequest(request.sessionId, request.snapshotId);
+}
+
+export function encodeDeleteSnapshotRequest(request: UniverseAgentDeleteSnapshotRequest): Uint8Array {
+	return encodeSessionSnapshotIdRequest(request.sessionId, request.snapshotId);
+}
+
+export function decodeRestoreSnapshotResponse(bytes: Uint8Array): RestoreSnapshotResponseWire {
+	return decodeSnapshotMutationResponse(bytes);
+}
+
+export function decodeDeleteSnapshotResponse(bytes: Uint8Array): DeleteSnapshotResponseWire {
+	return decodeSnapshotMutationResponse(bytes);
+}
+
+function encodeSessionSnapshotIdRequest(sessionId: string, snapshotId: string): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, sessionId),
+		encodeStringField(2, snapshotId),
+	]);
+}
+
+function decodeSnapshotMutationResponse(bytes: Uint8Array): RestoreSnapshotResponseWire {
+	const fields = readProtoFields(bytes);
+	return {
+		success: lastVarint(fields, 1) === 1n,
+		error_message: lastString(fields, 2),
+	};
+}
+
+function decodeSessionSnapshotInfo(bytes: Uint8Array): SessionSnapshotInfoWire {
+	const fields = readProtoFields(bytes);
+	return {
+		id: lastString(fields, 1) ?? '',
+		session_id: lastString(fields, 2) ?? '',
+		title: lastString(fields, 3) ?? '',
+		description: lastString(fields, 4),
+		created_at: numberOrUndefined(lastVarint(fields, 5)),
+		turn_count: numberOrUndefined(lastVarint(fields, 6)),
+		token_count: numberOrUndefined(lastVarint(fields, 7)),
+		model_id: lastString(fields, 8),
+		is_auto: lastVarint(fields, 9) === 1n,
+	};
+}
+
+function numberOrUndefined(value: bigint | undefined): number | undefined {
+	return value === undefined ? undefined : Number(value);
 }
 
 export function decodeResumeSessionResponse(bytes: Uint8Array): UniverseAgentResumeSessionResult {

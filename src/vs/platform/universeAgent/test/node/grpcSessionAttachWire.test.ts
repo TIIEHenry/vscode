@@ -10,19 +10,33 @@ import {
 	HISTORY_DIRECTION_FORWARD_AFTER,
 	decodeChatResponse,
 	decodeCreateSessionResponse,
+	decodeCreateSnapshotResponse,
+	decodeDeleteSnapshotResponse,
 	decodeGetHistoryResponse,
+	decodeListSnapshotsResponse,
+	decodeRestoreSnapshotResponse,
 	decodeResumeSessionResponse,
 	decodeSessionStreamEvent,
 	encodeChatRequest,
 	encodeCreateSessionRequest,
+	encodeCreateSnapshotRequest,
+	encodeDeleteSnapshotRequest,
 	encodeGetHistoryRequest,
+	encodeListSnapshotsRequest,
 	encodeRenameSessionRequest,
 	encodeCancelGenerationRequest,
+	encodeRestoreSnapshotRequest,
 	encodeResumeSessionRequest,
 	encodeSessionStreamHandshake,
 	fetchToolDetailRequestFromHistoryToolCall,
 	resolveCreateSessionClientId,
 } from '../../node/grpc/grpcSessionAttachWire.js';
+import {
+	mapCreateSnapshotResponse,
+	mapDeleteSnapshotResponse,
+	mapListSnapshotsResponse,
+	mapRestoreSnapshotResponse,
+} from '../../node/grpc/grpcClientMappers.js';
 import {
 	encodeInt32Field,
 	encodeInt64Field,
@@ -344,5 +358,131 @@ suite('grpc first-send / attach protobuf wire', () => {
 		}
 		assert.strictEqual(strings.get(1), 'sess-1');
 		assert.strictEqual(strings.get(2), 'root');
+	});
+
+	test('encodeListSnapshotsRequest writes session_id field 1, not JSON', () => {
+		const encoded = encodeListSnapshotsRequest({ sessionId: 'sess-1' });
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const fields = readProtoFields(encoded);
+		assert.strictEqual(fields.length, 1);
+		assert.strictEqual(fields[0]?.field, 1);
+		assert.strictEqual(Buffer.from(fields[0]?.wireType === 2 ? fields[0].bytes : []).toString('utf8'), 'sess-1');
+	});
+
+	test('decodeListSnapshotsResponse reads SessionSnapshotInfo fields 1-9', () => {
+		const snapshot = Buffer.concat([
+			encodeStringField(1, 'snap-1'),
+			encodeStringField(2, 'sess-1'),
+			encodeStringField(3, 'Before refactor'),
+			encodeStringField(4, 'checkpoint'),
+			encodeInt64Field(5, 1700000000),
+			encodeInt32Field(6, 12),
+			encodeInt64Field(7, 4096),
+			encodeStringField(8, 'claude-sonnet'),
+			encodeInt32Field(9, 1),
+		]);
+		const decoded = decodeListSnapshotsResponse(encodeMessageField(1, snapshot));
+		const mapped = mapListSnapshotsResponse(decoded);
+		assert.strictEqual(mapped.snapshots.length, 1);
+		assert.deepStrictEqual(mapped.snapshots[0], {
+			id: 'snap-1',
+			sessionId: 'sess-1',
+			title: 'Before refactor',
+			description: 'checkpoint',
+			createdAt: 1700000000,
+			turnCount: 12,
+			tokenCount: 4096,
+			modelId: 'claude-sonnet',
+			isAuto: true,
+		});
+	});
+
+	test('encodeCreateSnapshotRequest writes session_id/title/description fields 1-3, not JSON', () => {
+		const encoded = encodeCreateSnapshotRequest({
+			sessionId: 'sess-1',
+			title: 'Before refactor',
+			description: 'checkpoint',
+		});
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const strings = new Map<number, string>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+		}
+		assert.strictEqual(strings.get(1), 'sess-1');
+		assert.strictEqual(strings.get(2), 'Before refactor');
+		assert.strictEqual(strings.get(3), 'checkpoint');
+		assert.strictEqual(strings.has(4), false);
+	});
+
+	test('encodeCreateSnapshotRequest omits empty description field 3', () => {
+		const encoded = encodeCreateSnapshotRequest({ sessionId: 'sess-1', title: 'Only title' });
+		const strings = new Map<number, string>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+		}
+		assert.strictEqual(strings.get(1), 'sess-1');
+		assert.strictEqual(strings.get(2), 'Only title');
+		assert.strictEqual(strings.has(3), false);
+	});
+
+	test('decodeCreateSnapshotResponse reads success field 1, snapshot field 2, error_message field 3', () => {
+		const snapshot = Buffer.concat([
+			encodeStringField(1, 'snap-9'),
+			encodeStringField(2, 'sess-1'),
+			encodeStringField(3, 'Saved'),
+		]);
+		const encoded = Buffer.concat([
+			encodeInt32Field(1, 1),
+			encodeMessageField(2, snapshot),
+			encodeStringField(3, 'ignored-on-ok'),
+		]);
+		const mapped = mapCreateSnapshotResponse(decodeCreateSnapshotResponse(encoded));
+		assert.strictEqual(mapped.ok, true);
+		assert.strictEqual(mapped.message, 'ignored-on-ok');
+		assert.strictEqual(mapped.snapshot?.id, 'snap-9');
+		assert.strictEqual(mapped.snapshot?.title, 'Saved');
+	});
+
+	test('encodeRestoreSnapshotRequest writes session_id field 1 and snapshot_id field 2, not JSON', () => {
+		const encoded = encodeRestoreSnapshotRequest({ sessionId: 'sess-1', snapshotId: 'snap-2' });
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const strings = new Map<number, string>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+		}
+		assert.strictEqual(strings.get(1), 'sess-1');
+		assert.strictEqual(strings.get(2), 'snap-2');
+		assert.strictEqual(strings.has(3), false);
+	});
+
+	test('encodeDeleteSnapshotRequest writes session_id field 1 and snapshot_id field 2, not JSON', () => {
+		const encoded = encodeDeleteSnapshotRequest({ sessionId: 'sess-1', snapshotId: 'snap-2' });
+		const restore = encodeRestoreSnapshotRequest({ sessionId: 'sess-1', snapshotId: 'snap-2' });
+		assert.deepStrictEqual(Buffer.from(encoded), Buffer.from(restore));
+		const strings = new Map<number, string>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+		}
+		assert.strictEqual(strings.get(1), 'sess-1');
+		assert.strictEqual(strings.get(2), 'snap-2');
+	});
+
+	test('decodeRestoreSnapshotResponse and decodeDeleteSnapshotResponse read success field 1 and error_message field 2', () => {
+		const encoded = Buffer.concat([
+			encodeInt32Field(1, 1),
+			encodeStringField(2, 'restored'),
+		]);
+		const restored = mapRestoreSnapshotResponse(decodeRestoreSnapshotResponse(encoded));
+		const deleted = mapDeleteSnapshotResponse(decodeDeleteSnapshotResponse(encoded));
+		assert.deepStrictEqual(restored, { ok: true, message: 'restored' });
+		assert.deepStrictEqual(deleted, { ok: true, message: 'restored' });
 	});
 });
