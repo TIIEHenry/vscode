@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-16
-summary: "延期缺口 SSOT；D8 / D16 / D24 / D147 / D405 仍开；D25/D26 已闭；D406–D463 / D466 / D468–D472 已闭；D464–D465 / D467 仍开；不得宣称 leftover wave 完成"
+summary: "延期缺口 SSOT；D8 / D16 / D24 / D147 / D405 仍开；D25/D26 已闭；D406–D463 / D466 / D468–D473 已闭；D464–D465 / D467 仍开；不得宣称 leftover wave 完成"
 ---
 
 # Deferred Gaps
@@ -186,7 +186,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D24 / D147 / D405 仍开；D25/D26 已�
 | D171 | P3 | **workbench `void _registerForScheme` 无 catch** | A `2dcb6d6b9bc` 两处 `.catch(onUnexpectedError)`。merge 复测 chatInputCompletions 54 passing | existing/added scheme reject 无未处理 rejection | workbench | closed |
 | D172 | P3 | **Inbox Goal/Enqueue `void` click 无 catch** → `input` reject 漏 | B `ab26662bdde` `.catch(onUnexpectedError)`。merge 复测 inbox 30 passing。未改 false notice 合同 | reject 无未处理 rejection、不误弹 notice | conversation | closed |
 | D173 | P3 | **Codex `void openCodexAuthUrl` 无 catch** → opener reject 漏 | A `c68ce95365e` auth URL + profile image `.catch(onUnexpectedError)`。merge 复测 12 passing | auth URL reject 无未处理 rejection | workbench | closed |
-| D174 | P3 | **单条 feedback `void revealFeedback` 无 catch** | B `b4ef8494a43` `.catch(onUnexpectedError)`。merge 复测 6 passing。残留：context view 同类 void 无 widget 测，不可锁 | 单条 click reject 无未处理 rejection | sessions | closed |
+| D174 | P3 | **单条 feedback `void revealFeedback` 无 catch** | B `b4ef8494a43` `.catch(onUnexpectedError)`。merge 复测 6 passing。残留：context view 同类 void 已由 D473 收（**不重开本行**） | 单条 click reject 无未处理 rejection | sessions | closed |
 | D175 | P3 | **Claude 权限 Learn more `void opener.open` 无 catch** → 文档链接 reject 漏 | A `9a51365629c` `.catch(onUnexpectedError)`。merge 复测 picker 4 passing | Learn more opener reject 无未处理 rejection | sessions | closed |
 | D176 | P3 | **`void _dispatchActiveClientWhenResolved` 无 catch** → `whenResolved()` reject 漏 | B `e4844ce08ae` `.catch(onUnexpectedError)`。merge 复测 provider 206 passing | scope reject 无未处理 rejection、无 SessionActiveClientSet | sessions | closed |
 | D177 | P3 | **untitled mode 回填 `void _applyMode` 无 catch** → `waitForPendingUpdates` reject 漏 | A `18f9ec25bdb` `.catch(onUnexpectedError)`。merge 复测 synchronizer 7 passing | waitForPendingUpdates reject 无未处理 rejection | workbench | closed |
@@ -486,6 +486,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D24 / D147 / D405 仍开；D25/D26 已�
 | D470 | P2 | **closed** 测试 17 遍历叶 `activeGroup.editors`，对每个 tab `openEditor` 后取 `ConversationEditorPane.activeConversationLens`，隐藏后根 + fork 的 `sessionViewLease` 均 undefined，restore 后均重取。未发明 pane 大 API。未关 D8/D16/D147/D405。未升 PRD-008。 | 工位 A `d469-d470-pills-listener-lease`；同上 mocha **12/0** | 隐藏叶所有 tab 透镜 lease 释放；restore 重取。未关 D16。 | conversation / session-pills | closed |
 | D471 | P3 | **closed** 同 Electron 进程组合 mocha：Sessions 已接 `stubConversationTimelineLinkServices` + `TestEditorService`（无 `createEditorParts`）。本刀：`conversationSessionSplit.test.ts` / `conversationEditorFence.test.ts` 按 reveal/sxs 接真 `EditorService`（有 `createEditorParts`）+ `stubConversationLensRuntimeServices`，`waitForPane` 等到 `ConversationEditorPane.activeConversationLens` 再测，dispose 后不再建透镜。未改生产合同。未重做 Sessions。pills 假 `openEditor` 未扩。`conversationSessionChat.test.ts` 仍用测试 pane。不得宣称 leftover/pills 完成。 | 工位 D `d471-split-fence-harness`；`npm run transpile-client` 后 split **6/0**、fence **9/0**（各含 `assertCleanState` 1） | split/fence mocha 绿；不得宣称 leftover/pills 完成 | conversation / test-harness | closed |
 | D472 | P2 | **closed** stub/fixture 字面 `/session/<key>/chat/<id>` 在投影助手 `ConversationStubTurn.text` 时（`timelineItemToEntry` / stub `getTurns`）改写；adapter 不再改 href/text。不猜 live-engine（R9 仍开）。无新 RPC。未升 PRD-008。 | merge `43757006bbe` compile-client 0；四文件 mocha **46 passing / 0 fail**（harness 1、sessionView 19、rewrite+getTurns 7、pills 15、import 4） | catalog 命中改写且 pill 可点；miss 原文；adapter 不 import rewrite helper。R9 仍开。未关 D16。不得宣称 pills 全方案完成 | conversation / session-pills | closed |
+| D473 | P3 | **closed** D174 残留：context view 选 comment 的 `void revealFeedback` 无 catch。本刀只补 `agentFeedbackContextView.ts` `.catch(onUnexpectedError)`，对齐 widget 单条 click。测锁 context view 选中 comment → stub reject → 0 unhandled rejection。不重开 D174。未扫其它 sessions void。未 compile-client。不得宣称 leftover/pills 完成。 | 工位 D `agent-feedback-context-view-reveal-catch`；`npm run transpile-client` 后 `VSCODE_SKIP_PRELAUNCH=1 ./scripts/test.sh --run src/vs/sessions/contrib/agentFeedback/test/browser/agentFeedbackAttachment.test.ts` **7/0** | context view 选 comment reject 无未处理 rejection；既有 6 条仍绿。不重开 D174。 | sessions / agentFeedback | closed |
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 
 `loop/merge` @ `793ff6e201f`（提交信息为「关仓：T5a Uncaught 闸门与 statusbar 二次注册幂等**已复测**」）在**仓外独立 detached 工位**上实测：

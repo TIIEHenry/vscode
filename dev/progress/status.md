@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "merge compile-client 0；聚焦测 71 passing。D471 closed；D24 仍开。不是 leftover/pills 完成。R9/D405 仍开"
+summary: "merge compile-client 0；聚焦测 71 passing。D473 closed；D174 不重开；D24 仍开。不是 leftover/pills 完成。R9/D405 仍开"
 ---
 
 # Development Progress
@@ -43,7 +43,7 @@ summary: "merge compile-client 0；聚焦测 71 passing。D471 closed；D24 仍�
 ### 进行中（2026-09-16 · compile-client 0 · 71 passing；D24 仍开；不是 leftover/pills 完成）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
-| **A/D** | snapshot + D471 | A：四 snapshot unary bytes、[D24](deferred-gaps.md) **仍开**；D：split/fence 夹具、[D471](deferred-gaps.md) **closed**。compile-client **0**；聚焦 **71 passing / 0 fail** |
+| **A/D** | snapshot + D473 | A：四 snapshot unary bytes、[D24](deferred-gaps.md) **仍开**；D：context view reveal catch、[D473](deferred-gaps.md) **closed**（不重开 D174）。transpile 后 attachment **7/0**。不是 leftover/pills 完成 |
 | **B/C** | — | B 脏 `worktree-pool.md` 跳过 `-B`；C 脏 `dev/loop` gitlink 勿 add、试 ff-only |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 
@@ -137,7 +137,7 @@ summary: "merge compile-client 0；聚焦测 71 passing。D471 closed；D24 仍�
 | [D34](deferred-gaps.md) | B 槽 `timeline-hygiene` | **closed** 空/零高树不再读 `lastVisibleElement` |
 | [D35](deferred-gaps.md) | B 槽 `timeline-hygiene` | **closed** 删 `getTimelineRowElement` 死第二段 query |
 | [D36](deferred-gaps.md) | B 槽 `timeline-hygiene` | **closed** standalone thinking/tool 诚实摘要行，无假 fold |
-| — | 2026-09-09 代码复读 | D147 剩 2 条 **compile-only** 勿派 letter；promote / identity-strip 已否；接通 `createSession()` 回 `''`；D148–D174 已闭；feedback context view 同类 void 未扫 |
+| — | 2026-09-09 代码复读 | D147 剩 2 条 **compile-only** 勿派 letter；promote / identity-strip 已否；接通 `createSession()` 回 `''`；D148–D174 已闭；context view 残留由 D473 收（不重开 D174） |
 | [D15](deferred-gaps.md)–[D90](deferred-gaps.md) | A/B/D leftover-honesty 波 | **closed** 详见 deferred-gaps；未关 D16 |
 | [D92](deferred-gaps.md)–[D129](deferred-gaps.md) / [D131](deferred-gaps.md) / [D133](deferred-gaps.md)–[D139](deferred-gaps.md) | B roster+inbox+sessions / D nav / A beside+mru+sessionbar / A·B composer / A notifications / B sessionChat / D bind / A navigator lease / B reveal / A attribution / A rotate / A revoke / B triggers / A rename error tone / B clipboard clear / A Hub fallback revoke / B upsert refresh / D clipboard write / A catch error tone / B swallowed-primary notice lock | **closed** throw 回滚/notice；RotateToken / Revoke `!success` 与 catch 已 error tone；Triggers 删/upsert 与 Clipboard 清空/写入成功 refresh；swallowed primary 后 beside 已锁 bootstrap notice；未关 D16 |
 | [D140](deferred-gaps.md)–[D146](deferred-gaps.md) | A SessionBar / B Sessions 侧栏断连 New session / D mermaid getExtension reject / A copyTurn writeText reject / B requestResync reject / A acknowledge·releaseLease reject / B Projects rebuildTree·openWindow | **closed** 断连+history New session 画 notice 且不调 `createSession`；mermaid reject 回 `undefined`；copyTurn reject 画 `failed`；requestResync / acknowledge / releaseLease reject 已吞；Projects last-good + openWindow 已吞；未关 D16 |
@@ -178,7 +178,7 @@ summary: "merge compile-client 0；聚焦测 71 passing。D471 closed；D24 仍�
 | [D242](deferred-gaps.md)–[D288](deferred-gaps.md) | leftover + pairing | **closed** catalog leftover + pairing keep-last（含 roster turns / session sync） |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
-| [D405](deferred-gaps.md)–[D472](deferred-gaps.md) | A/D 本波 | D405 手测仍开；D471/D472 已闭；**D24 仍开**（listTools JSON）；catalog 死 `onOpenConnection` 不叠 CTA |
+| [D405](deferred-gaps.md)–[D473](deferred-gaps.md) | A/D 本波 | D405 手测仍开；D471–D473 已闭；**D24 仍开**（listTools JSON）；不得宣称 leftover/pills 完成 |
 ## 工位表（P0 盘点 · 2026-09-16 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
@@ -186,7 +186,7 @@ summary: "merge compile-client 0；聚焦测 71 passing。D471 closed；D24 仍�
 | A | `vscode-WorkTrees/A` | `loop/A` | MERGE_SHA | 干净 | 0 | `idle`；`checkout -B loop/A` |
 | B | `vscode-WorkTrees/B` | `loop/B` | `28ffd1ae9f2` | 脏 `worktree-pool.md` | 0 | 脏树勿 `-B`；incoming 重叠则 ff 停 |
 | C | `vscode-WorkTrees/C` | `loop/C` | MERGE_SHA | 脏 `dev/loop` gitlink | 0 | 试 ff-only；勿 add |
-| D | `vscode-WorkTrees/D` | `loop/D` | MERGE_SHA | 干净 | 0 | `idle`；ff-only / `checkout -B`；勿宣称 leftover/pills 完成 |
+| D | `vscode-WorkTrees/D` | `loop/D` | MERGE_SHA | 脏 本切片 | 0 | 未 commit；[D473](deferred-gaps.md) closed；勿宣称 leftover/pills 完成 |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked` leftover；跳过 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `ff278772b85` | `dev/loop` + 方案/docs | 0 | 仅 ff-only；非祖先，失败则记录 |
 ## Next（Blockers：无）
