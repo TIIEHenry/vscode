@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import type { IUniverseAgentConnection } from '../common/universeAgentConnection.js';
@@ -294,7 +295,7 @@ export class SessionViewHost extends Disposable {
 		}
 		this.ensureSessionSidecar(sessionId);
 		if (this.connectionUp) {
-			void this.bringUpBoundSession(sessionId);
+			void this.bringUpBoundSession(sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 		return String(leaseId);
 	}
@@ -453,7 +454,7 @@ export class SessionViewHost extends Disposable {
 			this.connectionGeneration += 1;
 			this.connectionUp = true;
 			for (const binding of this.leases.values()) {
-				void this.bringUpBoundSession(binding.sessionId);
+				void this.bringUpBoundSession(binding.sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		} else {
 			this.connectionUp = false;
@@ -1046,9 +1047,9 @@ export class SessionViewHost extends Disposable {
 				break;
 			default:
 				if (isChatCoreIntent(intent) && intent.do === 'chatStreamWrite') {
-					void this.writeChat(sessionId, intent.correlation, intent.payload, intent.chatAttemptId, intent.writeId);
+					void this.writeChat(sessionId, intent.correlation, intent.payload, intent.chatAttemptId, intent.writeId).catch(onUnexpectedError).catch(onUnexpectedError);
 				} else if (isHistoryFillCoreIntent(intent)) {
-					void this.fillHistory(sessionId, intent);
+					void this.fillHistory(sessionId, intent).catch(onUnexpectedError).catch(onUnexpectedError);
 				} else {
 					this.markIntentUnhandled(sessionId, (intent as CoreIntent).do);
 				}
@@ -1289,7 +1290,7 @@ export class SessionViewHost extends Disposable {
 				];
 				for (const arm of arms) {
 					if (arm && typeof arm === 'object' && (arm as { arm?: string }).arm === 'heartbeat') {
-						void this.sendHeartbeatAck(sessionId);
+						void this.sendHeartbeatAck(sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
 						continue;
 					}
 					this.postAndDrain(sessionId as SessionId, {
