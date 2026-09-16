@@ -27,6 +27,7 @@ summary: "A 槽 ClearSessionDemoFake/Get·SetModelPreferences 转 bytes。D24 �
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **F** | SwitchWorkDir wire 已落；`grpcClient` 仍 JSON；D24 仍开 |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
