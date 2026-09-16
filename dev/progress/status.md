@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "merge 本波：A Session lifecycle 五 unary 已 bytes；D535–D541 closed。compile-client 0；聚焦 299 passing。D24 仍开。不是 leftover/pills 完成。"
+summary: "merge 本波：A Session lifecycle 五 unary 已 bytes；D535–D541 closed。J D549 loadConnectedComposerCatalogs 双链未提交。compile-client 未跑。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -27,6 +27,7 @@ summary: "merge 本波：A Session lifecycle 五 unary 已 bytes；D535–D541 c
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **J** | D549 `loadConnectedComposerCatalogs` 双链；catalog 测 **24/0**；未提交；未 compile-client |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
@@ -37,6 +38,7 @@ summary: "merge 本波：A Session lifecycle 五 unary 已 bytes；D535–D541 c
 | [D24](deferred-gaps.md) | **仍开**：lifecycle 五 unary **已** bytes；SaveSkillContent/Watch/model prefs/Connect/FireTriggerWebhook/ResolveTurn 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
 | [D535](deferred-gaps.md)–[D541](deferred-gaps.md) | **closed** 本文件 leftover catch；leftover **未**全局完成 |
+| [D549](deferred-gaps.md) | **closed** composer `loadConnectedComposerCatalogs` void 双链；leftover **未**全局完成；未提交 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |
