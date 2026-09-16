@@ -325,7 +325,7 @@ class AutomationCardsSection extends Disposable {
 				runBtn.setAriaLabel(runNowLabel);
 				runBtn.setTitle(runNowLabel);
 			}, 10_000, disposables);
-			void this.runNow(currentAutomation);
+			void this.runNow(currentAutomation).catch(onUnexpectedError);
 		}));
 
 		const deleteBtn = this.createIconButton(buttonBar, Codicon.trash, localize('deleteAutomation', "Delete"), this.automationService.canDeleteAutomation?.(automation.id) === false);
@@ -347,7 +347,7 @@ class AutomationCardsSection extends Disposable {
 				if (!currentAutomation || this.automationService.canUpdateAutomation?.(automation.id) === false) {
 					return;
 				}
-				void this.openEditDialog(currentAutomation);
+				void this.openEditDialog(currentAutomation).catch(onUnexpectedError);
 			}));
 		}
 
@@ -683,7 +683,7 @@ class AutomationHistorySection extends Disposable {
 		this.markAllButton.label = localize('markAllRead', "Mark all as read");
 		this.markAllButton.element.classList.add('automations-mark-all-read');
 		this.headerDisposables.add(this.markAllButton.onDidClick(() => {
-			void this.markAllRunsRead(this.currentRuns.get());
+			void this.markAllRunsRead(this.currentRuns.get()).catch(onUnexpectedError);
 		}));
 		this.headerDisposables.add(autorun(reader => {
 			const runs = this.currentRuns.read(reader);
@@ -749,7 +749,7 @@ class AutomationHistorySection extends Disposable {
 			contextMenuId: Menus.AutomationsHistoryItemContext,
 			markSessionReadOnOpen: false,
 			approvalModel: this.approvalModel,
-			onSessionOpen: resource => void this.openRunSession(resource),
+			onSessionOpen: resource => void this.openRunSession(resource).catch(onUnexpectedError),
 			onToolbarAction: (action, session) => this.handleSessionAction(action, session, entry.runsBySession),
 			onContextMenuAction: (action, session) => this.handleSessionAction(action, session, entry.runsBySession),
 		}));

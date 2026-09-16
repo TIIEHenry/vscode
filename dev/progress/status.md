@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "A 槽 d24-next-known-unaries-3：六 unary bytes。D24 仍开。不是 leftover/pills 完成。R9/D405 仍开"
+summary: "合入 A 六 roster unary bytes 与 D D474 automations catch；D24 仍开；D474 closed；不重开 D180/D182。不是 leftover/pills 完成。R9/D405 仍开"
 ---
 
 # Development Progress
@@ -43,7 +43,7 @@ summary: "A 槽 d24-next-known-unaries-3：六 unary bytes。D24 仍开。不是
 ### 进行中（2026-09-16 · A `d24-next-known-unaries-3`；D24 仍开；不是 leftover/pills 完成）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
-| **A** | `d24-next-known-unaries-3` | 六 unary bytes（CancelSessionGoal / Respond / Fork / Kill / DeleteMessage / EditMessage）。[D24](deferred-gaps.md) **仍开**（listTools JSON）。未 compile-client。不是 leftover/pills 完成 |
+| **A/D** | 六 unary + D474 | A：CancelSessionGoal/Respond/Fork/Kill/DeleteMessage/EditMessage bytes、[D24](deferred-gaps.md) **仍开**（listTools JSON）；D：automations 四处 void catch、[D474](deferred-gaps.md) **closed**（不重开 D180/D182）。未 compile-client。不是 leftover/pills 完成 |
 | **B/C** | — | B 脏 `worktree-pool.md` 跳过 `-B`；C 脏 `dev/loop` gitlink 勿 add、试 ff-only |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 
@@ -178,7 +178,7 @@ summary: "A 槽 d24-next-known-unaries-3：六 unary bytes。D24 仍开。不是
 | [D242](deferred-gaps.md)–[D288](deferred-gaps.md) | leftover + pairing | **closed** catalog leftover + pairing keep-last（含 roster turns / session sync） |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
-| [D405](deferred-gaps.md)–[D473](deferred-gaps.md) | A/D 本波 | D405 手测仍开；D471–D473 已闭；**D24 仍开**（listTools JSON）；不得宣称 leftover/pills 完成 |
+| [D405](deferred-gaps.md)–[D474](deferred-gaps.md) | A/D 本波 | D405 手测仍开；D471–D474 已闭；**D24 仍开**（listTools JSON）；不得宣称 leftover/pills 完成 |
 ## 工位表（P0 盘点 · 2026-09-16 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
@@ -186,14 +186,14 @@ summary: "A 槽 d24-next-known-unaries-3：六 unary bytes。D24 仍开。不是
 | A | `vscode-WorkTrees/A` | `loop/A` | `28997c8a79d` | 本刀脏 | 0 | `d24-next-known-unaries-3`；D24 仍开 |
 | B | `vscode-WorkTrees/B` | `loop/B` | `28ffd1ae9f2` | 脏 `worktree-pool.md` | 0 | 脏树勿 `-B`；incoming 重叠则 ff 停 |
 | C | `vscode-WorkTrees/C` | `loop/C` | MERGE_SHA | 脏 `dev/loop` gitlink | 0 | 试 ff-only；勿 add |
-| D | `vscode-WorkTrees/D` | `loop/D` | MERGE_SHA | 干净 | 0 | `idle`；ff-only / `checkout -B`；勿宣称 leftover/pills 完成 |
+| D | `vscode-WorkTrees/D` | `loop/D` | MERGE_SHA | 脏 D474 | 0 | automations 四处 catch；未 commit；勿宣称 leftover/pills 完成 |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked` leftover；跳过 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `ff278772b85` | `dev/loop` + 方案/docs | 0 | 仅 ff-only；非祖先，失败则记录 |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。本仓只读面 + Composer `model_profile_id` **已挂**。钉死工位 seed 后 grpcurl **Chat PASS**。下一刀是 IDE Direct Address 接通后 Composer 发送（PRD-008 仍要隔离 profile 冒烟）。**不升 PRD-008**。不要再清 store。D26 store 已闭，旧「迁移卡死」账见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md) |
-| **loop 切片** | A 本刀六 unary bytes。[D24](deferred-gaps.md) **仍开**（`listTools` JSON）。[D473](deferred-gaps.md) **closed**（不重开 D174）。R9 仍开。**D405** 手测仍开。不关 D8/D16/D147。未升 PRD-008。不得宣称 leftover / pills 完成。 |
+| **loop 切片** | A 六 roster unary bytes 已合；D [D474](deferred-gaps.md) **closed**（不重开 D180/D182）。[D24](deferred-gaps.md) **仍开**（`listTools` JSON）。[D473](deferred-gaps.md) **closed**（不重开 D174）。未 compile-client。R9 仍开。**D405** 手测仍开。不关 D8/D16/D147。未升 PRD-008。不得宣称 leftover / pills 完成。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。

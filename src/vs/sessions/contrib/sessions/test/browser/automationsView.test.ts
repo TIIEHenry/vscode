@@ -1287,6 +1287,35 @@ suite('AutomationsCardsWidget', () => {
 		}
 	});
 
+	test('does not leak unhandled rejection when run now rejects', async () => {
+		const { automationService, dialogService, runner, widget } = setup();
+		automationService.setAutomations([automation()]);
+		const boom = new Error('boom');
+		runner.whenDispatched = Promise.reject(boom);
+		void runner.whenDispatched.catch(() => { });
+		dialogService.error = async () => {
+			throw boom;
+		};
+		const runButton = [...widget.element.querySelectorAll<HTMLElement>('.automations-card-action-button')]
+			.find(element => element.getAttribute('aria-label') === 'Run now' || element.title === 'Run now');
+		assert.ok(runButton);
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			runButton.click();
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(runner.runCalls, 1);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
 	test('automation action buttons support arrow navigation and keyboard activation', async () => {
 		const { automationService, runner, widget } = setup();
 		automationService.setAutomations([automation()]);
