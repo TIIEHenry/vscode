@@ -9,14 +9,16 @@ import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { KeyCode } from '../../../../../base/common/keyCodes.js';
-import { Disposable, DisposableStore, IDisposable } from '../../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, IDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { Range } from '../../../../../editor/common/core/range.js';
 import { ILanguageService } from '../../../../../editor/common/languages/language.js';
 import { IContextViewDelegate, IContextViewService, IOpenContextView } from '../../../../../platform/contextview/browser/contextView.js';
 import { IHoverService } from '../../../../../platform/hover/browser/hover.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
+import { getSelectionKeyboardEvent, WorkbenchObjectTree } from '../../../../../platform/list/browser/listService.js';
 import { IThemeService } from '../../../../../platform/theme/common/themeService.js';
+import { workbenchInstantiationService } from '../../../../../workbench/test/browser/workbenchTestServices.js';
 import { LOCAL_AGENT_HOST_PROVIDER_ID } from '../../../../common/agentHostSessionsProvider.js';
 import { ISession, SessionStatus } from '../../../../services/sessions/common/session.js';
 import { ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
@@ -63,6 +65,34 @@ class TestContextViewService extends mock<IContextViewService>() {
 				this.closeCount++;
 				delegate.onHide?.();
 				this.delegate = undefined;
+			}
+		};
+	}
+}
+
+/**
+ * Calls `delegate.render` so the context-view tree exists and `onDidOpen` can be driven.
+ * The base stub only records the delegate, which cannot lock this path.
+ */
+class RenderingTestContextViewService extends TestContextViewService {
+	override showContextView(delegate: IContextViewDelegate): IOpenContextView {
+		this.showCount++;
+		this.delegate = delegate;
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		const content = delegate.render(container);
+		let closed = false;
+		return {
+			close: () => {
+				if (closed) {
+					return;
+				}
+				closed = true;
+				this.closeCount++;
+				content.dispose();
+				delegate.onHide?.();
+				this.delegate = undefined;
+				container.remove();
 			}
 		};
 	}
@@ -320,5 +350,65 @@ suite('AgentFeedbackAttachmentContribution', () => {
 			contextViewCloseCount: 2,
 			revealedFeedbackIds: [],
 		});
+	});
+
+	test('does not leak unhandled rejection when revealFeedback rejects from a context view comment', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const sessionResource = URI.parse('agent-host-copilot:/session-1');
+		let revealCalls = 0;
+		const feedbackService = new class extends mock<IAgentFeedbackService>() {
+			override async revealFeedback(_sessionResource: URI, _feedbackId: string): Promise<void> {
+				revealCalls++;
+				throw new Error('boom');
+			}
+		};
+		instantiationService.stub(IAgentFeedbackService, feedbackService);
+		instantiationService.stub(IContextViewService, new RenderingTestContextViewService());
+
+		const attachment: IAgentFeedbackVariableEntry = {
+			kind: 'agentFeedback',
+			id: 'attachment-1',
+			name: '2 comments',
+			value: '2 comments',
+			sessionResource,
+			feedbackItems: [
+				{ id: 'comment-1', text: 'First', resourceUri: URI.file('/workspace/a.ts'), range: new Range(1, 1, 1, 1) },
+				{ id: 'comment-2', text: 'Second', resourceUri: URI.file('/workspace/b.ts'), range: new Range(2, 1, 2, 1) },
+			],
+		};
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		store.add(toDisposable(() => container.remove()));
+		const widget = store.add(instantiationService.createInstance(
+			AgentFeedbackAttachmentWidget,
+			attachment,
+			{ shouldFocusClearButton: false, supportsDeletion: false },
+			container,
+		));
+
+		widget.element.click();
+
+		type FeedbackTreeElement = { readonly type: 'file' | 'comment'; readonly id?: string };
+		const tree = (widget as unknown as {
+			_contextView: { _tree: WorkbenchObjectTree<FeedbackTreeElement> | undefined };
+		})._contextView._tree;
+		assert.ok(tree, 'context view onDidOpen cannot be driven: tree did not render');
+		const comment = tree.getNode(null)?.children[0]?.children[0]?.element;
+		assert.ok(comment && comment.type === 'comment', 'expected a rendered comment row');
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			tree.setFocus([comment]);
+			tree.setSelection([comment], getSelectionKeyboardEvent('keydown', false, false));
+			await timeout(0);
+			assert.deepStrictEqual({ revealCalls, unhandledRejections }, { revealCalls: 1, unhandledRejections: [] });
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });

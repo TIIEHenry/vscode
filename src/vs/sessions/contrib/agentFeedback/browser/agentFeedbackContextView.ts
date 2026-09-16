@@ -11,6 +11,7 @@ import { IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IObjectTreeElement, ITreeNode, ITreeRenderer } from '../../../../base/browser/ui/tree/tree.js';
 import { Action } from '../../../../base/common/actions.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { AnchorAlignment, AnchorPosition } from '../../../../base/common/layout.js';
 import { Disposable, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
@@ -371,7 +372,7 @@ export class AgentFeedbackContextView extends Disposable {
 		disposables.add(tree.onDidOpen(e => {
 			if (e.element && !isFeedbackFileElement(e.element)) {
 				this._openContextView?.close();
-				void this._agentFeedbackService.revealFeedback(this._attachment.sessionResource, e.element.id);
+				void this._agentFeedbackService.revealFeedback(this._attachment.sessionResource, e.element.id).catch(onUnexpectedError);
 			}
 		}));
 
