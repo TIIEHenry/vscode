@@ -184,6 +184,7 @@ export interface SaveSkillContentResponseWire {
 
 export interface SkillInfoResponseWire {
 	name?: string;
+	description?: string;
 	content?: string;
 	source?: string;
 	enabled?: boolean;

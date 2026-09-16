@@ -23,6 +23,12 @@ import {
 	decodeListSkillsResponse,
 	decodeListTeamsResponse,
 	decodeListToolsResponse,
+	decodeListCommandsResponse,
+	decodeGetCommandDefResponse,
+	decodeSetSkillEnabledResponse,
+	decodeSkillInfoResponse,
+	decodeToolInfoResponse,
+	decodeDeleteAgentProfileResponse,
 	decodeMemberStatusResponse,
 	decodeProviderStatus,
 	decodeSaveAgentProfileResponse,
@@ -50,6 +56,12 @@ import {
 	encodeListSkillsRequest,
 	encodeListTeamsRequest,
 	encodeListToolsRequest,
+	encodeListCommandsRequest,
+	encodeGetCommandDefRequest,
+	encodeSetSkillEnabledRequest,
+	encodeSkillInfoRequest,
+	encodeToolInfoRequest,
+	encodeDeleteAgentProfileRequest,
 	encodeMemberStatusRequest,
 	encodeProbeRpcRequest,
 	encodePromotePermissionRuleRequest,
@@ -84,6 +96,12 @@ import {
 	mapListSkillsResponse,
 	mapListTeamsResponse,
 	mapListToolsResponse,
+	mapListCommandsResponse,
+	mapGetCommandDefResponse,
+	mapSetSkillEnabledResponse,
+	mapSkillInfoResponse,
+	mapToolInfoResponse,
+	mapDeleteAgentProfileResponse,
 	mapMemberInfo,
 	mapProviderStatus,
 	mapSessionInfoResponse,
@@ -1019,6 +1037,253 @@ suite('grpc catalog unary protobuf wire', () => {
 		assert.deepStrictEqual(mapListSkillsResponse(decodeListSkillsResponse(new Uint8Array(0))), { skills: [] });
 	});
 
+	test('encodeSkillInfoRequest writes skill_name=1, not JSON', () => {
+		const encoded = encodeSkillInfoRequest({ skillName: 'review' });
+		assert.notStrictEqual(encoded[0], 0x7b);
+		assert.strictEqual(protoStrings(encoded).get(1), 'review');
+		assert.strictEqual(encodeSkillInfoRequest({ skillName: '' }).length, 0);
+	});
+
+	test('decodeSkillInfoResponse reads name/source/content then mapper; unknown fields unread', () => {
+		const encoded = Buffer.concat([
+			encodeStringField(1, 'review'),
+			encodeStringField(2, 'Code review skill'),
+			encodeStringField(3, 'project'),
+			encodeStringField(4, '# Review'),
+			encodeStringField(5, 'unused-skill-info'),
+		]);
+		const wire = decodeSkillInfoResponse(encoded);
+		assert.deepStrictEqual(wire, {
+			name: 'review',
+			description: 'Code review skill',
+			content: '# Review',
+			source: 'project',
+		});
+		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
+		assert.deepStrictEqual(mapSkillInfoResponse(wire), {
+			name: 'review',
+			content: '# Review',
+			source: 'project',
+			enabled: false,
+		});
+		assert.deepStrictEqual(mapSkillInfoResponse(decodeSkillInfoResponse(new Uint8Array(0))), {
+			name: '',
+			content: '',
+			source: 'unknown',
+			enabled: false,
+		});
+	});
+
+	test('encodeSetSkillEnabledRequest writes skill_name=1 and omits enabled false', () => {
+		const disabled = encodeSetSkillEnabledRequest({ skillName: 'review', enabled: false });
+		assert.notStrictEqual(disabled[0], 0x7b);
+		assert.strictEqual(protoStrings(disabled).get(1), 'review');
+		assert.ok(!protoVarints(disabled).has(2));
+		const enabled = encodeSetSkillEnabledRequest({ skillName: 'review', enabled: true });
+		assert.strictEqual(protoVarints(enabled).get(2), 1);
+		assert.strictEqual(encodeSetSkillEnabledRequest({ skillName: '', enabled: false }).length, 0);
+	});
+
+	test('decodeSetSkillEnabledResponse maps status=3 OK=1 to mapper ok; 0 omit / NOT_FOUND / FAILED are not ok', () => {
+		assert.deepStrictEqual(mapSetSkillEnabledResponse(decodeSetSkillEnabledResponse(encodeInt32Field(3, 1))), { ok: true, reason: undefined });
+		assert.deepStrictEqual(mapSetSkillEnabledResponse(decodeSetSkillEnabledResponse(new Uint8Array(0))), { ok: false, reason: undefined });
+		assert.deepStrictEqual(mapSetSkillEnabledResponse(decodeSetSkillEnabledResponse(encodeInt32Field(3, 2))), { ok: false, reason: undefined });
+		assert.deepStrictEqual(mapSetSkillEnabledResponse(decodeSetSkillEnabledResponse(encodeInt32Field(3, 3))), { ok: false, reason: undefined });
+		const unused = Buffer.concat([
+			encodeStringField(1, 'review'),
+			encodeInt32Field(2, 1),
+			encodeInt32Field(3, 1),
+			encodeStringField(4, 'unused-status'),
+		]);
+		assert.deepStrictEqual(mapSetSkillEnabledResponse(decodeSetSkillEnabledResponse(unused)), { ok: true, reason: undefined });
+		assert.strictEqual(JSON.stringify(decodeSetSkillEnabledResponse(unused)).includes('unused'), false);
+	});
+
+	test('encodeToolInfoRequest writes tool_name=1, not JSON', () => {
+		const encoded = encodeToolInfoRequest({ toolName: 'bash' });
+		assert.notStrictEqual(encoded[0], 0x7b);
+		assert.strictEqual(protoStrings(encoded).get(1), 'bash');
+		assert.strictEqual(encodeToolInfoRequest({ toolName: '' }).length, 0);
+	});
+
+	test('decodeToolInfoResponse reads 1–7 then mapper; unknown fields unread', () => {
+		const encoded = Buffer.concat([
+			encodeStringField(1, 'bash'),
+			encodeStringField(2, 'Run a command'),
+			encodeStringField(3, 'shell'),
+			encodeStringField(4, '{"type":"object"}'),
+			encodeInt32Field(5, 1),
+			encodeInt32Field(6, 1),
+			encodeStringField(7, 'sh'),
+			encodeStringField(7, 'shell'),
+			encodeStringField(8, 'unused-tool-info'),
+		]);
+		const wire = decodeToolInfoResponse(encoded);
+		assert.deepStrictEqual(wire, {
+			name: 'bash',
+			description: 'Run a command',
+			category: 'shell',
+			input_schema_json: '{"type":"object"}',
+			destructive: true,
+			requires_permission: true,
+			aliases: ['sh', 'shell'],
+		});
+		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
+		assert.deepStrictEqual(mapToolInfoResponse(wire), {
+			name: 'bash',
+			description: 'Run a command',
+			category: 'shell',
+			inputSchemaJson: '{"type":"object"}',
+			destructive: true,
+			requiresPermission: true,
+			aliases: ['sh', 'shell'],
+		});
+		assert.deepStrictEqual(decodeToolInfoResponse(new Uint8Array(0)), {
+			name: '',
+			description: undefined,
+			category: undefined,
+			input_schema_json: undefined,
+			destructive: false,
+			requires_permission: false,
+			aliases: [],
+		});
+	});
+
+	test('encodeListCommandsRequest is empty proto and still framed for sendMessage', () => {
+		const encoded = encodeListCommandsRequest();
+		assert.strictEqual(encoded.length, 0);
+		assert.strictEqual(encodeEmptyProtoMessage().length, 0);
+		assert.notStrictEqual(JSON.stringify({}), Buffer.from(encoded).toString('utf8'));
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const framed = asUnaryProtoBytes(encoded);
+		assert.ok(Buffer.isBuffer(framed));
+		assert.strictEqual(framed.length, 0);
+	});
+
+	test('decodeListCommandsResponse empty payload maps to empty catalog; source varint uses existing mapper', () => {
+		assert.deepStrictEqual(decodeListCommandsResponse(new Uint8Array(0)), { commands: [] });
+		assert.deepStrictEqual(mapListCommandsResponse(decodeListCommandsResponse(new Uint8Array(0))), { commands: [], total: 0 });
+		const command = Buffer.concat([
+			encodeStringField(1, 'review'),
+			encodeStringField(2, 'Review the diff'),
+			encodeInt32Field(3, 1),
+			encodeInt32Field(4, 1),
+			encodeStringField(5, 'coder'),
+			encodeStringField(6, 'fast'),
+			encodeInt32Field(7, 1),
+			encodeStringField(8, 'project'),
+			encodeStringField(9, 'unused-command'),
+		]);
+		const encoded = Buffer.concat([
+			encodeMessageField(1, command),
+			encodeInt32Field(2, 1),
+			encodeStringField(3, 'unused-list-commands'),
+		]);
+		const wire = decodeListCommandsResponse(encoded);
+		assert.deepStrictEqual(wire, {
+			commands: [{
+				name: 'review',
+				description: 'Review the diff',
+				source: 1,
+				slash_enabled: true,
+				agent: 'coder',
+				model: 'fast',
+				subtask: true,
+				skill_source: 'project',
+			}],
+			total: 1,
+		});
+		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
+		assert.deepStrictEqual(mapListCommandsResponse(wire), {
+			commands: [{
+				name: 'review',
+				description: 'Review the diff',
+				source: 'SLASH_COMMAND_SOURCE_SKILL',
+				slashEnabled: true,
+				agent: 'coder',
+				model: 'fast',
+				subtask: true,
+				skillSource: 'project',
+			}],
+			total: 1,
+		});
+	});
+
+	test('encodeGetCommandDefRequest writes command_name=1, not JSON', () => {
+		const encoded = encodeGetCommandDefRequest({ commandName: 'review' });
+		assert.notStrictEqual(encoded[0], 0x7b);
+		assert.strictEqual(protoStrings(encoded).get(1), 'review');
+		assert.strictEqual(encodeGetCommandDefRequest({ commandName: '' }).length, 0);
+	});
+
+	test('decodeGetCommandDefResponse reads 1–11 then mapper; source varint unchanged', () => {
+		const encoded = Buffer.concat([
+			encodeStringField(1, 'review'),
+			encodeStringField(2, 'Review the diff'),
+			encodeInt32Field(3, 4),
+			encodeStringField(4, 'do $ARGUMENTS'),
+			encodeStringField(5, 'coder'),
+			encodeStringField(6, 'fast'),
+			encodeInt32Field(7, 1),
+			encodeStringField(8, 'mcp-1'),
+			encodeStringField(9, 'prompt'),
+			encodeStringField(10, 'path'),
+			encodeStringField(10, 'mode'),
+			encodeStringField(11, 'project'),
+			encodeStringField(12, 'unused-command-def'),
+		]);
+		const wire = decodeGetCommandDefResponse(encoded);
+		assert.deepStrictEqual(wire, {
+			name: 'review',
+			description: 'Review the diff',
+			source: 4,
+			template: 'do $ARGUMENTS',
+			agent: 'coder',
+			model: 'fast',
+			subtask: true,
+			mcp_server_id: 'mcp-1',
+			mcp_prompt_name: 'prompt',
+			mcp_argument_names: ['path', 'mode'],
+			skill_source: 'project',
+		});
+		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
+		assert.deepStrictEqual(mapGetCommandDefResponse(wire), {
+			name: 'review',
+			description: 'Review the diff',
+			source: 'SLASH_COMMAND_SOURCE_MCP',
+			template: 'do $ARGUMENTS',
+			agent: 'coder',
+			model: 'fast',
+			subtask: true,
+			mcpServerId: 'mcp-1',
+			mcpPromptName: 'prompt',
+			mcpArgumentNames: ['path', 'mode'],
+			skillSource: 'project',
+		});
+		assert.deepStrictEqual(mapGetCommandDefResponse(decodeGetCommandDefResponse(new Uint8Array(0))), {
+			name: '',
+			description: undefined,
+			source: '',
+			template: '',
+			agent: '',
+			model: '',
+			subtask: false,
+			mcpServerId: '',
+			mcpPromptName: '',
+			mcpArgumentNames: [],
+			skillSource: '',
+		});
+	});
+
+	test('encodeDeleteAgentProfileRequest writes id=1; decode success=1 then mapper', () => {
+		const encoded = encodeDeleteAgentProfileRequest('profile-1');
+		assert.notStrictEqual(encoded[0], 0x7b);
+		assert.strictEqual(protoStrings(encoded).get(1), 'profile-1');
+		assert.strictEqual(encodeDeleteAgentProfileRequest('').length, 0);
+		assert.deepStrictEqual(mapDeleteAgentProfileResponse(decodeDeleteAgentProfileResponse(encodeInt32Field(1, 1))), { ok: true });
+		assert.deepStrictEqual(mapDeleteAgentProfileResponse(decodeDeleteAgentProfileResponse(new Uint8Array(0))), { ok: false });
+	});
+
 	test('grpcClient snapshots + next known unaries use bytes; listTools/listSkills use bytes; respondQuestion/sendClientToolResponse use bytes', () => {
 		const thisDir = path.dirname(fileURLToPath(import.meta.url));
 		const repoRoot = path.join(thisDir, '../../../../../../');
@@ -1116,6 +1381,12 @@ suite('grpc catalog unary protobuf wire', () => {
 		const toolCatalog: Array<{ name: string; encoder: string; decoder: string; mapper: string }> = [
 			{ name: 'listTools', encoder: 'encodeListToolsRequest', decoder: 'decodeListToolsResponse', mapper: 'mapListToolsResponse' },
 			{ name: 'listSkills', encoder: 'encodeListSkillsRequest', decoder: 'decodeListSkillsResponse', mapper: 'mapListSkillsResponse' },
+			{ name: 'getSkillInfo', encoder: 'encodeSkillInfoRequest', decoder: 'decodeSkillInfoResponse', mapper: 'mapSkillInfoResponse' },
+			{ name: 'setSkillEnabled', encoder: 'encodeSetSkillEnabledRequest', decoder: 'decodeSetSkillEnabledResponse', mapper: 'mapSetSkillEnabledResponse' },
+			{ name: 'getToolInfo', encoder: 'encodeToolInfoRequest', decoder: 'decodeToolInfoResponse', mapper: 'mapToolInfoResponse' },
+			{ name: 'listCommands', encoder: 'encodeListCommandsRequest', decoder: 'decodeListCommandsResponse', mapper: 'mapListCommandsResponse' },
+			{ name: 'getCommandDef', encoder: 'encodeGetCommandDefRequest', decoder: 'decodeGetCommandDefResponse', mapper: 'mapGetCommandDefResponse' },
+			{ name: 'deleteAgentProfile', encoder: 'encodeDeleteAgentProfileRequest', decoder: 'decodeDeleteAgentProfileResponse', mapper: 'mapDeleteAgentProfileResponse' },
 		];
 		for (const { name, encoder, decoder, mapper } of toolCatalog) {
 			const body = extractAsyncMethod(source, name);
@@ -1125,6 +1396,9 @@ suite('grpc catalog unary protobuf wire', () => {
 			assert.ok(body.includes(mapper), `${name} must call ${mapper}`);
 			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
 		}
+		const saveSkill = extractAsyncMethod(source, 'saveSkillContent');
+		assert.ok(saveSkill.includes('makeUnaryClient<'), 'saveSkillContent must stay JSON; J tool_service.proto has no SaveSkillContent RPC');
+		assert.ok(!saveSkill.includes('makeUnaryBytesClient'), 'saveSkillContent must not use makeUnaryBytesClient');
 		const questionTool: Array<{ name: string; encoder: string; decoder: string }> = [
 			{ name: 'respondQuestion', encoder: 'encodeRespondQuestionRequest', decoder: 'decodeRespondQuestionResponse' },
 			{ name: 'sendClientToolResponse', encoder: 'encodeSendClientToolResponseRequest', decoder: 'decodeSendClientToolResponseResponse' },

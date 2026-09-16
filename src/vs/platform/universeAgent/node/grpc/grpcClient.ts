@@ -528,7 +528,6 @@ import {
 	type ContextVariableListResponseWire,
 	type ContextVariableReadResponseWire,
 	type CreateRemoteSessionResponseWire,
-	type DeleteAgentProfileResponseWire,
 	type DeleteRemoteAgentConfigResponseWire,
 	type DeliveryTargetDtoWire,
 	type DestroyRemoteSessionResponseWire,
@@ -538,7 +537,6 @@ import {
 	type ExportSessionResponseWire,
 	type FetchToolUsageDetailResponseWire,
 	type FireTriggerResponseWire,
-	type GetCommandDefResponseWire,
 	type GetFileInfoResponseWire,
 	type GetGlobalUsageResponseWire,
 	type GetRemoteSessionHistoryResponseWire,
@@ -546,7 +544,6 @@ import {
 	type GetSessionUsageResponseWire,
 	type HealthCheckResponseWire,
 	type HistoryResponseWire,
-	type ListCommandsResponseWire,
 	type ListConfigsResponseWire,
 	type ListFilesResponseWire,
 	type ListLoopSnapshotsResponseWire,
@@ -585,15 +582,12 @@ import {
 	type SaveRemoteAgentConfigResponseWire,
 	type SaveSkillContentResponseWire,
 	type SetMaintenanceResponseWire,
-	type SetSkillEnabledResponseWire,
 	type SetTriggerEnabledResponseWire,
 	type ShelveSessionResponseWire,
 	type ShutdownResponseWire,
-	type SkillInfoResponseWire,
 	type StatusResponseWire,
 	type SubscribeToolDetailChunkWire,
 	type TodoResponseWire,
-	type ToolInfoResponseWire,
 	type TriggerDtoWire,
 	type UnshelveSessionResponseWire,
 	type UploadProgressResponseWire,
@@ -673,23 +667,32 @@ import {
 	decodeSwitchModelResponse,
 	decodeTaskListResponse,
 	decodeTeamInfoResponse,
+	decodeDeleteAgentProfileResponse,
 	decodeDeleteProjectRuleResponse,
+	decodeGetCommandDefResponse,
 	decodeGetSessionRulesResponse,
+	decodeListCommandsResponse,
 	decodePromotePermissionRuleResponse,
 	decodeQueueMutationResponse,
+	decodeSetSkillEnabledResponse,
+	decodeSkillInfoResponse,
 	decodeSyncPermissionRuleResponse,
+	decodeToolInfoResponse,
 	encodeAgentTreeRequest,
 	encodeCancelSessionGoalRequest,
 	encodeClearProviderCredentialsRequest,
+	encodeDeleteAgentProfileRequest,
 	encodeDeleteProjectRuleRequest,
 	encodeDeleteSessionRequest,
 	encodeEditQueueItemRequest,
 	encodeEnqueueQueueItemRequest,
+	encodeGetCommandDefRequest,
 	encodeGetSessionRulesRequest,
 	encodeHoldQueueItemRequest,
 	encodeInsertQueueItemRequest,
 	encodeListAgentProfilesRequest,
 	encodeListAgentsRequest,
+	encodeListCommandsRequest,
 	encodeListDevicesRequest,
 	encodeListHookPointsRequest,
 	encodeListModelsRequest,
@@ -709,6 +712,8 @@ import {
 	encodeRespondPermissionRequest,
 	encodeSaveAgentProfileRequest,
 	encodeSessionInfoRequest,
+	encodeSetSkillEnabledRequest,
+	encodeSkillInfoRequest,
 	encodeSetPermissionModeRequest,
 	encodeSetQueueItemForkAnchorRequest,
 	encodeSetQueueItemLockedRequest,
@@ -717,6 +722,7 @@ import {
 	encodeSyncPermissionRuleRequest,
 	encodeTaskListRequest,
 	encodeTeamInfoRequest,
+	encodeToolInfoRequest,
 	encodeUpsertProjectRuleRequest,
 	encodeUpsertProviderCredentialsRequest,
 } from './grpcCatalogUnaryWire.js';
@@ -2321,26 +2327,23 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async setSkillEnabled(request: UniverseAgentSetSkillEnabledRequest): Promise<UniverseAgentSetSkillEnabledResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, SetSkillEnabledResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Tool.service,
 			UniverseAgentGrpcServices.Tool.SetSkillEnabled,
+			decodeSetSkillEnabledResponse,
 		);
-		const wire = await unary({
-			skill_name: request.skillName,
-			enabled: request.enabled,
-		});
-		return mapSetSkillEnabledResponse(wire);
+		return mapSetSkillEnabledResponse(await unary(encodeSetSkillEnabledRequest(request)));
 	}
 
 	async getSkillInfo(request: UniverseAgentSkillInfoRequest): Promise<UniverseAgentSkillInfoResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, SkillInfoResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Tool.service,
 			UniverseAgentGrpcServices.Tool.SkillInfo,
+			decodeSkillInfoResponse,
 		);
-		const wire = await unary({ skill_name: request.skillName });
-		return mapSkillInfoResponse(wire);
+		return mapSkillInfoResponse(await unary(encodeSkillInfoRequest(request)));
 	}
 
 	async saveSkillContent(request: UniverseAgentSaveSkillContentRequest): Promise<UniverseAgentSaveSkillContentResult> {
@@ -2377,13 +2380,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async deleteAgentProfile(request: UniverseAgentDeleteAgentProfileRequest): Promise<UniverseAgentDeleteAgentProfileResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, DeleteAgentProfileResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.DeleteAgentProfile,
+			decodeDeleteAgentProfileResponse,
 		);
-		const wire = await unary({ id: request.id });
-		return mapDeleteAgentProfileResponse(wire);
+		return mapDeleteAgentProfileResponse(await unary(encodeDeleteAgentProfileRequest(request.id)));
 	}
 
 	async resetAgentProfile(request: UniverseAgentResetAgentProfileRequest): Promise<UniverseAgentResetAgentProfileResult> {
@@ -2544,33 +2547,33 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async getToolInfo(request: UniverseAgentToolInfoRequest): Promise<UniverseAgentToolInfoResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ToolInfoResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Tool.service,
 			UniverseAgentGrpcServices.Tool.ToolInfo,
+			decodeToolInfoResponse,
 		);
-		const wire = await unary({ tool_name: request.toolName });
-		return mapToolInfoResponse(wire);
+		return mapToolInfoResponse(await unary(encodeToolInfoRequest(request)));
 	}
 
 	async listCommands(): Promise<UniverseAgentListCommandsResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ListCommandsResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Tool.service,
 			UniverseAgentGrpcServices.Tool.ListCommands,
+			decodeListCommandsResponse,
 		);
-		const wire = await unary({});
-		return mapListCommandsResponse(wire);
+		return mapListCommandsResponse(await unary(encodeListCommandsRequest()));
 	}
 
 	async getCommandDef(request: UniverseAgentGetCommandDefRequest): Promise<UniverseAgentGetCommandDefResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, GetCommandDefResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Tool.service,
 			UniverseAgentGrpcServices.Tool.GetCommandDef,
+			decodeGetCommandDefResponse,
 		);
-		const wire = await unary({ command_name: request.commandName });
-		return mapGetCommandDefResponse(wire);
+		return mapGetCommandDefResponse(await unary(encodeGetCommandDefRequest(request)));
 	}
 
 	async listFiles(request: UniverseAgentListFilesRequest): Promise<UniverseAgentListFilesResult> {

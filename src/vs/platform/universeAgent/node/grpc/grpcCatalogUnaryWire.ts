@@ -9,6 +9,7 @@ import type {
 	UniverseAgentDeleteProjectRuleRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentEnqueueQueueItemRequest,
+	UniverseAgentGetCommandDefRequest,
 	UniverseAgentHoldQueueItemRequest,
 	UniverseAgentInsertQueueItemRequest,
 	UniverseAgentListProjectRulesRequest,
@@ -26,16 +27,22 @@ import type {
 	UniverseAgentSetQueueItemForkAnchorRequest,
 	UniverseAgentSetQueueItemLockedRequest,
 	UniverseAgentSetSessionGoalRequest,
+	UniverseAgentSetSkillEnabledRequest,
+	UniverseAgentSkillInfoRequest,
 	UniverseAgentSwitchModelRequest,
 	UniverseAgentSwitchModelResult,
 	UniverseAgentSyncPermissionRuleResult,
+	UniverseAgentToolInfoRequest,
 	UniverseAgentUpsertProjectRuleRequest,
 	UniverseAgentUpsertProviderCredentialsRequest,
 } from '../../common/universeAgentTypes.js';
 import type {
+	DeleteAgentProfileResponseWire,
 	DeleteProjectRuleResponseWire,
 	DeviceInfoWire,
+	GetCommandDefResponseWire,
 	ListAgentProfilesResponseWire,
+	ListCommandsResponseWire,
 	ListDevicesResponseWire,
 	ListHookPointsResponseWire,
 	ListModelsResponseWire,
@@ -47,6 +54,9 @@ import type {
 	ProviderStatusWire,
 	ResetAgentProfileResponseWire,
 	SaveAgentProfileResponseWire,
+	SetSkillEnabledResponseWire,
+	SkillInfoResponseWire,
+	ToolInfoResponseWire,
 } from './grpcClientMappersCatalog.js';
 import type { AgentInfoWire, AgentTreeResponseWire, GetSessionRulesResponseWire, ListAgentsResponseWire, ListSessionsResponseWire, SessionInfoResponseWire, SessionRuleWire } from './grpcClientMappersSession.js';
 import type {
@@ -893,4 +903,148 @@ function decodeSkillSummary(bytes: Uint8Array): NonNullable<ListSkillsResponseWi
 		slash_enabled: lastVarint(fields, 4) === 1n,
 		enabled: lastVarint(fields, 5) === 1n,
 	};
+}
+
+/** Tool.SkillInfo — SkillInfoRequest `skill_name`=1. Empty omitted. */
+export function encodeSkillInfoRequest(request: UniverseAgentSkillInfoRequest): Uint8Array {
+	return encodeStringField(1, request.skillName);
+}
+
+/**
+ * SkillInfoResponse — `name`=1 `description`=2 `source`=3 `content`=4.
+ * proto has no `enabled`; mapper keeps `enabled === true` → false when omitted.
+ * Unknown fields unread.
+ */
+export function decodeSkillInfoResponse(bytes: Uint8Array): SkillInfoResponseWire {
+	const fields = readProtoFields(bytes);
+	return {
+		name: lastString(fields, 1) ?? '',
+		description: lastString(fields, 2),
+		content: lastString(fields, 4) ?? '',
+		source: lastString(fields, 3),
+	};
+}
+
+/**
+ * Tool.SetSkillEnabled — `skill_name`=1 `enabled`=2.
+ * proto3: empty string / false omitted.
+ */
+export function encodeSetSkillEnabledRequest(request: UniverseAgentSetSkillEnabledRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.skillName),
+		encodeInt32Field(2, request.enabled === true ? 1 : 0),
+	]);
+}
+
+/**
+ * SetSkillEnabledResponse — `skill_name`=1 `enabled`=2 `status`=3
+ * (UNSPECIFIED=0 omit, OK=1, NOT_FOUND=2, FAILED=3).
+ * Mapper already reads `{ ok, reason }`; OK=1 → `ok: true`, else false. Unknown fields unread.
+ */
+export function decodeSetSkillEnabledResponse(bytes: Uint8Array): SetSkillEnabledResponseWire {
+	return {
+		ok: lastVarint(readProtoFields(bytes), 3) === 1n,
+	};
+}
+
+/** Tool.ToolInfo — ToolInfoRequest `tool_name`=1. Empty omitted. */
+export function encodeToolInfoRequest(request: UniverseAgentToolInfoRequest): Uint8Array {
+	return encodeStringField(1, request.toolName);
+}
+
+/**
+ * ToolInfoResponse — `name`=1 `description`=2 `category`=3 `input_schema_json`=4
+ * `destructive`=5 `requires_permission`=6 repeated `aliases`=7.
+ * Unknown fields unread.
+ */
+export function decodeToolInfoResponse(bytes: Uint8Array): ToolInfoResponseWire {
+	const fields = readProtoFields(bytes);
+	return {
+		name: lastString(fields, 1) ?? '',
+		description: lastString(fields, 2),
+		category: lastString(fields, 3),
+		input_schema_json: lastString(fields, 4),
+		destructive: lastVarint(fields, 5) === 1n,
+		requires_permission: lastVarint(fields, 6) === 1n,
+		aliases: decodeRepeatedUtf8(fields, 7),
+	};
+}
+
+/**
+ * Tool.ListCommands — ListCommandsRequest is empty.
+ * Callers must still pass this to `makeUnaryBytesClient` (never skip sendMessage).
+ */
+export function encodeListCommandsRequest(): Uint8Array {
+	return encodeEmptyProtoMessage();
+}
+
+/**
+ * ListCommandsResponse — repeated `CommandSummary commands`=1, `total`=2.
+ * CommandSummary: `name`=1 `description`=2 `source`=3 (SlashCommandSource varint)
+ * `slash_enabled`=4 `agent`=5 `model`=6 `subtask`=7 `skill_source`=8.
+ * Decode `source` as number; mapper already accepts that shape. Unknown fields unread.
+ */
+export function decodeListCommandsResponse(bytes: Uint8Array): ListCommandsResponseWire {
+	const fields = readProtoFields(bytes);
+	const total = lastVarint(fields, 2);
+	return {
+		commands: allLengthDelimited(fields, 1).map(decodeCommandSummary),
+		...(total !== undefined ? { total: Number(total) } : {}),
+	};
+}
+
+function decodeCommandSummary(bytes: Uint8Array): NonNullable<ListCommandsResponseWire['commands']>[number] {
+	const fields = readProtoFields(bytes);
+	return {
+		name: lastString(fields, 1) ?? '',
+		description: lastString(fields, 2),
+		source: numberOrUndefined(lastVarint(fields, 3)),
+		slash_enabled: lastVarint(fields, 4) === 1n,
+		agent: lastString(fields, 5),
+		model: lastString(fields, 6),
+		subtask: lastVarint(fields, 7) === 1n,
+		skill_source: lastString(fields, 8),
+	};
+}
+
+/** Tool.GetCommandDef — GetCommandDefRequest `command_name`=1. Empty omitted. */
+export function encodeGetCommandDefRequest(request: UniverseAgentGetCommandDefRequest): Uint8Array {
+	return encodeStringField(1, request.commandName);
+}
+
+/**
+ * GetCommandDefResponse — `name`=1 `description`=2 `source`=3 `template`=4
+ * `agent`=5 `model`=6 `subtask`=7 `mcp_server_id`=8 `mcp_prompt_name`=9
+ * repeated `mcp_argument_names`=10 `skill_source`=11.
+ * Decode `source` as number; mapper already accepts that shape. Unknown fields unread.
+ */
+export function decodeGetCommandDefResponse(bytes: Uint8Array): GetCommandDefResponseWire {
+	const fields = readProtoFields(bytes);
+	return {
+		name: lastString(fields, 1) ?? '',
+		description: lastString(fields, 2),
+		source: numberOrUndefined(lastVarint(fields, 3)),
+		template: lastString(fields, 4),
+		agent: lastString(fields, 5),
+		model: lastString(fields, 6),
+		subtask: lastVarint(fields, 7) === 1n,
+		mcp_server_id: lastString(fields, 8),
+		mcp_prompt_name: lastString(fields, 9),
+		mcp_argument_names: decodeRepeatedUtf8(fields, 10),
+		skill_source: lastString(fields, 11),
+	};
+}
+
+/** Agent.DeleteAgentProfile — DeleteAgentProfileRequest `id`=1. Empty omitted. */
+export function encodeDeleteAgentProfileRequest(id: string): Uint8Array {
+	return encodeStringField(1, id);
+}
+
+/** DeleteAgentProfileResponse — `success`=1 (false omit). Unknown fields unread. */
+export function decodeDeleteAgentProfileResponse(bytes: Uint8Array): DeleteAgentProfileResponseWire {
+	return { success: lastVarint(readProtoFields(bytes), 1) === 1n };
+}
+
+function decodeRepeatedUtf8(fields: ReturnType<typeof readProtoFields>, field: number): string[] {
+	return allLengthDelimited(fields, field).map(value => Buffer.from(value).toString('utf8'));
 }

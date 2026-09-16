@@ -43,7 +43,7 @@ summary: "merge compile-client 0；聚焦测 92 passing。D481 closed；D24 仍�
 ### 进行中（2026-09-16 · compile-client 0 · 92 passing；D24 仍开；不是 leftover/pills 完成）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
-| **A/D** | D24 question/client-tool bytes + D481 | 已合；[D24](deferred-gaps.md) **仍开**（Memory / ChatSync JSON）。[D481](deferred-gaps.md) **closed**。compile-client **0**；聚焦 **92 passing / 0 fail**。不是 leftover/pills 完成 |
+| **A/D** | D24 Tool leftover unaries bytes | A：SkillInfo/SetSkillEnabled/ToolInfo/ListCommands/GetCommandDef（+DeleteAgentProfile）转 bytes。[D24](deferred-gaps.md) **仍开**（Memory / ChatSync JSON）。未转 SaveSkillContent。不是 leftover/pills 完成 |
 | **B/C** | — | B 脏 `worktree-pool.md` 跳过 `-B`；C 脏 `dev/loop` gitlink 勿 add、试 ff-only |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 
@@ -178,12 +178,12 @@ summary: "merge compile-client 0；聚焦测 92 passing。D481 closed；D24 仍�
 | [D242](deferred-gaps.md)–[D288](deferred-gaps.md) | leftover + pairing | **closed** catalog leftover + pairing keep-last（含 roster turns / session sync） |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
-| [D405](deferred-gaps.md)–[D481](deferred-gaps.md) | A/D 本波 | D405 手测仍开；D471–D481 已闭；**D24 仍开**（respondQuestion / sendClientToolResponse 已 bytes；Memory / ChatSync 仍 JSON）；不得宣称 leftover/pills 完成 |
+| [D405](deferred-gaps.md)–[D481](deferred-gaps.md) | A/D 本波 | D405 手测仍开；D471–D481 已闭；**D24 仍开**（Tool leftover unaries 已 bytes；Memory / ChatSync 仍 JSON）；不得宣称 leftover/pills 完成 |
 ## 工位表（P0 盘点 · 2026-09-16 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | MERGE_SHA | 干净 | 0 | compile-client 0；92 passing；D481 closed；D24 仍开 |
-| A | `vscode-WorkTrees/A` | `loop/A` | MERGE_SHA | 干净 | 0 | `idle`；ff-only / `checkout -B`；D24 仍开（Memory / ChatSync JSON） |
+| A | `vscode-WorkTrees/A` | `loop/A` | `731cf18f61a` | 脏 Tool unary bytes | 0 | D24 Tool leftover unaries 本刀；D24 仍开；不 commit |
 | B | `vscode-WorkTrees/B` | `loop/B` | `28ffd1ae9f2` | 脏 `worktree-pool.md` | 0 | 脏树勿 `-B`；incoming 重叠则 ff 停 |
 | C | `vscode-WorkTrees/C` | `loop/C` | MERGE_SHA | 脏 `dev/loop` gitlink | 0 | 试 ff-only；勿 add |
 | D | `vscode-WorkTrees/D` | `loop/D` | MERGE_SHA | 干净 | 0 | `idle`；ff-only / `checkout -B`；D481 closed；D24 仍开 |
@@ -193,7 +193,7 @@ summary: "merge compile-client 0；聚焦测 92 passing。D481 closed；D24 仍�
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。本仓只读面 + Composer `model_profile_id` **已挂**。钉死工位 seed 后 grpcurl **Chat PASS**。下一刀是 IDE Direct Address 接通后 Composer 发送（PRD-008 仍要隔离 profile 冒烟）。**不升 PRD-008**。不要再清 store。D26 store 已闭，旧「迁移卡死」账见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md) |
-| **loop 切片** | compile-client **0**；聚焦 **92 passing / 0 fail**。A `respondQuestion` / `sendClientToolResponse` 已 bytes。[D24](deferred-gaps.md) **仍开**（Memory / ChatSync JSON）。[D481](deferred-gaps.md) **closed**。R9 仍开。**D405** 手测仍开。不关 D8/D16/D147。未升 PRD-008。不得宣称 leftover / pills 完成。 |
+| **loop 切片** | A 本刀 Tool leftover unaries 已 bytes（SkillInfo/SetSkillEnabled/ToolInfo/ListCommands/GetCommandDef；+DeleteAgentProfile）。未转 SaveSkillContent。[D24](deferred-gaps.md) **仍开**（Memory / ChatSync JSON）。[D481](deferred-gaps.md) **closed**。R9 仍开。**D405** 手测仍开。不关 D8/D16/D147。未升 PRD-008。不得宣称 leftover / pills 完成。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
