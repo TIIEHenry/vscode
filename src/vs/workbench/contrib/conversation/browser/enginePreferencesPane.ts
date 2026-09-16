@@ -8,6 +8,7 @@ import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -166,7 +167,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		this.disconnectedActions = DOM.append(this.disconnectedBanner, $('.engine-preferences-disconnected-actions'));
 		this.bannerTestButton = this._register(new Button(this.disconnectedActions, { ...defaultButtonStyles, secondary: true }));
 		this.bannerTestButton.label = localize('ua.engineTest', "Test Engine");
-		this._register(this.bannerTestButton.onDidClick(() => void this.runEngineTest()));
+		this._register(this.bannerTestButton.onDidClick(() => void this.runEngineTest().catch(onUnexpectedError).catch(onUnexpectedError)));
 		const bannerOpenConnection = this._register(new Button(this.disconnectedActions, defaultButtonStyles));
 		bannerOpenConnection.label = localize('ua.engineOpenConnection', "Open Connection");
 		this._register(bannerOpenConnection.onDidClick(() => {
@@ -223,7 +224,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		this.testRow = DOM.append(this.container, $('.engine-test-row'));
 		const testButton = this._register(new Button(this.testRow, { ...defaultButtonStyles, secondary: true }));
 		testButton.label = localize('ua.engineTest', "Test Engine");
-		this._register(testButton.onDidClick(() => void this.runEngineTest()));
+		this._register(testButton.onDidClick(() => void this.runEngineTest().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.testStatus = DOM.append(this.testRow, $('.engine-test-status'));
 		this.testStatus.setAttribute('role', 'status');
 		this.testStatus.setAttribute('aria-live', 'polite');

@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
@@ -184,6 +186,44 @@ suite('EnginePreferencesPane', () => {
 
 	function disconnectedBanner(container: HTMLElement): HTMLElement {
 		return container.querySelector('.engine-preferences-disconnected-banner') as HTMLElement;
+	}
+
+	function poisonTextContent(element: HTMLElement, paintBoom: Error, when: (value: string) => boolean = value => !!value): void {
+		Object.defineProperty(element, 'textContent', {
+			configurable: true,
+			get: () => '',
+			set: (value: string) => {
+				if (when(value)) {
+					throw paintBoom;
+				}
+			},
+		});
+	}
+
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			await run();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	}
 
 	test('getEngineTestStatusText reuses StatusBar phase copy', () => {
@@ -429,6 +469,50 @@ suite('EnginePreferencesPane', () => {
 		assert.ok(!testStatus.classList.contains('is-error'));
 
 		container.remove();
+	});
+
+	test('does not leak unhandled rejection when banner runEngineTest catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		// runEngineTest already catches probeEngine throw; a lone inner reject does not leak.
+		// The void call site still needs `.catch` when the catch-path writeStatus throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const pane = mountPane(false, {
+			probeEngine: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		try {
+			const bannerTest = [...container.querySelectorAll('.engine-preferences-disconnected-actions .monaco-button')]
+				.find(el => (el.textContent ?? '').includes('Test Engine')) as HTMLButtonElement | undefined;
+			const testStatus = container.querySelector('.engine-test-status') as HTMLElement | null;
+			assert.ok(bannerTest);
+			assert.ok(testStatus);
+			poisonTextContent(testStatus, paintBoom, value => value === 'boom');
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => bannerTest.click());
+		} finally {
+			container.remove();
+		}
+	});
+
+	test('does not leak unhandled rejection when footer runEngineTest catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const pane = mountPane(true, {
+			probeEngine: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		try {
+			const testButton = container.querySelector('.engine-test-row .monaco-button') as HTMLButtonElement | null;
+			const testStatus = container.querySelector('.engine-test-status') as HTMLElement | null;
+			assert.ok(testButton);
+			assert.ok(testStatus);
+			poisonTextContent(testStatus, paintBoom, value => value === 'boom');
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => testButton.click());
+		} finally {
+			container.remove();
+		}
 	});
 
 	test('E2-1: desktop disconnected still draws Test Engine and Engine not connected', () => {
