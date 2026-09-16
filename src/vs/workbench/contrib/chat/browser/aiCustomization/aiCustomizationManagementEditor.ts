@@ -2619,10 +2619,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 		this.editorActionButtonIcon = DOM.append(this.editorActionButton, $(`.codicon.codicon-${Codicon.arrowLeft.id}.editor-action-button-icon`));
 		this.editorActionButtonIcon.setAttribute('aria-hidden', 'true');
 		this.editorDisposables.add(DOM.addDisposableListener(this.editorActionButton, 'click', () => {
-			void this.handleEditorActionButton().catch(error => {
-				console.error('Failed to handle editor back action:', error);
-				this.notificationService.error(localize('editorActionButtonFailed', "Failed to finish the prompt action."));
-			});
+			void this.handleEditorActionButton().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		const itemInfo = DOM.append(editorHeader, $('.editor-item-info'));
@@ -2831,10 +2828,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 		if (backgroundSaveRequest) {
 			const saveRequest = backgroundSaveRequest;
-			void this.saveExistingCustomization(saveRequest).catch(error => {
-				console.error('Failed to save customization changes on exit:', error);
-				this.notificationService.warn(localize('saveCustomizationOnExitFailed', "Could not save changes to {0}.", basename(saveRequest.fileUri)));
-			});
+			void this.saveExistingCustomization(saveRequest).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -2998,12 +2992,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 				const saveRequest = backgroundSaveRequest;
 				void this.saveBuiltinPromptCopy(saveRequest).then(() => {
 					void this.listWidget?.refresh();
-				}, error => {
-					console.error('Failed to save built-in override:', error);
-					this.notificationService.warn(saveRequest.target === 'workspace'
-						? localize('saveBuiltinCopyFailedWorkspace', "Could not save the override to the workspace.")
-						: localize('saveBuiltinCopyFailedUser', "Could not save the override to your user folder."));
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		} finally {
 			this.editorActionButtonInProgress = false;
