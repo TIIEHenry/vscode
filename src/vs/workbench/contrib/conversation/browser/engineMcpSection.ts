@@ -496,7 +496,7 @@ export class EngineMcpSection extends Disposable {
 					new EngineMcpGroupRenderer(),
 					new EngineMcpRowRenderer(
 						() => this.canWrite(),
-						(server, enabled) => this.toggleServer(server, enabled),
+						(server, enabled) => void this.toggleServer(server, enabled).catch(onUnexpectedError).catch(onUnexpectedError),
 					),
 				],
 				{

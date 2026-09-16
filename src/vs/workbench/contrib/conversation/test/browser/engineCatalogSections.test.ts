@@ -4733,4 +4733,56 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
+
+	test('does not leak unhandled rejection when toggleServer catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		// toggleServer() already catches RPC throw; a lone inner reject does not leak.
+		// The row-renderer call site still needs `.catch` when the catch-path paint throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { mcp: { support: 'SUPPORTED' } },
+				listMcpServers: async () => ({ servers: [demoMcpServer()] }),
+				toggleMcpServer: async () => {
+					throw new Error('toggle boom');
+				},
+			});
+			const section = mountMcpSection(connection);
+			await flushMicrotasks();
+			section.layout(640, 160);
+			await flushMicrotasks();
+			const status = (section as unknown as { status: { render(options: { readonly mode: string }): void } }).status;
+			const originalRender = status.render.bind(status);
+			status.render = (options: { readonly mode: string }) => {
+				if (options.mode === 'failed') {
+					throw paintBoom;
+				}
+				originalRender(options);
+			};
+			const toggle = leftoverMcpRowToggles(section)[0];
+			assert.ok(toggle, 'MCP row toggle must be painted');
+			toggle.click();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+			section.getDomNode().parentElement?.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
 });
