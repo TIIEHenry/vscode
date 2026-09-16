@@ -300,7 +300,7 @@ export class AgentHostUntitledProvisionalSessionService extends Disposable imple
 		this._register(chatService.onDidDisposeSession(e => {
 			for (const sessionResource of e.sessionResources) {
 				if (this._entries.has(sessionResource)) {
-					void this.disposeSession(sessionResource);
+					void this.disposeSession(sessionResource).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 				this._resolvedConfigs.delete(sessionResource);
 				this._resolvedConfigRequestSeq.delete(sessionResource);
@@ -699,7 +699,7 @@ export class AgentHostUntitledProvisionalSessionService extends Disposable imple
 
 	private _retryPendingBackendDisposals(): void {
 		for (const backendSession of this._pendingBackendDisposals) {
-			void this._disposeBackend(backendSession, 'pending provisional cleanup');
+			void this._disposeBackend(backendSession, 'pending provisional cleanup').catch(onUnexpectedError);
 		}
 	}
 
