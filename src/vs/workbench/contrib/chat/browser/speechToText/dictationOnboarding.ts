@@ -803,11 +803,9 @@ export class DictationOnboardingBanner extends ChatInputNoticeWidget implements 
 
 		status(localize('dictation.onboarding.microphoneSelected', "{0} selected.", option.label));
 		if (this.preview) {
-			void this.preview.listen(option.deviceId).then(() => this.updateHint());
+			void this.preview.listen(option.deviceId).then(() => this.updateHint()).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else if (this.switchMicrophone) {
-			void this.switchMicrophone(option.deviceId)
-				.then(analyser => this.refreshMicrophones(analyser))
-				.catch(error => this.logService.error(`[chat-stt] failed to switch dictation microphone: ${error}`));
+			void this.switchMicrophone(option.deviceId).then(analyser => this.refreshMicrophones(analyser)).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -929,7 +927,7 @@ export class DictationOnboardingService extends Disposable implements IDictation
 
 	refreshMicrophones(analyserNode?: AnalyserNode, switchMicrophone?: SwitchMicrophone): void {
 		if (this.onboarding.isVisible) {
-			void this.currentBanner?.refreshMicrophones(analyserNode, switchMicrophone);
+			void Promise.resolve(this.currentBanner?.refreshMicrophones(analyserNode, switchMicrophone)).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

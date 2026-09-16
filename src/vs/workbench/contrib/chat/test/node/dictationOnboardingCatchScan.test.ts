@@ -23,7 +23,7 @@ function dictationOnboardingSourcePath(): string {
 	return found;
 }
 
-suite('DictationOnboarding leftover fire-and-forget catch scan (D560/D568)', () => {
+suite('DictationOnboarding leftover fire-and-forget catch scan (D560/D568/D576)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
@@ -50,5 +50,26 @@ suite('DictationOnboarding leftover fire-and-forget catch scan (D560/D568)', () 
 		assert.ok(source.includes(doubleStartPreview));
 		assert.ok(!source.includes('void this.startPreview();'));
 		assert.ok(!source.includes('void this.startPreview().catch(onUnexpectedError);'));
+	});
+
+	test('dictationOnboarding leftover listen / switchMicrophone / service refresh voids double-catch onUnexpectedError (D576)', () => {
+		const source = fs.readFileSync(dictationOnboardingSourcePath(), 'utf8');
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const collapsed = source.replace(/\s+/g, ' ');
+		const doubleListen = `void this.preview.listen(option.deviceId).then(() => this.updateHint())${doubleCatch};`;
+		const doubleSwitch = `void this.switchMicrophone(option.deviceId).then(analyser => this.refreshMicrophones(analyser))${doubleCatch};`;
+		const doubleServiceRefresh = `void Promise.resolve(this.currentBanner?.refreshMicrophones(analyserNode, switchMicrophone))${doubleCatch};`;
+		assert.ok(source.includes(doubleListen));
+		assert.ok(collapsed.includes(doubleSwitch));
+		assert.ok(source.includes(doubleServiceRefresh));
+		assert.strictEqual((source.match(/void this\.preview\.listen\(option\.deviceId\)\.then\(\(\) => this\.updateHint\(\)\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.strictEqual((source.match(/void Promise\.resolve\(this\.currentBanner\?\.refreshMicrophones\(analyserNode, switchMicrophone\)\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.ok(!source.includes('void this.preview.listen(option.deviceId).then(() => this.updateHint());'));
+		assert.ok(!source.includes('void this.preview.listen(option.deviceId).then(() => this.updateHint()).catch(onUnexpectedError);'));
+		assert.ok(!collapsed.includes('void this.switchMicrophone(option.deviceId).then(analyser => this.refreshMicrophones(analyser));'));
+		assert.ok(!collapsed.includes('void this.switchMicrophone(option.deviceId).then(analyser => this.refreshMicrophones(analyser)).catch(onUnexpectedError);'));
+		assert.ok(!source.includes('failed to switch dictation microphone'));
+		assert.ok(!source.includes('void this.currentBanner?.refreshMicrophones(analyserNode, switchMicrophone);'));
+		assert.ok(!source.includes('void this.currentBanner?.refreshMicrophones(analyserNode, switchMicrophone).catch(onUnexpectedError);'));
 	});
 });
