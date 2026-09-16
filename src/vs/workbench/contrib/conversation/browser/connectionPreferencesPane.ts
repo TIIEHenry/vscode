@@ -535,15 +535,15 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const hubActions = DOM.append(this.hubAccountSection, DOM.$('.connection-actions.connection-hub-actions'));
 		this.hubLoginButton = this._register(new Button(hubActions, defaultButtonStyles));
 		this.hubLoginButton.label = HUB_LOGIN_BUTTON_LABEL;
-		this._register(this.hubLoginButton.onDidClick(() => this.handleLogin()));
+		this._register(this.hubLoginButton.onDidClick(() => void this.handleLogin().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.hubLogoutButton = this._register(new Button(hubActions, { ...defaultButtonStyles, secondary: true }));
 		this.hubLogoutButton.label = localize('ua.connectionHubLogout', "Sign out");
-		this._register(this.hubLogoutButton.onDidClick(() => this.handleLogout()));
+		this._register(this.hubLogoutButton.onDidClick(() => void this.handleLogout().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.hubRefreshButton = this._register(new Button(hubActions, { ...defaultButtonStyles, secondary: true }));
 		this.hubRefreshButton.label = localize('ua.connectionHubRefreshDevices', "Refresh devices");
-		this._register(this.hubRefreshButton.onDidClick(() => this.refreshHubDirectory()));
+		this._register(this.hubRefreshButton.onDidClick(() => void this.refreshHubDirectory().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.hubConnectStatus = DOM.append(this.hubAccountSection, DOM.$('.connection-status.connection-hub-connect-status'));
 		this.hubConnectStatus.setAttribute('role', 'status');
@@ -643,11 +643,11 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const directActions = DOM.append(this.directAddressSection, DOM.$('.connection-actions.connection-direct-actions'));
 		const connectDirectButton = this._register(new Button(directActions, defaultButtonStyles));
 		connectDirectButton.label = localize('ua.connectionDirectConnect', "Connect");
-		this._register(connectDirectButton.onDidClick(() => this.handleConnectDirectAddress()));
+		this._register(connectDirectButton.onDidClick(() => void this.handleConnectDirectAddress().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		const addDirectButton = this._register(new Button(directActions, { ...defaultButtonStyles, secondary: true }));
 		addDirectButton.label = localize('ua.connectionDirectAdd', "Add");
-		this._register(addDirectButton.onDidClick(() => this.handleAddDirectAddress()));
+		this._register(addDirectButton.onDidClick(() => void this.handleAddDirectAddress().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.directAddressStatus = DOM.append(this.directAddressSection, DOM.$('.connection-status.connection-direct-address-status'));
 		this.directAddressStatus.setAttribute('role', 'status');
@@ -674,15 +674,15 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.profileActionsRow = DOM.append(this.profilesSection, DOM.$('.connection-actions.connection-profile-actions'));
 		const connectProfileButton = this._register(new Button(this.profileActionsRow, defaultButtonStyles));
 		connectProfileButton.label = localize('ua.connectionProfileConnect', "Connect");
-		this._register(connectProfileButton.onDidClick(() => this.handleConnectSelectedProfile()));
+		this._register(connectProfileButton.onDidClick(() => void this.handleConnectSelectedProfile().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		const disconnectButton = this._register(new Button(this.profileActionsRow, { ...defaultButtonStyles, secondary: true }));
 		disconnectButton.label = localize('ua.connectionProfileDisconnect', "Disconnect");
-		this._register(disconnectButton.onDidClick(() => this.handleDisconnect()));
+		this._register(disconnectButton.onDidClick(() => void this.handleDisconnect().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		const forgetButton = this._register(new Button(this.profileActionsRow, { ...defaultButtonStyles, secondary: true }));
 		forgetButton.label = localize('ua.connectionProfileForget', "Forget this Engine");
-		this._register(forgetButton.onDidClick(() => this.handleForgetSelectedProfile()));
+		this._register(forgetButton.onDidClick(() => void this.handleForgetSelectedProfile().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.profilesConnectStatus = DOM.append(this.profilesSection, DOM.$('.connection-status.connection-profiles-status'));
 		this.profilesConnectStatus.setAttribute('role', 'status');

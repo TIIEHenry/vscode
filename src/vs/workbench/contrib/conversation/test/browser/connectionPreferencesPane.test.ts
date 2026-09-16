@@ -5143,6 +5143,215 @@ suite('ConnectionPreferencesPane', () => {
 			container.remove();
 		}
 	});
+
+	test('does not leak unhandled rejection when handleLogin catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const pane = mountPane({
+			login: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		try {
+			const badge = container.querySelector('.connection-hub-auth-badge') as HTMLElement | null;
+			assert.ok(badge);
+			const signIn = [...container.querySelectorAll('.connection-hub-actions .monaco-button')]
+				.find(button => button.textContent === HUB_LOGIN_BUTTON_LABEL) as HTMLButtonElement | undefined;
+			assert.ok(signIn);
+			poisonTextContent(badge, paintBoom, value => value === 'boom');
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => signIn.click());
+		} finally {
+			container.remove();
+		}
+	});
+
+	test('does not leak unhandled rejection when handleLogout catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			logout: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await timeout(0);
+		try {
+			const badge = container.querySelector('.connection-hub-auth-badge') as HTMLElement | null;
+			assert.ok(badge);
+			const signOut = [...container.querySelectorAll('.connection-hub-actions .monaco-button')]
+				.find(button => button.textContent === 'Sign out') as HTMLButtonElement | undefined;
+			assert.ok(signOut);
+			poisonTextContent(badge, paintBoom, value => value === 'boom');
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => signOut.click());
+		} finally {
+			container.remove();
+		}
+	});
+
+	test('does not leak unhandled rejection when refreshHubDirectory catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			refreshDirectory: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await timeout(0);
+		try {
+			const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement | null;
+			assert.ok(banner);
+			const refresh = [...container.querySelectorAll('.connection-hub-actions .monaco-button')]
+				.find(button => button.textContent === 'Refresh devices') as HTMLButtonElement | undefined;
+			assert.ok(refresh);
+			poisonTextContent(banner, paintBoom, value => value === 'boom');
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => refresh.click());
+		} finally {
+			container.remove();
+		}
+	});
+
+	test('does not leak unhandled rejection when handleConnectDirectAddress catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const pane = mountPane({
+			addDirectAddressProfile: async () => ({ ok: true, profileId: 'direct-profile-1' }),
+		}, {
+			connectProfile: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('direct');
+		const hostInput = (pane as unknown as { directHostInput: { value: string } }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: { value: string } }).directPortInput;
+		const allowPrivate = (pane as unknown as { directAllowPrivateCheckbox: { checked: boolean } }).directAllowPrivateCheckbox;
+		hostInput.value = '127.0.0.1';
+		portInput.value = '50061';
+		allowPrivate.checked = true;
+		try {
+			const status = container.querySelector('.connection-direct-address-status') as HTMLElement | null;
+			assert.ok(status);
+			const connect = [...container.querySelectorAll('.connection-direct-actions .monaco-button')]
+				.find(button => button.textContent === 'Connect') as HTMLButtonElement | undefined;
+			assert.ok(connect);
+			poisonTextContent(status, paintBoom, value => value === 'boom');
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => connect.click());
+		} finally {
+			container.remove();
+		}
+	});
+
+	test('does not leak unhandled rejection when handleAddDirectAddress catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const pane = mountPane({
+			addDirectAddressProfile: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('direct');
+		try {
+			const status = container.querySelector('.connection-direct-address-status') as HTMLElement | null;
+			assert.ok(status);
+			const add = [...container.querySelectorAll('.connection-direct-actions .monaco-button')]
+				.find(button => button.textContent === 'Add') as HTMLButtonElement | undefined;
+			assert.ok(add);
+			poisonTextContent(status, paintBoom, value => value === 'boom');
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => add.click());
+		} finally {
+			container.remove();
+		}
+	});
+
+	test('does not leak unhandled rejection when handleConnectSelectedProfile catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'profile-1',
+				displayName: 'Studio',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'hubDevice',
+			}],
+		}, {
+			connectProfile: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('profiles');
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'profile-1';
+		try {
+			const profilesStatus = container.querySelector('.connection-profiles-status') as HTMLElement | null;
+			assert.ok(profilesStatus);
+			const connect = [...container.querySelectorAll('.connection-profile-actions .monaco-button')]
+				.find(button => button.textContent === 'Connect') as HTMLButtonElement | undefined;
+			assert.ok(connect);
+			poisonTextContent(profilesStatus, paintBoom, value => value === 'boom');
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => connect.click());
+		} finally {
+			container.remove();
+		}
+	});
+
+	test('does not leak unhandled rejection when handleDisconnect catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const pane = mountPane({}, {
+			disconnect: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('profiles');
+		try {
+			const profilesStatus = container.querySelector('.connection-profiles-status') as HTMLElement | null;
+			assert.ok(profilesStatus);
+			const disconnect = [...container.querySelectorAll('.connection-profile-actions .monaco-button')]
+				.find(button => button.textContent === 'Disconnect') as HTMLButtonElement | undefined;
+			assert.ok(disconnect);
+			poisonTextContent(profilesStatus, paintBoom, value => value === 'boom');
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => disconnect.click());
+		} finally {
+			container.remove();
+		}
+	});
+
+	test('does not leak unhandled rejection when handleForgetSelectedProfile catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'profile-1',
+				displayName: 'Studio',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'hubDevice',
+			}],
+			forgetConnectionProfile: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('profiles');
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'profile-1';
+		try {
+			const profilesStatus = container.querySelector('.connection-profiles-status') as HTMLElement | null;
+			assert.ok(profilesStatus);
+			const forget = [...container.querySelectorAll('.connection-profile-actions .monaco-button')]
+				.find(button => button.textContent === 'Forget this Engine') as HTMLButtonElement | undefined;
+			assert.ok(forget);
+			poisonTextContent(profilesStatus, paintBoom, value => value === 'boom');
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => forget.click());
+		} finally {
+			container.remove();
+		}
+	});
 });
 
 suite('Conversation Session StatusBar H4a negative', () => {
