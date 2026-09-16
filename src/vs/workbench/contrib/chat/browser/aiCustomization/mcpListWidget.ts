@@ -49,7 +49,7 @@ import { IOutputService } from '../../../../services/output/common/output.js';
 import { getCustomizationScopeEnablement, type CustomizationDisabledReason } from '../../../../../platform/agentHost/common/customizationEnablement.js';
 import { createAgentHostEnablePluginAction } from '../agentPluginActions.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
-import { getErrorMessage } from '../../../../../base/common/errors.js';
+import { getErrorMessage, onUnexpectedError } from '../../../../../base/common/errors.js';
 import { status } from '../../../../../base/browser/ui/aria/aria.js';
 import { Range } from '../../../../../editor/common/core/range.js';
 import { IMcpServerConfiguration, McpServerType } from '../../../../../platform/mcp/common/mcpPlatformTypes.js';
@@ -1125,7 +1125,7 @@ export class McpListWidget extends Disposable {
 		));
 		this._register(resizeObserver.observe(this.element));
 		this.updateAccessState();
-		void this.refresh();
+		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(mcpAccessConfig)) {
 				this.updateAccessState();
@@ -1230,12 +1230,12 @@ export class McpListWidget extends Disposable {
 			}
 			if (query) {
 				this.gallerySearchLoading = true;
-				this.delayedGallerySearch.trigger(() => this.queryMcpSearch());
+				void this.delayedGallerySearch.trigger(() => this.queryMcpSearch()).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else {
 				this.gallerySearchLoading = false;
 				this.delayedGallerySearch.cancel();
 				if (this.visible && this.gallerySnapshotServers.length === 0) {
-					this.delayedGallerySearch.trigger(() => this.queryGallerySnapshot());
+					void this.delayedGallerySearch.trigger(() => this.queryGallerySnapshot()).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 		}));
@@ -1260,18 +1260,18 @@ export class McpListWidget extends Disposable {
 
 		// Listen to MCP service changes
 		this._register(this.mcpWorkbenchService.onChange(() => {
-			this.refresh();
+			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(autorun(reader => {
 			const servers = this.mcpService.servers.read(reader);
 			for (const server of servers) {
 				server.enablement.read(reader);
 			}
-			this.refresh();
+			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(autorun(reader => {
 			this.customizationHarnessService.activeSessionResource.read(reader);
-			this.refresh();
+			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(this.agentHostCustomizationService.onDidChangeCustomizations(() => {
 			const previousMembership = this.getInstalledEntryMembershipSignature();
@@ -1296,7 +1296,7 @@ export class McpListWidget extends Disposable {
 		}
 		this.visible = visible;
 		if (visible) {
-			void this.refresh();
+			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -1337,9 +1337,9 @@ export class McpListWidget extends Disposable {
 			}
 		} else if (accessChanged && this.visible) {
 			if (this.searchQuery.trim()) {
-				void this.queryMcpSearch();
+				void this.queryMcpSearch().catch(onUnexpectedError).catch(onUnexpectedError);
 			} else {
-				void this.refresh();
+				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 	}
@@ -1350,7 +1350,7 @@ export class McpListWidget extends Disposable {
 		}
 		this.searchInput.value = '';
 		this.searchQuery = '';
-		void this.queryGallerySnapshot(true);
+		void this.queryGallerySnapshot(true).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async queryGallerySnapshot(revealMarketplace = false): Promise<void> {
@@ -1599,7 +1599,7 @@ export class McpListWidget extends Disposable {
 				retry.label = localize('retry', "Retry");
 				this.cardDisposables.add(retry.onDidClick(() => {
 					this.gallerySnapshotFailed = false;
-					void this.queryGallerySnapshot();
+					void this.queryGallerySnapshot().catch(onUnexpectedError).catch(onUnexpectedError);
 				}));
 			}
 			return;
