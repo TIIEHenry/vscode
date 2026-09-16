@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
@@ -854,6 +855,45 @@ suite('Sources - Changes list leftover honesty', () => {
 		button.click();
 	}
 
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			await run();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	}
+
+	async function waitForEnabledButton(host: HTMLElement, selector: string): Promise<HTMLElement> {
+		const deadline = Date.now() + 2000;
+		while (Date.now() < deadline) {
+			for (const button of host.querySelectorAll(selector)) {
+				if (!button.classList.contains('disabled')) {
+					return button as HTMLElement;
+				}
+			}
+			await timeout(20);
+		}
+		throw new Error(`enabled button ${selector} not found`);
+	}
+
 	function stageSelectedButton(host: HTMLElement): HTMLElement | null {
 		return host.querySelector('.sources-changes-toolbar .monaco-button');
 	}
@@ -1467,5 +1507,133 @@ suite('Sources - Changes list leftover honesty', () => {
 		} finally {
 			unstageCommand.dispose();
 		}
+	});
+
+	test('does not leak unhandled rejection when Stage Selected button click catch-path paint throws and onUnexpectedError warn-then-rethrows', async function () {
+		// runOnSelected / tryStagePaths already catch write throw; a lone inner reject does not leak.
+		// The Stage Selected button click site still needs `.catch` when the catch-path paint throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const leftover = { path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
+			const connection = {
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'connected' as const }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+				onDidChangeConnection: Event.None,
+				readGitChanges: async () => ({
+					supported: true,
+					reason: '',
+					branch: 'main',
+					entries: [leftover],
+				}),
+				readGitSummary: async () => ({
+					supported: true,
+					reason: '',
+					branch: 'main',
+					changeCount: 1,
+				}),
+				writeGitStagePaths: async () => {
+					throw new Error('boom');
+				},
+			} as unknown as IUniverseAgentConnection;
+			const host = mountHost();
+			const widget = store.add(stubChangesListServices(connection).createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			list.setFocus([0]);
+			list.setSelection([0]);
+			await waitForEnabledButton(host, '.sources-changes-toolbar .monaco-button');
+			(widget as unknown as { setStatusMessage(message: string | undefined): void }).setStatusMessage = message => {
+				if (message) {
+					throw paintBoom;
+				}
+			};
+			forceClick(stageSelectedButton(host));
+		});
+	});
+
+	test('does not leak unhandled rejection when Unstage Selected button click catch-path paint throws and onUnexpectedError warn-then-rethrows', async function () {
+		// runOnSelected / runResourceAction already catch git.unstage throw; a lone inner reject does not leak.
+		// The Unstage Selected button click site still needs `.catch` when the catch-path paint throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const unstageCommand = CommandsRegistry.registerCommand('git.unstage', () => { });
+		try {
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+				const connection = {
+					isEngineConnected: () => true,
+					getConnectionPhase: () => ({ kind: 'connected' as const }),
+					getConnectionSnapshot: () => ({ pairingPending: false }),
+					onDidChangeConnection: Event.None,
+				} as unknown as IUniverseAgentConnection;
+				const scmStub = toResource.call(this, '/project/src/leftover-unstage.ts');
+				const host = mountHost();
+				const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub), async () => {
+					throw new Error('boom');
+				}).createInstance(SourcesChangesList, host));
+				(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+				const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+				assert.ok(list.element(0).scmResource);
+				list.setFocus([0]);
+				list.setSelection([0]);
+				await waitForEnabledButton(host, '.sources-changes-toolbar .monaco-button:nth-child(2)');
+				(widget as unknown as { setStatusMessage(message: string | undefined): void }).setStatusMessage = message => {
+					if (message) {
+						throw paintBoom;
+					}
+				};
+				forceClick(unstageSelectedButton(host));
+			});
+		} finally {
+			unstageCommand.dispose();
+		}
+	});
+
+	test('does not leak unhandled rejection when Commit button click catch-path paint throws and onUnexpectedError warn-then-rethrows', async function () {
+		// runCommit() already catches writeGitCommit throw; a lone inner reject does not leak.
+		// The Commit button click site still needs `.catch` when the catch-path paint throws.
+		// Enter-key leftover is already locked in sourcesReviewList.test.ts; this locks the button.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const leftover = { path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
+			const connection = {
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'connected' as const }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+				onDidChangeConnection: Event.None,
+				readGitChanges: async () => ({
+					supported: true,
+					reason: '',
+					branch: 'main',
+					entries: [leftover],
+				}),
+				readGitSummary: async () => ({
+					supported: true,
+					reason: '',
+					branch: 'main',
+					changeCount: 1,
+				}),
+				writeGitCommit: async () => {
+					throw new Error('boom');
+				},
+			} as unknown as IUniverseAgentConnection;
+			const host = mountHost();
+			const widget = store.add(stubChangesListServices(connection).createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+			await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			const input = host.querySelector('.sources-changes-commit-input') as HTMLInputElement;
+			assert.ok(input);
+			input.value = 'fix';
+			input.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+			await waitForEnabledButton(host, '.sources-changes-commit .monaco-button');
+			(widget as unknown as { setStatusMessage(message: string | undefined): void }).setStatusMessage = message => {
+				if (message) {
+					throw paintBoom;
+				}
+			};
+			forceClick(commitButton(host));
+		});
 	});
 });
