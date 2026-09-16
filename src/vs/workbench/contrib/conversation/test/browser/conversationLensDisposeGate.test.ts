@@ -7,9 +7,11 @@ import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { applySessionViewTimeline, refreshTrajectoryRecords, updateSyncChrome, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
-import { conversationLensStaleSnapshotClass, isReadingColumnWritesEnabled, refreshStaleSnapshotBanner, requestReadingColumnDetail, shouldShowReadingColumnLiveChrome, type IReadingColumnDetailHost } from '../../browser/conversationLensReadingColumn.js';
+import { conversationLensStaleSnapshotClass, executeReadingColumnSourcesReview, isReadingColumnWritesEnabled, refreshStaleSnapshotBanner, requestReadingColumnDetail, shouldShowReadingColumnLiveChrome, type IReadingColumnDetailHost } from '../../browser/conversationLensReadingColumn.js';
+import { SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND } from '../../../sources/browser/sourcesReview.contribution.js';
 import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
 import { formatSyncChromeLabel } from '../../browser/conversationSessionView.js';
 import type { SyncChrome } from '../../../../../platform/universeAgent/common/sessionView/index.js';
@@ -43,6 +45,8 @@ import {
 import { bindSessionView, cancelToolCall, copyTurn, deleteTurn, resolveConfirmation, resolveQuestion, retryError, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import type { ConversationWriteMessage, PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+
+declare function __readFileInTests(path: string): Promise<string>;
 
 suite('conversation lens dispose gate', () => {
 
@@ -402,6 +406,32 @@ suite('conversation lens dispose gate', () => {
 		const outcome = await requestReadingColumnDetail(fixture.host, 'detail:leftover');
 		assert.deepStrictEqual(outcome, { ok: false, reason: 'unavailable' });
 		assert.strictEqual(fixture.requestDetailCalls, 0);
+	});
+
+	test('does not leak unhandled rejection when reading-column sources review executeCommand rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('review boom');
+		const calls: { id: string; args: unknown[] }[] = [];
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			executeReadingColumnSourcesReview({
+				executeCommand: async (id: string, ...args: unknown[]) => {
+					calls.push({ id, args });
+					throw paintBoom;
+				},
+			}, ['file:///tmp/readme.md']);
+		});
+		assert.strictEqual(calls.length, 1);
+		assert.strictEqual(calls[0]!.id, SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND);
+		const uris = calls[0]!.args[0] as URI[];
+		assert.strictEqual(uris.length, 1);
+		assert.strictEqual(uris[0]!.toString(true), 'file:///tmp/readme.md');
+	});
+
+	test('reading column sources review fire-and-forget voids double-catch onUnexpectedError', async () => {
+		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.ts`);
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		assert.ok(source.includes('onReviewNavClick: paths => executeReadingColumnSourcesReview(host.commandService, paths)'));
+		assert.ok(source.includes(doubleCatch));
+		assert.ok(!source.includes('void host.commandService.executeCommand('));
 	});
 
 	function asLiveChromeHost(host: object): Parameters<typeof shouldShowReadingColumnLiveChrome>[0] {

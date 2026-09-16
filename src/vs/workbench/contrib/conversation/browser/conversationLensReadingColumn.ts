@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { $, append, getWindow } from '../../../../base/browser/dom.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
@@ -75,12 +76,7 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 		onViewInTrajectory: turnId => host.navigateToTrajectoryFromTurn(turnId),
 		onCancelToolCall: turn => host.cancelToolCall(turn),
 		onRetryError: turn => host.retryError(turn),
-		onReviewNavClick: paths => {
-			void host.commandService.executeCommand(
-				SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND,
-				paths.map(path => URI.parse(path)),
-			);
-		},
+		onReviewNavClick: paths => executeReadingColumnSourcesReview(host.commandService, paths),
 		onOpenVisualizeFullscreen: (source, title) => host.openVisualizeOverlay(source, title),
 		showLiveChrome: () => shouldShowReadingColumnLiveChrome(host),
 		writesEnabled: () => isReadingColumnWritesEnabled(host),
@@ -110,6 +106,21 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 	host.register(host.stubService.onDidChangeActiveSession(() => refreshStaleSnapshot()));
 	host.register(host.stubService.onDidChangeEngineConnection(() => refreshStaleSnapshot()));
 
+}
+
+/**
+ * D539: `executeCommand` returns a Promise. A lone void still leaks when
+ * `setUnexpectedErrorHandler` warn-then-rethrows, so double-catch (D480).
+ * Do not add catch on catalog `OPEN_CONNECTION` from this file.
+ */
+export function executeReadingColumnSourcesReview(
+	commandService: Pick<ICommandService, 'executeCommand'>,
+	paths: readonly string[],
+): void {
+	void commandService.executeCommand(
+		SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND,
+		paths.map(path => URI.parse(path)),
+	).catch(onUnexpectedError).catch(onUnexpectedError);
 }
 
 function resolveReadingColumnSessionId(host: {
