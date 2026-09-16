@@ -31,6 +31,7 @@ summary: "七条 loop/tool 已 grpcClient bytes。compile-client 0。D24 仍开�
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
+| **H** | H 已写 ExitMaintenance wire 未接线。仍勿关本行。 |
 
 子 agent 发现：
 | ID | 问题 |
