@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "merge 关仓：Pause/History/Back/Prune/Branch/Reset/TestModelProfile 已 bytes；七条 loop/tool wire 未接线。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
+summary: "D 已写 ListNodes wire（capabilities/load unread）未接线。仍勿关本行。D24 仍开。"
 ---
 
 # Development Progress
@@ -27,6 +27,7 @@ summary: "merge 关仓：Pause/History/Back/Prune/Branch/Reset/TestModelProfile 
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **D** | ListNodes wire（capabilities/load unread）未接线。仍勿关本行 |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
@@ -34,7 +35,7 @@ summary: "merge 关仓：Pause/History/Back/Prune/Branch/Reset/TestModelProfile 
 子 agent 发现：
 | ID | 问题 |
 |:---|:-----|
-| [D24](deferred-gaps.md) | **仍开**：七条 **已** bytes；Suspend/Resume/StopLoop/RunToolBG/StopShellTask/ListLoopSnapshots/FetchToolUsageDetail wire 未接线；ResolveTurn/Connect/SaveSkillContent/Watch·Rebuild 仍 JSON |
+| [D24](deferred-gaps.md) | **仍开**：D 已写 ListNodes wire（capabilities/load unread）未接线。仍勿关本行。七条 loop/tool 仍 JSON；ResolveTurn/Connect/SaveSkillContent/Watch 跳过 |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
 | [D550](deferred-gaps.md)–[D551](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
