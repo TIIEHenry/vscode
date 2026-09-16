@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -168,6 +170,31 @@ suite('ConversationEngineHistoryList', () => {
 		assert.strictEqual(overlayParent.querySelector(`.${conversationLensHistoryRowClass}`), null);
 		assert.ok(overlayParent.textContent?.includes(formatEngineHistoryFailedCopy('transport reset')));
 		assert.ok(!(overlayParent.textContent ?? '').includes(conversationLensSessionBarHistoryEmpty));
+	});
+
+	test('does not leak unhandled rejection when show refresh getHistory rejects and paint throws', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			const { list } = mountList(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				getHistory: async () => {
+					throw new Error('transport reset');
+				},
+			}));
+			(list as unknown as { paintListFailed(text: string): void }).paintListFailed = () => {
+				throw new Error('paint boom');
+			};
+			list.show();
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('getHistory success then throw keeps leftover rows and paints failed', async () => {
