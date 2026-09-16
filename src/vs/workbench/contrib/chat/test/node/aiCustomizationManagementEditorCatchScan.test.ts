@@ -23,7 +23,7 @@ function editorSourcePath(): string {
 	return found;
 }
 
-suite('AICustomizationManagementEditor leftover fire-and-forget catch scan (D566)', () => {
+suite('AICustomizationManagementEditor leftover fire-and-forget catch scan (D566/D574)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
@@ -52,5 +52,32 @@ suite('AICustomizationManagementEditor leftover fire-and-forget catch scan (D566
 		assert.ok(!source.includes('void this.migrateSelectedCustomizations(category, selectedCustomizations).catch(onUnexpectedError);'));
 		assert.ok(!source.includes('void this.revealMigratedCustomizations(migratedCustomizations).catch(onUnexpectedError);'));
 		assert.ok(!source.includes('await this.refreshCustomizationMigrationInfo().catch(onUnexpectedError)'));
+	});
+
+	test('listWidget.setSection / showEmbeddedEditor leftover voids double-catch onUnexpectedError (D574)', () => {
+		const source = fs.readFileSync(editorSourcePath(), 'utf8');
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const doubleSelectedSection = `void this.listWidget.setSection(this.selectedSection)${doubleCatch};`;
+		const doubleSection = `void this.listWidget.setSection(section)${doubleCatch};`;
+		const doubleSectionId = `void this.listWidget.setSection(sectionId)${doubleCatch};`;
+		const doubleShowEmbeddedEditor = `void this.showEmbeddedEditor(\n\t\t\t\tcustomization.uri,\n\t\t\t\tcustomization.name ?? basename(customization.uri),\n\t\t\t\tcustomization.type,\n\t\t\t\tcustomization.storage,\n\t\t\t\tisWorkspaceFile,\n\t\t\t)${doubleCatch};`;
+
+		assert.strictEqual((source.match(/void this\.listWidget\.setSection\([^)]+\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 3);
+		assert.ok(source.includes(doubleSelectedSection));
+		assert.ok(source.includes(doubleSection));
+		assert.ok(source.includes(doubleSectionId));
+		assert.ok(source.includes(doubleShowEmbeddedEditor));
+		assert.strictEqual((source.match(/void this\.showEmbeddedEditor\(/g) ?? []).length, 1);
+		assert.ok(source.includes('await this.listWidget.setSection(section);'));
+		assert.ok(source.includes('await this.showEmbeddedEditor(fileUri, fileName, PromptsType.instructions, PromptsStorage.local, true);'));
+		assert.ok(!source.includes('void this.listWidget.setSection(this.selectedSection);'));
+		assert.ok(!source.includes('void this.listWidget.setSection(section);'));
+		assert.ok(!source.includes('void this.listWidget.setSection(sectionId);'));
+		assert.ok(!source.includes('void this.listWidget.setSection(this.selectedSection).catch(onUnexpectedError);'));
+		assert.ok(!source.includes('void this.listWidget.setSection(section).catch(onUnexpectedError);'));
+		assert.ok(!source.includes('void this.listWidget.setSection(sectionId).catch(onUnexpectedError);'));
+		assert.ok(!source.includes('void this.showEmbeddedEditor(\n\t\t\t\tcustomization.uri,\n\t\t\t\tcustomization.name ?? basename(customization.uri),\n\t\t\t\tcustomization.type,\n\t\t\t\tcustomization.storage,\n\t\t\t\tisWorkspaceFile,\n\t\t\t);'));
+		assert.ok(!source.includes('await this.listWidget.setSection(section).catch(onUnexpectedError)'));
+		assert.ok(!source.includes('await this.showEmbeddedEditor(fileUri, fileName, PromptsType.instructions, PromptsStorage.local, true).catch(onUnexpectedError)'));
 	});
 });

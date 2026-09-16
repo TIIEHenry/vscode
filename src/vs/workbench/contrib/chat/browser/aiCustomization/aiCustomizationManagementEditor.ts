@@ -1185,7 +1185,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 		// Load items for the initial section
 		if (this.isPromptsSection(this.selectedSection)) {
-			void this.listWidget.setSection(this.selectedSection);
+			void this.listWidget.setSection(this.selectedSection).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		if (this.workspaceService.isSessionsWindow) {
@@ -1499,7 +1499,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 				customization.type,
 				customization.storage,
 				isWorkspaceFile,
-			);
+			).catch(onUnexpectedError).catch(onUnexpectedError);
 		};
 		const renderSelectionCheckbox = (row: HTMLElement, customization: MigratableConfiguration, onSelectionChange?: () => void): Checkbox => {
 			const checkboxContainer = DOM.append(row, $('.item-sync-checkbox.prompt-migration-checkbox'));
@@ -2047,7 +2047,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 		// Load items for the new section (only for prompts-based sections)
 		if (this.isPromptsSection(section)) {
-			void this.listWidget.setSection(section);
+			void this.listWidget.setSection(section).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		// Re-layout after visibility change so the newly-visible widget can
@@ -2472,7 +2472,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 			this.storageService.store(AI_CUSTOMIZATION_MANAGEMENT_SELECTED_SECTION_KEY, sectionId, StorageScope.PROFILE, StorageTarget.USER);
 			this.updateContentVisibility();
 			if (this.isPromptsSection(sectionId)) {
-				void this.listWidget.setSection(sectionId);
+				void this.listWidget.setSection(sectionId).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 			// Re-layout after visibility change so the newly-visible widget
 			// can measure its flex-computed container height correctly.
