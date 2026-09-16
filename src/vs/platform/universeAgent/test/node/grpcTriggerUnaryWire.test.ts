@@ -478,7 +478,6 @@ suite('grpc TriggerService List/Upsert/Delete/SetEnabled/Fire protobuf wire', ()
 		assert.ok(source.includes('grpcTriggerUnaryWire'));
 		assert.ok(!/\basync registerSessionEngineTrigger\(/.test(source));
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'getModelPreferences').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 	});
 });

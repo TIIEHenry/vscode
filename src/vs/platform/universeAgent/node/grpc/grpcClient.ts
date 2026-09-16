@@ -624,6 +624,10 @@ import {
 	encodeInstallSessionDemoFakeRequest,
 } from './grpcFireTriggerWebhookUnaryWire.js';
 import {
+	decodeClearSessionDemoFakeResponse,
+	encodeClearSessionDemoFakeRequest,
+} from './grpcClearSessionDemoFakeUnaryWire.js';
+import {
 	decodeChatResponse,
 	decodeCreateSessionResponse,
 	decodeCreateSnapshotResponse,
@@ -795,6 +799,12 @@ import {
 	encodeGetConfigRequest,
 	encodeSetConfigRequest,
 } from './grpcConfigUnaryWire.js';
+import {
+	decodeGetModelPreferencesResponse,
+	decodeSetModelPreferencesResponse,
+	encodeGetModelPreferencesRequest,
+	encodeSetModelPreferencesRequest,
+} from './grpcModelPreferencesUnaryWire.js';
 import {
 	decodeSetPermissionPolicyResponse,
 	encodeSetPermissionPolicyRequest,
@@ -1658,18 +1668,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async clearSessionDemoFake(request: UniverseAgentClearSessionDemoFakeRequest): Promise<UniverseAgentClearSessionDemoFakeResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, {
-			success?: boolean;
-			message?: string;
-			reason_code?: string;
-		}>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.ClearSessionDemoFake,
+			decodeClearSessionDemoFakeResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-		});
+		const wire = await unary(encodeClearSessionDemoFakeRequest(request));
 		return {
 			ok: wire.success === true,
 			message: wire.message,
@@ -3222,19 +3227,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async getModelPreferences(request: UniverseAgentGetModelPreferencesRequest): Promise<UniverseAgentGetModelPreferencesResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, {
-			min_level?: number;
-			max_cost?: string;
-			min_speed?: string;
-			strategy?: string;
-		}>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Config.service,
 			UniverseAgentGrpcServices.Config.GetModelPreferences,
+			decodeGetModelPreferencesResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-		});
+		const wire = await unary(encodeGetModelPreferencesRequest(request));
 		return {
 			minLevel: wire.min_level ?? 0,
 			maxCost: wire.max_cost ?? '',
@@ -3268,20 +3267,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async setModelPreferences(request: UniverseAgentSetModelPreferencesRequest): Promise<UniverseAgentSetModelPreferencesResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, {
-			preferences?: { min_level?: number; max_cost?: string; min_speed?: string; strategy?: string };
-		}>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Config.service,
 			UniverseAgentGrpcServices.Config.SetModelPreferences,
+			decodeSetModelPreferencesResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			min_level: request.minLevel,
-			max_cost: request.maxCost,
-			min_speed: request.minSpeed,
-			strategy: request.strategy,
-		});
+		const wire = await unary(encodeSetModelPreferencesRequest(request));
 		const prefs = wire.preferences;
 		return {
 			minLevel: prefs?.min_level ?? 0,
