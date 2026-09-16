@@ -209,17 +209,17 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		}));
 		this._register(this.connection.onDidChangeConnection(() => {
 			if (this.open) {
-				void this.refresh().catch(onUnexpectedError);
+				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 		this._register(this.roster.onDidChangeActiveSession(() => {
 			if (this.open) {
-				void this.refresh().catch(onUnexpectedError);
+				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 		this._register(this.roster.onDidChangeEngineConnection(() => {
 			if (this.open) {
-				void this.refresh().catch(onUnexpectedError);
+				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 		this._register(this.roster.onDidChangeSession(() => {
@@ -245,7 +245,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		this.open = true;
 		this.overlayElement.hidden = false;
 		this.button.element.setAttribute('aria-expanded', 'true');
-		void this.refresh().catch(onUnexpectedError);
+		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	close(): void {
@@ -379,7 +379,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		if (!canRestoreEngineSnapshot(this.isSnapshotWriteLive(), hasHook, snapshotId, sessionId) || !restore || !sessionId) {
 			return;
 		}
-		void this.restoreThenRefreshList(restore, sessionId, snapshotId).catch(onUnexpectedError);
+		void this.restoreThenRefreshList(restore, sessionId, snapshotId).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async restoreThenRefreshList(
@@ -426,7 +426,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		if (!this.canSendDelete(snapshot.id) || !remove || !sessionId) {
 			return;
 		}
-		void this.deleteThenRefreshList(remove, sessionId, snapshot.id).catch(onUnexpectedError);
+		void this.deleteThenRefreshList(remove, sessionId, snapshot.id).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async deleteThenRefreshList(
@@ -583,7 +583,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			deleteButton.icon = Codicon.trash;
 			deleteButton.label = conversationLensSessionBarSnapshotsDelete;
 			deleteButton.enabled = canDelete;
-			this.rowDisposables.add(deleteButton.onDidClick(() => void this.deleteSnapshot(snapshot).catch(onUnexpectedError)));
+			this.rowDisposables.add(deleteButton.onDidClick(() => void this.deleteSnapshot(snapshot).catch(onUnexpectedError).catch(onUnexpectedError)));
 		}
 	}
 }
