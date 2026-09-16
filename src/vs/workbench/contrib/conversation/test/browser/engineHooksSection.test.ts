@@ -4,9 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import type { UniverseAgentCapabilitySupport, UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentCapabilitySupport, UniverseAgentConnectionSnapshot, UniverseAgentListHookPointsResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { EngineHooksSection } from '../../browser/engineHooksSection.js';
@@ -28,6 +30,7 @@ suite('EngineHooksSection', () => {
 		looksLive?: boolean;
 		hooksSupport?: UniverseAgentCapabilitySupport;
 		hooksReason?: string;
+		listHookPoints?: () => Promise<UniverseAgentListHookPointsResult>;
 	} = {}): IUniverseAgentConnection & {
 		setPairingPending(value: boolean): void;
 		setConnected(value: boolean): void;
@@ -57,6 +60,7 @@ suite('EngineHooksSection', () => {
 			getConnectionSnapshot: snapshot,
 			getCapabilitySnapshot: () => capabilities,
 			onDidChangeConnection: onDidChangeConnection.event,
+			...(options.listHookPoints ? { listHookPoints: options.listHookPoints } : {}),
 		});
 		return Object.assign(connection, {
 			setPairingPending(value: boolean) {
@@ -162,5 +166,96 @@ suite('EngineHooksSection', () => {
 		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
 		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
 		parent.remove();
+	});
+
+	test('does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+		// refresh() already catches list throw; a lone inner reject does not leak.
+		// The void call site still needs `.catch` when the catch-path render throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const connection = createMutableHooksConnection({
+				connected: true,
+				pairingPending: false,
+				hooksSupport: 'SUPPORTED',
+				listHookPoints: async () => {
+					throw new Error('list boom');
+				},
+			});
+			const { section, parent } = mountSection(connection);
+			const status = (section as unknown as { status: { render(options: { readonly mode: string }): void } }).status;
+			const originalRender = status.render.bind(status);
+			status.render = (options: { readonly mode: string }) => {
+				if (options.mode === 'failed') {
+					throw paintBoom;
+				}
+				originalRender(options);
+			};
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+			parent.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when connection-change refresh catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const connection = createMutableHooksConnection({
+				connected: true,
+				pairingPending: false,
+				hooksSupport: 'SUPPORTED',
+				listHookPoints: async () => {
+					throw new Error('list boom');
+				},
+			});
+			const { section, parent } = mountSection(connection);
+			await timeout(0);
+			const status = (section as unknown as { status: { render(options: { readonly mode: string }): void } }).status;
+			const originalRender = status.render.bind(status);
+			status.render = (options: { readonly mode: string }) => {
+				if (options.mode === 'failed') {
+					throw paintBoom;
+				}
+				originalRender(options);
+			};
+			connection.setConnected(true);
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+			parent.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });

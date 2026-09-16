@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as DOM from '../../../../base/browser/dom.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -68,8 +69,10 @@ export class EngineHooksSection extends Disposable {
 		DOM.append(pointsColumn, $('h4')).textContent = localize('ua.engineHooksPoints', "Hook points");
 		this.pointsList = DOM.append(pointsColumn, $('.engine-hooks-list.engine-catalog-list'));
 
-		this._register(this.connection.onDidChangeConnection(() => void this.refresh()));
-		void this.refresh();
+		this._register(this.connection.onDidChangeConnection(() => {
+			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		}));
+		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	getDomNode(): HTMLElement {
@@ -211,7 +214,7 @@ export class EngineHooksSection extends Disposable {
 				this.resolveMode(true, hooksMetadata.support, this.listPhase),
 				reason,
 				undefined,
-				() => void this.refresh(),
+				() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
 			);
 		}
 	}
