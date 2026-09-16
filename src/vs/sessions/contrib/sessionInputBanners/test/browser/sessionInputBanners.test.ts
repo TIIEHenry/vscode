@@ -296,12 +296,12 @@ suite('SessionInputBanners', () => {
 		}();
 		let executeCalls = 0;
 		const commandService = new class extends mock<ICommandService>() {
-			override executeCommand(commandId: string): Promise<unknown> {
+			override executeCommand<R = unknown>(commandId: string, ..._args: unknown[]): Promise<R | undefined> {
 				if (commandId === OPEN_PULL_REQUEST_ACTION_ID) {
 					executeCalls++;
 					return Promise.reject(new Error('boom'));
 				}
-				return Promise.resolve();
+				return Promise.resolve(undefined);
 			}
 		}();
 		let errorCalls = 0;
