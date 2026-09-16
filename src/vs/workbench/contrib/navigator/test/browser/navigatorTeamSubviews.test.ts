@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { getErrorMessage } from '../../../../../base/common/errors.js';
+import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
@@ -26,7 +26,7 @@ import { IAgentInspectService } from '../../common/agentInspect.js';
 import { AgentInspectService } from '../../browser/agentInspectService.js';
 import { AGENT_INSPECT_VIEW_ID, OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID } from '../../browser/agentInspectIds.js';
 import { getNavigatorAgentTreePendingCopy, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEmptyState.js';
-import { getTeamTreeEmptyCopy, NAVIGATOR_TEAM_LOADING_COPY } from '../../common/navigatorTeamData.js';
+import { getTeamTreeEmptyCopy, INavigatorTeamMemberEntry, NAVIGATOR_TEAM_LOADING_COPY } from '../../common/navigatorTeamData.js';
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 import '../../browser/navigator.contribution.js';
 import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
@@ -119,6 +119,7 @@ suite('Navigator Team subviews', () => {
 		actionSpies?: {
 			revealCalls?: Array<{ sessionKey: string; chatId: string; title?: string }>;
 			inspectOpenCalls?: Array<{ id: string; focus: boolean | undefined }>;
+			openSubAgent?: (sessionKey: string, chatId: string, title?: string) => Promise<void>;
 		},
 	): NavigatorTeamView {
 		const instantiationService = workbenchInstantiationService(undefined, store);
@@ -136,6 +137,10 @@ suite('Navigator Team subviews', () => {
 				closeSubAgentDialog: () => { },
 				navigateAgentBreadcrumb: async () => { },
 				openSubAgent: async (sessionKey: string, chatId: string, title?: string) => {
+					if (spies.openSubAgent) {
+						await spies.openSubAgent(sessionKey, chatId, title);
+						return;
+					}
 					spies.revealCalls?.push({ sessionKey, chatId, title });
 				},
 			} as unknown as IConversationSessionChatService);
@@ -2013,5 +2018,110 @@ suite('Navigator Team subviews', () => {
 		view.inspectFocusedTitleAction();
 		assert.deepStrictEqual(inspectOpenCalls, []);
 		assert.deepStrictEqual(revealCalls, []);
+	});
+
+	test('does not leak unhandled rejection when refreshTeamData catch-path notice throws and onUnexpectedError warn-then-rethrows', async () => {
+		// refreshTeamData already catches memberStatus; a lone inner reject does not leak.
+		// The void scheduler call site still needs `.catch` when the catch-path notice throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
+		roster.setEngineConnected(true);
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			team: {
+				memberStatus: async () => {
+					throw new Error('memberStatus boom');
+				},
+				taskList: async () => [],
+				teamInfo: async () => undefined,
+			},
+		});
+		const view = mountTeamView(roster, connection);
+		const scheduler = (view as unknown as { refreshScheduler: { cancel(): void; flush(): void } }).refreshScheduler;
+		scheduler.cancel();
+		(view as unknown as { setTeamSnapshotNote(message: string | undefined): void }).setTeamSnapshotNote = message => {
+			if (message) {
+				throw paintBoom;
+			}
+		};
+
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			(view as unknown as { scheduleRefresh(): void }).scheduleRefresh();
+			scheduler.flush();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when member row-open error-path throws and onUnexpectedError warn-then-rethrows', async () => {
+		// revealNavigatorAgentInConversation already catches openSubAgent; a lone inner
+		// reject does not leak. The void call site still needs `.catch` when the
+		// catch-path notify throws. A lone `.catch(onUnexpectedError)` still leaks when
+		// the handler warn-then-rethrows.
+		const notifyBoom = new Error('error failed');
+		let errorCalls = 0;
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const view = mountTeamView(store.add(new ConversationStubService()), createNavigatorConnectionTestStub(), {
+				error: () => {
+					errorCalls++;
+					throw notifyBoom;
+				},
+			} as unknown as INotificationService, undefined, {
+				openSubAgent: async () => {
+					throw new Error('overlay boom');
+				},
+			});
+			(view as unknown as { setMemberEntries: (entries: INavigatorTeamMemberEntry[]) => void }).setMemberEntries([{
+				id: 'member:member:1',
+				label: 'Alice · IDLE',
+				memberName: 'Alice',
+				memberAgentId: 'member:1',
+				status: 'IDLE',
+				preset: 'p',
+				dynamic: 'd',
+				turnCount: 1,
+				managerAgentId: 'mgr:1',
+				managerName: 'Manager',
+			}]);
+			await forceOpenTeamMember(view);
+			assert.deepStrictEqual({ unhandledRejections, errorCalls, unexpectedWarns }, {
+				unhandledRejections: [],
+				errorCalls: 1,
+				unexpectedWarns: [notifyBoom, notifyBoom],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });
