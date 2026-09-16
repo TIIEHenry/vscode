@@ -439,7 +439,7 @@ function createSchemaDefaultConfigurationService(): TestConfigurationService {
 
 function createProvider(disposables: DisposableStore, agentHostService: MockAgentHostService, contributions = [
 	{ type: 'agent-host-copilotcli', name: 'copilot', displayName: 'Copilot', description: 'test', icon: undefined },
-], options?: { sendRequest?: (resource: URI, message: string, options?: IChatSendRequestOptions) => Promise<ChatSendResult>; acquireOrLoadSession?: (resource: URI) => Promise<IChatModelReference | undefined>; languageModelIds?: string[]; lookupLanguageModel?: (modelId: string) => ILanguageModelChatMetadata | undefined; hiddenLanguageModelIds?: ReadonlySet<string>; languageModelVisibilityChanges?: Event<void>; openSession?: boolean; configurationService?: IConfigurationService; activeSession?: IObservable<IActiveSession | undefined>; visibleSessions?: IObservable<readonly (IActiveSession | undefined)[]>; activeClient?: Omit<SessionActiveClient, 'clientId'>; activeClientAgents?: IObservable<readonly AgentCustomization[]>; activeClientScope?: (sessionType: string, roots: readonly URI[]) => IAgentCustomizationScope; storageService?: IStorageService; isSessionsWindow?: boolean; confirmDelete?: boolean; workspaceTrusted?: boolean; requestWorkspaceTrust?: (uri: URI) => Promise<boolean>; workspaceTrustBarrier?: DeferredPromise<void>; workspaceTrustError?: Error; setUrisTrust?: (uris: URI[], trusted: boolean) => Promise<void>; gitHubService?: IGitHubService; devContainerAgentHostService?: IDevContainerAgentHostService; sessionsProvidersService?: ISessionsProvidersService }): LocalAgentHostSessionsProvider {
+], options?: { sendRequest?: (resource: URI, message: string, options?: IChatSendRequestOptions) => Promise<ChatSendResult>; acquireOrLoadSession?: (resource: URI) => Promise<IChatModelReference | undefined>; languageModelIds?: string[]; lookupLanguageModel?: (modelId: string) => ILanguageModelChatMetadata | undefined; hiddenLanguageModelIds?: ReadonlySet<string>; languageModelVisibilityChanges?: Event<void>; openSession?: boolean; configurationService?: IConfigurationService; activeSession?: IObservable<IActiveSession | undefined>; visibleSessions?: IObservable<readonly (IActiveSession | undefined)[]>; activeClient?: Omit<SessionActiveClient, 'clientId'>; activeClientAgents?: IObservable<readonly AgentCustomization[]>; activeClientScope?: (sessionType: string, roots: readonly URI[]) => IAgentCustomizationScope; storageService?: IStorageService; isSessionsWindow?: boolean; confirmDelete?: boolean; workspaceTrusted?: boolean; requestWorkspaceTrust?: (uri: URI) => Promise<boolean>; workspaceTrustBarrier?: DeferredPromise<void>; workspaceTrustError?: Error; setUrisTrust?: (uris: URI[], trusted: boolean) => Promise<void>; gitHubService?: IGitHubService; devContainerAgentHostService?: IDevContainerAgentHostService; sessionsProvidersService?: ISessionsProvidersService; logService?: ILogService }): LocalAgentHostSessionsProvider {
 	const instantiationService = disposables.add(new TestInstantiationService());
 
 	instantiationService.stub(IAgentHostService, agentHostService);
@@ -489,7 +489,7 @@ function createProvider(disposables: DisposableStore, agentHostService: MockAgen
 	instantiationService.stub(ILabelService, {
 		getUriLabel: (uri: URI) => uri.path,
 	});
-	instantiationService.stub(ILogService, new NullLogService());
+	instantiationService.stub(ILogService, options?.logService ?? new NullLogService());
 	const storageService = options?.storageService ?? disposables.add(new InMemoryStorageService());
 	instantiationService.stub(IStorageService, storageService);
 	instantiationService.stub(ITelemetryService, NullTelemetryService);
@@ -6959,6 +6959,60 @@ suite('LocalAgentHostSessionsProvider', () => {
 			properties: ['codex.sandboxMode'],
 			values: { 'codex.sandboxMode': 'read-only' },
 		});
+	}));
+
+	test('does not leak unhandled rejection when running session resolveSessionConfig warn throws', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		// `_resolveRunningSessionConfig` already catches `resolveSessionConfig`; a lone inner reject
+		// does not leak. The void call site still needs `.catch` when the catch-path warn throws.
+		agentHost.addSession(createSession('resolve-warn', { summary: 'Resolve Warn Session' }));
+		let warnCalls = 0;
+		const logService = new class extends NullLogService {
+			override warn(message: string): void {
+				if (typeof message === 'string' && message.includes('Failed to re-resolve session config')) {
+					warnCalls++;
+					throw new Error('warn failed');
+				}
+			}
+		}();
+		const provider = createProvider(disposables, agentHost, undefined, { logService });
+		provider.getSessions();
+		await timeout(0);
+		const session = provider.getSessions().find(s => s.title.get() === 'Resolve Warn Session');
+		assert.ok(session);
+
+		const config: SessionConfigState = {
+			schema: {
+				type: 'object',
+				properties: {
+					autoApprove: { type: 'string', title: 'Auto Approve', enum: ['default', 'autoApprove'], sessionMutable: true },
+				},
+			},
+			values: { autoApprove: 'default' },
+		};
+		const fakeState: SessionState = {
+			provider: 'copilotcli', title: 'Resolve Warn Session', status: ProtocolSessionStatus.Idle,
+			lifecycle: SessionLifecycle.Ready,
+			activeClients: [],
+			chats: [],
+			config,
+		};
+		agentHost.setSessionState('resolve-warn', 'copilotcli', fakeState);
+		await waitForSessionConfig(provider, session!.sessionId, c => c?.values.autoApprove === 'default');
+
+		agentHost.failResolveSessionConfig = true;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			await provider.setSessionConfigValue(session!.sessionId, SessionConfigKey.AutoApprove, 'autoApprove');
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, warnCalls }, { unhandledRejections: [], warnCalls: 1 });
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	}));
 
 	test('replaceSessionConfig is a no-op when nothing editable actually changes', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
