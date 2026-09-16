@@ -10,6 +10,10 @@ import { Emitter, Event } from '../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { ExtensionIdentifier } from '../../../../../platform/extensions/common/extensions.js';
+import { IExtensionService } from '../../../../services/extensions/common/extensions.js';
+import { scheduleConversationMermaidExtensionResolve } from '../../browser/conversationLens.js';
+import type { ConversationMermaidExtensionInfo } from '../../browser/conversationMermaidHost.js';
 import { applySessionViewTimeline, refreshTrajectoryRecords, updateSyncChrome, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
 import { conversationLensStaleSnapshotClass, executeReadingColumnSourcesReview, isReadingColumnWritesEnabled, refreshStaleSnapshotBanner, requestReadingColumnDetail, shouldShowReadingColumnLiveChrome, type IReadingColumnDetailHost } from '../../browser/conversationLensReadingColumn.js';
 import { SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND } from '../../../sources/browser/sourcesReview.contribution.js';
@@ -620,6 +624,72 @@ suite('conversation lens dispose gate', () => {
 		assert.ok(source.includes('onReviewNavClick: paths => executeReadingColumnSourcesReview(host.commandService, paths)'));
 		assert.ok(source.includes(doubleCatch));
 		assert.ok(!source.includes('void host.commandService.executeCommand('));
+	});
+
+	function mermaidExtensionInfo(path = '/tmp/mermaid'): ConversationMermaidExtensionInfo {
+		return {
+			extensionLocation: URI.file(path),
+			extensionId: new ExtensionIdentifier('vscode.mermaid-markdown-features'),
+		};
+	}
+
+	function mermaidResolveHost(options: {
+		readonly getExtension: () => Promise<{ extensionLocation: URI; identifier: ExtensionIdentifier } | undefined>;
+		mermaidExtensionInfo?: ConversationMermaidExtensionInfo;
+		readonly isDisposed?: boolean;
+		readonly onSetMermaid?: (info: ConversationMermaidExtensionInfo | undefined) => void;
+		readonly onApplyBaseline?: () => void;
+	}) {
+		return {
+			extensionService: {
+				getExtension: options.getExtension,
+			} as unknown as IExtensionService,
+			isDisposed: options.isDisposed ?? false,
+			mermaidExtensionInfo: options.mermaidExtensionInfo,
+			timelineTree: {
+				setMermaidExtensionInfo(info: ConversationMermaidExtensionInfo | undefined) {
+					options.onSetMermaid?.(info);
+				},
+			},
+			applySessionViewTimeline() {
+				options.onApplyBaseline?.();
+			},
+		};
+	}
+
+	test('does not leak unhandled rejection when mermaid resolve then-callback throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const host = mermaidResolveHost({
+			getExtension: async () => ({
+				extensionLocation: URI.file('/tmp/mermaid'),
+				identifier: new ExtensionIdentifier('vscode.mermaid-markdown-features'),
+			}),
+			onSetMermaid: () => {
+				throw paintBoom;
+			},
+		});
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => scheduleConversationMermaidExtensionResolve(host));
+	});
+
+	test('does not leak unhandled rejection when mermaid getExtension rejects, then-callback throws, and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const host = mermaidResolveHost({
+			getExtension: () => Promise.reject(new Error('getExtension boom')),
+			mermaidExtensionInfo: mermaidExtensionInfo('/tmp/stale'),
+			onSetMermaid: () => {
+				throw paintBoom;
+			},
+		});
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => scheduleConversationMermaidExtensionResolve(host));
+	});
+
+	test('conversation lens mermaid resolve fire-and-forget voids double-catch onUnexpectedError', async () => {
+		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationLens.ts`);
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		assert.ok(source.includes('scheduleConversationMermaidExtensionResolve(this);'));
+		assert.ok(source.includes('void resolveConversationMermaidExtension(host.extensionService).then('));
+		assert.ok(source.includes(doubleCatch));
+		assert.ok(!source.includes('void resolveConversationMermaidExtension(this.extensionService).then('));
 	});
 
 	function asLiveChromeHost(host: object): Parameters<typeof shouldShowReadingColumnLiveChrome>[0] {
