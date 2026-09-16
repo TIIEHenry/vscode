@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { localize } from '../../../../nls.js';
 import type { DetailFetchOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
@@ -114,7 +115,7 @@ export class TrajectoryDetailInspectorModel {
 		void Promise.resolve(request(detailRef)).then(
 			outcome => this.settle(detailRef, outcome, epoch),
 			() => this.settle(detailRef, { ok: false, reason: 'failed' }, epoch),
-		);
+		).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private settle(detailRef: string, outcome: DetailFetchOutcome, epoch: number): void {
