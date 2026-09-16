@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { UniverseAgentConnectionSnapshot, UniverseAgentModelEntry } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
@@ -557,5 +559,118 @@ suite('EngineOverviewSection', () => {
 		assert.ok(!text.includes('No models in the registry.'), text);
 		assert.strictEqual(listModelsCalls, 2);
 		parent.remove();
+	});
+
+	test('does not leak unhandled rejection when setSectionActive renderAsync catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		// renderAsync already catches listModels throw; a lone inner reject does not leak.
+		// The void call site still needs `.catch` when the catch-path paintSummary throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const capabilities = createEmptyTestCapabilitySnapshot();
+			const failed = formatOverviewModelFailedCopy('list boom');
+			const connection = createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({
+					transport: 'ok',
+					sessionToken: 'tok',
+					pairingPending: false,
+					channelAlive: true,
+					sharedFsRootSent: false,
+					capabilities: { ...capabilities, models: { support: 'SUPPORTED' } },
+				}),
+				listModels: async () => {
+					throw new Error('list boom');
+				},
+			});
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			const instantiationService = workbenchInstantiationService(undefined, store);
+			instantiationService.stub(IUniverseAgentConnection, connection);
+			const section = store.add(instantiationService.createInstance(EngineOverviewSection, parent));
+			const overview = section as unknown as {
+				paintSummary: (snapshot: unknown, phase: unknown, modelValue: string, modelTitle?: string) => void;
+			};
+			const originalPaint = overview.paintSummary.bind(section);
+			overview.paintSummary = (snapshot, phase, modelValue, modelTitle) => {
+				if (modelValue === failed || modelTitle === failed) {
+					throw paintBoom;
+				}
+				return originalPaint(snapshot, phase, modelValue, modelTitle);
+			};
+			section.setSectionActive(true);
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+			parent.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when connection-change renderAsync catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const failed = formatOverviewModelFailedCopy('list boom');
+			const connection = createMutableOverviewConnection({
+				modelsSupport: 'SUPPORTED',
+				listModels: async () => {
+					throw new Error('list boom');
+				},
+			});
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			const instantiationService = workbenchInstantiationService(undefined, store);
+			instantiationService.stub(IUniverseAgentConnection, connection);
+			const section = store.add(instantiationService.createInstance(EngineOverviewSection, parent));
+			section.setSectionActive(true);
+			await timeout(0);
+			const overview = section as unknown as {
+				paintSummary: (snapshot: unknown, phase: unknown, modelValue: string, modelTitle?: string) => void;
+			};
+			const originalPaint = overview.paintSummary.bind(section);
+			overview.paintSummary = (snapshot, phase, modelValue, modelTitle) => {
+				if (modelValue === failed || modelTitle === failed) {
+					throw paintBoom;
+				}
+				return originalPaint(snapshot, phase, modelValue, modelTitle);
+			};
+			connection.fireConnection();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+			parent.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });

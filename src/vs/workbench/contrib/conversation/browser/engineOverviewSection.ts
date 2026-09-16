@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as DOM from '../../../../base/browser/dom.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -189,7 +190,7 @@ export class EngineOverviewSection extends Disposable {
 		if (active && wasInactive && this.connection.isEngineConnected()) {
 			const modelsSupport = this.connection.getConnectionSnapshot().capabilities?.models?.support ?? 'UNKNOWN';
 			if (modelsSupport === 'SUPPORTED' && !this.modelDataLoaded) {
-				void this.renderAsync();
+				void this.renderAsync().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 	}
@@ -203,7 +204,7 @@ export class EngineOverviewSection extends Disposable {
 	}
 
 	private render(): void {
-		void this.renderAsync();
+		void this.renderAsync().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private resolveModelRow(
