@@ -9,6 +9,7 @@ import { status } from '../../../../base/browser/ui/aria/aria.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
@@ -778,8 +779,8 @@ export class VoiceModeOnboardingBanner extends ChatInputNoticeWidget implements 
 
 		const mediaDevices = dom.getWindow(this.domNode).navigator.mediaDevices;
 		if (mediaDevices) {
-			this._register(dom.addDisposableListener(mediaDevices, 'devicechange', () => void this.refreshMicrophones()));
-			void this.refreshMicrophones();
+			this._register(dom.addDisposableListener(mediaDevices, 'devicechange', () => void this.refreshMicrophones().catch(onUnexpectedError).catch(onUnexpectedError)));
+			void this.refreshMicrophones().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
