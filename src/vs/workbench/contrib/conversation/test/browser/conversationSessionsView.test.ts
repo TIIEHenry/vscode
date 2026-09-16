@@ -179,6 +179,32 @@ suite('ConversationSessionsView', () => {
 		return { view, stubService: service, layoutService, conversationPart, focusSpy, errors };
 	}
 
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			await run();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	}
+
 	test('registers on dedicated Sidebar ViewContainer that is not default', () => {
 		const sessionsContainer = viewContainersRegistry.get(CONVERSATION_SESSIONS_CONTAINER_ID);
 		assert.ok(sessionsContainer);
@@ -1025,5 +1051,30 @@ suite('ConversationSessionsView', () => {
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('does not leak unhandled rejection when openSessionBeside warn throws and onUnexpectedError warn-then-rethrows', async () => {
+		// ConversationSessionWindowService.openSessionBeside already catches ensureLeaf;
+		// a lone inner reject does not leak. The void call site still needs `.catch`
+		// when the catch-path warn throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('warn failed');
+		const sessionWindowService: IConversationSessionWindowService = {
+			...createNoopConversationSessionWindowService(),
+			openSessionBeside: async () => {
+				try {
+					throw new Error('beside boom');
+				} catch (error) {
+					const message = `[ConversationSessionWindowService] openSessionBeside failed: ${getErrorMessage(error)}`;
+					if (message.includes('openSessionBeside failed')) {
+						throw paintBoom;
+					}
+				}
+			},
+		};
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			const { view, stubService } = mountView({ sessionWindowService });
+			view.openSessionBeside(stubService.getActiveSessionId());
+		});
 	});
 });
