@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "merge 关仓：SaveConfig/CreateRemoteSession/Status/History/UploadProgress/ResolveModel 已 bytes；leftover D553–D559 关各 call site。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
+summary: "merge 关仓：六条已 bytes；leftover D553–D559 关各 call site。F 本刀 D563 mcpListWidget action/install 双链。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -26,6 +26,7 @@ summary: "merge 关仓：SaveConfig/CreateRemoteSession/Status/History/UploadPro
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **F leftover** | mcpListWidget `action()` / `installMarketplaceServer` 双链；[D563](deferred-gaps.md)；未 commit |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
@@ -35,11 +36,11 @@ summary: "merge 关仓：SaveConfig/CreateRemoteSession/Status/History/UploadPro
 |:---|:-----|
 | [D24](deferred-gaps.md) | **仍开**：六条 **已** bytes；Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
-| [D550](deferred-gaps.md)–[D559](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
+| [D550](deferred-gaps.md)–[D559](deferred-gaps.md)/[D563](deferred-gaps.md) | **closed** leftover catch（各 call site）；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |
 |:---|:-----|
-| **loop** | D24 仍开。SaveSkillContent 无 RPC。Connect/Watch/ResolveAnchor/ResolveTurn 跳过。不得宣称 leftover/pills 完成 |
+| **loop** | D24 仍开。SaveSkillContent 无 RPC。Connect/Watch/ResolveAnchor/ResolveTurn 跳过。D563 只关 mcpListWidget 这些 call site。不得宣称 leftover/pills 完成 |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。

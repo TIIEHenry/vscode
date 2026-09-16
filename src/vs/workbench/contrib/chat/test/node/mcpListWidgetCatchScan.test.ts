@@ -59,4 +59,19 @@ suite('McpListWidget leftover fire-and-forget catch scan', () => {
 		assert.ok(!source.replaceAll(doubleRefresh, '').includes('\t\t\tthis.refresh();'));
 		assert.ok(!source.includes('.catch(() => undefined)'));
 	});
+
+	test('mcpListWidget leftover async action / installMarketplaceServer voids double-catch onUnexpectedError', () => {
+		const source = fs.readFileSync(mcpListWidgetSourcePath(), 'utf8');
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const doubleInstall = `void this.installMarketplaceServer(server, install)${doubleCatch}`;
+
+		assert.ok(!source.includes('void action();'));
+		assert.ok(source.includes('const result = action();'));
+		assert.ok(source.includes(`if (result instanceof Promise) {\n\t\t\tvoid result${doubleCatch};\n\t\t}`));
+		assert.strictEqual((source.match(/void this\.installMarketplaceServer\(server, install\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
+		assert.ok(source.includes(doubleInstall));
+		assert.ok(!source.includes('install.onDidClick(() => this.installMarketplaceServer(server, install));'));
+		assert.ok(!source.includes('void this.installMarketplaceServer(server, install).catch(onUnexpectedError);'));
+		assert.ok(!source.includes('void result.catch(onUnexpectedError);'));
+	});
 });
