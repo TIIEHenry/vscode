@@ -78,7 +78,7 @@ export class SessionsSigningInDialog extends Disposable {
 		activeContainer.classList.add('sessions-signing-in-dialog-visible');
 		this._register(toDisposable(() => activeContainer.classList.remove('sessions-signing-in-dialog-visible')));
 
-		void this.show();
+		void this.show().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async show(): Promise<void> {
