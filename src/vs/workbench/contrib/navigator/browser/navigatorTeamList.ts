@@ -218,7 +218,7 @@ export class NavigatorTeamView extends ViewPane {
 			() => this.scheduleRefresh(),
 			error => this.notificationService.error(getErrorMessage(error)),
 		));
-		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refreshTeamData(), 250));
+		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refreshTeamData().catch(onUnexpectedError).catch(onUnexpectedError), 250));
 		this._register(this.rosterService.onDidChangeActiveSession(() => this.scheduleRefresh()));
 		this._register(this.rosterService.onDidChangeEngineConnection(() => this.scheduleRefresh()));
 		this._register(this.uaConnection.onDidChangeConnection(() => this.scheduleRefresh()));
@@ -352,7 +352,7 @@ export class NavigatorTeamView extends ViewPane {
 				return;
 			}
 			this.inspectService.setTarget({ kind: 'member', info: e.element });
-			void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, e.element!.memberAgentId, e.element!.memberName)).catch(onUnexpectedError);
+			void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, e.element!.memberAgentId, e.element!.memberName)).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		return this.membersList;
