@@ -4,13 +4,13 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "merge compile-client 0；聚焦测 320 passing。D479 closed；D24 仍开（MCP mutators / plugin mutators / respondQuestion JSON）。不是 leftover/pills 完成。R9/D405 仍开"
+summary: "merge compile-client 0；聚焦测 96 passing。D479 closed；D24 仍开（MCP mutators / plugin mutators / respondQuestion JSON）。不是 leftover/pills 完成。R9/D405 仍开"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。产品状态 → [traceability](../../docs/product/traceability.md)（生成列）；方案状态 → [plans INDEX](../plans/INDEX.md)（生成列）；延期 → [deferred-gaps](deferred-gaps.md)。历史槽位 catalog 流水 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
-### 已合入（`MERGE_SHA` 本关仓提交；`npm run compile-client` 0；聚焦测 320 passing）
+### 已合入（`MERGE_SHA` 本关仓提交；`npm run compile-client` 0；聚焦测 96 passing）
 | 切片 | 提交 / 落点 |
 |:-----|:------------|
 | **GFS-1** | `32f71812` / `32198d0b` — [giant-file-split](../plans/giant-file-split.md)：`grpcClient` mapper 特征测 + facade / mappers / calls 拆分 |
@@ -38,12 +38,12 @@ summary: "merge compile-client 0；聚焦测 320 passing。D479 closed；D24 仍
 | **settings chrome** | Connection/Engine 两页改用 `InputBox`/`Checkbox`/`WorkbenchList` 左栏与状态色；窄宽两栏；Test Engine 下沉页脚；「回 Client」链入 Preferences tab 条；会话栏图标改 ghost toolbar。无新 RPC / 无新节 |
 | **settings chrome follow-up** | Back-to-Client 先取出 Preferences 服务再关 pane（`await` 后 accessor 已失效）；Direct Address Connect 状态写回本区并先标 Connecting…。已随本轮合入 `loop/merge` |
 | **UA chrome visual** | `bb365bd7d3e` — SessionBar `.is-medium`；Inbox overlay 绝对定位；Engine 断连 CTA 去重；Client 360；Inspect+filter；Sources 空态。不升 PRD。**不是** leftover/pills 完成 |
-| **A D24 + D D477/D478** | `47e51468eb6`/`d52e3a0e263`/`e1663ecdf6d`/`f78ff436cff` — Git 六条 + listTools/listSkills bytes；telemetry then catch + resolveSessionConfig catch。[D477](deferred-gaps.md)/[D478](deferred-gaps.md) **closed**。[D24](deferred-gaps.md) **仍开**（MCP/plugins/clipboard JSON）。不是 leftover/pills 完成 |
+| **A D24 + D D477–D479** | `ddf12cfd8da`/`2d6d0568b16` — Clipboard 四条 + MCP list/status/tools + Plugins list/info bytes；turn-changes 四处 void catch。[D477](deferred-gaps.md)–[D479](deferred-gaps.md) **closed**。[D24](deferred-gaps.md) **仍开**（mutators / respondQuestion JSON）。不是 leftover/pills 完成 |
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。**2026-09-12**：仓外 PIN 已换。grpcurl 复验 **List/Create PASS**（含旧 session-100/101）；**[D25](deferred-gaps.md)/[D26](deferred-gaps.md) 已闭**。同日 seed `provider:state` + `models.json` 后重启，grpcurl **Chat PASS**（`gemini-3.8-flash-high`，`textDelta`=`pong`，`turnComplete`/`end_turn`；无 `MODEL_PROFILE_*`）。这是引擎面证据，不是 IDE Conversation 接通冒烟。未升 PRD-008。引擎 A–F 已合；本仓 **node + `IUniverseAgentConnection` 已挂**。Provider/Rules/Hooks **只读列表**已接（无凭据/规则写表单）。Projects 按会话 `work_dir` 分组、Navigator `ListTeams` 标题、Review 历史 chip **已接**。[m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 进行中（2026-09-16 · compile-client 0 · 320 passing；D24 仍开；不是 leftover/pills 完成）
+### 进行中（2026-09-16 · compile-client 0 · 96 passing；D24 仍开；不是 leftover/pills 完成）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
-| **A/D** | D24 MCP/plugins/clipboard bytes + D479 | A：MCP list/status/tools + plugins list/info + clipboard 四条 bytes；[D24](deferred-gaps.md) **仍开**（MCP mutators / plugin mutators / respondQuestion 仍 JSON）。D：turn-changes 四处 void catch、[D479](deferred-gaps.md) **closed**。不是 leftover/pills 完成 |
+| **A/D** | D24 MCP/plugins/clipboard bytes + D479 | 已合；[D24](deferred-gaps.md) **仍开**（MCP mutators / plugin mutators / respondQuestion 仍 JSON）。[D479](deferred-gaps.md) **closed**。compile-client **0**；聚焦 **96 passing / 0 fail**。不是 leftover/pills 完成 |
 | **B/C** | — | B 脏 `worktree-pool.md` 跳过 `-B`；C 脏 `dev/loop` gitlink 勿 add、试 ff-only |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 
@@ -182,18 +182,18 @@ summary: "merge compile-client 0；聚焦测 320 passing。D479 closed；D24 仍
 ## 工位表（P0 盘点 · 2026-09-16 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | MERGE_SHA | 干净 | 0 | compile-client 0；320 passing；D478 closed；D24 仍开 |
-| A | `vscode-WorkTrees/A` | `loop/A` | MERGE_SHA | 脏 D24 bytes | 0 | 本刀 MCP list/plugins/clipboard bytes；D24 仍开；不是 leftover/pills 完成 |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | MERGE_SHA | 干净 | 0 | compile-client 0；96 passing；D479 closed；D24 仍开 |
+| A | `vscode-WorkTrees/A` | `loop/A` | MERGE_SHA | 干净 | 0 | `idle`；ff-only / `checkout -B`；D24 仍开 |
 | B | `vscode-WorkTrees/B` | `loop/B` | `28ffd1ae9f2` | 脏 `worktree-pool.md` | 0 | 脏树勿 `-B`；incoming 重叠则 ff 停 |
 | C | `vscode-WorkTrees/C` | `loop/C` | MERGE_SHA | 脏 `dev/loop` gitlink | 0 | 试 ff-only；勿 add |
-| D | `vscode-WorkTrees/D` | `loop/D` | MERGE_SHA | 脏 D479 | 0 | [D479](deferred-gaps.md) **closed**（四处 catch）；D24 仍开；勿宣称 leftover/pills 完成 |
+| D | `vscode-WorkTrees/D` | `loop/D` | MERGE_SHA | 干净 | 0 | `idle`；ff-only / `checkout -B`；D479 closed |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked` leftover；跳过 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `ff278772b85` | `dev/loop` + 方案/docs | 0 | 仅 ff-only；非祖先，失败则记录 |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。本仓只读面 + Composer `model_profile_id` **已挂**。钉死工位 seed 后 grpcurl **Chat PASS**。下一刀是 IDE Direct Address 接通后 Composer 发送（PRD-008 仍要隔离 profile 冒烟）。**不升 PRD-008**。不要再清 store。D26 store 已闭，旧「迁移卡死」账见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md) |
-| **loop 切片** | compile-client **0**；聚焦 **320 passing / 0 fail**。A MCP list/status/tools + plugins list/info + clipboard 四条 bytes 已合。[D24](deferred-gaps.md) **仍开**（MCP mutators / plugin mutators / respondQuestion JSON）。[D479](deferred-gaps.md) **closed**（四处 void catch）。R9 仍开。**D405** 手测仍开。不关 D8/D16/D147。未升 PRD-008。不得宣称 leftover / pills 完成。 |
+| **loop 切片** | compile-client **0**；聚焦 **96 passing / 0 fail**。A Clipboard/MCP list/plugins list bytes + D D479 已合。[D24](deferred-gaps.md) **仍开**（MCP mutators / plugin mutators / respondQuestion JSON）。[D479](deferred-gaps.md) **closed**。R9 仍开。**D405** 手测仍开。不关 D8/D16/D147。未升 PRD-008。不得宣称 leftover / pills 完成。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
