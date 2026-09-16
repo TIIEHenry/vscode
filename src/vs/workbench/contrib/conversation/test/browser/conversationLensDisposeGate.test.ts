@@ -2449,6 +2449,50 @@ suite('conversation lens dispose gate', () => {
 		}
 	});
 
+	test('does not leak unhandled rejection when More permission click applySessionPermissionIndex catch-path notice throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const fixture = leftoverLooksLiveSessionSelectsHost({
+			pairingPending: false,
+			engineSessionReady: true,
+		});
+		try {
+			const uaConnection = fixture.host.uaConnection as {
+				setPermissionMode: (request: { sessionId: string; mode: string }) => Promise<{ ok: boolean }>;
+			};
+			uaConnection.setPermissionMode = async () => {
+				throw new Error('setPermissionMode boom');
+			};
+			Object.defineProperty(fixture.host.gateLabel, 'textContent', {
+				configurable: true,
+				get() {
+					return '';
+				},
+				set() {
+					throw paintBoom;
+				},
+			});
+			toggleMoreContextView(fixture.host);
+			const radios = [...document.querySelectorAll('.conversation-lens-dock-more-permission [role="menuitemradio"]')] as HTMLButtonElement[];
+			assert.strictEqual(radios.length, 3);
+			assert.strictEqual(radios[2]!.disabled, false);
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+				radios[2]!.click();
+			});
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('composer chrome applySession fire-and-forget voids double-catch onUnexpectedError', async () => {
+		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.ts`);
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const applySessionVoids = source.match(/void applySession\w+\([^;]+;/g) ?? [];
+		assert.deepStrictEqual(applySessionVoids, [
+			`void applySessionPermissionIndex(host, sessionId, index)${doubleCatch};`,
+		]);
+		assert.ok(!source.includes('void applySessionPermissionIndex(host, sessionId, index);'));
+	});
+
 	test('in-flight leftover-looks-live permission and model apply restore leftover index', async () => {
 		const store = new DisposableStore();
 		const permissionCalls: { sessionId: string; mode: string }[] = [];

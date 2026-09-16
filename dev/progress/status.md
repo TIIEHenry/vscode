@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "merge 本波：A Session lifecycle 五 unary 已 bytes；D535–D541 closed。compile-client 0；聚焦 299 passing。D24 仍开。不是 leftover/pills 完成。"
+summary: "工位 D：D544 chrome More `applySessionPermissionIndex` 双链。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -27,6 +27,7 @@ summary: "merge 本波：A Session lifecycle 五 unary 已 bytes；D535–D541 c
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **D D544** | chrome More `applySessionPermissionIndex` 双链；未 commit / 未 compile-client |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
@@ -36,11 +37,12 @@ summary: "merge 本波：A Session lifecycle 五 unary 已 bytes；D535–D541 c
 |:---|:-----|
 | [D24](deferred-gaps.md) | **仍开**：lifecycle 五 unary **已** bytes；SaveSkillContent/Watch/model prefs/Connect/FireTriggerWebhook/ResolveTurn 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
+| [D544](deferred-gaps.md) | **closed** chrome More `applySessionPermissionIndex` 双链；dock `applySession*` 仍裸 |
 | [D535](deferred-gaps.md)–[D541](deferred-gaps.md) | **closed** 本文件 leftover catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |
 |:---|:-----|
-| **loop** | D24 仍开（SaveSkillContent 无 proto / Watch / model prefs 无 message / Connect / FireTriggerWebhook）。dock `applySession*` 仍裸 void。不得宣称 leftover/pills 完成 |
+| **loop** | D24 仍开（SaveSkillContent 无 proto / Watch / model prefs 无 message / Connect / FireTriggerWebhook）。dock `applySession*` 仍裸 void（槽 F）。不得宣称 leftover/pills 完成 |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。

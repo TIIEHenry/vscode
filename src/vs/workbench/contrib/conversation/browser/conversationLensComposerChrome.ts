@@ -7,6 +7,7 @@ import { $, addDisposableListener, append, getWindow } from '../../../../base/br
 import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { AnchorPosition } from '../../../../base/common/layout.js';
 import { DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -243,7 +244,7 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 						e.preventDefault();
 						e.stopPropagation();
 						host.moreContextView?.close();
-						void applySessionPermissionIndex(host, sessionId, index);
+						void applySessionPermissionIndex(host, sessionId, index).catch(onUnexpectedError).catch(onUnexpectedError);
 					}));
 				}
 				addAction(conversationLensDockMaximizeInput, () => toggleInputMaximized(host));
