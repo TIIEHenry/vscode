@@ -469,6 +469,66 @@ suite('SessionTurnChanges', () => {
 		assert.strictEqual(openCount, 1);
 	});
 
+	test('does not leak unhandled rejection when standalone openEditor rejects and onUnexpectedError warn-then-rethrows', async () => {
+		// `_openStandaloneChanges` has no inner try/catch. A lone
+		// `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		let openCalls = 0;
+		const editorService = new class extends mock<IEditorService>() {
+			override async openEditor(): Promise<undefined> {
+				openCalls++;
+				return Promise.reject('boom');
+			}
+		}();
+		const service = disposables.add(new SessionsChatResponseFileChangesService(
+			editorService,
+			new class extends mock<ISessionsManagementService>() {
+				override getSessionForChatResource() {
+					return undefined;
+				}
+			}(),
+			new class extends mock<ISessionsService>() { }(),
+			new class extends mock<ISessionChangesService>() { }(),
+			new class extends mock<IAgentWorkbenchLayoutService>() { }(),
+			createChangesViewService(),
+		));
+		disposables.add(service.registerProvider('test', {
+			getChangesForRequest: () => constObservable([{
+				originalURI: URI.file('/before.ts'),
+				modifiedURI: URI.file('/after.ts'),
+				added: 1,
+				removed: 0,
+				quitEarly: false,
+				identical: false,
+				isFinal: true,
+				isBusy: false,
+			}]),
+		}));
+
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			service.openChangesForRequest(URI.parse('test:session'), 'request', { isLastTurn: false });
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, openCalls, unexpectedWarns }, {
+				unhandledRejections: [],
+				openCalls: 1,
+				unexpectedWarns: ['boom', 'boom'],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
 	test('reads current-turn stats from the Changes view service', () => {
 		const chatResource = URI.parse('chat:session');
 		const chat = upcastPartial<IChat>({
