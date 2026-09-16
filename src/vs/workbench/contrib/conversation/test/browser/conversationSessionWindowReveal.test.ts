@@ -7,7 +7,7 @@ import assert from 'assert';
 import { getActiveElement } from '../../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { timeout } from '../../../../../base/common/async.js';
-import { getErrorMessage } from '../../../../../base/common/errors.js';
+import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -244,6 +244,33 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		return waitForPane(partFor(harness.parts, sessionKey), harness.openErrors, harness.parts);
 	}
 
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void): Promise<void> {
+		// switchLeafSession is async; the void call site still needs `.catch`.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			run();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	}
+
 	test('8 single-leaf reveal A→B→A keeps one visible primary without hide button', async () => {
 		const harness = await createRevealHarness();
 		const { parts, sessionWindowService, rosterService, primaryId } = harness;
@@ -324,6 +351,19 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		assert.strictEqual(partFor(parts, primaryId).sessionKey, primaryId);
 		assert.strictEqual(partFor(parts, c).sessionKey, c);
 		assert.strictEqual(sessionWindowService.isSessionWindowHidden(b), true);
+	});
+
+	test('does not leak unhandled rejection when switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const harness = await createRevealHarness();
+		const pane = await waitForSessionPane(harness, harness.primaryId);
+		assert.ok(pane.leafSessionBarHost);
+		const paintBoom = new Error('switch boom');
+		pane.leafSessionBarHost.switchLeafSession = async () => {
+			throw paintBoom;
+		};
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			pane.leafSessionBarHost!.switchToSession('other-session');
+		});
 	});
 
 	test('10 New Session in stub path becomes the only visible leaf', async () => {
