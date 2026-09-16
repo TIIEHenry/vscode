@@ -356,7 +356,6 @@ import type {
 	UniverseAgentFireTriggerResult,
 	UniverseAgentTrigger,
 	UniverseAgentTriggerDeliveryTarget,
-	UniverseAgentClipboardEntryType,
 	UniverseAgentWriteClipboardRequest,
 	UniverseAgentWriteClipboardResult,
 	UniverseAgentReadClipboardRequest,
@@ -527,10 +526,6 @@ import {
 	type BackResponseWire,
 	type BranchResponseWire,
 	type CancelRemoteSessionResponseWire,
-	type ClipboardClearResponseWire,
-	type ClipboardListResponseWire,
-	type ClipboardReadResponseWire,
-	type ClipboardWriteResponseWire,
 	type CompactResponseWire,
 	type ConfigChangedEventWire,
 	type ConnectResponseWire,
@@ -552,8 +547,6 @@ import {
 	type GetCommandDefResponseWire,
 	type GetFileInfoResponseWire,
 	type GetGlobalUsageResponseWire,
-	type GetMcpServerStatusesResponseWire,
-	type GetMcpServerToolsResponseWire,
 	type GetRemoteSessionHistoryResponseWire,
 	type GetRemoteSessionStatusResponseWire,
 	type GetSessionUsageResponseWire,
@@ -563,10 +556,8 @@ import {
 	type ListConfigsResponseWire,
 	type ListFilesResponseWire,
 	type ListLoopSnapshotsResponseWire,
-	type ListMcpServersResponseWire,
 	type ListNodesResponseWire,
 	type ListPendingResponseWire,
-	type ListPluginsResponseWire,
 	type ListTriggersResponseWire,
 	type MemoryDeleteResponseWire,
 	type MemoryHistoryResponseWire,
@@ -580,7 +571,6 @@ import {
 	type MemorySearchResponseWire,
 	type PairApproveResponseWire,
 	type PairRejectResponseWire,
-	type PluginInfoResponseWire,
 	type PrewarmSessionsResponseWire,
 	type PruneResponseWire,
 	type PtyServerMessageWire,
@@ -743,6 +733,16 @@ import {
 	encodeUpsertProviderCredentialsRequest,
 } from './grpcCatalogUnaryWire.js';
 import {
+	decodeClipboardClearResponse,
+	decodeClipboardListResponse,
+	decodeClipboardReadResponse,
+	decodeClipboardWriteResponse,
+	encodeClipboardClearRequest,
+	encodeClipboardListRequest,
+	encodeClipboardReadRequest,
+	encodeClipboardWriteRequest,
+} from './grpcClipboardUnaryWire.js';
+import {
 	decodeReadGitChangesResponse,
 	decodeReadGitFileDiffResponse,
 	decodeReadGitSummaryResponse,
@@ -754,6 +754,18 @@ import {
 	encodeWriteGitCommitRequest,
 	encodeWriteGitStagePathsRequest,
 } from './grpcGitUnaryWire.js';
+import {
+	decodeGetMcpServerStatusesResponse,
+	decodeGetMcpServerToolsResponse,
+	decodeListMcpServersResponse,
+	decodeListPluginsResponse,
+	decodePluginInfoResponse,
+	encodeGetMcpServerStatusesRequest,
+	encodeGetMcpServerToolsRequest,
+	encodeListMcpServersRequest,
+	encodeListPluginsRequest,
+	encodePluginInfoRequest,
+} from './grpcMcpPluginUnaryWire.js';
 
 function permissionRuleActionWire(action: UniverseAgentPermissionRuleAction): number {
 	switch (action) {
@@ -787,17 +799,6 @@ function permissionPolicyWire(policy: UniverseAgentPermissionPolicy): number {
 			return 2;
 		case 'PERMISSION_POLICY_PERMIT':
 			return 3;
-		default:
-			return 0;
-	}
-}
-
-function clipboardEntryTypeWire(type: UniverseAgentClipboardEntryType): number {
-	switch (type) {
-		case 'CLIPBOARD_FILE_PATH':
-			return 1;
-		case 'CLIPBOARD_URL':
-			return 2;
 		default:
 			return 0;
 	}
@@ -1189,58 +1190,43 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async writeClipboard(request: UniverseAgentWriteClipboardRequest): Promise<UniverseAgentWriteClipboardResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ClipboardWriteResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Clipboard.service,
 			UniverseAgentGrpcServices.Clipboard.Write,
+			decodeClipboardWriteResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-			label: request.label,
-			type: clipboardEntryTypeWire(request.type),
-			content: request.content,
-			file_path: request.filePath,
-			url: request.url,
-		});
-		return mapClipboardWriteResponse(wire);
+		return mapClipboardWriteResponse(await unary(encodeClipboardWriteRequest(request)));
 	}
 
 	async readClipboard(request: UniverseAgentReadClipboardRequest): Promise<UniverseAgentReadClipboardResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ClipboardReadResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Clipboard.service,
 			UniverseAgentGrpcServices.Clipboard.Read,
+			decodeClipboardReadResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			clip_id: request.clipId,
-		});
-		return mapClipboardReadResponse(wire);
+		return mapClipboardReadResponse(await unary(encodeClipboardReadRequest(request)));
 	}
 
 	async listClipboard(request: UniverseAgentListClipboardRequest): Promise<UniverseAgentListClipboardResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ClipboardListResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Clipboard.service,
 			UniverseAgentGrpcServices.Clipboard.List,
+			decodeClipboardListResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-		});
-		return mapClipboardListResponse(wire);
+		return mapClipboardListResponse(await unary(encodeClipboardListRequest(request)));
 	}
 
 	async clearClipboard(request: UniverseAgentClearClipboardRequest): Promise<UniverseAgentClearClipboardResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ClipboardClearResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Clipboard.service,
 			UniverseAgentGrpcServices.Clipboard.Clear,
+			decodeClipboardClearResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-		});
-		return mapClipboardClearResponse(wire);
+		return mapClipboardClearResponse(await unary(encodeClipboardClearRequest(request)));
 	}
 
 	async connectWithDeviceAuth(request: UniverseAgentDeviceAuthConnectRequest): Promise<UniverseAgentConnectResult> {
@@ -2486,67 +2472,53 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async listMcpServers(request: UniverseAgentListMcpServersRequest): Promise<UniverseAgentListMcpServersResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ListMcpServersResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Mcp.service,
 			UniverseAgentGrpcServices.Mcp.ListMcpServers,
+			decodeListMcpServersResponse,
 		);
-		const payload: Record<string, unknown> = {};
-		if (request.workDir) {
-			payload.work_dir = request.workDir;
-		}
-		if (request.enabledOnly !== undefined) {
-			payload.enabled_only = request.enabledOnly;
-		}
-		const wire = await unary(payload);
-		return mapListMcpServersResponse(wire);
+		return mapListMcpServersResponse(await unary(encodeListMcpServersRequest(request)));
 	}
 
 	async getMcpServerStatuses(serverIds?: readonly string[]): Promise<UniverseAgentGetMcpServerStatusesResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, GetMcpServerStatusesResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Mcp.service,
 			UniverseAgentGrpcServices.Mcp.GetMcpServerStatuses,
+			decodeGetMcpServerStatusesResponse,
 		);
-		const payload: Record<string, unknown> = {};
-		if (serverIds && serverIds.length > 0) {
-			payload.server_ids = [...serverIds];
-		}
-		const wire = await unary(payload);
-		return mapGetMcpServerStatusesResponse(wire);
+		return mapGetMcpServerStatusesResponse(await unary(encodeGetMcpServerStatusesRequest(serverIds)));
 	}
 
 	async getMcpServerTools(serverId: string, forceRefresh?: boolean): Promise<UniverseAgentGetMcpServerToolsResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, GetMcpServerToolsResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Mcp.service,
 			UniverseAgentGrpcServices.Mcp.GetMcpServerTools,
+			decodeGetMcpServerToolsResponse,
 		);
-		const wire = await unary({
-			server_id: serverId,
-			force_refresh: forceRefresh === true,
-		});
-		return mapGetMcpServerToolsResponse(wire);
+		return mapGetMcpServerToolsResponse(await unary(encodeGetMcpServerToolsRequest(serverId, forceRefresh)));
 	}
 
 	async listPlugins(): Promise<UniverseAgentListPluginsResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ListPluginsResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Plugin.service,
 			UniverseAgentGrpcServices.Plugin.List,
+			decodeListPluginsResponse,
 		);
-		const wire = await unary({});
-		return mapListPluginsResponse(wire);
+		return mapListPluginsResponse(await unary(encodeListPluginsRequest()));
 	}
 
 	async getPluginInfo(id: string): Promise<UniverseAgentPluginInfoResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, PluginInfoResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Plugin.service,
 			UniverseAgentGrpcServices.Plugin.Info,
+			decodePluginInfoResponse,
 		);
-		const wire = await unary({ plugin_id: id });
-		return mapPluginInfoResponse(wire);
+		return mapPluginInfoResponse(await unary(encodePluginInfoRequest(id)));
 	}
 
 	async enablePlugin(id: string, enabled?: boolean): Promise<UniverseAgentEnablePluginResult> {
