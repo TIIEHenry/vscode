@@ -5,7 +5,8 @@
 
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
-import { getErrorMessage } from '../../../../../base/common/errors.js';
+import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
+import { Event } from '../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -19,17 +20,21 @@ import { IConversationEditorPart, IEditorGroupsService } from '../../../../servi
 import { EditorService } from '../../../../services/editor/browser/editorService.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { HistoryService } from '../../../../services/history/browser/historyService.js';
-import { IHistoryService } from '../../../../services/history/common/history.js';
+import { IHistoryService, MOUSE_BACK_FORWARD_NAVIGATION_SETTING } from '../../../../services/history/common/history.js';
+import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
 import { ConversationChatInput, getConversationChatResource } from '../../common/conversationChatInput.js';
 import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
-import { ConversationNavigationService } from '../../browser/conversationNavigationService.js';
+import { ConversationNavigationContribution } from '../../browser/conversationNavigation.contribution.js';
+import { ConversationNavigationService, IConversationNavigationService } from '../../browser/conversationNavigationService.js';
+import { IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
+import { IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
 import { CONVERSATION_CLOSE_CHILD_ON_BACK_SETTING } from '../../common/conversationNavigation.js';
 import { ConversationDiffReviewInputTypeId } from '../../../sources/common/conversationDiffReviewInput.js';
 import { registerTestConversationDiffReviewEditor } from './conversationDiffReviewTestEditor.js';
 import '../../browser/conversationEditor.contribution.js';
-import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
+import { createEmptyConversationSessionChatService, createNoopConversationSessionWindowService, stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 
 suite('Conversation navigation (S2)', () => {
 
@@ -330,5 +335,181 @@ suite('Conversation navigation (S2)', () => {
 			}
 			return entry.resource.scheme === tabA.resource.scheme && entry.resource.path.includes('hist');
 		}));
+	});
+
+	const SESSION_KEY = 'session-a';
+
+	function mountNavigationContribution() {
+		const sessionBar = document.createElement('div');
+		document.body.appendChild(sessionBar);
+		store.add({ dispose: () => sessionBar.remove() });
+
+		const fakePart = { sessionKey: SESSION_KEY } as IConversationEditorPart;
+		const goBackParts: Array<IConversationEditorPart | undefined> = [];
+		const goForwardParts: Array<IConversationEditorPart | undefined> = [];
+		let closeCalls = 0;
+
+		const instantiationService = workbenchInstantiationService({
+			configurationService: () => new TestConfigurationService({
+				[MOUSE_BACK_FORWARD_NAVIGATION_SETTING]: true,
+			}),
+		}, store);
+		const layoutService = instantiationService.get(IWorkbenchLayoutService);
+		(layoutService as { hasFocus(part: Parts): boolean }).hasFocus = (part: Parts) => part === Parts.CONVERSATION_PART;
+
+		instantiationService.stub(IConversationNavigationService, {
+			_serviceBrand: undefined,
+			onDidChangeStack: Event.None,
+			registerPart: () => ({ dispose: () => { } }),
+			canGoBack: () => true,
+			canGoForward: () => true,
+			goBack: async (part?: IConversationEditorPart) => {
+				goBackParts.push(part);
+				return Promise.reject('boom');
+			},
+			goForward: async (part?: IConversationEditorPart) => {
+				goForwardParts.push(part);
+				return Promise.reject('boom');
+			},
+		});
+		instantiationService.stub(IConversationSessionWindowService, {
+			...createNoopConversationSessionWindowService(),
+			getAllLeafSessionKeys: () => [SESSION_KEY],
+			getLeafSlots: () => ({
+				sessionKey: SESSION_KEY,
+				container: sessionBar,
+				sessionBar,
+				sessionWindow: sessionBar,
+				editorPartHost: sessionBar,
+			}),
+		});
+		instantiationService.stub(IConversationSessionChatService, {
+			...createEmptyConversationSessionChatService(),
+			getConversationPart: () => fakePart,
+			canCloseNonRoot: () => true,
+			closeNonRootTabs: async () => {
+				closeCalls++;
+				return Promise.reject('boom');
+			},
+		});
+
+		store.add(instantiationService.createInstance(ConversationNavigationContribution));
+		const nav = sessionBar.querySelector('.conversation-window-nav');
+		assert.ok(nav);
+		const buttons = [...nav.querySelectorAll('.monaco-button')] as HTMLElement[];
+		assert.strictEqual(buttons.length, 3);
+
+		return {
+			fakePart,
+			goBackParts,
+			goForwardParts,
+			closeCalls: () => closeCalls,
+			layoutService,
+			back: buttons[0],
+			forward: buttons[1],
+			close: buttons[2],
+		};
+	}
+
+	async function assertWarnThenRethrowDoesNotLeak(run: () => void, assertAfter: (unexpectedWarns: unknown[]) => void): Promise<void> {
+		// goBack / goForward / closeNonRootTabs return Promises. A lone
+		// `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			run();
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assertAfter(unexpectedWarns);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	}
+
+	test('does not leak unhandled rejection when window-nav goBack rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const harness = mountNavigationContribution();
+		await assertWarnThenRethrowDoesNotLeak(
+			() => harness.back.click(),
+			unexpectedWarns => {
+				assert.deepStrictEqual({ goBackParts: harness.goBackParts, unexpectedWarns }, {
+					goBackParts: [harness.fakePart],
+					unexpectedWarns: ['boom', 'boom'],
+				});
+			},
+		);
+	});
+
+	test('does not leak unhandled rejection when window-nav goForward rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const harness = mountNavigationContribution();
+		await assertWarnThenRethrowDoesNotLeak(
+			() => harness.forward.click(),
+			unexpectedWarns => {
+				assert.deepStrictEqual({ goForwardParts: harness.goForwardParts, unexpectedWarns }, {
+					goForwardParts: [harness.fakePart],
+					unexpectedWarns: ['boom', 'boom'],
+				});
+			},
+		);
+	});
+
+	test('does not leak unhandled rejection when mouse goBack rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const harness = mountNavigationContribution();
+		await assertWarnThenRethrowDoesNotLeak(
+			() => {
+				harness.layoutService.mainContainer.dispatchEvent(new MouseEvent('mousedown', {
+					button: 3,
+					bubbles: true,
+					cancelable: true,
+				}));
+			},
+			unexpectedWarns => {
+				assert.deepStrictEqual({ goBackParts: harness.goBackParts, unexpectedWarns }, {
+					goBackParts: [undefined],
+					unexpectedWarns: ['boom', 'boom'],
+				});
+			},
+		);
+	});
+
+	test('does not leak unhandled rejection when mouse goForward rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const harness = mountNavigationContribution();
+		await assertWarnThenRethrowDoesNotLeak(
+			() => {
+				harness.layoutService.mainContainer.dispatchEvent(new MouseEvent('mousedown', {
+					button: 4,
+					bubbles: true,
+					cancelable: true,
+				}));
+			},
+			unexpectedWarns => {
+				assert.deepStrictEqual({ goForwardParts: harness.goForwardParts, unexpectedWarns }, {
+					goForwardParts: [undefined],
+					unexpectedWarns: ['boom', 'boom'],
+				});
+			},
+		);
+	});
+
+	test('does not leak unhandled rejection when closeNonRootTabs rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const harness = mountNavigationContribution();
+		await assertWarnThenRethrowDoesNotLeak(
+			() => harness.close.click(),
+			unexpectedWarns => {
+				assert.deepStrictEqual({ closeCalls: harness.closeCalls(), unexpectedWarns }, {
+					closeCalls: 1,
+					unexpectedWarns: ['boom', 'boom'],
+				});
+			},
+		);
 	});
 });
