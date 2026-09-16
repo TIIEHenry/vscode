@@ -537,11 +537,8 @@ import {
 	type ListConfigsResponseWire,
 	type ListLoopSnapshotsResponseWire,
 	type ListNodesResponseWire,
-	type ListPendingResponseWire,
 	type ListTriggersResponseWire,
 	type MemoryRebuildEventWire,
-	type PairApproveResponseWire,
-	type PairRejectResponseWire,
 	type PrewarmSessionsResponseWire,
 	type PruneResponseWire,
 	type PtyServerMessageWire,
@@ -557,7 +554,6 @@ import {
 	type ResolveTurnResponseWire,
 	type ResumeRemoteSessionResponseWire,
 	type RevokeDeviceResponseWire,
-	type RotateTokenResponseWire,
 	type SaveRemoteAgentConfigResponseWire,
 	type SaveSkillContentResponseWire,
 	type SetMaintenanceResponseWire,
@@ -599,6 +595,16 @@ import {
 	encodeHealthCheckRequest,
 	encodeShutdownRequest,
 } from './grpcSystemUnaryWire.js';
+import {
+	decodeListPendingResponse,
+	decodePairApproveResponse,
+	decodePairRejectResponse,
+	decodeRotateTokenResponse,
+	encodeListPendingRequest,
+	encodePairApproveRequest,
+	encodePairRejectRequest,
+	encodeRotateTokenRequest,
+} from './grpcDevicePairUnaryWire.js';
 import {
 	decodeChatResponse,
 	decodeCreateSessionResponse,
@@ -3112,29 +3118,23 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async pairApprove(request: UniverseAgentPairApproveRequest): Promise<UniverseAgentPairApproveResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, PairApproveResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Device.service,
 			UniverseAgentGrpcServices.Device.PairApprove,
+			decodePairApproveResponse,
 		);
-		const wire = await unary({
-			pairing_code: request.pairingCode,
-			display_name: request.displayName,
-			role: request.role,
-		});
-		return mapPairApproveResponse(wire);
+		return mapPairApproveResponse(await unary(encodePairApproveRequest(request)));
 	}
 
 	async pairReject(request: UniverseAgentPairRejectRequest): Promise<UniverseAgentPairRejectResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, PairRejectResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Device.service,
 			UniverseAgentGrpcServices.Device.PairReject,
+			decodePairRejectResponse,
 		);
-		const wire = await unary({
-			pairing_code: request.pairingCode,
-		});
-		return mapPairRejectResponse(wire);
+		return mapPairRejectResponse(await unary(encodePairRejectRequest(request)));
 	}
 
 	async revoke(request: UniverseAgentRevokeRequest): Promise<UniverseAgentRevokeResult> {
@@ -3150,25 +3150,23 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async rotateToken(request: UniverseAgentRotateTokenRequest): Promise<UniverseAgentRotateTokenResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, RotateTokenResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Device.service,
 			UniverseAgentGrpcServices.Device.RotateToken,
+			decodeRotateTokenResponse,
 		);
-		const wire = await unary({
-			device_id: request.deviceId,
-		});
-		return mapRotateTokenResponse(wire);
+		return mapRotateTokenResponse(await unary(encodeRotateTokenRequest(request)));
 	}
 
 	async listPending(): Promise<UniverseAgentListPendingResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ListPendingResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Device.service,
 			UniverseAgentGrpcServices.Device.ListPending,
+			decodeListPendingResponse,
 		);
-		const wire = await unary({});
-		return mapListPendingResponse(wire);
+		return mapListPendingResponse(await unary(encodeListPendingRequest()));
 	}
 
 	async listTriggers(request: UniverseAgentListTriggersRequest): Promise<UniverseAgentListTriggersResult> {
