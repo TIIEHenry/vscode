@@ -14,7 +14,7 @@ import { DiffEditorWidget } from '../../../../editor/browser/widget/diffEditor/d
 import { IEditorOptions } from '../../../../editor/common/config/editorOptions.js';
 import { ITextModel } from '../../../../editor/common/model.js';
 import { IResolvedTextEditorModel, ITextModelService } from '../../../../editor/common/services/resolverService.js';
-import { getErrorMessage } from '../../../../base/common/errors.js';
+import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
 import { localize } from '../../../../nls.js';
 import { CommandsRegistry, ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -130,7 +130,7 @@ export class SourcesDiffPanelView extends ViewPane {
 
 		this._register(this.sourcesDiffPanelService.onDidChangeRef(ref => {
 			this.currentRef = ref;
-			void this.renderRef(ref);
+			void this.renderRef(ref).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(this.uaConnection.onDidChangeConnection(() => {
 			this.updateWriteActions();
@@ -171,16 +171,16 @@ export class SourcesDiffPanelView extends ViewPane {
 		const headerActions = dom.append(this.headerElement, $('.sources-diff-panel-actions'));
 
 		this.stageButton = this.createHeaderAction(headerActions, 'sources-diff-panel-stage', localize('sourcesDiffPanel.stage', "Stage"), () => {
-			void this.runStage();
+			void this.runStage().catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 		this.acceptButton = this.createHeaderAction(headerActions, 'sources-diff-panel-accept', localize('sourcesDiffPanel.accept', "Accept"), () => {
-			void this.runAccept();
+			void this.runAccept().catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 		this.revertButton = this.createHeaderAction(headerActions, 'sources-diff-panel-revert', localize('sourcesDiffPanel.revert', "Revert"), () => {
-			void this.runGitAction(SOURCES_GIT_CLEAN_COMMAND);
+			void this.runGitAction(SOURCES_GIT_CLEAN_COMMAND).catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 		this.unstageButton = this.createHeaderAction(headerActions, 'sources-diff-panel-unstage', localize('sourcesDiffPanel.unstage', "Unstage"), () => {
-			void this.runGitAction(SOURCES_GIT_UNSTAGE_COMMAND);
+			void this.runGitAction(SOURCES_GIT_UNSTAGE_COMMAND).catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 		this.unstageUnavailable = dom.append(headerActions, $('span.sources-diff-panel-unstage-unavailable'));
 		this.unstageUnavailable.textContent = sourcesGitUnstageUnavailableMessage();
@@ -192,7 +192,7 @@ export class SourcesDiffPanelView extends ViewPane {
 		this.actionNoticeElement.style.display = 'none';
 		this.editorContainer = dom.append(this.bodyContainer, $('.sources-diff-panel-editor'));
 
-		void this.renderRef(this.currentRef);
+		void this.renderRef(this.currentRef).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	protected override layoutBody(height: number, width: number): void {
