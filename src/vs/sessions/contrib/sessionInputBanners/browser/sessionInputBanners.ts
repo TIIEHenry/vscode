@@ -5,6 +5,7 @@
 
 import * as dom from '../../../../base/browser/dom.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { autorun, derived, IObservable, ISettableObservable, observableSignalFromEvent, observableValue } from '../../../../base/common/observable.js';
@@ -398,7 +399,7 @@ export class SessionInputBanners extends Disposable {
 		const revealCI: ISessionInputBannerAction = {
 			id: 'revealCI',
 			label: localize('inputBanner.revealCI', "Reveal CI"),
-			run: () => { if (!state.debug) { void this._revealPullRequest(state.pullRequest); } },
+			run: () => { if (!state.debug) { void this._revealPullRequest(state.pullRequest).catch(onUnexpectedError); } },
 		};
 		const revealComments: ISessionInputBannerAction = {
 			id: 'revealComments',
