@@ -12,7 +12,7 @@ import { Action, IAction, Separator } from '../../../../base/common/actions.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { getErrorMessage } from '../../../../base/common/errors.js';
+import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore, disposeIfDisposable, IDisposable, isDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
@@ -277,7 +277,7 @@ export class AgentPluginsListView extends AbstractExtensionsListView<IAgentPlugi
 	private currentQuery = '@agentPlugins';
 	private readonly refreshOnPluginsChangedScheduler = this._register(new RunOnceScheduler(() => {
 		if (this.list) {
-			void this.show(this.currentQuery);
+			void this.show(this.currentQuery).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}, 0));
 	private bodyTemplate: {
