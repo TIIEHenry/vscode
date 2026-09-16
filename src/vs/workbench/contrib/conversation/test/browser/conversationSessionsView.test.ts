@@ -5,7 +5,8 @@
 
 import assert from 'assert';
 import { ActionViewItem } from '../../../../../base/browser/ui/actionbar/actionViewItems.js';
-import { getErrorMessage } from '../../../../../base/common/errors.js';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -25,6 +26,7 @@ import { IEditorService, PreferredGroup } from '../../../../services/editor/comm
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
 import { CONVERSATION_SESSIONS_CONTAINER_ID } from '../../browser/conversation.contribution.js';
 import { CONVERSATION_SESSION_ROW_HEIGHT, CONVERSATION_SESSIONS_DELETE_ENABLED_KEY, CONVERSATION_SESSIONS_DELETE_SESSION_COMMAND_ID, CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from '../../browser/conversationSessionsView.js';
+import { IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
 import { ConversationStubSession } from '../../browser/conversationStubModel.js';
 import { conversationLensSessionBarNewSession } from '../../browser/conversationLensSessionBarStrings.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
@@ -32,7 +34,7 @@ import { conversationSessionsViewEmptyMessage, conversationSessionsViewNoMatches
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { TestLayoutService, TestEditorService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
+import { createNoopConversationSessionWindowService, stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 import '../../../conversation/browser/conversation.contribution.js';
 
 suite('ConversationSessionsView', () => {
@@ -125,6 +127,7 @@ suite('ConversationSessionsView', () => {
 		stubService?: ConversationStubService;
 		conversationVisible?: boolean;
 		connection?: IUniverseAgentConnection;
+		sessionWindowService?: IConversationSessionWindowService;
 	}): {
 		view: ConversationSessionsView;
 		stubService: ConversationStubService;
@@ -160,6 +163,9 @@ suite('ConversationSessionsView', () => {
 			originalFocus();
 		};
 		instantiationService.stub(IConversationPartService, conversationPart);
+		if (options?.sessionWindowService) {
+			instantiationService.stub(IConversationSessionWindowService, options.sessionWindowService);
+		}
 
 		const view = store.add(instantiationService.createInstance(ConversationSessionsView, {
 			id: CONVERSATION_SESSIONS_VIEW_ID,
@@ -983,5 +989,41 @@ suite('ConversationSessionsView', () => {
 
 		assert.deepStrictEqual(errors, []);
 		assert.ok(!stubService.getSessions().some(session => session.id === activeId));
+	});
+
+	test('does not leak unhandled rejection when openSessionBeside warn throws', async () => {
+		// ConversationSessionWindowService.openSessionBeside already catches ensureLeaf;
+		// a lone inner reject does not leak. The void call site still needs `.catch`
+		// when the catch-path warn throws.
+		let warnCalls = 0;
+		const sessionWindowService: IConversationSessionWindowService = {
+			...createNoopConversationSessionWindowService(),
+			openSessionBeside: async () => {
+				try {
+					throw new Error('beside boom');
+				} catch (error) {
+					const message = `[ConversationSessionWindowService] openSessionBeside failed: ${getErrorMessage(error)}`;
+					if (message.includes('openSessionBeside failed')) {
+						warnCalls++;
+						throw new Error('warn failed');
+					}
+				}
+			},
+		};
+		const { view, stubService, focusSpy } = mountView({ sessionWindowService });
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			view.openSessionBeside(stubService.getActiveSessionId());
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, warnCalls }, { unhandledRejections: [], warnCalls: 1 });
+			assert.strictEqual(focusSpy.called, true);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });
