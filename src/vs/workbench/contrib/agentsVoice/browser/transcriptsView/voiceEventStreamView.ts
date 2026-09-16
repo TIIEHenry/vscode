@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as DOM from '../../../../../base/browser/dom.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { autorun } from '../../../../../base/common/observable.js';
 import { localize } from '../../../../../nls.js';
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
@@ -78,7 +79,7 @@ export class VoiceEventStreamViewPane extends ViewPane {
 			const nowIdle = state === 'idle' || state === 'listening';
 			lastState = state;
 			if (wasMidTurn && nowIdle && this.isBodyVisible()) {
-				void this.refresh();
+				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -107,7 +108,7 @@ export class VoiceEventStreamViewPane extends ViewPane {
 			"No events yet. Start a voice conversation to populate this view."
 		);
 
-		void this.refresh();
+		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	protected override layoutBody(height: number, width: number): void {
