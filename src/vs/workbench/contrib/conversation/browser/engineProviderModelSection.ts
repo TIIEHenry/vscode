@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as DOM from '../../../../base/browser/dom.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -182,8 +183,8 @@ export class EngineProviderModelSection extends Disposable {
 	}
 
 	private refresh(): void {
-		void this.refreshProviders();
-		void this.refreshModels();
+		void this.refreshProviders().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.refreshModels().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private hasProviderListHook(): boolean {
@@ -291,7 +292,7 @@ export class EngineProviderModelSection extends Disposable {
 				this.resolveProviderMode(true, entry.support, this.providerListPhase),
 				reason,
 				undefined,
-				() => void this.refreshProviders(),
+				() => void this.refreshProviders().catch(onUnexpectedError).catch(onUnexpectedError),
 			);
 		}
 	}
@@ -425,7 +426,7 @@ export class EngineProviderModelSection extends Disposable {
 				resolveEngineCatalogPaneMode(true, entry.support, this.modelListPhase),
 				reason,
 				undefined,
-				() => void this.refreshModels(),
+				() => void this.refreshModels().catch(onUnexpectedError).catch(onUnexpectedError),
 			);
 		}
 	}
