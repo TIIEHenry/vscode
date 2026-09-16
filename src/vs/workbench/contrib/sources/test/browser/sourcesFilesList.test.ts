@@ -5,10 +5,11 @@
 
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { FileChangeType, FileChangesEvent, IFileService } from '../../../../../platform/files/common/files.js';
-import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
+import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { NullFilesConfigurationService, TestFileService } from '../../../../test/common/workbenchTestServices.js';
 import { IExplorerService } from '../../../files/browser/files.js';
@@ -84,6 +85,32 @@ suite('Sources - Files list leftover honesty', () => {
 		throw new Error('list stayed empty');
 	}
 
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			await run();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	}
+
 	test('first fetchChildren throw paints failure, not empty-workspace success', async function () {
 		const { host } = mountList.call(this, [createThrowingRoot.call(this)]);
 		const empty = await waitForText(host, '.sources-files-empty', 'Unable to read workspace files');
@@ -112,5 +139,52 @@ suite('Sources - Files list leftover honesty', () => {
 		assert.strictEqual(list.length, 1);
 		assert.strictEqual(list.element(0).name, 'leftover.ts');
 		assert.notStrictEqual((host.querySelector('.sources-files-status') as HTMLElement).style.display, 'none');
+	});
+
+	test('does not leak unhandled rejection when refresh catch-path setStatusMessage throws and onUnexpectedError warn-then-rethrows', async function () {
+		// refresh() already catches fetchChildren throw; a lone inner reject does not leak.
+		// The void scheduler call site still needs `.catch` when the catch-path paint throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const root = createStat.call(this, '/project', 'project', true);
+			root._isDirectoryResolved = true;
+			const leftover = createStat.call(this, '/project/src/leftover.ts', 'leftover.ts', false);
+			root.addChild(leftover);
+
+			const { host, widget, explorer } = mountList.call(this, [root]);
+			(host.querySelector('.sources-files-list') as HTMLElement).style.height = '120px';
+			await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesFileEntry> });
+
+			(widget as unknown as { setStatusMessage(message: string | undefined): void }).setStatusMessage = message => {
+				if (message) {
+					throw paintBoom;
+				}
+			};
+			explorer.roots = [createThrowingRoot.call(this)];
+			(widget as unknown as { scheduleRefresh(): void }).scheduleRefresh();
+			(widget as unknown as { refreshScheduler: { flush(): void } }).refreshScheduler.flush();
+		});
+	});
+
+	test('does not leak unhandled rejection when onDidOpen openEditor rejects and onUnexpectedError warn-then-rethrows', async function () {
+		// onDidOpen has no paint path. openEditor reject still needs double catch:
+		// a lone `.catch(onUnexpectedError)` leaks when the handler warn-then-rethrows.
+		const boom = new Error('open boom');
+		await assertWarnThenRethrowDoesNotLeak(boom, async () => {
+			const root = createStat.call(this, '/project', 'project', true);
+			root._isDirectoryResolved = true;
+			const leftover = createStat.call(this, '/project/src/leftover.ts', 'leftover.ts', false);
+			root.addChild(leftover);
+
+			const { host, widget } = mountList.call(this, [root]);
+			(host.querySelector('.sources-files-list') as HTMLElement).style.height = '120px';
+			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesFileEntry> });
+			(widget as unknown as { editorService: { openEditor: (...args: unknown[]) => Promise<unknown> } }).editorService.openEditor = async () => {
+				throw boom;
+			};
+			list.setFocus([0]);
+			list.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
+		});
 	});
 });
