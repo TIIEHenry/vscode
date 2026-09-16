@@ -36,7 +36,7 @@ summary: "关仓 FireTriggerWebhook/InstallSessionDemoFake bytes 与 D542–D549
 |:---|:-----|
 | [D24](deferred-gaps.md) | **仍开**：webhook/demoFake **已** bytes；ClearSessionDemoFake / Get·SetModelPreferences / ResolveTurn / Connect / SaveSkillContent / Watch·Rebuild 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
-| [D542](deferred-gaps.md)–[D549](deferred-gaps.md) | **closed** 本文件 leftover catch；leftover **未**全局完成 |
+| [D542](deferred-gaps.md)–[D550](deferred-gaps.md) | **closed** 本文件 leftover catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |

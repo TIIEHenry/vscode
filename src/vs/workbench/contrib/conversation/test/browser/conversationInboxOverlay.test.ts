@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { CancellationError } from '../../../../../base/common/errors.js';
+import { timeout } from '../../../../../base/common/async.js';
+import { CancellationError, errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
@@ -36,6 +37,74 @@ import { isConversationPairingHold } from '../../browser/conversationSessionStat
 import { ConversationMessageQueueItem } from '../../browser/conversationMessageQueueModel.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+
+declare function __readFileInTests(path: string): Promise<string>;
+
+async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
+	// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	const unexpectedWarns: unknown[] = [];
+	const unhandledRejections: unknown[] = [];
+	const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+	process.on('unhandledRejection', onUnhandledRejection);
+	const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+	setUnexpectedErrorHandler(error => {
+		unexpectedWarns.push(error);
+		if (unexpectedWarns.length === 1) {
+			throw error;
+		}
+	});
+	try {
+		await run();
+		await timeout(0);
+		assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+			unhandledRejections: [],
+			unexpectedWarns: [paintBoom, paintBoom],
+		});
+	} finally {
+		setUnexpectedErrorHandler(originalErrorHandler);
+		process.off('unhandledRejection', onUnhandledRejection);
+	}
+}
+
+function inboxOverlayCatchHost(overlay: ConversationInboxOverlay): {
+	delegate: { showPostFailure: (reason: ConversationComposerPostFailureReason) => void };
+	render: () => void;
+} {
+	return overlay as unknown as {
+		delegate: { showPostFailure: (reason: ConversationComposerPostFailureReason) => void };
+		render: () => void;
+	};
+}
+
+async function assertInboxClickCatchPathDoesNotLeak(
+	overlay: ConversationInboxOverlay,
+	paintBoom: Error,
+	patch: 'showPostFailure' | 'render',
+	run: () => void,
+): Promise<void> {
+	const host = inboxOverlayCatchHost(overlay);
+	if (patch === 'showPostFailure') {
+		const original = host.delegate.showPostFailure;
+		host.delegate.showPostFailure = () => {
+			throw paintBoom;
+		};
+		try {
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, run);
+		} finally {
+			host.delegate.showPostFailure = original;
+		}
+		return;
+	}
+	const originalRender = host.render;
+	host.render = () => {
+		throw paintBoom;
+	};
+	try {
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, run);
+	} finally {
+		host.render = originalRender;
+	}
+}
 
 function stubInboxServices(
 	instantiationService: ReturnType<typeof workbenchInstantiationService>,
@@ -465,6 +534,38 @@ suite('ConversationInboxOverlay Goal', () => {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
+
+	test('does not leak unhandled rejection when Goal click catch-path showPostFailure throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const roster = store.add(new GoalRoster());
+		roster.setGoalResult = false;
+		const overlay = createOverlay(roster, 'Ship the slice', [], undefined, undefined, connectionWithSetSessionGoal());
+		await assertInboxClickCatchPathDoesNotLeak(overlay, paintBoom, 'showPostFailure', () => {
+			getGoalButton(overlay).click();
+		});
+	});
+
+	test('does not leak unhandled rejection when Goal click catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const roster = store.add(new GoalRoster());
+		const overlay = createOverlay(roster, 'Ship the slice', [], undefined, undefined, connectionWithSetSessionGoal());
+		await assertInboxClickCatchPathDoesNotLeak(overlay, paintBoom, 'render', () => {
+			getGoalButton(overlay).click();
+		});
+	});
+
+	test('inbox overlay goal and enqueue fire-and-forget voids double-catch onUnexpectedError', async () => {
+		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationInboxOverlay.ts`);
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		assert.ok(source.includes(`void this.onGoalClicked()${doubleCatch}`));
+		assert.ok(source.includes(`void this.onEnqueueClicked()${doubleCatch};`));
+		assert.ok(!source.includes('void this.onGoalClicked().catch(onUnexpectedError))'));
+		assert.ok(!source.includes('void this.onEnqueueClicked().catch(onUnexpectedError);'));
+		assert.ok(!source.includes('void this.onGoalClicked();'));
+		assert.ok(!source.includes('void this.onEnqueueClicked();'));
+		assert.strictEqual((source.match(/void this\.onGoalClicked\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
+		assert.strictEqual((source.match(/void this\.onEnqueueClicked\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
+	});
 });
 
 suite('ConversationInboxOverlay context ring', () => {
@@ -844,6 +945,27 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('does not leak unhandled rejection when Enqueue click catch-path showPostFailure throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const roster = store.add(new EnqueueRoster());
+		roster.enqueueResult = false;
+		const overlay = createOverlay(roster, 'Nope');
+		const button = getEnqueueButton(openQueuePanel(overlay));
+		await assertInboxClickCatchPathDoesNotLeak(overlay, paintBoom, 'showPostFailure', () => {
+			button.click();
+		});
+	});
+
+	test('does not leak unhandled rejection when Enqueue click catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const roster = store.add(new EnqueueRoster());
+		const overlay = createOverlay(roster, 'later');
+		const button = getEnqueueButton(openQueuePanel(overlay));
+		await assertInboxClickCatchPathDoesNotLeak(overlay, paintBoom, 'render', () => {
+			button.click();
+		});
 	});
 
 	test('connected Inbox does not pose fixture as the engine queue', () => {
