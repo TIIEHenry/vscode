@@ -31,6 +31,7 @@ summary: "A：七条 SendShell/ListNodes/GetNode/Set·ExitMaintenance/ResetError
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **F** | F 已写 Reload wire 未接线。仍勿关本行。 |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
+| **J** | 已写 CheckConnection wire（SessionParams known；capabilities/errors/load unread）未接线。仍勿关本行。 |
 
 子 agent 发现：
 | ID | 问题 |
