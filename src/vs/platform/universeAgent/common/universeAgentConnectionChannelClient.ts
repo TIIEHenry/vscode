@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { IChannel, ProxyChannel } from '../../../base/parts/ipc/common/ipc.js';
@@ -58,9 +59,9 @@ export class UniverseAgentConnectionChannelClient extends Disposable {
 		this.onDidChangeTeamRuntime = this.remote.onDidChangeTeamRuntime;
 		this._register(this.remote.onDidChangeConnection(snapshot => {
 			this.cache.applySnapshot(snapshot);
-			void this.refreshPhaseAndNotify();
+			void this.refreshPhaseAndNotify().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
-		void this.hydrate();
+		void this.hydrate().catch(onUnexpectedError).catch(onUnexpectedError);
 		return createRemoteForwardingProxy(this, this.remote) as this;
 	}
 
