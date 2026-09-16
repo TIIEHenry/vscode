@@ -10,6 +10,7 @@ import { InputBox } from '../../../../base/browser/ui/inputbox/inputBox.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
@@ -569,13 +570,13 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.deviceActionsRow = DOM.append(this.hubDevicesSection, DOM.$('.connection-actions.connection-hub-device-actions'));
 		this.renameDeviceButton = this._register(new Button(this.deviceActionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.renameDeviceButton.label = localize('ua.connectionDeviceRename', "Rename");
-		this._register(this.renameDeviceButton.onDidClick(() => void this.handleRenameSelectedDevice()));
+		this._register(this.renameDeviceButton.onDidClick(() => void this.handleRenameSelectedDevice().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.revokeDeviceButton = this._register(new Button(this.deviceActionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.revokeDeviceButton.label = localize('ua.connectionDeviceRevoke', "Revoke");
-		this._register(this.revokeDeviceButton.onDidClick(() => void this.handleRevokeSelectedDevice()));
+		this._register(this.revokeDeviceButton.onDidClick(() => void this.handleRevokeSelectedDevice().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.rotateTokenButton = this._register(new Button(this.deviceActionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.rotateTokenButton.label = CONNECTION_DEVICE_ROTATE_TOKEN_LABEL;
-		this._register(this.rotateTokenButton.onDidClick(() => void this.handleRotateSelectedDeviceToken()));
+		this._register(this.rotateTokenButton.onDidClick(() => void this.handleRotateSelectedDeviceToken().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.devicesConnectStatus = DOM.append(this.hubDevicesSection, DOM.$('.connection-status.connection-hub-devices-status'));
 		this.devicesConnectStatus.setAttribute('role', 'status');
@@ -599,10 +600,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}));
 		this.confirmDeviceCodeButton = this._register(new Button(deviceCodeRow, defaultButtonStyles));
 		this.confirmDeviceCodeButton.label = localize('ua.connectionConfirmDeviceCode', "Confirm");
-		this._register(this.confirmDeviceCodeButton.onDidClick(() => void this.handleConfirmDeviceCode()));
+		this._register(this.confirmDeviceCodeButton.onDidClick(() => void this.handleConfirmDeviceCode().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.rejectDevicePairButton = this._register(new Button(deviceCodeRow, { ...defaultButtonStyles, secondary: true }));
 		this.rejectDevicePairButton.label = CONNECTION_DEVICE_PAIR_REJECT_LABEL;
-		this._register(this.rejectDevicePairButton.onDidClick(() => void this.handleRejectDevicePair()));
+		this._register(this.rejectDevicePairButton.onDidClick(() => void this.handleRejectDevicePair().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.hubDeviceCodeStatus = DOM.append(this.hubDevicesSection, DOM.$('.connection-status.connection-hub-device-code-status'));
 		this.hubDeviceCodeStatus.setAttribute('role', 'status');
 
@@ -703,7 +704,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.testStatus = DOM.append(testRow, DOM.$('.connection-status.connection-test-status'));
 		this.testStatus.setAttribute('role', 'status');
 		this.testStatus.setAttribute('aria-live', 'polite');
-		this._register(testButton.onDidClick(() => void this.handleTestConnection()));
+		this._register(testButton.onDidClick(() => void this.handleTestConnection().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		const remoteIoHint = DOM.append(testSection, DOM.$('.connection-remote-io-hint'));
 		remoteIoHint.textContent = getConnectionRemoteIoHintCopy();
@@ -757,7 +758,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.renderProfiles();
 			this.applyDesktopConnectionControlVisibility();
 			this.renderHubAccount();
-			void this.refreshEngineDeviceLists();
+			void this.refreshEngineDeviceLists().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this.renderHubAccount();
@@ -768,8 +769,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.applyDesktopConnectionControlVisibility();
 		this.applyNarrowChrome();
 		this.selectZone(this.activeZoneId);
-		void this.initializeState();
-		void this.refreshEngineDeviceLists();
+		void this.initializeState().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.refreshEngineDeviceLists().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private createFieldInput(

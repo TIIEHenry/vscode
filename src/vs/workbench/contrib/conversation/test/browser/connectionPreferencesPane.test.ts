@@ -203,6 +203,44 @@ suite('ConnectionPreferencesPane', () => {
 		return { pane, modalBlock };
 	}
 
+	function poisonTextContent(element: HTMLElement, paintBoom: Error, when: (value: string) => boolean = value => !!value): void {
+		Object.defineProperty(element, 'textContent', {
+			configurable: true,
+			get: () => '',
+			set: (value: string) => {
+				if (when(value)) {
+					throw paintBoom;
+				}
+			},
+		});
+	}
+
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			await run();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	}
+
 	function mountPaneInWorkbench(
 		hubOverrides?: Partial<IUniverseAgentHubService>,
 		connectionOverrides?: Partial<IUniverseAgentConnection>,
@@ -4920,6 +4958,190 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(!(banner.textContent ?? '').includes('rotated'));
 		assert.strictEqual(banner.textContent, connectionDeviceListFailureMessage('list boom'));
 		container.remove();
+	});
+
+	test('does not leak unhandled rejection when constructor initializeState throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			const pane = mountPane({
+				isEncryptionAvailable: () => {
+					throw paintBoom;
+				},
+			});
+			pane.getDomNode().remove();
+		});
+	});
+
+	test('does not leak unhandled rejection when constructor refreshEngineDeviceLists catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const pane = mountPane({
+				getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			}, {
+				isEngineConnected: () => true,
+				listDevices: async () => {
+					throw new Error('list boom');
+				},
+			});
+			const devicesStatus = pane.getDomNode().querySelector('.connection-hub-devices-status') as HTMLElement | null;
+			assert.ok(devicesStatus);
+			poisonTextContent(devicesStatus, paintBoom, value => value === connectionDeviceListFailureMessage('list boom'));
+			await timeout(0);
+			pane.getDomNode().remove();
+		});
+	});
+
+	test('does not leak unhandled rejection when handleTestConnection catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const pane = mountPane(undefined, {
+			probeEngine: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		try {
+			const testStatus = container.querySelector('.connection-test-status') as HTMLElement | null;
+			assert.ok(testStatus);
+			const testButton = container.querySelector('.connection-test-row .monaco-button') as HTMLButtonElement | null;
+			assert.ok(testButton);
+			poisonTextContent(testStatus, paintBoom, value => value === 'boom');
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => testButton.click());
+		} finally {
+			container.remove();
+		}
+	});
+
+	test('does not leak unhandled rejection when handleRenameSelectedDevice catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			renameDevice: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await timeout(0);
+		try {
+			const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement | null;
+			assert.ok(banner);
+			const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+				.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
+			assert.ok(rename);
+			poisonTextContent(banner, paintBoom, value => value === 'boom');
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => rename.click());
+		} finally {
+			container.remove();
+		}
+	});
+
+	test('does not leak unhandled rejection when handleRevokeSelectedDevice catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			revokeDevice: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await timeout(0);
+		try {
+			const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement | null;
+			assert.ok(banner);
+			const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+				.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
+			assert.ok(revoke);
+			poisonTextContent(banner, paintBoom, value => value === 'boom');
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => revoke.click());
+		} finally {
+			container.remove();
+		}
+	});
+
+	test('does not leak unhandled rejection when handleRotateSelectedDeviceToken catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'hub-1', name: 'Hub Studio' })] }),
+		}, {
+			isEngineConnected: () => true,
+			rotateToken: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await timeout(0);
+		try {
+			const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement | null;
+			assert.ok(banner);
+			const rotate = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+				.find(button => button.textContent === CONNECTION_DEVICE_ROTATE_TOKEN_LABEL) as HTMLButtonElement | undefined;
+			assert.ok(rotate);
+			poisonTextContent(banner, paintBoom, value => value === 'boom');
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => rotate.click());
+		} finally {
+			container.remove();
+		}
+	});
+
+	test('does not leak unhandled rejection when handleConfirmDeviceCode catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			confirmDeviceCode: async () => {
+				throw new Error('boom');
+			},
+		}, {
+			isEngineConnected: () => false,
+			pairApprove: async () => ({ success: true, deviceId: '', message: '' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await timeout(0);
+		try {
+			const status = container.querySelector('.connection-hub-device-code-status') as HTMLElement | null;
+			assert.ok(status);
+			const confirm = [...container.querySelectorAll('.connection-hub-device-code .monaco-button')]
+				.find(button => button.textContent === 'Confirm') as HTMLButtonElement | undefined;
+			const codeInput = container.querySelector('.connection-hub-device-code input') as HTMLInputElement | null;
+			assert.ok(confirm);
+			assert.ok(codeInput);
+			codeInput.value = 'ABCD-1234';
+			poisonTextContent(status, paintBoom, value => value === 'boom');
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => confirm.click());
+		} finally {
+			container.remove();
+		}
+	});
+
+	test('does not leak unhandled rejection when handleRejectDevicePair catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('paint boom');
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+		}, {
+			isEngineConnected: () => true,
+			pairReject: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await timeout(0);
+		try {
+			const status = container.querySelector('.connection-hub-device-code-status') as HTMLElement | null;
+			assert.ok(status);
+			const reject = [...container.querySelectorAll('.connection-hub-device-code .monaco-button')]
+				.find(button => button.textContent === CONNECTION_DEVICE_PAIR_REJECT_LABEL) as HTMLButtonElement | undefined;
+			assert.ok(reject);
+			poisonTextContent(status, paintBoom, value => value === 'boom');
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => reject.click());
+		} finally {
+			container.remove();
+		}
 	});
 });
 
