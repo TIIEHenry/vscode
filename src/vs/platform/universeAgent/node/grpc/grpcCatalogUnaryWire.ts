@@ -10,6 +10,8 @@ import type {
 	UniverseAgentListProjectRulesRequest,
 	UniverseAgentListSessionsRequest,
 	UniverseAgentProjectRule,
+	UniverseAgentSwitchModelRequest,
+	UniverseAgentSwitchModelResult,
 	UniverseAgentUpsertProjectRuleRequest,
 	UniverseAgentUpsertProviderCredentialsRequest,
 } from '../../common/universeAgentTypes.js';
@@ -166,6 +168,43 @@ function decodeSessionSummary(bytes: Uint8Array): NonNullable<ListSessionsRespon
 
 export function encodeSessionInfoRequest(sessionId: string): Uint8Array {
 	return encodeStringField(1, sessionId);
+}
+
+/** DeleteSessionRequest.session_id = 1 — same encoder as Session.Info / Resume. */
+export function encodeDeleteSessionRequest(sessionId: string): Uint8Array {
+	return encodeSessionInfoRequest(sessionId);
+}
+
+/** SetPermissionModeRequest.session_id = 1, mode = 2 (SessionToolPermissionModeProto varint). */
+export function encodeSetPermissionModeRequest(sessionId: string, mode: number): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, sessionId),
+		encodeInt32Field(2, mode),
+	]);
+}
+
+/**
+ * SwitchModelRequest.session_id = 1, agent_id = 2;
+ * oneof target.model_type = 10 / model_id = 11 (not sequential 3/4).
+ */
+export function encodeSwitchModelRequest(request: UniverseAgentSwitchModelRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.sessionId),
+		encodeStringField(2, request.agentId),
+		encodeStringField(10, request.modelType),
+		encodeStringField(11, request.modelId),
+	]);
+}
+
+export function decodeSwitchModelResponse(bytes: Uint8Array): UniverseAgentSwitchModelResult {
+	const fields = readProtoFields(bytes);
+	return {
+		resolvedModelId: lastString(fields, 1) ?? '',
+		provider: lastString(fields, 2) ?? '',
+		level: numberOrUndefined(lastVarint(fields, 3)) ?? 0,
+		cost: lastString(fields, 4) ?? '',
+		speed: lastString(fields, 5) ?? '',
+	};
 }
 
 export function decodeSessionInfoResponse(bytes: Uint8Array): SessionInfoResponseWire {

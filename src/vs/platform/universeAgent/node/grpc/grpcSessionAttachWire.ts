@@ -5,6 +5,7 @@
 
 import { generateUuid } from '../../../../base/common/uuid.js';
 import type {
+	UniverseAgentCancelGenerationRequest,
 	UniverseAgentChatResponse,
 	UniverseAgentCreateSessionRequest,
 	UniverseAgentCreateSessionResult,
@@ -12,6 +13,7 @@ import type {
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentHistoryEnvelope,
+	UniverseAgentRenameSessionRequest,
 	UniverseAgentResumeSessionRequest,
 	UniverseAgentResumeSessionResult,
 	UniverseAgentSessionEvent,
@@ -57,6 +59,22 @@ export function decodeCreateSessionResponse(bytes: Uint8Array): UniverseAgentCre
 
 export function encodeResumeSessionRequest(request: UniverseAgentResumeSessionRequest): Uint8Array {
 	return encodeStringField(1, request.sessionId);
+}
+
+/** Agent.Rename — `session_id` = 1, `title` = 2. Empty title omits field 2 (proto3 clear). */
+export function encodeRenameSessionRequest(request: UniverseAgentRenameSessionRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.sessionId),
+		encodeStringField(2, request.title),
+	]);
+}
+
+/** Agent.Cancel — `session_id` = 1, `agent_id` = 2 (same tags as ChatRequest). */
+export function encodeCancelGenerationRequest(request: UniverseAgentCancelGenerationRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.sessionId),
+		encodeStringField(2, request.agentId),
+	]);
 }
 
 export function decodeResumeSessionResponse(bytes: Uint8Array): UniverseAgentResumeSessionResult {

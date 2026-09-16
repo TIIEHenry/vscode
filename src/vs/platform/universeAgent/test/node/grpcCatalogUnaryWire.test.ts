@@ -4,6 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import * as fs from 'fs';
+import { fileURLToPath } from 'url';
+import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { asUnaryProtoBytes } from '../../node/grpc/grpcClientCalls.js';
 import {
@@ -21,7 +24,9 @@ import {
 	decodeProviderStatus,
 	decodeSaveAgentProfileResponse,
 	decodeSessionInfoResponse,
+	decodeSwitchModelResponse,
 	encodeAgentTreeRequest,
+	encodeDeleteSessionRequest,
 	encodeEmptyProtoMessage,
 	encodeListAgentProfilesRequest,
 	encodeListAgentsRequest,
@@ -33,6 +38,9 @@ import {
 	encodeListTeamsRequest,
 	encodeProbeRpcRequest,
 	encodeSaveAgentProfileRequest,
+	encodeSessionInfoRequest,
+	encodeSetPermissionModeRequest,
+	encodeSwitchModelRequest,
 	encodeUpsertProjectRuleRequest,
 	encodeUpsertProviderCredentialsRequest,
 	SESSION_LIST_FILTER_ALL,
@@ -406,4 +414,132 @@ suite('grpc catalog unary protobuf wire', () => {
 		assert.strictEqual(teams.teams[0]?.status, 'ACTIVE');
 		assert.strictEqual(teams.teams[0]?.managerAgentId, 'root');
 	});
+
+	test('encodeDeleteSessionRequest reuses Session.Info session_id field 1, not JSON', () => {
+		const encoded = encodeDeleteSessionRequest('sess-del');
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const info = encodeSessionInfoRequest('sess-del');
+		assert.deepStrictEqual(Buffer.from(encoded), Buffer.from(info));
+		const fields = readProtoFields(encoded);
+		assert.strictEqual(fields[0]?.field, 1);
+		assert.strictEqual(Buffer.from(fields[0]?.wireType === 2 ? fields[0].bytes : []).toString('utf8'), 'sess-del');
+	});
+
+	test('encodeSetPermissionModeRequest writes session_id field 1 and mode varint 2', () => {
+		const encoded = encodeSetPermissionModeRequest('sess-1', 1);
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const strings = new Map<number, string>();
+		const numbers = new Map<number, number>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+			if (field.wireType === 0) {
+				numbers.set(field.field, Number(field.varint));
+			}
+		}
+		assert.strictEqual(strings.get(1), 'sess-1');
+		assert.strictEqual(numbers.get(2), 1);
+	});
+
+	test('encodeSetPermissionModeRequest omits unspecified mode 0', () => {
+		const encoded = encodeSetPermissionModeRequest('sess-1', 0);
+		const numbers = new Map<number, number>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 0) {
+				numbers.set(field.field, Number(field.varint));
+			}
+		}
+		assert.strictEqual(numbers.has(2), false);
+	});
+
+	test('encodeSwitchModelRequest writes oneof model_type field 10, not 3', () => {
+		const encoded = encodeSwitchModelRequest({
+			sessionId: 'sess-1',
+			agentId: 'root',
+			modelType: 'quality',
+			modelId: '',
+		});
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const strings = new Map<number, string>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+		}
+		assert.strictEqual(strings.get(1), 'sess-1');
+		assert.strictEqual(strings.get(2), 'root');
+		assert.strictEqual(strings.get(10), 'quality');
+		assert.strictEqual(strings.has(3), false);
+		assert.strictEqual(strings.has(11), false);
+	});
+
+	test('encodeSwitchModelRequest writes oneof model_id field 11, not 4', () => {
+		const encoded = encodeSwitchModelRequest({
+			sessionId: 'sess-1',
+			agentId: 'root',
+			modelType: '',
+			modelId: 'claude-sonnet',
+		});
+		const strings = new Map<number, string>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+		}
+		assert.strictEqual(strings.get(11), 'claude-sonnet');
+		assert.strictEqual(strings.has(4), false);
+		assert.strictEqual(strings.has(10), false);
+	});
+
+	test('decodeSwitchModelResponse reads resolved_model_id/provider/level/cost/speed', () => {
+		const encoded = Buffer.concat([
+			encodeStringField(1, 'claude-sonnet'),
+			encodeStringField(2, 'anthropic'),
+			encodeInt32Field(3, 7),
+			encodeStringField(4, 'middle'),
+			encodeStringField(5, 'fast'),
+		]);
+		const decoded = decodeSwitchModelResponse(encoded);
+		assert.deepStrictEqual(decoded, {
+			resolvedModelId: 'claude-sonnet',
+			provider: 'anthropic',
+			level: 7,
+			cost: 'middle',
+			speed: 'fast',
+		});
+	});
+
+	test('grpcClient Delete/Rename/Cancel/SetPermissionMode/SwitchModel use bytes; listTools/listSkills stay JSON', () => {
+		const thisDir = path.dirname(fileURLToPath(import.meta.url));
+		const repoRoot = path.join(thisDir, '../../../../../../');
+		const clientPath = path.join(repoRoot, 'src/vs/platform/universeAgent/node/grpc/grpcClient.ts');
+		const source = fs.readFileSync(clientPath, 'utf8');
+		const bytesMethods: Array<{ name: string; encoder: string }> = [
+			{ name: 'deleteSession', encoder: 'encodeDeleteSessionRequest' },
+			{ name: 'renameSession', encoder: 'encodeRenameSessionRequest' },
+			{ name: 'cancelGeneration', encoder: 'encodeCancelGenerationRequest' },
+			{ name: 'setPermissionMode', encoder: 'encodeSetPermissionModeRequest' },
+			{ name: 'switchModel', encoder: 'encodeSwitchModelRequest' },
+		];
+		for (const { name, encoder } of bytesMethods) {
+			const body = extractAsyncMethod(source, name);
+			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
+			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
+			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
+		}
+		for (const name of ['listTools', 'listSkills']) {
+			const body = extractAsyncMethod(source, name);
+			assert.ok(body.includes('makeUnaryClient<'), `${name} must stay JSON this slice`);
+			assert.ok(!body.includes('makeUnaryBytesClient'), `${name} must not migrate this slice`);
+		}
+	});
 });
+
+function extractAsyncMethod(source: string, name: string): string {
+	const start = source.indexOf(`\tasync ${name}(`);
+	assert.ok(start >= 0, `missing async ${name}(`);
+	const nextAsync = source.indexOf('\n\tasync ', start + 1);
+	const end = nextAsync >= 0 ? nextAsync : source.length;
+	return source.slice(start, end);
+}

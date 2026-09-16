@@ -666,9 +666,11 @@ import {
 	decodeGetHistoryResponse,
 	decodeResumeSessionResponse,
 	decodeSessionStreamEvent,
+	encodeCancelGenerationRequest,
 	encodeChatRequest,
 	encodeCreateSessionRequest,
 	encodeGetHistoryRequest,
+	encodeRenameSessionRequest,
 	encodeResumeSessionRequest,
 	encodeSessionStreamHandshake,
 } from './grpcSessionAttachWire.js';
@@ -688,10 +690,12 @@ import {
 	decodeResetAgentProfileResponse,
 	decodeSaveAgentProfileResponse,
 	decodeSessionInfoResponse,
+	decodeSwitchModelResponse,
 	decodeDeleteProjectRuleResponse,
 	encodeAgentTreeRequest,
 	encodeClearProviderCredentialsRequest,
 	encodeDeleteProjectRuleRequest,
+	encodeDeleteSessionRequest,
 	encodeListAgentProfilesRequest,
 	encodeListAgentsRequest,
 	encodeListDevicesRequest,
@@ -705,6 +709,8 @@ import {
 	encodeResetAgentProfileRequest,
 	encodeSaveAgentProfileRequest,
 	encodeSessionInfoRequest,
+	encodeSetPermissionModeRequest,
+	encodeSwitchModelRequest,
 	encodeUpsertProjectRuleRequest,
 	encodeUpsertProviderCredentialsRequest,
 } from './grpcCatalogUnaryWire.js';
@@ -1277,12 +1283,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async deleteSession(request: UniverseAgentDeleteSessionRequest): Promise<void> {
-		const unary = makeUnaryClient<Record<string, unknown>, Record<string, never>>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Session.service,
 			UniverseAgentGrpcServices.Session.Delete,
+			() => undefined,
 		);
-		await unary({ session_id: request.sessionId });
+		await unary(encodeDeleteSessionRequest(request.sessionId));
 	}
 
 	async getSessionInfo(request: UniverseAgentSessionInfoRequest): Promise<UniverseAgentSessionInfoResult> {
@@ -1592,35 +1599,23 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.Rename,
+			decodeResumeSessionResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			title: request.title,
-		});
-		return {
-			ok: wire.success === true,
-			message: wire.message,
-		};
+		return unary(encodeRenameSessionRequest(request));
 	}
 
 	async cancelGeneration(request: UniverseAgentCancelGenerationRequest): Promise<UniverseAgentCancelGenerationResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.Cancel,
+			decodeResumeSessionResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-		});
-		return {
-			ok: wire.success === true,
-			message: wire.message,
-		};
+		return unary(encodeCancelGenerationRequest(request));
 	}
 
 	async cancelToolCall(request: UniverseAgentCancelToolCallRequest): Promise<UniverseAgentCancelToolCallResult> {
@@ -1924,19 +1919,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async setPermissionMode(request: UniverseAgentSetPermissionModeRequest): Promise<UniverseAgentSetPermissionModeResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; error?: string }>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Permission.service,
 			UniverseAgentGrpcServices.Permission.SetPermissionMode,
+			decodeResumeSessionResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			mode: sessionToolPermissionModeWire(request.mode),
-		});
-		return {
-			ok: wire.success === true,
-			message: wire.error,
-		};
+		return unary(encodeSetPermissionModeRequest(request.sessionId, sessionToolPermissionModeWire(request.mode)));
 	}
 
 	async taskUpdate(request: UniverseAgentTaskUpdateRequest): Promise<UniverseAgentTaskUpdateResult> {
@@ -3751,30 +3740,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async switchModel(request: UniverseAgentSwitchModelRequest): Promise<UniverseAgentSwitchModelResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, {
-			resolved_model_id?: string;
-			provider?: string;
-			level?: number;
-			cost?: string;
-			speed?: string;
-		}>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Config.service,
 			UniverseAgentGrpcServices.Config.SwitchModel,
+			decodeSwitchModelResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-			model_type: request.modelType,
-			model_id: request.modelId,
-		});
-		return {
-			resolvedModelId: wire.resolved_model_id ?? '',
-			provider: wire.provider ?? '',
-			level: wire.level ?? 0,
-			cost: wire.cost ?? '',
-			speed: wire.speed ?? '',
-		};
+		return unary(encodeSwitchModelRequest(request));
 	}
 
 	async setModelPreferences(request: UniverseAgentSetModelPreferencesRequest): Promise<UniverseAgentSetModelPreferencesResult> {

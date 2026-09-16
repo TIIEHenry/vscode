@@ -16,6 +16,8 @@ import {
 	encodeChatRequest,
 	encodeCreateSessionRequest,
 	encodeGetHistoryRequest,
+	encodeRenameSessionRequest,
+	encodeCancelGenerationRequest,
 	encodeResumeSessionRequest,
 	encodeSessionStreamHandshake,
 	fetchToolDetailRequestFromHistoryToolCall,
@@ -304,5 +306,43 @@ suite('grpc first-send / attach protobuf wire', () => {
 		assert.strictEqual(fields[0].field, 12);
 		assert.strictEqual(fields[0].wireType, 2);
 		assert.strictEqual(fields[0].wireType === 2 ? fields[0].bytes.length : -1, 0);
+	});
+
+	test('encodeRenameSessionRequest writes session_id field 1 and title field 2, not JSON', () => {
+		const encoded = encodeRenameSessionRequest({ sessionId: 'sess-1', title: 'New title' });
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const strings = new Map<number, string>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+		}
+		assert.strictEqual(strings.get(1), 'sess-1');
+		assert.strictEqual(strings.get(2), 'New title');
+	});
+
+	test('encodeRenameSessionRequest omits empty title field 2', () => {
+		const encoded = encodeRenameSessionRequest({ sessionId: 'sess-1', title: '' });
+		const strings = new Map<number, string>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+		}
+		assert.strictEqual(strings.get(1), 'sess-1');
+		assert.strictEqual(strings.has(2), false);
+	});
+
+	test('encodeCancelGenerationRequest writes session_id field 1 and agent_id field 2, not JSON', () => {
+		const encoded = encodeCancelGenerationRequest({ sessionId: 'sess-1', agentId: 'root' });
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const strings = new Map<number, string>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 2) {
+				strings.set(field.field, Buffer.from(field.bytes).toString('utf8'));
+			}
+		}
+		assert.strictEqual(strings.get(1), 'sess-1');
+		assert.strictEqual(strings.get(2), 'root');
 	});
 });

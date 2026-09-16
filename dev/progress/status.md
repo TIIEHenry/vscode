@@ -39,10 +39,10 @@ summary: "UA chrome visual 已合入；compile-client 0；聚焦测 316 passing�
 | **settings chrome follow-up** | Back-to-Client 先取出 Preferences 服务再关 pane（`await` 后 accessor 已失效）；Direct Address Connect 状态写回本区并先标 Connecting…。已随本轮合入 `loop/merge` |
 | **UA chrome visual** | `bb365bd7d3e` — SessionBar `.is-medium`；Inbox overlay 绝对定位；Engine 断连 CTA 去重；Client 360；Inspect+filter；Sources 空态。不升 PRD。**不是** leftover/pills 完成 |
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。**2026-09-12**：仓外 PIN 已换。grpcurl 复验 **List/Create PASS**（含旧 session-100/101）；**[D25](deferred-gaps.md)/[D26](deferred-gaps.md) 已闭**。同日 seed `provider:state` + `models.json` 后重启，grpcurl **Chat PASS**（`gemini-3.8-flash-high`，`textDelta`=`pong`，`turnComplete`/`end_turn`；无 `MODEL_PROFILE_*`）。这是引擎面证据，不是 IDE Conversation 接通冒烟。未升 PRD-008。引擎 A–F 已合；本仓 **node + `IUniverseAgentConnection` 已挂**。Provider/Rules/Hooks **只读列表**已接（无凭据/规则写表单）。Projects 按会话 `work_dir` 分组、Navigator `ListTeams` 标题、Review 历史 chip **已接**。[m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 进行中（2026-09-16 · A idle、本刀已合；不是 leftover/pills 完成）
+### 进行中（2026-09-16 · A `d24-session-unary-bytes`；不是 leftover/pills 完成）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
-| **A** | — | `idle`；`bb365bd7d3e` 已合入 merge；HEAD 跟 MERGE_SHA |
+| **A** | `d24-session-unary-bytes` | Session.Delete / Agent.Rename·Cancel / Permission.SetPermissionMode / Config.SwitchModel 改 `makeUnaryBytesClient`（request 对照既有 encoder + 钉死 proto 号；SwitchModel oneof `model_type`=10 / `model_id`=11）。listTools/listSkills 仍 JSON。D24 仍开。未 compile。不是 leftover/pills 完成。 |
 | **B/C/D** | — | B 脏 `worktree-pool.md` 跳过 reset；C 脏 `dev/loop` 勿 add、试 ff-only；D 干净 ff-only |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 
@@ -127,7 +127,7 @@ summary: "UA chrome visual 已合入；compile-client 0；聚焦测 316 passing�
 | [D38](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `fillHistory` bind/write 已 catch |
 | [D39](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `requestDetail` bind 已 catch |
 | [D40](deferred-gaps.md) | A 槽 `request-detail-fetch-catch` | **closed** `fetchToolDetail` throw 已 catch 回 `{ok:false}`；host `{ok:false}` 原样返回 |
-| [D24](deferred-gaps.md) | A 槽 `live-rpc-bytes` | **仍开**：`probeRpc` 已 empty proto；`listTools` 仍 JSON；其余活 JSON 缺本仓 proto 字段号未转 |
+| [D24](deferred-gaps.md) | A 槽 `d24-session-unary-bytes` | **仍开**：Delete/Rename/Cancel/SetPermissionMode/SwitchModel 已 bytes；`listTools` 仍 JSON；其余活 JSON 未转 |
 | [D25](deferred-gaps.md) | A 槽 `ghost-bind-failed-ui` | **closed**：host leftover 已收；换钉后 List PASS（含旧卡住目录） |
 | [D26](deferred-gaps.md) | A 槽 host / 引擎仓 | **closed**：Create 新 id + session-100/101 PASS；日志无 schema 卡死。Chat 空 catalog 不并入本行。不要再清 store。未升 PRD-008 |
 | [D37](deferred-gaps.md) | C 槽 `inbox-getqueue-honesty` | **closed** Retry 仍按 `upload` 转发；无 GetQueue 已诚实化（Queue not listed + fixture 不冒充）；活引擎失败行仍不可见记 D24 |
