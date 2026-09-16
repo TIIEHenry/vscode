@@ -9,6 +9,7 @@ import { StandardKeyboardEvent } from '../../../../../base/browser/keyboardEvent
 import { status } from '../../../../../base/browser/ui/aria/aria.js';
 import { SelectBox } from '../../../../../base/browser/ui/selectBox/selectBox.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { KeyCode } from '../../../../../base/common/keyCodes.js';
 import { Disposable, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
@@ -593,7 +594,7 @@ export class DictationOnboardingBanner extends ChatInputNoticeWidget implements 
 		this.renderPicker();
 
 		if (this.mediaDevices) {
-			this._register(dom.addDisposableListener(this.mediaDevices, 'devicechange', () => void this.refreshMicrophones()));
+			this._register(dom.addDisposableListener(this.mediaDevices, 'devicechange', () => void this.refreshMicrophones().catch(onUnexpectedError).catch(onUnexpectedError)));
 		}
 
 		const waveformContainer = dom.append(device, dom.$('.dictation-onboarding-waveform'));
@@ -618,7 +619,7 @@ export class DictationOnboardingBanner extends ChatInputNoticeWidget implements 
 				getLevel: () => readMicrophoneLevel(this.dictationAnalyser, this.dictationWaveform),
 				isAvailable: () => this.dictationAnalyser !== undefined,
 			}, undefined));
-			void this.refreshMicrophones();
+			void this.refreshMicrophones().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 		this.waveform.start();
 		this.logAction('shown');
