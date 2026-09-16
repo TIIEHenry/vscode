@@ -1652,4 +1652,106 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
+
+	async function assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows(options: {
+		readonly buttonLabel: string;
+		readonly needsSelection: boolean;
+		readonly enablePlugin?: IUniverseAgentConnection['enablePlugin'];
+		readonly reloadPlugin?: IUniverseAgentConnection['reloadPlugin'];
+		readonly unloadPlugin?: IUniverseAgentConnection['unloadPlugin'];
+		readonly scanNewPlugins?: IUniverseAgentConnection['scanNewPlugins'];
+	}): Promise<void> {
+		// scanNew / enableSelected / reloadSelected / unloadSelected already catch RPC throw;
+		// a lone inner reject does not leak. The void click site still needs `.catch` when
+		// the catch-path render throws. A lone `.catch(onUnexpectedError)` still leaks when
+		// the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const connection = createConnectionStub({
+				enablePlugin: options.enablePlugin,
+				reloadPlugin: options.reloadPlugin,
+				unloadPlugin: options.unloadPlugin,
+				scanNewPlugins: options.scanNewPlugins,
+			});
+			const section = mountSection(connection);
+			await flushMicrotasks();
+			assert.strictEqual(section.getMode(), 'ready');
+			if (options.needsSelection) {
+				assert.ok(section.selectPluginForTest('demo-plugin'));
+				await flushMicrotasks();
+			}
+			const status = (section as unknown as { status: { render(renderOptions: { readonly mode: string }): void } }).status;
+			const originalRender = status.render.bind(status);
+			status.render = (renderOptions: { readonly mode: string }) => {
+				if (renderOptions.mode === 'failed') {
+					throw paintBoom;
+				}
+				originalRender(renderOptions);
+			};
+			const button = Array.from(section.getDomNode().querySelectorAll('.monaco-button'))
+				.find(el => (el.textContent ?? '').includes(options.buttonLabel)) as HTMLElement | undefined;
+			assert.ok(button, `${options.buttonLabel} write button must be painted`);
+			button.click();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+			section.getDomNode().parentElement?.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	}
+
+	test('does not leak unhandled rejection when scanNew catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+		await assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows({
+			buttonLabel: 'Scan New',
+			needsSelection: false,
+			scanNewPlugins: async () => {
+				throw new Error('scan boom');
+			},
+		});
+	});
+
+	test('does not leak unhandled rejection when enableSelected catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+		await assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows({
+			buttonLabel: 'Enable',
+			needsSelection: true,
+			enablePlugin: async () => {
+				throw new Error('enable boom');
+			},
+		});
+	});
+
+	test('does not leak unhandled rejection when reloadSelected catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+		await assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows({
+			buttonLabel: 'Reload',
+			needsSelection: true,
+			reloadPlugin: async () => {
+				throw new Error('reload boom');
+			},
+		});
+	});
+
+	test('does not leak unhandled rejection when unloadSelected catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+		await assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows({
+			buttonLabel: 'Unload',
+			needsSelection: true,
+			unloadPlugin: async () => {
+				throw new Error('unload boom');
+			},
+		});
+	});
 });

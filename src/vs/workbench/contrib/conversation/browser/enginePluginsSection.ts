@@ -216,7 +216,7 @@ export class EnginePluginsSection extends Disposable {
 		this.writeToolbar.style.display = 'none';
 		this.scanNewButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
 		this.scanNewButton.label = localize('ua.enginePluginsScanNew', "Scan New");
-		this._register(this.scanNewButton.onDidClick(() => void this.scanNew()));
+		this._register(this.scanNewButton.onDidClick(() => void this.scanNew().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.scanResult = DOM.append(this.container, $('.engine-catalog-description.engine-plugins-scan-result'));
 		this.scanResult.setAttribute('role', 'status');
@@ -235,13 +235,13 @@ export class EnginePluginsSection extends Disposable {
 		this.rowToolbar.style.display = 'none';
 		this.enableButton = this._register(new Button(this.rowToolbar, defaultButtonStyles));
 		this.enableButton.label = localize('ua.enginePluginsEnable', "Enable");
-		this._register(this.enableButton.onDidClick(() => void this.enableSelected()));
+		this._register(this.enableButton.onDidClick(() => void this.enableSelected().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.reloadButton = this._register(new Button(this.rowToolbar, { ...defaultButtonStyles, secondary: true }));
 		this.reloadButton.label = localize('ua.enginePluginsReload', "Reload");
-		this._register(this.reloadButton.onDidClick(() => void this.reloadSelected()));
+		this._register(this.reloadButton.onDidClick(() => void this.reloadSelected().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.unloadButton = this._register(new Button(this.rowToolbar, { ...defaultButtonStyles, secondary: true }));
 		this.unloadButton.label = localize('ua.enginePluginsUnload', "Unload");
-		this._register(this.unloadButton.onDidClick(() => void this.unloadSelected()));
+		this._register(this.unloadButton.onDidClick(() => void this.unloadSelected().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.infoStatus = this._register(new EngineCatalogStatusWidget(this.container));
 		this.hooksTable = DOM.append(this.container, $('table.engine-plugins-hooks-table')) as HTMLTableElement;
