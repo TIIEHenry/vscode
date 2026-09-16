@@ -145,14 +145,14 @@ export class SessionsChatResponseFileChangesService extends AbstractChatResponse
 			return;
 		}
 		const source = URI.parse(`multi-diff-editor:${Date.now().toString()}-${Math.random().toString(36).slice(2)}`);
-		this._editorService.openEditor({
+		void this._editorService.openEditor({
 			multiDiffSource: source,
 			label: localize('chatTurnPills.changes.title', "Turn File Changes"),
 			resources: diffs.map(diff => ({
 				original: { resource: diff.originalURI },
 				modified: { resource: diff.modifiedURI },
 			})),
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _isMostRecentChat(session: ISession, chat: IChat, reader?: IReader): boolean {
