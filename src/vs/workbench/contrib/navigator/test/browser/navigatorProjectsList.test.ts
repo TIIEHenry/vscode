@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -554,6 +556,8 @@ suite('NavigatorProjectsView', () => {
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
 		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
 		try {
 			openTreeNode(view, folderNode, new MouseEvent('click'));
 			await flushMicrotasks();
@@ -568,6 +572,81 @@ suite('NavigatorProjectsView', () => {
 			assert.strictEqual(openWindowCalls.length, 1);
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when openWindow rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const folderUri = URI.file('/projects/open-window-rethrow');
+		const contextService = new TestContextService(testWorkspace(folderUri));
+		let openWindowCalls = 0;
+		const view = await mountView({
+			contextService,
+			patchHost: host => {
+				host.openWindow = async () => {
+					openWindowCalls++;
+					return Promise.reject('boom');
+				};
+			},
+		});
+		const folderNode = findTreeNode(getViewTreeNodes(view), node => node.kind === 'local-folder');
+		assert.ok(folderNode, 'local-folder node must exist');
+
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			openTreeNode(view, folderNode, new MouseEvent('click'));
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, openWindowCalls, unexpectedWarns }, {
+				unhandledRejections: [],
+				openWindowCalls: 1,
+				unexpectedWarns: ['boom', 'boom'],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when rebuildTree rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const view = await mountView();
+		let rebuildCalls = 0;
+		(view as unknown as { rebuildTree(): Promise<void> }).rebuildTree = async () => {
+			rebuildCalls++;
+			return Promise.reject('boom');
+		};
+
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			(view as unknown as { refresh(): void }).refresh();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, rebuildCalls, unexpectedWarns }, {
+				unhandledRejections: [],
+				rebuildCalls: 1,
+				unexpectedWarns: ['boom', 'boom'],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});

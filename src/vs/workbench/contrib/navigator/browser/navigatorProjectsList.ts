@@ -8,7 +8,7 @@ import * as dom from '../../../../base/browser/dom.js';
 import { RenderIndentGuides } from '../../../../base/browser/ui/tree/abstractTree.js';
 import { ITreeNode, ITreeRenderer } from '../../../../base/browser/ui/tree/tree.js';
 import { IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
-import { getErrorMessage } from '../../../../base/common/errors.js';
+import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
 import { splitRecentLabel } from '../../../../base/common/labels.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -294,12 +294,12 @@ export class NavigatorProjectsView extends ViewPane {
 				forceNewWindow: !!(mouseEvent && (mouseEvent.ctrlKey || mouseEvent.metaKey)),
 				forceReuseWindow: !!(mouseEvent && mouseEvent.altKey),
 				remoteAuthority: node.remoteAuthority ?? null,
-			}).catch(() => undefined);
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
 	private refresh(): void {
-		void this.rebuildTree();
+		void this.rebuildTree().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async rebuildTree(): Promise<void> {
