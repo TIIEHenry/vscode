@@ -105,7 +105,8 @@ export class UniverseAgentConnectionChannelClient extends Disposable {
 	}
 
 	requestAgentTreeRefresh(sessionId: string): void {
-		void this.remote.requestAgentTreeRefresh(sessionId);
+		// Interface is void; ProxyChannel.toService still returns a Promise.
+		void Promise.resolve(this.remote.requestAgentTreeRefresh(sessionId)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	/**

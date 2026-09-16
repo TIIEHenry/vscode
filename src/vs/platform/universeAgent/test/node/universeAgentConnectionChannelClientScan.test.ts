@@ -29,4 +29,16 @@ suite('UniverseAgentConnectionChannelClient fire-and-forget scan', () => {
 		assert.ok(!source.includes('void this.refreshPhaseAndNotify().catch(onUnexpectedError);'));
 		assert.ok(!source.includes('void this.hydrate().catch(onUnexpectedError);'));
 	});
+
+	test('requestAgentTreeRefresh remote void is double-caught (D561)', () => {
+		// Typed void on IUniverseAgentConnection; ProxyChannel still returns a Promise.
+		const source = fs.readFileSync(CHANNEL_CLIENT_PATH, 'utf8');
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const doubleCaught = `void Promise.resolve(this.remote.requestAgentTreeRefresh(sessionId))${doubleCatch};`;
+		assert.ok(source.includes(doubleCaught));
+		assert.strictEqual((source.match(/void Promise\.resolve\(this\.remote\.requestAgentTreeRefresh\(sessionId\)\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.ok(!source.includes('void this.remote.requestAgentTreeRefresh(sessionId);'));
+		assert.ok(!source.includes('void this.remote.requestAgentTreeRefresh(sessionId).catch(onUnexpectedError);'));
+		assert.ok(!source.includes(`void this.remote.requestAgentTreeRefresh(sessionId)${doubleCatch}`));
+	});
 });
