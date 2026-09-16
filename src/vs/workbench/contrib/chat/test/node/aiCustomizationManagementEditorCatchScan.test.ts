@@ -81,3 +81,38 @@ suite('AICustomizationManagementEditor leftover fire-and-forget catch scan (D566
 		assert.ok(!source.includes('await this.showEmbeddedEditor(fileUri, fileName, PromptsType.instructions, PromptsStorage.local, true).catch(onUnexpectedError)'));
 	});
 });
+
+suite('AICustomizationManagementEditor leftover save / editor-action catch scan (D582)', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('handleEditorActionButton / saveExistingCustomization / saveBuiltinPromptCopy rejection paths double-catch onUnexpectedError', () => {
+		// Single-layer console.error+notification still leaks when mocha's unexpected handler warn-then-rethrows.
+		const source = fs.readFileSync(editorSourcePath(), 'utf8');
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const doubleHandle = `void this.handleEditorActionButton()${doubleCatch};`;
+		const doubleSaveExisting = `void this.saveExistingCustomization(saveRequest)${doubleCatch};`;
+		const doubleSaveBuiltin = `void this.saveBuiltinPromptCopy(saveRequest).then(() => {\n\t\t\t\t\tvoid this.listWidget?.refresh();\n\t\t\t\t})${doubleCatch};`;
+
+		assert.ok(source.includes("import { getErrorMessage, onUnexpectedError } from '../../../../../base/common/errors.js';"));
+		assert.strictEqual((source.match(/void this\.handleEditorActionButton\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.strictEqual((source.match(/void this\.saveExistingCustomization\(saveRequest\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.strictEqual((source.match(/void this\.saveBuiltinPromptCopy\(saveRequest\)\.then\(\(\) => \{\s*void this\.listWidget\?\.refresh\(\);\s*\}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.ok(source.includes(doubleHandle));
+		assert.ok(source.includes(doubleSaveExisting));
+		assert.ok(source.includes(doubleSaveBuiltin));
+		assert.ok(source.includes('await this.saveBuiltinPromptCopy(saveRequest);'));
+		assert.ok(source.includes('void this.listWidget?.refresh();'));
+		assert.ok(!source.includes('void this.handleEditorActionButton().catch(error => {'));
+		assert.ok(!source.includes('void this.saveExistingCustomization(saveRequest).catch(error => {'));
+		assert.ok(!source.includes('void this.handleEditorActionButton().catch(onUnexpectedError);'));
+		assert.ok(!source.includes('void this.saveExistingCustomization(saveRequest).catch(onUnexpectedError);'));
+		assert.ok(!source.includes("console.error('Failed to handle editor back action:'"));
+		assert.ok(!source.includes("console.error('Failed to save customization changes on exit:'"));
+		assert.ok(!source.includes(', error => {\n\t\t\t\t\tconsole.error(\'Failed to save built-in override:\''));
+		assert.ok(source.includes("console.error('Failed to save built-in override:', error);"));
+		assert.ok(source.includes("console.error('Failed to load model for embedded editor:', error);"));
+		assert.strictEqual((source.match(/void this\.refreshCustomizationMigrationInfo\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 6);
+		assert.strictEqual((source.match(/void this\.listWidget\.setSection\([^)]+\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 3);
+	});
+});

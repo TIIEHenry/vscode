@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "merge 关仓：leftover D568–D575 关各 call site。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
+summary: "工位 I：customization save 三处单层 catch 改双链；D582 只关这些 call site。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -26,6 +26,7 @@ summary: "merge 关仓：leftover D568–D575 关各 call site。compile-client 
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **I** | `loop/I-d24-customization-save-leftover`：三处 save/action 单层 catch 改双链；[D582](deferred-gaps.md) 只关这些 call site；未 commit；compile-client 0 |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
@@ -35,7 +36,7 @@ summary: "merge 关仓：leftover D568–D575 关各 call site。compile-client 
 |:---|:-----|
 | [D24](deferred-gaps.md) | **仍开**：Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
-| [D550](deferred-gaps.md)–[D575](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
+| [D550](deferred-gaps.md)–[D575](deferred-gaps.md)/[D582](deferred-gaps.md) | **closed** leftover catch（D582 只关 save 三处）；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |
