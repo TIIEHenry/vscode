@@ -245,7 +245,7 @@ export class EngineToolsSection extends Disposable {
 		this.writeToolbar.style.display = 'none';
 		this.saveButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
 		this.saveButton.label = localize('ua.engineToolsSave', "Save");
-		this._register(this.saveButton.onDidClick(() => void this.savePendingEnablement()));
+		this._register(this.saveButton.onDidClick(() => void this.savePendingEnablement().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.catalogWriteStatus = DOM.append(this.container, $('.engine-catalog-write-status'));
 		this.catalogWriteStatus.setAttribute('role', 'status');
 		this.catalogWriteStatus.setAttribute('aria-live', 'polite');
