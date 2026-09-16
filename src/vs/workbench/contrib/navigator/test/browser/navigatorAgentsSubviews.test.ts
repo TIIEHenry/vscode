@@ -136,6 +136,9 @@ suite('Navigator Agents subviews', () => {
 		actionSpies?: {
 			revealCalls?: Array<{ sessionKey: string; chatId: string; title?: string }>;
 			inspectOpenCalls?: Array<{ id: string; focus: boolean | undefined }>;
+			openSubAgent?: (sessionKey: string, chatId: string, title?: string) => Promise<void>;
+			openView?: <T>(id: string, focus?: boolean) => Promise<T | null>;
+			notificationError?: (message: string | Error) => void;
 		},
 	): NavigatorAgentsView {
 		const instantiationService = workbenchInstantiationService(undefined, store);
@@ -152,14 +155,21 @@ suite('Navigator Agents subviews', () => {
 				navigateAgentBreadcrumb: async () => { },
 				openSubAgent: async (sessionKey: string, chatId: string, title?: string) => {
 					spies.revealCalls?.push({ sessionKey, chatId, title });
+					await spies.openSubAgent?.(sessionKey, chatId, title);
 				},
 			} as unknown as IConversationSessionChatService);
 			instantiationService.stub(IConversationPartService, { focus: () => { } } as IConversationPartService);
-			if (spies.inspectOpenCalls) {
+			if (spies.notificationError) {
+				instantiationService.stub(INotificationService, {
+					error: spies.notificationError,
+					info: () => { },
+				} as unknown as INotificationService);
+			}
+			if (spies.inspectOpenCalls || spies.openView) {
 				class TrackingViewsService extends TestViewsService {
 					override openView<T>(id: string, focus?: boolean): Promise<T | null> {
-						spies.inspectOpenCalls!.push({ id, focus });
-						return Promise.resolve(null);
+						spies.inspectOpenCalls?.push({ id, focus });
+						return spies.openView ? spies.openView(id, focus) : Promise.resolve(null);
 					}
 					dispose(): void { }
 				}
@@ -1964,6 +1974,96 @@ suite('Navigator Agents subviews', () => {
 			await timeout(0);
 			assert.strictEqual(executeCommandCalls, 1);
 			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when revealHierarchyNode error-path throws', async () => {
+		let errorCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const view = mountAgentsView(undefined, undefined, undefined, async () => undefined, {
+				openSubAgent: async () => {
+					throw new Error('overlay boom');
+				},
+				notificationError: () => {
+					errorCalls++;
+					throw new Error('error failed');
+				},
+			});
+			view.revealHierarchyNode(hierarchyNode('sub:alpha', 'Alpha'));
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, errorCalls }, { unhandledRejections: [], errorCalls: 1 });
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when hierarchy row-open error-path throws', async () => {
+		let errorCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const view = mountAgentsView(undefined, undefined, undefined, async () => undefined, {
+				openSubAgent: async () => {
+					throw new Error('overlay boom');
+				},
+				notificationError: () => {
+					errorCalls++;
+					throw new Error('error failed');
+				},
+			});
+			setHierarchyEntries(view, [{ id: 'sub:alpha', label: 'Alpha' }]);
+			const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> }).hierarchyTree;
+			const node = hierarchyTree.getNode(null)?.children[0]?.element;
+			assert.ok(node);
+			await forceOpenHierarchyRow(view, node);
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, errorCalls }, { unhandledRejections: [], errorCalls: 1 });
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when inspect openView rejects and onUnexpectedError warn-then-rethrows', async () => {
+		let openCalls = 0;
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const view = mountAgentsView(undefined, undefined, undefined, async () => undefined, {
+				inspectOpenCalls: [],
+				openView: async () => {
+					openCalls++;
+					return Promise.reject('boom');
+				},
+			});
+			view.inspectHierarchyNode(hierarchyNode('sub:alpha', 'Alpha'));
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, openCalls, unexpectedWarns }, {
+				unhandledRejections: [],
+				openCalls: 1,
+				unexpectedWarns: ['boom', 'boom'],
+			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
