@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
@@ -4531,5 +4533,102 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		await section.toggleServerForTest('stdio-demo', false);
 		assertMcpWriteFailureKeepsRows(section, 'toggle exploded', 1);
 		assert.ok(listMcpServersCalls >= 2);
+	});
+
+	test('does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+		// refresh() already catches list throw; a lone inner reject does not leak.
+		// The void call site still needs `.catch` when the catch-path render throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { mcp: { support: 'SUPPORTED' } },
+				listMcpServers: async () => {
+					throw new Error('list boom');
+				},
+			});
+			const section = mountMcpSection(connection);
+			const status = (section as unknown as { status: { render(options: { readonly mode: string }): void } }).status;
+			const originalRender = status.render.bind(status);
+			status.render = (options: { readonly mode: string }) => {
+				if (options.mode === 'failed') {
+					throw paintBoom;
+				}
+				originalRender(options);
+			};
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+			section.getDomNode().parentElement?.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when removeSelectedServer catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		// removeSelectedServer() already catches RPC throw; a lone inner reject does not leak.
+		// The void call site still needs `.catch` when the catch-path paint throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { mcp: { support: 'SUPPORTED' } },
+				listMcpServers: async () => ({ servers: [demoMcpServer()] }),
+				removeMcpServer: async () => {
+					throw new Error('remove boom');
+				},
+			});
+			const section = mountMcpSection(connection);
+			await flushMicrotasks();
+			assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
+			const status = (section as unknown as { status: { render(options: { readonly mode: string }): void } }).status;
+			const originalRender = status.render.bind(status);
+			status.render = (options: { readonly mode: string }) => {
+				if (options.mode === 'failed') {
+					throw paintBoom;
+				}
+				originalRender(options);
+			};
+			const remove = Array.from(section.getDomNode().querySelectorAll('.monaco-button'))
+				.find(button => (button.textContent ?? '').includes('Remove')) as HTMLElement | undefined;
+			assert.ok(remove, 'Remove write button must be painted');
+			remove.click();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+			section.getDomNode().parentElement?.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });

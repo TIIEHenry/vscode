@@ -8,6 +8,7 @@ import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -255,13 +256,13 @@ export class EngineMcpSection extends Disposable {
 		this.writeToolbar.style.display = 'none';
 		const addButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
 		addButton.label = localize('ua.engineMcpAdd', "Add");
-		this._register(addButton.onDidClick(() => void this.addServer()));
+		this._register(addButton.onDidClick(() => void this.addServer().catch(onUnexpectedError).catch(onUnexpectedError)));
 		const updateButton = this._register(new Button(this.writeToolbar, { ...defaultButtonStyles, secondary: true }));
 		updateButton.label = localize('ua.engineMcpUpdate', "Update");
-		this._register(updateButton.onDidClick(() => void this.updateSelectedServer()));
+		this._register(updateButton.onDidClick(() => void this.updateSelectedServer().catch(onUnexpectedError).catch(onUnexpectedError)));
 		const removeButton = this._register(new Button(this.writeToolbar, { ...defaultButtonStyles, secondary: true }));
 		removeButton.label = localize('ua.engineMcpRemove', "Remove");
-		this._register(removeButton.onDidClick(() => void this.removeSelectedServer()));
+		this._register(removeButton.onDidClick(() => void this.removeSelectedServer().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.catalogWriteStatus = DOM.append(this.definitionsPanel, $('.engine-catalog-write-status'));
 		this.catalogWriteStatus.setAttribute('role', 'status');
 		this.catalogWriteStatus.setAttribute('aria-live', 'polite');
@@ -273,12 +274,12 @@ export class EngineMcpSection extends Disposable {
 		this.runtimePanel = this._register(instantiationService.createInstance(EngineMcpRuntimePanel, this.runtimePanelHost));
 
 		this._register(this.connection.onDidChangeConnection(() => {
-			void this.refresh();
+			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 			this.runtimePanel.render();
 		}));
 
 		this.setActiveTab('definitions');
-		void this.refresh();
+		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private setActiveTab(tab: EngineMcpTab): void {
@@ -480,7 +481,7 @@ export class EngineMcpSection extends Disposable {
 			mode: 'failed',
 			featureLabel: MCP_FEATURE,
 			reason,
-			onRetry: () => void this.refresh(),
+			onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
 		});
 	}
 
@@ -622,7 +623,7 @@ export class EngineMcpSection extends Disposable {
 			this.writeToolbar.style.display = 'none';
 			this.renderStatus({
 				reason: error instanceof Error ? error.message : undefined,
-				onRetry: () => void this.refresh(),
+				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 			if (leftoverAfterList) {
 				this.closeLeftoverRowToggleChrome();
@@ -637,7 +638,7 @@ export class EngineMcpSection extends Disposable {
 				mode: 'failed',
 				featureLabel: MCP_FEATURE,
 				reason: this.writeFailedReason,
-				onRetry: () => void this.refresh(),
+				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 			return;
 		}
