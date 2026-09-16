@@ -414,7 +414,10 @@ export function registerMcpInlineButtonAction(store: Pick<DisposableStore, 'add'
 	store.add(DOM.addDisposableGenericMouseDownListener(button.element, event => DOM.EventHelper.stop(event, true)));
 	store.add(button.onDidClick(event => {
 		DOM.EventHelper.stop(event, true);
-		void action();
+		const result = action();
+		if (result instanceof Promise) {
+			void result.catch(onUnexpectedError).catch(onUnexpectedError);
+		}
 	}));
 }
 
@@ -1794,7 +1797,7 @@ export class McpListWidget extends Disposable {
 		const install = this.cardDisposables.add(new Button(actions, { ...defaultButtonStyles, ariaLabel: localize('installMcpServerAria', "Install {0}", server.label) }));
 		install.element.classList.add('plugin-list-item-install-button');
 		install.label = localize('install', "Install");
-		this.cardDisposables.add(install.onDidClick(() => this.installMarketplaceServer(server, install)));
+		this.cardDisposables.add(install.onDidClick(() => void this.installMarketplaceServer(server, install).catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.cardListControllers.get(parent)?.addItem({
 			row,
 			primaryAction,
@@ -1815,7 +1818,7 @@ export class McpListWidget extends Disposable {
 		const actions = DOM.append(header, $('.plugin-card-actions'));
 		const install = this.cardDisposables.add(new Button(actions, { ...defaultButtonStyles, ariaLabel: localize('installMcpServerAria', "Install {0}", server.label) }));
 		install.label = localize('install', "Install");
-		this.cardDisposables.add(install.onDidClick(() => this.installMarketplaceServer(server, install)));
+		this.cardDisposables.add(install.onDidClick(() => void this.installMarketplaceServer(server, install).catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.cardListControllers.get(parent)?.addItem({
 			row: card,
 			primaryAction: titleBlock,
