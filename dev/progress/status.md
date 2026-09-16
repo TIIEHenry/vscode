@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "A 未提交：HealthCheck/Shutdown + ContextVariable List/Read 已 bytes。SaveSkillContent/Rebuild 仍 JSON。D24 仍开。D487 open。不是 leftover/pills 完成。R9/D405 仍开"
+summary: "A HealthCheck/Shutdown + ContextVariable List/Read 已 bytes。F TokenUsage GetSession/GetGlobal wire 未接线。SaveSkillContent/Rebuild/Config 仍 JSON。D24 仍开。D487 open。D493–D497 closed。不是 leftover/pills 完成。R9/D405 仍开"
 ---
 
 # Development Progress
@@ -14,16 +14,23 @@ summary: "A 未提交：HealthCheck/Shutdown + ContextVariable List/Read 已 byt
 | 切片 | 提交 / 落点 |
 |:-----|:------------|
 | **A ChatSync/Team bytes** | `ddee1c48559` — grpcClient ChatSync/SyncInputDelivery + Team 七 mutator **已** bytes；当时 Health/Rebuild 仍 JSON。[D24](deferred-gaps.md) **仍开**。[D487](deferred-gaps.md) **open** |
-| **F Health/Shutdown wire** | `a03f9dee89c` — `grpcSystemUnaryWire` + 测；当时 **未接线** grpcClient。禁止 Doctor/Connect |
-| **G ContextVariable wire** | `73fae14032c` — **已提交** `grpcContextVariableUnaryWire` List+Read + 测；当时 **未接线** grpcClient；**勿 add `out`**；不是 D482 |
-| **C–J D493–D497** | Clipboard / Context Variables refresh / conversation nav / Projects / banners void catch **closed** |
+| **A Health/ContextVariable bytes** | `13058933d22` — `healthCheck`/`shutdown`/`listContextVariable`/`readContextVariable` **已** `makeUnaryBytesClient` + wire，decode 后仍 map*。SaveSkillContent/Rebuild 仍 JSON |
+| **F Health/Shutdown wire** | `a03f9dee89c` — `grpcSystemUnaryWire` + 测；当时 **未接线**；现已由 A 接线。禁止 Doctor/Connect |
+| **F TokenUsage wire** | `1321cb39cbb` — `grpcTokenUsageUnaryWire` GetSessionUsage+GetGlobalUsage encode/decode + 测；GetGlobalUsageRequest **空 payload**（reserved 1-10 不发明字段）；**未接线** grpcClient |
+| **G ContextVariable wire** | `73fae14032c` — **已提交** `grpcContextVariableUnaryWire` List+Read + 测；当时 **未接线**；现已由 A 接线；**勿 add `out`**；不是 D482 |
+| **C D493** | `4f6fe74514e` — Clipboard `refresh`/写读清 void catch。[D493](deferred-gaps.md) **closed**。C `dev/loop` gitlink 脏，cascade **勿 add** |
+| **D D494** | `f2b0f6dd68b` — Context Variables `refresh` void catch。[D494](deferred-gaps.md) **closed** |
+| **H D495** | `e4c43451a3e` — conversation nav / 关扩展页 void catch。[D495](deferred-gaps.md) **closed** |
+| **I D496** | `8f8a5871a3f` — navigator Projects `openWindow` / `rebuildTree` void catch。[D496](deferred-gaps.md) **closed** |
+| **J D497** | `88c31452118` — banners PR/CI `refresh()` 双链 catch。[D497](deferred-gaps.md) **closed**。不重开 D481 |
 | **前波** | A Memory/File bytes / F ChatSync wire / G Team mutators wire / C–J D488–D492；D487 open |
 更早流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死引擎：[debug-engine](../../docs/guides/debug-engine.md)。**D25/D26 已闭**。**不升 PRD-008**。不是 leftover/pills 完成。
-### 进行中（2026-09-16 · 工位 A Health/ContextVariable bytes；D24 仍开）
+### 进行中（2026-09-16 · 合入 F TokenUsage wire；D24 仍开）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
-| **A** | Health/ContextVariable bytes | **未提交**。`healthCheck`/`shutdown`/`listContextVariable`/`readContextVariable` 已 `makeUnaryBytesClient` + 现成 wire，decode 后仍 map*。[D24](deferred-gaps.md) **仍开**。[D487](deferred-gaps.md) **open** |
-| **F/G** | 空闲 | Health/ContextVariable wire 已由 A 接线；SaveSkillContent/Rebuild 仍 JSON |
+| **A** | Health/ContextVariable bytes | `13058933d22` 已合。Health/ContextVariable **已** bytes。[D24](deferred-gaps.md) **仍开**。[D487](deferred-gaps.md) **open** |
+| **F** | TokenUsage wire | `1321cb39cbb` 合入中。GetSessionUsage+GetGlobalUsage wire **未接线** grpcClient |
+| **G** | 空闲 | ContextVariable wire 已由 A 接线；SaveSkillContent/Rebuild/Config 仍 JSON；**勿 add `out`** |
 | **C** | 空闲 | ff-only 保持 `dev/loop` gitlink 脏；勿 add。[D493](deferred-gaps.md) closed |
 | **D/H/I/J** | 空闲 | [D494](deferred-gaps.md)–[D497](deferred-gaps.md) closed |
 | **B** | — | 脏 `worktree-pool.md`；**跳过**；勿 `-B` |
@@ -33,7 +40,7 @@ summary: "A 未提交：HealthCheck/Shutdown + ContextVariable List/Read 已 byt
 子 agent 发现的既有代码问题（开项 + 本波）：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
-| [D24](deferred-gaps.md) | A | **仍开**：HealthCheck/Shutdown + ContextVariable List/Read **已** bytes；SaveSkillContent/Rebuild/`openContinuationStream` 仍 JSON |
+| [D24](deferred-gaps.md) | A/F/G | **仍开**：HealthCheck/Shutdown + ContextVariable List/Read **已** bytes；SaveSkillContent/Rebuild/TokenUsage/Config 仍 JSON；TokenUsage GetSessionUsage+GetGlobalUsage wire **未接线** |
 | [D487](deferred-gaps.md) | F Memory wire | **open**：codec 无 double；Search score 未读；grpcClient 已接线，mapper `requiredDouble`→0 |
 | [D493](deferred-gaps.md)–[D497](deferred-gaps.md) | C/D/H/I/J | **closed** Clipboard / Context Variables `refresh` / conversation nav / Projects / banners PR/CI void catch |
 | [D405](deferred-gaps.md) | 手测 | **仍开**（S4a/S4b 前置） |
@@ -43,14 +50,14 @@ summary: "A 未提交：HealthCheck/Shutdown + ContextVariable List/Read 已 byt
 ## 工位表（P0 盘点 · 2026-09-16 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | MERGE_SHA | 干净 | 0 | compile-client 0；120 passing / 0 pending；D24 仍开；D487 open |
-| A | `vscode-WorkTrees/A` | `loop/A` | MERGE_SHA | 脏 grpcClient + 两测 + 账 | 0 | **未提交** Health/ContextVariable bytes；D24 仍开 |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | MERGE_SHA | 干净 | 0 | 合入 A bytes + F TokenUsage wire；D24 仍开；D487 open |
+| A | `vscode-WorkTrees/A` | `loop/A` | `13058933d22` | 干净 | 0 | Health/ContextVariable **已** bytes；D24 仍开 |
 | B | `vscode-WorkTrees/B` | `loop/B` | `28ffd1ae9f2` | 脏 `worktree-pool.md` | 0 | **跳过**；勿 `-B` |
 | C | `vscode-WorkTrees/C` | `loop/C` | MERGE_SHA | 脏 `dev/loop` gitlink | 0 | ff-only 保持 gitlink 脏；勿 add |
 | D | `vscode-WorkTrees/D` | `loop/D` | MERGE_SHA | 干净 | 0 | ff-only；D494 closed |
 | E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | 干净 | 0 | `blocked` leftover；跳过 |
-| F | `vscode-WorkTrees/F` | `loop/F` | MERGE_SHA | 干净 | 0 | ff-only；Health wire 已由 A 接线；D487 open |
-| G | `vscode-WorkTrees/G` | `loop/G` | MERGE_SHA | 未跟踪 `out` | 0 | **勿 add `out`**；ContextVariable wire 已由 A 接线 |
+| F | `vscode-WorkTrees/F` | `loop/F` | `1321cb39cbb` | TokenUsage wire | 0 | GetSessionUsage+GetGlobalUsage **未接线**；D24 仍开；D487 open |
+| G | `vscode-WorkTrees/G` | `loop/G` | MERGE_SHA | 未跟踪 `out` | 0 | **勿 add `out`**；ContextVariable 已由 A 接线 |
 | H | `vscode-WorkTrees/H` | `loop/H` | MERGE_SHA | 干净 | 0 | ff-only；D495 closed |
 | I | `vscode-WorkTrees/I` | `loop/I` | MERGE_SHA | 干净 | 0 | ff-only；D496 closed |
 | J | `vscode-WorkTrees/J` | `loop/J` | MERGE_SHA | 干净 | 0 | ff-only；D497 closed |
@@ -59,7 +66,7 @@ summary: "A 未提交：HealthCheck/Shutdown + ContextVariable List/Read 已 byt
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。下一刀是 IDE Direct Address 接通后 Composer 发送。**不升 PRD-008**。不要再清 store |
-| **loop 切片** | [D24](deferred-gaps.md) **仍开**（HealthCheck/Shutdown + ContextVariable List/Read **已** bytes；SaveSkillContent/Rebuild 仍 JSON）。[D493](deferred-gaps.md)–[D497](deferred-gaps.md) **closed**。[D487](deferred-gaps.md) **open**。R9 / **D405** 仍开。不关 D8/D16/D147。不重开 D481。不得宣称 leftover / pills 完成 |
-| **test-baseline** | 本关仓聚焦 9 文件 **120 passing / 0 pending / 0 fail**。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
+| **loop 切片** | [D24](deferred-gaps.md) **仍开**（Health/ContextVariable **已** bytes；SaveSkillContent/Rebuild/TokenUsage/Config 仍 JSON；TokenUsage wire **未接线**）。[D493](deferred-gaps.md)–[D497](deferred-gaps.md) **closed**。[D487](deferred-gaps.md) **open**。R9 / **D405** 仍开。不关 D8/D16/D147。不重开 D481。不得宣称 leftover / pills 完成 |
+| **test-baseline** | 本关仓聚焦 9 文件 **120 passing / 0 pending / 0 fail**（8 文件 115 含 assertCleanState；conversationNavigation D495 `--grep` 5）。整文件 createHarness afterEach 有 ConversationLens leak，未计入绿。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 未满足前不开 U2 |
 ## 不做：**ADR-007 U2**、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
