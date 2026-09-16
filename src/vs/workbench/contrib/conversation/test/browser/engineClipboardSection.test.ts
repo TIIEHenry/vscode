@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -27,13 +29,15 @@ suite('EngineClipboardSection', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function mountSection(connection: IUniverseAgentConnection): EngineClipboardSection {
+	function mountSection(connection: IUniverseAgentConnection, activate = true): EngineClipboardSection {
 		const parent = document.createElement('div');
 		document.body.appendChild(parent);
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
 		const section = store.add(instantiationService.createInstance(EngineClipboardSection, parent));
-		section.setSectionActive(true);
+		if (activate) {
+			section.setSectionActive(true);
+		}
 		return section;
 	}
 
@@ -1232,5 +1236,129 @@ suite('EngineClipboardSection', () => {
 		assert.strictEqual(clearStatus.textContent, 'boom');
 		assert.notStrictEqual(clearStatus.style.display, 'none');
 		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('does not leak unhandled rejection when refresh listClipboard rejects and status render throws', async () => {
+		// refresh already catches listClipboard; a lone inner reject does not leak.
+		// The void call site still needs `.catch` when the catch-path paint throws.
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			const pane = mountSection(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				listClipboard: async () => {
+					throw new Error('listClipboard exploded');
+				},
+			}), false);
+			const status = (pane as unknown as { status: { render(options: { readonly mode: string }): void } }).status;
+			const originalRender = status.render.bind(status);
+			status.render = (options: { readonly mode: string }) => {
+				if (options.mode === 'failed') {
+					throw new Error('status boom');
+				}
+				originalRender(options);
+			};
+			pane.setSectionActive(true);
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+			pane.getDomNode().parentElement?.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when WriteClipboard rejects and write-status paint throws', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			const pane = mountSection(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				listClipboard: async () => ({ entries: [] }),
+				writeClipboard: async () => {
+					throw new Error('write boom');
+				},
+			}));
+			await flushMicrotasks();
+			const writeStatusEl = pane.getDomNode().querySelector('.engine-clipboard-write-status') as HTMLElement | null;
+			assert.ok(writeStatusEl);
+			Object.defineProperty(writeStatusEl, 'textContent', {
+				configurable: true,
+				get: () => '',
+				set: (value: string) => {
+					if (value) {
+						throw new Error('paint boom');
+					}
+				},
+			});
+			const write = findActionButton(pane.getDomNode(), ENGINE_CLIPBOARD_WRITE_LABEL);
+			assert.ok(write);
+			write.click();
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+			pane.getDomNode().parentElement?.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when ReadClipboard rejects and onUnexpectedError warn-then-rethrows', async () => {
+		// handleRead already catches the hook; a lone inner reject does not leak.
+		// Catch-path paint throw still needs a call-site catch. A lone
+		// `.catch(onUnexpectedError)` leaks when the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error instanceof Error ? error.message : error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const pane = mountSection(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				listClipboard: async () => ({ entries: [] }),
+				readClipboard: async () => {
+					throw new Error('read boom');
+				},
+			}));
+			await flushMicrotasks();
+			const readStatusEl = pane.getDomNode().querySelector('.engine-clipboard-read-status') as HTMLElement | null;
+			assert.ok(readStatusEl);
+			Object.defineProperty(readStatusEl, 'textContent', {
+				configurable: true,
+				get: () => '',
+				set: (value: string) => {
+					if (value) {
+						throw new Error('paint boom');
+					}
+				},
+			});
+			const read = findReadButton(pane.getDomNode());
+			assert.ok(read);
+			read.click();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: ['paint boom', 'paint boom'],
+			});
+			pane.getDomNode().parentElement?.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });

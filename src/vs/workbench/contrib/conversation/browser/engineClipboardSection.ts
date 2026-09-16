@@ -5,6 +5,7 @@
 
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
@@ -97,15 +98,15 @@ export class EngineClipboardSection extends Disposable {
 		const actionsRow = DOM.append(this.container, $('.engine-clipboard-actions'));
 		this.writeButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.writeButton.label = ENGINE_CLIPBOARD_WRITE_LABEL;
-		this._register(this.writeButton.onDidClick(() => void this.handleWrite()));
+		this._register(this.writeButton.onDidClick(() => void this.handleWrite().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.readButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.readButton.label = ENGINE_CLIPBOARD_READ_LABEL;
-		this._register(this.readButton.onDidClick(() => void this.handleRead()));
+		this._register(this.readButton.onDidClick(() => void this.handleRead().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.clearButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.clearButton.label = ENGINE_CLIPBOARD_CLEAR_LABEL;
-		this._register(this.clearButton.onDidClick(() => void this.handleClear()));
+		this._register(this.clearButton.onDidClick(() => void this.handleClear().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.writeStatus = DOM.append(this.container, $('.engine-clipboard-write-status'));
 		this.writeStatus.style.display = 'none';
@@ -119,7 +120,7 @@ export class EngineClipboardSection extends Disposable {
 
 		this._register(this.connection.onDidChangeConnection(() => {
 			if (this.sectionActive) {
-				void this.refresh();
+				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -132,7 +133,7 @@ export class EngineClipboardSection extends Disposable {
 		this.sectionActive = active;
 		this.container.style.display = active ? '' : 'none';
 		if (active) {
-			void this.refresh();
+			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -212,7 +213,7 @@ export class EngineClipboardSection extends Disposable {
 				mode: 'failed',
 				featureLabel: ENGINE_CLIPBOARD_LIST_FEATURE,
 				reason,
-				onRetry: () => void this.refresh(),
+				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 			// D438: leftover rows stay; Write/Read/Clear chrome must close after list-fail.
 			this.updateWriteAction();
