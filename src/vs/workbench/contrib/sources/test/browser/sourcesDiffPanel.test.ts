@@ -7,6 +7,7 @@ import assert from 'assert';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { Event } from '../../../../../base/common/event.js';
 import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { localize } from '../../../../../nls.js';
@@ -397,6 +398,32 @@ suite('Sources diff panel', () => {
 			(button as HTMLButtonElement).disabled = false;
 		}
 		button.click();
+	}
+
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			await run();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	}
 
 	function leftoverLooksLiveApplyConnection(
@@ -932,5 +959,91 @@ suite('Sources diff panel', () => {
 			unstageCommand.dispose();
 			cleanCommand.dispose();
 		}
+	});
+
+	test('does not leak unhandled rejection when Stage catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
+		// runStage already catches write throw; a lone inner reject does not leak.
+		// The void Stage click still needs `.catch` when the catch-path notice throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const resource = toResource.call(this, '/project/src/d524-stage.ts');
+		const original = toResource.call(this, '/project/src/d524-stage.ts.git');
+		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const connection = leftoverLooksLiveApplyConnection(applyCalls, stageCalls, false);
+		connection.writeGitStagePaths = async (request: UniverseAgentWriteGitStagePathsRequest) => {
+			stageCalls.push(request);
+			throw new Error('stage boom');
+		};
+
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				connection,
+			});
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+			(view as unknown as { showActionNotice(message: string): void }).showActionNotice = () => {
+				throw paintBoom;
+			};
+			forceClick(view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null);
+			await timeout(20);
+		});
+		assert.strictEqual(stageCalls.length, 1);
+		assert.deepStrictEqual(applyCalls, []);
+	});
+
+	test('does not leak unhandled rejection when renderRef catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
+		// renderDiff/renderModifiedOnly already catch load throw; a lone inner reject does not leak.
+		// The void onDidChangeRef / renderBody call site still needs `.catch` when the catch-path notice throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const resource = toResource.call(this, '/project/src/d524-render.ts');
+		const original = toResource.call(this, '/project/src/d524-render.ts.git');
+
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const instantiationService = stubDiffHonestyServices({ throwOnLoad: true, resource });
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			(view as unknown as { showLoadNotice(message: string): void }).showLoadNotice = () => {
+				throw paintBoom;
+			};
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+			});
+			await timeout(50);
+		});
 	});
 });
