@@ -4,14 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { mainWindow } from '../../../../../base/browser/window.js';
+import { timeout } from '../../../../../base/common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { findGroup } from '../../../../services/editor/common/editorGroupFinder.js';
-import { CONVERSATION_GROUP, CONVERSATION_SIDE_GROUP, SIDE_GROUP } from '../../../../services/editor/common/editorService.js';
-import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
+import { CONVERSATION_GROUP, CONVERSATION_SIDE_GROUP, IEditorService, SIDE_GROUP } from '../../../../services/editor/common/editorService.js';
+import { IEditorGroupsService, type IConversationEditorPart } from '../../../../services/editor/common/editorGroupsService.js';
+import { EditorService } from '../../../../services/editor/browser/editorService.js';
 import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/editor.js';
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
@@ -19,37 +22,75 @@ import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEd
 import { ConversationChatInput, getDefaultConversationChatResource } from '../../common/conversationChatInput.js';
 import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
 import '../../browser/conversationEditor.contribution.js';
-import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
+import { ConversationEditorPane } from '../../browser/conversationEditorPane.js';
+import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
+import { stubConversationLensRuntimeServices, stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
+import { installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
 
 suite('Conversation editor fence', () => {
 
 	const TEST_EDITOR_ID = 'MyFileEditorForConversationFence';
 	const TEST_EDITOR_INPUT_ID = 'testEditorInputForConversationFence';
 
+	installConversationLensResizeObserverHarness();
+
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 	const disposables = store as unknown as DisposableStore;
 
-	setup(() => {
+	teardown(async () => {
+		await new Promise<void>(resolve => mainWindow.requestAnimationFrame(() => mainWindow.requestAnimationFrame(() => resolve())));
+	});
+
+	function trackEditors(part: IConversationEditorPart): void {
+		for (const editor of part.activeGroup.editors) {
+			store.add(editor);
+		}
+	}
+
+	async function waitForPane(part: IConversationEditorPart): Promise<ConversationEditorPane> {
+		await part.whenReady;
+		const deadline = Date.now() + 3000;
+		while (Date.now() < deadline) {
+			const pane = part.activeGroup.activeEditorPane;
+			if (pane instanceof ConversationEditorPane && pane.activeConversationLens) {
+				return pane;
+			}
+			await timeout(20);
+		}
+		throw new Error(`ConversationEditorPane not ready for ${part.sessionKey}; got ${part.activeGroup.activeEditorPane?.getId()}`);
+	}
+
+	setup(function () {
+		this.timeout(20_000);
 		store.add(registerTestEditor(TEST_EDITOR_ID, [new SyncDescriptor(TestFileEditorInput), new SyncDescriptor(SideBySideEditorInput)], TEST_EDITOR_INPUT_ID));
 	});
 
 	async function createHarness() {
+		const rosterService = store.add(new ConversationStubService());
 		const instantiationService = workbenchInstantiationService(undefined, disposables);
+		instantiationService.stub(IConversationRosterService, rosterService);
+		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
+		stubConversationLensRuntimeServices(instantiationService);
 		stubConversationTimelineLinkServices(instantiationService);
 		instantiationService.invokeFunction(accessor => Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor));
 		const parts = await createEditorParts(instantiationService, disposables);
+		store.add(parts);
 		instantiationService.stub(IEditorGroupsService, parts);
+		const editorService = disposables.add(instantiationService.createInstance(EditorService, undefined));
+		instantiationService.stub(IEditorService, editorService);
 
 		const conversationHost = document.createElement('div');
+		conversationHost.style.width = '800px';
+		conversationHost.style.height = '600px';
 		document.body.appendChild(conversationHost);
 		disposables.add({ dispose: () => conversationHost.remove() });
 
 		const conversationPart = parts.createConversationEditorPart(conversationHost, 'session-a');
-		await conversationPart.whenReady;
-		const rootEditor = conversationPart.activeGroup.getEditorByIndex(0);
-		if (rootEditor) {
-			store.add(rootEditor);
-		}
+		await waitForPane(conversationPart);
+		conversationPart.layout(800, 600, 0, 0);
+		trackEditors(conversationPart);
 		conversationPart.activeGroup.focus();
 
 		return { instantiationService, parts, conversationPart };

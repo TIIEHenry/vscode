@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { mainWindow } from '../../../../../base/browser/window.js';
+import { timeout } from '../../../../../base/common/async.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -11,17 +13,20 @@ import { SyncDescriptor } from '../../../../../platform/instantiation/common/des
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { findGroup } from '../../../../services/editor/common/editorGroupFinder.js';
 import { IEditorGroupsService, type IConversationEditorPart } from '../../../../services/editor/common/editorGroupsService.js';
-import { CONVERSATION_SIDE_GROUP, SIDE_GROUP } from '../../../../services/editor/common/editorService.js';
+import { EditorService } from '../../../../services/editor/browser/editorService.js';
+import { CONVERSATION_SIDE_GROUP, IEditorService, SIDE_GROUP } from '../../../../services/editor/common/editorService.js';
 import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/editor.js';
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
 import { getDefaultConversationChatResource } from '../../common/conversationChatInput.js';
 import '../../browser/conversationEditor.contribution.js';
+import { ConversationEditorPane } from '../../browser/conversationEditorPane.js';
 import { ConversationSessionChatService, IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
-import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
+import { stubConversationLensRuntimeServices, stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
+import { installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
 
 suite('Conversation session split (S4)', () => {
 
@@ -29,14 +34,40 @@ suite('Conversation session split (S4)', () => {
 	const TEST_EDITOR_INPUT_ID = 'testEditorInputForConversationSplit';
 	const SESSION_KEY = 'untitled';
 
+	installConversationLensResizeObserverHarness();
+
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 	const disposables = store as unknown as DisposableStore;
+
+	teardown(async () => {
+		await new Promise<void>(resolve => mainWindow.requestAnimationFrame(() => mainWindow.requestAnimationFrame(() => resolve())));
+	});
 
 	function layoutConversationEditorPart(part: IConversationEditorPart): void {
 		part.layout(800, 600, 0, 0);
 	}
 
-	setup(() => {
+	function trackEditors(part: IConversationEditorPart): void {
+		for (const editor of part.activeGroup.editors) {
+			store.add(editor);
+		}
+	}
+
+	async function waitForPane(part: IConversationEditorPart): Promise<ConversationEditorPane> {
+		await part.whenReady;
+		const deadline = Date.now() + 3000;
+		while (Date.now() < deadline) {
+			const pane = part.activeGroup.activeEditorPane;
+			if (pane instanceof ConversationEditorPane && pane.activeConversationLens) {
+				return pane;
+			}
+			await timeout(20);
+		}
+		throw new Error(`ConversationEditorPane not ready for ${part.sessionKey}; got ${part.activeGroup.activeEditorPane?.getId()}`);
+	}
+
+	setup(function () {
+		this.timeout(20_000);
 		store.add(registerTestEditor(TEST_EDITOR_ID, [new SyncDescriptor(TestFileEditorInput), new SyncDescriptor(SideBySideEditorInput)], TEST_EDITOR_INPUT_ID));
 	});
 
@@ -44,13 +75,19 @@ suite('Conversation session split (S4)', () => {
 		const rosterService = new ConversationStubService();
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, rosterService);
-		stubConversationTimelineLinkServices(instantiationService);
 		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
+		stubConversationLensRuntimeServices(instantiationService);
+		stubConversationTimelineLinkServices(instantiationService);
 		instantiationService.invokeFunction(accessor => Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor));
 
 		const parts = await createEditorParts(instantiationService, disposables);
 		store.add(parts);
 		instantiationService.stub(IEditorGroupsService, parts);
+		const editorService = disposables.add(instantiationService.createInstance(EditorService, undefined));
+		instantiationService.stub(IEditorService, editorService);
+
+		const sessionChatService = disposables.add(instantiationService.createInstance(ConversationSessionChatService));
+		instantiationService.stub(IConversationSessionChatService, sessionChatService);
 
 		const editorHost = document.createElement('div');
 		editorHost.style.width = '800px';
@@ -59,18 +96,13 @@ suite('Conversation session split (S4)', () => {
 		store.add({ dispose: () => editorHost.remove() });
 
 		const conversationPart = parts.createConversationEditorPart(editorHost, SESSION_KEY);
-		await conversationPart.whenReady;
+		await waitForPane(conversationPart);
 		layoutConversationEditorPart(conversationPart);
+		trackEditors(conversationPart);
 		conversationPart.activeGroup.focus();
 
-		const sessionChatService = disposables.add(instantiationService.createInstance(ConversationSessionChatService));
-		instantiationService.stub(IConversationSessionChatService, sessionChatService);
 		store.add(sessionChatService.registerPartListeners(conversationPart));
 		store.add(rosterService);
-
-		for (const editor of conversationPart.activeGroup.editors) {
-			store.add(editor);
-		}
 
 		return { instantiationService, parts, conversationPart, sessionChatService, rosterService };
 	}
