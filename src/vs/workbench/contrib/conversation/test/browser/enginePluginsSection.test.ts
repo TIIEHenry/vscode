@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
@@ -1552,5 +1554,102 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		await flushMicrotasks();
 
 		assertPluginInfoUnavailableHonesty(section, 1);
+	});
+
+	test('does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+		// refresh() already catches list throw; a lone inner reject does not leak.
+		// The void call site still needs `.catch` when the catch-path render throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			let listPluginsCalls = 0;
+			const connection = createConnectionStub({
+				listPlugins: async () => {
+					listPluginsCalls++;
+					if (listPluginsCalls === 1) {
+						return { plugins: [demoPlugin()] };
+					}
+					throw new Error('list boom');
+				},
+			});
+			const section = mountSection(connection);
+			await flushMicrotasks();
+			assert.strictEqual(listPluginsCalls, 1);
+			const status = (section as unknown as { status: { render(options: { readonly mode: string }): void } }).status;
+			const originalRender = status.render.bind(status);
+			status.render = (options: { readonly mode: string }) => {
+				if (options.mode === 'failed') {
+					throw paintBoom;
+				}
+				originalRender(options);
+			};
+			connection.setConnected(true);
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+			section.getDomNode().parentElement?.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when loadInfo catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+		// loadInfo() already catches getPluginInfo throw; a lone inner reject does not leak.
+		// The void call site still needs `.catch` when the catch-path render throws.
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const paintBoom = new Error('paint boom');
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			const connection = createConnectionStub({
+				getPluginInfo: async () => {
+					throw new Error('info boom');
+				},
+			});
+			const section = mountSection(connection);
+			await flushMicrotasks();
+			assert.strictEqual(section.getMode(), 'ready');
+			const infoStatus = (section as unknown as { infoStatus: { render(options: { readonly mode: string }): void } }).infoStatus;
+			const originalRender = infoStatus.render.bind(infoStatus);
+			infoStatus.render = (options: { readonly mode: string }) => {
+				if (options.mode === 'failed') {
+					throw paintBoom;
+				}
+				originalRender(options);
+			};
+			assert.ok(section.selectPluginForTest('demo-plugin'));
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+			section.getDomNode().parentElement?.remove();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });

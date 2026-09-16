@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-16
-summary: "merge compile-client 0；聚焦 120 passing / 0 pending。D24 仍开（Health/ContextVariable/SaveSkillContent/Rebuild 仍 JSON；HealthCheck/Shutdown/ContextVariable wire 未接线；ChatSync/Team 已 bytes）。D493–D497 closed；D487 open。不是 leftover/pills 完成。R9/D405 仍开"
+summary: "merge compile-client 0；聚焦 120 passing / 0 pending。D24 仍开。D493–D497 closed。J D502 Plugins refresh/loadInfo void catch 本工位已收未提交。D487 open。不是 leftover/pills 完成。R9/D405 仍开"
 ---
 
 # Development Progress
@@ -28,7 +28,8 @@ summary: "merge compile-client 0；聚焦 120 passing / 0 pending。D24 仍开�
 |:---|:-----|:---------|
 | **A/F/G** | 空闲 | 等下一波。ChatSync/Team **已** bytes；Health/ContextVariable/SaveSkillContent/Rebuild 仍 JSON；HealthCheck/Shutdown/ContextVariable List+Read wire **未接线**。[D24](deferred-gaps.md) **仍开**。[D487](deferred-gaps.md) **open** |
 | **C** | 空闲 | 等下一波；ff-only 保持 `dev/loop` gitlink 脏；勿 add。[D493](deferred-gaps.md) closed |
-| **D/H/I/J** | 空闲 | 等下一波。[D494](deferred-gaps.md)–[D497](deferred-gaps.md) closed |
+| **D/H/I** | 空闲 | 等下一波。[D494](deferred-gaps.md)–[D496](deferred-gaps.md) closed |
+| **J** | D502 | 本工位已收未提交：Plugins `refresh`/`loadInfo` void 双链 catch。[D502](deferred-gaps.md) **closed**。不重开 D174/D180/D182/D186。D24 仍开 |
 | **B** | — | 脏 `worktree-pool.md`；**跳过**；勿 `-B` |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
 | **edit** | `agent-ide` | **仅 ff-only**；非祖先则失败并记录；勿 reset/checkout/stash |
@@ -39,6 +40,7 @@ summary: "merge compile-client 0；聚焦 120 passing / 0 pending。D24 仍开�
 | [D24](deferred-gaps.md) | A/F/G | **仍开**：Memory/File/ChatSync/Team mutators **已** bytes；Health/ContextVariable/SaveSkillContent/Rebuild 仍 JSON；HealthCheck/Shutdown/ContextVariable List+Read wire **未接线** |
 | [D487](deferred-gaps.md) | F Memory wire | **open**：codec 无 double；Search score 未读；grpcClient 已接线，mapper `requiredDouble`→0 |
 | [D493](deferred-gaps.md)–[D497](deferred-gaps.md) | C/D/H/I/J | **closed** Clipboard / Context Variables `refresh` / conversation nav / Projects / banners PR/CI void catch |
+| [D502](deferred-gaps.md) | J | **closed** Plugins `void this.refresh()` / `void this.loadInfo` 双链 catch；warn 再抛 0 unhandled。未关 D24。不重开 D174/D180/D182/D186 |
 | [D405](deferred-gaps.md) | 手测 | **仍开**（S4a/S4b 前置） |
 | [D16](deferred-gaps.md) / [D8](deferred-gaps.md) / [D147](deferred-gaps.md) | 基线 | **仍开**；勿开切片 1；勿降 `min_cases` |
 | [D31](deferred-gaps.md) | Sources | **仍开**（剩 F4）；不升 PRD |
@@ -56,13 +58,13 @@ summary: "merge compile-client 0；聚焦 120 passing / 0 pending。D24 仍开�
 | G | `vscode-WorkTrees/G` | `loop/G` | MERGE_SHA | 未跟踪 `out` | 0 | **勿 add `out`**；ContextVariable List+Read wire **未接线** |
 | H | `vscode-WorkTrees/H` | `loop/H` | MERGE_SHA | 干净 | 0 | ff-only；D495 closed |
 | I | `vscode-WorkTrees/I` | `loop/I` | MERGE_SHA | 干净 | 0 | ff-only；D496 closed |
-| J | `vscode-WorkTrees/J` | `loop/J` | MERGE_SHA | 干净 | 0 | ff-only；D497 closed |
+| J | `vscode-WorkTrees/J` | `loop/J` | MERGE_SHA | D502 未提交 | 0 | Plugins refresh/loadInfo void catch；[D502](deferred-gaps.md) closed；D24 仍开 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | MERGE_SHA | `dev/loop`+docs | 0 | 仅 ff-only；非祖先则失败记录；勿 reset/checkout/stash |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。下一刀是 IDE Direct Address 接通后 Composer 发送。**不升 PRD-008**。不要再清 store |
-| **loop 切片** | [D24](deferred-gaps.md) **仍开**（Memory/File/ChatSync/Team mutators 已 bytes；Health/ContextVariable/SaveSkillContent/Rebuild 仍 JSON；HealthCheck/Shutdown/ContextVariable wire **未接线**）。[D493](deferred-gaps.md)–[D497](deferred-gaps.md) **closed**。[D487](deferred-gaps.md) **open**。R9 / **D405** 仍开。不关 D8/D16/D147。不重开 D481。不得宣称 leftover / pills 完成 |
+| **loop 切片** | [D24](deferred-gaps.md) **仍开**。[D493](deferred-gaps.md)–[D497](deferred-gaps.md) **closed**。J [D502](deferred-gaps.md) **closed**（未提交）。[D487](deferred-gaps.md) **open**。R9 / **D405** 仍开。不关 D8/D16/D147。不重开 D174/D180/D182/D186。不得宣称 leftover / pills 完成 |
 | **test-baseline** | 本关仓聚焦 9 文件 **120 passing / 0 pending / 0 fail**（8 文件 115 含 assertCleanState；conversationNavigation D495 `--grep` 5）。整文件 createHarness afterEach 有 ConversationLens leak，未计入绿。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 未满足前不开 U2 |
 ## 不做：**ADR-007 U2**、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
