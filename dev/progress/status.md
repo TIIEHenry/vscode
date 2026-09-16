@@ -29,6 +29,7 @@ summary: "merge 关仓：七条 loop/tool 已 bytes；SendShell/ListNodes/GetNod
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
+| **J** | 已写 CheckConnection wire（SessionParams known；capabilities/errors/load unread）未接线。仍勿关本行。 |
 
 子 agent 发现：
 | ID | 问题 |
