@@ -7,6 +7,7 @@ import assert from 'assert';
 import { IManagedHover } from '../../../../../base/browser/ui/hover/hover.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Event, Emitter } from '../../../../../base/common/event.js';
 import { Disposable, ImmortalReference, IDisposable, IReference } from '../../../../../base/common/lifecycle.js';
 import { observableValue } from '../../../../../base/common/observable.js';
@@ -31,7 +32,7 @@ import { AgentFeedbackKind, AgentFeedbackState, IAgentFeedback, IAgentFeedbackSe
 import { IGitHubService } from '../../../github/browser/githubService.js';
 import { GitHubPullRequestCIModel } from '../../../github/browser/models/githubPullRequestCIModel.js';
 import { GitHubPullRequestModel } from '../../../github/browser/models/githubPullRequestModel.js';
-import { GitHubCheckConclusion, GitHubCheckStatus, GitHubPullRequestState, IGitHubCICheck, IGitHubPullRequest } from '../../../github/common/types.js';
+import { GitHubCheckConclusion, GitHubCheckStatus, GitHubPullRequestState, IGitHubCICheck, IGitHubPullRequest, OPEN_PULL_REQUEST_ACTION_ID } from '../../../github/common/types.js';
 import { SessionInputBanners } from '../../browser/sessionInputBanners.js';
 
 suite('SessionInputBanners', () => {
@@ -225,6 +226,133 @@ suite('SessionInputBanners', () => {
 			},
 			dismissed: ['session-1:pullRequest:owner/repo#41'],
 		});
+	});
+
+	test('does not leak unhandled rejection when reveal CI executeCommand rejects and log error throws', async () => {
+		// `_revealPullRequest` already catches `executeCommand`; a lone inner reject
+		// does not leak. The void call site still needs `.catch` when the catch-path error throws.
+		const sessionResource = URI.parse('local-agent-host:/session-1');
+		const pullRequests = [pullRequest(42)];
+		const session = new class extends mock<IActiveSession>() {
+			override readonly sessionId = 'session-1';
+			override readonly resource = sessionResource;
+			override readonly providerId = LOCAL_AGENT_HOST_PROVIDER_ID;
+			override readonly status = observableValue('status', SessionStatus.Completed);
+			override readonly workspace = observableValue<ISessionWorkspace | undefined>('workspace', {
+				uri: URI.file('/workspace'),
+				label: 'workspace',
+				icon: Codicon.folder,
+				folders: [{
+					root: URI.file('/workspace'),
+					workingDirectory: URI.file('/workspace'),
+					name: 'workspace',
+					description: undefined,
+					gitRepository: {
+						uri: URI.file('/workspace'),
+						workTreeUri: undefined,
+						baseBranchName: undefined,
+						gitHubInfo: observableValue('gitHubInfo', {
+							owner: 'owner',
+							repo: 'repo',
+							pullRequests,
+							pullRequest: pullRequests[0],
+						}),
+					},
+				}],
+				requiresWorkspaceTrust: false,
+				isVirtualWorkspace: false,
+			});
+		}();
+		const sessionsService = new class extends mock<ISessionsService>() {
+			override readonly activeSession = observableValue<IActiveSession | undefined>('activeSession', session);
+		}();
+		const onDidChangeSessionConfig = store.add(new Emitter<string>());
+		const agentHostProvider = new class extends mock<IAgentHostSessionsProvider>() {
+			override readonly id = LOCAL_AGENT_HOST_PROVIDER_ID;
+			override readonly onDidChangeSessionConfig = onDidChangeSessionConfig.event;
+			override getAgentMergeSessionState() { return { enabled: false }; }
+		}();
+		const sessionsProvidersService = new class extends mock<ISessionsProvidersService>() {
+			override getProvider<T extends ISessionsProvider>(): T | undefined {
+				return agentHostProvider as unknown as T;
+			}
+		}();
+		const gitHubService = new class extends mock<IGitHubService>() {
+			override createPullRequestModelReference(): IReference<GitHubPullRequestModel> {
+				return new ImmortalReference(pullRequestModel(42, 'Newest pull request'));
+			}
+			override createPullRequestCIModelReference(): IReference<GitHubPullRequestCIModel> {
+				return new ImmortalReference(ciModel([failedCheck(1)]));
+			}
+		}();
+		const feedbackService = new class extends mock<IAgentFeedbackService>() {
+			override readonly onDidChangeFeedback = Event.None;
+			override getFeedback(): readonly IAgentFeedback[] { return []; }
+			override revealFeedback(): Promise<void> { return Promise.resolve(); }
+		}();
+		const chatWidgetService = new class extends mock<IChatWidgetService>() {
+			override readonly onDidAddWidget = Event.None;
+			override getWidgetBySessionResource(): IChatWidget | undefined { return undefined; }
+		}();
+		let executeCalls = 0;
+		const commandService = new class extends mock<ICommandService>() {
+			override executeCommand(commandId: string): Promise<unknown> {
+				if (commandId === OPEN_PULL_REQUEST_ACTION_ID) {
+					executeCalls++;
+					return Promise.reject(new Error('boom'));
+				}
+				return Promise.resolve();
+			}
+		}();
+		let errorCalls = 0;
+		const logService = new class extends NullLogService {
+			override error(message: string | Error): void {
+				if (typeof message === 'string' && message.includes('Failed to reveal pull request')) {
+					errorCalls++;
+					throw new Error('error failed');
+				}
+			}
+		}();
+		const instantiationService = store.add(new TestInstantiationService());
+		instantiationService.stub(IHoverService, upcastPartial<IHoverService>({
+			setupManagedHover: () => upcastPartial<IManagedHover>({ dispose() { } }),
+		}));
+		instantiationService.stub(IContextMenuService, upcastPartial<IContextMenuService>({ showContextMenu() { } }));
+
+		const banners = store.add(new SessionInputBanners(
+			sessionsService,
+			sessionsProvidersService,
+			gitHubService,
+			feedbackService,
+			commandService,
+			store.add(new TestStorageService()),
+			instantiationService,
+			logService,
+			chatWidgetService,
+		));
+		banners.setActive(true);
+
+		const revealButton = [...banners.domNode.querySelectorAll<HTMLElement>('.session-input-banner-action')]
+			.find(element => (element.textContent ?? '').includes('Reveal CI'));
+		assert.ok(revealButton);
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			revealButton.click();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, executeCalls, errorCalls }, {
+				unhandledRejections: [],
+				executeCalls: 1,
+				errorCalls: 1,
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });
 
