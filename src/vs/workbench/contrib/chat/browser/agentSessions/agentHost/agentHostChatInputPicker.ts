@@ -11,6 +11,7 @@ import { BaseActionViewItem } from '../../../../../../base/browser/ui/actionbar/
 import { Delayer } from '../../../../../../base/common/async.js';
 import { CancellationTokenSource } from '../../../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Disposable, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../../../../base/common/lifecycle.js';
 import { autorun } from '../../../../../../base/common/observable.js';
 import { ThemeIcon } from '../../../../../../base/common/themables.js';
@@ -417,7 +418,7 @@ export class AgentHostChatInputPicker extends Disposable {
 	}
 
 	show(anchor: HTMLElement): void {
-		void this._showPicker(anchor);
+		void this._showPicker(anchor).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _reattach(): void {
@@ -438,7 +439,7 @@ export class AgentHostChatInputPicker extends Disposable {
 			this._subRef.clear();
 			if (!this._initialResolved || this._initialResolved.sessionResource.toString() !== sessionResource.toString()) {
 				this._initialResolved = undefined;
-				void this._refreshInitialResolved(sessionResource, backendSession);
+				void this._refreshInitialResolved(sessionResource, backendSession).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 			// Eagerly create a provisional backend session so even users
 			// who never touch a chip still get their picker defaults
@@ -455,7 +456,7 @@ export class AgentHostChatInputPicker extends Disposable {
 				sessionResource,
 				backendSession.scheme,
 				this._readWorkingDirectory(),
-			);
+			).catch(onUnexpectedError).catch(onUnexpectedError);
 			this._renderChip();
 			return;
 		}
@@ -540,7 +541,7 @@ export class AgentHostChatInputPicker extends Disposable {
 		this._renderDisposables.add({ dispose: () => slot.remove() });
 
 		const isReadOnly = !!ctx.schema.readOnly || (isStartedSession && ctx.schema.sessionMutable === false);
-		const trigger = renderPickerTrigger(slot, isReadOnly, this._renderDisposables, () => this._showPicker(trigger));
+		const trigger = renderPickerTrigger(slot, isReadOnly, this._renderDisposables, () => void this._showPicker(trigger).catch(onUnexpectedError).catch(onUnexpectedError));
 		this._trigger = trigger;
 		const tooltip = getConfigPickerTriggerHover(this._property, ctx.schema, ctx.value, isReadOnly);
 		if (tooltip) {
@@ -673,7 +674,7 @@ export class AgentHostChatInputPicker extends Disposable {
 					}
 					return;
 				}
-				void this._confirmAndSetValue(ctx.backendSession, item);
+				void this._confirmAndSetValue(ctx.backendSession, item).catch(onUnexpectedError).catch(onUnexpectedError);
 			},
 			onFilter: ctx.schema.enumDynamic
 				? query => this._filterDelayer.trigger(async () => {
@@ -745,7 +746,7 @@ export class AgentHostChatInputPicker extends Disposable {
 					return;
 				}
 				const target = checked ? AgentSandboxEnabledValue.On : AgentSandboxEnabledValue.Off;
-				void this._configurationService.updateValue(settingId, target);
+				void this._configurationService.updateValue(settingId, target).catch(onUnexpectedError).catch(onUnexpectedError);
 			},
 		};
 	}
