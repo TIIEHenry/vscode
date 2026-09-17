@@ -128,7 +128,7 @@ export class CodeActionController extends Disposable implements IEditorContribut
 		this._lightBulbWidget = new Lazy(() => {
 			const widget = this._editor.getContribution<LightBulbWidget>(LightBulbWidget.ID);
 			if (widget) {
-				this._register(widget.onClick(e => this.showCodeActionsFromLightbulb(e.actions, e)));
+				this._register(widget.onClick(e => this.showCodeActionsFromLightbulb(e.actions, e).catch(onUnexpectedError).catch(onUnexpectedError)));
 				widget.onlyWithEmptySelection = this._onlyLightBulbWithEmptySelection;
 			}
 			return widget;
@@ -337,7 +337,7 @@ export class CodeActionController extends Disposable implements IEditorContribut
 
 		const delegate: IActionListDelegate<CodeActionItem> = {
 			onSelect: async (action: CodeActionItem, preview?: boolean) => {
-				this.applyCodeAction(action, /* retrigger */ true, !!preview, options.fromLightbulb ? ApplyCodeActionReason.FromAILightbulb : ApplyCodeActionReason.FromCodeActions);
+				this.applyCodeAction(action, /* retrigger */ true, !!preview, options.fromLightbulb ? ApplyCodeActionReason.FromAILightbulb : ApplyCodeActionReason.FromCodeActions).catch(onUnexpectedError).catch(onUnexpectedError);
 				this._actionWidgetService.hide(false);
 				currentDecorations.clear();
 			},
