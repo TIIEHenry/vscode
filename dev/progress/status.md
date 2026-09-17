@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "合入 D24 流 wire + children/context_sources/pending decode。D24 仍开。不是 leftover/pills 完成。"
+summary: "工位 F 进行中：SaveConfig connection_test=3 标量 decode。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -27,6 +27,7 @@ summary: "合入 D24 流 wire + children/context_sources/pending decode。D24 �
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **F** | `loop/F-d24-saveconfig-connection-test` SaveConfig `connection_test`=3（reachable=1 authenticated=2 can_create_session=3 latency_ms=4）；5/6/7 归 H；[D24](deferred-gaps.md) **仍开** |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |

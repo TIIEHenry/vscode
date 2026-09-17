@@ -8,15 +8,15 @@ import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import type { UniverseAgentRemoteAgentConfig, UniverseAgentSaveRemoteAgentConfigResult } from '../../common/universeAgentTypes.js';
-import { mapConnectionReport } from '../../node/grpc/grpcClientMappersCatalog.js';
+import type { UniverseAgentRemoteAgentConfig } from '../../common/universeAgentTypes.js';
+import { mapConnectionReport, mapSaveRemoteAgentConfigResponse } from '../../node/grpc/grpcClientMappersCatalog.js';
 import {
 	decodeSaveConfigResponse,
 	encodeSaveConfigRequest,
-	type SaveRemoteAgentConfigResponseWire,
 } from '../../node/grpc/grpcSaveConfigUnaryWire.js';
 import {
 	encodeInt32Field,
+	encodeInt64Field,
 	encodeMessageField,
 	encodePresentMessageField,
 	encodeStringField,
@@ -131,11 +131,20 @@ suite('grpc RemoteAgentService SaveConfig protobuf wire', () => {
 		assert.deepStrictEqual(Array.from(readProtoFields(presentEmpty)), []);
 	});
 
-	test('decodeSaveConfigResponse reads success=1 message=2 async_test_id=4; connection_test=3 unread', () => {
+	test('decodeSaveConfigResponse reads success=1 message=2 connection_test=3 async_test_id=4; mapper connectionTest non-empty from field 3', () => {
+		const nestedReport = Buffer.concat([
+			encodeInt32Field(1, 1),
+			encodeInt32Field(2, 1),
+			encodeInt32Field(3, 1),
+			encodeInt64Field(4, 42),
+			encodeMessageField(5, encodeStringField(4, 'unused-server-version')),
+			encodeMessageField(6, encodeStringField(3, 'unused-error')),
+			encodeMessageField(7, encodeInt32Field(1, 9)),
+		]);
 		const encoded = Buffer.concat([
 			encodeInt32Field(1, 1),
 			encodeStringField(2, 'saved'),
-			encodeMessageField(3, encodeInt32Field(1, 1)),
+			encodeMessageField(3, nestedReport),
 			encodeStringField(4, 'async-9'),
 			encodeStringField(5, 'unused-field'),
 		]);
@@ -144,17 +153,37 @@ suite('grpc RemoteAgentService SaveConfig protobuf wire', () => {
 		assert.deepStrictEqual(wire, {
 			success: true,
 			message: 'saved',
+			connection_test: {
+				reachable: true,
+				authenticated: true,
+				can_create_session: true,
+				latency_ms: 42,
+			},
 			async_test_id: 'async-9',
 		});
-		assert.ok(!('connection_test' in wire));
+		assert.ok(wire.connection_test);
+		assert.ok(!('capabilities' in wire.connection_test));
+		assert.ok(!('errors' in wire.connection_test));
+		assert.ok(!('load' in wire.connection_test));
 		assert.ok(!('unused' in wire));
 		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
-		assert.deepStrictEqual(mapSaveRemoteAgentConfigResponse(wire), {
+		const mapped = mapSaveRemoteAgentConfigResponse(wire);
+		assert.notDeepStrictEqual(mapped.connectionTest, mapConnectionReport({}));
+		assert.deepStrictEqual(mapped, {
 			success: true,
 			message: 'saved',
-			connectionTest: mapConnectionReport({}),
+			connectionTest: mapConnectionReport({
+				reachable: true,
+				authenticated: true,
+				can_create_session: true,
+				latency_ms: 42,
+			}),
 			asyncTestId: 'async-9',
 		});
+		assert.strictEqual(mapped.connectionTest.reachable, true);
+		assert.strictEqual(mapped.connectionTest.authenticated, true);
+		assert.strictEqual(mapped.connectionTest.canCreateSession, true);
+		assert.strictEqual(mapped.connectionTest.latencyMs, 42);
 	});
 
 	test('decodeSaveConfigResponse omitted/false/empty-string; unused unread', () => {
@@ -162,9 +191,9 @@ suite('grpc RemoteAgentService SaveConfig protobuf wire', () => {
 		assert.deepStrictEqual(empty, {
 			success: undefined,
 			message: undefined,
+			connection_test: undefined,
 			async_test_id: undefined,
 		});
-		assert.ok(!('connection_test' in empty));
 		assert.deepStrictEqual(mapSaveRemoteAgentConfigResponse(empty), {
 			success: false,
 			message: '',
@@ -172,13 +201,14 @@ suite('grpc RemoteAgentService SaveConfig protobuf wire', () => {
 			asyncTestId: '',
 		});
 
-		const unusedOnly = decodeSaveConfigResponse(encodeMessageField(3, encodeInt32Field(1, 1)));
+		const unusedOnly = decodeSaveConfigResponse(encodeStringField(5, 'unused-field'));
 		assert.deepStrictEqual(unusedOnly, {
 			success: undefined,
 			message: undefined,
+			connection_test: undefined,
 			async_test_id: undefined,
 		});
-		assert.ok(!('connection_test' in unusedOnly));
+		assert.ok(!('unused' in unusedOnly));
 		assert.deepStrictEqual(mapSaveRemoteAgentConfigResponse(unusedOnly), {
 			success: false,
 			message: '',
@@ -190,6 +220,7 @@ suite('grpc RemoteAgentService SaveConfig protobuf wire', () => {
 		assert.deepStrictEqual(explicitFalse, {
 			success: false,
 			message: undefined,
+			connection_test: undefined,
 			async_test_id: undefined,
 		});
 		assert.deepStrictEqual(mapSaveRemoteAgentConfigResponse(explicitFalse), {
@@ -207,6 +238,7 @@ suite('grpc RemoteAgentService SaveConfig protobuf wire', () => {
 		assert.deepStrictEqual(emptyStrings, {
 			success: true,
 			message: '',
+			connection_test: undefined,
 			async_test_id: '',
 		});
 		assert.deepStrictEqual(mapSaveRemoteAgentConfigResponse(emptyStrings), {
@@ -227,8 +259,11 @@ suite('grpc RemoteAgentService SaveConfig protobuf wire', () => {
 		assert.ok(/\bencodeStringField\b/.test(source));
 		assert.ok(/\blastVarint\b/.test(source));
 		assert.ok(/\blastString\b/.test(source));
+		assert.ok(/\blastBytes\b/.test(source));
+		assert.ok(/\bdecodeCheckConnectionResponse\b/.test(source));
 		assert.ok(!/\bdecodeEndpoint\b|\bencodeEndpoint\b|\bdecodeAuthConfig\b|\bdecodePermissionDelegate\b|\bdecodeHealthCheck\b/.test(source));
 		assert.ok(!/\bdecodeConnectionReport\b|\bencodeConnectionReport\b/.test(source));
+		assert.ok(!/\bdecodeCapabilities\b|\bdecodeLoadMetrics\b|\bdecodeValidationError\b/.test(source));
 		assert.ok(!/\bgrpcListConfigsUnaryWire\b|\bgrpcGetConfigUnaryWire\b/.test(source));
 		assert.ok(!source.includes('UniverseAgent-WorkTrees'));
 		assert.ok(!/\bListConfigs\b|\bGetConfig\b|\bDeleteConfig\b|\bReload\b/.test(source));
@@ -269,16 +304,6 @@ suite('grpc RemoteAgentService SaveConfig protobuf wire', () => {
 		assert.ok(!watchBody.includes('makeUnaryBytesClient'));
 	});
 });
-
-/** TEST mapper: unread `connection_test` → `mapConnectionReport({})`. */
-function mapSaveRemoteAgentConfigResponse(wire: SaveRemoteAgentConfigResponseWire): UniverseAgentSaveRemoteAgentConfigResult {
-	return {
-		success: wire.success === true,
-		message: wire.message ?? '',
-		connectionTest: mapConnectionReport({}),
-		asyncTestId: wire.async_test_id ?? '',
-	};
-}
 
 function sampleConfig(overrides: Partial<UniverseAgentRemoteAgentConfig>): UniverseAgentRemoteAgentConfig {
 	return {
