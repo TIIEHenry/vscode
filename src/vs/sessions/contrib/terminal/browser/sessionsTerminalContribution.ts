@@ -216,7 +216,7 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 						this._terminalService.moveToBackground(availableInstance);
 						this._logService.trace(`[SessionsTerminal] Hid restored terminal ${availableInstance.instanceId} (cwd: ${cwd})`);
 					}
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 

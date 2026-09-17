@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ipcRenderer } from '../../../../base/parts/sandbox/electron-browser/globals.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { URI, UriComponents } from '../../../../base/common/uri.js';
 import { Disposable, DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
@@ -208,7 +209,7 @@ class SelectAgentsFolderContribution extends Disposable implements IWorkbenchCon
 				disposable.dispose();
 			}
 		});
-		this.lifecycleService.when(LifecyclePhase.Eventually).then(() => disposable.dispose());
+		this.lifecycleService.when(LifecyclePhase.Eventually).then(() => disposable.dispose()).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private tryResolveAndSelect(folderUri: URI): boolean {

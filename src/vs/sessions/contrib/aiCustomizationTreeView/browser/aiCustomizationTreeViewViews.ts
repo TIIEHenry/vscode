@@ -7,6 +7,7 @@ import './media/aiCustomizationTreeView.css';
 import * as dom from '../../../../base/browser/dom.js';
 import { ActionBar } from '../../../../base/browser/ui/actionbar/actionbar.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { autorun } from '../../../../base/common/observable.js';
 import { basename, dirname } from '../../../../base/common/resources.js';
@@ -742,7 +743,7 @@ export class AICustomizationViewPane extends ViewPane {
 		this.treeDisposables.add(this.tree.onContextMenu(e => this.onContextMenu(e)));
 
 		// Initial load and auto-expand category nodes
-		void this.tree.setInput(ROOT_ELEMENT).then(() => this.autoExpandCategories());
+		void this.tree.setInput(ROOT_ELEMENT).then(() => this.autoExpandCategories()).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async autoExpandCategories(): Promise<void> {
@@ -767,7 +768,7 @@ export class AICustomizationViewPane extends ViewPane {
 		// Clear the cache before refreshing
 		this.dataSource?.clearCache();
 		this.isEmptyContextKey.set(true); // Reset until we know the count
-		void this.tree?.setInput(ROOT_ELEMENT).then(() => this.autoExpandCategories());
+		void this.tree?.setInput(ROOT_ELEMENT).then(() => this.autoExpandCategories()).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	public collapseAll(): void {

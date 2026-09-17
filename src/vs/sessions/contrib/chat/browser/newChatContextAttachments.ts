@@ -5,6 +5,7 @@
 
 import * as dom from '../../../../base/browser/dom.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
@@ -268,7 +269,7 @@ export class NewChatContextAttachments extends Disposable implements INewChatAtt
 					} else {
 						picker.items = staticPicks;
 					}
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			};
 
 			// Initial search (no filter)
