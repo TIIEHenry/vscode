@@ -6,7 +6,7 @@
 import * as resources from '../../../../base/common/resources.js';
 import { URI, UriComponents } from '../../../../base/common/uri.js';
 import { CancellationTokenSource, CancellationToken } from '../../../../base/common/cancellation.js';
-import * as errors from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { ExtensionIdentifier, IExtensionDescription } from '../../../../platform/extensions/common/extensions.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { QueryBuilder } from '../../search/common/queryBuilder.js';
@@ -63,7 +63,7 @@ export function checkActivateWorkspaceContainsExtension(host: IExtensionActivati
 	Promise.all([fileNamePromise, globPatternPromise]).then(() => {
 		// when all are done, resolve with undefined (relevant only if it was not activated so far)
 		resolve(undefined);
-	});
+	}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 	return promise;
 }
@@ -96,8 +96,8 @@ async function _activateIfGlobPatterns(host: IExtensionActivationHost, extension
 	try {
 		exists = await searchP;
 	} catch (err) {
-		if (!errors.isCancellationError(err)) {
-			errors.onUnexpectedError(err);
+		if (!isCancellationError(err)) {
+			onUnexpectedError(err);
 		}
 	}
 
@@ -130,7 +130,7 @@ export function checkGlobFileExists(
 			return !!result.limitHit;
 		},
 		err => {
-			if (!errors.isCancellationError(err)) {
+			if (!isCancellationError(err)) {
 				return Promise.reject(err);
 			}
 

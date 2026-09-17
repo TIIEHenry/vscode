@@ -5,6 +5,7 @@
 
 import { Barrier } from '../../../../base/common/async.js';
 import { toErrorMessage } from '../../../../base/common/errorMessage.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { IMarkdownString, MarkdownString } from '../../../../base/common/htmlContent.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
@@ -339,7 +340,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 		await this._updateExtensionsOnExtHosts(result.versionId, toAdd, toRemove.map(e => e.identifier));
 
 		for (let i = 0; i < toAdd.length; i++) {
-			this._activateAddedExtensionIfNeeded(toAdd[i]);
+			this._activateAddedExtensionIfNeeded(toAdd[i]).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -482,7 +483,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 
 		// Activate deferred remote events now that remote hosts are starting
 		// This is done after the barrier is released to avoid blocking initialization
-		this._activateDeferredRemoteEvents();
+		this._activateDeferredRemoteEvents().catch(onUnexpectedError).catch(onUnexpectedError);
 
 		await this._handleExtensionTests();
 	}
@@ -887,7 +888,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 	protected _onExtensionHostCrashed(extensionHost: IExtensionHostManager, code: number, signal: string | null): void {
 		console.error(`Extension host (${extensionHost.friendyName}) terminated unexpectedly. Code: ${code}, Signal: ${signal}`);
 		if (extensionHost.kind === ExtensionHostKind.LocalProcess) {
-			this._doStopExtensionHosts();
+			this._doStopExtensionHosts().catch(onUnexpectedError).catch(onUnexpectedError);
 		} else if (extensionHost.kind === ExtensionHostKind.Remote) {
 			if (signal) {
 				this._onRemoteExtensionHostCrashed(extensionHost, signal);
@@ -1014,7 +1015,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 				// Note: some callers come in so early that the extension hosts have not even been created yet.
 				// Therefore we kick off the extension host creation, but without awaiting it.
 				// See https://github.com/microsoft/vscode/issues/260061
-				void this._initializeIfNeeded();
+				void this._initializeIfNeeded()?.catch(onUnexpectedError).catch(onUnexpectedError);
 
 				return this._activateByEvent(activationEvent, activationKind);
 			}
