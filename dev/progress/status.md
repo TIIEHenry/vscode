@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "合入 D24 四条服务端流 bytes + unread decode + client-stream helper。compile-client 0；聚焦 62 passing。D24 仍开。不是 leftover/pills 完成。"
+summary: "C 槽 ListNodes nested capabilities=7/load=8 已 decode（复用 GetNode）。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -27,6 +27,7 @@ summary: "合入 D24 四条服务端流 bytes + unread decode + client-stream he
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **C** | ListNodes nested `capabilities`=7 `load`=8 已 decode（复用 GetNode `decodeRemoteAgentInfoScalars`）；mocha ListNodes+GetNode **9 passing**。D24 **仍开**。未 commit |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
@@ -41,6 +42,6 @@ summary: "合入 D24 四条服务端流 bytes + unread decode + client-stream he
 ## Next
 | 项 | 指针 |
 |:---|:-----|
-| **loop** | D24 仍开。下一刀接线 Upload（`makeClientStreamBytesClient` 已落）。SaveSkillContent 无 RPC。Connect/Watch/ResolveAnchor/ResolveTurn 跳过。不得宣称 leftover/pills 完成 |
+| **loop** | D24 仍开。ListNodes 7/8 已 decode（本槽未合入）。下一刀接线 Upload。Connect/SaveSkillContent/Watch/Resolve 仍 JSON。不得宣称 leftover/pills 完成 |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。
