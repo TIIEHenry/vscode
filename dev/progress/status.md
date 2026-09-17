@@ -24,6 +24,7 @@ summary: "SessionStream 16/23/30–32/34–39/44/46/50–52 与 L2 envelope left
 | **A** | leftover 再猎（忽略账本「已完成」措辞） |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **C** | gitlink 脏 `dev/loop`；勿 add |
+| **D** | leftover fire-and-forget：terminal `_toggleOutput` 八处双链；D24 仍开 |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败；勿 reset |
 

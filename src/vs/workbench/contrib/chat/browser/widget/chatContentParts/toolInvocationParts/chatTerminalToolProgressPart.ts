@@ -28,6 +28,7 @@ import type { ICodeBlockRenderOptions } from '../codeBlockPart.js';
 import { Action, IAction } from '../../../../../../../base/common/actions.js';
 import { ActionBar } from '../../../../../../../base/browser/ui/actionbar/actionbar.js';
 import { timeout } from '../../../../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../../../../base/common/errors.js';
 import { IAhpTerminalCommandSource, IChatTerminalOutputSource, IChatTerminalToolProgressPart, ITerminalChatService, ITerminalConfigurationService, ITerminalEditorService, ITerminalGroupService, ITerminalInstance, ITerminalService } from '../../../../../terminal/browser/terminal.js';
 import { Disposable, DisposableStore, MutableDisposable, toDisposable, type IDisposable } from '../../../../../../../base/common/lifecycle.js';
 import { Emitter, Event } from '../../../../../../../base/common/event.js';
@@ -510,7 +511,7 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 		const storedExpandedState = expandedStateByInvocation.get(toolInvocation);
 		const hasStoredExpandedState = expandedStateByInvocation.has(toolInvocation);
 		if (storedExpandedState || (!hasStoredExpandedState && this._forceExpandTerminalOutput) || (this._isInThinkingContainer && IChatToolInvocation.isComplete(toolInvocation) && hasStoredOutput)) {
-			void this._toggleOutput(true);
+			void this._toggleOutput(true).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 		this._register(this._terminalChatService.registerProgressPart(this));
 	}
@@ -607,7 +608,7 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 				isFirstRun = false;
 				return;
 			}
-			this._toggleOutput(expanded);
+			void this._toggleOutput(expanded).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		return wrapper.domNode;
@@ -717,7 +718,7 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 				const autoExpandFailures = this._configurationService.getValue<boolean>(ChatConfiguration.AutoExpandToolFailures);
 				const exitCode = resolvedCommand?.exitCode ?? this._outputSource?.exitCode ?? this._terminalData.terminalCommandState?.exitCode;
 				if (exitCode !== undefined && exitCode !== 0 && autoExpandFailures) {
-					this._toggleOutput(true);
+					void this._toggleOutput(true).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 		}
@@ -911,7 +912,7 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 				if (this._usesCollapsibleWrapper) {
 					this.expandCollapsibleWrapper();
 				}
-				this._toggleOutput(true);
+				void this._toggleOutput(true).catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 
 			// Track data events to help hasRealOutput detect progress-style output
@@ -990,7 +991,7 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 			if (this._usesCollapsibleWrapper) {
 				this.expandCollapsibleWrapper();
 			}
-			this._toggleOutput(true);
+			void this._toggleOutput(true).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		store.add(ahpSource.onCommandExecuted(cmd => {
@@ -1000,7 +1001,7 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 				this._updateToolbarContextKeys(terminalInstance, this._terminalData.terminalToolSessionId);
 			}
 			if (this._outputView.isExpanded) {
-				void this._toggleOutput(true);
+				void this._toggleOutput(true).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -1034,7 +1035,7 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 
 		// Auto-collapse on success (exit code 0)
 		if (resolvedCommand?.exitCode === 0 && this._outputView.isExpanded && !this._userToggledOutput && !this._forceExpandTerminalOutput) {
-			this._toggleOutput(false);
+			void this._toggleOutput(false).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		// Keep outer wrapper expanded on error for visibility
@@ -1104,7 +1105,7 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 			if (this._usesCollapsibleWrapper) {
 				this.expandCollapsibleWrapper();
 			}
-			void this._toggleOutput(true);
+			void this._toggleOutput(true).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		store.add(source.onDidChange(() => {
 			this._decoration.update();
