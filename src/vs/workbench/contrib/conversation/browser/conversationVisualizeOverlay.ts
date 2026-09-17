@@ -8,6 +8,7 @@ import { CodeWindow } from '../../../../base/browser/window.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
@@ -102,7 +103,7 @@ export class ConversationVisualizeOverlay extends Disposable {
 
 		if (mountResult.webview) {
 			session.add(resetButton.onDidClick(() => {
-				void mountResult.webview!.postMessage({ type: 'resetPanZoom' });
+				void mountResult.webview!.postMessage({ type: 'resetPanZoom' }).catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 		} else {
 			resetButton.enabled = false;
