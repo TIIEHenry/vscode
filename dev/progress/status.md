@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "SessionStream 30/50 已合入 MERGE_SHA 482f5eeebe2。D24 仍开。不是 leftover/pills 完成。"
+summary: "工位 A 进行中：SessionStream ask_user_question=51 decode。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -24,6 +24,7 @@ summary: "SessionStream 30/50 已合入 MERGE_SHA 482f5eeebe2。D24 仍开。不
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **A** | `ask_user_question`=51 decode + demux mocha（未关 D24；未宣称 leftover/pills 完成） |
 | **A/I** | 本波已合入；下一刀 leftover nested hunt |
 | **H** | File/Memory/Team 猎完：无合法 leftover nested |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
@@ -34,7 +35,7 @@ summary: "SessionStream 30/50 已合入 MERGE_SHA 482f5eeebe2。D24 仍开。不
 子 agent 发现：
 | ID | 问题 |
 |:---|:-----|
-| [D24](deferred-gaps.md) | **仍开**：SessionStream 30/50 已 decode。Connect/Watch/Resolve/Pty 仍 JSON；`model_info`=9 unread |
+| [D24](deferred-gaps.md) | **仍开**：SessionStream 30/50/51 已 decode。Connect/Watch/Resolve/Pty 仍 JSON；`model_info`=9 unread |
 | — | TeamInfo `members`=2/`tasks`=3 测锁未读；公开类型只有 teamId+status |
 | — | `ListTeams` 不在 J `team_service.proto`；禁发明号 |
 | — | GetConfig tags=`[]` vs GetNode `undefined`（测锁 `[]`） |

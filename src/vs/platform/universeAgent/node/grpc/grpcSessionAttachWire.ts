@@ -409,9 +409,14 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * PermissionRequestEvent (`request_id`=1 `tool_name`=2 `description`=3
  * `agent_id`=6). `metadata`=4 / `requested_by_client`=5 /
  * `parent_tool_call_id`=7 unread (no public demux fields).
- * proto3: empty / 0 omitted. Unknown fields unread.
- * Shape matches OverlayDeltaJoin `streaming_delta` and
- * demuxSessionStreamPayload `permission_request`.
+ * `ask_user_question`=51 AskUserQuestionEvent (`request_id`=1 repeated
+ * items=2 `agent_id`=3). Item `id`=1 `header`=2 `question`=3
+ * options=4 `multi_select`=5 `allow_custom`=6; option `label`=2.
+ * Event `parent_tool_call_id`=4 and option `id`/`description` unread
+ * (no public demux fields). proto3: empty / 0 / false omitted.
+ * Unknown fields unread. Shape matches OverlayDeltaJoin
+ * `streaming_delta` and demuxSessionStreamPayload `permission_request`
+ * / `ask_user_question`.
  */
 export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessionEvent {
 	const fields = readProtoFields(bytes);
@@ -455,6 +460,10 @@ export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessio
 	const permission = lastBytes(fields, 50);
 	if (permission) {
 		payload.permission_request = decodePermissionRequestEvent(permission);
+	}
+	const askUserQuestion = lastBytes(fields, 51);
+	if (askUserQuestion) {
+		payload.ask_user_question = decodeAskUserQuestionEvent(askUserQuestion);
 	}
 	return { payload };
 }
@@ -518,6 +527,41 @@ function decodePermissionRequestEvent(bytes: Uint8Array): Record<string, unknown
 		tool_name: lastString(fields, 2) ?? '',
 		description: lastString(fields, 3) ?? '',
 		...(agentId ? { agent_id: agentId } : {}),
+	};
+}
+
+/**
+ * AskUserQuestionEvent — `request_id`=1 repeated items=2 `agent_id`=3.
+ * `parent_tool_call_id`=4 unread. Item: `id`=1 `header`=2 `question`=3
+ * options=4 `multi_select`=5 `allow_custom`=6. Option: `label`=2
+ * (`id`=1 `description`=3 unread). proto3: empty / 0 / false omitted.
+ */
+function decodeAskUserQuestionEvent(bytes: Uint8Array): Record<string, unknown> {
+	const fields = readProtoFields(bytes);
+	const agentId = lastString(fields, 3);
+	return {
+		request_id: lastString(fields, 1) ?? '',
+		items: allLengthDelimited(fields, 2).map(decodeAskUserQuestionItemProto),
+		...(agentId ? { agent_id: agentId } : {}),
+	};
+}
+
+function decodeAskUserQuestionItemProto(bytes: Uint8Array): Record<string, unknown> {
+	const fields = readProtoFields(bytes);
+	return {
+		id: lastString(fields, 1) ?? '',
+		header: lastString(fields, 2) ?? '',
+		question: lastString(fields, 3) ?? '',
+		options: allLengthDelimited(fields, 4).map(decodeAskUserQuestionOptionProto),
+		multi_select: lastVarint(fields, 5) === 1n,
+		allow_custom: lastVarint(fields, 6) === 1n,
+	};
+}
+
+function decodeAskUserQuestionOptionProto(bytes: Uint8Array): Record<string, unknown> {
+	const fields = readProtoFields(bytes);
+	return {
+		label: lastString(fields, 2) ?? '',
 	};
 }
 

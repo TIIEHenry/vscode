@@ -261,7 +261,7 @@ suite('grpc first-send / attach protobuf wire', () => {
 		const encoded = Buffer.concat([
 			encodeStringField(1, 'sess-1'),
 			encodeMessageField(50, permission),
-			encodeStringField(51, 'unused-stream-field'),
+			encodeStringField(99, 'unused-stream-field'),
 		]);
 		const decoded = decodeSessionStreamEvent(encoded);
 		const payload = decoded.payload as {
@@ -290,6 +290,84 @@ suite('grpc first-send / attach protobuf wire', () => {
 				orderKey: 'perm-live',
 				title: 'Run bash',
 				permissionKind: 'bash',
+				agentId: 'root',
+			},
+		});
+	});
+
+	test('decodeSessionStreamEvent reads nested ask_user_question=51 AskUserQuestionEvent 1-3; parent_tool_call_id unread; maps via demux', () => {
+		const optionA = Buffer.concat([
+			encodeStringField(1, 'opt-id-unread'),
+			encodeStringField(2, 'A'),
+			encodeStringField(3, 'opt-desc-unread'),
+		]);
+		const optionB = encodeStringField(2, 'B');
+		const item = Buffer.concat([
+			encodeStringField(1, 'item-a'),
+			encodeStringField(2, 'Pick'),
+			encodeStringField(3, 'Which?'),
+			encodeMessageField(4, optionA),
+			encodeMessageField(4, optionB),
+			encodeInt32Field(5, 1),
+			encodeInt32Field(6, 1),
+			encodeStringField(7, 'item-unused'),
+		]);
+		const question = Buffer.concat([
+			encodeStringField(1, 'q-live'),
+			encodeMessageField(2, item),
+			encodeStringField(3, 'root'),
+			encodeStringField(4, 'parent-tc-unread'),
+			encodeStringField(5, 'event-unused'),
+		]);
+		const encoded = Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodeMessageField(51, question),
+			encodeStringField(99, 'unused-stream-field'),
+		]);
+		const decoded = decodeSessionStreamEvent(encoded);
+		const payload = decoded.payload as {
+			session_id?: string;
+			ask_user_question?: Record<string, unknown>;
+		};
+		assert.strictEqual(payload.session_id, 'sess-1');
+		assert.deepStrictEqual(payload.ask_user_question, {
+			request_id: 'q-live',
+			items: [{
+				id: 'item-a',
+				header: 'Pick',
+				question: 'Which?',
+				options: [{ label: 'A' }, { label: 'B' }],
+				multi_select: true,
+				allow_custom: true,
+			}],
+			agent_id: 'root',
+		});
+		assert.ok(!('parent_tool_call_id' in (payload.ask_user_question ?? {})));
+		assert.ok(!('parentToolCallId' in (payload.ask_user_question ?? {})));
+		const items = payload.ask_user_question?.items as Array<Record<string, unknown>>;
+		const options = items[0]?.options as Array<Record<string, unknown>>;
+		assert.ok(!('id' in (options[0] ?? {})));
+		assert.ok(!('description' in (options[0] ?? {})));
+		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
+		assert.strictEqual(JSON.stringify(decoded).includes('parent-tc-unread'), false);
+		assert.strictEqual(JSON.stringify(decoded).includes('opt-id-unread'), false);
+		assert.strictEqual(JSON.stringify(decoded).includes('opt-desc-unread'), false);
+		const events = demuxSessionStreamPayload(decoded.payload);
+		assert.strictEqual(events.length, 1);
+		assert.deepStrictEqual(events[0], {
+			arm: 'question',
+			body: {
+				id: 'q-live',
+				orderKey: 'q-live',
+				questions: [{
+					id: 'item-a',
+					header: 'Pick',
+					question: 'Which?',
+					optionsPreview: ['A', 'B'],
+					multiSelect: true,
+					allowCustom: true,
+				}],
+				sessionId: 'sess-1',
 				agentId: 'root',
 			},
 		});
