@@ -444,7 +444,7 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 					onMessage: onMessage.event,
 					send: message => port.postMessage(message.buffer),
 				});
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 			// Now that the message port listener is installed, start the ext host process
 			const sw = StopWatch.create(false);
