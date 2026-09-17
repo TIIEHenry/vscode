@@ -254,7 +254,7 @@ export class LocalAgentHostSessionsProvider extends BaseAgentHostSessionsProvide
 
 	override createNewSession(workspaceUri: URI, sessionTypeId: string, options?: ISessionsProviderCreateSessionOptions): ISession {
 		const session = super.createNewSession(workspaceUri, sessionTypeId, options);
-		void this._resolveDevContainerAvailability(session.sessionId, workspaceUri).catch(onUnexpectedError);
+		void this._resolveDevContainerAvailability(session.sessionId, workspaceUri).catch(onUnexpectedError).catch(onUnexpectedError);
 		return session;
 	}
 
