@@ -635,7 +635,7 @@ class ExtensionsContributions extends Disposable implements IWorkbenchContributi
 			.then(extensionGalleryManifest => {
 				this.updateGalleryCapabilitiesContexts(extensionGalleryManifest);
 				this._register(extensionGalleryManifestService.onDidChangeExtensionGalleryManifest(extensionGalleryManifest => this.updateGalleryCapabilitiesContexts(extensionGalleryManifest)));
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		this.registerGlobalActions();
 		this.registerContextMenuActions();
 		this.registerQuickAccessProvider();

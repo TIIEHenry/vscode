@@ -693,7 +693,7 @@ export class FileOutputChannelModel extends AbstractFileOutputChannelModel imple
 				}
 			}
 			this.doUpdate(mode, immediate);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	override updateChannelSources(files: IOutputContentSource[]): void { throw new Error('Not supported'); }
@@ -733,7 +733,7 @@ export class MultiFileOutputChannelModel extends AbstractFileOutputChannelModel 
 		loadModelPromise.then(() => {
 			this.multifileOutput.resetToEnd();
 			this.doUpdate(OutputChannelUpdateMode.Clear, true);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	override update(mode: OutputChannelUpdateMode, till: number | undefined, immediate: boolean): void { throw new Error('Not supported'); }
