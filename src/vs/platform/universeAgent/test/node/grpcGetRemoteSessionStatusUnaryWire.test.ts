@@ -8,11 +8,10 @@ import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import type { UniverseAgentGetRemoteSessionStatusResult } from '../../common/universeAgentTypes.js';
+import { mapGetRemoteSessionStatusResponse } from '../../node/grpc/grpcClientMappersCatalog.js';
 import {
 	decodeGetRemoteSessionStatusResponse,
 	encodeGetRemoteSessionStatusRequest,
-	type GetRemoteSessionStatusResponseWire,
 } from '../../node/grpc/grpcGetRemoteSessionStatusUnaryWire.js';
 import {
 	encodeInt64Field,
@@ -46,15 +45,34 @@ suite('grpc RemoteAgentService GetRemoteSessionStatus protobuf wire', () => {
 		}).length, 0);
 	});
 
-	test('decodeGetRemoteSessionStatusResponse reads status=1 call_id=2 progress=3 elapsed_ms=4 expires_at=5; pending 6/7 unused unread; missing pending → []', () => {
+	test('decodeGetRemoteSessionStatusResponse reads status=1 call_id=2 progress=3 elapsed_ms=4 expires_at=5 pending_permissions=6 pending_questions=7', () => {
+		const permission = Buffer.concat([
+			encodeStringField(1, 'perm-1'),
+			encodeStringField(2, 'bash'),
+			encodeStringField(3, '/tmp/a'),
+			encodeStringField(4, 'ls'),
+			encodeStringField(5, '{"n":1}'),
+			encodeStringField(6, 'HIGH'),
+			encodeStringField(7, 'USER'),
+			encodeStringField(8, 'unused-permission-field'),
+		]);
+		const sparsePermission = encodeStringField(1, 'perm-2');
+		const question = Buffer.concat([
+			encodeStringField(1, 'q-1'),
+			encodeStringField(2, '[{"id":"a"}]'),
+			encodeStringField(3, 'unused-question-field'),
+		]);
+		const sparseQuestion = encodeStringField(1, 'q-2');
 		const encoded = Buffer.concat([
 			encodeStringField(1, 'running'),
 			encodeStringField(2, 'call-1'),
 			encodeStringField(3, 'step 2/5'),
 			encodeInt64Field(4, 1200),
 			encodeInt64Field(5, 1700003600),
-			encodeMessageField(6, encodeStringField(1, 'unused-permission')),
-			encodeMessageField(7, encodeStringField(1, 'unused-question')),
+			encodeMessageField(6, permission),
+			encodeMessageField(6, sparsePermission),
+			encodeMessageField(7, question),
+			encodeMessageField(7, sparseQuestion),
 			encodeStringField(8, 'unused-field'),
 		]);
 		assert.notStrictEqual(encoded[0], 0x7b);
@@ -65,9 +83,37 @@ suite('grpc RemoteAgentService GetRemoteSessionStatus protobuf wire', () => {
 			progress: 'step 2/5',
 			elapsed_ms: 1200,
 			expires_at: 1700003600,
+			pending_permissions: [
+				{
+					request_id: 'perm-1',
+					tool_name: 'bash',
+					path: '/tmp/a',
+					command: 'ls',
+					arguments_json: '{"n":1}',
+					danger_level: 'HIGH',
+					bubble_target: 'USER',
+				},
+				{
+					request_id: 'perm-2',
+					tool_name: undefined,
+					path: undefined,
+					command: undefined,
+					arguments_json: undefined,
+					danger_level: undefined,
+					bubble_target: undefined,
+				},
+			],
+			pending_questions: [
+				{
+					question_id: 'q-1',
+					questions_json: '[{"id":"a"}]',
+				},
+				{
+					question_id: 'q-2',
+					questions_json: undefined,
+				},
+			],
 		});
-		assert.ok(!('pending_permissions' in wire));
-		assert.ok(!('pending_questions' in wire));
 		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
 		assert.deepStrictEqual(mapGetRemoteSessionStatusResponse(wire), {
 			status: 'running',
@@ -75,8 +121,36 @@ suite('grpc RemoteAgentService GetRemoteSessionStatus protobuf wire', () => {
 			progress: 'step 2/5',
 			elapsedMs: 1200,
 			expiresAt: 1700003600,
-			pendingPermissions: [],
-			pendingQuestions: [],
+			pendingPermissions: [
+				{
+					requestId: 'perm-1',
+					toolName: 'bash',
+					path: '/tmp/a',
+					command: 'ls',
+					argumentsJson: '{"n":1}',
+					dangerLevel: 'HIGH',
+					bubbleTarget: 'USER',
+				},
+				{
+					requestId: 'perm-2',
+					toolName: '',
+					path: '',
+					command: '',
+					argumentsJson: '',
+					dangerLevel: '',
+					bubbleTarget: '',
+				},
+			],
+			pendingQuestions: [
+				{
+					questionId: 'q-1',
+					questionsJson: '[{"id":"a"}]',
+				},
+				{
+					questionId: 'q-2',
+					questionsJson: '',
+				},
+			],
 		});
 
 		const empty = decodeGetRemoteSessionStatusResponse(new Uint8Array(0));
@@ -86,9 +160,9 @@ suite('grpc RemoteAgentService GetRemoteSessionStatus protobuf wire', () => {
 			progress: undefined,
 			elapsed_ms: undefined,
 			expires_at: undefined,
+			pending_permissions: [],
+			pending_questions: [],
 		});
-		assert.ok(!('pending_permissions' in empty));
-		assert.ok(!('pending_questions' in empty));
 		assert.deepStrictEqual(mapGetRemoteSessionStatusResponse(empty), {
 			status: '',
 			callId: '',
@@ -99,18 +173,17 @@ suite('grpc RemoteAgentService GetRemoteSessionStatus protobuf wire', () => {
 			pendingQuestions: [],
 		});
 
-		const unusedOnly = decodeGetRemoteSessionStatusResponse(Buffer.concat([
-			encodeMessageField(6, encodeStringField(1, 'unused-permission')),
-			encodeMessageField(7, encodeStringField(1, 'unused-question')),
-			encodeStringField(8, 'unused-field'),
-		]));
+		const unusedOnly = decodeGetRemoteSessionStatusResponse(encodeStringField(8, 'unused-field'));
 		assert.deepStrictEqual(unusedOnly, {
 			status: undefined,
 			call_id: undefined,
 			progress: undefined,
 			elapsed_ms: undefined,
 			expires_at: undefined,
+			pending_permissions: [],
+			pending_questions: [],
 		});
+		assert.strictEqual(JSON.stringify(unusedOnly).includes('unused'), false);
 		assert.deepStrictEqual(mapGetRemoteSessionStatusResponse(unusedOnly), {
 			status: '',
 			callId: '',
@@ -151,8 +224,9 @@ suite('grpc RemoteAgentService GetRemoteSessionStatus protobuf wire', () => {
 		assert.ok(/\bdecodeGetRemoteSessionStatusResponse\b/.test(source));
 		assert.ok(/\blastVarint\b/.test(source));
 		assert.ok(/\blastString\b/.test(source));
-		assert.ok(!/\ballLengthDelimited\b/.test(source));
-		assert.ok(!/\bdecodeRemotePendingPermission\b|\bdecodeRemotePendingQuestion\b/.test(source));
+		assert.ok(/\ballLengthDelimited\b/.test(source));
+		assert.ok(/\bdecodeRemotePendingPermission\b/.test(source));
+		assert.ok(/\bdecodeRemotePendingQuestion\b/.test(source));
 		assert.ok(!/\bencodeRemotePendingPermission\b|\bencodeRemotePendingQuestion\b/.test(source));
 		assert.ok(!/\bmapRemotePendingPermission\b|\bmapRemotePendingQuestion\b/.test(source));
 		assert.ok(!/\bCreateRemoteSession\b|\bDestroyRemoteSession\b|\bGetRemoteSessionHistory\b/.test(source));
@@ -189,38 +263,6 @@ suite('grpc RemoteAgentService GetRemoteSessionStatus protobuf wire', () => {
 		assert.ok(!watchBody.includes('grpcGetRemoteSessionStatusUnaryWire'));
 	});
 });
-
-/** Same mapping as RemoteAgent.GetRemoteSessionStatus JSON unary (missing pending → []). */
-function mapGetRemoteSessionStatusResponse(wire: GetRemoteSessionStatusResponseWire): UniverseAgentGetRemoteSessionStatusResult {
-	return {
-		status: wire.status ?? '',
-		callId: wire.call_id ?? '',
-		progress: wire.progress ?? '',
-		elapsedMs: requiredInt64(wire.elapsed_ms),
-		expiresAt: requiredInt64(wire.expires_at),
-		pendingPermissions: (wire.pending_permissions ?? []).map(item => ({
-			requestId: item.request_id ?? '',
-			toolName: item.tool_name ?? '',
-			path: item.path ?? '',
-			command: item.command ?? '',
-			argumentsJson: item.arguments_json ?? '',
-			dangerLevel: item.danger_level ?? '',
-			bubbleTarget: item.bubble_target ?? '',
-		})),
-		pendingQuestions: (wire.pending_questions ?? []).map(item => ({
-			questionId: item.question_id ?? '',
-			questionsJson: item.questions_json ?? '',
-		})),
-	};
-}
-
-function requiredInt64(value: number | string | undefined): number {
-	if (value === undefined || value === '') {
-		return 0;
-	}
-	const n = typeof value === 'number' ? value : Number(value);
-	return Number.isFinite(n) ? n : 0;
-}
 
 function encodeVarintZero(field: number): Buffer {
 	return Buffer.concat([
