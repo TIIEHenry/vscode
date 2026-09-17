@@ -182,7 +182,7 @@ suite('grpc AgentService SubscribeToolDetail protobuf server-stream wire', () =>
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('openSubscribeToolDetailStream uses makeServerStreamBytesClient; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor/Upload', () => {
+	test('openSubscribeToolDetailStream uses makeServerStreamBytesClient; Upload bytes; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const body = extractMethod(source, 'openSubscribeToolDetailStream');
 		assert.ok(body.includes('makeServerStreamBytesClient'), 'openSubscribeToolDetailStream must use makeServerStreamBytesClient');
@@ -207,8 +207,10 @@ suite('grpc AgentService SubscribeToolDetail protobuf server-stream wire', () =>
 		assert.ok(!watch.includes('makeServerStreamBytesClient'));
 
 		const upload = extractMethod(source, 'openUploadAttachmentStream');
-		assert.ok(upload.includes('makeClientStreamClient<'));
-		assert.ok(!upload.includes('makeClientStreamBytesClient'));
+		assert.ok(upload.includes('makeClientStreamBytesClient'), 'openUploadAttachmentStream must wire makeClientStreamBytesClient');
+		assert.ok(upload.includes('encodeUploadChunk'), 'openUploadAttachmentStream must call encodeUploadChunk');
+		assert.ok(upload.includes('decodeUploadResponse'), 'openUploadAttachmentStream must call decodeUploadResponse');
+		assert.ok(!upload.includes('makeClientStreamClient<'));
 		assert.ok(!upload.includes('makeServerStreamBytesClient'));
 	});
 });

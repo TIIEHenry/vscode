@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "A 槽接线 UploadAttachment bytes。D24 仍开。不是 leftover/pills 完成。"
+summary: "A 槽同胞 scan 对齐 Upload/Download bytes。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -27,7 +27,7 @@ summary: "A 槽接线 UploadAttachment bytes。D24 仍开。不是 leftover/pill
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A** | 本槽：`openUploadAttachmentStream` 已 `makeClientStreamBytesClient`；D24 仍开 |
+| **A** | 本槽：同胞 identifier-scan 已对齐 Upload/Download bytes；D24 仍开 |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |

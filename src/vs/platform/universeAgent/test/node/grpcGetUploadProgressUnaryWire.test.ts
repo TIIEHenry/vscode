@@ -150,15 +150,19 @@ suite('grpc FileTransferService GetUploadProgress protobuf wire', () => {
 		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});
 
-	test('skip UploadAttachment/DownloadAttachment streams; do not lock siblings', () => {
+	test('UploadAttachment/DownloadAttachment streams use bytes; do not lock siblings', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const upload = extractMethod(source, 'openUploadAttachmentStream');
-		assert.ok(upload.includes('makeClientStreamClient<Record<string, unknown>'));
+		assert.ok(upload.includes('makeClientStreamBytesClient'), 'openUploadAttachmentStream must wire makeClientStreamBytesClient');
+		assert.ok(upload.includes('encodeUploadChunk'), 'openUploadAttachmentStream must call encodeUploadChunk');
+		assert.ok(upload.includes('decodeUploadResponse'), 'openUploadAttachmentStream must call decodeUploadResponse');
+		assert.ok(!upload.includes('makeClientStreamClient<'));
 		assert.ok(!upload.includes('makeUnaryBytesClient'));
 		assert.ok(!upload.includes('grpcGetUploadProgressUnaryWire'));
 
 		const download = extractMethod(source, 'openDownloadAttachmentStream');
-		assert.ok(download.includes('makeServerStreamClient<Record<string, unknown>'));
+		assert.ok(download.includes('makeServerStreamBytesClient'), 'openDownloadAttachmentStream must use makeServerStreamBytesClient');
+		assert.ok(!download.includes('makeServerStreamClient<'));
 		assert.ok(!download.includes('makeUnaryBytesClient'));
 		assert.ok(!download.includes('grpcGetUploadProgressUnaryWire'));
 	});

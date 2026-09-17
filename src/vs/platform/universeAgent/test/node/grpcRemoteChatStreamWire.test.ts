@@ -413,7 +413,7 @@ suite('grpc RemoteAgentService RemoteChat protobuf server-stream wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('openRemoteChatStream uses makeServerStreamBytesClient; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor/Upload', () => {
+	test('openRemoteChatStream uses makeServerStreamBytesClient; Upload bytes; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const remoteChat = extractMethod(source, 'openRemoteChatStream');
 		assert.ok(remoteChat.includes('makeServerStreamBytesClient'), 'openRemoteChatStream must use makeServerStreamBytesClient');
@@ -438,8 +438,10 @@ suite('grpc RemoteAgentService RemoteChat protobuf server-stream wire', () => {
 		assert.ok(!watch.includes('makeServerStreamBytesClient'));
 
 		const upload = extractMethod(source, 'openUploadAttachmentStream');
-		assert.ok(upload.includes('makeClientStreamClient<'));
-		assert.ok(!upload.includes('makeClientStreamBytesClient'));
+		assert.ok(upload.includes('makeClientStreamBytesClient'), 'openUploadAttachmentStream must wire makeClientStreamBytesClient');
+		assert.ok(upload.includes('encodeUploadChunk'), 'openUploadAttachmentStream must call encodeUploadChunk');
+		assert.ok(upload.includes('decodeUploadResponse'), 'openUploadAttachmentStream must call decodeUploadResponse');
+		assert.ok(!upload.includes('makeClientStreamClient<'));
 		assert.ok(!upload.includes('makeServerStreamBytesClient'));
 	});
 });
