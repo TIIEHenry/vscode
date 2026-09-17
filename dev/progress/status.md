@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "合入 D24 流 wire + children/context_sources/pending decode。D24 仍开。不是 leftover/pills 完成。"
+summary: "A 槽接线四条 server-stream bytes。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -22,11 +22,13 @@ summary: "合入 D24 流 wire + children/context_sources/pending decode。D24 �
 | **I decode** | `75674e62c42` — FetchToolUsageDetail `context_sources`=3 |
 | **J decode** | `430a6df7c51` — GetRemoteSessionStatus pending 6/7 |
 | **A D24 流** | `ae31bd96fc7` — Continue/Regenerate/Resume bytes；[D24](deferred-gaps.md) 仍开 |
+| **A 四流 bytes** | `dafcee416ed` — SubscribeToolDetail/Rebuild/RemoteChat/Download `makeServerStreamBytesClient`；[D24](deferred-gaps.md) 仍开 |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **A** | 脏 `loop/A-d24-four-server-stream-bytes`；SubscribeToolDetail / Rebuild / RemoteChat / Download 已 `makeServerStreamBytesClient`；[D24](deferred-gaps.md) **仍开**；勿 `-B` / 勿 reset |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
@@ -34,13 +36,13 @@ summary: "合入 D24 流 wire + children/context_sources/pending decode。D24 �
 子 agent 发现：
 | ID | 问题 |
 |:---|:-----|
-| [D24](deferred-gaps.md) | **仍开**：Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor 仍 JSON；四条新流未接线 |
+| [D24](deferred-gaps.md) | **仍开**：四条新流已接线 bytes；Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor 仍 JSON；Upload 仍 JSON（无 bytes client-stream helper） |
 | [D487](deferred-gaps.md) | **closed** Memory `score`=4 IEEE 754 LE |
 | [D550](deferred-gaps.md)–[D674](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |
 |:---|:-----|
-| **loop** | D24 仍开。下一刀接线 SubscribeToolDetail/Rebuild/RemoteChat/Download；Upload 另加 bytes client-stream。SaveSkillContent 无 RPC。Connect/Watch/ResolveAnchor/ResolveTurn 跳过。不得宣称 leftover/pills 完成 |
+| **loop** | D24 仍开。下一刀 Upload bytes client-stream（须另加 helper）。SaveSkillContent 无 RPC。Connect/Watch/ResolveAnchor/ResolveTurn 跳过。不得宣称 leftover/pills 完成 |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。

@@ -151,7 +151,7 @@ suite('grpc AgentService ContinueGeneration/Regenerate/Resume protobuf server-st
 		assert.ok(source.includes('grpcAgentChatServerStreamWire'));
 	});
 
-	test('Watch / Rebuild / Connect / SaveSkillContent / ResolveTurn / ResolveAnchor stay JSON', () => {
+	test('Watch / Connect / SaveSkillContent / ResolveTurn / ResolveAnchor stay JSON', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		assert.ok(!extractMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractMethod(source, 'saveSkillContent').includes('makeUnaryClient<'));
@@ -165,10 +165,6 @@ suite('grpc AgentService ContinueGeneration/Regenerate/Resume protobuf server-st
 		const watch = extractMethod(source, 'openWatchConfigStream');
 		assert.ok(watch.includes('makeServerStreamClient<Record<string, unknown>'));
 		assert.ok(!watch.includes('makeServerStreamBytesClient'));
-
-		const rebuild = extractMethod(source, 'openRebuildMemoryStream');
-		assert.ok(rebuild.includes('makeServerStreamClient<Record<string, unknown>'));
-		assert.ok(!rebuild.includes('makeServerStreamBytesClient'));
 	});
 
 	test('makeServerStreamBytesClient serializes proto bytes; makeServerStreamClient stays JSON', () => {
