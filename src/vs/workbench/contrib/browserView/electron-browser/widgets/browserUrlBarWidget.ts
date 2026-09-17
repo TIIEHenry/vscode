@@ -10,6 +10,7 @@ import { getDefaultHoverDelegate } from '../../../../../base/browser/ui/hover/ho
 import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { KeyCode } from '../../../../../base/common/keyCodes.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Disposable, DisposableStore, MutableDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
 import { IHoverService } from '../../../../../platform/hover/browser/hover.js';
@@ -500,7 +501,7 @@ export class BrowserUrlBarWidget extends Disposable {
 		const primaryItems = this._host.getPrimaryActions?.(trimmed);
 		const defaultItem = primaryItems?.[0];
 		if (defaultItem?.apply) {
-			void Promise.resolve(defaultItem.apply(input));
+			void Promise.resolve(defaultItem.apply(input)).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			input.navigate(trimmed);
 		}
@@ -751,7 +752,7 @@ export class BrowserUrlBarWidget extends Disposable {
 			const action = button as IBrowserUrlPickerAction;
 			const input = this._host.input;
 			if (typeof action.run === 'function' && input) {
-				void Promise.resolve(action.run(input));
+				void Promise.resolve(action.run(input)).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -763,7 +764,7 @@ export class BrowserUrlBarWidget extends Disposable {
 			const action = button as IBrowserUrlSuggestionAction;
 			const input = this._host.input;
 			if (typeof action.run === 'function' && input) {
-				void Promise.resolve(action.run(input));
+				void Promise.resolve(action.run(input)).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 		// Per-group separator button. Routed the same way as per-item buttons
@@ -772,7 +773,7 @@ export class BrowserUrlBarWidget extends Disposable {
 			const action = button as IBrowserUrlSuggestionAction;
 			const input = this._host.input;
 			if (typeof action.run === 'function' && input) {
-				void Promise.resolve(action.run(input));
+				void Promise.resolve(action.run(input)).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 		disposables.add(picker.onDidAccept(() => {
@@ -783,7 +784,7 @@ export class BrowserUrlBarWidget extends Disposable {
 			picker.hide();
 			if (active?.apply) {
 				if (input) {
-					void Promise.resolve(active.apply(input));
+					void Promise.resolve(active.apply(input)).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 				return;
 			}

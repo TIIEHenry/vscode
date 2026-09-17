@@ -6,6 +6,7 @@
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { structuralEquals } from '../../../../base/common/equals.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
@@ -577,7 +578,7 @@ export class BrowserViewModel extends Disposable implements IBrowserViewModel {
 			void this.setBrowserZoomIndex(
 				this.zoomService.getEffectiveZoomIndex(this._zoomHost, this._isEphemeral),
 				true
-			);
+			).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this._register(this.onDidChangeLoadingState(e => {
@@ -1014,7 +1015,7 @@ export class BrowserViewModel extends Disposable implements IBrowserViewModel {
 		this._onWillDispose.fire();
 
 		// Clean up the browser view when the model is disposed
-		void this.browserViewService.destroyBrowserView(this.id);
+		void this.browserViewService.destroyBrowserView(this.id).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		super.dispose();
 	}

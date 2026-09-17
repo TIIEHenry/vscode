@@ -6,6 +6,7 @@
 import { localize, localize2 } from '../../../../../nls.js';
 import { $ } from '../../../../../base/browser/dom.js';
 import { disposableTimeout } from '../../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Disposable, DisposableStore, MutableDisposable } from '../../../../../base/common/lifecycle.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
@@ -205,7 +206,7 @@ class BrowserNavigationBar extends Disposable {
 			id: 'browser.configureSearchEngine',
 			iconClass: ThemeIcon.asClassName(Codicon.settingsGear),
 			tooltip: localize('browser.configureSearchEngine', "Configure Search Engine"),
-			run: () => void this._preferencesService.openSettings({ query: `@id:${BrowserSearchEngineSettingId}` }),
+			run: () => void this._preferencesService.openSettings({ query: `@id:${BrowserSearchEngineSettingId}` }).catch(onUnexpectedError).catch(onUnexpectedError),
 		};
 		const search: IUrlPickerItem = {
 			id: text,
