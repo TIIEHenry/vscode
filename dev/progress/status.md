@@ -34,6 +34,7 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D747。D736/D
 | treeView tooltip | `treeView.ts` resolve.then reject 不拒外层 tooltip Promise |
 | breadcrumbs catch | 自定义 catch 会 fire-on-error，不能直接改 D480 双链 |
 | createEditorInset | 协议 `$createEditorInset: Promise<void>` vs `$disposeEditorInset: void` |
+| theme leftover | `workbenchThemeService` leftover then + 单链 catch（D480 漏） |
 ## Next
 | 项 | 指针 |
 |:-----|:-----|
