@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { observableValue } from '../../../../../base/common/observable.js';
 import { toDisposable } from '../../../../../base/common/lifecycle.js';
@@ -44,9 +46,38 @@ import { TestClipboardService } from '../../../../../platform/clipboard/test/com
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 import { flushConversationLensLayout, installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
 import { getWindow } from '../../../../../base/browser/dom.js';
+import { REVEAL_IN_EXPLORER_COMMAND_ID } from '../../../files/browser/fileConstants.js';
+
+declare function __readFileInTests(path: string): Promise<string>;
 
 const LENS_LAYOUT_WIDTH = 640;
 const LENS_LAYOUT_HEIGHT = 480;
+
+async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
+	// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	const unexpectedWarns: unknown[] = [];
+	const unhandledRejections: unknown[] = [];
+	const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+	process.on('unhandledRejection', onUnhandledRejection);
+	const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+	setUnexpectedErrorHandler(error => {
+		unexpectedWarns.push(error);
+		if (unexpectedWarns.length === 1) {
+			throw error;
+		}
+	});
+	try {
+		await run();
+		await timeout(0);
+		assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+			unhandledRejections: [],
+			unexpectedWarns: [paintBoom, paintBoom],
+		});
+	} finally {
+		setUnexpectedErrorHandler(originalErrorHandler);
+		process.off('unhandledRejection', onUnhandledRejection);
+	}
+}
 
 suite('ConversationIdentityStrip', () => {
 
@@ -433,5 +464,58 @@ suite('ConversationIdentityStrip', () => {
 
 		assert.ok(!/copilot/i.test(text));
 		assert.ok(!/open chat/i.test(text));
+	});
+
+	test('does not leak unhandled rejection when engine chip executeCommand rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('engine chip boom');
+		const executed: string[] = [];
+		const commandService = new class implements ICommandService {
+			declare readonly _serviceBrand: undefined;
+			onWillExecuteCommand = Event.None;
+			onDidExecuteCommand = Event.None;
+			executeCommand<T>(id: string): Promise<T | undefined> {
+				executed.push(id);
+				return Promise.reject(paintBoom);
+			}
+		}();
+		const { slots } = mountLens({ commandService });
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			const engineChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityEngineChipClass}`) as HTMLButtonElement;
+			engineChip.click();
+		});
+		assert.deepStrictEqual(executed, [OPEN_CONNECTION_PREFERENCES_COMMAND_ID]);
+	});
+
+	test('does not leak unhandled rejection when folder chip reveal executeCommand rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('folder chip boom');
+		const executed: string[] = [];
+		const commandService = new class implements ICommandService {
+			declare readonly _serviceBrand: undefined;
+			onWillExecuteCommand = Event.None;
+			onDidExecuteCommand = Event.None;
+			executeCommand<T>(id: string): Promise<T | undefined> {
+				executed.push(id);
+				return Promise.reject(paintBoom);
+			}
+		}();
+		const { slots } = mountLens({ commandService });
+		const folderChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityFolderChipClass}`) as HTMLButtonElement;
+		assert.ok(folderChip);
+		assert.strictEqual(folderChip.hidden, false);
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			folderChip.click();
+		});
+		assert.deepStrictEqual(executed, [REVEAL_IN_EXPLORER_COMMAND_ID]);
+	});
+
+	test('identity strip engine and reveal fire-and-forget voids double-catch onUnexpectedError', async () => {
+		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.ts`);
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		assert.ok(source.includes(`void this.commandService.executeCommand(getEngineStatusCommandId(`));
+		assert.ok(source.includes(`)).catch(onUnexpectedError).catch(onUnexpectedError);`));
+		assert.ok(source.includes(`void this.commandService.executeCommand(REVEAL_IN_EXPLORER_COMMAND_ID, this.folderResource)${doubleCatch};`));
+		assert.ok(!source.includes('this.commandService.executeCommand(getEngineStatusCommandId(\n\t\t\t\tthis.uaConnection.getConnectionPhase(),\n\t\t\t\tthis.uaConnection.getConnectionSnapshot().pairingPending,\n\t\t\t));'));
+		assert.ok(!source.includes('this.commandService.executeCommand(REVEAL_IN_EXPLORER_COMMAND_ID, this.folderResource);'));
+		assert.strictEqual((source.match(/void this\.commandService\.executeCommand\([\s\S]*?\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
 	});
 });

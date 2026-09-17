@@ -23,6 +23,7 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 sources D677、UA D6
 | **A** | leftover catch 再猎（忽略账本完成措辞） |
 | **B** | 脏；跳过 |
 | **C** | gitlink 脏；勿 add |
+| **D** | identity/visualize leftover Promise 双链已套；D24 仍开；不是 leftover/pills 完成 |
 | **E** | blocked |
 | **edit** | ff-only 失败 |
 

@@ -5,6 +5,8 @@
 
 import assert from 'assert';
 import { $, append } from '../../../../../base/browser/dom.js';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { KeyCode } from '../../../../../base/common/keyCodes.js';
 import { Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -17,11 +19,41 @@ import { IWebviewElement, IWebviewService } from '../../../webview/browser/webvi
 import { resolveConversationMermaidExtension } from '../../browser/conversationMermaidHost.js';
 import { ConversationVisualizeOverlay } from '../../browser/conversationVisualizeOverlay.js';
 
+declare function __readFileInTests(path: string): Promise<string>;
+
+async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
+	// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	const unexpectedWarns: unknown[] = [];
+	const unhandledRejections: unknown[] = [];
+	const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+	process.on('unhandledRejection', onUnhandledRejection);
+	const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+	setUnexpectedErrorHandler(error => {
+		unexpectedWarns.push(error);
+		if (unexpectedWarns.length === 1) {
+			throw error;
+		}
+	});
+	try {
+		await run();
+		await timeout(0);
+		assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+			unhandledRejections: [],
+			unexpectedWarns: [paintBoom, paintBoom],
+		});
+	} finally {
+		setUnexpectedErrorHandler(originalErrorHandler);
+		process.off('unhandledRejection', onUnhandledRejection);
+	}
+}
+
 suite('ConversationVisualizeOverlay', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function mountOverlay(): { overlay: ConversationVisualizeOverlay; container: HTMLElement } {
+	function mountOverlay(options?: {
+		postMessage?: () => Promise<boolean>;
+	}): { overlay: ConversationVisualizeOverlay; container: HTMLElement } {
 		const container = append(document.body, $('.conversation-visualize-overlay-test-root'));
 		store.add({ dispose: () => container.remove() });
 
@@ -45,7 +77,7 @@ suite('ConversationVisualizeOverlay', () => {
 					},
 					setHtml() { },
 					postMessage() {
-						return Promise.resolve(true);
+						return options?.postMessage?.() ?? Promise.resolve(true);
 					},
 					onDidWheel: Event.None,
 					onFatalError: Event.None,
@@ -175,5 +207,25 @@ suite('ConversationVisualizeOverlay', () => {
 			getExtension: () => Promise.resolve(undefined),
 		} as unknown as IExtensionService;
 		assert.strictEqual(await resolveConversationMermaidExtension(stub), undefined);
+	});
+
+	test('does not leak unhandled rejection when reset postMessage rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('reset postMessage boom');
+		const { container } = mountOverlay({
+			postMessage: () => Promise.reject(paintBoom),
+		});
+		const resetButton = container.querySelector('.conversation-visualize-overlay-reset .monaco-button') as HTMLButtonElement | null;
+		assert.ok(resetButton);
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			resetButton!.click();
+		});
+	});
+
+	test('visualize overlay reset postMessage fire-and-forget voids double-catch onUnexpectedError', async () => {
+		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationVisualizeOverlay.ts`);
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		assert.ok(source.includes(`void mountResult.webview!.postMessage({ type: 'resetPanZoom' })${doubleCatch};`));
+		assert.ok(!source.includes(`void mountResult.webview!.postMessage({ type: 'resetPanZoom' });`));
+		assert.strictEqual((source.match(/void mountResult\.webview!\.postMessage\(\{ type: 'resetPanZoom' \}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
 	});
 });

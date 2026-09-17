@@ -5,6 +5,7 @@
 
 import './media/conversationIdentityStrip.css';
 import { $, addDisposableListener, append } from '../../../../base/browser/dom.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { autorun } from '../../../../base/common/observable.js';
@@ -94,10 +95,10 @@ export class ConversationIdentityStrip extends Disposable {
 		this.engineChip = append(this.element, $(`button.conversation-identity-chip.${conversationIdentityEngineChipClass}`)) as HTMLButtonElement;
 		this.engineChip.type = 'button';
 		this._register(addDisposableListener(this.engineChip, 'click', () => {
-			this.commandService.executeCommand(getEngineStatusCommandId(
+			void this.commandService.executeCommand(getEngineStatusCommandId(
 				this.uaConnection.getConnectionPhase(),
 				this.uaConnection.getConnectionSnapshot().pairingPending,
-			));
+			)).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this.folderChip = append(this.element, $(`button.conversation-identity-chip.${conversationIdentityFolderChipClass}`)) as HTMLButtonElement;
@@ -106,7 +107,7 @@ export class ConversationIdentityStrip extends Disposable {
 			if (this.folderResource) {
 				// revealInExplorer opens Navigator Files even when Explorer is not mounted;
 				// explorerService.select would silently return in that case.
-				this.commandService.executeCommand(REVEAL_IN_EXPLORER_COMMAND_ID, this.folderResource);
+				void this.commandService.executeCommand(REVEAL_IN_EXPLORER_COMMAND_ID, this.folderResource).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
