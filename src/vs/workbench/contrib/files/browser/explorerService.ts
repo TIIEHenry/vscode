@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Event } from '../../../../base/common/event.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { IFilesConfiguration, ISortOrderConfiguration, SortOrder, LexicographicOptions } from '../common/files.js';
@@ -114,7 +115,7 @@ export class ExplorerService implements IExplorerService {
 				this.onFileChangesScheduler.schedule();
 			}
 		}));
-		this.disposables.add(this.configurationService.onDidChangeConfiguration(e => this.onConfigurationUpdated(e)));
+		this.disposables.add(this.configurationService.onDidChangeConfiguration(e => void this.onConfigurationUpdated(e).catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.disposables.add(Event.any<{ scheme: string }>(this.fileService.onDidChangeFileSystemProviderRegistrations, this.fileService.onDidChangeFileSystemProviderCapabilities)(async e => {
 			let affected = false;
 			this.model.roots.forEach(r => {
@@ -130,13 +131,13 @@ export class ExplorerService implements IExplorerService {
 			}
 		}));
 		this.disposables.add(this.model.onDidChangeRoots(() => {
-			this.view?.setTreeInput();
+			void this.view?.setTreeInput()?.catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		// Refresh explorer when window gets focus to compensate for missing file events #126817
 		this.disposables.add(hostService.onDidChangeFocus(hasFocus => {
 			if (hasFocus) {
-				this.refresh(false);
+				void this.refresh(false).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 		this.revealExcludeMatcher = new ResourceGlobMatcher(

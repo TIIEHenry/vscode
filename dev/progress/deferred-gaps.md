@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D690 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D691 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1056,3 +1056,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D688 | P3 | **closed** leftover Promise 双链八处：output FileOutput/MultiFile `loadModelPromise.then`；debug `variablesView` viz.edit/setVariable/getApplicableFor + `callStackWidget` createModelReference；extensions contribution/viewlet gallery manifest then。跳过 opener / D145 / sync void / grpc *Wire / Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 D；增量 esbuild 后 `debugOutputExtensionsLeftoverPromiseCatchScan.test.ts` **5/0**（源扫 4 + Errors 1）。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / output+debug+extensions | closed |
 | D689 | P3 | **closed** leftover Promise 双链八处：tasks `_registerCommands` / reconnect `getWorkspaceTasks`；preferences `onConfigUpdate` / `defineWidget.start`；welcome `getEnvironment` / `getInstalled` / `_detectInstalledEditors` / `run()`。跳过 opener / D145 / sync void / grpc *Wire / Connect/Watch/Resolve/Pty / 已双链 `gettingStarted.ts`。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；增量 esbuild 后 `tasksPreferencesWelcomeLeftoverPromiseCatchScan.test.ts` **4/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / tasks+preferences+welcome | closed |
 | D690 | P3 | **closed** debug/extensions leftover Promise 双链八处：keymap `Promise.all`；widgets gallery manifest then；Actions 三 theme then + `queryLocal`；debug `getDynamicProviders` / `stepInTargets` then。跳过 opener / D145 / sync void / grpc *Wire / Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；增量 esbuild 后 `debugExtensionsLeftoverPromiseCatchScan.test.ts` **5/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / debug+extensions | closed |
+| D691 | P3 | **closed** files/scm/search leftover Promise 双链：explorerService `onConfigurationUpdated` / `setTreeInput` / `refresh`；searchModel `_startStreamDelay` then；searchActionsFind `select` then；scmHistory `void refresh`×3。跳过 openPaneComposite / await refresh / Action2 `view.refresh` / opener / D145 / grpc / Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；增量 esbuild 后 `scmFilesSearchLeftoverPromiseCatchScan.test.ts` **5/0**（源扫 4 + Errors 1）。未 commit。勿 add `out`。无新 Promise 站点。 | 上列双链。未关 D24。leftover 程序未全局完成。 | workbench / files+scm+search | closed |

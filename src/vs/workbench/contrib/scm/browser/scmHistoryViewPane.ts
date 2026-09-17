@@ -11,6 +11,7 @@ import { IIdentityProvider, IListVirtualDelegate } from '../../../../base/browse
 import { LabelFuzzyScore } from '../../../../base/browser/ui/tree/abstractTree.js';
 import { IAsyncDataSource, ITreeContextMenuEvent, ITreeDragAndDrop, ITreeElementRenderDetails, ITreeNode } from '../../../../base/browser/ui/tree/tree.js';
 import { createMatches, FuzzyScore, IMatch } from '../../../../base/common/filters.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { combinedDisposable, Disposable, DisposableStore, IDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { autorun, derived, IObservable, observableValue, waitForState, constObservable, latestChangedValue, observableFromEvent, runOnChange, observableSignal, ISettableObservable } from '../../../../base/common/observable.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
@@ -1791,7 +1792,7 @@ export class SCMHistoryViewPane extends ViewPane {
 						// If tree is scrolled to the top, we can safely refresh the tree, otherwise we
 						// will show a visual cue that the view is outdated.
 						if (this._tree.scrollTop === 0) {
-							this.refresh();
+							void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 							return;
 						}
 
@@ -1800,7 +1801,7 @@ export class SCMHistoryViewPane extends ViewPane {
 						return;
 					}
 
-					this.refresh();
+					void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 				}));
 
 				// HistoryItemRefs filter changed
@@ -1834,7 +1835,7 @@ export class SCMHistoryViewPane extends ViewPane {
 				// since the graph for the first repository is rendered when the tree
 				// input is set.
 				if (!isFirstRun) {
-					this.refresh();
+					void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 				isFirstRun = false;
 			}));

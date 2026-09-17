@@ -368,7 +368,7 @@ export class SearchModelImpl extends Disposable implements ISearchModel {
 						this._searchResult.add(targetQueue, searchInstanceID, ai, !ai);
 						targetQueue.length = 0;
 					}
-				});
+				}).catch(errors.onUnexpectedError).catch(errors.onUnexpectedError);
 			}
 
 		}
