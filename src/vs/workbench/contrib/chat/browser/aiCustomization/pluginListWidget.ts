@@ -801,14 +801,14 @@ export class PluginListWidget extends Disposable {
 			this.marketplaceCts?.dispose(true);
 			this.marketplaceCts = undefined;
 			if (this.browseMode) {
-				this.delayedMarketplaceSearch.trigger(() => this.queryMarketplace());
+				void this.delayedMarketplaceSearch.trigger(() => this.queryMarketplace()).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else if (this.searchQuery.trim()) {
-				this.delayedMarketplaceSearch.trigger(() => this.queryPluginSearch());
+				void this.delayedMarketplaceSearch.trigger(() => this.queryPluginSearch()).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else {
 				this.delayedMarketplaceSearch.cancel();
 				this.marketplaceItems = [];
 				this.searchInput.hideMessage();
-				this.delayedFilter.trigger(() => this.filterPlugins());
+				void this.delayedFilter.trigger(() => this.filterPlugins()).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 

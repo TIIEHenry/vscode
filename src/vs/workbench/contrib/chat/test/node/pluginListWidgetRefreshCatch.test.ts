@@ -71,6 +71,26 @@ suite('pluginListWidget refresh fire-and-forget (D556)', () => {
 		assert.ok(!source.includes('onDidClick(async () => {'));
 		assert.ok(!source.includes('})().catch(onUnexpectedError);'));
 	});
+
+	test('pluginListWidget leftover Delayer triggers void double-catch onUnexpectedError (D596)', () => {
+		const source = readPluginListWidgetSource();
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const doubleMarketplace = `void this.delayedMarketplaceSearch.trigger(() => this.queryMarketplace())${doubleCatch};`;
+		const doublePluginSearch = `void this.delayedMarketplaceSearch.trigger(() => this.queryPluginSearch())${doubleCatch};`;
+		const doubleFilter = `void this.delayedFilter.trigger(() => this.filterPlugins())${doubleCatch};`;
+		assert.strictEqual((source.match(/void this\.delayedMarketplaceSearch\.trigger\(\(\) => this\.queryMarketplace\(\)\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.strictEqual((source.match(/void this\.delayedMarketplaceSearch\.trigger\(\(\) => this\.queryPluginSearch\(\)\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.strictEqual((source.match(/void this\.delayedFilter\.trigger\(\(\) => this\.filterPlugins\(\)\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.ok(source.includes(doubleMarketplace));
+		assert.ok(source.includes(doublePluginSearch));
+		assert.ok(source.includes(doubleFilter));
+		assert.ok(!source.includes('this.delayedMarketplaceSearch.trigger(() => this.queryMarketplace());'));
+		assert.ok(!source.includes('this.delayedMarketplaceSearch.trigger(() => this.queryPluginSearch());'));
+		assert.ok(!source.includes('this.delayedFilter.trigger(() => this.filterPlugins());'));
+		assert.ok(!source.includes('void this.delayedMarketplaceSearch.trigger(() => this.queryMarketplace()).catch(onUnexpectedError);'));
+		assert.ok(!source.includes('void this.delayedMarketplaceSearch.trigger(() => this.queryPluginSearch()).catch(onUnexpectedError);'));
+		assert.ok(!source.includes('void this.delayedFilter.trigger(() => this.filterPlugins()).catch(onUnexpectedError);'));
+	});
 });
 
 function readPluginListWidgetSource(): string {
