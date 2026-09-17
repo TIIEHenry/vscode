@@ -2475,7 +2475,7 @@ export class SessionsList extends Disposable implements ISessionsList {
 				aggregateChatApprovals: false,
 				toolbarMenuId: SessionItemToolbarMenuId,
 				onDidRequestRename: session => {
-					this.commandService.executeCommand(RENAME_SESSION_COMMAND_ID, session).catch(onUnexpectedError);
+					this.commandService.executeCommand(RENAME_SESSION_COMMAND_ID, session).catch(onUnexpectedError).catch(onUnexpectedError);
 				},
 				activeGuideSessionIds: this.activeGuideSessionIds,
 				deriveStatusFromMainChat: true,
@@ -2717,7 +2717,7 @@ export class SessionsList extends Disposable implements ISessionsList {
 				if (this.options.onChatOpen) {
 					this.options.onChatOpen(element.session, element.chat, preserveFocus, e.sideBySide);
 				} else {
-					this._sessionsService.openChat(element.session, element.chat.resource, { preserveFocus }).catch(onUnexpectedError);
+					this._sessionsService.openChat(element.session, element.chat.resource, { preserveFocus }).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 				return;
 			}
@@ -2923,7 +2923,7 @@ export class SessionsList extends Disposable implements ISessionsList {
 					this.update();
 				}
 			}
-		}).catch(onUnexpectedError);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	refresh(): void {
