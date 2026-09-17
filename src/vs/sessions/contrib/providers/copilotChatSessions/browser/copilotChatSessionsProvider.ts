@@ -2729,7 +2729,7 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 		}, error => {
 			this._localGitHubInfoResolutionStarted.delete(key);
 			this.logService.warn(`Failed to resolve GitHub repository metadata for '${uri.toString()}'.`, error);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _labelFromUri(uri: URI): string {
