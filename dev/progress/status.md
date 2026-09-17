@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D747。D743/D744/D746 已合。D736/D739/D740/D745 跳过。D24 仍开。不是 leftover/pills 完成。"
+summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D750。D736/D739/D740/D745 跳过。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -14,7 +14,7 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D747。D743/D
 | 切片 | 提交 |
 |:-----|:-----|
 | **A SessionStream / L2** | 16/23/30–32/34–39/44/46/50–52；envelope leftover |
-| **catch** | D677–D747 |
+| **catch** | D677–D750 |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
@@ -35,6 +35,8 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D747。D743/D
 | breadcrumbs catch | 自定义 catch 会 fire-on-error，不能直接改 D480 双链 |
 | createEditorInset | 协议 `$createEditorInset: Promise<void>` vs `$disposeEditorInset: void` |
 | theme leftover | `workbenchThemeService` leftover then + 单链 catch（D480 漏） |
+| localTerminalBackend revive | `localTerminalBackend.ts` revive `.then` 只 `r()`，reject 挂起 `Promise.all` |
+| notebook custom catch | `notebookEditorModel.setSaveDelegate().catch(log)`；stickyScroll `init().catch(console.error)` |
 ## Next
 | 项 | 指针 |
 |:-----|:-----|
