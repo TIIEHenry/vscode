@@ -87,7 +87,7 @@ export class SessionsWindowNotifier extends Disposable implements IWorkbenchCont
 				completedNotificationScheduler.cancel();
 			}
 			if (newValue === SessionStatus.NeedsInput || newValue === SessionStatus.Error) {
-				void this._notify(session, newValue).catch(onUnexpectedError);
+				void this._notify(session, newValue).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 		this._statusListeners.set(session.sessionId, store);
