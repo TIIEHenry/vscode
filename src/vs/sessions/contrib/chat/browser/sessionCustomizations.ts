@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { isMarkdownString, MarkdownString } from '../../../../base/common/htmlContent.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
@@ -142,7 +143,7 @@ export class SessionCustomizations extends Disposable {
 		void this._commandService.executeCommand(AICustomizationManagementCommands.OpenEditor, {
 			section: customizationSections.get(customization.kind),
 			revealUri: customization.uri,
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 
