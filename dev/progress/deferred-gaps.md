@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D679 chat leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D682 browserView leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1046,3 +1046,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D678 | P3 | **closed** universeAgent 三处 leftover Promise 双链：`_fireReconnect`；host `pullNow.catch(onError)`；coordinator `scheduleRefresh` 内 `pullNow`。跳过 grpc *Wire / Connect/Watch/Resolve/Pty/D145。已双链勿重做。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；增量 esbuild（client 成、extensions 缺 esbuild 包红）后 `node test/unit/node/index.js --run src/vs/platform/universeAgent/test/node/universeAgentLeftoverCatchScan.test.ts` **4/0**（源扫 3 + Errors 1）；navigator **11/0**；postDiscipline **3/0**。未 commit。勿 add `out`。 | 三处双链；裸/单链源扫不在。未关 D24。leftover 程序未全局完成。 | platform / universeAgent | closed |
 | D679 | P3 | **closed** chat leftover Promise 双链七处：`chatFindWidget.updateResultCount`×3；`modelPicker._requestWorkspaceTrust`；`chatPasteProviders.primeSymbolReferenceCache`；`chatInputNotificationWidget._executeAction`；feedback `_populate`。跳过 opener / D145 / sync void / grpc / Connect/Watch/Resolve/Pty。已双链文件勿重做。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；增量 esbuild（client 成、extensions 缺 esbuild 包红）后 `node test/unit/node/index.js --run src/vs/workbench/contrib/chat/test/node/chatLeftoverPromiseCatchScan.test.ts` **6/0**（源扫 5 + Errors 1）。未 commit。勿 add `out`。 | 七处双链；opener 仍裸。未关 D24。leftover 程序未全局完成。 | workbench / chat | closed |
 | D680 | P3 | **closed** conversation leftover Promise 双链三处：IdentityStrip 引擎 chip / Reveal Explorer `executeCommand`；visualize Reset `postMessage`。跳过 inbox `onQueueRetryClicked`（sync）、Connect catalog、grpc Wire、D145。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 D；`npm run transpile-client` 后 identity+visualize mocha **27/0**。未 commit。勿 add `out`。 | 三处双链。未关 D24。leftover 程序未全局完成。 | workbench / conversation | closed |
+| D682 | P3 | **closed** `webContentsViewRendererFeature.ts` leftover Promise 双链九处：`_doScreenshot`×4；`_handleKeyEvent`；`setVisible`×3；`focus`。跳过 DOM `_container?.focus()`。未改 opener / D145 / grpc *Wire / Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；增量 esbuild（client 成、extensions 缺 esbuild 包红）后 `node test/unit/node/index.js --run src/vs/workbench/contrib/browserView/test/node/webContentsViewRendererFeatureCatchScan.test.ts` **2/0**（源扫 1 + Errors 1）。未 commit。勿 add `out`。 | 九处双链；DOM focus 仍裸。未关 D24。leftover 程序未全局完成。 | workbench / browserView | closed |
