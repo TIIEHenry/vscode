@@ -30,7 +30,7 @@ import { listenStream } from '../../../../base/common/stream.js';
 import { DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { createSingleCallFunction } from '../../../../base/common/functional.js';
 import { coalesce } from '../../../../base/common/arrays.js';
-import { canceled } from '../../../../base/common/errors.js';
+import { canceled, onUnexpectedError } from '../../../../base/common/errors.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { WebFileSystemAccess } from '../../../../platform/files/browser/webFileSystemAccess.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -573,7 +573,7 @@ export class ExternalFileImport {
 			if (autoOpen && resourceFileEdits.length === 1) {
 				const item = this.explorerService.findClosest(resourceFileEdits[0].newResource!);
 				if (item && !item.isDirectory) {
-					this.editorService.openEditor({ resource: item.resource, options: { pinned: true } });
+					this.editorService.openEditor({ resource: item.resource, options: { pinned: true } }).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 		}

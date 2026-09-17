@@ -57,6 +57,7 @@ import { ResourceFileEdit } from '../../../../../editor/browser/services/bulkEdi
 import { IExplorerService } from '../files.js';
 import { BrowserFileUpload, ExternalFileImport, getMultipleFilesOverwriteConfirm } from '../fileImportExport.js';
 import { toErrorMessage } from '../../../../../base/common/errorMessage.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { WebFileSystemAccess } from '../../../../../platform/files/browser/webFileSystemAccess.js';
 import { IgnoreFile } from '../../../../services/search/common/ignoreFile.js';
 import { ResourceSet } from '../../../../../base/common/map.js';
@@ -483,7 +484,7 @@ export class ExplorerFindProvider implements IAsyncFindProvider<ExplorerItem> {
 		await tree.setInput(this.filterSessionStartState.input, this.filterSessionStartState.viewState);
 
 		this.filterSessionStartState = undefined;
-		this.explorerService.refresh();
+		this.explorerService.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private clearPhantomElements(): void {

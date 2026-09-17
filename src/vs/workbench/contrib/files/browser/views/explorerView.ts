@@ -399,7 +399,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 		}
 
 		const resource = id === EXPLORER_LOCATION_ROOT_ID ? folderUri : URI.parse(id);
-		this.explorerService.select(resource, 'force');
+		this.explorerService.select(resource, 'force').catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	protected override renderBody(container: HTMLElement): void {
@@ -436,7 +436,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 
 		// When the explorer viewer is loaded, listen to changes to the editor input
 		this._register(this.editorService.onDidActiveEditorChange(() => {
-			this.selectActiveFile();
+			this.selectActiveFile().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		// Also handle configuration updates
@@ -449,7 +449,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 				// Update the collapse / expand  button state
 				this.updateAnyCollapsedContext();
 				// Find resource to focus from active editor input if set
-				this.selectActiveFile(true);
+				this.selectActiveFile(true).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
