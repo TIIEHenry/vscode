@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "SessionStream + L2 envelope leftover 已合入。D675/D676 catch 已合入。D24 仍开。不是 leftover/pills 完成。"
+summary: "SessionStream + L2 envelope leftover 已合入。D675/D676 与 chat leftover catch 已合入。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -14,14 +14,15 @@ summary: "SessionStream + L2 envelope leftover 已合入。D675/D676 catch 已�
 | 切片 | 提交 |
 |:-----|:-----|
 | **A SessionStream / L2** | 16/23/30–32/34–39/44/46/50–52；envelope leftover |
-| **D D675/D676** | `_toggleOutput` + layout/refresh 双链 |
+| **D D675/D676** | 终端进度条 leftover 双链 |
+| **A catch** | toolsList / settings save / request origin |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **D** | 其它模块 leftover catch（跳 D145） |
-| **B** | 脏 `worktree-pool.md`；跳过 |
+| **A/D** | 下一 leftover catch 批次（跳 opener 单链若属 D145 口径） |
+| **B** | 脏；跳过 |
 | **C** | gitlink 脏；勿 add |
 | **E** | blocked |
 | **edit** | ff-only 失败 |
