@@ -6,6 +6,7 @@
 import * as dom from '../../../../base/browser/dom.js';
 import { observableValue, derived, autorun, type ISettableObservable, type IReader } from '../../../../base/common/observable.js';
 import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { localize } from '../../../../nls.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -1108,7 +1109,7 @@ export class AgentsVoiceWidget extends Disposable {
 			} else {
 				this._feedbackDialogState.set({ isSubmitting: false, submitted: false, error: result.error ?? localize('agentsVoice.feedbackError', "Failed to submit") }, undefined);
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	// --- Glow animation (decoupled from autorun — direct DOM updates) ---
