@@ -107,7 +107,7 @@ export class AgentHostSignedOutModelsNotificationContribution extends Disposable
 				this._accountResolved = true;
 				this._update();
 			}
-		}).catch(onUnexpectedError);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._register(Event.any(
 			this._chatEntitlementService.onDidChangeEntitlement,
 			this._languageModelsService.onDidChangeLanguageModels,
@@ -125,13 +125,13 @@ export class AgentHostSignedOutModelsNotificationContribution extends Disposable
 				this._extensionsRegistered = true;
 				this._update();
 			}
-		}).catch(onUnexpectedError);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._languageModelsConfigurationService.whenReady.then(() => {
 			if (!this._store.isDisposed) {
 				this._configurationLoaded = true;
 				this._update();
 			}
-		}).catch(onUnexpectedError);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 		const rootStateListeners = this._register(new DisposableStore());
 		const bindRootState = () => {
 			rootStateListeners.clear();

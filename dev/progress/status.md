@@ -26,6 +26,7 @@ summary: "merge 关仓：leftover D632–D639 关各 call site。compile-client 
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **J** | signed-out notify 三处 then 双链；[D647](deferred-gaps.md)；D24 仍开；勿 add `out` |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
