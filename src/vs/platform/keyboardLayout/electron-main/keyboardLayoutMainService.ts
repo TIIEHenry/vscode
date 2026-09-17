@@ -6,6 +6,7 @@
 import type * as nativeKeymap from 'native-keymap';
 import * as platform from '../../../base/common/platform.js';
 import { Emitter } from '../../../base/common/event.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
 import { IKeyboardLayoutData, INativeKeyboardLayoutService } from '../common/keyboardLayoutService.js';
@@ -35,7 +36,7 @@ export class KeyboardLayoutMainService extends Disposable implements INativeKeyb
 		// perf: automatically trigger initialize after windows
 		// have opened so that we can do this work in parallel
 		// to the window load.
-		lifecycleMainService.when(LifecycleMainPhase.AfterWindowOpen).then(() => this._initialize());
+		lifecycleMainService.when(LifecycleMainPhase.AfterWindowOpen).then(() => this._initialize()).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _initialize(): Promise<void> {

@@ -12,6 +12,7 @@ import * as dom from '../../../../base/browser/dom.js';
 import { printKeyboardEvent, printStandardKeyboardEvent, StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { mainWindow } from '../../../../base/browser/window.js';
 import { DeferredPromise, RunOnceScheduler } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { parse } from '../../../../base/common/json.js';
 import { IJSONSchema, TypeFromJsonSchema } from '../../../../base/common/jsonSchema.js';
@@ -219,7 +220,7 @@ export class WorkbenchKeybindingService extends AbstractKeybindingService {
 			if (this.userKeybindings.keybindings.length) {
 				this.updateResolver();
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._register(this.userKeybindings.onDidChange(() => {
 			logService.debug('User keybindings changed');
 			this.updateResolver();

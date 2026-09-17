@@ -20,7 +20,8 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D694。D24 �
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A–J** | 关仓后 idle（B 脏跳过；C gitlink 勿 add；E blocked；edit ff-only 失败） |
+| **D** | D696 platform/workbench services leftover Promise 双链 8 处（进行中）。D24 仍开。不是 leftover/pills 完成 |
+| **A–J 其余** | 关仓后 idle（B 脏跳过；C gitlink 勿 add；E blocked；edit ff-only 失败） |
 
 子 agent 发现：
 | ID | 问题 |
