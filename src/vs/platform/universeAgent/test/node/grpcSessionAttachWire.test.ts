@@ -687,6 +687,144 @@ suite('grpc first-send / attach protobuf wire', () => {
 		}]);
 	});
 
+	test('decodeSessionStreamEvent reads nested runtime_overlay_snapshot=44 pending+active_turn; unused unread; maps via demux', () => {
+		const questionItem = Buffer.concat([
+			encodeStringField(1, 'i1'),
+			encodeStringField(3, 'Go?'),
+			encodeStringField(9, 'item-unused'),
+		]);
+		const questionPending = Buffer.concat([
+			encodeStringField(1, 'pend-q'),
+			encodeInt32Field(2, 2),
+			encodeStringField(4, 'Ask'),
+			encodeStringField(6, 'parent-tc-unread'),
+			encodeMessageField(7, questionItem),
+			encodeStringField(9, 'pending-unused'),
+		]);
+		const permissionPending = Buffer.concat([
+			encodeStringField(1, 'pend-p'),
+			encodeInt32Field(2, 1),
+			encodeStringField(3, 'bash'),
+			encodeStringField(4, 'Run bash'),
+			encodeStringField(5, 'root'),
+			encodeStringField(6, 'parent-tc-unread'),
+			encodeStringField(8, '{}'),
+		]);
+		const activeTurn = Buffer.concat([
+			encodeStringField(1, 'turn-9'),
+			encodeStringField(2, 'agent-unread'),
+			encodeStringField(3, 'hello'),
+			encodeStringField(4, 'hmm'),
+			encodeStringField(5, 'bash'),
+			encodeStringField(6, 'turn-unused'),
+		]);
+		const overlay = Buffer.concat([
+			encodeInt64Field(1, 4),
+			encodeMessageField(2, activeTurn),
+			encodeStringField(3, 'tool-call-unread'),
+			encodeStringField(4, 'sub-agent-unread'),
+			encodeStringField(5, 'deep-think-unread'),
+			encodeMessageField(6, permissionPending),
+			encodeMessageField(6, questionPending),
+			encodeStringField(7, 'tool-runtime-unread'),
+			encodeStringField(8, 'block-hw-unread'),
+			encodeStringField(9, 'tool-hw-unread'),
+		]);
+		const encoded = Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodeMessageField(44, overlay),
+			encodeStringField(99, 'unused-stream-field'),
+		]);
+		const decoded = decodeSessionStreamEvent(encoded);
+		const payload = decoded.payload as {
+			session_id?: string;
+			runtime_overlay_snapshot?: Record<string, unknown>;
+		};
+		assert.strictEqual(payload.session_id, 'sess-1');
+		assert.deepStrictEqual(payload.runtime_overlay_snapshot, {
+			runtime_epoch: 4,
+			active_turn: {
+				turn_id: 'turn-9',
+				streaming_text: 'hello',
+				thinking_text: 'hmm',
+				generating_tool_name: 'bash',
+			},
+			pending: [{
+				request_id: 'pend-p',
+				kind: 1,
+				description: 'Run bash',
+				tool_name: 'bash',
+				agent_id: 'root',
+				arguments_json: '{}',
+			}, {
+				request_id: 'pend-q',
+				kind: 2,
+				description: 'Ask',
+				questions: [{
+					id: 'i1',
+					header: '',
+					question: 'Go?',
+					options: [],
+					multi_select: false,
+					allow_custom: false,
+				}],
+			}],
+		});
+		assert.ok(!('runtimeOverlaySnapshot' in payload));
+		assert.ok(!('agent_id' in ((payload.runtime_overlay_snapshot?.active_turn as object) ?? {})));
+		assert.ok(!('parent_tool_call_id' in ((payload.runtime_overlay_snapshot?.pending as object[])?.[0] ?? {})));
+		assert.ok(!('items' in ((payload.runtime_overlay_snapshot?.pending as object[])?.[1] ?? {})));
+		assert.ok(!('active_tool_calls' in (payload.runtime_overlay_snapshot ?? {})));
+		assert.ok(!('sub_agent_panels' in (payload.runtime_overlay_snapshot ?? {})));
+		assert.ok(!('deep_think' in (payload.runtime_overlay_snapshot ?? {})));
+		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
+		assert.strictEqual(JSON.stringify(decoded).includes('unread'), false);
+		const events = demuxSessionStreamPayload(decoded.payload);
+		assert.strictEqual(events.length, 2);
+		assert.deepStrictEqual(events[0], {
+			arm: 'overlayPendingSnapshot',
+			body: {
+				runtimeEpoch: 4,
+				pending: [{
+					requestId: 'pend-p',
+					kind: 'permission',
+					description: 'Run bash',
+					toolName: 'bash',
+					agentId: 'root',
+					argumentsJson: '{}',
+				}, {
+					requestId: 'pend-q',
+					kind: 'question',
+					description: 'Ask',
+					questions: [{ id: 'i1', question: 'Go?', multiSelect: false, allowCustom: false }],
+				}],
+			},
+		});
+		assert.deepStrictEqual(events[1], {
+			arm: 'overlayActiveTurn',
+			body: {
+				turnId: 'turn-9',
+				streamingText: 'hello',
+				thinkingText: 'hmm',
+				generatingToolName: 'bash',
+			},
+		});
+		const omitted = decodeSessionStreamEvent(encodeStringField(1, 'sess-2'));
+		assert.strictEqual((omitted.payload as { runtime_overlay_snapshot?: unknown }).runtime_overlay_snapshot, undefined);
+		const emptyNested = decodeSessionStreamEvent(encodePresentMessageField(44, new Uint8Array(0)));
+		assert.deepStrictEqual((emptyNested.payload as { runtime_overlay_snapshot?: unknown }).runtime_overlay_snapshot, {
+			runtime_epoch: 0,
+			pending: [],
+		});
+		assert.deepStrictEqual(demuxSessionStreamPayload(emptyNested.payload), [{
+			arm: 'overlayPendingSnapshot',
+			body: { runtimeEpoch: 0, pending: [] },
+		}, {
+			arm: 'overlayActiveTurnClear',
+			body: {},
+		}]);
+	});
+
 	test('encodeChatRequest writes session_input oneof, not JSON payload wrapper', () => {
 		const encoded = encodeChatRequest('sess-1', {
 			agentId: 'root',

@@ -415,6 +415,16 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * `turn_started`=10 `turn_completed`=11). OverlayDeltaJoin `applyLifecycle`
  * reads `turn_completed` presence (any value clears) or nested
  * `turn_started.turn_id`. Other nested change fields unread.
+ * `runtime_overlay_snapshot`=44 RuntimeOverlaySnapshotEvent
+ * (`runtime_epoch`=1 optional `active_turn`=2 repeated `pending`=6).
+ * ActiveTurnSnapshotProto `turn_id`=1 `streaming_text`=3 `thinking_text`=4
+ * optional `generating_tool_name`=5; `agent_id`=2 unread.
+ * PendingActionSnapshotProto `request_id`=1 `kind`=2 optional
+ * `tool_name`=3 `description`=4 optional `agent_id`=5 repeated
+ * `questions`=7 `arguments_json`=8; `parent_tool_call_id`=6 unread.
+ * Snapshot `active_tool_calls`=3 `sub_agent_panels`=4 `deep_think`=5
+ * `tool_runtime_snapshots`=7 `block_delta_high_water`=8
+ * `tool_call_delta_high_water`=9 unread (no public demux fields).
  * `permission_request`=50
  * PermissionRequestEvent (`request_id`=1 `tool_name`=2 `description`=3
  * `agent_id`=6). `metadata`=4 / `requested_by_client`=5 /
@@ -430,7 +440,8 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * proto3: empty / 0 / false omitted. Unknown fields unread. Shape
  * matches OverlayDeltaJoin `streaming_delta` / `thinking_delta` /
  * `generating_tool` / `turn_lifecycle` and demuxSessionStreamPayload
- * `permission_request` / `ask_user_question` / `client_tool_call`.
+ * `runtime_overlay_snapshot` / `permission_request` /
+ * `ask_user_question` / `client_tool_call`.
  */
 export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessionEvent {
 	const fields = readProtoFields(bytes);
@@ -482,6 +493,10 @@ export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessio
 	const turnLifecycle = lastBytes(fields, 37);
 	if (turnLifecycle) {
 		payload.turn_lifecycle = decodeTurnLifecycleEvent(turnLifecycle);
+	}
+	const overlaySnapshot = lastBytes(fields, 44);
+	if (overlaySnapshot) {
+		payload.runtime_overlay_snapshot = decodeRuntimeOverlaySnapshotEvent(overlaySnapshot);
 	}
 	const permission = lastBytes(fields, 50);
 	if (permission) {
@@ -648,6 +663,58 @@ function decodeTurnStartedChange(bytes: Uint8Array): Record<string, unknown> {
 	const fields = readProtoFields(bytes);
 	return {
 		turn_id: lastString(fields, 1) ?? '',
+	};
+}
+
+/**
+ * RuntimeOverlaySnapshotEvent — `runtime_epoch`=1 optional `active_turn`=2
+ * repeated `pending`=6. Fields 3–5 / 7–9 unread (no public demux keys).
+ * proto3: empty / 0 omitted; empty repeated `pending` still `[]`.
+ */
+function decodeRuntimeOverlaySnapshotEvent(bytes: Uint8Array): Record<string, unknown> {
+	const fields = readProtoFields(bytes);
+	const activeTurn = lastBytes(fields, 2);
+	return {
+		runtime_epoch: numberOrZero(lastVarint(fields, 1)),
+		...(activeTurn ? { active_turn: decodeActiveTurnSnapshotProto(activeTurn) } : {}),
+		pending: allLengthDelimited(fields, 6).map(decodePendingActionSnapshotProto),
+	};
+}
+
+/**
+ * ActiveTurnSnapshotProto — `turn_id`=1 `streaming_text`=3 `thinking_text`=4
+ * optional `generating_tool_name`=5. `agent_id`=2 unread. proto3: empty omitted.
+ */
+function decodeActiveTurnSnapshotProto(bytes: Uint8Array): Record<string, unknown> {
+	const fields = readProtoFields(bytes);
+	const generatingToolName = lastString(fields, 5);
+	return {
+		turn_id: lastString(fields, 1) ?? '',
+		streaming_text: lastString(fields, 3) ?? '',
+		thinking_text: lastString(fields, 4) ?? '',
+		...(generatingToolName ? { generating_tool_name: generatingToolName } : {}),
+	};
+}
+
+/**
+ * PendingActionSnapshotProto — `request_id`=1 `kind`=2 optional `tool_name`=3
+ * `description`=4 optional `agent_id`=5 repeated `questions`=7
+ * `arguments_json`=8. `parent_tool_call_id`=6 unread. proto3: empty / 0 omitted.
+ */
+function decodePendingActionSnapshotProto(bytes: Uint8Array): Record<string, unknown> {
+	const fields = readProtoFields(bytes);
+	const toolName = lastString(fields, 3);
+	const agentId = lastString(fields, 5);
+	const questions = allLengthDelimited(fields, 7).map(decodeAskUserQuestionItemProto);
+	const argumentsJson = lastString(fields, 8);
+	return {
+		request_id: lastString(fields, 1) ?? '',
+		kind: numberOrZero(lastVarint(fields, 2)),
+		description: lastString(fields, 4) ?? '',
+		...(toolName ? { tool_name: toolName } : {}),
+		...(agentId ? { agent_id: agentId } : {}),
+		...(argumentsJson ? { arguments_json: argumentsJson } : {}),
+		...(questions.length > 0 ? { questions } : {}),
 	};
 }
 
