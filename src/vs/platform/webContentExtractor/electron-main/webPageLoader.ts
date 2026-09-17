@@ -6,6 +6,7 @@
 import type { BeforeSendResponse, BrowserWindow, BrowserWindowConstructorOptions, CallbackResponse, Event, HeadersReceivedResponse, OnBeforeRequestListenerDetails, OnBeforeSendHeadersListenerDetails, OnHeadersReceivedListenerDetails, WebContentsWillFrameNavigateEventParams } from 'electron';
 import { Queue, raceTimeout, TimeoutTimer } from '../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { createSingleCallFunction } from '../../../base/common/functional.js';
 import { Disposable, toDisposable } from '../../../base/common/lifecycle.js';
 import { Schemas } from '../../../base/common/network.js';
@@ -140,7 +141,7 @@ export class WebPageLoader extends Disposable {
 			});
 
 			this.trace(`Loading web page content`);
-			void this._window.loadURL(this._uri.toString(true));
+			void this._window.loadURL(this._uri.toString(true)).catch(onUnexpectedError).catch(onUnexpectedError);
 			this.setTimeout(WebPageLoader.TIMEOUT);
 		});
 	}
@@ -156,7 +157,7 @@ export class WebPageLoader extends Disposable {
 		this.trace(`Setting page load timeout to ${time} ms`);
 		this._timeout.cancelAndSet(() => {
 			this.trace(`Page load timeout reached`);
-			void this._queue.queue(() => this.extractContent());
+			void this._queue.queue(() => this.extractContent()).catch(onUnexpectedError).catch(onUnexpectedError);
 		}, time);
 	}
 
@@ -276,7 +277,7 @@ export class WebPageLoader extends Disposable {
 		const filename = item.getFilename();
 		this.trace(`Blocked download: ${filename}`);
 		item.cancel();
-		void this._queue.queue(() => this.extractContent({ status: 'error', error: `Download not allowed: ${filename}` }));
+		void this._queue.queue(() => this.extractContent({ status: 'error', error: `Download not allowed: ${filename}` })).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	/**
@@ -319,12 +320,12 @@ export class WebPageLoader extends Disposable {
 		this.trace(`Received 'did-fail-load' event, code: ${statusCode}, error: '${error}'`);
 		if (statusCode === -3) {
 			this.trace(`Ignoring ERR_ABORTED (-3) as it may be caused by CSP or other measures`);
-			void this._queue.queue(() => this.extractContent());
+			void this._queue.queue(() => this.extractContent()).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else if (statusCode === -27) {
 			this.trace(`Ignoring ERR_BLOCKED_BY_CLIENT (-27) as it may be caused by ad-blockers or similar extensions`);
-			void this._queue.queue(() => this.extractContent());
+			void this._queue.queue(() => this.extractContent()).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
-			void this._queue.queue(() => this.extractContent({ status: 'error', statusCode, error }));
+			void this._queue.queue(() => this.extractContent({ status: 'error', statusCode, error })).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -417,7 +418,7 @@ export class WebPageLoader extends Disposable {
 					const statusCode = response?.status ?? 0;
 					if (statusCode >= 400) {
 						const error = response?.statusText || `HTTP error ${statusCode}`;
-						void this._queue.queue(() => this.extractContent({ status: 'error', statusCode, error }));
+						void this._queue.queue(() => this.extractContent({ status: 'error', statusCode, error })).catch(onUnexpectedError).catch(onUnexpectedError);
 					}
 				}
 				break;
@@ -441,7 +442,7 @@ export class WebPageLoader extends Disposable {
 			await this.nextFrame();
 
 			if (this._requests.size === 0) {
-				this._queue.queue(() => this.extractContent());
+				void this._queue.queue(() => this.extractContent()).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else {
 				this.trace(`New network requests detected, deferring content extraction`);
 			}
