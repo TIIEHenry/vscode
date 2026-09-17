@@ -23,6 +23,7 @@ import { ITerminalContributionService } from '../common/terminalExtensionPoints.
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { IRemoteAgentService } from '../../../services/remote/common/remoteAgentService.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { hasKey, isString } from '../../../../base/common/types.js';
 
 /*
@@ -87,7 +88,7 @@ export class TerminalProfileService extends Disposable implements ITerminalProfi
 				return this._profilesReadyBarrier.wait().then(() => { });
 			});
 		this.refreshAvailableProfiles();
-		this._setupConfigListener();
+		void this._setupConfigListener().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async _setupConfigListener(): Promise<void> {

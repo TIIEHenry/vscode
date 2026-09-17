@@ -7,6 +7,7 @@ import * as domStylesheets from '../../../../base/browser/domStylesheets.js';
 import * as cssValue from '../../../../base/browser/cssValue.js';
 import { DeferredPromise, timeout, type MaybePromise } from '../../../../base/common/async.js';
 import { debounce, memoize } from '../../../../base/common/decorators.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { DynamicListEventMultiplexer, Emitter, Event, IDynamicListEventMultiplexer } from '../../../../base/common/event.js';
 import { Disposable, DisposableMap, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
@@ -227,10 +228,10 @@ export class TerminalService extends Disposable implements ITerminalService {
 		this._register(_lifecycleService.onBeforeShutdown(async e => e.veto(this._onBeforeShutdown(e.reason), 'veto.terminal')));
 		this._register(_lifecycleService.onWillShutdown(e => this._onWillShutdown(e)));
 
-		this._initializePrimaryBackend();
+		void this._initializePrimaryBackend().catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Create async as the class depends on `this`
-		timeout(0).then(() => this._register(this._instantiationService.createInstance(TerminalEditorStyle, mainWindow.document.head)));
+		timeout(0).then(() => this._register(this._instantiationService.createInstance(TerminalEditorStyle, mainWindow.document.head))).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	async showProfileQuickPick(type: 'setDefault' | 'createInstance', cwd?: string | URI): Promise<ITerminalInstance | undefined> {
@@ -330,7 +331,7 @@ export class TerminalService extends Disposable implements ITerminalService {
 			}));
 			mark('code/terminal/didGetPerformanceMarks');
 			this._whenConnected.complete();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	getPrimaryBackend(): ITerminalBackend | undefined {
@@ -514,7 +515,11 @@ export class TerminalService extends Disposable implements ITerminalService {
 				}
 			}
 			if (layoutInfo.tabs.length) {
-				activeGroup?.then(group => this._terminalGroupService.activeGroup = group);
+				void Promise.resolve(activeGroup).then(group => {
+					if (group) {
+						this._terminalGroupService.activeGroup = group;
+					}
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 		return Promise.all(groupPromises).then(result => result.filter(e => !!e) as ITerminalGroup[]);
@@ -545,7 +550,7 @@ export class TerminalService extends Disposable implements ITerminalService {
 				config: { attachPersistentProcess },
 				location: lastInstance ? { parentTerminal: lastInstance } : TerminalLocation.Panel
 			});
-			lastInstance.then(() => mark(`code/terminal/didRecreateTerminal/${attachPersistentProcess.id}-${attachPersistentProcess.pid}`));
+			lastInstance.then(() => mark(`code/terminal/didRecreateTerminal/${attachPersistentProcess.id}-${attachPersistentProcess.pid}`)).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 		const group = lastInstance?.then(instance => {
 			const g = this._terminalGroupService.getGroupForInstance(instance);

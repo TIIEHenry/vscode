@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable, dispose, IDisposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
@@ -424,9 +425,12 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 
 		// Report the latency to the pty host when idle
 		runWhenWindowIdle(getActiveWindow(), () => {
-			this.backend?.getLatency().then(measurements => {
+			void Promise.resolve(this.backend?.getLatency()).then(measurements => {
+				if (!measurements) {
+					return;
+				}
 				this._logService.info(`Latency measurements for ${this.remoteAuthority ?? 'local'} backend\n${measurements.map(e => `${e.label}: ${e.latency.toFixed(2)}ms`).join('\n')}`);
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 
 		return undefined;
