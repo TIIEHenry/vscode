@@ -1127,7 +1127,7 @@ export class GettingStartedPage extends EditorPane {
 
 			updateEntries();
 			recentlyOpenedList.register(this.labelService.onDidChangeFormatters(() => updateEntries()));
-		}).catch(onUnexpectedError);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		return recentlyOpenedList;
 	}
@@ -1146,7 +1146,7 @@ export class GettingStartedPage extends EditorPane {
 		this.recentlyOpened.then(({ workspaces }) => {
 			const workspacesWithID = this.filterRecentlyOpened(workspaces);
 			this.recentlyOpenedList.value?.setEntries(workspacesWithID);
-		}).catch(onUnexpectedError);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private buildStartList(): GettingStartedIndexList<IWelcomePageStartEntry> {
