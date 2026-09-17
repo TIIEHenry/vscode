@@ -687,7 +687,7 @@ export class EngineToolsSection extends Disposable {
 			loadingKind: options?.loadingKind,
 			onRetry: options?.onRetry,
 			onOpenConnection: this.mode === 'disconnected'
-				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID)
+				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
 				: undefined,
 		});
 	}
