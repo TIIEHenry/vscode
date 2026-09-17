@@ -18,6 +18,7 @@ import {
 	encodeInt64Field,
 	encodeMessageField,
 	encodeStringField,
+	encodeVarint,
 	readProtoFields,
 } from '../../node/grpc/grpcProtoCodec.js';
 
@@ -196,6 +197,102 @@ suite('grpc RemoteAgentService GetNode protobuf wire', () => {
 			load: emptyLoad(),
 			lastHeartbeatAt: 0,
 		});
+
+		const unusedOnly = decodeGetNodeResponse(encodeStringField(10, 'unused-field'));
+		assert.deepStrictEqual(unusedOnly, {
+			id: undefined,
+			name: undefined,
+			description: undefined,
+			status: undefined,
+			endpoint: undefined,
+			tags: undefined,
+			capabilities: undefined,
+			load: undefined,
+			last_heartbeat_at: undefined,
+		});
+		assert.strictEqual(JSON.stringify(unusedOnly).includes('unused'), false);
+		assert.deepStrictEqual(mapRemoteAgentInfo(unusedOnly), {
+			id: '',
+			name: '',
+			description: '',
+			status: '',
+			endpoint: '',
+			tags: [],
+			capabilities: emptyCapabilities(),
+			load: emptyLoad(),
+			lastHeartbeatAt: 0,
+		});
+
+		const lastWins = decodeGetNodeResponse(Buffer.concat([
+			encodeMessageField(7, encodeStringField(4, 'old')),
+			encodeMessageField(7, encodeStringField(4, '1.2.3')),
+			encodeMessageField(8, encodeInt32Field(1, 1)),
+			encodeMessageField(8, encodeInt32Field(1, 3)),
+			encodeInt64Field(9, 1),
+			encodeInt64Field(9, 1700000000),
+		]));
+		assert.strictEqual(lastWins.capabilities?.server_version, '1.2.3');
+		assert.strictEqual(lastWins.load?.active_sessions, 3);
+		assert.strictEqual(lastWins.last_heartbeat_at, 1700000000);
+		assert.strictEqual(mapRemoteAgentInfo(lastWins).capabilities.serverVersion, '1.2.3');
+		assert.strictEqual(mapRemoteAgentInfo(lastWins).load.activeSessions, 3);
+		assert.strictEqual(mapRemoteAgentInfo(lastWins).lastHeartbeatAt, 1700000000);
+
+		const lastWinsMap = decodeGetNodeResponse(encodeMessageField(7, Buffer.concat([
+			encodeMessageField(6, Buffer.concat([
+				encodeStringField(1, 'region'),
+				encodeStringField(2, 'us-west'),
+			])),
+			encodeMessageField(6, Buffer.concat([
+				encodeStringField(1, 'region'),
+				encodeStringField(2, 'us-east'),
+			])),
+		])));
+		assert.deepStrictEqual(lastWinsMap.capabilities?.properties, { region: 'us-east' });
+		assert.deepStrictEqual(mapRemoteAgentInfo(lastWinsMap).capabilities.properties, { region: 'us-east' });
+
+		const zeroPresent = decodeGetNodeResponse(Buffer.concat([
+			encodeMessageField(7, Buffer.concat([
+				encodeMessageField(1, Buffer.concat([
+					encodeStringField(1, 'local-7b'),
+					encodeVarintZero(4),
+					encodeVarintZero(5),
+				])),
+			])),
+			encodeMessageField(8, Buffer.concat([
+				encodeVarintZero(1),
+				encodeVarintZero(2),
+				encodeVarintZero(3),
+				encodeVarintZero(4),
+			])),
+			encodeVarintZero(9),
+		]));
+		assert.deepStrictEqual(zeroPresent.capabilities?.models, [{
+			id: 'local-7b',
+			name: undefined,
+			provider: undefined,
+			max_tokens: 0,
+			enabled: false,
+		}]);
+		assert.deepStrictEqual(zeroPresent.load, {
+			active_sessions: 0,
+			queue_depth: 0,
+			cpu_percent: 0,
+			memory_used_mb: 0,
+		});
+		assert.strictEqual(zeroPresent.last_heartbeat_at, 0);
+		assert.deepStrictEqual(mapRemoteAgentInfo(zeroPresent).capabilities.models, [{
+			id: 'local-7b',
+			name: '',
+			provider: '',
+			maxTokens: 0,
+			enabled: false,
+		}]);
+		assert.deepStrictEqual(mapRemoteAgentInfo(zeroPresent).load, emptyLoad());
+		assert.strictEqual(mapRemoteAgentInfo(zeroPresent).lastHeartbeatAt, 0);
+		assert.strictEqual(encodeInt32Field(1, 0).length, 0);
+		assert.strictEqual(encodeInt64Field(4, 0).length, 0);
+		assert.strictEqual(encodeInt64Field(9, 0).length, 0);
 	});
 
 	test('get-node unary wire is RemoteAgentService.GetNode only; no JSON.stringify; identifier scan', () => {
@@ -262,6 +359,13 @@ function emptyLoad() {
 		cpuPercent: 0,
 		memoryUsedMb: 0,
 	};
+}
+
+function encodeVarintZero(field: number): Buffer {
+	return Buffer.concat([
+		encodeVarint((field << 3) | 0),
+		encodeVarint(0),
+	]);
 }
 
 function grpcDir(): string {

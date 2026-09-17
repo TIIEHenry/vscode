@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "J 进行中：GetNode capabilities/load decode。D24 仍开。不是 leftover/pills 完成。"
+summary: "J 进行中：GetNode capabilities=7/load=8 decode。mocha 5/0。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -27,7 +27,7 @@ summary: "J 进行中：GetNode capabilities/load decode。D24 仍开。不是 l
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **J** | in progress `d24-getnode-capabilities-load`：GetNode `capabilities`=7 `load`=8 已读；[D24](deferred-gaps.md) **仍开** |
+| **J** | in progress `d24-getnode-capabilities-load`：GetNode `capabilities`=7 `load`=8 已读（ModelInfo 1–5、tools=2、modes=3、server/protocol=4/5、properties map=6；LoadMetrics 1–4）；增量 transpile 后 `node test/unit/node/index.js --run …/grpcGetNodeUnaryWire.test.ts` **5/0**；未改 CheckConnection / grpcClient；[D24](deferred-gaps.md) **仍开** |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
