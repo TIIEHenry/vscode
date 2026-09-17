@@ -526,7 +526,7 @@ export class CommentController extends Disposable implements IEditorContribution
 				this._pendingNewCommentCache = {};
 				this._pendingEditsCache = {};
 			}
-			this.beginCompute();
+			void this.beginCompute().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(this.commentService.onDidSetDataProvider(_ => this.beginComputeAndHandleEditorChange()));
 		this._register(this.commentService.onDidUpdateCommentingRanges(_ => this.beginComputeAndHandleEditorChange()));
@@ -541,7 +541,7 @@ export class CommentController extends Disposable implements IEditorContribution
 		this._register(this.commentService.onDidChangeCommentingEnabled(e => {
 			if (e) {
 				this.registerEditorListeners();
-				this.beginCompute();
+				void this.beginCompute().catch(onUnexpectedError).catch(onUnexpectedError);
 			} else {
 				this.tryUpdateReservedSpace();
 				this.clearEditorListeners();
@@ -556,7 +556,7 @@ export class CommentController extends Disposable implements IEditorContribution
 		this._register(this.editor.onDidChangeModel(_ => this.onModelChanged()));
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration('diffEditor.renderSideBySide')) {
-				this.beginCompute();
+				void this.beginCompute().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -729,11 +729,11 @@ export class CommentController extends Disposable implements IEditorContribution
 			if (this._computeAndSetPromise) {
 				this._computeAndSetPromise.then(_ => {
 					this.revealCommentThread(threadId, commentUniqueId, false, focus);
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else {
 				this.beginCompute().then(_ => {
 					this.revealCommentThread(threadId, commentUniqueId, false, focus);
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 	}
@@ -999,7 +999,7 @@ export class CommentController extends Disposable implements IEditorContribution
 				if (matchedZones.length) {
 					const matchedZone = matchedZones[0];
 					matchedZone.update(thread);
-					this.openCommentsView(thread);
+					void this.openCommentsView(thread).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 			const editorId = this.editor?.getId();
@@ -1065,7 +1065,7 @@ export class CommentController extends Disposable implements IEditorContribution
 					}
 				}
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async openCommentsView(thread: languages.CommentThread) {
@@ -1101,7 +1101,7 @@ export class CommentController extends Disposable implements IEditorContribution
 		this._commentWidgets.push(zoneWidget);
 		this.localToDispose.add(zoneWidget.onDidChangeExpandedState(() => this._updateCommentWidgetVisibleContext()));
 		this.localToDispose.add(zoneWidget.onDidClose(() => this._updateCommentWidgetVisibleContext()));
-		this.openCommentsView(thread);
+		void this.openCommentsView(thread).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private onEditorMouseDown(e: IEditorMouseEvent): void {
