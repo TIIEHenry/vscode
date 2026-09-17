@@ -241,7 +241,7 @@ export class QuickDiffModel extends Disposable {
 
 				this.setChanges(result.allChanges, result.changes, result.mapChanges, result.versionId);
 			})
-			.catch(err => onUnexpectedError(err));
+			.catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private setChanges(allChanges: QuickDiffChange[], changes: QuickDiffChange[], mapChanges: Map<string, number[]>, versionId: number): void {

@@ -538,7 +538,7 @@ export class SCMRepositoriesViewPane extends ViewPane {
 							this.tree.expand(this.scmViewService.repositories[0]));
 					}
 				}));
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}, this, this._store);
 	}
 
@@ -754,7 +754,7 @@ export class SCMRepositoriesViewPane extends ViewPane {
 		this.updateBodySize(height);
 
 		// Refresh the selection
-		this.treeOperationSequencer.queue(() => this.updateTreeSelection());
+		this.treeOperationSequencer.queue(() => this.updateTreeSelection()).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async updateChildren(element?: TreeElement): Promise<void> {

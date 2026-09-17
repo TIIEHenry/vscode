@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/scm.css';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event, Emitter } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { append, $, Dimension, trackFocus } from '../../../../base/browser/dom.js';
@@ -412,7 +413,7 @@ export class SCMInputWidget {
 		this.inputEditor.setModel(textModel);
 
 		if (this.configurationService.getValue('editor.wordBasedSuggestions', { resource: textModel.uri }) !== 'off') {
-			this.configurationService.updateValue('editor.wordBasedSuggestions', 'off', { resource: textModel.uri }, ConfigurationTarget.MEMORY);
+			this.configurationService.updateValue('editor.wordBasedSuggestions', 'off', { resource: textModel.uri }, ConfigurationTarget.MEMORY).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		// Validation
@@ -425,7 +426,7 @@ export class SCMInputWidget {
 			this.setValidation(await input.validateInput(value, offset || 0));
 		};
 
-		const triggerValidation = () => validationDelayer.trigger(validate);
+		const triggerValidation = () => validationDelayer.trigger(validate).catch(onUnexpectedError).catch(onUnexpectedError);
 		this.repositoryDisposables.add(validationDelayer);
 		this.repositoryDisposables.add(this.inputEditor.onDidChangeCursorPosition(triggerValidation));
 
