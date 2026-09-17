@@ -9,6 +9,7 @@ import { Emitter } from '../../../base/common/event.js';
 import { URI, UriComponents } from '../../../base/common/uri.js';
 import { ExtHostQuickDiffShape, IMainContext, ITextEditorDiffInformation, MainContext, MainThreadQuickDiffShape } from './extHost.protocol.js';
 import { asPromise } from '../../../base/common/async.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { DocumentSelector } from './extHostTypeConverters.js';
 import { TextEditorChangeKind } from './extHostTypes.js';
 import { ExtHostDocuments } from './extHostDocuments.js';
@@ -74,7 +75,7 @@ class ExtHostSourceControlDiffInformation implements vscode.SourceControlDiffInf
 	}
 
 	dispose(): void {
-		this.proxy.$disposeSourceControlDiffInformation(this.handle);
+		this.proxy.$disposeSourceControlDiffInformation(this.handle).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._onDidChange.dispose();
 		this.onDispose(this.handle);
 	}
@@ -116,10 +117,10 @@ export class ExtHostQuickDiff implements ExtHostQuickDiffShape {
 		this.providers.set(handle, quickDiffProvider);
 
 		const extensionId = ExtensionIdentifier.toKey(extension.identifier);
-		this.proxy.$registerQuickDiffProvider(handle, DocumentSelector.from(selector, this.uriTransformer), `${extensionId}.${id}`, label, rootUri);
+		this.proxy.$registerQuickDiffProvider(handle, DocumentSelector.from(selector, this.uriTransformer), `${extensionId}.${id}`, label, rootUri).catch(onUnexpectedError).catch(onUnexpectedError);
 		return {
 			dispose: () => {
-				this.proxy.$unregisterQuickDiffProvider(handle);
+				this.proxy.$unregisterQuickDiffProvider(handle).catch(onUnexpectedError).catch(onUnexpectedError);
 				this.providers.delete(handle);
 			}
 		};
@@ -129,7 +130,7 @@ export class ExtHostQuickDiff implements ExtHostQuickDiffShape {
 		const handle = ExtHostQuickDiff.handlePool++;
 		const information = new ExtHostSourceControlDiffInformation(handle, this.proxy, this.documents, h => this.informations.delete(h));
 		this.informations.set(handle, information);
-		this.proxy.$createSourceControlDiffInformation(handle, uri);
+		this.proxy.$createSourceControlDiffInformation(handle, uri).catch(onUnexpectedError).catch(onUnexpectedError);
 		return information;
 	}
 }

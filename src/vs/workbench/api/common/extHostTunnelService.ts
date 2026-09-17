@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationToken } from '../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable, IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
 import * as nls from '../../../nls.js';
@@ -163,7 +164,7 @@ export class ExtHostTunnelService extends Disposable implements IExtHostTunnelSe
 			protocol: information.tunnelFeatures.protocol === undefined ? true : information.tunnelFeatures.protocol,
 		} : undefined;
 
-		this._proxy.$setTunnelProvider(tunnelFeatures, true);
+		this._proxy.$setTunnelProvider(tunnelFeatures, true).catch(onUnexpectedError).catch(onUnexpectedError);
 		return Promise.resolve(toDisposable(() => {
 			this._forwardPortProvider = undefined;
 			this._proxy.$setTunnelProvider(undefined, false);
