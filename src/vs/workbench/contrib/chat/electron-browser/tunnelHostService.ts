@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { localize } from '../../../../nls.js';
 import {
 	ITunnelAgentHostHostingService,
@@ -74,7 +75,7 @@ export class TunnelHostService extends Disposable implements ITunnelHostService 
 			if (status.active) {
 				this._onDidChangeStatus.fire();
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	get isSharing(): boolean {

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -67,14 +68,14 @@ export class HasByokModelsContribution extends Disposable implements IWorkbenchC
 				this._extensionsRegistered = true;
 				this._update();
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this._languageModelsConfigurationService.whenReady.then(() => {
 			if (!this._store.isDisposed) {
 				this._configurationLoaded = true;
 				this._update();
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this._register(Event.any(
 			Event.filter(this._configurationService.onDidChangeConfiguration, e => e.affectsConfiguration(ChatAIDisabledSettingId)),

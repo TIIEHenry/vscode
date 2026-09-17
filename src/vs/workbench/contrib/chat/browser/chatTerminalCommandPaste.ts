@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { ICodeEditor } from '../../../../editor/browser/editorBrowser.js';
 import { Handler } from '../../../../editor/common/editorCommon.js';
 import { localize } from '../../../../nls.js';
@@ -141,5 +142,5 @@ export function handleTerminalCommandPaste(
 		if (result === 'paste') {
 			editor.trigger('keyboard', Handler.Paste, { text: pastedText });
 		}
-	});
+	}).catch(onUnexpectedError).catch(onUnexpectedError);
 }

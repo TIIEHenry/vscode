@@ -7,7 +7,7 @@ import { SequencerByKey, timeout } from '../../../../base/common/async.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { IStringDictionary } from '../../../../base/common/collections.js';
-import { CancellationError, getErrorMessage, isCancellationError } from '../../../../base/common/errors.js';
+import { CancellationError, getErrorMessage, isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { hash } from '../../../../base/common/hash.js';
 import { Iterable } from '../../../../base/common/iterator.js';
@@ -2548,7 +2548,8 @@ export class LanguageModelsService implements ILanguageModelsService {
 		this._fetchChatControlData()
 			.catch(err => this._logService.warn('Failed to fetch chat control data', err))
 			.then(() => timeout(5 * 60 * 1000)) // every 5 minutes
-			.then(() => this._refreshChatControlData());
+			.then(() => this._refreshChatControlData())
+			.catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async _fetchChatControlData(): Promise<void> {
