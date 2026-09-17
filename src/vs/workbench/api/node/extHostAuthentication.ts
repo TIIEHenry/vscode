@@ -20,7 +20,7 @@ import { Emitter } from '../../../base/common/event.js';
 import { raceCancellationError } from '../../../base/common/async.js';
 import { IExtHostProgress } from '../common/extHostProgress.js';
 import { IProgressStep } from '../../../platform/progress/common/progress.js';
-import { CancellationError, isCancellationError } from '../../../base/common/errors.js';
+import { CancellationError, isCancellationError, onUnexpectedError } from '../../../base/common/errors.js';
 import { URI } from '../../../base/common/uri.js';
 import { LoopbackAuthServer } from './loopbackServer.js';
 
@@ -130,7 +130,7 @@ export class NodeDynamicAuthProvider extends DynamicAuthProvider {
 
 		const promise = server.waitForOAuthResponse();
 		// Set up a Uri Handler but it's just to redirect not to handle the code
-		void this._proxy.$waitForUriHandler(appUri);
+		void this._proxy.$waitForUriHandler(appUri).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		try {
 			// Open the browser for user authorization
