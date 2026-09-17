@@ -218,6 +218,6 @@ export class ChatRequestOriginPart extends Disposable {
 	}
 
 	private _open(): void {
-		void this._openSource?.().catch(onUnexpectedError);
+		void this._openSource?.().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
