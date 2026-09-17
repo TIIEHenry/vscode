@@ -615,7 +615,7 @@ export class SuggestController implements IEditorContribution {
 
 		const fallback = () => {
 			if (positionNow.equals(this.editor.getPosition()!)) {
-				this._commandService.executeCommand(arg.fallback);
+				this._commandService.executeCommand(arg.fallback).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		};
 

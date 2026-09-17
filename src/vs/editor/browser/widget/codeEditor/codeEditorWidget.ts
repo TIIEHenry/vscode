@@ -1968,10 +1968,10 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 					this._commandService.executeCommand(editorCommon.Handler.CompositionStart, {}).catch(onUnexpectedError).catch(onUnexpectedError);
 				},
 				endComposition: () => {
-					this._commandService.executeCommand(editorCommon.Handler.CompositionEnd, {});
+					this._commandService.executeCommand(editorCommon.Handler.CompositionEnd, {}).catch(onUnexpectedError).catch(onUnexpectedError);
 				},
 				cut: () => {
-					this._commandService.executeCommand(editorCommon.Handler.Cut, {});
+					this._commandService.executeCommand(editorCommon.Handler.Cut, {}).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			};
 		}

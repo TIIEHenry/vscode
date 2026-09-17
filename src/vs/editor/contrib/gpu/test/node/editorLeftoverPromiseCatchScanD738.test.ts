@@ -11,9 +11,11 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const WIDGET_REL = 'src/vs/editor/browser/widget/codeEditor/codeEditorWidget.ts';
-const GPU_REL = 'src/vs/editor/contrib/gpu/browser/gpuActions.ts';
+const SUGGEST_REL = 'src/vs/editor/contrib/suggest/browser/suggestController.ts';
+const CODELENS_REL = 'src/vs/editor/contrib/codelens/browser/codelensController.ts';
 const COMMANDS_REL = 'src/vs/platform/commands/common/commands.ts';
-const INSTANTIATION_REL = 'src/vs/platform/instantiation/common/instantiation.ts';
+const NOTIFY_REL = 'src/vs/platform/notification/common/notification.ts';
+const GPU_REL = 'src/vs/editor/contrib/gpu/browser/gpuActions.ts';
 const MARKER_REL = 'src/vs/editor/contrib/hover/browser/markerHoverParticipant.ts';
 const LINKS_REL = 'src/vs/editor/contrib/links/browser/links.ts';
 const WORD_REL = 'src/vs/editor/contrib/wordHighlighter/browser/wordHighlighter.ts';
@@ -38,67 +40,64 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-suite('editor widget/gpu leftover Promise fire-and-forget catch scan (D732)', () => {
+suite('editor leftover Promise fire-and-forget catch scan (D738)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('this knife covers eight leftover Promise double-chain sites', () => {
+	test('this knife covers four leftover Promise double-chain sites', () => {
 		const widget = fs.readFileSync(resolveSource(WIDGET_REL), 'utf8');
-		const gpu = fs.readFileSync(resolveSource(GPU_REL), 'utf8');
-		const trigger = (widget.match(/this\._commandService\.executeCommand\(handlerId, payload\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const paste = (widget.match(/executeCommand\(editorCommon\.Handler\.Paste, payload\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const type = (widget.match(/executeCommand\(editorCommon\.Handler\.Type, payload\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const compositionType = (widget.match(/executeCommand\(editorCommon\.Handler\.CompositionType, payload\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const replacePrev = (widget.match(/executeCommand\(editorCommon\.Handler\.ReplacePreviousChar, payload\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const startComposition = (widget.match(/executeCommand\(editorCommon\.Handler\.CompositionStart, \{\}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const saveAtlas = (gpu.match(/invokeFunction\(async accessor => \{\n\t\t\t\t\tconst workspaceContextService = accessor\.get\(IWorkspaceContextService\);[\s\S]*?await Promise\.all\(promises\);\n\t\t\t\t\t\}\n\t\t\t\t\}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const drawGlyph = (gpu.match(/invokeFunction\(async accessor => \{\n\t\t\t\t\tconst configurationService = accessor\.get\(IConfigurationService\);[\s\S]*?await fileService\.writeFile\(resource, VSBuffer\.wrap\(new Uint8Array\(await blob\.arrayBuffer\(\)\)\)\);\n\t\t\t\t\}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		assert.strictEqual(trigger + paste + type + compositionType + replacePrev + startComposition + saveAtlas + drawGlyph, 8);
+		const suggest = fs.readFileSync(resolveSource(SUGGEST_REL), 'utf8');
+		const codelens = fs.readFileSync(resolveSource(CODELENS_REL), 'utf8');
+		const compositionEnd = (widget.match(/executeCommand\(editorCommon\.Handler\.CompositionEnd, \{\}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+		const cut = (widget.match(/executeCommand\(editorCommon\.Handler\.Cut, \{\}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+		const fallback = (suggest.match(/executeCommand\(arg\.fallback\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+		const notifyThenDouble = (codelens.match(/\.catch\(err => this\._notificationService\.error\(err\)\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+		assert.strictEqual(compositionEnd + cut + fallback + notifyThenDouble, 4);
 	});
 
-	test('codeEditorWidget leftover _triggerCommand executeCommand is Promise double-chain', () => {
+	test('codeEditorWidget leftover CompositionEnd / Cut executeCommand FOFs are Promise double-chain', () => {
 		const source = fs.readFileSync(resolveSource(WIDGET_REL), 'utf8');
 		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
 		assertPromiseSignature(commands, 'executeCommand<R = unknown>(commandId: string, ...args: unknown[]): Promise<R | undefined>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		const call = 'this._commandService.executeCommand(handlerId, payload)';
-		assert.ok(source.includes(`${call}${doubleCatch};`));
-		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-	});
-
-	test('codeEditorWidget leftover clipboard executeCommand FOFs are Promise double-chain', () => {
-		const source = fs.readFileSync(resolveSource(WIDGET_REL), 'utf8');
-		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
-		assertPromiseSignature(commands, 'executeCommand<R = unknown>(commandId: string, ...args: unknown[]): Promise<R | undefined>;');
-		const paste = 'this._commandService.executeCommand(editorCommon.Handler.Paste, payload)';
-		const type = 'this._commandService.executeCommand(editorCommon.Handler.Type, payload)';
-		const compositionType = 'this._commandService.executeCommand(editorCommon.Handler.CompositionType, payload)';
-		const replacePrev = 'this._commandService.executeCommand(editorCommon.Handler.ReplacePreviousChar, payload)';
-		const startComposition = 'this._commandService.executeCommand(editorCommon.Handler.CompositionStart, {})';
-		for (const call of [paste, type, compositionType, replacePrev, startComposition]) {
+		const compositionEnd = 'this._commandService.executeCommand(editorCommon.Handler.CompositionEnd, {})';
+		const cut = 'this._commandService.executeCommand(editorCommon.Handler.Cut, {})';
+		for (const call of [compositionEnd, cut]) {
 			assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
 			assert.ok(!source.includes(`${call};`), `bare leftover remains: ${call}`);
+			assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`), `single-chain remains: ${call}`);
 		}
 	});
 
-	test('gpuActions leftover async invokeFunction FOFs are Promise double-chain; sync void stays skipped', () => {
-		const source = fs.readFileSync(resolveSource(GPU_REL), 'utf8');
-		const instantiation = fs.readFileSync(resolveSource(INSTANTIATION_REL), 'utf8');
-		assert.ok(instantiation.includes('invokeFunction<R, TS extends any[] = []>(fn: (accessor: ServicesAccessor, ...args: TS) => R, ...args: TS): R;'));
-		assert.ok(source.includes('instantiationService.invokeFunction(async accessor => {'));
-		assertPromiseSignature(source, 'instantiationService.invokeFunction(async accessor => {');
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		const saveClose = '\t\t\t\t}).catch(onUnexpectedError).catch(onUnexpectedError);\n\t\t\t\tbreak;\n\t\t\tcase \'drawGlyph\':';
-		const drawClose = '\t\t\t\t}).catch(onUnexpectedError).catch(onUnexpectedError);\n\t\t\t\tbreak;\n\t\t}';
-		assert.ok(source.includes(saveClose));
-		assert.ok(source.includes(drawClose));
-		assert.strictEqual((source.match(/invokeFunction\(async accessor => \{/g) ?? []).length, 2);
-		assert.ok(source.includes("logService.info(['Texture atlas stats', ...stats].join('\\n\\n'));\n\t\t\t\t});"));
-		assert.ok(!source.includes("logService.info(['Texture atlas stats', ...stats].join('\\n\\n'));\n\t\t\t\t}).catch(onUnexpectedError)"));
+	test('suggest leftover executeCommand(arg.fallback) is Promise double-chain; Promise.all().finally stays skipped', () => {
+		const source = fs.readFileSync(resolveSource(SUGGEST_REL), 'utf8');
+		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
+		assertPromiseSignature(commands, 'executeCommand<R = unknown>(commandId: string, ...args: unknown[]): Promise<R | undefined>;');
+		assert.ok(source.includes("import { onUnexpectedError, onUnexpectedExternalError } from '../../../../base/common/errors.js';"));
+		const call = 'this._commandService.executeCommand(arg.fallback)';
+		assert.ok(source.includes(`${call}${doubleCatch};`));
+		assert.ok(!source.includes(`${call};`));
+		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(source.includes('Promise.all(tasks).finally(() => {'));
+		assert.ok(!/Promise\.all\(tasks\)\.finally\(\(\) => \{[\s\S]*?\}\)\.catch\(onUnexpectedError\)/.test(source));
 	});
 
-	test('opener / Resolve / two-arg then / Action2.run / assigned Action.run / Connect / Watch / Pty stay skipped', () => {
+	test('codelens leftover executeCommand keeps notification then is Promise double-chain', () => {
+		const source = fs.readFileSync(resolveSource(CODELENS_REL), 'utf8');
+		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
+		const notify = fs.readFileSync(resolveSource(NOTIFY_REL), 'utf8');
+		assertPromiseSignature(commands, 'executeCommand<R = unknown>(commandId: string, ...args: unknown[]): Promise<R | undefined>;');
+		assert.ok(notify.includes('error(message: NotificationMessage | NotificationMessage[]): void;'));
+		assert.ok(source.includes("import { onUnexpectedError, onUnexpectedExternalError } from '../../../../base/common/errors.js';"));
+		const call = 'this._commandService.executeCommand(command.id, ...(command.arguments || []))';
+		const notifyCatch = '.catch(err => this._notificationService.error(err))';
+		assert.ok(source.includes(`${call}${notifyCatch}${doubleCatch};`));
+		assert.ok(!source.includes(`${call}${notifyCatch};`));
+		assert.ok(!source.includes(`${call};`));
+		assert.ok(source.includes('await commandService.executeCommand(command.id, ...(command.arguments || []));'));
+	});
+
+	test('opener / Resolve / two-arg then / Action2.run / assigned Action.run / gpu sync void / Promise.all().finally / Connect / Watch / Pty stay skipped', () => {
 		const widget = fs.readFileSync(resolveSource(WIDGET_REL), 'utf8');
 		const gpu = fs.readFileSync(resolveSource(GPU_REL), 'utf8');
 		const marker = fs.readFileSync(resolveSource(MARKER_REL), 'utf8');
@@ -107,6 +106,7 @@ suite('editor widget/gpu leftover Promise fire-and-forget catch scan (D732)', ()
 		const fold = fs.readFileSync(resolveSource(FOLD_REL), 'utf8');
 		const inlay = fs.readFileSync(resolveSource(INLAY_CTRL_REL), 'utf8');
 		const gotoCmd = fs.readFileSync(resolveSource(GOTO_CMD_REL), 'utf8');
+		const suggest = fs.readFileSync(resolveSource(SUGGEST_REL), 'utf8');
 		assert.ok(marker.includes('this._openerService.open(resource, {'));
 		assert.ok(marker.includes('}).catch(onUnexpectedError);'));
 		assert.ok(!marker.includes('}).catch(onUnexpectedError).catch(onUnexpectedError);'));
@@ -122,9 +122,17 @@ suite('editor widget/gpu leftover Promise fire-and-forget catch scan (D732)', ()
 		assert.ok(widget.includes('Promise.resolve(command.runEditorCommand(accessor, this, payload)).then(undefined, onUnexpectedError);'));
 		assert.ok(widget.includes("this._commandService.executeCommand('editor.action.startFindReplaceAction');"));
 		assert.ok(!widget.includes("this._commandService.executeCommand('editor.action.startFindReplaceAction').catch(onUnexpectedError)"));
+		assert.ok(widget.includes("this._commandService.executeCommand('workbench.action.openSettings2', {"));
+		assert.ok(widget.includes("query: 'editor.multiCursorLimit'\n\t\t\t\t\t\t\t\t\t});"));
+		assert.ok(!widget.includes("query: 'editor.multiCursorLimit'\n\t\t\t\t\t\t\t\t\t}).catch(onUnexpectedError)"));
+		assert.ok(gpu.includes('instantiationService.invokeFunction(accessor => {'));
+		assert.ok(gpu.includes("logService.info(['Texture atlas stats', ...stats].join('\\n\\n'));\n\t\t\t\t});"));
+		assert.ok(!gpu.includes("logService.info(['Texture atlas stats', ...stats].join('\\n\\n'));\n\t\t\t\t}).catch(onUnexpectedError)"));
 		assert.ok(gotoCmd.includes('accessor.get(IInstantiationService).invokeFunction(command.run.bind(command), editor);'));
 		assert.ok(!gotoCmd.includes('accessor.get(IInstantiationService).invokeFunction(command.run.bind(command), editor).catch(onUnexpectedError)'));
-		for (const source of [widget, gpu, marker, links, word, fold, inlay, gotoCmd]) {
+		assert.ok(suggest.includes('Promise.all(tasks).finally(() => {'));
+		assert.ok(!/Promise\.all\(tasks\)\.finally\(\(\) => \{[\s\S]*?\}\)\.catch\(onUnexpectedError\)/.test(suggest));
+		for (const source of [widget, gpu, marker, links, word, fold, inlay, gotoCmd, suggest]) {
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));
 			assert.ok(!source.includes('Wire('));
