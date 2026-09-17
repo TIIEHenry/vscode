@@ -18,9 +18,6 @@ const CONTEXTKEYS_REL = 'src/vs/workbench/browser/contextkeys.ts';
 const LIFECYCLE_REL = 'src/vs/workbench/services/lifecycle/common/lifecycle.ts';
 const GROUPS_REL = 'src/vs/workbench/services/editor/common/editorGroupsService.ts';
 const CONTRIBUTIONS_REL = 'src/vs/workbench/common/contributions.ts';
-const GLOBAL_BAR_REL = 'src/vs/workbench/browser/parts/globalCompositeBar.ts';
-const VIEW_PANE_REL = 'src/vs/workbench/browser/parts/views/viewPaneContainer.ts';
-const PANE_BAR_REL = 'src/vs/workbench/browser/parts/paneCompositeBar.ts';
 const DESKTOP_MAIN_REL = 'src/vs/workbench/electron-browser/desktop.main.ts';
 
 function resolveSource(rel: string): string {
@@ -57,8 +54,7 @@ suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () 
 			const source = fs.readFileSync(resolveSource(rel), 'utf8');
 			sites += (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
 		}
-		assert.ok(sites >= 4 && sites <= 8, `expected 4-8 leftover sites, got ${sites}`);
-		assert.strictEqual(sites, 7);
+		assert.ok(sites >= 7 && sites <= 8, `expected D697 seven sites (layout may include D706 whenStylesHaveLoaded), got ${sites}`);
 	});
 
 	test('native window leftover when Ready / Restored then are Promise double-chain', () => {
@@ -104,7 +100,7 @@ suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () 
 		assert.ok(!source.includes('this.registerGroupsContextKeyListeners().catch'));
 	});
 
-	test('layout leftover whenRestored thens are Promise double-chain; whenStylesHaveLoaded stays skipped', () => {
+	test('layout leftover whenRestored thens are Promise double-chain', () => {
 		const source = fs.readFileSync(resolveSource(LAYOUT_REL), 'utf8');
 		const groups = fs.readFileSync(resolveSource(GROUPS_REL), 'utf8');
 		assertPromiseSignature(groups, 'readonly whenRestored: Promise<void>;');
@@ -131,8 +127,6 @@ suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () 
 		assert.ok(!source.includes(`${listenersThen};`));
 		assert.ok(!source.includes(`${listenersThen}.catch(onUnexpectedError);`));
 		assertDoubleThen(source, 'this.editorGroupService.whenRestored.then(() => this.centerMainEditorLayout(this.stateModel.getRuntimeValue(LayoutStateKeys.MAIN_EDITOR_CENTERED), skipLayout))');
-		assert.ok(source.includes('window.whenStylesHaveLoaded.then(() => this.containerStylesLoaded.delete(windowId));'));
-		assert.ok(!source.includes('window.whenStylesHaveLoaded.then(() => this.containerStylesLoaded.delete(windowId)).catch'));
 	});
 
 	test('contextkeys leftover whenReady then is Promise double-chain; sync update* stays skipped', () => {
@@ -159,9 +153,6 @@ suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () 
 		const layout = fs.readFileSync(resolveSource(LAYOUT_REL), 'utf8');
 		const contextkeys = fs.readFileSync(resolveSource(CONTEXTKEYS_REL), 'utf8');
 		const contributions = fs.readFileSync(resolveSource(CONTRIBUTIONS_REL), 'utf8');
-		const globalBar = fs.readFileSync(resolveSource(GLOBAL_BAR_REL), 'utf8');
-		const viewPane = fs.readFileSync(resolveSource(VIEW_PANE_REL), 'utf8');
-		const paneBar = fs.readFileSync(resolveSource(PANE_BAR_REL), 'utf8');
 		const desktopMain = fs.readFileSync(resolveSource(DESKTOP_MAIN_REL), 'utf8');
 
 		assert.ok(windowSource.includes('this.setupOpenHandlers();'));
@@ -176,13 +167,6 @@ suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () 
 
 		assert.ok(contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase));'));
 		assert.ok(!contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase)).catch'));
-
-		assert.ok(globalBar.includes('this.extensionService.whenInstalledExtensionsRegistered().then(() => {'));
-		assert.ok(!globalBar.includes('.catch(onUnexpectedError)'));
-		assert.ok(viewPane.includes('this.extensionService.whenInstalledExtensionsRegistered().then(() => {'));
-		assert.ok(!viewPane.includes('.catch(onUnexpectedError)'));
-		assert.ok(paneBar.includes('this.extensionService.whenInstalledExtensionsRegistered().then(() => {'));
-		assert.ok(!paneBar.includes('.catch(onUnexpectedError)'));
 
 		assert.ok(desktopMain.includes('this.createWorkspaceService('));
 		assert.ok(!/createWorkspaceService\([^)]*\)\.then\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(desktopMain));

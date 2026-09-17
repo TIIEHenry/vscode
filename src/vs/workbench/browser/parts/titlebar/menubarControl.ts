@@ -15,6 +15,7 @@ import { isMacintosh, isWeb, isIOS, isNative } from '../../../../base/common/pla
 import { IConfigurationService, IConfigurationChangeEvent } from '../../../../platform/configuration/common/configuration.js';
 import { Event, Emitter } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IRecentlyOpened, isRecentFolder, IRecent, isRecentWorkspace, IWorkspacesService } from '../../../../platform/workspaces/common/workspaces.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -224,7 +225,7 @@ export abstract class MenubarControl extends Disposable {
 			this.workspacesService.getRecentlyOpened().then(recentlyOpened => {
 				this.recentlyOpened = recentlyOpened;
 				this.updateMenubar();
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -364,7 +365,7 @@ export class CustomMenubarControl extends MenubarControl {
 
 		this.workspacesService.getRecentlyOpened().then((recentlyOpened) => {
 			this.recentlyOpened = recentlyOpened;
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this.registerListeners();
 	}
