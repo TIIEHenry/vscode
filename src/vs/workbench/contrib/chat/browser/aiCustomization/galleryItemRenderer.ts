@@ -6,6 +6,7 @@
 import * as DOM from '../../../../../base/browser/dom.js';
 import { Button } from '../../../../../base/browser/ui/button/button.js';
 import { IListRenderer } from '../../../../../base/browser/ui/list/list.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { DisposableStore, IDisposable } from '../../../../../base/common/lifecycle.js';
 import { localize } from '../../../../../nls.js';
 import { defaultButtonStyles } from '../../../../../platform/theme/browser/defaultStyles.js';
@@ -84,20 +85,22 @@ export class GalleryItemRenderer<TElement> implements IListRenderer<TElement, IG
 
 		this._updateInstallButton(templateData.installButton, element);
 
-		templateData.elementDisposables.add(templateData.installButton.onDidClick(async () => {
-			if (this._provider.getInstallState(element) !== GalleryItemInstallState.Uninstalled) {
-				return;
-			}
-			if (this._provider.canInstall && !this._provider.canInstall(element)) {
-				return;
-			}
-			templateData.installButton.label = localize('galleryItemInstalling', "Installing...");
-			templateData.installButton.enabled = false;
-			try {
-				await this._provider.install(element);
-			} finally {
-				this._updateInstallButton(templateData.installButton, element);
-			}
+		templateData.elementDisposables.add(templateData.installButton.onDidClick(() => {
+			void (async () => {
+				if (this._provider.getInstallState(element) !== GalleryItemInstallState.Uninstalled) {
+					return;
+				}
+				if (this._provider.canInstall && !this._provider.canInstall(element)) {
+					return;
+				}
+				templateData.installButton.label = localize('galleryItemInstalling', "Installing...");
+				templateData.installButton.enabled = false;
+				try {
+					await this._provider.install(element);
+				} finally {
+					this._updateInstallButton(templateData.installButton, element);
+				}
+			})().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		const changeListener = this._provider.onDidChangeInstallState?.(element, () => this._updateInstallButton(templateData.installButton, element));
