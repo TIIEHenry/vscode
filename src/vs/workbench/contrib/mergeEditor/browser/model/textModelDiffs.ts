@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { compareBy, numberComparator } from '../../../../../base/common/arrays.js';
-import { BugIndicatingError } from '../../../../../base/common/errors.js';
+import { BugIndicatingError, onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Disposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ITextModel } from '../../../../../editor/common/model.js';
 import { DetailedLineRangeMapping } from './mapping.js';
@@ -113,7 +113,7 @@ export class TextModelDiffs extends Disposable {
 				}
 				this._isInitializing = false;
 			});
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private ensureUpToDate(): void {
