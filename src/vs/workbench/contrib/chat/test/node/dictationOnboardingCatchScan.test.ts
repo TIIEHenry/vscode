@@ -23,7 +23,7 @@ function dictationOnboardingSourcePath(): string {
 	return found;
 }
 
-suite('DictationOnboarding leftover fire-and-forget catch scan (D560/D568/D576)', () => {
+suite('DictationOnboarding leftover fire-and-forget catch scan (D560/D568/D576/D584)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
@@ -71,5 +71,21 @@ suite('DictationOnboarding leftover fire-and-forget catch scan (D560/D568/D576)'
 		assert.ok(!source.includes('failed to switch dictation microphone'));
 		assert.ok(!source.includes('void this.currentBanner?.refreshMicrophones(analyserNode, switchMicrophone);'));
 		assert.ok(!source.includes('void this.currentBanner?.refreshMicrophones(analyserNode, switchMicrophone).catch(onUnexpectedError);'));
+	});
+
+	test('dictationOnboarding leftover executeCommand voids double-catch onUnexpectedError (D584)', () => {
+		// Single-layer log catch still leaks when mocha's unexpected handler warn-then-rethrows.
+		const source = fs.readFileSync(dictationOnboardingSourcePath(), 'utf8');
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const collapsed = source.replace(/\s+/g, ' ');
+		const doubleExecute = `void this.commandService.executeCommand(commandId as string, ...args) ${doubleCatch}`;
+		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
+		assert.ok(collapsed.includes(doubleExecute));
+		assert.strictEqual((source.match(/void this\.commandService\.executeCommand\(commandId as string, \.\.\.args\)\s*\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
+		assert.ok(!source.includes('failed to open dictation customization'));
+		assert.ok(!source.includes('this.commandService.executeCommand(commandId as string, ...args).catch(onUnexpectedError);'));
+		assert.ok(source.includes("void context.close().catch(() => { /* already closing */ })"));
+		assert.strictEqual((source.match(/void this\.refreshMicrophones\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
+		assert.strictEqual((source.match(/void this\.startPreview\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
 	});
 });

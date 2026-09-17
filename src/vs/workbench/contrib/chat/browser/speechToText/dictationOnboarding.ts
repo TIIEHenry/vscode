@@ -668,8 +668,8 @@ export class DictationOnboardingBanner extends ChatInputNoticeWidget implements 
 						? [OPEN_SETTINGS_COMMAND, { query: DICTATION_SETTINGS_QUERY }]
 						: [CONFIGURE_DICTATION_INSTRUCTIONS_ACTION_ID];
 					this.logAction(index === '0' ? 'openSettings' : 'openInstructions');
-					this.commandService.executeCommand(commandId as string, ...args)
-						.catch(error => this.logService.error(`[chat-stt] failed to open dictation customization: ${error}`));
+					void this.commandService.executeCommand(commandId as string, ...args)
+						.catch(onUnexpectedError).catch(onUnexpectedError);
 				},
 				disposables: this._store,
 			},
