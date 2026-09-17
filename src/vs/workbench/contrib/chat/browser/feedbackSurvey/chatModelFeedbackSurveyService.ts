@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -163,8 +164,8 @@ export class ChatModelFeedbackSurveyService extends Disposable implements IChatM
 	) {
 		super();
 
-		void this.resolveConfig();
-		this._register(this.assignmentService.onDidRefetchAssignments(() => void this.resolveConfig()));
+		void this.resolveConfig().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._register(this.assignmentService.onDidRefetchAssignments(() => void this.resolveConfig().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this._register(this.chatService.onDidDisposeSession(e => this.forgetSessions(e.sessionResources)));
 	}
 

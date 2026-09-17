@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ResourceMap, ResourceSet } from '../../../../base/common/map.js';
 import { IObservable, observableValue } from '../../../../base/common/observable.js';
@@ -178,7 +179,7 @@ export class VoicePlaybackService extends Disposable implements IVoicePlaybackSe
 		this._activeReplay = undefined;
 		void this.commandService.executeCommand('_chat.voicePlayback.stop', {
 			sessionId: sessionResource?.toString(),
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 		const current = this._speakingSession.get();
 		if (!sessionResource || current?.toString() === sessionResource.toString()) {
 			this._speakingSession.set(undefined, undefined);
