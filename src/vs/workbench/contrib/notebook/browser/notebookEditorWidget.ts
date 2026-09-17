@@ -1243,7 +1243,7 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 					return;
 				}
 
-				this.createMarkupPreview(firstMarkupCell);
+				this.createMarkupPreview(firstMarkupCell).catch(onUnexpectedError).catch(onUnexpectedError);
 			} finally {
 				this._backgroundMarkdownRenderRunning = false;
 			}
@@ -1544,8 +1544,8 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 				}
 			}
 
-			this.hideMarkupPreviews(hiddenCells);
-			this.deleteMarkupPreviews(deletedCells);
+			this.hideMarkupPreviews(hiddenCells).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.deleteMarkupPreviews(deletedCells).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		// init rendering
@@ -1593,7 +1593,7 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 		store.add(cell.onDidChangeLayout(e => {
 			// e.totalHeight will be false it's not changed
 			if (e.totalHeight || e.outerWidth) {
-				this.layoutNotebookCell(cell, cell.layoutInfo.totalHeight, e.context);
+				this.layoutNotebookCell(cell, cell.layoutInfo.totalHeight, e.context).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -1605,7 +1605,7 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 
 		store.add((cell as CellViewModel).onDidChangeState(e => {
 			if (e.inputCollapsedChanged && cell.isInputCollapsed && cell.cellKind === CellKind.Markup) {
-				this.hideMarkupPreviews([(cell as MarkupCellViewModel)]);
+				this.hideMarkupPreviews([(cell as MarkupCellViewModel)]).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 
 			if (e.outputCollapsedChanged && cell.isOutputCollapsed && cell.cellKind === CellKind.Code) {
@@ -1887,7 +1887,7 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 			// In floating windows, we need to ensure that the
 			// container is ready for us to compute certain
 			// layout related properties.
-			whenContainerStylesLoaded.then(() => this.layoutNotebook(dimension, shadowElement));
+			whenContainerStylesLoaded.then(() => this.layoutNotebook(dimension, shadowElement)).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			this.layoutNotebook(dimension, shadowElement);
 		}
@@ -3064,7 +3064,7 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 			if (outputIndex > -1) {
 				this._debug('update cell output', cell.handle, outputHeight);
 				cell.updateOutputHeight(outputIndex, outputHeight, source);
-				this.layoutNotebookCell(cell, cell.layoutInfo.totalHeight);
+				this.layoutNotebookCell(cell, cell.layoutInfo.totalHeight).catch(onUnexpectedError).catch(onUnexpectedError);
 
 				if (isInit) {
 					this._onDidRenderOutput.fire(output);

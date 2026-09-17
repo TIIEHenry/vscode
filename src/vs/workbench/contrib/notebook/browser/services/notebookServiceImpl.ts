@@ -6,6 +6,7 @@
 import { localize } from '../../../../../nls.js';
 import { toAction } from '../../../../../base/common/actions.js';
 import { createErrorWithActions } from '../../../../../base/common/errorMessage.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import * as glob from '../../../../../base/common/glob.js';
 import { Iterable } from '../../../../../base/common/iterator.js';
@@ -711,8 +712,8 @@ export class NotebookService extends Disposable implements INotebookService {
 
 	private _postDocumentOpenActivation(viewType: string) {
 		// send out activations on notebook text model creation
-		this._extensionService.activateByEvent(`onNotebook:${viewType}`);
-		this._extensionService.activateByEvent(`onNotebook:*`);
+		this._extensionService.activateByEvent(`onNotebook:${viewType}`).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._extensionService.activateByEvent(`onNotebook:*`).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	async canResolve(viewType: string): Promise<boolean> {

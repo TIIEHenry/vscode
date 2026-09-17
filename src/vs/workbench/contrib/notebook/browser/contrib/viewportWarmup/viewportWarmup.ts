@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { RunOnceScheduler } from '../../../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Disposable } from '../../../../../../base/common/lifecycle.js';
 import { IAccessibilityService } from '../../../../../../platform/accessibility/common/accessibility.js';
 import { CellEditState, IInsetRenderOutput, INotebookEditor, INotebookEditorContribution, INotebookEditorDelegate, RenderOutputType } from '../../notebookBrowser.js';
@@ -73,7 +74,7 @@ class NotebookViewportContribution extends Disposable implements INotebookEditor
 			const cell = this._notebookEditor.cellAt(index);
 
 			if (cell?.cellKind === CellKind.Markup && cell?.getEditState() === CellEditState.Preview && !cell.isInputCollapsed) {
-				(this._notebookEditor as INotebookEditorDelegate).createMarkupPreview(cell);
+				(this._notebookEditor as INotebookEditorDelegate).createMarkupPreview(cell).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else if (cell?.cellKind === CellKind.Code) {
 				this._warmupCodeCell((cell as CodeCellViewModel));
 			}

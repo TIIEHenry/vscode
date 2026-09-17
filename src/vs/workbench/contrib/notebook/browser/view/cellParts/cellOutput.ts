@@ -7,6 +7,7 @@ import * as DOM from '../../../../../../base/browser/dom.js';
 import { FastDomNode } from '../../../../../../base/browser/fastDomNode.js';
 import { renderMarkdown } from '../../../../../../base/browser/markdownRenderer.js';
 import { Action } from '../../../../../../base/common/actions.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { IMarkdownString } from '../../../../../../base/common/htmlContent.js';
 import { Disposable, DisposableStore } from '../../../../../../base/common/lifecycle.js';
 import { MarshalledId } from '../../../../../../base/common/marshallingIds.js';
@@ -458,7 +459,7 @@ class CellOutputElement extends Disposable {
 	}
 
 	private _relayoutCell() {
-		this.notebookEditor.layoutNotebookCell(this.viewCell, this.viewCell.layoutInfo.totalHeight);
+		this.notebookEditor.layoutNotebookCell(this.viewCell, this.viewCell.layoutInfo.totalHeight).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	override dispose() {
@@ -782,7 +783,7 @@ export class CellOutputContainer extends CellContentPart {
 	}
 
 	private _relayoutCell() {
-		this.notebookEditor.layoutNotebookCell(this.viewCell, this.viewCell.layoutInfo.totalHeight);
+		this.notebookEditor.layoutNotebookCell(this.viewCell, this.viewCell.layoutInfo.totalHeight).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	override dispose() {

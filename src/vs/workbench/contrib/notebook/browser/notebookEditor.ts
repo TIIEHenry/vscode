@@ -8,6 +8,7 @@ import { IActionViewItem } from '../../../../base/browser/ui/actionbar/actionbar
 import { IAction, toAction } from '../../../../base/common/actions.js';
 import { timeout } from '../../../../base/common/async.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { isWeb } from '../../../../base/common/platform.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
@@ -264,7 +265,7 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 			fileOpenMonitor.then(() => {
 				perfMarksCaptured = true;
 				this._handlePerfMark(perf, input);
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 			const perf = new NotebookPerfMarks();
 			perf.mark('startTime');
