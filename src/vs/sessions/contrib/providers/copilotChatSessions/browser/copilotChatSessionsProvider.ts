@@ -1131,7 +1131,7 @@ class AgentSessionAdapter implements ICopilotChatSession {
 			if (pullRequestNumber === undefined && this._pullRequestNumberCache.get(key) === observable) {
 				this._pullRequestNumberCache.delete(key);
 			}
-		}).catch(onUnexpectedError);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 		return observable;
 	}
 
