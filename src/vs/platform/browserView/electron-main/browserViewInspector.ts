@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable, IDisposable, MutableDisposable } from '../../../base/common/lifecycle.js';
 import { BrowserElementSelectionMode, IBrowserElementCommentsUpdate, IBrowserElementSelectionOptions, IBrowserElementSelectionState, IElementData, IBrowserViewTheme, IBrowserViewRect, IBrowserViewPreloadLocalizedStrings } from '../common/browserView.js';
@@ -457,7 +458,7 @@ export class BrowserViewInspector extends Disposable {
 							this.browser.webContents.focus();
 							handle.addComment();
 						}
-					});
+					}).catch(onUnexpectedError).catch(onUnexpectedError);
 				}, 0);
 			},
 			highlight: () => handle.highlight(),

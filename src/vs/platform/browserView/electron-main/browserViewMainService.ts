@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable, DisposableMap } from '../../../base/common/lifecycle.js';
 import { VSBuffer } from '../../../base/common/buffer.js';
@@ -521,12 +522,12 @@ export class BrowserViewMainService extends Disposable implements IBrowserViewMa
 						hostWindowId: view.hostWindowId,
 						owner: view.owner,
 						session: view.session.id,
-					}, { preserveFocus: true, background: true }, 'browserLinkBackground');
+					}, { preserveFocus: true, background: true }, 'browserLinkBackground').catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}));
 			menu.append(new MenuItem({
 				label: localize('browser.contextMenu.openLinkInExternalBrowser', 'Open Link in External Browser'),
-				click: () => { void this.nativeHostMainService.openExternal(undefined, params.linkURL); }
+				click: () => { void this.nativeHostMainService.openExternal(undefined, params.linkURL).catch(onUnexpectedError).catch(onUnexpectedError); }
 			}));
 			menu.append(new MenuItem({ type: 'separator' }));
 			menu.append(new MenuItem({
@@ -551,7 +552,7 @@ export class BrowserViewMainService extends Disposable implements IBrowserViewMa
 						hostWindowId: view.hostWindowId,
 						owner: view.owner,
 						session: view.session.id,
-					}, { preserveFocus: true, background: true }, 'browserLinkBackground');
+					}, { preserveFocus: true, background: true }, 'browserLinkBackground').catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}));
 			menu.append(new MenuItem({
