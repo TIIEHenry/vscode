@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "merge 关仓：D24 Continue/Regenerate/Resume 流 bytes。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
+summary: "工位 I 进行中：D24 FetchToolUsageDetail `context_sources`=3 decode。D24 仍开。不是 leftover/pills 完成。未 compile-client。"
 ---
 
 # Development Progress
@@ -19,9 +19,10 @@ summary: "merge 关仓：D24 Continue/Regenerate/Resume 流 bytes。compile-clie
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **I** | 进行中 `d24-tool-usage-context-sources`：FetchToolUsageDetailResponse `context_sources`=3 已 decode（`source_type`=1 `source_agent_id`=2 `source_scope_id`=3 `message_id`=4 `estimated_tokens`=5）；[D24](deferred-gaps.md) **仍开** |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
-| **A/C/D/F/G/H/I/J** | parked |
+| **A/C/D/F/G/H/J** | parked |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
 
 子 agent 发现：
@@ -34,6 +35,6 @@ summary: "merge 关仓：D24 Continue/Regenerate/Resume 流 bytes。compile-clie
 ## Next
 | 项 | 指针 |
 |:---|:-----|
-| **loop** | D24 仍开。SaveSkillContent 无 RPC。Connect/Watch/ResolveAnchor/ResolveTurn 跳过。不得宣称 leftover/pills 完成 |
+| **loop** | 工位 I `context_sources` 已填。D24 仍开。SaveSkillContent 无 RPC。Connect/Watch/ResolveAnchor/ResolveTurn 跳过。不得宣称 leftover/pills 完成 |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。

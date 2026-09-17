@@ -15,6 +15,7 @@ import {
 } from '../../node/grpc/grpcFetchToolUsageDetailUnaryWire.js';
 import {
 	encodeInt32Field,
+	encodeInt64Field,
 	encodeMessageField,
 	encodeStringField,
 	readProtoFields,
@@ -57,11 +58,19 @@ suite('grpc AgentService FetchToolUsageDetail protobuf wire', () => {
 		}).length, 0);
 	});
 
-	test('decodeFetchToolUsageDetailResponse reads success=1 tool_call_id=2 error_message=4; field 3 and extra unused unread', () => {
+	test('decodeFetchToolUsageDetailResponse reads success=1 tool_call_id=2 context_sources=3 error_message=4; extra unused unread', () => {
+		const contextSource = Buffer.concat([
+			encodeInt32Field(1, 5),
+			encodeStringField(2, 'agent-1'),
+			encodeStringField(3, 'scope-1'),
+			encodeStringField(4, 'msg-1'),
+			encodeInt64Field(5, 42),
+			encodeStringField(6, 'unused-nested'),
+		]);
 		const encoded = Buffer.concat([
 			encodeInt32Field(1, 1),
 			encodeStringField(2, 'tc-1'),
-			encodeMessageField(3, encodeStringField(1, 'unused-context-source')),
+			encodeMessageField(3, contextSource),
 			encodeStringField(4, 'not found'),
 			encodeStringField(5, 'unused-extra'),
 		]);
@@ -70,14 +79,29 @@ suite('grpc AgentService FetchToolUsageDetail protobuf wire', () => {
 		assert.deepStrictEqual(wire, {
 			success: true,
 			tool_call_id: 'tc-1',
+			context_sources: [{
+				source_type: 5,
+				source_agent_id: 'agent-1',
+				source_scope_id: 'scope-1',
+				message_id: 'msg-1',
+				estimated_tokens: 42,
+			}],
 			error_message: 'not found',
 		});
-		assert.ok(!('context_sources' in wire));
+		assert.ok('context_sources' in wire);
+		assert.ok((wire.context_sources?.length ?? 0) > 0);
+		assert.strictEqual(wire.context_sources?.[0]?.estimated_tokens, 42);
 		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
 		assert.deepStrictEqual(mapFetchToolUsageDetailResponse(wire), {
 			ok: true,
 			toolCallId: 'tc-1',
-			contextSources: [],
+			contextSources: [{
+				sourceType: 'CONTEXT_SOURCE_TYPE_TOOL_RESULT',
+				sourceAgentId: 'agent-1',
+				sourceScopeId: 'scope-1',
+				messageId: 'msg-1',
+				estimatedTokens: 42,
+			}],
 			message: 'not found',
 		});
 
@@ -85,6 +109,7 @@ suite('grpc AgentService FetchToolUsageDetail protobuf wire', () => {
 		assert.deepStrictEqual(empty, {
 			success: undefined,
 			tool_call_id: undefined,
+			context_sources: [],
 			error_message: undefined,
 		});
 		assert.deepStrictEqual(mapFetchToolUsageDetailResponse(empty), {
@@ -102,7 +127,7 @@ suite('grpc AgentService FetchToolUsageDetail protobuf wire', () => {
 		assert.ok(/\bencodeFetchToolUsageDetailRequest\b/.test(source));
 		assert.ok(/\bdecodeFetchToolUsageDetailResponse\b/.test(source));
 		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(!/\ballLengthDelimited\b/.test(source));
+		assert.ok(/\ballLengthDelimited\b/.test(source));
 		assert.ok(!/\bSaveSkillContent\b|\bWatch\b/.test(source));
 		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
 		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
