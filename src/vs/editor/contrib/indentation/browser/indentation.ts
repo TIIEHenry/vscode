@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import * as strings from '../../../../base/common/strings.js';
 import * as nls from '../../../../nls.js';
@@ -153,7 +154,7 @@ export class ChangeIndentationSizeAction extends EditorAction {
 						}
 					}
 				}
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}, 50/* quick input is sensitive to being opened so soon after another */);
 	}
 }

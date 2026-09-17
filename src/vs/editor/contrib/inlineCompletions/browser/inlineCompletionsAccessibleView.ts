@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { ICodeEditor } from '../../../browser/editorBrowser.js';
 import { ICodeEditorService } from '../../../browser/services/codeEditorService.js';
@@ -75,12 +76,12 @@ class InlineCompletionsAccessibleViewContentProvider extends Disposable implemen
 	}
 	public provideNextContent(): string | undefined {
 		// asynchronously update the model and fire the event
-		this._model.next().then((() => this._onDidChangeContent.fire()));
+		this._model.next().then((() => this._onDidChangeContent.fire())).catch(onUnexpectedError).catch(onUnexpectedError);
 		return;
 	}
 	public providePreviousContent(): string | undefined {
 		// asynchronously update the model and fire the event
-		this._model.previous().then((() => this._onDidChangeContent.fire()));
+		this._model.previous().then((() => this._onDidChangeContent.fire())).catch(onUnexpectedError).catch(onUnexpectedError);
 		return;
 	}
 	public onClose(): void {

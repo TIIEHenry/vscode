@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancelablePromise, RunOnceScheduler } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ICodeEditor } from '../../../browser/editorBrowser.js';
 import { EditorContributionInstantiation, registerEditorContribution } from '../../../browser/editorExtensions.js';
@@ -140,7 +141,7 @@ export class SectionHeaderDetector extends Disposable implements IEditorContribu
 					return;
 				}
 				this.updateDecorations(sectionHeaders);
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private updateDecorations(sectionHeaders: SectionHeader[]): void {

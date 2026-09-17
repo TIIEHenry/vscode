@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { RunOnceScheduler } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { CharCode } from '../../../../base/common/charCode.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { createCommandUri, MarkdownString } from '../../../../base/common/htmlContent.js';
@@ -275,7 +276,7 @@ class DocumentUnicodeHighlighter extends Disposable {
 					}
 				}
 				this._decorations.set(decorations);
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	public getDecorationInfo(decoration: IModelDecoration): UnicodeHighlighterDecorationInfo | null {
