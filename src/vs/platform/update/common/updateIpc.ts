@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { DisposableStore } from '../../../base/common/lifecycle.js';
 import { IChannel, IServerChannel } from '../../../base/parts/ipc/common/ipc.js';
@@ -53,7 +54,7 @@ export class UpdateChannelClient implements IUpdateService {
 
 	constructor(private readonly channel: IChannel) {
 		this.disposables.add(this.channel.listen<State>('onStateChange')(state => this.state = state));
-		this.channel.call<State>('_getInitialState').then(state => this.state = state);
+		this.channel.call<State>('_getInitialState').then(state => this.state = state).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	checkForUpdates(explicit: boolean): Promise<void> {
