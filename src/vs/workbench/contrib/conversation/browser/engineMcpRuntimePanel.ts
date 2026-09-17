@@ -268,7 +268,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 					this.toolsStatus.render({
 						mode: 'disconnected',
 						featureLabel: MCP_RUNTIME_TOOLS_FEATURE,
-						onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+						onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError),
 					});
 					return;
 				}
@@ -430,7 +430,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 		this.toolsStatus.render({
 			mode: 'disconnected',
 			featureLabel: MCP_RUNTIME_TOOLS_FEATURE,
-			onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+			onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError),
 		});
 	}
 
@@ -605,7 +605,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 			loadingKind: options?.loadingKind,
 			onRetry: options?.onRetry,
 			onOpenConnection: this.mode === 'disconnected'
-				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID)
+				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
 				: undefined,
 		});
 	}

@@ -247,14 +247,14 @@ export class EngineClipboardSection extends Disposable {
 		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
 			this.status.render({
 				mode: 'disconnected',
-				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 			return false;
 		}
 		this.clearListPresentation();
 		this.status.render({
 			mode: 'disconnected',
-			onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+			onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError),
 		});
 		return false;
 	}

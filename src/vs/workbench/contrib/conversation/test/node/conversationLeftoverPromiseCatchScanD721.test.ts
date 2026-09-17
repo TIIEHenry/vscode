@@ -11,11 +11,6 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const ERRORS_REL = 'src/vs/base/common/errors.ts';
-const PLUGINS_REL = 'src/vs/workbench/contrib/conversation/browser/enginePluginsSection.ts';
-const CONTEXT_REL = 'src/vs/workbench/contrib/conversation/browser/engineContextVariableSection.ts';
-const PROVIDER_REL = 'src/vs/workbench/contrib/conversation/browser/engineProviderModelSection.ts';
-const HOOKS_REL = 'src/vs/workbench/contrib/conversation/browser/engineHooksSection.ts';
-const RULES_REL = 'src/vs/workbench/contrib/conversation/browser/engineRulesSection.ts';
 const MCP_RUNTIME_REL = 'src/vs/workbench/contrib/conversation/browser/engineMcpRuntimePanel.ts';
 const CLIPBOARD_REL = 'src/vs/workbench/contrib/conversation/browser/engineClipboardSection.ts';
 const AGENTS_REL = 'src/vs/workbench/contrib/conversation/browser/engineAgentsSection.ts';
@@ -26,6 +21,13 @@ const D710_RELS = [
 	'src/vs/workbench/contrib/conversation/browser/engineMcpSection.ts',
 	'src/vs/workbench/contrib/conversation/browser/enginePreferencesPane.ts',
 	'src/vs/workbench/contrib/conversation/browser/engineOverviewSection.ts',
+] as const;
+const D716_RELS = [
+	'src/vs/workbench/contrib/conversation/browser/enginePluginsSection.ts',
+	'src/vs/workbench/contrib/conversation/browser/engineContextVariableSection.ts',
+	'src/vs/workbench/contrib/conversation/browser/engineProviderModelSection.ts',
+	'src/vs/workbench/contrib/conversation/browser/engineHooksSection.ts',
+	'src/vs/workbench/contrib/conversation/browser/engineRulesSection.ts',
 ] as const;
 
 function resolveSource(rel: string): string {
@@ -47,6 +49,7 @@ function assertLeftoverExecuteCommandDoubleChain(source: string, count: number):
 	assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 	assert.strictEqual((source.match(/void this\.commandService\.executeCommand\(OPEN_CONNECTION_PREFERENCES_COMMAND_ID\)/g) ?? []).length, count);
 	assert.strictEqual((source.match(leftoverDouble) ?? []).length, count);
+	assert.strictEqual((source.match(leftoverBare) ?? []).length, 0);
 	assert.ok(!source.includes(`${leftoverCall};`));
 	assert.ok(!source.includes(`${leftoverCall},`));
 	assert.ok(!source.includes(`${leftoverCall})`));
@@ -54,7 +57,11 @@ function assertLeftoverExecuteCommandDoubleChain(source: string, count: number):
 	assert.ok(!source.includes(`${leftoverCall}.catch(onUnexpectedError),`));
 }
 
-suite('Conversation leftover remaining Promise fire-and-forget catch scan (D716)', () => {
+function countDouble(rel: string): number {
+	return (fs.readFileSync(resolveSource(rel), 'utf8').match(leftoverDouble) ?? []).length;
+}
+
+suite('Conversation leftover remaining Promise fire-and-forget catch scan (D721)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
@@ -64,49 +71,26 @@ suite('Conversation leftover remaining Promise fire-and-forget catch scan (D716)
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers eight leftover Promise double-chain sites; D701 engineAgents and D710 stay skipped', () => {
-		const files = [PLUGINS_REL, CONTEXT_REL, PROVIDER_REL, HOOKS_REL, RULES_REL];
-		let sites = 0;
-		for (const rel of files) {
-			const source = fs.readFileSync(resolveSource(rel), 'utf8');
-			sites += (source.match(leftoverDouble) ?? []).length;
-		}
-		assert.strictEqual(sites, 8);
-		const agents = fs.readFileSync(resolveSource(AGENTS_REL), 'utf8');
-		assert.strictEqual((agents.match(leftoverDouble) ?? []).length, 3);
+	test('this knife covers five leftover Promise double-chain sites; D701 / D710 / D716 stay skipped', () => {
+		assert.strictEqual(countDouble(MCP_RUNTIME_REL) + countDouble(CLIPBOARD_REL), 5);
+		assert.strictEqual(countDouble(AGENTS_REL), 3);
 		let d710 = 0;
 		for (const rel of D710_RELS) {
-			d710 += (fs.readFileSync(resolveSource(rel), 'utf8').match(leftoverDouble) ?? []).length;
+			d710 += countDouble(rel);
 		}
 		assert.strictEqual(d710, 8);
+		let d716 = 0;
+		for (const rel of D716_RELS) {
+			d716 += countDouble(rel);
+		}
+		assert.strictEqual(d716, 8);
 	});
 
-	test('enginePlugins leftover executeCommand singles are double-chain', () => {
-		assertLeftoverExecuteCommandDoubleChain(fs.readFileSync(resolveSource(PLUGINS_REL), 'utf8'), 2);
+	test('engineMcpRuntime leftover executeCommand singles are double-chain', () => {
+		assertLeftoverExecuteCommandDoubleChain(fs.readFileSync(resolveSource(MCP_RUNTIME_REL), 'utf8'), 3);
 	});
 
-	test('engineContextVariable leftover executeCommand singles are double-chain', () => {
-		assertLeftoverExecuteCommandDoubleChain(fs.readFileSync(resolveSource(CONTEXT_REL), 'utf8'), 2);
-	});
-
-	test('engineProviderModel leftover executeCommand singles are double-chain', () => {
-		assertLeftoverExecuteCommandDoubleChain(fs.readFileSync(resolveSource(PROVIDER_REL), 'utf8'), 2);
-	});
-
-	test('engineHooks leftover executeCommand single is double-chain', () => {
-		assertLeftoverExecuteCommandDoubleChain(fs.readFileSync(resolveSource(HOOKS_REL), 'utf8'), 1);
-	});
-
-	test('engineRules leftover executeCommand single is double-chain', () => {
-		assertLeftoverExecuteCommandDoubleChain(fs.readFileSync(resolveSource(RULES_REL), 'utf8'), 1);
-	});
-
-	test('mcpRuntime / clipboard OPEN_CONNECTION leftovers are owned by D721 (not this knife)', () => {
-		const runtime = fs.readFileSync(resolveSource(MCP_RUNTIME_REL), 'utf8');
-		const clipboard = fs.readFileSync(resolveSource(CLIPBOARD_REL), 'utf8');
-		assert.strictEqual((runtime.match(leftoverBare) ?? []).length, 0);
-		assert.strictEqual((clipboard.match(leftoverBare) ?? []).length, 0);
-		assert.strictEqual((runtime.match(leftoverDouble) ?? []).length, 3);
-		assert.strictEqual((clipboard.match(leftoverDouble) ?? []).length, 2);
+	test('engineClipboard leftover executeCommand singles are double-chain', () => {
+		assertLeftoverExecuteCommandDoubleChain(fs.readFileSync(resolveSource(CLIPBOARD_REL), 'utf8'), 2);
 	});
 });
