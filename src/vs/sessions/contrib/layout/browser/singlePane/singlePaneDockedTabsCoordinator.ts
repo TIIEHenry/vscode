@@ -207,7 +207,7 @@ export class SinglePaneDockedTabsCoordinator extends Disposable {
 			if (!group || group.contains(e.editor)) {
 				return;
 			}
-			void this._sequencer.queue(() => this._removeFilesTab(this._editorGroupsService.mainPart.activeGroup)).catch(onUnexpectedError);
+			void this._sequencer.queue(() => this._removeFilesTab(this._editorGroupsService.mainPart.activeGroup)).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(this._editorService.onDidCloseEditor(e => {
 			if (e.editor instanceof EmptyFileEditorInput
@@ -245,7 +245,7 @@ export class SinglePaneDockedTabsCoordinator extends Disposable {
 			}
 
 			if (visible) {
-				void this._sequencer.queue(() => this._restoreCollapsedTabs()).catch(onUnexpectedError);
+				void this._sequencer.queue(() => this._restoreCollapsedTabs()).catch(onUnexpectedError).catch(onUnexpectedError);
 				return;
 			}
 
@@ -254,7 +254,7 @@ export class SinglePaneDockedTabsCoordinator extends Disposable {
 				return;
 			}
 			if (this._layoutService.isVisible(Parts.AUXILIARYBAR_PART)) {
-				void this._sequencer.queue(() => this._collapseNonManagedTabs()).catch(onUnexpectedError);
+				void this._sequencer.queue(() => this._collapseNonManagedTabs()).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -294,7 +294,7 @@ export class SinglePaneDockedTabsCoordinator extends Disposable {
 			: trigger;
 		this._pending = { sessionKey, target, trigger: mergedTrigger };
 		const generation = ++this._generation;
-		void this._sequencer.queue(() => this._reconcile(generation)).catch(onUnexpectedError);
+		void this._sequencer.queue(() => this._reconcile(generation)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _readTarget(reader: IReader | undefined): IManagedTabsTarget {
@@ -536,7 +536,7 @@ export class SinglePaneDockedTabsCoordinator extends Disposable {
 
 	private _queueCollapseIfDetailsOnly(): void {
 		if (!this._layoutService.isVisible(Parts.EDITOR_PART, mainWindow) && this._layoutService.isVisible(Parts.AUXILIARYBAR_PART)) {
-			void this._sequencer.queue(() => this._collapseNonManagedTabs()).catch(onUnexpectedError);
+			void this._sequencer.queue(() => this._collapseNonManagedTabs()).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
