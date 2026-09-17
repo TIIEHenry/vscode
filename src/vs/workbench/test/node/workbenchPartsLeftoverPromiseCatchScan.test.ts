@@ -245,11 +245,11 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 		const contextkeys = fs.readFileSync(resolveSource(CONTEXTKEYS_REL), 'utf8');
 		const paneBar = fs.readFileSync(resolveSource(PANE_BAR_REL), 'utf8');
 
-		assert.ok(nativeWindow.includes('this.handleWarnings();'));
-		assert.ok(!nativeWindow.includes('this.handleWarnings().catch'));
+		assert.ok(nativeWindow.includes('this.handleWarnings().catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(!nativeWindow.includes('this.handleWarnings();'));
 		assert.ok(nativeWindow.includes('this.setupOpenHandlers();'));
 		assert.ok(nativeWindow.includes('this.openerService.open('));
-		assert.ok(!/this\.openerService\.open\([^;]+\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(nativeWindow));
+		assert.ok(!/this\.openerService\.open\([^)]*\)\.catch\(onUnexpectedError\)/.test(nativeWindow));
 
 		assert.ok(browserWindow.includes('this.setupOpenHandlers();'));
 		assert.ok(browserWindow.includes(')).then(async () => {'));

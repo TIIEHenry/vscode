@@ -146,7 +146,7 @@ suite('workbench composite leftover Promise fire-and-forget catch scan (D714)', 
 		assert.ok(!source.includes('await this.options.openComposite(compositeId).catch'));
 	});
 
-	test('opener / D145 / handleWarnings / sync void / grpc Wire / Connect / Watch / Resolve / Pty / D697 chrome / D706 parts stay skipped', () => {
+	test('opener / D145 / sync void / grpc Wire / Connect / Watch / Resolve / Pty / D697 chrome / D706 parts stay skipped; D722 handleWarnings is chained', () => {
 		const nativeWindow = fs.readFileSync(resolveSource(WINDOW_REL), 'utf8');
 		const browserWindow = fs.readFileSync(resolveSource(BROWSER_WINDOW_REL), 'utf8');
 		const contributions = fs.readFileSync(resolveSource(CONTRIBUTIONS_REL), 'utf8');
@@ -164,12 +164,12 @@ suite('workbench composite leftover Promise fire-and-forget catch scan (D714)', 
 		const panePart = fs.readFileSync(resolveSource(PANE_PART_REL), 'utf8');
 		const compositeBar = fs.readFileSync(resolveSource(COMPOSITE_BAR_REL), 'utf8');
 
-		assert.ok(nativeWindow.includes('this.handleWarnings();'));
-		assert.ok(!nativeWindow.includes('this.handleWarnings().catch'));
+		assert.ok(nativeWindow.includes('this.handleWarnings().catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(!nativeWindow.includes('this.handleWarnings();'));
 		assert.ok(nativeWindow.includes('private async handleWarnings(): Promise<void> {'));
 		assert.ok(nativeWindow.includes('this.setupOpenHandlers();'));
 		assert.ok(nativeWindow.includes('this.openerService.open('));
-		assert.ok(!/this\.openerService\.open\([^;]+\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(nativeWindow));
+		assert.ok(!/this\.openerService\.open\([^)]*\)\.catch\(onUnexpectedError\)/.test(nativeWindow));
 
 		assert.ok(browserWindow.includes('this.setupOpenHandlers();'));
 		assert.ok(browserWindow.includes(')).then(async () => {'));

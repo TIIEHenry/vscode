@@ -86,7 +86,7 @@ export class NativeWindow extends BaseWindow {
 
 	private readonly customTitleContextMenuDisposable = this._register(new DisposableStore());
 
-	private readonly addRemoveFoldersScheduler = this._register(new RunOnceScheduler(() => this.doAddRemoveFolders(), 100));
+	private readonly addRemoveFoldersScheduler = this._register(new RunOnceScheduler(() => { this.doAddRemoveFolders().catch(onUnexpectedError).catch(onUnexpectedError); }, 100));
 	private pendingFoldersToAdd: URI[] = [];
 	private pendingFoldersToRemove: URI[] = [];
 
@@ -213,7 +213,7 @@ export class NativeWindow extends BaseWindow {
 		});
 
 		// Support openFiles event for existing and new files
-		ipcRenderer.on('vscode:openFiles', (event: unknown, ...argsRaw: unknown[]) => { this.onOpenFiles(argsRaw[0] as IOpenFileRequest); });
+		ipcRenderer.on('vscode:openFiles', (event: unknown, ...argsRaw: unknown[]) => { this.onOpenFiles(argsRaw[0] as IOpenFileRequest).catch(onUnexpectedError).catch(onUnexpectedError); });
 
 		// Support addRemoveFolders event for workspace management
 		ipcRenderer.on('vscode:addRemoveFolders', (event: unknown, ...argsRaw: unknown[]) => this.onAddRemoveFoldersRequest(argsRaw[0] as IAddRemoveFoldersRequest));
@@ -398,7 +398,7 @@ export class NativeWindow extends BaseWindow {
 		// Listen to editor closing (if we run with --wait)
 		const filesToWait = this.nativeEnvironmentService.filesToWait;
 		if (filesToWait) {
-			this.trackClosedWaitFiles(filesToWait.waitMarkerFileUri, coalesce(filesToWait.paths.map(path => path.fileUri)));
+			this.trackClosedWaitFiles(filesToWait.waitMarkerFileUri, coalesce(filesToWait.paths.map(path => path.fileUri))).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		// macOS OS integration: represented file name
@@ -518,11 +518,11 @@ export class NativeWindow extends BaseWindow {
 				this.lifecycleService.onShutdownVeto, 	// or when shutdown was vetoed
 				this.dialogService.onWillShowDialog		// or when a dialog asks for input
 			));
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private onBeforeShutdownError({ error, reason }: BeforeShutdownErrorEvent): void {
-		this.dialogService.error(this.toShutdownLabel(reason, true), localize('shutdownErrorDetail', "Error: {0}", toErrorMessage(error)));
+		this.dialogService.error(this.toShutdownLabel(reason, true), localize('shutdownErrorDetail', "Error: {0}", toErrorMessage(error))).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private onWillShutdown({ reason, force, joiners }: WillShutdownEvent): void {
@@ -699,7 +699,7 @@ export class NativeWindow extends BaseWindow {
 		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Check for situations that are worth warning the user about
-		this.handleWarnings();
+		this.handleWarnings().catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Touchbar menu (if enabled)
 		this.updateTouchbarMenu();
@@ -730,7 +730,7 @@ export class NativeWindow extends BaseWindow {
 			if (isAdmin && !isWindows) {
 				this.notificationService.warn(localize('runningAsRoot', "It is not recommended to run {0} as root user.", this.productService.nameShort));
 			}
-		})();
+		})().catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Installation Dir Warning
 		if (this.environmentService.isBuilt && !this.environmentService.extensionDevelopmentLocationURI?.length) {
@@ -790,7 +790,7 @@ export class NativeWindow extends BaseWindow {
 			location: ProgressLocation.Window,
 			delay: 1600,
 			buttons: [localize('learnMore', "Learn More")]
-		}, () => shellEnv, () => this.openerService.open('https://go.microsoft.com/fwlink/?linkid=2149667'));
+		}, () => shellEnv, () => this.openerService.open('https://go.microsoft.com/fwlink/?linkid=2149667')).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	async resolveExternalUri(uri: URI, options?: OpenOptions): Promise<IResolvedExternalUri | undefined> {
