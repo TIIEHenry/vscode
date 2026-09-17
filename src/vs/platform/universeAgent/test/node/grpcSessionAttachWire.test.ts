@@ -837,6 +837,24 @@ suite('grpc first-send / attach protobuf wire', () => {
 		}]);
 	});
 
+	test('decodeSessionStreamEvent field 38 detached_child_phase present → shouldRefreshAgentTree', () => {
+		const decoded = decodeSessionStreamEvent(Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodePresentMessageField(38, new Uint8Array(0)),
+			encodeStringField(99, 'unused-stream-field'),
+		]));
+		const payload = decoded.payload as {
+			session_id?: string;
+			detached_child_phase?: Record<string, unknown>;
+		};
+		assert.strictEqual(payload.session_id, 'sess-1');
+		assert.ok('detached_child_phase' in payload);
+		assert.deepStrictEqual(payload.detached_child_phase, {});
+		assert.ok(!('detachedChildPhase' in payload));
+		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
+		assert.strictEqual(shouldRefreshAgentTree(decoded.payload), true);
+	});
+
 	test('decodeSessionStreamEvent reads nested runtime_overlay_snapshot=44 pending+active_turn; unused unread; maps via demux', () => {
 		const questionItem = Buffer.concat([
 			encodeStringField(1, 'i1'),

@@ -20,7 +20,7 @@ summary: "SessionStream 16/23/30/31/34/35/36/37/44/50/51/52 已合入。D24 仍�
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A** | 下一刀 presence 38/39 |
+| **A** | 进行中 SessionStream `detached_child_phase`=38 |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **C** | gitlink 脏 `dev/loop`；勿 add |
 | **E** | `blocked` `fix/ci-gate-reds` |
@@ -34,6 +34,6 @@ summary: "SessionStream 16/23/30/31/34/35/36/37/44/50/51/52 已合入。D24 仍�
 ## Next
 | 项 | 指针 |
 |:---|:-----|
-| **loop** | D24 仍开。下一刀 presence 38/39。不得宣称 leftover/pills 完成 |
+| **loop** | D24 仍开。presence 39 稍后。不得宣称 leftover/pills 完成 |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。

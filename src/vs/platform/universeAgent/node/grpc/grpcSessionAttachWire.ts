@@ -425,6 +425,8 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * `turn_started`=10 `turn_completed`=11). OverlayDeltaJoin `applyLifecycle`
  * reads `turn_completed` presence (any value clears) or nested
  * `turn_started.turn_id`. Other nested change fields unread.
+ * `detached_child_phase`=38 (present empty nested → `{}`; nested unread).
+ * fileMutationJoin `shouldRefreshAgentTree` reads presence only.
  * `runtime_overlay_snapshot`=44 RuntimeOverlaySnapshotEvent
  * (`runtime_epoch`=1 optional `active_turn`=2 repeated `pending`=6).
  * ActiveTurnSnapshotProto `turn_id`=1 `streaming_text`=3 `thinking_text`=4
@@ -453,7 +455,7 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * `session_purged` / `runtime_overlay_snapshot` /
  * `permission_request` / `ask_user_question` / `client_tool_call`,
  * and `shouldRefreshAgentTree` `branch_topology_notified` /
- * `sub_agent_activity` / `sub_agent_completed`.
+ * `sub_agent_activity` / `sub_agent_completed` / `detached_child_phase`.
  */
 export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessionEvent {
 	const fields = readProtoFields(bytes);
@@ -521,6 +523,10 @@ export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessio
 	const turnLifecycle = lastBytes(fields, 37);
 	if (turnLifecycle) {
 		payload.turn_lifecycle = decodeTurnLifecycleEvent(turnLifecycle);
+	}
+	const detachedChildPhase = lastBytes(fields, 38);
+	if (detachedChildPhase !== undefined) {
+		payload.detached_child_phase = {};
 	}
 	const overlaySnapshot = lastBytes(fields, 44);
 	if (overlaySnapshot) {
