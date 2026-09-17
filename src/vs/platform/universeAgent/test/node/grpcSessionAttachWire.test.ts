@@ -295,6 +295,55 @@ suite('grpc first-send / attach protobuf wire', () => {
 		});
 	});
 
+	test('decodeSessionStreamEvent reads nested streaming_delta=30 StreamingDeltaEvent 1-6; unused unread', () => {
+		const delta = Buffer.concat([
+			encodeInt64Field(1, 9),
+			encodeStringField(2, 'turn-delta'),
+			encodeStringField(3, 'block-1'),
+			encodeStringField(4, 'root'),
+			encodeStringField(5, 'partial'),
+			encodeInt64Field(6, 3),
+			encodeStringField(7, 'unused-field'),
+		]);
+		const encoded = Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodeMessageField(30, delta),
+		]);
+		const decoded = decodeSessionStreamEvent(encoded);
+		const payload = decoded.payload as {
+			session_id?: string;
+			streaming_delta?: {
+				runtime_epoch?: number;
+				turn_id?: string;
+				block_id?: string;
+				agent_id?: string;
+				text_delta?: string;
+				delta_seq?: number;
+			};
+		};
+		assert.strictEqual(payload.session_id, 'sess-1');
+		assert.deepStrictEqual(payload.streaming_delta, {
+			runtime_epoch: 9,
+			turn_id: 'turn-delta',
+			block_id: 'block-1',
+			agent_id: 'root',
+			text_delta: 'partial',
+			delta_seq: 3,
+		});
+		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
+		const omitted = decodeSessionStreamEvent(encodeStringField(1, 'sess-2'));
+		assert.strictEqual((omitted.payload as { streaming_delta?: unknown }).streaming_delta, undefined);
+		const emptyNested = decodeSessionStreamEvent(encodePresentMessageField(30, new Uint8Array(0)));
+		assert.deepStrictEqual((emptyNested.payload as { streaming_delta?: unknown }).streaming_delta, {
+			runtime_epoch: 0,
+			turn_id: '',
+			block_id: '',
+			agent_id: '',
+			text_delta: '',
+			delta_seq: 0,
+		});
+	});
+
 	test('encodeChatRequest writes session_input oneof, not JSON payload wrapper', () => {
 		const encoded = encodeChatRequest('sess-1', {
 			agentId: 'root',

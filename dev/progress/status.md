@@ -4,15 +4,16 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "A 槽 SessionStream permission_request=50 已 decode。D24 仍开。不是 leftover/pills 完成。"
+summary: "SessionStream permission_request=50 与 streaming_delta=30 已合入。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
-### 已合入（`MERGE_SHA` 见下；compile-client 0；聚焦 44 passing）
+### 已合入（`MERGE_SHA` 见下；compile-client 0；聚焦 mocha 见关仓）
 | 切片 | 提交 |
 |:-----|:-----|
+| **A+I SessionStream** | `permission_request`=50 + `streaming_delta`=30 同文件 keep-both |
 | **D Resume** | `cf4de53376b` — Session.Resume `root_agent`=3 AgentInfo 1–8；`model_info`=9 unread |
 | **A Usage 10/11** | `564a4645b0b` — Usage `context_window`=10 + `session_usage`=11 |
 | **A Usage spans** | `7f42b796fe9` — `recent_request_spans`=12 |
@@ -23,7 +24,7 @@ summary: "A 槽 SessionStream permission_request=50 已 decode。D24 仍开。�
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A** | SessionStream `permission_request`=50 PermissionRequestEvent 1–3+6 已 decode；`metadata`/`requested_by_client`/`parent_tool_call_id` unread |
+| **A/I** | 本波已合入；下一刀 leftover nested hunt |
 | **H** | File/Memory/Team 猎完：无合法 leftover nested |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **C** | gitlink 脏 `dev/loop`；勿 add |
@@ -33,7 +34,7 @@ summary: "A 槽 SessionStream permission_request=50 已 decode。D24 仍开。�
 子 agent 发现：
 | ID | 问题 |
 |:---|:-----|
-| [D24](deferred-gaps.md) | **仍开**：SessionStream `permission_request`=50 已 decode。Connect/Watch/Resolve/Pty 仍 JSON；`model_info`=9 unread |
+| [D24](deferred-gaps.md) | **仍开**：SessionStream 30/50 已 decode。Connect/Watch/Resolve/Pty 仍 JSON；`model_info`=9 unread |
 | — | TeamInfo `members`=2/`tasks`=3 测锁未读；公开类型只有 teamId+status |
 | — | `ListTeams` 不在 J `team_service.proto`；禁发明号 |
 | — | GetConfig tags=`[]` vs GetNode `undefined`（测锁 `[]`） |
