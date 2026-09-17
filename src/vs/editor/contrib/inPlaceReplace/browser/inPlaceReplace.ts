@@ -120,9 +120,9 @@ class InPlaceReplaceController implements IEditorContribution {
 			// remove decoration after delay
 			this.decorationRemover?.cancel();
 			this.decorationRemover = timeout(350);
-			this.decorationRemover.then(() => this.decorations.clear()).catch(onUnexpectedError);
+			this.decorationRemover.then(() => this.decorations.clear()).catch(onUnexpectedError).catch(onUnexpectedError);
 
-		}).catch(onUnexpectedError);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 
