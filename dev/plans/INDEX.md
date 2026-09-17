@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: N/A
 updated: 2026-09-16
-summary: "方案导航：conversation-timeline-session-pills（accepted；S3w 方案 C）；session-subscription-lifecycle（draft；S4a/S4b 已合入且 compile 0、§5/D405 仍开）；sources-accept-empty-success（draft；A1 已落；P5 停线；A2 须新选定）；composer-fake-chrome（accepted；D194 选定删）；M7 仍 accepted；GitHub Actions 已关"
+summary: "方案导航：conversation-timeline-session-pills（accepted；S3w 方案 C）；session-subscription-lifecycle（draft；S4a/S4b 已合入且 compile 0、§5/D405 仍开）；sources-accept-empty-success（draft；A1 已落；P5 停线）；composer-fake-chrome（accepted）；M7 仍 accepted；GitHub Actions 已关"
 ---
 
 # 方案
