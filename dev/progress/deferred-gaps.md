@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D769、D775 leftover Promise 双链；D736/D739/D740/D745 跳过。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D775、D770、D772–D774 leftover Promise 双链；D736/D739/D740/D745 跳过。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1132,3 +1132,7 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D768 | P3 | **closed** leftover Promise 双链 customEditor / webviewPanel leftover FOF。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`customEditorLeftoverPromiseCatchScanD768.test.ts`。勿 add `out`。 | customEditor 双链。未关 D24。leftover 程序未全局完成。 | workbench / customEditor leftover | closed |
 | D769 | P3 | **closed** leftover Promise 双链 markdown / externalUriOpener leftover FOF。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`markdownLeftoverPromiseCatchScanD769.test.ts`。勿 add `out`。 | markdown 双链。未关 D24。leftover 程序未全局完成。 | workbench / markdown leftover | closed |
 | D775 | P3 | **closed** leftover Promise 双链 welcomeGettingStarted：openWindow×2；activateByEvent；whenInstalledExtensionsRegistered then。跳过 opener / D752 orphan。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；`gettingStartedCatchScan.test.ts`。勿 add `out`。勿 add D752。 | welcome 双链。未关 D24。leftover 程序未全局完成。 | workbench / welcome leftover remaining | closed |
+| D770 | P3 | **closed** leftover Promise 双链 outline 不足 4 点，溢到 gotoError / markers / notebook outline：onDidOpen reveal；navigate；openEditor then；computeSymbols×3；delayedComputeSymbols；delayer trigger。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`outlineLeftoverPromiseCatchScanD770.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / outline leftover remaining | closed |
+| D772 | P3 | **closed** leftover Promise 双链 mcp leftover FOF（commands / workbench / gateway / server / handler / typesUtils）。跳过 Connect / Watch / returned / two-arg。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`mcpLeftoverPromiseCatchScanD772.test.ts`。勿 add `out`。 | mcp 双链。未关 D24。leftover 程序未全局完成。 | workbench / mcp leftover remaining | closed |
+| D773 | P3 | **closed** leftover Promise 双链 issue 十一处：getSystemInfo / getPerformanceInfo / checkForUpdates / executeCommand / populateSystemInfo / updateSelectedExtension×4 / doSearchSimilarIssues。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`issueLeftoverPromiseCatchScanD773.test.ts`。勿 add `out`。 | 十一处双链。未关 D24。leftover 程序未全局完成。 | workbench / issue leftover remaining | closed |
+| D774 | P3 | **closed** leftover Promise 双链 agentHost 不足 4 点，溢到 accounts：refresh then；scheduler refetch；updateDefaultAccount×4；refetch；getSessions；forceRefresh。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`accountsLeftoverPromiseCatchScanD774.test.ts`。勿 add `out`。 | 九处双链。未关 D24。leftover 程序未全局完成。 | workbench / accounts leftover remaining | closed |
