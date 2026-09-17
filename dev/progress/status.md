@@ -10,7 +10,7 @@ summary: "merge 关仓：leftover D672–D674 关各 call site。compile-client 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
-### 已合入（compile-client 待跑 · 聚焦 3 文件）
+### 已合入（compile-client 0 · 聚焦 3 文件 6 pass）
 | 切片 | 提交 |
 |:-----|:-----|
 | **A leftover** | `9e8609a106c` — suggestModel then 双链；[D672](deferred-gaps.md) |
