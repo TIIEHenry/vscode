@@ -8,6 +8,7 @@ import * as dom from '../../../../base/browser/dom.js';
 import * as languages from '../../../../editor/common/languages.js';
 import { ActionsOrientation, ActionBar } from '../../../../base/browser/ui/actionbar/actionbar.js';
 import { Action, IAction, Separator, ActionRunner } from '../../../../base/common/actions.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore, IReference, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { TimeoutTimer } from '../../../../base/common/async.js';
 import { URI, UriComponents } from '../../../../base/common/uri.js';
@@ -157,7 +158,7 @@ export class CommentNode<T extends IRange | ICellRange> extends Disposable {
 		}));
 
 		if (pendingEdit) {
-			this.switchToEditMode();
+			void this.switchToEditMode().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		this.activeCommentListeners();
@@ -165,7 +166,7 @@ export class CommentNode<T extends IRange | ICellRange> extends Disposable {
 
 	private activeCommentListeners() {
 		this._register(dom.addDisposableListener(this._domNode, dom.EventType.FOCUS_IN, () => {
-			this.commentService.setActiveCommentAndThread(this.owner, { thread: this.commentThread, comment: this.comment });
+			void this.commentService.setActiveCommentAndThread(this.owner, { thread: this.commentThread, comment: this.comment }).catch(onUnexpectedError).catch(onUnexpectedError);
 		}, true));
 	}
 
@@ -511,7 +512,7 @@ export class CommentNode<T extends IRange | ICellRange> extends Disposable {
 			value: this.commentBodyValue
 		};
 		this.commentService.setActiveEditingCommentThread(commentThread);
-		this.commentService.setActiveCommentAndThread(this.owner, { thread: commentThread, comment: this.comment });
+		void this.commentService.setActiveCommentAndThread(this.owner, { thread: commentThread, comment: this.comment }).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this._editModeDisposables.add(this._commentEditor.onDidFocusEditorWidget(() => {
 			commentThread.input = {
@@ -519,7 +520,7 @@ export class CommentNode<T extends IRange | ICellRange> extends Disposable {
 				value: this.commentBodyValue
 			};
 			this.commentService.setActiveEditingCommentThread(commentThread);
-			this.commentService.setActiveCommentAndThread(this.owner, { thread: commentThread, comment: this.comment });
+			void this.commentService.setActiveCommentAndThread(this.owner, { thread: commentThread, comment: this.comment }).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this._editModeDisposables.add(this._commentEditor.onDidChangeModelContent(e => {
@@ -530,7 +531,7 @@ export class CommentNode<T extends IRange | ICellRange> extends Disposable {
 					input.value = newVal;
 					commentThread.input = input;
 					this.commentService.setActiveEditingCommentThread(commentThread);
-					this.commentService.setActiveCommentAndThread(this.owner, { thread: commentThread, comment: this.comment });
+					void this.commentService.setActiveCommentAndThread(this.owner, { thread: commentThread, comment: this.comment }).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 		}));

@@ -691,7 +691,7 @@ export class CommentController extends Disposable implements IEditorContribution
 			await this.setComments(coalesce(commentInfos));
 			this._computePromise = null;
 		}, error => console.log(error));
-		this._computePromise.then(() => this._computeAndSetPromise = undefined);
+		this._computePromise.then(() => this._computeAndSetPromise = undefined).catch(onUnexpectedError).catch(onUnexpectedError);
 		return this._computeAndSetPromise;
 	}
 
@@ -1172,7 +1172,7 @@ export class CommentController extends Disposable implements IEditorContribution
 		this._addInProgress = false;
 		const info = this._emptyThreadsToAddQueue.shift();
 		if (info) {
-			this.addOrToggleCommentAtLine(info[0], info[1]);
+			void this.addOrToggleCommentAtLine(info[0], info[1]).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

@@ -7,6 +7,7 @@ import * as dom from '../../../../base/browser/dom.js';
 import { getDefaultHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegateFactory.js';
 import { MOUSE_CURSOR_TEXT_CSS_CLASS_NAME } from '../../../../base/browser/ui/mouseCursor/mouseCursor.js';
 import { IAction } from '../../../../base/common/actions.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, IDisposable, dispose } from '../../../../base/common/lifecycle.js';
 import { MarshalledId } from '../../../../base/common/marshallingIds.js';
 import { FileAccess, Schemas } from '../../../../base/common/network.js';
@@ -78,7 +79,7 @@ export class CommentReply<T extends IRange | ICellRange> extends Disposable {
 		this.commentEditorIsEmpty = CommentContextKeys.commentIsEmpty.bindTo(this._contextKeyService);
 		this.commentEditorIsEmpty.set(!this._pendingComment);
 
-		this.initialize(focus);
+		void this.initialize(focus).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async initialize(focus: boolean) {

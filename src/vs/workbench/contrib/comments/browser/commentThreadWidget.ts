@@ -5,6 +5,7 @@
 
 import './media/review.css';
 import * as dom from '../../../../base/browser/dom.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable, dispose, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -220,7 +221,7 @@ export class CommentThreadWidget<T extends IRange | ICellRange = IRange> extends
 		}
 
 		if (shouldCollapse && this.configurationService.getValue<ICommentsConfiguration>(COMMENTS_SECTION).collapseOnResolve) {
-			this.collapse();
+			void this.collapse().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
