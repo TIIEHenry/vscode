@@ -64,7 +64,7 @@ suite('workbench/services/extensions leftover Promise fire-and-forget catch scan
 			[native, `lifecycleService.when(LifecyclePhase.Ready).then(() => {
 			// reschedule to ensure this runs after restoring viewlets, panels, and editors
 			runWhenWindowIdle(mainWindow, () => {
-				this._initializeIfNeeded();
+				this._initializeIfNeeded()?.catch(onUnexpectedError).catch(onUnexpectedError);
 			}, 50 /*max delay*/);
 		})`],
 			[browser, `lifecycleService.when(LifecyclePhase.Ready).then(async () => {
@@ -93,7 +93,7 @@ suite('workbench/services/extensions leftover Promise fire-and-forget catch scan
 							})`],
 			[manager, `this._proxy.then(() => {
 			this._hasStarted = true;
-			initialActivationEvents.forEach((activationEvent) => this.activateByEvent(activationEvent, ActivationKind.Normal));
+			initialActivationEvents.forEach((activationEvent) => this.activateByEvent(activationEvent, ActivationKind.Normal).catch(onUnexpectedError).catch(onUnexpectedError));
 			this._register(registerLatencyTestProvider({
 				measure: () => this.measure()
 			}));
@@ -105,7 +105,7 @@ suite('workbench/services/extensions leftover Promise fire-and-forget catch scan
 		}
 	});
 
-	test('nativeExtensionService leftover when Ready then is Promise double-chain; idle _initializeIfNeeded stays skipped', () => {
+	test('nativeExtensionService leftover when Ready then is Promise double-chain', () => {
 		const source = fs.readFileSync(resolveSource(NATIVE_REL), 'utf8');
 		const lifecycle = fs.readFileSync(resolveSource(LIFECYCLE_REL), 'utf8');
 		const abstract = fs.readFileSync(resolveSource(ABSTRACT_REL), 'utf8');
@@ -115,12 +115,9 @@ suite('workbench/services/extensions leftover Promise fire-and-forget catch scan
 		assertDoubleThen(source, `lifecycleService.when(LifecyclePhase.Ready).then(() => {
 			// reschedule to ensure this runs after restoring viewlets, panels, and editors
 			runWhenWindowIdle(mainWindow, () => {
-				this._initializeIfNeeded();
+				this._initializeIfNeeded()?.catch(onUnexpectedError).catch(onUnexpectedError);
 			}, 50 /*max delay*/);
 		})`);
-		assert.ok(source.includes('\t\t\t\tthis._initializeIfNeeded();'));
-		assert.ok(!source.includes('this._initializeIfNeeded()?.catch'));
-		assert.ok(!source.includes('this._initializeIfNeeded().catch'));
 	});
 
 	test('extensionService leftover when Ready then is Promise double-chain', () => {
@@ -209,7 +206,7 @@ suite('workbench/services/extensions leftover Promise fire-and-forget catch scan
 		assert.ok(!source.includes(`connectRemoteAgentExtensionHost(options, startParams).then(result => {}${doubleCatch}`));
 	});
 
-	test('extensionHostManager leftover _proxy then is Promise double-chain; start two-arg / activateByEvent forEach stay skipped', () => {
+	test('extensionHostManager leftover _proxy then is Promise double-chain; start two-arg stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(MANAGER_REL), 'utf8');
 		const extensions = fs.readFileSync(resolveSource(EXTENSIONS_REL), 'utf8');
 		assertPromiseSignature(extensions, 'start(): Promise<IMessagePassingProtocol>;');
@@ -218,15 +215,13 @@ suite('workbench/services/extensions leftover Promise fire-and-forget catch scan
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertDoubleThen(source, `this._proxy.then(() => {
 			this._hasStarted = true;
-			initialActivationEvents.forEach((activationEvent) => this.activateByEvent(activationEvent, ActivationKind.Normal));
+			initialActivationEvents.forEach((activationEvent) => this.activateByEvent(activationEvent, ActivationKind.Normal).catch(onUnexpectedError).catch(onUnexpectedError));
 			this._register(registerLatencyTestProvider({
 				measure: () => this.measure()
 			}));
 		})`);
 		assert.ok(source.includes('this._proxy = this._extensionHost.start().then('));
 		assert.ok(!source.includes(`this._extensionHost.start().then(${doubleCatch}`));
-		assert.ok(source.includes('initialActivationEvents.forEach((activationEvent) => this.activateByEvent(activationEvent, ActivationKind.Normal));'));
-		assert.ok(!source.includes('this.activateByEvent(activationEvent, ActivationKind.Normal).catch'));
 	});
 
 	test('opener / D145 / sync void / grpc Wire / Connect / Watch / Resolve / Pty stay skipped', () => {
@@ -243,18 +238,12 @@ suite('workbench/services/extensions leftover Promise fire-and-forget catch scan
 		assert.ok(native.includes("openerService.open('https://aka.ms/vscode-extension-bisect');"));
 		assert.ok(!native.includes("openerService.open('https://aka.ms/vscode-extension-bisect').catch"));
 		assert.ok(local.includes('this._extensionHostProcess.waitForExit(extensionHostGraceTimeMs).catch(() => { /* best-effort */ });'));
-		assert.ok(abstract.includes('void this._initializeIfNeeded();'));
-		assert.ok(!abstract.includes('void this._initializeIfNeeded()?.catch'));
-		assert.ok(abstract.includes('this._activateDeferredRemoteEvents();'));
-		assert.ok(!abstract.includes('this._activateDeferredRemoteEvents().catch'));
+		assert.ok(abstract.includes('void this._initializeIfNeeded()?.catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(abstract.includes('this._activateDeferredRemoteEvents().catch(onUnexpectedError).catch(onUnexpectedError);'));
 		assert.ok(contains.includes(`Promise.all([fileNamePromise, globPatternPromise]).then(() => {
 		// when all are done, resolve with undefined (relevant only if it was not activated so far)
 		resolve(undefined);
-	});`));
-		assert.ok(!contains.includes(`Promise.all([fileNamePromise, globPatternPromise]).then(() => {
-		// when all are done, resolve with undefined (relevant only if it was not activated so far)
-		resolve(undefined);
-	})${doubleCatch}`));
+	})${doubleCatch};`));
 		for (const source of [native, browser, enablement, scanner, webWorker, local, remote, manager]) {
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));
