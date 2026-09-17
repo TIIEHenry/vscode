@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 import { $, reset } from '../../../../base/browser/dom.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
-import { CancellationError } from '../../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { IProductConfiguration } from '../../../../base/common/product.js';
 import { joinPath } from '../../../../base/common/resources.js';
@@ -67,14 +67,14 @@ export class IssueReporter extends BaseIssueReporterService {
 
 			this.updateSystemInfo(this.issueReporterModel.getData());
 			this.updateButtonStates();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 		if (this.data.issueType === IssueType.PerformanceIssue) {
 			this.processService.getPerformanceInfo().then(info => {
 				this.updatePerformanceInfo(info as Partial<IssueReporterData>);
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
-		this.checkForUpdates();
+		this.checkForUpdates().catch(onUnexpectedError).catch(onUnexpectedError);
 		this.setEventHandlers();
 		applyZoom(this.data.zoomLevel, this.window);
 		this.updateExperimentsInfo(this.data.experiments);
@@ -107,7 +107,7 @@ export class IssueReporter extends BaseIssueReporterService {
 			if (issueType === IssueType.PerformanceIssue && !this.receivedPerformanceInfo) {
 				this.processService.getPerformanceInfo().then(info => {
 					this.updatePerformanceInfo(info as Partial<IssueReporterData>);
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 
 			// Resets placeholder

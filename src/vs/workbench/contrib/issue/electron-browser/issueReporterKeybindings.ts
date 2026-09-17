@@ -8,6 +8,7 @@ import { mainWindow } from '../../../../base/browser/window.js';
 import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { Event } from '../../../../base/common/event.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { isMacintosh } from '../../../../base/common/platform.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -77,7 +78,7 @@ class IssueReporterOpenStateContribution extends Disposable {
 		}
 		e.preventDefault();
 		e.stopPropagation();
-		void this.commandService.executeCommand(commandId);
+		void this.commandService.executeCommand(commandId).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 
