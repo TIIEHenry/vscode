@@ -163,7 +163,7 @@ export class MarkerController implements IEditorContribution {
 
 			if (otherEditor) {
 				MarkerController.get(otherEditor)?.close();
-				MarkerController.get(otherEditor)?.navigate(next, multiFile);
+				void Promise.resolve(MarkerController.get(otherEditor)?.navigate(next, multiFile)).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 
 		} else {
