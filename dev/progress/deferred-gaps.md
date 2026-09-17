@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D691 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D694 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1058,3 +1058,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D690 | P3 | **closed** debug/extensions leftover Promise 双链八处：keymap `Promise.all`；widgets gallery manifest then；Actions 三 theme then + `queryLocal`；debug `getDynamicProviders` / `stepInTargets` then。跳过 opener / D145 / sync void / grpc *Wire / Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；增量 esbuild 后 `debugExtensionsLeftoverPromiseCatchScan.test.ts` **5/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / debug+extensions | closed |
 | D691 | P3 | **closed** files/scm/search leftover Promise 双链：explorerService `onConfigurationUpdated` / `setTreeInput` / `refresh`；searchModel `_startStreamDelay` then；searchActionsFind `select` then；scmHistory `void refresh`×3。跳过 openPaneComposite / await refresh / Action2 `view.refresh` / opener / D145 / grpc / Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；增量 esbuild 后 `scmFilesSearchLeftoverPromiseCatchScan.test.ts` **5/0**（源扫 4 + Errors 1）。未 commit。勿 add `out`。无新 Promise 站点。 | 上列双链。未关 D24。leftover 程序未全局完成。 | workbench / files+scm+search | closed |
 | D692 | P3 | **closed** language/mergeEditor/remote/webview leftover Promise 双链。跳过 opener / D145 / grpc / Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 D；源扫 `languageMergeRemoteWebviewLeftoverPromiseCatchScan.test.ts`。未 commit。勿 add `out`。 | 上列双链。未关 D24。leftover 程序未全局完成。 | workbench / remote+merge+webview | closed |
+| D694 | P3 | leftover Promise 双链八处（userDataSync/locale/perf/logs/keybindings/url/terminal）。跳过 opener/D145/sync void/grpc *Wire/Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；增量 esbuild（client 成）后 scan mocha **10/0**。未 commit。 | 八处双链。未关 D24。 | workbench / leftover Promise | closed |

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IStorageService, StorageScope } from '../../../../platform/storage/common/storage.js';
 import { AbstractExtensionsInitializer, IExtensionsInitializerPreviewResult } from '../../../../platform/userDataSync/common/extensionsSync.js';
 import { GlobalStateInitializer, UserDataSyncStoreTypeSynchronizer } from '../../../../platform/userDataSync/common/globalStateSync.js';
@@ -60,7 +61,7 @@ export class UserDataSyncInitializer implements IUserDataInitializer {
 			if (!userDataSyncStoreClient) {
 				this.initializationFinished.open();
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _userDataSyncStoreClientPromise: Promise<UserDataSyncStoreClient | undefined> | undefined;

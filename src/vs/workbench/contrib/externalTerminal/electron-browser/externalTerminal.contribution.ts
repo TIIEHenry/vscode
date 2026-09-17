@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import * as nls from '../../../../nls.js';
 import * as paths from '../../../../base/common/path.js';
 import { IExternalTerminalSettings } from '../../../../platform/externalTerminal/common/externalTerminal.js';
@@ -112,7 +113,7 @@ export class ExternalTerminalContribution implements IWorkbenchContribution {
 
 	public _serviceBrand: undefined;
 	constructor(@IExternalTerminalService private readonly _externalTerminalService: IExternalTerminalService) {
-		this._updateConfiguration();
+		this._updateConfiguration().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async _updateConfiguration(): Promise<void> {

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 import { basename, dirname } from '../../../../base/common/resources.js';
@@ -30,7 +31,7 @@ export class LogsDataCleaner extends Disposable {
 				const allSessions = stat.children.filter(stat => stat.isDirectory && /^\d{8}T\d{6}$/.test(stat.name));
 				const oldSessions = allSessions.sort().filter((d, i) => d.name !== currentLog);
 				const toDelete = oldSessions.slice(0, Math.max(0, oldSessions.length - 49));
-				Promises.settled(toDelete.map(stat => this.fileService.del(stat.resource, { recursive: true })));
+				Promises.settled(toDelete.map(stat => this.fileService.del(stat.resource, { recursive: true }))).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}, 10 * 1000);
 		this._register(this.lifecycleService.onWillShutdown(() => {
