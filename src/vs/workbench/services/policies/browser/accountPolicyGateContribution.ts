@@ -5,6 +5,7 @@
 
 import { Disposable, DisposableStore, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { disposableTimeout } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -291,7 +292,7 @@ export class AccountPolicyGateContribution extends Disposable implements IWorkbe
 			this.managedSettingsDialogVisibleKey = undefined;
 			this.managedSettingsDialogDismissedKey = key;
 			this.maybeShowManagedSettingsDialog();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private getManagedSettingsDialogKey(): string | undefined {
@@ -348,7 +349,7 @@ export class AccountPolicyGateContribution extends Disposable implements IWorkbe
 			buttons.push({
 				label: localize('managedSettingsRefresh.dialog.retry', "Retry"),
 				run: () => {
-					void this.defaultAccountService.refresh({ forceRefresh: true, retryManagedSettings: true });
+					void this.defaultAccountService.refresh({ forceRefresh: true, retryManagedSettings: true }).catch(onUnexpectedError).catch(onUnexpectedError);
 				},
 			});
 		}
