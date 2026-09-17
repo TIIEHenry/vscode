@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { URI } from '../../../base/common/uri.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Event } from '../../../base/common/event.js';
 import { IChannel, IServerChannel } from '../../../base/parts/ipc/common/ipc.js';
 import { AbstractLoggerService, AbstractMessageLogger, AdapterLogger, DidChangeLoggersEvent, ILogger, ILoggerOptions, ILoggerResource, ILoggerService, isLogLevel, LogLevel } from './log.js';
@@ -93,7 +94,7 @@ class Logger extends AbstractMessageLogger {
 			.then(() => {
 				this.doLog(this.buffer);
 				this.isLoggerCreated = true;
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	protected log(level: LogLevel, message: string) {
@@ -152,14 +153,14 @@ export class RemoteLoggerChannelClient extends Disposable {
 	constructor(loggerService: ILoggerService, channel: IChannel) {
 		super();
 
-		channel.call('setLogLevel', [loggerService.getLogLevel()]);
+		channel.call('setLogLevel', [loggerService.getLogLevel()]).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._register(loggerService.onDidChangeLogLevel(arg => channel.call('setLogLevel', [arg])));
 
 		channel.call<ILoggerResource[]>('getRegisteredLoggers').then(loggers => {
 			for (const loggerResource of loggers) {
 				loggerService.registerLogger({ ...loggerResource, resource: URI.revive(loggerResource.resource) });
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this._register(channel.listen<[URI, boolean]>('onDidChangeVisibility')(([resource, visibility]) => loggerService.setVisibility(URI.revive(resource), visibility)));
 

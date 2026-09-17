@@ -5,6 +5,7 @@
 
 import { ThrottledDelayer } from '../../../base/common/async.js';
 import { VSBuffer } from '../../../base/common/buffer.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { basename, dirname, joinPath } from '../../../base/common/resources.js';
 import { URI } from '../../../base/common/uri.js';
 import { ByteSize, FileOperationError, FileOperationResult, IFileService, whenProviderRegistered } from '../../files/common/files.js';
@@ -114,7 +115,7 @@ export class FileLoggerService extends AbstractLoggerService implements ILoggerS
 
 	protected doCreateLogger(resource: URI, logLevel: LogLevel, options?: ILoggerOptions): ILogger {
 		const logger = new BufferLogger(logLevel);
-		whenProviderRegistered(resource, this.fileService).then(() => logger.logger = new FileLogger(resource, logger.getLevel(), !!options?.donotUseFormatters, this.fileService));
+		whenProviderRegistered(resource, this.fileService).then(() => logger.logger = new FileLogger(resource, logger.getLevel(), !!options?.donotUseFormatters, this.fileService)).catch(onUnexpectedError).catch(onUnexpectedError);
 		return logger;
 	}
 }

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { URI } from '../../../base/common/uri.js';
@@ -54,7 +55,7 @@ export class UserDataSyncAccountServiceChannelClient extends Disposable implemen
 				this._account = account;
 				this._onDidChangeAccount.fire(account);
 			}));
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	updateAccount(account: IUserDataSyncAccount | undefined): Promise<undefined> {

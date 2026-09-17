@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type * as spdlog from '@vscode/spdlog';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { ByteSize } from '../../files/common/files.js';
 import { AbstractMessageLogger, ILogger, LogLevel } from '../common/log.js';
 
@@ -113,7 +114,7 @@ export class SpdLogLogger extends AbstractMessageLogger implements ILogger {
 		if (this._logger) {
 			this.flushLogger();
 		} else {
-			this._loggerCreationPromise.then(() => this.flushLogger());
+			this._loggerCreationPromise.then(() => this.flushLogger()).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -121,7 +122,7 @@ export class SpdLogLogger extends AbstractMessageLogger implements ILogger {
 		if (this._logger) {
 			this.disposeLogger();
 		} else {
-			this._loggerCreationPromise.then(() => this.disposeLogger());
+			this._loggerCreationPromise.then(() => this.disposeLogger()).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 		super.dispose();
 	}
