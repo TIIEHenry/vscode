@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "SessionStream 16/23/30/31/34/35/37/44/50/51/52 已合入。D24 仍开。不是 leftover/pills 完成。"
+summary: "A 槽 SessionStream sub_agent_completed=36 进行中。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -20,7 +20,7 @@ summary: "SessionStream 16/23/30/31/34/35/37/44/50/51/52 已合入。D24 仍开�
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A** | 下一刀 presence 36/38/39 |
+| **A** | `sub_agent_completed`=36 进行中（presence `{}`；nested unread；attach mocha 57） |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **C** | gitlink 脏 `dev/loop`；勿 add |
 | **E** | `blocked` `fix/ci-gate-reds` |
@@ -34,6 +34,6 @@ summary: "SessionStream 16/23/30/31/34/35/37/44/50/51/52 已合入。D24 仍开�
 ## Next
 | 项 | 指针 |
 |:---|:-----|
-| **loop** | D24 仍开。下一刀 presence 36/38/39。不得宣称 leftover/pills 完成 |
+| **loop** | D24 仍开。A 槽 presence 36 进行中。不得宣称 leftover/pills 完成 |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。
