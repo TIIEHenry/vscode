@@ -3218,7 +3218,7 @@ export class AgentHostSessionHandler extends Disposable implements IChatSessionC
 				});
 		}).catch(err => {
 			this._logService.warn(`[AgentHost] Tool confirmation failed for toolCallId=${toolCallId}`, err);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	// ---- Per-turn observable graph ------------------------------------------
@@ -4430,7 +4430,7 @@ export class AgentHostSessionHandler extends Disposable implements IChatSessionC
 					answers,
 				});
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		if (opts.cancellationToken.isCancellationRequested) {
 			carousel.completion.complete({ answers: undefined });
@@ -4503,7 +4503,7 @@ export class AgentHostSessionHandler extends Disposable implements IChatSessionC
 				requestId: inputReq.id,
 				...completion,
 			});
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		if (opts.cancellationToken.isCancellationRequested) {
 			review.dismiss();

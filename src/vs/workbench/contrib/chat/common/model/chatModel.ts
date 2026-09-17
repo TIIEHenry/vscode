@@ -7,7 +7,7 @@ import { asArray } from '../../../../../base/common/arrays.js';
 import { softAssertNever } from '../../../../../base/common/assert.js';
 import { VSBuffer, decodeHex, encodeHex } from '../../../../../base/common/buffer.js';
 import { IStringDictionary } from '../../../../../base/common/collections.js';
-import { BugIndicatingError } from '../../../../../base/common/errors.js';
+import { BugIndicatingError, onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { appendEscapedMarkdownInlineCode, IMarkdownString, MarkdownString, isMarkdownString } from '../../../../../base/common/htmlContent.js';
 import { Disposable, DisposableStore, IDisposable, MutableDisposable } from '../../../../../base/common/lifecycle.js';
@@ -978,7 +978,7 @@ export class Response extends AbstractResponse implements IDisposable {
 					(this._responseParts[responsePosition] as IChatTask).content = new MarkdownString(content);
 				}
 				this._contentChanged(false);
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		} else if (progress.kind === 'toolInvocation') {
 			registerAutorunSelfDisposable(this._store, reader => {

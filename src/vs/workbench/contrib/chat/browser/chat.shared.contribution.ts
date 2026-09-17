@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableMap, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { autorun, observableFromEvent } from '../../../../base/common/observable.js';
@@ -2826,7 +2827,7 @@ class ChatAgentSettingContribution extends Disposable implements IWorkbenchContr
 				};
 				configurationRegistry.updateConfigurations({ remove: lastNode ? [lastNode] : [], add: [node] });
 				lastNode = node;
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		};
 		this._register(Event.runAndSubscribe(Event.debounce(this.entitlementService.onDidChangeEntitlement, () => { }, 1000), () => registerMaxRequestsSetting()));
 	}
@@ -2839,7 +2840,7 @@ class ChatAgentSettingContribution extends Disposable implements IWorkbenchContr
 			} else {
 				this.newChatButtonExperimentIcon.reset();
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private registerDefaultModeSetting(): void {
@@ -2857,7 +2858,7 @@ class ChatAgentSettingContribution extends Disposable implements IWorkbenchContr
 				}
 			};
 			configurationRegistry.updateConfigurations({ add: [node], remove: [] });
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 

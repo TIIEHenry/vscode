@@ -969,7 +969,7 @@ export class ChatService extends Disposable implements IChatService {
 						if (!userConfirmedInterruption) {
 							trackNewCancellableRequest();
 						}
-					});
+					}).catch(onUnexpectedError).catch(onUnexpectedError);
 				});
 			};
 
@@ -1925,7 +1925,7 @@ export class ChatService extends Disposable implements IChatService {
 							model.setFollowups(completedRequest, followups);
 							const commandForTelemetry = agentSlashCommandPart ? agentSlashCommandPart.command.name : commandPart?.slashCommand.command;
 							this._chatServiceTelemetry.retrievedFollowups(model.sessionResource, agentPart?.agent.id ?? '', commandForTelemetry, followups?.length ?? 0);
-						});
+						}).catch(onUnexpectedError).catch(onUnexpectedError);
 					}
 				}
 			} catch (err) {
