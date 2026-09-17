@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "合入 Upload bytes、ListNodes 7/8、RemoteAgentConfig nested。compile-client 0；聚焦 58 passing。D24 仍开。不是 leftover/pills 完成。"
+summary: "F：CheckConnection 空 repeated 对齐 GetNode。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -28,12 +28,13 @@ summary: "合入 Upload bytes、ListNodes 7/8、RemoteAgentConfig nested。compi
 | **C** | gitlink 脏 `dev/loop`；勿 add |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `a828fb606ad`）；勿 reset |
+| **F** | CheckConnection nested decode 复用 GetNode；空 repeated=`undefined`；catalog 类型对齐；[D24](deferred-gaps.md) **仍开** |
 
 子 agent 发现：
 | ID | 问题 |
 |:---|:-----|
 | [D24](deferred-gaps.md) | **仍开**：Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor 仍 JSON |
-| — | CheckConnection 空 repeated 为 `[]`，GetNode/ListNodes 为 `undefined`；GetNode 本地 `RemoteAgentInfoWire` 与 catalog 分叉 |
+| — | CheckConnection 空 repeated **F 已对齐** `undefined`；GetNode `RemoteAgentInfoWire` 改 import catalog |
 | [D487](deferred-gaps.md) | **closed** Memory `score`=4 IEEE 754 LE |
 | [D550](deferred-gaps.md)–[D674](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |

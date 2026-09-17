@@ -4,6 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { UniverseAgentGetNodeRequest } from '../../common/universeAgentTypes.js';
+import type {
+	RemoteAgentCapabilitiesWire,
+	RemoteAgentInfoWire,
+	RemoteAgentLoadMetricsWire,
+	RemoteAgentModelInfoWire,
+} from './grpcClientMappersCatalog.js';
 import {
 	allLengthDelimited,
 	encodeStringField,
@@ -13,46 +19,12 @@ import {
 	readProtoFields,
 } from './grpcProtoCodec.js';
 
-/**
- * JSON-shaped decode of RemoteAgentService.RemoteAgentInfo.
- * Shape matches mapper `RemoteAgentInfoWire` (`id`/`name`/`description`/`status`/
- * `endpoint`/`tags`/`capabilities`/`load`/`last_heartbeat_at`).
- */
-export interface RemoteAgentModelInfoWire {
-	readonly id?: string;
-	readonly name?: string;
-	readonly provider?: string;
-	readonly max_tokens?: number | string;
-	readonly enabled?: boolean;
-}
-
-export interface RemoteAgentCapabilitiesWire {
-	readonly models?: RemoteAgentModelInfoWire[];
-	readonly tools?: string[];
-	readonly modes?: string[];
-	readonly server_version?: string;
-	readonly protocol_version?: string;
-	readonly properties?: { [key: string]: string };
-}
-
-export interface RemoteAgentLoadMetricsWire {
-	readonly active_sessions?: number | string;
-	readonly queue_depth?: number | string;
-	readonly cpu_percent?: number | string;
-	readonly memory_used_mb?: number | string;
-}
-
-export interface RemoteAgentInfoWire {
-	readonly id?: string;
-	readonly name?: string;
-	readonly description?: string;
-	readonly status?: string;
-	readonly endpoint?: string;
-	readonly tags?: string[];
-	readonly capabilities?: RemoteAgentCapabilitiesWire;
-	readonly load?: RemoteAgentLoadMetricsWire;
-	readonly last_heartbeat_at?: number | string;
-}
+export type {
+	RemoteAgentCapabilitiesWire,
+	RemoteAgentInfoWire,
+	RemoteAgentLoadMetricsWire,
+	RemoteAgentModelInfoWire,
+};
 
 /**
  * RemoteAgentService.GetNode — `node_id`=1.
@@ -81,7 +53,7 @@ export function decodeGetNodeResponse(bytes: Uint8Array): RemoteAgentInfoWire {
 	return decodeRemoteAgentInfoScalars(bytes);
 }
 
-/** Local decode of RemoteAgentInfo including nested capabilities/load. Shared by ListNodes. */
+/** Local decode of RemoteAgentInfo including nested capabilities/load. Shared by ListNodes; nested helpers exported. */
 export function decodeRemoteAgentInfoScalars(bytes: Uint8Array): RemoteAgentInfoWire {
 	const fields = readProtoFields(bytes);
 	const tags = allLengthDelimited(fields, 6).map(value => Buffer.from(value).toString('utf8'));
@@ -100,7 +72,7 @@ export function decodeRemoteAgentInfoScalars(bytes: Uint8Array): RemoteAgentInfo
 	};
 }
 
-function decodeCapabilities(bytes: Uint8Array): RemoteAgentCapabilitiesWire {
+export function decodeCapabilities(bytes: Uint8Array): RemoteAgentCapabilitiesWire {
 	const fields = readProtoFields(bytes);
 	const models = allLengthDelimited(fields, 1).map(decodeModelInfo);
 	const tools = allLengthDelimited(fields, 2).map(value => Buffer.from(value).toString('utf8'));
@@ -115,7 +87,7 @@ function decodeCapabilities(bytes: Uint8Array): RemoteAgentCapabilitiesWire {
 	};
 }
 
-function decodeModelInfo(bytes: Uint8Array): RemoteAgentModelInfoWire {
+export function decodeModelInfo(bytes: Uint8Array): RemoteAgentModelInfoWire {
 	const fields = readProtoFields(bytes);
 	return {
 		id: lastString(fields, 1),
@@ -126,7 +98,7 @@ function decodeModelInfo(bytes: Uint8Array): RemoteAgentModelInfoWire {
 	};
 }
 
-function decodeLoadMetrics(bytes: Uint8Array): RemoteAgentLoadMetricsWire {
+export function decodeLoadMetrics(bytes: Uint8Array): RemoteAgentLoadMetricsWire {
 	const fields = readProtoFields(bytes);
 	return {
 		active_sessions: numberOrUndefined(lastVarint(fields, 1)),

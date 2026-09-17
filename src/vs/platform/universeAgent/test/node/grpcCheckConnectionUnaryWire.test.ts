@@ -241,7 +241,7 @@ suite('grpc RemoteAgentService CheckConnection protobuf wire', () => {
 			can_create_session: undefined,
 			latency_ms: 7,
 			capabilities: undefined,
-			errors: [],
+			errors: undefined,
 			load: undefined,
 		});
 		assert.deepStrictEqual(mapConnectionReport(omittedFalse), {
@@ -261,7 +261,7 @@ suite('grpc RemoteAgentService CheckConnection protobuf wire', () => {
 			can_create_session: undefined,
 			latency_ms: undefined,
 			capabilities: undefined,
-			errors: [],
+			errors: undefined,
 			load: undefined,
 		});
 		assert.deepStrictEqual(mapConnectionReport(explicitFalse), {
@@ -281,7 +281,7 @@ suite('grpc RemoteAgentService CheckConnection protobuf wire', () => {
 			can_create_session: undefined,
 			latency_ms: undefined,
 			capabilities: undefined,
-			errors: [],
+			errors: undefined,
 			load: undefined,
 		});
 		assert.deepStrictEqual(mapConnectionReport(empty), {
@@ -293,6 +293,19 @@ suite('grpc RemoteAgentService CheckConnection protobuf wire', () => {
 			errors: [],
 			load: emptyLoad(),
 		});
+
+		const emptyNested = decodeCheckConnectionResponse(encodeMessageField(5, encodeStringField(7, 'unused-cap')));
+		assert.deepStrictEqual(emptyNested.capabilities, {
+			models: undefined,
+			tools: undefined,
+			modes: undefined,
+			server_version: undefined,
+			protocol_version: undefined,
+			properties: undefined,
+		});
+		assert.strictEqual(emptyNested.errors, undefined);
+		assert.deepStrictEqual(mapConnectionReport(emptyNested).capabilities, emptyCapabilities());
+		assert.deepStrictEqual(mapConnectionReport(emptyNested).errors, []);
 	});
 
 	test('check-connection unary wire is RemoteAgentService.CheckConnection only; no JSON.stringify; identifier scan', () => {
@@ -308,12 +321,14 @@ suite('grpc RemoteAgentService CheckConnection protobuf wire', () => {
 		assert.ok(/\blastBytes\b/.test(source));
 		assert.ok(/\blastString\b/.test(source));
 		assert.ok(/\ballLengthDelimited\b/.test(source));
+		assert.ok(source.includes('grpcGetNodeUnaryWire'));
 		assert.ok(/\bdecodeCapabilities\b/.test(source));
 		assert.ok(/\bdecodeLoadMetrics\b/.test(source));
-		assert.ok(/\bdecodeModelInfo\b/.test(source));
+		assert.ok(!/function decodeCapabilities/.test(source));
+		assert.ok(!/function decodeLoadMetrics/.test(source));
+		assert.ok(!/\bdecodeModelInfo\b/.test(source));
 		assert.ok(/\bdecodeValidationError\b/.test(source));
-		assert.ok(/\bdecodeStringStringMap\b/.test(source));
-		assert.ok(!/\bGetNode\b|\bgrpcGetNodeUnaryWire\b/.test(source));
+		assert.ok(!/\bdecodeStringStringMap\b/.test(source));
 		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
 		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
 		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));

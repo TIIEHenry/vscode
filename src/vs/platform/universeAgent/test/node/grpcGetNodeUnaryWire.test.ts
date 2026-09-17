@@ -307,6 +307,11 @@ suite('grpc RemoteAgentService GetNode protobuf wire', () => {
 		assert.ok(/\blastBytes\b/.test(source));
 		assert.ok(/\blastVarint\b/.test(source));
 		assert.ok(/\ballLengthDelimited\b/.test(source));
+		assert.ok(source.includes('grpcClientMappersCatalog'));
+		assert.ok(!/export interface RemoteAgentInfoWire/.test(source));
+		assert.ok(/export function decodeCapabilities/.test(source));
+		assert.ok(/export function decodeLoadMetrics/.test(source));
+		assert.ok(/export function decodeModelInfo/.test(source));
 		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
 		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
 		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
