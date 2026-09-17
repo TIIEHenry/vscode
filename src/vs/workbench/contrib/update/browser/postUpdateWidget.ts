@@ -6,6 +6,7 @@
 import * as dom from '../../../../base/browser/dom.js';
 import { WorkbenchActionExecutedClassification, WorkbenchActionExecutedEvent } from '../../../../base/common/actions.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { isWeb } from '../../../../base/common/platform.js';
@@ -67,7 +68,7 @@ export class PostUpdateWidgetContribution extends Disposable implements IWorkben
 		}
 
 		this._register(CommandsRegistry.registerCommand('_update.showUpdateInfo', (_accessor, markdown?: string) => this.showUpdateInfo(markdown)));
-		void this.tryShowOnStartup();
+		void this.tryShowOnStartup().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async tryShowOnStartup() {
@@ -263,7 +264,7 @@ export class PostUpdateWidgetContribution extends Disposable implements IWorkben
 						{ id: commandId, from: 'postUpdateWidget' }
 					);
 
-					void this.commandService.executeCommand(commandId, ...(args ?? []));
+					void this.commandService.executeCommand(commandId, ...(args ?? [])).catch(onUnexpectedError).catch(onUnexpectedError);
 					this.hoverService.hideHover(true);
 				}));
 			}
