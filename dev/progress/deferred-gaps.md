@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D769 leftover Promise 双链；D736/D739/D740/D745 跳过。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D769、D775 leftover Promise 双链；D736/D739/D740/D745 跳过。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1131,3 +1131,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D767 | P3 | **closed** leftover Promise 双链 format：formatActionsMultiple / formatActionsNone leftover FOF。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`formatLeftoverPromiseCatchScanD767.test.ts`。勿 add `out`。 | format 双链。未关 D24。leftover 程序未全局完成。 | workbench / format leftover | closed |
 | D768 | P3 | **closed** leftover Promise 双链 customEditor / webviewPanel leftover FOF。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`customEditorLeftoverPromiseCatchScanD768.test.ts`。勿 add `out`。 | customEditor 双链。未关 D24。leftover 程序未全局完成。 | workbench / customEditor leftover | closed |
 | D769 | P3 | **closed** leftover Promise 双链 markdown / externalUriOpener leftover FOF。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`markdownLeftoverPromiseCatchScanD769.test.ts`。勿 add `out`。 | markdown 双链。未关 D24。leftover 程序未全局完成。 | workbench / markdown leftover | closed |
+| D775 | P3 | **closed** leftover Promise 双链 welcomeGettingStarted：openWindow×2；activateByEvent；whenInstalledExtensionsRegistered then。跳过 opener / D752 orphan。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；`gettingStartedCatchScan.test.ts`。勿 add `out`。勿 add D752。 | welcome 双链。未关 D24。leftover 程序未全局完成。 | workbench / welcome leftover remaining | closed |
