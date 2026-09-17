@@ -24,7 +24,7 @@ suite('grpc AgentService TestModelProfile protobuf wire', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('encodeTestModelProfileRequest writes provider_id=1 model_id=2 api_key=3 base_url=4 protocol=5; omits empty and params=6; not JSON', () => {
+	test('encodeTestModelProfileRequest writes provider_id=1 model_id=2 api_key=3 base_url=4 protocol=5 params=6 MapEntry; omits empty; not JSON', () => {
 		const encoded = encodeTestModelProfileRequest({
 			providerId: 'prov-1',
 			modelId: 'gpt-test',
@@ -43,14 +43,18 @@ suite('grpc AgentService TestModelProfile protobuf wire', () => {
 			protocol: 'openai',
 			params: { temperature: '0.2', max_tokens: '128' },
 		}));
-		assert.deepStrictEqual(Object.fromEntries(protoStrings(encoded)), {
-			1: 'prov-1',
-			2: 'gpt-test',
-			3: 'sk-test',
-			4: 'https://api.example',
-			5: 'openai',
-		});
-		assert.ok(!protoStrings(encoded).has(6));
+		assert.strictEqual(protoStrings(encoded).get(1), 'prov-1');
+		assert.strictEqual(protoStrings(encoded).get(2), 'gpt-test');
+		assert.strictEqual(protoStrings(encoded).get(3), 'sk-test');
+		assert.strictEqual(protoStrings(encoded).get(4), 'https://api.example');
+		assert.strictEqual(protoStrings(encoded).get(5), 'openai');
+		const params = protoMessages(encoded, 6);
+		assert.strictEqual(params.length, 2);
+		assert.strictEqual(protoStrings(params[0]!).get(1), 'temperature');
+		assert.strictEqual(protoStrings(params[0]!).get(2), '0.2');
+		assert.ok(!protoStrings(params[0]!).has(3));
+		assert.strictEqual(protoStrings(params[1]!).get(1), 'max_tokens');
+		assert.strictEqual(protoStrings(params[1]!).get(2), '128');
 		assert.ok(!protoVarints(encoded).has(1));
 		assert.ok(!protoVarints(encoded).has(6));
 
@@ -67,8 +71,36 @@ suite('grpc AgentService TestModelProfile protobuf wire', () => {
 		assert.ok(!protoStrings(omitted).has(3));
 		assert.ok(!protoStrings(omitted).has(4));
 		assert.strictEqual(protoStrings(omitted).get(5), 'openai');
-		assert.ok(!protoStrings(omitted).has(6));
+		const omittedParams = protoMessages(omitted, 6);
+		assert.strictEqual(omittedParams.length, 1);
+		assert.strictEqual(protoStrings(omittedParams[0]!).get(1), 'temperature');
+		assert.strictEqual(protoStrings(omittedParams[0]!).get(2), '0.2');
 		assert.notStrictEqual(omitted[0], 0x7b);
+
+		const emptyParams = encodeTestModelProfileRequest({
+			providerId: 'prov-1',
+			modelId: 'gpt-test',
+			apiKey: '',
+			baseUrl: '',
+			protocol: '',
+			params: {},
+		});
+		assert.strictEqual(protoStrings(emptyParams).get(1), 'prov-1');
+		assert.strictEqual(protoStrings(emptyParams).get(2), 'gpt-test');
+		assert.strictEqual(protoMessages(emptyParams, 6).length, 0);
+
+		const emptyKeyValue = encodeTestModelProfileRequest({
+			providerId: 'prov-1',
+			modelId: '',
+			apiKey: '',
+			baseUrl: '',
+			protocol: '',
+			params: { '': '', temperature: '0.2' },
+		});
+		const emptyKeyValueParams = protoMessages(emptyKeyValue, 6);
+		assert.strictEqual(emptyKeyValueParams.length, 1);
+		assert.strictEqual(protoStrings(emptyKeyValueParams[0]!).get(1), 'temperature');
+		assert.strictEqual(protoStrings(emptyKeyValueParams[0]!).get(2), '0.2');
 
 		assert.strictEqual(encodeTestModelProfileRequest({
 			providerId: '',
@@ -76,7 +108,7 @@ suite('grpc AgentService TestModelProfile protobuf wire', () => {
 			apiKey: '',
 			baseUrl: '',
 			protocol: '',
-			params: { temperature: '0.2' },
+			params: {},
 		}).length, 0);
 	});
 
@@ -114,14 +146,17 @@ suite('grpc AgentService TestModelProfile protobuf wire', () => {
 	test('test-model-profile unary wire is TestModelProfile only; no JSON.stringify; identifier scan', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcTestModelProfileUnaryWire.ts'), 'utf8');
 		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(!source.includes('encodeMap'));
+		assert.ok(!/\bencodeMap\b/.test(source));
 		assert.ok(/\bencodeTestModelProfileRequest\b/.test(source));
 		assert.ok(/\bdecodeTestModelProfileResponse\b/.test(source));
 		assert.ok(/\bencodeStringField\b/.test(source));
+		assert.ok(/\bencodeMessageField\b/.test(source));
+		assert.ok(/\bencodeStringStringMap\b/.test(source));
 		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bConnect\b/.test(source));
 		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
 		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
 		assert.ok(!/\bResolveTurn\b/.test(source));
+		assert.ok(!/\bResolveAnchor\b/.test(source));
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
@@ -140,6 +175,8 @@ suite('grpc AgentService TestModelProfile protobuf wire', () => {
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
+		assert.ok(!source.includes('openWatchConfigStream') || !extractOpenWatchConfigStream(source).includes('makeServerStreamBytesClient'));
 	});
 });
 
@@ -168,6 +205,26 @@ function extractAsyncMethod(source: string, name: string): string {
 	const nextAsync = source.indexOf('\n\tasync ', start + 1);
 	const end = nextAsync >= 0 ? nextAsync : source.length;
 	return source.slice(start, end);
+}
+
+function extractOpenWatchConfigStream(source: string): string {
+	const start = source.indexOf('\topenWatchConfigStream(');
+	assert.ok(start >= 0, 'missing openWatchConfigStream(');
+	const nextMethod = source.indexOf('\n\tasync ', start + 1);
+	const nextOpen = source.indexOf('\n\topen', start + 1);
+	const candidates = [nextMethod, nextOpen].filter(index => index >= 0);
+	const end = candidates.length > 0 ? Math.min(...candidates) : source.length;
+	return source.slice(start, end);
+}
+
+function protoMessages(encoded: Uint8Array, fieldNumber: number): Uint8Array[] {
+	const values: Uint8Array[] = [];
+	for (const field of readProtoFields(encoded)) {
+		if (field.field === fieldNumber && field.wireType === 2) {
+			values.push(field.bytes);
+		}
+	}
+	return values;
 }
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
