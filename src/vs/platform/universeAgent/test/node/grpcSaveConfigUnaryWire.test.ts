@@ -21,6 +21,8 @@ import {
 	encodePresentMessageField,
 	encodeStringField,
 	lastBytes,
+	lastFixed64,
+	lastString,
 	readProtoFields,
 } from '../../node/grpc/grpcProtoCodec.js';
 
@@ -28,7 +30,7 @@ suite('grpc RemoteAgentService SaveConfig protobuf wire', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('encodeSaveConfigRequest writes nested config scalars 1-4,7-9 + skip/async; omits nested 5/6/10/11; not JSON', () => {
+	test('encodeSaveConfigRequest writes nested config scalars 1-4,7-9 and nested 5/6/10/11; omits empty/0/false; not JSON', () => {
 		const encoded = encodeSaveConfigRequest({
 			config: sampleConfig({
 				id: 'cfg-1',
@@ -69,15 +71,56 @@ suite('grpc RemoteAgentService SaveConfig protobuf wire', () => {
 		assert.deepStrictEqual(protoStringLists(inner).get(7), ['prod', 'gpu']);
 		assert.strictEqual(protoVarints(inner).get(8), 4);
 		assert.deepStrictEqual(protoStringLists(inner).get(9), ['POOLED']);
-		assert.ok(!protoStringLists(inner).has(5));
-		assert.ok(!protoStringLists(inner).has(6));
-		assert.ok(!protoStringLists(inner).has(10));
-		assert.ok(!protoStringLists(inner).has(11));
 		assert.ok(!protoVarints(inner).has(1));
 		assert.ok(!protoVarints(inner).has(2));
 		assert.ok(!protoVarints(inner).has(3));
 		assert.ok(!protoVarints(inner).has(5));
 		assert.ok(!protoVarints(inner).has(6));
+
+		const endpoint = lastBytes(readProtoFields(inner), 5);
+		assert.ok(endpoint);
+		assert.strictEqual(lastString(readProtoFields(endpoint), 1), 'unused-host');
+		assert.strictEqual(protoVarints(endpoint).get(2), 443);
+		assert.strictEqual(protoVarints(endpoint).get(3), 1);
+		assert.strictEqual(lastString(readProtoFields(endpoint), 4), '/unused.pem');
+
+		const auth = lastBytes(readProtoFields(inner), 6);
+		assert.ok(auth);
+		assert.strictEqual(lastString(readProtoFields(auth), 1), 'API_KEY');
+		assert.strictEqual(lastString(readProtoFields(auth), 2), 'unused-key');
+		assert.strictEqual(lastString(readProtoFields(auth), 3), 'unused-token');
+
+		const delegate = lastBytes(readProtoFields(inner), 10);
+		assert.ok(delegate);
+		assert.strictEqual(lastString(readProtoFields(delegate), 1), 'DENY_ALL');
+		assert.strictEqual(lastString(readProtoFields(delegate), 4), 'DENY');
+		assert.strictEqual(lastString(readProtoFields(delegate), 5), 'DENY_ALL');
+		assert.strictEqual(lastString(readProtoFields(delegate), 6), 'USER');
+		const whitelist = lastBytes(readProtoFields(delegate), 2);
+		assert.ok(whitelist);
+		assert.strictEqual(lastString(readProtoFields(whitelist), 1), 'unused-tool');
+		const arg = lastBytes(readProtoFields(whitelist), 2);
+		assert.ok(arg);
+		assert.strictEqual(lastString(readProtoFields(arg), 1), 'unused-field');
+		assert.strictEqual(lastString(readProtoFields(arg), 2), 'equals');
+		assert.strictEqual(lastString(readProtoFields(arg), 3), 'unused-value');
+		const budget = lastBytes(readProtoFields(delegate), 3);
+		assert.ok(budget);
+		assert.strictEqual(protoVarints(budget).get(1), 9);
+		assert.strictEqual(protoVarints(budget).get(2), 8);
+		assert.strictEqual(protoVarints(budget).get(3), 7);
+		assert.strictEqual(protoVarints(budget).get(4), 6);
+		assert.strictEqual(protoVarints(budget).get(5), 5);
+
+		const health = lastBytes(readProtoFields(inner), 11);
+		assert.ok(health);
+		assert.strictEqual(protoVarints(health).get(1), 1000);
+		assert.strictEqual(protoVarints(health).get(2), 500);
+		assert.strictEqual(protoVarints(health).get(3), 3);
+		assert.strictEqual(protoVarints(health).get(4), 2);
+		assert.strictEqual(protoVarints(health).get(5), 1);
+		assert.strictEqual(lastFixed64(readProtoFields(health), 6), 0.1);
+		assert.strictEqual(protoVarints(health).get(7), 200);
 
 		const omittedFalse = encodeSaveConfigRequest({
 			config: sampleConfig({
@@ -88,6 +131,7 @@ suite('grpc RemoteAgentService SaveConfig protobuf wire', () => {
 				tags: [],
 				maxConcurrentSessions: 0,
 				sessionLifecycle: '',
+				...emptyNested(),
 			}),
 			skipConnectionTest: false,
 			asyncTest: false,
@@ -101,13 +145,13 @@ suite('grpc RemoteAgentService SaveConfig protobuf wire', () => {
 		assert.ok(!protoStringLists(sparseInner).has(2));
 		assert.ok(!protoStringLists(sparseInner).has(3));
 		assert.ok(!protoVarints(sparseInner).has(4));
-		assert.ok(!protoStringLists(sparseInner).has(5));
-		assert.ok(!protoStringLists(sparseInner).has(6));
+		assert.ok(!lastBytes(readProtoFields(sparseInner), 5));
+		assert.ok(!lastBytes(readProtoFields(sparseInner), 6));
 		assert.ok(!protoStringLists(sparseInner).has(7));
 		assert.ok(!protoVarints(sparseInner).has(8));
 		assert.ok(!protoStringLists(sparseInner).has(9));
-		assert.ok(!protoStringLists(sparseInner).has(10));
-		assert.ok(!protoStringLists(sparseInner).has(11));
+		assert.ok(!lastBytes(readProtoFields(sparseInner), 10));
+		assert.ok(!lastBytes(readProtoFields(sparseInner), 11));
 
 		const empty = encodeSaveConfigRequest({
 			config: sampleConfig({
@@ -118,6 +162,7 @@ suite('grpc RemoteAgentService SaveConfig protobuf wire', () => {
 				tags: [],
 				maxConcurrentSessions: 0,
 				sessionLifecycle: '',
+				...emptyNested(),
 			}),
 			skipConnectionTest: false,
 			asyncTest: false,
@@ -267,13 +312,23 @@ suite('grpc RemoteAgentService SaveConfig protobuf wire', () => {
 		assert.ok(/\bencodeSaveConfigRequest\b/.test(source));
 		assert.ok(/\bdecodeSaveConfigResponse\b/.test(source));
 		assert.ok(/\bencodePresentMessageField\b/.test(source));
+		assert.ok(/\bencodeMessageField\b/.test(source));
 		assert.ok(/\bencodeInt32Field\b/.test(source));
+		assert.ok(/\bencodeInt64Field\b/.test(source));
 		assert.ok(/\bencodeStringField\b/.test(source));
+		assert.ok(/\bencodeDouble\b/.test(source));
 		assert.ok(/\blastVarint\b/.test(source));
 		assert.ok(/\blastString\b/.test(source));
 		assert.ok(/\blastBytes\b/.test(source));
 		assert.ok(/\bdecodeCheckConnectionResponse\b/.test(source));
-		assert.ok(!/\bdecodeEndpoint\b|\bencodeEndpoint\b|\bdecodeAuthConfig\b|\bdecodePermissionDelegate\b|\bdecodeHealthCheck\b/.test(source));
+		assert.ok(/\bencodeEndpoint\b/.test(source));
+		assert.ok(/\bencodeAuthConfig\b/.test(source));
+		assert.ok(/\bencodePermissionDelegate\b/.test(source));
+		assert.ok(/\bencodeWhitelistEntry\b/.test(source));
+		assert.ok(/\bencodeArgCondition\b/.test(source));
+		assert.ok(/\bencodePermissionBudget\b/.test(source));
+		assert.ok(/\bencodeHealthCheckConfig\b/.test(source));
+		assert.ok(!/\bdecodeEndpoint\b|\bdecodeAuthConfig\b|\bdecodePermissionDelegate\b|\bdecodeHealthCheck\b/.test(source));
 		assert.ok(!/\bdecodeConnectionReport\b|\bencodeConnectionReport\b/.test(source));
 		assert.ok(!/\bdecodeCapabilities\b|\bdecodeLoadMetrics\b|\bdecodeValidationError\b/.test(source));
 		assert.ok(!/\bgrpcListConfigsUnaryWire\b|\bgrpcGetConfigUnaryWire\b/.test(source));
@@ -368,6 +423,45 @@ function sampleConfig(overrides: Partial<UniverseAgentRemoteAgentConfig>): Unive
 			degradedP99LatencyMs: 200,
 		},
 		...overrides,
+	};
+}
+
+function emptyNested(): Pick<UniverseAgentRemoteAgentConfig, 'endpoint' | 'auth' | 'defaultPermissionDelegate' | 'healthCheck'> {
+	return {
+		endpoint: {
+			host: '',
+			port: 0,
+			tls: false,
+			tlsCertPath: '',
+		},
+		auth: {
+			type: '',
+			apiKeyRef: '',
+			tokenRef: '',
+		},
+		defaultPermissionDelegate: {
+			mode: '',
+			whitelist: [],
+			budget: {
+				maxToolCalls: 0,
+				maxTokens: 0,
+				timeoutMs: 0,
+				windowMs: 0,
+				maxBubbleToUserPerDay: 0,
+			},
+			timeoutPolicy: '',
+			fallback: '',
+			bubbleTarget: '',
+		},
+		healthCheck: {
+			intervalMs: 0,
+			timeoutMs: 0,
+			unhealthyThreshold: 0,
+			healthyThreshold: 0,
+			useWatch: false,
+			degradedErrorRateThreshold: 0,
+			degradedP99LatencyMs: 0,
+		},
 	};
 }
 

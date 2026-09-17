@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "合入 D24 四条服务端流 bytes + unread decode + client-stream helper。compile-client 0；聚焦 62 passing。D24 仍开。不是 leftover/pills 完成。"
+summary: "D 槽 RemoteAgentConfig nested 5/6/10/11：GetConfig/ListConfigs decode、SaveConfig encode。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -27,6 +27,7 @@ summary: "合入 D24 四条服务端流 bytes + unread decode + client-stream he
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **D** | RemoteAgentConfig nested `endpoint`=5 `auth`=6 `default_permission_delegate`=10 `health_check`=11：GetConfig/ListConfigs decode + SaveConfig encode；[D24](deferred-gaps.md) **仍开** |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
