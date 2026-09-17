@@ -7,6 +7,7 @@ import { open, unlink, type FileHandle } from 'fs/promises';
 import { decodeBase64, encodeBase64, VSBuffer } from '../../../base/common/buffer.js';
 import { Barrier, DeferredPromise, disposableTimeout, Limiter, ResourceQueue } from '../../../base/common/async.js';
 import { toErrorMessage } from '../../../base/common/errorMessage.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable, DisposableMap, DisposableResourceMap, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../base/common/lifecycle.js';
 import { getExtensionForMimeType, getMediaMime, getMediaOrTextMime } from '../../../base/common/mime.js';
@@ -679,7 +680,7 @@ export class AgentService extends Disposable implements IAgentService {
 		this._register(this._stateManager.onDidEmitEnvelope(e => {
 			if (e.action.type === ActionType.SessionIsArchivedChanged && e.action.isArchived && !isAhpChatChannel(e.channel)) {
 				this._clearAgentMergeIndex(URI.parse(e.channel));
-				void this._sessionResidency.reconcile();
+				void this._sessionResidency.reconcile().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 		this._register(this._stateManager.onDidEmitNotification(e => this._onDidNotification.fire(e)));
@@ -3027,7 +3028,7 @@ export class AgentService extends Disposable implements IAgentService {
 			...(createResult?.inheritedTurnId !== undefined ? { inheritedTurnId: createResult.inheritedTurnId } : {}),
 		});
 		this._sessionResidency.touch(session);
-		void this._sessionResidency.reconcile();
+		void this._sessionResidency.reconcile().catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// If the agent exposes this chat as its own SDK session, mark that
 		// backing so it stays out of the top-level session list. `_markChatBacking`
@@ -4051,7 +4052,7 @@ export class AgentService extends Disposable implements IAgentService {
 				throw new Error(`Subscription cancelled: ${resourceStr}`);
 			}
 			this._sessionResidency.touch(resource);
-			void this._sessionResidency.reconcile();
+			void this._sessionResidency.reconcile().catch(onUnexpectedError).catch(onUnexpectedError);
 
 			// Ensure git state has been computed for this session. When the snapshot
 			// already existed (e.g. seeded by list query, or restored earlier), the
@@ -4134,7 +4135,7 @@ export class AgentService extends Disposable implements IAgentService {
 		if (this._maybeScheduleSessionGc(resource)) {
 			return;
 		}
-		void this._sessionResidency.reconcile();
+		void this._sessionResidency.reconcile().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	/**
@@ -6646,7 +6647,7 @@ export class AgentService extends Disposable implements IAgentService {
 			};
 		} finally {
 			if (!wasRestored && this._stateManager.getSessionState(owningSession.toString()) && !this._subscriptions.hasSessionSubscribers(owningSession)) {
-				void this._sessionResidency.reconcile();
+				void this._sessionResidency.reconcile().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 	}

@@ -20,7 +20,7 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D684。D24 �
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A–J** | 关仓后 idle（B 脏跳过；C gitlink 勿 add；E blocked；edit ff-only 失败） |
+| **A** | D683 十处双链（residency×5 + service×5）；`agentSessionResidencyCatchScan` 3/0；D24 仍开；不是 leftover/pills 完成 |
 
 子 agent 发现：
 | ID | 问题 |
