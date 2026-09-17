@@ -7,6 +7,7 @@ import './media/window.css';
 import { localize } from '../../nls.js';
 import { URI } from '../../base/common/uri.js';
 import { equals } from '../../base/common/objects.js';
+import { onUnexpectedError } from '../../base/common/errors.js';
 import { EventType, EventHelper, addDisposableListener, ModifierKeyEmitter, getActiveElement, hasWindow, getWindowById, getWindows, $ } from '../../base/browser/dom.js';
 import { Action, Separator, WorkbenchActionExecutedClassification, WorkbenchActionExecutedEvent } from '../../base/common/actions.js';
 import { IFileService } from '../../platform/files/common/files.js';
@@ -691,11 +692,11 @@ export class NativeWindow extends BaseWindow {
 		this.setupOpenHandlers();
 
 		// Notify some services about lifecycle phases
-		this.lifecycleService.when(LifecyclePhase.Ready).then(() => this.nativeHostService.notifyReady());
+		this.lifecycleService.when(LifecyclePhase.Ready).then(() => this.nativeHostService.notifyReady()).catch(onUnexpectedError).catch(onUnexpectedError);
 		this.lifecycleService.when(LifecyclePhase.Restored).then(() => {
 			this.sharedProcessService.notifyRestored();
 			this.utilityProcessWorkerWorkbenchService.notifyRestored();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Check for situations that are worth warning the user about
 		this.handleWarnings();

@@ -13,6 +13,7 @@ import { IEditorGroupView, IEditorPartsView } from './editor.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { distinct } from '../../../../base/common/arrays.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { AuxiliaryEditorPart, IAuxiliaryEditorPartOpenOptions } from './auxiliaryEditorPart.js';
 import { ModalEditorPart } from './modalEditorPart.js';
 import { ConversationEditorPartImpl } from './conversationEditorPart.js';
@@ -114,7 +115,7 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 
 	private registerListeners(): void {
 		this._register(this.onDidChangeMementoValue(StorageScope.WORKSPACE, this._store)(e => this.onDidChangeMementoState(e)));
-		this.whenReady.then(() => this.registerGroupsContextKeyListeners());
+		this.whenReady.then(() => this.registerGroupsContextKeyListeners()).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	protected createMainEditorPart(): MainEditorPart {

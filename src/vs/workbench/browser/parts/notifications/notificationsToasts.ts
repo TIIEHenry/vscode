@@ -22,6 +22,7 @@ import { ScrollbarVisibility } from '../../../../base/common/scrollable.js';
 import { ILifecycleService, LifecyclePhase } from '../../../services/lifecycle/common/lifecycle.js';
 import { IHostService } from '../../../services/host/browser/host.js';
 import { IntervalCounter } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { assertReturnsDefined } from '../../../../base/common/types.js';
 import { NotificationsToastsVisibleContext } from '../../../common/contextkeys.js';
 import { mainWindow } from '../../../../base/browser/window.js';
@@ -137,7 +138,7 @@ export class NotificationsToasts extends Themable implements INotificationsToast
 
 			// Update toasts on notification changes
 			this._register(this.model.onDidChangeNotification(e => this.onDidChangeNotification(e)));
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Filter
 		this._register(this.model.onDidChangeFilter(({ global, sources }) => {
