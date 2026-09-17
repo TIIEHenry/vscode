@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -112,7 +113,7 @@ export class MarkerController implements IEditorContribution {
 			this._editorService.openCodeEditor({
 				resource: related.resource,
 				options: { pinned: true, revealIfOpened: true, selection: Range.lift(related).collapseToStart() }
-			}, this._editor);
+			}, this._editor).catch(onUnexpectedError).catch(onUnexpectedError);
 			this.close(false);
 		}));
 		this._sessionDispoables.add(this._editor.onDidChangeModel(() => this._cleanUp()));

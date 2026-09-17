@@ -403,7 +403,7 @@ export class StickyScrollController extends Disposable implements IEditorContrib
 				}
 				this._revealPosition({ lineNumber: position.lineNumber, column: 1 });
 			}
-			this._instaService.invokeFunction(goToDefinitionWithLocation, e, this._editor, { uri: this._editor.getModel().uri, range: this._stickyRangeProjectedOnEditor });
+			this._instaService.invokeFunction(goToDefinitionWithLocation, e, this._editor, { uri: this._editor.getModel().uri, range: this._stickyRangeProjectedOnEditor }).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 

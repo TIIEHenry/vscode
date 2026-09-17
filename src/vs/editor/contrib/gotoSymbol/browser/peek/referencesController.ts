@@ -300,7 +300,7 @@ export abstract class ReferencesController implements IEditorContribution {
 		this._editorService.openCodeEditor({
 			resource: uri,
 			options: { selection: range, selectionSource: TextEditorSelectionSource.JUMP, pinned }
-		}, this._editor, sideBySide);
+		}, this._editor, sideBySide).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 
