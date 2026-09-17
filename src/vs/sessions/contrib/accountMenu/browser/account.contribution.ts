@@ -8,6 +8,7 @@ import './media/accountWidget.css';
 import './media/accountTitleBarWidget.css';
 import '../../../../workbench/contrib/chat/browser/chatStatus/media/chatStatus.css';
 import Severity from '../../../../base/common/severity.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { IObservable, runOnChange } from '../../../../base/common/observable.js';
 import { localize, localize2 } from '../../../../nls.js';
@@ -723,7 +724,7 @@ class TitleBarAccountWidget extends BaseActionViewItem {
 		panelStore.add(this.instantiationService.createInstance(SessionsChatPetAchievementBadges, panel, () => {
 			this.hoverService.hideHover(true);
 			this.clickPanelDisposable.clear();
-			void this.commandService.executeCommand(CHAT_PET_OPEN_ACHIEVEMENTS_COMMAND_ID);
+			void this.commandService.executeCommand(CHAT_PET_OPEN_ACHIEVEMENTS_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		if (this.shouldShowCopilotDashboardHover()) {
