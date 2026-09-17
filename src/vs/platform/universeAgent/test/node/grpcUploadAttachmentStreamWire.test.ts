@@ -305,21 +305,22 @@ suite('grpc FileTransferService UploadAttachment protobuf client-stream wire', (
 		assert.ok(!/\bConnect\b/.test(source));
 		assert.ok(!/\bResolveTurn\b/.test(source));
 		assert.ok(!/\bResolveAnchor\b/.test(source));
-		assert.ok(!/\bmakeClientStreamBytesClient\b/.test(source));
+		assert.ok(!/\bmakeClientStreamBytesClient\b/.test(source), 'wire file must not import makeClientStreamBytesClient');
 		assert.ok(!source.includes('UniverseAgent-WorkTrees'));
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('openUploadAttachmentStream / makeClientStreamClient stay JSON; skip leftover RPCs', () => {
+	test('openUploadAttachmentStream / makeClientStreamBytesClient bytes; leftover RPCs stay JSON', () => {
 		const client = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const upload = extractMethod(client, 'openUploadAttachmentStream');
-		assert.ok(upload.includes('makeClientStreamClient<Record<string, unknown>'), 'openUploadAttachmentStream must stay JSON client-stream');
-		assert.ok(upload.includes('mapUploadChunkWire') || upload.includes('mapUploadResponse'), 'openUploadAttachmentStream still maps JSON wire');
-		assert.ok(!upload.includes('encodeUploadChunk'), 'this slice does not wire encodeUploadChunk');
-		assert.ok(!upload.includes('decodeUploadResponse'), 'this slice does not wire decodeUploadResponse');
+		assert.ok(upload.includes('makeClientStreamBytesClient'), 'openUploadAttachmentStream must wire makeClientStreamBytesClient');
+		assert.ok(upload.includes('encodeUploadChunk'), 'openUploadAttachmentStream must call encodeUploadChunk');
+		assert.ok(upload.includes('decodeUploadResponse'), 'openUploadAttachmentStream must call decodeUploadResponse');
+		assert.ok(upload.includes('mapUploadResponse'), 'openUploadAttachmentStream still maps UploadResponseWire');
+		assert.ok(!upload.includes('mapUploadChunkWire'), 'write path must not use mapUploadChunkWire');
+		assert.ok(!upload.includes('makeClientStreamClient<'), 'openUploadAttachmentStream must not use JSON makeClientStreamClient');
 		assert.ok(!upload.includes('makeUnaryBytesClient'));
-		assert.ok(!upload.includes('makeClientStreamBytesClient'));
-		assert.ok(!upload.includes('JSON.stringify'), 'JSON.stringify lives in makeClientStreamClient, not the method body');
+		assert.ok(!upload.includes('JSON.stringify'), 'JSON.stringify must not live in the method body');
 		assert.ok(!/\bWatch\b/.test(upload));
 		assert.ok(!/\bSaveSkillContent\b/.test(upload));
 		assert.ok(!/\bResolveTurn\b/.test(upload));

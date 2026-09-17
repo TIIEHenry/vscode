@@ -518,14 +518,13 @@ import {
 	type ResolveAnchorResponseWire,
 	type ResolveTurnResponseWire,
 	type SaveSkillContentResponseWire,
-	type UploadResponseWire,
 } from './grpcClientMappers.js';
 import {
 	makeUnaryClient,
 	makeUnaryBytesClient,
 	makeServerStreamClient,
 	makeServerStreamBytesClient,
-	makeClientStreamClient,
+	makeClientStreamBytesClient,
 	makeResidentBidiBytesHandleClient,
 	makeResidentBidiHandleClient,
 	makeBidiBytesClient,
@@ -638,6 +637,10 @@ import {
 	decodeDownloadChunk,
 	encodeDownloadAttachmentRequest,
 } from './grpcDownloadAttachmentStreamWire.js';
+import {
+	decodeUploadResponse,
+	encodeUploadChunk,
+} from './grpcUploadAttachmentStreamWire.js';
 import {
 	decodeHistoryResponse,
 	encodeHistoryRequest,
@@ -1046,28 +1049,6 @@ function sessionToolPermissionModeWire(mode: UniverseAgentSessionToolPermissionM
 	}
 }
 
-function mapUploadChunkWire(chunk: UniverseAgentUploadChunk): Record<string, unknown> {
-	const wire: Record<string, unknown> = {
-		offset: chunk.offset,
-	};
-	if (chunk.header) {
-		wire.header = {
-			transfer_id: chunk.header.transferId,
-			filename: chunk.header.filename,
-			total_size: chunk.header.totalSize,
-			mime_type: chunk.header.mimeType,
-			checksum_sha256: chunk.header.checksumSha256,
-			is_precompressed: chunk.header.isPrecompressed,
-			session_id: chunk.header.sessionId,
-			chunk_size: chunk.header.chunkSize,
-			...(chunk.header.queueItemId !== undefined ? { queue_item_id: chunk.header.queueItemId } : {}),
-		};
-	}
-	if (chunk.chunk !== undefined) {
-		wire.chunk = bytesToBase64(chunk.chunk);
-	}
-	return wire;
-}
 function anchorResolveScopeWire(scope: UniverseAgentAnchorResolveScope): number {
 	switch (scope) {
 		case 'ANCHOR_RESOLVE_SCOPE_ACTIVE':
@@ -2922,15 +2903,16 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		onResponse: (response: UniverseAgentUploadAttachmentResult) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentUploadAttachmentStream {
-		const stream = makeClientStreamClient<Record<string, unknown>, UploadResponseWire>(
+		const stream = makeClientStreamBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.FileTransfer.service,
 			UniverseAgentGrpcServices.FileTransfer.UploadAttachment,
+			decodeUploadResponse,
 		);
 		const handle = stream(wire => onResponse(mapUploadResponse(wire)), onClosed);
 		return {
 			write(chunk: UniverseAgentUploadChunk): void {
-				handle.write(mapUploadChunkWire(chunk));
+				handle.write(encodeUploadChunk(chunk));
 			},
 			end(): void {
 				handle.end();

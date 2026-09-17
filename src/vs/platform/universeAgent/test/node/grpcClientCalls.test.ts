@@ -106,13 +106,15 @@ suite('grpcClientCalls makeClientStreamBytesClient', () => {
 		assert.ok(bytesBody.includes('call.write('));
 	});
 
-	test('openUploadAttachmentStream stays makeClientStreamClient JSON this slice; skip leftover RPCs', () => {
+	test('openUploadAttachmentStream wires makeClientStreamBytesClient; leftover RPCs stay JSON', () => {
 		const client = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const upload = extractMethod(client, 'openUploadAttachmentStream');
-		assert.ok(upload.includes('makeClientStreamClient<Record<string, unknown>'), 'openUploadAttachmentStream must stay JSON client-stream this slice');
-		assert.ok(!upload.includes('makeClientStreamBytesClient'), 'openUploadAttachmentStream must not wire makeClientStreamBytesClient this slice');
-		assert.ok(!upload.includes('encodeUploadChunk'));
-		assert.ok(!upload.includes('decodeUploadResponse'));
+		assert.ok(upload.includes('makeClientStreamBytesClient'), 'openUploadAttachmentStream must wire makeClientStreamBytesClient');
+		assert.ok(upload.includes('encodeUploadChunk'), 'openUploadAttachmentStream must call encodeUploadChunk');
+		assert.ok(upload.includes('decodeUploadResponse'), 'openUploadAttachmentStream must call decodeUploadResponse');
+		assert.ok(upload.includes('mapUploadResponse'), 'openUploadAttachmentStream still maps UploadResponseWire');
+		assert.ok(!upload.includes('mapUploadChunkWire'), 'write path must not use mapUploadChunkWire');
+		assert.ok(!upload.includes('makeClientStreamClient<'), 'openUploadAttachmentStream must not use JSON makeClientStreamClient');
 		assert.ok(!upload.includes('JSON.stringify'), 'JSON.stringify lives in makeClientStreamClient, not the method body');
 
 		assert.ok(!extractAsyncMethod(client, 'saveSkillContent').includes('makeUnaryBytesClient'));
