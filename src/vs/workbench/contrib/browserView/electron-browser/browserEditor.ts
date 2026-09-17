@@ -23,6 +23,7 @@ import { IStorageService } from '../../../../platform/storage/common/storage.js'
 import { IEditorGroup } from '../../../services/editor/common/editorGroupsService.js';
 import { IEditorOptions } from '../../../../platform/editor/common/editor.js';
 import { getZoomFactor, onDidChangeZoomLevel } from '../../../../base/browser/browser.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { ILayoutService } from '../../../../platform/layout/browser/layoutService.js';
@@ -644,7 +645,7 @@ export class BrowserEditor extends EditorPane {
 	 * Close this editor tab (i.e. the editor input owning the current page).
 	 */
 	closeTab(): void {
-		this.group?.closeEditor(this.input);
+		void Promise.resolve(this.group?.closeEditor(this.input)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	override layout(dimension?: Dimension, _position?: IDomPosition): void {
@@ -659,7 +660,7 @@ export class BrowserEditor extends EditorPane {
 			// In floating windows, we need to ensure that the
 			// container is ready for us to compute certain
 			// layout related properties.
-			whenContainerStylesLoaded.then(() => this.layoutBrowserContainer());
+			whenContainerStylesLoaded.then(() => this.layoutBrowserContainer()).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			this.layoutBrowserContainer();
 		}
@@ -740,7 +741,7 @@ export class BrowserEditor extends EditorPane {
 			zoomFactor: getZoomFactor(this.window),
 			cornerRadius,
 			emulation: layout.emulation,
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		for (const c of this._contributionInstances.values()) {
 			c.afterContainerLayout();

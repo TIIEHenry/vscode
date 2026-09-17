@@ -14,6 +14,7 @@ import { KeyMod, KeyCode } from '../../../../../base/common/keyCodes.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { DisposableMap, DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ILogService } from '../../../../../platform/log/common/log.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
@@ -207,13 +208,13 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 		this._shareButton.label = '$(share-window)';
 
 		this._register(this._shareButton.onDidClick(() => {
-			void this._toggleShareWithAgent();
+			void this._toggleShareWithAgent().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		// Auto-disable element selection when the user sends a chat request.
 		this._register(this.chatService.onDidSubmitRequest(event => {
 			if (this.editor.model?.elementSelectionState.active) {
-				void this.editor.model.toggleElementSelection(false);
+				void this.editor.model.toggleElementSelection(false).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 			const submittedComments = [...this._commentReferences]
 				.filter(([, reference]) => reference.widget.viewModel && isEqual(reference.widget.viewModel.sessionResource, event.chatSessionResource));
@@ -605,7 +606,7 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 				body: line.slice(variable.range.endColumn - 1).trimStart()
 			});
 		}
-		void browserModel.setElementComments({ comments, pendingCommentIdsToDiscard });
+		void browserModel.setElementComments({ comments, pendingCommentIdsToDiscard }).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _removeElementCommentReference(browserModel: IBrowserViewModel, elementId: string): void {
@@ -646,7 +647,7 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 		}
 		this._commentModelListeners.deleteAndDispose(browserModel);
 		if (syncComments) {
-			void browserModel.setElementComments({ comments: [] });
+			void browserModel.setElementComments({ comments: [] }).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -777,7 +778,7 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 
 		// Toggle off if already active — second invocation cancels.
 		if (model.isAreaSelectionActive) {
-			void model.toggleAreaSelection(false);
+			void model.toggleAreaSelection(false).catch(onUnexpectedError).catch(onUnexpectedError);
 			return;
 		}
 
@@ -787,7 +788,7 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 		// or `undefined` on cancellation, so we don't have to reconcile rect vs.
 		// activation-state events across the IPC boundary.
 		const pickPromise = Event.toPromise(Event.once(model.onDidPickArea));
-		void model.toggleAreaSelection(true);
+		void model.toggleAreaSelection(true).catch(onUnexpectedError).catch(onUnexpectedError);
 		const rect = await pickPromise;
 
 		if (!rect) {

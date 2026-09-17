@@ -5,6 +5,7 @@
 
 import { localize, localize2 } from '../../../../../nls.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { assertNever } from '../../../../../base/common/assert.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
@@ -71,7 +72,7 @@ export class BrowserPermissionsFeature extends BrowserEditorContribution {
 			if (e.device) {
 				this._onDidRequestDevice(e.origin, e.device);
 			} else {
-				void this._onDidRequestPermission(e.origin, e.category);
+				void this._onDidRequestPermission(e.origin, e.category).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 		// Close any open device choosers when the model goes away.
@@ -131,11 +132,11 @@ export class BrowserPermissionsFeature extends BrowserEditorContribution {
 			cancelButton: true,
 		});
 		if (result === 'allow' || result === 'deny') {
-			void model.setPermissions(origin, [{ category, state: result }]);
+			void model.setPermissions(origin, [{ category, state: result }]).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			// Signal an explicit cancel so the pending page request rejects
 			// immediately without recording a persisted decision.
-			void model.setPermissions(origin, [{ category, state: null }]);
+			void model.setPermissions(origin, [{ category, state: null }]).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -214,7 +215,7 @@ function showDevicePicker(quickInputService: IQuickInputService, model: IBrowser
 			return;
 		}
 		resolved = true;
-		void model.selectDevice(request.requestId, deviceId);
+		void model.selectDevice(request.requestId, deviceId).catch(onUnexpectedError).catch(onUnexpectedError);
 	};
 
 	const setDevices = (devices: readonly { deviceId: string; label: string; detail?: string }[]) => {
@@ -340,7 +341,7 @@ function showPermissionsPicker(quickInputService: IQuickInputService, model: IBr
 			return;
 		}
 		const grants = [...edits].map(([category, state]) => ({ category, state }));
-		void model.setPermissions(origin, grants);
+		void model.setPermissions(origin, grants).catch(onUnexpectedError).catch(onUnexpectedError);
 		picker.hide();
 	}));
 

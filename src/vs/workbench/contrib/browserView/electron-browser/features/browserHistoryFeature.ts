@@ -6,6 +6,7 @@
 import { localize, localize2 } from '../../../../../nls.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { Emitter } from '../../../../../base/common/event.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -245,19 +246,19 @@ function showHistoryPicker(quickInputService: IQuickInputService, model: IBrowse
 
 	disposables.add(picker.onDidTriggerButton(button => {
 		if (button === clearAllButton) {
-			void model.deleteHistory();
+			void model.deleteHistory().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}));
 
 	disposables.add(picker.onDidTriggerSeparatorButton(({ button, separator }) => {
 		if (button === clearDayButton) {
-			void model.deleteHistory((separator as HistorySeparator).entryIds);
+			void model.deleteHistory((separator as HistorySeparator).entryIds).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}));
 
 	disposables.add(picker.onDidTriggerItemButton(({ button, item }) => {
 		if (button === removeEntryButton) {
-			void model.deleteHistory([item.entryId]);
+			void model.deleteHistory([item.entryId]).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}));
 
