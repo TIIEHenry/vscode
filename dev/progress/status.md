@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "SessionStream + L2 envelope leftover 已合入。D675/D676 与 chat leftover catch 已合入。F 槽 sources leftover Promise 双链进行中。D24 仍开。不是 leftover/pills 完成。"
+summary: "SessionStream + L2 leftover 已合入。catch 批次含 sources D677。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -14,15 +14,13 @@ summary: "SessionStream + L2 envelope leftover 已合入。D675/D676 与 chat le
 | 切片 | 提交 |
 |:-----|:-----|
 | **A SessionStream / L2** | 16/23/30–32/34–39/44/46/50–52；envelope leftover |
-| **D D675/D676** | 终端进度条 leftover 双链 |
-| **A/F catch** | toolsList / settings / origin / input picker |
+| **catch** | 终端进度条；toolsList/settings/origin/picker；sources D677 |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **F** | sources leftover Promise 双链（progress invalidate + Review/Changes onDidOpen）；D24 仍开；不是 leftover/pills 完成 |
-| **A/D** | 下一 leftover catch 批次（跳 opener 单链若属 D145 口径） |
+| **A** | universeAgent 散点 leftover catch（reconnect / pullNow） |
 | **B** | 脏；跳过 |
 | **C** | gitlink 脏；勿 add |
 | **E** | blocked |
