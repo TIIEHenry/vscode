@@ -36,6 +36,7 @@ import { LifecyclePhase } from '../../../../../services/lifecycle/common/lifecyc
 import { IBreadcrumbsDataSource, IBreadcrumbsOutlineElement, IOutline, IOutlineComparator, IOutlineCreator, IOutlineListConfig, IOutlineService, IQuickPickDataSource, IQuickPickOutlineElement, OutlineChangeEvent, OutlineConfigCollapseItemsValues, OutlineConfigKeys, OutlineTarget } from '../../../../../services/outline/browser/outline.js';
 import { OutlineEntry } from '../../viewModel/OutlineEntry.js';
 import { CancellationToken } from '../../../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { IModelDeltaDecoration } from '../../../../../../editor/common/model.js';
 import { Range } from '../../../../../../editor/common/core/range.js';
 import { IContextMenuService } from '../../../../../../platform/contextview/browser/contextView.js';
@@ -713,7 +714,7 @@ export class NotebookCellOutline implements IOutline<OutlineEntry> {
 	private async computeSymbols(cancelToken: CancellationToken = CancellationToken.None) {
 		if (this._target === OutlineTarget.OutlinePane && this.outlineShowCodeCellSymbols) {
 			// No need to wait for this, we want the outline to show up quickly.
-			void this.doComputeSymbols(cancelToken);
+			void this.doComputeSymbols(cancelToken).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 	public async doComputeSymbols(cancelToken: CancellationToken): Promise<void> {

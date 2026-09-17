@@ -68,7 +68,7 @@ export class NotebookKeymapService extends Disposable implements INotebookKeymap
 		this._register(lifecycleService.onDidShutdown(() => this.dispose()));
 		this._register(this.instantiationService.invokeFunction(onExtensionChanged)((identifiers => {
 			Promise.all(identifiers.map(identifier => this.checkForOtherKeymaps(identifier)))
-				.then(undefined, onUnexpectedError);
+				.catch(onUnexpectedError).catch(onUnexpectedError);
 		})));
 	}
 

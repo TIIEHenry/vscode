@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D681/D682 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D684 notebook leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1048,3 +1048,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D680 | P3 | **closed** conversation leftover Promise 双链三处：IdentityStrip 引擎 chip / Reveal Explorer `executeCommand`；visualize Reset `postMessage`。跳过 inbox `onQueueRetryClicked`（sync）、Connect catalog、grpc Wire、D145。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 D；`npm run transpile-client` 后 identity+visualize mocha **27/0**。未 commit。勿 add `out`。 | 三处双链。未关 D24。leftover 程序未全局完成。 | workbench / conversation | closed |
 | D681 | P3 | **closed** chat plugin leftover Promise 双链：AutoUpdate `_triggerAutoUpdate`×2；fileBacked `_initialize` / writeDelayer / `_onFileChanged`；install cleanup；impl `readManifest`×3 + `_refreshPlugins` scheduler×4；sources timeoutHandle.then；marketplace update-check；workspace `_readSettings`×2。跳过已双链/opener/D145/sync void/grpc/Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；增量 esbuild 后 `node test/unit/node/index.js --run src/vs/workbench/contrib/chat/test/node/pluginLeftoverPromiseCatchScan.test.ts` **8/0**（源扫 7 + Errors 1）。未 commit。勿 add `out`。 | 上述 call site 双链。未关 D24。leftover 程序未全局完成。 | workbench / chat-plugin | closed |
 | D682 | P3 | **closed** `webContentsViewRendererFeature.ts` leftover Promise 双链九处：`_doScreenshot`×4；`_handleKeyEvent`；`setVisible`×3；`focus`。跳过 DOM `_container?.focus()`。未改 opener / D145 / grpc *Wire / Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；增量 esbuild（client 成、extensions 缺 esbuild 包红）后 `node test/unit/node/index.js --run src/vs/workbench/contrib/browserView/test/node/webContentsViewRendererFeatureCatchScan.test.ts` **2/0**（源扫 1 + Errors 1）。未 commit。勿 add `out`。 | 九处双链；DOM focus 仍裸。未关 D24。leftover 程序未全局完成。 | workbench / browserView | closed |
+| D684 | P3 | **closed** notebook leftover Promise 双链八处：outline `doComputeSymbols`；find `replaceOne`/`replaceAll` then×2；findModel highlight then×2 + 丢 Promise×2；keymap `Promise.all` 单链。跳过 opener / D145 / D660 / grpc *Wire / Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；增量 esbuild 后 `node test/unit/node/index.js --run src/vs/workbench/contrib/notebook/test/node/notebookLeftoverPromiseCatchScan.test.ts` **6/0**（源扫 5 + Errors 1）。未 commit。勿 add `out`。 | 八处双链；opener 仍裸。未关 D24。leftover 程序未全局完成。 | workbench / notebook | closed |
