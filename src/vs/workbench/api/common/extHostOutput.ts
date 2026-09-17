@@ -16,6 +16,7 @@ import { IExtHostInitDataService } from './extHostInitDataService.js';
 import { IExtHostFileSystemInfo } from './extHostFileSystemInfo.js';
 import { toLocalISOString } from '../../../base/common/date.js';
 import { VSBuffer } from '../../../base/common/buffer.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { isString } from '../../../base/common/types.js';
 import { FileSystemProviderErrorCode, toFileSystemProviderErrorCode } from '../../../platform/files/common/files.js';
 import { Emitter } from '../../../base/common/event.js';
@@ -225,7 +226,7 @@ export class ExtHostOutputService implements ExtHostOutputServiceShape {
 				throw new Error('Channel has been closed');
 			}
 		};
-		channelPromise.then(channel => channelDisposables.add(channel));
+		channelPromise.then(channel => channelDisposables.add(channel)).catch(onUnexpectedError).catch(onUnexpectedError);
 		return {
 			get name(): string { return name; },
 			append(value: string): void {
@@ -274,7 +275,7 @@ export class ExtHostOutputService implements ExtHostOutputServiceShape {
 				setLogLevel(channel.logLevel);
 			}
 			channelDisposables.add(channel.onDidChangeLogLevel(e => setLogLevel(e)));
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 		return {
 			...this.createExtHostOutputChannel(name, channelPromise, channelDisposables),
 			get logLevel() { return logLevel; },

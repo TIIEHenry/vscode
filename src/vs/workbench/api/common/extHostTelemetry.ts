@@ -14,6 +14,7 @@ import { ExtensionIdentifier, IExtensionDescription } from '../../../platform/ex
 import { UIKind } from '../../services/extensions/common/extensionHostProtocol.js';
 import { cleanData, cleanRemoteAuthority, TelemetryLogGroup } from '../../../platform/telemetry/common/telemetryUtils.js';
 import { mixin } from '../../../base/common/objects.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { localize } from '../../../nls.js';
 
@@ -325,7 +326,7 @@ export class ExtHostTelemetryLogger {
 		if (this._sender?.flush) {
 			let tempSender: vscode.TelemetrySender | undefined = this._sender;
 			this._sender = undefined;
-			Promise.resolve(tempSender.flush!()).then(tempSender = undefined);
+			Promise.resolve(tempSender.flush!()).then(tempSender = undefined).catch(onUnexpectedError).catch(onUnexpectedError);
 			this._apiObject = undefined;
 		} else {
 			this._sender = undefined;

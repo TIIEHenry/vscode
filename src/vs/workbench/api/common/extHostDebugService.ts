@@ -7,6 +7,7 @@ import type * as vscode from 'vscode';
 import { coalesce } from '../../../base/common/arrays.js';
 import { asPromise } from '../../../base/common/async.js';
 import { CancellationToken } from '../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable as DisposableCls, toDisposable } from '../../../base/common/lifecycle.js';
 import { ThemeIcon as ThemeIconUtils } from '../../../base/common/themables.js';
@@ -162,7 +163,7 @@ export abstract class ExtHostDebugServiceBase extends DisposableCls implements I
 				this.registerAllDebugTypes(extensionRegistry);
 			}));
 			this.registerAllDebugTypes(extensionRegistry);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this._telemetryProxy = extHostRpcService.getProxy(MainContext.MainThreadTelemetry);
 	}
