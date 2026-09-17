@@ -58,7 +58,7 @@ import { IActivityService, NumberBadge } from '../../../services/activity/common
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { ILocalizedString } from '../../../../platform/action/common/action.js';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { CancellationError } from '../../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { IRemoteAgentService } from '../../../services/remote/common/remoteAgentService.js';
 import { IExtensionsWorkbenchService } from '../../extensions/common/extensions.js';
 import { WorkspaceStateSynchroniser } from '../common/workspaceStateSync.js';
@@ -304,7 +304,7 @@ export class EditSessionsContribution extends Disposable implements IWorkbenchCo
 
 			run(accessor: ServicesAccessor, ...args: unknown[]) {
 				const outputChannel = accessor.get(IOutputService);
-				void outputChannel.showChannel(editSessionsLogId);
+				void outputChannel.showChannel(editSessionsLogId).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -1003,7 +1003,7 @@ export class EditSessionsContribution extends Disposable implements IWorkbenchCo
 				const selection = quickPick.activeItems[0].command;
 
 				if (selection === installAdditionalContinueOnOptionsCommand.id) {
-					void this.commandService.executeCommand(installAdditionalContinueOnOptionsCommand.id);
+					void this.commandService.executeCommand(installAdditionalContinueOnOptionsCommand.id).catch(onUnexpectedError).catch(onUnexpectedError);
 				} else {
 					resolve(selection);
 					quickPick.hide();

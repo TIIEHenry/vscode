@@ -5,6 +5,7 @@
 
 import { IStringDictionary } from '../../../../base/common/collections.js';
 import { IPolicyData } from '../../../../base/common/defaultAccount.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { equals } from '../../../../base/common/objects.js';
 import { ManagedSettingValue, ManagedSettingsData } from '../../../../base/common/policy.js';
@@ -138,7 +139,7 @@ export class AccountPolicyService extends AbstractPolicyService implements IPoli
 		// so the gate doesn't stay stuck on `noAccount`.
 		this.defaultAccountService.getDefaultAccount().then(() => {
 			this._updatePolicyDefinitions(this.policyDefinitions);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	protected async _updatePolicyDefinitions(policyDefinitions: IStringDictionary<PolicyDefinition>): Promise<void> {
