@@ -412,6 +412,11 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * `shouldRefreshAgentTree` reads presence only.
  * `streaming_delta`=30 (StreamingDeltaEvent 1–6);
  * `thinking_delta`=31 (SessionStreamThinkingDeltaEvent 1–6, same layout);
+ * `tool_call_lifecycle`=32 ToolCallLifecycleEvent (`turn_id`=2
+ * `tool_call_id`=3 `agent_id`=4; present empty nested → `{}`).
+ * fileMutationJoin `onToolCallLifecycle` / sessionViewHost
+ * `captureToolAttributionHint` read those three keys. `runtime_epoch`=1
+ * and oneof `change` 10–13 unread.
  * `generating_tool`=34 GeneratingToolEvent (`runtime_epoch`=1 `turn_id`=2
  * `agent_id`=3 optional `tool_name`=4). OverlayDeltaJoin `applyGenerating`
  * reads `turn_id` + `tool_name`; `runtime_epoch` / `agent_id` decoded for
@@ -459,6 +464,7 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * `generating_tool` / `turn_lifecycle` and demuxSessionStreamPayload
  * `session_purged` / `runtime_overlay_snapshot` /
  * `permission_request` / `ask_user_question` / `client_tool_call`,
+ * fileMutationJoin / sessionViewHost `tool_call_lifecycle`,
  * and `shouldRefreshAgentTree` `branch_topology_notified` /
  * `sub_agent_activity` / `sub_agent_completed` / `detached_child_phase` /
  * `multi_agent_status`.
@@ -513,6 +519,10 @@ export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessio
 	const thinkingDelta = lastBytes(fields, 31);
 	if (thinkingDelta) {
 		payload.thinking_delta = decodeStreamingDelta(thinkingDelta);
+	}
+	const toolCallLifecycle = lastBytes(fields, 32);
+	if (toolCallLifecycle !== undefined) {
+		payload.tool_call_lifecycle = decodeToolCallLifecycleEvent(toolCallLifecycle);
 	}
 	const generatingTool = lastBytes(fields, 34);
 	if (generatingTool) {
@@ -691,6 +701,23 @@ function decodeTeamCreated(bytes: Uint8Array): Record<string, unknown> {
 	const teamId = lastVarint(fields, 1);
 	return {
 		...(teamId !== undefined ? { team_id: Number(teamId) } : {}),
+	};
+}
+
+/**
+ * ToolCallLifecycleEvent — present empty nested → `{}`. Nested
+ * `turn_id`=2 `tool_call_id`=3 `agent_id`=4. `runtime_epoch`=1 and
+ * oneof `change` 10–13 unread. proto3: empty / 0 omitted.
+ */
+function decodeToolCallLifecycleEvent(bytes: Uint8Array): Record<string, unknown> {
+	const fields = readProtoFields(bytes);
+	const turnId = lastString(fields, 2);
+	const toolCallId = lastString(fields, 3);
+	const agentId = lastString(fields, 4);
+	return {
+		...(turnId ? { turn_id: turnId } : {}),
+		...(toolCallId ? { tool_call_id: toolCallId } : {}),
+		...(agentId ? { agent_id: agentId } : {}),
 	};
 }
 

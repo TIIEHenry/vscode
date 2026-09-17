@@ -599,6 +599,49 @@ suite('grpc first-send / attach protobuf wire', () => {
 		});
 	});
 
+	test('decodeSessionStreamEvent reads nested tool_call_lifecycle=32 ToolCallLifecycleEvent 2-4; unused unread', () => {
+		const lifecycle = Buffer.concat([
+			encodeInt64Field(1, 9),
+			encodeStringField(2, 'turn-lc'),
+			encodeStringField(3, 'tc-lc'),
+			encodeStringField(4, 'agent-lc'),
+			encodeStringField(99, 'unused-nested-field'),
+		]);
+		const encoded = Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodeMessageField(32, lifecycle),
+			encodeStringField(99, 'unused-stream-field'),
+		]);
+		const decoded = decodeSessionStreamEvent(encoded);
+		const payload = decoded.payload as {
+			session_id?: string;
+			tool_call_lifecycle?: {
+				turn_id?: string;
+				tool_call_id?: string;
+				agent_id?: string;
+				runtime_epoch?: number;
+			};
+		};
+		assert.strictEqual(payload.session_id, 'sess-1');
+		assert.deepStrictEqual(payload.tool_call_lifecycle, {
+			turn_id: 'turn-lc',
+			tool_call_id: 'tc-lc',
+			agent_id: 'agent-lc',
+		});
+		assert.ok(!('runtime_epoch' in (payload.tool_call_lifecycle ?? {})));
+		assert.ok(!('toolCallLifecycle' in payload));
+		assert.ok(!('toolCallId' in (payload.tool_call_lifecycle ?? {})));
+		assert.ok(!('turnId' in (payload.tool_call_lifecycle ?? {})));
+		assert.ok(!('agentId' in (payload.tool_call_lifecycle ?? {})));
+		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
+		const omitted = decodeSessionStreamEvent(encodeStringField(1, 'sess-2'));
+		assert.strictEqual((omitted.payload as { tool_call_lifecycle?: unknown }).tool_call_lifecycle, undefined);
+		assert.ok(!('tool_call_lifecycle' in (omitted.payload as object)));
+		const emptyNested = decodeSessionStreamEvent(encodePresentMessageField(32, new Uint8Array(0)));
+		assert.ok('tool_call_lifecycle' in (emptyNested.payload as object));
+		assert.deepStrictEqual((emptyNested.payload as { tool_call_lifecycle?: unknown }).tool_call_lifecycle, {});
+	});
+
 	test('decodeSessionStreamEvent reads nested generating_tool=34 GeneratingToolEvent 1-4; unused unread', () => {
 		const generating = Buffer.concat([
 			encodeInt64Field(1, 9),
