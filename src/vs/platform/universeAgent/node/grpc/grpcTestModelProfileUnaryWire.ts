@@ -5,6 +5,7 @@
 
 import type { UniverseAgentTestModelProfileRequest } from '../../common/universeAgentTypes.js';
 import {
+	encodeMessageField,
 	encodeStringField,
 	lastString,
 	lastVarint,
@@ -22,8 +23,9 @@ export interface TestModelProfileResponseWire {
 
 /**
  * AgentService.TestModelProfile — `provider_id`=1 `model_id`=2 `api_key`=3
- * `base_url`=4 `protocol`=5. map `params`=6 unused unread / omit on encode
- * (no invented map encoding). proto3: empty strings omitted.
+ * `base_url`=4 `protocol`=5 map `params`=6 (repeated MapEntry `key`=1 `value`=2).
+ * proto3: empty strings / empty map omitted. Empty key/value omitted per
+ * `encodeStringStringMap` (same helper as MCP env / Config values).
  */
 export function encodeTestModelProfileRequest(request: UniverseAgentTestModelProfileRequest): Uint8Array {
 	return Buffer.concat([
@@ -32,7 +34,19 @@ export function encodeTestModelProfileRequest(request: UniverseAgentTestModelPro
 		encodeStringField(3, request.apiKey),
 		encodeStringField(4, request.baseUrl),
 		encodeStringField(5, request.protocol),
+		encodeStringStringMap(6, request.params),
 	]);
+}
+
+/** proto3 `map<string,string>` = repeated MapEntry (`key`=1 `value`=2). */
+function encodeStringStringMap(field: number, values: Readonly<Record<string, string>> | undefined): Buffer {
+	if (!values) {
+		return Buffer.alloc(0);
+	}
+	return Buffer.concat(Object.entries(values).map(([key, value]) => encodeMessageField(field, Buffer.concat([
+		encodeStringField(1, key),
+		encodeStringField(2, value),
+	]))));
 }
 
 /**
