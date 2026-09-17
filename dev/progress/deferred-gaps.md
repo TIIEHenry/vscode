@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D708、D710 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D711 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1074,4 +1074,6 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D706 | P3 | **closed** leftover Promise 双链八处：parts whenInstalled×3；layout whenStylesHaveLoaded；menubar getRecentlyOpened×2；treeView setInput；editorStatus detectLanguage。跳过 opener/D145/sync void/grpc *Wire/Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；`workbenchPartsLeftoverPromiseCatchScan.test.ts` **9/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / parts leftover | closed |
 | D707 | P3 | **closed** leftover Promise 双链八处：idle/Immediate `_initializeIfNeeded`；portPromise；workspaceContains Promise.all；activateByEvent forEach；deferred remote；added extension；crash stopHosts。跳过 opener/D145/two-arg/Resolve/Connect。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 D；`extensionsServicesRemainingLeftoverPromiseCatchScan.test.ts` **10/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / extensions leftover | closed |
 | D708 | P3 | **closed** leftover Promise 双链八处：extHostWindow/getInitialState；editorTabs whenReady；treeViews whenInstalled；config/search getConfigProvider；LM tools；workspace getComplete；logger createLogger。跳过 opener/D145/Watch/Connect/Pty/two-arg。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`workbenchApiLeftoverPromiseCatchScan.test.ts` **11/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / api leftover | closed |
+| D709 | P3 | **closed** leftover Promise 双链八处：FormatOnType then+finally；gotoDefinition 单 catch；startFindDefinition；waitForDiff；unusualLineTerminators×4。跳过 opener/Resolve/two-arg/D703 已双链。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`editorRemainingLeftoverPromiseCatchScan.test.ts` **6/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | editor / leftover remaining | closed |
 | D710 | P3 | **closed** leftover Promise 双链八处：conversation OPEN_CONNECTION executeCommand（tools/skills/triggers×2/mcp/preferences/overview×2）。跳过 D701 engineAgents / D145 / opener。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`conversationLeftoverPromiseCatchScan.test.ts` **8/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / conversation leftover | closed |
+| D711 | P3 | **closed** leftover Promise 双链八处：nativeManagedSettings initializeInBackground；metered SetIsBrowserConnectionMetered×2；extensionTips promptExe×2；webWorker worker.then×3。跳过 opener/D145/windows/D696/D700/D705。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`platformRemainingLeftoverPromiseCatchScan.test.ts` **7/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | platform / leftover remaining | closed |
