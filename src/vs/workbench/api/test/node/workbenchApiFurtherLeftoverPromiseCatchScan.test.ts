@@ -115,7 +115,7 @@ suite('workbench/api further leftover Promise fire-and-forget catch scan (D717)'
 						send(typeConvert.ChatTaskResult.from(res), myHandle);
 					})`;
 		assertDoubleThen(source, allThen);
-		assertDoubleThen(source, 'p.then((value) => part.didGetApplied(value))');
+		assertDoubleThen(source, 'void Promise.resolve(p).then((value) => part.didGetApplied(value))');
 		assert.ok(source.includes('part.resolve(cts.token)'));
 		assert.ok(source.includes('.then(() => cts.dispose(), () => cts.dispose());'));
 		assert.ok(!/part\.resolve\([^;]+\)[\s\S]{0,220}\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));

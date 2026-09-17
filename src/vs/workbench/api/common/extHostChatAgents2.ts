@@ -447,7 +447,7 @@ export class ChatAgentResponseStream {
 						}
 					} else if (part instanceof extHostTypes.ChatResponseExternalEditPart) {
 						const p = this.externalEdit(part.uris, part.callback);
-						p.then((value) => part.didGetApplied(value)).catch(onUnexpectedError).catch(onUnexpectedError);
+						void Promise.resolve(p).then((value) => part.didGetApplied(value)).catch(onUnexpectedError).catch(onUnexpectedError);
 						return this;
 					} else {
 						const dto = typeConvert.ChatResponsePart.from(part, that._commandsConverter, that._sessionDisposables);
