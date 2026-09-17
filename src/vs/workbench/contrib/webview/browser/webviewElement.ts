@@ -293,7 +293,7 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 					path: decodeURIComponent(entry.path), // This gets re-encoded
 					query: entry.query ? decodeURIComponent(entry.query) : entry.query,
 				});
-				this.loadResource(entry.id, uri, { ifNoneMatch: entry.ifNoneMatch, range: entry.range }, this._resourceLoadingCts.token);
+				this.loadResource(entry.id, uri, { ifNoneMatch: entry.ifNoneMatch, range: entry.range }, this._resourceLoadingCts.token).catch(onUnexpectedError).catch(onUnexpectedError);
 			} catch (e) {
 				this._send('did-load-resource', {
 					id: entry.id,
@@ -304,7 +304,7 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 		}));
 
 		this._register(this.on('load-localhost', (entry) => {
-			this.localLocalhost(entry.id, entry.origin);
+			this.localLocalhost(entry.id, entry.origin).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this._register(Event.runAndSubscribe(webviewThemeDataProvider.onThemeDataChanged, () => this.style()));
@@ -992,7 +992,7 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 			this.window?.document.body?.focus();
 
 			this._send('focus', undefined);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	protected readonly _hasFindResult = this._register(new Emitter<boolean>());

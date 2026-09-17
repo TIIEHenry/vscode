@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { isMacintosh } from '../../../../base/common/platform.js';
 import { ProxyChannel } from '../../../../base/parts/ipc/common/ipc.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -41,7 +42,7 @@ export class WindowIgnoreMenuShortcutsManager {
 
 	protected setIgnoreMenuShortcuts(value: boolean) {
 		if (this._shouldToggleMenuShortcutsEnablement) {
-			this._webviewMainService.setIgnoreMenuShortcuts({ windowId: this._nativeHostService.windowId }, value);
+			this._webviewMainService.setIgnoreMenuShortcuts({ windowId: this._nativeHostService.windowId }, value).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 }
