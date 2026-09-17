@@ -8,13 +8,13 @@ import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import type { UniverseAgentResolveModelResult } from '../../common/universeAgentTypes.js';
+import { mapResolveModelResponse } from '../../node/grpc/grpcClientMappersCatalog.js';
 import {
 	decodeResolveModelResponse,
 	encodeResolveModelRequest,
-	type ResolveModelResponseWire,
 } from '../../node/grpc/grpcResolveModelUnaryWire.js';
 import {
+	encodeInt32Field,
 	encodeMessageField,
 	encodeStringField,
 	readProtoFields,
@@ -64,37 +64,153 @@ suite('grpc ConfigService ResolveModel protobuf wire', () => {
 		}).length, 0);
 	});
 
-	test('decodeResolveModelResponse unread nested ModelEntry; returns {}; mapper missing nested → no selected, empty arrays', () => {
-		const nested = Buffer.concat([
-			encodeStringField(1, 'unused-id'),
-			encodeStringField(2, 'unused-type'),
-			encodeStringField(5, 'unused-description'),
+	test('decodeResolveModelResponse reads selected=1 candidates=2 filtered=3 ModelEntry; mapper non-empty', () => {
+		const selected = Buffer.concat([
+			encodeStringField(1, 'fast'),
+			encodeStringField(2, 'chat'),
+			encodeInt32Field(3, 1),
+			encodeInt32Field(4, 7),
+			encodeStringField(5, 'fast chat'),
+			encodeStringField(6, 'low'),
+			encodeStringField(7, 'high'),
+			encodeStringField(8, 'openai'),
+			encodeStringField(9, 'gpt-fast'),
+			encodeStringField(10, 'unused-nested'),
+		]);
+		const candidate = Buffer.concat([
+			encodeStringField(1, 'cand-1'),
+			encodeStringField(2, 'chat'),
+			encodeInt32Field(3, 1),
+			encodeStringField(9, 'gpt-cand'),
+		]);
+		const sparseCandidate = encodeStringField(1, 'cand-2');
+		const filtered = Buffer.concat([
+			encodeStringField(1, 'filt-1'),
+			encodeStringField(2, 'embed'),
+			encodeStringField(8, 'local'),
 		]);
 		const encoded = Buffer.concat([
-			encodeMessageField(1, nested),
-			encodeMessageField(2, nested),
-			encodeMessageField(3, nested),
+			encodeMessageField(1, selected),
+			encodeMessageField(2, candidate),
+			encodeMessageField(2, sparseCandidate),
+			encodeMessageField(3, filtered),
 			encodeStringField(4, 'unused-field'),
 		]);
 		assert.notStrictEqual(encoded[0], 0x7b);
 		const wire = decodeResolveModelResponse(encoded);
-		assert.deepStrictEqual(wire, {});
-		assert.ok(!('selected' in wire));
-		assert.ok(!('candidates' in wire));
-		assert.ok(!('filtered' in wire));
+		assert.deepStrictEqual(wire, {
+			selected: {
+				id: 'fast',
+				type: 'chat',
+				enabled: true,
+				level: 7,
+				description: 'fast chat',
+				cost: 'low',
+				speed: 'high',
+				provider: 'openai',
+				model_id: 'gpt-fast',
+			},
+			candidates: [
+				{
+					id: 'cand-1',
+					type: 'chat',
+					enabled: true,
+					level: undefined,
+					description: undefined,
+					cost: undefined,
+					speed: undefined,
+					provider: undefined,
+					model_id: 'gpt-cand',
+				},
+				{
+					id: 'cand-2',
+					type: '',
+					enabled: false,
+					level: undefined,
+					description: undefined,
+					cost: undefined,
+					speed: undefined,
+					provider: undefined,
+					model_id: undefined,
+				},
+			],
+			filtered: [
+				{
+					id: 'filt-1',
+					type: 'embed',
+					enabled: false,
+					level: undefined,
+					description: undefined,
+					cost: undefined,
+					speed: undefined,
+					provider: 'local',
+					model_id: undefined,
+				},
+			],
+		});
 		assert.ok(!('unused' in wire));
 		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
-		assert.deepStrictEqual(mapResolveModelResponse(wire), {
+		const mapped = mapResolveModelResponse(wire);
+		assert.deepStrictEqual(mapped, {
+			selected: {
+				id: 'fast',
+				type: 'chat',
+				enabled: true,
+				level: 7,
+				description: 'fast chat',
+				cost: 'low',
+				speed: 'high',
+				provider: 'openai',
+				modelId: 'gpt-fast',
+			},
+			candidates: [
+				{
+					id: 'cand-1',
+					type: 'chat',
+					enabled: true,
+					level: 0,
+					description: undefined,
+					cost: undefined,
+					speed: undefined,
+					provider: '',
+					modelId: 'gpt-cand',
+				},
+				{
+					id: 'cand-2',
+					type: '',
+					enabled: false,
+					level: 0,
+					description: undefined,
+					cost: undefined,
+					speed: undefined,
+					provider: '',
+					modelId: '',
+				},
+			],
+			filtered: [
+				{
+					id: 'filt-1',
+					type: 'embed',
+					enabled: false,
+					level: 0,
+					description: undefined,
+					cost: undefined,
+					speed: undefined,
+					provider: 'local',
+					modelId: '',
+				},
+			],
+		});
+		assert.ok(mapped.selected);
+		assert.ok(mapped.candidates.length > 0);
+		assert.ok(mapped.filtered.length > 0);
+
+		const empty = decodeResolveModelResponse(new Uint8Array(0));
+		assert.deepStrictEqual(empty, {
 			candidates: [],
 			filtered: [],
 		});
-		assert.ok(!('selected' in mapResolveModelResponse(wire)));
-
-		const empty = decodeResolveModelResponse(new Uint8Array(0));
-		assert.deepStrictEqual(empty, {});
 		assert.ok(!('selected' in empty));
-		assert.ok(!('candidates' in empty));
-		assert.ok(!('filtered' in empty));
 		assert.deepStrictEqual(mapResolveModelResponse(empty), {
 			candidates: [],
 			filtered: [],
@@ -102,7 +218,11 @@ suite('grpc ConfigService ResolveModel protobuf wire', () => {
 		assert.ok(!('selected' in mapResolveModelResponse(empty)));
 
 		const unusedOnly = decodeResolveModelResponse(encodeStringField(4, 'unused-field'));
-		assert.deepStrictEqual(unusedOnly, {});
+		assert.deepStrictEqual(unusedOnly, {
+			candidates: [],
+			filtered: [],
+		});
+		assert.strictEqual(JSON.stringify(unusedOnly).includes('unused'), false);
 		assert.deepStrictEqual(mapResolveModelResponse(unusedOnly), {
 			candidates: [],
 			filtered: [],
@@ -116,7 +236,11 @@ suite('grpc ConfigService ResolveModel protobuf wire', () => {
 		assert.ok(/\bdecodeResolveModelResponse\b/.test(source));
 		assert.ok(/\bencodeStringField\b/.test(source));
 		assert.ok(/\breadProtoFields\b/.test(source));
-		assert.ok(!/\bdecodeModelEntry\b|\blastBytes\b|\ballLengthDelimited\b/.test(source));
+		assert.ok(/\bdecodeModelEntry\b/.test(source));
+		assert.ok(/\blastBytes\b/.test(source));
+		assert.ok(/\ballLengthDelimited\b/.test(source));
+		assert.ok(/\blastString\b/.test(source));
+		assert.ok(/\blastVarint\b/.test(source));
 		assert.ok(!/\bSaveSkillContent\b|\bWatch\b/.test(source));
 		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
 		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
@@ -128,7 +252,7 @@ suite('grpc ConfigService ResolveModel protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('resolveModel uses bytes then existing map; skip Connect/SaveSkillContent/Watch', () => {
+	test('resolveModel uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const resolve = extractMethod(source, 'resolveModel');
 		assert.ok(resolve.includes('makeUnaryBytesClient'), 'resolveModel must use makeUnaryBytesClient');
@@ -141,12 +265,16 @@ suite('grpc ConfigService ResolveModel protobuf wire', () => {
 		assert.ok(!/\bWatch\b/.test(resolve));
 		assert.ok(!/\bSaveSkillContent\b/.test(resolve));
 		assert.ok(!/\bConnect\b/.test(resolve));
+		assert.ok(!/\bResolveTurn\b/.test(resolve));
+		assert.ok(!/\bResolveAnchor\b/.test(resolve));
 	});
 
-	test('skip Connect/SaveSkillContent/Watch; do not lock GetModelPreferences', () => {
+	test('skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor; do not lock GetModelPreferences', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		assert.ok(!extractMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(!extractMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(!extractMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(!extractMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
 		const watchStart = source.indexOf('\topenWatchConfigStream(');
 		assert.ok(watchStart >= 0, 'missing openWatchConfigStream(');
 		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);
@@ -156,29 +284,6 @@ suite('grpc ConfigService ResolveModel protobuf wire', () => {
 		assert.ok(!watchBody.includes('makeUnaryBytesClient'));
 	});
 });
-
-/** TEST mapper: missing nested selected/candidates/filtered → no selected, empty arrays. */
-function mapResolveModelResponse(wire: ResolveModelResponseWire): UniverseAgentResolveModelResult {
-	return {
-		...(wire.selected ? { selected: mapModelEntry(wire.selected) } : {}),
-		candidates: (wire.candidates ?? []).map(mapModelEntry),
-		filtered: (wire.filtered ?? []).map(mapModelEntry),
-	};
-}
-
-function mapModelEntry(wire: NonNullable<ResolveModelResponseWire['selected']>): NonNullable<UniverseAgentResolveModelResult['selected']> {
-	return {
-		id: wire.id ?? '',
-		type: wire.type ?? '',
-		enabled: wire.enabled === true,
-		level: typeof wire.level === 'number' && Number.isFinite(wire.level) ? wire.level : 0,
-		description: wire.description,
-		cost: wire.cost,
-		speed: wire.speed,
-		provider: wire.provider ?? '',
-		modelId: wire.model_id ?? '',
-	};
-}
 
 function grpcDir(): string {
 	const thisDir = path.dirname(fileURLToPath(import.meta.url));

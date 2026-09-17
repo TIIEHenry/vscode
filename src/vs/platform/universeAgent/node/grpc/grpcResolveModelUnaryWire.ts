@@ -4,15 +4,22 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { UniverseAgentResolveModelRequest } from '../../common/universeAgentTypes.js';
-import { encodeStringField, readProtoFields } from './grpcProtoCodec.js';
+import {
+	allLengthDelimited,
+	encodeStringField,
+	lastBytes,
+	lastString,
+	lastVarint,
+	readProtoFields,
+} from './grpcProtoCodec.js';
 
 /**
  * JSON-shaped decode of ConfigService.ResolveModelResponse.
- * Nested `selected`=1 `candidates`=2 `filtered`=3 unread this slice
- * (no nested ModelEntry codecs). Decode returns `{}`.
+ * Nested `selected`=1 `candidates`=2 `filtered`=3 are ModelEntryProto
+ * (`id`=1 `type`=2 `enabled`=3 `level`=4 `description`=5 `cost`=6
+ * `speed`=7 `provider`=8 `model_id`=9). Unknown fields unread.
  * Shape matches catalog `ResolveModelResponseWire` / `mapResolveModelResponse`.
  */
-/** JSON ModelEntry shape only — no nested codec this slice. */
 export interface ResolveModelEntryWire {
 	readonly id?: string;
 	readonly type?: string;
@@ -44,12 +51,34 @@ export function encodeResolveModelRequest(request: UniverseAgentResolveModelRequ
 
 /**
  * ResolveModelResponse — nested `selected`=1 `candidates`=2 `filtered`=3
- * unread this slice (no nested ModelEntry codecs). Unknown fields unread.
- * Decode returns empty wire `{}` (no selected/candidates/filtered fields).
- * Shape matches `mapResolveModelResponse` (missing nested → no selected,
- * empty arrays).
+ * ModelEntryProto (`id`=1 `type`=2 `enabled`=3 `level`=4 `description`=5
+ * `cost`=6 `speed`=7 `provider`=8 `model_id`=9). proto3: empty / 0 omitted.
+ * Unknown fields unread. Missing selected omitted; missing repeated → `[]`.
+ * Shape matches `mapResolveModelResponse`.
  */
 export function decodeResolveModelResponse(bytes: Uint8Array): ResolveModelResponseWire {
-	readProtoFields(bytes);
-	return {};
+	const fields = readProtoFields(bytes);
+	const selected = lastBytes(fields, 1);
+	return {
+		...(selected ? { selected: decodeModelEntry(selected) } : {}),
+		candidates: allLengthDelimited(fields, 2).map(decodeModelEntry),
+		filtered: allLengthDelimited(fields, 3).map(decodeModelEntry),
+	};
+}
+
+/** ModelEntryProto — same field numbers as catalog `decodeModelEntry`. */
+function decodeModelEntry(bytes: Uint8Array): ResolveModelEntryWire {
+	const fields = readProtoFields(bytes);
+	const level = lastVarint(fields, 4);
+	return {
+		id: lastString(fields, 1) ?? '',
+		type: lastString(fields, 2) ?? '',
+		enabled: lastVarint(fields, 3) === 1n,
+		level: level === undefined ? undefined : Number(level),
+		description: lastString(fields, 5),
+		cost: lastString(fields, 6),
+		speed: lastString(fields, 7),
+		provider: lastString(fields, 8),
+		model_id: lastString(fields, 9),
+	};
 }
