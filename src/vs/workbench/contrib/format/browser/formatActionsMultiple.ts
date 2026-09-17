@@ -68,7 +68,7 @@ export class DefaultFormatter extends Disposable implements IWorkbenchContributi
 		this._store.add(_languageFeaturesService.documentFormattingEditProvider.onDidChange(this._updateConfigValues, this));
 		this._store.add(_languageFeaturesService.documentRangeFormattingEditProvider.onDidChange(this._updateConfigValues, this));
 		this._store.add(_configService.onDidChangeConfiguration(e => e.affectsConfiguration(DefaultFormatter.configName) && this._updateStatus()));
-		this._updateConfigValues();
+		this._updateConfigValues().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async _updateConfigValues(): Promise<void> {
@@ -196,7 +196,7 @@ export class DefaultFormatter extends Disposable implements IWorkbenchContributi
 			this._notificationService.prompt(
 				Severity.Info,
 				formatterOrMessage,
-				[{ label: nls.localize('do.config.notification', "Configure..."), run: () => this._pickAndPersistDefaultFormatter(formatter, document) }],
+				[{ label: nls.localize('do.config.notification', "Configure..."), run: () => this._pickAndPersistDefaultFormatter(formatter, document).catch(onUnexpectedError).catch(onUnexpectedError) }],
 				{ priority: NotificationPriority.SILENT }
 			);
 		}
@@ -219,7 +219,7 @@ export class DefaultFormatter extends Disposable implements IWorkbenchContributi
 		this._configService.updateValue(DefaultFormatter.configName, formatter[pick.index].extensionId!.value, {
 			resource: document.uri,
 			overrideIdentifier: document.getLanguageId()
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 		return formatter[pick.index];
 	}
 
@@ -338,7 +338,7 @@ async function showFormatterPick(accessor: ServicesAccessor, model: ITextModel, 
 		const langName = languageService.getLanguageName(model.getLanguageId()) || model.getLanguageId();
 		const pick = await quickPickService.pick(picks, { placeHolder: nls.localize('select', "Select a default formatter for '{0}' files", DefaultFormatter._maybeQuotes(langName)) });
 		if (pick && formatters[pick.index].extensionId) {
-			configService.updateValue(DefaultFormatter.configName, formatters[pick.index].extensionId!.value, overrides);
+			configService.updateValue(DefaultFormatter.configName, formatters[pick.index].extensionId!.value, overrides).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 		return undefined;
 
