@@ -37,12 +37,12 @@ export class ExtHostUrls implements ExtHostUrlsShape {
 		const handle = ExtHostUrls.HandlePool++;
 		this.handles.add(extensionId);
 		this.handlers.set(handle, handler);
-		this._proxy.$registerUriHandler(handle, extensionId, extension.displayName || extension.name);
+		this._proxy.$registerUriHandler(handle, extensionId, extension.displayName || extension.name).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		return toDisposable(() => {
 			this.handles.delete(extensionId);
 			this.handlers.delete(handle);
-			this._proxy.$unregisterUriHandler(handle);
+			this._proxy.$unregisterUriHandler(handle).catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 	}
 

@@ -25,7 +25,7 @@ import * as Platform from '../../../base/common/platform.js';
 import { ILogService } from '../../../platform/log/common/log.js';
 import { IExtHostApiDeprecationService } from './extHostApiDeprecationService.js';
 import { USER_TASKS_GROUP_KEY } from '../../contrib/tasks/common/tasks.js';
-import { ErrorNoTelemetry, NotSupportedError } from '../../../base/common/errors.js';
+import { ErrorNoTelemetry, NotSupportedError, onUnexpectedError } from '../../../base/common/errors.js';
 import { asArray } from '../../../base/common/arrays.js';
 import { ITaskProblemMatcherStartedDto, ITaskProblemMatcherEndedDto } from './shared/tasks.js';
 
@@ -446,7 +446,7 @@ export abstract class ExtHostTaskBase implements ExtHostTaskShape, IExtHostTask 
 		this._activeCustomExecutions2 = new Map<string, types.CustomExecution>();
 		this._logService = logService;
 		this._deprecationService = deprecationService;
-		this._proxy.$registerSupportedExecutions(true);
+		this._proxy.$registerSupportedExecutions(true).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	public registerTaskProvider(extension: IExtensionDescription, type: string, provider: vscode.TaskProvider): vscode.Disposable {
@@ -455,10 +455,10 @@ export abstract class ExtHostTaskBase implements ExtHostTaskShape, IExtHostTask 
 		}
 		const handle = this.nextHandle();
 		this._handlers.set(handle, { type, provider, extension });
-		this._proxy.$registerTaskProvider(handle, type);
+		this._proxy.$registerTaskProvider(handle, type).catch(onUnexpectedError).catch(onUnexpectedError);
 		return new types.Disposable(() => {
 			this._handlers.delete(handle);
-			this._proxy.$unregisterTaskProvider(handle);
+			this._proxy.$unregisterTaskProvider(handle).catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 	}
 
