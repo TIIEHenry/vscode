@@ -5,6 +5,7 @@
 
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { Color } from '../../../../../base/common/color.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { IThemeService } from '../../../../../platform/theme/common/themeService.js';
 import { IActiveCodeEditor, ICodeEditor } from '../../../../browser/editorBrowser.js';
@@ -57,7 +58,7 @@ export class StandaloneColorPickerRenderedParts extends Disposable {
 			this.color = color;
 		}));
 		this._register(colorPickerModel.onDidChangeColor((color: Color) => {
-			updateColorPresentations(editorModel, colorPickerModel, color, colorHover.range, colorHover);
+			updateColorPresentations(editorModel, colorPickerModel, color, colorHover.range, colorHover).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		let editorUpdatedByColorPicker = false;
 		this._register(editor.onDidChangeModelContent((e) => {
@@ -68,7 +69,7 @@ export class StandaloneColorPickerRenderedParts extends Disposable {
 				editor.focus();
 			}
 		}));
-		updateColorPresentations(editorModel, colorPickerModel, this.color, colorHover.range, colorHover);
+		updateColorPresentations(editorModel, colorPickerModel, this.color, colorHover.range, colorHover).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 

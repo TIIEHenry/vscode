@@ -20,6 +20,7 @@ import { EditorOption } from '../../../../common/config/editorOptions.js';
 import { Dimension } from '../../../../../base/browser/dom.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { Color } from '../../../../../base/common/color.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { HoverStartSource } from '../../../hover/browser/hoverOperation.js';
 
 export class ColorHover implements IHoverPart, BaseColor {
@@ -130,7 +131,7 @@ export class HoverColorPickerParticipant implements IEditorHoverParticipant<Colo
 			range = updateEditorModel(editor, range, model);
 		}));
 		disposables.add(model.onDidChangeColor((color: Color) => {
-			updateColorPresentations(editorModel, model, color, range, colorHover);
+			updateColorPresentations(editorModel, model, color, range, colorHover).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		disposables.add(editor.onDidChangeModelContent((e) => {
 			if (editorUpdatedByColorPicker) {

@@ -357,7 +357,7 @@ export class InlayHintsController implements IEditorContribution {
 				const part = label.part;
 				if (part.location) {
 					// location -> execute go to def
-					this._instaService.invokeFunction(goToDefinitionWithLocation, e, this._editor as IActiveCodeEditor, part.location);
+					this._instaService.invokeFunction(goToDefinitionWithLocation, e, this._editor as IActiveCodeEditor, part.location).catch(onUnexpectedError).catch(onUnexpectedError);
 				} else if (languages.Command.is(part.command)) {
 					// command -> execute it
 					await this._invokeCommand(part.command, label.item);
