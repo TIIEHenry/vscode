@@ -18,7 +18,7 @@ class BracketPairColorizer2TelemetryContribution {
 		@IExtensionsWorkbenchService private readonly extensionsWorkbenchService: IExtensionsWorkbenchService,
 		@ITelemetryService private readonly telemetryService: ITelemetryService
 	) {
-		this.init().catch(onUnexpectedError);
+		this.init().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async init(): Promise<void> {
