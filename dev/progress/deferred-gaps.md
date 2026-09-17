@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D775、D770、D772–D774 leftover Promise 双链；D736/D739/D740/D745 跳过。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D779 leftover Promise 双链；D736/D739/D740/D745 跳过。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1136,3 +1136,8 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D772 | P3 | **closed** leftover Promise 双链 mcp leftover FOF（commands / workbench / gateway / server / handler / typesUtils）。跳过 Connect / Watch / returned / two-arg。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`mcpLeftoverPromiseCatchScanD772.test.ts`。勿 add `out`。 | mcp 双链。未关 D24。leftover 程序未全局完成。 | workbench / mcp leftover remaining | closed |
 | D773 | P3 | **closed** leftover Promise 双链 issue 十一处：getSystemInfo / getPerformanceInfo / checkForUpdates / executeCommand / populateSystemInfo / updateSelectedExtension×4 / doSearchSimilarIssues。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`issueLeftoverPromiseCatchScanD773.test.ts`。勿 add `out`。 | 十一处双链。未关 D24。leftover 程序未全局完成。 | workbench / issue leftover remaining | closed |
 | D774 | P3 | **closed** leftover Promise 双链 agentHost 不足 4 点，溢到 accounts：refresh then；scheduler refetch；updateDefaultAccount×4；refetch；getSessions；forceRefresh。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`accountsLeftoverPromiseCatchScanD774.test.ts`。勿 add `out`。 | 九处双链。未关 D24。leftover 程序未全局完成。 | workbench / accounts leftover remaining | closed |
+| D771 | P3 | **closed** leftover Promise 双链 browserView 38 处 leftover FOF。跳过 loadURL / opener / Action2 / assigned / two-arg / custom-catch。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；`browserViewLeftoverPromiseCatchScanD771.test.ts`。勿 add `out`。 | 38 处双链。未关 D24。leftover 程序未全局完成。 | workbench / browserView leftover remaining | closed |
+| D776 | P3 | **closed** leftover Promise 双链 welcomeOnboarding 11 处。跳过 Action.run / opener / already-double / D752。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；`welcomeOnboardingLeftoverPromiseCatchScanD776.test.ts`。勿 add `out`。勿 add D752。 | 11 处双链。未关 D24。leftover 程序未全局完成。 | workbench / welcomeOnboarding leftover remaining | closed |
+| D777 | P3 | **closed** leftover Promise 双链 update leftover remaining（outline 已由 D770 合入）。跳过 two-arg releaseNotes / opener / Action2。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`updateLeftoverPromiseCatchScanD777.test.ts`。勿 add `out`。 | update 双链。未关 D24。leftover 程序未全局完成。 | workbench / update leftover remaining | closed |
+| D778 | P3 | **closed** leftover Promise 双链 policies 不足 4 点，溢到 editSessions：getDefaultAccount then；showManagedSettingsDialog；refresh；showChannel；executeCommand。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`editSessionsLeftoverPromiseCatchScanD778.test.ts`。勿 add `out`。 | 五处双链。未关 D24。leftover 程序未全局完成。 | workbench / policies leftover remaining | closed |
+| D779 | P3 | **closed** leftover Promise 双链 agentsVoice 五处：submitFeedback then；switchToSession×2；focus；picker.show。跳过 Connect / Resolve / already-double。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`agentsVoiceLeftoverPromiseCatchScanD779.test.ts`。勿 add `out`。 | 五处双链。未关 D24。leftover 程序未全局完成。 | workbench / agentsVoice leftover remaining | closed |
