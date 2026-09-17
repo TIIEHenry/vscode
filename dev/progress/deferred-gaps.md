@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D723、D725–D727 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D727 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1092,3 +1092,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D722 | P3 | **closed** leftover Promise 双链八处：handleWarnings + integrity IIFE；onOpenFiles / trackClosedWaitFiles；doAddRemoveFolders；withProgress×2；dialogService.error。跳过 D697 / D706 / D714 / opener。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；`workbenchNativeWindowLeftoverPromiseCatchScan.test.ts` + D714 **16/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / native window leftover | closed |
 | D725 | P3 | **closed** leftover Promise 双链六处：stickyScroll goToDefinition；showCodeActionList；goToCommands altAction/peekLocations；references openCodeEditor；gotoError openCodeEditor。跳过 opener / Resolve / D703 / D709 / D718。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`editorGotoOpenLeftoverPromiseCatchScan.test.ts` + D718 **14/0**。未 commit。勿 add `out`。 | 六处双链。未关 D24。leftover 程序未全局完成。 | editor / leftover remaining | closed |
 | D727 | P3 | **closed** leftover Promise 双链七处：browserView openNew / openExternal；emulator _applyTouchAndMedia；playwrightTab waitForFunction；inspector addComment。跳过 opener / Pty / empty-catch。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`platformBrowserViewLeftoverPromiseCatchScan.test.ts` **7/0**。未 commit。勿 add `out`。 | 七处双链。未关 D24。leftover 程序未全局完成。 | platform / browserView leftover | closed |
+| D724 | P3 | **closed** leftover Promise 双链八处：extHostTask register/unregister×3；node task registerSupported；node logger register/deregister；urls register/unregister UriHandler。跳过 D708 / D712 / D717 / $registerTaskSystem / $sendDidChangeSessions。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`workbenchApiStillLeftoverPromiseCatchScan.test.ts` **7/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / api leftover still | closed |
