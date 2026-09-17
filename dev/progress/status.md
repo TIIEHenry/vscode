@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "merge 关仓：leftover D608–D615 关各 call site。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
+summary: "G leftover D620：config picker onSelect IIFE 双链。D24 仍开。不是 leftover/pills 完成。勿 add out。"
 ---
 
 # Development Progress
@@ -17,7 +17,7 @@ summary: "merge 关仓：leftover D608–D615 关各 call site。compile-client 
 | **C leftover** | `6d45b3187e4` — Claude picker opener 双链；[D609](deferred-gaps.md)；gitlink 脏勿 add |
 | **D leftover** | `7ef94f5340b` — newChatInput dictation handler 双链；[D610](deferred-gaps.md) |
 | **F leftover** | `3aa1a4ac0e6` — sessionWorkspacePicker run/command 双链；[D611](deferred-gaps.md) |
-| **G leftover** | `2ab24ee0280` — pluginList refresh await filterPlugins；[D612](deferred-gaps.md)；勿 add `out` |
+| **G leftover** | `2ab24ee0280` D612 pluginList；本槽 D620 config picker IIFE 双链未合；勿 add `out` |
 | **H leftover** | `a903484734c` — codeReviewService refresh 双链；[D613](deferred-gaps.md) |
 | **I leftover** | `63e80a36fcf` — overview loadCounts 五处双链；[D614](deferred-gaps.md) |
 | **J leftover** | `55bd0084928` — copilot openRepository.then 双链；[D615](deferred-gaps.md) |
@@ -26,6 +26,7 @@ summary: "merge 关仓：leftover D608–D615 关各 call site。compile-client 
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **G** | `loop/G-d24-config-picker-leftover` [D620](deferred-gaps.md) IIFE 双链；勿 add `out` |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
@@ -35,7 +36,7 @@ summary: "merge 关仓：leftover D608–D615 关各 call site。compile-client 
 |:---|:-----|
 | [D24](deferred-gaps.md) | **仍开**：Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
-| [D550](deferred-gaps.md)–[D615](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
+| [D550](deferred-gaps.md)–[D615](deferred-gaps.md)/[D620](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |

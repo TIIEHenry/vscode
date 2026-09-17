@@ -812,7 +812,7 @@ export class AgentHostSessionConfigPicker extends Disposable {
 
 					const nextValue = schema.type === 'boolean' ? item.value === 'true' : item.value;
 					provider.setSessionConfigValue(sessionId, property, nextValue).catch(() => { /* best-effort */ });
-				})().catch(onUnexpectedError);
+				})().catch(onUnexpectedError).catch(onUnexpectedError);
 			},
 			onFilter: schema.enumDynamic
 				? query => this._filterDelayer.trigger(async () => {
