@@ -117,7 +117,7 @@ export class AgentHostModeSynchronizer extends Disposable implements IWorkbenchC
 		if (agentUri === undefined) {
 			return;
 		}
-		void this._applyMode(widget, sessionResource, agentUri).catch(onUnexpectedError);
+		void this._applyMode(widget, sessionResource, agentUri).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async _applyMode(widget: IChatWidget, sessionResource: URI, agentUri: string): Promise<void> {
