@@ -77,7 +77,7 @@ export class ForwardedPortsView extends Disposable implements IWorkbenchContribu
 				: nls.localize('noRemoteNoPorts', "No forwarded ports. Forward a port to access your locally running services over the internet.\n[Forward a Port]({0})", `command:${ForwardPortAction.INLINE_ID}`),
 		}));
 		this.enableBadgeAndStatusBar();
-		this.enableForwardedPortsFeatures();
+		this.enableForwardedPortsFeatures().catch(onUnexpectedError).catch(onUnexpectedError);
 		if (!this.environmentService.remoteAuthority) {
 			this._register(Event.once(this.tunnelService.onTunnelOpened)(() => {
 				this.hasPortsInSession = true;
@@ -118,7 +118,7 @@ export class ForwardedPortsView extends Disposable implements IWorkbenchContribu
 		} else {
 			this.contextKeyListener.value = this.contextKeyService.onDidChangeContext(e => {
 				if (e.affectsSome(new Set([...forwardedPortsFeaturesEnabled.keys(), ...forwardedPortsViewEnabled.keys()]))) {
-					this.enableForwardedPortsFeatures();
+					this.enableForwardedPortsFeatures().catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			});
 		}
@@ -198,7 +198,7 @@ export class PortRestore implements IWorkbenchContribution {
 				await this.restore();
 			});
 		} else {
-			this.restore();
+			this.restore().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -669,7 +669,7 @@ class ProcAutomaticPortForwarding extends Disposable {
 		super();
 		this.notifier = new OnAutoForwardedAction(notificationService, remoteExplorerService, openerService, externalOpenerService, tunnelService, hostService, logService, contextKeyService);
 		alreadyAutoForwarded?.forEach(port => this.autoForwarded.add(port));
-		this.initialize();
+		this.initialize().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	get forwarded(): Set<string> {
