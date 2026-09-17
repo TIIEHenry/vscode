@@ -26,6 +26,7 @@ import { IAgentPluginService } from '../../common/plugins/agentPluginService.js'
 import { InputBox } from '../../../../../base/browser/ui/inputbox/inputBox.js';
 import { defaultButtonStyles, defaultInputBoxStyles, getButtonStyles } from '../../../../../platform/theme/browser/defaultStyles.js';
 import { Delayer } from '../../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { IContextMenuService, IContextViewService } from '../../../../../platform/contextview/browser/contextView.js';
 import { HighlightedLabel } from '../../../../../base/browser/ui/highlightedlabel/highlightedLabel.js';
 import { matchesContiguousSubString, IMatch } from '../../../../../base/common/filters.js';
@@ -686,7 +687,7 @@ export class AICustomizationListWidget extends Disposable {
 
 		this._register(this.searchInput.onDidChange(() => {
 			this.searchQuery = this.searchInput.value;
-			this.delayedFilter.trigger(() => {
+			void this.delayedFilter.trigger(() => {
 				const matchCount = this.filterItems();
 				this.announceItemCount(matchCount);
 				if (this.searchQuery.trim()) {
@@ -695,7 +696,7 @@ export class AICustomizationListWidget extends Disposable {
 						resultCount: matchCount,
 					});
 				}
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		// Add button container next to search
