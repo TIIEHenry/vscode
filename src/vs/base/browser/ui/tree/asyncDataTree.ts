@@ -1208,7 +1208,7 @@ export class AsyncDataTree<TInput, T, TFilterData = void> implements IDisposable
 				this.collapse(node.element.element as T);
 			} else {
 				this.refreshAndRenderNode(node.element, false)
-					.catch(onUnexpectedError);
+					.catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 	}
