@@ -18,6 +18,7 @@ import { IExtensionService } from '../../../../services/extensions/common/extens
 import { IExtensionsWorkbenchService } from '../../../extensions/common/extensions.js';
 import { IProductService } from '../../../../../platform/product/common/productService.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
 import { ILanguageModelsProviderGroup } from '../../common/languageModelsConfiguration.js';
@@ -189,7 +190,7 @@ class ManageLanguageModelAuthenticationAction extends Action2 {
 					const extId = context.separator.id;
 					if (extId) {
 						// Open the extension in the editor
-						void extensionsWorkbenchService.open(extId);
+						void extensionsWorkbenchService.open(extId).catch(onUnexpectedError).catch(onUnexpectedError);
 					}
 				},
 				onDidTriggerItemButton(context) {
@@ -197,7 +198,7 @@ class ManageLanguageModelAuthenticationAction extends Action2 {
 					const extId = context.item.id;
 					if (extId) {
 						// Open the extension in the editor
-						void extensionsWorkbenchService.open(extId);
+						void extensionsWorkbenchService.open(extId).catch(onUnexpectedError).catch(onUnexpectedError);
 					}
 				},
 				title: localize('languageModelAuthTitle', 'Manage Language Model Access'),

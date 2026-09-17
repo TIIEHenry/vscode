@@ -2117,7 +2117,7 @@ export class ChatService extends Disposable implements IChatService {
 				model.setCustomTitle(title);
 			}
 		};
-		void generate();
+		void generate().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private prepareContext(attachedContextVariables: IChatRequestVariableEntry[] | undefined): IChatRequestVariableEntry[] {

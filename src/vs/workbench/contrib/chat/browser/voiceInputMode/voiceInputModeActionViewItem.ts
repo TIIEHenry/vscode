@@ -11,6 +11,7 @@ import { getDefaultHoverDelegate } from '../../../../../base/browser/ui/hover/ho
 import { BaseActionViewItem } from '../../../../../base/browser/ui/actionbar/actionViewItems.js';
 import { IAction } from '../../../../../base/common/actions.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { KeyCode, KeyMod } from '../../../../../base/common/keyCodes.js';
 import { MutableDisposable } from '../../../../../base/common/lifecycle.js';
 import { autorun, IObservable, observableFromEvent } from '../../../../../base/common/observable.js';
@@ -457,9 +458,9 @@ export class VoiceInputModeActionViewItem extends BaseActionViewItem {
 		// in hands-free mode.
 		this._register(dom.addDisposableListener(this._voiceCell, dom.EventType.CLICK, e => {
 			dom.EventHelper.stop(e, true);
-			void this._onClickVoicePowerToggle();
+			void this._onClickVoicePowerToggle().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
-		this._registerActivationKeys(this._voiceCell, () => this._onClickVoicePowerToggle());
+		this._registerActivationKeys(this._voiceCell, () => void this._onClickVoicePowerToggle().catch(onUnexpectedError).catch(onUnexpectedError));
 		this._register(addMicButtonContextMenuListener(
 			this._voiceCell,
 			() => getVoiceModeContextMenuActions(this.commandService, this.configurationService, this.keybindingService, VOICE_START_COMMAND_ID),

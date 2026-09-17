@@ -18,7 +18,7 @@ import { IWorkbenchEnvironmentService } from '../../../../../services/environmen
 import { Schemas } from '../../../../../../base/common/network.js';
 import { getExcludes, IFileQuery, ISearchConfiguration, ISearchService, QueryType } from '../../../../../services/search/common/search.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../../base/common/cancellation.js';
-import { isCancellationError } from '../../../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { AgentInstructionFileType, IPromptPath, IAgentInstructionFile, Logger, PromptsStorage } from '../service/promptsService.js';
 import { IUserDataProfileService } from '../../../../../services/userDataProfile/common/userDataProfile.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
@@ -270,16 +270,16 @@ export class PromptFilesLocator {
 		};
 		disposables.add(this.configService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(key) || e.affectsConfiguration(PromptsConfig.USE_CUSTOMIZATIONS_IN_PARENT_REPOS)) {
-				void update();
+				void update().catch(onUnexpectedError).catch(onUnexpectedError);
 				eventEmitter.fire();
 			}
 		}));
 		disposables.add(this.onDidChangeWorkspaceFolders()(() => {
-			void update();
+			void update().catch(onUnexpectedError).catch(onUnexpectedError);
 			eventEmitter.fire();
 		}));
 		disposables.add(this.workspaceTrustManagementService.onDidChangeTrustedFolders(() => {
-			void update();
+			void update().catch(onUnexpectedError).catch(onUnexpectedError);
 			eventEmitter.fire();
 		}));
 		disposables.add(this.fileService.onDidFilesChange(e => {
@@ -294,7 +294,7 @@ export class PromptFilesLocator {
 		}));
 		disposables.add(this.fileService.watch(userDataFolder));
 
-		void update();
+		void update().catch(onUnexpectedError).catch(onUnexpectedError);
 
 		return { event: eventEmitter.event, dispose: () => disposables.dispose() };
 	}
@@ -358,7 +358,7 @@ export class PromptFilesLocator {
 		};
 
 		const refresh = () => {
-			void updateWatchers();
+			void updateWatchers().catch(onUnexpectedError).catch(onUnexpectedError);
 			eventEmitter.fire();
 		};
 
@@ -401,7 +401,7 @@ export class PromptFilesLocator {
 			}
 		}));
 
-		void updateWatchers();
+		void updateWatchers().catch(onUnexpectedError).catch(onUnexpectedError);
 
 		return { event: eventEmitter.event, dispose: () => disposables.dispose() };
 	}

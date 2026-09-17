@@ -7,6 +7,7 @@ import * as dom from '../../../../../../base/browser/dom.js';
 import { renderLabelWithIcons } from '../../../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { Codicon } from '../../../../../../base/common/codicons.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { IDisposable, MutableDisposable } from '../../../../../../base/common/lifecycle.js';
 import { autorun, IObservable } from '../../../../../../base/common/observable.js';
 import { isWindows } from '../../../../../../base/common/platform.js';
@@ -218,7 +219,7 @@ export class PermissionPickerActionItem extends ChatInputPickerActionViewItem {
 						: localize('permissions.default.sandbox.toggle.title', "Run terminal commands inside a sandbox that restricts file system and network access"),
 					checked: this.isSandboxingEnabled(),
 					disabled: sandboxManaged,
-					onChange: (checked: boolean) => { void setSandboxEnabled(checked); },
+					onChange: (checked: boolean) => { void setSandboxEnabled(checked).catch(onUnexpectedError).catch(onUnexpectedError); },
 				} : undefined;
 				const levels = delegate.availableLevels ?? DEFAULT_PERMISSION_LEVELS;
 				const actions: IActionWidgetDropdownAction[] = levels.map(level => {

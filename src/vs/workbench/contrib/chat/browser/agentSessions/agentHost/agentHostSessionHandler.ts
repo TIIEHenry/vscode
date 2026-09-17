@@ -6,7 +6,7 @@
 import { Delayer, disposableTimeout, raceCancellation } from '../../../../../../base/common/async.js';
 import { decodeBase64, encodeBase64, VSBuffer } from '../../../../../../base/common/buffer.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../../base/common/cancellation.js';
-import { getErrorCode, isCancellationError } from '../../../../../../base/common/errors.js';
+import { getErrorCode, isCancellationError, onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { MarkdownString } from '../../../../../../base/common/htmlContent.js';
 import { getChatErrorDetailsFromMeta, getCopilotPlanFromEntitlement, IChatErrorContext } from '../../../common/chatErrorMessages.js';
@@ -2433,7 +2433,7 @@ export class AgentHostSessionHandler extends Disposable implements IChatSessionC
 				return;
 			}
 			previousServers = servers;
-			void this._filterAutoGrantedMcpAuthentication(sessionResource, servers);
+			void this._filterAutoGrantedMcpAuthentication(sessionResource, servers).catch(onUnexpectedError).catch(onUnexpectedError);
 		};
 		const disposables = new DisposableStore();
 		disposables.add(sessionSub.onDidChange(reconcile));

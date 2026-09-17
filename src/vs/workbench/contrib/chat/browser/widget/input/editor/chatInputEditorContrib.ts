@@ -30,7 +30,7 @@ import { NativeEditContextRegistry } from '../../../../../../../editor/browser/c
 import { TextAreaEditContextRegistry } from '../../../../../../../editor/browser/controller/editContext/textArea/textAreaEditContextRegistry.js';
 import { CancellationToken } from '../../../../../../../base/common/cancellation.js';
 import { ThrottledDelayer } from '../../../../../../../base/common/async.js';
-import { isCancellationError } from '../../../../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../../../../base/common/errors.js';
 import { IEditorService } from '../../../../../../services/editor/common/editorService.js';
 import { getChatSessionType } from '../../../../common/model/chatUri.js';
 import { ICustomizationHarnessService } from '../../../../common/customizationHarnessService.js';
@@ -136,7 +136,7 @@ class InputEditorDecorations extends Disposable {
 				return;
 			}
 
-			void this.editorService.openEditor({ resource: mouseDownPromptSlashCommand.uri });
+			void this.editorService.openEditor({ resource: mouseDownPromptSlashCommand.uri }).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(this.chatAgentService.onDidChangeAgents(() => this.triggerInputEditorDecorationsUpdate()));
 		this._register(this.customizationHarnessService.onDidChangeSlashCommands((e) => {
