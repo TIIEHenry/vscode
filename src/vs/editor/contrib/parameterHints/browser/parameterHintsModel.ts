@@ -123,7 +123,7 @@ export class ParameterHintsModel extends Disposable {
 		this.throttledDelayer.trigger(() => {
 			return this.doTrigger(triggerId);
 		}, delay)
-			.catch(onUnexpectedError);
+			.catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	public next(): void {
