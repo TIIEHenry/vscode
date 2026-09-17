@@ -646,7 +646,7 @@ export class SuggestModel implements IDisposable {
 				}
 			}
 
-		}).catch(onUnexpectedError);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	/**
