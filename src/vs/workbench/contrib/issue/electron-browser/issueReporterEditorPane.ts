@@ -7,6 +7,7 @@ import '../browser/media/issueReporterOverlay.css';
 import { $, append, clearNode, Dimension } from '../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../base/browser/window.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -215,7 +216,7 @@ export class IssueReporterEditorPane extends EditorPane {
 		}));
 
 		// Populate system info in background (non-blocking)
-		void this.populateSystemInfo();
+		void this.populateSystemInfo().catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Wire screenshot capture
 		this.inputDisposables.add(this.wizard.onDidRequestScreenshot(async () => {

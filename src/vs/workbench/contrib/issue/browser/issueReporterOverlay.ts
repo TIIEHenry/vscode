@@ -17,6 +17,7 @@ import { ISelectOptionItem, SelectBox } from '../../../../base/browser/ui/select
 import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { Action, Separator } from '../../../../base/common/actions.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
@@ -245,7 +246,7 @@ export class IssueReporterOverlay {
 
 		this.registerEventHandlers();
 		if (this.data.extensionId) {
-			void this.updateSelectedExtension(this.data.extensionId, false);
+			void this.updateSelectedExtension(this.data.extensionId, false).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 		this.updateStepUI();
 	}
@@ -567,7 +568,7 @@ export class IssueReporterOverlay {
 			this.disposables.add(btn.onDidClick(() => {
 				this.setIssueSource(option.value);
 				if (option.value === IssueSource.Extension && this.selectedExtension) {
-					void this.updateSelectedExtension(this.selectedExtension.id);
+					void this.updateSelectedExtension(this.selectedExtension.id).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}));
 		}
@@ -589,7 +590,7 @@ export class IssueReporterOverlay {
 		));
 		this.extensionSelect.render(extensionSelectContainer);
 		this.disposables.add(this.extensionSelect.onDidSelect(e => {
-			void this.updateSelectedExtension(this.extensionOptions[e.index]?.value);
+			void this.updateSelectedExtension(this.extensionOptions[e.index]?.value).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this.extensionError = this.createFieldError(this.extensionField, localize('extensionRequired', "Select an extension to continue."));
 		this.extensionStatus = append(this.extensionField, $('div.wizard-extension-status'));
@@ -903,7 +904,7 @@ export class IssueReporterOverlay {
 		this.extensionOptions = this.getExtensionOptions();
 		this.extensionSelect.setOptions(this.getExtensionSelectItems(), this.getSelectedExtensionIndex());
 		if (!this.selectedExtension && this.data.extensionId) {
-			void this.updateSelectedExtension(this.data.extensionId, false);
+			void this.updateSelectedExtension(this.data.extensionId, false).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -1112,7 +1113,7 @@ export class IssueReporterOverlay {
 			clearTimeout(this.similarIssuesHandle);
 		}
 		this.renderSimilarIssuesMessage(localize('searchingSimilarIssues', "Searching similar issues..."));
-		this.similarIssuesHandle = setTimeout(() => this.doSearchSimilarIssues(), 300);
+		this.similarIssuesHandle = setTimeout(() => this.doSearchSimilarIssues().catch(onUnexpectedError).catch(onUnexpectedError), 300);
 	}
 
 	private async doSearchSimilarIssues(): Promise<void> {
