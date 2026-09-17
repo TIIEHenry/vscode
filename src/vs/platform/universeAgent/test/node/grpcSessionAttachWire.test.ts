@@ -1078,6 +1078,122 @@ suite('grpc first-send / attach protobuf wire', () => {
 		}]);
 	});
 
+	test('decodeSessionStreamEvent reads nested tool_runtime_snapshot=46 ToolRuntimeSnapshotProto 2+12+23; payload wrapper same object; unused unread', () => {
+		const detailRef = Buffer.concat([
+			encodeInt32Field(1, 3),
+			encodeStringField(2, 'det-1'),
+		]);
+		const previewRef = Buffer.concat([
+			encodeInt32Field(1, 2),
+			encodeStringField(2, 'prev-1'),
+		]);
+		const diffStats = Buffer.concat([
+			encodeInt32Field(1, 3),
+			encodeInt32Field(2, 1),
+			encodeInt32Field(3, 1),
+		]);
+		const fileMutation = Buffer.concat([
+			encodeInt32Field(1, 1),
+			encodeStringField(2, 'src/foo.ts'),
+			encodeStringField(3, 'edit'),
+			encodeMessageField(4, diffStats),
+			encodeMessageField(5, previewRef),
+		]);
+		const snapshot = Buffer.concat([
+			encodeInt64Field(1, 9),
+			encodeStringField(2, 'tc-snap'),
+			encodeStringField(3, 'unused-tool-name'),
+			encodeInt32Field(4, 2),
+			encodeStringField(5, 'unused-owner'),
+			encodeInt32Field(6, 3),
+			encodeStringField(7, 'unused-timing'),
+			encodeStringField(8, 'unused-progress'),
+			encodeStringField(9, 'unused-usage'),
+			encodeStringField(10, 'unused-actions'),
+			encodeStringField(11, 'unused-preview'),
+			encodeMessageField(12, detailRef),
+			encodeStringField(20, 'unused-agent-payload'),
+			encodeStringField(21, 'unused-deep-think'),
+			encodeStringField(22, 'unused-shell'),
+			encodeMessageField(23, fileMutation),
+			encodeStringField(24, 'unused-browser'),
+			encodeStringField(25, 'unused-generic'),
+			encodeInt64Field(30, 4),
+			encodeInt64Field(31, 1700000000),
+			encodeStringField(99, 'unused-nested-field'),
+		]);
+		const encoded = Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodeMessageField(46, snapshot),
+			encodeStringField(99, 'unused-stream-field'),
+		]);
+		const decoded = decodeSessionStreamEvent(encoded);
+		const payload = decoded.payload as {
+			session_id?: string;
+			tool_runtime_snapshot?: {
+				tool_call_id?: string;
+				detail_ref?: Record<string, unknown>;
+				file_mutation_payload?: Record<string, unknown>;
+				payload?: { file_mutation_payload?: Record<string, unknown> };
+				runtime_epoch?: number;
+			};
+		};
+		const snap = payload.tool_runtime_snapshot ?? {};
+		assert.strictEqual(payload.session_id, 'sess-1');
+		assert.strictEqual(snap.tool_call_id, 'tc-snap');
+		assert.deepStrictEqual(snap.detail_ref, {
+			kind: 3,
+			ref_id: 'det-1',
+		});
+		assert.deepStrictEqual(snap.file_mutation_payload, {
+			schema_version: 1,
+			path: 'src/foo.ts',
+			operation: 'edit',
+			diff_stats: {
+				added_lines: 3,
+				removed_lines: 1,
+				changed_files: 1,
+			},
+			preview_ref: {
+				kind: 2,
+				ref_id: 'prev-1',
+			},
+		});
+		assert.strictEqual(snap.payload?.file_mutation_payload, snap.file_mutation_payload);
+		assert.ok(!('runtime_epoch' in snap));
+		assert.ok(!('tool_name' in snap));
+		assert.ok(!('family' in snap));
+		assert.ok(!('owner_scope_id' in snap));
+		assert.ok(!('lifecycle' in snap));
+		assert.ok(!('timing' in snap));
+		assert.ok(!('progress' in snap));
+		assert.ok(!('usage' in snap));
+		assert.ok(!('actions' in snap));
+		assert.ok(!('preview' in snap));
+		assert.ok(!('agent_payload' in snap));
+		assert.ok(!('deep_think_payload' in snap));
+		assert.ok(!('shell_payload' in snap));
+		assert.ok(!('browser_payload' in snap));
+		assert.ok(!('generic_payload' in snap));
+		assert.ok(!('sequence' in snap));
+		assert.ok(!('updated_at_ms' in snap));
+		assert.ok(!('output_ref' in snap));
+		assert.ok(!('preview_ref' in snap));
+		assert.ok(!('page_ref' in snap));
+		assert.ok(!('transcript_ref' in snap));
+		assert.ok(!('toolRuntimeSnapshot' in payload));
+		assert.ok(!('toolCallId' in snap));
+		assert.ok(!('fileMutationPayload' in snap));
+		assert.ok(!('detailRef' in snap));
+		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
+		const omitted = decodeSessionStreamEvent(encodeStringField(1, 'sess-2'));
+		assert.strictEqual((omitted.payload as { tool_runtime_snapshot?: unknown }).tool_runtime_snapshot, undefined);
+		assert.ok(!('tool_runtime_snapshot' in (omitted.payload as object)));
+		const emptyNested = decodeSessionStreamEvent(encodePresentMessageField(46, new Uint8Array(0)));
+		assert.ok('tool_runtime_snapshot' in (emptyNested.payload as object));
+		assert.deepStrictEqual((emptyNested.payload as { tool_runtime_snapshot?: unknown }).tool_runtime_snapshot, {});
+	});
+
 	test('encodeChatRequest writes session_input oneof, not JSON payload wrapper', () => {
 		const encoded = encodeChatRequest('sess-1', {
 			agentId: 'root',

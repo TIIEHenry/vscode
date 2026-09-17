@@ -447,6 +447,16 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * Snapshot `active_tool_calls`=3 `sub_agent_panels`=4 `deep_think`=5
  * `tool_runtime_snapshots`=7 `block_delta_high_water`=8
  * `tool_call_delta_high_water`=9 unread (no public demux fields).
+ * `tool_runtime_snapshot`=46 ToolRuntimeSnapshotProto (`tool_call_id`=2
+ * optional `detail_ref`=12 oneof `file_mutation_payload`=23; present
+ * empty nested → `{}`). When 23 is present, also set
+ * `payload: { file_mutation_payload }` (fileMutationJoin reads the
+ * wrapper; sessionViewHost reads sibling `detail_ref` /
+ * `file_mutation_payload`). `runtime_epoch`=1 `tool_name`=3
+ * family/owner_scope_id/lifecycle/timing/progress/usage/actions/
+ * preview=4–11, other oneof 20–22/24–25, `sequence`=30
+ * `updated_at_ms`=31 unread. Top-level `output_ref`/`preview_ref`/
+ * `page_ref`/`transcript_ref` are not on this message.
  * `permission_request`=50
  * PermissionRequestEvent (`request_id`=1 `tool_name`=2 `description`=3
  * `agent_id`=6). `metadata`=4 / `requested_by_client`=5 /
@@ -464,7 +474,8 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * `generating_tool` / `turn_lifecycle` and demuxSessionStreamPayload
  * `session_purged` / `runtime_overlay_snapshot` /
  * `permission_request` / `ask_user_question` / `client_tool_call`,
- * fileMutationJoin / sessionViewHost `tool_call_lifecycle`,
+ * fileMutationJoin / sessionViewHost `tool_call_lifecycle` /
+ * `tool_runtime_snapshot`,
  * and `shouldRefreshAgentTree` `branch_topology_notified` /
  * `sub_agent_activity` / `sub_agent_completed` / `detached_child_phase` /
  * `multi_agent_status`.
@@ -551,6 +562,10 @@ export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessio
 	const overlaySnapshot = lastBytes(fields, 44);
 	if (overlaySnapshot) {
 		payload.runtime_overlay_snapshot = decodeRuntimeOverlaySnapshotEvent(overlaySnapshot);
+	}
+	const toolRuntimeSnapshot = lastBytes(fields, 46);
+	if (toolRuntimeSnapshot !== undefined) {
+		payload.tool_runtime_snapshot = decodeToolRuntimeSnapshot(toolRuntimeSnapshot);
 	}
 	const permission = lastBytes(fields, 50);
 	if (permission) {
@@ -719,6 +734,37 @@ function decodeToolCallLifecycleEvent(bytes: Uint8Array): Record<string, unknown
 		...(toolCallId ? { tool_call_id: toolCallId } : {}),
 		...(agentId ? { agent_id: agentId } : {}),
 	};
+}
+
+/**
+ * ToolRuntimeSnapshotProto — present empty nested → `{}`. Nested
+ * `tool_call_id`=2 optional `detail_ref`=12 oneof
+ * `file_mutation_payload`=23. When 23 is present, also set
+ * `payload: { file_mutation_payload }` so fileMutationJoin can read
+ * the wrapper; sessionViewHost reads sibling `detail_ref` /
+ * `file_mutation_payload`. `runtime_epoch`=1 `tool_name`=3
+ * family/owner_scope_id/lifecycle/timing/progress/usage/actions/
+ * preview=4–11, other oneof 20–22/24–25, `sequence`=30
+ * `updated_at_ms`=31 unread. proto3: empty omitted.
+ */
+function decodeToolRuntimeSnapshot(bytes: Uint8Array): Record<string, unknown> {
+	const fields = readProtoFields(bytes);
+	const snapshot: Record<string, unknown> = {};
+	const toolCallId = lastString(fields, 2);
+	if (toolCallId) {
+		snapshot.tool_call_id = toolCallId;
+	}
+	const detailRef = lastBytes(fields, 12);
+	if (detailRef) {
+		snapshot.detail_ref = decodeToolDetailRef(detailRef);
+	}
+	const fileMutation = lastBytes(fields, 23);
+	if (fileMutation) {
+		const fileMutationPayload = decodeFileMutation(fileMutation);
+		snapshot.file_mutation_payload = fileMutationPayload;
+		snapshot.payload = { file_mutation_payload: fileMutationPayload };
+	}
+	return snapshot;
 }
 
 /**

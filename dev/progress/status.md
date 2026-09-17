@@ -20,7 +20,7 @@ summary: "SessionStream 16/23/30/31/32/34/35/36/37/38/39/44/50/51/52 已合入�
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A** | 下一刀 `tool_runtime_snapshot`=46（sessionViewHost / fileMutationJoin 已消费） |
+| **A** | 进行中 `tool_runtime_snapshot`=46 decode（2/12/23 + `payload` 包装）；未合入；D24 仍开 |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **C** | gitlink 脏 `dev/loop`；勿 add |
 | **E** | `blocked` `fix/ci-gate-reds` |
