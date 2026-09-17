@@ -6,6 +6,7 @@
 import { alert } from '../../../../base/browser/ui/aria/aria.js';
 import { createCancelablePromise, raceCancellation } from '../../../../base/common/async.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { KeyChord, KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { assertType } from '../../../../base/common/types.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -148,7 +149,7 @@ export abstract class SymbolNavigationAction extends EditorAction2 {
 				SymbolNavigationAction._activeAlternativeCommands.add(this.desc.id);
 				instaService.invokeFunction((accessor) => altAction.runEditorCommand(accessor, editor, arg, range).finally(() => {
 					SymbolNavigationAction._activeAlternativeCommands.delete(this.desc.id);
-				}));
+				})).catch(onUnexpectedError).catch(onUnexpectedError);
 
 			} else {
 				// normal results handling
@@ -821,7 +822,7 @@ CommandsRegistry.registerCommand({
 		]
 	},
 	handler: async (accessor: ServicesAccessor, resource: any, position: any, references: any, multiple?: any) => {
-		accessor.get(ICommandService).executeCommand('editor.action.goToLocations', resource, position, references, multiple, undefined, true);
+		accessor.get(ICommandService).executeCommand('editor.action.goToLocations', resource, position, references, multiple, undefined, true).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 });
 

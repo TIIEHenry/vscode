@@ -138,10 +138,8 @@ suite('editor apply/color/inlay leftover Promise fire-and-forget catch scan (D71
 		})${doubleCatch};`));
 		assert.ok(format.includes('}).finally(() => {\n\t\t\tunbind.dispose();\n\t\t}).catch(onUnexpectedError).catch(onUnexpectedError);'));
 		assert.ok(goto.includes(`this.startFindDefinition(position)${doubleCatch};`));
-		assert.ok(sticky.includes('this._instaService.invokeFunction(goToDefinitionWithLocation, e, this._editor, { uri: this._editor.getModel().uri, range: this._stickyRangeProjectedOnEditor });'));
-		assert.ok(!sticky.includes('this._instaService.invokeFunction(goToDefinitionWithLocation, e, this._editor, { uri: this._editor.getModel().uri, range: this._stickyRangeProjectedOnEditor }).catch(onUnexpectedError)'));
-		assert.ok(controller.includes('this.showCodeActionList(actions, this.toCoords(newState.position), { includeDisabledActions, fromLightbulb: false });'));
-		assert.ok(!controller.includes('this.showCodeActionList(actions, this.toCoords(newState.position), { includeDisabledActions, fromLightbulb: false }).catch(onUnexpectedError)'));
+		assert.ok(sticky.includes(`this._instaService.invokeFunction(goToDefinitionWithLocation, e, this._editor, { uri: this._editor.getModel().uri, range: this._stickyRangeProjectedOnEditor })${doubleCatch};`));
+		assert.ok(controller.includes(`this.showCodeActionList(actions, this.toCoords(newState.position), { includeDisabledActions, fromLightbulb: false })${doubleCatch};`));
 		assert.ok(inlay.includes('labelPart.item.resolve(cts.token);'));
 		assert.ok(!inlay.includes('labelPart.item.resolve(cts.token).catch(onUnexpectedError)'));
 		for (const source of [marker, links, word, fold, hover, format, goto, sticky, controller, inlay]) {

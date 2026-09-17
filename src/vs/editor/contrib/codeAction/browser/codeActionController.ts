@@ -274,7 +274,7 @@ export class CodeActionController extends Disposable implements IEditorContribut
 			}
 
 			this._activeCodeActions.value = actions;
-			this.showCodeActionList(actions, this.toCoords(newState.position), { includeDisabledActions, fromLightbulb: false });
+			this.showCodeActionList(actions, this.toCoords(newState.position), { includeDisabledActions, fromLightbulb: false }).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			// auto magically triggered
 			if (this._actionWidgetService.isVisible) {
