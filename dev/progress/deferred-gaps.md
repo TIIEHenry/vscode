@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。D576 关 dictation listen/switch/service refresh 三处 call site。不是 leftover/pills 完成。"
+summary: "D24 仍开。D589 关 chatAttachmentWidgets renderPreviewImage / readFile.then 两处 call site。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
