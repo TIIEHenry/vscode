@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D716、D714/D715/D718/D719。F/I/J leftover 进行中。D24 仍开。不是 leftover/pills 完成。"
+summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D720。I leftover 进行中。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -14,13 +14,13 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D716、D714/D
 | 切片 | 提交 |
 |:-----|:-----|
 | **A SessionStream / L2** | 16/23/30–32/34–39/44/46/50–52；envelope leftover |
-| **catch** | D677–D716、D714/D715/D718/D719 |
+| **catch** | D677–D720 |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **F/I/J** | leftover Promise 双链进行中（B 脏跳过；C gitlink 勿 add；E blocked；edit ff-only 失败） |
+| **A/D/F/G/H/I/J** | leftover Promise 双链进行中（B 脏跳过；C gitlink 勿 add；E blocked；edit ff-only 失败） |
 
 子 agent 发现：
 | ID | 问题 |

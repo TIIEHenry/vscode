@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D716、D714/D715/D718/D719 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D720 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1084,3 +1084,5 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D715 | P3 | **closed** leftover Promise 双链八处：_handleDeltaExtensions 事件；_onRemoteExtensionHostCrashed / stopOne；_onExtensionHostExit。跳过 D698 / D707 / await startExtensionHosts。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 D；`extensionsServicesDeltaCrashLeftoverPromiseCatchScan.test.ts` + D707 **16/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / extensions leftover remaining | closed |
 | D718 | P3 | **closed** leftover Promise 双链七处：codeAction applyCodeAction×2；markerHover applyCodeAction；colorPicker updateColorPresentations×3；inlayHints goToDefinition FOF。跳过 opener / Resolve / D703 / D709。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`editorApplyColorInlayLeftoverPromiseCatchScan.test.ts` + D709 **13/0**。未 commit。勿 add `out`。 | 七处双链。未关 D24。leftover 程序未全局完成。 | editor / leftover remaining | closed |
 | D719 | P3 | **closed** leftover Promise 双链八处：app.ts sharedProcessClient.then registerChannel。跳过 D704 / D713 / profileStorageListener / logger / two-arg。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；`codeElectronMainLeftoverPromiseCatchScan.test.ts` + D713 **10/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | code / electron-main leftover | closed |
+| D717 | P3 | **closed** leftover Promise 双链：decorations $provideDecorations；chatAgents progress/task/externalEdit；mcp close；auth $waitForUriHandler / queue register/unregister。跳过 D708 / D712 / opener / $reveal。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`workbenchApiFurtherLeftoverPromiseCatchScan.test.ts` + D712 **16/0**。未 commit。勿 add `out`。 | 双链。未关 D24。leftover 程序未全局完成。 | workbench / api leftover further | closed |
+| D720 | P3 | **closed** leftover Promise 双链八处：windowsShellHelper×3；commandDetection _waitForCursorMove；autoResponder timeout；childProcessMonitor _refreshActive×2；shellIntegration telemetry。跳过 opener / Pty / windows electron-main。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`platformTerminalLeftoverPromiseCatchScan.test.ts` **8/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | platform / terminal leftover | closed |
