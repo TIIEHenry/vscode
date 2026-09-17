@@ -12,6 +12,7 @@ import { CancellationToken, CancellationTokenSource } from '../../../../base/com
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore, MutableDisposable, thenRegisterOrDispose, toDisposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { Schemas } from '../../../../base/common/network.js';
@@ -296,14 +297,14 @@ class NewChatInputStatusActionViewItem extends MenuEntryActionViewItem {
 		const learnMoreButton = store.add(new Button(actions, { ...defaultButtonStyles, secondary: true }));
 		learnMoreButton.label = localize('newChatInput.status.otel.learnMore', "Learn More");
 		store.add(learnMoreButton.onDidClick(() => {
-			void this.commandService.executeCommand('vscode.open', URI.parse(OTEL_DOCS_URL));
+			void this.commandService.executeCommand('vscode.open', URI.parse(OTEL_DOCS_URL)).catch(onUnexpectedError).catch(onUnexpectedError);
 			this.hoverService.hideHover(true);
 		}));
 
 		const manageButton = store.add(new Button(actions, { ...defaultButtonStyles, secondary: true }));
 		manageButton.label = localize('newChatInput.status.otel.manage', "Manage");
 		store.add(manageButton.onDidClick(() => {
-			void this.commandService.executeCommand(OPEN_OTEL_SETTINGS_COMMAND);
+			void this.commandService.executeCommand(OPEN_OTEL_SETTINGS_COMMAND).catch(onUnexpectedError).catch(onUnexpectedError);
 			this.hoverService.hideHover(true);
 		}));
 
