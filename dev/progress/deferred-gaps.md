@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D738 leftover Promise 双链；D736/D739/D740 跳过。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D741 leftover Promise 双链；D736/D739/D740 跳过。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1104,3 +1104,6 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D738 | P3 | **closed** leftover Promise 双链四处：CompositionEnd / Cut executeCommand；suggest fallback；codelens notify 后再双链。跳过 opener / Resolve / two-arg / Action2 / D725 / D732。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`editorLeftoverPromiseCatchScanD738.test.ts` **6/0** + D732 **6/0** + D725 **8/0**。勿 add `out`。 | 四处双链。未关 D24。leftover 程序未全局完成。 | editor / leftover remaining | closed |
 | D739 | P3 | **skipped** leftover Promise：`platform/` 单模块合法点均 <4（github 3 / quickinput 3 / externalTerminal 2 / mcp 1 / native loadURL 1）。不拼模块。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；无 wrap / 无测。 | 未双链。platform 合法 4 点模块耗尽。未关 D24。 | platform leftover remaining | skipped |
 | D740 | P3 | **skipped** leftover Promise：`code/electron-main/` 合法点 1（`this.startup()`）。try/catch 接不住 async reject。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；无 wrap / 无测。 | 未双链。electron-main leftover 合法点耗尽。未关 D24。 | code / electron-main leftover remaining | skipped |
+| D737 | P3 | **closed** leftover Promise 双链七处：editorConfiguration IIFE；modalEditorPart close；editorPanes trust openEditor；editorDropTarget openEditors；menubar recentlyOpened IIFE；treeView withProgress.then；listCommands expand.then。跳过 breadcrumbs 自定义 catch / D731 / opener。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；`workbenchLeftoverPromiseCatchScanD737.test.ts` + D731 **18/0**。勿 add `out`。 | 七处双链。未关 D24。leftover 程序未全局完成。 | workbench leftover remaining | closed |
+| D741 | P3 | **closed** leftover Promise 双链七处：keyboardLayout getBrowserKeyMapping×3 / import layout / userLayout initialize / UserKeyboardLayout reload；UserKeybindings reload。跳过 D696 / consumed getLayoutMap。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 D；`keybindingKeyboardLayoutLeftoverPromiseCatchScan.test.ts` **8/0**。勿 add `out`。 | 七处双链。未关 D24。leftover 程序未全局完成。 | workbench / keybinding leftover | closed |
+| D730 | P3 | **closed** leftover Promise 双链四处：activate / open-file setTimeout / new-window-for-tab IIFE；lockfile writeFile 单链升双链。跳过 startup / assigned / two-arg / D704–D726。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；`codeElectronMainFurtherLeftoverPromiseCatchScan.test.ts` **6/0** + D719 **5/0** + D726 **6/0**。勿 add `out`。 | 四处双链。未关 D24。leftover 程序未全局完成。 | code / electron-main leftover further | closed |
