@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "合入 D24 流 wire + children/context_sources/pending decode。D24 仍开。不是 leftover/pills 完成。"
+summary: "工位 D 进行中：ResolveModel nested ModelEntry decode。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -27,6 +27,7 @@ summary: "合入 D24 流 wire + children/context_sources/pending decode。D24 �
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **D** | `loop/D-d24-resolve-model-entries`：ResolveModel `selected`=1 / `candidates`=2 / `filtered`=3 nested ModelEntry decode；[D24](deferred-gaps.md) **仍开**。未碰 grpcClient / Connect / SaveSkillContent / Watch / ResolveTurn / ResolveAnchor |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
