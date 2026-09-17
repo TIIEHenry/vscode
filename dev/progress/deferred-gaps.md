@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D711 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D713 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1077,3 +1077,5 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D709 | P3 | **closed** leftover Promise 双链八处：FormatOnType then+finally；gotoDefinition 单 catch；startFindDefinition；waitForDiff；unusualLineTerminators×4。跳过 opener/Resolve/two-arg/D703 已双链。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`editorRemainingLeftoverPromiseCatchScan.test.ts` **6/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | editor / leftover remaining | closed |
 | D710 | P3 | **closed** leftover Promise 双链八处：conversation OPEN_CONNECTION executeCommand（tools/skills/triggers×2/mcp/preferences/overview×2）。跳过 D701 engineAgents / D145 / opener。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`conversationLeftoverPromiseCatchScan.test.ts` **8/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / conversation leftover | closed |
 | D711 | P3 | **closed** leftover Promise 双链八处：nativeManagedSettings initializeInBackground；metered SetIsBrowserConnectionMetered×2；extensionTips promptExe×2；webWorker worker.then×3。跳过 opener/D145/windows/D696/D700/D705。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`platformRemainingLeftoverPromiseCatchScan.test.ts` **7/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | platform / leftover remaining | closed |
+| D712 | P3 | **closed** leftover Promise 双链八处：extHostDebug getExtensionRegistry；extHostExtension race；extHostOutput channelPromise×2；notebook timeout；telemetry flush；chatSessions $updateChatSessionItems×2。跳过 D708 / $reveal / terminate / Watch / Connect。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`workbenchApiRemainingLeftoverPromiseCatchScan.test.ts` **9/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / api leftover remaining | closed |
+| D713 | P3 | **closed** leftover Promise 双链八处：windowImpl onWindowError×4；kill/quit；jsCallStackCollector.trigger×2。跳过 D704 / opener / app.ts leftover / race timeout。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；`windowsElectronMainRemainingLeftoverPromiseCatchScan.test.ts` + D704 **13/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | platform / windows leftover remaining | closed |
