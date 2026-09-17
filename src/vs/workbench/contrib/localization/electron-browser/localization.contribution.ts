@@ -7,6 +7,7 @@ import { localize } from '../../../../nls.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { Extensions as WorkbenchExtensions, IWorkbenchContributionsRegistry } from '../../../common/contributions.js';
 import { LifecyclePhase } from '../../../services/lifecycle/common/lifecycle.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import * as platform from '../../../../base/common/platform.js';
 import { IExtensionManagementService, IExtensionGalleryService, InstallOperation, ILocalExtension, InstallExtensionResult, DidUninstallExtensionEvent } from '../../../../platform/extensionManagement/common/extensionManagement.js';
 import { INotificationService, NeverShowAgainScope, NotificationPriority } from '../../../../platform/notification/common/notification.js';
@@ -35,9 +36,9 @@ class NativeLocalizationWorkbenchContribution extends BaseLocalizationWorkbenchC
 	) {
 		super();
 
-		this.checkAndInstall();
-		this._register(this.extensionManagementService.onDidInstallExtensions(e => this.onDidInstallExtensions(e)));
-		this._register(this.extensionManagementService.onDidUninstallExtension(e => this.onDidUninstallExtension(e)));
+		this.checkAndInstall().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._register(this.extensionManagementService.onDidInstallExtensions(e => this.onDidInstallExtensions(e).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.extensionManagementService.onDidUninstallExtension(e => this.onDidUninstallExtension(e).catch(onUnexpectedError).catch(onUnexpectedError)));
 	}
 
 	private async onDidInstallExtensions(results: readonly InstallExtensionResult[]): Promise<void> {
@@ -84,7 +85,7 @@ class NativeLocalizationWorkbenchContribution extends BaseLocalizationWorkbenchC
 			this.localeService.setLocale({
 				id: 'en',
 				label: 'English'
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

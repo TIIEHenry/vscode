@@ -14,6 +14,7 @@ import { IWorkbenchThemeService } from '../../../services/themes/common/workbenc
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 import { language } from '../../../../base/common/platform.js';
 import { Event } from '../../../../base/common/event.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import ErrorTelemetry from '../../../../platform/telemetry/browser/errorTelemetry.js';
 import { supportsTelemetry, TelemetryLogGroup, telemetryLogId, TelemetryTrustedValue } from '../../../../platform/telemetry/common/telemetryUtils.js';
@@ -150,7 +151,7 @@ export class TelemetryContribution extends Disposable implements IWorkbenchContr
 		this._register(lifecycleService.onDidShutdown(() => this.dispose()));
 
 		if (supportsTelemetry(productService, environmentService)) {
-			this.handleTelemetryOutputVisibility();
+			this.handleTelemetryOutputVisibility().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
