@@ -683,7 +683,7 @@ export function createImageHoverContent(resource: URI | undefined, fullName: str
 		hoverImage.src = url;
 		onImageUrl?.(url, !!thumbnail, hoverImage);
 	};
-	void renderPreviewImage();
+	void renderPreviewImage().catch(onUnexpectedError).catch(onUnexpectedError);
 
 	return { element: hoverElement, disposable };
 }
@@ -1602,7 +1602,7 @@ export class ElementChatAttachmentWidget extends AbstractChatAttachmentWidget {
 					section.remove();
 					onContentsChanged();
 				}
-			);
+			).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
