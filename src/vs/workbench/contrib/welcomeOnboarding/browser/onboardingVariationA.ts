@@ -345,7 +345,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 	 */
 	private _applyStepSelections(stepId: OnboardingStepId): void {
 		if (stepId === OnboardingStepId.Personalize) {
-			this._applyKeymap(this.selectedKeymapId);
+			this._applyKeymap(this.selectedKeymapId).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -549,7 +549,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 		}));
 		this.stepDisposables.add(addDisposableListener(githubBtn, EventType.CLICK, () => {
 			this._logAction('signIn', undefined, 'github');
-			this._handleSignIn();
+			this._handleSignIn().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		const googleBtn = this._registerStepFocusable(this._createSignInButton(actions, 'google', localize('onboarding.signIn.google', "Continue with Google"), {
@@ -558,7 +558,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 		}));
 		this.stepDisposables.add(addDisposableListener(googleBtn, EventType.CLICK, () => {
 			this._logAction('signIn', undefined, 'google');
-			this._handleSignIn('google');
+			this._handleSignIn('google').catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		const appleBtn = this._registerStepFocusable(this._createSignInButton(actions, 'apple', localize('onboarding.signIn.apple', "Continue with Apple"), {
@@ -567,7 +567,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 		}));
 		this.stepDisposables.add(addDisposableListener(appleBtn, EventType.CLICK, () => {
 			this._logAction('signIn', undefined, 'apple');
-			this._handleSignIn('apple');
+			this._handleSignIn('apple').catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		const gheBtn = this._registerStepFocusable(this._createSignInButton(actions, 'github-enterprise', localize('onboarding.signIn.ghe', "GHE"), {
@@ -576,7 +576,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 		}));
 		this.stepDisposables.add(addDisposableListener(gheBtn, EventType.CLICK, () => {
 			this._logAction('signIn', undefined, 'github-enterprise');
-			void this._handleEnterpriseSignIn();
+			void this._handleEnterpriseSignIn().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 
@@ -735,7 +735,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 					this.commandService.executeCommand('workbench.action.chat.triggerSetup', undefined, {
 						disableChatViewReveal: true,
 						setupStrategy: ChatSetupStrategy.DefaultSetup,
-					});
+					}).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 				this._nextStep();
 			}
@@ -948,7 +948,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 
 		this.stepDisposables.add(addDisposableListener(card, EventType.CLICK, () => {
 			this._logAction('selectTheme', undefined, theme.id);
-			this._selectTheme(theme);
+			this._selectTheme(theme).catch(onUnexpectedError).catch(onUnexpectedError);
 			for (const c of allCards) {
 				c.classList.remove('selected');
 				c.setAttribute('aria-checked', 'false');
@@ -975,7 +975,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 		const allThemes = await this.themeService.getColorThemes();
 		const match = allThemes.find(t => t.settingsId === theme.themeId);
 		if (match) {
-			this.themeService.setColorTheme(match.id, ConfigurationTarget.USER);
+			this.themeService.setColorTheme(match.id, ConfigurationTarget.USER).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -1117,13 +1117,13 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 	private _applyAiPreference(mode: AiCollaborationMode): void {
 		switch (mode) {
 			case AiCollaborationMode.CodeFirst:
-				this.configurationService.updateValue('chat.agent.autoFix', false, ConfigurationTarget.USER);
+				this.configurationService.updateValue('chat.agent.autoFix', false, ConfigurationTarget.USER).catch(onUnexpectedError).catch(onUnexpectedError);
 				break;
 			case AiCollaborationMode.Balanced:
-				this.configurationService.updateValue('chat.agent.autoFix', true, ConfigurationTarget.USER);
+				this.configurationService.updateValue('chat.agent.autoFix', true, ConfigurationTarget.USER).catch(onUnexpectedError).catch(onUnexpectedError);
 				break;
 			case AiCollaborationMode.AgentForward:
-				this.configurationService.updateValue('chat.agent.autoFix', true, ConfigurationTarget.USER);
+				this.configurationService.updateValue('chat.agent.autoFix', true, ConfigurationTarget.USER).catch(onUnexpectedError).catch(onUnexpectedError);
 				break;
 		}
 	}
