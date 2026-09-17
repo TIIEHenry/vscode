@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "merge 关仓：leftover D648–D655 关各 call site。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
+summary: "F 槽 D659 进行中：bracket telemetry leftover 双链。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -26,6 +26,7 @@ summary: "merge 关仓：leftover D648–D655 关各 call site。compile-client 
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **F** | `loop/F-d24-bracket-telemetry-leftover`：D659 `this.init()` 双链；未 commit。D24 仍开。不是 leftover/pills 完成 |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
