@@ -102,7 +102,7 @@ export class AdapterManager extends Disposable implements IAdapterManager {
 			updateTaskScheduler.schedule();
 		}));
 		this.lifecycleService.when(LifecyclePhase.Eventually)
-			.then(() => this.debugExtensionsAvailable.set(this.debuggers.length > 0)); // If no extensions with a debugger contribution are loaded
+			.then(() => this.debugExtensionsAvailable.set(this.debuggers.length > 0)).catch(onUnexpectedError).catch(onUnexpectedError); // If no extensions with a debugger contribution are loaded
 
 		this._register(delegate.onDidNewSession(s => {
 			this.usedDebugTypes.add(s.configuration.type);
@@ -466,7 +466,7 @@ export class AdapterManager extends Disposable implements IAdapterManager {
 			}
 
 			if (picked) {
-				this.commandService.executeCommand('debug.installAdditionalDebuggers', languageLabel);
+				void this.commandService.executeCommand('debug.installAdditionalDebuggers', languageLabel).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 
 			return undefined;

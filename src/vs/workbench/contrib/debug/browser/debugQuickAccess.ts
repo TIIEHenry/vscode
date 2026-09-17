@@ -10,6 +10,7 @@ import { INotificationService } from '../../../../platform/notification/common/n
 import { IDebugService } from '../common/debug.js';
 import { IWorkspaceContextService, WorkbenchState } from '../../../../platform/workspace/common/workspace.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { matchesFuzzy } from '../../../../base/common/filters.js';
 import { ADD_CONFIGURATION_ID, DEBUG_QUICK_ACCESS_PREFIX } from './debugCommands.js';
 import { debugConfigure, debugRemoveConfig } from './debugIcons.js';
@@ -137,7 +138,7 @@ export class StartDebugQuickAccessProvider extends PickerQuickAccessProvider<IPi
 					if (pick) {
 						// Use the type of the provider, not of the config since config sometimes have subtypes (for example "node-terminal")
 						await configManager.selectConfiguration(pick.launch, pick.config.name, pick.config, { type: provider.type });
-						this.debugService.startDebugging(pick.launch, pick.config, { startedByUser: true });
+						void this.debugService.startDebugging(pick.launch, pick.config, { startedByUser: true }).catch(onUnexpectedError).catch(onUnexpectedError);
 					}
 				}
 			});
@@ -162,7 +163,7 @@ export class StartDebugQuickAccessProvider extends PickerQuickAccessProvider<IPi
 				label,
 				description: this.contextService.getWorkbenchState() === WorkbenchState.WORKSPACE ? launch.name : '',
 				highlights: { label: matchesFuzzy(filter, label, true) ?? undefined },
-				accept: () => this.commandService.executeCommand(ADD_CONFIGURATION_ID, launch.uri.toString())
+				accept: () => void this.commandService.executeCommand(ADD_CONFIGURATION_ID, launch.uri.toString()).catch(onUnexpectedError).catch(onUnexpectedError)
 			});
 		}
 

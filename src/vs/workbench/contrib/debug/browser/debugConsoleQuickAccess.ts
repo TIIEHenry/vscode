@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { matchesFuzzy } from '../../../../base/common/filters.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -42,7 +43,7 @@ export class DebugConsoleQuickAccess extends PickerQuickAccessProvider<IPickerQu
 		debugConsolePicks.push({
 			label: `$(plus) ${createTerminalLabel}`,
 			ariaLabel: createTerminalLabel,
-			accept: () => this._commandService.executeCommand(SELECT_AND_START_ID)
+			accept: () => void this._commandService.executeCommand(SELECT_AND_START_ID).catch(onUnexpectedError).catch(onUnexpectedError)
 		});
 		return debugConsolePicks;
 	}
@@ -56,7 +57,7 @@ export class DebugConsoleQuickAccess extends PickerQuickAccessProvider<IPickerQu
 				label,
 				highlights: { label: highlights },
 				accept: (keyMod, event) => {
-					this._debugService.focusStackFrame(undefined, undefined, session, { explicit: true });
+					void this._debugService.focusStackFrame(undefined, undefined, session, { explicit: true }).catch(onUnexpectedError).catch(onUnexpectedError);
 					if (!this._viewsService.isViewVisible(REPL_VIEW_ID)) {
 						this._viewsService.openView(REPL_VIEW_ID, true);
 					}

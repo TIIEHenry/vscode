@@ -7,6 +7,7 @@ import { distinct } from '../../../../base/common/arrays.js';
 import { DeferredPromise, RunOnceScheduler } from '../../../../base/common/async.js';
 import { VSBuffer, decodeBase64, encodeBase64 } from '../../../../base/common/buffer.js';
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event, trackSetChanges } from '../../../../base/common/event.js';
 import { stringHash } from '../../../../base/common/hash.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
@@ -1675,7 +1676,7 @@ export class DebugModel extends Disposable implements IDebugModel {
 								}).finally(() => {
 									deferred.complete();
 									this.schedulers.delete(thread.getId());
-								});
+								}).catch(onUnexpectedError).catch(onUnexpectedError);
 							}, 420)
 						});
 					}

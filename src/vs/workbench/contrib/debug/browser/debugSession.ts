@@ -9,7 +9,7 @@ import { mainWindow } from '../../../../base/browser/window.js';
 import { distinct } from '../../../../base/common/arrays.js';
 import { Queue, RunOnceScheduler, raceTimeout } from '../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
-import { canceled } from '../../../../base/common/errors.js';
+import { canceled, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { normalizeDriveLetter } from '../../../../base/common/labels.js';
 import { Lazy } from '../../../../base/common/lazy.js';
@@ -169,12 +169,12 @@ export class DebugSession implements IDebugSession {
 					if (thread && thread.threadId === this.lastContinuedThreadId && !thread.stopped) {
 						const toFocusThreadId = this.getStoppedDetails()?.threadId;
 						const toFocusThread = typeof toFocusThreadId === 'number' ? this.getThread(toFocusThreadId) : undefined;
-						this.debugService.focusStackFrame(undefined, toFocusThread);
+						void this.debugService.focusStackFrame(undefined, toFocusThread).catch(onUnexpectedError).catch(onUnexpectedError);
 					}
 				} else {
 					const session = this.debugService.getViewModel().focusedSession;
 					if (session && session.getId() === this.getId() && session.state !== State.Stopped) {
-						this.debugService.focusStackFrame(undefined);
+						void this.debugService.focusStackFrame(undefined).catch(onUnexpectedError).catch(onUnexpectedError);
 					}
 				}
 			}
@@ -1115,7 +1115,7 @@ export class DebugSession implements IDebugSession {
 				this.passFocusScheduler.cancel();
 				if (focusedThread && event.body.threadId === focusedThread.threadId) {
 					// De-focus the thread in case it was focused
-					this.debugService.focusStackFrame(undefined, undefined, viewModel.focusedSession, { explicit: false });
+					void this.debugService.focusStackFrame(undefined, undefined, viewModel.focusedSession, { explicit: false }).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 		}));
@@ -1370,7 +1370,7 @@ export class DebugSession implements IDebugSession {
 				const focusedThread = this.debugService.getViewModel().focusedThread;
 				const focusedThreadDoesNotExist = focusedThread !== undefined && focusedThread.session === this && !this.threads.has(focusedThread.threadId);
 				if (focusedThreadDoesNotExist) {
-					this.debugService.focusStackFrame(undefined, undefined);
+					void this.debugService.focusStackFrame(undefined, undefined).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 
 				const thread = typeof threadId === 'number' ? this.getThread(threadId) : undefined;

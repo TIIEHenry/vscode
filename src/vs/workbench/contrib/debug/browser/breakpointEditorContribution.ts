@@ -565,7 +565,7 @@ export class BreakpointEditorContribution implements IBreakpointEditorContributi
 		const desiredCandidatePositions = debugSettings.showInlineBreakpointCandidates && session ? requestBreakpointCandidateLocations(this.editor.getModel(), desiredBreakpointDecorations.map(bp => bp.range.startLineNumber), session) : Promise.resolve([]);
 		const desiredCandidatePositionsRaced = await Promise.race([desiredCandidatePositions, timeout(500).then(() => undefined)]);
 		if (desiredCandidatePositionsRaced === undefined) { // the timeout resolved first
-			desiredCandidatePositions.then(v => activeCodeEditor.changeDecorations(d => setCandidateDecorations(d, v)));
+			desiredCandidatePositions.then(v => activeCodeEditor.changeDecorations(d => setCandidateDecorations(d, v))).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		try {

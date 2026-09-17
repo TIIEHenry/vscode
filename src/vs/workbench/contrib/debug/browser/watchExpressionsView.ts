@@ -12,6 +12,7 @@ import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/lis
 import { ITreeContextMenuEvent, ITreeDragAndDrop, ITreeDragOverReaction, ITreeMouseEvent, ITreeNode } from '../../../../base/browser/ui/tree/tree.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { FuzzyScore } from '../../../../base/common/filters.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { localize } from '../../../../nls.js';
@@ -76,7 +77,7 @@ export class WatchExpressionsView extends ViewPane implements IDebugViewWithVari
 
 		this.watchExpressionsUpdatedScheduler = this._register(new RunOnceScheduler(() => {
 			this.needsRefresh = false;
-			this.tree.updateChildren();
+			void this.tree.updateChildren().catch(onUnexpectedError).catch(onUnexpectedError);
 		}, 50));
 		this.watchExpressionsExist = CONTEXT_WATCH_EXPRESSIONS_EXIST.bindTo(contextKeyService);
 		this.watchExpressionsExist.set(this.debugService.getModel().getWatchExpressions().length > 0);
@@ -114,7 +115,7 @@ export class WatchExpressionsView extends ViewPane implements IDebugViewWithVari
 			overrideStyles: this.getLocationBasedColors().listOverrideStyles
 		});
 		this._register(this.tree);
-		this.tree.setInput(this.debugService);
+		void this.tree.setInput(this.debugService).catch(onUnexpectedError).catch(onUnexpectedError);
 		CONTEXT_WATCH_EXPRESSIONS_FOCUSED.bindTo(this.tree.contextKeyService);
 
 		this._register(VisualizedVariableRenderer.rendererOnVisualizationRange(this.debugService.getViewModel(), this.tree));
@@ -148,7 +149,7 @@ export class WatchExpressionsView extends ViewPane implements IDebugViewWithVari
 		}));
 		this._register(this.debugService.getViewModel().onWillUpdateViews(() => {
 			if (!ignoreViewUpdates) {
-				this.tree.updateChildren();
+				void this.tree.updateChildren().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 

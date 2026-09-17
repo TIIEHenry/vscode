@@ -15,6 +15,7 @@ import { RunOnceScheduler, timeout } from '../../../../base/common/async.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { memoize } from '../../../../base/common/decorators.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { FuzzyScore } from '../../../../base/common/filters.js';
 import { HistoryNavigator } from '../../../../base/common/history.js';
@@ -226,7 +227,7 @@ export class Repl extends FilterViewPane implements IHistoryNavigationWidget {
 				// (no debug session has been focused since this view was created),
 				// in which case `_updateChildren` would throw `Tree input not set`.
 				if (this.tree?.getInput()) {
-					this.tree.updateChildren(undefined, true, false);
+					void this.tree.updateChildren(undefined, true, false).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 				this.onDidStyleChange();
 			}
