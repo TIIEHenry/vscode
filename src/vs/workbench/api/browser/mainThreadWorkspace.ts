@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationToken, CancellationTokenSource } from '../../../base/common/cancellation.js';
-import { isCancellationError } from '../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../base/common/errors.js';
 import { Disposable, DisposableMap, IDisposable } from '../../../base/common/lifecycle.js';
 import { isNative } from '../../../base/common/platform.js';
 import { URI, UriComponents } from '../../../base/common/uri.js';
@@ -65,7 +65,7 @@ export class MainThreadWorkspace extends Disposable implements MainThreadWorkspa
 		if (workspace.configuration && !isNative && !fileService.hasProvider(workspace.configuration)) {
 			this._proxy.$initializeWorkspace(this.getWorkspaceData(workspace), this.isWorkspaceTrusted());
 		} else {
-			this._contextService.getCompleteWorkspace().then(workspace => this._proxy.$initializeWorkspace(this.getWorkspaceData(workspace), this.isWorkspaceTrusted()));
+			this._contextService.getCompleteWorkspace().then(workspace => this._proxy.$initializeWorkspace(this.getWorkspaceData(workspace), this.isWorkspaceTrusted())).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 		this._register(this._contextService.onDidChangeWorkspaceFolders(this._onDidChangeWorkspace, this));
 		this._register(this._contextService.onDidChangeWorkbenchState(this._onDidChangeWorkspace, this));

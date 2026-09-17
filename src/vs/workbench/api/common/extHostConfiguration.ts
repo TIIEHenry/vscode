@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { mixin, deepClone } from '../../../base/common/objects.js';
 import { Event, Emitter } from '../../../base/common/event.js';
 import type * as vscode from 'vscode';
@@ -132,7 +133,7 @@ export class ExtHostConfiguration implements ExtHostConfigurationShape {
 	}
 
 	$acceptConfigurationChanged(data: IConfigurationInitData, change: IConfigurationChange): void {
-		this.getConfigProvider().then(provider => provider.$acceptConfigurationChanged(data, change));
+		this.getConfigProvider().then(provider => provider.$acceptConfigurationChanged(data, change)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 

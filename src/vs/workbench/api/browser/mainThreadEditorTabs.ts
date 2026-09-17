@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Event } from '../../../base/common/event.js';
 import { DisposableMap, DisposableStore } from '../../../base/common/lifecycle.js';
 import { isEqual } from '../../../base/common/resources.js';
@@ -76,7 +77,7 @@ export class MainThreadEditorTabs implements MainThreadEditorTabsShape {
 		this._dispoables.add(this._editorGroupsService.onDidRemoveGroup(() => this._createTabsModel()));
 
 		// Once everything is read go ahead and initialize the model
-		this._editorGroupsService.whenReady.then(() => this._createTabsModel());
+		this._editorGroupsService.whenReady.then(() => this._createTabsModel()).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	dispose(): void {
