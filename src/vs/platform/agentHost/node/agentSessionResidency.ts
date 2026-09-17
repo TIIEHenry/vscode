@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { disposableTimeout, Sequencer } from '../../../base/common/async.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import type { Event } from '../../../base/common/event.js';
 import { Disposable, DisposableResourceMap, type IDisposable } from '../../../base/common/lifecycle.js';
 import { LinkedMap, Touch } from '../../../base/common/map.js';
@@ -66,16 +67,16 @@ export class AgentSessionResidency extends Disposable {
 			if (active) {
 				this.touch(URI.parse(session));
 			}
-			void this.reconcile();
+			void this.reconcile().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(this._stateManager.onDidRemoveSession(session => {
 			const resource = URI.parse(session);
 			if (!parseSubagentSessionUri(resource)) {
 				this._recency.delete(session);
-				void this.reconcile();
+				void this.reconcile().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
-		this._register(this._options.onDidReleaseHold(() => void this.reconcile()));
+		this._register(this._options.onDidReleaseHold(() => void this.reconcile().catch(onUnexpectedError).catch(onUnexpectedError)));
 	}
 
 	touch(resource: URI): void {
@@ -111,7 +112,7 @@ export class AgentSessionResidency extends Disposable {
 			}
 		} finally {
 			this._sessionsBeingDisposed.delete(sessionKey);
-			void this.reconcile();
+			void this.reconcile().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -271,7 +272,7 @@ export class AgentSessionResidency extends Disposable {
 		}
 		this._releaseRetries.set(session, disposableTimeout(() => {
 			this._releaseRetries.deleteAndDispose(session);
-			void this.reconcile();
+			void this.reconcile().catch(onUnexpectedError).catch(onUnexpectedError);
 		}, this._releaseRetryMs));
 	}
 }
