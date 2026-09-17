@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "merge 关仓：leftover D648–D655 关各 call site。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
+summary: "G 进行中：notebook leftover D660 双链。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -26,6 +26,7 @@ summary: "merge 关仓：leftover D648–D655 关各 call site。compile-client 
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **G** | D660 `notebookEditorInput` side-loaded `this.resolve()` 双链；mocha **2/0**；未 commit；勿 add `out`；D24 仍开；不是 leftover/pills 完成 |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
