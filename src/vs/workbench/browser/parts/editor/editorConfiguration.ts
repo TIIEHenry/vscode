@@ -6,6 +6,7 @@
 import { localize } from '../../../../nls.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { IConfigurationRegistry, Extensions as ConfigurationExtensions, IConfigurationNode, ConfigurationScope } from '../../../../platform/configuration/common/configurationRegistry.js';
 import { workbenchConfigurationNodeBase } from '../../../common/configuration.js';
@@ -91,7 +92,7 @@ export class DynamicEditorConfigurations extends Disposable implements IWorkbenc
 
 			this.updateDynamicEditorConfigurations();
 			this.registerListeners();
-		})();
+		})().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private registerListeners(): void {

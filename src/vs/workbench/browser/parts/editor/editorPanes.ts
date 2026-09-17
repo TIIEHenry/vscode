@@ -22,7 +22,7 @@ import { assertReturnsDefined } from '../../../../base/common/types.js';
 import { IWorkspaceTrustManagementService } from '../../../../platform/workspace/common/workspaceTrust.js';
 import { ErrorPlaceholderEditor, IErrorEditorPlaceholderOptions, WorkspaceTrustRequiredPlaceholderEditor } from './editorPlaceholder.js';
 import { EditorOpenSource, IEditorOptions } from '../../../../platform/editor/common/editor.js';
-import { isCancellationError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { toErrorMessage } from '../../../../base/common/errorMessage.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { IDialogService, IPromptButton, IPromptCancelButton } from '../../../../platform/dialogs/common/dialogs.js';
@@ -127,7 +127,7 @@ export class EditorPanes extends Disposable {
 		const editor = this._activeEditorPane?.input;
 		const options = this._activeEditorPane?.options;
 		if (editor?.hasCapability(EditorInputCapabilities.RequiresTrust)) {
-			this.groupView.openEditor(editor, options);
+			this.groupView.openEditor(editor, options).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

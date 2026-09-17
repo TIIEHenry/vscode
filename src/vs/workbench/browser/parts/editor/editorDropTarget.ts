@@ -8,6 +8,7 @@ import { DataTransfers } from '../../../../base/browser/dnd.js';
 import { $, addDisposableListener, DragAndDropObserver, EventHelper, EventType, getWindow, isAncestor } from '../../../../base/browser/dom.js';
 import { renderFormattedText } from '../../../../base/browser/formattedTextRenderer.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { toDisposable } from '../../../../base/common/lifecycle.js';
 import { isMacintosh, isWeb } from '../../../../base/common/platform.js';
 import { assertReturnsAllDefined, assertReturnsDefined } from '../../../../base/common/types.js';
@@ -357,7 +358,7 @@ class DropOverlay extends Themable {
 					}
 				}
 				if (editors.length) {
-					this.editorService.openEditors(editors, ensureTargetGroup(), { validateTrust: true });
+					this.editorService.openEditors(editors, ensureTargetGroup(), { validateTrust: true }).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 
