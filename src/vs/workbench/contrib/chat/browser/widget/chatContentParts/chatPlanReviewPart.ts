@@ -10,6 +10,7 @@ import { Button, ButtonWithDropdown, IButton } from '../../../../../../base/brow
 import { DomScrollableElement } from '../../../../../../base/browser/ui/scrollbar/scrollableElement.js';
 import { Action, Separator } from '../../../../../../base/common/actions.js';
 import { Codicon } from '../../../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { MarkdownString } from '../../../../../../base/common/htmlContent.js';
 import { KeyCode } from '../../../../../../base/common/keyCodes.js';
@@ -114,7 +115,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 					this.renderMarkdown();
 				}
 				this._isSubmitted = true;
-				void this.markUsed();
+				void this.markUsed().catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 		}
 
@@ -258,7 +259,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 		// Promote into review mode if inline feedback is already present
 		// (e.g. restored from a prior session).
 		if (!this._isSubmitted && this.getInlineFeedbackItems().length > 0) {
-			void this.enterFeedbackMode({ focus: false });
+			void this.enterFeedbackMode({ focus: false }).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -406,7 +407,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 				if (ev.keyCode === KeyCode.Enter && !ev.shiftKey) {
 					e.preventDefault();
 					e.stopPropagation();
-					void this.submitFeedback();
+					void this.submitFeedback().catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}));
 		}
@@ -533,7 +534,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 
 		// Auto-promote into review mode the first time a comment shows up.
 		if (items.length > 0 && !this._isFeedbackMode) {
-			void this.enterFeedbackMode({ focus: false });
+			void this.enterFeedbackMode({ focus: false }).catch(onUnexpectedError).catch(onUnexpectedError);
 			return;
 		}
 
@@ -577,7 +578,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 			this._submitButton = submitButton;
 			this._renderedSubmitInlineCount = inlineCount;
 			this._buttonStore.add(submitButton);
-			this._buttonStore.add(submitButton.onDidClick(() => void this.submitFeedback()));
+			this._buttonStore.add(submitButton.onDidClick(() => void this.submitFeedback().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 			if (includeReject) {
 				const rejectButton = new Button(container, { ...defaultButtonStyles, secondary: true });
@@ -771,7 +772,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 				rejected: false,
 				...(textareaFeedback ? { feedback: textareaFeedback, feedbackOverall: textareaFeedback } : {}),
 			});
-			void this.markUsed();
+			void this.markUsed().catch(onUnexpectedError).catch(onUnexpectedError);
 		} finally {
 			if (!this._isSubmitted) {
 				this._isSubmitting = false;
@@ -795,7 +796,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 				rejected: true,
 				...(textareaFeedback ? { feedback: textareaFeedback, feedbackOverall: textareaFeedback } : {}),
 			});
-			void this.markUsed();
+			void this.markUsed().catch(onUnexpectedError).catch(onUnexpectedError);
 		} finally {
 			if (!this._isSubmitted) {
 				this._isSubmitting = false;
