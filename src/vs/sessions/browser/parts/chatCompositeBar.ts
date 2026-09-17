@@ -417,7 +417,7 @@ export class ChatCompositeBar extends Disposable {
 			}
 
 			this._cancelTabEditing();
-			void this._commandService.executeCommand(CLOSE_CHAT_COMMAND_ID, { session, chat }).catch(onUnexpectedError);
+			void this._commandService.executeCommand(CLOSE_CHAT_COMMAND_ID, { session, chat }).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		// A tab drag carries two payloads: a group-move payload (to move/split the
