@@ -6,7 +6,7 @@
 import './media/extensionsViewlet.css';
 import { localize, localize2 } from '../../../../nls.js';
 import { timeout, Delayer } from '../../../../base/common/async.js';
-import { isCancellationError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { createErrorWithActions } from '../../../../base/common/errorMessage.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
 import { Disposable, DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
@@ -615,7 +615,7 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer<IExtensionsVi
 					this.extensionGalleryManifest = galleryManifest;
 					this.refresh();
 				}));
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	get searchValue(): string | undefined {

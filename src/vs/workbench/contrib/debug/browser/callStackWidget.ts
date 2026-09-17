@@ -10,6 +10,7 @@ import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/lis
 import { assertNever } from '../../../../base/common/assert.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { autorun, autorunWithStore, derived, IObservable, ISettableObservable, observableValue, transaction } from '../../../../base/common/observable.js';
@@ -474,7 +475,7 @@ class FrameCodeRenderer extends AbstractFrameRenderer<IStackTemplateData> {
 			editor.setModel(reference.object.textEditorModel);
 			this.setupEditorAfterModel(item, template);
 			this.setupEditorLayout(item, template);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private setupEditorLayout(item: WrappedCallStackFrame, { elementStore, container, editor }: IStackTemplateData) {

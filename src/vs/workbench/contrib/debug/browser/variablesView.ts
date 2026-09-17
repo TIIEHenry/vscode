@@ -15,6 +15,7 @@ import { coalesce } from '../../../../base/common/arrays.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { FuzzyScore, createMatches } from '../../../../base/common/filters.js';
 import { IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
@@ -509,7 +510,7 @@ export class VisualizedVariableRenderer extends AbstractExpressionsRenderer {
 						// Do not refresh scopes due to a node limitation #15520
 						forgetScopes = false;
 						this.debugService.getViewModel().updateViews();
-					});
+					}).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 		};
@@ -588,7 +589,7 @@ export class VariablesRenderer extends AbstractExpressionsRenderer {
 							// Do not refresh scopes due to a node limitation #15520
 							forgetScopes = false;
 							this.debugService.getViewModel().updateViews();
-						});
+						}).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 		};
@@ -620,7 +621,7 @@ export class VariablesRenderer extends AbstractExpressionsRenderer {
 			} else {
 				actionBar.push(toAction({ id: 'debugViz', label: localize('useVisualizer', 'Visualize Variable...'), class: ThemeIcon.asClassName(Codicon.eye), run: () => this.pickVisualizer(actions, originalExpression, data) }), { icon: true, label: false });
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private pickVisualizer(actions: IAction[], expression: IExpression, data: IExpressionTemplateData) {

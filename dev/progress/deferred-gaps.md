@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686/D687 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D688 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1053,3 +1053,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D685 | P3 | **closed** terminal+output leftover Promise 双链八处：tabbed `_handleContainerDrop`；tabs chat `executeCommand`；outputView `editorPromise.then`；delegated model append/update/clear/replace/updateChannelSources。跳过 Pty / poll `doWatch` / opener / D145 / sync void / grpc *Wire / Connect/Watch/Resolve。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 D；增量 esbuild 后 `terminalLeftoverPromiseCatchScan.test.ts` **4/0**（源扫 3 + Errors 1）；`outputLeftoverPromiseCatchScan.test.ts` **3/0**（源扫 2 + Errors 1）。未 commit。勿 add `out`。 | 八处双链；Pty/`doWatch` 仍跳过。未关 D24。leftover 程序未全局完成。 | workbench / terminal+output | closed |
 | D686 | P3 | **closed** debug/search/scm/files/markers leftover Promise 双链：breakpoint `updateBreakpoints`；adapter `getKnownTasks` then；search `updateFileStats` then；explorer `executeCommand` + `refresh`×2；scm repos leftover；markers leftover。跳过 Action2.run / opener / D145 / grpc / Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；源扫 `debugSearchScmFilesMarkersLeftoverPromiseCatchScan.test.ts`。未 commit。勿 add `out`。 | 上列 call site 双链。未关 D24。leftover 程序未全局完成。 | workbench / debug-search-scm-files-markers | closed |
 | D687 | P3 | **closed** comments leftover Promise 双链（`commentsController.ts`）。跳过 opener / D145 / grpc / Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；源扫 `commentsLeftoverPromiseCatchScan.test.ts`。未 commit。勿 add `out`。 | 双链源扫绿。未关 D24。leftover 程序未全局完成。 | workbench / comments | closed |
+| D688 | P3 | **closed** leftover Promise 双链八处：output FileOutput/MultiFile `loadModelPromise.then`；debug `variablesView` viz.edit/setVariable/getApplicableFor + `callStackWidget` createModelReference；extensions contribution/viewlet gallery manifest then。跳过 opener / D145 / sync void / grpc *Wire / Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 D；增量 esbuild 后 `debugOutputExtensionsLeftoverPromiseCatchScan.test.ts` **5/0**（源扫 4 + Errors 1）。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / output+debug+extensions | closed |
