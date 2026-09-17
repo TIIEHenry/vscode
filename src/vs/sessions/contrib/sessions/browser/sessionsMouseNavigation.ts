@@ -51,9 +51,9 @@ export class SessionsMouseNavigationContribution extends Disposable implements I
 		}
 
 		if (event.button === 3) {
-			void this.sessionsService.openPreviousSession().catch(onUnexpectedError);
+			void this.sessionsService.openPreviousSession().catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
-			void this.sessionsService.openNextSession().catch(onUnexpectedError);
+			void this.sessionsService.openNextSession().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 }
