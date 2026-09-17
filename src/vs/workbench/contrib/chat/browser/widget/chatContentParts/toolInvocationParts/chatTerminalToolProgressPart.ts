@@ -1110,7 +1110,7 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 		store.add(source.onDidChange(() => {
 			this._decoration.update();
 			this._updateToolbarContextKeys(undefined, this._terminalData.terminalToolSessionId);
-			void this._outputView.refresh();
+			void this._outputView.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 			if (source.hasExited) {
 				onCommandFinished.fire();
 				this.markCollapsibleWrapperComplete();
@@ -1123,7 +1123,7 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 		}
 		this._decoration.update();
 		this._updateToolbarContextKeys(undefined, this._terminalData.terminalToolSessionId);
-		void this._outputView.refresh();
+		void this._outputView.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _handleOutputFocus(): void {
@@ -1706,7 +1706,7 @@ export class ChatTerminalToolOutputSection extends Disposable {
 	 * height and wrap width match what xterm actually painted.
 	 */
 	private _handleMirrorRowHeightChange(): void {
-		void this._layoutMirrorWidth();
+		void this._layoutMirrorWidth().catch(onUnexpectedError).catch(onUnexpectedError);
 		this._layoutOutput();
 	}
 
@@ -1715,7 +1715,7 @@ export class ChatTerminalToolOutputSection extends Disposable {
 			return;
 		}
 		if (this.isExpanded) {
-			void this._layoutMirrorWidth();
+			void this._layoutMirrorWidth().catch(onUnexpectedError).catch(onUnexpectedError);
 			this._layoutOutput();
 			this._scrollOutputToBottom();
 		} else {

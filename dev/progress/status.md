@@ -21,7 +21,7 @@ summary: "SessionStream + L2 envelope leftover 已合入。D675 toggle 双链已
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **D** | 同文件残留 `_layoutMirrorWidth`×2 + `_outputView.refresh()`×2 |
+| **D** | D676：同文件 `_layoutMirrorWidth`×2 + `_outputView.refresh()`×2 双链（refresh 为 Promise）；D24 仍开 |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **C** | gitlink 脏 `dev/loop`；勿 add |
 | **E** | `blocked` `fix/ci-gate-reds` |

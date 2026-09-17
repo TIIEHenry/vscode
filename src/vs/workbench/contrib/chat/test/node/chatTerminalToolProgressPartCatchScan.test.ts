@@ -23,17 +23,19 @@ function chatTerminalToolProgressPartSourcePath(): string {
 	return found;
 }
 
-suite('ChatTerminalToolProgressPart leftover fire-and-forget catch scan (D675)', () => {
+suite('ChatTerminalToolProgressPart leftover fire-and-forget catch scan (D676)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_toggleOutput leftover voids are double-chain; await / layout / refresh leftovers stay (D675)', () => {
-		// _toggleOutput returns Promise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows (D480).
+	test('_toggleOutput / _layoutMirrorWidth / refresh leftover voids are double-chain; await _toggleOutput stays (D676)', () => {
+		// These methods return Promise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows (D480).
 		const source = fs.readFileSync(chatTerminalToolProgressPartSourcePath(), 'utf8');
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const trueCall = 'void this._toggleOutput(true)';
 		const expandedCall = 'void this._toggleOutput(expanded)';
 		const falseCall = 'void this._toggleOutput(false)';
+		const layoutCall = 'void this._layoutMirrorWidth()';
+		const refreshCall = 'void this._outputView.refresh()';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/void this\._toggleOutput\(true\)/g) ?? []).length, 6);
 		assert.strictEqual((source.match(/void this\._toggleOutput\(expanded\)/g) ?? []).length, 1);
@@ -52,9 +54,13 @@ suite('ChatTerminalToolProgressPart leftover fire-and-forget catch scan (D675)',
 		assert.strictEqual((source.match(/await this\._toggleOutput\(false\);/g) ?? []).length, 2);
 		assert.ok(!source.includes('await this._toggleOutput(true).catch'));
 		assert.ok(!source.includes('await this._toggleOutput(false).catch'));
-		assert.strictEqual((source.match(/void this\._layoutMirrorWidth\(\);/g) ?? []).length, 2);
-		assert.strictEqual((source.match(/void this\._outputView\.refresh\(\);/g) ?? []).length, 2);
-		assert.ok(!source.includes('void this._layoutMirrorWidth().catch(onUnexpectedError)'));
-		assert.ok(!source.includes('void this._outputView.refresh().catch(onUnexpectedError)'));
+		assert.strictEqual((source.match(/void this\._layoutMirrorWidth\(\)/g) ?? []).length, 2);
+		assert.strictEqual((source.match(/void this\._outputView\.refresh\(\)/g) ?? []).length, 2);
+		assert.ok(source.includes(`${layoutCall}${doubleCatch};`));
+		assert.ok(source.includes(`${refreshCall}${doubleCatch};`));
+		assert.ok(!source.includes(`${layoutCall};`));
+		assert.ok(!source.includes(`${refreshCall};`));
+		assert.ok(!source.includes(`${layoutCall}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${refreshCall}.catch(onUnexpectedError);`));
 	});
 });
