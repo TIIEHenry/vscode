@@ -56,7 +56,7 @@ import { IEditorTitleControlDimensions } from './editorTitleControl.js';
 import { StickyEditorGroupModel, UnstickyEditorGroupModel } from '../../../common/editor/filteredEditorGroupModel.js';
 import { IReadonlyEditorGroupModel } from '../../../common/editor/editorGroupModel.js';
 import { IHostService } from '../../../services/host/browser/host.js';
-import { BugIndicatingError } from '../../../../base/common/errors.js';
+import { BugIndicatingError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { applyDragImage } from '../../../../base/browser/ui/dnd/dnd.js';
 
 const modifierKeyEmitter = ModifierKeyEmitter.getInstance();
@@ -171,7 +171,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		// Resolve the correct path library for the OS we are on
 		// If we are connected to remote, this accounts for the
 		// remote OS.
-		(async () => this.path = await this.pathService.path)();
+		(async () => this.path = await this.pathService.path)().catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// React to decorations changing for our resource labels
 		this._register(this.tabResourceLabels.onDidChangeDecorations(() => this.doHandleDecorationsChange()));
@@ -410,7 +410,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 						index: this.groupView.count, // always at the end
 						override: DEFAULT_EDITOR_ASSOCIATION.id
 					}
-				}, this.groupView.id);
+				}, this.groupView.id).catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 		}
 
@@ -544,7 +544,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 			}
 
 			// Open it
-			this.groupView.openEditor(nextEditor);
+			this.groupView.openEditor(nextEditor).catch(onUnexpectedError).catch(onUnexpectedError);
 
 			// Disable normal scrolling, opening the editor will already reveal it properly
 			EventHelper.stop(e, true);
@@ -1134,7 +1134,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 				handled = true;
 				const editor = this.tabsModel.getEditorByIndex(tabIndex);
 				if (editor) {
-					this.groupView.openEditor(editor);
+					this.groupView.openEditor(editor).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 
@@ -1154,7 +1154,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 				const target = this.groupView.getEditorByIndex(editorIndex);
 				if (target) {
 					handled = true;
-					this.groupView.openEditor(target, { preserveFocus: true }, { focusTabControl: true });
+					this.groupView.openEditor(target, { preserveFocus: true }, { focusTabControl: true }).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 
@@ -1276,7 +1276,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 				if (dragDuration >= MultiEditorTabsControl.DRAG_OVER_OPEN_TAB_THRESHOLD) {
 					const draggedOverTab = this.tabsModel.getEditorByIndex(tabIndex);
 					if (draggedOverTab && this.tabsModel.activeEditor !== draggedOverTab) {
-						this.groupView.openEditor(draggedOverTab, { preserveFocus: true });
+						this.groupView.openEditor(draggedOverTab, { preserveFocus: true }).catch(onUnexpectedError).catch(onUnexpectedError);
 					}
 				}
 
@@ -2452,7 +2452,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 					}
 				}
 
-				this.editorService.openEditors(editors, this.groupView, { validateTrust: true });
+				this.editorService.openEditors(editors, this.groupView, { validateTrust: true }).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 
 			this.treeItemsTransfer.clearData(DraggedTreeItemsIdentifier.prototype);
