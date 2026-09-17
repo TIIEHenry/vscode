@@ -40,3 +40,23 @@ suite('ChatWidget leftover fire-and-forget catch scan (D583)', () => {
 		assert.ok(!source.includes('void this.cancelEditing().catch(onUnexpectedError);'));
 	});
 });
+
+suite('ChatWidget leftover fire-and-forget catch scan (D591)', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('chatWidget requestModelByIdentifier void double-catch onUnexpectedError', () => {
+		// Inner try/catch is insufficient: a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const source = fs.readFileSync(chatWidgetSourcePath(), 'utf8');
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const call = 'void this.input.requestModelByIdentifier(currentElement.modelId)';
+		const doubleCall = `${call}${doubleCatch};`;
+		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
+		assert.ok(source.includes('requestModelByIdentifier('));
+		assert.strictEqual((source.match(/void this\.input\.requestModelByIdentifier\(currentElement\.modelId\)/g) ?? []).length, 1);
+		assert.ok(source.includes(doubleCall));
+		assert.ok(!source.includes(`${call};`));
+		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.strictEqual((source.match(/void this\.cancelEditing\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
+	});
+});
