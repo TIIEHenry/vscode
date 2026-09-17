@@ -74,7 +74,7 @@ export class SessionsWindowNotifier extends Disposable implements IWorkbenchCont
 
 	private _trackSession(session: ISession): void {
 		const store = new DisposableStore();
-		const completedNotificationScheduler = store.add(new RunOnceScheduler(() => void this._notify(session, SessionStatus.Completed).catch(onUnexpectedError), this._getCompletedNotificationDelay()));
+		const completedNotificationScheduler = store.add(new RunOnceScheduler(() => void this._notify(session, SessionStatus.Completed).catch(onUnexpectedError).catch(onUnexpectedError), this._getCompletedNotificationDelay()));
 		store.add(autorunDelta(session.status, ({ lastValue, newValue }) => {
 			if (lastValue === undefined || lastValue === newValue) {
 				return;
