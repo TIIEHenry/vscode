@@ -169,7 +169,7 @@ export class SessionInputBannerWidget extends Disposable {
 				button.dropdownButton.setAriaLabel(localize('sessionInputBanner.moreActionsFor', "More Actions for {0}", action.label));
 			}
 			this._buttons.push({ button, primary: !!action.primary });
-			store.add(button.onDidClick(() => { void this._runAction(action).catch(onUnexpectedError); }));
+			store.add(button.onDidClick(() => { void this._runAction(action).catch(onUnexpectedError).catch(onUnexpectedError); }));
 		}
 
 		if (banner.dismiss && banner.dismissTooltip) {
