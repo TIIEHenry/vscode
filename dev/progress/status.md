@@ -4,31 +4,26 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "merge 关仓：leftover D664–D671 关各 call site。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
+summary: "merge 关仓：leftover D672–D674 关各 call site。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
-### 已合入（compile-client 0 · 聚焦 8 文件 17 pass）
+### 已合入（compile-client 待跑 · 聚焦 3 文件）
 | 切片 | 提交 |
 |:-----|:-----|
-| **A leftover** | `578739b020b` — gettingStarted 两处双链；[D664](deferred-gaps.md) |
-| **C leftover** | `feacfd5f995` — survey closeEditor 双链；[D665](deferred-gaps.md)；gitlink 脏勿 add |
-| **D leftover** | `e015232c7da` — virtual-doc 双链+finally；[D666](deferred-gaps.md) |
-| **F leftover** | `8a8c9f746a2` — codex profile 双链；[D667](deferred-gaps.md)；openCodex 仍单链 |
-| **G leftover** | `4bf403e46ae` — wordHighlighter 三处双链；[D668](deferred-gaps.md)；勿 add `out` |
-| **H leftover** | `221a8d00cde` — formatActions 双链；[D669](deferred-gaps.md) |
-| **I leftover** | `e116bde0b3f` — parameterHints delayer 双链；[D670](deferred-gaps.md) |
-| **J leftover** | `c33f00cbd1c` — inPlaceReplace 两处双链；[D671](deferred-gaps.md) |
+| **A leftover** | `9e8609a106c` — suggestModel then 双链；[D672](deferred-gaps.md) |
+| **C leftover** | `13273ddc386` — suggestWidget then 双链；[D673](deferred-gaps.md)；gitlink 脏勿 add |
+| **D leftover** | `e5dc1e18735` — asyncDataTree refresh 双链；[D674](deferred-gaps.md) |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A** | D672 `suggestModel` then leftover 双链；D24 仍开；不是 leftover/pills 完成 |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
+| **F/G/H/I/J** | parked |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
 
 子 agent 发现：
@@ -36,8 +31,7 @@ summary: "merge 关仓：leftover D664–D671 关各 call site。compile-client 
 |:---|:-----|
 | [D24](deferred-gaps.md) | **仍开**：Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
-| [D550](deferred-gaps.md)–[D671](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
-| [D672](deferred-gaps.md) | 本 call site then+双链已收；leftover **未**全局完成 |
+| [D550](deferred-gaps.md)–[D674](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |
