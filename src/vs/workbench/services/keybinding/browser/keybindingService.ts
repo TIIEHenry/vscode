@@ -767,7 +767,7 @@ class UserKeybindings extends Disposable {
 			if (changed) {
 				this._onDidChange.fire();
 			}
-		}), 50));
+		}).catch(onUnexpectedError).catch(onUnexpectedError), 50));
 
 		this._register(Event.filter(this.fileService.onDidFilesChange, e => e.contains(this.userDataProfileService.currentProfile.keybindingsResource))(() => {
 			logService.debug('Keybindings file changed');
