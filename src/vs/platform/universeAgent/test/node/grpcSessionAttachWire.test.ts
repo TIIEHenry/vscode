@@ -19,6 +19,7 @@ import {
 	decodeListSnapshotsResponse,
 	decodeRestoreSnapshotResponse,
 	decodeResumeSessionResponse,
+	decodeSessionResumeResponse,
 	decodeSessionStreamEvent,
 	encodeChatRequest,
 	encodeCreateSessionRequest,
@@ -45,6 +46,7 @@ import {
 	mapDeleteSnapshotResponse,
 	mapListSnapshotsResponse,
 	mapRestoreSnapshotResponse,
+	mapResumeSessionResponse,
 } from '../../node/grpc/grpcClientMappers.js';
 import {
 	encodeInt32Field,
@@ -109,6 +111,64 @@ suite('grpc first-send / attach protobuf wire', () => {
 		const decoded = decodeResumeSessionResponse(encoded);
 		assert.strictEqual(decoded.ok, true);
 		assert.strictEqual(decoded.message, 'ok');
+	});
+
+	test('decodeSessionResumeResponse reads nested root_agent=3 AgentInfo 1-8; maps via mapResumeSessionResponse; model_info unread', () => {
+		const child = encodeStringField(1, 'ag-child');
+		const agent = Buffer.concat([
+			encodeStringField(1, 'ag-root'),
+			encodeStringField(2, 'Root'),
+			encodeInt32Field(3, 0),
+			encodeInt32Field(4, 3),
+			encodeStringField(5, 'gpt-test'),
+			encodeInt32Field(6, 4),
+			encodeInt64Field(7, 1700000000),
+			encodeMessageField(8, child),
+			encodeStringField(9, 'model-info-unread'),
+		]);
+		const encoded = Buffer.concat([
+			encodeInt32Field(1, 1),
+			encodeStringField(2, 'resumed'),
+			encodeMessageField(3, agent),
+			encodeStringField(4, 'unused-field'),
+		]);
+		const wire = decodeSessionResumeResponse(encoded);
+		assert.strictEqual(wire.success, true);
+		assert.strictEqual(wire.message, 'resumed');
+		assert.ok(!('model_info' in (wire.root_agent ?? {})));
+		assert.ok(!('modelInfo' in (wire.root_agent ?? {})));
+		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
+		assert.strictEqual(JSON.stringify(wire).includes('model-info'), false);
+		assert.deepStrictEqual(mapResumeSessionResponse(wire), {
+			ok: true,
+			message: 'resumed',
+			rootAgent: {
+				agentId: 'ag-root',
+				name: 'Root',
+				type: 'AGENT_TYPE_ROOT',
+				status: 'AGENT_STATUS_GENERATING',
+				model: 'gpt-test',
+				turnCount: 4,
+				createdAt: 1700000000,
+				children: [{
+					agentId: 'ag-child',
+					name: '',
+					type: 'AGENT_TYPE_ROOT',
+					status: 'AGENT_STATUS_UNKNOWN',
+					model: '',
+					turnCount: 0,
+					createdAt: 0,
+					children: [],
+				}],
+			},
+		});
+		const unusedOnly = decodeSessionResumeResponse(encodeStringField(4, 'unused-field'));
+		assert.deepStrictEqual(unusedOnly, {});
+		assert.deepStrictEqual(mapResumeSessionResponse(unusedOnly), {
+			ok: false,
+			message: undefined,
+			rootAgent: undefined,
+		});
 	});
 
 	test('encodeGetHistoryRequest uses page_size + FORWARD_AFTER, not JSON limit', () => {

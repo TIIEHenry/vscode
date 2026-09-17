@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "合入 Usage recent_request_spans=12 decode。compile-client 0；聚焦 5 passing。D24 仍开。不是 leftover/pills 完成。"
+summary: "D 槽 Session.Resume root_agent=3 decode。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -26,6 +26,7 @@ summary: "合入 Usage recent_request_spans=12 decode。compile-client 0；聚�
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **D** | Session.Resume `root_agent`=3 AgentInfo 1–8 已 decode（`model_info`=9 仍 unread）；[D24](deferred-gaps.md) 仍开 |
 | **A** | 下一刀：同 RPC `context_window`=10 + `session_usage`=11 一路；[D24](deferred-gaps.md) 仍开 |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **C** | gitlink 脏 `dev/loop`；勿 add |
@@ -35,7 +36,7 @@ summary: "合入 Usage recent_request_spans=12 decode。compile-client 0；聚�
 子 agent 发现：
 | ID | 问题 |
 |:---|:-----|
-| [D24](deferred-gaps.md) | **仍开**：spans=12 已 decode；10/11 仍 unread；Connect/SaveSkillContent/Watch/Resolve/Pty 仍 JSON；`model_info`=9 unread |
+| [D24](deferred-gaps.md) | **仍开**：Session.Resume `root_agent`=3 已 decode；Usage 10/11 仍 unread；Connect/SaveSkillContent/Watch/Resolve/Pty 仍 JSON；`model_info`=9 unread |
 | — | CheckConnection 空 repeated **F 已对齐** `undefined` |
 | [D487](deferred-gaps.md) | **closed** Memory `score`=4 IEEE 754 LE |
 | [D550](deferred-gaps.md)–[D674](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
@@ -43,6 +44,6 @@ summary: "合入 Usage recent_request_spans=12 decode。compile-client 0；聚�
 ## Next
 | 项 | 指针 |
 |:---|:-----|
-| **loop** | D24 仍开。下一刀 Usage 10+11 同文件一路。SaveSkillContent 无 RPC。Connect/Watch/Resolve/Pty 跳过。不得宣称 leftover/pills 完成 |
+| **loop** | D24 仍开。Resume `root_agent`=3 已 decode。下一刀 Usage 10+11。SaveSkillContent 无 RPC。Connect/Watch/Resolve/Pty 跳过。不得宣称 leftover/pills 完成 |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。

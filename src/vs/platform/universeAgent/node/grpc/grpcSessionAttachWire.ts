@@ -30,11 +30,13 @@ import type {
 	UniverseAgentSessionEvent,
 } from '../../common/universeAgentTypes.js';
 import type {
+	AgentInfoWire,
 	CreateSnapshotResponseWire,
 	DeleteSnapshotResponseWire,
 	FetchToolDetailResponseWire,
 	ListSnapshotsResponseWire,
 	RestoreSnapshotResponseWire,
+	ResumeSessionResponseWire,
 	SessionSnapshotInfoWire,
 } from './grpcClientMappersSession.js';
 import { CONNECT_WIRE_PROTOCOL } from './grpcHandshakeWire.js';
@@ -52,6 +54,24 @@ import {
 
 /** SessionHistoryRequest.direction FORWARD_AFTER — seq > cursor_seq. */
 export const HISTORY_DIRECTION_FORWARD_AFTER = 1;
+
+const AGENT_STATUS_NAMES = [
+	'AGENT_STATUS_UNKNOWN',
+	'AGENT_STATUS_PENDING',
+	'AGENT_STATUS_WAITING',
+	'AGENT_STATUS_GENERATING',
+	'AGENT_STATUS_PAUSED',
+	'AGENT_STATUS_ERROR',
+	'AGENT_STATUS_COMPLETED',
+	'AGENT_STATUS_TIMEOUT',
+] as const;
+
+const AGENT_TYPE_NAMES = [
+	'AGENT_TYPE_ROOT',
+	'AGENT_TYPE_SUB',
+	'AGENT_TYPE_MEMBER',
+	'AGENT_TYPE_ADVISE',
+] as const;
 
 export const GET_HISTORY_WIRE_PAGE_SIZE_MAX = 500;
 
@@ -290,6 +310,12 @@ function numberOrUndefined(value: bigint | undefined): number | undefined {
 	return value === undefined ? undefined : Number(value);
 }
 
+/**
+ * Shared success=1 / message=2 helper (Rename / Cancel / Kill / EditMessage /
+ * Permission Respond / goals / SetPermissionMode). Does **not** read field 3:
+ * EditMessage `current_turn_id`=3 is a string; Session.Resume `root_agent`=3
+ * is nested AgentInfo — use `decodeSessionResumeResponse`.
+ */
 export function decodeResumeSessionResponse(bytes: Uint8Array): UniverseAgentResumeSessionResult {
 	const fields = readProtoFields(bytes);
 	const success = lastVarint(fields, 1);
@@ -298,6 +324,45 @@ export function decodeResumeSessionResponse(bytes: Uint8Array): UniverseAgentRes
 		ok: success === 1n,
 		...(message ? { message } : {}),
 	};
+}
+
+/**
+ * SessionService.Resume — `success`=1 `message`=2 nested `root_agent`=3
+ * (AgentInfo 1–8; `model_info`=9 unread, no public field). proto3: false /
+ * empty / 0 omitted. Unknown fields unread.
+ * Shape matches `ResumeSessionResponseWire` / `mapResumeSessionResponse`.
+ */
+export function decodeSessionResumeResponse(bytes: Uint8Array): ResumeSessionResponseWire {
+	const fields = readProtoFields(bytes);
+	const success = lastVarint(fields, 1);
+	const message = lastString(fields, 2);
+	const root = lastBytes(fields, 3);
+	return {
+		...(success === undefined ? {} : { success: success === 1n }),
+		...(message === undefined ? {} : { message }),
+		...(root === undefined ? {} : { root_agent: decodeAgentInfo(root) }),
+	};
+}
+
+function decodeAgentInfo(bytes: Uint8Array): AgentInfoWire {
+	const fields = readProtoFields(bytes);
+	return {
+		agent_id: lastString(fields, 1) ?? '',
+		name: lastString(fields, 2) ?? '',
+		type: enumName(AGENT_TYPE_NAMES, lastVarint(fields, 3)) ?? AGENT_TYPE_NAMES[0],
+		status: enumName(AGENT_STATUS_NAMES, lastVarint(fields, 4)) ?? 'AGENT_STATUS_UNKNOWN',
+		model: lastString(fields, 5) ?? '',
+		turn_count: numberOrUndefined(lastVarint(fields, 6)) ?? 0,
+		created_at: numberOrUndefined(lastVarint(fields, 7)) ?? 0,
+		children: allLengthDelimited(fields, 8).map(decodeAgentInfo),
+	};
+}
+
+function enumName(names: readonly string[], value: bigint | undefined): string | undefined {
+	if (value === undefined) {
+		return undefined;
+	}
+	return names[Number(value)] ?? names[0];
 }
 
 export function encodeGetHistoryRequest(request: UniverseAgentGetHistoryRequest): Uint8Array {
