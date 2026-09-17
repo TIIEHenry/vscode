@@ -176,8 +176,7 @@ suite('workbench composite leftover Promise fire-and-forget catch scan (D714)', 
 		assert.ok(contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase));'));
 		assert.ok(!contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase)).catch'));
 
-		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput);'));
-		assert.ok(!editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch'));
+		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError).catch(onUnexpectedError);'));
 
 		assert.ok(breadcrumbs.includes('}).catch(err => {'));
 		assert.ok(breadcrumbs.includes('onUnexpectedError(err);'));

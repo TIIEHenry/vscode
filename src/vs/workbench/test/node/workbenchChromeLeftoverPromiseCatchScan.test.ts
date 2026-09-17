@@ -204,8 +204,7 @@ suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () 
 		assert.ok(!/this\.openerService\.open\([^)]*\)\.catch\(onUnexpectedError\)/.test(windowSource));
 		assert.ok(windowSource.includes('await this.lifecycleService.when(LifecyclePhase.Restored);'));
 
-		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput);'));
-		assert.ok(!editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch'));
+		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError).catch(onUnexpectedError);'));
 
 		assert.ok(contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase));'));
 		assert.ok(!contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase)).catch'));

@@ -186,7 +186,7 @@ suite('workbench leftover Promise fire-and-forget catch scan (D737)', () => {
 		assertDoubleThen(source, expandThen);
 	});
 
-	test('opener / D145 / custom-catch breadcrumbs / editorParts void / web.factory / already-double D697/D706/D714/D722/D731 stay skipped', () => {
+	test('opener / D145 / custom-catch breadcrumbs / web.factory / already-double D697/D706/D714/D722/D731 stay skipped; D746 editorParts is chained', () => {
 		const breadcrumbs = fs.readFileSync(resolveSource(BREADCRUMBS_REL), 'utf8');
 		const editorParts = fs.readFileSync(resolveSource(EDITOR_PARTS_REL), 'utf8');
 		const webFactory = fs.readFileSync(resolveSource(WEB_FACTORY_REL), 'utf8');
@@ -200,8 +200,7 @@ suite('workbench leftover Promise fire-and-forget catch scan (D737)', () => {
 		assert.ok(breadcrumbs.includes('onUnexpectedError(err);'));
 		assert.ok(!breadcrumbs.includes(`${doubleCatch}`));
 
-		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput);'));
-		assert.ok(!editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch'));
+		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError).catch(onUnexpectedError);'));
 
 		assert.ok(webFactory.includes('new BrowserMain(domElement, options).open().then(workbench => {'));
 		assert.ok(!webFactory.includes('onUnexpectedError'));

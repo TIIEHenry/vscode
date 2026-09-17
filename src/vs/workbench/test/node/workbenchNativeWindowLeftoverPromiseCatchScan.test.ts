@@ -203,8 +203,7 @@ suite('workbench native window leftover Promise fire-and-forget catch scan (D722
 		assert.ok(contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase));'));
 		assert.ok(!contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase)).catch'));
 
-		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput);'));
-		assert.ok(!editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch'));
+		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError).catch(onUnexpectedError);'));
 
 		assert.ok(webFactory.includes('new BrowserMain(domElement, options).open().then(workbench => {'));
 		assert.ok(!webFactory.includes('onUnexpectedError'));

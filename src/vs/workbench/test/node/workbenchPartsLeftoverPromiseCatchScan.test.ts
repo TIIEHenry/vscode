@@ -273,8 +273,7 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 		assert.ok(contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase));'));
 		assert.ok(!contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase)).catch'));
 
-		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput);'));
-		assert.ok(!editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch'));
+		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError).catch(onUnexpectedError);'));
 
 		assert.ok(toasts.includes(`this.lifecycleService.when(LifecyclePhase.Restored).then(() => {
 

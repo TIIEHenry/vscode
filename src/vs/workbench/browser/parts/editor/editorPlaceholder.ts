@@ -29,6 +29,7 @@ import { SimpleIconLabel } from '../../../../base/browser/ui/iconLabel/simpleIco
 import { FileChangeType, FileOperationError, FileOperationResult, IFileService } from '../../../../platform/files/common/files.js';
 import { toErrorMessage } from '../../../../base/common/errorMessage.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IEditorGroup } from '../../../services/editor/common/editorGroupsService.js';
 import { showWindowLogActionId } from '../../../services/log/common/logConstants.js';
 
@@ -283,7 +284,7 @@ export class ErrorPlaceholderEditor extends EditorPlaceholder {
 			actions = [
 				{
 					label: localize('retry', "Try Again"),
-					run: () => this.group.openEditor(input, { ...options, source: EditorOpenSource.USER /* explicit user gesture */ })
+					run: () => this.group.openEditor(input, { ...options, source: EditorOpenSource.USER /* explicit user gesture */ }).catch(onUnexpectedError).catch(onUnexpectedError)
 				},
 				{
 					label: localize('showLogs', "Show Logs"),
@@ -296,7 +297,7 @@ export class ErrorPlaceholderEditor extends EditorPlaceholder {
 		if (isFileNotFound && resource && this.fileService.hasProvider(resource)) {
 			disposables.add(this.fileService.onDidFilesChange(e => {
 				if (e.contains(resource, FileChangeType.ADDED, FileChangeType.UPDATED)) {
-					this.group.openEditor(input, options);
+					this.group.openEditor(input, options).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}));
 		}
