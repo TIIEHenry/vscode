@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { timeout } from '../../../base/common/async.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { GrpcStatusCode, UniverseAgentTransportError } from './grpc/grpcTransport.js';
 import type { UniverseAgentAgentTreeNode } from '../common/universeAgentTypes.js';
 import type { AgentTreeNodeBound } from './sessionCore/local-fact.js';
@@ -71,7 +72,7 @@ export class AgentTreeCoordinator {
 			this.debounceHandle = undefined;
 			void this.pullNow(onBound).catch(error => {
 				onError?.(error);
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}, TREE_DEBOUNCE_MS);
 	}
 

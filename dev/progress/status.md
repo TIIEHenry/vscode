@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "SessionStream + L2 leftover 已合入。catch 批次含 sources D677。D24 仍开。不是 leftover/pills 完成。"
+summary: "SessionStream + L2 leftover 已合入。A 槽 universeAgent leftover 双链进行中。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -20,7 +20,7 @@ summary: "SessionStream + L2 leftover 已合入。catch 批次含 sources D677�
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A** | universeAgent 散点 leftover catch（reconnect / pullNow） |
+| **A** | universeAgent leftover 三处双链（_fireReconnect / pullNow） |
 | **B** | 脏；跳过 |
 | **C** | gitlink 脏；勿 add |
 | **E** | blocked |

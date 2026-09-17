@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { finalizeConnectProfileResult, readConnectProfileSasCode } from '../common/connectProfileResult.js';
@@ -2100,7 +2101,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		const delay = this._computeReconnectDelay(this._reconnectAttempt);
 		this._reconnectTimer = this._setTimeoutFn(() => {
 			this._reconnectTimer = undefined;
-			void this._fireReconnect(profileId);
+			void this._fireReconnect(profileId).catch(onUnexpectedError).catch(onUnexpectedError);
 		}, delay);
 	}
 

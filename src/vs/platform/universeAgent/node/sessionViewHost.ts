@@ -630,7 +630,7 @@ export class SessionViewHost extends Disposable {
 			});
 		};
 		if (immediate) {
-			void sidecar.tree.pullNow(onBound).catch(onError);
+			void sidecar.tree.pullNow(onBound).catch(onError).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			sidecar.tree.scheduleRefresh(onBound, onError);
 		}
