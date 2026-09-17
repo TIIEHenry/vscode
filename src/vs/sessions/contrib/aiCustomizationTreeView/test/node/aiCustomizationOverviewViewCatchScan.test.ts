@@ -44,7 +44,26 @@ suite('AICustomizationOverviewView leftover fire-and-forget catch scan (D614)', 
 		assert.ok(!source.includes(`${call}.catch(onUnexpectedError))`));
 		assert.ok(!source.includes('() => this.loadCounts()'));
 		assert.ok(!source.includes('\t\t\tthis.loadCounts();'));
-		assert.ok(source.includes('this.openOverview();'));
-		assert.ok(!source.includes('this.openOverview().catch'));
+	});
+});
+
+suite('AICustomizationOverviewView leftover fire-and-forget catch scan (D622)', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('openOverview voids double-catch onUnexpectedError (D622)', () => {
+		// Bare openOverview dropped Promises leak on reject; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const source = fs.readFileSync(aiCustomizationOverviewViewSourcePath(), 'utf8');
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const call = 'void this.openOverview()';
+		const doubleCall = `${call}${doubleCatch};`;
+		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.ok(source.includes('private async openOverview(): Promise<void>'));
+		assert.strictEqual((source.match(/void this\.openOverview\(\)/g) ?? []).length, 2);
+		assert.strictEqual((source.match(/void this\.openOverview\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
+		assert.ok(source.includes(doubleCall));
+		assert.ok(!source.includes(`${call};`));
+		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes('\t\t\t\tthis.openOverview();'));
 	});
 });
