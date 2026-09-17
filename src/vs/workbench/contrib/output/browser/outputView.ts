@@ -29,6 +29,7 @@ import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { Dimension } from '../../../../base/browser/dom.js';
 import { ITextEditorOptions } from '../../../../platform/editor/common/editor.js';
 import { CancelablePromise, createCancelablePromise } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 import { ResourceContextKey } from '../../../common/contextkeys.js';
 import { ServiceCollection } from '../../../../platform/instantiation/common/serviceCollection.js';
@@ -136,7 +137,7 @@ export class OutputViewPane extends FilterViewPane {
 
 	override focus(): void {
 		super.focus();
-		this.editorPromise?.then(() => this.editor.focus());
+		this.editorPromise?.then(() => this.editor.focus())?.catch(onUnexpectedError)?.catch(onUnexpectedError);
 	}
 
 	public clearFilterText(): void {
