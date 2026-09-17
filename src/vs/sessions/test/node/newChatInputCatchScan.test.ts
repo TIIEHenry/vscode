@@ -65,6 +65,23 @@ suite('NewChatInput leftover fire-and-forget catch scan (D602)', () => {
 		assert.ok(source.includes(`${toggleHelper}${doubleCatch};`));
 		assert.ok(!source.includes(`${toggleHelper};`));
 		assert.ok(!source.includes(`${toggleHelper}.catch(onUnexpectedError);`));
-		assert.ok(source.includes('handler: () => activeDictationComposer?.toggleDictation(),'));
+	});
+});
+
+suite('NewChatInput leftover fire-and-forget catch scan (D610)', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('dictation command handler toggleDictation double-catch onUnexpectedError (D610)', () => {
+		// Dropped handler Promise leaks on reject; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const source = fs.readFileSync(newChatInputSourcePath(), 'utf8');
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const handlerCall = 'activeDictationComposer?.toggleDictation()';
+		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.strictEqual((source.match(/activeDictationComposer\?\.toggleDictation\(\)/g) ?? []).length, 1);
+		assert.ok(source.includes(`${handlerCall}?${doubleCatch}`));
+		assert.ok(!source.includes('handler: () => activeDictationComposer?.toggleDictation(),'));
+		assert.ok(!source.includes(`${handlerCall}?.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${handlerCall};`));
 	});
 });
