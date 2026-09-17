@@ -120,7 +120,7 @@ export class StartupPageRunnerContribution extends Disposable implements IWorkbe
 		super();
 
 		this.tryShowOnboarding();
-		this.run().then(undefined, onUnexpectedError);
+		this.run().catch(onUnexpectedError).catch(onUnexpectedError);
 		this._register(this.editorService.onDidCloseEditor((e) => {
 			if (e.editor instanceof GettingStartedInput) {
 				e.editor.selectedCategory = undefined;

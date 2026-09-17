@@ -64,7 +64,7 @@ import { TaskDefinitionRegistry } from '../common/taskDefinitionRegistry.js';
 import { getActiveElement } from '../../../../base/browser/dom.js';
 import { raceTimeout } from '../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
-import { isCancellationError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { toFormattedString } from '../../../../base/common/jsonFormatter.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
@@ -363,7 +363,7 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 		this._taskRunningState = TASK_RUNNING_STATE.bindTo(_contextKeyService);
 		this._tasksAvailableState = TasksAvailableContext.bindTo(_contextKeyService);
 		this._onDidStateChange = this._register(new Emitter());
-		this._registerCommands().then(() => TaskCommandsRegistered.bindTo(this._contextKeyService).set(true));
+		this._registerCommands().then(() => TaskCommandsRegistered.bindTo(this._contextKeyService).set(true)).catch(onUnexpectedError).catch(onUnexpectedError);
 		ServerlessWebContext.bindTo(this._contextKeyService).set(Platform.isWeb && !remoteAgentService.getConnection()?.remoteAuthority);
 		this._configurationResolverService.contributeVariable('defaultBuildTask', async (): Promise<string | undefined> => {
 			// delay provider activation, we might find a single default build task in the tasks.json file
@@ -502,7 +502,7 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 			this._tasksReconnected = await this._reconnectTasks();
 			this._log(nls.localize('TaskService.reconnected', 'Reconnected to running tasks.'), true);
 			this._onDidReconnectToTasks.fire();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async _handleLongRunningTaskCompletion(event: ITaskProcessEndedEvent | ITaskInactiveEvent, durationMs: number): Promise<void> {

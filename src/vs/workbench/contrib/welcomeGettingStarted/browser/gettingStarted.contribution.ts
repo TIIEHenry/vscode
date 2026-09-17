@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { GettingStartedInputSerializer, GettingStartedPage, inWelcomeContext } from './gettingStarted.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
@@ -307,7 +308,7 @@ class WorkspacePlatformContribution {
 			} else {
 				console.error('Error: Unable to detect workspace platform');
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 

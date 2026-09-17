@@ -6,7 +6,7 @@
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { $, append, addDisposableListener, EventType, clearNode, getActiveWindow } from '../../../../base/browser/dom.js';
-import { isCancellationError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { StopWatch } from '../../../../base/common/stopwatch.js';
 import { URI } from '../../../../base/common/uri.js';
 import { isWindows, isMacintosh, isLinux } from '../../../../base/common/platform.js';
@@ -160,7 +160,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 		}
 
 		// Start detecting installed editors early so results are ready by the Personalize step
-		this._detectInstalledEditors().then(ids => { this._detectedEditorIds = ids; });
+		this._detectInstalledEditors().then(ids => { this._detectedEditorIds = ids; }).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	get isShowing(): boolean {

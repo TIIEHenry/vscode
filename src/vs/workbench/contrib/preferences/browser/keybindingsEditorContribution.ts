@@ -5,6 +5,7 @@
 
 import * as nls from '../../../../nls.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { Disposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
@@ -57,7 +58,7 @@ class DefineKeybindingEditorContribution extends Disposable implements IDefineKe
 
 	showDefineKeybindingWidget(): void {
 		if (isInterestingEditorModel(this._editor, this._userDataProfileService)) {
-			this._defineWidget.start().then(keybinding => this._onAccepted(keybinding));
+			this._defineWidget.start().then(keybinding => this._onAccepted(keybinding)).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

@@ -17,7 +17,7 @@ import { CancelablePromise, createCancelablePromise, Delayer, raceTimeout } from
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { Color } from '../../../../base/common/color.js';
 import { fromNow } from '../../../../base/common/date.js';
-import { isCancellationError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Iterable } from '../../../../base/common/iterator.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
@@ -561,7 +561,7 @@ export class SettingsEditor2 extends EditorPane {
 
 			// Init TOC selection
 			this.updateTreeScrollSync();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		await this.refreshInstalledExtensionsList();
 	}

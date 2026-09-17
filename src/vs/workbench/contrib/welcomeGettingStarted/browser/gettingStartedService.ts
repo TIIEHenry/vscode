@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { createDecorator, IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { Memento } from '../../../common/memento.js';
@@ -240,7 +241,7 @@ export class WalkthroughsService extends Disposable implements IWalkthroughsServ
 
 		this.extensionManagementService.getInstalled().then(installed => {
 			installed.forEach(ext => this.progressByEvent(`extensionInstalled:${ext.identifier.id.toLowerCase()}`));
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this._register(this.extensionManagementService.onDidInstallExtensions((result) => {
 
