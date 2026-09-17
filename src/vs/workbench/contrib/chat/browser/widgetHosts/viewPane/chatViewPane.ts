@@ -10,7 +10,7 @@ import { Button } from '../../../../../../base/browser/ui/button/button.js';
 import { Orientation, Sash } from '../../../../../../base/browser/ui/sash/sash.js';
 import { DomScrollableElement } from '../../../../../../base/browser/ui/scrollbar/scrollableElement.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../../base/common/cancellation.js';
-import { isCancellationError } from '../../../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Event } from '../../../../../../base/common/event.js';
 import { MutableDisposable, toDisposable, DisposableStore, IDisposable } from '../../../../../../base/common/lifecycle.js';
 import { LRUCache } from '../../../../../../base/common/map.js';
@@ -338,7 +338,7 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 						}
 					});
 
-				this.restoringSession.finally(() => this.restoringSession = undefined);
+				void this.restoringSession.finally(() => this.restoringSession = undefined).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 
@@ -1698,7 +1698,7 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 
 			// Switching to side-by-side, reveal the current session after elements have loaded
 			if (this.sessionsViewerOrientation === AgentSessionsViewerOrientation.SideBySide) {
-				updatePromise.then(didUpdate => {
+				void Promise.resolve(updatePromise).then(didUpdate => {
 					if (!didUpdate) {
 						return;
 					}
@@ -1707,7 +1707,7 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 					if (sessionResource) {
 						this.sessionsControl?.reveal(sessionResource);
 					}
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 

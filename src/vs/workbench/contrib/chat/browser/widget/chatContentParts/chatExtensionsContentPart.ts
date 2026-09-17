@@ -5,6 +5,7 @@
 
 import './media/chatExtensionsContent.css';
 import * as dom from '../../../../../../base/browser/dom.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Event } from '../../../../../../base/common/event.js';
 import { Disposable, IDisposable } from '../../../../../../base/common/lifecycle.js';
 import { IInstantiationService } from '../../../../../../platform/instantiation/common/instantiation.js';
@@ -43,14 +44,14 @@ export class ChatExtensionsContentPart extends Disposable implements IChatConten
 
 		const extensionsList = dom.append(this.domNode, dom.$('.extensions-list'));
 		const list = this._register(instantiationService.createInstance(ExtensionsList, extensionsList, ChatViewId, { alwaysConsumeMouseWheel: false }, { onFocus: Event.None, onBlur: Event.None, filters: {} }));
-		getExtensions(extensionsContent.extensions, extensionsWorkbenchService).then(extensions => {
+		void Promise.resolve(getExtensions(extensionsContent.extensions, extensionsWorkbenchService)).then(extensions => {
 			loadingElement.remove();
 			if (this._store.isDisposed) {
 				return;
 			}
 			list.setModel(new PagedModel(extensions));
 			list.layout();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	hasSameContent(other: IChatRendererContent, followingContent: IChatRendererContent[], element: ChatTreeItem): boolean {

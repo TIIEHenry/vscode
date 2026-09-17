@@ -13,6 +13,7 @@ import { IMarkdownString } from '../../../../../base/common/htmlContent.js';
 import { localize } from '../../../../../nls.js';
 import { disposableTimeout } from '../../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { isEqual } from '../../../../../base/common/resources.js';
 import { generateUuid } from '../../../../../base/common/uuid.js';
@@ -2364,7 +2365,7 @@ export class VoiceSessionController extends Disposable implements IVoiceSessionC
 			void this.accessibilitySignalService.playSignal(AccessibilitySignal.voiceModeStopped, {
 				source: 'voiceMode.disconnect',
 				userGesture: true,
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -3081,7 +3082,7 @@ export class VoiceSessionController extends Disposable implements IVoiceSessionC
 		void this.accessibilitySignalService.playSignal(AccessibilitySignal.voiceRecordingStopped, {
 			source: userGesture ? 'voiceMode.explicitListeningStopped' : 'voiceMode.listeningStopped',
 			userGesture,
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	markUserCancelled(sessionId: string): void {
@@ -3291,14 +3292,14 @@ export class VoiceSessionController extends Disposable implements IVoiceSessionC
 			void this.accessibilitySignalService.playSignal(AccessibilitySignal.voiceModeStarted, {
 				source: 'voiceMode.connectListeningStarted',
 				userGesture: true,
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 			return;
 		}
 
 		void this.accessibilitySignalService.playSignal(AccessibilitySignal.voiceRecordingStarted, {
 			source: 'voiceMode.explicitListeningStarted',
 			userGesture: true,
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	/**

@@ -8,6 +8,7 @@ import { IHoverAction, IManagedHoverOptions } from '../../../../../base/browser/
 import { renderIcon } from '../../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { FileAccess } from '../../../../../base/common/network.js';
@@ -108,14 +109,14 @@ export class ChatAgentHover extends Disposable {
 		this.domNode.classList.toggle('verifiedPublisher', false);
 		if (!agent.isDynamic) {
 			const cancel = this._register(new CancellationTokenSource());
-			this.extensionService.getExtensions([{ id: agent.extensionId.value }], cancel.token).then(extensions => {
+			void Promise.resolve(this.extensionService.getExtensions([{ id: agent.extensionId.value }], cancel.token)).then(extensions => {
 				cancel.dispose();
 				const extension = extensions[0];
 				if (extension?.publisherDomain?.verified) {
 					this.domNode.classList.toggle('verifiedPublisher', true);
 					this._onDidChangeContents.fire();
 				}
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 }

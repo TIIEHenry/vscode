@@ -9,6 +9,7 @@ import { Dialog, DialogContentsAlignment } from '../../../../../base/browser/ui/
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { toErrorMessage } from '../../../../../base/common/errorMessage.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { MarkdownString } from '../../../../../base/common/htmlContent.js';
 import { Lazy } from '../../../../../base/common/lazy.js';
 import { Disposable, DisposableStore, IDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
@@ -431,7 +432,7 @@ export class ChatSetup {
 					}
 				};
 				store.add(this.extensionService.onDidChangeExtensionsStatus(check));
-				this.extensionService.whenInstalledExtensionsRegistered().then(check);
+				void Promise.resolve(this.extensionService.whenInstalledExtensionsRegistered()).then(check).catch(onUnexpectedError).catch(onUnexpectedError);
 			}), timeoutMs);
 		} finally {
 			store.dispose();
