@@ -1061,7 +1061,7 @@ export class GettingStartedPage extends EditorPane {
 				this.hostService.openWindow([windowOpenable], {
 					forceNewWindow: e.ctrlKey || e.metaKey,
 					remoteAuthority: recent.remoteAuthority || null // local window if remoteAuthority is not set or can not be deducted from the openable
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 				e.preventDefault();
 				e.stopPropagation();
 			});
@@ -1426,9 +1426,9 @@ export class GettingStartedPage extends EditorPane {
 						restoreWalkthroughsConfigurationKey,
 						JSON.stringify(restoreData),
 						StorageScope.PROFILE, StorageTarget.MACHINE);
-					this.hostService.openWindow([{ folderUri: toOpen }]);
+					this.hostService.openWindow([{ folderUri: toOpen }]).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			this.openerService.open(command, { allowCommands: true });
 		}
@@ -1505,8 +1505,8 @@ export class GettingStartedPage extends EditorPane {
 
 		this.extensionService.whenInstalledExtensionsRegistered().then(() => {
 			// Remove internal extension id specifier from exposed id's
-			this.extensionService.activateByEvent(`onWalkthrough:${categoryID.replace(/[^#]+#/, '')}`);
-		});
+			this.extensionService.activateByEvent(`onWalkthrough:${categoryID.replace(/[^#]+#/, '')}`).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this.detailsPageDisposables.clear();
 		this.mediaDisposables.clear();
