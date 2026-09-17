@@ -57,7 +57,7 @@ suite('code electron-main leftover Promise fire-and-forget catch scan (D719)', (
 			source.includes(`sharedProcessClient.then(client => client.registerChannel('storage', storageChannel))${doubleCatch};`),
 		].filter(Boolean).length;
 		assert.strictEqual(sites, 8);
-		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 15);
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 18);
 	});
 
 	test('app.ts leftover sharedProcessClient then registerChannels are Promise double-chain', () => {
