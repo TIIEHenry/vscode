@@ -738,10 +738,10 @@ export class WorkspacePicker extends Disposable {
 		const generation = ++this._selectionGeneration;
 		this._reportPickerClosed(item);
 		if (item.run) {
-			void Promise.resolve(item.run()).catch(onUnexpectedError);
+			void Promise.resolve(item.run()).catch(onUnexpectedError).catch(onUnexpectedError);
 			return true;
 		} else if (item.commandId) {
-			void this.commandService.executeCommand(item.commandId).catch(onUnexpectedError);
+			void this.commandService.executeCommand(item.commandId).catch(onUnexpectedError).catch(onUnexpectedError);
 			return true;
 		} else if (item.folderUri && item.providerId && this._isProviderUnavailable(item.providerId)) {
 			// Workspace belongs to an unavailable remote — ignore selection
