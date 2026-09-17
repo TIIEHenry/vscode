@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "merge 关仓：D24 Continue/Regenerate/Resume 流 bytes。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
+summary: "G 进行中：D24 UploadAttachment client-stream wire+测。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -19,15 +19,16 @@ summary: "merge 关仓：D24 Continue/Regenerate/Resume 流 bytes。compile-clie
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **G** | 进行中 `d24-upload-stream-wire`：UploadAttachment client-stream wire+测；grpcClient 仍 JSON；未加 `makeClientStreamBytesClient`；[D24](deferred-gaps.md) 仍开 |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
-| **A/C/D/F/G/H/I/J** | parked |
+| **A/C/D/F/H/I/J** | parked |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
 
 子 agent 发现：
 | ID | 问题 |
 |:---|:-----|
-| [D24](deferred-gaps.md) | **仍开**：Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor 仍 JSON |
+| [D24](deferred-gaps.md) | **仍开**：UploadAttachment 仅 wire+测；grpcClient / Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor 仍 JSON |
 | [D487](deferred-gaps.md) | **closed** Memory `score`=4 IEEE 754 LE |
 | [D550](deferred-gaps.md)–[D674](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
