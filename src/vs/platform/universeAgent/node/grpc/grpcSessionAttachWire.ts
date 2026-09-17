@@ -401,6 +401,15 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
 	]);
 }
 
+/**
+ * SessionStreamEvent — `session_id`=1; nested oneof hello=10 …
+ * envelope_range_replaced=22; nested `permission_request`=50
+ * PermissionRequestEvent (`request_id`=1 `tool_name`=2 `description`=3
+ * `agent_id`=6). `metadata`=4 / `requested_by_client`=5 /
+ * `parent_tool_call_id`=7 unread (no public demux fields).
+ * proto3: empty omitted. Unknown fields unread.
+ * Shape matches demuxSessionStreamPayload `permission_request`.
+ */
 export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessionEvent {
 	const fields = readProtoFields(bytes);
 	const payload: Record<string, unknown> = {};
@@ -435,6 +444,10 @@ export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessio
 	const replaced = lastBytes(fields, 22);
 	if (replaced) {
 		payload.envelope_range_replaced = decodeEnvelopeRangeReplaced(replaced);
+	}
+	const permission = lastBytes(fields, 50);
+	if (permission) {
+		payload.permission_request = decodePermissionRequestEvent(permission);
 	}
 	return { payload };
 }
@@ -488,6 +501,17 @@ function encodeHeartbeatAck(ack: unknown): Uint8Array {
 		return encodeInt64Field(1, echo);
 	}
 	return new Uint8Array(0);
+}
+
+function decodePermissionRequestEvent(bytes: Uint8Array): Record<string, unknown> {
+	const fields = readProtoFields(bytes);
+	const agentId = lastString(fields, 6);
+	return {
+		request_id: lastString(fields, 1) ?? '',
+		tool_name: lastString(fields, 2) ?? '',
+		description: lastString(fields, 3) ?? '',
+		...(agentId ? { agent_id: agentId } : {}),
+	};
 }
 
 function decodeStreamHello(bytes: Uint8Array): Record<string, unknown> {

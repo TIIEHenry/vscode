@@ -48,6 +48,7 @@ import {
 	mapRestoreSnapshotResponse,
 	mapResumeSessionResponse,
 } from '../../node/grpc/grpcClientMappers.js';
+import { demuxSessionStreamPayload } from '../../node/sessionStreamDemux.js';
 import {
 	encodeInt32Field,
 	encodeInt64Field,
@@ -246,6 +247,52 @@ suite('grpc first-send / attach protobuf wire', () => {
 		assert.strictEqual((decoded.payload as { session_id?: string }).session_id, 'sess-1');
 		assert.strictEqual(payload.hello?.session_version, 3);
 		assert.strictEqual(payload.hello?.head_seq, 8);
+	});
+
+	test('decodeSessionStreamEvent reads nested permission_request=50 PermissionRequestEvent 1-3+6; maps via demux; metadata/requested_by_client/parent_tool_call_id unread', () => {
+		const permission = Buffer.concat([
+			encodeStringField(1, 'perm-live'),
+			encodeStringField(2, 'bash'),
+			encodeStringField(3, 'Run bash'),
+			encodeStringField(5, 'client-unread'),
+			encodeStringField(6, 'root'),
+			encodeStringField(7, 'parent-tc-unread'),
+		]);
+		const encoded = Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodeMessageField(50, permission),
+			encodeStringField(51, 'unused-stream-field'),
+		]);
+		const decoded = decodeSessionStreamEvent(encoded);
+		const payload = decoded.payload as {
+			session_id?: string;
+			permission_request?: Record<string, unknown>;
+		};
+		assert.strictEqual(payload.session_id, 'sess-1');
+		assert.deepStrictEqual(payload.permission_request, {
+			request_id: 'perm-live',
+			tool_name: 'bash',
+			description: 'Run bash',
+			agent_id: 'root',
+		});
+		assert.ok(!('metadata' in (payload.permission_request ?? {})));
+		assert.ok(!('requested_by_client' in (payload.permission_request ?? {})));
+		assert.ok(!('parent_tool_call_id' in (payload.permission_request ?? {})));
+		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
+		assert.strictEqual(JSON.stringify(decoded).includes('client-unread'), false);
+		assert.strictEqual(JSON.stringify(decoded).includes('parent-tc-unread'), false);
+		const events = demuxSessionStreamPayload(decoded.payload);
+		assert.strictEqual(events.length, 1);
+		assert.deepStrictEqual(events[0], {
+			arm: 'permission',
+			body: {
+				id: 'perm-live',
+				orderKey: 'perm-live',
+				title: 'Run bash',
+				permissionKind: 'bash',
+				agentId: 'root',
+			},
+		});
 	});
 
 	test('encodeChatRequest writes session_input oneof, not JSON payload wrapper', () => {

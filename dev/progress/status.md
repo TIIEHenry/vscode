@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "合入 Session.Resume root_agent=3。compile-client 0；聚焦 44 passing。D24 仍开。不是 leftover/pills 完成。"
+summary: "A 槽 SessionStream permission_request=50 已 decode。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -23,6 +23,7 @@ summary: "合入 Session.Resume root_agent=3。compile-client 0；聚焦 44 pass
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **A** | SessionStream `permission_request`=50 PermissionRequestEvent 1–3+6 已 decode；`metadata`/`requested_by_client`/`parent_tool_call_id` unread |
 | **H** | File/Memory/Team 猎完：无合法 leftover nested |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **C** | gitlink 脏 `dev/loop`；勿 add |
@@ -32,7 +33,7 @@ summary: "合入 Session.Resume root_agent=3。compile-client 0；聚焦 44 pass
 子 agent 发现：
 | ID | 问题 |
 |:---|:-----|
-| [D24](deferred-gaps.md) | **仍开**：Usage 10/11/12 与 Resume `root_agent` 已 decode；Connect/Watch/Resolve/Pty 仍 JSON；`model_info`=9 unread |
+| [D24](deferred-gaps.md) | **仍开**：SessionStream `permission_request`=50 已 decode。Connect/Watch/Resolve/Pty 仍 JSON；`model_info`=9 unread |
 | — | TeamInfo `members`=2/`tasks`=3 测锁未读；公开类型只有 teamId+status |
 | — | `ListTeams` 不在 J `team_service.proto`；禁发明号 |
 | — | GetConfig tags=`[]` vs GetNode `undefined`（测锁 `[]`） |

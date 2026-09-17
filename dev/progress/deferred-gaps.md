@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Usage context_window=10 + session_usage=11 已 decode。Status model_info=9 仍 unread。Connect/SaveSkillContent/Watch/Resolve/Pty 仍 JSON。不是 leftover/pills 完成。"
+summary: "D24 仍开。SessionStream permission_request=50 已 decode。Status model_info=9 仍 unread。Connect/SaveSkillContent/Watch/Resolve/Pty 仍 JSON。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
