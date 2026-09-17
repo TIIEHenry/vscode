@@ -27,6 +27,7 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D733。D/F/I 
 |:---|:-----|
 | [D24](deferred-gaps.md) | **仍开**：Connect/Watch/Resolve/Pty 仍 JSON |
 | setRemoteEnvironment | `await` 的是 `Promise[]`，不会等各 host；应 `Promise.all`，不是 leftover |
+| D736 extensions | 合法 leftover <4（veto PromiseLike.then、latency openEditor）；extensions 跳过。veto then 回调抛错会未处理；openEditor 可裸拒 |
 ## Next
 | 项 | 指针 |
 |:-----|:-----|
