@@ -90,4 +90,15 @@ suite('McpListWidget leftover fire-and-forget catch scan', () => {
 		assert.ok(!source.includes(`void this.commandService.executeCommand(McpCommandIds.AddConfiguration).catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`void this.commandService.executeCommand('workbench.action.openSettings', \`@id:\${mcpAccessConfig}\`).catch(onUnexpectedError);`));
 	});
+
+	test('mcpListWidget leftover delayedFilter.trigger Promise is double-caught (D600)', () => {
+		const source = fs.readFileSync(mcpListWidgetSourcePath(), 'utf8');
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const doubleFilter = `void this.delayedFilter.trigger(() => this.filterServers())${doubleCatch};`;
+		assert.strictEqual((source.match(/this\.delayedFilter\.trigger\(/g) ?? []).length, 1);
+		assert.strictEqual((source.match(/void this\.delayedFilter\.trigger\(\(\) => this\.filterServers\(\)\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.ok(source.includes(doubleFilter));
+		assert.ok(!source.includes('this.delayedFilter.trigger(() => this.filterServers());'));
+		assert.ok(!source.includes('void this.delayedFilter.trigger(() => this.filterServers()).catch(onUnexpectedError);'));
+	});
 });

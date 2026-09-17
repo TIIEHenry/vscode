@@ -1218,7 +1218,7 @@ export class McpListWidget extends Disposable {
 			this.galleryCts?.dispose(true);
 			this.galleryCts = undefined;
 			this.searchInput.hideMessage();
-			this.delayedFilter.trigger(() => this.filterServers());
+			void this.delayedFilter.trigger(() => this.filterServers()).catch(onUnexpectedError).catch(onUnexpectedError);
 			if (isDonorWindow) {
 				return;
 			}
