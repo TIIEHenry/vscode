@@ -245,6 +245,62 @@ export function makeClientStreamClient<TChunk, TResponse>(
 	};
 }
 
+export function makeClientStreamBytesClient<TResponse>(
+	channel: grpc.Client,
+	servicePath: string,
+	method: string,
+	decode: (buffer: Buffer) => TResponse,
+): (
+	onResponse: (response: TResponse) => void,
+	onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+) => { write(chunk: Uint8Array): void; end(): void; dispose(): void } {
+	const path = `/${servicePath}/${method}`;
+	return (onResponse, onClosed) => {
+		const gate = createStreamCloseGate(onClosed);
+		const call = channel.makeClientStreamRequest(
+			path,
+			asUnaryProtoBytes,
+			(buffer: Buffer) => decode(buffer),
+			(error: grpc.ServiceError | null, response?: TResponse) => {
+				if (gate.closed) {
+					return;
+				}
+				if (error) {
+					const message = typeof error?.message === 'string' && error.message ? error.message : 'stream error';
+					gate.finish({ kind: 'error', message });
+					return;
+				}
+				if (response !== undefined) {
+					onResponse(response);
+				}
+				gate.finish({ kind: 'remote' });
+			},
+		);
+		return {
+			write(chunk: Uint8Array): void {
+				if (gate.closed) {
+					return;
+				}
+				call.write(chunk);
+			},
+			end(): void {
+				if (gate.closed) {
+					return;
+				}
+				call.end();
+			},
+			dispose(): void {
+				if (gate.closed) {
+					call.cancel();
+					return;
+				}
+				gate.closeLocal();
+				call.cancel();
+			},
+		};
+	};
+}
+
 export function makeResidentBidiBytesHandleClient<TResponse>(
 	channel: grpc.Client,
 	servicePath: string,
