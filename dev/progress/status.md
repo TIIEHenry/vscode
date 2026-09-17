@@ -26,6 +26,7 @@ summary: "merge 关仓：leftover D648–D655 关各 call site。compile-client 
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **J** | `loop/J-d24-inline-replay-leftover` [D663](deferred-gaps.md) inlineChat replay 双链进行中；openEditor 仍单链。D24 仍开。不是 leftover/pills 完成 |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |

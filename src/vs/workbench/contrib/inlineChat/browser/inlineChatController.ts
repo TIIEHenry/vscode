@@ -641,7 +641,7 @@ export class InlineChatController implements IEditorContribution {
 		}
 
 		// Must remain un-awaited so the shared widget clears its submit guard before the replay submits.
-		void controller.run({ message, autoSend: true }).catch(onUnexpectedError);
+		void controller.run({ message, autoSend: true }).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	#waitForSavedEditorController(resource: URI): Promise<InlineChatController | undefined> {
