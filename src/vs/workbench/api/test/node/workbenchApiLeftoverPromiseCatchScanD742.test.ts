@@ -17,7 +17,6 @@ const TUNNEL_NODE_REL = 'src/vs/workbench/api/node/extHostTunnelService.ts';
 const GIT_REL = 'src/vs/workbench/api/common/extHostGitExtensionService.ts';
 const PROTOCOL_REL = 'src/vs/workbench/api/common/extHost.protocol.ts';
 const INSET_REL = 'src/vs/workbench/api/common/extHostCodeInsets.ts';
-const SPEECH_REL = 'src/vs/workbench/api/browser/mainThreadSpeech.ts';
 const TUNNEL_MAIN_REL = 'src/vs/workbench/api/browser/mainThreadTunnelService.ts';
 const AUTH_REL = 'src/vs/workbench/api/common/extHostAuthentication.ts';
 const WINDOW_REL = 'src/vs/workbench/api/common/extHostWindow.ts';
@@ -133,9 +132,8 @@ suite('workbench/api leftover Promise fire-and-forget catch scan (D742)', () => 
 		assertDoubleThen(source, 'this._proxy.$onDidChangeRepository(handle)');
 	});
 
-	test('D734 leftover $createEditorInset / speech $create*Session / opener / Watch / Connect / Pty / two-arg / $sendDidChangeSessions / kernels / empty-catch $executeTask stay skipped', () => {
+	test('D734 leftover opener / Watch / Connect / Pty / two-arg / $sendDidChangeSessions / kernels / empty-catch $executeTask stay skipped; inset / speech / comments create owned by later leftover knife', () => {
 		const inset = fs.readFileSync(resolveSource(INSET_REL), 'utf8');
-		const speech = fs.readFileSync(resolveSource(SPEECH_REL), 'utf8');
 		const comments = fs.readFileSync(resolveSource(COMMENTS_REL), 'utf8');
 		const protocol = fs.readFileSync(resolveSource(PROTOCOL_REL), 'utf8');
 		const auth = fs.readFileSync(resolveSource(AUTH_REL), 'utf8');
@@ -152,27 +150,12 @@ suite('workbench/api leftover Promise fire-and-forget catch scan (D742)', () => 
 		const task = fs.readFileSync(resolveSource(TASK_REL), 'utf8');
 		const nodeTask = fs.readFileSync(resolveSource(NODE_TASK_REL), 'utf8');
 
-		assertPromiseSignature(protocol, '$createEditorInset(handle: number, id: string, uri: UriComponents, line: number, height: number, options: IWebviewContentOptions, extensionId: ExtensionIdentifier, extensionLocation: UriComponents): Promise<void>;');
 		assert.ok(protocol.includes('$disposeEditorInset(handle: number): void;'));
-		assert.ok(inset.includes('this._proxy.$createEditorInset(handle, apiEditor.id, apiEditor.value.document.uri, line + 1, height, options || {}, extension.identifier, extension.extensionLocation);'));
-		assert.ok(!inset.includes('$createEditorInset(handle, apiEditor.id, apiEditor.value.document.uri, line + 1, height, options || {}, extension.identifier, extension.extensionLocation).catch'));
 		assert.ok(inset.includes('that._proxy.$disposeEditorInset(handle);'));
 		assert.ok(!inset.includes('$disposeEditorInset(handle).catch'));
 
-		assertPromiseSignature(protocol, '$createSpeechToTextSession(handle: number, session: number, language?: string): Promise<void>;');
-		assertPromiseSignature(protocol, '$createTextToSpeechSession(handle: number, session: number, language?: string): Promise<void>;');
-		assertPromiseSignature(protocol, '$createKeywordRecognitionSession(handle: number, session: number): Promise<void>;');
-		assert.ok(speech.includes('this.proxy.$createSpeechToTextSession(handle, session, options?.language);'));
-		assert.ok(!speech.includes('$createSpeechToTextSession(handle, session, options?.language).catch'));
-		assert.ok(speech.includes('this.proxy.$createTextToSpeechSession(handle, session, options?.language);'));
-		assert.ok(!speech.includes('$createTextToSpeechSession(handle, session, options?.language).catch'));
-		assert.ok(speech.includes('this.proxy.$createKeywordRecognitionSession(handle, session);'));
-		assert.ok(!speech.includes('$createKeywordRecognitionSession(handle, session).catch'));
-		assert.ok(!speech.includes(doubleCatch));
-
-		assertPromiseSignature(protocol, '$createAgentEditorComments(handle: number, uri: UriComponents): Promise<void>;');
-		assert.ok(comments.includes('this.proxy.$createAgentEditorComments(handle, uri);'));
-		assert.ok(!comments.includes('$createAgentEditorComments(handle, uri).catch'));
+		assert.ok(comments.includes('this.proxy.$addComment(this.handle, typeConvert.Range.from(range), body);'));
+		assert.ok(!comments.includes('$addComment(this.handle, typeConvert.Range.from(range), body).catch'));
 
 		assertPromiseSignature(protocol, '$sendDidChangeSessions(providerId: string, event: Dto<AuthenticationSessionsChangeEvent>): Promise<void>;');
 		assert.ok(auth.includes('provider.onDidChangeSessions(e => this._proxy.$sendDidChangeSessions(id, e));'));

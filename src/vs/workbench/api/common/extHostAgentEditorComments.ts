@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type * as vscode from 'vscode';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter } from '../../../base/common/event.js';
 import { ExtHostAgentEditorCommentsShape, IAgentEditorCommentDto, IMainContext, MainContext, MainThreadAgentEditorCommentsShape } from './extHost.protocol.js';
 import * as typeConvert from './extHostTypeConverters.js';
@@ -72,7 +73,7 @@ export class ExtHostAgentEditorComments implements ExtHostAgentEditorCommentsSha
 		const handle = ExtHostAgentEditorComments.handlePool++;
 		const provider = new ExtHostAgentEditorCommentsProvider(handle, this.proxy, h => this.providers.delete(h));
 		this.providers.set(handle, provider);
-		this.proxy.$createAgentEditorComments(handle, uri);
+		this.proxy.$createAgentEditorComments(handle, uri).catch(onUnexpectedError).catch(onUnexpectedError);
 		return provider;
 	}
 
