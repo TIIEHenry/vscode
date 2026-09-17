@@ -29,6 +29,7 @@ import { IExtensionManifestPropertiesService } from '../../extensions/common/ext
 import { isVirtualWorkspace } from '../../../../platform/workspace/common/virtualWorkspace.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { equals } from '../../../../base/common/arrays.js';
 import { isString } from '../../../../base/common/types.js';
 import { Delayer } from '../../../../base/common/async.js';
@@ -104,7 +105,7 @@ export class ExtensionEnablementService extends Disposable implements IWorkbench
 				this._register(this.extensionsManager.onDidChangeExtensions(({ added, removed, isProfileSwitch }) => this._onDidChangeExtensions(added, removed, isProfileSwitch)));
 				this.loopCheckForMaliciousExtensions();
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this._register(this.globalExtensionEnablementService.onDidChangeEnablement(({ extensions, source }) => this._onDidChangeGloballyDisabledExtensions(extensions, source)));
 		this._register(allowedExtensionsService.onDidChangeAllowedExtensionsConfigValue(() => this._onDidChangeExtensions([], [], false)));

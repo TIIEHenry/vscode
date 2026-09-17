@@ -8,6 +8,7 @@ import { IResourceEditorInput, IEditorOptions, EditorActivation, IResourceEditor
 import { SideBySideEditor, IEditorPane, GroupIdentifier, IUntitledTextResourceEditorInput, IResourceDiffEditorInput, EditorInputWithOptions, isEditorInputWithOptions, IEditorIdentifier, IEditorCloseEvent, ITextDiffEditorPane, IRevertOptions, SaveReason, EditorsOrder, IWorkbenchEditorConfiguration, EditorResourceAccessor, IVisibleEditorPane, EditorInputCapabilities, isResourceDiffEditorInput, IUntypedEditorInput, isResourceEditorInput, isEditorInput, isEditorInputWithOptionsAndGroup, IFindEditorOptions, isResourceMergeEditorInput, IEditorWillOpenEvent, IEditorControl, ITextResourceDiffEditorInput } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
 import { SideBySideEditorInput } from '../../../common/editor/sideBySideEditorInput.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { ResourceMap, ResourceSet } from '../../../../base/common/map.js';
 import { IFileService, FileOperationEvent, FileOperation, FileChangesEvent, FileChangeType } from '../../../../platform/files/common/files.js';
 import { Event, Emitter } from '../../../../base/common/event.js';
@@ -100,7 +101,7 @@ export class EditorService extends Disposable implements EditorServiceImpl {
 
 		// Editor & group changes
 		if (this.editorGroupsContainer === this.editorGroupService.mainPart || this.editorGroupsContainer === this.editorGroupService) {
-			this.editorGroupService.whenReady.then(() => this.onEditorGroupsReady());
+			this.editorGroupService.whenReady.then(() => this.onEditorGroupsReady()).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			this.onEditorGroupsReady();
 		}

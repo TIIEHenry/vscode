@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancelablePromise, notCancellablePromise, raceCancellablePromises, timeout } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { CommandsRegistry, ICommandEvent, ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -31,7 +32,7 @@ export class CommandService extends Disposable implements ICommandService {
 		@ILogService private readonly _logService: ILogService
 	) {
 		super();
-		this._extensionService.whenInstalledExtensionsRegistered().then(value => this._extensionHostIsReady = value);
+		this._extensionService.whenInstalledExtensionsRegistered().then(value => this._extensionHostIsReady = value).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._starActivation = null;
 	}
 

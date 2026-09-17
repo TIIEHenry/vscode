@@ -8,6 +8,7 @@ import { coalesce } from '../../../base/common/arrays.js';
 import { ThrottledDelayer } from '../../../base/common/async.js';
 import { Emitter, Event as CommonEvent } from '../../../base/common/event.js';
 import { normalizeDriveLetter, splitRecentLabel } from '../../../base/common/labels.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { Schemas } from '../../../base/common/network.js';
 import { isMacintosh, isWindows } from '../../../base/common/platform.js';
@@ -70,7 +71,7 @@ export class WorkspacesHistoryMainService extends Disposable implements IWorkspa
 
 		// Install window jump list delayed after opening window
 		// because perf measurements have shown this to be slow
-		this.lifecycleMainService.when(LifecycleMainPhase.Eventually).then(() => this.handleWindowsJumpList());
+		this.lifecycleMainService.when(LifecycleMainPhase.Eventually).then(() => this.handleWindowsJumpList()).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Add to history when entering workspace
 		this._register(this.workspacesManagementMainService.onDidEnterWorkspace(event => this.addRecentlyOpened([{ workspace: event.workspace, remoteAuthority: event.window.remoteAuthority }])));

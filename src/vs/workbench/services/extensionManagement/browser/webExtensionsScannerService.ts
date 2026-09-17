@@ -22,7 +22,7 @@ import { ITranslations, localizeManifest } from '../../../../platform/extensionM
 import { localize, localize2 } from '../../../../nls.js';
 import * as semver from '../../../../base/common/semver/semver.js';
 import { isString, isUndefined } from '../../../../base/common/types.js';
-import { getErrorMessage } from '../../../../base/common/errors.js';
+import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
 import { ResourceMap } from '../../../../base/common/map.js';
 import { IExtensionManifestPropertiesService } from '../../extensions/common/extensionManifestPropertiesService.js';
 import { IExtensionResourceLoaderService, migratePlatformSpecificExtensionGalleryResourceURL } from '../../../../platform/extensionResourceLoader/common/extensionResourceLoader.js';
@@ -122,7 +122,7 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
 			this.customBuiltinExtensionsCacheResource = joinPath(environmentService.userRoamingDataHome, 'customBuiltinExtensionsCache.json');
 
 			// Eventually update caches
-			lifecycleService.when(LifecyclePhase.Eventually).then(() => this.updateCaches());
+			lifecycleService.when(LifecyclePhase.Eventually).then(() => this.updateCaches()).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

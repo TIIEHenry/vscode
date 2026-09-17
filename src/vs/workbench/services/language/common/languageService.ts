@@ -17,6 +17,7 @@ import { ExtensionMessageCollector, ExtensionsRegistry, IExtensionPoint, IExtens
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { IExtensionManifest } from '../../../../platform/extensions/common/extensions.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { Extensions, IExtensionFeatureTableRenderer, IExtensionFeaturesRegistry, IRenderedData, IRowData, ITableData } from '../../extensionManagement/common/extensionFeatures.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
@@ -282,7 +283,7 @@ export class WorkbenchLanguageService extends LanguageService {
 		}));
 		this._extensionService.whenInstalledExtensionsRegistered().then(() => {
 			this.updateMime();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this._register(this.onDidRequestRichLanguageFeatures((languageId) => {
 			// extension activation
