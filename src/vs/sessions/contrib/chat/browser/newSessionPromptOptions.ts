@@ -184,7 +184,7 @@ export class NewSessionPromptOptionsWidget extends Disposable {
 			}
 			dom.append(button.element, dom.$('.new-session-prompt-option-description')).textContent = option.description;
 			store.add(button.onDidClick(() => {
-				void this._select(option).catch(onUnexpectedError);
+				void this._select(option).catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 			buttons.push({ option, button });
 		}
