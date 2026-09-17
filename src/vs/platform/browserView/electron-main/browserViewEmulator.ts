@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { IBrowserDeviceProfile } from '../common/browserView.js';
@@ -68,7 +69,7 @@ export class BrowserViewEmulator extends Disposable {
 
 		if (prev && !device && this.isSafeToApplyEmulation()) {
 			this.browser.webContents.disableDeviceEmulation();
-			void this._applyTouchAndMedia();
+			void this._applyTouchAndMedia().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		this._lastApplied = undefined;
@@ -131,7 +132,7 @@ export class BrowserViewEmulator extends Disposable {
 		this.browser.webContents.enableDeviceEmulation(params);
 
 		if (mobile !== last?.mobile) {
-			void this._applyTouchAndMedia();
+			void this._applyTouchAndMedia().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

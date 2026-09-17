@@ -6,6 +6,7 @@
 // eslint-disable-next-line local/code-import-patterns
 import type * as playwright from 'playwright-core';
 import { Emitter, Event } from '../../../base/common/event.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { CancellationToken } from '../../../base/common/cancellation.js';
 import { createCancelablePromise, raceCancellablePromises, timeout } from '../../../base/common/async.js';
 import { URI } from '../../../base/common/uri.js';
@@ -82,7 +83,7 @@ export class PlaywrightTab {
 				this._dialog = undefined;
 				this._onDialogStateChanged.fire();
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._onDialogStateChanged.fire();
 	}
 
