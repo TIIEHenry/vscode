@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import * as nls from '../../../../nls.js';
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
@@ -32,7 +33,7 @@ class ToggleKeybindingsLogAction extends Action2 {
 		const logging = accessor.get(IKeybindingService).toggleLogging();
 		if (logging) {
 			const commandService = accessor.get(ICommandService);
-			commandService.executeCommand(showWindowLogActionId);
+			commandService.executeCommand(showWindowLogActionId).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		if (ToggleKeybindingsLogAction.disposable) {

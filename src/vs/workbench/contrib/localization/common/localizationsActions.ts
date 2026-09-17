@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { IQuickInputService, IQuickPickSeparator } from '../../../../platform/quickinput/common/quickInput.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
@@ -61,7 +62,7 @@ export class ConfigureDisplayLanguageAction extends Action2 {
 				];
 			}
 			qp.busy = false;
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		disposables.add(qp.onDidAccept(async () => {
 			const selectedLanguage = qp.activeItems[0] as ILanguagePackItem | undefined;

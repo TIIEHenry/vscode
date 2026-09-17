@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
 import { localize } from '../../../../nls.js';
 import { dirname, basename } from '../../../../base/common/resources.js';
@@ -41,7 +42,7 @@ export class StartupProfiler implements IWorkbenchContribution {
 			extensionService.whenInstalledExtensionsRegistered()
 		]).then(() => {
 			this._stopProfiling();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _stopProfiling(): void {

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Schemas, matchesScheme } from '../../../../base/common/network.js';
 import Severity from '../../../../base/common/severity.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -95,7 +96,7 @@ export class OpenerValidatorContributions implements IWorkbenchContribution {
 					{
 						label: localize({ key: 'copy', comment: ['&& denotes a mnemonic'] }, '&&Copy'),
 						run: () => {
-							this._clipboardService.writeText(typeof originalResource === 'string' ? originalResource : resourceUri.toString(true));
+							this._clipboardService.writeText(typeof originalResource === 'string' ? originalResource : resourceUri.toString(true)).catch(onUnexpectedError).catch(onUnexpectedError);
 							return false;
 						}
 					},

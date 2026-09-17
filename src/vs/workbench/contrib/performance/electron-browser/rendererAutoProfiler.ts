@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { timeout } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { joinPath } from '../../../../base/common/resources.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
@@ -97,7 +98,7 @@ export class RendererProfiling {
 			obs.observe({ entryTypes: ['longtask'] });
 			this._observer = obs;
 
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	dispose(): void {
