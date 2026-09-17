@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "合入 D24 流 wire + children/context_sources/pending decode。D24 仍开。不是 leftover/pills 完成。"
+summary: "工位 I 进行中：TestModelProfile params=6 MapEntry。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -27,6 +27,7 @@ summary: "合入 D24 流 wire + children/context_sources/pending decode。D24 �
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **I** | occupied `loop/I-d24-test-model-params-map`；`encodeTestModelProfileRequest` `params`=6 proto3 `map<string,string>`（MapEntry `key`=1 `value`=2，空 map omit）；未改 `grpcClient`；[D24](deferred-gaps.md) 仍开 |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
@@ -34,7 +35,7 @@ summary: "合入 D24 流 wire + children/context_sources/pending decode。D24 �
 子 agent 发现：
 | ID | 问题 |
 |:---|:-----|
-| [D24](deferred-gaps.md) | **仍开**：Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor 仍 JSON；四条新流未接线 |
+| [D24](deferred-gaps.md) | **仍开**：I 写 TestModelProfile `params`=6 MapEntry（未改 grpcClient）；Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor 仍 JSON；四条新流未接线 |
 | [D487](deferred-gaps.md) | **closed** Memory `score`=4 IEEE 754 LE |
 | [D550](deferred-gaps.md)–[D674](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |

@@ -146,7 +146,7 @@ suite('grpc AgentService TestModelProfile protobuf wire', () => {
 	test('test-model-profile unary wire is TestModelProfile only; no JSON.stringify; identifier scan', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcTestModelProfileUnaryWire.ts'), 'utf8');
 		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(!source.includes('encodeMap'));
+		assert.ok(!/\bencodeMap\b/.test(source));
 		assert.ok(/\bencodeTestModelProfileRequest\b/.test(source));
 		assert.ok(/\bdecodeTestModelProfileResponse\b/.test(source));
 		assert.ok(/\bencodeStringField\b/.test(source));
