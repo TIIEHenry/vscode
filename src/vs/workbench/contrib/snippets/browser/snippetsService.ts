@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IJSONSchema } from '../../../../base/common/jsonSchema.js';
 import { combinedDisposable, IDisposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import * as resources from '../../../../base/common/resources.js';
@@ -228,7 +229,7 @@ export class SnippetsService implements ISnippetsService {
 	) {
 		this._trackPendingWork(Promise.resolve(lifecycleService.when(LifecyclePhase.Restored).then(() => {
 			this._initExtensionSnippets();
-			this._initUserSnippets();
+			this._initUserSnippets().catch(onUnexpectedError).catch(onUnexpectedError);
 			this._initWorkspaceSnippets();
 		})));
 
@@ -308,7 +309,7 @@ export class SnippetsService implements ISnippetsService {
 			for (const file of this._files.values()) {
 				// kick off loading (which is a noop in case it's already loaded)
 				// and optimistically collect snippets
-				file.load().catch(_err => { /*ignore*/ });
+				file.load().catch(_err => { /*ignore*/ }).catch(onUnexpectedError).catch(onUnexpectedError);
 				file.select(languageId, result);
 			}
 		}
@@ -445,12 +446,12 @@ export class SnippetsService implements ISnippetsService {
 			const snippetFolder = folder.toResource('.vscode');
 			const value = await this._fileService.exists(snippetFolder);
 			if (value) {
-				this._initFolderSnippets(SnippetSource.Workspace, snippetFolder, bucket);
+				this._initFolderSnippets(SnippetSource.Workspace, snippetFolder, bucket).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else {
 				// watch
 				bucket.add(this._fileService.onDidFilesChange(e => {
 					if (e.contains(snippetFolder, FileChangeType.ADDED)) {
-						this._initFolderSnippets(SnippetSource.Workspace, snippetFolder, bucket);
+						this._initFolderSnippets(SnippetSource.Workspace, snippetFolder, bucket).catch(onUnexpectedError).catch(onUnexpectedError);
 					}
 				}));
 			}
@@ -492,10 +493,12 @@ export class SnippetsService implements ISnippetsService {
 
 		bucket.add(this._textfileService.files.onDidSave(e => {
 			if (resources.isEqualOrParent(e.model.resource, folder)) {
-				addFolderSnippets();
+				addFolderSnippets().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
-		bucket.add(watch(this._fileService, folder, addFolderSnippets));
+		bucket.add(watch(this._fileService, folder, () => {
+			addFolderSnippets().catch(onUnexpectedError).catch(onUnexpectedError);
+		}));
 		bucket.add(disposables);
 		return addFolderSnippets();
 	}
