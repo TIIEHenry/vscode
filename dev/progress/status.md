@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "merge 关仓：leftover D656–D663 关各 call site。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
+summary: "merge 关仓：leftover D664–D671 关各 call site。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -13,20 +13,19 @@ summary: "merge 关仓：leftover D656–D663 关各 call site。compile-client 
 ### 已合入（compile-client 0 · 聚焦 8 文件 17 pass）
 | 切片 | 提交 |
 |:-----|:-----|
-| **A leftover** | `d27f71b5f6f` — chatDebug 两处双链；[D656](deferred-gaps.md) |
-| **C leftover** | `bb51ce2590a` — growth session then 双链；[D657](deferred-gaps.md)；gitlink 脏勿 add |
-| **D leftover** | `662dfeff2b2` — browser reload 双链；[D658](deferred-gaps.md) |
-| **F leftover** | `e6c394faa62` — bracket telemetry init 双链；[D659](deferred-gaps.md) |
-| **G leftover** | `e2bed02e565` — notebook resolve 双链；[D660](deferred-gaps.md)；勿 add `out` |
-| **H leftover** | `443818508f9` — startupTimings 两处双链；[D661](deferred-gaps.md) |
-| **I leftover** | `bb3b9425527` — runTo 双链；[D662](deferred-gaps.md) |
-| **J leftover** | `5d7b490c08c` — inlineChat run 双链；[D663](deferred-gaps.md)；#501 仍单链 |
+| **A leftover** | `578739b020b` — gettingStarted 两处双链；[D664](deferred-gaps.md) |
+| **C leftover** | `feacfd5f995` — survey closeEditor 双链；[D665](deferred-gaps.md)；gitlink 脏勿 add |
+| **D leftover** | `e015232c7da` — virtual-doc 双链+finally；[D666](deferred-gaps.md) |
+| **F leftover** | `8a8c9f746a2` — codex profile 双链；[D667](deferred-gaps.md)；openCodex 仍单链 |
+| **G leftover** | `4bf403e46ae` — wordHighlighter 三处双链；[D668](deferred-gaps.md)；勿 add `out` |
+| **H leftover** | `221a8d00cde` — formatActions 双链；[D669](deferred-gaps.md) |
+| **I leftover** | `e116bde0b3f` — parameterHints delayer 双链；[D670](deferred-gaps.md) |
+| **J leftover** | `c33f00cbd1c` — inPlaceReplace 两处双链；[D671](deferred-gaps.md) |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A leftover** | `gettingStarted.ts` 两处 recentlyOpened then 双链；[D664](deferred-gaps.md)；未 commit；勿 add `out` |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
@@ -36,7 +35,7 @@ summary: "merge 关仓：leftover D656–D663 关各 call site。compile-client 
 |:---|:-----|
 | [D24](deferred-gaps.md) | **仍开**：Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
-| [D550](deferred-gaps.md)–[D664](deferred-gaps.md) | leftover catch 各 call site；leftover **未**全局完成 |
+| [D550](deferred-gaps.md)–[D671](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |

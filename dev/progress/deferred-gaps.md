@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。D616–D664 关各 leftover call site。不是 leftover/pills 完成。"
+summary: "D24 仍开。D616–D671 关各 leftover call site。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
