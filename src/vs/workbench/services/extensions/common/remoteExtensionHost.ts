@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { VSBuffer } from '../../../../base/common/buffer.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
@@ -159,7 +160,7 @@ export class RemoteExtensionHost extends Disposable implements IExtensionHost {
 							// 1) Extension Host is ready to receive messages, initialize it
 							this._createExtHostInitData(isExtensionDevelopmentDebug).then(data => {
 								protocol.send(VSBuffer.fromString(JSON.stringify(data)));
-							});
+							}).catch(onUnexpectedError).catch(onUnexpectedError);
 							return;
 						}
 

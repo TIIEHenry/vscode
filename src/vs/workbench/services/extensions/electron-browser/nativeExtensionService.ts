@@ -6,6 +6,7 @@
 import { runWhenWindowIdle } from '../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../base/browser/window.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Schemas } from '../../../../base/common/network.js';
 import * as performance from '../../../../base/common/performance.js';
 import { isCI } from '../../../../base/common/platform.js';
@@ -139,7 +140,7 @@ export class NativeExtensionService extends AbstractExtensionService implements 
 			runWhenWindowIdle(mainWindow, () => {
 				this._initializeIfNeeded();
 			}, 50 /*max delay*/);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async _scanAllLocalExtensions(): Promise<IExtensionDescription[]> {

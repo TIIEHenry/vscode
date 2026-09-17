@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { mainWindow } from '../../../../base/browser/window.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
@@ -107,7 +108,7 @@ export class ExtensionService extends AbstractExtensionService implements IExten
 		// Initialize installed extensions first and do it only after workbench is ready
 		lifecycleService.when(LifecyclePhase.Ready).then(async () => {
 			await this._initializeIfNeeded();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this._initFetchFileSystem();
 	}

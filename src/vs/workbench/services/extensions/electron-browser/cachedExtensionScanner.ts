@@ -14,7 +14,7 @@ import { INotificationService } from '../../../../platform/notification/common/n
 import { IHostService } from '../../host/browser/host.js';
 import { timeout } from '../../../../base/common/async.js';
 import { IUserDataProfileService } from '../../userDataProfile/common/userDataProfile.js';
-import { getErrorMessage } from '../../../../base/common/errors.js';
+import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
 import { IWorkbenchExtensionManagementService } from '../../extensionManagement/common/extensionManagement.js';
 import { toExtensionDescription } from '../common/extensions.js';
 import { IWorkbenchEnvironmentService } from '../../environment/common/environmentService.js';
@@ -126,7 +126,7 @@ export class CachedExtensionScanner {
 						}]
 					);
 				});
-				timeout(5000).then(() => disposable.dispose());
+				timeout(5000).then(() => disposable.dispose()).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 
 			return r;
