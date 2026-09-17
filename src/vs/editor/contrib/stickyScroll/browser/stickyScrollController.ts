@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IDisposable, Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ICodeEditor, MouseTargetType } from '../../../browser/editorBrowser.js';
 import { IEditorContribution, ScrollType } from '../../../common/editorCommon.js';
@@ -378,7 +379,7 @@ export class StickyScrollController extends Disposable implements IEditorContrib
 				} else {
 					sessionStore.clear();
 				}
-			}));
+			})).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(gesture.onCancel(() => {
 			sessionStore.clear();

@@ -5,7 +5,7 @@
 
 import { mapFindFirst } from '../../../../../base/common/arraysFind.js';
 import { arrayEqualsC } from '../../../../../base/common/equals.js';
-import { BugIndicatingError, onUnexpectedExternalError } from '../../../../../base/common/errors.js';
+import { BugIndicatingError, onUnexpectedError, onUnexpectedExternalError } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { IObservable, IObservableWithChange, IReader, ITransaction, autorun, constObservable, derived, derivedHandleChanges, derivedOpts, mapObservableArrayCached, observableFromEvent, observableSignal, observableValue, recomputeInitiallyAndOnChange, subtransaction, transaction } from '../../../../../base/common/observable.js';
@@ -147,7 +147,7 @@ export class InlineCompletionsModel extends Disposable {
 		const snippetController = SnippetController2.get(this._editor);
 		this._isInSnippetMode = snippetController?.isInSnippetObservable ?? constObservable(false);
 
-		defaultAccountService.getDefaultAccount().then(createDisposableCb(account => this.sku.set(skuFromAccount(account), undefined), this._store));
+		defaultAccountService.getDefaultAccount().then(createDisposableCb(account => this.sku.set(skuFromAccount(account), undefined), this._store)).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._register(defaultAccountService.onDidChangeDefaultAccount(account => this.sku.set(skuFromAccount(account), undefined)));
 
 		this._typing = this._register(new TypingInterval(this.textModel));
