@@ -485,7 +485,7 @@ export class BreakpointEditorContribution implements IBreakpointEditorContributi
 				id: 'runToLine',
 				label: nls.localize('runToLine', "Run to Line"),
 				enabled: true,
-				run: () => this.debugService.runTo(uri, lineNumber).catch(onUnexpectedError)
+				run: () => this.debugService.runTo(uri, lineNumber).catch(onUnexpectedError).catch(onUnexpectedError)
 			}));
 		} return actions;
 	}
