@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D764 leftover Promise 双链；D736/D739/D740/D745 跳过。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D765 leftover Promise 双链；D736/D739/D740/D745 跳过。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1126,3 +1126,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D762 | P3 | **closed** leftover Promise 双链十处：exists poll；markerFile then.then；create-issue Promise.all；relaunch×2；perfview Promise.all；logPerfMarks；timeout 15000；_store；exit。跳过 opener / Action2 / assigned / already-double D661。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`performanceLeftoverPromiseCatchScanD762.test.ts` **6/0**。勿 add `out`。 | 十处双链。未关 D24。leftover 程序未全局完成。 | workbench / performance leftover | closed |
 | D763 | P3 | **closed** leftover Promise 双链九处：url 合法点 0 迁 webview；loadResource/localLocalhost/_focusDelayer；findInFrame×2；_iframeDelayer；stopFindInFrame；setIgnoreMenuShortcuts；overlay postMessage。跳过 already-double origin / assigned parentOriginHash / opener / Action2。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`webviewLeftoverPromiseCatchScanD763.test.ts` **8/0**。勿 add `out`。 | 九处双链。未关 D24。leftover 程序未全局完成。 | workbench / webview leftover remaining | closed |
 | D764 | P3 | **closed** leftover Promise 双链九处：logs setDefaultLogLevel×2；output onDidRegisterChannel×2；setLevelIsDefaultContext×3；showChannel×2。跳过 Action2 / assigned / Watch doWatch / already-double model。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`logsLeftoverPromiseCatchScanD764.test.ts` **8/0**。勿 add `out`。 | 九处双链。未关 D24。leftover 程序未全局完成。 | workbench / logs leftover remaining | closed |
+| D765 | P3 | **closed** leftover Promise 双链六处：_initUserSnippets Restored then；_initFolderSnippets folder/ADDED/onDidSave/watch；getSnippetsSync file.load ignore。跳过 tracked/assigned/two-arg/returned/Watch API。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`snippetsLeftoverPromiseCatchScanD765.test.ts` **6/0**。勿 add `out`。 | 六处双链。未关 D24。leftover 程序未全局完成。 | workbench / snippets leftover | closed |
