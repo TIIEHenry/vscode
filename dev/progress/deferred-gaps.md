@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D729 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D733 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1095,3 +1095,6 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D724 | P3 | **closed** leftover Promise 双链八处：extHostTask register/unregister×3；node task registerSupported；node logger register/deregister；urls register/unregister UriHandler。跳过 D708 / D712 / D717 / $registerTaskSystem / $sendDidChangeSessions。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`workbenchApiStillLeftoverPromiseCatchScan.test.ts` **7/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / api leftover still | closed |
 | D728 | P3 | **closed** leftover Promise 双链八处：survey resolveConfig×2；prompt updateReadonly×2；chatService migrate sendRequest；voicePlayback stop；pet achievements；listRenderer openAgentHost。跳过 opener / two-arg / welcome leftover / D679。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`chatRemainingLeftoverPromiseCatchScan.test.ts`。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / chat leftover remaining | closed |
 | D729 | P3 | **closed** leftover Promise 双链八处：extHostManager.start；native exit/closeWindow；local closeWindow/reload×2；native enablement/gallery IIFE。跳过 D698 / D707 / D715 / D723。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 D；`extensionsServicesStartExitReloadLeftoverPromiseCatchScan.test.ts`。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / extensions leftover remaining | closed |
+| D731 | P3 | **closed** leftover Promise 双链八处：multiEditorTabsControl path IIFE / openEditor×5 / openEditors；editorGroupView 空组双击 openEditor。跳过 D697 / D706 / D714 / D722 / opener。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；`workbenchEditorLeftoverPromiseCatchScan.test.ts` **8/0**。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / editor leftover | closed |
+| D732 | P3 | **closed** leftover Promise 双链八处：codeEditorWidget _triggerCommand + clipboard Paste/Type/CompositionType/ReplacePreviousChar/CompositionStart；gpu saveTextureAtlas / drawGlyph invokeFunction。跳过 opener / Resolve / two-arg / D725。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`editorWidgetGpuLeftoverPromiseCatchScan.test.ts` **6/0** + D725 **8/0**。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | editor / widget gpu leftover | closed |
+| D733 | P3 | **closed** leftover Promise 双链八处：webPageLoader loadURL + Queue.queue extractContent×7。跳过 opener / empty-catch Network.enable / Connect / Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`platformWebContentExtractorLeftoverPromiseCatchScan.test.ts` **6/0**。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | platform / webContentExtractor leftover | closed |

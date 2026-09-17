@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D729。A/F/G/H/J leftover 进行中。D24 仍开。不是 leftover/pills 完成。"
+summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D733。D/F/I leftover 进行中。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -14,7 +14,7 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D729。A/F/G/
 | 切片 | 提交 |
 |:-----|:-----|
 | **A SessionStream / L2** | 16/23/30–32/34–39/44/46/50–52；envelope leftover |
-| **catch** | D677–D729 |
+| **catch** | D677–D733 |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
@@ -26,6 +26,7 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D729。A/F/G/
 | ID | 问题 |
 |:---|:-----|
 | [D24](deferred-gaps.md) | **仍开**：Connect/Watch/Resolve/Pty 仍 JSON |
+| setRemoteEnvironment | `await` 的是 `Promise[]`，不会等各 host；应 `Promise.all`，不是 leftover |
 ## Next
 | 项 | 指针 |
 |:-----|:-----|
