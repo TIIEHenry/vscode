@@ -23,7 +23,7 @@ function sessionsSignInDialogSourcePath(): string {
 	return found;
 }
 
-suite('SessionsSignInDialog leftover fire-and-forget catch scan (D578)', () => {
+suite('SessionsSignInDialog leftover fire-and-forget catch scan (D578/D586)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
@@ -39,5 +39,19 @@ suite('SessionsSignInDialog leftover fire-and-forget catch scan (D578)', () => {
 		assert.ok(source.includes(doubleCall));
 		assert.ok(!source.includes(`${call};`));
 		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	});
+
+	test('footer executeCommand RETURN_TO_VSCODE_EDITOR void double-catch onUnexpectedError (D586)', () => {
+		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const source = fs.readFileSync(sessionsSignInDialogSourcePath(), 'utf8');
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const call = 'void commandService.executeCommand<void>(RETURN_TO_VSCODE_EDITOR_COMMAND_ID)';
+		const doubleCall = `${call}${doubleCatch};`;
+		assert.ok(source.includes("import { onUnexpectedError } from '../../base/common/errors.js';"));
+		assert.strictEqual((source.match(/void commandService\.executeCommand<void>\(RETURN_TO_VSCODE_EDITOR_COMMAND_ID\)/g) ?? []).length, 1);
+		assert.ok(source.includes(doubleCall));
+		assert.ok(!source.includes(`${call};`));
+		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(source.includes(`void this.show()${doubleCatch};`));
 	});
 });
