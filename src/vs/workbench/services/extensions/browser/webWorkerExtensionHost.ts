@@ -135,7 +135,7 @@ export class WebWorkerExtensionHost extends Disposable implements IExtensionHost
 	public async start(): Promise<IMessagePassingProtocol> {
 		if (!this._protocolPromise) {
 			this._protocolPromise = this._startInsideIframe();
-			this._protocolPromise.then(protocol => this._protocol = protocol);
+			this._protocolPromise.then(protocol => this._protocol = protocol).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 		return this._protocolPromise;
 	}

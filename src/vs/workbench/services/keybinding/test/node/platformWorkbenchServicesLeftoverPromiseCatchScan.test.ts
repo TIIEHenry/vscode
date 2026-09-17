@@ -51,17 +51,41 @@ suite('platform/workbench services leftover Promise fire-and-forget catch scan (
 	ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('this knife covers eight leftover Promise double-chain sites', () => {
-		const files = [
-			KEYBOARD_REL, HISTORY_REL, COMMAND_REL, LANGUAGE_REL,
-			EDITOR_REL, SCANNER_REL, ENABLEMENT_REL, KEYBINDING_REL,
-		];
-		let sites = 0;
-		for (const rel of files) {
-			const source = fs.readFileSync(resolveSource(rel), 'utf8');
-			sites += (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+		const keyboard = fs.readFileSync(resolveSource(KEYBOARD_REL), 'utf8');
+		const history = fs.readFileSync(resolveSource(HISTORY_REL), 'utf8');
+		const command = fs.readFileSync(resolveSource(COMMAND_REL), 'utf8');
+		const language = fs.readFileSync(resolveSource(LANGUAGE_REL), 'utf8');
+		const editor = fs.readFileSync(resolveSource(EDITOR_REL), 'utf8');
+		const scanner = fs.readFileSync(resolveSource(SCANNER_REL), 'utf8');
+		const enablement = fs.readFileSync(resolveSource(ENABLEMENT_REL), 'utf8');
+		const keybinding = fs.readFileSync(resolveSource(KEYBINDING_REL), 'utf8');
+		const calls = [
+			[keyboard, 'lifecycleMainService.when(LifecycleMainPhase.AfterWindowOpen).then(() => this._initialize())'],
+			[history, 'this.lifecycleMainService.when(LifecycleMainPhase.Eventually).then(() => this.handleWindowsJumpList())'],
+			[command, 'this._extensionService.whenInstalledExtensionsRegistered().then(value => this._extensionHostIsReady = value)'],
+			[language, `this._extensionService.whenInstalledExtensionsRegistered().then(() => {
+			this.updateMime();
+		})`],
+			[editor, 'this.editorGroupService.whenReady.then(() => this.onEditorGroupsReady())'],
+			[scanner, 'lifecycleService.when(LifecyclePhase.Eventually).then(() => this.updateCaches())'],
+			[enablement, `this.extensionsManager.whenInitialized().then(() => {
+			if (!isDisposed) {
+				uninstallDisposable.dispose();
+				this._onDidChangeExtensions([], [], false);
+				this._register(this.extensionsManager.onDidChangeExtensions(({ added, removed, isProfileSwitch }) => this._onDidChangeExtensions(added, removed, isProfileSwitch)));
+				this.loopCheckForMaliciousExtensions();
+			}
+		})`],
+			[keybinding, `this.userKeybindings.initialize().then(() => {
+			if (this.userKeybindings.keybindings.length) {
+				this.updateResolver();
+			}
+		})`],
+		] as const;
+		assert.strictEqual(calls.length, 8);
+		for (const [source, call] of calls) {
+			assertDoubleThen(source, call);
 		}
-		assert.strictEqual(files.length, 8);
-		assert.strictEqual(sites, 8);
 	});
 
 	test('keyboardLayout leftover when AfterWindowOpen then is Promise double-chain', () => {
@@ -126,7 +150,7 @@ suite('platform/workbench services leftover Promise fire-and-forget catch scan (
 		assertDoubleThen(source, 'lifecycleService.when(LifecyclePhase.Eventually).then(() => this.updateCaches())');
 	});
 
-	test('extensionEnablement leftover whenInitialized then is Promise double-chain; Eventually / loop leftover stay skipped', () => {
+	test('extensionEnablement leftover whenInitialized then is Promise double-chain; loop leftover stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(ENABLEMENT_REL), 'utf8');
 		assertPromiseSignature(source, 'whenInitialized(): Promise<void> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
@@ -141,8 +165,6 @@ suite('platform/workbench services leftover Promise fire-and-forget catch scan (
 		assert.ok(source.includes(`${thenCall}${doubleCatch};`));
 		assert.ok(!source.includes(`${thenCall};`));
 		assert.ok(!source.includes(`${thenCall}.catch(onUnexpectedError);`));
-		assert.ok(source.includes('this.lifecycleService.when(LifecyclePhase.Eventually).then(() => {'));
-		assert.ok(!source.includes(`this.lifecycleService.when(LifecyclePhase.Eventually).then(() => {}${doubleCatch}`));
 		assert.ok(source.includes('.then(() => this.loopCheckForMaliciousExtensions());'));
 		assert.ok(!source.includes(`.then(() => this.loopCheckForMaliciousExtensions())${doubleCatch}`));
 	});

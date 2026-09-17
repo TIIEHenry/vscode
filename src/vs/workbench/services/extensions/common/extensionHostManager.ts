@@ -5,7 +5,7 @@
 
 import { IntervalTimer } from '../../../../base/common/async.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
-import * as errors from '../../../../base/common/errors.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
 import { StopWatch } from '../../../../base/common/stopwatch.js';
@@ -158,7 +158,7 @@ export class ExtensionHostManager extends Disposable implements IExtensionHostMa
 			this._register(registerLatencyTestProvider({
 				measure: () => this.measure()
 			}));
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	public async disconnect(): Promise<void> {
@@ -174,7 +174,7 @@ export class ExtensionHostManager extends Disposable implements IExtensionHostMa
 			try {
 				customer.dispose();
 			} catch (err) {
-				errors.onUnexpectedError(err);
+				onUnexpectedError(err);
 			}
 		}
 		this._proxy = null;
@@ -290,7 +290,7 @@ export class ExtensionHostManager extends Disposable implements IExtensionHostMa
 			} catch (err) {
 				this._logService.error(`Cannot instantiate named customer: '${id.sid}'`);
 				this._logService.error(err);
-				errors.onUnexpectedError(err);
+				onUnexpectedError(err);
 			}
 		}
 
@@ -302,7 +302,7 @@ export class ExtensionHostManager extends Disposable implements IExtensionHostMa
 				this._customers.push(instance);
 			} catch (err) {
 				this._logService.error(err);
-				errors.onUnexpectedError(err);
+				onUnexpectedError(err);
 			}
 		}
 

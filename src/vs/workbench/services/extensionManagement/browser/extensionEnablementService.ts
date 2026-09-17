@@ -147,7 +147,7 @@ export class ExtensionEnablementService extends Disposable implements IWorkbench
 					sticky: true,
 					priority: NotificationPriority.URGENT
 				});
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		this.ensureChatExtensionInitialDisabledState();

@@ -5,7 +5,7 @@
 
 import { timeout } from '../../../../base/common/async.js';
 import { encodeBase64, VSBuffer } from '../../../../base/common/buffer.js';
-import { CancellationError } from '../../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import * as objects from '../../../../base/common/objects.js';
@@ -495,7 +495,7 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 						installTimeoutCheck();
 
 						protocol.send(VSBuffer.fromString(JSON.stringify(data)));
-					});
+					}).catch(onUnexpectedError).catch(onUnexpectedError);
 					return;
 				}
 
