@@ -144,6 +144,52 @@ export function makeServerStreamClient<TRequest, TEvent>(
 	};
 }
 
+export function makeServerStreamBytesClient<TEvent>(
+	channel: grpc.Client,
+	servicePath: string,
+	method: string,
+	decode: (buffer: Buffer) => TEvent,
+): (
+	requestBytes: Uint8Array,
+	listener: (event: TEvent) => void,
+	onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+) => { dispose(): void } {
+	const path = `/${servicePath}/${method}`;
+	return (requestBytes, listener, onClosed) => {
+		const disposables = new DisposableStore();
+		const gate = createStreamCloseGate(onClosed);
+		const call = channel.makeServerStreamRequest(
+			path,
+			asUnaryProtoBytes,
+			(buffer: Buffer) => decode(buffer),
+			requestBytes ?? new Uint8Array(0),
+		);
+		call.on('data', (data: TEvent) => {
+			if (gate.closed) {
+				return;
+			}
+			listener(data);
+		});
+		call.on('error', (error: grpc.ServiceError) => {
+			if (gate.closed) {
+				return;
+			}
+			const message = typeof error?.message === 'string' && error.message ? error.message : 'stream error';
+			gate.finish({ kind: 'error', message });
+		});
+		call.on('end', () => {
+			gate.finish({ kind: 'remote' });
+		});
+		disposables.add({
+			dispose: () => {
+				gate.closeLocal();
+				call.cancel();
+			},
+		});
+		return disposables;
+	};
+}
+
 export function makeClientStreamClient<TChunk, TResponse>(
 	channel: grpc.Client,
 	servicePath: string,

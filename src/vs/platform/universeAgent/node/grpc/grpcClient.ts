@@ -530,6 +530,7 @@ import {
 	makeUnaryClient,
 	makeUnaryBytesClient,
 	makeServerStreamClient,
+	makeServerStreamBytesClient,
 	makeClientStreamClient,
 	makeResidentBidiBytesHandleClient,
 	makeResidentBidiHandleClient,
@@ -622,6 +623,11 @@ import {
 	decodePauseResponse,
 	encodePauseRequest,
 } from './grpcPauseUnaryWire.js';
+import {
+	encodeContinueGenerationRequest,
+	encodeRegenerateRequest,
+	encodeResumeRequest,
+} from './grpcAgentChatServerStreamWire.js';
 import {
 	decodeHistoryResponse,
 	encodeHistoryRequest,
@@ -2150,17 +2156,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		onResponse: (response: UniverseAgentChatResponse) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentContinuationStream {
-		const stream = makeServerStreamClient<Record<string, unknown>, UniverseAgentChatResponse>(
+		const stream = makeServerStreamBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.ContinueGeneration,
+			decodeChatResponse,
 		);
-		return stream({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-			turn_id: request.turnId,
-			message_id: request.messageId,
-		}, onResponse, onClosed);
+		return stream(encodeContinueGenerationRequest(request), onResponse, onClosed);
 	}
 
 	openRegenerateStream(
@@ -2168,17 +2170,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		onResponse: (response: UniverseAgentChatResponse) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentRegenerateStream {
-		const stream = makeServerStreamClient<Record<string, unknown>, UniverseAgentChatResponse>(
+		const stream = makeServerStreamBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.Regenerate,
+			decodeChatResponse,
 		);
-		return stream({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-			turn_id: request.turnId,
-			message_id: request.messageId,
-		}, onResponse, onClosed);
+		return stream(encodeRegenerateRequest(request), onResponse, onClosed);
 	}
 
 	openResumeStream(
@@ -2186,15 +2184,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		onResponse: (response: UniverseAgentChatResponse) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentResumeStream {
-		const stream = makeServerStreamClient<Record<string, unknown>, UniverseAgentChatResponse>(
+		const stream = makeServerStreamBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.Resume,
+			decodeChatResponse,
 		);
-		return stream({
-			session_id: request.sessionId,
-			agent_id: request.agentId,
-		}, onResponse, onClosed);
+		return stream(encodeResumeRequest(request), onResponse, onClosed);
 	}
 
 	openSubscribeToolDetailStream(
