@@ -91,6 +91,19 @@ suite('pluginListWidget refresh fire-and-forget (D556)', () => {
 		assert.ok(!source.includes('void this.delayedMarketplaceSearch.trigger(() => this.queryPluginSearch()).catch(onUnexpectedError);'));
 		assert.ok(!source.includes('void this.delayedFilter.trigger(() => this.filterPlugins()).catch(onUnexpectedError);'));
 	});
+
+	test('pluginListWidget refresh awaits leftover filterPlugins (D612)', () => {
+		const source = readPluginListWidgetSource();
+		const refresh = source.match(/private async refresh\(\): Promise<void> \{[\s\S]*?\n\t\}/);
+		assert.ok(refresh, 'refresh() method not found');
+		assert.ok(refresh[0].includes('await this.filterPlugins();'));
+		assert.ok(refresh[0].includes('await this.queryMarketplace();'));
+		assert.ok(refresh[0].includes('await this.queryPluginSearch();'));
+		assert.ok(!/^\t+this\.filterPlugins\(\);$/m.test(refresh[0]));
+		assert.ok(!/^\t+this\.filterPlugins\(\);$/m.test(source));
+		assert.strictEqual((source.match(/await this\.filterPlugins\(\);/g) ?? []).length, 3);
+		assert.strictEqual((source.match(/void this\.filterPlugins\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
+	});
 });
 
 function readPluginListWidgetSource(): string {
