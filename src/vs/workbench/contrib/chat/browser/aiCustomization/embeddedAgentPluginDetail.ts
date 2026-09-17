@@ -10,7 +10,7 @@ import { status } from '../../../../../base/browser/ui/aria/aria.js';
 import { disposableTimeout } from '../../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
-import { getErrorMessage, isCancellationError } from '../../../../../base/common/errors.js';
+import { getErrorMessage, isCancellationError, onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { MarkdownString } from '../../../../../base/common/htmlContent.js';
 import { Disposable, DisposableStore, MutableDisposable } from '../../../../../base/common/lifecycle.js';
@@ -347,54 +347,56 @@ export class EmbeddedAgentPluginDetail extends Disposable {
 		if (item.kind === AgentPluginItemKind.Marketplace) {
 			const installButton = this.renderDisposables.add(new Button(this.titleActionsEl, { ...defaultButtonStyles, ariaLabel: localize('installPluginAria', "Install {0}", item.name) }));
 			installButton.label = localize('install', "Install");
-			this.renderDisposables.add(installButton.onDidClick(async () => {
-				installButton.label = localize('installing', "Installing...");
-				installButton.enabled = false;
-				const marketplacePlugin: IMarketplacePlugin = {
-					name: item.name,
-					description: item.description,
-					version: item.version ?? '',
-					source: item.source,
-					sourceDescriptor: item.sourceDescriptor,
-					marketplace: item.marketplace,
-					marketplaceReference: item.marketplaceReference,
-					marketplaceType: item.marketplaceType,
-					readmeUri: item.readmeUri,
-				};
-				try {
-					await this.pluginInstallService.installPlugin(marketplacePlugin);
-					if (this._store.isDisposed || this.current !== item) {
-						return;
-					}
-					const waitDisposables = new DisposableStore();
-					this.installWaitDisposables.value = waitDisposables;
-					const waitCts = new CancellationTokenSource();
-					waitDisposables.add({ dispose: () => waitCts.dispose(true) });
-					waitDisposables.add(disposableTimeout(() => waitCts.cancel(), INSTALL_REGISTRATION_TIMEOUT));
-					const expectedUri = this.pluginInstallService.getPluginInstallUri(marketplacePlugin);
-					const plugin = await waitForInstalledPlugin(this.agentPluginService, expectedUri, waitCts.token);
-					if (this.installWaitDisposables.value === waitDisposables) {
+			this.renderDisposables.add(installButton.onDidClick(() => {
+				void (async () => {
+					installButton.label = localize('installing', "Installing...");
+					installButton.enabled = false;
+					const marketplacePlugin: IMarketplacePlugin = {
+						name: item.name,
+						description: item.description,
+						version: item.version ?? '',
+						source: item.source,
+						sourceDescriptor: item.sourceDescriptor,
+						marketplace: item.marketplace,
+						marketplaceReference: item.marketplaceReference,
+						marketplaceType: item.marketplaceType,
+						readmeUri: item.readmeUri,
+					};
+					try {
+						await this.pluginInstallService.installPlugin(marketplacePlugin);
+						if (this._store.isDisposed || this.current !== item) {
+							return;
+						}
+						const waitDisposables = new DisposableStore();
+						this.installWaitDisposables.value = waitDisposables;
+						const waitCts = new CancellationTokenSource();
+						waitDisposables.add({ dispose: () => waitCts.dispose(true) });
+						waitDisposables.add(disposableTimeout(() => waitCts.cancel(), INSTALL_REGISTRATION_TIMEOUT));
+						const expectedUri = this.pluginInstallService.getPluginInstallUri(marketplacePlugin);
+						const plugin = await waitForInstalledPlugin(this.agentPluginService, expectedUri, waitCts.token);
+						if (this.installWaitDisposables.value === waitDisposables) {
+							this.installWaitDisposables.clear();
+						}
+						if (this._store.isDisposed || this.current !== item) {
+							return;
+						}
+						if (plugin) {
+							installButton.label = localize('installed', "Installed");
+							this.setInput(this.toInstalledPluginItem(plugin));
+						} else {
+							installButton.label = localize('install', "Install");
+							installButton.enabled = true;
+						}
+					} catch (error) {
 						this.installWaitDisposables.clear();
-					}
-					if (this._store.isDisposed || this.current !== item) {
-						return;
-					}
-					if (plugin) {
-						installButton.label = localize('installed', "Installed");
-						this.setInput(this.toInstalledPluginItem(plugin));
-					} else {
+						if (this._store.isDisposed || this.current !== item) {
+							return;
+						}
 						installButton.label = localize('install', "Install");
 						installButton.enabled = true;
+						this.notificationService.error(localize('pluginInstallFailed', "Unable to install plugin: {0}", getErrorMessage(error)));
 					}
-				} catch (error) {
-					this.installWaitDisposables.clear();
-					if (this._store.isDisposed || this.current !== item) {
-						return;
-					}
-					installButton.label = localize('install', "Install");
-					installButton.enabled = true;
-					this.notificationService.error(localize('pluginInstallFailed', "Unable to install plugin: {0}", getErrorMessage(error)));
-				}
+				})().catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 			return;
 		}
@@ -416,17 +418,19 @@ export class EmbeddedAgentPluginDetail extends Disposable {
 			uninstallButton.element.classList.add('embedded-detail-uninstall-button');
 			uninstallButton.label = uninstallAction.label;
 			uninstallButton.enabled = uninstallAction.enabled;
-			this.renderDisposables.add(uninstallButton.onDidClick(async () => {
-				try {
-					const removed = await uninstallAction.runAndGetResult();
-					if (removed && !this._store.isDisposed && this.current === item) {
-						this._onDidUninstall.fire();
+			this.renderDisposables.add(uninstallButton.onDidClick(() => {
+				void (async () => {
+					try {
+						const removed = await uninstallAction.runAndGetResult();
+						if (removed && !this._store.isDisposed && this.current === item) {
+							this._onDidUninstall.fire();
+						}
+					} catch (error) {
+						if (!this._store.isDisposed && this.current === item) {
+							this.notificationService.error(localize('pluginUninstallFailed', "Unable to uninstall plugin: {0}", getErrorMessage(error)));
+						}
 					}
-				} catch (error) {
-					if (!this._store.isDisposed && this.current === item) {
-						this.notificationService.error(localize('pluginUninstallFailed', "Unable to uninstall plugin: {0}", getErrorMessage(error)));
-					}
-				}
+				})().catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 		}
 
@@ -573,29 +577,33 @@ export class EmbeddedAgentPluginDetail extends Disposable {
 		copyButton.element.classList.add('embedded-detail-copy-button');
 		copyButton.label = `$(${Codicon.copy.id})`;
 		this.renderDisposables.add(this.hoverService.setupManagedHover(getDefaultHoverDelegate('element'), copyButton.element, () => copyPluginPathTooltip));
-		this.renderDisposables.add(copyButton.onDidClick(async () => {
-			await this.clipboardService.writeText(uri.fsPath || uri.toString());
-			copyButton.label = `$(${Codicon.check.id})`;
-			copyPluginPathTooltip = localize('copiedPluginPath', "Copied");
-			copyButton.setTitle(copyPluginPathTooltip);
-			status(localize('copiedPluginPathStatus', "Copied plugin path to clipboard"));
-			this.copyStateReset.value = disposableTimeout(() => {
-				copyButton.label = `$(${Codicon.copy.id})`;
-				copyPluginPathTooltip = copyPluginPathLabel;
+		this.renderDisposables.add(copyButton.onDidClick(() => {
+			void (async () => {
+				await this.clipboardService.writeText(uri.fsPath || uri.toString());
+				copyButton.label = `$(${Codicon.check.id})`;
+				copyPluginPathTooltip = localize('copiedPluginPath', "Copied");
 				copyButton.setTitle(copyPluginPathTooltip);
-			}, 1200);
+				status(localize('copiedPluginPathStatus', "Copied plugin path to clipboard"));
+				this.copyStateReset.value = disposableTimeout(() => {
+					copyButton.label = `$(${Codicon.copy.id})`;
+					copyPluginPathTooltip = copyPluginPathLabel;
+					copyButton.setTitle(copyPluginPathTooltip);
+				}, 1200);
+			})().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		const openPluginFolderLabel = localize('openPluginFolder', "Open Plugin Folder");
 		const openButton = this.renderDisposables.add(new Button(container, { ...inlineButtonStyles, secondary: true, supportIcons: true, title: openPluginFolderLabel, ariaLabel: openPluginFolderLabel }));
 		openButton.element.classList.add('embedded-detail-copy-button');
 		openButton.label = `$(${Codicon.folderOpened.id})`;
 		this.renderDisposables.add(this.hoverService.setupManagedHover(getDefaultHoverDelegate('element'), openButton.element, openPluginFolderLabel));
-		this.renderDisposables.add(openButton.onDidClick(async () => {
-			try {
-				await this.commandService.executeCommand('revealFileInOS', uri);
-			} catch {
-				await this.openerService.open(dirname(uri));
-			}
+		this.renderDisposables.add(openButton.onDidClick(() => {
+			void (async () => {
+				try {
+					await this.commandService.executeCommand('revealFileInOS', uri);
+				} catch {
+					await this.openerService.open(dirname(uri));
+				}
+			})().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		return container;
 	}
