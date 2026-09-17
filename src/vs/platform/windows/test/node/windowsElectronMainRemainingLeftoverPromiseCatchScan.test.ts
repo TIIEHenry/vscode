@@ -133,8 +133,8 @@ suite('platform windows / electron-main remaining leftover Promise fire-and-forg
 		assert.ok(logIpc.includes(`channel.call('setLogLevel', [loggerService.getLogLevel()])${doubleCatch};`));
 		assert.ok(spdlog.includes(`this._loggerCreationPromise.then(() => this.flushLogger())${doubleCatch};`));
 		assert.ok(ipc.includes('registerChannel(channelName: string, channel: IServerChannel<TContext>): void;'));
-		assert.ok(app.includes("sharedProcessClient.then(client => client.registerChannel('policy', policyChannel));"));
-		assert.ok(!app.includes(`sharedProcessClient.then(client => client.registerChannel('policy', policyChannel))${doubleCatch}`));
+		assert.ok(app.includes("sharedProcessClient.then(client => client.registerChannel('profileStorageListener', profileStorageListener));"));
+		assert.ok(!app.includes(`sharedProcessClient.then(client => client.registerChannel('profileStorageListener', profileStorageListener))${doubleCatch}`));
 		assert.ok(app.includes('void this.logOSProxyConfigTelemetry(nativeHostMainService, telemetryService);'));
 		assert.ok(!app.includes(`void this.logOSProxyConfigTelemetry(nativeHostMainService, telemetryService)${doubleCatch}`));
 		assert.ok(app.includes('remoteResourceChannel.value.call<NodeRemoteResourceResponse>(NODE_REMOTE_RESOURCE_IPC_METHOD_NAME, [url]).then('));
