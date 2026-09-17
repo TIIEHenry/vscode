@@ -318,7 +318,7 @@ export class SurveyEditorPane extends EditorPane {
 		// Auto-close after 5 seconds (longer than visual to allow screen readers to finish)
 		const timeout = setTimeout(() => {
 			if (submittedInput) {
-				this.editorService.closeEditor({ editor: submittedInput, groupId: this.group.id }).catch(onUnexpectedError);
+				this.editorService.closeEditor({ editor: submittedInput, groupId: this.group.id }).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}, 5000);
 
