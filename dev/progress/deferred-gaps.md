@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D741 leftover Promise 双链；D736/D739/D740 跳过。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D742 leftover Promise 双链；D736/D739/D740/D745 跳过。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1107,3 +1107,5 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D737 | P3 | **closed** leftover Promise 双链七处：editorConfiguration IIFE；modalEditorPart close；editorPanes trust openEditor；editorDropTarget openEditors；menubar recentlyOpened IIFE；treeView withProgress.then；listCommands expand.then。跳过 breadcrumbs 自定义 catch / D731 / opener。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；`workbenchLeftoverPromiseCatchScanD737.test.ts` + D731 **18/0**。勿 add `out`。 | 七处双链。未关 D24。leftover 程序未全局完成。 | workbench leftover remaining | closed |
 | D741 | P3 | **closed** leftover Promise 双链七处：keyboardLayout getBrowserKeyMapping×3 / import layout / userLayout initialize / UserKeyboardLayout reload；UserKeybindings reload。跳过 D696 / consumed getLayoutMap。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 D；`keybindingKeyboardLayoutLeftoverPromiseCatchScan.test.ts` **8/0**。勿 add `out`。 | 七处双链。未关 D24。leftover 程序未全局完成。 | workbench / keybinding leftover | closed |
 | D730 | P3 | **closed** leftover Promise 双链四处：activate / open-file setTimeout / new-window-for-tab IIFE；lockfile writeFile 单链升双链。跳过 startup / assigned / two-arg / D704–D726。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；`codeElectronMainFurtherLeftoverPromiseCatchScan.test.ts` **6/0** + D719 **5/0** + D726 **6/0**。勿 add `out`。 | 四处双链。未关 D24。leftover 程序未全局完成。 | code / electron-main leftover further | closed |
+| D742 | P3 | **closed** leftover Promise 双链八处：SCM registerGroups；QuickDiff register/unregister/create/dispose；tunnel setTunnelProvider / setRemoteTunnelService；git $onDidChangeRepository。跳过 D708 / D712 / D717 / D724 / D734 / Pty / Watch。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`workbenchApiLeftoverPromiseCatchScanD742.test.ts` **7/0**。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / api leftover remaining | closed |
+| D745 | P3 | **skipped** leftover Promise：`conversation/` 合法点 2（roster send 单链；engineSessionEnsure.finally）。跳过 D701/D710/D716/D721 / D145 / opener / Action2。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；无 wrap / 无测。 | 未双链。conversation leftover 合法点耗尽。未关 D24。 | workbench / conversation leftover remaining | skipped |
