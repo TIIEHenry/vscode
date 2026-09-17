@@ -44,7 +44,7 @@ suite('format/outline/userDataProfile leftover Promise fire-and-forget catch sca
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('format leftover _analyzeFormatter then is Promise double-chain; skipped leftover _updateConfigValues stays unchained', () => {
+	test('format leftover _analyzeFormatter then is Promise double-chain; leftover remaining wraps _updateConfigValues', () => {
 		const source = fs.readFileSync(resolveSource(FORMAT_REL), 'utf8');
 		assertPromiseSignature(source, 'private async _analyzeFormatter<T extends FormattingEditProvider>(kind: FormattingKind, formatter: T[], document: ITextModel): Promise<T | string> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
@@ -73,8 +73,8 @@ suite('format/outline/userDataProfile leftover Promise fire-and-forget catch sca
 		assert.ok(source.includes(`${analyzeThen}${doubleCatch};`));
 		assert.ok(!source.includes(`${analyzeThen};`));
 		assert.ok(!source.includes(`${analyzeThen}.catch(onUnexpectedError);`));
-		assert.ok(source.includes('this._updateConfigValues();'));
-		assert.ok(!source.includes('this._updateConfigValues().catch'));
+		assert.ok(source.includes(`this._updateConfigValues()${doubleCatch};`));
+		assert.ok(!source.includes('this._updateConfigValues();'));
 	});
 
 	test('outline leftover _editorControlChangePromise then is Promise double-chain', () => {
@@ -155,8 +155,10 @@ suite('format/outline/userDataProfile leftover Promise fire-and-forget catch sca
 		const tags = fs.readFileSync(resolveSource(TAGS_REL), 'utf8');
 		const content = fs.readFileSync(resolveSource(TESTING_CONTENT_REL), 'utf8');
 		const view = fs.readFileSync(resolveSource(TESTING_COVERAGE_VIEW_REL), 'utf8');
-		assert.ok(format.includes('this._updateConfigValues();'));
-		assert.ok(!format.includes('this._updateConfigValues().catch'));
+		assert.ok(format.includes('this._store.add(this._extensionService.onDidChangeExtensions(this._updateConfigValues, this));'));
+		assert.ok(format.includes('this._store.add(_languageFeaturesService.documentFormattingEditProvider.onDidChange(this._updateConfigValues, this));'));
+		assert.ok(format.includes('this._store.add(_languageFeaturesService.documentRangeFormattingEditProvider.onDidChange(this._updateConfigValues, this));'));
+		assert.ok(!format.includes('onDidChangeExtensions(() => this._updateConfigValues()'));
 		assert.ok(profile.includes("return accessor.get(IOpenerService).open(URI.parse('https://aka.ms/vscode-profiles-help'));"));
 		assert.ok(!profile.includes("accessor.get(IOpenerService).open(URI.parse('https://aka.ms/vscode-profiles-help')).catch"));
 		assert.ok(!outline.includes('acknowledge('));

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { ICodeEditor } from '../../../../editor/browser/editorBrowser.js';
 import { EditorAction, registerEditorAction, ServicesAccessor } from '../../../../editor/browser/editorExtensions.js';
@@ -60,7 +61,7 @@ registerEditorAction(class FormatDocumentMultipleAction extends EditorAction {
 				primaryButton: nls.localize({ key: 'install.formatter', comment: ['&& denotes a mnemonic'] }, "&&Install Formatter...")
 			});
 			if (confirmed) {
-				extensionsWorkbenchService.openSearch(`category:formatters ${langName}`);
+				extensionsWorkbenchService.openSearch(`category:formatters ${langName}`).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 	}
