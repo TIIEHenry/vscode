@@ -252,7 +252,7 @@ export class ModePicker extends Disposable {
 					reportChatModeChange(this.telemetryService, previousMode, item.mode, requestCount);
 					this._selectMode(item.mode);
 				} else {
-					void this.commandService.executeCommand(AICustomizationManagementCommands.OpenEditor, AICustomizationManagementSection.Agents).catch(onUnexpectedError);
+					void this.commandService.executeCommand(AICustomizationManagementCommands.OpenEditor, AICustomizationManagementSection.Agents).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			},
 			onHide: () => { triggerElement.focus(); },
