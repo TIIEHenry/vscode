@@ -486,34 +486,36 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			}
 		)) as WorkbenchList<ISourcesChangeEntry>;
 
-		this._register(this.list.onDidOpen(async e => {
-			const element = e.element;
-			if (!element) {
-				return;
-			}
-			// List-fail leftover and KEEP pairing-hold leftover are not live FileDiff / preview surfaces (D444 / D446).
-			if (this.isSourcesGitFileDiffOpenSkipped()) {
-				return;
-			}
+		this._register(this.list.onDidOpen(e => {
+			void (async () => {
+				const element = e.element;
+				if (!element) {
+					return;
+				}
+				// List-fail leftover and KEEP pairing-hold leftover are not live FileDiff / preview surfaces (D444 / D446).
+				if (this.isSourcesGitFileDiffOpenSkipped()) {
+					return;
+				}
 
-			try {
-				await openSourcesChangeEntry(element, {
-					editorService: this.editorService,
-					quickDiffService: this.quickDiffService,
-					configurationService: this.configurationService,
-					instantiationService: this.instantiationService,
-					sourcesDiffPanelService: this.sourcesDiffPanelService,
-					modelService: this.modelService,
-					readGitFileDiff: entry => this.readGitFileDiff(entry),
-				}, {
-					preserveFocus: e.editorOptions.preserveFocus,
-					pinned: e.editorOptions.pinned,
-				});
-				this.setStatusMessage(undefined);
-			} catch (error) {
-				this.writeStatusMessage = undefined;
-				this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error));
-			}
+				try {
+					await openSourcesChangeEntry(element, {
+						editorService: this.editorService,
+						quickDiffService: this.quickDiffService,
+						configurationService: this.configurationService,
+						instantiationService: this.instantiationService,
+						sourcesDiffPanelService: this.sourcesDiffPanelService,
+						modelService: this.modelService,
+						readGitFileDiff: entry => this.readGitFileDiff(entry),
+					}, {
+						preserveFocus: e.editorOptions.preserveFocus,
+						pinned: e.editorOptions.pinned,
+					});
+					this.setStatusMessage(undefined);
+				} catch (error) {
+					this.writeStatusMessage = undefined;
+					this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error));
+				}
+			})().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this._register(this.list.onDidChangeSelection(() => this.updateSelectionToolbar()));

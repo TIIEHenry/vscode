@@ -549,44 +549,46 @@ export class SourcesReviewList extends Disposable {
 			}
 		)) as WorkbenchList<ISourcesReviewEntry>;
 
-		this._register(this.list.onDidOpen(async e => {
-			const element = e.element;
-			if (!element) {
-				return;
-			}
-			// List-fail leftover and KEEP pairing-hold leftover are not live FileDiff / preview surfaces (D444 / D446).
-			if (this.isSourcesGitFileDiffOpenSkipped()) {
-				return;
-			}
+		this._register(this.list.onDidOpen(e => {
+			void (async () => {
+				const element = e.element;
+				if (!element) {
+					return;
+				}
+				// List-fail leftover and KEEP pairing-hold leftover are not live FileDiff / preview surfaces (D444 / D446).
+				if (this.isSourcesGitFileDiffOpenSkipped()) {
+					return;
+				}
 
-			try {
-				await markReviewedAfterSuccessfulOpen(
-					() => openSourcesChangeEntry(element, {
-						editorService: this.editorService,
-						quickDiffService: this.quickDiffService,
-						configurationService: this.configurationService,
-						instantiationService: this.instantiationService,
-						sourcesDiffPanelService: this.sourcesDiffPanelService,
-						modelService: this.modelService,
-						readGitFileDiff: entry => this.readGitFileDiff(entry),
-					}, {
-						preserveFocus: e.editorOptions.preserveFocus,
-						pinned: false,
-					}),
-					resource => this.reviewProgressService.resolveKey(resource),
-					key => {
-						// KEEP leftover list-fail is not a live Mark surface (D459).
-						// FileDiff open stays leftoverListFailed / pairing-hold only (D444 / D446).
-						if (this.isSourcesGitWriteClosed()) {
-							return;
-						}
-						this.reviewProgressService.markReviewed(key);
-					},
-					element.resource,
-				);
-			} catch (error) {
-				this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error));
-			}
+				try {
+					await markReviewedAfterSuccessfulOpen(
+						() => openSourcesChangeEntry(element, {
+							editorService: this.editorService,
+							quickDiffService: this.quickDiffService,
+							configurationService: this.configurationService,
+							instantiationService: this.instantiationService,
+							sourcesDiffPanelService: this.sourcesDiffPanelService,
+							modelService: this.modelService,
+							readGitFileDiff: entry => this.readGitFileDiff(entry),
+						}, {
+							preserveFocus: e.editorOptions.preserveFocus,
+							pinned: false,
+						}),
+						resource => this.reviewProgressService.resolveKey(resource),
+						key => {
+							// KEEP leftover list-fail is not a live Mark surface (D459).
+							// FileDiff open stays leftoverListFailed / pairing-hold only (D444 / D446).
+							if (this.isSourcesGitWriteClosed()) {
+								return;
+							}
+							this.reviewProgressService.markReviewed(key);
+						},
+						element.resource,
+					);
+				} catch (error) {
+					this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error));
+				}
+			})().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this._register(this.list.onContextMenu(e => {

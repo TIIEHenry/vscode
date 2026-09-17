@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
@@ -33,10 +34,10 @@ export class SourcesReviewProgressService extends Disposable implements ISources
 
 		this._register(this.fileService.onDidFilesChange(e => {
 			for (const resource of e.rawUpdated) {
-				this.invalidateResource(resource);
+				void this.invalidateResource(resource).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 			for (const resource of e.rawAdded) {
-				this.invalidateResource(resource);
+				void this.invalidateResource(resource).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "SessionStream + L2 envelope leftover 已合入。D675/D676 与 chat leftover catch 已合入。D24 仍开。不是 leftover/pills 完成。"
+summary: "SessionStream + L2 envelope leftover 已合入。D675/D676 与 chat leftover catch 已合入。F 槽 sources leftover Promise 双链进行中。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -21,6 +21,7 @@ summary: "SessionStream + L2 envelope leftover 已合入。D675/D676 与 chat le
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **F** | sources leftover Promise 双链（progress invalidate + Review/Changes onDidOpen）；D24 仍开；不是 leftover/pills 完成 |
 | **A/D** | 下一 leftover catch 批次（跳 opener 单链若属 D145 口径） |
 | **B** | 脏；跳过 |
 | **C** | gitlink 脏；勿 add |
