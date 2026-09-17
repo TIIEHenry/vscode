@@ -44,7 +44,7 @@ import { IUserDataProfilesMainService } from '../../userDataProfile/electron-mai
 import { ILoggerMainService } from '../../log/electron-main/loggerService.js';
 import { IInstantiationService } from '../../instantiation/common/instantiation.js';
 import { VSBuffer } from '../../../base/common/buffer.js';
-import { errorHandler } from '../../../base/common/errors.js';
+import { errorHandler, onUnexpectedError } from '../../../base/common/errors.js';
 import { FocusMode, IApplicationBadge } from '../../native/common/native.js';
 import { Color } from '../../../base/common/color.js';
 
@@ -1620,7 +1620,7 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 				if (!token.isCancellationRequested) {
 					this.send(channel, ...args);
 				}
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
