@@ -48,7 +48,7 @@ import {
 	mapRestoreSnapshotResponse,
 	mapResumeSessionResponse,
 } from '../../node/grpc/grpcClientMappers.js';
-import { shouldRefreshAgentTree } from '../../node/fileMutationJoin.js';
+import { readTeamCreatedTeamId, shouldRefreshAgentTree } from '../../node/fileMutationJoin.js';
 import { OverlayDeltaJoin } from '../../node/overlayDeltaJoin.js';
 import { demuxSessionStreamPayload } from '../../node/sessionStreamDemux.js';
 import {
@@ -853,6 +853,48 @@ suite('grpc first-send / attach protobuf wire', () => {
 		assert.ok(!('detachedChildPhase' in payload));
 		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
 		assert.strictEqual(shouldRefreshAgentTree(decoded.payload), true);
+	});
+
+	test('decodeSessionStreamEvent field 39 multi_agent_status present → shouldRefreshAgentTree', () => {
+		const decoded = decodeSessionStreamEvent(Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodePresentMessageField(39, new Uint8Array(0)),
+			encodeStringField(99, 'unused-stream-field'),
+		]));
+		const payload = decoded.payload as {
+			session_id?: string;
+			multi_agent_status?: Record<string, unknown>;
+		};
+		assert.strictEqual(payload.session_id, 'sess-1');
+		assert.ok('multi_agent_status' in payload);
+		assert.deepStrictEqual(payload.multi_agent_status, {});
+		assert.ok(!('multiAgentStatus' in payload));
+		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
+		assert.strictEqual(shouldRefreshAgentTree(decoded.payload), true);
+		assert.strictEqual(readTeamCreatedTeamId(decoded.payload), undefined);
+		const created = decodeSessionStreamEvent(Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodePresentMessageField(39, Buffer.concat([
+				encodeInt64Field(1, 9),
+				encodePresentMessageField(14, Buffer.concat([
+					encodeInt32Field(1, 7),
+					encodeInt32Field(2, 3),
+				])),
+				encodeStringField(99, 'unused-status-field'),
+			])),
+			encodeStringField(99, 'unused-stream-field'),
+		]));
+		const createdPayload = created.payload as {
+			multi_agent_status?: { team_created?: { team_id?: number; member_count?: number } };
+		};
+		assert.ok(!('runtime_epoch' in (createdPayload.multi_agent_status ?? {})));
+		assert.ok(!('member_count' in (createdPayload.multi_agent_status?.team_created ?? {})));
+		assert.strictEqual(JSON.stringify(created).includes('unused'), false);
+		assert.deepStrictEqual(createdPayload.multi_agent_status, {
+			team_created: { team_id: 7 },
+		});
+		assert.strictEqual(shouldRefreshAgentTree(created.payload), true);
+		assert.strictEqual(readTeamCreatedTeamId(created.payload), 7);
 	});
 
 	test('decodeSessionStreamEvent reads nested runtime_overlay_snapshot=44 pending+active_turn; unused unread; maps via demux', () => {

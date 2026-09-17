@@ -20,7 +20,7 @@ summary: "SessionStream 16/23/30/31/34/35/36/37/38/44/50/51/52 已合入。D24 �
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A** | 下一刀 presence `multi_agent_status`=39 |
+| **A** | decode SessionStream `multi_agent_status`=39（presence + `team_created.team_id`）进行中 |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **C** | gitlink 脏 `dev/loop`；勿 add |
 | **E** | `blocked` `fix/ci-gate-reds` |

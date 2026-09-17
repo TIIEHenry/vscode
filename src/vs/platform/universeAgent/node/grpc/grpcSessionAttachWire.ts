@@ -427,6 +427,11 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * `turn_started.turn_id`. Other nested change fields unread.
  * `detached_child_phase`=38 (present empty nested → `{}`; nested unread).
  * fileMutationJoin `shouldRefreshAgentTree` reads presence only.
+ * `multi_agent_status`=39 MultiAgentStatusEvent (present empty nested
+ * → `{}`; nested `team_created`=14 TeamCreated `team_id`=1). Other
+ * oneof arms / `runtime_epoch` / `member_count` unread.
+ * fileMutationJoin `shouldRefreshAgentTree` reads presence;
+ * `readTeamCreatedTeamId` reads `team_created.team_id`.
  * `runtime_overlay_snapshot`=44 RuntimeOverlaySnapshotEvent
  * (`runtime_epoch`=1 optional `active_turn`=2 repeated `pending`=6).
  * ActiveTurnSnapshotProto `turn_id`=1 `streaming_text`=3 `thinking_text`=4
@@ -455,7 +460,8 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * `session_purged` / `runtime_overlay_snapshot` /
  * `permission_request` / `ask_user_question` / `client_tool_call`,
  * and `shouldRefreshAgentTree` `branch_topology_notified` /
- * `sub_agent_activity` / `sub_agent_completed` / `detached_child_phase`.
+ * `sub_agent_activity` / `sub_agent_completed` / `detached_child_phase` /
+ * `multi_agent_status`.
  */
 export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessionEvent {
 	const fields = readProtoFields(bytes);
@@ -527,6 +533,10 @@ export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessio
 	const detachedChildPhase = lastBytes(fields, 38);
 	if (detachedChildPhase !== undefined) {
 		payload.detached_child_phase = {};
+	}
+	const multiAgentStatus = lastBytes(fields, 39);
+	if (multiAgentStatus !== undefined) {
+		payload.multi_agent_status = decodeMultiAgentStatusEvent(multiAgentStatus);
 	}
 	const overlaySnapshot = lastBytes(fields, 44);
 	if (overlaySnapshot) {
@@ -657,6 +667,30 @@ function decodeAskUserQuestionOptionProto(bytes: Uint8Array): Record<string, unk
 	const fields = readProtoFields(bytes);
 	return {
 		label: lastString(fields, 2) ?? '',
+	};
+}
+
+/**
+ * MultiAgentStatusEvent — present empty nested → `{}`. Nested
+ * `team_created`=14 TeamCreated `team_id`=1 (int32). Other oneof
+ * arms / `runtime_epoch` / `member_count` unread. proto3: empty /
+ * 0 omitted; oneof arm present even when nested payload is empty.
+ */
+function decodeMultiAgentStatusEvent(bytes: Uint8Array): Record<string, unknown> {
+	const fields = readProtoFields(bytes);
+	const teamCreated = lastBytes(fields, 14);
+	if (teamCreated === undefined) {
+		return {};
+	}
+	return { team_created: decodeTeamCreated(teamCreated) };
+}
+
+/** TeamCreated — `team_id`=1. `member_count`=2 unread. */
+function decodeTeamCreated(bytes: Uint8Array): Record<string, unknown> {
+	const fields = readProtoFields(bytes);
+	const teamId = lastVarint(fields, 1);
+	return {
+		...(teamId !== undefined ? { team_id: Number(teamId) } : {}),
 	};
 }
 
