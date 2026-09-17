@@ -12,6 +12,7 @@ import { IInstantiationService } from '../../../platform/instantiation/common/in
 import { DisposableStore, Disposable } from '../../../base/common/lifecycle.js';
 import { IColorTheme, IThemeService } from '../../../platform/theme/common/themeService.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../platform/storage/common/storage.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { IExtensionService } from '../../services/extensions/common/extensions.js';
 import { CompositeBarActionViewItem, CompositeBarAction, IActivityHoverOptions, ICompositeBarActionViewItemOptions, ICompositeBarColors } from './compositeBarActions.js';
 import { Codicon } from '../../../base/common/codicons.js';
@@ -122,7 +123,7 @@ export class GlobalCompositeBar extends Disposable {
 			if (!this._store.isDisposed) {
 				this._register(this.storageService.onDidChangeValue(StorageScope.PROFILE, AccountsActivityActionViewItem.ACCOUNTS_VISIBILITY_PREFERENCE_KEY, this._store)(() => this.toggleAccountsActivity()));
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	create(parent: HTMLElement): void {

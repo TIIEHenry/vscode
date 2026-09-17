@@ -18,7 +18,7 @@ import { ActionRunner, IAction, Separator } from '../../../../base/common/action
 import { timeout } from '../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { isCancellationError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { createMatches, FuzzyScore } from '../../../../base/common/filters.js';
 import { IMarkdownString, isMarkdownString, MarkdownString } from '../../../../base/common/htmlContent.js';
@@ -794,7 +794,7 @@ abstract class AbstractTreeView extends Disposable implements ITreeView {
 				this._onDidExpandItem.fire(element);
 			}
 		}));
-		this.tree.setInput(this.root).then(() => this.updateContentAreas());
+		this.tree.setInput(this.root).then(() => this.updateContentAreas()).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this.treeDisposables.add(this.tree.onDidOpen(async (e) => {
 			if (!e.browserEvent) {

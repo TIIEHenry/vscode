@@ -510,7 +510,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		this._register(this.auxiliaryWindowService.onDidOpenAuxiliaryWindow(({ window, disposables }) => {
 			const windowId = window.window.vscodeWindowId;
 			this.containerStylesLoaded.set(windowId, window.whenStylesHaveLoaded);
-			window.whenStylesHaveLoaded.then(() => this.containerStylesLoaded.delete(windowId));
+			window.whenStylesHaveLoaded.then(() => this.containerStylesLoaded.delete(windowId)).catch(onUnexpectedError).catch(onUnexpectedError);
 			disposables.add(toDisposable(() => this.containerStylesLoaded.delete(windowId)));
 
 			const eventDisposables = disposables.add(new DisposableStore());

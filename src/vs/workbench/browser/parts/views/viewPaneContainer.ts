@@ -37,6 +37,7 @@ import { PANEL_SECTION_BORDER, PANEL_SECTION_DRAG_AND_DROP_BACKGROUND, PANEL_SEC
 import { IAddedViewDescriptorRef, ICustomViewDescriptor, IView, IViewContainerModel, IViewDescriptor, IViewDescriptorRef, IViewDescriptorService, IViewPaneContainer, ViewContainer, ViewContainerLocation, ViewVisibilityState } from '../../../common/views.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { FocusedViewContext } from '../../../common/contextkeys.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { getFloatingPanelMargin, isHorizontal, IWorkbenchLayoutService, LayoutSettings, Position } from '../../../services/layout/browser/layoutService.js';
 import { IBaseActionViewItemOptions } from '../../../../base/browser/ui/actionbar/actionViewItems.js';
@@ -536,7 +537,7 @@ export class ViewPaneContainer<MementoType extends object = object> extends Comp
 					this.updateViewHeaders();
 				}
 			}));
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this._register(this.viewContainerModel.onDidChangeActiveViewDescriptors(() => this._onTitleAreaUpdate.fire()));
 	}

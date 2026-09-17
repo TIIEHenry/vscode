@@ -42,6 +42,7 @@ import { IPreferencesService } from '../../../services/preferences/common/prefer
 import { IQuickInputService, IQuickPickItem, QuickPickInput } from '../../../../platform/quickinput/common/quickInput.js';
 import { getIconClassesForLanguageId } from '../../../../editor/common/services/getIconClasses.js';
 import { Promises, timeout } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
 import { IStatusbarEntryAccessor, IStatusbarService, StatusbarAlignment, IStatusbarEntry } from '../../../services/statusbar/browser/statusbar.js';
@@ -1285,7 +1286,7 @@ export class ChangeLanguageAction extends Action2 {
 									modelPreference,
 								});
 							}
-						});
+						}).catch(onUnexpectedError).catch(onUnexpectedError);
 					}
 				}
 
