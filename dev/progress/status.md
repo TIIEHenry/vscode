@@ -10,7 +10,7 @@ summary: "SessionStream 30/50/51 已合入。D24 仍开。不是 leftover/pills 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
-### 已合入（`MERGE_SHA` 见关仓；compile-client 0；attach mocha 47）
+### 已合入（`MERGE_SHA` `4a4110d65eb`；compile-client 0；attach mocha 47）
 | 切片 | 提交 |
 |:-----|:-----|
 | **A SessionStream 51** | `893329eb666` — `ask_user_question`=51 AskUserQuestionEvent 1–3 + items |
