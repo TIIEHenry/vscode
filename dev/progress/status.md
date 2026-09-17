@@ -4,29 +4,28 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "A leftover D624：picker ~556 finally 双链。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
+summary: "merge 关仓：leftover D624–D631 关各 call site。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
-### 已合入（compile-client 0 · 聚焦 8 文件 20 pass）
+### 已合入（compile-client 0 · 聚焦 8 文件 18 pass）
 | 切片 | 提交 |
 |:-----|:-----|
-| **A leftover** | `02db755d4e0` — chatCompositeBar renameChat 双链；[D616](deferred-gaps.md) |
-| **C leftover** | `de9e6290426` — localAgentHost resolveDevContainer 双链；[D617](deferred-gaps.md)；gitlink 脏勿 add |
-| **D leftover** | `8ee26eb5e42` — baseAgentHost dispatch/resolve 三处双链；[D618](deferred-gaps.md) |
-| **F leftover** | `dece7657584` — workspacePicker onSelect/restore 双链；[D619](deferred-gaps.md) |
-| **G leftover** | `e9bc857d1db` — configPicker IIFE 双链；[D620](deferred-gaps.md)；勿 add `out` |
-| **H leftover** | `83faf243710` — sessionGitHubInfo lookup.then 双链；[D621](deferred-gaps.md) |
-| **I leftover** | `ba6cbef65a5` — overview openOverview 两处双链；[D622](deferred-gaps.md) |
-| **J leftover** | `f448927ccf8` — copilot PR lookup.then 双链；[D623](deferred-gaps.md) |
+| **A leftover** | `f92bca702e6` — picker finally 双链；[D624](deferred-gaps.md) |
+| **C leftover** | `9d240c00f12` — sessionTurnChanges 四处双链；[D625](deferred-gaps.md)；gitlink 脏勿 add |
+| **D leftover** | `650c4e70f21` — banner revealPR 双链；[D626](deferred-gaps.md) |
+| **F leftover** | `b662eed8364` — wsl reconnect 四处双链；[D627](deferred-gaps.md) |
+| **G leftover** | `a27b475b1a0` — sandbox discover/disconnect 五处双链；[D628](deferred-gaps.md)；勿 add `out` |
+| **H leftover** | `21e83f5d690` — titlebar openSession 两处双链；[D629](deferred-gaps.md) |
+| **I leftover** | `d0ff5c46f27` — sessionsView open then 四处双链；[D630](deferred-gaps.md) |
+| **J leftover** | `88487609fb2` — chatGroupsView 七处双链；[D631](deferred-gaps.md) |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A leftover** | `loop/A-d24-picker-finally-leftover` — picker ~556 finally 双链；[D624](deferred-gaps.md)；未 commit；勿 add `out` |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
@@ -36,7 +35,7 @@ summary: "A leftover D624：picker ~556 finally 双链。compile-client 0。D24 
 |:---|:-----|
 | [D24](deferred-gaps.md) | **仍开**：Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
-| [D550](deferred-gaps.md)–[D624](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
+| [D550](deferred-gaps.md)–[D631](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |
