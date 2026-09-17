@@ -337,7 +337,7 @@ export class BreakpointWidget extends ZoneWidget implements IPrivateBreakpointWi
 				}
 			}).catch(() => {
 				breakpointOptions[i + 1].description = nls.localize('noBpSource', 'Could not load source.');
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		return breakpointOptions;
