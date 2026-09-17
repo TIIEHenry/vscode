@@ -1042,7 +1042,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 			const source = item.source;
 			const isWorkspaceFile = source === AICustomizationSources.local;
 			const isReadOnly = !source || source === AICustomizationSources.extension || source === AICustomizationSources.plugin || source === AICustomizationSources.builtin;
-			this.showEmbeddedEditor(item.uri, item.name, item.promptType, source ?? AICustomizationSources.builtin, isWorkspaceFile, isReadOnly);
+			void this.showEmbeddedEditor(item.uri, item.name, item.promptType, source ?? AICustomizationSources.builtin, isWorkspaceFile, isReadOnly).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		// Handle create actions - AI-guided creation
@@ -3512,7 +3512,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 				const source = item.source;
 				const isWorkspaceFile = source === AICustomizationSources.local;
 				const isReadOnly = !source || source === AICustomizationSources.extension || source === AICustomizationSources.plugin || source === AICustomizationSources.builtin;
-				this.showEmbeddedEditor(item.uri, item.name, item.promptType, source ?? AICustomizationSources.builtin, isWorkspaceFile, isReadOnly);
+				void this.showEmbeddedEditor(item.uri, item.name, item.promptType, source ?? AICustomizationSources.builtin, isWorkspaceFile, isReadOnly).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 		this.ensureSectionsListReflectsActiveSection(section);
