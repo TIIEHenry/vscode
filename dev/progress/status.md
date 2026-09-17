@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "merge 关仓：leftover D584–D591 关各 call site。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
+summary: "I leftover：editor create 两处双链 D598。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -19,7 +19,7 @@ summary: "merge 关仓：leftover D584–D591 关各 call site。compile-client 
 | **F leftover** | `655d6d77e4f` — promptFileContributions delayer.trigger 双链；[D587](deferred-gaps.md) |
 | **G leftover** | `7fa46de7aff` — pluginList 列表 renderer Install 双链；[D588](deferred-gaps.md)；勿 add `out` |
 | **H leftover** | `9ff1ae3f6fa` — chatAttachmentWidgets renderPreviewImage/readFile 双链；[D589](deferred-gaps.md) |
-| **I leftover** | `638551b508a` — editor 两处 showEmbeddedEditor 双链；[D590](deferred-gaps.md) |
+| **I leftover** | editor create 两处双链；[D598](deferred-gaps.md)；refresh 为 sync void 未套 catch |
 | **J leftover** | `4f4cce10fc6` — chatWidget requestModelByIdentifier 双链；[D591](deferred-gaps.md) |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
@@ -35,7 +35,7 @@ summary: "merge 关仓：leftover D584–D591 关各 call site。compile-client 
 |:---|:-----|
 | [D24](deferred-gaps.md) | **仍开**：Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
-| [D550](deferred-gaps.md)–[D591](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
+| [D550](deferred-gaps.md)–[D598](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |

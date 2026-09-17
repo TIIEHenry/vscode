@@ -1047,12 +1047,12 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 		// Handle create actions - AI-guided creation
 		this.editorDisposables.add(this.listWidget.onDidRequestCreate(promptType => {
-			this.createNewItemWithAI(promptType);
+			void this.createNewItemWithAI(promptType).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		// Handle manual create actions - open editor directly
 		this.editorDisposables.add(this.listWidget.onDidRequestCreateManual(({ type, target, rootFileName }) => {
-			this.createNewItemManual(type, target, rootFileName);
+			void this.createNewItemManual(type, target, rootFileName).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		// Container for Models content (only in sessions)

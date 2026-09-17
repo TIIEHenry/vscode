@@ -140,3 +140,33 @@ suite('AICustomizationManagementEditor leftover showEmbeddedEditor select/plugin
 		assert.strictEqual((source.match(/void this\.handleEditorActionButton\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
 	});
 });
+
+suite('AICustomizationManagementEditor leftover create catch scan (D598)', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('onDidRequestCreate / onDidRequestCreateManual leftover voids double-catch onUnexpectedError', () => {
+		const source = fs.readFileSync(editorSourcePath(), 'utf8');
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const doubleCreateAI = `void this.createNewItemWithAI(promptType)${doubleCatch};`;
+		const doubleCreateManual = `void this.createNewItemManual(type, target, rootFileName)${doubleCatch};`;
+
+		assert.strictEqual((source.match(/void this\.createNewItemWithAI\(promptType\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.strictEqual((source.match(/void this\.createNewItemManual\(type, target, rootFileName\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.ok(source.includes(doubleCreateAI));
+		assert.ok(source.includes(doubleCreateManual));
+		assert.ok(!source.includes('\n\t\t\tthis.createNewItemWithAI(promptType);'));
+		assert.ok(!source.includes('\n\t\t\tthis.createNewItemManual(type, target, rootFileName);'));
+		assert.ok(!source.includes('void this.createNewItemWithAI(promptType);'));
+		assert.ok(!source.includes('void this.createNewItemManual(type, target, rootFileName);'));
+		assert.ok(!source.includes('void this.createNewItemWithAI(promptType).catch(onUnexpectedError);'));
+		assert.ok(!source.includes('void this.createNewItemManual(type, target, rootFileName).catch(onUnexpectedError);'));
+		// refresh(): void — .catch on the return value would throw at runtime.
+		assert.strictEqual((source.match(/void this\.listWidget\?\.refresh\(\);/g) ?? []).length, 2);
+		assert.ok(!source.includes('void this.listWidget?.refresh().catch(onUnexpectedError)'));
+		assert.strictEqual((source.match(/void this\.refreshCustomizationMigrationInfo\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 6);
+		assert.strictEqual((source.match(/void this\.listWidget\.setSection\([^)]+\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 3);
+		assert.strictEqual((source.match(/void this\.handleEditorActionButton\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.strictEqual((source.match(/void this\.showEmbeddedEditor\(item\.uri, item\.name, item\.promptType, source \?\? AICustomizationSources\.builtin, isWorkspaceFile, isReadOnly\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
+	});
+});
