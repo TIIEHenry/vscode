@@ -14,7 +14,9 @@ import {
 	encodeGetConfigRequest,
 } from '../../node/grpc/grpcGetConfigUnaryWire.js';
 import {
+	encodeDouble,
 	encodeInt32Field,
+	encodeInt64Field,
 	encodeMessageField,
 	encodeStringField,
 	readProtoFields,
@@ -44,20 +46,20 @@ suite('grpc RemoteAgentService GetConfig protobuf wire', () => {
 		}).length, 0);
 	});
 
-	test('decodeGetConfigResponse reads scalars 1-4, 7-9; nested 5/6/10/11 unread', () => {
+	test('decodeGetConfigResponse reads scalars 1-4, 7-9 and nested endpoint=5 auth=6 default_permission_delegate=10 health_check=11', () => {
 		const encoded = Buffer.concat([
 			encodeStringField(1, 'cfg-1'),
 			encodeStringField(2, 'Node A'),
 			encodeStringField(3, 'remote node'),
 			encodeInt32Field(4, 1),
-			encodeMessageField(5, encodeStringField(1, 'unused-host')),
-			encodeMessageField(6, encodeStringField(1, 'unused-auth')),
+			encodeMessageField(5, nestedEndpointBytes()),
+			encodeMessageField(6, nestedAuthBytes()),
 			encodeStringField(7, 'prod'),
 			encodeStringField(7, 'gpu'),
 			encodeInt32Field(8, 4),
 			encodeStringField(9, 'POOLED'),
-			encodeMessageField(10, encodeStringField(1, 'unused-delegate')),
-			encodeMessageField(11, encodeStringField(1, 'unused-health')),
+			encodeMessageField(10, nestedDelegateBytes()),
+			encodeMessageField(11, nestedHealthBytes()),
 			encodeStringField(12, 'unused-config'),
 		]);
 		assert.notStrictEqual(encoded[0], 0x7b);
@@ -67,14 +69,55 @@ suite('grpc RemoteAgentService GetConfig protobuf wire', () => {
 			name: 'Node A',
 			description: 'remote node',
 			enabled: true,
+			endpoint: {
+				host: '10.0.0.2',
+				port: 8443,
+				tls: true,
+				tls_cert_path: '/ca.pem',
+			},
+			auth: {
+				type: 'API_KEY',
+				api_key_ref: 'env:KEY',
+				token_ref: 'env:TOKEN',
+			},
 			tags: ['prod', 'gpu'],
 			max_concurrent_sessions: 4,
 			session_lifecycle: 'POOLED',
+			default_permission_delegate: {
+				mode: 'WHITELIST_VERIFIED',
+				whitelist: [{
+					tool_name: 'bash',
+					arg_conditions: [{
+						field: 'command',
+						operator: 'starts_with',
+						value: 'ls',
+					}],
+				}],
+				budget: {
+					max_tool_calls: 9,
+					max_tokens: 8,
+					timeout_ms: 7,
+					window_ms: 6,
+					max_bubble_to_user_per_day: 5,
+				},
+				timeout_policy: 'DENY',
+				fallback: 'DENY_ALL',
+				bubble_target: 'USER',
+			},
+			health_check: {
+				interval_ms: 1000,
+				timeout_ms: 500,
+				unhealthy_threshold: 3,
+				healthy_threshold: 2,
+				use_watch: true,
+				degraded_error_rate_threshold: 1.5,
+				degraded_p99_latency_ms: 200,
+			},
 		});
-		assert.ok(!('endpoint' in wire));
-		assert.ok(!('auth' in wire));
-		assert.ok(!('default_permission_delegate' in wire));
-		assert.ok(!('health_check' in wire));
+		assert.ok('endpoint' in wire);
+		assert.ok('auth' in wire);
+		assert.ok('default_permission_delegate' in wire);
+		assert.ok('health_check' in wire);
 		assert.ok(!('unused' in wire));
 		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
 		assert.deepStrictEqual(mapRemoteAgentConfig(wire), {
@@ -82,13 +125,50 @@ suite('grpc RemoteAgentService GetConfig protobuf wire', () => {
 			name: 'Node A',
 			description: 'remote node',
 			enabled: true,
-			endpoint: emptyEndpoint(),
-			auth: emptyAuth(),
+			endpoint: {
+				host: '10.0.0.2',
+				port: 8443,
+				tls: true,
+				tlsCertPath: '/ca.pem',
+			},
+			auth: {
+				type: 'API_KEY',
+				apiKeyRef: 'env:KEY',
+				tokenRef: 'env:TOKEN',
+			},
 			tags: ['prod', 'gpu'],
 			maxConcurrentSessions: 4,
 			sessionLifecycle: 'POOLED',
-			defaultPermissionDelegate: emptyDelegate(),
-			healthCheck: emptyHealth(),
+			defaultPermissionDelegate: {
+				mode: 'WHITELIST_VERIFIED',
+				whitelist: [{
+					toolName: 'bash',
+					argConditions: [{
+						field: 'command',
+						operator: 'starts_with',
+						value: 'ls',
+					}],
+				}],
+				budget: {
+					maxToolCalls: 9,
+					maxTokens: 8,
+					timeoutMs: 7,
+					windowMs: 6,
+					maxBubbleToUserPerDay: 5,
+				},
+				timeoutPolicy: 'DENY',
+				fallback: 'DENY_ALL',
+				bubbleTarget: 'USER',
+			},
+			healthCheck: {
+				intervalMs: 1000,
+				timeoutMs: 500,
+				unhealthyThreshold: 3,
+				healthyThreshold: 2,
+				useWatch: true,
+				degradedErrorRateThreshold: 1.5,
+				degradedP99LatencyMs: 200,
+			},
 		});
 
 		const sparse = decodeGetConfigResponse(encodeStringField(1, 'cfg-2'));
@@ -97,14 +177,14 @@ suite('grpc RemoteAgentService GetConfig protobuf wire', () => {
 			name: undefined,
 			description: undefined,
 			enabled: undefined,
+			endpoint: undefined,
+			auth: undefined,
 			tags: [],
 			max_concurrent_sessions: undefined,
 			session_lifecycle: undefined,
+			default_permission_delegate: undefined,
+			health_check: undefined,
 		});
-		assert.ok(!('endpoint' in sparse));
-		assert.ok(!('auth' in sparse));
-		assert.ok(!('default_permission_delegate' in sparse));
-		assert.ok(!('health_check' in sparse));
 		assert.deepStrictEqual(mapRemoteAgentConfig(sparse), {
 			id: 'cfg-2',
 			name: '',
@@ -125,9 +205,13 @@ suite('grpc RemoteAgentService GetConfig protobuf wire', () => {
 			name: undefined,
 			description: undefined,
 			enabled: undefined,
+			endpoint: undefined,
+			auth: undefined,
 			tags: [],
 			max_concurrent_sessions: undefined,
 			session_lifecycle: undefined,
+			default_permission_delegate: undefined,
+			health_check: undefined,
 		});
 		assert.deepStrictEqual(mapRemoteAgentConfig(empty), {
 			id: '',
@@ -151,7 +235,16 @@ suite('grpc RemoteAgentService GetConfig protobuf wire', () => {
 		assert.ok(/\bdecodeGetConfigResponse\b/.test(source));
 		assert.ok(/\ballLengthDelimited\b/.test(source));
 		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(!/\bdecodeEndpoint\b|\bencodeEndpoint\b|\bdecodeAuthConfig\b|\bdecodePermissionDelegate\b|\bdecodeHealthCheck\b/.test(source));
+		assert.ok(/\blastBytes\b/.test(source));
+		assert.ok(/\blastFixed64\b/.test(source));
+		assert.ok(/\bdecodeEndpoint\b/.test(source));
+		assert.ok(/\bdecodeAuthConfig\b/.test(source));
+		assert.ok(/\bdecodePermissionDelegate\b/.test(source));
+		assert.ok(/\bdecodeWhitelistEntry\b/.test(source));
+		assert.ok(/\bdecodeArgCondition\b/.test(source));
+		assert.ok(/\bdecodePermissionBudget\b/.test(source));
+		assert.ok(/\bdecodeHealthCheckConfig\b/.test(source));
+		assert.ok(!/\bencodeEndpoint\b|\bencodeAuthConfig\b|\bencodePermissionDelegate\b|\bencodeHealthCheckConfig\b/.test(source));
 		assert.ok(!/\bgrpcListConfigsUnaryWire\b/.test(source));
 		assert.ok(!source.includes('UniverseAgent-WorkTrees'));
 		assert.ok(!/\bSaveSkillContent\b|\bWatch\b/.test(source));
@@ -224,6 +317,69 @@ function emptyHealth() {
 		degradedErrorRateThreshold: 0,
 		degradedP99LatencyMs: 0,
 	};
+}
+
+function nestedEndpointBytes(): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, '10.0.0.2'),
+		encodeInt32Field(2, 8443),
+		encodeInt32Field(3, 1),
+		encodeStringField(4, '/ca.pem'),
+		encodeStringField(5, 'unused-endpoint'),
+	]);
+}
+
+function nestedAuthBytes(): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, 'API_KEY'),
+		encodeStringField(2, 'env:KEY'),
+		encodeStringField(3, 'env:TOKEN'),
+		encodeStringField(4, 'unused-auth'),
+	]);
+}
+
+function nestedDelegateBytes(): Uint8Array {
+	const arg = Buffer.concat([
+		encodeStringField(1, 'command'),
+		encodeStringField(2, 'starts_with'),
+		encodeStringField(3, 'ls'),
+		encodeStringField(4, 'unused-arg'),
+	]);
+	const whitelist = Buffer.concat([
+		encodeStringField(1, 'bash'),
+		encodeMessageField(2, arg),
+		encodeStringField(3, 'unused-whitelist'),
+	]);
+	const budget = Buffer.concat([
+		encodeInt64Field(1, 9),
+		encodeInt64Field(2, 8),
+		encodeInt64Field(3, 7),
+		encodeInt64Field(4, 6),
+		encodeInt32Field(5, 5),
+		encodeStringField(6, 'unused-budget'),
+	]);
+	return Buffer.concat([
+		encodeStringField(1, 'WHITELIST_VERIFIED'),
+		encodeMessageField(2, whitelist),
+		encodeMessageField(3, budget),
+		encodeStringField(4, 'DENY'),
+		encodeStringField(5, 'DENY_ALL'),
+		encodeStringField(6, 'USER'),
+		encodeStringField(7, 'unused-delegate'),
+	]);
+}
+
+function nestedHealthBytes(): Uint8Array {
+	return Buffer.concat([
+		encodeInt32Field(1, 1000),
+		encodeInt32Field(2, 500),
+		encodeInt32Field(3, 3),
+		encodeInt32Field(4, 2),
+		encodeInt32Field(5, 1),
+		encodeDouble(6, 1.5),
+		encodeInt32Field(7, 200),
+		encodeStringField(8, 'unused-health'),
+	]);
 }
 
 function grpcDir(): string {
