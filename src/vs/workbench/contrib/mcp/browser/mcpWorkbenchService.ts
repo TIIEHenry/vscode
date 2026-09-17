@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { createCommandUri, IMarkdownString, MarkdownString } from '../../../../base/common/htmlContent.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
@@ -489,7 +490,7 @@ export class McpWorkbenchService extends Disposable implements IMcpWorkbenchServ
 	private scheduleRegistrySync(): void {
 		const generation = ++this.registrySyncGeneration;
 		void this.registrySyncDelayer.trigger(() => this.syncInstalledMcpServers(generation))
-			.catch(error => this.logService.error(error));
+			.catch(error => this.logService.error(error)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async syncInstalledMcpServers(generation: number): Promise<void> {

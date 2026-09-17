@@ -5,7 +5,7 @@
 
 import { disposableTimeout, timeout } from '../../../../base/common/async.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
-import { CancellationError } from '../../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { autorun, autorunSelfDisposable, IReader } from '../../../../base/common/observable.js';
 import { ILogger } from '../../../../platform/log/common/log.js';
@@ -30,7 +30,7 @@ export function startServerByFilter(mcpService: IMcpService, filter: (s: IMcpSer
 					if (state.state === McpConnectionState.Kind.Error) {
 						server.showOutput();
 					}
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 				resolve();
 				store.dispose();

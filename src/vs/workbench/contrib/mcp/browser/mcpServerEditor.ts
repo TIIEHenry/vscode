@@ -12,7 +12,7 @@ import { Action, IAction } from '../../../../base/common/actions.js';
 import * as arrays from '../../../../base/common/arrays.js';
 import { Cache, CacheResult } from '../../../../base/common/cache.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
-import { isCancellationError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore, MutableDisposable, dispose, toDisposable } from '../../../../base/common/lifecycle.js';
 import { Schemas, matchesScheme } from '../../../../base/common/network.js';
@@ -463,7 +463,7 @@ export class McpServerEditor extends EditorPane {
 					if (focus) {
 						this.focus();
 					}
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

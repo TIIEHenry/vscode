@@ -7,6 +7,7 @@ import { mapFindFirst } from '../../../../base/common/arraysFind.js';
 import { assertNever } from '../../../../base/common/assert.js';
 import { disposableTimeout } from '../../../../base/common/async.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { parse as parseJsonc } from '../../../../base/common/jsonc.js';
 import { mnemonicButtonLabel } from '../../../../base/common/labels.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
@@ -510,7 +511,7 @@ export class McpAddConfigurationCommand {
 					if (state.state === McpConnectionState.Kind.Error) {
 						server.showOutput();
 					}
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 				store.dispose();
 			}
