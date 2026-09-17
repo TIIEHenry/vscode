@@ -31,6 +31,8 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D741。D736/D
 | extHostTask fetch | `fetchPromise.then` / `Promise.all(...).then` 只 resolve，reject 挂起外层 Promise（D724 文件未动） |
 | CodeMain.startup | `main()` try/catch 接不住 `startup()` async reject（D740 未凑刀） |
 | native loadURL | `openChildWindow` `window.loadURL` 无 catch（D739 native 仅 1 点） |
+| treeView tooltip | `treeView.ts` resolve.then reject 不拒外层 tooltip Promise |
+| breadcrumbs catch | 自定义 catch 会 fire-on-error，不能直接改 D480 双链 |
 ## Next
 | 项 | 指针 |
 |:-----|:-----|
