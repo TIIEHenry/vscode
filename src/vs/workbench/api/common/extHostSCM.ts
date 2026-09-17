@@ -8,6 +8,7 @@ import { Event, Emitter } from '../../../base/common/event.js';
 import { debounce } from '../../../base/common/decorators.js';
 import { DisposableMap, DisposableStore, IDisposable, MutableDisposable } from '../../../base/common/lifecycle.js';
 import { asPromise } from '../../../base/common/async.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { ExtHostCommands } from './extHostCommands.js';
 import { MainContext, MainThreadSCMShape, SCMRawResource, SCMRawResourceSplice, SCMRawResourceSplices, IMainContext, ExtHostSCMShape, ICommandDto, MainThreadTelemetryShape, SCMGroupFeatures, SCMHistoryItemDto, SCMHistoryItemChangeDto, SCMHistoryItemRefDto, SCMActionButtonDto, SCMArtifactGroupDto, SCMArtifactDto } from './extHost.protocol.js';
 import { sortedDiff, equals } from '../../../base/common/arrays.js';
@@ -879,7 +880,7 @@ class ExtHostSourceControl implements vscode.SourceControl {
 			this._groups.set(group.handle, group);
 		}
 
-		this.#proxy.$registerGroups(this.handle, groups, splices);
+		this.#proxy.$registerGroups(this.handle, groups, splices).catch(onUnexpectedError).catch(onUnexpectedError);
 		this.createdResourceGroups.clear();
 	}
 

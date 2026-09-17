@@ -6,6 +6,7 @@
 import * as fs from 'fs';
 import { exec } from 'child_process';
 import { VSBuffer } from '../../../base/common/buffer.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter } from '../../../base/common/event.js';
 import { DisposableStore } from '../../../base/common/lifecycle.js';
 import { MovingAverage } from '../../../base/common/numbers.js';
@@ -192,7 +193,7 @@ export class NodeExtHostTunnelService extends ExtHostTunnelService {
 	) {
 		super(extHostRpc, initData, logService);
 		if (isLinux && initData.remote.isRemote && initData.remote.authority) {
-			this._proxy.$setRemoteTunnelService(process.pid);
+			this._proxy.$setRemoteTunnelService(process.pid).catch(onUnexpectedError).catch(onUnexpectedError);
 			this.setInitialCandidates();
 		}
 	}

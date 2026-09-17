@@ -5,6 +5,7 @@
 
 import type * as vscode from 'vscode';
 import { Event } from '../../../base/common/event.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Disposable, DisposableMap } from '../../../base/common/lifecycle.js';
 import { URI, UriComponents } from '../../../base/common/uri.js';
 import { ExtensionIdentifier } from '../../../platform/extensions/common/extensions.js';
@@ -294,7 +295,7 @@ export class ExtHostGitExtensionService extends Disposable implements IExtHostGi
 
 	private _setRepositoryStateChangeListener(handle: number, repository: Repository): void {
 		this._repositoryStateChangeListeners.set(handle, repository.state.onDidChange(() => {
-			this._proxy.$onDidChangeRepository(handle);
+			this._proxy.$onDidChangeRepository(handle).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 
