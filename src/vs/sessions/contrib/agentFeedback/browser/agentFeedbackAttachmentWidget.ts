@@ -103,7 +103,7 @@ export class AgentFeedbackAttachmentWidget extends Disposable {
 			return;
 		}
 		if (feedbackItems.length === 1) {
-			void this._agentFeedbackService.revealFeedback(this._attachment.sessionResource, feedbackItems[0].id).catch(onUnexpectedError);
+			void this._agentFeedbackService.revealFeedback(this._attachment.sessionResource, feedbackItems[0].id).catch(onUnexpectedError).catch(onUnexpectedError);
 			return;
 		}
 		this._contextView.toggle();
