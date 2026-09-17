@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D696 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D696、D700、D702 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1062,3 +1062,5 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D694 | P3 | **closed** leftover Promise 双链八处（userDataSync/locale/perf/logs/keybindings/url/terminal）。跳过 opener/D145/sync void/grpc *Wire/Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；增量 esbuild 后 scan mocha **10/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / leftover Promise | closed |
 | D695 | P3 | **closed** leftover Promise 双链八处（splash/update/imageCarousel/customEditor/searchEditor）。跳过 opener/D145/sync void/grpc *Wire/Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；增量 esbuild（client 成、extensions 缺 esbuild 包红）后 `splashUpdateCarouselCustomEditorSearchLeftoverPromiseCatchScan.test.ts` **8/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / leftover Promise | closed |
 | D696 | P3 | **closed** leftover Promise 双链八处：keyboardLayout `when`；workspacesHistory `handleWindowsJumpList`；command/language `whenInstalledExtensionsRegistered`；editor `whenReady`；webExtensionsScanner `updateCaches`；enablement `whenInitialized`；keybinding `initialize`。跳过 opener/D145/sync void/grpc *Wire/Connect/Watch/Resolve/Pty。未改 agentHost residency、universeAgent、userDataSyncInit。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 D；增量 esbuild 后 `platformWorkbenchServicesLeftoverPromiseCatchScan.test.ts` **11/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | platform + workbench/services | closed |
+| D700 | P3 | **closed** leftover Promise 双链八处：lifecycle `when(Ready)` / `unload(CLOSE)`；updateIpc `_getInitialState`；abstractUpdate `checkForOverwrite` / `downloadUpdate` / `quit.then`；snap `quit.then`；win32 `checkForUpdates`。跳过 opener/D145/sync void/grpc *Wire/Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；`platformLeftoverPromiseCatchScan.test.ts` **9/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | platform / lifecycle+update | closed |
+| D702 | P3 | **closed** leftover Promise 双链六处：remote electron `when` / nested `hasWSLFeatureInstalled` / `updateRemoteTelemetryEnablement`×2；tunnelView `forward().then`×2。跳过 Resolve/opener/D145/D692 已双链。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`remoteElectronTunnelLeftoverPromiseCatchScan.test.ts` **6/0**。未 commit。勿 add `out`。 | 六处双链。未关 D24。leftover 程序未全局完成。 | workbench / remote leftover | closed |
