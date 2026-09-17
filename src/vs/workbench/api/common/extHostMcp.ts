@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 import { DeferredPromise, raceCancellationError, Sequencer, timeout } from '../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../base/common/cancellation.js';
-import { CancellationError } from '../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable, DisposableMap, DisposableStore, IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
 import { AUTH_SCOPE_SEPARATOR, fetchAuthorizationServerMetadata, fetchResourceMetadata, getDefaultMetadataForUrl, IAuthorizationProtectedResourceMetadata, IAuthorizationServerMetadata, parseWWWAuthenticateHeader, scopesMatch } from '../../../base/common/oauth.js';
@@ -135,7 +135,7 @@ export class ExtHostMcpService extends Disposable implements IExtHostMpcService 
 	$stopMcp(id: number): void {
 		this._sseEventSources.get(id)
 			?.close()
-			.then(() => this._didClose(id));
+			.then(() => this._didClose(id)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _didClose(id: number) {

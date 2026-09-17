@@ -8,6 +8,7 @@ import { coalesce } from '../../../base/common/arrays.js';
 import { DeferredPromise, raceCancellation, raceCancellationError, timeout } from '../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../base/common/cancellation.js';
 import { toErrorMessage } from '../../../base/common/errorMessage.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter } from '../../../base/common/event.js';
 import { Iterable } from '../../../base/common/iterator.js';
 import { Disposable, DisposableMap, DisposableResourceMap, DisposableStore, toDisposable } from '../../../base/common/lifecycle.js';
@@ -131,13 +132,13 @@ export class ChatAgentResponseStream {
 								} else {
 									send(typeConvert.ChatResponseReferencePart.from(<vscode.ChatResponseReferencePart>p), myHandle);
 								}
-							});
+							}).catch(onUnexpectedError).catch(onUnexpectedError);
 						}
 					};
 
 					Promise.all([progressReporterPromise, task(progressReporter)]).then(([_void, res]) => {
 						send(typeConvert.ChatTaskResult.from(res), myHandle);
-					});
+					}).catch(onUnexpectedError).catch(onUnexpectedError);
 				} else {
 					send(progress);
 				}
@@ -446,7 +447,7 @@ export class ChatAgentResponseStream {
 						}
 					} else if (part instanceof extHostTypes.ChatResponseExternalEditPart) {
 						const p = this.externalEdit(part.uris, part.callback);
-						p.then((value) => part.didGetApplied(value));
+						p.then((value) => part.didGetApplied(value)).catch(onUnexpectedError).catch(onUnexpectedError);
 						return this;
 					} else {
 						const dto = typeConvert.ChatResponsePart.from(part, that._commandsConverter, that._sessionDisposables);

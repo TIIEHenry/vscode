@@ -11,7 +11,7 @@ import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions
 import { IDecorationsService, IDecorationData } from '../../services/decorations/common/decorations.js';
 import { CancellationToken } from '../../../base/common/cancellation.js';
 import { DeferredPromise } from '../../../base/common/async.js';
-import { CancellationError } from '../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../base/common/errors.js';
 
 class DecorationRequestsQueue {
 
@@ -57,7 +57,7 @@ class DecorationRequestsQueue {
 				for (const [id, defer] of resolver) {
 					defer.complete(data[id]);
 				}
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 			// reset
 			this._requests = new Map();

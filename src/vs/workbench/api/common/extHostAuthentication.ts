@@ -26,7 +26,7 @@ import { encodeBase64, VSBuffer } from '../../../base/common/buffer.js';
 import { equals as arraysEqual } from '../../../base/common/arrays.js';
 import { IExtHostProgress } from './extHostProgress.js';
 import { IProgressStep } from '../../../platform/progress/common/progress.js';
-import { CancellationError, isCancellationError } from '../../../base/common/errors.js';
+import { CancellationError, isCancellationError, onUnexpectedError } from '../../../base/common/errors.js';
 import { raceCancellationError, SequencerByKey } from '../../../base/common/async.js';
 import { XaaifyAuthProvider } from './extHostXaaAuthProvider.js';
 
@@ -163,7 +163,7 @@ export class ExtHostAuthentication implements ExtHostAuthenticationShape {
 				supportedAuthorizationServers: options?.supportedAuthorizationServers,
 				supportsChallenges: options?.supportsChallenges
 			});
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// unregister
 		return new Disposable(() => {
@@ -174,7 +174,7 @@ export class ExtHostAuthentication implements ExtHostAuthenticationShape {
 					this._authenticationProviders.delete(id);
 					await this._proxy.$unregisterAuthenticationProvider(id);
 				}
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 	}
 
