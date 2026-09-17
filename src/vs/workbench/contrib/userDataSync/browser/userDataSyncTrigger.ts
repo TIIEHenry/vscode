@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { isWeb } from '../../../../base/common/platform.js';
@@ -39,9 +40,9 @@ export class UserDataSyncTrigger extends Disposable implements IWorkbenchContrib
 					Event.map(hostService.onDidChangeFocus, () => 'windowFocus'),
 					Event.map(event, source => source!),
 				), (last, source) => last ? [...last, source] : [source], 1000)
-				(sources => userDataAutoSyncService.triggerSync(sources, { skipIfSyncedRecently: true })));
+				(sources => userDataAutoSyncService.triggerSync(sources, { skipIfSyncedRecently: true }).catch(onUnexpectedError).catch(onUnexpectedError)));
 		} else {
-			this._register(event(source => userDataAutoSyncService.triggerSync([source!], { skipIfSyncedRecently: true })));
+			this._register(event(source => userDataAutoSyncService.triggerSync([source!], { skipIfSyncedRecently: true }).catch(onUnexpectedError).catch(onUnexpectedError)));
 		}
 	}
 

@@ -9,6 +9,7 @@ import { LifecyclePhase } from '../../../services/lifecycle/common/lifecycle.js'
 import { UserDataSyncWorkbenchContribution } from './userDataSync.js';
 import { IUserDataAutoSyncService, UserDataSyncError, UserDataSyncErrorCode } from '../../../../platform/userDataSync/common/userDataSync.js';
 import { INotificationService, Severity } from '../../../../platform/notification/common/notification.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { isWeb } from '../../../../base/common/platform.js';
@@ -45,12 +46,12 @@ class UserDataSyncReportIssueContribution extends Disposable implements IWorkben
 							toAction({
 								id: 'Show Sync Logs',
 								label: localize('show sync logs', "Show Log"),
-								run: () => this.commandService.executeCommand(SHOW_SYNC_LOG_COMMAND_ID)
+								run: () => this.commandService.executeCommand(SHOW_SYNC_LOG_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
 							}),
 							toAction({
 								id: 'Restart',
 								label: isWeb ? localize('reload', "Reload") : localize('restart', "Restart"),
-								run: () => this.hostService.restart()
+								run: () => this.hostService.restart().catch(onUnexpectedError).catch(onUnexpectedError)
 							})
 						]
 					}
@@ -69,7 +70,7 @@ class UserDataSyncReportIssueContribution extends Disposable implements IWorkben
 							toAction({
 								id: 'Show Sync Logs',
 								label: localize('show sync logs', "Show Log"),
-								run: () => this.commandService.executeCommand(SHOW_SYNC_LOG_COMMAND_ID)
+								run: () => this.commandService.executeCommand(SHOW_SYNC_LOG_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
 							})
 						]
 					}
