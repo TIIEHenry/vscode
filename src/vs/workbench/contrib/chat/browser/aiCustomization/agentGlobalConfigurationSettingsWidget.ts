@@ -7,6 +7,7 @@ import './media/agentGlobalConfigurationSettings.css';
 import * as DOM from '../../../../../base/browser/dom.js';
 import { Button } from '../../../../../base/browser/ui/button/button.js';
 import { SelectBox } from '../../../../../base/browser/ui/selectBox/selectBox.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Disposable, DisposableStore, MutableDisposable } from '../../../../../base/common/lifecycle.js';
 import { autorun, type IObservable } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -96,7 +97,7 @@ export class AHPAgentSettingsWidget extends Disposable {
 			const actions = DOM.append(row, DOM.$('.agent-global-configuration-settings-actions'));
 			const button = this.renderDisposables.add(new Button(actions, { ...defaultButtonStyles, secondary: true }));
 			button.label = saveLabel ?? localize('agentSettings.save', "Save");
-			this.renderDisposables.add(button.onDidClick(() => void this.save(key, input.value.trim())));
+			this.renderDisposables.add(button.onDidClick(() => void this.save(key, input.value.trim()).catch(onUnexpectedError).catch(onUnexpectedError)));
 			return;
 		}
 		const options = schema.enum?.map((option, index) => ({ text: schema.enumLabels?.[index] ?? String(option) })) ?? [];
@@ -105,7 +106,7 @@ export class AHPAgentSettingsWidget extends Disposable {
 		const select = this.renderDisposables.add(new SelectBox(options, selected, this.contextViewService, { ...defaultSelectBoxStyles }, { ariaLabel: schema.title }));
 		select.render(selectContainer);
 		this.focusTarget ??= () => select.focus();
-		this.renderDisposables.add(select.onDidSelect(event => void this.save(key, schema.enum?.[event.index])));
+		this.renderDisposables.add(select.onDidSelect(event => void this.save(key, schema.enum?.[event.index]).catch(onUnexpectedError).catch(onUnexpectedError)));
 	}
 
 	private async save(key: string, value: unknown): Promise<void> {
@@ -121,6 +122,6 @@ export class AHPAgentSettingsWidget extends Disposable {
 		if (file.documentationUrl && file.documentationLabel) { this.renderDisposables.add(new Link(section, { label: file.documentationLabel, href: file.documentationUrl }, {}, this.hoverService, this.openerService)); }
 		const button = this.renderDisposables.add(new Button(section, { ...defaultButtonStyles, secondary: true }));
 		button.label = file.openLabel;
-		this.renderDisposables.add(button.onDidClick(() => this.editorService.openEditor({ resource: this.target?.mapResource(URI.parse(file.resource)) ?? URI.parse(file.resource), options: { pinned: true } })));
+		this.renderDisposables.add(button.onDidClick(() => void this.editorService.openEditor({ resource: this.target?.mapResource(URI.parse(file.resource)) ?? URI.parse(file.resource), options: { pinned: true } }).catch(onUnexpectedError).catch(onUnexpectedError)));
 	}
 }

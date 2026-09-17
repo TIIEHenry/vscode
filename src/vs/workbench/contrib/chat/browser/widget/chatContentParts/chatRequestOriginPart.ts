@@ -131,7 +131,7 @@ export class ChatRequestOriginPart extends Disposable {
 		this._renderContent(title, quote);
 
 		if (shouldLoadSourceSession) {
-			void this._resolveSourceQuote(origin, title, renderVersion);
+			void this._resolveSourceQuote(origin, title, renderVersion).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

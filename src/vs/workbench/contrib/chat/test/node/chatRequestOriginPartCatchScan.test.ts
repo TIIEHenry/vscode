@@ -39,4 +39,16 @@ suite('ChatRequestOriginPart leftover fire-and-forget catch scan (D654)', () => 
 		assert.ok(!source.includes(`${call};`));
 		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
 	});
+
+	test('_resolveSourceQuote leftover site double-catch onUnexpectedError', () => {
+		// _resolveSourceQuote returns Promise; inner try/catch is insufficient when onUnexpectedError warn-then-rethrows (D480).
+		const source = fs.readFileSync(chatRequestOriginPartSourcePath(), 'utf8');
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const call = 'void this._resolveSourceQuote(origin, title, renderVersion)';
+		const doubleCall = `${call}${doubleCatch};`;
+		assert.strictEqual((source.match(/void this\._resolveSourceQuote\(origin, title, renderVersion\)/g) ?? []).length, 1);
+		assert.ok(source.includes(doubleCall));
+		assert.ok(!source.includes(`${call};`));
+		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	});
 });

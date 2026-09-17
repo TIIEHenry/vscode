@@ -17,6 +17,7 @@ import { Action } from '../../../../../base/common/actions.js';
 import { Delayer } from '../../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { IMatch, matchesContiguousSubString } from '../../../../../base/common/filters.js';
 import { KeyCode } from '../../../../../base/common/keyCodes.js';
@@ -260,7 +261,7 @@ export class ToolsListWidget extends Disposable {
 		this._register(this._searchInput.onDidChange(() => {
 			this._delayedSearch.trigger(() => {
 				if (this._browseMode) {
-					void this._queryGallery();
+					void this._queryGallery().catch(onUnexpectedError).catch(onUnexpectedError);
 				} else {
 					this._searchQuery.set(this._searchInput.value, undefined);
 				}
@@ -432,7 +433,7 @@ export class ToolsListWidget extends Disposable {
 		this._searchInput.value = '';
 
 		if (browse) {
-			void this._queryGallery();
+			void this._queryGallery().catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			this._galleryCts?.dispose(true);
 			this._galleryCts = undefined;
