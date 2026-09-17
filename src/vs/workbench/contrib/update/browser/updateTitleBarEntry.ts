@@ -8,6 +8,7 @@ import { BaseActionViewItem, IBaseActionViewItemOptions } from '../../../../base
 import { IManagedHoverContent, IManagedHoverOptions, IHoverWidget } from '../../../../base/browser/ui/hover/hover.js';
 import { IAction, WorkbenchActionExecutedClassification, WorkbenchActionExecutedEvent } from '../../../../base/common/actions.js';
 import { AnchorAlignment } from '../../../../base/common/layout.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { autorun } from '../../../../base/common/observable.js';
 import { isWeb } from '../../../../base/common/platform.js';
@@ -112,12 +113,12 @@ export class UpdateTitleBarContribution extends Disposable implements IWorkbench
 		this.state = updateService.state;
 		this._register(updateService.onStateChange((state) => {
 			this.state = state;
-			this.onStateChange();
+			this.onStateChange().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(UPDATE_TITLE_BAR_SETTING)) {
-				this.onStateChange();
+				this.onStateChange().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -144,7 +145,7 @@ export class UpdateTitleBarContribution extends Disposable implements IWorkbench
 			));
 		}
 
-		void this.onStateChange(true);
+		void this.onStateChange(true).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private createEntry(instantiationService: IInstantiationService, action: IAction, options: IBaseActionViewItemOptions): UpdateTitleBarEntry {

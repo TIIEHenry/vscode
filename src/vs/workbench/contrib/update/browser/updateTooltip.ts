@@ -5,6 +5,7 @@
 
 import * as dom from '../../../../base/browser/dom.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
@@ -443,7 +444,7 @@ export class UpdateTooltip extends Disposable {
 			e.preventDefault();
 			e.stopPropagation();
 			if (copyValue.value) {
-				this.clipboardService.writeText(copyValue.value);
+				this.clipboardService.writeText(copyValue.value).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -451,7 +452,7 @@ export class UpdateTooltip extends Disposable {
 	}
 
 	private runCommandAndClose(command: string, ...args: unknown[]) {
-		this.commandService.executeCommand(command, ...args);
+		this.commandService.executeCommand(command, ...args).catch(onUnexpectedError).catch(onUnexpectedError);
 		this.hoverService.hideHover(true);
 	}
 }

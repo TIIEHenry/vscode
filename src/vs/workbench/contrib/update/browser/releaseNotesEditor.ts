@@ -128,11 +128,11 @@ export class ReleaseNotesManager extends Disposable {
 
 			disposables.add(this._currentReleaseNotes.webview.onMessage(e => {
 				if (e.message.type === 'showReleaseNotes') {
-					this._configurationService.updateValue('update.showReleaseNotes', e.message.value);
+					this._configurationService.updateValue('update.showReleaseNotes', e.message.value).catch(onUnexpectedError).catch(onUnexpectedError);
 				} else if (e.message.type === 'clickSetting') {
 					const x = this._currentReleaseNotes?.webview.container.offsetLeft + e.message.value.x;
 					const y = this._currentReleaseNotes?.webview.container.offsetTop + e.message.value.y;
-					this._simpleSettingRenderer.updateSetting(URI.parse(e.message.value.uri), x, y);
+					this._simpleSettingRenderer.updateSetting(URI.parse(e.message.value.uri), x, y).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}));
 

@@ -246,7 +246,7 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
 			}
 		}));
 
-		this.onUpdateStateChange(this.updateService.state);
+		this.onUpdateStateChange(this.updateService.state).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		/*
 		The `update/lastKnownVersion` and `update/updateNotificationTime` storage keys are used in
@@ -275,7 +275,7 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
 			case StateType.Idle:
 				// Themed dialog shown from the last focused window; the windowless macOS case is handled by the main process.
 				if (state.notAvailable && !state.error && await this.hostService.hadLastFocus()) {
-					this.dialogService.info(nls.localize('noUpdatesAvailable', "There are currently no updates available."));
+					this.dialogService.info(nls.localize('noUpdatesAvailable', "There are currently no updates available.")).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 				break;
 
@@ -340,7 +340,7 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
 
 				const productVersion = this.updateService.state.update.productVersion;
 				if (productVersion) {
-					this.instantiationService.invokeFunction(accessor => showReleaseNotes(accessor, productVersion));
+					this.instantiationService.invokeFunction(accessor => showReleaseNotes(accessor, productVersion)).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 
 			});
@@ -493,7 +493,7 @@ export class DefaultAccountUpdateContribution extends Disposable implements IWor
 		}
 
 		this.#internalOrg = this.storageService.get(DefaultAccountUpdateContribution.STORAGE_KEY, StorageScope.APPLICATION, undefined);
-		this.throttler.queue(() => this.updateService.setInternalOrg(this.#internalOrg));
+		this.throttler.queue(() => this.updateService.setInternalOrg(this.#internalOrg)).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Check on startup
 		this.refresh();
@@ -503,7 +503,7 @@ export class DefaultAccountUpdateContribution extends Disposable implements IWor
 	}
 
 	private refresh(): void {
-		this.throttler.queue(() => this.doRefresh());
+		this.throttler.queue(() => this.doRefresh()).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async doRefresh(): Promise<void> {
