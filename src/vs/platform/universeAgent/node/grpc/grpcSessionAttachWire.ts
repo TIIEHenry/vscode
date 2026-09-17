@@ -407,6 +407,10 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * `envelope_batch_appended`=21 `envelope_range_replaced`=22
  * `streaming_delta`=30 (StreamingDeltaEvent 1–6);
  * `thinking_delta`=31 (SessionStreamThinkingDeltaEvent 1–6, same layout);
+ * `generating_tool`=34 GeneratingToolEvent (`runtime_epoch`=1 `turn_id`=2
+ * `agent_id`=3 optional `tool_name`=4). OverlayDeltaJoin `applyGenerating`
+ * reads `turn_id` + `tool_name`; `runtime_epoch` / `agent_id` decoded for
+ * shape.
  * `permission_request`=50
  * PermissionRequestEvent (`request_id`=1 `tool_name`=2 `description`=3
  * `agent_id`=6). `metadata`=4 / `requested_by_client`=5 /
@@ -420,9 +424,9 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * `tool_name`=3 `arguments_json`=4 `agent_id`=5). `origin`=2 /
  * `parent_tool_call_id`=6 unread (no public demux fields).
  * proto3: empty / 0 / false omitted. Unknown fields unread. Shape
- * matches OverlayDeltaJoin `streaming_delta` / `thinking_delta` and
- * demuxSessionStreamPayload `permission_request` / `ask_user_question` /
- * `client_tool_call`.
+ * matches OverlayDeltaJoin `streaming_delta` / `thinking_delta` /
+ * `generating_tool` and demuxSessionStreamPayload `permission_request` /
+ * `ask_user_question` / `client_tool_call`.
  */
 export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessionEvent {
 	const fields = readProtoFields(bytes);
@@ -466,6 +470,10 @@ export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessio
 	const thinkingDelta = lastBytes(fields, 31);
 	if (thinkingDelta) {
 		payload.thinking_delta = decodeStreamingDelta(thinkingDelta);
+	}
+	const generatingTool = lastBytes(fields, 34);
+	if (generatingTool) {
+		payload.generating_tool = decodeGeneratingToolEvent(generatingTool);
 	}
 	const permission = lastBytes(fields, 50);
 	if (permission) {
@@ -592,6 +600,21 @@ function decodeAskUserQuestionOptionProto(bytes: Uint8Array): Record<string, unk
 	const fields = readProtoFields(bytes);
 	return {
 		label: lastString(fields, 2) ?? '',
+	};
+}
+
+/**
+ * GeneratingToolEvent — `runtime_epoch`=1 `turn_id`=2 `agent_id`=3
+ * optional `tool_name`=4. OverlayDeltaJoin reads `turn_id` + `tool_name`.
+ * proto3: empty / 0 omitted.
+ */
+function decodeGeneratingToolEvent(bytes: Uint8Array): Record<string, unknown> {
+	const fields = readProtoFields(bytes);
+	return {
+		runtime_epoch: numberOrZero(lastVarint(fields, 1)),
+		turn_id: lastString(fields, 2) ?? '',
+		agent_id: lastString(fields, 3) ?? '',
+		tool_name: lastString(fields, 4) ?? '',
 	};
 }
 

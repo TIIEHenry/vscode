@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "SessionStream 30/31/50/51/52 已合入。D24 仍开。不是 leftover/pills 完成。"
+summary: "SessionStream 30/31/50/51/52 已合入。A 进行中 generating_tool=34。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -23,7 +23,7 @@ summary: "SessionStream 30/31/50/51/52 已合入。D24 仍开。不是 leftover/
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A** | 下一刀 OverlayDeltaJoin `generating_tool`=34 |
+| **A** | 进行中 OverlayDeltaJoin `generating_tool`=34（未合入） |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **C** | gitlink 脏 `dev/loop`；勿 add |
 | **E** | `blocked` `fix/ci-gate-reds` |
