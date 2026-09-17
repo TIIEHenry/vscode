@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D734 leftover Promise 双链；D736 extensions <4 跳过。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D738 leftover Promise 双链；D736/D739/D740 跳过。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1100,3 +1100,7 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D733 | P3 | **closed** leftover Promise 双链八处：webPageLoader loadURL + Queue.queue extractContent×7。跳过 opener / empty-catch Network.enable / Connect / Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`platformWebContentExtractorLeftoverPromiseCatchScan.test.ts` **6/0**。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | platform / webContentExtractor leftover | closed |
 | D736 | P3 | **skipped** leftover Promise：`services/extensions/` 合法点 <4（veto PromiseLike.then；latency openEditor）。跳过 opener / bisect / openDevTools / Resolve / Connect / disconnect / two-arg / assigned / D698–D729。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 D；无 wrap / 无测。HEAD `3713970eb47`。 | 未双链。未关 D24。extensions leftover 合法点耗尽。 | workbench / extensions leftover remaining | skipped |
 | D734 | P3 | **closed** leftover Promise 双链八处：mainThreadTerminal getEnvironment.then；managedSockets register/unregister；profileContentHandler register/unregister；notebook cellStatusBar register/unregister；treeViews disposeTree。跳过 D708 / D712 / D717 / D724 / Pty / Watch / Connect。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`workbenchApiLeftoverPromiseCatchScanD734.test.ts` **8/0** + D724 **7/0**。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / api leftover remaining | closed |
+| D735 | P3 | **closed** leftover Promise 双链 21 处：generate；archive cancel；closeEditor×2；_refreshInitialResolved；openEditor slash；voicePower×2；filterAutoGrantedMcp；timeout.then；renderContentInner×2；setSandboxEnabled；extensions.open×2；update×4；updateWatchers×2。跳过 opener / welcome / Action.run / Resolve / Pty / D679 / D728。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`chatLeftoverPromiseCatchScanD735.test.ts` **16/0** + D728 **10/0**。勿 add `out`。 | 21 处双链。未关 D24。leftover 程序未全局完成。 | workbench / chat leftover remaining | closed |
+| D738 | P3 | **closed** leftover Promise 双链四处：CompositionEnd / Cut executeCommand；suggest fallback；codelens notify 后再双链。跳过 opener / Resolve / two-arg / Action2 / D725 / D732。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`editorLeftoverPromiseCatchScanD738.test.ts` **6/0** + D732 **6/0** + D725 **8/0**。勿 add `out`。 | 四处双链。未关 D24。leftover 程序未全局完成。 | editor / leftover remaining | closed |
+| D739 | P3 | **skipped** leftover Promise：`platform/` 单模块合法点均 <4（github 3 / quickinput 3 / externalTerminal 2 / mcp 1 / native loadURL 1）。不拼模块。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；无 wrap / 无测。 | 未双链。platform 合法 4 点模块耗尽。未关 D24。 | platform leftover remaining | skipped |
+| D740 | P3 | **skipped** leftover Promise：`code/electron-main/` 合法点 1（`this.startup()`）。try/catch 接不住 async reject。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；无 wrap / 无测。 | 未双链。electron-main leftover 合法点耗尽。未关 D24。 | code / electron-main leftover remaining | skipped |

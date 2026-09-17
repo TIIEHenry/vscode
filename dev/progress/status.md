@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D734。I leftover 进行中。D24 仍开。不是 leftover/pills 完成。"
+summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D738。D739/D740 跳过。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -14,7 +14,7 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D734。I left
 | 切片 | 提交 |
 |:-----|:-----|
 | **A SessionStream / L2** | 16/23/30–32/34–39/44/46/50–52；envelope leftover |
-| **catch** | D677–D734 |
+| **catch** | D677–D738 |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
@@ -28,6 +28,9 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D734。I left
 | [D24](deferred-gaps.md) | **仍开**：Connect/Watch/Resolve/Pty 仍 JSON |
 | setRemoteEnvironment | `await` 的是 `Promise[]`，不会等各 host；应 `Promise.all`，不是 leftover |
 | D736 extensions | 合法 leftover <4（veto PromiseLike.then、latency openEditor）；extensions 跳过。veto then 回调抛错会未处理；openEditor 可裸拒 |
+| extHostTask fetch | `fetchPromise.then` / `Promise.all(...).then` 只 resolve，reject 挂起外层 Promise（D724 文件未动） |
+| CodeMain.startup | `main()` try/catch 接不住 `startup()` async reject（D740 未凑刀） |
+| native loadURL | `openChildWindow` `window.loadURL` 无 catch（D739 native 仅 1 点） |
 ## Next
 | 项 | 指针 |
 |:-----|:-----|
