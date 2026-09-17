@@ -10,6 +10,7 @@ import { hostname, release } from 'os';
 import { initWindowsVersionInfo } from '../../base/node/windowsVersion.js';
 import { VSBuffer } from '../../base/common/buffer.js';
 import { toErrorMessage } from '../../base/common/errorMessage.js';
+import { onUnexpectedError } from '../../base/common/errors.js';
 import { Event } from '../../base/common/event.js';
 import { parse } from '../../base/common/jsonc.js';
 import { getPathLabel } from '../../base/common/labels.js';
@@ -1355,7 +1356,7 @@ export class CodeApplication extends Disposable {
 		// Policies (main & shared process)
 		const policyChannel = disposables.add(new PolicyChannel(accessor.get(IPolicyService)));
 		mainProcessElectronServer.registerChannel('policy', policyChannel);
-		sharedProcessClient.then(client => client.registerChannel('policy', policyChannel));
+		sharedProcessClient.then(client => client.registerChannel('policy', policyChannel)).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		const nativeManagedSettingsChannel = disposables.add(new NativeManagedSettingsChannel(accessor.get(INativeManagedSettingsService)));
 		mainProcessElectronServer.registerChannel('nativeManagedSettings', nativeManagedSettingsChannel);
@@ -1368,12 +1369,12 @@ export class CodeApplication extends Disposable {
 		assertType(diskFileSystemProvider instanceof DiskFileSystemProvider);
 		const fileSystemProviderChannel = disposables.add(new DiskFileSystemProviderChannel(diskFileSystemProvider, this.logService, this.environmentMainService));
 		mainProcessElectronServer.registerChannel(LOCAL_FILE_SYSTEM_CHANNEL_NAME, fileSystemProviderChannel);
-		sharedProcessClient.then(client => client.registerChannel(LOCAL_FILE_SYSTEM_CHANNEL_NAME, fileSystemProviderChannel));
+		sharedProcessClient.then(client => client.registerChannel(LOCAL_FILE_SYSTEM_CHANNEL_NAME, fileSystemProviderChannel)).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// User Data Profiles
 		const userDataProfilesService = ProxyChannel.fromService(accessor.get(IUserDataProfilesMainService), disposables);
 		mainProcessElectronServer.registerChannel('userDataProfiles', userDataProfilesService);
-		sharedProcessClient.then(client => client.registerChannel('userDataProfiles', userDataProfilesService));
+		sharedProcessClient.then(client => client.registerChannel('userDataProfiles', userDataProfilesService)).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Update
 		const updateService = accessor.get(IUpdateService);
@@ -1386,7 +1387,7 @@ export class CodeApplication extends Disposable {
 		// Metered Connection
 		const meteredConnectionChannel = new MeteredConnectionChannel(accessor.get(IMeteredConnectionService) as MeteredConnectionMainService);
 		mainProcessElectronServer.registerChannel(METERED_CONNECTION_CHANNEL, meteredConnectionChannel);
-		sharedProcessClient.then(client => client.registerChannel(METERED_CONNECTION_CHANNEL, meteredConnectionChannel));
+		sharedProcessClient.then(client => client.registerChannel(METERED_CONNECTION_CHANNEL, meteredConnectionChannel)).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Process
 		const processChannel = ProxyChannel.fromService(new ProcessMainService(this.logService, accessor.get(IDiagnosticsService), accessor.get(IDiagnosticsMainService)), disposables);
@@ -1412,12 +1413,12 @@ export class CodeApplication extends Disposable {
 		// Browser View
 		const browserViewChannel = ProxyChannel.fromService(accessor.get(IBrowserViewMainService), disposables);
 		mainProcessElectronServer.registerChannel(ipcBrowserViewChannelName, browserViewChannel);
-		sharedProcessClient.then(client => client.registerChannel(ipcBrowserViewChannelName, browserViewChannel));
+		sharedProcessClient.then(client => client.registerChannel(ipcBrowserViewChannelName, browserViewChannel)).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Browser View Group
 		const browserViewGroupChannel = ProxyChannel.fromService(accessor.get(IBrowserViewGroupMainService), disposables);
 		mainProcessElectronServer.registerChannel(ipcBrowserViewGroupChannelName, browserViewGroupChannel);
-		sharedProcessClient.then(client => client.registerChannel(ipcBrowserViewGroupChannelName, browserViewGroupChannel));
+		sharedProcessClient.then(client => client.registerChannel(ipcBrowserViewGroupChannelName, browserViewGroupChannel)).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Signing
 		const signChannel = ProxyChannel.fromService(accessor.get(ISignService), disposables);
@@ -1434,7 +1435,7 @@ export class CodeApplication extends Disposable {
 			unbufferedEvents: ['onDidBlurMainWindow']
 		});
 		mainProcessElectronServer.registerChannel('nativeHost', nativeHostChannel);
-		sharedProcessClient.then(client => client.registerChannel('nativeHost', nativeHostChannel));
+		sharedProcessClient.then(client => client.registerChannel('nativeHost', nativeHostChannel)).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Web Content Extractor
 		const webContentExtractorChannel = ProxyChannel.fromService(accessor.get(IWebContentExtractorService), disposables);
@@ -1459,7 +1460,7 @@ export class CodeApplication extends Disposable {
 		// Storage (main & shared process)
 		const storageChannel = disposables.add((new StorageDatabaseChannel(this.logService, accessor.get(IStorageMainService))));
 		mainProcessElectronServer.registerChannel('storage', storageChannel);
-		sharedProcessClient.then(client => client.registerChannel('storage', storageChannel));
+		sharedProcessClient.then(client => client.registerChannel('storage', storageChannel)).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Profile Storage Changes Listener (shared process)
 		const profileStorageListener = disposables.add((new ProfileStorageChangesListenerChannel(accessor.get(IStorageMainService), accessor.get(IUserDataProfilesMainService), this.logService)));
