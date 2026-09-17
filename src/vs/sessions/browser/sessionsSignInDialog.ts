@@ -34,7 +34,7 @@ export function createSessionsSignInDialogOptions(
 			footer,
 			localize('sessions.returnToVSCodeEditor', "Return to VS Code Editor"),
 			() => {
-				void commandService.executeCommand<void>(RETURN_TO_VSCODE_EDITOR_COMMAND_ID).catch(onUnexpectedError);
+				void commandService.executeCommand<void>(RETURN_TO_VSCODE_EDITOR_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		) : undefined,
 		onDidDismissDialog: allowContinueWithoutSignIn ? onContinueWithoutSignIn : undefined,
