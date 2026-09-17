@@ -6,6 +6,7 @@
 import type * as vscode from 'vscode';
 import { basename } from '../../../base/common/resources.js';
 import { URI } from '../../../base/common/uri.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable, DisposableStore, dispose, IDisposable } from '../../../base/common/lifecycle.js';
 import { CheckboxUpdate, DataTransferDTO, ExtHostTreeViewsShape, MainThreadTreeViewsShape } from './extHost.protocol.js';
@@ -155,7 +156,7 @@ export class ExtHostTreeViews extends Disposable implements ExtHostTreeViewsShap
 				// registration may have already updated _treeViews before this async dispose runs.
 				if (this._treeViews.get(viewId) === treeView) {
 					this._treeViews.delete(viewId);
-					this._proxy.$disposeTree(viewId);
+					this._proxy.$disposeTree(viewId).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 				treeView.dispose();
 			}

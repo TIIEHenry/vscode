@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationToken } from '../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { toDisposable } from '../../../base/common/lifecycle.js';
 import { isString } from '../../../base/common/types.js';
 import { URI, UriComponents } from '../../../base/common/uri.js';
@@ -37,11 +38,11 @@ export class ExtHostProfileContentHandlers implements ExtHostProfileContentHandl
 		}
 
 		this.handlers.set(id, handler);
-		this.proxy.$registerProfileContentHandler(id, handler.name, handler.description, extension.identifier.value);
+		this.proxy.$registerProfileContentHandler(id, handler.name, handler.description, extension.identifier.value).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		return toDisposable(() => {
 			this.handlers.delete(id);
-			this.proxy.$unregisterProfileContentHandler(id);
+			this.proxy.$unregisterProfileContentHandler(id).catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 	}
 
