@@ -29,6 +29,7 @@ import { IRemoteExplorerService, TunnelType, ITunnelItem, TUNNEL_VIEW_ID, Tunnel
 import { IClipboardService } from '../../../../platform/clipboard/common/clipboardService.js';
 import { INotificationService, Severity } from '../../../../platform/notification/common/notification.js';
 import { InputBox, MessageType } from '../../../../base/browser/ui/inputbox/inputBox.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { createSingleCallFunction } from '../../../../base/common/functional.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
@@ -1210,7 +1211,7 @@ export namespace ForwardPortAction {
 						remoteExplorerService.forward({
 							remote: { host: parsed.host, port: parsed.port },
 							elevateIfNeeded: true
-						}).then(tunnelOrError => error(notificationService, tunnelOrError, parsed!.host, parsed!.port));
+						}).then(tunnelOrError => error(notificationService, tunnelOrError, parsed!.host, parsed!.port)).catch(onUnexpectedError).catch(onUnexpectedError);
 					}
 				},
 				validationMessage: (value) => validateInput(remoteExplorerService, tunnelService, value, tunnelService.canElevate),
@@ -1236,7 +1237,7 @@ export namespace ForwardPortAction {
 				remoteExplorerService.forward({
 					remote: { host: parsed.host, port: parsed.port },
 					elevateIfNeeded: true
-				}).then(tunnel => error(notificationService, tunnel, parsed!.host, parsed!.port));
+				}).then(tunnel => error(notificationService, tunnel, parsed!.host, parsed!.port)).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		};
 	}

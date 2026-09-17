@@ -7,6 +7,7 @@ import * as nls from '../../../../nls.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { IRemoteAgentService, remoteConnectionLatencyMeasurer } from '../../../services/remote/common/remoteAgentService.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { isMacintosh, isWindows } from '../../../../base/common/platform.js';
 import { KeyMod, KeyChord, KeyCode } from '../../../../base/common/keyCodes.js';
 import { KeybindingsRegistry, KeybindingWeight } from '../../../../platform/keybinding/common/keybindingsRegistry.js';
@@ -105,11 +106,11 @@ class RemoteTelemetryEnablementUpdater extends Disposable implements IWorkbenchC
 	) {
 		super();
 
-		this.updateRemoteTelemetryEnablement();
+		this.updateRemoteTelemetryEnablement().catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this._register(configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(TELEMETRY_SETTING_ID) || e.affectsConfiguration(TELEMETRY_OLD_SETTING_ID) || e.affectsConfiguration(TELEMETRY_CRASH_REPORTER_SETTING_ID)) {
-				this.updateRemoteTelemetryEnablement();
+				this.updateRemoteTelemetryEnablement().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -187,8 +188,8 @@ class WSLContextKeyInitializer extends Disposable implements IWorkbenchContribut
 						// once detected, set to true
 						storageService.store(storageKey, true, StorageScope.APPLICATION, StorageTarget.MACHINE);
 					}
-				});
-			});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 }
