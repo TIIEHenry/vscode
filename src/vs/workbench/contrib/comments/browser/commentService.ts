@@ -23,6 +23,7 @@ import { ILogService } from '../../../../platform/log/common/log.js';
 import { CommentsModel, ICommentsModel } from './commentsModel.js';
 import { IModelService } from '../../../../editor/common/services/model.js';
 import { Schemas } from '../../../../base/common/network.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 
 export const ICommentService = createDecorator<ICommentService>('commentService');
 
@@ -243,7 +244,7 @@ export class CommentService extends Disposable implements ICommentService {
 			}
 			// Allows comment providers to cause their commenting ranges to be prefetched by opening text documents in the background.
 			if (!this._commentingRangeResources.has(model.uri.toString())) {
-				this.getDocumentComments(model.uri);
+				void this.getDocumentComments(model.uri).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}

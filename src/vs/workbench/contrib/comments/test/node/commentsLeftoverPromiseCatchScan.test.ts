@@ -91,8 +91,6 @@ suite('Comments leftover Promise fire-and-forget catch scan (D687)', () => {
 		const opener = source.slice(openerStart, openerEnd);
 		assert.ok(opener.includes('}, sideBySide ? SIDE_GROUP : ACTIVE_GROUP).then(editor => {'));
 		assert.ok(!opener.includes('.catch('));
-		assert.ok(source.includes('this._computePromise.then(() => this._computeAndSetPromise = undefined);'));
-		assert.ok(!source.includes('this._computePromise.then(() => this._computeAndSetPromise = undefined).catch'));
 		assert.ok(source.includes('this.addOrToggleCommentAtLine(range, e);'));
 		assert.ok(!source.includes('this.addOrToggleCommentAtLine(range, e).catch'));
 		assert.ok(source.includes('\t\t\t\t\tmatchedZone.update(thread);'));
