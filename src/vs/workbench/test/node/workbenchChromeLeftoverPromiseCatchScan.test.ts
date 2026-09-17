@@ -48,13 +48,55 @@ suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('this knife covers seven leftover Promise double-chain sites', () => {
-		const files = [WINDOW_REL, TOASTS_REL, EDITOR_PARTS_REL, LAYOUT_REL, CONTEXTKEYS_REL];
-		let sites = 0;
-		for (const rel of files) {
-			const source = fs.readFileSync(resolveSource(rel), 'utf8');
-			sites += (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+		const windowSource = fs.readFileSync(resolveSource(WINDOW_REL), 'utf8');
+		const toasts = fs.readFileSync(resolveSource(TOASTS_REL), 'utf8');
+		const editorParts = fs.readFileSync(resolveSource(EDITOR_PARTS_REL), 'utf8');
+		const layout = fs.readFileSync(resolveSource(LAYOUT_REL), 'utf8');
+		const contextkeys = fs.readFileSync(resolveSource(CONTEXTKEYS_REL), 'utf8');
+		const calls = [
+			[windowSource, 'this.lifecycleService.when(LifecyclePhase.Ready).then(() => this.nativeHostService.notifyReady())'],
+			[windowSource, `this.lifecycleService.when(LifecyclePhase.Restored).then(() => {
+			this.sharedProcessService.notifyRestored();
+			this.utilityProcessWorkerWorkbenchService.notifyRestored();
+		})`],
+			[toasts, `this.lifecycleService.when(LifecyclePhase.Restored).then(() => {
+
+			// Show toast for initial notifications if any
+			this.model.notifications.forEach(notification => this.addToast(notification));
+
+			// Update toasts on notification changes
+			this._register(this.model.onDidChangeNotification(e => this.onDidChangeNotification(e)));
+		})`],
+			[editorParts, 'this.whenReady.then(() => this.registerGroupsContextKeyListeners())'],
+			[layout, `this.editorGroupService.whenRestored.then(() => {
+
+			// Handle visible editors changing for parts visibility
+			this._register(this.mainPartEditorService.onDidVisibleEditorsChange(e => {
+				const handled = maybeMaximizeAuxiliaryBar();
+				if (!handled) {
+					showEditorIfHidden(e.isExplicit);
+				}
+			}));
+			this._register(this.editorGroupService.mainPart.onDidActivateGroup(e => {
+				if (e.reason !== GroupActivationReason.PART_CLOSE) {
+					showEditorIfHidden(); // only show unless a modal/auxiliary part closes
+				}
+			}));
+
+			// Revalidate center layout when active editor changes: diff editor quits centered mode
+			this._register(this.mainPartEditorService.onDidActiveEditorChange(() => this.centerMainEditorLayout(this.stateModel.getRuntimeValue(LayoutStateKeys.MAIN_EDITOR_CENTERED))));
+		})`],
+			[layout, 'this.editorGroupService.whenRestored.then(() => this.centerMainEditorLayout(this.stateModel.getRuntimeValue(LayoutStateKeys.MAIN_EDITOR_CENTERED), skipLayout))'],
+			[contextkeys, `this.editorGroupService.whenReady.then(() => {
+			this.updateEditorAreaContextKeys();
+			this.updateActiveEditorGroupContextKeys();
+			this.updateVisiblePanesContextKeys();
+		})`],
+		] as const;
+		assert.strictEqual(calls.length, 7);
+		for (const [source, call] of calls) {
+			assertDoubleThen(source, call);
 		}
-		assert.ok(sites >= 7 && sites <= 8, `expected D697 seven sites (layout may include D706 whenStylesHaveLoaded), got ${sites}`);
 	});
 
 	test('native window leftover when Ready / Restored then are Promise double-chain', () => {
@@ -156,10 +198,10 @@ suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () 
 		const desktopMain = fs.readFileSync(resolveSource(DESKTOP_MAIN_REL), 'utf8');
 
 		assert.ok(windowSource.includes('this.setupOpenHandlers();'));
-		assert.ok(windowSource.includes('this.handleWarnings();'));
-		assert.ok(!windowSource.includes('this.handleWarnings().catch'));
+		assert.ok(windowSource.includes('this.handleWarnings().catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(!windowSource.includes('this.handleWarnings();'));
 		assert.ok(windowSource.includes('this.openerService.open('));
-		assert.ok(!/this\.openerService\.open\([^;]+\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(windowSource));
+		assert.ok(!/this\.openerService\.open\([^)]*\)\.catch\(onUnexpectedError\)/.test(windowSource));
 		assert.ok(windowSource.includes('await this.lifecycleService.when(LifecyclePhase.Restored);'));
 
 		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput);'));
