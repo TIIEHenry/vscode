@@ -553,7 +553,7 @@ export class WorkspacePicker extends Disposable {
 			if (directBrowseItem?.browseActionIndex !== undefined && !items[0].disabled) {
 				this._activeTriggerElement = undefined;
 				triggerElement.setAttribute('aria-expanded', 'false');
-				void this._dispatchPickerItem(directBrowseItem).catch(onUnexpectedError).finally(() => {
+				void this._dispatchPickerItem(directBrowseItem).catch(onUnexpectedError).catch(onUnexpectedError).finally(() => {
 					this._directPickerGroup = undefined;
 					this._directPickerAttachesContext = undefined;
 					triggerElement.focus();

@@ -67,7 +67,22 @@ suite('SessionWorkspacePicker leftover fire-and-forget catch scan (D619)', () =>
 		assert.ok(source.includes(`}).catch(onUnexpectedError).catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`}).catch(onUnexpectedError);`));
 		assert.strictEqual((source.match(/void this\._dispatchPickerItem\(directBrowseItem\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${directBrowse}.catch(onUnexpectedError).finally(() => {`));
-		assert.ok(!source.includes(`${directBrowse}${doubleCatch}`));
+		assert.ok(!source.includes(`${directBrowse}.catch(onUnexpectedError).finally(() => {`));
+		assert.ok(source.includes(`${directBrowse}${doubleCatch}`));
+	});
+});
+
+suite('SessionWorkspacePicker leftover fire-and-forget catch scan (D624)', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('directBrowse _dispatchPickerItem double-catch onUnexpectedError then finally (D624)', () => {
+		// Single-chain `.catch(onUnexpectedError).finally` still leaks when the handler warn-then-rethrows.
+		const source = fs.readFileSync(sessionWorkspacePickerSourcePath(), 'utf8');
+		const directBrowse = 'void this._dispatchPickerItem(directBrowseItem)';
+		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.ok(source.includes('protected async _dispatchPickerItem(item: IWorkspacePickerItem): Promise<boolean>'));
+		assert.strictEqual((source.match(/void this\._dispatchPickerItem\(directBrowseItem\)/g) ?? []).length, 1);
+		assert.ok(source.includes(`${directBrowse}.catch(onUnexpectedError).catch(onUnexpectedError).finally(() => {`));
 	});
 });
