@@ -4,16 +4,16 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "SessionStream permission_request=50 与 streaming_delta=30 已合入。D24 仍开。不是 leftover/pills 完成。"
+summary: "SessionStream 30/50 已合入 MERGE_SHA 482f5eeebe2。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
-### 已合入（`MERGE_SHA` 见下；compile-client 0；聚焦 mocha 见关仓）
+### 已合入（`MERGE_SHA` `482f5eeebe2`；compile-client 0；attach mocha 46）
 | 切片 | 提交 |
 |:-----|:-----|
-| **A+I SessionStream** | `permission_request`=50 + `streaming_delta`=30 同文件 keep-both |
+| **A+I SessionStream** | `482f5eeebe2` — `permission_request`=50 + `streaming_delta`=30 keep-both |
 | **D Resume** | `cf4de53376b` — Session.Resume `root_agent`=3 AgentInfo 1–8；`model_info`=9 unread |
 | **A Usage 10/11** | `564a4645b0b` — Usage `context_window`=10 + `session_usage`=11 |
 | **A Usage spans** | `7f42b796fe9` — `recent_request_spans`=12 |
