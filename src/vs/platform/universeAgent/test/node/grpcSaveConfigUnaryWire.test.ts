@@ -150,34 +150,46 @@ suite('grpc RemoteAgentService SaveConfig protobuf wire', () => {
 		]);
 		assert.notStrictEqual(encoded[0], 0x7b);
 		const wire = decodeSaveConfigResponse(encoded);
+		const nestedConnectionTest = {
+			reachable: true,
+			authenticated: true,
+			can_create_session: true,
+			latency_ms: 42,
+			capabilities: {
+				models: [],
+				tools: [],
+				modes: [],
+				server_version: 'unused-server-version',
+				protocol_version: undefined,
+				properties: undefined,
+			},
+			errors: [{
+				code: undefined,
+				field: undefined,
+				message: 'unused-error',
+				suggestion: undefined,
+			}],
+			load: {
+				active_sessions: 9,
+				queue_depth: undefined,
+				cpu_percent: undefined,
+				memory_used_mb: undefined,
+			},
+		};
 		assert.deepStrictEqual(wire, {
 			success: true,
 			message: 'saved',
-			connection_test: {
-				reachable: true,
-				authenticated: true,
-				can_create_session: true,
-				latency_ms: 42,
-			},
+			connection_test: nestedConnectionTest,
 			async_test_id: 'async-9',
 		});
 		assert.ok(wire.connection_test);
-		assert.ok(!('capabilities' in wire.connection_test));
-		assert.ok(!('errors' in wire.connection_test));
-		assert.ok(!('load' in wire.connection_test));
 		assert.ok(!('unused' in wire));
-		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
 		const mapped = mapSaveRemoteAgentConfigResponse(wire);
 		assert.notDeepStrictEqual(mapped.connectionTest, mapConnectionReport({}));
 		assert.deepStrictEqual(mapped, {
 			success: true,
 			message: 'saved',
-			connectionTest: mapConnectionReport({
-				reachable: true,
-				authenticated: true,
-				can_create_session: true,
-				latency_ms: 42,
-			}),
+			connectionTest: mapConnectionReport(nestedConnectionTest),
 			asyncTestId: 'async-9',
 		});
 		assert.strictEqual(mapped.connectionTest.reachable, true);
