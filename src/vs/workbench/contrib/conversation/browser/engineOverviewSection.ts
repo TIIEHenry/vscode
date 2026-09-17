@@ -246,7 +246,7 @@ export class EngineOverviewSection extends Disposable {
 			this.status.render({
 				mode: 'disconnected',
 				onOpenConnection: () => {
-					void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+					void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);
 				},
 			});
 			return;
@@ -257,7 +257,7 @@ export class EngineOverviewSection extends Disposable {
 		this.status.render({
 			mode: 'disconnected',
 			onOpenConnection: () => {
-				void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+				void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);
 			},
 		});
 	}

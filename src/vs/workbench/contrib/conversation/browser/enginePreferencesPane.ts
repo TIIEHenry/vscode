@@ -171,7 +171,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		const bannerOpenConnection = this._register(new Button(this.disconnectedActions, defaultButtonStyles));
 		bannerOpenConnection.label = localize('ua.engineOpenConnection', "Open Connection");
 		this._register(bannerOpenConnection.onDidClick(() => {
-			void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+			void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		const body = DOM.append(this.container, $('.engine-preferences-body'));
