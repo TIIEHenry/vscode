@@ -205,9 +205,9 @@ export class MarkupCell extends Disposable {
 
 	private updateCollapsedState() {
 		if (this.viewCell.isInputCollapsed) {
-			this.notebookEditor.hideMarkupPreviews([this.viewCell]);
+			this.notebookEditor.hideMarkupPreviews([this.viewCell]).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
-			this.notebookEditor.unhideMarkupPreviews([this.viewCell]);
+			this.notebookEditor.unhideMarkupPreviews([this.viewCell]).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -295,7 +295,7 @@ export class MarkupCell extends Disposable {
 		this.markdownAccessibilityContainer.ariaHidden = 'true';
 		DOM.hide(this.templateData.cellInputCollapsedContainer);
 
-		this.notebookEditor.hideMarkupPreviews([this.viewCell]);
+		this.notebookEditor.hideMarkupPreviews([this.viewCell]).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this.templateData.container.classList.toggle('input-collapsed', false);
 		this.templateData.container.classList.toggle('markdown-cell-edit-mode', true);
@@ -413,7 +413,7 @@ export class MarkupCell extends Disposable {
 			}
 		}
 
-		this.notebookEditor.createMarkupPreview(this.viewCell);
+		this.notebookEditor.createMarkupPreview(this.viewCell).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private focusEditorIfNeeded() {
@@ -454,7 +454,7 @@ export class MarkupCell extends Disposable {
 	}
 
 	relayoutCell(): void {
-		this.notebookEditor.layoutNotebookCell(this.viewCell, this.viewCell.layoutInfo.totalHeight);
+		this.notebookEditor.layoutNotebookCell(this.viewCell, this.viewCell.layoutInfo.totalHeight).catch(onUnexpectedError).catch(onUnexpectedError);
 		this.layoutFoldingIndicator();
 	}
 

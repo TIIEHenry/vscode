@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Disposable } from '../../../../../../base/common/lifecycle.js';
 import { localize2 } from '../../../../../../nls.js';
 import { Categories } from '../../../../../../platform/action/common/actionCommonCategories.js';
@@ -57,7 +58,7 @@ export class NotebookGettingStarted extends Disposable implements IWorkbenchCont
 				storedValue[hasOpenedNotebookKey] = true;
 
 				if (needToShowGettingStarted) {
-					_commandService.executeCommand('workbench.action.openWalkthrough', { category: 'notebooks', step: 'notebookProfile' }, true);
+					_commandService.executeCommand('workbench.action.openWalkthrough', { category: 'notebooks', step: 'notebookProfile' }, true).catch(onUnexpectedError).catch(onUnexpectedError);
 					storedValue[hasShownGettingStartedKey] = true;
 				}
 

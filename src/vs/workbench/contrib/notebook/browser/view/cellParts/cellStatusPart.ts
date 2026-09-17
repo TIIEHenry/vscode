@@ -8,6 +8,7 @@ import { StandardKeyboardEvent } from '../../../../../../base/browser/keyboardEv
 import { SimpleIconLabel } from '../../../../../../base/browser/ui/iconLabel/simpleIconLabel.js';
 import { WorkbenchActionExecutedClassification, WorkbenchActionExecutedEvent } from '../../../../../../base/common/actions.js';
 import { toErrorMessage } from '../../../../../../base/common/errorMessage.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { stripIcons } from '../../../../../../base/common/iconLabels.js';
 import { KeyCode } from '../../../../../../base/common/keyCodes.js';
@@ -349,12 +350,12 @@ class CellStatusBarItem extends Disposable {
 			this.container.tabIndex = 0;
 
 			this._itemDisposables.add(DOM.addDisposableListener(this.container, DOM.EventType.CLICK, _e => {
-				this.executeCommand();
+				this.executeCommand().catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 			this._itemDisposables.add(DOM.addDisposableListener(this.container, DOM.EventType.KEY_DOWN, e => {
 				const event = new StandardKeyboardEvent(e);
 				if (event.equals(KeyCode.Space) || event.equals(KeyCode.Enter)) {
-					this.executeCommand();
+					this.executeCommand().catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}));
 		} else {

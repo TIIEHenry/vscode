@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { INotebookRendererMessagingService, IScopedRendererMessaging } from '../../common/notebookRendererMessagingService.js';
@@ -52,7 +53,7 @@ export class NotebookRendererMessagingService extends Disposable implements INot
 			}
 
 			this.activations.set(rendererId, undefined);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	/** @inheritdoc */
