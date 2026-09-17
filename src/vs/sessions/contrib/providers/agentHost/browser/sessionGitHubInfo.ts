@@ -139,7 +139,7 @@ export class SessionGitHubInfoResolver {
 			} else {
 				this._logService.trace(`${TRACE_PREFIX} [IconAdapter] Session ${this._sessionId} PR-number lookup for ${key} resolved PR #${prNumber}; kept sticky`);
 			}
-		}).catch(onUnexpectedError);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 		return prNumberObs;
 	}
 
