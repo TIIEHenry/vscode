@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D751、D755 leftover Promise 双链；D736/D739/D740/D745 跳过。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D756 leftover Promise 双链；D736/D739/D740/D745 跳过。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1118,3 +1118,5 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D750 | P3 | **closed** leftover Promise 双链八处：kernel sources then；tokenizeToString；markup/code raceCancellation×4；getEditorAttachedPromise；whenReady。跳过 opener / Action2 / two-arg / assigned。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`notebookLeftoverPromiseCatchScanD750.test.ts` **8/0**。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / notebook leftover remaining | closed |
 | D751 | P3 | **closed** leftover Promise 双链 14 处：whenInstalledExtensionsRegistered；initialize 单链升双链；getOSColorScheme；installRegistryListeners；setColorTheme previous；updateValue migrated；restoreColor/File/ProductIcon；reloadCurrentFileIcon；ThemeFileWatcher×3。跳过 assigned / two-arg / Watch。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 D；`themesLeftoverPromiseCatchScanD751.test.ts` **9/0**。勿 add `out`。 | 14 处双链。未关 D24。leftover 程序未全局完成。 | workbench / themes leftover | closed |
 | D755 | P3 | **closed** leftover Promise 双链三处：breakpointsView / breakpointWidget createModelReference；linkDetector stat。search overflow 归 H。跳过 assigned / two-arg / already-double D686/D688/D690/D744。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`debugLeftoverPromiseCatchScanD755.test.ts`。勿 add `out`。 | 三处双链。未关 D24。leftover 程序未全局完成。 | workbench / debug leftover remaining | closed |
+| D753 | P3 | **closed** leftover Promise 双链 16 处：languageModels refresh；chatModel progress.task；interrupt/followups；paste then；getTreatment×3；hasByok whenRegistered/whenReady；chatTip；tunnel getStatus；prompt-cache getTreatment；carousel/review completion；_awaitToolConfirmation。跳过 two-arg / assigned / Pty / already-double。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`chatLeftoverPromiseCatchScanD753.test.ts` + D743 **22/0**。勿 add `out`。 | 16 处双链。未关 D24。leftover 程序未全局完成。 | workbench / chat leftover remaining | closed |
+| D756 | P3 | **closed** leftover Promise 双链四处：searchView confirm then；openPaneComposite；openSearchView×2。跳过 two-arg asyncResults/replaceAll/validateQuery；assigned resolveAll；returned openSearchView。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；`searchLeftoverPromiseCatchScanD756.test.ts` + D691 **13/0**。勿 add `out`。 | 四处双链。未关 D24。leftover 程序未全局完成。 | workbench / search leftover remaining | closed |
