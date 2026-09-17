@@ -133,7 +133,7 @@ export class BrowserAutoReloadWatcher extends Disposable {
 		}
 
 		this._hasPendingChange = false;
-		this._model.reload().catch(onUnexpectedError);
+		this._model.reload().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 
