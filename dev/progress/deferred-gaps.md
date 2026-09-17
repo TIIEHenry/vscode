@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D705 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D705、D708 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1069,3 +1069,6 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D701 | P3 | **closed** leftover Promise 双链（inlineChat openEditor/cancel/reject/edits/locks/accept；conversation executeCommand×3）。跳过 opener/D145/sync void/grpc *Wire/Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`inlineChatLeftoverPromiseCatchScan.test.ts` **7/0**。未 commit。勿 add `out`。 | 上列双链。未关 D24。leftover 程序未全局完成。 | workbench / inlineChat leftover | closed |
 | D702 | P3 | **closed** leftover Promise 双链六处：remote electron `when` / nested `hasWSLFeatureInstalled` / `updateRemoteTelemetryEnablement`×2；tunnelView `forward().then`×2。跳过 Resolve/opener/D145/D692 已双链。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`remoteElectronTunnelLeftoverPromiseCatchScan.test.ts` **6/0**。未 commit。勿 add `out`。 | 六处双链。未关 D24。leftover 程序未全局完成。 | workbench / remote leftover | closed |
 | D703 | P3 | **closed** leftover Promise 双链八处（hover findDefinition；inlineCompletions next/prev/account；indentation pick；stickyScroll defs；sectionHeaders；unicodeHighlights）。跳过 opener/D145/sync void/grpc *Wire/Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`editorContribLeftoverPromiseCatchScan.test.ts` **9/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | editor / leftover Promise | closed |
+| D704 | P3 | **closed** leftover Promise 双链八处：windowImpl `ready().then`；windowsMain `unload(LOAD)` / addRecentlyOpened / wait-marker / showMessageBox / reload×2；launch `whenWindowReady.then`。跳过 opener/D145/sync void/grpc *Wire/Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；`windowsLeftoverPromiseCatchScan.test.ts` **8/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | platform / windows leftover | closed |
+| D705 | P3 | **closed** leftover Promise 双链九处：metered/userDataSync Ipc constructor then；logIpc createLogger/getRegisteredLoggers/setLogLevel；fileLog whenProviderRegistered；spdlog flush/dispose then。跳过 opener/D145/sync void/grpc *Wire/Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`platformIpcLogLeftoverPromiseCatchScan.test.ts` **9/0**。未 commit。勿 add `out`。 | 九处双链。未关 D24。leftover 程序未全局完成。 | platform / ipc+log leftover | closed |
+| D708 | P3 | **closed** leftover Promise 双链八处：extHostWindow/getInitialState；editorTabs whenReady；treeViews whenInstalled；config/search getConfigProvider；LM tools；workspace getComplete；logger createLogger。跳过 opener/D145/Watch/Connect/Pty/two-arg。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`workbenchApiLeftoverPromiseCatchScan.test.ts` **11/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / api leftover | closed |
