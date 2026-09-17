@@ -610,7 +610,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 			exitCode = 1 /* ERROR */;
 		}
 
-		this._onExtensionHostExit(exitCode);
+		this._onExtensionHostExit(exitCode).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private findTestExtensionHost(testLocation: URI): IExtensionHostManager | null {

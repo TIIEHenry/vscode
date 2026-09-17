@@ -170,7 +170,7 @@ export class NativeExtensionService extends AbstractExtensionService implements 
 						run: () => {
 							this._instantiationService.invokeFunction((accessor) => {
 								const hostService = accessor.get(IHostService);
-								hostService.restart();
+								hostService.restart().catch(onUnexpectedError).catch(onUnexpectedError);
 							});
 						}
 					}]
@@ -186,7 +186,7 @@ export class NativeExtensionService extends AbstractExtensionService implements 
 			if (this._localCrashTracker.shouldAutomaticallyRestart()) {
 				this._logService.info(`Automatically restarting the extension host.`);
 				this._notificationService.status(nls.localize('extensionService.autoRestart', "The extension host terminated unexpectedly. Restarting..."), { hideAfter: 5000 });
-				this.startExtensionHosts();
+				this.startExtensionHosts().catch(onUnexpectedError).catch(onUnexpectedError);
 			} else {
 				const choices: IPromptChoice[] = [];
 				if (this._environmentService.isBuilt) {
@@ -208,7 +208,7 @@ export class NativeExtensionService extends AbstractExtensionService implements 
 
 				choices.push({
 					label: nls.localize('restart', "Restart Extension Host"),
-					run: () => this.startExtensionHosts()
+					run: () => this.startExtensionHosts().catch(onUnexpectedError).catch(onUnexpectedError)
 				});
 
 				if (this._environmentService.isBuilt) {
@@ -760,7 +760,7 @@ class RestartExtensionHostAction extends Action2 {
 
 		const stopped = await extensionService.stopExtensionHosts(nls.localize('restartExtensionHost.reason', "An explicit request"));
 		if (stopped) {
-			extensionService.startExtensionHosts();
+			extensionService.startExtensionHosts().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 }
