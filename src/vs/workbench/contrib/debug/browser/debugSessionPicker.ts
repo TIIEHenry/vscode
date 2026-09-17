@@ -2,6 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import * as nls from '../../../../nls.js';
 import { matchesFuzzy } from '../../../../base/common/filters.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
@@ -81,7 +82,7 @@ function _getPicksAndActiveItem(filter: string, selectAndStartID: string, debugS
 	debugConsolePicks.push({
 		label: `$(plus) ${createDebugSessionLabel}`,
 		ariaLabel: createDebugSessionLabel,
-		accept: () => commandService.executeCommand(selectAndStartID)
+		accept: () => void commandService.executeCommand(selectAndStartID).catch(onUnexpectedError).catch(onUnexpectedError)
 	});
 
 	return { picks: debugConsolePicks, activeItems };
@@ -111,7 +112,7 @@ function _createPick(session: IDebugSession, filter: string, debugService: IDebu
 			ariaLabel: pickInfo.ariaLabel,
 			highlights: { label: highlights },
 			accept: () => {
-				debugService.focusStackFrame(undefined, undefined, session, { explicit: true });
+				void debugService.focusStackFrame(undefined, undefined, session, { explicit: true }).catch(onUnexpectedError).catch(onUnexpectedError);
 				if (!viewsService.isViewVisible(REPL_VIEW_ID)) {
 					viewsService.openView(REPL_VIEW_ID, true);
 				}

@@ -8,6 +8,7 @@ import { ServicesAccessor } from '../../../../editor/browser/editorExtensions.js
 import { AccessibleViewProviderId, AccessibleViewType, IAccessibleViewContentProvider } from '../../../../platform/accessibility/browser/accessibleView.js';
 import { IAccessibleViewImplementation } from '../../../../platform/accessibility/browser/accessibleViewRegistry.js';
 import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { AccessibilityVerbositySettingId } from '../../accessibility/browser/accessibilityConfiguration.js';
 import { localize } from '../../../../nls.js';
@@ -50,19 +51,19 @@ class RunAndDebugAccessibilityHelpProvider extends Disposable implements IAccess
 	public onClose(): void {
 		switch (this._focusedView) {
 			case 'Watch':
-				this._commandService.executeCommand('workbench.debug.action.focusWatchView');
+				void this._commandService.executeCommand('workbench.debug.action.focusWatchView').catch(onUnexpectedError).catch(onUnexpectedError);
 				break;
 			case 'Variables':
-				this._commandService.executeCommand('workbench.debug.action.focusVariablesView');
+				void this._commandService.executeCommand('workbench.debug.action.focusVariablesView').catch(onUnexpectedError).catch(onUnexpectedError);
 				break;
 			case 'Call Stack':
-				this._commandService.executeCommand('workbench.debug.action.focusCallStackView');
+				void this._commandService.executeCommand('workbench.debug.action.focusCallStackView').catch(onUnexpectedError).catch(onUnexpectedError);
 				break;
 			case 'Breakpoints':
-				this._commandService.executeCommand('workbench.debug.action.focusBreakpointsView');
+				void this._commandService.executeCommand('workbench.debug.action.focusBreakpointsView').catch(onUnexpectedError).catch(onUnexpectedError);
 				break;
 			default:
-				this._commandService.executeCommand('workbench.view.debug');
+				void this._commandService.executeCommand('workbench.view.debug').catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

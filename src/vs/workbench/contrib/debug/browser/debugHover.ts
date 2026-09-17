@@ -12,6 +12,7 @@ import { DomScrollableElement } from '../../../../base/browser/ui/scrollbar/scro
 import { AsyncDataTree } from '../../../../base/browser/ui/tree/asyncDataTree.js';
 import { ITreeContextMenuEvent } from '../../../../base/browser/ui/tree/tree.js';
 import { coalesce } from '../../../../base/common/arrays.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import * as lifecycle from '../../../../base/common/lifecycle.js';
@@ -373,7 +374,7 @@ export class DebugHoverWidget implements IContentWidget {
 			this.isUpdatingTree = true;
 			this.tree.setInput(expression).finally(() => {
 				this.isUpdatingTree = false;
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		return null;

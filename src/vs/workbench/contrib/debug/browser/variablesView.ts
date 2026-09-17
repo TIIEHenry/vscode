@@ -142,7 +142,7 @@ export class VariablesView extends ViewPane implements IDebugViewWithVariables {
 		});
 
 		this._register(VisualizedVariableRenderer.rendererOnVisualizationRange(this.debugService.getViewModel(), this.tree));
-		this.tree.setInput(this.debugService.getViewModel().focusedStackFrame ?? null);
+		void this.tree.setInput(this.debugService.getViewModel().focusedStackFrame ?? null).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		CONTEXT_VARIABLES_FOCUSED.bindTo(this.tree.contextKeyService);
 
@@ -163,7 +163,7 @@ export class VariablesView extends ViewPane implements IDebugViewWithVariables {
 				stackFrame.forgetScopes();
 			}
 			forgetScopes = true;
-			this.tree.updateChildren();
+			void this.tree.updateChildren().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(this.tree);
 		this._register(this.tree.onMouseDblClick(e => this.onMouseDblClick(e)));
@@ -454,7 +454,7 @@ export class VisualizedVariableRenderer extends AbstractExpressionsRenderer {
 			}
 
 			const parent: IExpression = tree.getParentElement(original);
-			tree.updateChildren(parent, false, false);
+			void tree.updateChildren(parent, false, false).catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 
 	}

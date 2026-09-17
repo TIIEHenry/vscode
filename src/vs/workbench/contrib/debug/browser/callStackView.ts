@@ -16,6 +16,7 @@ import { ICompressedTreeNode } from '../../../../base/browser/ui/tree/compressed
 import { ICompressibleTreeRenderer } from '../../../../base/browser/ui/tree/objectTree.js';
 import { IAsyncDataSource, ITreeContextMenuEvent, ITreeNode } from '../../../../base/browser/ui/tree/tree.js';
 import { Action } from '../../../../base/common/actions.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Event } from '../../../../base/common/event.js';
@@ -294,7 +295,7 @@ export class CallStackView extends ViewPane {
 
 		CONTEXT_CALLSTACK_FOCUSED.bindTo(this.tree.contextKeyService);
 
-		this.tree.setInput(this.debugService.getModel());
+		void this.tree.setInput(this.debugService.getModel()).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._register(this.tree);
 		this._register(this.tree.onDidOpen(async e => {
 			if (this.ignoreSelectionChangedEvent) {
@@ -304,7 +305,7 @@ export class CallStackView extends ViewPane {
 			const focusStackFrame = (stackFrame: IStackFrame | undefined, thread: IThread | undefined, session: IDebugSession, options: { explicit?: boolean; preserveFocus?: boolean; sideBySide?: boolean; pinned?: boolean } = {}) => {
 				this.ignoreFocusStackFrameEvent = true;
 				try {
-					this.debugService.focusStackFrame(stackFrame, thread, session, { ...options, ...{ explicit: true } });
+					void this.debugService.focusStackFrame(stackFrame, thread, session, { ...options, ...{ explicit: true } }).catch(onUnexpectedError).catch(onUnexpectedError);
 				} finally {
 					this.ignoreFocusStackFrameEvent = false;
 				}
@@ -338,7 +339,7 @@ export class CallStackView extends ViewPane {
 			}
 			if (element instanceof Array) {
 				element.forEach(sf => this.dataSource.deemphasizedStackFramesToShow.add(sf));
-				this.tree.updateChildren();
+				void this.tree.updateChildren().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 

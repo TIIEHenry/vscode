@@ -252,7 +252,7 @@ async function navigateCallStack(debugService: IDebugService, down: boolean) {
 		}
 
 		if (nextVisibleFrame) {
-			debugService.focusStackFrame(nextVisibleFrame, undefined, undefined, { preserveFocus: false });
+			void debugService.focusStackFrame(nextVisibleFrame, undefined, undefined, { preserveFocus: false }).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 }
@@ -265,7 +265,7 @@ async function goToBottomOfCallStack(debugService: IDebugService) {
 		if (callStack.length > 0) {
 			const nextVisibleFrame = findNextVisibleFrame(false, callStack, 0); // must consider the next frame up first, which will be the last frame
 			if (nextVisibleFrame) {
-				debugService.focusStackFrame(nextVisibleFrame, undefined, undefined, { preserveFocus: false });
+				void debugService.focusStackFrame(nextVisibleFrame, undefined, undefined, { preserveFocus: false }).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 	}
@@ -275,7 +275,7 @@ function goToTopOfCallStack(debugService: IDebugService) {
 	const thread = debugService.getViewModel().focusedThread;
 
 	if (thread) {
-		debugService.focusStackFrame(thread.getTopStackFrame(), undefined, undefined, { preserveFocus: false });
+		void debugService.focusStackFrame(thread.getTopStackFrame(), undefined, undefined, { preserveFocus: false }).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 
@@ -735,7 +735,7 @@ CommandsRegistry.registerCommand({
 					const pick = await provider.pick();
 					if (pick) {
 						await configManager.selectConfiguration(pick.launch, pick.config.name, pick.config, { type: provider.type });
-						debugService.startDebugging(pick.launch, pick.config, { noDebug: debugStartOptions?.noDebug, startedByUser: true });
+						void debugService.startDebugging(pick.launch, pick.config, { noDebug: debugStartOptions?.noDebug, startedByUser: true }).catch(onUnexpectedError).catch(onUnexpectedError);
 
 						return;
 					}

@@ -9,6 +9,7 @@ import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/lis
 import { ITableContextMenuEvent, ITableRenderer, ITableVirtualDelegate } from '../../../../base/browser/ui/table/table.js';
 import { binarySearch2 } from '../../../../base/common/arrays.js';
 import { Color } from '../../../../base/common/color.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable, IDisposable, dispose } from '../../../../base/common/lifecycle.js';
 import { isAbsolute } from '../../../../base/common/path.js';
@@ -284,10 +285,10 @@ export class DisassemblyView extends EditorPane {
 					if (loaded > 0) {
 						this._disassembledInstructions!.reveal(prevTop + loaded, 0);
 					}
-				}).finally(() => { this._loadingLock = false; });
+				}).finally(() => { this._loadingLock = false; }).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else if (e.oldScrollTop < e.scrollTop && e.scrollTop + e.height > e.scrollHeight - e.height) {
 				this._loadingLock = true;
-				this.scrollDown_LoadDisassembledInstructions(DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD).finally(() => { this._loadingLock = false; });
+				this.scrollDown_LoadDisassembledInstructions(DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD).finally(() => { this._loadingLock = false; }).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -295,7 +296,7 @@ export class DisassemblyView extends EditorPane {
 
 		this._register(this._debugService.getViewModel().onDidFocusStackFrame(({ stackFrame }) => {
 			if (this._disassembledInstructions && stackFrame?.instructionPointerReference) {
-				this.goToInstructionAndOffset(stackFrame.instructionPointerReference, 0);
+				void this.goToInstructionAndOffset(stackFrame.instructionPointerReference, 0).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 			this._onDidChangeStackFrame.fire();
 		}));
@@ -665,7 +666,7 @@ export class DisassemblyView extends EditorPane {
 				this._disassembledInstructions!.setFocus([targetIndex]);
 			}
 			this._loadingLock = false;
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private clear() {
