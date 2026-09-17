@@ -482,10 +482,10 @@ export class NativeExtensionService extends AbstractExtensionService implements 
 			if (isCI) {
 				this._logService.info(`Asking native host service to exit with code ${code}.`);
 			}
-			this._nativeHostService.exit(code);
+			this._nativeHostService.exit(code).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			// Expected development extension termination: When the extension host goes down we also shutdown the window
-			this._nativeHostService.closeWindow();
+			this._nativeHostService.closeWindow().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -505,10 +505,10 @@ export class NativeExtensionService extends AbstractExtensionService implements 
 				this._notificationService.prompt(Severity.Info, message,
 					[{
 						label: nls.localize('enable', 'Enable and Reload'),
-						run: async () => {
+						run: () => (async () => {
 							await this._extensionEnablementService.setEnablement([toExtension(extension)], EnablementState.EnabledGlobally);
 							await this._hostService.reload();
-						}
+						})().catch(onUnexpectedError).catch(onUnexpectedError)
 					}],
 					{
 						sticky: true,
@@ -522,7 +522,7 @@ export class NativeExtensionService extends AbstractExtensionService implements 
 			this._notificationService.prompt(Severity.Info, message,
 				[{
 					label: nls.localize('install', 'Install and Reload'),
-					run: async () => {
+					run: () => (async () => {
 						const [galleryExtension] = await this._extensionGalleryService.getExtensions([{ id: resolverExtensionId }], CancellationToken.None);
 						if (galleryExtension) {
 							await this._extensionManagementService.installFromGallery(galleryExtension);
@@ -531,7 +531,7 @@ export class NativeExtensionService extends AbstractExtensionService implements 
 							this._notificationService.error(nls.localize('resolverExtensionNotFound', "`{0}` not found on marketplace"));
 						}
 
-					}
+					})().catch(onUnexpectedError).catch(onUnexpectedError)
 				}],
 				{
 					sticky: true,

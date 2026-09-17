@@ -158,12 +158,12 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 		this._register(this._lifecycleService.onWillShutdown(e => this._onWillShutdown(e)));
 		this._register(this._extensionHostDebugService.onClose(event => {
 			if (this._isExtensionDevHost && this._environmentService.debugExtensionHost.debugId === event.sessionId) {
-				this._nativeHostService.closeWindow();
+				this._nativeHostService.closeWindow().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 		this._register(this._extensionHostDebugService.onReload(event => {
 			if (this._isExtensionDevHost && this._environmentService.debugExtensionHost.debugId === event.sessionId) {
-				this._hostService.reload();
+				this._hostService.reload().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -364,7 +364,7 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 				this._notificationService.prompt(Severity.Warning, msg,
 					[{
 						label: nls.localize('reloadWindow', "Reload Window"),
-						run: () => this._hostService.reload()
+						run: () => this._hostService.reload().catch(onUnexpectedError).catch(onUnexpectedError)
 					}],
 					{
 						sticky: true,

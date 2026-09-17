@@ -981,7 +981,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 		for (const extHostManager of this._extensionHostManagers) {
 			if (extHostManager.startup !== ExtensionHostStartup.EagerAutoStart) {
 				const extensions = this._runningLocations.filterByExtensionHostManager(snapshot.extensions, extHostManager);
-				extHostManager.start(snapshot.versionId, snapshot.extensions, extensions.map(extension => extension.identifier));
+				extHostManager.start(snapshot.versionId, snapshot.extensions, extensions.map(extension => extension.identifier)).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 	}
