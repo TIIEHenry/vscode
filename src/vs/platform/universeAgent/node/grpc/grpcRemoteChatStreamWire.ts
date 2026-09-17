@@ -139,7 +139,7 @@ function decodeRemotePendingQuestion(bytes: Uint8Array): RemotePendingQuestionWi
 	};
 }
 
-function decodeRemoteChatMessage(bytes: Uint8Array): RemoteChatMessageWire {
+export function decodeRemoteChatMessage(bytes: Uint8Array): RemoteChatMessageWire {
 	const fields = readProtoFields(bytes);
 	const system = lastBytes(fields, 1);
 	const user = lastBytes(fields, 2);

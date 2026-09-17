@@ -4,7 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { UniverseAgentGetRemoteSessionHistoryRequest } from '../../common/universeAgentTypes.js';
+import type { RemoteChatMessageWire } from './grpcClientMappersCatalog.js';
+import { decodeRemoteChatMessage } from './grpcRemoteChatStreamWire.js';
 import {
+	allLengthDelimited,
 	encodeInt32Field,
 	encodeInt64Field,
 	encodeStringField,
@@ -15,10 +18,12 @@ import {
 /**
  * JSON-shaped decode of RemoteAgentService.GetRemoteSessionHistoryResponse.
  * Shape matches `GetRemoteSessionHistoryResponseWire` /
- * `mapGetRemoteSessionHistoryResponse`. `messages`=1 unread this slice
- * (no nested codecs).
+ * `mapGetRemoteSessionHistoryResponse`. Nested `messages`=1
+ * RemoteChatMessage (oneof `system`=1 `user`=2 `assistant`=3
+ * `tool_result`=4) via `decodeRemoteChatMessage`.
  */
 export interface GetRemoteSessionHistoryResponseWire {
+	readonly messages?: RemoteChatMessageWire[];
 	readonly version?: number | string;
 	readonly has_more?: boolean;
 }
@@ -38,8 +43,8 @@ export function encodeGetRemoteSessionHistoryRequest(request: UniverseAgentGetRe
 }
 
 /**
- * GetRemoteSessionHistoryResponse — repeated `messages`=1 unread this
- * slice (no nested codecs) `version`=2 `has_more`=3.
+ * GetRemoteSessionHistoryResponse — repeated `messages`=1
+ * RemoteChatMessage (`decodeRemoteChatMessage`) `version`=2 `has_more`=3.
  * proto3: empty / 0 / false omitted. Unknown fields unread.
  * Shape matches GetRemoteSessionHistoryResponseWire /
  * `mapGetRemoteSessionHistoryResponse` (missing messages → []).
@@ -48,6 +53,7 @@ export function decodeGetRemoteSessionHistoryResponse(bytes: Uint8Array): GetRem
 	const fields = readProtoFields(bytes);
 	const hasMore = lastVarint(fields, 3);
 	return {
+		messages: allLengthDelimited(fields, 1).map(decodeRemoteChatMessage),
 		version: numberOrUndefined(lastVarint(fields, 2)),
 		has_more: hasMore === undefined ? undefined : hasMore === 1n,
 	};

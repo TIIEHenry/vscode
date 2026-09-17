@@ -17,6 +17,7 @@ import {
 	encodeInt32Field,
 	encodeInt64Field,
 	encodeMessageField,
+	encodePresentMessageField,
 	encodeStringField,
 	encodeVarint,
 	readProtoFields,
@@ -79,9 +80,32 @@ suite('grpc RemoteAgentService GetRemoteSessionHistory protobuf wire', () => {
 		}).length, 0);
 	});
 
-	test('decodeGetRemoteSessionHistoryResponse reads version=2 has_more=3; messages=1 unread', () => {
+	test('decodeGetRemoteSessionHistoryResponse reads messages=1 version=2 has_more=3 then mapper', () => {
+		const toolCall = Buffer.concat([
+			encodeStringField(1, 'c1'),
+			encodeStringField(2, 'bash'),
+			encodeStringField(3, '{}'),
+			encodeStringField(4, 'unused-tool-call'),
+		]);
+		const assistant = Buffer.concat([
+			encodeStringField(1, 'done'),
+			encodeMessageField(2, toolCall),
+		]);
+		const toolResult = Buffer.concat([
+			encodeStringField(1, 'c1'),
+			encodeStringField(2, 'bash'),
+			encodeStringField(3, 'out'),
+			encodeInt32Field(4, 1),
+		]);
 		const encoded = Buffer.concat([
-			encodeMessageField(1, encodeStringField(1, 'unused-message')),
+			encodeMessageField(1, encodePresentMessageField(1, encodeStringField(1, 'sys'))),
+			encodeMessageField(1, encodePresentMessageField(2, encodeStringField(1, 'hi'))),
+			encodeMessageField(1, encodePresentMessageField(3, assistant)),
+			encodeMessageField(1, encodePresentMessageField(4, toolResult)),
+			encodeMessageField(1, Buffer.concat([
+				encodePresentMessageField(1, encodeStringField(1, 'keep')),
+				encodeStringField(5, 'unused-message'),
+			])),
 			encodeInt64Field(2, 42),
 			encodeInt32Field(3, 1),
 			encodeStringField(4, 'unused-field'),
@@ -89,17 +113,54 @@ suite('grpc RemoteAgentService GetRemoteSessionHistory protobuf wire', () => {
 		assert.notStrictEqual(encoded[0], 0x7b);
 		const wire = decodeGetRemoteSessionHistoryResponse(encoded);
 		assert.deepStrictEqual(wire, {
+			messages: [
+				{ system: { content: 'sys' } },
+				{ user: { content: 'hi' } },
+				{
+					assistant: {
+						content: 'done',
+						tool_calls: [{ id: 'c1', name: 'bash', arguments: '{}' }],
+					},
+				},
+				{
+					tool_result: {
+						tool_call_id: 'c1',
+						tool_name: 'bash',
+						content: 'out',
+						is_error: true,
+					},
+				},
+				{ system: { content: 'keep' } },
+			],
 			version: 42,
 			has_more: true,
 		});
-		assert.ok(!('messages' in wire));
 		assert.ok(!('unused' in wire));
 		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
 		assert.deepStrictEqual(mapGetRemoteSessionHistoryResponse(wire), {
-			messages: [],
+			messages: [
+				{ system: { content: 'sys' } },
+				{ user: { content: 'hi' } },
+				{
+					assistant: {
+						content: 'done',
+						toolCalls: [{ id: 'c1', name: 'bash', arguments: '{}' }],
+					},
+				},
+				{
+					toolResult: {
+						toolCallId: 'c1',
+						toolName: 'bash',
+						content: 'out',
+						isError: true,
+					},
+				},
+				{ system: { content: 'keep' } },
+			],
 			version: 42,
 			hasMore: true,
 		});
+		assert.ok(mapGetRemoteSessionHistoryResponse(wire).messages.length > 0);
 
 		const lastWins = decodeGetRemoteSessionHistoryResponse(Buffer.concat([
 			encodeInt64Field(2, 1),
@@ -108,28 +169,30 @@ suite('grpc RemoteAgentService GetRemoteSessionHistory protobuf wire', () => {
 		]));
 		assert.strictEqual(lastWins.version, 42);
 		assert.strictEqual(lastWins.has_more, true);
+		assert.deepStrictEqual(lastWins.messages, []);
 		assert.deepStrictEqual(mapGetRemoteSessionHistoryResponse(lastWins).messages, []);
 	});
 
 	test('decodeGetRemoteSessionHistoryResponse omitted/false/zero; mapper missing messages → []', () => {
 		const empty = decodeGetRemoteSessionHistoryResponse(new Uint8Array(0));
 		assert.deepStrictEqual(empty, {
+			messages: [],
 			version: undefined,
 			has_more: undefined,
 		});
-		assert.ok(!('messages' in empty));
 		assert.deepStrictEqual(mapGetRemoteSessionHistoryResponse(empty), {
 			messages: [],
 			version: 0,
 			hasMore: false,
 		});
 
-		const unusedOnly = decodeGetRemoteSessionHistoryResponse(encodeMessageField(1, encodeStringField(1, 'unused-message')));
+		const unusedOnly = decodeGetRemoteSessionHistoryResponse(encodeStringField(4, 'unused-field'));
 		assert.deepStrictEqual(unusedOnly, {
+			messages: [],
 			version: undefined,
 			has_more: undefined,
 		});
-		assert.ok(!('messages' in unusedOnly));
+		assert.strictEqual(JSON.stringify(unusedOnly).includes('unused'), false);
 		assert.deepStrictEqual(mapGetRemoteSessionHistoryResponse(unusedOnly), {
 			messages: [],
 			version: 0,
@@ -138,6 +201,7 @@ suite('grpc RemoteAgentService GetRemoteSessionHistory protobuf wire', () => {
 
 		const explicitFalse = decodeGetRemoteSessionHistoryResponse(new Uint8Array([0x18, 0x00]));
 		assert.deepStrictEqual(explicitFalse, {
+			messages: [],
 			version: undefined,
 			has_more: false,
 		});
@@ -146,7 +210,7 @@ suite('grpc RemoteAgentService GetRemoteSessionHistory protobuf wire', () => {
 
 		const zeroPresent = decodeGetRemoteSessionHistoryResponse(encodeVarintZero(2));
 		assert.strictEqual(zeroPresent.version, 0);
-		assert.ok(!('messages' in zeroPresent));
+		assert.deepStrictEqual(zeroPresent.messages, []);
 		assert.strictEqual(mapGetRemoteSessionHistoryResponse(zeroPresent).version, 0);
 		assert.deepStrictEqual(mapGetRemoteSessionHistoryResponse(zeroPresent).messages, []);
 		assert.strictEqual(encodeInt64Field(2, 0).length, 0);
@@ -161,19 +225,21 @@ suite('grpc RemoteAgentService GetRemoteSessionHistory protobuf wire', () => {
 		assert.ok(/\bencodeInt32Field\b/.test(source));
 		assert.ok(/\bencodeStringField\b/.test(source));
 		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(!/\ballLengthDelimited\b/.test(source));
-		assert.ok(!/\bRemoteChatMessage\b/.test(source));
+		assert.ok(/\ballLengthDelimited\b/.test(source));
+		assert.ok(/\bdecodeRemoteChatMessage\b/.test(source));
+		assert.ok(/\bRemoteChatMessage\b/.test(source));
+		assert.ok(/grpcRemoteChatStreamWire/.test(source));
 		assert.ok(!/\bCreateRemoteSession\b|\bDestroyRemoteSession\b|\bGetRemoteSessionStatus\b/.test(source));
 		assert.ok(!/\bResumeRemoteSession\b|\bCancelRemoteSession\b|\bRemoteChat\b/.test(source));
 		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
 		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
 		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
 		assert.ok(!/\bConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b/.test(source));
+		assert.ok(!/\bResolveTurn\b|\bResolveAnchor\b/.test(source));
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('getRemoteSessionHistory uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+	test('getRemoteSessionHistory uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const history = extractAsyncMethod(source, 'getRemoteSessionHistory');
 		assert.ok(history.includes('makeUnaryBytesClient'), 'getRemoteSessionHistory must use makeUnaryBytesClient');
@@ -188,6 +254,7 @@ suite('grpc RemoteAgentService GetRemoteSessionHistory protobuf wire', () => {
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
 		const watchStart = source.indexOf('\topenWatchConfigStream(');
 		assert.ok(watchStart >= 0, 'missing openWatchConfigStream(');
 		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);
