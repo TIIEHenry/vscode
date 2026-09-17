@@ -1385,7 +1385,7 @@ export interface AgentInfoWire {
 	model?: string;
 	turn_count?: number;
 	created_at?: number;
-	children?: AgentInfoWire[];
+	children?: readonly AgentInfoWire[];
 }
 
 export interface AgentTreeResponseWire {
