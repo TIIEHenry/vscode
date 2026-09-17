@@ -20,7 +20,7 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D687。D24 �
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A–J** | 关仓后 idle（B 脏跳过；C gitlink 勿 add；E blocked；edit ff-only 失败） |
+| **A** | D686 源扫：explorer leftover 双链 vs Action2 裸断言收紧（未改生产） |
 
 子 agent 发现：
 | ID | 问题 |

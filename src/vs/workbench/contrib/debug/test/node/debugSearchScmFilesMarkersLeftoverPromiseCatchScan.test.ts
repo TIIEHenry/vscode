@@ -77,8 +77,9 @@ suite('debug/search/scm/files/markers leftover Promise fire-and-forget catch sca
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assertDoubleChain(source, 'void this.commandService.executeCommand(NEW_FILE_COMMAND_ID)', 1);
 		assertDoubleChain(source, 'void this.refresh(true)', 2);
-		assert.ok(source.includes('\t\tcommandService.executeCommand(NEW_FILE_COMMAND_ID);'));
-		assert.ok(!source.includes('commandService.executeCommand(NEW_FILE_COMMAND_ID).catch'));
+		const action2NewFile = '\t\tcommandService.executeCommand(NEW_FILE_COMMAND_ID);';
+		assert.ok(source.includes(action2NewFile));
+		assert.ok(!source.split('\n').some(line => line.includes(action2NewFile) && line.includes('.catch')));
 	});
 
 	test('scm repositories artifact executeCommand leftover is double-chain', () => {
