@@ -8,11 +8,10 @@ import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import type { UniverseAgentResolveModelResult } from '../../common/universeAgentTypes.js';
+import { mapResolveModelResponse } from '../../node/grpc/grpcClientMappersCatalog.js';
 import {
 	decodeResolveModelResponse,
 	encodeResolveModelRequest,
-	type ResolveModelResponseWire,
 } from '../../node/grpc/grpcResolveModelUnaryWire.js';
 import {
 	encodeInt32Field,
@@ -285,29 +284,6 @@ suite('grpc ConfigService ResolveModel protobuf wire', () => {
 		assert.ok(!watchBody.includes('makeUnaryBytesClient'));
 	});
 });
-
-/** TEST mapper: same shape as catalog `mapResolveModelResponse` / `mapModelEntry`. */
-function mapResolveModelResponse(wire: ResolveModelResponseWire): UniverseAgentResolveModelResult {
-	return {
-		...(wire.selected ? { selected: mapModelEntry(wire.selected) } : {}),
-		candidates: (wire.candidates ?? []).map(mapModelEntry),
-		filtered: (wire.filtered ?? []).map(mapModelEntry),
-	};
-}
-
-function mapModelEntry(wire: NonNullable<ResolveModelResponseWire['selected']>): NonNullable<UniverseAgentResolveModelResult['selected']> {
-	return {
-		id: wire.id ?? '',
-		type: wire.type ?? '',
-		enabled: wire.enabled === true,
-		level: typeof wire.level === 'number' && Number.isFinite(wire.level) ? wire.level : 0,
-		description: wire.description,
-		cost: wire.cost,
-		speed: wire.speed,
-		provider: wire.provider ?? '',
-		modelId: wire.model_id ?? '',
-	};
-}
 
 function grpcDir(): string {
 	const thisDir = path.dirname(fileURLToPath(import.meta.url));

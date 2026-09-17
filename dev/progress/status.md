@@ -27,7 +27,7 @@ summary: "工位 D 进行中：ResolveModel nested ModelEntry decode。D24 仍�
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **D** | `loop/D-d24-resolve-model-entries`：ResolveModel `selected`=1 / `candidates`=2 / `filtered`=3 nested ModelEntry decode；[D24](deferred-gaps.md) **仍开**。未碰 grpcClient / Connect / SaveSkillContent / Watch / ResolveTurn / ResolveAnchor |
+| **D** | `loop/D-d24-resolve-model-entries`：ResolveModel nested `selected`=1 / `candidates`=2 / `filtered`=3 ModelEntry 已 decode（mocha 6 passing）；[D24](deferred-gaps.md) **仍开**。未碰 grpcClient / Connect / SaveSkillContent / Watch / ResolveTurn / ResolveAnchor |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
