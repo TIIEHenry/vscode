@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { HierarchicalKind } from '../../../../base/common/hierarchicalKind.js';
 import { createCommandUri } from '../../../../base/common/htmlContent.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
@@ -282,8 +283,8 @@ class CodeActionOnSaveParticipant extends Disposable implements ITextFileSavePar
 	) {
 		super();
 
-		this._register(this.hostService.onDidChangeFocus(() => { this.triggerCodeActionsCommand(); }));
-		this._register(this.editorService.onDidActiveEditorChange(() => { this.triggerCodeActionsCommand(); }));
+		this._register(this.hostService.onDidChangeFocus(() => { this.triggerCodeActionsCommand().catch(onUnexpectedError).catch(onUnexpectedError); }));
+		this._register(this.editorService.onDidActiveEditorChange(() => { this.triggerCodeActionsCommand().catch(onUnexpectedError).catch(onUnexpectedError); }));
 	}
 
 	private async triggerCodeActionsCommand() {

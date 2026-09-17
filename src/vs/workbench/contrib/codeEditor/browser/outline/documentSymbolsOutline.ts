@@ -188,9 +188,9 @@ class DocumentSymbolsOutline implements IOutline<DocumentSymbolItem> {
 
 
 		// update as language, model, providers changes
-		this._disposables.add(_languageFeaturesService.documentSymbolProvider.onDidChange(_ => this._createOutline()));
-		this._disposables.add(this._editor.onDidChangeModel(_ => this._createOutline()));
-		this._disposables.add(this._editor.onDidChangeModelLanguage(_ => this._createOutline()));
+		this._disposables.add(_languageFeaturesService.documentSymbolProvider.onDidChange(_ => this._createOutline().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._disposables.add(this._editor.onDidChangeModel(_ => this._createOutline().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._disposables.add(this._editor.onDidChangeModelLanguage(_ => this._createOutline().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		// update soon'ish as model content change
 		const updateSoon = new TimeoutTimer();
@@ -199,7 +199,7 @@ class DocumentSymbolsOutline implements IOutline<DocumentSymbolItem> {
 			const model = this._editor.getModel();
 			if (model) {
 				const timeout = _outlineModelService.getDebounceValue(model);
-				updateSoon.cancelAndSet(() => this._createOutline(event), timeout);
+				updateSoon.cancelAndSet(() => this._createOutline(event).catch(onUnexpectedError).catch(onUnexpectedError), timeout);
 			}
 		}));
 
@@ -207,7 +207,7 @@ class DocumentSymbolsOutline implements IOutline<DocumentSymbolItem> {
 		this._disposables.add(this._editor.onDidDispose(() => this._outlineDisposables.clear()));
 
 		// initial load
-		this._createOutline().finally(() => firstLoadBarrier.open());
+		this._createOutline().finally(() => firstLoadBarrier.open()).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	dispose(): void {

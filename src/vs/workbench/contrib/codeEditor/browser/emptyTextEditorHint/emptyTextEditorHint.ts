@@ -9,6 +9,7 @@ import { StandardMouseEvent } from '../../../../../base/browser/mouseEvent.js';
 import { status } from '../../../../../base/browser/ui/aria/aria.js';
 import { WorkbenchActionExecutedClassification, WorkbenchActionExecutedEvent } from '../../../../../base/common/actions.js';
 import { Event } from '../../../../../base/common/event.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../../base/common/network.js';
 import { ContentWidgetPositionPreference, ICodeEditor, IContentWidget, IContentWidgetPosition } from '../../../../../editor/browser/editorBrowser.js';
@@ -166,7 +167,7 @@ class EmptyTextEditorHintContentWidget extends Disposable implements IContentWid
 
 	private disableHint(e?: MouseEvent) {
 		const disableHint = () => {
-			this.configurationService.updateValue(emptyTextEditorHintSetting, 'hidden');
+			this.configurationService.updateValue(emptyTextEditorHintSetting, 'hidden').catch(onUnexpectedError).catch(onUnexpectedError);
 			this.dispose();
 			this.editor.focus();
 		};
@@ -200,7 +201,7 @@ class EmptyTextEditorHintContentWidget extends Disposable implements IContentWid
 			callback: (index, event) => {
 				switch (index) {
 					case '0':
-						languageOnClickOrTap(event.browserEvent);
+						languageOnClickOrTap(event.browserEvent).catch(onUnexpectedError).catch(onUnexpectedError);
 						break;
 					case '1':
 						this.disableHint();

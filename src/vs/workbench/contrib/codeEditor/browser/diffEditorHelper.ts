@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { autorunWithStore, observableFromEvent } from '../../../../base/common/observable.js';
 import { IDiffEditor } from '../../../../editor/browser/editorBrowser.js';
@@ -46,7 +47,7 @@ class DiffEditorHelperContribution extends Disposable implements IDiffEditorCont
 						null
 					));
 					store.add(helperWidget.onClick(() => {
-						this._textResourceConfigurationService.updateValue(this._diffEditor.getModel()!.modified.uri, 'diffEditor.ignoreTrimWhitespace', false);
+						this._textResourceConfigurationService.updateValue(this._diffEditor.getModel()!.modified.uri, 'diffEditor.ignoreTrimWhitespace', false).catch(onUnexpectedError).catch(onUnexpectedError);
 					}));
 					helperWidget.render();
 				}
@@ -62,7 +63,7 @@ class DiffEditorHelperContribution extends Disposable implements IDiffEditorCont
 						[{
 							label: localize('removeTimeout', "Remove Limit"),
 							run: () => {
-								this._textResourceConfigurationService.updateValue(this._diffEditor.getModel()!.modified.uri, 'diffEditor.maxComputationTime', 0);
+								this._textResourceConfigurationService.updateValue(this._diffEditor.getModel()!.modified.uri, 'diffEditor.maxComputationTime', 0).catch(onUnexpectedError).catch(onUnexpectedError);
 							}
 						}],
 						{}
