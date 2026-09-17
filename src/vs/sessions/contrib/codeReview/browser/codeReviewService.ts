@@ -5,6 +5,7 @@
 
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { arrayEquals } from '../../../../base/common/equals.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { autorun, derivedOpts, IObservable, ISettableObservable, observableValue } from '../../../../base/common/observable.js';
 import { isEqual } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -145,7 +146,7 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 			const context = activeReviewContext.read(reader);
 			for (const pullRequest of context?.pullRequests ?? []) {
 				const reviewThreadsRef = reader.store.add(this._gitHubService.createPullRequestReviewThreadsModelReference(pullRequest.owner, pullRequest.repo, pullRequest.number));
-				void reviewThreadsRef.object.refresh();
+				void reviewThreadsRef.object.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 				reader.store.add(reviewThreadsRef.object.startPolling());
 			}
 		}));
