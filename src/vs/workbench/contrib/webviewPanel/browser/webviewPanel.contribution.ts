@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { registerAction2 } from '../../../../platform/actions/common/actions.js';
@@ -70,7 +71,7 @@ class WebviewPanelContribution extends Disposable implements IWorkbenchContribut
 			return;
 		}
 
-		previousGroup.closeEditor(editor);
+		previousGroup.closeEditor(editor).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 
