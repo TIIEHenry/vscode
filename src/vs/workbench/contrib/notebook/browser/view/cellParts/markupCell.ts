@@ -8,6 +8,7 @@ import * as domSanitize from '../../../../../../base/browser/domSanitize.js';
 import { renderIcon } from '../../../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { disposableTimeout, raceCancellation } from '../../../../../../base/common/async.js';
 import { CancellationTokenSource } from '../../../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Codicon } from '../../../../../../base/common/codicons.js';
 import { ThemeIcon } from '../../../../../../base/common/themables.js';
 import { Disposable, DisposableStore, MutableDisposable, toDisposable } from '../../../../../../base/common/lifecycle.js';
@@ -198,7 +199,7 @@ export class MarkupCell extends Disposable {
 						insertSpaces: this.cellEditorOptions.insertSpaces,
 					});
 				}
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -385,7 +386,7 @@ export class MarkupCell extends Disposable {
 				this.bindEditorListeners(this.editor!);
 
 				this.viewCell.editorHeight = editorHeight;
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		this.viewCell.editorHeight = editorHeight;

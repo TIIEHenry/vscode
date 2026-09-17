@@ -8,6 +8,7 @@ import { groupBy } from '../../../../../base/common/arrays.js';
 import { createCancelablePromise } from '../../../../../base/common/async.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { MarshalledId } from '../../../../../base/common/marshallingIds.js';
@@ -573,7 +574,7 @@ export class KernelPickerMRUStrategy extends KernelPickerStrategyBase {
 				if (quickPick.items.length > 0) {
 					quickPick.busy = false;
 				}
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 			disposables.add(Event.debounce<void, void>(
 				Event.any(

@@ -8,6 +8,7 @@ import * as domStylesheetsJs from '../../../../../base/browser/domStylesheets.js
 import { IMouseWheelEvent } from '../../../../../base/browser/mouseEvent.js';
 import { IListRenderer, IListVirtualDelegate, ListError } from '../../../../../base/browser/ui/list/list.js';
 import { IListStyles, IStyleController } from '../../../../../base/browser/ui/list/listWidget.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable, MutableDisposable } from '../../../../../base/common/lifecycle.js';
 import { isMacintosh } from '../../../../../base/common/platform.js';
@@ -1334,7 +1335,7 @@ export class NotebookCellList extends WorkbenchList<CellViewModel> implements ID
 		if (element.editorAttached) {
 			element.setSelection(range);
 		} else {
-			getEditorAttachedPromise(element).then(() => { element.setSelection(range); });
+			getEditorAttachedPromise(element).then(() => { element.setSelection(range); }).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

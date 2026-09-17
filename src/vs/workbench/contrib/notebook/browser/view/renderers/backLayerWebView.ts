@@ -9,6 +9,7 @@ import { CodeWindow } from '../../../../../../base/browser/window.js';
 import { WorkbenchActionExecutedClassification, WorkbenchActionExecutedEvent } from '../../../../../../base/common/actions.js';
 import { coalesce } from '../../../../../../base/common/arrays.js';
 import { DeferredPromise, runWhenGlobalIdle } from '../../../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { decodeBase64 } from '../../../../../../base/common/buffer.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { IDisposable } from '../../../../../../base/common/lifecycle.js';
@@ -1174,7 +1175,7 @@ export class BackLayerWebView<T extends ICommonCellInfo> extends Themable {
 					html,
 					codeBlockId: id
 				});
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 	private async _onDidClickDataLink(event: IClickedDataUrlMessage): Promise<void> {
