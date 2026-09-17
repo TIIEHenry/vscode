@@ -272,7 +272,7 @@ export class CodeLensContribution implements IEditorContribution {
 				for (const lens of this._lenses) {
 					const command = lens.getCommand(target as HTMLLinkElement);
 					if (command) {
-						this._commandService.executeCommand(command.id, ...(command.arguments || [])).catch(err => this._notificationService.error(err));
+						this._commandService.executeCommand(command.id, ...(command.arguments || [])).catch(err => this._notificationService.error(err)).catch(onUnexpectedError).catch(onUnexpectedError);
 						break;
 					}
 				}
