@@ -8,17 +8,17 @@ import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import type { UniverseAgentRemoteAgentInfo } from '../../common/universeAgentTypes.js';
+import { mapRemoteAgentInfo } from '../../node/grpc/grpcClientMappersCatalog.js';
 import {
 	decodeGetNodeResponse,
 	encodeGetNodeRequest,
-	type RemoteAgentInfoWire,
 } from '../../node/grpc/grpcGetNodeUnaryWire.js';
 import {
 	encodeInt32Field,
 	encodeInt64Field,
 	encodeMessageField,
 	encodeStringField,
+	encodeVarint,
 	readProtoFields,
 } from '../../node/grpc/grpcProtoCodec.js';
 
@@ -47,7 +47,40 @@ suite('grpc RemoteAgentService GetNode protobuf wire', () => {
 		assert.notStrictEqual(encoded[0], 0x7b);
 	});
 
-	test('decodeGetNodeResponse reads id=1 name=2 description=3 status=4 endpoint=5 tags=6 last_heartbeat_at=9; capabilities=7 load=8 unused unread', () => {
+	test('decodeGetNodeResponse reads id=1 name=2 description=3 status=4 endpoint=5 tags=6 capabilities=7 load=8 last_heartbeat_at=9', () => {
+		const model = Buffer.concat([
+			encodeStringField(1, 'gemini-flash'),
+			encodeStringField(2, 'Gemini Flash'),
+			encodeStringField(3, 'google'),
+			encodeInt64Field(4, 8192),
+			encodeInt32Field(5, 1),
+			encodeStringField(6, 'unused-model'),
+		]);
+		const sparseModel = encodeStringField(1, 'local-7b');
+		const properties = Buffer.concat([
+			encodeStringField(1, 'region'),
+			encodeStringField(2, 'us-east'),
+			encodeStringField(3, 'unused-property'),
+		]);
+		const capabilities = Buffer.concat([
+			encodeMessageField(1, model),
+			encodeMessageField(1, sparseModel),
+			encodeStringField(2, 'bash'),
+			encodeStringField(2, 'read'),
+			encodeStringField(3, 'agent'),
+			encodeStringField(3, 'plan'),
+			encodeStringField(4, '1.2.3'),
+			encodeStringField(5, 'v1'),
+			encodeMessageField(6, properties),
+			encodeStringField(7, 'unused-capabilities'),
+		]);
+		const load = Buffer.concat([
+			encodeInt32Field(1, 3),
+			encodeInt32Field(2, 7),
+			encodeInt32Field(3, 42),
+			encodeInt64Field(4, 1024),
+			encodeStringField(5, 'unused-load'),
+		]);
 		const encoded = Buffer.concat([
 			encodeStringField(1, 'node-1'),
 			encodeStringField(2, 'Edge GPU'),
@@ -56,8 +89,8 @@ suite('grpc RemoteAgentService GetNode protobuf wire', () => {
 			encodeStringField(5, '10.0.0.2:8443'),
 			encodeStringField(6, 'gpu'),
 			encodeStringField(6, 'prod'),
-			encodeMessageField(7, encodeStringField(4, 'unread-server-version')),
-			encodeMessageField(8, encodeInt32Field(1, 9)),
+			encodeMessageField(7, capabilities),
+			encodeMessageField(8, load),
 			encodeInt64Field(9, 1700000000),
 			encodeStringField(10, 'unused-field'),
 		]);
@@ -70,12 +103,38 @@ suite('grpc RemoteAgentService GetNode protobuf wire', () => {
 			status: 'ONLINE',
 			endpoint: '10.0.0.2:8443',
 			tags: ['gpu', 'prod'],
+			capabilities: {
+				models: [
+					{
+						id: 'gemini-flash',
+						name: 'Gemini Flash',
+						provider: 'google',
+						max_tokens: 8192,
+						enabled: true,
+					},
+					{
+						id: 'local-7b',
+						name: undefined,
+						provider: undefined,
+						max_tokens: undefined,
+						enabled: undefined,
+					},
+				],
+				tools: ['bash', 'read'],
+				modes: ['agent', 'plan'],
+				server_version: '1.2.3',
+				protocol_version: 'v1',
+				properties: { region: 'us-east' },
+			},
+			load: {
+				active_sessions: 3,
+				queue_depth: 7,
+				cpu_percent: 42,
+				memory_used_mb: 1024,
+			},
 			last_heartbeat_at: 1700000000,
 		});
-		assert.ok(!('capabilities' in wire));
-		assert.ok(!('load' in wire));
 		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
-		assert.strictEqual(JSON.stringify(wire).includes('unread'), false);
 		assert.deepStrictEqual(mapRemoteAgentInfo(wire), {
 			id: 'node-1',
 			name: 'Edge GPU',
@@ -83,8 +142,35 @@ suite('grpc RemoteAgentService GetNode protobuf wire', () => {
 			status: 'ONLINE',
 			endpoint: '10.0.0.2:8443',
 			tags: ['gpu', 'prod'],
-			capabilities: emptyCapabilities(),
-			load: emptyLoad(),
+			capabilities: {
+				models: [
+					{
+						id: 'gemini-flash',
+						name: 'Gemini Flash',
+						provider: 'google',
+						maxTokens: 8192,
+						enabled: true,
+					},
+					{
+						id: 'local-7b',
+						name: '',
+						provider: '',
+						maxTokens: 0,
+						enabled: false,
+					},
+				],
+				tools: ['bash', 'read'],
+				modes: ['agent', 'plan'],
+				serverVersion: '1.2.3',
+				protocolVersion: 'v1',
+				properties: { region: 'us-east' },
+			},
+			load: {
+				activeSessions: 3,
+				queueDepth: 7,
+				cpuPercent: 42,
+				memoryUsedMb: 1024,
+			},
 			lastHeartbeatAt: 1700000000,
 		});
 
@@ -96,6 +182,8 @@ suite('grpc RemoteAgentService GetNode protobuf wire', () => {
 			status: undefined,
 			endpoint: undefined,
 			tags: undefined,
+			capabilities: undefined,
+			load: undefined,
 			last_heartbeat_at: undefined,
 		});
 		assert.deepStrictEqual(mapRemoteAgentInfo(empty), {
@@ -109,6 +197,102 @@ suite('grpc RemoteAgentService GetNode protobuf wire', () => {
 			load: emptyLoad(),
 			lastHeartbeatAt: 0,
 		});
+
+		const unusedOnly = decodeGetNodeResponse(encodeStringField(10, 'unused-field'));
+		assert.deepStrictEqual(unusedOnly, {
+			id: undefined,
+			name: undefined,
+			description: undefined,
+			status: undefined,
+			endpoint: undefined,
+			tags: undefined,
+			capabilities: undefined,
+			load: undefined,
+			last_heartbeat_at: undefined,
+		});
+		assert.strictEqual(JSON.stringify(unusedOnly).includes('unused'), false);
+		assert.deepStrictEqual(mapRemoteAgentInfo(unusedOnly), {
+			id: '',
+			name: '',
+			description: '',
+			status: '',
+			endpoint: '',
+			tags: [],
+			capabilities: emptyCapabilities(),
+			load: emptyLoad(),
+			lastHeartbeatAt: 0,
+		});
+
+		const lastWins = decodeGetNodeResponse(Buffer.concat([
+			encodeMessageField(7, encodeStringField(4, 'old')),
+			encodeMessageField(7, encodeStringField(4, '1.2.3')),
+			encodeMessageField(8, encodeInt32Field(1, 1)),
+			encodeMessageField(8, encodeInt32Field(1, 3)),
+			encodeInt64Field(9, 1),
+			encodeInt64Field(9, 1700000000),
+		]));
+		assert.strictEqual(lastWins.capabilities?.server_version, '1.2.3');
+		assert.strictEqual(lastWins.load?.active_sessions, 3);
+		assert.strictEqual(lastWins.last_heartbeat_at, 1700000000);
+		assert.strictEqual(mapRemoteAgentInfo(lastWins).capabilities.serverVersion, '1.2.3');
+		assert.strictEqual(mapRemoteAgentInfo(lastWins).load.activeSessions, 3);
+		assert.strictEqual(mapRemoteAgentInfo(lastWins).lastHeartbeatAt, 1700000000);
+
+		const lastWinsMap = decodeGetNodeResponse(encodeMessageField(7, Buffer.concat([
+			encodeMessageField(6, Buffer.concat([
+				encodeStringField(1, 'region'),
+				encodeStringField(2, 'us-west'),
+			])),
+			encodeMessageField(6, Buffer.concat([
+				encodeStringField(1, 'region'),
+				encodeStringField(2, 'us-east'),
+			])),
+		])));
+		assert.deepStrictEqual(lastWinsMap.capabilities?.properties, { region: 'us-east' });
+		assert.deepStrictEqual(mapRemoteAgentInfo(lastWinsMap).capabilities.properties, { region: 'us-east' });
+
+		const zeroPresent = decodeGetNodeResponse(Buffer.concat([
+			encodeMessageField(7, Buffer.concat([
+				encodeMessageField(1, Buffer.concat([
+					encodeStringField(1, 'local-7b'),
+					encodeVarintZero(4),
+					encodeVarintZero(5),
+				])),
+			])),
+			encodeMessageField(8, Buffer.concat([
+				encodeVarintZero(1),
+				encodeVarintZero(2),
+				encodeVarintZero(3),
+				encodeVarintZero(4),
+			])),
+			encodeVarintZero(9),
+		]));
+		assert.deepStrictEqual(zeroPresent.capabilities?.models, [{
+			id: 'local-7b',
+			name: undefined,
+			provider: undefined,
+			max_tokens: 0,
+			enabled: false,
+		}]);
+		assert.deepStrictEqual(zeroPresent.load, {
+			active_sessions: 0,
+			queue_depth: 0,
+			cpu_percent: 0,
+			memory_used_mb: 0,
+		});
+		assert.strictEqual(zeroPresent.last_heartbeat_at, 0);
+		assert.deepStrictEqual(mapRemoteAgentInfo(zeroPresent).capabilities.models, [{
+			id: 'local-7b',
+			name: '',
+			provider: '',
+			maxTokens: 0,
+			enabled: false,
+		}]);
+		assert.deepStrictEqual(mapRemoteAgentInfo(zeroPresent).load, emptyLoad());
+		assert.strictEqual(mapRemoteAgentInfo(zeroPresent).lastHeartbeatAt, 0);
+		assert.strictEqual(encodeInt32Field(1, 0).length, 0);
+		assert.strictEqual(encodeInt64Field(4, 0).length, 0);
+		assert.strictEqual(encodeInt64Field(9, 0).length, 0);
 	});
 
 	test('get-node unary wire is RemoteAgentService.GetNode only; no JSON.stringify; identifier scan', () => {
@@ -117,18 +301,22 @@ suite('grpc RemoteAgentService GetNode protobuf wire', () => {
 		assert.ok(/\bencodeGetNodeRequest\b/.test(source));
 		assert.ok(/\bdecodeGetNodeResponse\b/.test(source));
 		assert.ok(/\bdecodeRemoteAgentInfoScalars\b/.test(source));
+		assert.ok(/\bdecodeCapabilities\b/.test(source));
+		assert.ok(/\bdecodeLoadMetrics\b/.test(source));
+		assert.ok(/\bdecodeModelInfo\b/.test(source));
+		assert.ok(/\blastBytes\b/.test(source));
 		assert.ok(/\blastVarint\b/.test(source));
 		assert.ok(/\ballLengthDelimited\b/.test(source));
-		assert.ok(!/\bdecodeCapabilities\b|\bdecodeLoadMetrics\b|\bdecodeModelInfo\b/.test(source));
 		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
 		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
 		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
 		assert.ok(!/\bConnect\b/.test(source));
 		assert.ok(!/\bResolveTurn\b/.test(source));
+		assert.ok(!/\bResolveAnchor\b/.test(source));
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('getNode uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+	test('getNode uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const getNode = extractAsyncMethod(source, 'getNode');
 		assert.ok(getNode.includes('makeUnaryBytesClient'), 'getNode must use makeUnaryBytesClient');
@@ -142,33 +330,18 @@ suite('grpc RemoteAgentService GetNode protobuf wire', () => {
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
+		const watchStart = source.indexOf('\topenWatchConfigStream(');
+		assert.ok(watchStart >= 0, 'missing openWatchConfigStream(');
+		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);
+		const watchBody = source.slice(watchStart, watchEnd >= 0 ? watchEnd : source.length);
+		assert.ok(watchBody.includes('makeServerStreamClient<Record<string, unknown>'));
+		assert.ok(!watchBody.includes('makeUnaryBytesClient'));
+		assert.ok(!watchBody.includes('grpcGetNodeUnaryWire'));
 	});
 });
 
-/** TEST-only mapper: same shape as catalog `mapRemoteAgentInfo` (nested 7/8 unread → empty). */
-function mapRemoteAgentInfo(wire: RemoteAgentInfoWire): UniverseAgentRemoteAgentInfo {
-	return {
-		id: wire.id ?? '',
-		name: wire.name ?? '',
-		description: wire.description ?? '',
-		status: wire.status ?? '',
-		endpoint: wire.endpoint ?? '',
-		tags: [...(wire.tags ?? [])],
-		capabilities: emptyCapabilities(),
-		load: emptyLoad(),
-		lastHeartbeatAt: requiredInt64(wire.last_heartbeat_at),
-	};
-}
-
-function requiredInt64(value: number | string | undefined): number {
-	if (value === undefined || value === '') {
-		return 0;
-	}
-	const n = typeof value === 'number' ? value : Number(value);
-	return Number.isFinite(n) ? n : 0;
-}
-
-function emptyCapabilities(): UniverseAgentRemoteAgentInfo['capabilities'] {
+function emptyCapabilities() {
 	return {
 		models: [],
 		tools: [],
@@ -179,13 +352,20 @@ function emptyCapabilities(): UniverseAgentRemoteAgentInfo['capabilities'] {
 	};
 }
 
-function emptyLoad(): UniverseAgentRemoteAgentInfo['load'] {
+function emptyLoad() {
 	return {
 		activeSessions: 0,
 		queueDepth: 0,
 		cpuPercent: 0,
 		memoryUsedMb: 0,
 	};
+}
+
+function encodeVarintZero(field: number): Buffer {
+	return Buffer.concat([
+		encodeVarint((field << 3) | 0),
+		encodeVarint(0),
+	]);
 }
 
 function grpcDir(): string {
