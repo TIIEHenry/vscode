@@ -29,6 +29,7 @@ summary: "merge 关仓：leftover D640–D647 关各 call site。compile-client 
 | **A** | hover `openSettings` 双链；[D648](deferred-gaps.md)；D24 仍开；未 commit；勿 add `out` |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
+| **F** | workbench completions 两处 `_registerForScheme` 双链；[D651](deferred-gaps.md)；mocha 2/0；D24 仍开；勿 add `out` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
 
 子 agent 发现：
