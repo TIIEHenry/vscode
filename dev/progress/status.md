@@ -15,7 +15,7 @@ summary: "SessionStream + L2 envelope leftover 已合入。D675/D676 与 chat le
 |:-----|:-----|
 | **A SessionStream / L2** | 16/23/30–32/34–39/44/46/50–52；envelope leftover |
 | **D D675/D676** | 终端进度条 leftover 双链 |
-| **A catch** | toolsList / settings save / request origin |
+| **A/F catch** | toolsList / settings / origin / input picker |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
