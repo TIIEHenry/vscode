@@ -407,6 +407,9 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * (empty SessionPurgedEvent; present empty nested → `{}`);
  * `envelope_appended`=20 `envelope_batch_appended`=21
  * `envelope_range_replaced`=22
+ * `branch_topology_notified`=23 BranchTopologyNotified (present empty
+ * nested → `{}`; nested 1–10 unread). fileMutationJoin
+ * `shouldRefreshAgentTree` reads presence only.
  * `streaming_delta`=30 (StreamingDeltaEvent 1–6);
  * `thinking_delta`=31 (SessionStreamThinkingDeltaEvent 1–6, same layout);
  * `generating_tool`=34 GeneratingToolEvent (`runtime_epoch`=1 `turn_id`=2
@@ -443,7 +446,8 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * matches OverlayDeltaJoin `streaming_delta` / `thinking_delta` /
  * `generating_tool` / `turn_lifecycle` and demuxSessionStreamPayload
  * `session_purged` / `runtime_overlay_snapshot` /
- * `permission_request` / `ask_user_question` / `client_tool_call`.
+ * `permission_request` / `ask_user_question` / `client_tool_call`,
+ * and `shouldRefreshAgentTree` `branch_topology_notified`.
  */
 export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessionEvent {
 	const fields = readProtoFields(bytes);
@@ -483,6 +487,10 @@ export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessio
 	const replaced = lastBytes(fields, 22);
 	if (replaced) {
 		payload.envelope_range_replaced = decodeEnvelopeRangeReplaced(replaced);
+	}
+	const topology = lastBytes(fields, 23);
+	if (topology !== undefined) {
+		payload.branch_topology_notified = {};
 	}
 	const streamingDelta = lastBytes(fields, 30);
 	if (streamingDelta) {

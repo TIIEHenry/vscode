@@ -23,7 +23,7 @@ summary: "SessionStream 16/30/31/34/37/44/50/51/52 已合入。D24 仍开。不�
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A** | 下一刀 `fileMutationJoin` 已消费的 `branch_topology_notified`=23 |
+| **A** | SessionStream 23 `branch_topology_notified` 本工位绿（presence → `shouldRefreshAgentTree`）；未合入 |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **C** | gitlink 脏 `dev/loop`；勿 add |
 | **E** | `blocked` `fix/ci-gate-reds` |

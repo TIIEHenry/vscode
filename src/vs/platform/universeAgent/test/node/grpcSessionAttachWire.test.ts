@@ -48,6 +48,7 @@ import {
 	mapRestoreSnapshotResponse,
 	mapResumeSessionResponse,
 } from '../../node/grpc/grpcClientMappers.js';
+import { shouldRefreshAgentTree } from '../../node/fileMutationJoin.js';
 import { OverlayDeltaJoin } from '../../node/overlayDeltaJoin.js';
 import { demuxSessionStreamPayload } from '../../node/sessionStreamDemux.js';
 import {
@@ -450,6 +451,47 @@ suite('grpc first-send / attach protobuf wire', () => {
 				agentId: 'root',
 			},
 		});
+	});
+
+	test('decodeSessionStreamEvent reads nested branch_topology_notified=23 presence; unused unread; shouldRefreshAgentTree', () => {
+		const topology = Buffer.concat([
+			encodeInt64Field(1, 9),
+			encodeInt64Field(2, 3),
+			encodeStringField(3, 'client-unread'),
+			encodeStringField(4, 'op-unread'),
+			encodeStringField(5, 'branch_switch'),
+			encodeStringField(6, '{}'),
+			encodeStringField(7, '[]'),
+			encodeStringField(8, '[]'),
+			encodeStringField(9, 'turn-unread'),
+			encodeStringField(10, 'notice-unread'),
+			encodeStringField(11, 'unused-field'),
+		]);
+		const encoded = Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodeMessageField(23, topology),
+			encodeStringField(99, 'unused-stream-field'),
+		]);
+		const decoded = decodeSessionStreamEvent(encoded);
+		const payload = decoded.payload as {
+			session_id?: string;
+			branch_topology_notified?: Record<string, unknown>;
+		};
+		assert.strictEqual(payload.session_id, 'sess-1');
+		assert.ok('branch_topology_notified' in payload);
+		assert.deepStrictEqual(payload.branch_topology_notified, {});
+		assert.ok(!('branchTopologyNotified' in payload));
+		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
+		assert.strictEqual(JSON.stringify(decoded).includes('unread'), false);
+		assert.strictEqual(shouldRefreshAgentTree(decoded.payload), true);
+		const omitted = decodeSessionStreamEvent(encodeStringField(1, 'sess-2'));
+		assert.strictEqual((omitted.payload as { branch_topology_notified?: unknown }).branch_topology_notified, undefined);
+		assert.ok(!('branch_topology_notified' in (omitted.payload as object)));
+		assert.strictEqual(shouldRefreshAgentTree(omitted.payload), false);
+		const emptyNested = decodeSessionStreamEvent(encodePresentMessageField(23, new Uint8Array(0)));
+		assert.ok('branch_topology_notified' in (emptyNested.payload as object));
+		assert.deepStrictEqual((emptyNested.payload as { branch_topology_notified?: unknown }).branch_topology_notified, {});
+		assert.strictEqual(shouldRefreshAgentTree(emptyNested.payload), true);
 	});
 
 	test('decodeSessionStreamEvent reads nested streaming_delta=30 StreamingDeltaEvent 1-6; unused unread', () => {
