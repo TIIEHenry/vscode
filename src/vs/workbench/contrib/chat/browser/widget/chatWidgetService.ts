@@ -5,6 +5,7 @@
 
 import * as dom from '../../../../../base/browser/dom.js';
 import { timeout } from '../../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { combinedDisposable, Disposable, IDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { isEqual } from '../../../../../base/common/resources.js';
@@ -289,7 +290,7 @@ export class ChatWidgetService extends Disposable implements IChatWidgetService 
 					if (!this.getWidgetBySessionResource(previousSessionResource) && this.chatService.getSession(previousSessionResource)) {
 						this._onDidBackgroundSession.fire(previousSessionResource);
 					}
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			}),
 			toDisposable(() => {
 				this._widgets.splice(this._widgets.indexOf(newWidget), 1);

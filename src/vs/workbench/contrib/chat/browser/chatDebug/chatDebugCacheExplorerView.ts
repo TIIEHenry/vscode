@@ -11,6 +11,7 @@ import { RunOnceScheduler } from '../../../../../base/common/async.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { safeIntl } from '../../../../../base/common/date.js';
 import { equals } from '../../../../../base/common/objects.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -610,7 +611,7 @@ export class ChatDebugCacheExplorerView extends Disposable {
 			}
 		}
 		const token = ++this.renderToken;
-		void this.renderContentInner(token, () => token === this.renderToken);
+		void this.renderContentInner(token, () => token === this.renderToken).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	/** Move the selection to the previous/next visible turn row (arrow keys). */
@@ -727,7 +728,7 @@ export class ChatDebugCacheExplorerView extends Disposable {
 		this.contentDisposables.add(DOM.addDisposableListener(toggle, DOM.EventType.CLICK, () => {
 			this.sigBreakdownOpen = !this.sigBreakdownOpen;
 			const token = ++this.renderToken;
-			void this.renderContentInner(token, () => token === this.renderToken, true);
+			void this.renderContentInner(token, () => token === this.renderToken, true).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		if (!this.sigBreakdownOpen) {
 			return;

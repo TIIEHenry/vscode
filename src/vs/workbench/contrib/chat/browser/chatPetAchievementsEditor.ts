@@ -5,6 +5,7 @@
 
 import * as DOM from '../../../../base/browser/dom.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { autorun } from '../../../../base/common/observable.js';
 import { localize } from '../../../../nls.js';
@@ -49,7 +50,7 @@ export class ChatPetAchievementsEditor extends EditorPane {
 		this._register(toDisposable(() => this.focusedContextKey.reset()));
 		this._register(autorun(reader => {
 			if (!this.chatPetService.enabled.read(reader) && this.input) {
-				void this.group.closeEditor(this.input);
+				void this.group.closeEditor(this.input).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -62,7 +63,7 @@ export class ChatPetAchievementsEditor extends EditorPane {
 		this.editorDisposables.add(focusTracker.onDidBlur(() => this.focusedContextKey.set(false)));
 		this.widget = this.editorDisposables.add(this.instantiationService.createInstance(ChatPetAchievementsWidget, this.container, () => {
 			if (this.input) {
-				void this.group.closeEditor(this.input);
+				void this.group.closeEditor(this.input).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}
