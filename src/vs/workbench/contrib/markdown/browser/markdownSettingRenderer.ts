@@ -5,6 +5,7 @@
 
 import { ActionViewItem } from '../../../../base/browser/ui/actionbar/actionViewItems.js';
 import { IAction } from '../../../../base/common/actions.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import type { Tokens } from '../../../../base/common/marked/marked.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -248,7 +249,7 @@ export class SimpleSettingRenderer {
 					tooltip: trySettingMessage,
 					label: trySettingMessage,
 					run: () => {
-						this.setSetting(settingId, currentSettingValue, newSettingValue);
+						this.setSetting(settingId, currentSettingValue, newSettingValue).catch(onUnexpectedError).catch(onUnexpectedError);
 					}
 				});
 			}
@@ -273,7 +274,7 @@ export class SimpleSettingRenderer {
 			tooltip: nls.localize('copySettingId', "Copy Setting ID"),
 			label: nls.localize('copySettingId', "Copy Setting ID"),
 			run: () => {
-				this._clipboardService.writeText(settingId);
+				this._clipboardService.writeText(settingId).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		});
 
