@@ -195,7 +195,7 @@ export class CloudSandboxAgentHostContribution extends Disposable implements IWo
 			if (e.affectsConfiguration(CloudSandboxEnabledSettingId) || e.affectsConfiguration(RemoteAgentHostsEnabledSettingId)) {
 				this._updateHostGroupRegistration();
 				if (this._isEnabled()) {
-					void this._discoverAndSeed().catch(onUnexpectedError);
+					void this._discoverAndSeed().catch(onUnexpectedError).catch(onUnexpectedError);
 				} else {
 					this._teardownAll();
 				}
@@ -207,7 +207,7 @@ export class CloudSandboxAgentHostContribution extends Disposable implements IWo
 		// Lazy discovery: surface environment-bound sandbox sessions in the list without connecting.
 		// Connecting happens on open via the sandbox async activator.
 		this._register(this._agentHostFilterService.registerDiscoveryHandler(() => this._discoverAndSeed()));
-		void this._discoverAndSeed().catch(onUnexpectedError);
+		void this._discoverAndSeed().catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Discovery needs a GitHub session, and the auth provider is contributed by an extension that
 		// may not be registered yet at startup. Retry as sessions become available, until the first
@@ -218,7 +218,7 @@ export class CloudSandboxAgentHostContribution extends Disposable implements IWo
 				retryUntilFirstSuccess.clear();
 				return;
 			}
-			void this._discoverAndSeed().catch(onUnexpectedError);
+			void this._discoverAndSeed().catch(onUnexpectedError).catch(onUnexpectedError);
 		};
 		retryUntilFirstSuccess.add(this._authenticationService.onDidChangeSessions(retry));
 		retryUntilFirstSuccess.add(this._authenticationService.onDidRegisterAuthenticationProvider(retry));
@@ -428,7 +428,7 @@ export class CloudSandboxAgentHostContribution extends Disposable implements IWo
 		// Drop the read-only stand-in too, or disabling the feature would leave a content provider
 		// registered for a session type this contribution no longer serves.
 		this._clearReadOnly(address);
-		void this._disconnectEnvironment(address).catch(onUnexpectedError);
+		void this._disconnectEnvironment(address).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	/** Tear down every known sandbox environment (feature disabled). */
@@ -654,7 +654,7 @@ export class CloudSandboxAgentHostContribution extends Disposable implements IWo
 				// The feature may have been disabled while connecting; drop the connection rather
 				// than leaving a live relay open after teardown.
 				if (token.isCancellationRequested || !this._isEnabled()) {
-					void this._disconnectEnvironment(address).catch(onUnexpectedError);
+					void this._disconnectEnvironment(address).catch(onUnexpectedError).catch(onUnexpectedError);
 					throw new CancellationError();
 				}
 				// `onDidChangeConnections` fires from addManagedConnection and wires the
