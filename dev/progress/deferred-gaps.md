@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D779 leftover Promise 双链；D736/D739/D740/D745 跳过。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D785 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1141,3 +1141,9 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D777 | P3 | **closed** leftover Promise 双链 update leftover remaining（outline 已由 D770 合入）。跳过 two-arg releaseNotes / opener / Action2。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`updateLeftoverPromiseCatchScanD777.test.ts`。勿 add `out`。 | update 双链。未关 D24。leftover 程序未全局完成。 | workbench / update leftover remaining | closed |
 | D778 | P3 | **closed** leftover Promise 双链 policies 不足 4 点，溢到 editSessions：getDefaultAccount then；showManagedSettingsDialog；refresh；showChannel；executeCommand。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`editSessionsLeftoverPromiseCatchScanD778.test.ts`。勿 add `out`。 | 五处双链。未关 D24。leftover 程序未全局完成。 | workbench / policies leftover remaining | closed |
 | D779 | P3 | **closed** leftover Promise 双链 agentsVoice 五处：submitFeedback then；switchToSession×2；focus；picker.show。跳过 Connect / Resolve / already-double。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`agentsVoiceLeftoverPromiseCatchScanD779.test.ts`。勿 add `out`。 | 五处双链。未关 D24。leftover 程序未全局完成。 | workbench / agentsVoice leftover remaining | closed |
+| D780 | P3 | **closed** leftover Promise 双链 tags 不足 4 点，溢到 authentication 12 处。跳过 tags two-arg / Action2 / opener。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`authenticationLeftoverPromiseCatchScanD780.test.ts`。勿 add `out`。 | 12 处双链。未关 D24。leftover 程序未全局完成。 | workbench / authentication leftover remaining | closed |
+| D781 | P3 | **closed** leftover Promise 双链 scm 19 处 leftover FOF。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；`scmLeftoverPromiseCatchScanD781.test.ts`。勿 add `out`。 | 19 处双链。未关 D24。leftover 程序未全局完成。 | workbench / scm leftover remaining | closed |
+| D782 | P3 | **closed** leftover Promise 双链 telemetry 不足 4 点，溢到 localization：handleTelemetryOutputVisibility；checkAndInstall；onDidInstall/Uninstall；setLocale。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`telemetryLeftoverPromiseCatchScanD782.test.ts`。勿 add `out`。 | 五处双链。未关 D24。leftover 程序未全局完成。 | workbench / telemetry leftover remaining | closed |
+| D783 | P3 | **skipped** leftover Promise：github 合法点 3；溢到 remote 会撞 D784，已弃。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；无合入。勿 add D752。 | 未合入。未关 D24。 | workbench / github leftover remaining | skipped |
+| D784 | P3 | **closed** leftover Promise 双链 remote 11 处 leftover remaining。跳过 D692 锁点 / Resolve / opener。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`remoteLeftoverPromiseCatchScanD784.test.ts`。勿 add `out`。 | 11 处双链。未关 D24。leftover 程序未全局完成。 | workbench / remote leftover remaining | closed |
+| D785 | P3 | **closed** leftover Promise 双链 workspace 11 处：ctor IIFE；showModalOnStart；doShowModal；trust then；logWorkspaceTrust；edit/setUris/setTrusted/setWorkspaceTrust。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`workspaceLeftoverPromiseCatchScanD785.test.ts`。勿 add `out`。 | 11 处双链。未关 D24。leftover 程序未全局完成。 | workbench / workspace leftover remaining | closed |
