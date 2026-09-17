@@ -1464,7 +1464,7 @@ export class CodeApplication extends Disposable {
 
 		// Profile Storage Changes Listener (shared process)
 		const profileStorageListener = disposables.add((new ProfileStorageChangesListenerChannel(accessor.get(IStorageMainService), accessor.get(IUserDataProfilesMainService), this.logService)));
-		sharedProcessClient.then(client => client.registerChannel('profileStorageListener', profileStorageListener));
+		sharedProcessClient.then(client => client.registerChannel('profileStorageListener', profileStorageListener)).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Terminal
 		const ptyHostChannel = ProxyChannel.fromService(accessor.get(ILocalPtyService), disposables);
@@ -1487,7 +1487,7 @@ export class CodeApplication extends Disposable {
 		// Logger
 		const loggerChannel = this._register(new LoggerChannel(accessor.get(ILoggerMainService)));
 		mainProcessElectronServer.registerChannel('logger', loggerChannel);
-		sharedProcessClient.then(client => client.registerChannel('logger', loggerChannel));
+		sharedProcessClient.then(client => client.registerChannel('logger', loggerChannel)).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Extension Host Debug Broadcasting
 		const electronExtensionHostDebugBroadcastChannel = new ElectronExtensionHostDebugBroadcastChannel(accessor.get(IWindowsMainService));
@@ -1639,7 +1639,7 @@ export class CodeApplication extends Disposable {
 		}
 
 		// Windows: mutex
-		this.installMutex();
+		this.installMutex().catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Remote Authorities
 		protocol.registerHttpProtocol(Schemas.vscodeRemoteResource, (request, callback) => {
@@ -1653,10 +1653,10 @@ export class CodeApplication extends Disposable {
 		// Since this operation can take a long time, we want to warm it up while
 		// the window is opening.
 		// We also show an error to the user in case this fails.
-		this.resolveShellEnvironment(this.environmentMainService.args, process.env, true);
+		this.resolveShellEnvironment(this.environmentMainService.args, process.env, true).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Crash reporter
-		this.updateCrashReporterEnablement();
+		this.updateCrashReporterEnablement().catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// macOS: rosetta translation warning
 		if (isMacintosh && app.runningUnderARM64Translation) {
@@ -1886,7 +1886,7 @@ export class CodeApplication extends Disposable {
 
 		// Validate Device ID is up to date (delay this as it has shown significant perf impact)
 		// Refs: https://github.com/microsoft/vscode/issues/234064
-		validateDevDeviceId(this.stateService, this.logService);
+		validateDevDeviceId(this.stateService, this.logService).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		instantiationService.invokeFunction(accessor => {
 			const telemetryService = accessor.get(ITelemetryService);
@@ -1895,7 +1895,7 @@ export class CodeApplication extends Disposable {
 			}
 
 			const nativeHostMainService = accessor.get(INativeHostMainService);
-			void this.logOSProxyConfigTelemetry(nativeHostMainService, telemetryService);
+			void this.logOSProxyConfigTelemetry(nativeHostMainService, telemetryService).catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 	}
 

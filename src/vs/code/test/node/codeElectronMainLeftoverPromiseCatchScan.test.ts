@@ -57,7 +57,7 @@ suite('code electron-main leftover Promise fire-and-forget catch scan (D719)', (
 			source.includes(`sharedProcessClient.then(client => client.registerChannel('storage', storageChannel))${doubleCatch};`),
 		].filter(Boolean).length;
 		assert.strictEqual(sites, 8);
-		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 8);
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 15);
 	});
 
 	test('app.ts leftover sharedProcessClient then registerChannels are Promise double-chain', () => {
@@ -76,15 +76,12 @@ suite('code electron-main leftover Promise fire-and-forget catch scan (D719)', (
 		assertDoubleThen(source, "sharedProcessClient.then(client => client.registerChannel('storage', storageChannel))");
 	});
 
-	test('profileStorageListener / logger then and void logOSProxyConfigTelemetry stay leftover; assigned / two-arg / sync void stay skipped', () => {
+	test('D726 profileStorageListener / logger then / void logOSProxyConfigTelemetry already dual-chained stay skipped; assigned / two-arg / sync void stay skipped', () => {
 		const source = fs.readFileSync(resolveSource(APP_REL), 'utf8');
-		assert.ok(source.includes("sharedProcessClient.then(client => client.registerChannel('profileStorageListener', profileStorageListener));"));
-		assert.ok(!source.includes(`sharedProcessClient.then(client => client.registerChannel('profileStorageListener', profileStorageListener))${doubleCatch}`));
-		assert.ok(source.includes("sharedProcessClient.then(client => client.registerChannel('logger', loggerChannel));"));
-		assert.ok(!source.includes(`sharedProcessClient.then(client => client.registerChannel('logger', loggerChannel))${doubleCatch}`));
+		assertDoubleThen(source, "sharedProcessClient.then(client => client.registerChannel('profileStorageListener', profileStorageListener))");
+		assertDoubleThen(source, "sharedProcessClient.then(client => client.registerChannel('logger', loggerChannel))");
 		assertPromiseSignature(source, 'private async logOSProxyConfigTelemetry(nativeHostMainService: INativeHostMainService, telemetryService: ITelemetryService): Promise<void> {');
-		assert.ok(source.includes('void this.logOSProxyConfigTelemetry(nativeHostMainService, telemetryService);'));
-		assert.ok(!source.includes(`void this.logOSProxyConfigTelemetry(nativeHostMainService, telemetryService)${doubleCatch}`));
+		assertDoubleThen(source, 'void this.logOSProxyConfigTelemetry(nativeHostMainService, telemetryService)');
 		assert.ok(source.includes('const activeWindowRouter = new StaticRouter(ctx => activeWindowManager.getActiveClientId().then(id => ctx === id));'));
 		assert.ok(!source.includes('getActiveClientId().then(id => ctx === id).catch'));
 		assert.ok(source.includes("getDelayedChannel(sharedProcessReady.then(client => client.getChannel('diagnostics')))"));
