@@ -189,7 +189,7 @@ KeybindingsRegistry.registerCommandAndKeybindingRule({
 		ContextKeyExpr.has(ChatContextKeys.speechToTextConfigured.key),
 	),
 	primary: KeyMod.CtrlCmd | KeyCode.KeyI,
-	handler: () => activeDictationComposer?.toggleDictation(),
+	handler: () => { void activeDictationComposer?.toggleDictation()?.catch(onUnexpectedError).catch(onUnexpectedError); },
 });
 
 // Preserve the command id so push-to-talk hold mode can track this chord.
