@@ -5,7 +5,7 @@
 
 import { URI } from '../../../../base/common/uri.js';
 import { Event, Emitter } from '../../../../base/common/event.js';
-import * as errors from '../../../../base/common/errors.js';
+import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, IDisposable, dispose, toDisposable, MutableDisposable, combinedDisposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { FileChangeType, FileChangesEvent, IFileService, whenProviderRegistered, FileOperationError, FileOperationResult, FileOperation, FileOperationEvent } from '../../../../platform/files/common/files.js';
@@ -141,7 +141,7 @@ export class ApplicationConfiguration extends UserSettings {
 	) {
 		super(userDataProfilesService.defaultProfile.settingsResource, { scopes: APPLICATION_SCOPES, skipUnregistered: true }, uriIdentityService.extUri, fileService, logService);
 		this._register(this.onDidChange(() => this.reloadConfigurationScheduler.schedule()));
-		this.reloadConfigurationScheduler = this._register(new RunOnceScheduler(() => this.loadConfiguration().then(configurationModel => this._onDidChangeConfiguration.fire(configurationModel)), 50));
+		this.reloadConfigurationScheduler = this._register(new RunOnceScheduler(() => this.loadConfiguration().then(configurationModel => this._onDidChangeConfiguration.fire(configurationModel)).catch(onUnexpectedError).catch(onUnexpectedError), 50));
 	}
 
 	async initialize(): Promise<ConfigurationModel> {
@@ -181,7 +181,7 @@ export class UserConfiguration extends Disposable {
 		super();
 		this.userConfiguration.value = new UserSettings(settingsResource, this.configurationParseOptions, uriIdentityService.extUri, this.fileService, logService);
 		this.userConfigurationChangeDisposable.value = this.userConfiguration.value.onDidChange(() => this.reloadConfigurationScheduler.schedule());
-		this.reloadConfigurationScheduler = this._register(new RunOnceScheduler(() => this.userConfiguration.value!.loadConfiguration().then(configurationModel => this._onDidChangeConfiguration.fire(configurationModel)), 50));
+		this.reloadConfigurationScheduler = this._register(new RunOnceScheduler(() => this.userConfiguration.value!.loadConfiguration().then(configurationModel => this._onDidChangeConfiguration.fire(configurationModel)).catch(onUnexpectedError).catch(onUnexpectedError), 50));
 	}
 
 	async reset(settingsResource: URI, tasksResource: URI | undefined, mcpResource: URI | undefined, configurationParseOptions: ConfigurationParseOptions): Promise<ConfigurationModel> {
@@ -282,7 +282,7 @@ class FileServiceBasedConfiguration extends Disposable {
 					const content = await this.fileService.readFile(resource, { atomic: true });
 					return content.value.toString();
 				} catch (error) {
-					this.logService.trace(`Error while resolving configuration file '${resource.toString()}': ${errors.getErrorMessage(error)}`);
+					this.logService.trace(`Error while resolving configuration file '${resource.toString()}': ${getErrorMessage(error)}`);
 					if ((<FileOperationError>error).fileOperationResult !== FileOperationResult.FILE_NOT_FOUND
 						&& (<FileOperationError>error).fileOperationResult !== FileOperationResult.FILE_NOT_DIRECTORY) {
 						this.logService.error(error);
@@ -407,7 +407,7 @@ export class RemoteUserConfiguration extends Disposable {
 				this.onDidUserConfigurationChange(configurationModel);
 				this._onDidInitialize.fire(configurationModel);
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	async initialize(): Promise<ConfigurationModel> {
@@ -483,7 +483,7 @@ class FileServiceBasedRemoteUserConfiguration extends Disposable {
 		this.parseOptions = configurationParseOptions;
 		this._register(fileService.onDidFilesChange(e => this.handleFileChangesEvent(e)));
 		this._register(fileService.onDidRunOperation(e => this.handleFileOperationEvent(e)));
-		this.reloadConfigurationScheduler = this._register(new RunOnceScheduler(() => this.reload().then(configurationModel => this._onDidChangeConfiguration.fire(configurationModel)), 50));
+		this.reloadConfigurationScheduler = this._register(new RunOnceScheduler(() => this.reload().then(configurationModel => this._onDidChangeConfiguration.fire(configurationModel)).catch(onUnexpectedError).catch(onUnexpectedError), 50));
 		this._register(toDisposable(() => {
 			this.stopWatchingResource();
 			this.stopWatchingDirectory();
@@ -1045,7 +1045,7 @@ export class FolderConfiguration extends Disposable {
 					this.folderConfiguration = this._register(this.createFileServiceBasedConfiguration(fileService, uriIdentityService, logService));
 					this._register(this.folderConfiguration.onDidChange(e => this.onDidFolderConfigurationChange()));
 					this.onDidFolderConfigurationChange();
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			this.folderConfiguration = this._register(this.createFileServiceBasedConfiguration(fileService, uriIdentityService, logService));
 			this._register(this.folderConfiguration.onDidChange(e => this.onDidFolderConfigurationChange()));
