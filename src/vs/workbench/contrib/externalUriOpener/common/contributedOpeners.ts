@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { Memento } from '../../../common/memento.js';
@@ -41,10 +42,10 @@ export class ContributedExternalUriOpenersStore extends Disposable {
 			}
 		}
 
-		this.invalidateOpenersOnExtensionsChanged();
+		this.invalidateOpenersOnExtensionsChanged().catch(onUnexpectedError).catch(onUnexpectedError);
 
-		this._register(this._extensionService.onDidChangeExtensions(() => this.invalidateOpenersOnExtensionsChanged()));
-		this._register(this._extensionService.onDidChangeExtensionsStatus(() => this.invalidateOpenersOnExtensionsChanged()));
+		this._register(this._extensionService.onDidChangeExtensions(() => this.invalidateOpenersOnExtensionsChanged().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this._extensionService.onDidChangeExtensionsStatus(() => this.invalidateOpenersOnExtensionsChanged().catch(onUnexpectedError).catch(onUnexpectedError)));
 	}
 
 	public didRegisterOpener(id: string, extensionId: string): void {
