@@ -35,6 +35,7 @@ import { IKeybindingService } from '../../../../platform/keybinding/common/keybi
 import { ResultKind } from '../../../../platform/keybinding/common/keybindingResolver.js';
 import { IListService, IOpenEvent, IWorkbenchObjectTreeOptions, WorkbenchObjectTree } from '../../../../platform/list/browser/listService.js';
 import { IMarkerService, MarkerSeverity } from '../../../../platform/markers/common/markers.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IOpenerService, withSelection } from '../../../../platform/opener/common/opener.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
@@ -317,7 +318,7 @@ export class MarkersView extends FilterViewPane implements IMarkersView {
 				} else {
 					this.rangeHighlightDecorations.removeHighlightRange();
 				}
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 			return true;
 		} else {
 			this.rangeHighlightDecorations.removeHighlightRange();

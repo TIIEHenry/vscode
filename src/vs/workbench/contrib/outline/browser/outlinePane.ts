@@ -310,17 +310,19 @@ export class OutlinePane extends ViewPane implements IOutlinePane {
 		// feature: reveal outline selection in editor
 		// on change -> reveal/select defining range
 		let idPool = 0;
-		this._editorControlDisposables.add(tree.onDidOpen(async e => {
-			const myId = ++idPool;
-			const isDoubleClick = e.browserEvent?.type === 'dblclick';
-			if (!isDoubleClick) {
-				// workaround for https://github.com/microsoft/vscode/issues/206424
-				await timeout(150);
-				if (myId !== idPool) {
-					return;
+		this._editorControlDisposables.add(tree.onDidOpen(e => {
+			void Promise.resolve((async () => {
+				const myId = ++idPool;
+				const isDoubleClick = e.browserEvent?.type === 'dblclick';
+				if (!isDoubleClick) {
+					// workaround for https://github.com/microsoft/vscode/issues/206424
+					await timeout(150);
+					if (myId !== idPool) {
+						return;
+					}
 				}
-			}
-			await newOutline.reveal(e.element, e.editorOptions, e.sideBySide, isDoubleClick);
+				await newOutline.reveal(e.element, e.editorOptions, e.sideBySide, isDoubleClick);
+			})()).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		// feature: reveal editor selection in outline
 		const revealActiveElement = () => {

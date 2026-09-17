@@ -609,12 +609,12 @@ export class NotebookCellOutline implements IOutline<OutlineEntry> {
 		this._disposables.add(this._editor.onDidChangeModel(() => {
 			this.setDataSources();
 			this.setModelListeners();
-			this.computeSymbols();
+			this.computeSymbols().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		// recompute symbols as document symbol providers are updated in the language features registry
 		this._disposables.add(this._languageFeaturesService.documentSymbolProvider.onDidChange(() => {
-			this.delayedComputeSymbols();
+			this.delayedComputeSymbols().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		// recompute active when the selection changes
@@ -648,7 +648,7 @@ export class NotebookCellOutline implements IOutline<OutlineEntry> {
 		this._disposables.add(this._configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(NotebookSetting.outlineShowCodeCellSymbols)) {
 				this.outlineShowCodeCellSymbols = this._configurationService.getValue<boolean>(NotebookSetting.outlineShowCodeCellSymbols);
-				this.computeSymbols();
+				this.computeSymbols().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -696,7 +696,7 @@ export class NotebookCellOutline implements IOutline<OutlineEntry> {
 
 		// Perhaps this is the first time we're building the outline
 		if (!this.entries.length) {
-			this.computeSymbols();
+			this.computeSymbols().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		// recompute state when there are notebook content changes
@@ -723,7 +723,7 @@ export class NotebookCellOutline implements IOutline<OutlineEntry> {
 	private async delayedComputeSymbols() {
 		this.delayerRecomputeState.cancel();
 		this.delayerRecomputeActive.cancel();
-		this.delayerRecomputeSymbols.trigger(() => { this.computeSymbols(); });
+		this.delayerRecomputeSymbols.trigger(() => this.computeSymbols()).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private recomputeState() { this._outlineDataSourceReference?.object?.recomputeState(); }
