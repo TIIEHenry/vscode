@@ -50,6 +50,10 @@ import {
 } from '../../node/grpc/grpcClientMappers.js';
 import { readTeamCreatedTeamId, shouldRefreshAgentTree } from '../../node/fileMutationJoin.js';
 import { OverlayDeltaJoin } from '../../node/overlayDeltaJoin.js';
+import {
+	projectCompactFactsFromBranchReasonEnvelope,
+	projectCompactFactsFromRangeReplaced,
+} from '../../node/compactedAttribution.js';
 import { demuxSessionStreamPayload } from '../../node/sessionStreamDemux.js';
 import {
 	encodeInt32Field,
@@ -1326,6 +1330,269 @@ suite('grpc first-send / attach protobuf wire', () => {
 		assert.strictEqual(block.file_mutation, undefined);
 		assert.strictEqual(block.detail_ref, undefined);
 		assert.strictEqual(fetchToolDetailRequestFromHistoryToolCall('sess-1', block), undefined);
+	});
+
+	test('decodeGetHistoryResponse ThinkingBlock field 1 is thinking; signature unread; maps via demux', () => {
+		const thinking = Buffer.concat([
+			encodeStringField(1, 'considering'),
+			encodeStringField(2, 'sig-unread'),
+			encodeStringField(99, 'thinking-unused'),
+		]);
+		const envelope = Buffer.concat([
+			encodeStringField(1, 'env-think'),
+			encodeInt64Field(3, 11),
+			encodeMessageField(17, Buffer.concat([
+				encodeInt32Field(1, 4),
+				encodeMessageField(5, thinking),
+			])),
+			encodeStringField(99, 'unused-envelope-field'),
+		]);
+		const decoded = decodeGetHistoryResponse(encodeMessageField(1, envelope));
+		const payload = decoded.envelopes[0].payload as {
+			blocks?: Array<{ thinking_block?: Record<string, unknown> }>;
+		};
+		const thinkingBlock = payload.blocks?.[0]?.thinking_block;
+		assert.ok(thinkingBlock);
+		assert.strictEqual(thinkingBlock.thinking, 'considering');
+		assert.ok(!('text' in thinkingBlock));
+		assert.ok(!('signature' in thinkingBlock));
+		assert.strictEqual(JSON.stringify(decoded).includes('unread'), false);
+		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
+		const events = demuxSessionStreamPayload({ envelope_appended: { envelope: payload } });
+		assert.strictEqual(events.length, 1);
+		assert.strictEqual((events[0] as { arm?: string }).arm, 'reasoning');
+		assert.strictEqual((events[0] as { body?: { collapsedPreview?: string } }).body?.collapsedPreview, 'considering');
+	});
+
+	test('decodeGetHistoryResponse leftover nested 6/17/21/22/23 and branch_reason=13; unused unread', () => {
+		const summary = Buffer.concat([
+			encodeStringField(1, 'folded 4 turns'),
+			encodeInt32Field(2, 9),
+			encodeInt32Field(3, 2),
+			encodeStringField(99, 'summary-unused'),
+		]);
+		const canvasRef = Buffer.concat([
+			encodeStringField(1, 'canvas-1'),
+			encodeStringField(2, 'rev-1'),
+			encodeStringField(3, 'Board'),
+			encodeStringField(4, 'hash-1'),
+			encodeStringField(99, 'canvas-unused'),
+		]);
+		const compactedSpan = Buffer.concat([
+			encodeStringField(1, 'anchor-1'),
+			encodeStringField(2, 'leaf-1'),
+			encodeStringField(3, 'branch-1'),
+			encodeStringField(99, 'span-unused'),
+		]);
+		const toolCall = Buffer.concat([
+			encodeStringField(1, 'call-canvas'),
+			encodeStringField(2, 'read_file'),
+		]);
+		const envelope = Buffer.concat([
+			encodeStringField(1, 'env-leftover'),
+			encodeInt64Field(3, 12),
+			encodeStringField(11, 'parent-unread'),
+			encodeStringField(13, 'compact'),
+			encodeMessageField(17, Buffer.concat([
+				encodeInt32Field(1, 2),
+				encodeMessageField(3, toolCall),
+			])),
+			encodeMessageField(17, Buffer.concat([
+				encodeInt32Field(1, 5),
+				encodeMessageField(6, summary),
+			])),
+			encodeMessageField(17, Buffer.concat([
+				encodeInt32Field(1, 15),
+				encodeMessageField(17, canvasRef),
+			])),
+			encodeMessageField(17, Buffer.concat([
+				encodeInt32Field(1, 8),
+				encodeStringField(21, 'Metadata'),
+				encodeStringField(22, '{"k":1}'),
+				encodeStringField(99, 'block-unused'),
+			])),
+			encodeMessageField(17, Buffer.concat([
+				encodeInt32Field(1, 19),
+				encodeMessageField(23, compactedSpan),
+			])),
+			encodeStringField(99, 'unused-envelope-field'),
+		]);
+		const decoded = decodeGetHistoryResponse(encodeMessageField(1, envelope));
+		const payload = decoded.envelopes[0].payload as {
+			branch_reason?: string;
+			blocks?: Array<Record<string, unknown>>;
+		};
+		assert.strictEqual(payload.branch_reason, 'compact');
+		const blocks = payload.blocks ?? [];
+		assert.strictEqual(blocks.length, 5);
+		const summaryBlock = blocks[1]?.summary_block as Record<string, unknown> | undefined;
+		assert.strictEqual(summaryBlock?.text, 'folded 4 turns');
+		assert.ok(summaryBlock && !('original_message_count' in summaryBlock));
+		assert.ok(summaryBlock && !('compacted_message_count' in summaryBlock));
+		assert.deepStrictEqual(blocks[2]?.canvas_ref_block, {
+			canvas_id: 'canvas-1',
+			revision_id: 'rev-1',
+			title: 'Board',
+			source_hash: 'hash-1',
+		});
+		assert.strictEqual(blocks[3]?.original_type, 'Metadata');
+		assert.strictEqual(blocks[3]?.raw_json, '{"k":1}');
+		assert.deepStrictEqual(blocks[4]?.compacted_span_block, {
+			anchor_turn_id: 'anchor-1',
+			folded_leaf_turn_id: 'leaf-1',
+			compact_branch_turn_id: 'branch-1',
+		});
+		assert.strictEqual(JSON.stringify(decoded).includes('unread'), false);
+		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
+		const events = demuxSessionStreamPayload({ envelope_appended: { envelope: payload } });
+		assert.strictEqual((events[0] as { arm?: string }).arm, 'tool');
+		assert.deepStrictEqual((events[0] as { body?: { canvasRefs?: unknown } }).body?.canvasRefs, [{
+			canvasId: 'canvas-1',
+			revisionId: 'rev-1',
+			title: 'Board',
+			sourceHash: 'hash-1',
+		}]);
+		assert.deepStrictEqual(projectCompactFactsFromBranchReasonEnvelope(payload), {
+			itemId: 'env-leftover',
+			branchReason: 'compact',
+			compacted: {
+				anchorTurnId: 'anchor-1',
+				foldedLeafTurnId: 'leaf-1',
+				compactBranchTurnId: 'branch-1',
+				summary: 'folded 4 turns',
+			},
+		});
+	});
+
+	test('decodeSessionStreamEvent leftover original_type=21 raw_json=22; unused unread; maps via demux', () => {
+		const envelope = Buffer.concat([
+			encodeStringField(1, 'env-unknown'),
+			encodeInt64Field(3, 13),
+			encodeMessageField(17, Buffer.concat([
+				encodeInt32Field(1, 8),
+				encodeStringField(21, 'Metadata'),
+				encodeStringField(22, '{"k":1}'),
+				encodeStringField(99, 'block-unused'),
+			])),
+		]);
+		const appended = Buffer.concat([
+			encodeInt64Field(1, 13),
+			encodeInt64Field(2, 4),
+			encodeStringField(3, 'client-unread'),
+			encodeStringField(4, 'op-unread'),
+			encodeMessageField(5, envelope),
+			encodeStringField(99, 'appended-unused'),
+		]);
+		const encoded = Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodeMessageField(20, appended),
+			encodeStringField(99, 'unused-stream-field'),
+		]);
+		const decoded = decodeSessionStreamEvent(encoded);
+		const payload = decoded.payload as {
+			envelope_appended?: { envelope?: { blocks?: Array<Record<string, unknown>> } };
+		};
+		const block = payload.envelope_appended?.envelope?.blocks?.[0];
+		assert.strictEqual(block?.original_type, 'Metadata');
+		assert.strictEqual(block?.raw_json, '{"k":1}');
+		assert.strictEqual(JSON.stringify(decoded).includes('unread'), false);
+		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
+		const events = demuxSessionStreamPayload(decoded.payload);
+		assert.strictEqual((events[0] as { arm?: string }).arm, 'unknownBlock');
+		assert.strictEqual((events[0] as { body?: { typeName?: string; rawContent?: string } }).body?.typeName, 'Metadata');
+		assert.strictEqual((events[0] as { body?: { typeName?: string; rawContent?: string } }).body?.rawContent, '{"k":1}');
+
+		const pinEra = Buffer.concat([
+			encodeStringField(1, 'env-snippet'),
+			encodeInt64Field(3, 14),
+			encodeMessageField(17, Buffer.concat([
+				encodeInt32Field(1, 16),
+				encodeStringField(21, 'snippet'),
+				encodeStringField(99, 'snippet-unused'),
+			])),
+		]);
+		const pinAppended = Buffer.concat([
+			encodeInt64Field(1, 14),
+			encodeMessageField(5, pinEra),
+		]);
+		const pinDecoded = decodeSessionStreamEvent(Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodeMessageField(20, pinAppended),
+			encodeStringField(99, 'unused-stream-field'),
+		]));
+		assert.strictEqual(JSON.stringify(pinDecoded).includes('unused'), false);
+		const pinEvents = demuxSessionStreamPayload(pinDecoded.payload);
+		assert.strictEqual((pinEvents[0] as { arm?: string }).arm, 'text');
+		assert.strictEqual((pinEvents[0] as { body?: { preview?: string } }).body?.preview, 'snippet');
+	});
+
+	test('decodeSessionStreamEvent range_replaced operation_id=4 reason=9 subtree_root=11; unused unread; compact facts', () => {
+		const summary = Buffer.concat([
+			encodeStringField(1, 'folded span'),
+			encodeInt32Field(2, 4),
+			encodeInt32Field(3, 1),
+		]);
+		const compactedSpan = Buffer.concat([
+			encodeStringField(1, 'anchor-r'),
+			encodeStringField(2, 'leaf-r'),
+			encodeStringField(3, 'branch-r'),
+		]);
+		const replacement = Buffer.concat([
+			encodeStringField(1, 'env-range'),
+			encodeInt64Field(3, 20),
+			encodeMessageField(17, Buffer.concat([
+				encodeInt32Field(1, 5),
+				encodeMessageField(6, summary),
+			])),
+			encodeMessageField(17, Buffer.concat([
+				encodeInt32Field(1, 19),
+				encodeMessageField(23, compactedSpan),
+			])),
+		]);
+		const replaced = Buffer.concat([
+			encodeInt64Field(1, 20),
+			encodeInt64Field(2, 8),
+			encodeStringField(3, 'client-unread'),
+			encodeStringField(4, 'op-compact'),
+			encodeInt64Field(5, 4),
+			encodeInt64Field(6, 20),
+			encodeMessageField(7, replacement),
+			encodeStringField(8, 'diverged-1'),
+			encodeInt32Field(9, 3),
+			encodeStringField(10, 'old-env'),
+			encodeStringField(11, 'turn-root'),
+			encodeStringField(99, 'range-unused'),
+		]);
+		const encoded = Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodeMessageField(22, replaced),
+			encodeStringField(99, 'unused-stream-field'),
+		]);
+		const decoded = decodeSessionStreamEvent(encoded);
+		const range = (decoded.payload as { envelope_range_replaced?: Record<string, unknown> }).envelope_range_replaced;
+		assert.ok(range);
+		assert.strictEqual(range.operation_id, 'op-compact');
+		assert.strictEqual(range.reason, 3);
+		assert.strictEqual(range.subtree_root_turn_id, 'turn-root');
+		assert.ok(!('source_client_id' in range));
+		assert.strictEqual(JSON.stringify(decoded).includes('unread'), false);
+		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
+		const events = demuxSessionStreamPayload(decoded.payload);
+		assert.strictEqual((events[0] as { arm?: string }).arm, 'rangeReplaced');
+		const meta = (events[0] as { body?: { meta?: Record<string, unknown> } }).body?.meta;
+		assert.strictEqual(meta?.operationId, 'op-compact');
+		assert.strictEqual(meta?.reason, 3);
+		assert.strictEqual(meta?.subtreeRootTurnId, 'turn-root');
+		assert.deepStrictEqual(projectCompactFactsFromRangeReplaced(decoded.payload), [{
+			itemId: 'env-range',
+			branchReason: 'compact',
+			compacted: {
+				anchorTurnId: 'anchor-r',
+				foldedLeafTurnId: 'leaf-r',
+				compactBranchTurnId: 'branch-r',
+				summary: 'folded span',
+			},
+		}]);
 	});
 
 	test('encodePresentMessageField keeps empty oneof arm', () => {

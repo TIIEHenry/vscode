@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "SessionStream 16/23/30/31/32/34/35/36/37/38/39/44/46/50/51/52 已合入。D24 仍开。不是 leftover/pills 完成。"
+summary: "工位 A `d24-envelope-leftover`：L2 leftover decode。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -20,7 +20,7 @@ summary: "SessionStream 16/23/30/31/32/34/35/36/37/38/39/44/46/50/51/52 已合�
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A** | 等 leftover 下一刀（33/40–43/45 仅当有公共消费者） |
+| **A** | `d24-envelope-leftover` 进行中；D24 **仍开**；未 compile-client |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **C** | gitlink 脏 `dev/loop`；勿 add |
 | **E** | `blocked` `fix/ci-gate-reds` |
@@ -30,6 +30,7 @@ summary: "SessionStream 16/23/30/31/32/34/35/36/37/38/39/44/46/50/51/52 已合�
 | ID | 问题 |
 |:---|:-----|
 | [D24](deferred-gaps.md) | **仍开**：Connect/Watch/Resolve/Pty 仍 JSON |
+| — | J ToolCallBlock 仅 1–3；本仓 decode+GetHistory 测锁发明号 `detail_ref`=4 / `file_mutation`=5；本刀未删、未标 unread |
 | — | join 读 `snapshot.payload.file_mutation_payload`，host 读 sibling；本刀 decode 两侧都写 |
 | — | TeamInfo 2/3 测锁；ListTeams 不在 J；GetConfig tags 测锁 `[]`；AgentProfile 17–19 非 J；work_dir 7/9 非 J |
 ## Next

@@ -925,14 +925,20 @@ function decodeEnvelopeBatchAppended(bytes: Uint8Array): Record<string, unknown>
 
 function decodeEnvelopeRangeReplaced(bytes: Uint8Array): Record<string, unknown> {
 	const fields = readProtoFields(bytes);
+	const operationId = lastString(fields, 4);
+	const reason = lastVarint(fields, 9);
+	const subtreeRootTurnId = lastString(fields, 11);
 	return {
 		seq: numberOrZero(lastVarint(fields, 1)),
 		session_version: numberOrZero(lastVarint(fields, 2)),
+		...(operationId ? { operation_id: operationId } : {}),
 		from_seq: numberOrZero(lastVarint(fields, 5)),
 		new_head_seq: numberOrZero(lastVarint(fields, 6)),
 		replacement: allLengthDelimited(fields, 7).map(decodeMessageEnvelope),
 		diverged_from_turn_id: lastString(fields, 8) ?? '',
+		...(reason ? { reason: Number(reason) } : {}),
 		replaced_envelope_ids: allLengthDelimited(fields, 10).map(value => Buffer.from(value).toString('utf8')),
+		...(subtreeRootTurnId ? { subtree_root_turn_id: subtreeRootTurnId } : {}),
 	};
 }
 
@@ -957,6 +963,10 @@ function decodeMessageEnvelope(bytes: Uint8Array): Record<string, unknown> {
 	const turnId = lastString(fields, 10);
 	if (turnId) {
 		envelope.turn_id = turnId;
+	}
+	const branchReason = lastString(fields, 13);
+	if (branchReason) {
+		envelope.branch_reason = branchReason;
 	}
 	const blocks = allLengthDelimited(fields, 17).map(decodeBlock);
 	if (blocks.length > 0) {
@@ -1004,9 +1014,60 @@ function decodeBlock(bytes: Uint8Array): Record<string, unknown> {
 	}
 	const thinking = lastBytes(fields, 5);
 	if (thinking) {
-		block.thinking_block = { text: lastString(readProtoFields(thinking), 1) ?? '' };
+		block.thinking_block = decodeThinkingBlock(thinking);
+	}
+	const summary = lastBytes(fields, 6);
+	if (summary) {
+		block.summary_block = decodeSummaryBlock(summary);
+	}
+	const canvasRef = lastBytes(fields, 17);
+	if (canvasRef) {
+		block.canvas_ref_block = decodeCanvasRefBlock(canvasRef);
+	}
+	const originalType = lastString(fields, 21);
+	if (originalType) {
+		block.original_type = originalType;
+	}
+	const rawJson = lastString(fields, 22);
+	if (rawJson) {
+		block.raw_json = rawJson;
+	}
+	const compactedSpan = lastBytes(fields, 23);
+	if (compactedSpan) {
+		block.compacted_span_block = decodeCompactedSpanBlock(compactedSpan);
 	}
 	return block;
+}
+
+function decodeThinkingBlock(bytes: Uint8Array): Record<string, unknown> {
+	return { thinking: lastString(readProtoFields(bytes), 1) ?? '' };
+}
+
+function decodeSummaryBlock(bytes: Uint8Array): Record<string, unknown> {
+	return { text: lastString(readProtoFields(bytes), 1) ?? '' };
+}
+
+function decodeCanvasRefBlock(bytes: Uint8Array): Record<string, unknown> {
+	const inner = readProtoFields(bytes);
+	const canvas: Record<string, unknown> = {
+		canvas_id: lastString(inner, 1) ?? '',
+		revision_id: lastString(inner, 2) ?? '',
+		title: lastString(inner, 3) ?? '',
+	};
+	const sourceHash = lastString(inner, 4);
+	if (sourceHash) {
+		canvas.source_hash = sourceHash;
+	}
+	return canvas;
+}
+
+function decodeCompactedSpanBlock(bytes: Uint8Array): Record<string, unknown> {
+	const inner = readProtoFields(bytes);
+	return {
+		anchor_turn_id: lastString(inner, 1) ?? '',
+		folded_leaf_turn_id: lastString(inner, 2) ?? '',
+		compact_branch_turn_id: lastString(inner, 3) ?? '',
+	};
 }
 
 export function fetchToolDetailRequestFromHistoryToolCall(
