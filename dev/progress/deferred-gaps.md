@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D747 leftover Promise 双链；D736/D739/D740/D745 跳过。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D747 leftover Promise 双链含 D743/D744/D746；D736/D739/D740/D745 跳过。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps

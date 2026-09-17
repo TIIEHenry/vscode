@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D747。D736/D739/D740/D745 跳过。D24 仍开。不是 leftover/pills 完成。"
+summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D747。D743/D744/D746 已合。D736/D739/D740/D745 跳过。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
