@@ -640,7 +640,7 @@ export class WorkspacePicker extends Disposable {
 	private _buildDelegate(triggerElement: HTMLElement, hide: () => void): IActionListDelegate<IWorkspacePickerItem> {
 		return {
 			onSelect: (item) => {
-				void this._dispatchPickerItem(item).catch(onUnexpectedError);
+				void this._dispatchPickerItem(item).catch(onUnexpectedError).catch(onUnexpectedError);
 				hide();
 			},
 			onHide: () => {
@@ -1666,7 +1666,7 @@ export class WorkspacePicker extends Disposable {
 			this._onDidChangeSelection.fire();
 			this._onDidSelectWorkspace.fire(this._selectedFolderUri);
 			this._watchForConnectionFailure(restored);
-		}).catch(onUnexpectedError);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _canRestoreProviderWorkspace(providerId: string): boolean {
