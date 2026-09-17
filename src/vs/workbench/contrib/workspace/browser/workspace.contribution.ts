@@ -49,6 +49,7 @@ import { securityConfigurationNodeBase } from '../../../common/configuration.js'
 import { basename, dirname as uriDirname } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 
 const BANNER_RESTRICTED_MODE = 'workbench.banner.restrictedMode';
 const STARTUP_PROMPT_SHOWN_KEY = 'workspace.trust.startupPrompt.shown';
@@ -321,17 +322,17 @@ export class WorkspaceTrustUXHandler extends Disposable implements IWorkbenchCon
 
 				// Show modal dialog
 				if (this.hostService.hasFocus) {
-					this.showModalOnStart();
+					this.showModalOnStart().catch(onUnexpectedError).catch(onUnexpectedError);
 				} else {
 					const focusDisposable = this.hostService.onDidChangeFocus(focused => {
 						if (focused) {
 							focusDisposable.dispose();
-							this.showModalOnStart();
+							this.showModalOnStart().catch(onUnexpectedError).catch(onUnexpectedError);
 						}
 					});
 				}
 			}
-		})();
+		})().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private registerListeners(): void {
@@ -425,7 +426,7 @@ export class WorkspaceTrustUXHandler extends Disposable implements IWorkbenchCon
 				{ label: dontTrustOption ?? localize({ key: 'dontTrustOption', comment: ['&& denotes a mnemonic'] }, "&&No, I don't trust the authors"), sublabel: isSingleFolderWorkspace ? localize('dontTrustFolderOptionDescription', "Open folder in restricted mode") : localize('dontTrustWorkspaceOptionDescription', "Open workspace in restricted mode") },
 				markdownStrings,
 				checkboxText
-			);
+			).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 
@@ -865,10 +866,10 @@ class WorkspaceTrustTelemetryContribution extends Disposable implements IWorkben
 		this.workspaceTrustManagementService.workspaceTrustInitialized
 			.then(() => {
 				this.logInitialWorkspaceTrustInfo();
-				this.logWorkspaceTrust(this.workspaceTrustManagementService.isWorkspaceTrusted());
+				this.logWorkspaceTrust(this.workspaceTrustManagementService.isWorkspaceTrusted()).catch(onUnexpectedError).catch(onUnexpectedError);
 
-				this._register(this.workspaceTrustManagementService.onDidChangeTrust(isTrusted => this.logWorkspaceTrust(isTrusted)));
-			});
+				this._register(this.workspaceTrustManagementService.onDidChangeTrust(isTrusted => this.logWorkspaceTrust(isTrusted).catch(onUnexpectedError).catch(onUnexpectedError)));
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private logInitialWorkspaceTrustInfo(): void {

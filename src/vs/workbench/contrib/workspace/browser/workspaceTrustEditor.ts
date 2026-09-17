@@ -13,6 +13,7 @@ import { Action, IAction } from '../../../../base/common/actions.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { debounce } from '../../../../base/common/decorators.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { normalizeDriveLetter } from '../../../../base/common/labels.js';
@@ -167,7 +168,7 @@ class WorkspaceTrustedUrisTable extends Disposable {
 		this._register(this.table.onDidOpen(item => {
 			// default prevented when input box is double clicked #125052
 			if (item && item.element && !item.browserEvent?.defaultPrevented) {
-				this.edit(item.element, true);
+				this.edit(item.element, true).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -186,7 +187,7 @@ class WorkspaceTrustedUrisTable extends Disposable {
 			});
 
 			if (uri) {
-				this.workspaceTrustManagementService.setUrisTrust(uri, true);
+				this.workspaceTrustManagementService.setUrisTrust(uri, true).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -332,7 +333,7 @@ class WorkspaceTrustedUrisTable extends Disposable {
 			trustedFolders[index] = uri;
 		}
 
-		this.workspaceTrustManagementService.setTrustedUris(trustedFolders);
+		this.workspaceTrustManagementService.setTrustedUris(trustedFolders).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._onDidAcceptEdit.fire(item);
 	}
 
@@ -754,7 +755,7 @@ export class WorkspaceTrustEditor extends EditorPane {
 				this.rootElement.focus();
 			} else if (event.equals(KeyMod.CtrlCmd | KeyCode.Enter)) {
 				if (this.workspaceTrustManagementService.canSetWorkspaceTrust()) {
-					this.workspaceTrustManagementService.setWorkspaceTrust(!this.workspaceTrustManagementService.isWorkspaceTrusted());
+					this.workspaceTrustManagementService.setWorkspaceTrust(!this.workspaceTrustManagementService.isWorkspaceTrusted()).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 		}));
