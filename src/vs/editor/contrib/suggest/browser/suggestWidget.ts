@@ -450,7 +450,7 @@ export class SuggestWidget implements IDisposable {
 				}
 
 				this.editor.setAriaOptions({ activeDescendant: this._list.getElementID(index) });
-			}).catch(onUnexpectedError);
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		// emit an event
