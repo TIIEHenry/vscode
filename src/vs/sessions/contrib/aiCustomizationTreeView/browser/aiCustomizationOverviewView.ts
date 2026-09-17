@@ -6,6 +6,7 @@
 import './media/aiCustomizationManagement.css';
 import * as DOM from '../../../../base/browser/dom.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { autorun } from '../../../../base/common/observable.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
@@ -96,14 +97,14 @@ export class AICustomizationOverviewView extends ViewPane {
 		);
 
 		// Listen to changes
-		this._register(this.promptsService.onDidChangeCustomAgents(() => this.loadCounts()));
-		this._register(this.promptsService.onDidChangeSlashCommands(() => this.loadCounts()));
+		this._register(this.promptsService.onDidChangeCustomAgents(() => void this.loadCounts().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.promptsService.onDidChangeSlashCommands(() => void this.loadCounts().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		// Listen to workspace folder changes to update counts
-		this._register(this.workspaceContextService.onDidChangeWorkspaceFolders(() => this.loadCounts()));
+		this._register(this.workspaceContextService.onDidChangeWorkspaceFolders(() => void this.loadCounts().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this._register(autorun(reader => {
 			this.workspaceService.activeProjectRoot.read(reader);
-			this.loadCounts();
+			void this.loadCounts().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 	}
@@ -116,7 +117,7 @@ export class AICustomizationOverviewView extends ViewPane {
 		this.sectionsContainer = DOM.append(this.container, $('.overview-sections'));
 
 		this.renderSections();
-		void this.loadCounts();
+		void this.loadCounts().catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Force initial layout
 		this.layoutBody(this.bodyElement.offsetHeight, this.bodyElement.offsetWidth);
