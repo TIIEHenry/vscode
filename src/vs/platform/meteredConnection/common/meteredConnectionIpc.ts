@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { IChannel } from '../../../base/parts/ipc/common/ipc.js';
@@ -41,7 +42,7 @@ export class MeteredConnectionChannelClient extends Disposable implements IMeter
 			if (value) {
 				this._onDidChangeIsConnectionMetered.fire(value);
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this._register(channel.listen<boolean>(MeteredConnectionCommand.OnDidChangeIsConnectionMetered)(value => {
 			if (this._isConnectionMetered !== value) {
