@@ -40,11 +40,13 @@ suite('InlineChatController leftover fire-and-forget catch scan (D663)', () => {
 		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
 	});
 
-	test('openEditor SIDE_GROUP leftover site remains D145-style single-chain', () => {
+	test('openEditor SIDE_GROUP leftover site is double-chain (D701)', () => {
 		const source = fs.readFileSync(inlineChatControllerSourcePath(), 'utf8');
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'this.#editorService.openEditor({ resource: entry.modifiedURI }, SIDE_GROUP)';
 		assert.strictEqual((source.match(/this\.#editorService\.openEditor\(\{ resource: entry\.modifiedURI \}, SIDE_GROUP\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${call}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError).catch(onUnexpectedError);`));
+		assert.ok(source.includes(`${call}${doubleCatch};`));
+		assert.ok(!source.includes(`${call};`));
+		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
 	});
 });

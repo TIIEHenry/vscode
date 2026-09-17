@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { isEqual } from '../../../../base/common/resources.js';
 import { ICodeEditor } from '../../../../editor/browser/editorBrowser.js';
@@ -38,7 +39,7 @@ export class InlineChatNotebookContribution {
 						// cancel all sibling sessions
 						for (const editor of editors) {
 							if (editor !== newSessionEditor) {
-								InlineChatController.get(editor)?.acceptSession();
+								void InlineChatController.get(editor)?.acceptSession().catch(onUnexpectedError).catch(onUnexpectedError);
 							}
 						}
 						break;

@@ -498,7 +498,7 @@ export class InlineChatController implements IEditorContribution {
 				for (const entry of otherEntries) {
 					// OPEN other modified files in side group. This is a workaround, temp-solution until we have no more backend
 					// that modifies other files
-					this.#editorService.openEditor({ resource: entry.modifiedURI }, SIDE_GROUP).catch(onUnexpectedError);
+					this.#editorService.openEditor({ resource: entry.modifiedURI }, SIDE_GROUP).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 		}));

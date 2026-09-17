@@ -124,8 +124,8 @@ export class InlineChatSessionServiceImpl implements IInlineChatSessionService {
 
 		const store = new DisposableStore();
 		store.add(toDisposable(() => {
-			void this.#chatService.cancelCurrentRequestForSession(chatModel.sessionResource, 'inlineChatSession');
-			void editingSession.reject();
+			void this.#chatService.cancelCurrentRequestForSession(chatModel.sessionResource, 'inlineChatSession').catch(onUnexpectedError).catch(onUnexpectedError);
+			void editingSession.reject().catch(onUnexpectedError).catch(onUnexpectedError);
 			this.#sessions.delete(uri);
 			this.#onDidChangeSessions.fire(this);
 		}));
@@ -243,7 +243,7 @@ export class InlineChatSessionServiceImpl implements IInlineChatSessionService {
 				// Preparation failed, so the file is not locked and there is no review
 				// baseline. Cancel the request rather than letting the agent write unguarded.
 				if (!isDisposed) {
-					void this.#chatService.cancelCurrentRequestForSession(chatModel.sessionResource, 'inlineChatBeginTurnFailed');
+					void this.#chatService.cancelCurrentRequestForSession(chatModel.sessionResource, 'inlineChatBeginTurnFailed').catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 				if (!isCancellationError(error)) {
 					onUnexpectedError(error);
