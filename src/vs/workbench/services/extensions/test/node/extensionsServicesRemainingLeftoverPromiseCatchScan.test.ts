@@ -249,12 +249,9 @@ suite('workbench/services/extensions remaining leftover Promise fire-and-forget 
 		assert.ok(!remote.includes(`resolveAuthority(this._initDataProvider.remoteAuthority).then((resolverResult) => {}${doubleCatch}`));
 		assert.ok(remote.includes('return connectRemoteAgentExtensionHost(options, startParams).then(result => {'));
 		assert.ok(!remote.includes(`connectRemoteAgentExtensionHost(options, startParams).then(result => {}${doubleCatch}`));
-		assert.ok(abstract.includes('this._handleDeltaExtensions(new DeltaExtensionsQueueItem(toAdd, toRemove));'));
-		assert.ok(!abstract.includes('this._handleDeltaExtensions(new DeltaExtensionsQueueItem(toAdd, toRemove)).catch'));
-		assert.ok(abstract.includes('this._onRemoteExtensionHostCrashed(extensionHost, signal);'));
-		assert.ok(!abstract.includes('this._onRemoteExtensionHostCrashed(extensionHost, signal).catch'));
-		assert.ok(abstract.includes('this._extensionHostManagers.stopOne(extensionHost);'));
-		assert.ok(!abstract.includes('this._extensionHostManagers.stopOne(extensionHost).catch'));
+		assert.ok(abstract.includes(`this._handleDeltaExtensions(new DeltaExtensionsQueueItem(toAdd, toRemove))${doubleCatch};`));
+		assert.ok(abstract.includes(`this._onRemoteExtensionHostCrashed(extensionHost, signal)${doubleCatch};`));
+		assert.ok(abstract.includes(`this._extensionHostManagers.stopOne(extensionHost)${doubleCatch};`));
 		for (const source of [native, local, remote, abstract]) {
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));

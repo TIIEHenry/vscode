@@ -161,7 +161,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 			if (isCI) {
 				this._logService.info(`AbstractExtensionService.onEnablementChanged fired for ${extensions.map(e => e.identifier.id).join(', ')}`);
 			}
-			this._handleDeltaExtensions(new DeltaExtensionsQueueItem(toAdd, toRemove));
+			this._handleDeltaExtensions(new DeltaExtensionsQueueItem(toAdd, toRemove)).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this._register(this._extensionManagementService.onDidChangeProfile(({ added, removed }) => {
@@ -169,7 +169,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 				if (isCI) {
 					this._logService.info(`AbstractExtensionService.onDidChangeProfile fired`);
 				}
-				this._handleDeltaExtensions(new DeltaExtensionsQueueItem(added, removed));
+				this._handleDeltaExtensions(new DeltaExtensionsQueueItem(added, removed)).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -178,7 +178,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 				if (isCI) {
 					this._logService.info(`AbstractExtensionService.onDidEnableExtensions fired`);
 				}
-				this._handleDeltaExtensions(new DeltaExtensionsQueueItem(extensions, []));
+				this._handleDeltaExtensions(new DeltaExtensionsQueueItem(extensions, [])).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -197,7 +197,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 				if (isCI) {
 					this._logService.info(`AbstractExtensionService.onDidInstallExtensions fired for ${extensions.map(e => e.identifier.id).join(', ')}`);
 				}
-				this._handleDeltaExtensions(new DeltaExtensionsQueueItem(extensions, toRemove));
+				this._handleDeltaExtensions(new DeltaExtensionsQueueItem(extensions, toRemove)).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -207,7 +207,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 				if (isCI) {
 					this._logService.info(`AbstractExtensionService.onDidUninstallExtension fired for ${event.identifier.id}`);
 				}
-				this._handleDeltaExtensions(new DeltaExtensionsQueueItem([], [event.identifier.id]));
+				this._handleDeltaExtensions(new DeltaExtensionsQueueItem([], [event.identifier.id])).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -882,7 +882,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 			return;
 		}
 
-		this._onExtensionHostExit(code);
+		this._onExtensionHostExit(code).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	protected _onExtensionHostCrashed(extensionHost: IExtensionHostManager, code: number, signal: string | null): void {
@@ -891,9 +891,9 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 			this._doStopExtensionHosts().catch(onUnexpectedError).catch(onUnexpectedError);
 		} else if (extensionHost.kind === ExtensionHostKind.Remote) {
 			if (signal) {
-				this._onRemoteExtensionHostCrashed(extensionHost, signal);
+				this._onRemoteExtensionHostCrashed(extensionHost, signal).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
-			this._extensionHostManagers.stopOne(extensionHost);
+			this._extensionHostManagers.stopOne(extensionHost).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
