@@ -5,6 +5,7 @@
 
 import { app } from 'electron';
 import { coalesce } from '../../../base/common/arrays.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { IProcessEnvironment, isMacintosh } from '../../../base/common/platform.js';
 import { URI } from '../../../base/common/uri.js';
 import { whenDeleted } from '../../../base/node/pfs.js';
@@ -81,7 +82,7 @@ export class LaunchMainService implements ILaunchMainService {
 				for (const { uri, originalUrl } of urlsToOpen) {
 					this.urlService.open(uri, { originalUrl });
 				}
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		// Otherwise handle in windows service

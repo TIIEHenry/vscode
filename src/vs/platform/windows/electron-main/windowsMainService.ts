@@ -10,6 +10,7 @@ import { hostname, release, arch } from 'os';
 import { coalesce, distinct } from '../../../base/common/arrays.js';
 import { CancellationToken } from '../../../base/common/cancellation.js';
 import { CharCode } from '../../../base/common/charCode.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { isWindowsDriveLetter, parseLineAndColumnAware, sanitizeFilePath, toSlashes } from '../../../base/common/extpath.js';
 import { getPathLabel } from '../../../base/common/labels.js';
@@ -487,7 +488,7 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 				}
 			}
 
-			this.workspacesHistoryMainService.addRecentlyOpened(recents);
+			this.workspacesHistoryMainService.addRecentlyOpened(recents).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		// Handle `<app> --wait`
@@ -514,7 +515,7 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 				} catch (error) {
 					// ignore - could have been deleted from the window already
 				}
-			})();
+			})().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -924,7 +925,7 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 				detail: uri.scheme === Schemas.file ?
 					localize('pathNotExistDetail', "The path '{0}' does not exist on this computer.", getPathLabel(uri, { os: OS, tildify: this.environmentMainService })) :
 					localize('uriInvalidDetail', "The URI '{0}' is not valid and can not be opened.", uri.toString(true))
-			}, BrowserWindow.getFocusedWindow() ?? undefined);
+			}, BrowserWindow.getFocusedWindow() ?? undefined).catch(onUnexpectedError).catch(onUnexpectedError);
 
 			return undefined;
 		}));
@@ -1410,7 +1411,7 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 		// on the same extension path.
 		const existingWindow = findWindowOnExtensionDevelopmentPath(this.getWindows(), extensionDevelopmentPaths);
 		if (existingWindow) {
-			this.lifecycleMainService.reload(existingWindow, openConfig.cli);
+			this.lifecycleMainService.reload(existingWindow, openConfig.cli).catch(onUnexpectedError).catch(onUnexpectedError);
 			existingWindow.focus(); // make sure it gets focus and is restored
 
 			return [existingWindow];
@@ -1642,7 +1643,7 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 
 			const webContents = assertReturnsDefined(createdWindow.win?.webContents);
 			webContents.removeAllListeners('devtools-reload-page'); // remove built in listener so we can handle this on our own
-			disposables.add(Event.fromNodeEventEmitter(webContents, 'devtools-reload-page')(() => this.lifecycleMainService.reload(createdWindow)));
+			disposables.add(Event.fromNodeEventEmitter(webContents, 'devtools-reload-page')(() => this.lifecycleMainService.reload(createdWindow).catch(onUnexpectedError).catch(onUnexpectedError)));
 
 			// Lifecycle
 			this.lifecycleMainService.registerWindow(createdWindow);
@@ -1681,7 +1682,7 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 				if (!veto) {
 					await this.doOpenInBrowserWindow(window, configuration, options, defaultProfile);
 				}
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			await this.doOpenInBrowserWindow(window, configuration, options, defaultProfile);
 		}
