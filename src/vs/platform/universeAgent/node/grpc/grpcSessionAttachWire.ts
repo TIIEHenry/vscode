@@ -405,7 +405,9 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * SessionStreamEvent — `session_id`=1; nested `hello`=10 `heartbeat`=11
  * `subscription_health`=12 `session_closed`=13 `envelope_appended`=20
  * `envelope_batch_appended`=21 `envelope_range_replaced`=22
- * `streaming_delta`=30 (StreamingDeltaEvent 1–6); `permission_request`=50
+ * `streaming_delta`=30 (StreamingDeltaEvent 1–6);
+ * `thinking_delta`=31 (SessionStreamThinkingDeltaEvent 1–6, same layout);
+ * `permission_request`=50
  * PermissionRequestEvent (`request_id`=1 `tool_name`=2 `description`=3
  * `agent_id`=6). `metadata`=4 / `requested_by_client`=5 /
  * `parent_tool_call_id`=7 unread (no public demux fields).
@@ -418,8 +420,9 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * `tool_name`=3 `arguments_json`=4 `agent_id`=5). `origin`=2 /
  * `parent_tool_call_id`=6 unread (no public demux fields).
  * proto3: empty / 0 / false omitted. Unknown fields unread. Shape
- * matches OverlayDeltaJoin `streaming_delta` and demuxSessionStreamPayload
- * `permission_request` / `ask_user_question` / `client_tool_call`.
+ * matches OverlayDeltaJoin `streaming_delta` / `thinking_delta` and
+ * demuxSessionStreamPayload `permission_request` / `ask_user_question` /
+ * `client_tool_call`.
  */
 export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessionEvent {
 	const fields = readProtoFields(bytes);
@@ -459,6 +462,10 @@ export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessio
 	const streamingDelta = lastBytes(fields, 30);
 	if (streamingDelta) {
 		payload.streaming_delta = decodeStreamingDelta(streamingDelta);
+	}
+	const thinkingDelta = lastBytes(fields, 31);
+	if (thinkingDelta) {
+		payload.thinking_delta = decodeStreamingDelta(thinkingDelta);
 	}
 	const permission = lastBytes(fields, 50);
 	if (permission) {
@@ -589,9 +596,9 @@ function decodeAskUserQuestionOptionProto(bytes: Uint8Array): Record<string, unk
 }
 
 /**
- * StreamingDeltaEvent — `runtime_epoch`=1 `turn_id`=2 `block_id`=3
- * `agent_id`=4 `text_delta`=5 `delta_seq`=6. Reserved 10–13 unread.
- * proto3: empty / 0 omitted.
+ * StreamingDeltaEvent / SessionStreamThinkingDeltaEvent — `runtime_epoch`=1
+ * `turn_id`=2 `block_id`=3 `agent_id`=4 `text_delta`=5 `delta_seq`=6.
+ * Streaming reserved 10–13 unread. proto3: empty / 0 omitted.
  */
 function decodeStreamingDelta(bytes: Uint8Array): Record<string, unknown> {
 	const fields = readProtoFields(bytes);

@@ -48,6 +48,7 @@ import {
 	mapRestoreSnapshotResponse,
 	mapResumeSessionResponse,
 } from '../../node/grpc/grpcClientMappers.js';
+import { OverlayDeltaJoin } from '../../node/overlayDeltaJoin.js';
 import { demuxSessionStreamPayload } from '../../node/sessionStreamDemux.js';
 import {
 	encodeInt32Field,
@@ -459,6 +460,62 @@ suite('grpc first-send / attach protobuf wire', () => {
 		assert.strictEqual((omitted.payload as { streaming_delta?: unknown }).streaming_delta, undefined);
 		const emptyNested = decodeSessionStreamEvent(encodePresentMessageField(30, new Uint8Array(0)));
 		assert.deepStrictEqual((emptyNested.payload as { streaming_delta?: unknown }).streaming_delta, {
+			runtime_epoch: 0,
+			turn_id: '',
+			block_id: '',
+			agent_id: '',
+			text_delta: '',
+			delta_seq: 0,
+		});
+	});
+
+	test('decodeSessionStreamEvent reads nested thinking_delta=31 SessionStreamThinkingDeltaEvent 1-6; unused unread', () => {
+		const delta = Buffer.concat([
+			encodeInt64Field(1, 9),
+			encodeStringField(2, 'turn-think'),
+			encodeStringField(3, 'block-1'),
+			encodeStringField(4, 'root'),
+			encodeStringField(5, 'hmm'),
+			encodeInt64Field(6, 3),
+			encodeStringField(7, 'unused-field'),
+		]);
+		const encoded = Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodeMessageField(31, delta),
+			encodeStringField(99, 'unused-stream-field'),
+		]);
+		const decoded = decodeSessionStreamEvent(encoded);
+		const payload = decoded.payload as {
+			session_id?: string;
+			thinking_delta?: {
+				runtime_epoch?: number;
+				turn_id?: string;
+				block_id?: string;
+				agent_id?: string;
+				text_delta?: string;
+				delta_seq?: number;
+			};
+		};
+		assert.strictEqual(payload.session_id, 'sess-1');
+		assert.deepStrictEqual(payload.thinking_delta, {
+			runtime_epoch: 9,
+			turn_id: 'turn-think',
+			block_id: 'block-1',
+			agent_id: 'root',
+			text_delta: 'hmm',
+			delta_seq: 3,
+		});
+		assert.ok(!('thinkingDelta' in payload));
+		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
+		const joined = new OverlayDeltaJoin().handlePayload(decoded.payload);
+		assert.deepStrictEqual(joined, [{
+			arm: 'overlayActiveTurn',
+			body: { turnId: 'turn-think', streamingText: '', thinkingText: 'hmm' },
+		}]);
+		const omitted = decodeSessionStreamEvent(encodeStringField(1, 'sess-2'));
+		assert.strictEqual((omitted.payload as { thinking_delta?: unknown }).thinking_delta, undefined);
+		const emptyNested = decodeSessionStreamEvent(encodePresentMessageField(31, new Uint8Array(0)));
+		assert.deepStrictEqual((emptyNested.payload as { thinking_delta?: unknown }).thinking_delta, {
 			runtime_epoch: 0,
 			turn_id: '',
 			block_id: '',

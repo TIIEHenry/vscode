@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "SessionStream 30/50/51/52 已合入。D24 仍开。不是 leftover/pills 完成。"
+summary: "SessionStream 30/50/51/52 已合入。A 槽 thinking_delta=31 进行中。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -23,7 +23,7 @@ summary: "SessionStream 30/50/51/52 已合入。D24 仍开。不是 leftover/pil
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A** | 下一刀 OverlayDeltaJoin 已消费的 `thinking_delta`=31 |
+| **A** | OverlayDeltaJoin 已消费的 `thinking_delta`=31 进行中（1–6；未合入） |
 | **D/F/G/I** | 他线 leftover hunt：**无合法切片** |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **C** | gitlink 脏 `dev/loop`；勿 add |
