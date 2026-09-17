@@ -401,6 +401,14 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
 	]);
 }
 
+/**
+ * SessionStreamEvent — `session_id`=1; nested `hello`=10 `heartbeat`=11
+ * `subscription_health`=12 `session_closed`=13 `envelope_appended`=20
+ * `envelope_batch_appended`=21 `envelope_range_replaced`=22
+ * `streaming_delta`=30 (StreamingDeltaEvent 1–6). Other oneof arms unread.
+ * proto3: empty / 0 omitted. Unknown fields unread.
+ * Shape matches OverlayDeltaJoin `streaming_delta` / `text_delta` keys.
+ */
 export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessionEvent {
 	const fields = readProtoFields(bytes);
 	const payload: Record<string, unknown> = {};
@@ -435,6 +443,10 @@ export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessio
 	const replaced = lastBytes(fields, 22);
 	if (replaced) {
 		payload.envelope_range_replaced = decodeEnvelopeRangeReplaced(replaced);
+	}
+	const streamingDelta = lastBytes(fields, 30);
+	if (streamingDelta) {
+		payload.streaming_delta = decodeStreamingDelta(streamingDelta);
 	}
 	return { payload };
 }
@@ -488,6 +500,23 @@ function encodeHeartbeatAck(ack: unknown): Uint8Array {
 		return encodeInt64Field(1, echo);
 	}
 	return new Uint8Array(0);
+}
+
+/**
+ * StreamingDeltaEvent — `runtime_epoch`=1 `turn_id`=2 `block_id`=3
+ * `agent_id`=4 `text_delta`=5 `delta_seq`=6. Reserved 10–13 unread.
+ * proto3: empty / 0 omitted.
+ */
+function decodeStreamingDelta(bytes: Uint8Array): Record<string, unknown> {
+	const fields = readProtoFields(bytes);
+	return {
+		runtime_epoch: numberOrZero(lastVarint(fields, 1)),
+		turn_id: lastString(fields, 2) ?? '',
+		block_id: lastString(fields, 3) ?? '',
+		agent_id: lastString(fields, 4) ?? '',
+		text_delta: lastString(fields, 5) ?? '',
+		delta_seq: numberOrZero(lastVarint(fields, 6)),
+	};
 }
 
 function decodeStreamHello(bytes: Uint8Array): Record<string, unknown> {
