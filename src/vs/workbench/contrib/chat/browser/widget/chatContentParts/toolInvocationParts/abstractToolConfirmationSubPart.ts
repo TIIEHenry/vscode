@@ -71,7 +71,7 @@ export class ChatConfirmationOpenedEditors extends Disposable {
 		if (stateKind !== IChatToolInvocation.StateKind.WaitingForConfirmation && stateKind !== IChatToolInvocation.StateKind.WaitingForPostApproval) {
 			const toClose = this._opened.filter(({ editor }) => !editor.isDisposed() && !editor.isDirty());
 			if (toClose.length) {
-				this._editorService.closeEditors(toClose).catch(onUnexpectedError);
+				this._editorService.closeEditors(toClose).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 
