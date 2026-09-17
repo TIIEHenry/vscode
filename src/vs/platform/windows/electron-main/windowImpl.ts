@@ -863,10 +863,10 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 	private registerListeners(): void {
 
 		// Window error conditions to handle
-		this._register(Event.fromNodeEventEmitter(this._win, 'unresponsive')(() => this.onWindowError(WindowError.UNRESPONSIVE)));
-		this._register(Event.fromNodeEventEmitter(this._win, 'responsive')(() => this.onWindowError(WindowError.RESPONSIVE)));
-		this._register(Event.fromNodeEventEmitter(this._win.webContents, 'render-process-gone', (event, details) => details)(details => this.onWindowError(WindowError.PROCESS_GONE, { ...details })));
-		this._register(Event.fromNodeEventEmitter(this._win.webContents, 'did-fail-load', (event, exitCode, reason) => ({ exitCode, reason }))(({ exitCode, reason }) => this.onWindowError(WindowError.LOAD, { reason, exitCode })));
+		this._register(Event.fromNodeEventEmitter(this._win, 'unresponsive')(() => this.onWindowError(WindowError.UNRESPONSIVE).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(Event.fromNodeEventEmitter(this._win, 'responsive')(() => this.onWindowError(WindowError.RESPONSIVE).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(Event.fromNodeEventEmitter(this._win.webContents, 'render-process-gone', (event, details) => details)(details => this.onWindowError(WindowError.PROCESS_GONE, { ...details }).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(Event.fromNodeEventEmitter(this._win.webContents, 'did-fail-load', (event, exitCode, reason) => ({ exitCode, reason }))(({ exitCode, reason }) => this.onWindowError(WindowError.LOAD, { reason, exitCode }).catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		// Prevent windows/iframes from blocking the unload
 		// through DOM events. We have our own logic for
@@ -992,7 +992,7 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 				// back this state to the test runner by exiting with a
 				// non-zero exit code.
 				if (this.isExtensionDevelopmentTestFromCli) {
-					this.lifecycleMainService.kill(1);
+					this.lifecycleMainService.kill(1).catch(onUnexpectedError).catch(onUnexpectedError);
 					return;
 				}
 
@@ -1001,7 +1001,7 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 				// and then calling the normal `quit` routine.
 				if (this.environmentMainService.args['enable-smoke-test-driver']) {
 					await this.destroyWindow(false, false);
-					this.lifecycleMainService.quit(); // still allow for an orderly shutdown
+					this.lifecycleMainService.quit().catch(onUnexpectedError).catch(onUnexpectedError); // still allow for an orderly shutdown
 					return;
 				}
 
@@ -1018,7 +1018,7 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 					}
 
 					// Interrupt V8 and collect JavaScript stack
-					this.jsCallStackCollector.trigger(() => this.startCollectingJScallStacks());
+					this.jsCallStackCollector.trigger(() => this.startCollectingJScallStacks()).catch(onUnexpectedError).catch(onUnexpectedError);
 					// Stack collection will stop under any of the following conditions:
 					// - The window becomes responsive again
 					// - The window is destroyed i-e reopen or closed
@@ -1723,7 +1723,7 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 				this.jsCallStackMap.set(stack, count + 1);
 			}
 
-			this.jsCallStackCollector.trigger(() => this.startCollectingJScallStacks());
+			this.jsCallStackCollector.trigger(() => this.startCollectingJScallStacks()).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
