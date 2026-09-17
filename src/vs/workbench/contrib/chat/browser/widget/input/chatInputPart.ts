@@ -1884,7 +1884,7 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 			this._inputModelSessionResource?.toString(),
 		);
 		this._updateInputContentContextKeys();
-		void result.finally(() => this._updateInputContentContextKeys());
+		void result.finally(() => this._updateInputContentContextKeys()).catch(onUnexpectedError).catch(onUnexpectedError);
 		return result;
 	}
 
