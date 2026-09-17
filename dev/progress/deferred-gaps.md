@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D751 leftover Promise 双链；D736/D739/D740/D745 跳过。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D751、D755 leftover Promise 双链；D736/D739/D740/D745 跳过。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1117,3 +1117,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D749 | P3 | **closed** leftover Promise 双链八处：$createEditorInset；speech create/cancel STT/TTS/keyword ×6；$createAgentEditorComments。SCM/tunnel leftoverFile 锁 8 未再包。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`workbenchApiLeftoverPromiseCatchScanD749.test.ts` **6/0**。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / api leftover remaining | closed |
 | D750 | P3 | **closed** leftover Promise 双链八处：kernel sources then；tokenizeToString；markup/code raceCancellation×4；getEditorAttachedPromise；whenReady。跳过 opener / Action2 / two-arg / assigned。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`notebookLeftoverPromiseCatchScanD750.test.ts` **8/0**。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / notebook leftover remaining | closed |
 | D751 | P3 | **closed** leftover Promise 双链 14 处：whenInstalledExtensionsRegistered；initialize 单链升双链；getOSColorScheme；installRegistryListeners；setColorTheme previous；updateValue migrated；restoreColor/File/ProductIcon；reloadCurrentFileIcon；ThemeFileWatcher×3。跳过 assigned / two-arg / Watch。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 D；`themesLeftoverPromiseCatchScanD751.test.ts` **9/0**。勿 add `out`。 | 14 处双链。未关 D24。leftover 程序未全局完成。 | workbench / themes leftover | closed |
+| D755 | P3 | **closed** leftover Promise 双链三处：breakpointsView / breakpointWidget createModelReference；linkDetector stat。search overflow 归 H。跳过 assigned / two-arg / already-double D686/D688/D690/D744。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`debugLeftoverPromiseCatchScanD755.test.ts`。勿 add `out`。 | 三处双链。未关 D24。leftover 程序未全局完成。 | workbench / debug leftover remaining | closed |
