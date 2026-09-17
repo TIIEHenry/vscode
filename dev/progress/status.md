@@ -22,7 +22,7 @@ summary: "SessionStream 16/23/30/31/34/37/44/50/51/52 已合入。D24 仍开。�
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A** | 下一刀 presence `sub_agent_activity`=35 |
+| **A** | 进行中 `sub_agent_activity`=35 presence（nested unread；空 `{}`） |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **C** | gitlink 脏 `dev/loop`；勿 add |
 | **E** | `blocked` `fix/ci-gate-reds` |

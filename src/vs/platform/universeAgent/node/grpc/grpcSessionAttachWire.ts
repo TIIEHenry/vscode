@@ -416,6 +416,9 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * `agent_id`=3 optional `tool_name`=4). OverlayDeltaJoin `applyGenerating`
  * reads `turn_id` + `tool_name`; `runtime_epoch` / `agent_id` decoded for
  * shape.
+ * `sub_agent_activity`=35 SessionStreamSubAgentActivityEvent (present empty
+ * nested → `{}`; nested unread). fileMutationJoin
+ * `shouldRefreshAgentTree` reads presence only.
  * `turn_lifecycle`=37 TurnLifecycleEvent (`runtime_epoch`=1; oneof
  * `turn_started`=10 `turn_completed`=11). OverlayDeltaJoin `applyLifecycle`
  * reads `turn_completed` presence (any value clears) or nested
@@ -447,7 +450,8 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * `generating_tool` / `turn_lifecycle` and demuxSessionStreamPayload
  * `session_purged` / `runtime_overlay_snapshot` /
  * `permission_request` / `ask_user_question` / `client_tool_call`,
- * and `shouldRefreshAgentTree` `branch_topology_notified`.
+ * and `shouldRefreshAgentTree` `branch_topology_notified` /
+ * `sub_agent_activity`.
  */
 export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessionEvent {
 	const fields = readProtoFields(bytes);
@@ -503,6 +507,10 @@ export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessio
 	const generatingTool = lastBytes(fields, 34);
 	if (generatingTool) {
 		payload.generating_tool = decodeGeneratingToolEvent(generatingTool);
+	}
+	const subAgentActivity = lastBytes(fields, 35);
+	if (subAgentActivity !== undefined) {
+		payload.sub_agent_activity = {};
 	}
 	const turnLifecycle = lastBytes(fields, 37);
 	if (turnLifecycle) {

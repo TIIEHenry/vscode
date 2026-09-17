@@ -647,6 +647,44 @@ suite('grpc first-send / attach protobuf wire', () => {
 		});
 	});
 
+	test('decodeSessionStreamEvent reads nested sub_agent_activity=35 presence; unused unread; shouldRefreshAgentTree', () => {
+		const activity = Buffer.concat([
+			encodeInt64Field(1, 9),
+			encodeStringField(2, 'parent-unread'),
+			encodeStringField(3, 'sub-unread'),
+			encodeInt32Field(4, 2),
+			encodeStringField(5, 'dim-unread'),
+			encodeStringField(10, 'append-unread'),
+			encodeStringField(11, 'status-unread'),
+			encodeStringField(12, 'usage-unread'),
+		]);
+		const encoded = Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodeMessageField(35, activity),
+			encodeStringField(99, 'unused-stream-field'),
+		]);
+		const decoded = decodeSessionStreamEvent(encoded);
+		const payload = decoded.payload as {
+			session_id?: string;
+			sub_agent_activity?: Record<string, unknown>;
+		};
+		assert.strictEqual(payload.session_id, 'sess-1');
+		assert.ok('sub_agent_activity' in payload);
+		assert.deepStrictEqual(payload.sub_agent_activity, {});
+		assert.ok(!('subAgentActivity' in payload));
+		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
+		assert.strictEqual(JSON.stringify(decoded).includes('unread'), false);
+		assert.strictEqual(shouldRefreshAgentTree(decoded.payload), true);
+		const omitted = decodeSessionStreamEvent(encodeStringField(1, 'sess-2'));
+		assert.strictEqual((omitted.payload as { sub_agent_activity?: unknown }).sub_agent_activity, undefined);
+		assert.ok(!('sub_agent_activity' in (omitted.payload as object)));
+		assert.strictEqual(shouldRefreshAgentTree(omitted.payload), false);
+		const emptyNested = decodeSessionStreamEvent(encodePresentMessageField(35, new Uint8Array(0)));
+		assert.ok('sub_agent_activity' in (emptyNested.payload as object));
+		assert.deepStrictEqual((emptyNested.payload as { sub_agent_activity?: unknown }).sub_agent_activity, {});
+		assert.strictEqual(shouldRefreshAgentTree(emptyNested.payload), true);
+	});
+
 	test('decodeSessionStreamEvent reads nested turn_lifecycle=37 TurnLifecycleEvent turn_started=10; unused unread', () => {
 		const started = Buffer.concat([
 			encodeStringField(1, 'turn-life'),
