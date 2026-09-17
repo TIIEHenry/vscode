@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { fromNow } from '../../../../../base/common/date.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
@@ -143,7 +144,7 @@ class ManageTrustedExtensionsForAccountActionImpl {
 			});
 
 		if (!filteredExtensions.length) {
-			this._dialogService.info(localize('noTrustedExtensions', "This account has not been used by any extensions."));
+			this._dialogService.info(localize('noTrustedExtensions', "This account has not been used by any extensions.")).catch(onUnexpectedError).catch(onUnexpectedError);
 			return [];
 		}
 
@@ -211,9 +212,9 @@ class ManageTrustedExtensionsForAccountActionImpl {
 		disposableStore.add(quickPick.onDidCustom(() => quickPick.hide()));
 		disposableStore.add(quickPick.onDidTriggerItemButton(e => {
 			if (e.button === this._managePreferencesButton) {
-				this._commandService.executeCommand('_manageAccountPreferencesForExtension', e.item.extension.id, accountQuery.providerId);
+				this._commandService.executeCommand('_manageAccountPreferencesForExtension', e.item.extension.id, accountQuery.providerId).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else if (e.button === this._viewDetailsButton) {
-				this._extensionsWorkbenchService.open(e.item.extension.id);
+				this._extensionsWorkbenchService.open(e.item.extension.id).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 

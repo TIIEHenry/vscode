@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { fromNow } from '../../../../../base/common/date.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
@@ -136,7 +137,7 @@ class ManageTrustedMcpServersForAccountActionImpl {
 			.map(server => withLastUsed({ ...server, name: serverIdToLabel.get(server.id)! }));
 
 		if (!agentHostServers.length && !workbenchServers.length) {
-			this._dialogService.info(localize('noTrustedMcpServers', "This account has not been used by any MCP servers."));
+			this._dialogService.info(localize('noTrustedMcpServers', "This account has not been used by any MCP servers.")).catch(onUnexpectedError).catch(onUnexpectedError);
 			return [];
 		}
 
@@ -222,7 +223,7 @@ class ManageTrustedMcpServersForAccountActionImpl {
 		disposableStore.add(quickPick.onDidHide(() => disposableStore.dispose()));
 		disposableStore.add(quickPick.onDidCustom(() => quickPick.hide()));
 		disposableStore.add(quickPick.onDidTriggerItemButton((e: any) =>
-			this._commandService.executeCommand('_manageAccountPreferencesForMcpServer', e.item.mcpServer.id, accountQuery.providerId)
+			this._commandService.executeCommand('_manageAccountPreferencesForMcpServer', e.item.mcpServer.id, accountQuery.providerId).catch(onUnexpectedError).catch(onUnexpectedError)
 		));
 
 		return quickPick;
