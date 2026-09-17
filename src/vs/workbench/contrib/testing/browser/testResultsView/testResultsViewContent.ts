@@ -9,6 +9,7 @@ import { renderLabelWithIcons } from '../../../../../base/browser/ui/iconLabel/i
 import { Orientation, Sizing, SplitView } from '../../../../../base/browser/ui/splitview/splitview.js';
 import { findAsync } from '../../../../../base/common/arrays.js';
 import { Limiter } from '../../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { Emitter, Event, Relay } from '../../../../../base/common/event.js';
 import { KeyCode } from '../../../../../base/common/keyCodes.js';
@@ -574,9 +575,9 @@ class FollowupActionWidget extends Disposable {
 				index: i
 			}))).then(picked => {
 				if (picked?.length) {
-					followups[picked[0].index].execute();
+					followups[picked[0].index].execute().catch(onUnexpectedError).catch(onUnexpectedError);
 				}
-			})
+			}).catch(onUnexpectedError).catch(onUnexpectedError)
 		);
 
 		link.innerText = localize('testFollowup.more', '+{0} More...', followups.length - 1);
@@ -600,7 +601,7 @@ class FollowupActionWidget extends Disposable {
 	private actionFollowup(link: HTMLAnchorElement, fu: ITestFollowup) {
 		if (link.ariaDisabled !== 'true') {
 			link.ariaDisabled = 'true';
-			fu.execute();
+			fu.execute().catch(onUnexpectedError).catch(onUnexpectedError);
 
 			if (this.editor) {
 				this.onCloseEmitter.fire();

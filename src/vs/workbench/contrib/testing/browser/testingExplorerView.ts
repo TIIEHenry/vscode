@@ -20,6 +20,7 @@ import { RunOnceScheduler, disposableTimeout } from '../../../../base/common/asy
 import { groupBy } from '../../../../base/common/collections.js';
 import { Color, RGBA } from '../../../../base/common/color.js';
 import { compareFileNames } from '../../../../base/common/comparers.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { FuzzyScore } from '../../../../base/common/filters.js';
 import { Iterable } from '../../../../base/common/iterator.js';
@@ -866,7 +867,7 @@ class TestingExplorerViewModel extends Disposable {
 					commandService.executeCommand('vscode.revealTest', e.element.test.item.extId, {
 						openToSide: e.sideBySide,
 						preserveFocus: true,
-					});
+					}).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 		}));
@@ -1107,7 +1108,7 @@ class TestingExplorerViewModel extends Disposable {
 			this.testService.runTests({
 				group: TestRunProfileBitset.Run,
 				tests: toRun.map(t => t.test),
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

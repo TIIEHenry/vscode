@@ -314,7 +314,7 @@ class TestCoverageTree extends Disposable {
 					resource = e.element.uri;
 					selection = e.element.location;
 				} else if (e.element instanceof CurrentlyFilteredTo) {
-					commandService.executeCommand(TestCommandId.CoverageFilterToTest);
+					commandService.executeCommand(TestCommandId.CoverageFilterToTest).catch(onUnexpectedError).catch(onUnexpectedError);
 					return;
 				}
 			}

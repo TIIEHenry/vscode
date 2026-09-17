@@ -5,6 +5,7 @@
 
 import { disposableTimeout, RunOnceScheduler } from '../../../../base/common/async.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
@@ -237,7 +238,7 @@ export class RunTestTool implements IToolImpl {
 				if (!store.isDisposed) {
 					store.add(disposableTimeout(() => onDidTimeout.fire(), 5_000));
 				}
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}).finally(() => store.dispose());
 	}
 

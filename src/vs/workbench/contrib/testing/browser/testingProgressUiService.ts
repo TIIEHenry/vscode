@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { autorun } from '../../../../base/common/observable.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -76,10 +77,10 @@ export class TestingProgressTrigger extends Disposable {
 	}
 
 	private openExplorerView() {
-		this.viewsService.openView(Testing.ExplorerViewId, false);
+		this.viewsService.openView(Testing.ExplorerViewId, false).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private openResultsView() {
-		this.viewsService.openView(Testing.ResultsViewId, false);
+		this.viewsService.openView(Testing.ResultsViewId, false).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }

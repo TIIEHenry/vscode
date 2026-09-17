@@ -6,6 +6,7 @@
 import * as dom from '../../../../../base/browser/dom.js';
 import { Delayer } from '../../../../../base/common/async.js';
 import { VSBuffer } from '../../../../../base/common/buffer.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { Iterable } from '../../../../../base/common/iterator.js';
 import { Disposable, DisposableStore, IDisposable, IReference, MutableDisposable, combinedDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
@@ -655,7 +656,7 @@ export class TerminalMessagePeek extends Disposable implements IPeekOutputRender
 			if (scaled) {
 				xterm.resize(scaled.cols, scaled.rows);
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 
