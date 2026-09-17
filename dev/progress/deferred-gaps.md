@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D723、D726 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D723、D725–D727 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1089,3 +1089,6 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D721 | P3 | **closed** leftover Promise 双链五处：mcpRuntime OPEN_CONNECTION×3；clipboard OPEN_CONNECTION×2。跳过 D701 / D710 / D716 / opener / D145 / two-arg。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`conversationLeftoverPromiseCatchScanD721.test.ts` + D716 **13/0**。未 commit。勿 add `out`。 | 五处双链。未关 D24。leftover 程序未全局完成。 | workbench / conversation leftover remaining | closed |
 | D723 | P3 | **closed** leftover Promise 双链八处：extensionUrlHandler handleURL / handleURLByExtension；native startExtensionHosts 重启；tests _onExtensionHostExit(exitCode)。跳过 D698 / D707 / D715。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 D；`extensionsServicesUrlHostLeftoverPromiseCatchScan.test.ts` + D715 **13/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / extensions leftover remaining | closed |
 | D726 | P3 | **closed** leftover Promise 双链八处：app.ts profileStorageListener / logger / logOSProxyConfigTelemetry / afterWindowOpen / eventually；main.ts lifecycle kill。跳过 D704 / D713 / D719。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；`codeElectronMainRemainingLeftoverPromiseCatchScan.test.ts` + D719 **10/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | code / electron-main leftover remaining | closed |
+| D722 | P3 | **closed** leftover Promise 双链八处：handleWarnings + integrity IIFE；onOpenFiles / trackClosedWaitFiles；doAddRemoveFolders；withProgress×2；dialogService.error。跳过 D697 / D706 / D714 / opener。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；`workbenchNativeWindowLeftoverPromiseCatchScan.test.ts` + D714 **16/0**。未 commit。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / native window leftover | closed |
+| D725 | P3 | **closed** leftover Promise 双链六处：stickyScroll goToDefinition；showCodeActionList；goToCommands altAction/peekLocations；references openCodeEditor；gotoError openCodeEditor。跳过 opener / Resolve / D703 / D709 / D718。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`editorGotoOpenLeftoverPromiseCatchScan.test.ts` + D718 **14/0**。未 commit。勿 add `out`。 | 六处双链。未关 D24。leftover 程序未全局完成。 | editor / leftover remaining | closed |
+| D727 | P3 | **closed** leftover Promise 双链七处：browserView openNew / openExternal；emulator _applyTouchAndMedia；playwrightTab waitForFunction；inspector addComment。跳过 opener / Pty / empty-catch。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`platformBrowserViewLeftoverPromiseCatchScan.test.ts` **7/0**。未 commit。勿 add `out`。 | 七处双链。未关 D24。leftover 程序未全局完成。 | platform / browserView leftover | closed |
