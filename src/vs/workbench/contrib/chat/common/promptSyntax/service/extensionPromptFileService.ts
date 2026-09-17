@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationToken } from '../../../../../../base/common/cancellation.js';
-import { CancellationError, isCancellationError } from '../../../../../../base/common/errors.js';
+import { CancellationError, isCancellationError, onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../../../base/common/lifecycle.js';
 import { ResourceMap } from '../../../../../../base/common/map.js';
@@ -286,7 +286,7 @@ export class ExtensionPromptFileService extends Disposable {
 		// Mark all collected files as readonly in a single batch to avoid
 		// firing onDidChangeReadonly once per file (which causes a cascade
 		// of event handlers and can freeze the renderer).
-		void this.filesConfigService.updateReadonly(readonlyUris, true);
+		void this.filesConfigService.updateReadonly(readonlyUris, true).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		return result;
 	}
@@ -314,7 +314,7 @@ export class ExtensionPromptFileService extends Disposable {
 				const uris = this._pendingReadonlyUris;
 				this._pendingReadonlyUris = [];
 				this._pendingReadonlyFlush = false;
-				void this.filesConfigService.updateReadonly(uris, true);
+				void this.filesConfigService.updateReadonly(uris, true).catch(onUnexpectedError).catch(onUnexpectedError);
 			});
 		}
 	}

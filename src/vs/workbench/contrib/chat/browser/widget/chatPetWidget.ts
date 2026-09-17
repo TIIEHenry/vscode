@@ -13,6 +13,7 @@ import { Button } from '../../../../../base/browser/ui/button/button.js';
 import { status } from '../../../../../base/browser/ui/aria/aria.js';
 import { Action, IAction, Separator } from '../../../../../base/common/actions.js';
 import { RunOnceScheduler } from '../../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { KeyCode, KeyMod } from '../../../../../base/common/keyCodes.js';
 import { Disposable, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
@@ -1349,7 +1350,7 @@ export class ChatPetWidget extends Disposable {
 			if (this._transientState.get() === 'achievementUnlocked') {
 				this._transientScheduler.cancel();
 				this._transientState.set(undefined, undefined);
-				void this.commandService.executeCommand(CHAT_PET_OPEN_ACHIEVEMENTS_COMMAND_ID);
+				void this.commandService.executeCommand(CHAT_PET_OPEN_ACHIEVEMENTS_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);
 				return;
 			}
 			if (this.chatPetService.onTheRun.get()) {
