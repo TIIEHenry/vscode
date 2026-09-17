@@ -5,6 +5,7 @@
 
 import type { UniverseAgentAgentStatusRequest } from '../../common/universeAgentTypes.js';
 import {
+	allLengthDelimited,
 	encodeStringField,
 	lastBytes,
 	lastString,
@@ -21,9 +22,10 @@ export interface StatusResponseWire {
 }
 
 /**
- * JSON-shaped decode of common.AgentInfo scalars 1–7.
+ * JSON-shaped decode of common.AgentInfo scalars 1–7 and `children`=8.
  * `type` / `status` are proto enum names after varint decode.
- * `children`=8 and `model_info`=9 are unread.
+ * `children` is repeated nested AgentInfo (recursive). `model_info`=9 is unread
+ * (public tree type has no corresponding field).
  */
 export interface AgentInfoWire {
 	readonly agent_id?: string;
@@ -33,6 +35,7 @@ export interface AgentInfoWire {
 	readonly model?: string;
 	readonly turn_count?: number;
 	readonly created_at?: number;
+	readonly children?: readonly AgentInfoWire[];
 }
 
 const AGENT_TYPE_NAMES = [
@@ -66,10 +69,10 @@ export function encodeStatusRequest(request: UniverseAgentAgentStatusRequest): U
 
 /**
  * StatusResponse — `agent`=1 (AgentInfo).
- * AgentInfo: `agent_id`=1 `name`=2 `type`=3 `status`=4 `model`=5 `turn_count`=6 `created_at`=7.
+ * AgentInfo: `agent_id`=1 `name`=2 `type`=3 `status`=4 `model`=5 `turn_count`=6 `created_at`=7
+ * `children`=8 (repeated nested AgentInfo, recursive). `model_info`=9 unread.
  * `type` / `status` decoded as varint (AgentType 0–3 ROOT/SUB/MEMBER/ADVISE;
  * AgentStatus 0–7 UNKNOWN/PENDING/WAITING/GENERATING/PAUSED/ERROR/COMPLETED/TIMEOUT).
- * `children`=8 and `model_info`=9 unread.
  * proto3: empty / 0 omitted. Unknown fields unread.
  * Shape matches `mapStatusResponse` → `mapAgentTreeNode(wire.agent)`.
  */
@@ -90,6 +93,7 @@ function decodeAgentInfo(bytes: Uint8Array): AgentInfoWire {
 		model: lastString(fields, 5),
 		turn_count: numberOrUndefined(lastVarint(fields, 6)),
 		created_at: numberOrUndefined(lastVarint(fields, 7)),
+		children: allLengthDelimited(fields, 8).map(decodeAgentInfo),
 	};
 }
 
