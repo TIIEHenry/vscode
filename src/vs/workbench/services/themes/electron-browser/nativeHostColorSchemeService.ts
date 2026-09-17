@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { INativeHostService } from '../../../../platform/native/common/native.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
@@ -46,7 +47,7 @@ export class NativeHostColorSchemeService extends Disposable implements IHostCol
 		this.highContrast = initial.highContrast;
 
 		// fetch the actual value from the OS
-		this.nativeHostService.getOSColorScheme().then(scheme => this.update(scheme));
+		this.nativeHostService.getOSColorScheme().then(scheme => this.update(scheme)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private getStoredValue(dftl: IColorScheme): IColorScheme {

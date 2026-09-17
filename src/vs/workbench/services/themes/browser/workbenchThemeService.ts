@@ -10,7 +10,7 @@ import { IWorkbenchThemeService, IWorkbenchColorTheme, IWorkbenchFileIconTheme, 
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
-import * as errors from '../../../../base/common/errors.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IConfigurationService, ConfigurationTarget } from '../../../../platform/configuration/common/configuration.js';
 import { ColorThemeData } from '../common/colorThemeData.js';
 import { IColorTheme, Extensions as ThemingExtensions, IThemingRegistry } from '../../../../platform/theme/common/themeService.js';
@@ -121,19 +121,19 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 		this.settings = new ThemeConfiguration(configurationService, hostColorService);
 
 		this.colorThemeRegistry = this._register(new ThemeRegistry(colorThemesExtPoint, ColorThemeData.fromExtensionTheme));
-		this.colorThemeWatcher = this._register(new ThemeFileWatcher(fileService, environmentService, this.reloadCurrentColorTheme.bind(this)));
+		this.colorThemeWatcher = this._register(new ThemeFileWatcher(fileService, environmentService, () => this.reloadCurrentColorTheme().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.onColorThemeChange = this._register(new Emitter<IWorkbenchColorTheme>({ leakWarningThreshold: 400, leakWarningName: 'ThemeService.onColorThemeChange' }));
 		this.currentColorTheme = ColorThemeData.createUnloadedTheme('');
 		this.colorThemeSequencer = new Sequencer();
 
-		this.fileIconThemeWatcher = this._register(new ThemeFileWatcher(fileService, environmentService, this.reloadCurrentFileIconTheme.bind(this)));
+		this.fileIconThemeWatcher = this._register(new ThemeFileWatcher(fileService, environmentService, () => this.reloadCurrentFileIconTheme().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.fileIconThemeRegistry = this._register(new ThemeRegistry(fileIconThemesExtPoint, FileIconThemeData.fromExtensionTheme, true, FileIconThemeData.noIconTheme));
 		this.fileIconThemeLoader = new FileIconThemeLoader(extensionResourceLoaderService, languageService);
 		this.onFileIconThemeChange = this._register(new Emitter<IWorkbenchFileIconTheme>({ leakWarningThreshold: 400, leakWarningName: 'ThemeService.onFileIconThemeChange' }));
 		this.currentFileIconTheme = FileIconThemeData.createUnloadedTheme('');
 		this.fileIconThemeSequencer = new Sequencer();
 
-		this.productIconThemeWatcher = this._register(new ThemeFileWatcher(fileService, environmentService, this.reloadCurrentProductIconTheme.bind(this)));
+		this.productIconThemeWatcher = this._register(new ThemeFileWatcher(fileService, environmentService, () => this.reloadCurrentProductIconTheme().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.productIconThemeRegistry = this._register(new ThemeRegistry(productIconThemesExtPoint, ProductIconThemeData.fromExtensionTheme, true, ProductIconThemeData.defaultTheme));
 		this.onProductIconThemeChange = this._register(new Emitter<IWorkbenchProductIconTheme>());
 		this.currentProductIconTheme = ProductIconThemeData.createUnloadedTheme('');
@@ -178,9 +178,9 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 		extensionService.whenInstalledExtensionsRegistered().then(_ => {
 			this.installConfigurationListener();
 			this.installPreferredSchemeListener();
-			this.installRegistryListeners();
-			this.initialize(previousColorThemeSetting).catch(errors.onUnexpectedError);
-		});
+			this.installRegistryListeners().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.initialize(previousColorThemeSetting).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		const codiconStyleSheet = createStyleSheet();
 		codiconStyleSheet.id = 'codiconStyles';
@@ -301,7 +301,7 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 		if (!keepTheme) {
 			const previousTheme = this.colorThemeRegistry.findThemeBySettingsId(previousSettingsId);
 			if (previousTheme) {
-				this.setColorTheme(previousTheme.id, 'auto');
+				this.setColorTheme(previousTheme.id, 'auto').catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 	}
@@ -328,7 +328,7 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 				if (value) {
 					const migrated = migrateThemeSettingsId(value);
 					if (migrated !== value) {
-						this.configurationService.updateValue(key, migrated, target);
+						this.configurationService.updateValue(key, migrated, target).catch(onUnexpectedError).catch(onUnexpectedError);
 					}
 				}
 			}
@@ -346,13 +346,13 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 				|| e.affectsConfiguration(ThemeSettings.DETECT_HC)
 				|| e.affectsConfiguration(ThemeSettings.SYSTEM_COLOR_THEME)
 			) {
-				this.restoreColorTheme();
+				this.restoreColorTheme().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 			if (e.affectsConfiguration(ThemeSettings.FILE_ICON_THEME)) {
-				this.restoreFileIconTheme();
+				this.restoreFileIconTheme().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 			if (e.affectsConfiguration(ThemeSettings.PRODUCT_ICON_THEME)) {
-				this.restoreProductIconTheme();
+				this.restoreProductIconTheme().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 			if (this.currentColorTheme) {
 				let hasColorChanges = false;
@@ -435,7 +435,7 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 				await this.setProductIconTheme(DEFAULT_PRODUCT_ICON_THEME_ID, 'auto');
 			}
 		}));
-		this._register(this.languageService.onDidChange(() => this.reloadCurrentFileIconTheme()));
+		this._register(this.languageService.onDidChange(() => this.reloadCurrentFileIconTheme().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		return Promise.all([this.getColorThemes(), this.getFileIconThemes(), this.getProductIconThemes()]).then(([ct, fit, pit]) => {
 			updateColorThemeConfigurationSchemas(ct);
@@ -453,7 +453,7 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 			const restoreColorTheme = this.settings.isPreferredColorSchemeChange(previous);
 			previous = { dark: this.hostColorService.dark, highContrast: this.hostColorService.highContrast };
 			if (restoreColorTheme) {
-				this.restoreColorTheme();
+				this.restoreColorTheme().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}
