@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IAction, Separator } from '../../../../base/common/actions.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IMenuService, SubmenuItemAction, MenuItemAction } from '../../../../platform/actions/common/actions.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IWorkspacesService } from '../../../../platform/workspaces/common/workspaces.js';
@@ -53,7 +54,7 @@ export class NativeMenubarControl extends MenubarControl {
 			this.recentlyOpened = await this.workspacesService.getRecentlyOpened();
 
 			this.doUpdateMenubar();
-		})();
+		})().catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this.registerListeners();
 	}

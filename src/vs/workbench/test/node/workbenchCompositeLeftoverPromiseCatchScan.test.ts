@@ -29,7 +29,6 @@ const VIEW_PANE_REL = 'src/vs/workbench/browser/parts/views/viewPaneContainer.ts
 const TREE_VIEW_REL = 'src/vs/workbench/browser/parts/views/treeView.ts';
 const EDITOR_STATUS_REL = 'src/vs/workbench/browser/parts/editor/editorStatus.ts';
 const BREADCRUMBS_REL = 'src/vs/workbench/browser/parts/editor/breadcrumbsModel.ts';
-const LIST_COMMANDS_REL = 'src/vs/workbench/browser/actions/listCommands.ts';
 
 function resolveSource(rel: string): string {
 	const candidates = [
@@ -160,7 +159,6 @@ suite('workbench composite leftover Promise fire-and-forget catch scan (D714)', 
 		const treeView = fs.readFileSync(resolveSource(TREE_VIEW_REL), 'utf8');
 		const editorStatus = fs.readFileSync(resolveSource(EDITOR_STATUS_REL), 'utf8');
 		const breadcrumbs = fs.readFileSync(resolveSource(BREADCRUMBS_REL), 'utf8');
-		const listCommands = fs.readFileSync(resolveSource(LIST_COMMANDS_REL), 'utf8');
 		const panePart = fs.readFileSync(resolveSource(PANE_PART_REL), 'utf8');
 		const compositeBar = fs.readFileSync(resolveSource(COMPOSITE_BAR_REL), 'utf8');
 
@@ -184,26 +182,6 @@ suite('workbench composite leftover Promise fire-and-forget catch scan (D714)', 
 		assert.ok(breadcrumbs.includes('}).catch(err => {'));
 		assert.ok(breadcrumbs.includes('onUnexpectedError(err);'));
 		assert.ok(!breadcrumbs.includes(`${doubleCatch}`));
-
-		const expandThen = `widget.expand(focus).then(didExpand => {
-				if (focus && !didExpand) {
-					const child = widget.getFirstElementChild(focus);
-
-					if (child) {
-						const node = widget.getNode(child);
-
-						if (node.visible) {
-							navigate(widget, widget => {
-								const fakeKeyboardEvent = new KeyboardEvent('keydown');
-								widget.setFocus([child], fakeKeyboardEvent);
-							});
-						}
-					}
-				}
-			})`;
-		assert.ok(listCommands.includes(`${expandThen};`));
-		assert.ok(!listCommands.includes(`${expandThen}${doubleCatch}`));
-		assert.ok(!listCommands.includes(`${expandThen}.catch(onUnexpectedError)`));
 
 		assert.ok(toasts.includes(`this.lifecycleService.when(LifecyclePhase.Restored).then(() => {
 

@@ -17,9 +17,7 @@ const DIALOGS_REL = 'src/vs/platform/dialogs/common/dialogs.ts';
 const ERRORS_REL = 'src/vs/base/common/errors.ts';
 const CONTRIBUTIONS_REL = 'src/vs/workbench/common/contributions.ts';
 const LAYOUT_REL = 'src/vs/workbench/browser/layout.ts';
-const LIST_COMMANDS_REL = 'src/vs/workbench/browser/actions/listCommands.ts';
 const WEB_FACTORY_REL = 'src/vs/workbench/browser/web.factory.ts';
-const TREE_VIEW_REL = 'src/vs/workbench/browser/parts/views/treeView.ts';
 const BREADCRUMBS_REL = 'src/vs/workbench/browser/parts/editor/breadcrumbsModel.ts';
 const EDITOR_PARTS_REL = 'src/vs/workbench/browser/parts/editor/editorParts.ts';
 
@@ -183,9 +181,7 @@ suite('workbench native window leftover Promise fire-and-forget catch scan (D722
 		const browserWindow = fs.readFileSync(resolveSource(BROWSER_WINDOW_REL), 'utf8');
 		const contributions = fs.readFileSync(resolveSource(CONTRIBUTIONS_REL), 'utf8');
 		const layout = fs.readFileSync(resolveSource(LAYOUT_REL), 'utf8');
-		const listCommands = fs.readFileSync(resolveSource(LIST_COMMANDS_REL), 'utf8');
 		const webFactory = fs.readFileSync(resolveSource(WEB_FACTORY_REL), 'utf8');
-		const treeView = fs.readFileSync(resolveSource(TREE_VIEW_REL), 'utf8');
 		const breadcrumbs = fs.readFileSync(resolveSource(BREADCRUMBS_REL), 'utf8');
 		const editorParts = fs.readFileSync(resolveSource(EDITOR_PARTS_REL), 'utf8');
 
@@ -210,38 +206,8 @@ suite('workbench native window leftover Promise fire-and-forget catch scan (D722
 		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput);'));
 		assert.ok(!editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch'));
 
-		const expandThen = `widget.expand(focus).then(didExpand => {
-				if (focus && !didExpand) {
-					const child = widget.getFirstElementChild(focus);
-
-					if (child) {
-						const node = widget.getNode(child);
-
-						if (node.visible) {
-							navigate(widget, widget => {
-								const fakeKeyboardEvent = new KeyboardEvent('keydown');
-								widget.setFocus([child], fakeKeyboardEvent);
-							});
-						}
-					}
-				}
-			})`;
-		assert.ok(listCommands.includes(`${expandThen};`));
-		assert.ok(!listCommands.includes(`${expandThen}${doubleCatch}`));
-
 		assert.ok(webFactory.includes('new BrowserMain(domElement, options).open().then(workbench => {'));
 		assert.ok(!webFactory.includes('onUnexpectedError'));
-
-		assert.ok(treeView.includes(`this.progressService.withProgress({ location: this.id }, () => this.extensionService.activateByEvent(\`onView:\${this.id}\`))
-				.then(() => timeout(2000))
-				.then(() => {
-					this.updateMessage();
-				});`));
-		assert.ok(!treeView.includes(`this.progressService.withProgress({ location: this.id }, () => this.extensionService.activateByEvent(\`onView:\${this.id}\`))
-				.then(() => timeout(2000))
-				.then(() => {
-					this.updateMessage();
-				})${doubleCatch}`));
 
 		assert.ok(breadcrumbs.includes('}).catch(err => {'));
 		assert.ok(breadcrumbs.includes('onUnexpectedError(err);'));

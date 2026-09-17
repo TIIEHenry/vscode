@@ -1895,7 +1895,7 @@ export class CustomTreeView extends AbstractTreeView {
 				.then(() => timeout(2000))
 				.then(() => {
 					this.updateMessage();
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			this.activated = true;
 		}
 	}

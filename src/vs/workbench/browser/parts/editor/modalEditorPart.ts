@@ -12,6 +12,7 @@ import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Action, Separator } from '../../../../base/common/actions.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { Orientation, Sash, SashState } from '../../../../base/browser/ui/sash/sash.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { DisposableStore, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ResizableHTMLElement } from '../../../../base/browser/ui/resizable/resizable.js';
@@ -172,7 +173,7 @@ export class ModalEditorPart {
 				EventHelper.stop(e, true);
 
 				// Close modal when clicking outside the dialog
-				void editorPart.close();
+				void editorPart.close().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 

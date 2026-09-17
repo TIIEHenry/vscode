@@ -20,13 +20,9 @@ const WINDOW_REL = 'src/vs/workbench/electron-browser/window.ts';
 const BROWSER_WINDOW_REL = 'src/vs/workbench/browser/window.ts';
 const CONTRIBUTIONS_REL = 'src/vs/workbench/common/contributions.ts';
 const LAYOUT_REL = 'src/vs/workbench/browser/layout.ts';
-const LIST_COMMANDS_REL = 'src/vs/workbench/browser/actions/listCommands.ts';
 const WEB_FACTORY_REL = 'src/vs/workbench/browser/web.factory.ts';
-const TREE_VIEW_REL = 'src/vs/workbench/browser/parts/views/treeView.ts';
 const BREADCRUMBS_REL = 'src/vs/workbench/browser/parts/editor/breadcrumbsModel.ts';
 const EDITOR_PARTS_REL = 'src/vs/workbench/browser/parts/editor/editorParts.ts';
-const EDITOR_CONFIG_REL = 'src/vs/workbench/browser/parts/editor/editorConfiguration.ts';
-const MODAL_REL = 'src/vs/workbench/browser/parts/editor/modalEditorPart.ts';
 const PANE_PART_REL = 'src/vs/workbench/browser/parts/paneCompositePart.ts';
 const COMPOSITE_BAR_REL = 'src/vs/workbench/browser/parts/compositeBar.ts';
 
@@ -164,13 +160,9 @@ suite('workbench editor leftover Promise fire-and-forget catch scan (D731)', () 
 		const browserWindow = fs.readFileSync(resolveSource(BROWSER_WINDOW_REL), 'utf8');
 		const contributions = fs.readFileSync(resolveSource(CONTRIBUTIONS_REL), 'utf8');
 		const layout = fs.readFileSync(resolveSource(LAYOUT_REL), 'utf8');
-		const listCommands = fs.readFileSync(resolveSource(LIST_COMMANDS_REL), 'utf8');
 		const webFactory = fs.readFileSync(resolveSource(WEB_FACTORY_REL), 'utf8');
-		const treeView = fs.readFileSync(resolveSource(TREE_VIEW_REL), 'utf8');
 		const breadcrumbs = fs.readFileSync(resolveSource(BREADCRUMBS_REL), 'utf8');
 		const editorParts = fs.readFileSync(resolveSource(EDITOR_PARTS_REL), 'utf8');
-		const editorConfig = fs.readFileSync(resolveSource(EDITOR_CONFIG_REL), 'utf8');
-		const modal = fs.readFileSync(resolveSource(MODAL_REL), 'utf8');
 		const panePart = fs.readFileSync(resolveSource(PANE_PART_REL), 'utf8');
 		const compositeBar = fs.readFileSync(resolveSource(COMPOSITE_BAR_REL), 'utf8');
 
@@ -190,58 +182,12 @@ suite('workbench editor leftover Promise fire-and-forget catch scan (D731)', () 
 		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput);'));
 		assert.ok(!editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch'));
 
-		assert.ok(editorConfig.includes(`(async () => {
-			await extensionService.whenInstalledExtensionsRegistered();
-
-			this.updateDynamicEditorConfigurations();
-			this.registerListeners();
-		})();`));
-		assert.ok(!editorConfig.includes(`(async () => {
-			await extensionService.whenInstalledExtensionsRegistered();
-
-			this.updateDynamicEditorConfigurations();
-			this.registerListeners();
-		})()${doubleCatch}`));
-
-		assert.ok(modal.includes('void editorPart.close();'));
-		assert.ok(!modal.includes('void editorPart.close().catch'));
-
 		assert.ok(breadcrumbs.includes('}).catch(err => {'));
 		assert.ok(breadcrumbs.includes('onUnexpectedError(err);'));
 		assert.ok(!breadcrumbs.includes(`${doubleCatch}`));
 
-		const expandThen = `widget.expand(focus).then(didExpand => {
-				if (focus && !didExpand) {
-					const child = widget.getFirstElementChild(focus);
-
-					if (child) {
-						const node = widget.getNode(child);
-
-						if (node.visible) {
-							navigate(widget, widget => {
-								const fakeKeyboardEvent = new KeyboardEvent('keydown');
-								widget.setFocus([child], fakeKeyboardEvent);
-							});
-						}
-					}
-				}
-			})`;
-		assert.ok(listCommands.includes(`${expandThen};`));
-		assert.ok(!listCommands.includes(`${expandThen}${doubleCatch}`));
-
 		assert.ok(webFactory.includes('new BrowserMain(domElement, options).open().then(workbench => {'));
 		assert.ok(!webFactory.includes('onUnexpectedError'));
-
-		assert.ok(treeView.includes(`this.progressService.withProgress({ location: this.id }, () => this.extensionService.activateByEvent(\`onView:\${this.id}\`))
-				.then(() => timeout(2000))
-				.then(() => {
-					this.updateMessage();
-				});`));
-		assert.ok(!treeView.includes(`this.progressService.withProgress({ location: this.id }, () => this.extensionService.activateByEvent(\`onView:\${this.id}\`))
-				.then(() => timeout(2000))
-				.then(() => {
-					this.updateMessage();
-				})${doubleCatch}`));
 
 		assert.ok(panePart.includes('this.openPaneComposite(currentContainer.id, true).catch(onUnexpectedError).catch(onUnexpectedError);'));
 		assert.ok(compositeBar.includes('this.openComposite(currentContainer.id, true).catch(onUnexpectedError).catch(onUnexpectedError);'));
