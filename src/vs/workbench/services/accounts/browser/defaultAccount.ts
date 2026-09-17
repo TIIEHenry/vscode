@@ -7,7 +7,7 @@ import { distinct } from '../../../../base/common/arrays.js';
 import { Barrier, RunOnceScheduler, ThrottledDelayer, timeout } from '../../../../base/common/async.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { ICopilotTokenInfo, IDefaultAccount, IDefaultAccountAuthenticationProvider, IEntitlementsData, IPolicyData } from '../../../../base/common/defaultAccount.js';
-import { getErrorMessage } from '../../../../base/common/errors.js';
+import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { equals } from '../../../../base/common/objects.js';
@@ -196,7 +196,7 @@ export class DefaultAccountService extends Disposable implements IDefaultAccount
 			this._register(provider.onDidChangeDefaultAccount(account => this.setDefaultAccount(account)));
 			this._register(provider.onDidChangePolicyData(policyData => this._onDidChangePolicyData.fire(policyData)));
 			this._register(provider.onDidChangeCopilotTokenInfo(tokenInfo => this._onDidChangeCopilotTokenInfo.fire(tokenInfo)));
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	async refresh(options?: IDefaultAccountRefreshOptions): Promise<IDefaultAccount | null> {
@@ -340,7 +340,7 @@ export class DefaultAccountProvider extends Disposable implements IDefaultAccoun
 	private initialized = false;
 	private readonly initPromise: Promise<void>;
 	private readonly updateThrottler = this._register(new ThrottledDelayer(100));
-	private readonly accountDataPollScheduler = this._register(new RunOnceScheduler(() => this.refetchDefaultAccount(), ACCOUNT_DATA_POLL_INTERVAL_MS));
+	private readonly accountDataPollScheduler = this._register(new RunOnceScheduler(() => this.refetchDefaultAccount().catch(onUnexpectedError).catch(onUnexpectedError), ACCOUNT_DATA_POLL_INTERVAL_MS));
 	private readonly managedSettingsFetchAttemptedAccounts = new Set<string>();
 	private readonly failedManagedSettingsFreshness = new Map<string, ManagedSettingsBlockedFreshness>();
 
@@ -447,7 +447,7 @@ export class DefaultAccountProvider extends Disposable implements IDefaultAccoun
 				this.setDefaultAccount(null);
 			} else {
 				this.logService.debug('[DefaultAccount] Sessions changed for default account provider, updating default account');
-				this.updateDefaultAccount();
+				this.updateDefaultAccount().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -457,7 +457,7 @@ export class DefaultAccountProvider extends Disposable implements IDefaultAccoun
 				return;
 			}
 			this.logService.debug('[DefaultAccount] Account preference changed for default account provider, updating default account');
-			this.updateDefaultAccount();
+			this.updateDefaultAccount().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this._register(this.authenticationService.onDidRegisterAuthenticationProvider(e => {
@@ -466,7 +466,7 @@ export class DefaultAccountProvider extends Disposable implements IDefaultAccoun
 				return;
 			}
 			this.logService.debug('[DefaultAccount] Default account provider registered, updating default account');
-			this.updateDefaultAccount();
+			this.updateDefaultAccount().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this._register(this.authenticationService.onDidUnregisterAuthenticationProvider(e => {
@@ -475,12 +475,12 @@ export class DefaultAccountProvider extends Disposable implements IDefaultAccoun
 				return;
 			}
 			this.logService.debug('[DefaultAccount] Default account provider unregistered, updating default account');
-			this.updateDefaultAccount();
+			this.updateDefaultAccount().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this._register(this.hostService.onDidChangeFocus(focused => {
 			if (focused) {
-				this.refetchDefaultAccount();
+				this.refetchDefaultAccount().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -514,7 +514,7 @@ export class DefaultAccountProvider extends Disposable implements IDefaultAccoun
 				// registered after the connection is established, so without this the provider
 				// would never become available.
 				if (this.environmentService.remoteAuthority) {
-					void this.authenticationService.getSessions(provider.id, undefined, {}, true);
+					void this.authenticationService.getSessions(provider.id, undefined, {}, true).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 
 				this.extensionService.whenInstalledExtensionsRegistered().then(() => {
@@ -679,7 +679,7 @@ export class DefaultAccountProvider extends Disposable implements IDefaultAccoun
 
 	private onManagedSettingsSourceChanged(): void {
 		if (this.initialized) {
-			void this.updateDefaultAccount({ forceRefresh: true });
+			void this.updateDefaultAccount({ forceRefresh: true }).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
