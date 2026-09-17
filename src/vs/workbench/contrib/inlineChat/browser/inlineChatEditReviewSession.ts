@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationError } from '../../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { IMarkdownString } from '../../../../base/common/htmlContent.js';
 import { Disposable, IDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
@@ -103,9 +103,9 @@ export class InlineChatEditReviewSession extends Disposable implements IChatEdit
 				tracked.startExternalEdit();
 			}
 			this._externalEditListener.value = response.onDidChange(() => {
-				void this._processExternalEdits(response);
+				void this._processExternalEdits(response).catch(onUnexpectedError).catch(onUnexpectedError);
 			});
-			void this._processExternalEdits(response);
+			void this._processExternalEdits(response).catch(onUnexpectedError).catch(onUnexpectedError);
 		} catch (error) {
 			this._logService.error(`Failed to prepare inline chat review for ${this._targetUri}`, error);
 			await this._resetReadonlyLocks();
@@ -164,7 +164,7 @@ export class InlineChatEditReviewSession extends Disposable implements IChatEdit
 		for (const entry of this._entries.values()) {
 			entry.stopExternalEdit();
 		}
-		void this._resetReadonlyLocks();
+		void this._resetReadonlyLocks().catch(onUnexpectedError).catch(onUnexpectedError);
 		super.dispose();
 	}
 

@@ -825,7 +825,7 @@ export class EngineAgentsSection extends Disposable {
 			this.toolsStatus.render({
 				mode: 'disconnected',
 				featureLabel: AGENT_TOOLS_FEATURE,
-				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError),
+				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 		} else if (this.agentToolsLoadFailed !== undefined) {
 			this.toolsStatus.render({
@@ -845,7 +845,7 @@ export class EngineAgentsSection extends Disposable {
 				featureLabel: AGENT_TOOLS_FEATURE,
 				emptyCopy: localize('ua.engineAgentsToolsEmpty', "No engine tools to enable for this profile."),
 				onOpenConnection: disconnectedChrome
-					? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError)
+					? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
 					: undefined,
 			});
 			return;
@@ -1071,7 +1071,7 @@ export class EngineAgentsSection extends Disposable {
 			loadingKind: options?.loadingKind,
 			onRetry: options?.onRetry,
 			onOpenConnection: this.mode === 'disconnected'
-				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError)
+				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
 				: undefined,
 		});
 	}
