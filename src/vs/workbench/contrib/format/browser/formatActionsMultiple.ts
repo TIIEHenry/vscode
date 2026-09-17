@@ -11,6 +11,7 @@ import * as nls from '../../../../nls.js';
 import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
 import { IQuickInputService, IQuickPickItem } from '../../../../platform/quickinput/common/quickInput.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { formatDocumentRangesWithProvider, formatDocumentWithProvider, getRealAndSyntheticDocumentFormattersOrdered, FormattingConflicts, FormattingMode, FormattingKind } from '../../../../editor/contrib/format/browser/format.js';
 import { Range } from '../../../../editor/common/core/range.js';
@@ -264,7 +265,7 @@ export class DefaultFormatter extends Disposable implements IWorkbenchContributi
 				command,
 				accessibilityInfo: undefined
 			}));
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore, IDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { isWeb } from '../../../../base/common/platform.js';
 import { ServicesAccessor } from '../../../../editor/browser/editorExtensions.js';
@@ -80,13 +81,13 @@ export class UserDataProfilesWorkbenchContribution extends Disposable implements
 		this._register(this.urlService.registerHandler(this));
 
 		if (isWeb) {
-			lifecycleService.when(LifecyclePhase.Eventually).then(() => userDataProfilesService.cleanUp());
+			lifecycleService.when(LifecyclePhase.Eventually).then(() => userDataProfilesService.cleanUp()).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		this.reportWorkspaceProfileInfo();
 
 		if (environmentService.options?.profileToPreview) {
-			lifecycleService.when(LifecyclePhase.Restored).then(() => this.handleURL(URI.revive(environmentService.options!.profileToPreview!)));
+			lifecycleService.when(LifecyclePhase.Restored).then(() => this.handleURL(URI.revive(environmentService.options!.profileToPreview!))).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		this.registerDropHandler();

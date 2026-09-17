@@ -6,6 +6,7 @@
 import './media/userDataProfilesEditor.css';
 import { $, addDisposableListener, append, clearNode, Dimension, EventHelper, EventType, IDomPosition, trackFocus } from '../../../../base/browser/dom.js';
 import { Action, IAction, IActionChangeEvent, Separator, SubmenuAction, toAction } from '../../../../base/common/actions.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
@@ -372,7 +373,7 @@ export class UserDataProfilesEditor extends EditorPane implements IUserDataProfi
 			if (this.profileWidget) {
 				this.profileWidget.templates = templates;
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 		this.updateProfilesList();
 		this._register(this.model.onDidChange(element =>
 			this.updateProfilesList(element)));

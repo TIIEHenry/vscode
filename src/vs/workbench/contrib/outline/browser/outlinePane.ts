@@ -7,6 +7,7 @@ import './outlinePane.css';
 import * as dom from '../../../../base/browser/dom.js';
 import { ProgressBar } from '../../../../base/browser/ui/progressbar/progressbar.js';
 import { TimeoutTimer, timeout } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IDisposable, toDisposable, DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { LRUCache } from '../../../../base/common/map.js';
 import { localize } from '../../../../nls.js';
@@ -127,7 +128,7 @@ export class OutlinePane extends ViewPane implements IOutlinePane {
 		this._editorControlChangePromise.then(() => {
 			super.focus();
 			this._tree?.domFocus();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	protected override renderBody(container: HTMLElement): void {

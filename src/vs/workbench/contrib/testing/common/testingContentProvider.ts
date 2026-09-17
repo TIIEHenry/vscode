@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { VSBuffer } from '../../../../base/common/buffer.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { removeAnsiEscapeCodes } from '../../../../base/common/strings.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -77,7 +78,7 @@ export class TestingContentProvider implements IWorkbenchContribution, ITextMode
 					append(localize('runNoOutout', 'The test run did not record any output.'));
 					dispose.dispose();
 				}
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 			dispose.add(model.onWillDispose(() => dispose.dispose()));
 
 			return model;

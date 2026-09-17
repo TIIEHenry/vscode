@@ -11,6 +11,7 @@ import { ICompressibleTreeRenderer } from '../../../../base/browser/ui/tree/obje
 import { ITreeNode, ITreeSorter } from '../../../../base/browser/ui/tree/tree.js';
 import { findLast } from '../../../../base/common/arraysFind.js';
 import { assertNever } from '../../../../base/common/assert.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { memoize } from '../../../../base/common/decorators.js';
 import { FuzzyScore, createMatches } from '../../../../base/common/filters.js';
@@ -300,7 +301,7 @@ class TestCoverageTree extends Disposable {
 					this.tree.setChildren(el, [{ element: new LoadingDetails(), incompressible: true }]);
 				}
 
-				el.value!.details().then(details => this.updateWithDetails(el, details));
+				el.value!.details().then(details => this.updateWithDetails(el, details)).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 		this._register(this.tree.onDidOpen(e => {

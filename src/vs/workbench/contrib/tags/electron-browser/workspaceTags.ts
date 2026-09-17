@@ -54,7 +54,7 @@ export class WorkspaceTags implements IWorkbenchContribution {
 
 		this.reportProxyStats();
 
-		this.getWorkspaceInformation().then(stats => this.diagnosticsService.reportWorkspaceStats(stats));
+		this.getWorkspaceInformation().then(stats => this.diagnosticsService.reportWorkspaceStats(stats)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async reportWindowsEdition(): Promise<void> {
