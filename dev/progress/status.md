@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D738。D739/D740 跳过。D24 仍开。不是 leftover/pills 完成。"
+summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D738。D739/D740 跳过。E 签收 composer-fake-chrome + eslint/Inbox Retry。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -15,12 +15,13 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D738。D739/D
 |:-----|:-----|
 | **A SessionStream / L2** | 16/23/30–32/34–39/44/46/50–52；envelope leftover |
 | **catch** | D677–D738 |
+| **E composer-fake-chrome** | D194 签收 + eslint / Inbox Retry 断言 @ `41f0d8c912f` |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A/D/F/G/H/I/J** | leftover Promise 双链进行中（B 脏跳过；C gitlink 勿 add；E blocked；edit ff-only 失败） |
+| **A/D/F/G/H/I/J** | leftover Promise 双链进行中（B 脏跳过；C gitlink 勿 add；E 本 tip 已合；edit ff-only 失败） |
 
 子 agent 发现：
 | ID | 问题 |
