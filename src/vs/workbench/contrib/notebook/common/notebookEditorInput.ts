@@ -86,7 +86,7 @@ export class NotebookEditorInput extends AbstractResourceEditorInput {
 		// this listener
 		this._sideLoadedListener = _notebookService.onDidAddNotebookDocument(e => {
 			if (e.viewType === this.viewType && e.uri.toString() === this.resource.toString()) {
-				this.resolve().catch(onUnexpectedError);
+				this.resolve().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		});
 
