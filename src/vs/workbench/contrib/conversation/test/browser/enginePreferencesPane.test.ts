@@ -9,6 +9,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { writeStatus } from '../../browser/connectionPreferencesPane.js';
 import {
 	EnginePreferencesPane,
 	getEngineTestStatusText,
@@ -447,8 +448,24 @@ suite('EnginePreferencesPane', () => {
 		// A disconnected engine is an ordinary state, so the banner stays a neutral notice.
 		assert.ok(!(container.querySelector('.engine-preferences-disconnected-banner') as HTMLElement).classList.contains('is-warning'));
 		assert.ok((container.textContent ?? '').includes('Open Connection'));
+		const testStatus = container.querySelector('.engine-test-status') as HTMLElement;
+		assert.ok(testStatus);
+		assert.strictEqual(testStatus.textContent, '');
+		assert.ok(testStatus.closest('.engine-preferences-disconnected-banner'));
 
 		container.remove();
+	});
+
+	test('writeStatus trims whitespace-only copy so empty testStatus stays empty', () => {
+		const el = document.createElement('div');
+		el.className = 'engine-test-status';
+		writeStatus(el, ' \n\t ', 'neutral');
+		assert.strictEqual(el.textContent, '');
+		assert.ok(!el.classList.contains('is-warning'));
+		assert.ok(!el.classList.contains('is-error'));
+		writeStatus(el, '  Reachable — loopback  ', 'success');
+		assert.strictEqual(el.textContent, 'Reachable — loopback');
+		assert.ok(el.classList.contains('is-success'));
 	});
 
 	test('E2-1: Web unsupported_environment omits Test Engine and shows named copy', () => {

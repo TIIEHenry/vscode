@@ -3,8 +3,8 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-09-15
-summary: "UA chrome visual 本机待合：SessionBar medium / Inbox overlay / Engine CTA / Client 360 / Inspect+filter / Sources 空态 / 连接人话。D25/D26 已闭。PRD-008 仍待 IDE 接通冒烟。D410–D412 已合。D405 手测仍开。下号 D413。"
+updated: 2026-09-17
+summary: "UA chrome visual follow-up 本 commit：Maximize inbox 回流、chip 托盘、Accept hover、Navigator compact 留点、Connecting pending。D25/D26 已闭。PRD-008 仍待 IDE 接通冒烟。D410–D412 已合。下号 D413。"
 ---
 
 # Development Progress
@@ -37,7 +37,8 @@ summary: "UA chrome visual 本机待合：SessionBar medium / Inbox overlay / En
 | **UI 缺口收口波** | Navigator Team 删六个改引擎命令（PRD-022 验收 6）；Sources Diff 占位壳换真 `DiffEditorWidget`，revert/accept 双门控；对话列顶「断连前快照」（PRD-007 验收 5）；子代理浮层补「对话 \| 轨迹」两页（PRD-012 验收 1）；Inbox 右簇诚实空环；Permission 接 `SetPermissionMode`（失败回滚 + 门禁提示）；轨迹折叠点击跨刷新不失效。Mermaid 扩展 Promise 加 disposed 闸门（释放后渲染导致列表行泄漏）；轨迹检查器首段标题错用 Preview 改回 Summary |
 | **settings chrome** | Connection/Engine 两页改用 `InputBox`/`Checkbox`/`WorkbenchList` 左栏与状态色；窄宽两栏；Test Engine 下沉页脚；「回 Client」链入 Preferences tab 条；会话栏图标改 ghost toolbar。无新 RPC / 无新节 |
 | **settings chrome follow-up** | Back-to-Client 先取出 Preferences 服务再关 pane（`await` 后 accessor 已失效）；Direct Address Connect 状态写回本区并先标 Connecting…。已随本轮合入 `loop/merge` |
-| **UA chrome visual** | 本 commit — SessionBar `.is-medium`；Inbox overlay 绝对定位（禁 `display:none`）；Engine 断连 CTA 去重；Client 360；Inspect 两列+状态色；四 tab filter；Sources 空态/Diff 缝；连接人话。不升 PRD。未 live 工作台 |
+| **UA chrome visual** | `ff278772b85` — SessionBar `.is-medium`；Inbox 可达；Engine CTA 去重；Client 360；Inspect+filter；Sources 空态。不升 PRD |
+| **UA chrome visual follow-up** | 本 commit — Maximize inbox 文档流；chip 托盘；badge 28ch+title；Accept hover；Navigator compact 留点；Connecting pending。不升 PRD。未 live 工作台 |
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。**2026-09-12**：仓外 PIN 已换。grpcurl 复验 **List/Create PASS**（含旧 session-100/101）；**[D25](deferred-gaps.md)/[D26](deferred-gaps.md) 已闭**。同日 seed `provider:state` + `models.json` 后重启，grpcurl **Chat PASS**（`gemini-3.8-flash-high`，`textDelta`=`pong`，`turnComplete`/`end_turn`；无 `MODEL_PROFILE_*`）。这是引擎面证据，不是 IDE Conversation 接通冒烟。未升 PRD-008。引擎 A–F 已合；本仓 **node + `IUniverseAgentConnection` 已挂**。Provider/Rules/Hooks **只读列表**已接（无凭据/规则写表单）。Projects 按会话 `work_dir` 分组、Navigator `ListTeams` 标题、Review 历史 chip **已接**。[m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
 ### 进行中（2026-09-13 · 人类工位合入 + D412 占 D）
 | 槽 | 切片 | 状态 |

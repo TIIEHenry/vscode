@@ -15,7 +15,7 @@
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 8px;
-	padding: 4px 8px;
+	padding: 4px 8px 8px;
 	flex-shrink: 0;
 	border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border, var(--vscode-widget-border, var(--vscode-contrastBorder, transparent)));
 }
@@ -28,7 +28,7 @@
 	cursor: pointer;
 }
 
-.monaco-workbench .conversation-diff-review-pane .conversation-diff-review-toolbar button:hover:not(:disabled) {
+.monaco-workbench .conversation-diff-review-pane .conversation-diff-review-toolbar button:not(.conversation-diff-review-accept):hover:not(:disabled) {
 	background: var(--vscode-button-secondaryHoverBackground, var(--vscode-button-secondaryBackground));
 }
 
@@ -42,13 +42,15 @@
 	color: var(--vscode-button-foreground);
 }
 
-.monaco-workbench .conversation-diff-review-pane .conversation-diff-review-accept:hover:not(:disabled) {
+.monaco-workbench .conversation-diff-review-pane .conversation-diff-review-toolbar button.conversation-diff-review-accept:hover:not(:disabled) {
 	background: var(--vscode-button-hoverBackground, var(--vscode-button-background));
 }
 
 .monaco-workbench .conversation-diff-review-pane .conversation-diff-review-unstage-unavailable {
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
+	min-width: 0;
+	overflow-wrap: anywhere;
 }
 
 .monaco-workbench .conversation-diff-review-pane .conversation-diff-review-revert,
@@ -68,6 +70,8 @@
 	padding: 4px 8px;
 	color: var(--vscode-descriptionForeground);
 	flex-shrink: 0;
+	min-width: 0;
+	overflow-wrap: anywhere;
 }
 
 .monaco-workbench .conversation-diff-review-pane .conversation-diff-review-editor {

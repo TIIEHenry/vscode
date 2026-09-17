@@ -207,3 +207,35 @@ suite('Sources - review showForPaths - 源码接线扫描', () => {
 		assert.ok(!openAction.includes('} catch {'));
 	});
 });
+
+suite('Sources - custom UI visual CSS - 源码接线扫描', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('Accept hover is not covered by secondary button hover', () => {
+		const reviewPane = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/conversationDiffReviewPane.css'), 'utf8');
+		const panel = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesDiffPanel.css'), 'utf8');
+		assert.ok(reviewPane.includes('button:not(.conversation-diff-review-accept):hover:not(:disabled)'));
+		assert.ok(reviewPane.includes('button.conversation-diff-review-accept:hover:not(:disabled)'));
+		assert.ok(!reviewPane.includes('.conversation-diff-review-toolbar button:hover:not(:disabled)'));
+		assert.ok(panel.includes('button:not(.sources-diff-panel-accept):hover:not(:disabled)'));
+		assert.ok(panel.includes('button.sources-diff-panel-accept:hover:not(:disabled)'));
+		assert.ok(!panel.includes('.sources-diff-panel-actions button:hover:not(:disabled)'));
+	});
+
+	test('Diff panel actions wrap; review status error tone is throw-only', () => {
+		const panel = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesDiffPanel.css'), 'utf8');
+		const reviewCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesReviewList.css'), 'utf8');
+		const review = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts'), 'utf8');
+		assert.ok(panel.includes('.sources-diff-panel-header {\n\tdisplay: flex;\n\tflex-wrap: wrap;'));
+		assert.ok(panel.includes('flex: 1 1 auto;'));
+		assert.ok(panel.includes('justify-content: flex-end;'));
+		assert.ok(reviewCss.includes('.sources-review-status.is-error'));
+		assert.ok(review.includes("classList.toggle('is-error'"));
+		assert.ok(review.includes('this.setStatusMessage(gitReadError, true)'));
+		assert.ok(review.includes('this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error), true)'));
+		assert.ok(!review.includes('this.setStatusMessage(sourcesGitReadPairingHoldMessage(), true)'));
+		assert.ok(!review.includes('this.setStatusMessage(sourcesGitReadUnavailableNoHookMessage(), true)'));
+		assert.ok(!review.includes('this.setStatusMessage(sourcesGitLocalOnlyMessage(), true)'));
+	});
+});

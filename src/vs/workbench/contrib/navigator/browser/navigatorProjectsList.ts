@@ -68,6 +68,8 @@ interface IProjectFolderTemplateData {
 
 interface IProjectNodeTemplateData {
 	readonly label: HTMLElement;
+	readonly name: HTMLElement;
+	readonly description: HTMLElement;
 }
 
 class ProjectFolderRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, void, IProjectFolderTemplateData> {
@@ -83,11 +85,14 @@ class ProjectFolderRenderer implements ITreeRenderer<INavigatorProjectsTreeNode,
 
 	renderElement(node: ITreeNode<INavigatorProjectsTreeNode, void>, _index: number, templateData: IProjectFolderTemplateData): void {
 		const entry = node.element;
+		const title = entry.description
+			? `${entry.label} — ${entry.description}`
+			: entry.label;
 		templateData.label.setResource({
 			resource: entry.resource!,
 			name: entry.label,
 			description: entry.description,
-		}, { hideIcon: false });
+		}, { hideIcon: false, title });
 	}
 
 	disposeTemplate(templateData: IProjectFolderTemplateData): void {
@@ -100,14 +105,20 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 	readonly templateId = ProjectNodeRenderer.TEMPLATE_ID;
 
 	renderTemplate(container: HTMLElement): IProjectNodeTemplateData {
-		return { label: dom.append(container, $('.navigator-projects-node-label')) };
+		const label = dom.append(container, $('.navigator-projects-node-label'));
+		const name = dom.append(label, $('span.navigator-projects-node-name'));
+		const description = dom.append(label, $('span.navigator-projects-node-description'));
+		return { label, name, description };
 	}
 
 	renderElement(node: ITreeNode<INavigatorProjectsTreeNode, void>, _index: number, templateData: IProjectNodeTemplateData): void {
-		templateData.label.textContent = node.element.description
+		const fullLabel = node.element.description
 			? `${node.element.label} — ${node.element.description}`
 			: node.element.label;
-		templateData.label.title = templateData.label.textContent;
+		templateData.name.textContent = node.element.label;
+		templateData.description.textContent = node.element.description ? ` — ${node.element.description}` : '';
+		templateData.description.style.display = node.element.description ? '' : 'none';
+		templateData.label.title = fullLabel;
 	}
 
 	disposeTemplate(): void {

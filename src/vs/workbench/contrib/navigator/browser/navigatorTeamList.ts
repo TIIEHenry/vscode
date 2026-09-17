@@ -41,7 +41,7 @@ import {
 	NAVIGATOR_TEAM_LOADING_COPY,
 } from '../common/navigatorTeamData.js';
 import { collectLiveAgentTreeAgentIds, EMPTY_LIVE_AGENT_IDS } from '../common/navigatorAgentHierarchy.js';
-import { getNavigatorAgentTreePendingCopy, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
+import { getNavigatorAgentTreePendingCopy, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
 import {
 	AGENT_INSPECT_VIEW_ID,
 	OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID,
@@ -548,8 +548,13 @@ export class NavigatorTeamView extends ViewPane {
 			if (noteMessage) {
 				note.textContent = noteMessage;
 				note.style.display = 'block';
+				note.classList.toggle(
+					'is-error',
+					noteMessage === TEAM_FETCH_FAILED_COPY || noteMessage === NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY,
+				);
 			} else {
 				note.style.display = 'none';
+				note.classList.remove('is-error');
 			}
 		}
 	}

@@ -55,9 +55,13 @@ suite('NavigatorAgentsHierarchy (N2)', () => {
 		assert.strictEqual(agentStatusTone('AGENT_STATUS_GENERATING'), 'running');
 		assert.strictEqual(agentStatusTone('PENDING'), 'running');
 		assert.strictEqual(agentStatusTone('WAITING'), 'running');
+		assert.strictEqual(agentStatusTone('RUNNING'), 'running');
+		assert.strictEqual(agentStatusTone('BUSY'), 'running');
 		assert.strictEqual(agentStatusTone('PAUSED'), 'paused');
+		assert.strictEqual(agentStatusTone('CANCELLED'), 'paused');
 		assert.strictEqual(agentStatusTone('AGENT_STATUS_ERROR'), 'error');
 		assert.strictEqual(agentStatusTone('TIMEOUT'), 'error');
+		assert.strictEqual(agentStatusTone('FAILED'), 'error');
 		assert.strictEqual(agentStatusTone('COMPLETED'), 'done');
 	});
 

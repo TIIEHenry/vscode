@@ -671,8 +671,10 @@ export class NavigatorAgentsView extends ViewPane {
 		if (noteMessage) {
 			this.hierarchyNote.textContent = noteMessage;
 			this.hierarchyNote.style.display = 'block';
+			this.hierarchyNote.classList.toggle('is-error', noteMessage === NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY);
 		} else {
 			this.hierarchyNote.style.display = 'none';
+			this.hierarchyNote.classList.remove('is-error');
 		}
 	}
 
@@ -683,8 +685,10 @@ export class NavigatorAgentsView extends ViewPane {
 		if (noteMessage) {
 			this.activityNote.textContent = noteMessage;
 			this.activityNote.style.display = 'block';
+			this.activityNote.classList.toggle('is-error', noteMessage === NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY);
 		} else {
 			this.activityNote.style.display = 'none';
+			this.activityNote.classList.remove('is-error');
 		}
 	}
 

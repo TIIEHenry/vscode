@@ -41,8 +41,10 @@ export const CONVERSATION_SESSIONS_DELETE_SESSION_COMMAND_ID = 'workbench.action
 /** Sessions ViewTitle Delete KEEP-chrome — false on leftover-looks-live / pairing-hold. Do not reuse Navigator `UA_ENGINE_CONNECTED_KEY`. */
 export const CONVERSATION_SESSIONS_DELETE_ENABLED_KEY = new RawContextKey<boolean>('conversationSessions.deleteEnabled', false);
 
-/** Two-line compact SessionCard row height (workbench list delegate). */
+/** Two-line SessionCard row height (workbench list delegate). */
 export const CONVERSATION_SESSION_ROW_HEIGHT = 44;
+/** Compact (subtitle hidden) SessionCard row height. */
+export const CONVERSATION_SESSION_COMPACT_ROW_HEIGHT = 22;
 
 const $ = dom.$;
 
@@ -66,8 +68,10 @@ function formatSessionRosterSubtitle(session: ConversationStubSession, pendingCo
 }
 
 class SessionsDelegate implements IListVirtualDelegate<ConversationStubSession> {
+	constructor(private readonly isCompact: () => boolean) { }
+
 	getHeight(): number {
-		return CONVERSATION_SESSION_ROW_HEIGHT;
+		return this.isCompact() ? CONVERSATION_SESSION_COMPACT_ROW_HEIGHT : CONVERSATION_SESSION_ROW_HEIGHT;
 	}
 
 	getTemplateId(): string {
@@ -234,9 +238,6 @@ export class ConversationSessionsView extends ViewPane {
 
 		container.classList.add('conversation-sessions-body');
 
-		this.emptyMessage = dom.append(container, $('.conversation-sessions-empty'));
-		this.emptyMessage.textContent = conversationSessionsViewEmptyMessage;
-
 		const filterPlaceholder = localize('conversationSessionsFilterPlaceholder', "Filter sessions");
 		this.filterBox = this._register(new ConversationSessionsInlineFilterBox(
 			container,
@@ -249,6 +250,9 @@ export class ConversationSessionsView extends ViewPane {
 			this.applyFilterToList();
 		}));
 
+		this.emptyMessage = dom.append(container, $('.conversation-sessions-empty'));
+		this.emptyMessage.textContent = conversationSessionsViewEmptyMessage;
+
 		this.listContainer = dom.append(container, $('.conversation-sessions-list'));
 		this.ensureList();
 		this.refreshList();
@@ -256,11 +260,16 @@ export class ConversationSessionsView extends ViewPane {
 
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
+		const wasCompact = this.element.classList.contains('is-compact');
 		this.element.classList.toggle('is-narrow', width > 0 && width < 600);
 		this.element.classList.toggle('is-compact', width > 0 && width < 300);
+		const compactChanged = wasCompact !== this.element.classList.contains('is-compact');
 		const hasSessions = this.stubService.getSessions().length > 0;
 		const filterHeight = hasSessions ? ConversationSessionsInlineFilterBox.HEIGHT : 0;
 		this.list?.layout(height - filterHeight, width);
+		if (compactChanged) {
+			this.applyFilterToList();
+		}
 	}
 
 	private ensureList(): WorkbenchList<ConversationStubSession> {
@@ -270,7 +279,7 @@ export class ConversationSessionsView extends ViewPane {
 
 		const getActiveSessionId = () => this.stubService.getActiveSessionId();
 		const countPendingConfirmations = (sessionId: string) => this.stubService.countPendingConfirmations(sessionId);
-		const delegate = new SessionsDelegate();
+		const delegate = new SessionsDelegate(() => this.element.classList.contains('is-compact'));
 		const renderer = new SessionsRenderer(getActiveSessionId, countPendingConfirmations);
 
 		this.list = this._register(this.instantiationService.createInstance(
@@ -375,6 +384,12 @@ export class ConversationSessionsView extends ViewPane {
 		this.updateActiveSession();
 	}
 
+	private getSessionRowHeight(): number {
+		return this.element.classList.contains('is-compact')
+			? CONVERSATION_SESSION_COMPACT_ROW_HEIGHT
+			: CONVERSATION_SESSION_ROW_HEIGHT;
+	}
+
 	private layoutList(filteredCount: number): void {
 		if (!this.list || !this.listContainer) {
 			return;
@@ -385,7 +400,7 @@ export class ConversationSessionsView extends ViewPane {
 		if (width > 0 && height > 0) {
 			this.list.layout(height, width);
 		} else if (filteredCount > 0) {
-			this.list.layout(Math.max(filteredCount, 1) * CONVERSATION_SESSION_ROW_HEIGHT, 300);
+			this.list.layout(Math.max(filteredCount, 1) * this.getSessionRowHeight(), 300);
 		}
 	}
 

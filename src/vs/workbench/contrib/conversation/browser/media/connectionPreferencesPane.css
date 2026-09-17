@@ -203,6 +203,15 @@
 	margin-bottom: var(--vscode-spacing-size80);
 }
 
+.monaco-workbench .connection-preferences-pane .connection-hub-device-code {
+	flex-wrap: wrap;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-hub-device-code .connection-actions {
+	flex: 1 1 100%;
+	margin-top: 0;
+}
+
 .monaco-workbench .connection-preferences-pane .connection-field-row > label {
 	flex: 0 0 104px;
 	min-width: 0;
@@ -261,8 +270,9 @@
 	color: var(--vscode-testing-iconPassed);
 }
 
+.monaco-workbench .connection-preferences-pane .connection-status.is-pending,
 .monaco-workbench .connection-preferences-pane .connection-status.is-warning {
-	color: var(--vscode-editorWarning-foreground);
+	color: var(--vscode-editorWarning-foreground, var(--ua-status-pending));
 }
 
 .monaco-workbench .connection-preferences-pane .connection-status.is-error {
@@ -281,9 +291,21 @@
 
 .monaco-workbench .connection-preferences-pane .connection-hub-directory-banner {
 	margin-bottom: var(--vscode-spacing-size120);
+	padding: 6px 8px;
+	border: 1px solid var(--vscode-widget-border);
 	font-size: var(--vscode-fontSize-label1);
-	color: var(--vscode-errorForeground);
+	color: var(--vscode-descriptionForeground);
 	overflow-wrap: anywhere;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-hub-directory-banner.is-error {
+	border-color: var(--vscode-inputValidation-errorBorder, var(--vscode-widget-border));
+	background: var(--vscode-inputValidation-errorBackground);
+	color: var(--vscode-inputValidation-errorForeground, var(--vscode-errorForeground));
+}
+
+.monaco-workbench .connection-preferences-pane .connection-hub-directory-banner.is-success {
+	color: var(--vscode-testing-iconPassed);
 }
 
 .monaco-workbench .connection-preferences-pane .connection-direct-address-hint,

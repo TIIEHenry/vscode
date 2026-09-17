@@ -51,6 +51,22 @@
 	white-space: nowrap;
 }
 
+.monaco-workbench .is-compact .agent-inspect-entry {
+	flex-direction: column;
+	align-items: stretch;
+	gap: 2px;
+}
+
+.monaco-workbench .is-compact .agent-inspect-entry-field {
+	flex: 0 0 auto;
+}
+
+.monaco-workbench .is-compact .agent-inspect-entry-value {
+	white-space: normal;
+	overflow-wrap: anywhere;
+	text-overflow: unset;
+}
+
 .monaco-workbench .agent-inspect-entry-value.is-running {
 	color: var(--vscode-charts-blue);
 }

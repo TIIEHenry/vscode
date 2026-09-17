@@ -83,8 +83,10 @@ const $ = DOM.$;
 
 /** Every status line in the pane is written through here so tone and copy never drift apart. */
 export function writeStatus(element: HTMLElement, text: string, tone: ConnectionStatusTone = 'neutral'): void {
-	element.textContent = text;
+	const copy = text.trim();
+	element.textContent = copy;
 	element.classList.toggle('is-success', tone === 'success');
+	element.classList.toggle('is-pending', tone === 'pending');
 	element.classList.toggle('is-warning', tone === 'warning');
 	element.classList.toggle('is-error', tone === 'error');
 }
@@ -595,10 +597,11 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			ariaLabel: localize('ua.connectionConfirmDeviceCodeAria', "Confirm device code"),
 			inputBoxStyles: defaultInputBoxStyles,
 		}));
-		this.confirmDeviceCodeButton = this._register(new Button(deviceCodeRow, defaultButtonStyles));
+		const deviceCodeActions = DOM.append(deviceCodeRow, $('.connection-actions'));
+		this.confirmDeviceCodeButton = this._register(new Button(deviceCodeActions, defaultButtonStyles));
 		this.confirmDeviceCodeButton.label = localize('ua.connectionConfirmDeviceCode', "Confirm");
 		this._register(this.confirmDeviceCodeButton.onDidClick(() => void this.handleConfirmDeviceCode()));
-		this.rejectDevicePairButton = this._register(new Button(deviceCodeRow, { ...defaultButtonStyles, secondary: true }));
+		this.rejectDevicePairButton = this._register(new Button(deviceCodeActions, { ...defaultButtonStyles, secondary: true }));
 		this.rejectDevicePairButton.label = CONNECTION_DEVICE_PAIR_REJECT_LABEL;
 		this._register(this.rejectDevicePairButton.onDidClick(() => void this.handleRejectDevicePair()));
 		this.hubDeviceCodeStatus = DOM.append(this.hubDevicesSection, DOM.$('.connection-status.connection-hub-device-code-status'));
@@ -1088,8 +1091,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private restoreHubDirectoryWriteSuccessIfListed(listed: boolean, message: string): void {
 		if (listed) {
-			this.hubDirectoryBanner.textContent = message;
-			this.hubDirectoryBanner.style.display = message ? '' : 'none';
+			writeStatus(this.hubDirectoryBanner, message, message.trim() ? 'success' : 'neutral');
+			this.hubDirectoryBanner.style.display = message.trim() ? '' : 'none';
 			return;
 		}
 	}
@@ -1280,6 +1283,11 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 		const displayName = this.directNameInput.value.trim() || undefined;
 		const allowPrivateNetwork = this.directAllowPrivateCheckbox.checked;
+		writeStatus(
+			this.directAddressStatus,
+			localize('ua.connectionDirectConnecting', "Connecting…"),
+			getConnectionPhaseTone({ kind: 'connecting', reason: 'initial' }),
+		);
 		const ensured = await this.ensureDirectAddressProfileForConnect(host, port, displayName, allowPrivateNetwork);
 		if (!ensured.ok) {
 			writeStatus(this.directAddressStatus, ensured.reason, 'error');
@@ -1287,7 +1295,6 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 
 		this.activeProfileId = ensured.profileId;
-		writeStatus(this.directAddressStatus, localize('ua.connectionDirectConnecting', "Connecting…"));
 		await this.connectProfileWithPairing(ensured.profileId);
 		this.renderProfiles();
 	}
@@ -1417,7 +1424,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.activeProfileId = profileId;
 		const profiles = asConnectionProfileList(this.hubService.listConnectionProfiles());
 		const profile = profiles.find(p => p.profileId === profileId);
-		this.writeConnectStatus(getConnectionTestStatusText({ kind: 'connecting', reason: 'initial' }));
+		this.writeConnectStatus(
+			getConnectionTestStatusText({ kind: 'connecting', reason: 'initial' }),
+			getConnectionPhaseTone({ kind: 'connecting', reason: 'initial' }),
+		);
 		let result: Awaited<ReturnType<IUniverseAgentConnection['connectProfile']>>;
 		try {
 			result = await this.connectionService.connectProfile(profileId);
@@ -1817,8 +1827,13 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const banner = this.engineDevicesListFailed
 			? connectionDeviceListFailureMessage(this.engineDevicesListFailed)
 			: getHubDirectoryBannerLabel(directory);
-		this.hubDirectoryBanner.textContent = banner ?? '';
-		this.hubDirectoryBanner.style.display = banner ? '' : 'none';
+		if (banner) {
+			writeStatus(this.hubDirectoryBanner, banner, 'error');
+			this.hubDirectoryBanner.style.display = '';
+		} else {
+			writeStatus(this.hubDirectoryBanner, '', 'neutral');
+			this.hubDirectoryBanner.style.display = 'none';
+		}
 
 		if (this.enginePairedDevices !== undefined) {
 			this.hubDevices = this.enginePairedDevices.map(toConnectionPairedDevice);

@@ -250,6 +250,10 @@ suite('Sources - review list model', () => {
 		throw new Error(`status ${selector} stayed empty${contains ? ` (wanted ${contains})` : ''}`);
 	}
 
+	function statusIsError(host: HTMLElement): boolean {
+		return !!host.querySelector('.sources-review-status')?.classList.contains('is-error');
+	}
+
 	function mountListHost(): HTMLElement {
 		const host = document.createElement('div');
 		host.style.width = '400px';
@@ -413,8 +417,32 @@ suite('Sources - review list model', () => {
 		assert.strictEqual(status, sourcesGitReadFailureMessage('boom'));
 		assert.ok(status.includes('Unable to read git changes:'));
 		assert.ok(status.includes('boom'));
+		assert.ok(statusIsError(host));
 		assert.strictEqual((widget as unknown as { list?: WorkbenchList<unknown> }).list?.length ?? 0, 0);
 		assert.ok(!host.querySelector('.sources-review-list .monaco-list-row'));
+	});
+
+	test('Review list setStatusMessage uses error tone only for throw-style failures', function () {
+		const host = document.createElement('div');
+		document.body.appendChild(host);
+		store.add({ dispose: () => host.remove() });
+
+		const widget = store.add(stubSourcesGitListServices({
+			connection: createNoGitReadConnection(),
+		}).createInstance(SourcesReviewList, host));
+
+		widget.setStatusMessage(sourcesGitReadPairingHoldMessage());
+		assert.ok(!statusIsError(host));
+		widget.setStatusMessage(sourcesGitReadUnavailableNoHookMessage());
+		assert.ok(!statusIsError(host));
+		widget.setStatusMessage(sourcesGitLocalOnlyMessage());
+		assert.ok(!statusIsError(host));
+		widget.setStatusMessage(sourcesGitDiffOpenFailureMessage(new Error('boom')));
+		assert.ok(statusIsError(host));
+		widget.setStatusMessage(sourcesGitReadFailureMessage('boom'));
+		assert.ok(statusIsError(host));
+		widget.setStatusMessage(undefined);
+		assert.ok(!statusIsError(host));
 	});
 
 	test('Review list success then git-read throw keeps leftover rows and paints failed', async function () {
@@ -477,6 +505,7 @@ suite('Sources - review list model', () => {
 		assert.strictEqual(status, sourcesGitReadFailureMessage('boom'));
 		assert.ok(status.includes('Unable to read git changes:'));
 		assert.ok(status.includes('boom'));
+		assert.ok(statusIsError(host));
 		assert.ok(readCalls >= 2);
 		assert.strictEqual((widget as unknown as { list?: WorkbenchList<unknown> }).list?.length ?? 0, 1);
 		assert.strictEqual(((widget as unknown as { list?: WorkbenchList<unknown> }).list?.element(0) as { name?: string }).name, 'leftover.ts');
@@ -531,6 +560,7 @@ suite('Sources - review list model', () => {
 		assert.strictEqual(status, sourcesGitReadUnavailableNoHookMessage());
 		assert.ok(!status.includes('local source control'));
 		assert.notStrictEqual(status, sourcesGitLocalOnlyMessage());
+		assert.ok(!statusIsError(host));
 		assert.strictEqual(list.length, 1);
 		assert.strictEqual((list.element(0) as { gitPath?: string }).gitPath, leftoverPath);
 		assert.strictEqual((list.element(0) as { scmResource?: unknown }).scmResource, undefined);
@@ -591,6 +621,7 @@ suite('Sources - review list model', () => {
 		assert.ok(pairingStatus.includes('pairing'));
 		assert.ok(!pairingStatus.includes('local source control'));
 		assert.notStrictEqual(pairingStatus, sourcesGitLocalOnlyMessage());
+		assert.ok(!statusIsError(host));
 		assert.strictEqual(readCalls, 1);
 		assert.strictEqual(list.length, 1);
 		assert.strictEqual((list.element(0) as { gitPath?: string }).gitPath, leftoverPath);
@@ -602,6 +633,7 @@ suite('Sources - review list model', () => {
 
 		const disconnectStatus = await waitForStatusText(host, '.sources-review-status', 'local source control');
 		assert.strictEqual(disconnectStatus, sourcesGitLocalOnlyMessage());
+		assert.ok(!statusIsError(host));
 		assert.strictEqual(readCalls, 1);
 		assert.strictEqual(list.length, 1);
 		assert.ok((list.element(0) as { scmResource?: unknown }).scmResource);
@@ -852,6 +884,7 @@ suite('Sources - review list model', () => {
 		const status = await waitForStatusText(host, '.sources-review-status', 'Unable to open diff');
 		assert.strictEqual(status, sourcesGitDiffOpenFailureMessage(new Error('boom')));
 		assert.ok(status.includes('boom'));
+		assert.ok(statusIsError(host));
 		assert.strictEqual(marked, 0);
 	});
 
@@ -1068,6 +1101,7 @@ suite('Sources - review list model', () => {
 		(reviewHost.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
 
 		assert.strictEqual(await waitForStatusText(reviewHost, '.sources-review-status'), sourcesGitLocalOnlyMessage());
+		assert.ok(!statusIsError(reviewHost));
 		assert.strictEqual((await waitForList(review as unknown as { list?: WorkbenchList<unknown> })).length, 1);
 		assert.strictEqual((reviewHost.querySelector('.sources-review-empty') as HTMLElement).style.display, 'none');
 	});
@@ -1085,6 +1119,7 @@ suite('Sources - review list model', () => {
 
 		const status = await waitForStatusText(host, '.sources-review-status', 'Unable to open diff');
 		assert.strictEqual(status, sourcesGitDiffOpenFailureMessage(new Error(sourcesGitEmptyFileDiffMessage())));
+		assert.ok(statusIsError(host));
 		assert.strictEqual(marked, 0);
 	});
 

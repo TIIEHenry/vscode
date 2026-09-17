@@ -3,7 +3,7 @@ title: "Conversation 透镜、时间线与轨迹"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-15
+updated: 2026-09-17
 summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar；Accessible View；帧源投影与 Q4 live 过程折"
 ---
 
@@ -19,7 +19,7 @@ summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；�
 
 时间线行名由 `getConversationTurnAriaLabel` 给出（含 `system` / error 可否重试 / unknown 原始类型）。流式行只在进入 / 离开 `streaming` 时改「进行中」后缀，不按 token 更新 `aria-label`。完整回合经 `ConversationAccessibleView` 接入既有 `IAccessibleViewService`（`AccessibleViewProviderId.Conversation`），不新造 live 区。
 
-**窄宽度（Q6 = a11y RWD-1）：** `ConversationEditorPane.layout(dimension)` 用**本叶** `dimension.width` 打 `.is-medium`（600–899）、`.is-narrow`（< 600）与 `.is-compact`（< 300），再把同宽传给 `ConversationLens.layout`。禁止用 `ConversationPart` 宽代表 split / 并列叶。`.is-medium` 先藏 History / Snapshots / `conversation-window-nav`，避免 22px SessionBar 裁标题；同步徽章 `max-width` 收到 12ch。Part 级 SessionBar 用自己的盒宽打 class；overlay 自备栏用卡片体宽。300px 叶：主输入、透镜 tabs、同步态、inspector Back 保持 `flex-shrink: 0`；标题截断。轨迹 inspector 在叶宽 < 600 时覆盖表并显示 Back，关闭后恢复选中与 `scrollTop`。Navigator / Review reveal 把 `lastRevealItemId` 记在透镜上；隐藏 Part / 叶宽从 0 恢复 / overlay 打开或铺满时 `layout` 再 `revealTurn` / `scrollRecordIntoView`，不丢定位。
+**窄宽度（Q6 = a11y RWD-1）：** `ConversationEditorPane.layout(dimension)` 用**本叶** `dimension.width` 打 `.is-medium`（600–899）、`.is-narrow`（< 600）与 `.is-compact`（< 300），再把同宽传给 `ConversationLens.layout`。禁止用 `ConversationPart` 宽代表 split / 并列叶。`.is-medium` 先藏 History / Snapshots / `conversation-window-nav`，避免 22px SessionBar 裁标题。同步徽章默认 `max-width: 28ch` 且有 `title`；仅 `.is-narrow` / `.is-compact` 收到 12ch，且允许收缩。Part 级 SessionBar 用自己的盒宽打 class；overlay 自备栏用卡片体宽。300px 叶：主输入、透镜 tabs、inspector Back 保持 `flex-shrink: 0`；标题截断。轨迹 inspector 在叶宽 < 600 时覆盖表并显示 Back，关闭后恢复选中与 `scrollTop`。Navigator / Review reveal 把 `lastRevealItemId` 记在透镜上；隐藏 Part / 叶宽从 0 恢复 / overlay 打开或铺满时 `layout` 再 `revealTurn` / `scrollRecordIntoView`，不丢定位。
 
 `ConversationLens` 把当前透镜 id（`'conversation' | 'trajectory'`）存到 `StorageScope.WORKSPACE`（`CONVERSATION_LENS_ID_STORAGE_KEY`）。这不是本系统唯一持久化：会话目录 / 回合见 `conversation.roster.v1`（D13）；未发送草稿见 `conversation.drafts.v1`（[composer-and-inbox](composer-and-inbox.md) §6）。
 

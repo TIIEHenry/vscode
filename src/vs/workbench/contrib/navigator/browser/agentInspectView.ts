@@ -38,8 +38,10 @@ function inspectEntry(id: string, field: string, value: string, tone?: AgentStat
 }
 
 class InspectDelegate implements IListVirtualDelegate<IAgentInspectEntry> {
+	constructor(private readonly isCompact: () => boolean) { }
+
 	getHeight(): number {
-		return 22;
+		return this.isCompact() ? 44 : 22;
 	}
 
 	getTemplateId(): string {
@@ -218,8 +220,13 @@ export class AgentInspectView extends ViewPane {
 		super.layoutBody(height, width);
 		this.bodyHeight = height;
 		this.bodyWidth = width;
+		const compact = width > 0 && width < 300;
+		const compactChanged = compact !== this.element.classList.contains('is-compact');
 		this.element.classList.toggle('is-narrow', width > 0 && width < 600);
-		this.element.classList.toggle('is-compact', width > 0 && width < 300);
+		this.element.classList.toggle('is-compact', compact);
+		if (compactChanged && this.list) {
+			this.list.splice(0, this.list.length, this.entries);
+		}
 		this.layoutInspectList();
 	}
 
@@ -239,7 +246,7 @@ export class AgentInspectView extends ViewPane {
 			WorkbenchList,
 			'AgentInspect',
 			this.listContainer!,
-			new InspectDelegate(),
+			new InspectDelegate(() => this.element.classList.contains('is-compact')),
 			[new InspectRenderer()],
 			{
 				identityProvider: { getId: (entry: IAgentInspectEntry) => entry.id },

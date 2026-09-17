@@ -429,6 +429,14 @@ suite('Agent inspect panel', () => {
 		assert.strictEqual(view.element.querySelector('.chat-setup'), null);
 	});
 
+	test('compact layout marks the inspect pane so field/value can wrap', async () => {
+		const view = await mountView();
+		(view as unknown as { layoutBody(height: number, width: number): void }).layoutBody(400, 280);
+		assert.ok(view.element.classList.contains('is-compact'));
+		(view as unknown as { layoutBody(height: number, width: number): void }).layoutBody(400, 400);
+		assert.ok(!view.element.classList.contains('is-compact'));
+	});
+
 	test('Team ViewTitle Inspect action dispatches to the active Team view', async () => {
 		const inspectCalls: string[] = [];
 		class TrackingViewsService extends TestViewsService {

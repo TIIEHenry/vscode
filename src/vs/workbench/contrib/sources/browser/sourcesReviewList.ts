@@ -57,6 +57,12 @@ const $ = dom.$;
 
 const REVIEW_ROW_HEIGHT = 44;
 
+function isSourcesReviewErrorStatus(message: string): boolean {
+	return message !== sourcesGitReadPairingHoldMessage()
+		&& message !== sourcesGitReadUnavailableNoHookMessage()
+		&& message !== sourcesGitLocalOnlyMessage();
+}
+
 class SourcesReviewDelegate implements IListVirtualDelegate<ISourcesReviewEntry> {
 	getHeight(): number {
 		return REVIEW_ROW_HEIGHT;
@@ -333,14 +339,16 @@ export class SourcesReviewList extends Disposable {
 		this.markAllVisibleReviewed();
 	}
 
-	setStatusMessage(message: string | undefined): void {
+	setStatusMessage(message: string | undefined, isError?: boolean): void {
 		if (!message) {
 			this.statusMessage.textContent = '';
 			this.statusMessage.style.display = 'none';
+			this.statusMessage.classList.remove('is-error');
 			return;
 		}
 		this.statusMessage.textContent = message;
 		this.statusMessage.style.display = 'block';
+		this.statusMessage.classList.toggle('is-error', isError ?? isSourcesReviewErrorStatus(message));
 	}
 
 	private registerRepository(repo: ISCMRepository): void {
@@ -514,7 +522,7 @@ export class SourcesReviewList extends Disposable {
 					element.resource,
 				);
 			} catch (error) {
-				this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error));
+				this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error), true);
 			}
 		}));
 
@@ -716,7 +724,7 @@ export class SourcesReviewList extends Disposable {
 		this.progressHeader.style.display = hasAnyEntries ? 'flex' : 'none';
 		this.headerHint.style.display = hasAnyEntries ? '' : 'none';
 		if (gitReadError) {
-			this.setStatusMessage(gitReadError);
+			this.setStatusMessage(gitReadError, true);
 		} else if (gitReadPairingHold) {
 			this.setStatusMessage(sourcesGitReadPairingHoldMessage());
 		} else if (gitReadNoHook) {

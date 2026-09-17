@@ -25,6 +25,7 @@ import {
 	getConnectionEmptyCopy,
 	getConnectionTestStatusText,
 	IConnectionProfileEntry,
+	writeStatus,
 } from '../../browser/connectionPreferencesPane.js';
 import {
 	getEngineSectionApiUnavailableCopy,
@@ -57,6 +58,7 @@ import {
 } from '../../browser/connectionDevicePair.js';
 import {
 	canConnectHubDevice,
+	getConnectionPhaseTone,
 	getHubAuthStatusLabel,
 	getHubDeviceRowStatusLabel,
 	hubAccountSignedInActions,
@@ -358,12 +360,44 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(getConnectionEmptyCopy(), CONNECTION_EMPTY_COPY);
 	});
 
+	test('writeStatus trims whitespace-only copy to empty', () => {
+		const el = document.createElement('div');
+		writeStatus(el, ' \n ', 'neutral');
+		assert.strictEqual(el.textContent, '');
+		assert.ok(!el.classList.contains('is-pending'));
+		assert.ok(!el.classList.contains('is-warning'));
+		writeStatus(el, '  Connecting…  ', 'pending');
+		assert.strictEqual(el.textContent, 'Connecting…');
+		assert.ok(el.classList.contains('is-pending'));
+		assert.ok(!el.classList.contains('is-warning'));
+	});
+
+	test('connecting phase tone is pending, disconnected stays neutral', () => {
+		assert.strictEqual(getConnectionPhaseTone({ kind: 'connecting', reason: 'initial' }), 'pending');
+		assert.strictEqual(getConnectionPhaseTone({ kind: 'disconnected' }), 'neutral');
+		assert.strictEqual(getConnectionPhaseTone({ kind: 'connecting', reason: 'initial' }, true), 'warning');
+	});
+
 	test('listConnectionProfiles returning a Promise does not throw while rendering', () => {
 		const pane = mountPane({
 			listConnectionProfiles: () => Promise.resolve([]) as unknown as [],
 		});
 		assert.deepStrictEqual(getPaneEntries(pane), []);
 		pane.getDomNode().remove();
+	});
+
+	test('directory banner paints error surface for authExpired', () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'authExpired' }),
+		});
+		const container = pane.getDomNode();
+		const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement;
+		assert.ok(banner);
+		assert.strictEqual(banner.textContent, getHubDirectoryBannerLabel({ kind: 'authExpired' }));
+		assert.ok(banner.classList.contains('is-error'));
+		assert.notStrictEqual(banner.style.display, 'none');
+		container.remove();
 	});
 
 	test('presence matrix six row labels are distinct and honest', () => {
@@ -785,6 +819,8 @@ suite('ConnectionPreferencesPane', () => {
 		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
 		assert.strictEqual(String(hubStatus.textContent), 'Connecting…');
+		assert.ok(hubStatus.classList.contains('is-pending'));
+		assert.ok(!hubStatus.classList.contains('is-warning'));
 		assert.strictEqual(testStatus.textContent, '');
 		resolveConnect!({
 			ok: true,
@@ -1236,6 +1272,8 @@ suite('ConnectionPreferencesPane', () => {
 		const devicesStatus = container.querySelector('.connection-hub-devices-status') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
 		assert.strictEqual(devicesStatus.textContent, 'Connecting…');
+		assert.ok(devicesStatus.classList.contains('is-pending'));
+		assert.ok(!devicesStatus.classList.contains('is-warning'));
 		assert.strictEqual(testStatus.textContent, '');
 		resolveConnect!({ ok: false, code: 'transport_failed', reason: 'dial refused' });
 		await Promise.resolve();
@@ -1244,6 +1282,38 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(devicesStatus.classList.contains('is-error'));
 		assert.strictEqual(testStatus.textContent, '');
 		assert.notStrictEqual(devicesStatus.textContent, 'Connected');
+		container.remove();
+	});
+
+	test('direct Connect Connecting uses pending tone on the visible Direct Address status', async () => {
+		let resolveConnect: ((value: { ok: false; code: 'transport_failed'; reason: string }) => void) | undefined;
+		const connectPromise = new Promise<{ ok: false; code: 'transport_failed'; reason: string }>(resolve => {
+			resolveConnect = resolve;
+		});
+		const pane = mountPane({
+			addDirectAddressProfile: async () => ({ ok: true, profileId: 'direct-profile-1' }),
+		}, {
+			connectProfile: async () => connectPromise,
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('direct');
+
+		const hostInput = (pane as unknown as { directHostInput: { value: string } }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: { value: string } }).directPortInput;
+		const allowPrivate = (pane as unknown as { directAllowPrivateCheckbox: { checked: boolean } }).directAllowPrivateCheckbox;
+		hostInput.value = '127.0.0.1';
+		portInput.value = '50061';
+		allowPrivate.checked = true;
+		const flow = (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
+		const status = container.querySelector('.connection-direct-address-status') as HTMLElement;
+		assert.strictEqual(status.textContent, 'Connecting…');
+		assert.ok(status.classList.contains('is-pending'));
+		assert.ok(!status.classList.contains('is-warning'));
+		resolveConnect!({ ok: false, code: 'transport_failed', reason: 'dial refused' });
+		await flow;
+		assert.strictEqual(status.textContent, 'dial refused');
+		assert.ok(status.classList.contains('is-error'));
 		container.remove();
 	});
 
@@ -1562,6 +1632,8 @@ suite('ConnectionPreferencesPane', () => {
 		const profilesStatus = container.querySelector('.connection-profiles-status') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
 		assert.strictEqual(profilesStatus.textContent, 'Connecting…');
+		assert.ok(profilesStatus.classList.contains('is-pending'));
+		assert.ok(!profilesStatus.classList.contains('is-warning'));
 		assert.strictEqual(testStatus.textContent, '');
 		resolveConnect!({ ok: false, code: 'transport_failed', reason: 'dial refused' });
 		await flow;
@@ -1687,6 +1759,8 @@ suite('ConnectionPreferencesPane', () => {
 		const authBadge = container.querySelector('.connection-hub-auth-badge') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
 		assert.strictEqual(hubStatus.textContent, 'Connecting…');
+		assert.ok(hubStatus.classList.contains('is-pending'));
+		assert.ok(!hubStatus.classList.contains('is-warning'));
 		assert.strictEqual(testStatus.textContent, '');
 		assert.strictEqual(authBadge.textContent, getHubAuthStatusLabel({ kind: 'signedIn', email: 'user@hub.example' }));
 		resolveConnect!({ ok: false, code: 'transport_failed', reason: 'hub relay refused' });
@@ -2089,6 +2163,7 @@ suite('ConnectionPreferencesPane', () => {
 			.find(button => button.textContent === 'Confirm') as HTMLButtonElement | undefined;
 		assert.ok(codeInput);
 		assert.ok(confirm);
+		assert.ok(confirm.closest('.connection-hub-device-code .connection-actions'));
 		codeInput.value = 'ABCD-1234';
 		confirm.click();
 		await Promise.resolve();

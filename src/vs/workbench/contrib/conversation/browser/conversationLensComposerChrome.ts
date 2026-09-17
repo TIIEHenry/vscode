@@ -18,6 +18,7 @@ import {
 	conversationLensDockEditingMessage,
 	conversationLensDockEditingQueued,
 	conversationLensDockAgentLabel,
+	conversationLensDockNoAgent,
 	conversationLensDockMaximizeInput,
 	conversationLensDockNoEngineTools,
 	conversationLensDockNoTools,
@@ -194,6 +195,25 @@ function appendMoreMenuAction(popup: HTMLElement, label: string): HTMLButtonElem
 	return item;
 }
 
+function getSelectedAgentName(host: IConversationLensComposerChromeHost): string {
+	const select = host.agentContainer?.querySelector('select');
+	if (select instanceof HTMLSelectElement && select.selectedIndex >= 0) {
+		const text = select.options[select.selectedIndex]?.text.trim();
+		if (text) {
+			return text;
+		}
+	}
+	return conversationLensDockNoAgent;
+}
+
+function appendMoreMenuCurrentAgent(popup: HTMLElement, host: IConversationLensComposerChromeHost): void {
+	const agentName = getSelectedAgentName(host);
+	const note = append(popup, $('div.conversation-lens-dock-more-agent'));
+	note.setAttribute('role', 'note');
+	note.setAttribute('aria-label', localize('conversationLens.dockMoreCurrentAgent', "Agent: {0}", agentName));
+	note.textContent = agentName;
+}
+
 export function toggleMoreContextView(host: IConversationLensComposerChromeHost): void {
 
 		if (host.moreContextView) {
@@ -221,6 +241,7 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 						run();
 					}));
 				};
+				appendMoreMenuCurrentAgent(popup, host);
 				addAction(conversationLensDockTuneTitle, () => toggleTuneContextView(host, host.moreButton.element));
 				const sessionId = host.getBoundSessionId();
 				const selectedPermission = getSessionConfig(host, sessionId).permissionIndex;

@@ -22,12 +22,14 @@
 }
 
 /*
- * Stock already clips the label (`overflow`/`text-overflow`); it only ellipsizes once the
- * title is kept on one line, which matters when the group name outgrows a narrow window.
+ * Stock already clips the label (`overflow`/`text-overflow`). Keep the title on one
+ * line so it ellipsizes inside the 42px group-title row instead of wrapping into a
+ * clipped second line.
  */
 .monaco-workbench .settings-editor.narrow-width > .settings-body .settings-tree-container .settings-group-title-label {
-	white-space: normal;
-	overflow-wrap: anywhere;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .monaco-workbench .settings-editor.narrow-width > .settings-body .settings-tree-container .settings-group-title-label.settings-group-level-1 {
@@ -48,6 +50,12 @@
 	max-width: 100%;
 	min-width: 0;
 	box-sizing: border-box;
+}
+
+.monaco-workbench .settings-editor.narrow-width .setting-item.setting-item-enum .setting-item-value > .setting-item-control select,
+.monaco-workbench .settings-editor.narrow-width .setting-item.setting-item-enum .setting-item-value > .setting-item-control .monaco-select-box {
+	width: 100%;
+	max-width: 100%;
 }
 
 .monaco-workbench .settings-editor.narrow-width .setting-item-contents .setting-item-description {

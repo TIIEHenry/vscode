@@ -460,6 +460,7 @@ suite('conversation lens dispose gate', () => {
 			assert.notStrictEqual(host.sessionSyncBadge.textContent, 'Session syncing');
 			assert.strictEqual(host.sessionSyncBadge.textContent, formatSyncChromeLabel(demoted));
 			assert.strictEqual(host.sessionSyncBadge.getAttribute('aria-label'), formatSyncChromeLabel(demoted));
+			assert.strictEqual(host.sessionSyncBadge.title, formatSyncChromeLabel(demoted));
 			assert.strictEqual(host.staleBanner.hidden, false);
 			assert.ok(host.staleBanner.textContent?.includes('Cached snapshot (read-only)'));
 			assert.ok(!/Session live|Session syncing/i.test(host.staleBanner.textContent ?? ''));
@@ -472,6 +473,7 @@ suite('conversation lens dispose gate', () => {
 		applySessionViewTimeline(host, { kind: 'baseline' });
 		assert.ok(host.getSessionSyncCalls > 0);
 		assert.strictEqual(host.sessionSyncBadge.textContent, 'Session live');
+		assert.strictEqual(host.sessionSyncBadge.title, 'Session live');
 		assert.strictEqual(host.staleBanner.hidden, true);
 	});
 
@@ -481,6 +483,7 @@ suite('conversation lens dispose gate', () => {
 		updateSyncChrome(host, { kind: 'live' });
 		assert.notStrictEqual(host.sessionSyncBadge.textContent, 'Session live');
 		assert.strictEqual(host.sessionSyncBadge.textContent, formatSyncChromeLabel(demoted));
+		assert.strictEqual(host.sessionSyncBadge.title, formatSyncChromeLabel(demoted));
 		refreshStaleSnapshotBanner(host, { kind: 'live' });
 		assert.strictEqual(host.staleBanner.hidden, false);
 		assert.ok(host.staleBanner.textContent?.includes('Cached snapshot (read-only)'));
@@ -1437,6 +1440,11 @@ suite('conversation lens dispose gate', () => {
 		modelContainer.appendChild(modelSelect);
 		dockRoot.appendChild(modelContainer);
 		const moreButton = document.createElement('button');
+		const agentContainer = document.createElement('div');
+		agentContainer.className = 'conversation-lens-dock-agent';
+		const agentSelect = document.createElement('select');
+		agentSelect.add(new Option('No agent', '0'));
+		agentContainer.appendChild(agentSelect);
 		const sessionConfigBySessionId = new Map<string, { agentIndex: number; permissionIndex: number }>([
 			['sess-leftover', { agentIndex: 0, permissionIndex: options?.permissionIndex ?? 0 }],
 		]);
@@ -1470,7 +1478,7 @@ suite('conversation lens dispose gate', () => {
 					host.modelSelectedIndex = index;
 				},
 			},
-			agentContainer: document.createElement('div'),
+			agentContainer,
 			moreButton: { element: moreButton },
 			tuneButton: { element: document.createElement('button') },
 			stubService: {
@@ -1568,6 +1576,10 @@ suite('conversation lens dispose gate', () => {
 		const fixture = leftoverLooksLiveSessionSelectsHost();
 		try {
 			toggleMoreContextView(fixture.host);
+			const agentNote = document.querySelector('.conversation-lens-dock-more-agent') as HTMLElement | null;
+			assert.ok(agentNote);
+			assert.strictEqual(agentNote.getAttribute('role'), 'note');
+			assert.strictEqual(agentNote.textContent, 'No agent');
 			const radios = [...document.querySelectorAll('.conversation-lens-dock-more-permission [role="menuitemradio"]')] as HTMLButtonElement[];
 			assert.strictEqual(radios.length, 3);
 			for (const radio of radios) {

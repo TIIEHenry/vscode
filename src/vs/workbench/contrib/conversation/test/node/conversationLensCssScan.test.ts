@@ -107,6 +107,76 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.deepStrictEqual(hits, []);
 	});
 
+	test('maximize CSS keeps inbox overlay and gate-row in document flow', () => {
+		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
+		const overlayHits: string[] = [];
+		let overlayShrink = false;
+		let gateShrink = false;
+		let clusterPadding32 = false;
+		let clusterFlex = false;
+		for (const rule of collectCssRules(css)) {
+			if (!rule.selector.includes(MAXIMIZE_CLASS)) {
+				continue;
+			}
+			for (const selector of splitSelectorList(rule.selector)) {
+				const surface = stripFunctionalSelectors(selector);
+				if (surface.includes('.conversation-lens-inbox-overlay')) {
+					if (/position\s*:\s*absolute/.test(rule.body) || /z-index/.test(rule.body)) {
+						overlayHits.push(selector.replace(/\s+/g, ' '));
+					}
+					if (/flex-shrink\s*:\s*0/.test(rule.body)) {
+						overlayShrink = true;
+					}
+				}
+				if (surface.includes('.conversation-lens-dock-gate-row') && /flex-shrink\s*:\s*0/.test(rule.body)) {
+					gateShrink = true;
+				}
+				if (surface.includes('.conversation-lens-composer-cluster')) {
+					if (/padding-top\s*:\s*32px/.test(rule.body)) {
+						clusterPadding32 = true;
+					}
+					if (/flex\s*:\s*1/.test(rule.body) && /min-height\s*:\s*0/.test(rule.body)) {
+						clusterFlex = true;
+					}
+				}
+			}
+		}
+		assert.deepStrictEqual(overlayHits, []);
+		assert.strictEqual(overlayShrink, true);
+		assert.strictEqual(gateShrink, true);
+		assert.strictEqual(clusterPadding32, false);
+		assert.strictEqual(clusterFlex, true);
+	});
+
+	test('sync badge max-width is 28ch by default and 12ch when narrow or compact', () => {
+		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
+		let defaultMax = '';
+		let narrowMax = '';
+		let compactMax = '';
+		for (const rule of collectCssRules(css)) {
+			for (const selector of splitSelectorList(rule.selector)) {
+				const surface = selector.replace(/\s+/g, ' ');
+				if (!surface.includes('.conversation-lens-session-sync-badge')) {
+					continue;
+				}
+				const maxWidth = rule.body.match(/max-width\s*:\s*([^;]+)/)?.[1]?.trim() ?? '';
+				if (!maxWidth) {
+					continue;
+				}
+				if (surface.includes('.is-narrow')) {
+					narrowMax = maxWidth;
+				} else if (surface.includes('.is-compact')) {
+					compactMax = maxWidth;
+				} else {
+					defaultMax = maxWidth;
+				}
+			}
+		}
+		assert.strictEqual(defaultMax, '28ch');
+		assert.strictEqual(narrowMax, '12ch');
+		assert.strictEqual(compactMax, '12ch');
+	});
+
 	test('conversation contrib has no fake voice transcript or stub Route chrome', () => {
 		const contribRoot = path.join(repoRoot, 'src/vs/workbench/contrib/conversation');
 		const files: string[] = [];

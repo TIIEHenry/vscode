@@ -1153,6 +1153,23 @@ suite('ConversationLens', () => {
 		}
 	});
 
+	test('narrow More menu shows current agent before Tool options', () => {
+		const { part } = mountLens({ layoutWidth: LENS_MIN_WIDTH });
+		const slots = getLensSlots(part);
+		const moreButton = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-more .monaco-button') as HTMLButtonElement;
+		moreButton.click();
+
+		const popup = document.querySelector('.conversation-lens-dock-more-popup') as HTMLElement | null;
+		assert.ok(popup);
+		const agentNote = popup.querySelector('.conversation-lens-dock-more-agent') as HTMLElement | null;
+		assert.ok(agentNote);
+		assert.strictEqual(agentNote.getAttribute('role'), 'note');
+		assert.strictEqual(agentNote.textContent, conversationLensDockNoAgent);
+		const tune = [...popup.querySelectorAll('.conversation-lens-dock-more-item')].find(item => item.textContent === conversationLensDockTuneTitle);
+		assert.ok(tune);
+		assert.ok(agentNote.compareDocumentPosition(tune) & Node.DOCUMENT_POSITION_FOLLOWING);
+	});
+
 	test('disconnected compose enables send from draft without Stub model', async () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
@@ -2992,6 +3009,7 @@ suite('ConversationLens', () => {
 		assert.ok(syncBadge);
 		assert.strictEqual(syncBadge.hidden, false);
 		assert.strictEqual(syncBadge.textContent, 'Session not connected');
+		assert.strictEqual(syncBadge.title, 'Session not connected');
 	});
 
 	test('PRD-007: closed session shows column-top stale snapshot and keeps prior turns', async () => {

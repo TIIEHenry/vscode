@@ -144,11 +144,13 @@ export function updateSyncChrome(host: IConversationLensProjectionHost, _sync?: 
 			if (label) {
 				host.sessionSyncBadge.hidden = false;
 				host.sessionSyncBadge.textContent = label;
+				host.sessionSyncBadge.title = label;
 				host.sessionSyncBadge.setAttribute('aria-label', label);
 			} else {
 				host.sessionSyncBadge.hidden = true;
 				host.sessionSyncBadge.textContent = '';
 				host.sessionSyncBadge.removeAttribute('aria-label');
+				host.sessionSyncBadge.removeAttribute('title');
 			}
 		}
 		host.renderInboxStatus();
