@@ -554,13 +554,15 @@ export class CodeApplication extends Disposable {
 		});
 
 		// macOS dock activate
-		app.on('activate', async (event, hasVisibleWindows) => {
-			this.logService.trace('app#activate');
+		app.on('activate', (event, hasVisibleWindows) => {
+			void (async () => {
+				this.logService.trace('app#activate');
 
-			// Mac only event: open new window when we get activated
-			if (!hasVisibleWindows) {
-				await this.windowsMainService?.openEmptyWindow({ context: OpenContext.DOCK });
-			}
+				// Mac only event: open new window when we get activated
+				if (!hasVisibleWindows) {
+					await this.windowsMainService?.openEmptyWindow({ context: OpenContext.DOCK });
+				}
+			})().catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 
 		//#region Security related measures (https://electronjs.org/docs/tutorial/security)
@@ -632,22 +634,26 @@ export class CodeApplication extends Disposable {
 			}
 
 			// Handle paths delayed in case more are coming!
-			runningTimeout = setTimeout(async () => {
-				await this.windowsMainService?.open({
-					context: OpenContext.DOCK /* can also be opening from finder while app is running */,
-					cli: this.environmentMainService.args,
-					urisToOpen: macOpenFileURIs,
-					gotoLineMode: false,
-					preferNewWindow: true /* dropping on the dock or opening from finder prefers to open in a new window */
-				});
+			runningTimeout = setTimeout(() => {
+				void (async () => {
+					await this.windowsMainService?.open({
+						context: OpenContext.DOCK /* can also be opening from finder while app is running */,
+						cli: this.environmentMainService.args,
+						urisToOpen: macOpenFileURIs,
+						gotoLineMode: false,
+						preferNewWindow: true /* dropping on the dock or opening from finder prefers to open in a new window */
+					});
 
-				macOpenFileURIs = [];
-				runningTimeout = undefined;
+					macOpenFileURIs = [];
+					runningTimeout = undefined;
+				})().catch(onUnexpectedError).catch(onUnexpectedError);
 			}, 100);
 		});
 
-		app.on('new-window-for-tab', async () => {
-			await this.windowsMainService?.openEmptyWindow({ context: OpenContext.DESKTOP }); //macOS native tab "+" button
+		app.on('new-window-for-tab', () => {
+			void (async () => {
+				await this.windowsMainService?.openEmptyWindow({ context: OpenContext.DESKTOP }); //macOS native tab "+" button
+			})().catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 
 		//#region Bootstrap IPC Handlers
