@@ -166,14 +166,14 @@ export class WebWorker extends Disposable implements IWebWorker {
 			if (typeof w.addEventListener === 'function') {
 				w.addEventListener('error', errorHandler);
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._register(toDisposable(() => {
 			this.worker?.then(w => {
 				w.onmessage = null;
 				w.onmessageerror = null;
 				w.removeEventListener('error', errorHandler);
 				w.terminate();
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 			this.worker = null;
 		}));
 	}
@@ -190,6 +190,6 @@ export class WebWorker extends Disposable implements IWebWorker {
 				onUnexpectedError(err);
 				onUnexpectedError(new Error(`FAILED to post message to worker`, { cause: err }));
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }

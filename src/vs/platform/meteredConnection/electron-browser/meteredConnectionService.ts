@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { toDisposable } from '../../../base/common/lifecycle.js';
 import { IChannel } from '../../../base/parts/ipc/common/ipc.js';
 import { IConfigurationService } from '../../configuration/common/configuration.js';
@@ -26,7 +27,7 @@ export class NativeMeteredConnectionService extends AbstractMeteredConnectionSer
 	) {
 		super(configurationService, connectionMeteredDetector());
 		this._channel = mainProcessService.getChannel(METERED_CONNECTION_CHANNEL);
-		void this._channel.call(MeteredConnectionCommand.SetIsBrowserConnectionMetered, this.isBrowserConnectionMetered);
+		void this._channel.call(MeteredConnectionCommand.SetIsBrowserConnectionMetered, this.isBrowserConnectionMetered).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		const connection = (navigator as NavigatorWithConnection).connection;
 		if (connection) {
@@ -41,7 +42,7 @@ export class NativeMeteredConnectionService extends AbstractMeteredConnectionSer
 	 */
 	protected override onChangeBrowserConnection(): void {
 		super.onChangeBrowserConnection();
-		this._channel.call(MeteredConnectionCommand.SetIsBrowserConnectionMetered, this.isBrowserConnectionMetered);
+		this._channel.call(MeteredConnectionCommand.SetIsBrowserConnectionMetered, this.isBrowserConnectionMetered).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 

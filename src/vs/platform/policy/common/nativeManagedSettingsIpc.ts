@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IStringDictionary } from '../../../base/common/collections.js';
-import { getErrorMessage } from '../../../base/common/errors.js';
+import { getErrorMessage, onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../base/common/lifecycle.js';
 import { equals } from '../../../base/common/objects.js';
@@ -59,7 +59,7 @@ export class NativeManagedSettingsChannelClient extends Disposable implements IN
 	) {
 		super();
 		this._register(this.channel.listen<ManagedSettingsData>('onDidChangeManagedSettings')(managedSettings => this.updateManagedSettings(managedSettings, true)));
-		void this.initializeInBackground();
+		void this.initializeInBackground().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async initializeInBackground(): Promise<void> {

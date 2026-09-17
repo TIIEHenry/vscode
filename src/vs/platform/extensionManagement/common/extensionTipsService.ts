@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { isNonEmptyArray } from '../../../base/common/arrays.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Disposable, MutableDisposable } from '../../../base/common/lifecycle.js';
 import { IConfigBasedExtensionTip as IRawConfigBasedExtensionTip } from '../../../base/common/product.js';
 import { joinPath } from '../../../base/common/resources.js';
@@ -248,7 +249,7 @@ export abstract class AbstractNativeExtensionTipsService extends ExtensionTipsSe
 						break;
 					}
 				}
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	/**
@@ -303,7 +304,7 @@ export abstract class AbstractNativeExtensionTipsService extends ExtensionTipsSe
 						break;
 					}
 				}
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async promptExeRecommendations(tips: IExecutableBasedExtensionTip[]): Promise<RecommendationsNotificationResult> {
