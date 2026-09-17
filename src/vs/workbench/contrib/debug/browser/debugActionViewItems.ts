@@ -5,6 +5,7 @@
 
 import * as nls from '../../../../nls.js';
 import { IAction } from '../../../../base/common/actions.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import * as dom from '../../../../base/browser/dom.js';
 import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
@@ -179,7 +180,7 @@ export class StartDebugActionViewItem extends BaseActionViewItem {
 				this.providers = providers;
 				this.updateOptions();
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this.toDispose.push(configManager.onDidChangeConfigurationProviders(updateDynamicConfigs));
 		updateDynamicConfigs();
