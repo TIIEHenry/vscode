@@ -152,7 +152,7 @@ export class SessionBrowsersControl extends Disposable {
 			id: input?.id ?? label,
 			label,
 			icon: Codicon.globe,
-			open: () => { void this._openBrowser(input, chat).catch(onUnexpectedError); },
+			open: () => { void this._openBrowser(input, chat).catch(onUnexpectedError).catch(onUnexpectedError); },
 		};
 	}
 
