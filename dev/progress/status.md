@@ -4,37 +4,36 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "A 槽 d24-continuation-stream-bytes 进行中：ContinueGeneration / Regenerate / Resume 已转 bytes。D24 仍开。不是 leftover/pills 完成。"
+summary: "merge 关仓：D24 Continue/Regenerate/Resume 流 bytes。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
-### 已合入（compile-client 0 · 聚焦 1 文件 22 pass）
+### 已合入（compile-client 0 · 聚焦 1 文件 8 pass）
 | 切片 | 提交 |
 |:-----|:-----|
-| **A D487** | `120f6f56c94` — Memory Search/SearchDeep score IEEE 754 LE；[D487](deferred-gaps.md) |
+| **A D24 流** | `ae31bd96fc7` — Continue/Regenerate/Resume 服务端流 bytes；[D24](deferred-gaps.md) 仍开 |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A** | `d24-continuation-stream-bytes`：ContinueGeneration / Regenerate / Resume 已走 `makeServerStreamBytesClient`（未关 D24） |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
-| **C/D/F/G/H/I/J** | parked |
+| **A/C/D/F/G/H/I/J** | parked |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
 
 子 agent 发现：
 | ID | 问题 |
 |:---|:-----|
-| [D24](deferred-gaps.md) | **仍开**：三续写流已 bytes；Connect/SaveSkillContent/Watch/Rebuild/ResolveTurn/ResolveAnchor 仍 JSON |
+| [D24](deferred-gaps.md) | **仍开**：Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor 仍 JSON |
 | [D487](deferred-gaps.md) | **closed** Memory `score`=4 IEEE 754 LE |
 | [D550](deferred-gaps.md)–[D674](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |
 |:---|:-----|
-| **loop** | D24 仍开。三续写流已 bytes。SaveSkillContent 无 RPC。Connect/Watch/Rebuild/ResolveAnchor/ResolveTurn 跳过。不得宣称 leftover/pills 完成 |
+| **loop** | D24 仍开。SaveSkillContent 无 RPC。Connect/Watch/ResolveAnchor/ResolveTurn 跳过。不得宣称 leftover/pills 完成 |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。
