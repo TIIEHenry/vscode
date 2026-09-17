@@ -6,6 +6,7 @@
 import { Action } from '../../../../base/common/actions.js';
 import { CancelablePromise, timeout } from '../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { isWindows } from '../../../../base/common/platform.js';
@@ -526,7 +527,7 @@ export abstract class AbstractPackagePluginSource implements IPluginSource {
 				}
 				this._logService.warn(`[${this.kind}] Terminal command completion timed out`);
 				resolveAndDispose(undefined);
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 	}
 }

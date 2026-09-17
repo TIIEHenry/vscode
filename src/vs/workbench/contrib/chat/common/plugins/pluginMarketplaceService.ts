@@ -5,7 +5,7 @@
 
 import { runWhenGlobalIdle, ThrottledDelayer } from '../../../../../base/common/async.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
-import { isCancellationError, onUnexpectedError } from '../../../../../base/common/errors.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { parse as parseJSONC } from '../../../../../base/common/json.js';
 import { Lazy } from '../../../../../base/common/lazy.js';
@@ -868,11 +868,7 @@ export class PluginMarketplaceService extends Disposable implements IPluginMarke
 					this._scheduleUpdateCheck(PLUGIN_UPDATE_CHECK_INTERVAL_MS);
 				}
 			}
-		}, delay).catch(error => {
-			if (!isCancellationError(error)) {
-				onUnexpectedError(error);
-			}
-		});
+		}, delay).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async _doRunUpdateCheck(): Promise<void> {

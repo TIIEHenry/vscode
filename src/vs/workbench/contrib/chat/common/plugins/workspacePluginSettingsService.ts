@@ -5,6 +5,7 @@
 
 import { parse as parseJSONC } from '../../../../../base/common/json.js';
 import { RunOnceScheduler } from '../../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Disposable, DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { autorun, derived, IObservable, observableFromEvent, observableValue } from '../../../../../base/common/observable.js';
 import { joinPath } from '../../../../../base/common/resources.js';
@@ -142,7 +143,9 @@ class WorkspaceSettingsReader extends Disposable {
 			watcherStore.clear();
 
 			// Coalesce rapid file-change events into a single read.
-			const scheduler = new RunOnceScheduler(() => this._readSettings(dirs, logPrefix, fileService), 100);
+			const scheduler = new RunOnceScheduler(() => {
+				void this._readSettings(dirs, logPrefix, fileService).catch(onUnexpectedError).catch(onUnexpectedError);
+			}, 100);
 			watcherStore.add(scheduler);
 
 			for (const dir of dirs) {
@@ -156,7 +159,7 @@ class WorkspaceSettingsReader extends Disposable {
 			}
 
 			// Perform initial read immediately.
-			this._readSettings(dirs, logPrefix, fileService);
+			void this._readSettings(dirs, logPrefix, fileService).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 

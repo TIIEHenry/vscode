@@ -5,6 +5,7 @@
 
 import { RunOnceScheduler, ThrottledDelayer } from '../../../../../base/common/async.js';
 import { VSBuffer } from '../../../../../base/common/buffer.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { revive } from '../../../../../base/common/marshalling.js';
 import { IObservable, ITransaction, observableValue } from '../../../../../base/common/observable.js';
@@ -94,7 +95,7 @@ export class FileBackedInstalledPluginsStore extends Disposable {
 		super();
 		this._fileUri = joinPath(_agentPluginsHome, INSTALLED_JSON_FILENAME);
 		this._writeDelayer = this._register(new ThrottledDelayer<void>(100));
-		void this._initialize();
+		void this._initialize().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	get(): readonly IStoredInstalledPlugin[] {
@@ -154,7 +155,7 @@ export class FileBackedInstalledPluginsStore extends Disposable {
 	private _scheduleWrite(): void {
 		void this._writeDelayer.trigger(async () => {
 			await this._writeToFile();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async _writeToFile(): Promise<boolean> {
@@ -193,7 +194,9 @@ export class FileBackedInstalledPluginsStore extends Disposable {
 		const watcher = this._fileService.createWatcher(dir, { recursive: false, excludes: [] });
 		this._register(watcher);
 
-		const scheduler = this._register(new RunOnceScheduler(() => this._onFileChanged(), 100));
+		const scheduler = this._register(new RunOnceScheduler(() => {
+			void this._onFileChanged().catch(onUnexpectedError).catch(onUnexpectedError);
+		}, 100));
 		this._register(watcher.onDidChange(e => {
 			if (!this._suppressFileWatch && e.affects(this._fileUri)) {
 				scheduler.schedule();

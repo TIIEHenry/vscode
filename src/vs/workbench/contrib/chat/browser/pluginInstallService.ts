@@ -6,7 +6,7 @@
 import { Action } from '../../../../base/common/actions.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { CancellationError } from '../../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { untildify } from '../../../../base/common/labels.js';
 import { posix, win32 } from '../../../../base/common/path.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -156,7 +156,7 @@ export class PluginInstallService implements IPluginInstallService {
 					: { success: true };
 			}
 
-			void this._pluginRepositoryService.cleanupPluginSource(tempPlugin);
+			void this._pluginRepositoryService.cleanupPluginSource(tempPlugin).catch(onUnexpectedError).catch(onUnexpectedError);
 			return {
 				success: false,
 				message: localize('noPluginsFound', "No plugins found in '{0}'. This does not appear to be a valid plugin marketplace.", reference.displayLabel),

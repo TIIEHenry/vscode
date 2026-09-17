@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { RunOnceScheduler } from '../../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { Iterable } from '../../../../../base/common/iterator.js';
 import { parse as parseJSONC } from '../../../../../base/common/json.js';
@@ -460,18 +461,18 @@ export abstract class AbstractAgentPluginDiscovery extends Disposable implements
 		store.add(rootWatcher);
 		store.add(rootWatcher.onDidChange(change => {
 			if (change.affects(agentManifestUri)) {
-				void readManifest();
+				void readManifest().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 		store.add(this._fileService.onDidRunOperation(event => {
 			if (isEqual(event.resource, agentManifestUri)) {
-				void readManifest();
+				void readManifest().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 		if (!isEqual(manifestUri, agentManifestUri)) {
 			const manifestWatcher = this._fileService.createWatcher(manifestUri, { recursive: false, excludes: [] });
 			store.add(manifestWatcher);
-			store.add(manifestWatcher.onDidChange(() => readManifest()));
+			store.add(manifestWatcher.onDidChange(() => void readManifest().catch(onUnexpectedError).catch(onUnexpectedError)));
 		}
 
 		const manifestName = typeof initialManifest?.name === 'string' && initialManifest.name.trim()
@@ -635,7 +636,9 @@ export class ConfiguredAgentPluginDiscovery extends AbstractAgentPluginDiscovery
 
 	public override start(enablementModel: IEnablementModel): void {
 		this._enablementModel = enablementModel;
-		const scheduler = this._register(new RunOnceScheduler(() => this._refreshPlugins(), 0));
+		const scheduler = this._register(new RunOnceScheduler(() => {
+			void this._refreshPlugins().catch(onUnexpectedError).catch(onUnexpectedError);
+		}, 0));
 		this._register(autorun(reader => {
 			this._pluginLocationsConfig.read(reader);
 			this._enterpriseEnabledPluginsConfig.read(reader);
@@ -788,7 +791,9 @@ export class MarketplaceAgentPluginDiscovery extends AbstractAgentPluginDiscover
 
 	public override start(enablementModel: IEnablementModel): void {
 		this._enablementModel = enablementModel;
-		const scheduler = this._register(new RunOnceScheduler(() => this._refreshPlugins(), 0));
+		const scheduler = this._register(new RunOnceScheduler(() => {
+			void this._refreshPlugins().catch(onUnexpectedError).catch(onUnexpectedError);
+		}, 0));
 		this._register(autorun(reader => {
 			this._pluginMarketplaceService.installedPlugins.read(reader);
 			scheduler.schedule();
@@ -875,7 +880,9 @@ export class CopilotCliAgentPluginDiscovery extends AbstractAgentPluginDiscovery
 
 	public override start(enablementModel: IEnablementModel): void {
 		this._enablementModel = enablementModel;
-		const scheduler = this._register(new RunOnceScheduler(() => this._refreshPlugins(), 0));
+		const scheduler = this._register(new RunOnceScheduler(() => {
+			void this._refreshPlugins().catch(onUnexpectedError).catch(onUnexpectedError);
+		}, 0));
 
 		const watcherStore = this._register(new DisposableStore());
 		const setupWatchers = async () => {
@@ -1074,7 +1081,9 @@ export class ExtensionAgentPluginDiscovery extends AbstractAgentPluginDiscovery 
 
 	public override start(enablementModel: IEnablementModel): void {
 		this._enablementModel = enablementModel;
-		const scheduler = this._register(new RunOnceScheduler(() => this._refreshPlugins(), 0));
+		const scheduler = this._register(new RunOnceScheduler(() => {
+			void this._refreshPlugins().catch(onUnexpectedError).catch(onUnexpectedError);
+		}, 0));
 		this._register(this._contextKeyService.onDidChangeContext(e => {
 			if (e.affectsSome(this._whenKeys)) {
 				scheduler.schedule();

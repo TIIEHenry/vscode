@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { autorun } from '../../../../base/common/observable.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
@@ -46,7 +47,7 @@ export class PluginAutoUpdate extends Disposable implements IWorkbenchContributi
 			if (marketplaceIds.size === 0) {
 				return;
 			}
-			void this._triggerAutoUpdate(marketplaceIds);
+			void this._triggerAutoUpdate(marketplaceIds).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this._register(this._meteredConnectionService.onDidChangeIsConnectionMetered(isMetered => {
@@ -59,7 +60,7 @@ export class PluginAutoUpdate extends Disposable implements IWorkbenchContributi
 	private _triggerQueuedAutoUpdate(): void {
 		const marketplaceIds = this._pluginMarketplaceService.marketplacesWithUpdates.get();
 		if (marketplaceIds.size > 0) {
-			void this._triggerAutoUpdate(marketplaceIds);
+			void this._triggerAutoUpdate(marketplaceIds).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
