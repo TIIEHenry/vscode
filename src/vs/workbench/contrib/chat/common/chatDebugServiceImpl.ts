@@ -403,7 +403,7 @@ export class ChatDebugServiceImpl extends Disposable implements IChatDebugServic
 		// before this provider was registered (e.g. extension activated late).
 		for (const [sessionResource, cts] of this._invocationCts) {
 			if (!cts.token.isCancellationRequested) {
-				this._invokeProvider(provider, sessionResource, cts.token).catch(onUnexpectedError);
+				this._invokeProvider(provider, sessionResource, cts.token).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 
@@ -594,7 +594,7 @@ export class ChatDebugServiceImpl extends Disposable implements IChatDebugServic
 				if (entries.length > 0) {
 					this.addAvailableSessionResources(entries);
 				}
-			}).catch(onUnexpectedError);
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "merge 关仓：leftover D648–D655 关各 call site。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
+summary: "工位 A D656 chatDebug leftover 双链进行中。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -26,6 +26,7 @@ summary: "merge 关仓：leftover D648–D655 关各 call site。compile-client 
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **A** | D656 `chatDebugServiceImpl` 两处 leftover 双链进行中；未合入。mocha **2/0** |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
@@ -36,6 +37,7 @@ summary: "merge 关仓：leftover D648–D655 关各 call site。compile-client 
 | [D24](deferred-gaps.md) | **仍开**：Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
 | [D550](deferred-gaps.md)–[D655](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
+| [D656](deferred-gaps.md) | **进行中** chatDebug 两处 leftover 双链（本文件 only）；未合入。D24 **仍开** |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |
