@@ -6,6 +6,7 @@
 import { $, h, isInShadowDOM, reset } from '../../../../../base/browser/dom.js';
 import { createStyleSheet } from '../../../../../base/browser/domStylesheets.js';
 import { renderLabelWithIcons } from '../../../../../base/browser/ui/iconLabel/iconLabels.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { hash } from '../../../../../base/common/hash.js';
 import { Disposable, IDisposable } from '../../../../../base/common/lifecycle.js';
 import { autorun, derived, IObservable, transaction } from '../../../../../base/common/observable.js';
@@ -379,7 +380,7 @@ class ActionsContentWidget extends FixedZoneWidget {
 			const title = renderLabelWithIcons(item.text);
 
 			if (item.action) {
-				children.push($('a', { title: item.tooltip, role: 'button', onclick: () => item.action!() }, ...title));
+				children.push($('a', { title: item.tooltip, role: 'button', onclick: () => item.action!().catch(onUnexpectedError).catch(onUnexpectedError) }, ...title));
 			} else {
 				children.push($('span', { title: item.tooltip }, ...title));
 			}

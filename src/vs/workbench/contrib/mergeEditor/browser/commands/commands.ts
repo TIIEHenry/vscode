@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { basename } from '../../../../../base/common/resources.js';
 import { URI, UriComponents } from '../../../../../base/common/uri.js';
 import { localize, localize2 } from '../../../../../nls.js';
@@ -449,7 +450,7 @@ export class CompareInput1WithBaseCommand extends MergeEditorAction {
 
 	override runWithViewModel(viewModel: MergeEditorViewModel, accessor: ServicesAccessor): void {
 		const editorService = accessor.get(IEditorService);
-		mergeEditorCompare(viewModel, editorService, 1);
+		mergeEditorCompare(viewModel, editorService, 1).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 
@@ -469,7 +470,7 @@ export class CompareInput2WithBaseCommand extends MergeEditorAction {
 
 	override runWithViewModel(viewModel: MergeEditorViewModel, accessor: ServicesAccessor): void {
 		const editorService = accessor.get(IEditorService);
-		mergeEditorCompare(viewModel, editorService, 2);
+		mergeEditorCompare(viewModel, editorService, 2).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 
@@ -564,7 +565,7 @@ export class ResetToBaseAndAutoMergeCommand extends MergeEditorAction {
 	}
 
 	override runWithViewModel(viewModel: MergeEditorViewModel, accessor: ServicesAccessor): void {
-		viewModel.model.reset();
+		viewModel.model.reset().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 

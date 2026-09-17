@@ -262,7 +262,7 @@ class TempFileMergeEditorInputModel extends EditorModel implements IMergeEditorI
 				const editors = this.editorService.findEditors(this.resultUri).filter(e => e.editor.typeId === 'mergeEditor.Input');
 				await this.editorService.closeEditors(editors);
 			}
-		})();
+		})().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	public async revert(options?: IRevertOptions): Promise<void> {
