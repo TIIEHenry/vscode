@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { onDidChangeFullscreen } from '../../../../base/browser/browser.js';
 import { $, getActiveWindow, hide, show } from '../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../base/browser/window.js';
@@ -271,7 +272,7 @@ export class AuxiliaryEditorPart {
 					// prevent the window from closing.
 					const canMoveVeto = editor.canMove(group.id, this.editorPartsView.mainPart.activeGroup.id);
 					if (typeof canMoveVeto === 'string') {
-						group.openEditor(editor);
+						group.openEditor(editor).catch(onUnexpectedError).catch(onUnexpectedError);
 						event.veto(canMoveVeto);
 						return;
 					}

@@ -285,7 +285,7 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 			getDefaultConversationChatResource(sessionKey),
 			{ isDefaultRoot: true },
 		));
-		void editorPart.activeGroup.openEditor(defaultInput);
+		void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this.conversationEditorParts.set(sessionKey, editorPart);
 		disposables.add(toDisposable(() => this.conversationEditorParts.delete(sessionKey)));

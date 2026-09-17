@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IJSONSchema } from '../../../../base/common/jsonSchema.js';
 import { KeyChord, KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { Schemas, matchesScheme } from '../../../../base/common/network.js';
@@ -632,7 +633,7 @@ function registerOpenEditorAtIndexCommands(): void {
 		if (activeEditorPane && typeof editorIndex === 'number') {
 			const editor = activeEditorPane.group.getEditorByIndex(editorIndex);
 			if (editor) {
-				editorService.openEditor(editor);
+				editorService.openEditor(editor).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 	};
