@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Event, Emitter } from '../../../../base/common/event.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { URI } from '../../../../base/common/uri.js';
 import { Disposable, DisposableMap } from '../../../../base/common/lifecycle.js';
@@ -356,9 +357,9 @@ export class OutputService extends Disposable implements IOutputService, ITextMo
 		// Create output channels for already registered channels
 		const registry = Registry.as<IOutputChannelRegistry>(Extensions.OutputChannels);
 		for (const channelIdentifier of registry.getChannels()) {
-			this.onDidRegisterChannel(channelIdentifier.id);
+			this.onDidRegisterChannel(channelIdentifier.id).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
-		this._register(registry.onDidRegisterChannel(id => this.onDidRegisterChannel(id)));
+		this._register(registry.onDidRegisterChannel(id => this.onDidRegisterChannel(id).catch(onUnexpectedError).catch(onUnexpectedError)));
 		this._register(registry.onDidUpdateChannelSources(channel => this.onDidUpdateChannelSources(channel)));
 		this._register(registry.onDidRemoveChannel(channel => this.onDidRemoveChannel(channel)));
 
@@ -376,10 +377,10 @@ export class OutputService extends Disposable implements IOutputService, ITextMo
 
 		this._register(this.loggerService.onDidChangeLogLevel(() => {
 			this.setLevelContext();
-			this.setLevelIsDefaultContext();
+			this.setLevelIsDefaultContext().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(this.defaultLogLevelsService.onDidChangeDefaultLogLevels(() => {
-			this.setLevelIsDefaultContext();
+			this.setLevelIsDefaultContext().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this._register(this.lifecycleService.onDidShutdown(() => this.dispose()));
@@ -558,7 +559,7 @@ export class OutputService extends Disposable implements IOutputService, ITextMo
 		if (this.activeChannel?.id === channel.id) {
 			const channels = this.getChannelDescriptors();
 			if (channels[0]) {
-				this.showChannel(channels[0].id);
+				this.showChannel(channels[0].id).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 		this.channels.deleteAndDispose(channel.id);
@@ -571,7 +572,7 @@ export class OutputService extends Disposable implements IOutputService, ITextMo
 				const channels = this.getChannelDescriptors();
 				const channel = channels.length ? this.getChannel(channels[0].id) : undefined;
 				if (channel && this.viewsService.isViewVisible(OUTPUT_VIEW_ID)) {
-					this.showChannel(channel.id);
+					this.showChannel(channel.id).catch(onUnexpectedError).catch(onUnexpectedError);
 				} else {
 					this.setActiveChannel(undefined);
 				}
@@ -618,7 +619,7 @@ export class OutputService extends Disposable implements IOutputService, ITextMo
 		this.activeFileOutputChannelContext.set(!!descriptor && isSingleSourceOutputChannelDescriptor(descriptor));
 		this.activeLogOutputChannelContext.set(!!descriptor?.log);
 		this.activeOutputChannelLevelSettableContext.set(descriptor !== undefined && this.canSetLogLevel(descriptor));
-		this.setLevelIsDefaultContext();
+		this.setLevelIsDefaultContext().catch(onUnexpectedError).catch(onUnexpectedError);
 		this.setLevelContext();
 
 		if (this.activeChannel) {
