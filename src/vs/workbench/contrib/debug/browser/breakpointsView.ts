@@ -20,6 +20,7 @@ import { ITreeContextMenuEvent, ITreeNode } from '../../../../base/browser/ui/tr
 import { Action } from '../../../../base/common/actions.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { DisposableStore, dispose, toDisposable } from '../../../../base/common/lifecycle.js';
@@ -971,7 +972,7 @@ class BreakpointsRenderer implements ICompressibleTreeRenderer<IBreakpoint, void
 			if (data.context === breakpoint) {
 				data.name.textContent = localize('cannotLoadLine', "(cannot load line)");
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	disposeElement(node: ITreeNode<IBreakpoint, void>, index: number, template: IBreakpointTemplateData): void {
