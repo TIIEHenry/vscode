@@ -361,7 +361,7 @@ export class SessionHeader extends Disposable {
 			if (commit && newTitle && newTitle !== initialTitle) {
 				this._sessionsManagementService
 					.renameSession(session, newTitle)
-					.catch(onUnexpectedError);
+					.catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		};
 
