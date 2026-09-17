@@ -250,6 +250,38 @@ suite('grpc first-send / attach protobuf wire', () => {
 		assert.strictEqual(payload.hello?.head_seq, 8);
 	});
 
+	test('decodeSessionStreamEvent reads nested session_purged=16 SessionPurgedEvent empty; unused unread; maps via demux', () => {
+		const purged = encodeStringField(1, 'unused-purged-field');
+		const encoded = Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodeMessageField(16, purged),
+			encodeStringField(99, 'unused-stream-field'),
+		]);
+		const decoded = decodeSessionStreamEvent(encoded);
+		const payload = decoded.payload as {
+			session_id?: string;
+			session_purged?: Record<string, unknown>;
+		};
+		assert.strictEqual(payload.session_id, 'sess-1');
+		assert.deepStrictEqual(payload.session_purged, {});
+		assert.ok(!('sessionPurged' in payload));
+		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
+		const events = demuxSessionStreamPayload(decoded.payload);
+		assert.strictEqual(events.length, 1);
+		assert.deepStrictEqual(events[0], {
+			arm: 'sessionPurged',
+			body: {},
+		});
+		const omitted = decodeSessionStreamEvent(encodeStringField(1, 'sess-2'));
+		assert.strictEqual((omitted.payload as { session_purged?: unknown }).session_purged, undefined);
+		const emptyNested = decodeSessionStreamEvent(encodePresentMessageField(16, new Uint8Array(0)));
+		assert.deepStrictEqual((emptyNested.payload as { session_purged?: unknown }).session_purged, {});
+		assert.deepStrictEqual(demuxSessionStreamPayload(emptyNested.payload), [{
+			arm: 'sessionPurged',
+			body: {},
+		}]);
+	});
+
 	test('decodeSessionStreamEvent reads nested permission_request=50 PermissionRequestEvent 1-3+6; maps via demux; metadata/requested_by_client/parent_tool_call_id unread', () => {
 		const permission = Buffer.concat([
 			encodeStringField(1, 'perm-live'),
