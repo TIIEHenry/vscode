@@ -4,7 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { UniverseAgentFetchToolUsageDetailRequest } from '../../common/universeAgentTypes.js';
+import type { ContextSourceUsageWire } from './grpcClientMappersSession.js';
 import {
+	allLengthDelimited,
 	encodeStringField,
 	lastString,
 	lastVarint,
@@ -14,11 +16,12 @@ import {
 /**
  * JSON-shaped decode of AgentService.FetchToolUsageDetailResponse.
  * Mapper: `mapFetchToolUsageDetailResponse` (`ok: wire.success === true`).
- * `context_sources` unused unread this slice.
+ * `context_sources` matches mapper `ContextSourceUsageWire` (`source_type` varint number).
  */
 export interface FetchToolUsageDetailResponseWire {
 	readonly success?: boolean;
 	readonly tool_call_id?: string;
+	readonly context_sources?: ContextSourceUsageWire[];
 	readonly error_message?: string;
 }
 
@@ -35,9 +38,10 @@ export function encodeFetchToolUsageDetailRequest(request: UniverseAgentFetchToo
 
 /**
  * FetchToolUsageDetailResponse — `success`=1 `tool_call_id`=2
- * repeated `context_sources`=3 unused unread this slice
+ * repeated `context_sources`=3 (`source_type`=1 `source_agent_id`=2
+ * `source_scope_id`=3 `message_id`=4 `estimated_tokens`=5)
  * `error_message`=4.
- * proto3: false / empty omitted. Unknown fields unread.
+ * proto3: false / empty / 0 omitted. Unknown fields unread.
  * Shape matches `FetchToolUsageDetailResponseWire` / `mapFetchToolUsageDetailResponse`.
  */
 export function decodeFetchToolUsageDetailResponse(bytes: Uint8Array): FetchToolUsageDetailResponseWire {
@@ -46,6 +50,22 @@ export function decodeFetchToolUsageDetailResponse(bytes: Uint8Array): FetchTool
 	return {
 		success: success === undefined ? undefined : success === 1n,
 		tool_call_id: lastString(fields, 2),
+		context_sources: allLengthDelimited(fields, 3).map(decodeContextSourceUsage),
 		error_message: lastString(fields, 4),
 	};
+}
+
+function decodeContextSourceUsage(bytes: Uint8Array): ContextSourceUsageWire {
+	const fields = readProtoFields(bytes);
+	return {
+		source_type: numberOrUndefined(lastVarint(fields, 1)),
+		source_agent_id: lastString(fields, 2),
+		source_scope_id: lastString(fields, 3),
+		message_id: lastString(fields, 4),
+		estimated_tokens: numberOrUndefined(lastVarint(fields, 5)),
+	};
+}
+
+function numberOrUndefined(value: bigint | undefined): number | undefined {
+	return value === undefined ? undefined : Number(value);
 }
