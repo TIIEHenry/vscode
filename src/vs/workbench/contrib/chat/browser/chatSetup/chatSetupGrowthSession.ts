@@ -69,7 +69,7 @@ export class GrowthSessionController extends Disposable implements IChatSessionI
 			this._register(this.chatWidgetService.onDidAddWidget(() => {
 				this.dismiss();
 			}));
-		}).catch(onUnexpectedError);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	get items(): readonly IChatSessionItem[] {
