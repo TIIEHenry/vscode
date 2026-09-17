@@ -10,7 +10,7 @@ summary: "SessionStream 30/31/50/51/52 已合入。D24 仍开。不是 leftover/
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
-### 已合入（`MERGE_SHA` 见关仓；compile-client 0；attach mocha 49）
+### 已合入（`MERGE_SHA` `3827d991421`；compile-client 0；attach mocha 49）
 | 切片 | 提交 |
 |:-----|:-----|
 | **A SessionStream 31** | `9e59a5477f9` — `thinking_delta`=31 OverlayDeltaJoin |
