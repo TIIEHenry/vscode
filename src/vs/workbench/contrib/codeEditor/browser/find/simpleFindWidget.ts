@@ -9,6 +9,7 @@ import * as dom from '../../../../../base/browser/dom.js';
 import { FindInput } from '../../../../../base/browser/ui/findinput/findInput.js';
 import { Widget } from '../../../../../base/browser/ui/widget.js';
 import { Delayer, disposableTimeout } from '../../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { KeyCode } from '../../../../../base/common/keyCodes.js';
 import { IDisposable } from '../../../../../base/common/lifecycle.js';
 import { FindReplaceState, INewFindReplaceState } from '../../../../../editor/contrib/find/browser/findState.js';
@@ -386,7 +387,7 @@ export abstract class SimpleFindWidget extends Widget implements IVerticalSashLa
 	}
 
 	protected _delayedUpdateHistory() {
-		this._updateHistoryDelayer.trigger(this._updateHistory.bind(this));
+		this._updateHistoryDelayer.trigger(this._updateHistory.bind(this)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	protected _updateHistory() {

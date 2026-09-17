@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ThrottledDelayer } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { FontMeasurements } from '../../../../editor/browser/config/fontMeasurements.js';
 import { INativeHostService } from '../../../../platform/native/common/native.js';
@@ -24,7 +25,7 @@ class DisplayChangeRemeasureFonts extends Disposable implements IWorkbenchContri
 			this._delayer.trigger(() => {
 				FontMeasurements.clearAllFontInfos();
 				return Promise.resolve();
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 }

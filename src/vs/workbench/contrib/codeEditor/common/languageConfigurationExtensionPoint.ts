@@ -111,7 +111,7 @@ export class LanguageConfigurationFileHandler extends Disposable {
 		this._register(this._languageService.onDidChange(() => {
 			// reload language configurations as necessary
 			for (const [languageId] of this._done) {
-				this._loadConfigurationsForMode(languageId);
+				this._loadConfigurationsForMode(languageId).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}
