@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { Schemas } from '../../../base/common/network.js';
 import { isFalsyOrWhitespace } from '../../../base/common/strings.js';
@@ -56,7 +57,7 @@ export class ExtHostWindow implements ExtHostWindowShape {
 		this._proxy.$getInitialState().then(({ isFocused, isActive }) => {
 			this.onDidChangeWindowProperty('focused', isFocused);
 			this.onDidChangeWindowProperty('active', isActive);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	get nativeHandle(): Uint8Array | undefined {

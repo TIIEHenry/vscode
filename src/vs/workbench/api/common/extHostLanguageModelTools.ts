@@ -6,7 +6,7 @@
 import type * as vscode from 'vscode';
 import { raceCancellation } from '../../../base/common/async.js';
 import { CancellationToken } from '../../../base/common/cancellation.js';
-import { CancellationError } from '../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../base/common/errors.js';
 import { IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
 import { revive } from '../../../base/common/marshalling.js';
 import { generateUuid } from '../../../base/common/uuid.js';
@@ -91,7 +91,7 @@ export class ExtHostLanguageModelTools implements ExtHostLanguageModelToolsShape
 			for (const tool of tools) {
 				this._allTools.set(tool.id, new Tool(revive(tool)));
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	async $countTokensForInvocation(callId: string, input: string, token: CancellationToken): Promise<number> {

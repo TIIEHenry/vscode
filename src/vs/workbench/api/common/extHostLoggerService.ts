@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { ILogger, ILoggerOptions, AbstractMessageLogger, LogLevel, AbstractLoggerService } from '../../../platform/log/common/log.js';
 import { MainThreadLoggerShape, MainContext, ExtHostLogLevelServiceShape } from './extHost.protocol.js';
 import { IExtHostInitDataService } from './extHostInitDataService.js';
@@ -58,7 +59,7 @@ class Logger extends AbstractMessageLogger {
 			.then(() => {
 				this.doLog(this.buffer);
 				this.isLoggerCreated = true;
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	protected log(level: LogLevel, message: string) {

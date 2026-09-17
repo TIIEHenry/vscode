@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { DisposableStore, IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
 import { Schemas } from '../../../base/common/network.js';
 import { URI } from '../../../base/common/uri.js';
@@ -58,7 +59,7 @@ export class NativeExtHostSearch extends ExtHostSearch implements IDisposable {
 				return;
 			}
 			this._disposables.add(provider.onDidChangeConfiguration(this.handleConfigurationChanged));
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private handleConfigurationChanged(event: vscode.ConfigurationChangeEvent) {
