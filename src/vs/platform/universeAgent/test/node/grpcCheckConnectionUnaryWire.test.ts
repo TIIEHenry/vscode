@@ -9,10 +9,10 @@ import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type { UniverseAgentConnectionReport } from '../../common/universeAgentTypes.js';
+import { mapConnectionReport } from '../../node/grpc/grpcClientMappersCatalog.js';
 import {
 	decodeCheckConnectionResponse,
 	encodeCheckConnectionRequest,
-	type ConnectionReportWire,
 } from '../../node/grpc/grpcCheckConnectionUnaryWire.js';
 import {
 	encodeInt32Field,
@@ -110,15 +110,52 @@ suite('grpc RemoteAgentService CheckConnection protobuf wire', () => {
 		assert.notStrictEqual(empty[0], 0x7b);
 	});
 
-	test('decodeCheckConnectionResponse reads reachable=1 authenticated=2 can_create_session=3 latency_ms=4; field 5/6/7 unread', () => {
+	test('decodeCheckConnectionResponse reads reachable=1 authenticated=2 can_create_session=3 latency_ms=4 capabilities=5 errors=6 load=7; unused unread', () => {
+		const model = Buffer.concat([
+			encodeStringField(1, 'gemini'),
+			encodeStringField(2, 'Gemini'),
+			encodeStringField(3, 'google'),
+			encodeInt64Field(4, 8192),
+			encodeInt32Field(5, 1),
+			encodeStringField(6, 'unused-model'),
+		]);
+		const property = Buffer.concat([
+			encodeStringField(1, 'region'),
+			encodeStringField(2, 'us'),
+			encodeStringField(3, 'unused-entry'),
+		]);
+		const capabilities = Buffer.concat([
+			encodeMessageField(1, model),
+			encodeStringField(2, 'bash'),
+			encodeStringField(2, 'read'),
+			encodeStringField(3, 'agent'),
+			encodeStringField(4, '1.2.3'),
+			encodeStringField(5, 'v1'),
+			encodeMessageField(6, property),
+			encodeStringField(7, 'unused-cap'),
+		]);
+		const error = Buffer.concat([
+			encodeInt32Field(1, 1),
+			encodeStringField(2, 'node_id'),
+			encodeStringField(3, 'timeout'),
+			encodeStringField(4, 'retry'),
+			encodeStringField(5, 'unused-error'),
+		]);
+		const load = Buffer.concat([
+			encodeInt32Field(1, 3),
+			encodeInt32Field(2, 5),
+			encodeInt32Field(3, 40),
+			encodeInt64Field(4, 1024),
+			encodeStringField(5, 'unused-load'),
+		]);
 		const encoded = Buffer.concat([
 			encodeInt32Field(1, 1),
 			encodeInt32Field(2, 1),
 			encodeInt32Field(3, 1),
 			encodeInt64Field(4, 42),
-			encodeMessageField(5, encodeStringField(4, 'unused-server-version')),
-			encodeMessageField(6, encodeStringField(3, 'unused-error')),
-			encodeMessageField(7, encodeInt32Field(1, 9)),
+			encodeMessageField(5, capabilities),
+			encodeMessageField(6, error),
+			encodeMessageField(7, load),
 			encodeStringField(8, 'unused-field'),
 		]);
 		assert.notStrictEqual(encoded[0], 0x7b);
@@ -128,20 +165,73 @@ suite('grpc RemoteAgentService CheckConnection protobuf wire', () => {
 			authenticated: true,
 			can_create_session: true,
 			latency_ms: 42,
+			capabilities: {
+				models: [{
+					id: 'gemini',
+					name: 'Gemini',
+					provider: 'google',
+					max_tokens: 8192,
+					enabled: true,
+				}],
+				tools: ['bash', 'read'],
+				modes: ['agent'],
+				server_version: '1.2.3',
+				protocol_version: 'v1',
+				properties: { region: 'us' },
+			},
+			errors: [{
+				code: 1,
+				field: 'node_id',
+				message: 'timeout',
+				suggestion: 'retry',
+			}],
+			load: {
+				active_sessions: 3,
+				queue_depth: 5,
+				cpu_percent: 40,
+				memory_used_mb: 1024,
+			},
 		});
-		assert.ok(!('capabilities' in wire));
-		assert.ok(!('errors' in wire));
-		assert.ok(!('load' in wire));
+		assert.ok((wire.capabilities?.models?.length ?? 0) > 0);
+		assert.ok((wire.errors?.length ?? 0) > 0);
+		assert.ok(wire.load);
 		assert.ok(!('unused' in wire));
 		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
-		assert.deepStrictEqual(mapConnectionReport(wire), {
+		const mapped = mapConnectionReport(wire);
+		assert.ok(mapped.capabilities.models.length > 0);
+		assert.ok(mapped.errors.length > 0);
+		assert.ok(mapped.load.activeSessions > 0);
+		assert.deepStrictEqual(mapped, {
 			reachable: true,
 			authenticated: true,
 			canCreateSession: true,
 			latencyMs: 42,
-			capabilities: emptyCapabilities(),
-			errors: [],
-			load: emptyLoad(),
+			capabilities: {
+				models: [{
+					id: 'gemini',
+					name: 'Gemini',
+					provider: 'google',
+					maxTokens: 8192,
+					enabled: true,
+				}],
+				tools: ['bash', 'read'],
+				modes: ['agent'],
+				serverVersion: '1.2.3',
+				protocolVersion: 'v1',
+				properties: { region: 'us' },
+			},
+			errors: [{
+				code: 'CONNECT_TIMEOUT',
+				field: 'node_id',
+				message: 'timeout',
+				suggestion: 'retry',
+			}],
+			load: {
+				activeSessions: 3,
+				queueDepth: 5,
+				cpuPercent: 40,
+				memoryUsedMb: 1024,
+			},
 		});
 
 		const omittedFalse = decodeCheckConnectionResponse(encodeInt64Field(4, 7));
@@ -150,6 +240,9 @@ suite('grpc RemoteAgentService CheckConnection protobuf wire', () => {
 			authenticated: undefined,
 			can_create_session: undefined,
 			latency_ms: 7,
+			capabilities: undefined,
+			errors: [],
+			load: undefined,
 		});
 		assert.deepStrictEqual(mapConnectionReport(omittedFalse), {
 			reachable: false,
@@ -167,6 +260,9 @@ suite('grpc RemoteAgentService CheckConnection protobuf wire', () => {
 			authenticated: undefined,
 			can_create_session: undefined,
 			latency_ms: undefined,
+			capabilities: undefined,
+			errors: [],
+			load: undefined,
 		});
 		assert.deepStrictEqual(mapConnectionReport(explicitFalse), {
 			reachable: false,
@@ -184,10 +280,10 @@ suite('grpc RemoteAgentService CheckConnection protobuf wire', () => {
 			authenticated: undefined,
 			can_create_session: undefined,
 			latency_ms: undefined,
+			capabilities: undefined,
+			errors: [],
+			load: undefined,
 		});
-		assert.ok(!('capabilities' in empty));
-		assert.ok(!('errors' in empty));
-		assert.ok(!('load' in empty));
 		assert.deepStrictEqual(mapConnectionReport(empty), {
 			reachable: false,
 			authenticated: false,
@@ -209,7 +305,15 @@ suite('grpc RemoteAgentService CheckConnection protobuf wire', () => {
 		assert.ok(/\bencodeInt64Field\b/.test(source));
 		assert.ok(/\bencodeStringField\b/.test(source));
 		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(!/\bdecodeCapabilities\b|\bdecodeLoadMetrics\b|\bdecodeModelInfo\b|\bdecodeValidationError\b/.test(source));
+		assert.ok(/\blastBytes\b/.test(source));
+		assert.ok(/\blastString\b/.test(source));
+		assert.ok(/\ballLengthDelimited\b/.test(source));
+		assert.ok(/\bdecodeCapabilities\b/.test(source));
+		assert.ok(/\bdecodeLoadMetrics\b/.test(source));
+		assert.ok(/\bdecodeModelInfo\b/.test(source));
+		assert.ok(/\bdecodeValidationError\b/.test(source));
+		assert.ok(/\bdecodeStringStringMap\b/.test(source));
+		assert.ok(!/\bGetNode\b|\bgrpcGetNodeUnaryWire\b/.test(source));
 		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
 		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
 		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
@@ -219,7 +323,7 @@ suite('grpc RemoteAgentService CheckConnection protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('checkConnection uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+	test('checkConnection uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const check = extractAsyncMethod(source, 'checkConnection');
 		assert.ok(check.includes('makeUnaryBytesClient'), 'checkConnection must use makeUnaryBytesClient');
@@ -233,13 +337,15 @@ suite('grpc RemoteAgentService CheckConnection protobuf wire', () => {
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
 	});
 
-	test('skip Connect/SaveSkillContent/Watch/ResolveTurn; do not lock siblings', () => {
+	test('skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor; do not lock siblings', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
 		const watchStart = source.indexOf('\topenWatchConfigStream(');
 		assert.ok(watchStart >= 0, 'missing openWatchConfigStream(');
 		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);
@@ -248,27 +354,6 @@ suite('grpc RemoteAgentService CheckConnection protobuf wire', () => {
 		assert.ok(!watchBody.includes('grpcCheckConnectionUnaryWire'));
 	});
 });
-
-/** TEST-only mapper: missing nested capabilities/errors/load → empty defaults. */
-function mapConnectionReport(wire: ConnectionReportWire): UniverseAgentConnectionReport {
-	return {
-		reachable: wire.reachable === true,
-		authenticated: wire.authenticated === true,
-		canCreateSession: wire.can_create_session === true,
-		latencyMs: requiredInt64(wire.latency_ms),
-		capabilities: emptyCapabilities(),
-		errors: [],
-		load: emptyLoad(),
-	};
-}
-
-function requiredInt64(value: number | string | undefined): number {
-	if (value === undefined || value === '') {
-		return 0;
-	}
-	const n = typeof value === 'number' ? value : Number(value);
-	return Number.isFinite(n) ? n : 0;
-}
 
 function emptyCapabilities(): UniverseAgentConnectionReport['capabilities'] {
 	return {
