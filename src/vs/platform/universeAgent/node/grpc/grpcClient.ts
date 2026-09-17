@@ -486,6 +486,7 @@ import {
 	mapResolveTurnResponse,
 	mapRestoreSnapshotResponse,
 	mapResumeRemoteSessionResponse,
+	mapResumeSessionResponse,
 	mapRevokeResponse,
 	mapRotateTokenResponse,
 	mapSaveAgentProfileResponse,
@@ -785,6 +786,7 @@ import {
 	decodeListSnapshotsResponse,
 	decodeRestoreSnapshotResponse,
 	decodeResumeSessionResponse,
+	decodeSessionResumeResponse,
 	decodeSessionStreamEvent,
 	encodeCancelGenerationRequest,
 	encodeCancelToolCallRequest,
@@ -1310,9 +1312,9 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			this._channel,
 			UniverseAgentGrpcServices.Session.service,
 			UniverseAgentGrpcServices.Session.Resume,
-			decodeResumeSessionResponse,
+			decodeSessionResumeResponse,
 		);
-		return unary(encodeResumeSessionRequest(request));
+		return mapResumeSessionResponse(await unary(encodeResumeSessionRequest(request)));
 	}
 
 	async prewarmSessions(request: UniverseAgentPrewarmSessionsRequest): Promise<UniverseAgentPrewarmSessionsResult> {
