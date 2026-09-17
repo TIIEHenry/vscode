@@ -132,7 +132,7 @@ function getExternalSession(session: ISession, preferencesService: IPreferencesS
 			preferencesService.openSettings({
 				jsonEditor: false,
 				query: `@id:${ChatConfiguration.ShowExternalAgentSessions}`,
-			}).catch(onUnexpectedError);
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		},
 	};
 }
