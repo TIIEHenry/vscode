@@ -36,6 +36,7 @@ import {
 	encodeInt32Field,
 	encodeStringField,
 	lastBytes,
+	lastFixed64,
 	lastString,
 	lastVarint,
 	readProtoFields,
@@ -82,9 +83,8 @@ export function encodeMemorySearchRequest(request: UniverseAgentMemorySearchRequ
 
 /**
  * MemorySearchResponse — repeated `results`=1.
- * MemorySearchResult: `category`=1 `filename`=2 `title`=3 `score`=4 (double,
- * codec has no encode/decode double — unread) `snippet`=5 `forgot`=6 `scope`=7.
- * Unknown fields unread.
+ * MemorySearchResult: `category`=1 `filename`=2 `title`=3 `score`=4 (double)
+ * `snippet`=5 `forgot`=6 `scope`=7. Unknown fields unread.
  */
 export function decodeMemorySearchResponse(bytes: Uint8Array): MemorySearchResponseWire {
 	return {
@@ -110,7 +110,7 @@ export function encodeMemorySearchDeepRequest(request: UniverseAgentMemorySearch
 
 /**
  * MemorySearchDeepResponse — repeated `results`=1 repeated `searched_categories`=2.
- * SearchResult score=4 unread (see decodeMemorySearchResult). Unknown fields unread.
+ * SearchResult score=4 via lastFixed64. Unknown fields unread.
  */
 export function decodeMemorySearchDeepResponse(bytes: Uint8Array): MemorySearchDeepResponseWire {
 	const fields = readProtoFields(bytes);
@@ -275,6 +275,7 @@ function decodeMemorySearchResult(bytes: Uint8Array): MemorySearchResultWire {
 		category: lastString(fields, 1),
 		filename: lastString(fields, 2),
 		title: lastString(fields, 3),
+		score: lastFixed64(fields, 4),
 		snippet: lastString(fields, 5),
 		forgot: lastVarint(fields, 6) === 1n,
 		scope: lastString(fields, 7),

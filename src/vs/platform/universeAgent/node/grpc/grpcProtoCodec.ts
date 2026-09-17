@@ -6,6 +6,7 @@
 /** Minimal proto3 binary helpers for handshake messages. Not a general protobuf runtime. */
 
 const WIRE_VARINT = 0;
+const WIRE_FIXED64 = 1;
 const WIRE_LEN = 2;
 
 export function encodeVarint(value: number | bigint): Buffer {
@@ -97,8 +98,19 @@ export function encodeInt64Field(field: number, value: number | bigint | undefin
 	return Buffer.concat([encodeTag(field, WIRE_VARINT), encodeVarint(value)]);
 }
 
+/** proto3 `double`: IEEE 754 little-endian, wire type 1. Default 0 omitted. */
+export function encodeDouble(field: number, value: number | undefined): Buffer {
+	if (value === undefined || value === 0) {
+		return Buffer.alloc(0);
+	}
+	const payload = Buffer.alloc(8);
+	payload.writeDoubleLE(value, 0);
+	return Buffer.concat([encodeTag(field, WIRE_FIXED64), payload]);
+}
+
 export type ProtoField =
 	| { readonly field: number; readonly wireType: 0; readonly varint: bigint }
+	| { readonly field: number; readonly wireType: 1; readonly fixed64: Uint8Array }
 	| { readonly field: number; readonly wireType: 2; readonly bytes: Uint8Array };
 
 export function readProtoFields(bytes: Uint8Array): ProtoField[] {
@@ -126,8 +138,13 @@ export function readProtoFields(bytes: Uint8Array): ProtoField[] {
 			offset = end;
 			continue;
 		}
-		if (wireType === 1) {
-			offset += 8;
+		if (wireType === WIRE_FIXED64) {
+			const end = offset + 8;
+			if (end > bytes.length) {
+				throw new Error('truncated protobuf fixed64 field');
+			}
+			fields.push({ field, wireType: 1, fixed64: bytes.subarray(offset, end) });
+			offset = end;
 			continue;
 		}
 		if (wireType === 5) {
@@ -164,6 +181,17 @@ export function lastVarint(fields: readonly ProtoField[], field: number): bigint
 		const item = fields[i];
 		if (item.field === field && item.wireType === 0) {
 			return item.varint;
+		}
+	}
+	return undefined;
+}
+
+/** Last wire-type-1 payload decoded as IEEE 754 little-endian `double`. */
+export function lastFixed64(fields: readonly ProtoField[], field: number): number | undefined {
+	for (let i = fields.length - 1; i >= 0; i--) {
+		const item = fields[i];
+		if (item.field === field && item.wireType === 1) {
+			return Buffer.from(item.fixed64).readDoubleLE(0);
 		}
 	}
 	return undefined;

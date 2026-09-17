@@ -40,11 +40,12 @@ import {
 	encodeMemorySearchRequest,
 } from '../../node/grpc/grpcMemoryUnaryWire.js';
 import {
+	encodeDouble,
 	encodeInt32Field,
 	encodeInt64Field,
 	encodeMessageField,
 	encodeStringField,
-	encodeVarint,
+	lastFixed64,
 	readProtoFields,
 } from '../../node/grpc/grpcProtoCodec.js';
 
@@ -110,12 +111,12 @@ suite('grpc memory unary protobuf wire', () => {
 		assert.ok(!protoVarints(omitted).has(4));
 	});
 
-	test('decodeMemorySearchResponse reads results=1; SearchResult 1-3/5-7; score=4 unread; unknown unread', () => {
+	test('decodeMemorySearchResponse reads results=1; SearchResult 1-7 including score=4; unknown unread', () => {
 		const result = Buffer.concat([
 			encodeStringField(1, 'facts'),
 			encodeStringField(2, 'auth.md'),
 			encodeStringField(3, 'Auth'),
-			encodeFixed64Skip(4, 1.5),
+			encodeDouble(4, 1.5),
 			encodeStringField(5, 'token store'),
 			encodeInt32Field(6, 1),
 			encodeStringField(7, 'global'),
@@ -131,19 +132,20 @@ suite('grpc memory unary protobuf wire', () => {
 				category: 'facts',
 				filename: 'auth.md',
 				title: 'Auth',
+				score: 1.5,
 				snippet: 'token store',
 				forgot: true,
 				scope: 'global',
 			}],
 		});
-		assert.ok(!('score' in (wire.results?.[0] ?? {})));
+		assert.strictEqual(wire.results?.[0]?.score, 1.5);
 		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
 		assert.deepStrictEqual(mapMemorySearchResponse(wire), {
 			results: [{
 				category: 'facts',
 				filename: 'auth.md',
 				title: 'Auth',
-				score: 0,
+				score: 1.5,
 				snippet: 'token store',
 				forgot: true,
 				scope: 'global',
@@ -151,6 +153,25 @@ suite('grpc memory unary protobuf wire', () => {
 		});
 		assert.deepStrictEqual(decodeMemorySearchResponse(new Uint8Array(0)), { results: [] });
 		assert.deepStrictEqual(mapMemorySearchResponse(decodeMemorySearchResponse(new Uint8Array(0))), { results: [] });
+	});
+
+	test('encodeDouble / lastFixed64 roundtrip IEEE 754 LE; proto3 omits 0; Search mapper keeps non-zero score', () => {
+		const encoded = encodeDouble(4, 1.5);
+		assert.notStrictEqual(encoded.length, 0);
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const fields = readProtoFields(encoded);
+		assert.strictEqual(fields[0]?.field, 4);
+		assert.strictEqual(fields[0]?.wireType, 1);
+		assert.strictEqual(lastFixed64(fields, 4), 1.5);
+		assert.strictEqual(encodeDouble(4, 0).length, 0);
+		assert.strictEqual(encodeDouble(4, undefined).length, 0);
+		const result = Buffer.concat([
+			encodeStringField(1, 'facts'),
+			encodeDouble(4, 1.5),
+		]);
+		const mapped = mapMemorySearchResponse(decodeMemorySearchResponse(encodeMessageField(1, result)));
+		assert.strictEqual(mapped.results[0]?.score, 1.5);
+		assert.notStrictEqual(mapped.results[0]?.score, 0);
 	});
 
 	test('encodeMemorySearchDeepRequest writes 1-6; omits empty/0/false, not JSON', () => {
@@ -182,11 +203,11 @@ suite('grpc memory unary protobuf wire', () => {
 		assert.ok(!protoVarints(omitted).has(6));
 	});
 
-	test('decodeMemorySearchDeepResponse reads results=1 searched_categories=2; unknown unread', () => {
+	test('decodeMemorySearchDeepResponse reads results=1 searched_categories=2; score=4; unknown unread', () => {
 		const result = Buffer.concat([
 			encodeStringField(1, 'facts'),
 			encodeStringField(2, 'auth.md'),
-			encodeFixed64Skip(4, 2.25),
+			encodeDouble(4, 2.25),
 			encodeStringField(5, 'hit'),
 		]);
 		const encoded = Buffer.concat([
@@ -201,20 +222,21 @@ suite('grpc memory unary protobuf wire', () => {
 				category: 'facts',
 				filename: 'auth.md',
 				title: undefined,
+				score: 2.25,
 				snippet: 'hit',
 				forgot: false,
 				scope: undefined,
 			}],
 			searched_categories: ['facts', 'prefs'],
 		});
-		assert.ok(!('score' in (wire.results?.[0] ?? {})));
+		assert.strictEqual(wire.results?.[0]?.score, 2.25);
 		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
 		assert.deepStrictEqual(mapMemorySearchDeepResponse(wire), {
 			results: [{
 				category: 'facts',
 				filename: 'auth.md',
 				title: '',
-				score: 0,
+				score: 2.25,
 				snippet: 'hit',
 				forgot: false,
 				scope: '',
@@ -642,12 +664,3 @@ function protoVarints(encoded: Uint8Array): Map<number, number> {
 	return numbers;
 }
 
-/**
- * proto wire type 1 (64-bit). Production codec skips it and has no double helper.
- * Payload is IEEE 754 LE only so the skip is distinguishable from a decoded score.
- */
-function encodeFixed64Skip(field: number, value: number): Buffer {
-	const payload = Buffer.alloc(8);
-	payload.writeDoubleLE(value, 0);
-	return Buffer.concat([encodeVarint((field << 3) | 1), payload]);
-}

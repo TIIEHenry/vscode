@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "merge 关仓：leftover D672–D674 关各 call site。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
+summary: "工位 A D487 Memory Search/SearchDeep score 已填 IEEE 754 LE。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -21,6 +21,7 @@ summary: "merge 关仓：leftover D672–D674 关各 call site。compile-client 
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **A** | occupied `loop/A-d487-memory-score` @ `ea4f4a7b8b6`；[D487](deferred-gaps.md) Memory score 本 call site 已闭 |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **F/G/H/I/J** | parked |
@@ -30,7 +31,7 @@ summary: "merge 关仓：leftover D672–D674 关各 call site。compile-client 
 | ID | 问题 |
 |:---|:-----|
 | [D24](deferred-gaps.md) | **仍开**：Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor 仍 JSON |
-| [D487](deferred-gaps.md) | **open** Memory score double 未读 |
+| [D487](deferred-gaps.md) | **closed** Memory `score`=4 已读（IEEE 754 LE）；D24 仍开 |
 | [D550](deferred-gaps.md)–[D674](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
