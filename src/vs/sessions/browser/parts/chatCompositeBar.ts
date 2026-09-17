@@ -576,7 +576,7 @@ export class ChatCompositeBar extends Disposable {
 			if (commit && newTitle && newTitle !== initialTitle) {
 				this._sessionsManagementService
 					.renameChat(delegate.session, chat.resource, newTitle)
-					.catch(onUnexpectedError);
+					.catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		};
 

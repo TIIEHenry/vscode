@@ -39,7 +39,23 @@ suite('ChatCompositeBar leftover fire-and-forget catch scan (D608)', () => {
 		assert.ok(!source.includes(`${call};`));
 		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
 		assert.ok(source.includes('EventType.AUXCLICK'));
-		assert.ok(source.includes('.renameChat(delegate.session, chat.resource, newTitle)\n\t\t\t\t\t.catch(onUnexpectedError);'));
-		assert.ok(!source.includes('.renameChat(delegate.session, chat.resource, newTitle)\n\t\t\t\t\t.catch(onUnexpectedError).catch(onUnexpectedError);'));
+	});
+});
+
+suite('ChatCompositeBar leftover fire-and-forget catch scan (D616)', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('inline renameChat void double-catch onUnexpectedError (D616)', () => {
+		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const source = fs.readFileSync(chatCompositeBarSourcePath(), 'utf8');
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const call = '.renameChat(delegate.session, chat.resource, newTitle)';
+		const doubleCall = `${call}\n\t\t\t\t\t${doubleCatch};`;
+		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
+		assert.strictEqual((source.match(/\.renameChat\(delegate\.session, chat\.resource, newTitle\)/g) ?? []).length, 1);
+		assert.ok(source.includes(doubleCall));
+		assert.ok(!source.includes(`${call}\n\t\t\t\t\t.catch(onUnexpectedError);`));
+		assert.ok(source.includes('CLOSE_CHAT_COMMAND_ID'));
 	});
 });
