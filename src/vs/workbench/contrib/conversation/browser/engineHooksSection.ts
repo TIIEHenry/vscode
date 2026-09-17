@@ -234,7 +234,7 @@ export class EngineHooksSection extends Disposable {
 			emptyCopy: localize('ua.engineHooksPointsEmpty', "No hook points."),
 			onRetry,
 			onOpenConnection: mode === 'disconnected'
-				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID)
+				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
 				: undefined,
 		});
 	}

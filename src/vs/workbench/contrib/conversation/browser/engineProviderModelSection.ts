@@ -312,7 +312,7 @@ export class EngineProviderModelSection extends Disposable {
 			emptyCopy: localize('ua.engineProviderListEmpty', "No providers reported."),
 			onRetry,
 			onOpenConnection: mode === 'disconnected'
-				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID)
+				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
 				: undefined,
 		});
 	}
@@ -446,7 +446,7 @@ export class EngineProviderModelSection extends Disposable {
 			emptyCopy: localize('ua.engineModelListEmpty', "No models in the registry."),
 			onRetry,
 			onOpenConnection: mode === 'disconnected'
-				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID)
+				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
 				: undefined,
 		});
 	}
