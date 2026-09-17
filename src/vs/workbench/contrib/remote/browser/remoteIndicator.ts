@@ -52,7 +52,7 @@ import { workbenchConfigurationNodeBase } from '../../../common/configuration.js
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import Severity from '../../../../base/common/severity.js';
-import { isCancellationError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { toErrorMessage } from '../../../../base/common/errorMessage.js';
 import { ILifecycleService } from '../../../services/lifecycle/common/lifecycle.js';
 
@@ -191,7 +191,7 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 		this.registerActions();
 		this.registerListeners();
 
-		this.updateWhenInstalledExtensionsRegistered();
+		this.updateWhenInstalledExtensionsRegistered().catch(onUnexpectedError).catch(onUnexpectedError);
 		this.updateRemoteStatusIndicator();
 	}
 
@@ -386,7 +386,7 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 		}
 
 		this.updateRemoteStatusIndicator();
-		this.initializeRemoteMetadata();
+		this.initializeRemoteMetadata().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private setConnectionState(newState: 'disconnected' | 'connected' | 'reconnecting'): void {
@@ -698,7 +698,7 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 			return ext;
 		}, 300, 10);
 
-		this.commandService.executeCommand(startCommand);
+		this.commandService.executeCommand(startCommand).catch(onUnexpectedError).catch(onUnexpectedError);
 		this.telemetryService.publicLog2<WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification>('workbenchActionExecuted', {
 			id: 'remoteInstallAndRun',
 			detail: extensionId,
@@ -860,7 +860,7 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 						id: commandId,
 						from: 'remote indicator'
 					});
-					this.commandService.executeCommand(commandId);
+					this.commandService.executeCommand(commandId).catch(onUnexpectedError).catch(onUnexpectedError);
 					quickPick.hide();
 				}
 			}

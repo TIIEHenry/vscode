@@ -5,6 +5,7 @@
 
 import * as nls from '../../../../nls.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IProductService } from '../../../../platform/product/common/productService.js';
@@ -38,7 +39,7 @@ export class RemoteStartEntry extends Disposable implements IWorkbenchContributi
 		this.startCommand = remoteExtensionTips?.startEntry?.startCommand ?? '';
 		this.remoteExtensionId = remoteExtensionTips?.extensionId ?? '';
 
-		this._init();
+		this._init().catch(onUnexpectedError).catch(onUnexpectedError);
 		this.registerActions();
 		this.registerListeners();
 	}
@@ -91,7 +92,7 @@ export class RemoteStartEntry extends Disposable implements IWorkbenchContributi
 	}
 
 	private async showWebRemoteStartActions() {
-		this.commandService.executeCommand(this.startCommand);
+		this.commandService.executeCommand(this.startCommand).catch(onUnexpectedError).catch(onUnexpectedError);
 		this.telemetryService.publicLog2<WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification>('workbenchActionExecuted', {
 			id: this.startCommand,
 			from: 'remote start entry'
