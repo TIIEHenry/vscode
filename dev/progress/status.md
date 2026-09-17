@@ -4,13 +4,13 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "合入 Session.Resume root_agent=3。compile-client 待跑。D24 仍开。不是 leftover/pills 完成。"
+summary: "合入 Session.Resume root_agent=3。compile-client 0；聚焦 44 passing。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
-### 已合入（compile-client 待跑）
+### 已合入（`MERGE_SHA` 见下；compile-client 0；聚焦 44 passing）
 | 切片 | 提交 |
 |:-----|:-----|
 | **D Resume** | `cf4de53376b` — Session.Resume `root_agent`=3 AgentInfo 1–8；`model_info`=9 unread |
