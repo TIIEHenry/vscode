@@ -413,10 +413,13 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * items=2 `agent_id`=3). Item `id`=1 `header`=2 `question`=3
  * options=4 `multi_select`=5 `allow_custom`=6; option `label`=2.
  * Event `parent_tool_call_id`=4 and option `id`/`description` unread
- * (no public demux fields). proto3: empty / 0 / false omitted.
- * Unknown fields unread. Shape matches OverlayDeltaJoin
- * `streaming_delta` and demuxSessionStreamPayload `permission_request`
- * / `ask_user_question`.
+ * (no public demux fields).
+ * `client_tool_call`=52 SessionStreamClientToolCallEvent (`request_id`=1
+ * `tool_name`=3 `arguments_json`=4 `agent_id`=5). `origin`=2 /
+ * `parent_tool_call_id`=6 unread (no public demux fields).
+ * proto3: empty / 0 / false omitted. Unknown fields unread. Shape
+ * matches OverlayDeltaJoin `streaming_delta` and demuxSessionStreamPayload
+ * `permission_request` / `ask_user_question` / `client_tool_call`.
  */
 export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessionEvent {
 	const fields = readProtoFields(bytes);
@@ -464,6 +467,10 @@ export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessio
 	const askUserQuestion = lastBytes(fields, 51);
 	if (askUserQuestion) {
 		payload.ask_user_question = decodeAskUserQuestionEvent(askUserQuestion);
+	}
+	const clientToolCall = lastBytes(fields, 52);
+	if (clientToolCall) {
+		payload.client_tool_call = decodeClientToolCallEvent(clientToolCall);
 	}
 	return { payload };
 }
@@ -526,6 +533,22 @@ function decodePermissionRequestEvent(bytes: Uint8Array): Record<string, unknown
 		request_id: lastString(fields, 1) ?? '',
 		tool_name: lastString(fields, 2) ?? '',
 		description: lastString(fields, 3) ?? '',
+		...(agentId ? { agent_id: agentId } : {}),
+	};
+}
+
+/**
+ * SessionStreamClientToolCallEvent — `request_id`=1 `tool_name`=3
+ * `arguments_json`=4 `agent_id`=5. `origin`=2 / `parent_tool_call_id`=6
+ * unread (no public demux fields). proto3: empty omitted.
+ */
+function decodeClientToolCallEvent(bytes: Uint8Array): Record<string, unknown> {
+	const fields = readProtoFields(bytes);
+	const agentId = lastString(fields, 5);
+	return {
+		request_id: lastString(fields, 1) ?? '',
+		tool_name: lastString(fields, 3) ?? '',
+		arguments_json: lastString(fields, 4) ?? '',
 		...(agentId ? { agent_id: agentId } : {}),
 	};
 }

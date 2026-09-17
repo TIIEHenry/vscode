@@ -373,6 +373,52 @@ suite('grpc first-send / attach protobuf wire', () => {
 		});
 	});
 
+	test('decodeSessionStreamEvent reads nested client_tool_call=52 ClientToolCallEvent 1+3-5; origin/parent_tool_call_id unread; maps via demux', () => {
+		const clientTool = Buffer.concat([
+			encodeStringField(1, 'ctc-live'),
+			encodeInt32Field(2, 2),
+			encodeStringField(3, 'browser'),
+			encodeStringField(4, '{}'),
+			encodeStringField(5, 'root'),
+			encodeStringField(6, 'parent-tc-unread'),
+			encodeStringField(7, 'unused-field'),
+		]);
+		const encoded = Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodeMessageField(52, clientTool),
+			encodeStringField(99, 'unused-stream-field'),
+		]);
+		const decoded = decodeSessionStreamEvent(encoded);
+		const payload = decoded.payload as {
+			session_id?: string;
+			client_tool_call?: Record<string, unknown>;
+		};
+		assert.strictEqual(payload.session_id, 'sess-1');
+		assert.deepStrictEqual(payload.client_tool_call, {
+			request_id: 'ctc-live',
+			tool_name: 'browser',
+			arguments_json: '{}',
+			agent_id: 'root',
+		});
+		assert.ok(!('origin' in (payload.client_tool_call ?? {})));
+		assert.ok(!('parent_tool_call_id' in (payload.client_tool_call ?? {})));
+		assert.ok(!('parentToolCallId' in (payload.client_tool_call ?? {})));
+		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
+		assert.strictEqual(JSON.stringify(decoded).includes('parent-tc-unread'), false);
+		const events = demuxSessionStreamPayload(decoded.payload);
+		assert.strictEqual(events.length, 1);
+		assert.deepStrictEqual(events[0], {
+			arm: 'clientToolCall',
+			body: {
+				callId: 'ctc-live',
+				toolName: 'browser',
+				argumentsJson: '{}',
+				sessionId: 'sess-1',
+				agentId: 'root',
+			},
+		});
+	});
+
 	test('decodeSessionStreamEvent reads nested streaming_delta=30 StreamingDeltaEvent 1-6; unused unread', () => {
 		const delta = Buffer.concat([
 			encodeInt64Field(1, 9),

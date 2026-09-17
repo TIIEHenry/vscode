@@ -24,7 +24,8 @@ summary: "SessionStream 30/50/51 已合入。D24 仍开。不是 leftover/pills 
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **D/F/G/I** | 他线 leftover hunt：**无合法切片**（J 缺号 / 无公开 mapper / 测锁未读） |
+| **D/F/G** | 他线 leftover hunt：**无合法切片**（J 缺号 / 无公开 mapper / 测锁未读） |
+| **I** | SessionStream `client_tool_call`=52 decode 进行中 |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **C** | gitlink 脏 `dev/loop`；勿 add |
 | **E** | `blocked` `fix/ci-gate-reds` |
@@ -33,7 +34,7 @@ summary: "SessionStream 30/50/51 已合入。D24 仍开。不是 leftover/pills 
 子 agent 发现：
 | ID | 问题 |
 |:---|:-----|
-| [D24](deferred-gaps.md) | **仍开**：SessionStream 30/50/51 已 decode。Connect/Watch/Resolve/Pty 仍 JSON；`model_info`=9 unread |
+| [D24](deferred-gaps.md) | **仍开**：SessionStream 30/50/51/52 已 decode。Connect/Watch/Resolve/Pty 仍 JSON；`model_info`=9 unread |
 | — | TeamInfo `members`=2/`tasks`=3 测锁未读；公开类型只有 teamId+status |
 | — | `ListTeams` 不在 J `team_service.proto`；禁发明号 |
 | — | GetConfig tags=`[]` vs GetNode `undefined`（测锁 `[]`） |
@@ -42,6 +43,6 @@ summary: "SessionStream 30/50/51 已合入。D24 仍开。不是 leftover/pills 
 ## Next
 | 项 | 指针 |
 |:---|:-----|
-| **loop** | D24 仍开。下一刀 SessionStream `client_tool_call`=52。不得宣称 leftover/pills 完成 |
+| **loop** | D24 仍开。SessionStream 52 decode 进行中。不得宣称 leftover/pills 完成 |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。
