@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 import { Disposable, DisposableStore, toDisposable } from '../../../base/common/lifecycle.js';
 import { IExtHostRpcService } from './extHostRpcService.js';
 import { VSBuffer } from '../../../base/common/buffer.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 
 export interface IExtHostManagedSockets extends ExtHostManagedSocketsShape {
 	setFactory(socketFactoryId: number, makeConnection: () => Thenable<vscode.ManagedMessagePassing>): void;
@@ -47,11 +48,11 @@ export class ExtHostManagedSockets implements IExtHostManagedSockets {
 		}
 		// Unregister previous factory
 		if (this._factory) {
-			this._proxy.$unregisterSocketFactory(this._factory.socketFactoryId);
+			this._proxy.$unregisterSocketFactory(this._factory.socketFactoryId).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		this._factory = new ManagedSocketFactory(socketFactoryId, makeConnection);
-		this._proxy.$registerSocketFactory(this._factory.socketFactoryId);
+		this._proxy.$registerSocketFactory(this._factory.socketFactoryId).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	makeConnection(): Promise<vscode.ManagedMessagePassing> {

@@ -6,6 +6,7 @@
 import { DisposableStore, Disposable, IDisposable, MutableDisposable, combinedDisposable, DisposableMap } from '../../../base/common/lifecycle.js';
 import { ExtHostContext, ExtHostTerminalServiceShape, MainThreadTerminalServiceShape, MainContext, TerminalLaunchConfig, ITerminalDimensionsDto, ExtHostTerminalIdentifier, TerminalQuickFix, ITerminalCommandDto } from '../common/extHost.protocol.js';
 import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { URI } from '../../../base/common/uri.js';
 import { IInstantiationService } from '../../../platform/instantiation/common/instantiation.js';
 import { ILogService } from '../../../platform/log/common/log.js';
@@ -118,7 +119,7 @@ export class MainThreadTerminalService extends Disposable implements MainThreadT
 		remoteAgentService.getEnvironment().then(async env => {
 			this._os = env?.os || OS;
 			this._updateDefaultProfile();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._register(this._terminalProfileService.onDidChangeAvailableProfiles(() => this._updateDefaultProfile()));
 	}
 

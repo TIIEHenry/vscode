@@ -14,7 +14,7 @@ import { MarshalledId } from '../../../base/common/marshallingIds.js';
 import { isFalsyOrWhitespace } from '../../../base/common/strings.js';
 import { assertReturnsDefined } from '../../../base/common/types.js';
 import { URI, UriComponents } from '../../../base/common/uri.js';
-import { CancellationError } from '../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../base/common/errors.js';
 import { IExtensionDescription } from '../../../platform/extensions/common/extensions.js';
 import * as files from '../../../platform/files/common/files.js';
 import { Cache } from './cache.js';
@@ -172,7 +172,7 @@ export class ExtHostNotebookController implements ExtHostNotebookShape {
 		const eventHandle = typeof provider.onDidChangeCellStatusBarItems === 'function' ? ExtHostNotebookController._notebookStatusBarItemProviderHandlePool++ : undefined;
 
 		this._notebookStatusBarItemProviders.set(handle, provider);
-		this._notebookProxy.$registerNotebookCellStatusBarItemProvider(handle, eventHandle, notebookType);
+		this._notebookProxy.$registerNotebookCellStatusBarItemProvider(handle, eventHandle, notebookType).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		let subscription: vscode.Disposable | undefined;
 		if (eventHandle !== undefined) {
@@ -181,7 +181,7 @@ export class ExtHostNotebookController implements ExtHostNotebookShape {
 
 		return new extHostTypes.Disposable(() => {
 			this._notebookStatusBarItemProviders.delete(handle);
-			this._notebookProxy.$unregisterNotebookCellStatusBarItemProvider(handle, eventHandle);
+			this._notebookProxy.$unregisterNotebookCellStatusBarItemProvider(handle, eventHandle).catch(onUnexpectedError).catch(onUnexpectedError);
 			subscription?.dispose();
 		});
 	}
