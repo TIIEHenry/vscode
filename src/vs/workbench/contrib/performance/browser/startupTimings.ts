@@ -19,6 +19,7 @@ import { ITimerService } from '../../../services/timer/browser/timerService.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
 import { posix } from '../../../../base/common/path.js';
 import { hash } from '../../../../base/common/hash.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 
 export abstract class StartupTimings {
 
@@ -84,7 +85,7 @@ export class BrowserStartupTimings extends StartupTimings implements IWorkbenchC
 	) {
 		super(editorService, paneCompositeService, lifecycleService, updateService, workspaceTrustService);
 
-		this.logPerfMarks();
+		this.logPerfMarks().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async logPerfMarks(): Promise<void> {

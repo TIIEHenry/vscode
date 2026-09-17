@@ -66,7 +66,7 @@ export class StartupProfiler implements IWorkbenchContribution {
 						} else {
 							setTimeout(check, 500);
 						}
-					});
+					}).catch(onUnexpectedError).catch(onUnexpectedError);
 				};
 				check();
 			}))
@@ -100,17 +100,17 @@ export class StartupProfiler implements IWorkbenchContribution {
 						}).then(res => {
 							// now we are ready to restart
 							if (res.confirmed) {
-								this._nativeHostService.relaunch({ removeArgs });
+								this._nativeHostService.relaunch({ removeArgs }).catch(onUnexpectedError).catch(onUnexpectedError);
 							}
 						});
-					});
+					}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 				} else {
 					// simply restart
-					this._nativeHostService.relaunch({ removeArgs });
+					this._nativeHostService.relaunch({ removeArgs }).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			});
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async _createPerfIssue(files: string[]): Promise<void> {

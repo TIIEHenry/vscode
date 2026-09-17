@@ -140,7 +140,7 @@ export class NativeStartupTimings extends StartupTimings implements IWorkbenchCo
 				exitCode = 1;
 				console.error(error);
 			} finally {
-				this._nativeHostService.exit(exitCode);
+				this._nativeHostService.exit(exitCode).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 	}

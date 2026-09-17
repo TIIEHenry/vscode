@@ -79,11 +79,11 @@ export class RendererProfiling {
 						const profile = await nativeHostService.profileRenderer(sessionId, 5000);
 						const output = await profileAnalysisService.analyseBottomUp(profile, _url => '<<renderer>>', perfBaseline, true);
 						if (output === ProfilingOutput.Interesting) {
-							this._store(profile, sessionId);
+							this._store(profile, sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
 							break;
 						}
 
-						timeout(15000); // wait 15s
+						timeout(15000).catch(onUnexpectedError).catch(onUnexpectedError); // wait 15s
 
 					} catch (err) {
 						_logService.error(err);
