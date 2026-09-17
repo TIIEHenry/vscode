@@ -32,6 +32,7 @@ import { IExtensionService } from '../../../services/extensions/common/extension
 import { areSameExtensions } from '../../../../platform/extensionManagement/common/extensionManagementUtil.js';
 import Severity from '../../../../base/common/severity.js';
 import { Color } from '../../../../base/common/color.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { renderIcon } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
@@ -619,7 +620,7 @@ export class ExtensionKindIndicatorWidget extends ExtensionWidget {
 			}
 			this.extensionGalleryManifest = manifest;
 			this.render();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private clear(): void {

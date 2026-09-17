@@ -50,7 +50,7 @@ import { IDialogService, IPromptButton } from '../../../../platform/dialogs/comm
 import { IProgressService, ProgressLocation } from '../../../../platform/progress/common/progress.js';
 import { IActionViewItemOptions, ActionViewItem } from '../../../../base/browser/ui/actionbar/actionViewItems.js';
 import { EXTENSIONS_CONFIG, IExtensionsConfigContent } from '../../../services/extensionRecommendations/common/workspaceExtensionsConfig.js';
-import { getErrorMessage, isCancellationError } from '../../../../base/common/errors.js';
+import { getErrorMessage, isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { IUserDataSyncEnablementService } from '../../../../platform/userDataSync/common/userDataSync.js';
 import { IContextMenuProvider } from '../../../../base/browser/contextmenu.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
@@ -2134,7 +2134,7 @@ export class SetColorThemeAction extends ExtensionAction {
 		this.workbenchThemeService.getColorThemes().then(colorThemes => {
 			this.enabled = this.computeEnablement(colorThemes);
 			this.class = this.enabled ? SetColorThemeAction.EnabledClass : SetColorThemeAction.DisabledClass;
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private computeEnablement(colorThemes: IWorkbenchColorTheme[]): boolean {
@@ -2185,7 +2185,7 @@ export class SetFileIconThemeAction extends ExtensionAction {
 		this.workbenchThemeService.getFileIconThemes().then(fileIconThemes => {
 			this.enabled = this.computeEnablement(fileIconThemes);
 			this.class = this.enabled ? SetFileIconThemeAction.EnabledClass : SetFileIconThemeAction.DisabledClass;
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private computeEnablement(colorThemfileIconThemess: IWorkbenchFileIconTheme[]): boolean {
@@ -2235,7 +2235,7 @@ export class SetProductIconThemeAction extends ExtensionAction {
 		this.workbenchThemeService.getProductIconThemes().then(productIconThemes => {
 			this.enabled = this.computeEnablement(productIconThemes);
 			this.class = this.enabled ? SetProductIconThemeAction.EnabledClass : SetProductIconThemeAction.DisabledClass;
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private computeEnablement(productIconThemes: IWorkbenchProductIconTheme[]): boolean {
@@ -3208,7 +3208,7 @@ export abstract class AbstractInstallExtensionsInServerAction extends Action {
 	) {
 		super(id);
 		this.update();
-		this.extensionsWorkbenchService.queryLocal().then(() => this.updateExtensions());
+		this.extensionsWorkbenchService.queryLocal().then(() => this.updateExtensions()).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._register(this.extensionsWorkbenchService.onChange(() => {
 			if (this.extensions) {
 				this.updateExtensions();

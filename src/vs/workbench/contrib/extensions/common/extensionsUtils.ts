@@ -35,7 +35,7 @@ export class KeymapExtensions extends Disposable implements IWorkbenchContributi
 		this._register(lifecycleService.onDidShutdown(() => this.dispose()));
 		this._register(instantiationService.invokeFunction(onExtensionChanged)((identifiers => {
 			Promise.all(identifiers.map(identifier => this.checkForOtherKeymaps(identifier)))
-				.then(undefined, onUnexpectedError);
+				.catch(onUnexpectedError).catch(onUnexpectedError);
 		})));
 	}
 

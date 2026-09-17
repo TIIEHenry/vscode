@@ -6,6 +6,7 @@
 import { getWindowId } from '../../../../base/browser/dom.js';
 import { List } from '../../../../base/browser/ui/list/listWidget.js';
 import { mainWindow } from '../../../../base/browser/window.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { deepClone } from '../../../../base/common/objects.js';
@@ -621,7 +622,7 @@ KeybindingsRegistry.registerCommandAndKeybindingRule({
 			} else {
 				qp.placeholder = nls.localize('editor.debug.action.stepIntoTargets.none', "No step targets available");
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 });
 
