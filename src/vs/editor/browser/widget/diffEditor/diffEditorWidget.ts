@@ -688,7 +688,7 @@ export class DiffEditorWidget extends DelegatingEditor implements IDiffEditor {
 				return;
 			}
 			this._goTo(diffs[0]);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	accessibleDiffViewerNext(): void { this._accessibleDiffViewer.get().next(); }
