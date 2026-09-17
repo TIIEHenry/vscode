@@ -205,7 +205,7 @@ class FormatOnPaste implements IEditorContribution {
 		if (this.editor.getSelections().length > 1) {
 			return;
 		}
-		this._instantiationService.invokeFunction(formatDocumentRangesWithSelectedProvider, this.editor, range, FormattingMode.Silent, Progress.None, CancellationToken.None, false).catch(onUnexpectedError);
+		this._instantiationService.invokeFunction(formatDocumentRangesWithSelectedProvider, this.editor, range, FormattingMode.Silent, Progress.None, CancellationToken.None, false).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 
