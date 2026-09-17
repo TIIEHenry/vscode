@@ -517,7 +517,7 @@ export class CustomMenubarControl extends MenubarControl {
 			this.accessibilityService.alwaysUnderlineAccessKeys().then(val => {
 				this.alwaysOnMnemonics = val;
 				this.menubar?.update(this.getMenuBarOptions());
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 			this.reinstallDisposables.add(this.menubar.onFocusStateChange(focused => {
 				this._onFocusStateChange.fire(focused);

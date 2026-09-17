@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/paneCompositePart.css';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Event } from '../../../base/common/event.js';
 import { IInstantiationService } from '../../../platform/instantiation/common/instantiation.js';
 import { IProgressIndicator } from '../../../platform/progress/common/progress.js';
@@ -312,7 +313,7 @@ export abstract class AbstractPaneCompositePart extends CompositePart<PaneCompos
 						if (dragData.type === 'composite') {
 							const currentContainer = this.viewDescriptorService.getViewContainerById(dragData.id)!;
 							this.viewDescriptorService.moveViewContainerToLocation(currentContainer, this.location, undefined, 'dnd');
-							this.openPaneComposite(currentContainer.id, true);
+							this.openPaneComposite(currentContainer.id, true).catch(onUnexpectedError).catch(onUnexpectedError);
 						}
 
 						else if (dragData.type === 'view') {
@@ -324,7 +325,7 @@ export abstract class AbstractPaneCompositePart extends CompositePart<PaneCompos
 
 								this.openPaneComposite(newContainer.id, true).then(composite => {
 									composite?.openView(viewToMove.id, true);
-								});
+								}).catch(onUnexpectedError).catch(onUnexpectedError);
 							}
 						}
 					}
