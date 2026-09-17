@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Disposable, DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { mainWindow } from '../../../../base/browser/window.js';
 import { disposableWindowInterval, getWindow } from '../../../../base/browser/dom.js';
@@ -183,8 +184,8 @@ export class AgentsVoiceWindowService extends Disposable implements IAgentsVoice
 			closeWindow: () => this.closeWindow(),
 			stopPlayback: () => this.ttsPlaybackService.stopPlayback(),
 			openSession: (resource) => {
-				this.commandService.executeCommand('_chat.voice.switchToSession', resource.toString());
-				this.hostService.focus(mainWindow);
+				this.commandService.executeCommand('_chat.voice.switchToSession', resource.toString()).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.hostService.focus(mainWindow).catch(onUnexpectedError).catch(onUnexpectedError);
 			},
 			stopSession: (resource) => {
 				const model = this.chatService.getSession(resource);
@@ -204,7 +205,7 @@ export class AgentsVoiceWindowService extends Disposable implements IAgentsVoice
 				this.voiceSessionController.setTargetSession(resource);
 				// Reveal the selected session in the chat panel
 				if (resource) {
-					this.commandService.executeCommand('_chat.voice.switchToSession', resource.toString()).catch(() => { /* ignore */ });
+					this.commandService.executeCommand('_chat.voice.switchToSession', resource.toString()).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			},
 			newSessionAsTarget: () => {
@@ -235,7 +236,7 @@ export class AgentsVoiceWindowService extends Disposable implements IAgentsVoice
 					AgentsVoiceSessionsPicker,
 					(resource) => this.voiceSessionController.setTargetSession(resource),
 				);
-				picker.show();
+				picker.show().catch(onUnexpectedError).catch(onUnexpectedError);
 			},
 		}, {
 			defaultExpanded: false,
