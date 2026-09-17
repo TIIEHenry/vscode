@@ -5,6 +5,7 @@
 
 import * as nls from '../../../../nls.js';
 import { Action } from '../../../../base/common/actions.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { ILoggerService, LogLevel, LogLevelToLocalizedString, isLogLevel } from '../../../../platform/log/common/log.js';
 import { IQuickInputButton, IQuickInputService, IQuickPickItem, IQuickPickSeparator } from '../../../../platform/quickinput/common/quickInput.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -89,7 +90,7 @@ export class SetLogLevelAction extends Action {
 			let selectedItem: IQuickPickItem | undefined;
 			disposables.add(quickPick.onDidTriggerItemButton(e => {
 				quickPick.hide();
-				this.defaultLogLevelsService.setDefaultLogLevel((<LogLevelQuickPickItem>e.item).level);
+				this.defaultLogLevelsService.setDefaultLogLevel((<LogLevelQuickPickItem>e.item).level).catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 			disposables.add(quickPick.onDidAccept(e => {
 				selectedItem = quickPick.selectedItems[0];
@@ -118,7 +119,7 @@ export class SetLogLevelAction extends Action {
 			let selectedItem: LogLevelQuickPickItem | undefined;
 			disposables.add(quickPick.onDidTriggerItemButton(e => {
 				quickPick.hide();
-				this.defaultLogLevelsService.setDefaultLogLevel((<LogLevelQuickPickItem>e.item).level, logChannel.channel.extensionId);
+				this.defaultLogLevelsService.setDefaultLogLevel((<LogLevelQuickPickItem>e.item).level, logChannel.channel.extensionId).catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 			disposables.add(quickPick.onDidAccept(e => {
 				selectedItem = quickPick.selectedItems[0] as LogLevelQuickPickItem;
