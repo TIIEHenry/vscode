@@ -4,28 +4,25 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "merge 关仓：leftover D592–D599 关各 call site。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
+summary: "D 槽 leftover D602：newChatInput toggleDictation 双链。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
-### 已合入（compile-client 0 · 聚焦 8 文件 25 pass）
-| 切片 | 提交 |
+### D 槽（未 commit · 勿 add `out`）
+| 切片 | 落点 |
 |:-----|:-----|
-| **A leftover** | `00eb7f41b64` — galleryItemRenderer Install IIFE 双链；[D592](deferred-gaps.md) |
-| **C leftover** | `79ab505d401` — embeddedAgentPluginDetail 四处 click IIFE 双链；[D593](deferred-gaps.md)；gitlink 脏勿 add |
-| **D leftover** | `d4b1e41fd69` — newChatInput OTEL executeCommand 双链；[D594](deferred-gaps.md) |
-| **F leftover** | `60c1aa38865` — aiCustomizationListWidget delayedFilter 双链；[D595](deferred-gaps.md) |
-| **G leftover** | `43a9bc7003f` — pluginList Delayer trigger 三处双链；[D596](deferred-gaps.md)；勿 add `out` |
-| **H leftover** | `55eebe3334b` — sessionChangesEditor executeCommand 双链；[D597](deferred-gaps.md) |
-| **I leftover** | `4c458df3dea` — editor createNewItem 两处双链；[D598](deferred-gaps.md) |
-| **J leftover** | `0059bd221d2` — chatInputPart result.finally 双链；[D599](deferred-gaps.md) |
+| **D leftover D594** | 已合 `d4b1e41fd69` — OTEL `executeCommand` 双链；不重开 |
+| **D leftover D602** | 未 commit — pill `void this.toggleDictation()` + mic `const toggle` 双链；[D602](deferred-gaps.md) |
+
+mocha `newChatInputCatchScan.test.ts` **3/0**（D594 1 + D602 1 + Errors 1）。增量 transpile 测文件 only。未 compile-client。
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **D** | `loop/D-d24-newchat-dictation-leftover` @ `2991b5e2a256`；D602 已写未 commit |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |
@@ -35,7 +32,7 @@ summary: "merge 关仓：leftover D592–D599 关各 call site。compile-client 
 |:---|:-----|
 | [D24](deferred-gaps.md) | **仍开**：Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
-| [D550](deferred-gaps.md)–[D599](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
+| [D550](deferred-gaps.md)–[D599](deferred-gaps.md)/[D602](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |

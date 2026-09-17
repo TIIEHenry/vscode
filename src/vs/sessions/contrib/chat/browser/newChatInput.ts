@@ -1161,7 +1161,7 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 		const pill = this._register(this._scopedInstantiationService.createInstance(VoiceInputModeActionViewItem, action, {
 			// Dictation must target this composer's editor, not the last focused
 			// chat widget (this composer isn't an `IChatWidget`).
-			toggleDictation: () => { void this.toggleDictation(); },
+			toggleDictation: () => { void this.toggleDictation().catch(onUnexpectedError).catch(onUnexpectedError); },
 			isActive: isVoiceInputActive,
 			isDictationActive: isDictationInputActive,
 			isVoiceActive: isVoiceSessionActive,
@@ -1302,7 +1302,7 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 			}
 		}));
 
-		const toggle = () => this.toggleDictation();
+		const toggle = () => this.toggleDictation().catch(onUnexpectedError).catch(onUnexpectedError);
 		// A styled div doesn't get Enter/Space activation or touch tap for free;
 		// wire them explicitly so the button is keyboard- and touch-accessible.
 		this._register(Gesture.addTarget(button));
