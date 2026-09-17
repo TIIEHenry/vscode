@@ -13,6 +13,7 @@ import { assertNever } from '../../../../base/common/assert.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { groupBy } from '../../../../base/common/collections.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { createMarkdownCommandLink, MarkdownString } from '../../../../base/common/htmlContent.js';
 import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
@@ -976,7 +977,7 @@ export class MCPServerActionRendering extends Disposable implements IWorkbenchCo
 					const { state, servers } = displayedStateCurrent.get();
 					if (state === DisplayedState.NewTools) {
 						const interaction = new McpStartServerInteraction();
-						servers.filter(isServer).forEach(server => server.stop().then(() => server.start({ interaction })));
+						servers.filter(isServer).forEach(server => server.stop().then(() => server.start({ interaction })).catch(onUnexpectedError).catch(onUnexpectedError));
 						mcpService.activateCollections();
 					} else if (state === DisplayedState.Refreshing) {
 						findLast(servers, isServer)?.showOutput();

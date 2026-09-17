@@ -5,6 +5,7 @@
 
 import { AsyncIterableProducer, raceCancellationError, Sequencer } from '../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Iterable } from '../../../../base/common/iterator.js';
 import * as json from '../../../../base/common/json.js';
 import { normalizeDriveLetter } from '../../../../base/common/labels.js';
@@ -1009,7 +1010,7 @@ export class McpServer extends Disposable implements IMcpServer {
 			}
 		}).finally(() => {
 			this._isSandboxSuggestionDialogVisible = false;
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	public recordPotentialSandboxBlock(block: IMcpPotentialSandboxBlock): void {
@@ -1249,7 +1250,7 @@ export class McpServer extends Disposable implements IMcpServer {
 					serverName: handler.serverInfo.name,
 					serverVersion: handler.serverInfo.version,
 				});
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 	}
 }

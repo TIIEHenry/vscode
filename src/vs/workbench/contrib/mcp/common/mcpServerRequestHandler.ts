@@ -7,7 +7,7 @@ import { equals } from '../../../../base/common/arrays.js';
 import { assertNever, softAssertNever } from '../../../../base/common/assert.js';
 import { DeferredPromise, disposableTimeout, IntervalTimer, isThenable } from '../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
-import { CancellationError } from '../../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Iterable } from '../../../../base/common/iterator.js';
 import { JsonRpcError, JsonRpcProtocol } from '../../../../base/common/jsonRpcProtocol.js';
@@ -201,7 +201,7 @@ export class McpServerRequestHandler extends Disposable {
 			if (canLog(this.logger.getLevel(), this._requestLogLevel)) {
 				log(this.logger, this._requestLogLevel, `[server -> editor] ${JSON.stringify(message)}`);
 			}
-			void this._rpc.handleMessage(message);
+			void this._rpc.handleMessage(message).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(autorun(reader => {
 			const state = launch.state.read(reader).state;

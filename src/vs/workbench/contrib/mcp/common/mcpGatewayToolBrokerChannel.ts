@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { autorun } from '../../../../base/common/observable.js';
@@ -127,7 +128,7 @@ export class McpGatewayToolBrokerChannel extends Disposable implements IServerCh
 				]),
 				resolved: false,
 			};
-			entry.promise.then(() => { entry.resolved = true; });
+			entry.promise.then(() => { entry.resolved = true; }).catch(onUnexpectedError).catch(onUnexpectedError);
 			this._startupGrace.set(id, entry);
 		}
 		return this._startupGrace.get(id)!.promise;
