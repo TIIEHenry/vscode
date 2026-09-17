@@ -25,6 +25,7 @@ import { IExtHostApiDeprecationService } from '../common/extHostApiDeprecationSe
 import * as resources from '../../../base/common/resources.js';
 import { homedir } from 'os';
 import { IExtHostVariableResolverProvider } from '../common/extHostVariableResolverService.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 
 export class ExtHostTask extends ExtHostTaskBase {
 	constructor(
@@ -52,7 +53,7 @@ export class ExtHostTask extends ExtHostTaskBase {
 				platform: process.platform
 			});
 		}
-		this._proxy.$registerSupportedExecutions(true, true, true);
+		this._proxy.$registerSupportedExecutions(true, true, true).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	public async executeTask(extension: IExtensionDescription, task: vscode.Task): Promise<vscode.TaskExecution> {

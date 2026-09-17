@@ -9,6 +9,7 @@ import { ExtHostLoggerService as BaseExtHostLoggerService } from '../common/extH
 import { Schemas } from '../../../base/common/network.js';
 import { SpdLogLogger } from '../../../platform/log/node/spdlogLog.js';
 import { generateUuid } from '../../../base/common/uuid.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 
 export class ExtHostLoggerService extends BaseExtHostLoggerService {
 
@@ -22,12 +23,12 @@ export class ExtHostLoggerService extends BaseExtHostLoggerService {
 
 	override registerLogger(resource: ILoggerResource): void {
 		super.registerLogger(resource);
-		this._proxy.$registerLogger(resource);
+		this._proxy.$registerLogger(resource).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	override deregisterLogger(resource: URI): void {
 		super.deregisterLogger(resource);
-		this._proxy.$deregisterLogger(resource);
+		this._proxy.$deregisterLogger(resource).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 }
