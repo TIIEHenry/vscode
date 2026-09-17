@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "工位 G 进行中：d24-client-stream-bytes-helper。D24 仍开。不是 leftover/pills 完成。"
+summary: "工位 G 进行中：d24-client-stream-bytes-helper（mocha 9 pass）。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -27,7 +27,7 @@ summary: "工位 G 进行中：d24-client-stream-bytes-helper。D24 仍开。不
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **G** | 进行中 `loop/G-d24-client-stream-bytes-helper`：已加 `makeClientStreamBytesClient`；Upload 仍 JSON、未改 grpcClient；[D24](deferred-gaps.md) **仍开** |
+| **G** | 进行中 `loop/G-d24-client-stream-bytes-helper`：已加 `makeClientStreamBytesClient`；mocha 9 pass（helper + Upload 仍 JSON）；未改 grpcClient；[D24](deferred-gaps.md) **仍开** |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |

@@ -8,10 +8,65 @@ import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
+import type { UniverseAgentSessionStreamCloseCause } from '../../common/universeAgentTypes.js';
+import { asUnaryProtoBytes, makeClientStreamBytesClient } from '../../node/grpc/grpcClientCalls.js';
+
+/** Not valid UTF-8 and not a JSON object (`{` as a raw byte). */
+const BINARY_CHUNK = Uint8Array.from([0x00, 0xff, 0xfe, 0x7b, 0x22]);
 
 suite('grpcClientCalls makeClientStreamBytesClient', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('write Uint8Array proto bytes; decode unary via caller; close-gate/error/end/dispose', () => {
+		const first = openFakeBytesClient();
+		assert.strictEqual(first.path, '/agentservice.FileTransferService/UploadAttachment');
+		assert.strictEqual(first.serialize, asUnaryProtoBytes);
+
+		first.handle.write(BINARY_CHUNK);
+		assert.strictEqual(first.call.writes.length, 1);
+		assert.strictEqual(first.call.writes[0], BINARY_CHUNK);
+		const framed = first.serialize(BINARY_CHUNK);
+		assert.ok(Buffer.isBuffer(framed));
+		assert.deepStrictEqual([...framed], [...BINARY_CHUNK]);
+		assert.notStrictEqual(framed.toString('utf8'), JSON.stringify(BINARY_CHUNK));
+
+		const responseBuf = Buffer.from([42]);
+		assert.deepStrictEqual(first.deserialize(responseBuf), { n: 42 });
+		assert.strictEqual(first.decoded.length, 1);
+		assert.strictEqual(first.decoded[0], responseBuf);
+
+		first.callback(null, { n: 42 });
+		assert.deepStrictEqual(first.responses, [{ n: 42 }]);
+		assert.deepStrictEqual(first.closes, [{ kind: 'remote' }]);
+		first.handle.write(Uint8Array.from([9]));
+		first.handle.end();
+		assert.strictEqual(first.call.writes.length, 1, 'write after remote close must no-op');
+		assert.strictEqual(first.call.ended, false, 'end after remote close must no-op');
+		first.handle.dispose();
+		assert.strictEqual(first.call.cancelled, 1);
+
+		const errored = openFakeBytesClient();
+		errored.callback({ message: 'boom' });
+		assert.deepStrictEqual(errored.responses, []);
+		assert.deepStrictEqual(errored.closes, [{ kind: 'error', message: 'boom' }]);
+		errored.handle.write(BINARY_CHUNK);
+		errored.handle.end();
+		assert.strictEqual(errored.call.writes.length, 0);
+		assert.strictEqual(errored.call.ended, false);
+		errored.handle.dispose();
+		assert.strictEqual(errored.call.cancelled, 1);
+
+		const local = openFakeBytesClient();
+		local.handle.dispose();
+		assert.strictEqual(local.call.cancelled, 1);
+		local.callback({ message: 'cancelled' });
+		assert.deepStrictEqual(local.closes, []);
+		local.handle.write(BINARY_CHUNK);
+		local.handle.end();
+		assert.strictEqual(local.call.writes.length, 0);
+		assert.strictEqual(local.call.ended, false);
+	});
 
 	test('makeClientStreamBytesClient exists; serializes proto bytes; JSON makeClientStreamClient stays', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClientCalls.ts'), 'utf8');
@@ -74,6 +129,80 @@ suite('grpcClientCalls makeClientStreamBytesClient', () => {
 		assert.ok(!watch.includes('makeServerStreamBytesClient'));
 	});
 });
+
+type FakeCall = {
+	writes: unknown[];
+	ended: boolean;
+	cancelled: number;
+	write(chunk: unknown): void;
+	end(): void;
+	cancel(): void;
+};
+
+type FakeResponse = { n: number };
+
+type FakeBytesClient = {
+	path: string;
+	serialize: (value: Uint8Array | undefined) => Buffer;
+	deserialize: (buffer: Buffer) => FakeResponse;
+	callback: (error: { message?: string } | null, response?: FakeResponse) => void;
+	call: FakeCall;
+	decoded: Buffer[];
+	responses: FakeResponse[];
+	closes: UniverseAgentSessionStreamCloseCause[];
+	handle: { write(chunk: Uint8Array): void; end(): void; dispose(): void };
+};
+
+function openFakeBytesClient(): FakeBytesClient {
+	const call: FakeCall = {
+		writes: [],
+		ended: false,
+		cancelled: 0,
+		write(chunk: unknown): void {
+			this.writes.push(chunk);
+		},
+		end(): void {
+			this.ended = true;
+		},
+		cancel(): void {
+			this.cancelled++;
+		},
+	};
+	const decoded: Buffer[] = [];
+	const responses: FakeResponse[] = [];
+	const closes: UniverseAgentSessionStreamCloseCause[] = [];
+	let path = '';
+	let serialize: ((value: Uint8Array | undefined) => Buffer) | undefined;
+	let deserialize: ((buffer: Buffer) => FakeResponse) | undefined;
+	let callback: ((error: { message?: string } | null, response?: FakeResponse) => void) | undefined;
+	const channel = {
+		makeClientStreamRequest(
+			requestPath: string,
+			ser: (value: Uint8Array | undefined) => Buffer,
+			deser: (buffer: Buffer) => FakeResponse,
+			cb: (error: { message?: string } | null, response?: FakeResponse) => void,
+		) {
+			path = requestPath;
+			serialize = ser;
+			deserialize = deser;
+			callback = cb;
+			return call;
+		},
+	};
+	const handle = makeClientStreamBytesClient<FakeResponse>(
+		channel as never,
+		'agentservice.FileTransferService',
+		'UploadAttachment',
+		buffer => {
+			decoded.push(buffer);
+			return { n: buffer[0] ?? 0 };
+		},
+	)(response => responses.push(response), cause => closes.push(cause));
+	assert.ok(serialize);
+	assert.ok(deserialize);
+	assert.ok(callback);
+	return { path, serialize, deserialize, callback, call, decoded, responses, closes, handle };
+}
 
 function grpcDir(): string {
 	const thisDir = path.dirname(fileURLToPath(import.meta.url));
