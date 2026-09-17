@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { URI } from '../../../../base/common/uri.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event, Emitter } from '../../../../base/common/event.js';
 import { ResourceMap } from '../../../../base/common/map.js';
 import { equals } from '../../../../base/common/objects.js';
@@ -150,7 +151,7 @@ export class WorkspaceService extends Disposable implements IWorkbenchConfigurat
 			this.onWorkspaceConfigurationChanged(fromCache).then(() => {
 				this.workspace.initialized = this.workspaceConfiguration.initialized;
 				this.checkAndMarkWorkspaceComplete(fromCache);
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this._register(this.defaultConfiguration.onDidChangeConfiguration(({ properties, defaults }) => this.onDefaultConfigurationChanged(defaults, properties)));
@@ -1174,7 +1175,7 @@ class RegisterConfigurationSchemasContribution extends Disposable implements IWo
 			const delayer = this._register(new Delayer<void>(50));
 			this._register(Event.any(configurationRegistry.onDidUpdateConfiguration, configurationRegistry.onDidSchemaChange, workspaceTrustManagementService.onDidChangeTrust)(() =>
 				delayer.trigger(() => this.registerConfigurationSchemas(), lifecycleService.phase === LifecyclePhase.Eventually ? undefined : 2500 /* delay longer in early phases */)));
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private registerConfigurationSchemas(): void {
