@@ -2371,7 +2371,7 @@ export class SearchView extends ViewPane {
 			const changedMatches = matches.filter(m => e.contains(m.resource));
 			if (changedMatches.length && this.searchConfig.sortOrder === SearchSortOrder.Modified) {
 				// No matches need to be removed, but modified files need to have their file stat updated.
-				this.updateFileStats(changedMatches).then(async () => this.refreshTreeController.queue());
+				this.updateFileStats(changedMatches).then(async () => this.refreshTreeController.queue()).catch(errors.onUnexpectedError).catch(errors.onUnexpectedError);
 			}
 		}
 	}

@@ -523,7 +523,7 @@ export class BreakpointWidget extends ZoneWidget implements IPrivateBreakpointWi
 					mode,
 					modeLabel,
 				});
-				this.debugService.updateBreakpoints(this.breakpoint.originalUri, data, false).then(undefined, onUnexpectedError);
+				this.debugService.updateBreakpoints(this.breakpoint.originalUri, data, false).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else {
 				const model = this.editor.getModel();
 				if (model) {

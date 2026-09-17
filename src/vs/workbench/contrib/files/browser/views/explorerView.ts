@@ -53,6 +53,7 @@ import { EditorOpenSource } from '../../../../../platform/editor/common/editor.j
 import { ResourceMap } from '../../../../../base/common/map.js';
 import { AbstractTreePart } from '../../../../../base/browser/ui/tree/abstractTree.js';
 import { IHoverService } from '../../../../../platform/hover/browser/hover.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { IAccessibilityService } from '../../../../../platform/accessibility/common/accessibility.js';
 import { IEnvironmentService } from '../../../../../platform/environment/common/environment.js';
 import { ExplorerInlineFilterBox } from '../explorerInlineFilterBox.js';
@@ -557,7 +558,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 	private createTree(container: HTMLElement): void {
 		this.filter = this.instantiationService.createInstance(FilesFilter);
 		this._register(this.filter);
-		this._register(this.filter.onDidChange(() => this.refresh(true)));
+		this._register(this.filter.onDidChange(() => void this.refresh(true).catch(onUnexpectedError).catch(onUnexpectedError)));
 		const explorerLabels = this.instantiationService.createInstance(ResourceLabels, { onDidChangeVisibility: this.onDidChangeBodyVisibility });
 		this._register(explorerLabels);
 
@@ -702,7 +703,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 			const scrollingByPage = this.configurationService.getValue<boolean>('workbench.list.scrollByPage');
 			if (e.element === null && !scrollingByPage) {
 				// click in empty area -> create a new file #116676
-				this.commandService.executeCommand(NEW_FILE_COMMAND_ID);
+				void this.commandService.executeCommand(NEW_FILE_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -722,7 +723,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 
 		// Push down config updates to components of viewer
 		if (event && (event.affectsConfiguration('explorer.decorations.colors') || event.affectsConfiguration('explorer.decorations.badges'))) {
-			this.refresh(true);
+			void this.refresh(true).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

@@ -29,6 +29,7 @@ import { URI } from '../../../../base/common/uri.js';
 import { Action, IAction, toAction } from '../../../../base/common/actions.js';
 import { localize } from '../../../../nls.js';
 import { CancelablePromise, createCancelablePromise, Delayer } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IModelService } from '../../../../editor/common/services/model.js';
 import { Range } from '../../../../editor/common/core/range.js';
 import { applyCodeAction, ApplyCodeActionReason, getCodeActions } from '../../../../editor/contrib/codeAction/browser/codeAction.js';
@@ -618,7 +619,7 @@ export class MarkerViewModel extends Disposable {
 	}
 
 	showLightBulb(): void {
-		this.setQuickFixes(true);
+		void this.setQuickFixes(true).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async setQuickFixes(waitForModel: boolean): Promise<void> {

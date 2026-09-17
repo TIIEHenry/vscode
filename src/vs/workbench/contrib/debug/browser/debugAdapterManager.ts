@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { RunOnceScheduler } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { IJSONSchema, IJSONSchemaMap } from '../../../../base/common/jsonSchema.js';
 import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
@@ -158,7 +159,7 @@ export class AdapterManager extends Disposable implements IAdapterManager {
 		this.tasksService.getKnownTasks().then(tasks => {
 			this.taskLabels = tasks.map(task => task._label);
 			this.updateDebugAdapterSchema();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private updateDebugAdapterSchema() {

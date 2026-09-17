@@ -16,6 +16,7 @@ import { IContextMenuService } from '../../../../platform/contextview/browser/co
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { combinedDisposable, Disposable, DisposableMap, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IViewDescriptorService } from '../../../common/views.js';
@@ -670,7 +671,7 @@ export class SCMRepositoriesViewPane extends ViewPane {
 			return;
 		}
 
-		this.commandService.executeCommand(e.element.artifact.command.id, e.element.repository.provider, e.element.artifact);
+		void this.commandService.executeCommand(e.element.artifact.command.id, e.element.repository.provider, e.element.artifact).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private onTreeContextMenu(e: ITreeContextMenuEvent<TreeElement>): void {
