@@ -466,27 +466,29 @@ class PluginMarketplaceItemRenderer implements IListRenderer<IPluginMarketplaceI
 		templateData.installButton.label = localize('install', "Install");
 		templateData.installButton.enabled = true;
 
-		templateData.elementDisposables.add(templateData.installButton.onDidClick(async () => {
-			templateData.installButton.label = localize('installing', "Installing...");
-			templateData.installButton.enabled = false;
-			try {
-				await this.pluginInstallService.installPlugin({
-					name: element.item.name,
-					description: element.item.description,
-					version: element.item.version ?? '',
-					sourceDescriptor: element.item.sourceDescriptor,
-					source: element.item.source,
-					marketplace: element.item.marketplace,
-					marketplaceReference: element.item.marketplaceReference,
-					marketplaceType: element.item.marketplaceType,
-					readmeUri: element.item.readmeUri,
-				});
-				templateData.installButton.label = localize('installed', "Installed");
-			} catch (error) {
-				templateData.installButton.label = localize('install', "Install");
-				templateData.installButton.enabled = true;
-				this.notificationService.error(localize('pluginInstallFailed', "Unable to install plugin: {0}", getErrorMessage(error)));
-			}
+		templateData.elementDisposables.add(templateData.installButton.onDidClick(() => {
+			void (async () => {
+				templateData.installButton.label = localize('installing', "Installing...");
+				templateData.installButton.enabled = false;
+				try {
+					await this.pluginInstallService.installPlugin({
+						name: element.item.name,
+						description: element.item.description,
+						version: element.item.version ?? '',
+						sourceDescriptor: element.item.sourceDescriptor,
+						source: element.item.source,
+						marketplace: element.item.marketplace,
+						marketplaceReference: element.item.marketplaceReference,
+						marketplaceType: element.item.marketplaceType,
+						readmeUri: element.item.readmeUri,
+					});
+					templateData.installButton.label = localize('installed', "Installed");
+				} catch (error) {
+					templateData.installButton.label = localize('install', "Install");
+					templateData.installButton.enabled = true;
+					this.notificationService.error(localize('pluginInstallFailed', "Unable to install plugin: {0}", getErrorMessage(error)));
+				}
+			})().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 

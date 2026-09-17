@@ -59,6 +59,18 @@ suite('pluginListWidget refresh fire-and-forget (D556)', () => {
 		assert.ok(!source.includes('install.onDidClick(() => this.installMarketplacePlugin(item, install));'));
 		assert.ok(!source.includes('void this.installMarketplacePlugin(item, install).catch(onUnexpectedError);'));
 	});
+
+	test('pluginListWidget leftover list-renderer Install onDidClick voids double-catch onUnexpectedError (D588)', () => {
+		const source = readPluginListWidgetSource();
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		assert.strictEqual((source.match(/void \(async \(\) => \{/g) ?? []).length, 1);
+		assert.strictEqual((source.match(/\)\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.ok(source.includes(`})()${doubleCatch};`));
+		assert.ok(source.includes('await this.pluginInstallService.installPlugin({'));
+		assert.ok(!source.includes('installButton.onDidClick(async () => {'));
+		assert.ok(!source.includes('onDidClick(async () => {'));
+		assert.ok(!source.includes('})().catch(onUnexpectedError);'));
+	});
 });
 
 function readPluginListWidgetSource(): string {
