@@ -234,7 +234,7 @@ export class AgentHostInputCompletionHandler extends AgentHostInputCompletionsBa
 			currentScheme = scheme;
 			this._registration.clear();
 			if (scheme && isAgentHostTarget(scheme)) {
-				void this._registerForScheme(scheme).catch(onUnexpectedError);
+				void this._registerForScheme(scheme).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}

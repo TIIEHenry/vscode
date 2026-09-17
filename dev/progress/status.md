@@ -15,7 +15,7 @@ summary: "merge 关仓：leftover D640–D647 关各 call site。compile-client 
 |:-----|:-----|
 | **A leftover** | `17cdbc4998d` — windowNotifier Completed 双链；[D640](deferred-gaps.md) |
 | **C leftover** | `efc7a7c8810` — feedback tree reveal 双链；[D641](deferred-gaps.md)；gitlink 脏勿 add |
-| **D leftover** | `706e499a5bb` — detailPanel queue 双链；[D642](deferred-gaps.md) |
+| **D leftover** | `706e499a5bb` D642 已合；本槽 [D650](deferred-gaps.md) sessions `_registerForScheme` 双链（未 commit）。D24 仍开。不是 leftover/pills 完成 |
 | **F leftover** | `eee897446be` — newSessionStrategy finally 双链；[D643](deferred-gaps.md) |
 | **G leftover** | `fb075ed7afe` — terminal close/archive 双链；[D644](deferred-gaps.md)；勿 add `out` |
 | **H leftover** | `2b732070373` — sessionsTelemetry 24 处双链；[D645](deferred-gaps.md) |
@@ -35,7 +35,7 @@ summary: "merge 关仓：leftover D640–D647 关各 call site。compile-client 
 |:---|:-----|
 | [D24](deferred-gaps.md) | **仍开**：Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor 仍 JSON |
 | [D487](deferred-gaps.md) | **open** Memory score double 未读 |
-| [D550](deferred-gaps.md)–[D647](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
+| [D550](deferred-gaps.md)–[D650](deferred-gaps.md) | **closed** leftover catch；leftover **未**全局完成 |
 | [D8](deferred-gaps.md)/[D16](deferred-gaps.md)/[D147](deferred-gaps.md)/[D405](deferred-gaps.md)/[R9](research-queue.md) | **仍开** |
 ## Next
 | 项 | 指针 |
