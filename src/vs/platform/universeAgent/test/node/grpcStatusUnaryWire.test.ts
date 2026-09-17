@@ -8,7 +8,7 @@ import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { mapStatusResponse } from '../../node/grpc/grpcClientMappers.js';
+import { mapAgentTreeNode, mapStatusResponse } from '../../node/grpc/grpcClientMappers.js';
 import {
 	decodeStatusResponse,
 	encodeStatusRequest,
@@ -60,7 +60,7 @@ suite('grpc AgentService Status protobuf wire', () => {
 		}).length, 0);
 	});
 
-	test('decodeStatusResponse reads agent=1 AgentInfo scalars 1-7; type/status varint; children/model_info unread', () => {
+	test('decodeStatusResponse reads agent=1 AgentInfo scalars 1-7; type/status varint; model_info unread', () => {
 		const agent = Buffer.concat([
 			encodeStringField(1, 'ag-1'),
 			encodeStringField(2, 'Coder'),
@@ -69,7 +69,6 @@ suite('grpc AgentService Status protobuf wire', () => {
 			encodeStringField(5, 'gpt-test'),
 			encodeInt32Field(6, 4),
 			encodeInt64Field(7, 1700000000),
-			encodeMessageField(8, encodeStringField(1, 'child-unread')),
 			encodeStringField(9, 'model-info-unread'),
 			encodeStringField(10, 'unused-field'),
 		]);
@@ -88,10 +87,10 @@ suite('grpc AgentService Status protobuf wire', () => {
 				model: 'gpt-test',
 				turn_count: 4,
 				created_at: 1700000000,
+				children: [],
 			},
 		});
 		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
-		assert.strictEqual(JSON.stringify(wire).includes('child'), false);
 		assert.strictEqual(JSON.stringify(wire).includes('model-info'), false);
 		assert.deepStrictEqual(Object.keys(wire.agent ?? {}), [
 			'agent_id',
@@ -101,6 +100,7 @@ suite('grpc AgentService Status protobuf wire', () => {
 			'model',
 			'turn_count',
 			'created_at',
+			'children',
 		]);
 		assert.deepStrictEqual(mapStatusResponse(wire), {
 			agent: {
@@ -159,6 +159,7 @@ suite('grpc AgentService Status protobuf wire', () => {
 				model: undefined,
 				turn_count: undefined,
 				created_at: undefined,
+				children: [],
 			},
 		});
 		assert.deepStrictEqual(mapStatusResponse(emptyAgent), {
@@ -175,6 +176,80 @@ suite('grpc AgentService Status protobuf wire', () => {
 		});
 	});
 
+	test('decodeStatusResponse reads nested AgentInfo children=8; maps via mapStatusResponse/mapAgentTreeNode; model_info unread', () => {
+		const grandchild = encodeStringField(1, 'ag-grand');
+		const child = Buffer.concat([
+			encodeStringField(1, 'ag-child'),
+			encodeStringField(2, 'Helper'),
+			encodeInt32Field(3, 2),
+			encodeInt32Field(4, 1),
+			encodeMessageField(8, grandchild),
+		]);
+		const sibling = encodeStringField(1, 'ag-sib');
+		const agent = Buffer.concat([
+			encodeStringField(1, 'ag-1'),
+			encodeStringField(2, 'Coder'),
+			encodeInt32Field(3, 1),
+			encodeInt32Field(4, 3),
+			encodeMessageField(8, child),
+			encodeMessageField(8, sibling),
+			encodeStringField(9, 'model-info-unread'),
+		]);
+		const wire = decodeStatusResponse(encodeMessageField(1, agent));
+		assert.ok((wire.agent?.children?.length ?? 0) > 0);
+		assert.strictEqual(JSON.stringify(wire).includes('model-info'), false);
+		assert.ok(!('model_info' in (wire.agent ?? {})));
+		assert.ok(!('modelInfo' in (wire.agent ?? {})));
+		const mappedChild = mapAgentTreeNode(wire.agent?.children?.[0]);
+		const mapped = mapStatusResponse(wire);
+		assert.ok((mapped.agent?.children.length ?? 0) > 0);
+		assert.deepStrictEqual(mapped.agent?.children[0], mappedChild);
+		assert.deepStrictEqual(mapped, {
+			agent: {
+				agentId: 'ag-1',
+				name: 'Coder',
+				type: 'AGENT_TYPE_SUB',
+				status: 'AGENT_STATUS_GENERATING',
+				model: '',
+				turnCount: 0,
+				createdAt: 0,
+				children: [
+					{
+						agentId: 'ag-child',
+						name: 'Helper',
+						type: 'AGENT_TYPE_MEMBER',
+						status: 'AGENT_STATUS_PENDING',
+						model: '',
+						turnCount: 0,
+						createdAt: 0,
+						children: [
+							{
+								agentId: 'ag-grand',
+								name: '',
+								type: 'AGENT_TYPE_UNKNOWN',
+								status: 'AGENT_STATUS_UNKNOWN',
+								model: '',
+								turnCount: 0,
+								createdAt: 0,
+								children: [],
+							},
+						],
+					},
+					{
+						agentId: 'ag-sib',
+						name: '',
+						type: 'AGENT_TYPE_UNKNOWN',
+						status: 'AGENT_STATUS_UNKNOWN',
+						model: '',
+						turnCount: 0,
+						createdAt: 0,
+						children: [],
+					},
+				],
+			},
+		});
+	});
+
 	test('status unary wire is Status only; no JSON.stringify; identifier scan', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcStatusUnaryWire.ts'), 'utf8');
 		assert.ok(!source.includes('JSON.stringify'));
@@ -187,7 +262,8 @@ suite('grpc AgentService Status protobuf wire', () => {
 		assert.ok(!/\bClearSessionDemoFake\b/.test(source));
 		assert.ok(!/\bResolveTurn\b/.test(source));
 		assert.ok(!/\bModelEntryProto\b/.test(source));
-		assert.ok(!/\ballLengthDelimited\b/.test(source));
+		assert.ok(/\ballLengthDelimited\b/.test(source));
+		assert.ok(!/\bmodelInfo\b/.test(source));
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
