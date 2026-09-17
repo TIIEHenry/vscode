@@ -7,6 +7,7 @@ import { getWindow, getWindowById } from '../../../../base/browser/dom.js';
 import { IMouseWheelEvent } from '../../../../base/browser/mouseEvent.js';
 import { OverlayLayoutElement } from '../../../../base/browser/overlayLayoutElement.js';
 import { CodeWindow } from '../../../../base/browser/window.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { autorun, observableValue } from '../../../../base/common/observable.js';
@@ -285,8 +286,10 @@ export class OverlayWebview extends Disposable implements IOverlayWebview {
 			}));
 
 			if (this._isFirstLoad) {
-				this._firstLoadPendingMessages.forEach(async msg => {
-					msg.resolve(await webview.postMessage(msg.message, msg.transfer));
+				this._firstLoadPendingMessages.forEach(msg => {
+					webview.postMessage(msg.message, msg.transfer).then(posted => {
+						msg.resolve(posted);
+					}).catch(onUnexpectedError).catch(onUnexpectedError);
 				});
 			}
 			this._isFirstLoad = false;

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Delayer } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { ProxyChannel } from '../../../../base/parts/ipc/common/ipc.js';
 import { IAccessibilityService } from '../../../../platform/accessibility/common/accessibility.js';
@@ -103,7 +104,7 @@ export class ElectronWebviewElement extends WebviewElement {
 		} else {
 			// continuing the find, so set findNext to false
 			const options: FindInFrameOptions = { forward: !previous, findNext: false, matchCase: false };
-			this._webviewMainService.findInFrame({ windowId: this._nativeHostService.windowId }, this.id, value, options);
+			this._webviewMainService.findInFrame({ windowId: this._nativeHostService.windowId }, this.id, value, options).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -121,8 +122,8 @@ export class ElectronWebviewElement extends WebviewElement {
 
 		this._iframeDelayer.trigger(() => {
 			this._findStarted = true;
-			this._webviewMainService.findInFrame({ windowId: this._nativeHostService.windowId }, this.id, value, options);
-		});
+			this._webviewMainService.findInFrame({ windowId: this._nativeHostService.windowId }, this.id, value, options).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	public override stopFind(keepSelection?: boolean): void {
@@ -133,7 +134,7 @@ export class ElectronWebviewElement extends WebviewElement {
 		this._findStarted = false;
 		this._webviewMainService.stopFindInFrame({ windowId: this._nativeHostService.windowId }, this.id, {
 			keepSelection
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._onDidStopFind.fire();
 	}
 
