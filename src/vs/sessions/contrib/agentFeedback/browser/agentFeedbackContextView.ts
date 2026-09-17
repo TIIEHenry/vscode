@@ -372,7 +372,7 @@ export class AgentFeedbackContextView extends Disposable {
 		disposables.add(tree.onDidOpen(e => {
 			if (e.element && !isFeedbackFileElement(e.element)) {
 				this._openContextView?.close();
-				void this._agentFeedbackService.revealFeedback(this._attachment.sessionResource, e.element.id).catch(onUnexpectedError);
+				void this._agentFeedbackService.revealFeedback(this._attachment.sessionResource, e.element.id).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
