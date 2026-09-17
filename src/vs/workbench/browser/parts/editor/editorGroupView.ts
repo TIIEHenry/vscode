@@ -45,6 +45,7 @@ import { extname, isEqual } from '../../../../base/common/resources.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { EditorActivation, IEditorOptions } from '../../../../platform/editor/common/editor.js';
 import { IFileDialogService, ConfirmResult, IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IFilesConfigurationService, AutoSaveMode } from '../../../services/filesConfiguration/common/filesConfigurationService.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
@@ -410,7 +411,7 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 						pinned: true,
 						override: DEFAULT_EDITOR_ASSOCIATION.id
 					}
-				}, this.id);
+				}, this.id).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
