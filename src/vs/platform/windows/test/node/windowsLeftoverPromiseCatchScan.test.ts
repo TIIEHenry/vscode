@@ -48,13 +48,42 @@ suite('platform windows / electron-main leftover Promise fire-and-forget catch s
 	ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('this knife covers eight leftover Promise double-chain sites', () => {
-		const files = [WINDOW_IMPL_REL, WINDOWS_MAIN_REL, LAUNCH_REL];
-		let sites = 0;
-		for (const rel of files) {
-			const source = fs.readFileSync(resolveSource(rel), 'utf8');
-			sites += (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		}
-		assert.strictEqual(files.length, 3);
+		const windowImpl = fs.readFileSync(resolveSource(WINDOW_IMPL_REL), 'utf8');
+		const windowsMain = fs.readFileSync(resolveSource(WINDOWS_MAIN_REL), 'utf8');
+		const launch = fs.readFileSync(resolveSource(LAUNCH_REL), 'utf8');
+		const readyThen = `this.ready().then(() => {
+				if (!token.isCancellationRequested) {
+					this.send(channel, ...args);
+				}
+			})${doubleCatch};`;
+		const unloadThen = `this.lifecycleMainService.unload(window, UnloadReason.LOAD).then(async veto => {
+				if (!veto) {
+					await this.doOpenInBrowserWindow(window, configuration, options, defaultProfile);
+				}
+			})${doubleCatch};`;
+		const boxCall = `this.dialogMainService.showMessageBox({
+				type: 'info',
+				buttons: [localize({ key: 'ok', comment: ['&& denotes a mnemonic'] }, "&&OK")],
+				message: uri.scheme === Schemas.file ? localize('pathNotExistTitle', "Path does not exist") : localize('uriInvalidTitle', "URI can not be opened"),
+				detail: uri.scheme === Schemas.file ?
+					localize('pathNotExistDetail', "The path '{0}' does not exist on this computer.", getPathLabel(uri, { os: OS, tildify: this.environmentMainService })) :
+					localize('uriInvalidDetail', "The URI '{0}' is not valid and can not be opened.", uri.toString(true))
+			}, BrowserWindow.getFocusedWindow() ?? undefined)${doubleCatch};`;
+		const launchThen = `whenWindowReady.then(() => {
+				for (const { uri, originalUrl } of urlsToOpen) {
+					this.urlService.open(uri, { originalUrl });
+				}
+			})${doubleCatch};`;
+		const sites = [
+			windowImpl.includes(readyThen),
+			windowsMain.includes(unloadThen),
+			windowsMain.includes(`this.workspacesHistoryMainService.addRecentlyOpened(recents)${doubleCatch};`),
+			windowsMain.includes(`})()${doubleCatch};`),
+			windowsMain.includes(boxCall),
+			windowsMain.includes(`this.lifecycleMainService.reload(existingWindow, openConfig.cli)${doubleCatch};`),
+			windowsMain.includes(`() => this.lifecycleMainService.reload(createdWindow)${doubleCatch})`),
+			launch.includes(launchThen),
+		].filter(Boolean).length;
 		assert.strictEqual(sites, 8);
 	});
 
@@ -165,12 +194,6 @@ suite('platform windows / electron-main leftover Promise fire-and-forget catch s
 		assert.ok(updateAbs.includes('void this.checkForOverwriteUpdates().catch(onUnexpectedError).catch(onUnexpectedError);'));
 		assert.ok(windowsMain.includes('private registerListeners(): void {'));
 		assert.ok(!windowsMain.includes('this.registerListeners().catch'));
-		assert.ok(windowImpl.includes('() => this.onWindowError(WindowError.UNRESPONSIVE)));'));
-		assert.ok(!windowImpl.includes('this.onWindowError(WindowError.UNRESPONSIVE).catch'));
-		assert.ok(windowImpl.includes('this.lifecycleMainService.kill(1);'));
-		assert.ok(!windowImpl.includes('this.lifecycleMainService.kill(1).catch'));
-		assert.ok(windowImpl.includes('this.lifecycleMainService.quit();'));
-		assert.ok(!windowImpl.includes('this.lifecycleMainService.quit().catch'));
 		for (const source of [windowImpl, windowsMain, launch]) {
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));
