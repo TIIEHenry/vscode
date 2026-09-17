@@ -5,6 +5,7 @@
 
 import { timeout } from '../../../base/common/async.js';
 import { debounce } from '../../../base/common/decorators.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable, IDisposable } from '../../../base/common/lifecycle.js';
 import { isWindows, platform } from '../../../base/common/platform.js';
@@ -75,14 +76,14 @@ export class WindowsShellHelper extends Disposable implements IWindowsShellHelpe
 			throw new Error(`WindowsShellHelper cannot be instantiated on ${platform}`);
 		}
 
-		this._startMonitoringShell();
+		this._startMonitoringShell().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async _startMonitoringShell(): Promise<void> {
 		if (this._store.isDisposed) {
 			return;
 		}
-		this.checkShell();
+		this.checkShell().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	@debounce(500)
@@ -100,7 +101,7 @@ export class WindowsShellHelper extends Disposable implements IWindowsShellHelpe
 					this._shellType = type;
 					this._shellTitle = title;
 				}
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

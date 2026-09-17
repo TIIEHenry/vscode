@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { timeout } from '../../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { isString } from '../../../../../base/common/types.js';
 import { isWindows } from '../../../../../base/common/platform.js';
@@ -49,7 +50,7 @@ export class TerminalAutoResponder extends Disposable {
 					logService.debug(`Auto reply match: "${matchWord}", response: "${response}"`);
 					proc.input(response);
 					this._throttled = true;
-					timeout(1000).then(() => this._throttled = false);
+					timeout(1000).then(() => this._throttled = false).catch(onUnexpectedError).catch(onUnexpectedError);
 					this._reset();
 				}
 			}
