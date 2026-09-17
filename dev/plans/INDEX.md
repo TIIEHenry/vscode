@@ -3,8 +3,8 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-14
-summary: "dev/plans 导航：conversation-timeline-session-pills（accepted @2026-09-14；规则 16 第五轮 fable 5.1 已审改稿，S3w 钉死叶级 SessionBar 方案 C）；conversation-chrome-visibility（accepted；D403/D404 方案稿）；sources-accept-empty-success（draft；A1 已落；P5 停线）；composer-fake-chrome（accepted）；M7 仍 accepted；GitHub Actions 已关"
+updated: 2026-09-17
+summary: "dev/plans 导航：conversation-timeline-session-pills（accepted）；conversation-chrome-visibility（implemented；D403/D404 + SAS pane cache / Maximize 槽）；sources-accept-empty-success（draft；A1 已落；P5 停线）；composer-fake-chrome（accepted）；M7 仍 accepted；GitHub Actions 已关"
 ---
 
 # 方案
@@ -15,7 +15,7 @@ summary: "dev/plans 导航：conversation-timeline-session-pills（accepted @202
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
 | [conversation-timeline-session-pills.md](conversation-timeline-session-pills.md) | `accepted` | 时间线正文会话/子代理 pill；跨会话 reveal 目标自己的叶；S3w 钉死叶级 SessionBar（方案 C，每扇一份）+ 隐藏叶 restore 仍单叶 + 隐藏叶释放 lease；规则 16 第五轮（fable 5.1）已审改稿，2026-09-14 用户签收 |
-| [conversation-chrome-visibility.md](conversation-chrome-visibility.md) | `accepted` | Maximize 藏 fail/Stop（D403）+ 窄宽 Back 藏 SAS 盒（D404）；仅可见性，不重开 D42 / Hub pairing |
+| [conversation-chrome-visibility.md](conversation-chrome-visibility.md) | `implemented` | D403/D404 已闭；Maximize 不 hide gate/Stop/整槽 timeline；SAS 切 tab 不 dispose，窄 Back 留高并 trap Tab |
 | [prd-008-engine-e2e.md](prd-008-engine-e2e.md) | `accepted` | PRD-008 唯一已定义升档路径：隔离 profile + 钉死引擎 + D4 CDP；硬前置 GC-1b 配对回路（首次配对即第一份证据） |
 | [test-baseline-ci.md](test-baseline-ci.md) | `accepted` | D16 账本 + `agent-ide` workflow（四 job **已关**，见 DISABLED.md）；三域账本外新红阻断合入；`min_cases` / `max_skipped` 防空跑 |
 | [packaging-and-release.md](packaging-and-release.md) | `accepted` | `gulp vscode-linux-x64` 验 `@grpc/grpc-js` 进包 + 活窗；无窗 asar [D388](../roadmap/active/d388-packaging-p1-asar-machine.md) 已闭（未提交）；无窗 Linux-deb [D389](../roadmap/active/d389-packaging-p3-linux-deb-machine.md) planned（prepare-deb 三次 sysroot blocked）；无窗 vscode-web [D390](../roadmap/active/d390-packaging-p2-vscode-web-machine.md) planned（直接 CLI 16g/32g 仍 OOM，dest 未写）；D18/D20/D12 仍开 |

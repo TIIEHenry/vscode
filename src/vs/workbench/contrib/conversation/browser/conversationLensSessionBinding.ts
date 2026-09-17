@@ -335,7 +335,7 @@ export function openVisualizeOverlay(host: IConversationLensSessionBindingHost, 
 		extensionInfo: host.mermaidExtensionInfo,
 		targetWindow: getWindow(host.slotHosts.timeline),
 		webviewService: host.webviewService,
-		host: host.slotHosts.timeline.closest('.part.conversation') ?? undefined,
+		host: host.slotHosts.timeline,
 	});
 
 }

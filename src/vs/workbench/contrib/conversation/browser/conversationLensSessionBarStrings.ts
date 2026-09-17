@@ -16,6 +16,7 @@ export const conversationLensToolNotConnected = localize('conversationLens.toolN
 export const conversationLensSessionBarRenameTitle = localize('conversationLens.renameSessionTitle', "Rename session");
 export const conversationLensSessionBarRenameInputAria = localize('conversationLens.renameSessionInput', "Session title");
 export const conversationLensSessionBarDeleteSession = localize('conversationLens.deleteSession', "Delete session");
+export const conversationLensSessionBarMore = localize('conversationLens.sessionBarMore', "More session actions");
 /** SessionBar extra control — SessionService.GetHistory, not Snapshots / MessageNavigator turns. */
 export const conversationLensSessionBarHistory = localize('conversationLens.sessionBarHistory', "History");
 export const conversationLensSessionBarHistoryTitle = localize('conversationLens.sessionBarHistoryTitle', "Engine history");
@@ -28,7 +29,7 @@ export const conversationLensSessionBarSnapshots = localize('conversationLens.se
 export const conversationLensSessionBarSnapshotsTitle = localize('conversationLens.sessionBarSnapshotsTitle', "Engine snapshots");
 export const conversationLensSessionBarSnapshotsClose = localize('conversationLens.sessionBarSnapshotsClose', "Close");
 export const conversationLensSessionBarSnapshotsUnavailableDisconnected = localize('conversationLens.sessionBarSnapshotsUnavailableDisconnected', "Engine snapshots unavailable — not connected.");
-export const conversationLensSessionBarSnapshotsUnavailableNoHook = localize('conversationLens.sessionBarSnapshotsUnavailableNoHook', "Engine snapshots unavailable — this client has no snapshot list API.");
+export const conversationLensSessionBarSnapshotsUnavailableNoHook = localize('conversationLens.sessionBarSnapshotsUnavailableNoHook', "Engine snapshots unavailable on this client.");
 export const conversationLensSessionBarSnapshotsUnavailableNoSession = localize('conversationLens.sessionBarSnapshotsUnavailableNoSession', "Engine snapshots unavailable — no session.");
 export const conversationLensSessionBarSnapshotsEmpty = localize('conversationLens.sessionBarSnapshotsEmpty', "No engine snapshots for this session.");
 export const conversationLensSessionBarSnapshotsLoading = localize('conversationLens.sessionBarSnapshotsLoading', "Reading engine snapshots…");

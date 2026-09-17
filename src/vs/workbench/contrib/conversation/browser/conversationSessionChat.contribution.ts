@@ -34,7 +34,7 @@ class ConversationSessionChatContribution extends Disposable implements IWorkben
 				}
 
 				if (!this.mountedOverlays.has(sessionKey)) {
-					sessionChatService.mountSubAgentOverlay(sessionKey, leaf.sessionWindow);
+					sessionChatService.mountSubAgentOverlay(sessionKey, leaf.sessionWindow.querySelector('.conversation-timeline') as HTMLElement || leaf.sessionWindow);
 					this.mountedOverlays.add(sessionKey);
 				}
 

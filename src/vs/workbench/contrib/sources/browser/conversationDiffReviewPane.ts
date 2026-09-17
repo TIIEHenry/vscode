@@ -182,7 +182,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		if (!input.original) {
 			loaded = await this.renderModifiedOnly(input, token);
 			if (loaded) {
-				this.showNotice(localize('conversationDiffReviewPane.newFile', "New file with no previous version to compare."));
+				this.showNotice(localize('conversationDiffReviewPane.newFile', "New file with no previous version to compare."), false);
 			}
 		} else {
 			loaded = await this.renderDiff(input, token);
@@ -455,11 +455,12 @@ export class ConversationDiffReviewPane extends EditorPane {
 		}
 	}
 
-	private showNotice(message: string): void {
+	private showNotice(message: string, isError = true): void {
 		if (!this.noticeElement) {
 			return;
 		}
 		this.noticeElement.textContent = message;
+		this.noticeElement.classList.toggle('is-error', isError);
 		this.noticeElement.style.display = '';
 	}
 
@@ -468,6 +469,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 			return;
 		}
 		this.noticeElement.textContent = '';
+		this.noticeElement.classList.remove('is-error');
 		this.noticeElement.style.display = 'none';
 	}
 

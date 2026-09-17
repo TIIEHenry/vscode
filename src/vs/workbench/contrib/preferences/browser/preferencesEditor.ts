@@ -27,7 +27,7 @@ import { Action } from '../../../../base/common/actions.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { IEditorOpenContext } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
-import { MutableDisposable } from '../../../../base/common/lifecycle.js';
+import { DisposableMap } from '../../../../base/common/lifecycle.js';
 import { IPreferencesEditorOptions } from '../../../services/preferences/common/preferences.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 
@@ -51,7 +51,8 @@ export class PreferencesEditor extends EditorPane {
 	private readonly backButton: Button;
 	private readonly preferencesTabActionBar: ActionBar;
 	private readonly preferencesTabActions: PreferenceTabAction[] = [];
-	private readonly preferencesEditorPane = this._register(new MutableDisposable<IPreferencesEditorPane>());
+	private readonly paneCache = this._register(new DisposableMap<string, IPreferencesEditorPane>());
+	private activePreferencesPane: IPreferencesEditorPane | undefined;
 
 	private readonly searchFocusContextKey: IContextKey<boolean>;
 
@@ -83,7 +84,7 @@ export class PreferencesEditor extends EditorPane {
 		}));
 		this._register(Event.debounce(this.searchWidget.onDidChange, () => undefined, 300)(() => {
 			if (this.isHeaderSearchEnabled()) {
-				this.preferencesEditorPane.value?.search(this.searchWidget.getValue());
+				this.activePreferencesPane?.search(this.searchWidget.getValue());
 			}
 		}));
 
@@ -125,7 +126,7 @@ export class PreferencesEditor extends EditorPane {
 
 		// Measured rather than fixed: the header is shorter for panes that replace search with the back link.
 		const headerHeight = DOM.getTotalHeight(this.headerContainer);
-		this.preferencesEditorPane.value?.layout(new DOM.Dimension(this.bodyElement.clientWidth, dimension.height - headerHeight));
+		this.activePreferencesPane?.layout(new DOM.Dimension(this.bodyElement.clientWidth, dimension.height - headerHeight));
 	}
 
 	override async setInput(input: EditorInput, options: IPreferencesEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
@@ -147,6 +148,14 @@ export class PreferencesEditor extends EditorPane {
 				this.preferencesTabActionBar.pull(index);
 				this.preferencesTabActions[index].dispose();
 				this.preferencesTabActions.splice(index, 1);
+			}
+			const cached = this.paneCache.get(desc.id);
+			if (cached) {
+				cached.getDomNode().remove();
+				this.paneCache.deleteAndDispose(desc.id);
+			}
+			if (this.activeDescriptor?.id === desc.id) {
+				this.activePreferencesPane = undefined;
 			}
 		}
 		if (toAdd.length > 0) {
@@ -186,6 +195,7 @@ export class PreferencesEditor extends EditorPane {
 		if (this.dimension) {
 			this.layout(this.dimension);
 		}
+		this.activePreferencesPane?.onDidShow?.();
 	}
 
 	private updateHeaderChrome(): void {
@@ -199,14 +209,24 @@ export class PreferencesEditor extends EditorPane {
 	}
 
 	private renderBody(descriptor?: IPreferencesEditorPaneDescriptor): void {
-		this.preferencesEditorPane.value = undefined;
-		DOM.clearNode(this.bodyElement);
-
-		if (descriptor) {
-			const editorPane = this.instantiationService.createInstance<IPreferencesEditorPane>(descriptor.ctorDescriptor.ctor);
-			this.preferencesEditorPane.value = editorPane;
-			this.bodyElement.appendChild(editorPane.getDomNode());
+		for (const [id, pane] of this.paneCache) {
+			pane.getDomNode().style.display = id === descriptor?.id ? '' : 'none';
 		}
+
+		if (!descriptor) {
+			this.activePreferencesPane = undefined;
+			return;
+		}
+
+		let editorPane = this.paneCache.get(descriptor.id);
+		if (!editorPane) {
+			editorPane = this.instantiationService.createInstance<IPreferencesEditorPane>(descriptor.ctorDescriptor.ctor);
+			this.paneCache.set(descriptor.id, editorPane);
+			this.bodyElement.appendChild(editorPane.getDomNode());
+		} else {
+			editorPane.getDomNode().style.display = '';
+		}
+		this.activePreferencesPane = editorPane;
 	}
 
 	override dispose(): void {

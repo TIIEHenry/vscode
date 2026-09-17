@@ -172,7 +172,12 @@
 	display: none;
 }
 
+.monaco-workbench .connection-preferences-pane .connection-pairing-confirm-host {
+	flex-shrink: 0;
+}
+
 .monaco-workbench .connection-preferences-pane .connection-pairing-confirm {
+	flex-shrink: 0;
 	margin-top: var(--vscode-spacing-size160);
 	padding: var(--vscode-spacing-size120);
 	border: var(--vscode-strokeThickness) solid var(--vscode-widget-border, var(--vscode-contrastBorder));

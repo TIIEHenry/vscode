@@ -103,7 +103,6 @@ class SourcesReviewRenderer implements IListRenderer<ISourcesReviewEntry, ISourc
 		container.classList.add('sources-review-row');
 		const label = this.labels.create(container, { supportDescriptionHighlights: true });
 		const attribution = dom.append(container, $('.sources-review-attribution'));
-		attribution.setAttribute('aria-hidden', 'true');
 		const reviewState = dom.append(container, $('button.sources-review-state')) as HTMLButtonElement;
 		reviewState.type = 'button';
 		return { container, label, attribution, reviewState, elementDisposables: new DisposableStore() };
@@ -151,10 +150,16 @@ class SourcesReviewRenderer implements IListRenderer<ISourcesReviewEntry, ISourc
 			button.type = 'button';
 			button.textContent = chip.label;
 			button.title = this.delegate.getChipTitle(chip);
+			button.setAttribute('aria-label', this.delegate.getChipTitle(chip));
 			button.addEventListener('click', event => {
 				event.preventDefault();
 				event.stopPropagation();
 				this.delegate.onChipClick(chip.toolCallId);
+			});
+			button.addEventListener('keydown', event => {
+				if (event.key === ' ' || event.key === 'Enter') {
+					event.stopPropagation();
+				}
 			});
 		}
 	}
@@ -292,6 +297,7 @@ export class SourcesReviewList extends Disposable {
 
 		this.listContainer = dom.append(host, $('.sources-review-list'));
 		this.emptyMessage = dom.append(host, $('.sources-review-empty'));
+		this.emptyMessage.setAttribute('role', 'status');
 		this.emptyMessage.style.display = 'none';
 		this.statusMessage = dom.append(host, $('.sources-review-status'));
 		this.statusMessage.style.display = 'none';
@@ -714,7 +720,9 @@ export class SourcesReviewList extends Disposable {
 			this.unreviewedOnly,
 			entry => this.isEntryReviewed(entry),
 		);
-		if (emptyReason) {
+		if (gitReadError && !hasAnyEntries) {
+			this.emptyMessage.textContent = gitReadError;
+		} else if (emptyReason) {
 			this.emptyMessage.textContent = sourcesReviewListEmptyMessage(emptyReason);
 		}
 

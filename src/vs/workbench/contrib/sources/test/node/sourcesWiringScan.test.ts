@@ -204,6 +204,8 @@ suite('Sources - review showForPaths - 源码接线扫描', () => {
 		assert.ok(openAction.includes('} catch (error)'));
 		assert.ok(openAction.includes('sourcesGitDiffOpenFailureMessage'));
 		assert.ok(openAction.includes('setStatusMessage'));
+		assert.ok(openAction.includes('readGitFileDiff'));
+		assert.ok(openAction.includes('tryReadSourcesGitFileDiff'));
 		assert.ok(!openAction.includes('} catch {'));
 	});
 });
@@ -237,5 +239,36 @@ suite('Sources - custom UI visual CSS - 源码接线扫描', () => {
 		assert.ok(!review.includes('this.setStatusMessage(sourcesGitReadPairingHoldMessage(), true)'));
 		assert.ok(!review.includes('this.setStatusMessage(sourcesGitReadUnavailableNoHookMessage(), true)'));
 		assert.ok(!review.includes('this.setStatusMessage(sourcesGitLocalOnlyMessage(), true)'));
+	});
+
+	test('Diff renderRef uses a generation gate; Changes status has error tone', () => {
+		const diff = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts'), 'utf8');
+		const changes = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts'), 'utf8');
+		const changesCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesChangesList.css'), 'utf8');
+		assert.ok(diff.includes('renderGeneration'));
+		assert.ok(diff.includes('generation !== this.renderGeneration'));
+		assert.ok(changes.includes("classList.toggle('is-error'"));
+		assert.ok(changes.includes("gitReadError && !hasAnyEntries"));
+		assert.ok(changesCss.includes('.sources-changes-status.is-error'));
+		assert.ok(!changes.includes('no git changes API'));
+	});
+
+	test('Sources hide control is a close glyph; Files leftover status and Diff notices use error tone', () => {
+		const hide = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/conversation/partRegionHideControl.ts'), 'utf8');
+		const files = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesFilesList.ts'), 'utf8');
+		const filesCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css'), 'utf8');
+		const diff = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts'), 'utf8');
+		const diffCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesDiffPanel.css'), 'utf8');
+		const reviewPane = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts'), 'utf8');
+		const reviewCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/conversationDiffReviewPane.css'), 'utf8');
+		assert.ok(hide.includes('Codicon.close'));
+		assert.ok(hide.includes('actionBar.setFocusable(true)'));
+		assert.ok(files.includes("classList.add('is-error')"));
+		assert.ok(filesCss.includes('.sources-files-status.is-error'));
+		assert.ok(diff.includes("actionNoticeElement.classList.add('is-error')"));
+		assert.ok(diff.includes("newFileNoticeElement.classList.add('is-error')"));
+		assert.ok(diffCss.includes('.sources-diff-panel-action-notice.is-error'));
+		assert.ok(reviewPane.includes('classList.toggle(\'is-error\', isError)'));
+		assert.ok(reviewCss.includes('.conversation-diff-review-notice.is-error'));
 	});
 });

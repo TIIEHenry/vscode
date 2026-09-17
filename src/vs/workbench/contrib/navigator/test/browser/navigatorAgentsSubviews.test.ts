@@ -137,6 +137,7 @@ suite('Navigator Agents subviews', () => {
 		instantiationService.stub(IConversationRosterService, roster);
 		instantiationService.stub(IAgentInspectService, inspectService ?? store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
 		instantiationService.stub(ICommandService, { executeCommand });
+		instantiationService.stub(IViewsService, new TestViewsService());
 		instantiationService.stub(IUniverseAgentConnection, connection);
 		const stubViewContainer = {
 			id: 'navigator-agents-test-container',
@@ -407,7 +408,7 @@ suite('Navigator Agents subviews', () => {
 		view.setExpanded(true);
 		view.setVisible(true);
 		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty');
-		assert.strictEqual(hierarchyEmpty?.textContent, 'No agents — no engine.');
+		assert.strictEqual(hierarchyEmpty?.textContent, 'Connecting to engine…');
 		assert.ok(!hierarchyEmpty?.textContent?.includes('Reading'));
 	});
 
@@ -423,12 +424,14 @@ suite('Navigator Agents subviews', () => {
 		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty');
 		assert.ok(hierarchyEmpty);
 		assert.strictEqual(hierarchyEmpty?.textContent, 'No agents — no engine.');
+		assert.strictEqual(hierarchyEmpty?.getAttribute('role'), 'status');
 		assert.ok(!hierarchyEmpty?.textContent?.match(/copilot/i));
 		assert.ok(!hierarchyEmpty?.textContent?.match(/not connected/i));
 
 		const activityEmpty = view.element.querySelector('.navigator-agents-subview:not(.active) .navigator-stub-empty');
 		assert.ok(activityEmpty);
 		assert.strictEqual(activityEmpty?.textContent, 'No tool activity — no engine.');
+		assert.strictEqual(activityEmpty?.getAttribute('role'), 'status');
 	});
 
 	test('switches between Hierarchy and Activity subviews', () => {
@@ -487,6 +490,7 @@ suite('Navigator Agents subviews', () => {
 
 		const clearButton = view.element.querySelector('.navigator-agents-inline-filter-clear') as HTMLElement | null;
 		assert.ok(clearButton);
+		assert.strictEqual(clearButton.getAttribute('aria-label'), 'Clear filter');
 		assert.strictEqual(filter?.classList.contains('has-text'), false);
 
 		assert.strictEqual(view.element.querySelector('.navigator-agents-type-filter'), null);
@@ -1730,5 +1734,27 @@ suite('Navigator Agents subviews', () => {
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('overlay activity opens Inspect and does not reveal a timeline item', async () => {
+		let executeCommandCalls = 0;
+		const view = mountAgentsView(
+			store.add(new ConversationStubService()),
+			createNavigatorConnectionTestStub(),
+			undefined,
+			async () => {
+				executeCommandCalls++;
+			},
+		);
+		setActivityEntries(view, [{ id: 'overlay:tool-1', label: 'Overlay Tool' }]);
+		view.showActivity();
+		const activityList = (view as unknown as { activityList: WorkbenchList<INavigatorAgentsActivityItem> }).activityList;
+		assert.ok(activityList, 'expected WorkbenchList for activity');
+		assert.strictEqual(activityList.length, 1);
+		activityList.setFocus([0]);
+		activityList.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
+		await timeout(0);
+		assert.strictEqual(executeCommandCalls, 0);
+		assert.strictEqual((view as unknown as { inspectService: IAgentInspectService }).inspectService.getTarget()?.kind, 'activity');
 	});
 });

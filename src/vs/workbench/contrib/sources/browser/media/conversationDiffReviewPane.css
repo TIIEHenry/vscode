@@ -74,6 +74,10 @@
 	overflow-wrap: anywhere;
 }
 
+.monaco-workbench .conversation-diff-review-pane .conversation-diff-review-notice.is-error {
+	color: var(--vscode-errorForeground);
+}
+
 .monaco-workbench .conversation-diff-review-pane .conversation-diff-review-editor {
 	flex: 1;
 	min-width: 0;

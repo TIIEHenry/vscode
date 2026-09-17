@@ -112,5 +112,6 @@ suite('Sources - Files list leftover honesty', () => {
 		assert.strictEqual(list.length, 1);
 		assert.strictEqual(list.element(0).name, 'leftover.ts');
 		assert.notStrictEqual((host.querySelector('.sources-files-status') as HTMLElement).style.display, 'none');
+		assert.ok((host.querySelector('.sources-files-status') as HTMLElement).classList.contains('is-error'));
 	});
 });

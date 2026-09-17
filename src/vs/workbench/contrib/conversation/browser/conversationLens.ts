@@ -177,6 +177,8 @@ export class ConversationLens extends Disposable {
 	agentSelectBox!: SelectBox;
 	moreButton!: Button;
 	moreContextView: IOpenContextView | undefined;
+	sessionMoreButton!: Button;
+	sessionMoreContextView: IOpenContextView | undefined;
 	modelSelectBox!: SelectBox;
 	modelSelectedIndex = 0;
 	maximizeInputButton!: Button;

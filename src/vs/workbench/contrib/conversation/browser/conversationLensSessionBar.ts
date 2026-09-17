@@ -6,20 +6,22 @@
 import { $, addDisposableListener, append } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
+import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
+import { AnchorPosition } from '../../../../base/common/layout.js';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { IDisposable } from '../../../../base/common/lifecycle.js';
+import { IDisposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
-import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
+import { IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { defaultButtonStyles, defaultSelectBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { hasNativeContextMenu } from '../../../../platform/window/common/window.js';
 import { ConversationEngineHistoryList } from './conversationEngineHistoryList.js';
 import { ConversationEngineSnapshotsList } from './conversationEngineSnapshotsList.js';
-import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle, conversationLensSessionBarTrajectoryTab } from './conversationLensSessionBarStrings.js';
+import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarHistory, conversationLensSessionBarMore, conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle, conversationLensSessionBarSnapshots, conversationLensSessionBarTrajectoryTab } from './conversationLensSessionBarStrings.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
@@ -36,6 +38,8 @@ export interface IConversationLensSessionBarHost {
 	sessionSelectContainer: HTMLElement;
 	newSessionButton: Button;
 	deleteSessionButton: Button;
+	sessionMoreButton: Button;
+	sessionMoreContextView: IOpenContextView | undefined;
 	lensTablist: HTMLElement;
 	lensTabConversation: HTMLButtonElement;
 	lensTabTrajectory: HTMLButtonElement;
@@ -145,6 +149,17 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 		bindDeleteDraftRollback(host);
 		updateSessionBarWriteChrome(host);
 
+		const moreContainer = append(controls, $('.conversation-lens-session-more'));
+		host.sessionMoreButton = host.register(new Button(moreContainer, {
+			...defaultButtonStyles,
+			supportIcons: true,
+			small: true,
+			secondary: true,
+			title: conversationLensSessionBarMore,
+		}));
+		host.sessionMoreButton.icon = Codicon.ellipsis;
+		host.register(host.sessionMoreButton.onDidClick(() => toggleSessionBarMoreContextView(host)));
+
 		host.engineHistoryList = host.register(host.instantiationService.createInstance(
 			ConversationEngineHistoryList,
 			controls,
@@ -165,6 +180,59 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 			switchToSession(host, session.id);
 		}));
 	
+}
+
+function toggleSessionBarMoreContextView(host: IConversationLensSessionBarHost): void {
+	if (host.sessionMoreContextView) {
+		host.sessionMoreContextView.close();
+		return;
+	}
+	host.sessionMoreContextView = host.contextViewService.showContextView({
+		getAnchor: () => host.sessionMoreButton.element,
+		anchorAlignment: AnchorAlignment.RIGHT,
+		anchorPosition: AnchorPosition.BELOW,
+		render: container => {
+			const popup = append(container, $('.conversation-lens-dock-more-popup'));
+			popup.setAttribute('role', 'menu');
+			popup.setAttribute('aria-label', conversationLensSessionBarMore);
+			const store = new DisposableStore();
+			const addAction = (label: string, run: () => void) => {
+				const item = append(popup, $('button.conversation-lens-dock-more-item')) as HTMLButtonElement;
+				item.type = 'button';
+				item.setAttribute('role', 'menuitem');
+				item.textContent = label;
+				store.add(addDisposableListener(item, 'click', e => {
+					e.preventDefault();
+					e.stopPropagation();
+					host.sessionMoreContextView?.close();
+					run();
+				}));
+			};
+			addAction(conversationLensSessionBarHistory, () => host.engineHistoryList?.show());
+			addAction(conversationLensSessionBarSnapshots, () => host.engineSnapshotsList?.show());
+			addAction(conversationLensSessionBarNewSession, () => createNewSession(host));
+			addAction(conversationLensSessionBarDeleteSession, () => deleteActiveSession(host));
+			for (const session of host.stubService.getSessions()) {
+				addAction(session.title, () => switchToSession(host, session.id));
+			}
+			return toDisposable(() => {
+				store.dispose();
+				host.sessionMoreContextView = undefined;
+			});
+		},
+		onDOMEvent: e => {
+			if (e.type === 'click') {
+				const target = e.target as HTMLElement | null;
+				if (target && (target.closest('.conversation-lens-dock-more-popup') || host.sessionMoreButton.element.contains(target))) {
+					return;
+				}
+				host.sessionMoreContextView?.close();
+			}
+		},
+		onHide: () => {
+			host.sessionMoreContextView = undefined;
+		},
+	});
 }
 
 export function mountLensTablist(host: IConversationLensSessionBarHost, tablistHost: HTMLElement): void {

@@ -111,3 +111,7 @@
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
 }
+
+.monaco-workbench .part.sources .sources-changes-status.is-error {
+	color: var(--vscode-errorForeground);
+}

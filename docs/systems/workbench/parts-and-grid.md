@@ -3,7 +3,7 @@ title: "Workbench UI 框架：Parts、Grid、显隐"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-04
+updated: 2026-09-17
 summary: "默认 Code 窗口的 Part 枚举、SerializableGrid、Conversation∨(Editor∨Sources)；INV-TOPO：中心叶仍是 CONVERSATION_PART；对话 tab 走嵌套 Conversation IEditorPart（PRD-016 S1–S6 已落）"
 ---
 
@@ -80,7 +80,7 @@ VERTICAL
 | `ACTIVITYBAR_PART` | `setActivityBarHidden` | 可独立藏 |
 | `STATUSBAR_PART` | 对应 hidden key | 可独立藏 |
 
-不变量是 **Conversation ∨ (Editor ∨ Sources)**（INV-052-NO-DUAL-HIDE；`forceShownAgentShellPart`）。Panel maximize 藏 End 列（Editor + Sources）而非 Conversation，un-maximize 时从 `PANEL_LAST_NON_MAXIMIZED_VISIBILITY` 恢复 End 显隐。**Zen Mode** 同样藏 End 列、强制 Conversation 可见（`ZEN_MODE_EXIT_INFO.wasVisible` 快照 editor/sources 供退出恢复）；不居中 Preview、不把 Zen 偷换成 `pureEditor`。命令：`workbench.action.toggleConversation`、`workbench.action.toggleEditorVisibility`、`workbench.action.toggleSources`；四钮经 `LayoutControlMenu` 注册。各 Agent shell 区域另有本地 **hide (−)**：Conversation / Sources 为 part 内 − 控件；Preview（`EDITOR_PART`）无原生 part chrome，本地 hide 为 editor title 上的 `MenuId.EditorTitle` / `EditorTitleContext` 动作（`Hide Preview` / `Show Preview`），均经 `setPartHidden` 走同一 layout 路径。
+不变量是 **Conversation ∨ (Editor ∨ Sources)**（INV-052-NO-DUAL-HIDE；`forceShownAgentShellPart`）。Panel maximize 藏 End 列（Editor + Sources）而非 Conversation，un-maximize 时从 `PANEL_LAST_NON_MAXIMIZED_VISIBILITY` 恢复 End 显隐。**Zen Mode** 同样藏 End 列、强制 Conversation 可见（`ZEN_MODE_EXIT_INFO.wasVisible` 快照 editor/sources 供退出恢复）；不居中 Preview、不把 Zen 偷换成 `pureEditor`。命令：`workbench.action.toggleConversation`、`workbench.action.toggleEditorVisibility`、`workbench.action.toggleSources`；四钮经 `LayoutControlMenu` 注册。各 Agent shell 区域另有本地 **hide（关闭图标）**：Conversation / Sources 为 part 内 hide 控件（可键盘到达，不与 Sources tab 并列成减号）；Preview（`EDITOR_PART`）无原生 part chrome，本地 hide 为 editor title 上的 `MenuId.EditorTitle` / `EditorTitleContext` 动作（`Hide Preview` / `Show Preview`），均经 `setPartHidden` 走同一 layout 路径。
 
 CSS class：`LayoutClasses.MAIN_EDITOR_AREA_HIDDEN` / `CONVERSATION_HIDDEN` 等，随 `getLayoutClasses()` 打在 `mainContainer`。
 

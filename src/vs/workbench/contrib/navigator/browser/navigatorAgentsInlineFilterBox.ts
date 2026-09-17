@@ -9,6 +9,7 @@ import { renderIcon } from '../../../../base/browser/ui/iconLabel/iconLabels.js'
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
+import { localize } from '../../../../nls.js';
 
 const $ = dom.$;
 
@@ -36,7 +37,7 @@ export class NavigatorAgentsInlineFilterBox extends Disposable {
 		this.input.setAttribute('aria-label', ariaLabel);
 
 		this.clearButton = dom.append(this.element, $('button.navigator-agents-inline-filter-clear'));
-		this.clearButton.setAttribute('aria-label', ariaLabel);
+		this.clearButton.setAttribute('aria-label', localize('navigatorAgents.clearFilter', "Clear filter"));
 		this.clearButton.appendChild(renderIcon(Codicon.close));
 
 		this._register(dom.addStandardDisposableListener(this.input, 'input', () => {

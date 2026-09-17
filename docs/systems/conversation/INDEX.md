@@ -3,7 +3,7 @@ title: "Conversation 系统索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-14
+updated: 2026-09-17
 summary: "产品中心系统：CONVERSATION_PART + contrib/conversation；session 窗口 / chat tab、透镜与轨迹、Composer 与 Inbox、引擎 roster / stub 帧源、命令"
 ---
 

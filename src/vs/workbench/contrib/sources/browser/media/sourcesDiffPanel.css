@@ -75,6 +75,11 @@
 	overflow-wrap: anywhere;
 }
 
+.monaco-workbench .sources-diff-panel .sources-diff-panel-action-notice.is-error,
+.monaco-workbench .sources-diff-panel .sources-diff-panel-new-file-notice.is-error {
+	color: var(--vscode-errorForeground);
+}
+
 .monaco-workbench .sources-diff-panel .sources-diff-panel-editor {
 	flex: 1;
 	min-width: 0;

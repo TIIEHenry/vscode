@@ -47,6 +47,7 @@ const RECENTS_FAILED_NOTE_ID = 'local:recents-failed';
 const STALE_SNAPSHOT_NOTE_ID = 'engine:stale-snapshot';
 const TRANSPORT_FAILED_NOTE_ID = 'engine:transport-failed';
 const PROJECTS_FILTER_NO_MATCH = localize('navigatorProjects.noMatch', "No matches");
+const PROJECTS_CONNECTING_COPY = localize('navigatorProjects.connecting', "Connecting to engine…");
 
 export function navigatorProjectsRecentsFailureMessage(error: unknown): string {
 	return localize('navigatorProjects.recentsFailed', "Unable to load recent folders: {0}", getErrorMessage(error));
@@ -193,6 +194,9 @@ export class NavigatorProjectsView extends ViewPane {
 		// D360 leftover-looks-live: pairing-hold-first. First-pull KEEP-chrome
 		// is not only `!isEngineConnected()`.
 		const engineConnected = !isConversationPairingHold(this.uaConnection) && this.rosterService.isEngineConnected();
+		if (this.uaConnection.getConnectionPhase().kind === 'connecting') {
+			return false;
+		}
 		return countLocalFolders(this.treeNodes) === 0 && !engineConnected && !this.wasEverConnected;
 	}
 
@@ -361,6 +365,14 @@ export class NavigatorProjectsView extends ViewPane {
 
 			this.filterBox?.setVisible(this.treeNodes.length > 0);
 			this.applyFilterToTree();
+			if (
+				!recentsFailureCopy
+				&& this.uaConnection.getConnectionPhase().kind === 'connecting'
+				&& countLocalFolders(this.treeNodes) === 0
+				&& !this.wasEverConnected
+			) {
+				this.setRecentsStatus(PROJECTS_CONNECTING_COPY, 'neutral');
+			}
 			this._onDidChangeViewWelcomeState.fire();
 		} catch {
 			try {

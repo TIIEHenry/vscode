@@ -366,7 +366,7 @@ suite('ConversationIdentityStrip', () => {
 
 		assert.ok(engineChip);
 		assert.strictEqual(engineChip.textContent, getConnectionPhaseStatusBarText({ kind: 'connected', path: 'direct' }, true));
-		assert.strictEqual(engineChip.textContent, 'Engine not connected');
+		assert.strictEqual(engineChip.textContent, 'Waiting for pairing');
 
 		engineChip.click();
 		await Promise.resolve();

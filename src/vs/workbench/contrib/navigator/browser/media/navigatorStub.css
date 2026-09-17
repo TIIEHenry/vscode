@@ -114,11 +114,13 @@
 	display: flex;
 }
 
-.monaco-workbench .is-compact .navigator-agents-row-actions,
-.monaco-workbench .is-compact .monaco-list-row:hover .navigator-agents-row-actions,
+.monaco-workbench .is-compact .navigator-agents-row-actions {
+	display: none;
+}
+
 .monaco-workbench .is-compact .monaco-list-row.focused .navigator-agents-row-actions,
 .monaco-workbench .is-compact .monaco-list-row.selected .navigator-agents-row-actions {
-	display: none;
+	display: flex;
 }
 
 .monaco-workbench .navigator-agents-view {

@@ -420,6 +420,8 @@ suite('Sources - review list model', () => {
 		assert.ok(statusIsError(host));
 		assert.strictEqual((widget as unknown as { list?: WorkbenchList<unknown> }).list?.length ?? 0, 0);
 		assert.ok(!host.querySelector('.sources-review-list .monaco-list-row'));
+		assert.ok(!(host.querySelector('.sources-review-empty')?.textContent ?? '').includes(localize('sourcesReviewList.noChanges', "No changes to review.")));
+		assert.ok((host.querySelector('.sources-review-empty')?.textContent ?? '').includes('Unable to read git changes'));
 	});
 
 	test('Review list setStatusMessage uses error tone only for throw-style failures', function () {
@@ -556,7 +558,7 @@ suite('Sources - review list model', () => {
 			capabilities: {} as never,
 		});
 
-		const status = await waitForStatusText(host, '.sources-review-status', 'no git changes API');
+		const status = await waitForStatusText(host, '.sources-review-status', 'unavailable');
 		assert.strictEqual(status, sourcesGitReadUnavailableNoHookMessage());
 		assert.ok(!status.includes('local source control'));
 		assert.notStrictEqual(status, sourcesGitLocalOnlyMessage());

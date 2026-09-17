@@ -190,6 +190,8 @@ export class NavigatorTeamView extends ViewPane {
 
 	private teamInfoCallCount = 0;
 	private hadTeamSnapshot = false;
+	private lastBodyHeight = 0;
+	private lastBodyWidth = 0;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -235,6 +237,7 @@ export class NavigatorTeamView extends ViewPane {
 		this.leaseHolder.setVisible(visible);
 		if (!visible) {
 			this.inspectService.setLiveAgentIds('team', undefined);
+			this.inspectService.setLiveTaskIds(undefined);
 		}
 	}
 
@@ -254,6 +257,7 @@ export class NavigatorTeamView extends ViewPane {
 		this.updateSubviewContextKeys();
 		this.updateSubviewVisibility();
 		this._onDidChangeViewWelcomeState.fire();
+		this.relayoutCurrentSubview();
 	}
 
 	showTasks(): void {
@@ -264,6 +268,7 @@ export class NavigatorTeamView extends ViewPane {
 		this.updateSubviewContextKeys();
 		this.updateSubviewVisibility();
 		this._onDidChangeViewWelcomeState.fire();
+		this.relayoutCurrentSubview();
 	}
 
 	override shouldShowWelcome(): boolean {
@@ -287,6 +292,7 @@ export class NavigatorTeamView extends ViewPane {
 
 		this.membersBody = dom.append(container, $('.navigator-team-subview'));
 		this.membersEmpty = dom.append(this.membersBody, $('.navigator-stub-empty'));
+		this.membersEmpty.setAttribute('role', 'status');
 		this.membersHonestEmpty = this.getDisconnectedTeamEmptyCopy();
 		this.membersEmpty.textContent = this.membersHonestEmpty;
 		this.membersNote = dom.append(this.membersBody, $('.navigator-stub-note'));
@@ -296,6 +302,7 @@ export class NavigatorTeamView extends ViewPane {
 
 		this.tasksBody = dom.append(container, $('.navigator-team-subview'));
 		this.tasksEmpty = dom.append(this.tasksBody, $('.navigator-stub-empty'));
+		this.tasksEmpty.setAttribute('role', 'status');
 		this.tasksHonestEmpty = this.getDisconnectedTeamEmptyCopy();
 		this.tasksEmpty.textContent = this.tasksHonestEmpty;
 		this.tasksNote = dom.append(this.tasksBody, $('.navigator-stub-note'));
@@ -311,6 +318,8 @@ export class NavigatorTeamView extends ViewPane {
 
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
+		this.lastBodyHeight = height;
+		this.lastBodyWidth = width;
 		this.element.classList.toggle('is-narrow', width > 0 && width < 600);
 		this.element.classList.toggle('is-compact', width > 0 && width < 300);
 		const note = this.subview === 'members' ? this.membersNote : this.tasksNote;
@@ -386,7 +395,7 @@ export class NavigatorTeamView extends ViewPane {
 		const hadLiveTeamPaint = this.hadTeamSnapshot || this.memberEntries.length > 0 || this.taskEntries.length > 0;
 		const pairingHold = isConversationPairingHold(this.uaConnection);
 		if (pairingHold && hadLiveTeamPaint) {
-			this.inspectService.setLiveAgentIds('team', undefined);
+			this.clearTeamInspectLiveIds();
 			this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
 			return;
 		}
@@ -398,7 +407,7 @@ export class NavigatorTeamView extends ViewPane {
 				this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
 				return;
 			}
-			this.inspectService.setLiveAgentIds('team', undefined);
+			this.clearTeamInspectLiveIds();
 			this.setTeamSnapshotNote(undefined);
 			const disconnectedCopy = this.getDisconnectedTeamEmptyCopy();
 			this.setMemberEntries([], disconnectedCopy);
@@ -418,6 +427,9 @@ export class NavigatorTeamView extends ViewPane {
 				'team',
 				agentTreeCapability === 'UNSUPPORTED' || pending ? undefined : EMPTY_LIVE_AGENT_IDS,
 			);
+			this.inspectService.setLiveTaskIds(
+				agentTreeCapability === 'UNSUPPORTED' || pending ? undefined : EMPTY_LIVE_AGENT_IDS,
+			);
 			this.setTeamAfterTreeEmpty(treeEmpty);
 			if (liveTree !== undefined || agentTreeCapability === 'UNSUPPORTED' || treeFetchFailed) {
 				this.hadTeamSnapshot = true;
@@ -427,12 +439,12 @@ export class NavigatorTeamView extends ViewPane {
 
 		const teamCapability = getNavigatorCapability(this.uaConnection, 'team');
 		if (teamCapability === 'UNSUPPORTED') {
-			this.inspectService.setLiveAgentIds('team', undefined);
+			this.clearTeamInspectLiveIds();
 			this.setTeamAfterTreeEmpty(TEAM_UNSUPPORTED_COPY);
 			return;
 		}
 		if (teamCapability === 'UNKNOWN') {
-			this.inspectService.setLiveAgentIds('team', undefined);
+			this.clearTeamInspectLiveIds();
 			this.setTeamAfterTreeEmpty(NAVIGATOR_TEAM_LOADING_COPY);
 			return;
 		}
@@ -493,13 +505,14 @@ export class NavigatorTeamView extends ViewPane {
 			// D369 leftover-looks-live: pairing-hold-first after await. KEEP leftover;
 			// do not paint in-flight members/tasks as live. D336 entry KEEP is unchanged.
 			if (isConversationPairingHold(this.uaConnection) || !this.rosterService.isEngineConnected() || this.uaConnection.getConnectionPhase().kind !== 'connected') {
-				this.inspectService.setLiveAgentIds('team', undefined);
+				this.clearTeamInspectLiveIds();
 				this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
 				return;
 			}
 			this.hadTeamSnapshot = true;
 			this.setMemberEntries(members, members.length === 0 ? TEAM_MEMBERS_EMPTY_COPY : undefined);
 			this.setTaskEntries(tasks, tasks.length === 0 ? TEAM_TASKS_EMPTY_COPY : undefined);
+			this.publishLiveTaskIds(tasks);
 			this.setTeamSnapshotNote(undefined);
 		} catch {
 			const hadLiveTeamPaint = this.memberEntries.length > 0 || this.taskEntries.length > 0;
@@ -509,7 +522,21 @@ export class NavigatorTeamView extends ViewPane {
 			}
 			this.setTeamSnapshotNote(TEAM_FETCH_FAILED_COPY);
 			this.inspectService.setLiveAgentIds('team', EMPTY_LIVE_AGENT_IDS);
+			this.inspectService.setLiveTaskIds(EMPTY_LIVE_AGENT_IDS);
 		}
+	}
+
+	private clearTeamInspectLiveIds(): void {
+		this.inspectService.setLiveAgentIds('team', undefined);
+		this.inspectService.setLiveTaskIds(undefined);
+	}
+
+	private publishLiveTaskIds(tasks: readonly INavigatorTeamTaskEntry[]): void {
+		if (this.inspectService.getLiveAgentIdsFor('team') === undefined) {
+			this.inspectService.setLiveTaskIds(undefined);
+			return;
+		}
+		this.inspectService.setLiveTaskIds(new Set(tasks.map(task => task.taskId)));
 	}
 
 	private async listTeamsForInfo(sessionId: string, liveTeamId: number | undefined): Promise<readonly UniverseAgentTeamListEntry[]> {
@@ -557,6 +584,7 @@ export class NavigatorTeamView extends ViewPane {
 				note.classList.remove('is-error');
 			}
 		}
+		this.relayoutCurrentSubview();
 	}
 
 	private setMemberEntries(entries: INavigatorTeamMemberEntry[], emptyMessage?: string): void {
@@ -648,6 +676,13 @@ export class NavigatorTeamView extends ViewPane {
 	private updateSubviewVisibility(): void {
 		this.membersBody?.classList.toggle('active', this.subview === 'members');
 		this.tasksBody?.classList.toggle('active', this.subview === 'tasks');
+	}
+
+	private relayoutCurrentSubview(): void {
+		if (this.lastBodyWidth <= 0 && this.lastBodyHeight <= 0) {
+			return;
+		}
+		this.layoutBody(this.lastBodyHeight, this.lastBodyWidth);
 	}
 
 	inspectMember(member: INavigatorTeamMemberEntry): void {

@@ -128,10 +128,10 @@ function getConnectionFailureStatusBarText(code: ConnectionFailureCode): string 
 	}
 }
 
-/** StatusBar engine chip copy per connection-hub-client §4.2 (pairing-pending stays not connected). */
+/** StatusBar engine chip copy per connection-hub-client §4.2 (pairing-pending is not a live engine). */
 export function getConnectionPhaseStatusBarText(phase: ConnectionPhase, pairingPending = false): string {
 	if (pairingPending) {
-		return localize('conversationStatus.engineNotConnected', "Engine not connected");
+		return localize('conversationStatus.enginePairingPending', "Waiting for pairing");
 	}
 	switch (phase.kind) {
 		case 'disconnected':

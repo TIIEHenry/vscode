@@ -467,6 +467,8 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.strictEqual((widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> }).list?.length ?? 0, 0);
 		assert.ok(!host.querySelector('.sources-changes-list .monaco-list-row'));
 		assert.ok(!(host.querySelector('.sources-changes-empty')?.textContent ?? '').includes('No changes.'));
+		assert.ok((host.querySelector('.sources-changes-empty')?.textContent ?? '').includes('Unable to read git changes'));
+		assert.ok(host.querySelector('.sources-changes-status')?.classList.contains('is-error'));
 	});
 
 	test('success then git-read throw keeps leftover rows and paints failure', async function () {
@@ -533,7 +535,7 @@ suite('Sources - Changes list leftover honesty', () => {
 		delete (connection as { readGitChanges?: unknown }).readGitChanges;
 		onDidChangeConnection.fire({} as UniverseAgentConnectionSnapshot);
 
-		const status = await waitForStatusText(host, 'no git changes API');
+		const status = await waitForStatusText(host, 'unavailable');
 		assert.strictEqual(status, sourcesGitReadUnavailableNoHookMessage());
 		assert.ok(!status.includes('local source control'));
 		assert.notStrictEqual(status, sourcesGitLocalOnlyMessage());

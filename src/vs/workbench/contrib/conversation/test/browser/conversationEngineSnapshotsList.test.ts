@@ -47,6 +47,11 @@ suite('ConversationEngineSnapshotsList', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
+	test('no-hook copy does not leak implementation words', () => {
+		assert.ok(!conversationLensSessionBarSnapshotsUnavailableNoHook.includes('API'));
+		assert.ok(!conversationLensSessionBarSnapshotsUnavailableNoHook.toLowerCase().includes('hook'));
+	});
+
 	test('gate refuses send when disconnected, no hook, or empty sessionId', () => {
 		assert.strictEqual(canRequestEngineSnapshots(false, true, 'sess-1'), false);
 		assert.strictEqual(canRequestEngineSnapshots(true, false, 'sess-1'), false);

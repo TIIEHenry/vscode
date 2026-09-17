@@ -519,7 +519,7 @@ suite('EnginePreferencesPane', () => {
 		assert.ok(banner);
 		assert.notStrictEqual(banner.style.display, 'none');
 		assert.strictEqual(copy.textContent, getConnectionPhaseStatusBarText({ kind: 'connected', path: 'loopback' }, true));
-		assert.strictEqual(copy.textContent, ENGINE_DISCONNECTED_COPY);
+		assert.strictEqual(copy.textContent, 'Waiting for pairing');
 		assert.ok(!banner.classList.contains('is-warning'));
 		// Banner keeps Test Engine / Open Connection; footer must not duplicate them.
 		assert.strictEqual(testRow.style.display, 'none');
@@ -542,7 +542,7 @@ suite('EnginePreferencesPane', () => {
 		const copy = container.querySelector('.engine-preferences-disconnected-copy') as HTMLElement;
 
 		assert.notStrictEqual(banner.style.display, 'none');
-		assert.strictEqual(copy.textContent, ENGINE_DISCONNECTED_COPY);
+		assert.strictEqual(copy.textContent, 'Waiting for pairing');
 
 		container.remove();
 	});

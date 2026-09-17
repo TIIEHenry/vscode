@@ -53,7 +53,10 @@ import { conversationLensDockAgentUnavailable, conversationLensDockModelFailed, 
 import {
 	conversationLensSessionBarConversationTab,
 	conversationLensSessionBarDeleteSession,
+	conversationLensSessionBarHistory,
+	conversationLensSessionBarMore,
 	conversationLensSessionBarNewSession,
+	conversationLensSessionBarSnapshots,
 	conversationLensSessionBarNoTrajectory,
 	conversationLensSessionBarRenameTitle,
 	conversationLensSessionBarTrajectoryTab,
@@ -2003,6 +2006,33 @@ suite('ConversationLens', () => {
 		assert.ok(slots.sessionBar!.classList.contains('is-narrow'));
 		assert.ok(!slots.sessionBar!.classList.contains('is-compact'));
 		assert.ok(switcherLabel);
+		assert.ok(slots.sessionBar!.querySelector('.conversation-lens-session-more'));
+		const moreButton = slots.sessionBar!.querySelector('.conversation-lens-session-more .monaco-button') as HTMLButtonElement;
+		assert.ok(moreButton);
+		assert.strictEqual(moreButton.getAttribute('aria-label'), conversationLensSessionBarMore);
+		moreButton.click();
+		const popup = document.querySelector('.conversation-lens-dock-more-popup') as HTMLElement | null;
+		assert.ok(popup);
+		const labels = [...popup.querySelectorAll('.conversation-lens-dock-more-item')].map(item => item.textContent);
+		assert.ok(labels.includes(conversationLensSessionBarHistory));
+		assert.ok(labels.includes(conversationLensSessionBarSnapshots));
+		assert.ok(labels.includes(conversationLensSessionBarNewSession));
+		assert.ok(labels.includes(conversationLensSessionBarDeleteSession));
+	});
+
+	test('SessionBar medium width keeps More for History and Snapshots', () => {
+		const { part } = mountLens();
+		const slots = getLensSlots(part);
+		assert.ok(slots.sessionBar!.classList.contains('is-medium'));
+		assert.ok(!slots.sessionBar!.classList.contains('is-narrow'));
+		const moreButton = slots.sessionBar!.querySelector('.conversation-lens-session-more .monaco-button') as HTMLButtonElement;
+		assert.ok(moreButton);
+		moreButton.click();
+		const popup = document.querySelector('.conversation-lens-dock-more-popup') as HTMLElement | null;
+		assert.ok(popup);
+		const labels = [...popup.querySelectorAll('.conversation-lens-dock-more-item')].map(item => item.textContent);
+		assert.ok(labels.includes(conversationLensSessionBarHistory));
+		assert.ok(labels.includes(conversationLensSessionBarSnapshots));
 	});
 
 	test('lensId persists across remount via workspace storage', async () => {
@@ -2270,6 +2300,20 @@ suite('ConversationLens', () => {
 		assert.strictEqual(maximizeButton.getAttribute('aria-pressed'), 'false');
 		assert.strictEqual(slots.timeline.classList.contains(conversationLensInputMaximizedClass), false);
 		assert.strictEqual(slots.dock.classList.contains(conversationLensInputMaximizedClass), false);
+	});
+
+	test('narrow More menu says Restore timeline when input is maximized', () => {
+		const { part, lens } = mountLens({ layoutWidth: LENS_MIN_WIDTH });
+		const slots = getLensSlots(part);
+		lens.setInputMaximized(true);
+		const moreButton = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-more .monaco-button') as HTMLButtonElement;
+		moreButton.click();
+
+		const popup = document.querySelector('.conversation-lens-dock-more-popup') as HTMLElement | null;
+		assert.ok(popup);
+		const restore = [...popup.querySelectorAll('.conversation-lens-dock-more-item')].find(item => item.textContent === conversationLensDockRestoreTimeline);
+		assert.ok(restore);
+		assert.ok(![...popup.querySelectorAll('.conversation-lens-dock-more-item')].some(item => item.textContent === conversationLensDockMaximizeInput));
 	});
 
 	test('input maximize keeps pending confirmation reachable via dock inbox row', async () => {
@@ -3428,6 +3472,8 @@ suite('ConversationLens', () => {
 		assert.ok(layoutContainer.querySelector('.conversation-visualize-overlay[role="dialog"]'));
 
 		const dialog = layoutContainer.querySelector('.conversation-visualize-overlay') as HTMLElement;
+		assert.ok(slots.timeline.contains(dialog));
+		assert.ok(!slots.dock.contains(dialog));
 		dialog.dispatchEvent(new KeyboardEvent('keydown', { keyCode: KeyCode.Escape, bubbles: true }));
 		assert.strictEqual(layoutContainer.querySelector('.conversation-visualize-overlay[role="dialog"]'), null);
 

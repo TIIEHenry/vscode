@@ -30,6 +30,8 @@
 .monaco-workbench .part.sources > .title > .title-actions {
 	flex-shrink: 0;
 	height: 35px;
+	border-left: 1px solid var(--vscode-sideBarTitle-border, var(--vscode-contrastBorder, transparent));
+	padding-left: 4px;
 }
 
 .monaco-workbench .part.sources > .content {

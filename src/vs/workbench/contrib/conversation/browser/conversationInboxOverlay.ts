@@ -328,12 +328,18 @@ export class ConversationInboxOverlay extends Disposable {
 			const enabled = shouldAutoRevealPendingConfirmation(this.uaConnection);
 			this.pendingButton.disabled = !enabled;
 			this.pendingButton.setAttribute('aria-disabled', String(!enabled));
+			if (!enabled) {
+				this.pendingButton.title = localize('conversationLens.inboxPendingPairingHold', "Confirmations are paused until pairing finishes.");
+			} else {
+				this.pendingButton.removeAttribute('title');
+			}
 		} else {
 			this.pendingButton.hidden = true;
 			this.pendingButton.disabled = false;
 			this.pendingButton.textContent = '';
 			this.pendingButton.removeAttribute('aria-label');
 			this.pendingButton.removeAttribute('aria-disabled');
+			this.pendingButton.removeAttribute('title');
 		}
 	}
 

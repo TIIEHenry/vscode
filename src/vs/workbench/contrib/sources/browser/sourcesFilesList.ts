@@ -111,6 +111,7 @@ export class SourcesFilesList extends Disposable {
 		this.statusMessage.setAttribute('role', 'status');
 		this.statusMessage.style.display = 'none';
 		this.emptyMessage = dom.append(host, $('.sources-files-empty'));
+		this.emptyMessage.setAttribute('role', 'status');
 		this.emptyMessage.style.display = 'none';
 
 		this.refreshScheduler = this._register(new RunOnceScheduler(() => this.refresh(), 250));
@@ -216,9 +217,11 @@ export class SourcesFilesList extends Disposable {
 		if (!message) {
 			this.statusMessage.textContent = '';
 			this.statusMessage.style.display = 'none';
+			this.statusMessage.classList.remove('is-error');
 			return;
 		}
 		this.statusMessage.textContent = message;
 		this.statusMessage.style.display = 'block';
+		this.statusMessage.classList.add('is-error');
 	}
 }

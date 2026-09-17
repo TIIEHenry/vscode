@@ -266,7 +266,7 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 						void applySessionPermissionIndex(host, sessionId, index);
 					}));
 				}
-				addAction(conversationLensDockMaximizeInput, () => toggleInputMaximized(host));
+				addAction(host.inputMaximized ? conversationLensDockRestoreTimeline : conversationLensDockMaximizeInput, () => toggleInputMaximized(host));
 				return toDisposable(() => {
 					store.dispose();
 					host.moreContextView = undefined;
@@ -489,7 +489,11 @@ export function updateGateRow(host: IConversationLensComposerChromeHost): void {
 		// (Active). Gate is only the transient post-failure notice.
 		host.gateRow.hidden = true;
 		host.gateLabel.textContent = '';
+		host.gateRow.classList.remove('is-error');
+		host.gateRow.removeAttribute('role');
 		host.gateRow.removeAttribute('aria-label');
+		host.gateRow.removeAttribute('title');
+		host.gateLabel.removeAttribute('title');
 	
 }
 
@@ -498,16 +502,16 @@ function showGateNotice(host: IConversationLensComposerChromeHost, message: stri
 		host.postFailureVisible = true;
 		host.gateRow.hidden = false;
 		host.gateLabel.textContent = message;
+		host.gateRow.classList.add('is-error');
+		host.gateRow.setAttribute('role', 'alert');
 		host.gateRow.setAttribute('aria-label', message);
+		host.gateRow.title = message;
+		host.gateLabel.title = message;
 		if (host.sendFailureTimeout) {
 			clearTimeout(host.sendFailureTimeout);
-		}
-		host.sendFailureTimeout = setTimeout(() => {
 			host.sendFailureTimeout = undefined;
-			host.postFailureVisible = false;
-			updateGateRow(host);
-		}, 4000);
-	
+		}
+
 }
 
 export function showPostFailure(host: IConversationLensComposerChromeHost, reason: ConversationComposerPostFailureReason): void {

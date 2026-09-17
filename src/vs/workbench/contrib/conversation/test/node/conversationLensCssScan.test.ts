@@ -78,6 +78,14 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.ok(!/\{\s*\n\s*\.monaco-workbench/.test(css));
 	});
 
+	test('narrow SessionBar CSS shows More instead of New/Delete', () => {
+		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
+		assert.ok(css.includes('.is-medium .conversation-lens-session-more'));
+		assert.ok(css.includes('.is-narrow .conversation-lens-session-more'));
+		assert.ok(css.includes('.is-narrow .conversation-lens-session-new'));
+		assert.ok(css.includes('.is-narrow .conversation-lens-session-delete'));
+	});
+
 	test('maximize CSS hides the Conversation tree, not the shared slot on Trajectory', () => {
 		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8');
 		assert.ok(css.includes('.conversation-lens-input-maximized:not(:has(.conversation-lens-phase-prefirst)) .conversation-lens-timeline'));
@@ -224,5 +232,83 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 			}
 		}
 		assert.deepStrictEqual(hits, []);
+	});
+});
+
+suite('UA chrome review follow-up - 接线扫描', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('PreferencesEditor caches panes instead of disposing on tab switch', () => {
+		const editor = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/preferences/browser/preferencesEditor.ts'), 'utf8');
+		assert.ok(editor.includes('paneCache'));
+		assert.ok(editor.includes('onDidShow?.()'));
+		assert.ok(!editor.includes('DOM.clearNode(this.bodyElement)'));
+		assert.ok(!editor.includes('this.preferencesEditorPane.value = undefined'));
+	});
+
+	test('Connection SAS traps Tab and reserves nav height when remounted to pane root', () => {
+		const sas = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/connectionPreferencesPaneSas.ts'), 'utf8');
+		const pane = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/connectionPreferencesPane.ts'), 'utf8');
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css'), 'utf8');
+		assert.ok(sas.includes('handleConversationOverlayTab'));
+		assert.ok(sas.includes('confirmButton.focus()'));
+		assert.ok(pane.includes('sasReserve'));
+		assert.ok(pane.includes('revealAndFocusPairingConfirm'));
+		assert.ok(pane.includes('inferPairingZone'));
+		assert.ok(css.includes('.connection-pairing-confirm-host'));
+		assert.ok(css.includes('flex-shrink: 0'));
+	});
+
+	test('region hide control uses a close glyph and stays keyboard focusable', () => {
+		const hide = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/conversation/partRegionHideControl.ts'), 'utf8');
+		assert.ok(hide.includes('Codicon.close'));
+		assert.ok(hide.includes('actionBar.setFocusable(true)'));
+		assert.ok(!hide.includes('Codicon.remove'));
+		assert.ok(!hide.includes('actionBar.setFocusable(false)'));
+	});
+
+	test('timeline overlays stay in the timeline containing block above the dock', () => {
+		const partCss = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/conversation/media/conversationPart.css'), 'utf8'));
+		const visualizeCss = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationVisualize.css'), 'utf8'));
+		const overlayCss = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationSubAgentOverlay.css'), 'utf8'));
+		const contribution = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/conversationSessionChat.contribution.ts'), 'utf8');
+		const binding = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/conversationLensSessionBinding.ts'), 'utf8');
+		let timelineRelative = false;
+		let dockStacked = false;
+		for (const rule of collectCssRules(partCss)) {
+			for (const selector of splitSelectorList(rule.selector)) {
+				const surface = selector.replace(/\s+/g, ' ');
+				if (surface.endsWith('.conversation-timeline') && /position\s*:\s*relative/.test(rule.body)) {
+					timelineRelative = true;
+				}
+				if (surface.endsWith('.conversation-dock') && /position\s*:\s*relative/.test(rule.body) && /z-index\s*:\s*30/.test(rule.body)) {
+					dockStacked = true;
+				}
+			}
+		}
+		assert.strictEqual(timelineRelative, true);
+		assert.strictEqual(dockStacked, true);
+		assert.ok(/\.part\.conversation \.conversation-visualize-overlay[\s\S]*inset\s*:\s*0/.test(visualizeCss));
+		assert.ok(overlayCss.includes('.conversation-timeline'));
+		assert.ok(overlayCss.includes('position: relative'));
+		assert.ok(contribution.includes("querySelector('.conversation-timeline')"));
+		assert.ok(binding.includes('host: host.slotHosts.timeline'));
+	});
+
+	test('engine snapshot no-hook copy does not leak API', () => {
+		const strings = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/conversationLensSessionBarStrings.ts'), 'utf8');
+		assert.ok(strings.includes('Engine snapshots unavailable on this client.'));
+		assert.ok(!strings.includes('snapshot list API'));
+		assert.ok(!strings.includes('no snapshot list API'));
+	});
+
+	test('Inspect compact values wrap instead of clipping at a fixed row height', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/navigator/browser/media/agentInspect.css'), 'utf8');
+		const view = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/navigator/browser/agentInspectView.ts'), 'utf8');
+		assert.ok(css.includes('.is-compact .agent-inspect-entry-value'));
+		assert.ok(css.includes('white-space: normal'));
+		assert.ok(view.includes('hasDynamicHeight'));
+		assert.ok(view.includes('supportDynamicHeights: true'));
 	});
 });

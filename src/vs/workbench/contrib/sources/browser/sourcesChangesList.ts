@@ -69,6 +69,12 @@ import { SourcesListFilterBox } from './sourcesListFilterBox.js';
 
 const $ = dom.$;
 
+function isSourcesChangesErrorStatus(message: string): boolean {
+	return message !== sourcesGitReadPairingHoldMessage()
+		&& message !== sourcesGitReadUnavailableNoHookMessage()
+		&& message !== sourcesGitLocalOnlyMessage();
+}
+
 export type { ISourcesChangeEntryOpenOptions };
 export { openSourcesChangeEntry };
 
@@ -279,6 +285,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.contentContainer = dom.append(host, $('.sources-changes-content'));
 		this.listContainer = dom.append(this.contentContainer, $('.sources-changes-list'));
 		this.emptyMessage = dom.append(this.contentContainer, $('.sources-changes-empty'));
+		this.emptyMessage.setAttribute('role', 'status');
 		this.emptyMessage.style.display = 'none';
 
 		this.commitRow = dom.append(host, $('.sources-changes-commit'));
@@ -291,6 +298,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 		this.statusMessage = dom.append(host, $('.sources-changes-status'));
 		this.statusMessage.style.display = 'none';
+		this.statusMessage.setAttribute('role', 'status');
 
 		this._register(this.stageSelectedButton.onDidClick(() => this.runOnSelected('stage')));
 		this._register(this.unstageSelectedButton.onDidClick(() => this.runOnSelected('unstage')));
@@ -571,7 +579,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			|| this.isGitCommandAvailable(SOURCES_GIT_UNSTAGE_COMMAND)
 			|| this.isGitCommandAvailable(SOURCES_GIT_COMMIT_COMMAND);
 
-		if (!hasRepository) {
+		if (options?.gitReadError && !hasAnyEntries) {
+			this.emptyMessage.textContent = options.gitReadError;
+		} else if (!hasRepository) {
 			this.emptyMessage.textContent = localize('sourcesChangesList.noRepository', "No source control repository.");
 		} else if (!hasAnyEntries) {
 			this.emptyMessage.textContent = localize('sourcesChangesList.noChanges', "No changes.");
@@ -755,10 +765,12 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		if (!message) {
 			this.statusMessage.textContent = '';
 			this.statusMessage.style.display = 'none';
+			this.statusMessage.classList.remove('is-error');
 			return;
 		}
 		this.statusMessage.textContent = message;
 		this.statusMessage.style.display = 'block';
+		this.statusMessage.classList.toggle('is-error', isSourcesChangesErrorStatus(message));
 	}
 
 	private syncCommitInputFromRepository(): void {

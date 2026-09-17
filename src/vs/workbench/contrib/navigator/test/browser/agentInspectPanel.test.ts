@@ -307,6 +307,19 @@ suite('Agent inspect panel', () => {
 		assert.strictEqual(isInspectTargetStale(memberTarget, new Set(['member:other'])), true);
 		assert.strictEqual(isInspectTargetStale(memberTarget, new Set(['member:gone'])), false);
 		assert.strictEqual(isInspectTargetStale(agentTarget, new Set(['sub:1'])), false);
+
+		const activityTarget = {
+			kind: 'activity' as const,
+			item: { id: 'overlay:1', label: 'grep', toolName: 'grep', status: 'completed', itemId: 'overlay:1' },
+		};
+		assert.strictEqual(isInspectTargetStale(activityTarget, undefined, { activity: undefined }), false);
+		assert.strictEqual(isInspectTargetStale(activityTarget, undefined, { activity: new Set() }), true);
+		assert.strictEqual(isInspectTargetStale(activityTarget, undefined, { activity: new Set(['overlay:other']) }), true);
+		assert.strictEqual(isInspectTargetStale(activityTarget, undefined, { activity: new Set(['overlay:1']) }), false);
+		assert.strictEqual(isInspectTargetStale(taskTarget, undefined, { task: undefined }), false);
+		assert.strictEqual(isInspectTargetStale(taskTarget, undefined, { task: new Set() }), true);
+		assert.strictEqual(isInspectTargetStale(taskTarget, undefined, { task: new Set(['t-other']) }), true);
+		assert.strictEqual(isInspectTargetStale(taskTarget, undefined, { task: new Set(['t1']) }), false);
 	});
 
 	test('stale note stays visible when both live-id sources are leftover empty sets', async () => {

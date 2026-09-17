@@ -105,6 +105,7 @@ export class SourcesDiffPanelView extends ViewPane {
 	private dimension: dom.Dimension | undefined;
 	private currentRef: ISourcesChangeRef | undefined;
 	private comparisonLoadFailed = false;
+	private renderGeneration = 0;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -210,6 +211,7 @@ export class SourcesDiffPanelView extends ViewPane {
 	}
 
 	private async renderRef(ref: ISourcesChangeRef | undefined): Promise<void> {
+		const generation = ++this.renderGeneration;
 		this.bodyDisposables.clear();
 		this.clearEditors();
 		this.comparisonLoadFailed = false;
@@ -231,14 +233,21 @@ export class SourcesDiffPanelView extends ViewPane {
 
 		let loaded = false;
 		if (!ref.original) {
-			loaded = await this.renderModifiedOnly(ref.modified);
+			loaded = await this.renderModifiedOnly(ref.modified, generation);
+			if (generation !== this.renderGeneration) {
+				return;
+			}
 			if (loaded) {
+				this.newFileNoticeElement.classList.remove('is-error');
 				this.newFileNoticeElement.textContent = localize('sourcesDiffPanel.newFile', "New file with no previous version to compare.");
 				this.newFileNoticeElement.style.display = '';
 			}
 		} else {
 			this.newFileNoticeElement.style.display = 'none';
-			loaded = await this.renderDiff(ref.original, ref.modified);
+			loaded = await this.renderDiff(ref.original, ref.modified, generation);
+			if (generation !== this.renderGeneration) {
+				return;
+			}
 		}
 
 		if (!loaded) {
@@ -470,6 +479,7 @@ export class SourcesDiffPanelView extends ViewPane {
 			return;
 		}
 		this.actionNoticeElement.textContent = message;
+		this.actionNoticeElement.classList.add('is-error');
 		this.actionNoticeElement.style.display = '';
 	}
 
@@ -478,6 +488,7 @@ export class SourcesDiffPanelView extends ViewPane {
 			return;
 		}
 		this.actionNoticeElement.textContent = '';
+		this.actionNoticeElement.classList.remove('is-error');
 		this.actionNoticeElement.style.display = 'none';
 	}
 
@@ -486,10 +497,11 @@ export class SourcesDiffPanelView extends ViewPane {
 			return;
 		}
 		this.newFileNoticeElement.textContent = message;
+		this.newFileNoticeElement.classList.add('is-error');
 		this.newFileNoticeElement.style.display = '';
 	}
 
-	private async renderDiff(original: URI, modified: URI): Promise<boolean> {
+	private async renderDiff(original: URI, modified: URI, generation: number): Promise<boolean> {
 		if (!this.editorContainer) {
 			return false;
 		}
@@ -502,6 +514,12 @@ export class SourcesDiffPanelView extends ViewPane {
 		} catch {
 			originalRef?.dispose();
 			modifiedRef?.dispose();
+			return false;
+		}
+
+		if (generation !== this.renderGeneration) {
+			originalRef.dispose();
+			modifiedRef.dispose();
 			return false;
 		}
 
@@ -524,7 +542,7 @@ export class SourcesDiffPanelView extends ViewPane {
 		return true;
 	}
 
-	private async renderModifiedOnly(modified: URI): Promise<boolean> {
+	private async renderModifiedOnly(modified: URI, generation: number): Promise<boolean> {
 		if (!this.editorContainer) {
 			return false;
 		}
@@ -533,6 +551,10 @@ export class SourcesDiffPanelView extends ViewPane {
 		try {
 			modifiedRef = await this.textModelService.createModelReference(modified);
 		} catch {
+			return false;
+		}
+		if (generation !== this.renderGeneration) {
+			modifiedRef.dispose();
 			return false;
 		}
 		this.modifiedModelRef.value = modifiedRef;

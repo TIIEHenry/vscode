@@ -23,6 +23,9 @@ export interface IPreferencesEditorPane extends IDisposable {
 
 	search(text: string): void;
 
+	/** Shown after the shell switches to this pane (cached instances keep live chrome such as SAS). */
+	onDidShow?(): void;
+
 }
 
 export interface IPreferencesEditorPaneDescriptor {

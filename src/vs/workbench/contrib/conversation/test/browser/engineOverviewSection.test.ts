@@ -335,7 +335,7 @@ suite('EngineOverviewSection', () => {
 		});
 	}
 
-	test('connected phase with pairingPending paints Connection as Engine not connected', async () => {
+	test('connected phase with pairingPending paints Connection as Waiting for pairing', async () => {
 		const capabilities = createEmptyTestCapabilitySnapshot();
 		let listModelsCalls = 0;
 		const connection = createConversationConnectionTestStub({
@@ -367,7 +367,7 @@ suite('EngineOverviewSection', () => {
 		assert.strictEqual(connectionValue, null, 'first-pull pairing-hold without leftover hides summary');
 		assert.strictEqual(
 			getConnectionPhaseStatusBarText({ kind: 'connected', path: 'direct' }, true),
-			'Engine not connected',
+			'Waiting for pairing',
 		);
 		assert.ok(!(section.getDomNode().textContent ?? '').includes('Engine · Direct'));
 		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
@@ -412,7 +412,7 @@ suite('EngineOverviewSection', () => {
 		assert.ok(summaryGrid);
 		assert.notStrictEqual(summaryGrid.style.display, 'none');
 		const connectionValue = overviewRowValue(section.getDomNode(), 'Connection');
-		assert.strictEqual(connectionValue?.textContent, 'Engine not connected');
+		assert.strictEqual(connectionValue?.textContent, 'Waiting for pairing');
 		assert.ok(!(connectionValue?.textContent ?? '').includes('Engine · Direct'));
 		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
 		assert.ok(status);
@@ -472,7 +472,7 @@ suite('EngineOverviewSection', () => {
 		assert.ok(summaryGrid);
 		assert.notStrictEqual(summaryGrid.style.display, 'none');
 		const connectionValue = overviewRowValue(section.getDomNode(), 'Connection');
-		assert.strictEqual(connectionValue?.textContent, 'Engine not connected');
+		assert.strictEqual(connectionValue?.textContent, 'Waiting for pairing');
 		assert.ok(!(connectionValue?.textContent ?? '').includes('Engine · Direct'));
 		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
 		assert.ok(status);

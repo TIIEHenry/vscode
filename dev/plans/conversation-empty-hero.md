@@ -3,7 +3,7 @@ title: "Conversation 空会话与输入面"
 type: plan
 status: implemented
 phase: N/A
-updated: 2026-09-10
+updated: 2026-09-17
 summary: "PreFirst 居中 Composer + 身份条；Active 底栏同一 Composer；Agent XOR；Inbox 分簇；T1–T6 已合入 `ea0104c0`–`d4064ba0`；D194 后假 Route XOR / 假麦克风已删"
 ---
 
@@ -115,7 +115,7 @@ Heal：清空消息 / 新建会话 → 回到 PreFirst（身份回到 Composer �
 
 ### 3.4 Inbox 浮层（仅 Active）
 
-独立芯片，**无**共用背景条，**不**与 Composer 连底。Maximize 输入时隐藏浮层（HEAD `setInputMaximized` 已有列内 maximize）。
+独立芯片，**无**共用背景条，**不**与 Composer 连底。Maximize 时 overlay 与可见 gate **留在文档流**，禁止 `display:none`（已被 [conversation-chrome-visibility](conversation-chrome-visibility.md) D403 取代）。
 
 ```text
 左： [Task] [MessageQueue] [Goal]          右： [Stop?] [ctx 环]

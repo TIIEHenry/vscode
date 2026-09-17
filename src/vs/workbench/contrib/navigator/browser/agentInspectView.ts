@@ -38,10 +38,12 @@ function inspectEntry(id: string, field: string, value: string, tone?: AgentStat
 }
 
 class InspectDelegate implements IListVirtualDelegate<IAgentInspectEntry> {
-	constructor(private readonly isCompact: () => boolean) { }
-
 	getHeight(): number {
-		return this.isCompact() ? 44 : 22;
+		return 22;
+	}
+
+	hasDynamicHeight(): boolean {
+		return true;
 	}
 
 	getTemplateId(): string {
@@ -111,8 +113,29 @@ export function inspectTitleFromTarget(target: AgentInspectTarget | undefined): 
 export function isInspectTargetStale(
 	target: AgentInspectTarget | undefined,
 	liveAgentIds: ReadonlySet<string> | undefined,
+	sourceIds?: {
+		readonly agents?: ReadonlySet<string>;
+		readonly team?: ReadonlySet<string>;
+		readonly activity?: ReadonlySet<string>;
+		readonly task?: ReadonlySet<string>;
+	},
 ): boolean {
-	if (!target || liveAgentIds === undefined) {
+	if (!target) {
+		return false;
+	}
+	if (sourceIds) {
+		switch (target.kind) {
+			case 'agent':
+				return sourceIds.agents !== undefined && !sourceIds.agents.has(target.node.agentId);
+			case 'member':
+				return sourceIds.team !== undefined && !sourceIds.team.has(target.info.memberAgentId);
+			case 'task':
+				return sourceIds.task !== undefined && !sourceIds.task.has(target.task.taskId);
+			case 'activity':
+				return sourceIds.activity !== undefined && !sourceIds.activity.has(target.item.id);
+		}
+	}
+	if (liveAgentIds === undefined) {
 		// GC-5d: both leaves hidden / not following — do not mark stale.
 		// Leftover writes an empty Set, which is stale below.
 		return false;
@@ -246,11 +269,12 @@ export class AgentInspectView extends ViewPane {
 			WorkbenchList,
 			'AgentInspect',
 			this.listContainer!,
-			new InspectDelegate(() => this.element.classList.contains('is-compact')),
+			new InspectDelegate(),
 			[new InspectRenderer()],
 			{
 				identityProvider: { getId: (entry: IAgentInspectEntry) => entry.id },
 				accessibilityProvider: new InspectAccessibilityProvider(),
+				supportDynamicHeights: true,
 			},
 		)) as WorkbenchList<IAgentInspectEntry>;
 
@@ -260,7 +284,12 @@ export class AgentInspectView extends ViewPane {
 	private renderTarget(): void {
 		const target = this.inspectService.getTarget();
 		this.updateTitle(inspectTitleFromTarget(target));
-		const stale = isInspectTargetStale(target, this.inspectService.getLiveAgentIds());
+		const stale = isInspectTargetStale(target, this.inspectService.getLiveAgentIds(), {
+			agents: this.inspectService.getLiveAgentIdsFor('agents'),
+			team: this.inspectService.getLiveAgentIdsFor('team'),
+			activity: this.inspectService.getLiveActivityIds(),
+			task: this.inspectService.getLiveTaskIds(),
+		});
 		if (this.staleNote) {
 			this.staleNote.style.display = stale ? '' : 'none';
 		}

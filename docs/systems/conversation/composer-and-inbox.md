@@ -40,7 +40,7 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 
 ## 3. Inbox overlay（Active 态）
 
-`ConversationInboxOverlay`（`conversationInboxOverlay.ts`）挂在 Dock 顶，与 `.conversation-lens-composer-cluster` 共用 `sideBar-background`；分隔线在 cluster 顶边。Maximize 时 overlay 与可见 gate **留在文档流**（`flex-shrink:0`，composer `flex:1`），禁止 `display:none` overlay / gate-row（待确认座位与发送失败条仍可达）。
+`ConversationInboxOverlay`（`conversationInboxOverlay.ts`）挂在 Dock 顶，与 `.conversation-lens-composer-cluster` 共用 `sideBar-background`；分隔线在 cluster 顶边。Maximize 时 overlay 与可见 gate **留在文档流**（`flex-shrink:0`，composer `flex:1`），禁止 `display:none` overlay / gate-row（待确认座位与发送失败条仍可达）。Maximize **不**对整槽 `.conversation-timeline` 写 `display:none`（History / 确认座仍在）。窄宽 Dock `…` 在已 Maximize 时写 **Restore timeline**。SessionBar `.is-medium`（600–899）把 History / Snapshots 切到 `…`；`.is-narrow` / `.is-compact`（< 600 / < 300）再把 New / Delete / 会话切进同一托盘。禁止 hide 写操作且无入口。Visualize / 子代理浮层挂在 `.conversation-timeline`（`position: relative`），不铺满 session window，Dock Stop 仍可点。
 
 ```text
 [ MessageQueue ▾ ] [ Goal ]            [ Stop ]
@@ -78,7 +78,7 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 | id | 文案 | 规则 |
 |----|------|------|
 | `status.conversation.session` | 当前会话标题；无标题 **No session** | 点击 → `workbench.action.showConversationPart` |
-| `status.conversation.engine` | `getConnectionPhaseStatusBarText`（H4b）：disconnected / connecting / connected / failed 各态；pairing-pending → **Engine not connected** | B10：`getEngineStatusCommandId(phase, pairingPending)`（`isConversationEngineLive` → `workbench.action.openEnginePreferences`，否则 → `workbench.action.openConnectionPreferences`）；`pairingPending` 开 Connection/SAS；身份条引擎 chip 同路由 |
+| `status.conversation.engine` | `getConnectionPhaseStatusBarText`（H4b）：disconnected / connecting / connected / failed 各态；pairing-pending → **Engine not connected** | B10：`getEngineStatusCommandId(phase, pairingPending)`（`isConversationEngineLive` → `workbench.action.openEnginePreferences`，否则 → `workbench.action.openConnectionPreferences`）；`pairingPending` 开 Connection/SAS（`onDidShow` 落到配对区并 focus）；身份条引擎 chip 同路由 |
 | `status.conversation.model` | **No model** | **仅当** `CONVERSATION_PART` 隐藏时注册（UI-INV-14：座位可见时 Dock 是 model owner） |
 
 无 Copilot、无额度、无 Sign In；无 session-usage / turns / tok/s 芯片（无权威则省略槽位）。

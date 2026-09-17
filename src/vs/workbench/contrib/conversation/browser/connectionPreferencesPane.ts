@@ -843,6 +843,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.narrowShowingDetail = false;
 		this.applyNarrowChrome();
 		this.navList.layout(this.getNavHeight(this.lastLayoutHeight), this.getNavWidth(this.lastLayoutWidth));
+		if (this.isPairingConfirmHostLive()) {
+			this.revealAndFocusPairingConfirm();
+			return;
+		}
 		this.navList.domFocus();
 	}
 
@@ -922,6 +926,40 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		applyConnectionPaneIdentityStripReservation(this.container);
 	}
 
+	onDidShow(): void {
+		const pairingPending = !!this.connectionService.getConnectionSnapshot().pairingPending;
+		if (pairingPending && this.activeZoneId === 'hub') {
+			this.selectZone(this.inferPairingZone());
+		}
+		if (this.isPairingConfirmHostLive()) {
+			this.revealAndFocusPairingConfirm();
+		}
+	}
+
+	private inferPairingZone(): ConnectionZoneId {
+		const phase = this.connectionService.getConnectionPhase();
+		if (phase.kind === 'connected') {
+			if (phase.path === 'direct' || phase.path === 'loopback') {
+				return 'direct';
+			}
+			if (phase.path === 'hubRelay') {
+				return 'devices';
+			}
+		}
+		return 'profiles';
+	}
+
+	private revealAndFocusPairingConfirm(): void {
+		this.syncPairingConfirmHostParent();
+		this.navList.layout(this.getNavHeight(this.lastLayoutHeight), this.getNavWidth(this.lastLayoutWidth));
+		if (typeof this.pairingConfirmHost.scrollIntoView === 'function') {
+			this.pairingConfirmHost.scrollIntoView({ block: 'nearest' });
+		}
+		const button = this.pairingConfirmHost.querySelector('.monaco-button') as HTMLElement | null;
+		const dialog = this.pairingConfirmHost.querySelector('.monaco-dialog-box') as HTMLElement | null;
+		(button ?? dialog)?.focus();
+	}
+
 	private getNavWidth(paneWidth: number): number {
 		return paneWidth < PREFERENCES_PANE_NARROW_WIDTH
 			? Math.max(0, paneWidth - 40)
@@ -929,7 +967,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private getNavHeight(paneHeight: number): number {
-		return Math.max(120, paneHeight - 120);
+		const sasReserve = this.pairingConfirmHost.parentElement === this.container && this.isPairingConfirmHostLive()
+			? this.pairingConfirmHost.offsetHeight
+			: 0;
+		return Math.max(80, paneHeight - 120 - sasReserve);
 	}
 
 	private getDetailWidth(): number {

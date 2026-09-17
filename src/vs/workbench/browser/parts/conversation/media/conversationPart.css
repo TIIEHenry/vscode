@@ -109,16 +109,13 @@
 	white-space: nowrap;
 }
 
-.monaco-workbench .part.conversation:has(.conversation-subagent-overlay:not([hidden])) > .content > .conversation-session-bar {
-	display: none;
-}
-
 .monaco-workbench .part.conversation .conversation-session-window-grid {
 	flex: 1;
 	min-height: 0;
 }
 
 .monaco-workbench .part.conversation .conversation-timeline {
+	position: relative;
 	flex: 1;
 	min-height: 0;
 	overflow: hidden;
@@ -127,6 +124,8 @@
 }
 
 .monaco-workbench .part.conversation .conversation-dock {
+	position: relative;
+	z-index: 30;
 	flex-shrink: 0;
 	display: flex;
 	flex-direction: column;
