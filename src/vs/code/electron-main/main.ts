@@ -11,7 +11,7 @@ import { URI } from '../../base/common/uri.js';
 import { coalesce, distinct } from '../../base/common/arrays.js';
 import { Promises, retry } from '../../base/common/async.js';
 import { toErrorMessage } from '../../base/common/errorMessage.js';
-import { ExpectedError, setUnexpectedErrorHandler } from '../../base/common/errors.js';
+import { ExpectedError, onUnexpectedError, setUnexpectedErrorHandler } from '../../base/common/errors.js';
 import { IPathWithLineAndColumn, isValidBasename, parseLineAndColumnAware, sanitizeFilePath } from '../../base/common/extpath.js';
 import { Event } from '../../base/common/event.js';
 import { getPathLabel } from '../../base/common/labels.js';
@@ -541,7 +541,7 @@ class CodeMain {
 			}
 		}
 
-		lifecycleMainService.kill(exitCode);
+		lifecycleMainService.kill(exitCode).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async checkInnoSetupMutex(productService: IProductService, logService: ILogService): Promise<boolean> {
