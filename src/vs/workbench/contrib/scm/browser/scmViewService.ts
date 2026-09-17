@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { ISCMViewService, ISCMRepository, ISCMService, ISCMViewVisibleRepositoryChangeEvent, ISCMMenus, ISCMProvider, ISCMRepositorySortKey, ISCMRepositorySelectionMode } from '../common/scm.js';
@@ -499,7 +500,7 @@ export class SCMViewService implements ISCMViewService {
 	}
 
 	toggleSelectionMode(selectionMode: 'multiple' | 'single'): void {
-		this.configurationService.updateValue('scm.repositories.selectionMode', selectionMode);
+		this.configurationService.updateValue('scm.repositories.selectionMode', selectionMode).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	focus(repository: ISCMRepository | undefined): void {

@@ -5,6 +5,7 @@
 
 import './media/scm.css';
 import { Event, Emitter } from '../../../../base/common/event.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { basename, dirname } from '../../../../base/common/resources.js';
 import { IDisposable, Disposable, DisposableStore, combinedDisposable, dispose, toDisposable, MutableDisposable, DisposableMap } from '../../../../base/common/lifecycle.js';
 import { ViewPane, IViewPaneOptions, ViewAction } from '../../../browser/parts/views/viewPane.js';
@@ -1570,7 +1571,7 @@ export class SCMViewPane extends ViewPane {
 					}
 
 					this.updateRepositoryCollapseAllContextKeys();
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else {
 				this.visibilityDisposables.clear();
 				this.onDidChangeVisibleRepositories({ added: Iterable.empty(), removed: [...this.items.keys()] });
@@ -1795,7 +1796,7 @@ export class SCMViewPane extends ViewPane {
 							}
 						}
 					}
-				}));
+				})).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private onDidChangeVisibleRepositories({ added, removed }: ISCMViewVisibleRepositoryChangeEvent): void {
@@ -1997,7 +1998,7 @@ export class SCMViewPane extends ViewPane {
 
 					this.updateScmProviderContextKeys();
 					this.updateRepositoryCollapseAllContextKeys();
-				}));
+				})).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private updateIndentStyles(theme: IFileIconTheme): void {
@@ -2044,7 +2045,7 @@ export class SCMViewPane extends ViewPane {
 	expandAllRepositories(): void {
 		for (const repository of this.scmViewService.visibleRepositories) {
 			if (this.tree.isCollapsible(repository)) {
-				this.tree.expand(repository);
+				this.tree.expand(repository).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 	}
@@ -2058,11 +2059,11 @@ export class SCMViewPane extends ViewPane {
 	}
 
 	focusPreviousInput(): void {
-		this.treeOperationSequencer.queue(() => this.focusInput(-1));
+		this.treeOperationSequencer.queue(() => this.focusInput(-1)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	focusNextInput(): void {
-		this.treeOperationSequencer.queue(() => this.focusInput(1));
+		this.treeOperationSequencer.queue(() => this.focusInput(1)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async focusInput(delta: number): Promise<void> {
@@ -2093,11 +2094,11 @@ export class SCMViewPane extends ViewPane {
 	}
 
 	focusPreviousResourceGroup(): void {
-		this.treeOperationSequencer.queue(() => this.focusResourceGroup(-1));
+		this.treeOperationSequencer.queue(() => this.focusResourceGroup(-1)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	focusNextResourceGroup(): void {
-		this.treeOperationSequencer.queue(() => this.focusResourceGroup(1));
+		this.treeOperationSequencer.queue(() => this.focusResourceGroup(1)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async focusResourceGroup(delta: number): Promise<void> {
@@ -2173,7 +2174,7 @@ export class SCMViewPane extends ViewPane {
 					resolve();
 				}
 			});
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	override dispose(): void {

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { AccessibleViewType, AccessibleContentProvider, IAccessibleViewContentProvider, AccessibleViewProviderId } from '../../../../platform/accessibility/browser/accessibleView.js';
@@ -54,16 +55,16 @@ class SCMAccessibilityHelpContentProvider extends Disposable implements IAccessi
 	onClose(): void {
 		switch (this._focusedView) {
 			case 'Source Control':
-				this._commandService.executeCommand('workbench.scm');
+				this._commandService.executeCommand('workbench.scm').catch(onUnexpectedError).catch(onUnexpectedError);
 				break;
 			case 'Source Control Repositories':
-				this._commandService.executeCommand('workbench.scm.repositories');
+				this._commandService.executeCommand('workbench.scm.repositories').catch(onUnexpectedError).catch(onUnexpectedError);
 				break;
 			case 'Source Control Graph':
-				this._commandService.executeCommand('workbench.scm.history');
+				this._commandService.executeCommand('workbench.scm.history').catch(onUnexpectedError).catch(onUnexpectedError);
 				break;
 			default:
-				this._commandService.executeCommand('workbench.view.scm');
+				this._commandService.executeCommand('workbench.view.scm').catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
