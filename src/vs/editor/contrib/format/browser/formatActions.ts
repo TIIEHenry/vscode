@@ -148,7 +148,7 @@ export class FormatOnType implements IEditorContribution {
 			}
 		}).finally(() => {
 			unbind.dispose();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 

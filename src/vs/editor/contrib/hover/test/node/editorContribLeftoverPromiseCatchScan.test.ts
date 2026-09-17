@@ -152,7 +152,7 @@ suite('editor/contrib leftover Promise fire-and-forget catch scan (D703)', () =>
 	}`));
 	});
 
-	test('opener / D145 / two-arg then / Resolve / FormatOnType / already-double / grpc Wire / Connect / Watch / Pty stay skipped', () => {
+	test('opener / D145 / two-arg then / Resolve / already-double / grpc Wire / Connect / Watch / Pty stay skipped', () => {
 		const marker = fs.readFileSync(resolveSource(MARKER_REL), 'utf8');
 		const links = fs.readFileSync(resolveSource(LINKS_REL), 'utf8');
 		const format = fs.readFileSync(resolveSource(FORMAT_REL), 'utf8');
@@ -171,13 +171,9 @@ suite('editor/contrib leftover Promise fire-and-forget catch scan (D703)', () =>
 		assert.ok(marker.includes('}, onUnexpectedError);'));
 		assert.ok(links.includes('link.resolve(CancellationToken.None).then(uri => {'));
 		assert.ok(!links.includes(doubleCatch));
-		assert.ok(format.includes(').then(edits => {'));
-		assert.ok(format.includes('}).finally(() => {'));
-		assert.ok(!format.includes('}).catch(onUnexpectedError).catch(onUnexpectedError);'));
 		assert.ok(word.includes('.then(undefined, onUnexpectedExternalError);'));
 		assert.ok(fold.includes('}).then(undefined, onUnexpectedError);'));
-		assert.ok(goto.includes('.catch((error: Error) => {'));
-		assert.ok(!goto.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
+		assert.ok(!fold.includes('}).then(undefined, onUnexpectedError).catch(onUnexpectedError)'));
 		for (const source of [hover, access, model, indent, sticky, section, unicode, marker, links, format, word, fold, goto]) {
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));

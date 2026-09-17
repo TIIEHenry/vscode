@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { basename } from '../../../../base/common/resources.js';
 import { ICodeEditor } from '../../../browser/editorBrowser.js';
@@ -42,12 +43,12 @@ export class UnusualLineTerminatorsDetector extends Disposable implements IEdito
 		this._register(this._editor.onDidChangeConfiguration((e) => {
 			if (e.hasChanged(EditorOption.unusualLineTerminators)) {
 				this._config = this._editor.getOption(EditorOption.unusualLineTerminators);
-				this._checkForUnusualLineTerminators();
+				this._checkForUnusualLineTerminators().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
 		this._register(this._editor.onDidChangeModel(() => {
-			this._checkForUnusualLineTerminators();
+			this._checkForUnusualLineTerminators().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this._register(this._editor.onDidChangeModelContent((e) => {
@@ -55,10 +56,10 @@ export class UnusualLineTerminatorsDetector extends Disposable implements IEdito
 				// skip checking in case of undoing
 				return;
 			}
-			this._checkForUnusualLineTerminators();
+			this._checkForUnusualLineTerminators().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
-		this._checkForUnusualLineTerminators();
+		this._checkForUnusualLineTerminators().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async _checkForUnusualLineTerminators(): Promise<void> {
