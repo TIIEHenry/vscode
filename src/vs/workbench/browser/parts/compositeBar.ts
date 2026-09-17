@@ -13,6 +13,7 @@ import { Dimension, $, addDisposableListener, EventType, EventHelper, isAncestor
 import { StandardMouseEvent } from '../../../base/browser/mouseEvent.js';
 import { IContextMenuService } from '../../../platform/contextview/browser/contextView.js';
 import { Widget } from '../../../base/browser/ui/widget.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { isUndefinedOrNull } from '../../../base/common/types.js';
 import { IColorTheme } from '../../../platform/theme/common/themeService.js';
 import { Emitter } from '../../../base/common/event.js';
@@ -66,7 +67,7 @@ export class CompositeDragAndDrop implements ICompositeDragAndDrop {
 			}
 
 			if (moved) {
-				this.openComposite(currentContainer.id, true);
+				this.openComposite(currentContainer.id, true).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 
@@ -83,7 +84,7 @@ export class CompositeDragAndDrop implements ICompositeDragAndDrop {
 
 				this.openComposite(newContainer.id, true).then(composite => {
 					composite?.openView(viewToMove.id, true);
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 	}
@@ -445,7 +446,7 @@ export class CompositeBar extends Widget implements ICompositeBar {
 		// Case: composite is not the default composite and default composite is still showing
 		// Solv: we open the default composite
 		if (defaultCompositeId && defaultCompositeId !== compositeId && this.isPinned(defaultCompositeId)) {
-			this.options.openComposite(defaultCompositeId, true);
+			this.options.openComposite(defaultCompositeId, true).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		// Case: we closed the default composite
@@ -453,7 +454,7 @@ export class CompositeBar extends Widget implements ICompositeBar {
 		else {
 			const visibleComposite = this.visibleComposites.find(cid => cid !== compositeId);
 			if (visibleComposite) {
-				this.options.openComposite(visibleComposite);
+				this.options.openComposite(visibleComposite).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 	}

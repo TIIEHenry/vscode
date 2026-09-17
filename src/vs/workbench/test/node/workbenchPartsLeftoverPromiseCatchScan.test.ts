@@ -182,7 +182,7 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 		assertDoubleThen(source, 'this.editorGroupService.whenRestored.then(() => this.centerMainEditorLayout(this.stateModel.getRuntimeValue(LayoutStateKeys.MAIN_EDITOR_CENTERED), skipLayout))');
 	});
 
-	test('menubar leftover getRecentlyOpened thens are Promise double-chain; alwaysUnderlineAccessKeys stays skipped', () => {
+	test('menubar leftover getRecentlyOpened thens are Promise double-chain; D714 alwaysUnderlineAccessKeys stays chained', () => {
 		const source = fs.readFileSync(resolveSource(MENUBAR_REL), 'utf8');
 		const workspaces = fs.readFileSync(resolveSource(WORKSPACES_REL), 'utf8');
 		assertPromiseSignature(workspaces, 'getRecentlyOpened(): Promise<IRecentlyOpened>;');
@@ -194,13 +194,10 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 		assertDoubleThen(source, `this.workspacesService.getRecentlyOpened().then((recentlyOpened) => {
 			this.recentlyOpened = recentlyOpened;
 		})`);
-		const accessKeysThen = `this.accessibilityService.alwaysUnderlineAccessKeys().then(val => {
+		assertDoubleThen(source, `this.accessibilityService.alwaysUnderlineAccessKeys().then(val => {
 				this.alwaysOnMnemonics = val;
 				this.menubar?.update(this.getMenuBarOptions());
-			})`;
-		assert.ok(source.includes(`${accessKeysThen};`));
-		assert.ok(!source.includes(`${accessKeysThen}${doubleCatch}`));
-		assert.ok(!source.includes(`${accessKeysThen}.catch(onUnexpectedError)`));
+			})`);
 	});
 
 	test('treeView leftover setInput then is Promise double-chain', () => {
@@ -258,18 +255,16 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 		assert.ok(browserWindow.includes(')).then(async () => {'));
 		assert.ok(!browserWindow.includes('onUnexpectedError'));
 
-		assert.ok(panePart.includes('this.openPaneComposite(currentContainer.id, true);'));
-		assert.ok(!panePart.includes('this.openPaneComposite(currentContainer.id, true).catch'));
-		assert.ok(panePart.includes('this.openPaneComposite(newContainer.id, true).then(composite => {'));
-		assert.ok(!panePart.includes('this.openPaneComposite(newContainer.id, true).then(composite => {\n\t\t\t\t\t\t\t\t\tcomposite?.openView(viewToMove.id, true);\n\t\t\t\t\t\t\t\t}).catch(onUnexpectedError)'));
-
-		assert.ok(compositeBar.includes('this.openComposite(currentContainer.id, true);'));
-		assert.ok(!compositeBar.includes('this.openComposite(currentContainer.id, true).catch'));
-		assert.ok(compositeBar.includes('this.openComposite(newContainer.id, true).then(composite => {'));
-		assert.ok(!compositeBar.includes('this.openComposite(newContainer.id, true).then(composite => {\n\t\t\t\t\tcomposite?.openView(viewToMove.id, true);\n\t\t\t\t}).catch(onUnexpectedError)'));
-
-		assert.ok(paneBar.includes('this.paneCompositePart.openPaneComposite(this.compositeBarActionItem.id, focus);'));
-		assert.ok(!paneBar.includes('this.paneCompositePart.openPaneComposite(this.compositeBarActionItem.id, focus).catch'));
+		assertDoubleThen(panePart, 'this.openPaneComposite(currentContainer.id, true)');
+		assertDoubleThen(panePart, `this.openPaneComposite(newContainer.id, true).then(composite => {
+									composite?.openView(viewToMove.id, true);
+								})`);
+		assertDoubleThen(compositeBar, 'this.openComposite(currentContainer.id, true)');
+		assertDoubleThen(compositeBar, `this.openComposite(newContainer.id, true).then(composite => {
+					composite?.openView(viewToMove.id, true);
+				})`);
+		assertDoubleThen(paneBar, `case 'focus':
+						this.paneCompositePart.openPaneComposite(this.compositeBarActionItem.id, focus)`);
 
 		assert.ok(breadcrumbs.includes('}).catch(err => {'));
 		assert.ok(breadcrumbs.includes('onUnexpectedError(err);'));

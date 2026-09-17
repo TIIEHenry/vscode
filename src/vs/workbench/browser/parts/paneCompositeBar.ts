@@ -816,7 +816,7 @@ class ViewContainerActivityAction extends CompositeBarAction {
 			if (sideBarVisible && activeViewlet?.getId() === this.compositeBarActionItem.id) {
 				switch (focusBehavior) {
 					case 'focus':
-						this.paneCompositePart.openPaneComposite(this.compositeBarActionItem.id, focus);
+						this.paneCompositePart.openPaneComposite(this.compositeBarActionItem.id, focus).catch(onUnexpectedError).catch(onUnexpectedError);
 						break;
 					case 'toggle':
 					default:
