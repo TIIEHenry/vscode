@@ -67,7 +67,7 @@ suite('AICustomizationManagementEditor leftover fire-and-forget catch scan (D566
 		assert.ok(source.includes(doubleSection));
 		assert.ok(source.includes(doubleSectionId));
 		assert.ok(source.includes(doubleShowEmbeddedEditor));
-		assert.strictEqual((source.match(/void this\.showEmbeddedEditor\(/g) ?? []).length, 1);
+		assert.strictEqual((source.match(/void this\.showEmbeddedEditor\(\n\t\t\t\tcustomization\.uri,/g) ?? []).length, 1);
 		assert.ok(source.includes('await this.listWidget.setSection(section);'));
 		assert.ok(source.includes('await this.showEmbeddedEditor(fileUri, fileName, PromptsType.instructions, PromptsStorage.local, true);'));
 		assert.ok(!source.includes('void this.listWidget.setSection(this.selectedSection);'));
@@ -114,5 +114,29 @@ suite('AICustomizationManagementEditor leftover save / editor-action catch scan 
 		assert.ok(source.includes("console.error('Failed to load model for embedded editor:', error);"));
 		assert.strictEqual((source.match(/void this\.refreshCustomizationMigrationInfo\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 6);
 		assert.strictEqual((source.match(/void this\.listWidget\.setSection\([^)]+\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 3);
+	});
+});
+
+suite('AICustomizationManagementEditor leftover showEmbeddedEditor select/plugin catch scan (D590)', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('onDidSelectItem / openPromptsItemFromPluginDetail showEmbeddedEditor leftover voids double-catch onUnexpectedError', () => {
+		const source = fs.readFileSync(editorSourcePath(), 'utf8');
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const doubleItemShow = `void this.showEmbeddedEditor(item.uri, item.name, item.promptType, source ?? AICustomizationSources.builtin, isWorkspaceFile, isReadOnly)${doubleCatch};`;
+
+		assert.strictEqual((source.match(/void this\.showEmbeddedEditor\(item\.uri, item\.name, item\.promptType, source \?\? AICustomizationSources\.builtin, isWorkspaceFile, isReadOnly\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
+		assert.ok(source.includes(doubleItemShow));
+		assert.strictEqual((source.match(/void this\.showEmbeddedEditor\(/g) ?? []).length, 3);
+		assert.ok(source.includes('await this.showEmbeddedEditor(fileUri, fileName, PromptsType.instructions, PromptsStorage.local, true);'));
+		assert.ok(!source.includes('\n\t\t\tthis.showEmbeddedEditor(item.uri, item.name, item.promptType, source ?? AICustomizationSources.builtin, isWorkspaceFile, isReadOnly);'));
+		assert.ok(!source.includes('\n\t\t\t\tthis.showEmbeddedEditor(item.uri, item.name, item.promptType, source ?? AICustomizationSources.builtin, isWorkspaceFile, isReadOnly);'));
+		assert.ok(!source.includes('void this.showEmbeddedEditor(item.uri, item.name, item.promptType, source ?? AICustomizationSources.builtin, isWorkspaceFile, isReadOnly);'));
+		assert.ok(!source.includes('void this.showEmbeddedEditor(item.uri, item.name, item.promptType, source ?? AICustomizationSources.builtin, isWorkspaceFile, isReadOnly).catch(onUnexpectedError);'));
+		assert.ok(!source.includes('await this.showEmbeddedEditor(fileUri, fileName, PromptsType.instructions, PromptsStorage.local, true).catch(onUnexpectedError)'));
+		assert.strictEqual((source.match(/void this\.refreshCustomizationMigrationInfo\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 6);
+		assert.strictEqual((source.match(/void this\.listWidget\.setSection\([^)]+\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 3);
+		assert.strictEqual((source.match(/void this\.handleEditorActionButton\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
 	});
 });
