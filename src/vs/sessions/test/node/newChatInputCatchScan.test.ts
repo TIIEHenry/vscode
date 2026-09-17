@@ -43,7 +43,28 @@ suite('NewChatInput leftover fire-and-forget catch scan (D594)', () => {
 		assert.ok(!source.includes(`${openDocs}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${openSettings}.catch(onUnexpectedError);`));
 		assert.strictEqual((source.match(/this\.hoverService\.hideHover\(true\);/g) ?? []).length, 2);
-		assert.ok(source.includes('void this.toggleDictation();'));
-		assert.ok(!source.includes('void this.toggleDictation().catch'));
+	});
+});
+
+suite('NewChatInput leftover fire-and-forget catch scan (D602)', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('toggleDictation voids double-catch onUnexpectedError (D602)', () => {
+		// Bare toggleDictation voids leak on reject; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const source = fs.readFileSync(newChatInputSourcePath(), 'utf8');
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const pillVoid = 'void this.toggleDictation()';
+		const toggleHelper = 'const toggle = () => this.toggleDictation()';
+		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.strictEqual((source.match(/void this\.toggleDictation\(\)/g) ?? []).length, 1);
+		assert.ok(source.includes(`${pillVoid}${doubleCatch};`));
+		assert.ok(!source.includes(`${pillVoid};`));
+		assert.ok(!source.includes(`${pillVoid}.catch(onUnexpectedError);`));
+		assert.strictEqual((source.match(/const toggle = \(\) => this\.toggleDictation\(\)/g) ?? []).length, 1);
+		assert.ok(source.includes(`${toggleHelper}${doubleCatch};`));
+		assert.ok(!source.includes(`${toggleHelper};`));
+		assert.ok(!source.includes(`${toggleHelper}.catch(onUnexpectedError);`));
+		assert.ok(source.includes('handler: () => activeDictationComposer?.toggleDictation(),'));
 	});
 });
