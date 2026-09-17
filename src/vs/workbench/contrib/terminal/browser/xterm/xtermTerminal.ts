@@ -14,6 +14,7 @@ import type { ClipboardAddon as ClipboardAddonType } from '@xterm/addon-clipboar
 import * as dom from '../../../../../base/browser/dom.js';
 import { IXtermCore } from '../xterm-private.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Disposable, DisposableStore, MutableDisposable } from '../../../../../base/common/lifecycle.js';
 import { IEditorOptions } from '../../../../../editor/common/config/editorOptions.js';
 import { IShellIntegration, ITerminalLogService, TerminalSettingId, type IDecorationAddon } from '../../../../../platform/terminal/common/terminal.js';
@@ -348,7 +349,7 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 				}
 			});
 			this.raw.loadAddon(this._clipboardAddon);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._xtermAddonLoader.importAddon('progress').then(ProgressAddon => {
 			if (this._store.isDisposed) {
 				return;
@@ -375,7 +376,7 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 				});
 				this._store.add(disposable);
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this._anyTerminalFocusContextKey = TerminalContextKeys.focusInAny.bindTo(contextKeyService);
 		this._anyFocusedTerminalHasSelection = TerminalContextKeys.textSelectedInFocused.bindTo(contextKeyService);

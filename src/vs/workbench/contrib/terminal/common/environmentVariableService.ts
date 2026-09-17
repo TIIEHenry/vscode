@@ -12,6 +12,7 @@ import { deserializeEnvironmentDescriptionMap, deserializeEnvironmentVariableCol
 import { IEnvironmentVariableCollectionWithPersistence, IEnvironmentVariableService } from './environmentVariable.js';
 import { TerminalStorageKeys } from './terminalStorageKeys.js';
 import { IMergedEnvironmentVariableCollection, ISerializableEnvironmentDescriptionMap, ISerializableEnvironmentVariableCollection } from '../../../../platform/terminal/common/environmentVariable.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 
 interface ISerializableExtensionEnvironmentVariableCollection {
@@ -51,12 +52,12 @@ export class EnvironmentVariableService extends Disposable implements IEnvironme
 			// Asynchronously invalidate collections where extensions have been uninstalled, this is
 			// async to avoid making all functions on the service synchronous and because extensions
 			// being uninstalled is rare.
-			this._invalidateExtensionCollections();
+			void this._invalidateExtensionCollections().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 		this.mergedCollection = this._resolveMergedCollection();
 
 		// Listen for uninstalled/disabled extensions
-		this._register(this._extensionService.onDidChangeExtensions(() => this._invalidateExtensionCollections()));
+		this._register(this._extensionService.onDidChangeExtensions(() => void this._invalidateExtensionCollections().catch(onUnexpectedError).catch(onUnexpectedError)));
 	}
 
 	set(extensionIdentifier: string, collection: IEnvironmentVariableCollectionWithPersistence): void {

@@ -9,6 +9,7 @@ import { IMarkTracker } from '../terminal.js';
 import { ITerminalCapabilityStore, ITerminalCommand, TerminalCapability } from '../../../../../platform/terminal/common/capabilities/capabilities.js';
 import type { Terminal, IMarker, ITerminalAddon, IDecoration, IBufferRange } from '@xterm/xterm';
 import { timeout } from '../../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { IThemeService } from '../../../../../platform/theme/common/themeService.js';
 import { TERMINAL_OVERVIEW_RULER_CURSOR_FOREGROUND_COLOR } from '../../common/terminalColorRegistry.js';
 import { ICurrentPartialCommand, isFullTerminalCommand } from '../../../../../platform/terminal/common/capabilities/commandDetection/terminalCommand.js';
@@ -419,7 +420,7 @@ export class MarkNavigationAddon extends Disposable implements IMarkTracker, ITe
 						if (renderedElement) {
 							renderedElement.classList.remove('terminal-scroll-highlight-outline');
 						}
-					});
+					}).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 		}

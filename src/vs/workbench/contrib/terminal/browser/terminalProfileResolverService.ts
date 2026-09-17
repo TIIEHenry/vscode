@@ -19,6 +19,7 @@ import { IRemoteAgentService } from '../../../services/remote/common/remoteAgent
 import { debounce } from '../../../../base/common/decorators.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { isUriComponents, URI } from '../../../../base/common/uri.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { deepClone } from '../../../../base/common/objects.js';
 import { ITerminalInstanceService } from './terminal.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
@@ -58,7 +59,7 @@ export abstract class BaseTerminalProfileResolverService extends Disposable impl
 		super();
 
 		if (this._remoteAgentService.getConnection()) {
-			this._remoteAgentService.getEnvironment().then(env => this._primaryBackendOs = env?.os || OS);
+			this._remoteAgentService.getEnvironment().then(env => this._primaryBackendOs = env?.os || OS).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			this._primaryBackendOs = OS;
 		}

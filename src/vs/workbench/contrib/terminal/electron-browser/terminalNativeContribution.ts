@@ -10,6 +10,7 @@ import { IFileService } from '../../../../platform/files/common/files.js';
 import { registerRemoteContributions } from './terminalRemote.js';
 import { IRemoteAgentService } from '../../../services/remote/common/remoteAgentService.js';
 import { INativeHostService } from '../../../../platform/native/common/native.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ITerminalService } from '../browser/terminal.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
@@ -26,7 +27,7 @@ export class TerminalNativeContribution extends Disposable implements IWorkbench
 	) {
 		super();
 
-		ipcRenderer.on('vscode:openFiles', (_: unknown, ...args: unknown[]) => { this._onOpenFileRequest(args[0] as INativeOpenFileRequest); });
+		ipcRenderer.on('vscode:openFiles', (_: unknown, ...args: unknown[]) => { void this._onOpenFileRequest(args[0] as INativeOpenFileRequest).catch(onUnexpectedError).catch(onUnexpectedError); });
 		this._register(nativeHostService.onDidResumeOS(() => this._onOsResume()));
 
 		this._terminalService.setNativeDelegate({
