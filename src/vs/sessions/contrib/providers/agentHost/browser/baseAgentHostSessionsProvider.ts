@@ -3062,7 +3062,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 			this._activeSessionScopeRoots = [...cached.workingDirectories];
 		}
 
-		void this._dispatchActiveClientWhenResolved(cancellation.token, activeSession.sessionId, rawId, cached, connection, scope).catch(onUnexpectedError);
+		void this._dispatchActiveClientWhenResolved(cancellation.token, activeSession.sessionId, rawId, cached, connection, scope).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async _dispatchActiveClientWhenResolved(
@@ -3586,7 +3586,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 			const sessionUri = cached.backendUri;
 			const action = { type: ActionType.SessionConfigChanged as const, config: { [property]: normalizedValue } };
 			connection.dispatch(sessionUri.toString(), action);
-			void this._resolveRunningSessionConfig(sessionId, cached, nextValues).catch(onUnexpectedError);
+			void this._resolveRunningSessionConfig(sessionId, cached, nextValues).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -3642,7 +3642,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 				replace: true,
 			};
 			connection.dispatch(sessionUri.toString(), action);
-			void this._resolveRunningSessionConfig(sessionId, cached, nextValues).catch(onUnexpectedError);
+			void this._resolveRunningSessionConfig(sessionId, cached, nextValues).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
