@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { toAction } from '../../../../base/common/actions.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { ITunnelApplicationConfig } from '../../../../base/common/product.js';
@@ -128,9 +129,9 @@ export class RemoteTunnelWorkbenchContribution extends Disposable implements IWo
 
 		this.registerCommands();
 
-		this.initialize();
+		this.initialize().catch(onUnexpectedError).catch(onUnexpectedError);
 
-		this.recommendRemoteExtensionIfNeeded();
+		this.recommendRemoteExtensionIfNeeded().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private handleTunnelStatusUpdate(status: TunnelStatus) {
@@ -282,7 +283,7 @@ export class RemoteTunnelWorkbenchContribution extends Disposable implements IWo
 				doInitialStateDiscovery
 			);
 		} else {
-			doInitialStateDiscovery(undefined);
+			doInitialStateDiscovery(undefined).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -360,7 +361,7 @@ export class RemoteTunnelWorkbenchContribution extends Disposable implements IWo
 									s(undefined);
 								}
 							}
-						});
+						}).catch(onUnexpectedError).catch(onUnexpectedError);
 					});
 				}
 			);
@@ -801,7 +802,7 @@ export class RemoteTunnelWorkbenchContribution extends Disposable implements IWo
 			quickPick.items = items;
 			disposables.add(quickPick.onDidAccept(() => {
 				if (quickPick.selectedItems[0] && quickPick.selectedItems[0].id) {
-					this.commandService.executeCommand(quickPick.selectedItems[0].id);
+					this.commandService.executeCommand(quickPick.selectedItems[0].id).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 				quickPick.hide();
 			}));
