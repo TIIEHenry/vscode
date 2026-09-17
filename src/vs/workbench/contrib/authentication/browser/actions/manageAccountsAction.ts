@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Lazy } from '../../../../../base/common/lazy.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { localize, localize2 } from '../../../../../nls.js';
@@ -107,20 +108,20 @@ class ManageAccountsActionImpl {
 
 		const items: AccountActionQuickPickItem[] = [{
 			label: localize('manageTrustedExtensions', "Manage Trusted Extensions"),
-			action: () => this.commandService.executeCommand('_manageTrustedExtensionsForAccount', { providerId, accountLabel })
+			action: () => this.commandService.executeCommand('_manageTrustedExtensionsForAccount', { providerId, accountLabel }).catch(onUnexpectedError).catch(onUnexpectedError)
 		}];
 
 		if (canUseMcp && this.environmentService.isSessionsWindow) {
 			items.push({
 				label: localize('manageTrustedMCPServers', "Manage Trusted MCP Servers"),
-				action: () => this.commandService.executeCommand('_manageTrustedMCPServersForAccount', { providerId, accountLabel })
+				action: () => this.commandService.executeCommand('_manageTrustedMCPServersForAccount', { providerId, accountLabel }).catch(onUnexpectedError).catch(onUnexpectedError)
 			});
 		}
 
 		if (await canSignOut()) {
 			items.push({
 				label: localize('signOut', "Sign Out"),
-				action: () => this.commandService.executeCommand('_signOutOfAccount', { providerId, accountLabel })
+				action: () => this.commandService.executeCommand('_signOutOfAccount', { providerId, accountLabel }).catch(onUnexpectedError).catch(onUnexpectedError)
 			});
 		}
 
@@ -136,7 +137,7 @@ class ManageAccountsActionImpl {
 
 		store.add(quickPick.onDidTriggerButton((button) => {
 			if (button === this.quickInputService.backButton) {
-				void this.run();
+				void this.run().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 

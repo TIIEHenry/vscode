@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { registerAction2 } from '../../../../platform/actions/common/actions.js';
@@ -104,7 +105,7 @@ class AuthenticationUsageContribution implements IWorkbenchContribution {
 	constructor(
 		@IAuthenticationUsageService private readonly _authenticationUsageService: IAuthenticationUsageService,
 	) {
-		this._initializeExtensionUsageCache();
+		this._initializeExtensionUsageCache().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async _initializeExtensionUsageCache() {
