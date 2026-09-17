@@ -17,6 +17,7 @@ import { IExtensionService } from '../../../services/extensions/common/extension
 import { getParseErrorMessage } from '../../../../base/common/jsonErrorMessages.js';
 import { IExtensionResourceLoaderService } from '../../../../platform/extensionResourceLoader/common/extensionResourceLoader.js';
 import { hash } from '../../../../base/common/hash.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 
 interface IRegExp {
@@ -105,7 +106,7 @@ export class LanguageConfigurationFileHandler extends Disposable {
 			// Modes can be instantiated before the extension points have finished registering
 			this._extensionService.whenInstalledExtensionsRegistered().then(() => {
 				this._loadConfigurationsForMode(languageIdentifier);
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(this._languageService.onDidChange(() => {
 			// reload language configurations as necessary

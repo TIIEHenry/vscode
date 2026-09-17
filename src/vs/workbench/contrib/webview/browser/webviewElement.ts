@@ -12,6 +12,7 @@ import { promiseWithResolvers, ThrottledDelayer } from '../../../../base/common/
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Lazy } from '../../../../base/common/lazy.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { COI } from '../../../../base/common/network.js';
 import { observableValue } from '../../../../base/common/observable.js';
@@ -482,7 +483,7 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 			if (!this._disposed) {
 				this._initElement(encodedWebviewOrigin, this.extension, this._options, targetWindow);
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._registerMessageHandler(targetWindow);
 
 		if (this._webviewFindWidget) {

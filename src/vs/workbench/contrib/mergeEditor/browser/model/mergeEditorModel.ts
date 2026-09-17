@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CompareResult, equals } from '../../../../../base/common/arrays.js';
-import { BugIndicatingError } from '../../../../../base/common/errors.js';
+import { BugIndicatingError, onUnexpectedError } from '../../../../../base/common/errors.js';
 import { autorunHandleChanges, derived, IObservable, IReader, ISettableObservable, ITransaction, keepObserved, observableValue, transaction, waitForState } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { Range } from '../../../../../editor/common/core/range.js';
@@ -199,7 +199,7 @@ export class MergeEditorModel extends EditorModel {
 					}
 				)
 			);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async initialize(): Promise<void> {

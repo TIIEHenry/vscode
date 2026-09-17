@@ -34,6 +34,7 @@ import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { ReconnectionWaitEvent, PersistentConnectionEventType } from '../../../../platform/remote/common/remoteAgentConnection.js';
 import Severity from '../../../../base/common/severity.js';
 import { ReloadWindowAction } from '../../../browser/actions/windowActions.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, IDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { SwitchRemoteViewItem } from './explorerViewItems.js';
 import { isStringArray } from '../../../../base/common/types.js';
@@ -678,7 +679,7 @@ export class RemoteMarkers implements IWorkbenchContribution {
 			if (remoteEnv) {
 				timerService.setPerformanceMarks('server', remoteEnv.marks);
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 
@@ -1017,7 +1018,7 @@ export class RemoteAgentConnectionStatusListener extends Disposable implements I
 								if (result.confirmed) {
 									commandService.executeCommand(ReloadWindowAction.ID);
 								}
-							});
+							}).catch(onUnexpectedError).catch(onUnexpectedError);
 						}
 						break;
 

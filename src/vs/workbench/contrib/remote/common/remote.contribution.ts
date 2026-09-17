@@ -12,6 +12,7 @@ import { Schemas } from '../../../../base/common/network.js';
 import { IRemoteAgentService } from '../../../services/remote/common/remoteAgentService.js';
 import { ILoggerService } from '../../../../platform/log/common/log.js';
 import { localize, localize2 } from '../../../../nls.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { IConfigurationRegistry, Extensions as ConfigurationExtensions } from '../../../../platform/configuration/common/configurationRegistry.js';
 import { IJSONSchema } from '../../../../base/common/jsonSchema.js';
@@ -58,12 +59,12 @@ export class LabelContribution implements IWorkbenchContribution {
 			});
 
 			if (remoteEnvironment) {
-				this.labelService.registerFormatter({
-					scheme: Schemas.vscodeUserData,
-					formatting
-				});
+			this.labelService.registerFormatter({
+				scheme: Schemas.vscodeUserData,
+				formatting
+			});
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 
@@ -110,7 +111,7 @@ class RemoteInvalidWorkspaceDetector extends Disposable implements IWorkbenchCon
 					// (see https://github.com/microsoft/vscode/issues/135331)
 					this.validateRemoteWorkspace();
 				}
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

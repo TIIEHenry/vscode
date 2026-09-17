@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as nls from '../../../../nls.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, IDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
 import { Extensions, IViewContainersRegistry, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../common/views.js';
@@ -244,7 +245,7 @@ export class AutomaticPortForwarding extends Disposable implements IWorkbenchCon
 					this.listenForPorts();
 				}
 			}));
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		if (!this.storageService.getBoolean('processPortForwardingFallback', StorageScope.WORKSPACE, true)) {
 			this.configurationService.updateValue(PORT_AUTO_FALLBACK_SETTING, 0, ConfigurationTarget.WORKSPACE);
