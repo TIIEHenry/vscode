@@ -851,7 +851,7 @@ export class SearchView extends ViewPane {
 			} else {
 				progressComplete();
 			}
-		});
+		}).catch(errors.onUnexpectedError).catch(errors.onUnexpectedError);
 	}
 
 	private buildAfterReplaceAllMessage(occurrences: number, fileCount: number, replaceValue?: string) {

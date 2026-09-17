@@ -19,6 +19,7 @@ import { IWorkspaceContextService } from '../../../../platform/workspace/common/
 import { IConfigurationResolverService } from '../../../services/configurationResolver/common/configurationResolver.js';
 import { IHistoryService } from '../../../services/history/common/history.js';
 import { OpenSearchEditorArgs } from '../../searchEditor/browser/searchEditor.contribution.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Schemas } from '../../../../base/common/network.js';
 
 
@@ -132,7 +133,7 @@ export async function findInFilesCommand(accessor: ServicesAccessor, _args: IFin
 
 				openedView.searchAndReplaceWidget.focus(undefined, updatedText, updatedText);
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	} else {
 		const convertArgs = (args: IFindInFilesArgs): OpenSearchEditorArgs => ({
 			location: mode === 'newEditor' ? 'new' : 'reuse',

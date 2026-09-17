@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { isMacintosh } from '../../../../base/common/platform.js';
 import * as nls from '../../../../nls.js';
 import { ICommandHandler } from '../../../../platform/commands/common/commands.js';
@@ -446,7 +447,7 @@ const focusSearchListCommand: ICommandHandler = accessor => {
 	const viewsService = accessor.get(IViewsService);
 	openSearchView(viewsService).then(searchView => {
 		searchView?.moveFocusToResults();
-	});
+	}).catch(onUnexpectedError).catch(onUnexpectedError);
 };
 
 async function focusNextSearchResult(accessor: ServicesAccessor): Promise<any> {
