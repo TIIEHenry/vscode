@@ -26,6 +26,7 @@ summary: "merge 关仓：leftover D640–D647 关各 call site。compile-client 
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
+| **H** | D653 tip `_handleTipAction` 双链；D24 仍开；leftover 未全局完成 |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `ff278772b85`）；勿 reset |

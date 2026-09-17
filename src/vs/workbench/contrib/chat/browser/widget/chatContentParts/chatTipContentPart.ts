@@ -127,7 +127,7 @@ export class ChatTipContentPart extends Disposable {
 		this._multipleChatTipsContextKey.set(this._chatTipService.hasMultipleTips());
 
 		const markdownContent = this._renderer.render(tip.content, {
-			actionHandler: (link, md) => { this._handleTipAction(link, md).catch(onUnexpectedError); }
+			actionHandler: (link, md) => { this._handleTipAction(link, md).catch(onUnexpectedError).catch(onUnexpectedError); }
 		});
 		this._renderedContent.value = markdownContent;
 		this.domNode.appendChild(markdownContent.element);
