@@ -177,14 +177,14 @@ class ModelTracker extends Disposable {
 	}
 
 	public validate(): void {
-		this.delayer.trigger(async () => {
+		void this.delayer.trigger(async () => {
 			const markers: IMarkerData[] = [];
 			const ast = this.promptsService.getParsedPromptFile(this.textModel);
 			await this.validator.validate(ast, this.promptType, m => markers.push(m));
 			if (!this._store.isDisposed) {
 				this.markerService.changeOne(MARKERS_OWNER_ID, this.textModel.uri, markers);
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	public override dispose() {

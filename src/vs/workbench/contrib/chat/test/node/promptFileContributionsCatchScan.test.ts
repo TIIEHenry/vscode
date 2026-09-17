@@ -23,7 +23,7 @@ function promptFileContributionsSourcePath(): string {
 	return found;
 }
 
-suite('PromptFileContributions leftover fire-and-forget catch scan (D579)', () => {
+suite('PromptFileContributions leftover fire-and-forget catch scan (D579/D587)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
@@ -38,5 +38,17 @@ suite('PromptFileContributions leftover fire-and-forget catch scan (D579)', () =
 		assert.ok(source.includes(doubleUpdate));
 		assert.ok(!source.includes('void this.updateRegistration();'));
 		assert.ok(!source.includes('void this.updateRegistration().catch(onUnexpectedError);'));
+	});
+
+	test('ModelTracker.validate leftover delayer.trigger Promise is double-caught (D587)', () => {
+		const source = fs.readFileSync(promptFileContributionsSourcePath(), 'utf8');
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		assert.strictEqual((source.match(/this\.delayer\.trigger\(/g) ?? []).length, 1);
+		assert.ok(source.includes('void this.delayer.trigger(async () => {'));
+		const delayerMatch = source.match(/void this\.delayer\.trigger\(async \(\) => \{[\s\S]*?await this\.validator\.validate[\s\S]*?\}\)((?:\.catch\(onUnexpectedError\))+);/);
+		assert.ok(delayerMatch, 'delayer.trigger call site not found');
+		assert.strictEqual(delayerMatch[1], doubleCatch);
+		assert.ok(!/^\t\tthis\.delayer\.trigger\(/m.test(source));
+		assert.ok(!source.includes('\t\tthis.delayer.trigger(async () => {'));
 	});
 });
