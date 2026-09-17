@@ -6,6 +6,7 @@
 import electron from 'electron';
 import { validatedIpcMain } from '../../../base/parts/ipc/electron-main/ipcMain.js';
 import { Barrier, Promises, timeout } from '../../../base/common/async.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../base/common/lifecycle.js';
 import { isMacintosh, isWindows } from '../../../base/common/platform.js';
@@ -260,7 +261,7 @@ export class LifecycleMainService extends Disposable implements ILifecycleMainSe
 		super();
 
 		this.resolveRestarted();
-		this.when(LifecycleMainPhase.Ready).then(() => this.registerListeners());
+		this.when(LifecycleMainPhase.Ready).then(() => this.registerListeners()).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private resolveRestarted(): void {
@@ -455,7 +456,7 @@ export class LifecycleMainService extends Disposable implements ILifecycleMainSe
 
 				// No veto, close window now
 				window.close();
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		windowListeners.add(Event.fromNodeEventEmitter<electron.Event>(win, 'closed')(() => {
 			this.trace(`Lifecycle#window.on('closed') - window ID ${window.id}`);

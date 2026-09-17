@@ -6,7 +6,7 @@
 import * as os from 'os';
 import { CancelablePromise, IntervalTimer, Throttler, timeout } from '../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../base/common/cancellation.js';
-import { isCancellationError } from '../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable, IDisposable, MutableDisposable, toDisposable } from '../../../base/common/lifecycle.js';
 import { isMacintosh, isWindows } from '../../../base/common/platform.js';
@@ -358,7 +358,7 @@ export abstract class AbstractUpdateService extends Disposable implements IUpdat
 
 		if (this.state.type === StateType.Ready) {
 			if (this._state.deferred) {
-				void this.checkForOverwriteUpdates();
+				void this.checkForOverwriteUpdates().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 			return;
 		}
@@ -504,7 +504,7 @@ export abstract class AbstractUpdateService extends Disposable implements IUpdat
 	}
 
 	protected resumeDeferredDownload(): void {
-		void this.downloadUpdate(false);
+		void this.downloadUpdate(false).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	protected deferAutomaticDownload(update: IUpdate, explicit: boolean): boolean {
@@ -564,7 +564,7 @@ export abstract class AbstractUpdateService extends Disposable implements IUpdat
 
 			this.logService.trace('update#quitAndInstall(): running raw#quitAndInstall()');
 			this.doQuitAndInstall();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		return Promise.resolve(undefined);
 	}

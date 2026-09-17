@@ -12,7 +12,7 @@ import { Delayer, ProcessTimeRunOnceScheduler, timeout } from '../../../base/com
 import { VSBuffer } from '../../../base/common/buffer.js';
 import { CancellationTokenSource } from '../../../base/common/cancellation.js';
 import { memoize } from '../../../base/common/decorators.js';
-import { isCancellationError } from '../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../base/common/errors.js';
 import { hash } from '../../../base/common/hash.js';
 import * as path from '../../../base/common/path.js';
 import { basename } from '../../../base/common/path.js';
@@ -385,7 +385,7 @@ export class Win32UpdateService extends AbstractUpdateService implements IRelaun
 
 	protected override resumeDeferredDownload(): void {
 		this.setState(State.Idle(getUpdateType()));
-		void this.checkForUpdates(false);
+		void this.checkForUpdates(false).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async getUpdatePackagePath(version: string): Promise<string> {
