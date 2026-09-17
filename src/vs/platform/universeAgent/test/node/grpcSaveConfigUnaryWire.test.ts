@@ -201,9 +201,9 @@ suite('grpc RemoteAgentService SaveConfig protobuf wire', () => {
 			can_create_session: true,
 			latency_ms: 42,
 			capabilities: {
-				models: [],
-				tools: [],
-				modes: [],
+				models: undefined,
+				tools: undefined,
+				modes: undefined,
 				server_version: 'unused-server-version',
 				protocol_version: undefined,
 				properties: undefined,

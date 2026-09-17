@@ -4,15 +4,16 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "F：CheckConnection 空 repeated 对齐 GetNode。compile-client 0。D24 仍开。不是 leftover/pills 完成。"
+summary: "合入 CheckConnection nested 与 GetNode 共享 decode。compile-client 待跑。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
-### 已合入（`MERGE_SHA` 见下；compile-client 0；聚焦 58 passing）
+### 已合入（compile-client 待跑）
 | 切片 | 提交 |
 |:-----|:-----|
+| **F decode** | `0e6ca17a9ec` — CheckConnection nested 复用 GetNode；空 repeated `undefined` |
 | **A Upload** | `8405657fd37` / `330ce8cafc0` — UploadAttachment bytes + 同胞 scan |
 | **C decode** | `db2d394e63b` — ListNodes `capabilities`/`load` |
 | **D nested** | `36faa3fe32e` — RemoteAgentConfig 5/6/10/11 |
@@ -28,7 +29,6 @@ summary: "F：CheckConnection 空 repeated 对齐 GetNode。compile-client 0。D
 | **C** | gitlink 脏 `dev/loop`；勿 add |
 | **E** | `blocked` `fix/ci-gate-reds` |
 | **edit** | ff-only 失败（分歧 `a828fb606ad`）；勿 reset |
-| **F** | CheckConnection nested decode 复用 GetNode；空 repeated=`undefined`；catalog 类型对齐；[D24](deferred-gaps.md) **仍开** |
 
 子 agent 发现：
 | ID | 问题 |
