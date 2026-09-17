@@ -5,6 +5,7 @@
 
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { debounce } from '../../../../base/common/decorators.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable, MandatoryMutableDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { ILogService } from '../../../log/common/log.js';
@@ -681,7 +682,7 @@ class WindowsPtyHeuristics extends Disposable {
 						amount: potentialShiftedLineCount
 					});
 				}
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IShellIntegration, ShellIntegrationStatus } from '../terminal.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, dispose, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { TerminalCapabilityStore } from '../capabilities/terminalCapabilityStore.js';
 import { CommandDetectionCapability } from '../capabilities/commandDetectionCapability.js';
@@ -374,7 +375,7 @@ export class ShellIntegrationAddon extends Disposable implements IShellIntegrati
 		);
 		this._register(xterm.parser.registerOscHandler(ShellIntegrationOscPs.SetCwd, data => this._doHandleSetCwd(data)));
 		this._register(xterm.parser.registerOscHandler(ShellIntegrationOscPs.SetWindowsFriendlyCwd, data => this._doHandleSetWindowsFriendlyCwd(data)));
-		this._ensureCapabilitiesOrAddFailureTelemetry();
+		this._ensureCapabilitiesOrAddFailureTelemetry().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	getMarkerId(terminal: Terminal, vscodeMarkerId: string) {
