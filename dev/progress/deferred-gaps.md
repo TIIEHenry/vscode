@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D765 leftover Promise 双链；D736/D739/D740/D745 跳过。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D769 leftover Promise 双链；D736/D739/D740/D745 跳过。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1127,3 +1127,7 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D763 | P3 | **closed** leftover Promise 双链九处：url 合法点 0 迁 webview；loadResource/localLocalhost/_focusDelayer；findInFrame×2；_iframeDelayer；stopFindInFrame；setIgnoreMenuShortcuts；overlay postMessage。跳过 already-double origin / assigned parentOriginHash / opener / Action2。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`webviewLeftoverPromiseCatchScanD763.test.ts` **8/0**。勿 add `out`。 | 九处双链。未关 D24。leftover 程序未全局完成。 | workbench / webview leftover remaining | closed |
 | D764 | P3 | **closed** leftover Promise 双链九处：logs setDefaultLogLevel×2；output onDidRegisterChannel×2；setLevelIsDefaultContext×3；showChannel×2。跳过 Action2 / assigned / Watch doWatch / already-double model。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`logsLeftoverPromiseCatchScanD764.test.ts` **8/0**。勿 add `out`。 | 九处双链。未关 D24。leftover 程序未全局完成。 | workbench / logs leftover remaining | closed |
 | D765 | P3 | **closed** leftover Promise 双链六处：_initUserSnippets Restored then；_initFolderSnippets folder/ADDED/onDidSave/watch；getSnippetsSync file.load ignore。跳过 tracked/assigned/two-arg/returned/Watch API。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`snippetsLeftoverPromiseCatchScanD765.test.ts` **6/0**。勿 add `out`。 | 六处双链。未关 D24。leftover 程序未全局完成。 | workbench / snippets leftover | closed |
+| D766 | P3 | **closed** leftover Promise 双链 codeEditor：diffEditorHelper；emptyTextEditorHint；simpleFindWidget；documentSymbolsOutline；gotoSymbolQuickAccess；saveParticipants；languageConfigurationExtensionPoint；displayChangeRemeasureFonts。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；`codeEditorLeftoverPromiseCatchScanD766.test.ts`。勿 add `out`。 | codeEditor 双链。未关 D24。leftover 程序未全局完成。 | workbench / codeEditor leftover | closed |
+| D767 | P3 | **closed** leftover Promise 双链 format：formatActionsMultiple / formatActionsNone leftover FOF。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`formatLeftoverPromiseCatchScanD767.test.ts`。勿 add `out`。 | format 双链。未关 D24。leftover 程序未全局完成。 | workbench / format leftover | closed |
+| D768 | P3 | **closed** leftover Promise 双链 customEditor / webviewPanel leftover FOF。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`customEditorLeftoverPromiseCatchScanD768.test.ts`。勿 add `out`。 | customEditor 双链。未关 D24。leftover 程序未全局完成。 | workbench / customEditor leftover | closed |
+| D769 | P3 | **closed** leftover Promise 双链 markdown / externalUriOpener leftover FOF。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`markdownLeftoverPromiseCatchScanD769.test.ts`。勿 add `out`。 | markdown 双链。未关 D24。leftover 程序未全局完成。 | workbench / markdown leftover | closed |
