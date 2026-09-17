@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { LayoutPriority, Orientation, Sizing, SplitView } from '../../../../base/browser/ui/splitview/splitview.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, dispose, IDisposable } from '../../../../base/common/lifecycle.js';
 import { Event } from '../../../../base/common/event.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -405,7 +406,7 @@ export class TerminalTabbedView extends Disposable {
 			if (!this._shouldHandleEmptyAreaDrop(event)) {
 				return;
 			}
-			void this._handleContainerDrop(event);
+			void this._handleContainerDrop(event).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(dom.addDisposableListener(terminalContainer, 'mousedown', async (event: MouseEvent) => {
 			const terminal = this._terminalGroupService.activeInstance;

@@ -5,6 +5,7 @@
 
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { $ } from '../../../../base/browser/dom.js';
 import { localize } from '../../../../nls.js';
@@ -54,7 +55,7 @@ export class TerminalTabsChatEntry extends Disposable {
 		this._deleteButton.setAttribute('title', localize('terminal.tabs.chatEntryDeleteTooltip', "Kill all hidden chat terminals"));
 
 		const runChatTerminalsCommand = () => {
-			void this._commandService.executeCommand('workbench.action.terminal.chat.viewHiddenChatTerminals');
+			void this._commandService.executeCommand('workbench.action.terminal.chat.viewHiddenChatTerminals').catch(onUnexpectedError).catch(onUnexpectedError);
 		};
 		this._register(dom.addDisposableListener(this._entry, dom.EventType.CLICK, e => {
 			// Don't trigger if clicking on the delete button

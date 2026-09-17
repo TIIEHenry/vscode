@@ -22,7 +22,7 @@ import { VSBuffer } from '../../../../base/common/buffer.js';
 import { ILogger, ILoggerService, ILogService, LogLevel } from '../../../../platform/log/common/log.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { ILogEntry, IOutputContentSource, LOG_MIME, OutputChannelUpdateMode } from '../../../services/output/common/output.js';
-import { isCancellationError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { TextModel } from '../../../../editor/common/model/textModel.js';
 import { binarySearch, sortedDiff } from '../../../../base/common/arrays.js';
 
@@ -821,11 +821,11 @@ export class DelegatedOutputChannelModel extends Disposable implements IOutputCh
 	}
 
 	append(output: string): void {
-		this.outputChannelModel.then(outputChannelModel => outputChannelModel.append(output));
+		this.outputChannelModel.then(outputChannelModel => outputChannelModel.append(output)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	update(mode: OutputChannelUpdateMode, till: number | undefined, immediate: boolean): void {
-		this.outputChannelModel.then(outputChannelModel => outputChannelModel.update(mode, till, immediate));
+		this.outputChannelModel.then(outputChannelModel => outputChannelModel.update(mode, till, immediate)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	loadModel(): Promise<ITextModel> {
@@ -833,14 +833,14 @@ export class DelegatedOutputChannelModel extends Disposable implements IOutputCh
 	}
 
 	clear(): void {
-		this.outputChannelModel.then(outputChannelModel => outputChannelModel.clear());
+		this.outputChannelModel.then(outputChannelModel => outputChannelModel.clear()).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	replace(value: string): void {
-		this.outputChannelModel.then(outputChannelModel => outputChannelModel.replace(value));
+		this.outputChannelModel.then(outputChannelModel => outputChannelModel.replace(value)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	updateChannelSources(files: IOutputContentSource[]): void {
-		this.outputChannelModel.then(outputChannelModel => outputChannelModel.updateChannelSources(files));
+		this.outputChannelModel.then(outputChannelModel => outputChannelModel.updateChannelSources(files)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }

@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D683/D684 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D685 leftover Promise 双链未关 leftover/pills。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1050,3 +1050,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D682 | P3 | **closed** `webContentsViewRendererFeature.ts` leftover Promise 双链九处：`_doScreenshot`×4；`_handleKeyEvent`；`setVisible`×3；`focus`。跳过 DOM `_container?.focus()`。未改 opener / D145 / grpc *Wire / Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；增量 esbuild（client 成、extensions 缺 esbuild 包红）后 `node test/unit/node/index.js --run src/vs/workbench/contrib/browserView/test/node/webContentsViewRendererFeatureCatchScan.test.ts` **2/0**（源扫 1 + Errors 1）。未 commit。勿 add `out`。 | 九处双链；DOM focus 仍裸。未关 D24。leftover 程序未全局完成。 | workbench / browserView | closed |
 | D683 | P3 | **closed** `agentSessionResidency.ts` leftover Promise 双链五处：`void this.reconcile()`×5。`reconcile(): Promise<void>`。`agentService.ts` 另五处 `void this._sessionResidency.reconcile()` **未改**。跳过 opener / D145 / sync void / grpc *Wire / Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；增量 esbuild 后 `agentSessionResidencyCatchScan.test.ts` **2/0**；既有 residency **9/0**。未 commit。勿 add `out`。 | 五处双链。未关 D24。leftover 程序未全局完成。 | platform / agentHost | closed |
 | D684 | P3 | **closed** notebook leftover Promise 双链八处：outline `doComputeSymbols`；find `replaceOne`/`replaceAll` then×2；findModel highlight then×2 + 丢 Promise×2；keymap `Promise.all` 单链。跳过 opener / D145 / D660 / grpc *Wire / Connect/Watch/Resolve/Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；增量 esbuild 后 `notebookLeftoverPromiseCatchScan.test.ts` **6/0**。未 commit。勿 add `out`。 | 八处双链；opener 仍裸。未关 D24。leftover 程序未全局完成。 | workbench / notebook | closed |
+| D685 | P3 | **closed** terminal+output leftover Promise 双链八处：tabbed `_handleContainerDrop`；tabs chat `executeCommand`；outputView `editorPromise.then`；delegated model append/update/clear/replace/updateChannelSources。跳过 Pty / poll `doWatch` / opener / D145 / sync void / grpc *Wire / Connect/Watch/Resolve。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 D；增量 esbuild 后 `terminalLeftoverPromiseCatchScan.test.ts` **4/0**（源扫 3 + Errors 1）；`outputLeftoverPromiseCatchScan.test.ts` **3/0**（源扫 2 + Errors 1）。未 commit。勿 add `out`。 | 八处双链；Pty/`doWatch` 仍跳过。未关 D24。leftover 程序未全局完成。 | workbench / terminal+output | closed |
