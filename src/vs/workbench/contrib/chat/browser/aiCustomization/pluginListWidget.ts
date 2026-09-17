@@ -1026,7 +1026,7 @@ export class PluginListWidget extends Disposable {
 		} else if (this.searchQuery.trim()) {
 			await this.queryPluginSearch();
 		} else {
-			this.filterPlugins();
+			await this.filterPlugins();
 		}
 	}
 
