@@ -4,10 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { UniverseAgentRemoteAgentConfig, UniverseAgentSaveRemoteAgentConfigRequest } from '../../common/universeAgentTypes.js';
+import { decodeCheckConnectionResponse, type ConnectionReportWire } from './grpcCheckConnectionUnaryWire.js';
 import {
 	encodeInt32Field,
 	encodePresentMessageField,
 	encodeStringField,
+	lastBytes,
 	lastString,
 	lastVarint,
 	readProtoFields,
@@ -16,12 +18,16 @@ import {
 /**
  * JSON-shaped decode of RemoteAgentService.SaveRemoteAgentConfigResponse
  * scalars `success`=1 `message`=2 `async_test_id`=4.
- * Nested `connection_test`=3 unread this slice (no nested codec).
- * Shape matches `SaveRemoteAgentConfigResponseWire`.
+ * Nested `connection_test`=3 is ConnectionReport via
+ * `decodeCheckConnectionResponse` (`reachable`=1 `authenticated`=2
+ * `can_create_session`=3 `latency_ms`=4). Nested `capabilities`=5
+ * `errors`=6 `load`=7 unread (H owns). Shape matches
+ * `mapSaveRemoteAgentConfigResponse`.
  */
 export interface SaveRemoteAgentConfigResponseWire {
 	readonly success?: boolean;
 	readonly message?: string;
+	readonly connection_test?: ConnectionReportWire;
 	readonly async_test_id?: string;
 }
 
@@ -45,18 +51,22 @@ export function encodeSaveConfigRequest(request: UniverseAgentSaveRemoteAgentCon
 }
 
 /**
- * SaveRemoteAgentConfigResponse — `success`=1 `message`=2 `async_test_id`=4.
- * Nested `connection_test`=3 unread this slice.
- * proto3: false / empty omitted. Unknown fields unread.
+ * SaveRemoteAgentConfigResponse — `success`=1 `message`=2
+ * `connection_test`=3 `async_test_id`=4.
+ * Nested `connection_test` length-delimited bytes go through
+ * `decodeCheckConnectionResponse`. Nested `capabilities`=5 `errors`=6
+ * `load`=7 unread. proto3: false / empty omitted. Unknown fields unread.
  * Shape matches SaveRemoteAgentConfigResponseWire
- * `{ success?: boolean; message?: string; async_test_id?: string }`.
+ * `{ success?: boolean; message?: string; connection_test?: ConnectionReportWire; async_test_id?: string }`.
  */
 export function decodeSaveConfigResponse(bytes: Uint8Array): SaveRemoteAgentConfigResponseWire {
 	const fields = readProtoFields(bytes);
 	const success = lastVarint(fields, 1);
+	const connectionTest = lastBytes(fields, 3);
 	return {
 		success: success === undefined ? undefined : success === 1n,
 		message: lastString(fields, 2),
+		connection_test: connectionTest === undefined ? undefined : decodeCheckConnectionResponse(connectionTest),
 		async_test_id: lastString(fields, 4),
 	};
 }
