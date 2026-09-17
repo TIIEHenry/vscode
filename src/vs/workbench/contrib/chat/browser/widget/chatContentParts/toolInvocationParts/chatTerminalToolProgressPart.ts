@@ -439,9 +439,9 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 			this._initializeTerminalActions();
 		};
 		initializeTerminalActionsOnce();
-		this._terminalService.whenConnected.then(() => {
+		void Promise.resolve(this._terminalService.whenConnected).then(() => {
 			initializeTerminalActionsOnce();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		const terminalToolSessionId = this._terminalData.terminalToolSessionId;
 		if (terminalToolSessionId) {

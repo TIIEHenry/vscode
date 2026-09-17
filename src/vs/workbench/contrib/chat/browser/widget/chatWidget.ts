@@ -3402,10 +3402,10 @@ export class ChatWidget extends Disposable implements IChatWidget {
 			}
 		}
 
-		sent.data.responseCreatedPromise.then(() => {
+		void Promise.resolve(sent.data.responseCreatedPromise).then(() => {
 			// Only start accessibility progress once a real request/response model exists.
 			this.chatAccessibilityService.acceptRequest(submittedSessionResource);
-			sent.data.responseCompletePromise.then(() => {
+			void Promise.resolve(sent.data.responseCompletePromise).then(() => {
 				const responses = this.viewModel?.getItems().filter(isResponseVM);
 				const lastResponse = responses?.[responses.length - 1];
 				this.chatAccessibilityService.acceptResponse(lastResponse, submittedSessionResource, options?.isVoiceInput);
@@ -3416,8 +3416,8 @@ export class ChatWidget extends Disposable implements IChatWidget {
 						this.input.setValue(question, false);
 					}
 				}
-			});
-		});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		return sent.data.responseCreatedPromise;
 	}

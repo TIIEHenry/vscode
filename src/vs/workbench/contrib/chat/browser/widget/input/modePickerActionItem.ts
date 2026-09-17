@@ -9,6 +9,7 @@ import { IAction } from '../../../../../../base/common/actions.js';
 import { coalesce } from '../../../../../../base/common/arrays.js';
 import { Codicon } from '../../../../../../base/common/codicons.js';
 import { groupBy } from '../../../../../../base/common/collections.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { IDisposable } from '../../../../../../base/common/lifecycle.js';
 import { autorun, IObservable, observableValue } from '../../../../../../base/common/observable.js';
 import { ThemeIcon } from '../../../../../../base/common/themables.js';
@@ -272,9 +273,9 @@ export class ModePickerActionItem extends ChatInputPickerActionViewItem {
 			}
 		}));
 
-		assignmentService.getTreatment('chat.showOldAskMode').then(showOldAskMode => {
+		void Promise.resolve(assignmentService.getTreatment('chat.showOldAskMode')).then(showOldAskMode => {
 			assignments.set({ showOldAskMode: showOldAskMode === 'enabled' }, undefined);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._register(assignmentService.onDidRefetchAssignments(async () => {
 			assignments.set({ showOldAskMode: await assignmentService.getTreatment('chat.showOldAskMode') === 'enabled' }, undefined);
 		}));

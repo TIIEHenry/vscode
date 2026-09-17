@@ -9,6 +9,7 @@ import { ITreeCompressionDelegate } from '../../../../../../base/browser/ui/tree
 import { ICompressedTreeNode } from '../../../../../../base/browser/ui/tree/compressedObjectTreeModel.js';
 import { ICompressibleTreeRenderer } from '../../../../../../base/browser/ui/tree/objectTree.js';
 import { IAsyncDataSource, ITreeNode } from '../../../../../../base/browser/ui/tree/tree.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Event } from '../../../../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../../../base/common/lifecycle.js';
 import { localize } from '../../../../../../nls.js';
@@ -56,11 +57,11 @@ export class ChatTreeContentPart extends Disposable implements IChatContentPart 
 			e.browserEvent.stopPropagation();
 		}));
 
-		this.tree.setInput(data).then(() => {
+		void Promise.resolve(this.tree.setInput(data)).then(() => {
 			if (!ref.isStale()) {
 				this.tree.layout();
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this.domNode = this.tree.getHTMLElement().parentElement!;
 	}

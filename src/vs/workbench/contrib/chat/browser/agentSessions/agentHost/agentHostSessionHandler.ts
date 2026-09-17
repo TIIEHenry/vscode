@@ -2600,7 +2600,7 @@ export class AgentHostSessionHandler extends Disposable implements IChatSessionC
 							} else if (execution.activeAttempts === 0 && clientToolExecutions.get(key) !== execution) {
 								execution.source.dispose();
 							}
-						});
+						}).catch(onUnexpectedError).catch(onUnexpectedError);
 					};
 					if (claimant) {
 						execute(claimant);
@@ -3652,7 +3652,7 @@ export class AgentHostSessionHandler extends Disposable implements IChatSessionC
 		store.add(autorun(reader => {
 			const pendingAuth = mcpAuthRequired$.read(reader);
 			const currentRunId = ++runId;
-			this._filterAutoGrantedMcpAuthentication(opts.sessionResource, pendingAuth).then(servers => {
+			void Promise.resolve(this._filterAutoGrantedMcpAuthentication(opts.sessionResource, pendingAuth)).then(servers => {
 				// Ignore stale completions: a newer run has superseded this one
 				// (guards against out-of-order resolution of the async filter).
 				if (currentRunId !== runId) {
@@ -3679,7 +3679,7 @@ export class AgentHostSessionHandler extends Disposable implements IChatSessionC
 					ownedIds.add(server.id);
 				}
 				part.servers.set(servers.filter(server => ownedIds.has(server.id)), undefined);
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 

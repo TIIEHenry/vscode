@@ -182,13 +182,13 @@ export class ModelPickerWidget extends Disposable {
 
 		// Trust reads as untrusted until initialization resolves; gate on it so a
 		// trusted workspace doesn't briefly render as restricted at startup.
-		this._workspaceTrustManagementService.workspaceTrustInitialized.then(() => {
+		void Promise.resolve(this._workspaceTrustManagementService.workspaceTrustInitialized).then(() => {
 			if (this._store.isDisposed) {
 				return;
 			}
 			this._workspaceTrustInitialized = true;
 			this._renderLabel();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this._register(this._entitlementService.onDidChangeUsageBasedBilling(() => {
 			this._renderLabel();
