@@ -7,6 +7,7 @@ import { onDidChangeFullscreen, isFullscreen } from '../../../../base/browser/br
 import * as dom from '../../../../base/browser/dom.js';
 import { Color } from '../../../../base/common/color.js';
 import { Event } from '../../../../base/common/event.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { editorBackground, foreground } from '../../../../platform/theme/common/colorRegistry.js';
 import { getThemeTypeSelector, IPartsSplashPartBounds, IThemeService } from '../../../../platform/theme/common/themeService.js';
@@ -54,7 +55,7 @@ export class PartsSplash {
 		lifecycleService.when(LifecyclePhase.Restored).then(() => {
 			Event.any(Event.filter(onDidChangeFullscreen, windowId => windowId === mainWindow.vscodeWindowId), editorGroupsService.mainPart.onDidLayout, _themeService.onDidColorThemeChange)(savePartsSplashSoon, undefined, this._disposables);
 			savePartsSplashSoon();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		_configService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(TitleBarSetting.TITLE_BAR_STYLE)) {
@@ -119,7 +120,7 @@ export class PartsSplash {
 					editor: this._getPartBounds(Parts.EDITOR_PART)
 				} : undefined
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _getPartBounds(part: Parts.ACTIVITYBAR_PART | Parts.SIDEBAR_PART | Parts.AUXILIARYBAR_PART | Parts.PANEL_PART | Parts.EDITOR_PART): IPartsSplashPartBounds | undefined {

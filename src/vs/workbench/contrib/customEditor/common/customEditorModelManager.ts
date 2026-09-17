@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { createSingleCallFunction } from '../../../../base/common/functional.js';
 import { IReference } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -47,7 +48,7 @@ export class CustomEditorModelManager implements ICustomEditorModelManager {
 				object: model,
 				dispose: createSingleCallFunction(() => {
 					if (--entry.counter <= 0) {
-						entry.model.then(x => x.dispose());
+						entry.model.then(x => x.dispose()).catch(onUnexpectedError).catch(onUnexpectedError);
 						this._references.delete(key);
 					}
 				}),
@@ -69,7 +70,7 @@ export class CustomEditorModelManager implements ICustomEditorModelManager {
 	public disposeAllModelsForView(viewType: string): void {
 		for (const [key, value] of this._references) {
 			if (value.viewType === viewType) {
-				value.model.then(x => x.dispose());
+				value.model.then(x => x.dispose()).catch(onUnexpectedError).catch(onUnexpectedError);
 				this._references.delete(key);
 			}
 		}
@@ -79,7 +80,7 @@ export class CustomEditorModelManager implements ICustomEditorModelManager {
 		const keyStart = `${resource.toString()}@@@`;
 		for (const [key, value] of this._references) {
 			if (key.startsWith(keyStart)) {
-				value.model.then(x => x.dispose());
+				value.model.then(x => x.dispose()).catch(onUnexpectedError).catch(onUnexpectedError);
 				this._references.delete(key);
 			}
 		}

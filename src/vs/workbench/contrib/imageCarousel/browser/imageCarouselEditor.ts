@@ -7,6 +7,7 @@ import { addDisposableListener, clearNode, Dimension, EventType, h } from '../..
 import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { clamp } from '../../../../base/common/numbers.js';
 import { isMacintosh } from '../../../../base/common/platform.js';
@@ -588,7 +589,7 @@ window.addEventListener("message",function(e){var m=e.data;if(m.type==="loadVide
 						const img = new Image();
 						img.src = url;
 						img.decode().catch(() => { /* invalid image */ });
-					});
+					}).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 		}

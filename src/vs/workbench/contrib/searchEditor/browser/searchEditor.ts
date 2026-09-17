@@ -7,6 +7,7 @@ import * as DOM from '../../../../base/browser/dom.js';
 import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { alert } from '../../../../base/browser/ui/aria/aria.js';
 import { Delayer } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
@@ -739,7 +740,7 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 			const existingConfig = this.readConfigFromWidget();
 			newInput.ongoingSearchOperation.then(complete => {
 				this.onSearchComplete(complete, existingConfig, newInput);
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

@@ -27,6 +27,7 @@ import { IProductService } from '../../../../platform/product/common/productServ
 import { IUserDataSyncEnablementService, IUserDataSyncService, IUserDataSyncStoreManagementService, SyncStatus, UserDataSyncStoreType } from '../../../../platform/userDataSync/common/userDataSync.js';
 import { IsWebContext } from '../../../../platform/contextkey/common/contextkeys.js';
 import { Promises, Throttler } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IUserDataSyncWorkbenchService } from '../../../services/userDataSync/common/userDataSync.js';
 import { Event } from '../../../../base/common/event.js';
 import { IDefaultAccountService } from '../../../../platform/defaultAccount/common/defaultAccount.js';
@@ -210,7 +211,7 @@ export class ProductContribution implements IWorkbenchContribution {
 			}
 
 			storageService.store(ProductContribution.KEY, productService.version, StorageScope.APPLICATION, StorageTarget.MACHINE);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 
