@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IDisposable } from '../../../../base/common/lifecycle.js';
 import { IEditorWorkingSet } from '../../../../workbench/services/editor/common/editorGroupsService.js';
 import { LifecyclePhase } from '../../../../workbench/services/lifecycle/common/lifecycle.js';
@@ -92,7 +93,7 @@ export class SinglePaneLayoutController extends BaseLayoutController {
 			}
 			this._managedTabs = this._register(this._instantiationService.createInstance(SinglePaneDockedTabsCoordinator, this._ctx));
 			this._existingSession?.registerManagedTabs(this._managedTabs);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	/** Toggle the detail panel and return whether it is now visible. */

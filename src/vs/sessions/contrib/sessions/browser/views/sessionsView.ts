@@ -694,7 +694,7 @@ export class SessionsView extends ViewPane {
 			} else if (selectedId === SessionsGrouping.Workspace || selectedId === SessionsGrouping.Date) {
 				this.setGrouping(selectedId);
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	setGrouping(grouping: SessionsGrouping): void {

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { autorun, derived, IObservable } from '../../../../base/common/observable.js';
 import { localize2 } from '../../../../nls.js';
@@ -113,7 +114,7 @@ export class ModelPicker extends Disposable {
 			if (!this._store.isDisposed) {
 				this._updatePickerState();
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Re-evaluate when entitlement / sentiment / anonymous access change: when
 		// Chat needs sign-in the shared widget renders a Sign In state, so the
