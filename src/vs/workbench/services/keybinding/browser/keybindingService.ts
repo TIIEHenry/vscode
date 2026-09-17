@@ -254,7 +254,7 @@ export class WorkbenchKeybindingService extends AbstractKeybindingService {
 			}
 
 			if (browser.isFullscreen(mainWindow)) {
-				keyboard?.lock(['Escape']);
+				void Promise.resolve(keyboard?.lock(['Escape'])).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else {
 				keyboard?.unlock();
 			}
@@ -419,7 +419,7 @@ export class WorkbenchKeybindingService extends AbstractKeybindingService {
 		this._keybindingHoldMode.p.finally(() => {
 			listener.dispose();
 			focusTracker.dispose();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._log(`+ Enabled hold-mode for ${commandId}.`);
 		return this._keybindingHoldMode.p;
 	}

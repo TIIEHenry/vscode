@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { IKeyboardLayoutInfo, IKeyboardMapping, IMacLinuxKeyboardMapping, IWindowsKeyboardMapping, macLinuxKeyboardMappingEquals, windowsKeyboardMappingEquals } from '../../../../platform/keyboardLayout/common/keyboardLayout.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
@@ -42,16 +43,17 @@ export class NativeKeyboardLayoutService extends Disposable implements INativeKe
 		this._keyboardMapping = null;
 		this._keyboardLayoutInfo = null;
 
-		this._register(this._keyboardLayoutService.onDidChangeKeyboardLayout(async ({ keyboardLayoutInfo, keyboardMapping }) => {
-			await this.initialize();
-			if (keyboardMappingEquals(this._keyboardMapping, keyboardMapping)) {
-				// the mappings are equal
-				return;
-			}
+		this._register(this._keyboardLayoutService.onDidChangeKeyboardLayout(({ keyboardLayoutInfo, keyboardMapping }) => {
+			this.initialize().then(() => {
+				if (keyboardMappingEquals(this._keyboardMapping, keyboardMapping)) {
+					// the mappings are equal
+					return;
+				}
 
-			this._keyboardMapping = keyboardMapping;
-			this._keyboardLayoutInfo = keyboardLayoutInfo;
-			this._onDidChangeKeyboardLayout.fire();
+				this._keyboardMapping = keyboardMapping;
+				this._keyboardLayoutInfo = keyboardLayoutInfo;
+				this._onDidChangeKeyboardLayout.fire();
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 
