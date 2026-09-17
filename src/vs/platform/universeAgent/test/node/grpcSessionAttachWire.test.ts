@@ -573,6 +573,120 @@ suite('grpc first-send / attach protobuf wire', () => {
 		});
 	});
 
+	test('decodeSessionStreamEvent reads nested turn_lifecycle=37 TurnLifecycleEvent turn_started=10; unused unread', () => {
+		const started = Buffer.concat([
+			encodeStringField(1, 'turn-life'),
+			encodeStringField(2, 'agent-unread'),
+			encodeStringField(3, 'model-unread'),
+			encodeStringField(4, 'provider-unread'),
+			encodeStringField(5, 'name-unread'),
+			encodeStringField(6, 'profile-unread'),
+			encodeStringField(7, 'started-unused'),
+		]);
+		const lifecycle = Buffer.concat([
+			encodeInt64Field(1, 9),
+			encodeMessageField(10, started),
+			encodeStringField(12, 'lifecycle-unused'),
+		]);
+		const encoded = Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodeMessageField(37, lifecycle),
+			encodeStringField(99, 'unused-stream-field'),
+		]);
+		const decoded = decodeSessionStreamEvent(encoded);
+		const payload = decoded.payload as {
+			session_id?: string;
+			turn_lifecycle?: {
+				runtime_epoch?: number;
+				turn_started?: { turn_id?: string };
+				turn_completed?: unknown;
+			};
+		};
+		assert.strictEqual(payload.session_id, 'sess-1');
+		assert.deepStrictEqual(payload.turn_lifecycle, {
+			runtime_epoch: 9,
+			turn_started: { turn_id: 'turn-life' },
+		});
+		assert.ok(!('turnLifecycle' in payload));
+		assert.ok(!('turn_completed' in (payload.turn_lifecycle ?? {})));
+		assert.ok(!('agent_id' in (payload.turn_lifecycle?.turn_started ?? {})));
+		assert.ok(!('model_id' in (payload.turn_lifecycle?.turn_started ?? {})));
+		assert.ok(!('model_profile_id' in (payload.turn_lifecycle?.turn_started ?? {})));
+		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
+		assert.strictEqual(JSON.stringify(decoded).includes('unread'), false);
+		const joined = new OverlayDeltaJoin().handlePayload(decoded.payload);
+		assert.deepStrictEqual(joined, [{
+			arm: 'overlayActiveTurn',
+			body: { turnId: 'turn-life', streamingText: '', thinkingText: '' },
+		}]);
+		const omitted = decodeSessionStreamEvent(encodeStringField(1, 'sess-2'));
+		assert.strictEqual((omitted.payload as { turn_lifecycle?: unknown }).turn_lifecycle, undefined);
+		const emptyNested = decodeSessionStreamEvent(encodePresentMessageField(37, new Uint8Array(0)));
+		assert.deepStrictEqual((emptyNested.payload as { turn_lifecycle?: unknown }).turn_lifecycle, {
+			runtime_epoch: 0,
+		});
+		const emptyStarted = decodeSessionStreamEvent(encodePresentMessageField(37, encodePresentMessageField(10, new Uint8Array(0))));
+		assert.deepStrictEqual((emptyStarted.payload as { turn_lifecycle?: unknown }).turn_lifecycle, {
+			runtime_epoch: 0,
+			turn_started: { turn_id: '' },
+		});
+	});
+
+	test('decodeSessionStreamEvent reads nested turn_lifecycle=37 TurnLifecycleEvent turn_completed=11; unused unread', () => {
+		const completed = Buffer.concat([
+			encodeStringField(1, 'turn-done'),
+			encodeStringField(2, 'agent-unread'),
+			encodeStringField(3, 'stop-unread'),
+			encodeStringField(9, 'model-unread'),
+			encodeStringField(13, 'asst-unread'),
+			encodeStringField(14, 'completed-unused'),
+		]);
+		const lifecycle = Buffer.concat([
+			encodeInt64Field(1, 9),
+			encodeMessageField(11, completed),
+			encodeStringField(12, 'lifecycle-unused'),
+		]);
+		const encoded = Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodeMessageField(37, lifecycle),
+			encodeStringField(99, 'unused-stream-field'),
+		]);
+		const decoded = decodeSessionStreamEvent(encoded);
+		const payload = decoded.payload as {
+			session_id?: string;
+			turn_lifecycle?: {
+				runtime_epoch?: number;
+				turn_started?: unknown;
+				turn_completed?: unknown;
+			};
+		};
+		assert.strictEqual(payload.session_id, 'sess-1');
+		assert.deepStrictEqual(payload.turn_lifecycle, {
+			runtime_epoch: 9,
+			turn_completed: {},
+		});
+		assert.ok(!('turnLifecycle' in payload));
+		assert.ok(!('turn_started' in (payload.turn_lifecycle ?? {})));
+		assert.ok(!('turn_id' in ((payload.turn_lifecycle?.turn_completed as object) ?? {})));
+		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
+		assert.strictEqual(JSON.stringify(decoded).includes('unread'), false);
+		const join = new OverlayDeltaJoin();
+		join.handlePayload({ streaming_delta: { turn_id: 'turn-done', text_delta: 'x' } });
+		assert.deepStrictEqual(join.handlePayload(decoded.payload), [{
+			arm: 'overlayActiveTurnClear',
+			body: {},
+		}]);
+		const emptyCompleted = decodeSessionStreamEvent(encodePresentMessageField(37, encodePresentMessageField(11, new Uint8Array(0))));
+		assert.deepStrictEqual((emptyCompleted.payload as { turn_lifecycle?: unknown }).turn_lifecycle, {
+			runtime_epoch: 0,
+			turn_completed: {},
+		});
+		assert.deepStrictEqual(new OverlayDeltaJoin().handlePayload(emptyCompleted.payload), [{
+			arm: 'overlayActiveTurnClear',
+			body: {},
+		}]);
+	});
+
 	test('encodeChatRequest writes session_input oneof, not JSON payload wrapper', () => {
 		const encoded = encodeChatRequest('sess-1', {
 			agentId: 'root',

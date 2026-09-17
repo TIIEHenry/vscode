@@ -411,6 +411,10 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * `agent_id`=3 optional `tool_name`=4). OverlayDeltaJoin `applyGenerating`
  * reads `turn_id` + `tool_name`; `runtime_epoch` / `agent_id` decoded for
  * shape.
+ * `turn_lifecycle`=37 TurnLifecycleEvent (`runtime_epoch`=1; oneof
+ * `turn_started`=10 `turn_completed`=11). OverlayDeltaJoin `applyLifecycle`
+ * reads `turn_completed` presence (any value clears) or nested
+ * `turn_started.turn_id`. Other nested change fields unread.
  * `permission_request`=50
  * PermissionRequestEvent (`request_id`=1 `tool_name`=2 `description`=3
  * `agent_id`=6). `metadata`=4 / `requested_by_client`=5 /
@@ -425,8 +429,8 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * `parent_tool_call_id`=6 unread (no public demux fields).
  * proto3: empty / 0 / false omitted. Unknown fields unread. Shape
  * matches OverlayDeltaJoin `streaming_delta` / `thinking_delta` /
- * `generating_tool` and demuxSessionStreamPayload `permission_request` /
- * `ask_user_question` / `client_tool_call`.
+ * `generating_tool` / `turn_lifecycle` and demuxSessionStreamPayload
+ * `permission_request` / `ask_user_question` / `client_tool_call`.
  */
 export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessionEvent {
 	const fields = readProtoFields(bytes);
@@ -474,6 +478,10 @@ export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessio
 	const generatingTool = lastBytes(fields, 34);
 	if (generatingTool) {
 		payload.generating_tool = decodeGeneratingToolEvent(generatingTool);
+	}
+	const turnLifecycle = lastBytes(fields, 37);
+	if (turnLifecycle) {
+		payload.turn_lifecycle = decodeTurnLifecycleEvent(turnLifecycle);
 	}
 	const permission = lastBytes(fields, 50);
 	if (permission) {
@@ -615,6 +623,31 @@ function decodeGeneratingToolEvent(bytes: Uint8Array): Record<string, unknown> {
 		turn_id: lastString(fields, 2) ?? '',
 		agent_id: lastString(fields, 3) ?? '',
 		tool_name: lastString(fields, 4) ?? '',
+	};
+}
+
+/**
+ * TurnLifecycleEvent — `runtime_epoch`=1; oneof `turn_started`=10
+ * `turn_completed`=11. OverlayDeltaJoin reads completed presence or
+ * `turn_started.turn_id`. proto3: empty / 0 omitted; oneof arm present
+ * even when nested payload is empty.
+ */
+function decodeTurnLifecycleEvent(bytes: Uint8Array): Record<string, unknown> {
+	const fields = readProtoFields(bytes);
+	const started = lastBytes(fields, 10);
+	const completed = lastBytes(fields, 11);
+	return {
+		runtime_epoch: numberOrZero(lastVarint(fields, 1)),
+		...(started ? { turn_started: decodeTurnStartedChange(started) } : {}),
+		...(completed ? { turn_completed: {} } : {}),
+	};
+}
+
+/** TurnStartedChange — `turn_id`=1. Fields 2–6 unread (no overlay join). */
+function decodeTurnStartedChange(bytes: Uint8Array): Record<string, unknown> {
+	const fields = readProtoFields(bytes);
+	return {
+		turn_id: lastString(fields, 1) ?? '',
 	};
 }
 
