@@ -302,7 +302,6 @@ import type {
 	UniverseAgentRemoteChatRequest,
 	UniverseAgentRemoteChatResponse,
 	UniverseAgentRemoteChatStream,
-	UniverseAgentRemoteResponse,
 	UniverseAgentRemoteAgentConfig,
 	UniverseAgentRemoteAgentInfo,
 	UniverseAgentCheckConnectionRequest,
@@ -515,15 +514,10 @@ import {
 	mapWriteGitWriteResponse,
 	type ConfigChangedEventWire,
 	type ConnectResponseWire,
-	type DownloadChunkWire,
-	type MemoryRebuildEventWire,
 	type PtyServerMessageWire,
-	type RemoteChatResponseWire,
-	type RemoteResponseWire,
 	type ResolveAnchorResponseWire,
 	type ResolveTurnResponseWire,
 	type SaveSkillContentResponseWire,
-	type SubscribeToolDetailChunkWire,
 	type UploadResponseWire,
 } from './grpcClientMappers.js';
 import {
@@ -628,6 +622,22 @@ import {
 	encodeRegenerateRequest,
 	encodeResumeRequest,
 } from './grpcAgentChatServerStreamWire.js';
+import {
+	decodeSubscribeToolDetailChunk,
+	encodeSubscribeToolDetailRequest,
+} from './grpcSubscribeToolDetailStreamWire.js';
+import {
+	decodeMemoryRebuildEvent,
+	encodeMemoryRebuildRequest,
+} from './grpcMemoryRebuildStreamWire.js';
+import {
+	decodeRemoteChatResponse,
+	encodeRemoteChatRequest,
+} from './grpcRemoteChatStreamWire.js';
+import {
+	decodeDownloadChunk,
+	encodeDownloadAttachmentRequest,
+} from './grpcDownloadAttachmentStreamWire.js';
 import {
 	decodeHistoryResponse,
 	encodeHistoryRequest,
@@ -1086,21 +1096,6 @@ function resolveAnchorRequestWire(request: UniverseAgentResolveAnchorRequest): R
 		wire.current_leaf_turn_id = request.currentLeafTurnId;
 	}
 	return wire;
-}
-function encodeRemoteResponse(response: UniverseAgentRemoteResponse): RemoteResponseWire {
-	return {
-		type: response.type,
-		request_id: response.requestId,
-		...(response.permission !== undefined ? {
-			permission: {
-				decision: response.permission.decision,
-				reason: response.permission.reason,
-			},
-		} : {}),
-		...(response.questionAnswersJson !== undefined ? {
-			question_answers_json: response.questionAnswersJson,
-		} : {}),
-	};
 }
 function mapPtyClientMessageWire(message: UniverseAgentPtyClientMessage): Record<string, unknown> {
 	const wire: Record<string, unknown> = {};
@@ -2198,20 +2193,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		onResponse: (response: UniverseAgentSubscribeToolDetailChunk) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentSubscribeToolDetailStream {
-		const stream = makeServerStreamClient<Record<string, unknown>, SubscribeToolDetailChunkWire>(
+		const stream = makeServerStreamBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.SubscribeToolDetail,
+			decodeSubscribeToolDetailChunk,
 		);
-		return stream({
-			session_id: request.sessionId,
-			tool_call_id: request.toolCallId,
-			detail_kind: request.detailKind,
-			ref_id: request.refId,
-			from_revision: request.fromRevision,
-			...(request.mimeType !== undefined ? { mime_type: request.mimeType } : {}),
-			...(request.tailBytes !== undefined ? { tail_bytes: request.tailBytes } : {}),
-		}, wire => onResponse(mapSubscribeToolDetailChunk(wire)), onClosed);
+		return stream(encodeSubscribeToolDetailRequest(request), wire => onResponse(mapSubscribeToolDetailChunk(wire)), onClosed);
 	}
 
 	async listSkills(): Promise<UniverseAgentListSkillsResult> {
@@ -2689,15 +2677,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		onResponse: (response: UniverseAgentMemoryRebuildEvent) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentMemoryRebuildStream {
-		const stream = makeServerStreamClient<Record<string, unknown>, MemoryRebuildEventWire>(
+		const stream = makeServerStreamBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Memory.service,
 			UniverseAgentGrpcServices.Memory.Rebuild,
+			decodeMemoryRebuildEvent,
 		);
-		return stream({
-			scope: request.scope,
-			dry_run: request.dryRun,
-		}, wire => onResponse(mapMemoryRebuildEvent(wire)), onClosed);
+		return stream(encodeMemoryRebuildRequest(request), wire => onResponse(mapMemoryRebuildEvent(wire)), onClosed);
 	}
 
 	async revertMemory(request: UniverseAgentRevertMemoryRequest): Promise<UniverseAgentRevertMemoryResult> {
@@ -2855,17 +2841,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		onResponse: (response: UniverseAgentRemoteChatResponse) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentRemoteChatStream {
-		const stream = makeServerStreamClient<Record<string, unknown>, RemoteChatResponseWire>(
+		const stream = makeServerStreamBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.RemoteAgent.service,
 			UniverseAgentGrpcServices.RemoteAgent.RemoteChat,
+			decodeRemoteChatResponse,
 		);
-		return stream({
-			call_id: request.callId,
-			task: request.task,
-			responses: request.responses.map(encodeRemoteResponse),
-			override_pending: request.overridePending,
-		}, wire => onResponse(mapRemoteChatResponse(wire)), onClosed);
+		return stream(encodeRemoteChatRequest(request), wire => onResponse(mapRemoteChatResponse(wire)), onClosed);
 	}
 
 	async createRemoteSession(request: UniverseAgentCreateRemoteSessionRequest): Promise<UniverseAgentCreateRemoteSessionResult> {
@@ -2964,18 +2946,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		onResponse: (response: UniverseAgentDownloadChunk) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentDownloadAttachmentStream {
-		const stream = makeServerStreamClient<Record<string, unknown>, DownloadChunkWire>(
+		const stream = makeServerStreamBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.FileTransfer.service,
 			UniverseAgentGrpcServices.FileTransfer.DownloadAttachment,
+			decodeDownloadChunk,
 		);
-		return stream({
-			file_path: request.filePath,
-			offset: request.offset,
-			max_bytes: request.maxBytes,
-			session_id: request.sessionId,
-			artifact_id: request.artifactId,
-		}, wire => onResponse(mapDownloadChunk(wire)), onClosed);
+		return stream(encodeDownloadAttachmentRequest(request), wire => onResponse(mapDownloadChunk(wire)), onClosed);
 	}
 
 	openPtyStream(

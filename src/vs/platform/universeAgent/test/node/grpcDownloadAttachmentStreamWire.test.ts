@@ -189,15 +189,16 @@ suite('grpc FileTransferService DownloadAttachment protobuf server-stream wire',
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('openDownloadAttachmentStream still JSON; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor', () => {
+	test('openDownloadAttachmentStream uses makeServerStreamBytesClient; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor/Upload', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const download = extractMethod(source, 'openDownloadAttachmentStream');
-		assert.ok(download.includes('makeServerStreamClient<Record<string, unknown>'), 'openDownloadAttachmentStream must stay JSON makeServerStreamClient');
-		assert.ok(!download.includes('makeServerStreamBytesClient'), 'openDownloadAttachmentStream must not use makeServerStreamBytesClient');
-		assert.ok(!download.includes('encodeDownloadAttachmentRequest'));
-		assert.ok(!download.includes('decodeDownloadChunk'));
-		assert.ok(!download.includes('grpcDownloadAttachmentStreamWire'));
-		assert.ok(source.includes('openDownloadAttachmentStream'));
+		assert.ok(download.includes('makeServerStreamBytesClient'), 'openDownloadAttachmentStream must use makeServerStreamBytesClient');
+		assert.ok(download.includes('encodeDownloadAttachmentRequest'), 'openDownloadAttachmentStream must call encodeDownloadAttachmentRequest');
+		assert.ok(download.includes('decodeDownloadChunk'), 'openDownloadAttachmentStream must call decodeDownloadChunk');
+		assert.ok(download.includes('mapDownloadChunk'), 'openDownloadAttachmentStream still calls mapDownloadChunk');
+		assert.ok(!download.includes('makeServerStreamClient<'), 'openDownloadAttachmentStream must not use JSON makeServerStreamClient');
+		assert.ok(!download.includes('JSON.stringify'), 'openDownloadAttachmentStream itself must not JSON.stringify');
+		assert.ok(source.includes('grpcDownloadAttachmentStreamWire'));
 
 		assert.ok(!extractMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractMethod(source, 'saveSkillContent').includes('makeUnaryClient<'));
@@ -211,6 +212,11 @@ suite('grpc FileTransferService DownloadAttachment protobuf server-stream wire',
 		const watch = extractMethod(source, 'openWatchConfigStream');
 		assert.ok(watch.includes('makeServerStreamClient<Record<string, unknown>'));
 		assert.ok(!watch.includes('makeServerStreamBytesClient'));
+
+		const upload = extractMethod(source, 'openUploadAttachmentStream');
+		assert.ok(upload.includes('makeClientStreamClient<'));
+		assert.ok(!upload.includes('makeClientStreamBytesClient'));
+		assert.ok(!upload.includes('makeServerStreamBytesClient'));
 	});
 });
 

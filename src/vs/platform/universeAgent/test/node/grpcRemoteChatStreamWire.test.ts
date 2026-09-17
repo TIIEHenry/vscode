@@ -413,17 +413,16 @@ suite('grpc RemoteAgentService RemoteChat protobuf server-stream wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('openRemoteChatStream stays JSON; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor', () => {
+	test('openRemoteChatStream uses makeServerStreamBytesClient; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor/Upload', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const remoteChat = extractMethod(source, 'openRemoteChatStream');
-		assert.ok(remoteChat.includes('makeServerStreamClient<Record<string, unknown>'), 'openRemoteChatStream must stay JSON makeServerStreamClient');
-		assert.ok(!remoteChat.includes('makeServerStreamBytesClient'), 'openRemoteChatStream must not use makeServerStreamBytesClient');
-		assert.ok(!remoteChat.includes('encodeRemoteChatRequest'), 'openRemoteChatStream must not call encodeRemoteChatRequest yet');
-		assert.ok(!remoteChat.includes('decodeRemoteChatResponse'), 'openRemoteChatStream must not call decodeRemoteChatResponse yet');
-		assert.ok(!remoteChat.includes('grpcRemoteChatStreamWire'));
-		assert.ok(remoteChat.includes('mapRemoteChatResponse'));
-		assert.ok(remoteChat.includes('call_id:'));
-		assert.ok(remoteChat.includes('override_pending:'));
+		assert.ok(remoteChat.includes('makeServerStreamBytesClient'), 'openRemoteChatStream must use makeServerStreamBytesClient');
+		assert.ok(remoteChat.includes('encodeRemoteChatRequest'), 'openRemoteChatStream must call encodeRemoteChatRequest');
+		assert.ok(remoteChat.includes('decodeRemoteChatResponse'), 'openRemoteChatStream must call decodeRemoteChatResponse');
+		assert.ok(remoteChat.includes('mapRemoteChatResponse'), 'openRemoteChatStream still calls mapRemoteChatResponse');
+		assert.ok(!remoteChat.includes('makeServerStreamClient<'), 'openRemoteChatStream must not use JSON makeServerStreamClient');
+		assert.ok(!remoteChat.includes('JSON.stringify'), 'openRemoteChatStream itself must not JSON.stringify');
+		assert.ok(source.includes('grpcRemoteChatStreamWire'));
 
 		assert.ok(!extractMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractMethod(source, 'saveSkillContent').includes('makeUnaryClient<'));
@@ -438,9 +437,10 @@ suite('grpc RemoteAgentService RemoteChat protobuf server-stream wire', () => {
 		assert.ok(watch.includes('makeServerStreamClient<Record<string, unknown>'));
 		assert.ok(!watch.includes('makeServerStreamBytesClient'));
 
-		const rebuild = extractMethod(source, 'openRebuildMemoryStream');
-		assert.ok(rebuild.includes('makeServerStreamClient<Record<string, unknown>'));
-		assert.ok(!rebuild.includes('makeServerStreamBytesClient'));
+		const upload = extractMethod(source, 'openUploadAttachmentStream');
+		assert.ok(upload.includes('makeClientStreamClient<'));
+		assert.ok(!upload.includes('makeClientStreamBytesClient'));
+		assert.ok(!upload.includes('makeServerStreamBytesClient'));
 	});
 });
 

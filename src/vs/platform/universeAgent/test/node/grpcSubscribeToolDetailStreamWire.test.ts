@@ -182,16 +182,16 @@ suite('grpc AgentService SubscribeToolDetail protobuf server-stream wire', () =>
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('openSubscribeToolDetailStream stays makeServerStreamClient JSON this slice; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor', () => {
+	test('openSubscribeToolDetailStream uses makeServerStreamBytesClient; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor/Upload', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const body = extractMethod(source, 'openSubscribeToolDetailStream');
-		assert.ok(body.includes('makeServerStreamClient<Record<string, unknown>'), 'openSubscribeToolDetailStream must stay JSON makeServerStreamClient this slice');
+		assert.ok(body.includes('makeServerStreamBytesClient'), 'openSubscribeToolDetailStream must use makeServerStreamBytesClient');
+		assert.ok(body.includes('encodeSubscribeToolDetailRequest'), 'openSubscribeToolDetailStream must call encodeSubscribeToolDetailRequest');
+		assert.ok(body.includes('decodeSubscribeToolDetailChunk'), 'openSubscribeToolDetailStream must call decodeSubscribeToolDetailChunk');
 		assert.ok(body.includes('mapSubscribeToolDetailChunk'), 'openSubscribeToolDetailStream still calls mapSubscribeToolDetailChunk');
-		assert.ok(!body.includes('makeServerStreamBytesClient'), 'openSubscribeToolDetailStream must not use makeServerStreamBytesClient this slice');
-		assert.ok(!body.includes('encodeSubscribeToolDetailRequest'), 'openSubscribeToolDetailStream must not call encodeSubscribeToolDetailRequest this slice');
-		assert.ok(!body.includes('decodeSubscribeToolDetailChunk'), 'openSubscribeToolDetailStream must not call decodeSubscribeToolDetailChunk this slice');
+		assert.ok(!body.includes('makeServerStreamClient<'), 'openSubscribeToolDetailStream must not use JSON makeServerStreamClient');
 		assert.ok(!body.includes('JSON.stringify'), 'openSubscribeToolDetailStream itself must not JSON.stringify');
-		assert.ok(!source.includes('grpcSubscribeToolDetailStreamWire'));
+		assert.ok(source.includes('grpcSubscribeToolDetailStreamWire'));
 
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryClient<'));
@@ -205,6 +205,11 @@ suite('grpc AgentService SubscribeToolDetail protobuf server-stream wire', () =>
 		const watch = extractMethod(source, 'openWatchConfigStream');
 		assert.ok(watch.includes('makeServerStreamClient<Record<string, unknown>'));
 		assert.ok(!watch.includes('makeServerStreamBytesClient'));
+
+		const upload = extractMethod(source, 'openUploadAttachmentStream');
+		assert.ok(upload.includes('makeClientStreamClient<'));
+		assert.ok(!upload.includes('makeClientStreamBytesClient'));
+		assert.ok(!upload.includes('makeServerStreamBytesClient'));
 	});
 });
 

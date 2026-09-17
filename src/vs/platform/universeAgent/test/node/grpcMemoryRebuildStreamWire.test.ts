@@ -171,15 +171,16 @@ suite('grpc MemoryService Rebuild protobuf server-stream wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('openRebuildMemoryStream stays JSON makeServerStreamClient; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor', () => {
+	test('openRebuildMemoryStream uses makeServerStreamBytesClient; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor/Upload', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const rebuild = extractMethod(source, 'openRebuildMemoryStream');
-		assert.ok(rebuild.includes('makeServerStreamClient<Record<string, unknown>'), 'openRebuildMemoryStream must stay JSON makeServerStreamClient');
-		assert.ok(!rebuild.includes('makeServerStreamBytesClient'), 'openRebuildMemoryStream must not use makeServerStreamBytesClient');
-		assert.ok(!rebuild.includes('encodeMemoryRebuildRequest'), 'openRebuildMemoryStream must not call encodeMemoryRebuildRequest');
-		assert.ok(!rebuild.includes('decodeMemoryRebuildEvent'), 'openRebuildMemoryStream must not call decodeMemoryRebuildEvent');
+		assert.ok(rebuild.includes('makeServerStreamBytesClient'), 'openRebuildMemoryStream must use makeServerStreamBytesClient');
+		assert.ok(rebuild.includes('encodeMemoryRebuildRequest'), 'openRebuildMemoryStream must call encodeMemoryRebuildRequest');
+		assert.ok(rebuild.includes('decodeMemoryRebuildEvent'), 'openRebuildMemoryStream must call decodeMemoryRebuildEvent');
 		assert.ok(rebuild.includes('mapMemoryRebuildEvent'), 'openRebuildMemoryStream still calls mapMemoryRebuildEvent');
-		assert.ok(!source.includes('grpcMemoryRebuildStreamWire'));
+		assert.ok(!rebuild.includes('makeServerStreamClient<'), 'openRebuildMemoryStream must not use JSON makeServerStreamClient');
+		assert.ok(!rebuild.includes('JSON.stringify'), 'openRebuildMemoryStream itself must not JSON.stringify');
+		assert.ok(source.includes('grpcMemoryRebuildStreamWire'));
 
 		assert.ok(!extractMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractMethod(source, 'saveSkillContent').includes('makeUnaryClient<'));
@@ -193,6 +194,11 @@ suite('grpc MemoryService Rebuild protobuf server-stream wire', () => {
 		const watch = extractMethod(source, 'openWatchConfigStream');
 		assert.ok(watch.includes('makeServerStreamClient<Record<string, unknown>'));
 		assert.ok(!watch.includes('makeServerStreamBytesClient'));
+
+		const upload = extractMethod(source, 'openUploadAttachmentStream');
+		assert.ok(upload.includes('makeClientStreamClient<'));
+		assert.ok(!upload.includes('makeClientStreamBytesClient'));
+		assert.ok(!upload.includes('makeServerStreamBytesClient'));
 	});
 });
 
