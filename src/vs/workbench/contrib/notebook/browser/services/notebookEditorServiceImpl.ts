@@ -6,6 +6,7 @@
 import { CodeWindow } from '../../../../../base/browser/window.js';
 import { ResourceMap } from '../../../../../base/common/map.js';
 import { getDefaultNotebookCreationOptions, NotebookEditorWidget } from '../notebookEditorWidget.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { DisposableStore, IDisposable } from '../../../../../base/common/lifecycle.js';
 import { IEditorGroupsService, IEditorGroup } from '../../../../services/editor/common/editorGroupsService.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
@@ -90,7 +91,7 @@ export class NotebookEditorWidgetService implements INotebookEditorService {
 			this.groupListener.set(id, listeners);
 		};
 		this._disposables.add(editorGroupService.onDidAddGroup(onNewGroup));
-		editorGroupService.whenReady.then(() => editorGroupService.groups.forEach(onNewGroup));
+		editorGroupService.whenReady.then(() => editorGroupService.groups.forEach(onNewGroup)).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// group removed -> clean up listeners, clean up widgets
 		this._disposables.add(editorGroupService.onDidRemoveGroup(group => {

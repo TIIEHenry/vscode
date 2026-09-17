@@ -9,6 +9,7 @@ import { localize } from '../../../../../../nls.js';
 import * as DOM from '../../../../../../base/browser/dom.js';
 import { raceCancellation } from '../../../../../../base/common/async.js';
 import { CancellationTokenSource } from '../../../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Codicon } from '../../../../../../base/common/codicons.js';
 import { Event } from '../../../../../../base/common/event.js';
 import { Disposable, IDisposable, toDisposable } from '../../../../../../base/common/lifecycle.js';
@@ -172,7 +173,7 @@ export class CodeCell extends Disposable {
 					insertSpaces: this._cellEditorOptions.insertSpaces,
 				});
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _pendingLayout: IDisposable | undefined;
@@ -254,7 +255,7 @@ export class CodeCell extends Disposable {
 			}
 
 			this._register(this._cellEditorOptions.onDidChange(() => this.updateCodeCellOptions(this.templateData)));
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private updateForOutputs(): void {
