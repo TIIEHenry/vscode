@@ -173,7 +173,7 @@ export class ChatGroupsView extends Themable {
 			isChatDrag: event => isSessionChatDrag(event, session.sessionId),
 			findTargetGroup: child => this._findTargetGroup(child),
 			onChatDrop: (groupId, zone, data) => {
-				this._onChatDrop(groupId, zone, data).catch(onUnexpectedError);
+				this._onChatDrop(groupId, zone, data).catch(onUnexpectedError).catch(onUnexpectedError);
 			},
 		};
 		store.add(this._instantiationService.createInstance(ChatGroupDropTarget, this.element, dropDelegate));
@@ -491,7 +491,7 @@ export class ChatGroupsView extends Themable {
 			target.activeResourceId.set(id, tx);
 		});
 		this._setActiveGroup(target);
-		this._sessionsService.openChat(this._session!, resource).catch(onUnexpectedError);
+		this._sessionsService.openChat(this._session!, resource).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._removeEmptyGroups();
 		this._persistLayout();
 	}
@@ -667,13 +667,13 @@ export class ChatGroupsView extends Themable {
 				this._setActiveGroup(source);
 				return;
 			}
-			this._splitChatIntoNewGroup(resource, source, source, 'right').catch(onUnexpectedError);
+			this._splitChatIntoNewGroup(resource, source, source, 'right').catch(onUnexpectedError).catch(onUnexpectedError);
 			return;
 		}
 		// Not assigned yet: only open to the side when there is another chat to
 		// sit beside; otherwise let the normal reconcile assign it in place.
 		if (this._groups.some(g => g.resourceIds.get().some(x => x !== id))) {
-			this.openChatInNewGroup(resource).catch(onUnexpectedError);
+			this.openChatInNewGroup(resource).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -731,7 +731,7 @@ export class ChatGroupsView extends Themable {
 		const session = this._session;
 		const activeResourceId = entry.activeResourceId.get();
 		if (session && activeResourceId && session.activeChat.get().resource.toString() !== activeResourceId) {
-			this._sessionsService.openChat(session, URI.parse(activeResourceId)).catch(onUnexpectedError);
+			this._sessionsService.openChat(session, URI.parse(activeResourceId)).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		if (!this._grid || this._groups.length < 2 || !this._isGroupCollapsed(entry.view)) {
@@ -773,7 +773,7 @@ export class ChatGroupsView extends Themable {
 		entry.activeResourceId.set(resource.toString(), undefined);
 		this._setActiveGroup(entry);
 		if (this._session) {
-			this._sessionsService.openChat(this._session, resource).catch(onUnexpectedError);
+			this._sessionsService.openChat(this._session, resource).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -792,7 +792,7 @@ export class ChatGroupsView extends Themable {
 		const source = this._activeGroup;
 		const resource = source?.activeResourceId.get();
 		if (source && resource && source.resourceIds.get().length > 1) {
-			this._splitChatIntoNewGroup(URI.parse(resource), source, source, direction).catch(onUnexpectedError);
+			this._splitChatIntoNewGroup(URI.parse(resource), source, source, direction).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
