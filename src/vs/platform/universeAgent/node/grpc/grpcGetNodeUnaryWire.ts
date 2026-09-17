@@ -81,7 +81,7 @@ export function decodeGetNodeResponse(bytes: Uint8Array): RemoteAgentInfoWire {
 	return decodeRemoteAgentInfoScalars(bytes);
 }
 
-/** Local decode of RemoteAgentInfo including nested capabilities/load. */
+/** Local decode of RemoteAgentInfo including nested capabilities/load. Shared by ListNodes. */
 export function decodeRemoteAgentInfoScalars(bytes: Uint8Array): RemoteAgentInfoWire {
 	const fields = readProtoFields(bytes);
 	const tags = allLengthDelimited(fields, 6).map(value => Buffer.from(value).toString('utf8'));

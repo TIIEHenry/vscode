@@ -64,7 +64,40 @@ suite('grpc RemoteAgentService ListNodes protobuf wire', () => {
 		}).length, 0);
 	});
 
-	test('decodeListNodesResponse reads nodes=1 RemoteAgentInfo 1-6 and 9; field 7/8 unread', () => {
+	test('decodeListNodesResponse reads nodes=1 RemoteAgentInfo 1-9 including nested capabilities=7 load=8', () => {
+		const model = Buffer.concat([
+			encodeStringField(1, 'gemini-flash'),
+			encodeStringField(2, 'Gemini Flash'),
+			encodeStringField(3, 'google'),
+			encodeInt64Field(4, 8192),
+			encodeInt32Field(5, 1),
+			encodeStringField(6, 'unused-model'),
+		]);
+		const sparseModel = encodeStringField(1, 'local-7b');
+		const properties = Buffer.concat([
+			encodeStringField(1, 'region'),
+			encodeStringField(2, 'us-east'),
+			encodeStringField(3, 'unused-property'),
+		]);
+		const capabilities = Buffer.concat([
+			encodeMessageField(1, model),
+			encodeMessageField(1, sparseModel),
+			encodeStringField(2, 'bash'),
+			encodeStringField(2, 'read'),
+			encodeStringField(3, 'agent'),
+			encodeStringField(3, 'plan'),
+			encodeStringField(4, '1.2.3'),
+			encodeStringField(5, 'v1'),
+			encodeMessageField(6, properties),
+			encodeStringField(7, 'unused-capabilities'),
+		]);
+		const load = Buffer.concat([
+			encodeInt32Field(1, 3),
+			encodeInt32Field(2, 7),
+			encodeInt32Field(3, 42),
+			encodeInt64Field(4, 1024),
+			encodeStringField(5, 'unused-load'),
+		]);
 		const node = Buffer.concat([
 			encodeStringField(1, 'node-1'),
 			encodeStringField(2, 'galaxy'),
@@ -73,8 +106,8 @@ suite('grpc RemoteAgentService ListNodes protobuf wire', () => {
 			encodeStringField(5, '127.0.0.1:50061'),
 			encodeStringField(6, 'gpu'),
 			encodeStringField(6, 'prod'),
-			encodeMessageField(7, encodeStringField(1, 'unused-cap')),
-			encodeMessageField(8, encodeStringField(1, 'unused-load')),
+			encodeMessageField(7, capabilities),
+			encodeMessageField(8, load),
 			encodeInt64Field(9, 1700000000),
 			encodeStringField(10, 'unused-node'),
 		]);
@@ -100,6 +133,35 @@ suite('grpc RemoteAgentService ListNodes protobuf wire', () => {
 					status: 'ONLINE',
 					endpoint: '127.0.0.1:50061',
 					tags: ['gpu', 'prod'],
+					capabilities: {
+						models: [
+							{
+								id: 'gemini-flash',
+								name: 'Gemini Flash',
+								provider: 'google',
+								max_tokens: 8192,
+								enabled: true,
+							},
+							{
+								id: 'local-7b',
+								name: undefined,
+								provider: undefined,
+								max_tokens: undefined,
+								enabled: undefined,
+							},
+						],
+						tools: ['bash', 'read'],
+						modes: ['agent', 'plan'],
+						server_version: '1.2.3',
+						protocol_version: 'v1',
+						properties: { region: 'us-east' },
+					},
+					load: {
+						active_sessions: 3,
+						queue_depth: 7,
+						cpu_percent: 42,
+						memory_used_mb: 1024,
+					},
 					last_heartbeat_at: 1700000000,
 				},
 				{
@@ -108,15 +170,15 @@ suite('grpc RemoteAgentService ListNodes protobuf wire', () => {
 					description: undefined,
 					status: 'OFFLINE',
 					endpoint: undefined,
-					tags: [],
+					tags: undefined,
+					capabilities: undefined,
+					load: undefined,
 					last_heartbeat_at: undefined,
 				},
 			],
 			total: 4,
 			online_count: 1,
 		});
-		assert.ok(!('capabilities' in (wire.nodes?.[0] ?? {})));
-		assert.ok(!('load' in (wire.nodes?.[0] ?? {})));
 		assert.ok(!('unused' in wire));
 		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
 		assert.deepStrictEqual(mapListNodesResponse(wire), {
@@ -129,18 +191,33 @@ suite('grpc RemoteAgentService ListNodes protobuf wire', () => {
 					endpoint: '127.0.0.1:50061',
 					tags: ['gpu', 'prod'],
 					capabilities: {
-						models: [],
-						tools: [],
-						modes: [],
-						serverVersion: '',
-						protocolVersion: '',
-						properties: {},
+						models: [
+							{
+								id: 'gemini-flash',
+								name: 'Gemini Flash',
+								provider: 'google',
+								maxTokens: 8192,
+								enabled: true,
+							},
+							{
+								id: 'local-7b',
+								name: '',
+								provider: '',
+								maxTokens: 0,
+								enabled: false,
+							},
+						],
+						tools: ['bash', 'read'],
+						modes: ['agent', 'plan'],
+						serverVersion: '1.2.3',
+						protocolVersion: 'v1',
+						properties: { region: 'us-east' },
 					},
 					load: {
-						activeSessions: 0,
-						queueDepth: 0,
-						cpuPercent: 0,
-						memoryUsedMb: 0,
+						activeSessions: 3,
+						queueDepth: 7,
+						cpuPercent: 42,
+						memoryUsedMb: 1024,
 					},
 					lastHeartbeatAt: 1700000000,
 				},
@@ -180,7 +257,9 @@ suite('grpc RemoteAgentService ListNodes protobuf wire', () => {
 				description: undefined,
 				status: undefined,
 				endpoint: undefined,
-				tags: [],
+				tags: undefined,
+				capabilities: undefined,
+				load: undefined,
 				last_heartbeat_at: undefined,
 			}],
 			total: undefined,
@@ -232,6 +311,8 @@ suite('grpc RemoteAgentService ListNodes protobuf wire', () => {
 		assert.ok(!source.includes('JSON.stringify'));
 		assert.ok(/\bencodeListNodesRequest\b/.test(source));
 		assert.ok(/\bdecodeListNodesResponse\b/.test(source));
+		assert.ok(/\bdecodeRemoteAgentInfoScalars\b/.test(source));
+		assert.ok(source.includes('grpcGetNodeUnaryWire'));
 		assert.ok(/\bencodeStringField\b/.test(source));
 		assert.ok(/\ballLengthDelimited\b/.test(source));
 		assert.ok(/\blastVarint\b/.test(source));

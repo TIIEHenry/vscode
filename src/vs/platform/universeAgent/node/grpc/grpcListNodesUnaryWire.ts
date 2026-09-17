@@ -5,10 +5,10 @@
 
 import type { UniverseAgentListNodesRequest } from '../../common/universeAgentTypes.js';
 import type { ListNodesResponseWire, RemoteAgentInfoWire } from './grpcClientMappersCatalog.js';
+import { decodeRemoteAgentInfoScalars } from './grpcGetNodeUnaryWire.js';
 import {
 	allLengthDelimited,
 	encodeStringField,
-	lastString,
 	lastVarint,
 	readProtoFields,
 } from './grpcProtoCodec.js';
@@ -28,30 +28,18 @@ export function encodeListNodesRequest(request: UniverseAgentListNodesRequest): 
 
 /**
  * ListNodesResponse — repeated `nodes`=1 (RemoteAgentInfo) `total`=2 `online_count`=3.
- * RemoteAgentInfo scalars: `id`=1 `name`=2 `description`=3 `status`=4 `endpoint`=5
- * repeated `tags`=6 `last_heartbeat_at`=9. Nested field 7/8 unread this slice.
- * proto3: empty / 0 omitted. Unknown fields unread.
+ * RemoteAgentInfo: `id`=1 `name`=2 `description`=3 `status`=4 `endpoint`=5
+ * repeated `tags`=6 `capabilities`=7 `load`=8 `last_heartbeat_at`=9.
+ * Nested capabilities/load decoded via `decodeRemoteAgentInfoScalars`
+ * (same numbers/shape as GetNode). proto3: empty / 0 omitted. Unknown fields unread.
  * Shape matches `ListNodesResponseWire` / `RemoteAgentInfoWire` / `mapListNodesResponse`.
  */
 export function decodeListNodesResponse(bytes: Uint8Array): ListNodesResponseWire {
 	const fields = readProtoFields(bytes);
 	return {
-		nodes: allLengthDelimited(fields, 1).map(decodeRemoteAgentInfo),
+		nodes: allLengthDelimited(fields, 1).map(decodeRemoteAgentInfoScalars),
 		total: numberOrUndefined(lastVarint(fields, 2)),
 		online_count: numberOrUndefined(lastVarint(fields, 3)),
-	};
-}
-
-function decodeRemoteAgentInfo(bytes: Uint8Array): RemoteAgentInfoWire {
-	const fields = readProtoFields(bytes);
-	return {
-		id: lastString(fields, 1),
-		name: lastString(fields, 2),
-		description: lastString(fields, 3),
-		status: lastString(fields, 4),
-		endpoint: lastString(fields, 5),
-		tags: allLengthDelimited(fields, 6).map(value => Buffer.from(value).toString('utf8')),
-		last_heartbeat_at: numberOrUndefined(lastVarint(fields, 9)),
 	};
 }
 
