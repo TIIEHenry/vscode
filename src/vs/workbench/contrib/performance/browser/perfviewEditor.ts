@@ -5,6 +5,7 @@
 
 import { localize } from '../../../../nls.js';
 import { URI } from '../../../../base/common/uri.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { TextResourceEditorInput } from '../../../common/editor/textResourceEditorInput.js';
 import { ITextModelService, ITextModelContentProvider } from '../../../../editor/common/services/resolverService.js';
 import { ITextModel } from '../../../../editor/common/model.js';
@@ -164,7 +165,7 @@ export class PerfModelContentProvider implements ITextModelContentProvider {
 
 				this._model.setValue(md.value);
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 	}
 
