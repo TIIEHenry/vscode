@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "SessionStream + L2 leftover 已合入。catch 含 sources D677、UA D678。D24 仍开。不是 leftover/pills 完成。"
+summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D680。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -14,18 +14,13 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 sources D677、UA D6
 | 切片 | 提交 |
 |:-----|:-----|
 | **A SessionStream / L2** | 16/23/30–32/34–39/44/46/50–52；envelope leftover |
-| **catch** | 终端进度条；chat picker；sources D677；UA D678 |
+| **catch** | 终端进度条；chat picker；sources D677；UA D678；chat D679；conversation D680 |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A** | leftover Promise 双链（chat find/picker/paste/notify/feedback，7 处；D24 仍开） |
-| **B** | 脏；跳过 |
-| **C** | gitlink 脏；勿 add |
-| **D** | identity/visualize leftover Promise 双链已套；D24 仍开；不是 leftover/pills 完成 |
-| **E** | blocked |
-| **edit** | ff-only 失败 |
+| **A–J** | 关仓后 idle（B 脏跳过；C gitlink 勿 add；E blocked；edit ff-only 失败） |
 
 子 agent 发现：
 | ID | 问题 |
