@@ -399,7 +399,7 @@ export class SessionInputBanners extends Disposable {
 		const revealCI: ISessionInputBannerAction = {
 			id: 'revealCI',
 			label: localize('inputBanner.revealCI', "Reveal CI"),
-			run: () => { if (!state.debug) { void this._revealPullRequest(state.pullRequest).catch(onUnexpectedError); } },
+			run: () => { if (!state.debug) { void this._revealPullRequest(state.pullRequest).catch(onUnexpectedError).catch(onUnexpectedError); } },
 		};
 		const revealComments: ISessionInputBannerAction = {
 			id: 'revealComments',
