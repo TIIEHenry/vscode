@@ -182,7 +182,7 @@ export class CodexAccountService extends Disposable implements ICodexAccountServ
 			}
 			this._account = { ...this._rootAccount, profileImageDataUri };
 			this._onDidChangeAccount.fire(this._account);
-		}).catch(onUnexpectedError);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 
