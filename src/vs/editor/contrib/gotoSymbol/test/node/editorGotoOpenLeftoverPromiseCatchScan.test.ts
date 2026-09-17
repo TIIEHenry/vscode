@@ -131,7 +131,7 @@ suite('editor goto/open leftover Promise fire-and-forget catch scan (D725)', () 
 		assert.ok(source.includes('const otherEditor = await this._editorService.openCodeEditor({'));
 	});
 
-	test('opener / Resolve / two-arg then / Action2.run / gpu / widget executeCommand / Connect / Watch / Pty stay skipped', () => {
+	test('opener / Resolve / two-arg then / Action2.run / gpu sync void / widget Action.run / Connect / Watch / Pty stay skipped', () => {
 		const marker = fs.readFileSync(resolveSource(MARKER_REL), 'utf8');
 		const links = fs.readFileSync(resolveSource(LINKS_REL), 'utf8');
 		const word = fs.readFileSync(resolveSource(WORD_REL), 'utf8');
@@ -151,10 +151,13 @@ suite('editor goto/open leftover Promise fire-and-forget catch scan (D725)', () 
 		assert.ok(!fold.includes('}).then(undefined, onUnexpectedError).catch(onUnexpectedError)'));
 		assert.ok(inlay.includes('labelPart.item.resolve(cts.token);'));
 		assert.ok(!inlay.includes('labelPart.item.resolve(cts.token).catch(onUnexpectedError)'));
-		assert.ok(gpu.includes('instantiationService.invokeFunction(async accessor => {'));
-		assert.ok(!gpu.includes(doubleCatch));
-		assert.ok(widget.includes('this._commandService.executeCommand(handlerId, payload);'));
-		assert.ok(!widget.includes('this._commandService.executeCommand(handlerId, payload).catch(onUnexpectedError)'));
+		assert.ok(gpu.includes('instantiationService.invokeFunction(accessor => {'));
+		assert.ok(gpu.includes("logService.info(['Texture atlas stats', ...stats].join('\\n\\n'));\n\t\t\t\t});"));
+		assert.ok(!gpu.includes("logService.info(['Texture atlas stats', ...stats].join('\\n\\n'));\n\t\t\t\t}).catch(onUnexpectedError)"));
+		assert.ok(widget.includes('Promise.resolve(action.run(payload)).then(undefined, onUnexpectedError);'));
+		assert.ok(!widget.includes('Promise.resolve(action.run(payload)).then(undefined, onUnexpectedError).catch(onUnexpectedError)'));
+		assert.ok(widget.includes("this._commandService.executeCommand('editor.action.startFindReplaceAction');"));
+		assert.ok(!widget.includes("this._commandService.executeCommand('editor.action.startFindReplaceAction').catch(onUnexpectedError)"));
 		assert.ok(gotoCmd.includes('accessor.get(IInstantiationService).invokeFunction(command.run.bind(command), editor);'));
 		for (const source of [marker, links, word, fold, inlay, gpu, widget, gotoCmd]) {
 			assert.ok(!source.includes('acknowledge('));

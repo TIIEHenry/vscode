@@ -1163,7 +1163,7 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 	}
 
 	protected _triggerCommand(handlerId: string, payload: unknown): void {
-		this._commandService.executeCommand(handlerId, payload);
+		this._commandService.executeCommand(handlerId, payload).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _startComposition(): void {
@@ -1947,25 +1947,25 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 			commandDelegate = {
 				paste: (text: string, pasteOnNewLine: boolean, multicursorText: string[] | null, mode: string | null) => {
 					const payload: editorBrowser.PastePayload = { text, pasteOnNewLine, multicursorText, mode };
-					this._commandService.executeCommand(editorCommon.Handler.Paste, payload);
+					this._commandService.executeCommand(editorCommon.Handler.Paste, payload).catch(onUnexpectedError).catch(onUnexpectedError);
 				},
 				type: (text: string) => {
 					const payload: editorCommon.TypePayload = { text };
-					this._commandService.executeCommand(editorCommon.Handler.Type, payload);
+					this._commandService.executeCommand(editorCommon.Handler.Type, payload).catch(onUnexpectedError).catch(onUnexpectedError);
 				},
 				compositionType: (text: string, replacePrevCharCnt: number, replaceNextCharCnt: number, positionDelta: number) => {
 					// Try if possible to go through the existing `replacePreviousChar` command
 					if (replaceNextCharCnt || positionDelta) {
 						// must be handled through the new command
 						const payload: editorCommon.CompositionTypePayload = { text, replacePrevCharCnt, replaceNextCharCnt, positionDelta };
-						this._commandService.executeCommand(editorCommon.Handler.CompositionType, payload);
+						this._commandService.executeCommand(editorCommon.Handler.CompositionType, payload).catch(onUnexpectedError).catch(onUnexpectedError);
 					} else {
 						const payload: editorCommon.ReplacePreviousCharPayload = { text, replaceCharCnt: replacePrevCharCnt };
-						this._commandService.executeCommand(editorCommon.Handler.ReplacePreviousChar, payload);
+						this._commandService.executeCommand(editorCommon.Handler.ReplacePreviousChar, payload).catch(onUnexpectedError).catch(onUnexpectedError);
 					}
 				},
 				startComposition: () => {
-					this._commandService.executeCommand(editorCommon.Handler.CompositionStart, {});
+					this._commandService.executeCommand(editorCommon.Handler.CompositionStart, {}).catch(onUnexpectedError).catch(onUnexpectedError);
 				},
 				endComposition: () => {
 					this._commandService.executeCommand(editorCommon.Handler.CompositionEnd, {});

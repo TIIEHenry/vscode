@@ -5,6 +5,7 @@
 
 import { getActiveWindow } from '../../../../base/browser/dom.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { URI } from '../../../../base/common/uri.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -88,7 +89,7 @@ class DebugEditorGpuRendererAction extends EditorAction {
 						}
 						await Promise.all(promises);
 					}
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 				break;
 			case 'drawGlyph':
 				instantiationService.invokeFunction(async accessor => {
@@ -137,7 +138,7 @@ class DebugEditorGpuRendererAction extends EditorAction {
 					const blob = await canvas.convertToBlob({ type: 'image/png' });
 					const resource = URI.joinPath(folders[0].uri, `glyph_${chars}_${tokenMetadata}_${fontSize}px_${fontFamily.replaceAll(/[,\\\/\.'\s]/g, '_')}.png`);
 					await fileService.writeFile(resource, VSBuffer.wrap(new Uint8Array(await blob.arrayBuffer())));
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 				break;
 		}
 	}
