@@ -148,14 +148,14 @@ export class AICustomizationOverviewView extends ViewPane {
 
 			// Click handler to open the management editor overview
 			this._register(DOM.addDisposableListener(sectionElement, 'click', () => {
-				this.openOverview();
+				void this.openOverview().catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 
 			// Keyboard support
 			this._register(DOM.addDisposableListener(sectionElement, 'keydown', (e: KeyboardEvent) => {
 				if (e.key === 'Enter' || e.key === ' ') {
 					e.preventDefault();
-					this.openOverview();
+					void this.openOverview().catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}));
 
