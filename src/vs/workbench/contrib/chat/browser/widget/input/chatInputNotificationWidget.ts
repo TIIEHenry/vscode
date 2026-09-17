@@ -8,6 +8,7 @@ import { Button } from '../../../../../../base/browser/ui/button/button.js';
 import { getDefaultHoverDelegate } from '../../../../../../base/browser/ui/hover/hoverDelegateFactory.js';
 import { WorkbenchActionExecutedClassification, WorkbenchActionExecutedEvent } from '../../../../../../base/common/actions.js';
 import { Codicon } from '../../../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { IStringDictionary } from '../../../../../../base/common/collections.js';
 import { isMarkdownString } from '../../../../../../base/common/htmlContent.js';
 import { Disposable, DisposableStore } from '../../../../../../base/common/lifecycle.js';
@@ -361,7 +362,7 @@ export class ChatInputNotificationWidget extends Disposable implements IChatInpu
 					button.element.ariaLabel = `${ariaTitle} ${action.label}`;
 
 					this._contentDisposables.add(button.onDidClick(() => {
-						void this._executeAction(notification, action);
+						void this._executeAction(notification, action).catch(onUnexpectedError).catch(onUnexpectedError);
 					}));
 				}
 			}

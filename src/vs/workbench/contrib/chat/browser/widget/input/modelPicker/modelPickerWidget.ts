@@ -16,6 +16,7 @@ import { Emitter, Event } from '../../../../../../../base/common/event.js';
 import { KeyCode } from '../../../../../../../base/common/keyCodes.js';
 import { Disposable, DisposableStore, MutableDisposable } from '../../../../../../../base/common/lifecycle.js';
 import { disposableTimeout } from '../../../../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../../../../base/common/errors.js';
 import { autorun, IObservable } from '../../../../../../../base/common/observable.js';
 import { URI } from '../../../../../../../base/common/uri.js';
 import { localize } from '../../../../../../../nls.js';
@@ -481,7 +482,7 @@ export class ModelPickerWidget extends Disposable {
 				onSelect,
 				onTogglePin,
 				onConfigure,
-				onRequestTrust: () => { void this._requestWorkspaceTrust(); },
+				onRequestTrust: () => { void this._requestWorkspaceTrust().catch(onUnexpectedError).catch(onUnexpectedError); },
 				onRequestSetup: () => { this._requestSetup(); },
 			},
 		});

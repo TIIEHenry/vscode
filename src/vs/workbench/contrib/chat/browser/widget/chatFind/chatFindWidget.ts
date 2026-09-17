@@ -6,6 +6,7 @@
 import './chatFindWidget.css';
 import * as dom from '../../../../../../base/browser/dom.js';
 import { DeferredPromise, Delayer } from '../../../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { createRegExp } from '../../../../../../base/common/strings.js';
 import { isDefined } from '../../../../../../base/common/types.js';
 import { Event } from '../../../../../../base/common/event.js';
@@ -354,7 +355,7 @@ export class ChatFindWidget extends SimpleFindWidget implements IChatFindControl
 		if (this._flushPendingSearch()) {
 			// The query was not searched yet, so Enter lands on its first match, not its second.
 			this._navigateToActive();
-			void this.updateResultCount();
+			void this.updateResultCount().catch(onUnexpectedError).catch(onUnexpectedError);
 			return;
 		}
 		this._advanceActiveMatch(previous);
@@ -381,7 +382,7 @@ export class ChatFindWidget extends SimpleFindWidget implements IChatFindControl
 			this._model.next();
 		}
 		this._navigateToActive();
-		void this.updateResultCount();
+		void this.updateResultCount().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	/**
@@ -536,7 +537,7 @@ export class ChatFindWidget extends SimpleFindWidget implements IChatFindControl
 	}
 
 	private _onMatchesChanged(): void {
-		void this.updateResultCount();
+		void this.updateResultCount().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _navigateToActive(): void {

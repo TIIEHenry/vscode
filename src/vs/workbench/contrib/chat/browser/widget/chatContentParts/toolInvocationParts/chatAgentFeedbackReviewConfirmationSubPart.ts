@@ -9,6 +9,7 @@ import { getDefaultHoverDelegate } from '../../../../../../../base/browser/ui/ho
 import { Checkbox } from '../../../../../../../base/browser/ui/toggle/toggle.js';
 import { Action } from '../../../../../../../base/common/actions.js';
 import { Codicon } from '../../../../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../../../base/common/event.js';
 import { DisposableMap, DisposableStore, toDisposable } from '../../../../../../../base/common/lifecycle.js';
 import { basename } from '../../../../../../../base/common/resources.js';
@@ -84,7 +85,7 @@ export class ChatAgentFeedbackReviewConfirmationSubPart extends AbstractToolConf
 		this._resourceLabels = this._register(this.instantiationService.createInstance(ResourceLabels, DEFAULT_LABELS_CONTAINER));
 
 		const listElement = dom.$('.chat-agent-feedback-review-list');
-		void this._populate(listElement);
+		void this._populate(listElement).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		const revealLabel = data.options[0] ?? localize('agentFeedback.reveal', "Reveal Selected");
 		const buttons: IChatConfirmationButton<() => void>[] = [

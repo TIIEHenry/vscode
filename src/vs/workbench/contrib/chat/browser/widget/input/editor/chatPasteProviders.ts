@@ -5,6 +5,7 @@
 import { alert } from '../../../../../../../base/browser/ui/aria/aria.js';
 import { CancellationToken } from '../../../../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../../../../base/common/errors.js';
 import { createStringDataTransferItem, IDataTransferItem, IReadonlyVSDataTransfer, VSDataTransfer } from '../../../../../../../base/common/dataTransfer.js';
 import { convertHtmlToMarkdown } from '../../../../../../../base/browser/htmlToMarkdown.js';
 import { HierarchicalKind } from '../../../../../../../base/common/hierarchicalKind.js';
@@ -219,7 +220,7 @@ export class CopyTextProvider implements DocumentPasteEditProvider {
 
 		const text = dataTransfer.get(Mimes.text);
 		if (text && ranges.length) {
-			void this.primeSymbolReferenceCache(model, ranges[0], text, token);
+			void this.primeSymbolReferenceCache(model, ranges[0], text, token).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		return customDataTransfer;

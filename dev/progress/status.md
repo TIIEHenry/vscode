@@ -20,7 +20,7 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 sources D677、UA D6
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A** | leftover catch 再猎（忽略账本完成措辞） |
+| **A** | leftover Promise 双链（chat find/picker/paste/notify/feedback，7 处；D24 仍开） |
 | **B** | 脏；跳过 |
 | **C** | gitlink 脏；勿 add |
 | **E** | blocked |
