@@ -7,7 +7,7 @@ import type * as vscode from 'vscode';
 import { coalesce } from '../../../base/common/arrays.js';
 import { DeferredPromise } from '../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../base/common/cancellation.js';
-import { CancellationError } from '../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable, DisposableStore, toDisposable } from '../../../base/common/lifecycle.js';
 import { ResourceMap, ResourceSet } from '../../../base/common/map.js';
@@ -299,7 +299,7 @@ class ChatSessionItemCollectionImpl implements vscode.ChatSessionItemCollection 
 		}
 
 		this.#items = newItemsMap;
-		void this.#proxy.$updateChatSessionItems(this.#controllerHandle, convertChatSessionDeltaToDto(delta));
+		void this.#proxy.$updateChatSessionItems(this.#controllerHandle, convertChatSessionDeltaToDto(delta)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	forEach(callback: (item: vscode.ChatSessionItem, collection: vscode.ChatSessionItemCollection) => unknown, thisArg?: any): void {
@@ -324,7 +324,7 @@ class ChatSessionItemCollectionImpl implements vscode.ChatSessionItemCollection 
 			void this.#proxy.$updateChatSessionItems(this.#controllerHandle, {
 				addedOrUpdated: [],
 				removed: [resource]
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

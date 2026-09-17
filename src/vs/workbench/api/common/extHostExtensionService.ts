@@ -705,7 +705,7 @@ export abstract class AbstractExtHostExtensionService extends Disposable impleme
 
 		Promise.race([eagerExtensionsActivation, timeout(10000)]).then(() => {
 			this._activateAllStartupFinished();
-		});
+		}).catch(errors.onUnexpectedError).catch(errors.onUnexpectedError);
 
 		return eagerExtensionsActivation;
 	}

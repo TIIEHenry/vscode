@@ -6,6 +6,7 @@
 import { asArray } from '../../../base/common/arrays.js';
 import { DeferredPromise, timeout } from '../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../base/common/lifecycle.js';
 import { ResourceMap } from '../../../base/common/map.js';
@@ -852,7 +853,7 @@ class TimeoutBasedCollector<T> {
 			this.startedTimer = Date.now();
 			timeout(this.delay).then(() => {
 				return this.flush();
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		// This can be called by the extension repeatedly for a long time before the timeout is able to run.
