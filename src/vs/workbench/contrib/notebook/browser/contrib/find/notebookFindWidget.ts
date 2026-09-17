@@ -7,6 +7,7 @@ import * as DOM from '../../../../../../base/browser/dom.js';
 import { IKeyboardEvent } from '../../../../../../base/browser/keyboardEvent.js';
 import { alert as alertFn } from '../../../../../../base/browser/ui/aria/aria.js';
 import { KeyCode, KeyMod } from '../../../../../../base/common/keyCodes.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Lazy } from '../../../../../../base/common/lazy.js';
 import { Disposable } from '../../../../../../base/common/lifecycle.js';
 import * as strings from '../../../../../../base/common/strings.js';
@@ -237,7 +238,7 @@ class NotebookFindWidget extends SimpleFindReplaceWidget implements INotebookEdi
 			const viewModel = this._notebookEditor.getViewModel();
 			viewModel.replaceOne(cell, match.range, replaceString).then(() => {
 				this._progressBar.stop();
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			// this should not work
 			console.error('Replace does not work for output match');
@@ -265,7 +266,7 @@ class NotebookFindWidget extends SimpleFindReplaceWidget implements INotebookEdi
 		const viewModel = this._notebookEditor.getViewModel();
 		viewModel.replaceAll(this._findModel.findMatches, replaceStrings).then(() => {
 			this._progressBar.stop();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	protected findFirst(): void { }

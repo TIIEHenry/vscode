@@ -6,6 +6,7 @@
 import { findFirstIdxMonotonousOrArrLen } from '../../../../../../base/common/arraysFind.js';
 import { CancelablePromise, createCancelablePromise, Delayer } from '../../../../../../base/common/async.js';
 import { CancellationToken } from '../../../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Disposable, DisposableStore } from '../../../../../../base/common/lifecycle.js';
 import { Range } from '../../../../../../editor/common/core/range.js';
 import { FindMatch } from '../../../../../../editor/common/model.js';
@@ -229,7 +230,7 @@ export class FindModel extends Disposable {
 				this._findMatches.reduce((p, c) => p + c.length, 0),
 				undefined
 			);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	find(option: { previous: boolean } | { index: number }) {
@@ -268,7 +269,7 @@ export class FindModel extends Disposable {
 				this._findMatches.reduce((p, c) => p + c.length, 0),
 				undefined
 			);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async revealCellRange(cellIndex: number, matchIndex: number, outputOffset: number | null) {
@@ -461,7 +462,7 @@ export class FindModel extends Disposable {
 
 		if (autoStart) {
 			this._currentMatch = 0;
-			this.highlightCurrentFindMatchDecoration(0, 0);
+			void this.highlightCurrentFindMatchDecoration(0, 0).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		this._state.changeMatchInfo(
@@ -504,7 +505,7 @@ export class FindModel extends Disposable {
 		this._currentMatch = currentMatchesPosition % findMatches.length;
 		this.set(findMatches, false);
 		const nextIndex = this._findMatchesStarts!.getIndexOf(this._currentMatch);
-		this.highlightCurrentFindMatchDecoration(nextIndex.index, nextIndex.remainder);
+		void this.highlightCurrentFindMatchDecoration(nextIndex.index, nextIndex.remainder).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this._state.changeMatchInfo(
 			this._currentMatch,
