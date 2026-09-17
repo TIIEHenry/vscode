@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D733 leftover Promise 双链；D736 extensions <4 跳过。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D734 leftover Promise 双链；D736 extensions <4 跳过。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1099,3 +1099,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D732 | P3 | **closed** leftover Promise 双链八处：codeEditorWidget _triggerCommand + clipboard Paste/Type/CompositionType/ReplacePreviousChar/CompositionStart；gpu saveTextureAtlas / drawGlyph invokeFunction。跳过 opener / Resolve / two-arg / D725。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`editorWidgetGpuLeftoverPromiseCatchScan.test.ts` **6/0** + D725 **8/0**。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | editor / widget gpu leftover | closed |
 | D733 | P3 | **closed** leftover Promise 双链八处：webPageLoader loadURL + Queue.queue extractContent×7。跳过 opener / empty-catch Network.enable / Connect / Pty。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`platformWebContentExtractorLeftoverPromiseCatchScan.test.ts` **6/0**。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | platform / webContentExtractor leftover | closed |
 | D736 | P3 | **skipped** leftover Promise：`services/extensions/` 合法点 <4（veto PromiseLike.then；latency openEditor）。跳过 opener / bisect / openDevTools / Resolve / Connect / disconnect / two-arg / assigned / D698–D729。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 D；无 wrap / 无测。HEAD `3713970eb47`。 | 未双链。未关 D24。extensions leftover 合法点耗尽。 | workbench / extensions leftover remaining | skipped |
+| D734 | P3 | **closed** leftover Promise 双链八处：mainThreadTerminal getEnvironment.then；managedSockets register/unregister；profileContentHandler register/unregister；notebook cellStatusBar register/unregister；treeViews disposeTree。跳过 D708 / D712 / D717 / D724 / Pty / Watch / Connect。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`workbenchApiLeftoverPromiseCatchScanD734.test.ts` **8/0** + D724 **7/0**。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / api leftover remaining | closed |
