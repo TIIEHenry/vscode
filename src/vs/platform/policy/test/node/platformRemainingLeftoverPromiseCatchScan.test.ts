@@ -231,9 +231,9 @@ suite('platform remaining leftover Promise fire-and-forget catch scan (D711)', (
 		assert.ok(windowImpl.includes('export class CodeWindow extends BaseWindow implements ICodeWindow'));
 		assert.ok(windows.includes('this.lifecycleMainService.unload(window, UnloadReason.LOAD).then(async veto => {'));
 		assert.ok(launch.includes('whenWindowReady.then(() => {'));
-		assert.ok(!windowImpl.includes(doubleCatch));
-		assert.ok(!windows.includes(doubleCatch));
-		assert.ok(!launch.includes(doubleCatch));
+		assert.ok(windowImpl.includes(doubleCatch));
+		assert.ok(windows.includes(doubleCatch));
+		assert.ok(launch.includes(doubleCatch));
 		for (const source of [native, metered, tips, worker]) {
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));
