@@ -58,7 +58,7 @@ suite('grpc AgentService Usage protobuf wire', () => {
 		}).length, 0);
 	});
 
-	test('decodeUsageResponse reads 1-4 AgentUsage 1-4; unused 10/11 unread', () => {
+	test('decodeUsageResponse reads 1-4 AgentUsage 1-4 and nested recent_request_spans=12; unused 10/11 unread', () => {
 		const agent = Buffer.concat([
 			encodeStringField(1, 'ag-1'),
 			encodeInt64Field(2, 11),
@@ -66,6 +66,19 @@ suite('grpc AgentService Usage protobuf wire', () => {
 			encodeInt32Field(4, 4),
 			encodeStringField(5, 'unused-agent'),
 		]);
+		const span = Buffer.concat([
+			encodeStringField(1, 'prof-1'),
+			encodeStringField(2, 'openai'),
+			encodeStringField(3, 'gpt-4'),
+			encodeInt64Field(4, 100),
+			encodeInt64Field(5, 50),
+			encodeInt64Field(6, 12),
+			encodeInt64Field(7, 34),
+			encodeInt64Field(8, 1700000000),
+			encodeStringField(9, 'chat'),
+			encodeStringField(10, 'unused-span'),
+		]);
+		const sparseSpan = encodeStringField(1, 'prof-sparse');
 		const encoded = Buffer.concat([
 			encodeInt64Field(1, 1),
 			encodeInt64Field(2, 2),
@@ -74,7 +87,9 @@ suite('grpc AgentService Usage protobuf wire', () => {
 			encodeStringField(5, 'unused-field'),
 			encodeStringField(10, 'unused-window'),
 			encodeStringField(11, 'unused-session'),
-			encodeStringField(12, 'unused-spans'),
+			encodeMessageField(12, span),
+			encodeMessageField(12, sparseSpan),
+			encodeStringField(13, 'unused-extra'),
 		]);
 		assert.notStrictEqual(encoded[0], 0x7b);
 		const wire = decodeUsageResponse(encoded);
@@ -88,10 +103,30 @@ suite('grpc AgentService Usage protobuf wire', () => {
 				output_tokens: 22,
 				turns: 4,
 			}],
+			recent_request_spans: [{
+				profile_id: 'prof-1',
+				provider: 'openai',
+				model_id: 'gpt-4',
+				input_tokens: 100,
+				output_tokens: 50,
+				prefill_ms: 12,
+				decode_ms: 34,
+				completed_at_ms: 1700000000,
+				usage_kind: 'chat',
+			}, {
+				profile_id: 'prof-sparse',
+				provider: undefined,
+				model_id: undefined,
+				input_tokens: undefined,
+				output_tokens: undefined,
+				prefill_ms: undefined,
+				decode_ms: undefined,
+				completed_at_ms: undefined,
+				usage_kind: undefined,
+			}],
 		});
 		assert.ok(!('context_window' in wire));
 		assert.ok(!('session_usage' in wire));
-		assert.ok(!('recent_request_spans' in wire));
 		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
 		assert.deepStrictEqual(mapUsageResponse(wire), {
 			totalInputTokens: 1,
@@ -105,7 +140,27 @@ suite('grpc AgentService Usage protobuf wire', () => {
 			}],
 			contextWindow: undefined,
 			sessionUsage: undefined,
-			recentRequestSpans: [],
+			recentRequestSpans: [{
+				profileId: 'prof-1',
+				provider: 'openai',
+				modelId: 'gpt-4',
+				inputTokens: 100,
+				outputTokens: 50,
+				prefillMs: 12,
+				decodeMs: 34,
+				completedAtMs: 1700000000,
+				usageKind: 'chat',
+			}, {
+				profileId: 'prof-sparse',
+				provider: '',
+				modelId: '',
+				inputTokens: 0,
+				outputTokens: 0,
+				prefillMs: 0,
+				decodeMs: 0,
+				completedAtMs: 0,
+				usageKind: '',
+			}],
 		});
 
 		const omittedZeros = decodeUsageResponse(encodeMessageField(4, encodeStringField(1, 'ag-only')));
@@ -119,6 +174,7 @@ suite('grpc AgentService Usage protobuf wire', () => {
 				output_tokens: undefined,
 				turns: undefined,
 			}],
+			recent_request_spans: [],
 		});
 		assert.deepStrictEqual(mapUsageResponse(omittedZeros), {
 			totalInputTokens: 0,
@@ -152,6 +208,7 @@ suite('grpc AgentService Usage protobuf wire', () => {
 			total_output_tokens: undefined,
 			total_turns: undefined,
 			agent_usages: [],
+			recent_request_spans: [],
 		});
 		assert.ok(!('context_window' in empty));
 		assert.ok(!('session_usage' in empty));
@@ -171,12 +228,14 @@ suite('grpc AgentService Usage protobuf wire', () => {
 		assert.ok(!source.includes('JSON.stringify'));
 		assert.ok(/\bencodeUsageRequest\b/.test(source));
 		assert.ok(/\bdecodeUsageResponse\b/.test(source));
+		assert.ok(/\bdecodeRecentRequestSpan\b/.test(source));
 		assert.ok(/\ballLengthDelimited\b/.test(source));
 		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
 		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
 		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
 		assert.ok(!/\bResolveTurn\b/.test(source));
 		assert.ok(!/\bContextWindowInfo\b|\bSessionUsageInfo\b|\bMessageBreakdown\b/.test(source));
+		assert.ok(!/\bmodel_info\b|\bdecodeModelInfo\b/.test(source));
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
