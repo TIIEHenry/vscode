@@ -4,23 +4,23 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "SessionStream 16/23/30/31/32/34/35/36/37/38/39/44/50/51/52 已合入。D24 仍开。不是 leftover/pills 完成。"
+summary: "SessionStream 16/23/30/31/32/34/35/36/37/38/39/44/46/50/51/52 已合入。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
-### 已合入（`MERGE_SHA` 见关仓；compile-client 0；attach mocha 60）
+### 已合入（`MERGE_SHA` 见关仓；compile-client 0；attach mocha 61）
 | 切片 | 提交 |
 |:-----|:-----|
-| **A SessionStream** | 16/23/30/31/32/34/35/36/37/38/39/44/50/51/52 |
+| **A SessionStream** | 16/23/30/31/32/34/35/36/37/38/39/44/46/50/51/52 |
 | **D Resume / A Usage** | root_agent；Usage 10/11/12 |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A** | 进行中 `tool_runtime_snapshot`=46 decode（2/12/23 + `payload` 包装）；未合入；D24 仍开 |
+| **A** | 等 leftover 下一刀（33/40–43/45 仅当有公共消费者） |
 | **B** | 脏 `worktree-pool.md`；跳过；勿 `-B` |
 | **C** | gitlink 脏 `dev/loop`；勿 add |
 | **E** | `blocked` `fix/ci-gate-reds` |
@@ -30,10 +30,11 @@ summary: "SessionStream 16/23/30/31/32/34/35/36/37/38/39/44/50/51/52 已合入�
 | ID | 问题 |
 |:---|:-----|
 | [D24](deferred-gaps.md) | **仍开**：Connect/Watch/Resolve/Pty 仍 JSON |
+| — | join 读 `snapshot.payload.file_mutation_payload`，host 读 sibling；本刀 decode 两侧都写 |
 | — | TeamInfo 2/3 测锁；ListTeams 不在 J；GetConfig tags 测锁 `[]`；AgentProfile 17–19 非 J；work_dir 7/9 非 J |
 ## Next
 | 项 | 指针 |
 |:---|:-----|
-| **loop** | D24 仍开。下一刀 46。不得宣称 leftover/pills 完成 |
+| **loop** | D24 仍开。不得宣称 leftover/pills 完成 |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。
