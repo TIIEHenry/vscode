@@ -93,7 +93,9 @@ suite('workbench/services/extensions leftover Promise fire-and-forget catch scan
 							})`],
 			[manager, `this._proxy.then(() => {
 			this._hasStarted = true;
-			initialActivationEvents.forEach((activationEvent) => this.activateByEvent(activationEvent, ActivationKind.Normal).catch(onUnexpectedError).catch(onUnexpectedError));
+			initialActivationEvents.forEach((activationEvent) => {
+				this.activateByEvent(activationEvent, ActivationKind.Normal).catch(onUnexpectedError).catch(onUnexpectedError);
+			});
 			this._register(registerLatencyTestProvider({
 				measure: () => this.measure()
 			}));
@@ -215,7 +217,9 @@ suite('workbench/services/extensions leftover Promise fire-and-forget catch scan
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertDoubleThen(source, `this._proxy.then(() => {
 			this._hasStarted = true;
-			initialActivationEvents.forEach((activationEvent) => this.activateByEvent(activationEvent, ActivationKind.Normal).catch(onUnexpectedError).catch(onUnexpectedError));
+			initialActivationEvents.forEach((activationEvent) => {
+				this.activateByEvent(activationEvent, ActivationKind.Normal).catch(onUnexpectedError).catch(onUnexpectedError);
+			});
 			this._register(registerLatencyTestProvider({
 				measure: () => this.measure()
 			}));
