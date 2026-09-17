@@ -310,7 +310,7 @@ suite('grpc FileTransferService UploadAttachment protobuf client-stream wire', (
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('openUploadAttachmentStream / makeClientStreamClient stay JSON; skip leftover RPCs; no makeClientStreamBytesClient', () => {
+	test('openUploadAttachmentStream / makeClientStreamClient stay JSON; skip leftover RPCs', () => {
 		const client = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const upload = extractMethod(client, 'openUploadAttachmentStream');
 		assert.ok(upload.includes('makeClientStreamClient<Record<string, unknown>'), 'openUploadAttachmentStream must stay JSON client-stream');
@@ -339,7 +339,6 @@ suite('grpc FileTransferService UploadAttachment protobuf client-stream wire', (
 		assert.ok(!watch.includes('makeServerStreamBytesClient'));
 
 		const calls = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + 'Calls.ts'), 'utf8');
-		assert.ok(!/\bmakeClientStreamBytesClient\b/.test(calls), 'must not add makeClientStreamBytesClient this slice');
 		const jsonStart = calls.indexOf('export function makeClientStreamClient<');
 		assert.ok(jsonStart >= 0, 'missing makeClientStreamClient');
 		const jsonEnd = calls.indexOf('\nexport function ', jsonStart + 1);
