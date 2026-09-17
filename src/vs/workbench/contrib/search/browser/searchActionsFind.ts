@@ -195,7 +195,7 @@ registerAction2(class RevealInSideBarForSearchResultsAction extends Action2 {
 				explorerView.setExpanded(true);
 				explorerService.select(uri, true).then(() => explorerView.focus()).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 });
 

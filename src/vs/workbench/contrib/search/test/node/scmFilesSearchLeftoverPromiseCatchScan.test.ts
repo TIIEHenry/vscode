@@ -64,17 +64,14 @@ suite('scm/files/search leftover Promise fire-and-forget catch scan (D691)', () 
 		assert.ok(!source.includes(`${delayThen}.catch(errors.onUnexpectedError);`));
 	});
 
-	test('searchActionsFind leftover select then is double-chain; openPaneComposite stays skipped', () => {
+	test('searchActionsFind leftover select then is double-chain; openPaneComposite wrap is D756', () => {
 		const source = fs.readFileSync(resolveSource(SEARCH_FIND_REL), 'utf8');
 		assertDoubleChain(source, 'explorerService.select(uri, true).then(() => explorerView.focus())', 1);
 		assert.ok(!source.includes('explorerService.select(uri, true).then(() => explorerView.focus(), onUnexpectedError);'));
 		assert.ok(source.includes('paneCompositeService.openPaneComposite(VIEWLET_ID_FILES, ViewContainerLocation.Sidebar, false).then((viewlet) => {'));
 		assert.ok(source.includes(`explorerService.select(uri, true).then(() => explorerView.focus())${doubleCatch};
 			}
-		});`));
-		assert.ok(!source.includes(`explorerService.select(uri, true).then(() => explorerView.focus())${doubleCatch};
-			}
-		}).catch`));
+		})${doubleCatch};`));
 	});
 
 	test('scm history leftover refresh voids are double-chain; await refresh stays skipped', () => {
