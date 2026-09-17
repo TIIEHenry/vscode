@@ -399,4 +399,40 @@ suite('ConversationEngineHistoryList', () => {
 		assert.ok(overlayParent.textContent?.includes(conversationLensSessionBarHistoryUnavailableDisconnected));
 		assert.ok(!(overlayParent.textContent ?? '').includes(conversationLensSessionBarHistoryEmpty));
 	});
+
+	test('session change drops leftover history rows from the previous session', async () => {
+		const leftover: UniverseAgentHistoryEnvelope = {
+			cursorSeq: 'leftover-1',
+			payload: { text: 'Leftover' },
+		};
+		const next: UniverseAgentHistoryEnvelope = {
+			cursorSeq: 'sess-2',
+			payload: { text: 'Next' },
+		};
+		const onDidChangeActiveSession = store.add(new Emitter<string>());
+		let active = 'sess-1';
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getHistory: async request => {
+				if (request.sessionId === 'sess-1') {
+					return { envelopes: [leftover] };
+				}
+				return { envelopes: [next] };
+			},
+		}), createRosterStub({
+			getActiveSessionId: () => active,
+			onDidChangeActiveSession: onDidChangeActiveSession.event,
+		}));
+		list.show();
+		await Promise.resolve();
+		assert.ok(historyRow(overlayParent, 'leftover-1'));
+
+		active = 'sess-2';
+		onDidChangeActiveSession.fire('sess-2');
+		await Promise.resolve();
+		await new Promise(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(historyRow(overlayParent, 'leftover-1'), null);
+		assert.ok(historyRow(overlayParent, 'sess-2'));
+	});
 });

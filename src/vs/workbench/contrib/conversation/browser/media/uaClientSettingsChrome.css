@@ -45,7 +45,9 @@
 }
 
 .monaco-workbench .settings-editor.narrow-width .setting-item-contents .setting-item-control,
-.monaco-workbench .settings-editor.narrow-width .settings-body .settings-tree-container .setting-item.setting-item-enum .setting-item-value > .setting-item-control {
+.monaco-workbench .settings-editor.narrow-width .settings-body .settings-tree-container .setting-item.setting-item-enum .setting-item-value > .setting-item-control,
+.monaco-workbench .settings-editor.narrow-width .settings-body .settings-tree-container .setting-item.setting-item-text .setting-item-control,
+.monaco-workbench .settings-editor.narrow-width .settings-body .settings-tree-container .setting-item.setting-item-number .setting-item-control {
 	width: 100%;
 	max-width: 100%;
 	min-width: 0;

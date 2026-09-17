@@ -3,7 +3,7 @@ title: "Workbench UI 框架：Parts、Grid、显隐"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-17
+updated: 2026-09-18
 summary: "默认 Code 窗口的 Part 枚举、SerializableGrid、Conversation∨(Editor∨Sources)；INV-TOPO：中心叶仍是 CONVERSATION_PART；对话 tab 走嵌套 Conversation IEditorPart（PRD-016 S1–S6 已落）"
 ---
 
@@ -92,7 +92,7 @@ CSS class：`LayoutClasses.MAIN_EDITOR_AREA_HIDDEN` / `CONVERSATION_HIDDEN` 等�
 | 单个 view | 上述容器内 | `ViewsRegistry` / `views` 贡献点 |
 | 文件 / untitled / diff / `ChatEditorInput` | **仅**主 `EDITOR_PART`（Preview） | `EditorInput` + `IEditorService`；`ACTIVE_GROUP` / `SIDE_GROUP` |
 | Conversation chat tab（[ADR-002](../../../dev/decisions/002-conversation-session-windows.md) / [PRD-016](../../product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)，**S1–S6 已落**） | `CONVERSATION_PART` 内嵌的 Conversation `IEditorPart`（非 Layout `Parts` 枚举；最多两叶 session 窗口） | `ConversationChatInput` + `CONVERSATION_GROUP` / `CONVERSATION_SIDE_GROUP`；**禁止** `ChatEditorInput` |
-| 只读 Diff 审阅（Sources Changes / Review，[PRD-009](../../product/requirements.md#prd-009-changes-与-diff) / [ADR-005](../../../dev/decisions/005-changes-diff-owner.md)，**F1–F3 已落**） | 同上 Conversation `IEditorPart` | `ConversationDiffReviewInput` + `CONVERSATION_GROUP`；**仅**经显式动作（`sources.diff.moveToConversation`、Changes/Review 行点击且 `sources.diff.defaultOwner=conversation`） |
+| 只读 Diff 审阅（Sources Changes / Review，[PRD-009](../../product/requirements.md#prd-009-changes-与-diff) / [ADR-005](../../../dev/decisions/005-changes-diff-owner.md)，**F1–F3 已落**） | 同上 Conversation `IEditorPart` | `ConversationDiffReviewInput` + `CONVERSATION_SIDE_GROUP`（不换走 chat leaf / Dock Stop）；`matches()` 含 original + `groupId`；**仅**经显式动作（`sources.diff.moveToConversation`、Changes/Review 行点击且 `sources.diff.defaultOwner=conversation`） |
 | Status | StatusBar | `IStatusbarService` |
 | Activity 图标 | ActivityBar | 与 Sidebar 容器绑定 |
 

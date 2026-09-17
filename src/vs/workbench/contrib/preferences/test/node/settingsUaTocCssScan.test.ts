@@ -19,6 +19,9 @@ suite('Settings UA TOC - 源码接线扫描', () => {
 		assert.ok(css.includes('.settings-group-title-label'));
 		assert.ok(css.includes('.setting-item-contents .setting-item-control'));
 		assert.ok(css.includes('setting-item-enum'));
+		assert.ok(css.includes('setting-item-text'));
+		assert.ok(css.includes('setting-item-number'));
+		assert.ok(css.includes('width: 100%'));
 		assert.ok(!/display\s*:\s*none/.test(css));
 	});
 });

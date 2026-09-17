@@ -147,6 +147,42 @@ suite('Agent inspect panel', () => {
 		assert.strictEqual(getViewList(view).length, 0);
 	});
 
+	test('clearing inspect target fires welcome before the list is spliced empty', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
+		const inspectService = store.add(instantiationService.createInstance(AgentInspectService));
+		instantiationService.stub(IAgentInspectService, inspectService);
+
+		const view = await mountViewWithService(instantiationService);
+		inspectService.setTarget({
+			kind: 'agent',
+			node: {
+				agentId: 'sub:1',
+				name: 'Worker',
+				type: 'AGENT_TYPE_SUB',
+				status: 'AGENT_STATUS_IDLE',
+				model: 'gpt',
+				turnCount: 3,
+				createdAt: 100,
+				children: [],
+			},
+		});
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.ok(getViewList(view).length > 0);
+		assert.strictEqual(view.shouldShowWelcome(), false);
+
+		let listLengthWhenWelcomeFired: number | undefined;
+		store.add(view.onDidChangeViewWelcomeState(() => {
+			listLengthWhenWelcomeFired = getViewList(view).length;
+		}));
+		inspectService.setTarget(undefined);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.ok((listLengthWhenWelcomeFired ?? 0) > 0, 'welcome must fire before list splice');
+		assert.strictEqual(getViewList(view).length, 0);
+		assert.strictEqual(view.shouldShowWelcome(), true);
+	});
+
 	test('welcome content uses inspect-empty copy without service-disconnected wording', () => {
 		const welcomeContents = viewsRegistry.getViewWelcomeContent(AGENT_INSPECT_VIEW_ID);
 		assert.ok(welcomeContents.length > 0, 'Inspect view must register welcome content');

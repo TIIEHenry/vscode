@@ -22,6 +22,10 @@
 	overflow-wrap: anywhere;
 }
 
+.monaco-workbench .part.sources .sources-files-empty.is-error {
+	color: var(--vscode-errorForeground);
+}
+
 .monaco-workbench .part.sources .sources-files-status {
 	padding: 4px 8px 6px;
 	color: var(--vscode-descriptionForeground);

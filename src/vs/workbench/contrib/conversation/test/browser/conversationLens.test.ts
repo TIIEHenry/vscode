@@ -52,7 +52,10 @@ import {
 import { conversationLensDockAgentUnavailable, conversationLensDockModelFailed, conversationLensDockModelUnavailable, conversationLensDockPermissionUnavailable } from '../../browser/conversationLensComposerChrome.js';
 import {
 	conversationLensSessionBarConversationTab,
+	conversationLensSessionBarCloseExtensionTabs,
 	conversationLensSessionBarDeleteSession,
+	conversationLensSessionBarGoBack,
+	conversationLensSessionBarGoForward,
 	conversationLensSessionBarHistory,
 	conversationLensSessionBarMore,
 	conversationLensSessionBarNewSession,
@@ -2016,6 +2019,9 @@ suite('ConversationLens', () => {
 		const labels = [...popup.querySelectorAll('.conversation-lens-dock-more-item')].map(item => item.textContent);
 		assert.ok(labels.includes(conversationLensSessionBarHistory));
 		assert.ok(labels.includes(conversationLensSessionBarSnapshots));
+		assert.ok(labels.includes(conversationLensSessionBarGoBack));
+		assert.ok(labels.includes(conversationLensSessionBarGoForward));
+		assert.ok(labels.includes(conversationLensSessionBarCloseExtensionTabs));
 		assert.ok(labels.includes(conversationLensSessionBarNewSession));
 		assert.ok(labels.includes(conversationLensSessionBarDeleteSession));
 	});
@@ -2033,6 +2039,38 @@ suite('ConversationLens', () => {
 		const labels = [...popup.querySelectorAll('.conversation-lens-dock-more-item')].map(item => item.textContent);
 		assert.ok(labels.includes(conversationLensSessionBarHistory));
 		assert.ok(labels.includes(conversationLensSessionBarSnapshots));
+		assert.ok(labels.includes(conversationLensSessionBarGoBack));
+	});
+
+	test('maximize input closes History and Snapshots overlays', () => {
+		const { lens } = mountLens();
+		assert.ok(lens.engineHistoryList);
+		assert.ok(lens.engineSnapshotsList);
+		lens.engineHistoryList.show();
+		lens.engineSnapshotsList.show();
+		assert.strictEqual(lens.engineHistoryList.isOpen(), true);
+		assert.strictEqual(lens.engineSnapshotsList.isOpen(), true);
+
+		lens.setInputMaximized(true);
+
+		assert.strictEqual(lens.isInputMaximized(), true);
+		assert.strictEqual(lens.engineHistoryList.isOpen(), false);
+		assert.strictEqual(lens.engineSnapshotsList.isOpen(), false);
+	});
+
+	test('switching session closes History, Snapshots, and Visualize overlays', () => {
+		const { lens, stubService } = mountLens();
+		assert.ok(lens.engineHistoryList);
+		assert.ok(lens.engineSnapshotsList);
+		lens.engineHistoryList.show();
+		lens.engineSnapshotsList.show();
+		assert.strictEqual(lens.engineHistoryList.isOpen(), true);
+		assert.strictEqual(lens.engineSnapshotsList.isOpen(), true);
+
+		stubService.createSession();
+
+		assert.strictEqual(lens.engineHistoryList.isOpen(), false);
+		assert.strictEqual(lens.engineSnapshotsList.isOpen(), false);
 	});
 
 	test('lensId persists across remount via workspace storage', async () => {

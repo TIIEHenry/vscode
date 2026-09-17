@@ -30,6 +30,10 @@
 	cursor: pointer;
 }
 
+.monaco-workbench .part.sources.is-narrow .sources-review-filter-row {
+	flex-wrap: wrap;
+}
+
 .monaco-workbench .part.sources.is-compact .sources-review-unreviewed-toggle span {
 	display: none;
 }
@@ -167,7 +171,7 @@
 
 .monaco-workbench .part.sources .sources-tab-panel .sources-review-list {
 	flex: 1;
-	min-height: 80px;
+	min-height: 0;
 }
 
 .monaco-workbench .part.sources .sources-review-status {

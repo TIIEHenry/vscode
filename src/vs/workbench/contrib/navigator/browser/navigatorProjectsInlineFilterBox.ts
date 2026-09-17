@@ -7,6 +7,7 @@ import './media/navigatorProjectsInlineFilter.css';
 import * as dom from '../../../../base/browser/dom.js';
 import { renderIcon } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { localize } from '../../../../nls.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
@@ -43,6 +44,14 @@ export class NavigatorProjectsInlineFilterBox extends Disposable {
 		this._register(dom.addStandardDisposableListener(this.input, 'input', () => {
 			this.updateClearVisibility();
 			this._onDidChange.fire(this.input.value);
+		}));
+		this._register(dom.addStandardDisposableListener(this.input, 'keydown', e => {
+			if (e.keyCode === KeyCode.Escape && this.input.value) {
+				e.preventDefault();
+				this.input.value = '';
+				this.updateClearVisibility();
+				this._onDidChange.fire('');
+			}
 		}));
 
 		this._register(dom.addStandardDisposableListener(this.clearButton, 'click', (e) => {

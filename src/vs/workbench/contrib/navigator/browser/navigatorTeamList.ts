@@ -404,6 +404,8 @@ export class NavigatorTeamView extends ViewPane {
 		const engineReady = this.rosterService.isEngineConnected() && phaseKind === 'connected';
 		if (pairingHold || !engineReady) {
 			if (hadLiveTeamPaint) {
+				this.inspectService.setLiveAgentIds('team', EMPTY_LIVE_AGENT_IDS);
+				this.inspectService.setLiveTaskIds(EMPTY_LIVE_AGENT_IDS);
 				this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
 				return;
 			}

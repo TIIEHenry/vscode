@@ -311,4 +311,27 @@ suite('UA chrome review follow-up - 接线扫描', () => {
 		assert.ok(view.includes('hasDynamicHeight'));
 		assert.ok(view.includes('supportDynamicHeights: true'));
 	});
+
+	test('Maximize and session switch close History/Snapshots; More includes window nav', () => {
+		const lens = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/conversationLens.ts'), 'utf8');
+		const binding = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/conversationLensSessionBinding.ts'), 'utf8');
+		const sessionBar = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/conversationLensSessionBar.ts'), 'utf8');
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8');
+		assert.ok(lens.includes('this.engineHistoryList?.close()'));
+		assert.ok(lens.includes('this.engineSnapshotsList?.close()'));
+		assert.ok(binding.includes('host.engineHistoryList?.close()'));
+		assert.ok(binding.includes('host.engineSnapshotsList?.close()'));
+		assert.ok(sessionBar.includes('conversationLensSessionBarGoBack'));
+		assert.ok(sessionBar.includes('trySessionBarWindowNav'));
+		assert.ok(css.includes('.is-narrow .conversation-lens-snapshots-row'));
+		assert.ok(css.includes('flex-wrap: wrap'));
+	});
+
+	test('Connection connect writes are held during in-flight, pairing-hold, and live SAS', () => {
+		const pane = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/connectionPreferencesPane.ts'), 'utf8');
+		assert.ok(pane.includes('isConnectWriteHeld'));
+		assert.ok(pane.includes('connectInFlight'));
+		assert.ok(pane.includes('applyDisconnectedDevicesRefresh'));
+		assert.ok(pane.includes('this.hubDevices = []'));
+	});
 });

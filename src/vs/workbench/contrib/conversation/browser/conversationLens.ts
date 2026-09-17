@@ -457,6 +457,9 @@ export class ConversationLens extends Disposable {
 		this.updateMaximizeInputButton();
 		if (maximized) {
 			this.inboxOverlay.closeListPanel();
+			this.engineHistoryList?.close();
+			this.engineSnapshotsList?.close();
+			this.visualizeOverlay.close();
 		}
 	}
 

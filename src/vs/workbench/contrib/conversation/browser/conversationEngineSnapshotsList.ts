@@ -144,6 +144,8 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	private open = false;
 	private renderGeneration = 0;
 	private paintedLiveSnapshots = false;
+	private paintedSnapshotSessionId: string | undefined;
+	private onWillShow: (() => void) | undefined;
 
 	constructor(
 		buttonParent: HTMLElement,
@@ -235,7 +237,12 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		this.show();
 	}
 
+	setOnWillShow(handler: () => void): void {
+		this.onWillShow = handler;
+	}
+
 	show(): void {
+		this.onWillShow?.();
 		this.open = true;
 		this.overlayElement.hidden = false;
 		this.button.element.setAttribute('aria-expanded', 'true');
@@ -295,6 +302,10 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	private async refresh(): Promise<boolean> {
 		const generation = ++this.renderGeneration;
 		const sessionId = this.roster.getActiveSessionId();
+		if (this.paintedSnapshotSessionId !== sessionId) {
+			this.paintedLiveSnapshots = false;
+			this.paintedSnapshotSessionId = sessionId;
+		}
 		const connected = this.connection.isEngineConnected();
 		const listSnapshots = this.connection.listSnapshots;
 		const hasHook = typeof listSnapshots === 'function';

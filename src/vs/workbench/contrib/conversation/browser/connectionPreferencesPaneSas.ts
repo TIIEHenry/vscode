@@ -99,8 +99,21 @@ async function promptPairingConfirmInPane(
 			dialogBox.scrollIntoView({ block: 'nearest' });
 		}
 		return await new Promise(resolve => {
-			disposables.add(DOM.addDisposableListener(container, 'keydown', e => {
+			disposables.add(DOM.addDisposableListener(container.ownerDocument, 'keydown', e => {
+				if (e.key === 'Escape') {
+					e.preventDefault();
+					e.stopPropagation();
+					resolve({ confirmed: false, buttonLabels });
+					return;
+				}
 				handleConversationOverlayTab(container, e);
+			}, true));
+			disposables.add(DOM.addDisposableListener(container.ownerDocument, 'focusin', e => {
+				const target = e.target as Node | null;
+				if (target && !container.contains(target)) {
+					const next = container.querySelector('button, [tabindex]') as HTMLElement | null;
+					next?.focus();
+				}
 			}));
 
 			const confirmButton = disposables.add(new Button(buttonsContainer, defaultButtonStyles));

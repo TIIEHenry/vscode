@@ -187,6 +187,10 @@ suite('Sources - files list leftover - 源码接线扫描', () => {
 		assert.ok(list.includes('sourcesFilesListReadFailureMessage'));
 		assert.ok(list.includes('lastGoodEntries'));
 		assert.ok(list.includes('sources-files-status'));
+		assert.ok(list.includes("classList.add('is-error')"));
+		const filesCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css'), 'utf8');
+		assert.ok(filesCss.includes('.sources-files-empty.is-error'));
+		assert.ok(filesCss.includes('.sources-files-status.is-error'));
 	});
 });
 
@@ -269,6 +273,19 @@ suite('Sources - custom UI visual CSS - 源码接线扫描', () => {
 		assert.ok(diff.includes("newFileNoticeElement.classList.add('is-error')"));
 		assert.ok(diffCss.includes('.sources-diff-panel-action-notice.is-error'));
 		assert.ok(reviewPane.includes('classList.toggle(\'is-error\', isError)'));
+		assert.ok(reviewPane.includes('renderGeneration'));
 		assert.ok(reviewCss.includes('.conversation-diff-review-notice.is-error'));
+	});
+
+	test('Conversation Diff matches original+group and opens beside chat', () => {
+		const open = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.ts'), 'utf8');
+		const helpers = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesDiffRefHelpers.ts'), 'utf8');
+		const input = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/conversationDiffReviewInput.ts'), 'utf8');
+		const common = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/common/conversationDiffReviewInput.ts'), 'utf8');
+		assert.ok(open.includes('CONVERSATION_SIDE_GROUP'));
+		assert.ok(!open.includes('CONVERSATION_GROUP'));
+		assert.ok(helpers.includes('CONVERSATION_SIDE_GROUP'));
+		assert.ok(input.includes('this._groupId === other._groupId'));
+		assert.ok(common.includes('/group/'));
 	});
 });

@@ -531,6 +531,14 @@ suite('Navigator Agents subviews', () => {
 		const activeSubview = view.element.querySelector('.navigator-agents-subview.active');
 		assert.ok(filter && activeSubview);
 		assert.ok(filter!.compareDocumentPosition(activeSubview!) & Node.DOCUMENT_POSITION_FOLLOWING);
+
+		const input = getFilterInput(view);
+		assert.ok(input);
+		input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27, bubbles: true, cancelable: true }));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(input.value, '');
+		assert.strictEqual(hierarchyTree.getNode(null)?.children.length ?? 0, 2);
+		assert.strictEqual(activityList.length, 2);
 	});
 
 	test('unfiltered empty keeps honest empty copy and hides list or tree', () => {
@@ -546,13 +554,16 @@ suite('Navigator Agents subviews', () => {
 	});
 
 	test('disconnect keeps last Agents snapshot and marks it stale', () => {
+		const inspectService = store.add(new AgentInspectService());
 		const roster = store.add(new RosterWithLiveTree(sampleLiveTree));
 		roster.setEngineConnected(true);
 		const connection = createNavigatorConnectionTestStub({
 			getConnectionPhase: () => roster.isEngineConnected() ? { kind: 'connected', path: 'direct' } : { kind: 'disconnected' },
 			getNavigatorCapability: () => 'SUPPORTED',
 		});
-		const view = mountAgentsView(roster, connection);
+		const view = mountAgentsView(roster, connection, inspectService);
+		assert.ok(inspectService.getLiveAgentIds()?.has('sub:alpha'));
+		assert.ok(inspectService.getLiveAgentIds()?.has('root'));
 
 		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> }).hierarchyTree;
 		assert.strictEqual(hierarchyTree.getNode(null)?.children.length ?? 0, 1);
@@ -569,6 +580,7 @@ suite('Navigator Agents subviews', () => {
 		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(hierarchyEmpty);
 		assert.notStrictEqual(hierarchyEmpty.style.display, 'block');
+		assert.strictEqual(inspectService.getLiveAgentIds()?.size, 0, 'disconnect leftover must not keep live agent ids');
 	});
 
 	test('Agents leftover-empty is not used for pending / UNSUPPORTED / no-session / hidden', () => {

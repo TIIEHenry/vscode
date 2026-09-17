@@ -95,6 +95,8 @@ export class ConversationEngineHistoryList extends Disposable {
 	private open = false;
 	private renderGeneration = 0;
 	private paintedLiveHistory = false;
+	private paintedHistorySessionId: string | undefined;
+	private onWillShow: (() => void) | undefined;
 
 	constructor(
 		buttonParent: HTMLElement,
@@ -182,7 +184,12 @@ export class ConversationEngineHistoryList extends Disposable {
 		this.show();
 	}
 
+	setOnWillShow(handler: () => void): void {
+		this.onWillShow = handler;
+	}
+
 	show(): void {
+		this.onWillShow?.();
 		this.open = true;
 		this.overlayElement.hidden = false;
 		this.button.element.setAttribute('aria-expanded', 'true');
@@ -214,6 +221,10 @@ export class ConversationEngineHistoryList extends Disposable {
 	private async refresh(): Promise<void> {
 		const generation = ++this.renderGeneration;
 		const sessionId = this.roster.getActiveSessionId() ?? '';
+		if (this.paintedHistorySessionId !== sessionId) {
+			this.paintedLiveHistory = false;
+			this.paintedHistorySessionId = sessionId;
+		}
 
 		if (isConversationPairingHold(this.connection)) {
 			this.applyDisconnectedRefresh();

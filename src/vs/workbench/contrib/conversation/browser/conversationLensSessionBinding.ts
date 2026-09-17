@@ -55,6 +55,7 @@ export interface IConversationLensSessionBindingHost {
 	postBound(msg: ConversationWriteMessage): Promise<PostOutcome>;
 	showPostFailure(reason: ConversationComposerPostFailureReason): void;
 	focusTimelineRecord(turnId: string): void;
+	setInputMaximized(maximized: boolean): void;
 }
 
 /** D285: phase still connected, pairing pending — do not treat as true disconnect. */
@@ -134,6 +135,9 @@ export function bindSessionView(host: IConversationLensSessionBindingHost, sessi
 export function applyActiveSession(host: IConversationLensSessionBindingHost, sessionId: string): void {
 
 	host.visualizeOverlay.close();
+	host.engineHistoryList?.close();
+	host.engineSnapshotsList?.close();
+	host.inboxOverlay.closeListPanel();
 	host.trajectoryView.clearSessionState();
 	host.exitComposerEdit();
 	host.resetInputHistoryBrowse();
@@ -327,6 +331,7 @@ export function retryError(host: IConversationLensSessionBindingHost, turn: { re
 
 export function openVisualizeOverlay(host: IConversationLensSessionBindingHost, source: string, title?: string): void {
 
+	host.setInputMaximized(false);
 	host.engineHistoryList?.close();
 	host.engineSnapshotsList?.close();
 	host.visualizeOverlay.open({

@@ -268,7 +268,9 @@
 
 /* Stays in the render tree so the `role="status"` live region survives an empty state. */
 .monaco-workbench .connection-preferences-pane .connection-status:empty {
+	display: none;
 	margin-bottom: 0;
+	flex: 0 0 auto;
 }
 
 .monaco-workbench .connection-preferences-pane .connection-status.is-success {

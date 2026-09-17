@@ -78,6 +78,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 	private editorContainer: HTMLElement | undefined;
 	private dimension: dom.Dimension | undefined;
 	private comparisonLoadFailed = false;
+	private renderGeneration = 0;
 
 	constructor(
 		group: IEditorGroup,
@@ -167,8 +168,9 @@ export class ConversationDiffReviewPane extends EditorPane {
 	}
 
 	override async setInput(input: ConversationDiffReviewInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
+		const generation = ++this.renderGeneration;
 		await super.setInput(input, options, context, token);
-		if (this._store.isDisposed || token.isCancellationRequested) {
+		if (this._store.isDisposed || token.isCancellationRequested || generation !== this.renderGeneration) {
 			return;
 		}
 
@@ -180,15 +182,15 @@ export class ConversationDiffReviewPane extends EditorPane {
 
 		let loaded = false;
 		if (!input.original) {
-			loaded = await this.renderModifiedOnly(input, token);
+			loaded = await this.renderModifiedOnly(input, token, generation);
 			if (loaded) {
 				this.showNotice(localize('conversationDiffReviewPane.newFile', "New file with no previous version to compare."), false);
 			}
 		} else {
-			loaded = await this.renderDiff(input, token);
+			loaded = await this.renderDiff(input, token, generation);
 		}
 
-		if (this._store.isDisposed || this.input !== input || token.isCancellationRequested) {
+		if (this._store.isDisposed || this.input !== input || token.isCancellationRequested || generation !== this.renderGeneration) {
 			return;
 		}
 
@@ -473,7 +475,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.noticeElement.style.display = 'none';
 	}
 
-	private async renderDiff(input: ConversationDiffReviewInput, token: CancellationToken): Promise<boolean> {
+	private async renderDiff(input: ConversationDiffReviewInput, token: CancellationToken, generation: number): Promise<boolean> {
 		if (!this.editorContainer || !input.original) {
 			return false;
 		}
@@ -489,7 +491,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 			return false;
 		}
 
-		if (this._store.isDisposed || this.input !== input || token.isCancellationRequested) {
+		if (this._store.isDisposed || this.input !== input || token.isCancellationRequested || generation !== this.renderGeneration) {
 			originalRef.dispose();
 			modifiedRef.dispose();
 			return false;
@@ -511,7 +513,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		return true;
 	}
 
-	private async renderModifiedOnly(input: ConversationDiffReviewInput, token: CancellationToken): Promise<boolean> {
+	private async renderModifiedOnly(input: ConversationDiffReviewInput, token: CancellationToken, generation: number): Promise<boolean> {
 		if (!this.editorContainer) {
 			return false;
 		}
@@ -523,7 +525,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 			return false;
 		}
 
-		if (this._store.isDisposed || this.input !== input || token.isCancellationRequested) {
+		if (this._store.isDisposed || this.input !== input || token.isCancellationRequested || generation !== this.renderGeneration) {
 			modifiedRef.dispose();
 			return false;
 		}

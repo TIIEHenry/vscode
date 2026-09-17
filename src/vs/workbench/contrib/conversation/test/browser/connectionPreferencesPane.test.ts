@@ -138,6 +138,15 @@ suite('ConnectionPreferencesPane', () => {
 		return (pane as unknown as { entries: IConnectionProfileEntry[] }).entries;
 	}
 
+	function selectFirstHubDevice(pane: ConnectionPreferencesPane): void {
+		const list = (pane as unknown as { hubDevicesList: WorkbenchList<HubDeviceProjection> }).hubDevicesList;
+		if (list.length === 0) {
+			return;
+		}
+		list.setFocus([0]);
+		list.setSelection([0]);
+	}
+
 	function mountPane(
 		hubOverrides?: Partial<IUniverseAgentHubService>,
 		connectionOverrides?: Partial<IUniverseAgentConnection>,
@@ -2072,6 +2081,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 
 		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
@@ -2081,6 +2091,41 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(revoke);
 		assert.strictEqual(rename.getAttribute('aria-disabled'), 'true');
 		assert.strictEqual(revoke.getAttribute('aria-disabled'), 'true');
+		container.remove();
+	});
+
+	test('Rename and Revoke without a list selection do not invent the first device', async () => {
+		let renamed = false;
+		let revoked = false;
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			renameDevice: async () => {
+				renamed = true;
+				return { ok: true };
+			},
+			revokeDevice: async () => {
+				revoked = true;
+				return { ok: true };
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
+		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
+		assert.ok(rename);
+		assert.ok(revoke);
+		assert.strictEqual(rename.classList.contains('disabled'), true);
+		assert.strictEqual(revoke.classList.contains('disabled'), true);
+		rename.click();
+		revoke.click();
+		await Promise.resolve();
+		assert.strictEqual(renamed, false);
+		assert.strictEqual(revoked, false);
 		container.remove();
 	});
 
@@ -2107,6 +2152,7 @@ suite('ConnectionPreferencesPane', () => {
 		document.body.appendChild(container);
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 
 		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
@@ -2141,6 +2187,7 @@ suite('ConnectionPreferencesPane', () => {
 		document.body.appendChild(container);
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
@@ -2235,6 +2282,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 
 		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
@@ -2264,6 +2312,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 
 		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
@@ -2550,6 +2599,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
@@ -2582,6 +2632,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
@@ -2746,6 +2797,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 
 		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
@@ -2797,6 +2849,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = disconnected.getDomNode();
 		disconnected.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(disconnected);
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
 		assert.ok(revoke);
@@ -2819,6 +2872,7 @@ suite('ConnectionPreferencesPane', () => {
 		const noHookContainer = noHook.getDomNode();
 		noHook.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(noHook);
 		const noHookRevoke = [...noHookContainer.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
 		assert.ok(noHookRevoke);
@@ -2851,6 +2905,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
 		assert.ok(revoke);
@@ -2882,6 +2937,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
 		assert.ok(revoke);
@@ -2909,6 +2965,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
 		assert.ok(revoke);
@@ -2942,6 +2999,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
 		assert.ok(revoke);
@@ -2973,6 +3031,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
 		assert.ok(revoke);
@@ -3004,6 +3063,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
 		assert.ok(revoke);
@@ -3378,6 +3438,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
 		assert.ok(rename);
@@ -3407,6 +3468,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
 		assert.ok(revoke);
@@ -3436,6 +3498,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
 		assert.ok(revoke);
@@ -4301,6 +4364,7 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
 		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 1);
 		assert.strictEqual(connection.isEngineConnected(), true);
+		selectFirstHubDevice(pane);
 
 		const findDeviceAction = (label: string) => [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === label) as HTMLButtonElement | undefined;
@@ -4403,6 +4467,7 @@ suite('ConnectionPreferencesPane', () => {
 		await timeout(0);
 		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
 		assert.strictEqual(connection.isEngineConnected(), true);
+		selectFirstHubDevice(pane);
 
 		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
@@ -4471,6 +4536,7 @@ suite('ConnectionPreferencesPane', () => {
 		await Promise.resolve();
 		await timeout(0);
 		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+		selectFirstHubDevice(pane);
 
 		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
@@ -4816,6 +4882,149 @@ suite('ConnectionPreferencesPane', () => {
 		assert.notStrictEqual(banner.textContent, 'rotated');
 		assert.ok(!(banner.textContent ?? '').includes('rotated'));
 		assert.strictEqual(banner.textContent, connectionDeviceListFailureMessage('list boom'));
+		container.remove();
+	});
+
+	test('pairing-hold first-pull does not refill hub directory devices', async () => {
+		const studio = device({ id: 'dev-1', name: 'Studio' });
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: true,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+			listDevices: async () => {
+				throw new Error('must not listDevices while pairing-hold first-pull');
+			},
+		});
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [studio] }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 0);
+		const devicesStatus = container.querySelector('.connection-hub-devices-status') as HTMLElement;
+		assert.strictEqual(devicesStatus.textContent, getEngineSectionDisconnectedCopy());
+		assert.ok(devicesStatus.classList.contains('is-warning'));
+		container.remove();
+	});
+
+	test('second handleConnectDevice while SAS is live is a no-op', async () => {
+		const handshakeSas = 'R6X5-F0R1';
+		const studio = device({ id: 'dev-1', name: 'Studio' });
+		let addCalls = 0;
+		const { pane, workbench } = mountPaneInWorkbench({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [studio] }),
+			addHubDeviceProfile: async () => {
+				addCalls++;
+				return { ok: true, profileId: `hub-profile-${addCalls}` };
+			},
+			listConnectionProfiles: () => [{
+				profileId: 'hub-profile-1',
+				displayName: 'Studio',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'hubDevice',
+			}],
+		}, {
+			connectProfile: async () => ({
+				ok: true,
+				path: 'hubRelay',
+				pairingPending: true,
+				sasCode: handshakeSas,
+				engineIdentityId: '0123456789abcdef',
+			}),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+
+		const flow = (pane as unknown as { handleConnectDevice(device: HubDeviceProjection): Promise<void> }).handleConnectDevice(studio);
+		await waitForPairingDialog(container);
+		await (pane as unknown as { handleConnectDevice(device: HubDeviceProjection): Promise<void> }).handleConnectDevice(studio);
+		assert.strictEqual(addCalls, 1, 'live SAS must hold a second Connect');
+		clickPairingCancel(container);
+		await flow;
+		workbench.remove();
+	});
+
+	test('listDevices throw after disconnect uses disconnected refresh, not list-fail', async () => {
+		let connected = true;
+		let rejectInFlight: ((error: Error) => void) | undefined;
+		let listDevicesCalls = 0;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => connected,
+			getConnectionPhase: () => connected ? { kind: 'connected', path: 'loopback' } : { kind: 'disconnected' },
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listDevices: async (): Promise<UniverseAgentListDevicesResult> => {
+				listDevicesCalls++;
+				if (listDevicesCalls === 1) {
+					return {
+						devices: [{
+							deviceId: 'eng-1',
+							displayName: 'Phone',
+							role: '',
+							platform: '',
+							pairedAt: 0,
+							lastSeenAt: 0,
+							active: false,
+						}],
+					};
+				}
+				return new Promise((_resolve, reject) => {
+					rejectInFlight = reject;
+				});
+			},
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'hub-1', name: 'Hub Studio' })] }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(container.querySelector('.connection-hub-device-name')?.textContent, 'Phone');
+
+		onDidChangeConnection.fire(snapshot());
+		await Promise.resolve();
+		assert.ok(rejectInFlight);
+
+		connected = false;
+		rejectInFlight!(new Error('boom'));
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		const devicesStatus = container.querySelector('.connection-hub-devices-status') as HTMLElement;
+		assert.notStrictEqual(devicesStatus.textContent, connectionDeviceListFailureMessage('boom'));
+		assert.ok(!(devicesStatus.textContent ?? '').includes('boom'));
+		const names = [...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent);
+		assert.ok(!names.includes('Phone'), 'engine leftover must not survive disconnect catch');
 		container.remove();
 	});
 });

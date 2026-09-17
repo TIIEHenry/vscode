@@ -3,8 +3,8 @@ title: "Sources 系统概览：Files | Changes | Review"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-09-17
-summary: "SOURCES_PART 槽 + SourcesTabsHost；Files 只读投影（fetchChildren throw 不装空成功）、Changes/Review 接通+hook+非空 roster session 走 readGit* 否则 SCM；stage/unstage/commit；Accept 仅 ApplyHunks 载荷；Changes/Review 行 openSourcesChangeEntry 按 sources.diff.defaultOwner 分派（默认 Preview Diff）；三宿主 moveTo* 已落（F1–F3）；诚实空文案"
+updated: 2026-09-18
+summary: "SOURCES_PART 槽 + SourcesTabsHost；Files 只读投影（fetchChildren throw 不装空成功）、Changes/Review 接通+hook+非空 roster session 走 readGit* 否则 SCM；stage/unstage/commit；Accept 仅 ApplyHunks 载荷；Changes/Review 行 openSourcesChangeEntry 按 sources.diff.defaultOwner 分派（conversation → SIDE_GROUP）；三宿主 moveTo* 已落（F1–F3）；诚实空文案"
 ---
 
 # Sources 系统概览
@@ -46,7 +46,7 @@ SOURCES_PART（End 列下格；minimum 尺寸与 hide 关闭控件在 Part）
 
 - **不是** Explorer：树权威在 Sidebar；Files 不做拖放 / 新建 / 重命名。
 - **不是** SCM 视图：接通后列表权威是引擎 `ReadGit*`（须非空 roster `sessionId` **且** 非空 `entries`）；空 session / 断连 / 首拉无 hook / `supported:false` / 空引擎列表才投影本地 SCM。已活画引擎行后再失 `readGitChanges`（仍 connected）保 leftover，不把 SCM 装成权威（[D273](../../../dev/progress/deferred-gaps.md)）。`ReadGitChanges` / `ReadGitSummary` throw 与读失败同级（`sourcesGitReadFailureMessage`），不把 Summary 失败画成「无摘要」仍用引擎 entries。stage / commit 写出同样要非空 session；unstage 仍走 git 扩展命令。Review / Panel **Accept** 仅在 `hasSourcesGitApplyHunksPayload` 时显示；无载荷时有 SCM 只显示 **Stage**，不得把 `git.stage` 当 Accept 成功。本切片不发 `WriteGitApplyHunks`（不把 `unified_diff` / monaco 当 patches）。
-- **Diff 归属**（[ADR-005](../../../dev/decisions/005-changes-diff-owner.md) / [sources-changes-diff](../../../dev/plans/sources-changes-diff.md) **F1–F3 已落**）：Changes / Review 行点击经 `openSourcesChangeEntry` 解析 `ISourcesChangeRef`，按 `sources.diff.defaultOwner`（默认 `preview`）分派。**默认**有 SCM 资源时走 `ISCMResource.open()`（git = `vscode.diff` → Preview 里的 `DiffEditorInput`）；无 SCM 资源时 `openEditor` 打开文件本体。用户显式动作（`sources.diff.moveToConversation` / `moveToPanel` / `moveToPreview`）或 `defaultOwner=conversation|panel` 可把同一 change 移入 Conversation 只读审阅 tab（`ConversationDiffReviewInput`）或底部 Panel 产品 Diff 视图（`SourcesDiffPanelView`，重宿主；`renderRef` 用代数闸丢弃过期 await）。Sources 自身不做 inline diff（选项 C 已否决）。F4 隔离 profile 冒烟待验。
+- **Diff 归属**（[ADR-005](../../../dev/decisions/005-changes-diff-owner.md) / [sources-changes-diff](../../../dev/plans/sources-changes-diff.md) **F1–F3 已落**）：Changes / Review 行点击经 `openSourcesChangeEntry` 解析 `ISourcesChangeRef`，按 `sources.diff.defaultOwner`（默认 `preview`）分派。**默认**有 SCM 资源时走 `ISCMResource.open()`（git = `vscode.diff` → Preview 里的 `DiffEditorInput`）；无 SCM 资源时 `openEditor` 打开文件本体。用户显式动作（`sources.diff.moveToConversation` / `moveToPanel` / `moveToPreview`）或 `defaultOwner=conversation|panel` 可把同一 change 移入 Conversation 只读审阅 tab（`ConversationDiffReviewInput` 开 `CONVERSATION_SIDE_GROUP`，`matches()` 含 original + `groupId`）或底部 Panel 产品 Diff 视图（`SourcesDiffPanelView`，重宿主；`renderRef` 用代数闸丢弃过期 await）。git-read 首拉失败空列表藏 Commit 行，不画「No changes.」。Sources 自身不做 inline diff（选项 C 已否决）。F4 隔离 profile 冒烟待验。
 - **不自动撑开**：打开 Diff / 文件不得把已收起的 Sources 下格撑开（companion-contribs §5）。
 - **Review**：只导航面（Desktop ADR-043 / UI-INV-09 口径；本仓审阅进度在 Review 不在 Changes）；审阅进度窗口内存（R1 @ HEAD）；归因 chip 与 Conversation「查看更改」行依赖引擎 `onDidFileMutation` join（R3 / R4 @ HEAD；历史会话经 G-REV-1 `file_mutation` 走同一事件）。**无** review comment、approve、写回引擎或 git。
 

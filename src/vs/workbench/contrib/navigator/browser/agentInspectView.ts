@@ -300,13 +300,17 @@ export class AgentInspectView extends ViewPane {
 	private setEntries(entries: IAgentInspectEntry[]): void {
 		const hadEntries = this.entries.length > 0;
 		this.entries = entries;
+		const hasEntries = entries.length > 0;
+
+		if (hadEntries !== hasEntries) {
+			this._onDidChangeViewWelcomeState.fire();
+		}
 
 		if (this.list) {
 			this.list.splice(0, this.list.length, entries);
 		}
-
-		if (hadEntries !== (entries.length > 0)) {
-			this._onDidChangeViewWelcomeState.fire();
+		if (hasEntries) {
+			this.layoutInspectList();
 		}
 	}
 }

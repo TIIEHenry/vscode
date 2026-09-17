@@ -593,7 +593,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.listContainer.style.display = hasVisibleEntries ? 'block' : 'none';
 		this.toolbar.style.display = hasVisibleEntries ? 'flex' : 'none';
 		this.filterBox.element.style.display = hasAnyEntries ? 'block' : 'none';
-		this.commitRow.style.display = hasRepository ? 'flex' : 'none';
+		this.commitRow.style.display = hasRepository && !(options?.gitReadError && !hasAnyEntries) ? 'flex' : 'none';
 
 		if (options?.gitReadError) {
 			this.setStatusMessage(options.gitReadError);

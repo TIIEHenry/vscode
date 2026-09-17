@@ -47,6 +47,7 @@ import {
 	formatAgentTypeShort,
 	INavigatorAgentsHierarchyNode,
 	collectLiveAgentTreeAgentIds,
+	EMPTY_LIVE_AGENT_IDS,
 	isRootOnlyAgentTree,
 	liveAgentTreeToHierarchyNodes,
 } from '../common/navigatorAgentHierarchy.js';
@@ -582,12 +583,14 @@ export class NavigatorAgentsView extends ViewPane {
 			return;
 		}
 		if (this.hadHierarchySnapshot) {
+			this.inspectService.setLiveAgentIds('agents', EMPTY_LIVE_AGENT_IDS);
 			this.setHierarchyNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
 		} else {
 			this.clearAgentsInspectLiveIds();
 			this.setHierarchyState([], hierarchyEmpty);
 		}
 		if (this.hadActivitySnapshot || this.activityEntries.length > 0) {
+			this.inspectService.setLiveActivityIds(EMPTY_LIVE_AGENT_IDS);
 			this.setActivityNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
 		} else {
 			this.setActivityState([], activityEmpty);

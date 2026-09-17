@@ -305,6 +305,25 @@ suite('NavigatorProjectsView', () => {
 		assert.strictEqual(countTreeLeaves(view), 1);
 	});
 
+	test('Escape clears the projects filter and restores the list', async () => {
+		const recentFolder = URI.file('/projects/recent-one');
+		const workspacesService = new WorkspacesWithRecents({
+			workspaces: [{ folderUri: recentFolder, label: 'recent-one' }],
+			files: [],
+		});
+		const view = await mountView({ workspacesService });
+
+		await setFilterQuery(view, 'zzz-no-match');
+		assert.strictEqual(countTreeLeaves(view), 0);
+
+		const input = getFilterInput(view);
+		assert.ok(input);
+		input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27, bubbles: true, cancelable: true }));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(input.value, '');
+		assert.strictEqual(countTreeLeaves(view), 1);
+	});
+
 	test('filter input is shown when entries exist', async () => {
 		const folderUri = URI.file('/projects/demo');
 		const contextService = new TestContextService(testWorkspace(folderUri));

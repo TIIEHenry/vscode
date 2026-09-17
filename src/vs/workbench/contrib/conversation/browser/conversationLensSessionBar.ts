@@ -21,7 +21,9 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { hasNativeContextMenu } from '../../../../platform/window/common/window.js';
 import { ConversationEngineHistoryList } from './conversationEngineHistoryList.js';
 import { ConversationEngineSnapshotsList } from './conversationEngineSnapshotsList.js';
-import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarHistory, conversationLensSessionBarMore, conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle, conversationLensSessionBarSnapshots, conversationLensSessionBarTrajectoryTab } from './conversationLensSessionBarStrings.js';
+import { conversationLensSessionBarCloseExtensionTabs, conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarGoBack, conversationLensSessionBarGoForward, conversationLensSessionBarHistory, conversationLensSessionBarMore, conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle, conversationLensSessionBarSnapshots, conversationLensSessionBarTrajectoryTab } from './conversationLensSessionBarStrings.js';
+import { IConversationNavigationService } from './conversationNavigationService.js';
+import { IConversationSessionChatService } from './conversationSessionChatService.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
@@ -70,6 +72,7 @@ export interface IConversationLensSessionBarHost {
 	refreshSessionSelectOptions(): void;
 	updateSessionTitle(): void;
 	showPostFailure(reason: ConversationComposerPostFailureReason): void;
+	setInputMaximized(maximized: boolean): void;
 }
 
 export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: HTMLElement): void {
@@ -164,10 +167,12 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 			ConversationEngineHistoryList,
 			controls,
 			host.readingColumn));
+		host.engineHistoryList.setOnWillShow(() => host.setInputMaximized(false));
 		host.engineSnapshotsList = host.register(host.instantiationService.createInstance(
 			ConversationEngineSnapshotsList,
 			controls,
 			host.readingColumn));
+		host.engineSnapshotsList.setOnWillShow(() => host.setInputMaximized(false));
 
 		host.register(host.sessionSelectBox.onDidSelect(e => {
 			if (host.suppressSessionSelect) {
@@ -180,6 +185,32 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 			switchToSession(host, session.id);
 		}));
 	
+}
+
+function trySessionBarWindowNav(host: IConversationLensSessionBarHost): {
+	readonly canGoBack: boolean;
+	readonly canGoForward: boolean;
+	readonly canCloseNonRoot: boolean;
+	readonly goBack: () => void;
+	readonly goForward: () => void;
+	readonly closeNonRoot: () => void;
+} | undefined {
+	try {
+		return host.instantiationService.invokeFunction(accessor => {
+			const navigation = accessor.get(IConversationNavigationService);
+			const sessionChat = accessor.get(IConversationSessionChatService);
+			return {
+				canGoBack: navigation.canGoBack(),
+				canGoForward: navigation.canGoForward(),
+				canCloseNonRoot: sessionChat.canCloseNonRoot(),
+				goBack: () => void navigation.goBack(),
+				goForward: () => void navigation.goForward(),
+				closeNonRoot: () => void sessionChat.closeNonRootTabs(),
+			};
+		});
+	} catch {
+		return undefined;
+	}
 }
 
 function toggleSessionBarMoreContextView(host: IConversationLensSessionBarHost): void {
@@ -196,20 +227,36 @@ function toggleSessionBarMoreContextView(host: IConversationLensSessionBarHost):
 			popup.setAttribute('role', 'menu');
 			popup.setAttribute('aria-label', conversationLensSessionBarMore);
 			const store = new DisposableStore();
-			const addAction = (label: string, run: () => void) => {
+			const addAction = (label: string, run: () => void, enabled = true) => {
 				const item = append(popup, $('button.conversation-lens-dock-more-item')) as HTMLButtonElement;
 				item.type = 'button';
 				item.setAttribute('role', 'menuitem');
 				item.textContent = label;
+				item.disabled = !enabled;
+				item.setAttribute('aria-disabled', enabled ? 'false' : 'true');
 				store.add(addDisposableListener(item, 'click', e => {
 					e.preventDefault();
 					e.stopPropagation();
+					if (!enabled) {
+						return;
+					}
 					host.sessionMoreContextView?.close();
 					run();
 				}));
 			};
+			const navigation = trySessionBarWindowNav(host) ?? {
+				canGoBack: false,
+				canGoForward: false,
+				canCloseNonRoot: false,
+				goBack: () => { },
+				goForward: () => { },
+				closeNonRoot: () => { },
+			};
 			addAction(conversationLensSessionBarHistory, () => host.engineHistoryList?.show());
 			addAction(conversationLensSessionBarSnapshots, () => host.engineSnapshotsList?.show());
+			addAction(conversationLensSessionBarGoBack, () => navigation.goBack(), navigation.canGoBack);
+			addAction(conversationLensSessionBarGoForward, () => navigation.goForward(), navigation.canGoForward);
+			addAction(conversationLensSessionBarCloseExtensionTabs, () => navigation.closeNonRoot(), navigation.canCloseNonRoot);
 			addAction(conversationLensSessionBarNewSession, () => createNewSession(host));
 			addAction(conversationLensSessionBarDeleteSession, () => deleteActiveSession(host));
 			for (const session of host.stubService.getSessions()) {

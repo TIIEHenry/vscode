@@ -3,8 +3,8 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-09-17
-summary: "UA chrome 审查波本工位：SAS 切 tab 不 dispose；浮层含在 timeline 不盖 Dock Stop；SessionBar 中宽 More 含 History/Snapshots；快照无 hook 文案去 API。Navigator layout+Connecting+Inspect 换行；Sources Diff 代数闸+git-read 失败空态。D25/D26 已闭。PRD-008 仍待 IDE 接通冒烟。D410–D412 已合。下号 D413。"
+updated: 2026-09-18
+summary: "UA chrome 审查 follow-up 本工位：Maximize/切会话关浮层；Connect pairing-hold 禁写不回填目录；Diff SIDE_GROUP+matches；断连清 live id；Client 360 文本框 100%。D25/D26 已闭。PRD-008 仍待 IDE 接通冒烟。D410–D412 已合。下号 D413。"
 ---
 
 # Development Progress
@@ -39,7 +39,7 @@ summary: "UA chrome 审查波本工位：SAS 切 tab 不 dispose；浮层含在 
 | **settings chrome follow-up** | Back-to-Client 先取出 Preferences 服务再关 pane（`await` 后 accessor 已失效）；Direct Address Connect 状态写回本区并先标 Connecting…。已随本轮合入 `loop/merge` |
 | **UA chrome visual** | `ff278772b85` — SessionBar `.is-medium`；Inbox 可达；Engine CTA 去重；Client 360；Inspect+filter；Sources 空态。不升 PRD |
 | **UA chrome visual follow-up** | `a828fb606ad` — Maximize inbox 文档流；chip 托盘；badge 28ch+title；Accept hover；Navigator compact 留点；Connecting pending。不升 PRD |
-| **UA chrome 审查波** | 本 commit — SAS paneCache；浮层含在 timeline；SessionBar 中宽 More；Navigator layout/Connecting/Inspect；Sources Diff 代数闸。不升 PRD |
+| **UA chrome 审查波** | 未合 follow-up — Maximize/切会话关浮层；Connect pairing-hold 禁写不回填目录；Diff SIDE_GROUP；断连清 live id；Client 360 `width:100%`。不升 PRD |
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。**2026-09-12**：仓外 PIN 已换。grpcurl 复验 **List/Create PASS**（含旧 session-100/101）；**[D25](deferred-gaps.md)/[D26](deferred-gaps.md) 已闭**。同日 seed `provider:state` + `models.json` 后重启，grpcurl **Chat PASS**（`gemini-3.8-flash-high`，`textDelta`=`pong`，`turnComplete`/`end_turn`；无 `MODEL_PROFILE_*`）。这是引擎面证据，不是 IDE Conversation 接通冒烟。未升 PRD-008。引擎 A–F 已合；本仓 **node + `IUniverseAgentConnection` 已挂**。Provider/Rules/Hooks **只读列表**已接（无凭据/规则写表单）。Projects 按会话 `work_dir` 分组、Navigator `ListTeams` 标题、Review 历史 chip **已接**。[m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
 ### 进行中（2026-09-13 · 人类工位合入 + D412 占 D）
 | 槽 | 切片 | 状态 |
@@ -49,7 +49,6 @@ summary: "UA chrome 审查波本工位：SAS 切 tab 不 dispose；浮层含在 
 | **C** | — | `idle`；跳过 cascade；脏 `dev/loop` 勿 add |
 | **D** | — | `idle`；HEAD == MERGE_SHA；D412 已合入 |
 | **E** | leftover `fix/ci-gate-reds` | `blocked`；勿 `checkout -B` |
-
 <details>
 <summary>历史切片流水（D45 起，已闭项见上表）</summary>
 

@@ -90,6 +90,10 @@ suite('Sources - Files list leftover honesty', () => {
 		assert.strictEqual(empty, sourcesFilesListReadFailureMessage(new Error('boom')));
 		assert.ok(!empty.includes(sourcesFilesListEmptyMessage));
 		assert.ok(!host.querySelector('.sources-files-list .monaco-list-row'));
+		assert.ok((host.querySelector('.sources-files-empty') as HTMLElement).classList.contains('is-error'));
+		const status = await waitForText(host, '.sources-files-status', 'Unable to read workspace files');
+		assert.strictEqual(status, sourcesFilesListReadFailureMessage(new Error('boom')));
+		assert.ok((host.querySelector('.sources-files-status') as HTMLElement).classList.contains('is-error'));
 	});
 
 	test('success then fetchChildren throw keeps leftover rows and paints status', async function () {
