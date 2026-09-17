@@ -23,7 +23,7 @@ import { IProductService } from '../../../../platform/product/common/productServ
 import { disposableWindowInterval } from '../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../base/browser/window.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
-import { isCancellationError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { equalsIgnoreCase } from '../../../../base/common/strings.js';
@@ -138,11 +138,11 @@ class ExtensionUrlHandler implements IExtensionUrlHandler, IURLHandler {
 		const urlToHandleValue = this.storageService.get(URL_TO_HANDLE, StorageScope.WORKSPACE);
 		if (urlToHandleValue) {
 			this.storageService.remove(URL_TO_HANDLE, StorageScope.WORKSPACE);
-			this.handleURL(URI.revive(JSON.parse(urlToHandleValue)), { trusted: true });
+			this.handleURL(URI.revive(JSON.parse(urlToHandleValue)), { trusted: true }).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		const cache = ExtensionUrlBootstrapHandler.cache;
-		const drainTimeout = setTimeout(() => cache.forEach(([uri, option]) => this.handleURL(uri, option)));
+		const drainTimeout = setTimeout(() => cache.forEach(([uri, option]) => this.handleURL(uri, option).catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.disposable = combinedDisposable(
 			urlService.registerHandler(this),
@@ -257,7 +257,7 @@ class ExtensionUrlHandler implements IExtensionUrlHandler, IURLHandler {
 		const uris = this.uriBuffer.get(ExtensionIdentifier.toKey(extensionId)) || [];
 
 		for (const { uri } of uris) {
-			this.handleURLByExtension(extensionId, handler, uri);
+			this.handleURLByExtension(extensionId, handler, uri).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		this.uriBuffer.delete(ExtensionIdentifier.toKey(extensionId));
