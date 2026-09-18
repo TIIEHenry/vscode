@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { disposableTimeout, RunOnceScheduler } from '../../../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Disposable, dispose, IDisposable, MutableDisposable } from '../../../../../../base/common/lifecycle.js';
 import { language } from '../../../../../../base/common/platform.js';
 import { localize } from '../../../../../../nls.js';
@@ -112,13 +113,13 @@ class ExecutionStateCellStatusBarItem extends Disposable {
 	) {
 		super();
 
-		this._update();
+		this._update().catch(onUnexpectedError).catch(onUnexpectedError);
 		this._register(this._executionStateService.onDidChangeExecution(e => {
 			if (e.type === NotebookExecutionType.cell && e.affectsCell(this._cell.uri)) {
-				this._update();
+				this._update().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
-		this._register(this._cell.model.onDidChangeInternalMetadata(() => this._update()));
+		this._register(this._cell.model.onDidChangeInternalMetadata(() => this._update().catch(onUnexpectedError).catch(onUnexpectedError)));
 	}
 
 	private async _update() {
@@ -144,7 +145,7 @@ class ExecutionStateCellStatusBarItem extends Disposable {
 					this._clearExecutingStateTimer.value = disposableTimeout(() => {
 						this._showedExecutingStateTime = undefined;
 						this._clearExecutingStateTimer.clear();
-						this._update();
+						this._update().catch(onUnexpectedError).catch(onUnexpectedError);
 					}, timeUntilMin);
 				}
 
@@ -240,14 +241,14 @@ class TimerCellStatusBarItem extends Disposable {
 		super();
 		this._isVerbose = this._configurationService.getValue(NotebookSetting.cellExecutionTimeVerbosity) === 'verbose';
 
-		this._scheduler = this._register(new RunOnceScheduler(() => this._update(), TimerCellStatusBarItem.UPDATE_INTERVAL));
-		this._update();
-		this._register(this._cell.model.onDidChangeInternalMetadata(() => this._update()));
+		this._scheduler = this._register(new RunOnceScheduler(() => this._update().catch(onUnexpectedError).catch(onUnexpectedError), TimerCellStatusBarItem.UPDATE_INTERVAL));
+		this._update().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._register(this._cell.model.onDidChangeInternalMetadata(() => this._update().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this._register(this._configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(NotebookSetting.cellExecutionTimeVerbosity)) {
 				this._isVerbose = this._configurationService.getValue(NotebookSetting.cellExecutionTimeVerbosity) === 'verbose';
-				this._update();
+				this._update().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}
