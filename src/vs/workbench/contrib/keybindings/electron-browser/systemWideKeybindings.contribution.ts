@@ -5,6 +5,7 @@
 
 import * as nls from '../../../../nls.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { equals } from '../../../../base/common/arrays.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
@@ -104,7 +105,7 @@ export class SystemWideKeybindingsContribution extends Disposable implements IWo
 	) {
 		super();
 
-		this.syncScheduler = this._register(new RunOnceScheduler(() => this.sync(), 200));
+		this.syncScheduler = this._register(new RunOnceScheduler(() => this.sync().catch(onUnexpectedError).catch(onUnexpectedError), 200));
 
 		// Re-sync when keybindings change (also fires on keyboard-layout changes, which affect
 		// the accelerator strings).
