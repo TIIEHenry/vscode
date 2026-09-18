@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { IExperimentationFilterProvider } from 'tas-client';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { getInternalOrg } from '../../../../platform/assignment/common/assignment.js';
@@ -101,13 +102,13 @@ export class CopilotAssignmentFilterProvider extends Disposable implements IExpe
 		this.copilotIsSn = this._storageService.get(StorageVersionKeys.CopilotIsSn, StorageScope.PROFILE);
 		this.copilotIsFcv1 = this._storageService.get(StorageVersionKeys.CopilotIsFcv1, StorageScope.PROFILE);
 
-		this.updateExtensionVersions();
+		this.updateExtensionVersions().catch(onUnexpectedError).catch(onUnexpectedError);
 		this.updateCopilotEntitlementInfo();
 		this.updateCopilotTokenInfo();
 
 		this._register(this._extensionService.onDidChangeExtensionsStatus(extensionIdentifiers => {
 			if (extensionIdentifiers.some(identifier => ExtensionIdentifier.equals(identifier, 'github.copilot') || ExtensionIdentifier.equals(identifier, 'github.copilot-chat'))) {
-				this.updateExtensionVersions();
+				this.updateExtensionVersions().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
