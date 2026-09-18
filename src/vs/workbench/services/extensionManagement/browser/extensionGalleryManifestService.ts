@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IExtensionGalleryManifestService } from '../../../../platform/extensionManagement/common/extensionGalleryManifest.js';
 import { ExtensionGalleryManifestService } from '../../../../platform/extensionManagement/common/extensionGalleryManifestService.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
@@ -22,7 +23,7 @@ class WebExtensionGalleryManifestService extends ExtensionGalleryManifestService
 			this.getExtensionGalleryManifest().then(manifest => {
 				channel.call('setExtensionGalleryManifest', [manifest]);
 				this._register(this.onDidChangeExtensionGalleryManifest(manifest => channel.call('setExtensionGalleryManifest', [manifest])));
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

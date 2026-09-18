@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { IHeaders } from '../../../../base/parts/request/common/request.js';
 import { localize } from '../../../../nls.js';
@@ -80,7 +81,7 @@ export class WorkbenchExtensionGalleryManifestService extends ExtensionGalleryMa
 			}
 			updateChannels(manifest);
 			this._register(this.onDidChangeExtensionGalleryManifest(manifest => updateChannels(manifest)));
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private extensionGalleryManifestPromise: Promise<void> | undefined;

@@ -21,6 +21,7 @@ import { IWorkbenchEnvironmentService } from '../../environment/common/environme
 import { resolveAmdNodeModulePath } from '../../../../amdX.js';
 import { asJson, IRequestService } from '../../../../platform/request/common/request.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { timeout } from '../../../../base/common/async.js';
 import { StopWatch } from '../../../../base/common/stopwatch.js';
 import { CopilotAssignmentFilterProvider, GitHubCoreAssignmentsFilterProvider } from './assignmentFilters.js';
@@ -223,7 +224,7 @@ export class WorkbenchAssignmentService extends Disposable implements IAssignmen
 			// asynchronously. The initial account load resolves the readiness barrier without
 			// firing onDidChangeDefaultAccount, so proactively re-check once it is ready, and
 			// again whenever the account changes later.
-			this.defaultAccountService.getDefaultAccount().then(() => this.recreateTasClientIfEndpointChanged());
+			this.defaultAccountService.getDefaultAccount().then(() => this.recreateTasClientIfEndpointChanged()).catch(onUnexpectedError).catch(onUnexpectedError);
 			this._register(this.defaultAccountService.onDidChangeDefaultAccount(() => this.recreateTasClientIfEndpointChanged()));
 
 			// Stop the final client's auto-polling and revoke its wrappers when the service is disposed.
