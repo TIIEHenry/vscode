@@ -279,7 +279,7 @@ export class UserDataProfilesEditor extends EditorPane implements IUserDataProfi
 			}));
 			this._register(this.profilesList.onMouseDblClick(e => {
 				if (!e.element) {
-					this.createNewProfile();
+					this.createNewProfile().catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}));
 		}
@@ -333,7 +333,7 @@ export class UserDataProfilesEditor extends EditorPane implements IUserDataProfi
 			}
 			const url = selectedItem.label === quickPick.value ? URI.parse(quickPick.value) : await this.getProfileUriFromFileSystem();
 			if (url) {
-				this.createNewProfile(url);
+				this.createNewProfile(url).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 		disposables.add(quickPick.onDidHide(() => disposables.dispose()));
@@ -632,7 +632,7 @@ class ProfileWidget extends Disposable {
 		if (this._profileElement.value?.element instanceof UserDataProfileElement) {
 			this._profileElement.value.element.reset();
 		}
-		this.profileTree.setInput(profileElement);
+		this.profileTree.setInput(profileElement).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		const disposables = new DisposableStore();
 		this._profileElement.value = { element: profileElement, dispose: () => disposables.dispose() };
@@ -1495,10 +1495,10 @@ class ContentsProfileRenderer extends ProfilePropertyRenderer {
 				} else if (element.root instanceof UserDataProfileElement) {
 					contentsTreeHeader.classList.toggle('default-profile', element.root.profile.isDefault);
 				}
-				profilesContentTree.setInput(profileElement.root);
+				profilesContentTree.setInput(profileElement.root).catch(onUnexpectedError).catch(onUnexpectedError);
 				elementDisposables.add(profileElement.root.onDidChange(e => {
 					if (e.copyFrom || e.copyFlags || e.flags || e.extensions || e.snippets || e.preview) {
-						profilesContentTree.updateChildren(element.root);
+						profilesContentTree.updateChildren(element.root).catch(onUnexpectedError).catch(onUnexpectedError);
 					}
 					if (e.copyFromInfo) {
 						updateDescription(element);
