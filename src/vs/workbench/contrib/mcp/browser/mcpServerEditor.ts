@@ -930,7 +930,7 @@ class AdditionalDetailsWidget extends Disposable {
 			this.renderMarketplaceInfo(this.container, extension);
 		}
 		this.renderTags(this.container, extension);
-		this.renderExtensionResources(this.container, extension);
+		this.renderExtensionResources(this.container, extension).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private renderTags(container: HTMLElement, extension: IWorkbenchMcpServer): void {

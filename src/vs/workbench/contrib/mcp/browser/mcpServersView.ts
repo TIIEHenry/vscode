@@ -7,6 +7,7 @@ import './media/mcpServersView.css';
 import * as dom from '../../../../base/browser/dom.js';
 import { ActionBar } from '../../../../base/browser/ui/actionbar/actionbar.js';
 import { IListContextMenuEvent } from '../../../../base/browser/ui/list/list.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { createMarkdownCommandLink, MarkdownString } from '../../../../base/common/htmlContent.js';
 import { combinedDisposable, Disposable, DisposableStore, dispose, IDisposable, isDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
@@ -524,7 +525,7 @@ export class DefaultBrowseMcpServersView extends McpServersListView {
 
 	protected override renderBody(container: HTMLElement): void {
 		super.renderBody(container);
-		this._register(this.mcpGalleryManifestService.onDidChangeMcpGalleryManifest(() => this.show()));
+		this._register(this.mcpGalleryManifestService.onDidChangeMcpGalleryManifest(() => this.show().catch(onUnexpectedError).catch(onUnexpectedError)));
 	}
 
 	override async show(): Promise<IPagedModel<IWorkbenchMcpServer>> {

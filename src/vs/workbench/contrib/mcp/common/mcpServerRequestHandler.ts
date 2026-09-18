@@ -214,7 +214,7 @@ export class McpServerRequestHandler extends Disposable {
 
 		// Listen for log level changes and forward them to the MCP server
 		this._register(logger.onDidChangeLogLevel((logLevel) => {
-			this._sendLogLevelToServer(logLevel);
+			this._sendLogLevelToServer(logLevel).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 
