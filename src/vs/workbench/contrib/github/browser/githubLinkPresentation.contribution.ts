@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { autorun, IObservable, observableValue } from '../../../../base/common/observable.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -124,7 +125,7 @@ class GitHubLinkPresentationHydrator extends Disposable {
 		const promise = new Promise<void>((resolve, reject) => this._pending.push({ resource, resolve, reject }));
 		if (!this._scheduled) {
 			this._scheduled = true;
-			queueMicrotask(() => void this._flush());
+			queueMicrotask(() => void this._flush().catch(onUnexpectedError).catch(onUnexpectedError));
 		}
 		return promise;
 	}
@@ -203,7 +204,7 @@ class GitHubLinkPresentationWatcher extends Disposable implements ILinkPresentat
 		store.add(toDisposable(() => controller.abort()));
 		this._activeSubscription.value = store;
 
-		void this._initializeSubscription(target, generation, controller, store);
+		void this._initializeSubscription(target, generation, controller, store).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async _initializeSubscription(target: GitHubLinkTarget, generation: number, controller: AbortController, store: DisposableStore): Promise<void> {
@@ -215,7 +216,7 @@ class GitHubLinkPresentationWatcher extends Disposable implements ILinkPresentat
 			const account = credential.account;
 			void this._hydrator.hydrate(target, account).catch(error => {
 				this._logService.trace(`[GitHubLinkPresentation] Bulk hydration failed for ${formatTarget(target)}; falling back to resource fetch`, error);
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 			switch (target.kind) {
 				case 'repository': {
 					const subscription = store.add(this._gitHubService.query.subscribeRepository({
