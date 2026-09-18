@@ -155,17 +155,12 @@ suite('unused leftover remaining after D820 moved to accountPolicy leftover Prom
 		assertWrapped(account, getDefaultAccountThenCall);
 	});
 
-	test('configuration leftover updateCache / updateCachedConfigurationDefaultsOverrides / waitAndInitialize stay leftover remaining', () => {
+	test('configuration leftover remaining signatures stay Promise/async; this knife left those leftover remaining unused for a later knife', () => {
 		const configuration = fs.readFileSync(resolveSource(CONFIG_REL), 'utf8');
 		assertPromiseSignature(configuration, 'private async updateCachedConfigurationDefaultsOverrides(): Promise<void> {');
 		assertPromiseSignature(configuration, 'private async updateCache(): Promise<void> {');
 		assertPromiseSignature(configuration, 'private async waitAndInitialize(workspaceIdentifier: IWorkspaceIdentifier): Promise<void> {');
-		assert.ok(configuration.includes(`\t\tthis.updateCachedConfigurationDefaultsOverrides();\n`) || configuration.includes(`\t\t\tthis.updateCachedConfigurationDefaultsOverrides();\n`));
-		assert.ok(!configuration.includes(`${updateCachedDefaultsCall}${doubleCatch}`));
-		assert.ok(configuration.includes(`\t\tthis.updateCache();\n`));
-		assert.ok(!configuration.includes(`${updateCacheCall}${doubleCatch}`));
-		assert.ok(configuration.includes(`\t\t\t\tthis.waitAndInitialize(this._workspaceIdentifier);\n`));
-		assert.ok(!configuration.includes(`${waitAndInitializeCall}${doubleCatch}`));
+		assert.ok(!configuration.includes('D821'));
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {
