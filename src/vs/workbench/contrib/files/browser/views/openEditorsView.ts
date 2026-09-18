@@ -38,6 +38,7 @@ import { IDragAndDropData, DataTransfers } from '../../../../../base/browser/dnd
 import { memoize } from '../../../../../base/common/decorators.js';
 import { ElementsDragAndDropData, ListViewTargetSector, NativeDragAndDropData } from '../../../../../base/browser/ui/list/listView.js';
 import { IWorkingCopyService } from '../../../../services/workingCopy/common/workingCopyService.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { IWorkingCopy, WorkingCopyCapabilities } from '../../../../services/workingCopy/common/workingCopy.js';
 import { IFilesConfigurationService } from '../../../../services/filesConfiguration/common/filesConfigurationService.js';
 import { IViewDescriptorService } from '../../../../common/views.js';
@@ -471,7 +472,7 @@ export class OpenEditorsView extends ViewPane {
 				this.editorGroupService.activateGroup(element.group); // needed for https://github.com/microsoft/vscode/issues/6672
 			}
 			const targetGroup = options.sideBySide ? this.editorGroupService.sideGroup : element.group;
-			targetGroup.openEditor(element.editor, options);
+			targetGroup.openEditor(element.editor, options).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

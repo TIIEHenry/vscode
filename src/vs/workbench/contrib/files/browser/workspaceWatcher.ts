@@ -16,6 +16,7 @@ import { isAbsolute } from '../../../../base/common/path.js';
 import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
 import { IHostService } from '../../../services/host/browser/host.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 
 export class WorkspaceWatcher extends Disposable {
 
@@ -101,7 +102,7 @@ export class WorkspaceWatcher extends Disposable {
 				localize('eshutdownError', "File changes watcher stopped unexpectedly. A reload of the window may enable the watcher again unless the workspace cannot be watched for file changes."),
 				[{
 					label: localize('reload', "Reload"),
-					run: () => this.hostService.reload()
+					run: () => this.hostService.reload().catch(onUnexpectedError).catch(onUnexpectedError)
 				}],
 				{
 					sticky: true,

@@ -65,7 +65,7 @@ export class ExplorerService implements IExplorerService {
 
 		this.model = new ExplorerModel(this.contextService, this.uriIdentityService, this.fileService, this.configurationService, this.filesConfigurationService);
 		this.disposables.add(this.model);
-		this.disposables.add(this.fileService.onDidRunOperation(e => this.onDidRunOperation(e)));
+		this.disposables.add(this.fileService.onDidRunOperation(e => this.onDidRunOperation(e).catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.onFileChangesScheduler = this.disposables.add(new RunOnceScheduler(async () => {
 			const events = this.fileChangeEvents;
@@ -354,7 +354,7 @@ export class ExplorerService implements IExplorerService {
 
 			if (reveal && resource && autoReveal) {
 				// We did a top level refresh, reveal the active file #67118
-				this.select(resource, autoReveal);
+				this.select(resource, autoReveal).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 	}

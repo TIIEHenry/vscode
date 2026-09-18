@@ -38,7 +38,7 @@ import { ICodeEditorService } from '../../../../editor/browser/services/codeEdit
 import { EmbeddedCodeEditorWidget } from '../../../../editor/browser/widget/codeEditor/embeddedCodeEditorWidget.js';
 import { ITextFileService } from '../../../services/textfile/common/textfiles.js';
 import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
-import { isCancellationError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { IAction, toAction } from '../../../../base/common/actions.js';
 import { EditorOpenSource, EditorResolution } from '../../../../platform/editor/common/editor.js';
 import { hash } from '../../../../base/common/hash.js';
@@ -224,7 +224,7 @@ CommandsRegistry.registerCommand({
 				original: { resource: globalResourceToCompare },
 				modified: { resource: rightResource },
 				options: { pinned: true }
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 });

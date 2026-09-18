@@ -19,6 +19,7 @@ import { Schemas } from '../../../../../base/common/network.js';
 import { UntitledTextEditorInput } from '../../../../services/untitled/common/untitledTextEditorInput.js';
 import { IWorkingCopyEditorService } from '../../../../services/workingCopy/common/workingCopyEditorService.js';
 import { DEFAULT_EDITOR_ASSOCIATION } from '../../../../common/editor.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 
 export class TextFileEditorTracker extends Disposable implements IWorkbenchContribution {
 
@@ -99,7 +100,7 @@ export class TextFileEditorTracker extends Disposable implements IWorkbenchContr
 		this.editorService.openEditors(resources.map(resource => ({
 			resource,
 			options: { inactive: true, pinned: true, preserveFocus: true }
-		})));
+		}))).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	//#endregion

@@ -37,6 +37,7 @@ import { IPreferencesService } from '../../../../services/preferences/common/pre
 import { IHostService } from '../../../../services/host/browser/host.js';
 import { IEditorOptions as ICodeEditorOptions } from '../../../../../editor/common/config/editorOptions.js';
 import { IFilesConfigurationService } from '../../../../services/filesConfiguration/common/filesConfigurationService.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 
 /**
  * An implementation of editor for file system resources.
@@ -269,7 +270,7 @@ export class TextFileEditor extends AbstractTextCodeEditor<ICodeEditorViewState>
 		this.editorService.replaceEditors([{
 			editor,
 			replacement: { resource: editor.resource, options: { ...editorOptions, override: editorId } }
-		}], group);
+		}], group).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private doOpenAsBinaryInSameEditor(group: IEditorGroup, editorId: string | undefined, editor: FileEditorInput, editorOptions: ITextEditorOptions): void {
@@ -287,7 +288,7 @@ export class TextFileEditor extends AbstractTextCodeEditor<ICodeEditorViewState>
 			editor.setForceOpenAsBinary();
 		}
 
-		group.openEditor(editor, editorOptions);
+		group.openEditor(editor, editorOptions).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	override clearInput(): void {
