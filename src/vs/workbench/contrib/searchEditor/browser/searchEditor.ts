@@ -155,13 +155,13 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 		this.queryEditorWidget = this._register(scopedInstantiationService.createInstance(SearchWidget, container, { _hideReplaceToggle: true, showContextToggle: true, inputBoxStyles: searchEditorInputboxStyles, toggleStyles: defaultToggleStyles }));
 		this._register(this.queryEditorWidget.onReplaceToggled(() => this.reLayout()));
 		this._register(this.queryEditorWidget.onDidHeightChange(() => this.reLayout()));
-		this._register(this.queryEditorWidget.onSearchSubmit(({ delay }) => this.triggerSearch({ delay })));
+		this._register(this.queryEditorWidget.onSearchSubmit(({ delay }) => this.triggerSearch({ delay }).catch(onUnexpectedError).catch(onUnexpectedError)));
 		if (this.queryEditorWidget.searchInput) {
-			this._register(this.queryEditorWidget.searchInput.onDidOptionChange(() => this.triggerSearch({ resetCursor: false })));
+			this._register(this.queryEditorWidget.searchInput.onDidOptionChange(() => this.triggerSearch({ resetCursor: false }).catch(onUnexpectedError).catch(onUnexpectedError)));
 		} else {
 			this.logService.warn('SearchEditor: SearchWidget.searchInput is undefined, cannot register onDidOptionChange listener');
 		}
-		this._register(this.queryEditorWidget.onDidToggleContext(() => this.triggerSearch({ resetCursor: false })));
+		this._register(this.queryEditorWidget.onDidToggleContext(() => this.triggerSearch({ resetCursor: false }).catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		// Includes/Excludes Dropdown
 		this.includesExcludesContainer = DOM.append(container, DOM.$('.includes-excludes'));
@@ -202,7 +202,7 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 			ariaLabel: localize('label.includes', 'Search Include Patterns'),
 			inputBoxStyles: searchEditorInputboxStyles
 		}));
-		this._register(this.inputPatternIncludes.onSubmit(triggeredOnType => this.triggerSearch({ resetCursor: false, delay: triggeredOnType ? this.searchConfig.searchOnTypeDebouncePeriod : 0 })));
+		this._register(this.inputPatternIncludes.onSubmit(triggeredOnType => this.triggerSearch({ resetCursor: false, delay: triggeredOnType ? this.searchConfig.searchOnTypeDebouncePeriod : 0 }).catch(onUnexpectedError).catch(onUnexpectedError)));
 		this._register(this.inputPatternIncludes.onChangeSearchInEditorsBox(() => this.triggerSearch()));
 
 		// Excludes
@@ -213,7 +213,7 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 			ariaLabel: localize('label.excludes', 'Search Exclude Patterns'),
 			inputBoxStyles: searchEditorInputboxStyles
 		}));
-		this._register(this.inputPatternExcludes.onSubmit(triggeredOnType => this.triggerSearch({ resetCursor: false, delay: triggeredOnType ? this.searchConfig.searchOnTypeDebouncePeriod : 0 })));
+		this._register(this.inputPatternExcludes.onSubmit(triggeredOnType => this.triggerSearch({ resetCursor: false, delay: triggeredOnType ? this.searchConfig.searchOnTypeDebouncePeriod : 0 }).catch(onUnexpectedError).catch(onUnexpectedError)));
 		this._register(this.inputPatternExcludes.onChangeIgnoreBox(() => this.triggerSearch()));
 
 		// Messages
@@ -356,17 +356,17 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 
 	toggleWholeWords() {
 		this.queryEditorWidget.searchInput?.setWholeWords(!this.queryEditorWidget.searchInput.getWholeWords());
-		this.triggerSearch({ resetCursor: false });
+		this.triggerSearch({ resetCursor: false }).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	toggleRegex() {
 		this.queryEditorWidget.searchInput?.setRegex(!this.queryEditorWidget.searchInput.getRegex());
-		this.triggerSearch({ resetCursor: false });
+		this.triggerSearch({ resetCursor: false }).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	toggleCaseSensitive() {
 		this.queryEditorWidget.searchInput?.setCaseSensitive(!this.queryEditorWidget.searchInput.getCaseSensitive());
-		this.triggerSearch({ resetCursor: false });
+		this.triggerSearch({ resetCursor: false }).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	toggleContextLines() {
