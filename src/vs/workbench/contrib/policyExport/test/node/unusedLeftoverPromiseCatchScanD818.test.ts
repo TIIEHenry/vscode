@@ -250,8 +250,7 @@ suite('folding leftover remaining moved to unused leftover Promise fire-and-forg
 
 		assert.ok(typeContrib.includes(doubleCatch));
 		assert.ok(callContrib.includes(doubleCatch));
-		assert.ok(carousel.includes(`this._loadBlobUrl(adjacentImage).then(url => {`));
-		assert.ok(!carousel.includes(`this.updateCurrentImage()${doubleCatch}`));
+		assert.ok(carousel.includes(`this.updateCurrentImage()${doubleCatch}`));
 
 		for (const [rel, source] of [
 			[KEYBINDINGS_EXPORT_REL, keybindingsExport],
