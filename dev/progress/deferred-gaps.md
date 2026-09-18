@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D798 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D802 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1159,3 +1159,8 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D796 | P3 | **closed** leftover Promise 双链 markers leftover remaining 2 点，溢到 bulkEdit 九处。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`markersLeftoverPromiseCatchScanD796.test.ts`。勿 add `out`。 | bulkEdit 双链。未关 D24。leftover 程序未全局完成。 | workbench / bulkEdit leftover remaining | closed |
 | D797 | P3 | **closed** leftover Promise 双链 userDataProfile 八处 leftover void-Promise。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；`userDataProfileLeftoverPromiseCatchScanD797.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / userDataProfile leftover remaining | closed |
 | D798 | P3 | **closed** leftover Promise 双链 terminalContrib 八处：find 五处；stickyScroll xterm/addon then 三处。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`terminalContribLeftoverPromiseCatchScanD798.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / terminalContrib leftover remaining | closed |
+| D794 | P3 | **closed** leftover Promise 双链 preferences leftover remaining 3 点，溢到 services/preferences 三处 open。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`preferencesLeftoverPromiseCatchScanD794.test.ts`。勿 add `out`。 | 六处双链。未关 D24。leftover 程序未全局完成。 | workbench / preferences leftover remaining | closed |
+| D799 | P3 | **closed** leftover Promise 双链 welcomeWalkthrough 1 点，跳过 url，溢到 webviewView + workspaces 六处。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；`welcomeWalkthroughLeftoverPromiseCatchScanD799.test.ts`。勿 add `out`。 | 七处双链。未关 D24。leftover 程序未全局完成。 | workbench / welcomeWalkthrough leftover remaining | closed |
+| D800 | P3 | **closed** leftover Promise 双链 extensionManagement 3 新点，溢到 assignment + textMate。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`extensionManagementLeftoverPromiseCatchScanD800.test.ts`。勿 add `out`。 | 五处双链。未关 D24。leftover 程序未全局完成。 | workbench / extensionManagement leftover remaining | closed |
+| D801 | P3 | **closed** leftover Promise 双链 services/workspaces 八处：addRecentlyOpened×3；trust then/updateValue；openWorkspaceConfigFile；reload；startExtensionHosts。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`workspacesServiceLeftoverPromiseCatchScanD801.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / workspaces leftover remaining | closed |
+| D802 | P3 | **closed** leftover Promise 双链 services/host 八处：clearToasts×2；doOpen folder/workspace；openEditors；wait-marker IIFE；withServices PromiseLike；clearToast。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`hostLeftoverPromiseCatchScanD802.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / host leftover remaining | closed |
