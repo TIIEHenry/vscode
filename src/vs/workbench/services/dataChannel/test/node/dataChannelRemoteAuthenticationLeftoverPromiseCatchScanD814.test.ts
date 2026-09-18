@@ -97,7 +97,7 @@ const mcpQueueCall = `this._queue.queue(
 				() => this._addToCache(provider.id)
 			)`;
 const getDefaultAccountThenCall = `this.defaultAccountService.getDefaultAccount().then(() => {
-			this._updatePolicyDefinitions(this.policyDefinitions);
+			this._updatePolicyDefinitions(this.policyDefinitions).catch(onUnexpectedError).catch(onUnexpectedError);
 		})`;
 const showManagedSettingsDialogCall = `void this.showManagedSettingsDialog().finally(() => {
 			this.managedSettingsDialogVisibleKey = undefined;
@@ -138,8 +138,8 @@ suite('dataChannel leftover Promise fire-and-forget overflowed to remote/authent
 			countIncludes(gate, `${showManagedSettingsDialogCall}${doubleCatch}`) +
 			countIncludes(gate, `${refreshCall}${doubleCatch}`);
 		assert.strictEqual(policiesAlreadyDouble, 3);
-		assert.ok(account.includes('this._updatePolicyDefinitions(this.policyDefinitions);'));
-		assert.ok(!account.includes(`this._updatePolicyDefinitions(this.policyDefinitions)${doubleCatch}`));
+		assert.ok(account.includes(`this._updatePolicyDefinitions(this.policyDefinitions)${doubleCatch}`));
+		assert.ok(!account.includes('\t\tthis._updatePolicyDefinitions(this.policyDefinitions);\n'));
 		assert.ok(!telemetry.includes('.then('));
 		assert.ok(!telemetry.includes(doubleCatch));
 		assert.ok(!dataChannel.includes('D814'));
@@ -224,8 +224,8 @@ suite('dataChannel leftover Promise fire-and-forget overflowed to remote/authent
 		assertWrapped(account, getDefaultAccountThenCall);
 		assertWrapped(gate, showManagedSettingsDialogCall);
 		assertWrapped(gate, refreshCall);
-		assert.ok(account.includes('this._updatePolicyDefinitions(this.policyDefinitions);'));
-		assert.ok(!account.includes(`this._updatePolicyDefinitions(this.policyDefinitions)${doubleCatch}`));
+		assert.ok(account.includes(`this._updatePolicyDefinitions(this.policyDefinitions)${doubleCatch}`));
+		assert.ok(!account.includes('\t\tthis._updatePolicyDefinitions(this.policyDefinitions);\n'));
 		assert.ok(authExt.includes('this.completeSessionAccessRequest(provider, extensionId, extensionName, scopeListOrRequest);'));
 		assert.ok(!authExt.includes(`this.completeSessionAccessRequest(provider, extensionId, extensionName, scopeListOrRequest)${doubleCatch}`));
 		assert.ok(authMcp.includes('this.completeSessionAccessRequest(provider, mcpServerId, mcpServerName, scopes);'));

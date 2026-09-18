@@ -106,31 +106,31 @@ export class AccountPolicyService extends AbstractPolicyService implements IPoli
 		this.nativeManagedSettingsService = nativeManagedSettingsService;
 		this.fileManagedSettingsService = fileManagedSettingsService;
 
-		this._updatePolicyDefinitions(this.policyDefinitions);
+		this._updatePolicyDefinitions(this.policyDefinitions).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._register(this.defaultAccountService.onDidChangePolicyData(() => {
-			this._updatePolicyDefinitions(this.policyDefinitions);
+			this._updatePolicyDefinitions(this.policyDefinitions).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(this.defaultAccountService.onDidChangeDefaultAccount(() => {
-			this._updatePolicyDefinitions(this.policyDefinitions);
+			this._updatePolicyDefinitions(this.policyDefinitions).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(this.defaultAccountService.onDidChangeManagedSettingsFreshness(() => {
-			this._updatePolicyDefinitions(this.policyDefinitions);
+			this._updatePolicyDefinitions(this.policyDefinitions).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		if (this.managedPolicyReader) {
 			this._register(this.managedPolicyReader.onDidChange(names => {
 				if (names.includes(APPROVED_ACCOUNT_ORGANIZATIONS_POLICY_NAME)) {
-					this._updatePolicyDefinitions(this.policyDefinitions);
+					this._updatePolicyDefinitions(this.policyDefinitions).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}));
 		}
 		if (this.nativeManagedSettingsService) {
 			this._register(this.nativeManagedSettingsService.onDidChangeManagedSettings(() => {
-				this._updatePolicyDefinitions(this.policyDefinitions);
+				this._updatePolicyDefinitions(this.policyDefinitions).catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 		}
 		if (this.fileManagedSettingsService) {
 			this._register(this.fileManagedSettingsService.onDidChangeManagedSettings(() => {
-				this._updatePolicyDefinitions(this.policyDefinitions);
+				this._updatePolicyDefinitions(this.policyDefinitions).catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 		}
 
@@ -138,7 +138,7 @@ export class AccountPolicyService extends AbstractPolicyService implements IPoli
 		// `onDidChangeDefaultAccount`. Re-evaluate once the account has resolved
 		// so the gate doesn't stay stuck on `noAccount`.
 		this.defaultAccountService.getDefaultAccount().then(() => {
-			this._updatePolicyDefinitions(this.policyDefinitions);
+			this._updatePolicyDefinitions(this.policyDefinitions).catch(onUnexpectedError).catch(onUnexpectedError);
 		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
