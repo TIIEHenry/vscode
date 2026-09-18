@@ -11,6 +11,7 @@ import { URI } from '../../../../base/common/uri.js';
 import { FileChangesEvent, FileChangeType, IFileService } from '../../../../platform/files/common/files.js';
 import { ISaveOptions, IRevertOptions } from '../../../common/editor.js';
 import { IWorkingCopy, IWorkingCopyBackup, IWorkingCopySaveEvent, WorkingCopyCapabilities } from './workingCopy.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 
 /**
  * A resource based `IWorkingCopy` is backed by a `URI` from a
@@ -47,7 +48,7 @@ export abstract class ResourceWorkingCopy extends Disposable implements IResourc
 	) {
 		super();
 
-		this._register(this.fileService.onDidFilesChange(e => this.onDidFilesChange(e)));
+		this._register(this.fileService.onDidFilesChange(e => this.onDidFilesChange(e).catch(onUnexpectedError).catch(onUnexpectedError)));
 	}
 
 	//#region Orphaned Tracking

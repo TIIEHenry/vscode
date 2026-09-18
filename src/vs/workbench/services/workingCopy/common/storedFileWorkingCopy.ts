@@ -30,7 +30,7 @@ import { IResourceWorkingCopy, ResourceWorkingCopy } from './resourceWorkingCopy
 import { IFileWorkingCopy, IFileWorkingCopyModel, IFileWorkingCopyModelFactory, SnapshotContext } from './fileWorkingCopy.js';
 import { IMarkdownString } from '../../../../base/common/htmlContent.js';
 import { IProgress, IProgressService, IProgressStep, ProgressLocation } from '../../../../platform/progress/common/progress.js';
-import { isCancellationError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 
 /**
  * Stored file specific working copy model factory.
@@ -1175,7 +1175,7 @@ export class StoredFileWorkingCopy<M extends IStoredFileWorkingCopyModel> extend
 						isWindows ? localize('overwriteElevated', "Overwrite as Admin...") : localize('overwriteElevatedSudo', "Overwrite as Sudo...") :
 						isWindows ? localize('saveElevated', "Retry as Admin...") : localize('saveElevatedSudo', "Retry as Sudo..."),
 					run: () => {
-						this.save({ ...options, writeElevated: true, writeUnlock: triedToUnlock, reason: SaveReason.EXPLICIT });
+						this.save({ ...options, writeElevated: true, writeUnlock: triedToUnlock, reason: SaveReason.EXPLICIT }).catch(onUnexpectedError).catch(onUnexpectedError);
 					}
 				}));
 			}

@@ -509,7 +509,7 @@ export class StoredFileWorkingCopyManager<M extends IStoredFileWorkingCopyModel>
 								onUnexpectedError(error); // only log if the working copy is still around
 							}
 						}
-					})();
+					})().catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 
 				// Sync reload: do not return until working copy reloaded

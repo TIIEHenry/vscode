@@ -30,6 +30,7 @@ import { SaveSource, SaveSourceRegistry } from '../../../common/editor.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { distinct } from '../../../../base/common/arrays.js';
 import { escapeRegExpCharacters } from '../../../../base/common/strings.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 
 interface ISerializedWorkingCopyHistoryModel {
 	readonly version: number;
@@ -831,7 +832,7 @@ export class NativeWorkingCopyHistoryService extends WorkingCopyHistoryService {
 	private readonly isRemotelyStored = typeof this.environmentService.remoteAuthority === 'string';
 
 	private readonly storeAllCts = this._register(new CancellationTokenSource());
-	private readonly storeAllScheduler = this._register(new RunOnceScheduler(() => this.storeAll(this.storeAllCts.token), NativeWorkingCopyHistoryService.STORE_ALL_INTERVAL));
+	private readonly storeAllScheduler = this._register(new RunOnceScheduler(() => this.storeAll(this.storeAllCts.token).catch(onUnexpectedError).catch(onUnexpectedError), NativeWorkingCopyHistoryService.STORE_ALL_INTERVAL));
 
 	constructor(
 		@IFileService fileService: IFileService,

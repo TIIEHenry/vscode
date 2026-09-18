@@ -16,6 +16,7 @@ import { Promises } from '../../../../base/common/async.js';
 import { IEditorService } from '../../editor/common/editorService.js';
 import { EditorsOrder } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 
 /**
  * The working copy backup tracker deals with:
@@ -60,7 +61,7 @@ export abstract class WorkingCopyBackupTracker extends Disposable {
 		this._register(this.lifecycleService.onWillShutdown(() => this.onWillShutdown()));
 
 		// Once a handler registers, restore backups
-		this._register(this.workingCopyEditorService.onDidRegisterHandler(handler => this.restoreBackups(handler)));
+		this._register(this.workingCopyEditorService.onDidRegisterHandler(handler => this.restoreBackups(handler).catch(onUnexpectedError).catch(onUnexpectedError)));
 	}
 
 	protected abstract onFinalBeforeShutdown(reason: ShutdownReason): boolean | Promise<boolean>;
@@ -249,7 +250,7 @@ export abstract class WorkingCopyBackupTracker extends Disposable {
 		// Schedule backup discard asap
 		const workingCopyIdentifier = { resource: workingCopy.resource, typeId: workingCopy.typeId };
 		const cts = new CancellationTokenSource();
-		this.doDiscardBackup(workingCopyIdentifier, cts);
+		this.doDiscardBackup(workingCopyIdentifier, cts).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Keep in map for disposal as needed
 		this.pendingBackupOperations.set(workingCopyIdentifier, {
