@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D821、D823–D829、D834–D835、D837 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D821、D823–D829、D834–D835、D837、D839–D840、D843 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1193,3 +1193,6 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D828 | P3 | **closed** leftover Promise 双链 leftover remaining unused welcomeGettingStarted 八处：scrollToCategory×3；runDispatchCommand×3；scrollPrev；selectStep(argument)。其余 selectStep / scrollPrev leftover 仍 leftover。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；`welcomeGettingStartedLeftoverPromiseCatchScanD828.test.ts`。勿 add `out`。勿 add D752。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / welcomeGettingStarted leftover remaining | closed |
 | D837 | P3 | **closed** leftover Promise 双链 leftover remaining unused userDataProfileManagement 五处：switchProfile×2；changeCurrentProfile×3。onDidChangeCurrentProfile 监听仍 leftover。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；`userDataProfileManagementLeftoverPromiseCatchScanD837.test.ts`。勿 add `out`。勿 add D752。 | 五处双链。未关 D24。leftover 程序未全局完成。 | workbench / userDataProfileManagement leftover remaining | closed |
 | D834 | P3 | **closed** leftover Promise 双链 leftover remaining unused inlineCompletions 五处 `_update`。扫描文件误标 D830。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`inlineCompletionsLeftoverPromiseCatchScanD830.test.ts`。勿 add `out`。 | 五处双链。未关 D24。leftover 程序未全局完成。 | workbench / inlineCompletions leftover remaining | closed |
+| D839 | P3 | **closed** leftover Promise 双链 leftover remaining unused comments 五处 refresh。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`commentsLeftoverPromiseCatchScanD839.test.ts`。勿 add `out`。 | 五处双链。未关 D24。leftover 程序未全局完成。 | workbench / comments leftover remaining | closed |
+| D840 | P3 | **closed** leftover Promise 双链 leftover remaining unused chatSetup 四处：checkExtensionInstallation；registerListeners；maybeEnableOrDisableExtension×2。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`chatSetupLeftoverPromiseCatchScanD840.test.ts`。勿 add `out`。 | 四处双链。未关 D24。leftover 程序未全局完成。 | workbench / chatSetup leftover remaining | closed |
+| D843 | P3 | **closed** leftover Promise 双链 leftover remaining unused debugConfigurationManager 五处 selectConfiguration。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`debugLeftoverPromiseCatchScanD843.test.ts`。勿 add `out`。 | 五处双链。未关 D24。leftover 程序未全局完成。 | workbench / debug leftover remaining | closed |
