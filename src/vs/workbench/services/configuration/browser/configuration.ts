@@ -61,7 +61,7 @@ export class DefaultConfiguration extends BaseDefaultConfiguration {
 
 	override reload(): ConfigurationModel {
 		this.cachedConfigurationDefaultsOverrides = {};
-		this.updateCachedConfigurationDefaultsOverrides();
+		this.updateCachedConfigurationDefaultsOverrides().catch(onUnexpectedError).catch(onUnexpectedError);
 		return super.reload();
 	}
 
@@ -91,7 +91,7 @@ export class DefaultConfiguration extends BaseDefaultConfiguration {
 	protected override onDidUpdateConfiguration(properties: string[], defaultsOverrides?: boolean): void {
 		super.onDidUpdateConfiguration(properties, defaultsOverrides);
 		if (defaultsOverrides) {
-			this.updateCachedConfigurationDefaultsOverrides();
+			this.updateCachedConfigurationDefaultsOverrides().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -439,7 +439,7 @@ export class RemoteUserConfiguration extends Disposable {
 	}
 
 	private onDidUserConfigurationChange(configurationModel: ConfigurationModel): void {
-		this.updateCache();
+		this.updateCache().catch(onUnexpectedError).catch(onUnexpectedError);
 		this._onDidChangeConfiguration.fire(configurationModel);
 	}
 
@@ -668,7 +668,7 @@ export class WorkspaceConfiguration extends Disposable {
 		if (!this._initialized) {
 			if (this.configurationCache.needsCaching(this._workspaceIdentifier.configPath)) {
 				this._workspaceConfiguration = this._cachedConfiguration;
-				this.waitAndInitialize(this._workspaceIdentifier);
+				this.waitAndInitialize(this._workspaceIdentifier).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else {
 				this.doInitialize(new FileServiceBasedWorkspaceConfiguration(this.fileService, this.uriIdentityService, this.logService));
 			}
@@ -741,7 +741,7 @@ export class WorkspaceConfiguration extends Disposable {
 		if (reload) {
 			await this.reload();
 		}
-		this.updateCache();
+		this.updateCache().catch(onUnexpectedError).catch(onUnexpectedError);
 		this._onDidUpdateConfiguration.fire(fromCache);
 	}
 
@@ -1063,7 +1063,7 @@ export class FolderConfiguration extends Disposable {
 
 	reparse(): ConfigurationModel {
 		const configurationModel = this.folderConfiguration.reparse({ scopes: this.scopes, skipRestricted: this.isUntrusted() });
-		this.updateCache();
+		this.updateCache().catch(onUnexpectedError).catch(onUnexpectedError);
 		return configurationModel;
 	}
 
@@ -1076,7 +1076,7 @@ export class FolderConfiguration extends Disposable {
 	}
 
 	private onDidFolderConfigurationChange(): void {
-		this.updateCache();
+		this.updateCache().catch(onUnexpectedError).catch(onUnexpectedError);
 		this._onDidChange.fire();
 	}
 
