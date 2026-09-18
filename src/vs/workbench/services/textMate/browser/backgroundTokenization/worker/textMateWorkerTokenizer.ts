@@ -5,6 +5,7 @@
 
 import { importAMDNodeModule } from '../../../../../../amdX.js';
 import { RunOnceScheduler } from '../../../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { observableValue } from '../../../../../../base/common/observable.js';
 import { setTimeout0 } from '../../../../../../base/common/platform.js';
 import { URI } from '../../../../../../base/common/uri.js';
@@ -36,7 +37,7 @@ export class TextMateWorkerTokenizer extends MirrorTextModel {
 	private _isDisposed: boolean = false;
 	private readonly _maxTokenizationLineLength = observableValue(this, -1);
 	private _diffStateStacksRefEqFn?: typeof diffStateStacksRefEq;
-	private readonly _tokenizeDebouncer = new RunOnceScheduler(() => this._tokenize(), 10);
+	private readonly _tokenizeDebouncer = new RunOnceScheduler(() => this._tokenize().catch(onUnexpectedError).catch(onUnexpectedError), 10);
 
 	constructor(
 		uri: URI,
@@ -50,7 +51,7 @@ export class TextMateWorkerTokenizer extends MirrorTextModel {
 	) {
 		super(uri, lines, eol, versionId);
 		this._maxTokenizationLineLength.set(maxTokenizationLineLength, undefined);
-		this._resetTokenization();
+		this._resetTokenization().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	public override dispose(): void {
@@ -62,7 +63,7 @@ export class TextMateWorkerTokenizer extends MirrorTextModel {
 	public onLanguageId(languageId: string, encodedLanguageId: LanguageId): void {
 		this._languageId = languageId;
 		this._encodedLanguageId = encodedLanguageId;
-		this._resetTokenization();
+		this._resetTokenization().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	override onEvents(e: IModelChangedEvent): void {
@@ -111,7 +112,7 @@ export class TextMateWorkerTokenizer extends MirrorTextModel {
 		} else {
 			this._tokenizerWithStateStore = null;
 		}
-		this._tokenize();
+		this._tokenize().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async _tokenize(): Promise<void> {
@@ -177,7 +178,7 @@ export class TextMateWorkerTokenizer extends MirrorTextModel {
 			const deltaMs = new Date().getTime() - startTime;
 			if (deltaMs > 20) {
 				// yield to check for changes
-				setTimeout0(() => this._tokenize());
+				setTimeout0(() => this._tokenize().catch(onUnexpectedError).catch(onUnexpectedError));
 				return;
 			}
 		}
