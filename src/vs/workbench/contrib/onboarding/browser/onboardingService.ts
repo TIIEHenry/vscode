@@ -269,7 +269,7 @@ export class OnboardingScenarioService extends Disposable implements IOnboarding
 				}
 			}
 
-			this._enqueue(scenario);
+			this._enqueue(scenario).catch(onUnexpectedError).catch(onUnexpectedError);
 			if (!scenario.repeatable) {
 				claimedSeenKeys.add(seenKey);
 			}
@@ -347,7 +347,7 @@ export class OnboardingScenarioService extends Disposable implements IOnboarding
 		// Mark as pumping synchronously so a batch of `_enqueue` calls made in the
 		// same tick all land (and re-sort by priority) before we consume the queue.
 		this._pumping = true;
-		this._doPump();
+		this._doPump().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async _doPump(): Promise<void> {

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import * as perf from '../../../../base/common/performance.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IWorkspaceContextService, WorkbenchState } from '../../../../platform/workspace/common/workspace.js';
@@ -554,7 +555,7 @@ export abstract class AbstractTimerService implements ITimerService {
 			this._startupMetrics = metrics;
 			this._reportStartupTimes(metrics);
 			this._barrier.open();
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 
 		this.perfBaseline = this._barrier.wait()
