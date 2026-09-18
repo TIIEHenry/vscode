@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IAction, WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification, Separator, SubmenuAction } from '../../../../base/common/actions.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import * as dom from '../../../../base/browser/dom.js';
 import { IContextMenuMenuDelegate, IContextMenuService, IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
@@ -258,7 +259,7 @@ class NativeContextMenuService extends Disposable implements IContextMenuService
 					onHide();
 
 					// Run action which will close the menu
-					this.runAction(entry, delegate, event);
+					this.runAction(entry, delegate, event).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			};
 

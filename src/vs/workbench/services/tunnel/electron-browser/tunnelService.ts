@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { IWorkbenchEnvironmentService } from '../../environment/common/environmentService.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -42,7 +43,7 @@ class SharedProcessTunnel extends Disposable implements RemoteTunnel {
 	private _updateAddress(): void {
 		this._addressProvider.getAddress().then((address) => {
 			this._sharedProcessTunnelService.setAddress(this._id, address);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	public override async dispose(): Promise<void> {
@@ -70,7 +71,7 @@ export class TunnelService extends AbstractTunnelService {
 		// Destroy any shared process tunnels that might still be active
 		this._register(lifecycleService.onDidShutdown(() => {
 			this._activeSharedProcessTunnels.forEach((id) => {
-				this._sharedProcessTunnelService.destroyTunnel(id);
+				this._sharedProcessTunnelService.destroyTunnel(id).catch(onUnexpectedError).catch(onUnexpectedError);
 			});
 		}));
 	}

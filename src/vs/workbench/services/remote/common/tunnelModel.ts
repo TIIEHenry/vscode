@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as nls from '../../../../nls.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { debounce } from '../../../../base/common/decorators.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { hash } from '../../../../base/common/hash.js';
@@ -470,7 +471,7 @@ export class TunnelModel extends Disposable {
 					this.remoteTunnels.set(key, tunnel);
 				}
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this.detected = new Map();
 		this._register(this.tunnelService.onTunnelOpened(async (tunnel) => {
