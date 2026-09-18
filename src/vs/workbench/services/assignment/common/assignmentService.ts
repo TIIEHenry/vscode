@@ -414,7 +414,7 @@ export class WorkbenchAssignmentService extends Disposable implements IAssignmen
 
 		const extensionsFilterProvider = this.instantiationService.createInstance(CopilotAssignmentFilterProvider);
 		this.tasSetupDisposables.add(extensionsFilterProvider);
-		this.tasSetupDisposables.add(extensionsFilterProvider.onDidChangeFilters(() => this.refetchAssignments()));
+		this.tasSetupDisposables.add(extensionsFilterProvider.onDidChangeFilters(() => this.refetchAssignments().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		// New TAS assignments API. Its endpoint is sourced from account entitlements and it
 		// uses dedicated providers that emit the new userParam key names, so the legacy filter
@@ -433,7 +433,7 @@ export class WorkbenchAssignmentService extends Disposable implements IAssignmen
 			);
 			const githubAssignmentsFilterProvider = this.instantiationService.createInstance(GitHubCoreAssignmentsFilterProvider);
 			this.tasSetupDisposables.add(githubAssignmentsFilterProvider);
-			this.tasSetupDisposables.add(githubAssignmentsFilterProvider.onDidChangeFilters(() => this.refetchAssignments()));
+			this.tasSetupDisposables.add(githubAssignmentsFilterProvider.onDidChangeFilters(() => this.refetchAssignments().catch(onUnexpectedError).catch(onUnexpectedError)));
 			assignmentsFilterProviders = [coreAssignmentsFilterProvider, githubAssignmentsFilterProvider];
 		}
 
