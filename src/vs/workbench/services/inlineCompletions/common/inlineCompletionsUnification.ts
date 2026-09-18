@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { equals } from '../../../../base/common/arrays.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event, Emitter } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -83,22 +84,22 @@ export class InlineCompletionsUnificationImpl extends Disposable implements IInl
 
 		this._register(this._extensionEnablementService.onEnablementChanged((extensions) => {
 			if (extensions.some(ext => relevantExtensions.includes(ext.identifier.id.toLowerCase()))) {
-				this._update();
+				this._update().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 		this._register(this._configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(ExtensionUnificationSetting)) {
-				this._update();
+				this._update().catch(onUnexpectedError).catch(onUnexpectedError);
 				this._onDidChangeExtensionUnificationSetting.fire();
 			}
 		}));
 		this._register(this._extensionService.onDidChangeExtensions(({ added }) => {
 			if (added.some(ext => relevantExtensions.includes(ext.identifier.value.toLowerCase()))) {
-				this._update();
+				this._update().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
-		this._register(this._assignmentService.onDidRefetchAssignments(() => this._update()));
-		this._update();
+		this._register(this._assignmentService.onDidRefetchAssignments(() => this._update().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._update().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async _update(): Promise<void> {
