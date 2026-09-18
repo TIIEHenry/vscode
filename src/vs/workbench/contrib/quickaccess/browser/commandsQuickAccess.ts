@@ -5,6 +5,7 @@
 
 import { isFirefox } from '../../../../base/browser/browser.js';
 import { raceTimeout, timeout } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { stripIcons } from '../../../../base/common/iconLabels.js';
@@ -199,7 +200,7 @@ export class CommandsQuickAccessProvider extends AbstractEditorCommandsQuickAcce
 						tooltip: localize('commandsQuickAccess.configureAskInChatSetting', "Configure visibility"),
 					}],
 					trigger: () => {
-						void this.preferencesService.openSettings({ jsonEditor: false, query: 'workbench.commandPalette.showAskInChat' });
+						void this.preferencesService.openSettings({ jsonEditor: false, query: 'workbench.commandPalette.showAskInChat' }).catch(onUnexpectedError).catch(onUnexpectedError);
 						return TriggerAction.CLOSE_PICKER;
 					},
 				});

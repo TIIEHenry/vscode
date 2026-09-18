@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { IWorkbenchConfigurationService } from '../../../services/configuration/common/configuration.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
@@ -61,7 +62,7 @@ export class PolicyExportContribution extends Disposable implements IWorkbenchCo
 		const policyDataPath = this.nativeEnvironmentService.exportPolicyData;
 		if (policyDataPath !== undefined) {
 			const defaultPath = join(this.nativeEnvironmentService.appRoot, PolicyExportContribution.DEFAULT_POLICY_EXPORT_PATH);
-			void this.exportPolicyDataAndQuit(policyDataPath ? policyDataPath : defaultPath);
+			void this.exportPolicyDataAndQuit(policyDataPath ? policyDataPath : defaultPath).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

@@ -12,6 +12,7 @@ import { AbstractLifecycleService } from '../common/lifecycleService.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { INativeHostService } from '../../../../platform/native/common/native.js';
 import { Promises, disposableTimeout, raceCancellation } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { toErrorMessage } from '../../../../base/common/errorMessage.js';
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
 
@@ -103,7 +104,7 @@ export class NativeLifecycleService extends AbstractLifecycleService {
 						if (veto === true) {
 							logService.info(`[lifecycle]: Shutdown was prevented (id: ${id})`);
 						}
-					}).finally(() => pendingVetos.delete(id));
+					}).catch(onUnexpectedError).catch(onUnexpectedError).finally(() => pendingVetos.delete(id));
 				}
 			},
 			finalVeto(value, id) {
