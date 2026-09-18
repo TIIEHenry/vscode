@@ -84,7 +84,7 @@ export class UserDataProfilesWorkbenchContribution extends Disposable implements
 			lifecycleService.when(LifecyclePhase.Eventually).then(() => userDataProfilesService.cleanUp()).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
-		this.reportWorkspaceProfileInfo();
+		this.reportWorkspaceProfileInfo().catch(onUnexpectedError).catch(onUnexpectedError);
 
 		if (environmentService.options?.profileToPreview) {
 			lifecycleService.when(LifecyclePhase.Restored).then(() => this.handleURL(URI.revive(environmentService.options!.profileToPreview!))).catch(onUnexpectedError).catch(onUnexpectedError);
@@ -97,7 +97,7 @@ export class UserDataProfilesWorkbenchContribution extends Disposable implements
 		if (isProfileURL(uri)) {
 			const editor = await this.openProfilesEditor();
 			if (editor) {
-				editor.createNewProfile(uri);
+				editor.createNewProfile(uri).catch(onUnexpectedError).catch(onUnexpectedError);
 				return true;
 			}
 		}
@@ -137,7 +137,7 @@ export class UserDataProfilesWorkbenchContribution extends Disposable implements
 					const template = await userDataProfileImportExportService.resolveProfileTemplate(resource);
 					if (!template) {
 						notificationService.warn(localize('invalid profile', "The dropped profile is invalid."));
-						editorService.openEditor(textEditorService.createTextEditor({ resource }));
+						editorService.openEditor(textEditorService.createTextEditor({ resource })).catch(onUnexpectedError).catch(onUnexpectedError);
 						return true;
 					}
 					const editor = await that.openProfilesEditor();
