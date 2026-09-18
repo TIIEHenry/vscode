@@ -10,6 +10,7 @@ import { AnchorAlignment } from '../../../../base/browser/ui/contextview/context
 import { DropdownMenuActionViewItem } from '../../../../base/browser/ui/dropdown/dropdownActionViewItem.js';
 import { Action, IAction, IActionRunner, Separator } from '../../../../base/common/actions.js';
 import { Delayer } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Iterable } from '../../../../base/common/iterator.js';
 import { localize } from '../../../../nls.js';
@@ -120,7 +121,7 @@ export class TestingExplorerFilter extends BaseActionViewItem {
 		this._register(input.onInputDidChange(() => updateDelayer.trigger(() => {
 			input.addToHistory();
 			this.state.setText(input.getValue());
-		})));
+		}).catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		const actionbar = this._register(new ActionBar(container, {
 			actionViewItemProvider: (action, options) => {

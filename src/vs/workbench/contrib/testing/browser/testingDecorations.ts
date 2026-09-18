@@ -10,6 +10,7 @@ import { Action, IAction, Separator, SubmenuAction } from '../../../../base/comm
 import { equals } from '../../../../base/common/arrays.js';
 import { mapFindFirst } from '../../../../base/common/arraysFind.js';
 import { RunOnceScheduler, Throttler, timeout } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { IMarkdownString, MarkdownString } from '../../../../base/common/htmlContent.js';
 import { stripIcons } from '../../../../base/common/iconLabels.js';
@@ -412,7 +413,7 @@ export class TestingDecorations extends Disposable implements IEditorContributio
 			msgThrottler.queue(() => {
 				this.applyResults();
 				return timeout(100);
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this._register(Event.any(
@@ -1073,7 +1074,7 @@ abstract class RunTestDecoration {
 						controllerId: profile.controllerId,
 						testIds: [test.item.extId]
 					}]
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 		}
 

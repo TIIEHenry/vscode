@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Barrier, isThenable, RunOnceScheduler } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { assertNever } from '../../../../base/common/assert.js';
@@ -580,7 +581,7 @@ export class TestItemCollection<T extends ITestItemLike> extends Disposable {
 			r.catch(applyError).then(() => {
 				barrier.open();
 				this.updateExpandability(internal);
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			barrier.open();
 			this.updateExpandability(internal);
