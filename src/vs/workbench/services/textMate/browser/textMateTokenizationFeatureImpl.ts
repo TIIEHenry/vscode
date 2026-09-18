@@ -247,7 +247,7 @@ export class TextMateTokenizationFeature extends Disposable implements ITextMate
 						this._debugMode = false;
 						vscodeOniguruma.setDefaultDebugCall(false);
 						onStop();
-					});
+					}).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			);
 		}

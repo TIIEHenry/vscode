@@ -863,7 +863,8 @@ export class ExtensionEnablementService extends Disposable implements IWorkbench
 	private loopCheckForMaliciousExtensions(): void {
 		this.checkForMaliciousExtensions()
 			.then(() => this.delayer.trigger(() => { }, 1000 * 60 * 5)) // every five minutes
-			.then(() => this.loopCheckForMaliciousExtensions());
+			.then(() => this.loopCheckForMaliciousExtensions())
+			.catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async checkForMaliciousExtensions(): Promise<void> {
