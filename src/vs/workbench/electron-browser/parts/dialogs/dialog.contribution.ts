@@ -14,6 +14,7 @@ import { IDialogsModel, IDialogViewItem } from '../../../common/dialogs.js';
 import { BrowserDialogHandler } from '../../../browser/parts/dialogs/dialogHandler.js';
 import { NativeDialogHandler } from './dialogHandler.js';
 import { DialogService } from '../../../services/dialogs/common/dialogService.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { Lazy } from '../../../../base/common/lazy.js';
@@ -49,11 +50,11 @@ export class DialogHandlerContribution extends Disposable implements IWorkbenchC
 
 		this._register(this.model.onWillShowDialog(() => {
 			if (!this.currentDialog) {
-				this.processDialogs();
+				this.processDialogs().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
-		this.processDialogs();
+		this.processDialogs().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async processDialogs(): Promise<void> {
