@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847。D736/D739/D740/D745 跳过。D783 弃。D24 仍开。不是 leftover/pills 完成。"
+summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847、D851。D736/D739/D740/D745 跳过。D783 弃。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -14,7 +14,7 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D782、D784�
 | 切片 | 提交 |
 |:-----|:-----|
 | **A SessionStream / L2** | 16/23/30–32/34–39/44/46/50–52；envelope leftover |
-| **catch** | D677–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847 |
+| **catch** | D677–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847、D851 |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
