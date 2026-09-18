@@ -168,7 +168,7 @@ suite('leftover remaining unused after D824 leftover remaining unused mcp leftov
 		assert.ok(!workbench.includes('D860'));
 		let sites = 0;
 		const seen = new Map<string, string>();
-		for (const [rel, call, count] of d860Calls) {
+		for (const [rel, call] of d860Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
 			sites += countIncludes(source, `${call}${doubleCatch}`);
