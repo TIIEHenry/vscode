@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Queue } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
@@ -86,7 +87,7 @@ export class AuthenticationUsageService extends Disposable implements IAuthentic
 		this._register(this._authenticationService.onDidRegisterAuthenticationProvider(
 			provider => this._queue.queue(
 				() => this._addExtensionsToCache(provider.id)
-			)
+			).catch(onUnexpectedError).catch(onUnexpectedError)
 		));
 	}
 

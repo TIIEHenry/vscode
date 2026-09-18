@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { IChannel, IServerChannel, getDelayedChannel, IPCLogger } from '../../../../base/parts/ipc/common/ipc.js';
 import { Client } from '../../../../base/parts/ipc/common/ipc.net.js';
@@ -186,7 +187,7 @@ class RemoteAgentConnection extends Disposable implements IRemoteAgentConnection
 	}
 
 	registerChannel<T extends IServerChannel<RemoteAgentConnectionContext>>(channelName: string, channel: T): void {
-		this._getOrCreateConnection().then(client => client.registerChannel(channelName, channel));
+		this._getOrCreateConnection().then(client => client.registerChannel(channelName, channel)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	async getInitialConnectionTimeMs() {
