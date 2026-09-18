@@ -7,6 +7,7 @@ import './media/interactive.css';
 import * as DOM from '../../../../base/browser/dom.js';
 import * as domStylesheets from '../../../../base/browser/domStylesheets.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { ICodeEditorService } from '../../../../editor/browser/services/codeEditorService.js';
@@ -442,7 +443,7 @@ export class InteractiveEditor extends EditorPane implements IEditorPaneWithScro
 		model.notebook.setCellCollapseDefault(this._notebookOptions.getCellCollapseDefault());
 		this._notebookWidget.value!.setOptions({
 			isReadOnly: true
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._widgetDisposableStore.add(this._notebookWidget.value!.onDidResizeOutput((cvm) => {
 			this._scrollIfNecessary(cvm);
 		}));
@@ -567,7 +568,7 @@ export class InteractiveEditor extends EditorPane implements IEditorPaneWithScro
 	}
 
 	override setOptions(options: INotebookEditorOptions | undefined): void {
-		this._notebookWidget.value?.setOptions(options);
+		void Promise.resolve(this._notebookWidget.value?.setOptions(options)).catch(onUnexpectedError).catch(onUnexpectedError);
 		super.setOptions(options);
 	}
 

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { IReference } from '../../../../base/common/lifecycle.js';
 import * as paths from '../../../../base/common/path.js';
@@ -250,7 +251,7 @@ export class InteractiveEditorInput extends EditorInput implements ICompositeNot
 
 	override dispose() {
 		// we support closing the interactive window without prompt, so the editor model should not be dirty
-		this._editorModelReference?.revert({ soft: true });
+		void Promise.resolve(this._editorModelReference?.revert({ soft: true })).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this._notebookEditorInput?.dispose();
 		this._editorModelReference?.dispose();
