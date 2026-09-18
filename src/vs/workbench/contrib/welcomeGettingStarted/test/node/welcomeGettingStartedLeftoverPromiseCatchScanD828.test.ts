@@ -102,7 +102,7 @@ suite('leftover remaining unused welcomeGettingStarted leftover Promise fire-and
 	test('leftover remaining unused welcomeGettingStarted leftover async this.foo() FOF still had four or more legal unused leftover sites so this knife stayed', () => {
 		const source = fs.readFileSync(resolveSource(GETTING_STARTED_REL), 'utf8');
 		let sites = 0;
-		for (const [, call, count] of d828Calls) {
+		for (const [, , count] of d828Calls) {
 			sites += count;
 		}
 		assert.strictEqual(countIncludes(source, `${scrollPrevDispatchCall}${doubleCatch}`), 1);
