@@ -257,7 +257,7 @@ suite('leftover remaining unused after output leftover remaining unused moved to
 		assert.ok(profileModel.includes(`${initializeCall};`));
 		assert.ok(!profileModel.includes(`${initializeCall}${doubleCatch}`));
 		assert.ok(searchWidget.includes(`${submitSearchCall}${doubleCatch}`));
-		assert.ok(searchEditor.includes(`${triggerSearchCall};`));
+		assert.ok(searchEditor.includes(`${triggerSearchCall}${doubleCatch}`));
 		assert.ok(testing.includes(`${openAndShowCall};`));
 		assert.ok(!testing.includes(`${openAndShowCall}${doubleCatch}`));
 
