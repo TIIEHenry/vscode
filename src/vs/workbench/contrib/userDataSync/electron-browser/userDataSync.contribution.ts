@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { SyncStatus } from '../../../../platform/userDataSync/common/userDataSync.js';
 import { registerAction2, Action2, MenuId } from '../../../../platform/actions/common/actions.js';
 import { localize, localize2 } from '../../../../nls.js';
@@ -56,7 +57,7 @@ registerAction2(class DownloadSyncActivityAction extends Action2 {
 			notificationService.prompt(Severity.Info, localize('download sync activity complete', "Successfully downloaded Settings Sync activity."),
 				[{
 					label: localize('open', "Open Folder"),
-					run: () => hostService.showItemInFolder(folder.fsPath)
+					run: () => hostService.showItemInFolder(folder.fsPath).catch(onUnexpectedError).catch(onUnexpectedError)
 				}]);
 		}
 	}

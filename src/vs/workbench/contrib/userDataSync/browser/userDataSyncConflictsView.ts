@@ -10,6 +10,7 @@ import { IInstantiationService, ServicesAccessor } from '../../../../platform/in
 import { IUserDataSyncService, Change, MergeState, IUserDataSyncResource, IResourcePreview, IUserDataSyncEnablementService } from '../../../../platform/userDataSync/common/userDataSync.js';
 import { registerAction2, Action2, MenuId } from '../../../../platform/actions/common/actions.js';
 import { ContextKeyExpr, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { getSyncAreaLabel, IUserDataSyncConflictsView, IUserDataSyncWorkbenchService, SYNC_CONFLICTS_VIEW_ID } from '../../../services/userDataSync/common/userDataSync.js';
@@ -52,7 +53,7 @@ export class UserDataSyncConflictsViewPane extends TreeViewPane implements IUser
 		@IAccessibleViewInformationService accessibleViewVisibilityService: IAccessibleViewInformationService,
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, notificationService, hoverService, accessibleViewVisibilityService);
-		this._register(this.userDataSyncService.onDidChangeConflicts(() => this.treeView.refresh()));
+		this._register(this.userDataSyncService.onDidChangeConflicts(() => this.treeView.refresh().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.registerActions();
 	}
 
