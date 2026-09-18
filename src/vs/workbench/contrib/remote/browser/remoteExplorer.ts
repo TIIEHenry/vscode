@@ -128,15 +128,15 @@ export class ForwardedPortsView extends Disposable implements IWorkbenchContribu
 		const disposable = Registry.as<IViewsRegistry>(Extensions.ViewsRegistry).onViewsRegistered(e => {
 			if (e.find(view => view.views.find(viewDescriptor => viewDescriptor.id === TUNNEL_VIEW_ID))) {
 				this._register(Event.debounce(this.remoteExplorerService.tunnelModel.onForwardPort, (_last, e) => e, 50)(() => {
-					this.updateActivityBadge();
+					this.updateActivityBadge().catch(onUnexpectedError).catch(onUnexpectedError);
 					this.updateStatusBar();
 				}));
 				this._register(Event.debounce(this.remoteExplorerService.tunnelModel.onClosePort, (_last, e) => e, 50)(() => {
-					this.updateActivityBadge();
+					this.updateActivityBadge().catch(onUnexpectedError).catch(onUnexpectedError);
 					this.updateStatusBar();
 				}));
 
-				this.updateActivityBadge();
+				this.updateActivityBadge().catch(onUnexpectedError).catch(onUnexpectedError);
 				this.updateStatusBar();
 				disposable.dispose();
 			}
@@ -691,7 +691,7 @@ class ProcAutomaticPortForwarding extends Disposable {
 			await this.startStopCandidateListener();
 		}));
 
-		this.startStopCandidateListener();
+		this.startStopCandidateListener().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async startStopCandidateListener() {

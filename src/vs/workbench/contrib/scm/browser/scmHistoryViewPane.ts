@@ -2004,7 +2004,7 @@ export class SCMHistoryViewPane extends ViewPane {
 			[
 				this.instantiationService.createInstance(HistoryItemRenderer, this.viewDescriptorService.getViewLocationById(this.id)),
 				this.instantiationService.createInstance(HistoryItemChangeRenderer, () => this._treeViewModel.viewMode.get(), resourceLabels),
-				this.instantiationService.createInstance(HistoryItemLoadMoreRenderer, this._repositoryIsLoadingMore, () => this._loadMore()),
+				this.instantiationService.createInstance(HistoryItemLoadMoreRenderer, this._repositoryIsLoadingMore, () => this._loadMore().catch(onUnexpectedError).catch(onUnexpectedError)),
 			],
 			this._treeDataSource,
 			{
@@ -2088,7 +2088,7 @@ export class SCMHistoryViewPane extends ViewPane {
 		} else if (isSCMHistoryItemLoadMoreTreeElement(e.element)) {
 			const pageOnScroll = this.configurationService.getValue<boolean>('scm.graph.pageOnScroll') === true;
 			if (!pageOnScroll) {
-				this._loadMore();
+				this._loadMore().catch(onUnexpectedError).catch(onUnexpectedError);
 				this._tree.setSelection([]);
 			}
 		}
