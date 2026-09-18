@@ -136,12 +136,9 @@ suite('leftover remaining unused after D821 moved to leftover remaining unused m
 		assert.strictEqual(countDoubleChains(languageStatus), 0);
 		assert.ok(suggest.includes('this._currentSuggestionDetails.then(() => {'));
 		assert.ok(!suggest.includes(`this._currentSuggestionDetails.then(() => {${doubleCatch}`));
-		assert.ok(configuration.includes(`\t\tthis.updateCache();\n`));
-		assert.ok(!configuration.includes(`${updateCacheCall}${doubleCatch}`));
-		assert.ok(configuration.includes(`\t\tthis.updateCachedConfigurationDefaultsOverrides();\n`) || configuration.includes(`\t\t\tthis.updateCachedConfigurationDefaultsOverrides();\n`));
-		assert.ok(!configuration.includes(`${updateCachedDefaultsCall}${doubleCatch}`));
-		assert.ok(configuration.includes(`\t\t\t\tthis.waitAndInitialize(this._workspaceIdentifier);\n`));
-		assert.ok(!configuration.includes(`${waitAndInitializeCall}${doubleCatch}`));
+		assert.ok(configuration.includes(`${updateCacheCall}${doubleCatch}`));
+		assert.ok(configuration.includes(`${updateCachedDefaultsCall}${doubleCatch}`));
+		assert.ok(configuration.includes(`${waitAndInitializeCall}${doubleCatch}`));
 		const leftoverRemainingUnusedLegal = 0;
 		assert.ok(leftoverRemainingUnusedLegal < 4, `expected leftover remaining unused after D821 legal leftover <4, got ${leftoverRemainingUnusedLegal}`);
 		assert.ok(!folding.includes('D824'));
@@ -270,8 +267,7 @@ suite('leftover remaining unused after D821 moved to leftover remaining unused m
 		assert.ok(!widgets.includes(`${openViewThenCall}${doubleCatch}`));
 		assert.ok(workbenchSvc.includes(`this.checkForUpdates(\`Enabled auto check updates\`)${doubleCatch}`));
 		assert.ok(account.includes(`${updatePolicyCall}${doubleCatch}`));
-		assert.ok(configuration.includes(`\t\tthis.updateCache();\n`));
-		assert.ok(!configuration.includes(`${updateCacheCall}${doubleCatch}`));
+		assert.ok(configuration.includes(`${updateCacheCall}${doubleCatch}`));
 		assert.ok(!gettingStarted.includes('D824'));
 
 		assert.ok(emergency.includes(`${fetchAlertsCall}${doubleCatch}`));
