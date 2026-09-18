@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { getDelayedChannel, ProxyChannel } from '../../../../base/parts/ipc/common/ipc.js';
 import { IFileChange } from '../../../../platform/files/common/files.js';
@@ -49,7 +50,7 @@ export class UniversalWatcherClient extends AbstractUniversalWatcherClient {
 				} else {
 					this.onError(`terminated by itself unexpectedly with code ${reason?.code}, signal: ${reason?.signal} (ETERM)`);
 				}
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 			return client.getChannel('watcher');
 		})()));

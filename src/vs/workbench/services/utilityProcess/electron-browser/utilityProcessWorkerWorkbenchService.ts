@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { Disposable, DisposableStore, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { IMainProcessService } from '../../../../platform/ipc/common/mainProcessService.js';
@@ -123,7 +124,7 @@ export class UtilityProcessWorkerWorkbenchService extends Disposable implements 
 			this.utilityProcessWorkerService.disposeWorker({
 				process,
 				reply: { windowId: this.windowId }
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		const port = await portPromise;
@@ -136,7 +137,7 @@ export class UtilityProcessWorkerWorkbenchService extends Disposable implements 
 			} else {
 				this.logService.error(`[UtilityProcessWorker]: terminated unexpectedly with code ${reason?.code}, signal: ${reason?.signal}`);
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		return { client, onDidTerminate, dispose: () => disposables.dispose() };
 	}
