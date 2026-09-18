@@ -24,6 +24,7 @@ import { Schemas } from '../../../../base/common/network.js';
 import { ResourceGlobMatcher } from '../../../common/resources.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { FileOperation, FileOperationEvent, IFileOperationEventWithMetadata, IFileService, IFileStatWithMetadata } from '../../../../platform/files/common/files.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 
 export class WorkingCopyHistoryTracker extends Disposable implements IWorkbenchContribution {
 
@@ -71,7 +72,7 @@ export class WorkingCopyHistoryTracker extends Disposable implements IWorkbenchC
 	private registerListeners() {
 
 		// File Events
-		this._register(this.fileService.onDidRunOperation(e => this.onDidRunFileOperation(e)));
+		this._register(this.fileService.onDidRunOperation(e => this.onDidRunFileOperation(e).catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		// Working Copy Events
 		this._register(this.workingCopyService.onDidChangeContent(workingCopy => this.onDidChangeContent(workingCopy)));
