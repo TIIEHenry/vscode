@@ -33,6 +33,7 @@ import { IRemoteAgentService } from '../../../services/remote/common/remoteAgent
 import { ILabelService } from '../../../../platform/label/common/label.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { isWeb } from '../../../../base/common/platform.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 
 const DEBUG_FLAGS_PATTERN = /\s--inspect(?:-brk|port)?=(?<port>\d+)?/;
 const DEBUG_PORT_PATTERN = /\s--inspect-port=(?<port>\d+)/;
@@ -354,7 +355,7 @@ export abstract class ProcessExplorerControl extends Disposable {
 	protected create(container: HTMLElement): void {
 		this.createProcessTree(container);
 
-		this.update();
+		this.update().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private createProcessTree(container: HTMLElement): void {
@@ -382,7 +383,7 @@ export abstract class ProcessExplorerControl extends Disposable {
 				renderIndentGuides: RenderIndentGuides.OnHover
 			}));
 
-		this._register(this.tree.onKeyDown(e => this.onTreeKeyDown(e)));
+		this._register(this.tree.onKeyDown(e => this.onTreeKeyDown(e).catch(onUnexpectedError).catch(onUnexpectedError)));
 		this._register(this.tree.onContextMenu(e => this.onTreeContextMenu(container, e)));
 
 		this.tree.setInput(this.model);
@@ -508,7 +509,7 @@ export abstract class ProcessExplorerControl extends Disposable {
 		this.tree?.updateChildren();
 		this.layoutTree();
 
-		this.delayer.trigger(() => this.update());
+		this.delayer.trigger(() => this.update().catch(onUnexpectedError).catch(onUnexpectedError));
 	}
 
 	focus(): void {
