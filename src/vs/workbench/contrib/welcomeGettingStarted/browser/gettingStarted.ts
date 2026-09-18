@@ -390,7 +390,7 @@ export class GettingStartedPage extends EditorPane {
 	}
 
 	async makeCategoryVisibleWhenAvailable(categoryID: string, stepId?: string) {
-		this.scrollToCategory(categoryID, stepId);
+		this.scrollToCategory(categoryID, stepId).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private registerDispatchListeners() {
@@ -408,7 +408,7 @@ export class GettingStartedPage extends EditorPane {
 			if (command) {
 				this.dispatchListeners.add(addDisposableListener(element, 'click', (e) => {
 					e.stopPropagation();
-					this.runDispatchCommand(command, argument);
+					this.runDispatchCommand(command, argument).catch(onUnexpectedError).catch(onUnexpectedError);
 				}));
 				this.dispatchListeners.add(addDisposableListener(element, 'keyup', (e) => {
 					const keyboardEvent = new StandardKeyboardEvent(e);
@@ -416,7 +416,7 @@ export class GettingStartedPage extends EditorPane {
 					switch (keyboardEvent.keyCode) {
 						case KeyCode.Enter:
 						case KeyCode.Space:
-							this.runDispatchCommand(command, argument);
+							this.runDispatchCommand(command, argument).catch(onUnexpectedError).catch(onUnexpectedError);
 							return;
 					}
 				}));
@@ -429,7 +429,7 @@ export class GettingStartedPage extends EditorPane {
 		this.telemetryService.publicLog2<GettingStartedActionEvent, GettingStartedActionClassification>('gettingStarted.ActionExecuted', { command, argument, walkthroughId: this.currentWalkthrough?.id });
 		switch (command) {
 			case 'scrollPrev': {
-				this.scrollPrev();
+				this.scrollPrev().catch(onUnexpectedError).catch(onUnexpectedError);
 				break;
 			}
 			case 'skip': {
@@ -454,7 +454,7 @@ export class GettingStartedPage extends EditorPane {
 			}
 			case 'selectCategory': {
 				this.telemetryService.publicLog2<GettingStartedActionEvent, GettingStartedActionClassification>('gettingStarted.ActionExecuted', { command: 'selectCategory', argument, walkthroughId: this.currentWalkthrough?.id });
-				this.scrollToCategory(argument);
+				this.scrollToCategory(argument).catch(onUnexpectedError).catch(onUnexpectedError);
 				this.gettingStartedService.markWalkthroughOpened(argument);
 				break;
 			}
@@ -474,7 +474,7 @@ export class GettingStartedPage extends EditorPane {
 			}
 			// Use selectTask over selectStep to keep telemetry consistant:https://github.com/microsoft/vscode/issues/122256
 			case 'selectTask': {
-				this.selectStep(argument);
+				this.selectStep(argument).catch(onUnexpectedError).catch(onUnexpectedError);
 				break;
 			}
 			case 'toggleStepCompletion': {
@@ -489,7 +489,7 @@ export class GettingStartedPage extends EditorPane {
 				const next = this.currentWalkthrough?.next;
 				if (next) {
 					this.prevWalkthrough = this.currentWalkthrough;
-					this.scrollToCategory(next);
+					this.scrollToCategory(next).catch(onUnexpectedError).catch(onUnexpectedError);
 				} else {
 					console.error('Error scrolling to next section of', this.currentWalkthrough);
 				}
@@ -546,7 +546,7 @@ export class GettingStartedPage extends EditorPane {
 				description: x.source,
 			})), { canPickMany: false, matchOnDescription: true, matchOnDetail: true, title: localize('pickWalkthroughs', "Open Walkthrough...") });
 		if (selection) {
-			this.runDispatchCommand('selectCategory', selection.id);
+			this.runDispatchCommand('selectCategory', selection.id).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
