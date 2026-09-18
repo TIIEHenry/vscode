@@ -6,6 +6,7 @@
 import { distinct } from '../../../../base/common/arrays.js';
 import { sequence } from '../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import * as json from '../../../../base/common/json.js';
 import { IJSONSchema } from '../../../../base/common/jsonSchema.js';
@@ -92,9 +93,9 @@ export class ConfigurationManager implements IConfigurationManager {
 		this.debugConfigurationTypeContext = CONTEXT_DEBUG_CONFIGURATION_TYPE.bindTo(contextKeyService);
 		const dynamicConfig = previousSelectedType ? { type: previousSelectedType } : undefined;
 		if (previousSelectedLaunch && previousSelectedLaunch.getConfigurationNames().length) {
-			this.selectConfiguration(previousSelectedLaunch, previousSelectedName, undefined, dynamicConfig);
+			this.selectConfiguration(previousSelectedLaunch, previousSelectedName, undefined, dynamicConfig).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else if (this.launches.length > 0) {
-			this.selectConfiguration(undefined, previousSelectedName, undefined, dynamicConfig);
+			this.selectConfiguration(undefined, previousSelectedName, undefined, dynamicConfig).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 		this.resolveTargetOperatingSystem();
 	}
@@ -329,7 +330,7 @@ export class ConfigurationManager implements IConfigurationManager {
 		const remaining = this.getRecentDynamicConfigurations().filter(c => c.name !== name || c.type !== type);
 		this.storageService.store(DEBUG_RECENT_DYNAMIC_CONFIGURATIONS, JSON.stringify(remaining), StorageScope.WORKSPACE, StorageTarget.MACHINE);
 		if (this.selectedConfiguration.name === name && this.selectedType === type && this.selectedDynamic) {
-			this.selectConfiguration(undefined, undefined);
+			this.selectConfiguration(undefined, undefined).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			this._onDidSelectConfigurationName.fire();
 		}
@@ -342,7 +343,7 @@ export class ConfigurationManager implements IConfigurationManager {
 	private registerListeners(): void {
 		this.toDispose.push(Event.any<IWorkspaceFoldersChangeEvent | WorkbenchState>(this.contextService.onDidChangeWorkspaceFolders, this.contextService.onDidChangeWorkbenchState)(() => {
 			this.initLaunches();
-			this.selectConfiguration(undefined);
+			this.selectConfiguration(undefined).catch(onUnexpectedError).catch(onUnexpectedError);
 			this.setCompoundSchemaValues();
 		}));
 		this.toDispose.push(this.configurationService.onDidChangeConfiguration(async e => {
@@ -365,7 +366,7 @@ export class ConfigurationManager implements IConfigurationManager {
 		this.launches.push(this.instantiationService.createInstance(UserLaunch, this, this.adapterManager));
 
 		if (this.selectedLaunch && this.launches.indexOf(this.selectedLaunch) === -1) {
-			this.selectConfiguration(undefined);
+			this.selectConfiguration(undefined).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
