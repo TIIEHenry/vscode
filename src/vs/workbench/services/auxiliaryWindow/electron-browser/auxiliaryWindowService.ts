@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { localize } from '../../../../nls.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { IWorkbenchLayoutService } from '../../layout/browser/layoutService.js';
@@ -60,7 +61,7 @@ export class NativeAuxiliaryWindow extends AuxiliaryWindow {
 			this.handleMaximizedState();
 		}
 
-		this.handleFullScreenState();
+		this.handleFullScreenState().catch(onUnexpectedError).catch(onUnexpectedError);
 		this.handleAlwaysOnTopState();
 	}
 
@@ -121,7 +122,7 @@ export class NativeAuxiliaryWindow extends AuxiliaryWindow {
 		const confirmed = await this.instantiationService.invokeFunction(accessor => NativeAuxiliaryWindow.confirmOnShutdown(accessor, ShutdownReason.CLOSE));
 		if (confirmed) {
 			this.skipUnloadConfirmation = true;
-			this.nativeHostService.closeWindow({ targetWindowId: this.window.vscodeWindowId });
+			this.nativeHostService.closeWindow({ targetWindowId: this.window.vscodeWindowId }).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

@@ -5,6 +5,7 @@
 
 import { Client as MessagePortClient } from '../../../../base/parts/ipc/common/ipc.mp.js';
 import { IChannel, IServerChannel, getDelayedChannel } from '../../../../base/parts/ipc/common/ipc.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ISharedProcessService } from '../../../../platform/ipc/electron-browser/services.js';
@@ -63,7 +64,7 @@ export class SharedProcessService extends Disposable implements ISharedProcessSe
 	}
 
 	registerChannel(channelName: string, channel: IServerChannel<string>): void {
-		this.withSharedProcessConnection.then(connection => connection.registerChannel(channelName, channel));
+		this.withSharedProcessConnection.then(connection => connection.registerChannel(channelName, channel)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	async createRawConnection(): Promise<MessagePort> {

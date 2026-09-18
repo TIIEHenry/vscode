@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IMcpGalleryManifest, IMcpGalleryManifestService, McpGalleryManifestStatus } from '../../../../platform/mcp/common/mcpGalleryManifest.js';
 import { McpGalleryManifestService } from '../../../../platform/mcp/common/mcpGalleryManifestService.js';
 import { IProductService } from '../../../../platform/product/common/productService.js';
@@ -39,7 +40,7 @@ export class WorkbenchMcpGalleryManifestService extends McpGalleryManifestServic
 			this.getMcpGalleryManifest().then(manifest => {
 				channel.call('setMcpGalleryManifest', [manifest]);
 				this._register(this.onDidChangeMcpGalleryManifest(manifest => channel.call('setMcpGalleryManifest', [manifest])));
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -57,7 +58,7 @@ export class WorkbenchMcpGalleryManifestService extends McpGalleryManifestServic
 
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(mcpGalleryServiceUrlConfig) || e.affectsConfiguration('chat.mcp.gallery.version')) {
-				this.getAndUpdateMcpGalleryManifest();
+				this.getAndUpdateMcpGalleryManifest().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}
