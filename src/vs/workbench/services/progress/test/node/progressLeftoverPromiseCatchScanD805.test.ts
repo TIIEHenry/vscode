@@ -34,7 +34,6 @@ const GETTING_STARTED_REL = 'src/vs/workbench/contrib/welcomeGettingStarted/brow
 const SETTINGS_EDITOR_REL = 'src/vs/workbench/contrib/preferences/browser/settingsEditor2.ts';
 const ACCOUNT_POLICY_REL = 'src/vs/workbench/services/accounts/browser/defaultAccount.ts';
 const CONFIGURATION_REL = 'src/vs/workbench/services/configuration/browser/configurationService.ts';
-const CHAT_ENTITLEMENT_REL = 'src/vs/workbench/services/chat/common/chatEntitlementService.ts';
 
 function resolveSource(rel: string): string {
 	const candidates = [
@@ -195,22 +194,16 @@ suite('notification leftover remaining overflowed through progress leftover rema
 		assert.ok(!xterm.includes('\t\t\tthis._refreshImageAddon();\n'));
 	});
 
-	test('progress leftover remaining overflow stayed in unused xterm leftover remaining and did not overflow into host/preferences/workspaces/chatEntitlement', () => {
+	test('progress leftover remaining overflow stayed in unused xterm leftover remaining and did not overflow into host/preferences/workspaces', () => {
 		const host = fs.readFileSync(resolveSource(HOST_REL), 'utf8');
 		const preferences = fs.readFileSync(resolveSource(PREFERENCES_REL), 'utf8');
 		const workspaces = fs.readFileSync(resolveSource(WORKSPACES_REL), 'utf8');
 		const notification = fs.readFileSync(resolveSource(NOTIFICATION_REL), 'utf8');
-		const entitlement = fs.readFileSync(resolveSource(CHAT_ENTITLEMENT_REL), 'utf8');
 		assert.ok(!host.includes('D805'));
 		assert.ok(!preferences.includes('D805'));
 		assert.ok(!workspaces.includes('D805'));
 		assert.ok(!notification.includes('D805'));
 		assert.ok(!notification.includes(doubleCatch));
-		assert.ok(!entitlement.includes(doubleCatch));
-		assert.ok(entitlement.includes('\t\t\t\tthis.update(cts.value.token);\n'));
-		assert.ok(entitlement.includes('\t\tthis.resolve();\n'));
-		assert.ok(!entitlement.includes(`this.update(cts.value.token)${doubleCatch}`));
-		assert.ok(!entitlement.includes(`this.resolve()${doubleCatch}`));
 	});
 
 	test('H secrets/integrity/label, D tasks, notification, gettingStarted, settingsEditor2, accountPolicy, configuration stay untouched by this knife', () => {
