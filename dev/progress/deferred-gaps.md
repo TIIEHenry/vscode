@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D785 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D790 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1147,3 +1147,8 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D783 | P3 | **skipped** leftover Promise：github 合法点 3；溢到 remote 会撞 D784，已弃。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；无合入。勿 add D752。 | 未合入。未关 D24。 | workbench / github leftover remaining | skipped |
 | D784 | P3 | **closed** leftover Promise 双链 remote 11 处 leftover remaining。跳过 D692 锁点 / Resolve / opener。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`remoteLeftoverPromiseCatchScanD784.test.ts`。勿 add `out`。 | 11 处双链。未关 D24。leftover 程序未全局完成。 | workbench / remote leftover remaining | closed |
 | D785 | P3 | **closed** leftover Promise 双链 workspace 11 处：ctor IIFE；showModalOnStart；doShowModal；trust then；logWorkspaceTrust；edit/setUris/setTrusted/setWorkspaceTrust。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`workspaceLeftoverPromiseCatchScanD785.test.ts`。勿 add `out`。 | 11 处双链。未关 D24。leftover 程序未全局完成。 | workbench / workspace leftover remaining | closed |
+| D786 | P3 | **closed** leftover Promise 双链 files 13 处 leftover FOF。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`filesLeftoverPromiseCatchScanD786.test.ts`。勿 add `out`。 | 13 处双链。未关 D24。leftover 程序未全局完成。 | workbench / files leftover remaining | closed |
+| D787 | P3 | **closed** leftover Promise 双链 testing leftover remaining。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；`testingLeftoverPromiseCatchScanD787.test.ts`。勿 add `out`。 | testing 双链。未关 D24。leftover 程序未全局完成。 | workbench / testing leftover remaining | closed |
+| D788 | P3 | **closed** leftover Promise 双链 keybindings leftover remaining，溢到 keybinding service。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`keybindingsLeftoverPromiseCatchScanD788.test.ts`。勿 add `out`。 | keybindings 双链。未关 D24。leftover 程序未全局完成。 | workbench / keybindings leftover remaining | closed |
+| D789 | P3 | **closed** leftover Promise 双链 userDataSync leftover remaining。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`userDataSyncLeftoverPromiseCatchScanD789.test.ts`。勿 add `out`。 | userDataSync 双链。未关 D24。leftover 程序未全局完成。 | workbench / userDataSync leftover remaining | closed |
+| D790 | P3 | **closed** leftover Promise 双链 remoteTunnel 五处：initialize；recommendRemoteExtensionIfNeeded；doInitialStateDiscovery；startTunnel then；executeCommand。跳过 Action2 / opener。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`remoteTunnelLeftoverPromiseCatchScanD790.test.ts`。勿 add `out`。 | 五处双链。未关 D24。leftover 程序未全局完成。 | workbench / remoteTunnel leftover remaining | closed |
