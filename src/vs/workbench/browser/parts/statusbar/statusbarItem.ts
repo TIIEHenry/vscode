@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { toErrorMessage } from '../../../../base/common/errorMessage.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { SimpleIconLabel } from '../../../../base/browser/ui/iconLabel/simpleIconLabel.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -127,7 +128,7 @@ export class StatusbarEntryItem extends Disposable {
 					actions: entry.tooltip.commands.map(command => ({
 						commandId: command.id,
 						label: command.title,
-						run: () => this.executeCommand(command)
+						run: () => this.executeCommand(command).catch(onUnexpectedError).catch(onUnexpectedError)
 					}))
 				};
 			} else {
@@ -150,14 +151,14 @@ export class StatusbarEntryItem extends Disposable {
 
 			const command = entry.command;
 			if (command && (command !== ShowTooltipCommand || this.hover) /* "Show Hover" is only valid when we have a hover */) {
-				this.commandMouseListener.value = addDisposableListener(this.labelContainer, EventType.CLICK, () => this.executeCommand(command));
-				this.commandTouchListener.value = addDisposableListener(this.labelContainer, TouchEventType.Tap, () => this.executeCommand(command));
+				this.commandMouseListener.value = addDisposableListener(this.labelContainer, EventType.CLICK, () => this.executeCommand(command).catch(onUnexpectedError).catch(onUnexpectedError));
+				this.commandTouchListener.value = addDisposableListener(this.labelContainer, TouchEventType.Tap, () => this.executeCommand(command).catch(onUnexpectedError).catch(onUnexpectedError));
 				this.commandKeyboardListener.value = addDisposableListener(this.labelContainer, EventType.KEY_DOWN, e => {
 					const event = new StandardKeyboardEvent(e);
 					if (event.equals(KeyCode.Space) || event.equals(KeyCode.Enter)) {
 						EventHelper.stop(e);
 
-						this.executeCommand(command);
+						this.executeCommand(command).catch(onUnexpectedError).catch(onUnexpectedError);
 					} else if (event.equals(KeyCode.Escape) || event.equals(KeyCode.LeftArrow) || event.equals(KeyCode.RightArrow)) {
 						EventHelper.stop(e);
 
