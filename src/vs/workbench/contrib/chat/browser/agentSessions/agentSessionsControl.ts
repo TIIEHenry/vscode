@@ -22,6 +22,7 @@ import { IChatSessionsService } from '../../common/chatSessionsService.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { Disposable, IDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { Throttler } from '../../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { observableValue } from '../../../../../base/common/observable.js';
 import { ITreeContextMenuEvent } from '../../../../../base/browser/ui/tree/tree.js';
 import { MarshalledId } from '../../../../../base/common/marshallingIds.js';
@@ -538,7 +539,7 @@ export class AgentSessionsControl extends Disposable implements IAgentSessionsCo
 		}));
 
 		this._register(sessionDataSource.onDidExpandRepositoryGroup(() => {
-			this.update();
+			this.update().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		const model = this.agentSessionsService.model;
@@ -546,13 +547,13 @@ export class AgentSessionsControl extends Disposable implements IAgentSessionsCo
 		this._register(this.options.filter.onDidChange(async () => {
 			if (this.visible) {
 				this.updateSectionCollapseStates();
-				this.update();
+				this.update().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
 		this._register(model.onDidChangeSessions(() => {
 			if (this.visible) {
-				this.update();
+				this.update().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -834,7 +835,7 @@ export class AgentSessionsControl extends Disposable implements IAgentSessionsCo
 			}
 			this.updatePauseOwner = undefined;
 			if (this.hasPendingUpdate && this.visible) {
-				this.update();
+				this.update().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		});
 	}
@@ -847,7 +848,7 @@ export class AgentSessionsControl extends Disposable implements IAgentSessionsCo
 		this.visible = visible;
 
 		if (this.visible) {
-			this.update();
+			this.update().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
