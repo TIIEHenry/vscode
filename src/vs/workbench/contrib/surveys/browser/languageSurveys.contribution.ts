@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize } from '../../../../nls.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { language } from '../../../../base/common/platform.js';
 import { ILanguageService } from '../../../../editor/common/languages/language.js';
 import { IWorkbenchContributionsRegistry, IWorkbenchContribution, Extensions as WorkbenchExtensions } from '../../../common/contributions.js';
@@ -136,7 +137,7 @@ class LanguageSurveysContribution implements IWorkbenchContribution {
 		@ILanguageService private readonly languageService: ILanguageService,
 		@IExtensionService private readonly extensionService: IExtensionService
 	) {
-		this.handleSurveys();
+		this.handleSurveys().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async handleSurveys() {
