@@ -340,7 +340,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 			const clearAllButton = this._register(new Button(headerActions, { ...chatCardButtonStyles, secondary: true, supportIcons: true, title: clearAllLabel, ariaLabel: clearAllLabel }));
 			clearAllButton.element.classList.add('chat-card-icon-button', 'chat-card-icon-button-padded', 'chat-plan-review-title-button', 'chat-plan-review-feedback-clear-all');
 			clearAllButton.label = clearAllLabel;
-			this._register(clearAllButton.onDidClick(() => this.clearAllInlineFeedback()));
+			this._register(clearAllButton.onDidClick(() => this.clearAllInlineFeedback().catch(onUnexpectedError).catch(onUnexpectedError)));
 			this._clearAllButtonEl = clearAllButton.element;
 		}
 
@@ -351,7 +351,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 			const closeButton = this._register(new Button(headerActions, { ...chatCardButtonStyles, secondary: true, supportIcons: true, title: closeButtonLabel, ariaLabel: closeButtonLabel }));
 			closeButton.element.classList.add('chat-card-icon-button', 'chat-card-icon-button-padded', 'chat-plan-review-title-button', 'chat-plan-review-title-icon-button', 'chat-plan-review-feedback-close');
 			closeButton.label = `$(${Codicon.closeSmall.id})`;
-			this._register(closeButton.onDidClick(() => this.exitFeedbackMode()));
+			this._register(closeButton.onDidClick(() => this.exitFeedbackMode().catch(onUnexpectedError).catch(onUnexpectedError)));
 		}
 
 		// Inline comments list — wrapped in a Monaco scrollable for a styled
@@ -455,7 +455,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 			textEl.textContent = item.text;
 
 			this._commentRowDisposables.add(dom.addDisposableListener(revealButton, dom.EventType.CLICK, () => {
-				this.revealInlineComment(item);
+				this.revealInlineComment(item).catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 
 			const removeLabel = localize('chat.planReview.removeComment', "Remove comment on line {0}", item.line);
@@ -584,7 +584,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 				const rejectButton = new Button(container, { ...defaultButtonStyles, secondary: true });
 				rejectButton.label = localize('chat.planReview.reject', 'Reject');
 				this._buttonStore.add(rejectButton);
-				this._buttonStore.add(rejectButton.onDidClick(() => this.submitRejection()));
+				this._buttonStore.add(rejectButton.onDidClick(() => this.submitRejection().catch(onUnexpectedError).catch(onUnexpectedError)));
 			}
 			return;
 		}
@@ -608,7 +608,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 						undefined,
 						true,
 						() => {
-							this.submitApproval(action);
+							this.submitApproval(action).catch(onUnexpectedError).catch(onUnexpectedError);
 							return Promise.resolve();
 						},
 					);
@@ -624,7 +624,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 		if (primary.description) {
 			approveButton.element.title = primary.description;
 		}
-		this._buttonStore.add(approveButton.onDidClick(() => this.submitApproval(primary)));
+		this._buttonStore.add(approveButton.onDidClick(() => this.submitApproval(primary).catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		// Reject button (grey secondary) immediately after the approve button
 		// so the primary Approve / Reject pair stays grouped together —
@@ -635,7 +635,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 			const rejectButton = new Button(container, { ...defaultButtonStyles, secondary: true });
 			rejectButton.label = localize('chat.planReview.reject', 'Reject');
 			this._buttonStore.add(rejectButton);
-			this._buttonStore.add(rejectButton.onDidClick(() => this.submitRejection()));
+			this._buttonStore.add(rejectButton.onDidClick(() => this.submitRejection().catch(onUnexpectedError).catch(onUnexpectedError)));
 		}
 	}
 
