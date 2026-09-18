@@ -629,12 +629,12 @@ class ExtensionsContributions extends Disposable implements IWorkbenchContributi
 			hasWebServerContext.set(true);
 		}
 
-		this.updateExtensionGalleryStatusContexts();
-		this._register(extensionGalleryManifestService.onDidChangeExtensionGalleryManifestStatus(() => this.updateExtensionGalleryStatusContexts()));
+		this.updateExtensionGalleryStatusContexts().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._register(extensionGalleryManifestService.onDidChangeExtensionGalleryManifestStatus(() => this.updateExtensionGalleryStatusContexts().catch(onUnexpectedError).catch(onUnexpectedError)));
 		extensionGalleryManifestService.getExtensionGalleryManifest()
 			.then(extensionGalleryManifest => {
-				this.updateGalleryCapabilitiesContexts(extensionGalleryManifest);
-				this._register(extensionGalleryManifestService.onDidChangeExtensionGalleryManifest(extensionGalleryManifest => this.updateGalleryCapabilitiesContexts(extensionGalleryManifest)));
+				this.updateGalleryCapabilitiesContexts(extensionGalleryManifest).catch(onUnexpectedError).catch(onUnexpectedError);
+				this._register(extensionGalleryManifestService.onDidChangeExtensionGalleryManifest(extensionGalleryManifest => this.updateGalleryCapabilitiesContexts(extensionGalleryManifest).catch(onUnexpectedError).catch(onUnexpectedError)));
 			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		this.registerGlobalActions();
 		this.registerContextMenuActions();

@@ -13,6 +13,7 @@ import { Action, IAction, Separator } from '../../../../base/common/actions.js';
 import { isNonEmptyArray } from '../../../../base/common/arrays.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { fromNow } from '../../../../base/common/date.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IDisposable, dispose } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
 import * as nls from '../../../../nls.js';
@@ -100,11 +101,11 @@ export abstract class AbstractRuntimeExtensionsEditor extends EditorPane {
 
 		this._list = null;
 		this._elements = null;
-		this._updateSoon = this._register(new RunOnceScheduler(() => this._updateExtensions(), 200));
+		this._updateSoon = this._register(new RunOnceScheduler(() => this._updateExtensions().catch(onUnexpectedError).catch(onUnexpectedError), 200));
 
 		this._register(this._extensionService.onDidChangeExtensionsStatus(() => this._updateSoon.schedule()));
 		this._register(this._extensionFeaturesManagementService.onDidChangeAccessData(() => this._updateSoon.schedule()));
-		this._updateExtensions();
+		this._updateExtensions().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	protected async _updateExtensions(): Promise<void> {
