@@ -7,6 +7,7 @@ import * as dom from '../../../../../base/browser/dom.js';
 import { BaseActionViewItem, IBaseActionViewItemOptions } from '../../../../../base/browser/ui/actionbar/actionViewItems.js';
 import { IAction, WorkbenchActionExecutedClassification, WorkbenchActionExecutedEvent } from '../../../../../base/common/actions.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { Lazy } from '../../../../../base/common/lazy.js';
 import { Disposable, DisposableStore, markAsSingleton, MutableDisposable } from '../../../../../base/common/lifecycle.js';
@@ -105,7 +106,7 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 		this.registerActions(context, requests, controller);
 		this.registerSignInTitleBarEntry(actionViewItemService);
 		this.registerUrlLinkHandler();
-		this.checkExtensionInstallation(context);
+		this.checkExtensionInstallation(context).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private registerSetupAgents(context: ChatEntitlementContext, controller: Lazy<ChatSetupController>): void {
@@ -816,7 +817,7 @@ export class ChatTeardownContribution extends Disposable implements IWorkbenchCo
 			return; // disabled
 		}
 
-		this.registerListeners();
+		this.registerListeners().catch(onUnexpectedError).catch(onUnexpectedError);
 		this.registerActions();
 
 		this.handleChatDisabled(false);
@@ -825,12 +826,12 @@ export class ChatTeardownContribution extends Disposable implements IWorkbenchCo
 	private handleChatDisabled(fromEvent: boolean): void {
 		const chatDisabled = this.configurationService.inspect(ChatAIDisabledSettingId);
 		if (chatDisabled.value === true) {
-			this.maybeEnableOrDisableExtension(typeof chatDisabled.workspaceValue === 'boolean' ? EnablementState.DisabledWorkspace : EnablementState.DisabledGlobally);
+			this.maybeEnableOrDisableExtension(typeof chatDisabled.workspaceValue === 'boolean' ? EnablementState.DisabledWorkspace : EnablementState.DisabledGlobally).catch(onUnexpectedError).catch(onUnexpectedError);
 			if (fromEvent) {
 				this.maybeHideAuxiliaryBar();
 			}
 		} else if (chatDisabled.value === false && fromEvent /* do not enable extensions unless its an explicit settings change */) {
-			this.maybeEnableOrDisableExtension(typeof chatDisabled.workspaceValue === 'boolean' ? EnablementState.EnabledWorkspace : EnablementState.EnabledGlobally);
+			this.maybeEnableOrDisableExtension(typeof chatDisabled.workspaceValue === 'boolean' ? EnablementState.EnabledWorkspace : EnablementState.EnabledGlobally).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
