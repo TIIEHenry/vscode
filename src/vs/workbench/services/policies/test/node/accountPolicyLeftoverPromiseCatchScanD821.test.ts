@@ -86,9 +86,6 @@ const openSessionCall = 'this.openSessionInChat(chatSessionResource)';
 const revealChatCall = 'this.revealMaximizedChat()';
 const loopCheckThenCall = '.then(() => this.loopCheckForMaliciousExtensions())';
 const openViewThenCall = 'this.viewsService.openView(EXPLORER_VIEW_ID, true).then(() => this.explorerService.select(location, true))';
-const updateCacheCall = 'this.updateCache()';
-const updateCachedDefaultsCall = 'this.updateCachedConfigurationDefaultsOverrides()';
-const waitAndInitializeCall = 'this.waitAndInitialize(this._workspaceIdentifier)';
 
 const d821Calls: Array<[string, string, number]> = [
 	[ACCOUNT_REL, updatePolicyCall, 8],
