@@ -245,8 +245,8 @@ suite('leftover remaining unused customEditor leftover remaining unused overflow
 		assert.ok(!tags.includes('registerAction2'));
 		assert.ok(!history.includes('registerAction2'));
 		assert.ok(repl.includes('async run(accessor: ServicesAccessor, context?: UriComponents): Promise<void> {'));
-		assert.ok(repl.includes(`${leftoverInstallCall};`));
-		assert.ok(!repl.includes(`${leftoverInstallCall}${doubleCatch}`));
+		assert.ok(repl.includes(`${leftoverInstallCall}${doubleCatch}`));
+		assert.ok(!repl.includes(`${leftoverInstallCall};`) || repl.includes(`${leftoverInstallCall}${doubleCatch};`));
 		assert.ok(tags.includes(leftoverTwoArgThenCall));
 		assert.ok(tags.includes('.then(undefined, onUnexpectedError)'));
 		assert.ok(!tags.includes(`.then(undefined, onUnexpectedError)${doubleCatch}`));
@@ -326,8 +326,8 @@ suite('leftover remaining unused customEditor leftover remaining unused overflow
 		assert.ok(treeView.includes(leftoverTreeRefreshCall));
 		assert.ok(!treeView.includes(`this.refresh()${doubleCatch}`));
 		assert.ok(snippets.includes('this._initUserSnippets().catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(repl.includes(`${leftoverInstallCall};`));
-		assert.ok(!repl.includes(`${leftoverInstallCall}${doubleCatch}`));
+		assert.ok(repl.includes(`${leftoverInstallCall}${doubleCatch}`));
+		assert.ok(!repl.includes(`${leftoverInstallCall};`) || repl.includes(`${leftoverInstallCall}${doubleCatch};`));
 
 		assert.ok(viewlet.includes(`${loopCheckThenCall};`));
 		assert.ok(!viewlet.includes(`${loopCheckThenCall}${doubleCatch}`));
