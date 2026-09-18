@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { IHostService, IToastOptions, IToastResult } from '../browser/host.js';
 import { FocusMode, INativeHostService } from '../../../../platform/native/common/native.js';
@@ -61,7 +62,7 @@ class WorkbenchHostService extends Disposable implements IHostService {
 		// Make sure to hide all OS toasts when the window gains focus
 		this._register(this.onDidChangeFocus(focus => {
 			if (focus) {
-				this.clearToasts();
+				this.clearToasts().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -250,7 +251,7 @@ class WorkbenchHostService extends Disposable implements IHostService {
 
 	async showToast(options: IToastOptions, token: CancellationToken): Promise<IToastResult> {
 		const id = generateUuid();
-		const listener = token.onCancellationRequested(() => this.nativeHostService.clearToast(id));
+		const listener = token.onCancellationRequested(() => this.nativeHostService.clearToast(id).catch(onUnexpectedError).catch(onUnexpectedError));
 
 		try {
 			// Try native OS notifications first

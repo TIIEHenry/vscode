@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { IHostService, IToastOptions, IToastResult } from './host.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
@@ -112,7 +113,7 @@ export class BrowserHostService extends Disposable implements IHostService {
 		// Make sure to hide all toasts when the window gains focus
 		this._register(this.onDidChangeFocus(focus => {
 			if (focus) {
-				this.clearToasts();
+				this.clearToasts().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -265,13 +266,13 @@ export class BrowserHostService extends Disposable implements IHostService {
 				} else if (options?.removeMode) {
 					foldersToRemove.push(openable.folderUri);
 				} else {
-					this.doOpen({ folderUri: openable.folderUri }, { reuse: this.shouldReuse(options, false /* no file */), payload });
+					this.doOpen({ folderUri: openable.folderUri }, { reuse: this.shouldReuse(options, false /* no file */), payload }).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 
 			// Workspace
 			else if (isWorkspaceToOpen(openable)) {
-				this.doOpen({ workspaceUri: openable.workspaceUri }, { reuse: this.shouldReuse(options, false /* no file */), payload });
+				this.doOpen({ workspaceUri: openable.workspaceUri }, { reuse: this.shouldReuse(options, false /* no file */), payload }).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 
 			// File (handled later in bulk)
@@ -376,7 +377,7 @@ export class BrowserHostService extends Disposable implements IHostService {
 								openables = [openable];
 							}
 
-							editorService.openEditors(coalesce(await pathsToEditors(openables, this.fileService, this.logService)), undefined, { validateTrust: true });
+							editorService.openEditors(coalesce(await pathsToEditors(openables, this.fileService, this.logService)), undefined, { validateTrust: true }).catch(onUnexpectedError).catch(onUnexpectedError);
 						}
 
 						// New Window: open into empty window
@@ -409,7 +410,7 @@ export class BrowserHostService extends Disposable implements IHostService {
 
 						// ...before deleting the wait marker file
 						await this.fileService.del(waitMarkerFileURI);
-					})();
+					})().catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			});
 		}
@@ -419,7 +420,7 @@ export class BrowserHostService extends Disposable implements IHostService {
 		// Host service is used in a lot of contexts and some services
 		// need to be resolved dynamically to avoid cyclic dependencies
 		// (https://github.com/microsoft/vscode/issues/108522)
-		this.instantiationService.invokeFunction(accessor => fn(accessor));
+		void Promise.resolve(this.instantiationService.invokeFunction(accessor => fn(accessor))).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private preservePayload(isEmptyWindow: boolean, options?: IOpenWindowOptions): Array<unknown> | undefined {
