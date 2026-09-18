@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843、D847 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1198,3 +1198,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D843 | P3 | **closed** leftover Promise 双链 leftover remaining unused debugConfigurationManager 五处 selectConfiguration。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`debugLeftoverPromiseCatchScanD843.test.ts`。勿 add `out`。 | 五处双链。未关 D24。leftover 程序未全局完成。 | workbench / debug leftover remaining | closed |
 | D841 | P3 | **closed** leftover Promise 双链 leftover remaining unused searchWidget 四处 submitSearch。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`searchLeftoverPromiseCatchScanD841.test.ts`。勿 add `out`。 | 四处双链。未关 D24。leftover 程序未全局完成。 | workbench / search leftover remaining | closed |
 | D847 | P3 | **closed** leftover Promise 双链 leftover remaining unused debug 五处：launchOrAttachToSession；showError；toggleExceptionWidget×3。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；`debugLeftoverPromiseCatchScanD847.test.ts`。勿 add `out`。 | 五处双链。未关 D24。leftover 程序未全局完成。 | workbench / debug leftover remaining | closed |
+| D844 | P3 | **closed** leftover Promise 双链 leftover remaining unused notebook findModel 四处 research。扫描文件误标 output。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`outputLeftoverPromiseCatchScanD844.test.ts`。勿 add `out`。 | 四处双链。未关 D24。leftover 程序未全局完成。 | workbench / notebook leftover remaining | closed |
