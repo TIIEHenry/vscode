@@ -1086,11 +1086,11 @@ export class AICustomizationManagementEditor extends EditorPane {
 			this.mcpDetailContainer = DOM.append(contentInner, $('.mcp-detail-container'));
 
 			this.editorDisposables.add(this.mcpListWidget.onDidSelectServer(server => {
-				this.showEmbeddedMcpDetail(server);
+				this.showEmbeddedMcpDetail(server).catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 
 			this.editorDisposables.add(this.mcpListWidget.onDidRequestShowPlugin(item => {
-				this.showPluginDetail(item);
+				this.showPluginDetail(item).catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 		}
 
@@ -1106,7 +1106,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 			this.editorDisposables.add(this.pluginListWidget.onDidSelectPlugin(item => {
 				this.pluginDetailReturnSection = undefined;
-				this.showEmbeddedPluginDetail(item);
+				this.showEmbeddedPluginDetail(item).catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 		}
 
@@ -1122,7 +1122,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 			this.createEmbeddedToolDetail();
 
 			this.editorDisposables.add(this.toolsListWidget.onDidSelectExtension(extension => {
-				this.showEmbeddedToolDetail(extension);
+				this.showEmbeddedToolDetail(extension).catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 		}
 
@@ -3446,10 +3446,10 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 		this.embeddedPluginDetail = this.editorDisposables.add(this.instantiationService.createInstance(EmbeddedAgentPluginDetail, detailBody));
 		this.editorDisposables.add(this.embeddedPluginDetail.onDidRequestOpenSkill(uri => {
-			this.openSkillFromPluginDetail(uri);
+			this.openSkillFromPluginDetail(uri).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this.editorDisposables.add(this.embeddedPluginDetail.onDidRequestOpenAgent(uri => {
-			this.openPromptsItemFromPluginDetail(AICustomizationManagementSection.Agents, uri);
+			this.openPromptsItemFromPluginDetail(AICustomizationManagementSection.Agents, uri).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this.editorDisposables.add(this.embeddedPluginDetail.onDidRequestOpenSection(section => {
 			this.openSectionFromPluginDetail(section);
