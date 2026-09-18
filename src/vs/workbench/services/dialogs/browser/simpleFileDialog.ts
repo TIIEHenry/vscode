@@ -6,6 +6,7 @@
 import * as nls from '../../../../nls.js';
 import * as resources from '../../../../base/common/resources.js';
 import * as objects from '../../../../base/common/objects.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IFileService, IFileStat, FileKind, IFileStatWithPartialMetadata, FileSystemProviderErrorCode, toFileSystemProviderErrorCode } from '../../../../platform/files/common/files.js';
 import { IQuickInputService, IQuickPickItem, IQuickPick, ItemActivation } from '../../../../platform/quickinput/common/quickInput.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -231,7 +232,7 @@ export class SimpleFileDialog extends Disposable implements ISimpleFileDialog {
 		return new Promise<URI | undefined>((resolve) => {
 			this.pickResource(true).then(result => {
 				resolve(Array.isArray(result) ? result[0] : result);
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 	}
 
@@ -457,7 +458,7 @@ export class SimpleFileDialog extends Disposable implements ISimpleFileDialog {
 						isResolving--;
 						isAcceptHandled = false;
 					}
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			};
 
 			this._register(this.filePickBox.onDidAccept(_ => {
@@ -497,7 +498,7 @@ export class SimpleFileDialog extends Disposable implements ISimpleFileDialog {
 					this.filePickBox.valueSelection = [this.filePickBox.value.length, this.filePickBox.value.length];
 				}
 				this.busy = false;
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 	}
 

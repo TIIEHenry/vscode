@@ -5,6 +5,7 @@
 
 import { IPickAndOpenOptions, ISaveDialogOptions, IOpenDialogOptions, IFileDialogService, FileFilter, IPromptButton } from '../../../../platform/dialogs/common/dialogs.js';
 import { URI } from '../../../../base/common/uri.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { AbstractFileDialogService } from './abstractFileDialogService.js';
 import { Schemas } from '../../../../base/common/network.js';
@@ -254,7 +255,7 @@ export class FileDialogService extends AbstractFileDialogService implements IFil
 									contents: fileData.contents?.toString(),
 									options: { pinned: true }
 								};
-							}));
+							})).catch(onUnexpectedError).catch(onUnexpectedError);
 						}
 					}
 				}
