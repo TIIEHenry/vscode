@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { KeyChord, KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
@@ -186,7 +187,7 @@ class ReplWindowWorkingCopyEditorHandler extends Disposable implements IWorkbenc
 	) {
 		super();
 
-		this._installHandler();
+		this._installHandler().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	async handles(workingCopy: IWorkingCopyIdentifier) {

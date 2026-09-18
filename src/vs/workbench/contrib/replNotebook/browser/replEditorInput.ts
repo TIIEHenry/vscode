@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IReference } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IResolvedTextEditorModel, ITextModelService } from '../../../../editor/common/services/resolverService.js';
@@ -156,7 +157,7 @@ export class ReplEditorInput extends NotebookEditorInput implements ICompositeNo
 	override dispose() {
 		if (!this.isDisposing) {
 			this.isDisposing = true;
-			this.editorModelReference?.object.revert({ soft: true });
+			void Promise.resolve(this.editorModelReference?.object.revert({ soft: true })).catch(onUnexpectedError).catch(onUnexpectedError);
 			this.inputModelRef?.dispose();
 			super.dispose();
 		}

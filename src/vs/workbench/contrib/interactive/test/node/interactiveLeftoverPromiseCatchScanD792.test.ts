@@ -145,19 +145,17 @@ suite('interactive leftover Promise fire-and-forget catch scan (D792)', () => {
 		assert.ok(!source.includes(`setModel(model.notebook, viewState?.notebook)${doubleCatch}`));
 	});
 
-	test('repl leftover remaining stays unwrapped because interactive already has four legal sites', () => {
+	test('repl leftover remaining unused after leftover remaining unused already-double stay already-double', () => {
 		const replContrib = fs.readFileSync(resolveSource(REPL_CONTRIB_REL), 'utf8');
 		const replEditor = fs.readFileSync(resolveSource(REPL_EDITOR_REL), 'utf8');
 		const replInput = fs.readFileSync(resolveSource(REPL_INPUT_REL), 'utf8');
-		assert.ok(!replContrib.includes(doubleCatch));
-		assert.ok(replContrib.includes('\t\tthis._installHandler();\n'));
-		assert.ok(!replEditor.includes(doubleCatch));
-		assert.ok(replEditor.includes('this._notebookWidget.value?.setOptions(options);'));
-		assert.ok(replEditor.includes(`this._notebookWidget.value!.setOptions({
-			isReadOnly: true
-		});`));
-		assert.ok(!replInput.includes(doubleCatch));
-		assert.ok(replInput.includes('this.editorModelReference?.object.revert({ soft: true });'));
+		assert.ok(replContrib.includes(`${installCall}${doubleCatch}`));
+		assert.ok(!replContrib.includes('\t\tthis._installHandler();\n'));
+		assert.ok(replEditor.includes(`${setOptionsInputCall}${doubleCatch}`));
+		assert.ok(replEditor.includes(`${setOptionsOverrideCall}${doubleCatch}`));
+		assert.ok(!replEditor.includes('\t\tthis._notebookWidget.value?.setOptions(options);\n'));
+		assert.ok(replInput.includes('void Promise.resolve(this.editorModelReference?.object.revert({ soft: true }))'.concat(doubleCatch)));
+		assert.ok(!replInput.includes('this.editorModelReference?.object.revert({ soft: true });'));
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Connect / Watch / Resolve / Pty / D145 stay skipped', () => {
