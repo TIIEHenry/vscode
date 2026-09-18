@@ -2139,7 +2139,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		else if (!hidden && !this.paneCompositeService.getActivePaneComposite(ViewContainerLocation.Sidebar)) {
 			const viewletToOpen = this.paneCompositeService.getLastActivePaneCompositeId(ViewContainerLocation.Sidebar);
 			if (viewletToOpen) {
-				this.openViewContainer(ViewContainerLocation.Sidebar, viewletToOpen);
+				this.openViewContainer(ViewContainerLocation.Sidebar, viewletToOpen).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 	}
@@ -2334,7 +2334,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			}
 
 			if (panelToOpen) {
-				this.openViewContainer(ViewContainerLocation.Panel, panelToOpen, !skipLayout);
+				this.openViewContainer(ViewContainerLocation.Panel, panelToOpen, !skipLayout).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 
@@ -2566,7 +2566,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			}
 
 			if (viewletToOpen) {
-				this.openViewContainer(ViewContainerLocation.AuxiliaryBar, viewletToOpen, !skipLayout);
+				this.openViewContainer(ViewContainerLocation.AuxiliaryBar, viewletToOpen, !skipLayout).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 	}
