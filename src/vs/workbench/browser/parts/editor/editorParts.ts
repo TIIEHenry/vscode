@@ -109,7 +109,7 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 
 		this.mostRecentActiveParts = [this.mainPart];
 
-		this.restoreParts();
+		this.restoreParts().catch(onUnexpectedError).catch(onUnexpectedError);
 		this.registerListeners();
 	}
 
@@ -699,7 +699,7 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 
 			const state = this.loadState();
 			if (state) {
-				this.applyState(state);
+				this.applyState(state).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 	}

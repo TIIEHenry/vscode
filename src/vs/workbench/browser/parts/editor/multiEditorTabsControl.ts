@@ -495,7 +495,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 
 				if (e.target === tabsContainer) {
 					const isGroupTransfer = this.groupTransfer.hasData(DraggedEditorGroupIdentifier.prototype);
-					this.onDrop(e, isGroupTransfer ? this.groupView.count : this.tabsModel.count, tabsContainer);
+					this.onDrop(e, isGroupTransfer ? this.groupView.count : this.tabsModel.count, tabsContainer).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 		}));
@@ -1322,7 +1322,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 					targetIndex++;
 				}
 
-				this.onDrop(e, targetIndex, tabsContainer);
+				this.onDrop(e, targetIndex, tabsContainer).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 

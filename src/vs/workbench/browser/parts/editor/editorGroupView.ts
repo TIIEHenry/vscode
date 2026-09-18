@@ -969,7 +969,7 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 
 		// Clear selection when group no longer active
 		if (!isActive && this.activeEditor && this.selectedEditors.length > 1) {
-			this.setSelection(this.activeEditor, []);
+			this.setSelection(this.activeEditor, []).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		// Update container
@@ -1663,7 +1663,7 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 				preserveWindowOrder: true
 			};
 
-			this.doOpenEditor(nextActiveEditor, options, internalEditorOpenOptions);
+			this.doOpenEditor(nextActiveEditor, options, internalEditorOpenOptions).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		// Otherwise we are empty, so clear from editor control and send event

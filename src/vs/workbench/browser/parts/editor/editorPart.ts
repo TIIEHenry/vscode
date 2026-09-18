@@ -1623,7 +1623,7 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 
 			const state = this.loadState();
 			if (state) {
-				this.applyState(state);
+				this.applyState(state).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 	}
