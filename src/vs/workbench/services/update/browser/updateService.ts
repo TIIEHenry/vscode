@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event, Emitter } from '../../../../base/common/event.js';
 import { IUpdateService, State, UpdateType } from '../../../../platform/update/common/update.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
@@ -44,7 +45,7 @@ export class BrowserUpdateService extends Disposable implements IUpdateService {
 	) {
 		super();
 
-		this.checkForUpdates(false);
+		this.checkForUpdates(false).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	async isLatestVersion(): Promise<boolean | undefined> {
