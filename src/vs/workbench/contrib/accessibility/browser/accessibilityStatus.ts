@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { Event } from '../../../../base/common/event.js';
 import Severity from '../../../../base/common/severity.js';
@@ -56,12 +57,12 @@ export class AccessibilityStatus extends Disposable implements IWorkbenchContrib
 			[{
 				label: localize('screenReaderDetectedExplanation.answerYes', "Yes"),
 				run: () => {
-					this.configurationService.updateValue('editor.accessibilitySupport', 'on', ConfigurationTarget.USER);
+					this.configurationService.updateValue('editor.accessibilitySupport', 'on', ConfigurationTarget.USER).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}, {
 				label: localize('screenReaderDetectedExplanation.answerNo', "No"),
 				run: () => {
-					this.configurationService.updateValue('editor.accessibilitySupport', 'off', ConfigurationTarget.USER);
+					this.configurationService.updateValue('editor.accessibilitySupport', 'off', ConfigurationTarget.USER).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			},
 			{

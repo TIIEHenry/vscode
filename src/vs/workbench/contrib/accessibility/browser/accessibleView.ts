@@ -10,6 +10,7 @@ import { alert } from '../../../../base/browser/ui/aria/aria.js';
 import { IAction } from '../../../../base/common/actions.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import * as marked from '../../../../base/common/marked/marked.js';
 import { Schemas } from '../../../../base/common/network.js';
@@ -211,9 +212,9 @@ export class AccessibleView extends Disposable {
 		}
 		const lineContent = model.getLineContent(position.lineNumber);
 		if (lineContent?.startsWith('+')) {
-			this._accessibilitySignalService.playSignal(AccessibilitySignal.diffLineInserted);
+			this._accessibilitySignalService.playSignal(AccessibilitySignal.diffLineInserted).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else if (lineContent?.startsWith('-')) {
-			this._accessibilitySignalService.playSignal(AccessibilitySignal.diffLineDeleted);
+			this._accessibilitySignalService.playSignal(AccessibilitySignal.diffLineDeleted).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -687,7 +688,7 @@ export class AccessibleView extends Disposable {
 					}
 				}
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._updateToolbar(this._currentProvider.actions, provider.options.type);
 
 		const hide = (e?: KeyboardEvent | IKeyboardEvent): void => {
@@ -720,7 +721,7 @@ export class AccessibleView extends Disposable {
 		const disposableStore = new DisposableStore();
 		disposableStore.add(this._editorWidget.onKeyDown((e) => {
 			if (e.keyCode === KeyCode.Enter) {
-				this._commandService.executeCommand('editor.action.openLink');
+				this._commandService.executeCommand('editor.action.openLink').catch(onUnexpectedError).catch(onUnexpectedError);
 			} else if (e.keyCode === KeyCode.Escape || shouldHide(e.browserEvent, this._keybindingService, this._configurationService)) {
 				hide(e);
 			} else if (e.keyCode === KeyCode.KeyH && provider.options.readMoreUrl) {
