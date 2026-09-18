@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Iterable } from '../../../../base/common/iterator.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
@@ -242,7 +243,7 @@ class InteractiveWindowWorkingCopyEditorHandler extends Disposable implements IW
 	) {
 		super();
 
-		this._installHandler();
+		this._installHandler().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	handles(workingCopy: IWorkingCopyIdentifier): boolean {
