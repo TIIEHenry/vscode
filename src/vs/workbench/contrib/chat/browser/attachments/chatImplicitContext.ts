@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { Disposable, DisposableMap, DisposableStore, MutableDisposable } from '../../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../../base/common/network.js';
@@ -67,7 +68,7 @@ export class ChatImplicitContextContribution extends Disposable implements IWork
 							codeEditor.onDidChangeCursorSelection,
 							codeEditor.onDidScrollChange),
 						() => undefined,
-						500)(() => this.updateImplicitContext()));
+						500)(() => this.updateImplicitContext().catch(onUnexpectedError).catch(onUnexpectedError)));
 				}
 
 				const notebookEditor = this.findActiveNotebookEditor();
@@ -83,7 +84,7 @@ export class ChatImplicitContextContribution extends Disposable implements IWork
 									codeEditor.onDidChangeCursorSelection,
 									codeEditor.onDidScrollChange),
 								() => undefined,
-								500)(() => this.updateImplicitContext()));
+								500)(() => this.updateImplicitContext().catch(onUnexpectedError).catch(onUnexpectedError)));
 						}
 					}));
 
@@ -93,25 +94,25 @@ export class ChatImplicitContextContribution extends Disposable implements IWork
 							notebookEditor.onDidChangeActiveCell
 						),
 						() => undefined,
-						500)(() => this.updateImplicitContext()));
+						500)(() => this.updateImplicitContext().catch(onUnexpectedError).catch(onUnexpectedError)));
 				}
 				const webviewEditor = this.findActiveWebviewEditor();
 				if (webviewEditor) {
 					activeEditorDisposables.add(Event.debounce((webviewEditor.input as WebviewInput).webview.onMessage, () => undefined, 500)(() => {
-						this.updateImplicitContext();
+						this.updateImplicitContext().catch(onUnexpectedError).catch(onUnexpectedError);
 					}));
 				}
 
-				this.updateImplicitContext();
+				this.updateImplicitContext().catch(onUnexpectedError).catch(onUnexpectedError);
 			})));
 		this._register(autorun((reader) => {
 			this.chatEditingService.editingSessionsObs.read(reader);
-			this.updateImplicitContext();
+			this.updateImplicitContext().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration('chat.implicitContext.enabled')) {
 				this._implicitContextEnablement = this.configurationService.getValue<{ [mode: string]: string }>('chat.implicitContext.enabled');
-				this.updateImplicitContext();
+				this.updateImplicitContext().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 		this._register(this.chatService.onDidSubmitRequest(({ chatSessionResource }) => {
@@ -123,8 +124,8 @@ export class ChatImplicitContextContribution extends Disposable implements IWork
 				widget.input.implicitContext.setValues([]);
 			}
 		}));
-		this._register(this.chatWidgetService.onDidAddWidget(async (widget) => {
-			await this.updateImplicitContext(widget);
+		this._register(this.chatWidgetService.onDidAddWidget(widget => {
+			this.updateImplicitContext(widget).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 
