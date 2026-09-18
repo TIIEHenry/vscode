@@ -5,6 +5,7 @@
 
 import { streamToBuffer } from '../../../../../base/common/buffer.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { StringSHA1 } from '../../../../../base/common/hash.js';
 import { DisposableStore, IReference, thenRegisterOrDispose } from '../../../../../base/common/lifecycle.js';
 import { ResourceMap, ResourceSet } from '../../../../../base/common/map.js';
@@ -197,7 +198,7 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 		this.originalModel = this._register(originalResourceRef).object.notebook;
 		this.originalURI = this.originalModel.uri;
 		this.initialContent = initialContent;
-		this.initializeModelsFromDiff();
+		this.initializeModelsFromDiff().catch(onUnexpectedError).catch(onUnexpectedError);
 		this._register(this.modifiedModel.onDidChangeContent(this.mirrorNotebookEdits, this));
 	}
 
@@ -269,7 +270,7 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 		if (currentState === ModifiedFileEntryState.Modified && didResetToOriginalContent) {
 			this._stateObs.set(ModifiedFileEntryState.Rejected, undefined);
 			this.updateCellDiffInfo([], undefined);
-			this.initializeModelsFromDiff();
+			this.initializeModelsFromDiff().catch(onUnexpectedError).catch(onUnexpectedError);
 			this._notifySessionAction('rejected');
 			return;
 		}
@@ -406,7 +407,7 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 		if (currentState === ModifiedFileEntryState.Modified && didResetToOriginalContent) {
 			this._stateObs.set(ModifiedFileEntryState.Rejected, undefined);
 			this.updateCellDiffInfo([], undefined);
-			this.initializeModelsFromDiff();
+			this.initializeModelsFromDiff().catch(onUnexpectedError).catch(onUnexpectedError);
 			return;
 		}
 	}
@@ -415,7 +416,7 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 		this.updateCellDiffInfo([], undefined);
 		const snapshot = createSnapshot(this.modifiedModel, this.transientOptions, this.configurationService);
 		restoreSnapshot(this.originalModel, snapshot);
-		this.initializeModelsFromDiff();
+		this.initializeModelsFromDiff().catch(onUnexpectedError).catch(onUnexpectedError);
 		await this._collapse(undefined);
 
 		const config = this._fileConfigService.getAutoSaveConfiguration(this.modifiedURI);
@@ -453,7 +454,7 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 					await this.modifiedResourceRef.object.save({ reason: SaveReason.EXPLICIT, skipSaveParticipants: true });
 				}
 			});
-			this.initializeModelsFromDiff();
+			this.initializeModelsFromDiff().catch(onUnexpectedError).catch(onUnexpectedError);
 			await this._collapse(undefined);
 		}
 	}
@@ -506,7 +507,7 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 				redoState = this._stateObs.get() === ModifiedFileEntryState.Accepted ? ModifiedFileEntryState.Accepted : ModifiedFileEntryState.Rejected;
 				this._stateObs.set(ModifiedFileEntryState.Rejected, undefined);
 				this.updateCellDiffInfo([], undefined);
-				this.initializeModelsFromDiff();
+				this.initializeModelsFromDiff().catch(onUnexpectedError).catch(onUnexpectedError);
 				this._notifySessionAction('userModified');
 			},
 			redo: async () => {
@@ -520,7 +521,7 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 				}
 				this._stateObs.set(redoState, undefined);
 				this.updateCellDiffInfo([], undefined);
-				this.initializeModelsFromDiff();
+				this.initializeModelsFromDiff().catch(onUnexpectedError).catch(onUnexpectedError);
 				this._notifySessionAction('userModified');
 			}
 		};
@@ -962,7 +963,7 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 		if (restoreToDisk) {
 			this.restoreSnapshotInModifiedModel(snapshot.current);
 		}
-		this.initializeModelsFromDiff();
+		this.initializeModelsFromDiff().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	async resetEditTrackerToInitialContent() {
@@ -971,13 +972,13 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 		}
 
 		this.updateCellDiffInfo([], undefined);
-		this.initializeModelsFromDiff();
+		this.initializeModelsFromDiff().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	override async resetToInitialContent(): Promise<void> {
 		this.updateCellDiffInfo([], undefined);
 		this.restoreSnapshotInModifiedModel(this.initialContent);
-		this.initializeModelsFromDiff();
+		this.initializeModelsFromDiff().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	public restoreModifiedModelFromSnapshot(snapshot: string) {
