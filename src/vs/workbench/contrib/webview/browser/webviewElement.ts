@@ -280,7 +280,7 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 					y: elementBox.y + data.clientY
 				})
 			});
-			this._send('set-context-menu-visible', { visible: true });
+			this._send('set-context-menu-visible', { visible: true }).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this._register(this.on('load-resource', async (entry) => {
@@ -310,14 +310,14 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 		this._register(Event.runAndSubscribe(webviewThemeDataProvider.onThemeDataChanged, () => this.style()));
 		this._register(_accessibilityService.onDidChangeReducedMotion(() => this.style()));
 		this._register(_accessibilityService.onDidChangeScreenReaderOptimized(() => this.style()));
-		this._register(contextMenuService.onDidHideContextMenu(() => this._send('set-context-menu-visible', { visible: false })));
+		this._register(contextMenuService.onDidHideContextMenu(() => this._send('set-context-menu-visible', { visible: false }).catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this._confirmBeforeClose = configurationService.getValue<string>('window.confirmBeforeClose');
 
 		this._register(configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration('window.confirmBeforeClose')) {
 				this._confirmBeforeClose = configurationService.getValue('window.confirmBeforeClose');
-				this._send('set-confirm-before-close', this._confirmBeforeClose);
+				this._send('set-confirm-before-close', this._confirmBeforeClose).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -642,7 +642,7 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 
 	public setTitle(title: string) {
 		this._content = { ...this._content, title };
-		this._send('set-title', title);
+		this._send('set-title', title).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	public set contentOptions(options: WebviewContentOptions) {
@@ -668,7 +668,7 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 	}
 
 	public set initialScrollProgress(value: number) {
-		this._send('initial-scroll-position', value);
+		this._send('initial-scroll-position', value).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private doUpdateContent(newContent: WebviewContent) {
@@ -788,7 +788,7 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 
 	private execCommand(command: string) {
 		if (this.element) {
-			this._send('execCommand', command);
+			this._send('execCommand', command).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -1013,14 +1013,14 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 			return;
 		}
 
-		this._send('find', { value, previous });
+		this._send('find', { value, previous }).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	public updateFind(value: string) {
 		if (!value || !this.element) {
 			return;
 		}
-		this._send('find', { value });
+		this._send('find', { value }).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	public stopFind(keepSelection?: boolean): void {
