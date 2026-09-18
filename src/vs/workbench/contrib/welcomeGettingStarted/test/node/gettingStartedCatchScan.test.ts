@@ -55,7 +55,7 @@ suite('GettingStarted leftover fire-and-forget catch scan (D664)', () => {
 		assert.ok(!source.includes(`${refreshThen};`));
 		assert.ok(!source.includes(`${buildThen}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${refreshThen}.catch(onUnexpectedError);`));
-		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 7);
-		assert.strictEqual((source.match(/\.catch\(/g) ?? []).length, 14);
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 15);
+		assert.strictEqual((source.match(/\.catch\(/g) ?? []).length, 30);
 	});
 });
