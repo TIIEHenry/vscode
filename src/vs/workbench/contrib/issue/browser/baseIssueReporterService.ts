@@ -11,7 +11,7 @@ import { VSBuffer } from '../../../../base/common/buffer.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { groupBy } from '../../../../base/common/collections.js';
 import { debounce } from '../../../../base/common/decorators.js';
-import { CancellationError } from '../../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { isLinuxSnap, isMacintosh } from '../../../../base/common/platform.js';
@@ -204,7 +204,7 @@ export class BaseIssueReporterService extends Disposable {
 
 		// Handle case where extension is pre-selected through the command
 		if ((data.data || data.uri) && targetExtension) {
-			this.updateExtensionStatus(targetExtension);
+			this.updateExtensionStatus(targetExtension).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		// initialize the reporting button(s)
@@ -567,7 +567,7 @@ export class BaseIssueReporterService extends Disposable {
 						}
 						if (this.selectedExtension === selectedExtensionId) {
 							// repopulates the fields with the new data given the selected extension.
-							this.updateExtensionStatus(matches[0]);
+							this.updateExtensionStatus(matches[0]).catch(onUnexpectedError).catch(onUnexpectedError);
 							this.openReporter = false;
 						}
 					} else {
@@ -575,7 +575,7 @@ export class BaseIssueReporterService extends Disposable {
 						this.clearSearchResults();
 						this.clearExtensionData();
 						this.validateSelectedExtension();
-						this.updateExtensionStatus(matches[0]);
+						this.updateExtensionStatus(matches[0]).catch(onUnexpectedError).catch(onUnexpectedError);
 					}
 				}
 
@@ -759,7 +759,7 @@ export class BaseIssueReporterService extends Disposable {
 					this.setSubmittingState(true);
 					try {
 						if (await this.createIssue()) {
-							this.close();
+							this.close().catch(onUnexpectedError).catch(onUnexpectedError);
 						}
 					} finally {
 						this.setSubmittingState(false);
@@ -779,7 +779,7 @@ export class BaseIssueReporterService extends Disposable {
 					// fire and forget
 					this.issueFormService.showConfirmCloseDialog();
 				} else {
-					this.close();
+					this.close().catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 
@@ -1281,7 +1281,7 @@ export class BaseIssueReporterService extends Disposable {
 		}
 		const result = await response.json();
 		await this.openLink(result.html_url);
-		this.close();
+		this.close().catch(onUnexpectedError).catch(onUnexpectedError);
 		return true;
 	}
 
