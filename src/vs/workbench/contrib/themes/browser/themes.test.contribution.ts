@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { URI } from '../../../../base/common/uri.js';
 import type * as Parser from '@vscode/tree-sitter-wasm';
 import { ILanguageService } from '../../../../editor/common/languages/language.js';
@@ -420,7 +421,7 @@ async function captureTokens(accessor: ServicesAccessor, resource: URI | undefin
 		if (file) {
 			process(file).then(result => {
 				console.log(result);
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			console.log('No file editor active');
 		}
