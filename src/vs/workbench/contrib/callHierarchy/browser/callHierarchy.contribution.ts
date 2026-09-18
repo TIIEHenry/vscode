@@ -25,7 +25,7 @@ import { IPosition } from '../../../../editor/common/core/position.js';
 import { MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
-import { isCancellationError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 
 const _ctxHasCallHierarchyProvider = new RawContextKey<boolean>('editorHasCallHierarchyProvider', false, localize('editorHasCallHierarchyProvider', 'Whether a call hierarchy provider is available'));
 const _ctxCallHierarchyVisible = new RawContextKey<boolean>('callHierarchyVisible', false, localize('callHierarchyVisible', 'Whether call hierarchy peek is currently showing'));
@@ -141,7 +141,7 @@ class CallHierarchyController implements IEditorContribution {
 			}
 			if (model) {
 				this._sessionDisposables.add(model);
-				this._widget!.showModel(model);
+				void this._widget!.showModel(model).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 			else {
 				this._widget!.showMessage(localize('no.item', "No results"));
@@ -156,12 +156,12 @@ class CallHierarchyController implements IEditorContribution {
 	}
 
 	showOutgoingCalls(): void {
-		this._widget?.updateDirection(CallHierarchyDirection.CallsFrom);
+		void this._widget?.updateDirection(CallHierarchyDirection.CallsFrom)?.catch(onUnexpectedError).catch(onUnexpectedError);
 		this._ctxDirection.set(CallHierarchyDirection.CallsFrom);
 	}
 
 	showIncomingCalls(): void {
-		this._widget?.updateDirection(CallHierarchyDirection.CallsTo);
+		void this._widget?.updateDirection(CallHierarchyDirection.CallsTo)?.catch(onUnexpectedError).catch(onUnexpectedError);
 		this._ctxDirection.set(CallHierarchyDirection.CallsTo);
 	}
 
