@@ -171,7 +171,7 @@ export class IssueReporter extends BaseIssueReporterService {
 		}
 		const result = await response.json();
 		await this.openerService.open(result.html_url, { openExternal: true });
-		this.close();
+		this.close().catch(onUnexpectedError).catch(onUnexpectedError);
 		return true;
 	}
 
