@@ -11,7 +11,6 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const ERRORS_REL = 'src/vs/base/common/errors.ts';
-const ASYNC_REL = 'src/vs/base/common/async.ts';
 const OPENER_REL = 'src/vs/platform/opener/common/opener.ts';
 const EXTENSIONS_IFACE_REL = 'src/vs/workbench/contrib/extensions/common/extensions.ts';
 const WORKBENCH_SVC_REL = 'src/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.ts';
@@ -20,8 +19,6 @@ const WIDGETS_REL = 'src/vs/workbench/contrib/extensions/browser/extensionsWidge
 const CONTRIB_REL = 'src/vs/workbench/contrib/extensions/browser/extensions.contribution.ts';
 const ACTIONS_REL = 'src/vs/workbench/contrib/extensions/browser/extensionsActions.ts';
 const EDITOR_REL = 'src/vs/workbench/contrib/extensions/browser/extensionEditor.ts';
-const VIEWS_IFACE_REL = 'src/vs/workbench/services/views/common/viewsService.ts';
-const EXPLORER_REL = 'src/vs/workbench/contrib/files/browser/explorerService.ts';
 const VIEWS_DESC_REL = 'src/vs/workbench/services/views/browser/viewDescriptorService.ts';
 const VIEWS_SVC_REL = 'src/vs/workbench/services/views/browser/viewsService.ts';
 const UNTITLED_MODEL_REL = 'src/vs/workbench/services/untitled/common/untitledTextEditorModel.ts';
