@@ -10,6 +10,7 @@ import { EditorInput } from '../../../common/editor/editorInput.js';
 import { IFilesConfiguration as PlatformIFilesConfiguration, FileChangeType, IFileService } from '../../../../platform/files/common/files.js';
 import { ContextKeyExpr, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
 import { ITextModelContentProvider } from '../../../../editor/common/services/resolverService.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { ITextModel } from '../../../../editor/common/model.js';
 import { IModelService } from '../../../../editor/common/services/model.js';
@@ -199,7 +200,7 @@ export class TextFileContentProvider extends Disposable implements ITextModelCon
 			this.fileWatcherDisposable.value = disposables;
 			disposables.add(this.fileService.onDidFilesChange(changes => {
 				if (changes.contains(savedFileResource, FileChangeType.UPDATED)) {
-					this.resolveEditorModel(resource, false /* do not create if missing */); // update model when resource changes
+					this.resolveEditorModel(resource, false /* do not create if missing */).catch(onUnexpectedError).catch(onUnexpectedError); // update model when resource changes
 				}
 			}));
 
