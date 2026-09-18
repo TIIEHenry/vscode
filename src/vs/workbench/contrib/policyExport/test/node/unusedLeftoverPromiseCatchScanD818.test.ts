@@ -12,7 +12,6 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const ERRORS_REL = 'src/vs/base/common/errors.ts';
 const OPENER_REL = 'src/vs/platform/opener/common/opener.ts';
-const ASYNC_REL = 'src/vs/base/common/async.ts';
 const FILES_REL = 'src/vs/platform/files/common/files.ts';
 const PREFERENCES_REL = 'src/vs/workbench/services/preferences/common/preferences.ts';
 const FOLDING_REL = 'src/vs/workbench/contrib/folding/browser/folding.contribution.ts';
