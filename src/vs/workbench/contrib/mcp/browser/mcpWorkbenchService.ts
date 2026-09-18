@@ -912,7 +912,7 @@ export class McpWorkbenchService extends Disposable implements IMcpWorkbenchServ
 					if (galleryServer) {
 						this.rememberGallerySource(galleryServer, registryGeneration);
 						const local = this.local.find(e => e.name === galleryServer.name) ?? this.instantiationService.createInstance(McpWorkbenchServer, e => this.getInstallState(e), e => this.getRuntimeStatus(e), undefined, galleryServer, undefined);
-						this.open(local);
+						this.open(local).catch(onUnexpectedError).catch(onUnexpectedError);
 						return true;
 					}
 					this.logService.info(`MCP server '${name}' not found in gallery, installing as local`);
@@ -921,7 +921,7 @@ export class McpWorkbenchService extends Disposable implements IMcpWorkbenchServ
 				}
 			}
 
-			this.open(this.instantiationService.createInstance(McpWorkbenchServer, e => this.getInstallState(e), e => this.getRuntimeStatus(e), undefined, undefined, { name, config, inputs }));
+			this.open(this.instantiationService.createInstance(McpWorkbenchServer, e => this.getInstallState(e), e => this.getRuntimeStatus(e), undefined, undefined, { name, config, inputs })).catch(onUnexpectedError).catch(onUnexpectedError);
 		} catch (e) {
 			// ignore
 		}
@@ -936,7 +936,7 @@ export class McpWorkbenchService extends Disposable implements IMcpWorkbenchServ
 				return true;
 			}
 			const local = this.local.find(e => e.name === gallery.name) ?? this.instantiationService.createInstance(McpWorkbenchServer, e => this.getInstallState(e), e => this.getRuntimeStatus(e), undefined, gallery, undefined);
-			this.open(local);
+			this.open(local).catch(onUnexpectedError).catch(onUnexpectedError);
 		} catch (e) {
 			// ignore
 			this.logService.error(e);
@@ -954,7 +954,7 @@ export class McpWorkbenchService extends Disposable implements IMcpWorkbenchServ
 			}
 			this.rememberGallerySource(gallery, registryGeneration);
 			const local = this.local.find(e => e.name === gallery.name) ?? this.instantiationService.createInstance(McpWorkbenchServer, e => this.getInstallState(e), e => this.getRuntimeStatus(e), undefined, gallery, undefined);
-			this.open(local);
+			this.open(local).catch(onUnexpectedError).catch(onUnexpectedError);
 		} catch (e) {
 			// ignore
 			this.logService.error(e);
