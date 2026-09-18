@@ -25,6 +25,7 @@ import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { EditorContextKeys } from '../../../../editor/common/editorContextKeys.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 
 const detectLanguageCommandId = 'editor.detectLanguage';
 
@@ -61,7 +62,7 @@ class LanguageDetectionStatusContribution implements IWorkbenchContribution {
 			this._combinedEntry?.dispose();
 			this._combinedEntry = undefined;
 		}
-		this._delayer.trigger(() => this._doUpdate());
+		this._delayer.trigger(() => this._doUpdate().catch(onUnexpectedError).catch(onUnexpectedError));
 	}
 
 	private async _doUpdate(): Promise<void> {

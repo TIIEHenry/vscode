@@ -14,6 +14,7 @@ import { TextModelEditSource } from '../../../../../editor/common/textModelEditS
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IObservableDocument } from './observableWorkspace.js';
 import { iterateObservableChanges, mapObservableDelta } from './utils.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 
 export interface IDocumentWithAnnotatedEdits<TEditData extends IEditData<TEditData> = EditKeySourceData> {
 	readonly value: IObservableWithChange<StringText, { edit: AnnotatedStringEdit<TEditData> }>;
@@ -229,7 +230,7 @@ export class CombineStreamedChanges<TEditData extends (EditKeySourceData | EditS
 
 		this._diffService = this._instantiationService.createInstance(DiffService);
 		this.value = this._value = observableValue(this, _originalDoc.value.get());
-		this._restart();
+		this._restart().catch(onUnexpectedError).catch(onUnexpectedError);
 
 	}
 
