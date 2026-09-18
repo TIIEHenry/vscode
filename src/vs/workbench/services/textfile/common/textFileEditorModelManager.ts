@@ -400,7 +400,7 @@ export class TextFileEditorModelManager extends Disposable implements ITextFileE
 								onUnexpectedError(error); // only log if the model is still around
 							}
 						}
-					})();
+					})().catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 
 				// sync reload: do not return until model reloaded
