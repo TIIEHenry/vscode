@@ -88,7 +88,7 @@ suite('Terminal leftover Promise fire-and-forget catch scan (D748)', () => {
 		}
 		assert.strictEqual((service.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 5);
 		assert.strictEqual((instance.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 7);
-		assert.strictEqual((xterm.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
+		assert.strictEqual((xterm.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 11);
 		assert.strictEqual((mark.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
 		assert.strictEqual((processManager.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
 		assert.strictEqual((env.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 2);

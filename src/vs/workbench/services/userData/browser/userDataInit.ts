@@ -10,6 +10,7 @@ import { LifecyclePhase } from '../../lifecycle/common/lifecycle.js';
 import { isWeb } from '../../../../base/common/platform.js';
 import { IExtensionService } from '../../extensions/common/extensions.js';
 import { mark } from '../../../../base/common/performance.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 
 export interface IUserDataInitializer {
 	requiresInitialization(): Promise<boolean>;
@@ -67,7 +68,7 @@ class InitializeOtherResourcesContribution implements IWorkbenchContribution {
 		@IInstantiationService instantiationService: IInstantiationService,
 		@IExtensionService extensionService: IExtensionService
 	) {
-		extensionService.whenInstalledExtensionsRegistered().then(() => this.initializeOtherResource(userDataInitializeService, instantiationService));
+		extensionService.whenInstalledExtensionsRegistered().then(() => this.initializeOtherResource(userDataInitializeService, instantiationService)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async initializeOtherResource(userDataInitializeService: IUserDataInitializationService, instantiationService: IInstantiationService): Promise<void> {
