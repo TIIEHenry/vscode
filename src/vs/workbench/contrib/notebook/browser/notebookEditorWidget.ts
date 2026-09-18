@@ -359,7 +359,7 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 
 		this._register(notebookKernelService.onDidChangeSelectedNotebooks(e => {
 			if (isEqual(e.notebook, this.viewModel?.uri)) {
-				this._loadKernelPreloads();
+				this._loadKernelPreloads().catch(onUnexpectedError).catch(onUnexpectedError);
 				this._onDidChangeActiveKernel.fire();
 			}
 		}));
@@ -1198,7 +1198,7 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 		this._restoreSelectedKernel(viewState);
 
 		// load preloads for matching kernel
-		this._loadKernelPreloads();
+		this._loadKernelPreloads().catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// clear state
 		this._dndController?.clearGlobalDragState();
@@ -1331,7 +1331,7 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 					focus: { start: focusCellIndex, end: focusCellIndex + 1 },
 					selections: options.cellSelections
 				});
-				this.revealInCenterIfOutsideViewport(focusedCell);
+				this.revealInCenterIfOutsideViewport(focusedCell).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 
@@ -1498,7 +1498,7 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 
 		this._localStore.add(this.viewModel.onDidChangeSelection(() => {
 			this._onDidChangeSelection.fire();
-			this.updateSelectedMarkdownPreviews();
+			this.updateSelectedMarkdownPreviews().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this._localStore.add(this._list.onWillScroll(e => {
@@ -2429,7 +2429,7 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 			cell.focusedOutputId = options?.outputId;
 			this._outputFocus.set(true);
 			if (!options?.skipReveal) {
-				this.revealInCenterIfOutsideViewport(cell);
+				this.revealInCenterIfOutsideViewport(cell).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		} else {
 			// focus container

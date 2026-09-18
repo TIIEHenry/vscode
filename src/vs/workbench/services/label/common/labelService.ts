@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize } from '../../../../nls.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IDisposable, Disposable, dispose } from '../../../../base/common/lifecycle.js';
 import { posix, sep, win32 } from '../../../../base/common/path.js';
@@ -165,7 +166,7 @@ export class LabelService extends Disposable implements ILabelService {
 		this.formatters = this.storedFormatters?.formatters?.slice() || [];
 
 		// Remote environment is potentially long running
-		this.resolveRemoteEnvironment();
+		this.resolveRemoteEnvironment().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async resolveRemoteEnvironment(): Promise<void> {

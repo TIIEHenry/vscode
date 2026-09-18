@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize } from '../../../../nls.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import Severity from '../../../../base/common/severity.js';
 import { URI } from '../../../../base/common/uri.js';
 import { ChecksumPair, IIntegrityService, IntegrityTestResult } from '../common/integrity.js';
@@ -76,7 +77,7 @@ export class IntegrityService implements IIntegrityService {
 		this.storage = new IntegrityStorage(storageService);
 		this.isPurePromise = this._isPure();
 
-		this._compute();
+		this._compute().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async _compute(): Promise<void> {

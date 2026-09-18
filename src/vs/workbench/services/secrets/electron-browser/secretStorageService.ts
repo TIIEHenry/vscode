@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { createSingleCallFunction } from '../../../../base/common/functional.js';
 import { isLinux } from '../../../../base/common/platform.js';
 import Severity from '../../../../base/common/severity.js';
@@ -47,7 +48,7 @@ export class NativeSecretStorageService extends BaseSecretStorageService {
 				await this.notifyOfNoEncryptionOnce();
 			}
 
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		return super.set(key, value);
 	}

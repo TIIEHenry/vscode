@@ -186,7 +186,7 @@ suite('Notebook leftover Promise fire-and-forget catch scan (D758)', () => {
 		assertPromiseSignature(browser, 'hideMarkupPreviews(cells: readonly ICellViewModel[]): Promise<void>;');
 		assertPromiseSignature(browser, 'layoutNotebookCell(cell: ICellViewModel, height: number): Promise<void>;');
 		assertPromiseSignature(widget, 'async deleteMarkupPreviews(cells: readonly MarkupCellViewModel[]) {');
-		assert.strictEqual(countDoubleChains(widget), 7);
+		assert.strictEqual(countDoubleChains(widget), 12);
 		assert.strictEqual(countDoubleChains(output), 2);
 		assert.strictEqual(countDoubleChains(viewport), 1);
 		assert.ok(markup.includes("import { onUnexpectedError } from '../../../../../../base/common/errors.js';"));
