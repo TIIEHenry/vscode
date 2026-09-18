@@ -10,6 +10,7 @@ import type { IBufferLine, IMarker, ITerminalOptions, ITheme, Terminal as RawXte
 import { $, addDisposableListener, addStandardDisposableListener, getWindow } from '../../../../../base/browser/dom.js';
 import { debounce, throttle } from '../../../../../base/common/decorators.js';
 import { Event } from '../../../../../base/common/event.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Disposable, MutableDisposable, combinedDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { removeAnsiEscapeCodes } from '../../../../../base/common/strings.js';
 import './media/stickyScroll.css';
@@ -142,8 +143,8 @@ export class TerminalStickyScrollOverlay extends Disposable {
 				this._xterm.raw.loadAddon(this._serializeAddon);
 				// Trigger a render as the serialize addon is required to render
 				this._refresh();
-			});
-		});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	lockHide() {
@@ -437,7 +438,7 @@ export class TerminalStickyScrollOverlay extends Disposable {
 			}
 			this._ligaturesAddon = new LigaturesAddon();
 			this._stickyScrollOverlay.loadAddon(this._ligaturesAddon);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Scroll to the command on click
 		this._register(addStandardDisposableListener(hoverOverlay, 'click', () => {

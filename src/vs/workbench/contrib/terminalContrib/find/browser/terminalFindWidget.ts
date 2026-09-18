@@ -12,6 +12,7 @@ import { TerminalContextKeys } from '../../../terminal/common/terminalContextKey
 import { IThemeService } from '../../../../../platform/theme/common/themeService.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { IKeybindingService } from '../../../../../platform/keybinding/common/keybinding.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import type { ISearchOptions } from '@xterm/addon-search';
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
@@ -130,9 +131,9 @@ export class TerminalFindWidget extends SimpleFindWidget {
 			return;
 		}
 		if (previous) {
-			this._findPreviousWithEvent(xterm, this.inputValue, { regex: this._getRegexValue(), wholeWord: this._getWholeWordValue(), caseSensitive: this._getCaseSensitiveValue(), incremental: update });
+			this._findPreviousWithEvent(xterm, this.inputValue, { regex: this._getRegexValue(), wholeWord: this._getWholeWordValue(), caseSensitive: this._getCaseSensitiveValue(), incremental: update }).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
-			this._findNextWithEvent(xterm, this.inputValue, { regex: this._getRegexValue(), wholeWord: this._getWholeWordValue(), caseSensitive: this._getCaseSensitiveValue() });
+			this._findNextWithEvent(xterm, this.inputValue, { regex: this._getRegexValue(), wholeWord: this._getWholeWordValue(), caseSensitive: this._getCaseSensitiveValue() }).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -145,7 +146,7 @@ export class TerminalFindWidget extends SimpleFindWidget {
 			this._findPreviousWithEvent(xterm, inputValue, { incremental: true, regex: this._getRegexValue(), wholeWord: this._getWholeWordValue(), caseSensitive: this._getCaseSensitiveValue() }).then(foundMatch => {
 				this.updateButtons(foundMatch);
 				this._register(Event.once(xterm.onDidChangeSelection)(() => xterm.clearActiveSearchDecoration()));
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 		this.updateButtons(false);
 
@@ -177,7 +178,7 @@ export class TerminalFindWidget extends SimpleFindWidget {
 		if (xterm) {
 			this._findPreviousWithEvent(xterm, this.inputValue, { regex: this._getRegexValue(), wholeWord: this._getWholeWordValue(), caseSensitive: this._getCaseSensitiveValue(), incremental: true }).then(foundMatch => {
 				this.updateButtons(foundMatch);
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 		return false;
 	}
@@ -209,7 +210,7 @@ export class TerminalFindWidget extends SimpleFindWidget {
 		}
 		const xterm = instance.xterm;
 		if (xterm) {
-			this._findPreviousWithEvent(xterm, this.inputValue, { regex: this._getRegexValue(), wholeWord: this._getWholeWordValue(), caseSensitive: this._getCaseSensitiveValue() });
+			this._findPreviousWithEvent(xterm, this.inputValue, { regex: this._getRegexValue(), wholeWord: this._getWholeWordValue(), caseSensitive: this._getCaseSensitiveValue() }).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
