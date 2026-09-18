@@ -157,7 +157,7 @@ suite('leftover remaining unused terminal leftover remaining unused after D748 l
 		assertPromiseSignature(profile, 'protected async _refreshAvailableProfilesNow(): Promise<void> {');
 		assertPromiseSignature(tabs, 'private async _handleExternalDrop(instance: ITerminalInstance | undefined, e: DragEvent) {');
 		let sites = 0;
-		for (const [, call, count] of d862Calls) {
+		for (const [, , count] of d862Calls) {
 			sites += count;
 		}
 		assert.ok(sites >= 4, `expected leftover remaining unused terminal legal leftover >=4, got ${sites}`);
