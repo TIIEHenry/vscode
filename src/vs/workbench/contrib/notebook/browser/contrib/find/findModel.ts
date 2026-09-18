@@ -90,7 +90,7 @@ export class FindModel extends Disposable {
 			this._updateCellStates(e);
 
 			if (e.searchString || e.isRegex || e.matchCase || e.searchScope || e.wholeWord || (e.isRevealed && this._state.isRevealed) || e.filters || e.isReplaceRevealed) {
-				this.research();
+				this.research().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 
 			if (e.isRevealed && !this._state.isRevealed) {
@@ -105,7 +105,7 @@ export class FindModel extends Disposable {
 		this._register(this._notebookEditor.onDidChangeCellState(e => {
 			if (e.cell.cellKind === CellKind.Markup && e.source.editStateChanged) {
 				// research when markdown cell is switching between markdown preview and editing mode.
-				this.research();
+				this.research().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -306,11 +306,11 @@ export class FindModel extends Disposable {
 					return;
 				}
 
-				this.research();
+				this.research().catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 		}
 
-		this.research();
+		this.research().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	async research() {
