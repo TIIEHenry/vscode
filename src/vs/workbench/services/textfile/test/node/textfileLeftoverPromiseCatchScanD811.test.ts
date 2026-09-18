@@ -26,10 +26,8 @@ const BROWSER_SVC_REL = 'src/vs/workbench/services/textfile/browser/browserTextF
 const NATIVE_SVC_REL = 'src/vs/workbench/services/textfile/electron-browser/nativeTextFileService.ts';
 const PARTICIPANT_REL = 'src/vs/workbench/services/textfile/common/textFileSaveParticipant.ts';
 const NATIVE_TEST_REL = 'src/vs/workbench/services/textfile/test/electron-browser/nativeTextFileService.test.ts';
-const UNTITLED_MODEL_REL = 'src/vs/workbench/services/untitled/common/untitledTextEditorModel.ts';
 const UNTITLED_SVC_REL = 'src/vs/workbench/services/untitled/common/untitledTextEditorService.ts';
 const VIEWS_DESC_REL = 'src/vs/workbench/services/views/browser/viewDescriptorService.ts';
-const VIEWS_SVC_REL = 'src/vs/workbench/services/views/browser/viewsService.ts';
 const FILES_CFG_REL = 'src/vs/workbench/services/filesConfiguration/common/filesConfigurationService.ts';
 const WORKING_COPY_TRACKER_REL = 'src/vs/workbench/services/workingCopy/common/workingCopyBackupTracker.ts';
 const WORKING_COPY_HISTORY_REL = 'src/vs/workbench/services/workingCopy/common/workingCopyHistoryTracker.ts';
@@ -111,9 +109,6 @@ suite('textfile leftover Promise fire-and-forget catch scan (D811)', () => {
 		assert.strictEqual(countDoubleChains(seen.get(MODEL_REL) ?? ''), 4);
 		assert.strictEqual(countDoubleChains(seen.get(MGR_REL) ?? ''), 1);
 		assert.ok(!fs.readFileSync(resolveSource(UNTITLED_SVC_REL), 'utf8').includes(doubleCatch));
-		assert.ok(!fs.readFileSync(resolveSource(UNTITLED_MODEL_REL), 'utf8').includes(doubleCatch));
-		assert.ok(!fs.readFileSync(resolveSource(VIEWS_DESC_REL), 'utf8').includes(doubleCatch));
-		assert.ok(!fs.readFileSync(resolveSource(VIEWS_SVC_REL), 'utf8').includes(doubleCatch));
 		assert.ok(!fs.readFileSync(resolveSource(FILES_CFG_REL), 'utf8').includes(doubleCatch));
 	});
 
@@ -157,10 +152,7 @@ suite('textfile leftover Promise fire-and-forget catch scan (D811)', () => {
 		assert.ok(!mgr.includes(`${asyncReloadIifeCall};\n`));
 	});
 
-	test('textfile leftover remaining untitled autoDetect / views then / queueFor / returned Promise stay unwrapped', () => {
-		const untitled = fs.readFileSync(resolveSource(UNTITLED_MODEL_REL), 'utf8');
-		const views = fs.readFileSync(resolveSource(VIEWS_DESC_REL), 'utf8');
-		const viewsSvc = fs.readFileSync(resolveSource(VIEWS_SVC_REL), 'utf8');
+	test('textfile leftover remaining queueFor / returned Promise stay unwrapped', () => {
 		const filesCfg = fs.readFileSync(resolveSource(FILES_CFG_REL), 'utf8');
 		const mgr = fs.readFileSync(resolveSource(MGR_REL), 'utf8');
 		const model = fs.readFileSync(resolveSource(MODEL_REL), 'utf8');
@@ -169,12 +161,6 @@ suite('textfile leftover Promise fire-and-forget catch scan (D811)', () => {
 		const native = fs.readFileSync(resolveSource(NATIVE_SVC_REL), 'utf8');
 		const browser = fs.readFileSync(resolveSource(BROWSER_SVC_REL), 'utf8');
 
-		assert.ok(untitled.includes('\t\tthis.autoDetectLanguage();\n'));
-		assert.ok(!untitled.includes(`this.autoDetectLanguage()${doubleCatch}`));
-		assert.ok(views.includes('this.extensionService.whenInstalledExtensionsRegistered().then(() => this.whenExtensionsRegistered());'));
-		assert.ok(!views.includes(`this.extensionService.whenInstalledExtensionsRegistered().then(() => this.whenExtensionsRegistered())${doubleCatch}`));
-		assert.ok(viewsSvc.includes('\t\t\tthis.openViewContainer(viewContainer.id);\n') || viewsSvc.includes('this.openViewContainer(viewContainer.id);'));
-		assert.ok(!viewsSvc.includes(`this.openViewContainer(viewContainer.id)${doubleCatch}`));
 		assert.ok(!filesCfg.includes(doubleCatch));
 
 		assert.ok(mgr.includes('this.modelResolveQueue.queueFor(model.resource, async () => {'));

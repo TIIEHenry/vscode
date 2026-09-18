@@ -25,6 +25,7 @@ import { Lazy } from '../../../../base/common/lazy.js';
 import { IViewsService } from '../common/viewsService.js';
 import { windowLogGroup } from '../../log/common/logConstants.js';
 import { IWorkbenchEnvironmentService } from '../../environment/common/environmentService.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 
 interface IViewsCustomizations {
 	viewContainerLocations: IStringDictionary<ViewContainerLocation>;
@@ -125,7 +126,7 @@ export class ViewDescriptorService extends Disposable implements IViewDescriptor
 
 		this._register(this.storageService.onDidChangeValue(StorageScope.PROFILE, ViewDescriptorService.VIEWS_CUSTOMIZATIONS, this._store)(() => this.onDidStorageChange()));
 
-		this.extensionService.whenInstalledExtensionsRegistered().then(() => this.whenExtensionsRegistered());
+		this.extensionService.whenInstalledExtensionsRegistered().then(() => this.whenExtensionsRegistered()).catch(onUnexpectedError).catch(onUnexpectedError);
 
 	}
 
@@ -917,7 +918,7 @@ export class ViewDescriptorService extends Disposable implements IViewDescriptor
 			}
 			run(accessor: ServicesAccessor) {
 				that.moveViewContainerToLocation(viewContainer, that.getDefaultViewContainerLocation(viewContainer), undefined, this.desc.id);
-				accessor.get(IViewsService).openViewContainer(viewContainer.id, true);
+				accessor.get(IViewsService).openViewContainer(viewContainer.id, true).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		});
 	}
