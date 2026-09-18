@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Event } from '../../../../../../base/common/event.js';
 import { Disposable, IDisposable } from '../../../../../../base/common/lifecycle.js';
 import { autorun } from '../../../../../../base/common/observable.js';
@@ -85,15 +86,15 @@ export class NotebookInlineDiffDecorationContribution extends Disposable impleme
 		this.insertedCellDecorator = this.instantiationService.createInstance(NotebookInsertedCellDecorator, this.notebookEditor);
 		this.deletedCellDecorator = this.instantiationService.createInstance(NotebookDeletedCellDecorator, this.notebookEditor, undefined);
 
-		this._update();
+		this._update().catch(onUnexpectedError).catch(onUnexpectedError);
 		const onVisibleChange = Event.debounce(this.notebookEditor.onDidChangeVisibleRanges, (e) => e, 100, undefined, undefined, undefined, this._store);
-		this.listeners.push(onVisibleChange(() => this._update()));
-		this.listeners.push(this.notebookEditor.onDidChangeModel(() => this._update()));
+		this.listeners.push(onVisibleChange(() => this._update().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.listeners.push(this.notebookEditor.onDidChangeModel(() => this._update().catch(onUnexpectedError).catch(onUnexpectedError)));
 		if (this.notebookEditor.textModel) {
 			const onContentChange = Event.debounce(this.notebookEditor.textModel!.onDidChangeContent, (_, event) => event, 100, undefined, undefined, undefined, this._store);
 			const onOriginalContentChange = Event.debounce(this.previous.onDidChangeContent, (_, event) => event, 100, undefined, undefined, undefined, this._store);
-			this.listeners.push(onContentChange(() => this._update()));
-			this.listeners.push(onOriginalContentChange(() => this._update()));
+			this.listeners.push(onContentChange(() => this._update().catch(onUnexpectedError).catch(onUnexpectedError)));
+			this.listeners.push(onOriginalContentChange(() => this._update().catch(onUnexpectedError).catch(onUnexpectedError)));
 		}
 		this.logService.debug('inlineDiff', 'Initialized');
 	}

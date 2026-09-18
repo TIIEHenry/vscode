@@ -17,6 +17,7 @@ import { ILanguageService } from '../../../../../editor/common/languages/languag
 import { NotebookCellOutputTextModel } from './notebookCellOutputTextModel.js';
 import { CellInternalMetadataChangedEvent, CellKind, ICell, ICellDto2, ICellOutput, IOutputItemDto, NotebookCellCollapseState, NotebookCellDefaultCollapseConfig, NotebookCellInternalMetadata, NotebookCellMetadata, NotebookCellOutputsSplice, TransientCellMetadata, TransientOptions } from '../notebookCommon.js';
 import { ThrottledDelayer } from '../../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { ILanguageDetectionService } from '../../../../services/languageDetection/common/languageDetectionWorkerService.js';
 import { toFormattedString } from '../../../../../base/common/jsonFormatter.js';
 import { IModelContentChangedEvent } from '../../../../../editor/common/textModelEvents.js';
@@ -124,7 +125,7 @@ export class NotebookCellTextModel extends Disposable implements ICell {
 			if (!this._textModel) {
 				this._onDidChangeContent.fire('content');
 			}
-			this.autoDetectLanguage();
+			this.autoDetectLanguage().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		return this._textBuffer;
@@ -223,7 +224,7 @@ export class NotebookCellTextModel extends Disposable implements ICell {
 
 	enableAutoLanguageDetection() {
 		this._autoLanguageDetectionEnabled = true;
-		this.autoDetectLanguage();
+		this.autoDetectLanguage().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	async autoDetectLanguage(): Promise<void> {
