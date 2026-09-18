@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable, DisposableMap, IDisposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -132,7 +133,7 @@ export class TimelineService extends Disposable implements ITimelineService {
 	}
 
 	setUri(uri: URI) {
-		this.viewsService.openView(TimelinePaneId, true);
+		this.viewsService.openView(TimelinePaneId, true).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._onDidChangeUri.fire(uri);
 	}
 
