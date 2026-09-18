@@ -50,7 +50,7 @@ const REPL_NOTEBOOK_REL = 'src/vs/workbench/contrib/replNotebook/browser/replEdi
 const INTERACTIVE_REL = 'src/vs/workbench/contrib/interactive/browser/interactiveEditor.ts';
 const ACCESSIBILITY_REL = 'src/vs/workbench/contrib/accessibility/browser/accessibilityStatus.ts';
 const INLINE_CHAT_REL = 'src/vs/workbench/contrib/inlineChat/browser/inlineChatController.ts';
-const MERGE_EDITOR_REL = 'src/vs/workbench/contrib/mergeEditor/browser/view/view.ts';
+const MERGE_EDITOR_REL = 'src/vs/workbench/contrib/mergeEditor/browser/view/mergeEditor.ts';
 
 function resolveSource(rel: string): string {
 	const candidates = [

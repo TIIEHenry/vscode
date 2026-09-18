@@ -210,7 +210,10 @@ suite('issue leftover Promise fire-and-forget catch scan (D773)', () => {
 
 		assert.ok(base.includes('fetch(`https://api.github.com/search/issues?q=${query}`).then((response) => {'));
 		assert.ok(base.includes('}).catch(_ => {'));
-		assert.ok(!base.includes(doubleCatch));
+		assert.ok(base.includes('this.updateExtensionStatus(targetExtension).catch(onUnexpectedError).catch(onUnexpectedError)'));
+		assert.ok(base.includes('this.updateExtensionStatus(matches[0]).catch(onUnexpectedError).catch(onUnexpectedError)'));
+		assert.ok(base.includes('this.close().catch(onUnexpectedError).catch(onUnexpectedError)'));
+		assert.strictEqual((base.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 6);
 
 		assert.ok(pane.includes('this.inputDisposables.add(this.recordingService.onDidChangeState(async (state) => {'));
 		assert.ok(!pane.includes(`onDidChangeState(async (state) => {${doubleCatch}`));
