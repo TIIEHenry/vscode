@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationToken } from '../../../../base/common/cancellation.js';
-import { CancellationError } from '../../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { equals } from '../../../../base/common/objects.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -46,8 +46,8 @@ export class UserDataProfileManagementService extends Disposable implements IUse
 		this._register(userDataProfilesService.onDidChangeProfiles(e => {
 			if (e.removed.some(profile => profile.id === this.userDataProfileService.currentProfile.id)) {
 				const profileToUse = this.getProfileToUseForCurrentWorkspace();
-				this.switchProfile(profileToUse);
-				this.changeCurrentProfile(profileToUse, localize('reload message when removed', "The current profile has been removed. Please reload to switch back to default profile"));
+				this.switchProfile(profileToUse).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.changeCurrentProfile(profileToUse, localize('reload message when removed', "The current profile has been removed. Please reload to switch back to default profile")).catch(onUnexpectedError).catch(onUnexpectedError);
 				return;
 			}
 
@@ -55,10 +55,10 @@ export class UserDataProfileManagementService extends Disposable implements IUse
 			if (updatedCurrentProfile) {
 				const profileToUse = this.getProfileToUseForCurrentWorkspace();
 				if (profileToUse?.id !== updatedCurrentProfile.id) {
-					this.switchProfile(profileToUse);
-					this.changeCurrentProfile(profileToUse, localize('reload message when switched', "The current workspace has been removed from the current profile. Please reload to switch back to the updated profile"));
+					this.switchProfile(profileToUse).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.changeCurrentProfile(profileToUse, localize('reload message when switched', "The current workspace has been removed from the current profile. Please reload to switch back to the updated profile")).catch(onUnexpectedError).catch(onUnexpectedError);
 				} else {
-					this.changeCurrentProfile(updatedCurrentProfile, localize('reload message when updated', "The current profile has been updated. Please reload to switch back to the updated profile"));
+					this.changeCurrentProfile(updatedCurrentProfile, localize('reload message when updated', "The current profile has been updated. Please reload to switch back to the updated profile")).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 		}));
