@@ -25,6 +25,7 @@ import { stripIcons } from '../../../../base/common/iconLabels.js';
 import { IUserActivityService } from '../../userActivity/common/userActivityService.js';
 import { createWorkbenchDialogOptions } from '../../../browser/parts/dialogs/dialog.js';
 import { IHostService } from '../../host/browser/host.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 
 export class ProgressService extends Disposable implements IProgressService {
 
@@ -587,7 +588,7 @@ export class ProgressService extends Disposable implements IProgressService {
 					onDidCancel?.(dialogResult.button);
 				}
 				dispose(dialog);
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 			return dialog;
 		};

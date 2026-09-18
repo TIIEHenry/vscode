@@ -13,6 +13,7 @@ import { IWorkbenchEnvironmentService } from '../../environment/common/environme
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { IRemoteAgentEnvironment } from '../../../../platform/remote/common/remoteAgentEnvironment.js';
 import { IRemoteAgentService } from '../../remote/common/remoteAgentService.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 
 export class TextResourcePropertiesService implements ITextResourcePropertiesService {
 
@@ -26,7 +27,7 @@ export class TextResourcePropertiesService implements ITextResourcePropertiesSer
 		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 		@IStorageService private readonly storageService: IStorageService
 	) {
-		remoteAgentService.getEnvironment().then(remoteEnv => this.remoteEnvironment = remoteEnv);
+		remoteAgentService.getEnvironment().then(remoteEnv => this.remoteEnvironment = remoteEnv).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	getEOL(resource?: URI, language?: string): string {

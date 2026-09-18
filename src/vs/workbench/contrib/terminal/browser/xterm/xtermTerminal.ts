@@ -303,7 +303,7 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 					this.updateConfig();
 				}
 				if (e.affectsConfiguration(TerminalSettingId.UnicodeVersion)) {
-					this._updateUnicodeVersion();
+					this._updateUnicodeVersion().catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 				if (e.affectsConfiguration(TerminalSettingId.ShellIntegrationDecorationsEnabled)) {
 					this._updateTheme();
@@ -324,7 +324,7 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 		this._register(this.raw.onData(e => this._lastInputEvent = e));
 
 		// Load addons
-		this._updateUnicodeVersion();
+		this._updateUnicodeVersion().catch(onUnexpectedError).catch(onUnexpectedError);
 		this._markNavigationAddon = this._instantiationService.createInstance(MarkNavigationAddon, options.capabilities);
 		this.raw.loadAddon(this._markNavigationAddon);
 		this._decorationAddon = this._instantiationService.createInstance(DecorationAddon, resource, this._capabilities);
@@ -511,7 +511,7 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 		// TODO: Move before open so the DOM renderer doesn't initialize
 		if (options.enableGpu) {
 			if (this._shouldLoadWebgl()) {
-				this._enableWebglRenderer();
+				this._enableWebglRenderer().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 
@@ -537,7 +537,7 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 			}
 		}, { passive: true }));
 
-		this._refreshLigaturesAddon();
+		this._refreshLigaturesAddon().catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this._attached = { container, options };
 		// Screen must be created at this point as xterm.open is called
@@ -623,12 +623,12 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 		if (this._attached) {
 			if (this._attached.options.enableGpu) {
 				if (this._shouldLoadWebgl()) {
-					this._enableWebglRenderer();
+					this._enableWebglRenderer().catch(onUnexpectedError).catch(onUnexpectedError);
 				} else {
 					this._disposeOfWebglRenderer();
 				}
 			}
-			this._refreshLigaturesAddon();
+			this._refreshLigaturesAddon().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -945,7 +945,7 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 				this._logService.info(`Webgl lost context, disposing of webgl renderer`);
 				this._disposeOfWebglRenderer();
 			});
-			this._refreshImageAddon();
+			this._refreshImageAddon().catch(onUnexpectedError).catch(onUnexpectedError);
 			// WebGL renderer cell dimensions differ from the DOM renderer, make sure the terminal
 			// gets resized after the webgl addon is loaded
 			this._onDidRequestRefreshDimensions.fire();
@@ -1055,7 +1055,7 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 			// ignore
 		}
 		this._webglAddon = undefined;
-		this._refreshImageAddon();
+		this._refreshImageAddon().catch(onUnexpectedError).catch(onUnexpectedError);
 		// WebGL renderer cell dimensions differ from the DOM renderer, make sure the terminal
 		// gets resized after the webgl addon is disposed
 		this._onDidRequestRefreshDimensions.fire();
@@ -1152,7 +1152,7 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 		this._updateTheme();
 		this._decorationAddon.refreshLayouts();
 		if (this._webglAddon || this._webglAddonLoading) {
-			this._enableWebglRenderer();
+			this._enableWebglRenderer().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
