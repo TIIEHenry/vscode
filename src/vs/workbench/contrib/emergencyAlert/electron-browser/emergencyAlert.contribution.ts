@@ -14,6 +14,7 @@ import { arch, platform } from '../../../../base/common/process.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { equals } from '../../../../base/common/arrays.js';
 import { IntervalTimer } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { mainWindow } from '../../../../base/browser/window.js';
 
 interface IEmergencyAlert {
@@ -54,10 +55,10 @@ export class EmergencyAlert extends Disposable implements IWorkbenchContribution
 			return; // no emergency alert configured
 		}
 
-		this.fetchAlerts(emergencyAlertUrl);
+		this.fetchAlerts(emergencyAlertUrl).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		const pollingTimer = this._register(new IntervalTimer());
-		pollingTimer.cancelAndSet(() => this.fetchAlerts(emergencyAlertUrl), POLLING_INTERVAL, mainWindow);
+		pollingTimer.cancelAndSet(() => void this.fetchAlerts(emergencyAlertUrl).catch(onUnexpectedError).catch(onUnexpectedError), POLLING_INTERVAL, mainWindow);
 	}
 
 	private async fetchAlerts(url: string): Promise<void> {

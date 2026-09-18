@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { distinct } from '../../../../base/common/arrays.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
@@ -39,7 +40,7 @@ export class ExtensionIgnoredRecommendationsService extends Disposable implement
 		this._globalIgnoredRecommendations = this.getCachedIgnoredRecommendations();
 		this._register(this.storageService.onDidChangeValue(StorageScope.PROFILE, ignoredRecommendationsStorageKey, this._store)(() => this.onDidStorageChange()));
 
-		this.initIgnoredWorkspaceRecommendations();
+		this.initIgnoredWorkspaceRecommendations().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async initIgnoredWorkspaceRecommendations(): Promise<void> {

@@ -63,6 +63,7 @@ import { IWorkspacesService, IRecentFolder, IRecentWorkspace, isRecentFolder, is
 import { IHostService } from '../../../services/host/browser/host.js';
 import { IWorkspaceTrustManagementService } from '../../../../platform/workspace/common/workspaceTrust.js';
 import { IViewDescriptorService, ViewContainerLocation } from '../../../common/views.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { toErrorMessage } from '../../../../base/common/errorMessage.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { canShowAgentsBanner, createAgentsBanner } from '../../chat/browser/agentSessions/agentSessionsBanner.js';
@@ -444,7 +445,7 @@ export class AgentSessionsWelcomePage extends EditorPane {
 				);
 
 				this._closedBy = 'chatSubmission';
-				this.openSessionInChat(chatSessionResource);
+				this.openSessionInChat(chatSessionResource).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -581,7 +582,7 @@ export class AgentSessionsWelcomePage extends EditorPane {
 				const isProjectionEnabled = this.configurationService.getValue<boolean>(ChatConfiguration.AgentSessionProjectionEnabled);
 				if (!isProjectionEnabled) {
 					this._closedBy = 'sessionClicked';
-					this.revealMaximizedChat();
+					this.revealMaximizedChat().catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 		};

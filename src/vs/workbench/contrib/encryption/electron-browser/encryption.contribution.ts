@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { isLinux } from '../../../../base/common/platform.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { parse } from '../../../../base/common/jsonc.js';
 import { IEnvironmentService } from '../../../../platform/environment/common/environment.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
@@ -20,7 +21,7 @@ class EncryptionContribution implements IWorkbenchContribution {
 		@IFileService private readonly fileService: IFileService,
 		@IStorageService private readonly storageService: IStorageService
 	) {
-		this.migrateToGnomeLibsecret();
+		this.migrateToGnomeLibsecret().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	/**

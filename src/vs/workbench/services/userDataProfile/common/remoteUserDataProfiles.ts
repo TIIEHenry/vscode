@@ -15,7 +15,7 @@ import { IUserDataProfileService } from './userDataProfile.js';
 import { distinct } from '../../../../base/common/arrays.js';
 import { IWorkbenchEnvironmentService } from '../../environment/common/environmentService.js';
 import { UserDataProfilesService } from '../../../../platform/userDataProfile/common/userDataProfileIpc.js';
-import { ErrorNoTelemetry } from '../../../../base/common/errors.js';
+import { ErrorNoTelemetry, onUnexpectedError } from '../../../../base/common/errors.js';
 
 const associatedRemoteProfilesKey = 'associatedRemoteProfiles';
 
@@ -66,7 +66,7 @@ class RemoteUserDataProfilesService extends Disposable implements IRemoteUserDat
 			this.setAssociatedRemoteProfiles([...this.getAssociatedRemoteProfiles(), remoteProfile.id]);
 		}
 
-		this.cleanUp();
+		this.cleanUp().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async onDidChangeLocalProfiles(e: DidChangeProfilesEvent): Promise<void> {
