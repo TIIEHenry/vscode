@@ -256,12 +256,9 @@ suite('timeline leftover Promise fire-and-forget catch scan (D804)', () => {
 			assert.ok(!source.includes('D804'));
 		}
 		assert.ok(!serviceContrib.includes(doubleCatch));
-		assert.ok(walkthrough.includes('this.promise.then(model => model.dispose());'));
-		assert.ok(!walkthrough.includes(`this.promise.then(model => model.dispose())${doubleCatch}`));
-		assert.ok(webviewView.includes('this.viewService.openView(this.id, !preserveFocus);'));
-		assert.ok(!webviewView.includes(`openView(this.id, !preserveFocus)${doubleCatch}`));
-		assert.ok(workspacesContrib.includes('this.findWorkspaces();'));
-		assert.ok(!workspacesContrib.includes(`this.findWorkspaces()${doubleCatch}`));
+		assert.ok(walkthrough.includes(`this.promise.then(model => model.dispose())${doubleCatch}`));
+		assert.ok(webviewView.includes(`this.viewService.openView(this.id, !preserveFocus)${doubleCatch}`));
+		assert.ok(workspacesContrib.includes(`this.findWorkspaces()${doubleCatch}`));
 		assert.ok(profile.includes(`${doubleCatch}`));
 		assert.ok(!profile.includes('D804'));
 		assert.ok(terminalContrib.includes(`${doubleCatch}`));
