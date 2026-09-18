@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize } from '../../../../nls.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IWorkspaceEditingService } from '../common/workspaceEditing.js';
 import { URI } from '../../../../base/common/uri.js';
 import { hasWorkspaceFileExtension, isUntitledWorkspace, isWorkspaceIdentifier, IWorkspaceContextService, toWorkspaceIdentifier } from '../../../../platform/workspace/common/workspace.js';
@@ -200,13 +201,13 @@ export class NativeWorkspaceEditingService extends AbstractWorkspaceEditingServi
 
 		// TODO@aeschli: workaround until restarting works
 		if (this.environmentService.remoteAuthority) {
-			this.hostService.reload();
+			this.hostService.reload().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		// Restart the extension host: entering a workspace means a new location for
 		// storage and potentially a change in the workspace.rootPath property.
 		else {
-			this.extensionService.startExtensionHosts();
+			this.extensionService.startExtensionHosts().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 }

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { LinkedList } from '../../../../base/common/linkedList.js';
@@ -179,7 +180,7 @@ export class WorkspaceTrustManagementService extends Disposable implements IWork
 				if (this._storedTrustState.isEmptyWorkspaceTrusted === undefined) {
 					this._storedTrustState.isEmptyWorkspaceTrusted = this.isWorkspaceTrusted();
 				}
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -703,7 +704,7 @@ export class WorkspaceTrustRequestService extends Disposable implements IWorkspa
 	}
 
 	private set untrustedFilesSetting(value: 'prompt' | 'open' | 'newWindow') {
-		this.configurationService.updateValue(WORKSPACE_TRUST_UNTRUSTED_FILES, value);
+		this.configurationService.updateValue(WORKSPACE_TRUST_UNTRUSTED_FILES, value).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	async completeOpenFilesTrustRequest(result: WorkspaceTrustUriResponse, saveResponse?: boolean): Promise<void> {

@@ -5,6 +5,7 @@
 
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { IWorkspacesService, IWorkspaceFolderCreationData, IEnterWorkspaceResult, IRecentlyOpened, restoreRecentlyOpened, IRecent, isRecentFile, isRecentFolder, toStoreData, IStoredWorkspaceFolder, getStoredWorkspaceFolder, IStoredWorkspace, isRecentWorkspace } from '../../../../platform/workspaces/common/workspaces.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { URI } from '../../../../base/common/uri.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
@@ -64,7 +65,7 @@ export class BrowserWorkspacesService extends Disposable implements IWorkspacesS
 		// in the history so that these can later be restored.
 
 		for (const folder of e.added) {
-			this.addRecentlyOpened([{ folderUri: folder.uri }]);
+			this.addRecentlyOpened([{ folderUri: folder.uri }]).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -73,10 +74,10 @@ export class BrowserWorkspacesService extends Disposable implements IWorkspacesS
 		const remoteAuthority = this.environmentService.remoteAuthority;
 		switch (this.contextService.getWorkbenchState()) {
 			case WorkbenchState.FOLDER:
-				this.addRecentlyOpened([{ folderUri: workspace.folders[0].uri, remoteAuthority }]);
+				this.addRecentlyOpened([{ folderUri: workspace.folders[0].uri, remoteAuthority }]).catch(onUnexpectedError).catch(onUnexpectedError);
 				break;
 			case WorkbenchState.WORKSPACE:
-				this.addRecentlyOpened([{ workspace: { id: workspace.id, configPath: workspace.configuration! }, remoteAuthority }]);
+				this.addRecentlyOpened([{ workspace: { id: workspace.id, configPath: workspace.configuration! }, remoteAuthority }]).catch(onUnexpectedError).catch(onUnexpectedError);
 				break;
 		}
 	}

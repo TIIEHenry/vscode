@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IDidEnterWorkspaceEvent, IWorkspaceEditingService } from '../common/workspaceEditing.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
 import { hasWorkspaceFileExtension, IAnyWorkspaceIdentifier, isSavedWorkspace, isUntitledWorkspace, isWorkspaceIdentifier, IWorkspaceContextService, IWorkspaceIdentifier, toWorkspaceIdentifier, WorkbenchState, WORKSPACE_EXTENSION, WORKSPACE_FILTER } from '../../../../platform/workspace/common/workspace.js';
@@ -372,7 +373,7 @@ export abstract class AbstractWorkspaceEditingService extends Disposable impleme
 		this.notificationService.prompt(Severity.Error, message,
 			[{
 				label: localize('openWorkspaceConfigurationFile', "Open Workspace Configuration"),
-				run: () => this.commandService.executeCommand('workbench.action.openWorkspaceConfigFile')
+				run: () => this.commandService.executeCommand('workbench.action.openWorkspaceConfigFile').catch(onUnexpectedError).catch(onUnexpectedError)
 			}]
 		);
 	}
