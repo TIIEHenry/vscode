@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { DisposableMap, IDisposable, DisposableStore, Disposable } from '../../../../base/common/lifecycle.js';
 import { ServicesAccessor } from '../../../../editor/browser/editorExtensions.js';
 import { AccessibleViewType, ExtensionContentProvider } from '../../../../platform/accessibility/browser/accessibleView.js';
@@ -54,7 +55,7 @@ function registerAccessibilityHelpAction(keybindingService: IKeybindingService, 
 				viewDescriptor.id,
 				{ type: AccessibleViewType.Help },
 				() => content,
-				() => viewsService.openView(viewDescriptor.id, true),
+				() => viewsService.openView(viewDescriptor.id, true).catch(onUnexpectedError).catch(onUnexpectedError),
 			);
 		},
 	}));
