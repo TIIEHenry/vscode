@@ -9,6 +9,7 @@ import { ILanguageService } from '../../../../../editor/common/languages/languag
 import { IModelService } from '../../../../../editor/common/services/model.js';
 import { createTextBufferFactoryFromSnapshot } from '../../../../../editor/common/model/textModel.js';
 import { WorkspaceEditMetadata } from '../../../../../editor/common/languages.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { coalesceInPlace } from '../../../../../base/common/arrays.js';
 import { Range } from '../../../../../editor/common/core/range.js';
@@ -399,7 +400,7 @@ export class BulkEditPreviewProvider implements ITextModelContentProvider {
 		}
 		this._disposables.add(Event.debounce(this._operations.checked.onDidChange, (_last, e) => e, MicrotaskDelay)(e => {
 			const uri = this._operations.getUriOfEdit(e);
-			this._applyTextEditsToPreviewModel(uri);
+			this._applyTextEditsToPreviewModel(uri).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 
@@ -443,8 +444,10 @@ export class BulkEditPreviewProvider implements ITextModelContentProvider {
 			// this is a little weird but otherwise editors and other cusomers
 			// will dispose my models before they should be disposed...
 			// And all of this is off the eventloop to prevent endless recursion
-			queueMicrotask(async () => {
-				this._disposables.add(await this._textModelResolverService.createModelReference(model!.uri));
+			queueMicrotask(() => {
+				void Promise.resolve((async () => {
+					this._disposables.add(await this._textModelResolverService.createModelReference(model!.uri));
+				})()).catch(onUnexpectedError).catch(onUnexpectedError);
 			});
 		}
 		return model;

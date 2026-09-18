@@ -23,6 +23,7 @@ import { EditorResourceAccessor, SideBySideEditor } from '../../../../common/edi
 import { EditorInput } from '../../../../common/editor/editorInput.js';
 import type { ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
 import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import Severity from '../../../../../base/common/severity.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
@@ -72,7 +73,7 @@ class UXState {
 				}
 
 				if (previewEditors.length) {
-					group.closeEditors(previewEditors, { preserveFocus: true });
+					group.closeEditors(previewEditors, { preserveFocus: true }).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 		}

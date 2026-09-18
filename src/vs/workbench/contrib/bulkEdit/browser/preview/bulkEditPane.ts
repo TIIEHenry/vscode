@@ -8,6 +8,7 @@ import type { IAsyncDataTreeViewState } from '../../../../../base/browser/ui/tre
 import { ITreeContextMenuEvent } from '../../../../../base/browser/ui/tree/tree.js';
 import { CachedFunction, LRUCachedFunction } from '../../../../../base/common/cache.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { FuzzyScore } from '../../../../../base/common/filters.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { Mutable } from '../../../../../base/common/types.js';
@@ -146,7 +147,7 @@ export class BulkEditPane extends ViewPane {
 		);
 
 		this._disposables.add(this._tree.onContextMenu(this._onContextMenu, this));
-		this._disposables.add(this._tree.onDidOpen(e => this._openElementInMultiDiffEditor(e)));
+		this._disposables.add(this._tree.onDidOpen(e => void this._openElementInMultiDiffEditor(e).catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		// buttons
 		const buttonsContainer = document.createElement('div');
@@ -212,11 +213,11 @@ export class BulkEditPane extends ViewPane {
 			token.onCancellationRequested(() => resolve(undefined));
 
 			this._currentResolve = resolve;
-			this._setTreeInput(input);
+			this._setTreeInput(input).catch(onUnexpectedError).catch(onUnexpectedError);
 
 			// refresh when check state changes
 			this._sessionDisposables.add(input.checked.onDidChange(() => {
-				this._tree.updateChildren();
+				this._tree.updateChildren().catch(onUnexpectedError).catch(onUnexpectedError);
 				this._ctxHasCheckedChanges.set(input.checked.checkedCount > 0);
 			}));
 		});
@@ -266,7 +267,7 @@ export class BulkEditPane extends ViewPane {
 			message = localize('conflict.N', "Cannot apply refactoring because {0} other files have changed in the meantime.", conflicts.length);
 		}
 
-		this._dialogService.warn(message).finally(() => this._done(false));
+		this._dialogService.warn(message).finally(() => this._done(false)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	discard() {
@@ -311,7 +312,7 @@ export class BulkEditPane extends ViewPane {
 
 			// (2) toggle and update
 			this._treeDataSource.groupByFile = !this._treeDataSource.groupByFile;
-			this._setTreeInput(input);
+			this._setTreeInput(input).catch(onUnexpectedError).catch(onUnexpectedError);
 
 			// (3) remember preference
 			this._storageService.store(BulkEditPane._memGroupByFile, this._treeDataSource.groupByFile, StorageScope.PROFILE, StorageTarget.USER);
@@ -359,7 +360,7 @@ export class BulkEditPane extends ViewPane {
 			isTransient: true,
 			description: label,
 			resources: result.resources
-		}, e.sideBySide ? SIDE_GROUP : ACTIVE_GROUP);
+		}, e.sideBySide ? SIDE_GROUP : ACTIVE_GROUP).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private readonly _computeResourceDiffEditorInputs = new LRUCachedFunction<
