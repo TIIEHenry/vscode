@@ -37,13 +37,13 @@ export class WorkspaceTags implements IWorkbenchContribution {
 		@INativeHostService private readonly nativeHostService: INativeHostService
 	) {
 		if (this.telemetryService.telemetryLevel === TelemetryLevel.USAGE) {
-			this.report();
+			this.report().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
 	private async report(): Promise<void> {
 		// Windows-only Edition Event
-		this.reportWindowsEdition();
+		this.reportWindowsEdition().catch(onUnexpectedError).catch(onUnexpectedError);
 
 		// Workspace Tags
 		this.workspaceTagsService.getTags()
