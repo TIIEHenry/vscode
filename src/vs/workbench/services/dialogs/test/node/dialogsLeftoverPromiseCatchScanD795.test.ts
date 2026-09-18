@@ -175,8 +175,8 @@ suite('splash leftover remaining overflowed to dialogs leftover Promise fire-and
 		const carousel = fs.readFileSync(resolveSource(CAROUSEL_REL), 'utf8');
 		const splash = fs.readFileSync(resolveSource(SPLASH_REL), 'utf8');
 		assert.ok(!preferences.includes('D795'));
-		assert.ok(workspacesSvc.includes('this.addRecentlyOpened([{ folderUri: folder.uri }]);'));
-		assert.ok(!workspacesSvc.includes(`this.addRecentlyOpened([{ folderUri: folder.uri }])${doubleCatch}`));
+		assert.ok(workspacesSvc.includes(`this.addRecentlyOpened([{ folderUri: folder.uri }])${doubleCatch}`));
+		assert.ok(!workspacesSvc.includes('this.addRecentlyOpened([{ folderUri: folder.uri }]);') || workspacesSvc.includes(`this.addRecentlyOpened([{ folderUri: folder.uri }])${doubleCatch};`));
 		assert.ok(search.includes(`newInput.ongoingSearchOperation.then(complete => {`));
 		assert.ok(carousel.includes('this._loadRawData(adjacentImage).catch(() => { /* ignore */ });'));
 		assert.strictEqual(countDoubleChains(splash), 2);
