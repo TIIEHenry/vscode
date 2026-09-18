@@ -343,7 +343,7 @@ export class SettingsEditor2 extends EditorPane {
 				this.onConfigUpdate(undefined, true, true);
 			}
 			if (e.source !== ConfigurationTarget.DEFAULT) {
-				this.onConfigUpdate(e.affectedKeys);
+				this.onConfigUpdate(e.affectedKeys).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -373,10 +373,10 @@ export class SettingsEditor2 extends EditorPane {
 		}));
 
 		this._register(extensionManagementService.onDidInstallExtensions(() => {
-			this.refreshInstalledExtensionsList();
+			this.refreshInstalledExtensionsList().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(extensionManagementService.onDidUninstallExtension(() => {
-			this.refreshInstalledExtensionsList();
+			this.refreshInstalledExtensionsList().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this.modelDisposables = this._register(new DisposableStore());
@@ -390,7 +390,7 @@ export class SettingsEditor2 extends EditorPane {
 			this.dismissedExtensionSettings = this.storageService
 				.get(this.DISMISSED_EXTENSION_SETTINGS_STORAGE_KEY, StorageScope.PROFILE, '')
 				.split(this.DISMISSED_EXTENSION_SETTINGS_DELIMITER);
-			this.onConfigUpdate(undefined, true);
+			this.onConfigUpdate(undefined, true).catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 	}
 
@@ -538,7 +538,7 @@ export class SettingsEditor2 extends EditorPane {
 		this.modelDisposables.clear();
 		this.modelDisposables.add(model.onDidChangeGroups(() => {
 			this.updatedConfigSchemaDelayer.trigger(() => {
-				this.onConfigUpdate(undefined, false, true);
+				this.onConfigUpdate(undefined, false, true).catch(onUnexpectedError).catch(onUnexpectedError);
 			});
 		}));
 		this.defaultSettingsEditorModel = model;
@@ -953,7 +953,7 @@ export class SettingsEditor2 extends EditorPane {
 		this.viewState.settingsTarget = target;
 
 		// TODO Instead of rebuilding the whole model, refresh and uncache the inspected setting value
-		this.onConfigUpdate(undefined, true);
+		this.onConfigUpdate(undefined, true).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private onDidDismissExtensionSetting(extensionId: string): void {
@@ -966,7 +966,7 @@ export class SettingsEditor2 extends EditorPane {
 			StorageScope.PROFILE,
 			StorageTarget.USER
 		);
-		this.onConfigUpdate(undefined, true);
+		this.onConfigUpdate(undefined, true).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private onDidClickSetting(evt: ISettingLinkClickEvent, recursed?: boolean): void {
@@ -1446,7 +1446,7 @@ export class SettingsEditor2 extends EditorPane {
 		store.add(scheduledRefreshTracker.onDidBlur(() => {
 			this.scheduledRefreshes.get(key)?.dispose();
 			this.scheduledRefreshes.delete(key);
-			this.onConfigUpdate(new Set([key]));
+			this.onConfigUpdate(new Set([key])).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this.scheduledRefreshes.set(key, store);
 	}
