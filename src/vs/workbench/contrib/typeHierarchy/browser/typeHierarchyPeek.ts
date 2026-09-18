@@ -9,6 +9,7 @@ import { Orientation, Sizing, SplitView } from '../../../../base/browser/ui/spli
 import { IAsyncDataTreeViewState } from '../../../../base/browser/ui/tree/asyncDataTree.js';
 import { ITreeNode, TreeMouseEventTarget } from '../../../../base/browser/ui/tree/tree.js';
 import { Color } from '../../../../base/common/color.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { FuzzyScore } from '../../../../base/common/filters.js';
 import { DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
@@ -253,10 +254,10 @@ export class TypeHierarchyTreePeekWidget extends peekView.PeekViewWidget {
 				return;
 			}
 			this.dispose();
-			this._editorService.openEditor({
+			void this._editorService.openEditor({
 				resource: focus.item.uri,
 				options: { selection: target.range! }
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		}));
 
@@ -267,10 +268,10 @@ export class TypeHierarchyTreePeekWidget extends peekView.PeekViewWidget {
 
 			if (e.element) {
 				this.dispose();
-				this._editorService.openEditor({
+				void this._editorService.openEditor({
 					resource: e.element.item.uri,
 					options: { selection: e.element.item.selectionRange, pinned: true }
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -279,10 +280,10 @@ export class TypeHierarchyTreePeekWidget extends peekView.PeekViewWidget {
 			// don't close on click
 			if (element && isKeyboardEvent(e.browserEvent)) {
 				this.dispose();
-				this._editorService.openEditor({
+				void this._editorService.openEditor({
 					resource: element.item.uri,
 					options: { selection: element.item.selectionRange, pinned: true }
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -376,7 +377,7 @@ export class TypeHierarchyTreePeekWidget extends peekView.PeekViewWidget {
 				this._tree.setFocus([root.children[0].element]);
 			}
 			this._tree.domFocus();
-			this._updatePreview();
+			void this._updatePreview().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

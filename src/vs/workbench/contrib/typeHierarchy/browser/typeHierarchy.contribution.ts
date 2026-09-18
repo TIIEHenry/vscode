@@ -5,7 +5,7 @@
 
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { isCancellationError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
@@ -114,7 +114,7 @@ class TypeHierarchyController implements IEditorContribution {
 			}
 			if (model) {
 				this._sessionDisposables.add(model);
-				this._widget!.showModel(model);
+				void this._widget!.showModel(model).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 			else {
 				this._widget!.showMessage(localize('no.item', "No results"));
@@ -153,12 +153,12 @@ class TypeHierarchyController implements IEditorContribution {
 	}
 
 	showSupertypes(): void {
-		this._widget?.updateDirection(TypeHierarchyDirection.Supertypes);
+		void this._widget?.updateDirection(TypeHierarchyDirection.Supertypes)?.catch(onUnexpectedError).catch(onUnexpectedError);
 		this._ctxDirection.set(TypeHierarchyDirection.Supertypes);
 	}
 
 	showSubtypes(): void {
-		this._widget?.updateDirection(TypeHierarchyDirection.Subtypes);
+		void this._widget?.updateDirection(TypeHierarchyDirection.Subtypes)?.catch(onUnexpectedError).catch(onUnexpectedError);
 		this._ctxDirection.set(TypeHierarchyDirection.Subtypes);
 	}
 
