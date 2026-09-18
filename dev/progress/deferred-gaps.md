@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D804、D806–D807、D809–D816、D818–D820 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。D805/D808 未合。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D820 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1168,8 +1168,8 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D804 | P3 | **closed** leftover Promise 双链 emmet/editTelemetry 不足 4 点，溢到 timeline 八处。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`timelineLeftoverPromiseCatchScanD804.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / timeline leftover remaining | closed |
 | D806 | P3 | **closed** leftover Promise 双链 services/path 0 点，溢到 sharedProcess + auxiliaryWindow + mcp 七处。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`sharedProcessAuxiliaryWindowMcpLeftoverPromiseCatchScanD806.test.ts`。勿 add `out`。 | 七处双链。未关 D24。leftover 程序未全局完成。 | workbench / sharedProcess leftover remaining | closed |
 | D807 | P3 | **closed** leftover Promise 双链 workingCopy 七处：restoreBackups；doDiscardBackup；onDidRunFileOperation；onDidFilesChange；storeAll；reload IIFE；elevated save。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`workingCopyLeftoverPromiseCatchScanD807.test.ts`。勿 add `out`。 | 七处双链。未关 D24。leftover 程序未全局完成。 | workbench / workingCopy leftover remaining | closed |
-| D805 | P3 | **skipped** leftover Promise：notification 0 点；溢到 I-owned aux/mcp 与 F-reserved views 已弃；余 3 点。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；无合入。 | 未合入。未关 D24。 | workbench / notification leftover remaining | skipped |
-| D808 | P3 | **skipped** leftover Promise：userActivity 0 点；溢到 views 已弃；余 secrets/integrity/label 3 点。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；无合入。 | 未合入。未关 D24。 | workbench / userActivity leftover remaining | skipped |
+| D805 | P3 | **closed** leftover Promise 双链 progress/userData/textresource 三处 + xterm leftover remaining 九处共十二处。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`progressLeftoverPromiseCatchScanD805.test.ts`。勿 add `out`。 | 十二处双链。未关 D24。leftover 程序未全局完成。 | workbench / xterm leftover remaining | closed |
+| D808 | P3 | **closed** leftover Promise 双链 secrets/integrity/label 三处 + notebook leftover remaining 五处共八处。views leftover 已由 D813 双链。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；`secretsLeftoverPromiseCatchScanD808.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / notebook leftover remaining | closed |
 | D809 | P3 | **closed** leftover Promise 双链 typeHierarchy 七处：showModel；updateDirection×2；_updatePreview；openEditor×3。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`typeHierarchyLeftoverPromiseCatchScanD809.test.ts`。勿 add `out`。 | 七处双链。未关 D24。leftover 程序未全局完成。 | workbench / typeHierarchy leftover remaining | closed |
 | D810 | P3 | **closed** leftover Promise 双链 decorations/clipboard 0 点，溢到 contextmenu + files watcher + utilityProcess + tunnel 七处。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`contextmenuLeftoverPromiseCatchScanD810.test.ts`。勿 add `out`。 | 七处双链。未关 D24。leftover 程序未全局完成。 | workbench / contextmenu leftover remaining | closed |
 | D811 | P3 | **closed** leftover Promise 双链 textfile 五处：onDidFilesChange；autoDetectLanguage×2；onMaybeShouldChangeEncoding；reload IIFE。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`textfileLeftoverPromiseCatchScanD811.test.ts`。勿 add `out`。 | 五处双链。未关 D24。leftover 程序未全局完成。 | workbench / textfile leftover remaining | closed |
