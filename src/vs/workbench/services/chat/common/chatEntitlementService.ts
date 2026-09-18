@@ -6,6 +6,7 @@
 import product from '../../../../platform/product/common/product.js';
 import { Barrier } from '../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Lazy } from '../../../../base/common/lazy.js';
 import { Disposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
@@ -556,7 +557,7 @@ export class ChatEntitlementService extends Disposable implements IChatEntitleme
 					cts.value.cancel();
 				}
 				cts.value = new CancellationTokenSource();
-				this.update(cts.value.token);
+				this.update(cts.value.token).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -727,7 +728,7 @@ export class ChatEntitlementService extends Disposable implements IChatEntitleme
 	}
 
 	markSetupCompleted(): void {
-		this.context?.value.update({ completed: true });
+		this.context?.value.update({ completed: true })?.catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	setForceHidden(hidden: boolean): void {
@@ -1038,11 +1039,11 @@ export class ChatEntitlementRequests extends Disposable {
 
 		this.registerListeners();
 
-		this.resolve();
+		this.resolve().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private registerListeners(): void {
-		this._register(this.defaultAccountService.onDidChangeDefaultAccount(() => this.resolve()));
+		this._register(this.defaultAccountService.onDidChangeDefaultAccount(() => this.resolve().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this._register(this.context.onDidChange(() => {
 			if (this.context.state.disabled || this.context.state.entitlement === ChatEntitlement.Unknown) {
@@ -1207,7 +1208,7 @@ export class ChatEntitlementRequests extends Disposable {
 	private update(state: IEntitlements): void {
 		this.state = state;
 
-		this.context.update({ entitlement: this.state.entitlement, organisations: this.state.organisations, isStaff: this.state.isStaff, sku: this.state.sku, copilotTrackingId: this.state.copilotTrackingId });
+		this.context.update({ entitlement: this.state.entitlement, organisations: this.state.organisations, isStaff: this.state.isStaff, sku: this.state.sku, copilotTrackingId: this.state.copilotTrackingId }).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		if (state.quotas) {
 			this.chatQuotasAccessor.acceptQuotas(state.quotas);
@@ -1490,7 +1491,7 @@ export class ChatEntitlementContext extends Disposable {
 	private registerListeners(): void {
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(ChatAIDisabledSettingId)) {
-				this.updateContext();
+				this.updateContext().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -1511,7 +1512,7 @@ export class ChatEntitlementContext extends Disposable {
 	setForceHidden(hidden: boolean): void {
 		if (this._forceHidden !== hidden) {
 			this._forceHidden = hidden;
-			this.updateContext();
+			this.updateContext().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
