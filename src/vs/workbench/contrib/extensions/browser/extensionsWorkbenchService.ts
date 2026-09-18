@@ -1189,7 +1189,7 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 				this.checkForUpdates('Connection is no longer metered').catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 			if (isWeb && !this.isAutoUpdateEnabled()) {
-				this.autoUpdateBuiltinExtensions();
+				this.autoUpdateBuiltinExtensions().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -1200,10 +1200,10 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 		this.eventuallyCheckForUpdates(true);
 
 		if (isWeb) {
-			this.syncPinnedBuiltinExtensions();
+			this.syncPinnedBuiltinExtensions().catch(onUnexpectedError).catch(onUnexpectedError);
 			// Always auto update builtin extensions in web
 			if (!this.isAutoUpdateEnabled()) {
-				this.autoUpdateBuiltinExtensions();
+				this.autoUpdateBuiltinExtensions().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 
@@ -1312,7 +1312,7 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 		if (this.configurationService.getValue(AutoRestartConfigurationKey) === true) {
 			this.autoRestartListenerDisposable.value = this.hostService.onDidChangeFocus(focus => {
 				if (!focus && this.configurationService.getValue(AutoRestartConfigurationKey) === true) {
-					this.updateRunningExtensions(undefined, true);
+					this.updateRunningExtensions(undefined, true).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			});
 		}
@@ -1469,14 +1469,14 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 
 		const extensionsControlManifest = await this.extensionManagementService.getExtensionsControlManifest();
 		const pager = await this.galleryService.query(options, token);
-		this.syncInstalledExtensionsWithGallery(pager.firstPage);
+		this.syncInstalledExtensionsWithGallery(pager.firstPage).catch(onUnexpectedError).catch(onUnexpectedError);
 		return {
 			firstPage: pager.firstPage.map(gallery => this.fromGallery(gallery, extensionsControlManifest)),
 			total: pager.total,
 			pageSize: pager.pageSize,
 			getPage: async (pageIndex, token) => {
 				const page = await pager.getPage(pageIndex, token);
-				this.syncInstalledExtensionsWithGallery(page);
+				this.syncInstalledExtensionsWithGallery(page).catch(onUnexpectedError).catch(onUnexpectedError);
 				return page.map(gallery => this.fromGallery(gallery, extensionsControlManifest));
 			}
 		};
@@ -1492,7 +1492,7 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 		extensionInfos.forEach(e => e.preRelease = e.preRelease ?? this.extensionManagementService.preferPreReleases);
 		const extensionsControlManifest = await this.extensionManagementService.getExtensionsControlManifest();
 		const galleryExtensions = await this.galleryService.getExtensions(extensionInfos, arg1, arg2);
-		this.syncInstalledExtensionsWithGallery(galleryExtensions);
+		this.syncInstalledExtensionsWithGallery(galleryExtensions).catch(onUnexpectedError).catch(onUnexpectedError);
 		return galleryExtensions.map(gallery => this.fromGallery(gallery, extensionsControlManifest));
 	}
 
@@ -1601,7 +1601,7 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 							if (needsReload) {
 								this.hostService.reload();
 							} else {
-								this.updateRunningExtensions();
+								this.updateRunningExtensions().catch(onUnexpectedError).catch(onUnexpectedError);
 							}
 						}
 					},

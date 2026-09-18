@@ -116,7 +116,7 @@ suite('views leftover remaining moved to extensions leftover Promise fire-and-fo
 		assert.strictEqual(sites, 6);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(WORKBENCH_SVC_REL) ?? ''), 5);
+		assert.strictEqual(countDoubleChains(seen.get(WORKBENCH_SVC_REL) ?? ''), 13);
 		assert.strictEqual(countDoubleChains(seen.get(VIEWLET_REL) ?? ''), 2);
 		assert.strictEqual(countDoubleChains(fs.readFileSync(resolveSource(WIDGETS_REL), 'utf8')), 1);
 	});
