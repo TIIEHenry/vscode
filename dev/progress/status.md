@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D782、D784–D793。D736/D739/D740/D745 跳过。D783 弃。D24 仍开。不是 leftover/pills 完成。"
+summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D782、D784–D798。D736/D739/D740/D745 跳过。D783 弃。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -14,7 +14,7 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D782、D784�
 | 切片 | 提交 |
 |:-----|:-----|
 | **A SessionStream / L2** | 16/23/30–32/34–39/44/46/50–52；envelope leftover |
-| **catch** | D677–D782、D784–D793 |
+| **catch** | D677–D782、D784–D798 |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
@@ -37,6 +37,9 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D782、D784�
 | theme leftover | D751 已双链；assigned/two-arg/Watch 仍跳过 |
 | localTerminalBackend revive | `localTerminalBackend.ts` revive `.then` 只 `r()`，reject 挂起 `Promise.all` |
 | notebook custom catch | `notebookEditorModel.setSaveDelegate().catch(log)`；stickyScroll `init().catch(console.error)` |
+| userDataProfile | `onProfileAwareDidUpdateExtensionMetadata` 缺括号；`replace('/\\s+/', '_')` 替换字面量 |
+| terminalContrib | 赋值 `_osBackend` reject 挂起后续 await；chat `Promise.all(getCodeBlockInfo)` leftover reject 未处理 |
+| dialogs | `showSaveDialog` 在 `pickResource` reject 时外层挂起；`onDidAccept` reject 卡住 resolving；`updateItems` reject 留 `busy`；`preferredHome` 把 Promise 打成 `[object Promise]` |
 ## Next
 | 项 | 指针 |
 |:-----|:-----|
