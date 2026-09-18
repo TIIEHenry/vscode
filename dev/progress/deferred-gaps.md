@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D791、D793 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D793 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1154,3 +1154,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D790 | P3 | **closed** leftover Promise 双链 remoteTunnel 五处：initialize；recommendRemoteExtensionIfNeeded；doInitialStateDiscovery；startTunnel then；executeCommand。跳过 Action2 / opener。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`remoteTunnelLeftoverPromiseCatchScanD790.test.ts`。勿 add `out`。 | 五处双链。未关 D24。leftover 程序未全局完成。 | workbench / remoteTunnel leftover remaining | closed |
 | D791 | P3 | **closed** leftover Promise 双链 github 3 处 + surveys handleSurveys；surveyEditorPane closeEditor 已双链仅钉。跳过 opener / nps / D752。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；`surveysLeftoverPromiseCatchScanD791.test.ts`。勿 add `out`。勿 add D752。 | 五处钉。未关 D24。leftover 程序未全局完成。 | workbench / surveys leftover remaining | closed |
 | D793 | P3 | **closed** leftover Promise 双链 speech 不足 4 点，溢到 accessibility：speechAccessibilitySignal；accessibilityStatus；accessibleView；extensionAccesibilityHelp。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；`speechLeftoverPromiseCatchScanD793.test.ts`。勿 add `out`。 | speech/accessibility 双链。未关 D24。leftover 程序未全局完成。 | workbench / speech leftover remaining | closed |
+| D792 | P3 | **closed** leftover Promise 双链 interactive 四处：_installHandler；dispose revert PromiseLike；setInput setOptions；override setOptions。replNotebook leftover remaining 未动。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`interactiveLeftoverPromiseCatchScanD792.test.ts`。勿 add `out`。 | 四处双链。未关 D24。leftover 程序未全局完成。 | workbench / interactive leftover remaining | closed |
