@@ -119,8 +119,8 @@ suite('typeHierarchy leftover Promise fire-and-forget catch scan (D809)', () => 
 		assert.strictEqual(countDoubleChains(peek), 4);
 		assert.strictEqual(countDoubleChains(tree), 0);
 		assert.strictEqual(countDoubleChains(model), 0);
-		assert.ok(!fs.readFileSync(resolveSource(CALL_CONTRIB_REL), 'utf8').includes(doubleCatch));
-		assert.ok(!fs.readFileSync(resolveSource(CALL_PEEK_REL), 'utf8').includes(doubleCatch));
+		assert.ok(fs.readFileSync(resolveSource(CALL_CONTRIB_REL), 'utf8').includes(doubleCatch));
+		assert.ok(fs.readFileSync(resolveSource(CALL_PEEK_REL), 'utf8').includes(doubleCatch));
 		assert.ok(!fs.readFileSync(resolveSource(KEYBINDINGS_EXPORT_REL), 'utf8').includes(doubleCatch));
 		assert.ok(!fs.readFileSync(resolveSource(INLAY_HINTS_REL), 'utf8').includes(doubleCatch));
 		assert.ok(!fs.readFileSync(resolveSource(LANGUAGE_STATUS_REL), 'utf8').includes(doubleCatch));
@@ -226,10 +226,10 @@ suite('typeHierarchy leftover Promise fire-and-forget catch scan (D809)', () => 
 		const walkthrough = fs.readFileSync(resolveSource(WALKTHROUGH_REL), 'utf8');
 		const bulkPane = fs.readFileSync(resolveSource(BULK_PANE_REL), 'utf8');
 
-		assert.ok(callContrib.includes('\t\t\t\tthis._widget!.showModel(model);\n'));
-		assert.ok(callContrib.includes('\t\tthis._widget?.updateDirection(CallHierarchyDirection.CallsFrom);\n'));
-		assert.ok(callContrib.includes('\t\tthis._widget?.updateDirection(CallHierarchyDirection.CallsTo);\n'));
-		assert.ok(callPeek.includes('\t\t\tthis._updatePreview();\n'));
+		assert.ok(callContrib.includes(`this._widget!.showModel(model)${doubleCatch}`));
+		assert.ok(callContrib.includes(`this._widget?.updateDirection(CallHierarchyDirection.CallsFrom)?${doubleCatch}`));
+		assert.ok(callContrib.includes(`this._widget?.updateDirection(CallHierarchyDirection.CallsTo)?${doubleCatch}`));
+		assert.ok(callPeek.includes(`this._updatePreview()${doubleCatch}`));
 		assert.ok(keybindingsExport.includes('.catch(async error => {'));
 		assert.ok(inlayHints.includes('\t\t\tthis._read(line, hints);\n'));
 		assert.ok(!languageStatus.includes(doubleCatch));

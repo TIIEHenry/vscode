@@ -276,13 +276,13 @@ suite('decorations leftover remaining overflowed to contextmenu leftover Promise
 		assert.ok(!tunnel.includes(`this._sharedProcessTunnelService.setAddress(this._id, address)${doubleCatch}`));
 		assert.ok(tunnel.includes('await this._sharedProcessTunnelService.destroyTunnel(this._id);'));
 
-		assert.ok(remoteAbs.includes('this._getOrCreateConnection().then(client => client.registerChannel(channelName, channel));'));
-		assert.ok(!remoteAbs.includes(`this._getOrCreateConnection().then(client => client.registerChannel(channelName, channel))${doubleCatch}`));
+		assert.ok(remoteAbs.includes(`this._getOrCreateConnection().then(client => client.registerChannel(channelName, channel))${doubleCatch}`));
+		assert.ok(!remoteAbs.includes('this._getOrCreateConnection().then(client => client.registerChannel(channelName, channel));'));
 		assert.ok(remoteAbs.includes('return this.getRawEnvironment().then(undefined, () => null);'));
 		assert.ok(!remoteAbs.includes(`return this.getRawEnvironment().then(undefined, () => null)${doubleCatch}`));
 
-		assert.ok(dataChannel.includes('void this._activateExtensionProvider(entry, provider, generation);'));
-		assert.ok(!dataChannel.includes(`void this._activateExtensionProvider(entry, provider, generation)${doubleCatch}`));
+		assert.ok(dataChannel.includes(`void this._activateExtensionProvider(entry, provider, generation)${doubleCatch}`));
+		assert.ok(!dataChannel.includes('void this._activateExtensionProvider(entry, provider, generation);'));
 
 		assert.ok(mcp.includes("channel.call('setMcpGalleryManifest', [manifest]);"));
 		assert.ok(!mcp.includes(`channel.call('setMcpGalleryManifest', [manifest])${doubleCatch}`));

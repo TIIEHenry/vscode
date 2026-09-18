@@ -95,16 +95,12 @@ suite('views leftover remaining moved to extensions leftover Promise fire-and-fo
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('views leftover remaining has fewer than four legal sites so this knife moved to unused leftover remaining in contrib/extensions', () => {
+	test('views leftover remaining had fewer than four legal sites so this knife moved; D813 later double-chained those leftover remaining sites', () => {
 		const viewsDesc = fs.readFileSync(resolveSource(VIEWS_DESC_REL), 'utf8');
 		const viewsSvc = fs.readFileSync(resolveSource(VIEWS_SVC_REL), 'utf8');
-		assert.ok(viewsDesc.includes('this.extensionService.whenInstalledExtensionsRegistered().then(() => this.whenExtensionsRegistered());'));
-		assert.ok(!viewsDesc.includes(`this.extensionService.whenInstalledExtensionsRegistered().then(() => this.whenExtensionsRegistered())${doubleCatch}`));
-		assert.strictEqual(countDoubleChains(viewsDesc), 0);
-		assert.strictEqual(countDoubleChains(viewsSvc), 0);
-		const viewsLegal = countIncludes(viewsDesc, 'this.extensionService.whenInstalledExtensionsRegistered().then(() => this.whenExtensionsRegistered());');
-		assert.ok(viewsLegal < 4, `expected views legal leftover <4, got ${viewsLegal}`);
-		assert.strictEqual(viewsLegal, 1);
+		assert.ok(viewsDesc.includes(`this.extensionService.whenInstalledExtensionsRegistered().then(() => this.whenExtensionsRegistered())${doubleCatch}`));
+		assert.ok(countDoubleChains(viewsDesc) >= 1);
+		assert.ok(countDoubleChains(viewsSvc) >= 1);
 		assert.ok(!viewsDesc.includes('D815'));
 		assert.ok(!viewsSvc.includes('D815'));
 	});
@@ -236,10 +232,8 @@ suite('views leftover remaining moved to extensions leftover Promise fire-and-fo
 		assert.ok(!callPeek.includes('D815'));
 		assert.ok(!typeContrib.includes('D815'));
 
-		assert.ok(viewsDesc.includes('this.extensionService.whenInstalledExtensionsRegistered().then(() => this.whenExtensionsRegistered());'));
-		assert.ok(!viewsDesc.includes(`this.extensionService.whenInstalledExtensionsRegistered().then(() => this.whenExtensionsRegistered())${doubleCatch}`));
-		assert.ok(untitled.includes('\t\tthis.autoDetectLanguage();\n'));
-		assert.ok(!untitled.includes(`this.autoDetectLanguage()${doubleCatch}`));
+		assert.ok(viewsDesc.includes(`this.extensionService.whenInstalledExtensionsRegistered().then(() => this.whenExtensionsRegistered())${doubleCatch}`));
+		assert.ok(untitled.includes(`this.autoDetectLanguage()${doubleCatch}`));
 
 		for (const [rel, source] of [
 			[PROGRESS_REL, progress],

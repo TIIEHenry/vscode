@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D804、D806–D807、D809–D811 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。D805/D808 未合。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D804、D806–D807、D809–D815 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。D805/D808 未合。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1173,3 +1173,7 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D809 | P3 | **closed** leftover Promise 双链 typeHierarchy 七处：showModel；updateDirection×2；_updatePreview；openEditor×3。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`typeHierarchyLeftoverPromiseCatchScanD809.test.ts`。勿 add `out`。 | 七处双链。未关 D24。leftover 程序未全局完成。 | workbench / typeHierarchy leftover remaining | closed |
 | D810 | P3 | **closed** leftover Promise 双链 decorations/clipboard 0 点，溢到 contextmenu + files watcher + utilityProcess + tunnel 七处。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`contextmenuLeftoverPromiseCatchScanD810.test.ts`。勿 add `out`。 | 七处双链。未关 D24。leftover 程序未全局完成。 | workbench / contextmenu leftover remaining | closed |
 | D811 | P3 | **closed** leftover Promise 双链 textfile 五处：onDidFilesChange；autoDetectLanguage×2；onMaybeShouldChangeEncoding；reload IIFE。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`textfileLeftoverPromiseCatchScanD811.test.ts`。勿 add `out`。 | 五处双链。未关 D24。leftover 程序未全局完成。 | workbench / textfile leftover remaining | closed |
+| D812 | P3 | **closed** leftover Promise 双链 callHierarchy 七处：showModel；updateDirection×2；_updatePreview；openEditor×3。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`callHierarchyLeftoverPromiseCatchScanD812.test.ts`。勿 add `out`。 | 七处双链。未关 D24。leftover 程序未全局完成。 | workbench / callHierarchy leftover remaining | closed |
+| D813 | P3 | **closed** leftover Promise 双链 untitled 1 点溢到 views 共六处。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`untitledViewsLeftoverPromiseCatchScanD813.test.ts`。勿 add `out`。 | 六处双链。未关 D24。leftover 程序未全局完成。 | workbench / untitled leftover remaining | closed |
+| D814 | P3 | **closed** leftover Promise 双链 dataChannel 1 点溢到 remote registerChannel + authentication queue 共五处。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`dataChannelRemoteAuthenticationLeftoverPromiseCatchScanD814.test.ts`。勿 add `out`。 | 五处双链。未关 D24。leftover 程序未全局完成。 | workbench / dataChannel leftover remaining | closed |
+| D815 | P3 | **closed** leftover Promise 双链 views 不足 4 点，溢到 extensions checkForUpdates 六处。loopCheck/openView 因已有扫描锁 leftover 未合。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`extensionsLeftoverPromiseCatchScanD815.test.ts`。勿 add `out`。 | 六处双链。未关 D24。leftover 程序未全局完成。 | workbench / extensions leftover remaining | closed |
