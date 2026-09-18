@@ -8,7 +8,7 @@ import * as semver from '../../../../base/common/semver/semver.js';
 import { Event, Emitter } from '../../../../base/common/event.js';
 import { index } from '../../../../base/common/arrays.js';
 import { CancelablePromise, Promises, ThrottledDelayer, createCancelablePromise, disposableTimeout } from '../../../../base/common/async.js';
-import { CancellationError, getErrorMessage, isCancellationError } from '../../../../base/common/errors.js';
+import { CancellationError, getErrorMessage, isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { IPager, singlePagePager } from '../../../../base/common/paging.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
@@ -1156,13 +1156,13 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 			}
 			if (e.affectsConfiguration(AutoCheckUpdatesConfigurationKey)) {
 				if (this.isAutoCheckUpdatesEnabled()) {
-					this.checkForUpdates(`Enabled auto check updates`);
+					this.checkForUpdates(`Enabled auto check updates`).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 		}));
 		this._register(this.extensionEnablementService.onEnablementChanged(platformExtensions => {
 			if (this.isAutoCheckUpdatesEnabled() && this.getAutoUpdateValue() === 'on' && platformExtensions.some(e => this.extensionEnablementService.isEnabled(e))) {
-				this.checkForUpdates('Extension enablement changed');
+				this.checkForUpdates('Extension enablement changed').catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 		this._register(Event.debounce(this.onChange, () => undefined, 100)(() => this.hasOutdatedExtensionsContextKey.set(this.outdated.length > 0)));
@@ -1173,20 +1173,20 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 					comment: 'Report when update check is triggered on product update';
 				}>('extensions:updatecheckonproductupdate');
 				if (this.isAutoCheckUpdatesEnabled()) {
-					this.checkForUpdates('Product update');
+					this.checkForUpdates('Product update').catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 		}));
 
 		this._register(this.allowedExtensionsService.onDidChangeAllowedExtensionsConfigValue(() => {
 			if (this.isAutoCheckUpdatesEnabled()) {
-				this.checkForUpdates('Allowed extensions changed');
+				this.checkForUpdates('Allowed extensions changed').catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
 		this._register(this.meteredConnectionService.onDidChangeIsConnectionMetered(() => {
 			if (this.isAutoCheckUpdatesEnabled()) {
-				this.checkForUpdates('Connection is no longer metered');
+				this.checkForUpdates('Connection is no longer metered').catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 			if (isWeb && !this.isAutoUpdateEnabled()) {
 				this.autoUpdateBuiltinExtensions();
