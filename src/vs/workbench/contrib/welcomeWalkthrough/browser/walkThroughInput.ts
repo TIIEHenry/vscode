@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Dimension } from '../../../../base/browser/dom.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { DisposableStore, IReference } from '../../../../base/common/lifecycle.js';
 import * as marked from '../../../../base/common/marked/marked.js';
 import { Schemas } from '../../../../base/common/network.js';
@@ -148,7 +149,7 @@ export class WalkThroughInput extends EditorInput {
 
 	override dispose(): void {
 		if (this.promise) {
-			this.promise.then(model => model.dispose());
+			this.promise.then(model => model.dispose()).catch(onUnexpectedError).catch(onUnexpectedError);
 			this.promise = null;
 		}
 

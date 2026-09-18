@@ -5,6 +5,7 @@
 
 import { addDisposableListener, EventType, findParentWithClass, getWindow } from '../../../../base/browser/dom.js';
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { MenuId } from '../../../../platform/actions/common/actions.js';
@@ -230,12 +231,12 @@ export class WebviewViewPane extends ViewPane {
 				},
 
 				show: (preserveFocus) => {
-					this.viewService.openView(this.id, !preserveFocus);
+					this.viewService.openView(this.id, !preserveFocus).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			};
 
 			await this.webviewViewService.resolve(this.id, webviewView, source.token);
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	protected override updateTitle(value: string | undefined) {
