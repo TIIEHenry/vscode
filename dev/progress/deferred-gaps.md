@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D802 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D804、D806–D807 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1164,3 +1164,7 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D800 | P3 | **closed** leftover Promise 双链 extensionManagement 3 新点，溢到 assignment + textMate。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`extensionManagementLeftoverPromiseCatchScanD800.test.ts`。勿 add `out`。 | 五处双链。未关 D24。leftover 程序未全局完成。 | workbench / extensionManagement leftover remaining | closed |
 | D801 | P3 | **closed** leftover Promise 双链 services/workspaces 八处：addRecentlyOpened×3；trust then/updateValue；openWorkspaceConfigFile；reload；startExtensionHosts。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`workspacesServiceLeftoverPromiseCatchScanD801.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / workspaces leftover remaining | closed |
 | D802 | P3 | **closed** leftover Promise 双链 services/host 八处：clearToasts×2；doOpen folder/workspace；openEditors；wait-marker IIFE；withServices PromiseLike；clearToast。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`hostLeftoverPromiseCatchScanD802.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / host leftover remaining | closed |
+| D803 | P3 | **closed** leftover Promise 双链 configurationResolver 0 点，溢到 timer + onboarding + relauncher 八处。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；`timerLeftoverPromiseCatchScanD803.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / timer leftover remaining | closed |
+| D804 | P3 | **closed** leftover Promise 双链 emmet/editTelemetry 不足 4 点，溢到 timeline 八处。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`timelineLeftoverPromiseCatchScanD804.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / timeline leftover remaining | closed |
+| D806 | P3 | **closed** leftover Promise 双链 services/path 0 点，溢到 sharedProcess + auxiliaryWindow + mcp 七处。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`sharedProcessAuxiliaryWindowMcpLeftoverPromiseCatchScanD806.test.ts`。勿 add `out`。 | 七处双链。未关 D24。leftover 程序未全局完成。 | workbench / sharedProcess leftover remaining | closed |
+| D807 | P3 | **closed** leftover Promise 双链 workingCopy 七处：restoreBackups；doDiscardBackup；onDidRunFileOperation；onDidFilesChange；storeAll；reload IIFE；elevated save。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`workingCopyLeftoverPromiseCatchScanD807.test.ts`。勿 add `out`。 | 七处双链。未关 D24。leftover 程序未全局完成。 | workbench / workingCopy leftover remaining | closed |

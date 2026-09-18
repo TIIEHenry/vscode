@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-17
-summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D782、D784–D802。D736/D739/D740/D745 跳过。D783 弃。D24 仍开。不是 leftover/pills 完成。"
+summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D782、D784–D804、D806–D807。D736/D739/D740/D745 跳过。D783 弃。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -14,7 +14,7 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D782、D784�
 | 切片 | 提交 |
 |:-----|:-----|
 | **A SessionStream / L2** | 16/23/30–32/34–39/44/46/50–52；envelope leftover |
-| **catch** | D677–D782、D784–D802 |
+| **catch** | D677–D782、D784–D804、D806–D807 |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
@@ -43,6 +43,9 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D782、D784�
 | TextMate progress | debug progress `new Promise` 永不 settle |
 | workspace Resolve | `resolveCanonicalUris` / `resolveAuthority` `.then().finally()` leftover reject 仍未处理（Resolve 跳过） |
 | host restart | browser `restart()` 未 return/await `reload()`，调用方提前 resolve |
+| variableResolver | `columnNumber` 抛 `Error`，`lineNumber`/`selectedText` 抛 `VariableError` |
+| timeline handleRequest | 空 `catch` 吞掉 provider 失败 |
+| workingCopy whenReady | 赋值 `resolveBackupsToRestore()` / leftover `limiter.queue` reject 可未处理 |
 ## Next
 | 项 | 指针 |
 |:-----|:-----|
