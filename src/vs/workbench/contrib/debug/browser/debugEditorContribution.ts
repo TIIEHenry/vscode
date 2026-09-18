@@ -10,7 +10,7 @@ import { IMouseEvent } from '../../../../base/browser/mouseEvent.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { memoize } from '../../../../base/common/decorators.js';
-import { illegalArgument, onUnexpectedExternalError } from '../../../../base/common/errors.js';
+import { illegalArgument, onUnexpectedError, onUnexpectedExternalError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { visit } from '../../../../base/common/json.js';
 import { setProperty } from '../../../../base/common/jsonEdit.js';
@@ -292,7 +292,7 @@ export class DebugEditorContribution implements IDebugEditorContribution {
 		this.toDispose = [this.defaultHoverLockout, this.altListener, this.displayedStore];
 		this.registerListeners();
 		this.exceptionWidgetVisible = CONTEXT_EXCEPTION_WIDGET_VISIBLE.bindTo(contextKeyService);
-		this.toggleExceptionWidget();
+		this.toggleExceptionWidget().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private registerListeners(): void {
@@ -323,7 +323,7 @@ export class DebugEditorContribution implements IDebugEditorContribution {
 		this.toDispose.push(this.debugService.getViewModel().onDidEvaluateLazyExpression(() => this.updateInlineValuesScheduler.schedule()));
 		this.toDispose.push(this.editor.onDidChangeModel(async () => {
 			this.addDocumentListeners();
-			this.toggleExceptionWidget();
+			this.toggleExceptionWidget().catch(onUnexpectedError).catch(onUnexpectedError);
 			this.hideHoverWidget();
 			this._wordToLineNumbersMap = undefined;
 			const stackFrame = this.debugService.getViewModel().focusedStackFrame;
@@ -345,7 +345,7 @@ export class DebugEditorContribution implements IDebugEditorContribution {
 		}));
 		this.toDispose.push(this.debugService.onDidChangeState((state: State) => {
 			if (state !== State.Stopped) {
-				this.toggleExceptionWidget();
+				this.toggleExceptionWidget().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 

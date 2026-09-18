@@ -9,7 +9,7 @@ import { distinct } from '../../../../base/common/arrays.js';
 import { RunOnceScheduler, raceTimeout } from '../../../../base/common/async.js';
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { isErrorWithActions } from '../../../../base/common/errorMessage.js';
-import * as errors from '../../../../base/common/errors.js';
+import { canceledName, isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { deepClone, equals } from '../../../../base/common/objects.js';
@@ -149,7 +149,7 @@ export class DebugService implements IDebugService {
 				session.configuration.request = 'attach';
 				session.configuration.port = event.port;
 				session.setSubId(event.subId);
-				this.launchOrAttachToSession(session);
+				this.launchOrAttachToSession(session).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 		this.disposables.add(this.extensionHostDebugService.onTerminateSession(event => {
@@ -669,7 +669,7 @@ export class DebugService implements IDebugService {
 			return true;
 		} catch (error) {
 
-			if (errors.isCancellationError(error)) {
+			if (isCancellationError(error)) {
 				// don't show 'canceled' error messages to the user #7906
 				return false;
 			}
@@ -989,8 +989,8 @@ export class DebugService implements IDebugService {
 			try {
 				return await dbg.substituteVariables(folder, config);
 			} catch (err) {
-				if (err.message !== errors.canceledName) {
-					this.showError(err.message, undefined, !!launch?.getConfiguration(config.name));
+				if (err.message !== canceledName) {
+					this.showError(err.message, undefined, !!launch?.getConfiguration(config.name)).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 				return undefined;	// bail out
 			}
