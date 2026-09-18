@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Schemas } from '../../../../base/common/network.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IDisposable, Disposable, DisposableStore, dispose } from '../../../../base/common/lifecycle.js';
 import { parse } from '../../../../base/common/marshalling.js';
 import { extname, isEqual } from '../../../../base/common/resources.js';
@@ -816,7 +817,7 @@ class SimpleNotebookWorkingCopyEditorHandler extends Disposable implements IWork
 	) {
 		super();
 
-		this._installHandler();
+		this._installHandler().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	async handles(workingCopy: IWorkingCopyIdentifier): Promise<boolean> {
