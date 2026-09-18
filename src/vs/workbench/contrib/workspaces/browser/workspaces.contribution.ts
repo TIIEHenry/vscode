@@ -8,6 +8,7 @@ import { Registry } from '../../../../platform/registry/common/platform.js';
 import { Extensions as WorkbenchExtensions, IWorkbenchContributionsRegistry, IWorkbenchContribution } from '../../../common/contributions.js';
 import { LifecyclePhase } from '../../../services/lifecycle/common/lifecycle.js';
 import { hasWorkspaceFileExtension, IWorkspaceContextService, WorkbenchState, WORKSPACE_SUFFIX } from '../../../../platform/workspace/common/workspace.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 import { INeverShowAgainOptions, INotificationService, NeverShowAgainScope, NotificationPriority, Severity } from '../../../../platform/notification/common/notification.js';
@@ -40,7 +41,7 @@ export class WorkspacesFinderContribution extends Disposable implements IWorkben
 	) {
 		super();
 
-		this.findWorkspaces();
+		this.findWorkspaces().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async findWorkspaces(): Promise<void> {
@@ -75,7 +76,7 @@ export class WorkspacesFinderContribution extends Disposable implements IWorkben
 				'https://go.microsoft.com/fwlink/?linkid=2025315'
 			), [{
 				label: localize('openWorkspace', "Open Workspace"),
-				run: () => this.hostService.openWindow([{ workspaceUri: joinPath(folder, workspaceFile) }])
+				run: () => this.hostService.openWindow([{ workspaceUri: joinPath(folder, workspaceFile) }]).catch(onUnexpectedError).catch(onUnexpectedError)
 			}], {
 				neverShowAgain,
 				priority: !this.storageService.isNew(StorageScope.WORKSPACE) ? NotificationPriority.SILENT : NotificationPriority.OPTIONAL // https://github.com/microsoft/vscode/issues/125315
@@ -94,9 +95,9 @@ export class WorkspacesFinderContribution extends Disposable implements IWorkben
 						workspaces.map(workspace => ({ label: workspace } satisfies IQuickPickItem)),
 						{ placeHolder: localize('selectToOpen', "Select a workspace to open") }).then(pick => {
 							if (pick) {
-								this.hostService.openWindow([{ workspaceUri: joinPath(folder, pick.label) }]);
+								this.hostService.openWindow([{ workspaceUri: joinPath(folder, pick.label) }]).catch(onUnexpectedError).catch(onUnexpectedError);
 							}
-						});
+						}).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}], {
 				neverShowAgain,
