@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D820 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D821 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1178,6 +1178,8 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D814 | P3 | **closed** leftover Promise 双链 dataChannel 1 点溢到 remote registerChannel + authentication queue 共五处。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`dataChannelRemoteAuthenticationLeftoverPromiseCatchScanD814.test.ts`。勿 add `out`。 | 五处双链。未关 D24。leftover 程序未全局完成。 | workbench / dataChannel leftover remaining | closed |
 | D815 | P3 | **closed** leftover Promise 双链 views 不足 4 点，溢到 extensions checkForUpdates 六处。loopCheck/openView 因已有扫描锁 leftover 未合。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`extensionsLeftoverPromiseCatchScanD815.test.ts`。勿 add `out`。 | 六处双链。未关 D24。leftover 程序未全局完成。 | workbench / extensions leftover remaining | closed |
 | D816 | P3 | **closed** leftover Promise 双链 keybindingsExport 0 点，溢到 imageCarousel updateCurrentImage 六处。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`imageCarouselLeftoverPromiseCatchScanD816.test.ts`。勿 add `out`。 | 六处双链。未关 D24。leftover 程序未全局完成。 | workbench / imageCarousel leftover remaining | closed |
+| D817 | P3 | **closed** leftover Promise 双链 userActivity/unused leftover remaining 0 点，溢到 settingsEditor2 leftover remaining 八处。D794 `onConfigUpdate(undefined, true, true)` 锁 leftover。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`settingsEditor2LeftoverPromiseCatchScanD817.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / settings leftover remaining | closed |
 | D818 | P3 | **closed** leftover Promise 双链 folding/inlayHints/languageStatus 不足 4 点，溢到 policyExport + quickaccess + themes.test + lifecycle veto 四处。suggest 赋值 then 跳过。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`unusedLeftoverPromiseCatchScanD818.test.ts`。勿 add `out`。 | 四处双链。未关 D24。leftover 程序未全局完成。 | workbench / unused leftover remaining | closed |
 | D819 | P3 | **closed** leftover Promise 双链 notification leftover remaining 0 点，溢到 extensionsWorkbench leftover remaining 八处：autoUpdateBuiltinExtensions×2；syncPinnedBuiltinExtensions；updateRunningExtensions×2；syncInstalledExtensionsWithGallery×3。checkForUpdates 已双链。loopCheck/openView 锁 leftover。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`extensionsLeftoverPromiseCatchScanD819.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / extensions leftover remaining | closed |
 | D820 | P3 | **closed** leftover Promise 双链 unused leftover remaining 八处：emergencyAlert fetchAlerts×2；encryption migrateToGnomeLibsecret；ignoredRecommendations init；update checkForUpdates；remoteUserDataProfiles cleanUp；welcomeAgentSessions openSessionInChat / revealMaximizedChat。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`unusedLeftoverPromiseCatchScanD820.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / unused leftover remaining | closed |
+| D821 | P3 | **closed** leftover Promise 双链 unused leftover remaining after D820 0 点，溢到 accountPolicy leftover remaining 八处 `_updatePolicyDefinitions`。configuration leftover 仍 leftover。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`accountPolicyLeftoverPromiseCatchScanD821.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / accountPolicy leftover remaining | closed |
