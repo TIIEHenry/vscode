@@ -206,7 +206,7 @@ class DropOverlay extends Themable {
 
 				// Handle drop if we have a valid operation
 				if (this.currentDropOperation) {
-					this.handleDrop(e, this.currentDropOperation.splitDirection);
+					this.handleDrop(e, this.currentDropOperation.splitDirection).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 		}));
