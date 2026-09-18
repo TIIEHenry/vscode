@@ -14,6 +14,7 @@ import { IInputBoxStyles, IMessage, InputBox } from '../../../../base/browser/ui
 import { Widget } from '../../../../base/browser/ui/widget.js';
 import { Action } from '../../../../base/common/actions.js';
 import { Delayer, disposableTimeout } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { CONTEXT_FIND_WIDGET_NOT_VISIBLE } from '../../../../editor/contrib/find/browser/findModel.js';
@@ -673,12 +674,12 @@ export class SearchWidget extends Widget {
 								10; // only things matching empty string
 
 
-					this.submitSearch(true, this.searchConfiguration.searchOnTypeDebouncePeriod * delayMultiplier);
+					this.submitSearch(true, this.searchConfiguration.searchOnTypeDebouncePeriod * delayMultiplier).catch(onUnexpectedError).catch(onUnexpectedError);
 				} catch {
 					// pass
 				}
 			} else {
-				this.submitSearch(true, this.searchConfiguration.searchOnTypeDebouncePeriod);
+				this.submitSearch(true, this.searchConfiguration.searchOnTypeDebouncePeriod).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 	}
@@ -691,7 +692,7 @@ export class SearchWidget extends Widget {
 
 		if (keyboardEvent.equals(KeyCode.Enter)) {
 			this.searchInput?.onSearchSubmit();
-			this.submitSearch();
+			this.submitSearch().catch(onUnexpectedError).catch(onUnexpectedError);
 			keyboardEvent.preventDefault();
 		}
 
@@ -779,7 +780,7 @@ export class SearchWidget extends Widget {
 		}
 
 		if (keyboardEvent.equals(KeyCode.Enter)) {
-			this.submitSearch();
+			this.submitSearch().catch(onUnexpectedError).catch(onUnexpectedError);
 			keyboardEvent.preventDefault();
 		}
 
