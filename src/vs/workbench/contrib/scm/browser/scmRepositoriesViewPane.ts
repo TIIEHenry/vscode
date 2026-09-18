@@ -525,7 +525,7 @@ export class SCMRepositoriesViewPane extends ViewPane {
 				this.scmService.onDidAddRepository(this.onDidAddRepository, this, this.visibilityDisposables);
 				this.scmService.onDidRemoveRepository(this.onDidRemoveRepository, this, this.visibilityDisposables);
 				for (const repository of this.scmService.repositories) {
-					this.onDidAddRepository(repository);
+					this.onDidAddRepository(repository).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 
 				// Expand repository if there is only one
