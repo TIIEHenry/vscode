@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { ISharedProcessService } from '../../../../platform/ipc/electron-browser/services.js';
@@ -29,7 +30,7 @@ export class McpGalleryManifestService extends WorkbenchMcpGalleryManifestServic
 		this.getMcpGalleryManifest().then(manifest => {
 			channel.call('setMcpGalleryManifest', [manifest]);
 			this._register(this.onDidChangeMcpGalleryManifest(manifest => channel.call('setMcpGalleryManifest', [manifest])));
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 }

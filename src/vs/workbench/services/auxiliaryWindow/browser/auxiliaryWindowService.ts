@@ -455,7 +455,7 @@ export class BrowserAuxiliaryWindowService extends Disposable implements IAuxili
 		const mapOriginalToClone = new Map<Node /* original */, Node /* clone */>();
 
 		const stylesLoaded = new Barrier();
-		stylesLoaded.wait().then(() => mark('code/auxiliaryWindow/didLoadCSSStyles'));
+		stylesLoaded.wait().then(() => mark('code/auxiliaryWindow/didLoadCSSStyles')).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		const pendingLinksDisposables = disposables.add(new DisposableStore());
 
