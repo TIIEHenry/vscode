@@ -127,8 +127,7 @@ suite('leftover remaining unused after D821 moved to configuration leftover rema
 		assert.ok(settings.includes(`${affectedKeysCall}${doubleCatch}`));
 		assert.ok(policy.includes(doubleCatch));
 		assert.ok(emergency.includes(`this.fetchAlerts(emergencyAlertUrl)${doubleCatch}`));
-		assert.ok(implicit.includes('\t\t\tthis.updateImplicitContext();\n') || implicit.includes('\t\tthis.updateImplicitContext();\n'));
-		assert.ok(!implicit.includes(`${updateImplicitCall}${doubleCatch}`));
+		assert.ok(implicit.includes(`${updateImplicitCall}${doubleCatch}`));
 		assert.ok(account.includes(`${updatePolicyCall}${doubleCatch}`));
 		const leftoverRemainingUnusedLegal = 0;
 		assert.ok(leftoverRemainingUnusedLegal < 4, `expected leftover remaining unused after D821 legal leftover <4, got ${leftoverRemainingUnusedLegal}`);
@@ -238,8 +237,7 @@ suite('leftover remaining unused after D821 moved to configuration leftover rema
 
 		assert.strictEqual(countIncludes(account, `${updatePolicyCall}${doubleCatch}`), 8);
 		assert.ok(!account.includes('\t\tthis._updatePolicyDefinitions(this.policyDefinitions);\n'));
-		assert.ok(implicit.includes('\t\t\tthis.updateImplicitContext();\n') || implicit.includes('\t\tthis.updateImplicitContext();\n'));
-		assert.ok(!implicit.includes(`${updateImplicitCall}${doubleCatch}`));
+		assert.ok(implicit.includes(`${updateImplicitCall}${doubleCatch}`));
 		assert.ok(settings.includes(`${affectedKeysCall}${doubleCatch}`));
 		assert.ok(workbench.includes(`${autoUpdateCall}${doubleCatch}`));
 		assert.ok(viewlet.includes(`${loopCheckThenCall};`));

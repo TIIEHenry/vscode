@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D821、D823、D825–D826 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D821、D823、D825–D827、D829 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1186,3 +1186,5 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D823 | P3 | **closed** leftover Promise 双链 unused leftover remaining after D820 0 点，溢到 chatImplicitContext leftover remaining 八处 updateImplicitContext。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`chatImplicitContextLeftoverPromiseCatchScanD823.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / chat leftover remaining | closed |
 | D825 | P3 | **closed** leftover Promise 双链 chatEntitlement leftover remaining 七处 update/resolve。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`chatEntitlementLeftoverPromiseCatchScanD825.test.ts`。勿 add `out`。 | 七处双链。未关 D24。leftover 程序未全局完成。 | workbench / chatEntitlement leftover remaining | closed |
 | D826 | P3 | **closed** leftover Promise 双链 extensionEnablement leftover remaining 八处。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；`extensionEnablementLeftoverPromiseCatchScanD826.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / extensionEnablement leftover remaining | closed |
+| D827 | P3 | **closed** leftover Promise 双链 unused leftover remaining after D821 0 点，溢到 configuration leftover remaining 七处：updateCache×4；updateCachedConfigurationDefaultsOverrides×2；waitAndInitialize。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`configurationLeftoverPromiseCatchScanD827.test.ts`。勿 add `out`。 | 七处双链。未关 D24。leftover 程序未全局完成。 | workbench / configuration leftover remaining | closed |
+| D829 | P3 | **closed** leftover Promise 双链 unused leftover remaining after D823 0 点，溢到 chatEditing leftover remaining 十处 initializeModelsFromDiff。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`chatEditingLeftoverPromiseCatchScanD829.test.ts`。勿 add `out`。 | 十处双链。未关 D24。leftover 程序未全局完成。 | workbench / chatEditing leftover remaining | closed |
