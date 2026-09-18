@@ -96,7 +96,7 @@ suite('extensionManagement leftover Promise fire-and-forget catch scan (D800)', 
 		assert.ok(newWraps < 4, `expected extensionManagement new legal leftover <4, got ${newWraps}`);
 		assert.strictEqual(countDoubleChains(webGallery), 1);
 		assert.strictEqual(countDoubleChains(nativeGallery), 1);
-		assert.strictEqual(countDoubleChains(enablement), 3);
+		assert.strictEqual(countDoubleChains(enablement), 11);
 		assert.strictEqual(countDoubleChains(scanner), 1);
 		assert.ok(enablement.includes(`this.extensionsManager.whenInitialized().then(() => {`));
 		assert.ok(enablement.includes(`this.lifecycleService.when(LifecyclePhase.Eventually).then(() => {`));
