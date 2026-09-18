@@ -34,6 +34,7 @@ import { IPaneCompositePartService } from '../../panecomposite/browser/panecompo
 import { ICommandActionTitle, ILocalizedString } from '../../../../platform/action/common/action.js';
 import { IEditorService } from '../../editor/common/editorService.js';
 import { IViewsService } from '../common/viewsService.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 
 export class ViewsService extends Disposable implements IViewsService {
 
@@ -153,7 +154,7 @@ export class ViewsService extends Disposable implements IViewsService {
 			this.layoutService.isVisible(this.paneCompositeService.getPartId(to)) &&
 			this.viewDescriptorService.getViewContainersByLocation(to).filter(vc => this.isViewContainerActive(vc.id)).length === 1
 		) {
-			this.openViewContainer(viewContainer.id);
+			this.openViewContainer(viewContainer.id).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -596,7 +597,7 @@ export class ViewsService extends Disposable implements IViewsService {
 				});
 			}
 			run(accessor: ServicesAccessor, options?: { preserveFocus?: boolean }): void {
-				accessor.get(IViewsService).openView(viewDescriptor.id, !options?.preserveFocus);
+				accessor.get(IViewsService).openView(viewDescriptor.id, !options?.preserveFocus).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		});
 	}
@@ -632,7 +633,7 @@ export class ViewsService extends Disposable implements IViewsService {
 				}
 
 				viewDescriptorService.moveViewsToContainer([viewDescriptor], defaultContainer, undefined, this.desc.id);
-				accessor.get(IViewsService).openView(viewDescriptor.id, true);
+				accessor.get(IViewsService).openView(viewDescriptor.id, true).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		});
 	}
