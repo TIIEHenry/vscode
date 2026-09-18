@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D821、D823–D827、D829、D835 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D821、D823–D829、D835 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1190,3 +1190,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D829 | P3 | **closed** leftover Promise 双链 unused leftover remaining after D823 0 点，溢到 chatEditing leftover remaining 十处 initializeModelsFromDiff。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`chatEditingLeftoverPromiseCatchScanD829.test.ts`。勿 add `out`。 | 十处双链。未关 D24。leftover 程序未全局完成。 | workbench / chatEditing leftover remaining | closed |
 | D824 | P3 | **closed** leftover Promise 双链 unused leftover remaining after D821 0 点，溢到 mcp leftover remaining 六处：sync；migrateMcpConfig；open×4。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`mcpLeftoverPromiseCatchScanD824.test.ts`。勿 add `out`。 | 六处双链。未关 D24。leftover 程序未全局完成。 | workbench / mcp leftover remaining | closed |
 | D835 | P3 | **closed** leftover Promise 双链 leftover remaining unused aiCustomization 六处：showEmbeddedMcpDetail；showPluginDetail；showEmbeddedPluginDetail；showEmbeddedToolDetail；openSkillFromPluginDetail；openPromptsItemFromPluginDetail。layoutSidebar / showCustomizationMigrationPage / updateContentVisibility / goBackFrom* 是 sync void。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`aiCustomizationLeftoverPromiseCatchScanD835.test.ts`。勿 add `out`。 | 六处双链。未关 D24。leftover 程序未全局完成。 | workbench / aiCustomization leftover remaining | closed |
+| D828 | P3 | **closed** leftover Promise 双链 leftover remaining unused welcomeGettingStarted 八处：scrollToCategory×3；runDispatchCommand×3；scrollPrev；selectStep(argument)。其余 selectStep / scrollPrev leftover 仍 leftover。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；`welcomeGettingStartedLeftoverPromiseCatchScanD828.test.ts`。勿 add `out`。勿 add D752。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / welcomeGettingStarted leftover remaining | closed |
