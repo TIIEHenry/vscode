@@ -224,11 +224,9 @@ suite('unused leftover remaining after D820 moved to chatImplicitContext leftove
 		assert.ok(widgets.includes(`${openViewThenCall};`));
 		assert.ok(!widgets.includes(`${openViewThenCall}${doubleCatch}`));
 
-		assert.ok(entitlement.includes('\t\t\t\tthis.update(cts.value.token);\n'));
-		assert.ok(entitlement.includes('\t\tthis.resolve();\n'));
-		assert.ok(!entitlement.includes(`this.update(cts.value.token)${doubleCatch}`));
-		assert.ok(!entitlement.includes(`this.resolve()${doubleCatch}`));
-		assert.ok(!entitlement.includes(doubleCatch));
+		assert.ok(entitlement.includes(`this.update(cts.value.token)${doubleCatch}`));
+		assert.ok(entitlement.includes(`this.resolve()${doubleCatch}`));
+		assert.ok(countDoubleChains(entitlement) >= 1, 'D825 already-double chatEntitlement leftover remaining');
 
 		assert.ok(typeContrib.includes(doubleCatch));
 		assert.ok(callContrib.includes(doubleCatch));

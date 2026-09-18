@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D821 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D821、D823、D825–D826 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1183,3 +1183,6 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D819 | P3 | **closed** leftover Promise 双链 notification leftover remaining 0 点，溢到 extensionsWorkbench leftover remaining 八处：autoUpdateBuiltinExtensions×2；syncPinnedBuiltinExtensions；updateRunningExtensions×2；syncInstalledExtensionsWithGallery×3。checkForUpdates 已双链。loopCheck/openView 锁 leftover。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`extensionsLeftoverPromiseCatchScanD819.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / extensions leftover remaining | closed |
 | D820 | P3 | **closed** leftover Promise 双链 unused leftover remaining 八处：emergencyAlert fetchAlerts×2；encryption migrateToGnomeLibsecret；ignoredRecommendations init；update checkForUpdates；remoteUserDataProfiles cleanUp；welcomeAgentSessions openSessionInChat / revealMaximizedChat。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`unusedLeftoverPromiseCatchScanD820.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / unused leftover remaining | closed |
 | D821 | P3 | **closed** leftover Promise 双链 unused leftover remaining after D820 0 点，溢到 accountPolicy leftover remaining 八处 `_updatePolicyDefinitions`。configuration leftover 仍 leftover。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 J；`accountPolicyLeftoverPromiseCatchScanD821.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / accountPolicy leftover remaining | closed |
+| D823 | P3 | **closed** leftover Promise 双链 unused leftover remaining after D820 0 点，溢到 chatImplicitContext leftover remaining 八处 updateImplicitContext。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`chatImplicitContextLeftoverPromiseCatchScanD823.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / chat leftover remaining | closed |
+| D825 | P3 | **closed** leftover Promise 双链 chatEntitlement leftover remaining 七处 update/resolve。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`chatEntitlementLeftoverPromiseCatchScanD825.test.ts`。勿 add `out`。 | 七处双链。未关 D24。leftover 程序未全局完成。 | workbench / chatEntitlement leftover remaining | closed |
+| D826 | P3 | **closed** leftover Promise 双链 extensionEnablement leftover remaining 八处。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；`extensionEnablementLeftoverPromiseCatchScanD826.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / extensionEnablement leftover remaining | closed |
