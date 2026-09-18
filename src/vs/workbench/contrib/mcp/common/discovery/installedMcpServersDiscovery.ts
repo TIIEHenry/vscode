@@ -5,6 +5,7 @@
 
 import { equals } from '../../../../../base/common/arrays.js';
 import { Throttler } from '../../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Disposable, DisposableMap, DisposableStore, IDisposable } from '../../../../../base/common/lifecycle.js';
 import { ResourceMap } from '../../../../../base/common/map.js';
 import { ISettableObservable, observableValue } from '../../../../../base/common/observable.js';
@@ -43,7 +44,7 @@ export class InstalledMcpServersDiscovery extends Disposable implements IMcpDisc
 	public start(): void {
 		const throttler = this._register(new Throttler());
 		this._register(this.mcpWorkbenchService.onChange(() => throttler.queue(() => this.sync())));
-		this.sync();
+		this.sync().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async getServerIdMapping(resource: URI, pathToServers: string[]): Promise<Map<string, Location>> {

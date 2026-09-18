@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ConfigurationTarget } from '../../../../platform/configuration/common/configuration.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
@@ -43,7 +44,7 @@ export class McpConfigMigrationContribution extends Disposable implements IWorkb
 		@ICommandService private readonly commandService: ICommandService,
 	) {
 		super();
-		this.migrateMcpConfig();
+		this.migrateMcpConfig().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async migrateMcpConfig(): Promise<void> {
