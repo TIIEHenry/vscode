@@ -8,6 +8,7 @@ import { InstantiationType, registerSingleton } from '../../../../platform/insta
 import { IDynamicAuthenticationProviderStorageService, DynamicAuthenticationProviderInfo, DynamicAuthenticationProviderTokensChangeEvent } from '../common/dynamicAuthenticationProviderStorage.js';
 import { ISecretStorageService } from '../../../../platform/secrets/common/secrets.js';
 import { IAuthorizationTokenResponse, isAuthorizationTokenResponse } from '../../../../base/common/oauth.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
@@ -45,7 +46,7 @@ export class DynamicAuthenticationProviderStorageService extends Disposable impl
 						clientId: payload.clientId,
 						tokens
 					});
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}

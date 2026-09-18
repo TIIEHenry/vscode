@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { disposableTimeout } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable, DisposableMap, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { autorun, ISettableObservable, observableValue } from '../../../../base/common/observable.js';
@@ -336,7 +337,7 @@ export class LinkPresentationService extends Disposable implements ILinkPresenta
 			}
 			return;
 		}
-		void this._activateExtensionProvider(entry, provider, generation);
+		void this._activateExtensionProvider(entry, provider, generation).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async _activateExtensionProvider(entry: SharedLinkPresentationEntry, provider: ISelectedLinkPresentationProvider, generation: number): Promise<void> {
