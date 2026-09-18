@@ -149,7 +149,7 @@ suite('leftover remaining unused extensionEnablement leftover async this.foo() F
 		const unusedLeftoverRemainingLegal = 0;
 		assert.ok(unusedLeftoverRemainingLegal < 4, `expected unused leftover remaining legal leftover <4, got ${unusedLeftoverRemainingLegal}`);
 		let sites = 0;
-		for (const [, call, count] of d826Calls) {
+		for (const [, call] of d826Calls) {
 			sites += countIncludes(enablement, `${call}${doubleCatch}`);
 		}
 		assert.ok(sites >= 4, `expected leftover remaining unused extensionEnablement legal leftover >=4, got ${sites}`);
