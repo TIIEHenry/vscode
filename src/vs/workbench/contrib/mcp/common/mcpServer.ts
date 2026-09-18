@@ -818,7 +818,7 @@ export class McpServer extends Disposable implements IMcpServer {
 				this._connection.set(connection, undefined);
 
 				if (connection.definition.devMode) {
-					this.showOutput();
+					this.showOutput().catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 

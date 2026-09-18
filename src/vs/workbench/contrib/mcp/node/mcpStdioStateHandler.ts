@@ -5,6 +5,7 @@
 
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import { TimeoutTimer } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IDisposable } from '../../../../base/common/lifecycle.js';
 import { killTree } from '../../../../base/node/processes.js';
 import { isWindows } from '../../../../base/common/platform.js';
@@ -55,16 +56,16 @@ export class McpStdioStateHandler implements IDisposable {
 				graceTime = 1;
 			}
 			this._procState = McpProcessState.StdinEnded;
-			this._nextTimeout = new TimeoutTimer(() => this.killPolite(), graceTime);
+			this._nextTimeout = new TimeoutTimer(() => this.killPolite().catch(onUnexpectedError).catch(onUnexpectedError), graceTime);
 		} else {
 			this._nextTimeout?.dispose();
-			this.killForceful();
+			this.killForceful().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
 	private async killPolite() {
 		this._procState = McpProcessState.KilledPolite;
-		this._nextTimeout = new TimeoutTimer(() => this.killForceful(), this._graceTimeMs);
+		this._nextTimeout = new TimeoutTimer(() => this.killForceful().catch(onUnexpectedError).catch(onUnexpectedError), this._graceTimeMs);
 
 		if (this._child.pid) {
 			if (!isWindows) {

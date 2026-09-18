@@ -6,6 +6,7 @@
 import { DeferredPromise, disposableTimeout, RunOnceScheduler } from '../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { DisposableStore, IDisposable, toDisposable, Disposable } from '../../../../base/common/lifecycle.js';
 import { autorun, derived, observableValue, IObservable } from '../../../../base/common/observable.js';
@@ -168,7 +169,7 @@ export class McpResourcePickHelper extends Disposable {
 		const noop = 'noop';
 		if (this._isDirectoryResource(resource)) {
 			//Check if directory
-			this.checkIfDirectoryAndPopulate(resource, server);
+			this.checkIfDirectoryAndPopulate(resource, server).catch(onUnexpectedError).catch(onUnexpectedError);
 			return noop;
 		}
 		if (isMcpResourceTemplate(resource)) {
