@@ -6,6 +6,7 @@
 import { Action } from '../../../../base/common/actions.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { joinPath } from '../../../../base/common/resources.js';
@@ -99,7 +100,7 @@ export class RuntimeExtensionsEditor extends AbstractRuntimeExtensionsEditor {
 		this._register(this._extensionHostProfileService.onDidChangeLastProfile(() => {
 			this._profileInfo = this._extensionHostProfileService.lastProfile;
 			this._extensionsHostRecorded.set(!!this._profileInfo);
-			this._updateExtensions();
+			this._updateExtensions().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(this._extensionHostProfileService.onDidChangeState(() => {
 			const state = this._extensionHostProfileService.state;

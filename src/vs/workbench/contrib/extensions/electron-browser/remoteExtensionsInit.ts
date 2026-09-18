@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IEnvironmentService } from '../../../../platform/environment/common/environment.js';
 import { EXTENSION_INSTALL_SKIP_PUBLISHER_TRUST_CONTEXT, IExtensionGalleryService, IExtensionManagementService, InstallExtensionInfo } from '../../../../platform/extensionManagement/common/extensionManagement.js';
@@ -130,7 +131,7 @@ export class RemoteExtensionsInitializerContribution implements IWorkbenchContri
 		@IRemoteAuthorityResolverService private readonly remoteAuthorityResolverService: IRemoteAuthorityResolverService,
 		@IUserDataSyncEnablementService private readonly userDataSyncEnablementService: IUserDataSyncEnablementService,
 	) {
-		this.initializeRemoteExtensions();
+		this.initializeRemoteExtensions().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async initializeRemoteExtensions(): Promise<void> {
