@@ -197,7 +197,7 @@ abstract class AbstractGlobalActivityActionViewItem extends CompositeBarActionVi
 			const isLeftClick = e?.button !== 2;
 			// Left-click run
 			if (isLeftClick) {
-				this.run();
+				this.run().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -224,13 +224,13 @@ abstract class AbstractGlobalActivityActionViewItem extends CompositeBarActionVi
 			const event = new StandardKeyboardEvent(e);
 			if (event.equals(KeyCode.Enter) || event.equals(KeyCode.Space)) {
 				EventHelper.stop(e, true);
-				this.run();
+				this.run().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
 		this._register(addDisposableListener(this.container, TouchEventType.Tap, (e: GestureEvent) => {
 			EventHelper.stop(e, true);
-			this.run();
+			this.run().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 
@@ -305,7 +305,7 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 		super(MenuId.AccountsContext, action, options, contextMenuActionsProvider, contextMenuAlignmentOptions, themeService, hoverService, menuService, contextMenuService, contextKeyService, configurationService, keybindingService, activityService);
 		this._register(action);
 		this.registerListeners();
-		this.initialize();
+		this.initialize().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private registerListeners(): void {
