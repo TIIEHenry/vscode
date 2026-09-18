@@ -155,8 +155,8 @@ suite('leftover remaining unused after D829 moved to inlineCompletions leftover 
 		assert.ok(!unification.includes('registerAction2'));
 		assert.ok(!unification.includes('.then(undefined,'));
 		assert.ok(!unification.includes('.then('));
-		assert.ok(unification.includes('return this._isExtensionUnificationActive()'));
-		assert.ok(!unification.includes(`return this._isExtensionUnificationActive()${doubleCatch}`));
+		assert.ok(unification.includes('this._isExtensionUnificationActive()'));
+		assert.ok(!unification.includes(`this._isExtensionUnificationActive()${doubleCatch}`));
 		assert.ok(!unification.includes(`${doubleCatch}.catch(onUnexpectedError)`));
 
 		for (const source of [unification]) {
