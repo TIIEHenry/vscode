@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { ILabelService } from '../../../../platform/label/common/label.js';
@@ -47,7 +48,7 @@ export class TerminalMainContribution extends Disposable implements IWorkbenchCo
 			terminalEditorService,
 			terminalGroupService,
 			terminalInstanceService
-		);
+		).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async _init(

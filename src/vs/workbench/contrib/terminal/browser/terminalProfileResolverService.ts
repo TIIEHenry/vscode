@@ -67,10 +67,10 @@ export abstract class BaseTerminalProfileResolverService extends Disposable impl
 			if (e.affectsConfiguration(TerminalSettingId.DefaultProfileWindows) ||
 				e.affectsConfiguration(TerminalSettingId.DefaultProfileMacOs) ||
 				e.affectsConfiguration(TerminalSettingId.DefaultProfileLinux)) {
-				this._refreshDefaultProfileName();
+				this._refreshDefaultProfileName().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
-		this._register(this._terminalProfileService.onDidChangeAvailableProfiles(() => this._refreshDefaultProfileName()));
+		this._register(this._terminalProfileService.onDidChangeAvailableProfiles(() => this._refreshDefaultProfileName().catch(onUnexpectedError).catch(onUnexpectedError)));
 	}
 
 	@debounce(200)

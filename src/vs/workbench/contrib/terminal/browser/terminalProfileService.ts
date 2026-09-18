@@ -145,7 +145,7 @@ export class TerminalProfileService extends Disposable implements ITerminalProfi
 
 	@throttle(2000)
 	refreshAvailableProfiles(): void {
-		this._refreshAvailableProfilesNow();
+		this._refreshAvailableProfilesNow().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	protected async _refreshAvailableProfilesNow(): Promise<void> {

@@ -29,6 +29,7 @@ import { Disposable, DisposableStore, dispose, IDisposable, toDisposable } from 
 import { IListDragAndDrop, IListDragOverReaction, IListRenderer, ListDragOverEffectPosition, ListDragOverEffectType } from '../../../../base/browser/ui/list/list.js';
 import { DataTransfers, IDragAndDropData } from '../../../../base/browser/dnd.js';
 import { disposableTimeout } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { ElementsDragAndDropData, ListViewTargetSector, NativeDragAndDropData } from '../../../../base/browser/ui/list/listView.js';
 import { URI } from '../../../../base/common/uri.js';
 import { getColorClass, getIconId, getUriClasses } from './terminalIcon.js';
@@ -737,7 +738,7 @@ class TerminalTabsDragAndDrop extends Disposable implements IListDragAndDrop<ITe
 
 		if (sourceInstances === undefined) {
 			if (!(data instanceof ElementsDragAndDropData)) {
-				this._handleExternalDrop(targetInstance, originalEvent);
+				this._handleExternalDrop(targetInstance, originalEvent).catch(onUnexpectedError).catch(onUnexpectedError);
 				return;
 			}
 
