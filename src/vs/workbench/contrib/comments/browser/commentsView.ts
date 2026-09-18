@@ -6,6 +6,7 @@
 import './media/panel.css';
 import * as nls from '../../../../nls.js';
 import * as dom from '../../../../base/browser/dom.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { basename } from '../../../../base/common/resources.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
@@ -190,7 +191,7 @@ export class CommentsPanel extends FilterViewPane implements ICommentsView {
 				this.updateFilter();
 			}
 			if (event.sortBy) {
-				this.refresh();
+				this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 		this._register(this.filterWidget.onDidChangeFilterText(() => this.updateFilter()));
@@ -273,7 +274,7 @@ export class CommentsPanel extends FilterViewPane implements ICommentsView {
 
 		this._register(this.onDidChangeBodyVisibility(visible => {
 			if (visible) {
-				this.refresh();
+				this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -532,7 +533,7 @@ export class CommentsPanel extends FilterViewPane implements ICommentsView {
 				unresolved++;
 			}
 		}
-		this.refresh();
+		this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private onCommentsUpdated(e: ICommentThreadChangedEvent): void {
@@ -549,13 +550,13 @@ export class CommentsPanel extends FilterViewPane implements ICommentsView {
 				}
 			}
 		}
-		this.refresh();
+		this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private onDataProviderDeleted(owner: string | undefined): void {
 		this.cachedFilterStats = undefined;
 		this.totalComments = 0;
-		this.refresh();
+		this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private updateSomeCommentsExpanded() {
