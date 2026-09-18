@@ -1480,9 +1480,9 @@ class SettingsEditorContribution extends Disposable {
 		@IWorkspaceContextService private readonly workspaceContextService: IWorkspaceContextService
 	) {
 		super();
-		this._createPreferencesRenderer();
-		this._register(this.editor.onDidChangeModel(e => this._createPreferencesRenderer()));
-		this._register(this.workspaceContextService.onDidChangeWorkbenchState(() => this._createPreferencesRenderer()));
+		this._createPreferencesRenderer().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._register(this.editor.onDidChangeModel(e => this._createPreferencesRenderer().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.workspaceContextService.onDidChangeWorkbenchState(() => this._createPreferencesRenderer().catch(onUnexpectedError).catch(onUnexpectedError)));
 	}
 
 	private async _createPreferencesRenderer(): Promise<void> {

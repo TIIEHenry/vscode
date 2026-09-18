@@ -7,6 +7,7 @@
 import './media/keybindingsEditor.css';
 import { localize } from '../../../../nls.js';
 import { Delayer } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import * as DOM from '../../../../base/browser/dom.js';
 import { isIOS, OS } from '../../../../base/common/platform.js';
 import { Disposable, DisposableStore, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
@@ -134,7 +135,7 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 	) {
 		super(KeybindingsEditor.ID, group, telemetryService, themeService, storageService);
 		this.delayedFiltering = this._register(new Delayer<void>(300));
-		this._register(keybindingsService.onDidUpdateKeybindings(() => this.render(!!this.keybindingFocusContextKey.get())));
+		this._register(keybindingsService.onDidUpdateKeybindings(() => this.render(!!this.keybindingFocusContextKey.get()).catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.keybindingsEditorContextKey = CONTEXT_KEYBINDINGS_EDITOR.bindTo(this.contextKeyService);
 		this.searchFocusContextKey = CONTEXT_KEYBINDINGS_SEARCH_FOCUS.bindTo(this.contextKeyService);
@@ -552,7 +553,7 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 			}
 			const activeKeybindingEntry = this.activeKeybindingEntry;
 			if (activeKeybindingEntry) {
-				this.defineKeybinding(activeKeybindingEntry, false);
+				this.defineKeybinding(activeKeybindingEntry, false).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
