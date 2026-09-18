@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { getErrorMessage } from '../../../../base/common/errors.js';
+import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { parse } from '../../../../base/common/json.js';
 import { Disposable, IDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
@@ -337,7 +337,7 @@ export class PreferencesService extends Disposable implements IPreferencesServic
 				target: ConfigurationTarget.USER_REMOTE,
 			};
 
-			this.open(environment.settingsPath, options);
+			this.open(environment.settingsPath, options).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 		return undefined;
 	}
@@ -733,7 +733,7 @@ export class PreferencesService extends Disposable implements IPreferencesServic
 		const settingInfo = uri.path.split('/').filter(part => !!part);
 		const settingId = ((settingInfo.length > 0) ? settingInfo[0] : undefined);
 		if (!settingId) {
-			this.openSettings();
+			this.openSettings().catch(onUnexpectedError).catch(onUnexpectedError);
 			return true;
 		}
 
@@ -750,7 +750,7 @@ export class PreferencesService extends Disposable implements IPreferencesServic
 			openSettingsOptions.query = settingId;
 		}
 
-		this.openSettings(openSettingsOptions);
+		this.openSettings(openSettingsOptions).catch(onUnexpectedError).catch(onUnexpectedError);
 		return true;
 	}
 

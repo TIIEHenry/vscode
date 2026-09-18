@@ -1031,7 +1031,7 @@ export class SettingsEditor2 extends EditorPane {
 			const p = this.triggerSearch(idQuery, true);
 			p.then(() => {
 				this.onDidClickSetting(evt, true);
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

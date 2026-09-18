@@ -8,6 +8,7 @@ import { IAction, SubmenuAction } from '../../../../base/common/actions.js';
 import { Delayer } from '../../../../base/common/async.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { IStringDictionary } from '../../../../base/common/collections.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { IJSONSchema } from '../../../../base/common/jsonSchema.js';
 import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
@@ -91,7 +92,7 @@ export class UserSettingsRenderer extends Disposable implements IPreferencesRend
 		const overrideIdentifiers = source.overrideOf ? overrideIdentifiersFromKey(source.overrideOf.key) : null;
 		const resource = this.preferencesModel.uri;
 		this.configurationService.updateValue(key, value, { overrideIdentifiers, resource }, this.preferencesModel.configurationTarget)
-			.then(() => this.onSettingUpdated(source));
+			.then(() => this.onSettingUpdated(source)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private onModelChanged(): void {

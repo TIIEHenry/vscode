@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { KeyChord, KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { Disposable, DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
@@ -583,7 +584,7 @@ class PreferencesActionsContribution extends Disposable implements IWorkbenchCon
 						return accessor.get(IPreferencesService).openRemoteSettings({ jsonEditor: true, ...args });
 					}
 				}));
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private registerSettingsEditorActions() {
