@@ -12,6 +12,7 @@ import { getDefaultHoverDelegate } from '../../../../base/browser/ui/hover/hover
 import { HistoryInputBox, IHistoryInputOptions } from '../../../../base/browser/ui/inputbox/inputBox.js';
 import { Widget } from '../../../../base/browser/ui/widget.js';
 import { Action, IAction } from '../../../../base/common/actions.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
@@ -244,7 +245,7 @@ export class SettingsTargetsWidget extends Widget {
 		this.options = options ?? {};
 		this.create(parent);
 		this._register(this.contextService.onDidChangeWorkbenchState(() => this.onWorkbenchStateChanged()));
-		this._register(this.contextService.onDidChangeWorkspaceFolders(() => this.update()));
+		this._register(this.contextService.onDidChangeWorkspaceFolders(() => this.update().catch(onUnexpectedError).catch(onUnexpectedError)));
 	}
 
 	private resetLabels() {
@@ -282,7 +283,7 @@ export class SettingsTargetsWidget extends Widget {
 		this.folderSettings = this._register(this.instantiationService.createInstance(FolderSettingsActionViewItem, this.folderSettingsAction));
 
 		this.resetLabels();
-		this.update();
+		this.update().catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this.settingsSwitcherBar.push([this.userLocalSettings, this.userRemoteSettings, this.workspaceSettings, this.folderSettingsAction]);
 	}
@@ -340,7 +341,7 @@ export class SettingsTargetsWidget extends Widget {
 
 	private onWorkbenchStateChanged(): void {
 		this.folderSettings.folder = null;
-		this.update();
+		this.update().catch(onUnexpectedError).catch(onUnexpectedError);
 		if (this.settingsTarget === ConfigurationTarget.WORKSPACE && this.contextService.getWorkbenchState() === WorkbenchState.WORKSPACE) {
 			this.updateTarget(ConfigurationTarget.USER_LOCAL);
 		}
