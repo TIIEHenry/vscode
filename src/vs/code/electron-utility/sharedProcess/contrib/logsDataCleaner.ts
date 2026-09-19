@@ -22,7 +22,7 @@ export class LogsDataCleaner extends Disposable {
 		super();
 
 		const scheduler = this._register(new RunOnceScheduler(() => {
-			this.cleanUpOldLogs();
+			this.cleanUpOldLogs().catch(onUnexpectedError).catch(onUnexpectedError);
 		}, 10 * 1000 /* after 10s */));
 		scheduler.schedule();
 	}

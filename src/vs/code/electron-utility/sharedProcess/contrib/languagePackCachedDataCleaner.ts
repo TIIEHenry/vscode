@@ -50,7 +50,7 @@ export class LanguagePackCachedDataCleaner extends Disposable {
 		// So only cleanup when we have a build version.
 		if (this.environmentService.isBuilt) {
 			const scheduler = this._register(new RunOnceScheduler(() => {
-				this.cleanUpLanguagePackCache();
+				this.cleanUpLanguagePackCache().catch(onUnexpectedError).catch(onUnexpectedError);
 			}, 40 * 1000 /* after 40s */));
 			scheduler.schedule();
 		}

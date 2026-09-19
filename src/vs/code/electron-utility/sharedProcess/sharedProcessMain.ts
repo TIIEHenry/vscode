@@ -201,7 +201,7 @@ class SharedProcessMain extends Disposable implements IClientConnectionFilter {
 			this.registerErrorHandler(logService);
 
 			// Report Client OS/DE Info
-			this.reportClientOSInfo(telemetryService, logService);
+			this.reportClientOSInfo(telemetryService, logService).catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 
 		// Instantiate Contributions

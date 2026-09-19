@@ -7,6 +7,7 @@ import { isStandalone } from '../../../base/browser/browser.js';
 import { addDisposableListener } from '../../../base/browser/dom.js';
 import { mainWindow } from '../../../base/browser/window.js';
 import { VSBuffer, decodeBase64, encodeBase64 } from '../../../base/common/buffer.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable, IDisposable } from '../../../base/common/lifecycle.js';
 import { parse } from '../../../base/common/marshalling.js';
@@ -267,14 +268,14 @@ export class LocalStorageSecretStorageProvider implements ISecretStorageProvider
 		const secrets = await this.secretsPromise;
 		secrets[key] = value;
 		this.secretsPromise = Promise.resolve(secrets);
-		this.save();
+		this.save().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	async delete(key: string): Promise<void> {
 		const secrets = await this.secretsPromise;
 		delete secrets[key];
 		this.secretsPromise = Promise.resolve(secrets);
-		this.save();
+		this.save().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	async keys(): Promise<string[]> {
@@ -347,7 +348,7 @@ class LocalStorageURLCallbackProvider extends Disposable implements IURLCallback
 			return;
 		}
 
-		this.onDidChangeLocalStorageDisposable = addDisposableListener(mainWindow, 'storage', () => this.onDidChangeLocalStorage());
+		this.onDidChangeLocalStorageDisposable = addDisposableListener(mainWindow, 'storage', () => this.onDidChangeLocalStorage().catch(onUnexpectedError).catch(onUnexpectedError));
 	}
 
 	private stopListening(): void {
