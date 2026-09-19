@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
@@ -149,14 +150,14 @@ export class TipEligibilityTracker extends Disposable {
 			if (tip.excludeWhenPromptFilesExist!.excludeUntilChecked) {
 				this._excludedByFiles.add(tip.id);
 			}
-			this._checkForPromptFiles(tip);
+			this._checkForPromptFiles(tip).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		// Re-check agent file exclusions when custom agents change (covers late discovery)
 		this._register(this._promptsService.onDidChangeCustomAgents(() => {
 			for (const tip of this._tipsWithFileExclusions) {
 				if (tip.excludeWhenPromptFilesExist!.promptType === PromptsType.agent) {
-					this._checkForPromptFiles(tip);
+					this._checkForPromptFiles(tip).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 		}));
@@ -248,7 +249,7 @@ export class TipEligibilityTracker extends Disposable {
 			if (tip.excludeWhenPromptFilesExist!.excludeUntilChecked) {
 				this._excludedByFiles.add(tip.id);
 			}
-			this._checkForPromptFiles(tip);
+			this._checkForPromptFiles(tip).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

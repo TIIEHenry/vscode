@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { INotificationService, NeverShowAgainScope, Severity } from '../../../../platform/notification/common/notification.js';
@@ -28,7 +29,7 @@ export class AgentPluginRecommendations extends Disposable implements IWorkbench
 		this._register(this._chatService.onDidSubmitRequest(() => {
 			if (!this._hasNotified) {
 				this._hasNotified = true;
-				this._checkForRecommendedPlugins();
+				this._checkForRecommendedPlugins().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}
