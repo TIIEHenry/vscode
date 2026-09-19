@@ -10,6 +10,7 @@ import { IColorTheme, IThemeService } from '../../../platform/theme/common/theme
 import { IStorageService, StorageScope, StorageTarget } from '../../../platform/storage/common/storage.js';
 import { IWorkspaceContextService } from '../../../platform/workspace/common/workspace.js';
 import { IHoverService } from '../../../platform/hover/browser/hover.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { DisposableStore, MutableDisposable } from '../../../base/common/lifecycle.js';
 import { $, addDisposableListener, append, clearNode, Dimension, EventType, getActiveDocument, getWindow } from '../../../base/browser/dom.js';
 import { Emitter, Event } from '../../../base/common/event.js';
@@ -279,7 +280,7 @@ export class ProjectBarPart extends Part {
 		// Click handler to add folder
 		this.workspaceEntryDisposables.value?.add(
 			addDisposableListener(this.addFolderButton, EventType.CLICK, () => {
-				this.pickAndAddFolder();
+				this.pickAndAddFolder().catch(onUnexpectedError).catch(onUnexpectedError);
 			})
 		);
 
@@ -291,7 +292,7 @@ export class ProjectBarPart extends Part {
 			addDisposableListener(this.addFolderButton, EventType.KEY_DOWN, (e: KeyboardEvent) => {
 				if (e.key === 'Enter' || e.key === ' ') {
 					e.preventDefault();
-					this.pickAndAddFolder();
+					this.pickAndAddFolder().catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			})
 		);

@@ -7,6 +7,7 @@ import { Disposable, DisposableStore, IDisposable, MutableDisposable, toDisposab
 import { CancellationTokenSource } from '../../base/common/cancellation.js';
 import { IObservable, runOnChange } from '../../base/common/observable.js';
 import { DeferredPromise, disposableTimeout } from '../../base/common/async.js';
+import { onUnexpectedError } from '../../base/common/errors.js';
 import { createDecorator, IInstantiationService } from '../../platform/instantiation/common/instantiation.js';
 import { ILogService } from '../../platform/log/common/log.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../platform/storage/common/storage.js';
@@ -198,7 +199,7 @@ class SessionsSetUpWidget extends Disposable {
 		} catch {
 			// Provider not available yet — show dialog
 		}
-		this._showWelcome(false);
+		this._showWelcome(false).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _watchWebAuth(): void {
@@ -216,7 +217,7 @@ class SessionsSetUpWidget extends Disposable {
 			}
 			this.logService.info('[sessions welcome] GitHub session removed on web, re-showing welcome');
 			this.storageService.remove(WELCOME_COMPLETE_KEY, StorageScope.APPLICATION);
-			this._showWelcome(false);
+			this._showWelcome(false).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 
@@ -230,7 +231,7 @@ class SessionsSetUpWidget extends Disposable {
 			if (welcomeComplete && this._allowSignedOutWhenUsable.get()) {
 				await this._proceedWithoutGitHub();
 			} else {
-				this._showWelcome(false);
+				this._showWelcome(false).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 			return;
 		}
@@ -258,7 +259,7 @@ class SessionsSetUpWidget extends Disposable {
 		disposables.add(this.configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(AIDisabledConfig)) {
 				if (this.configurationService.getValue<boolean>(AIDisabledConfig)) {
-					this._showAIDisabledDialog();
+					this._showAIDisabledDialog().catch(onUnexpectedError).catch(onUnexpectedError);
 				} else {
 					// AI features re-enabled — dismiss any AI disabled dialog
 					this.dialogRef.clear();
@@ -306,11 +307,11 @@ class SessionsSetUpWidget extends Disposable {
 				return;
 			}
 			this._proceedingSignedOut = false;
-			void this._showWelcome(false);
+			void this._showWelcome(false).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			this.signInSetupCancellation.value?.cancel();
 			this.dialogRef.clear();
-			void this._proceedWithoutGitHub();
+			void this._proceedWithoutGitHub().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
