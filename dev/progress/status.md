@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-19
-summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847、D850–D851、D854–D858、D860–D868、D871、D875–D876、D881、D883、D886、D895、D898、D917。本轮 parked。D24 仍开。不是 leftover/pills 完成。"
+summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847、D850–D851、D854–D858、D860–D868、D871、D875–D876、D881、D883、D886、D895、D898、D917、D922。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -14,13 +14,13 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D782、D784�
 | 切片 | 提交 |
 |:-----|:-----|
 | **A SessionStream / L2** | 16/23/30–32/34–39/44/46/50–52；envelope leftover |
-| **catch** | D677–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847、D850–D851、D854–D858、D860–D868、D871、D875–D876、D881、D883、D886、D895、D898、D917 |
+| **catch** | D677–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847、D850–D851、D854–D858、D860–D868、D871、D875–D876、D881、D883、D886、D895、D898、D917、D922 |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **parked** | leftover remaining unused 未完成。D917 已合入 `f277274f93f`。F D922 六处双链无扫描不合入。D759 脏无 scan 不 `-B`。B 脏跳过；C gitlink 勿 add；E blocked。 |
+| **loop** | leftover remaining unused 未完成。D922 已合入。D931 `[unavailable]` skip label leftover remaining unused。D929 rejected skip extensionManagement leftover remaining unused + tasks leftover remaining unused。D759 脏无 scan 不 `-B`。B 脏跳过；C gitlink 勿 add；E blocked。 |
 
 子 agent 发现：
 | ID | 问题 |
