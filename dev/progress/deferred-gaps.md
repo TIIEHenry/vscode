@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-09-14
-summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 仍开（D405 2026-09-14 追加 S4a 诊断口 / S4b fail-closed 竞态两刀前置）；D25/D26 已闭（2026-09-12 换钉复验 List/Create；seed 后 Chat PASS）；D406–D412 已闭；D410=`9974bfa2822`；D411=`0ae05e427f9`；D412 已合入；下号 D413"
+updated: 2026-09-19
+summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 仍开；D25/D26 已闭；D406–D412 已闭；D413 跟踪 2026-09-18 四份已签收修补方案（未实施）；下号 D414"
 ---
 
 # Deferred Gaps
@@ -426,6 +426,7 @@ summary: "延期缺口 SSOT；D8 / D16 / D147 / D405 仍开（D405 2026-09-14 �
 | D410 | P2 | **closed** `_fireReconnect` 在 `connectProfile({reconnect:true})` 失败后再走同一 `_scheduleReconnect` 退避（attempt 递增，不 tight-loop）。覆盖 `{ok:false, code:'transport_failed'}` 与非 `UniverseAgentTransportError` throw；pairing_required / hub_auth_expired / hub_session_required 仍停拨。D408 合同保持。A letter-commit `f4acb938092`（375/0；OV PASS）。已合入 `9974bfa2822`。未升 PRD-008。未关 D405。不占 D411/D412。 | 工位 A `d410-reconnect-fail-reschedule`；375/0；merge compile-client 0 | 失败后再调度测绿；既有 D408 suite 仍绿。未升 PRD-008。未关 D405 手测。 | universeAgent / connection | closed |
 | D411 | P2 | **closed** Engine Preferences「Test Engine」`runEngineTest` 复用 Connection 导出的 `writeStatus`：成功 `success` tone、失败/throw `error` tone、`Testing…` 中性。页脚与 banner 按钮同走 `runEngineTest`。Engine CSS `.engine-test-status.is-success/.is-error` 对齐 Connection 色。B `cf5a51c1eb7`（19/0）。已合入 `0ae05e427f9`。未升 PRD-008。未关 D8/D16/D147/D405。 | 工位 B `engine-test-tone`；19/0；merge compile-client 0 | `runEngineTest` 走 `writeStatus`；Reachable `.is-success`；Unreachable/throw `.is-error`；Testing 无 success/error。未关 D16。 | conversation / engine-preferences | closed |
 | D412 | P3 | **closed** Engine catalog / section 写状态复用 Connection 导出的 `writeStatus`：成功 `.is-success`、失败/`ok:false`/throw `.is-error`、clear/pending 中性。覆盖 MCP/Skills/Tools/Agents/Plugins/Triggers/Clipboard/Context Variable 与 Snapshots overlay（不重做 leftover-keep）。写失败不 `clearCatalogPresentation`。未 compile-client。未关 D8/D16/D147/D405。未升 PRD-008。 | 工位 D `d412-catalog-write-tone`；`scripts/test.sh --run` catalog/skills/clipboard/triggers/snapshots/plugins **244/0** | 各写状态走同一 `writeStatus` + 测锁 classList。未关 D16。 | conversation / engine-preferences | closed |
+| D413 | P2 | **open** 2026-09-18 四份修补方案已签收、未实施：[live-stream-bytes-decode](../plans/live-stream-bytes-decode.md) · [connection-dial-generation](../plans/connection-dial-generation.md) · [conversation-bound-session](../plans/conversation-bound-session.md) · [sources-review-open-identity](../plans/sources-review-open-identity.md)。看板 [bugfix-wave-2026-09-18](../parallel/active/bugfix-wave-2026-09-18.md)。不关 D8/D16/D22/D24/D31/D147/D405。不升 PRD-008。不重开 A2。不实施 pills S3w。不手改 sessionCore。 | 方案已签收；实施未开 | 各 plan 切片按冲突域落地且本地 health-gates 绿；不升 PRD-008 | universeAgent / conversation / sources | open |
 ## Gate-recovery：关仓声明与实测不符（2026-09-07，工位 E / `fix/gate-recovery`）
 
 `loop/merge` @ `793ff6e201f`（提交信息为「关仓：T5a Uncaught 闸门与 statusbar 二次注册幂等**已复测**」）在**仓外独立 detached 工位**上实测：

@@ -3,8 +3,8 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-17
-summary: "dev/plans 导航：conversation-timeline-session-pills（accepted）；conversation-chrome-visibility（implemented；D403/D404 + SAS pane cache / Maximize 槽）；sources-accept-empty-success（draft；A1 已落；P5 停线）；composer-fake-chrome（accepted）；M7 仍 accepted；GitHub Actions 已关"
+updated: 2026-09-19
+summary: "dev/plans 导航：2026-09-19 四份修补方案已签收（accepted，未实施）；conversation-timeline-session-pills（accepted）；conversation-chrome-visibility（implemented）；sources-accept-empty-success（draft；A1 已落；P5 停线）；M7 仍 accepted；GitHub Actions 已关"
 ---
 
 # 方案
@@ -14,6 +14,10 @@ summary: "dev/plans 导航：conversation-timeline-session-pills（accepted）�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
+| [live-stream-bytes-decode.md](live-stream-bytes-decode.md) | `accepted` | 2026-09-19 用户签收：decoder 抄 PIN；32/46 两条 bytes 进 join；Chat 11/13/20 与 30 互斥。不发明字段。不手改 sessionCore。未实施 |
+| [connection-dial-generation.md](connection-dial-generation.md) | `accepted` | 2026-09-19 用户签收：!tls 禁 this.connect()；失配不写提交集；pairing 第一行闸。不发明字段。未实施 |
+| [conversation-bound-session.md](conversation-bound-session.md) | `accepted` | 2026-09-19 用户签收：绑定叶不跟 roster、Kill 自写叶祖先查询、Reveal 对可见叶。不实施 pills S3w。未实施 |
+| [sources-review-open-identity.md](sources-review-open-identity.md) | `accepted` | 2026-09-19 用户签收：S1 一条序列；reveal 读已打开 tab；fail 仍交 pane 不 mark。不重开 A2。未实施 |
 | [conversation-timeline-session-pills.md](conversation-timeline-session-pills.md) | `accepted` | 时间线正文会话/子代理 pill；跨会话 reveal 目标自己的叶；S3w 钉死叶级 SessionBar（方案 C，每扇一份）+ 隐藏叶 restore 仍单叶 + 隐藏叶释放 lease；规则 16 第五轮（fable 5.1）已审改稿，2026-09-14 用户签收 |
 | [conversation-chrome-visibility.md](conversation-chrome-visibility.md) | `implemented` | D403/D404 已闭；Maximize 不 hide gate/Stop/整槽 timeline；SAS 切 tab 不 dispose，窄 Back 留高并 trap Tab |
 | [prd-008-engine-e2e.md](prd-008-engine-e2e.md) | `accepted` | PRD-008 唯一已定义升档路径：隔离 profile + 钉死引擎 + D4 CDP；硬前置 GC-1b 配对回路（首次配对即第一份证据） |

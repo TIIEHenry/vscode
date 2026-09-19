@@ -3,8 +3,8 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-09-18
-summary: "UA chrome 审查 follow-up 本工位：Maximize/切会话关浮层；Connect pairing-hold 禁写不回填目录；Diff SIDE_GROUP+matches；断连清 live id；Client 360 文本框 100%。D25/D26 已闭。PRD-008 仍待 IDE 接通冒烟。D410–D412 已合。下号 D413。"
+updated: 2026-09-19
+summary: "2026-09-19 四份修补方案已签收（accepted，未实施）：活流 bytes / 拨号 generation / 绑定叶身份 / Sources 打开身份。D413 跟踪实施。不升 PRD-008。D410–D412 已合。下号 D414。"
 ---
 
 # Development Progress
@@ -41,7 +41,7 @@ summary: "UA chrome 审查 follow-up 本工位：Maximize/切会话关浮层；C
 | **UA chrome visual follow-up** | `a828fb606ad` — Maximize inbox 文档流；chip 托盘；badge 28ch+title；Accept hover；Navigator compact 留点；Connecting pending。不升 PRD |
 | **UA chrome 审查波** | 未合 follow-up — Maximize/切会话关浮层；Connect pairing-hold 禁写不回填目录；Diff SIDE_GROUP；断连清 live id；Client 360 `width:100%`。不升 PRD |
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。**2026-09-12**：仓外 PIN 已换。grpcurl 复验 **List/Create PASS**（含旧 session-100/101）；**[D25](deferred-gaps.md)/[D26](deferred-gaps.md) 已闭**。同日 seed `provider:state` + `models.json` 后重启，grpcurl **Chat PASS**（`gemini-3.8-flash-high`，`textDelta`=`pong`，`turnComplete`/`end_turn`；无 `MODEL_PROFILE_*`）。这是引擎面证据，不是 IDE Conversation 接通冒烟。未升 PRD-008。引擎 A–F 已合；本仓 **node + `IUniverseAgentConnection` 已挂**。Provider/Rules/Hooks **只读列表**已接（无凭据/规则写表单）。Projects 按会话 `work_dir` 分组、Navigator `ListTeams` 标题、Review 历史 chip **已接**。[m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-### 进行中（2026-09-13 · 人类工位合入 + D412 占 D）
+### 进行中（2026-09-19 · 四份方案已签收；切片未开）
 | 槽 | 切片 | 状态 |
 |:---|:-----|:---------|
 | **A** | — | `idle`；HEAD == MERGE_SHA；D410=`9974bfa2822` |
@@ -178,7 +178,7 @@ summary: "UA chrome 审查 follow-up 本工位：Maximize/切会话关浮层；C
 | [D242](deferred-gaps.md)–[D288](deferred-gaps.md) | leftover + pairing | **closed** catalog leftover + pairing keep-last（含 roster turns / session sync） |
 | **gate-recovery** | E `fix/gate-recovery` → `loop/merge` | **已合** `4548cc5792f`；合入后 tsgo 夹具已清，merge compile 0；全仓 eslint OOM 未复证；范围 eslint 420 文件 0 |
 | — | 人类工位 | D26 改口 + §3.4 + report 已合入 `loop/merge` |
-| [D405](deferred-gaps.md)–[D412](deferred-gaps.md) | A/B/D 本波 | D405 手测仍开；D406–D412 closed；D410=`9974bfa2822`；D411=`0ae05e427f9`；D412 已合入；下号 D413 |
+| [D405](deferred-gaps.md)–[D413](deferred-gaps.md) | A/B/D 本波 | D405 手测仍开；D406–D412 closed；D413 跟踪四份已签收方案（未实施）；下号 D414 |
 ## 工位表（P0 盘点 · 2026-09-12 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
@@ -193,7 +193,7 @@ summary: "UA chrome 审查 follow-up 本工位：Maximize/切会话关浮层；C
 | 项 | 指针 |
 |:---|:-----|
 | **本仓解锁 A–F** | 引擎仓 A–F **已合** @ `748e7698e6`。本仓只读面 + Composer `model_profile_id` **已挂**。钉死工位 seed 后 grpcurl **Chat PASS**。下一刀是 IDE Direct Address 接通后 Composer 发送（PRD-008 仍要隔离 profile 冒烟）。**不升 PRD-008**。不要再清 store。D26 store 已闭，旧「迁移卡死」账见 [report](../reports/engine-session-store-migration-stuck-2026-09-09.md) |
-| **loop 切片** | D410/D411/D412 已合入。**D405** 手测仍开，且 2026-09-14 规则 16 回溯审查后追加 **S4a**（注入真 `DiagnosticsPort`，否则 V-S1-1 / V-S2-2 无观察点）+ **S4b**（fail-closed 与退避定时器竞态守卫）两刀前置，见 [session-subscription-lifecycle](../plans/session-subscription-lifecycle.md) §4.1。不关 D8/D16/D147。下号 **D413**。未升 PRD-008。 |
+| **loop 切片** | D410–D412 已合入。**D413** 跟踪四份已签收修补方案（未实施）。**D405** 手测仍开（S4a/S4b 前置）。不关 D8/D16/D147。下号 **D414**。未升 PRD-008。 |
 | **test-baseline** | merge `run-unit-custom.sh` **passed**：conversation 975 / sources 118 / universeAgent 225 / universeAgentNode 418，0 fail / 0 skip。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + **本地** health-gates 绿（GitHub Actions 已关）+ merge 独占 + A 表冻结；**未满足前不开 U2** |
 ## 不做：**ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
