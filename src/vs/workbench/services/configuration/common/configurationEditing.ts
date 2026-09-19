@@ -28,7 +28,7 @@ import { EditOperation } from '../../../../editor/common/core/editOperation.js';
 import { Selection } from '../../../../editor/common/core/selection.js';
 import { IUserDataProfileService } from '../../userDataProfile/common/userDataProfile.js';
 import { IUserDataProfilesService } from '../../../../platform/userDataProfile/common/userDataProfile.js';
-import { ErrorNoTelemetry } from '../../../../base/common/errors.js';
+import { ErrorNoTelemetry, onUnexpectedError } from '../../../../base/common/errors.js';
 import { IFilesConfigurationService } from '../../filesConfiguration/common/filesConfigurationService.js';
 
 export const enum ConfigurationEditingErrorCode {
@@ -308,7 +308,7 @@ export class ConfigurationEditing {
 					label: nls.localize('saveAndRetry', "Save and Retry"),
 					run: () => {
 						const key = operation.key ? `${operation.workspaceStandAloneConfigurationKey}.${operation.key}` : operation.workspaceStandAloneConfigurationKey!;
-						this.writeConfiguration(operation.target, { key, value: operation.value }, { handleDirtyFile: 'save', scopes });
+						this.writeConfiguration(operation.target, { key, value: operation.value }, { handleDirtyFile: 'save', scopes }).catch(onUnexpectedError).catch(onUnexpectedError);
 					}
 				},
 				{
@@ -320,7 +320,7 @@ export class ConfigurationEditing {
 			this.notificationService.prompt(Severity.Error, error.message,
 				[{
 					label: nls.localize('saveAndRetry', "Save and Retry"),
-					run: () => this.writeConfiguration(operation.target, { key: operation.key, value: operation.value }, { handleDirtyFile: 'save', scopes })
+					run: () => this.writeConfiguration(operation.target, { key: operation.key, value: operation.value }, { handleDirtyFile: 'save', scopes }).catch(onUnexpectedError).catch(onUnexpectedError)
 				},
 				{
 					label: nls.localize('open', "Open Settings"),

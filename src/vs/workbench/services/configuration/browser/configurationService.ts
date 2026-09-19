@@ -546,7 +546,7 @@ export class WorkspaceService extends Disposable implements IWorkbenchConfigurat
 	private checkAndMarkWorkspaceComplete(fromCache: boolean): void {
 		if (!this.completeWorkspaceBarrier.isOpen() && this.workspace.initialized) {
 			this.completeWorkspaceBarrier.open();
-			this.validateWorkspaceFoldersAndReload(fromCache);
+			this.validateWorkspaceFoldersAndReload(fromCache).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -588,7 +588,7 @@ export class WorkspaceService extends Disposable implements IWorkbenchConfigurat
 
 		if (!this.localUserConfiguration.hasTasksLoaded) {
 			// Reload local user configuration again to load user tasks
-			this._register(runWhenWindowIdle(mainWindow, () => this.reloadLocalUserConfiguration(false, this._configuration.localUserConfiguration)));
+			this._register(runWhenWindowIdle(mainWindow, () => this.reloadLocalUserConfiguration(false, this._configuration.localUserConfiguration).catch(onUnexpectedError).catch(onUnexpectedError)));
 		}
 	}
 
@@ -968,7 +968,7 @@ export class WorkspaceService extends Disposable implements IWorkbenchConfigurat
 			let folderConfiguration = this.cachedFolderConfigs.get(folder.uri);
 			if (!folderConfiguration) {
 				folderConfiguration = new FolderConfiguration(!this.initialized, folder, FOLDER_CONFIG_FOLDER_NAME, this.getWorkbenchState(), this.isWorkspaceTrusted, this.fileService, this.uriIdentityService, this.logService, this.configurationCache);
-				folderConfiguration.addRelated(folderConfiguration.onDidChange(() => this.onWorkspaceFolderConfigurationChanged(folder)));
+				folderConfiguration.addRelated(folderConfiguration.onDidChange(() => this.onWorkspaceFolderConfigurationChanged(folder).catch(onUnexpectedError).catch(onUnexpectedError)));
 				this.cachedFolderConfigs.set(folder.uri, folderConfiguration);
 			}
 			return folderConfiguration.loadConfiguration();
@@ -1369,7 +1369,7 @@ class ConfigurationDefaultOverridesContribution extends Disposable implements IW
 		this._register(workbenchAssignmentService.onDidRefetchAssignments(() => this.throttler.queue(() => this.processExperimentalSettings(this.autoExperimentalSettings, true))));
 
 		// When configuration is updated make sure to apply experimental configuration overrides
-		this._register(this.configurationRegistry.onDidUpdateConfiguration(({ properties }) => this.processExperimentalSettings(properties, false)));
+		this._register(this.configurationRegistry.onDidUpdateConfiguration(({ properties }) => this.processExperimentalSettings(properties, false).catch(onUnexpectedError).catch(onUnexpectedError)));
 	}
 
 	private async updateDefaults(): Promise<void> {
