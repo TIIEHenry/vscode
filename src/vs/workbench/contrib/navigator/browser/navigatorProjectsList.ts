@@ -533,10 +533,6 @@ export class NavigatorProjectsView extends ViewPane {
 		return undefined;
 	}
 
-	private hasActiveFilter(): boolean {
-		return this.filterQuery.trim() !== '';
-	}
-
 	private filterTreeNodes(nodes: readonly INavigatorProjectsTreeNode[]): INavigatorProjectsTreeNode[] {
 		const result: INavigatorProjectsTreeNode[] = [];
 		for (const node of nodes) {

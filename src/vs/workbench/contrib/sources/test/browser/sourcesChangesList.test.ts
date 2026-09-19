@@ -364,7 +364,7 @@ suite('Sources - Changes list leftover honesty', () => {
 		} as unknown as IUniverseAgentConnection;
 	}
 
-	function createIndexScmService(resource: URI, groupId = 'index'): ISCMService {
+	function createIndexScmService(resource: URI, groupId = 'index', includeResource = true): ISCMService {
 		const group = {
 			id: groupId,
 			label: groupId === 'index' ? 'Staged Changes' : 'Changes',
@@ -380,7 +380,9 @@ suite('Sources - Changes list leftover honesty', () => {
 			multiDiffEditorModifiedUri: undefined,
 			open: async () => { },
 		} as unknown as ISCMResource;
-		group.resources.push(scmResource);
+		if (includeResource) {
+			group.resources.push(scmResource);
+		}
 		const repository = {
 			provider: {
 				groups: [group],
@@ -499,8 +501,7 @@ suite('Sources - Changes list leftover honesty', () => {
 	test('first git-read throw with an SCM repository still hides commit chrome', async function () {
 		const resource = toResource.call(this, '/project/src/a.ts');
 		const host = mountHost();
-		const scm = createIndexScmService(resource);
-		scm.repositories[0].provider.groups[0].resources.length = 0;
+		const scm = createIndexScmService(resource, 'index', false);
 		store.add(stubChangesListServices(createGitReadConnection({
 			readGitChanges: async () => {
 				throw new Error('boom');

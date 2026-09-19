@@ -12,7 +12,7 @@ import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
-import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
+import { IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ConversationEngineHistoryList } from './conversationEngineHistoryList.js';
@@ -60,6 +60,8 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 	sessionSelectContainer!: HTMLElement;
 	newSessionButton!: Button;
 	deleteSessionButton!: Button;
+	sessionMoreButton!: Button;
+	sessionMoreContextView: IOpenContextView | undefined;
 	lensTablist!: HTMLElement;
 	lensTabConversation!: HTMLButtonElement;
 	lensTabTrajectory!: HTMLButtonElement;
@@ -179,6 +181,8 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 	showPostFailure(reason: ConversationComposerPostFailureReason): void {
 		this.accessors.showPostFailure(reason);
 	}
+
+	setInputMaximized(_maximized: boolean): void { }
 
 	private updateHideButton(): void {
 		const isPrimary = this.sessionWindowService.getPrimarySessionKey() === this.sessionKey;

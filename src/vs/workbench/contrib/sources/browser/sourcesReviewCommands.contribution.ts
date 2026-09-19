@@ -9,7 +9,6 @@ import { Action2, registerAction2 } from '../../../../platform/actions/common/ac
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { IModelService } from '../../../../editor/common/services/model.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';

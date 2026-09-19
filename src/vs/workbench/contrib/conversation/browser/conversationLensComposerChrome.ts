@@ -21,6 +21,7 @@ import {
 	conversationLensDockAgentLabel,
 	conversationLensDockNoAgent,
 	conversationLensDockMaximizeInput,
+	conversationLensDockEngineNotConnected,
 	conversationLensDockNoEngineTools,
 	conversationLensDockNoTools,
 	conversationLensDockMoreTitle,
