@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { IHistory } from '../../../../base/common/history.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
@@ -34,13 +35,13 @@ export class FindWidgetSearchHistory implements IHistory<string> {
 
 	delete(t: string): boolean {
 		const result = this.inMemoryValues.delete(t);
-		this.save();
+		this.save().catch(onUnexpectedError).catch(onUnexpectedError);
 		return result;
 	}
 
 	add(t: string): this {
 		this.inMemoryValues.add(t);
-		this.save();
+		this.save().catch(onUnexpectedError).catch(onUnexpectedError);
 		return this;
 	}
 
@@ -50,7 +51,7 @@ export class FindWidgetSearchHistory implements IHistory<string> {
 
 	clear(): void {
 		this.inMemoryValues.clear();
-		this.save();
+		this.save().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	forEach(callbackfn: (value: string, value2: string, set: Set<string>) => void, thisArg?: unknown): void {
@@ -60,7 +61,7 @@ export class FindWidgetSearchHistory implements IHistory<string> {
 	}
 	replace?(t: string[]): void {
 		this.inMemoryValues = new Set(t);
-		this.save();
+		this.save().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	load() {
