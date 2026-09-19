@@ -5,7 +5,7 @@
 
 import { mapFindFirst } from '../../../base/common/arraysFind.js';
 import { disposableTimeout, RunOnceScheduler } from '../../../base/common/async.js';
-import { CancellationError } from '../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable, DisposableMap, DisposableStore, MutableDisposable } from '../../../base/common/lifecycle.js';
 import { autorun, ISettableObservable, observableValue } from '../../../base/common/observable.js';
@@ -68,7 +68,7 @@ export class MainThreadMcp extends Disposable implements MainThreadMcpShape {
 		@ISecretStorageService private readonly _secretStorageService: ISecretStorageService,
 	) {
 		super();
-		this._register(_authenticationService.onDidChangeSessions(e => this._onDidChangeAuthSessions(e.providerId, e.label)));
+		this._register(_authenticationService.onDidChangeSessions(e => this._onDidChangeAuthSessions(e.providerId, e.label).catch(onUnexpectedError).catch(onUnexpectedError)));
 		const proxy = this._proxy = _extHostContext.getProxy(ExtHostContext.ExtHostMcp);
 		this._register(this._mcpRegistry.registerDelegate({
 			// Prefer Node.js extension hosts when they're available. No CORS issues etc.

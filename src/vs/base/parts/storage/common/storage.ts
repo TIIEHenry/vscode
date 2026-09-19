@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ThrottledDelayer } from '../../../common/async.js';
+import { onUnexpectedError } from '../../../common/errors.js';
 import { Event, PauseableEmitter } from '../../../common/event.js';
 import { Disposable, IDisposable } from '../../../common/lifecycle.js';
 import { parse, stringify } from '../../../common/marshalling.js';
@@ -470,7 +471,7 @@ export class MigratingStorage extends Storage {
 			this.migratedKeys.add(key);
 			const value = this.fallbackStorage?.items.get(key);
 			if (!isUndefined(value)) {
-				this.set(key, value);
+				this.set(key, value).catch(onUnexpectedError).catch(onUnexpectedError);
 				if (!this.isFallbackStorageReadonly) {
 					this.fallbackStorage?.delete(key);
 				}
@@ -493,7 +494,7 @@ export class MigratingStorage extends Storage {
 	}
 
 	private persistMigratedKeys(): void {
-		this.set(MIGRATED_KEY, JSON.stringify([...this.migratedKeys]));
+		this.set(MIGRATED_KEY, JSON.stringify([...this.migratedKeys])).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
 

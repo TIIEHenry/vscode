@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationToken, CancellationTokenSource } from './cancellation.js';
-import { BugIndicatingError, CancellationError, isCancellationError } from './errors.js';
+import { BugIndicatingError, CancellationError, isCancellationError, onUnexpectedError } from './errors.js';
 import { Emitter, Event } from './event.js';
 import { Disposable, DisposableMap, DisposableStore, IDisposable, isDisposable, MutableDisposable, toDisposable } from './lifecycle.js';
 import { extUri as defaultExtUri, IExtUri } from './resources.js';
@@ -1050,7 +1050,7 @@ export class TaskQueue {
 
 	private _runIfNotRunning(): void {
 		if (this._runningTask === undefined) {
-			this._processQueue();
+			this._processQueue().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -1077,7 +1077,7 @@ export class TaskQueue {
 			next.deferred.error(e);
 		} finally {
 			this._runningTask = undefined;
-			this._processQueue();
+			this._processQueue().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
