@@ -7,6 +7,7 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import {
 	getConversationEngineStatusText,
+	getConnectionPhaseStatusBarText,
 	getConversationModelEchoStatusText,
 	getConversationSessionStatusText,
 	getEngineStatusCommandId,
@@ -67,6 +68,12 @@ suite('ConversationSessionStatus', () => {
 		assert.strictEqual(getEngineStatusCommandId({ kind: 'connected', path: 'direct' }, true), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
 		assert.strictEqual(getEngineStatusCommandId({ kind: 'connecting', reason: 'initial' }, true), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
 		assert.strictEqual(getEngineStatusCommandId({ kind: 'disconnected' }), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+	});
+
+	test('getConnectionPhaseStatusBarText names pairing instead of a dead engine', () => {
+		assert.strictEqual(getConnectionPhaseStatusBarText({ kind: 'connecting', reason: 'initial' }, true), 'Waiting for pairing');
+		assert.strictEqual(getConnectionPhaseStatusBarText({ kind: 'connected', path: 'direct' }, true), 'Waiting for pairing');
+		assert.strictEqual(getConnectionPhaseStatusBarText({ kind: 'disconnected' }), 'Engine not connected');
 	});
 
 	test('D292 pairing live-tree guard keeps same session and rebinds on switch', () => {

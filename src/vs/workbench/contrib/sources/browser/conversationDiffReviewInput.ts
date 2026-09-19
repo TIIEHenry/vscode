@@ -28,7 +28,7 @@ export class ConversationDiffReviewInput extends EditorInput {
 		this._modified = modified;
 		this._original = original;
 		this._groupId = groupId;
-		this._resource = getConversationDiffReviewResource(modified, original);
+		this._resource = getConversationDiffReviewResource(modified, original, groupId);
 	}
 
 	get modified(): URI {
@@ -69,12 +69,16 @@ export class ConversationDiffReviewInput extends EditorInput {
 		}
 
 		if (other instanceof ConversationDiffReviewInput) {
-			return this._modified.toString() === other._modified.toString();
+			return this._modified.toString() === other._modified.toString()
+				&& (this._original?.toString() ?? '') === (other._original?.toString() ?? '')
+				&& this._groupId === other._groupId;
 		}
 
 		if (!isEditorInput(other) && isResourceEditorInput(other) && other.resource) {
 			const parsed = parseConversationDiffReviewResource(other.resource);
-			return parsed?.modified.toString() === this._modified.toString();
+			return parsed?.modified.toString() === this._modified.toString()
+				&& (parsed.original?.toString() ?? '') === (this._original?.toString() ?? '')
+				&& parsed.groupId === this._groupId;
 		}
 
 		return false;

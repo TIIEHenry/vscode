@@ -13,10 +13,10 @@ import { localize } from '../../../../nls.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 
-const partRegionHideIcon = registerIcon('part-region-hide', Codicon.remove, localize('partRegionHideIcon', 'Icon to hide a workbench region.'));
+const partRegionHideIcon = registerIcon('part-region-hide', Codicon.close, localize('partRegionHideIcon', 'Icon to hide a workbench region.'));
 
 /**
- * ADR-052 region chrome (−): local hide control that routes through {@link IWorkbenchLayoutService.setPartHidden}.
+ * ADR-052 region chrome: local hide control (close glyph, not a minus tab) that routes through {@link IWorkbenchLayoutService.setPartHidden}.
  */
 export function appendPartRegionHideControl(
 	parent: HTMLElement,
@@ -38,7 +38,7 @@ export function appendPartRegionHideControl(
 	register(hideAction);
 	hideAction.tooltip = label;
 	actionBar.push(hideAction, { icon: true, label: false });
-	actionBar.setFocusable(false);
+	actionBar.setFocusable(true);
 
 	// eslint-disable-next-line no-restricted-syntax -- the codicons are built by the action bar, not by this control
 	for (const codicon of actionsContainer.querySelectorAll('.codicon')) {

@@ -59,6 +59,12 @@ const $ = dom.$;
 
 const REVIEW_ROW_HEIGHT = 44;
 
+function isSourcesReviewErrorStatus(message: string): boolean {
+	return message !== sourcesGitReadPairingHoldMessage()
+		&& message !== sourcesGitReadUnavailableNoHookMessage()
+		&& message !== sourcesGitLocalOnlyMessage();
+}
+
 class SourcesReviewDelegate implements IListVirtualDelegate<ISourcesReviewEntry> {
 	getHeight(): number {
 		return REVIEW_ROW_HEIGHT;
@@ -101,7 +107,6 @@ class SourcesReviewRenderer implements IListRenderer<ISourcesReviewEntry, ISourc
 		container.classList.add('sources-review-row');
 		const label = this.labels.create(container, { supportDescriptionHighlights: true });
 		const attribution = dom.append(container, $('.sources-review-attribution'));
-		attribution.setAttribute('aria-hidden', 'true');
 		const reviewState = dom.append(container, $('button.sources-review-state')) as HTMLButtonElement;
 		reviewState.type = 'button';
 		return { container, label, attribution, reviewState, elementDisposables: new DisposableStore() };
@@ -154,10 +159,16 @@ class SourcesReviewRenderer implements IListRenderer<ISourcesReviewEntry, ISourc
 			button.type = 'button';
 			button.textContent = chip.label;
 			button.title = this.delegate.getChipTitle(chip);
+			button.setAttribute('aria-label', this.delegate.getChipTitle(chip));
 			button.addEventListener('click', event => {
 				event.preventDefault();
 				event.stopPropagation();
 				this.delegate.onChipClick(chip.toolCallId);
+			});
+			button.addEventListener('keydown', event => {
+				if (event.key === ' ' || event.key === 'Enter') {
+					event.stopPropagation();
+				}
 			});
 		}
 	}
@@ -299,6 +310,7 @@ export class SourcesReviewList extends Disposable {
 
 		this.listContainer = dom.append(host, $('.sources-review-list'));
 		this.emptyMessage = dom.append(host, $('.sources-review-empty'));
+		this.emptyMessage.setAttribute('role', 'status');
 		this.emptyMessage.style.display = 'none';
 		this.statusMessage = dom.append(host, $('.sources-review-status'));
 		this.statusMessage.style.display = 'none';
@@ -381,14 +393,16 @@ export class SourcesReviewList extends Disposable {
 		this.markAllVisibleReviewed();
 	}
 
-	setStatusMessage(message: string | undefined): void {
+	setStatusMessage(message: string | undefined, isError?: boolean): void {
 		if (!message) {
 			this.statusMessage.textContent = '';
 			this.statusMessage.style.display = 'none';
+			this.statusMessage.classList.remove('is-error');
 			return;
 		}
 		this.statusMessage.textContent = message;
 		this.statusMessage.style.display = 'block';
+		this.statusMessage.classList.toggle('is-error', isError ?? isSourcesReviewErrorStatus(message));
 	}
 
 	private registerRepository(repo: ISCMRepository): void {
@@ -786,7 +800,9 @@ export class SourcesReviewList extends Disposable {
 			this.unreviewedOnly,
 			entry => this.isEntryReviewed(entry),
 		);
-		if (emptyReason) {
+		if (gitReadError && !hasAnyEntries) {
+			this.emptyMessage.textContent = gitReadError;
+		} else if (emptyReason) {
 			this.emptyMessage.textContent = sourcesReviewListEmptyMessage(emptyReason);
 		}
 
@@ -796,7 +812,7 @@ export class SourcesReviewList extends Disposable {
 		this.progressHeader.style.display = hasAnyEntries ? 'flex' : 'none';
 		this.headerHint.style.display = hasAnyEntries ? '' : 'none';
 		if (gitReadError) {
-			this.setStatusMessage(gitReadError);
+			this.setStatusMessage(gitReadError, true);
 		} else if (gitReadPairingHold) {
 			this.setStatusMessage(sourcesGitReadPairingHoldMessage());
 		} else if (gitReadNoHook) {

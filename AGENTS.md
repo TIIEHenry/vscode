@@ -44,4 +44,4 @@
 
 ## 校验（按影响面选用，勿当作收尾仪式）
 
-详见 [.github/copilot-instructions.md](.github/copilot-instructions.md)：优先最小针对性测试；`scripts/test.sh`；分层变更才跑 `npm run valid-layers-check`。
+详见 [.github/copilot-instructions.md](.github/copilot-instructions.md)：优先最小针对性测试；`scripts/test.sh`；分层变更才跑 `npm run valid-layers-check`。门禁命令见 [health-gates](dev/progress/health-gates.md)。托管 CI 已关（[.github/workflows/DISABLED.md](.github/workflows/DISABLED.md)）是既定选择：**不得**写成验证缺口、缺自动化的原因，也**不得**建议重开。

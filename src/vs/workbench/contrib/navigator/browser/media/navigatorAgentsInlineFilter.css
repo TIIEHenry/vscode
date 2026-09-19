@@ -85,3 +85,8 @@
 .monaco-workbench .navigator-agents-inline-filter-clear:hover {
 	color: var(--vscode-foreground);
 }
+
+.monaco-workbench .navigator-agents-inline-filter-clear:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
+}

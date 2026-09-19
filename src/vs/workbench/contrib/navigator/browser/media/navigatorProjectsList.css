@@ -23,6 +23,11 @@
 	white-space: nowrap;
 }
 
+.monaco-workbench .is-compact .navigator-projects-list .monaco-icon-description-container,
+.monaco-workbench .is-compact .navigator-projects-list .navigator-projects-node-description {
+	display: none;
+}
+
 .monaco-workbench .navigator-projects-body .navigator-projects-recents-status {
 	padding: 4px 8px;
 	overflow-wrap: anywhere;

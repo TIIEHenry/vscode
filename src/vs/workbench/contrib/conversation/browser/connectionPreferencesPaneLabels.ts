@@ -38,8 +38,8 @@ export function canConnectHubDevice(device: HubDeviceProjection, directoryStatus
 	return device.engineStatus === 'SERVING';
 }
 
-/** How a status line should read: neutral information, or a state the user must act on. */
-export type ConnectionStatusTone = 'neutral' | 'success' | 'warning' | 'error';
+/** How a status line should read: neutral information, in-flight, or a state the user must act on. */
+export type ConnectionStatusTone = 'neutral' | 'success' | 'pending' | 'warning' | 'error';
 
 /** Hub account zone badge copy. */
 export function getHubAuthStatusLabel(status: HubAuthStatus): string {
@@ -108,7 +108,7 @@ export function getConnectionPhaseTone(phase: ConnectionPhase, pairingPending = 
 		case 'connected':
 			return 'success';
 		case 'connecting':
-			return 'warning';
+			return 'pending';
 		case 'failed':
 			return 'error';
 		default:

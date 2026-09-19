@@ -363,7 +363,8 @@ suite('Sources - Changes git read', () => {
 	test('empty file-diff and local-only messages stay explicit', () => {
 		assert.ok(sourcesGitEmptyFileDiffMessage().includes('empty'));
 		assert.ok(sourcesGitLocalOnlyMessage().includes('local source control'));
-		assert.ok(sourcesGitReadUnavailableNoHookMessage().includes('no git changes API'));
+		assert.ok(sourcesGitReadUnavailableNoHookMessage().includes('unavailable'));
+		assert.ok(!sourcesGitReadUnavailableNoHookMessage().includes('API'));
 		assert.ok(sourcesGitReadPairingHoldMessage().includes('not connected'));
 		assert.ok(sourcesGitReadPairingHoldMessage().includes('pairing'));
 	});

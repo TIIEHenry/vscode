@@ -13,15 +13,25 @@
 	flex: 1;
 	align-items: center;
 	justify-content: center;
-	min-height: 0;
+	min-width: 0;
+	min-height: 32px;
 	padding: 8px;
 	text-align: center;
 	color: var(--vscode-descriptionForeground);
 	font-size: 13px;
+	overflow-wrap: anywhere;
+}
+
+.monaco-workbench .part.sources .sources-files-empty.is-error {
+	color: var(--vscode-errorForeground);
 }
 
 .monaco-workbench .part.sources .sources-files-status {
 	padding: 4px 8px 6px;
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
+}
+
+.monaco-workbench .part.sources .sources-files-status.is-error {
+	color: var(--vscode-errorForeground);
 }

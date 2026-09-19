@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-.monaco-workbench .part.conversation .conversation-session-window {
+.monaco-workbench .part.conversation .conversation-session-window,
+.monaco-workbench .part.conversation .conversation-timeline {
 	position: relative;
 }
 

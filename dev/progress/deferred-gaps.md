@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。D898、D917 已闭。不是 leftover/pills 完成。"
+updated: 2026-09-19
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D8 / D16 / D147 / D405 仍开。leftover catch 至 D943。D413 为 reconnect transport_lost（closed）。四份修补方案跟踪 D944。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1227,3 +1227,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D922 | P3 | **closed** leftover Promise 双链 leftover remaining unused workbench 六处：pin(id, true)；doOpenPaneComposite(containerToOpen.id)；migrateConfigurations(...)；create()；handleWindowsAlwaysOnTop(...)；onDidChangeArgv()。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`workbenchLeftoverPromiseCatchScanD922.test.ts`。勿 add `out`。 | 六处双链。未关 D24。leftover 程序未全局完成。 | workbench leftover remaining | closed |
 | D939 | P3 | **closed** leftover Promise 双链 leftover remaining unused extensions 八处：promptWorkspaceRecommendations；activateProactiveRecommendations；promptImportantExtensionsInstallNotification；onDidChangeExtensionsConfigs×2；show('')×2；onDidAccept(quickPick.selectedItems)。D815/D819/D858 计数锁 leftover 仍 leftover。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 I；`extensionsLeftoverPromiseCatchScanD939.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / extensions leftover remaining | closed |
 | D943 | P3 | **closed** leftover Promise 双链 leftover remaining unused chat 八处：_checkForPromptFiles(tip)×3；tryUpdateLiveSessionItem(model)×2；_updateAssociations()×2；_checkForRecommendedPlugins()。未占 chatSetup。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 A；`chatLeftoverPromiseCatchScanD943.test.ts`。勿 add `out`。勿 add D752。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / chat leftover remaining | closed |
+| D944 | P2 | **open** 2026-09-18 四份修补方案已签收、未实施：[live-stream-bytes-decode](../plans/live-stream-bytes-decode.md) · [connection-dial-generation](../plans/connection-dial-generation.md) · [conversation-bound-session](../plans/conversation-bound-session.md) · [sources-review-open-identity](../plans/sources-review-open-identity.md)。看板 [bugfix-wave-2026-09-18](../parallel/active/bugfix-wave-2026-09-18.md)。人类工位曾登记为 D413，与 merge 侧已 closed 的 reconnect `transport_lost`（D413）撞号，合入后改记本行。不关 D8/D16/D22/D24/D31/D147/D405。不升 PRD-008。不重开 A2。不实施 pills S3w。不手改 sessionCore。 | 方案已签收；实施未开 | 各 plan 切片按冲突域落地且本地 health-gates 绿；不升 PRD-008 | universeAgent / conversation / sources | open |

@@ -147,6 +147,42 @@ suite('Agent inspect panel', () => {
 		assert.strictEqual(getViewList(view).length, 0);
 	});
 
+	test('clearing inspect target fires welcome before the list is spliced empty', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
+		const inspectService = store.add(instantiationService.createInstance(AgentInspectService));
+		instantiationService.stub(IAgentInspectService, inspectService);
+
+		const view = await mountViewWithService(instantiationService);
+		inspectService.setTarget({
+			kind: 'agent',
+			node: {
+				agentId: 'sub:1',
+				name: 'Worker',
+				type: 'AGENT_TYPE_SUB',
+				status: 'AGENT_STATUS_IDLE',
+				model: 'gpt',
+				turnCount: 3,
+				createdAt: 100,
+				children: [],
+			},
+		});
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.ok(getViewList(view).length > 0);
+		assert.strictEqual(view.shouldShowWelcome(), false);
+
+		let listLengthWhenWelcomeFired: number | undefined;
+		store.add(view.onDidChangeViewWelcomeState(() => {
+			listLengthWhenWelcomeFired = getViewList(view).length;
+		}));
+		inspectService.setTarget(undefined);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.ok((listLengthWhenWelcomeFired ?? 0) > 0, 'welcome must fire before list splice');
+		assert.strictEqual(getViewList(view).length, 0);
+		assert.strictEqual(view.shouldShowWelcome(), true);
+	});
+
 	test('welcome content uses inspect-empty copy without service-disconnected wording', () => {
 		const welcomeContents = viewsRegistry.getViewWelcomeContent(AGENT_INSPECT_VIEW_ID);
 		assert.ok(welcomeContents.length > 0, 'Inspect view must register welcome content');
@@ -307,6 +343,19 @@ suite('Agent inspect panel', () => {
 		assert.strictEqual(isInspectTargetStale(memberTarget, new Set(['member:other'])), true);
 		assert.strictEqual(isInspectTargetStale(memberTarget, new Set(['member:gone'])), false);
 		assert.strictEqual(isInspectTargetStale(agentTarget, new Set(['sub:1'])), false);
+
+		const activityTarget = {
+			kind: 'activity' as const,
+			item: { id: 'overlay:1', label: 'grep', toolName: 'grep', status: 'completed', itemId: 'overlay:1' },
+		};
+		assert.strictEqual(isInspectTargetStale(activityTarget, undefined, { activity: undefined }), false);
+		assert.strictEqual(isInspectTargetStale(activityTarget, undefined, { activity: new Set() }), true);
+		assert.strictEqual(isInspectTargetStale(activityTarget, undefined, { activity: new Set(['overlay:other']) }), true);
+		assert.strictEqual(isInspectTargetStale(activityTarget, undefined, { activity: new Set(['overlay:1']) }), false);
+		assert.strictEqual(isInspectTargetStale(taskTarget, undefined, { task: undefined }), false);
+		assert.strictEqual(isInspectTargetStale(taskTarget, undefined, { task: new Set() }), true);
+		assert.strictEqual(isInspectTargetStale(taskTarget, undefined, { task: new Set(['t-other']) }), true);
+		assert.strictEqual(isInspectTargetStale(taskTarget, undefined, { task: new Set(['t1']) }), false);
 	});
 
 	test('stale note stays visible when both live-id sources are leftover empty sets', async () => {
@@ -427,6 +476,14 @@ suite('Agent inspect panel', () => {
 		assert.strictEqual(view.element.querySelector('.navigator-stub-empty'), null);
 		assert.strictEqual(view.element.querySelector('.chat-widget'), null);
 		assert.strictEqual(view.element.querySelector('.chat-setup'), null);
+	});
+
+	test('compact layout marks the inspect pane so field/value can wrap', async () => {
+		const view = await mountView();
+		(view as unknown as { layoutBody(height: number, width: number): void }).layoutBody(400, 280);
+		assert.ok(view.element.classList.contains('is-compact'));
+		(view as unknown as { layoutBody(height: number, width: number): void }).layoutBody(400, 400);
+		assert.ok(!view.element.classList.contains('is-compact'));
 	});
 
 	test('Team ViewTitle Inspect action dispatches to the active Team view', async () => {

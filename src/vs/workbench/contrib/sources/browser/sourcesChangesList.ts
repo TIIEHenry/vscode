@@ -71,6 +71,12 @@ import { SourcesListFilterBox } from './sourcesListFilterBox.js';
 
 const $ = dom.$;
 
+function isSourcesChangesErrorStatus(message: string): boolean {
+	return message !== sourcesGitReadPairingHoldMessage()
+		&& message !== sourcesGitReadUnavailableNoHookMessage()
+		&& message !== sourcesGitLocalOnlyMessage();
+}
+
 export type { ISourcesChangeEntryOpenOptions };
 export { openSourcesChangeEntry };
 
@@ -291,6 +297,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.contentContainer = dom.append(host, $('.sources-changes-content'));
 		this.listContainer = dom.append(this.contentContainer, $('.sources-changes-list'));
 		this.emptyMessage = dom.append(this.contentContainer, $('.sources-changes-empty'));
+		this.emptyMessage.setAttribute('role', 'status');
 		this.emptyMessage.style.display = 'none';
 
 		this.commitRow = dom.append(host, $('.sources-changes-commit'));
@@ -303,6 +310,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 		this.statusMessage = dom.append(host, $('.sources-changes-status'));
 		this.statusMessage.style.display = 'none';
+		this.statusMessage.setAttribute('role', 'status');
 
 		this._register(this.stageSelectedButton.onDidClick(() => void this.runOnSelected('stage').catch(onUnexpectedError).catch(onUnexpectedError)));
 		this._register(this.unstageSelectedButton.onDidClick(() => void this.runOnSelected('unstage').catch(onUnexpectedError).catch(onUnexpectedError)));
@@ -633,7 +641,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			|| this.isGitCommandAvailable(SOURCES_GIT_UNSTAGE_COMMAND)
 			|| this.isGitCommandAvailable(SOURCES_GIT_COMMIT_COMMAND);
 
-		if (!hasRepository) {
+		if (options?.gitReadError && !hasAnyEntries) {
+			this.emptyMessage.textContent = options.gitReadError;
+		} else if (!hasRepository) {
 			this.emptyMessage.textContent = localize('sourcesChangesList.noRepository', "No source control repository.");
 		} else if (!hasAnyEntries) {
 			this.emptyMessage.textContent = localize('sourcesChangesList.noChanges', "No changes.");
@@ -645,7 +655,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.listContainer.style.display = hasVisibleEntries ? 'block' : 'none';
 		this.toolbar.style.display = hasVisibleEntries ? 'flex' : 'none';
 		this.filterBox.element.style.display = hasAnyEntries ? 'block' : 'none';
-		this.commitRow.style.display = hasRepository ? 'flex' : 'none';
+		this.commitRow.style.display = hasRepository && !(options?.gitReadError && !hasAnyEntries) ? 'flex' : 'none';
 
 		if (options?.gitReadError) {
 			this.setStatusMessage(options.gitReadError);
@@ -820,10 +830,12 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		if (!message) {
 			this.statusMessage.textContent = '';
 			this.statusMessage.style.display = 'none';
+			this.statusMessage.classList.remove('is-error');
 			return;
 		}
 		this.statusMessage.textContent = message;
 		this.statusMessage.style.display = 'block';
+		this.statusMessage.classList.toggle('is-error', isSourcesChangesErrorStatus(message));
 	}
 
 	private syncCommitInputFromRepository(): void {

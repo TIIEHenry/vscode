@@ -35,7 +35,7 @@ export class ConversationSessionChatContribution extends Disposable implements I
 				}
 
 				if (!this.mountedOverlays.has(sessionKey)) {
-					sessionChatService.mountSubAgentOverlay(sessionKey, leaf.sessionWindow);
+					sessionChatService.mountSubAgentOverlay(sessionKey, leaf.sessionWindow.querySelector('.conversation-timeline') as HTMLElement || leaf.sessionWindow);
 					this.mountedOverlays.add(sessionKey);
 				}
 

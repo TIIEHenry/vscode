@@ -205,7 +205,7 @@ suite('Conversation Session StatusBar', () => {
 			});
 		}
 
-		test('pairing pending keeps Engine not connected even when phase is connecting', () => {
+		test('pairing pending keeps Waiting for pairing even when phase is connecting', () => {
 			const entries = mountStatusBar(createRosterStub(() => false), {
 				getConnectionPhase: () => ({ kind: 'connecting', reason: 'initial' }),
 				getConnectionSnapshot: () => ({
@@ -217,7 +217,7 @@ suite('Conversation Session StatusBar', () => {
 				}),
 			});
 			const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
-			assert.strictEqual(engineEntry?.text, 'Engine not connected');
+			assert.strictEqual(engineEntry?.text, 'Waiting for pairing');
 			assert.strictEqual(getEngineCommandId(engineEntry), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
 		});
 
@@ -234,7 +234,7 @@ suite('Conversation Session StatusBar', () => {
 				}),
 			});
 			const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
-			assert.strictEqual(engineEntry?.text, 'Engine not connected');
+			assert.strictEqual(engineEntry?.text, 'Waiting for pairing');
 			assert.strictEqual(getEngineCommandId(engineEntry), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
 		});
 	});

@@ -3,8 +3,8 @@ title: "Sources 系统索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-02
-summary: "End 列下格：SOURCES_PART + contrib/sources 的 Files | Changes | Review 列表投影；PRD-005 系统规格；Diff 归属属 PRD-009 / ADR-005"
+updated: 2026-09-19
+summary: "End 列下格：SOURCES_PART + contrib/sources 的 Files | Changes | Review 列表投影；PRD-005 系统规格；Diff 归属属 PRD-009 / ADR-005；2026-09-19 打开身份方案已签收"
 ---
 
 # Sources
@@ -29,5 +29,5 @@ summary: "End 列下格：SOURCES_PART + contrib/sources 的 Files | Changes | R
 ## 相关文档
 
 - [Parts/Grid](../workbench/parts-and-grid.md) · [companion-contribs](../workbench/companion-contribs.md)（SCM / files 配套面）
-- [ADR-005 Diff 归属](../../../dev/decisions/005-changes-diff-owner.md) · [sources-changes-diff plan](../../../dev/plans/sources-changes-diff.md) · [diff-footprint](../../reference/code-oss-b2/diff-footprint.md)
+- [ADR-005 Diff 归属](../../../dev/decisions/005-changes-diff-owner.md) · [sources-changes-diff plan](../../../dev/plans/sources-changes-diff.md) · [sources-review-open-identity](../../../dev/plans/sources-review-open-identity.md)（打开身份，`accepted` @2026-09-19） · [diff-footprint](../../reference/code-oss-b2/diff-footprint.md)
 - [Conversation 系统](../conversation/INDEX.md)

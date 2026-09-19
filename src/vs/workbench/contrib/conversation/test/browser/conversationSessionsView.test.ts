@@ -25,7 +25,7 @@ import { IEditorOptions } from '../../../../../platform/editor/common/editor.js'
 import { IEditorService, PreferredGroup } from '../../../../services/editor/common/editorService.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
 import { CONVERSATION_SESSIONS_CONTAINER_ID } from '../../browser/conversation.contribution.js';
-import { CONVERSATION_SESSION_ROW_HEIGHT, CONVERSATION_SESSIONS_DELETE_ENABLED_KEY, CONVERSATION_SESSIONS_DELETE_SESSION_COMMAND_ID, CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from '../../browser/conversationSessionsView.js';
+import { CONVERSATION_SESSION_COMPACT_ROW_HEIGHT, CONVERSATION_SESSION_ROW_HEIGHT, CONVERSATION_SESSIONS_DELETE_ENABLED_KEY, CONVERSATION_SESSIONS_DELETE_SESSION_COMMAND_ID, CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from '../../browser/conversationSessionsView.js';
 import { IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
 import { ConversationStubSession } from '../../browser/conversationStubModel.js';
 import { conversationLensSessionBarNewSession } from '../../browser/conversationLensSessionBarStrings.js';
@@ -251,6 +251,20 @@ suite('ConversationSessionsView', () => {
 
 	test('session roster rows use 44px delegate height', () => {
 		assert.strictEqual(CONVERSATION_SESSION_ROW_HEIGHT, 44);
+		const { view } = mountView();
+		const listRow = view.element.querySelector('.monaco-list-row') as HTMLElement | null;
+		assert.ok(listRow);
+		assert.strictEqual(listRow.style.height, '44px');
+	});
+
+	test('compact layout uses 22px roster row height', () => {
+		assert.strictEqual(CONVERSATION_SESSION_COMPACT_ROW_HEIGHT, 22);
+		const { view } = mountView();
+		(view as unknown as { layoutBody(height: number, width: number): void }).layoutBody(400, 280);
+		assert.ok(view.element.classList.contains('is-compact'));
+		const listRow = view.element.querySelector('.monaco-list-row') as HTMLElement | null;
+		assert.ok(listRow);
+		assert.strictEqual(listRow.style.height, '22px');
 	});
 
 	test('roster copy has no engine or Copilot placeholders', () => {
@@ -525,6 +539,8 @@ suite('ConversationSessionsView', () => {
 		assert.ok(empty);
 		assert.strictEqual(empty.style.display, 'block');
 		assert.strictEqual(empty.textContent, conversationSessionsViewNoMatches);
+		const filter = view.element.querySelector('.conversation-sessions-inline-filter');
+		assert.strictEqual(empty.previousElementSibling, filter);
 	});
 
 	test('filter query hides non-matching session titles', async () => {

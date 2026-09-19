@@ -53,8 +53,14 @@ import {
 import { conversationLensDockAgentUnavailable, conversationLensDockModelFailed, conversationLensDockModelUnavailable, conversationLensDockPermissionUnavailable } from '../../browser/conversationLensComposerChrome.js';
 import {
 	conversationLensSessionBarConversationTab,
+	conversationLensSessionBarCloseExtensionTabs,
 	conversationLensSessionBarDeleteSession,
+	conversationLensSessionBarGoBack,
+	conversationLensSessionBarGoForward,
+	conversationLensSessionBarHistory,
+	conversationLensSessionBarMore,
 	conversationLensSessionBarNewSession,
+	conversationLensSessionBarSnapshots,
 	conversationLensSessionBarNoTrajectory,
 	conversationLensSessionBarRenameTitle,
 	conversationLensSessionBarTrajectoryTab,
@@ -1155,6 +1161,23 @@ suite('ConversationLens', () => {
 		}
 	});
 
+	test('narrow More menu shows current agent before Tool options', () => {
+		const { part } = mountLens({ layoutWidth: LENS_MIN_WIDTH });
+		const slots = getLensSlots(part);
+		const moreButton = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-more .monaco-button') as HTMLButtonElement;
+		moreButton.click();
+
+		const popup = document.querySelector('.conversation-lens-dock-more-popup') as HTMLElement | null;
+		assert.ok(popup);
+		const agentNote = popup.querySelector('.conversation-lens-dock-more-agent') as HTMLElement | null;
+		assert.ok(agentNote);
+		assert.strictEqual(agentNote.getAttribute('role'), 'note');
+		assert.strictEqual(agentNote.textContent, conversationLensDockNoAgent);
+		const tune = [...popup.querySelectorAll('.conversation-lens-dock-more-item')].find(item => item.textContent === conversationLensDockTuneTitle);
+		assert.ok(tune);
+		assert.ok(agentNote.compareDocumentPosition(tune) & Node.DOCUMENT_POSITION_FOLLOWING);
+	});
+
 	test('disconnected compose enables send from draft without Stub model', async () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
@@ -1988,6 +2011,68 @@ suite('ConversationLens', () => {
 		assert.ok(slots.sessionBar!.classList.contains('is-narrow'));
 		assert.ok(!slots.sessionBar!.classList.contains('is-compact'));
 		assert.ok(switcherLabel);
+		assert.ok(slots.sessionBar!.querySelector('.conversation-lens-session-more'));
+		const moreButton = slots.sessionBar!.querySelector('.conversation-lens-session-more .monaco-button') as HTMLButtonElement;
+		assert.ok(moreButton);
+		assert.strictEqual(moreButton.getAttribute('aria-label'), conversationLensSessionBarMore);
+		moreButton.click();
+		const popup = document.querySelector('.conversation-lens-dock-more-popup') as HTMLElement | null;
+		assert.ok(popup);
+		const labels = [...popup.querySelectorAll('.conversation-lens-dock-more-item')].map(item => item.textContent);
+		assert.ok(labels.includes(conversationLensSessionBarHistory));
+		assert.ok(labels.includes(conversationLensSessionBarSnapshots));
+		assert.ok(labels.includes(conversationLensSessionBarGoBack));
+		assert.ok(labels.includes(conversationLensSessionBarGoForward));
+		assert.ok(labels.includes(conversationLensSessionBarCloseExtensionTabs));
+		assert.ok(labels.includes(conversationLensSessionBarNewSession));
+		assert.ok(labels.includes(conversationLensSessionBarDeleteSession));
+	});
+
+	test('SessionBar medium width keeps More for History and Snapshots', () => {
+		const { part } = mountLens();
+		const slots = getLensSlots(part);
+		assert.ok(slots.sessionBar!.classList.contains('is-medium'));
+		assert.ok(!slots.sessionBar!.classList.contains('is-narrow'));
+		const moreButton = slots.sessionBar!.querySelector('.conversation-lens-session-more .monaco-button') as HTMLButtonElement;
+		assert.ok(moreButton);
+		moreButton.click();
+		const popup = document.querySelector('.conversation-lens-dock-more-popup') as HTMLElement | null;
+		assert.ok(popup);
+		const labels = [...popup.querySelectorAll('.conversation-lens-dock-more-item')].map(item => item.textContent);
+		assert.ok(labels.includes(conversationLensSessionBarHistory));
+		assert.ok(labels.includes(conversationLensSessionBarSnapshots));
+		assert.ok(labels.includes(conversationLensSessionBarGoBack));
+	});
+
+	test('maximize input closes History and Snapshots overlays', () => {
+		const { lens } = mountLens();
+		assert.ok(lens.engineHistoryList);
+		assert.ok(lens.engineSnapshotsList);
+		lens.engineHistoryList.show();
+		lens.engineSnapshotsList.show();
+		assert.strictEqual(lens.engineHistoryList.isOpen(), true);
+		assert.strictEqual(lens.engineSnapshotsList.isOpen(), true);
+
+		lens.setInputMaximized(true);
+
+		assert.strictEqual(lens.isInputMaximized(), true);
+		assert.strictEqual(lens.engineHistoryList.isOpen(), false);
+		assert.strictEqual(lens.engineSnapshotsList.isOpen(), false);
+	});
+
+	test('switching session closes History, Snapshots, and Visualize overlays', () => {
+		const { lens, stubService } = mountLens();
+		assert.ok(lens.engineHistoryList);
+		assert.ok(lens.engineSnapshotsList);
+		lens.engineHistoryList.show();
+		lens.engineSnapshotsList.show();
+		assert.strictEqual(lens.engineHistoryList.isOpen(), true);
+		assert.strictEqual(lens.engineSnapshotsList.isOpen(), true);
+
+		stubService.createSession();
+
+		assert.strictEqual(lens.engineHistoryList.isOpen(), false);
+		assert.strictEqual(lens.engineSnapshotsList.isOpen(), false);
 	});
 
 	test('lensId persists across remount via workspace storage', async () => {
@@ -2255,6 +2340,20 @@ suite('ConversationLens', () => {
 		assert.strictEqual(maximizeButton.getAttribute('aria-pressed'), 'false');
 		assert.strictEqual(slots.timeline.classList.contains(conversationLensInputMaximizedClass), false);
 		assert.strictEqual(slots.dock.classList.contains(conversationLensInputMaximizedClass), false);
+	});
+
+	test('narrow More menu says Restore timeline when input is maximized', () => {
+		const { part, lens } = mountLens({ layoutWidth: LENS_MIN_WIDTH });
+		const slots = getLensSlots(part);
+		lens.setInputMaximized(true);
+		const moreButton = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-more .monaco-button') as HTMLButtonElement;
+		moreButton.click();
+
+		const popup = document.querySelector('.conversation-lens-dock-more-popup') as HTMLElement | null;
+		assert.ok(popup);
+		const restore = [...popup.querySelectorAll('.conversation-lens-dock-more-item')].find(item => item.textContent === conversationLensDockRestoreTimeline);
+		assert.ok(restore);
+		assert.ok(![...popup.querySelectorAll('.conversation-lens-dock-more-item')].some(item => item.textContent === conversationLensDockMaximizeInput));
 	});
 
 	test('input maximize keeps pending confirmation reachable via dock inbox row', async () => {
@@ -2994,6 +3093,7 @@ suite('ConversationLens', () => {
 		assert.ok(syncBadge);
 		assert.strictEqual(syncBadge.hidden, false);
 		assert.strictEqual(syncBadge.textContent, 'Session not connected');
+		assert.strictEqual(syncBadge.title, 'Session not connected');
 	});
 
 	test('PRD-007: closed session shows column-top stale snapshot and keeps prior turns', async () => {
@@ -3412,6 +3512,8 @@ suite('ConversationLens', () => {
 		assert.ok(layoutContainer.querySelector('.conversation-visualize-overlay[role="dialog"]'));
 
 		const dialog = layoutContainer.querySelector('.conversation-visualize-overlay') as HTMLElement;
+		assert.ok(slots.timeline.contains(dialog));
+		assert.ok(!slots.dock.contains(dialog));
 		dialog.dispatchEvent(new KeyboardEvent('keydown', { keyCode: KeyCode.Escape, bubbles: true }));
 		assert.strictEqual(layoutContainer.querySelector('.conversation-visualize-overlay[role="dialog"]'), null);
 

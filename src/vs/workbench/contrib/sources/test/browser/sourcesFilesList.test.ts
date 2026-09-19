@@ -117,6 +117,10 @@ suite('Sources - Files list leftover honesty', () => {
 		assert.strictEqual(empty, sourcesFilesListReadFailureMessage(new Error('boom')));
 		assert.ok(!empty.includes(sourcesFilesListEmptyMessage));
 		assert.ok(!host.querySelector('.sources-files-list .monaco-list-row'));
+		assert.ok((host.querySelector('.sources-files-empty') as HTMLElement).classList.contains('is-error'));
+		const status = await waitForText(host, '.sources-files-status', 'Unable to read workspace files');
+		assert.strictEqual(status, sourcesFilesListReadFailureMessage(new Error('boom')));
+		assert.ok((host.querySelector('.sources-files-status') as HTMLElement).classList.contains('is-error'));
 	});
 
 	test('success then fetchChildren throw keeps leftover rows and paints status', async function () {
@@ -139,6 +143,7 @@ suite('Sources - Files list leftover honesty', () => {
 		assert.strictEqual(list.length, 1);
 		assert.strictEqual(list.element(0).name, 'leftover.ts');
 		assert.notStrictEqual((host.querySelector('.sources-files-status') as HTMLElement).style.display, 'none');
+		assert.ok((host.querySelector('.sources-files-status') as HTMLElement).classList.contains('is-error'));
 	});
 
 	test('does not leak unhandled rejection when refresh catch-path setStatusMessage throws and onUnexpectedError warn-then-rethrows', async function () {

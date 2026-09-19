@@ -9,7 +9,7 @@ import { EditorOpenSource } from '../../../../platform/editor/common/editor.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import type { UniverseAgentReadGitFileDiffResult } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { ACTIVE_GROUP, CONVERSATION_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
+import { ACTIVE_GROUP, CONVERSATION_SIDE_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { resolveSourcesChangeRef, ISourcesChangeRef } from '../common/sourcesChangeRef.js';
 import {
@@ -159,5 +159,5 @@ async function openSourcesChangeInConversation(
 	await deps.editorService.openEditor(input, {
 		preserveFocus: options.preserveFocus,
 		pinned: options.pinned,
-	}, CONVERSATION_GROUP);
+	}, CONVERSATION_SIDE_GROUP);
 }

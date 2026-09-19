@@ -34,19 +34,30 @@ export type AgentStatusTone = 'unknown' | 'idle' | 'running' | 'paused' | 'error
 export function agentStatusTone(status: string): AgentStatusTone {
 	const key = status.replace(/^AGENT_STATUS_/, '').toUpperCase();
 	switch (key) {
-		case 'ERROR':
-		case 'TIMEOUT':
-			return 'error';
+		case 'RUNNING':
 		case 'GENERATING':
 		case 'PENDING':
 		case 'WAITING':
+		case 'BUSY':
+		case 'ACTIVE':
 			return 'running';
+		case 'FAILED':
+		case 'ERROR':
+		case 'TIMEOUT':
+			return 'error';
+		case 'CANCELLED':
 		case 'PAUSED':
+		case 'BLOCKED':
 			return 'paused';
 		case 'COMPLETED':
+		case 'DONE':
+		case 'COMPLETE':
 			return 'done';
 		case 'IDLE':
+		case 'OPEN':
 			return 'idle';
+		case 'UNKNOWN':
+			return 'unknown';
 		default:
 			return 'unknown';
 	}

@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-09-10
-summary: "M7 UI 开发继续规则：测试债旁路；GitHub Actions 永久关闭（提交过频）；门禁改本地 compile / eslint / docs-health / unit-custom；valid-layers-check 继续豁免；三域挡合入待切片 5"
+updated: 2026-09-18
+summary: "M7 UI 开发继续规则：测试债旁路；托管 CI 已关（既定，非缺口）；门禁改本地 compile / eslint / docs-health / unit-custom；valid-layers-check 继续豁免；三域挡合入待切片 5"
 ---
 
 # Loop 健康检查 Gate
@@ -33,7 +33,7 @@ summary: "M7 UI 开发继续规则：测试债旁路；GitHub Actions 永久关�
 
 ## GitHub Actions（永久关闭，2026-09-10）
 
-本仓提交过频，**不再跑 GitHub-hosted Actions**。声明：[DISABLED.md](../../.github/workflows/DISABLED.md)。所有 workflow 带 `if: false`；`agent-ide.yml` 已去掉 push / PR 触发。
+本仓提交过频，**不再跑托管 CI**。声明：[DISABLED.md](../../.github/workflows/DISABLED.md)。所有 workflow 带 `if: false`；`agent-ide.yml` 已去掉 push / PR 触发。这是既定选择，**不是**验证缺口；Agent 不得在综述里复述或建议重开。
 
 下列命令是 test-baseline 切片 4 装配过的对照，**只在本地跑**：
 

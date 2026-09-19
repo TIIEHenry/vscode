@@ -112,6 +112,7 @@ export class SourcesFilesList extends Disposable {
 		this.statusMessage.setAttribute('role', 'status');
 		this.statusMessage.style.display = 'none';
 		this.emptyMessage = dom.append(host, $('.sources-files-empty'));
+		this.emptyMessage.setAttribute('role', 'status');
 		this.emptyMessage.style.display = 'none';
 
 		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError), 250));
@@ -200,7 +201,8 @@ export class SourcesFilesList extends Disposable {
 			this.emptyMessage.textContent = localize('sourcesFilesList.noMatching', "No matching files.");
 		}
 
-		this.setStatusMessage(hasAnyEntries ? readError : undefined);
+		this.setStatusMessage(readError);
+		this.emptyMessage.classList.toggle('is-error', !!readError && !hasAnyEntries);
 		this.emptyMessage.style.display = hasVisibleEntries ? 'none' : '';
 		this.listContainer.style.display = hasVisibleEntries ? 'block' : 'none';
 		this.filterBox.element.style.display = hasAnyEntries ? 'block' : 'none';
@@ -217,9 +219,11 @@ export class SourcesFilesList extends Disposable {
 		if (!message) {
 			this.statusMessage.textContent = '';
 			this.statusMessage.style.display = 'none';
+			this.statusMessage.classList.remove('is-error');
 			return;
 		}
 		this.statusMessage.textContent = message;
 		this.statusMessage.style.display = 'block';
+		this.statusMessage.classList.add('is-error');
 	}
 }

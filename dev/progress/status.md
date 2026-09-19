@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-19
-summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847、D850–D851、D854–D858、D860–D868、D871、D875–D876、D881、D883、D886、D895、D898、D917、D922、D939、D943。D24 仍开。不是 leftover/pills 完成。"
+summary: "合入人类 agent-ide：UA chrome 视觉 + 四份修补方案签收（D944，因 D413 已被 reconnect 占用）。leftover catch 至 D943。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -15,12 +15,14 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D782、D784�
 |:-----|:-----|
 | **A SessionStream / L2** | 16/23/30–32/34–39/44/46/50–52；envelope leftover |
 | **catch** | D677–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847、D850–D851、D854–D858、D860–D868、D871、D875–D876、D881、D883、D886、D895、D898、D917、D922、D939、D943 |
+| **UA chrome** | 人类 `agent-ide`：Maximize Inbox 文档流、pairing-hold 禁 Connect、Diff SIDE_GROUP、live SAS/Stop 可达、本地 health-gates 门禁说明 |
+| **四份方案** | 活流 bytes / 拨号 generation / 绑定叶身份 / Sources 打开身份已签收、未实施，跟踪 [D944](deferred-gaps.md) |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **loop** | leftover remaining unused 未完成。D943 已合入。D759 脏无 scan 不 `-B`。B 脏跳过；C gitlink 勿 add；E blocked。 |
+| **loop** | leftover remaining unused 未完成。D943 已合入。本 tick 合入人类 `agent-ide`。D759 脏无 scan 不 `-B`。B 脏跳过；C gitlink 勿 add；E blocked。 |
 
 子 agent 发现：
 | ID | 问题 |
@@ -49,6 +51,6 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D782、D784�
 ## Next
 | 项 | 指针 |
 |:-----|:-----|
-| **loop** | D24 仍开。不得宣称 leftover/pills 完成 |
+| **loop** | D24 仍开。不得宣称 leftover/pills 完成。四份修补方案跟踪 [D944](deferred-gaps.md) |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。

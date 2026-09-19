@@ -307,6 +307,25 @@ suite('NavigatorProjectsView', () => {
 		assert.strictEqual(countTreeLeaves(view), 1);
 	});
 
+	test('Escape clears the projects filter and restores the list', async () => {
+		const recentFolder = URI.file('/projects/recent-one');
+		const workspacesService = new WorkspacesWithRecents({
+			workspaces: [{ folderUri: recentFolder, label: 'recent-one' }],
+			files: [],
+		});
+		const view = await mountView({ workspacesService });
+
+		await setFilterQuery(view, 'zzz-no-match');
+		assert.strictEqual(countTreeLeaves(view), 0);
+
+		const input = getFilterInput(view);
+		assert.ok(input);
+		input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27, bubbles: true, cancelable: true }));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(input.value, '');
+		assert.strictEqual(countTreeLeaves(view), 1);
+	});
+
 	test('filter input is shown when entries exist', async () => {
 		const folderUri = URI.file('/projects/demo');
 		const contextService = new TestContextService(testWorkspace(folderUri));
@@ -984,6 +1003,37 @@ suite('NavigatorProjectsView', () => {
 			'true connected without pairing must not look stale',
 		);
 		assert.strictEqual(view.shouldShowWelcome(), false);
+	});
+
+	test('compact layout keeps short workdir name and full path in title', async () => {
+		const rosterService = new ConversationStubService();
+		rosterService.setEngineConnected(true);
+		const uaConnection = createNavigatorConnectionTestStub({
+			getNavigatorCapability: () => 'SUPPORTED',
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
+				workDir: '/engine/live',
+				pairingPending: false,
+			}),
+		});
+		const view = await mountView({
+			rosterService,
+			uaConnection,
+		});
+		const workdir = findTreeNode(getViewTreeNodes(view), node => node.kind === 'workdir' && !!node.description);
+		assert.ok(workdir?.description, 'live paint must have a workdir path');
+
+		(view as unknown as { layoutBody(height: number, width: number): void }).layoutBody(400, 280);
+		assert.ok(view.element.classList.contains('is-compact'));
+
+		const labels = Array.from(view.element.querySelectorAll('.navigator-projects-node-label')) as HTMLElement[];
+		const workdirLabel = labels.find(el => el.title.includes(workdir.description!));
+		assert.ok(workdirLabel, 'workdir row must keep the full path in title');
+		const name = workdirLabel.querySelector('.navigator-projects-node-name');
+		assert.ok(name);
+		assert.strictEqual(name.textContent, workdir.label);
+		assert.ok(!name.textContent?.includes(workdir.description!), 'compact 22px label must not inline the full path');
 	});
 
 	test('true disconnect first-pull stays empty and welcome', async () => {

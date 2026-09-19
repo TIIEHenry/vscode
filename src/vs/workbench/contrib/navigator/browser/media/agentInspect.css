@@ -46,9 +46,46 @@
 .monaco-workbench .agent-inspect-entry-value {
 	flex: 1;
 	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
+	overflow-wrap: anywhere;
+	white-space: normal;
+}
+
+.monaco-workbench .is-compact .agent-inspect-entry {
+	flex-direction: column;
+	align-items: stretch;
+	gap: 2px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+}
+
+.monaco-workbench .is-compact .agent-inspect-entry-field {
+	flex: 0 0 auto;
+}
+
+.monaco-workbench .is-compact .agent-inspect-entry-value {
+	white-space: normal;
+	overflow: visible;
+}
+
+.monaco-workbench .agent-inspect-entry-value.is-running {
+	color: var(--vscode-charts-blue);
+}
+
+.monaco-workbench .agent-inspect-entry-value.is-error {
+	color: var(--vscode-errorForeground);
+}
+
+.monaco-workbench .agent-inspect-entry-value.is-done {
+	color: var(--vscode-charts-green);
+}
+
+.monaco-workbench .agent-inspect-entry-value.is-paused {
+	color: var(--vscode-charts-orange);
+}
+
+.monaco-workbench .agent-inspect-entry-value.is-idle,
+.monaco-workbench .agent-inspect-entry-value.is-unknown {
+	color: var(--vscode-descriptionForeground);
 }
 
 .monaco-workbench .agent-inspect-entry-value.is-running {

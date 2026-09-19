@@ -48,6 +48,7 @@ suite('ConversationPart', () => {
 		const hideControl = part.getContainer()?.querySelector('.part-region-hide-actions .action-label');
 		assert.ok(hideControl);
 		assert.strictEqual(hideControl.getAttribute('aria-label'), 'Hide Conversation');
+		assert.notStrictEqual(hideControl.getAttribute('tabindex'), '-1');
 	});
 
 	test('focus fires onDidFocus even when autoFocus is off', () => {

@@ -84,8 +84,10 @@ const $ = DOM.$;
 
 /** Every status line in the pane is written through here so tone and copy never drift apart. */
 export function writeStatus(element: HTMLElement, text: string, tone: ConnectionStatusTone = 'neutral'): void {
-	element.textContent = text;
+	const copy = text.trim();
+	element.textContent = copy;
 	element.classList.toggle('is-success', tone === 'success');
+	element.classList.toggle('is-pending', tone === 'pending');
 	element.classList.toggle('is-warning', tone === 'warning');
 	element.classList.toggle('is-error', tone === 'error');
 }
@@ -453,6 +455,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly hubLoginButton: Button;
 	private readonly hubLogoutButton: Button;
 	private readonly hubRefreshButton: Button;
+	private readonly connectDirectButton: Button;
+	private readonly connectProfileButton: Button;
+	private connectInFlight = false;
 
 	constructor(
 		@IInstantiationService instantiationService: IInstantiationService,
@@ -598,10 +603,11 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			ariaLabel: localize('ua.connectionConfirmDeviceCodeAria', "Confirm device code"),
 			inputBoxStyles: defaultInputBoxStyles,
 		}));
-		this.confirmDeviceCodeButton = this._register(new Button(deviceCodeRow, defaultButtonStyles));
+		const deviceCodeActions = DOM.append(deviceCodeRow, $('.connection-actions'));
+		this.confirmDeviceCodeButton = this._register(new Button(deviceCodeActions, defaultButtonStyles));
 		this.confirmDeviceCodeButton.label = localize('ua.connectionConfirmDeviceCode', "Confirm");
 		this._register(this.confirmDeviceCodeButton.onDidClick(() => void this.handleConfirmDeviceCode().catch(onUnexpectedError).catch(onUnexpectedError)));
-		this.rejectDevicePairButton = this._register(new Button(deviceCodeRow, { ...defaultButtonStyles, secondary: true }));
+		this.rejectDevicePairButton = this._register(new Button(deviceCodeActions, { ...defaultButtonStyles, secondary: true }));
 		this.rejectDevicePairButton.label = CONNECTION_DEVICE_PAIR_REJECT_LABEL;
 		this._register(this.rejectDevicePairButton.onDidClick(() => void this.handleRejectDevicePair().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.hubDeviceCodeStatus = DOM.append(this.hubDevicesSection, DOM.$('.connection-status.connection-hub-device-code-status'));
@@ -641,9 +647,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}));
 
 		const directActions = DOM.append(this.directAddressSection, DOM.$('.connection-actions.connection-direct-actions'));
-		const connectDirectButton = this._register(new Button(directActions, defaultButtonStyles));
-		connectDirectButton.label = localize('ua.connectionDirectConnect', "Connect");
-		this._register(connectDirectButton.onDidClick(() => void this.handleConnectDirectAddress().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.connectDirectButton = this._register(new Button(directActions, defaultButtonStyles));
+		this.connectDirectButton.label = localize('ua.connectionDirectConnect', "Connect");
+		this._register(this.connectDirectButton.onDidClick(() => void this.handleConnectDirectAddress().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		const addDirectButton = this._register(new Button(directActions, { ...defaultButtonStyles, secondary: true }));
 		addDirectButton.label = localize('ua.connectionDirectAdd', "Add");
@@ -672,9 +678,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		)) as WorkbenchList<IConnectionProfileEntry>;
 
 		this.profileActionsRow = DOM.append(this.profilesSection, DOM.$('.connection-actions.connection-profile-actions'));
-		const connectProfileButton = this._register(new Button(this.profileActionsRow, defaultButtonStyles));
-		connectProfileButton.label = localize('ua.connectionProfileConnect', "Connect");
-		this._register(connectProfileButton.onDidClick(() => void this.handleConnectSelectedProfile().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.connectProfileButton = this._register(new Button(this.profileActionsRow, defaultButtonStyles));
+		this.connectProfileButton.label = localize('ua.connectionProfileConnect', "Connect");
+		this._register(this.connectProfileButton.onDidClick(() => void this.handleConnectSelectedProfile().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		const disconnectButton = this._register(new Button(this.profileActionsRow, { ...defaultButtonStyles, secondary: true }));
 		disconnectButton.label = localize('ua.connectionProfileDisconnect', "Disconnect");
@@ -843,6 +849,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.narrowShowingDetail = false;
 		this.applyNarrowChrome();
 		this.navList.layout(this.getNavHeight(this.lastLayoutHeight), this.getNavWidth(this.lastLayoutWidth));
+		if (this.isPairingConfirmHostLive()) {
+			this.revealAndFocusPairingConfirm();
+			return;
+		}
 		this.navList.domFocus();
 	}
 
@@ -922,6 +932,41 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		applyConnectionPaneIdentityStripReservation(this.container);
 	}
 
+	onDidShow(): void {
+		const pairingPending = !!this.connectionService.getConnectionSnapshot().pairingPending;
+		const narrowNav = this.lastLayoutWidth < PREFERENCES_PANE_NARROW_WIDTH && !this.narrowShowingDetail;
+		if (pairingPending && this.activeZoneId === 'hub' && !narrowNav) {
+			this.selectZone(this.inferPairingZone());
+		}
+		if (this.isPairingConfirmHostLive()) {
+			this.revealAndFocusPairingConfirm();
+		}
+	}
+
+	private inferPairingZone(): ConnectionZoneId {
+		const phase = this.connectionService.getConnectionPhase();
+		if (phase.kind === 'connected') {
+			if (phase.path === 'direct' || phase.path === 'loopback') {
+				return 'direct';
+			}
+			if (phase.path === 'hubRelay') {
+				return 'devices';
+			}
+		}
+		return 'profiles';
+	}
+
+	private revealAndFocusPairingConfirm(): void {
+		this.syncPairingConfirmHostParent();
+		this.navList.layout(this.getNavHeight(this.lastLayoutHeight), this.getNavWidth(this.lastLayoutWidth));
+		if (typeof this.pairingConfirmHost.scrollIntoView === 'function') {
+			this.pairingConfirmHost.scrollIntoView({ block: 'nearest' });
+		}
+		const button = this.pairingConfirmHost.querySelector('.monaco-button') as HTMLElement | null;
+		const dialog = this.pairingConfirmHost.querySelector('.monaco-dialog-box') as HTMLElement | null;
+		(button ?? dialog)?.focus();
+	}
+
 	private getNavWidth(paneWidth: number): number {
 		return paneWidth < PREFERENCES_PANE_NARROW_WIDTH
 			? Math.max(0, paneWidth - 40)
@@ -929,7 +974,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private getNavHeight(paneHeight: number): number {
-		return Math.max(120, paneHeight - 120);
+		const sasReserve = this.pairingConfirmHost.parentElement === this.container && this.isPairingConfirmHostLive()
+			? this.pairingConfirmHost.offsetHeight
+			: 0;
+		return Math.max(80, paneHeight - 120 - sasReserve);
 	}
 
 	private getDetailWidth(): number {
@@ -962,8 +1010,24 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		// Header search disabled for this pane family.
 	}
 
+	private isConnectWriteHeld(): boolean {
+		return this.connectInFlight
+			|| this.isDeviceWritePairingHold()
+			|| this.isPairingConfirmHostLive();
+	}
+
+	private updateConnectGates(): void {
+		const held = this.isConnectWriteHeld();
+		this.connectDirectButton.enabled = !held;
+		this.connectProfileButton.enabled = !held && !!this.activeProfileId;
+		if (this.hubDevices.length > 0) {
+			this.hubDevicesList.splice(0, this.hubDevicesList.length, this.hubDevices);
+		}
+	}
+
 	private canConnectDevice(device: HubDeviceProjection): boolean {
-		if (this.hubDirectoryListFailed) {
+		if (this.isConnectWriteHeld() || this.hubDirectoryListFailed) {
+
 			return false;
 		}
 		return canConnectHubDevice(device, this.hubService.getDirectoryStatus());
@@ -1098,8 +1162,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private restoreHubDirectoryWriteSuccessIfListed(listed: boolean, message: string): void {
 		if (listed) {
-			this.hubDirectoryBanner.textContent = message;
-			this.hubDirectoryBanner.style.display = message ? '' : 'none';
+			writeStatus(this.hubDirectoryBanner, message, message.trim() ? 'success' : 'neutral');
+			this.hubDirectoryBanner.style.display = message.trim() ? '' : 'none';
 			return;
 		}
 	}
@@ -1133,6 +1197,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.engineDevicesListFailed = undefined;
 		this.hubDevices = [];
 		this.renderHubDirectory();
+		if (isConversationPairingHold(this.connectionService)) {
+			writeStatus(this.devicesConnectStatus, getEngineSectionDisconnectedCopy(), 'warning');
+			return;
+		}
 		writeStatus(this.devicesConnectStatus, '', 'neutral');
 	}
 
@@ -1185,6 +1253,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				writeStatus(this.devicesConnectStatus, '', 'neutral');
 			}
 		} catch (error) {
+			if (isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected()) {
+				this.applyDisconnectedDevicesRefresh();
+				return;
+			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.engineDevicesListFailed = reason;
 			this.renderHubDirectory();
@@ -1220,6 +1292,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.pendingPairsListFailed = undefined;
 			this.selectedPending = undefined;
 		} catch (error) {
+			if (isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected()) {
+				this.applyDisconnectedPendingRefresh();
+				return;
+			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.pendingPairsListFailed = reason;
 		}
@@ -1292,6 +1368,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private async handleConnectDirectAddress(): Promise<void> {
+		if (this.isConnectWriteHeld()) {
+			return;
+		}
 		const host = this.directHostInput.value.trim();
 		const port = Number(this.directPortInput.value);
 		if (!host || !Number.isInteger(port)) {
@@ -1301,6 +1380,11 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 		const displayName = this.directNameInput.value.trim() || undefined;
 		const allowPrivateNetwork = this.directAllowPrivateCheckbox.checked;
+		writeStatus(
+			this.directAddressStatus,
+			localize('ua.connectionDirectConnecting', "Connecting…"),
+			getConnectionPhaseTone({ kind: 'connecting', reason: 'initial' }),
+		);
 		const ensured = await this.ensureDirectAddressProfileForConnect(host, port, displayName, allowPrivateNetwork);
 		if (!ensured.ok) {
 			writeStatus(this.directAddressStatus, ensured.reason, 'error');
@@ -1308,7 +1392,6 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 
 		this.activeProfileId = ensured.profileId;
-		writeStatus(this.directAddressStatus, localize('ua.connectionDirectConnecting', "Connecting…"));
 		await this.connectProfileWithPairing(ensured.profileId);
 		this.renderProfiles();
 	}
@@ -1332,6 +1415,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private async handleConnectSelectedProfile(): Promise<void> {
+		if (this.isConnectWriteHeld()) {
+			return;
+		}
 		if (!this.activeProfileId) {
 			this.writeConnectStatus(localize('ua.connectionNoActiveProfile', "Select a connection profile first."), 'warning');
 			return;
@@ -1405,8 +1491,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	/** Live host: SAS / recoverTrust is mounted — remount on liveness, not `sasCode`. */
 	private isPairingConfirmHostLive(): boolean {
 		return this.pairingConfirmHost.classList.contains('connection-pairing-confirm')
-			|| !!this.pairingConfirmHost.querySelector('.connection-pairing-confirm')
-			|| this.pairingConfirmHost.style.display !== 'none';
+			|| !!this.pairingConfirmHost.querySelector('.connection-pairing-confirm, .monaco-dialog-box');
 	}
 
 	/**
@@ -1435,10 +1520,19 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private async connectProfileWithPairing(profileId: string): Promise<void> {
+		if (this.isConnectWriteHeld()) {
+			return;
+		}
+		this.connectInFlight = true;
+		this.updateConnectGates();
+		try {
 		this.activeProfileId = profileId;
 		const profiles = asConnectionProfileList(this.hubService.listConnectionProfiles());
 		const profile = profiles.find(p => p.profileId === profileId);
-		this.writeConnectStatus(getConnectionTestStatusText({ kind: 'connecting', reason: 'initial' }));
+		this.writeConnectStatus(
+			getConnectionTestStatusText({ kind: 'connecting', reason: 'initial' }),
+			getConnectionPhaseTone({ kind: 'connecting', reason: 'initial' }),
+		);
 		let result: Awaited<ReturnType<IUniverseAgentConnection['connectProfile']>>;
 		try {
 			result = await this.connectionService.connectProfile(profileId);
@@ -1530,6 +1624,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		});
 		this.renderConnectionPhase();
 		this.renderProfiles();
+		} finally {
+			this.connectInFlight = false;
+			this.updateConnectGates();
+		}
 	}
 
 	private setConnectTestStatus(
@@ -1549,6 +1647,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private async handleConnectDevice(device: HubDeviceProjection): Promise<void> {
 		if (!this.canConnectDevice(device)) {
+
 			return;
 		}
 		try {
@@ -1570,7 +1669,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private getSelectedDevice(): HubDeviceProjection | undefined {
-		return this.hubDevicesList.getSelectedElements()[0] ?? this.hubDevices[0];
+		return this.hubDevicesList.getSelectedElements()[0];
 	}
 
 	private updateDeviceActions(): void {
@@ -1857,13 +1956,18 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (this.engineDevicesListFailed || this.hubDirectoryListFailed) {
 			writeStatus(this.hubDirectoryBanner, banner ?? '', 'error');
 			this.hubDirectoryBanner.style.display = banner ? '' : 'none';
+		} else if (banner) {
+			writeStatus(this.hubDirectoryBanner, banner, 'error');
+			this.hubDirectoryBanner.style.display = '';
 		} else {
-			this.hubDirectoryBanner.textContent = banner ?? '';
-			this.hubDirectoryBanner.style.display = banner ? '' : 'none';
+			writeStatus(this.hubDirectoryBanner, '', 'neutral');
+			this.hubDirectoryBanner.style.display = 'none';
 		}
 
 		if (this.enginePairedDevices !== undefined) {
 			this.hubDevices = this.enginePairedDevices.map(toConnectionPairedDevice);
+		} else if (isConversationPairingHold(this.connectionService)) {
+			this.hubDevices = [];
 		} else if (directory.kind === 'ok') {
 			this.hubDevices = [...directory.devices];
 		}
@@ -1925,6 +2029,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			getConnectionPhasePaneLabel(this.connectionPhase, pairingPending),
 			getConnectionPhaseTone(this.connectionPhase, pairingPending),
 		);
+		this.updateConnectGates();
 	}
 
 	private setEntries(entries: IConnectionProfileEntry[]): void {

@@ -8,10 +8,14 @@ import { localize2 } from '../../../../nls.js';
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { IModelService } from '../../../../editor/common/services/model.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
+import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
+import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
-import { sourcesGitDiffOpenFailureMessage } from '../common/sourcesChangesGitRead.js';
+import { sourcesGitDiffOpenFailureMessage, tryReadSourcesGitFileDiff } from '../common/sourcesChangesGitRead.js';
 import { ISourcesReviewHostService } from '../common/sourcesReviewHostService.js';
 import { markReviewedAfterSuccessfulOpen } from '../common/sourcesReviewListModel.js';
 import { ISourcesReviewProgressService } from '../common/sourcesReviewProgress.js';
@@ -43,6 +47,9 @@ registerAction2(class SourcesReviewOpenSelectedAction extends Action2 {
 		}
 
 		const reviewProgressService = accessor.get(ISourcesReviewProgressService);
+		const uaConnection = accessor.get(IUniverseAgentConnection);
+		const roster = accessor.get(IConversationRosterService);
+		const modelService = accessor.get(IModelService);
 		try {
 			await markReviewedAfterSuccessfulOpen(
 				() => openSourcesChangeEntry(entry, {
@@ -51,8 +58,21 @@ registerAction2(class SourcesReviewOpenSelectedAction extends Action2 {
 					configurationService: accessor.get(IConfigurationService),
 					instantiationService: accessor.get(IInstantiationService),
 					sourcesDiffPanelService: accessor.get(ISourcesDiffPanelService),
-					modelService: accessor.get(IModelService),
-					readGitFileDiff: gitEntry => host.readGitFileDiff(gitEntry),
+					modelService,
+					readGitFileDiff: gitEntry => {
+						if (!uaConnection || !roster) {
+							return Promise.resolve(undefined);
+						}
+						const hook = uaConnection.readGitFileDiff;
+						return tryReadSourcesGitFileDiff(
+							uaConnection.isEngineConnected(),
+							hook ? request => hook.call(uaConnection, request) : undefined,
+							roster.getActiveSessionId(),
+							gitEntry.gitPath ?? '',
+							gitEntry.indexState ?? '',
+							isConversationPairingHold(uaConnection),
+						);
+					},
 				}, {
 					preserveFocus: false,
 					pinned: false,

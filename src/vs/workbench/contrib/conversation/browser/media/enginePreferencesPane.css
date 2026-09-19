@@ -259,19 +259,25 @@
 }
 
 .monaco-workbench .engine-test-status {
-	flex: 1 1 auto;
+	flex: 0 1 auto;
 	min-width: 0;
 	color: var(--vscode-descriptionForeground);
 	font-size: var(--vscode-fontSize-label1);
 	overflow-wrap: anywhere;
 }
 
+/* Empty probe copy must not take a flex share in the disconnected banner. */
+.monaco-workbench .engine-test-status:empty {
+	display: none;
+}
+
 .monaco-workbench .engine-test-status.is-success {
 	color: var(--vscode-testing-iconPassed);
 }
 
+.monaco-workbench .engine-test-status.is-pending,
 .monaco-workbench .engine-test-status.is-warning {
-	color: var(--vscode-editorWarning-foreground);
+	color: var(--vscode-editorWarning-foreground, var(--ua-status-pending));
 }
 
 .monaco-workbench .engine-test-status.is-error {

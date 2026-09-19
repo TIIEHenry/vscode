@@ -22,6 +22,7 @@ import {
 	conversationLensSessionBarHistoryUnavailableDisconnected,
 } from './conversationLensSessionBarStrings.js';
 import { IConversationRosterService } from './conversationStubService.js';
+import { handleConversationOverlayTab } from './conversationConfirmationSeat.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 
 export const conversationLensHistoryButtonClass = 'conversation-lens-session-history';
@@ -95,6 +96,8 @@ export class ConversationEngineHistoryList extends Disposable {
 	private open = false;
 	private renderGeneration = 0;
 	private paintedLiveHistory = false;
+	private paintedHistorySessionId: string | undefined;
+	private onWillShow: (() => void) | undefined;
 
 	constructor(
 		buttonParent: HTMLElement,
@@ -121,6 +124,7 @@ export class ConversationEngineHistoryList extends Disposable {
 
 		this.overlayElement = append(overlayParent, $(`.${conversationLensHistoryOverlayClass}`));
 		this.overlayElement.hidden = true;
+		this.overlayElement.tabIndex = -1;
 		this.overlayElement.setAttribute('role', 'dialog');
 		this.overlayElement.setAttribute('aria-modal', 'true');
 		this.overlayElement.setAttribute('aria-label', conversationLensSessionBarHistoryTitle);
@@ -143,6 +147,9 @@ export class ConversationEngineHistoryList extends Disposable {
 		this.body = append(panel, $('.conversation-lens-history-body'));
 
 		this._register(addDisposableListener(this.overlayElement, 'keydown', e => {
+			if (handleConversationOverlayTab(this.overlayElement, e)) {
+				return;
+			}
 			if (e.keyCode === KeyCode.Escape) {
 				e.preventDefault();
 				e.stopPropagation();
@@ -178,10 +185,16 @@ export class ConversationEngineHistoryList extends Disposable {
 		this.show();
 	}
 
+	setOnWillShow(handler: () => void): void {
+		this.onWillShow = handler;
+	}
+
 	show(): void {
+		this.onWillShow?.();
 		this.open = true;
 		this.overlayElement.hidden = false;
 		this.button.element.setAttribute('aria-expanded', 'true');
+		this.overlayElement.focus();
 		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
@@ -209,6 +222,10 @@ export class ConversationEngineHistoryList extends Disposable {
 	private async refresh(): Promise<void> {
 		const generation = ++this.renderGeneration;
 		const sessionId = this.roster.getActiveSessionId() ?? '';
+		if (this.paintedHistorySessionId !== sessionId) {
+			this.paintedLiveHistory = false;
+			this.paintedHistorySessionId = sessionId;
+		}
 
 		if (isConversationPairingHold(this.connection)) {
 			this.applyDisconnectedRefresh();

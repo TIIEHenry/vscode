@@ -43,11 +43,13 @@
 	flex: 1;
 	align-items: center;
 	justify-content: center;
-	min-height: 0;
+	min-width: 0;
+	min-height: 32px;
 	padding: 8px;
 	text-align: center;
 	color: var(--vscode-descriptionForeground);
 	font-size: 13px;
+	overflow-wrap: anywhere;
 }
 
 .monaco-workbench .part.sources .sources-change-row {
@@ -75,6 +77,7 @@
 	display: none;
 	flex-direction: row;
 	align-items: stretch;
+	flex-shrink: 0;
 	gap: 4px;
 	padding: 6px 8px;
 	border-top: 1px solid var(--vscode-sideBarSectionHeader-border, transparent);
@@ -108,4 +111,8 @@
 	padding: 4px 8px 6px;
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
+}
+
+.monaco-workbench .part.sources .sources-changes-status.is-error {
+	color: var(--vscode-errorForeground);
 }

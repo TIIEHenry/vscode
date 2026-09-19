@@ -11,19 +11,19 @@ export const ConversationDiffReviewInputScheme = 'conversation-diff-review';
 export const ConversationDiffReviewInputTypeId = 'workbench.editors.conversationDiffReviewInput';
 export const ConversationDiffReviewEditorId = 'workbench.editor.conversationDiffReview';
 
-export function getConversationDiffReviewResource(modified: URI, original: URI | undefined): URI {
+export function getConversationDiffReviewResource(modified: URI, original: URI | undefined, groupId: string = ''): URI {
 	return URI.from({
 		scheme: ConversationDiffReviewInputScheme,
-		path: `/modified/${encodeURIComponent(modified.toString())}/original/${original ? encodeURIComponent(original.toString()) : ''}`,
+		path: `/modified/${encodeURIComponent(modified.toString())}/original/${original ? encodeURIComponent(original.toString()) : ''}/group/${encodeURIComponent(groupId)}`,
 	});
 }
 
-export function parseConversationDiffReviewResource(resource: URI): { modified: URI; original: URI | undefined } | undefined {
+export function parseConversationDiffReviewResource(resource: URI): { modified: URI; original: URI | undefined; groupId: string } | undefined {
 	if (resource.scheme !== ConversationDiffReviewInputScheme) {
 		return undefined;
 	}
 
-	const match = /^\/modified\/([^/]+)\/original\/(.*)$/.exec(resource.path);
+	const match = /^\/modified\/([^/]+)\/original\/([^/]*)(?:\/group\/([^/]*))?$/.exec(resource.path);
 	if (!match) {
 		return undefined;
 	}
@@ -32,7 +32,8 @@ export function parseConversationDiffReviewResource(resource: URI): { modified: 
 		const modified = URI.parse(decodeURIComponent(match[1]));
 		const originalRaw = match[2];
 		const original = originalRaw ? URI.parse(decodeURIComponent(originalRaw)) : undefined;
-		return { modified, original };
+		const groupId = match[3] ? decodeURIComponent(match[3]) : '';
+		return { modified, original, groupId };
 	} catch {
 		return undefined;
 	}

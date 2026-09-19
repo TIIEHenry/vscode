@@ -25,6 +25,7 @@ import {
 	getConnectionEmptyCopy,
 	getConnectionTestStatusText,
 	IConnectionProfileEntry,
+	writeStatus,
 } from '../../browser/connectionPreferencesPane.js';
 import {
 	getEngineSectionApiUnavailableCopy,
@@ -57,6 +58,7 @@ import {
 } from '../../browser/connectionDevicePair.js';
 import {
 	canConnectHubDevice,
+	getConnectionPhaseTone,
 	getHubAuthStatusLabel,
 	getHubDeviceRowStatusLabel,
 	hubAccountSignedInActions,
@@ -134,6 +136,15 @@ suite('ConnectionPreferencesPane', () => {
 
 	function getPaneEntries(pane: ConnectionPreferencesPane): IConnectionProfileEntry[] {
 		return (pane as unknown as { entries: IConnectionProfileEntry[] }).entries;
+	}
+
+	function selectFirstHubDevice(pane: ConnectionPreferencesPane): void {
+		const list = (pane as unknown as { hubDevicesList: WorkbenchList<HubDeviceProjection> }).hubDevicesList;
+		if (list.length === 0) {
+			return;
+		}
+		list.setFocus([0]);
+		list.setSelection([0]);
 	}
 
 	function mountPane(
@@ -396,12 +407,44 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(getConnectionEmptyCopy(), CONNECTION_EMPTY_COPY);
 	});
 
+	test('writeStatus trims whitespace-only copy to empty', () => {
+		const el = document.createElement('div');
+		writeStatus(el, ' \n ', 'neutral');
+		assert.strictEqual(el.textContent, '');
+		assert.ok(!el.classList.contains('is-pending'));
+		assert.ok(!el.classList.contains('is-warning'));
+		writeStatus(el, '  Connecting…  ', 'pending');
+		assert.strictEqual(el.textContent, 'Connecting…');
+		assert.ok(el.classList.contains('is-pending'));
+		assert.ok(!el.classList.contains('is-warning'));
+	});
+
+	test('connecting phase tone is pending, disconnected stays neutral', () => {
+		assert.strictEqual(getConnectionPhaseTone({ kind: 'connecting', reason: 'initial' }), 'pending');
+		assert.strictEqual(getConnectionPhaseTone({ kind: 'disconnected' }), 'neutral');
+		assert.strictEqual(getConnectionPhaseTone({ kind: 'connecting', reason: 'initial' }, true), 'warning');
+	});
+
 	test('listConnectionProfiles returning a Promise does not throw while rendering', () => {
 		const pane = mountPane({
 			listConnectionProfiles: () => Promise.resolve([]) as unknown as [],
 		});
 		assert.deepStrictEqual(getPaneEntries(pane), []);
 		pane.getDomNode().remove();
+	});
+
+	test('directory banner paints error surface for authExpired', () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'authExpired' }),
+		});
+		const container = pane.getDomNode();
+		const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement;
+		assert.ok(banner);
+		assert.strictEqual(banner.textContent, getHubDirectoryBannerLabel({ kind: 'authExpired' }));
+		assert.ok(banner.classList.contains('is-error'));
+		assert.notStrictEqual(banner.style.display, 'none');
+		container.remove();
 	});
 
 	test('presence matrix six row labels are distinct and honest', () => {
@@ -823,6 +866,8 @@ suite('ConnectionPreferencesPane', () => {
 		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
 		assert.strictEqual(String(hubStatus.textContent), 'Connecting…');
+		assert.ok(hubStatus.classList.contains('is-pending'));
+		assert.ok(!hubStatus.classList.contains('is-warning'));
 		assert.strictEqual(testStatus.textContent, '');
 		resolveConnect!({
 			ok: true,
@@ -1274,6 +1319,8 @@ suite('ConnectionPreferencesPane', () => {
 		const devicesStatus = container.querySelector('.connection-hub-devices-status') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
 		assert.strictEqual(devicesStatus.textContent, 'Connecting…');
+		assert.ok(devicesStatus.classList.contains('is-pending'));
+		assert.ok(!devicesStatus.classList.contains('is-warning'));
 		assert.strictEqual(testStatus.textContent, '');
 		resolveConnect!({ ok: false, code: 'transport_failed', reason: 'dial refused' });
 		await Promise.resolve();
@@ -1282,6 +1329,38 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(devicesStatus.classList.contains('is-error'));
 		assert.strictEqual(testStatus.textContent, '');
 		assert.notStrictEqual(devicesStatus.textContent, 'Connected');
+		container.remove();
+	});
+
+	test('direct Connect Connecting uses pending tone on the visible Direct Address status', async () => {
+		let resolveConnect: ((value: { ok: false; code: 'transport_failed'; reason: string }) => void) | undefined;
+		const connectPromise = new Promise<{ ok: false; code: 'transport_failed'; reason: string }>(resolve => {
+			resolveConnect = resolve;
+		});
+		const pane = mountPane({
+			addDirectAddressProfile: async () => ({ ok: true, profileId: 'direct-profile-1' }),
+		}, {
+			connectProfile: async () => connectPromise,
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('direct');
+
+		const hostInput = (pane as unknown as { directHostInput: { value: string } }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: { value: string } }).directPortInput;
+		const allowPrivate = (pane as unknown as { directAllowPrivateCheckbox: { checked: boolean } }).directAllowPrivateCheckbox;
+		hostInput.value = '127.0.0.1';
+		portInput.value = '50061';
+		allowPrivate.checked = true;
+		const flow = (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
+		const status = container.querySelector('.connection-direct-address-status') as HTMLElement;
+		assert.strictEqual(status.textContent, 'Connecting…');
+		assert.ok(status.classList.contains('is-pending'));
+		assert.ok(!status.classList.contains('is-warning'));
+		resolveConnect!({ ok: false, code: 'transport_failed', reason: 'dial refused' });
+		await flow;
+		assert.strictEqual(status.textContent, 'dial refused');
+		assert.ok(status.classList.contains('is-error'));
 		container.remove();
 	});
 
@@ -1600,6 +1679,8 @@ suite('ConnectionPreferencesPane', () => {
 		const profilesStatus = container.querySelector('.connection-profiles-status') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
 		assert.strictEqual(profilesStatus.textContent, 'Connecting…');
+		assert.ok(profilesStatus.classList.contains('is-pending'));
+		assert.ok(!profilesStatus.classList.contains('is-warning'));
 		assert.strictEqual(testStatus.textContent, '');
 		resolveConnect!({ ok: false, code: 'transport_failed', reason: 'dial refused' });
 		await flow;
@@ -1725,6 +1806,8 @@ suite('ConnectionPreferencesPane', () => {
 		const authBadge = container.querySelector('.connection-hub-auth-badge') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
 		assert.strictEqual(hubStatus.textContent, 'Connecting…');
+		assert.ok(hubStatus.classList.contains('is-pending'));
+		assert.ok(!hubStatus.classList.contains('is-warning'));
 		assert.strictEqual(testStatus.textContent, '');
 		assert.strictEqual(authBadge.textContent, getHubAuthStatusLabel({ kind: 'signedIn', email: 'user@hub.example' }));
 		resolveConnect!({ ok: false, code: 'transport_failed', reason: 'hub relay refused' });
@@ -2036,6 +2119,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 
 		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
@@ -2045,6 +2129,41 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(revoke);
 		assert.strictEqual(rename.getAttribute('aria-disabled'), 'true');
 		assert.strictEqual(revoke.getAttribute('aria-disabled'), 'true');
+		container.remove();
+	});
+
+	test('Rename and Revoke without a list selection do not invent the first device', async () => {
+		let renamed = false;
+		let revoked = false;
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			renameDevice: async () => {
+				renamed = true;
+				return { ok: true };
+			},
+			revokeDevice: async () => {
+				revoked = true;
+				return { ok: true };
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
+		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
+		assert.ok(rename);
+		assert.ok(revoke);
+		assert.strictEqual(rename.classList.contains('disabled'), true);
+		assert.strictEqual(revoke.classList.contains('disabled'), true);
+		rename.click();
+		revoke.click();
+		await Promise.resolve();
+		assert.strictEqual(renamed, false);
+		assert.strictEqual(revoked, false);
 		container.remove();
 	});
 
@@ -2071,6 +2190,7 @@ suite('ConnectionPreferencesPane', () => {
 		document.body.appendChild(container);
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 
 		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
@@ -2105,6 +2225,7 @@ suite('ConnectionPreferencesPane', () => {
 		document.body.appendChild(container);
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
@@ -2127,6 +2248,7 @@ suite('ConnectionPreferencesPane', () => {
 			.find(button => button.textContent === 'Confirm') as HTMLButtonElement | undefined;
 		assert.ok(codeInput);
 		assert.ok(confirm);
+		assert.ok(confirm.closest('.connection-hub-device-code .connection-actions'));
 		codeInput.value = 'ABCD-1234';
 		confirm.click();
 		await Promise.resolve();
@@ -2198,6 +2320,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 
 		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
@@ -2227,6 +2350,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 
 		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
@@ -2599,6 +2723,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
@@ -2631,6 +2756,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
@@ -2796,6 +2922,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 
 		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
@@ -2847,6 +2974,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = disconnected.getDomNode();
 		disconnected.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(disconnected);
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
 		assert.ok(revoke);
@@ -2869,6 +2997,7 @@ suite('ConnectionPreferencesPane', () => {
 		const noHookContainer = noHook.getDomNode();
 		noHook.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(noHook);
 		const noHookRevoke = [...noHookContainer.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
 		assert.ok(noHookRevoke);
@@ -2901,6 +3030,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
 		assert.ok(revoke);
@@ -2932,6 +3062,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
 		assert.ok(revoke);
@@ -2959,6 +3090,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
 		assert.ok(revoke);
@@ -2992,6 +3124,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
 		assert.ok(revoke);
@@ -3023,6 +3156,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
 		assert.ok(revoke);
@@ -3054,6 +3188,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
 		assert.ok(revoke);
@@ -3428,6 +3563,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
 		assert.ok(rename);
@@ -3457,6 +3593,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
 		assert.ok(revoke);
@@ -3486,6 +3623,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await Promise.resolve();
+		selectFirstHubDevice(pane);
 		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
 		assert.ok(revoke);
@@ -4442,6 +4580,7 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
 		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 1);
 		assert.strictEqual(connection.isEngineConnected(), true);
+		selectFirstHubDevice(pane);
 
 		const findDeviceAction = (label: string) => [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === label) as HTMLButtonElement | undefined;
@@ -4544,6 +4683,7 @@ suite('ConnectionPreferencesPane', () => {
 		await timeout(0);
 		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
 		assert.strictEqual(connection.isEngineConnected(), true);
+		selectFirstHubDevice(pane);
 
 		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
@@ -4612,6 +4752,7 @@ suite('ConnectionPreferencesPane', () => {
 		await Promise.resolve();
 		await timeout(0);
 		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 1);
+		selectFirstHubDevice(pane);
 
 		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
 			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
@@ -5378,6 +5519,149 @@ suite('ConnectionPreferencesPane', () => {
 		} finally {
 			container.remove();
 		}
+	});
+
+	test('pairing-hold first-pull does not refill hub directory devices', async () => {
+		const studio = device({ id: 'dev-1', name: 'Studio' });
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: true,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+			listDevices: async () => {
+				throw new Error('must not listDevices while pairing-hold first-pull');
+			},
+		});
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [studio] }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		assert.strictEqual(container.querySelectorAll('.connection-hub-device-row').length, 0);
+		const devicesStatus = container.querySelector('.connection-hub-devices-status') as HTMLElement;
+		assert.strictEqual(devicesStatus.textContent, getEngineSectionDisconnectedCopy());
+		assert.ok(devicesStatus.classList.contains('is-warning'));
+		container.remove();
+	});
+
+	test('second handleConnectDevice while SAS is live is a no-op', async () => {
+		const handshakeSas = 'R6X5-F0R1';
+		const studio = device({ id: 'dev-1', name: 'Studio' });
+		let addCalls = 0;
+		const { pane, workbench } = mountPaneInWorkbench({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [studio] }),
+			addHubDeviceProfile: async () => {
+				addCalls++;
+				return { ok: true, profileId: `hub-profile-${addCalls}` };
+			},
+			listConnectionProfiles: () => [{
+				profileId: 'hub-profile-1',
+				displayName: 'Studio',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'hubDevice',
+			}],
+		}, {
+			connectProfile: async () => ({
+				ok: true,
+				path: 'hubRelay',
+				pairingPending: true,
+				sasCode: handshakeSas,
+				engineIdentityId: '0123456789abcdef',
+			}),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+
+		const flow = (pane as unknown as { handleConnectDevice(device: HubDeviceProjection): Promise<void> }).handleConnectDevice(studio);
+		await waitForPairingDialog(container);
+		await (pane as unknown as { handleConnectDevice(device: HubDeviceProjection): Promise<void> }).handleConnectDevice(studio);
+		assert.strictEqual(addCalls, 1, 'live SAS must hold a second Connect');
+		clickPairingCancel(container);
+		await flow;
+		workbench.remove();
+	});
+
+	test('listDevices throw after disconnect uses disconnected refresh, not list-fail', async () => {
+		let connected = true;
+		let rejectInFlight: ((error: Error) => void) | undefined;
+		let listDevicesCalls = 0;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => connected,
+			getConnectionPhase: () => connected ? { kind: 'connected', path: 'loopback' } : { kind: 'disconnected' },
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listDevices: async (): Promise<UniverseAgentListDevicesResult> => {
+				listDevicesCalls++;
+				if (listDevicesCalls === 1) {
+					return {
+						devices: [{
+							deviceId: 'eng-1',
+							displayName: 'Phone',
+							role: '',
+							platform: '',
+							pairedAt: 0,
+							lastSeenAt: 0,
+							active: false,
+						}],
+					};
+				}
+				return new Promise((_resolve, reject) => {
+					rejectInFlight = reject;
+				});
+			},
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'hub-1', name: 'Hub Studio' })] }),
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(container.querySelector('.connection-hub-device-name')?.textContent, 'Phone');
+
+		onDidChangeConnection.fire(snapshot());
+		await Promise.resolve();
+		assert.ok(rejectInFlight);
+
+		connected = false;
+		rejectInFlight!(new Error('boom'));
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		const devicesStatus = container.querySelector('.connection-hub-devices-status') as HTMLElement;
+		assert.notStrictEqual(devicesStatus.textContent, connectionDeviceListFailureMessage('boom'));
+		assert.ok(!(devicesStatus.textContent ?? '').includes('boom'));
+		const names = [...container.querySelectorAll('.connection-hub-device-name')].map(el => el.textContent);
+		assert.ok(!names.includes('Phone'), 'engine leftover must not survive disconnect catch');
+		container.remove();
 	});
 });
 

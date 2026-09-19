@@ -18,8 +18,8 @@ import { hasNativeContextMenu } from '../../../../platform/window/common/window.
 import {
 	conversationLensDockEditingMessage,
 	conversationLensDockEditingQueued,
-	conversationLensDockEngineNotConnected,
 	conversationLensDockAgentLabel,
+	conversationLensDockNoAgent,
 	conversationLensDockMaximizeInput,
 	conversationLensDockNoEngineTools,
 	conversationLensDockNoTools,
@@ -196,6 +196,25 @@ function appendMoreMenuAction(popup: HTMLElement, label: string): HTMLButtonElem
 	return item;
 }
 
+function getSelectedAgentName(host: IConversationLensComposerChromeHost): string {
+	const select = host.agentContainer?.querySelector('select');
+	if (select instanceof HTMLSelectElement && select.selectedIndex >= 0) {
+		const text = select.options[select.selectedIndex]?.text.trim();
+		if (text) {
+			return text;
+		}
+	}
+	return conversationLensDockNoAgent;
+}
+
+function appendMoreMenuCurrentAgent(popup: HTMLElement, host: IConversationLensComposerChromeHost): void {
+	const agentName = getSelectedAgentName(host);
+	const note = append(popup, $('div.conversation-lens-dock-more-agent'));
+	note.setAttribute('role', 'note');
+	note.setAttribute('aria-label', localize('conversationLens.dockMoreCurrentAgent', "Agent: {0}", agentName));
+	note.textContent = agentName;
+}
+
 export function toggleMoreContextView(host: IConversationLensComposerChromeHost): void {
 
 		if (host.moreContextView) {
@@ -223,6 +242,7 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 						run();
 					}));
 				};
+				appendMoreMenuCurrentAgent(popup, host);
 				addAction(conversationLensDockTuneTitle, () => toggleTuneContextView(host, host.moreButton.element));
 				const sessionId = host.getBoundSessionId();
 				const selectedPermission = getSessionConfig(host, sessionId).permissionIndex;
@@ -247,7 +267,7 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 						void applySessionPermissionIndex(host, sessionId, index).catch(onUnexpectedError).catch(onUnexpectedError);
 					}));
 				}
-				addAction(conversationLensDockMaximizeInput, () => toggleInputMaximized(host));
+				addAction(host.inputMaximized ? conversationLensDockRestoreTimeline : conversationLensDockMaximizeInput, () => toggleInputMaximized(host));
 				return toDisposable(() => {
 					store.dispose();
 					host.moreContextView = undefined;
@@ -476,10 +496,15 @@ export function updateGateRow(host: IConversationLensComposerChromeHost): void {
 			host.gateRow.setAttribute('aria-label', conversationLensDockEngineNotConnected);
 			return;
 		}
-		// Idle engine/session status lives on identity strip / SessionBar. Gate is leftover or post-failure only.
+		// Idle engine/session status lives on the identity strip (PreFirst) or SessionBar badge
+		// (Active). Gate is only the transient post-failure notice.
 		host.gateRow.hidden = true;
 		host.gateLabel.textContent = '';
+		host.gateRow.classList.remove('is-error');
+		host.gateRow.removeAttribute('role');
 		host.gateRow.removeAttribute('aria-label');
+		host.gateRow.removeAttribute('title');
+		host.gateLabel.removeAttribute('title');
 	
 }
 
@@ -488,16 +513,16 @@ function showGateNotice(host: IConversationLensComposerChromeHost, message: stri
 		host.postFailureVisible = true;
 		host.gateRow.hidden = false;
 		host.gateLabel.textContent = message;
+		host.gateRow.classList.add('is-error');
+		host.gateRow.setAttribute('role', 'alert');
 		host.gateRow.setAttribute('aria-label', message);
+		host.gateRow.title = message;
+		host.gateLabel.title = message;
 		if (host.sendFailureTimeout) {
 			clearTimeout(host.sendFailureTimeout);
-		}
-		host.sendFailureTimeout = setTimeout(() => {
 			host.sendFailureTimeout = undefined;
-			host.postFailureVisible = false;
-			updateGateRow(host);
-		}, 4000);
-	
+		}
+
 }
 
 export function showPostFailure(host: IConversationLensComposerChromeHost, reason: ConversationComposerPostFailureReason): void {

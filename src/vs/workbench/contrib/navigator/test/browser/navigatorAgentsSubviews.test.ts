@@ -145,6 +145,7 @@ suite('Navigator Agents subviews', () => {
 		instantiationService.stub(IConversationRosterService, roster);
 		instantiationService.stub(IAgentInspectService, inspectService ?? store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
 		instantiationService.stub(ICommandService, { executeCommand });
+		instantiationService.stub(IViewsService, new TestViewsService());
 		instantiationService.stub(IUniverseAgentConnection, connection);
 		if (actionSpies) {
 			const spies = actionSpies;
@@ -655,7 +656,7 @@ suite('Navigator Agents subviews', () => {
 		view.setExpanded(true);
 		view.setVisible(true);
 		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty');
-		assert.strictEqual(hierarchyEmpty?.textContent, 'No agents — no engine.');
+		assert.strictEqual(hierarchyEmpty?.textContent, 'Connecting to engine…');
 		assert.ok(!hierarchyEmpty?.textContent?.includes('Reading'));
 	});
 
@@ -671,12 +672,14 @@ suite('Navigator Agents subviews', () => {
 		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty');
 		assert.ok(hierarchyEmpty);
 		assert.strictEqual(hierarchyEmpty?.textContent, 'No agents — no engine.');
+		assert.strictEqual(hierarchyEmpty?.getAttribute('role'), 'status');
 		assert.ok(!hierarchyEmpty?.textContent?.match(/copilot/i));
 		assert.ok(!hierarchyEmpty?.textContent?.match(/not connected/i));
 
 		const activityEmpty = view.element.querySelector('.navigator-agents-subview:not(.active) .navigator-stub-empty');
 		assert.ok(activityEmpty);
 		assert.strictEqual(activityEmpty?.textContent, 'No tool activity — no engine.');
+		assert.strictEqual(activityEmpty?.getAttribute('role'), 'status');
 	});
 
 	test('switches between Hierarchy and Activity subviews', () => {
@@ -735,6 +738,7 @@ suite('Navigator Agents subviews', () => {
 
 		const clearButton = view.element.querySelector('.navigator-agents-inline-filter-clear') as HTMLElement | null;
 		assert.ok(clearButton);
+		assert.strictEqual(clearButton.getAttribute('aria-label'), 'Clear filter');
 		assert.strictEqual(filter?.classList.contains('has-text'), false);
 
 		assert.strictEqual(view.element.querySelector('.navigator-agents-type-filter'), null);
@@ -775,6 +779,14 @@ suite('Navigator Agents subviews', () => {
 		const activeSubview = view.element.querySelector('.navigator-agents-subview.active');
 		assert.ok(filter && activeSubview);
 		assert.ok(filter!.compareDocumentPosition(activeSubview!) & Node.DOCUMENT_POSITION_FOLLOWING);
+
+		const input = getFilterInput(view);
+		assert.ok(input);
+		input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27, bubbles: true, cancelable: true }));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(input.value, '');
+		assert.strictEqual(hierarchyTree.getNode(null)?.children.length ?? 0, 2);
+		assert.strictEqual(activityList.length, 2);
 	});
 
 	test('unfiltered empty keeps honest empty copy and hides list or tree', () => {
@@ -790,13 +802,16 @@ suite('Navigator Agents subviews', () => {
 	});
 
 	test('disconnect keeps last Agents snapshot and marks it stale', () => {
+		const inspectService = store.add(new AgentInspectService());
 		const roster = store.add(new RosterWithLiveTree(sampleLiveTree));
 		roster.setEngineConnected(true);
 		const connection = createNavigatorConnectionTestStub({
 			getConnectionPhase: () => roster.isEngineConnected() ? { kind: 'connected', path: 'direct' } : { kind: 'disconnected' },
 			getNavigatorCapability: () => 'SUPPORTED',
 		});
-		const view = mountAgentsView(roster, connection);
+		const view = mountAgentsView(roster, connection, inspectService);
+		assert.ok(inspectService.getLiveAgentIds()?.has('sub:alpha'));
+		assert.ok(inspectService.getLiveAgentIds()?.has('root'));
 
 		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> }).hierarchyTree;
 		assert.strictEqual(hierarchyTree.getNode(null)?.children.length ?? 0, 1);
@@ -813,6 +828,7 @@ suite('Navigator Agents subviews', () => {
 		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(hierarchyEmpty);
 		assert.notStrictEqual(hierarchyEmpty.style.display, 'block');
+		assert.strictEqual(inspectService.getLiveAgentIds()?.size, 0, 'disconnect leftover must not keep live agent ids');
 	});
 
 	test('Agents leftover-empty is not used for pending / UNSUPPORTED / no-session / hidden', () => {
@@ -2258,5 +2274,27 @@ suite('Navigator Agents subviews', () => {
 		view.inspectFocusedTitleAction();
 		assert.deepStrictEqual(inspectOpenCalls, []);
 		assert.deepStrictEqual(revealCalls, []);
+	});
+
+	test('overlay activity opens Inspect and does not reveal a timeline item', async () => {
+		let executeCommandCalls = 0;
+		const view = mountAgentsView(
+			store.add(new ConversationStubService()),
+			createNavigatorConnectionTestStub(),
+			undefined,
+			async () => {
+				executeCommandCalls++;
+			},
+		);
+		setActivityEntries(view, [{ id: 'overlay:tool-1', label: 'Overlay Tool' }]);
+		view.showActivity();
+		const activityList = (view as unknown as { activityList: WorkbenchList<INavigatorAgentsActivityItem> }).activityList;
+		assert.ok(activityList, 'expected WorkbenchList for activity');
+		assert.strictEqual(activityList.length, 1);
+		activityList.setFocus([0]);
+		activityList.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
+		await timeout(0);
+		assert.strictEqual(executeCommandCalls, 0);
+		assert.strictEqual((view as unknown as { inspectService: IAgentInspectService }).inspectService.getTarget()?.kind, 'activity');
 	});
 });

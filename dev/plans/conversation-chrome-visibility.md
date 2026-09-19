@@ -1,18 +1,17 @@
 ---
 title: "Conversation chrome 可见性：Maximize 门控/Stop 与窄宽 SAS"
 type: plan
-status: accepted
+status: implemented
 phase: N/A
-updated: 2026-09-12
-summary: "两则 P1 布局 hide 吞中断铬条：Maximize 藏 fail/Stop（D403）；窄宽 Back 藏已挂 SAS 盒（D404）。方案稿，未实施。"
+updated: 2026-09-18
+summary: "D403/D404 已闭：Maximize 不再 hide gate/Stop；窄宽 Back 迁出 SAS。UA chrome 审查波补完 Maximize/SAS/paneCache。审查 follow-up 已落：Maximize 与切会话关 History/Snapshots；Connect 在 in-flight/pairing-hold/live SAS 禁写；Diff 开 SIDE_GROUP。"
 ---
 
 # Conversation chrome 可见性
 
 > **slice_id**：`conversation-chrome-visibility`  
-> **冲突域**：D403 = lens dock CSS；D404 = Connection pane 布局。可并行，推荐串行 D403 → D404。  
-> **本稿是方案，不是实施**：不改 `src/`。主笔不自宣 Architecture-First Approve。规则 16 + Arch-First must-fix 已改入。  
-> **不扩** 2026-09-12 P2/P3 UI 扫描其余项（无 D 行则只留 chat）。
+> **冲突域**：D403 = lens dock CSS；D404 = Connection pane 布局。  
+> **状态**：`implemented`。[D403](../progress/deferred-gaps.md) / [D404](../progress/deferred-gaps.md) 已闭。2026-09-17 UA chrome 审查波补完：Maximize 改藏阅读列而不是整槽 `.conversation-timeline`；`PreferencesEditor` 用 `paneCache` 切 tab 不 dispose Connection pane；`getNavHeight` 为 live SAS 留高、`onDidShow` 滚入视口并 focus，SAS `aria-modal` trap Tab。2026-09-18 审查 follow-up：Maximize / 切会话关 History·Snapshots·Visualize；Connect 在 in-flight / pairing-hold / live SAS 禁写且 pairing-hold 首拉不回填 Hub 目录；Conversation Diff 开 `CONVERSATION_SIDE_GROUP`。
 
 ## Problem class
 

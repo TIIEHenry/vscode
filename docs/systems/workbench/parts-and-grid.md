@@ -3,7 +3,7 @@ title: "Workbench UI 框架：Parts、Grid、显隐"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-04
+updated: 2026-09-18
 summary: "默认 Code 窗口的 Part 枚举、SerializableGrid、Conversation∨(Editor∨Sources)；INV-TOPO：中心叶仍是 CONVERSATION_PART；对话 tab 走嵌套 Conversation IEditorPart（PRD-016 S1–S6 已落）"
 ---
 
@@ -80,7 +80,7 @@ VERTICAL
 | `ACTIVITYBAR_PART` | `setActivityBarHidden` | 可独立藏 |
 | `STATUSBAR_PART` | 对应 hidden key | 可独立藏 |
 
-不变量是 **Conversation ∨ (Editor ∨ Sources)**（INV-052-NO-DUAL-HIDE；`forceShownAgentShellPart`）。Panel maximize 藏 End 列（Editor + Sources）而非 Conversation，un-maximize 时从 `PANEL_LAST_NON_MAXIMIZED_VISIBILITY` 恢复 End 显隐。**Zen Mode** 同样藏 End 列、强制 Conversation 可见（`ZEN_MODE_EXIT_INFO.wasVisible` 快照 editor/sources 供退出恢复）；不居中 Preview、不把 Zen 偷换成 `pureEditor`。命令：`workbench.action.toggleConversation`、`workbench.action.toggleEditorVisibility`、`workbench.action.toggleSources`；四钮经 `LayoutControlMenu` 注册。各 Agent shell 区域另有本地 **hide (−)**：Conversation / Sources 为 part 内 − 控件；Preview（`EDITOR_PART`）无原生 part chrome，本地 hide 为 editor title 上的 `MenuId.EditorTitle` / `EditorTitleContext` 动作（`Hide Preview` / `Show Preview`），均经 `setPartHidden` 走同一 layout 路径。
+不变量是 **Conversation ∨ (Editor ∨ Sources)**（INV-052-NO-DUAL-HIDE；`forceShownAgentShellPart`）。Panel maximize 藏 End 列（Editor + Sources）而非 Conversation，un-maximize 时从 `PANEL_LAST_NON_MAXIMIZED_VISIBILITY` 恢复 End 显隐。**Zen Mode** 同样藏 End 列、强制 Conversation 可见（`ZEN_MODE_EXIT_INFO.wasVisible` 快照 editor/sources 供退出恢复）；不居中 Preview、不把 Zen 偷换成 `pureEditor`。命令：`workbench.action.toggleConversation`、`workbench.action.toggleEditorVisibility`、`workbench.action.toggleSources`；四钮经 `LayoutControlMenu` 注册。各 Agent shell 区域另有本地 **hide（关闭图标）**：Conversation / Sources 为 part 内 hide 控件（可键盘到达，不与 Sources tab 并列成减号）；Preview（`EDITOR_PART`）无原生 part chrome，本地 hide 为 editor title 上的 `MenuId.EditorTitle` / `EditorTitleContext` 动作（`Hide Preview` / `Show Preview`），均经 `setPartHidden` 走同一 layout 路径。
 
 CSS class：`LayoutClasses.MAIN_EDITOR_AREA_HIDDEN` / `CONVERSATION_HIDDEN` 等，随 `getLayoutClasses()` 打在 `mainContainer`。
 
@@ -92,7 +92,7 @@ CSS class：`LayoutClasses.MAIN_EDITOR_AREA_HIDDEN` / `CONVERSATION_HIDDEN` 等�
 | 单个 view | 上述容器内 | `ViewsRegistry` / `views` 贡献点 |
 | 文件 / untitled / diff / `ChatEditorInput` | **仅**主 `EDITOR_PART`（Preview） | `EditorInput` + `IEditorService`；`ACTIVE_GROUP` / `SIDE_GROUP` |
 | Conversation chat tab（[ADR-002](../../../dev/decisions/002-conversation-session-windows.md) / [PRD-016](../../product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)，**S1–S6 已落**） | `CONVERSATION_PART` 内嵌的 Conversation `IEditorPart`（非 Layout `Parts` 枚举；最多两叶 session 窗口） | `ConversationChatInput` + `CONVERSATION_GROUP` / `CONVERSATION_SIDE_GROUP`；**禁止** `ChatEditorInput` |
-| 只读 Diff 审阅（Sources Changes / Review，[PRD-009](../../product/requirements.md#prd-009-changes-与-diff) / [ADR-005](../../../dev/decisions/005-changes-diff-owner.md)，**F1–F3 已落**） | 同上 Conversation `IEditorPart` | `ConversationDiffReviewInput` + `CONVERSATION_GROUP`；**仅**经显式动作（`sources.diff.moveToConversation`、Changes/Review 行点击且 `sources.diff.defaultOwner=conversation`） |
+| 只读 Diff 审阅（Sources Changes / Review，[PRD-009](../../product/requirements.md#prd-009-changes-与-diff) / [ADR-005](../../../dev/decisions/005-changes-diff-owner.md)，**F1–F3 已落**） | 同上 Conversation `IEditorPart` | `ConversationDiffReviewInput` + `CONVERSATION_SIDE_GROUP`（不换走 chat leaf / Dock Stop）；`matches()` 含 original + `groupId`；**仅**经显式动作（`sources.diff.moveToConversation`、Changes/Review 行点击且 `sources.diff.defaultOwner=conversation`） |
 | Status | StatusBar | `IStatusbarService` |
 | Activity 图标 | ActivityBar | 与 Sidebar 容器绑定 |
 

@@ -332,6 +332,7 @@ suite('Navigator Team subviews', () => {
 
 		const clearButton = view.element.querySelector('.navigator-team-inline-filter-clear') as HTMLElement | null;
 		assert.ok(clearButton);
+		assert.strictEqual(clearButton.getAttribute('aria-label'), 'Clear filter');
 		assert.strictEqual(filter?.classList.contains('has-text'), false);
 
 		assert.strictEqual(view.element.querySelector('.navigator-team-type-filter'), null);
@@ -377,6 +378,14 @@ suite('Navigator Team subviews', () => {
 		const activeSubview = view.element.querySelector('.navigator-team-subview.active');
 		assert.ok(filter && activeSubview);
 		assert.ok(filter!.compareDocumentPosition(activeSubview!) & Node.DOCUMENT_POSITION_FOLLOWING);
+
+		const input = getFilterInput(view);
+		assert.ok(input);
+		input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27, bubbles: true, cancelable: true }));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(input.value, '');
+		assert.strictEqual(membersList.length, 2);
+		assert.strictEqual(tasksList.length, 2);
 	});
 
 	test('unfiltered empty keeps honest empty copy and hides list', () => {
@@ -400,6 +409,7 @@ suite('Navigator Team subviews', () => {
 	});
 
 	test('disconnect keeps last Team snapshot and marks it stale', async () => {
+		const inspectService = store.add(new AgentInspectService());
 		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
 		roster.setEngineConnected(true);
 		const connection = createNavigatorConnectionTestStub({
@@ -418,8 +428,9 @@ suite('Navigator Team subviews', () => {
 				teamInfo: async () => undefined,
 			},
 		});
-		const view = mountTeamView(roster, connection);
+		const view = mountTeamView(roster, connection, undefined, inspectService);
 		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		assert.ok(inspectService.getLiveAgentIds()?.has('member:1'));
 
 		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList;
 		assert.strictEqual(membersList.length, 1);
@@ -434,6 +445,7 @@ suite('Navigator Team subviews', () => {
 		assert.ok(note);
 		assert.strictEqual(note.style.display, 'block');
 		assert.strictEqual(note.textContent, NAVIGATOR_STALE_SNAPSHOT_COPY);
+		assert.strictEqual(inspectService.getLiveAgentIds()?.size, 0, 'disconnect leftover must not keep live agent ids');
 	});
 
 	test('never-connected Team stays honest empty without a snapshot note', async () => {

@@ -27,7 +27,7 @@ import { isConversationPairingHold } from '../../../conversation/browser/convers
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
-import { ACTIVE_GROUP, CONVERSATION_GROUP, IEditorService } from '../../../../services/editor/common/editorService.js';
+import { ACTIVE_GROUP, CONVERSATION_SIDE_GROUP, IEditorService } from '../../../../services/editor/common/editorService.js';
 import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
 import { openSourcesChangeEntry, ISourcesChangeEntryOpenDeps } from '../../browser/sourcesChangeEntryOpen.js';
 import { sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadPairingHoldMessage, sourcesGitReadUnavailableNoHookMessage } from '../../common/sourcesChangesGitRead.js';
@@ -149,15 +149,29 @@ suite('Sources - Changes list open', () => {
 			} as unknown as IQuickDiffService,
 			configurationService,
 			instantiationService: {
-				createInstance: (ctor: typeof ConversationDiffReviewInput, modified: URI, originalUri?: URI) => store.add(new ctor(modified, originalUri)),
+				createInstance: (ctor: typeof ConversationDiffReviewInput, modified: URI, originalUri?: URI, groupId?: string) => store.add(new ctor(modified, originalUri, groupId)),
 			} as unknown as ISourcesChangeEntryOpenDeps['instantiationService'],
 		}), { preserveFocus: false });
 
 		assert.ok(openedInput instanceof ConversationDiffReviewInput);
 		assert.strictEqual((openedInput as ConversationDiffReviewInput).modified.toString(), resource.toString());
 		assert.strictEqual((openedInput as ConversationDiffReviewInput).original?.toString(), original.toString());
-		assert.strictEqual(openedGroup, CONVERSATION_GROUP);
+		assert.strictEqual((openedInput as ConversationDiffReviewInput).groupId, 'workingTree');
+		assert.strictEqual(openedGroup, CONVERSATION_SIDE_GROUP);
 		store.dispose();
+	});
+
+	test('ConversationDiffReviewInput matches original and groupId', function () {
+		const resource = toResource.call(this, '/project/src/a.ts');
+		const original = toResource.call(this, '/project/src/a.ts.git');
+		const otherOriginal = toResource.call(this, '/project/src/a.ts.other');
+		const working = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+		const index = store.add(new ConversationDiffReviewInput(resource, original, 'index'));
+		const sameWorking = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+		const otherOrig = store.add(new ConversationDiffReviewInput(resource, otherOriginal, 'workingTree'));
+		assert.strictEqual(working.matches(sameWorking), true);
+		assert.strictEqual(working.matches(index), false);
+		assert.strictEqual(working.matches(otherOrig), false);
 	});
 
 	test('openSourcesChangeEntry reads Git file diff for git-sourced rows without local original', async function () {
@@ -477,6 +491,26 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.strictEqual((widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> }).list?.length ?? 0, 0);
 		assert.ok(!host.querySelector('.sources-changes-list .monaco-list-row'));
 		assert.ok(!(host.querySelector('.sources-changes-empty')?.textContent ?? '').includes('No changes.'));
+		assert.ok((host.querySelector('.sources-changes-empty')?.textContent ?? '').includes('Unable to read git changes'));
+		assert.ok(host.querySelector('.sources-changes-status')?.classList.contains('is-error'));
+		assert.strictEqual((host.querySelector('.sources-changes-commit') as HTMLElement | null)?.style.display, 'none');
+	});
+
+	test('first git-read throw with an SCM repository still hides commit chrome', async function () {
+		const resource = toResource.call(this, '/project/src/a.ts');
+		const host = mountHost();
+		const scm = createIndexScmService(resource);
+		scm.repositories[0].provider.groups[0].resources.length = 0;
+		store.add(stubChangesListServices(createGitReadConnection({
+			readGitChanges: async () => {
+				throw new Error('boom');
+			},
+		}), scm).createInstance(SourcesChangesList, host));
+
+		const status = await waitForStatusText(host, 'Unable to read git changes');
+		assert.strictEqual(status, sourcesGitReadFailureMessage('boom'));
+		assert.ok(host.querySelector('.sources-changes-status')?.classList.contains('is-error'));
+		assert.strictEqual((host.querySelector('.sources-changes-commit') as HTMLElement | null)?.style.display, 'none');
 	});
 
 	test('success then git-read throw keeps leftover rows and paints failure', async function () {
@@ -543,7 +577,7 @@ suite('Sources - Changes list leftover honesty', () => {
 		delete (connection as { readGitChanges?: unknown }).readGitChanges;
 		onDidChangeConnection.fire({} as UniverseAgentConnectionSnapshot);
 
-		const status = await waitForStatusText(host, 'no git changes API');
+		const status = await waitForStatusText(host, 'unavailable');
 		assert.strictEqual(status, sourcesGitReadUnavailableNoHookMessage());
 		assert.ok(!status.includes('local source control'));
 		assert.notStrictEqual(status, sourcesGitLocalOnlyMessage());

@@ -47,6 +47,11 @@ suite('ConversationEngineSnapshotsList', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
+	test('no-hook copy does not leak implementation words', () => {
+		assert.ok(!conversationLensSessionBarSnapshotsUnavailableNoHook.includes('API'));
+		assert.ok(!conversationLensSessionBarSnapshotsUnavailableNoHook.toLowerCase().includes('hook'));
+	});
+
 	test('gate refuses send when disconnected, no hook, or empty sessionId', () => {
 		assert.strictEqual(canRequestEngineSnapshots(false, true, 'sess-1'), false);
 		assert.strictEqual(canRequestEngineSnapshots(true, false, 'sess-1'), false);
@@ -1442,5 +1447,47 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.deepStrictEqual(confirmCalls, []);
 		assert.deepStrictEqual(deleteCalls, []);
 		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }]);
+	});
+
+	test('session change drops leftover snapshot rows from the previous session', async () => {
+		const leftover: UniverseAgentSessionSnapshotInfo = {
+			id: 'leftover-1',
+			sessionId: 'sess-1',
+			title: 'Leftover',
+			createdAt: 1,
+			turnCount: 1,
+		};
+		const next: UniverseAgentSessionSnapshotInfo = {
+			id: 'sess-2',
+			sessionId: 'sess-2',
+			title: 'Next',
+			createdAt: 2,
+			turnCount: 2,
+		};
+		const onDidChangeActiveSession = store.add(new Emitter<string>());
+		let active = 'sess-1';
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			listSnapshots: async request => {
+				if (request.sessionId === 'sess-1') {
+					return { snapshots: [leftover] };
+				}
+				return { snapshots: [next] };
+			},
+		}), createRosterStub({
+			getActiveSessionId: () => active,
+			onDidChangeActiveSession: onDidChangeActiveSession.event,
+		}));
+		list.show();
+		await Promise.resolve();
+		assert.ok(snapshotRow(overlayParent, 'leftover-1'));
+
+		active = 'sess-2';
+		onDidChangeActiveSession.fire('sess-2');
+		await Promise.resolve();
+		await flushMicrotasks();
+
+		assert.strictEqual(snapshotRow(overlayParent, 'leftover-1'), null);
+		assert.ok(snapshotRow(overlayParent, 'sess-2'));
 	});
 });

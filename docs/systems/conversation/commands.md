@@ -3,7 +3,7 @@ title: "Agent IDE 壳命令、菜单落点与快捷键"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-16
+updated: 2026-09-19
 summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、UA Preferences、深链的用户可见命令清单；chat tab 复用 editor group 命令；对话框 Escape / Accessible View；窄宽度见透镜页"
 ---
 
@@ -21,7 +21,7 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 | `workbench.action.toggleSources` | Toggle Sources Visibility | `LayoutControlMenu`「Sources」；View › Appearance；F1 | `Ctrl/Cmd+Alt+Shift+S` |
 | Panel / Auxiliary Bar toggles | 上游命令 | 退到 `LayoutControlMenuSubmenu`（D7） | 上游继承 |
 
-四钮之外，Conversation / Sources 区域内各有本地 hide（−）控件（`partRegionHideControl.ts`），Preview 的本地 hide 是 editor title 动作；全部经 `setPartHidden` 走同一 Layout 路径。互斥规则见 [ADR-006](../../../dev/decisions/006-shell-invariants.md)。壳级 Part 焦点循环（F6）见 [§7](#7-键盘可达性现状)。
+四钮之外，Conversation / Sources 区域内各有本地 hide（关闭图标，`partRegionHideControl.ts`，可 Tab 到达），Preview 的本地 hide 是 editor title 动作；全部经 `setPartHidden` 走同一 Layout 路径。互斥规则见 [ADR-006](../../../dev/decisions/006-shell-invariants.md)。壳级 Part 焦点循环（F6）见 [§7](#7-键盘可达性现状)。
 
 ## 2. Conversation（`contrib/conversation`）
 
@@ -66,7 +66,7 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 
 | 命令 id | 标题 / 触发 | 说明 | 默认键位 |
 |---------|-------------|------|----------|
-| `sources.review.openSelected` | Open Selected Review Change | F1；打开 Review 当前选中行。复用 `openSourcesChangeEntry`（按 `sources.diff.defaultOwner` 分派）；打开成功后标已审阅。失败与列表 open-diff 同诚实：`sourcesGitDiffOpenFailureMessage` 写 Review status，不标已审 | 无（可在 Keyboard Shortcuts 自绑） |
+| `sources.review.openSelected` | Open Selected Review Change | F1；打开 Review 当前选中行。复用 `openSourcesChangeEntry`（按 `sources.diff.defaultOwner` 分派），命令路径与列表单击一样注入 `readGitFileDiff` + `modelService`；打开成功后标已审阅。失败与列表 open-diff 同诚实：`sourcesGitDiffOpenFailureMessage` 写 Review status，不标已审 | 无（可在 Keyboard Shortcuts 自绑） |
 | `sources.review.toggleReviewedSelected` | Toggle Reviewed for Selected | F1；对选中行切换已审阅。复用行右键 Action `sources.review.markReviewed` / `markUnreviewed` 逻辑 | 无（可在 Keyboard Shortcuts 自绑） |
 | `sources.review.markAllReviewed` | Mark All as Reviewed | F1；与列表「Mark all as reviewed」按钮同一套可见行（文本 + path-set，不含 unreviewed-only） | 无（可在 Keyboard Shortcuts 自绑） |
 | `sources.review.showForPaths` | Show Review for Paths | 程序入口：显示 Sources、切 Review、套 path-set；`f1: false` | 无 |

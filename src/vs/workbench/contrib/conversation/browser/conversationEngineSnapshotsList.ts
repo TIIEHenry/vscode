@@ -10,6 +10,7 @@ import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
+import { handleConversationOverlayTab } from './conversationConfirmationSeat.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentSessionSnapshotInfo } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
@@ -149,6 +150,8 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	private renderGeneration = 0;
 	private leftoverListFailed = false;
 	private paintedLiveSnapshots = false;
+	private paintedSnapshotSessionId: string | undefined;
+	private onWillShow: (() => void) | undefined;
 
 	constructor(
 		buttonParent: HTMLElement,
@@ -176,6 +179,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 
 		this.overlayElement = append(overlayParent, $(`.${conversationLensSnapshotsOverlayClass}`));
 		this.overlayElement.hidden = true;
+		this.overlayElement.tabIndex = -1;
 		this.overlayElement.setAttribute('role', 'dialog');
 		this.overlayElement.setAttribute('aria-modal', 'true');
 		this.overlayElement.setAttribute('aria-label', conversationLensSessionBarSnapshotsTitle);
@@ -201,6 +205,9 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		this.writeStatus.hidden = true;
 
 		this._register(addDisposableListener(this.overlayElement, 'keydown', e => {
+			if (handleConversationOverlayTab(this.overlayElement, e)) {
+				return;
+			}
 			if (e.keyCode === KeyCode.Escape) {
 				e.preventDefault();
 				e.stopPropagation();
@@ -241,10 +248,16 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		this.show();
 	}
 
+	setOnWillShow(handler: () => void): void {
+		this.onWillShow = handler;
+	}
+
 	show(): void {
+		this.onWillShow?.();
 		this.open = true;
 		this.overlayElement.hidden = false;
 		this.button.element.setAttribute('aria-expanded', 'true');
+		this.overlayElement.focus();
 		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
@@ -310,6 +323,10 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	private async refresh(): Promise<boolean> {
 		const generation = ++this.renderGeneration;
 		const sessionId = this.roster.getActiveSessionId();
+		if (this.paintedSnapshotSessionId !== sessionId) {
+			this.paintedLiveSnapshots = false;
+			this.paintedSnapshotSessionId = sessionId;
+		}
 		const connected = this.connection.isEngineConnected();
 		const listSnapshots = this.connection.listSnapshots;
 		const hasHook = typeof listSnapshots === 'function';

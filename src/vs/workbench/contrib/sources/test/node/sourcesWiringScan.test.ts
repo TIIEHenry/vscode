@@ -211,6 +211,10 @@ suite('Sources - files list leftover - 源码接线扫描', () => {
 		assert.ok(list.includes('sourcesFilesListReadFailureMessage'));
 		assert.ok(list.includes('lastGoodEntries'));
 		assert.ok(list.includes('sources-files-status'));
+		assert.ok(list.includes("classList.add('is-error')"));
+		const filesCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css'), 'utf8');
+		assert.ok(filesCss.includes('.sources-files-empty.is-error'));
+		assert.ok(filesCss.includes('.sources-files-status.is-error'));
 	});
 	test('Files list scheduler and onDidOpen use double catch', () => {
 		const list = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesFilesList.ts'), 'utf8');
@@ -248,6 +252,7 @@ suite('Sources - review showForPaths - 源码接线扫描', () => {
 		assert.ok(openAction.includes('isSourcesGitFileDiffOpenSkipped'));
 		assert.ok(openAction.includes('isSourcesGitWriteClosed'));
 		assert.ok(openAction.includes('readGitFileDiff'));
+		assert.ok(openAction.includes('tryReadSourcesGitFileDiff'));
 		assert.ok(!openAction.includes('} catch {'));
 	});
 	test('Changes and Review leftover onDidOpen skip KEEP pairing-hold leftover as well as list-fail', () => {
@@ -265,5 +270,81 @@ suite('Sources - review showForPaths - 源码接线扫描', () => {
 		assert.ok(reviewOpen.includes('isSourcesGitFileDiffOpenSkipped'));
 		assert.ok(changes.includes('shouldSkipSourcesGitFileDiffOpen'));
 		assert.ok(review.includes('shouldSkipSourcesGitFileDiffOpen'));
+	});
+});
+
+suite('Sources - custom UI visual CSS - 源码接线扫描', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('Accept hover is not covered by secondary button hover', () => {
+		const reviewPane = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/conversationDiffReviewPane.css'), 'utf8');
+		const panel = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesDiffPanel.css'), 'utf8');
+		assert.ok(reviewPane.includes('button:not(.conversation-diff-review-accept):hover:not(:disabled)'));
+		assert.ok(reviewPane.includes('button.conversation-diff-review-accept:hover:not(:disabled)'));
+		assert.ok(!reviewPane.includes('.conversation-diff-review-toolbar button:hover:not(:disabled)'));
+		assert.ok(panel.includes('button:not(.sources-diff-panel-accept):hover:not(:disabled)'));
+		assert.ok(panel.includes('button.sources-diff-panel-accept:hover:not(:disabled)'));
+		assert.ok(!panel.includes('.sources-diff-panel-actions button:hover:not(:disabled)'));
+	});
+
+	test('Diff panel actions wrap; review status error tone is throw-only', () => {
+		const panel = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesDiffPanel.css'), 'utf8');
+		const reviewCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesReviewList.css'), 'utf8');
+		const review = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts'), 'utf8');
+		assert.ok(panel.includes('.sources-diff-panel-header {\n\tdisplay: flex;\n\tflex-wrap: wrap;'));
+		assert.ok(panel.includes('flex: 1 1 auto;'));
+		assert.ok(panel.includes('justify-content: flex-end;'));
+		assert.ok(reviewCss.includes('.sources-review-status.is-error'));
+		assert.ok(review.includes("classList.toggle('is-error'"));
+		assert.ok(review.includes('this.setStatusMessage(gitReadError, true)'));
+		assert.ok(review.includes('this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error), true)'));
+		assert.ok(!review.includes('this.setStatusMessage(sourcesGitReadPairingHoldMessage(), true)'));
+		assert.ok(!review.includes('this.setStatusMessage(sourcesGitReadUnavailableNoHookMessage(), true)'));
+		assert.ok(!review.includes('this.setStatusMessage(sourcesGitLocalOnlyMessage(), true)'));
+	});
+
+	test('Diff renderRef uses a generation gate; Changes status has error tone', () => {
+		const diff = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts'), 'utf8');
+		const changes = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts'), 'utf8');
+		const changesCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesChangesList.css'), 'utf8');
+		assert.ok(diff.includes('renderGeneration'));
+		assert.ok(diff.includes('generation !== this.renderGeneration'));
+		assert.ok(changes.includes("classList.toggle('is-error'"));
+		assert.ok(changes.includes("gitReadError && !hasAnyEntries"));
+		assert.ok(changesCss.includes('.sources-changes-status.is-error'));
+		assert.ok(!changes.includes('no git changes API'));
+	});
+
+	test('Sources hide control is a close glyph; Files leftover status and Diff notices use error tone', () => {
+		const hide = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/conversation/partRegionHideControl.ts'), 'utf8');
+		const files = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesFilesList.ts'), 'utf8');
+		const filesCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css'), 'utf8');
+		const diff = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts'), 'utf8');
+		const diffCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesDiffPanel.css'), 'utf8');
+		const reviewPane = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts'), 'utf8');
+		const reviewCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/conversationDiffReviewPane.css'), 'utf8');
+		assert.ok(hide.includes('Codicon.close'));
+		assert.ok(hide.includes('actionBar.setFocusable(true)'));
+		assert.ok(files.includes("classList.add('is-error')"));
+		assert.ok(filesCss.includes('.sources-files-status.is-error'));
+		assert.ok(diff.includes("actionNoticeElement.classList.add('is-error')"));
+		assert.ok(diff.includes("newFileNoticeElement.classList.add('is-error')"));
+		assert.ok(diffCss.includes('.sources-diff-panel-action-notice.is-error'));
+		assert.ok(reviewPane.includes('classList.toggle(\'is-error\', isError)'));
+		assert.ok(reviewPane.includes('renderGeneration'));
+		assert.ok(reviewCss.includes('.conversation-diff-review-notice.is-error'));
+	});
+
+	test('Conversation Diff matches original+group and opens beside chat', () => {
+		const open = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.ts'), 'utf8');
+		const helpers = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesDiffRefHelpers.ts'), 'utf8');
+		const input = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/conversationDiffReviewInput.ts'), 'utf8');
+		const common = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/common/conversationDiffReviewInput.ts'), 'utf8');
+		assert.ok(open.includes('CONVERSATION_SIDE_GROUP'));
+		assert.ok(!open.includes('CONVERSATION_GROUP'));
+		assert.ok(helpers.includes('CONVERSATION_SIDE_GROUP'));
+		assert.ok(input.includes('this._groupId === other._groupId'));
+		assert.ok(common.includes('/group/'));
 	});
 });

@@ -131,6 +131,7 @@
 
 .monaco-workbench .part.conversation .conversation-visualize-overlay {
 	position: absolute;
+	inset: 0;
 	z-index: 20;
 }
 

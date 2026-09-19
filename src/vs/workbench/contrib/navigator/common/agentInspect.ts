@@ -27,4 +27,9 @@ export interface IAgentInspectService {
 	setTarget(target: AgentInspectTarget | undefined): void;
 	setLiveAgentIds(source: AgentInspectLiveAgentIdSource, ids: ReadonlySet<string> | undefined): void;
 	getLiveAgentIds(): ReadonlySet<string> | undefined;
+	getLiveAgentIdsFor(source: AgentInspectLiveAgentIdSource): ReadonlySet<string> | undefined;
+	setLiveActivityIds(ids: ReadonlySet<string> | undefined): void;
+	getLiveActivityIds(): ReadonlySet<string> | undefined;
+	setLiveTaskIds(ids: ReadonlySet<string> | undefined): void;
+	getLiveTaskIds(): ReadonlySet<string> | undefined;
 }

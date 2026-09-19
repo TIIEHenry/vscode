@@ -176,6 +176,7 @@
 
 .monaco-workbench .part.conversation .conversation-lens-session-new,
 .monaco-workbench .part.conversation .conversation-lens-session-delete,
+.monaco-workbench .part.conversation .conversation-lens-session-more,
 .monaco-workbench .part.conversation .conversation-lens-session-snapshots,
 .monaco-workbench .part.conversation .conversation-lens-session-history {
 	display: flex;
@@ -188,13 +189,17 @@
 
 .monaco-workbench .part.conversation .conversation-lens-history-overlay {
 	position: absolute;
-	inset: 0;
+	top: auto;
+	right: 8px;
+	bottom: 8px;
+	left: auto;
 	z-index: 20;
 	display: flex;
-	align-items: flex-start;
+	align-items: flex-end;
 	justify-content: flex-end;
-	padding: 8px;
-	background-color: var(--vscode-widget-shadow, rgba(0, 0, 0, 0.28));
+	max-height: min(360px, 70%);
+	padding: 0;
+	background-color: transparent;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-history-overlay[hidden] {
@@ -277,12 +282,17 @@
 
 .monaco-workbench .part.conversation .conversation-lens-snapshots-overlay {
 	position: absolute;
-	inset: 0;
+	top: auto;
+	right: 8px;
+	bottom: 8px;
+	left: auto;
 	z-index: 20;
 	display: flex;
-	align-items: flex-start;
+	align-items: flex-end;
 	justify-content: flex-end;
-	padding: 8px;
+	max-height: min(360px, 70%);
+	padding: 0;
+	background-color: transparent;
 	background-color: var(--vscode-widget-shadow, rgba(0, 0, 0, 0.28));
 }
 
@@ -381,6 +391,26 @@
 	height: 20px;
 	min-width: 20px;
 	padding: 0 6px;
+}
+
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-snapshots-row,
+.monaco-workbench .part.conversation .is-compact .conversation-lens-snapshots-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+}
+
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-snapshots-row > *,
+.monaco-workbench .part.conversation .is-compact .conversation-lens-snapshots-row > * {
+	min-width: 0;
+}
+
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-snapshots-restore,
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-snapshots-delete,
+.monaco-workbench .part.conversation .is-compact .conversation-lens-snapshots-restore,
+.monaco-workbench .part.conversation .is-compact .conversation-lens-snapshots-delete {
+	flex-shrink: 0;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-snapshots-restore .monaco-button .codicon,
@@ -1753,6 +1783,7 @@
 .monaco-workbench .part.conversation .conversation-lens-dock-gate-row {
 	display: flex;
 	align-items: center;
+	flex-shrink: 0;
 	padding: 4px 8px;
 	border-bottom: 1px solid var(--vscode-sideBar-border, var(--vscode-contrastBorder, transparent));
 	font-size: 12px;
@@ -1761,6 +1792,10 @@
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-gate-row.is-error {
+	color: var(--vscode-errorForeground);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-gate-label {
@@ -1776,11 +1811,12 @@
 	align-items: center;
 	justify-content: space-between;
 	gap: 8px;
+	flex-shrink: 0;
 	padding: 4px 8px 2px;
 	font-size: 12px;
 	line-height: 16px;
 	color: var(--vscode-descriptionForeground);
-	background: transparent;
+	background: var(--vscode-sideBar-background);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-inbox-left,
@@ -1802,9 +1838,9 @@
 	align-items: center;
 	gap: 4px;
 	padding: 2px 8px;
-	border: 1px solid var(--vscode-widget-border, var(--vscode-contrastBorder, transparent));
+	border: 1px solid var(--vscode-input-border, var(--vscode-widget-border, var(--vscode-contrastBorder, transparent)));
 	border-radius: 4px;
-	background: var(--vscode-editor-background);
+	background: var(--vscode-input-background);
 	font-size: 11px;
 	line-height: 18px;
 	color: var(--vscode-descriptionForeground);
@@ -1828,7 +1864,7 @@
 .monaco-workbench .part.conversation .conversation-lens-inbox-chip:focus-visible,
 .monaco-workbench .part.conversation .conversation-lens-inbox-pending:focus-visible {
 	outline: 2px solid var(--vscode-focusBorder, var(--vscode-contrastBorder, transparent));
-	outline-offset: 1px;
+	outline-offset: -2px;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-inbox-goal .conversation-lens-inbox-goal-button {
@@ -1890,6 +1926,14 @@
 
 .monaco-workbench .part.conversation .conversation-lens-inbox-pending:hover {
 	color: var(--vscode-textLink-activeForeground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-inbox-pending:disabled,
+.monaco-workbench .part.conversation .conversation-lens-inbox-pending[aria-disabled="true"] {
+	color: var(--vscode-disabledForeground, var(--vscode-descriptionForeground));
+	text-decoration: none;
+	cursor: default;
+	opacity: 0.7;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-inbox-list-panel,
@@ -2228,6 +2272,20 @@
 	box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
 }
 
+.monaco-workbench .conversation-lens-dock-more-popup .conversation-lens-dock-more-agent {
+	display: block;
+	padding: 4px 12px 6px;
+	color: var(--vscode-descriptionForeground);
+	font-size: 12px;
+	line-height: 20px;
+	cursor: default;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	border-bottom: 1px solid var(--vscode-menu-border, var(--vscode-widget-border, transparent));
+	margin-bottom: 4px;
+}
+
 .monaco-workbench .conversation-lens-dock-more-popup .conversation-lens-dock-more-item {
 	display: block;
 	width: 100%;
@@ -2268,8 +2326,11 @@
 	display: none;
 }
 
+/* Keep identity strip, stale-snapshot banner, seats, and History/Snapshots
+ * overlays in the slot. Do not display:none the shared column. */
 .monaco-workbench .part.conversation .conversation-timeline.conversation-lens-input-maximized:not(:has(.conversation-lens-phase-prefirst)):not(.conversation-lens-showing-trajectory) {
-	display: none;
+	flex: 0 0 auto;
+	min-height: 0;
 }
 
 .monaco-workbench .part.conversation .conversation-dock.conversation-lens-input-maximized {
@@ -2285,20 +2346,16 @@
 	position: relative;
 }
 
-/* Stay reachable (pending confirmations). Do not display:none — overlay so composer can grow. */
+/* Stay reachable (pending confirmations). Do not display:none — keep inbox/gate in flow. */
+.monaco-workbench .part.conversation .conversation-dock.conversation-lens-input-maximized .conversation-lens-dock-gate-row,
 .monaco-workbench .part.conversation .conversation-dock.conversation-lens-input-maximized .conversation-lens-inbox-overlay {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	z-index: 2;
-	background-color: var(--vscode-sideBar-background);
+	flex-shrink: 0;
 }
 
 .monaco-workbench .part.conversation .conversation-dock.conversation-lens-input-maximized .conversation-lens-composer-cluster {
 	flex: 1;
 	min-height: 0;
-	padding-top: 32px;
+
 }
 
 .monaco-workbench .part.conversation .conversation-dock.conversation-lens-input-maximized .conversation-lens-composer {
@@ -2522,6 +2579,16 @@
 	display: none;
 }
 
+.monaco-workbench .part.conversation .conversation-lens-session-more {
+	display: none;
+}
+
+.monaco-workbench .part.conversation .is-medium .conversation-lens-session-more,
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-session-more,
+.monaco-workbench .part.conversation .is-compact .conversation-lens-session-more {
+	display: flex;
+}
+
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-session-new,
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-session-delete,
 .monaco-workbench .part.conversation .is-compact .conversation-lens-session-new,
@@ -2533,11 +2600,14 @@
 
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-lens-tabs,
 .monaco-workbench .part.conversation .is-compact .conversation-lens-lens-tabs,
-.monaco-workbench .part.conversation .is-narrow .conversation-lens-session-sync-badge,
-.monaco-workbench .part.conversation .is-compact .conversation-lens-session-sync-badge,
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-trajectory-inspector-back,
 .monaco-workbench .part.conversation .is-compact .conversation-lens-trajectory-inspector-back {
 	flex-shrink: 0;
+}
+
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-session-sync-badge,
+.monaco-workbench .part.conversation .is-compact .conversation-lens-session-sync-badge {
+	max-width: 12ch;
 }
 
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-session-title,

@@ -3,8 +3,8 @@ title: "会话订阅生命周期：lease 所有权回收、流级重开与 bind 
 type: plan
 status: draft
 phase: M7
-updated: 2026-09-16
-summary: "2026-09-10 订阅架构审查 1–3 项的实施方案：S1 宿主按 IPC 连接 / 窗口回收 lease；S2 SessionEventStream remote/error 关流后宿主退避重开（登记 G-CORE-2）；S3 gRPC unary deadline + 渲染端 bind 可重试。S1–S3b 代码已落 `b2211b23fa5`；S4a/S4b 代码已落（工位 D，未合）。仍 draft：§5 手测未跑（D405）"
+updated: 2026-09-19
+summary: "2026-09-10 订阅架构审查 1–3 项的实施方案：S1 宿主按 IPC 连接 / 窗口回收 lease；S2 SessionEventStream remote/error 关流后宿主退避重开（登记 G-CORE-2）；S3 gRPC unary deadline + 渲染端 bind 可重试。S1–S3b 代码已落 `b2211b23fa5`；2026-09-14 规则 16 回溯审查已做并改稿。S4a/S4b 代码已合入 merge 且 compile 0。仍 draft：§5 手测未跑（D405）"
 ---
 
 # 会话订阅生命周期
@@ -15,9 +15,9 @@ summary: "2026-09-10 订阅架构审查 1–3 项的实施方案：S1 宿主按 
 > **槽位：** 平台合同与宿主，归 **P 槽**；S3 渲染端一刀只改 `conversationEngineFrameSource.ts`。  
 > **审查记录：** 见文末（规则 16）。
 
-## 实施现状（2026-09-15 回填）
+## 实施现状（2026-09-19 回填）
 
-**S1 / S2 / S3a / S3b 代码已落**，四刀一次性合入 `b2211b23fa5`（2026-09-12，「补会话订阅生命周期」），类型修补 `3c07195f6bf`。**S4a / S4b 代码已落**（工位 D，未合入 merge）：electron-main 注入打点 `DiagnosticsPort`；`streamReopenSkipReason` 含 `fail_closed`，宿主自记 `mailbox.overflow` 后停止 reopen 直至下一次 `acquireLease` / 连接翻转。
+**S1 / S2 / S3a / S3b 代码已落**，四刀一次性合入 `b2211b23fa5`（2026-09-12，「补会话订阅生命周期」），类型修补 `3c07195f6bf`。§7 知识层回填七件事全部完成。§4 单元 Exit 全绿（新增 `sessionViewHostReopen.test.ts` / `grpcUnaryDeadline.test.ts` / `universeAgentSessionViewChannel.test.ts`）。**S4a / S4b 代码已合入 merge**：electron-main 注入打点 `DiagnosticsPort`；`streamReopenSkipReason` 含 `fail_closed`，宿主自记 `mailbox.overflow` 后停止 reopen 直至下一次 `acquireLease` / 连接翻转。2026-09-14 规则 16 回溯审查已做并改稿。
 
 **本稿仍为 `draft`**，一件未闭：
 
@@ -152,7 +152,7 @@ summary: "2026-09-10 订阅架构审查 1–3 项的实施方案：S1 宿主按 
 | **S3a** unary deadline + 相位恢复 | §3.3 前两行 | — | `grpcClientCalls.test.ts`（或新 `grpcUnaryDeadline.test.ts`）：`applyDefaultUnaryDeadline` 对 unary 写 deadline、对 stream 不写、已有 deadline 不覆盖、`0` 关闭；`universeAgentConnectionService` 测：`_markTransportFailed` 后一次成功 unary 使 `getConnectionPhase().kind === 'connected'` | `node/grpc/grpcClient.ts` · `grpcClientCalls.ts` · `universeAgentConnectionService.ts` + 测试 |
 | **S3b** 宿主 bind 回落 + 渲染端 bind 可重试 | §3.3 后三行 | S3a（否则重试仍可能挂死） | `sessionViewHostEngineBind.test.ts` 新增：缓存 Resume 失败 → 回落 Create 成功 → `whenEngineSessionReady` resolve 新 id；`conversationEngineFrameSource.test.ts` 新增：fake `whenEngineSessionReady` 先 reject 后 resolve → 第一次 `post` 得 `no_such_session`，第二次转发到 `sessionView.post`；在途 bind 只调一次 `whenEngineSessionReady` | `node/sessionViewHost.ts` · `contrib/conversation/browser/conversationEngineFrameSource.ts` + 测试 |
 
-### 4.1 回溯审查追加的两刀（2026-09-14；**S4a / S4b 代码已落** @ 工位 D，未合）
+### 4.1 回溯审查追加的两刀（2026-09-14；**S4a / S4b 代码已合入 merge**）
 
 | 切片 | 做什么 | 硬依赖 | 测试 / Exit | 冲突域 |
 |------|--------|--------|-------------|--------|

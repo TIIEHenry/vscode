@@ -9,6 +9,7 @@ import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { handleConversationOverlayTab } from './conversationConfirmationSeat.js';
 import {
 	formatRecoverTrustDialogBody,
 	formatSasDialogBody,
@@ -62,6 +63,7 @@ function renderPairingConfirmShell(
 	const dialogBox = DOM.append(container, $('.monaco-dialog-box'));
 	dialogBox.setAttribute('role', 'dialog');
 	dialogBox.setAttribute('aria-modal', 'true');
+	dialogBox.tabIndex = -1;
 
 	const messageRow = DOM.append(dialogBox, $('.dialog-message-row'));
 	const messageContainer = DOM.append(messageRow, $('.dialog-message-container'));
@@ -97,6 +99,23 @@ async function promptPairingConfirmInPane(
 			dialogBox.scrollIntoView({ block: 'nearest' });
 		}
 		return await new Promise(resolve => {
+			disposables.add(DOM.addDisposableListener(container.ownerDocument, 'keydown', e => {
+				if (e.key === 'Escape') {
+					e.preventDefault();
+					e.stopPropagation();
+					resolve({ confirmed: false, buttonLabels });
+					return;
+				}
+				handleConversationOverlayTab(container, e);
+			}, true));
+			disposables.add(DOM.addDisposableListener(container.ownerDocument, 'focusin', e => {
+				const target = e.target as Node | null;
+				if (target && !container.contains(target)) {
+					const next = container.querySelector('button, [tabindex]') as HTMLElement | null;
+					next?.focus();
+				}
+			}));
+
 			const confirmButton = disposables.add(new Button(buttonsContainer, defaultButtonStyles));
 			confirmButton.label = confirmLabel;
 			disposables.add(confirmButton.onDidClick(() => resolve({ confirmed: true, buttonLabels })));
@@ -104,6 +123,7 @@ async function promptPairingConfirmInPane(
 			const cancelButton = disposables.add(new Button(buttonsContainer, defaultButtonStyles));
 			cancelButton.label = cancelLabel;
 			disposables.add(cancelButton.onDidClick(() => resolve({ confirmed: false, buttonLabels })));
+			confirmButton.focus();
 		});
 	} finally {
 		disposables.dispose();

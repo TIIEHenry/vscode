@@ -275,7 +275,7 @@ export function sourcesGitLocalOnlyMessage(): string {
 
 /** Honest status when ReadGitChanges is missing after a live engine paint. */
 export function sourcesGitReadUnavailableNoHookMessage(): string {
-	return localize('sourcesChangesGitRead.unavailableNoHook', "Engine git changes unavailable — this client has no git changes API.");
+	return localize('sourcesChangesGitRead.unavailableNoHook', "Engine git changes unavailable on this client.");
 }
 
 /**

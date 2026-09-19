@@ -3,7 +3,7 @@ title: "Conversation 时间线正文：会话与子代理 pill"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-16
+updated: 2026-09-19
 summary: "助手 markdown 里的内部会话/子代理链接升级为行内 pill + 轻量 hover + 点击按 PRD-016 路由；跨会话 reveal 目标自己的叶；S3w 钉死叶级 SessionBar（方案 C，每扇一份，用户 2026-09-14 拍板）+ 隐藏叶 restore 仍单叶 + 隐藏叶释放 lease；规则 16 第五轮（fable 5.1）已审改稿，2026-09-14 用户签收"
 ---
 
