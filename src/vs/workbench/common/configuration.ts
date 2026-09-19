@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../base/common/errors.js';
 import { localize } from '../../nls.js';
 import { ConfigurationScope, IConfigurationNode, IConfigurationRegistry, Extensions as ConfigurationExtensions } from '../../platform/configuration/common/configurationRegistry.js';
 import { Registry } from '../../platform/registry/common/platform.js';
@@ -98,7 +99,7 @@ export class ConfigurationMigrationWorkbenchContribution extends Disposable impl
 				await this.migrateConfigurationsForFolder(folder, configurationMigrationRegistry.migrations);
 			}
 		}));
-		this.migrateConfigurations(configurationMigrationRegistry.migrations);
+		this.migrateConfigurations(configurationMigrationRegistry.migrations).catch(onUnexpectedError).catch(onUnexpectedError);
 		this._register(configurationMigrationRegistry.onDidRegisterConfigurationMigration(migration => this.migrateConfigurations(migration)));
 	}
 
@@ -192,7 +193,7 @@ export class DynamicWorkbenchSecurityConfiguration extends Disposable implements
 	) {
 		super();
 
-		this.create();
+		this.create().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async create(): Promise<void> {

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { getZoomFactor } from '../../../../base/browser/browser.js';
 import { $, addDisposableListener, append, EventType, getWindow, getWindowId, hide, show } from '../../../../base/browser/dom.js';
@@ -84,7 +85,7 @@ export class NativeTitlebarPart extends BrowserTitlebarPart {
 
 		this.tahoeOrNewer = isTahoeOrNewer(environmentService.os.release);
 
-		this.handleWindowsAlwaysOnTop(targetWindow.vscodeWindowId);
+		this.handleWindowsAlwaysOnTop(targetWindow.vscodeWindowId).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async handleWindowsAlwaysOnTop(targetWindowId: number): Promise<void> {

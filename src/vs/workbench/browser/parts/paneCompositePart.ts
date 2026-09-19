@@ -196,7 +196,7 @@ export abstract class AbstractPaneCompositePart extends CompositePart<PaneCompos
 				if (this.getActiveComposite()?.getId() === viewletDescriptor.id) {
 					const defaultViewletId = this.viewDescriptorService.getDefaultViewContainer(this.location)?.id;
 					const containerToOpen = activeContainers.filter(c => c.id === defaultViewletId)[0] || activeContainers[0];
-					this.doOpenPaneComposite(containerToOpen.id);
+					this.doOpenPaneComposite(containerToOpen.id).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			} else {
 				this.layoutService.setPartHidden(true, this.partId);

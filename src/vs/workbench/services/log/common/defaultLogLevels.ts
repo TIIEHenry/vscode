@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { ILogService, ILoggerService, LogLevel, LogLevelToString, getLogLevel, parseLogLevel } from '../../../../platform/log/common/log.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
@@ -59,7 +60,7 @@ class DefaultLogLevelsService extends Disposable implements IDefaultLogLevelsSer
 		};
 		this._register(this.fileService.onDidFilesChange(e => {
 			if (e.contains(this.environmentService.argvResource)) {
-				this.onDidChangeArgv();
+				this.onDidChangeArgv().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}
