@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-17
-summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。不是 leftover/pills 完成。"
+summary: "D24 仍开。Connect/Watch/Resolve/Pty 仍 JSON。D686–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847 leftover Promise 双链；D736/D739/D740/D745 跳过。D783 弃。D898 已闭。不是 leftover/pills 完成。"
 ---
 
 # Deferred Gaps
@@ -1222,3 +1222,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D883 | P3 | **closed** leftover Promise 双链 leftover remaining unused share 合法点 0，溢到 issue 七处：updateExtensionStatus(targetExtension)×1、updateExtensionStatus(matches[0])×2、close()×3 base + ×1 electron。D773 扫描改为 already-double base 六处。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；`shareLeftoverPromiseCatchScanD883.test.ts`。勿 add `out`。 | 七处双链。未关 D24。leftover 程序未全局完成。 | workbench / issue leftover remaining | closed |
 | D886 | P3 | **closed** leftover Promise 双链 leftover remaining unused dropOrPasteInto 合法点 0，溢到 editor 八处：restoreParts；applyState parts+part；onDrop×2；handleDrop；setSelection；doOpenEditor FOF。D876 扫描 _installHandler 改为 already-double。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`dropOrPasteIntoLeftoverPromiseCatchScanD886.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / editor leftover remaining | closed |
 | D895 | P3 | **closed** leftover Promise 双链 leftover remaining unused dialogs 四处 processDialogs（web+electron 的 onWillShowDialog/constructor）。D795 扫描 addRecentlyOpened folderUri 改为 already-double（D801）。sessions mobileDialog 两处裸 processDialogs 仍 leftover。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 H；`dialogHandlerLeftoverPromiseCatchScanD895.test.ts`。勿 add `out`。 | 四处双链。未关 D24。leftover 程序未全局完成。 | workbench / dialog leftover remaining | closed |
+| D898 | P3 | **closed** leftover Promise 双链 leftover remaining unused themes 合法点 1，溢到 navigation 三处：setTheme(currentTheme, undefined)；navigateToSidebar/Panel/AuxiliaryBar。trigger(value) 与 two-arg setTheme then 仍 leftover。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`themesLeftoverPromiseCatchScanD898.test.ts`。勿 add `out`。 | 四处双链。未关 D24。leftover 程序未全局完成。 | workbench / themes leftover remaining | closed |
