@@ -3014,10 +3014,10 @@ class HookSchemaAssociationContribution extends Disposable implements IWorkbench
 		@IPathService private readonly _pathService: IPathService,
 	) {
 		super();
-		this._updateAssociations();
+		this._updateAssociations().catch(onUnexpectedError).catch(onUnexpectedError);
 		this._register(this._configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(PromptsConfig.HOOKS_LOCATION_KEY)) {
-				this._updateAssociations();
+				this._updateAssociations().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}

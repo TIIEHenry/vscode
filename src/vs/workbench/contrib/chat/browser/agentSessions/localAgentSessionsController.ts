@@ -6,6 +6,7 @@
 import { coalesce } from '../../../../../base/common/arrays.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { Disposable, DisposableResourceMap } from '../../../../../base/common/lifecycle.js';
 import { ResourceMap, ResourceSet } from '../../../../../base/common/map.js';
@@ -99,7 +100,7 @@ export class LocalAgentsSessionsController extends Disposable implements IChatSe
 				return;
 			}
 
-			this.tryUpdateLiveSessionItem(model);
+			this.tryUpdateLiveSessionItem(model).catch(onUnexpectedError).catch(onUnexpectedError);
 
 			const requestChangeListener = model.lastRequestObs.map(last => last?.response && observableSignalFromEvent('chatSessions.modelRequestChangeListener', last.response.onDidChange));
 			const modelChangeListener = observableSignalFromEvent('chatSessions.modelChangeListener', model.onDidChange);
@@ -107,7 +108,7 @@ export class LocalAgentsSessionsController extends Disposable implements IChatSe
 				requestChangeListener.read(reader)?.read(reader);
 				modelChangeListener.read(reader);
 
-				this.tryUpdateLiveSessionItem(model);
+				this.tryUpdateLiveSessionItem(model).catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 		};
 
