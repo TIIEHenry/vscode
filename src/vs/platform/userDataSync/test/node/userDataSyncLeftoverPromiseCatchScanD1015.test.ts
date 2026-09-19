@@ -40,7 +40,7 @@ const SETTINGS_REL = 'src/vs/workbench/contrib/preferences/browser/settingsEdito
 const STORAGE_BROWSER_REL = 'src/vs/workbench/services/storage/browser/storageService.ts';
 const CONFIG_SVC_REL = 'src/vs/workbench/services/configuration/browser/configurationService.ts';
 
-function resolveSource(rel) {
+function resolveSource(rel: string): string {
 	const candidates = [
 		path.join(process.cwd(), rel),
 		path.join(thisDir, '../../../../../../', rel),
@@ -52,20 +52,20 @@ function resolveSource(rel) {
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
-function countIncludes(source, needle) {
+function countIncludes(source: string, needle: string): number {
 	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
 }
 
-function countDoubleChains(source) {
+function countDoubleChains(source: string): number {
 	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
 }
 
-function assertPromiseSignature(source, signature) {
+function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertWrapped(source, call) {
+function assertWrapped(source: string, call: string): void {
 	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
 	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
 	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
@@ -91,7 +91,7 @@ const leftoverNodeTriggerCall = 'this.triggerSync(sources, { skipIfSyncedRecentl
 const nestedStopCall = 'this.syncTask?.stop()';
 const leftoverLocalChangeCall = 'this.triggerLocalChange()';
 
-const d1015Calls = [
+const d1015Calls: Array<[string, string, number]> = [
 	[AUTO_SYNC_REL, leftoverDisableCall, 3],
 	[AUTO_SYNC_REL, leftoverIntervalSyncCall, 2],
 	[LOCAL_STORE_REL, leftoverCleanCall, 1],
