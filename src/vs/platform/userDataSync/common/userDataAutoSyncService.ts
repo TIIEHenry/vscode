@@ -7,7 +7,7 @@ import { CancelablePromise, createCancelablePromise, disposableTimeout, Throttle
 import { CancellationToken } from '../../../base/common/cancellation.js';
 import { toLocalISOString } from '../../../base/common/date.js';
 import { toErrorMessage } from '../../../base/common/errorMessage.js';
-import { isCancellationError } from '../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable, IDisposable, MutableDisposable, toDisposable } from '../../../base/common/lifecycle.js';
 import { isWeb } from '../../../base/common/platform.js';
@@ -108,7 +108,7 @@ export class UserDataAutoSyncService extends Disposable implements IUserDataAuto
 			this.updateAutoSync();
 
 			if (this.hasToDisableMachineEventually()) {
-				this.disableMachineEventually();
+				this.disableMachineEventually().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 
 			this._register(userDataSyncAccountService.onDidChangeAccount(() => this.updateAutoSync()));
@@ -250,7 +250,7 @@ export class UserDataAutoSyncService extends Disposable implements IUserDataAuto
 		else if (userDataSyncError.code === UserDataSyncErrorCode.TooManyRequests) {
 			await this.turnOff(false, true /* force soft turnoff on error */,
 				true /* do not disable machine because disabling a machine makes request to server and can fail with TooManyRequests */);
-			this.disableMachineEventually();
+			this.disableMachineEventually().catch(onUnexpectedError).catch(onUnexpectedError);
 			this.logService.info('[AutoSync] Turned off sync because of making too many requests to server');
 		}
 
@@ -264,7 +264,7 @@ export class UserDataAutoSyncService extends Disposable implements IUserDataAuto
 		else if (userDataSyncError.code === UserDataSyncErrorCode.UpgradeRequired || userDataSyncError.code === UserDataSyncErrorCode.Gone) {
 			await this.turnOff(false, true /* force soft turnoff on error */,
 				true /* do not disable machine because disabling a machine makes request to server and can fail with upgrade required or gone */);
-			this.disableMachineEventually();
+			this.disableMachineEventually().catch(onUnexpectedError).catch(onUnexpectedError);
 			this.logService.info('[AutoSync] Turned off sync because current client is not compatible with server. Requires client upgrade.');
 		}
 
@@ -408,12 +408,12 @@ class AutoSync extends Disposable {
 			this.syncTask?.stop();
 			this.logService.info('[AutoSync] Stopped');
 		}));
-		this.sync(AutoSync.INTERVAL_SYNCING, false);
+		this.sync(AutoSync.INTERVAL_SYNCING, false).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private waitUntilNextIntervalAndSync(): void {
 		this.intervalHandler.value = disposableTimeout(() => {
-			this.sync(AutoSync.INTERVAL_SYNCING, false);
+			this.sync(AutoSync.INTERVAL_SYNCING, false).catch(onUnexpectedError).catch(onUnexpectedError);
 			this.intervalHandler.value = undefined;
 		}, this.interval);
 	}

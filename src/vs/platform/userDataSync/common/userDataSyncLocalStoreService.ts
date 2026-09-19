@@ -6,6 +6,7 @@
 import { Promises } from '../../../base/common/async.js';
 import { VSBuffer } from '../../../base/common/buffer.js';
 import { toLocalISOString } from '../../../base/common/date.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { joinPath } from '../../../base/common/resources.js';
 import { URI } from '../../../base/common/uri.js';
@@ -27,7 +28,7 @@ export class UserDataSyncLocalStoreService extends Disposable implements IUserDa
 		@IUserDataProfilesService private readonly userDataProfilesService: IUserDataProfilesService,
 	) {
 		super();
-		this.cleanUp();
+		this.cleanUp().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async cleanUp(): Promise<void> {

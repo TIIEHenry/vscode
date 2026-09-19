@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
@@ -45,7 +46,7 @@ export class UserDataSyncAccountService extends Disposable implements IUserDataS
 		super();
 		this._register(userDataSyncStoreService.onTokenFailed(code => {
 			this.logService.info('Settings Sync auth token failed', this.account?.authenticationProviderId, this.wasTokenFailed, code);
-			this.updateAccount(undefined);
+			this.updateAccount(undefined).catch(onUnexpectedError).catch(onUnexpectedError);
 			if (code === UserDataSyncErrorCode.Forbidden) {
 				this._onTokenFailed.fire(true /*bail out immediately*/);
 			} else {
