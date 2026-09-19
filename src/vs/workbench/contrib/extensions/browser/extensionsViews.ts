@@ -6,7 +6,7 @@
 import { localize } from '../../../../nls.js';
 import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { Event, Emitter } from '../../../../base/common/event.js';
-import { isCancellationError, getErrorMessage, CancellationError } from '../../../../base/common/errors.js';
+import { isCancellationError, getErrorMessage, CancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { PagedModel, IPagedModel, DelayedPagedModel, IPager } from '../../../../base/common/paging.js';
 import { SortOrder, IQueryOptions as IGalleryQueryOptions, SortBy as GallerySortBy, InstallExtensionInfo, ExtensionGalleryErrorCode, ExtensionGalleryError } from '../../../../platform/extensionManagement/common/extensionManagement.js';
 import { IExtensionManagementServer, IExtensionManagementServerService, EnablementState, IWorkbenchExtensionManagementService, IWorkbenchExtensionEnablementService } from '../../../services/extensionManagement/common/extensionManagement.js';
@@ -1483,7 +1483,7 @@ export class DefaultRecommendedExtensionsView extends ExtensionsListView {
 		super.renderBody(container);
 
 		this._register(this.extensionRecommendationsService.onDidChangeRecommendations(() => {
-			this.show('');
+			this.show('').catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 
@@ -1508,7 +1508,7 @@ export class RecommendedExtensionsView extends ExtensionsListView {
 		super.renderBody(container);
 
 		this._register(this.extensionRecommendationsService.onDidChangeRecommendations(() => {
-			this.show('');
+			this.show('').catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 	}
 

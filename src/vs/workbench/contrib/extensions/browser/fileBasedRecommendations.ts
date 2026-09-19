@@ -27,6 +27,7 @@ import { disposableTimeout } from '../../../../base/common/async.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { areSameExtensions } from '../../../../platform/extensionManagement/common/extensionManagementUtil.js';
 import { isEmptyObject } from '../../../../base/common/types.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { PLAINTEXT_LANGUAGE_ID } from '../../../../editor/common/languages/modesRegistry.js';
 import { IUntitledTextEditorService } from '../../../services/untitled/common/untitledTextEditorService.js';
 
@@ -324,7 +325,7 @@ export class FileBasedRecommendations extends ExtensionRecommendations {
 			return false;
 		}
 
-		this.promptImportantExtensionsInstallNotification(recommendations, name, language);
+		this.promptImportantExtensionsInstallNotification(recommendations, name, language).catch(onUnexpectedError).catch(onUnexpectedError);
 		return true;
 	}
 
