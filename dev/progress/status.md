@@ -3,8 +3,8 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-09-17
-summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847、D850–D851、D854–D858、D860–D868、D871、D875–D876、D881、D883、D886、D895、D898、D917。D736/D739/D740/D745 跳过。D783 弃。D24 仍开。不是 leftover/pills 完成。"
+updated: 2026-09-19
+summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847、D850–D851、D854–D858、D860–D868、D871、D875–D876、D881、D883、D886、D895、D898、D917。本轮 parked。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -20,7 +20,7 @@ summary: "SessionStream + L2 leftover 已合入。catch 含 D677–D782、D784�
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **A/D/F/G/H/I/J** | leftover Promise 双链进行中（B 脏跳过；C gitlink 勿 add；E blocked；edit ff-only 失败） |
+| **parked** | leftover remaining unused 未完成。D917 已合入 `f277274f93f`。F D922 六处双链无扫描不合入。D759 脏无 scan 不 `-B`。B 脏跳过；C gitlink 勿 add；E blocked。 |
 
 子 agent 发现：
 | ID | 问题 |
