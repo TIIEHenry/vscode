@@ -511,7 +511,7 @@ class WebSocketFlowManager extends Disposable {
 
 	public writeMessage(data: VSBuffer, options: FrameOptions): void {
 		this._writeQueue.push({ data, options });
-		this._processWriteQueue();
+		this._processWriteQueue().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _isProcessingWriteQueue = false;
@@ -549,7 +549,7 @@ class WebSocketFlowManager extends Disposable {
 
 	public acceptFrame(data: VSBuffer, isCompressed: boolean, isLastFrameOfMessage: boolean): void {
 		this._readQueue.push({ data, isCompressed, isLastFrameOfMessage });
-		this._processReadQueue();
+		this._processReadQueue().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _isProcessingReadQueue = false;

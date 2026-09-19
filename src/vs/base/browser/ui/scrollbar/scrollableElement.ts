@@ -13,6 +13,7 @@ import { ScrollableElementChangeOptions, ScrollableElementCreationOptions, Scrol
 import { VerticalScrollbar } from './verticalScrollbar.js';
 import { Widget } from '../widget.js';
 import { TimeoutTimer } from '../../../common/async.js';
+import { onUnexpectedError } from '../../../common/errors.js';
 import { Emitter, Event } from '../../../common/event.js';
 import { IDisposable, dispose } from '../../../common/lifecycle.js';
 import * as platform from '../../../common/platform.js';
@@ -427,7 +428,7 @@ export abstract class AbstractScrollableElement extends Widget {
 			if (!this._inertialTimeout) {
 				this._inertialTimeout = new TimeoutTimer();
 			}
-			this._inertialTimeout.cancelAndSet(() => this._periodicSync(), 1000 / 60);
+			this._inertialTimeout.cancelAndSet(() => this._periodicSync().catch(onUnexpectedError).catch(onUnexpectedError), 1000 / 60);
 		} else {
 			this._inertialTimeout?.dispose();
 			this._inertialTimeout = null;
@@ -536,7 +537,7 @@ export abstract class AbstractScrollableElement extends Widget {
 				this._inertialSpeed.Y = (deltaY < 0 ? -1 : 1) * (Math.abs(deltaY) ** 1.02);
 				this._inertialSpeed.X = (deltaX < 0 ? -1 : 1) * (Math.abs(deltaX) ** 1.02);
 				if (startPeriodic) {
-					this._periodicSync();
+					this._periodicSync().catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}
 
