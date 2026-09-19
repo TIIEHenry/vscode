@@ -7,7 +7,7 @@ import type { IMarker as IXtermMarker } from '@xterm/xterm';
 import { DeferredPromise, RunOnceScheduler, timeout, type CancelablePromise } from '../../../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../../../base/common/codicons.js';
-import { CancellationError } from '../../../../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Event } from '../../../../../../base/common/event.js';
 import { appendEscapedMarkdownInlineCode, escapeMarkdownSyntaxTokens, MarkdownString, type IMarkdownString } from '../../../../../../base/common/htmlContent.js';
 import { Disposable, DisposableMap, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../../../../base/common/lifecycle.js';
@@ -2811,7 +2811,7 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 
 						// Listen for terminal disposal to clean up storage
 						Event.once(instance.onDisposed)(() => {
-							this._removeProcessIdAssociation(instance.processId!);
+							this._removeProcessIdAssociation(instance.processId!).catch(onUnexpectedError).catch(onUnexpectedError);
 							this._removeExecutionAssociations(instance);
 						});
 					}
@@ -2826,7 +2826,7 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 		await this._associateProcessIdWithSession(toolTerminal.instance, chatSessionResource, termId, toolTerminal.shellIntegrationQuality, isBackground);
 		Event.once(toolTerminal.instance.onDisposed)(() => {
 			if (toolTerminal!.instance.processId) {
-				this._removeProcessIdAssociation(toolTerminal!.instance.processId);
+				this._removeProcessIdAssociation(toolTerminal!.instance.processId).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		});
 	}

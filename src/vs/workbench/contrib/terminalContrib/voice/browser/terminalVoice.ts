@@ -5,6 +5,7 @@
 
 import { RunOnceScheduler } from '../../../../../base/common/async.js';
 import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { Disposable, DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
@@ -329,7 +330,7 @@ export class TerminalVoiceSession extends Disposable {
 		if (this._usingBuiltin && send && !this._builtinFinalizing) {
 			this._builtinFinalizing = true;
 			this._acceptTranscriptionScheduler?.cancel();
-			this._finalizeBuiltinThenStop();
+			this._finalizeBuiltinThenStop().catch(onUnexpectedError).catch(onUnexpectedError);
 			return;
 		}
 		if (this._builtinFinalizing && !send

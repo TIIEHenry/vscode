@@ -5,6 +5,7 @@
 
 import { timeout } from '../../../../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../../../base/common/event.js';
 import { Disposable, MutableDisposable, toDisposable, type IDisposable } from '../../../../../../../base/common/lifecycle.js';
 import { localize } from '../../../../../../../nls.js';
@@ -191,7 +192,7 @@ export class OutputMonitor extends Disposable implements IOutputMonitor {
 			if (this._currentMonitoringCts !== cts) {
 				return;
 			}
-			this._startMonitoring(command, invocationContext, cts.token);
+			this._startMonitoring(command, invocationContext, cts.token).catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 	}
 
@@ -306,7 +307,7 @@ export class OutputMonitor extends Disposable implements IOutputMonitor {
 		currentMonitoringCts?.dispose();
 		this._currentMonitoringCts = new CancellationTokenSource(token);
 		this._state = OutputMonitorState.PollingForIdle;
-		this._startMonitoring(this._command, this._invocationContext, this._currentMonitoringCts.token);
+		this._startMonitoring(this._command, this._invocationContext, this._currentMonitoringCts.token).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	/**
