@@ -9,6 +9,7 @@ import { getActiveWindow } from '../../../../base/browser/dom.js';
 import { IndexedDB } from '../../../../base/browser/indexedDB.js';
 import { DeferredPromise, Promises } from '../../../../base/common/async.js';
 import { toErrorMessage } from '../../../../base/common/errorMessage.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { assertReturnsDefined } from '../../../../base/common/types.js';
@@ -241,10 +242,10 @@ export class BrowserStorageService extends AbstractStorageService {
 		// On all other browsers, we keep the databases opened because
 		// we expect data to be written when the unload happens.
 		if (isSafari) {
-			this.applicationStorage?.close();
-			this.applicationSharedStorageDatabase?.close();
-			this.profileStorageDatabase?.close();
-			this.workspaceStorageDatabase?.close();
+			void Promise.resolve(this.applicationStorage?.close()).catch(onUnexpectedError).catch(onUnexpectedError);
+			void Promise.resolve(this.applicationSharedStorageDatabase?.close()).catch(onUnexpectedError).catch(onUnexpectedError);
+			void Promise.resolve(this.profileStorageDatabase?.close()).catch(onUnexpectedError).catch(onUnexpectedError);
+			void Promise.resolve(this.workspaceStorageDatabase?.close()).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		// Always dispose to ensure that no timeouts or callbacks
