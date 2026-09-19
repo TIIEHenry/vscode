@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { EXTENSION_IDENTIFIER_PATTERN } from '../../../../platform/extensionManagement/common/extensionManagement.js';
 import { distinct, equals } from '../../../../base/common/arrays.js';
 import { ExtensionRecommendations, ExtensionRecommendation } from './extensionRecommendations.js';
@@ -50,7 +51,7 @@ export class WorkspaceRecommendations extends ExtensionRecommendations {
 		this.workspaceExtensions = await this.fetchWorkspaceExtensions();
 		await this.fetch();
 
-		this._register(this.workspaceExtensionsConfigService.onDidChangeExtensionsConfigs(() => this.onDidChangeExtensionsConfigs()));
+		this._register(this.workspaceExtensionsConfigService.onDidChangeExtensionsConfigs(() => this.onDidChangeExtensionsConfigs().catch(onUnexpectedError).catch(onUnexpectedError)));
 		for (const folder of this.contextService.getWorkspace().folders) {
 			this._register(this.fileService.watch(this.uriIdentityService.extUri.joinPath(folder.uri, WORKSPACE_EXTENSIONS_FOLDER)));
 		}
@@ -70,7 +71,7 @@ export class WorkspaceRecommendations extends ExtensionRecommendations {
 		const existing = this.workspaceExtensions;
 		this.workspaceExtensions = await this.fetchWorkspaceExtensions();
 		if (!equals(existing, this.workspaceExtensions, (a, b) => this.uriIdentityService.extUri.isEqual(a, b))) {
-			this.onDidChangeExtensionsConfigs();
+			this.onDidChangeExtensionsConfigs().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

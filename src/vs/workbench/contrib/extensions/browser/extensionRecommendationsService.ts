@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { IExtensionManagementService, IExtensionGalleryService, InstallOperation, InstallExtensionResult } from '../../../../platform/extensionManagement/common/extensionManagement.js';
 import { IExtensionRecommendationsService, ExtensionRecommendationReason, IExtensionIgnoredRecommendationsService } from '../../../services/extensionRecommendations/common/extensionRecommendations.js';
@@ -109,7 +110,7 @@ export class ExtensionRecommendationsService extends Disposable implements IExte
 
 		this._register(Event.any(this.workspaceRecommendations.onDidChangeRecommendations, this.configBasedRecommendations.onDidChangeRecommendations, this.extensionRecommendationsManagementService.onDidChangeIgnoredRecommendations)(() => this._onDidChangeRecommendations.fire()));
 
-		this.promptWorkspaceRecommendations();
+		this.promptWorkspaceRecommendations().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private isEnabled(): boolean {
@@ -122,7 +123,7 @@ export class ExtensionRecommendationsService extends Disposable implements IExte
 
 	getAllRecommendationsWithReason(): { [id: string]: { reasonId: ExtensionRecommendationReason; reasonText: string } } {
 		/* Activate proactive recommendations */
-		this.activateProactiveRecommendations();
+		this.activateProactiveRecommendations().catch(onUnexpectedError).catch(onUnexpectedError);
 
 		const output: { [id: string]: { reasonId: ExtensionRecommendationReason; reasonText: string } } = Object.create(null);
 

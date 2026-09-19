@@ -3242,7 +3242,7 @@ export abstract class AbstractInstallExtensionsInServerAction extends Action {
 			disposable.dispose();
 			quickPick.hide();
 			quickPick.dispose();
-			this.onDidAccept(quickPick.selectedItems);
+			this.onDidAccept(quickPick.selectedItems).catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 		quickPick.show();
 		const localExtensionsToInstall = await this.queryExtensionsToInstall();
