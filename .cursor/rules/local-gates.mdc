@@ -1,0 +1,12 @@
+---
+description: 门禁只走本地 health-gates；托管 CI 关闭是既定选择，不得当缺口复述或建议重开
+alwaysApply: true
+---
+
+# 本地门禁
+
+验证与合入门禁以 [health-gates](../../dev/progress/health-gates.md) 为准。托管 CI 已关，声明见 [.github/workflows/DISABLED.md](../../.github/workflows/DISABLED.md)。
+
+- 不得把关闭写成「没自动化测试」或验证缺口
+- 不得建议重开 workflow / `workflow_dispatch`「看一眼 CI」
+- 被问到怎么验时，只报本地 compile / eslint / docs-health / `scripts/test.sh` / `run-unit-custom.sh`

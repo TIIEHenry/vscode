@@ -3,8 +3,8 @@ title: "Documentation System — LLM Maintenance Rules"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-09-05
-summary: "本仓库 LLM 文档维护规则；结构见 DOCS-SPEC.md；规则 3c 状态翻转后扫知识层；阶段日志落 status + evidence，不设 dev/iterations"
+updated: 2026-09-18
+summary: "本仓库 LLM 文档维护规则；结构见 DOCS-SPEC.md；规则 3c 状态翻转后扫知识层；阶段日志落 status + evidence，不设 dev/iterations；门禁只走本地 health-gates"
 ---
 
 # 文档系统维护规则
@@ -70,6 +70,8 @@ summary: "一行描述"
 1. `AGENTS.md`
 2. 本文件
 3. `dev/progress/status.md`
+
+门禁只走本地 [health-gates](../dev/progress/health-gates.md)。托管 CI 关闭是既定选择（[.github/workflows/DISABLED.md](../.github/workflows/DISABLED.md)），不得当缺口复述或建议重开。
 
 ### 规则 2：编码前查阅相关文档
 
