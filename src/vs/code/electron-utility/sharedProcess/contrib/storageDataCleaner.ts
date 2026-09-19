@@ -29,7 +29,7 @@ export class UnusedWorkspaceStorageDataCleaner extends Disposable {
 		super();
 
 		const scheduler = this._register(new RunOnceScheduler(() => {
-			this.cleanUpStorage();
+			this.cleanUpStorage().catch(onUnexpectedError).catch(onUnexpectedError);
 		}, 30 * 1000 /* after 30s */));
 		scheduler.schedule();
 	}

@@ -32,7 +32,7 @@ export class CodeCacheCleaner extends Disposable {
 		// 3 months (1 week respectively)
 		if (currentCodeCachePath) {
 			const scheduler = this._register(new RunOnceScheduler(() => {
-				this.cleanUpCodeCaches(currentCodeCachePath);
+				this.cleanUpCodeCaches(currentCodeCachePath).catch(onUnexpectedError).catch(onUnexpectedError);
 			}, 30 * 1000 /* after 30s */));
 			scheduler.schedule();
 		}
