@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { Terminal as RawXtermTerminal } from '@xterm/xterm';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Disposable, toDisposable, type IDisposable } from '../../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../../base/common/network.js';
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
@@ -127,7 +128,7 @@ export class TerminalClipboardContribution extends Disposable implements ITermin
 		switch (event.button) {
 			case 1: { // Middle click
 				if (this._terminalConfigurationService.config.middleClickBehavior === 'paste') {
-					this.paste();
+					this.paste().catch(onUnexpectedError).catch(onUnexpectedError);
 					return { handled: true };
 				}
 				break;
@@ -146,7 +147,7 @@ export class TerminalClipboardContribution extends Disposable implements ITermin
 					this._ctx.instance.clearSelection();
 				} else {
 					if (BrowserFeatures.clipboard.readText) {
-						this.paste();
+						this.paste().catch(onUnexpectedError).catch(onUnexpectedError);
 					} else {
 						this._notificationService.info(`This browser doesn't support the clipboard.readText API needed to trigger a paste, try ${isMacintosh ? '⌘' : 'Ctrl'}+V instead.`);
 					}

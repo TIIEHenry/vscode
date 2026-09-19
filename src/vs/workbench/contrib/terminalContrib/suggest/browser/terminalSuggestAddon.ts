@@ -5,6 +5,7 @@
 
 import type { ITerminalAddon, Terminal } from '@xterm/xterm';
 import * as dom from '../../../../../base/browser/dom.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { combinedDisposable, Disposable, MutableDisposable } from '../../../../../base/common/lifecycle.js';
 import { commonPrefixLength } from '../../../../../base/common/strings.js';
@@ -472,7 +473,7 @@ export class SuggestAddon extends Disposable implements ITerminalAddon, ISuggest
 			// Only request on trigger character when it's a regular input, or on an arrow if the widget
 			// is already visible
 			if (!this._wasLastInputIncludedEscape() || this._terminalSuggestWidgetVisibleContextKey.get()) {
-				this.requestCompletions();
+				this.requestCompletions().catch(onUnexpectedError).catch(onUnexpectedError);
 				return true;
 			}
 		}
