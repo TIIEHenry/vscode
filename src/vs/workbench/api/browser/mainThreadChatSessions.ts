@@ -5,7 +5,7 @@
 
 import { raceCancellationError } from '../../../base/common/async.js';
 import { CancellationToken } from '../../../base/common/cancellation.js';
-import { isCancellationError } from '../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter } from '../../../base/common/event.js';
 import { IMarkdownString, MarkdownString, markdownStringEqual } from '../../../base/common/htmlContent.js';
 import { Disposable, DisposableMap, DisposableResourceMap, DisposableStore, IDisposable } from '../../../base/common/lifecycle.js';
@@ -436,7 +436,7 @@ class MainThreadChatSessionItemController extends Disposable implements IChatSes
 				return;
 			}
 
-			this.tryUpdateItemForModel(model);
+			this.tryUpdateItemForModel(model).catch(onUnexpectedError).catch(onUnexpectedError);
 
 			const requestChangeListener = model.lastRequestObs.map(last => last?.response && observableSignalFromEvent('chatSessions.modelRequestChangeListener', last.response.onDidChange));
 			const modelChangeListener = observableSignalFromEvent('chatSessions.modelChangeListener', model.onDidChange);
@@ -444,7 +444,7 @@ class MainThreadChatSessionItemController extends Disposable implements IChatSes
 				requestChangeListener.read(reader)?.read(reader);
 				modelChangeListener.read(reader);
 
-				this.tryUpdateItemForModel(model);
+				this.tryUpdateItemForModel(model).catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 		};
 
@@ -534,7 +534,7 @@ class MainThreadChatSessionItemController extends Disposable implements IChatSes
 		const resource = model.sessionResource;
 		const existing = this._items.get(resource);
 		if (existing) {
-			this.addOrUpdateItem(existing);
+			this.addOrUpdateItem(existing).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -723,7 +723,7 @@ export class MainThreadChatSessions extends Disposable implements MainThreadChat
 			const handle = this._getHandleForSessionType(sessionType);
 			this._logService.trace(`[MainThreadChatSessions] onRequestNotifyExtension received: sessionType '${sessionType}', handle ${handle}, ${updates.size} update(s)`);
 			if (handle !== undefined) {
-				this.notifyOptionsChange(handle, sessionResource, updates);
+				this.notifyOptionsChange(handle, sessionResource, updates).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else {
 				this._logService.warn(`[MainThreadChatSessions] Cannot notify option change for sessionType '${sessionType}': no provider registered. Registered types: [${Array.from(this._sessionTypeToHandle.keys()).join(', ')}]`);
 			}
