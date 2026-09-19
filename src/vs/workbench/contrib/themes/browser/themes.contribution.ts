@@ -330,7 +330,7 @@ class InstalledThemesPicker {
 				this.setTheme(newTheme, applyTheme ? 'auto' : 'preview').then(undefined,
 					err => {
 						onUnexpectedError(err);
-						this.setTheme(currentTheme, undefined);
+						this.setTheme(currentTheme, undefined).catch(onUnexpectedError).catch(onUnexpectedError);
 					}
 				);
 			}, applyTheme ? 0 : 200);

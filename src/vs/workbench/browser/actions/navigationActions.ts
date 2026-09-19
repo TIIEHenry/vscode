@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize2 } from '../../../nls.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { IEditorGroupsService, GroupDirection, GroupLocation, IFindGroupScope } from '../../services/editor/common/editorGroupsService.js';
 import { getDefaultPartFocusTarget, IWorkbenchLayoutService, Parts, resolveVisiblePartFocusNeighbour } from '../../services/layout/browser/layoutService.js';
 import { Action2, IAction2Options, registerAction2 } from '../../../platform/actions/common/actions.js';
@@ -66,11 +67,11 @@ abstract class BaseNavigationAction extends Action2 {
 				this.navigateToEditorGroup(this.direction === Direction.Right ? GroupLocation.FIRST : GroupLocation.LAST, editorGroupService);
 			}
 		} else if (neighborPart === Parts.SIDEBAR_PART) {
-			this.navigateToSidebar(layoutService, paneCompositeService);
+			this.navigateToSidebar(layoutService, paneCompositeService).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else if (neighborPart === Parts.PANEL_PART) {
-			this.navigateToPanel(layoutService, paneCompositeService);
+			this.navigateToPanel(layoutService, paneCompositeService).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else if (neighborPart === Parts.AUXILIARYBAR_PART) {
-			this.navigateToAuxiliaryBar(layoutService, paneCompositeService);
+			this.navigateToAuxiliaryBar(layoutService, paneCompositeService).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
