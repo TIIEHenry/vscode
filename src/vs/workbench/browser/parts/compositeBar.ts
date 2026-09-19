@@ -675,7 +675,7 @@ export class CompositeBar extends Widget implements ICompositeBar {
 						if (this.isPinned(id)) {
 							this.unpin(id);
 						} else {
-							this.pin(id, true);
+							this.pin(id, true).catch(onUnexpectedError).catch(onUnexpectedError);
 						}
 					}
 				});
