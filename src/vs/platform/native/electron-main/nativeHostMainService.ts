@@ -43,7 +43,7 @@ import { WindowProfiler } from '../../profiling/electron-main/windowProfiling.js
 import { IV8Profile } from '../../profiling/common/profiling.js';
 import { IAuxiliaryWindowsMainService } from '../../auxiliaryWindow/electron-main/auxiliaryWindows.js';
 import { IAuxiliaryWindow } from '../../auxiliaryWindow/electron-main/auxiliaryWindow.js';
-import { CancellationError } from '../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../base/common/errors.js';
 import { extract, validateZip, zip, type IFile } from '../../../base/node/zip.js';
 import { IConfigurationService } from '../../configuration/common/configuration.js';
 import { IProxyAuthService } from './auth.js';
@@ -663,9 +663,9 @@ export class NativeHostMainService extends Disposable implements INativeHostMain
 		this.environmentMainService.unsetSnapExportedVariables();
 		try {
 			if (matchesSomeScheme(url, Schemas.http, Schemas.https)) {
-				this.openExternalBrowser(windowId, url, defaultApplication);
+				this.openExternalBrowser(windowId, url, defaultApplication).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else {
-				this.doOpenShellExternal(windowId, url);
+				this.doOpenShellExternal(windowId, url).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		} finally {
 			this.environmentMainService.restoreSnapExportedVariables();
@@ -746,7 +746,7 @@ export class NativeHostMainService extends Disposable implements INativeHostMain
 				return;
 			}
 
-			this.writeClipboardText(windowId, url);
+			this.writeClipboardText(windowId, url).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -1329,7 +1329,7 @@ export class NativeHostMainService extends Disposable implements INativeHostMain
 		}, BrowserWindow.getFocusedWindow() ?? undefined);
 
 		// Show item in explorer
-		this.showItemInFolder(undefined, path);
+		this.showItemInFolder(undefined, path).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	//#endregion
