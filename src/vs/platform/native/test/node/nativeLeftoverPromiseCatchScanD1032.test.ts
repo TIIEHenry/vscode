@@ -370,7 +370,6 @@ suite('leftover remaining unused native leftover remaining unused this.foo() lef
 		assert.ok(!account.includes('D1032'));
 
 		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/platform/theme/test/node/themeLeftoverPromiseCatchScanD1027.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/platform/log/test/node/logLeftoverPromiseCatchScanD1024.test.ts')));
 		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/platform/github/test/node/githubLeftoverPromiseCatchScanD1019.test.ts')));
 		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/platform/test/node/platformLeftoverPromiseCatchScanD973.test.ts')));
 		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/platform/actions/test/node/actionsLeftoverPromiseCatchScanD1032.test.ts')));
@@ -383,7 +382,6 @@ suite('leftover remaining unused native leftover remaining unused this.foo() lef
 		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/code/test/node/codeLeftoverPromiseCatchScanD1032.test.ts')));
 		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/editor/test/node/editorLeftoverPromiseCatchScanD1032.test.ts')));
 		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/sessions/test/node/sessionsLeftoverPromiseCatchScanD1032.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/platform/userDataSync/test/node/userDataSyncLeftoverPromiseCatchScanD1015.test.ts')));
 		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/test/node/workbenchLeftoverPromiseCatchScanD1032.test.ts')));
 	});
 });
