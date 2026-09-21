@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { Lazy } from '../../../../base/common/lazy.js';
 import { IDialogHandler, IDialogResult, IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
@@ -43,11 +44,11 @@ export class MobileDialogHandlerContribution extends Disposable implements IWork
 
 		this._register(this.model.onWillShowDialog(() => {
 			if (!this.currentDialog) {
-				this.processDialogs();
+				this.processDialogs().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
-		this.processDialogs();
+		this.processDialogs().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async processDialogs(): Promise<void> {

@@ -6,6 +6,7 @@
 import './media/mobileOverlayViews.css';
 import './mobileDiffColors.js';
 import * as DOM from '../../../../../base/browser/dom.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Disposable, DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { Gesture, EventType as TouchEventType } from '../../../../../base/browser/touch.js';
@@ -345,7 +346,7 @@ export class MobileDiffView extends Disposable {
 		const generation = this.renderGeneration;
 		const languageId = this.resolveLanguageId(diff);
 
-		void this.loadAndRender(container, diff, languageId, generation);
+		void this.loadAndRender(container, diff, languageId, generation).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async loadAndRender(
