@@ -1332,6 +1332,63 @@ suite('grpc first-send / attach protobuf wire', () => {
 		assert.strictEqual(fetchToolDetailRequestFromHistoryToolCall('sess-1', block), undefined);
 	});
 
+	test('decodeGetHistoryResponse ToolResultBlock field 5 decodes metadata_json', () => {
+		const toolResult = Buffer.concat([
+			encodeStringField(1, 'call-1'),
+			encodeStringField(2, 'file_edit'),
+			encodeStringField(3, 'Applied 1 hunk'),
+			encodeInt32Field(4, 0),
+			encodeStringField(5, '{"diff":"@@ -1 +1 @@"}'),
+		]);
+		const envelope = Buffer.concat([
+			encodeStringField(1, 'env-tr-1'),
+			encodeInt64Field(3, 11),
+			encodeMessageField(17, Buffer.concat([
+				encodeInt32Field(1, 3),
+				encodeMessageField(4, toolResult),
+			])),
+		]);
+		const decoded = decodeGetHistoryResponse(encodeMessageField(1, envelope));
+		const payload = decoded.envelopes[0].payload as {
+			blocks?: Array<{ tool_result_block?: Record<string, unknown> }>;
+		};
+		const block = payload.blocks?.[0]?.tool_result_block;
+		assert.ok(block);
+		assert.strictEqual(block.tool_call_id, 'call-1');
+		assert.strictEqual(block.tool_name, 'file_edit');
+		assert.strictEqual(block.content, 'Applied 1 hunk');
+		assert.strictEqual(block.is_error, false);
+		assert.strictEqual(block.metadata_json, '{"diff":"@@ -1 +1 @@"}');
+	});
+
+	test('decodeGetHistoryResponse ToolResultBlock without field 5 omits metadata_json', () => {
+		const toolResult = Buffer.concat([
+			encodeStringField(1, 'call-2'),
+			encodeStringField(2, 'bash'),
+			encodeStringField(3, 'ok'),
+			encodeInt32Field(4, 0),
+		]);
+		const envelope = Buffer.concat([
+			encodeStringField(1, 'env-tr-2'),
+			encodeInt64Field(3, 12),
+			encodeMessageField(17, Buffer.concat([
+				encodeInt32Field(1, 3),
+				encodeMessageField(4, toolResult),
+			])),
+		]);
+		const decoded = decodeGetHistoryResponse(encodeMessageField(1, envelope));
+		const payload = decoded.envelopes[0].payload as {
+			blocks?: Array<{ tool_result_block?: Record<string, unknown> }>;
+		};
+		const block = payload.blocks?.[0]?.tool_result_block;
+		assert.ok(block);
+		assert.strictEqual(block.tool_call_id, 'call-2');
+		assert.strictEqual(block.tool_name, 'bash');
+		assert.strictEqual(block.content, 'ok');
+		assert.strictEqual(block.is_error, false);
+		assert.strictEqual(block.metadata_json, undefined);
+	});
+
 	test('decodeGetHistoryResponse ThinkingBlock field 1 is thinking; signature unread; maps via demux', () => {
 		const thinking = Buffer.concat([
 			encodeStringField(1, 'considering'),

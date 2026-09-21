@@ -1004,6 +1004,7 @@ function decodeBlock(bytes: Uint8Array): Record<string, unknown> {
 		}
 		block.tool_call_block = toolCallBlock;
 	}
+	// ToolResultBlock: tool_call_id=1, tool_name=2, content=3, is_error=4, metadata_json=5 (ADR-395 S5).
 	const toolResult = lastBytes(fields, 4);
 	if (toolResult) {
 		const inner = readProtoFields(toolResult);
@@ -1012,6 +1013,7 @@ function decodeBlock(bytes: Uint8Array): Record<string, unknown> {
 			tool_name: lastString(inner, 2) ?? '',
 			content: lastString(inner, 3) ?? '',
 			is_error: lastVarint(inner, 4) === 1n,
+			...(lastString(inner, 5) ? { metadata_json: lastString(inner, 5) } : {}),
 		};
 	}
 	const thinking = lastBytes(fields, 5);
