@@ -8,7 +8,11 @@ import { renderIcon } from '../../../../base/browser/ui/iconLabel/iconLabels.js'
 import { Codicon } from '../../../../base/common/codicons.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
+import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
+import type { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import type { DiffEditorPool } from '../../chat/browser/widget/chatContentParts/chatContentCodePools.js';
+import { MarkdownDiffBlockPart, parseUnifiedDiff, type IMarkdownDiffBlockData } from '../../chat/browser/widget/chatContentParts/chatDiffBlockPart.js';
 import { conversationLensTurnViewInTrajectory } from './conversationLensSessionBarStrings.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import { ProcessFoldNode, ProcessFoldSpan, summarizeProcessSteps } from './conversationProcessFoldModel.js';
@@ -55,6 +59,8 @@ export interface ProcessFoldDomOptions {
 	 * Payload body is not rendered and the row is not expandable.
 	 */
 	readonly showToolInvocationDetails?: boolean;
+	readonly diffEditorPool?: DiffEditorPool;
+	readonly instantiationService?: IInstantiationService;
 }
 
 /**
@@ -196,6 +202,121 @@ function renderThinkingNode(
 	}));
 }
 
+function getLanguageIdFromFilepath(filepath: string): string {
+	if (!filepath) {
+		return 'plaintext';
+	}
+	const ext = filepath.split('.').pop()?.toLowerCase();
+	switch (ext) {
+		case 'ts':
+		case 'tsx':
+			return 'typescript';
+		case 'js':
+		case 'jsx':
+			return 'javascript';
+		case 'json':
+			return 'json';
+		case 'py':
+			return 'python';
+		case 'md':
+			return 'markdown';
+		case 'html':
+			return 'html';
+		case 'css':
+			return 'css';
+		case 'sh':
+		case 'bash':
+			return 'shellscript';
+		default:
+			return 'plaintext';
+	}
+}
+
+export function formatProcessFoldDiffStats(metadata: Record<string, unknown> | undefined, diffText?: string): string | undefined {
+	if (!metadata) {
+		return undefined;
+	}
+	const filediff = typeof metadata.filediff === 'object' && metadata.filediff !== null
+		? (metadata.filediff as Record<string, unknown>)
+		: undefined;
+	let additions = typeof filediff?.additions === 'number'
+		? filediff.additions
+		: typeof metadata.additions === 'number'
+			? metadata.additions
+			: undefined;
+	let deletions = typeof filediff?.deletions === 'number'
+		? filediff.deletions
+		: typeof metadata.deletions === 'number'
+			? metadata.deletions
+			: undefined;
+
+	if (additions === undefined && deletions === undefined && diffText) {
+		let a = 0;
+		let d = 0;
+		for (const line of diffText.split('\n')) {
+			if (line.startsWith('+++') || line.startsWith('---')) {
+				continue;
+			}
+			if (line.startsWith('+')) {
+				a++;
+			} else if (line.startsWith('-')) {
+				d++;
+			}
+		}
+		additions = a;
+		deletions = d;
+	}
+
+	if (additions !== undefined || deletions !== undefined) {
+		return `+${additions ?? 0} \u2212${deletions ?? 0}`;
+	}
+	return undefined;
+}
+
+export function renderProcessFoldDiffBlock(
+	container: HTMLElement,
+	diffText: string,
+	filediff: Record<string, unknown> | undefined,
+	options: { readonly diffEditorPool?: DiffEditorPool; readonly instantiationService?: IInstantiationService },
+	disposables: DisposableStore,
+): void {
+	const { before, after } = parseUnifiedDiff(diffText);
+	const filepath = typeof filediff?.file === 'string' ? filediff.file : '';
+	const languageId = getLanguageIdFromFilepath(filepath);
+
+	if (options.diffEditorPool && options.instantiationService) {
+		try {
+			class DiffElementStub {
+				setVote(): void { }
+			}
+			const dummyElement = new DiffElementStub() as unknown as IMarkdownDiffBlockData['element'];
+			const diffData: IMarkdownDiffBlockData = {
+				element: dummyElement,
+				codeBlockIndex: 0,
+				languageId,
+				beforeContent: before,
+				afterContent: after,
+				codeBlockResource: filepath ? URI.file(filepath) : undefined,
+				isReadOnly: true,
+			};
+			const diffPart = options.instantiationService.createInstance(
+				MarkdownDiffBlockPart,
+				diffData,
+				options.diffEditorPool,
+				container.clientWidth || 400,
+			);
+			disposables.add(diffPart);
+			container.appendChild(diffPart.element);
+			return;
+		} catch {
+			// Fallback to pre if editor instantiation fails
+		}
+	}
+
+	const pre = append(container, $('pre.conversation-diff-fallback'));
+	pre.textContent = diffText;
+}
+
 function renderToolRow(
 	parent: HTMLElement,
 	turn: ConversationStubTurn,
@@ -204,8 +325,13 @@ function renderToolRow(
 	disposables: DisposableStore,
 ): void {
 	const payload = turn.payload?.trim();
+	const metadata = turn.metadata;
+	const diffText = typeof metadata?.diff === 'string' && metadata.diff.length > 0 ? metadata.diff : undefined;
+	const isFileEdit = turn.toolName === 'file_edit';
 	const showDetails = options.showToolInvocationDetails !== false;
+	const hasDiff = showDetails && isFileEdit && !!diffText;
 	const hasPayload = showDetails && !!payload;
+	const hasContent = hasPayload || hasDiff;
 	const executing = isExecutingTurn(turn, options);
 
 	const row = append(parent, $('div.conversation-process-fold-tool'));
@@ -218,22 +344,22 @@ function renderToolRow(
 		row.classList.add('conversation-process-fold-tool--executing');
 	}
 
-	const header = append(row, hasPayload
+	const header = append(row, hasContent
 		? $('button.conversation-process-fold-tool-header') as HTMLButtonElement
 		: $('div.conversation-process-fold-tool-header'));
-	if (hasPayload) {
+	if (hasContent) {
 		(header as HTMLButtonElement).type = 'button';
 		header.setAttribute('role', 'button');
 	}
 
-	const toolExpanded = hasPayload && options.isToolExpanded(turn.id);
-	if (hasPayload) {
+	const toolExpanded = hasContent && options.isToolExpanded(turn.id);
+	if (hasContent) {
 		header.setAttribute('aria-expanded', String(toolExpanded));
 	}
 
 	const chevron = append(header, $('span.conversation-process-fold-tool-chevron.ua-motion'));
 	chevron.setAttribute('aria-hidden', 'true');
-	if (hasPayload) {
+	if (hasContent) {
 		chevron.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronRight));
 		chevron.classList.toggle('conversation-process-fold-chevron--expanded', toolExpanded);
 	} else {
@@ -249,8 +375,15 @@ function renderToolRow(
 
 	const summary = append(header, $('span.conversation-process-fold-tool-summary'));
 	summary.textContent = formatToolSummary(turn, options);
+
+	const diffStatsText = isFileEdit ? formatProcessFoldDiffStats(metadata, diffText) : undefined;
+	if (diffStatsText) {
+		const diffStats = append(header, $('span.conversation-process-fold-tool-diff-stats'));
+		diffStats.textContent = diffStatsText;
+	}
+
 	const toolName = turn.toolName ?? turn.kind;
-	if (hasPayload) {
+	if (hasContent) {
 		syncProcessFoldToolAria(header, toolName, summary.textContent ?? '', toolExpanded);
 	} else {
 		header.setAttribute('aria-label', localize('conversationProcessFold.toolHeaderStatic', "Tool {0}, {1}", toolName, summary.textContent ?? ''));
@@ -259,12 +392,28 @@ function renderToolRow(
 	appendProcessFoldToolCancel(row, turn, executing, options, disposables);
 	appendProcessFoldTrajectoryJump(row, turn.id, options, disposables);
 
-	if (hasPayload) {
+	if (hasContent) {
 		const body = append(row, $('div.conversation-process-fold-tool-body'));
 		body.hidden = !toolExpanded;
-		body.textContent = payload!;
 		if (executing) {
 			body.classList.add('conversation-process-fold-body--executing');
+		}
+
+		const filediff = typeof metadata?.filediff === 'object' && metadata?.filediff !== null
+			? (metadata.filediff as Record<string, unknown>)
+			: undefined;
+
+		if (hasPayload) {
+			const payloadElem = append(body, $('div.conversation-process-fold-tool-payload'));
+			payloadElem.textContent = payload!;
+		}
+
+		let diffArea: HTMLElement | undefined;
+		if (hasDiff) {
+			diffArea = append(body, $('div.conversation-process-fold-tool-diff'));
+			if (toolExpanded) {
+				renderProcessFoldDiffBlock(diffArea, diffText!, filediff, options, disposables);
+			}
 		}
 
 		disposables.add(addDisposableListener(header, 'click', (e) => {
@@ -275,6 +424,9 @@ function renderToolRow(
 			syncProcessFoldToolAria(header, toolName, summary.textContent ?? '', next);
 			body.hidden = !next;
 			chevron.classList.toggle('conversation-process-fold-chevron--expanded', next);
+			if (next && hasDiff && diffArea && !diffArea.hasChildNodes()) {
+				renderProcessFoldDiffBlock(diffArea, diffText!, filediff, options, disposables);
+			}
 			options.onLayoutChange();
 		}));
 	}

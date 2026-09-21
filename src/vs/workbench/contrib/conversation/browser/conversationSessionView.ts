@@ -53,6 +53,8 @@ export interface ConversationTimelineEntry {
 	readonly toolName?: string;
 	readonly summary?: string;
 	readonly payload?: string;
+	/** Tool result metadata (diff card, filediff, etc.). */
+	readonly metadata?: Record<string, unknown>;
 	readonly visualize?: ConversationVisualizeArgs;
 	/** Optimistic local send awaiting the durable L2 fact; only visible in the originating lease. */
 	readonly pending?: boolean;
@@ -367,11 +369,13 @@ function timelineItemToEntry(
 					return { id, kind: 'visualization', text: '', visualize, ...agent, ...turn };
 				}
 			}
+			const metadata = attr?.metadata ?? (item as { metadata?: Record<string, unknown> }).metadata;
 			return {
 				id, kind: 'tool', text: summary.title, toolName: summary.toolName,
 				...(summary.argPreview !== undefined ? { summary: summary.argPreview } : {}),
 				...(summary.resultPreview !== undefined ? { payload: summary.resultPreview } : {}),
 				...(summary.status === 'running' || summary.status === 'pending' ? { streaming: true, toolStatus: summary.status } : { toolStatus: summary.status }),
+				...(metadata !== undefined ? { metadata } : {}),
 				...agent,
 				...turn,
 			};
@@ -506,6 +510,7 @@ export function entryToRenderableTurn(entry: ConversationTimelineEntry): Convers
 		...(entry.toolName !== undefined ? { toolName: entry.toolName } : {}),
 		...(entry.summary !== undefined ? { summary: entry.summary } : {}),
 		...(entry.payload !== undefined ? { payload: entry.payload } : {}),
+		...(entry.metadata !== undefined ? { metadata: entry.metadata } : {}),
 		...(entry.visualize !== undefined ? { visualize: entry.visualize } : {}),
 		...(entry.streaming ? { streaming: true } : {}),
 		...(entry.toolStatus !== undefined ? { toolStatus: entry.toolStatus } : {}),
@@ -535,6 +540,7 @@ export function stubTurnsToEntries(turns: readonly ConversationStubTurn[]): Conv
 		...(turn.toolName !== undefined ? { toolName: turn.toolName } : {}),
 		...(turn.summary !== undefined ? { summary: turn.summary } : {}),
 		...(turn.payload !== undefined ? { payload: turn.payload } : {}),
+		...(turn.metadata !== undefined ? { metadata: turn.metadata } : {}),
 		...(turn.visualize !== undefined ? { visualize: turn.visualize } : {}),
 		...(turn.agentId !== undefined ? { agentId: turn.agentId } : {}),
 		...(turn.retryable !== undefined ? { retryable: turn.retryable } : {}),

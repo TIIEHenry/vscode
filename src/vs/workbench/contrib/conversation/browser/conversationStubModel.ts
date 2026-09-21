@@ -40,6 +40,8 @@ export interface ConversationStubTurn {
 	readonly toolName?: string;
 	readonly summary?: string;
 	readonly payload?: string;
+	/** Tool result metadata (diff card, filediff, etc.). */
+	readonly metadata?: Record<string, unknown>;
 	readonly visualize?: ConversationVisualizeArgs;
 	/** Review navigation row (PRD-023 §2.4); not part of legacy stub fixtures. */
 	readonly reviewNavPaths?: readonly string[];

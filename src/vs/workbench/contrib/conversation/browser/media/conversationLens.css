@@ -2749,3 +2749,45 @@
 .monaco-workbench .density-compact .conversation-process-fold-thinking {
 	margin-block: 1px;
 }
+
+
+/* Tool diff stats badge & expandable diff card (Slice S4) */
+.monaco-workbench .part.conversation .conversation-process-fold-tool-diff-stats,
+.monaco-workbench .part.conversation .conversation-lens-turn-diff-stats {
+	font-family: var(--monaco-monospace-font);
+	font-size: 11px;
+	margin-inline-start: 6px;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-diff-toggle {
+	margin-inline-start: auto;
+	font-size: 11px;
+	padding: 1px 6px;
+	background: transparent;
+	border: 1px solid var(--vscode-button-secondaryBorder, transparent);
+	color: var(--vscode-button-secondaryForeground);
+	cursor: pointer;
+	border-radius: 3px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-diff-toggle:hover {
+	background: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool-diff,
+.monaco-workbench .part.conversation .conversation-lens-turn-diff-body {
+	margin-top: 4px;
+}
+
+.monaco-workbench .part.conversation .conversation-diff-fallback {
+	margin: 4px 0;
+	padding: 6px 8px;
+	background-color: var(--vscode-editor-background);
+	border: 1px solid var(--vscode-widget-border, transparent);
+	border-radius: 4px;
+	font-family: var(--monaco-monospace-font);
+	font-size: 11px;
+	white-space: pre;
+	overflow-x: auto;
+}

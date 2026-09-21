@@ -729,6 +729,8 @@ function decodeToolCallLifecycleEvent(bytes: Uint8Array): Record<string, unknown
 	const turnId = lastString(fields, 2);
 	const toolCallId = lastString(fields, 3);
 	const agentId = lastString(fields, 4);
+	// ToolCallCompletedChange.metadata_json (field 4, UA ADR-395 S3) intentionally not decoded here:
+	// the timeline consumes tool metadata from envelope tool_result_block.metadata_json (UA S5 路线).
 	return {
 		...(turnId ? { turn_id: turnId } : {}),
 		...(toolCallId ? { tool_call_id: toolCallId } : {}),

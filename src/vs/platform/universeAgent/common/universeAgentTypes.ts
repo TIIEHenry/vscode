@@ -1361,6 +1361,13 @@ export interface UniverseAgentChatSyncToolResult {
 	readonly isError: boolean;
 	readonly content: string;
 	readonly durationMs: number;
+	readonly metadataJson?: string;
+}
+
+/** L3 ToolCallCompletedChange (ADR-395 S3). */
+export interface UniverseAgentToolCallCompletedChange {
+	readonly toolCallId?: string;
+	readonly metadataJson?: string;
 }
 
 /** AgentService.ChatSync InputDeliveryEvent. */

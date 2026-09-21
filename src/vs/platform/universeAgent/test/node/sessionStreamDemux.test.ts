@@ -93,6 +93,99 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 		assert.strictEqual(body.resultPreview, 'ok');
 	});
 
+	test('tool result parses valid metadata_json into body.metadata', () => {
+		const events = demuxSessionStreamPayload({
+			envelope_appended: {
+				envelope: {
+					id: 'e-meta',
+					seq: 10,
+					role: 'ASSISTANT',
+					blocks: [
+						{
+							blockType: 'TOOL_RESULT',
+							toolResultBlock: {
+								toolName: 'file_edit',
+								content: 'Applied edits',
+								isError: false,
+								metadata_json: JSON.stringify({
+									diff: '--- a\n+++ b\n+line',
+									filediff: { file: 'src/a.ts', additions: 1, deletions: 0 },
+								}),
+							},
+						},
+					],
+				},
+			},
+		});
+		assert.strictEqual(events.length, 1);
+		assert.strictEqual(armOf(events[0]), 'tool');
+		const body = bodyOf(events[0]);
+		assert.strictEqual(body.toolName, 'file_edit');
+		assert.deepStrictEqual(body.metadata, {
+			diff: '--- a\n+++ b\n+line',
+			filediff: { file: 'src/a.ts', additions: 1, deletions: 0 },
+		});
+	});
+
+	test('tool result metadata_json absent leaves body.metadata undefined', () => {
+		const events = demuxSessionStreamPayload({
+			envelope_appended: {
+				envelope: {
+					id: 'e-nometa',
+					seq: 11,
+					role: 'ASSISTANT',
+					blocks: [
+						{
+							blockType: 'TOOL_RESULT',
+							toolResultBlock: { toolName: 'bash', content: 'ls' },
+						},
+					],
+				},
+			},
+		});
+		assert.strictEqual(bodyOf(events[0]).metadata, undefined);
+	});
+
+	test('tool result metadata_json malformed fails closed to empty object', () => {
+		const events = demuxSessionStreamPayload({
+			envelope_appended: {
+				envelope: {
+					id: 'e-badmeta',
+					seq: 12,
+					role: 'ASSISTANT',
+					blocks: [
+						{
+							blockType: 'TOOL_RESULT',
+							toolResultBlock: { toolName: 'file_edit', metadata_json: '{broken' },
+						},
+					],
+				},
+			},
+		});
+		assert.deepStrictEqual(bodyOf(events[0]).metadata, {});
+	});
+
+	test('tool result metadata_json non-object degrades to empty object', () => {
+		for (const nonObj of ['"scalar string"', '42', 'true', '[1, 2, 3]']) {
+			const events = demuxSessionStreamPayload({
+				envelope_appended: {
+					envelope: {
+						id: 'e-nonobj',
+						seq: 13,
+						role: 'ASSISTANT',
+						blocks: [
+							{
+								blockType: 'TOOL_RESULT',
+								toolResultBlock: { toolName: 'file_edit', metadata_json: nonObj },
+							},
+						],
+					},
+				},
+			});
+			assert.deepStrictEqual(bodyOf(events[0]).metadata, {}, `Expected {} for ${nonObj}`);
+		}
+	});
+
 	test('tool call maps to tool with arg preview', () => {
 		const events = demuxSessionStreamPayload({
 			envelope_appended: {

@@ -1292,6 +1292,7 @@ export function mapChatSyncToolResult(item: {
 	is_error?: boolean;
 	content?: string;
 	duration_ms?: number | string;
+	metadata_json?: string;
 } | undefined): UniverseAgentChatSyncToolResult {
 	return {
 		toolId: item?.tool_id ?? '',
@@ -1299,6 +1300,7 @@ export function mapChatSyncToolResult(item: {
 		isError: item?.is_error === true,
 		content: item?.content ?? '',
 		durationMs: requiredInt64(item?.duration_ms),
+		...(item?.metadata_json !== undefined ? { metadataJson: item.metadata_json } : {}),
 	};
 }
 
@@ -1330,6 +1332,7 @@ export function mapChatSyncResponse(wire: {
 		is_error?: boolean;
 		content?: string;
 		duration_ms?: number | string;
+		metadata_json?: string;
 	}>;
 	error?: string;
 	input_delivery_events?: Array<{

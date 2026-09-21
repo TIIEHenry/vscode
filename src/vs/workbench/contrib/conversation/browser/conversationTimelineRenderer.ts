@@ -16,7 +16,9 @@ import { ConversationConfirmationSeat } from './conversationConfirmationSeat.js'
 import { ConversationQuestionSeat } from './conversationQuestionSeat.js';
 import { conversationLensTurnCopy, conversationLensTurnDelete, conversationLensTurnViewInTrajectory } from './conversationLensSessionBarStrings.js';
 import { ConversationMermaidExtensionInfo, createMermaidHostContext } from './conversationMermaidHost.js';
-import { renderProcessFoldSpan } from './conversationProcessFold.js';
+import type { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import type { DiffEditorPool } from '../../chat/browser/widget/chatContentParts/chatContentCodePools.js';
+import { formatProcessFoldDiffStats, renderProcessFoldDiffBlock, renderProcessFoldSpan } from './conversationProcessFold.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import {
 	getConversationEntryAriaLabel,
@@ -123,6 +125,8 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 		private readonly webviewService: IWebviewService,
 		private readonly getTimelineScrollHost: () => HTMLElement | undefined,
 		private readonly onHeightChange: (item: ConversationTimelineItem, height: number) => void,
+		private readonly diffEditorPool?: DiffEditorPool,
+		private readonly instantiationService?: IInstantiationService,
 	) { }
 
 	renderTemplate(container: HTMLElement): ITurnTemplateData {
@@ -144,6 +148,8 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				showLiveChrome: this.showLiveChrome(),
 				writesEnabled: this.writesEnabled(),
 				showToolInvocationDetails: this.showToolInvocationDetails(),
+				diffEditorPool: this.diffEditorPool,
+				instantiationService: this.instantiationService,
 				isOuterExpanded: (spanId) => this.processFoldOuterExpanded.get(spanId) ?? false,
 				setOuterExpanded: (spanId, expanded) => {
 					if (expanded) {
@@ -269,7 +275,19 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			templateData.container.appendChild(seat.element);
 		} else if (turn.kind === 'thinking' || turn.kind === 'tool') {
 			// Process-fold spans own thinking/tool; a standalone hit is a fallback, not fold chrome.
-			renderStandaloneThinkingOrToolRow(templateData.container, turn);
+			renderStandaloneThinkingOrToolRow(templateData.container, turn, {
+				diffEditorPool: this.diffEditorPool,
+				instantiationService: this.instantiationService,
+				isToolExpanded: (turnId) => this.processFoldToolExpanded.get(turnId) ?? false,
+				setToolExpanded: (turnId, expanded) => {
+					if (expanded) {
+						this.processFoldToolExpanded.set(turnId, true);
+					} else {
+						this.processFoldToolExpanded.delete(turnId);
+					}
+				},
+				onLayoutChange: () => this.scheduleHeightUpdate(item, templateData.container),
+			}, templateData.disposables);
 		} else {
 			const el = $('div.conversation-lens-turn');
 			el.setAttribute('data-kind', turn.kind);
@@ -494,19 +512,82 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 
 const UNKNOWN_RAW_CONTENT_PREVIEW_MAX_CHARS = 240;
 
+export interface StandaloneToolRowOptions {
+	readonly diffEditorPool?: DiffEditorPool;
+	readonly instantiationService?: IInstantiationService;
+	readonly isToolExpanded?: (turnId: string) => boolean;
+	readonly setToolExpanded?: (turnId: string, expanded: boolean) => void;
+	readonly onLayoutChange?: () => void;
+}
+
 /**
  * Honest summary row for a thinking/tool turn that is not inside a process-fold.
  * No fold chrome (`conversation-lens-turn-process` / chevron) — that path is a stub.
  */
-export function renderStandaloneThinkingOrToolRow(container: HTMLElement, turn: ConversationStubTurn): void {
+export function renderStandaloneThinkingOrToolRow(
+	container: HTMLElement,
+	turn: ConversationStubTurn,
+	options?: StandaloneToolRowOptions,
+	disposables?: DisposableStore,
+): void {
 	const el = append(container, $('div.conversation-lens-turn'));
 	el.setAttribute('data-kind', turn.kind);
 	el.setAttribute('data-honest-kind', turn.kind);
 	el.setAttribute('data-turn-id', turn.id);
 	const header = append(el, $('.conversation-lens-turn-header'));
 	header.textContent = getConversationTurnRoleLabel(turn.kind);
-	const body = append(el, $('.conversation-lens-turn-body.conversation-lens-turn-body--honest'));
-	body.textContent = turn.summary ?? turn.text;
+
+	const metadata = turn.metadata;
+	const diffText = typeof metadata?.diff === 'string' && metadata.diff.length > 0 ? metadata.diff : undefined;
+	const isFileEdit = turn.toolName === 'file_edit';
+	const hasDiff = isFileEdit && !!diffText;
+
+	if (hasDiff) {
+		const diffStatsText = formatProcessFoldDiffStats(metadata, diffText);
+		if (diffStatsText) {
+			const diffStats = append(header, $('span.conversation-lens-turn-diff-stats'));
+			diffStats.textContent = diffStatsText;
+		}
+
+		const body = append(el, $('.conversation-lens-turn-body.conversation-lens-turn-body--honest'));
+		body.textContent = turn.summary ?? turn.text;
+
+		const isExpanded = options?.isToolExpanded?.(turn.id) ?? false;
+		const toggleBtn = append(header, $('button.conversation-lens-turn-diff-toggle')) as HTMLButtonElement;
+		toggleBtn.type = 'button';
+		toggleBtn.textContent = isExpanded
+			? localize('conversationLens.hideDiff', "Hide diff")
+			: localize('conversationLens.showDiff', "Show diff");
+
+		const diffContainer = append(el, $('div.conversation-lens-turn-diff-body'));
+		diffContainer.hidden = !isExpanded;
+
+		const filediff = typeof metadata?.filediff === 'object' && metadata?.filediff !== null
+			? (metadata.filediff as Record<string, unknown>)
+			: undefined;
+
+		const store = disposables ?? new DisposableStore();
+		if (isExpanded) {
+			renderProcessFoldDiffBlock(diffContainer, diffText!, filediff, options ?? {}, store);
+		}
+
+		store.add(addDisposableListener(toggleBtn, 'click', (e) => {
+			e.stopPropagation();
+			const next = !(options?.isToolExpanded?.(turn.id) ?? !diffContainer.hidden);
+			options?.setToolExpanded?.(turn.id, next);
+			diffContainer.hidden = !next;
+			toggleBtn.textContent = next
+				? localize('conversationLens.hideDiff', "Hide diff")
+				: localize('conversationLens.showDiff', "Show diff");
+			if (next && !diffContainer.hasChildNodes()) {
+				renderProcessFoldDiffBlock(diffContainer, diffText!, filediff, options ?? {}, store);
+			}
+			options?.onLayoutChange?.();
+		}));
+	} else {
+		const body = append(el, $('.conversation-lens-turn-body.conversation-lens-turn-body--honest'));
+		body.textContent = turn.summary ?? turn.text;
+	}
 }
 
 export function renderHonestTimelineRow(

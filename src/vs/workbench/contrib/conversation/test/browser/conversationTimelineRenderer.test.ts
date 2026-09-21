@@ -172,6 +172,46 @@ suite('renderStandaloneThinkingOrToolRow (D36)', () => {
 		assert.strictEqual(container.querySelector('.conversation-lens-turn-header')?.textContent, 'Tool');
 		assert.strictEqual(container.querySelector('.conversation-lens-turn-body')?.textContent, 'grep src');
 	});
+
+	test('standalone file_edit tool renders diff stats and expandable diff area', () => {
+		const container = document.createElement('div');
+		const disposables = new DisposableStore();
+		try {
+			renderStandaloneThinkingOrToolRow(container, {
+				id: 'fe1',
+				kind: 'tool',
+				toolName: 'file_edit',
+				text: 'edit src/app.ts',
+				summary: 'edited src/app.ts',
+				metadata: {
+					diff: '--- a\n+++ b\n-old\n+new',
+					filediff: { file: 'src/app.ts', additions: 5, deletions: 2 },
+				},
+			}, undefined, disposables);
+
+			const row = container.querySelector('.conversation-lens-turn') as HTMLElement | null;
+			assert.ok(row);
+			const diffStats = container.querySelector('.conversation-lens-turn-diff-stats');
+			assert.ok(diffStats);
+			assert.strictEqual(diffStats.textContent, '+5 \u22122');
+
+			const toggleBtn = container.querySelector('.conversation-lens-turn-diff-toggle') as HTMLButtonElement | null;
+			assert.ok(toggleBtn);
+			assert.strictEqual(toggleBtn.textContent, 'Show diff');
+
+			const diffContainer = container.querySelector('.conversation-lens-turn-diff-body') as HTMLElement | null;
+			assert.ok(diffContainer);
+			assert.strictEqual(diffContainer.hidden, true);
+
+			toggleBtn.click();
+			assert.strictEqual(diffContainer.hidden, false);
+			assert.strictEqual(toggleBtn.textContent, 'Hide diff');
+			assert.ok(diffContainer.textContent?.includes('-old'));
+			assert.ok(diffContainer.textContent?.includes('+new'));
+		} finally {
+			disposables.dispose();
+		}
+	});
 });
 
 suite('ConversationTimelineRenderer user-bubble writesEnabled', () => {
