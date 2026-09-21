@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { getActiveWindow } from '../../../base/browser/dom.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Event } from '../../../base/common/event.js';
 import { IReference, MutableDisposable } from '../../../base/common/lifecycle.js';
 import type { IObservable } from '../../../base/common/observable.js';
@@ -67,7 +68,7 @@ export class RectangleRenderer extends ViewEventHandler {
 
 		this._context.addEventHandler(this);
 
-		this._initWebgpu(device);
+		this._initWebgpu(device).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async _initWebgpu(device: Promise<GPUDevice>) {

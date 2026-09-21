@@ -173,7 +173,7 @@ export class LinkedEditingContribution extends Disposable implements IEditorCont
 				rangeSyncScheduler.dispose();
 			}
 		});
-		this.updateRanges();
+		this.updateRanges().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _syncRanges(token: number): void {

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ICodeEditor } from '../../../browser/editorBrowser.js';
 import { ILanguageFeaturesService } from '../../../common/services/languageFeatures.js';
@@ -98,7 +99,7 @@ export class StickyLineCandidateProvider extends Disposable implements IStickyLi
 			this._model = null;
 			this.updateStickyModelProvider();
 			this._onDidChangeStickyScroll.fire();
-			this.update();
+			this.update().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._sessionStore.add(this._editor.onDidChangeHiddenAreas(() => this.update()));
 		this._sessionStore.add(this._editor.onDidChangeModelContent(() => this._updateSoon.schedule()));
@@ -108,7 +109,7 @@ export class StickyLineCandidateProvider extends Disposable implements IStickyLi
 			this._stickyModelProvider = null;
 		}));
 		this.updateStickyModelProvider();
-		this.update();
+		this.update().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	/**

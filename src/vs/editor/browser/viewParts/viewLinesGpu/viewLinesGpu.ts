@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { getActiveWindow } from '../../../../base/browser/dom.js';
-import { BugIndicatingError } from '../../../../base/common/errors.js';
+import { BugIndicatingError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { autorun, runOnChange } from '../../../../base/common/observable.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
@@ -98,7 +98,7 @@ export class ViewLinesGpu extends ViewPart implements IViewLines {
 			}
 		}));
 
-		this.initWebgpu();
+		this.initWebgpu().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	async initWebgpu() {
