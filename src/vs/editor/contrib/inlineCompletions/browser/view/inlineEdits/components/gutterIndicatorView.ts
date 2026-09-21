@@ -6,7 +6,7 @@
 import { n } from '../../../../../../../base/browser/dom.js';
 import { renderIcon } from '../../../../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { Codicon } from '../../../../../../../base/common/codicons.js';
-import { BugIndicatingError } from '../../../../../../../base/common/errors.js';
+import { BugIndicatingError, onUnexpectedError } from '../../../../../../../base/common/errors.js';
 import { Disposable, DisposableStore, toDisposable } from '../../../../../../../base/common/lifecycle.js';
 import { IObservable, ISettableObservable, autorun, constObservable, debouncedObservable, derived, observableFromEvent, observableValue, runOnChange } from '../../../../../../../base/common/observable.js';
 import { IAccessibilityService } from '../../../../../../../platform/accessibility/common/accessibility.js';
@@ -143,7 +143,7 @@ export class InlineEditsGutterIndicator extends Disposable {
 		// pulse animation when hovering inline edit
 		this._register(runOnChange(this._isHoveredOverInlineEditDebounced, (isHovering) => {
 			if (isHovering) {
-				this.triggerAnimation();
+				this.triggerAnimation().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
