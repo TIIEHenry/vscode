@@ -249,7 +249,7 @@ suite('leftover remaining unused after D763 leftover remaining unused webview le
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(WEBVIEW_REL) ?? ''), 12);
+		assert.strictEqual(countDoubleChains(seen.get(WEBVIEW_REL) ?? ''), 16);
 	});
 
 	test('leftover remaining unused async this._send() FOF leftover void promises are Promise/async + double-chain', () => {
