@@ -183,6 +183,7 @@ export class ConversationTimelineTree extends Disposable {
 			options.diffEditorPool,
 			this.instantiationService,
 			options.onRegenerateTurn,
+			options.onRespondClientTool,
 		);
 		const processFoldRenderer = new ConversationTimelineProcessFoldRenderer(this.renderer);
 

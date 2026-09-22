@@ -19,6 +19,7 @@ import { ProcessFoldNode, ProcessFoldSpan, summarizeProcessSteps } from './conve
 
 export const conversationProcessFoldThinkingLabel = localize('conversationProcessFold.thinking', "Thinking");
 export const conversationProcessFoldToolCancel = localize('conversationProcessFold.toolCancel', "Cancel Tool");
+export const conversationProcessFoldToolRespond = localize('conversationProcessFold.toolRespond', "Respond");
 
 function syncProcessFoldOuterAria(header: HTMLElement, summaryText: string, expanded: boolean): void {
 	header.setAttribute('aria-label', expanded
@@ -49,6 +50,8 @@ export interface ProcessFoldDomOptions {
 	readonly onViewInTrajectory?: (turnId: string) => void;
 	/** Live executing tool row → AgentService.CancelToolCall (timeline). */
 	readonly onCancelToolCall?: (turn: ConversationStubTurn) => void;
+	/** Respondable client-tool row → roster `respondClientTool`. */
+	readonly onRespondClientTool?: (turn: ConversationStubTurn) => void;
 	readonly onLayoutChange: () => void;
 	/** When false (stub fixture), omit loading / live / duration chrome (Q4). */
 	readonly showLiveChrome: boolean;
@@ -390,6 +393,7 @@ function renderToolRow(
 	}
 
 	appendProcessFoldToolCancel(row, turn, executing, options, disposables);
+	appendProcessFoldToolRespond(row, turn, options, disposables);
 	appendProcessFoldTrajectoryJump(row, turn.id, options, disposables);
 
 	if (hasContent) {
@@ -510,6 +514,32 @@ function appendProcessFoldToolCancel(
 			return;
 		}
 		options.onCancelToolCall!(turn);
+	}));
+}
+
+function appendProcessFoldToolRespond(
+	parent: HTMLElement,
+	turn: ConversationStubTurn,
+	options: ProcessFoldDomOptions,
+	disposables: DisposableStore,
+): void {
+	if (turn.respondable !== true || !options.onRespondClientTool || !turn.id.trim()) {
+		return;
+	}
+	const writesEnabled = options.writesEnabled !== false;
+	const respond = append(parent, $('button.conversation-process-fold-tool-respond')) as HTMLButtonElement;
+	respond.type = 'button';
+	respond.classList.add(...ThemeIcon.asClassNameArray(Codicon.reply));
+	respond.title = conversationProcessFoldToolRespond;
+	respond.setAttribute('aria-label', conversationProcessFoldToolRespond);
+	respond.disabled = !writesEnabled;
+	respond.setAttribute('aria-disabled', String(!writesEnabled));
+	disposables.add(addDisposableListener(respond, 'click', (e) => {
+		e.stopPropagation();
+		if (!writesEnabled) {
+			return;
+		}
+		options.onRespondClientTool!(turn);
 	}));
 }
 

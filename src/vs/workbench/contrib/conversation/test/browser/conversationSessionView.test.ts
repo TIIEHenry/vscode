@@ -12,6 +12,7 @@ import {
 	entriesToLegacyTurns,
 	entryToRenderableTurn,
 	projectSnapshotToEntries,
+	stubTurnsToEntries,
 	stubTurnsToSnapshot,
 	type ConversationSessionViewProjection,
 } from '../../browser/conversationSessionView.js';
@@ -49,6 +50,49 @@ suite('conversationSessionView (S1)', () => {
 		});
 		assert.strictEqual(turn.streaming, true);
 		assert.strictEqual(turn.toolStatus, 'running');
+		assert.strictEqual(turn.respondable, undefined);
+	});
+
+	test('projection keeps tool respondable only when the snapshot already set it', () => {
+		const base = stubTurnsToSnapshot('s', [{ id: 't1', kind: 'tool', text: 'client', toolName: 'clientTool' }]);
+		const item = base.snapshot.timeline[0];
+		assert.ok(item && item.summary.kind === 'tool');
+		const snapshot: SessionViewSnapshot = {
+			...base.snapshot,
+			timeline: [{
+				...item,
+				summary: { ...item.summary, respondable: true },
+			}],
+			overlay: {
+				blocks: [{
+					blockId: 'b1' as OverlayBlockId,
+					orderKey: '0000000001',
+					summary: { kind: 'tool', title: 'stream', toolName: 'read', status: 'running' },
+					chunks: [],
+				}, {
+					blockId: 'b2' as OverlayBlockId,
+					orderKey: '0000000002',
+					summary: { kind: 'tool', title: 'client', toolName: 'clientTool', status: 'pending', respondable: true },
+					chunks: [],
+				}],
+			},
+		};
+		const entries = projectSnapshotToEntries(snapshot, base.attribution, base.details);
+		assert.strictEqual(entries.find(entry => entry.id === 't1')?.respondable, true);
+		assert.strictEqual(entries.find(entry => entry.id === 'overlay:b1')?.respondable, undefined);
+		assert.strictEqual(entries.find(entry => entry.id === 'overlay:b2')?.respondable, true);
+
+		const renderable = entryToRenderableTurn(entries.find(entry => entry.id === 't1')!);
+		assert.strictEqual(renderable.respondable, true);
+		assert.strictEqual(stubTurnsToEntries([renderable])[0]?.respondable, true);
+		assert.strictEqual(stubTurnsToEntries([{
+			id: 'overlay:1',
+			kind: 'tool',
+			text: 'read',
+			toolName: 'read',
+			streaming: true,
+			toolStatus: 'running',
+		}])[0]?.respondable, undefined);
 	});
 
 	test('stub snapshot never claims a live sync or streaming rows', () => {

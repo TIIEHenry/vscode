@@ -15,6 +15,7 @@ export interface IConversationPendingSeatHost {
 	setInputMaximized(maximized: boolean): void;
 	findFirstPendingConfirmationTurnId(): string | undefined;
 	getConfirmationElement(turnId: string): HTMLElement | undefined;
+	getTimelineRowElement?(turnId: string): HTMLElement | undefined;
 }
 
 /** §2 inactive-session rule: not the roster active id, or Conversation part hidden. */
@@ -37,7 +38,8 @@ export function hasNewPendingAttention(previousIds: ReadonlySet<string>, nextIds
 /** CS-3 keep confirmation-first; question pending is included so toast click can land on a question seat. */
 export function findFirstPendingConfirmationTurnId(turns: readonly ConversationStubTurn[]): string | undefined {
 	return turns.find(turn =>
-		(turn.kind === 'confirmation' || turn.kind === 'question') && turn.status === 'pending'
+		((turn.kind === 'confirmation' || turn.kind === 'question') && turn.status === 'pending')
+		|| (turn.kind === 'tool' && turn.respondable === true)
 	)?.id;
 }
 
@@ -61,5 +63,6 @@ export function scrollToFirstPendingConfirmation(host: IConversationPendingSeatH
 	if (!pendingId) {
 		return;
 	}
-	host.getConfirmationElement(pendingId)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+	const el = host.getConfirmationElement(pendingId) ?? host.getTimelineRowElement?.(pendingId);
+	el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }

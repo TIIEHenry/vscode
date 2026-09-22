@@ -50,6 +50,7 @@ import {
 	applyActiveSession,
 	bindSessionView,
 	cancelToolCall,
+	respondClientTool,
 	copyTurn,
 	deleteTurn,
 	regenerateTurn as regenerateTurnBound,
@@ -762,6 +763,7 @@ export class ConversationLens extends Disposable {
 			setInputMaximized: maximized => this.setInputMaximized(maximized),
 			findFirstPendingConfirmationTurnId: () => this.findFirstPendingConfirmationTurnId(),
 			getConfirmationElement: turnId => this.timelineTree.getConfirmationElement(turnId),
+			getTimelineRowElement: turnId => this.timelineTree.getTimelineRowElement(turnId),
 		});
 	}
 
@@ -795,6 +797,10 @@ export class ConversationLens extends Disposable {
 
 	cancelToolCall(turn: { readonly id: string; readonly agentId?: string }): void {
 		cancelToolCall(this, turn);
+	}
+
+	respondClientTool(turn: { readonly id: string }): void {
+		respondClientTool(this, turn);
 	}
 
 	retryError(turn: { readonly id: string; readonly turnId?: string; readonly agentId?: string }): void {

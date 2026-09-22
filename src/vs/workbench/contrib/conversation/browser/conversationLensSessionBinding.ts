@@ -183,7 +183,8 @@ export function renderInboxStatus(host: IConversationLensSessionBindingHost): vo
 export function findFirstPendingConfirmationTurnId(host: IConversationLensSessionBindingHost): string | undefined {
 
 	const fromEntries = host.lastAttachedEntries.find(entry =>
-		(entry.kind === 'confirmation' || entry.kind === 'question') && entry.status === 'pending'
+		((entry.kind === 'confirmation' || entry.kind === 'question') && entry.status === 'pending')
+		|| (entry.kind === 'tool' && entry.respondable === true)
 	);
 	if (fromEntries) {
 		return fromEntries.id;
@@ -330,6 +331,29 @@ export function cancelToolCall(host: IConversationLensSessionBindingHost, turn: 
 		...(agentId ? { agentId } : {}),
 	});
 	if (!cancelled) {
+		host.showPostFailure(
+			!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
+				? 'engine_disconnected'
+				: 'failed'
+		);
+	}
+
+}
+
+export function respondClientTool(host: IConversationLensSessionBindingHost, turn: { readonly id: string }): void {
+
+	const callId = turn.id.trim();
+	if (!callId) {
+		return;
+	}
+	if (rejectPairingHoldWrite(host)) {
+		return;
+	}
+	if (rejectKeepLeftoverListFailWrite(host)) {
+		return;
+	}
+	const forwarded = host.stubService.respondClientTool(host.getBoundSessionId(), callId, { content: '' });
+	if (!forwarded) {
 		host.showPostFailure(
 			!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
 				? 'engine_disconnected'

@@ -1614,6 +1614,51 @@
 	grid-template-columns: minmax(0, 1fr) auto auto;
 }
 
+.monaco-workbench .part.conversation .conversation-process-fold-tool-respond {
+	flex-shrink: 0;
+	align-self: center;
+	border: none;
+	background: transparent;
+	color: var(--vscode-descriptionForeground);
+	cursor: pointer;
+	padding: 2px;
+	border-radius: 4px;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool-respond:hover,
+.monaco-workbench .part.conversation .conversation-process-fold-tool-respond:focus-visible {
+	color: var(--vscode-foreground);
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool > .conversation-process-fold-tool-respond {
+	grid-column: 2;
+	grid-row: 1;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool:has(> .conversation-process-fold-tool-cancel) > .conversation-process-fold-tool-respond {
+	grid-column: 3;
+	grid-row: 1;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool:has(> .conversation-process-fold-tool-respond) {
+	grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool:has(> .conversation-process-fold-tool-cancel):has(> .conversation-process-fold-tool-respond) {
+	grid-template-columns: minmax(0, 1fr) auto auto auto;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool:has(> .conversation-process-fold-tool-respond) > .conversation-process-fold-trajectory-jump {
+	grid-column: 3;
+	grid-row: 1;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool:has(> .conversation-process-fold-tool-cancel):has(> .conversation-process-fold-tool-respond) > .conversation-process-fold-trajectory-jump {
+	grid-column: 4;
+	grid-row: 1;
+}
+
 .monaco-workbench .part.conversation .conversation-lens-turn-body {
 	font-size: 13px;
 	line-height: 1.5;

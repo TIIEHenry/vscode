@@ -129,6 +129,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 		private readonly diffEditorPool?: DiffEditorPool,
 		private readonly instantiationService?: IInstantiationService,
 		private readonly onRegenerateTurn?: (turn: ConversationStubTurn) => void,
+		private readonly onRespondClientTool?: (turn: ConversationStubTurn) => void,
 	) { }
 
 	renderTemplate(container: HTMLElement): ITurnTemplateData {
@@ -178,6 +179,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				},
 				onViewInTrajectory: this.onViewInTrajectory,
 				onCancelToolCall: this.onCancelToolCall,
+				onRespondClientTool: this.onRespondClientTool,
 				onLayoutChange: () => this.scheduleHeightUpdate(item, templateData.container),
 			}, templateData.disposables);
 			this.scheduleHeightUpdate(item, templateData.container);

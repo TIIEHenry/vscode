@@ -50,7 +50,7 @@ import {
 	conversationLensPostFailedNoSession,
 	type ConversationComposerPostFailureReason,
 } from '../../browser/conversationLensDockStrings.js';
-import { bindSessionView, cancelToolCall, copyTurn, deleteTurn, resolveConfirmation, resolveQuestion, retryError, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
+import { bindSessionView, cancelToolCall, copyTurn, deleteTurn, resolveConfirmation, resolveQuestion, respondClientTool, retryError, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import type { ConversationWriteMessage, PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 
@@ -3420,6 +3420,101 @@ suite('conversation lens dispose gate', () => {
 
 		cancelToolCall(host, { id: 'tc-1' });
 
+		assert.deepStrictEqual(failures, []);
+	});
+
+	test('respondClientTool pairing-hold leftover does not write and shows engine_disconnected', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const { host, posted } = pairingHoldLeftoverWriteHost(failures);
+		let respondCalls = 0;
+		(host as unknown as { stubService: { respondClientTool: () => boolean } }).stubService.respondClientTool = () => {
+			respondCalls++;
+			return true;
+		};
+		respondClientTool(host, { id: 'call-1' });
+		assert.strictEqual(respondCalls, 0);
+		assert.strictEqual(posted, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('KEEP leftover list-fail respondClientTool skips unary and shows engine_disconnected', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, false, false);
+		let respondCalls = 0;
+		(fixture.host as unknown as { stubService: { respondClientTool: () => boolean } }).stubService.respondClientTool = () => {
+			respondCalls++;
+			return true;
+		};
+		respondClientTool(fixture.host, { id: 'call-1' });
+		assert.strictEqual(respondCalls, 0);
+		assert.strictEqual(fixture.posted, 0);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('respondClientTool roster false after disconnect shows engine_disconnected', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const calls: { sessionId: string; callId: string; options?: { content?: string } }[] = [];
+		const host = {
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				respondClientTool: (sessionId: string, callId: string, options?: { content?: string }) => {
+					calls.push({ sessionId, callId, options });
+					return false;
+				},
+				isEngineConnected: () => false,
+				hasEngineConnectionHistory: () => true,
+			},
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+		} as unknown as IConversationLensSessionBindingHost;
+
+		respondClientTool(host, { id: 'call-1' });
+
+		assert.deepStrictEqual(calls, [{ sessionId: 'sess-1', callId: 'call-1', options: { content: '' } }]);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('respondClientTool roster false without connection history shows failed', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const host = {
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				respondClientTool: () => false,
+				isEngineConnected: () => false,
+				hasEngineConnectionHistory: () => false,
+			},
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+		} as unknown as IConversationLensSessionBindingHost;
+
+		respondClientTool(host, { id: 'call-1' });
+
+		assert.deepStrictEqual(failures, ['failed']);
+	});
+
+	test('respondClientTool roster true stays silent and sends empty content', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const calls: { sessionId: string; callId: string; options?: { content?: string } }[] = [];
+		const host = {
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				respondClientTool: (sessionId: string, callId: string, options?: { content?: string }) => {
+					calls.push({ sessionId, callId, options });
+					return true;
+				},
+				isEngineConnected: () => true,
+				hasEngineConnectionHistory: () => true,
+			},
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+		} as unknown as IConversationLensSessionBindingHost;
+
+		respondClientTool(host, { id: 'call-1' });
+
+		assert.deepStrictEqual(calls, [{ sessionId: 'sess-1', callId: 'call-1', options: { content: '' } }]);
 		assert.deepStrictEqual(failures, []);
 	});
 

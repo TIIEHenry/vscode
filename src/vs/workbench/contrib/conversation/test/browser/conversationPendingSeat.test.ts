@@ -18,6 +18,7 @@ import {
 	scrollToFirstPendingConfirmation,
 	shouldAutoRevealPendingConfirmation,
 } from '../../browser/conversationPendingSeat.js';
+import { findFirstPendingConfirmationTurnId as findFirstPendingConfirmationTurnIdFromHost, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
 import type { IConversationPairingHoldSource } from '../../browser/conversationSessionStatus.js';
 import type { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import { ConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
@@ -77,6 +78,23 @@ suite('conversationPendingSeat', () => {
 			{ id: 'c2', kind: 'confirmation', text: 'Allow?', status: 'pending' },
 			...turns,
 		]), 'c2');
+		assert.strictEqual(findFirstPendingConfirmationTurnId([
+			{ id: 'u1', kind: 'user', text: 'hi' },
+			{ id: 'tool-stream', kind: 'tool', text: 'read', streaming: true },
+			{ id: 'tool-respond', kind: 'tool', text: 'client', respondable: true },
+		]), 'tool-respond');
+	});
+
+	test('lens binding findFirstPendingConfirmationTurnId also selects a respondable tool entry', () => {
+		const host = {
+			lastAttachedEntries: [
+				{ id: 'u1', kind: 'user', text: 'hi' },
+				{ id: 'tool-respond', kind: 'tool', text: 'client', respondable: true as const },
+			],
+			stubService: { getTurns: () => [] },
+			getBoundSessionId: () => 's',
+		} as unknown as IConversationLensSessionBindingHost;
+		assert.strictEqual(findFirstPendingConfirmationTurnIdFromHost(host), 'tool-respond');
 	});
 
 	test('scroll helper leaves trajectory, unmaximizes, then scrolls the seat', () => {
@@ -114,6 +132,27 @@ suite('conversationPendingSeat', () => {
 			},
 		});
 		assert.deepStrictEqual(calls, ['el:q1', 'scroll']);
+	});
+
+	test('scroll helper lands on a respondable tool row via timeline row element', () => {
+		const calls: string[] = [];
+		const row = { scrollIntoView: () => calls.push('scroll') } as unknown as HTMLElement;
+		scrollToFirstPendingConfirmation({
+			lensId: 'conversation',
+			showConversationLens: () => calls.push('show-lens'),
+			inputMaximized: false,
+			setInputMaximized: () => calls.push('max'),
+			findFirstPendingConfirmationTurnId: () => 'tool-respond',
+			getConfirmationElement: turnId => {
+				calls.push(`confirm:${turnId}`);
+				return undefined;
+			},
+			getTimelineRowElement: turnId => {
+				calls.push(`row:${turnId}`);
+				return turnId === 'tool-respond' ? row : undefined;
+			},
+		});
+		assert.deepStrictEqual(calls, ['confirm:tool-respond', 'row:tool-respond', 'scroll']);
 	});
 });
 

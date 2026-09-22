@@ -27,6 +27,7 @@ export interface IConversationTimelineTreeOptions {
 	readonly onEditUserTurn?: (turnId: string) => void;
 	readonly onViewInTrajectory?: (turnId: string) => void;
 	readonly onCancelToolCall?: (turn: ConversationStubTurn) => void;
+	readonly onRespondClientTool?: (turn: ConversationStubTurn) => void;
 	readonly onRetryError?: (turn: ConversationStubTurn) => void;
 	readonly onReviewNavClick?: (paths: readonly string[]) => void;
 	readonly onOpenVisualizeFullscreen?: (source: string, title?: string) => void;

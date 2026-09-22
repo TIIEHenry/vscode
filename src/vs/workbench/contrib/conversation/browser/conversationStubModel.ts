@@ -51,6 +51,8 @@ export interface ConversationStubTurn {
 	readonly streaming?: boolean;
 	/** Tool execution status for live process-fold chrome. */
 	readonly toolStatus?: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+	/** Client-tool chrome only; never inferred for streaming `arm:'tool'`. */
+	readonly respondable?: true;
 	/** L1 turn id when the snapshot admits one; never inferred. */
 	readonly turnId?: string;
 	/** `error` rows: engine-declared retryability; absent = not retryable. */

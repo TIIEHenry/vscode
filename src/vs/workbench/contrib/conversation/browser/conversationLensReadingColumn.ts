@@ -53,6 +53,7 @@ export interface IConversationLensReadingColumnHost {
 	beginTurnEdit(turnId: string): void;
 	navigateToTrajectoryFromTurn(turnId: string): void;
 	cancelToolCall(turn: { readonly id: string; readonly agentId?: string }): void;
+	respondClientTool(turn: { readonly id: string }): void;
 	retryError(turn: { readonly id: string; readonly turnId?: string; readonly agentId?: string }): void;
 	openVisualizeOverlay(source: string, title?: string): void;
 	navigateToTurnFromTrajectory(turnId: string): void;
@@ -77,6 +78,7 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 		onEditUserTurn: turnId => host.beginTurnEdit(turnId),
 		onViewInTrajectory: turnId => host.navigateToTrajectoryFromTurn(turnId),
 		onCancelToolCall: turn => host.cancelToolCall(turn),
+		onRespondClientTool: turn => host.respondClientTool(turn),
 		onRetryError: turn => host.retryError(turn),
 		onReviewNavClick: paths => executeReadingColumnSourcesReview(host.commandService, paths),
 		onOpenVisualizeFullscreen: (source, title) => host.openVisualizeOverlay(source, title),

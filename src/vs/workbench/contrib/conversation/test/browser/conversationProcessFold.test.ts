@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { conversationProcessFoldToolCancel, renderProcessFoldSpan } from '../../browser/conversationProcessFold.js';
+import { conversationProcessFoldToolCancel, conversationProcessFoldToolRespond, renderProcessFoldSpan } from '../../browser/conversationProcessFold.js';
 import { nestThinkingTools, projectProcessFoldSpans, projectTrajectoryProcessFoldSpans, summarizeProcessSteps, summarizeTrajectoryProcessSteps } from '../../browser/conversationProcessFoldModel.js';
 import { ConversationTrajectoryRecord } from '../../browser/conversationTrajectoryModel.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
@@ -319,6 +319,103 @@ suite('ConversationProcessFold', () => {
 			onCancelToolCall: () => { },
 		}, disposables);
 		assert.strictEqual(host.querySelector('.conversation-process-fold-tool-cancel'), null);
+		disposables.dispose();
+	});
+
+	test('respondable tool row shows Respond and fires onRespondClientTool', () => {
+		const turns: ConversationStubTurn[] = [{
+			id: 'call-1',
+			kind: 'tool',
+			text: 'client',
+			toolName: 'clientTool',
+			respondable: true,
+		}];
+		const span = projectProcessFoldSpans(turns)[0];
+		assert.ok(span);
+		const calls: ConversationStubTurn[] = [];
+		const disposables = new DisposableStore();
+		const host = document.createElement('div');
+		renderProcessFoldSpan(host, span, {
+			defaultOuterExpanded: true,
+			isOuterExpanded: () => true,
+			setOuterExpanded: () => { },
+			isThinkingExpanded: () => false,
+			setThinkingExpanded: () => { },
+			isToolExpanded: () => false,
+			setToolExpanded: () => { },
+			onLayoutChange: () => { },
+			showLiveChrome: true,
+			onRespondClientTool: turn => { calls.push(turn); },
+		}, disposables);
+		const button = host.querySelector('.conversation-process-fold-tool-respond') as HTMLButtonElement | null;
+		assert.ok(button);
+		assert.strictEqual(button.getAttribute('aria-label'), conversationProcessFoldToolRespond);
+		button.click();
+		assert.strictEqual(calls.length, 1);
+		assert.strictEqual(calls[0]?.id, 'call-1');
+		disposables.dispose();
+	});
+
+	test('streaming tool row without respondable does not show Respond', () => {
+		const turns: ConversationStubTurn[] = [{
+			id: 'overlay:tool',
+			kind: 'tool',
+			text: 'read',
+			toolName: 'read',
+			streaming: true,
+			toolStatus: 'running',
+		}];
+		const span = projectProcessFoldSpans(turns)[0];
+		assert.ok(span);
+		const disposables = new DisposableStore();
+		const host = document.createElement('div');
+		renderProcessFoldSpan(host, span, {
+			defaultOuterExpanded: true,
+			isOuterExpanded: () => true,
+			setOuterExpanded: () => { },
+			isThinkingExpanded: () => false,
+			setThinkingExpanded: () => { },
+			isToolExpanded: () => false,
+			setToolExpanded: () => { },
+			onLayoutChange: () => { },
+			showLiveChrome: true,
+			onRespondClientTool: () => { },
+		}, disposables);
+		assert.strictEqual(host.querySelector('.conversation-process-fold-tool-respond'), null);
+		disposables.dispose();
+	});
+
+	test('respondable tool Respond stays disabled when writesEnabled is false', () => {
+		const turns: ConversationStubTurn[] = [{
+			id: 'call-hold',
+			kind: 'tool',
+			text: 'client',
+			respondable: true,
+		}];
+		const span = projectProcessFoldSpans(turns)[0];
+		assert.ok(span);
+		const calls: ConversationStubTurn[] = [];
+		const disposables = new DisposableStore();
+		const host = document.createElement('div');
+		renderProcessFoldSpan(host, span, {
+			defaultOuterExpanded: true,
+			isOuterExpanded: () => true,
+			setOuterExpanded: () => { },
+			isThinkingExpanded: () => false,
+			setThinkingExpanded: () => { },
+			isToolExpanded: () => false,
+			setToolExpanded: () => { },
+			onLayoutChange: () => { },
+			showLiveChrome: true,
+			writesEnabled: false,
+			onRespondClientTool: turn => { calls.push(turn); },
+		}, disposables);
+		const button = host.querySelector('.conversation-process-fold-tool-respond') as HTMLButtonElement | null;
+		assert.ok(button);
+		assert.strictEqual(button.disabled, true);
+		assert.strictEqual(button.getAttribute('aria-disabled'), 'true');
+		button.click();
+		assert.deepStrictEqual(calls, []);
 		disposables.dispose();
 	});
 });

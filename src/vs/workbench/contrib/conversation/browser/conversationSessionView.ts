@@ -62,6 +62,8 @@ export interface ConversationTimelineEntry {
 	readonly streaming?: boolean;
 	/** Tool execution status for live process-fold chrome. */
 	readonly toolStatus?: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+	/** Client-tool chrome only; copy of `summary.respondable === true`. */
+	readonly respondable?: true;
 	readonly agentId?: string;
 	/** `error` entries: engine-declared retryability; absent = not retryable. */
 	readonly retryable?: boolean;
@@ -286,6 +288,7 @@ export function projectSnapshotToEntries(
 					toolStatus: block.summary.status,
 					...(block.summary.argPreview !== undefined ? { summary: block.summary.argPreview } : {}),
 					...(block.summary.resultPreview !== undefined ? { payload: block.summary.resultPreview } : {}),
+					...(block.summary.respondable === true ? { respondable: true as const } : {}),
 				} : {}),
 				...(attr?.agentId !== undefined ? { agentId: attr.agentId } : {}),
 			},
@@ -375,6 +378,7 @@ function timelineItemToEntry(
 				...(summary.argPreview !== undefined ? { summary: summary.argPreview } : {}),
 				...(summary.resultPreview !== undefined ? { payload: summary.resultPreview } : {}),
 				...(summary.status === 'running' || summary.status === 'pending' ? { streaming: true, toolStatus: summary.status } : { toolStatus: summary.status }),
+				...(summary.respondable === true ? { respondable: true as const } : {}),
 				...(metadata !== undefined ? { metadata } : {}),
 				...agent,
 				...turn,
@@ -514,6 +518,7 @@ export function entryToRenderableTurn(entry: ConversationTimelineEntry): Convers
 		...(entry.visualize !== undefined ? { visualize: entry.visualize } : {}),
 		...(entry.streaming ? { streaming: true } : {}),
 		...(entry.toolStatus !== undefined ? { toolStatus: entry.toolStatus } : {}),
+		...(entry.respondable === true ? { respondable: true as const } : {}),
 		...(entry.turnId !== undefined ? { turnId: entry.turnId } : {}),
 		...(entry.agentId !== undefined ? { agentId: entry.agentId } : {}),
 		...(entry.retryable !== undefined ? { retryable: entry.retryable } : {}),
@@ -552,6 +557,7 @@ export function stubTurnsToEntries(turns: readonly ConversationStubTurn[]): Conv
 		...(turn.reviewNavPaths !== undefined ? { reviewNavPaths: turn.reviewNavPaths } : {}),
 		...(turn.streaming ? { streaming: true } : {}),
 		...(turn.toolStatus !== undefined ? { toolStatus: turn.toolStatus } : {}),
+		...(turn.respondable === true ? { respondable: true as const } : {}),
 		...(turn.turnId !== undefined ? { turnId: turn.turnId } : {}),
 	}));
 }
