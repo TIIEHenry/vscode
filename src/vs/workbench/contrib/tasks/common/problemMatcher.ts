@@ -18,6 +18,7 @@ import { IJSONSchema } from '../../../../base/common/jsonSchema.js';
 import { ValidationStatus, ValidationState, IProblemReporter, Parser } from '../../../../base/common/parsers.js';
 import { IStringDictionary } from '../../../../base/common/collections.js';
 import { asArray } from '../../../../base/common/arrays.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Schemas as NetworkSchemas } from '../../../../base/common/network.js';
 
 import { IMarkerData, MarkerSeverity } from '../../../../platform/markers/common/markers.js';
@@ -1924,7 +1925,7 @@ class ProblemMatcherRegistryImpl implements IProblemMatcherRegistry {
 	}
 
 	public onReady(): Promise<void> {
-		ProblemPatternRegistry.onReady();
+		void ProblemPatternRegistry.onReady().catch(onUnexpectedError).catch(onUnexpectedError);
 		return this.readyPromise;
 	}
 

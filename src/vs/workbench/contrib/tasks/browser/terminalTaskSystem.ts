@@ -6,6 +6,7 @@
 import { asArray } from '../../../../base/common/arrays.js';
 import * as Async from '../../../../base/common/async.js';
 import { IStringDictionary } from '../../../../base/common/collections.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { isUNC } from '../../../../base/common/extpath.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
@@ -277,7 +278,7 @@ export class TerminalTaskSystem extends Disposable implements ITaskSystem {
 			const executeResult = { kind: TaskExecuteKind.Started, task, started: {}, promise: this._executeTask(task, resolver, trigger, new Set(), new Map(), undefined) };
 			executeResult.promise.then(summary => {
 				this._lastTask = this._currentTask;
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 			return executeResult;
 		} catch (error) {
 			if (error instanceof TaskError) {
@@ -317,7 +318,7 @@ export class TerminalTaskSystem extends Disposable implements ITaskSystem {
 			const result = this.run(this._lastTask.task, this._lastTask.resolver);
 			result.promise.then(summary => {
 				this._isRerun = false;
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 			return result;
 		} else {
 			return undefined;

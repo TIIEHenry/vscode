@@ -451,7 +451,7 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 			Event.once(this._onDidRegisterAllSupportedExecutions.event)(() => resolve());
 		});
 
-		this._terminalService.whenConnected.then(() => {
+		void Promise.resolve(this._terminalService.whenConnected).then(() => {
 			const reconnectedInstances = this._terminalService.instances.filter(e => e.reconnectionProperties?.ownerId === TaskTerminalType);
 			if (reconnectedInstances.length) {
 				this._attemptTaskReconnection();
@@ -459,9 +459,9 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 				this._tasksReconnected = true;
 				this._onDidReconnectToTasks.fire();
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
-		this._upgrade();
+		void this._upgrade().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	public registerSupportedExecutions(custom?: boolean, shell?: boolean, process?: boolean) {
@@ -567,10 +567,10 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 			if (ConfiguringTask.is(task)) {
 				const resolved = await this.tryResolveTask(task);
 				if (resolved) {
-					this.run(resolved, undefined, TaskRunSource.Reconnect);
+					void this.run(resolved, undefined, TaskRunSource.Reconnect).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			} else {
-				this.run(task, undefined, TaskRunSource.Reconnect);
+				void this.run(task, undefined, TaskRunSource.Reconnect).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 		return true;
@@ -2153,8 +2153,8 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 					if (task === undefined || task === null) {
 						return;
 					}
-					this._restart(task);
-				});
+					void this._restart(task).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
 	}
@@ -3135,7 +3135,7 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 			for (const uri of folderURIs) {
 				const task = await resolver.resolve(uri, identifier);
 				if (task) {
-					this.run(task);
+					void this.run(task).catch(onUnexpectedError).catch(onUnexpectedError);
 					return;
 				}
 			}
@@ -3214,23 +3214,23 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 					true, undefined, undefined, undefined, name).
 					then((entry) => {
 						return pickThen(entry ? entry.task : undefined);
-					});
+					}).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else {
 				this._showTwoLevelQuickPick(placeholder,
 					{
 						label: '$(plus) ' + nls.localize('TaskService.noEntryToRun', 'Configure a Task'),
 						task: null
 					}, type, name).
-					then(pickThen);
+					then(pickThen).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 
 	async rerun(terminalInstanceId: number): Promise<void> {
 		const task = await this._taskSystem?.getTaskForTerminal(terminalInstanceId);
 		if (task) {
-			this._restart(task);
+			void this._restart(task).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			this._reRunTaskCommand(true);
 		}
@@ -3251,7 +3251,7 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 					return Promise.resolve(undefined);
 				}
 			});
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	/**
@@ -3311,8 +3311,8 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 								return;
 							}
 							runSingleTask(task, { attachProblemMatcher: true }, this);
-						});
-				});
+						}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			};
 			let groupTasks: (Task | ConfiguringTask)[] = [];
 			const { globGroupTasks, globTasksDetected } = await this._getGlobTasks(taskGroup._id);
@@ -3457,7 +3457,7 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 					return;
 				}
 				this.terminate(task);
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		};
 		if (this.inTerminal()) {
 			const identifier = this._getTaskIdentifier(arg);
@@ -3472,7 +3472,7 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 						}
 					}
 					runQuickPick(promise);
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else {
 				runQuickPick();
 			}
@@ -3490,9 +3490,9 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 						} else {
 							this._notificationService.error(nls.localize('TerminateAction.failed', 'Failed to terminate running task'));
 						}
-					});
+					}).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -3501,7 +3501,7 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 		const activeTasks = await this.getActiveTasks();
 
 		if (activeTasks.length === 1) {
-			this._restart(activeTasks[0]);
+			void this._restart(activeTasks[0]).catch(onUnexpectedError).catch(onUnexpectedError);
 			return;
 		}
 
@@ -3511,7 +3511,7 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 			if (identifier !== undefined) {
 				for (const task of activeTasks) {
 					if (task.matches(identifier)) {
-						this._restart(task);
+						void this._restart(task).catch(onUnexpectedError).catch(onUnexpectedError);
 						return;
 					}
 				}
@@ -3612,7 +3612,7 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 					pinned: configFileCreated // pin only if config file is created #8727
 				}
 			});
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _isTaskEntry(value: IQuickPickItem): value is IQuickPickItem & { task: Task } {
@@ -3821,11 +3821,11 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 							if (!InMemoryTask.is(task)) {
 								this.customize(task, { group: { kind: 'build', isDefault: true } }, true).then(() => {
 									if (selectedTask && (task !== selectedTask) && !InMemoryTask.is(selectedTask)) {
-										this.customize(selectedTask, { group: 'build' }, false);
+										void this.customize(selectedTask, { group: 'build' }, false).catch(onUnexpectedError).catch(onUnexpectedError);
 									}
-								});
+								}).catch(onUnexpectedError).catch(onUnexpectedError);
 							}
-						});
+						}).catch(onUnexpectedError).catch(onUnexpectedError);
 					this._quickInputService.pick(entries, {
 						placeHolder: nls.localize('TaskService.pickDefaultBuildTask', 'Select the task to be used as the default build task')
 					}).
@@ -3840,13 +3840,13 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 							if (!InMemoryTask.is(task)) {
 								this.customize(task, { group: { kind: 'build', isDefault: true } }, true).then(() => {
 									if (selectedTask && (task !== selectedTask) && !InMemoryTask.is(selectedTask)) {
-										this.customize(selectedTask, { group: 'build' }, false);
+										void this.customize(selectedTask, { group: 'build' }, false).catch(onUnexpectedError).catch(onUnexpectedError);
 									}
-								});
+								}).catch(onUnexpectedError).catch(onUnexpectedError);
 							}
-						});
-				});
-			}));
+						}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
+			})).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			this._runConfigureTasks();
 		}
@@ -3890,13 +3890,13 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 							if (!InMemoryTask.is(task)) {
 								this.customize(task, { group: { kind: 'test', isDefault: true } }, true).then(() => {
 									if (selectedTask && (task !== selectedTask) && !InMemoryTask.is(selectedTask)) {
-										this.customize(selectedTask, { group: 'test' }, false);
+										void this.customize(selectedTask, { group: 'test' }, false).catch(onUnexpectedError).catch(onUnexpectedError);
 									}
-								});
+								}).catch(onUnexpectedError).catch(onUnexpectedError);
 							}
-						});
-				});
-			}));
+						}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
+			})).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			this._runConfigureTasks();
 		}
@@ -3933,7 +3933,7 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 					return;
 				}
 				this._taskSystem!.revealTask(task);
-			});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -4006,7 +4006,7 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 		if (!this._workspaceTrustManagementService.isWorkspaceTrusted()) {
 			this._register(Event.once(this._workspaceTrustManagementService.onDidChangeTrust)(isTrusted => {
 				if (isTrusted) {
-					this._upgrade();
+					void this._upgrade().catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			}));
 			return;

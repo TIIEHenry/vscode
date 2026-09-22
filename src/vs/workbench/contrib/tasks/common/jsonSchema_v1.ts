@@ -7,6 +7,7 @@ import * as nls from '../../../../nls.js';
 import * as Objects from '../../../../base/common/objects.js';
 import { IJSONSchema } from '../../../../base/common/jsonSchema.js';
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { ProblemMatcherRegistry } from './problemMatcher.js';
 
 import commonSchema from './jsonSchemaCommon.js';
@@ -103,6 +104,6 @@ ProblemMatcherRegistry.onReady().then(() => {
 	} catch (err) {
 		console.log('Installing problem matcher ids failed');
 	}
-});
+}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 export default schema;

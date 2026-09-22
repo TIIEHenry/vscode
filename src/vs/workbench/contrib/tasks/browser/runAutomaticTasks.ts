@@ -19,6 +19,7 @@ import { ConfigurationTarget, IConfigurationService } from '../../../../platform
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { URI } from '../../../../base/common/uri.js';
 import { Event } from '../../../../base/common/event.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 
 const HAS_PROMPTED_FOR_AUTOMATIC_TASKS = 'task.hasPromptedForAutomaticTasks.v2';
@@ -36,11 +37,11 @@ export class RunAutomaticTasks extends Disposable implements IWorkbenchContribut
 		@IOpenerService private readonly _openerService: IOpenerService) {
 		super();
 		if (this._taskService.isReconnected) {
-			this._tryRunTasks();
+			void this._tryRunTasks().catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
-			this._register(Event.once(this._taskService.onDidReconnectToTasks)(async () => await this._tryRunTasks()));
+			this._register(Event.once(this._taskService.onDidReconnectToTasks)(() => void this._tryRunTasks().catch(onUnexpectedError).catch(onUnexpectedError)));
 		}
-		this._register(this._workspaceTrustManagementService.onDidChangeTrust(async () => await this._tryRunTasks()));
+		this._register(this._workspaceTrustManagementService.onDidChangeTrust(() => void this._tryRunTasks().catch(onUnexpectedError).catch(onUnexpectedError)));
 	}
 
 	private async _tryRunTasks() {
@@ -86,7 +87,7 @@ export class RunAutomaticTasks extends Disposable implements IWorkbenchContribut
 			this._logService.trace(`RunAutomaticTasks: updated taskNames=${JSON.stringify(autoTasks.taskNames)}`);
 		}
 
-		this._runWithPermission(this._taskService, this._configurationService, this._storageService, this._notificationService, this._openerService, autoTasks.tasks, autoTasks.taskNames, autoTasks.locations);
+		void this._runWithPermission(this._taskService, this._configurationService, this._storageService, this._notificationService, this._openerService, autoTasks.tasks, autoTasks.taskNames, autoTasks.locations);
 	}
 
 	private _runTasks(taskService: ITaskService, tasks: Array<Task | Promise<Task | undefined>>) {
@@ -94,11 +95,11 @@ export class RunAutomaticTasks extends Disposable implements IWorkbenchContribut
 			if (task instanceof Promise) {
 				task.then(promiseResult => {
 					if (promiseResult) {
-						taskService.run(promiseResult);
+						void taskService.run(promiseResult).catch(onUnexpectedError).catch(onUnexpectedError);
 					}
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else {
-				taskService.run(task);
+				void taskService.run(task).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		});
 	}

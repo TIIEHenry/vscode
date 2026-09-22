@@ -6,6 +6,7 @@
 import * as nls from '../../../../nls.js';
 
 import { Disposable } from '../../../../base/common/lifecycle.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { LifecyclePhase } from '../../../services/lifecycle/common/lifecycle.js';
 import { MenuRegistry, MenuId, registerAction2, Action2 } from '../../../../platform/actions/common/actions.js';
@@ -118,7 +119,7 @@ export class TaskStatusBarContributions extends Disposable implements IWorkbench
 					return promise!;
 				}).then(() => {
 					promise = undefined;
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 	}

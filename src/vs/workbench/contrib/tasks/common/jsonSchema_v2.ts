@@ -9,6 +9,7 @@ import { IJSONSchema, IJSONSchemaMap } from '../../../../base/common/jsonSchema.
 
 import commonSchema from './jsonSchemaCommon.js';
 
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { ProblemMatcherRegistry } from './problemMatcher.js';
 import { TaskDefinitionRegistry } from './taskDefinitionRegistry.js';
 import * as ConfigurationResolverUtils from '../../../services/configurationResolver/common/configurationResolverUtils.js';
@@ -459,7 +460,7 @@ const taskConfiguration: IJSONSchema = {
 const taskDefinitions: IJSONSchema[] = [];
 TaskDefinitionRegistry.onReady().then(() => {
 	updateTaskDefinitions();
-});
+}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 export function updateTaskDefinitions() {
 	for (const taskType of TaskDefinitionRegistry.all()) {
@@ -673,6 +674,6 @@ export function updateProblemMatchers() {
 
 ProblemMatcherRegistry.onReady().then(() => {
 	updateProblemMatchers();
-});
+}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 export default schema;
