@@ -73,7 +73,7 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 		onResolveConfirmation: (turnId, status) => host.resolveConfirmation(turnId, status),
 		onQuestionRespond: (turnId, requestId, answers, customText) => host.resolveQuestion(turnId, requestId, answers, customText),
 		onCopyTurn: (_turnId, text) => host.copyTurn(text),
-		onDeleteTurn: turn => host.deleteTurn(turn.id, turn.agentId),
+		onDeleteTurn: turn => host.deleteTurn(turn.turnId?.trim() || turn.id, turn.agentId),
 		onRegenerateTurn: turn => host.regenerateTurn(turn),
 		onEditUserTurn: turnId => host.beginTurnEdit(turnId),
 		onViewInTrajectory: turnId => host.navigateToTrajectoryFromTurn(turnId),

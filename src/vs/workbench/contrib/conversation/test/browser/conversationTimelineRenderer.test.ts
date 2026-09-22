@@ -285,9 +285,9 @@ suite('ConversationTimelineRenderer assistant delete agentId', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	function assistantNode(agentId?: string): ITreeNode<ConversationTimelineItem, void> {
+	function assistantNode(agentId?: string, turnId?: string): ITreeNode<ConversationTimelineItem, void> {
 		return {
-			element: { variant: 'turn', turn: { id: 'a1', kind: 'assistant', text: 'hello', agentId } },
+			element: { variant: 'turn', turn: { id: 'a1', kind: 'assistant', text: 'hello', agentId, turnId } },
 			children: [],
 			depth: 0,
 			visibleChildrenCount: 0,
@@ -298,7 +298,7 @@ suite('ConversationTimelineRenderer assistant delete agentId', () => {
 		} as unknown as ITreeNode<ConversationTimelineItem, void>;
 	}
 
-	function renderAssistantDelete(onDeleteTurn: (turn: ConversationStubTurn) => void): { button: HTMLElement; dispose: () => void } {
+	function renderAssistantDelete(onDeleteTurn: (turn: ConversationStubTurn) => void, turnId?: string): { button: HTMLElement; dispose: () => void } {
 		const renderer = new ConversationTimelineRenderer(
 			{ renderTurnBody: () => Disposable.None },
 			undefined,
@@ -322,7 +322,7 @@ suite('ConversationTimelineRenderer assistant delete agentId', () => {
 		);
 		const container = document.createElement('div');
 		const template = renderer.renderTemplate(container);
-		renderer.renderElement(assistantNode('sub:a'), 0, template);
+		renderer.renderElement(assistantNode('sub:a', turnId), 0, template);
 		const button = container.querySelector('.conversation-lens-turn-action-delete .monaco-button') as HTMLElement | null;
 		assert.ok(button);
 		return {
@@ -331,12 +331,38 @@ suite('ConversationTimelineRenderer assistant delete agentId', () => {
 		};
 	}
 
+	function deleteTurnFromRow(turn: ConversationStubTurn, deleteTurn: (turnId: string, agentId?: string) => void): void {
+		deleteTurn(turn.turnId?.trim() || turn.id, turn.agentId);
+	}
+
+	test('delete click hands L1 turnId to deleteTurn when snapshot admits one', () => {
+		const deleted: { turnId: string; agentId?: string }[] = [];
+		const deleteTurn = (turnId: string, agentId?: string) => {
+			deleted.push({ turnId, agentId });
+		};
+		const { button, dispose } = renderAssistantDelete(turn => deleteTurnFromRow(turn, deleteTurn), 't1');
+		button.click();
+		assert.deepStrictEqual(deleted, [{ turnId: 't1', agentId: 'sub:a' }]);
+		dispose();
+	});
+
 	test('delete click hands row agentId to deleteTurn, not only turn.id', () => {
 		const deleted: { turnId: string; agentId?: string }[] = [];
 		const deleteTurn = (turnId: string, agentId?: string) => {
 			deleted.push({ turnId, agentId });
 		};
-		const { button, dispose } = renderAssistantDelete(turn => deleteTurn(turn.id, turn.agentId));
+		const { button, dispose } = renderAssistantDelete(turn => deleteTurnFromRow(turn, deleteTurn));
+		button.click();
+		assert.deepStrictEqual(deleted, [{ turnId: 'a1', agentId: 'sub:a' }]);
+		dispose();
+	});
+
+	test('delete click treats blank turnId as missing and still sends display id', () => {
+		const deleted: { turnId: string; agentId?: string }[] = [];
+		const deleteTurn = (turnId: string, agentId?: string) => {
+			deleted.push({ turnId, agentId });
+		};
+		const { button, dispose } = renderAssistantDelete(turn => deleteTurnFromRow(turn, deleteTurn), '   ');
 		button.click();
 		assert.deepStrictEqual(deleted, [{ turnId: 'a1', agentId: 'sub:a' }]);
 		dispose();
