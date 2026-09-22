@@ -5,7 +5,6 @@
 
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { DisposableStore, IDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
-import { URI } from '../../../../../base/common/uri.js';
 import { IEditorOptions } from '../../../../../platform/editor/common/editor.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
@@ -19,7 +18,7 @@ import { EditorPane } from '../../../../browser/parts/editor/editorPane.js';
 import { IEditorGroup } from '../../../../services/editor/common/editorGroupsService.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
-import { ConversationDiffReviewInputTypeId } from '../../../sources/common/conversationDiffReviewInput.js';
+import { ConversationDiffReviewInputTypeId, parseSerializedConversationDiffReviewInput, serializeConversationDiffReviewInput } from '../../../sources/common/conversationDiffReviewInput.js';
 
 export const TEST_CONVERSATION_DIFF_REVIEW_EDITOR_ID = 'workbench.editor.conversationDiffReview.test';
 
@@ -50,25 +49,20 @@ export function registerTestConversationDiffReviewEditor(disposables: Pick<Dispo
 		}
 
 		serialize(input: ConversationDiffReviewInput): string | undefined {
-			return JSON.stringify({
-				modified: input.modified.toString(),
-				original: input.original?.toString(),
-				groupId: input.groupId,
-			});
+			return serializeConversationDiffReviewInput(input);
 		}
 
 		deserialize(instantiationService: IInstantiationService, serialized: string): ConversationDiffReviewInput | undefined {
-			try {
-				const parsed = JSON.parse(serialized) as { modified: string; original?: string; groupId?: string };
-				return instantiationService.createInstance(
-					ConversationDiffReviewInput,
-					URI.parse(parsed.modified),
-					parsed.original ? URI.parse(parsed.original) : undefined,
-					parsed.groupId ?? '',
-				);
-			} catch {
+			const parsed = parseSerializedConversationDiffReviewInput(serialized);
+			if (!parsed) {
 				return undefined;
 			}
+			return instantiationService.createInstance(
+				ConversationDiffReviewInput,
+				parsed.modified,
+				parsed.original,
+				parsed.groupId,
+			);
 		}
 	}
 

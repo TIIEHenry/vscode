@@ -18,6 +18,34 @@ export function getConversationDiffReviewResource(modified: URI, original: URI |
 	});
 }
 
+/** Editor-memento payload. WeakMap Accept patches are not in this scheme and do not survive reload. */
+export interface ISerializedConversationDiffReviewInput {
+	readonly modified: string;
+	readonly original?: string;
+	readonly groupId?: string;
+}
+
+export function serializeConversationDiffReviewInput(input: { modified: URI; original?: URI; groupId: string }): string {
+	return JSON.stringify({
+		modified: input.modified.toString(),
+		original: input.original?.toString(),
+		groupId: input.groupId,
+	} satisfies ISerializedConversationDiffReviewInput);
+}
+
+export function parseSerializedConversationDiffReviewInput(serialized: string): { modified: URI; original: URI | undefined; groupId: string } | undefined {
+	try {
+		const parsed = JSON.parse(serialized) as ISerializedConversationDiffReviewInput;
+		return {
+			modified: URI.parse(parsed.modified),
+			original: parsed.original ? URI.parse(parsed.original) : undefined,
+			groupId: parsed.groupId ?? '',
+		};
+	} catch {
+		return undefined;
+	}
+}
+
 export function parseConversationDiffReviewResource(resource: URI): { modified: URI; original: URI | undefined; groupId: string } | undefined {
 	if (resource.scheme !== ConversationDiffReviewInputScheme) {
 		return undefined;

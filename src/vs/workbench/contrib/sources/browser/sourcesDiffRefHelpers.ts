@@ -8,7 +8,7 @@ import { EditorResourceAccessor, isDiffEditorInput, SideBySideEditor } from '../
 import { ACTIVE_GROUP, CONVERSATION_SIDE_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ISCMService } from '../../scm/common/scm.js';
-import { findScmResourceForUri, ISourcesChangeRef } from '../common/sourcesChangeRef.js';
+import { attachCarriedSourcesGitApplyHunksPatch, findScmResourceForUri, ISourcesChangeRef, withCarriedSourcesGitApplyHunksPatch } from '../common/sourcesChangeRef.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
 
@@ -18,12 +18,12 @@ export function resolveSourcesChangeRefFromEditor(
 ): ISourcesChangeRef | undefined {
 	if (editor instanceof ConversationDiffReviewInput) {
 		const match = findScmResourceForUri(scmService, editor.modified);
-		return {
+		return withCarriedSourcesGitApplyHunksPatch({
 			modified: editor.modified,
 			original: editor.original,
 			groupId: match?.groupId || editor.groupId,
 			scmResource: match?.resource,
-		};
+		}, editor);
 	}
 
 	if (isDiffEditorInput(editor)) {
@@ -33,12 +33,12 @@ export function resolveSourcesChangeRefFromEditor(
 		}
 		const original = EditorResourceAccessor.getOriginalUri(editor, { supportSideBySide: SideBySideEditor.SECONDARY });
 		const match = findScmResourceForUri(scmService, modified);
-		return {
+		return withCarriedSourcesGitApplyHunksPatch({
 			modified,
 			original,
 			groupId: match?.groupId ?? '',
 			scmResource: match?.resource,
-		};
+		}, editor);
 	}
 
 	return undefined;
@@ -71,6 +71,7 @@ export async function openSourcesChangeRefInConversation(
 		ref.original,
 		ref.groupId,
 	);
+	attachCarriedSourcesGitApplyHunksPatch(input, ref);
 	await editorService.openEditor(input, CONVERSATION_SIDE_GROUP);
 }
 

@@ -40,6 +40,25 @@ export function sourcesGitApplyHunksPatches(source?: object): readonly string[] 
 	return [unifiedDiff];
 }
 
+/** Non-empty carried unifiedDiff from a change-ref field or WeakMap host. Empty / whitespace stays absent. */
+export function carriedSourcesGitApplyHunksPatch(source?: object): string | undefined {
+	return sourcesGitApplyHunksPatches(source)[0];
+}
+
+/** Copy a non-empty carried patch onto a rebuilt change ref. Empty / absent stays absent. */
+export function withCarriedSourcesGitApplyHunksPatch(ref: ISourcesChangeRef, source?: object): ISourcesChangeRef {
+	const unifiedDiff = carriedSourcesGitApplyHunksPatch(source);
+	return unifiedDiff === undefined ? ref : { ...ref, unifiedDiff };
+}
+
+/** Attach a non-empty carried patch onto a rebuilt host. Empty / absent stays absent. */
+export function attachCarriedSourcesGitApplyHunksPatch(host: object, source?: object): void {
+	const unifiedDiff = carriedSourcesGitApplyHunksPatch(source);
+	if (unifiedDiff !== undefined) {
+		attachSourcesGitApplyHunksPatch(host, unifiedDiff);
+	}
+}
+
 export function pickQuickDiffOriginalResource(quickDiffs: readonly QuickDiff[]): URI | undefined {
 	if (quickDiffs.length === 0) {
 		return undefined;

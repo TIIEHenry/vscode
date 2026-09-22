@@ -38,7 +38,7 @@ import { SOURCES_DIFF_PANEL_VIEW_CONTAINER } from '../../browser/sourcesDiffPane
 import { SOURCES_DIFF_PANEL_CONTAINER_ID, SOURCES_DIFF_PANEL_VIEW_ID } from '../../browser/sourcesDiffPanelIds.js';
 import { SourcesDiffPanelService } from '../../browser/sourcesDiffPanelService.js';
 import { SourcesDiffPanelView } from '../../browser/sourcesDiffPanelView.js';
-import { attachSourcesGitApplyHunksPatch, ISourcesChangeRef, sourcesGitApplyHunksPatches } from '../../common/sourcesChangeRef.js';
+import { attachCarriedSourcesGitApplyHunksPatch, attachSourcesGitApplyHunksPatch, carriedSourcesGitApplyHunksPatch, ISourcesChangeRef, sourcesGitApplyHunksPatches, withCarriedSourcesGitApplyHunksPatch } from '../../common/sourcesChangeRef.js';
 import { ISourcesChangeEntry } from '../../common/sourcesChangesModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
 import { canSendSourcesGitApplyHunks, canSendSourcesGitStagePaths, canShowSourcesReviewAccept, resolveSourcesDiffWriteActions } from '../../common/sourcesChangesGitWrite.js';
@@ -1163,11 +1163,32 @@ suite('Sources diff panel', () => {
 		assert.deepStrictEqual(sourcesGitApplyHunksPatches({ unifiedDiff: '' }), []);
 		assert.deepStrictEqual(sourcesGitApplyHunksPatches({ unifiedDiff: '  ' }), []);
 		assert.deepStrictEqual(sourcesGitApplyHunksPatches({ unifiedDiff: carriedUnifiedDiff }), [carriedUnifiedDiff]);
+		assert.strictEqual(carriedSourcesGitApplyHunksPatch({ unifiedDiff: carriedUnifiedDiff }), carriedUnifiedDiff);
+		assert.strictEqual(carriedSourcesGitApplyHunksPatch({ unifiedDiff: '' }), undefined);
 		const host = {};
 		attachSourcesGitApplyHunksPatch(host, '');
 		assert.deepStrictEqual(sourcesGitApplyHunksPatches(host), []);
 		attachSourcesGitApplyHunksPatch(host, carriedUnifiedDiff);
 		assert.deepStrictEqual(sourcesGitApplyHunksPatches(host), [carriedUnifiedDiff]);
+		assert.strictEqual(carriedSourcesGitApplyHunksPatch(host), carriedUnifiedDiff);
+		const rebuilt = {};
+		attachCarriedSourcesGitApplyHunksPatch(rebuilt, host);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(rebuilt), [carriedUnifiedDiff]);
+		const emptyHost = {};
+		attachCarriedSourcesGitApplyHunksPatch(emptyHost, { unifiedDiff: '' });
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(emptyHost), []);
+		const resource = URI.file('/project/src/carry.ts');
+		const original = URI.file('/project/src/carry.ts.git');
+		assert.strictEqual(withCarriedSourcesGitApplyHunksPatch({
+			modified: resource,
+			original,
+			groupId: 'workingTree',
+		}, { unifiedDiff: carriedUnifiedDiff }).unifiedDiff, carriedUnifiedDiff);
+		assert.strictEqual(withCarriedSourcesGitApplyHunksPatch({
+			modified: resource,
+			original,
+			groupId: 'workingTree',
+		}, { unifiedDiff: '' }).unifiedDiff, undefined);
 	});
 
 	test('openSourcesChangeEntry carries fetched unifiedDiff onto the panel change ref', async function () {

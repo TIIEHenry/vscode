@@ -3,14 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { URI } from '../../../../base/common/uri.js';
 import { EditorPaneDescriptor, IEditorPaneRegistry } from '../../../browser/editor.js';
 import { IEditorSerializer, IEditorFactoryRegistry, EditorExtensions } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { ConversationDiffReviewInputTypeId } from '../common/conversationDiffReviewInput.js';
+import { ConversationDiffReviewInputTypeId, parseSerializedConversationDiffReviewInput, serializeConversationDiffReviewInput } from '../common/conversationDiffReviewInput.js';
 import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
 import { ConversationDiffReviewPane } from './conversationDiffReviewPane.js';
 
@@ -21,25 +20,20 @@ class ConversationDiffReviewInputSerializer implements IEditorSerializer {
 	}
 
 	serialize(input: ConversationDiffReviewInput): string | undefined {
-		return JSON.stringify({
-			modified: input.modified.toString(),
-			original: input.original?.toString(),
-			groupId: input.groupId,
-		});
+		return serializeConversationDiffReviewInput(input);
 	}
 
 	deserialize(instantiationService: IInstantiationService, serialized: string): ConversationDiffReviewInput | undefined {
-		try {
-			const parsed = JSON.parse(serialized) as { modified: string; original?: string; groupId?: string };
-			return instantiationService.createInstance(
-				ConversationDiffReviewInput,
-				URI.parse(parsed.modified),
-				parsed.original ? URI.parse(parsed.original) : undefined,
-				parsed.groupId ?? '',
-			);
-		} catch {
+		const parsed = parseSerializedConversationDiffReviewInput(serialized);
+		if (!parsed) {
 			return undefined;
 		}
+		return instantiationService.createInstance(
+			ConversationDiffReviewInput,
+			parsed.modified,
+			parsed.original,
+			parsed.groupId,
+		);
 	}
 }
 
