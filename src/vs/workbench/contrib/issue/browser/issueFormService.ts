@@ -5,6 +5,7 @@
 import { safeSetInnerHtml } from '../../../../base/browser/domSanitize.js';
 import { createStyleSheet } from '../../../../base/browser/domStylesheets.js';
 import { getMenuWidgetCSS, Menu, unthemedMenuStyles } from '../../../../base/browser/ui/menu/menu.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { isLinux, isWindows } from '../../../../base/common/platform.js';
 import Severity from '../../../../base/common/severity.js';
@@ -581,7 +582,7 @@ export class IssueFormService extends Disposable implements IIssueFormService {
 				{
 					label: localize({ key: 'yes', comment: ['&& denotes a mnemonic'] }, "&&Yes"),
 					run: () => {
-						this.closeReporter();
+						this.closeReporter().catch(onUnexpectedError).catch(onUnexpectedError);
 						this.issueReporterWindow = null;
 					}
 				},
