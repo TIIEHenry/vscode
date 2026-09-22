@@ -88,6 +88,9 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 
 	override async setInput(input: ConversationChatInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
 		await super.setInput(input, options, context, token);
+		if (token.isCancellationRequested || this.lensDisposables.isDisposed) {
+			return;
+		}
 		this.activeInput = input;
 		const parsed = parseConversationChatResource(input.resource);
 		this.ensureLens(parsed?.sessionKey);
@@ -117,15 +120,20 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 	}
 
 	private ensureLens(sessionKey: string | undefined): void {
-		if (this.lens || !this.lensTablist || !this.timelineHost || !this.dockHost) {
+		if (this.lens || this.lensDisposables.isDisposed || !this.lensTablist || !this.timelineHost || !this.dockHost) {
 			return;
 		}
-		this.lens = this.lensDisposables.add(this.paneInstantiationService.createInstance(ConversationLens, {
+		const lens = this.paneInstantiationService.createInstance(ConversationLens, {
 			lensTablist: this.lensTablist,
 			timeline: this.timelineHost,
 			dock: this.dockHost,
 			sessionKey,
-		}));
+		});
+		if (this.lensDisposables.isDisposed) {
+			lens.dispose();
+			return;
+		}
+		this.lens = this.lensDisposables.add(lens);
 	}
 
 	private mountLeafSessionBar(sessionKey: string | undefined): void {
