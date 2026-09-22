@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-19
-summary: "合入人类 agent-ide：UA chrome 视觉 + 四份修补方案签收（D944）。leftover catch 至 D1258。D24 仍开。不是 leftover/pills 完成。"
+summary: "合入人类 agent-ide：UA chrome 视觉 + 四份修补方案签收（D944）。leftover catch 至 D1278。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -14,7 +14,7 @@ summary: "合入人类 agent-ide：UA chrome 视觉 + 四份修补方案签收�
 | 切片 | 提交 |
 |:-----|:-----|
 | **A SessionStream / L2** | 16/23/30–32/34–39/44/46/50–52；envelope leftover |
-| **catch** | D677–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847、D850–D851、D854–D858、D860–D868、D871、D875–D876、D881、D883、D886、D895、D898、D917、D922、D939、D943、D955、D964、D972、D974、D978、D980、D983、D1015、D1032、D1254、D1258 |
+| **catch** | D677–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847、D850–D851、D854–D858、D860–D868、D871、D875–D876、D881、D883、D886、D895、D898、D917、D922、D939、D943、D955、D964、D972、D974、D978、D980、D983、D1015、D1032、D1254、D1258、D1278 |
 | **UA chrome** | 人类 `agent-ide`：Maximize Inbox 文档流、pairing-hold 禁 Connect、Diff SIDE_GROUP、live SAS/Stop 可达、本地 health-gates 门禁说明 |
 | **四份方案** | 活流 bytes / 拨号 generation / 绑定叶身份 / Sources 打开身份已签收、未实施，跟踪 [D944](deferred-gaps.md) |
 
@@ -22,7 +22,7 @@ summary: "合入人类 agent-ide：UA chrome 视觉 + 四份修补方案签收�
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **loop** | leftover remaining unused 未完成。D1258 已合入（compile-client 0，mocha 5/0）。人类 UA chrome 在祖先，未 dual-push。D759 脏无 scan 不 `-B`。B 脏跳过；C gitlink 勿 add；E blocked。 |
+| **loop** | leftover remaining unused 未完成。D1278 已合入（compile-client 0，mocha 5/0）。人类 UA chrome 在祖先，未 dual-push。D759 脏无 scan 不 `-B`。B 脏跳过；C gitlink 勿 add；E blocked。 |
 
 子 agent 发现：
 | ID | 问题 |
