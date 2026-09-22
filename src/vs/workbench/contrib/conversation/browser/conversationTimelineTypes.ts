@@ -5,6 +5,7 @@
 
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import type { ConversationQuestionRespondAnswers } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { DiffEditorPool } from '../../chat/browser/widget/chatContentParts/chatContentCodePools.js';
 import { ProcessFoldSpan } from './conversationProcessFoldModel.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import { IConversationTurnContentAdapter } from './conversationTurnContentAdapter.js';
@@ -34,6 +35,7 @@ export interface IConversationTimelineTreeOptions {
 	/** Pairing-hold leftover stays readable; write CTAs stay painted but disabled (D297). */
 	readonly writesEnabled?: () => boolean;
 	readonly showToolInvocationDetails?: () => boolean;
+	readonly diffEditorPool?: DiffEditorPool;
 }
 
 export interface ITurnTemplateData {

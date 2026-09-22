@@ -235,7 +235,7 @@ export class SessionViewHost extends Disposable {
 	private readonly clearTimeoutFn: SessionViewHostClearTimeoutFn;
 	private readonly reopenTimers = new Map<string, { timer: ReturnType<typeof setTimeout>; attempt: number }>();
 	private readonly reopenAttemptBySession = new Map<string, number>();
-	/** Host-side latch: last `failClosedOverflow` (mailbox.overflow) until next acquireLease / connection flip. */
+	/** Host-side latch: last `failClosedOverflow` (mailbox.overflow) until next acquireLease or connection down. Still-connected snapshots must not clear it. */
 	private readonly failClosedSessions = new Set<string>();
 
 	constructor(
@@ -449,7 +449,6 @@ export class SessionViewHost extends Disposable {
 		if (this.connection.getConnectionSnapshot().pairingPending) {
 			return;
 		}
-		this.failClosedSessions.clear();
 		if (this.connection.isEngineConnected()) {
 			this.connectionGeneration += 1;
 			this.connectionUp = true;
@@ -457,6 +456,7 @@ export class SessionViewHost extends Disposable {
 				void this.bringUpBoundSession(binding.sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		} else {
+			this.failClosedSessions.clear();
 			this.connectionUp = false;
 			this.clearAllReopenTimers();
 			this.engineBoundForGeneration.clear();
@@ -828,7 +828,11 @@ export class SessionViewHost extends Disposable {
 				if (!attributionMap.has(id)) {
 					const hint = findAttributionHint(hints, id, item.turnId);
 					const role = hint?.role ?? 'assistant';
-					const attribution = attributionFromHint(hint, role);
+					const itemMetadata = (item as { metadata?: Record<string, unknown> }).metadata;
+					const attribution = {
+						...attributionFromHint(hint, role),
+						...(itemMetadata ? { metadata: itemMetadata } : {}),
+					};
 					attributionMap.set(id, attribution);
 					attributionPatches.push({ op: 'upsertAttribution', itemId: id, attribution });
 				}
@@ -841,7 +845,11 @@ export class SessionViewHost extends Disposable {
 					const hint = findAttributionHint(hints, id, patch.item.turnId);
 					const isCompactRow = hint?.branchReason === 'compact' || hint?.compacted !== undefined;
 					if (summary.kind === 'tool' || isCompactRow) {
-						const attribution = attributionFromHint(hint, hint?.role ?? (summary.kind === 'tool' ? 'tool' : 'system'));
+						const itemMetadata = (patch.item as { metadata?: Record<string, unknown> }).metadata;
+						const attribution = {
+							...attributionFromHint(hint, hint?.role ?? (summary.kind === 'tool' ? 'tool' : 'system')),
+							...(itemMetadata ? { metadata: itemMetadata } : {}),
+						};
 						attributionMap.set(id, attribution);
 						attributionPatches.push({ op: 'upsertAttribution', itemId: id, attribution });
 					}

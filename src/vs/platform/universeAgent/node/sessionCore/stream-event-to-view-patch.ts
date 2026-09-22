@@ -83,7 +83,17 @@ export type DomainToolStreamBody = DomainBaseBody & {
 	readonly resultPreview?: string
 	/** D9 (ADR-309): canvas refs from CANVAS_REF blocks in the same envelope. */
 	readonly canvasRefs?: readonly TimelineCanvasRef[]
+	/** Slice S4: tool result metadata (diff, filediff, etc.). */
+	readonly metadata?: Record<string, unknown>
 }
+
+/**
+ * Vendored session-core model constraint: `common/sessionView/types.ts` is vendored
+ * from Desktop session-core and cannot be modified directly (see node/sessionCore/SYNC.md).
+ * Tool call result metadata is held in `toolCallMetadataMap` (parallel map keyed by toolCallId/itemId)
+ * and carried via the local extension on the produced item.
+ */
+export const toolCallMetadataMap = new Map<string, Record<string, unknown>>();
 
 export type DomainReasoningStreamBody = DomainBaseBody & {
 	readonly title: string
@@ -307,6 +317,18 @@ function readOptionalStringArrayField(
  * Required canvasId/revisionId/title are non-empty strings; sourceHash optional
  * string; 0× trim-write / accessor.
  */
+function readOptionalMetadataField(
+	record: object,
+): { ok: true; value: Record<string, unknown> | undefined } | { ok: false } {
+	if (!Object.hasOwn(record, 'metadata')) {
+		return { ok: true, value: undefined }
+	}
+	const value = readOwnDataValue(record, 'metadata')
+	if (value === undefined) return { ok: true, value: undefined }
+	if (typeof value !== 'object' || value === null || Array.isArray(value)) return { ok: false }
+	return { ok: true, value: value as Record<string, unknown> }
+}
+
 function readOptionalCanvasRefsField(
 	record: object,
 ): { ok: true; value: readonly TimelineCanvasRef[] | undefined } | { ok: false } {
@@ -512,6 +534,8 @@ export function isDomainToolStreamEvent(event: unknown): event is DomainToolStre
 	if (!resultPreview.ok) return false
 	const canvasRefs = readOptionalCanvasRefsField(parsed.record)
 	if (!canvasRefs.ok) return false
+	const metadata = readOptionalMetadataField(parsed.record)
+	if (!metadata.ok) return false
 	return true
 }
 
@@ -650,6 +674,14 @@ function toolItemFromBody(
 	const resultPreview = readOptionalPreview(readOwnDataValue(record, 'resultPreview'))
 	const canvasRefs = readOptionalCanvasRefsField(record)
 	const canvasRefsValue = canvasRefs.ok ? canvasRefs.value : undefined
+	const metadata = readOptionalMetadataField(record)
+	const metadataValue = metadata.ok ? metadata.value : undefined
+	if (metadataValue) {
+		toolCallMetadataMap.set(identity.id, metadataValue)
+		if (identity.operationId) {
+			toolCallMetadataMap.set(identity.operationId, metadataValue)
+		}
+	}
 	return {
 		id: timelineItemIdFromDomain(identity),
 		orderKey: identity.orderKey,
@@ -660,7 +692,8 @@ function toolItemFromBody(
 			...(resultPreview !== undefined ? { resultPreview } : {}),
 			...(canvasRefsValue !== undefined ? { canvasRefs: canvasRefsValue } : {}),
 		},
-	}
+		...(metadataValue !== undefined ? { metadata: metadataValue } : {}),
+	} as TimelineItemView
 }
 
 function reasoningItemFromBody(

@@ -29,6 +29,7 @@ export interface ChatSyncToolResultWire {
 	is_error?: boolean;
 	content?: string;
 	duration_ms?: number;
+	metadata_json?: string;
 }
 
 export interface ChatSyncInputDeliveryEventWire {
@@ -86,7 +87,7 @@ export function encodeChatSyncRequest(request: UniverseAgentChatSyncRequest): Ui
  * ChatSyncResponse — `session_id`=1 `agent_id`=2 `text`=3 `stop_reason`=4
  * `input_tokens`=5 `output_tokens`=6 `turn_count`=7 repeated `tool_results`=8
  * `error`=9 repeated `input_delivery_events`=10.
- * ToolResultEvent: `tool_id`=1 `tool_name`=2 `is_error`=3 `content`=4 `duration_ms`=5.
+ * ToolResultEvent: `tool_id`=1 `tool_name`=2 `is_error`=3 `content`=4 `duration_ms`=5 `metadata_json`=6.
  * InputDeliveryEvent: `message_id`=1 `status`=2 `error_code`=3 `error_message`=4.
  * Unknown fields unread.
  */
@@ -184,6 +185,7 @@ function decodeToolResultEvent(bytes: Uint8Array): ChatSyncToolResultWire {
 		is_error: lastVarint(fields, 3) === 1n,
 		content: lastString(fields, 4),
 		duration_ms: numberOrUndefined(lastVarint(fields, 5)),
+		metadata_json: lastString(fields, 6),
 	};
 }
 

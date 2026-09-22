@@ -158,14 +158,15 @@ suite('grpc ChatSync / SyncInputDelivery protobuf wire', () => {
 		assert.ok(!protoVarints(nestedOmit).has(8));
 	});
 
-	test('decodeChatSyncResponse reads 1-10; ToolResult 1-5; InputDelivery 1-4; unknown unread', () => {
+	test('decodeChatSyncResponse reads 1-10; ToolResult 1-6; InputDelivery 1-4; unknown unread', () => {
 		const tool = Buffer.concat([
 			encodeStringField(1, 'tool-1'),
 			encodeStringField(2, 'bash'),
 			encodeInt32Field(3, 1),
 			encodeStringField(4, 'boom'),
 			encodeInt64Field(5, 42),
-			encodeStringField(6, 'unused-tool'),
+			encodeStringField(6, '{"diff":"patch"}'),
+			encodeStringField(7, 'unused-tool'),
 		]);
 		const delivery = Buffer.concat([
 			encodeStringField(1, 'm-1'),
@@ -202,6 +203,7 @@ suite('grpc ChatSync / SyncInputDelivery protobuf wire', () => {
 				is_error: true,
 				content: 'boom',
 				duration_ms: 42,
+				metadata_json: '{"diff":"patch"}',
 			}],
 			error: 'err',
 			input_delivery_events: [{
@@ -226,6 +228,7 @@ suite('grpc ChatSync / SyncInputDelivery protobuf wire', () => {
 				isError: true,
 				content: 'boom',
 				durationMs: 42,
+				metadataJson: '{"diff":"patch"}',
 			}],
 			error: 'err',
 			inputDeliveryEvents: [{
@@ -259,6 +262,37 @@ suite('grpc ChatSync / SyncInputDelivery protobuf wire', () => {
 			error: '',
 			inputDeliveryEvents: [],
 		});
+	});
+
+
+	test('decodeChatSyncResponse tool_results metadata_json absent and malformed (three-state)', () => {
+		const toolAbsent = Buffer.concat([
+			encodeStringField(1, 'tool-absent'),
+			encodeStringField(2, 'read_file'),
+			encodeInt32Field(3, 0),
+			encodeStringField(4, 'content'),
+			encodeInt64Field(5, 10),
+		]);
+		const toolMalformed = Buffer.concat([
+			encodeStringField(1, 'tool-malformed'),
+			encodeStringField(2, 'file_edit'),
+			encodeInt32Field(3, 0),
+			encodeStringField(4, 'done'),
+			encodeInt64Field(5, 15),
+			encodeStringField(6, '{bad-json'),
+		]);
+		const encoded = Buffer.concat([
+			encodeMessageField(8, toolAbsent),
+			encodeMessageField(8, toolMalformed),
+		]);
+		const wire = decodeChatSyncResponse(encoded);
+		assert.strictEqual(wire.tool_results?.length, 2);
+		assert.strictEqual(wire.tool_results[0].metadata_json, undefined);
+		assert.strictEqual(wire.tool_results[1].metadata_json, '{bad-json');
+
+		const mapped = mapChatSyncResponse(wire);
+		assert.strictEqual(mapped.toolResults[0].metadataJson, undefined);
+		assert.strictEqual(mapped.toolResults[1].metadataJson, '{bad-json');
 	});
 
 	test('encodeSyncInputDeliveryRequest writes session_id=1 repeated ids=2; omits empty; not JSON', () => {

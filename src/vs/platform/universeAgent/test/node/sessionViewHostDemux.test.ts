@@ -249,6 +249,41 @@ suite('SessionViewHost demux fold seats', () => {
 		assert.ok(items.some(patch => patch.item.summary.kind === 'tool' && patch.item.summary.kind === 'tool' && (patch.item.summary as { toolName?: string }).toolName === 'grep'));
 	});
 
+	test('tool envelope with metadata_json attaches metadata to attribution', async () => {
+		const connection = new TestConnection();
+		const viewHost = createHost(connection);
+		viewHost.onEngineConnectionChanged();
+		const frames = await subscribeLease(viewHost, viewHost.acquireLease('sess-meta-tool'));
+		await viewHost.whenEngineSessionReady('sess-meta-tool');
+		connection.push('sess-meta-tool', {
+			envelope_appended: {
+				envelope: {
+					id: 'env-tool-meta',
+					seq: 12,
+					blocks: [{
+						block_type: 3,
+						tool_result_block: {
+							tool_name: 'file_edit',
+							content: 'applied',
+							is_error: false,
+							metadata_json: JSON.stringify({
+								diff: '--- a\n+++ b\n',
+								filediff: { file: 'a.ts', additions: 1, deletions: 0 },
+							}),
+						},
+					}],
+				},
+			},
+		});
+		const attrPatches = frames.flatMap(f => f.frame.attribution ?? []).filter(a => a.op === 'upsertAttribution');
+		const metaAttr = attrPatches.find(a => a.itemId === 'env-tool-meta');
+		assert.ok(metaAttr);
+		assert.deepStrictEqual(metaAttr.attribution.metadata, {
+			diff: '--- a\n+++ b\n',
+			filediff: { file: 'a.ts', additions: 1, deletions: 0 },
+		});
+	});
+
 	test('streaming_delta without snapshot still upserts overlay', async () => {
 		const connection = new TestConnection();
 		const viewHost = createHost(connection);

@@ -309,6 +309,30 @@ function collectCanvasRefs(blocks: readonly object[]): readonly { canvasId: stri
 	return refs;
 }
 
+function parseMetadataJson(raw: unknown): Record<string, unknown> | undefined {
+	if (raw === undefined || raw === null) {
+		return undefined;
+	}
+	if (typeof raw === 'object') {
+		if (Array.isArray(raw)) {
+			return {};
+		}
+		return raw as Record<string, unknown>;
+	}
+	if (typeof raw !== 'string') {
+		return {};
+	}
+	try {
+		const parsed: unknown = JSON.parse(raw);
+		if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+			return parsed as Record<string, unknown>;
+		}
+		return {};
+	} catch {
+		return {};
+	}
+}
+
 function mapToolResult(id: string, orderKey: string, block: object, turnId: { readonly turnId: string } | Record<string, never>): unknown | undefined {
 	const payload = ownObject(block, 'tool_result_block', 'toolResultBlock') ?? block;
 	const toolName = admitToolName(readField(payload, 'tool_name', 'toolName'));
@@ -318,6 +342,9 @@ function mapToolResult(id: string, orderKey: string, block: object, turnId: { re
 	const content = readField(payload, 'content');
 	const resultPreview = typeof content === 'string' && content.length > 0 ? truncatePreview(content, TEXT_PREVIEW_MAX) : undefined;
 	const isError = readField(payload, 'is_error', 'isError');
+	const rawMetadata = readField(payload, 'metadata_json', 'metadataJson')
+		?? readField(block, 'metadata_json', 'metadataJson');
+	const metadata = parseMetadataJson(rawMetadata);
 	return {
 		arm: 'tool',
 		body: {
@@ -327,6 +354,7 @@ function mapToolResult(id: string, orderKey: string, block: object, turnId: { re
 			title: toolName,
 			status: isError === true ? 'failed' : 'completed',
 			...(resultPreview !== undefined ? { resultPreview } : {}),
+			...(metadata !== undefined ? { metadata } : {}),
 			...turnId,
 		},
 	};

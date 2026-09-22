@@ -178,6 +178,8 @@ export class ConversationTimelineTree extends Disposable {
 			this.webviewService,
 			() => this.scrollHost,
 			(item, height) => this.safeUpdateElementHeight(item, height),
+			options.diffEditorPool,
+			this.instantiationService,
 		);
 		const processFoldRenderer = new ConversationTimelineProcessFoldRenderer(this.renderer);
 

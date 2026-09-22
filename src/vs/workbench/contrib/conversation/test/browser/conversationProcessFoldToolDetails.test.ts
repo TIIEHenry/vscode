@@ -128,4 +128,42 @@ suite('ConversationProcessFoldToolDetails', () => {
 		}), toolSpan(toolTurn({ toolStatus: 'running', streaming: true })));
 		assert.strictEqual(stubRunning.querySelector('.conversation-process-fold-tool-cancel'), null);
 	});
+
+	test('file_edit tool row with metadata.diff renders diff stats badge and expandable diff body', () => {
+		const turn = toolTurn({
+			toolName: 'file_edit',
+			summary: 'edited file.ts',
+			metadata: {
+				diff: '--- a/file.ts\n+++ b/file.ts\n-one\n+two',
+				filediff: { file: 'file.ts', additions: 3, deletions: 1 },
+			},
+		});
+		const container = renderFold(foldOptions({ showToolInvocationDetails: true }), toolSpan(turn));
+		const row = container.querySelector('.conversation-process-fold-tool') as HTMLElement;
+		assert.ok(row);
+
+		const diffStats = row.querySelector('.conversation-process-fold-tool-diff-stats');
+		assert.ok(diffStats);
+		assert.strictEqual(diffStats.textContent, '+3 \u22121');
+
+		const body = row.querySelector('.conversation-process-fold-tool-body') as HTMLElement;
+		assert.ok(body);
+		const diffArea = body.querySelector('.conversation-process-fold-tool-diff') as HTMLElement;
+		assert.ok(diffArea);
+		assert.ok(diffArea.textContent?.includes('-one'));
+		assert.ok(diffArea.textContent?.includes('+two'));
+	});
+
+	test('file_edit tool row without metadata keeps plain tool summary without diff stats', () => {
+		const turn = toolTurn({
+			toolName: 'file_edit',
+			summary: 'edited file.ts',
+		});
+		const container = renderFold(foldOptions({ showToolInvocationDetails: true }), toolSpan(turn));
+		const row = container.querySelector('.conversation-process-fold-tool') as HTMLElement;
+		assert.ok(row);
+
+		const diffStats = row.querySelector('.conversation-process-fold-tool-diff-stats');
+		assert.strictEqual(diffStats, null);
+	});
 });

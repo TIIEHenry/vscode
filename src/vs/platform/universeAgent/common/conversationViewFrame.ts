@@ -142,6 +142,8 @@ export interface ItemAttribution {
 	readonly compacted?: ItemCompactedAttribution;
 	/** Set only by the stub fixture source; keeps PRD-003.3 "Stub" chrome without reading titles. */
 	readonly stub?: true;
+	/** Tool result metadata (diff card, filediff) passed through from demux. */
+	readonly metadata?: Record<string, unknown>;
 }
 
 /**

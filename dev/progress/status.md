@@ -3,13 +3,16 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-09-19
-summary: "合入人类 agent-ide：UA chrome 视觉 + 四份修补方案签收（D944）。leftover catch 至 D1294。D24 仍开。不是 leftover/pills 完成。"
+updated: 2026-09-22
+summary: "合入人类 agent-ide：UA chrome 视觉 + metadata_json 入站 + 四份修补方案签收（D944，因 D413 已被 reconnect 占用）。leftover catch 至 D1294。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
+
+> **后注（2026-09-21 · UA 工具结果 metadata_json 入站，ADR-395 S4）**：ChatSync `decodeToolResultEvent` 解 field 6 `metadata_json` → 域模型 `metadataJson` → demux `parseMetadataJson`（fail-closed `{}`）→ view-patch 并行 `toolCallMetadataMap`（vendored sessionView 本体不动）→ `ItemAttribution.metadata` → 时间线 `file_edit` 行 diff stats 徽章 + `parseUnifiedDiff`/`DiffEditorPool` 展开区（折叠行与独立行两路）。测：node 三套 11+26+10 全绿；transpile/eslint/layers 0；browser 测试已写未跑（需浏览器 runner）。**注意**：① UA envelope `ToolResultBlock` 尚无 metadata 字段，主时间线需等 UA S5（envelope 持久化+回放）供数，当前仅 ChatSync 聚合路径有值；② 本 commit `378b9e6c` 的 `sessionViewHost.ts` 误带入了并发会话的 fail-closed 修复 hunk（`git add` 覆盖了 `apply --cached` 的部分暂存）——该修复已随本 commit 推送，其配套 reopen 测试仍由原作者持有未提交；③ L3 `tool_call_lifecycle` 的 `metadata_json` 不解码是有意选择（注释已注明 envelope 路线）。
+
 ### 已合入（`MERGE_SHA` 见关仓；compile-client 0）
 | 切片 | 提交 |
 |:-----|:-----|
@@ -22,7 +25,7 @@ summary: "合入人类 agent-ide：UA chrome 视觉 + 四份修补方案签收�
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **loop** | leftover remaining unused 未完成。D1294 已合入（compile-client 0，mocha 5/0）。人类 UA chrome 在祖先，未 dual-push。D759 脏无 scan 不 `-B`。B 脏跳过；C gitlink 勿 add；E blocked。 |
+| **loop** | leftover remaining unused 未完成。D1294 已合入（compile-client 0，mocha 5/0）。本 tick 合入人类 `agent-ide`（metadata_json）。人类 UA chrome 在祖先，未 dual-push。D759 脏无 scan 不 `-B`。B 脏跳过；C gitlink 勿 add；E blocked。 |
 
 子 agent 发现：
 | ID | 问题 |
