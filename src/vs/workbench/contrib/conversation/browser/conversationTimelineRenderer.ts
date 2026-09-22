@@ -41,6 +41,7 @@ import {
 export const conversationLensUserBubbleShowMore = localize('conversationLens.userBubbleShowMore', "Show more");
 export const conversationLensUserBubbleShowLess = localize('conversationLens.userBubbleShowLess', "Show less");
 export const conversationLensErrorRetry = localize('conversationLens.errorRetry', "Retry");
+export const conversationLensTurnRegenerate = localize('conversationLens.regenerateTurn', "Regenerate");
 
 /**
  * Composer to mount into the next edit-host during `renderElement`, before ListView
@@ -127,6 +128,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 		private readonly onHeightChange: (item: ConversationTimelineItem, height: number) => void,
 		private readonly diffEditorPool?: DiffEditorPool,
 		private readonly instantiationService?: IInstantiationService,
+		private readonly onRegenerateTurn?: (turn: ConversationStubTurn) => void,
 	) { }
 
 	renderTemplate(container: HTMLElement): ITurnTemplateData {
@@ -381,6 +383,21 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				copyButton.icon = Codicon.copy;
 				if (this.onCopyTurn) {
 					templateData.disposables.add(copyButton.onDidClick(() => this.onCopyTurn!(turn.id, turn.text)));
+				}
+
+				const regenerateContainer = append(actions, $('span.conversation-lens-turn-action-regenerate'));
+				const regenerateButton = templateData.disposables.add(new Button(regenerateContainer, {
+					...defaultButtonStyles,
+					supportIcons: true,
+					small: true,
+					secondary: true,
+					title: conversationLensTurnRegenerate,
+					ariaLabel: conversationLensTurnRegenerate,
+				}));
+				regenerateButton.icon = Codicon.refresh;
+				regenerateButton.enabled = this.writesEnabled();
+				if (this.onRegenerateTurn) {
+					templateData.disposables.add(regenerateButton.onDidClick(() => this.onRegenerateTurn!(turn)));
 				}
 
 				const deleteContainer = append(actions, $('span.conversation-lens-turn-action-delete'));

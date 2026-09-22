@@ -180,7 +180,44 @@ function writeMessageToCoreFact(msg: ConversationWriteMessage, leaseId: ViewLeas
 				turnId: msg.turnId,
 				messageId: msg.messageId,
 			};
+		case 'regenerateTurn':
+			return {
+				kind: 'regenerateTurn',
+				userTurnId: msg.userTurnId,
+				preservedContent: msg.preservedContent,
+				correlation,
+				...(msg.agentId ? { agentId: msg.agentId } : {}),
+			};
 	}
+}
+
+function editMessageRequestFromUnaryInput(
+	input: unknown,
+	correlation: CorrelationRef,
+	engineSessionId: string,
+): { sessionId: string; turnId: string; newContent: string; agentId?: string; operationId: string } | undefined {
+	if (input === null || typeof input !== 'object' || Array.isArray(input)) {
+		return undefined;
+	}
+	const turnId = readPayloadField(input, 'turnId', 'turn_id');
+	const newContent = readPayloadField(input, 'newContent', 'new_content');
+	if (typeof turnId !== 'string' || turnId.trim().length === 0) {
+		return undefined;
+	}
+	if (typeof newContent !== 'string' || newContent.trim().length === 0) {
+		return undefined;
+	}
+	const agentId = readPayloadField(input, 'agentId', 'agent_id');
+	const operationId = readPayloadField(input, 'operationId', 'operation_id');
+	return {
+		sessionId: engineSessionId,
+		turnId: turnId.trim(),
+		newContent,
+		...(typeof agentId === 'string' && agentId.trim() ? { agentId: agentId.trim() } : {}),
+		operationId: typeof operationId === 'string' && operationId.trim()
+			? operationId.trim()
+			: String(correlation),
+	};
 }
 
 function chatPayloadFromWrite(payload: unknown): Record<string, unknown> {
@@ -1047,11 +1084,7 @@ export class SessionViewHost extends Disposable {
 				this.openContinuation(sessionId, intent);
 				break;
 			case 'unaryCommand':
-				// Transport has no unary dispatcher on this slice (ADR-029 stage A stays observable).
-				this.markIntentUnhandled(sessionId, intent.do, {
-					commandId: intent.commandId,
-					correlation: String(intent.correlation),
-				});
+				this.handleUnaryCommand(sessionId, intent);
 				break;
 			default:
 				if (isChatCoreIntent(intent) && intent.do === 'chatStreamWrite') {
@@ -1134,6 +1167,77 @@ export class SessionViewHost extends Disposable {
 				error: error instanceof Error ? error.message : String(error),
 			});
 			this.diagnostics.count('intent.unhandled' as DiagnosticMetric, { do: intent.do });
+		}
+	}
+
+	/**
+	 * ADR-029 regenerateTurn: dispatch `agent.editMessage` on the existing
+	 * EditMessage unary (not AgentService.Regenerate / openRegenerateStream).
+	 * Host posts `commandOutcome` so Actor can submitInput the preserved user turn.
+	 */
+	private handleUnaryCommand(sessionId: string, intent: Extract<CoreIntent, { do: 'unaryCommand' }>): void {
+		if (intent.commandId !== 'agent.editMessage') {
+			this.markIntentUnhandled(sessionId, intent.do, {
+				commandId: intent.commandId,
+				correlation: String(intent.correlation),
+			});
+			return;
+		}
+		void this.dispatchEditMessage(sessionId, intent).catch(onUnexpectedError).catch(onUnexpectedError);
+	}
+
+	private async dispatchEditMessage(
+		sessionId: string,
+		intent: Extract<CoreIntent, { do: 'unaryCommand' }>,
+	): Promise<void> {
+		const postOutcome = (succeeded: boolean, error?: string) => {
+			this.postAndDrain(sessionId as SessionId, {
+				t: 'localFact',
+				fact: {
+					kind: 'commandOutcome',
+					correlation: intent.correlation,
+					commandId: intent.commandId,
+					succeeded,
+					...(error !== undefined ? { error } : {}),
+				},
+			});
+		};
+		const edit = this.connection.editMessage;
+		if (typeof edit !== 'function') {
+			this.markIntentUnhandled(sessionId, intent.do, {
+				commandId: intent.commandId,
+				correlation: String(intent.correlation),
+			});
+			postOutcome(false, 'editMessage unavailable');
+			return;
+		}
+		if (this.connection.getConnectionSnapshot().pairingPending || !this.connection.isEngineConnected()) {
+			postOutcome(false, 'Engine not connected');
+			return;
+		}
+		let engineSessionId: string;
+		try {
+			engineSessionId = this.resolveEngineSessionId(sessionId) ?? await this.ensureEngineSession(sessionId);
+		} catch (error) {
+			postOutcome(false, error instanceof Error ? error.message : 'Engine session bind failed');
+			return;
+		}
+		const request = editMessageRequestFromUnaryInput(intent.input, intent.correlation, engineSessionId);
+		if (!request) {
+			postOutcome(false, 'invalid editMessage input');
+			return;
+		}
+		try {
+			const result = await edit.call(this.connection, request);
+			postOutcome(result.ok, result.ok ? undefined : (result.message ?? 'editMessage refused'));
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
+			this.diagnostics.warn('editMessage failed', {
+				sessionId,
+				correlation: String(intent.correlation),
+				error: message,
+			});
+			postOutcome(false, message);
 		}
 	}
 

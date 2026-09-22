@@ -254,8 +254,14 @@ suite('SessionViewHost intent ownership (F2)', () => {
 		assert.strictEqual(diagnostics.counts.get('intent.unhandled'), undefined);
 	});
 
-	test('regenerateTurn counts intent.unhandled unaryCommand (no unary dispatcher yet)', async () => {
-		const connection = new TestConnection();
+	test('regenerateTurn dispatches agent.editMessage unary (not unhandled)', async () => {
+		const calls: { sessionId: string; turnId: string; newContent: string; agentId?: string; operationId?: string }[] = [];
+		const connection = new class extends TestConnection {
+			async editMessage(request: { sessionId: string; turnId: string; newContent: string; agentId?: string; operationId?: string }) {
+				calls.push({ ...request });
+				return { ok: true };
+			}
+		}();
 		const host = new TestHost(async () => undefined);
 		const diagnostics = new CountingDiagnostics();
 		const viewHost = store.add(new SessionViewHost(connection, host, {
@@ -263,20 +269,23 @@ suite('SessionViewHost intent ownership (F2)', () => {
 			diagnostics,
 		}));
 		viewHost.onEngineConnectionChanged();
-		viewHost.acquireLease('sess-rg');
+		const leaseId = viewHost.acquireLease('sess-rg');
 		await viewHost.whenEngineSessionReady('sess-rg');
 
-		postLocalFact(viewHost, 'sess-rg', {
+		const outcome = viewHost.post(leaseId, {
 			kind: 'regenerateTurn',
 			userTurnId: 'user-turn-1',
 			preservedContent: 'hello again',
-			correlation: 'write:regen-1',
 		});
+		assert.strictEqual(outcome.accepted, true);
 
-		assert.strictEqual(diagnostics.labeledCounts.get('intent.unhandled:unaryCommand'), 1);
-		assert.ok(diagnostics.warnings.some(w =>
-			w.message.includes('unaryCommand') && w.fields.commandId === 'agent.editMessage'
-		));
+		await waitFor(() => calls.length === 1);
+		assert.strictEqual(calls[0]?.sessionId, 'sess-rg');
+		assert.strictEqual(calls[0]?.turnId, 'user-turn-1');
+		assert.strictEqual(calls[0]?.newContent, 'hello again');
+		assert.ok(typeof calls[0]?.operationId === 'string' && calls[0].operationId.startsWith('write:'));
+		assert.strictEqual(diagnostics.counts.get('intent.unhandled'), undefined);
+		assert.strictEqual(diagnostics.labeledCounts.get('intent.unhandled:unaryCommand'), undefined);
 	});
 
 	test('remote SessionEventStream close posts streamClosed and folds sync.closed remote', async () => {

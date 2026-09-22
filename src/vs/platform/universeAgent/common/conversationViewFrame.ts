@@ -202,8 +202,10 @@ export type ConversationWriteMessage =
 	| { readonly kind: 'permissionRespond'; readonly requestId: string; readonly decision: 'allow' | 'deny' }
 	| { readonly kind: 'questionRespond'; readonly requestId: string; readonly answers: ConversationQuestionRespondAnswers; readonly customText?: string }
 	| { readonly kind: 'clientToolRespond'; readonly requestId: string; readonly resultJson: string }
-	| { readonly kind: 'continueGeneration'; readonly agentId: string; readonly turnId: string; readonly messageId: string };
+	| { readonly kind: 'continueGeneration'; readonly agentId: string; readonly turnId: string; readonly messageId: string }
+	| { readonly kind: 'regenerateTurn'; readonly userTurnId: string; readonly preservedContent: string; readonly agentId?: string };
 // Retry maps to Actor localFact `continueGeneration` (host opens ContinueGeneration).
+// Regenerate maps to Actor localFact `regenerateTurn` (host EditMessage, then submitInput).
 // Other arms map against ChatRequest.payload oneof / unary PermissionService.Respond.
 
 /** Mirrors session-core `PostOutcome` (node layer) so the renderer never imports the Actor tree. */

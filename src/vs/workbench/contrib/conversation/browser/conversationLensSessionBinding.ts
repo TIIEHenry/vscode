@@ -339,6 +339,101 @@ export function cancelToolCall(host: IConversationLensSessionBindingHost, turn: 
 
 }
 
+type RegeneratableRow = {
+	readonly id: string;
+	readonly kind: string;
+	readonly text: string;
+	readonly turnId?: string;
+	readonly agentId?: string;
+};
+
+function resolveRegenerateUserTurn(
+	rows: readonly RegeneratableRow[],
+	assistantTurn: { readonly id: string; readonly turnId?: string; readonly agentId?: string },
+): { readonly userTurnId: string; readonly preservedContent: string; readonly agentId?: string } | undefined {
+	const assistantId = assistantTurn.id.trim();
+	const assistantTurnId = assistantTurn.turnId?.trim();
+	if (!assistantId) {
+		return undefined;
+	}
+	const index = rows.findIndex(row =>
+		row.id === assistantId
+		|| (assistantTurnId !== undefined && (row.turnId === assistantTurnId || row.id === assistantTurnId))
+	);
+	if (index < 0) {
+		return undefined;
+	}
+	for (let i = index - 1; i >= 0; i--) {
+		const row = rows[i];
+		if (row.kind !== 'user') {
+			continue;
+		}
+		const userTurnId = (row.turnId ?? row.id).trim();
+		if (!userTurnId || row.text.trim().length === 0) {
+			return undefined;
+		}
+		const agentId = assistantTurn.agentId?.trim() || rows[index].agentId?.trim();
+		return {
+			userTurnId,
+			preservedContent: row.text,
+			...(agentId ? { agentId } : {}),
+		};
+	}
+	return undefined;
+}
+
+export function regenerateTurn(
+	host: IConversationLensSessionBindingHost,
+	turn: {
+		readonly id: string;
+		readonly turnId?: string;
+		readonly agentId?: string;
+		readonly userTurnId?: string;
+		readonly preservedContent?: string;
+	},
+): void {
+
+	const assistantId = turn.id.trim();
+	const explicitUserTurnId = turn.userTurnId?.trim();
+	if (!assistantId && !explicitUserTurnId) {
+		return;
+	}
+	if (rejectPairingHoldWrite(host)) {
+		return;
+	}
+	if (rejectKeepLeftoverListFailWrite(host)) {
+		return;
+	}
+
+	const explicitContent = turn.preservedContent;
+	const resolved = explicitUserTurnId && explicitContent && explicitContent.trim().length > 0
+		? {
+			userTurnId: explicitUserTurnId,
+			preservedContent: explicitContent,
+			...(turn.agentId?.trim() ? { agentId: turn.agentId.trim() } : {}),
+		}
+		: resolveRegenerateUserTurn(host.lastAttachedEntries, turn)
+			?? resolveRegenerateUserTurn(host.stubService.getTurns(host.getBoundSessionId()), turn);
+	if (!resolved) {
+		host.showPostFailure('failed');
+		return;
+	}
+
+	void host.postBound({
+		kind: 'regenerateTurn',
+		userTurnId: resolved.userTurnId,
+		preservedContent: resolved.preservedContent,
+		...(resolved.agentId ? { agentId: resolved.agentId } : {}),
+	}).then(outcome => {
+		if (!outcome.accepted) {
+			host.showPostFailure(outcome.reason);
+		}
+	}).catch(() => {
+		host.showPostFailure('failed');
+	}).catch(onUnexpectedError).catch(onUnexpectedError);
+
+}
+
 export function retryError(host: IConversationLensSessionBindingHost, turn: { readonly id: string; readonly turnId?: string; readonly agentId?: string }): void {
 
 	const messageId = turn.id.trim();
