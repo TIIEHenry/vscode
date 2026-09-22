@@ -111,7 +111,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 		private readonly onResolveConfirmation: ((turnId: string, status: 'allowed' | 'skipped') => void) | undefined,
 		private readonly onQuestionRespond: ((turnId: string, requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string) => void) | undefined,
 		private readonly onCopyTurn: ((turnId: string, text: string) => void) | undefined,
-		private readonly onDeleteTurn: ((turnId: string) => void) | undefined,
+		private readonly onDeleteTurn: ((turn: ConversationStubTurn) => void) | undefined,
 		private readonly onEditUserTurn: ((turnId: string) => void) | undefined,
 		private readonly onViewInTrajectory: ((turnId: string) => void) | undefined,
 		private readonly onCancelToolCall: ((turn: ConversationStubTurn) => void) | undefined,
@@ -414,7 +414,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				deleteButton.icon = Codicon.trash;
 				deleteButton.enabled = this.writesEnabled();
 				if (this.onDeleteTurn) {
-					templateData.disposables.add(deleteButton.onDidClick(() => this.onDeleteTurn!(turn.id)));
+					templateData.disposables.add(deleteButton.onDidClick(() => this.onDeleteTurn!(turn)));
 				}
 			}
 

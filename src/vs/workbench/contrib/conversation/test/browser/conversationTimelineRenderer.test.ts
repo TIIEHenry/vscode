@@ -280,3 +280,65 @@ suite('ConversationTimelineRenderer user-bubble writesEnabled', () => {
 		dispose();
 	});
 });
+
+suite('ConversationTimelineRenderer assistant delete agentId', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	function assistantNode(agentId?: string): ITreeNode<ConversationTimelineItem, void> {
+		return {
+			element: { variant: 'turn', turn: { id: 'a1', kind: 'assistant', text: 'hello', agentId } },
+			children: [],
+			depth: 0,
+			visibleChildrenCount: 0,
+			visibleChildIndex: 0,
+			collapsible: false,
+			collapsed: false,
+			filterData: undefined,
+		} as unknown as ITreeNode<ConversationTimelineItem, void>;
+	}
+
+	function renderAssistantDelete(onDeleteTurn: (turn: ConversationStubTurn) => void): { button: HTMLElement; dispose: () => void } {
+		const renderer = new ConversationTimelineRenderer(
+			{ renderTurnBody: () => Disposable.None },
+			undefined,
+			undefined,
+			undefined,
+			onDeleteTurn,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			() => undefined,
+			undefined,
+			() => undefined,
+			() => false,
+			() => true,
+			() => false,
+			{} as IWebviewService,
+			() => undefined,
+			() => { },
+		);
+		const container = document.createElement('div');
+		const template = renderer.renderTemplate(container);
+		renderer.renderElement(assistantNode('sub:a'), 0, template);
+		const button = container.querySelector('.conversation-lens-turn-action-delete .monaco-button') as HTMLElement | null;
+		assert.ok(button);
+		return {
+			button,
+			dispose: () => template.disposables.dispose(),
+		};
+	}
+
+	test('delete click hands row agentId to deleteTurn, not only turn.id', () => {
+		const deleted: { turnId: string; agentId?: string }[] = [];
+		const deleteTurn = (turnId: string, agentId?: string) => {
+			deleted.push({ turnId, agentId });
+		};
+		const { button, dispose } = renderAssistantDelete(turn => deleteTurn(turn.id, turn.agentId));
+		button.click();
+		assert.deepStrictEqual(deleted, [{ turnId: 'a1', agentId: 'sub:a' }]);
+		dispose();
+	});
+});

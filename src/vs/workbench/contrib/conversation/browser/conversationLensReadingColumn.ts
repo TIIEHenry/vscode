@@ -48,7 +48,7 @@ export interface IConversationLensReadingColumnHost {
 	resolveConfirmation(turnId: string, status: 'allowed' | 'skipped'): Promise<void>;
 	resolveQuestion(turnId: string, requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string): Promise<void>;
 	copyTurn(text: string): void;
-	deleteTurn(turnId: string): void;
+	deleteTurn(turnId: string, agentId?: string): void;
 	regenerateTurn(turn: { readonly id: string; readonly turnId?: string; readonly agentId?: string }): void;
 	beginTurnEdit(turnId: string): void;
 	navigateToTrajectoryFromTurn(turnId: string): void;
@@ -73,7 +73,7 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 		onResolveConfirmation: (turnId, status) => host.resolveConfirmation(turnId, status),
 		onQuestionRespond: (turnId, requestId, answers, customText) => host.resolveQuestion(turnId, requestId, answers, customText),
 		onCopyTurn: (_turnId, text) => host.copyTurn(text),
-		onDeleteTurn: turnId => host.deleteTurn(turnId),
+		onDeleteTurn: turn => host.deleteTurn(turn.id, turn.agentId),
 		onRegenerateTurn: turn => host.regenerateTurn(turn),
 		onEditUserTurn: turnId => host.beginTurnEdit(turnId),
 		onViewInTrajectory: turnId => host.navigateToTrajectoryFromTurn(turnId),

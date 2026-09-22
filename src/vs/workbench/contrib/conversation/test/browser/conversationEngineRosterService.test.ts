@@ -2868,6 +2868,23 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(connection.deleteMessageCalls[0]?.turnId, 'turn-live');
 	});
 
+	test('connected deleteTurn uses passed agentId without streaming projection', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.deleteTurn('ua-only', 'turn-sub', 'sub:a'), true);
+		assert.strictEqual(connection.deleteMessageCalls[0]?.agentId, 'sub:a');
+		assert.strictEqual(connection.deleteMessageCalls[0]?.turnId, 'turn-sub');
+		assert.strictEqual(service.deleteTurn('ua-only', 'turn-blank', '   '), true);
+		assert.strictEqual(connection.deleteMessageCalls[1]?.agentId, 'root');
+		assert.strictEqual(connection.deleteMessageCalls[1]?.turnId, 'turn-blank');
+	});
+
 	test('disconnected after engine deleteTurn skips unary', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());

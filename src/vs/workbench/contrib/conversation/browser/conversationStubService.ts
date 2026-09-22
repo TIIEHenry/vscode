@@ -178,12 +178,13 @@ export interface IConversationRosterService {
 	deleteSession(sessionId: string): boolean;
 	/**
 	 * AgentService.DeleteMessage (turn + subtree; ≠ session Delete).
-	 * Engine-connected forwards unary (empty agent → last streaming else
-	 * `root`). Empty `turnId` / unknown session / disconnected cache / missing
-	 * hook returns false and does not delete locally. Stub / never-connected
-	 * still deletes the local turn.
+	 * Engine-connected forwards unary (non-empty `agentId` after trim; else
+	 * last streaming else `root`). Empty `turnId` / unknown session /
+	 * disconnected cache / missing hook returns false and does not delete
+	 * locally. Stub / never-connected still deletes the local turn and
+	 * ignores `agentId`.
 	 */
-	deleteTurn(sessionId: string, turnId: string): boolean;
+	deleteTurn(sessionId: string, turnId: string, agentId?: string): boolean;
 	getTurns(sessionId: string): readonly ConversationStubTurn[];
 	/**
 	 * Catalog used when projecting stub/fixture path-only session links onto
@@ -639,7 +640,7 @@ export class ConversationStubService extends Disposable implements IConversation
 		return this.frameSource.project(sessionId).snapshot.pendingActions.length;
 	}
 
-	deleteTurn(sessionId: string, turnId: string): boolean {
+	deleteTurn(sessionId: string, turnId: string, _agentId?: string): boolean {
 		const deleted = this.model.deleteTurn(sessionId, turnId);
 		if (deleted) {
 			this.notifySessionChanged(sessionId);

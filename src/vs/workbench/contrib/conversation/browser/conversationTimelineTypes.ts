@@ -22,7 +22,7 @@ export interface IConversationTimelineTreeOptions {
 	readonly onResolveConfirmation?: (turnId: string, status: 'allowed' | 'skipped') => void;
 	readonly onQuestionRespond?: (turnId: string, requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string) => void;
 	readonly onCopyTurn?: (turnId: string, text: string) => void;
-	readonly onDeleteTurn?: (turnId: string) => void;
+	readonly onDeleteTurn?: (turn: ConversationStubTurn) => void;
 	readonly onRegenerateTurn?: (turn: ConversationStubTurn) => void;
 	readonly onEditUserTurn?: (turnId: string) => void;
 	readonly onViewInTrajectory?: (turnId: string) => void;

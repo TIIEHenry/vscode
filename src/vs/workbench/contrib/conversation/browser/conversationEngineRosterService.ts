@@ -527,7 +527,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.retryError(sessionId, options);
 	}
 
-	override deleteTurn(sessionId: string, turnId: string): boolean {
+	override deleteTurn(sessionId: string, turnId: string, agentId?: string): boolean {
 		if (isConversationPairingHold(this.uaConnection)) {
 			return false;
 		}
@@ -535,12 +535,12 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return false;
 		}
 		if (this.isEngineConnected()) {
-			return this.deleteEngineMessage(sessionId, turnId, true);
+			return this.deleteEngineMessage(sessionId, turnId, true, agentId);
 		}
 		if (this.wasEverConnected) {
-			return this.deleteEngineMessage(sessionId, turnId, false);
+			return this.deleteEngineMessage(sessionId, turnId, false, agentId);
 		}
-		return super.deleteTurn(sessionId, turnId);
+		return super.deleteTurn(sessionId, turnId, agentId);
 	}
 
 	override updateUserTurnText(sessionId: string, turnId: string, text: string): boolean {
@@ -1235,7 +1235,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return false;
 	}
 
-	private deleteEngineMessage(sessionId: string, turnId: string, callRemote: boolean): boolean {
+	private deleteEngineMessage(sessionId: string, turnId: string, callRemote: boolean, agentId?: string): boolean {
 		const trimmedTurnId = turnId.trim();
 		if (!trimmedTurnId) {
 			return false;
@@ -1247,10 +1247,10 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (!this.uaConnection.deleteMessage) {
 				return false;
 			}
-			const agentId = this.lastStreamingAgentId(sessionId) || 'root';
+			const resolvedAgentId = agentId?.trim() || this.lastStreamingAgentId(sessionId) || 'root';
 			this.dispatchEngineAction(sessionId, 'deleteMessage', this.wrapEngineQueueMutation(
 				'deleteMessage',
-				() => this.uaConnection.deleteMessage!({ sessionId, turnId: trimmedTurnId, agentId }),
+				() => this.uaConnection.deleteMessage!({ sessionId, turnId: trimmedTurnId, agentId: resolvedAgentId }),
 			));
 			return true;
 		}

@@ -294,7 +294,7 @@ export function copyTurn(host: IConversationLensSessionBindingHost, text: string
 
 }
 
-export function deleteTurn(host: IConversationLensSessionBindingHost, turnId: string): void {
+export function deleteTurn(host: IConversationLensSessionBindingHost, turnId: string, agentId?: string): void {
 
 	if (rejectPairingHoldWrite(host)) {
 		return;
@@ -302,7 +302,8 @@ export function deleteTurn(host: IConversationLensSessionBindingHost, turnId: st
 	if (rejectKeepLeftoverListFailWrite(host)) {
 		return;
 	}
-	const deleted = host.stubService.deleteTurn(host.getBoundSessionId(), turnId);
+	const trimmedAgentId = agentId?.trim();
+	const deleted = host.stubService.deleteTurn(host.getBoundSessionId(), turnId, trimmedAgentId || undefined);
 	if (!deleted) {
 		host.showPostFailure(
 			!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()

@@ -787,8 +787,8 @@ export class ConversationLens extends Disposable {
 		copyTurn(this, text);
 	}
 
-	deleteTurn(turnId: string): void {
-		deleteTurn(this, turnId);
+	deleteTurn(turnId: string, agentId?: string): void {
+		deleteTurn(this, turnId, agentId);
 	}
 
 	regenerateTurn(turn: { readonly id: string; readonly turnId?: string; readonly agentId?: string }): void {
