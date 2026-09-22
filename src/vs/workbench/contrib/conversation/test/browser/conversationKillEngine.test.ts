@@ -37,7 +37,7 @@ suite('conversationKillEngine', () => {
 		getConnectionSnapshot: () => ({ pairingPending: true }),
 	};
 
-	test('connected killSubAgent true is killed with no notice', () => {
+	test('connected killSubAgent true is killed with no notice', async () => {
 		const errors: string[] = [];
 		const killCalls: Array<{ sessionId: string; args?: ConversationKillSubAgentArgs }> = [];
 		const args: ConversationKillSubAgentArgs = { agentId: 'sub:reviewer', force: true };
@@ -52,7 +52,7 @@ suite('conversationKillEngine', () => {
 			},
 		} as unknown as IConversationRosterService;
 
-		const outcome = tryKillSubAgent(roster, notificationSink(errors), args, liveUa);
+		const outcome = await tryKillSubAgent(roster, notificationSink(errors), args, liveUa);
 
 		assert.strictEqual(outcome.handled, true);
 		assert.strictEqual(outcome.killed, true);
@@ -60,7 +60,7 @@ suite('conversationKillEngine', () => {
 		assert.deepStrictEqual(errors, []);
 	});
 
-	test('connected killSubAgent false is handled, not killed, and shows failed copy', () => {
+	test('connected killSubAgent false is handled, not killed, and shows failed copy', async () => {
 		const errors: string[] = [];
 		const killCalls: Array<{ sessionId: string; args?: ConversationKillSubAgentArgs }> = [];
 		const args: ConversationKillSubAgentArgs = { agentId: 'sub:a' };
@@ -75,7 +75,7 @@ suite('conversationKillEngine', () => {
 			},
 		} as unknown as IConversationRosterService;
 
-		const outcome = tryKillSubAgent(roster, notificationSink(errors), args, liveUa);
+		const outcome = await tryKillSubAgent(roster, notificationSink(errors), args, liveUa);
 
 		assert.strictEqual(outcome.handled, true);
 		assert.strictEqual(outcome.killed, false);
@@ -83,7 +83,53 @@ suite('conversationKillEngine', () => {
 		assert.deepStrictEqual(errors, [conversationKillEngineFailedCopy]);
 	});
 
-	test('leftover-looks-live pairing-hold skips kill unary and shows disconnected copy', () => {
+	test('connected kill waits for unary before reporting killed', async () => {
+		const errors: string[] = [];
+		let resolveSettle!: (ok: boolean) => void;
+		const roster = {
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => true,
+			hasEngineConnectionHistory: () => true,
+			getActiveSessionId: () => 's1',
+			killSubAgent: () => true,
+			whenDispatchedEngineActionSettles: () => new Promise<boolean>(resolve => {
+				resolveSettle = resolve;
+			}),
+		} as unknown as IConversationRosterService;
+
+		let outcome: Awaited<ReturnType<typeof tryKillSubAgent>> | undefined;
+		const pending = tryKillSubAgent(roster, notificationSink(errors), { agentId: 'sub:a' }, liveUa).then(next => {
+			outcome = next;
+			return next;
+		});
+		await Promise.resolve();
+		assert.strictEqual(outcome, undefined);
+
+		resolveSettle(false);
+		assert.deepStrictEqual(await pending, { handled: true, killed: false });
+		assert.deepStrictEqual(errors, [conversationKillEngineFailedCopy]);
+	});
+
+	test('connected kill unary throw is handled and not killed', async () => {
+		const errors: string[] = [];
+		const roster = {
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => true,
+			hasEngineConnectionHistory: () => true,
+			getActiveSessionId: () => 's1',
+			killSubAgent: () => true,
+			whenDispatchedEngineActionSettles: async () => {
+				throw new Error('boom');
+			},
+		} as unknown as IConversationRosterService;
+
+		const outcome = await tryKillSubAgent(roster, notificationSink(errors), { agentId: 'sub:a' }, liveUa);
+
+		assert.deepStrictEqual(outcome, { handled: true, killed: false });
+		assert.deepStrictEqual(errors, [conversationKillEngineFailedCopy]);
+	});
+
+	test('leftover-looks-live pairing-hold skips kill unary and shows disconnected copy', async () => {
 		const errors: string[] = [];
 		const roster = {
 			isEngineConnected: () => true,
@@ -94,14 +140,14 @@ suite('conversationKillEngine', () => {
 			},
 		} as unknown as IConversationRosterService;
 
-		const outcome = tryKillSubAgent(roster, notificationSink(errors), { agentId: 'sub:a' }, leftoverLooksLiveUa);
+		const outcome = await tryKillSubAgent(roster, notificationSink(errors), { agentId: 'sub:a' }, leftoverLooksLiveUa);
 
 		assert.strictEqual(outcome.handled, true);
 		assert.strictEqual(outcome.killed, false);
 		assert.deepStrictEqual(errors, [conversationKillEngineDisconnectedCopy]);
 	});
 
-	test('KEEP leftover list-fail skips kill unary and shows disconnected copy', () => {
+	test('KEEP leftover list-fail skips kill unary and shows disconnected copy', async () => {
 		const errors: string[] = [];
 		const killCalls: ConversationKillSubAgentArgs[] = [];
 		const roster = {
@@ -124,7 +170,7 @@ suite('conversationKillEngine', () => {
 		assert.strictEqual(ua.getConnectionSnapshot().pairingPending, false);
 		assert.strictEqual(isConversationPairingHold(ua), false);
 
-		const outcome = tryKillSubAgent(roster, notificationSink(errors), { agentId: 'sub:a' }, ua);
+		const outcome = await tryKillSubAgent(roster, notificationSink(errors), { agentId: 'sub:a' }, ua);
 
 		assert.strictEqual(outcome.handled, true);
 		assert.strictEqual(outcome.killed, false);
@@ -132,7 +178,7 @@ suite('conversationKillEngine', () => {
 		assert.deepStrictEqual(errors, [conversationKillEngineDisconnectedCopy]);
 	});
 
-	test('disconnected with history shows disconnected copy and does not call killSubAgent', () => {
+	test('disconnected with history shows disconnected copy and does not call killSubAgent', async () => {
 		const errors: string[] = [];
 		const roster = {
 			isEngineConnected: () => false,
@@ -143,14 +189,14 @@ suite('conversationKillEngine', () => {
 			},
 		} as unknown as IConversationRosterService;
 
-		const outcome = tryKillSubAgent(roster, notificationSink(errors), { agentId: 'sub:a' });
+		const outcome = await tryKillSubAgent(roster, notificationSink(errors), { agentId: 'sub:a' });
 
 		assert.strictEqual(outcome.handled, true);
 		assert.strictEqual(outcome.killed, false);
 		assert.deepStrictEqual(errors, [conversationKillEngineDisconnectedCopy]);
 	});
 
-	test('never-connected stays silent and does not call killSubAgent', () => {
+	test('never-connected stays silent and does not call killSubAgent', async () => {
 		const errors: string[] = [];
 		const roster = {
 			isEngineConnected: () => false,
@@ -161,7 +207,7 @@ suite('conversationKillEngine', () => {
 			},
 		} as unknown as IConversationRosterService;
 
-		const outcome = tryKillSubAgent(roster, notificationSink(errors));
+		const outcome = await tryKillSubAgent(roster, notificationSink(errors));
 
 		assert.deepStrictEqual(outcome, { handled: false, killed: false });
 		assert.deepStrictEqual(errors, []);

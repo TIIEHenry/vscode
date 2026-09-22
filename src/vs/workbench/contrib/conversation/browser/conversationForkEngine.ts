@@ -6,12 +6,13 @@
 import { localize } from '../../../../nls.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { isConversationPairingHold, type IConversationPairingHoldSource } from './conversationSessionStatus.js';
-import { IConversationRosterService } from './conversationStubService.js';
+import { IConversationRosterService, settleDispatchedEngineWrite } from './conversationStubService.js';
 
 /**
  * Engine-connected fork attempt. `handled` means the engine path consumed the
  * action (notice on failure, no local fallthrough). `forked` is a successful
- * `forkSubAgent`. Callers must not treat `handled` as a successful fork.
+ * engine unary, not a sync `forkSubAgent` "sent" true. Callers must not treat
+ * `handled` as a successful fork.
  *
  * Same honesty class as Kill leftover writes (D318): pairing-hold leftover
  * and leftover-looks-live (`isEngineConnected()===true` + pairingPending)
@@ -37,11 +38,11 @@ function isKeepLeftoverListFailWrite(roster: IConversationRosterService): boolea
 		&& roster.isEngineSessionReady?.() === false;
 }
 
-export function tryConnectedEngineFork(
+export async function tryConnectedEngineFork(
 	roster: IConversationRosterService,
 	notificationService: INotificationService,
 	ua?: IConversationPairingHoldSource,
-): ConversationEngineForkOutcome {
+): Promise<ConversationEngineForkOutcome> {
 	if (isConversationPairingHold(ua)) {
 		if (roster.hasEngineConnectionHistory()) {
 			notificationService.error(conversationForkEngineDisconnectedCopy);
@@ -57,7 +58,11 @@ export function tryConnectedEngineFork(
 		return { handled: false, forked: false };
 	}
 	if (roster.isEngineConnected()) {
-		if (roster.forkSubAgent(roster.getActiveSessionId())) {
+		const forked = await settleDispatchedEngineWrite(
+			roster,
+			roster.forkSubAgent(roster.getActiveSessionId()),
+		);
+		if (forked) {
 			return { handled: true, forked: true };
 		}
 		notificationService.error(localize('conversationFork.forkSubAgentFailed', "Could not fork conversation."));

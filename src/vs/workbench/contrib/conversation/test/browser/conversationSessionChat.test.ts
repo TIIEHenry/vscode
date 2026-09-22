@@ -155,6 +155,12 @@ suite('Conversation session chat (S3)', () => {
 		}
 	}
 
+	class ConnectedForkSentThenRefusedRoster extends ConnectedForkRoster {
+		override whenDispatchedEngineActionSettles(): Promise<boolean> {
+			return Promise.resolve(false);
+		}
+	}
+
 	class PairingHoldHistoryForkRoster extends ConversationStubService {
 		override isEngineConnected(): boolean {
 			return false;
@@ -283,14 +289,14 @@ suite('Conversation session chat (S3)', () => {
 			sourceSessionResource: URI,
 			request: import('../../../chat/common/chatSessionsService.js').IChatSessionRequestHistoryItem | undefined,
 		): Promise<boolean> {
-			const context = instantiationService.invokeFunction(accessor => {
+			const context = await instantiationService.invokeFunction(async accessor => {
 				if (!isDefaultCodeWindow(accessor)) {
 					return undefined;
 				}
 
 				const roster = accessor.get(IConversationRosterService);
 				const notificationService = accessor.get(INotificationService);
-				const outcome = tryConnectedEngineFork(roster, notificationService, accessor.get(IUniverseAgentConnection));
+				const outcome = await tryConnectedEngineFork(roster, notificationService, accessor.get(IUniverseAgentConnection));
 				if (outcome.handled) {
 					return { kind: 'engine' as const, forked: outcome.forked, handled: outcome.handled };
 				}
@@ -525,6 +531,44 @@ suite('Conversation session chat (S3)', () => {
 
 	test('connected forkSubAgent false notifies error, is not a successful fork, and does not fall through to local fork', async () => {
 		const roster = store.add(new ConnectedForkFalseRoster());
+		const errors: string[] = [];
+		const { instantiationService, conversationPart, sessionChatService } = await createHarness(roster, {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService);
+		instantiationService.stub(IWorkbenchEnvironmentService, upcastPartial<IWorkbenchEnvironmentService>({ isSessionsWindow: false }));
+		instantiationService.stub(IConversationSessionChatService, sessionChatService);
+		instantiationService.stub(IConversationRosterService, roster);
+
+		let forkCalls = 0;
+		instantiationService.stub(IChatSessionsService, upcastPartial<IChatSessionsService>({
+			getContentProviderSchemes: () => ['agent-host-copilot'],
+			forkChatSession: async () => {
+				forkCalls++;
+				return {
+					resource: URI.parse('agent-host-copilot:/fork-source#peer-1'),
+					label: 'Forked peer',
+					iconPath: undefined,
+					timing: { created: 0, lastRequestStarted: 0, lastRequestEnded: 0 },
+				};
+			},
+		}));
+
+		const forked = await new TestConversationForkAction().tryForkAsChat(
+			instantiationService,
+			URI.parse('agent-host-copilot:/fork-source'),
+		);
+		assert.strictEqual(forked, false);
+		assert.deepStrictEqual(errors, ['Could not fork conversation.']);
+		assert.deepStrictEqual(roster.forkCalls, [{ sessionId: roster.getActiveSessionId() }]);
+		assert.strictEqual(forkCalls, 0);
+		assert.strictEqual(conversationPart.activeGroup.count, 1);
+		assert.strictEqual(sessionChatService.getCatalog(SESSION_KEY).length, 0);
+	});
+
+	test('connected fork unary ok:false is not a successful fork and does not fall through to local stub', async () => {
+		const roster = store.add(new ConnectedForkSentThenRefusedRoster());
 		const errors: string[] = [];
 		const { instantiationService, conversationPart, sessionChatService } = await createHarness(roster, {
 			error: (message: string | Error) => {

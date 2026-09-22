@@ -3257,6 +3257,31 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		}
 	});
 
+	test('whenDispatchedEngineActionSettles waits for connected fork and kill unary', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.forkSubAgent('ua-only', { name: 'reviewer' }), true);
+		assert.strictEqual(await service.whenDispatchedEngineActionSettles(), true);
+
+		connection.writeResult = { ok: false, message: 'denied' };
+		assert.strictEqual(service.forkSubAgent('ua-only', { name: 'reviewer' }), true);
+		assert.strictEqual(await service.whenDispatchedEngineActionSettles(), false);
+
+		assert.strictEqual(service.killSubAgent('ua-only', { agentId: 'sub:reviewer' }), true);
+		assert.strictEqual(await service.whenDispatchedEngineActionSettles(), false);
+
+		connection.writeResult = { ok: true };
+		connection.writeError = new Error('boom');
+		assert.strictEqual(service.forkSubAgent('ua-only', { name: 'reviewer' }), true);
+		assert.strictEqual(await service.whenDispatchedEngineActionSettles(), false);
+	});
+
 	test('disconnected after engine MessageQueue skips unary and stays empty', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());

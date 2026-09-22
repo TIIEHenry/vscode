@@ -67,6 +67,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	override readonly onDidChangeLiveAgentTree = this._onDidChangeLiveAgentTree.event;
 	private readonly _onDidFailEngineAction = this._register(new Emitter<IConversationEngineActionFailure>());
 	override readonly onDidFailEngineAction = this._onDidFailEngineAction.event;
+	private lastDispatchedEngineAction: Promise<boolean> | undefined;
 	private engineSessions: ConversationStubSession[] = [];
 	private activeEngineSessionId: string | undefined;
 	private listCompleted = false;
@@ -948,10 +949,18 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		send: () => Promise<unknown>,
 		recover?: () => void,
 	): void {
-		send().catch(error => {
-			recover?.();
-			this._onDidFailEngineAction.fire({ sessionId, action, error });
-		});
+		this.lastDispatchedEngineAction = send().then(
+			() => true,
+			error => {
+				recover?.();
+				this._onDidFailEngineAction.fire({ sessionId, action, error });
+				return false;
+			},
+		);
+	}
+
+	whenDispatchedEngineActionSettles(): Promise<boolean> {
+		return this.lastDispatchedEngineAction ?? Promise.resolve(true);
 	}
 
 	private cancelEngineGeneration(sessionId: string, agentId: string | undefined, callRemote: boolean): boolean {

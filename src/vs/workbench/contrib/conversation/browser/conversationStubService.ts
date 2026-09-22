@@ -41,6 +41,25 @@ import {
 
 export const IConversationRosterService = createDecorator<IConversationRosterService>('conversationStubService');
 
+/**
+ * `forkSubAgent` / `killSubAgent` `true` only means "sent". Wait here before
+ * treating that as a successful write. Missing settle (stub / test doubles)
+ * keeps the sync boolean as the final result.
+ */
+export async function settleDispatchedEngineWrite(
+	roster: Pick<IConversationRosterService, 'whenDispatchedEngineActionSettles'>,
+	sent: boolean,
+): Promise<boolean> {
+	if (!sent) {
+		return false;
+	}
+	try {
+		return await (roster.whenDispatchedEngineActionSettles?.() ?? true);
+	} catch {
+		return false;
+	}
+}
+
 export interface ILiveAgentTreeChangeEvent {
 	readonly sessionId: string;
 	readonly tree: LiveAgentTreeNodeView;
@@ -66,10 +85,17 @@ export interface IConversationRosterService {
 	readonly onDidChangeLiveAgentTree: Event<ILiveAgentTreeChangeEvent>;
 	/**
 	 * Roster mutations return synchronously, before the engine has answered.
-	 * A `true` return therefore only means "dispatched"; this event is the
-	 * only place a later engine rejection becomes visible.
+	 * A `true` return therefore only means "dispatched". Later `{ ok:false }`
+	 * or a thrown RPC is visible here and via
+	 * {@link whenDispatchedEngineActionSettles}.
 	 */
 	readonly onDidFailEngineAction: Event<IConversationEngineActionFailure>;
+	/**
+	 * Settles the last dispatched engine write. `true` means the unary
+	 * applied; `false` means `{ ok:false }` or the RPC threw. Stub
+	 * implementations omit this — a sync `true` is then the final result.
+	 */
+	whenDispatchedEngineActionSettles?(): Promise<boolean>;
 
 	getSessions(): readonly ConversationStubSession[];
 	getActiveSessionId(): string;

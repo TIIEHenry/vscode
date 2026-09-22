@@ -22,7 +22,8 @@ export type { ConversationKillSubAgentArgs };
  * (`isEngineConnected()===true` + pairingPending) are checked first and
  * show the disconnected notice without calling `killSubAgent`.
  * `!isEngineConnected()` + history (true disconnect leftover) also notices.
- * `killSubAgent` false → failed notice; true stays silent.
+ * `killSubAgent` false or a later unary refusal → failed notice; unary
+ * success stays silent. Sync "sent" true is not treated as killed.
  * Never-connected / non-default windows stay a silent no-op.
  */
 registerAction2(class ConversationKillSubAgentAction extends Action2 {
@@ -36,12 +37,12 @@ registerAction2(class ConversationKillSubAgentAction extends Action2 {
 		});
 	}
 
-	override run(accessor: ServicesAccessor, args?: ConversationKillSubAgentArgs): void {
+	override async run(accessor: ServicesAccessor, args?: ConversationKillSubAgentArgs): Promise<void> {
 		if (!isDefaultCodeWindow(accessor)) {
 			return;
 		}
 		const roster = accessor.get(IConversationRosterService);
 		const notificationService = accessor.get(INotificationService);
-		tryKillSubAgent(roster, notificationService, args, accessor.get(IUniverseAgentConnection));
+		await tryKillSubAgent(roster, notificationService, args, accessor.get(IUniverseAgentConnection));
 	}
 });

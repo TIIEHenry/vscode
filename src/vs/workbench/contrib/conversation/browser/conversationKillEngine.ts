@@ -6,12 +6,13 @@
 import { localize } from '../../../../nls.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { isConversationPairingHold, type IConversationPairingHoldSource } from './conversationSessionStatus.js';
-import { IConversationRosterService } from './conversationStubService.js';
+import { IConversationRosterService, settleDispatchedEngineWrite } from './conversationStubService.js';
 
 /**
  * Engine Kill attempt. `handled` means the action consumed the command
  * (notice on leftover/disconnect-with-history or connected false; silent on
- * connected true). `killed` is a successful `killSubAgent`.
+ * connected unary success). `killed` is a successful engine unary, not a
+ * sync `killSubAgent` "sent" true.
  *
  * Same honesty class as other leftover writes (D318): pairing-hold leftover
  * and leftover-looks-live (`isEngineConnected()===true` + pairingPending)
@@ -48,12 +49,12 @@ function isKeepLeftoverListFailWrite(roster: IConversationRosterService): boolea
 		&& roster.isEngineSessionReady?.() === false;
 }
 
-export function tryKillSubAgent(
+export async function tryKillSubAgent(
 	roster: IConversationRosterService,
 	notificationService: Pick<INotificationService, 'error'>,
 	args?: ConversationKillSubAgentArgs,
 	ua?: IConversationPairingHoldSource,
-): ConversationEngineKillOutcome {
+): Promise<ConversationEngineKillOutcome> {
 	if (isConversationPairingHold(ua)) {
 		if (roster.hasEngineConnectionHistory()) {
 			notificationService.error(conversationKillEngineDisconnectedCopy);
@@ -69,7 +70,10 @@ export function tryKillSubAgent(
 		return { handled: false, killed: false };
 	}
 	if (roster.isEngineConnected()) {
-		const killed = roster.killSubAgent(roster.getActiveSessionId(), args);
+		const killed = await settleDispatchedEngineWrite(
+			roster,
+			roster.killSubAgent(roster.getActiveSessionId(), args),
+		);
 		if (!killed) {
 			notificationService.error(conversationKillEngineFailedCopy);
 		}

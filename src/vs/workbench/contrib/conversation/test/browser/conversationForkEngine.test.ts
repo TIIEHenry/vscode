@@ -14,7 +14,7 @@ suite('conversationForkEngine', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('forkSubAgent false is handled but not a successful fork', () => {
+	test('forkSubAgent false is handled but not a successful fork', async () => {
 		const errors: string[] = [];
 		const forkCalls: string[] = [];
 		const roster = {
@@ -32,7 +32,7 @@ suite('conversationForkEngine', () => {
 			},
 		} as unknown as INotificationService;
 
-		const outcome = tryConnectedEngineFork(roster, notificationService);
+		const outcome = await tryConnectedEngineFork(roster, notificationService);
 
 		assert.strictEqual(outcome.handled, true);
 		assert.strictEqual(outcome.forked, false);
@@ -41,7 +41,7 @@ suite('conversationForkEngine', () => {
 		assert.deepStrictEqual(errors, ['Could not fork conversation.']);
 	});
 
-	test('forkSubAgent true is handled and a successful fork', () => {
+	test('forkSubAgent true is handled and a successful fork', async () => {
 		const errors: string[] = [];
 		const forkCalls: string[] = [];
 		const roster = {
@@ -63,7 +63,7 @@ suite('conversationForkEngine', () => {
 			getConnectionSnapshot: () => ({ pairingPending: false }),
 		};
 
-		const outcome = tryConnectedEngineFork(roster, notificationService, ua);
+		const outcome = await tryConnectedEngineFork(roster, notificationService, ua);
 
 		assert.strictEqual(outcome.handled, true);
 		assert.strictEqual(outcome.forked, true);
@@ -71,7 +71,80 @@ suite('conversationForkEngine', () => {
 		assert.deepStrictEqual(errors, []);
 	});
 
-	test('leftover-looks-live pairing-hold skips fork unary and shows disconnected copy', () => {
+	test('connected fork waits for unary before reporting forked', async () => {
+		const errors: string[] = [];
+		let resolveSettle!: (ok: boolean) => void;
+		const roster = {
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => true,
+			getActiveSessionId: () => 's1',
+			forkSubAgent: () => true,
+			whenDispatchedEngineActionSettles: () => new Promise<boolean>(resolve => {
+				resolveSettle = resolve;
+			}),
+		} as unknown as IConversationRosterService;
+		const notificationService = {
+			error(message: string | Error) {
+				errors.push(typeof message === 'string' ? message : message.message);
+			},
+		} as unknown as INotificationService;
+
+		let outcome: Awaited<ReturnType<typeof tryConnectedEngineFork>> | undefined;
+		const pending = tryConnectedEngineFork(roster, notificationService).then(next => {
+			outcome = next;
+			return next;
+		});
+		await Promise.resolve();
+		assert.strictEqual(outcome, undefined);
+
+		resolveSettle(false);
+		assert.deepStrictEqual(await pending, { handled: true, forked: false });
+		assert.deepStrictEqual(errors, ['Could not fork conversation.']);
+	});
+
+	test('connected fork unary ok:false is handled, not forked, and does not use sync sent', async () => {
+		const errors: string[] = [];
+		const roster = {
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => true,
+			getActiveSessionId: () => 's1',
+			forkSubAgent: () => true,
+			whenDispatchedEngineActionSettles: async () => false,
+		} as unknown as IConversationRosterService;
+
+		const outcome = await tryConnectedEngineFork(roster, {
+			error(message: string | Error) {
+				errors.push(typeof message === 'string' ? message : message.message);
+			},
+		} as unknown as INotificationService);
+
+		assert.deepStrictEqual(outcome, { handled: true, forked: false });
+		assert.deepStrictEqual(errors, ['Could not fork conversation.']);
+	});
+
+	test('connected fork unary throw is handled and not a successful fork', async () => {
+		const errors: string[] = [];
+		const roster = {
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => true,
+			getActiveSessionId: () => 's1',
+			forkSubAgent: () => true,
+			whenDispatchedEngineActionSettles: async () => {
+				throw new Error('boom');
+			},
+		} as unknown as IConversationRosterService;
+
+		const outcome = await tryConnectedEngineFork(roster, {
+			error(message: string | Error) {
+				errors.push(typeof message === 'string' ? message : message.message);
+			},
+		} as unknown as INotificationService);
+
+		assert.deepStrictEqual(outcome, { handled: true, forked: false });
+		assert.deepStrictEqual(errors, ['Could not fork conversation.']);
+	});
+
+	test('leftover-looks-live pairing-hold skips fork unary and shows disconnected copy', async () => {
 		const errors: string[] = [];
 		const roster = {
 			isEngineConnected: () => true,
@@ -86,7 +159,7 @@ suite('conversationForkEngine', () => {
 			getConnectionSnapshot: () => ({ pairingPending: true }),
 		};
 
-		const outcome = tryConnectedEngineFork(roster, {
+		const outcome = await tryConnectedEngineFork(roster, {
 			error(message: string | Error) {
 				errors.push(typeof message === 'string' ? message : message.message);
 			},
@@ -97,7 +170,7 @@ suite('conversationForkEngine', () => {
 		assert.deepStrictEqual(errors, [conversationForkEngineDisconnectedCopy]);
 	});
 
-	test('KEEP leftover list-fail skips fork unary and shows disconnected copy', () => {
+	test('KEEP leftover list-fail skips fork unary and shows disconnected copy', async () => {
 		const errors: string[] = [];
 		const forkCalls: string[] = [];
 		const roster = {
@@ -120,7 +193,7 @@ suite('conversationForkEngine', () => {
 		assert.strictEqual(ua.getConnectionSnapshot().pairingPending, false);
 		assert.strictEqual(isConversationPairingHold(ua), false);
 
-		const outcome = tryConnectedEngineFork(roster, {
+		const outcome = await tryConnectedEngineFork(roster, {
 			error(message: string | Error) {
 				errors.push(typeof message === 'string' ? message : message.message);
 			},
@@ -132,7 +205,7 @@ suite('conversationForkEngine', () => {
 		assert.deepStrictEqual(errors, [conversationForkEngineDisconnectedCopy]);
 	});
 
-	test('disconnected engine fork is neither handled nor forked', () => {
+	test('disconnected engine fork is neither handled nor forked', async () => {
 		const roster = {
 			isEngineConnected: () => false,
 			getActiveSessionId: () => 's1',
@@ -141,12 +214,12 @@ suite('conversationForkEngine', () => {
 			},
 		} as unknown as IConversationRosterService;
 
-		const outcome = tryConnectedEngineFork(roster, { error() { } } as unknown as INotificationService);
+		const outcome = await tryConnectedEngineFork(roster, { error() { } } as unknown as INotificationService);
 
 		assert.deepStrictEqual(outcome, { handled: false, forked: false });
 	});
 
-	test('true disconnect with history still falls through', () => {
+	test('true disconnect with history still falls through', async () => {
 		const errors: string[] = [];
 		const roster = {
 			isEngineConnected: () => false,
@@ -161,7 +234,7 @@ suite('conversationForkEngine', () => {
 			getConnectionSnapshot: () => ({ pairingPending: false }),
 		};
 
-		const outcome = tryConnectedEngineFork(roster, {
+		const outcome = await tryConnectedEngineFork(roster, {
 			error(message: string | Error) {
 				errors.push(typeof message === 'string' ? message : message.message);
 			},
@@ -171,7 +244,7 @@ suite('conversationForkEngine', () => {
 		assert.deepStrictEqual(errors, []);
 	});
 
-	test('pairing-hold leftover fork is handled, not forked, and shows disconnected notice', () => {
+	test('pairing-hold leftover fork is handled, not forked, and shows disconnected notice', async () => {
 		const errors: string[] = [];
 		const roster = {
 			isEngineConnected: () => false,
@@ -186,7 +259,7 @@ suite('conversationForkEngine', () => {
 			getConnectionSnapshot: () => ({ pairingPending: true }),
 		};
 
-		const outcome = tryConnectedEngineFork(roster, {
+		const outcome = await tryConnectedEngineFork(roster, {
 			error(message: string | Error) {
 				errors.push(typeof message === 'string' ? message : message.message);
 			},
@@ -197,7 +270,7 @@ suite('conversationForkEngine', () => {
 		assert.deepStrictEqual(errors, [conversationForkEngineDisconnectedCopy]);
 	});
 
-	test('pairing-hold without history still falls through to stub fork', () => {
+	test('pairing-hold without history still falls through to stub fork', async () => {
 		const errors: string[] = [];
 		const roster = {
 			isEngineConnected: () => false,
@@ -212,7 +285,7 @@ suite('conversationForkEngine', () => {
 			getConnectionSnapshot: () => ({ pairingPending: true }),
 		};
 
-		const outcome = tryConnectedEngineFork(roster, {
+		const outcome = await tryConnectedEngineFork(roster, {
 			error(message: string | Error) {
 				errors.push(typeof message === 'string' ? message : message.message);
 			},

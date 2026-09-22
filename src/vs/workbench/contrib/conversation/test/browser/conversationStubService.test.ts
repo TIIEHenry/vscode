@@ -9,7 +9,7 @@ import { StorageScope } from '../../../../../platform/storage/common/storage.js'
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { formatSyncChromeLabel } from '../../browser/conversationSessionView.js';
 import { CONVERSATION_ROSTER_STORAGE_KEY } from '../../browser/conversationRosterStorage.js';
-import { ConversationStubService } from '../../browser/conversationStubService.js';
+import { ConversationStubService, settleDispatchedEngineWrite } from '../../browser/conversationStubService.js';
 
 function createPersistedService(storage: TestStorageService): ConversationStubService {
 	return new ConversationStubService(storage);
@@ -101,6 +101,19 @@ suite('ConversationStubService', () => {
 		const service = store.add(new ConversationStubService());
 		assert.strictEqual(service.forkSubAgent(service.getActiveSessionId(), { name: 'reviewer' }), false);
 		assert.strictEqual(service.forkSubAgent(service.getActiveSessionId()), false);
+	});
+
+	test('settleDispatchedEngineWrite waits for unary and treats throw as not applied', async () => {
+		assert.strictEqual(await settleDispatchedEngineWrite({}, false), false);
+		assert.strictEqual(await settleDispatchedEngineWrite({}, true), true);
+		assert.strictEqual(await settleDispatchedEngineWrite({
+			whenDispatchedEngineActionSettles: async () => false,
+		}, true), false);
+		assert.strictEqual(await settleDispatchedEngineWrite({
+			whenDispatchedEngineActionSettles: async () => {
+				throw new Error('boom');
+			},
+		}, true), false);
 	});
 
 	test('killSubAgent stays local no-op without engine', () => {

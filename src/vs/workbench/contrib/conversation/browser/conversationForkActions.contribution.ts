@@ -37,7 +37,7 @@ export class ConversationForkConversationAction extends ForkConversationAction {
 
 			const roster = accessor.get(IConversationRosterService);
 			const notificationService = accessor.get(INotificationService);
-			const outcome = tryConnectedEngineFork(roster, notificationService, accessor.get(IUniverseAgentConnection));
+			const outcome = await tryConnectedEngineFork(roster, notificationService, accessor.get(IUniverseAgentConnection));
 			if (outcome.handled) {
 				this.engineForkHandledWithoutSuccess = !outcome.forked;
 				return outcome.forked;
