@@ -216,7 +216,7 @@ export class BaseIssueReporterService extends Disposable {
 	}
 
 	render(): void {
-		this.renderBlocks();
+		this.renderBlocks().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	setInitialFocus() {
@@ -466,7 +466,7 @@ export class BaseIssueReporterService extends Disposable {
 				extension.bugsUrl = uri.toString();
 			}
 		} catch (e) {
-			this.renderBlocks();
+			this.renderBlocks().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -1485,13 +1485,13 @@ export class BaseIssueReporterService extends Disposable {
 			// eslint-disable-next-line no-restricted-syntax
 			const extensionDataBlock = this.window.document.querySelector('.block-extension-data')!;
 			show(extensionDataBlock);
-			this.renderBlocks();
+			this.renderBlocks().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		const uri = this.data.uri;
 		if (uri) {
 			extension.uri = uri;
-			this.updateIssueReporterUri(extension);
+			this.updateIssueReporterUri(extension).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
 		this.validateSelectedExtension();
@@ -1500,7 +1500,7 @@ export class BaseIssueReporterService extends Disposable {
 		this.searchExtensionIssues(title);
 
 		this.updateButtonStates();
-		this.renderBlocks();
+		this.renderBlocks().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	public validateSelectedExtension(): void {
@@ -1552,7 +1552,7 @@ export class BaseIssueReporterService extends Disposable {
 		}
 		showLoading.append(element);
 
-		this.renderBlocks();
+		this.renderBlocks().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	public removeLoading(element: HTMLElement, fromReporter: boolean = false) {
@@ -1574,7 +1574,7 @@ export class BaseIssueReporterService extends Disposable {
 		if (hideLoading.firstChild) {
 			element.remove();
 		}
-		this.renderBlocks();
+		this.renderBlocks().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private setExtensionValidationMessage(): void {
