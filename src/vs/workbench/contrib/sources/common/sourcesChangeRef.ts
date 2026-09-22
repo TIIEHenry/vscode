@@ -20,7 +20,7 @@ export interface ISourcesChangeRef {
 
 const applyHunksPatchByHost = new WeakMap<object, string>();
 
-/** Remember a fetched unifiedDiff on a host (ConversationDiffReviewInput). Empty / whitespace stays rejected. */
+/** Remember a fetched unifiedDiff on a host (ConversationDiffReviewInput / DiffEditorInput). Empty / whitespace stays rejected. */
 export function attachSourcesGitApplyHunksPatch(host: object, unifiedDiff: string): void {
 	if (unifiedDiff.trim() === '') {
 		return;

@@ -7,6 +7,7 @@ import assert from 'assert';
 import { Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
+import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { DiffEditorInput } from '../../../../common/editor/diffEditorInput.js';
 import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
@@ -46,7 +47,7 @@ suite('Sources - Diff ref helpers', () => {
 		return service;
 	}
 
-	function createEditorService(activeEditor: EditorInput | undefined): IEditorService & { closed: EditorInput[]; opened: unknown[] } {
+	function createEditorService(activeEditor: EditorInput | undefined, instantiationService?: IInstantiationService): IEditorService & { closed: EditorInput[]; opened: unknown[] } {
 		const state = {
 			activeEditor,
 			closed: [] as EditorInput[],
@@ -63,6 +64,18 @@ suite('Sources - Diff ref helpers', () => {
 			},
 			openEditor: async (input: unknown) => {
 				state.opened.push(input);
+				if (input instanceof EditorInput) {
+					state.activeEditor = input;
+					return { input };
+				}
+				const untyped = input as { original?: { resource?: URI }; modified?: { resource?: URI } };
+				if (instantiationService && untyped.original?.resource && untyped.modified?.resource) {
+					const originalInput = store.add(new TestEditorInput(untyped.original.resource, 'test.original'));
+					const modifiedInput = store.add(new TestEditorInput(untyped.modified.resource, 'test.modified'));
+					const diffInput = store.add(instantiationService.createInstance(DiffEditorInput, undefined, undefined, originalInput, modifiedInput, undefined));
+					state.activeEditor = diffInput;
+					return { input: diffInput };
+				}
 				return undefined;
 			},
 			get closed() { return state.closed; },
@@ -243,6 +256,95 @@ suite('Sources - Diff ref helpers', () => {
 		assert.ok(opened instanceof ConversationDiffReviewInput);
 		store.add(opened);
 		assert.deepStrictEqual(sourcesGitApplyHunksPatches(opened), []);
+	});
+
+	test('move to preview carries conversation WeakMap patch onto DiffEditorInput', async function () {
+		const conversationModified = toResource.call(this, '/project/preview-carry.ts');
+		const conversationOriginal = toResource.call(this, '/project/preview-carry.ts.git');
+
+		const conversationInput = store.add(new ConversationDiffReviewInput(conversationModified, conversationOriginal, 'workingTree'));
+		attachSourcesGitApplyHunksPatch(conversationInput, carriedUnifiedDiff);
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const editorService = createEditorService(conversationInput, instantiationService);
+
+		await moveActiveDiffToPreview(editorService, createScmService(), createPanelService());
+
+		const previewHost = editorService.activeEditor;
+		assert.ok(previewHost instanceof DiffEditorInput);
+		assert.notStrictEqual(previewHost, conversationInput);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(previewHost), [carriedUnifiedDiff]);
+		assert.strictEqual(resolveSourcesChangeRefFromEditor(previewHost, createScmService())?.unifiedDiff, carriedUnifiedDiff);
+	});
+
+	test('move to preview carries panel unifiedDiff onto DiffEditorInput', async function () {
+		const panelModified = toResource.call(this, '/project/preview-panel.ts');
+		const panelOriginal = toResource.call(this, '/project/preview-panel.ts.git');
+		const fileUri = toResource.call(this, '/project/notes.md');
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const fileInput = store.add(new TestEditorInput(fileUri, 'test.file'));
+		const editorService = createEditorService(fileInput, instantiationService);
+		const panelService = createPanelService({
+			modified: panelModified,
+			original: panelOriginal,
+			groupId: 'workingTree',
+			unifiedDiff: carriedUnifiedDiff,
+		});
+
+		await moveActiveDiffToPreview(editorService, createScmService(), panelService);
+
+		const previewHost = editorService.activeEditor;
+		assert.ok(previewHost instanceof DiffEditorInput);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(previewHost), [carriedUnifiedDiff]);
+	});
+
+	test('Conversation to Preview to Conversation keeps the carried patch', async function () {
+		const conversationModified = toResource.call(this, '/project/round-trip.ts');
+		const conversationOriginal = toResource.call(this, '/project/round-trip.ts.git');
+
+		const conversationInput = store.add(new ConversationDiffReviewInput(conversationModified, conversationOriginal, 'workingTree'));
+		attachSourcesGitApplyHunksPatch(conversationInput, carriedUnifiedDiff);
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const editorService = createEditorService(conversationInput, instantiationService);
+		const panelService = createPanelService();
+
+		await moveActiveDiffToPreview(editorService, createScmService(), panelService);
+		const previewHost = editorService.activeEditor;
+		assert.ok(previewHost instanceof DiffEditorInput);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(previewHost), [carriedUnifiedDiff]);
+
+		await moveActiveDiffToConversation(editorService, createScmService(), instantiationService, panelService);
+
+		const reopened = editorService.opened.find((input): input is ConversationDiffReviewInput => input instanceof ConversationDiffReviewInput);
+		assert.ok(reopened);
+		store.add(reopened);
+		assert.notStrictEqual(reopened, conversationInput);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(reopened), [carriedUnifiedDiff]);
+	});
+
+	test('move to preview leaves empty patch absent', async function () {
+		const panelModified = toResource.call(this, '/project/preview-empty.ts');
+		const panelOriginal = toResource.call(this, '/project/preview-empty.ts.git');
+		const fileUri = toResource.call(this, '/project/empty-notes.md');
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const fileInput = store.add(new TestEditorInput(fileUri, 'test.file'));
+		const editorService = createEditorService(fileInput, instantiationService);
+		const panelService = createPanelService({
+			modified: panelModified,
+			original: panelOriginal,
+			groupId: 'workingTree',
+			unifiedDiff: '',
+		});
+
+		await moveActiveDiffToPreview(editorService, createScmService(), panelService);
+
+		const previewHost = editorService.activeEditor;
+		assert.ok(previewHost instanceof DiffEditorInput);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(previewHost), []);
+		assert.strictEqual(resolveSourcesChangeRefFromEditor(previewHost, createScmService())?.unifiedDiff, undefined);
 	});
 
 	test('Conversation Diff serializer cannot persist WeakMap patch', function () {

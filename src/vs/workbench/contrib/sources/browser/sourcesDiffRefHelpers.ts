@@ -48,16 +48,17 @@ export async function openSourcesChangeRefInPreview(
 	ref: ISourcesChangeRef,
 	editorService: IEditorService,
 ): Promise<void> {
-	if (ref.original) {
-		await editorService.openEditor({
+	const pane = ref.original
+		? await editorService.openEditor({
 			original: { resource: ref.original },
 			modified: { resource: ref.modified },
 			options: { pinned: true },
-		}, ACTIVE_GROUP);
-		return;
+		}, ACTIVE_GROUP)
+		: await editorService.openEditor({ resource: ref.modified }, ACTIVE_GROUP);
+	const host = pane?.input ?? editorService.activeEditor;
+	if (host) {
+		attachCarriedSourcesGitApplyHunksPatch(host, ref);
 	}
-
-	await editorService.openEditor({ resource: ref.modified }, ACTIVE_GROUP);
 }
 
 export async function openSourcesChangeRefInConversation(
