@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-22
-summary: "合入人类 agent-ide：metadata_json 入站 + 方案账改口（活流 decoder 已重叠，Chat 臂与 recover 仍开；D944 因 D413 撞号）。leftover catch 至 D1294。S4b snapshot 回归测已入库。D24 仍开。不是 leftover/pills 完成。"
+summary: "合入工位 D 的 tasks leftover 双链（D1295）。A 的 D752 与 C 的 gitlink 不入库。人类工位 WIP 仍在。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
@@ -17,7 +17,7 @@ summary: "合入人类 agent-ide：metadata_json 入站 + 方案账改口（活�
 | 切片 | 提交 |
 |:-----|:-----|
 | **A SessionStream / L2** | 16/23/30–32/34–39/44/46/50–52；envelope leftover |
-| **catch** | D677–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847、D850–D851、D854–D858、D860–D868、D871、D875–D876、D881、D883、D886、D895、D898、D917、D922、D939、D943、D955、D964、D972、D974、D978、D980、D983、D1015、D1032、D1254、D1258、D1278、D1294 |
+| **catch** | D677–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847、D850–D851、D854–D858、D860–D868、D871、D875–D876、D881、D883、D886、D895、D898、D917、D922、D939、D943、D955、D964、D972、D974、D978、D980、D983、D1015、D1032、D1254、D1258、D1278、D1294、D1295 |
 | **UA chrome** | 人类 `agent-ide`：Maximize Inbox 文档流、pairing-hold 禁 Connect、Diff SIDE_GROUP、live SAS/Stop 可达、本地 health-gates 门禁说明 |
 | **四份方案** | 活流 decoder/thinking 已与 SessionStream 波重叠，Chat 11/13/20 与 recover 仍开；拨号 / 绑定叶 / Sources 打开身份未实施。跟踪 [D944](deferred-gaps.md) |
 
@@ -25,7 +25,7 @@ summary: "合入人类 agent-ide：metadata_json 入站 + 方案账改口（活�
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **loop** | leftover remaining unused 未完成。D1294 已合入（compile-client 0，mocha 5/0）。本 tick 合入人类 `agent-ide`（metadata_json）。人类 UA chrome 在祖先，未 dual-push。D759 脏无 scan 不 `-B`。B 脏跳过；C gitlink 勿 add；E blocked。 |
+| **loop** | leftover 未完成。D1295 tasks 双链已合入 merge（`_runWithPermission` 仍只 void）。A 的 D752 扫描不入库。C gitlink 不 add。E blocked。人类工位 WIP 仍在。 |
 
 子 agent 发现：
 | ID | 问题 |
