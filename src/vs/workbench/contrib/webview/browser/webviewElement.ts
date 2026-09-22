@@ -299,7 +299,7 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 					id: entry.id,
 					status: 404,
 					path: entry.path,
-				});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -689,7 +689,7 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 			state: this._content.state,
 			cspSource: webviewGenericCspSource,
 			confirmBeforeClose: this._confirmBeforeClose,
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	protected style(): void {
@@ -877,7 +877,7 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 							mtime: result.mtime,
 							range: rangeHeader,
 							stream,
-						}, [stream]);
+						}, [stream]).catch(onUnexpectedError).catch(onUnexpectedError);
 					} else {
 						// Safari: transferable streams not supported, fall back to chunk messages
 						this._send('did-load-resource', {
@@ -888,7 +888,7 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 							etag: result.etag,
 							mtime: result.mtime,
 							range: rangeHeader,
-						});
+						}).catch(onUnexpectedError).catch(onUnexpectedError);
 						listenStream(result.stream, {
 							onData: (chunk) => {
 								// Copy into a freshly-owned ArrayBuffer before transferring. `chunk`
