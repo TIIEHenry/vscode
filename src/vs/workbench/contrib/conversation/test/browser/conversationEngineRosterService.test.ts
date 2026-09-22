@@ -127,9 +127,20 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		return this.renameResult;
 	}
 	readonly cancelCalls: { sessionId: string; agentId: string }[] = [];
+	writeResult: { ok: boolean; error?: string; message?: string } = { ok: true };
+	writeError: Error | undefined;
+	private async resolveWriteResult<T extends { ok: boolean }>(success: T): Promise<T | { ok: boolean; error?: string; message?: string }> {
+		if (this.writeError) {
+			throw this.writeError;
+		}
+		if (this.writeResult.ok === false) {
+			return this.writeResult;
+		}
+		return success;
+	}
 	async cancelGeneration(request: { sessionId: string; agentId: string }) {
 		this.cancelCalls.push({ sessionId: request.sessionId, agentId: request.agentId });
-		return { ok: true };
+		return this.resolveWriteResult({ ok: true });
 	}
 	readonly setGoalCalls: { sessionId: string; goal: string }[] = [];
 	setGoalResult: { ok: boolean; message?: string } = { ok: true };
@@ -159,7 +170,7 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 			name: request.name,
 			task: request.task,
 		});
-		return { ok: true, agentId: 'sub:reviewer' };
+		return this.resolveWriteResult({ ok: true, agentId: 'sub:reviewer' });
 	}
 	readonly killCalls: { sessionId: string; agentId: string; force?: boolean }[] = [];
 	readonly createSnapshotCalls: { sessionId: string; title: string; description?: string }[] = [];
@@ -169,7 +180,7 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 			title: request.title,
 			description: request.description,
 		});
-		return { ok: true };
+		return this.resolveWriteResult({ ok: true });
 	}
 	async killAgent(request: { sessionId: string; agentId: string; force?: boolean }) {
 		this.killCalls.push({
@@ -177,7 +188,7 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 			agentId: request.agentId,
 			force: request.force,
 		});
-		return { ok: true };
+		return this.resolveWriteResult({ ok: true });
 	}
 	readonly editMessageCalls: { sessionId: string; turnId: string; newContent: string; agentId?: string }[] = [];
 	async editMessage(request: { sessionId: string; turnId: string; newContent: string; agentId?: string }) {
@@ -187,7 +198,7 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 			newContent: request.newContent,
 			agentId: request.agentId,
 		});
-		return { ok: true };
+		return this.resolveWriteResult({ ok: true });
 	}
 	readonly cancelToolCallCalls: { sessionId: string; agentId?: string; toolCallId: string }[] = [];
 	async cancelToolCall(request: { sessionId: string; agentId?: string; toolCallId: string }) {
@@ -196,7 +207,7 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 			agentId: request.agentId,
 			toolCallId: request.toolCallId,
 		});
-		return { ok: true };
+		return this.resolveWriteResult({ ok: true });
 	}
 	readonly continuationOpens: { sessionId: string; agentId: string; turnId: string; messageId: string }[] = [];
 	openContinuationStream(request: { sessionId: string; agentId: string; turnId: string; messageId: string }) {
@@ -215,7 +226,7 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 			turnId: request.turnId,
 			agentId: request.agentId,
 		});
-		return { ok: true };
+		return this.resolveWriteResult({ ok: true });
 	}
 	readonly respondPermissionCalls: { sessionId: string; requestId: string; granted: boolean }[] = [];
 	async respondPermission(request: { sessionId: string; requestId: string; granted: boolean }) {
@@ -224,7 +235,7 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 			requestId: request.requestId,
 			granted: request.granted,
 		});
-		return { ok: true };
+		return this.resolveWriteResult({ ok: true });
 	}
 	readonly sendClientToolResponseCalls: { sessionId: string; callId: string; content?: string; isError?: boolean; metadataJson?: string }[] = [];
 	async sendClientToolResponse(request: { sessionId: string; callId: string; content?: string; isError?: boolean; metadataJson?: string }) {
@@ -235,7 +246,7 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 			isError: request.isError,
 			metadataJson: request.metadataJson,
 		});
-		return { ok: true };
+		return this.resolveWriteResult({ ok: true });
 	}
 	readonly respondQuestionCalls: { sessionId: string; questionId: string; answers?: Readonly<Record<string, { readonly selectedLabels: readonly string[] }>>; customText?: string }[] = [];
 	async respondQuestion(request: { sessionId: string; questionId: string; answers?: Readonly<Record<string, { readonly selectedLabels: readonly string[] }>>; customText?: string }) {
@@ -245,7 +256,7 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 			answers: request.answers,
 			customText: request.customText,
 		});
-		return { ok: true };
+		return this.resolveWriteResult({ ok: true });
 	}
 	readonly enqueueCalls: { sessionId: string; text: string; priority?: string; opId?: string }[] = [];
 	queueResult: { ok: boolean; error?: string; itemId?: string } = { ok: true };
@@ -3139,6 +3150,107 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			assert.deepStrictEqual(service.getMessageQueueState('ua-only').items, []);
 			assert.strictEqual((connection as { getQueue?: unknown }).getQueue, undefined);
 			assert.strictEqual((connection as { listQueue?: unknown }).listQueue, undefined);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('connected remaining writes ok:false reports onDidFailEngineAction', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const storage = store.add(new TestStorageService());
+			const connection = store.add(new MockUniverseAgentConnection());
+			connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+			const service = store.add(createService(connection, storage));
+			connection.setConnected(true);
+			service.setEngineConnected(true);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+			const failures: { action: string; message: string }[] = [];
+			store.add(service.onDidFailEngineAction(failure => failures.push({
+				action: failure.action,
+				message: failure.error instanceof Error ? failure.error.message : String(failure.error),
+			})));
+
+			connection.writeResult = { ok: false, message: 'denied' };
+			assert.strictEqual(service.forkSubAgent('ua-only', { name: 'reviewer' }), true);
+			assert.strictEqual(service.killSubAgent('ua-only', { agentId: 'sub:reviewer' }), true);
+			assert.strictEqual(service.createSnapshot('ua-only', { title: 'checkpoint' }), true);
+			assert.strictEqual(service.cancelGeneration('ua-only'), true);
+			assert.strictEqual(service.cancelToolCall('ua-only', { toolCallId: 'tc-1' }), true);
+			assert.strictEqual(service.deleteTurn('ua-only', 'turn-1'), true);
+			assert.strictEqual(service.updateUserTurnText('ua-only', 'turn-1', 'later'), true);
+			assert.strictEqual(service.resolveConfirmation('ua-only', 'req-1', 'allowed'), true);
+			assert.strictEqual(service.respondQuestion('ua-only', 'q-1'), true);
+			assert.strictEqual(service.respondClientTool('ua-only', 'call-1', { content: '{}' }), true);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+			assert.deepStrictEqual(failures, [
+				{ action: 'forkAgent', message: 'denied' },
+				{ action: 'killAgent', message: 'denied' },
+				{ action: 'createSnapshot', message: 'denied' },
+				{ action: 'cancelGeneration', message: 'denied' },
+				{ action: 'cancelToolCall', message: 'denied' },
+				{ action: 'deleteMessage', message: 'denied' },
+				{ action: 'editMessage', message: 'denied' },
+				{ action: 'respondPermission', message: 'denied' },
+				{ action: 'respondQuestion', message: 'denied' },
+				{ action: 'sendClientToolResponse', message: 'denied' },
+			]);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('connected remaining writes remote throw reports failure without unhandled rejection', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const storage = store.add(new TestStorageService());
+			const connection = store.add(new MockUniverseAgentConnection());
+			connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+			const service = store.add(createService(connection, storage));
+			connection.setConnected(true);
+			service.setEngineConnected(true);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+			const boom = new Error('boom');
+			connection.writeError = boom;
+			const failures: { action: string; error: unknown }[] = [];
+			store.add(service.onDidFailEngineAction(failure => failures.push({
+				action: failure.action,
+				error: failure.error,
+			})));
+
+			assert.strictEqual(service.forkSubAgent('ua-only', { name: 'reviewer' }), true);
+			assert.strictEqual(service.killSubAgent('ua-only', { agentId: 'sub:reviewer' }), true);
+			assert.strictEqual(service.createSnapshot('ua-only', { title: 'checkpoint' }), true);
+			assert.strictEqual(service.cancelGeneration('ua-only'), true);
+			assert.strictEqual(service.cancelToolCall('ua-only', { toolCallId: 'tc-1' }), true);
+			assert.strictEqual(service.deleteTurn('ua-only', 'turn-1'), true);
+			assert.strictEqual(service.updateUserTurnText('ua-only', 'turn-1', 'later'), true);
+			assert.strictEqual(service.resolveConfirmation('ua-only', 'req-1', 'allowed'), true);
+			assert.strictEqual(service.respondQuestion('ua-only', 'q-1'), true);
+			assert.strictEqual(service.respondClientTool('ua-only', 'call-1', { content: '{}' }), true);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+			assert.deepStrictEqual(failures, [
+				{ action: 'forkAgent', error: boom },
+				{ action: 'killAgent', error: boom },
+				{ action: 'createSnapshot', error: boom },
+				{ action: 'cancelGeneration', error: boom },
+				{ action: 'cancelToolCall', error: boom },
+				{ action: 'deleteMessage', error: boom },
+				{ action: 'editMessage', error: boom },
+				{ action: 'respondPermission', error: boom },
+				{ action: 'respondQuestion', error: boom },
+				{ action: 'sendClientToolResponse', error: boom },
+			]);
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);

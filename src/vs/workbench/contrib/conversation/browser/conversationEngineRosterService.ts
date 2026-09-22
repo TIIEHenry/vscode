@@ -11,7 +11,6 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { shouldRestoreLastSessionOnStartup } from '../common/uaClientSettingsHelpers.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentQueueMutationResult } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { isConversationEngineLive, isConversationPairingHold, shouldKeepLiveTreeLeaseWhilePairing, shouldRebindLiveTreeLeaseWhilePairing } from './conversationSessionStatus.js';
 import { IUniverseAgentSessionView } from '../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import type { ConversationQuestionRespondAnswers, IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
@@ -961,8 +960,10 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 		const resolved = agentId?.trim() || this.lastStreamingAgentId(sessionId) || 'root';
 		if (callRemote) {
-			this.dispatchEngineAction(sessionId, 'cancelGeneration', () =>
-				this.uaConnection.cancelGeneration({ sessionId, agentId: resolved }));
+			this.dispatchEngineAction(sessionId, 'cancelGeneration', this.wrapEngineQueueMutation(
+				'cancelGeneration',
+				() => this.uaConnection.cancelGeneration({ sessionId, agentId: resolved }),
+			));
 			return true;
 		}
 		return false;
@@ -1054,12 +1055,15 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			const parentAgentId = options?.parentAgentId?.trim() || this.lastStreamingAgentId(sessionId) || 'root';
 			const name = options?.name?.trim();
 			const task = options?.task?.trim();
-			this.dispatchEngineAction(sessionId, 'forkAgent', () => this.uaConnection.forkAgent!({
-				sessionId,
-				parentAgentId,
-				...(name ? { name } : {}),
-				...(task ? { task } : {}),
-			}));
+			this.dispatchEngineAction(sessionId, 'forkAgent', this.wrapEngineQueueMutation(
+				'forkAgent',
+				() => this.uaConnection.forkAgent!({
+					sessionId,
+					parentAgentId,
+					...(name ? { name } : {}),
+					...(task ? { task } : {}),
+				}),
+			));
 			return true;
 		}
 		return false;
@@ -1084,11 +1088,14 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				? options.title
 				: localize('conversationCreateSnapshotDefaultTitle', "Snapshot");
 			const description = options?.description;
-			this.dispatchEngineAction(sessionId, 'createSnapshot', () => this.uaConnection.createSnapshot!({
-				sessionId,
-				title,
-				...(description !== undefined ? { description } : {}),
-			}));
+			this.dispatchEngineAction(sessionId, 'createSnapshot', this.wrapEngineQueueMutation(
+				'createSnapshot',
+				() => this.uaConnection.createSnapshot!({
+					sessionId,
+					title,
+					...(description !== undefined ? { description } : {}),
+				}),
+			));
 			return true;
 		}
 		return false;
@@ -1109,11 +1116,14 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			const agentId = options?.agentId !== undefined
 				? options.agentId.trim()
 				: (this.lastStreamingAgentId(sessionId) ?? '');
-			this.dispatchEngineAction(sessionId, 'killAgent', () => this.uaConnection.killAgent!({
-				sessionId,
-				agentId,
-				...(options?.force === true ? { force: true } : {}),
-			}));
+			this.dispatchEngineAction(sessionId, 'killAgent', this.wrapEngineQueueMutation(
+				'killAgent',
+				() => this.uaConnection.killAgent!({
+					sessionId,
+					agentId,
+					...(options?.force === true ? { force: true } : {}),
+				}),
+			));
 			return true;
 		}
 		return false;
@@ -1138,13 +1148,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			}
 			const content = options?.content;
 			const metadataJson = options?.metadataJson;
-			this.dispatchEngineAction(sessionId, 'sendClientToolResponse', () => this.uaConnection.sendClientToolResponse!({
-				sessionId,
-				callId: trimmedCallId,
-				...(options?.isError === true ? { isError: true } : {}),
-				...(content !== undefined ? { content } : {}),
-				...(metadataJson !== undefined ? { metadataJson } : {}),
-			}));
+			this.dispatchEngineAction(sessionId, 'sendClientToolResponse', this.wrapEngineQueueMutation(
+				'sendClientToolResponse',
+				() => this.uaConnection.sendClientToolResponse!({
+					sessionId,
+					callId: trimmedCallId,
+					...(options?.isError === true ? { isError: true } : {}),
+					...(content !== undefined ? { content } : {}),
+					...(metadataJson !== undefined ? { metadataJson } : {}),
+				}),
+			));
 			return true;
 		}
 		return false;
@@ -1167,11 +1180,14 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (!this.uaConnection.respondPermission) {
 				return false;
 			}
-			this.dispatchEngineAction(sessionId, 'respondPermission', () => this.uaConnection.respondPermission!({
-				sessionId,
-				requestId,
-				granted: status === 'allowed',
-			}));
+			this.dispatchEngineAction(sessionId, 'respondPermission', this.wrapEngineQueueMutation(
+				'respondPermission',
+				() => this.uaConnection.respondPermission!({
+					sessionId,
+					requestId,
+					granted: status === 'allowed',
+				}),
+			));
 			return true;
 		}
 		return false;
@@ -1195,12 +1211,15 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (!this.uaConnection.respondQuestion) {
 				return false;
 			}
-			this.dispatchEngineAction(sessionId, 'respondQuestion', () => this.uaConnection.respondQuestion!({
-				sessionId,
-				questionId: trimmedQuestionId,
-				...(answers !== undefined ? { answers } : {}),
-				...(customText !== undefined ? { customText } : {}),
-			}));
+			this.dispatchEngineAction(sessionId, 'respondQuestion', this.wrapEngineQueueMutation(
+				'respondQuestion',
+				() => this.uaConnection.respondQuestion!({
+					sessionId,
+					questionId: trimmedQuestionId,
+					...(answers !== undefined ? { answers } : {}),
+					...(customText !== undefined ? { customText } : {}),
+				}),
+			));
 			return true;
 		}
 		return false;
@@ -1219,8 +1238,10 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				return false;
 			}
 			const agentId = this.lastStreamingAgentId(sessionId) || 'root';
-			this.dispatchEngineAction(sessionId, 'deleteMessage', () =>
-				this.uaConnection.deleteMessage!({ sessionId, turnId: trimmedTurnId, agentId }));
+			this.dispatchEngineAction(sessionId, 'deleteMessage', this.wrapEngineQueueMutation(
+				'deleteMessage',
+				() => this.uaConnection.deleteMessage!({ sessionId, turnId: trimmedTurnId, agentId }),
+			));
 			return true;
 		}
 		return false;
@@ -1243,8 +1264,10 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				return false;
 			}
 			const agentId = options.agentId?.trim() || this.lastStreamingAgentId(sessionId) || 'root';
-			this.dispatchEngineAction(sessionId, 'cancelToolCall', () =>
-				this.uaConnection.cancelToolCall!({ sessionId, agentId, toolCallId }));
+			this.dispatchEngineAction(sessionId, 'cancelToolCall', this.wrapEngineQueueMutation(
+				'cancelToolCall',
+				() => this.uaConnection.cancelToolCall!({ sessionId, agentId, toolCallId }),
+			));
 			return true;
 		}
 		return false;
@@ -1281,15 +1304,15 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	/**
-	 * Queue unaries resolve `{ ok, itemId }` without throwing. `ok:false` is
-	 * still a refusal — same as {@link setEngineSessionGoal}. `itemId` is not
+	 * Writes that resolve `{ ok }` without throwing. `ok:false` is still a
+	 * refusal — same as {@link setEngineSessionGoal}. Queue `itemId` is not
 	 * applied locally: there is no GetQueue / ListQueue.
 	 */
 	private wrapEngineQueueMutation(action: string, send: () => Promise<unknown>): () => Promise<void> {
 		return async () => {
-			const result = await send() as UniverseAgentQueueMutationResult | undefined;
+			const result = await send() as { ok?: boolean; error?: string; message?: string } | undefined;
 			if (result && result.ok === false) {
-				throw new Error(result.error?.trim() || `${action} refused`);
+				throw new Error(result.error?.trim() || result.message?.trim() || `${action} refused`);
 			}
 		};
 	}
@@ -1410,12 +1433,15 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				return false;
 			}
 			const agentId = this.lastStreamingAgentId(sessionId) || 'root';
-			this.dispatchEngineAction(sessionId, 'editMessage', () => this.uaConnection.editMessage!({
-				sessionId,
-				turnId: trimmedTurnId,
-				newContent: trimmedText,
-				agentId,
-			}));
+			this.dispatchEngineAction(sessionId, 'editMessage', this.wrapEngineQueueMutation(
+				'editMessage',
+				() => this.uaConnection.editMessage!({
+					sessionId,
+					turnId: trimmedTurnId,
+					newContent: trimmedText,
+					agentId,
+				}),
+			));
 			return true;
 		}
 		return false;
