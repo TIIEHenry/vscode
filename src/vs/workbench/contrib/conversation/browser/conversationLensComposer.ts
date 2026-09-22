@@ -357,7 +357,9 @@ export function saveTurnEdit(host: IConversationLensComposerHost): void {
 			return;
 		}
 		const sessionId = host.getBoundSessionId();
-		const turnId = host.editingTurnId;
+		const editingTurnId = host.editingTurnId;
+		const turn = host.stubService.getTurns(sessionId).find(t => t.id === editingTurnId && t.kind === 'user');
+		const turnId = turn?.turnId?.trim() || editingTurnId;
 		const saved = host.stubService.updateUserTurnText(sessionId, turnId, text);
 		if (!saved) {
 			host.showPostFailure(

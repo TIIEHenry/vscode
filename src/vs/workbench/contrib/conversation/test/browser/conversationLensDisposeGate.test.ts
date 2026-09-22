@@ -1863,6 +1863,7 @@ suite('conversation lens dispose gate', () => {
 					state.queueWrites++;
 					return true;
 				},
+				getTurns: () => [],
 				releaseMessageQueueItemHold: () => { },
 			},
 			uaConnection: {
@@ -3064,6 +3065,7 @@ suite('conversation lens dispose gate', () => {
 				updateUserTurnText: () => false,
 				isEngineConnected: () => false,
 				hasEngineConnectionHistory: () => true,
+				getTurns: () => [],
 			},
 			exitComposerEdit: () => { exited++; },
 			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
@@ -3092,6 +3094,7 @@ suite('conversation lens dispose gate', () => {
 				updateUserTurnText: () => false,
 				isEngineConnected: () => false,
 				hasEngineConnectionHistory: () => false,
+				getTurns: () => [],
 			},
 			exitComposerEdit: () => { exited++; },
 			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
@@ -3119,6 +3122,7 @@ suite('conversation lens dispose gate', () => {
 				updateUserTurnText: () => true,
 				isEngineConnected: () => false,
 				hasEngineConnectionHistory: () => false,
+				getTurns: () => [],
 			},
 			exitComposerEdit: () => { exited++; },
 			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
@@ -3130,6 +3134,122 @@ suite('conversation lens dispose gate', () => {
 
 		assert.deepStrictEqual(failures, []);
 		assert.strictEqual(exited, 1);
+	});
+
+	function saveTurnEditWriteHost(options: {
+		editingTurnId: string;
+		turns: readonly { id: string; kind: string; text: string; turnId?: string }[];
+	}): {
+		host: IConversationLensComposerHost;
+		written: { sessionId: string; turnId: string; text: string }[];
+	} {
+		const written: { sessionId: string; turnId: string; text: string }[] = [];
+		const host = {
+			composerPolicy: 'turnEdit' as const,
+			editingTurnId: options.editingTurnId,
+			dockTextarea: { value: 'revised later' },
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				getTurns: () => options.turns,
+				updateUserTurnText: (sessionId: string, turnId: string, text: string) => {
+					written.push({ sessionId, turnId, text });
+					return true;
+				},
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+				hasEngineConnectionHistory: () => true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+			},
+			exitComposerEdit: () => { },
+			showPostFailure: () => { },
+		} as unknown as IConversationLensComposerHost;
+		return { host, written };
+	}
+
+	test('saveTurnEdit with display id e1 and turnId t1 writes t1', () => {
+		const { host, written } = saveTurnEditWriteHost({
+			editingTurnId: 'e1',
+			turns: [{ id: 'e1', kind: 'user', text: 'hello', turnId: 't1' }],
+		});
+		saveTurnEdit(host);
+		assert.strictEqual(host.editingTurnId, 'e1');
+		assert.deepStrictEqual(written, [{ sessionId: 'sess-1', turnId: 't1', text: 'revised later' }]);
+	});
+
+	test('saveTurnEdit without turnId writes display id', () => {
+		const { host, written } = saveTurnEditWriteHost({
+			editingTurnId: 'e1',
+			turns: [{ id: 'e1', kind: 'user', text: 'hello' }],
+		});
+		saveTurnEdit(host);
+		assert.strictEqual(host.editingTurnId, 'e1');
+		assert.deepStrictEqual(written, [{ sessionId: 'sess-1', turnId: 'e1', text: 'revised later' }]);
+	});
+
+	test('saveTurnEdit blank turnId and missing row still write display id', () => {
+		const blank = saveTurnEditWriteHost({
+			editingTurnId: 'e1',
+			turns: [{ id: 'e1', kind: 'user', text: 'hello', turnId: '   ' }],
+		});
+		saveTurnEdit(blank.host);
+		assert.deepStrictEqual(blank.written, [{ sessionId: 'sess-1', turnId: 'e1', text: 'revised later' }]);
+		const missing = saveTurnEditWriteHost({
+			editingTurnId: 'e1',
+			turns: [],
+		});
+		saveTurnEdit(missing.host);
+		assert.deepStrictEqual(missing.written, [{ sessionId: 'sess-1', turnId: 'e1', text: 'revised later' }]);
+	});
+
+	test('beginTurnEdit highlight stays on display id when L1 turnId differs', () => {
+		const highlighted: (string | undefined)[] = [];
+		const composer = document.createElement('div');
+		const composerCluster = document.createElement('div');
+		const composerEditHeader = document.createElement('div');
+		const composerEditTitle = document.createElement('div');
+		const editHost = document.createElement('div');
+		const dockRoot = document.createElement('div');
+		const prefirstHero = document.createElement('div');
+		composerCluster.appendChild(composer);
+		const dockTextarea = document.createElement('textarea');
+		dockTextarea.value = 'draft';
+		const chromeHost = {
+			composerPolicy: 'compose' as const,
+			editingTurnId: undefined as string | undefined,
+			editingQueueItemId: undefined as string | undefined,
+			composeDraftSnapshot: '',
+			dockTextarea,
+			sendButton: { enabled: true, setTitle() { }, setAriaLabel() { } },
+			composer,
+			composerCluster,
+			composerEditHeader,
+			composerEditTitle,
+			dockRoot,
+			prefirstHero,
+			isPreFirst: () => false,
+			getBoundSessionId: () => 'sess-1',
+			inboxOverlay: { closeListPanel() { } },
+			timelineTree: {
+				setEditingTurnId: (id?: string) => { highlighted.push(id); },
+				getTurnEditHost: () => editHost,
+			},
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+				getTurns: () => [{ id: 'e1', kind: 'user', text: 'hello', turnId: 't1' }],
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+			},
+		};
+		beginTurnEdit(chromeHost as unknown as IConversationLensComposerChromeHost, 'e1');
+		assert.strictEqual(chromeHost.editingTurnId, 'e1');
+		assert.deepStrictEqual(highlighted, ['e1']);
+		assert.strictEqual(chromeHost.composerPolicy, 'turnEdit');
 	});
 
 	test('saveQueueEdit roster false after disconnect stays in edit and shows engine_disconnected', () => {
