@@ -14,6 +14,30 @@ export interface ISourcesChangeRef {
 	readonly original: URI | undefined;
 	readonly groupId: string;
 	readonly scmResource?: ISCMResource;
+	/** Fetched `ReadGitFileDiff` body for Accept. Empty stays a hard reject — do not invent from editor sides. */
+	readonly unifiedDiff?: string;
+}
+
+const applyHunksPatchByHost = new WeakMap<object, string>();
+
+/** Remember a fetched unifiedDiff on a host (ConversationDiffReviewInput). Empty / whitespace stays rejected. */
+export function attachSourcesGitApplyHunksPatch(host: object, unifiedDiff: string): void {
+	if (unifiedDiff.trim() === '') {
+		return;
+	}
+	applyHunksPatchByHost.set(host, unifiedDiff);
+}
+
+/** Accept patches from a carried unifiedDiff only. Empty / whitespace → no payload. */
+export function sourcesGitApplyHunksPatches(source?: { readonly unifiedDiff?: string }): readonly string[] {
+	if (!source) {
+		return [];
+	}
+	const unifiedDiff = source.unifiedDiff ?? applyHunksPatchByHost.get(source);
+	if (unifiedDiff === undefined || unifiedDiff.trim() === '') {
+		return [];
+	}
+	return [unifiedDiff];
 }
 
 export function pickQuickDiffOriginalResource(quickDiffs: readonly QuickDiff[]): URI | undefined {

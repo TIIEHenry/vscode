@@ -26,13 +26,20 @@ import { workbenchInstantiationService, TestEditorGroupView, TestViewsService } 
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
 import { ConversationDiffReviewEditorId } from '../../common/conversationDiffReviewInput.js';
+import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { IModelService } from '../../../../../editor/common/services/model.js';
+import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
+import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
 import { ConversationDiffReviewPane } from '../../browser/conversationDiffReviewPane.js';
+import { ISourcesChangeEntryOpenDeps, openSourcesChangeEntry } from '../../browser/sourcesChangeEntryOpen.js';
 import { SOURCES_DIFF_MOVE_TO_CONVERSATION_COMMAND, SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND } from '../../browser/sourcesDiffActions.js';
 import { SOURCES_DIFF_PANEL_VIEW_CONTAINER } from '../../browser/sourcesDiffPanel.contribution.js';
 import { SOURCES_DIFF_PANEL_CONTAINER_ID, SOURCES_DIFF_PANEL_VIEW_ID } from '../../browser/sourcesDiffPanelIds.js';
 import { SourcesDiffPanelService } from '../../browser/sourcesDiffPanelService.js';
 import { SourcesDiffPanelView } from '../../browser/sourcesDiffPanelView.js';
+import { attachSourcesGitApplyHunksPatch, ISourcesChangeRef, sourcesGitApplyHunksPatches } from '../../common/sourcesChangeRef.js';
+import { ISourcesChangeEntry } from '../../common/sourcesChangesModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
 import { canSendSourcesGitApplyHunks, canSendSourcesGitStagePaths, canShowSourcesReviewAccept, resolveSourcesDiffWriteActions } from '../../common/sourcesChangesGitWrite.js';
 
@@ -457,6 +464,8 @@ suite('Sources diff panel', () => {
 		} as unknown as IUniverseAgentConnection;
 	}
 
+	const carriedUnifiedDiff = '@@ -1 +1 @@\n-old\n+new\n';
+
 	test('leftover-looks-live pairing-hold Accept chrome stays hidden and 0 unary', async function () {
 		const resource = toResource.call(this, '/project/src/leftover.ts');
 		const original = toResource.call(this, '/project/src/leftover.ts.git');
@@ -489,8 +498,10 @@ suite('Sources diff panel', () => {
 			modified: resource,
 			original,
 			groupId: 'workingTree',
+			unifiedDiff: carriedUnifiedDiff,
 		});
 		await timeout(50);
+		paintPanelWriteChrome(view);
 
 		const panelAccept = view.element.querySelector('.sources-diff-panel-accept') as HTMLButtonElement | null;
 		assert.strictEqual(panelAccept?.style.display, 'none');
@@ -505,8 +516,10 @@ suite('Sources diff panel', () => {
 		store.add({ dispose: () => parent.remove() });
 		pane.create(parent);
 		const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+		attachSourcesGitApplyHunksPatch(input, carriedUnifiedDiff);
 		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
 		await timeout(20);
+		paintReviewWriteChrome(pane);
 
 		const reviewAccept = parent.querySelector('.conversation-diff-review-accept') as HTMLButtonElement | null;
 		assert.strictEqual(reviewAccept?.style.display, 'none');
@@ -1143,6 +1156,237 @@ suite('Sources diff panel', () => {
 			});
 			await timeout(50);
 		});
+	});
+
+	test('sourcesGitApplyHunksPatches carries unifiedDiff and rejects empty', () => {
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(undefined), []);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches({ unifiedDiff: '' }), []);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches({ unifiedDiff: '  ' }), []);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches({ unifiedDiff: carriedUnifiedDiff }), [carriedUnifiedDiff]);
+		const host = {};
+		attachSourcesGitApplyHunksPatch(host, '');
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(host), []);
+		attachSourcesGitApplyHunksPatch(host, carriedUnifiedDiff);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(host), [carriedUnifiedDiff]);
+	});
+
+	test('openSourcesChangeEntry carries fetched unifiedDiff onto the panel change ref', async function () {
+		const resource = toResource.call(this, '/project/src/carry-panel.ts');
+		const entry: ISourcesChangeEntry = {
+			resource,
+			name: 'carry-panel.ts',
+			description: 'Unstaged Changes',
+			groupId: 'workingTree',
+			gitPath: 'src/carry-panel.ts',
+			indexState: 'WORKTREE',
+		};
+		let shown: ISourcesChangeRef | undefined;
+		const models = new Map<string, string>();
+
+		await openSourcesChangeEntry(entry, {
+			editorService: { openEditor: async () => undefined } as unknown as IEditorService,
+			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
+			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'panel' }),
+			instantiationService: {
+				createInstance: () => { throw new Error('panel open must not create ConversationDiffReviewInput'); },
+			} as unknown as ISourcesChangeEntryOpenDeps['instantiationService'],
+			sourcesDiffPanelService: {
+				show: async (ref: ISourcesChangeRef) => { shown = ref; },
+			} as unknown as ISourcesDiffPanelService,
+			modelService: {
+				getModel: (uri: URI) => models.has(uri.toString()) ? { uri } : null,
+				updateModel: (model: { uri: URI }, value: string) => { models.set(model.uri.toString(), value); },
+				createModel: (value: string, _language: unknown, uri?: URI) => {
+					if (uri) {
+						models.set(uri.toString(), value);
+					}
+					return { uri };
+				},
+			} as unknown as IModelService,
+			readGitFileDiff: async () => ({
+				supported: true,
+				reason: '',
+				path: 'src/carry-panel.ts',
+				unifiedDiff: carriedUnifiedDiff,
+			}),
+		}, { preserveFocus: false });
+
+		assert.strictEqual(shown?.unifiedDiff, carriedUnifiedDiff);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(shown), [carriedUnifiedDiff]);
+	});
+
+	test('openSourcesChangeEntry attaches fetched unifiedDiff for Conversation Accept', async function () {
+		const resource = toResource.call(this, '/project/src/carry-review.ts');
+		const entry: ISourcesChangeEntry = {
+			resource,
+			name: 'carry-review.ts',
+			description: 'Unstaged Changes',
+			groupId: 'workingTree',
+			gitPath: 'src/carry-review.ts',
+			indexState: 'WORKTREE',
+		};
+		let opened: ConversationDiffReviewInput | undefined;
+		const models = new Map<string, string>();
+
+		await openSourcesChangeEntry(entry, {
+			editorService: {
+				openEditor: async (input: unknown) => {
+					if (input instanceof ConversationDiffReviewInput) {
+						opened = input;
+					}
+					return undefined;
+				},
+			} as unknown as IEditorService,
+			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
+			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'conversation' }),
+			instantiationService: {
+				createInstance: (ctor: typeof ConversationDiffReviewInput, modified: URI, original?: URI, groupId?: string) =>
+					store.add(new ctor(modified, original, groupId)),
+			} as unknown as ISourcesChangeEntryOpenDeps['instantiationService'],
+			sourcesDiffPanelService: {
+				show: async () => { throw new Error('conversation open must not show the panel'); },
+			} as unknown as ISourcesDiffPanelService,
+			modelService: {
+				getModel: (uri: URI) => models.has(uri.toString()) ? { uri } : null,
+				updateModel: (model: { uri: URI }, value: string) => { models.set(model.uri.toString(), value); },
+				createModel: (value: string, _language: unknown, uri?: URI) => {
+					if (uri) {
+						models.set(uri.toString(), value);
+					}
+					return { uri };
+				},
+			} as unknown as IModelService,
+			readGitFileDiff: async () => ({
+				supported: true,
+				reason: '',
+				path: 'src/carry-review.ts',
+				unifiedDiff: carriedUnifiedDiff,
+			}),
+		}, { preserveFocus: false });
+
+		assert.ok(opened);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(opened), [carriedUnifiedDiff]);
+	});
+
+	test('Accept sends the carried unifiedDiff and does not fall back to git.stage', async function () {
+		const resource = toResource.call(this, '/project/src/accept-carry.ts');
+		const original = toResource.call(this, '/project/src/accept-carry.ts.git');
+		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
+		const gitStageCommands: unknown[] = [];
+		const connection = leftoverLooksLiveApplyConnection(applyCalls, [], false);
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				connection,
+				executeCommand: async (commandId: unknown) => {
+					if (commandId === 'git.stage') {
+						gitStageCommands.push(commandId);
+					}
+				},
+			});
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+				unifiedDiff: carriedUnifiedDiff,
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const panelAccept = view.element.querySelector('.sources-diff-panel-accept') as HTMLButtonElement | null;
+			assert.strictEqual(panelAccept?.style.display, '');
+			await (view as unknown as { runAccept: () => Promise<void> }).runAccept();
+			await timeout(20);
+			assert.deepStrictEqual(applyCalls, [{
+				sessionId: 'session-1',
+				argv: [],
+				patches: [carriedUnifiedDiff],
+			}]);
+			assert.deepStrictEqual(gitStageCommands, []);
+
+			const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			store.add({ dispose: () => parent.remove() });
+			pane.create(parent);
+			const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+			attachSourcesGitApplyHunksPatch(input, carriedUnifiedDiff);
+			await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+			await timeout(20);
+			paintReviewWriteChrome(pane);
+
+			const reviewAccept = parent.querySelector('.conversation-diff-review-accept') as HTMLButtonElement | null;
+			assert.strictEqual(reviewAccept?.style.display, '');
+			await (pane as unknown as { runAccept: () => Promise<void> }).runAccept();
+			await timeout(20);
+			assert.deepStrictEqual(applyCalls, [
+				{ sessionId: 'session-1', argv: [], patches: [carriedUnifiedDiff] },
+				{ sessionId: 'session-1', argv: [], patches: [carriedUnifiedDiff] },
+			]);
+			assert.deepStrictEqual(gitStageCommands, []);
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	test('empty unifiedDiff keeps Accept hidden and sends 0 ApplyHunks', async function () {
+		const resource = toResource.call(this, '/project/src/accept-empty.ts');
+		const original = toResource.call(this, '/project/src/accept-empty.ts.git');
+		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
+		const connection = leftoverLooksLiveApplyConnection(applyCalls, [], false);
+
+		const instantiationService = stubDiffHonestyServices({
+			throwOnLoad: true,
+			resource,
+			connection,
+		});
+		instantiationService.stub(IViewsService, {
+			openView: async () => null,
+			onDidChangeViewVisibility: Event.None,
+			onDidChangeViewContainerVisibility: Event.None,
+		} as unknown as IViewsService);
+		const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+		instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+		const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+			id: SOURCES_DIFF_PANEL_VIEW_ID,
+			title: 'Diff',
+		}));
+		view.render();
+		await panelService.show({
+			modified: resource,
+			original,
+			groupId: 'workingTree',
+			unifiedDiff: '',
+		});
+		await timeout(50);
+		paintPanelWriteChrome(view);
+
+		const panelAccept = view.element.querySelector('.sources-diff-panel-accept') as HTMLButtonElement | null;
+		assert.strictEqual(panelAccept?.style.display, 'none');
+		forceClick(panelAccept);
+		await (view as unknown as { runAccept: () => Promise<void> }).runAccept();
+		await timeout(20);
+		assert.deepStrictEqual(applyCalls, []);
 	});
 });
 
