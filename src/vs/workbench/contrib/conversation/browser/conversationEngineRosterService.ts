@@ -11,6 +11,7 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { shouldRestoreLastSessionOnStartup } from '../common/uaClientSettingsHelpers.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentQueueMutationResult } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { isConversationEngineLive, isConversationPairingHold, shouldKeepLiveTreeLeaseWhilePairing, shouldRebindLiveTreeLeaseWhilePairing } from './conversationSessionStatus.js';
 import { IUniverseAgentSessionView } from '../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import type { ConversationQuestionRespondAnswers, IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
@@ -1279,12 +1280,26 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return false;
 	}
 
+	/**
+	 * Queue unaries resolve `{ ok, itemId }` without throwing. `ok:false` is
+	 * still a refusal — same as {@link setEngineSessionGoal}. `itemId` is not
+	 * applied locally: there is no GetQueue / ListQueue.
+	 */
+	private wrapEngineQueueMutation(action: string, send: () => Promise<unknown>): () => Promise<void> {
+		return async () => {
+			const result = await send() as UniverseAgentQueueMutationResult | undefined;
+			if (result && result.ok === false) {
+				throw new Error(result.error?.trim() || `${action} refused`);
+			}
+		};
+	}
+
 	private forwardEngineQueueRef(sessionId: string, action: string, callRemote: boolean, send: () => Promise<unknown>): boolean {
 		if (!this.engineSessions.some(session => session.id === sessionId)) {
 			return false;
 		}
 		if (callRemote) {
-			this.dispatchEngineAction(sessionId, action, send);
+			this.dispatchEngineAction(sessionId, action, this.wrapEngineQueueMutation(action, send));
 			this._onDidChangeSession.fire(sessionId);
 			return true;
 		}
@@ -1300,7 +1315,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return false;
 		}
 		if (callRemote) {
-			this.dispatchEngineAction(sessionId, action, () => send(trimmedId));
+			this.dispatchEngineAction(sessionId, action, this.wrapEngineQueueMutation(action, () => send(trimmedId)));
 			this._onDidChangeSession.fire(sessionId);
 			return true;
 		}
@@ -1356,18 +1371,24 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				if (!this.uaConnection.retryQueueItemUpload) {
 					return false;
 				}
-				this.dispatchEngineAction(sessionId, 'retryQueueItemUpload', () => this.uaConnection.retryQueueItemUpload!({
-					sessionId,
-					itemId: trimmedId,
-				}));
+				this.dispatchEngineAction(sessionId, 'retryQueueItemUpload', this.wrapEngineQueueMutation(
+					'retryQueueItemUpload',
+					() => this.uaConnection.retryQueueItemUpload!({
+						sessionId,
+						itemId: trimmedId,
+					}),
+				));
 			} else {
 				if (!this.uaConnection.retryQueueItem) {
 					return false;
 				}
-				this.dispatchEngineAction(sessionId, 'retryQueueItem', () => this.uaConnection.retryQueueItem!({
-					sessionId,
-					itemId: trimmedId,
-				}));
+				this.dispatchEngineAction(sessionId, 'retryQueueItem', this.wrapEngineQueueMutation(
+					'retryQueueItem',
+					() => this.uaConnection.retryQueueItem!({
+						sessionId,
+						itemId: trimmedId,
+					}),
+				));
 			}
 			this._onDidChangeSession.fire(sessionId);
 			return true;

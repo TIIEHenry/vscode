@@ -565,6 +565,25 @@ suite('ConversationInboxOverlay Goal', () => {
 		assert.ok(!source.includes('void this.onEnqueueClicked();'));
 		assert.strictEqual((source.match(/void this\.onGoalClicked\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
 		assert.strictEqual((source.match(/void this\.onEnqueueClicked\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
+		assert.ok(source.includes('this.stubService.cancelGeneration(sessionId)'));
+		assert.ok(source.includes('this.syncStatus.hidden = true'));
+		for (const needle of [
+			'insertQueueItem',
+			'reorderQueue',
+			'deleteQueueItem',
+			'pinQueueItem',
+			'setQueueItemLocked',
+			'injectQueueItem',
+			'retryAllFailed',
+			'GetQueue',
+			'ListQueue',
+			'getQueue',
+			'listQueue',
+			'Team.TaskList',
+			'getAutoDriveTasks',
+		] as const) {
+			assert.ok(!source.includes(needle), needle);
+		}
 	});
 });
 
@@ -822,7 +841,12 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const roster = store.add(new EnqueueRoster());
 		roster.enqueueResult = false;
-		const overlay = createOverlay(roster, 'Nope', failures);
+		const connection = createConversationConnectionTestStub();
+		assert.strictEqual((connection as { getQueue?: unknown }).getQueue, undefined);
+		assert.strictEqual((connection as { listQueue?: unknown }).listQueue, undefined);
+		assert.strictEqual((connection as { GetQueue?: unknown }).GetQueue, undefined);
+		assert.strictEqual((connection as { ListQueue?: unknown }).ListQueue, undefined);
+		const overlay = createOverlay(roster, 'Nope', failures, undefined, undefined, connection);
 		const panel = openQueuePanel(overlay);
 		getEnqueueButton(panel).click();
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
@@ -1720,6 +1744,10 @@ suite('ConversationInboxOverlay KEEP leftover list-fail writes', () => {
 		assert.strictEqual(roster.isEngineSessionReady(), false);
 		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, false);
 		assert.strictEqual(isConversationPairingHold(connection), false);
+		assert.strictEqual((connection as { getQueue?: unknown }).getQueue, undefined);
+		assert.strictEqual((connection as { listQueue?: unknown }).listQueue, undefined);
+		assert.strictEqual((connection as { GetQueue?: unknown }).GetQueue, undefined);
+		assert.strictEqual((connection as { ListQueue?: unknown }).ListQueue, undefined);
 	}
 
 	function createOverlay(

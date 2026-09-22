@@ -248,6 +248,14 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		return { ok: true };
 	}
 	readonly enqueueCalls: { sessionId: string; text: string; priority?: string; opId?: string }[] = [];
+	queueResult: { ok: boolean; error?: string; itemId?: string } = { ok: true };
+	queueError: Error | undefined;
+	private async resolveQueueMutation() {
+		if (this.queueError) {
+			throw this.queueError;
+		}
+		return this.queueResult;
+	}
 	async enqueueQueueItem(request: { sessionId: string; text: string; priority?: string; opId?: string }) {
 		this.enqueueCalls.push({
 			sessionId: request.sessionId,
@@ -255,47 +263,47 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 			priority: request.priority,
 			opId: request.opId,
 		});
-		return { ok: true };
+		return this.resolveQueueMutation();
 	}
 	readonly pauseQueueCalls: { sessionId: string }[] = [];
 	async pauseQueue(request: { sessionId: string }) {
 		this.pauseQueueCalls.push({ sessionId: request.sessionId });
-		return { ok: true };
+		return this.resolveQueueMutation();
 	}
 	readonly resumeQueueCalls: { sessionId: string }[] = [];
 	async resumeQueue(request: { sessionId: string }) {
 		this.resumeQueueCalls.push({ sessionId: request.sessionId });
-		return { ok: true };
+		return this.resolveQueueMutation();
 	}
 	readonly clearQueueCalls: { sessionId: string }[] = [];
 	async clearQueue(request: { sessionId: string }) {
 		this.clearQueueCalls.push({ sessionId: request.sessionId });
-		return { ok: true };
+		return this.resolveQueueMutation();
 	}
 	readonly holdQueueCalls: { sessionId: string; itemId: string; reason: string }[] = [];
 	async holdQueueItem(request: { sessionId: string; itemId: string; reason: string }) {
 		this.holdQueueCalls.push({ sessionId: request.sessionId, itemId: request.itemId, reason: request.reason });
-		return { ok: true };
+		return this.resolveQueueMutation();
 	}
 	readonly releaseQueueCalls: { sessionId: string; itemId: string }[] = [];
 	async releaseQueueItemHold(request: { sessionId: string; itemId: string }) {
 		this.releaseQueueCalls.push({ sessionId: request.sessionId, itemId: request.itemId });
-		return { ok: true };
+		return this.resolveQueueMutation();
 	}
 	readonly editQueueCalls: { sessionId: string; itemId: string; text: string }[] = [];
 	async editQueueItem(request: { sessionId: string; itemId: string; text: string }) {
 		this.editQueueCalls.push({ sessionId: request.sessionId, itemId: request.itemId, text: request.text });
-		return { ok: true };
+		return this.resolveQueueMutation();
 	}
 	readonly retryQueueItemCalls: { sessionId: string; itemId: string }[] = [];
 	async retryQueueItem(request: { sessionId: string; itemId: string }) {
 		this.retryQueueItemCalls.push({ sessionId: request.sessionId, itemId: request.itemId });
-		return { ok: true };
+		return this.resolveQueueMutation();
 	}
 	readonly retryQueueItemUploadCalls: { sessionId: string; itemId: string }[] = [];
 	async retryQueueItemUpload(request: { sessionId: string; itemId: string }) {
 		this.retryQueueItemUploadCalls.push({ sessionId: request.sessionId, itemId: request.itemId });
-		return { ok: true };
+		return this.resolveQueueMutation();
 	}
 	async getHistory() { return { envelopes: [] }; }
 	subscribeSessionEventStream(
@@ -2955,6 +2963,9 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		service.setEngineConnected(true);
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 
+		const failures: string[] = [];
+		store.add(service.onDidFailEngineAction(failure => failures.push(failure.action)));
+
 		service.setMessageQueueFixture('ua-only', {
 			items: [{
 				id: 'q1',
@@ -3003,6 +3014,9 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(connection.holdQueueCalls.length, 1);
 		assert.strictEqual(connection.releaseQueueCalls.length, 1);
 		assert.strictEqual(connection.editQueueCalls.length, 1);
+
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(failures, []);
 	});
 
 	test('connected MessageQueue fixture failed rows stay invisible without GetQueue', async () => {
@@ -3036,6 +3050,99 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		});
 		assert.strictEqual((connection as { getQueue?: unknown }).getQueue, undefined);
 		assert.strictEqual((connection as { listQueue?: unknown }).listQueue, undefined);
+		assert.strictEqual((connection as { GetQueue?: unknown }).GetQueue, undefined);
+		assert.strictEqual((connection as { ListQueue?: unknown }).ListQueue, undefined);
+	});
+
+	test('connected MessageQueue ok:false reports onDidFailEngineAction even when itemId is set', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const storage = store.add(new TestStorageService());
+			const connection = store.add(new MockUniverseAgentConnection());
+			connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+			const service = store.add(createService(connection, storage));
+			connection.setConnected(true);
+			service.setEngineConnected(true);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+			const failures: { action: string; message: string }[] = [];
+			store.add(service.onDidFailEngineAction(failure => failures.push({
+				action: failure.action,
+				message: failure.error instanceof Error ? failure.error.message : String(failure.error),
+			})));
+
+			connection.queueResult = { ok: false, error: 'denied', itemId: 'q-new' };
+			assert.strictEqual(service.enqueueMessageQueueItem('ua-only', 'later'), true);
+			service.pauseMessageQueue('ua-only');
+			service.resumeMessageQueue('ua-only');
+			service.clearMessageQueue('ua-only');
+			service.holdMessageQueueItem('ua-only', 'q1', 'EDITING');
+			service.releaseMessageQueueItemHold('ua-only', 'q1');
+			assert.strictEqual(service.updateMessageQueueItemContent('ua-only', 'q1', 'later'), true);
+			assert.strictEqual(service.retryMessageQueueItem('ua-only', 'q1'), true);
+			assert.strictEqual(service.retryMessageQueueItem('ua-only', 'q1', { upload: true }), true);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+			assert.deepStrictEqual(failures, [
+				{ action: 'enqueueQueueItem', message: 'denied' },
+				{ action: 'pauseQueue', message: 'denied' },
+				{ action: 'resumeQueue', message: 'denied' },
+				{ action: 'clearQueue', message: 'denied' },
+				{ action: 'holdQueueItem', message: 'denied' },
+				{ action: 'releaseQueueItemHold', message: 'denied' },
+				{ action: 'editQueueItem', message: 'denied' },
+				{ action: 'retryQueueItem', message: 'denied' },
+				{ action: 'retryQueueItemUpload', message: 'denied' },
+			]);
+			assert.deepStrictEqual(service.getMessageQueueState('ua-only').items, []);
+			assert.strictEqual((connection as { getQueue?: unknown }).getQueue, undefined);
+			assert.strictEqual((connection as { listQueue?: unknown }).listQueue, undefined);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('connected MessageQueue remote throw reports failure without unhandled rejection', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const storage = store.add(new TestStorageService());
+			const connection = store.add(new MockUniverseAgentConnection());
+			connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+			const service = store.add(createService(connection, storage));
+			connection.setConnected(true);
+			service.setEngineConnected(true);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+			const boom = new Error('boom');
+			connection.queueError = boom;
+			const failures: { action: string; error: unknown }[] = [];
+			store.add(service.onDidFailEngineAction(failure => failures.push({
+				action: failure.action,
+				error: failure.error,
+			})));
+
+			assert.strictEqual(service.enqueueMessageQueueItem('ua-only', 'later'), true);
+			service.pauseMessageQueue('ua-only');
+			assert.strictEqual(service.retryMessageQueueItem('ua-only', 'q1'), true);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+			assert.deepStrictEqual(failures, [
+				{ action: 'enqueueQueueItem', error: boom },
+				{ action: 'pauseQueue', error: boom },
+				{ action: 'retryQueueItem', error: boom },
+			]);
+			assert.deepStrictEqual(service.getMessageQueueState('ua-only').items, []);
+			assert.strictEqual((connection as { getQueue?: unknown }).getQueue, undefined);
+			assert.strictEqual((connection as { listQueue?: unknown }).listQueue, undefined);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('disconnected after engine MessageQueue skips unary and stays empty', async () => {
