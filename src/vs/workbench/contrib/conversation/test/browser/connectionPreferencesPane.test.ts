@@ -5164,6 +5164,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await timeout(0);
+		selectFirstHubDevice(pane);
 		try {
 			const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement | null;
 			assert.ok(banner);
@@ -5189,6 +5190,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		await timeout(0);
+		selectFirstHubDevice(pane);
 		try {
 			const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement | null;
 			assert.ok(banner);

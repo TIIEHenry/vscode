@@ -4,11 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { mainWindow } from '../../../../../base/browser/window.js';
+import { timeout } from '../../../../../base/common/async.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
-import { IEditorGroupsService, isExcludedFromGlobalEditorAggregation, IAuxiliaryEditorPart } from '../../../../services/editor/common/editorGroupsService.js';
+import { IEditorGroupsService, isExcludedFromGlobalEditorAggregation, IAuxiliaryEditorPart, type IConversationEditorPart } from '../../../../services/editor/common/editorGroupsService.js';
 import { EditorService } from '../../../../services/editor/browser/editorService.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { IStatusbarService } from '../../../../services/statusbar/browser/statusbar.js';
@@ -21,7 +24,13 @@ import { ConversationDiffReviewInput } from '../../../sources/browser/conversati
 import { ConversationDiffReviewInputTypeId } from '../../../sources/common/conversationDiffReviewInput.js';
 import { registerTestConversationDiffReviewEditor } from './conversationDiffReviewTestEditor.js';
 import '../../browser/conversationEditor.contribution.js';
-import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
+import { ConversationEditorPane } from '../../browser/conversationEditorPane.js';
+import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
+import { installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
+import { stubConversationLensRuntimeServices, stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
+
+installConversationLensResizeObserverHarness();
 
 suite('Conversation editor aggregation exemption (S1a)', () => {
 
@@ -39,9 +48,30 @@ suite('Conversation editor aggregation exemption (S1a)', () => {
 		}
 	});
 
+	teardown(async () => {
+		await new Promise<void>(resolve => mainWindow.requestAnimationFrame(() => mainWindow.requestAnimationFrame(() => resolve())));
+	});
+
+	async function waitForConversationPane(part: IConversationEditorPart): Promise<ConversationEditorPane> {
+		await part.whenReady;
+		const deadline = Date.now() + 3000;
+		while (Date.now() < deadline) {
+			const pane = part.activeGroup.activeEditorPane;
+			if (pane instanceof ConversationEditorPane && pane.activeConversationLens) {
+				return pane;
+			}
+			await timeout(20);
+		}
+		throw new Error(`ConversationEditorPane not ready for ${part.sessionKey}`);
+	}
+
 	async function createHarness() {
 		const instantiationService = workbenchInstantiationService(undefined, store);
+		const rosterService = store.add(new ConversationStubService());
+		instantiationService.stub(IConversationRosterService, rosterService);
+		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
 		stubConversationTimelineLinkServices(instantiationService);
+		stubConversationLensRuntimeServices(instantiationService);
 		instantiationService.invokeFunction(accessor => Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor));
 		const parts = await createEditorParts(instantiationService, disposables);
 		store.add(parts);
@@ -63,7 +93,16 @@ suite('Conversation editor aggregation exemption (S1a)', () => {
 
 		const conversationA = parts.createConversationEditorPart(hostA, 'session-a');
 		const conversationB = parts.createConversationEditorPart(hostB, 'session-b');
-		await Promise.all([conversationA.whenReady, conversationB.whenReady]);
+		await Promise.all([
+			waitForConversationPane(conversationA),
+			waitForConversationPane(conversationB),
+		]);
+		store.add({
+			dispose: () => {
+				parts.disposeConversationEditorPart('session-a');
+				parts.disposeConversationEditorPart('session-b');
+			},
+		});
 
 		for (const part of [conversationA, conversationB]) {
 			const rootEditor = part.activeGroup.getEditorByIndex(0);

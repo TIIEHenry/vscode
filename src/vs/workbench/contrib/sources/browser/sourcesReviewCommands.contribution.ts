@@ -88,7 +88,7 @@ registerAction2(class SourcesReviewOpenSelectedAction extends Action2 {
 				entry.resource,
 			);
 		} catch (error) {
-			host?.setStatusMessage(sourcesGitDiffOpenFailureMessage(error));
+			host?.setStatusMessage(sourcesGitDiffOpenFailureMessage(error), true);
 		}
 	}
 });

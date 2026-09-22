@@ -313,7 +313,7 @@ suite('Sources - review list model', () => {
 			getSelectedEntry: () => widget.getSelectedEntry(),
 			toggleReviewedSelected: () => widget.toggleReviewedSelected(),
 			markAllReviewed: () => widget.markAllReviewed(),
-			setStatusMessage: message => widget.setStatusMessage(message),
+			setStatusMessage: (message, isError) => widget.setStatusMessage(message, isError),
 			isSourcesGitFileDiffOpenSkipped: () => widget.isSourcesGitFileDiffOpenSkipped(),
 			isSourcesGitWriteClosed: () => widget.isSourcesGitWriteClosed(),
 			readGitFileDiff: entry => widget.readGitFileDiffForOpen(entry),
@@ -411,6 +411,12 @@ suite('Sources - review list model', () => {
 				}
 				if (id === IModelService) {
 					return (modelService ?? instantiationService.invokeFunction(accessor => accessor.get(IModelService))) as T;
+				}
+				if (id === IUniverseAgentConnection) {
+					return instantiationService.invokeFunction(accessor => accessor.get(IUniverseAgentConnection)) as T;
+				}
+				if (id === IConversationRosterService) {
+					return instantiationService.invokeFunction(accessor => accessor.get(IConversationRosterService)) as T;
 				}
 				throw new Error(`unexpected service ${String(id)}`);
 			},

@@ -375,6 +375,11 @@ suite('Conversation session chat (S3)', () => {
 
 		const conversationPart = parts.createConversationEditorPart(editorHost, SESSION_KEY);
 		await conversationPart.whenReady;
+		store.add({
+			dispose: () => {
+				parts.disposeConversationEditorPart(SESSION_KEY);
+			},
+		});
 		(conversationPart as unknown as { layout(width: number, height: number, top: number, left: number): void }).layout(800, 600, 0, 0);
 		conversationPart.activeGroup.focus();
 

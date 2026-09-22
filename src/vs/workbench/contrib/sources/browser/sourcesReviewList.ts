@@ -600,7 +600,7 @@ export class SourcesReviewList extends Disposable {
 						element.resource,
 					);
 				} catch (error) {
-					this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error));
+					this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error), true);
 				}
 			})().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));

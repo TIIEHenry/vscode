@@ -98,6 +98,24 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 		this.updateBreadcrumb();
 	}
 
+	override clearInput(): void {
+		this.teardownLens();
+		super.clearInput();
+	}
+
+	override dispose(): void {
+		this.teardownLens();
+		super.dispose();
+	}
+
+	private teardownLens(): void {
+		this.visibilityDisposables.clear();
+		this.lensDisposables.clear();
+		this.lens = undefined;
+		this.leafSessionBar = undefined;
+		this.activeInput = undefined;
+	}
+
 	private ensureLens(sessionKey: string | undefined): void {
 		if (this.lens || !this.lensTablist || !this.timelineHost || !this.dockHost) {
 			return;

@@ -593,7 +593,7 @@ suite('grpc memory unary protobuf wire', () => {
 		assert.ok(!/\bencodeMemoryRebuild|\bdecodeMemoryRebuild|\bmapMemoryRebuild/.test(source));
 	});
 
-	test('grpcClient Memory unary uses bytes; Rebuild stream stays JSON', () => {
+	test('grpcClient Memory unary uses bytes; Rebuild stream stays protobuf bytes', () => {
 		const thisDir = path.dirname(fileURLToPath(import.meta.url));
 		const repoRoot = path.join(thisDir, '../../../../../../');
 		const clientPath = path.join(repoRoot, 'src/vs/platform/universeAgent/node/grpc/grpcClient.ts');
@@ -621,8 +621,10 @@ suite('grpc memory unary protobuf wire', () => {
 		assert.ok(rebuildStart >= 0, 'missing openRebuildMemoryStream');
 		const rebuildEnd = source.indexOf('\n\tasync ', rebuildStart + 1);
 		const rebuild = source.slice(rebuildStart, rebuildEnd >= 0 ? rebuildEnd : source.length);
-		assert.ok(rebuild.includes('makeServerStreamClient'), 'openRebuildMemoryStream must stay JSON server-stream');
-		assert.ok(!rebuild.includes('makeUnaryBytesClient'), 'openRebuildMemoryStream must not use bytes unary');
+		assert.ok(rebuild.includes('makeServerStreamBytesClient'), 'openRebuildMemoryStream must use protobuf bytes server-stream');
+		assert.ok(rebuild.includes('encodeMemoryRebuildRequest'), 'openRebuildMemoryStream must encode rebuild request');
+		assert.ok(rebuild.includes('decodeMemoryRebuildEvent'), 'openRebuildMemoryStream must decode rebuild events');
+		assert.ok(rebuild.includes('mapMemoryRebuildEvent'), 'openRebuildMemoryStream must map rebuild events');
 	});
 });
 

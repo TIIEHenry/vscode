@@ -4,8 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { IInstantiationService, ServiceIdentifier, ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IModelService } from '../../../../../editor/common/services/model.js';
@@ -26,10 +28,28 @@ import {
 } from '../../browser/sourcesReviewCommands.contribution.js';
 import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
 import { SourcesTabId } from '../../common/sourcesTabs.js';
+import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 
 suite('Sources - review showForPaths', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	function stubOpenSelectedConnection(overrides: {
+		readGitFileDiff?: IUniverseAgentConnection['readGitFileDiff'];
+	} = {}): IUniverseAgentConnection {
+		return {
+			isEngineConnected: () => true,
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: Event.None,
+			readGitFileDiff: overrides.readGitFileDiff,
+		} as unknown as IUniverseAgentConnection;
+	}
+
+	function stubOpenSelectedRoster(): IConversationRosterService {
+		return {
+			getActiveSessionId: () => 'session-1',
+		} as unknown as IConversationRosterService;
+	}
 
 	function stubAccessor(get: (id: unknown) => unknown): ServicesAccessor {
 		return { get: <T,>(id: ServiceIdentifier<T>) => get(id) as T };
@@ -219,6 +239,12 @@ suite('Sources - review showForPaths', () => {
 			if (id === IModelService) {
 				return {};
 			}
+			if (id === IUniverseAgentConnection) {
+				return stubOpenSelectedConnection();
+			}
+			if (id === IConversationRosterService) {
+				return stubOpenSelectedRoster();
+			}
 			throw new Error(`unexpected service ${String(id)}`);
 		});
 
@@ -302,7 +328,7 @@ suite('Sources - review showForPaths', () => {
 		assert.strictEqual(marked, 0, 'leftover Open Selected must not mark reviewed');
 	});
 
-	test('openSelected live FileDiff uses host readGitFileDiff', async function () {
+	test('openSelected live FileDiff uses connection readGitFileDiff', async function () {
 		const resource = toResource.call(this, '/project/a.ts');
 		const entry = {
 			resource,
@@ -320,6 +346,8 @@ suite('Sources - review showForPaths', () => {
 		const hostService = store.add(new SourcesReviewHostService());
 		hostService.registerReviewListHost(stubReviewListHost({
 			getSelectedEntry: () => entry,
+		}));
+		const connection = stubOpenSelectedConnection({
 			readGitFileDiff: async () => {
 				diffCalls += 1;
 				return {
@@ -329,7 +357,7 @@ suite('Sources - review showForPaths', () => {
 					unifiedDiff: '@@ -1 +1 @@\n-old\n+new\n',
 				};
 			},
-		}));
+		});
 
 		const accessor = stubAccessor((id: unknown) => {
 			if (id === ISourcesReviewHostService) {
@@ -374,6 +402,12 @@ suite('Sources - review showForPaths', () => {
 						return { uri };
 					},
 				};
+			}
+			if (id === IUniverseAgentConnection) {
+				return connection;
+			}
+			if (id === IConversationRosterService) {
+				return stubOpenSelectedRoster();
 			}
 			throw new Error(`unexpected service ${String(id)}`);
 		});
@@ -405,6 +439,8 @@ suite('Sources - review showForPaths', () => {
 			getSelectedEntry: () => entry,
 			isSourcesGitFileDiffOpenSkipped: () => false,
 			isSourcesGitWriteClosed: () => true,
+		}));
+		const connection = stubOpenSelectedConnection({
 			readGitFileDiff: async () => {
 				diffCalls += 1;
 				return {
@@ -414,7 +450,7 @@ suite('Sources - review showForPaths', () => {
 					unifiedDiff: '@@ -1 +1 @@\n-old\n+new\n',
 				};
 			},
-		}));
+		});
 
 		const accessor = stubAccessor((id: unknown) => {
 			if (id === ISourcesReviewHostService) {
@@ -459,6 +495,12 @@ suite('Sources - review showForPaths', () => {
 						return { uri };
 					},
 				};
+			}
+			if (id === IUniverseAgentConnection) {
+				return connection;
+			}
+			if (id === IConversationRosterService) {
+				return stubOpenSelectedRoster();
 			}
 			throw new Error(`unexpected service ${String(id)}`);
 		});

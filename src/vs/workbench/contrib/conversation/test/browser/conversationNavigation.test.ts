@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { mainWindow } from '../../../../../base/browser/window.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
@@ -34,7 +35,14 @@ import { CONVERSATION_CLOSE_CHILD_ON_BACK_SETTING } from '../../common/conversat
 import { ConversationDiffReviewInputTypeId } from '../../../sources/common/conversationDiffReviewInput.js';
 import { registerTestConversationDiffReviewEditor } from './conversationDiffReviewTestEditor.js';
 import '../../browser/conversationEditor.contribution.js';
-import { createEmptyConversationSessionChatService, createNoopConversationSessionWindowService, stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
+import { ConversationEditorPane } from '../../browser/conversationEditorPane.js';
+import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
+import { installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
+import { createEmptyConversationSessionChatService, createNoopConversationSessionWindowService, stubConversationLensRuntimeServices, stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
+
+installConversationLensResizeObserverHarness();
 
 suite('Conversation navigation (S2)', () => {
 
@@ -52,13 +60,34 @@ suite('Conversation navigation (S2)', () => {
 		}
 	});
 
+	teardown(async () => {
+		await new Promise<void>(resolve => mainWindow.requestAnimationFrame(() => mainWindow.requestAnimationFrame(() => resolve())));
+	});
+
+	async function waitForConversationPane(part: IConversationEditorPart): Promise<ConversationEditorPane> {
+		await part.whenReady;
+		const deadline = Date.now() + 3000;
+		while (Date.now() < deadline) {
+			const pane = part.activeGroup.activeEditorPane;
+			if (pane instanceof ConversationEditorPane && pane.activeConversationLens) {
+				return pane;
+			}
+			await timeout(20);
+		}
+		throw new Error(`ConversationEditorPane not ready for ${part.sessionKey}`);
+	}
+
 	async function createHarness(options?: { closeChildOnBack?: boolean; notificationService?: INotificationService }) {
 		const configurationService = new TestConfigurationService({
 			[CONVERSATION_CLOSE_CHILD_ON_BACK_SETTING]: options?.closeChildOnBack ?? true,
 		});
 
 		const instantiationService = workbenchInstantiationService(undefined, store);
+		const rosterService = store.add(new ConversationStubService());
+		instantiationService.stub(IConversationRosterService, rosterService);
+		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
 		stubConversationTimelineLinkServices(instantiationService);
+		stubConversationLensRuntimeServices(instantiationService);
 		instantiationService.stub(IConfigurationService, configurationService);
 		if (options?.notificationService) {
 			instantiationService.stub(INotificationService, options.notificationService);
@@ -83,7 +112,16 @@ suite('Conversation navigation (S2)', () => {
 
 		const conversationA = parts.createConversationEditorPart(hostA, 'session-a');
 		const conversationB = parts.createConversationEditorPart(hostB, 'session-b');
-		await Promise.all([conversationA.whenReady, conversationB.whenReady]);
+		await Promise.all([
+			waitForConversationPane(conversationA),
+			waitForConversationPane(conversationB),
+		]);
+		store.add({
+			dispose: () => {
+				parts.disposeConversationEditorPart('session-a');
+				parts.disposeConversationEditorPart('session-b');
+			},
+		});
 
 		const navigationService = disposables.add(instantiationService.createInstance(ConversationNavigationService));
 		disposables.add(navigationService.registerPart(conversationA));

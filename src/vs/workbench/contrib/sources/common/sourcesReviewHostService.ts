@@ -16,7 +16,7 @@ export interface ISourcesReviewListHost {
 	getSelectedEntry(): ISourcesReviewEntry | undefined;
 	toggleReviewedSelected(): void;
 	markAllReviewed(): void;
-	setStatusMessage(message: string | undefined): void;
+	setStatusMessage(message: string | undefined, isError?: boolean): void;
 	/** Same FileDiff leftover / pairing-hold KEEP gate as Review list onDidOpen (D446). */
 	isSourcesGitFileDiffOpenSkipped(): boolean;
 	/** Same KEEP leftover / list-fail write gate as Review list onDidOpen mark (D459). */

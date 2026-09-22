@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-22
-summary: "合入工位 D 的 tasks leftover 双链（D1295）。A 的 D752 与 C 的 gitlink 不入库。人类工位 WIP 仍在。D24 仍开。不是 leftover/pills 完成。"
+summary: "人类工位在途已合入：会话镜头清空时拆除、Review 打开失败带错误态、Rebuild 流测试对齐 bytes。A 的 D752 与 dev/loop gitlink 仍不入库。D24 仍开。"
 ---
 
 # Development Progress
@@ -25,7 +25,7 @@ summary: "合入工位 D 的 tasks leftover 双链（D1295）。A 的 D752 与 C
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **loop** | leftover 未完成。D1295 tasks 双链已合入 merge（`_runWithPermission` 仍只 void）。A 的 D752 扫描不入库。C gitlink 不 add。E blocked。人类工位 WIP 仍在。 |
+| **loop** | leftover 未完成。人类工位在途已合入：会话镜头清空时拆除、Review 打开失败带错误态、Rebuild 流测试对齐 bytes。A 的 D752 与 `dev/loop` gitlink 仍不入库。E blocked。 |
 
 子 agent 发现：
 | ID | 问题 |

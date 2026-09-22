@@ -549,8 +549,8 @@ suite('conversationComposerCatalog', () => {
 		assert.deepStrictEqual([...host.catalogToolNames], ['bash']);
 		assert.ok(!agentOptions.every(option => option.text === conversationLensDockNoAgent));
 		assert.ok(!modelOptions.every(option => option.text === conversationLensDockNoModel));
-		assert.strictEqual(gateRow.hidden, true, 'idle engine status is not repeated on the gate');
-		assert.strictEqual(gateLabel.textContent, '');
+		assert.strictEqual(gateRow.hidden, false, 'pairing-hold keeps the disconnected gate visible');
+		assert.strictEqual(gateLabel.textContent, conversationLensDockEngineNotConnected);
 		assert.strictEqual(sendButton.enabled, false, 'Send stays pairing-hold-first');
 
 		pairingPending = false;
@@ -673,8 +673,8 @@ suite('conversationComposerCatalog', () => {
 		assert.deepStrictEqual([...host.catalogModelIds], ['']);
 		assert.ok(!agentOptions.some(option => option.text === 'Coder'));
 		assert.ok(!modelOptions.some(option => option.text === 'gpt-test'));
-		assert.strictEqual(gateRow.hidden, true);
-		assert.strictEqual(gateLabel.textContent, '');
+		assert.strictEqual(gateRow.hidden, false, 'pairing-hold without leftover still shows disconnected gate');
+		assert.strictEqual(gateLabel.textContent, conversationLensDockEngineNotConnected);
 		assert.strictEqual(sendButton.enabled, false);
 	});
 
@@ -850,10 +850,16 @@ function createLoadCatalogHost(
 	const modelOptions: { text: string }[] = [{ text: conversationLensDockNoModel }];
 	const gateRow = {
 		hidden: true,
+		classList: {
+			remove() { },
+		},
 		setAttribute() { },
 		removeAttribute() { },
 	};
-	const gateLabel = { textContent: '' };
+	const gateLabel = {
+		textContent: '',
+		removeAttribute() { },
+	};
 	const sendButton = { enabled: true };
 	const host = {
 		composerCatalogGeneration: 1,

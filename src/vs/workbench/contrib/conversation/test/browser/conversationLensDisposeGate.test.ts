@@ -3426,10 +3426,17 @@ suite('conversation lens dispose gate', () => {
 	test('showPostFailure failed uses retry copy not disconnected', () => {
 		const gateRow = {
 			hidden: true,
+			classList: {
+				add() { },
+				remove() { },
+			},
 			setAttribute: () => { },
 			removeAttribute: () => { },
 		};
-		const gateLabel = { textContent: '' };
+		const gateLabel = {
+			textContent: '',
+			removeAttribute() { },
+		};
 		const host = {
 			postFailureVisible: false,
 			sendFailureTimeout: undefined as ReturnType<typeof setTimeout> | undefined,
