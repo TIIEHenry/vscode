@@ -52,6 +52,7 @@ import {
 	cancelToolCall,
 	copyTurn,
 	deleteTurn,
+	regenerateTurn as regenerateTurnBound,
 	retryError as retryErrorBound,
 	findFirstPendingConfirmationTurnId,
 	focusTimelineRecord,
@@ -786,6 +787,10 @@ export class ConversationLens extends Disposable {
 
 	deleteTurn(turnId: string): void {
 		deleteTurn(this, turnId);
+	}
+
+	regenerateTurn(turn: { readonly id: string; readonly turnId?: string; readonly agentId?: string }): void {
+		regenerateTurnBound(this, turn);
 	}
 
 	cancelToolCall(turn: { readonly id: string; readonly agentId?: string }): void {

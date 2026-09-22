@@ -49,6 +49,7 @@ export interface IConversationLensReadingColumnHost {
 	resolveQuestion(turnId: string, requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string): Promise<void>;
 	copyTurn(text: string): void;
 	deleteTurn(turnId: string): void;
+	regenerateTurn(turn: { readonly id: string; readonly turnId?: string; readonly agentId?: string }): void;
 	beginTurnEdit(turnId: string): void;
 	navigateToTrajectoryFromTurn(turnId: string): void;
 	cancelToolCall(turn: { readonly id: string; readonly agentId?: string }): void;
@@ -72,6 +73,7 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 		onQuestionRespond: (turnId, requestId, answers, customText) => host.resolveQuestion(turnId, requestId, answers, customText),
 		onCopyTurn: (_turnId, text) => host.copyTurn(text),
 		onDeleteTurn: turnId => host.deleteTurn(turnId),
+		onRegenerateTurn: turn => host.regenerateTurn(turn),
 		onEditUserTurn: turnId => host.beginTurnEdit(turnId),
 		onViewInTrajectory: turnId => host.navigateToTrajectoryFromTurn(turnId),
 		onCancelToolCall: turn => host.cancelToolCall(turn),

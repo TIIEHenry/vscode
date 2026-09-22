@@ -42,6 +42,7 @@ import {
 	ConversationTimelineRenderer,
 	conversationLensUserBubbleShowLess,
 	conversationLensUserBubbleShowMore,
+	conversationLensTurnRegenerate,
 } from './conversationTimelineRenderer.js';
 import {
 	computeConversationScrollDownState,
@@ -58,6 +59,7 @@ import { ConversationTurnContentAdapter } from './conversationTurnContentAdapter
 export {
 	conversationLensUserBubbleShowLess,
 	conversationLensUserBubbleShowMore,
+	conversationLensTurnRegenerate,
 };
 export type {
 	ConversationTimelineItem,
@@ -180,6 +182,7 @@ export class ConversationTimelineTree extends Disposable {
 			(item, height) => this.safeUpdateElementHeight(item, height),
 			options.diffEditorPool,
 			this.instantiationService,
+			options.onRegenerateTurn,
 		);
 		const processFoldRenderer = new ConversationTimelineProcessFoldRenderer(this.renderer);
 

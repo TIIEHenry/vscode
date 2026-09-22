@@ -16,7 +16,7 @@ import { ConversationEditorPane } from '../../browser/conversationEditorPane.js'
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 import { conversationLensStaleSnapshotClass } from '../../browser/conversationLensReadingColumn.js';
-import { ConversationTimelineTree, conversationLensUserBubbleShowLess, conversationLensUserBubbleShowMore } from '../../browser/conversationTimelineTree.js';
+import { ConversationTimelineTree, conversationLensUserBubbleShowLess, conversationLensUserBubbleShowMore, conversationLensTurnRegenerate } from '../../browser/conversationTimelineTree.js';
 import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
 import {
 	conversationLensDockAgentLabel,
@@ -2772,7 +2772,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(slots.sessionBar!.querySelector('.conversation-lens-session-select select.monaco-select-box option')?.textContent, stubService.getActiveSession().title);
 	});
 
-	test('user turns are display-only; assistant turns expose Copy and Delete action bars', async () => {
+	test('user turns are display-only; assistant turns expose Copy, Regenerate and Delete action bars', async () => {
 		// Taller than the suite default: this test asserts on virtualized rows, and
 		// how many fit depends on font metrics, which differ across machines.
 		const { part, stubService, layoutReadingColumn } = mountLens({ layoutHeight: 1200 });
@@ -2803,16 +2803,21 @@ suite('ConversationLens', () => {
 		assert.ok(assistantActions);
 
 		const assistantCopy = assistantActions.querySelector('.conversation-lens-turn-action-copy .monaco-button') as HTMLElement;
+		const assistantRegenerate = assistantActions.querySelector('.conversation-lens-turn-action-regenerate .monaco-button') as HTMLElement;
 		const assistantDelete = assistantActions.querySelector('.conversation-lens-turn-action-delete .monaco-button') as HTMLElement;
 
 		assert.strictEqual(assistantCopy.getAttribute('aria-label'), conversationLensTurnCopy);
+		assert.strictEqual(assistantRegenerate.getAttribute('aria-label'), conversationLensTurnRegenerate);
 		assert.strictEqual(assistantDelete.getAttribute('aria-label'), conversationLensTurnDelete);
 
 		assert.strictEqual(queryTimeline(slots, '.conversation-process-fold-thinking .conversation-lens-turn-actions'), null);
 		assert.strictEqual(queryTimeline(slots, '.conversation-process-fold-tool .conversation-lens-turn-actions'), null);
 		assert.strictEqual(queryTimeline(slots, '.conversation-lens-confirmation-seat .conversation-lens-turn-actions'), null);
 
-		assert.strictEqual(queryTimeline(slots, '[aria-label*="Regenerate"]'), null);
+		assert.strictEqual(userTurn.querySelector('[aria-label*="Regenerate"]'), null);
+		assert.strictEqual(queryTimeline(slots, '.conversation-process-fold-thinking [aria-label*="Regenerate"]'), null);
+		assert.strictEqual(queryTimeline(slots, '.conversation-process-fold-tool [aria-label*="Regenerate"]'), null);
+		assert.strictEqual(queryTimeline(slots, '.conversation-lens-confirmation-seat [aria-label*="Regenerate"]'), null);
 		assert.strictEqual(queryTimeline(slots, '[aria-label*="Quote"]'), null);
 		assert.strictEqual(queryTimeline(slots, '[aria-label*="Edit"]'), null);
 	});
