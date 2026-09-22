@@ -156,7 +156,7 @@ suite('Conversation session chat (S3)', () => {
 	}
 
 	class ConnectedForkSentThenRefusedRoster extends ConnectedForkRoster {
-		override whenDispatchedEngineActionSettles(): Promise<boolean> {
+		whenDispatchedEngineActionSettles(): Promise<boolean> {
 			return Promise.resolve(false);
 		}
 	}
