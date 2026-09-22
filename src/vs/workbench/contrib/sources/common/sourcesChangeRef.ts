@@ -28,12 +28,12 @@ export function attachSourcesGitApplyHunksPatch(host: object, unifiedDiff: strin
 	applyHunksPatchByHost.set(host, unifiedDiff);
 }
 
-/** Accept patches from a carried unifiedDiff only. Empty / whitespace → no payload. */
-export function sourcesGitApplyHunksPatches(source?: { readonly unifiedDiff?: string }): readonly string[] {
+/** Accept patches from a carried unifiedDiff only. Empty / whitespace → no payload. Hosts without the field still use the WeakMap. */
+export function sourcesGitApplyHunksPatches(source?: object): readonly string[] {
 	if (!source) {
 		return [];
 	}
-	const unifiedDiff = source.unifiedDiff ?? applyHunksPatchByHost.get(source);
+	const unifiedDiff = (source as { readonly unifiedDiff?: string }).unifiedDiff ?? applyHunksPatchByHost.get(source);
 	if (unifiedDiff === undefined || unifiedDiff.trim() === '') {
 		return [];
 	}
