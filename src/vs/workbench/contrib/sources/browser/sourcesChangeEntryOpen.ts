@@ -11,7 +11,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import type { UniverseAgentReadGitFileDiffResult } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { ACTIVE_GROUP, CONVERSATION_SIDE_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
-import { attachSourcesGitApplyHunksPatch, resolveSourcesChangeRef, ISourcesChangeRef } from '../common/sourcesChangeRef.js';
+import { attachCarriedSourcesGitApplyHunksPatch, attachSourcesGitApplyHunksPatch, resolveSourcesChangeRef, ISourcesChangeRef } from '../common/sourcesChangeRef.js';
 import {
 	needsSourcesGitFileDiff,
 	parseSourcesGitUnifiedDiff,
@@ -120,11 +120,12 @@ async function openSourcesChangeInPreview(
 			const activeEditorPane = deps.editorService.activeEditorPane;
 			activeEditorPane?.group.pinEditor(activeEditorPane.input);
 		}
+		attachOpenedSourcesPreviewPatch(deps.editorService, ref);
 		return;
 	}
 
 	if (ref.original) {
-		await deps.editorService.openEditor({
+		const pane = await deps.editorService.openEditor({
 			original: { resource: ref.original },
 			modified: { resource: ref.modified },
 			options: {
@@ -133,10 +134,11 @@ async function openSourcesChangeInPreview(
 				source: EditorOpenSource.USER,
 			},
 		}, ACTIVE_GROUP);
+		attachOpenedSourcesPreviewPatch(deps.editorService, ref, pane);
 		return;
 	}
 
-	await deps.editorService.openEditor({
+	const pane = await deps.editorService.openEditor({
 		resource: ref.modified,
 		options: {
 			preserveFocus: options.preserveFocus,
@@ -144,6 +146,18 @@ async function openSourcesChangeInPreview(
 			source: EditorOpenSource.USER,
 		},
 	}, ACTIVE_GROUP);
+	attachOpenedSourcesPreviewPatch(deps.editorService, ref, pane);
+}
+
+function attachOpenedSourcesPreviewPatch(
+	editorService: IEditorService,
+	ref: ISourcesChangeRef,
+	pane?: { readonly input?: object } | undefined,
+): void {
+	const host = pane?.input ?? editorService.activeEditor;
+	if (host) {
+		attachCarriedSourcesGitApplyHunksPatch(host, ref);
+	}
 }
 
 async function openSourcesChangeInConversation(

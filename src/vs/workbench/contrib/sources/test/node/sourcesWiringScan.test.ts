@@ -350,6 +350,10 @@ suite('Sources - custom UI visual CSS - 源码接线扫描', () => {
 		const previewEnd = helpers.indexOf('export async function openSourcesChangeRefInConversation');
 		assert.ok(previewStart >= 0 && previewEnd > previewStart);
 		assert.ok(helpers.slice(previewStart, previewEnd).includes('attachCarriedSourcesGitApplyHunksPatch'));
+		const firstOpenStart = open.indexOf('async function openSourcesChangeInPreview');
+		const firstOpenEnd = open.indexOf('async function openSourcesChangeInConversation');
+		assert.ok(firstOpenStart >= 0 && firstOpenEnd > firstOpenStart);
+		assert.ok(open.slice(firstOpenStart, firstOpenEnd).includes('attachCarriedSourcesGitApplyHunksPatch'));
 		assert.ok(input.includes('this._groupId === other._groupId'));
 		assert.ok(common.includes('/group/'));
 		assert.ok(common.includes('serializeConversationDiffReviewInput'));

@@ -22,7 +22,8 @@ import { ITextModelService } from '../../../../../editor/common/services/resolve
 import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainerModel, IViewContainersRegistry, IViewDescriptorService, IViewPaneContainer, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
-import { workbenchInstantiationService, TestEditorGroupView, TestViewsService } from '../../../../test/browser/workbenchTestServices.js';
+import { DiffEditorInput } from '../../../../common/editor/diffEditorInput.js';
+import { workbenchInstantiationService, TestEditorGroupView, TestEditorInput, TestViewsService } from '../../../../test/browser/workbenchTestServices.js';
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
 import { ConversationDiffReviewEditorId } from '../../common/conversationDiffReviewInput.js';
@@ -34,6 +35,7 @@ import { ConversationDiffReviewInput } from '../../browser/conversationDiffRevie
 import { ConversationDiffReviewPane } from '../../browser/conversationDiffReviewPane.js';
 import { ISourcesChangeEntryOpenDeps, openSourcesChangeEntry } from '../../browser/sourcesChangeEntryOpen.js';
 import { SOURCES_DIFF_MOVE_TO_CONVERSATION_COMMAND, SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND } from '../../browser/sourcesDiffActions.js';
+import { moveActiveDiffToConversation } from '../../browser/sourcesDiffRefHelpers.js';
 import { SOURCES_DIFF_PANEL_VIEW_CONTAINER } from '../../browser/sourcesDiffPanel.contribution.js';
 import { SOURCES_DIFF_PANEL_CONTAINER_ID, SOURCES_DIFF_PANEL_VIEW_ID } from '../../browser/sourcesDiffPanelIds.js';
 import { SourcesDiffPanelService } from '../../browser/sourcesDiffPanelService.js';
@@ -1287,6 +1289,143 @@ suite('Sources diff panel', () => {
 
 		assert.ok(opened);
 		assert.deepStrictEqual(sourcesGitApplyHunksPatches(opened), [carriedUnifiedDiff]);
+	});
+
+	test('openSourcesChangeEntry attaches fetched unifiedDiff for Preview then Conversation Accept', async function () {
+		const resource = toResource.call(this, '/project/src/carry-preview.ts');
+		const entry: ISourcesChangeEntry = {
+			resource,
+			name: 'carry-preview.ts',
+			description: 'Unstaged Changes',
+			groupId: 'workingTree',
+			gitPath: 'src/carry-preview.ts',
+			indexState: 'WORKTREE',
+		};
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const models = new Map<string, string>();
+		const editorState = {
+			activeEditor: undefined as DiffEditorInput | ConversationDiffReviewInput | undefined,
+			closed: [] as object[],
+		};
+
+		const editorService = {
+			get activeEditor() { return editorState.activeEditor; },
+			activeEditorPane: { group: { id: 1 } },
+			closeEditor: async (ident: { editor: object }) => {
+				editorState.closed.push(ident.editor);
+				if (editorState.activeEditor === ident.editor) {
+					editorState.activeEditor = undefined;
+				}
+			},
+			openEditor: async (input: unknown) => {
+				if (input instanceof ConversationDiffReviewInput) {
+					store.add(input);
+					editorState.activeEditor = input;
+					return { input };
+				}
+				const untyped = input as { original?: { resource?: URI }; modified?: { resource?: URI } };
+				if (untyped.original?.resource && untyped.modified?.resource) {
+					const originalInput = store.add(new TestEditorInput(untyped.original.resource, 'test.original'));
+					const modifiedInput = store.add(new TestEditorInput(untyped.modified.resource, 'test.modified'));
+					const diffInput = store.add(instantiationService.createInstance(DiffEditorInput, undefined, undefined, originalInput, modifiedInput, undefined));
+					editorState.activeEditor = diffInput;
+					return { input: diffInput };
+				}
+				return undefined;
+			},
+		} as unknown as IEditorService;
+
+		await openSourcesChangeEntry(entry, {
+			editorService,
+			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
+			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'preview' }),
+			instantiationService,
+			sourcesDiffPanelService: {
+				show: async () => { throw new Error('preview open must not show the panel'); },
+			} as unknown as ISourcesDiffPanelService,
+			modelService: {
+				getModel: (uri: URI) => models.has(uri.toString()) ? { uri } : null,
+				updateModel: (model: { uri: URI }, value: string) => { models.set(model.uri.toString(), value); },
+				createModel: (value: string, _language: unknown, uri?: URI) => {
+					if (uri) {
+						models.set(uri.toString(), value);
+					}
+					return { uri };
+				},
+			} as unknown as IModelService,
+			readGitFileDiff: async () => ({
+				supported: true,
+				reason: '',
+				path: 'src/carry-preview.ts',
+				unifiedDiff: carriedUnifiedDiff,
+			}),
+		}, { preserveFocus: false });
+
+		const previewHost = editorState.activeEditor;
+		assert.ok(previewHost instanceof DiffEditorInput);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(previewHost), [carriedUnifiedDiff]);
+
+		await moveActiveDiffToConversation(editorService, { repositories: [] } as unknown as ISCMService, instantiationService);
+
+		const conversationHost = editorState.activeEditor;
+		assert.ok(conversationHost instanceof ConversationDiffReviewInput);
+		assert.notStrictEqual(conversationHost, previewHost);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(conversationHost), [carriedUnifiedDiff]);
+	});
+
+	test('openSourcesChangeEntry preview first-open leaves whitespace unifiedDiff absent', async function () {
+		const resource = toResource.call(this, '/project/src/preview-whitespace.ts');
+		const entry: ISourcesChangeEntry = {
+			resource,
+			name: 'preview-whitespace.ts',
+			description: 'Unstaged Changes',
+			groupId: 'workingTree',
+			gitPath: 'src/preview-whitespace.ts',
+			indexState: 'WORKTREE',
+		};
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const models = new Map<string, string>();
+		let previewHost: DiffEditorInput | undefined;
+
+		await openSourcesChangeEntry(entry, {
+			editorService: {
+				get activeEditor() { return previewHost; },
+				openEditor: async (input: { original?: { resource?: URI }; modified?: { resource?: URI } }) => {
+					if (input.original?.resource && input.modified?.resource) {
+						const originalInput = store.add(new TestEditorInput(input.original.resource, 'test.original'));
+						const modifiedInput = store.add(new TestEditorInput(input.modified.resource, 'test.modified'));
+						previewHost = store.add(instantiationService.createInstance(DiffEditorInput, undefined, undefined, originalInput, modifiedInput, undefined));
+						return { input: previewHost };
+					}
+					return undefined;
+				},
+			} as unknown as IEditorService,
+			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
+			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'preview' }),
+			instantiationService,
+			sourcesDiffPanelService: {
+				show: async () => { throw new Error('preview open must not show the panel'); },
+			} as unknown as ISourcesDiffPanelService,
+			modelService: {
+				getModel: (uri: URI) => models.has(uri.toString()) ? { uri } : null,
+				updateModel: (model: { uri: URI }, value: string) => { models.set(model.uri.toString(), value); },
+				createModel: (value: string, _language: unknown, uri?: URI) => {
+					if (uri) {
+						models.set(uri.toString(), value);
+					}
+					return { uri };
+				},
+			} as unknown as IModelService,
+			readGitFileDiff: async () => ({
+				supported: true,
+				reason: '',
+				path: 'src/preview-whitespace.ts',
+				unifiedDiff: '   ',
+			}),
+		}, { preserveFocus: false });
+
+		assert.ok(previewHost);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(previewHost), []);
 	});
 
 	test('Accept sends the carried unifiedDiff and does not fall back to git.stage', async function () {
