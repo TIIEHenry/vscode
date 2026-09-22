@@ -477,6 +477,45 @@ async function awaitEngineCatalogRefresh(service: ConversationEngineRosterServic
 	await new Promise<void>(resolve => setTimeout(resolve, 0));
 }
 
+function stubCachedProjection(
+	service: ConversationEngineRosterService,
+	sessionId: string,
+	projection: ReturnType<typeof stubTurnsToSnapshot> | undefined,
+): void {
+	const frameSource = (service as unknown as {
+		engineFrameSource: {
+			getCachedProjection(id: string): ReturnType<typeof stubTurnsToSnapshot> | undefined;
+		};
+	}).engineFrameSource;
+	const original = frameSource.getCachedProjection.bind(frameSource);
+	frameSource.getCachedProjection = (id: string) => id === sessionId ? projection : original(id);
+}
+
+function projectionWithStreamingAgent(sessionId: string, agentId: string): ReturnType<typeof stubTurnsToSnapshot> {
+	const base = stubTurnsToSnapshot(sessionId, [
+		{ id: 'u1', kind: 'user', text: 'hi' },
+		{ id: 'a-old', kind: 'assistant', text: 'old stream' },
+		{ id: 'a-live', kind: 'assistant', text: 'live stream' },
+	]);
+	return {
+		snapshot: {
+			...base.snapshot,
+			timeline: base.snapshot.timeline.map(item => {
+				if (item.summary.kind !== 'text' || (String(item.id) !== 'a-old' && String(item.id) !== 'a-live')) {
+					return item;
+				}
+				return { ...item, summary: { ...item.summary, streaming: true } };
+			}),
+		},
+		attribution: new Map([
+			['u1', { role: 'user' }],
+			['a-old', { role: 'assistant', agentId: 'sub:old' }],
+			['a-live', { role: 'assistant', agentId }],
+		]),
+		details: base.details,
+	};
+}
+
 declare function __readFileInTests(path: string): Promise<string>;
 
 async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
@@ -1947,6 +1986,38 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(service.cancelGeneration('missing'), false);
 		assert.strictEqual(service.cancelGeneration('missing', 'root'), false);
 		assert.strictEqual(connection.cancelCalls.length, 3);
+	});
+
+	test('cancelGeneration uses last cached-projection streaming agentId instead of root', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		stubCachedProjection(service, 'ua-only', projectionWithStreamingAgent('ua-only', 'sub:live'));
+		assert.ok(!service.getTurns('ua-only').some(turn => turn.streaming));
+		assert.strictEqual(service.cancelGeneration('ua-only'), true);
+		assert.deepStrictEqual(connection.cancelCalls, [{ sessionId: 'ua-only', agentId: 'sub:live' }]);
+	});
+
+	test('cancelGeneration stays root when cached projection has no streaming agent', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		stubCachedProjection(service, 'ua-only', stubTurnsToSnapshot('ua-only', [
+			{ id: 'u1', kind: 'user', text: 'hi' },
+			{ id: 'a1', kind: 'assistant', text: 'settled' },
+		]));
+		assert.strictEqual(service.cancelGeneration('ua-only'), true);
+		assert.deepStrictEqual(connection.cancelCalls, [{ sessionId: 'ua-only', agentId: 'root' }]);
 	});
 
 	test('connected createSession catalogs New session only after host Create/Resume, not acquireLease', async () => {

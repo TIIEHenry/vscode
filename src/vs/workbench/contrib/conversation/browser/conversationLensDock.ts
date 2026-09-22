@@ -67,6 +67,7 @@ export interface IConversationLensDockHost {
 	readonly stubService: IConversationRosterService;
 	readonly configurationService: IConfigurationService;
 	readonly instantiationService: IInstantiationService;
+	lastAttachedEntries: readonly { readonly streaming?: boolean }[];
 	getBoundSessionId(): string;
 	register<T extends IDisposable>(disposable: T): T;
 	createComposerSelectBox(options: { text: string }[], selectedIndex: number, ariaLabel: string): SelectBox;
@@ -101,6 +102,7 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 			onQueueItemHold: itemId => host.beginQueueEdit(itemId),
 			onScrollToPendingConfirmation: () => host.scrollToFirstPendingConfirmation(),
 			showPostFailure: reason => showPostFailure(host, reason),
+			hasStreamingEntry: () => host.lastAttachedEntries.some(entry => entry.streaming === true),
 		}));
 
 		host.composerCluster = append(host.dockRoot, $('.conversation-lens-composer-cluster'));

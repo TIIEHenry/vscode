@@ -35,6 +35,7 @@ import {
 	type ConversationMessageQueueState,
 	type ConversationQueueItemHoldReason,
 } from './conversationMessageQueueModel.js';
+import { projectSnapshotToEntries } from './conversationSessionView.js';
 import { allocateConversationStubSessionId, ConversationStubSession, ConversationStubTurn, getConversationStubNextTurnId } from './conversationStubModel.js';
 
 const STUB_SEED_IDS = new Set(['untitled', 'visualize']);
@@ -1457,11 +1458,15 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	private lastStreamingAgentId(sessionId: string): string | undefined {
-		const turns = this.getTurns(sessionId);
-		for (let i = turns.length - 1; i >= 0; i--) {
-			const turn = turns[i];
-			if (turn?.streaming) {
-				const id = turn.agentId?.trim();
+		const projection = this.engineFrameSource.getCachedProjection(sessionId);
+		if (!projection) {
+			return undefined;
+		}
+		const entries = projectSnapshotToEntries(projection.snapshot, projection.attribution, projection.details);
+		for (let i = entries.length - 1; i >= 0; i--) {
+			const entry = entries[i];
+			if (entry?.streaming === true) {
+				const id = entry.agentId?.trim();
 				if (id) {
 					return id;
 				}

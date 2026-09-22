@@ -60,6 +60,8 @@ export interface IConversationInboxOverlayDelegate {
 	onQueueItemHold(itemId: string): void;
 	onScrollToPendingConfirmation(): void;
 	showPostFailure(reason: ConversationComposerPostFailureReason): void;
+	/** Visible timeline projection, not `getTurns()` (legacy turns drop streaming rows). */
+	hasStreamingEntry(): boolean;
 }
 
 /**
@@ -223,13 +225,13 @@ export class ConversationInboxOverlay extends Disposable {
 			&& this.stubService.isEngineSessionReady?.() === false;
 	}
 
-	private isGenerating(sessionId: string): boolean {
+	private isGenerating(_sessionId: string): boolean {
 		// D373 leftover-looks-live: pairing-hold first. Streaming leftover is not live generating.
 		// D451 KEEP leftover list-fail: leftover streaming is not live Stop.
 		return !isConversationPairingHold(this.uaConnection)
 			&& this.stubService.isEngineConnected()
 			&& !this.isKeepLeftoverListFailWrite()
-			&& this.stubService.getTurns(sessionId).some(turn => turn.streaming);
+			&& this.delegate.hasStreamingEntry();
 	}
 
 	private isSessionGoalAvailable(): boolean {
