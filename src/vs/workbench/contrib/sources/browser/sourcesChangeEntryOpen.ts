@@ -11,7 +11,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import type { UniverseAgentReadGitFileDiffResult } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { ACTIVE_GROUP, CONVERSATION_SIDE_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
-import { resolveSourcesChangeRef, ISourcesChangeRef } from '../common/sourcesChangeRef.js';
+import { attachSourcesGitApplyHunksPatch, resolveSourcesChangeRef, ISourcesChangeRef } from '../common/sourcesChangeRef.js';
 import {
 	needsSourcesGitFileDiff,
 	parseSourcesGitUnifiedDiff,
@@ -89,6 +89,7 @@ async function applySourcesGitFileDiffIfNeeded(
 		original: originalUri,
 		groupId: ref.groupId,
 		scmResource: ref.scmResource,
+		unifiedDiff: result.unifiedDiff,
 	};
 }
 
@@ -156,6 +157,9 @@ async function openSourcesChangeInConversation(
 		ref.original,
 		ref.groupId,
 	);
+	if (ref.unifiedDiff !== undefined) {
+		attachSourcesGitApplyHunksPatch(input, ref.unifiedDiff);
+	}
 	await deps.editorService.openEditor(input, {
 		preserveFocus: options.preserveFocus,
 		pinned: options.pinned,

@@ -32,7 +32,7 @@ import { IViewDescriptorService } from '../../../common/views.js';
 import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { ISCMResource, ISCMService } from '../../scm/common/scm.js';
-import { findScmResourceForUri, ISourcesChangeRef, sourcesDiffLocalWritePath } from '../common/sourcesChangeRef.js';
+import { findScmResourceForUri, ISourcesChangeRef, sourcesDiffLocalWritePath, sourcesGitApplyHunksPatches } from '../common/sourcesChangeRef.js';
 import {
 	SOURCES_GIT_CLEAN_COMMAND,
 	SOURCES_GIT_STAGE_COMMAND,
@@ -309,6 +309,10 @@ export class SourcesDiffPanelView extends ViewPane {
 		};
 	}
 
+	private getApplyHunksPatches(): readonly string[] {
+		return sourcesGitApplyHunksPatches(this.currentRef);
+	}
+
 	private getGitSessionId(): string {
 		return this.roster.getActiveSessionId();
 	}
@@ -379,7 +383,7 @@ export class SourcesDiffPanelView extends ViewPane {
 				false,
 				engineSessionReady,
 			),
-			hasApplyHunksPayload: hasSourcesGitApplyHunksPayload(sessionId, []),
+			hasApplyHunksPayload: hasSourcesGitApplyHunksPayload(sessionId, this.getApplyHunksPatches()),
 			hasGitStageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND),
 			hasGitUnstageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_UNSTAGE_COMMAND),
 			hasGitCleanCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_CLEAN_COMMAND),
@@ -451,7 +455,7 @@ export class SourcesDiffPanelView extends ViewPane {
 		}
 
 		const sessionId = this.getGitSessionId();
-		const patches: readonly string[] = [];
+		const patches = this.getApplyHunksPatches();
 		const hook = this.uaConnection.writeGitApplyHunks;
 		try {
 			const attempt = await attemptSourcesGitWrite(() => tryWriteSourcesGitApplyHunks(
