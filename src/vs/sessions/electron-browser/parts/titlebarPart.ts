@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { getZoomFactor } from '../../../base/browser/browser.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { $, addDisposableListener, append, EventType, getWindow, getWindowId, hide, show } from '../../../base/browser/dom.js';
 import { Codicon } from '../../../base/common/codicons.js';
 import { Event } from '../../../base/common/event.js';
@@ -51,7 +52,7 @@ export class NativeTitlebarPart extends TitlebarPart {
 	) {
 		super(id, targetWindow, contextMenuService, configurationService, instantiationService, themeService, storageService, layoutService, contextKeyService, hostService);
 
-		this.handleWindowsAlwaysOnTop(targetWindow.vscodeWindowId, contextKeyService);
+		this.handleWindowsAlwaysOnTop(targetWindow.vscodeWindowId, contextKeyService).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	protected override createContentArea(parent: HTMLElement): HTMLElement {

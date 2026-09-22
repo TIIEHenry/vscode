@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { fromNow } from '../../../../base/common/date.js';
 import { KeyChord, KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { Disposable, DisposableStore, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
@@ -1349,7 +1350,7 @@ export class NewSessionActionViewItemContribution extends Disposable implements 
 
 		// Resolve the titlebar experiment now and on refetch.
 		this._register(this.assignmentService.onDidRefetchAssignments(() => this.updateTitleBarTreatment()));
-		this.updateTitleBarTreatment();
+		this.updateTitleBarTreatment().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async updateTitleBarTreatment(): Promise<void> {

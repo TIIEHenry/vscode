@@ -5,6 +5,7 @@
 
 import { basename } from '../../../../base/common/resources.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { URI, UriComponents } from '../../../../base/common/uri.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
@@ -86,7 +87,7 @@ export class SessionsRecentWorkspacesService extends Disposable implements ISess
 	) {
 		super();
 
-		this._refreshVSCodeRecentWorkspaces();
+		this._refreshVSCodeRecentWorkspaces().catch(onUnexpectedError).catch(onUnexpectedError);
 		this._register(this.workspacesService.onDidChangeRecentlyOpened(() => this._refreshVSCodeRecentWorkspaces()));
 	}
 

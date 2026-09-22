@@ -259,7 +259,7 @@ class TitleBarAccountWidget extends BaseActionViewItem {
 		// in is optional) or a prominent "Agents Signed Out". Re-render so toggling the
 		// setting switches between them while the window is open.
 		this._register(runOnChange(this.allowSignedOutWhenUsable, () => this.renderState()));
-		this.refreshAccount();
+		this.refreshAccount().catch(onUnexpectedError).catch(onUnexpectedError);
 		this.refreshCodexAvatar();
 	}
 
