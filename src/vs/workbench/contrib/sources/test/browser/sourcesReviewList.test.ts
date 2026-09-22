@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { mainWindow } from '../../../../../base/browser/window.js';
+import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
@@ -12,18 +13,29 @@ import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { localize } from '../../../../../nls.js';
 import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
+import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { ITextModelService } from '../../../../../editor/common/services/resolverService.js';
+import { workbenchInstantiationService, TestEditorGroupView } from '../../../../test/browser/workbenchTestServices.js';
+import { IViewDescriptorService, IViewContainerModel, ViewContainerLocation } from '../../../../common/views.js';
+import { IViewsService } from '../../../../services/views/common/viewsService.js';
 import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
+import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
+import { conversationDiffComparisonLoadFailedMessage, ConversationDiffReviewPane } from '../../browser/conversationDiffReviewPane.js';
+import { openSourcesChangeEntry } from '../../browser/sourcesChangeEntryOpen.js';
 import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
+import { SourcesDiffPanelService } from '../../browser/sourcesDiffPanelService.js';
+import { sourcesDiffPanelComparisonLoadFailedMessage, SourcesDiffPanelView } from '../../browser/sourcesDiffPanelView.js';
+import { SOURCES_DIFF_PANEL_VIEW_ID } from '../../browser/sourcesDiffPanelIds.js';
 import { SourcesReviewList } from '../../browser/sourcesReviewList.js';
 import { sourcesGitDiffOpenFailureMessage, sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadPairingHoldMessage, sourcesGitReadUnavailableNoHookMessage } from '../../common/sourcesChangesGitRead.js';
 import { ISourcesChangeEntry } from '../../common/sourcesChangesModel.js';
+import { SOURCES_DIFF_DEFAULT_OWNER_SETTING } from '../../common/sourcesDiffConfiguration.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
 import { ISourcesReviewAttributionService } from '../../common/sourcesReviewAttribution.js';
 import { ISourcesReviewHostService, ISourcesReviewListHost } from '../../common/sourcesReviewHostService.js';
@@ -255,6 +267,64 @@ suite('Sources - review list model', () => {
 			buildChipMapForEntries: () => new Map(),
 		} as unknown as ISourcesReviewAttributionService);
 		return instantiationService;
+	}
+
+	function stubThrowOnLoadTextModelService(instantiationService: ReturnType<typeof stubSourcesGitListServices>): void {
+		instantiationService.stub(ITextModelService, {
+			createModelReference: async () => {
+				throw new Error('boom');
+			},
+		} as unknown as ITextModelService);
+	}
+
+	async function openFailedConversationPane(
+		instantiationService: ReturnType<typeof stubSourcesGitListServices>,
+		input: unknown,
+	): Promise<ConversationDiffReviewPane> {
+		const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		pane.create(parent);
+		if (input instanceof ConversationDiffReviewInput) {
+			await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+		}
+		return pane;
+	}
+
+	function createReviewDiffViewDescriptorService(): IViewDescriptorService {
+		return {
+			getViewLocationById: () => ViewContainerLocation.Panel,
+			onDidChangeLocation: Event.None,
+			getViewDescriptorById: () => null,
+			getViewContainerByViewId: () => ({
+				id: 'workbench.view.sourcesDiff',
+				title: { value: 'Diff', original: 'Diff' },
+			}),
+			getViewContainerModel: () => ({
+				onDidChangeContainerInfo: Event.None,
+			} as IViewContainerModel),
+			getDefaultContainerById: () => null,
+		} as unknown as IViewDescriptorService;
+	}
+
+	function mountLoadFailedPanel(
+		instantiationService: ReturnType<typeof stubSourcesGitListServices>,
+	): SourcesDiffPanelService {
+		instantiationService.stub(IViewDescriptorService, createReviewDiffViewDescriptorService());
+		instantiationService.stub(IViewsService, {
+			openView: async () => null,
+			onDidChangeViewVisibility: Event.None,
+			onDidChangeViewContainerVisibility: Event.None,
+		} as unknown as IViewsService);
+		const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+		instantiationService.stub(ISourcesDiffPanelService, panelService);
+		const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+			id: SOURCES_DIFF_PANEL_VIEW_ID,
+			title: 'Diff',
+		}));
+		view.render();
+		return panelService;
 	}
 
 	async function waitForStatusText(host: HTMLElement, selector: string, contains?: string): Promise<string> {
@@ -539,6 +609,152 @@ suite('Sources - review list model', () => {
 			resource,
 		));
 		assert.strictEqual(marked.length, 1);
+	});
+
+	test('markReviewedAfterSuccessfulOpen does not mark when open throws comparison load failure', async function () {
+		const resource = toResource.call(this, '/project/a.ts');
+		const marked: ISourcesReviewProgressKey[] = [];
+		await assert.rejects(() => markReviewedAfterSuccessfulOpen(
+			async () => {
+				throw new Error(conversationDiffComparisonLoadFailedMessage());
+			},
+			async () => ({ scopeKeyId: 'root', path: resource.toString(), contentHash: 'etag' }),
+			key => marked.push(key),
+			resource,
+		));
+		assert.strictEqual(marked.length, 0);
+	});
+
+	test('openSourcesChangeEntry conversation load-fail rejects so Review cannot treat it as success', async function () {
+		const resource = toResource.call(this, '/project/src/a.ts');
+		const original = toResource.call(this, '/project/src/a.ts.git');
+		const instantiationService = stubSourcesGitListServices({
+			connection: createNoGitReadConnection(),
+		});
+		stubThrowOnLoadTextModelService(instantiationService);
+
+		await assert.rejects(async () => {
+			await openSourcesChangeEntry({
+				resource,
+				name: 'a.ts',
+				description: 'Changes',
+				groupId: 'workingTree',
+			}, {
+				editorService: {
+					openEditor: async (input: unknown) => openFailedConversationPane(instantiationService, input),
+				} as unknown as IEditorService,
+				quickDiffService: {
+					getQuickDiffs: async () => [{ originalResource: original, id: 'git', label: 'Git', kind: 'primary' }],
+				} as unknown as IQuickDiffService,
+				configurationService: new TestConfigurationService({ [SOURCES_DIFF_DEFAULT_OWNER_SETTING]: 'conversation' }),
+				instantiationService: {
+					createInstance: (ctor: typeof ConversationDiffReviewInput, modified: URI, originalUri?: URI, groupId?: string) =>
+						store.add(new ctor(modified, originalUri, groupId)),
+				} as unknown as IInstantiationService,
+				sourcesDiffPanelService: { show: async () => { } } as unknown as ISourcesDiffPanelService,
+			}, { preserveFocus: false });
+		}, (error: Error) => error.message === conversationDiffComparisonLoadFailedMessage());
+	});
+
+	test('openSourcesChangeEntry panel load-fail rejects so Review cannot treat it as success', async function () {
+		const resource = toResource.call(this, '/project/src/a.ts');
+		const original = toResource.call(this, '/project/src/a.ts.git');
+		const instantiationService = stubSourcesGitListServices({
+			connection: createNoGitReadConnection(),
+		});
+		stubThrowOnLoadTextModelService(instantiationService);
+		const panelService = mountLoadFailedPanel(instantiationService);
+
+		await assert.rejects(async () => {
+			await openSourcesChangeEntry({
+				resource,
+				name: 'a.ts',
+				description: 'Changes',
+				groupId: 'workingTree',
+			}, {
+				editorService: { openEditor: async () => undefined } as unknown as IEditorService,
+				quickDiffService: {
+					getQuickDiffs: async () => [{ originalResource: original, id: 'git', label: 'Git', kind: 'primary' }],
+				} as unknown as IQuickDiffService,
+				configurationService: new TestConfigurationService({ [SOURCES_DIFF_DEFAULT_OWNER_SETTING]: 'panel' }),
+				instantiationService,
+				sourcesDiffPanelService: panelService,
+			}, { preserveFocus: false });
+		}, (error: Error) => error.message === sourcesDiffPanelComparisonLoadFailedMessage());
+	});
+
+	test('Review list conversation comparison load-fail does not mark reviewed', async function () {
+		const host = mountListHost();
+		let marked = 0;
+		const instantiationService = stubSourcesGitListServices({
+			connection: createGitConnection(),
+			markReviewed: () => { marked += 1; },
+		});
+		stubThrowOnLoadTextModelService(instantiationService);
+		const configurationService = instantiationService.invokeFunction(accessor => accessor.get(IConfigurationService)) as TestConfigurationService;
+		await configurationService.setUserConfiguration(SOURCES_DIFF_DEFAULT_OWNER_SETTING, 'conversation');
+		instantiationService.stub(IEditorService, {
+			openEditor: async (input: unknown) => openFailedConversationPane(instantiationService, input),
+		} as unknown as IEditorService);
+		const widget = store.add(instantiationService.createInstance(SourcesReviewList, host));
+		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+
+		await openFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+
+		const status = await waitForStatusText(host, '.sources-review-status', 'Unable to load this comparison');
+		assert.strictEqual(status, sourcesGitDiffOpenFailureMessage(new Error(conversationDiffComparisonLoadFailedMessage())));
+		assert.ok(statusIsError(host));
+		assert.strictEqual(marked, 0);
+	});
+
+	test('Review list panel comparison load-fail does not mark reviewed', async function () {
+		const host = mountListHost();
+		let marked = 0;
+		const instantiationService = stubSourcesGitListServices({
+			connection: createGitConnection(),
+			markReviewed: () => { marked += 1; },
+		});
+		stubThrowOnLoadTextModelService(instantiationService);
+		const configurationService = instantiationService.invokeFunction(accessor => accessor.get(IConfigurationService)) as TestConfigurationService;
+		await configurationService.setUserConfiguration(SOURCES_DIFF_DEFAULT_OWNER_SETTING, 'panel');
+		mountLoadFailedPanel(instantiationService);
+		const widget = store.add(instantiationService.createInstance(SourcesReviewList, host));
+		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+
+		await openFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+
+		const status = await waitForStatusText(host, '.sources-review-status', 'Unable to load this comparison');
+		assert.strictEqual(status, sourcesGitDiffOpenFailureMessage(new Error(sourcesDiffPanelComparisonLoadFailedMessage())));
+		assert.ok(statusIsError(host));
+		assert.strictEqual(marked, 0);
+	});
+
+	test('Open Selected conversation comparison load-fail does not mark reviewed', async function () {
+		const host = mountListHost();
+		let marked = 0;
+		const instantiationService = stubSourcesGitListServices({
+			connection: createGitConnection(),
+			markReviewed: () => { marked += 1; },
+		});
+		stubThrowOnLoadTextModelService(instantiationService);
+		const configurationService = instantiationService.invokeFunction(accessor => accessor.get(IConfigurationService)) as TestConfigurationService;
+		await configurationService.setUserConfiguration(SOURCES_DIFF_DEFAULT_OWNER_SETTING, 'conversation');
+		instantiationService.stub(IEditorService, {
+			openEditor: async (input: unknown) => openFailedConversationPane(instantiationService, input),
+		} as unknown as IEditorService);
+		const widget = store.add(instantiationService.createInstance(SourcesReviewList, host));
+		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+
+		await selectFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+		const accessor = stubAccessorForOpenSelected(instantiationService, hostFromReviewList(widget), async (input: unknown) => {
+			return openFailedConversationPane(instantiationService, input);
+		});
+		await CommandsRegistry.getCommand(SOURCES_REVIEW_OPEN_SELECTED_COMMAND)?.handler?.(accessor);
+
+		const status = await waitForStatusText(host, '.sources-review-status', 'Unable to load this comparison');
+		assert.strictEqual(status, sourcesGitDiffOpenFailureMessage(new Error(conversationDiffComparisonLoadFailedMessage())));
+		assert.ok(statusIsError(host));
+		assert.strictEqual(marked, 0);
 	});
 
 	test('Review list status DOM shows git-read throw', async function () {

@@ -54,6 +54,64 @@ import { SOURCES_DIFF_PANEL_VIEW_ID } from './sourcesDiffPanelIds.js';
 
 const $ = dom.$;
 
+export function sourcesDiffPanelComparisonLoadFailedMessage(): string {
+	return localize('sourcesDiffPanel.loadFailed', "Unable to load this comparison.");
+}
+
+interface ISourcesDiffPanelComparisonWatch {
+	started: boolean;
+	settled: boolean;
+	readonly whenSettled: Promise<boolean>;
+	resolve(ok: boolean): void;
+}
+
+const sourcesDiffPanelComparisonWatches = new WeakMap<object, ISourcesDiffPanelComparisonWatch>();
+
+function getSourcesDiffPanelComparisonWatch(ref: object): ISourcesDiffPanelComparisonWatch {
+	const existing = sourcesDiffPanelComparisonWatches.get(ref);
+	if (existing) {
+		return existing;
+	}
+
+	let resolve!: (ok: boolean) => void;
+	const whenSettled = new Promise<boolean>(ok => {
+		resolve = ok;
+	});
+	const watch: ISourcesDiffPanelComparisonWatch = {
+		started: false,
+		settled: false,
+		whenSettled,
+		resolve: (ok: boolean) => {
+			if (!watch.settled) {
+				watch.settled = true;
+				resolve(ok);
+			}
+		},
+	};
+	sourcesDiffPanelComparisonWatches.set(ref, watch);
+	return watch;
+}
+
+export function watchSourcesDiffPanelComparison(ref: object): { get started(): boolean; readonly whenSettled: Promise<boolean> } {
+	const watch = getSourcesDiffPanelComparisonWatch(ref);
+	return {
+		get started() {
+			return watch.started;
+		},
+		whenSettled: watch.whenSettled,
+	};
+}
+
+function startSourcesDiffPanelComparison(ref: object): void {
+	getSourcesDiffPanelComparisonWatch(ref).started = true;
+}
+
+function settleSourcesDiffPanelComparison(ref: object, ok: boolean): void {
+	const watch = getSourcesDiffPanelComparisonWatch(ref);
+	watch.started = true;
+	watch.resolve(ok);
+}
+
 class SourcesDiffEditorModel extends EditorModel {
 	readonly original: ITextModel;
 	readonly modified: ITextModel;
@@ -226,6 +284,10 @@ export class SourcesDiffPanelView extends ViewPane {
 		this.comparisonLoadFailed = false;
 
 		if (!this.headerElement || !this.headerTitle || !this.newFileNoticeElement || !this.editorContainer) {
+			if (ref) {
+				startSourcesDiffPanelComparison(ref);
+				settleSourcesDiffPanelComparison(ref, false);
+			}
 			return;
 		}
 
@@ -240,45 +302,52 @@ export class SourcesDiffPanelView extends ViewPane {
 			return;
 		}
 
-		let loaded = false;
-		if (!ref.original) {
-			loaded = await this.renderModifiedOnly(ref.modified, generation);
-			if (generation !== this.renderGeneration) {
-				return;
+		startSourcesDiffPanelComparison(ref);
+		let loadedOk = false;
+		try {
+			let loaded = false;
+			if (!ref.original) {
+				loaded = await this.renderModifiedOnly(ref.modified, generation);
+				if (generation !== this.renderGeneration) {
+					return;
+				}
+				if (loaded) {
+					this.newFileNoticeElement.classList.remove('is-error');
+					this.newFileNoticeElement.textContent = localize('sourcesDiffPanel.newFile', "New file with no previous version to compare.");
+					this.newFileNoticeElement.style.display = '';
+				}
+			} else {
+				this.newFileNoticeElement.style.display = 'none';
+				loaded = await this.renderDiff(ref.original, ref.modified, generation);
+				if (generation !== this.renderGeneration) {
+					return;
+				}
 			}
-			if (loaded) {
-				this.newFileNoticeElement.classList.remove('is-error');
-				this.newFileNoticeElement.textContent = localize('sourcesDiffPanel.newFile', "New file with no previous version to compare.");
-				this.newFileNoticeElement.style.display = '';
-			}
-		} else {
-			this.newFileNoticeElement.style.display = 'none';
-			loaded = await this.renderDiff(ref.original, ref.modified, generation);
-			if (generation !== this.renderGeneration) {
-				return;
-			}
-		}
 
-		if (!loaded) {
-			this.comparisonLoadFailed = true;
-			this.headerTitle.textContent = '';
-			this.headerTitle.title = '';
-			this.headerElement.style.display = 'none';
-			this.hideWriteChrome();
-			this.showLoadNotice(localize('sourcesDiffPanel.loadFailed', "Unable to load this comparison."));
+			if (!loaded) {
+				this.comparisonLoadFailed = true;
+				this.headerTitle.textContent = '';
+				this.headerTitle.title = '';
+				this.headerElement.style.display = 'none';
+				this.hideWriteChrome();
+				this.showLoadNotice(sourcesDiffPanelComparisonLoadFailedMessage());
+				if (this.dimension) {
+					this.layoutBody(this.dimension.height, this.dimension.width);
+				}
+				return;
+			}
+
+			this.headerElement.style.display = '';
+			this.headerTitle.textContent = basename(ref.modified);
+			this.headerTitle.title = ref.modified.fsPath;
+
+			this.updateWriteActions();
 			if (this.dimension) {
 				this.layoutBody(this.dimension.height, this.dimension.width);
 			}
-			return;
-		}
-
-		this.headerElement.style.display = '';
-		this.headerTitle.textContent = basename(ref.modified);
-		this.headerTitle.title = ref.modified.fsPath;
-
-		this.updateWriteActions();
-		if (this.dimension) {
-			this.layoutBody(this.dimension.height, this.dimension.width);
+			loadedOk = true;
+		} finally {
+			settleSourcesDiffPanelComparison(ref, loadedOk);
 		}
 	}
 

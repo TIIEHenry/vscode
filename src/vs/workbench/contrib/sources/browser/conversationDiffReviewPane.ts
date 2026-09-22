@@ -50,6 +50,10 @@ import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
 
 const $ = dom.$;
 
+export function conversationDiffComparisonLoadFailedMessage(): string {
+	return localize('conversationDiffReviewPane.loadFailed', "Unable to load this comparison.");
+}
+
 const readOnlyEditorOptions: ICodeEditorOptions = {
 	readOnly: true,
 	scrollBeyondLastLine: false,
@@ -205,7 +209,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 			this.comparisonLoadFailed = true;
 			this.hideWriteChrome();
 			this.setReviewChromeVisible(false);
-			this.showNotice(localize('conversationDiffReviewPane.loadFailed', "Unable to load this comparison."));
+			this.showNotice(conversationDiffComparisonLoadFailedMessage());
 			this.layoutEditors();
 			this._onDidChangeControl.fire();
 			return;
@@ -215,6 +219,10 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.updateReviewActions();
 		this.layoutEditors();
 		this._onDidChangeControl.fire();
+	}
+
+	didComparisonLoadFail(): boolean {
+		return this.comparisonLoadFailed;
 	}
 
 	override dispose(): void {
@@ -606,4 +614,8 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.originalModelRef.clear();
 		this.modifiedModelRef.clear();
 	}
+}
+
+export function didSourcesConversationComparisonLoadFail(pane: unknown): boolean {
+	return pane instanceof ConversationDiffReviewPane && pane.didComparisonLoadFail();
 }

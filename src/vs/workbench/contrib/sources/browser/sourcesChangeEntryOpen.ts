@@ -20,7 +20,9 @@ import {
 import { ISourcesChangeEntry } from '../common/sourcesChangesModel.js';
 import { SOURCES_DIFF_DEFAULT_OWNER_SETTING, SourcesDiffDefaultOwner } from '../common/sourcesDiffConfiguration.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
+import { conversationDiffComparisonLoadFailedMessage, didSourcesConversationComparisonLoadFail } from './conversationDiffReviewPane.js';
 import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
+import { sourcesDiffPanelComparisonLoadFailedMessage, watchSourcesDiffPanelComparison } from './sourcesDiffPanelView.js';
 
 export interface ISourcesChangeEntryOpenOptions {
 	readonly preserveFocus?: boolean;
@@ -51,9 +53,14 @@ export async function openSourcesChangeEntry(
 		case 'conversation':
 			await openSourcesChangeInConversation(ref, deps, options);
 			break;
-		case 'panel':
+		case 'panel': {
+			const watch = watchSourcesDiffPanelComparison(ref);
 			await deps.sourcesDiffPanelService.show(ref);
+			if (watch.started && !await watch.whenSettled) {
+				throw new Error(sourcesDiffPanelComparisonLoadFailedMessage());
+			}
 			break;
+		}
 		case 'preview':
 		default:
 			await openSourcesChangeInPreview(ref, deps, options);
@@ -174,8 +181,11 @@ async function openSourcesChangeInConversation(
 	if (ref.unifiedDiff !== undefined) {
 		attachSourcesGitApplyHunksPatch(input, ref.unifiedDiff);
 	}
-	await deps.editorService.openEditor(input, {
+	const pane = await deps.editorService.openEditor(input, {
 		preserveFocus: options.preserveFocus,
 		pinned: options.pinned,
 	}, CONVERSATION_SIDE_GROUP);
+	if (didSourcesConversationComparisonLoadFail(pane)) {
+		throw new Error(conversationDiffComparisonLoadFailedMessage());
+	}
 }
