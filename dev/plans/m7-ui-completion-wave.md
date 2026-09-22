@@ -3,8 +3,8 @@ title: "M7 UI 完成波：产品面闭集与非阻塞验证"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-03
-summary: "M7 UI 代码完成线已尽（P0–P2b / E2 / Q / CS / I2–I5 / K/T/L1）；W1 冒烟与 I6 未完；方案仍 accepted，测试债旁路不升 implemented"
+updated: 2026-09-22
+summary: "M7 UI 代码完成线已尽（P0–P2b / E2 / Q / CS / I2–I5 / K/T/L1）；W1 冒烟已跑（D15 closed）；I6 发行标识未完；方案仍 accepted，测试债旁路不升 implemented"
 ---
 
 # M7 UI 完成波

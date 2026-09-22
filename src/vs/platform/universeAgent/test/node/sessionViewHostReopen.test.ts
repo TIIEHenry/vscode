@@ -330,4 +330,57 @@ suite('SessionViewHost stream reopen (S2)', () => {
 			[],
 		);
 	});
+
+	test('armed reopen timer keeps fail_closed across still-connected snapshot and does not paint live', async () => {
+		const connection = new TestConnection();
+		const diagnostics = new CountingDiagnostics();
+		const clock = createDeferredTimeout();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+			diagnostics,
+			mailboxCapacity: 1,
+			reopenBaseMs: 1,
+			reopenJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease('sess-snapshot-overflow');
+		await viewHost.whenEngineSessionReady('sess-snapshot-overflow');
+		assert.strictEqual(connection.subscribeCalls.length, 1);
+
+		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
+		let overflowArmed = false;
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(event => {
+			frames.push(event);
+			if (!overflowArmed) {
+				return;
+			}
+			overflowArmed = false;
+			viewHost.post(leaseId, { kind: 'submitInput', text: 'a' });
+			viewHost.post(leaseId, { kind: 'submitInput', text: 'b' });
+		}));
+
+		connection.fireStreamClosed('sess-snapshot-overflow', { kind: 'remote' });
+		assert.strictEqual(clock.pending.size, 1);
+		overflowArmed = true;
+		viewHost.requestResync(leaseId);
+		assert.strictEqual(diagnostics.counts.get('mailbox.overflow' as DiagnosticMetric), 1);
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		viewHost.onEngineConnectionChanged();
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		await new Promise<void>(resolve => setImmediate(() => resolve()));
+		assert.strictEqual(clock.pending.size, 1, 'still-connected snapshot must not cancel the armed reopen timer');
+
+		const afterOverflow = frames.length;
+		clock.fireAll();
+		assert.ok(diagnostics.labels.some(item => item.metric === 'stream.reopen_skipped' && item.labels?.why === 'fail_closed'));
+		assert.strictEqual(diagnostics.counts.get('stream.reopen_fired' as DiagnosticMetric), undefined);
+		assert.strictEqual(connection.subscribeCalls.length, 1);
+		assert.deepStrictEqual(
+			syncChromeFromFrames(frames.slice(afterOverflow)).filter(sync => sync.kind === 'live'),
+			[],
+		);
+	});
 });

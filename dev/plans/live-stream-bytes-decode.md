@@ -3,8 +3,8 @@ title: "活流 bytes 解码、thinking 键与 Create 错绑恢复"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-19
-summary: "2026-09-19 用户签收。decoder 抄 PIN；32/46 两条 bytes 进 join；Chat 11/13/20 与 30 互斥。不发明字段。不手改 sessionCore。不升 PRD-008。"
+updated: 2026-09-22
+summary: "2026-09-19 签收。decoder/thinking 已与 SessionStream 波重叠（含 32/46）；Chat 11/13/20 与 Create recover 仍开。不发明字段。不手改 sessionCore。不升 PRD-008。"
 ---
 
 # 活流 bytes 解码、thinking 键与 Create 错绑恢复
@@ -13,7 +13,7 @@ summary: "2026-09-19 用户签收。decoder 抄 PIN；32/46 两条 bytes 进 joi
 > **冲突域**：`src/vs/platform/universeAgent/node/grpc/grpcSessionAttachWire.ts` · `sessionStreamDemux.ts` · `sessionCreateRecover.ts` · `sessionViewHost.ts` · `fileMutationJoin.ts` 及对应 `test/node`  
 > **基线：** `agent-ide` HEAD `5c910c59a226`  
 > **触发：** 2026-09-18 十六路只读审查。单测大量 JSON 直灌 demux，绕过 decoder，测绿但活窗黑。  
-> **本稿是方案，不是实施：** 不改 `src/`。规则 16 审完 Critical/Important 改入后，方可开实施刀。  
+> **2026-09-22 核对：** `decodeSessionStreamEvent` 已解多臂（含 `tool_call_lifecycle`=32 / `tool_runtime_snapshot`=46），`decodeThinkingBlock` 写 `thinking`。这与进度账「SessionStream / L2」合入重叠，不是本方案整份已实施。**仍开：** `encodeChatRequest` 只编 heartbeat_ack=12 与 session_input=30（permission_response=11 / client_tool_response=13 / question_response=20 未与 30 互斥）；`recoverSessionAfterAlreadyExists` 仍 title 优先、否则名册第一行，`clientSessionId` 只在 List 失败或空时 Resume。不升 `implemented`。  
 > **禁止发明：** 本仓不存在的 proto 字段号、capability key、引擎 RPC。号只从钉死引擎 `grpc-api/.../message_envelope.proto` / `agent_service.proto` **只读抄**。  
 > **不推翻：** [conversation-stream-timeline](conversation-stream-timeline.md)「显示写源 = SessionEventStream L1–L4」；[ADR-003](../decisions/003-engine-adapter-boundary.md)；[giant-file-split](giant-file-split.md) GFS-4 **禁止手改** `node/sessionCore/**`；[session-subscription-lifecycle](session-subscription-lifecycle.md) D405 S4a/S4b / §5 手测仍开，本稿不占。  
 > **不升：** [PRD-008](../../docs/product/requirements.md#prd-008-引擎与会话权威)。本稿是接通后显示/绑会话诚实，不是冒烟升档。
@@ -30,6 +30,8 @@ summary: "2026-09-19 用户签收。decoder 抄 PIN；32/46 两条 bytes 进 joi
 按引擎 proto **已有** oneof 号补齐 `SessionStreamEvent` 解码（至少 demux/host/join **已经消费**的臂），thinking 块发出 `thinking`，Create 恢复只 Resume `client_session_id`，Chat 臂把已有 write kind 编进已有 Chat oneof。不发明号。不改 vendored Actor。
 
 ## 1. HEAD 事实
+
+下表是 2026-09-19 签收时的基线。2026-09-22 核对见文首：decoder / thinking 已重叠；Chat 臂与 recover 仍与本表后几行一致。
 
 | 事实 | 位置 |
 |:-----|:-----|

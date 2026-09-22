@@ -3,7 +3,7 @@ title: "可访问性与响应式 UI 完成方案"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-07
+updated: 2026-09-22
 summary: "K1/K2/T1/L1 与 Q5b/Q6/E2-1/E2-7 代码已落；D19 全收；conversation chevron transition 已收口到 .ua-motion；W1 已跑（d15-evidence/w1-1556dde3 PASS）；方案仍 accepted"
 ---
 
@@ -11,7 +11,7 @@ summary: "K1/K2/T1/L1 与 Q5b/Q6/E2-1/E2-7 代码已落；D19 全收；conversat
 
 > **需求：** [PRD-018](../../docs/product/requirements.md#prd-018-键盘可达与辅助功能) · [PRD-019](../../docs/product/requirements.md#prd-019-web--远程窗口一致性)。
 > **父方案：** [M7 UI 完成波](m7-ui-completion-wave.md)（P 槽 Wave 0 见其 §4；实施归属见其 §3）。
-> **现状：** 四钮默认键位与 F6 Part 循环已有实现（`layoutActions.ts`、`navigationActions.ts:292-313`）；conversation 目录已有透镜 tablist 左右键（`conversationLens.ts:1226-1248`）、过程折 `aria-expanded`、overlay `role=dialog`+`aria-modal`（无 focus trap，根节点 Escape 直接 `close()`），SessionBar `aria-live=polite`；没有 `prefers-reduced-motion` / 高对比度处理，也没有任何按宽度切换的布局规则；`ConversationLens` 没有 `layout()`。**Web 形态：** `IUniverseAgentConnection` / `IUniverseAgentSessionView` 只在 `workbench.desktop.main.ts:60-61` 注册；`IUniverseAgentHubService` 的 electron-browser 注册被 `connectionHub.contribution.ts:6` 静态 import，经 `uaPreferencesPanes.contribution.ts` → `conversation.contribution.ts` → `workbench.common.main.ts` 进入 Web 链；`workbench.web.main.ts` 无 UA 注册，`platform/universeAgent/browser/` 不存在。`contrib/conversation` / `navigator` / `sources` 的生产文件注入 `@IUniverseAgentConnection` 14 处、`@IUniverseAgentSessionView` 1 处。Web 入口下 strict `InstantiationService` 会让 StatusBar / Lens / Navigator 视图在创建时抛错（壳仍在，产品面空），而不是"诚实断连"。
+> **起草时基线（勿当现在时）：** 四钮默认键位与 F6 Part 循环已有实现（`layoutActions.ts`、`navigationActions.ts:292-313`）；conversation 目录已有透镜 tablist 左右键（`conversationLens.ts:1226-1248`）、过程折 `aria-expanded`、overlay `role=dialog`+`aria-modal`（无 focus trap，根节点 Escape 直接 `close()`），SessionBar `aria-live=polite`；没有 `prefers-reduced-motion` / 高对比度处理，也没有任何按宽度切换的布局规则；`ConversationLens` 没有 `layout()`。**Web 形态：** `IUniverseAgentConnection` / `IUniverseAgentSessionView` 只在 `workbench.desktop.main.ts:60-61` 注册；`IUniverseAgentHubService` 的 electron-browser 注册被 `connectionHub.contribution.ts:6` 静态 import，经 `uaPreferencesPanes.contribution.ts` → `conversation.contribution.ts` → `workbench.common.main.ts` 进入 Web 链；`workbench.web.main.ts` 无 UA 注册，`platform/universeAgent/browser/` 不存在。`contrib/conversation` / `navigator` / `sources` 的生产文件注入 `@IUniverseAgentConnection` 14 处、`@IUniverseAgentSessionView` 1 处。Web 入口下 strict `InstantiationService` 会让 StatusBar / Lens / Navigator 视图在创建时抛错（壳仍在，产品面空），而不是"诚实断连"。
 
 ## 1. 范围
 

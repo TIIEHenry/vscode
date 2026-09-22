@@ -3,7 +3,7 @@ title: "测试基线治理 + agent-ide CI"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-10
+updated: 2026-09-22
 summary: "先按账本修/改 D16 失败使三文件基线归零；agent-ide workflow 曾 github-hosted 跑四 job（2026-09-10 起永久关闭，见 workflows/DISABLED.md）；门禁用失败名单差集 + 用例数下限 + skipped 不增，不恢复 valid-layers-check；签收裁定：三域新增失败挡合入"
 ---
 
@@ -11,11 +11,11 @@ summary: "先按账本修/改 D16 失败使三文件基线归零；agent-ide wor
 
 > **2026-09-10 改口：** 本仓 GitHub Actions **永久关闭**（提交过频，不消耗 github-hosted 分钟）。声明：[DISABLED.md](../../.github/workflows/DISABLED.md)。切片 4 的 job 定义仍留在 `agent-ide.yml` 作本地命令对照，但 `if: false`，push / PR 不再触发。门禁以 [health-gates](../progress/health-gates.md) 本地命令为准。
 
-> **问题：** 验证债已系统化。[D8](../progress/deferred-gaps.md) 把 `valid-layers-check` 豁免出集成门；[D16](../progress/deferred-gaps.md) 十五个 conversation 失败挂着；其余失败进 [D17](../progress/deferred-gaps.md)「普通失败不进 Blockers」。[D15](../progress/deferred-gaps.md) Web 冒烟、[D18](../progress/deferred-gaps.md) 安装包、[D20](../progress/deferred-gaps.md) 300px 目视没跑过。用户要的是 **D16 基线归零 + `agent-ide` 上可落地的 compile / eslint / 三域单测门禁**，门禁语义是「不新增失败」，不是「全仓全绿」。  
+> **问题：** 验证债已系统化。[D8](../progress/deferred-gaps.md) 把 `valid-layers-check` 豁免出集成门；[D16](../progress/deferred-gaps.md) 十五个 conversation 失败挂着；其余失败进 [D17](../progress/deferred-gaps.md)「普通失败不进 Blockers」。[D15](../progress/deferred-gaps.md) Web 冒烟已于 2026-09-07 closed；[D18](../progress/deferred-gaps.md) 安装包、[D20](../progress/deferred-gaps.md) 300px 目视仍欠证据。用户要的是 **D16 基线归零 + `agent-ide` 上可落地的 compile / eslint / 三域单测门禁**，门禁语义是「不新增失败」，不是「全仓全绿」。  
 > **命令 SSOT：** [health-gates.md](../progress/health-gates.md)、[.github/copilot-instructions.md](../../.github/copilot-instructions.md)、[`scripts/test.sh`](../../scripts/test.sh)、根 [`package.json`](../../package.json)。  
 > **现有 CI：** [.github/workflows/pr.yml](../../.github/workflows/pr.yml) 只跟 `main` / `release/*`，且 `runs-on` 指向微软 1ES self-hosted pool——本仓不能假装有该 runner。  
 > **不推翻：** [health-gates](../progress/health-gates.md) 的 D8 豁免与「测试不冻结不冲突 UI 槽」。  
-> **明确修改（签收裁定 2026-09-04）：** [health-gates](../progress/health-gates.md) 与 [m7-ui-completion-wave §2](m7-ui-completion-wave.md)「单测失败不挡合入」在 **三自定义域** 上改为「**新增**失败挡合入 `agent-ide`（名单加行 PR 例外）」。这是政策翻转而不是补充，切片 5 须同时改这两份文档的原句。三域之外的验证债（D15 / D18 / D20、E2E、手测、axe）仍走 D17 非阻塞。  
+> **明确修改（签收裁定 2026-09-04）：** [health-gates](../progress/health-gates.md) 与 [m7-ui-completion-wave §2](m7-ui-completion-wave.md)「单测失败不挡合入」在 **三自定义域** 上改为「**新增**失败挡合入 `agent-ide`（名单加行 PR 例外）」。这是政策翻转而不是补充，切片 5 须同时改这两份文档的原句。三域之外的验证债（D18 / D20、E2E、手测、axe；D15 已闭）仍走 D17 非阻塞。  
 > **对照体例：** [m4-validation-wave.md](m4-validation-wave.md)。
 
 ## 1. 目标 / 非目标
@@ -32,10 +32,10 @@ summary: "先按账本修/改 D16 失败使三文件基线归零；agent-ide wor
 | 不做 | 理由 |
 |------|------|
 | 把 `valid-layers-check` 恢复为硬门 | [D8](../progress/deferred-gaps.md) 仍 open；红在 node/worker checker 拉入 browser 源码却未套补充类型，与三域业务无关。D8 六域全绿之前，CI **不得**加该命令 |
-| 为全绿冻结 UI 主线 | 与 [health-gates](../progress/health-gates.md) / [m7-ui-completion-wave §2](m7-ui-completion-wave.md) 冲突；D15 / D18 / D20 仍欠证据，不在本稿关门 |
+| 为全绿冻结 UI 主线 | 与 [health-gates](../progress/health-gates.md) / [m7-ui-completion-wave §2](m7-ui-completion-wave.md) 冲突；D15 已闭，D18 / D20 仍欠证据，不在本稿关门 |
 | 删除、`skip`、`it.skip`、或把断言改成恒真来装绿 | 那是消灭信号，不是归零。未点名的红测一律进 D17，不得事后追认「本来就该绿」 |
 | 改 [.github/workflows/pr.yml](../../.github/workflows/pr.yml) 或复用其 1ES pool | 触发分支不对；本仓没有上游 `1ES.Pool=1es-vscode-oss-*` |
-| 在本稿关闭 D15 / D18 / D20，或把它们写进本 CI | 用户点名「没跑过」；继续记缺口，不假装有证据 |
+| 在本稿关闭 D18 / D20，或把它们写进本 CI | D15 已由其它工作 closed；D18 / D20 继续记缺口，不假装有安装包或 300px 证据 |
 | 全仓 `scripts/test.sh`、E2E、smoke、copilot 扩展测 | 门禁只覆盖三自定义域 + compile + eslint |
 
 ## 2. D16 十五败：分类策略与记账
@@ -322,7 +322,7 @@ D8 仍豁免，不进名单、不进本 workflow。
 4. `compile` / `eslint` 失败 → workflow 红，与名单无关。
 5. workflow **没有** `valid-layers-check`。
 6. Actions 不可用时：health-gates 有同等本地命令（含 `export GITHUB_WORKSPACE="$PWD"`），PR 能贴退出码；不得改用未证明的 self-hosted。
-7. D15 / D18 / D20 仍 open（除非其它工作另补证据）。
+7. D18 / D20 仍 open。D15 已由 W1 证据 closed（`dev/progress/d15-evidence/w1-1556dde3`）。
 8. `python3 scripts/check-docs-health.py` 在切片 5 改索引后 0 error。
 
 ---

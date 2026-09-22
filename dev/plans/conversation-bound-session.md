@@ -3,8 +3,8 @@ title: "绑定叶会话身份：连接重绑、模型回选、浮层/Kill/Reveal
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-19
-summary: "2026-09-19 用户签收。connection 绑 bound；listModels 回选；浮层必参 getBoundSessionId；Kill 自写叶祖先查询；Reveal 对可见叶。不实施 S3w。不升 PRD-008。"
+updated: 2026-09-22
+summary: "2026-09-19 用户签收。connection 绑 bound；listModels 回选；浮层必参 getBoundSessionId；Kill 自写叶祖先查询；Reveal 对可见叶。本方案不实施 S3w（pill / 叶级 bar 已另路在仓，不升 pills）。不升 PRD-008。"
 ---
 
 # 绑定叶会话身份：连接重绑、模型回选、浮层/Kill/Reveal
@@ -45,7 +45,7 @@ summary: "2026-09-19 用户签收。connection 绑 bound；listModels 回选；�
 | Reveal：`openSubAgent(getActiveSessionId(), leftoverAgentId)` | `navigatorReveal.ts` |
 | Navigator leftover KEEP 不带 session 戳；换叶后上一会话树可当本会话 leftover | `navigatorAgentsView` / `navigatorTeamList` |
 | Maximize / `switchToSession` 已关 History/Snapshots/Visualize；Inbox 关在 `applyActiveSession`。绑定叶跳过 `applyActiveSession` 后 Inbox 仍开，下次 `render` 按 active 重绘。**子代理 overlay** 自己的 Maximize / 切会话不关内层 | `conversationLens.ts` vs overlay |
-| pills S3w：bar 脱离透镜、每叶一份、SelectBox 切**当前叶**（`replace`）；**代码未落**（`ConversationPart` 仍单槽 `sessionBar`） | pills §3.4；`conversationPart.ts` |
+| pills S3w：bar 脱离透镜、每叶一份（`conversationEditorPane` 的 `leafSessionBar`；`conversationSessionPill.ts`） | 代码在仓。本方案仍不实施 S3w，不升 pills |
 | 测 `mountLens()` 常省略 `sessionKey`，锁不住绑定叶 | `conversationLens.test.ts` |
 
 ## 2. Options

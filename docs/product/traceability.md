@@ -3,7 +3,7 @@ title: "产品需求追踪矩阵"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-16
+updated: 2026-09-22
 summary: "PRD-001–026 追踪；F1/F2 + GC-1–GC-6 代码已落；PRD-024 仍 proposed（真 Hub 冒烟未做）；PRD-008 仍 blocked"
 ---
 
@@ -34,7 +34,7 @@ summary: "PRD-001–026 追踪；F1/F2 + GC-1–GC-6 代码已落；PRD-024 仍 
 | [PRD-016](requirements.md#prd-016-conversation-session-窗口与-chat-tab) | `accepted` | [session-windows](../systems/conversation/session-windows.md) · [editor-part-tabs](../systems/workbench/editor-part-tabs.md) | [conversation-session-windows](../../dev/plans/conversation-session-windows.md)（S1–S6 `implemented`；S3c @ `18b5e8d7`；**GC-4** catalog-on-spawn @ `22ce3013`）· [ADR-002](../../dev/decisions/002-conversation-session-windows.md) | S1–S6 单测；D4 PASS；S3c 单测；GC-4 roster 观察 `liveAgentTree` 预同步 catalog 单测 |
 | [PRD-017](requirements.md#prd-017-本地会话持久化) | `accepted` | [stub-and-fixtures §4](../systems/conversation/stub-and-fixtures.md) | [m6-engine-wave](../../dev/plans/m6-engine-wave.md) A2 · D13 已实施 | `conversationRosterStorage` + `conversationStubService.test.ts` / `conversationEngineRosterService.test.ts` 持久化单测 |
 | [PRD-018](requirements.md#prd-018-键盘可达与辅助功能) | `accepted` | [commands §7](../systems/conversation/commands.md) | D14 四钮/F6 已落 · [M7 a11y/RWD](../../dev/plans/accessibility-responsive-ui.md) | Q5b / Q6 / K1 / K2 / T1 / L1 **代码已落**；手测/axe 见 D17；[D19](../../dev/progress/deferred-gaps.md) 已闭 |
-| [PRD-019](requirements.md#prd-019-web--远程窗口一致性) | `accepted` | [conversation overview §5](../systems/conversation/overview.md) | [D15](../../dev/progress/deferred-gaps.md) · [M7 a11y/RWD WEB-1](../../dev/plans/accessibility-responsive-ui.md) · [M7 P0](../../dev/plans/m7-ui-completion-wave.md) | P0 browser 三服务 + E2-1 Web 省略桌面控件 **代码已落**；W1 / D15 冒烟未做，不升 `implemented` |
+| [PRD-019](requirements.md#prd-019-web--远程窗口一致性) | `accepted` | [conversation overview §5](../systems/conversation/overview.md) | [D15](../../dev/progress/deferred-gaps.md) · [M7 a11y/RWD WEB-1](../../dev/plans/accessibility-responsive-ui.md) · [M7 P0](../../dev/plans/m7-ui-completion-wave.md) | P0 browser 三服务 + E2-1 Web 省略桌面控件 **代码已落**；W1 / D15 已跑（`d15-evidence/w1-1556dde3`）；PRD 仍不升 `implemented` |
 | [PRD-020](requirements.md#prd-020-规模与性能上限) | `accepted` | [lens-and-trajectory §3.2](../systems/conversation/lens-and-trajectory.md) | [conversation-trajectory-lens T5](../../dev/plans/conversation-trajectory-lens.md) · [M7 closeout](../../dev/plans/conversation-ui-closeout.md) | 搜索/虚拟化/5k 上限已落；Overview 与 1k 回合时延证据待补 |
 | [PRD-021](requirements.md#prd-021-未知内容与错误的诚实呈现) | `accepted` | [lens-and-trajectory](../systems/conversation/lens-and-trajectory.md) | [conversation-stream-timeline §3.3](../../dev/plans/conversation-stream-timeline.md) · [M7 closeout](../../dev/plans/conversation-ui-closeout.md) | Q5a 四 kind 不再洗白 **代码已落**；活数据仍待 PRD-008 |
 | [PRD-022](requirements.md#prd-022-navigator-引擎段) | `accepted` | [activity-and-sidebar §5.1](../systems/workbench/activity-and-sidebar.md) · [navigator-tabs-access](../reference/code-oss-b2/navigator-tabs-access.md) · [engine-protocol-surface §4/§11](../reference/universe-agent/engine-protocol-surface.md)（G-NAV-1 / G-NAV-2） | [navigator-engine-segments](../../dev/plans/navigator-engine-segments.md)（N1–N4 @ HEAD；**GC-5** Inspect/Team 读取态 @ `2eb56cc4`；N5 冒烟未做） | 无引擎三段诚实空；GC-5 单测；N5 隔离 profile 未验、不升 `implemented`；树首拉失败轴见 [D21](../../dev/progress/deferred-gaps.md) |
