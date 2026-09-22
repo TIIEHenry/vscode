@@ -3,8 +3,8 @@ title: "ADR-008 WriteGitApplyHunks 空 argv / patches：引擎为成功空操作
 type: decision
 status: accepted
 phase: N/A
-updated: 2026-09-07
-summary: "R8 已闭。引擎空 patches = 成功空操作。产品 Accept A1 宿主拒空已落（session 与 patches 同刀）。D31 F4 未跑。"
+updated: 2026-09-22
+summary: "R8 已闭。引擎空 patches = 成功空操作。产品 A1 拒空已落；两 pane 传 roster sessionId、仍空 patches。不是 A2。D31 F4 未跑。"
 ---
 
 # ADR-008 WriteGitApplyHunks 空 argv / patches
@@ -28,7 +28,7 @@ summary: "R8 已闭。引擎空 patches = 成功空操作。产品 Accept A1 宿
 | 同上 `GitGrpcService.kt` L164–168 `toProtoResponse()` | 成功路径 `setSupported(true)` + `setSuccess(success)` | 空 patches 的 no-op 也会带 `supported:true` |
 | [engine-protocol-surface](../../docs/reference/universe-agent/engine-protocol-surface.md) `GitService.WriteGitApplyHunks` | 已进 catalog + node；snake_case `session_id` / `argv` / `patches`；空 `sessionId` / 空 `argv` / 空 `patches` **传输**原样上线 | 本仓不发明 hunk |
 | `sourcesChangesGitWrite.ts` `isSourcesGitWriteAccepted` | `supported && success` 即 accepted | 不区分 no-op 与真 apply |
-| `conversationDiffReviewPane.ts` / `sourcesDiffPanelView.ts` `runAccept` | `tryWriteSourcesGitApplyHunks(connected, hook)` **不传** argv / patches | 本刀仍不改 Accept 载荷 |
+| `conversationDiffReviewPane.ts` / `sourcesDiffPanelView.ts` `runAccept` | 已注入 roster `sessionId`，仍空 `argv` / `patches`；A1 门拒送 | 不是 A2。P5 停线，须新方案 + 新 Arch-First |
 
 ## Options
 

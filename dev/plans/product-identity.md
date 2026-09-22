@@ -3,8 +3,8 @@ title: "UniverseAgentStudio 产品身份方案"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-03
-summary: "I2–I5 / I3a / I3b 代码已落；I6 Darwin/Appx 发行标识等发布方；D18 安装包未验；方案仍 accepted"
+updated: 2026-09-22
+summary: "I2–I5 / I3a / I3b 代码已落（product.json 已是 UniverseAgentStudio）；I6 Appx Publisher/签名等发布方；D18 安装包未验；方案仍 accepted"
 ---
 
 # UniverseAgentStudio 产品身份方案
@@ -12,7 +12,7 @@ summary: "I2–I5 / I3a / I3b 代码已落；I6 Darwin/Appx 发行标识等发�
 > **需求：** [PRD-010 产品身份](../../docs/product/requirements.md#prd-010-产品身份)。
 > **父方案：** [M7 UI 完成波](m7-ui-completion-wave.md)。
 > **既有裁定：** 产品名为 **UniverseAgentStudio**。**图标裁定（用户，2026-09-02）：** 显式授权以 Singularity 标识（`Singular/logo/singularity.svg`）作为 Studio 应用图标；§4.3 原「不混用 Hub / UnitServer 标识」规则据此改为「只用这一份源，不混用其他 UnitServer 变体」。
-> **现状：** `product.json` 仍使用 Code - OSS 名称、`code-oss` application/data/protocol 标识及 Microsoft Code OSS 平台标识（`win32MutexName=vscodeoss`、`win32AppUserModelId=Microsoft.CodeOSS`、`darwinBundleIdentifier=com.visualstudio.code.oss`）。深链 handler `universeAgentDeepLink.contribution.ts` 已按 `universe-agent` scheme 实现，与本方案目标协议一致。
+> **现状（2026-09-22）：** `product.json` 的 `nameShort` 已是 UniverseAgentStudio，`applicationName` 为 `universe-agent-studio`，`darwinBundleIdentifier` 为 `studio.universeagent.app`。I6 的 Appx Publisher / 签名仍等发布方；D18 安装包未验。起草时基线是 Code - OSS 名称与 `com.visualstudio.code.oss`。
 
 ## 1. 目标
 

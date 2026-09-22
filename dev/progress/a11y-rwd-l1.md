@@ -14,6 +14,7 @@ summary: "对照 accessibility-responsive-ui.md §9；Connection 窄宽 Back 与
 > **切片：** [accessibility-responsive-ui.md](../plans/accessibility-responsive-ui.md) §8 L1。  
 > **工位：** C · `loop/C`。  
 > **方法：** 只读源码合同，不跑 electron / playwright / `code-web` / 测试套件。W1 Web 冒烟与 axe/手测属 §10，失败记 [D17](deferred-gaps.md)；本页不假装已手测。  
+> **后注（2026-09-22）：** W1 已于 D15 closed（`d15-evidence/w1-1556dde3`）。下文「W1 未跑」是 2026-09-04 复核当时的话。  
 > **不宣称：** 整份 a11y、PRD-018、方案 checkbox 整包完成。
 
 依赖切片按源码存在性对照（合入声明来自父委派，本页只核符号与文件）：B Q5a/Q5b/Q6/CS-2，A E2-1/E2-7，C K1/K2/T1。

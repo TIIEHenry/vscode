@@ -4,14 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-22
-summary: "合入人类 agent-ide：UA chrome 视觉 + metadata_json 入站 + 四份修补方案签收（D944，因 D413 已被 reconnect 占用）。leftover catch 至 D1294。D24 仍开。不是 leftover/pills 完成。"
+summary: "合入人类 agent-ide：metadata_json 入站 + 方案账改口（活流 decoder 已重叠，Chat 臂与 recover 仍开；D944 因 D413 撞号）。leftover catch 至 D1294。S4b snapshot 回归测已入库。D24 仍开。不是 leftover/pills 完成。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
 
-> **后注（2026-09-21 · UA 工具结果 metadata_json 入站，ADR-395 S4）**：ChatSync `decodeToolResultEvent` 解 field 6 `metadata_json` → 域模型 `metadataJson` → demux `parseMetadataJson`（fail-closed `{}`）→ view-patch 并行 `toolCallMetadataMap`（vendored sessionView 本体不动）→ `ItemAttribution.metadata` → 时间线 `file_edit` 行 diff stats 徽章 + `parseUnifiedDiff`/`DiffEditorPool` 展开区（折叠行与独立行两路）。测：node 三套 11+26+10 全绿；transpile/eslint/layers 0；browser 测试已写未跑（需浏览器 runner）。**注意**：① UA envelope `ToolResultBlock` 尚无 metadata 字段，主时间线需等 UA S5（envelope 持久化+回放）供数，当前仅 ChatSync 聚合路径有值；② 本 commit `378b9e6c` 的 `sessionViewHost.ts` 误带入了并发会话的 fail-closed 修复 hunk（`git add` 覆盖了 `apply --cached` 的部分暂存）——该修复已随本 commit 推送，其配套 reopen 测试仍由原作者持有未提交；③ L3 `tool_call_lifecycle` 的 `metadata_json` 不解码是有意选择（注释已注明 envelope 路线）。
+> **后注（2026-09-21 · UA 工具结果 metadata_json 入站，ADR-395 S4）**：ChatSync `decodeToolResultEvent` 解 field 6 `metadata_json` → 域模型 `metadataJson` → demux `parseMetadataJson`（fail-closed `{}`）→ view-patch 并行 `toolCallMetadataMap`（vendored sessionView 本体不动）→ `ItemAttribution.metadata` → 时间线 `file_edit` 行 diff stats 徽章 + `parseUnifiedDiff`/`DiffEditorPool` 展开区（折叠行与独立行两路）。测：node 三套 11+26+10 全绿；transpile/eslint/layers 0；browser 测试已写未跑（需浏览器 runner）。**注意**：① UA envelope `ToolResultBlock` 尚无 metadata 字段，主时间线需等 UA S5（envelope 持久化+回放）供数，当前仅 ChatSync 聚合路径有值；② 本 commit `378b9e6c` 的 `sessionViewHost.ts` 误带入了并发会话的 fail-closed 修复 hunk（`git add` 覆盖了 `apply --cached` 的部分暂存）——该修复已随本 commit 推送，配套 reopen 测已随 `b6264a3cb06` 入库（11/0）；③ L3 `tool_call_lifecycle` 的 `metadata_json` 不解码是有意选择（注释已注明 envelope 路线）。
 
 ### 已合入（`MERGE_SHA` 见关仓；compile-client 0）
 | 切片 | 提交 |
@@ -19,7 +19,7 @@ summary: "合入人类 agent-ide：UA chrome 视觉 + metadata_json 入站 + 四
 | **A SessionStream / L2** | 16/23/30–32/34–39/44/46/50–52；envelope leftover |
 | **catch** | D677–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847、D850–D851、D854–D858、D860–D868、D871、D875–D876、D881、D883、D886、D895、D898、D917、D922、D939、D943、D955、D964、D972、D974、D978、D980、D983、D1015、D1032、D1254、D1258、D1278、D1294 |
 | **UA chrome** | 人类 `agent-ide`：Maximize Inbox 文档流、pairing-hold 禁 Connect、Diff SIDE_GROUP、live SAS/Stop 可达、本地 health-gates 门禁说明 |
-| **四份方案** | 活流 bytes / 拨号 generation / 绑定叶身份 / Sources 打开身份已签收、未实施，跟踪 [D944](deferred-gaps.md) |
+| **四份方案** | 活流 decoder/thinking 已与 SessionStream 波重叠，Chat 11/13/20 与 recover 仍开；拨号 / 绑定叶 / Sources 打开身份未实施。跟踪 [D944](deferred-gaps.md) |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
@@ -54,6 +54,6 @@ summary: "合入人类 agent-ide：UA chrome 视觉 + metadata_json 入站 + 四
 ## Next
 | 项 | 指针 |
 |:-----|:-----|
-| **loop** | D24 仍开。不得宣称 leftover/pills 完成。四份修补方案跟踪 [D944](deferred-gaps.md) |
+| **loop** | D24 仍开。不得宣称 leftover/pills 完成（pill 与叶级 SessionBar 代码在仓，方案未升 `implemented`）。四份修补见 [D944](deferred-gaps.md) |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。

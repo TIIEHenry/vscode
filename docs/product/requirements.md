@@ -3,8 +3,8 @@ title: "Agent IDE 产品需求"
 type: demand
 status: accepted
 phase: N/A
-updated: 2026-09-16
-summary: "PRD-001–026：M7 UI 代码完成线已尽；PRD-010/018/019/025/026 仍 accepted（缺产品验证）；PRD-008 仍待接通证据"
+updated: 2026-09-22
+summary: "PRD-001–026：M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、仍 accepted；PRD-010/018/025/026 仍缺产品验证；PRD-008 仍待接通证据"
 ---
 
 # Agent IDE 产品需求
@@ -75,7 +75,7 @@ summary: "PRD-001–026：M7 UI 代码完成线已尽；PRD-010/018/019/025/026 
   2. Changes 的 stage / unstage / commit 走 SCM 提供者（git）已有命令，不另造 SCM 状态。
   3. 本条只管三个列表与 Files 的打开；Diff 的打开位置、移动与审阅能力全部属 PRD-009，本条不重复验收。
   4. Review 不显示假 review comment 或假评审状态；无 SCM 提供者时三个 tab 诚实空。
-- **依赖或未决**：Diff 归属见 PRD-009。HEAD 的 Changes / Review 行在有 SCM 资源时已经经 `ISCMResource.open()` 在 Preview 打开 Diff（即 ADR-005 的默认归属），「移到对话窗口 / 底部」与默认归属设置待 `sources-changes-diff` plan；Review 引擎见 PRD-008。2026-09-02 修订：把已落地的 Changes / Review 列表投影收进本条；原文只写 Files，代码先于需求，属规则 10a 的补录。
+- **依赖或未决**：Diff 归属见 PRD-009。HEAD 的 Changes / Review 行在有 SCM 资源时已经经 `ISCMResource.open()` 在 Preview 打开 Diff（即 ADR-005 的默认归属）。「移到对话窗口 / 底部」与默认归属的 F1–F3 代码已落；F4 隔离 profile 冒烟待验，`sources-changes-diff` 仍 `accepted`。Review 引擎见 PRD-008。2026-09-02 修订：把已落地的 Changes / Review 列表投影收进本条；原文只写 Files，代码先于需求，属规则 10a 的补录。
 
 ### PRD-006 默认无 Copilot / Chat 冒充
 

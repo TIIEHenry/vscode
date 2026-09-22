@@ -3,7 +3,7 @@ title: "Conversation 系统概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-09-17
+updated: 2026-09-22
 summary: "三层：Part 槽宿主 → contrib 产品 chrome → EngineRoster / stub 帧源；关键符号表；与 Chat / Sessions / Agent Host 边界"
 ---
 
@@ -81,4 +81,4 @@ summary: "三层：Part 槽宿主 → contrib 产品 chrome → EngineRoster / s
 - 发送走 lease `post({ kind:'submitInput' })`；无引擎 stub 帧源可产 Stub echo，已连接拒写 stub echo。
 - 引擎 chip（身份条 + StatusBar）文案由 `IUniverseAgentConnection.getConnectionPhase()` 经 `getConnectionPhaseStatusBarText` 驱动；点击路由 B10（connected → Engine pane，否则 Connection）。
 - 四钮默认键位与 F6 / Shift+F6 part 循环已登记（[commands §7](commands.md#7-键盘可达性现状)；[PRD-018](../../product/requirements.md#prd-018-键盘可达与辅助功能) `accepted`）；Conversation 内透镜 / 过程折 / 权限座位等仍缺默认键位。
-- `contrib/conversation` 注册于 `workbench.common.main.ts`；Web 诚实断连已落，W1 冒烟仍欠（[PRD-019](../../product/requirements.md#prd-019-web--远程窗口一致性) / D15）。
+- `contrib/conversation` 注册于 `workbench.common.main.ts`；Web 诚实断连已落，W1 已跑 / D15 closed（[PRD-019](../../product/requirements.md#prd-019-web--远程窗口一致性)）；PRD 仍不升 `implemented`。
