@@ -7,7 +7,7 @@ import { Action, IAction } from '../../../../base/common/actions.js';
 import { coalesce } from '../../../../base/common/arrays.js';
 import { findFirstIdxMonotonousOrArrLen } from '../../../../base/common/arraysFind.js';
 import { CancelablePromise, createCancelablePromise, Delayer } from '../../../../base/common/async.js';
-import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore, dispose, IDisposable } from '../../../../base/common/lifecycle.js';
 import './media/review.css';
 import { ICodeEditor, IEditorMouseEvent, isCodeEditor, isDiffEditor } from '../../../../editor/browser/editorBrowser.js';
@@ -677,20 +677,31 @@ export class CommentController extends Disposable implements IEditorContribution
 	}
 
 	private beginCompute(): Promise<void> {
-		this._computePromise = createCancelablePromise(token => {
-			const editorURI = this.editor && this.editor.hasModel() && this.editor.getModel().uri;
+		this._computePromise?.cancel();
 
-			if (editorURI) {
-				return this.commentService.getDocumentComments(editorURI);
+		const uriAtStart = this.editor && this.editor.hasModel() ? this.editor.getModel().uri : undefined;
+
+		this._computePromise = createCancelablePromise(token => {
+			if (uriAtStart) {
+				return this.commentService.getDocumentComments(uriAtStart);
 			}
 
 			return Promise.resolve([]);
 		});
 
 		this._computeAndSetPromise = this._computePromise.then(async commentInfos => {
+			const currentURI = this.editor && this.editor.hasModel() && this.editor.getModel().uri;
+			if (!uriAtStart || !currentURI || !this.uriIdentityService.extUri.isEqual(uriAtStart, currentURI)) {
+				this._computePromise = null;
+				return;
+			}
 			await this.setComments(coalesce(commentInfos));
 			this._computePromise = null;
-		}, error => console.log(error));
+		}, error => {
+			if (!isCancellationError(error)) {
+				console.log(error);
+			}
+		});
 		this._computePromise.then(() => this._computeAndSetPromise = undefined).catch(onUnexpectedError).catch(onUnexpectedError);
 		return this._computeAndSetPromise;
 	}
@@ -964,7 +975,19 @@ export class CommentController extends Disposable implements IEditorContribution
 			}
 
 			if (this._computePromise) {
-				await this._computePromise;
+				try {
+					await this._computePromise;
+				} catch (err) {
+					if (isCancellationError(err)) {
+						return;
+					}
+					throw err;
+				}
+			}
+
+			const currentEditorURI = this.editor && this.editor.hasModel() && this.editor.getModel().uri;
+			if (!currentEditorURI || !this.uriIdentityService.extUri.isEqual(editorURI, currentEditorURI)) {
+				return;
 			}
 
 			const commentInfo = this._commentInfos.filter(info => info.uniqueOwner === e.uniqueOwner);
@@ -1088,6 +1111,7 @@ export class CommentController extends Disposable implements IEditorContribution
 		if (!editor) {
 			return;
 		}
+		const uriAtEntry = editor.uri;
 		if (!this.editor || this.isEditorInlineOriginal(this.editor)) {
 			return;
 		}
@@ -1098,6 +1122,11 @@ export class CommentController extends Disposable implements IEditorContribution
 		}
 		const zoneWidget = this.instantiationService.createInstance(ReviewZoneWidget, this.editor, uniqueOwner, thread, pendingComment ?? continueOnCommentReply?.comment, pendingEdits);
 		await zoneWidget.display(thread.range, shouldReveal);
+		const currentURI = this.editor?.getModel()?.uri;
+		if (!currentURI || !this.uriIdentityService.extUri.isEqual(uriAtEntry, currentURI)) {
+			zoneWidget.dispose();
+			return;
+		}
 		this._commentWidgets.push(zoneWidget);
 		this.localToDispose.add(zoneWidget.onDidChangeExpandedState(() => this._updateCommentWidgetVisibleContext()));
 		this.localToDispose.add(zoneWidget.onDidClose(() => this._updateCommentWidgetVisibleContext()));
@@ -1373,6 +1402,11 @@ export class CommentController extends Disposable implements IEditorContribution
 			return;
 		}
 
+		const uriAtStart = this.editor.hasModel() ? this.editor.getModel().uri : undefined;
+		if (!uriAtStart) {
+			return;
+		}
+
 		this._commentInfos = commentInfos;
 		this.tryUpdateReservedSpace();
 		// create viewzones
@@ -1399,10 +1433,19 @@ export class CommentController extends Disposable implements IEditorContribution
 				}
 
 				await this.displayCommentThread(info.uniqueOwner, thread, false, pendingComment, pendingEdits);
+				const currentURIAfterDisplay = this.editor.hasModel() ? this.editor.getModel().uri : undefined;
+				if (!currentURIAfterDisplay || !this.uriIdentityService.extUri.isEqual(uriAtStart, currentURIAfterDisplay)) {
+					return;
+				}
 			}
 			for (const thread of info.pendingCommentThreads ?? []) {
 				this.resumePendingComment(this.editor.getModel()!.uri, thread);
 			}
+		}
+
+		const currentURIBeforeDecorators = this.editor.hasModel() ? this.editor.getModel().uri : undefined;
+		if (!currentURIBeforeDecorators || !this.uriIdentityService.extUri.isEqual(uriAtStart, currentURIBeforeDecorators)) {
+			return;
 		}
 
 		this._commentingRangeDecorator.update(this.editor, this._commentInfos);
