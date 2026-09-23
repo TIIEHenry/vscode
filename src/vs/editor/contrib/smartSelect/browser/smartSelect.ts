@@ -62,6 +62,7 @@ export class SmartSelectController implements IEditorContribution {
 	private _state?: SelectionRanges[];
 	private _selectionListener?: IDisposable;
 	private _ignoreSelection: boolean = false;
+	private _runGeneration = 0;
 
 	constructor(
 		private readonly _editor: ICodeEditor,
@@ -76,6 +77,8 @@ export class SmartSelectController implements IEditorContribution {
 		if (!this._editor.hasModel()) {
 			return;
 		}
+
+		const generation = ++this._runGeneration;
 
 		const selections = this._editor.getSelections();
 		const model = this._editor.getModel();
@@ -102,6 +105,10 @@ export class SmartSelectController implements IEditorContribution {
 				}
 
 
+				if (generation !== this._runGeneration) {
+					return;
+				}
+
 				this._state = ranges.map(ranges => new SelectionRanges(0, ranges));
 
 				// listen to caret move and forget about state
@@ -113,6 +120,10 @@ export class SmartSelectController implements IEditorContribution {
 					}
 				});
 			});
+		}
+
+		if (generation !== this._runGeneration) {
+			return;
 		}
 
 		if (!this._state) {
