@@ -1625,6 +1625,113 @@ suite('Sources - Changes list leftover honesty', () => {
 		}
 	});
 
+	test('local git.stage success schedules refresh; failure does not', async function () {
+		let refreshCalls = 0;
+		const connection = {
+			isEngineConnected: () => false,
+			getConnectionPhase: () => ({ kind: 'disconnected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const scmStub = toResource.call(this, '/project/src/local-stage-refresh.ts');
+			const scmService = createIndexScmService(scmStub, 'workingTree');
+			const scmResource = [...scmService.repositories][0].provider.groups[0].resources[0];
+			const host = mountHost();
+			const widget = store.add(stubChangesListServices(connection, scmService).createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			const widgetWithRefresh = widget as unknown as { scheduleRefresh(): void; runResourceAction(entry: ISourcesChangeEntry, action: 'stage'): Promise<void> };
+			const baseScheduleRefresh = widgetWithRefresh.scheduleRefresh.bind(widget);
+			widgetWithRefresh.scheduleRefresh = () => {
+				refreshCalls += 1;
+				baseScheduleRefresh();
+			};
+
+			const entry: ISourcesChangeEntry = {
+				resource: scmStub,
+				name: 'local-stage-refresh.ts',
+				description: 'Changes',
+				groupId: 'workingTree',
+				scmResource,
+			};
+			refreshCalls = 0;
+			await widgetWithRefresh.runResourceAction(entry, 'stage');
+			assert.strictEqual(refreshCalls, 1);
+
+			refreshCalls = 0;
+			const failingWidget = store.add(stubChangesListServices(connection, scmService, async () => {
+				throw new Error('boom');
+			}).createInstance(SourcesChangesList, host));
+			const failingWithRefresh = failingWidget as unknown as { scheduleRefresh(): void; runResourceAction(entry: ISourcesChangeEntry, action: 'stage'): Promise<void> };
+			const failingBaseScheduleRefresh = failingWithRefresh.scheduleRefresh.bind(failingWidget);
+			failingWithRefresh.scheduleRefresh = () => {
+				refreshCalls += 1;
+				failingBaseScheduleRefresh();
+			};
+			await failingWithRefresh.runResourceAction(entry, 'stage');
+			assert.strictEqual(refreshCalls, 0);
+			assert.strictEqual(list.length, 1);
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	test('local git.unstage success schedules refresh; failure does not', async function () {
+		let refreshCalls = 0;
+		const connection = {
+			isEngineConnected: () => false,
+			getConnectionPhase: () => ({ kind: 'disconnected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		const unstageCommand = CommandsRegistry.registerCommand('git.unstage', () => { });
+		try {
+			const scmStub = toResource.call(this, '/project/src/local-unstage-refresh.ts');
+			const scmService = createIndexScmService(scmStub);
+			const scmResource = [...scmService.repositories][0].provider.groups[0].resources[0];
+			const host = mountHost();
+			const widget = store.add(stubChangesListServices(connection, scmService).createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+			await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			const widgetWithRefresh = widget as unknown as { scheduleRefresh(): void; runResourceAction(entry: ISourcesChangeEntry, action: 'unstage'): Promise<void> };
+			const baseScheduleRefresh = widgetWithRefresh.scheduleRefresh.bind(widget);
+			widgetWithRefresh.scheduleRefresh = () => {
+				refreshCalls += 1;
+				baseScheduleRefresh();
+			};
+
+			const entry: ISourcesChangeEntry = {
+				resource: scmStub,
+				name: 'local-unstage-refresh.ts',
+				description: 'Staged Changes',
+				groupId: 'index',
+				scmResource,
+			};
+			refreshCalls = 0;
+			await widgetWithRefresh.runResourceAction(entry, 'unstage');
+			assert.strictEqual(refreshCalls, 1);
+
+			refreshCalls = 0;
+			const failingWidget = store.add(stubChangesListServices(connection, scmService, async () => {
+				throw new Error('boom');
+			}).createInstance(SourcesChangesList, host));
+			const failingWithRefresh = failingWidget as unknown as { scheduleRefresh(): void; runResourceAction(entry: ISourcesChangeEntry, action: 'unstage'): Promise<void> };
+			const failingBaseScheduleRefresh = failingWithRefresh.scheduleRefresh.bind(failingWidget);
+			failingWithRefresh.scheduleRefresh = () => {
+				refreshCalls += 1;
+				failingBaseScheduleRefresh();
+			};
+			await failingWithRefresh.runResourceAction(entry, 'unstage');
+			assert.strictEqual(refreshCalls, 0);
+		} finally {
+			unstageCommand.dispose();
+		}
+	});
+
 	test('does not leak unhandled rejection when Commit button click catch-path paint throws and onUnexpectedError warn-then-rethrows', async function () {
 		// runCommit() already catches writeGitCommit throw; a lone inner reject does not leak.
 		// The Commit button click site still needs `.catch` when the catch-path paint throws.

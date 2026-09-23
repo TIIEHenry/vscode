@@ -783,6 +783,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		try {
 			await this.commandService.executeCommand(commandId, resource);
 			this.setWriteStatusMessage(undefined);
+			this.scheduleRefresh();
 		} catch (error) {
 			this.setWriteStatusMessage(action === 'stage'
 				? localize('sourcesChangesList.stageFailed', "Unable to stage: {0}", getErrorMessage(error))
