@@ -3907,6 +3907,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 	}
 
 	private async _switchToAgentByName(agentName: string): Promise<boolean> {
+		const switchSessionResource = this.viewModel?.sessionResource;
 		const currentAgent = this.input.currentModeObs.get();
 
 		// already on the target agent
@@ -3923,6 +3924,10 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		if (currentAgent.kind !== agent.kind) {
 			const chatModeCheck = await this.instantiationService.invokeFunction(handleModeSwitch, currentAgent.kind, agent.kind, this.viewModel?.model.getRequests().length ?? 0, this.viewModel?.model);
 			if (!chatModeCheck) {
+				return false;
+			}
+
+			if (switchSessionResource && (!this.viewModel || this._store.isDisposed || !isEqual(this.viewModel.sessionResource, switchSessionResource))) {
 				return false;
 			}
 
