@@ -80,6 +80,7 @@ export class TypeHierarchyTreePeekWidget extends peekView.PeekViewWidget {
 	private _layoutInfo!: LayoutInfo;
 
 	private readonly _previewDisposable = new DisposableStore();
+	private _updatePreviewGeneration = 0;
 
 	constructor(
 		editor: ICodeEditor,
@@ -294,6 +295,8 @@ export class TypeHierarchyTreePeekWidget extends peekView.PeekViewWidget {
 			return;
 		}
 
+		const generation = ++this._updatePreviewGeneration;
+
 		this._previewDisposable.clear();
 
 		// update: editor and editor highlights
@@ -317,6 +320,11 @@ export class TypeHierarchyTreePeekWidget extends peekView.PeekViewWidget {
 		}
 
 		const value = await this._textModelService.createModelReference(previewUri);
+		const [currentFocus] = this._tree.getFocus();
+		if (generation !== this._updatePreviewGeneration || currentFocus !== element) {
+			value.dispose();
+			return;
+		}
 		this._editor.setModel(value.object.textEditorModel);
 
 		// set decorations for type ranges
