@@ -1012,6 +1012,10 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 	private async _acceptStreamingEditsStart(responseModel: IChatResponseModel, undoStop: string | undefined, resource: URI) {
 		const entry = await this._getOrCreateModifiedFileEntry(resource, NotExistBehavior.Create, this._getTelemetryInfoForModel(responseModel));
 
+		if (this.isDisposed) {
+			return;
+		}
+
 		// Record file baseline if this is the first edit for this file in this request
 		if (!this._timeline.hasFileBaseline(resource, responseModel.requestId)) {
 			this._timeline.recordFileBaseline({
