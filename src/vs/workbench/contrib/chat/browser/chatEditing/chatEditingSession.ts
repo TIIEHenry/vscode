@@ -1087,6 +1087,10 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 	private async _acceptEdits(resource: URI, textEdits: (TextEdit | ICellEditOperation)[], isLastEdits: boolean, responseModel: IChatResponseModel): Promise<void> {
 		const entry = await this._getOrCreateModifiedFileEntry(resource, NotExistBehavior.Create, this._getTelemetryInfoForModel(responseModel));
 
+		if (this.isDisposed) {
+			return;
+		}
+
 		// Record edit operations in the timeline if there are actual edits
 		if (textEdits.length > 0) {
 			this._recordEditOperations(entry, resource, textEdits, responseModel);
