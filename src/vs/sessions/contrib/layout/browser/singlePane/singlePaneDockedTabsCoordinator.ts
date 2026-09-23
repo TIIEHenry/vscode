@@ -345,7 +345,7 @@ export class SinglePaneDockedTabsCoordinator extends Disposable {
 		try {
 			// [1] Replace an outgoing session's Changes tab in place when the incoming
 			// session also wants Changes; close only additional stale tabs.
-			await this._reconcileForeignChangesEditors(group, changesResource);
+			await this._reconcileForeignChangesEditors(group, changesResource, generation);
 			if (generation !== this._generation) {
 				return;
 			}
@@ -455,7 +455,7 @@ export class SinglePaneDockedTabsCoordinator extends Disposable {
 		}
 	}
 
-	private async _reconcileForeignChangesEditors(group: IEditorGroup, activeChangesResource: URI | undefined): Promise<void> {
+	private async _reconcileForeignChangesEditors(group: IEditorGroup, activeChangesResource: URI | undefined, generation: number): Promise<void> {
 		const foreign = group.editors.filter(editor => {
 			const resource = this.getChangesEditorResource(editor);
 			return resource && (!activeChangesResource || !isEqual(resource, activeChangesResource));
@@ -466,6 +466,9 @@ export class SinglePaneDockedTabsCoordinator extends Disposable {
 
 		if (!activeChangesResource) {
 			await this._closeManagedEditors(group, foreign);
+			if (generation !== this._generation) {
+				return;
+			}
 			return;
 		}
 
@@ -476,8 +479,14 @@ export class SinglePaneDockedTabsCoordinator extends Disposable {
 			replacement: this._instantiationService.createInstance(SessionChangesEditorInput, activeChangesResource),
 			options: wasActive ? CHANGES_TAB_ACTIVE_OPTIONS : CHANGES_TAB_OPTIONS,
 		}]);
+		if (generation !== this._generation) {
+			return;
+		}
 		if (editorsToClose.length > 0) {
 			await this._closeManagedEditors(group, editorsToClose);
+			if (generation !== this._generation) {
+				return;
+			}
 		}
 	}
 

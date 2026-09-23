@@ -3013,6 +3013,50 @@ suite('LayoutController (desktop)', () => {
 		assert.deepStrictEqual(publishedWorkspaces, ['c']);
 	});
 
+	test('[managed tabs / session switch] superseded reconcile does not close foreign Changes captured before a stalled replaceEditors', async () => {
+		createSinglePaneController({ activateAux: true });
+		await settle();
+
+		const sessionA = makeSession(URI.parse('session:a'));
+		harness.activeSessionObs.set(sessionA, undefined);
+		await settle();
+
+		let releaseReplace!: () => void;
+		const replaceGate = new Promise<void>(resolve => { releaseReplace = resolve; });
+		let gateArmed = true;
+		harness.onReplaceEditors = () => {
+			if (gateArmed) {
+				gateArmed = false;
+				return replaceGate;
+			}
+			return undefined;
+		};
+
+		// Inject a second foreign Changes tab without firing a sync (A's reconcile would
+		// otherwise replace it in place before we switch sessions).
+		const extraStaleChangesResource = harness.sessionChangesService.getChangesEditorResource(URI.parse('session:extra-stale'));
+		const extraStaleEditor = store.add(new TestStubEditorInput(extraStaleChangesResource));
+		harness.activeGroupEditors.push(extraStaleEditor);
+
+		const sessionB = makeSession(URI.parse('session:b'));
+		harness.activeSessionObs.set(sessionB, undefined);
+		await settle();
+
+		// C owns the extra stale Changes resource so its reconcile keeps that tab while
+		// cleaning up only the prior session's in-place replacement.
+		const sessionC = makeSession(URI.parse('session:extra-stale'));
+		harness.activeSessionObs.set(sessionC, undefined);
+		await settle();
+
+		assert.ok(harness.activeGroupEditors.includes(extraStaleEditor), 'extra stale Changes should still be open while replaceEditors is stalled');
+
+		releaseReplace();
+		await settle();
+
+		assert.ok(harness.activeGroupEditors.includes(extraStaleEditor), 'superseded reconcile must not close foreign Changes captured at its entry after replaceEditors resumes');
+		assert.strictEqual(harness.closedEditors.includes(extraStaleEditor), false);
+	});
+
 	test('[managed tabs / details-only] always restores both docked inputs while only details are visible', async () => {
 		createSinglePaneController({
 			activateAux: true,
