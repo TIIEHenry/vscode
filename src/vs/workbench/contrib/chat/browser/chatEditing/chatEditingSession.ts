@@ -455,12 +455,26 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 			}))
 		);
 
+		if (this.isDisposed) {
+			return 0;
+		}
+
 		// Execute all state transitions atomically in a single transaction
+		const currentEntries = this._entriesObs.get();
+		let appliedCount = 0;
 		transaction(tx => {
-			transitionCallbacks.forEach(callback => callback?.(tx));
+			for (let i = 0; i < applicableEntries.length; i++) {
+				const entry = applicableEntries[i];
+				const callback = transitionCallbacks[i];
+				if (!currentEntries.includes(entry) || !callback) {
+					continue;
+				}
+				callback(tx);
+				appliedCount++;
+			}
 		});
 
-		return applicableEntries.length;
+		return appliedCount;
 	}
 
 	async show(previousChanges?: boolean): Promise<void> {
@@ -478,7 +492,11 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 			label: localize('multiDiffEditorInput.name', "Suggested Edits")
 		}, this._instantiationService);
 
-		this._editorPane = await this._editorService.openEditor(input, { pinned: true, activation: EditorActivation.ACTIVATE }) as MultiDiffEditor | undefined;
+		const editorPane = await this._editorService.openEditor(input, { pinned: true, activation: EditorActivation.ACTIVATE }) as MultiDiffEditor | undefined;
+		if (this.isDisposed) {
+			return;
+		}
+		this._editorPane = editorPane;
 	}
 
 	private _stopPromise: Promise<void> | undefined;
