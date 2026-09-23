@@ -426,7 +426,13 @@ export class InteractiveEditor extends EditorPane implements IEditorPaneWithScro
 		}
 
 		await super.setInput(input, options, context, token);
+		if (token.isCancellationRequested) {
+			return;
+		}
 		const model = await input.resolve();
+		if (token.isCancellationRequested) {
+			return;
+		}
 		if (this._runbuttonToolbar) {
 			this._runbuttonToolbar.context = input.resource;
 		}
@@ -439,7 +445,13 @@ export class InteractiveEditor extends EditorPane implements IEditorPaneWithScro
 
 		const viewState = options?.viewState ?? this._loadNotebookEditorViewState(input);
 		await this._extensionService.whenInstalledExtensionsRegistered();
+		if (token.isCancellationRequested) {
+			return;
+		}
 		await this._notebookWidget.value!.setModel(model.notebook, viewState?.notebook);
+		if (token.isCancellationRequested) {
+			return;
+		}
 		model.notebook.setCellCollapseDefault(this._notebookOptions.getCellCollapseDefault());
 		this._notebookWidget.value!.setOptions({
 			isReadOnly: true
@@ -466,6 +478,9 @@ export class InteractiveEditor extends EditorPane implements IEditorPaneWithScro
 
 		const languageId = this._notebookWidget.value?.activeKernel?.supportedLanguages[0] ?? input.language ?? PLAINTEXT_LANGUAGE_ID;
 		const editorModel = await input.resolveInput(languageId);
+		if (token.isCancellationRequested) {
+			return;
+		}
 		editorModel.setLanguage(languageId);
 		this._codeEditorWidget.setModel(editorModel);
 		if (viewState?.input) {
