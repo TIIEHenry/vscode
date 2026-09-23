@@ -454,7 +454,12 @@ export class DisassemblyView extends EditorPane {
 			return true;
 		}
 
-		const s = await this.debugSession?.disassemble(instructionReference, 0, 0, 1);
+		const session = this.debugSession;
+		const sessionId = session?.getId();
+		const s = await session?.disassemble(instructionReference, 0, 0, 1);
+		if (this.debugSession?.getId() !== sessionId) {
+			return false;
+		}
 		if (s && s.length > 0) {
 			try {
 				this._referenceToMemoryAddress.set(instructionReference, BigInt(s[0].address));
@@ -470,7 +475,12 @@ export class DisassemblyView extends EditorPane {
 	/** Loads disasembled instructions. Returns the number of instructions that were loaded. */
 	private async loadDisassembledInstructions(instructionReference: string, offset: number, instructionOffset: number, instructionCount: number): Promise<number> {
 		const session = this.debugSession;
+		const sessionId = session?.getId();
 		const resultEntries = await session?.disassemble(instructionReference, offset, instructionOffset, instructionCount);
+
+		if (this.debugSession?.getId() !== sessionId) {
+			return 0;
+		}
 
 		// Ensure we always load the baseline instructions so we know what address the instructionReference refers to.
 		if (!this._referenceToMemoryAddress.has(instructionReference) && instructionOffset !== 0) {
