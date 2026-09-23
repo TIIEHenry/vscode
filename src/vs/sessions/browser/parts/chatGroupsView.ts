@@ -513,7 +513,11 @@ export class ChatGroupsView extends Themable {
 		});
 
 		this._setActiveGroup(newGroup);
-		await this._sessionsService.openChat(this._session, resource);
+		const session = this._session;
+		await this._sessionsService.openChat(session, resource);
+		if (this._session !== session) {
+			return;
+		}
 		this._removeEmptyGroups();
 		this._applyLayout();
 		this._persistLayout();

@@ -315,6 +315,63 @@ suite('Sessions - ChatGroupsView', () => {
 		});
 	});
 
+	test('splitting into a new group does not apply stale layout cleanup after switching sessions', async () => {
+		const { sessionsService, view } = createHarness(disposables);
+		const main = createChat('main');
+		const secondary = createChat('secondary');
+		const originalSession = new TestActiveSession([main, secondary]);
+		view.setSession(originalSession, options);
+
+		const gate = new DeferredPromise<void>();
+		sessionsService.openChatGate = gate.p;
+		const splitPromise = view.openChatInNewGroup(secondary.resource);
+		await Promise.resolve();
+
+		const otherMain = createChat('other-main');
+		const otherSession = new class extends TestActiveSession {
+			override readonly sessionId = 'other-session';
+		}([otherMain]);
+		view.setSession(otherSession, options);
+		const layoutOnOtherSession = { groupCount: view.groupCount.get(), groupTabs: getGroupTabs(view) };
+
+		gate.complete();
+		await splitPromise;
+
+		assert.deepStrictEqual({
+			layoutOnOtherSession,
+			layoutAfterStaleSplit: { groupCount: view.groupCount.get(), groupTabs: getGroupTabs(view) },
+		}, {
+			layoutOnOtherSession: { groupCount: 1, groupTabs: [[otherMain.resource.toString()]] },
+			layoutAfterStaleSplit: { groupCount: 1, groupTabs: [[otherMain.resource.toString()]] },
+		});
+	});
+
+	test('splitting into a new group completes layout when openChat finishes on the same session', async () => {
+		const { sessionsService, view } = createHarness(disposables);
+		const main = createChat('main');
+		const secondary = createChat('secondary');
+		const session = new TestActiveSession([main, secondary]);
+		view.setSession(session, options);
+
+		const gate = new DeferredPromise<void>();
+		sessionsService.openChatGate = gate.p;
+		const splitPromise = view.openChatInNewGroup(secondary.resource);
+		await Promise.resolve();
+
+		gate.complete();
+		await splitPromise;
+
+		assert.deepStrictEqual({
+			groupCount: view.groupCount.get(),
+			groupTabs: getGroupTabs(view),
+			activeChat: session.activeChat.get().resource.toString(),
+		}, {
+			groupCount: 2,
+			groupTabs: [[main.resource.toString()], [secondary.resource.toString()]],
+			activeChat: secondary.resource.toString(),
+		});
+	});
+
 	test('opening an existing main-group tab to the side moves it into its own group', async () => {
 		const { sessionsService, view } = createHarness(disposables);
 		const main = createChat('main');
