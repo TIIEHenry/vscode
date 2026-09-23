@@ -259,13 +259,18 @@ class FormatOnSaveParticipant implements ITextFileSaveParticipant {
 
 		} else {
 			const ranges = await this.instantiationService.invokeFunction(getModifiedRanges, isCodeEditor(editorOrModel) ? editorOrModel.getModel() : editorOrModel);
+			// Switching documents during getModifiedRanges does not cancel the save token.
+			// format* take editor.getModel(); keep targeting the saved model, not a new one.
+			const formatEditorOrModel = isCodeEditor(editorOrModel) && editorOrModel.getModel() !== textEditorModel
+				? findEditor(textEditorModel, this.codeEditorService) || textEditorModel
+				: editorOrModel;
 			if (ranges === null && mode === 'modificationsIfAvailable') {
 				// no SCM, fallback to formatting the whole file iff wanted
-				await this.instantiationService.invokeFunction(formatDocumentWithSelectedProvider, editorOrModel, FormattingMode.Silent, nestedProgress, token);
+				await this.instantiationService.invokeFunction(formatDocumentWithSelectedProvider, formatEditorOrModel, FormattingMode.Silent, nestedProgress, token);
 
 			} else if (ranges) {
 				// formatted modified ranges
-				await this.instantiationService.invokeFunction(formatDocumentRangesWithSelectedProvider, editorOrModel, ranges, FormattingMode.Silent, nestedProgress, token, false);
+				await this.instantiationService.invokeFunction(formatDocumentRangesWithSelectedProvider, formatEditorOrModel, ranges, FormattingMode.Silent, nestedProgress, token, false);
 			}
 		}
 	}
