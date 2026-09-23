@@ -788,7 +788,7 @@ class ChatOutputCodeBlockPart extends Disposable {
 				}
 			}));
 		}, error => {
-			if (isCancellationError(error)) {
+			if (isCancellationError(error) || this._disposeCts.token.isCancellationRequested) {
 				return;
 			}
 
