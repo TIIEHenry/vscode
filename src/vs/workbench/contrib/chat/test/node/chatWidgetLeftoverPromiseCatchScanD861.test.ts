@@ -125,7 +125,7 @@ const updateDiffSeqCall = 'this._updateDiffInfoSeq()';
 const initializeCall = 'this.initialize()';
 const cancelEditingCall = 'void this.cancelEditing()';
 const requestModelCall = 'void this.input.requestModelByIdentifier(currentElement.modelId)';
-const promiseLikeCreatedCall = 'void Promise.resolve(sent.data.responseCreatedPromise).then(() => {';
+const promiseLikeCreatedCall = 'void Promise.resolve(sent.data.responseCreatedPromise).then((responseModel) => {';
 const promiseLikeCompleteCall = 'void Promise.resolve(sent.data.responseCompletePromise).then(() => {';
 const loadMoreCall = 'this._loadMore()';
 const updateBadgeCall = 'this.updateActivityBadge()';

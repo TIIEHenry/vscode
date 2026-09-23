@@ -228,7 +228,7 @@ suite('Chat leftover Promise fire-and-forget catch scan (D743)', () => {
 					this._onDidChangeContents.fire();
 				}
 			})`);
-		assert.ok(widget.includes(`void Promise.resolve(sent.data.responseCreatedPromise).then(() => {`));
+		assert.ok(widget.includes(`void Promise.resolve(sent.data.responseCreatedPromise).then((responseModel) => {`));
 		assert.ok(widget.includes(`void Promise.resolve(sent.data.responseCompletePromise).then(() => {`));
 		assert.ok(widget.includes(`			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}).catch(onUnexpectedError).catch(onUnexpectedError);`));

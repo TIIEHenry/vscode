@@ -3402,15 +3402,20 @@ export class ChatWidget extends Disposable implements IChatWidget {
 			}
 		}
 
-		void Promise.resolve(sent.data.responseCreatedPromise).then(() => {
+		void Promise.resolve(sent.data.responseCreatedPromise).then((responseModel) => {
 			// Only start accessibility progress once a real request/response model exists.
 			this.chatAccessibilityService.acceptRequest(submittedSessionResource);
 			void Promise.resolve(sent.data.responseCompletePromise).then(() => {
-				const responses = this.viewModel?.getItems().filter(isResponseVM);
-				const lastResponse = responses?.[responses.length - 1];
-				this.chatAccessibilityService.acceptResponse(lastResponse, submittedSessionResource, options?.isVoiceInput);
-				if (lastResponse?.result?.nextQuestion) {
-					const { prompt, participant, command } = lastResponse.result.nextQuestion;
+				const viewModel = this.viewModel;
+				if (!viewModel || !isEqual(viewModel.sessionResource, submittedSessionResource)) {
+					this.chatAccessibilityService.acceptResponse(undefined, submittedSessionResource, options?.isVoiceInput);
+					return;
+				}
+				const responseViewModel = viewModel.getItems().find((item): item is IChatResponseViewModel =>
+					isResponseVM(item) && (item.model === responseModel || item.model.id === responseModel.id));
+				this.chatAccessibilityService.acceptResponse(responseViewModel, submittedSessionResource, options?.isVoiceInput);
+				if (responseViewModel?.result?.nextQuestion) {
+					const { prompt, participant, command } = responseViewModel.result.nextQuestion;
 					const question = formatChatQuestion(this.chatAgentService, this.location, prompt, participant, command);
 					if (question) {
 						this.input.setValue(question, false);
