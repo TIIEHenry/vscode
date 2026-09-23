@@ -50,7 +50,7 @@ import {
 	conversationLensPostFailedNoSession,
 	type ConversationComposerPostFailureReason,
 } from '../../browser/conversationLensDockStrings.js';
-import { bindSessionView, cancelToolCall, copyTurn, deleteTurn, resolveConfirmation, resolveQuestion, respondClientTool, retryError, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
+import { applyActiveSession, bindSessionView, cancelToolCall, copyTurn, deleteTurn, resolveConfirmation, resolveQuestion, respondClientTool, retryError, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 
@@ -1193,6 +1193,144 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(host.lastAttachedEntries, sameSessionLeftover);
 		assert.strictEqual(keepMarker.disposed, false);
 		lifetime.dispose();
+	});
+
+	function applyActiveLeftoverHost(options: {
+		readonly targetSessionId: string;
+		readonly leaseSessionId: string;
+		readonly leftover: ConversationTimelineEntry[];
+		readonly mode: 'pairing-hold' | 'roster-in-flight';
+	}): {
+		host: IConversationLensSessionBindingHost;
+		lifetime: DisposableStore;
+		readonly acquire: number;
+		readonly applyEntries: number;
+		readonly appliedEmpty: number;
+		readonly phaseCalls: string[];
+		readonly syncCalls: string[];
+		readonly lifetimeDisposed: boolean;
+	} {
+		const lifetime = new DisposableStore();
+		const leftover = options.leftover;
+		const priorLease = { sessionId: options.leaseSessionId };
+		const state = {
+			acquire: 0,
+			applyEntries: 0,
+			appliedEmpty: 0,
+			phaseCalls: [] as string[],
+			syncCalls: [] as string[],
+		};
+		const lifetimeMarker = {
+			disposed: false,
+			dispose() { this.disposed = true; },
+		};
+		lifetime.add(lifetimeMarker);
+		const host = {
+			isDisposed: false,
+			sessionViewLifetime: lifetime,
+			sessionViewLease: priorLease,
+			lastAttachedEntries: leftover,
+			visualizeOverlay: { close() { } },
+			engineHistoryList: undefined,
+			engineSnapshotsList: undefined,
+			inboxOverlay: { closeListPanel() { }, render() { } },
+			trajectoryView: { clearSessionState() { } },
+			dockTextarea: { value: '' },
+			exitComposerEdit() { },
+			resetInputHistoryBrowse() { },
+			refreshSessionSelectOptions() { },
+			syncSessionConfigSelects() { },
+			updateSessionTitle() { },
+			readComposerDraft: () => '',
+			renderInboxStatus() { },
+			updateConversationPhase() { state.phaseCalls.push(options.targetSessionId); },
+			updateSyncChrome() { state.syncCalls.push(options.targetSessionId); },
+			getBoundSessionId: () => options.targetSessionId,
+			bindSessionView: (sessionId: string) => {
+				bindSessionView(host as unknown as IConversationLensSessionBindingHost, sessionId);
+			},
+			stubService: {
+				isEngineConnected: () => options.mode === 'roster-in-flight',
+				isEngineSessionReady: () => false,
+				acquireSessionView: () => {
+					state.acquire++;
+					return { sessionId: options.targetSessionId, snapshot: { sessionId: options.targetSessionId } };
+				},
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: options.mode === 'pairing-hold' }),
+			},
+			timelineTree: {
+				applyEntries: (entries: readonly unknown[]) => {
+					state.applyEntries++;
+					if (entries.length === 0) {
+						state.appliedEmpty++;
+					}
+				},
+			},
+			applySessionViewTimeline() { },
+		};
+		return {
+			host: host as unknown as IConversationLensSessionBindingHost,
+			lifetime,
+			get acquire() { return state.acquire; },
+			get applyEntries() { return state.applyEntries; },
+			get appliedEmpty() { return state.appliedEmpty; },
+			get phaseCalls() { return state.phaseCalls; },
+			get syncCalls() { return state.syncCalls; },
+			get lifetimeDisposed() { return lifetimeMarker.disposed; },
+		};
+	}
+
+	test('applyActiveSession first-pull to other session refreshes phase and sync chrome without acquire', () => {
+		const leftover: ConversationTimelineEntry[] = [
+			{ id: 't1', kind: 'user', text: '' },
+			{ id: 't2', kind: 'user', text: '' },
+		];
+		for (const mode of ['pairing-hold', 'roster-in-flight'] as const) {
+			const fixture = applyActiveLeftoverHost({
+				targetSessionId: 'sess-B',
+				leaseSessionId: 'sess-A',
+				leftover,
+				mode,
+			});
+			applyActiveSession(fixture.host, 'sess-B');
+			assert.strictEqual(fixture.applyEntries, 1);
+			assert.strictEqual(fixture.appliedEmpty, 1);
+			assert.strictEqual(fixture.acquire, 0);
+			assert.strictEqual(fixture.host.sessionViewLease, undefined);
+			assert.strictEqual(fixture.host.lastAttachedEntries.length, 0);
+			assert.strictEqual(fixture.lifetimeDisposed, true);
+			assert.deepStrictEqual(fixture.phaseCalls, ['sess-B']);
+			assert.deepStrictEqual(fixture.syncCalls, ['sess-B']);
+			fixture.lifetime.dispose();
+		}
+	});
+
+	test('applyActiveSession same-session KEEP leftover does not clear leftover', () => {
+		const leftover: ConversationTimelineEntry[] = [
+			{ id: 't1', kind: 'user', text: '' },
+			{ id: 't2', kind: 'user', text: '' },
+		];
+		for (const mode of ['pairing-hold', 'roster-in-flight'] as const) {
+			const fixture = applyActiveLeftoverHost({
+				targetSessionId: 'sess-A',
+				leaseSessionId: 'sess-A',
+				leftover,
+				mode,
+			});
+			const priorLease = fixture.host.sessionViewLease;
+			applyActiveSession(fixture.host, 'sess-A');
+			assert.strictEqual(fixture.applyEntries, 0);
+			assert.strictEqual(fixture.acquire, 0);
+			assert.strictEqual(fixture.host.sessionViewLease, priorLease);
+			assert.strictEqual(fixture.host.lastAttachedEntries, leftover);
+			assert.strictEqual(fixture.lifetimeDisposed, false);
+			assert.deepStrictEqual(fixture.phaseCalls, ['sess-A']);
+			assert.deepStrictEqual(fixture.syncCalls, ['sess-A']);
+			fixture.lifetime.dispose();
+		}
 	});
 
 	test('bindSessionView acquireSessionView throw shows failed and does not leave an unhandled rejection', async () => {
