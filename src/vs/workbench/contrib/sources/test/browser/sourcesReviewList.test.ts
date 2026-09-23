@@ -625,6 +625,58 @@ suite('Sources - review list model', () => {
 		assert.strictEqual(marked.length, 0);
 	});
 
+	test('ensureEntryKeys keeps prior keys while resolveKey is pending then swaps to resolved keys', async function () {
+		const resource = toResource.call(this, '/project/a.ts');
+		const reviewEntry = entry(resource);
+		const oldKey: ISourcesReviewProgressKey = { scopeKeyId: 'root', path: resource.toString(), contentHash: 'old' };
+		const newKey: ISourcesReviewProgressKey = { scopeKeyId: 'root', path: resource.toString(), contentHash: 'new' };
+
+		let releaseResolve!: () => void;
+		const resolvePending = new Promise<void>(resolve => { releaseResolve = resolve; });
+
+		const marked: ISourcesReviewProgressKey[] = [];
+		const instantiationService = stubSourcesGitListServices({
+			connection: createNoGitReadConnection(),
+		});
+		instantiationService.stub(ISourcesReviewProgressService, {
+			onDidChange: Event.None,
+			isReviewed: () => false,
+			markReviewed: (key: ISourcesReviewProgressKey) => { marked.push(key); },
+			markUnreviewed: () => { },
+			markAllReviewed: () => { },
+			resolveKey: async () => {
+				await resolvePending;
+				return newKey;
+			},
+			pruneMissingKeys: () => { },
+		} as unknown as ISourcesReviewProgressService);
+
+		const host = mountListHost();
+		const widget = store.add(instantiationService.createInstance(SourcesReviewList, host));
+
+		type ReviewListInternals = {
+			entryKeys: Map<string, ISourcesReviewProgressKey>;
+			ensureEntryKeys: (entries: readonly ISourcesChangeEntry[]) => Promise<void>;
+			markEntryReviewed: (entry: ISourcesChangeEntry) => void;
+		};
+		const internals = widget as unknown as ReviewListInternals;
+		internals.entryKeys.set(resource.toString(), oldKey);
+
+		const ensurePromise = internals.ensureEntryKeys([reviewEntry]);
+
+		internals.markEntryReviewed(reviewEntry);
+		assert.strictEqual(marked.length, 1);
+		assert.strictEqual(marked[0].contentHash, 'old');
+
+		releaseResolve();
+		await ensurePromise;
+
+		marked.length = 0;
+		internals.markEntryReviewed(reviewEntry);
+		assert.strictEqual(marked.length, 1);
+		assert.strictEqual(marked[0].contentHash, 'new');
+	});
+
 	test('openSourcesChangeEntry conversation load-fail rejects so Review cannot treat it as success', async function () {
 		const resource = toResource.call(this, '/project/src/a.ts');
 		const original = toResource.call(this, '/project/src/a.ts.git');

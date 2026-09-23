@@ -432,11 +432,15 @@ export class SourcesReviewList extends Disposable {
 	}
 
 	private async ensureEntryKeys(entries: readonly ISourcesReviewEntry[]): Promise<void> {
-		this.entryKeys.clear();
+		const nextEntryKeys = new Map<string, ISourcesReviewProgressKey>();
 		await Promise.all(entries.map(async entry => {
 			const key = await this.reviewProgressService.resolveKey(entry.resource);
-			this.entryKeys.set(entry.resource.toString(), key);
+			nextEntryKeys.set(entry.resource.toString(), key);
 		}));
+		this.entryKeys.clear();
+		for (const [resourceKey, progressKey] of nextEntryKeys) {
+			this.entryKeys.set(resourceKey, progressKey);
+		}
 		this.reviewProgressService.pruneMissingKeys(collectActiveReviewProgressKeys(this.entryKeys));
 	}
 
