@@ -1264,6 +1264,28 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 	}
 
+	private rebindSelectedPendingAfterListRefresh(previous: UniverseAgentPendingPairInfo | undefined): void {
+		if (!previous?.pairingCode) {
+			this.selectedPending = undefined;
+			return;
+		}
+		const matches = this.pendingPairs.filter(p => p.pairingCode === previous.pairingCode);
+		if (matches.length === 0) {
+			this.selectedPending = undefined;
+			return;
+		}
+		if (matches.length === 1) {
+			this.selectedPending = matches[0];
+			return;
+		}
+		const byDisplayName = matches.filter(p => p.displayName === previous.displayName);
+		if (byDisplayName.length === 1) {
+			this.selectedPending = byDisplayName[0];
+			return;
+		}
+		this.selectedPending = undefined;
+	}
+
 	private async refreshEnginePending(): Promise<void> {
 		const hook = this.connectionService.listPending;
 		const connected = this.connectionService.isEngineConnected();
@@ -1288,9 +1310,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				this.applyDisconnectedPendingRefresh();
 				return;
 			}
+			const previousSelected = this.selectedPending;
 			this.pendingPairs = [...result.pending];
 			this.pendingPairsListFailed = undefined;
-			this.selectedPending = undefined;
+			this.rebindSelectedPendingAfterListRefresh(previousSelected);
 		} catch (error) {
 			if (isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected()) {
 				this.applyDisconnectedPendingRefresh();

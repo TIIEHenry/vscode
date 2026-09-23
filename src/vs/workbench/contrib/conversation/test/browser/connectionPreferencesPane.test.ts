@@ -3382,6 +3382,86 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('ListPending refresh rebinds selected pending row by pairingCode', async () => {
+		const approveCalls: UniverseAgentPairApproveRequest[] = [];
+		let pendingSnapshot = [{
+			pairingCode: '123456',
+			deviceId: 'dev-1',
+			displayName: 'Phone',
+			platform: 'ios',
+			requestedAt: 0,
+			expiresInSeconds: 0,
+		}];
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listPending: async () => ({ pending: pendingSnapshot.map(p => ({ ...p })) }),
+			pairApprove: async request => {
+				approveCalls.push(request);
+				return { success: true, deviceId: 'dev-1', message: '' };
+			},
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+		}, connection);
+		const container = pane.getDomNode();
+		await Promise.resolve();
+		await Promise.resolve();
+		const row = container.querySelector('.connection-engine-pending-row') as HTMLElement;
+		assert.ok(row);
+		row.click();
+		await Promise.resolve();
+		assert.ok(container.querySelector('.connection-engine-pending-row.selected'));
+
+		pendingSnapshot = [{
+			pairingCode: '123456',
+			deviceId: 'dev-1',
+			displayName: 'Phone',
+			platform: 'ios',
+			requestedAt: 1,
+			expiresInSeconds: 60,
+		}];
+		onDidChangeConnection.fire(snapshot());
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		const rowAfterRefresh = container.querySelector('.connection-engine-pending-row') as HTMLElement;
+		assert.ok(rowAfterRefresh?.classList.contains('selected'), 'selection survives list refresh');
+
+		const confirm = [...container.querySelectorAll('.connection-hub-device-code .monaco-button')]
+			.find(button => button.textContent === 'Confirm') as HTMLButtonElement | undefined;
+		assert.ok(confirm);
+		confirm.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.deepStrictEqual(approveCalls, [{ pairingCode: '123456', displayName: 'Phone', role: '' }]);
+
+		pendingSnapshot = [];
+		approveCalls.length = 0;
+		onDidChangeConnection.fire(snapshot());
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 0);
+		assert.strictEqual((pane as unknown as { selectedPending: unknown }).selectedPending, undefined);
+		confirm.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.deepStrictEqual(approveCalls, [{ pairingCode: '', displayName: '', role: '' }]);
+		container.remove();
+	});
+
 	test('PairApprove success does not keep pair-success when subsequent ListDevices fails', async () => {
 		let listDevicesCalls = 0;
 		const pane = mountPane({
