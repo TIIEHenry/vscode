@@ -220,6 +220,7 @@ export class SettingsEditor2 extends EditorPane {
 
 	private searchDelayer: Delayer<void>;
 	private searchInProgress: CancellationTokenSource | null = null;
+	private searchTriggerGeneration = 0;
 	private aiSearchPromise: CancelablePromise<void> | null = null;
 
 	/**
@@ -1921,6 +1922,7 @@ export class SettingsEditor2 extends EditorPane {
 	}
 
 	private async triggerSearch(query: string, expandResults: boolean): Promise<void> {
+		const generation = ++this.searchTriggerGeneration;
 		const progressRunner = this.editorProgressService.show(true, 800);
 		const showAdvanced = this.viewState.tagFilters?.has(ADVANCED_SETTING_TAG);
 		this.viewState.tagFilters = new Set<string>();
@@ -1940,6 +1942,10 @@ export class SettingsEditor2 extends EditorPane {
 
 		if (showAdvanced !== this.viewState.tagFilters?.has(ADVANCED_SETTING_TAG)) {
 			await this.onConfigUpdate();
+			if (generation !== this.searchTriggerGeneration) {
+				progressRunner.done();
+				return;
+			}
 		}
 
 		this.settingsTargetsWidget.updateLanguageFilterIndicators(this.viewState.languageFilter);
