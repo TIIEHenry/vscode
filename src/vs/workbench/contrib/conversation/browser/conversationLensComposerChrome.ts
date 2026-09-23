@@ -657,7 +657,9 @@ export function updateComposerSessionSelectsEnabled(host: IConversationLensCompo
 function restoreSessionPermissionIndex(host: IConversationLensComposerChromeHost, sessionId: string, permissionIndex: number): void {
 
 		setSessionConfig(host, sessionId, { permissionIndex });
-		host.permissionSelectBox.select(permissionIndex);
+		if (host.getBoundSessionId() === sessionId) {
+			host.permissionSelectBox.select(permissionIndex);
+		}
 	
 }
 
@@ -672,7 +674,9 @@ export async function applySessionPermissionIndex(host: IConversationLensCompose
 			return;
 		}
 		setSessionConfig(host, sessionId, { permissionIndex });
-		host.permissionSelectBox.select(permissionIndex);
+		if (host.getBoundSessionId() === sessionId) {
+			host.permissionSelectBox.select(permissionIndex);
+		}
 		const mode = SESSION_TOOL_PERMISSION_MODES[permissionIndex] ?? SESSION_TOOL_PERMISSION_MODES[0];
 		try {
 			const result = await host.uaConnection.setPermissionMode({ sessionId, mode });
@@ -685,11 +689,15 @@ export async function applySessionPermissionIndex(host: IConversationLensCompose
 				return;
 			}
 			restoreSessionPermissionIndex(host, sessionId, previous);
-			showGateNotice(host, result.message?.trim() || conversationLensDockPermissionFailed);
+			if (host.getBoundSessionId() === sessionId) {
+				showGateNotice(host, result.message?.trim() || conversationLensDockPermissionFailed);
+			}
 		} catch (error) {
 			restoreSessionPermissionIndex(host, sessionId, previous);
-			const detail = error instanceof Error ? error.message.trim() : '';
-			showGateNotice(host, detail || conversationLensDockPermissionFailed);
+			if (host.getBoundSessionId() === sessionId) {
+				const detail = error instanceof Error ? error.message.trim() : '';
+				showGateNotice(host, detail || conversationLensDockPermissionFailed);
+			}
 		}
 	
 }

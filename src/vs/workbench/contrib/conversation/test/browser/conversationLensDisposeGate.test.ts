@@ -3260,6 +3260,184 @@ suite('conversation lens dispose gate', () => {
 		}
 	});
 
+	function permissionApplyBoundSessionHost(): {
+		host: IConversationLensComposerChromeHost;
+		permissionSelect: HTMLSelectElement;
+		permissionEntered: Promise<void>;
+		setPairingPending(pending: boolean): void;
+		releasePermission(outcome: { ok: boolean; message?: string } | Error): void;
+		bindBWithSyncedSelect(): void;
+		dispose(): void;
+	} {
+		const store = new DisposableStore();
+		const permissionSelect = document.createElement('select');
+		permissionSelect.add(new Option('Ask', '0'));
+		permissionSelect.add(new Option('Agent', '1'));
+		permissionSelect.add(new Option('Permit', '2'));
+		permissionSelect.selectedIndex = 0;
+		const gateRow = document.createElement('div');
+		gateRow.hidden = true;
+		const gateLabel = document.createElement('span');
+		const sessionConfigBySessionId = new Map<string, { agentIndex: number; permissionIndex: number }>([
+			['sess-A', { agentIndex: 0, permissionIndex: 0 }],
+			['sess-B', { agentIndex: 0, permissionIndex: 1 }],
+		]);
+		let boundSessionId = 'sess-A';
+		let pairingPending = false;
+		let releasePermission!: (outcome: { ok: boolean; message?: string } | Error) => void;
+		let permissionStarted: (() => void) | undefined;
+		const permissionEntered = new Promise<void>(resolve => { permissionStarted = resolve; });
+		const permissionHold = new Promise<{ ok: boolean; message?: string }>((resolve, reject) => {
+			releasePermission = outcome => {
+				if (outcome instanceof Error) {
+					reject(outcome);
+					return;
+				}
+				resolve(outcome);
+			};
+		});
+		const host = {
+			sessionConfigBySessionId,
+			postFailureVisible: false,
+			sendFailureTimeout: undefined as ReturnType<typeof setTimeout> | undefined,
+			permissionSelectBox: {
+				setEnabled() { },
+				setAriaLabel() { },
+				select(index: number) { permissionSelect.selectedIndex = index; },
+			},
+			gateRow,
+			gateLabel,
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending }),
+				setPermissionMode: async () => {
+					permissionStarted?.();
+					return permissionHold;
+				},
+			},
+			getBoundSessionId: () => boundSessionId,
+		};
+		return {
+			host: host as unknown as IConversationLensComposerChromeHost,
+			permissionSelect,
+			permissionEntered,
+			setPairingPending(pending: boolean) {
+				pairingPending = pending;
+			},
+			releasePermission,
+			bindBWithSyncedSelect() {
+				boundSessionId = 'sess-B';
+				permissionSelect.selectedIndex = sessionConfigBySessionId.get('sess-B')!.permissionIndex;
+			},
+			dispose: () => store.dispose(),
+		};
+	}
+
+	test('in-flight permission fail after switch to B does not roll back B select or paint B notice', async () => {
+		const fixture = permissionApplyBoundSessionHost();
+		try {
+			const apply = applySessionPermissionIndex(fixture.host, 'sess-A', 2);
+			await fixture.permissionEntered;
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-A')?.permissionIndex, 2);
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 2);
+			fixture.bindBWithSyncedSelect();
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 1);
+			fixture.releasePermission({ ok: false, message: 'engine rejected permit' });
+			await apply;
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-A')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-B')?.permissionIndex, 1);
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 1);
+			assert.strictEqual(fixture.host.gateRow.hidden, true);
+			assert.strictEqual(fixture.host.gateLabel.textContent, '');
+			assert.strictEqual(fixture.host.postFailureVisible, false);
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('in-flight permission throw after switch to B does not roll back B select or paint B notice', async () => {
+		const fixture = permissionApplyBoundSessionHost();
+		try {
+			const apply = applySessionPermissionIndex(fixture.host, 'sess-A', 2);
+			await fixture.permissionEntered;
+			fixture.bindBWithSyncedSelect();
+			fixture.releasePermission(new Error('setPermissionMode boom'));
+			await apply;
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-A')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-B')?.permissionIndex, 1);
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 1);
+			assert.strictEqual(fixture.host.gateRow.hidden, true);
+			assert.strictEqual(fixture.host.gateLabel.textContent, '');
+			assert.strictEqual(fixture.host.postFailureVisible, false);
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('in-flight leftover permission restore after switch to B does not roll back B select', async () => {
+		const fixture = permissionApplyBoundSessionHost();
+		try {
+			const apply = applySessionPermissionIndex(fixture.host, 'sess-A', 2);
+			await fixture.permissionEntered;
+			fixture.bindBWithSyncedSelect();
+			fixture.setPairingPending(true);
+			fixture.releasePermission({ ok: true });
+			await apply;
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-A')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-B')?.permissionIndex, 1);
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 1);
+			assert.strictEqual(fixture.host.gateRow.hidden, true);
+			assert.strictEqual(fixture.host.gateLabel.textContent, '');
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('permission apply for A while bound to B writes A config and does not select B box', async () => {
+		const fixture = permissionApplyBoundSessionHost();
+		try {
+			fixture.bindBWithSyncedSelect();
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 1);
+			const apply = applySessionPermissionIndex(fixture.host, 'sess-A', 2);
+			await fixture.permissionEntered;
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-A')?.permissionIndex, 2);
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 1);
+			fixture.releasePermission({ ok: true });
+			await apply;
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-A')?.permissionIndex, 2);
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-B')?.permissionIndex, 1);
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 1);
+			assert.strictEqual(fixture.host.gateRow.hidden, true);
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('permission apply fail while still on A still rolls back select and shows gate notice', async () => {
+		const fixture = leftoverLooksLiveSessionSelectsHost({
+			pairingPending: false,
+			engineSessionReady: true,
+		});
+		try {
+			const uaConnection = fixture.host.uaConnection as {
+				setPermissionMode: (request: { sessionId: string; mode: string }) => Promise<{ ok: boolean; message?: string }>;
+			};
+			uaConnection.setPermissionMode = async () => ({ ok: false, message: 'engine rejected permit' });
+			await applySessionPermissionIndex(fixture.host, 'sess-leftover', 2);
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.gateRow.hidden, false);
+			assert.ok(fixture.host.gateLabel.textContent?.includes('engine rejected permit'));
+			assert.strictEqual(fixture.host.postFailureVisible, true);
+		} finally {
+			fixture.dispose();
+		}
+	});
+
 	test('leftover-looks-live pairing-hold Tune overlay still paints leftover catalog', () => {
 		const fixture = leftoverLooksLiveSessionSelectsHost({ catalogToolNames: ['bash', 'read'] });
 		try {
