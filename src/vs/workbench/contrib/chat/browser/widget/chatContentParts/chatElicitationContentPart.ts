@@ -105,8 +105,14 @@ export class ChatElicitationContentPart extends Disposable implements IChatConte
 			}
 			if (result !== undefined) {
 				await elicitation.accept(result);
+				if (this._store.isDisposed) {
+					return;
+				}
 			} else if (elicitation.reject) {
 				await elicitation.reject();
+				if (this._store.isDisposed) {
+					return;
+				}
 			}
 
 			confirmationWidget.setShowButtons(false);
