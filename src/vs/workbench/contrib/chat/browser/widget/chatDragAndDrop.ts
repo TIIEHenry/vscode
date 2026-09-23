@@ -183,9 +183,21 @@ export class ChatDragAndDrop extends Themable {
 	}
 
 	private async drop(e: DragEvent): Promise<void> {
+		const dropSessionKey = this.widgetRef()?.viewModel?.model.sessionResource?.toString();
 		const contexts = await this.resolveAttachmentsFromDragEvent(e);
 		if (contexts.length === 0) {
 			return;
+		}
+
+		if (this._store.isDisposed) {
+			return;
+		}
+
+		if (dropSessionKey !== undefined) {
+			const currentSessionKey = this.widgetRef()?.viewModel?.model.sessionResource?.toString();
+			if (currentSessionKey !== dropSessionKey) {
+				return;
+			}
 		}
 
 		this.attachmentTarget.addAttachments(contexts);
