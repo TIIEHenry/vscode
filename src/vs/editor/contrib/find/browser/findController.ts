@@ -101,6 +101,7 @@ export class CommonFindController extends Disposable implements IEditorContribut
 	protected _state: FindReplaceState;
 	protected _updateHistoryDelayer: Delayer<void>;
 	private _model: FindModelBoundToEditorModel | null;
+	private _startGeneration = 0;
 	protected readonly _storageService: IStorageService;
 	private readonly _clipboardService: IClipboardService;
 	protected readonly _contextKeyService: IContextKeyService;
@@ -244,6 +245,7 @@ export class CommonFindController extends Disposable implements IEditorContribut
 	}
 
 	public closeFindWidget(): void {
+		this._startGeneration++;
 		this._state.change({
 			isRevealed: false,
 			searchScope: null
@@ -317,6 +319,7 @@ export class CommonFindController extends Disposable implements IEditorContribut
 	}
 
 	protected async _start(opts: IFindStartOptions, newState?: INewFindReplaceState): Promise<void> {
+		const generation = ++this._startGeneration;
 		this.disposeModel();
 
 		if (!this._editor.hasModel()) {
@@ -348,6 +351,10 @@ export class CommonFindController extends Disposable implements IEditorContribut
 		if (!stateChanges.searchString && opts.seedSearchStringFromGlobalClipboard) {
 			const selectionSearchString = await this.getGlobalBufferTerm();
 
+			if (generation !== this._startGeneration) {
+				return;
+			}
+
 			if (!this._editor.hasModel()) {
 				// the editor has lost its model in the meantime
 				return;
@@ -373,6 +380,10 @@ export class CommonFindController extends Disposable implements IEditorContribut
 		}
 
 		stateChanges.loop = opts.loop;
+
+		if (generation !== this._startGeneration) {
+			return;
+		}
 
 		this._state.change(stateChanges, false);
 
