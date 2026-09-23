@@ -142,6 +142,9 @@ export class FormatOnType implements IEditorContribution {
 			if (cts.token.isCancellationRequested) {
 				return;
 			}
+			if (this._editor.getModel() !== model) {
+				return;
+			}
 			if (isNonEmptyArray(edits)) {
 				this._accessibilitySignalService.playSignal(AccessibilitySignal.format, { userGesture: false });
 				FormattingEdit.execute(this._editor, edits, true);
