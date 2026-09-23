@@ -768,12 +768,19 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 
 			// For each resource, compute the diff and create edit parts
 			for (const [resource, beforeSnapshot] of operation.snapshots) {
+				if (this.isDisposed) {
+					break;
+				}
+
 				let entry = this._getEntry(resource);
 
 				// Files that did not exist on disk before may not exist in our working
 				// set yet. Create those if that's the case.
 				if (!entry && beforeSnapshot === undefined) {
 					entry = await this._getOrCreateModifiedFileEntry(resource, NotExistBehavior.Abort, this._getTelemetryInfoForModel(responseModel), '');
+					if (this.isDisposed) {
+						break;
+					}
 					if (entry) {
 						entry.startExternalEdit();
 						entry.acceptStreamingEditsStart(responseModel, operation.undoStopId, undefined);
@@ -790,6 +797,9 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 					// Read after-content from the provided URI instead of disk
 					try {
 						const data = await this._fileService.readFile(contentSource);
+						if (this.isDisposed) {
+							break;
+						}
 						afterSnapshot = data.value.toString();
 					} catch (_e) {
 						afterSnapshot = '';
@@ -797,6 +807,9 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 				} else {
 					// Reload from disk to ensure in-memory model is in sync with file system
 					await entry.revertToDisk();
+					if (this.isDisposed) {
+						break;
+					}
 					afterSnapshot = this._getCurrentTextOrNotebookSnapshot(entry) ?? '';
 				}
 
@@ -813,6 +826,9 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 					});
 				} else {
 					edits = await entry.computeEditsFromSnapshots(beforeSnapshot, afterSnapshot);
+					if (this.isDisposed) {
+						break;
+					}
 					this._recordEditOperations(entry, resource, edits, responseModel);
 				}
 
@@ -832,10 +848,16 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 
 				// Mark as no longer being modified
 				await entry.acceptStreamingEditsEnd();
+				if (this.isDisposed) {
+					break;
+				}
 
 				// Accept the changes for background sessions
 				if (getChatSessionType(this.chatSessionResource) === AgentSessionProviders.Background) {
 					await entry.accept();
+					if (this.isDisposed) {
+						break;
+					}
 				}
 
 				// Clear external edit mode
@@ -846,7 +868,7 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 			operation.releaseLocks();
 
 			const hasOtherTasks = Iterable.some(this._streamingEditLocks.keys(), k => !operation.snapshots.has(URI.parse(k)));
-			if (!hasOtherTasks) {
+			if (!this.isDisposed && !hasOtherTasks) {
 				this._state.set(ChatEditingSessionState.Idle, undefined);
 			}
 		}
@@ -1156,6 +1178,10 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 				return undefined;
 			}
 			entry = maybeEntry;
+			if (this.isDisposed) {
+				entry.dispose();
+				return undefined;
+			}
 			if (initialContent === undefined) {
 				this._initialFileContents.set(resource, entry.initialContent);
 			}
