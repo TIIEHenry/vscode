@@ -54,8 +54,21 @@ export class ChatConfirmationOpenedEditors extends Disposable {
 			await open();
 		} finally {
 			const pane = this._editorService.activeEditorPane;
-			if (pane?.input && !before.has(pane.input)) {
-				this._opened.push({ editor: pane.input, groupId: pane.group.id });
+			if (!pane?.input || before.has(pane.input)) {
+				return;
+			}
+			const identifier: IEditorIdentifier = { editor: pane.input, groupId: pane.group.id };
+
+			const stateKind = this._toolInvocation.state.get().type;
+			if (stateKind !== IChatToolInvocation.StateKind.WaitingForConfirmation && stateKind !== IChatToolInvocation.StateKind.WaitingForPostApproval) {
+				const { editor } = identifier;
+				if (!editor.isDisposed() && !editor.isDirty()) {
+					this._editorService.closeEditors([identifier]).catch(onUnexpectedError).catch(onUnexpectedError);
+				}
+			}
+
+			if (!this._store.isDisposed) {
+				this._opened.push(identifier);
 			}
 		}
 	}
