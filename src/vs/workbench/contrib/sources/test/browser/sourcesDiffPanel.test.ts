@@ -205,6 +205,38 @@ suite('Sources diff panel', () => {
 		} as unknown as IViewDescriptorService;
 	}
 
+	function createLiveScmService(resource: URI, liveGroupId: string): ISCMService {
+		const group = {
+			id: liveGroupId,
+			label: liveGroupId === 'index' ? 'Staged Changes' : 'Changes',
+			resources: [] as ISCMResource[],
+		};
+		const scmResource = {
+			sourceUri: resource,
+			resourceGroup: group,
+			decorations: {},
+			open: async () => { },
+		} as unknown as ISCMResource;
+		group.resources.push(scmResource);
+		const repository = {
+			provider: {
+				groups: [group],
+				rootUri: resource,
+				onDidChangeResources: Event.None,
+				onDidChangeResourceGroups: Event.None,
+			},
+		};
+		return {
+			_serviceBrand: undefined,
+			get repositories() { return [repository]; },
+			get repositoryCount() { return 1; },
+			onDidAddRepository: Event.None,
+			onDidRemoveRepository: Event.None,
+			registerSCMProvider: () => { throw new Error('not implemented'); },
+			getRepository: () => undefined,
+		} as unknown as ISCMService;
+	}
+
 	function createLeftoverScmService(resource: URI, groupId = 'workingTree'): ISCMService {
 		const group = {
 			id: groupId,
@@ -672,6 +704,109 @@ suite('Sources diff panel', () => {
 		host.comparisonLoadFailed = false;
 		host.updateWriteActions();
 	}
+
+	test('Diff panel hides Stage after engine accepted when panel ref index but live SCM is workingTree', async function () {
+		const resource = toResource.call(this, '/project/src/engine-stage-stale-ref-index.ts');
+		const original = toResource.call(this, '/project/src/engine-stage-stale-ref-index.ts.git');
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const connection = leftoverLooksLiveApplyConnection([], stageCalls, false);
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const instantiationService = workbenchInstantiationService(undefined, store);
+			instantiationService.stub(IViewDescriptorService, createViewDescriptorServiceStub());
+			instantiationService.stub(IUniverseAgentConnection, connection);
+			instantiationService.stub(IConversationRosterService, {
+				getActiveSessionId: () => 'session-1',
+				onDidChangeActiveSession: Event.None,
+				onDidChangeSession: Event.None,
+				isEngineSessionReady: () => true,
+			} as unknown as IConversationRosterService);
+			instantiationService.stub(ISCMService, createLiveScmService(resource, 'workingTree'));
+			instantiationService.stub(ICommandService, {
+				onWillExecuteCommand: Event.None,
+				onDidExecuteCommand: Event.None,
+				executeCommand: async () => undefined,
+			} as unknown as ICommandService);
+			instantiationService.stub(ITextModelService, {
+				createModelReference: async () => {
+					throw new Error('boom');
+				},
+			} as unknown as ITextModelService);
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'index',
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null;
+			assert.strictEqual(panelStage?.style.display, '');
+
+			await (view as unknown as { runStage: () => Promise<void> }).runStage();
+			await timeout(20);
+			assert.strictEqual(stageCalls.length, 1);
+			assert.strictEqual(panelStage?.style.display, 'none');
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	test('Diff panel does not record engine stage hide mask when ref and live SCM are index', async function () {
+		const resource = toResource.call(this, '/project/src/engine-stage-index-only.ts');
+		const original = toResource.call(this, '/project/src/engine-stage-index-only.ts.git');
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const connection = leftoverLooksLiveApplyConnection([], stageCalls, false);
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'index',
+				connection,
+			});
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'index',
+			});
+			await timeout(50);
+
+			await (view as unknown as { runStage: () => Promise<void> }).runStage();
+			await timeout(20);
+			assert.strictEqual(stageCalls.length, 1);
+			const host = view as unknown as { stageEngineAcceptedModified: URI | undefined };
+			assert.strictEqual(host.stageEngineAcceptedModified, undefined);
+		} finally {
+			stageCommand.dispose();
+		}
+	});
 
 	test('Diff panel hides Stage after engine WriteGitStagePaths accepted until ref changes', async function () {
 		const resource = toResource.call(this, '/project/src/engine-stage-accepted.ts');

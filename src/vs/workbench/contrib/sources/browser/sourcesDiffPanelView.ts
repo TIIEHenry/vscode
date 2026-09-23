@@ -529,7 +529,7 @@ export class SourcesDiffPanelView extends ViewPane {
 			));
 			if (attempt.kind === 'accepted') {
 				const ref = this.currentRef;
-				if (ref && isSourcesChangeStageable(ref.groupId)) {
+				if (ref && isSourcesChangeStageable(context.groupId)) {
 					this.stageEngineAcceptedModified = ref.modified;
 				}
 				this.hideActionNotice();
