@@ -683,6 +683,9 @@ export class DiffEditorWidget extends DelegatingEditor implements IDiffEditor {
 		}
 		// wait for the diff computation to finish
 		this.waitForDiff().then(() => {
+			if (this._diffModel.get() !== diffModel) {
+				return;
+			}
 			const diffs = diffModel.diff.get()?.mappings;
 			if (!diffs || diffs.length === 0) {
 				return;
