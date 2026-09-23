@@ -455,6 +455,11 @@ export class CallStackView extends ViewPane {
 				await this.tree.expand(thread);
 			} catch (e) { }
 
+			const viewModel = this.debugService.getViewModel();
+			if (viewModel.focusedThread !== thread || viewModel.focusedStackFrame !== stackFrame || viewModel.focusedSession !== session) {
+				return;
+			}
+
 			const toReveal = stackFrame || session;
 			if (toReveal) {
 				updateSelectionAndReveal(toReveal);
