@@ -280,6 +280,10 @@ export class DebugHoverWidget implements IContentWidget {
 			this.hide();
 			return ShowDebugHoverResult.CANCELLED;
 		}
+		if (this.debugService.getViewModel().focusedSession !== session) {
+			this.hide();
+			return ShowDebugHoverResult.CANCELLED;
+		}
 
 		if (!expression || (expression instanceof Expression && !expression.available)) {
 			this.hide();
