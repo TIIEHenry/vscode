@@ -531,7 +531,7 @@ export function deleteActiveSession(host: IConversationLensSessionBarHost): void
 			return;
 		}
 		const sessionId = host.getSessionBarSelectId?.() ?? host.stubService.getActiveSessionId();
-		const draftText = host.dockTextarea.value;
+		const draftText = outgoingComposerDraftText(host);
 		host.writeComposerDraft(sessionId, draftText);
 		pendingDeleteDraftMap(host).set(sessionId, draftText);
 		const deleted = host.stubService.deleteSession(sessionId);

@@ -805,7 +805,9 @@ export function navigateInputHistory(host: IConversationLensComposerChromeHost, 
 		}
 		host.inputHistoryBrowse = result.state;
 		host.dockTextarea.value = result.textareaValue;
-		host.writeComposerDraft(host.getBoundSessionId(), result.textareaValue);
+		if (host.composerPolicy === 'compose') {
+			host.writeComposerDraft(host.getBoundSessionId(), result.textareaValue);
+		}
 		return true;
 	
 }
@@ -818,6 +820,8 @@ export function exitInputHistoryBrowse(host: IConversationLensComposerChromeHost
 		}
 		host.inputHistoryBrowse = result.state;
 		host.dockTextarea.value = result.textareaValue;
-		host.writeComposerDraft(host.getBoundSessionId(), result.textareaValue);
+		if (host.composerPolicy === 'compose') {
+			host.writeComposerDraft(host.getBoundSessionId(), result.textareaValue);
+		}
 	
 }

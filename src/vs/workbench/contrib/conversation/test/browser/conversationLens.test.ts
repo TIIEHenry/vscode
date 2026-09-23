@@ -2853,6 +2853,161 @@ suite('ConversationLens', () => {
 		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
 	});
 
+	test('turnEdit deleteSession false keeps compose draft snapshot not bubble text', () => {
+		class RejectingDeleteRoster extends ConversationStubService {
+			override deleteSession(_sessionId: string): boolean {
+				return false;
+			}
+		}
+		const roster = store.add(new RejectingDeleteRoster());
+		const { part, lens } = mountLens({ stubService: roster });
+		const slots = getLensSlots(part);
+		const sessionId = roster.getActiveSessionId();
+		const userTurn = roster.appendUserTurn(sessionId, 'B');
+		assert.ok(userTurn);
+
+		const textarea = getDockTextarea(slots);
+		textarea.value = 'A';
+		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		assert.strictEqual(lens.readComposerDraft(sessionId), 'A');
+
+		lens.beginTurnEdit(userTurn.id);
+		assert.strictEqual(lens.composerPolicy, 'turnEdit');
+		assert.strictEqual(lens.dockTextarea.value, 'B');
+
+		lens.deleteActiveSession();
+
+		assert.strictEqual(roster.getActiveSessionId(), sessionId);
+		assert.strictEqual(lens.readComposerDraft(sessionId), 'A');
+		assert.strictEqual(getDockTextarea(slots).value, 'A');
+	});
+
+	test('turnEdit deleteSession optimistic rollback restores compose draft snapshot not bubble text', async () => {
+		class OptimisticRollbackDeleteRoster extends ConversationStubService {
+			private readonly _onDidFail = this._register(new Emitter<IConversationEngineActionFailure>());
+			override readonly onDidFailEngineAction = this._onDidFail.event;
+			private hiddenId: string | undefined;
+
+			override getSessions() {
+				return super.getSessions().filter(session => session.id !== this.hiddenId);
+			}
+
+			override getActiveSessionId() {
+				const id = super.getActiveSessionId();
+				if (id === this.hiddenId) {
+					return this.getSessions()[0]?.id ?? id;
+				}
+				return id;
+			}
+
+			override getActiveSession() {
+				const id = this.getActiveSessionId();
+				return this.getSessions().find(session => session.id === id) ?? super.getActiveSession();
+			}
+
+			override deleteSession(sessionId: string): boolean {
+				if (!super.getSessions().some(session => session.id === sessionId)) {
+					return false;
+				}
+				this.hiddenId = sessionId;
+				this._onDidChangeActiveSession.fire(this.getActiveSessionId());
+				this._onDidChangeSession.fire(sessionId);
+				queueMicrotask(() => {
+					this.hiddenId = undefined;
+					this._onDidChangeActiveSession.fire(sessionId);
+					this._onDidChangeSession.fire(sessionId);
+					this._onDidFail.fire({ sessionId, action: 'deleteSession', error: new Error('engine refused') });
+				});
+				return true;
+			}
+		}
+		const roster = store.add(new OptimisticRollbackDeleteRoster());
+		const sessionId = roster.getActiveSessionId();
+		roster.createSession();
+		roster.switchSession(sessionId);
+		const { part, lens } = mountLens({ stubService: roster });
+		const slots = getLensSlots(part);
+		const userTurn = roster.appendUserTurn(sessionId, 'B');
+		assert.ok(userTurn);
+
+		const textarea = getDockTextarea(slots);
+		textarea.value = 'A';
+		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+
+		lens.beginTurnEdit(userTurn.id);
+		assert.strictEqual(lens.composerPolicy, 'turnEdit');
+		assert.strictEqual(lens.dockTextarea.value, 'B');
+
+		lens.deleteActiveSession();
+		await new Promise<void>(resolve => queueMicrotask(resolve));
+
+		assert.strictEqual(roster.getActiveSessionId(), sessionId);
+		assert.strictEqual(lens.readComposerDraft(sessionId), 'A');
+		assert.strictEqual(getDockTextarea(slots).value, 'A');
+	});
+
+	test('compose deleteSession false still writes textarea into drafts', () => {
+		class RejectingDeleteRoster extends ConversationStubService {
+			override deleteSession(_sessionId: string): boolean {
+				return false;
+			}
+		}
+		const roster = store.add(new RejectingDeleteRoster());
+		const { part, lens } = mountLens({ stubService: roster });
+		const slots = getLensSlots(part);
+		const sessionId = roster.getActiveSessionId();
+		assert.strictEqual(lens.composerPolicy, 'compose');
+		getDockTextarea(slots).value = 'live compose';
+
+		lens.deleteActiveSession();
+
+		assert.strictEqual(lens.readComposerDraft(sessionId), 'live compose');
+		assert.strictEqual(getDockTextarea(slots).value, 'live compose');
+	});
+
+	test('turnEdit input history does not write history text into drafts', () => {
+		const { part, lens, stubService } = mountLens();
+		const slots = getLensSlots(part);
+		const sessionA = stubService.getActiveSessionId();
+		const userTurn = stubService.appendUserTurn(sessionA, 'B');
+		assert.ok(userTurn);
+
+		const textarea = getDockTextarea(slots);
+		textarea.value = 'A';
+		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
+
+		lens.beginTurnEdit(userTurn.id);
+		assert.strictEqual(lens.composerPolicy, 'turnEdit');
+		assert.strictEqual(lens.dockTextarea.value, 'B');
+
+		lens.dockTextarea.value = '';
+		assert.ok(lens.navigateInputHistory('older'));
+		assert.strictEqual(lens.dockTextarea.value, 'B');
+		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
+
+		lens.exitInputHistoryBrowse();
+		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
+	});
+
+	test('compose input history still writes textarea into drafts', () => {
+		const { part, lens, stubService } = mountLens();
+		const slots = getLensSlots(part);
+		const sessionA = stubService.getActiveSessionId();
+		const userTurn = stubService.appendUserTurn(sessionA, 'sent history');
+		assert.ok(userTurn);
+
+		assert.strictEqual(lens.composerPolicy, 'compose');
+		getDockTextarea(slots).value = '';
+		assert.ok(lens.navigateInputHistory('older'));
+		assert.strictEqual(getDockTextarea(slots).value, 'sent history');
+		assert.strictEqual(lens.readComposerDraft(sessionA), 'sent history');
+
+		lens.exitInputHistoryBrowse();
+		assert.strictEqual(getDockTextarea(slots).value, '');
+		assert.strictEqual(lens.readComposerDraft(sessionA), '');
+	});
+
 	test('SessionBar select refreshes after deleting the last stub session', () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
