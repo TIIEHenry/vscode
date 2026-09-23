@@ -971,7 +971,7 @@ suite('conversation lens dispose gate', () => {
 		];
 		const sameSessionLease: IConversationSessionViewLease = {
 			sessionId: 'sess-A',
-			snapshot: leftoverLeaseSnapshot({ kind: 'idle' }).snapshot as IConversationSessionViewLease['snapshot'],
+			snapshot: leftoverLeaseSnapshot({ kind: 'idle' }).snapshot as unknown as IConversationSessionViewLease['snapshot'],
 			attribution: new Map(),
 			details: new Map(),
 			onDidApplyFrame: Event.None,
@@ -1168,7 +1168,7 @@ suite('conversation lens dispose gate', () => {
 		];
 		const sameSessionLease: IConversationSessionViewLease = {
 			sessionId: 'sess-A',
-			snapshot: leftoverLeaseSnapshot({ kind: 'idle' }).snapshot as IConversationSessionViewLease['snapshot'],
+			snapshot: leftoverLeaseSnapshot({ kind: 'idle' }).snapshot as unknown as IConversationSessionViewLease['snapshot'],
 			attribution: new Map(),
 			details: new Map(),
 			onDidApplyFrame: Event.None,
