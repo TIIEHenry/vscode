@@ -787,10 +787,15 @@ export class AttachContextAction extends Action2 {
 					return;
 				}
 				if (isThenable(attachment)) {
+					const pickSessionResource = widget.viewModel?.sessionResource;
 					addPromises.push(attachment.then(v => {
-						if (v !== noop) {
-							widget.attachmentModel.addContext(...asArray(v));
+						if (v === noop) {
+							return;
 						}
+						if (!pickSessionResource || !widget.viewModel || !isEqual(widget.viewModel.sessionResource, pickSessionResource)) {
+							return;
+						}
+						widget.attachmentModel.addContext(...asArray(v));
 					}));
 				} else {
 					widget.attachmentModel.addContext(...asArray(attachment));
