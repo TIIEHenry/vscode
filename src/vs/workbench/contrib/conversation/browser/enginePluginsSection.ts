@@ -588,6 +588,9 @@ export class EnginePluginsSection extends Disposable {
 			if (generation !== this.infoGeneration) {
 				return;
 			}
+			if (this.selectedPlugin?.id !== id) {
+				return;
+			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				this.keepLeftoverHooksDisconnected();
 				return;
@@ -607,6 +610,9 @@ export class EnginePluginsSection extends Disposable {
 			this.hooksTable.style.display = '';
 		} catch (error) {
 			if (generation !== this.infoGeneration) {
+				return;
+			}
+			if (this.selectedPlugin?.id !== id) {
 				return;
 			}
 			if (!this.hasLeftoverHooks()) {

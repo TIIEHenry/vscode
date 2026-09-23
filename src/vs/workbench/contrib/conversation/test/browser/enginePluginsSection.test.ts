@@ -39,6 +39,7 @@ const PLUGIN_HOOKS_EMPTY_COPY = localize('ua.enginePluginHooksEmpty', "No hooks.
 const LEFTOVER_HOOK_CLASS = 'LeftoverHook';
 const FRESH_LIVE_HOOK_CLASS = 'InflightLiveHook';
 const FRESH_LIVE_SCAN_NAME = 'InflightLiveScan';
+const STALE_PLUGIN_INFO_FAIL_REASON = 'stale getPluginInfo for prior plugin';
 
 suite('EnginePluginsSection write-success (D155 / D216)', () => {
 
@@ -1021,6 +1022,10 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		return { ...demoPlugin(), id: 'leftover-plugin', displayName: 'Leftover Plugin' };
 	}
 
+	function altPlugin(): UniverseAgentPluginSummary {
+		return { ...demoPlugin(), id: 'alt-plugin', displayName: 'Alt Plugin' };
+	}
+
 	function freshLiveHook(): { hookType: string; priority: number; className: string } {
 		return { hookType: 'onChat', priority: 99, className: FRESH_LIVE_HOOK_CLASS };
 	}
@@ -1305,6 +1310,107 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		await flushMicrotasks();
 
 		assert.strictEqual(infoCalls, infoCallsAfterLoad, 'leftover-looks-live must not extra getPluginInfo');
+		assertLeftoverHooksLooksLiveDisconnected(section, 1);
+	});
+
+	test('in-flight getPluginInfo stale success does not paint after failed-mode reselect without generation bump', async () => {
+		let listPluginsCalls = 0;
+		let infoCalls = 0;
+		let releaseSecond: (() => void) | undefined;
+		let secondStarted: (() => void) | undefined;
+		const secondEntered = new Promise<void>(resolve => { secondStarted = resolve; });
+		const secondHold = new Promise<void>(resolve => { releaseSecond = resolve; });
+		const leftover = leftoverPlugin();
+		const alt = altPlugin();
+		const connection = createConnectionStub({
+			listPlugins: async () => {
+				listPluginsCalls++;
+				if (listPluginsCalls >= 2) {
+					throw new Error('listPlugins retry exploded');
+				}
+				return { plugins: [leftover, alt] };
+			},
+			getPluginInfo: async () => {
+				infoCalls++;
+				if (infoCalls === 1) {
+					return { summary: leftover, hooks: [leftoverHook()] };
+				}
+				secondStarted?.();
+				await secondHold;
+				return { summary: leftover, hooks: [freshLiveHook()] };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		await flushMicrotasks();
+		assertLeftoverHooksKeptAfterCatalogHonesty(section, 1);
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		await secondEntered;
+		assert.strictEqual(infoCalls, 2);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+		assert.strictEqual(section.getMode(), 'failed');
+		assertPluginsLeftoverFailedHonesty(section, 'listPlugins retry exploded', 2);
+
+		assert.ok(section.selectPluginForTest('alt-plugin'));
+		assert.strictEqual(section.getSelectedPluginId(), 'alt-plugin');
+
+		releaseSecond!();
+		await flushMicrotasks();
+
+		assert.strictEqual(infoCalls, 2);
+		assert.strictEqual(section.getSelectedPluginId(), 'alt-plugin');
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(FRESH_LIVE_HOOK_CLASS));
+		assertLeftoverHooksKeptAfterCatalogHonesty(section, 1);
+		assert.ok((section.getDomNode().textContent ?? '').includes(LEFTOVER_HOOK_CLASS));
+	});
+
+	test('in-flight getPluginInfo stale throw does not paint after pairing-hold reselect without generation bump', async () => {
+		let infoCalls = 0;
+		let releaseSecond: (() => void) | undefined;
+		let secondStarted: (() => void) | undefined;
+		const secondEntered = new Promise<void>(resolve => { secondStarted = resolve; });
+		const secondHold = new Promise<void>(resolve => { releaseSecond = resolve; });
+		const leftover = leftoverPlugin();
+		const alt = altPlugin();
+		const connection = createConnectionStub({
+			looksLive: true,
+			listPlugins: async () => ({ plugins: [leftover, alt] }),
+			getPluginInfo: async () => {
+				infoCalls++;
+				if (infoCalls === 1) {
+					return { summary: leftover, hooks: [leftoverHook()] };
+				}
+				secondStarted?.();
+				await secondHold;
+				throw new Error(STALE_PLUGIN_INFO_FAIL_REASON);
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		await flushMicrotasks();
+		assert.strictEqual(section.getHookRowCount(), 1);
+		assert.ok(section.selectPluginForTest('leftover-plugin'));
+		await secondEntered;
+		assert.strictEqual(infoCalls, 2);
+
+		connection.setPairingPending(true);
+		assert.ok(section.selectPluginForTest('alt-plugin'));
+		assert.strictEqual(section.getSelectedPluginId(), 'alt-plugin');
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		releaseSecond!();
+		await flushMicrotasks();
+
+		assert.strictEqual(infoCalls, 2);
+		assert.strictEqual(section.getSelectedPluginId(), 'alt-plugin');
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(STALE_PLUGIN_INFO_FAIL_REASON));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(FRESH_LIVE_HOOK_CLASS));
 		assertLeftoverHooksLooksLiveDisconnected(section, 1);
 	});
 
