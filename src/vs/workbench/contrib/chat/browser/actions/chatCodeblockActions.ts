@@ -502,6 +502,10 @@ export function registerChatCodeBlockActions() {
 				await terminalGroupService.showPanel(true);
 			}
 
+			if (terminal.isDisposed) {
+				return;
+			}
+
 			terminal.runCommand(context.code, false);
 
 			if (isResponseVM(context.element)) {
