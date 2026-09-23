@@ -943,6 +943,9 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 		for (const entry of entries) {
 			if (entry instanceof ChatEditingModifiedDocumentEntry) {
 				const diff = await entry.getDiffInfo();
+				if (this.isDisposed) {
+					return;
+				}
 				diffInfos.push({
 					changes: diff.changes,
 					identical: diff.identical,
@@ -950,6 +953,10 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 					modifiedModel: entry.modifiedModel,
 				});
 			}
+		}
+
+		if (this.isDisposed) {
+			return;
 		}
 
 		if (diffInfos.length > 0) {
