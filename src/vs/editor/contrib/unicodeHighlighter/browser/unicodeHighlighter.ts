@@ -262,6 +262,9 @@ class DocumentUnicodeHighlighter extends Disposable {
 					// model changed in the meantime
 					return;
 				}
+				if (this._store.isDisposed || this._editor.getModel() !== this._model) {
+					return;
+				}
 				this._updateState(info);
 
 				const decorations: IModelDeltaDecoration[] = [];
