@@ -6,7 +6,7 @@
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { KeyCode, KeyMod } from '../../../../../base/common/keyCodes.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
-import { basename } from '../../../../../base/common/resources.js';
+import { basename, isEqual } from '../../../../../base/common/resources.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
 import { assertType } from '../../../../../base/common/types.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -57,6 +57,7 @@ abstract class SubmitAction extends Action2 {
 		const telemetryService = accessor.get(ITelemetryService);
 		const widgetService = accessor.get(IChatWidgetService);
 		const widget = context?.widget ?? widgetService.lastFocusedWidget;
+		let submitSessionResource: URI | undefined;
 
 		// Check if there's a pending delegation target
 		const pendingDelegationTarget = widget?.input.pendingDelegationTarget;
@@ -104,6 +105,8 @@ abstract class SubmitAction extends Action2 {
 						message = localize('chat.remove.confirmation.multipleEdits.message', "This will remove all subsequent requests and undo edits made to {0} files in your working set. Do you want to proceed?", entriesModifiedInRequestsToRemove.length);
 					}
 				}
+
+				submitSessionResource = widget.viewModel.sessionResource;
 
 				const confirmation = shouldPrompt
 					? await dialogService.confirm({
@@ -156,6 +159,9 @@ abstract class SubmitAction extends Action2 {
 			}
 		} else if (widget?.viewModel?.model.checkpoint) {
 			widget.viewModel.model.setCheckpoint(undefined);
+		}
+		if (submitSessionResource && (!widget?.viewModel || !isEqual(submitSessionResource, widget.viewModel.sessionResource))) {
+			return;
 		}
 		widget?.acceptInput(context?.inputValue, context?.acceptInputOptions);
 	}
