@@ -214,6 +214,7 @@ export class DebugHoverWidget implements IContentWidget {
 				await this.tree.expand(e);
 			}
 		}));
+		this.toDispose.push(this.editor.onDidChangeModel(() => this.hide()));
 	}
 
 	isHovered(): boolean {
@@ -254,6 +255,7 @@ export class DebugHoverWidget implements IContentWidget {
 			return ShowDebugHoverResult.NOT_AVAILABLE;
 		}
 
+		const model = this.editor.getModel();
 		const result = await this.debugHoverComputer.compute(position, cancellationSource.token);
 		if (cancellationSource.token.isCancellationRequested) {
 			this.hide();
@@ -271,6 +273,10 @@ export class DebugHoverWidget implements IContentWidget {
 
 		const expression = await this.debugHoverComputer.evaluate(session);
 		if (cancellationSource.token.isCancellationRequested) {
+			this.hide();
+			return ShowDebugHoverResult.CANCELLED;
+		}
+		if (this.editor.getModel() !== model) {
 			this.hide();
 			return ShowDebugHoverResult.CANCELLED;
 		}
