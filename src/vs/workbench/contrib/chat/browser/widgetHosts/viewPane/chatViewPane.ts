@@ -296,6 +296,11 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 			}
 
 			const modelRef = await this.chatService.acquireOrLoadSession(e.committed, ChatAgentLocation.Chat, CancellationToken.None, 'ChatViewPane#onDidCommitSession');
+			const currentSession = this._widget.viewModel?.sessionResource ?? this.modelRef.value?.object.sessionResource;
+			if (modelRef && (!currentSession || !isEqual(currentSession, e.original))) {
+				modelRef.dispose();
+				return;
+			}
 			await this.showModel(CancellationToken.None, modelRef);
 		}));
 
@@ -1405,6 +1410,10 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 
 			if (token.isCancellationRequested) {
 				this.modelRef.value = undefined;
+				return undefined;
+			}
+
+			if (ref && this.modelRef.value !== ref) {
 				return undefined;
 			}
 
