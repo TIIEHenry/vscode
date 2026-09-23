@@ -197,9 +197,24 @@ export class SuggestInlineCompletions extends Disposable implements InlineComple
 				token
 			);
 
+			const isStale = () =>
+				token.isCancellationRequested
+				|| editor.getModel() !== model
+				|| model.isDisposed()
+				|| !editor.getPosition()?.equals(position);
+
+			if (isStale()) {
+				completions.disposable.dispose();
+				return undefined;
+			}
+
 			let clipboardText: string | undefined;
 			if (completions.needsClipboard) {
 				clipboardText = await this._clipboardService.readText();
+				if (isStale()) {
+					completions.disposable.dispose();
+					return undefined;
+				}
 			}
 
 			const completionModel = new CompletionModel(
