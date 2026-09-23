@@ -757,8 +757,9 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 			this.computeStateAfterAcceptingRejectingChanges(false);
 			return true;
 		};
+		const hydrationGeneration = this.computeRequestId;
 		this.resolveCellModel(cell.uri).then(modifiedModel => {
-			if (this._store.isDisposed) {
+			if (hydrationGeneration !== this.computeRequestId || this._store.isDisposed || this.modifiedModel.cells.indexOf(cell) === -1) {
 				return;
 			}
 			// We want decorators for the cell just as we display decorators for modified cells.
