@@ -12,7 +12,7 @@ import { isPatternInWord } from '../../../../../../../base/common/filters.js';
 import { Disposable, DisposableStore, toDisposable } from '../../../../../../../base/common/lifecycle.js';
 import { ResourceSet } from '../../../../../../../base/common/map.js';
 import { Schemas } from '../../../../../../../base/common/network.js';
-import { basename } from '../../../../../../../base/common/resources.js';
+import { basename, isEqual } from '../../../../../../../base/common/resources.js';
 import { ThemeIcon } from '../../../../../../../base/common/themables.js';
 import { assertType } from '../../../../../../../base/common/types.js';
 import { URI } from '../../../../../../../base/common/uri.js';
@@ -717,7 +717,7 @@ class StartParameterizedPromptAction extends Action2 {
 				return true;
 			}
 			const currentSession = chatWidget.viewModel?.model.sessionResource;
-			if (!currentSession || !URI.isEqual(expectedSession, currentSession)) {
+			if (!currentSession || !isEqual(expectedSession, currentSession)) {
 				return false;
 			}
 			return true;
