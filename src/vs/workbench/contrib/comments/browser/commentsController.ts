@@ -708,15 +708,20 @@ export class CommentController extends Disposable implements IEditorContribution
 
 	private beginComputeCommentingRanges() {
 		if (this._computeCommentingRangeScheduler) {
+			let uriAtStart: URI | undefined;
 			this._computeCommentingRangeScheduler.trigger(() => {
-				const editorURI = this.editor && this.editor.hasModel() && this.editor.getModel().uri;
+				uriAtStart = this.editor && this.editor.hasModel() ? this.editor.getModel().uri : undefined;
 
-				if (editorURI) {
-					return this.commentService.getDocumentComments(editorURI);
+				if (uriAtStart) {
+					return this.commentService.getDocumentComments(uriAtStart);
 				}
 
 				return Promise.resolve([]);
 			}).then(commentInfos => {
+				const currentURI = this.editor && this.editor.hasModel() && this.editor.getModel().uri;
+				if (!uriAtStart || !currentURI || !this.uriIdentityService.extUri.isEqual(uriAtStart, currentURI)) {
+					return;
+				}
 				if (this.commentService.isCommentingEnabled) {
 					const meaningfulCommentInfos = coalesce(commentInfos);
 					this._commentingRangeDecorator.update(this.editor, meaningfulCommentInfos, this.editor?.getPosition()?.lineNumber, this.editor?.getSelection() ?? undefined);
