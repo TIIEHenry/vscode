@@ -171,6 +171,8 @@ export class SourcesDiffPanelView extends ViewPane {
 	private stageEngineAcceptedModified: URI | undefined;
 	/** git.clean succeeded for this modified URI; hide Revert until renderRef switches away. */
 	private gitCleanSucceededModified: URI | undefined;
+	/** git.unstage succeeded for this modified URI; hide Unstage until renderRef switches away. */
+	private gitUnstageSucceededModified: URI | undefined;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -290,6 +292,9 @@ export class SourcesDiffPanelView extends ViewPane {
 		}
 		if (this.gitCleanSucceededModified && (!ref || ref.modified.toString() !== this.gitCleanSucceededModified.toString())) {
 			this.gitCleanSucceededModified = undefined;
+		}
+		if (this.gitUnstageSucceededModified && (!ref || ref.modified.toString() !== this.gitUnstageSucceededModified.toString())) {
+			this.gitUnstageSucceededModified = undefined;
 		}
 		this.bodyDisposables.clear();
 		this.clearEditors();
@@ -496,10 +501,13 @@ export class SourcesDiffPanelView extends ViewPane {
 		const hideRevertAfterGitClean = !!this.gitCleanSucceededModified
 			&& !!this.currentRef
 			&& this.currentRef.modified.toString() === this.gitCleanSucceededModified.toString();
+		const hideUnstageAfterGitUnstage = !!this.gitUnstageSucceededModified
+			&& !!this.currentRef
+			&& this.currentRef.modified.toString() === this.gitUnstageSucceededModified.toString();
 		this.stageButton.style.display = actions.showStage && !writeHold && !hideStageAfterEngineAccepted ? '' : 'none';
 		this.acceptButton.style.display = actions.showAccept ? '' : 'none';
 		this.revertButton.style.display = actions.showRevert && !writeHold && !hideRevertAfterGitClean ? '' : 'none';
-		this.unstageButton.style.display = actions.showUnstage && !writeHold ? '' : 'none';
+		this.unstageButton.style.display = actions.showUnstage && !writeHold && !hideUnstageAfterGitUnstage ? '' : 'none';
 		this.unstageUnavailable.style.display = actions.unstageUnavailable && !writeHold ? '' : 'none';
 	}
 
@@ -624,6 +632,9 @@ export class SourcesDiffPanelView extends ViewPane {
 			this.hideActionNotice();
 			if (commandId === SOURCES_GIT_CLEAN_COMMAND && this.currentRef) {
 				this.gitCleanSucceededModified = this.currentRef.modified;
+			}
+			if (commandId === SOURCES_GIT_UNSTAGE_COMMAND && this.currentRef) {
+				this.gitUnstageSucceededModified = this.currentRef.modified;
 			}
 		} catch (error) {
 			this.showActionNotice(getErrorMessage(error));

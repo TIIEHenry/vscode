@@ -831,6 +831,169 @@ suite('Sources diff panel', () => {
 		}
 	});
 
+	test('Diff panel hides Unstage after git.unstage succeeds until ref changes', async function () {
+		const resource = toResource.call(this, '/project/src/git-unstage-hide.ts');
+		const original = toResource.call(this, '/project/src/git-unstage-hide.ts.git');
+		const group = {
+			id: 'index',
+			label: 'Staged Changes',
+			resources: [] as ISCMResource[],
+		};
+		const cachedScmResource = {
+			sourceUri: resource,
+			resourceGroup: group,
+			decorations: {},
+			open: async () => { },
+		} as unknown as ISCMResource;
+		group.resources.push(cachedScmResource);
+		const scmService = {
+			_serviceBrand: undefined,
+			get repositories() {
+				return [{
+					provider: {
+						groups: [group],
+						rootUri: resource,
+						onDidChangeResources: Event.None,
+						onDidChangeResourceGroups: Event.None,
+					},
+				}];
+			},
+			get repositoryCount() { return 1; },
+			onDidAddRepository: Event.None,
+			onDidRemoveRepository: Event.None,
+			registerSCMProvider: () => { throw new Error('not implemented'); },
+			getRepository: () => undefined,
+		} as unknown as ISCMService;
+
+		const unstageCommand = CommandsRegistry.registerCommand('git.unstage', () => { });
+		const disconnectedConnection = {
+			isEngineConnected: () => false,
+			getConnectionSnapshot: () => ({}),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'index',
+				connection: disconnectedConnection,
+			});
+			instantiationService.stub(ISCMService, scmService);
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'index',
+				scmResource: cachedScmResource,
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const panelUnstage = view.element.querySelector('.sources-diff-panel-unstage') as HTMLButtonElement | null;
+			assert.strictEqual(panelUnstage?.style.display, '');
+
+			await (view as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.unstage');
+			await timeout(20);
+			assert.strictEqual(panelUnstage?.style.display, 'none');
+
+			const other = toResource.call(this, '/project/src/git-unstage-other.ts');
+			const otherOriginal = toResource.call(this, '/project/src/git-unstage-other.ts.git');
+			const otherScmResource = {
+				sourceUri: other,
+				resourceGroup: group,
+				decorations: {},
+				open: async () => { },
+			} as unknown as ISCMResource;
+			group.resources.push(otherScmResource);
+			await panelService.show({
+				modified: other,
+				original: otherOriginal,
+				groupId: 'index',
+				scmResource: otherScmResource,
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+			assert.strictEqual(panelUnstage?.style.display, '');
+		} finally {
+			unstageCommand.dispose();
+		}
+	});
+
+	test('Diff panel keeps Unstage visible when git.unstage fails', async function () {
+		const resource = toResource.call(this, '/project/src/git-unstage-fail.ts');
+		const original = toResource.call(this, '/project/src/git-unstage-fail.ts.git');
+		const cachedScmResource = {
+			sourceUri: resource,
+			resourceGroup: { id: 'index', label: 'Staged Changes', resources: [] as ISCMResource[] },
+			decorations: {},
+			open: async () => { },
+		} as unknown as ISCMResource;
+
+		const unstageCommand = CommandsRegistry.registerCommand('git.unstage', () => {
+			throw new Error('unstage failed');
+		});
+		const disconnectedConnection = {
+			isEngineConnected: () => false,
+			getConnectionSnapshot: () => ({}),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'index',
+				connection: disconnectedConnection,
+				executeCommand: async (commandId: unknown, ...args: unknown[]) => {
+					if (commandId === 'git.unstage') {
+						await CommandsRegistry.getCommand('git.unstage')?.handler!(undefined as unknown as ServicesAccessor, ...args);
+					}
+				},
+			});
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'index',
+				scmResource: cachedScmResource,
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const panelUnstage = view.element.querySelector('.sources-diff-panel-unstage') as HTMLButtonElement | null;
+			assert.strictEqual(panelUnstage?.style.display, '');
+
+			await (view as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.unstage');
+			await timeout(20);
+			assert.strictEqual(panelUnstage?.style.display, '');
+		} finally {
+			unstageCommand.dispose();
+		}
+	});
+
 	test('Diff panel keeps Revert visible when git.clean fails', async function () {
 		const resource = toResource.call(this, '/project/src/git-clean-revert-fail.ts');
 		const original = toResource.call(this, '/project/src/git-clean-revert-fail.ts.git');
