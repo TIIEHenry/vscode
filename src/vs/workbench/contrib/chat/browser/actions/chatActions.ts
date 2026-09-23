@@ -265,6 +265,7 @@ abstract class OpenChatGlobalAction extends Action2 {
 		}
 
 		if (opts?.modelSelector) {
+			const modelSession = chatWidget.viewModel?.sessionResource;
 			const ids = await languageModelService.selectLanguageModels(opts.modelSelector);
 			const id = ids.sort().at(0);
 			if (!id) {
@@ -274,6 +275,10 @@ abstract class OpenChatGlobalAction extends Action2 {
 			const model = languageModelService.lookupLanguageModel(id);
 			if (!model) {
 				throw new Error(`Language model not loaded: ${id}.`);
+			}
+
+			if (modelSession && (!chatWidget.viewModel || !isEqual(modelSession, chatWidget.viewModel.sessionResource))) {
+				return undefined;
 			}
 
 			chatWidget.input.setCurrentLanguageModel({ metadata: model, identifier: id }, true);
