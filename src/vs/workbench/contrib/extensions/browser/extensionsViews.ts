@@ -250,7 +250,12 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 
 		const request = createCancelablePromise(async token => {
 			try {
-				this.queryResult = await this.query(parsedQuery, options, token);
+				const result = await this.query(parsedQuery, options, token);
+				if (token.isCancellationRequested) {
+					result.disposables.dispose();
+					throw new CancellationError();
+				}
+				this.queryResult = result;
 				const model = this.queryResult.model;
 				this.setModel(model, this.queryResult.message);
 				if (this.queryResult.onDidChangeModel) {
