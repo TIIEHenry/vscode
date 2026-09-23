@@ -247,6 +247,7 @@ export class StickyScrollController extends Disposable implements IEditorContrib
 	private _registerMouseListeners(): void {
 
 		const sessionStore = this._register(new DisposableStore());
+		this._register(this._editor.onDidChangeModel(() => sessionStore.clear()));
 		const gesture = this._register(new ClickLinkGesture(this._editor, {
 			extractLineNumberFromMouseEvent: (e) => {
 				const position = this._stickyScrollWidget.getEditorPositionFromNode(e.target.element);
