@@ -978,12 +978,21 @@ export class TerminalService extends Disposable implements ITerminalService {
 	}
 
 	async createTerminal(options?: ICreateTerminalOptions): Promise<ITerminalInstance> {
+		let effectiveOptions = options;
+		if (typeof options?.location === 'object' && hasKey(options.location, { splitActiveTerminal: true }) && options.location.splitActiveTerminal) {
+			const splitParent = this.activeInstance;
+			if (!splitParent) {
+				throw new Error('Cannot split without an active instance');
+			}
+			effectiveOptions = { ...options, location: { parentTerminal: splitParent } };
+		}
+
 		// Await the initialization of available profiles as long as this is not a pty terminal or a
 		// local terminal in a remote workspace as profile won't be used in those cases and these
 		// terminals need to be launched before remote connections are established.
-		const isLocalInRemoteTerminal = this._remoteAgentService.getConnection() && URI.isUri(options?.cwd) && options?.cwd.scheme === Schemas.file;
+		const isLocalInRemoteTerminal = this._remoteAgentService.getConnection() && URI.isUri(effectiveOptions?.cwd) && effectiveOptions?.cwd.scheme === Schemas.file;
 		if (this._terminalProfileService.availableProfiles.length === 0) {
-			const isPtyTerminal = options?.config && hasKey(options.config, { customPtyImplementation: true });
+			const isPtyTerminal = effectiveOptions?.config && hasKey(effectiveOptions.config, { customPtyImplementation: true });
 			if (!isPtyTerminal && !isLocalInRemoteTerminal) {
 				if (this._connectionState === TerminalConnectionState.Connecting) {
 					mark(`code/terminal/willGetProfiles`);
@@ -995,7 +1004,7 @@ export class TerminalService extends Disposable implements ITerminalService {
 			}
 		}
 
-		let config = options?.config;
+		let config = effectiveOptions?.config;
 		if (!config && isLocalInRemoteTerminal) {
 			const backend = await this._terminalInstanceService.getBackend(undefined);
 			const executable = await backend?.getDefaultSystemShell();
@@ -1010,24 +1019,24 @@ export class TerminalService extends Disposable implements ITerminalService {
 		const shellLaunchConfig = config && hasKey(config, { extensionIdentifier: true }) ? {} : this._terminalInstanceService.convertProfileToShellLaunchConfig(config || {});
 
 		// Get the contributed profile if it was provided
-		const contributedProfile = options?.skipContributedProfileCheck ? undefined : await this._getContributedProfile(shellLaunchConfig, options);
+		const contributedProfile = effectiveOptions?.skipContributedProfileCheck ? undefined : await this._getContributedProfile(shellLaunchConfig, effectiveOptions);
 
-		const splitActiveTerminal = typeof options?.location === 'object' && hasKey(options.location, { splitActiveTerminal: true })
-			? options.location.splitActiveTerminal
-			: typeof options?.location === 'object' ? hasKey(options.location, { parentTerminal: true }) : false;
+		const splitActiveTerminal = typeof effectiveOptions?.location === 'object' && hasKey(effectiveOptions.location, { splitActiveTerminal: true })
+			? effectiveOptions.location.splitActiveTerminal
+			: typeof effectiveOptions?.location === 'object' ? hasKey(effectiveOptions.location, { parentTerminal: true }) : false;
 
-		await this._resolveCwd(shellLaunchConfig, splitActiveTerminal, options);
+		await this._resolveCwd(shellLaunchConfig, splitActiveTerminal, effectiveOptions);
 
 		// Launch the contributed profile
 		// If it's a custom pty implementation, we did not await the profiles ready, so
 		// we cannot launch the contributed profile and doing so would cause an error
 		if (!shellLaunchConfig.customPtyImplementation && contributedProfile) {
-			const resolvedLocation = await this.resolveLocation(options?.location);
+			const resolvedLocation = await this.resolveLocation(effectiveOptions?.location);
 			let location: TerminalLocation | { viewColumn: number; preserveState?: boolean } | { splitActiveTerminal: boolean } | undefined;
 			if (splitActiveTerminal) {
 				location = resolvedLocation === TerminalLocation.Editor ? { viewColumn: SIDE_GROUP } : { splitActiveTerminal: true };
 			} else {
-				location = typeof options?.location === 'object' && hasKey(options.location, { viewColumn: true }) ? options.location : resolvedLocation;
+				location = typeof effectiveOptions?.location === 'object' && hasKey(effectiveOptions.location, { viewColumn: true }) ? effectiveOptions.location : resolvedLocation;
 			}
 			await this.createContributedTerminalProfile(contributedProfile.extensionIdentifier, contributedProfile.id, {
 				icon: contributedProfile.icon,
@@ -1046,12 +1055,12 @@ export class TerminalService extends Disposable implements ITerminalService {
 		}
 
 		if (!shellLaunchConfig.customPtyImplementation && !this.isProcessSupportRegistered) {
-			const resolvedLocation = await this.resolveLocation(options?.location);
+			const resolvedLocation = await this.resolveLocation(effectiveOptions?.location);
 			let location: TerminalLocation | { viewColumn: number; preserveState?: boolean } | { splitActiveTerminal: boolean } | undefined;
 			if (splitActiveTerminal) {
 				location = resolvedLocation === TerminalLocation.Editor ? { viewColumn: SIDE_GROUP } : { splitActiveTerminal: true };
 			} else {
-				location = typeof options?.location === 'object' && hasKey(options.location, { viewColumn: true }) ? options.location : resolvedLocation;
+				location = typeof effectiveOptions?.location === 'object' && hasKey(effectiveOptions.location, { viewColumn: true }) ? effectiveOptions.location : resolvedLocation;
 			}
 			const instanceHost = resolvedLocation === TerminalLocation.Editor ? this._terminalEditorService : this._terminalGroupService;
 			for (const fallbackProfile of this._terminalProfileService.contributedProfiles) {
@@ -1075,24 +1084,27 @@ export class TerminalService extends Disposable implements ITerminalService {
 		}
 
 		this._evaluateLocalCwd(shellLaunchConfig);
-		const location = await this.resolveLocation(options?.location) || this._terminalConfigurationService.defaultLocation;
+		const location = await this.resolveLocation(effectiveOptions?.location) || this._terminalConfigurationService.defaultLocation;
 
 		if (shellLaunchConfig.hideFromUser) {
 			const instance = this._terminalInstanceService.createInstance(shellLaunchConfig, location);
-			this._backgroundedTerminalInstances.push({ instance, terminalLocationOptions: options?.location });
+			this._backgroundedTerminalInstances.push({ instance, terminalLocationOptions: effectiveOptions?.location });
 			this._backgroundedTerminalDisposables.set(instance.instanceId, instance.onDisposed(instance => this._onBackgroundTerminalDisposed(instance)));
 			this._onDidChangeInstances.fire();
 			return instance;
 		}
 
-		const parent = await this._getSplitParent(options?.location);
+		const parent = await this._getSplitParent(effectiveOptions?.location);
+		if (parent?.isDisposed) {
+			throw new Error('Cannot split without an active instance');
+		}
 		this._terminalHasBeenCreated.set(true);
 		this._extensionService.activateByEvent('onTerminal:*');
 		let instance;
 		if (parent) {
 			instance = await this._splitTerminal(shellLaunchConfig, location, parent);
 		} else {
-			instance = this._createTerminal(shellLaunchConfig, location, options);
+			instance = this._createTerminal(shellLaunchConfig, location, effectiveOptions);
 		}
 		if (instance.shellType) {
 			this._extensionService.activateByEvent(`onTerminal:${instance.shellType}`);
@@ -1194,6 +1206,10 @@ export class TerminalService extends Disposable implements ITerminalService {
 					throw new Error('Cannot split without an active instance');
 				}
 				shellLaunchConfig.cwd = await getCwdForSplit(parent, this._workspaceContextService.getWorkspace().folders, this._commandService, this._terminalConfigurationService);
+				if (parent.isDisposed) {
+					delete shellLaunchConfig.cwd;
+					throw new Error('Cannot split without an active instance');
+				}
 			}
 		}
 	}
