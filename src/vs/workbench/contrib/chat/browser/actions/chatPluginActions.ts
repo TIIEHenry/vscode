@@ -111,6 +111,10 @@ class InstallFromSourceAction extends Action2 {
 					return;
 				}
 
+				if (installing) {
+					return;
+				}
+
 				// Show busy state and prevent concurrent installs.
 				inputBox.busy = true;
 				inputBox.enabled = false;
@@ -121,6 +125,9 @@ class InstallFromSourceAction extends Action2 {
 
 					const result = await pluginInstallService.installPluginFromSource(source);
 					if (!result.success) {
+						if (store.isDisposed) {
+							return;
+						}
 						if (result.message) {
 							// Re-open with the error so the user can correct their input.
 							inputBox.validationMessage = result.message;
@@ -140,6 +147,9 @@ class InstallFromSourceAction extends Action2 {
 					// An unexpected failure (e.g. cancelled trust prompt) would otherwise
 					// leave the hidden input box and awaited promise stuck. Re-show it with
 					// the error so the user can retry or cancel.
+					if (store.isDisposed) {
+						return;
+					}
 					const detail = e instanceof Error ? e.message : String(e);
 					inputBox.validationMessage = localize('installFromSourceFailed', "Failed to install plugin: {0}", detail);
 					inputBox.show();
