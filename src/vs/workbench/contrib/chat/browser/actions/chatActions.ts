@@ -14,7 +14,7 @@ import { Event } from '../../../../../base/common/event.js';
 import { MarkdownString } from '../../../../../base/common/htmlContent.js';
 import { KeyCode, KeyMod } from '../../../../../base/common/keyCodes.js';
 import { language } from '../../../../../base/common/platform.js';
-import { basename } from '../../../../../base/common/resources.js';
+import { basename, isEqual } from '../../../../../base/common/resources.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ICodeEditor } from '../../../../../editor/browser/editorBrowser.js';
@@ -397,7 +397,11 @@ abstract class OpenChatGlobalAction extends Action2 {
 				if (!chatWidget.viewModel) {
 					await Event.toPromise(chatWidget.onDidChangeViewModel);
 				}
+				const expectedSession = chatWidget.viewModel?.sessionResource;
 				await waitForDefaultAgent(chatAgentService, chatWidget.input.currentModeKind);
+				if (expectedSession && (!chatWidget.viewModel || !isEqual(expectedSession, chatWidget.viewModel.sessionResource))) {
+					return undefined;
+				}
 				if (opts.preserveInput) {
 					// Submit the query directly so the user's draft is never overwritten.
 					resp = chatWidget.acceptInput(opts.query, { preserveInput: true });
