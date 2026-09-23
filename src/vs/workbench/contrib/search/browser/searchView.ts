@@ -183,6 +183,7 @@ export class SearchView extends ViewPane {
 	private searchWithoutFolderMessageElement: HTMLElement | undefined;
 
 	private currentSearchQ = Promise.resolve();
+	private queryValidationGeneration = 0;
 	private addToSearchHistoryDelayer: Delayer<void>;
 
 	private toggleCollapseStateDelayer: Delayer<void>;
@@ -1610,6 +1611,7 @@ export class SearchView extends ViewPane {
 	}
 
 	private _onQueryChanged(preserveFocus: boolean, triggeredOnType = false, shouldKeepAIResults = false, shouldUpdateAISearch = false): void {
+		const generation = ++this.queryValidationGeneration;
 		if (!(this.searchWidget.searchInput?.inputBox.isInputValid())) {
 			return;
 		}
@@ -1699,6 +1701,9 @@ export class SearchView extends ViewPane {
 		}
 
 		this.validateQuery(query).then(() => {
+			if (generation !== this.queryValidationGeneration) {
+				return;
+			}
 			if (!shouldKeepAIResults && shouldUpdateAISearch && this.tree.hasNode(this.searchResult.aiTextSearchResult)) {
 				this.tree.collapse(this.searchResult.aiTextSearchResult);
 			}
@@ -1708,7 +1713,12 @@ export class SearchView extends ViewPane {
 			if (!preserveFocus) {
 				this.searchWidget.focus(false, undefined, true); // focus back to input field
 			}
-		}, onQueryValidationError);
+		}, (err: Error) => {
+			if (generation !== this.queryValidationGeneration) {
+				return;
+			}
+			onQueryValidationError(err);
+		});
 	}
 
 	private validateQuery(query: ITextQuery): Promise<void> {
