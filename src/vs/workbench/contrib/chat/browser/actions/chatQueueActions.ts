@@ -5,6 +5,7 @@
 
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { KeyCode, KeyMod } from '../../../../../base/common/keyCodes.js';
+import { isEqual } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ServicesAccessor } from '../../../../../editor/browser/editorExtensions.js';
 import { localize, localize2 } from '../../../../../nls.js';
@@ -217,7 +218,7 @@ export class ChatAskInSideChatAction extends Action2 {
 		} catch (err) {
 			logService.error('[askInSideChat] Failed to create side chat', err);
 			notificationService.error(localize('chat.askInSideChat.createFailed', "The side chat could not be created."));
-			if (!widget.getInput()) {
+			if (widget.viewModel && isEqual(widget.viewModel.sessionResource, sessionResource) && !widget.getInput()) {
 				widget.setInput(query);
 			}
 		}
