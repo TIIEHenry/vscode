@@ -81,6 +81,9 @@ export class ChatMcpAppModel extends Disposable {
 	/** Cancellation source for async operations */
 	private readonly _disposeCts = this._register(new CancellationTokenSource());
 
+	/** Generation for in-flight {@link _loadContent}; superseded loads must not mutate state. */
+	private _loadGen = 0;
+
 	/** Whether ui/initialize has been called and capabilities announced */
 	private _announcedCapabilities = false;
 
@@ -216,12 +219,13 @@ export class ChatMcpAppModel extends Disposable {
 	 * Loads the MCP App content into the webview.
 	 */
 	private async _loadContent(): Promise<void> {
+		const gen = ++this._loadGen;
 		const token = this._disposeCts.token;
 
 		try {
 			// Load the UI resource from the MCP server
 			const resourceContent = await this._mcpToolCallUI.loadResource(token);
-			if (token.isCancellationRequested) {
+			if (token.isCancellationRequested || this._store.isDisposed || gen !== this._loadGen) {
 				return;
 			}
 
@@ -238,6 +242,9 @@ export class ChatMcpAppModel extends Disposable {
 			this._loadState.set({ status: 'loaded' }, undefined);
 		} catch (error) {
 			this._logService.error('[MCP App] Error loading app:', error);
+			if (token.isCancellationRequested || this._store.isDisposed || gen !== this._loadGen) {
+				return;
+			}
 			this._loadState.set({ status: 'error', error: error as Error }, undefined);
 		}
 	}
