@@ -263,12 +263,18 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 				const previousEntry = entries.find(e => isEqual(e.modifiedURI, fromUri));
 				if (previousEntry) {
 					const newEntry = await this._getOrCreateModifiedFileEntry(toUri, NotExistBehavior.Create, previousEntry.telemetryInfo, this._getCurrentTextOrNotebookSnapshot(previousEntry));
+					if (this.isDisposed || !newEntry) {
+						return;
+					}
 					previousEntry.dispose();
 					this._entriesObs.set(entries.map(e => e === previousEntry ? newEntry : e), undefined);
 				}
 			},
 			setContents: async (uri, content, telemetryInfo) => {
 				const entry = await this._getOrCreateModifiedFileEntry(uri, NotExistBehavior.Create, telemetryInfo);
+				if (this.isDisposed || !entry) {
+					return;
+				}
 
 				// We apply these edits as 'agent edits' which will by default make them get keep
 				// /undo indicators. This is good in the case the edits were never initially accepted,
@@ -278,6 +284,10 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 					await entry.restoreModifiedModelFromSnapshot(content);
 				} else {
 					await entry.acceptAgentEdits(uri, [{ range: new Range(1, 1, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER), text: content }], true, undefined);
+				}
+
+				if (this.isDisposed) {
+					return;
 				}
 
 				if (state !== ModifiedFileEntryState.Modified) {
