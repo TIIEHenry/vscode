@@ -775,6 +775,12 @@ export class DebugEditorContribution implements IDebugEditorContribution {
 		const model = this.editor.getModel();
 		const inlineValuesSetting = this.configurationService.getValue<IDebugConfiguration>('debug').inlineValues;
 		const inlineValuesTurnedOn = inlineValuesSetting === true || inlineValuesSetting === 'on' || (inlineValuesSetting === 'auto' && model && this.languageFeaturesService.inlineValuesProvider.has(model));
+		if (stackFrame) {
+			const focused = this.debugService.getViewModel().focusedStackFrame;
+			if (!focused || !stackFrame.equals(focused)) {
+				return;
+			}
+		}
 		if (!inlineValuesTurnedOn || !model || !stackFrame || model.uri.toString() !== stackFrame.source.uri.toString()) {
 			this.displayedStore.clear();
 			if (!this.removeInlineValuesScheduler.isScheduled()) {
@@ -946,6 +952,11 @@ export class DebugEditorContribution implements IDebugEditorContribution {
 		}
 
 		if (this.editor.getModel() !== model) {
+			return;
+		}
+
+		const focusedBeforeSet = this.debugService.getViewModel().focusedStackFrame;
+		if (!focusedBeforeSet || !stackFrame.equals(focusedBeforeSet)) {
 			return;
 		}
 
