@@ -423,7 +423,11 @@ export class SCMInputWidget {
 			const offset = position && textModel.getOffsetAt(position);
 			const value = textModel.getValue();
 
-			this.setValidation(await input.validateInput(value, offset || 0));
+			const validation = await input.validateInput(value, offset || 0);
+			if (this.model?.input !== input) {
+				return;
+			}
+			this.setValidation(validation);
 		};
 
 		const triggerValidation = () => validationDelayer.trigger(validate).catch(onUnexpectedError).catch(onUnexpectedError);
