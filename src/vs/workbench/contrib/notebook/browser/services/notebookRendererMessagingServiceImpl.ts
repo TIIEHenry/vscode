@@ -49,6 +49,9 @@ export class NotebookRendererMessagingService extends Disposable implements INot
 
 		this.extensionService.activateByEvent(`onRenderer:${rendererId}`).then(() => {
 			for (const message of queue) {
+				if (!this.scopedMessaging.has(message.editorId)) {
+					continue;
+				}
 				this.postMessageEmitter.fire(message);
 			}
 
