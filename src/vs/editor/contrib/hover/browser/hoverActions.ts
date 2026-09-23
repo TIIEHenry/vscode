@@ -145,6 +145,9 @@ export class ShowDefinitionPreviewHoverAction extends EditorAction {
 
 		const promise = goto.startFindDefinitionFromCursor(position);
 		promise.then(() => {
+			if (!editor.hasModel() || !editor.getPosition()?.equals(position)) {
+				return;
+			}
 			controller.showContentHover(range, HoverStartMode.Immediate, HoverStartSource.Keyboard, true);
 		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
