@@ -380,6 +380,9 @@ export class DisassemblyView extends EditorPane {
 		}
 
 		if (addr) {
+			if (focus === undefined && this.focusedInstructionReference !== instructionReference) {
+				return;
+			}
 			this.goToAddress(addr + BigInt(offset), focus);
 		}
 	}
