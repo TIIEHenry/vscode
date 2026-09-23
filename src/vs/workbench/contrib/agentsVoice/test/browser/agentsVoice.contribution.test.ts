@@ -104,9 +104,9 @@ suite('AgentsVoiceContribution - startVoiceInChat', () => {
 			}
 		});
 		instantiationService.stub(ICommandService, new class extends mock<ICommandService>() {
-			override executeCommand(id: string): Promise<unknown> {
-				if (id === '_chat.voice.getCurrentSession') {
-					return Promise.resolve(options.currentSessionQueries());
+			override executeCommand<R = unknown>(commandId: string, ..._args: unknown[]): Promise<R | undefined> {
+				if (commandId === '_chat.voice.getCurrentSession') {
+					return Promise.resolve(options.currentSessionQueries() as R | undefined);
 				}
 				return Promise.resolve(undefined);
 			}
