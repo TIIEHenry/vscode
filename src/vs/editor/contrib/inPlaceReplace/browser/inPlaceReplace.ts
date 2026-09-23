@@ -68,7 +68,7 @@ class InPlaceReplaceController implements IEditorContribution {
 			return undefined;
 		}
 
-		const state = new EditorState(this.editor, CodeEditorStateFlag.Value | CodeEditorStateFlag.Position);
+		const state = new EditorState(this.editor, CodeEditorStateFlag.Value | CodeEditorStateFlag.Position | CodeEditorStateFlag.Selection);
 		const modelURI = model.uri;
 		if (!this.editorWorkerService.canNavigateValueSet(modelURI)) {
 			return Promise.resolve(undefined);
