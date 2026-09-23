@@ -325,6 +325,10 @@ export class ApplyCodeBlockOperation {
 				},
 				() => cancellationTokenSource.cancel()
 			);
+			const currentModel = codeEditor.getModel();
+			if (!currentModel || !isEqual(currentModel.uri, activeModel.uri)) {
+				return { editsProposed: false, codeMapper };
+			}
 			editsProposed = await this.applyWithInlinePreview(iterable, codeEditor, cancellationTokenSource, applyCodeBlockSuggestionId);
 		} catch (e) {
 			if (!isCancellationError(e)) {
