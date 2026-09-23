@@ -1370,7 +1370,7 @@ export class DebugSession implements IDebugSession {
 				const focusedThread = this.debugService.getViewModel().focusedThread;
 				const focusedThreadDoesNotExist = focusedThread !== undefined && focusedThread.session === this && !this.threads.has(focusedThread.threadId);
 				if (focusedThreadDoesNotExist) {
-					void this.debugService.focusStackFrame(undefined, undefined).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.debugService.focusStackFrame(undefined, undefined, this).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 
 				const thread = typeof threadId === 'number' ? this.getThread(threadId) : undefined;
