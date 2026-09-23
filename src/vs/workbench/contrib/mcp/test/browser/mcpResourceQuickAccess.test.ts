@@ -10,7 +10,7 @@ import { constObservable } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { IFileService, IFileStat } from '../../../../../platform/files/common/files.js';
+import { IFileService, IFileStat, IResolveFileOptions } from '../../../../../platform/files/common/files.js';
 import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
@@ -40,7 +40,7 @@ class TestFileService extends mock<IFileService>() {
 		this._resolveHandler = handler;
 	}
 
-	override resolve(resource: URI): Promise<IFileStat> {
+	override resolve(resource: URI, _options?: IResolveFileOptions): Promise<IFileStat> {
 		if (this._nextResolve) {
 			const deferred = this._nextResolve;
 			this._nextResolve = undefined;
@@ -96,13 +96,13 @@ function visibleDirectoryChildNames(helper: McpResourcePickHelper): string[] {
 	return names;
 }
 
-function createHelper(store: DisposableStore, fileService: TestFileService): McpResourcePickHelper {
+function createHelper(store: Pick<DisposableStore, 'add'>, fileService: TestFileService): McpResourcePickHelper {
 	const services = new ServiceCollection(
 		[IMcpService, new TestMcpService()],
 		[IFileService, fileService],
-		[IQuickInputService, new mock<IQuickInputService>()],
-		[INotificationService, new mock<INotificationService>()],
-		[IChatAttachmentResolveService, new mock<IChatAttachmentResolveService>()],
+		[IQuickInputService, new (mock<IQuickInputService>())()],
+		[INotificationService, new (mock<INotificationService>())()],
+		[IChatAttachmentResolveService, new (mock<IChatAttachmentResolveService>())()],
 	);
 	const insta = store.add(new TestInstantiationService(services));
 	return store.add(insta.createInstance(McpResourcePickHelper));
