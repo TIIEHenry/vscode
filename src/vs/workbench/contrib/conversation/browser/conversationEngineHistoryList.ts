@@ -98,14 +98,17 @@ export class ConversationEngineHistoryList extends Disposable {
 	private paintedLiveHistory = false;
 	private paintedHistorySessionId: string | undefined;
 	private onWillShow: (() => void) | undefined;
+	private readonly getSessionId?: () => string | undefined;
 
 	constructor(
 		buttonParent: HTMLElement,
 		overlayParent: HTMLElement,
+		getSessionId?: () => string | undefined,
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@IConversationRosterService private readonly roster: IConversationRosterService,
 	) {
 		super();
+		this.getSessionId = getSessionId;
 
 		this.element = append(buttonParent, $(`.${conversationLensHistoryButtonClass}`));
 		this.button = this._register(new Button(this.element, {
@@ -219,9 +222,13 @@ export class ConversationEngineHistoryList extends Disposable {
 		this.paintStatus(conversationLensSessionBarHistoryUnavailableDisconnected);
 	}
 
+	private resolveSessionId(): string | undefined {
+		return this.getSessionId ? this.getSessionId() : this.roster.getActiveSessionId();
+	}
+
 	private async refresh(): Promise<void> {
 		const generation = ++this.renderGeneration;
-		const sessionId = this.roster.getActiveSessionId() ?? '';
+		const sessionId = this.resolveSessionId() ?? '';
 		if (this.paintedHistorySessionId !== sessionId) {
 			this.paintedLiveHistory = false;
 			this.paintedHistorySessionId = sessionId;
@@ -258,9 +265,15 @@ export class ConversationEngineHistoryList extends Disposable {
 				this.applyDisconnectedRefresh();
 				return;
 			}
+			if (sessionId !== (this.resolveSessionId() ?? '')) {
+				return;
+			}
 			this.paintEnvelopes(result.envelopes);
 		} catch (error) {
 			if (generation !== this.renderGeneration) {
+				return;
+			}
+			if (sessionId !== (this.resolveSessionId() ?? '')) {
 				return;
 			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);

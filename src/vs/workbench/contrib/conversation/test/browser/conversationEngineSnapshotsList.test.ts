@@ -102,7 +102,7 @@ suite('ConversationEngineSnapshotsList', () => {
 	function mountList(
 		connection: IUniverseAgentConnection,
 		roster: IConversationRosterService = createRosterStub(),
-		options: { confirmResult?: boolean; confirmRejects?: boolean } = {},
+		options: { confirmResult?: boolean; confirmRejects?: boolean; getSessionId?: () => string | undefined } = {},
 	): { list: ConversationEngineSnapshotsList; buttonParent: HTMLElement; overlayParent: HTMLElement; confirmCalls: IConfirmation[] } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const confirmCalls: IConfirmation[] = [];
@@ -122,7 +122,7 @@ suite('ConversationEngineSnapshotsList', () => {
 		document.body.appendChild(buttonParent);
 		document.body.appendChild(overlayParent);
 		store.add({ dispose: () => { buttonParent.remove(); overlayParent.remove(); } });
-		const list = store.add(instantiationService.createInstance(ConversationEngineSnapshotsList, buttonParent, overlayParent));
+		const list = store.add(instantiationService.createInstance(ConversationEngineSnapshotsList, buttonParent, overlayParent, options.getSessionId));
 		return { list, buttonParent, overlayParent, confirmCalls };
 	}
 
@@ -1489,5 +1489,35 @@ suite('ConversationEngineSnapshotsList', () => {
 
 		assert.strictEqual(snapshotRow(overlayParent, 'leftover-1'), null);
 		assert.ok(snapshotRow(overlayParent, 'sess-2'));
+	});
+
+	test('getSessionId lists bound session snapshots when roster active is another session', async () => {
+		const snapA: UniverseAgentSessionSnapshotInfo = {
+			id: 'snap-a',
+			sessionId: 'sess-A',
+			title: 'Session A',
+			createdAt: 1,
+			turnCount: 1,
+		};
+		const snapB: UniverseAgentSessionSnapshotInfo = {
+			id: 'snap-b',
+			sessionId: 'sess-B',
+			title: 'Session B',
+			createdAt: 2,
+			turnCount: 2,
+		};
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			listSnapshots: async request => {
+				if (request.sessionId === 'sess-A') {
+					return { snapshots: [snapA] };
+				}
+				return { snapshots: [snapB] };
+			},
+		}), createRosterStub({ getActiveSessionId: () => 'sess-B' }), { getSessionId: () => 'sess-A' });
+		list.show();
+		await Promise.resolve();
+		assert.ok(snapshotRow(overlayParent, 'snap-a'));
+		assert.strictEqual(snapshotRow(overlayParent, 'snap-b'), null);
 	});
 });

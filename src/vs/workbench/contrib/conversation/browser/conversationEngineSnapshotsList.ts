@@ -152,15 +152,18 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	private paintedLiveSnapshots = false;
 	private paintedSnapshotSessionId: string | undefined;
 	private onWillShow: (() => void) | undefined;
+	private readonly getSessionId?: () => string | undefined;
 
 	constructor(
 		buttonParent: HTMLElement,
 		overlayParent: HTMLElement,
+		getSessionId?: () => string | undefined,
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@IConversationRosterService private readonly roster: IConversationRosterService,
 		@IDialogService private readonly dialogService: IDialogService,
 	) {
 		super();
+		this.getSessionId = getSessionId;
 
 		this.element = append(buttonParent, $(`.${conversationLensSnapshotsButtonClass}`));
 		this.button = this._register(new Button(this.element, {
@@ -309,8 +312,12 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		return false;
 	}
 
+	private resolveSessionId(): string | undefined {
+		return this.getSessionId ? this.getSessionId() : this.roster.getActiveSessionId();
+	}
+
 	private applyDisconnectedRefresh(): boolean {
-		const sessionId = this.roster.getActiveSessionId();
+		const sessionId = this.resolveSessionId();
 		const hasHook = typeof this.connection.listSnapshots === 'function';
 		const disconnectedCopy = this.unavailableCopy(false, hasHook, sessionId);
 		if (this.paintedLiveSnapshots && this.keepLeftoverCatalogForPairingHold(true)) {
@@ -322,7 +329,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 
 	private async refresh(): Promise<boolean> {
 		const generation = ++this.renderGeneration;
-		const sessionId = this.roster.getActiveSessionId();
+		const sessionId = this.resolveSessionId();
 		if (this.paintedSnapshotSessionId !== sessionId) {
 			this.paintedLiveSnapshots = false;
 			this.paintedSnapshotSessionId = sessionId;
@@ -360,11 +367,17 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				return this.applyDisconnectedRefresh();
 			}
+			if (sessionId !== this.resolveSessionId()) {
+				return false;
+			}
 			this.leftoverListFailed = false;
 			this.paintSnapshots(result.snapshots);
 			return true;
 		} catch (error) {
 			if (generation !== this.renderGeneration) {
+				return false;
+			}
+			if (sessionId !== this.resolveSessionId()) {
 				return false;
 			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
@@ -390,7 +403,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	}
 
 	private restoreSnapshot(snapshotId: string): void {
-		const sessionId = this.roster.getActiveSessionId();
+		const sessionId = this.resolveSessionId();
 		const restore = this.connection.restoreSnapshot;
 		const hasHook = typeof restore === 'function';
 		if (!canRestoreEngineSnapshot(this.isSnapshotWriteLive(), hasHook, snapshotId, sessionId) || !restore || !sessionId) {
@@ -438,7 +451,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		if (!confirmed.confirmed) {
 			return;
 		}
-		const sessionId = this.roster.getActiveSessionId();
+		const sessionId = this.resolveSessionId();
 		const remove = this.connection.deleteSnapshot;
 		if (!this.canSendDelete(snapshot.id) || !remove || !sessionId) {
 			return;
@@ -472,7 +485,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	}
 
 	private canSendDelete(snapshotId: string): boolean {
-		const sessionId = this.roster.getActiveSessionId();
+		const sessionId = this.resolveSessionId();
 		const hasHook = typeof this.connection.deleteSnapshot === 'function';
 		return canDeleteEngineSnapshot(this.isSnapshotWriteLive(), hasHook, snapshotId, sessionId);
 	}
@@ -551,7 +564,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 				turns.setAttribute('data-turn-count', String(snapshot.turnCount));
 			}
 
-			const sessionId = this.roster.getActiveSessionId();
+			const sessionId = this.resolveSessionId();
 			const writeLive = this.isSnapshotWriteLive();
 			const canRestore = canRestoreEngineSnapshot(
 				writeLive,

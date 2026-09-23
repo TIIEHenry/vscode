@@ -88,6 +88,7 @@ suite('ConversationEngineHistoryList', () => {
 	function mountList(
 		connection: IUniverseAgentConnection,
 		roster: IConversationRosterService = createRosterStub(),
+		getSessionId?: () => string | undefined,
 	): { list: ConversationEngineHistoryList; buttonParent: HTMLElement; overlayParent: HTMLElement } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
@@ -97,7 +98,7 @@ suite('ConversationEngineHistoryList', () => {
 		document.body.appendChild(buttonParent);
 		document.body.appendChild(overlayParent);
 		store.add({ dispose: () => { buttonParent.remove(); overlayParent.remove(); } });
-		const list = store.add(instantiationService.createInstance(ConversationEngineHistoryList, buttonParent, overlayParent));
+		const list = store.add(instantiationService.createInstance(ConversationEngineHistoryList, buttonParent, overlayParent, getSessionId));
 		return { list, buttonParent, overlayParent };
 	}
 
@@ -493,5 +494,29 @@ suite('ConversationEngineHistoryList', () => {
 
 		assert.strictEqual(historyRow(overlayParent, 'leftover-1'), null);
 		assert.ok(historyRow(overlayParent, 'sess-2'));
+	});
+
+	test('getSessionId lists bound session history when roster active is another session', async () => {
+		const rowA: UniverseAgentHistoryEnvelope = {
+			cursorSeq: 'a-1',
+			payload: { text: 'Session A' },
+		};
+		const rowB: UniverseAgentHistoryEnvelope = {
+			cursorSeq: 'b-1',
+			payload: { text: 'Session B' },
+		};
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getHistory: async request => {
+				if (request.sessionId === 'sess-A') {
+					return { envelopes: [rowA] };
+				}
+				return { envelopes: [rowB] };
+			},
+		}), createRosterStub({ getActiveSessionId: () => 'sess-B' }), () => 'sess-A');
+		list.show();
+		await Promise.resolve();
+		assert.ok(historyRow(overlayParent, 'a-1'));
+		assert.strictEqual(historyRow(overlayParent, 'b-1'), null);
 	});
 });

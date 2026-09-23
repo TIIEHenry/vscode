@@ -173,12 +173,14 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 		host.engineHistoryList = host.register(host.instantiationService.createInstance(
 			ConversationEngineHistoryList,
 			controls,
-			host.readingColumn));
+			host.readingColumn,
+			() => host.getBoundSessionId()));
 		host.engineHistoryList.setOnWillShow(() => host.setInputMaximized(false));
 		host.engineSnapshotsList = host.register(host.instantiationService.createInstance(
 			ConversationEngineSnapshotsList,
 			controls,
-			host.readingColumn));
+			host.readingColumn,
+			() => host.getBoundSessionId()));
 		host.engineSnapshotsList.setOnWillShow(() => host.setInputMaximized(false));
 
 		host.register(host.sessionSelectBox.onDidSelect(e => {
