@@ -1878,8 +1878,7 @@ suite('ConnectionPreferencesPane', () => {
 			}),
 			confirmPairing: async () => ({
 				ok: false,
-				path: 'hubRelay',
-				pairingPending: true,
+				code: 'sas_mismatch',
 				reason: confirmFailureReason,
 			}),
 		}));
