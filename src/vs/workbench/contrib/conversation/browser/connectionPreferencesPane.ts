@@ -1611,6 +1611,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 							const confirmResult = await this.connectionService.confirmPairing();
 							if (!confirmResult.ok) {
 								statusPrefix = confirmResult.reason;
+								finalResult = confirmResult;
 							} else {
 								finalResult = confirmResult;
 							}
@@ -1628,6 +1629,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 						const confirmResult = await this.connectionService.confirmPairing();
 						if (!confirmResult.ok) {
 							statusPrefix = confirmResult.reason;
+							finalResult = confirmResult;
 						} else {
 							finalResult = confirmResult;
 						}

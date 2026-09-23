@@ -1854,6 +1854,57 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('SAS confirm failure after handshake pairing pending shows reason as error tone', async () => {
+		const confirmFailureReason = 'Pairing confirmation was rejected by the engine.';
+		const handshakeSas = 'ABCD-EFGH';
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentHubService, createHubStub({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			listConnectionProfiles: () => [{
+				profileId: 'hub-profile-1',
+				displayName: 'Studio',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'hubDevice',
+			}],
+		}));
+		instantiationService.stub(IUniverseAgentConnection, createConnectionStub({
+			connectProfile: async () => ({
+				ok: true,
+				path: 'hubRelay',
+				pairingPending: true,
+				sasCode: handshakeSas,
+				engineIdentityId: '0123456789abcdef',
+			}),
+			confirmPairing: async () => ({
+				ok: false,
+				path: 'hubRelay',
+				pairingPending: true,
+				reason: confirmFailureReason,
+			}),
+		}));
+		instantiationService.stub(IDialogService, {
+			_serviceBrand: undefined,
+			prompt: async () => {
+				throw new Error('dialogService must not be used for pairing inside Connection pane');
+			},
+		} as unknown as IDialogService);
+
+		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
+		const container = pane.getDomNode();
+		document.body.appendChild(container);
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'hub-profile-1';
+		const flow = (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		await Promise.resolve();
+		clickPairingConfirm(container);
+		await flow;
+		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
+		assert.strictEqual(hubStatus.textContent, confirmFailureReason);
+		assert.ok(hubStatus.classList.contains('is-error'));
+		assert.ok(!hubStatus.classList.contains('is-warning'));
+		container.remove();
+	});
+
 	test('SAS confirm calls confirmPairing once with handshake sasCode', async () => {
 		let confirmCalls = 0;
 		const handshakeSas = 'ABCD-EFGH';
