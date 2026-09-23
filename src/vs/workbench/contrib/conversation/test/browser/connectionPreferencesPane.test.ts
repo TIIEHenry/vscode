@@ -2375,6 +2375,31 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('Test Connection probe ok with pairingPending paints warning not success', async () => {
+		const pane = mountPane(undefined, {
+			probeEngine: async () => ({ ok: true, engineIdentityId: 'eng-1' }),
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: true,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+		const container = pane.getDomNode();
+		const testButton = container.querySelector('.connection-test-row .monaco-button') as HTMLButtonElement | null;
+		assert.ok(testButton);
+		testButton.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		const status = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.ok(status.textContent?.includes('Waiting for pairing'));
+		assert.ok(status.classList.contains('is-warning'));
+		assert.ok(!status.classList.contains('is-success'));
+		container.remove();
+	});
+
 	test('Test Connection probeEngine throw does not leak unhandled rejection', async () => {
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);

@@ -404,6 +404,23 @@ suite('EnginePreferencesPane', () => {
 		container.remove();
 	});
 
+	test('Test Engine probe ok with pairingPending paints warning not success', async () => {
+		const pane = mountPane(true, {
+			probeEngine: async () => ({ ok: true as const, engineIdentityId: 'eng-1' }),
+		}, { pairingPending: true });
+		const container = pane.getDomNode();
+		const testButton = getVisibleTestEngineButton(container);
+		const testStatus = container.querySelector('.engine-test-status') as HTMLElement;
+		assert.ok(testButton);
+		testButton.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.ok(testStatus.textContent?.includes('Waiting for pairing'));
+		assert.ok(testStatus.classList.contains('is-warning'));
+		assert.ok(!testStatus.classList.contains('is-success'));
+		container.remove();
+	});
+
 	test('Test Engine throw paints error tone', async () => {
 		const pane = mountPane(false, {
 			probeEngine: async () => {
@@ -453,7 +470,7 @@ suite('EnginePreferencesPane', () => {
 	});
 
 	test('banner Test Engine shares runEngineTest success tone', async () => {
-		const pane = mountPane(false, {
+		const pane = mountPane(true, {
 			probeEngine: async () => ({ ok: true as const, engineIdentityId: 'eng-1' }),
 		});
 		const container = pane.getDomNode();

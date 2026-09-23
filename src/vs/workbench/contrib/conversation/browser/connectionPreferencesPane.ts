@@ -1728,7 +1728,12 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 								this.connectionService.getConnectionSnapshot().pairingPending,
 							),
 						),
-						result.ok ? 'success' : 'error',
+						result.ok
+							? getConnectionPhaseTone(
+								this.connectionService.getConnectionPhase(),
+								this.connectionService.getConnectionSnapshot().pairingPending,
+							)
+							: 'error',
 					);
 				} catch (error) {
 					const reason = error instanceof Error && error.message ? error.message : String(error);

@@ -32,6 +32,7 @@ import { EngineClipboardSection } from './engineClipboardSection.js';
 import { EngineContextVariableSection } from './engineContextVariableSection.js';
 import { EngineTriggersSection } from './engineTriggersSection.js';
 import { formatConnectionProbeStatus, writeStatus } from './connectionPreferencesPane.js';
+import { getConnectionPhaseTone } from './connectionPreferencesPaneLabels.js';
 import { getConnectionPhaseStatusBarText, isConversationPairingHold } from './conversationSessionStatus.js';
 import {
 	getUnsupportedEnvironmentCopy,
@@ -272,7 +273,12 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 							this.connectionService.getConnectionSnapshot().pairingPending,
 						),
 					),
-					result.ok ? 'success' : 'error',
+					result.ok
+						? getConnectionPhaseTone(
+							this.connectionService.getConnectionPhase(),
+							this.connectionService.getConnectionSnapshot().pairingPending,
+						)
+						: 'error',
 				);
 			} catch (error) {
 				const reason = error instanceof Error && error.message ? error.message : String(error);
