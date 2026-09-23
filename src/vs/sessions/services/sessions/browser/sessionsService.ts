@@ -1111,9 +1111,19 @@ export class SessionsService extends Disposable implements ISessionsService {
 
 	async openNewChatInSession(session: ISession, options?: ICreateNewChatInSessionOptions): Promise<void> {
 		this._cancelRestore();
-		this._startOpenSession();
+		const activeAtStart = this.activeSession.get()?.sessionId;
+		const token = this._startOpenSession();
 		const chat = await this.sessionsManagementService.createNewChatInSession(session, options);
 		if (!chat) {
+			return;
+		}
+
+		if (token.isCancellationRequested) {
+			return;
+		}
+
+		if (this.activeSession.get()?.sessionId !== activeAtStart) {
+			this._visibility.setActiveChat(session, chat);
 			return;
 		}
 

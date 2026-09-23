@@ -2929,6 +2929,133 @@ suite('SessionsManagementService', () => {
 		});
 	});
 
+	suite('openNewChatInSession', () => {
+
+		function chat(id: string): IChat {
+			return {
+				...stubChat,
+				resource: URI.parse(`test:///chat/${id}`),
+				title: constObservable(id),
+				status: constObservable(SessionStatus.Completed),
+			};
+		}
+
+		function multiChatSession(id: string, chats: IChat[]): ISession {
+			return stubSession({
+				sessionId: id,
+				providerId: 'test',
+				chats: constObservable(chats),
+				mainChat: constObservable(chats[0]),
+				capabilities: constObservable({ supportsMultipleChats: true }),
+			});
+		}
+
+		function setupWithDeferredCreate(sessions: ISession[]): {
+			view: SessionsService;
+			createDeferred: DeferredPromise<IChat>;
+			newChat: IChat;
+			completeCreate(session: ISession): void;
+		} {
+			const newChat = chat('new');
+			const createDeferred = new DeferredPromise<IChat>();
+			const provider = new class extends TestSessionsProvider {
+				constructor() { super(sessions[0]); }
+				override getSessions(): ISession[] { return sessions; }
+				override async createNewChat(_sessionId: string): Promise<IChat> {
+					return createDeferred.p;
+				}
+			};
+			const { view } = createSessionsManagementService(sessions[0], disposables, provider);
+			const completeCreate = (session: ISession): void => {
+				const chats = session.chats.get();
+				if (!chats.some(c => c.resource.toString() === newChat.resource.toString())) {
+					const chatsObs = session.chats as { get(): IChat[]; set?(value: IChat[], tx: unknown): void };
+					chatsObs.set?.([...chats, newChat], undefined);
+				}
+				createDeferred.complete(newChat);
+			};
+			return { view, createDeferred, newChat, completeCreate };
+		}
+
+		function activeChatFor(view: SessionsService, sessionId: string): IChat | undefined {
+			return view.visibleSessions.get().find(s => s?.sessionId === sessionId)?.activeChat.get();
+		}
+
+		test('activates the target when it was not active but the active session id did not change during the wait', async () => {
+			const chatsA = observableValue('chatsA', [chat('mainA')]);
+			const sessionA = stubSession({
+				sessionId: 'A',
+				providerId: 'test',
+				chats: chatsA,
+				mainChat: constObservable(chatsA.get()[0]),
+				capabilities: constObservable({ supportsMultipleChats: true }),
+			});
+			const sessionB = multiChatSession('B', [chat('mainB')]);
+			const { view, newChat, completeCreate } = setupWithDeferredCreate([sessionA, sessionB]);
+
+			await view.openSession(sessionA.resource);
+			await view.openSession(sessionB.resource);
+			assert.strictEqual(view.activeSession.get()?.sessionId, 'B');
+
+			const openPromise = view.openNewChatInSession(sessionA);
+			await Promise.resolve();
+			assert.strictEqual(view.activeSession.get()?.sessionId, 'B');
+
+			completeCreate(sessionA);
+			await openPromise;
+
+			assert.deepStrictEqual({
+				activeId: view.activeSession.get()?.sessionId,
+				activeChatA: activeChatFor(view, 'A')?.resource.toString(),
+			}, {
+				activeId: 'A',
+				activeChatA: newChat.resource.toString(),
+			});
+		});
+
+		test('does not re-activate the target when the active session changed during the wait but still sets its active chat', async () => {
+			const chatsA = observableValue('chatsA', [chat('mainA')]);
+			const sessionA = stubSession({
+				sessionId: 'A',
+				providerId: 'test',
+				chats: chatsA,
+				mainChat: constObservable(chatsA.get()[0]),
+				capabilities: constObservable({ supportsMultipleChats: true }),
+			});
+			const sessionB = multiChatSession('B', [chat('mainB')]);
+			const sessionC = multiChatSession('C', [chat('mainC')]);
+			const { view, newChat, completeCreate } = setupWithDeferredCreate([sessionA, sessionB, sessionC]);
+
+			await view.openSession(sessionA.resource);
+			view.toggleSessionStickiness(sessionA);
+			await view.openSession(sessionB.resource);
+			view.toggleSessionStickiness(sessionB);
+			await view.openSession(sessionC.resource);
+			const activeB = view.visibleSessions.get().find(s => s?.sessionId === 'B');
+			assert.ok(activeB);
+			view.setActive(activeB);
+			assert.strictEqual(view.activeSession.get()?.sessionId, 'B');
+			assert.ok(view.visibleSessions.get().some(s => s?.sessionId === 'A'));
+
+			const openPromise = view.openNewChatInSession(sessionA);
+			await Promise.resolve();
+
+			view.setActive(view.visibleSessions.get().find(s => s?.sessionId === 'C'));
+			assert.strictEqual(view.activeSession.get()?.sessionId, 'C');
+
+			completeCreate(sessionA);
+			await openPromise;
+
+			assert.deepStrictEqual({
+				activeId: view.activeSession.get()?.sessionId,
+				activeChatA: activeChatFor(view, 'A')?.resource.toString(),
+			}, {
+				activeId: 'C',
+				activeChatA: newChat.resource.toString(),
+			});
+		});
+	});
+
 	suite('createNewChatInSession', () => {
 
 		test('reuses an existing untitled chat instead of creating a new one', async () => {
