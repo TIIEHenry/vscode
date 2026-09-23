@@ -265,6 +265,10 @@ export abstract class AbstractChatEditingModifiedFileEntry extends Disposable im
 		this._notifySessionAction('rejected');
 		await this._doReject();
 
+		if (this._stateObs.get() !== ModifiedFileEntryState.Modified) {
+			return undefined;
+		}
+
 		return (tx: ITransaction) => {
 			this._stateObs.set(ModifiedFileEntryState.Rejected, tx);
 			this._autoAcceptCtrl.set(undefined, tx);
