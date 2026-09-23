@@ -1601,6 +1601,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 							"Trust recovery requires the observed certificate fingerprint.",
 						);
 						await this.connectionService.cancelPairing();
+						finalResult = { ok: false, code: 'trust_missing', reason: statusPrefix };
 					} else {
 						const confirmed = await promptRecoverTrustConfirmDialog(this.dialogService, {
 							displayName,

@@ -2014,6 +2014,53 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('recoverTrust missing leaf fingerprint surfaces failure as error tone', async () => {
+		let cancelCalls = 0;
+		const missingFingerprintMessage = 'Trust recovery requires the observed certificate fingerprint.';
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentHubService, createHubStub({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			listConnectionProfiles: () => [{
+				profileId: 'hub-profile-1',
+				displayName: 'Studio',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'hubDevice',
+			}],
+		}));
+		instantiationService.stub(IUniverseAgentConnection, createConnectionStub({
+			connectProfile: async () => ({
+				ok: true,
+				path: 'hubRelay',
+				pairingPending: true,
+				recoverTrust: true,
+				engineIdentityId: 'eng-recover-identity-01',
+			}),
+			cancelPairing: async () => {
+				cancelCalls++;
+			},
+		}));
+		instantiationService.stub(IDialogService, {
+			_serviceBrand: undefined,
+			prompt: async () => {
+				throw new Error('dialogService must not be used for pairing inside Connection pane');
+			},
+		} as unknown as IDialogService);
+
+		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
+		const container = pane.getDomNode();
+		document.body.appendChild(container);
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'hub-profile-1';
+		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
+		assert.strictEqual(hubStatus.textContent, missingFingerprintMessage);
+		assert.ok(hubStatus.classList.contains('is-error'));
+		assert.ok(!hubStatus.classList.contains('is-warning'));
+		assert.strictEqual(cancelCalls, 1);
+		assert.ok(!container.querySelector('.connection-pairing-confirm .monaco-dialog-box'));
+		container.remove();
+	});
+
 	test('recoverTrust confirm shows identity+fingerprint dialog then confirmPairing', async () => {
 		let confirmCalls = 0;
 		const leafFp = 'a'.repeat(64);
