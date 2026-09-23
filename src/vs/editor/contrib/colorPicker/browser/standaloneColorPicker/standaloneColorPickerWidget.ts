@@ -154,6 +154,9 @@ export class StandaloneColorPickerWidget extends Disposable implements IContentW
 		if (!computeAsyncResult) {
 			return;
 		}
+		if (this._store.isDisposed) {
+			return;
+		}
 		this._onResult.fire(new StandaloneColorPickerResult(computeAsyncResult.result, computeAsyncResult.foundInEditor));
 	}
 
