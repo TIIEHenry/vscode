@@ -485,6 +485,9 @@ export class DisassemblyView extends EditorPane {
 		// Ensure we always load the baseline instructions so we know what address the instructionReference refers to.
 		if (!this._referenceToMemoryAddress.has(instructionReference) && instructionOffset !== 0) {
 			await this.loadDisassembledInstructions(instructionReference, 0, 0, DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD);
+			if (this.debugSession?.getId() !== sessionId) {
+				return 0;
+			}
 		}
 
 		if (session && resultEntries && this._disassembledInstructions) {
