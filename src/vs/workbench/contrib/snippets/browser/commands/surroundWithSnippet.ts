@@ -7,6 +7,7 @@ import { ICodeEditor } from '../../../../../editor/browser/editorBrowser.js';
 import { Position } from '../../../../../editor/common/core/position.js';
 import { EditorContextKeys } from '../../../../../editor/common/editorContextKeys.js';
 import { ITextModel } from '../../../../../editor/common/model.js';
+import { EditorState, CodeEditorStateFlag } from '../../../../../editor/contrib/editorState/browser/editorState.js';
 import { SnippetController2 } from '../../../../../editor/contrib/snippet/browser/snippetController2.js';
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
 import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
@@ -55,6 +56,7 @@ export class SurroundWithSnippetEditorAction extends SnippetEditorAction {
 		const clipboardService = accessor.get(IClipboardService);
 
 		const model = editor.getModel();
+		const state = new EditorState(editor, CodeEditorStateFlag.Value | CodeEditorStateFlag.Position | CodeEditorStateFlag.Selection);
 		const snippets = await getSurroundableSnippets(snippetsService, model, editor.getPosition(), true);
 		if (!snippets.length) {
 			return;
@@ -68,6 +70,10 @@ export class SurroundWithSnippetEditorAction extends SnippetEditorAction {
 		let clipboardText: string | undefined;
 		if (snippet.needsClipboard) {
 			clipboardText = await clipboardService.readText();
+		}
+
+		if (!state.validate(editor)) {
+			return;
 		}
 
 		editor.focus();
