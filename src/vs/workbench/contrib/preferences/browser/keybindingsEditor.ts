@@ -565,7 +565,8 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 			const input: KeybindingsEditorInput = this.input as KeybindingsEditorInput;
 			this.keybindingsEditorModel = await input.resolve();
 			await this.keybindingsEditorModel.resolve(this.getActionsLabels());
-			this.renderKeybindingsEntries(false, preserveFocus);
+			const searchFocused = this.searchWidget.hasFocus();
+			this.renderKeybindingsEntries(searchFocused, searchFocused || preserveFocus);
 			if (input.searchOptions) {
 				this.recordKeysAction.checked = input.searchOptions.recordKeybindings;
 				this.sortByPrecedenceAction.checked = input.searchOptions.sortByPrecedence;
