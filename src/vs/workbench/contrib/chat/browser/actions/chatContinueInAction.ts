@@ -8,7 +8,7 @@ import { h } from '../../../../../base/browser/dom.js';
 import { Disposable, IDisposable, markAsSingleton } from '../../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../../base/common/network.js';
 import { isAbsolute } from '../../../../../base/common/path.js';
-import { basename } from '../../../../../base/common/resources.js';
+import { basename, isEqual } from '../../../../../base/common/resources.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { generateUuid } from '../../../../../base/common/uuid.js';
@@ -642,16 +642,21 @@ export class CreateRemoteAgentJobAction {
 				defaultAgent
 			);
 
+			const selectedModelRequestOptions = widget.getSelectedModelRequestOptions();
+			const modeRequestOptions = widget.getModeRequestOptions();
+
 			await chatService.removeRequest(sessionResource, addedRequest.id);
 			const sendResult = await chatService.sendRequest(sessionResource, userPrompt, {
 				agentIdSilent: continuationTargetType,
 				attachedContext: attachedContext.asArray(),
-				...widget.getSelectedModelRequestOptions(),
-				...widget.getModeRequestOptions()
+				...selectedModelRequestOptions,
+				...modeRequestOptions
 			});
 
 			if (ChatSendResult.isSent(sendResult)) {
-				await widget.handleDelegationExitIfNeeded(defaultAgent, sendResult.data.agent);
+				if (widget.viewModel && isEqual(widget.viewModel.sessionResource, sessionResource)) {
+					await widget.handleDelegationExitIfNeeded(defaultAgent, sendResult.data.agent);
+				}
 			}
 		} catch (e) {
 			console.error('[Delegation] Error creating remote coding agent job', e);
