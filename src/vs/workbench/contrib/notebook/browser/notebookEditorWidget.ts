@@ -1549,7 +1549,12 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 		}));
 
 		// init rendering
-		await this._warmupWithMarkdownRenderer(this.viewModel, viewState, perf);
+		const attached = this.viewModel;
+		await this._warmupWithMarkdownRenderer(attached, viewState, perf);
+
+		if (this._isDisposed || this.viewModel !== attached) {
+			return;
+		}
 
 		perf?.mark('customMarkdownLoaded');
 
@@ -1664,11 +1669,19 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 
 		this.logService.debug('NotebookEditorWidget', 'warmup - webview resolved');
 
+		if (this._isDisposed || this.viewModel !== viewModel) {
+			return;
+		}
+
 		// make sure that the webview is not visible otherwise users will see pre-rendered markdown cells in wrong position as the list view doesn't have a correct `top` offset yet
 		this._webview!.element.style.visibility = 'hidden';
 		// warm up can take around 200ms to load markdown libraries, etc.
 		await this._warmupViewportMarkdownCells(viewModel, viewState);
 		this.logService.debug('NotebookEditorWidget', 'warmup - viewport warmed up');
+
+		if (this._isDisposed || this.viewModel !== viewModel) {
+			return;
+		}
 
 		// todo@rebornix @mjbvz, is this too complicated?
 
@@ -1744,6 +1757,10 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 				if (offset > scrollBottom) {
 					break;
 				}
+			}
+
+			if (this._isDisposed || this.viewModel !== viewModel) {
+				return;
 			}
 
 			this._webview?.updateScrollTops([], offsetUpdateRequests);
