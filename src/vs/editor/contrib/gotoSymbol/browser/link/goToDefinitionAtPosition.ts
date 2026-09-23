@@ -212,6 +212,10 @@ export class GotoDefinitionAtPositionEditorContribution implements IEditorContri
 
 				const previewValue = this.getPreviewValue(textEditorModel, startLineNumber, result);
 				const languageId = this.languageService.guessLanguageIdByFilepathOrFirstLine(textEditorModel.uri);
+				if (!state.validate(this.editor)) {
+					ref.dispose();
+					return;
+				}
 				this.addDecoration(
 					linkRange,
 					previewValue ? new MarkdownString().appendCodeblock(languageId ? languageId : '', previewValue) : undefined
