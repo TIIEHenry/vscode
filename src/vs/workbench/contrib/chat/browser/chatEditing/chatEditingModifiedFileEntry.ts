@@ -379,6 +379,9 @@ export abstract class AbstractChatEditingModifiedFileEntry extends Disposable im
 
 		if (await this._areOriginalAndModifiedIdentical()) {
 			// ACCEPT if identical
+			if (this._refCounter === 0) {
+				return;
+			}
 			await this.accept();
 		}
 	}
