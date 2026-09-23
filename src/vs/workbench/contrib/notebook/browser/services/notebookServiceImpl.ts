@@ -910,6 +910,9 @@ export class NotebookService extends Disposable implements INotebookService {
 
 		const bytes = await streamToBuffer(snapshot);
 		const data = await info.serializer.dataToNotebook(bytes);
+		if (this.getNotebookTextModel(uri) !== model) {
+			throw new Error(`notebook for ${uri} doesn't exist`);
+		}
 		model.restoreSnapshot(data, serializer.options);
 
 		return model;
