@@ -12,6 +12,7 @@ import { DisposableStore, toDisposable } from '../../../../../base/common/lifecy
 import { Schemas } from '../../../../../base/common/network.js';
 import { autorun, observableValue } from '../../../../../base/common/observable.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
+import { isEqual } from '../../../../../base/common/resources.js';
 import { isObject } from '../../../../../base/common/types.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ServicesAccessor } from '../../../../../editor/browser/editorExtensions.js';
@@ -622,6 +623,11 @@ export class AttachContextAction extends Action2 {
 		const textModelService = accessor.get(ITextModelService);
 		const chatAttachmentResolveService = accessor.get(IChatAttachmentResolveService);
 
+		const pickSessionResource = widget.viewModel?.sessionResource;
+		if (!pickSessionResource) {
+			return;
+		}
+
 		const toAttach: IChatRequestVariableEntry[] = [];
 
 		if (isAnythingQuickPickItemWithBrowserEditor(pick)) {
@@ -677,6 +683,9 @@ export class AttachContextAction extends Action2 {
 			});
 		}
 
+		if (!widget.viewModel || !isEqual(widget.viewModel.sessionResource, pickSessionResource)) {
+			return;
+		}
 
 		widget.attachmentModel.addContext(...toAttach);
 
