@@ -255,6 +255,7 @@ registerAction2(class extends Action2 {
 	}
 	async run(accessor: ServicesAccessor): Promise<void> {
 		const voiceController = accessor.get(IVoiceSessionController);
+		const commandService = accessor.get(ICommandService);
 		const keybindingService = accessor.get(IKeybindingService);
 		const handsFree = accessor.get(IConfigurationService).getValue<boolean>('agents.voice.handsFree') === true;
 		const activeWindow = getActiveWindow();
@@ -272,10 +273,10 @@ registerAction2(class extends Action2 {
 
 		// An explicit press in another composer transfers Voice Mode ownership to
 		// that composer. The draft sentinel deliberately clears the concrete target.
-		const currentSession = await accessor.get(ICommandService).executeCommand<string | undefined>('_chat.voice.getCurrentSession');
-		if (currentSession) {
+		const sessionAtPress = await commandService.executeCommand<string | undefined>('_chat.voice.getCurrentSession');
+		if (sessionAtPress) {
 			try {
-				const resource = URI.parse(currentSession);
+				const resource = URI.parse(sessionAtPress);
 				if (resource.scheme === 'sessions-voice') {
 					voiceController.setDraftTarget();
 				} else {
@@ -296,6 +297,15 @@ registerAction2(class extends Action2 {
 		const wasConnected = voiceController.isConnected.get();
 		if (!wasConnected) {
 			await voiceController.connect(activeWindow);
+			// The user may switch composers while we connect. Do not start capture
+			// for the composer they left — that would require an explicit press
+			// in the new composer.
+			if (sessionAtPress) {
+				const sessionAfterConnect = await commandService.executeCommand<string | undefined>('_chat.voice.getCurrentSession');
+				if (sessionAfterConnect !== sessionAtPress) {
+					return;
+				}
+			}
 		}
 
 		if (!holdMode && !handsFree && !wasConnected) {
