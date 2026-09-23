@@ -103,7 +103,7 @@ export class ConversationEngineHistoryList extends Disposable {
 	constructor(
 		buttonParent: HTMLElement,
 		overlayParent: HTMLElement,
-		getSessionId?: () => string | undefined,
+		getSessionId: (() => string | undefined) | undefined,
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@IConversationRosterService private readonly roster: IConversationRosterService,
 	) {
