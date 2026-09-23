@@ -57,7 +57,9 @@ export class ChatConfirmationContentPart extends Disposable implements IChatCont
 				const result = await this.chatService.sendRequest(element.sessionResource, prompt, options);
 				if (ChatSendResult.isSent(result)) {
 					confirmation.isUsed = true;
-					confirmationWidget.setShowButtons(false);
+					if (!this._store.isDisposed) {
+						confirmationWidget.setShowButtons(false);
+					}
 				}
 			}
 		}));
