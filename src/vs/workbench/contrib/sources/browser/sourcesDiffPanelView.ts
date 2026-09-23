@@ -386,9 +386,8 @@ export class SourcesDiffPanelView extends ViewPane {
 		if (!ref) {
 			return undefined;
 		}
-		const match = ref.scmResource
-			? { resource: ref.scmResource, groupId: ref.groupId }
-			: findScmResourceForUri(this.scmService, ref.modified);
+		const liveMatch = findScmResourceForUri(this.scmService, ref.modified);
+		const match = liveMatch ?? (ref.scmResource ? { resource: ref.scmResource, groupId: ref.groupId } : undefined);
 		return {
 			groupId: match?.groupId || ref.groupId,
 			scmResource: match?.resource,

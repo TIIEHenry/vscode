@@ -931,6 +931,180 @@ suite('Sources diff panel', () => {
 		}
 	});
 
+	test('Diff panel write chrome follows live SCM when ref still caches index scmResource', async function () {
+		const resource = toResource.call(this, '/project/src/live-scm-after-unstage.ts');
+		const original = toResource.call(this, '/project/src/live-scm-after-unstage.ts.git');
+		const indexGroup = {
+			id: 'index',
+			label: 'Staged Changes',
+			resources: [] as ISCMResource[],
+		};
+		const cachedScmResource = {
+			sourceUri: resource,
+			resourceGroup: indexGroup,
+			decorations: {},
+			open: async () => { },
+		} as unknown as ISCMResource;
+		const workingTreeGroup = {
+			id: 'workingTree',
+			label: 'Changes',
+			resources: [] as ISCMResource[],
+		};
+		const liveScmResource = {
+			sourceUri: resource,
+			resourceGroup: workingTreeGroup,
+			decorations: {},
+			open: async () => { },
+		} as unknown as ISCMResource;
+		workingTreeGroup.resources.push(liveScmResource);
+		const scmService = {
+			_serviceBrand: undefined,
+			get repositories() {
+				return [{
+					provider: {
+						groups: [indexGroup, workingTreeGroup],
+						rootUri: resource,
+						onDidChangeResources: Event.None,
+						onDidChangeResourceGroups: Event.None,
+					},
+				}];
+			},
+			get repositoryCount() { return 1; },
+			onDidAddRepository: Event.None,
+			onDidRemoveRepository: Event.None,
+			registerSCMProvider: () => { throw new Error('not implemented'); },
+			getRepository: () => undefined,
+		} as unknown as ISCMService;
+
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		const disconnectedConnection = {
+			isEngineConnected: () => false,
+			getConnectionSnapshot: () => ({}),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+				connection: disconnectedConnection,
+			});
+			instantiationService.stub(ISCMService, scmService);
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'index',
+				scmResource: cachedScmResource,
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const context = (view as unknown as { getWriteContext: () => { groupId: string } | undefined }).getWriteContext();
+			assert.strictEqual(context?.groupId, 'workingTree');
+
+			const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null;
+			const panelUnstage = view.element.querySelector('.sources-diff-panel-unstage') as HTMLButtonElement | null;
+			assert.strictEqual(panelStage?.style.display, '');
+			assert.strictEqual(panelUnstage?.style.display, 'none');
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	test('Diff panel write chrome falls back to ref scmResource when URI is absent from SCM', async function () {
+		const resource = toResource.call(this, '/project/src/ref-scm-fallback.ts');
+		const original = toResource.call(this, '/project/src/ref-scm-fallback.ts.git');
+		const indexGroup = {
+			id: 'index',
+			label: 'Staged Changes',
+			resources: [] as ISCMResource[],
+		};
+		const cachedScmResource = {
+			sourceUri: resource,
+			resourceGroup: indexGroup,
+			decorations: {},
+			open: async () => { },
+		} as unknown as ISCMResource;
+		const scmService = {
+			_serviceBrand: undefined,
+			get repositories() {
+				return [{
+					provider: {
+						groups: [indexGroup],
+						rootUri: resource,
+						onDidChangeResources: Event.None,
+						onDidChangeResourceGroups: Event.None,
+					},
+				}];
+			},
+			get repositoryCount() { return 1; },
+			onDidAddRepository: Event.None,
+			onDidRemoveRepository: Event.None,
+			registerSCMProvider: () => { throw new Error('not implemented'); },
+			getRepository: () => undefined,
+		} as unknown as ISCMService;
+
+		const unstageCommand = CommandsRegistry.registerCommand('git.unstage', () => { });
+		const disconnectedConnection = {
+			isEngineConnected: () => false,
+			getConnectionSnapshot: () => ({}),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'index',
+				connection: disconnectedConnection,
+			});
+			instantiationService.stub(ISCMService, scmService);
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'index',
+				scmResource: cachedScmResource,
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const context = (view as unknown as { getWriteContext: () => { groupId: string } | undefined }).getWriteContext();
+			assert.strictEqual(context?.groupId, 'index');
+
+			const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null;
+			const panelUnstage = view.element.querySelector('.sources-diff-panel-unstage') as HTMLButtonElement | null;
+			assert.strictEqual(panelStage?.style.display, 'none');
+			assert.strictEqual(panelUnstage?.style.display, '');
+		} finally {
+			unstageCommand.dispose();
+		}
+	});
+
 	test('Diff panel keeps Unstage visible when git.unstage fails', async function () {
 		const resource = toResource.call(this, '/project/src/git-unstage-fail.ts');
 		const original = toResource.call(this, '/project/src/git-unstage-fail.ts.git');
