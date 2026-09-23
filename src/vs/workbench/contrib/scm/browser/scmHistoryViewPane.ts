@@ -1976,6 +1976,10 @@ export class SCMHistoryViewPane extends ViewPane {
 		// Fetch current history item
 		await this._loadMore(historyItemRef.revision);
 
+		if (this._treeViewModel.repository.get() !== repository) {
+			return;
+		}
+
 		// Reveal node
 		revealTreeNode();
 	}
@@ -2208,7 +2212,12 @@ export class SCMHistoryViewPane extends ViewPane {
 	}
 
 	private async _loadMore(cursor?: string): Promise<void> {
+		const repository = this._treeViewModel.repository.get();
 		return this._treeLoadMoreSequencer.queue(async () => {
+			if (this._treeViewModel.repository.get() !== repository) {
+				return;
+			}
+
 			if (this._repositoryIsLoadingMore.get()) {
 				return;
 			}
