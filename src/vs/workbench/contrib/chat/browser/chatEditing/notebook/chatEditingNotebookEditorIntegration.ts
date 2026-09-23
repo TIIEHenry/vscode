@@ -669,6 +669,9 @@ class ChatEditingNotebookEditorWidgetIntegration extends Disposable implements I
 				current.change.keep(current?.change.diff.get().changes[current.index]);
 			} else if (focused) {
 				await focused.acceptNearestChange();
+				if (this._store.isDisposed || this.notebookEditor.textModel !== this.notebookModel) {
+					return;
+				}
 			}
 
 			this._currentIndex.set(this._currentIndex.get() - 1, undefined);
@@ -687,6 +690,9 @@ class ChatEditingNotebookEditorWidgetIntegration extends Disposable implements I
 				current.change.undo(current.change.diff.get().changes[current.index]);
 			} else if (focused) {
 				await focused.rejectNearestChange();
+				if (this._store.isDisposed || this.notebookEditor.textModel !== this.notebookModel) {
+					return;
+				}
 			}
 
 			this._currentIndex.set(this._currentIndex.get() - 1, undefined);
