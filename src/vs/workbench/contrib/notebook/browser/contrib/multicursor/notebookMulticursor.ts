@@ -111,6 +111,8 @@ export class NotebookMultiCursorController extends Disposable implements INotebo
 		return this.state;
 	}
 
+	private _multicursorEpoch = 0;
+
 	private _nbIsMultiSelectSession;
 	private _nbMultiSelectState;
 
@@ -467,6 +469,7 @@ export class NotebookMultiCursorController extends Disposable implements INotebo
 	}
 
 	public resetToIdleState() {
+		this._multicursorEpoch++;
 		this.state = NotebookMultiCursorState.Idle;
 		this._nbMultiSelectState.set(NotebookMultiCursorState.Idle);
 		this._nbIsMultiSelectSession.set(false);
@@ -534,7 +537,11 @@ export class NotebookMultiCursorController extends Disposable implements INotebo
 				throw new Error('Active cell is not an instance of CodeEditorWidget');
 			}
 
-			await this.updateTrackedCell(focusedCell, [newSelection]);
+			const epoch = this._multicursorEpoch;
+			const trackedCell = await this.updateTrackedCell(focusedCell, [newSelection]);
+			if (!trackedCell || this._multicursorEpoch !== epoch) {
+				return;
+			}
 
 			this._nbIsMultiSelectSession.set(true);
 			this.state = NotebookMultiCursorState.Selecting;
@@ -584,15 +591,29 @@ export class NotebookMultiCursorController extends Disposable implements INotebo
 
 			if (findResult.cell.handle === focusedCell.handle) { // match is in the same cell, find tracked entry, update and set selections in viewmodel and cursorController
 				const selections = [...focusedCell.getSelections(), Selection.fromRange(findResult.match.range, SelectionDirection.LTR)];
+				const epoch = this._multicursorEpoch;
 				const trackedCell = await this.updateTrackedCell(focusedCell, selections);
+				if (!trackedCell || this._multicursorEpoch !== epoch) {
+					return;
+				}
 				findResultCellViewModel.setSelections(trackedCell.matchSelections);
 
 
 			} else if (findResult.cell.handle !== focusedCell.handle) {	// result is in a different cell, move focus there and apply selection, then update anchor
+				const epoch = this._multicursorEpoch;
 				await this.notebookEditor.revealRangeInViewAsync(findResultCellViewModel, findResult.match.range);
+				if (this._multicursorEpoch !== epoch) {
+					return;
+				}
 				await this.notebookEditor.focusNotebookCell(findResultCellViewModel, 'editor');
+				if (this._multicursorEpoch !== epoch) {
+					return;
+				}
 
 				const trackedCell = await this.updateTrackedCell(findResultCellViewModel, [Selection.fromRange(findResult.match.range, SelectionDirection.LTR)]);
+				if (!trackedCell || this._multicursorEpoch !== epoch) {
+					return;
+				}
 				findResultCellViewModel.setSelections(trackedCell.matchSelections);
 
 				this.anchorCell = this.notebookEditor.activeCellAndCodeEditor;
@@ -716,7 +737,7 @@ export class NotebookMultiCursorController extends Disposable implements INotebo
 		}
 	}
 
-	private async updateTrackedCell(cell: ICellViewModel | NotebookCellTextModel, selections: Selection[]) {
+	private async updateTrackedCell(cell: ICellViewModel | NotebookCellTextModel, selections: Selection[]): Promise<TrackedCell | undefined> {
 		const cellViewModel = cell instanceof NotebookCellTextModel ? this.notebookEditor.getCellByHandle(cell.handle) : cell;
 		if (!cellViewModel) {
 			throw new Error('Cell not found');
@@ -728,8 +749,12 @@ export class NotebookMultiCursorController extends Disposable implements INotebo
 			this.clearDecorations(trackedMatch); // need this to avoid leaking decorations -- TODO: just optimize the lazy decorations fn
 			trackedMatch.matchSelections = selections;
 		} else {
+			const epoch = this._multicursorEpoch;
 			const initialSelection = cellViewModel.getSelections()[0];
 			const textModel = await cellViewModel.resolveTextModel();
+			if (this._multicursorEpoch !== epoch) {
+				return undefined;
+			}
 			textModel.pushStackElement();
 
 			const editorConfig = this.constructCellEditorOptions(cellViewModel);
