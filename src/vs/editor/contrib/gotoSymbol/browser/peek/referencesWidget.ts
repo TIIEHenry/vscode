@@ -473,6 +473,9 @@ export class ReferenceWidget extends peekView.PeekViewWidget {
 				// disposed
 				return;
 			}
+			if (this._revealedReference !== selection) {
+				return;
+			}
 			// show in tree
 			this._tree.setSelection([selection]);
 			this._tree.setFocus([selection]);
@@ -550,6 +553,9 @@ export class ReferenceWidget extends peekView.PeekViewWidget {
 
 	async revealReference(reference: OneReference): Promise<void> {
 		await this._revealReference(reference, false);
+		if (this._revealedReference !== reference) {
+			return;
+		}
 		this._onDidSelectReference.fire({ element: reference, kind: 'goto', source: 'tree' });
 	}
 
@@ -579,13 +585,17 @@ export class ReferenceWidget extends peekView.PeekViewWidget {
 				this._tree.reveal(reference.parent);
 			}
 			await this._tree.expand(reference.parent);
+			if (this._revealedReference !== reference) {
+				const staleRef = await promise;
+				staleRef.dispose();
+				return;
+			}
 			this._tree.reveal(reference);
 		}
 
 		const ref = await promise;
 
-		if (!this._model) {
-			// disposed
+		if (!this._model || this._revealedReference !== reference) {
 			ref.dispose();
 			return;
 		}
