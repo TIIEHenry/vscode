@@ -223,15 +223,25 @@ export class ChatMcpServersInteractionContentPart extends Disposable implements 
 
 					this.data.didStartServerIds ??= [];
 					this.data.didStartServerIds.push(serverInfo.id);
+
+					if (this._store.isDisposed) {
+						return;
+					}
 				}
 			}
 
 			// Remove the interaction container after successful start
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (this.interactionContainer) {
 				this.interactionContainer.remove();
 				this.interactionContainer = undefined;
 			}
 		} catch (error) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			// Reset link on error
 			startLink.style.pointerEvents = '';
 			startLink.style.opacity = '';
