@@ -331,16 +331,23 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 				text,
 				...(modelProfileId ? { modelProfileId } : {}),
 			});
+			const stillOnSubmitSession = host.getBoundSessionId() === sessionId;
 			if (!outcome.accepted) {
-				host.showPostFailure(outcome.reason);
+				if (stillOnSubmitSession) {
+					host.showPostFailure(outcome.reason);
+				}
 				return;
 			}
 			writeComposerDraft(host, sessionId, '');
-			host.dockTextarea.value = '';
-			host.resetInputHistoryBrowse();
-			host.updateConversationPhase();
+			if (stillOnSubmitSession) {
+				host.dockTextarea.value = '';
+				host.resetInputHistoryBrowse();
+				host.updateConversationPhase();
+			}
 		} catch {
-			host.showPostFailure('failed');
+			if (host.getBoundSessionId() === sessionId) {
+				host.showPostFailure('failed');
+			}
 		} finally {
 			host.submitInFlight = false;
 		}

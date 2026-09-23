@@ -11,7 +11,7 @@ import type { ConversationWriteMessage } from '../../../../../platform/universeA
 import type { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { conversationLensDockCatalogProbing, conversationLensDockEngineNotConnected, conversationLensDockNoAgent, conversationLensDockNoModel, type ConversationComposerPostFailureReason } from '../../browser/conversationLensDockStrings.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from '../../browser/conversationComposerCatalog.js';
-import { loadConnectedComposerCatalogs, refreshComposerCatalogs, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
+import { draftMapKey, loadConnectedComposerCatalogs, refreshComposerCatalogs, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
 import { updateGateRow, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
@@ -484,6 +484,82 @@ suite('conversationComposerCatalog', () => {
 		assert.strictEqual(host.dockTextarea.value, 'hello');
 	});
 
+	test('submitDraft success after session switch clears captured draft not the new textarea', async () => {
+		const fixture = createHeldSubmitDraftHost();
+		const pending = submitDraft(fixture.host);
+		fixture.boundSessionId.current = 'sess-B';
+		fixture.host.dockTextarea.value = 'draft from B';
+		fixture.release('accept');
+		await pending;
+		assert.deepStrictEqual({
+			aDraft: fixture.host.drafts.get(draftMapKey(fixture.host, 'sess-A')),
+			textarea: fixture.host.dockTextarea.value,
+			failures: fixture.failures,
+			resetCalls: fixture.chrome.resetCalls,
+			phaseCalls: fixture.chrome.phaseCalls,
+			submitInFlight: fixture.host.submitInFlight,
+		}, {
+			aDraft: '',
+			textarea: 'draft from B',
+			failures: [],
+			resetCalls: 0,
+			phaseCalls: 0,
+			submitInFlight: false,
+		});
+	});
+
+	test('submitDraft reject or throw after session switch does not paint B', async () => {
+		const seen: Array<{
+			mode: 'reject' | 'throw';
+			textarea: string;
+			failures: ConversationComposerPostFailureReason[];
+			resetCalls: number;
+			phaseCalls: number;
+			aDraft: string | undefined;
+		}> = [];
+		for (const mode of ['reject', 'throw'] as const) {
+			const fixture = createHeldSubmitDraftHost();
+			const pending = submitDraft(fixture.host);
+			fixture.boundSessionId.current = 'sess-B';
+			fixture.host.dockTextarea.value = 'draft from B';
+			fixture.release(mode);
+			await pending;
+			seen.push({
+				mode,
+				textarea: fixture.host.dockTextarea.value,
+				failures: fixture.failures,
+				resetCalls: fixture.chrome.resetCalls,
+				phaseCalls: fixture.chrome.phaseCalls,
+				aDraft: fixture.host.drafts.get(draftMapKey(fixture.host, 'sess-A')),
+			});
+		}
+		assert.deepStrictEqual(seen, [
+			{ mode: 'reject', textarea: 'draft from B', failures: [], resetCalls: 0, phaseCalls: 0, aDraft: undefined },
+			{ mode: 'throw', textarea: 'draft from B', failures: [], resetCalls: 0, phaseCalls: 0, aDraft: undefined },
+		]);
+	});
+
+	test('submitDraft success while still on the same session still clears the textarea', async () => {
+		const fixture = createHeldSubmitDraftHost();
+		const pending = submitDraft(fixture.host);
+		fixture.release('accept');
+		await pending;
+		assert.deepStrictEqual({
+			aDraft: fixture.host.drafts.get(draftMapKey(fixture.host, 'sess-A')),
+			textarea: fixture.host.dockTextarea.value,
+			failures: fixture.failures,
+			resetCalls: fixture.chrome.resetCalls,
+			phaseCalls: fixture.chrome.phaseCalls,
+			submitInFlight: fixture.host.submitInFlight,
+		}, {
+			aDraft: '',
+			textarea: '',
+			failures: [],
+			resetCalls: 1,
+			phaseCalls: 1,
+			submitInFlight: false,
+		});
+	});
 
 	test('refreshComposerCatalogs pairing-hold keeps leftover catalogs then true disconnect clears', async () => {
 		let connected = true;
@@ -845,6 +921,40 @@ suite('conversationComposerCatalog', () => {
 		assert.ok(!source.includes('void loadConnectedComposerCatalogs(host, generation);'));
 	});
 });
+
+function createHeldSubmitDraftHost(): {
+	host: IConversationLensComposerHost;
+	boundSessionId: { current: string };
+	failures: ConversationComposerPostFailureReason[];
+	chrome: { resetCalls: number; phaseCalls: number };
+	release: (mode: 'accept' | 'reject' | 'throw') => void;
+} {
+	let release!: (mode: 'accept' | 'reject' | 'throw') => void;
+	const held = new Promise<'accept' | 'reject' | 'throw'>(resolve => {
+		release = resolve;
+	});
+	const boundSessionId = { current: 'sess-A' };
+	const failures: ConversationComposerPostFailureReason[] = [];
+	const chrome = { resetCalls: 0, phaseCalls: 0 };
+	const host = createSubmitDraftHost([], 0, { failures });
+	host.getBoundSessionId = () => boundSessionId.current;
+	host.dockTextarea.value = 'hello from A';
+	host.resetInputHistoryBrowse = () => { chrome.resetCalls++; };
+	host.updateConversationPhase = () => { chrome.phaseCalls++; };
+	host.sessionViewLease = {
+		post: async () => {
+			const mode = await held;
+			if (mode === 'throw') {
+				throw new Error('postBound boom');
+			}
+			if (mode === 'reject') {
+				return { accepted: false, reason: 'no_such_session' };
+			}
+			return { accepted: true, correlation: { id: 'c1' } };
+		},
+	} as IConversationLensComposerHost['sessionViewLease'];
+	return { host, boundSessionId, failures, chrome, release };
+}
 
 function createSubmitDraftHost(
 	posted: ConversationWriteMessage[],
