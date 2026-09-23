@@ -613,10 +613,15 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 	}
 
 	private async onSearchComplete(searchOperation: ISearchComplete, startConfig: SearchConfiguration, startInput: SearchEditorInput) {
+		const isStaleCompletion = (): boolean => {
+			const currentInput = this.getInput();
+			return !currentInput ||
+				currentInput !== startInput ||
+				JSON.stringify(startConfig) !== JSON.stringify(this.readConfigFromWidget());
+		};
+
 		const input = this.getInput();
-		if (!input ||
-			input !== startInput ||
-			JSON.stringify(startConfig) !== JSON.stringify(this.readConfigFromWidget())) {
+		if (!input || isStaleCompletion()) {
 			return;
 		}
 
@@ -627,11 +632,19 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 			await this.retrieveFileStats(this.searchModel.searchResult);
 		}
 
+		if (isStaleCompletion()) {
+			return;
+		}
+
 		const controller = ReferencesController.get(this.searchResultEditor);
 		controller?.closeWidget(false);
 		const labelFormatter = (uri: URI): string => this.labelService.getUriLabel(uri, { relative: true });
 		const results = serializeSearchResultForEditor(this.searchModel.searchResult, startConfig.filesToInclude, startConfig.filesToExclude, startConfig.contextLines, labelFormatter, sortOrder, searchOperation?.limitHit);
 		const { resultsModel } = await input.resolveModels();
+		if (isStaleCompletion()) {
+			return;
+		}
+
 		this.updatingModelForSearch = true;
 		this.modelService.updateModel(resultsModel, results.text);
 		this.updatingModelForSearch = false;
