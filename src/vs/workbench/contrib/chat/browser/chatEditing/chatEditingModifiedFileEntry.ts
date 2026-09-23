@@ -222,12 +222,12 @@ export abstract class AbstractChatEditingModifiedFileEntry extends Disposable im
 	async accept(): Promise<void> {
 		const callback = await this.acceptDeferred();
 		if (callback) {
-			transaction(callback);
+			callback(undefined);
 		}
 	}
 
 	/** Accepts and returns a function used to transition the state. This MUST be called by the consumer. */
-	async acceptDeferred(): Promise<((tx: ITransaction) => void) | undefined> {
+	async acceptDeferred(): Promise<((tx: ITransaction | undefined) => void) | undefined> {
 		if (this._stateObs.get() !== ModifiedFileEntryState.Modified) {
 			// already accepted or rejected
 			return;
@@ -235,7 +235,11 @@ export abstract class AbstractChatEditingModifiedFileEntry extends Disposable im
 
 		await this._doAccept();
 
-		return (tx: ITransaction) => {
+		if (this._stateObs.get() !== ModifiedFileEntryState.Modified) {
+			return undefined;
+		}
+
+		return (tx: ITransaction | undefined) => {
 			this._stateObs.set(ModifiedFileEntryState.Accepted, tx);
 			this._autoAcceptCtrl.set(undefined, tx);
 			this._notifySessionAction('accepted');
