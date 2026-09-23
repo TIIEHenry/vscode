@@ -594,6 +594,11 @@ export class DebugEditorContribution implements IDebugEditorContribution {
 			const isActiveEditor = activeControl === this.editor;
 			const exceptionInfo = await focusedSf.thread.exceptionInfo;
 
+			const currentModel = this.editor.getModel();
+			if (!currentModel || !this.uriIdentityService.extUri.isEqual(exceptionSf.source.uri, currentModel.uri)) {
+				return;
+			}
+
 			if (exceptionInfo) {
 				if (isActiveEditor) {
 					// Active editor: show widget and scroll to it
