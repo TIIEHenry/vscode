@@ -57,7 +57,9 @@ export abstract class BaseBinaryResourceEditor extends EditorPlaceholder {
 
 		// Update metadata
 		const size = model.getSize();
-		this.handleMetadataChanged(typeof size === 'number' ? ByteSize.formatSize(size) : '');
+		if (this.input === input) {
+			this.handleMetadataChanged(typeof size === 'number' ? ByteSize.formatSize(size) : '');
+		}
 
 		return {
 			icon: '$(warning)',
