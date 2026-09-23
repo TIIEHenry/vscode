@@ -313,6 +313,10 @@ export class MarkersView extends FilterViewPane implements IMarkersView {
 					revealIfVisible: true
 				},
 			}, sideByside ? SIDE_GROUP : ACTIVE_GROUP).then(editor => {
+				const selected = this.widget.getSelection();
+				if (selected.length !== 1 || selected[0] !== element) {
+					return;
+				}
 				if (editor && preserveFocus) {
 					this.rangeHighlightDecorations.highlightRange({ resource, range: selection }, <ICodeEditor>editor.getControl());
 				} else {
