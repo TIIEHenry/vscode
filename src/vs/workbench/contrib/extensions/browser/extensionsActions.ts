@@ -2804,14 +2804,25 @@ export class ExtensionStatusAction extends ExtensionAction {
 			return;
 		}
 
+		const target = this.extension;
+		const isStillTargetExtension = (): boolean => !!this.extension
+			&& areSameExtensions(this.extension.identifier, target.identifier)
+			&& this.extension.server === target.server;
+
 		if (this.extension.isMalicious) {
 			this.updateStatus({ icon: warningIcon, message: new MarkdownString(localize('malicious tooltip', "This extension was reported to be problematic.")) }, true);
 			return;
 		}
 
-		if (this.extension.state === ExtensionState.Uninstalled && this.extension.gallery && !this.extension.gallery.isSigned && shouldRequireRepositorySignatureFor(this.extension.private, await this.extensionGalleryManifestService.getExtensionGalleryManifest())) {
-			this.updateStatus({ icon: warningIcon, message: new MarkdownString(localize('not signed tooltip', "This extension is not signed by the Extension Marketplace.")) }, true);
-			return;
+		if (this.extension.state === ExtensionState.Uninstalled && this.extension.gallery && !this.extension.gallery.isSigned) {
+			const galleryManifest = await this.extensionGalleryManifestService.getExtensionGalleryManifest();
+			if (!isStillTargetExtension()) {
+				return;
+			}
+			if (shouldRequireRepositorySignatureFor(this.extension.private, galleryManifest)) {
+				this.updateStatus({ icon: warningIcon, message: new MarkdownString(localize('not signed tooltip', "This extension is not signed by the Extension Marketplace.")) }, true);
+				return;
+			}
 		}
 
 		if (this.extension.deprecationInfo) {
@@ -2843,6 +2854,9 @@ export class ExtensionStatusAction extends ExtensionAction {
 		if (this.extension.outdated) {
 			let hasConsentWarning = false;
 			const message = await this.extensionsWorkbenchService.shouldRequireConsentToUpdate(this.extension);
+			if (!isStillTargetExtension()) {
+				return;
+			}
 			if (message) {
 				hasConsentWarning = true;
 				const markdown = new MarkdownString();
@@ -2867,6 +2881,9 @@ export class ExtensionStatusAction extends ExtensionAction {
 
 		if (this.extension.gallery && this.extension.state === ExtensionState.Uninstalled) {
 			const result = await this.extensionsWorkbenchService.canInstall(this.extension);
+			if (!isStillTargetExtension()) {
+				return;
+			}
 			if (result !== true) {
 				this.updateStatus({ icon: warningIcon, message: result }, true);
 				return;
