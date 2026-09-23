@@ -41,6 +41,7 @@ export class MarkerController implements IEditorContribution {
 
 	private _model?: MarkerList;
 	private _widget?: MarkerNavigationWidget;
+	private _navigateGeneration = 0;
 
 	constructor(
 		editor: ICodeEditor,
@@ -143,6 +144,7 @@ export class MarkerController implements IEditorContribution {
 	}
 
 	async navigate(next: boolean, multiFile: boolean) {
+		const generation = ++this._navigateGeneration;
 		if (!this._editor.hasModel()) {
 			return;
 		}
@@ -161,6 +163,9 @@ export class MarkerController implements IEditorContribution {
 				options: { pinned: false, revealIfOpened: true, selectionRevealType: TextEditorSelectionRevealType.NearTop, selection: model.selected.marker }
 			}, this._editor);
 
+			if (generation !== this._navigateGeneration) {
+				return;
+			}
 			if (otherEditor) {
 				MarkerController.get(otherEditor)?.close();
 				void Promise.resolve(MarkerController.get(otherEditor)?.navigate(next, multiFile)).catch(onUnexpectedError).catch(onUnexpectedError);
