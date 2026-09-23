@@ -203,6 +203,7 @@ export class OutputViewPane extends FilterViewPane {
 
 	private clearInput(): void {
 		this.channelId = undefined;
+		this.editorPromise?.cancel();
 		this.editor.clearInput();
 		this.editorPromise = null;
 	}
@@ -309,6 +310,10 @@ export class OutputEditor extends AbstractTextResourceEditor {
 			this.input.dispose();
 		}
 		await super.setInput(input, options, context, token);
+
+		if (token.isCancellationRequested) {
+			return;
+		}
 
 		this.resourceContext.set(input.resource);
 
