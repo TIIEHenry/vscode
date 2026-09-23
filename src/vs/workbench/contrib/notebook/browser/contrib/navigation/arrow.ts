@@ -215,6 +215,15 @@ registerAction2(class FocusPreviousCellAction extends NotebookCellAction {
 		const focusEditorLine = newCell.textBuffer.getLineCount();
 		await editor.focusNotebookCell(newCell, newFocusMode, { focusEditorLine: focusEditorLine });
 
+		const liveIndex = editor.getCellIndex(newCell);
+		if (liveIndex === undefined || liveIndex < 0) {
+			return;
+		}
+		const active = editor.getActiveCell();
+		if (!active || active.handle !== newCell.handle) {
+			return;
+		}
+
 		const foundEditor: ICodeEditor | undefined = findTargetCellEditor(context, newCell);
 
 		if (foundEditor && InlineChatController.get(foundEditor)?.getWidgetPosition()?.lineNumber === focusEditorLine) {
