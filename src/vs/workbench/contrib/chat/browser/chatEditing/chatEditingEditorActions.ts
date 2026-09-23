@@ -281,7 +281,7 @@ abstract class AcceptRejectHunkAction extends ChatEditingEditorAction {
 			await ctrl.rejectNearestChange(args[0] as IModifiedFileEntryChangeHunk | undefined);
 		}
 
-		if (configService.getValue<boolean>(ChatConfiguration.RevealNextChangeOnResolve) && entry.changesCount.get() === 0) {
+		if (configService.getValue<boolean>(ChatConfiguration.RevealNextChangeOnResolve) && entry.changesCount.get() === 0 && session.entries.get().includes(entry)) {
 			// no more changes, move to next file
 			await instaService.invokeFunction(openNextOrPreviousChange, session, entry, true);
 		}
