@@ -83,6 +83,7 @@ export class ChatEditingModifiedDocumentEntry extends AbstractChatEditingModifie
 
 	readonly originalURI: URI;
 	private readonly _textModelChangeService: ChatEditingTextModelChangeService;
+	private _acceptAgentEditsGen = 0;
 
 	constructor(
 		resourceRef: IReference<IResolvedTextEditorModel>,
@@ -239,10 +240,11 @@ export class ChatEditingModifiedDocumentEntry extends AbstractChatEditingModifie
 	}
 
 	async acceptAgentEdits(resource: URI, textEdits: (TextEdit | ICellEditOperation)[], isLastEdits: boolean, responseModel: IChatResponseModel | undefined): Promise<void> {
+		const gen = ++this._acceptAgentEditsGen;
 
 		const result = await this._textModelChangeService.acceptAgentEdits(resource, textEdits, isLastEdits, responseModel);
 
-		if (this._store.isDisposed) {
+		if (this._store.isDisposed || gen !== this._acceptAgentEditsGen) {
 			return;
 		}
 
