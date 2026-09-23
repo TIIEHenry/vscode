@@ -12,7 +12,7 @@ import { isPatternInWord } from '../../../../../../../base/common/filters.js';
 import { Disposable, DisposableStore, toDisposable } from '../../../../../../../base/common/lifecycle.js';
 import { ResourceSet } from '../../../../../../../base/common/map.js';
 import { Schemas } from '../../../../../../../base/common/network.js';
-import { basename } from '../../../../../../../base/common/resources.js';
+import { basename, isEqual } from '../../../../../../../base/common/resources.js';
 import { ThemeIcon } from '../../../../../../../base/common/themables.js';
 import { assertType } from '../../../../../../../base/common/types.js';
 import { URI } from '../../../../../../../base/common/uri.js';
@@ -711,12 +711,30 @@ class StartParameterizedPromptAction extends Action2 {
 			return;
 		}
 
+		const expectedSession = chatWidget.viewModel?.model.sessionResource;
+		const ensureSessionForWrite = (): boolean => {
+			if (!expectedSession) {
+				return true;
+			}
+			const currentSession = chatWidget.viewModel?.model.sessionResource;
+			if (!currentSession || !isEqual(expectedSession, currentSession)) {
+				return false;
+			}
+			return true;
+		};
+
 		const lastPosition = model.getFullModelRange().collapseToEnd();
 		const getPromptIndex = () => model.findMatches(textToReplace, true, false, true, null, false)[0];
-		const replaceTextWith = (value: string) => model.applyEdits([{
-			range: getPromptIndex()?.range || lastPosition,
-			text: value,
-		}]);
+		const replaceTextWith = (value: string): boolean => {
+			if (!ensureSessionForWrite()) {
+				return false;
+			}
+			model.applyEdits([{
+				range: getPromptIndex()?.range || lastPosition,
+				text: value,
+			}]);
+			return true;
+		};
 
 		const store = new DisposableStore();
 		const cts = store.add(new CancellationTokenSource());
@@ -752,7 +770,9 @@ class StartParameterizedPromptAction extends Action2 {
 
 			const args = await pick.createArgs();
 			if (!args) {
-				replaceTextWith('');
+				if (!replaceTextWith('')) {
+					return;
+				}
 				return;
 			}
 
@@ -763,12 +783,14 @@ class StartParameterizedPromptAction extends Action2 {
 				if (!cts.token.isCancellationRequested) {
 					notificationService.error(localize('mcp.prompt.error', "Error resolving prompt: {0}", String(e)));
 				}
-				replaceTextWith('');
+				if (!replaceTextWith('')) {
+					return;
+				}
 				return;
 			}
 
 			const toAttach: IChatRequestVariableEntry[] = [];
-			const attachBlob = async (mimeType: string | undefined, contents: string, uriStr?: string, isText = false) => {
+			const attachBlob = async (mimeType: string | undefined, contents: string, uriStr?: string, isText = false): Promise<boolean> => {
 				let validURI: URI | undefined;
 				if (uriStr) {
 					for (const uri of [URI.parse(uriStr), McpResourceURI.fromServer(server.definition, uriStr)]) {
@@ -799,6 +821,9 @@ class StartParameterizedPromptAction extends Action2 {
 				} else if (mimeType && getAttachableImageExtension(mimeType)) {
 					const resized = await resizeImage(contents)
 						.catch(() => decodeBase64(contents).buffer);
+					if (!ensureSessionForWrite()) {
+						return false;
+					}
 					chatWidget.attachmentModel.addContext({
 						id: generateUuid(),
 						name: localize('mcp.prompt.image', 'Prompt Image'),
@@ -817,6 +842,7 @@ class StartParameterizedPromptAction extends Action2 {
 				} else {
 					// not a valid resource/resource URI
 				}
+				return true;
 			};
 
 			const hasMultipleRoles = messages.some(m => m.role !== messages[0].role);
@@ -835,22 +861,33 @@ class StartParameterizedPromptAction extends Action2 {
 						break;
 					case 'resource':
 						if ('text' in message.content.resource) {
-							await attachBlob(message.content.resource.mimeType, message.content.resource.text, message.content.resource.uri, true);
+							if (!(await attachBlob(message.content.resource.mimeType, message.content.resource.text, message.content.resource.uri, true))) {
+								return;
+							}
 						} else {
-							await attachBlob(message.content.resource.mimeType, message.content.resource.blob, message.content.resource.uri);
+							if (!(await attachBlob(message.content.resource.mimeType, message.content.resource.blob, message.content.resource.uri))) {
+								return;
+							}
 						}
 						break;
 					case 'image':
 					case 'audio':
-						await attachBlob(message.content.mimeType, message.content.data);
+						if (!(await attachBlob(message.content.mimeType, message.content.data))) {
+							return;
+						}
 						break;
 				}
 			}
 
 			if (toAttach.length) {
+				if (!ensureSessionForWrite()) {
+					return;
+				}
 				chatWidget.attachmentModel.addContext(...toAttach);
 			}
-			replaceTextWith(input);
+			if (!replaceTextWith(input)) {
+				return;
+			}
 		} finally {
 			store.dispose();
 		}
