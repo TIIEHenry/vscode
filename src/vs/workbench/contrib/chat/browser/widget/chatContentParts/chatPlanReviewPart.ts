@@ -826,10 +826,11 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 		}
 		if (this.review instanceof ChatPlanReviewData) {
 			if (!this.updatePlanContentFromModel()) {
+				const value = (await this._textFileService.read(planUri)).value;
 				if (this._isSubmitted || this._store.isDisposed) {
 					return false;
 				}
-				this.review.content = (await this._textFileService.read(planUri)).value;
+				this.review.content = value;
 			}
 			if (this._isSubmitted || this._store.isDisposed) {
 				return false;
