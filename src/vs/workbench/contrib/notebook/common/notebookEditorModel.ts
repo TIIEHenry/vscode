@@ -312,7 +312,7 @@ export class NotebookFileWorkingCopyModel extends Disposable implements IStoredF
 			throw new CancellationError();
 		}
 
-		if (this.isDisposed) {
+		if (this._store.isDisposed) {
 			throw new CancellationError();
 		}
 
