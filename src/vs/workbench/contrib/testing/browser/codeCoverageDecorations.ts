@@ -934,6 +934,8 @@ registerAction2(class FilterCoverageToTestInEditor extends Action2 {
 			return;
 		}
 
+		const selectedAtStart = testCoverageService.selected.get();
+
 		const tests = [...coverage.perTestData].map(TestId.fromString);
 		const commonPrefix = TestId.getLengthOfCommonPrefix(tests.length, i => tests[i]);
 		const result = coverage.fromResult;
@@ -964,6 +966,9 @@ registerAction2(class FilterCoverageToTestInEditor extends Action2 {
 				commandService.executeCommand('vscode.revealTest', context.item.testId?.toString());
 			},
 			onDidFocus: (entry) => {
+				if (testCoverageService.selected.get() !== selectedAtStart) {
+					return;
+				}
 				if (!entry.testId) {
 					revealScrollCts.clear();
 					activeEditor?.setScrollTop(scrollTop);
@@ -983,6 +988,10 @@ registerAction2(class FilterCoverageToTestInEditor extends Action2 {
 				}
 			},
 		}).then(selected => {
+			if (testCoverageService.selected.get() !== selectedAtStart) {
+				revealScrollCts.dispose();
+				return;
+			}
 			if (!selected) {
 				activeEditor?.setScrollTop(scrollTop);
 			}
