@@ -215,6 +215,12 @@ export class NotebookStickyScroll extends Disposable {
 		// Ensure symbols are computed first
 		await notebookCellOutline.computeFullSymbols(CancellationToken.None);
 
+		if (this._disposables.isDisposed
+			|| !this.notebookEditor.notebookOptions.getDisplayOptions().stickyScrollEnabled
+			|| this.notebookCellOutlineReference?.object !== notebookCellOutline) {
+			return;
+		}
+
 		// Initial content update
 		const computed = computeContent(this.notebookEditor, this.notebookCellList, notebookCellOutline.entries, this.getCurrentStickyHeight());
 		this.updateContent(computed);
@@ -234,6 +240,12 @@ export class NotebookStickyScroll extends Disposable {
 		this._disposables.add(this.notebookEditor.onDidAttachViewModel(async () => {
 			// ensure recompute symbols when view model changes -- could be missed if outline is closed
 			await notebookCellOutline.computeFullSymbols(CancellationToken.None);
+
+			if (this._disposables.isDisposed
+				|| !this.notebookEditor.notebookOptions.getDisplayOptions().stickyScrollEnabled
+				|| this.notebookCellOutlineReference?.object !== notebookCellOutline) {
+				return;
+			}
 
 			const computed = computeContent(this.notebookEditor, this.notebookCellList, notebookCellOutline.entries, this.getCurrentStickyHeight());
 			this.updateContent(computed);
