@@ -173,6 +173,68 @@ suite('conversationComposerCatalog', () => {
 		assert.ok(!modelOptions.every(option => option.text === conversationLensDockNoModel));
 	});
 
+	test('loadConnectedComposerCatalogs success refresh keeps selected model id at its new index', async () => {
+		let listModelsCalls = 0;
+		const { host, modelSelect } = createLoadCatalogHost({
+			listAgentProfiles: async () => ({ profiles: [] }),
+			listModels: async () => {
+				listModelsCalls++;
+				if (listModelsCalls === 1) {
+					return {
+						models: [
+							{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' },
+							{ id: '2', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'other-model' },
+						],
+					};
+				}
+				return {
+					models: [
+						{ id: '2', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'other-model' },
+						{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' },
+					],
+				};
+			},
+			listTools: async () => ({ tools: [] }),
+		});
+
+		await loadConnectedComposerCatalogs(host, 1);
+		assert.deepStrictEqual([...host.catalogModelIds], ['', 'gpt-test', 'other-model']);
+		host.modelSelectedIndex = 1;
+
+		await loadConnectedComposerCatalogs(host, 1);
+
+		assert.deepStrictEqual([...host.catalogModelIds], ['', 'other-model', 'gpt-test']);
+		assert.strictEqual(host.catalogModelIds[host.modelSelectedIndex], 'gpt-test');
+		assert.strictEqual(host.modelSelectedIndex, 2);
+		assert.strictEqual(modelSelect.selectedIndex, 2);
+	});
+
+	test('loadConnectedComposerCatalogs success refresh falls back to empty when previous model id leaves catalog', async () => {
+		let listModelsCalls = 0;
+		const { host, modelSelect } = createLoadCatalogHost({
+			listAgentProfiles: async () => ({ profiles: [] }),
+			listModels: async () => {
+				listModelsCalls++;
+				if (listModelsCalls === 1) {
+					return { models: [{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' }] };
+				}
+				return { models: [{ id: '2', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'other-model' }] };
+			},
+			listTools: async () => ({ tools: [] }),
+		});
+
+		await loadConnectedComposerCatalogs(host, 1);
+		assert.deepStrictEqual([...host.catalogModelIds], ['', 'gpt-test']);
+		host.modelSelectedIndex = 1;
+
+		await loadConnectedComposerCatalogs(host, 1);
+
+		assert.deepStrictEqual([...host.catalogModelIds], ['', 'other-model']);
+		assert.strictEqual(host.modelSelectedIndex, 0);
+		assert.strictEqual(host.catalogModelIds[host.modelSelectedIndex], '');
+		assert.strictEqual(modelSelect.selectedIndex, 0);
+	});
+
 	test('refreshComposerCatalogs pre-clear does not win when SUPPORTED list throws after live catalog', async () => {
 		let listAgentProfilesCalls = 0;
 		let listModelsCalls = 0;
@@ -841,6 +903,7 @@ function createLoadCatalogHost(
 	host: IConversationLensComposerHost;
 	agentOptions: { text: string }[];
 	modelOptions: { text: string }[];
+	modelSelect: { selectedIndex: number };
 	gateRow: { hidden: boolean };
 	gateLabel: { textContent: string };
 	sendButton: { enabled: boolean };
@@ -848,6 +911,7 @@ function createLoadCatalogHost(
 	const capabilities = createEmptyTestCapabilitySnapshot();
 	const agentOptions: { text: string }[] = [{ text: conversationLensDockNoAgent }];
 	const modelOptions: { text: string }[] = [{ text: conversationLensDockNoModel }];
+	const modelSelect = { selectedIndex: 0 };
 	const gateRow = {
 		hidden: true,
 		classList: {
@@ -878,8 +942,9 @@ function createLoadCatalogHost(
 			},
 		},
 		modelSelectBox: {
-			setOptions(options: { text: string }[]) {
+			setOptions(options: { text: string }[], selectedIndex = 0) {
 				modelOptions.splice(0, modelOptions.length, ...options);
+				modelSelect.selectedIndex = selectedIndex;
 			},
 		},
 		getBoundSessionId: () => 's1',
@@ -911,5 +976,5 @@ function createLoadCatalogHost(
 			...(engine?.getConnectionSnapshot ? { getConnectionSnapshot: engine.getConnectionSnapshot } : {}),
 		}),
 	} as unknown as IConversationLensComposerHost;
-	return { host, agentOptions, modelOptions, gateRow, gateLabel, sendButton };
+	return { host, agentOptions, modelOptions, modelSelect, gateRow, gateLabel, sendButton };
 }

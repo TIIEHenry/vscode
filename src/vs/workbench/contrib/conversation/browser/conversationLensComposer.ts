@@ -220,12 +220,15 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 				if (generation !== host.composerCatalogGeneration) {
 					return;
 				}
+				const previousId = (host.catalogModelIds[host.modelSelectedIndex] ?? '').trim();
 				const options = composerModelSelectOptions(result.models);
 				const ids = composerModelIds(result.models);
-				host.modelSelectBox.setOptions(options, 0);
-				host.modelSelectedIndex = 0;
+				const foundIndex = previousId ? ids.indexOf(previousId) : 0;
+				const selectedIndex = foundIndex > 0 ? foundIndex : 0;
+				host.modelSelectBox.setOptions(options, selectedIndex);
+				host.modelSelectedIndex = selectedIndex;
 				host.catalogModelIds = ids;
-				rememberLastGoodComposerCatalog(host, { model: { options, ids, selectedIndex: 0 } });
+				rememberLastGoodComposerCatalog(host, { model: { options, ids, selectedIndex } });
 			} catch {
 				if (generation !== host.composerCatalogGeneration) {
 					return;
