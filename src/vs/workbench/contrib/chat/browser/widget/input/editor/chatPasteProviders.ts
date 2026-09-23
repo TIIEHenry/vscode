@@ -314,6 +314,14 @@ class CopyAttachmentsProvider implements DocumentPasteEditProvider {
 			return;
 		}
 
+		const resolveTarget = (operation: string): IChatPasteTarget => {
+			const pasteTarget = this.pasteTargetService.getTarget(model.uri);
+			if (!pasteTarget) {
+				throw new Error(`No chat paste target found for ${operation}`);
+			}
+			return pasteTarget;
+		};
+
 		const edit: DocumentPasteEdit = {
 			insertText: textdata,
 			title: localize('pastedChatAttachments', 'Insert Prompt & Attachments'),
@@ -327,13 +335,14 @@ class CopyAttachmentsProvider implements DocumentPasteEditProvider {
 		edit.additionalEdit?.edits.push({
 			resource: model.uri,
 			redo: () => {
-				target.addAttachments(pastedData.attachments);
+				const pasteTarget = resolveTarget('redo');
+				pasteTarget.addAttachments(pastedData.attachments);
 				for (const dynamicVariable of pastedData.dynamicVariables) {
-					target.addInlineReference(dynamicVariable);
+					pasteTarget.addInlineReference(dynamicVariable);
 				}
 			},
 			undo: () => {
-				target.removeAttachments(pastedData.attachments.map(c => c.id));
+				resolveTarget('undo').removeAttachments(pastedData.attachments.map(c => c.id));
 			}
 		});
 
