@@ -162,6 +162,9 @@ export class TerminalTabList extends WorkbenchList<ITerminalInstance> {
 				e.browserEvent.preventDefault();
 				e.browserEvent.stopPropagation();
 				const instance = await this._terminalService.createTerminal({ location: TerminalLocation.Panel });
+				if (!instance || !this._terminalGroupService.instances.includes(instance)) {
+					return;
+				}
 				this._terminalGroupService.setActiveInstance(instance);
 				await instance.focusWhenReady();
 				return;
