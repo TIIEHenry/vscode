@@ -88,10 +88,16 @@ export abstract class EditorPlaceholder extends EditorPane {
 		}
 
 		// Render Input
-		this.inputDisposable.value = await this.renderInput(input, options);
+		const rendered = await this.renderInput(input, options, token);
+		if (!rendered || token.isCancellationRequested || this.input !== input) {
+			rendered?.dispose();
+			return;
+		}
+
+		this.inputDisposable.value = rendered;
 	}
 
-	private async renderInput(input: EditorInput, options: IEditorOptions | undefined): Promise<IDisposable> {
+	private async renderInput(input: EditorInput, options: IEditorOptions | undefined, token: CancellationToken): Promise<IDisposable | undefined> {
 		const [container, scrollbar] = assertReturnsAllDefined(this.container, this.scrollbar);
 
 		// Reset any previous contents
@@ -100,6 +106,11 @@ export abstract class EditorPlaceholder extends EditorPane {
 		// Delegate to implementation for contents
 		const disposables = new DisposableStore();
 		const { icon, label, actions } = await this.getContents(input, options, disposables);
+		if (token.isCancellationRequested || this.input !== input) {
+			disposables.dispose();
+			return undefined;
+		}
+
 		const truncatedLabel = truncate(label, EditorPlaceholder.PLACEHOLDER_LABEL_MAX_LENGTH);
 
 		// Icon
