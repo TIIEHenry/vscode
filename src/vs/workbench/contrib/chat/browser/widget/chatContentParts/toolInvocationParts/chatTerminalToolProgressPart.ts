@@ -1570,10 +1570,21 @@ export class ChatTerminalToolOutputSection extends Disposable {
 			this._disposeLiveMirror();
 			return false;
 		}
+		if (this._mirror) {
+			return true;
+		}
 		const mirror = this._register(this._instantiationService.createInstance(DetachedTerminalCommandMirror, liveTerminalInstance.xterm, command));
 		this._mirror = mirror;
-		this._register(mirror.onDidChangeRowHeight(() => this._handleMirrorRowHeightChange()));
+		this._register(mirror.onDidChangeRowHeight(() => {
+			if (this._mirror !== mirror) {
+				return;
+			}
+			this._handleMirrorRowHeightChange();
+		}));
 		this._register(mirror.onDidUpdate(result => {
+			if (this._mirror !== mirror) {
+				return;
+			}
 			// Hide empty message as soon as we get output
 			if (result.lineCount && result.lineCount > 0) {
 				this._hideEmptyMessage();
@@ -1585,13 +1596,25 @@ export class ChatTerminalToolOutputSection extends Disposable {
 		}));
 		// Forward input from the mirror terminal to the live terminal instance
 		this._register(mirror.onDidInput(data => {
+			if (this._mirror !== mirror) {
+				return;
+			}
 			if (!liveTerminalInstance.isDisposed) {
 				liveTerminalInstance.sendText(data, false);
 			}
 		}));
 		await mirror.attach(this._terminalContainer);
+		if (this._store.isDisposed || this._mirror !== mirror) {
+			return true;
+		}
 		await this._layoutMirrorWidth(mirror);
+		if (this._store.isDisposed || this._mirror !== mirror) {
+			return true;
+		}
 		let result = await mirror.renderCommand();
+		if (this._store.isDisposed || this._mirror !== mirror) {
+			return true;
+		}
 		// Only show "No output" message if:
 		// 1. Command has finished (has endMarker), AND
 		// 2. There's no output after retrying
@@ -1606,10 +1629,13 @@ export class ChatTerminalToolOutputSection extends Disposable {
 		if (!hasOutput) {
 			for (let retry = 0; retry < MAX_OUTPUT_POLL_RETRIES && !hasOutput; retry++) {
 				await timeout(OUTPUT_POLL_DELAY_MS);
-				if (this._store.isDisposed) {
+				if (this._store.isDisposed || this._mirror !== mirror) {
 					return true;
 				}
 				result = await mirror.renderCommand();
+				if (this._store.isDisposed || this._mirror !== mirror) {
+					return true;
+				}
 				hasOutput = result && result.lineCount && result.lineCount > 0;
 				commandFinished = !!command.endMarker;
 				// Stop polling if command finished (we'll show "no output" or output)
@@ -1617,6 +1643,10 @@ export class ChatTerminalToolOutputSection extends Disposable {
 					break;
 				}
 			}
+		}
+
+		if (this._store.isDisposed || this._mirror !== mirror) {
+			return true;
 		}
 
 		if (!hasOutput) {
@@ -1737,7 +1767,10 @@ export class ChatTerminalToolOutputSection extends Disposable {
 			return;
 		}
 		const result = await mirror.layout(width);
-		if (!this._store.isDisposed && result?.lineCount !== undefined) {
+		if (this._store.isDisposed || (mirror !== this._mirror && mirror !== this._snapshotMirror)) {
+			return;
+		}
+		if (result?.lineCount !== undefined) {
 			// Re-wrapping can change the number of rendered rows, so refresh the box height
 			this._layoutOutput(result.lineCount);
 		}
