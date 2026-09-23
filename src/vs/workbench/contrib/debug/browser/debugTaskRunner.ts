@@ -255,6 +255,10 @@ export class DebugTaskRunner implements IDisposable {
 				return Promise.resolve(null);
 			}
 
+			if (token.isCancellationRequested) {
+				return null;
+			}
+
 			const taskPromise = this.taskService.run(task);
 			if (task.configurationProperties.isBackground) {
 				return inactivePromise;
