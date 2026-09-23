@@ -538,6 +538,9 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 
 	private newNotebookEditGenerator?: ChatEditingNewNotebookContentEdits;
 	override async acceptAgentEdits(resource: URI, edits: (TextEdit | ICellEditOperation)[], isLastEdits: boolean, responseModel: IChatResponseModel | undefined): Promise<void> {
+		const acceptGeneration = this.computeRequestId;
+		const isAcceptStale = () => this._store.isDisposed || acceptGeneration !== this.computeRequestId;
+
 		const isCellUri = resource.scheme === Schemas.vscodeNotebookCell;
 		const cell = isCellUri && this.modifiedModel.cells.find(cell => isEqual(cell.uri, resource));
 		let cellEntry: ChatEditingNotebookCellEntry | undefined;
@@ -550,16 +553,30 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 				return;
 			}
 
-			cellEntry = this.getOrCreateModifiedTextFileEntryForCell(cell, await entry.modifiedModel.promise, await entry.originalModel.promise);
+			const modifiedCellModel = await entry.modifiedModel.promise;
+			if (isAcceptStale()) {
+				return;
+			}
+			const originalCellModel = await entry.originalModel.promise;
+			if (isAcceptStale()) {
+				return;
+			}
+			cellEntry = this.getOrCreateModifiedTextFileEntryForCell(cell, modifiedCellModel, originalCellModel);
 		}
 
 		// For all cells that were edited, send the `isLastEdits` flag.
 		const finishPreviousCells = async () => {
+			if (isAcceptStale()) {
+				return;
+			}
 			await Promise.all(Array.from(this.editedCells).map(async (uri) => {
 				const cell = this.modifiedModel.cells.find(cell => isEqual(cell.uri, uri));
 				const cellEntry = cell && this.cellEntryMap.get(cell.uri);
 				await cellEntry?.acceptAgentEdits([], true, responseModel);
 			}));
+			if (isAcceptStale()) {
+				return;
+			}
 			this.editedCells.clear();
 		};
 
@@ -569,28 +586,50 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 				if (TextEdit.isTextEdit(edit)) {
 					// Possible we're getting the raw content for the notebook.
 					if (isEqual(resource, this.modifiedModel.uri)) {
+						if (isAcceptStale()) {
+							return;
+						}
 						this.newNotebookEditGenerator ??= this._instantiationService.createInstance(ChatEditingNewNotebookContentEdits, this.modifiedModel);
 						this.newNotebookEditGenerator.acceptTextEdits([edit]);
 					} else {
 						// If we get cell edits, its impossible to get text edits for the notebook uri.
+						if (isAcceptStale()) {
+							return;
+						}
 						this.newNotebookEditGenerator = undefined;
 						if (!this.editedCells.has(resource)) {
 							await finishPreviousCells();
+							if (isAcceptStale()) {
+								return;
+							}
 							this.editedCells.add(resource);
+						}
+						if (isAcceptStale()) {
+							return;
 						}
 						await cellEntry?.acceptAgentEdits([edit], last, responseModel);
 					}
 				} else {
 					// If we notebook edits, its impossible to get text edits for the notebook uri.
+					if (isAcceptStale()) {
+						return;
+					}
 					this.newNotebookEditGenerator = undefined;
 					this.acceptNotebookEdit(edit);
 				}
 			}));
 		});
 
+		if (isAcceptStale()) {
+			return;
+		}
+
 		// If the last edit for a cell was sent, then handle it
 		if (isLastEdits) {
 			await finishPreviousCells();
+			if (isAcceptStale()) {
+				return;
+			}
 		}
 
 		// isLastEdits can be true for cell Uris, but when its true for Cells edits.
@@ -601,8 +640,15 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 		// Then generate notebook edits from those text edits & apply those notebook edits.
 		if (isLastEdits && this.newNotebookEditGenerator) {
 			const notebookEdits = await this.newNotebookEditGenerator.generateEdits();
+			if (isAcceptStale()) {
+				return;
+			}
 			this.newNotebookEditGenerator = undefined;
 			notebookEdits.forEach(edit => this.acceptNotebookEdit(edit));
+		}
+
+		if (isAcceptStale()) {
+			return;
 		}
 
 		transaction((tx) => {
@@ -617,6 +663,10 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 				this._rewriteRatioObs.set(1, tx);
 			}
 		});
+
+		if (isAcceptStale()) {
+			return;
+		}
 
 		if (isLastEdits && this._shouldAutoSave()) {
 			await this.modifiedResourceRef.object.save({
