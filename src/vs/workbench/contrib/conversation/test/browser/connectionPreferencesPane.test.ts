@@ -5745,6 +5745,95 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(!names.includes('Phone'), 'engine leftover must not survive disconnect catch');
 		container.remove();
 	});
+
+	test('renderProfiles restores list selection to activeProfileId after refresh', async () => {
+		const profiles = () => [
+			{
+				profileId: 'profile-1',
+				displayName: 'First',
+				state: 'active' as const,
+				hasTrust: true,
+				targetKind: 'hubDevice' as const,
+			},
+			{
+				profileId: 'profile-2',
+				displayName: 'Second',
+				state: 'active' as const,
+				hasTrust: true,
+				targetKind: 'hubDevice' as const,
+			},
+		];
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const pane = mountPane({
+			listConnectionProfiles: profiles,
+		}, {
+			onDidChangeConnection: onDidChangeConnection.event,
+			getConnectionSnapshot: snapshot,
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'profile-2';
+		getPaneList(pane).setFocus([1]);
+		getPaneList(pane).setSelection([1]);
+
+		onDidChangeConnection.fire(snapshot());
+		await Promise.resolve();
+
+		const list = getPaneList(pane);
+		assert.deepStrictEqual(list.getSelection(), [1]);
+		assert.strictEqual((pane as unknown as { activeProfileId: string }).activeProfileId, 'profile-2');
+		assert.strictEqual(getPaneEntries(pane)[1]?.id, 'profile-2');
+		container.remove();
+	});
+
+	test('renderProfiles keeps activeProfileId when it is missing from the new list', async () => {
+		let listProfiles = () => [
+			{
+				profileId: 'profile-1',
+				displayName: 'First',
+				state: 'active' as const,
+				hasTrust: true,
+				targetKind: 'hubDevice' as const,
+			},
+			{
+				profileId: 'profile-2',
+				displayName: 'Second',
+				state: 'active' as const,
+				hasTrust: true,
+				targetKind: 'hubDevice' as const,
+			},
+		];
+		const pane = mountPane({
+			listConnectionProfiles: () => listProfiles(),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'profile-2';
+		listProfiles = () => [{
+			profileId: 'profile-1',
+			displayName: 'First',
+			state: 'active' as const,
+			hasTrust: true,
+			targetKind: 'hubDevice' as const,
+		}];
+		(pane as unknown as { renderProfiles(): void }).renderProfiles();
+		await Promise.resolve();
+
+		assert.strictEqual((pane as unknown as { activeProfileId: string }).activeProfileId, 'profile-2');
+		assert.deepStrictEqual(getPaneList(pane).getSelection(), []);
+		container.remove();
+	});
 });
 
 suite('Conversation Session StatusBar H4a negative', () => {

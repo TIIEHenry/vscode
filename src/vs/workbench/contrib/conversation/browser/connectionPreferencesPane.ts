@@ -2018,6 +2018,13 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (profiles.length > 0 && !this.activeProfileId) {
 			this.activeProfileId = profiles[0].profileId;
 		}
+		const activeIndex = this.activeProfileId
+			? this.entries.findIndex(entry => entry.id === this.activeProfileId)
+			: -1;
+		if (activeIndex >= 0) {
+			this.list.setFocus([activeIndex]);
+			this.list.setSelection([activeIndex]);
+		}
 	}
 
 	private getProfileStateLabel(profile: ConnectionProfileProjection): string {
