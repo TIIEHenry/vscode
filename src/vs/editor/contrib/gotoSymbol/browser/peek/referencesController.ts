@@ -214,7 +214,11 @@ export abstract class ReferencesController implements IEditorContribution {
 		const target = this._model.nextOrPreviousReference(source, fwd);
 		const editorFocus = this._editor.hasTextFocus();
 		const previewEditorFocus = this._widget.isPreviewEditorFocused();
+		const requestId = this._requestIdPool;
 		await this._widget.setSelection(target);
+		if (requestId !== this._requestIdPool || !this._widget || !this._model || !this._editor.hasModel()) {
+			return;
+		}
 		await this._gotoReference(target, false);
 		if (editorFocus) {
 			this._editor.focus();
