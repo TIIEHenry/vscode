@@ -314,6 +314,10 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 			await this._initEntries(restoredSessionState.recentSnapshot);
 		}
 
+		if (this.isDisposed) {
+			return;
+		}
+
 		this._state.set(ChatEditingSessionState.Idle, undefined);
 	}
 
@@ -1050,6 +1054,13 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 			if (entry) {
 				entriesArr.push(entry);
 			}
+		}
+
+		if (this.isDisposed) {
+			for (const entry of entriesArr) {
+				entry.dispose();
+			}
+			return;
 		}
 
 		this._entriesObs.set(entriesArr, undefined);
