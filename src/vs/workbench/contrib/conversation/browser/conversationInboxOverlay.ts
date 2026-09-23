@@ -87,6 +87,7 @@ export class ConversationInboxOverlay extends Disposable {
 	constructor(
 		parent: HTMLElement,
 		private readonly delegate: IConversationInboxOverlayDelegate,
+		private readonly getSessionId: (() => string | undefined) | undefined,
 		@IConversationRosterService private readonly stubService: IConversationRosterService,
 		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 		@IContextViewService private readonly contextViewService: IContextViewService,
@@ -157,8 +158,12 @@ export class ConversationInboxOverlay extends Disposable {
 		this.listContextView?.close();
 	}
 
+	private resolveSessionId(): string {
+		return this.getSessionId?.() ?? this.stubService.getActiveSessionId();
+	}
+
 	render(): void {
-		const sessionId = this.stubService.getActiveSessionId();
+		const sessionId = this.resolveSessionId();
 		const queueState = this.displayQueueState(sessionId);
 		const pendingConfirmations = this.stubService.countPendingConfirmations(sessionId);
 
@@ -266,7 +271,7 @@ export class ConversationInboxOverlay extends Disposable {
 			}
 			return;
 		}
-		const sessionId = this.stubService.getActiveSessionId();
+		const sessionId = this.resolveSessionId();
 		const current = this.stubService.getSessionGoal(sessionId);
 		const next = await this.quickInputService.input({
 			title: conversationLensDockGoal,
@@ -275,6 +280,9 @@ export class ConversationInboxOverlay extends Disposable {
 			value: current,
 		});
 		if (next === undefined) {
+			return;
+		}
+		if (this.resolveSessionId() !== sessionId) {
 			return;
 		}
 		if (isConversationPairingHold(this.uaConnection) || this.isKeepLeftoverListFailWrite()) {
@@ -316,7 +324,7 @@ export class ConversationInboxOverlay extends Disposable {
 		if (isConversationPairingHold(this.uaConnection) || this.isKeepLeftoverListFailWrite()) {
 			return;
 		}
-		const sessionId = this.stubService.getActiveSessionId();
+		const sessionId = this.resolveSessionId();
 		if (!this.isGenerating(sessionId) && !this.stopButton.enabled) {
 			return;
 		}
@@ -409,7 +417,7 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private renderQueueList(host: HTMLElement): void {
-		const sessionId = this.stubService.getActiveSessionId();
+		const sessionId = this.resolveSessionId();
 		const state = this.displayQueueState(sessionId);
 		const listRoot = append(host, $('.conversation-lens-inbox-list.conversation-lens-message-queue-list'));
 		listRoot.setAttribute('role', 'list');
@@ -504,13 +512,16 @@ export class ConversationInboxOverlay extends Disposable {
 		if (this.shouldRejectEnqueueWrite()) {
 			return;
 		}
-		const sessionId = this.stubService.getActiveSessionId();
+		const sessionId = this.resolveSessionId();
 		const next = await this.quickInputService.input({
 			title: conversationLensInboxQueueEnqueue,
 			prompt: conversationLensInboxQueueEnqueuePrompt,
 			placeHolder: conversationLensInboxQueueEnqueuePlaceholder,
 		});
 		if (next === undefined) {
+			return;
+		}
+		if (this.resolveSessionId() !== sessionId) {
 			return;
 		}
 		if (this.shouldRejectEnqueueWrite()) {

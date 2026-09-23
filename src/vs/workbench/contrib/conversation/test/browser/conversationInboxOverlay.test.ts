@@ -327,7 +327,7 @@ suite('ConversationInboxOverlay Stop', () => {
 		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, createInboxDelegate({
 			showPostFailure(reason) { failures.push(reason); },
 			hasStreamingEntry: () => options?.hasStreamingEntry === true,
-		})));
+		}), undefined));
 	}
 
 	function getStopButton(overlay: ConversationInboxOverlay): HTMLElement {
@@ -461,7 +461,7 @@ suite('ConversationInboxOverlay Goal', () => {
 		const parent = document.createElement('div');
 		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, createInboxDelegate({
 			showPostFailure(reason) { failures.push(reason); },
-		})));
+		}), undefined));
 	}
 
 	function getGoalButton(overlay: ConversationInboxOverlay): HTMLElement {
@@ -662,7 +662,7 @@ suite('ConversationInboxOverlay context ring', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		stubInboxServices(instantiationService, roster);
 		const parent = document.createElement('div');
-		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, createInboxDelegate()));
+		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, createInboxDelegate(), undefined));
 	}
 
 	test('right cluster has Stop and no fake context-usage ring', () => {
@@ -671,6 +671,61 @@ suite('ConversationInboxOverlay context ring', () => {
 		assert.ok(right);
 		assert.ok(right.querySelector('.conversation-lens-inbox-stop'));
 		assert.strictEqual(right.querySelector('.conversation-lens-inbox-context-ring'), null);
+	});
+
+	test('getSessionId shows bound session queue while global active is another session', () => {
+		const roster = store.add(new ConversationStubService());
+		const sessA = roster.getActiveSessionId();
+		const sessB = roster.createSession();
+		assert.notStrictEqual(sessA, sessB);
+		roster.setMessageQueueFixture(sessA, {
+			isPaused: false,
+			isProcessing: false,
+			items: [{
+				id: 'q-bound',
+				content: 'Bound session queue',
+				status: 'PENDING',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 0,
+				lastError: undefined,
+				locked: false,
+				pinned: false,
+			}],
+		});
+		roster.setMessageQueueFixture(sessB, {
+			isPaused: false,
+			isProcessing: false,
+			items: [{
+				id: 'q-active',
+				content: 'Active session queue',
+				status: 'PENDING',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 0,
+				lastError: undefined,
+				locked: false,
+				pinned: false,
+			}],
+		});
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		stubInboxServices(instantiationService, roster);
+		const parent = document.createElement('div');
+		const overlay = store.add(instantiationService.createInstance(
+			ConversationInboxOverlay,
+			parent,
+			createInboxDelegate(),
+			() => sessA,
+		));
+		const queueChip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		assert.ok(queueChip.textContent?.includes('1 queued'), queueChip.textContent ?? '');
+		queueChip.click();
+		const panel = [...document.querySelectorAll('.conversation-lens-inbox-list-panel')]
+			.filter(host => host.querySelector('.conversation-lens-message-queue-list'))
+			.at(-1) as HTMLElement | undefined;
+		assert.ok(panel);
+		assert.ok(panel.querySelector('.queue-item[data-item-id="q-bound"]'));
+		assert.strictEqual(panel.querySelector('.queue-item[data-item-id="q-active"]'), null);
 	});
 });
 
@@ -684,7 +739,7 @@ suite('ConversationInboxOverlay list panel host', () => {
 		const parent = document.createElement('div');
 		document.body.appendChild(parent);
 		store.add({ dispose: () => parent.remove() });
-		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, createInboxDelegate()));
+		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, createInboxDelegate(), undefined));
 	}
 
 	test('refreshing the open list ignores a decoy global panel', () => {
@@ -777,7 +832,7 @@ suite('ConversationInboxOverlay list panel host', () => {
 		store.add({ dispose: () => parent.remove() });
 		const overlay = store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, createInboxDelegate({
 			onQueueItemHold(itemId) { holds.push(itemId); },
-		})));
+		}), undefined));
 		const queueChip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
 		queueChip.click();
 		const panel = [...document.querySelectorAll('.conversation-lens-inbox-list-panel')]
@@ -820,7 +875,7 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		store.add({ dispose: () => parent.remove() });
 		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, createInboxDelegate({
 			showPostFailure(reason) { failures.push(reason); },
-		})));
+		}), undefined));
 	}
 
 	function openQueuePanel(overlay: ConversationInboxOverlay): HTMLElement {
@@ -1111,7 +1166,7 @@ suite('ConversationInboxOverlay Retry', () => {
 		store.add({ dispose: () => parent.remove() });
 		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, createInboxDelegate({
 			showPostFailure(reason) { failures.push(reason); },
-		})));
+		}), undefined));
 	}
 
 	function openQueuePanel(overlay: ConversationInboxOverlay): HTMLElement {
@@ -1286,7 +1341,7 @@ suite('ConversationInboxOverlay pending click', () => {
 		const parent = document.createElement('div');
 		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, createInboxDelegate({
 			onScrollToPendingConfirmation() { scrolls.push('scroll'); },
-		})));
+		}), undefined));
 	}
 
 	function getPendingButton(overlay: ConversationInboxOverlay): HTMLButtonElement {
@@ -1372,7 +1427,7 @@ suite('ConversationInboxOverlay leftover pairing remaining writes', () => {
 		store.add({ dispose: () => parent.remove() });
 		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, createInboxDelegate({
 			hasStreamingEntry: () => true,
-		})));
+		}), undefined));
 	}
 
 	function getGoalButton(overlay: ConversationInboxOverlay): HTMLElement {
@@ -1605,7 +1660,7 @@ suite('ConversationInboxOverlay leftover-looks-live KEEP-chrome', () => {
 		store.add({ dispose: () => parent.remove() });
 		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, createInboxDelegate({
 			hasStreamingEntry: () => true,
-		})));
+		}), undefined));
 	}
 
 	function openQueuePanel(overlay: ConversationInboxOverlay): HTMLElement {
@@ -1815,7 +1870,7 @@ suite('ConversationInboxOverlay KEEP leftover list-fail writes', () => {
 		store.add({ dispose: () => parent.remove() });
 		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, createInboxDelegate({
 			hasStreamingEntry: () => true,
-		})));
+		}), undefined));
 	}
 
 	function getGoalButton(overlay: ConversationInboxOverlay): HTMLElement {

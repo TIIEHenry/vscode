@@ -103,7 +103,7 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 			onScrollToPendingConfirmation: () => host.scrollToFirstPendingConfirmation(),
 			showPostFailure: reason => showPostFailure(host, reason),
 			hasStreamingEntry: () => host.lastAttachedEntries.some(entry => entry.streaming === true),
-		}));
+		}, () => host.getBoundSessionId()));
 
 		host.composerCluster = append(host.dockRoot, $('.conversation-lens-composer-cluster'));
 		host.composer = append(host.composerCluster, $('.conversation-lens-composer'));
