@@ -528,6 +528,9 @@ export class EngineMcpRuntimePanel extends Disposable {
 			if (generation !== this.toolsGeneration) {
 				return;
 			}
+			if (this.selectedServerId !== serverId) {
+				return;
+			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				this.keepLeftoverRuntimeToolsDisconnected();
 				return;
@@ -542,6 +545,9 @@ export class EngineMcpRuntimePanel extends Disposable {
 			this.renderTools();
 		} catch (error) {
 			if (generation !== this.toolsGeneration) {
+				return;
+			}
+			if (this.selectedServerId !== serverId) {
 				return;
 			}
 			if (this.keepLeftoverRuntimeToolsIfUnknownOrListFail()) {

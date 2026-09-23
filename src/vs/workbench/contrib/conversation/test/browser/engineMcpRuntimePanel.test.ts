@@ -29,6 +29,8 @@ const MCP_RUNTIME_EMPTY = localize('ua.engineMcpRuntimeEmpty', "No MCP servers i
 const MCP_RUNTIME_TOOLS_EMPTY = localize('ua.engineMcpRuntimeToolsEmpty', "No tools on this MCP server.");
 const RUNTIME_SERVER_ID = 'stdio-runtime';
 const LEFTOVER_RUNTIME_SERVER_ID = 'leftover-runtime-server';
+const ALT_RUNTIME_SERVER_ID = 'alt-runtime-server';
+const STALE_TOOLS_FAIL_REASON = 'stale getMcpServerTools for prior server';
 const LEFTOVER_TOOL_NAME = 'leftover-mcp-tool';
 const FRESH_LIVE_TOOL_NAME = 'inflight-live-mcp-tool';
 
@@ -833,6 +835,114 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 		assertLeftoverToolsCapabilityLoading(panel, 1);
 		assert.ok(!(panel.getDomNode().textContent ?? '').includes(FRESH_LIVE_TOOL_NAME), 'in-flight UNKNOWN leftover must not paint live');
 		assertRefreshChrome(panel, false);
+	});
+
+	test('in-flight getMcpServerTools stale success does not paint after failed-mode reselect without generation bump', async () => {
+		let statusCalls = 0;
+		let toolsCalls = 0;
+		let releaseSecond: (() => void) | undefined;
+		let secondStarted: (() => void) | undefined;
+		const secondEntered = new Promise<void>(resolve => { secondStarted = resolve; });
+		const secondHold = new Promise<void>(resolve => { releaseSecond = resolve; });
+		const connection = createConnectionStub({
+			connected: true,
+			getMcpServerStatuses: async () => {
+				statusCalls++;
+				if (statusCalls >= 2) {
+					throw new Error('getMcpServerStatuses retry exploded');
+				}
+				return {
+					statuses: [
+						{ serverId: LEFTOVER_RUNTIME_SERVER_ID, status: 'connected' },
+						{ serverId: ALT_RUNTIME_SERVER_ID, status: 'connected' },
+					],
+				};
+			},
+			getMcpServerTools: async () => {
+				toolsCalls++;
+				if (toolsCalls === 1) {
+					return { tools: [{ name: LEFTOVER_TOOL_NAME, description: 'keep me' }] };
+				}
+				secondStarted?.();
+				await secondHold;
+				return { tools: [{ name: FRESH_LIVE_TOOL_NAME, description: 'must not paint' }] };
+			},
+		});
+		const panel = mountPanel(connection);
+		await flushMicrotasks();
+
+		assert.ok(panel.selectServerForTest(LEFTOVER_RUNTIME_SERVER_ID));
+		await flushMicrotasks();
+		assertLeftoverToolsKeptAfterCatalogHonesty(panel, 1);
+		assert.ok(panel.selectServerForTest(LEFTOVER_RUNTIME_SERVER_ID));
+		await secondEntered;
+		assert.strictEqual(toolsCalls, 2);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+		assert.strictEqual(panel.getMode(), 'failed');
+		assertLeftoverToolsFailedHonesty(panel, 'getMcpServerStatuses retry exploded', 1);
+
+		assert.ok(panel.selectServerForTest(ALT_RUNTIME_SERVER_ID));
+		assert.strictEqual(panel.getSelectedServerId(), ALT_RUNTIME_SERVER_ID);
+
+		releaseSecond!();
+		await flushMicrotasks();
+
+		assert.strictEqual(toolsCalls, 2);
+		assert.strictEqual(panel.getSelectedServerId(), ALT_RUNTIME_SERVER_ID);
+		assert.ok(!(panel.getDomNode().textContent ?? '').includes(FRESH_LIVE_TOOL_NAME));
+		assertLeftoverToolsFailedHonesty(panel, 'getMcpServerStatuses retry exploded', 1);
+	});
+
+	test('in-flight getMcpServerTools stale throw does not paint after pairing-hold reselect without generation bump', async () => {
+		let toolsCalls = 0;
+		let releaseSecond: (() => void) | undefined;
+		let secondStarted: (() => void) | undefined;
+		const secondEntered = new Promise<void>(resolve => { secondStarted = resolve; });
+		const secondHold = new Promise<void>(resolve => { releaseSecond = resolve; });
+		const connection = createConnectionStub({
+			connected: true,
+			looksLive: true,
+			getMcpServerStatuses: async () => ({
+				statuses: [
+					{ serverId: LEFTOVER_RUNTIME_SERVER_ID, status: 'connected' },
+					{ serverId: ALT_RUNTIME_SERVER_ID, status: 'connected' },
+				],
+			}),
+			getMcpServerTools: async () => {
+				toolsCalls++;
+				if (toolsCalls === 1) {
+					return { tools: [{ name: LEFTOVER_TOOL_NAME, description: 'keep me' }] };
+				}
+				secondStarted?.();
+				await secondHold;
+				throw new Error(STALE_TOOLS_FAIL_REASON);
+			},
+		});
+		const panel = mountPanel(connection);
+		await flushMicrotasks();
+
+		assert.ok(panel.selectServerForTest(LEFTOVER_RUNTIME_SERVER_ID));
+		await flushMicrotasks();
+		assert.strictEqual(panel.getToolsCount(), 1);
+		assert.ok(panel.selectServerForTest(LEFTOVER_RUNTIME_SERVER_ID));
+		await secondEntered;
+		assert.strictEqual(toolsCalls, 2);
+
+		connection.setPairingPending(true);
+		assert.ok(panel.selectServerForTest(ALT_RUNTIME_SERVER_ID));
+		assert.strictEqual(panel.getSelectedServerId(), ALT_RUNTIME_SERVER_ID);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		releaseSecond!();
+		await flushMicrotasks();
+
+		assert.strictEqual(toolsCalls, 2);
+		assert.strictEqual(panel.getSelectedServerId(), ALT_RUNTIME_SERVER_ID);
+		assert.ok(!(panel.getDomNode().textContent ?? '').includes(STALE_TOOLS_FAIL_REASON));
+		assert.ok(!(panel.getDomNode().textContent ?? '').includes(FRESH_LIVE_TOOL_NAME));
+		assertLeftoverToolsLooksLiveDisconnected(panel, 1);
 	});
 
 	test('in-flight getMcpServerTools list-fail leftover keeps leftover and does not paint live', async () => {
