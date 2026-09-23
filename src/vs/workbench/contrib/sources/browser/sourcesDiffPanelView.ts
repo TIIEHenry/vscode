@@ -165,6 +165,7 @@ export class SourcesDiffPanelView extends ViewPane {
 	private currentRef: ISourcesChangeRef | undefined;
 	private comparisonLoadFailed = false;
 	private renderGeneration = 0;
+	private renderSettledGeneration = 0;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -288,6 +289,7 @@ export class SourcesDiffPanelView extends ViewPane {
 				startSourcesDiffPanelComparison(ref);
 				settleSourcesDiffPanelComparison(ref, false);
 			}
+			this.settleRenderGeneration(generation);
 			return;
 		}
 
@@ -299,6 +301,7 @@ export class SourcesDiffPanelView extends ViewPane {
 			this.headerTitle.title = '';
 			this.headerElement.style.display = 'none';
 			this.newFileNoticeElement.style.display = 'none';
+			this.settleRenderGeneration(generation);
 			return;
 		}
 
@@ -334,6 +337,7 @@ export class SourcesDiffPanelView extends ViewPane {
 				if (this.dimension) {
 					this.layoutBody(this.dimension.height, this.dimension.width);
 				}
+				this.settleRenderGeneration(generation);
 				return;
 			}
 
@@ -341,6 +345,7 @@ export class SourcesDiffPanelView extends ViewPane {
 			this.headerTitle.textContent = basename(ref.modified);
 			this.headerTitle.title = ref.modified.fsPath;
 
+			this.settleRenderGeneration(generation);
 			this.updateWriteActions();
 			if (this.dimension) {
 				this.layoutBody(this.dimension.height, this.dimension.width);
@@ -413,8 +418,23 @@ export class SourcesDiffPanelView extends ViewPane {
 		this.unstageUnavailable.style.display = 'none';
 	}
 
+	private isRenderPending(): boolean {
+		return this.renderSettledGeneration !== this.renderGeneration;
+	}
+
+	private settleRenderGeneration(generation: number): void {
+		if (generation === this.renderGeneration) {
+			this.renderSettledGeneration = generation;
+		}
+	}
+
 	private updateWriteActions(): void {
 		if (!this.stageButton || !this.acceptButton || !this.revertButton || !this.unstageButton || !this.unstageUnavailable) {
+			return;
+		}
+
+		if (this.isRenderPending()) {
+			this.hideWriteChrome();
 			return;
 		}
 

@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
-import { Event } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -328,6 +328,66 @@ suite('Sources diff panel', () => {
 			assert.ok(view.element.querySelector('.sources-diff-panel-new-file-notice')?.classList.contains('is-error'));
 			assert.ok(!(view.element.querySelector('.sources-diff-panel-new-file-notice')?.textContent ?? '').includes('New file'));
 			assert.strictEqual((view.element.querySelector('.sources-diff-panel-header') as HTMLElement | null)?.style.display, 'none');
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	test('connection change during renderRef keeps write chrome hidden until comparison loads', async function () {
+		const resource = toResource.call(this, '/project/src/render-pending-write.ts');
+		const original = toResource.call(this, '/project/src/render-pending-write.ts.git');
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			let releaseLoad: (() => void) | undefined;
+			const loadGate = new Promise<void>(resolve => {
+				releaseLoad = resolve;
+			});
+			const onDidChangeConnection = new Emitter<void>();
+			const connection = {
+				isEngineConnected: () => false,
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+				onDidChangeConnection: onDidChangeConnection.event,
+			} as unknown as IUniverseAgentConnection;
+
+			const instantiationService = stubDiffHonestyServices({ resource, connection });
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			const renderHost = view as unknown as {
+				renderDiff: (original: URI, modified: URI, generation: number) => Promise<boolean>;
+			};
+			renderHost.renderDiff = async () => {
+				await loadGate;
+				return true;
+			};
+
+			void panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+			});
+			await timeout(0);
+
+			paintPanelWriteChrome(view);
+			onDidChangeConnection.fire();
+			assert.strictEqual((view.element.querySelector('.sources-diff-panel-stage') as HTMLElement | null)?.style.display, 'none');
+			assert.strictEqual((view.element.querySelector('.sources-diff-panel-accept') as HTMLElement | null)?.style.display, 'none');
+
+			releaseLoad!();
+			await timeout(50);
+
+			assert.strictEqual((view.element.querySelector('.sources-diff-panel-stage') as HTMLElement | null)?.style.display, '');
+			onDidChangeConnection.dispose();
 		} finally {
 			stageCommand.dispose();
 		}
