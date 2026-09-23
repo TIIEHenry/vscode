@@ -924,6 +924,68 @@ suite('conversation lens dispose gate', () => {
 		lifetime.dispose();
 	});
 
+	test('bindSessionView KEEP leftover roster in-flight does not keep other session leftover', () => {
+		const lifetime = new DisposableStore();
+		const leftoverA = [{ id: 't1' }, { id: 't2' }];
+		let applyEntries = 0;
+		let acquire = 0;
+		let appliedEmpty = 0;
+		const lifetimeMarker = {
+			disposed: false,
+			dispose() { this.disposed = true; },
+		};
+		lifetime.add(lifetimeMarker);
+		const host = {
+			isDisposed: false,
+			sessionViewLifetime: lifetime,
+			sessionViewLease: { sessionId: 'sess-A' },
+			lastAttachedEntries: leftoverA,
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => false,
+				acquireSessionView: () => {
+					acquire++;
+					return { sessionId: 'sess-B', snapshot: { sessionId: 'sess-B' } };
+				},
+			},
+			timelineTree: {
+				applyEntries: (entries: readonly unknown[]) => {
+					applyEntries++;
+					if (entries.length === 0) {
+						appliedEmpty++;
+					}
+				},
+			},
+		} as unknown as IConversationLensSessionBindingHost;
+		bindSessionView(host, 'sess-B');
+		assert.strictEqual(applyEntries, 1);
+		assert.strictEqual(appliedEmpty, 1);
+		assert.strictEqual(acquire, 0);
+		assert.strictEqual(host.sessionViewLease, undefined);
+		assert.strictEqual(host.lastAttachedEntries.length, 0);
+		assert.strictEqual(lifetimeMarker.disposed, true);
+
+		const sameSessionLeftover = [{ id: 't1' }, { id: 't2' }];
+		const sameSessionLease = { sessionId: 'sess-A' };
+		const keepMarker = {
+			disposed: false,
+			dispose() { this.disposed = true; },
+		};
+		applyEntries = 0;
+		appliedEmpty = 0;
+		acquire = 0;
+		host.sessionViewLease = sameSessionLease;
+		host.lastAttachedEntries = sameSessionLeftover;
+		lifetime.add(keepMarker);
+		bindSessionView(host, 'sess-A');
+		assert.strictEqual(applyEntries, 0);
+		assert.strictEqual(acquire, 0);
+		assert.strictEqual(host.sessionViewLease, sameSessionLease);
+		assert.strictEqual(host.lastAttachedEntries, sameSessionLeftover);
+		assert.strictEqual(keepMarker.disposed, false);
+		lifetime.dispose();
+	});
+
 	test('bindSessionView still clears empty timeline on first pull while engine roster is in-flight', () => {
 		const lifetime = new DisposableStore();
 		let applyEntries = 0;
@@ -1034,6 +1096,78 @@ suite('conversation lens dispose gate', () => {
 		assert.ok(applyBaseline > 0);
 		assert.strictEqual(appliedEmpty, 0);
 		assert.strictEqual(lifetimeMarker.disposed, true);
+		lifetime.dispose();
+	});
+
+	test('bindSessionView pairing-hold leftover does not keep other session leftover', () => {
+		const lifetime = new DisposableStore();
+		const leftoverA = [{ id: 't1' }, { id: 't2' }];
+		let applyEntries = 0;
+		let appliedEmpty = 0;
+		let acquire = 0;
+		const lifetimeMarker = {
+			disposed: false,
+			dispose() { this.disposed = true; },
+		};
+		lifetime.add(lifetimeMarker);
+		const host = {
+			isDisposed: false,
+			sessionViewLifetime: lifetime,
+			sessionViewLease: { sessionId: 'sess-A' },
+			lastAttachedEntries: leftoverA,
+			stubService: {
+				isEngineConnected: () => false,
+				isEngineSessionReady: () => false,
+				acquireSessionView: () => {
+					acquire++;
+					return {
+						sessionId: 'sess-B',
+						snapshot: { sessionId: 'sess-B' },
+						dispose() { },
+						onDidApplyFrame: () => ({ dispose() { } }),
+					};
+				},
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: true }),
+			},
+			timelineTree: {
+				applyEntries: (entries: readonly unknown[]) => {
+					applyEntries++;
+					if (entries.length === 0) {
+						appliedEmpty++;
+					}
+				},
+			},
+			applySessionViewTimeline: () => { },
+		} as unknown as IConversationLensSessionBindingHost;
+		bindSessionView(host, 'sess-B');
+		assert.strictEqual(applyEntries, 1);
+		assert.strictEqual(appliedEmpty, 1);
+		assert.strictEqual(acquire, 0);
+		assert.strictEqual(host.sessionViewLease, undefined);
+		assert.strictEqual(host.lastAttachedEntries.length, 0);
+		assert.strictEqual(lifetimeMarker.disposed, true);
+
+		const sameSessionLeftover = [{ id: 't1' }, { id: 't2' }];
+		const sameSessionLease = { sessionId: 'sess-A' };
+		const keepMarker = {
+			disposed: false,
+			dispose() { this.disposed = true; },
+		};
+		applyEntries = 0;
+		appliedEmpty = 0;
+		acquire = 0;
+		host.sessionViewLease = sameSessionLease;
+		host.lastAttachedEntries = sameSessionLeftover;
+		lifetime.add(keepMarker);
+		bindSessionView(host, 'sess-A');
+		assert.strictEqual(applyEntries, 0);
+		assert.strictEqual(acquire, 0);
+		assert.strictEqual(host.sessionViewLease, sameSessionLease);
+		assert.strictEqual(host.lastAttachedEntries, sameSessionLeftover);
+		assert.strictEqual(keepMarker.disposed, false);
 		lifetime.dispose();
 	});
 

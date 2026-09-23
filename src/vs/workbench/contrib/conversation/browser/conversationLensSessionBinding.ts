@@ -123,8 +123,8 @@ export function bindSessionView(host: IConversationLensSessionBindingHost, sessi
 		return;
 	}
 	if (host.stubService.isEngineConnected() && !host.stubService.isEngineSessionReady()) {
-		// D269: roster in-flight leftover stays painted. First pull (no leftover) still clears.
-		if (host.lastAttachedEntries.length > 0) {
+		// D269: same-session leftover stays painted. Cross-session / first pull still clears.
+		if (host.lastAttachedEntries.length > 0 && host.sessionViewLease?.sessionId === sessionId) {
 			return;
 		}
 		host.sessionViewLifetime.clear();
@@ -134,7 +134,14 @@ export function bindSessionView(host: IConversationLensSessionBindingHost, sessi
 		return;
 	}
 	if (shouldKeepLeftoverTimelineForPairingHold(host)) {
-		// D285: pairing-hold leftover stays painted (same keep as D269). First pull (no leftover) still rebinds.
+		// D285: same-session pairing-hold leftover stays painted. Cross-session still first-pull clears.
+		if (host.sessionViewLease?.sessionId === sessionId) {
+			return;
+		}
+		host.sessionViewLifetime.clear();
+		host.sessionViewLease = undefined;
+		host.lastAttachedEntries = [];
+		host.timelineTree.applyEntries([], { kind: 'baseline' });
 		return;
 	}
 	host.sessionViewLifetime.clear();
