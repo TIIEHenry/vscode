@@ -1877,6 +1877,9 @@ ${this.hookCount > 0 ? `EXAMPLES WITH BLOCKED CONTENT (from hooks):
 	}
 
 	private setFallbackTitle(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const finalLabel = this.appendedItemCount > 0
 			? this.appendedItemCount === 1
 				? localize('chat.thinking.finished.withStepsSingular', 'Finished with 1 step')
