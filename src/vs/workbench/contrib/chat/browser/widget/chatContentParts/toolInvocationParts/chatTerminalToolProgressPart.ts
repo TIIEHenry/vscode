@@ -1189,13 +1189,39 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 
 		if (instance) {
 			this._terminalService.setActiveInstance(instance);
+			const abortIfTerminalFocusInvalid = async (): Promise<boolean> => {
+				if (this._store.isDisposed || instance.isDisposed) {
+					return true;
+				}
+				const sessionId = this._terminalData.terminalToolSessionId;
+				if (!sessionId) {
+					return true;
+				}
+				const boundInstance = await this._terminalChatService.getTerminalInstanceByToolSessionId(sessionId);
+				if (boundInstance !== instance) {
+					return true;
+				}
+				if (this._store.isDisposed || instance.isDisposed) {
+					return true;
+				}
+				return false;
+			};
 			if (instance.target === TerminalLocation.Editor) {
 				this._terminalEditorService.openEditor(instance);
+				if (await abortIfTerminalFocusInvalid()) {
+					return;
+				}
 			} else {
 				await this._terminalGroupService.showPanel(true);
+				if (await abortIfTerminalFocusInvalid()) {
+					return;
+				}
 			}
 			this._terminalService.setActiveInstance(instance);
 			await instance.focusWhenReady(true);
+			if (this._store.isDisposed || instance.isDisposed) {
+				return;
+			}
 			const command = this._getResolvedCommand(instance);
 			if (command) {
 				instance.xterm?.markTracker.revealCommand(command);
