@@ -2258,6 +2258,7 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 	 * Restores attachments to the input, re-fetching image binary data as needed.
 	 */
 	async restoreAttachments(attachments: readonly IChatRequestVariableEntry[]): Promise<void> {
+		const boundSession = this._inputModelSessionResource;
 		let restored = [...attachments];
 
 		if (restored.length > 0) {
@@ -2281,14 +2282,23 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 			}))).filter(isDefined);
 		}
 
+		if (this._store.isDisposed || !isEqual(boundSession, this._inputModelSessionResource)) {
+			return;
+		}
+
 		this._attachmentModel.clearAndSetContext(...restored);
 	}
 
 	private async navigateHistory(previous: boolean): Promise<void> {
+		const boundSession = this._inputModelSessionResource;
 		const historyEntry = previous ?
 			this.history.previous() : this.history.next();
 
 		await this.restoreAttachments(historyEntry?.attachments ?? []);
+
+		if (this._store.isDisposed || !isEqual(boundSession, this._inputModelSessionResource)) {
+			return;
+		}
 
 		const inputText = historyEntry?.inputText ?? '';
 		const contribData = historyEntry?.contrib ?? {};
