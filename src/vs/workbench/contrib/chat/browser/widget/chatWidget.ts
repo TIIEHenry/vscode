@@ -1875,6 +1875,9 @@ export class ChatWidget extends Disposable implements IChatWidget {
 			this.logService.debug('[Delegation] Response complete, archiving session before clearing');
 			// Archive BEFORE clearing to ensure session still exists in agentSessionsService
 			await this.archiveLocalParentSession(parentSessionResource);
+			if (!this.viewModel || this._store.isDisposed || !isEqual(this.viewModel.sessionResource, parentSessionResource)) {
+				return;
+			}
 			await this.clear();
 			return;
 		}
@@ -1902,6 +1905,9 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		if (shouldClear) {
 			this.logService.debug('[Delegation] Response completed, archiving session before clearing');
 			await this.archiveLocalParentSession(parentSessionResource);
+			if (!this.viewModel || this._store.isDisposed || !isEqual(this.viewModel.sessionResource, parentSessionResource)) {
+				return;
+			}
 			await this.clear();
 		} else {
 			this.logService.debug('[Delegation] Not clearing (timeout or error)');
