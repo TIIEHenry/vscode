@@ -2961,7 +2961,7 @@ suite('SessionsManagementService', () => {
 			const provider = new class extends TestSessionsProvider {
 				constructor() { super(sessions[0]); }
 				override getSessions(): ISession[] { return sessions; }
-				override async createNewChat(_sessionId: string): Promise<IChat> {
+				override async createNewChat(): Promise<IChat> {
 					return createDeferred.p;
 				}
 			};
@@ -2969,7 +2969,7 @@ suite('SessionsManagementService', () => {
 			const completeCreate = (session: ISession): void => {
 				const chats = session.chats.get();
 				if (!chats.some(c => c.resource.toString() === newChat.resource.toString())) {
-					const chatsObs = session.chats as { get(): IChat[]; set?(value: IChat[], tx: unknown): void };
+					const chatsObs = session.chats as unknown as { get(): IChat[]; set?(value: IChat[], tx: unknown): void };
 					chatsObs.set?.([...chats, newChat], undefined);
 				}
 				createDeferred.complete(newChat);
