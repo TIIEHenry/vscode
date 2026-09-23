@@ -149,6 +149,9 @@ export class NotebookDiffViewModel extends Disposable implements INotebookDiffVi
 			if (token.isCancellationRequested) {
 				return;
 			}
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.updateDiffEditorItems();
 		}
 	}
@@ -224,6 +227,10 @@ export class NotebookDiffViewModel extends Disposable implements INotebookDiffVi
 
 	private async updateViewModels(cellDiffInfo: CellDiffInfo[], metadataChanged: boolean, firstChangeIndex: number) {
 		const cellViewModels = await this.createDiffViewModels(cellDiffInfo, metadataChanged);
+		if (this._store.isDisposed) {
+			dispose(cellViewModels);
+			return;
+		}
 		const oldLength = this._items.length;
 		this.clear();
 		this._items.splice(0, oldLength);
