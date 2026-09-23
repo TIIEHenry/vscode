@@ -378,8 +378,14 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 			this._widget.value.setEditorProgressService(this._editorProgressService);
 
 			await this._widget.value.setModel(model.notebook, viewState, perf);
+			if (token.isCancellationRequested || this.input !== input || !this._widget.value) {
+				return undefined;
+			}
 			const isReadOnly = !!input.isReadonly();
 			await this._widget.value.setOptions({ ...options, isReadOnly });
+			if (token.isCancellationRequested || this.input !== input || !this._widget.value) {
+				return undefined;
+			}
 			this._widgetDisposableStore.add(this._widget.value.onDidFocusWidget(() => this._onDidFocusWidget.fire()));
 			this._widgetDisposableStore.add(this._widget.value.onDidBlurWidget(() => this._onDidBlurWidget.fire()));
 
