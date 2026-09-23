@@ -36,6 +36,7 @@ export class McpResourcePickHelper extends Disposable {
 	private _resources = observableValue<{ picks: Map<IMcpServer, (IMcpResourceTemplate | IMcpResource)[]>; isBusy: boolean }>(this, { picks: new Map(), isBusy: true });
 	private _pickItemsStack: LinkedList<{ server: IMcpServer; resources: (IMcpResource | IMcpResourceTemplate)[] }> = new LinkedList();
 	private _inDirectory = observableValue<undefined | { server: IMcpServer; resources: (IMcpResource | IMcpResourceTemplate)[] }>(this, undefined);
+	private _navigationGeneration = 0;
 	public static sep(server: IMcpServer): IQuickPickSeparator {
 		return {
 			id: server.definition.id,
@@ -62,6 +63,7 @@ export class McpResourcePickHelper extends Disposable {
 	}
 
 	public navigateBack(): boolean {
+		this._bumpNavigationGeneration();
 		const items = this._pickItemsStack.pop();
 		if (items) {
 			this._inDirectory.set({ server: items.server, resources: items.resources }, undefined);
@@ -119,6 +121,15 @@ export class McpResourcePickHelper extends Disposable {
 		super();
 	}
 
+	public override dispose(): void {
+		this._bumpNavigationGeneration();
+		super.dispose();
+	}
+
+	private _bumpNavigationGeneration(): number {
+		return ++this._navigationGeneration;
+	}
+
 	/**
 	 * Navigate to a resource if it's a directory.
 	 * Returns true if the resource is a directory with children (navigation succeeded).
@@ -130,11 +141,17 @@ export class McpResourcePickHelper extends Disposable {
 			return false;
 		}
 
+		const generation = this._bumpNavigationGeneration();
+
 		const uri = resource.uri;
 		let stat: IFileStat | undefined = undefined;
 		try {
 			stat = await this._fileService.resolve(uri, { resolveMetadata: false });
 		} catch (e) {
+			return false;
+		}
+
+		if (generation !== this._navigationGeneration) {
 			return false;
 		}
 
