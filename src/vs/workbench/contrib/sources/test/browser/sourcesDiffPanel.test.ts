@@ -786,6 +786,98 @@ suite('Sources diff panel', () => {
 		}
 	});
 
+	test('Review pane hides Stage after engine WriteGitStagePaths accepted until modified changes', async function () {
+		const resource = toResource.call(this, '/project/src/review-engine-stage-accepted.ts');
+		const original = toResource.call(this, '/project/src/review-engine-stage-accepted.ts.git');
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const connection = leftoverLooksLiveApplyConnection([], stageCalls, false);
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+				connection,
+			});
+			const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			store.add({ dispose: () => parent.remove() });
+			pane.create(parent);
+			const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+			await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+			await timeout(20);
+			paintReviewWriteChrome(pane);
+
+			const reviewStage = parent.querySelector('.conversation-diff-review-stage') as HTMLButtonElement | null;
+			const reviewUnstage = parent.querySelector('.conversation-diff-review-unstage') as HTMLButtonElement | null;
+			assert.strictEqual(reviewStage?.style.display, '');
+
+			await (pane as unknown as { runStage: () => Promise<void> }).runStage();
+			await timeout(20);
+			assert.strictEqual(stageCalls.length, 1);
+			assert.strictEqual(reviewStage?.style.display, 'none');
+			assert.ok(!reviewUnstage || reviewUnstage.style.display === 'none');
+
+			const otherResource = toResource.call(this, '/project/src/review-engine-stage-other.ts');
+			const otherOriginal = toResource.call(this, '/project/src/review-engine-stage-other.ts.git');
+			const otherInput = store.add(new ConversationDiffReviewInput(otherResource, otherOriginal, 'workingTree'));
+			await pane.setInput(otherInput, undefined, Object.create(null), CancellationToken.None);
+			await timeout(20);
+			paintReviewWriteChrome(pane);
+			assert.strictEqual(reviewStage?.style.display, '');
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	test('Review pane keeps Stage visible when WriteGitStagePaths fails', async function () {
+		const resource = toResource.call(this, '/project/src/review-engine-stage-fail.ts');
+		const original = toResource.call(this, '/project/src/review-engine-stage-fail.ts.git');
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const connection = leftoverLooksLiveApplyConnection([], stageCalls, false);
+		const failedWrite: UniverseAgentWriteGitWriteResult = {
+			supported: true,
+			reason: '',
+			success: false,
+			errorMessage: 'stage failed',
+			exitCode: 1,
+			stdout: '',
+		};
+		connection.writeGitStagePaths = async (request: UniverseAgentWriteGitStagePathsRequest) => {
+			stageCalls.push(request);
+			return failedWrite;
+		};
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+				connection,
+			});
+			const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			store.add({ dispose: () => parent.remove() });
+			pane.create(parent);
+			const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+			await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+			await timeout(20);
+			paintReviewWriteChrome(pane);
+
+			const reviewStage = parent.querySelector('.conversation-diff-review-stage') as HTMLButtonElement | null;
+			assert.strictEqual(reviewStage?.style.display, '');
+
+			await (pane as unknown as { runStage: () => Promise<void> }).runStage();
+			await timeout(20);
+			assert.strictEqual(stageCalls.length, 1);
+			assert.strictEqual(reviewStage?.style.display, '');
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
 	function paintReviewWriteChrome(pane: ConversationDiffReviewPane): void {
 		const host = pane as unknown as { comparisonLoadFailed: boolean; updateReviewActions: () => void };
 		host.comparisonLoadFailed = false;

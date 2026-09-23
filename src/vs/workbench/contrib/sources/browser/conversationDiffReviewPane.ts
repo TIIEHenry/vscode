@@ -13,6 +13,7 @@ import { DiffEditorWidget } from '../../../../editor/browser/widget/diffEditor/d
 import { IEditorOptions as ICodeEditorOptions } from '../../../../editor/common/config/editorOptions.js';
 import { IResolvedTextEditorModel, ITextModelService } from '../../../../editor/common/services/resolverService.js';
 import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
+import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
 import { CommandsRegistry, ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -31,6 +32,7 @@ import { ISCMService } from '../../scm/common/scm.js';
 import { ConversationDiffReviewEditorId } from '../common/conversationDiffReviewInput.js';
 import { findScmResourceForUri, sourcesDiffLocalWritePath, sourcesGitApplyHunksPatches } from '../common/sourcesChangeRef.js';
 import {
+	isSourcesChangeStageable,
 	SOURCES_GIT_CLEAN_COMMAND,
 	SOURCES_GIT_STAGE_COMMAND,
 	SOURCES_GIT_UNSTAGE_COMMAND,
@@ -84,6 +86,8 @@ export class ConversationDiffReviewPane extends EditorPane {
 	private dimension: dom.Dimension | undefined;
 	private comparisonLoadFailed = false;
 	private renderGeneration = 0;
+	/** Engine stage accepted for this modified URI; hide Stage until input modified switches away. */
+	private stageEngineAcceptedModified: URI | undefined;
 
 	constructor(
 		group: IEditorGroup,
@@ -180,6 +184,9 @@ export class ConversationDiffReviewPane extends EditorPane {
 
 	override async setInput(input: ConversationDiffReviewInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
 		const generation = ++this.renderGeneration;
+		if (this.stageEngineAcceptedModified && input.modified.toString() !== this.stageEngineAcceptedModified.toString()) {
+			this.stageEngineAcceptedModified = undefined;
+		}
 		await super.setInput(input, options, context, token);
 		if (this._store.isDisposed || token.isCancellationRequested || generation !== this.renderGeneration) {
 			return;
@@ -231,6 +238,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 	}
 
 	override clearInput(): void {
+		this.stageEngineAcceptedModified = undefined;
 		this.comparisonLoadFailed = false;
 		this.clearEditors();
 		this.hideNotice();
@@ -375,10 +383,12 @@ export class ConversationDiffReviewPane extends EditorPane {
 			pairingHold,
 			keepLeftover,
 		});
+		const hideStageAfterEngineAccepted = !!this.stageEngineAcceptedModified
+			&& input.modified.toString() === this.stageEngineAcceptedModified.toString();
 		this.revertButton.style.display = actions.showRevert && !writeHold ? '' : 'none';
 		this.unstageButton.style.display = actions.showUnstage && !writeHold ? '' : 'none';
 		this.unstageUnavailable.style.display = actions.unstageUnavailable && !writeHold ? '' : 'none';
-		this.stageButton.style.display = actions.showStage && !writeHold ? '' : 'none';
+		this.stageButton.style.display = actions.showStage && !writeHold && !hideStageAfterEngineAccepted ? '' : 'none';
 		this.acceptButton.style.display = actions.showAccept ? '' : 'none';
 	}
 
@@ -401,6 +411,10 @@ export class ConversationDiffReviewPane extends EditorPane {
 				this.getEngineSessionReady(),
 			));
 			if (attempt.kind === 'accepted') {
+				const groupId = match?.groupId || input.groupId;
+				if (isSourcesChangeStageable(groupId)) {
+					this.stageEngineAcceptedModified = input.modified;
+				}
 				this.hideNotice();
 				this.updateReviewActions();
 				return;
