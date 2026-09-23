@@ -449,14 +449,46 @@ class ChatEditingNotebookEditorWidgetIntegration extends Disposable implements I
 		return cellViewModel;
 	}
 
+	private isRevealChangeStillValid(cell: ICellViewModel, change: ICellDiffInfo, targetLines: LineRange): boolean {
+		if (this._store.isDisposed) {
+			return false;
+		}
+		if (this.notebookEditor.textModel !== this.notebookModel) {
+			return false;
+		}
+		const cellViewModel = this.getCellViewModel(change);
+		if (!cellViewModel || cellViewModel.handle !== cell.handle) {
+			return false;
+		}
+		const current = this.getCurrentChange();
+		if (!current || current.change !== change) {
+			return false;
+		}
+		if (change.type === 'modified' || change.type === 'insert') {
+			const modified = change.diff.get().changes[current.index]?.modified;
+			const startLineNumber = modified?.startLineNumber ?? 0;
+			const endLineNumberExclusive = modified?.endLineNumberExclusive ?? 0;
+			if (startLineNumber !== targetLines.startLineNumber || endLineNumberExclusive !== targetLines.endLineNumberExclusive) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	private async revealChangeInView(cell: ICellViewModel, lines: LineRange | undefined, change: ICellDiffInfo): Promise<void> {
 		const targetLines = lines ?? new LineRange(0, 0);
+		if (!this.isRevealChangeStillValid(cell, change, targetLines)) {
+			return;
+		}
 		if (change.type === 'modified' && cell.cellKind === CellKind.Markup && cell.getEditState() === CellEditState.Preview) {
 			cell.updateEditState(CellEditState.Editing, 'chatEditNavigation');
 		}
 
 		const focusTarget = cell.cellKind === CellKind.Code || change.type === 'modified' ? 'editor' : 'container';
 		await this.notebookEditor.focusNotebookCell(cell, focusTarget, { focusEditorLine: targetLines.startLineNumber });
+		if (!this.isRevealChangeStillValid(cell, change, targetLines)) {
+			return;
+		}
 		await this.notebookEditor.revealRangeInCenterAsync(cell, new Range(targetLines.startLineNumber, 0, targetLines.endLineNumberExclusive, 0));
 	}
 
