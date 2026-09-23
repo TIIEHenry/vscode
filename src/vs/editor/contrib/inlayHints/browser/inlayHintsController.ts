@@ -120,6 +120,11 @@ class CancellationStore implements IDisposable {
 			token: this._tokenSource.token
 		};
 	}
+
+	cancel() {
+		this._tokenSource.dispose(true);
+		this._tokenSource = new CancellationTokenSource();
+	}
 }
 
 
@@ -233,12 +238,11 @@ export class InlayHintsController implements IEditorContribution {
 			}
 		}));
 
-		let cts: CancellationTokenSource | undefined;
 		const watchedProviders = new Set<languages.InlayHintsProvider>();
 
-		this._sessionDisposables.add(model.onWillDispose(() => cts?.cancel()));
-
 		const cancellationStore = this._sessionDisposables.add(new CancellationStore());
+
+		this._sessionDisposables.add(model.onWillDispose(() => cancellationStore.cancel()));
 
 		const scheduler = new RunOnceScheduler(async () => {
 			const t1 = Date.now();
@@ -249,6 +253,10 @@ export class InlayHintsController implements IEditorContribution {
 				const inlayHints = await InlayHintsFragments.create(this._languageFeaturesService.inlayHintsProvider, model, this._getHintsRanges(), token);
 				scheduler.delay = this._debounceInfo.update(model, Date.now() - t1);
 				if (token.isCancellationRequested) {
+					inlayHints.dispose();
+					return;
+				}
+				if (model.isDisposed() || model !== this._editor.getModel()) {
 					inlayHints.dispose();
 					return;
 				}
@@ -289,7 +297,7 @@ export class InlayHintsController implements IEditorContribution {
 
 		const cursor = this._sessionDisposables.add(new MutableDisposable());
 		this._sessionDisposables.add(this._editor.onDidChangeModelContent((e) => {
-			cts?.cancel();
+			cancellationStore.cancel();
 
 			// mark current cursor position and time after which the whole can be updated/redrawn
 			const delay = Math.max(scheduler.delay, 800);
