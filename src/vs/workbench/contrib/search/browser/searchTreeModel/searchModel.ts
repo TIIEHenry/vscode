@@ -31,6 +31,7 @@ export class SearchModelImpl extends Disposable implements ISearchModel {
 	private _replacePattern: ReplacePattern | null = null;
 	private _preserveCase: boolean = false;
 	private _startStreamDelay: Promise<void> = Promise.resolve();
+	private _plainSearchInstanceID: string = '';
 	private readonly _resultQueue: IFileMatch[] = [];
 	private readonly _aiResultQueue: IFileMatch[] = [];
 
@@ -223,6 +224,8 @@ export class SearchModelImpl extends Disposable implements ISearchModel {
 			this.searchResult.clear();
 		}
 		const searchInstanceID = Date.now().toString();
+		this._plainSearchInstanceID = searchInstanceID;
+		this._resultQueue.length = 0;
 
 		this._searchResult.query = this._searchQuery;
 
@@ -295,7 +298,7 @@ export class SearchModelImpl extends Disposable implements ISearchModel {
 		if (ai) {
 			this._searchResult.add(this._aiResultQueue, searchInstanceID, true);
 			this._aiResultQueue.length = 0;
-		} else {
+		} else if (searchInstanceID === this._plainSearchInstanceID) {
 			this._searchResult.add(this._resultQueue, searchInstanceID, false);
 			this._resultQueue.length = 0;
 		}
@@ -364,6 +367,9 @@ export class SearchModelImpl extends Disposable implements ISearchModel {
 				}
 			} else {
 				this._startStreamDelay.then(() => {
+					if (!ai && searchInstanceID !== this._plainSearchInstanceID) {
+						return;
+					}
 					if (targetQueue.length) {
 						this._searchResult.add(targetQueue, searchInstanceID, ai, !ai);
 						targetQueue.length = 0;
