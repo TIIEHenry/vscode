@@ -210,6 +210,9 @@ export class CommentThreadWidget<T extends IRange | ICellRange = IRange> extends
 		this._bindCommentThreadListeners();
 
 		await this._body.updateCommentThread(commentThread, this._commentReply?.isCommentEditorFocused() ?? false);
+		if (this._commentThread !== commentThread) {
+			return;
+		}
 		this._threadIsEmpty.set(!this._body.length);
 		this._header.updateCommentThread(commentThread);
 		this._commentReply?.updateCommentThread(commentThread);
