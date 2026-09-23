@@ -463,14 +463,29 @@ class WordHighlighter {
 			deleteURI.push(editor.getModel().uri);
 
 			const editorHighlighterContrib = WordHighlighterContribution.get(editor);
-			if (!editorHighlighterContrib?.wordHighlighter) {
+			const wordHighlighter = editorHighlighterContrib?.wordHighlighter;
+			if (!wordHighlighter) {
 				continue;
 			}
 
-			if (editorHighlighterContrib.wordHighlighter.decorations.length > 0) {
-				editorHighlighterContrib.wordHighlighter.decorations.clear();
-				editorHighlighterContrib.wordHighlighter.workerRequest = null;
-				editorHighlighterContrib.wordHighlighter._hasWordHighlights.set(false);
+			if (wordHighlighter.renderDecorationsTimer !== undefined) {
+				clearTimeout(wordHighlighter.renderDecorationsTimer);
+				wordHighlighter.renderDecorationsTimer = undefined;
+			}
+
+			if (wordHighlighter.workerRequest !== null) {
+				wordHighlighter.workerRequest.cancel();
+				wordHighlighter.workerRequest = null;
+			}
+
+			if (!wordHighlighter.workerRequestCompleted) {
+				wordHighlighter.workerRequestTokenId++;
+				wordHighlighter.workerRequestCompleted = true;
+			}
+
+			if (wordHighlighter.decorations.length > 0) {
+				wordHighlighter.decorations.clear();
+				wordHighlighter._hasWordHighlights.set(false);
 			}
 		}
 
