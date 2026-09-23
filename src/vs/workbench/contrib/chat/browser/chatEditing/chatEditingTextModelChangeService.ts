@@ -186,7 +186,13 @@ export class ChatEditingTextModelChangeService extends Disposable {
 
 		if (isAtomicEdits) {
 			// EDIT and DONE
+			const docVersionNow = this.modifiedModel.getVersionId();
+			const originalVersionNow = this.originalModel.getVersionId();
 			const minimalEdits = await this._editorWorkerService.computeMoreMinimalEdits(this.modifiedModel.uri, textEdits) ?? textEdits;
+			if (this._store.isDisposed || this.originalModel.isDisposed() || this.modifiedModel.isDisposed()
+				|| this.modifiedModel.getVersionId() !== docVersionNow || this.originalModel.getVersionId() !== originalVersionNow) {
+				return { rewriteRatio: 0, maxLineNumber: 0 };
+			}
 			const ops = minimalEdits.map(TextEdit.asEditOperation);
 			const undoEdits = this._applyEdits(ops, source);
 
