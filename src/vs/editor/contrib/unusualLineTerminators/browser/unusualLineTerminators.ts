@@ -109,6 +109,10 @@ export class UnusualLineTerminatorsDetector extends Disposable implements IEdito
 			this._isPresentingDialog = false;
 		}
 
+		if (this._editor.getModel() !== model) {
+			return;
+		}
+
 		if (!result.confirmed) {
 			// this model should be ignored
 			writeIgnoreState(this._codeEditorService, model, true);
