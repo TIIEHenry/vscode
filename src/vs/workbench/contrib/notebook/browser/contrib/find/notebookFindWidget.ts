@@ -301,6 +301,9 @@ class NotebookFindWidget extends SimpleFindReplaceWidget implements INotebookEdi
 		if (typeof options?.matchIndex === 'number') {
 			if (!this._findModel.findMatches.length) {
 				await this._findModel.research();
+				if (!this._state.isRevealed) {
+					return;
+				}
 			}
 			this.findIndex(options.matchIndex);
 		} else if (options?.focus !== false) {
