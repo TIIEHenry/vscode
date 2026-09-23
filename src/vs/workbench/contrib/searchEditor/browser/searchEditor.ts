@@ -505,7 +505,15 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 		if (!this.pauseSearching) {
 			await this.runSearchDelayer.trigger(async () => {
 				this.toggleRunAgainMessage(false);
+				const startInput = this.getInput();
+				const startConfig = this.readConfigFromWidget();
 				await this.doRunSearch();
+				const currentInput = this.getInput();
+				if (!currentInput ||
+					currentInput !== startInput ||
+					JSON.stringify(startConfig) !== JSON.stringify(this.readConfigFromWidget())) {
+					return;
+				}
 				if (options.resetCursor) {
 					this.searchResultEditor.setPosition(new Position(1, 1));
 					this.searchResultEditor.setScrollPosition({ scrollTop: 0, scrollLeft: 0 });
