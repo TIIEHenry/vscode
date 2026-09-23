@@ -1516,8 +1516,7 @@ export class ChatTerminalToolOutputSection extends Disposable {
 	}
 
 	private async _updateTerminalContent(): Promise<void> {
-		const outputSource = this._getOutputSource();
-		if (outputSource) {
+		const applyOutputSource = async (outputSource: IChatTerminalOutputSource): Promise<void> => {
 			this._disposeLiveMirror();
 			if (outputSource.output) {
 				await this._renderSnapshotOutput({ text: outputSource.output });
@@ -1528,14 +1527,35 @@ export class ChatTerminalToolOutputSection extends Disposable {
 				this._showEmptyMessage(localize('chat.terminalOutputEmpty', 'No output was produced by the command.'));
 				this._layoutOutput(0);
 			}
+		};
+
+		const outputSource = this._getOutputSource();
+		if (outputSource) {
+			await applyOutputSource(outputSource);
 			return;
 		}
 		const liveTerminalInstance = await this._resolveLiveTerminal();
+		if (this._store.isDisposed) {
+			return;
+		}
+		const laterSource = this._getOutputSource();
+		if (laterSource) {
+			await applyOutputSource(laterSource);
+			return;
+		}
 		const command = liveTerminalInstance ? this._resolveCommand() : undefined;
 		const snapshot = this._getTerminalCommandOutput();
 
 		if (liveTerminalInstance && command) {
 			const handled = await this._renderLiveOutput(liveTerminalInstance, command);
+			if (this._store.isDisposed) {
+				return;
+			}
+			const afterLiveSource = this._getOutputSource();
+			if (afterLiveSource) {
+				await applyOutputSource(afterLiveSource);
+				return;
+			}
 			if (handled) {
 				return;
 			}
@@ -1665,7 +1685,13 @@ export class ChatTerminalToolOutputSection extends Disposable {
 		if (this._snapshotMirror) {
 			this._snapshotMirror.setOutput(snapshot);
 			await this._layoutMirrorWidth(this._snapshotMirror);
+			if (this._store.isDisposed) {
+				return;
+			}
 			const result = await this._snapshotMirror.render();
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._layoutOutput(result?.lineCount ?? snapshot.lineCount ?? this._lastRenderedLineCount ?? 0);
 			return;
 		}
@@ -1676,9 +1702,18 @@ export class ChatTerminalToolOutputSection extends Disposable {
 		this._snapshotMirror = this._register(this._instantiationService.createInstance(DetachedTerminalSnapshotMirror, snapshot, this._getStoredTheme));
 		this._register(this._snapshotMirror.onDidChangeRowHeight(() => this._handleMirrorRowHeightChange()));
 		await this._snapshotMirror.attach(this._terminalContainer);
+		if (this._store.isDisposed) {
+			return;
+		}
 		this._snapshotMirror.setOutput(snapshot);
 		await this._layoutMirrorWidth(this._snapshotMirror);
+		if (this._store.isDisposed) {
+			return;
+		}
 		const result = await this._snapshotMirror.render();
+		if (this._store.isDisposed) {
+			return;
+		}
 		const hasText = !!snapshot.text && snapshot.text.length > 0;
 		if (hasText) {
 			this._hideEmptyMessage();
