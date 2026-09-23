@@ -454,6 +454,30 @@ class WordHighlighter {
 				continue;
 			}
 
+			const editorHighlighterContrib = WordHighlighterContribution.get(editor);
+			const wordHighlighter = editorHighlighterContrib?.wordHighlighter;
+			if (wordHighlighter) {
+				if (wordHighlighter.renderDecorationsTimer !== undefined) {
+					clearTimeout(wordHighlighter.renderDecorationsTimer);
+					wordHighlighter.renderDecorationsTimer = undefined;
+				}
+
+				if (wordHighlighter.workerRequest !== null) {
+					wordHighlighter.workerRequest.cancel();
+					wordHighlighter.workerRequest = null;
+				}
+
+				if (!wordHighlighter.workerRequestCompleted) {
+					wordHighlighter.workerRequestTokenId++;
+					wordHighlighter.workerRequestCompleted = true;
+				}
+
+				if (wordHighlighter.decorations.length > 0) {
+					wordHighlighter.decorations.clear();
+					wordHighlighter._hasWordHighlights.set(false);
+				}
+			}
+
 			const currentDecorationIDs = WordHighlighter.storedDecorationIDs.get(editor.getModel().uri);
 			if (!currentDecorationIDs) {
 				continue;
@@ -461,17 +485,6 @@ class WordHighlighter {
 
 			editor.removeDecorations(currentDecorationIDs);
 			deleteURI.push(editor.getModel().uri);
-
-			const editorHighlighterContrib = WordHighlighterContribution.get(editor);
-			if (!editorHighlighterContrib?.wordHighlighter) {
-				continue;
-			}
-
-			if (editorHighlighterContrib.wordHighlighter.decorations.length > 0) {
-				editorHighlighterContrib.wordHighlighter.decorations.clear();
-				editorHighlighterContrib.wordHighlighter.workerRequest = null;
-				editorHighlighterContrib.wordHighlighter._hasWordHighlights.set(false);
-			}
 		}
 
 		for (const uri of deleteURI) {
