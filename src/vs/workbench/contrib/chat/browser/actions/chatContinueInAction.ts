@@ -530,6 +530,8 @@ export class CreateRemoteAgentJobAction {
 			// the AgentSessionProviders enum.
 			const sourceSessionType = getAgentSessionProvider(sessionResource) ?? getChatSessionType(sessionResource);
 			const handoffToNewSession = isSessionsWindow || isAgentHostTarget(continuationTargetType) || (!!sourceSessionType && isAgentHostTarget(sourceSessionType));
+			const selectedModelRequestOptions = widget.getSelectedModelRequestOptions();
+			const modeRequestOptions = widget.getModeRequestOptions();
 			if (handoffToNewSession && sourceSessionType && sourceSessionType !== continuationTargetType) {
 				const isSidebar = isIChatViewViewContext(widget.viewContext);
 
@@ -641,9 +643,6 @@ export class CreateRemoteAgentJobAction {
 				undefined,
 				defaultAgent
 			);
-
-			const selectedModelRequestOptions = widget.getSelectedModelRequestOptions();
-			const modeRequestOptions = widget.getModeRequestOptions();
 
 			await chatService.removeRequest(sessionResource, addedRequest.id);
 			const sendResult = await chatService.sendRequest(sessionResource, userPrompt, {
