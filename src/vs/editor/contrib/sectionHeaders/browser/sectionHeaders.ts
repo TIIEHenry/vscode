@@ -140,6 +140,9 @@ export class SectionHeaderDetector extends Disposable implements IEditorContribu
 					// model changed in the meantime
 					return;
 				}
+				if (this.editor.getModel() !== model) {
+					return;
+				}
 				this.updateDecorations(sectionHeaders);
 			}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
