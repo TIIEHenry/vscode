@@ -18,7 +18,7 @@ import { applySessionViewTimeline, refreshTrajectoryRecords, updateSyncChrome, t
 import { conversationLensStaleSnapshotClass, executeReadingColumnSourcesReview, isReadingColumnWritesEnabled, refreshStaleSnapshotBanner, requestReadingColumnDetail, shouldShowReadingColumnLiveChrome, type IReadingColumnDetailHost } from '../../browser/conversationLensReadingColumn.js';
 import { SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND } from '../../../sources/browser/sourcesReview.contribution.js';
 import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
-import { formatSyncChromeLabel } from '../../browser/conversationSessionView.js';
+import { formatSyncChromeLabel, type ConversationTimelineEntry } from '../../browser/conversationSessionView.js';
 import type { SyncChrome } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { postBound, saveQueueEdit, saveTurnEdit, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
 import {
@@ -52,7 +52,7 @@ import {
 } from '../../browser/conversationLensDockStrings.js';
 import { bindSessionView, cancelToolCall, copyTurn, deleteTurn, resolveConfirmation, resolveQuestion, respondClientTool, retryError, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
-import type { ConversationWriteMessage, PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 
 declare function __readFileInTests(path: string): Promise<string>;
 
@@ -965,8 +965,20 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(host.lastAttachedEntries.length, 0);
 		assert.strictEqual(lifetimeMarker.disposed, true);
 
-		const sameSessionLeftover = [{ id: 't1' }, { id: 't2' }];
-		const sameSessionLease = { sessionId: 'sess-A' };
+		const sameSessionLeftover: ConversationTimelineEntry[] = [
+			{ id: 't1', kind: 'user', text: '' },
+			{ id: 't2', kind: 'user', text: '' },
+		];
+		const sameSessionLease: IConversationSessionViewLease = {
+			sessionId: 'sess-A',
+			snapshot: leftoverLeaseSnapshot({ kind: 'idle' }).snapshot as IConversationSessionViewLease['snapshot'],
+			attribution: new Map(),
+			details: new Map(),
+			onDidApplyFrame: Event.None,
+			post: async () => ({ accepted: false, reason: 'no_such_session' }),
+			requestResync() { },
+			dispose() { },
+		};
 		const keepMarker = {
 			disposed: false,
 			dispose() { this.disposed = true; },
@@ -1150,8 +1162,20 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(host.lastAttachedEntries.length, 0);
 		assert.strictEqual(lifetimeMarker.disposed, true);
 
-		const sameSessionLeftover = [{ id: 't1' }, { id: 't2' }];
-		const sameSessionLease = { sessionId: 'sess-A' };
+		const sameSessionLeftover: ConversationTimelineEntry[] = [
+			{ id: 't1', kind: 'user', text: '' },
+			{ id: 't2', kind: 'user', text: '' },
+		];
+		const sameSessionLease: IConversationSessionViewLease = {
+			sessionId: 'sess-A',
+			snapshot: leftoverLeaseSnapshot({ kind: 'idle' }).snapshot as IConversationSessionViewLease['snapshot'],
+			attribution: new Map(),
+			details: new Map(),
+			onDidApplyFrame: Event.None,
+			post: async () => ({ accepted: false, reason: 'no_such_session' }),
+			requestResync() { },
+			dispose() { },
+		};
 		const keepMarker = {
 			disposed: false,
 			dispose() { this.disposed = true; },
