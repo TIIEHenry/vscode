@@ -304,6 +304,12 @@ export class ChatAgentFeedbackReviewConfirmationSubPart extends AbstractToolConf
 		const row = this._rows.get(commentId);
 		try {
 			await this.commandService.executeCommand(AgentFeedbackReviewCommandId.Delete, this._sessionResource, commentId);
+			if (this._store.isDisposed) {
+				return;
+			}
+			if (this._rows.get(commentId) !== row) {
+				return;
+			}
 			row?.element.remove();
 			this._rows.delete(commentId);
 			this._rowStores.deleteAndDispose(commentId);
