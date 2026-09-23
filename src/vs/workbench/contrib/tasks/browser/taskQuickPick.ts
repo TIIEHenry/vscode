@@ -322,13 +322,22 @@ export class TaskQuickPick extends Disposable {
 
 	public async doPickerSecondLevel(picker: IQuickPick<ITaskTwoLevelQuickPickEntry, { useSeparators: true }>, disposables: DisposableStore, type: string, name?: string) {
 		picker.busy = true;
+		let hidden = false;
+		disposables.add(picker.onDidHide(() => { hidden = true; }));
 		if (type === SHOW_ALL) {
 			const items = (await this._taskService.tasks()).filter(t => !t.configurationProperties.hide).sort((a, b) => this._sorter.compare(a, b)).map(task => this._createTaskEntry(task));
 			items.push(...TaskQuickPick.allSettingEntries(this._configurationService));
+			if (hidden) {
+				return undefined;
+			}
 			picker.items = items;
 		} else {
 			picker.value = name || '';
-			picker.items = await this._getEntriesForProvider(type);
+			const entries = await this._getEntriesForProvider(type);
+			if (hidden) {
+				return undefined;
+			}
+			picker.items = entries;
 		}
 		await picker.show();
 		picker.busy = false;
