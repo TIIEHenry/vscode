@@ -293,7 +293,23 @@ export class FindModel extends Disposable {
 			// First ensure the cell is visible in the notebook viewport
 			await this._notebookEditor.revealInView(findMatch.cell);
 			// Then reveal the specific range within the cell editor
-			this._notebookEditor.revealRangeInCenterIfOutsideViewportAsync(findMatch.cell, match.range);
+			if (!this._findMatchesStarts) {
+				return;
+			}
+			const currentIndex = this._findMatchesStarts.getIndexOf(this._currentMatch);
+			if (currentIndex.index !== cellIndex || currentIndex.remainder !== matchIndex) {
+				return;
+			}
+			const live = this._findMatches[cellIndex];
+			if (!live) {
+				return;
+			}
+			const cellIndexInEditor = this._notebookEditor.getCellIndex(live.cell);
+			if (cellIndexInEditor === undefined || cellIndexInEditor < 0) {
+				return;
+			}
+			const liveMatch = live.getMatch(matchIndex) as FindMatch;
+			this._notebookEditor.revealRangeInCenterIfOutsideViewportAsync(live.cell, liveMatch.range);
 		}
 	}
 
