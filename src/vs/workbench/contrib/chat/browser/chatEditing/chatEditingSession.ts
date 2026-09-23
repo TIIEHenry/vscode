@@ -1106,6 +1106,10 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 	}
 
 	private async _resolve(requestId: string, undoStop: string | undefined, resource: URI): Promise<void> {
+		if (this.isDisposed) {
+			return;
+		}
+
 		const hasOtherTasks = Iterable.some(this._streamingEditLocks.keys(), k => k !== resource.toString());
 		if (!hasOtherTasks) {
 			this._state.set(ChatEditingSessionState.Idle, undefined);
