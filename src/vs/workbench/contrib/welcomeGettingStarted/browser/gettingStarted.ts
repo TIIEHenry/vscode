@@ -638,7 +638,7 @@ export class GettingStartedPage extends EditorPane {
 
 			const media = stepToExpand.media;
 			const body = await this.detailsRenderer.renderSVG(media.path);
-			if (this.editorInput.selectedStep !== stepId) {
+			if (this.editorInput?.selectedStep !== stepId) {
 				return;
 			}
 			this.webview.setHtml(body);
@@ -681,7 +681,7 @@ export class GettingStartedPage extends EditorPane {
 			const media = stepToExpand.media;
 
 			const rawHTML = await this.detailsRenderer.renderMarkdown(media.path, media.base);
-			if (this.editorInput.selectedStep !== stepId) {
+			if (this.editorInput?.selectedStep !== stepId) {
 				return;
 			}
 			this.webview.setHtml(rawHTML);
