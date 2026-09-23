@@ -216,6 +216,9 @@ export class InlineAnchorWidget extends Disposable {
 			let isDirectory = false;
 			fileService.stat(location.uri)
 				.then(stat => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					isDirectory = stat.isDirectory;
 					if (stat.isDirectory) {
 						fileKind = FileKind.FOLDER;
