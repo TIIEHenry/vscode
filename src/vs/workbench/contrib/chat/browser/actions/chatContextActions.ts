@@ -698,7 +698,17 @@ export class AttachContextAction extends Action2 {
 
 	private async _handleContextPick(item: IChatContextValueItem, widget: IChatWidget) {
 
+		const pickSessionResource = widget.viewModel?.sessionResource;
+		if (!pickSessionResource) {
+			return;
+		}
+
 		const value = await item.asAttachment(widget);
+
+		if (!widget.viewModel || !isEqual(widget.viewModel.sessionResource, pickSessionResource)) {
+			return;
+		}
+
 		if (Array.isArray(value)) {
 			widget.attachmentModel.addContext(...value);
 		} else if (value) {
