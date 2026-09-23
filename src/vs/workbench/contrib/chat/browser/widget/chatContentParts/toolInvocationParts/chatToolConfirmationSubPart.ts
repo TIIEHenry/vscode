@@ -248,6 +248,9 @@ export class ToolConfirmationSubPart extends AbstractToolConfirmationSubPart {
 						}
 					}
 
+					if (this._store.isDisposed) {
+						return;
+					}
 					this.markerService.changeOne(markerOwner, model.uri, newMarker);
 				}, 500);
 
