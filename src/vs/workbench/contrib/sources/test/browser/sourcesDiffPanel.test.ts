@@ -15,6 +15,7 @@ import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actio
 import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { type ContextKeyExpression, type ContextKeyValue, IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
+import { ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentWriteGitApplyHunksRequest, UniverseAgentWriteGitStagePathsRequest, UniverseAgentWriteGitWriteResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
@@ -862,7 +863,7 @@ suite('Sources diff panel', () => {
 				connection: disconnectedConnection,
 				executeCommand: async (commandId: unknown, ...args: unknown[]) => {
 					if (commandId === 'git.clean') {
-						await CommandsRegistry.getCommand('git.clean')?.handler!(undefined, ...args);
+						await CommandsRegistry.getCommand('git.clean')?.handler!(undefined as unknown as ServicesAccessor, ...args);
 					}
 				},
 			});
