@@ -3142,7 +3142,16 @@ export class ChatWidget extends Disposable implements IChatWidget {
 
 		const isUserQuery = !query;
 		const inputValue = isUserQuery ? this.getInput() : query.query;
+		const capturedSession = this.viewModel.sessionResource;
+		const stillOn = (expected: URI) => {
+			const viewModel = this.viewModel;
+			return !!viewModel && !this._store.isDisposed && isEqual(viewModel.sessionResource, expected);
+		};
+		let sendSessionResource = capturedSession;
 		if (this.viewModel.model.hasActiveRequest.get() && await this._tryExecuteImmediateSlashCommand(inputValue, isUserQuery ? this.parsedInput : undefined)) {
+			if (!stillOn(capturedSession)) {
+				return;
+			}
 			this.setInput('');
 			return;
 		}
@@ -3152,6 +3161,9 @@ export class ChatWidget extends Disposable implements IChatWidget {
 				input: inputValue,
 			});
 			if (preSubmitResult) {
+				if (!stillOn(capturedSession)) {
+					return;
+				}
 				this.setInput('');
 				return;
 			}
@@ -3159,6 +3171,9 @@ export class ChatWidget extends Disposable implements IChatWidget {
 
 		if (!savedBeforeSend) {
 			await saveAllBeforeChatSend(this.configurationService, this.editorService);
+			if (!stillOn(capturedSession)) {
+				return;
+			}
 		}
 
 		if (!options.preserveInput) {
@@ -3207,6 +3222,9 @@ export class ChatWidget extends Disposable implements IChatWidget {
 				}
 			} else {
 				await this.chatService.cancelCurrentRequestForSession(this.viewModel.sessionResource, 'acceptInput-editing');
+				if (!stillOn(capturedSession)) {
+					return;
+				}
 				cancelledCurrentRequest = true;
 				options.queue = undefined;
 			}
@@ -3227,6 +3245,9 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		const model = this.viewModel.model;
 		if (options.cancelCurrentRequest && model.requestInProgress.get() && !cancelledCurrentRequest) {
 			await this.chatService.cancelCurrentRequestForSession(this.viewModel.sessionResource, 'acceptInput-stopAndSend');
+			if (!stillOn(capturedSession)) {
+				return;
+			}
 			cancelledCurrentRequest = true;
 			options.queue = undefined;
 		}
@@ -3239,6 +3260,9 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		// request just as confirmation is triggered.
 		if (!options.cancelCurrentRequest && model.requestNeedsInput.get() && !model.getPendingRequests().length) {
 			await this.chatService.cancelCurrentRequestForSession(this.viewModel.sessionResource, 'acceptInput-needsInput');
+			if (!stillOn(capturedSession)) {
+				return;
+			}
 			options.queue ??= ChatRequestQueueKind.Queued;
 		}
 		if (requestInProgress && !options.cancelCurrentRequest) {
@@ -3247,14 +3271,25 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		if (!requestInProgress && !isEditing && !(await this.confirmPendingRequestsBeforeSend(model, options))) {
 			return;
 		}
+		if (!stillOn(capturedSession)) {
+			return;
+		}
 
 		// process the prompt command
 		// Skipped for preserveInput: parsedInput is the draft, and an agent switch can clear the session.
 		if (!options.preserveInput) {
+			if (!stillOn(capturedSession)) {
+				return;
+			}
 			const promptApplied = await this._applyPromptFileIfSet(requestInputs, this.viewModel.sessionResource);
 			if (!promptApplied) {
 				return;
 			}
+			const viewModelAfterPrompt = this.viewModel;
+			if (!viewModelAfterPrompt || this._store.isDisposed) {
+				return;
+			}
+			sendSessionResource = viewModelAfterPrompt.sessionResource;
 		}
 
 		if (this.viewOptions.enableWorkingSet !== undefined && resolveEditedRequestSelection(editedModeKind, this.input.currentModeKind) === ChatModeKind.Edit) {
@@ -3291,6 +3326,9 @@ export class ChatWidget extends Disposable implements IChatWidget {
 
 		this.input.validateAgentMode();
 
+		if (!stillOn(sendSessionResource)) {
+			return;
+		}
 		if (this.viewModel.model.checkpoint) {
 			const requests = this.viewModel.model.getRequests();
 			for (let i = requests.length - 1; i >= 0; i -= 1) {
@@ -3304,11 +3342,14 @@ export class ChatWidget extends Disposable implements IChatWidget {
 
 		// Expand directory attachments: extract images as binary entries
 		const resolvedImageVariables = await this._resolveDirectoryImageAttachments(requestInputs.attachedContext.asArray());
+		if (!stillOn(sendSessionResource)) {
+			return;
+		}
 		const submittedWithImage = isUserQuery && hasChatPetImageAttachment([
 			...requestInputs.attachedContext.asArray(),
 			...resolvedImageVariables,
 		]);
-		const submittedSessionResource = this.viewModel.sessionResource;
+		const submittedSessionResource = sendSessionResource;
 
 		// For contributed session types, only collect automatic instructions when
 		// the contribution explicitly opts in via autoAttachReferences.
@@ -3326,7 +3367,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		}
 		let result: ChatSendResult;
 		try {
-			result = await this.chatService.sendRequest(this.viewModel.sessionResource, requestInputs.input, {
+			result = await this.chatService.sendRequest(sendSessionResource, requestInputs.input, {
 				...selectedModelRequestOptions,
 				location: this.location,
 				locationData: this._location.resolveData?.(),
@@ -3355,12 +3396,16 @@ export class ChatWidget extends Disposable implements IChatWidget {
 			if (transcriptContext) {
 				this.setTranscriptContext(transcriptContext);
 			}
-			if (result.newSessionResource) {
+			if (stillOn(sendSessionResource) && result.newSessionResource) {
 				const newModel = this.chatService.getSession(result.newSessionResource);
 				if (newModel) {
 					this.setModel(newModel);
 				}
 			}
+			return;
+		}
+
+		if (!stillOn(sendSessionResource)) {
 			return;
 		}
 
