@@ -7,7 +7,7 @@ import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { KeyCode, KeyMod } from '../../../../../base/common/keyCodes.js';
 import { alert } from '../../../../../base/browser/ui/aria/aria.js';
-import { basename } from '../../../../../base/common/resources.js';
+import { basename, isEqual } from '../../../../../base/common/resources.js';
 import { URI, UriComponents } from '../../../../../base/common/uri.js';
 import { isCodeEditor } from '../../../../../editor/browser/editorBrowser.js';
 import { ServicesAccessor } from '../../../../../editor/browser/editorExtensions.js';
@@ -493,12 +493,16 @@ registerAction2(class RemoveAction extends Action2 {
 
 		const confirmed = await restoreSnapshotWithConfirmation(accessor, item);
 
-		if (confirmed && isRequestVM(item) && configurationService.getValue('chat.undoRequests.restoreInput')) {
-			widget?.focusInput();
-			widget?.input.setValue(item.messageText, false);
-			const userAttachments = filterToUserAttachedContext(item.attachedContext);
-			if (userAttachments.length) {
-				await widget?.input.restoreAttachments(userAttachments);
+		if (confirmed && isRequestVM(item) && configurationService.getValue('chat.undoRequests.restoreInput') && isChatTreeItem(item)) {
+			const sessionResource = item.sessionResource;
+			const live = chatWidgetService.getWidgetBySessionResource(sessionResource);
+			if (live?.viewModel && isEqual(live.viewModel.sessionResource, sessionResource)) {
+				live.focusInput();
+				live.input.setValue(item.messageText, false);
+				const userAttachments = filterToUserAttachedContext(item.attachedContext);
+				if (userAttachments.length) {
+					await live.input.restoreAttachments(userAttachments);
+				}
 			}
 		}
 	}
@@ -551,9 +555,15 @@ registerAction2(class RestoreCheckpointAction extends Action2 {
 			return;
 		}
 
-		const userAttachments = restoreRequestToMainInputIfEmpty(widget, item);
-		if (userAttachments?.length) {
-			await widget?.inputPart.restoreAttachments(userAttachments);
+		if (isChatTreeItem(item)) {
+			const sessionResource = item.sessionResource;
+			const live = chatWidgetService.getWidgetBySessionResource(sessionResource);
+			if (live?.viewModel && isEqual(live.viewModel.sessionResource, sessionResource)) {
+				const userAttachments = restoreRequestToMainInputIfEmpty(live, item);
+				if (userAttachments?.length) {
+					await live.inputPart.restoreAttachments(userAttachments);
+				}
+			}
 		}
 	}
 });
@@ -597,9 +607,15 @@ registerAction2(class StartOverAction extends Action2 {
 			return;
 		}
 
-		const userAttachments = restoreRequestToMainInputIfEmpty(widget, item);
-		if (userAttachments?.length) {
-			await widget?.inputPart.restoreAttachments(userAttachments);
+		if (isChatTreeItem(item)) {
+			const sessionResource = item.sessionResource;
+			const live = chatWidgetService.getWidgetBySessionResource(sessionResource);
+			if (live?.viewModel && isEqual(live.viewModel.sessionResource, sessionResource)) {
+				const userAttachments = restoreRequestToMainInputIfEmpty(live, item);
+				if (userAttachments?.length) {
+					await live.inputPart.restoreAttachments(userAttachments);
+				}
+			}
 		}
 	}
 });
