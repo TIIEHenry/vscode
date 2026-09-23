@@ -178,6 +178,7 @@ export abstract class AbstractGotoSymbolQuickAccessProvider extends AbstractEdit
 
 		// Set initial picks and update on type
 		const picksCts = disposables.add(new MutableDisposable<CancellationTokenSource>());
+		disposables.add(toDisposable(() => picksCts.value?.cancel()));
 		const updatePickerItems = async (positionToEnclose: Position | undefined) => {
 
 			// Cancel any previous ask for picks and busy
@@ -186,13 +187,14 @@ export abstract class AbstractGotoSymbolQuickAccessProvider extends AbstractEdit
 
 			// Create new cancellation source for this run
 			picksCts.value = new CancellationTokenSource();
+			const picksToken = picksCts.value.token;
 
 			// Collect symbol picks
 			picker.busy = true;
 			try {
 				const query = prepareQuery(picker.value.substr(AbstractGotoSymbolQuickAccessProvider.PREFIX.length).trim());
-				const items = await this.doGetSymbolPicks(symbolsPromise, query, undefined, picksCts.value.token, model);
-				if (token.isCancellationRequested) {
+				const items = await this.doGetSymbolPicks(symbolsPromise, query, undefined, picksToken, model);
+				if (token.isCancellationRequested || picksToken.isCancellationRequested || editor !== this.activeTextEditorControl) {
 					return;
 				}
 
