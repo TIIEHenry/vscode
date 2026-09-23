@@ -171,6 +171,17 @@ export class CodeActionModel extends Disposable {
 
 	private _ignoreLightbulbOff = false;
 
+	private readonly _deferredAutoStateTimer = this._register(new TimeoutTimer());
+	private _deferredAutoStatePromise: CancelablePromise<CodeActionSet> | undefined;
+
+	private _clearDeferredAutoState(): void {
+		this._deferredAutoStateTimer.cancel();
+		if (this._deferredAutoStatePromise) {
+			this._deferredAutoStatePromise.cancel();
+			this._deferredAutoStatePromise = undefined;
+		}
+	}
+
 	set ignoreLightbulbOff(value: boolean) {
 		if (this._ignoreLightbulbOff === value) {
 			return;
@@ -245,6 +256,8 @@ export class CodeActionModel extends Disposable {
 					this.setState(CodeActionsState.Empty);
 					return;
 				}
+
+				this._clearDeferredAutoState();
 
 				const startPosition = trigger.selection.getStartPosition();
 
@@ -392,7 +405,9 @@ export class CodeActionModel extends Disposable {
 					this.setState(newState);
 				} else {
 					// Reset the new state after getting code actions back.
-					setTimeout(() => {
+					this._deferredAutoStatePromise = actions;
+					this._deferredAutoStateTimer.cancelAndSet(() => {
+						this._deferredAutoStatePromise = undefined;
 						this.setState(newState);
 					}, 500);
 				}
@@ -429,6 +444,10 @@ export class CodeActionModel extends Disposable {
 	private setState(newState: CodeActionsState.State, skipNotify?: boolean) {
 		if (newState === this._state) {
 			return;
+		}
+
+		if (newState.type === CodeActionsState.Type.Empty) {
+			this._clearDeferredAutoState();
 		}
 
 		// Cancel old request
