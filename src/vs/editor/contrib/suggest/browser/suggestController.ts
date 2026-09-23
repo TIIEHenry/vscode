@@ -408,6 +408,9 @@ export class SuggestController implements IEditorContribution {
 				if (!item.completion.additionalTextEdits || cts.token.isCancellationRequested) {
 					return undefined;
 				}
+				if (this.editor.getModel() !== model || model.isDisposed()) {
+					return undefined;
+				}
 				if (position && item.completion.additionalTextEdits.some(edit => Position.isBefore(position!, Range.getStartPosition(edit.range)))) {
 					return false;
 				}
