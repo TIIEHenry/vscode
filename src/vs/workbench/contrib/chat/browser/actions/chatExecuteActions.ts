@@ -883,6 +883,7 @@ class SendToNewChatAction extends Action2 {
 		}
 
 		const inputBeforeClear = widget.getInput();
+		const originSessionResource = widget.viewModel?.sessionResource;
 
 		// Cancel any in-progress request before clearing
 		if (widget.viewModel) {
@@ -895,10 +896,22 @@ class SendToNewChatAction extends Action2 {
 			}
 		}
 
+		if (originSessionResource && (!widget.viewModel || !isEqual(widget.viewModel.sessionResource, originSessionResource))) {
+			return;
+		}
+
 		// Clear the input from the current session before creating a new one
 		widget.setInput('');
 
+		if (originSessionResource && (!widget.viewModel || !isEqual(widget.viewModel.sessionResource, originSessionResource))) {
+			return;
+		}
+
 		await instantiationService.invokeFunction(clearChatSessionPreservingType, widget, undefined);
+
+		if (!widget.viewModel || isEqual(widget.viewModel.sessionResource, originSessionResource)) {
+			return;
+		}
 
 		widget.acceptInput(inputBeforeClear, { storeToHistory: true });
 	}
