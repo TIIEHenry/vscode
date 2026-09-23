@@ -944,6 +944,10 @@ export class CodeCompareBlockPart extends Disposable {
 
 		await this.updateEditor(data, token);
 
+		if (token.isCancellationRequested || this._store.isDisposed) {
+			return;
+		}
+
 		this.layout(width);
 		this.diffEditor.updateOptions({
 			ariaLabel: localize('chat.compareCodeBlockLabel', "Code Edits"),
