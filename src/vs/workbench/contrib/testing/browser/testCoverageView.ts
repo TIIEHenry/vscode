@@ -754,9 +754,15 @@ registerAction2(class TestCoverageChangePerTestFilterAction extends Action2 {
 			activeItem: items.find((item): item is TItem => 'testId' in item && item.testId?.toString() === previousSelectionStr),
 			placeHolder: coverUtils.labels.pickShowCoverage,
 			onDidFocus: (entry) => {
+				if (coverageService.selected.get() !== coverage) {
+					return;
+				}
 				coverageService.filterToTest.set(entry.testId, undefined);
 			},
 		}).then(selected => {
+			if (coverageService.selected.get() !== coverage) {
+				return;
+			}
 			coverageService.filterToTest.set(selected ? selected.testId : previousSelection, undefined);
 		});
 	}
