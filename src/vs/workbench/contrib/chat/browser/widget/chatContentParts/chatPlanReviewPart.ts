@@ -758,8 +758,14 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 				if (!confirmed) {
 					return;
 				}
+				if (this._isSubmitted || this._store.isDisposed) {
+					return;
+				}
 			}
 			if (this.review.planUri && !await this.savePlanFile()) {
+				return;
+			}
+			if (this._isSubmitted || this._store.isDisposed) {
 				return;
 			}
 			this._isSubmitted = true;
@@ -789,6 +795,9 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 			if (this.review.planUri && !await this.savePlanFile()) {
 				return;
 			}
+			if (this._isSubmitted || this._store.isDisposed) {
+				return;
+			}
 			this._isSubmitted = true;
 			const ridesAlong = !this.review.planUri;
 			const textareaFeedback = ridesAlong ? this._feedbackTextarea?.value.trim() : undefined;
@@ -812,9 +821,18 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 		if (this._textFileService.isDirty(planUri) && !await this._textFileService.save(planUri)) {
 			return false;
 		}
+		if (this._isSubmitted || this._store.isDisposed) {
+			return false;
+		}
 		if (this.review instanceof ChatPlanReviewData) {
 			if (!this.updatePlanContentFromModel()) {
+				if (this._isSubmitted || this._store.isDisposed) {
+					return false;
+				}
 				this.review.content = (await this._textFileService.read(planUri)).value;
+			}
+			if (this._isSubmitted || this._store.isDisposed) {
+				return false;
 			}
 			this.renderMarkdown();
 		}
@@ -901,6 +919,9 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 		this._isSubmitting = true;
 		try {
 			if (!await this.savePlanFile()) {
+				return false;
+			}
+			if (this._isSubmitted || this._store.isDisposed) {
 				return false;
 			}
 
