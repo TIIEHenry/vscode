@@ -3510,6 +3510,56 @@ suite('LayoutController (desktop)', () => {
 		assert.strictEqual(hasFilesTab(), true, 'the default tabs are opened for the new session');
 	});
 
+	test('[managed tabs / session switch] a superseded Files open must not clear a dismissed Files tab', async () => {
+		const controller = createSinglePaneController({ activateAux: true });
+		await settle();
+
+		harness.activeSessionObs.set(makeSession(URI.parse('session:1')), undefined);
+		await settle();
+		const filesTab = harness.activeGroupEditors.find(editor => editor instanceof EmptyFileEditorInput)!;
+		harness.activeGroupEditors.splice(harness.activeGroupEditors.indexOf(filesTab), 1);
+		harness.onDidCloseEditor.fire({ editor: filesTab });
+		harness.onDidEditorsChange.fire();
+		await settle();
+		assert.strictEqual(hasFilesTab(), false);
+
+		let releaseFilesOpen!: () => void;
+		const filesOpenGate = new Promise<void>(resolve => { releaseFilesOpen = resolve; });
+		let gateArmed = true;
+		harness.onOpenEditor = editor => {
+			if (gateArmed && editor instanceof EmptyFileEditorInput) {
+				gateArmed = false;
+				return filesOpenGate;
+			}
+			return undefined;
+		};
+
+		harness.activeSessionObs.set(makeSession(URI.parse('session:2')), undefined);
+		controller.runWithRestore(() => {
+			harness.activeGroupEditors.length = 0;
+			harness.activeEditorInput = undefined;
+			harness.onDidEditorsChange.fire();
+		});
+		await settle();
+
+		harness.activeSessionObs.set(makeSession(URI.parse('session:3')), undefined);
+		await settle();
+
+		releaseFilesOpen();
+		await settle();
+
+		const strayFilesTab = harness.activeGroupEditors.find(editor => editor instanceof EmptyFileEditorInput);
+		if (strayFilesTab) {
+			harness.activeGroupEditors.splice(harness.activeGroupEditors.indexOf(strayFilesTab), 1);
+			harness.onDidEditorsChange.fire();
+		}
+
+		harness.onDidRevealSidePane.fire();
+		await settle();
+
+		assert.strictEqual(hasFilesTab(), false, 'a superseded Files open must not resurrect the Files placeholder on a later reconcile');
+	});
+
 	test('[managed tabs / session switch] preserves a dismissed Files tab while replacing Changes in place', async () => {
 		createSinglePaneController({ activateAux: true });
 		await settle();

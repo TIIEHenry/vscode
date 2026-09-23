@@ -375,7 +375,7 @@ export class SinglePaneDockedTabsCoordinator extends Disposable {
 
 			// [3] Keep Files active by default for a new-session view.
 			if (openFilesFirst) {
-				await this._openFilesTab(group, target.workspace);
+				await this._openFilesTab(group, target.workspace, generation);
 				if (generation !== this._generation) {
 					return;
 				}
@@ -390,7 +390,7 @@ export class SinglePaneDockedTabsCoordinator extends Disposable {
 
 			// [5] Open the Files placeholder after Changes for created sessions.
 			if (openFiles && !openFilesFirst) {
-				await this._openFilesTab(group, target.workspace);
+				await this._openFilesTab(group, target.workspace, generation);
 				if (generation !== this._generation) {
 					return;
 				}
@@ -431,11 +431,14 @@ export class SinglePaneDockedTabsCoordinator extends Disposable {
 		return true;
 	}
 
-	private async _openFilesTab(group: IEditorGroup, workspace: ISessionWorkspace | undefined): Promise<void> {
+	private async _openFilesTab(group: IEditorGroup, workspace: ISessionWorkspace | undefined, generation: number): Promise<void> {
 		const suppression = this._layoutService.suppressEditorPartAutoVisibility();
 		this._changingFilesInternally = true;
 		try {
 			await this._editorService.openEditor(this._instantiationService.createInstance(EmptyFileEditorInput, workspace), FILES_TAB_OPTIONS, group);
+			if (generation !== this._generation) {
+				return;
+			}
 			this._filesTabDismissed = false;
 		} finally {
 			this._changingFilesInternally = false;

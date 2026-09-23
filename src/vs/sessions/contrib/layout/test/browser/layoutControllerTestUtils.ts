@@ -247,6 +247,12 @@ export interface ITestLayoutHarness {
 	 * assert the superseded reconcile's intents do not leak).
 	 */
 	onOpenChangesEditor?: () => Promise<void> | void;
+	/**
+	 * Optional async hook awaited at the start of `openEditor`, letting a test
+	 * pause a managed-tab reconcile mid-open (e.g. to switch sessions and assert
+	 * a superseded reconcile does not clear a dismissed Files tab).
+	 */
+	onOpenEditor?: (editor: EditorInput) => Promise<void> | void;
 	/** Optional async hook awaited before `closeEditors` mutates the group. */
 	onCloseEditors?: () => Promise<void> | void;
 	/** Optional async hook awaited before `replaceEditors` mutates the group. */
@@ -633,6 +639,11 @@ export function createTestHarness(store: DisposableStore, options: ICreateOption
 		}
 		override async openEditor(...args: unknown[]): Promise<undefined> {
 			const editor = args[0];
+			if (editor instanceof EditorInput) {
+				if (harness.onOpenEditor) {
+					await harness.onOpenEditor(editor);
+				}
+			}
 			if (editor instanceof EditorInput && !harness.activeGroupEditors.includes(editor)) {
 				const options = args[1] as { index?: number } | undefined;
 				const index = options?.index;
