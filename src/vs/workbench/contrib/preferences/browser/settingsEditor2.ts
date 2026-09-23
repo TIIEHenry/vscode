@@ -1325,6 +1325,7 @@ export class SettingsEditor2 extends EditorPane {
 	}
 
 	private updateChangedSetting(key: string, value: unknown, manualReset: boolean, languageFilter: string | undefined, scope: ConfigurationScope | undefined): Promise<void> {
+		const requestedValue = value;
 		// ConfigurationService displays the error if this fails.
 		// Force a render afterwards because onDidConfigurationUpdate doesn't fire if the update doesn't result in an effective setting value change.
 		const settingsTarget = this.settingsTargetsWidget.settingsTarget;
@@ -1351,7 +1352,9 @@ export class SettingsEditor2 extends EditorPane {
 					this.refreshTOCTree();
 				}
 				this.renderTree(key, isManualReset);
-				this.pendingSettingUpdate = null;
+				if (this.pendingSettingUpdate?.key === key && this.pendingSettingUpdate.value === requestedValue) {
+					this.pendingSettingUpdate = null;
+				}
 
 				const reportModifiedProps = {
 					key,
