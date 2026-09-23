@@ -91,6 +91,7 @@ export class DebugService implements IDebugService {
 	private activity: IDisposable | undefined;
 	private chosenEnvironments: Record<string, IChosenEnvironment>;
 	private haveDoneLazySetup = false;
+	private focusStackFrameGeneration = 0;
 
 	constructor(
 		@IEditorService private readonly editorService: IEditorService,
@@ -1018,10 +1019,14 @@ export class DebugService implements IDebugService {
 	//---- focus management
 
 	async focusStackFrame(_stackFrame: IStackFrame | undefined, _thread?: IThread, _session?: IDebugSession, options?: { explicit?: boolean; preserveFocus?: boolean; sideBySide?: boolean; pinned?: boolean }): Promise<void> {
+		const generation = ++this.focusStackFrameGeneration;
 		const { stackFrame, thread, session } = getStackFrameThreadAndSessionToFocus(this.model, _stackFrame, _thread, _session);
 
 		if (stackFrame) {
 			const editor = await stackFrame.openInEditor(this.editorService, options?.preserveFocus ?? true, options?.sideBySide, options?.pinned);
+			if (generation !== this.focusStackFrameGeneration) {
+				return;
+			}
 			if (editor) {
 				if (editor.input === DisassemblyViewInput.instance) {
 					// Go to address is invoked via setFocus
