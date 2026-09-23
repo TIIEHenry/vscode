@@ -2751,6 +2751,108 @@ suite('ConversationLens', () => {
 		assert.ok(!gateRow || gateRow.hidden);
 	});
 
+	test('turnEdit session switch keeps compose draft snapshot not bubble text', async () => {
+		const { part, lens, stubService } = mountLens();
+		const slots = getLensSlots(part);
+		const sessionA = stubService.getActiveSessionId();
+		const userTurn = stubService.appendUserTurn(sessionA, 'B');
+		assert.ok(userTurn);
+		const sessionB = stubService.createSession();
+		stubService.switchSession(sessionA);
+
+		const textarea = getDockTextarea(slots);
+		textarea.value = 'A';
+		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
+
+		lens.beginTurnEdit(userTurn.id);
+		assert.strictEqual(lens.composerPolicy, 'turnEdit');
+		assert.strictEqual(lens.dockTextarea.value, 'B');
+
+		lens.dockTextarea.value = 'B-typed';
+		lens.dockTextarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
+
+		lens.switchToSession(sessionB);
+		lens.switchToSession(sessionA);
+
+		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
+		assert.strictEqual(getDockTextarea(slots).value, 'A');
+	});
+
+	test('queueEdit session switch keeps compose draft snapshot', async () => {
+		const { part, lens, stubService } = mountLens();
+		const slots = getLensSlots(part);
+		const sessionA = stubService.getActiveSessionId();
+		stubService.appendUserTurn(sessionA, 'keep session active');
+		const sessionB = stubService.createSession();
+		stubService.switchSession(sessionA);
+		stubService.setMessageQueueFixture(sessionA, {
+			isPaused: false,
+			isProcessing: false,
+			items: [{
+				id: 'q-edit',
+				content: 'B',
+				status: 'PENDING',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 0,
+				lastError: undefined,
+				locked: false,
+				pinned: false,
+			}],
+		});
+
+		const textarea = getDockTextarea(slots);
+		textarea.value = 'A';
+		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
+
+		lens.beginQueueEdit('q-edit');
+		assert.strictEqual(lens.composerPolicy, 'queueEdit');
+		assert.strictEqual(lens.dockTextarea.value, 'B');
+
+		lens.switchToSession(sessionB);
+		lens.switchToSession(sessionA);
+
+		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
+		assert.strictEqual(getDockTextarea(slots).value, 'A');
+	});
+
+	test('compose session switch still writes textarea into drafts', () => {
+		const { part, lens, stubService } = mountLens();
+		const slots = getLensSlots(part);
+		const sessionA = stubService.getActiveSessionId();
+		const sessionB = stubService.createSession();
+		stubService.switchSession(sessionA);
+
+		assert.strictEqual(lens.composerPolicy, 'compose');
+		getDockTextarea(slots).value = 'live compose';
+		lens.switchToSession(sessionB);
+
+		assert.strictEqual(lens.readComposerDraft(sessionA), 'live compose');
+	});
+
+	test('turnEdit createNewSession writes compose draft snapshot not bubble text', () => {
+		const { part, lens, stubService } = mountLens();
+		const slots = getLensSlots(part);
+		const sessionA = stubService.getActiveSessionId();
+		const userTurn = stubService.appendUserTurn(sessionA, 'B');
+		assert.ok(userTurn);
+
+		const textarea = getDockTextarea(slots);
+		textarea.value = 'A';
+		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+
+		lens.beginTurnEdit(userTurn.id);
+		assert.strictEqual(lens.composerPolicy, 'turnEdit');
+		assert.strictEqual(lens.dockTextarea.value, 'B');
+
+		lens.createNewSession();
+
+		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
+	});
+
 	test('SessionBar select refreshes after deleting the last stub session', () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);

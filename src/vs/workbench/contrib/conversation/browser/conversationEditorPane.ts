@@ -173,6 +173,14 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 		syncLease();
 	}
 
+	get composerPolicy(): 'compose' | 'turnEdit' | 'queueEdit' {
+		return this.lens?.composerPolicy ?? 'compose';
+	}
+
+	get composeDraftSnapshot(): string {
+		return this.lens?.composeDraftSnapshot ?? '';
+	}
+
 	writeComposerDraft(sessionId: string, text: string): void {
 		this.lens?.writeComposerDraft(sessionId, text);
 	}

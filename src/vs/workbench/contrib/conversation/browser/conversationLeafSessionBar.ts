@@ -37,6 +37,8 @@ import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js'
 export interface IConversationLeafPaneAccessors {
 	writeComposerDraft(sessionId: string, text: string): void;
 	deleteComposerDraftsForSession(sessionId: string): void;
+	readonly composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
+	readonly composeDraftSnapshot: string;
 	getDockTextarea(): HTMLTextAreaElement | undefined;
 	getReadingColumn(): HTMLElement | undefined;
 	getVisualizeOverlay(): ConversationVisualizeOverlay | undefined;
@@ -160,6 +162,14 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 
 	switchToSession(sessionId: string): void {
 		void this.switchLeafSession(sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
+	}
+
+	get composerPolicy(): 'compose' | 'turnEdit' | 'queueEdit' {
+		return this.accessors.composerPolicy;
+	}
+
+	get composeDraftSnapshot(): string {
+		return this.accessors.composeDraftSnapshot;
 	}
 
 	writeComposerDraft(sessionId: string, text: string): void {

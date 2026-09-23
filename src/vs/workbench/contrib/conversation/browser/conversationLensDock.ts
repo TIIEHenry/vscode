@@ -253,7 +253,9 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 			if (host.inputHistoryBrowse.browseIndex >= 0) {
 				host.inputHistoryBrowse = createInputHistoryBrowseState();
 			}
-			host.writeComposerDraft(host.getBoundSessionId(), host.dockTextarea.value);
+			if (host.composerPolicy === 'compose') {
+				host.writeComposerDraft(host.getBoundSessionId(), host.dockTextarea.value);
+			}
 			host.updateSendEnabled();
 		}));
 

@@ -52,6 +52,8 @@ export interface IConversationLensSessionBarHost {
 	engineHistoryList: ConversationEngineHistoryList | undefined;
 	engineSnapshotsList: ConversationEngineSnapshotsList | undefined;
 	dockTextarea: HTMLTextAreaElement;
+	composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
+	composeDraftSnapshot: string;
 	readonly stubService: IConversationRosterService;
 	readonly uaConnection: IUniverseAgentConnection;
 	readonly contextViewService: IContextViewService;
@@ -459,9 +461,13 @@ export function commitSessionTitleEdit(host: IConversationLensSessionBarHost): v
 	
 }
 
+function outgoingComposerDraftText(host: IConversationLensSessionBarHost): string {
+	return host.composerPolicy !== 'compose' ? host.composeDraftSnapshot : host.dockTextarea.value;
+}
+
 export function createNewSession(host: IConversationLensSessionBarHost): void {
 
-		host.writeComposerDraft(host.getBoundSessionId(), host.dockTextarea.value);
+		host.writeComposerDraft(host.getBoundSessionId(), outgoingComposerDraftText(host));
 		if (isConversationPairingHold(host.uaConnection) || isKeepLeftoverListFailWrite(host)) {
 			host.showPostFailure('engine_disconnected');
 			return;
@@ -553,7 +559,7 @@ export function switchToSession(host: IConversationLensSessionBarHost, sessionId
 			host.visualizeOverlay.close();
 			host.engineHistoryList?.close();
 			host.engineSnapshotsList?.close();
-			host.writeComposerDraft(previousId, host.dockTextarea.value);
+			host.writeComposerDraft(previousId, outgoingComposerDraftText(host));
 		}
 		if (host.switchLeafSession) {
 			void host.switchLeafSession(sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
