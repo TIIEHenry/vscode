@@ -214,6 +214,9 @@ export class NewSessionViewV3PromptRunner {
 		let latestPlan: INewSessionViewV3PromptOptionsPlan | undefined;
 		const resolveOptions = async (refreshToken: CancellationToken): Promise<NewSessionPromptOptionsState> => {
 			latestPlan = await this._resolveGitHubPromptOptionsWithFallback(refreshToken);
+			if (refreshToken.isCancellationRequested || this._newSessionComposerService.activeComposer.get() !== composer || this._sessionsService.activeSession.get()?.isCreated.get()) {
+				throw new CancellationError();
+			}
 			return { kind: 'resolved', options: latestPlan.options };
 		};
 		if (composer.setPromptOptionsController && composer.refreshPromptOptions) {

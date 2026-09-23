@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
+import { isCancellationError } from '../../../../../base/common/errors.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { constObservable, observableValue } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -553,6 +554,103 @@ suite('NewSessionViewV3Prompt', () => {
 		assert.deepStrictEqual(result.gitHubRequests, []);
 	});
 
+	test('does not show stale GitHub prompt options after the session is created', async () => {
+		const isCreated = observableValue('isCreated', false);
+		const workspace = createWorkspace(URI.file('C:\\repo'), 'r', true);
+		const activeSession = new class extends mock<IActiveSession>() {
+			override readonly providerId = 'test';
+			override readonly sessionType = 'test';
+			override readonly isCreated = isCreated;
+			override readonly workspace = constObservable(workspace);
+		}();
+		const promptOptionStates: NewSessionPromptOptionsState[] = [];
+		let promptOptionsController: INewSessionPromptOptionsController | undefined;
+		const composer = {
+			animatePrompt: async () => true,
+			showPromptOptions: (state: NewSessionPromptOptionsState | undefined) => {
+				if (state) {
+					promptOptionStates.push(state);
+				}
+				return true;
+			},
+			setPromptOptionsController: (controller: INewSessionPromptOptionsController) => { promptOptionsController = controller; },
+			refreshPromptOptions: async (token: CancellationToken) => {
+				const controller = promptOptionsController;
+				if (!controller) {
+					return false;
+				}
+				promptOptionStates.push({ kind: 'loading' });
+				try {
+					const state = await controller.resolve(token);
+					promptOptionStates.push(state);
+					return true;
+				} catch (error) {
+					if (isCancellationError(error)) {
+						return false;
+					}
+					throw error;
+				}
+			},
+		};
+		const gitHubService = new class extends mock<IGitHubService>() {
+			override async getRecentAssignedIssues(_owner: string, _repo: string) {
+				await timeout(0);
+				isCreated.set(true, undefined);
+				await timeout(0);
+				return [issue('Assigned issue', '2026-08-07T14:00:00Z', 14)];
+			}
+			override async getRecentAuthoredPullRequests() { return []; }
+			override async getPullRequestReviewThreads() { return []; }
+			override async getIssuesWithLinkedPullRequests() { return new Set<number>(); }
+		}();
+		const telemetryService = new TestTelemetryService();
+		const runner = new NewSessionViewV3PromptRunner(
+			new TestAssignmentService({ 'onb.newSessionViewV3.variation': 'options' }),
+			new TestConfigurationService(),
+			new class extends mock<ISessionsService>() {
+				override readonly activeSession = constObservable<IActiveSession | undefined>(activeSession);
+			}(),
+			new class extends mock<INewSessionComposerService>() {
+				override readonly activeComposer = constObservable(composer);
+			}(),
+			new class extends mock<IGitService>() {
+				override async openRepository(): Promise<IGitRepository | undefined> {
+					return new class extends mock<IGitRepository>() {
+						override readonly rootUri = workspace.uri;
+						override readonly state = constObservable({
+							remotes: [{ name: 'origin', fetchUrl: 'git@github.com:o/r.git', isReadOnly: false }],
+							mergeChanges: [],
+							indexChanges: [],
+							workingTreeChanges: [],
+							untrackedChanges: [],
+						});
+					}();
+				}
+			}(),
+			new MissingFileService(),
+			gitHubService,
+			telemetryService,
+			new NullLogService(),
+			{ totalMs: 1_000, summaryMs: 100, linkageMs: 100, reviewMs: 100 },
+		);
+
+		await runner.run(CancellationToken.None);
+
+		assert.deepStrictEqual({
+			states: summarizePromptOptionStates(promptOptionStates),
+			shown: telemetryService.events.find(event => event.name === 'onboarding.promptStrategy')?.data,
+		}, {
+			states: [{ kind: 'loading' }],
+			shown: {
+				scenarioId: NEW_SESSION_VIEW_V3_TOUR_ID,
+				configuredVariation: 'options',
+				effectiveStrategy: 'options',
+				fallbackReason: 'noCandidate',
+				shown: false,
+			},
+		});
+	});
+
 	test('waits for Agent Host git metadata instead of requiring the Git extension', async () => {
 		const workspace = observableValue('workspace', createWorkspace(URI.file('C:\\repo'), 'r', false));
 		const activeSession = new class extends mock<IActiveSession>() {
@@ -718,9 +816,16 @@ async function runPrompt(
 					return false;
 				}
 				promptOptionStates.push({ kind: 'loading' });
-				const state = await controller.resolve(token);
-				promptOptionStates.push(state);
-				return true;
+				try {
+					const state = await controller.resolve(token);
+					promptOptionStates.push(state);
+					return true;
+				} catch (error) {
+					if (isCancellationError(error)) {
+						return false;
+					}
+					throw error;
+				}
 			},
 		});
 	}();

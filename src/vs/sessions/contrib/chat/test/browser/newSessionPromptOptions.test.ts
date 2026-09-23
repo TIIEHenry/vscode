@@ -7,7 +7,7 @@ import assert from 'assert';
 import { IDelayedHoverOptions, IHoverLifecycleOptions } from '../../../../../base/browser/ui/hover/hover.js';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
-import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
+import { CancellationError, errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { isMarkdownString } from '../../../../../base/common/htmlContent.js';
 import { Disposable, IDisposable, MutableDisposable } from '../../../../../base/common/lifecycle.js';
 import { mock } from '../../../../../base/test/common/mock.js';
@@ -413,6 +413,39 @@ suite('NewSessionPromptOptionsWidget', () => {
 
 		assert.deepStrictEqual({
 			shown: await refreshing,
+			states: states.map(state => state?.kind ?? 'hidden'),
+		}, {
+			shown: false,
+			states: ['loading', 'hidden'],
+		});
+	});
+
+	test('clears loading when resolve throws CancellationError after the refresh token is still valid', async () => {
+		const states: (NewSessionPromptOptionsState | undefined)[] = [];
+		const refresh = disposables.add(new MutableDisposable<CancellationTokenSource>());
+		const harness: IPromptOptionsRefreshHarness = {
+			_promptOptionsRefresh: refresh,
+			_promptOptionsController: {
+				resolve: async () => {
+					throw new CancellationError();
+				},
+				onDidSelectOption: () => undefined,
+				onDidClose: () => undefined,
+			},
+			preparePromptOptionsRefresh: () => {
+				refresh.value?.cancel();
+				refresh.clear();
+				states.push({ kind: 'loading' });
+				return true;
+			},
+			showPromptOptions: state => {
+				states.push(state);
+				return true;
+			},
+		};
+
+		assert.deepStrictEqual({
+			shown: await refreshPromptOptions.call(harness),
 			states: states.map(state => state?.kind ?? 'hidden'),
 		}, {
 			shown: false,
