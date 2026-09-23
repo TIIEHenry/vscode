@@ -672,6 +672,120 @@ suite('Sources diff panel', () => {
 		host.updateWriteActions();
 	}
 
+	test('Diff panel hides Stage after engine WriteGitStagePaths accepted until ref changes', async function () {
+		const resource = toResource.call(this, '/project/src/engine-stage-accepted.ts');
+		const original = toResource.call(this, '/project/src/engine-stage-accepted.ts.git');
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const connection = leftoverLooksLiveApplyConnection([], stageCalls, false);
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+				connection,
+			});
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null;
+			assert.strictEqual(panelStage?.style.display, '');
+
+			await (view as unknown as { runStage: () => Promise<void> }).runStage();
+			await timeout(20);
+			assert.strictEqual(stageCalls.length, 1);
+			assert.strictEqual(panelStage?.style.display, 'none');
+
+			const other = toResource.call(this, '/project/src/engine-stage-other.ts');
+			await panelService.show({
+				modified: other,
+				original: toResource.call(this, '/project/src/engine-stage-other.ts.git'),
+				groupId: 'workingTree',
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+			assert.strictEqual(panelStage?.style.display, '');
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	test('Diff panel keeps Stage visible when WriteGitStagePaths fails', async function () {
+		const resource = toResource.call(this, '/project/src/engine-stage-fail.ts');
+		const original = toResource.call(this, '/project/src/engine-stage-fail.ts.git');
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const connection = leftoverLooksLiveApplyConnection([], stageCalls, false);
+		const failedWrite: UniverseAgentWriteGitWriteResult = {
+			supported: true,
+			reason: '',
+			success: false,
+			errorMessage: 'stage failed',
+			exitCode: 1,
+			stdout: '',
+		};
+		connection.writeGitStagePaths = async (request: UniverseAgentWriteGitStagePathsRequest) => {
+			stageCalls.push(request);
+			return failedWrite;
+		};
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+				connection,
+			});
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null;
+			assert.strictEqual(panelStage?.style.display, '');
+
+			await (view as unknown as { runStage: () => Promise<void> }).runStage();
+			await timeout(20);
+			assert.strictEqual(stageCalls.length, 1);
+			assert.strictEqual(panelStage?.style.display, '');
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
 	function paintReviewWriteChrome(pane: ConversationDiffReviewPane): void {
 		const host = pane as unknown as { comparisonLoadFailed: boolean; updateReviewActions: () => void };
 		host.comparisonLoadFailed = false;

@@ -34,6 +34,7 @@ import { IConversationRosterService } from '../../conversation/browser/conversat
 import { ISCMResource, ISCMService } from '../../scm/common/scm.js';
 import { findScmResourceForUri, ISourcesChangeRef, sourcesDiffLocalWritePath, sourcesGitApplyHunksPatches } from '../common/sourcesChangeRef.js';
 import {
+	isSourcesChangeStageable,
 	SOURCES_GIT_CLEAN_COMMAND,
 	SOURCES_GIT_STAGE_COMMAND,
 	SOURCES_GIT_UNSTAGE_COMMAND,
@@ -166,6 +167,8 @@ export class SourcesDiffPanelView extends ViewPane {
 	private comparisonLoadFailed = false;
 	private renderGeneration = 0;
 	private renderSettledGeneration = 0;
+	/** Engine stage accepted for this modified URI; hide Stage until renderRef switches away. */
+	private stageEngineAcceptedModified: URI | undefined;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -280,6 +283,9 @@ export class SourcesDiffPanelView extends ViewPane {
 
 	private async renderRef(ref: ISourcesChangeRef | undefined): Promise<void> {
 		const generation = ++this.renderGeneration;
+		if (this.stageEngineAcceptedModified && (!ref || ref.modified.toString() !== this.stageEngineAcceptedModified.toString())) {
+			this.stageEngineAcceptedModified = undefined;
+		}
 		this.bodyDisposables.clear();
 		this.clearEditors();
 		this.comparisonLoadFailed = false;
@@ -479,7 +485,10 @@ export class SourcesDiffPanelView extends ViewPane {
 			pairingHold,
 			keepLeftover,
 		});
-		this.stageButton.style.display = actions.showStage && !writeHold ? '' : 'none';
+		const hideStageAfterEngineAccepted = !!this.stageEngineAcceptedModified
+			&& !!this.currentRef
+			&& this.currentRef.modified.toString() === this.stageEngineAcceptedModified.toString();
+		this.stageButton.style.display = actions.showStage && !writeHold && !hideStageAfterEngineAccepted ? '' : 'none';
 		this.acceptButton.style.display = actions.showAccept ? '' : 'none';
 		this.revertButton.style.display = actions.showRevert && !writeHold ? '' : 'none';
 		this.unstageButton.style.display = actions.showUnstage && !writeHold ? '' : 'none';
@@ -504,6 +513,10 @@ export class SourcesDiffPanelView extends ViewPane {
 				this.getEngineSessionReady(),
 			));
 			if (attempt.kind === 'accepted') {
+				const ref = this.currentRef;
+				if (ref && isSourcesChangeStageable(ref.groupId)) {
+					this.stageEngineAcceptedModified = ref.modified;
+				}
 				this.hideActionNotice();
 				this.updateWriteActions();
 				return;
