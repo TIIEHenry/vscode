@@ -124,6 +124,9 @@ export class ChatMcpAuthenticationContentPart extends Disposable implements ICha
 	}
 
 	private async authenticate(): Promise<void> {
+		if (this._store.isDisposed || this._authenticating.get() !== undefined) {
+			return;
+		}
 		const sessionResource = URI.revive(this.data.sessionResource);
 		try {
 			for (const server of this.data.servers.get()) {
@@ -131,6 +134,9 @@ export class ChatMcpAuthenticationContentPart extends Disposable implements ICha
 				await this.agentHostCustomizationService.authenticateMcpServer(sessionResource, server.id);
 			}
 		} finally {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._authenticating.set(undefined, undefined);
 		}
 	}
