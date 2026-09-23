@@ -9,6 +9,7 @@ import { Iterable } from '../../../../../base/common/iterator.js';
 import { KeyCode, KeyMod } from '../../../../../base/common/keyCodes.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { autorun } from '../../../../../base/common/observable.js';
+import { isEqual } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ServicesAccessor } from '../../../../../editor/browser/editorExtensions.js';
 import { localize, localize2 } from '../../../../../nls.js';
@@ -181,6 +182,7 @@ export class ConfigureToolsAction extends Action2 {
 		// Create a cancellation token that cancels when the mode changes
 		const cts = new CancellationTokenSource();
 		const initialMode = widget.input.currentModeObs.get();
+		const initialSessionResource = widget.viewModel?.sessionResource;
 		const modeListener = autorun(reader => {
 			if (initialMode.id !== widget.input.currentModeObs.read(reader).id) {
 				cts.cancel();
@@ -190,7 +192,9 @@ export class ConfigureToolsAction extends Action2 {
 		try {
 			const result = await instaService.invokeFunction(showToolsPicker, placeholder, source, description, () => entriesMap.get(), widget.input.selectedLanguageModel.get()?.metadata, cts.token);
 			if (result) {
-				widget.input.selectedToolsModel.set(result, false);
+				if (widget.viewModel && initialSessionResource && isEqual(widget.viewModel.sessionResource, initialSessionResource)) {
+					widget.input.selectedToolsModel.set(result, false);
+				}
 			}
 		} finally {
 			modeListener.dispose();
