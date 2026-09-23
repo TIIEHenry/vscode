@@ -1778,6 +1778,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 				this.logService.warn(`[Handoff] Did not execute handoff '${handoff.label}' to '${handoff.agent}' because switching agents was unsuccessful`);
 				return;
 			}
+			const handoffSessionResource = this.viewModel?.sessionResource;
 			// Switch to the specified model if provided
 			const modelReady = handoff.model ? this.input.requestModelByQualifiedName([handoff.model]) : undefined;
 			// Insert the handoff prompt into the input
@@ -1787,6 +1788,9 @@ export class ChatWidget extends Disposable implements IChatWidget {
 			// Auto-submit if send flag is true
 			if (handoff.send) {
 				if (modelReady && !await modelReady) {
+					return;
+				}
+				if (handoffSessionResource && (!this.viewModel || this._store.isDisposed || !isEqual(this.viewModel.sessionResource, handoffSessionResource))) {
 					return;
 				}
 				this.acceptInput().catch(e => this.logService.error(`[Handoff] Failed to submit handoff to '${handoff.agent}'`, e));
