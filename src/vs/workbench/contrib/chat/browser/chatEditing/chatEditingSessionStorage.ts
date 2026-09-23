@@ -22,6 +22,8 @@ import { getKeyForChatSessionResource, IChatEditingTimelineState } from './chatE
 const STORAGE_CONTENTS_FOLDER = 'contents';
 const STORAGE_STATE_FILE = 'state.json';
 
+const storeStateQueues = new Map<string, Promise<void>>();
+
 export interface StoredSessionState {
 	readonly initialFileContents: ResourceMap<string>;
 	readonly recentSnapshot: IChatEditingSessionStop;
@@ -122,6 +124,20 @@ export class ChatEditingSessionStorage {
 	}
 
 	public async storeState(state: StoredSessionState): Promise<void> {
+		const prev = storeStateQueues.get(this.storageKey) ?? Promise.resolve();
+		const run = (): Promise<void> => this.storeStateImpl(state);
+		const next = prev.then(run, run);
+		storeStateQueues.set(this.storageKey, next);
+		try {
+			await next;
+		} finally {
+			if (storeStateQueues.get(this.storageKey) === next) {
+				storeStateQueues.delete(this.storageKey);
+			}
+		}
+	}
+
+	private async storeStateImpl(state: StoredSessionState): Promise<void> {
 		const storageFolder = this._getStorageLocation();
 		const contentsFolder = URI.joinPath(storageFolder, STORAGE_CONTENTS_FOLDER);
 
