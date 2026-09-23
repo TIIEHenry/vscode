@@ -728,6 +728,177 @@ suite('Sources diff panel', () => {
 		}
 	});
 
+	test('Diff panel hides Revert after git.clean succeeds until ref changes', async function () {
+		const resource = toResource.call(this, '/project/src/git-clean-revert-hide.ts');
+		const original = toResource.call(this, '/project/src/git-clean-revert-hide.ts.git');
+		const group = {
+			id: 'workingTree',
+			label: 'Changes',
+			resources: [] as ISCMResource[],
+		};
+		const cachedScmResource = {
+			sourceUri: resource,
+			resourceGroup: group,
+			decorations: {},
+			open: async () => { },
+		} as unknown as ISCMResource;
+		group.resources.push(cachedScmResource);
+		const scmService = {
+			_serviceBrand: undefined,
+			get repositories() {
+				return [{
+					provider: {
+						groups: [group],
+						rootUri: resource,
+						onDidChangeResources: Event.None,
+						onDidChangeResourceGroups: Event.None,
+					},
+				}];
+			},
+			get repositoryCount() { return 1; },
+			onDidAddRepository: Event.None,
+			onDidRemoveRepository: Event.None,
+			registerSCMProvider: () => { throw new Error('not implemented'); },
+			getRepository: () => undefined,
+		} as unknown as ISCMService;
+
+		const cleanCommand = CommandsRegistry.registerCommand('git.clean', () => {
+			group.resources.length = 0;
+		});
+		const disconnectedConnection = {
+			isEngineConnected: () => false,
+			getConnectionSnapshot: () => ({}),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+				connection: disconnectedConnection,
+			});
+			instantiationService.stub(ISCMService, scmService);
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+				scmResource: cachedScmResource,
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const panelRevert = view.element.querySelector('.sources-diff-panel-revert') as HTMLButtonElement | null;
+			assert.strictEqual(panelRevert?.style.display, '');
+
+			await (view as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.clean');
+			await timeout(20);
+			assert.strictEqual(panelRevert?.style.display, 'none');
+
+			const other = toResource.call(this, '/project/src/git-clean-revert-other.ts');
+			const otherOriginal = toResource.call(this, '/project/src/git-clean-revert-other.ts.git');
+			const otherScmResource = {
+				sourceUri: other,
+				resourceGroup: group,
+				decorations: {},
+				open: async () => { },
+			} as unknown as ISCMResource;
+			group.resources.push(otherScmResource);
+			await panelService.show({
+				modified: other,
+				original: otherOriginal,
+				groupId: 'workingTree',
+				scmResource: otherScmResource,
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+			assert.strictEqual(panelRevert?.style.display, '');
+		} finally {
+			cleanCommand.dispose();
+		}
+	});
+
+	test('Diff panel keeps Revert visible when git.clean fails', async function () {
+		const resource = toResource.call(this, '/project/src/git-clean-revert-fail.ts');
+		const original = toResource.call(this, '/project/src/git-clean-revert-fail.ts.git');
+		const group = {
+			id: 'workingTree',
+			label: 'Changes',
+			resources: [] as ISCMResource[],
+		};
+		const cachedScmResource = {
+			sourceUri: resource,
+			resourceGroup: group,
+			decorations: {},
+			open: async () => { },
+		} as unknown as ISCMResource;
+		group.resources.push(cachedScmResource);
+
+		const cleanCommand = CommandsRegistry.registerCommand('git.clean', () => {
+			throw new Error('clean failed');
+		});
+		const disconnectedConnection = {
+			isEngineConnected: () => false,
+			getConnectionSnapshot: () => ({}),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+				connection: disconnectedConnection,
+				executeCommand: async (commandId: unknown, ...args: unknown[]) => {
+					if (commandId === 'git.clean') {
+						await CommandsRegistry.getCommand('git.clean')?.handler!(undefined, ...args);
+					}
+				},
+			});
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+				scmResource: cachedScmResource,
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const panelRevert = view.element.querySelector('.sources-diff-panel-revert') as HTMLButtonElement | null;
+			assert.strictEqual(panelRevert?.style.display, '');
+
+			await (view as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.clean');
+			await timeout(20);
+			assert.strictEqual(panelRevert?.style.display, '');
+		} finally {
+			cleanCommand.dispose();
+		}
+	});
+
 	test('Diff panel keeps Stage visible when WriteGitStagePaths fails', async function () {
 		const resource = toResource.call(this, '/project/src/engine-stage-fail.ts');
 		const original = toResource.call(this, '/project/src/engine-stage-fail.ts.git');
