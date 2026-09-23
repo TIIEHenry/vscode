@@ -531,6 +531,7 @@ export class ExtensionEditor extends EditorPane {
 	private async render(extension: IExtension, template: IExtensionEditorTemplate, preserveFocus: boolean): Promise<void> {
 		this.activeElement = null;
 		this.transientDisposables.clear();
+		this.contentDisposables.clear();
 
 		const token = this.transientDisposables.add(new CancellationTokenSource()).token;
 
