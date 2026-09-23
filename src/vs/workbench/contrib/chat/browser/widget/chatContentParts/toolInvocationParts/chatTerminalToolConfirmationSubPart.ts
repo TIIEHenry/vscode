@@ -352,6 +352,10 @@ export class ChatTerminalToolConfirmationSubPart extends BaseChatToolInvocationS
 							// If this would not have been auto approved, enable the options and
 							// do not complete
 							else {
+								if (this._store.isDisposed) {
+									doComplete = false;
+									break;
+								}
 								if (customActions) {
 									for (const action of customActions) {
 										if (!(action instanceof Separator)) {
