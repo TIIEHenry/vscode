@@ -136,6 +136,8 @@ export abstract class BaseLayoutController extends Disposable {
 	protected _togglingSidePane = false;
 
 	private readonly _useModalConfigObs;
+	/** Workspace-gated active session for working-set apply (see constructor). */
+	private readonly _activeSessionForWorkingSet;
 
 	/**
 	 * Storage key for this controller's per-session layout state. Overridable so a
@@ -329,7 +331,7 @@ export abstract class BaseLayoutController extends Disposable {
 
 		// [B2] The active session updates before the workspace folders do; hold back
 		// the new session until the folders reflect its working directory.
-		const activeSessionForWorkingSet = derivedObservableWithCache<IActiveSession | undefined>(this, (reader, lastValue) => {
+		this._activeSessionForWorkingSet = derivedObservableWithCache<IActiveSession | undefined>(this, (reader, lastValue) => {
 			const workspaceFolders = workspaceFoldersObs.read(reader);
 			const activeSession = this._sessionsService.activeSession.read(reader);
 			const activeSessionWorkspaceUri = activeSession?.workspace.read(reader)?.folders[0]?.workingDirectory;
@@ -373,7 +375,7 @@ export abstract class BaseLayoutController extends Disposable {
 		}));
 
 		// [B2] Session changed (apply)
-		this._register(runOnChange(activeSessionForWorkingSet, (session, previousSession) => {
+		this._register(runOnChange(this._activeSessionForWorkingSet, (session, previousSession) => {
 			// Apply working set for current session.
 			// On initial load (no previous session), only apply if we have a saved working set —
 			// skip applying 'empty' to avoid closing editors that are being restored.
@@ -772,6 +774,12 @@ export abstract class BaseLayoutController extends Disposable {
 
 	// --- Editor working sets [B2] ---
 
+	/** True when a queued apply was captured for a session that is no longer the gated working-set target. */
+	private _isStaleWorkingSetApply(capturedSessionResource: URI | undefined): boolean {
+		const gatedSession = this._activeSessionForWorkingSet.get();
+		return !isEqual(gatedSession?.resource, capturedSessionResource);
+	}
+
 	private async _applyWorkingSet(sessionResource: URI | undefined, options?: { readonly isInitialRestore?: boolean }): Promise<void> {
 		// Restoring a session's editor working set must never pull keyboard focus
 		// into the editor area. Focus during a session switch is owned by the
@@ -786,6 +794,10 @@ export abstract class BaseLayoutController extends Disposable {
 		this._onWillApplyWorkingSet(workingSet);
 
 		return this._workingSetSequencer.queue(async () => {
+			if (this._isStaleWorkingSetApply(sessionResource)) {
+				return;
+			}
+
 			// When multiple sessions are visible, applying a working set must never
 			// change the visibility of the editor part: the editor area is shared
 			// across the visible sessions and its visibility is controlled by the
@@ -796,6 +808,9 @@ export abstract class BaseLayoutController extends Disposable {
 					await this._editorGroupsService.applyWorkingSet(workingSet, { preserveFocus });
 				} finally {
 					suppression.dispose();
+				}
+				if (this._isStaleWorkingSetApply(sessionResource)) {
+					return;
 				}
 				return;
 			}
@@ -821,6 +836,9 @@ export abstract class BaseLayoutController extends Disposable {
 
 			if (workingSet === 'empty') {
 				await this._editorGroupsService.applyWorkingSet(workingSet, { preserveFocus });
+				if (this._isStaleWorkingSetApply(sessionResource)) {
+					return;
+				}
 				if (this._shouldRevealEditorPartForEmptyWorkingSet(revealEditorPart) && !this._layoutService.isVisible(Parts.EDITOR_PART, mainWindow)) {
 					this._revealEditorPartForWorkingSet();
 				} else if (hideEditorPart && this._layoutService.isVisible(Parts.EDITOR_PART, mainWindow)) {
@@ -840,6 +858,9 @@ export abstract class BaseLayoutController extends Disposable {
 				} finally {
 					suppression.dispose();
 				}
+				if (this._isStaleWorkingSetApply(sessionResource)) {
+					return;
+				}
 				if (this._shouldHideEditorPartOnApply(editorPartHidden) && this._layoutService.isVisible(Parts.EDITOR_PART, mainWindow)) {
 					this._hideEditorPartForWorkingSet();
 				}
@@ -853,6 +874,9 @@ export abstract class BaseLayoutController extends Disposable {
 			}
 
 			const result = await this._editorGroupsService.applyWorkingSet(workingSet, { preserveFocus });
+			if (this._isStaleWorkingSetApply(sessionResource)) {
+				return;
+			}
 			if (revealEditorPart && result && !this._layoutService.isVisible(Parts.EDITOR_PART, mainWindow)) {
 				this._revealEditorPartForWorkingSet();
 			} else if (hideEditorPart && this._layoutService.isVisible(Parts.EDITOR_PART, mainWindow)) {

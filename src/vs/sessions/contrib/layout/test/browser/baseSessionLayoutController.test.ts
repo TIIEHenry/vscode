@@ -413,6 +413,41 @@ suite('BaseLayoutController', () => {
 		assert.deepStrictEqual(harness.applyWorkingSetCalls, [], 'the gated apply should hold back while the incoming workspace is not ready');
 	});
 
+	test('[B2] skips editor part visibility changes when the gated session changes during applyWorkingSet', async () => {
+		const workspaceFolders = [{ uri: URI.file('/repo') }];
+		createController({ useModal: 'some', workspaceFolders });
+
+		const session1 = makeSession(URI.parse('session:1'));
+		const session2 = makeSession(URI.parse('session:2'));
+
+		harness.visibleEditorsList = [{}];
+		harness.activeSessionObs.set(session1, undefined);
+		await timeout(0);
+
+		harness.activeSessionObs.set(session2, undefined);
+		await timeout(0);
+
+		harness.partVisibility.set(Parts.EDITOR_PART, false);
+		let switchedDuringApply = false;
+		harness.onApplyWorkingSet = workingSet => {
+			if (workingSet === 'empty' || workingSet.name !== `session-working-set:${session1.resource.toString()}`) {
+				return;
+			}
+			switchedDuringApply = true;
+			harness.setPartHiddenCalls = [];
+			harness.activeSessionObs.set(session2, undefined);
+		};
+
+		harness.activeSessionObs.set(session1, undefined);
+		await timeout(0);
+
+		assert.ok(switchedDuringApply, 'applyWorkingSet should run for session 1');
+		assert.ok(
+			!harness.setPartHiddenCalls.some(c => c.part === Parts.EDITOR_PART),
+			'stale working-set apply must not reveal or hide the editor part after the gated session changes'
+		);
+	});
+
 	// --- [B3] Persistence & migration / [B4] Save ---
 
 	test('[B3] migrates legacy sessions.workingSets key and [B4] persists to sessions.layoutState', () => {
