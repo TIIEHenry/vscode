@@ -205,6 +205,16 @@ export class ChatEditingExplanationModelManager extends Disposable implements IC
 			return;
 		}
 
+		const roundDiffInfoByUri = new ResourceMap<IExplanationDiffInfo>();
+		for (const diffInfo of nonEmptyDiffs) {
+			roundDiffInfoByUri.set(diffInfo.modifiedModel.uri, diffInfo);
+		}
+		const canWriteUriState = (uri: URI): boolean => {
+			const existing = this._state.get().get(uri);
+			const roundDiffInfo = roundDiffInfoByUri.get(uri);
+			return !!existing && !!roundDiffInfo && existing.diffInfo === roundDiffInfo;
+		};
+
 		// Build change data for all files
 		interface FileChangeData {
 			uri: URI;
@@ -240,6 +250,9 @@ export class ChatEditingExplanationModelManager extends Disposable implements IC
 			const models = await this._languageModelsService.selectLanguageModels({ vendor: 'copilot', id: 'copilot-utility-small' });
 			if (!models.length) {
 				for (const fileData of fileChanges) {
+					if (!canWriteUriState(fileData.uri)) {
+						continue;
+					}
 					this._updateUriStatePartial(fileData.uri, {
 						progress: 'error',
 						explanations: [],
@@ -341,6 +354,9 @@ Example response format:
 					parsedIndex++;
 				}
 
+				if (!canWriteUriState(fileData.uri)) {
+					continue;
+				}
 				this._updateUriStatePartial(fileData.uri, {
 					progress: 'complete',
 					explanations,
@@ -350,6 +366,9 @@ Example response format:
 			if (!cancellationToken.isCancellationRequested) {
 				const errorMessage = e instanceof Error ? e.message : nls.localize('explanationFailed', "Failed to generate explanations");
 				for (const fileData of fileChanges) {
+					if (!canWriteUriState(fileData.uri)) {
+						continue;
+					}
 					this._updateUriStatePartial(fileData.uri, {
 						progress: 'error',
 						explanations: [],
