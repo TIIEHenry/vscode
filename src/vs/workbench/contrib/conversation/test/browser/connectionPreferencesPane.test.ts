@@ -2189,6 +2189,70 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('active profile label shows Revoked when connected and profile state is revoked', () => {
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: '127.0.0.1:50061',
+				displayName: '127.0.0.1:50061',
+				state: 'revoked',
+				hasTrust: true,
+				targetKind: 'directAddress',
+			}],
+		}, {
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+		const container = pane.getDomNode();
+		(pane as unknown as { activeProfileId: string }).activeProfileId = '127.0.0.1:50061';
+		const label = (pane as unknown as { getProfileStateLabel(profile: { profileId: string; displayName: string; state: string; hasTrust: boolean; targetKind: string }): string }).getProfileStateLabel({
+			profileId: '127.0.0.1:50061',
+			displayName: '127.0.0.1:50061',
+			state: 'revoked',
+			hasTrust: true,
+			targetKind: 'directAddress',
+		});
+		assert.strictEqual(label, 'Revoked');
+		container.remove();
+	});
+
+	test('active profile label shows Disabled when connected and profile state is disabled', () => {
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: '127.0.0.1:50061',
+				displayName: '127.0.0.1:50061',
+				state: 'disabled',
+				hasTrust: true,
+				targetKind: 'directAddress',
+			}],
+		}, {
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+		const container = pane.getDomNode();
+		(pane as unknown as { activeProfileId: string }).activeProfileId = '127.0.0.1:50061';
+		const label = (pane as unknown as { getProfileStateLabel(profile: { profileId: string; displayName: string; state: string; hasTrust: boolean; targetKind: string }): string }).getProfileStateLabel({
+			profileId: '127.0.0.1:50061',
+			displayName: '127.0.0.1:50061',
+			state: 'disabled',
+			hasTrust: true,
+			targetKind: 'directAddress',
+		});
+		assert.strictEqual(label, 'Disabled');
+		container.remove();
+	});
+
 	test('isRecoverTrustConnectResult requires fingerprint path without SAS', () => {
 		assert.strictEqual(isRecoverTrustConnectResult({
 			ok: true,

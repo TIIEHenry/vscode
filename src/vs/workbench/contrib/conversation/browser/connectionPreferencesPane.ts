@@ -2042,6 +2042,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			profile.profileId === this.activeProfileId
 			&& isUniverseAgentPhaseConnected(phase)
 			&& !snapshot.pairingPending
+			&& (profile.state === 'pairingPending' || (profile.state === 'active' && !profile.hasTrust))
 		) {
 			return localize('ua.connectionProfilePaired', "Paired");
 		}
