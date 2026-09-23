@@ -727,6 +727,11 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 					await this._acceptStreamingEditsStart(responseModel, undoStopId, resource);
 				}
 
+				if (this.isDisposed) {
+					acquiredLock.complete();
+					return;
+				}
+
 				const notebookUri = CellUri.parse(resource)?.notebook || resource;
 				progress.push(...createOpeningEditCodeBlock(resource, this._notebookService.hasSupportedNotebooks(notebookUri), undoStopId));
 
@@ -734,11 +739,19 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 					if (entry) {
 						entry.initialContent = initialContent;
 						await entry.resetEditTrackerToInitialContent(); // in case it's reused
+						if (this.isDisposed) {
+							acquiredLock.complete();
+							return;
+						}
 					}
 					snapshots.set(resource, initialContent);
 				} else {
 					// Save to disk to ensure disk state is current before external edits
 					await entry?.save();
+					if (this.isDisposed) {
+						acquiredLock.complete();
+						return;
+					}
 					// Take snapshot of current state
 					snapshots.set(resource, entry && this._getCurrentTextOrNotebookSnapshot(entry));
 				}
@@ -751,6 +764,10 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 		}
 
 		await Promise.all(acquiredLockPromises.map(p => p.p));
+		if (this.isDisposed) {
+			releaseLockPromises.forEach(p => p.complete());
+			return progress;
+		}
 		this.createSnapshot(responseModel.requestId, undoStopId);
 
 		// Store the operation state
