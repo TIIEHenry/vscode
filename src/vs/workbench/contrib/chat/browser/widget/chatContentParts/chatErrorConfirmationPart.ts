@@ -82,7 +82,9 @@ export class ChatErrorConfirmationContentPart extends Disposable implements ICha
 					}
 				} catch (error) {
 					isRunning = false;
-					buttons.forEach(button => button.enabled = true);
+					if (!this._store.isDisposed) {
+						buttons.forEach(button => button.enabled = true);
+					}
 					throw error;
 				}
 			}));
