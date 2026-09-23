@@ -15,6 +15,7 @@ import { IActiveNotebookEditorDelegate, ICellViewModel } from '../../../browser/
 import { CellComments } from '../../../browser/view/cellParts/cellComments.js';
 import { setupInstantiationService } from '../testNotebookEditor.js';
 import * as languages from '../../../../../../editor/common/languages.js';
+import { IRange } from '../../../../../../editor/common/core/range.js';
 import { ICellRange } from '../../../common/notebookRange.js';
 
 class MockCommentThreadWidget extends Disposable {
@@ -66,7 +67,9 @@ suite('CellComments', () => {
 		});
 
 		const mockThread: languages.CommentThread<ICellRange> = {
-			isDocumentCommentThread: () => false,
+			isDocumentCommentThread(): this is languages.CommentThread<IRange> {
+				return false;
+			},
 			commentThreadHandle: 1,
 			controllerHandle: 1,
 			threadId: 'thread-1',
@@ -90,10 +93,10 @@ suite('CellComments', () => {
 		const instantiationService = setupInstantiationService(store);
 		const origCreateInstance = instantiationService.createInstance.bind(instantiationService);
 		instantiationService.createInstance = (<T>(ctor: new (...args: unknown[]) => T, ...args: unknown[]): T => {
-			if (ctor === CommentThreadWidget) {
+			if ((ctor as unknown) === CommentThreadWidget) {
 				return store.add(new MockCommentThreadWidget()) as T;
 			}
-			return origCreateInstance(ctor as never, ...args);
+			return (origCreateInstance as (ctor: unknown, ...args: unknown[]) => T)(ctor, ...args);
 		}) as typeof instantiationService.createInstance;
 
 		instantiationService.stub(ICommentService, new class extends mock<ICommentService>() {
