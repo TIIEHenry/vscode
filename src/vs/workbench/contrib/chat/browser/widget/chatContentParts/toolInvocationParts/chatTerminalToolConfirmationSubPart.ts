@@ -462,7 +462,22 @@ export class ChatTerminalToolConfirmationSubPart extends BaseChatToolInvocationS
 								: localize('newRule.user.plural', 'User auto approve rules {0} added', formatRuleLinks(userRules, 'user')));
 						}
 						if (parts.length > 0) {
-							terminalData.autoApproveInfo = new MarkdownString(parts.join(', '), mdTrustSettings);
+							if (this._store.isDisposed) {
+								doComplete = false;
+								break;
+							}
+							if (toolInvocation.state.get().type !== IChatToolInvocation.StateKind.WaitingForConfirmation) {
+								doComplete = false;
+								break;
+							}
+							const currentTerminalData = toolInvocation.toolSpecificData?.kind === 'terminal'
+								? migrateLegacyTerminalToolSpecificData(toolInvocation.toolSpecificData)
+								: undefined;
+							if (!currentTerminalData) {
+								doComplete = false;
+								break;
+							}
+							currentTerminalData.autoApproveInfo = new MarkdownString(parts.join(', '), mdTrustSettings);
 						}
 						toolConfirmKind = ToolConfirmKind.UserAction;
 						break;
