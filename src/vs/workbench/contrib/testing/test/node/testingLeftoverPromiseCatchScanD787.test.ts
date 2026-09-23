@@ -248,9 +248,15 @@ suite('testing leftover Promise fire-and-forget catch scan (D787)', () => {
 		assert.ok(!coverage.includes(`editorService.openEditor({${doubleCatch}`));
 		assert.ok(coverage.includes('override run(accessor: ServicesAccessor): void {'));
 		assert.ok(coverage.includes(`		}).then(selected => {
+			if (coverageService.selected.get() !== coverage) {
+				return;
+			}
 			coverageService.filterToTest.set(selected ? selected.testId : previousSelection, undefined);
 		});`));
 		assert.ok(!coverage.includes(`		}).then(selected => {
+			if (coverageService.selected.get() !== coverage) {
+				return;
+			}
 			coverageService.filterToTest.set(selected ? selected.testId : previousSelection, undefined);
 		})${doubleCatch}`));
 		assert.ok(coverageDecorations.includes('coverage.detailsForTest(entry.testId, cts.token).then('));
