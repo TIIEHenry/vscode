@@ -702,7 +702,11 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 		const modifiedCellModelPromise = this.resolveCellModel(modifiedCell.uri);
 		const originalCellModelPromise = this.resolveCellModel(originalCell.uri);
 
+		const hydrationGeneration = this.computeRequestId;
 		Promise.all([modifiedCellModelPromise, originalCellModelPromise]).then(([modifiedCellModel, originalCellModel]) => {
+			if (hydrationGeneration !== this.computeRequestId || this._store.isDisposed || this.modifiedModel.cells.indexOf(modifiedCell) === -1) {
+				return;
+			}
 			this.getOrCreateModifiedTextFileEntryForCell(modifiedCell, modifiedCellModel, originalCellModel);
 		});
 
