@@ -42,6 +42,8 @@ const toFileResource = (replaceResource: URI): URI => {
 	return replaceResource.with({ scheme: JSON.parse(replaceResource.query)['scheme'], fragment: '', query: '' });
 };
 
+const replacePreviewUpdateQueues = new Map<string, Promise<void>>();
+
 export class ReplacePreviewContentProvider implements ITextModelContentProvider, IWorkbenchContribution {
 
 	static readonly ID = 'workbench.contrib.replacePreviewContentProvider';
@@ -166,25 +168,37 @@ export class ReplaceService implements IReplaceService {
 	}
 
 	async updateReplacePreview(fileMatch: ISearchTreeFileMatch, override: boolean = false): Promise<void> {
-		const replacePreviewUri = toReplaceResource(fileMatch.resource);
-		const [sourceModelRef, replaceModelRef] = await Promise.all([this.textModelResolverService.createModelReference(fileMatch.resource), this.textModelResolverService.createModelReference(replacePreviewUri)]);
-		const sourceModel = sourceModelRef.object.textEditorModel;
-		const replaceModel = replaceModelRef.object.textEditorModel;
-		// If model is disposed do not update
-		try {
-			if (!sourceModel || !replaceModel || sourceModel.isDisposed() || replaceModel.isDisposed()) {
-				return;
+		const key = fileMatch.resource.toString();
+		const prev = replacePreviewUpdateQueues.get(key) ?? Promise.resolve();
+		const run = async (): Promise<void> => {
+			const replacePreviewUri = toReplaceResource(fileMatch.resource);
+			const [sourceModelRef, replaceModelRef] = await Promise.all([this.textModelResolverService.createModelReference(fileMatch.resource), this.textModelResolverService.createModelReference(replacePreviewUri)]);
+			const sourceModel = sourceModelRef.object.textEditorModel;
+			const replaceModel = replaceModelRef.object.textEditorModel;
+			// If model is disposed do not update
+			try {
+				if (!sourceModel || !replaceModel || sourceModel.isDisposed() || replaceModel.isDisposed()) {
+					return;
+				}
+				if (override) {
+					replaceModel.setValue(sourceModel.getValue());
+				} else {
+					replaceModel.undo();
+				}
+				this.applyEditsToPreview(fileMatch, replaceModel);
+			} finally {
+				sourceModelRef.dispose();
+				replaceModelRef.dispose();
 			}
-			if (override) {
-				replaceModel.setValue(sourceModel.getValue());
-			} else {
-				replaceModel.undo();
+		};
+		const next = prev.then(run, run);
+		replacePreviewUpdateQueues.set(key, next);
+		void next.finally(() => {
+			if (replacePreviewUpdateQueues.get(key) === next) {
+				replacePreviewUpdateQueues.delete(key);
 			}
-			this.applyEditsToPreview(fileMatch, replaceModel);
-		} finally {
-			sourceModelRef.dispose();
-			replaceModelRef.dispose();
-		}
+		});
+		return next;
 	}
 
 	private applyEditsToPreview(fileMatch: ISearchTreeFileMatch, replaceModel: ITextModel): void {
