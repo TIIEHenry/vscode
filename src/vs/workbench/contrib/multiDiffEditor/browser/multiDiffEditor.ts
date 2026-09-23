@@ -99,7 +99,14 @@ export class MultiDiffEditor extends AbstractEditorWithViewState<IMultiDiffEdito
 
 	override async setInput(input: MultiDiffEditorInput, options: IMultiDiffEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
 		await super.setInput(input, options, context, token);
-		this._viewModel = await input.getViewModel();
+		if (token.isCancellationRequested) {
+			return;
+		}
+		const viewModel = await input.getViewModel();
+		if (token.isCancellationRequested) {
+			return;
+		}
+		this._viewModel = viewModel;
 		this._contentOverlay?.updateResource(input.resource);
 
 		// Apply the view model and any restored view state together so the widget's
