@@ -39,10 +39,25 @@ export class WorkspaceFolderManagementContribution extends Disposable implements
 		}));
 	}
 
+	private shouldAbortStaleSessionFolderUpdate(session: ISession | undefined): boolean {
+		const activeSessionId = this.sessionsService.activeSession.get()?.sessionId;
+		const sessionId = session?.sessionId;
+		if (activeSessionId === undefined && sessionId === undefined) {
+			return false;
+		}
+		return activeSessionId !== sessionId;
+	}
+
 	private async updateWorkspaceFoldersForSession(session: ISession | undefined): Promise<void> {
+		if (this.shouldAbortStaleSessionFolderUpdate(session)) {
+			return;
+		}
 		// Auto-trust an isolated worktree VS Code created off a trusted repo, so a
 		// worktree session mounts without tripping the untrusted-folder backstop.
 		await ensureSessionWorktreesTrusted(session?.workspace.get(), this.workspaceTrustManagementService);
+		if (this.shouldAbortStaleSessionFolderUpdate(session)) {
+			return;
+		}
 		const activeSessionFolderData = this.getActiveSessionFolderData(session);
 		const currentRepo = this.workspaceContextService.getWorkspace().folders[0]?.uri;
 
@@ -52,6 +67,9 @@ export class WorkspaceFolderManagementContribution extends Disposable implements
 		// keeps paths that bypass that gate (e.g. startup restore) safe too by
 		// leaving the folder unmounted rather than mounting it untrusted.
 		if (activeSessionFolderData && !await this.isFolderMountable(session, activeSessionFolderData.uri)) {
+			if (this.shouldAbortStaleSessionFolderUpdate(session)) {
+				return;
+			}
 			if (currentRepo) {
 				await this.workspaceEditingService.removeFolders([currentRepo], true);
 			}
@@ -59,6 +77,9 @@ export class WorkspaceFolderManagementContribution extends Disposable implements
 		}
 
 		if (!activeSessionFolderData) {
+			if (this.shouldAbortStaleSessionFolderUpdate(session)) {
+				return;
+			}
 			if (currentRepo) {
 				await this.workspaceEditingService.removeFolders([currentRepo], true);
 			}
@@ -66,6 +87,9 @@ export class WorkspaceFolderManagementContribution extends Disposable implements
 		}
 
 		if (!currentRepo) {
+			if (this.shouldAbortStaleSessionFolderUpdate(session)) {
+				return;
+			}
 			await this.workspaceEditingService.addFolders([activeSessionFolderData], true);
 			return;
 		}
@@ -74,6 +98,9 @@ export class WorkspaceFolderManagementContribution extends Disposable implements
 			return;
 		}
 
+		if (this.shouldAbortStaleSessionFolderUpdate(session)) {
+			return;
+		}
 		await this.workspaceEditingService.updateFolders(0, 1, [activeSessionFolderData], true);
 	}
 

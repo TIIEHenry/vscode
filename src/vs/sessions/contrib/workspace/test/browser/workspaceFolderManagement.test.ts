@@ -133,12 +133,17 @@ class TestWorkspaceEditing extends mock<IWorkspaceEditingService>() {
 class TestWorkspaceTrust extends mock<IWorkspaceTrustManagementService>() {
 	readonly trusted = new Set<string>();
 	readonly setUrisTrustCalls: string[][] = [];
+	/** When set, each `getUriTrustInfo` awaits this before resolving (for mount races). */
+	getUriTrustInfoHook?: () => Promise<void>;
 
 	trust(uri: URI): void {
 		this.trusted.add(uri.toString());
 	}
 
 	override async getUriTrustInfo(uri: URI): Promise<IWorkspaceTrustUriInfo> {
+		if (this.getUriTrustInfoHook) {
+			await this.getUriTrustInfoHook();
+		}
 		return { trusted: this.trusted.has(uri.toString()), uri };
 	}
 
@@ -333,6 +338,44 @@ suite('WorkspaceFolderManagementContribution', () => {
 		}, {
 			added: 0,
 			updated: 0,
+		});
+	});
+
+	test('does not mount a stale session after active session changes during await', async () => {
+		const { activeSession, workspaceEditing, workspaceTrust } = createContribution();
+		const folderA = localFolder('/repo-a');
+		const folderB = localFolder('/repo-b');
+		workspaceTrust.trust(folderA.workingDirectory);
+		workspaceTrust.trust(folderB.workingDirectory);
+
+		let releaseTrustCheck: (() => void) | undefined;
+		let trustCheckEntered: () => void;
+		const trustCheckEnteredPromise = new Promise<void>(resolve => {
+			trustCheckEntered = resolve;
+		});
+		workspaceTrust.getUriTrustInfoHook = () => new Promise<void>(resolve => {
+			trustCheckEntered();
+			releaseTrustCheck = () => {
+				workspaceTrust.getUriTrustInfoHook = undefined;
+				resolve();
+			};
+		});
+
+		activeSession.set(makeActiveSession('a', makeWorkspace(folderA, true)), undefined);
+		await trustCheckEnteredPromise;
+
+		activeSession.set(makeActiveSession('b', makeWorkspace(folderB, true)), undefined);
+		releaseTrustCheck!();
+		await settle();
+
+		assert.deepStrictEqual({
+			added: workspaceEditing.addFoldersCalls.map(call => call.map(entry => entry.uri.toString())),
+			updated: workspaceEditing.updateFoldersCalls.map(call => call.map(entry => entry.uri.toString())),
+			removed: workspaceEditing.removeFoldersCalls.length,
+		}, {
+			added: [[folderB.workingDirectory.toString()]],
+			updated: [],
+			removed: 0,
 		});
 	});
 
