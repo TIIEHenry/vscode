@@ -72,6 +72,7 @@ export class BulkEditPane extends ViewPane {
 	private _currentResolve?: (edit?: ResourceEdit[]) => void;
 	private _currentInput?: BulkFileOperations;
 	private _currentProvider?: BulkEditPreviewProvider;
+	private _openElementInMultiDiffEditorGeneration = 0;
 
 	constructor(
 		options: IViewletViewOptions,
@@ -340,8 +341,13 @@ export class BulkEditPane extends ViewPane {
 			return;
 		}
 
+		const generation = ++this._openElementInMultiDiffEditorGeneration;
+
 		const result = await this._computeResourceDiffEditorInputs.get(fileOperations);
 		const resourceId = await result.getResourceDiffEditorInputIdOfOperation(fileElement.edit);
+		if (generation !== this._openElementInMultiDiffEditorGeneration) {
+			return;
+		}
 		const options: Mutable<IMultiDiffEditorOptions> = {
 			...e.editorOptions,
 			viewState: {
