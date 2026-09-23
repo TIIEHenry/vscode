@@ -242,6 +242,10 @@ export class ChatEditingModifiedDocumentEntry extends AbstractChatEditingModifie
 
 		const result = await this._textModelChangeService.acceptAgentEdits(resource, textEdits, isLastEdits, responseModel);
 
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		transaction((tx) => {
 			this._waitsForLastEdits.set(!isLastEdits, tx);
 			this._stateObs.set(ModifiedFileEntryState.Modified, tx);
@@ -253,7 +257,7 @@ export class ChatEditingModifiedDocumentEntry extends AbstractChatEditingModifie
 				this._rewriteRatioObs.set(1, tx);
 			}
 		});
-		if (isLastEdits && this._shouldAutoSave()) {
+		if (isLastEdits && !this._store.isDisposed && this._shouldAutoSave()) {
 			await this._textFileService.save(this.modifiedModel.uri, {
 				reason: SaveReason.AUTO,
 				skipSaveParticipants: true,
