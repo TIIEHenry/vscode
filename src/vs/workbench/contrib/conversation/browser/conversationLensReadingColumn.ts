@@ -44,6 +44,7 @@ export interface IConversationLensReadingColumnHost {
 	readonly configurationService: IConfigurationService;
 	readonly commandService: ICommandService;
 	readonly instantiationService: IInstantiationService;
+	getBoundSessionId(): string;
 	register<T extends IDisposable>(disposable: T): T;
 	resolveConfirmation(turnId: string, status: 'allowed' | 'skipped'): Promise<void>;
 	resolveQuestion(turnId: string, requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string): Promise<void>;
@@ -128,10 +129,10 @@ export function executeReadingColumnSourcesReview(
 }
 
 function resolveReadingColumnSessionId(host: {
-	readonly stubService: { getActiveSessionId(): string };
+	getBoundSessionId(): string;
 	readonly sessionViewLease?: { readonly sessionId: string };
 }): string {
-	return host.sessionViewLease?.sessionId ?? host.stubService.getActiveSessionId();
+	return host.sessionViewLease?.sessionId ?? host.getBoundSessionId();
 }
 
 export interface IReadingColumnDetailHost {
@@ -195,6 +196,7 @@ export function shouldShowReadingColumnLiveChrome(host: {
 	};
 	readonly uaConnection: IConversationPairingHoldSource;
 	readonly sessionViewLease?: { readonly sessionId: string };
+	getBoundSessionId(): string;
 }): boolean {
 	if (!isConversationPairingHold(host.uaConnection)) {
 		return host.stubService.isEngineConnected();
@@ -225,6 +227,7 @@ export function refreshStaleSnapshotBanner(
 		readonly readingColumn?: HTMLElement;
 		readonly stubService: IConversationRosterService;
 		readonly sessionViewLease?: IConversationSessionViewLease;
+		getBoundSessionId(): string;
 	},
 	_sync?: SyncChrome,
 ): void {

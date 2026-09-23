@@ -425,6 +425,7 @@ suite('conversation lens dispose gate', () => {
 		let pairingPending = false;
 		const host = {
 			sessionViewLease: leftoverLeaseSnapshot({ kind: 'live' }),
+			getBoundSessionId: () => 'ua-cache',
 			stubService: {
 				isEngineConnected: () => connected && !pairingPending,
 				getActiveSessionId: () => 'ua-cache',
@@ -450,10 +451,13 @@ suite('conversation lens dispose gate', () => {
 	test('shouldShowReadingColumnLiveChrome keeps leftover cached turns without lease while pairingPending', () => {
 		const host = {
 			sessionViewLease: undefined,
+			getBoundSessionId: () => 'ua-cache',
 			stubService: {
 				isEngineConnected: () => false,
 				getActiveSessionId: () => 'ua-cache',
-				getTurns: () => [{ id: 't-leftover', kind: 'thinking', text: 'leftover think', streaming: true }],
+				getTurns: (sessionId: string) => sessionId === 'ua-cache'
+					? [{ id: 't-leftover', kind: 'thinking', text: 'leftover think', streaming: true }]
+					: [],
 			},
 			uaConnection: {
 				getConnectionPhase: () => ({ kind: 'connected' as const, path: 'loopback' }),
@@ -466,6 +470,7 @@ suite('conversation lens dispose gate', () => {
 	test('shouldShowReadingColumnLiveChrome first-pull pairingPending without leftover stays false', () => {
 		const host = {
 			sessionViewLease: undefined,
+			getBoundSessionId: () => 'sess-first',
 			stubService: {
 				isEngineConnected: () => false,
 				getActiveSessionId: () => 'sess-first',
@@ -490,12 +495,14 @@ suite('conversation lens dispose gate', () => {
 		const pairingPending = options.pairingPending;
 		const looksLive = options.looksLive ?? false;
 		const hasLease = options.hasLease === true;
+		const boundSessionId = hasLease ? 'ua-cache' : 'sess-first';
 		return {
 			sessionViewLease: hasLease ? leftoverLeaseSnapshot({ kind: 'live' }) : undefined,
+			getBoundSessionId: () => boundSessionId,
 			stubService: {
 				isEngineConnected: () => connected && (looksLive || !pairingPending),
-				getActiveSessionId: () => hasLease ? 'ua-cache' : 'sess-first',
-				getTurns: () => options.turns ?? [],
+				getActiveSessionId: () => boundSessionId,
+				getTurns: (sessionId: string) => sessionId === boundSessionId ? (options.turns ?? []) : [],
 			},
 			uaConnection: {
 				getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
@@ -526,6 +533,42 @@ suite('conversation lens dispose gate', () => {
 		});
 		assert.strictEqual(host.stubService.isEngineConnected(), true);
 		assert.strictEqual(shouldShowReadingColumnLiveChrome(host), true);
+	});
+
+	test('reading column live chrome and stale banner follow bound session without lease not global active', () => {
+		const boundClosed: SyncChrome = { kind: 'closed', reason: 'Bound leaf snapshot' };
+		const activeLive: SyncChrome = { kind: 'live' };
+		const banner = document.createElement('div');
+		banner.className = conversationLensStaleSnapshotClass;
+		banner.hidden = true;
+		const readingColumn = document.createElement('div');
+		readingColumn.appendChild(banner);
+		const getSessionSyncCalls: string[] = [];
+		const host = {
+			sessionViewLease: undefined,
+			getBoundSessionId: () => 'sess-A',
+			readingColumn,
+			stubService: {
+				isEngineConnected: () => false,
+				getActiveSessionId: () => 'sess-B',
+				getTurns: (sessionId: string) => sessionId === 'sess-A'
+					? [{ id: 't-bound', kind: 'thinking', text: 'bound leftover', streaming: true }]
+					: [],
+				getSessionSync: (sessionId: string) => {
+					getSessionSyncCalls.push(sessionId);
+					return sessionId === 'sess-A' ? boundClosed : activeLive;
+				},
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected' as const, path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: true }),
+			},
+		};
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(asLiveChromeHost(host)), true);
+		refreshStaleSnapshotBanner(host as unknown as Parameters<typeof refreshStaleSnapshotBanner>[0]);
+		assert.deepStrictEqual(getSessionSyncCalls, ['sess-A']);
+		assert.strictEqual(banner.hidden, false);
+		assert.ok(banner.textContent?.includes('Bound leaf snapshot'));
 	});
 
 	function leftoverLooksLiveDetailHost(options: {
