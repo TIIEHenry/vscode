@@ -7,7 +7,7 @@ import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import type { ConversationWriteMessage } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { ConversationWriteMessage, IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { conversationLensDockCatalogProbing, conversationLensDockEngineNotConnected, conversationLensDockNoAgent, conversationLensDockNoModel, type ConversationComposerPostFailureReason } from '../../browser/conversationLensDockStrings.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from '../../browser/conversationComposerCatalog.js';
@@ -952,7 +952,7 @@ function createHeldSubmitDraftHost(): {
 			}
 			return { accepted: true, correlation: { id: 'c1' } };
 		},
-	} as IConversationLensComposerHost['sessionViewLease'];
+	} as unknown as IConversationSessionViewLease;
 	return { host, boundSessionId, failures, chrome, release };
 }
 
