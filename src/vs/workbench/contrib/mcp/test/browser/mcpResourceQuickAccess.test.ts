@@ -10,7 +10,7 @@ import { constObservable } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { IFileService, IFileStat, IResolveFileOptions } from '../../../../../platform/files/common/files.js';
+import { IFileService, IFileStat, IFileStatWithMetadata, IResolveFileOptions, IResolveMetadataFileOptions } from '../../../../../platform/files/common/files.js';
 import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
@@ -40,6 +40,8 @@ class TestFileService extends mock<IFileService>() {
 		this._resolveHandler = handler;
 	}
 
+	override resolve(resource: URI, options: IResolveMetadataFileOptions): Promise<IFileStatWithMetadata>;
+	override resolve(resource: URI, options?: IResolveFileOptions): Promise<IFileStat>;
 	override resolve(resource: URI, _options?: IResolveFileOptions): Promise<IFileStat> {
 		if (this._nextResolve) {
 			const deferred = this._nextResolve;
