@@ -72,6 +72,7 @@ export abstract class SimpleFindWidget extends Widget implements IVerticalSashLa
 	private _isVisible: boolean = false;
 	private _foundMatch: boolean = false;
 	private _width: number = 0;
+	private _resultCountGeneration: number = 0;
 
 	/**
 	 * Tracks whether the accessibility help hint has been announced in the ARIA label.
@@ -425,7 +426,11 @@ export abstract class SimpleFindWidget extends Widget implements IVerticalSashLa
 			return;
 		}
 
+		const generation = ++this._resultCountGeneration;
 		const count = await this._getResultCount();
+		if (generation !== this._resultCountGeneration) {
+			return;
+		}
 		this._matchesCount.textContent = '';
 		const showRedOutline = (this.inputValue.length > 0 && count?.resultCount === 0);
 		this._matchesCount.classList.toggle('no-results', showRedOutline);
