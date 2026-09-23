@@ -311,6 +311,11 @@ export class EngineSkillsSection extends Disposable {
 		return this.bodyInput.value;
 	}
 
+	setSelectedSkillBody(value: string): void {
+		this.bodyInput.value = value;
+		this.bodyDirty = isSkillBodyDirty(value, this.loadedBodyText);
+	}
+
 	getSelectedSkillName(): string | undefined {
 		return this.selectedSkill?.name;
 	}
@@ -577,6 +582,10 @@ export class EngineSkillsSection extends Disposable {
 			this._register(this.list.onDidChangeSelection(e => {
 				const entry = e.elements[0];
 				if (entry?.kind === 'skill') {
+					if (this.bodyDirty && entry.skill.name !== this.selectedSkill?.name) {
+						this.restoreSkillSelection();
+						return;
+					}
 					this.selectedSkill = entry.skill;
 					void this.loadSkillBody(entry.skill).catch(onUnexpectedError).catch(onUnexpectedError);
 				} else {

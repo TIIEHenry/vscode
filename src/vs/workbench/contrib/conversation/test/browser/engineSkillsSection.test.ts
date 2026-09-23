@@ -1070,6 +1070,129 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.strictEqual(ok, true);
 	});
 
+	test('Skills: dirty body selection to another skill keeps A and does not save B', async () => {
+		const savedNames: string[] = [];
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({
+				skills: [
+					{ name: 'skill-a', source: 'user', enabled: true },
+					{ name: 'skill-b', source: 'user', enabled: true },
+				],
+			}),
+			getSkillInfo: async (request) => ({
+				name: request.skillName,
+				content: request.skillName === 'skill-a' ? '# Body of A' : '# Body of B',
+				source: 'user',
+				enabled: true,
+			}),
+			saveSkillContent: async (request) => {
+				savedNames.push(request.skillName);
+				return { ok: true };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		section.selectSkillForTest('skill-a');
+		await flushMicrotasks();
+		assert.strictEqual(section.getSelectedSkillName(), 'skill-a');
+		assert.ok(section.getSelectedSkillBody().includes('# Body of A'));
+		assert.strictEqual(section.isSkillBodyDirty(), false);
+		const savesAfterLoadA = savedNames.length;
+
+		const dirtyA = `${section.getSelectedSkillBody()}\n# dirty A`;
+		section.setSelectedSkillBody(dirtyA);
+		assert.strictEqual(section.isSkillBodyDirty(), true);
+
+		section.selectSkillForTest('skill-b');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getSelectedSkillName(), 'skill-a');
+		assert.strictEqual(section.getSelectedSkillBody(), dirtyA);
+		assert.strictEqual(section.isSkillBodyDirty(), true);
+
+		const ok = await section.saveSelectedSkillBody();
+		assert.strictEqual(ok, true);
+		assert.ok(savedNames.length > savesAfterLoadA);
+		assert.strictEqual(savedNames[savedNames.length - 1], 'skill-a');
+		assert.ok(savedNames.every(name => name === 'skill-a'));
+	});
+
+	test('Skills: dirty body reselecting the same skill is not blocked', async () => {
+		const savedNames: string[] = [];
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({
+				skills: [
+					{ name: 'skill-a', source: 'user', enabled: true },
+					{ name: 'skill-b', source: 'user', enabled: true },
+				],
+			}),
+			getSkillInfo: async (request) => ({
+				name: request.skillName,
+				content: request.skillName === 'skill-a' ? '# Body of A' : '# Body of B',
+				source: 'user',
+				enabled: true,
+			}),
+			saveSkillContent: async (request) => {
+				savedNames.push(request.skillName);
+				return { ok: true };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		section.selectSkillForTest('skill-a');
+		await flushMicrotasks();
+		const dirtyA = `${section.getSelectedSkillBody()}\n# dirty A`;
+		section.setSelectedSkillBody(dirtyA);
+		assert.strictEqual(section.isSkillBodyDirty(), true);
+		const savesAfterDirty = savedNames.length;
+
+		section.selectSkillForTest('skill-a');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getSelectedSkillName(), 'skill-a');
+		assert.strictEqual(section.getSelectedSkillBody(), dirtyA);
+		assert.strictEqual(section.isSkillBodyDirty(), true);
+		assert.strictEqual(savedNames.length, savesAfterDirty);
+	});
+
+	test('Skills: clean body selection to another skill still changes selectedSkill', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({
+				skills: [
+					{ name: 'skill-a', source: 'user', enabled: true },
+					{ name: 'skill-b', source: 'user', enabled: true },
+				],
+			}),
+			getSkillInfo: async (request) => ({
+				name: request.skillName,
+				content: request.skillName === 'skill-a' ? '# Body of A' : '# Body of B',
+				source: 'user',
+				enabled: true,
+			}),
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		section.selectSkillForTest('skill-a');
+		await flushMicrotasks();
+		assert.strictEqual(section.getSelectedSkillName(), 'skill-a');
+		assert.strictEqual(section.isSkillBodyDirty(), false);
+
+		section.selectSkillForTest('skill-b');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getSelectedSkillName(), 'skill-b');
+		assert.ok(section.getSelectedSkillBody().includes('# Body of B'));
+	});
+
 	test('bundled skill body is read-only and does not show save toolbar', async () => {
 		const connection = createConnectionStub({
 			connected: true,
