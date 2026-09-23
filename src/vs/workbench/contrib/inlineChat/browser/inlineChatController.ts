@@ -771,6 +771,9 @@ export class InlineChatController implements IEditorContribution {
 
 		try {
 			await this.#applyModelDefaults(session, sessionStore);
+			if (this.#currentSession.get() !== session) {
+				return false;
+			}
 
 			if (arg) {
 				arg.attachDiagnostics ??= true;
@@ -808,10 +811,16 @@ export class InlineChatController implements IEditorContribution {
 					await Promise.all(arg.attachments.map(async attachment => {
 						await this.#zone.value.widget.chatWidget.attachmentModel.addFile(attachment);
 					}));
+					if (this.#currentSession.get() !== session) {
+						return false;
+					}
 					delete arg.attachments;
 				}
 				if (arg.modelSelector) {
 					const id = (await this.#languageModelService.selectLanguageModels(arg.modelSelector)).sort().at(0);
+					if (this.#currentSession.get() !== session) {
+						return false;
+					}
 					if (!id) {
 						throw new Error(`No language models found matching selector: ${JSON.stringify(arg.modelSelector)}.`);
 					}
@@ -897,6 +906,9 @@ export class InlineChatController implements IEditorContribution {
 		const model = this.#zone.value.widget.chatWidget.input.selectedLanguageModel.get();
 		if (model && !model.metadata.isDefaultForLocation[session.chatModel.initialLocation]) {
 			const ids = await this.#languageModelService.selectLanguageModels({ vendor: model.metadata.vendor });
+			if (this.#currentSession.get() !== session) {
+				return;
+			}
 			for (const identifier of ids) {
 				const candidate = this.#languageModelService.lookupLanguageModel(identifier);
 				if (candidate?.isDefaultForLocation[session.chatModel.initialLocation]) {
