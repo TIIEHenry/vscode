@@ -2784,6 +2784,130 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assertAgentsWriteFailureKeepsCatalog(section, 'save exploded', 1, 'demo');
 	});
 
+	test('Agents: dirty AGENTS.md selection to another profile keeps A and does not saveAgentProfile', async () => {
+		const savedIds: string[] = [];
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({
+				profiles: [
+					{ id: 'agent-a', name: 'Agent A', source: 'user' as const },
+					{ id: 'agent-b', name: 'Agent B', source: 'user' as const },
+				],
+			}),
+			saveAgentProfile: async (request) => {
+				savedIds.push(request.profile.id);
+				return {
+					profile: {
+						...request.profile,
+						systemPrompt: request.profile.id === 'agent-a' ? 'Body of A' : 'Body of B',
+					},
+				};
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		await section.selectProfileByIdForTest('agent-a');
+		assert.strictEqual(section.getSelectedProfileId(), 'agent-a');
+		assert.ok(section.getAgentsMarkdownValue().includes('Body of A'));
+		assert.strictEqual(section.isAgentsMarkdownDirty(), false);
+		const savesAfterLoadA = savedIds.length;
+
+		const dirtyA = `${section.getAgentsMarkdownValue()}\n# dirty A`;
+		section.setAgentsMarkdownValue(dirtyA);
+		assert.strictEqual(section.isAgentsMarkdownDirty(), true);
+
+		section.changeListSelectionByProfileIdForTest('agent-b');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getSelectedProfileId(), 'agent-a');
+		assert.strictEqual(section.getAgentsMarkdownValue(), dirtyA);
+		assert.strictEqual(section.isAgentsMarkdownDirty(), true);
+		assert.strictEqual(savedIds.length, savesAfterLoadA);
+		assert.ok(savedIds.every(id => id === 'agent-a'));
+	});
+
+	test('Agents: dirty AGENTS.md reselecting the same profile is not blocked', async () => {
+		const savedIds: string[] = [];
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({
+				profiles: [
+					{ id: 'agent-a', name: 'Agent A', source: 'user' as const },
+					{ id: 'agent-b', name: 'Agent B', source: 'user' as const },
+				],
+			}),
+			saveAgentProfile: async (request) => {
+				savedIds.push(request.profile.id);
+				return {
+					profile: {
+						...request.profile,
+						systemPrompt: request.profile.id === 'agent-a' ? 'Body of A' : 'Body of B',
+					},
+				};
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		await section.selectProfileByIdForTest('agent-a');
+		const dirtyA = `${section.getAgentsMarkdownValue()}\n# dirty A`;
+		section.setAgentsMarkdownValue(dirtyA);
+		assert.strictEqual(section.isAgentsMarkdownDirty(), true);
+		const savesAfterDirty = savedIds.length;
+
+		section.changeListSelectionByProfileIdForTest('agent-a');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getSelectedProfileId(), 'agent-a');
+		assert.strictEqual(section.getAgentsMarkdownValue(), dirtyA);
+		assert.strictEqual(section.isAgentsMarkdownDirty(), true);
+		assert.strictEqual(savedIds.length, savesAfterDirty);
+	});
+
+	test('Agents: clean AGENTS.md selection to another profile still changes selectedProfile', async () => {
+		const savedIds: string[] = [];
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({
+				profiles: [
+					{ id: 'agent-a', name: 'Agent A', source: 'user' as const },
+					{ id: 'agent-b', name: 'Agent B', source: 'user' as const },
+				],
+			}),
+			saveAgentProfile: async (request) => {
+				savedIds.push(request.profile.id);
+				return {
+					profile: {
+						...request.profile,
+						systemPrompt: request.profile.id === 'agent-a' ? 'Body of A' : 'Body of B',
+					},
+				};
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		await section.selectProfileByIdForTest('agent-a');
+		assert.strictEqual(section.getSelectedProfileId(), 'agent-a');
+		assert.strictEqual(section.isAgentsMarkdownDirty(), false);
+		const savesAfterLoadA = savedIds.length;
+
+		section.changeListSelectionByProfileIdForTest('agent-b');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getSelectedProfileId(), 'agent-b');
+		assert.ok(section.getAgentsMarkdownValue().includes('Body of B'));
+		assert.ok(savedIds.length > savesAfterLoadA);
+		assert.strictEqual(savedIds[savedIds.length - 1], 'agent-b');
+	});
+
 	function assertAgentsWriteSuccessClearedAfterListFail(section: EngineAgentsSection, successCopy: string, listReason: string): void {
 		assert.strictEqual(section.getMode(), 'failed');
 		assert.strictEqual(section.getListEntryCount(), 1);

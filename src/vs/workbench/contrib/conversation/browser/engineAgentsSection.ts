@@ -351,7 +351,12 @@ export class EngineAgentsSection extends Disposable {
 
 		this._register(this.list.onDidChangeSelection(e => {
 			const entry = e.elements[0];
-			this.selectedProfile = entry?.kind === 'profile' ? entry.profile : undefined;
+			const next = entry?.kind === 'profile' ? entry.profile : undefined;
+			if (this.agentsMarkdownDirty && next?.id !== this.selectedProfile?.id) {
+				this.restoreProfileSelection();
+				return;
+			}
+			this.selectedProfile = next;
 			this.updateWriteActions();
 			void this.loadAgentsEditorForSelection().catch(onUnexpectedError).catch(onUnexpectedError);
 			this.renderAgentTools();
@@ -510,6 +515,14 @@ export class EngineAgentsSection extends Disposable {
 		}
 		this.list.setSelection([index]);
 		await this.loadAgentsEditorForSelection();
+	}
+
+	changeListSelectionByProfileIdForTest(id: string): void {
+		const index = this.listEntries.findIndex(entry => entry.kind === 'profile' && entry.profile.id === id);
+		if (index < 0) {
+			return;
+		}
+		this.list.setSelection([index]);
 	}
 
 	async createProfile(profile?: UniverseAgentAgentProfileDetail): Promise<boolean> {
