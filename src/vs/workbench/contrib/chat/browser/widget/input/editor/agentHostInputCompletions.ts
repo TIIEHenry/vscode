@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { onUnexpectedError } from '../../../../../../../base/common/errors.js';
+import { isEqual } from '../../../../../../../base/common/resources.js';
 import { DisposableMap } from '../../../../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../../../../base/common/network.js';
 import { assertType } from '../../../../../../../base/common/types.js';
@@ -101,7 +102,7 @@ export class AgentHostInputCompletions extends AgentHostInputCompletionsBase<ICh
 			const applied = await applyAgentHostCompletionAction(arg.action, dialogService, storageService, async config => { await applyAgentHostSessionConfigChange(sessionResource, config, services); });
 			if (applied && arg.reference) {
 				const currentSessionResource = arg.widget.viewModel?.model.sessionResource;
-				if (!currentSessionResource || !URI.isEqual(sessionResource, currentSessionResource)) {
+				if (!currentSessionResource || !isEqual(sessionResource, currentSessionResource)) {
 					return;
 				}
 				arg.widget.getContrib<ChatDynamicVariableModel>(ChatDynamicVariableModel.ID)?.addReference({
