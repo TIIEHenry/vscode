@@ -328,9 +328,7 @@ suite('Sessions - ChatGroupsView', () => {
 		await Promise.resolve();
 
 		const otherMain = createChat('other-main');
-		const otherSession = new class extends TestActiveSession {
-			override readonly sessionId = 'other-session';
-		}([otherMain]);
+		const otherSession = new TestActiveSession([otherMain]);
 		view.setSession(otherSession, options);
 		const layoutOnOtherSession = { groupCount: view.groupCount.get(), groupTabs: getGroupTabs(view) };
 
