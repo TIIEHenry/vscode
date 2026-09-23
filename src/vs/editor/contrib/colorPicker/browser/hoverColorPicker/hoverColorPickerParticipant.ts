@@ -127,6 +127,9 @@ export class HoverColorPickerParticipant implements IEditorHoverParticipant<Colo
 
 		disposables.add(model.onColorFlushed(async (color: Color) => {
 			await updateColorPresentations(editorModel, model, color, range, colorHover);
+			if (editor.getModel() !== editorModel || editorModel.isDisposed() || !editor.hasModel()) {
+				return;
+			}
 			editorUpdatedByColorPicker = true;
 			range = updateEditorModel(editor, range, model);
 		}));
