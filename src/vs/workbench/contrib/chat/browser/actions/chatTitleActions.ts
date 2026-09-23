@@ -5,7 +5,7 @@
 
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { marked } from '../../../../../base/common/marked/marked.js';
-import { basename } from '../../../../../base/common/resources.js';
+import { basename, isEqual } from '../../../../../base/common/resources.js';
 import { ServicesAccessor } from '../../../../../editor/browser/editorExtensions.js';
 import { IBulkEditService } from '../../../../../editor/browser/services/bulkEditService.js';
 import { localize, localize2 } from '../../../../../nls.js';
@@ -254,10 +254,11 @@ export function registerChatTitleActions() {
 			const request = chatModel?.getRequests().find(candidate => candidate.id === item.requestId);
 
 			chatAccessibilityService.acceptRequest(item.sessionResource);
+			const useWidgetRequestOptions = !!widget?.viewModel && isEqual(widget.viewModel.sessionResource, item.sessionResource);
 			chatService.resendRequest(request!, {
-				...widget?.getSelectedModelRequestOptions(),
+				...(useWidgetRequestOptions ? widget.getSelectedModelRequestOptions() : {}),
 				attempt: (request?.attempt ?? -1) + 1,
-				...widget?.getModeRequestOptions(),
+				...(useWidgetRequestOptions ? widget.getModeRequestOptions() : {}),
 			});
 		}
 	});
