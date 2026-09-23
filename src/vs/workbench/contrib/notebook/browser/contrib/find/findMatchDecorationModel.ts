@@ -15,6 +15,7 @@ export class FindMatchDecorationModel extends Disposable {
 	private _currentMatchCellDecorations: string[] = [];
 	private _allMatchesCellDecorations: string[] = [];
 	private _currentMatchDecorations: { kind: 'input'; decorations: ICellModelDecorations[] } | { kind: 'output'; index: number } | null = null;
+	private _outputHighlightEpoch = 0;
 
 	constructor(
 		private readonly _notebookEditor: INotebookEditor,
@@ -34,6 +35,8 @@ export class FindMatchDecorationModel extends Disposable {
 
 
 	public async highlightCurrentFindMatchDecorationInCell(cell: ICellViewModel, cellRange: Range): Promise<number | null> {
+
+		++this._outputHighlightEpoch;
 
 		this.clearCurrentFindMatchDecoration();
 
@@ -73,9 +76,22 @@ export class FindMatchDecorationModel extends Disposable {
 
 	public async highlightCurrentFindMatchDecorationInWebview(cell: ICellViewModel, index: number): Promise<number | null> {
 
+		const epoch = ++this._outputHighlightEpoch;
+
 		this.clearCurrentFindMatchDecoration();
 
 		const offset = await this._notebookEditor.findHighlightCurrent(index, this.ownerID);
+
+		if (epoch !== this._outputHighlightEpoch) {
+			return null;
+		}
+
+		const cellIndex = this._notebookEditor.getCellIndex(cell);
+		if (cellIndex === undefined || cellIndex < 0) {
+			this._notebookEditor.findUnHighlightCurrent(index, this.ownerID);
+			return null;
+		}
+
 		this._currentMatchDecorations = { kind: 'output', index: index };
 
 		this._currentMatchCellDecorations = this._notebookEditor.deltaCellDecorations(this._currentMatchCellDecorations, [{
@@ -148,6 +164,7 @@ export class FindMatchDecorationModel extends Disposable {
 	}
 
 	override dispose() {
+		++this._outputHighlightEpoch;
 		this.clearDecorations();
 		super.dispose();
 	}
