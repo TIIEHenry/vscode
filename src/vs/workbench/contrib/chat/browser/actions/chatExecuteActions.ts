@@ -304,8 +304,13 @@ class ToggleChatModeAction extends Action2 {
 			return;
 		}
 
+		const toggleSessionResource = widget.viewModel?.sessionResource;
 		const chatModeCheck = await instaService.invokeFunction(handleModeSwitch, widget.input.currentModeKind, switchToMode.kind, requestCount, widget.viewModel?.model);
 		if (!chatModeCheck) {
+			return;
+		}
+
+		if (toggleSessionResource && (!widget.viewModel || !isEqual(toggleSessionResource, widget.viewModel.sessionResource))) {
 			return;
 		}
 
