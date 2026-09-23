@@ -131,6 +131,7 @@ export class RenameWidget implements IRenameWidget, IContentWidget, IDisposable 
 	private readonly _candidates: Set<string>;
 
 	private _visible?: boolean;
+	private _showFocusTimer: Timeout | undefined;
 
 	/** must be reset at session start */
 	private _beforeFirstInputFieldEditSW: StopWatch;
@@ -586,7 +587,14 @@ export class RenameWidget implements IRenameWidget, IContentWidget, IDisposable 
 		this._editor.layoutContentWidget(this);
 
 		// TODO@ulugbekna: could this be simply run in `afterRender`?
-		setTimeout(() => {
+		if (this._showFocusTimer !== undefined) {
+			clearTimeout(this._showFocusTimer);
+		}
+		this._showFocusTimer = setTimeout(() => {
+			this._showFocusTimer = undefined;
+			if (!this._visible) {
+				return;
+			}
 			this._inputWithButton.input.focus();
 			this._inputWithButton.input.setSelectionRange(
 				parseInt(this._inputWithButton.input.getAttribute('selectionStart')!),
@@ -641,6 +649,10 @@ export class RenameWidget implements IRenameWidget, IContentWidget, IDisposable 
 
 	private _hide(): void {
 		this._trace('invoked _hide');
+		if (this._showFocusTimer !== undefined) {
+			clearTimeout(this._showFocusTimer);
+			this._showFocusTimer = undefined;
+		}
 		this._visible = false;
 		this._visibleContextKey.reset();
 		this._editor.layoutContentWidget(this);
