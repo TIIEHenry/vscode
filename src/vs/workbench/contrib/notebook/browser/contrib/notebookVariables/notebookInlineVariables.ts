@@ -325,6 +325,16 @@ export class NotebookInlineVariablesController extends Disposable implements INo
 		}
 
 		if (inlineDecorations.length > 0) {
+			if (token.isCancellationRequested) {
+				return;
+			}
+			const current = this.notebookEditor.getCellByHandle(event.cellHandle);
+			if (!current || current !== cell) {
+				return;
+			}
+			if (!this.notebookEditor.textModel?.uri || !isEqual(this.notebookEditor.textModel.uri, event.notebook)) {
+				return;
+			}
 			this.updateCellInlineDecorations(cell, inlineDecorations);
 			this.initCellContentListener(cell);
 		}
