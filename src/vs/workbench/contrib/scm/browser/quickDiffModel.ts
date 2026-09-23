@@ -364,12 +364,15 @@ export class QuickDiffModel extends Disposable {
 			return this._quickDiffsPromise;
 		}
 
-		this._quickDiffsPromise = this.getOriginalResource().then(async (quickDiffs) => {
-			if (this._disposed) { // disposed
+		const quickDiffsPromise = this.getOriginalResource().then(async (quickDiffs) => {
+			if (this._disposed || this._quickDiffsPromise !== quickDiffsPromise) {
 				return [];
 			}
 
 			if (quickDiffs.length === 0) {
+				if (this._disposed || this._quickDiffsPromise !== quickDiffsPromise) {
+					return [];
+				}
 				this._quickDiffs = [];
 				this._originalEditorModels.clear();
 				return [];
@@ -383,6 +386,10 @@ export class QuickDiffModel extends Disposable {
 				return quickDiffs;
 			}
 
+			if (this._disposed || this._quickDiffsPromise !== quickDiffsPromise) {
+				return [];
+			}
+
 			this._quickDiffs = quickDiffs;
 
 			this._originalEditorModels.clear();
@@ -390,7 +397,7 @@ export class QuickDiffModel extends Disposable {
 			return (await Promise.all(quickDiffs.map(async (quickDiff) => {
 				try {
 					const ref = await this.textModelResolverService.createModelReference(quickDiff.originalResource);
-					if (this._disposed) { // disposed
+					if (this._disposed || this._quickDiffsPromise !== quickDiffsPromise) {
 						ref.dispose();
 						return [];
 					}
@@ -415,8 +422,12 @@ export class QuickDiffModel extends Disposable {
 			}))).flat();
 		});
 
-		return this._quickDiffsPromise.finally(() => {
-			this._quickDiffsPromise = undefined;
+		this._quickDiffsPromise = quickDiffsPromise;
+
+		return quickDiffsPromise.finally(() => {
+			if (this._quickDiffsPromise === quickDiffsPromise) {
+				this._quickDiffsPromise = undefined;
+			}
 		});
 	}
 
