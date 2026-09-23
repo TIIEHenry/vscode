@@ -71,6 +71,7 @@ export class ChatEditingCheckpointTimelineImpl implements IChatEditingCheckpoint
 	private readonly _fileBaselines = new Map<string, IFileBaseline>(); // key: `${uri}::${requestId}`
 	private readonly _refCountedDiffs = new Map<string, IObservable<IEditSessionEntryDiff | undefined>>();
 	private readonly _finalizedDiffCache = new Map<string, IEditSessionEntryDiff>();
+	private _epochNavigation = Promise.resolve();
 
 	/** Gets the checkpoint, if any, we can 'undo' to. */
 	private readonly _willUndoToCheckpoint = derived(reader => {
@@ -277,7 +278,15 @@ export class ChatEditingCheckpointTimelineImpl implements IChatEditingCheckpoint
 		return ChatEditingSnapshotTextModelContentProvider.getSnapshotFileURI(this.chatSessionResource, requestId, stopId, fileURI.path, fileURI.scheme, fileURI.authority);
 	}
 
-	private async _navigateToEpoch(restoreToEpoch: number, navigateToEpoch = restoreToEpoch): Promise<void> {
+	private _navigateToEpoch(restoreToEpoch: number, navigateToEpoch = restoreToEpoch): Promise<void> {
+		const run = () => this._doNavigateToEpoch(restoreToEpoch, navigateToEpoch);
+		const prev = this._epochNavigation;
+		const promise = prev.then(run, run);
+		this._epochNavigation = promise.catch(() => { });
+		return promise;
+	}
+
+	private async _doNavigateToEpoch(restoreToEpoch: number, navigateToEpoch = restoreToEpoch): Promise<void> {
 		const currentEpoch = this._currentEpoch.get();
 		if (currentEpoch !== restoreToEpoch) {
 			const urisToRestore = await this._applyFileSystemOperations(currentEpoch, restoreToEpoch);
