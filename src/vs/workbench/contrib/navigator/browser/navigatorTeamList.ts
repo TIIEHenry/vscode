@@ -518,6 +518,10 @@ export class NavigatorTeamView extends ViewPane {
 				}
 			}
 
+			if (this.rosterService.getActiveSessionId() !== sessionId) {
+				return;
+			}
+
 			// D369 leftover-looks-live: pairing-hold-first after await. KEEP leftover;
 			// do not paint in-flight members/tasks as live. D336 entry KEEP is unchanged.
 			if (isConversationPairingHold(this.uaConnection) || !this.rosterService.isEngineConnected() || this.uaConnection.getConnectionPhase().kind !== 'connected') {
@@ -533,6 +537,9 @@ export class NavigatorTeamView extends ViewPane {
 			this.publishLiveTaskIds(tasks);
 			this.setTeamSnapshotNote(undefined);
 		} catch {
+			if (this.rosterService.getActiveSessionId() !== sessionId) {
+				return;
+			}
 			const hadLiveTeamPaint = this.memberEntries.length > 0 || this.taskEntries.length > 0;
 			if (!hadLiveTeamPaint) {
 				this.setMemberEntries([], TEAM_FETCH_FAILED_COPY);

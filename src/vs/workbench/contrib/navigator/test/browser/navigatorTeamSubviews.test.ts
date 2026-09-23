@@ -1526,6 +1526,160 @@ suite('Navigator Team subviews', () => {
 		assert.notStrictEqual(membersListEl.style.display, 'none', 'leftover member list must stay visible');
 	});
 
+	test('in-flight refresh after active session change does not paint stale members or failure copy', async () => {
+		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
+		roster.setEngineConnected(true);
+		const sessionA = roster.getActiveSessionId();
+		let memberStatusCalls = 0;
+		let taskListCalls = 0;
+		let resolveHeldMemberStatus: ((rows: Array<{
+			memberName: string;
+			memberAgentId: string;
+			status: string;
+			preset: string;
+			dynamic: string;
+			turnCount: number;
+		}>) => void) | undefined;
+		let rejectHeldMemberStatus: ((err: Error) => void) | undefined;
+		let heldMemberStatusStarted: (() => void) | undefined;
+		let heldMemberStatusEntered = new Promise<void>(resolve => { heldMemberStatusStarted = resolve; });
+		let holdNextMemberStatus = false;
+		const sessionAMember = {
+			memberName: 'Alice',
+			memberAgentId: 'member:1',
+			status: 'IDLE',
+			preset: 'p',
+			dynamic: 'd',
+			turnCount: 1,
+		};
+		const sessionATask = {
+			taskId: 't-a',
+			subject: 'Session A task',
+			owner: 'Alice',
+			status: 'OPEN',
+			blockedBy: '',
+			lastMessage: '',
+			description: '',
+		};
+		const staleMember = {
+			memberName: 'StaleMember',
+			memberAgentId: 'member:stale',
+			status: 'BUSY',
+			preset: 'p',
+			dynamic: 'd',
+			turnCount: 99,
+		};
+		const staleTask = {
+			taskId: 't-stale',
+			subject: 'Stale task',
+			owner: 'StaleMember',
+			status: 'OPEN',
+			blockedBy: '',
+			lastMessage: '',
+			description: '',
+		};
+		const sessionBMember = {
+			memberName: 'Carol',
+			memberAgentId: 'member:b',
+			status: 'IDLE',
+			preset: 'p',
+			dynamic: 'd',
+			turnCount: 2,
+		};
+		const sessionBTask = {
+			taskId: 't-b',
+			subject: 'Session B task',
+			owner: 'Carol',
+			status: 'OPEN',
+			blockedBy: '',
+			lastMessage: '',
+			description: '',
+		};
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			team: {
+				memberStatus: async () => {
+					memberStatusCalls++;
+					if (memberStatusCalls === 1) {
+						return [sessionAMember];
+					}
+					if (holdNextMemberStatus) {
+						holdNextMemberStatus = false;
+						heldMemberStatusStarted?.();
+						return new Promise((resolve, reject) => {
+							resolveHeldMemberStatus = resolve;
+							rejectHeldMemberStatus = reject;
+						});
+					}
+					return [sessionBMember];
+				},
+				taskList: async () => {
+					taskListCalls++;
+					if (taskListCalls === 1) {
+						return [sessionATask];
+					}
+					if (taskListCalls === 2 || taskListCalls === 4) {
+						return [sessionBTask];
+					}
+					if (taskListCalls === 3) {
+						return [staleTask];
+					}
+					return [sessionBTask];
+				},
+				teamInfo: async () => undefined,
+			},
+		});
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountTeamView(roster, connection, undefined, inspectService);
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+
+		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList;
+		const tasksList = (view as unknown as { tasksList: WorkbenchList<{ id: string; label: string }> }).tasksList;
+		assert.ok(membersList.element(0)?.label.includes('Alice'));
+
+		holdNextMemberStatus = true;
+		const staleSuccessRefresh = (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		await heldMemberStatusEntered;
+		assert.ok(resolveHeldMemberStatus);
+
+		const sessionB = roster.createSession();
+		assert.notStrictEqual(sessionB, sessionA);
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		assert.ok(membersList.element(0)?.label.includes('Carol'), 'new session paint must be visible before stale refresh completes');
+		assert.ok(tasksList.element(0)?.label.includes('Session B task'));
+
+		resolveHeldMemberStatus!([staleMember]);
+		await staleSuccessRefresh;
+
+		assert.ok(membersList.element(0)?.label.includes('Carol'), 'stale success must not overwrite new session members');
+		assert.ok(!(membersList.element(0)?.label.includes('StaleMember')));
+		assert.ok(tasksList.element(0)?.label.includes('Session B task'), 'stale success must not overwrite new session tasks');
+		assert.ok(!(tasksList.element(0)?.label.includes('Stale task')));
+
+		const carolMemberCount = membersList.length;
+		const carolTaskCount = tasksList.length;
+		heldMemberStatusEntered = new Promise<void>(resolve => { heldMemberStatusStarted = resolve; });
+		holdNextMemberStatus = true;
+		roster.switchSession(sessionA);
+		const staleFailureRefresh = (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		await heldMemberStatusEntered;
+		roster.switchSession(sessionB);
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		assert.ok(membersList.element(0)?.label.includes('Carol'));
+
+		rejectHeldMemberStatus!(new Error('stale session memberStatus boom'));
+		await staleFailureRefresh;
+
+		assert.strictEqual(membersList.length, carolMemberCount, 'stale failure must not clear new session member rows');
+		assert.strictEqual(tasksList.length, carolTaskCount, 'stale failure must not clear new session task rows');
+		assert.ok(membersList.element(0)?.label.includes('Carol'), 'stale failure must not overwrite new session members');
+		const membersEmpty = view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty') as HTMLElement | null;
+		assert.ok(membersEmpty);
+		assert.notStrictEqual(membersEmpty.style.display, 'block', 'stale failure must not paint fetch-failed empty over new session');
+		assert.notStrictEqual(membersEmpty.textContent, TEAM_FETCH_FAILED_COPY);
+	});
+
 	test('in-flight memberStatus leftover-looks-live keeps leftover and does not paint fresh live', async () => {
 		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
 		roster.setEngineConnected(true);
