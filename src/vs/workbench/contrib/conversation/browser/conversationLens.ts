@@ -331,6 +331,8 @@ export class ConversationLens extends Disposable {
 		this._register(this.stubService.onDidChangeEngineConnection(() => {
 			this.refreshComposerCatalogs();
 			this.bindSessionView(this.getBoundSessionId());
+			this.updateConversationPhase();
+			this.updateSyncChrome();
 			this.updateSessionBarWriteChrome();
 			this.timelineTree.refreshPresentation();
 		}));
@@ -338,6 +340,8 @@ export class ConversationLens extends Disposable {
 			this.refreshComposerCatalogs();
 			this.updateGateRow();
 			this.bindSessionView(this.stubService.getActiveSessionId());
+			this.updateConversationPhase();
+			this.updateSyncChrome();
 			this.updateSessionBarWriteChrome();
 			this.timelineTree.refreshPresentation();
 		}));

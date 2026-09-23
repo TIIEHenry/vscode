@@ -14,7 +14,7 @@ import { ExtensionIdentifier } from '../../../../../platform/extensions/common/e
 import { IExtensionService } from '../../../../services/extensions/common/extensions.js';
 import { scheduleConversationMermaidExtensionResolve } from '../../browser/conversationLens.js';
 import type { ConversationMermaidExtensionInfo } from '../../browser/conversationMermaidHost.js';
-import { applySessionViewTimeline, refreshTrajectoryRecords, updateSyncChrome, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
+import { applySessionViewTimeline, refreshTrajectoryRecords, updateConversationPhase, updateSyncChrome, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
 import { conversationLensStaleSnapshotClass, executeReadingColumnSourcesReview, isReadingColumnWritesEnabled, refreshStaleSnapshotBanner, requestReadingColumnDetail, shouldShowReadingColumnLiveChrome, type IReadingColumnDetailHost } from '../../browser/conversationLensReadingColumn.js';
 import { SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND } from '../../../sources/browser/sourcesReview.contribution.js';
 import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
@@ -806,6 +806,71 @@ suite('conversation lens dispose gate', () => {
 		refreshStaleSnapshotBanner(host, { kind: 'live' });
 		assert.strictEqual(host.staleBanner.hidden, false);
 		assert.ok(host.staleBanner.textContent?.includes('Cached snapshot (read-only)'));
+	});
+
+	test('pairing-hold same-session KEEP connection change paints getSessionSync closed chrome not Session live', async () => {
+		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationLens.ts`);
+		const engineStart = source.indexOf('this.stubService.onDidChangeEngineConnection(() => {');
+		const uaStart = source.indexOf('this.uaConnection.onDidChangeConnection(() => {');
+		assert.ok(engineStart >= 0 && uaStart > engineStart);
+		const engineBlock = source.slice(engineStart, source.indexOf('}));', engineStart));
+		const uaBlock = source.slice(uaStart, source.indexOf('}));', uaStart));
+		assert.ok(engineBlock.includes('this.bindSessionView(this.getBoundSessionId());'));
+		assert.ok(engineBlock.includes('this.updateConversationPhase();'));
+		assert.ok(engineBlock.includes('this.updateSyncChrome();'));
+		assert.ok(engineBlock.indexOf('this.bindSessionView(this.getBoundSessionId());') < engineBlock.indexOf('this.updateConversationPhase();'));
+		assert.ok(engineBlock.indexOf('this.updateConversationPhase();') < engineBlock.indexOf('this.updateSyncChrome();'));
+		assert.ok(uaBlock.includes('this.bindSessionView(this.stubService.getActiveSessionId());'));
+		assert.ok(uaBlock.includes('this.updateConversationPhase();'));
+		assert.ok(uaBlock.includes('this.updateSyncChrome();'));
+		assert.ok(uaBlock.indexOf('this.bindSessionView(this.stubService.getActiveSessionId());') < uaBlock.indexOf('this.updateConversationPhase();'));
+		assert.ok(uaBlock.indexOf('this.updateConversationPhase();') < uaBlock.indexOf('this.updateSyncChrome();'));
+
+		const demoted: SyncChrome = { kind: 'closed', reason: 'Cached snapshot (read-only)' };
+		const leftover: ConversationTimelineEntry[] = [
+			{ id: 't1', kind: 'user', text: '' },
+			{ id: 't2', kind: 'user', text: '' },
+		];
+		const lifetime = new DisposableStore();
+		const host = pairingSyncChromeHost({ leftover: { kind: 'live' }, rosterSync: demoted });
+		host.lastAttachedEntries = leftover;
+		host.sessionSyncBadge.textContent = 'Session live';
+		host.sessionSyncBadge.title = 'Session live';
+		Object.assign(host, {
+			sessionViewLifetime: lifetime,
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: true }),
+			},
+			stubService: {
+				...host.stubService,
+				isEngineConnected: () => false,
+				isEngineSessionReady: () => false,
+				acquireSessionView: () => {
+					throw new Error('pairing-hold same-session KEEP must not acquire');
+				},
+			},
+			timelineTree: {
+				applyEntries: () => {
+					throw new Error('pairing-hold same-session KEEP must not applyEntries');
+				},
+				refreshPresentation: () => { },
+			},
+		});
+		const priorLease = host.sessionViewLease;
+		bindSessionView(host as unknown as IConversationLensSessionBindingHost, 'ua-cache');
+		assert.strictEqual(host.sessionViewLease, priorLease);
+		assert.strictEqual(host.lastAttachedEntries, leftover);
+		assert.strictEqual(host.sessionSyncBadge.textContent, 'Session live');
+		updateConversationPhase(host);
+		updateSyncChrome(host);
+		assert.strictEqual(host.sessionViewLease, priorLease);
+		assert.strictEqual(host.lastAttachedEntries, leftover);
+		assert.notStrictEqual(host.sessionSyncBadge.textContent, 'Session live');
+		assert.strictEqual(host.sessionSyncBadge.textContent, formatSyncChromeLabel(demoted));
+		assert.strictEqual(host.sessionSyncBadge.title, formatSyncChromeLabel(demoted));
+		assert.strictEqual(host.sessionSyncBadge.getAttribute('aria-label'), formatSyncChromeLabel(demoted));
+		lifetime.dispose();
 	});
 
 	test('bindSessionView skips applyEntries after dispose', () => {
