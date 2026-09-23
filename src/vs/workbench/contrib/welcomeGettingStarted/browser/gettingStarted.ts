@@ -637,7 +637,11 @@ export class GettingStartedPage extends EditorPane {
 			this.stepsContent.classList.remove('video');
 
 			const media = stepToExpand.media;
-			this.webview.setHtml(await this.detailsRenderer.renderSVG(media.path));
+			const body = await this.detailsRenderer.renderSVG(media.path);
+			if (this.editorInput.selectedStep !== stepId) {
+				return;
+			}
+			this.webview.setHtml(body);
 
 			let isDisposed = false;
 			this.stepDisposables.add(toDisposable(() => { isDisposed = true; }));
@@ -677,6 +681,9 @@ export class GettingStartedPage extends EditorPane {
 			const media = stepToExpand.media;
 
 			const rawHTML = await this.detailsRenderer.renderMarkdown(media.path, media.base);
+			if (this.editorInput.selectedStep !== stepId) {
+				return;
+			}
 			this.webview.setHtml(rawHTML);
 
 			const serializedContextKeyExprs = rawHTML.match(/checked-on=\"([^'][^"]*)\"/g)?.map(attr => attr.slice('checked-on="'.length, -1)
