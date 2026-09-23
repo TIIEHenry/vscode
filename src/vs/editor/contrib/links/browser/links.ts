@@ -226,11 +226,12 @@ export class LinkDetector extends Disposable implements IEditorContribution {
 
 		const { link } = occurrence;
 
+		const modelUri = this.editor.hasModel() ? this.editor.getModel().uri : undefined;
+
 		link.resolve(CancellationToken.None).then(uri => {
 
 			// Support for relative file URIs of the shape file://./relativeFile.txt or file:///./relativeFile.txt
-			if (typeof uri === 'string' && this.editor.hasModel()) {
-				const modelUri = this.editor.getModel().uri;
+			if (typeof uri === 'string' && modelUri) {
 				if (modelUri.scheme === Schemas.file && uri.startsWith(`${Schemas.file}:`)) {
 					const parsedUri = URI.parse(uri);
 					if (parsedUri.scheme === Schemas.file) {
