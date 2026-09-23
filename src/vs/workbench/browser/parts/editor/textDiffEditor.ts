@@ -130,6 +130,9 @@ export class TextDiffEditor extends AbstractTextEditor<IDiffEditorViewState> imp
 			const vm = resolvedDiffEditorModel.textDiffEditorModel ? control.createViewModel(resolvedDiffEditorModel.textDiffEditorModel) : null;
 			this._previousViewModel = vm;
 			await vm?.waitForDiff();
+			if (token.isCancellationRequested || this._previousViewModel !== vm) {
+				return undefined;
+			}
 			control.setModel(vm);
 
 			// Restore view state (unless provided by options)
