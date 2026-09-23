@@ -19,6 +19,7 @@ export class CellComments extends CellContentPart {
 	// keyed by threadId
 	private readonly _commentThreadWidgets: DisposableMap<string, { widget: CommentThreadWidget<ICellRange>; dispose: () => void }>;
 	private currentElement: ICellViewModel | undefined;
+	private _renderGeneration = 0;
 
 	constructor(
 		private readonly notebookEditor: INotebookEditorDelegate,
@@ -44,11 +45,12 @@ export class CellComments extends CellContentPart {
 			return;
 		}
 
+		this._renderGeneration++;
 		this.currentElement = element;
 		await this._updateThread();
 	}
 
-	private async _createCommentTheadWidget(owner: string, commentThread: languages.CommentThread<ICellRange>) {
+	private async _createCommentTheadWidget(owner: string, commentThread: languages.CommentThread<ICellRange>, element: ICellViewModel, generation: number) {
 		const widgetDisposables = new DisposableStore();
 		const widget = this.instantiationService.createInstance(
 			CommentThreadWidget,
@@ -75,11 +77,14 @@ export class CellComments extends CellContentPart {
 		const layoutInfo = this.notebookEditor.getLayoutInfo();
 
 		await widget.display(layoutInfo.fontInfo.lineHeight, true);
+		if (generation !== this._renderGeneration || this.currentElement !== element) {
+			return;
+		}
 		this._applyTheme();
 
 		widgetDisposables.add(widget.onDidResize(() => {
-			if (this.currentElement) {
-				this.currentElement.commentHeight = this._calculateCommentThreadHeight(widget.getDimensions().height);
+			if (this.currentElement === element) {
+				element.commentHeight = this._calculateCommentThreadHeight(widget.getDimensions().height);
 			}
 		}));
 	}
@@ -92,26 +97,49 @@ export class CellComments extends CellContentPart {
 		if (!this.currentElement) {
 			return;
 		}
-		const infos = await this._getCommentThreadsForCell(this.currentElement);
+		const element = this.currentElement;
+		const generation = this._renderGeneration;
+		const isStale = () => generation !== this._renderGeneration || this.currentElement !== element;
+
+		const infos = await this._getCommentThreadsForCell(element);
+		if (isStale()) {
+			return;
+		}
 		const widgetsToDelete = new Set(this._commentThreadWidgets.keys());
-		const layoutInfo = this.currentElement.layoutInfo;
+		const layoutInfo = element.layoutInfo;
 		this.container.style.top = `${layoutInfo.commentOffset}px`;
 		for (const info of infos) {
 			if (!info) { continue; }
 			for (const thread of info.threads) {
+				if (isStale()) {
+					return;
+				}
 				widgetsToDelete.delete(thread.threadId);
 				const widget = this._commentThreadWidgets.get(thread.threadId)?.widget;
 				if (widget) {
 					await widget.updateCommentThread(thread);
+					if (isStale()) {
+						return;
+					}
 				} else {
-					await this._createCommentTheadWidget(info.uniqueOwner, thread);
+					const threadId = thread.threadId;
+					await this._createCommentTheadWidget(info.uniqueOwner, thread, element, generation);
+					if (isStale()) {
+						if (this._commentThreadWidgets.has(threadId)) {
+							this._commentThreadWidgets.deleteAndDispose(threadId);
+						}
+						return;
+					}
 				}
 			}
 		}
 		for (const threadId of widgetsToDelete) {
 			this._commentThreadWidgets.deleteAndDispose(threadId);
 		}
-		this._updateHeight();
+		if (isStale()) {
+			return;
+		}
+		this._updateHeight(element);
 
 	}
 
@@ -127,15 +155,15 @@ export class CellComments extends CellContentPart {
 		return computedHeight;
 	}
 
-	private _updateHeight() {
-		if (!this.currentElement) {
+	private _updateHeight(element: ICellViewModel = this.currentElement!) {
+		if (!element) {
 			return;
 		}
 		let height = 0;
 		for (const { widget } of this._commentThreadWidgets.values()) {
 			height += this._calculateCommentThreadHeight(widget.getDimensions().height);
 		}
-		this.currentElement.commentHeight = height;
+		element.commentHeight = height;
 	}
 
 	private async _getCommentThreadsForCell(element: ICellViewModel): Promise<(INotebookCommentInfo | null)[]> {
@@ -158,8 +186,15 @@ export class CellComments extends CellContentPart {
 		this._bindListeners();
 	}
 
+	override unrenderCell(element: ICellViewModel): void {
+		this._renderGeneration++;
+		super.unrenderCell(element);
+	}
+
 	override prepareLayout(): void {
-		this._updateHeight();
+		if (this.currentElement) {
+			this._updateHeight(this.currentElement);
+		}
 	}
 
 	override updateInternalLayoutNow(element: ICellViewModel): void {
