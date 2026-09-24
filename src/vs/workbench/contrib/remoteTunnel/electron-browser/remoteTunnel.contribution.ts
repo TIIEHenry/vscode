@@ -90,6 +90,8 @@ export class RemoteTunnelWorkbenchContribution extends Disposable implements IWo
 
 	private connectionInfo: ConnectionInfo | undefined;
 
+	private _tunnelStatusSeq = 0;
+
 	private readonly logger: ILogger;
 
 	private expiredSessions: Set<string> = new Set();
@@ -135,6 +137,7 @@ export class RemoteTunnelWorkbenchContribution extends Disposable implements IWo
 	}
 
 	private handleTunnelStatusUpdate(status: TunnelStatus) {
+		++this._tunnelStatusSeq;
 		this.connectionInfo = undefined;
 		this.hasLinkContext.set(false);
 		if (status.type === 'disconnected') {
@@ -261,8 +264,13 @@ export class RemoteTunnelWorkbenchContribution extends Disposable implements IWo
 					newSession = { ...mode.session, token };
 				}
 			}
+			const statusSeq = this._tunnelStatusSeq;
 			const status = await this.remoteTunnelService.initialize(mode.active && newSession ? { ...mode, session: newSession } : INACTIVE_TUNNEL_MODE);
 			listener?.dispose();
+
+			if (statusSeq !== this._tunnelStatusSeq) {
+				return;
+			}
 
 			if (status.type === 'connected') {
 				this.connectionInfo = status.info;
