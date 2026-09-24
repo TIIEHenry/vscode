@@ -98,6 +98,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 	private readonly _extensionHostManagers = this._register(new ExtensionHostCollection());
 
 	private _resolveAuthorityAttempt: number = 0;
+	private _resolveAuthorityAgainGeneration: number = 0;
 
 	constructor(
 		options: { hasLocalProcess: boolean; allowRemoteExtensionsInLocalWebWorker: boolean },
@@ -679,11 +680,19 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 			return;
 		}
 
+		const generation = ++this._resolveAuthorityAgainGeneration;
+
 		this._remoteAuthorityResolverService._clearResolvedAuthority(remoteAuthority);
 		try {
 			const result = await this._resolveAuthorityWithLogging(remoteAuthority);
+			if (generation !== this._resolveAuthorityAgainGeneration) {
+				return;
+			}
 			this._remoteAuthorityResolverService._setResolvedAuthority(result.authority, result.options);
 		} catch (err) {
+			if (generation !== this._resolveAuthorityAgainGeneration) {
+				return;
+			}
 			this._remoteAuthorityResolverService._setResolvedAuthorityError(remoteAuthority, err);
 		}
 	}
