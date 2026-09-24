@@ -45,6 +45,7 @@ export class EditSessionsWorkbenchService extends Disposable implements IEditSes
 	private _initChain: Promise<void> = Promise.resolve();
 	private _initSeq = 0;
 	private _readGenerations = new Map<SyncResource, number>();
+	private _writeGenerations = new Map<SyncResource, number>();
 	private readonly signedInContext: IContextKey<boolean>;
 
 	get isSignedIn() {
@@ -107,6 +108,9 @@ export class EditSessionsWorkbenchService extends Disposable implements IEditSes
 	 * @returns The ref of the stored state.
 	 */
 	async write(resource: SyncResource, content: string | EditSession): Promise<string> {
+		const generation = (this._writeGenerations.get(resource) ?? 0) + 1;
+		this._writeGenerations.set(resource, generation);
+
 		await this.initialize('write', false);
 		if (!this.initialized) {
 			throw new Error('Please sign in to store your edit session.');
@@ -119,7 +123,9 @@ export class EditSessionsWorkbenchService extends Disposable implements IEditSes
 		content = typeof content === 'string' ? content : JSON.stringify(content);
 		const ref = await this.storeClient!.writeResource(resource, content, null, undefined, createSyncHeaders(generateUuid()));
 
-		this._lastWrittenResources.set(resource, { ref, content });
+		if (this._writeGenerations.get(resource) === generation) {
+			this._lastWrittenResources.set(resource, { ref, content });
+		}
 
 		return ref;
 	}
