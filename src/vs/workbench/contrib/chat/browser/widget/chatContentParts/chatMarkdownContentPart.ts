@@ -905,16 +905,24 @@ export class CollapsedCodeBlock extends ChatEditPillElement {
 	private async showDiff({ editorOptions: options, openToSide }: IOpenEditorOptions): Promise<void> {
 		const group = openToSide ? SIDE_GROUP : undefined;
 		if (this.currentDiff) {
+			const currentDiff = this.currentDiff;
+			const uri = this.uri;
 			// If the change is a pure addition into a file whose original version did not
 			// exist or was empty, there is nothing meaningful to diff against. Open the
 			// file in a normal editor instead of a diff editor.
-			if (this.currentDiff.removed === 0 && await isResourceContentEmpty(this.textModelService, this.currentDiff.originalURI) && this.uri) {
-				this.editorService.openEditor({ resource: this.uri, options }, group);
+			if (currentDiff.removed === 0 && await isResourceContentEmpty(this.textModelService, currentDiff.originalURI) && uri) {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.editorService.openEditor({ resource: uri, options }, group);
+				return;
+			}
+			if (this._store.isDisposed) {
 				return;
 			}
 			this.editorService.openEditor({
-				original: { resource: this.currentDiff.originalURI },
-				modified: { resource: this.currentDiff.modifiedURI },
+				original: { resource: currentDiff.originalURI },
+				modified: { resource: currentDiff.modifiedURI },
 				options
 			}, group);
 		} else if (this.uri) {
