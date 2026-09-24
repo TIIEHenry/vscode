@@ -229,19 +229,24 @@ export async function resolveConfirmation(host: IConversationLensSessionBindingH
 		host.focusTimelineRecord(turnId);
 		return;
 	}
+	const sessionId = host.getBoundSessionId();
 	try {
 		const outcome = await host.postBound({
 			kind: 'permissionRespond',
 			requestId: turnId,
 			decision: status === 'allowed' ? 'allow' : 'deny',
 		});
-		if (!outcome.accepted) {
-			host.showPostFailure(outcome.reason);
-			return;
+		if (!host.isDisposed && host.getBoundSessionId() === sessionId) {
+			if (!outcome.accepted) {
+				host.showPostFailure(outcome.reason);
+				return;
+			}
+			host.focusTimelineRecord(turnId);
 		}
-		host.focusTimelineRecord(turnId);
 	} catch {
-		host.showPostFailure('failed');
+		if (!host.isDisposed && host.getBoundSessionId() === sessionId) {
+			host.showPostFailure('failed');
+		}
 	}
 
 }
@@ -272,6 +277,7 @@ export async function resolveQuestion(host: IConversationLensSessionBindingHost,
 		host.focusTimelineRecord(turnId);
 		return;
 	}
+	const sessionId = host.getBoundSessionId();
 	try {
 		const outcome = await host.postBound({
 			kind: 'questionRespond',
@@ -279,13 +285,17 @@ export async function resolveQuestion(host: IConversationLensSessionBindingHost,
 			answers,
 			...(customText !== undefined ? { customText } : {}),
 		});
-		if (!outcome.accepted) {
-			host.showPostFailure(outcome.reason);
-			return;
+		if (!host.isDisposed && host.getBoundSessionId() === sessionId) {
+			if (!outcome.accepted) {
+				host.showPostFailure(outcome.reason);
+				return;
+			}
+			host.focusTimelineRecord(turnId);
 		}
-		host.focusTimelineRecord(turnId);
 	} catch {
-		host.showPostFailure('failed');
+		if (!host.isDisposed && host.getBoundSessionId() === sessionId) {
+			host.showPostFailure('failed');
+		}
 	}
 
 }
