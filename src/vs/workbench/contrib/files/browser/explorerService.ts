@@ -41,6 +41,7 @@ export class ExplorerService implements IExplorerService {
 	private editable: { stat: ExplorerItem; data: IEditableData } | undefined;
 	private config: IFilesConfiguration['explorer'];
 	private cutItems: ExplorerItem[] | undefined;
+	private _copyChain: Promise<void> = Promise.resolve();
 	private view: IExplorerView | undefined;
 	private decorationsProviderRegistered = false;
 	private model: ExplorerModel;
@@ -272,6 +273,12 @@ export class ExplorerService implements IExplorerService {
 	}
 
 	async setToCopy(items: ExplorerItem[], cut: boolean): Promise<void> {
+		const run = this._copyChain.then(() => this.setToCopyNow(items, cut));
+		this._copyChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async setToCopyNow(items: ExplorerItem[], cut: boolean): Promise<void> {
 		const previouslyCutItems = this.cutItems;
 		this.cutItems = cut ? items : undefined;
 		await this.clipboardService.writeResources(items.map(s => s.resource));
