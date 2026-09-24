@@ -31,6 +31,7 @@ export class InstalledMcpServersDiscovery extends Disposable implements IMcpDisc
 
 	readonly fromGallery = true;
 	private readonly collections = this._register(new DisposableMap<string, CollectionState>());
+	private _syncChain = Promise.resolve();
 
 	constructor(
 		@IMcpWorkbenchService private readonly mcpWorkbenchService: IMcpWorkbenchService,
@@ -62,6 +63,12 @@ export class InstalledMcpServersDiscovery extends Disposable implements IMcpDisc
 	}
 
 	private async sync(): Promise<void> {
+		const run = this._syncChain.then(() => this._syncNow(), () => this._syncNow());
+		this._syncChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async _syncNow(): Promise<void> {
 		try {
 			const collections = new Map<string, [IMcpConfigPath | undefined, McpServerDefinition[]]>();
 			const mcpConfigPathInfos = new ResourceMap<Promise<IMcpConfigPath & { locations: Map<string, Location> } | undefined>>();

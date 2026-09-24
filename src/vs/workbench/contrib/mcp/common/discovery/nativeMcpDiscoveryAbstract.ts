@@ -61,7 +61,8 @@ export abstract class FilesystemMcpDiscovery extends Disposable implements IMcpD
 	): IDisposable {
 		const store = new DisposableStore();
 		const collectionRegistration = store.add(new MutableDisposable());
-		const updateFile = async () => {
+		let chain = Promise.resolve();
+		const now = async () => {
 			let definitions: McpServerDefinition[] = [];
 			try {
 				const contents = await this._fileService.readFile(file);
@@ -77,6 +78,11 @@ export abstract class FilesystemMcpDiscovery extends Disposable implements IMcpD
 					collectionRegistration.value = this._mcpRegistry.registerCollection(collection);
 				}
 			}
+		};
+		const updateFile = async () => {
+			const run = chain.then(() => now(), () => now());
+			chain = run.then(() => undefined, () => undefined);
+			return run;
 		};
 
 		store.add(autorun(reader => {
