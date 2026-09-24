@@ -95,7 +95,15 @@ export const remoteConnectionLatencyMeasurer = new class {
 	lastMeasurement: IRemoteConnectionLatencyMeasurement | undefined = undefined;
 	get latency() { return this.lastMeasurement; }
 
+	private _measureChain: Promise<void> = Promise.resolve();
+
 	async measure(remoteAgentService: IRemoteAgentService): Promise<IRemoteConnectionLatencyMeasurement | undefined> {
+		const run = this._measureChain.then(() => this.measureNow(remoteAgentService));
+		this._measureChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async measureNow(remoteAgentService: IRemoteAgentService): Promise<IRemoteConnectionLatencyMeasurement | undefined> {
 		let currentLatency = Infinity;
 
 		// Measure up to samples count
