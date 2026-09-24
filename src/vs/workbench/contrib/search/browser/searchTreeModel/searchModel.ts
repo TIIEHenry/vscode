@@ -306,7 +306,7 @@ export class SearchModelImpl extends Disposable implements ISearchModel {
 		}
 
 		const cacheCurrent = ai
-			? (searchInstanceID === this._aiSearchInstanceID || (searchInstanceID === '' && !this.aiSearchCancelledForNewSearch))
+			? (searchInstanceID !== '' && searchInstanceID === this._aiSearchInstanceID) || (searchInstanceID === '' && !this.aiSearchCancelledForNewSearch && this._aiSearchInstanceID !== '')
 			: (searchInstanceID === this._plainSearchInstanceID || (searchInstanceID === '' && !this.searchCancelledForNewSearch));
 		if (cacheCurrent) {
 			this.searchResult.setCachedSearchComplete(completed, ai);
