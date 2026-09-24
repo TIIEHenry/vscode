@@ -657,6 +657,10 @@ export class TimelinePane extends ViewPane {
 			this.pendingRequests.delete(request.source);
 		}
 
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		if (response === undefined || request.uri !== this.uri) {
 			if (this.pendingRequests.size === 0 && this._pendingRefresh) {
 				this.refresh();
