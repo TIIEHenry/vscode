@@ -210,6 +210,7 @@ export class SearchView extends ViewPane {
 	private _cachedResults: ISearchComplete | undefined;
 	private _cachedKeywords: string[] = [];
 	public _pendingSemanticSearchPromise: Promise<ISearchComplete> | undefined;
+	private _keywordSuggestionEpoch = 0;
 	constructor(
 		options: IViewPaneOptions,
 		@IFileService private readonly fileService: IFileService,
@@ -1969,6 +1970,7 @@ export class SearchView extends ViewPane {
 	public clearAIResults() {
 		this.model.searchResult.aiTextSearchResult.hidden = true;
 		this.refreshTreeController.clearAllPending();
+		this._keywordSuggestionEpoch++;
 		this._pendingSemanticSearchPromise = undefined;
 		this._cachedResults = undefined;
 		this._cachedKeywords = [];
@@ -2207,13 +2209,16 @@ export class SearchView extends ViewPane {
 	}
 
 	private async getKeywordSuggestions() {
+		const epoch = ++this._keywordSuggestionEpoch;
 		// Reuse pending aiSearch if available
 		let aiSearchPromise = this._pendingSemanticSearchPromise;
 		if (!aiSearchPromise) {
 			this.viewModel.searchResult.setAIQueryUsingTextQuery();
 			aiSearchPromise = this._pendingSemanticSearchPromise = this.viewModel.aiSearch(result => {
 				if (result && isAIKeyword(result)) {
-					this.updateKeywordSuggestionUI(result);
+					if (this._keywordSuggestionEpoch === epoch) {
+						this.updateKeywordSuggestionUI(result);
+					}
 					return;
 				}
 				// Clear pending promise when first result comes in
@@ -2222,7 +2227,10 @@ export class SearchView extends ViewPane {
 				}
 			});
 		}
-		this._cachedResults = await aiSearchPromise;
+		const complete = await aiSearchPromise;
+		if (this._keywordSuggestionEpoch === epoch) {
+			this._cachedResults = complete;
+		}
 	}
 
 	private addMessage(message: TextSearchCompleteMessage) {

@@ -197,6 +197,9 @@ export class TextSearchQuickAccess extends PickerQuickAccessProvider<ITextSearch
 		const getAsyncResults = async () => {
 			this.currentAsyncSearch = result.asyncResults;
 			await result.asyncResults;
+			if (token.isCancellationRequested) {
+				return [];
+			}
 			const syncResultURIs = new ResourceSet(result.syncResults.map(e => e.resource));
 			return this.searchModel.searchResult.matches(false).filter(e => !syncResultURIs.has(e.resource));
 		};
@@ -390,6 +393,9 @@ export class TextSearchQuickAccess extends PickerQuickAccessProvider<ITextSearch
 					label: localize('noAnythingResults', "No matching results")
 				}] : this._getPicksFromMatches(asyncResults, MAX_FILES_SHOWN - matches.length))
 				.then(picks => {
+					if (conditionalTokenCts.token.isCancellationRequested) {
+						return picks;
+					}
 					if (picks.length > 0) {
 						this.searchModel.searchResult.toggleHighlights(true);
 					}
