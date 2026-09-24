@@ -1052,6 +1052,9 @@ export class NotebookCellList extends WorkbenchList<CellViewModel> implements ID
 			});
 
 			return editorAttachedPromise.then(() => {
+				if (this._isDisposed || this.view.element(viewIndex) !== element) {
+					return;
+				}
 				this._revealRangeCommon(viewIndex, range, alignHint);
 			});
 		}
