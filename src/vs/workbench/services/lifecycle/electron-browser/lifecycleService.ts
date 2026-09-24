@@ -18,6 +18,8 @@ import { CancellationTokenSource } from '../../../../base/common/cancellation.js
 
 export class NativeLifecycleService extends AbstractLifecycleService {
 
+	private beforeUnloadGeneration = 0;
+
 	private static readonly BEFORE_SHUTDOWN_WARNING_DELAY = 5000;
 	private static readonly WILL_SHUTDOWN_WARNING_DELAY = 800;
 
@@ -37,6 +39,7 @@ export class NativeLifecycleService extends AbstractLifecycleService {
 		// Main side indicates that window is about to unload, check for vetos
 		ipcRenderer.on('vscode:onBeforeUnload', async (event: unknown, ...args: unknown[]) => {
 			const reply = args[0] as { okChannel: string; cancelChannel: string; reason: ShutdownReason };
+			const generation = ++this.beforeUnloadGeneration;
 			this.logService.trace(`[lifecycle] onBeforeUnload (reason: ${reply.reason})`);
 
 			// trigger onBeforeShutdown events and veto collecting
@@ -56,7 +59,9 @@ export class NativeLifecycleService extends AbstractLifecycleService {
 			else {
 				this.logService.trace('[lifecycle] onBeforeUnload continues without veto');
 
-				this.shutdownReason = reply.reason;
+				if (generation === this.beforeUnloadGeneration) {
+					this.shutdownReason = reply.reason;
+				}
 				ipcRenderer.send(reply.okChannel, windowId);
 			}
 		});
