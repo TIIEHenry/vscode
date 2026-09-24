@@ -172,6 +172,7 @@ export class EditSessionsDataViews extends Disposable {
 class EditSessionDataViewDataProvider implements ITreeViewDataProvider {
 
 	private editSessionsCount;
+	private _getAllEditSessionsSeq = 0;
 
 	constructor(
 		@IEditSessionsStorageService private readonly editSessionsStorageService: IEditSessionsStorageService,
@@ -199,8 +200,11 @@ class EditSessionDataViewDataProvider implements ITreeViewDataProvider {
 	}
 
 	private async getAllEditSessions(): Promise<ITreeItem[]> {
+		const seq = ++this._getAllEditSessionsSeq;
 		const allEditSessions = await this.editSessionsStorageService.list('editSessions');
-		this.editSessionsCount.set(allEditSessions.length);
+		if (seq === this._getAllEditSessionsSeq) {
+			this.editSessionsCount.set(allEditSessions.length);
+		}
 		const editSessions = [];
 
 		for (const session of allEditSessions) {
