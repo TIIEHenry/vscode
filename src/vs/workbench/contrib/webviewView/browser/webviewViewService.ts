@@ -114,7 +114,9 @@ export class WebviewViewService extends Disposable implements IWebviewViewServic
 		const pending = this._awaitingRevival.get(viewType);
 		if (pending) {
 			resolver.resolve(pending.webview, CancellationToken.None).then(() => {
-				this._awaitingRevival.delete(viewType);
+				if (this._awaitingRevival.get(viewType)?.resolve === pending.resolve) {
+					this._awaitingRevival.delete(viewType);
+				}
 				pending.subscription.dispose();
 				pending.resolve();
 			});
