@@ -43,6 +43,7 @@ export class ReleaseNotesManager extends Disposable {
 
 	private _currentReleaseNotes: WebviewInput | undefined = undefined;
 	private _lastMeta: { text: string; base: URI } | undefined;
+	private _showGeneration = 0;
 
 	constructor(
 		@IEnvironmentService private readonly _environmentService: IEnvironmentService,
@@ -71,13 +72,16 @@ export class ReleaseNotesManager extends Disposable {
 	}
 
 	private async updateHtml() {
-		if (!this._currentReleaseNotes || !this._lastMeta) {
+		const notes = this._currentReleaseNotes;
+		const meta = this._lastMeta;
+		if (!notes || !meta) {
 			return;
 		}
-		const html = await this.renderBody(this._lastMeta);
-		if (this._currentReleaseNotes) {
-			this._currentReleaseNotes.webview.setHtml(html);
+		const html = await this.renderBody(meta);
+		if (this._currentReleaseNotes !== notes || this._lastMeta !== meta) {
+			return;
 		}
+		notes.webview.setHtml(html);
 	}
 
 	private async getBase(useCurrentFile: boolean) {
@@ -91,10 +95,21 @@ export class ReleaseNotesManager extends Disposable {
 	}
 
 	public async show(version: string, useCurrentFile: boolean): Promise<boolean> {
+		const generation = ++this._showGeneration;
 		const releaseNoteText = await this.loadReleaseNotes(version, useCurrentFile);
+		if (generation !== this._showGeneration) {
+			return false;
+		}
 		const base = await this.getBase(useCurrentFile);
-		this._lastMeta = { text: releaseNoteText, base };
-		const html = await this.renderBody(this._lastMeta);
+		if (generation !== this._showGeneration) {
+			return false;
+		}
+		const meta = { text: releaseNoteText, base };
+		const html = await this.renderBody(meta);
+		if (generation !== this._showGeneration) {
+			return false;
+		}
+		this._lastMeta = meta;
 		const title = nls.localize('releaseNotesInputName', "Release Notes: {0}", version);
 
 		const activeEditorPane = this._editorService.activeEditorPane;

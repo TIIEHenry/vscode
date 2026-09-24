@@ -221,6 +221,7 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
 	private readonly badgeDisposable = this._register(new MutableDisposable());
 	private updateStateContextKey: IContextKey<string>;
 	private majorMinorUpdateAvailableContextKey: IContextKey<boolean>;
+	private _stateSeq = 0;
 
 	constructor(
 		@IStorageService storageService: IStorageService,
@@ -269,15 +270,23 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
 	}
 
 	private async onUpdateStateChange(state: UpdateState): Promise<void> {
+		const seq = ++this._stateSeq;
 		this.updateStateContextKey.set(state.type);
 
 		switch (state.type) {
-			case StateType.Idle:
+			case StateType.Idle: {
 				// Themed dialog shown from the last focused window; the windowless macOS case is handled by the main process.
-				if (state.notAvailable && !state.error && await this.hostService.hadLastFocus()) {
-					this.dialogService.info(nls.localize('noUpdatesAvailable', "There are currently no updates available.")).catch(onUnexpectedError).catch(onUnexpectedError);
+				if (state.notAvailable && !state.error) {
+					const hadLastFocus = await this.hostService.hadLastFocus();
+					if (seq !== this._stateSeq) {
+						return;
+					}
+					if (hadLastFocus) {
+						this.dialogService.info(nls.localize('noUpdatesAvailable', "There are currently no updates available.")).catch(onUnexpectedError).catch(onUnexpectedError);
+					}
 				}
 				break;
+			}
 
 			case StateType.Ready: {
 				const productVersion = state.update.productVersion;
@@ -288,6 +297,10 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
 				}
 				break;
 			}
+		}
+
+		if (seq !== this._stateSeq) {
+			return;
 		}
 
 		this.updateBadge(state);
