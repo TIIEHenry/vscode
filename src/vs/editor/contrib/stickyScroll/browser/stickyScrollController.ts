@@ -75,6 +75,7 @@ export class StickyScrollController extends Disposable implements IEditorContrib
 	private _endLineNumbers: number[] = [];
 	private _showEndForLine: number | undefined;
 	private _minRebuildFromLine: number | undefined;
+	private _updateSeq = 0;
 	private _mouseTarget: EventTarget | null = null;
 	private _cursorPositionListener: IDisposable | undefined;
 	private _positionLineNumber: number | undefined;
@@ -591,8 +592,13 @@ export class StickyScrollController extends Disposable implements IEditorContrib
 	}
 
 	private async _updateState(rebuildFromLine?: number): Promise<void> {
+		const seq = ++this._updateSeq;
 		this._minRebuildFromLine = undefined;
-		this._foldingModel = await FoldingController.get(this._editor)?.getFoldingModel() ?? undefined;
+		const foldingModel = await FoldingController.get(this._editor)?.getFoldingModel() ?? undefined;
+		if (this._store.isDisposed || seq !== this._updateSeq) {
+			return;
+		}
+		this._foldingModel = foldingModel;
 		this._widgetState = this.findScrollWidgetState();
 		const stickyWidgetHasLines = this._widgetState.startLineNumbers.length > 0;
 		this._stickyScrollVisibleContextKey.set(stickyWidgetHasLines);
