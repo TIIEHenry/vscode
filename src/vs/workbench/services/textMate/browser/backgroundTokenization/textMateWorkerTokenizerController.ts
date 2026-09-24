@@ -41,6 +41,8 @@ export class TextMateWorkerTokenizerController extends Disposable {
 
 	private _applyStateStackDiffFn?: typeof applyStateStackDiff;
 	private _initialState?: StateStack;
+	private _vscodeTextmateImportPromise?: Promise<void>;
+	private _lastAppliedVersionId = -1;
 
 	constructor(
 		private readonly _model: ITextModel,
@@ -190,9 +192,13 @@ export class TextMateWorkerTokenizerController extends Disposable {
 		);
 
 		if (!this._applyStateStackDiffFn || !this._initialState) {
-			const { applyStateStackDiff, INITIAL } = await importAMDNodeModule<typeof import('vscode-textmate')>('vscode-textmate', 'release/main.js');
-			this._applyStateStackDiffFn = applyStateStackDiff;
-			this._initialState = INITIAL;
+			if (!this._vscodeTextmateImportPromise) {
+				this._vscodeTextmateImportPromise = importAMDNodeModule<typeof import('vscode-textmate')>('vscode-textmate', 'release/main.js').then(({ applyStateStackDiff, INITIAL }) => {
+					this._applyStateStackDiffFn = applyStateStackDiff;
+					this._initialState = INITIAL;
+				});
+			}
+			await this._vscodeTextmateImportPromise;
 		}
 
 
@@ -213,19 +219,44 @@ export class TextMateWorkerTokenizerController extends Disposable {
 				if (offset !== undefined) {
 					// Only set the state if there is no future change in this line,
 					// as this might make consumers believe that the state/tokens are accurate
+					if (versionId < this._lastAppliedVersionId) {
+						return;
+					}
 					this._backgroundTokenizationStore.setEndState(offset + 1, state);
+					if (versionId < this._lastAppliedVersionId) {
+						return;
+					}
+					this._lastAppliedVersionId = versionId;
 				}
 
 				if (d.startLineNumber + i >= this._model.getLineCount() - 1) {
+					if (versionId < this._lastAppliedVersionId) {
+						return;
+					}
 					this._backgroundTokenizationStore.backgroundTokenizationFinished();
+					if (versionId < this._lastAppliedVersionId) {
+						return;
+					}
+					this._lastAppliedVersionId = versionId;
 				}
 
 				prevState = state;
 			}
 		}
 		// First set states, then tokens, so that events fired from set tokens don't read invalid states
+		if (versionId < this._lastAppliedVersionId) {
+			return;
+		}
 		this._backgroundTokenizationStore.setTokens(tokens);
+		if (versionId < this._lastAppliedVersionId) {
+			return;
+		}
+		this._lastAppliedVersionId = versionId;
 		this._backgroundTokenizationStore.setFontInfo(fontTokensUpdate);
+		if (versionId < this._lastAppliedVersionId) {
+			return;
+		}
+		this._lastAppliedVersionId = versionId;
 	}
 
 	private _stringEditFromChanges(model: ITextModel, pendingChanges: IModelContentChangedEvent[]): StringEdit {
