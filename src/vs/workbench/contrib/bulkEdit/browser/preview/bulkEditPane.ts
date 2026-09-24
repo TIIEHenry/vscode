@@ -8,7 +8,7 @@ import type { IAsyncDataTreeViewState } from '../../../../../base/browser/ui/tre
 import { ITreeContextMenuEvent } from '../../../../../base/browser/ui/tree/tree.js';
 import { CachedFunction, LRUCachedFunction } from '../../../../../base/common/cache.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
-import { onUnexpectedError } from '../../../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../../../base/common/errors.js';
 import { FuzzyScore } from '../../../../../base/common/filters.js';
 import { DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { Mutable } from '../../../../../base/common/types.js';
@@ -73,6 +73,8 @@ export class BulkEditPane extends ViewPane {
 	private _currentInput?: BulkFileOperations;
 	private _currentProvider?: BulkEditPreviewProvider;
 	private _openElementInMultiDiffEditorGeneration = 0;
+	private _treeInputChain: Promise<void> = Promise.resolve();
+	private _conflictWarnInputs: BulkFileOperations[] = [];
 
 	constructor(
 		options: IViewletViewOptions,
@@ -187,6 +189,7 @@ export class BulkEditPane extends ViewPane {
 	}
 
 	async setInput(edit: ResourceEdit[], token: CancellationToken): Promise<ResourceEdit[] | undefined> {
+		++this._openElementInMultiDiffEditorGeneration;
 		this._setState(State.Data);
 		this._sessionDisposables.clear();
 		this._treeViewStates.clear();
@@ -237,9 +240,21 @@ export class BulkEditPane extends ViewPane {
 	}
 
 	private async _setTreeInput(input: BulkFileOperations) {
+		const run = this._treeInputChain.then(() => this._applyTreeInput(input));
+		this._treeInputChain = run.then(() => undefined, () => undefined);
+		await run;
+	}
+
+	private async _applyTreeInput(input: BulkFileOperations) {
+		if (this._currentInput !== input) {
+			return;
+		}
 
 		const viewState = this._treeViewStates.get(this._treeDataSource.groupByFile);
 		await this._tree.setInput(input, viewState);
+		if (this._currentInput !== input) {
+			return;
+		}
 		this._tree.domFocus();
 
 		if (viewState) {
@@ -249,6 +264,9 @@ export class BulkEditPane extends ViewPane {
 		// async expandAll (max=10) is the default when no view state is given
 		const expand = [...this._tree.getNode(input).children].slice(0, 10);
 		while (expand.length > 0) {
+			if (this._currentInput !== input) {
+				return;
+			}
 			const { element } = expand.shift()!;
 			if (element instanceof FileElement) {
 				await this._tree.expand(element, true);
@@ -276,14 +294,21 @@ export class BulkEditPane extends ViewPane {
 			message = localize('conflict.N', "Cannot apply refactoring because {0} other files have changed in the meantime.", conflicts.length);
 		}
 
+		this._conflictWarnInputs.push(this._currentInput);
 		this._dialogService.warn(message).finally(() => this._done(false)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	discard() {
-		this._done(false);
+		this._done(false, true);
 	}
 
-	private _done(accept: boolean): void {
+	private _done(accept: boolean, fromDiscard = false): void {
+		if (!fromDiscard && !accept) {
+			const shifted = this._conflictWarnInputs.shift();
+			if (shifted && shifted !== this._currentInput) {
+				return;
+			}
+		}
 		this._currentResolve?.(accept ? this._currentInput?.getWorkspaceEdit() : undefined);
 		this._currentInput = undefined;
 		this._setState(State.Message);
@@ -381,9 +406,13 @@ export class BulkEditPane extends ViewPane {
 		BulkFileOperation[],
 		Promise<{ resources: IMultiDiffEditorResource[]; getResourceDiffEditorInputIdOfOperation: (operation: BulkFileOperation) => Promise<IMultiDiffResourceId> }>
 	>(async (fileOperations) => {
+		const provider = this._currentProvider;
+		if (!provider) {
+			throw new CancellationError();
+		}
 		const computeDiffEditorInput = new CachedFunction<BulkFileOperation, Promise<IMultiDiffEditorResource>>(async (fileOperation) => {
 			const fileOperationUri = fileOperation.uri;
-			const previewUri = this._currentProvider!.asPreviewUri(fileOperationUri);
+			const previewUri = provider.asPreviewUri(fileOperationUri);
 			// delete
 			if (fileOperation.type & BulkFileOperationType.Delete) {
 				return {
@@ -398,8 +427,14 @@ export class BulkEditPane extends ViewPane {
 				let leftResource: URI | undefined;
 				try {
 					(await this._textModelService.createModelReference(fileOperationUri)).dispose();
+					if (this._currentProvider !== provider) {
+						throw new CancellationError();
+					}
 					leftResource = fileOperationUri;
-				} catch {
+				} catch (err) {
+					if (err instanceof CancellationError) {
+						throw err;
+					}
 					leftResource = BulkEditPreviewProvider.emptyPreview;
 				}
 				return {
@@ -413,6 +448,9 @@ export class BulkEditPane extends ViewPane {
 		const sortedFileOperations = fileOperations.slice().sort(compareBulkFileOperations);
 		const resources: IResourceDiffEditorInput[] = [];
 		for (const operation of sortedFileOperations) {
+			if (this._currentProvider !== provider) {
+				throw new CancellationError();
+			}
 			resources.push(await computeDiffEditorInput.get(operation));
 		}
 		const getResourceDiffEditorInputIdOfOperation = async (operation: BulkFileOperation): Promise<IMultiDiffResourceId> => {
