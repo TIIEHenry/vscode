@@ -756,6 +756,11 @@ export class TunnelModel extends Disposable {
 				const protocol = (tunnel.protocol ?
 					((tunnel.protocol === TunnelProtocol.Https) ? TunnelProtocol.Https : TunnelProtocol.Http)
 					: (attributes?.protocol ?? TunnelProtocol.Http));
+				const localUri = await this.makeLocalUri(tunnel.localAddress, attributes);
+				if (mapHasAddressLocalhostOrAllInterfaces(this.forwarded, tunnel.tunnelRemoteHost, tunnel.tunnelRemotePort)) {
+					this.inProgress.delete(key);
+					return this.remoteTunnels.get(key) ?? tunnel;
+				}
 				const newForward: Tunnel = {
 					remoteHost: tunnel.tunnelRemoteHost,
 					remotePort: tunnel.tunnelRemotePort,
@@ -764,7 +769,7 @@ export class TunnelModel extends Disposable {
 					closeable: true,
 					localAddress: tunnel.localAddress,
 					protocol,
-					localUri: await this.makeLocalUri(tunnel.localAddress, attributes),
+					localUri,
 					runningProcess: matchingCandidate?.detail,
 					hasRunningProcess: !!matchingCandidate,
 					pid: matchingCandidate?.pid,
