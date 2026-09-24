@@ -294,7 +294,10 @@ export class BulkEditPane extends ViewPane {
 			message = localize('conflict.N', "Cannot apply refactoring because {0} other files have changed in the meantime.", conflicts.length);
 		}
 
-		this._conflictWarnInputs.push(this._currentInput);
+		const conflictInput = this._currentInput;
+		if (conflictInput) {
+			this._conflictWarnInputs.push(conflictInput);
+		}
 		this._dialogService.warn(message).finally(() => this._done(false)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
