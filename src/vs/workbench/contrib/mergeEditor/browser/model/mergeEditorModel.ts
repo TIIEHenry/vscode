@@ -209,8 +209,9 @@ export class MergeEditorModel extends EditorModel {
 	}
 
 	public async reset(): Promise<void> {
+		const resetEpoch = ++this._resetEpoch;
 		await waitForState(this.inputDiffComputingState, state => state === MergeEditorModelState.upToDate);
-		if (this._store.isDisposed) {
+		if (this._store.isDisposed || resetEpoch !== this._resetEpoch) {
 			return;
 		}
 		const states = this.modifiedBaseRangeResultStates.get();
@@ -362,6 +363,7 @@ export class MergeEditorModel extends EditorModel {
 	public readonly onInitialized;
 
 	private firstRun;
+	private _resetEpoch = 0;
 	private updateBaseRangeAcceptedState(resultDiffs: DetailedLineRangeMapping[], states: Map<ModifiedBaseRange, ModifiedBaseRangeData>, tx: ITransaction): void {
 		const baseRangeWithStoreAndTouchingDiffs = leftJoin(
 			states,
