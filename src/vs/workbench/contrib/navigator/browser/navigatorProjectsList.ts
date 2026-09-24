@@ -142,6 +142,7 @@ export class NavigatorProjectsView extends ViewPane {
 	private wasEverConnected = false;
 	/** D445: leftover KEEP must close leftover-as-live session switch without reselect. */
 	private leftoverSessionSwitchClosed = false;
+	private _rebuildSeq = 0;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -318,6 +319,7 @@ export class NavigatorProjectsView extends ViewPane {
 	}
 
 	private async rebuildTree(): Promise<void> {
+		const rebuildSeq = ++this._rebuildSeq;
 		try {
 			const currentFolders = this.getCurrentFolderEntries();
 			let recentFolders: INavigatorLocalFolderEntry[] = [];
@@ -326,6 +328,10 @@ export class NavigatorProjectsView extends ViewPane {
 				recentFolders = await this.getRecentFolderEntries();
 			} catch (error) {
 				recentsFailureCopy = navigatorProjectsRecentsFailureMessage(error);
+			}
+
+			if (rebuildSeq !== this._rebuildSeq) {
+				return;
 			}
 
 			if (recentsFailureCopy && (this.localFolderEntries.length > 0 || this.treeNodes.length > 0)) {
@@ -386,6 +392,9 @@ export class NavigatorProjectsView extends ViewPane {
 			}
 			this._onDidChangeViewWelcomeState.fire();
 		} catch {
+			if (rebuildSeq !== this._rebuildSeq) {
+				return;
+			}
 			try {
 				this.surfaceLastGoodAsStale();
 			} catch {

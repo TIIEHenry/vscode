@@ -54,6 +54,7 @@ export class AgentsVoiceWindowService extends Disposable implements IAgentsVoice
 	private readonly _windowDisposables = this._register(new DisposableStore());
 	private readonly _ownershipChannel: BroadcastChannel;
 	private _resizeTimeout: ReturnType<typeof setTimeout> | undefined;
+	private _pttPressSeq = 0;
 
 	get isOpen(): boolean {
 		return !!this._window;
@@ -169,8 +170,16 @@ export class AgentsVoiceWindowService extends Disposable implements IAgentsVoice
 			},
 			disconnect: () => this.voiceSessionController.disconnect('explicit'),
 			pttDown: () => {
+				const pressSeq = ++this._pttPressSeq;
+				const targetAtPress = this.voiceSessionController.targetSession.get()?.toString();
 				if (!this.voiceSessionController.isConnected.get() && !this.voiceSessionController.isConnecting.get()) {
 					this.voiceSessionController.connect(mainWindow).then(() => {
+						if (pressSeq !== this._pttPressSeq) {
+							return;
+						}
+						if (this.voiceSessionController.targetSession.get()?.toString() !== targetAtPress) {
+							return;
+						}
 						if (this.voiceSessionController.isConnected.get()) {
 							this.voiceSessionController.pttDown();
 						}
@@ -179,7 +188,10 @@ export class AgentsVoiceWindowService extends Disposable implements IAgentsVoice
 				}
 				this.voiceSessionController.pttDown();
 			},
-			pttUp: () => this.voiceSessionController.pttUp(),
+			pttUp: () => {
+				++this._pttPressSeq;
+				this.voiceSessionController.pttUp();
+			},
 			toggleMute: () => this.voiceSessionController.setMuted(!this.voiceSessionController.isMuted.get()),
 			closeWindow: () => this.closeWindow(),
 			stopPlayback: () => this.ttsPlaybackService.stopPlayback(),

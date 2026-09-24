@@ -564,11 +564,17 @@ registerAction2(class extends Action2 {
 		// Capture hold mode before awaiting so the dispatching command is still available.
 		const holdMode = keybindingService.enableKeybindingHoldMode('agentsVoice.pushToTalk');
 
+		const targetAtPress = voiceController.targetSession.get()?.toString();
+
 		// Auto-connect on first PTT press
 		if (!voiceController.isConnected.get() && !voiceController.isConnecting.get()) {
 			await voiceController.connect(getActiveWindow());
 		}
 		if (!voiceController.isConnected.get()) {
+			return;
+		}
+
+		if (voiceController.targetSession.get()?.toString() !== targetAtPress) {
 			return;
 		}
 
