@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { IReference } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IResolvedTextEditorModel, ITextModelService } from '../../../../editor/common/services/resolverService.js';
@@ -36,6 +36,7 @@ export class ReplEditorInput extends NotebookEditorInput implements ICompositeNo
 	static override ID: string = 'workbench.editorinputs.replEditorInput';
 
 	private inputModelRef: IReference<IResolvedTextEditorModel> | undefined;
+	private _resolveInputGeneration = 0;
 	private isScratchpad: boolean;
 	private label: string;
 	private isDisposing = false;
@@ -150,7 +151,17 @@ export class ReplEditorInput extends NotebookEditorInput implements ICompositeNo
 			throw new Error('The REPL editor requires at least one cell for the input box.');
 		}
 
-		this.inputModelRef = await this._textModelService.createModelReference(lastCell.uri);
+		const generation = ++this._resolveInputGeneration;
+		const localRef = await this._textModelService.createModelReference(lastCell.uri);
+		if (generation !== this._resolveInputGeneration || this.isDisposing) {
+			localRef.dispose();
+			if (this.inputModelRef) {
+				return this.inputModelRef.object.textEditorModel;
+			}
+			throw new CancellationError();
+		}
+
+		this.inputModelRef = localRef;
 		return this.inputModelRef.object.textEditorModel;
 	}
 
