@@ -27,6 +27,8 @@ import { DidChangeUserDataProfileEvent, IProfileTemplateInfo, IUserDataProfileMa
 export class UserDataProfileManagementService extends Disposable implements IUserDataProfileManagementService {
 	readonly _serviceBrand: undefined;
 
+	private _profileChain: Promise<void> = Promise.resolve();
+
 	constructor(
 		@IUserDataProfilesService private readonly userDataProfilesService: IUserDataProfilesService,
 		@IUserDataProfileService private readonly userDataProfileService: IUserDataProfileService,
@@ -175,6 +177,12 @@ export class UserDataProfileManagementService extends Disposable implements IUse
 	}
 
 	private async changeCurrentProfile(profile: IUserDataProfile, reloadMessage?: string): Promise<void> {
+		const promise = this._profileChain.catch(() => { }).then(() => this.changeCurrentProfileNow(profile, reloadMessage));
+		this._profileChain = promise;
+		return promise;
+	}
+
+	private async changeCurrentProfileNow(profile: IUserDataProfile, reloadMessage?: string): Promise<void> {
 		const isRemoteWindow = !!this.environmentService.remoteAuthority;
 
 		const shouldRestartExtensionHosts = this.userDataProfileService.currentProfile.id !== profile.id || !equals(this.userDataProfileService.currentProfile.useDefaultFlags, profile.useDefaultFlags);
