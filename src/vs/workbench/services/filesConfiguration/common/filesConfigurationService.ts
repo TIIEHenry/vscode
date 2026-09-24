@@ -164,6 +164,8 @@ export class FilesConfigurationService extends Disposable implements IFilesConfi
 
 	private readonly sessionReadonlyOverrides = new ResourceMap<boolean | IMarkdownString>(resource => this.uriIdentityService.extUri.getComparisonKey(resource));
 
+	private _readonlyChain: Promise<void> = Promise.resolve();
+
 	constructor(
 		@IContextKeyService contextKeyService: IContextKeyService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
@@ -246,7 +248,13 @@ export class FilesConfigurationService extends Disposable implements IFilesConfi
 		return false;
 	}
 
-	async updateReadonly(resource: URI | URI[], readonly: true | IMarkdownString | false | 'toggle' | 'reset'): Promise<void> {
+	updateReadonly(resource: URI | URI[], readonly: true | IMarkdownString | false | 'toggle' | 'reset'): Promise<void> {
+		const run = this._readonlyChain.then(() => this.updateReadonlyNow(resource, readonly));
+		this._readonlyChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async updateReadonlyNow(resource: URI | URI[], readonly: true | IMarkdownString | false | 'toggle' | 'reset'): Promise<void> {
 		if (Array.isArray(resource)) {
 			for (const r of resource) {
 				this.applyReadonly(r, readonly as true | IMarkdownString | false | 'reset');
