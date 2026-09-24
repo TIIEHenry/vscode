@@ -80,6 +80,7 @@ export class FileEditorInput extends AbstractTextResourceEditorInput implements 
 
 	private model: ITextFileEditorModel | undefined = undefined;
 	private cachedTextFileModelReference: IReference<ITextFileEditorModel> | undefined = undefined;
+	private pendingTextFileModelReference: Promise<IReference<ITextFileEditorModel>> | undefined;
 
 	private readonly modelListeners = this._register(new DisposableStore());
 
@@ -372,7 +373,21 @@ export class FileEditorInput extends AbstractTextResourceEditorInput implements 
 			// resolve() ensures we are not creating model references for these kind of resources.
 			// In addition we have a bit of payload to take into account (encoding, reload) that the text resolver does not handle yet.
 			if (!this.cachedTextFileModelReference) {
-				this.cachedTextFileModelReference = await this.textModelService.createModelReference(this.resource) as IReference<ITextFileEditorModel>;
+				let referencePromise = this.pendingTextFileModelReference;
+				if (!referencePromise) {
+					referencePromise = this.textModelService.createModelReference(this.resource) as Promise<IReference<ITextFileEditorModel>>;
+					this.pendingTextFileModelReference = referencePromise;
+				}
+				try {
+					const reference = await referencePromise;
+					if (!this.cachedTextFileModelReference) {
+						this.cachedTextFileModelReference = reference;
+					}
+				} finally {
+					if (this.pendingTextFileModelReference === referencePromise) {
+						this.pendingTextFileModelReference = undefined;
+					}
+				}
 			}
 
 			const model = this.cachedTextFileModelReference.object;
