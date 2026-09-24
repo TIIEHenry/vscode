@@ -13,7 +13,7 @@ import { ThemeIcon } from '../../../../../base/common/themables.js';
 import { KeyCode } from '../../../../../base/common/keyCodes.js';
 import { Disposable, DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../../base/common/network.js';
-import { basename, dirname } from '../../../../../base/common/resources.js';
+import { basename, dirname, isEqual } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { isLocation, Location } from '../../../../../editor/common/languages.js';
 import { getIconClasses } from '../../../../../editor/common/services/getIconClasses.js';
@@ -289,7 +289,11 @@ export class ImplicitContextAttachmentWidget extends Disposable {
 		}
 		if (isStringImplicitContextValue(attachment.value)) {
 			if (attachment.value.value === undefined) {
+				const boundSession = this.widgetRef()?.viewModel?.sessionResource;
 				await this.chatContextService.resolveChatContext(attachment.value);
+				if (!isEqual(this.widgetRef()?.viewModel?.sessionResource, boundSession)) {
+					return;
+				}
 			}
 			const context: IChatRequestStringVariableEntry = {
 				kind: 'string',
