@@ -50,6 +50,7 @@ export class TextMateTokenizationWorker implements IWebWorkerServerRequestHandle
 	private readonly _models = new Map</* controllerId */ number, TextMateWorkerTokenizer>();
 	private readonly _grammarCache: Promise<ICreateGrammarResult>[] = [];
 	private _grammarFactory: Promise<TMGrammarFactory | null> = Promise.resolve(null);
+	private _acceptThemeGeneration = 0;
 
 	constructor(workerServer: IWebWorkerServer) {
 		this._host = TextMateWorkerHost.getChannel(workerServer);
@@ -141,7 +142,11 @@ export class TextMateTokenizationWorker implements IWebWorkerServerRequestHandle
 	}
 
 	public async $acceptTheme(theme: IRawTheme, colorMap: string[]): Promise<void> {
+		const generation = ++this._acceptThemeGeneration;
 		const grammarFactory = await this._grammarFactory;
+		if (generation !== this._acceptThemeGeneration) {
+			return;
+		}
 		grammarFactory?.setTheme(theme, colorMap);
 	}
 

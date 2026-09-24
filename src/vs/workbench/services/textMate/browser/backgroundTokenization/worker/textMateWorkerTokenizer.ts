@@ -37,6 +37,7 @@ export class TextMateWorkerTokenizer extends MirrorTextModel {
 	private _isDisposed: boolean = false;
 	private readonly _maxTokenizationLineLength = observableValue(this, -1);
 	private _diffStateStacksRefEqFn?: typeof diffStateStacksRefEq;
+	private _tokenizeGeneration = 0;
 	private readonly _tokenizeDebouncer = new RunOnceScheduler(() => this._tokenize().catch(onUnexpectedError).catch(onUnexpectedError), 10);
 
 	constructor(
@@ -116,12 +117,17 @@ export class TextMateWorkerTokenizer extends MirrorTextModel {
 	}
 
 	private async _tokenize(): Promise<void> {
+		const generation = ++this._tokenizeGeneration;
+
 		if (this._isDisposed || !this._tokenizerWithStateStore) {
 			return;
 		}
 
 		if (!this._diffStateStacksRefEqFn) {
 			const { diffStateStacksRefEq } = await importAMDNodeModule<typeof import('vscode-textmate')>('vscode-textmate', 'release/main.js');
+			if (generation !== this._tokenizeGeneration) {
+				return;
+			}
 			this._diffStateStacksRefEqFn = diffStateStacksRefEq;
 		}
 
