@@ -41,6 +41,7 @@ export class MergeEditorInput extends AbstractTextResourceEditorInput implements
 	static readonly ID = 'mergeEditor.Input';
 
 	private _inputModel?: IMergeEditorInputModel;
+	private _inputModelResolvePromise?: Promise<IMergeEditorInputModel>;
 
 	private _focusedEditor: MergeEditorType;
 
@@ -111,33 +112,41 @@ export class MergeEditorInput extends AbstractTextResourceEditorInput implements
 	private readonly mergeEditorModeFactory;
 
 	override async resolve(): Promise<IMergeEditorInputModel> {
-		if (!this._inputModel) {
-			const inputModel = await this.mergeEditorModeFactory.createInputModel({
-				base: this.base,
-				input1: this.input1,
-				input2: this.input2,
-				result: this.result,
-			});
-			if (this._store.isDisposed) {
-				inputModel.dispose();
-				throw new CancellationError();
-			}
-			this._register(inputModel);
-			this._inputModel = inputModel;
-
-			this._register(autorun(reader => {
-				/** @description fire dirty event */
-				inputModel.isDirty.read(reader);
-				this._onDidChangeDirty.fire();
-			}));
-
-			await this._inputModel.model.onInitialized;
-			if (this._store.isDisposed) {
-				throw new CancellationError();
-			}
+		if (this._inputModel) {
+			return this._inputModel;
 		}
+		if (!this._inputModelResolvePromise) {
+			this._inputModelResolvePromise = (async () => {
+				const inputModel = await this.mergeEditorModeFactory.createInputModel({
+					base: this.base,
+					input1: this.input1,
+					input2: this.input2,
+					result: this.result,
+				});
+				if (this._store.isDisposed) {
+					inputModel.dispose();
+					throw new CancellationError();
+				}
+				this._register(inputModel);
+				this._inputModel = inputModel;
 
-		return this._inputModel;
+				this._register(autorun(reader => {
+					/** @description fire dirty event */
+					inputModel.isDirty.read(reader);
+					this._onDidChangeDirty.fire();
+				}));
+
+				await this._inputModel.model.onInitialized;
+				if (this._store.isDisposed) {
+					throw new CancellationError();
+				}
+				return inputModel;
+			})().catch(err => {
+				this._inputModelResolvePromise = undefined;
+				throw err;
+			});
+		}
+		return this._inputModelResolvePromise;
 	}
 
 	public async accept(): Promise<void> {
