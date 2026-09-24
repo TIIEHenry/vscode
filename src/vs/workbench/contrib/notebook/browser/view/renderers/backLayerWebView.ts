@@ -1168,7 +1168,8 @@ export class BackLayerWebView<T extends ICommonCellInfo> extends Themable {
 			}
 
 			let chain = this._highlightCodeBlockChains.get(id) ?? Promise.resolve();
-			const run = chain.then(() => tokenizeToString(this.languageService, value, languageId).then((html) => {
+			const run = chain.then(() => {
+				return tokenizeToString(this.languageService, value, languageId).then((html) => {
 				if (this._disposed) {
 					return;
 				}
@@ -1177,7 +1178,8 @@ export class BackLayerWebView<T extends ICommonCellInfo> extends Themable {
 					html,
 					codeBlockId: id
 				});
-			}).catch(onUnexpectedError).catch(onUnexpectedError));
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			});
 			chain = run.then(() => undefined, () => undefined);
 			this._highlightCodeBlockChains.set(id, chain);
 		}

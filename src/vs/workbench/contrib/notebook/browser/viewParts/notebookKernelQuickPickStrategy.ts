@@ -570,12 +570,14 @@ export class KernelPickerMRUStrategy extends KernelPickerStrategyBase {
 			}));
 
 			let chain: Promise<void> = Promise.resolve();
-			const initialRun = chain.then(() => this._calculdateKernelSources(editor).then(quickPickItems => {
+			const initialRun = chain.then(() => {
+				return this._calculdateKernelSources(editor).then(quickPickItems => {
 				quickPick.items = quickPickItems;
 				if (quickPick.items.length > 0) {
 					quickPick.busy = false;
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError));
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			});
 			chain = initialRun.then(() => undefined, () => undefined);
 
 			disposables.add(Event.debounce<void, void>(
