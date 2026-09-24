@@ -48,6 +48,7 @@ export class ImageCarouselEditor extends EditorPane {
 
 	private _container: HTMLElement | undefined;
 	private _currentIndex: number = 0;
+	private _updateSeq = 0;
 	private _zoomScale: ZoomScale = 'fit';
 	private _sections: ReadonlyArray<ICarouselSection> = [];
 	private _flatImages: IFlatImageEntry[] = [];
@@ -383,6 +384,7 @@ export class ImageCarouselEditor extends EditorPane {
 	 * No DOM teardown/rebuild — eliminates the blank flash.
 	 */
 	private async updateCurrentImage(): Promise<void> {
+		const updateSeq = ++this._updateSeq;
 		if (!this._elements) {
 			return;
 		}
@@ -407,7 +409,7 @@ export class ImageCarouselEditor extends EditorPane {
 
 			// Load raw data to send via postMessage
 			const rawData = await this._loadRawData(currentImage);
-			if (this._currentIndex !== navigationIndex) {
+			if (updateSeq !== this._updateSeq || this._currentIndex !== navigationIndex) {
 				return;
 			}
 
@@ -454,7 +456,7 @@ window.addEventListener("message",function(e){var m=e.data;if(m.type==="loadVide
 			const url = await this._loadBlobUrl(currentImage);
 
 			// If the user navigated while loading the blob URL, discard this result.
-			if (this._currentIndex !== navigationIndex) {
+			if (updateSeq !== this._updateSeq || this._currentIndex !== navigationIndex) {
 				return;
 			}
 
@@ -462,13 +464,13 @@ window.addEventListener("message",function(e){var m=e.data;if(m.type==="loadVide
 			tmp.src = url;
 			tmp.decode().then(() => {
 				// Only apply if user hasn't navigated away during decode
-				if (this._currentIndex === navigationIndex && this._elements) {
+				if (this._currentIndex === navigationIndex && this._elements && updateSeq === this._updateSeq) {
 					this._elements.mainImage.src = url;
 					this._elements.mainImage.alt = currentImage.name;
 				}
 			}, () => {
 				// Decode failed (invalid image) — still show src for browser fallback
-				if (this._currentIndex === navigationIndex && this._elements) {
+				if (this._currentIndex === navigationIndex && this._elements && updateSeq === this._updateSeq) {
 					this._elements.mainImage.src = url;
 					this._elements.mainImage.alt = currentImage.name;
 				}
