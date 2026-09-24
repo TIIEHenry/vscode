@@ -285,6 +285,7 @@ export class ExplorerFindProvider implements IAsyncFindProvider<ExplorerItem> {
 	private highlightSessionStartState: { rootsWithProviders: Set<ExplorerItem> } | undefined;
 	private explorerFindActiveContextKey: IContextKey<boolean>;
 	private phantomParents = new Set<ExplorerItem>();
+	private _treeWriteChain: Promise<void> = Promise.resolve();
 	private findHighlightTree = new ExplorerFindHighlightTree();
 	get highlightTree(): IExplorerFindHighlightTree {
 		return this.findHighlightTree;
@@ -302,6 +303,12 @@ export class ExplorerFindProvider implements IAsyncFindProvider<ExplorerItem> {
 		@IContextKeyService contextKeyService: IContextKeyService
 	) {
 		this.explorerFindActiveContextKey = ExplorerFindProviderActive.bindTo(contextKeyService);
+	}
+
+	enqueueTreeWork<T>(work: () => Promise<T>): Promise<T> {
+		const run = this._treeWriteChain.then(work);
+		this._treeWriteChain = run.then(() => undefined, () => undefined);
+		return run;
 	}
 
 	isShowingFilterResults(): boolean {
@@ -397,24 +404,30 @@ export class ExplorerFindProvider implements IAsyncFindProvider<ExplorerItem> {
 			return undefined;
 		}
 
-		this.clearPhantomElements();
-		for (const { explorerRoot, files, directories } of searchResults) {
-			this.addWorkspaceFilterResults(explorerRoot, files, directories);
-		}
+		return await this.enqueueTreeWork(async () => {
+			if (token.isCancellationRequested || this.sessionId !== sessionId || this.filterSessionStartState !== filterSessionStartState) {
+				return undefined;
+			}
 
-		const tree = this.treeProvider();
-		await tree.setInput(filterSessionStartState.input);
+			this.clearPhantomElements();
+			for (const { explorerRoot, files, directories } of searchResults) {
+				this.addWorkspaceFilterResults(explorerRoot, files, directories);
+			}
 
-		if (token.isCancellationRequested || this.sessionId !== sessionId || this.filterSessionStartState !== filterSessionStartState) {
-			return undefined;
-		}
+			const tree = this.treeProvider();
+			await tree.setInput(filterSessionStartState.input);
 
-		const hitMaxResults = searchResults.some(({ hitMaxResults }) => hitMaxResults);
-		return {
-			isMatch: (item: ExplorerItem) => item.isMarkedAsFiltered(),
-			matchCount: searchResults.reduce((acc, { files, directories }) => acc + files.length + directories.length, 0),
-			warningMessage: hitMaxResults ? localize('searchMaxResultsWarning', "The result set only contains a subset of all matches. Be more specific in your search to narrow down the results.") : undefined
-		};
+			if (token.isCancellationRequested || this.sessionId !== sessionId || this.filterSessionStartState !== filterSessionStartState) {
+				return undefined;
+			}
+
+			const hitMaxResults = searchResults.some(({ hitMaxResults }) => hitMaxResults);
+			return {
+				isMatch: (item: ExplorerItem) => item.isMarkedAsFiltered(),
+				matchCount: searchResults.reduce((acc, { files, directories }) => acc + files.length + directories.length, 0),
+				warningMessage: hitMaxResults ? localize('searchMaxResultsWarning', "The result set only contains a subset of all matches. Be more specific in your search to narrow down the results.") : undefined
+			};
+		});
 	}
 
 	private addWorkspaceFilterResults(root: ExplorerItem, files: URI[], directories: URI[]): void {
@@ -488,15 +501,21 @@ export class ExplorerFindProvider implements IAsyncFindProvider<ExplorerItem> {
 			throw new Error('ExplorerFindProvider: no session state to restore');
 		}
 
-		const tree = this.treeProvider();
-		await tree.setInput(captured.input, captured.viewState);
+		await this.enqueueTreeWork(async () => {
+			if (this.filterSessionStartState !== captured) {
+				return;
+			}
 
-		if (this.filterSessionStartState !== captured) {
-			return;
-		}
+			const tree = this.treeProvider();
+			await tree.setInput(captured.input, captured.viewState);
 
-		this.filterSessionStartState = undefined;
-		this.explorerService.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this.filterSessionStartState !== captured) {
+				return;
+			}
+
+			this.filterSessionStartState = undefined;
+			this.explorerService.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		});
 	}
 
 	private clearPhantomElements(): void {
@@ -1253,6 +1272,7 @@ export class FilesFilter implements ITreeFilter<ExplorerItem, FuzzyScore> {
 	// Note: URI in the ternary search tree is the URI of the folder containing the ignore file
 	// It is not the ignore file itself. This is because of the way the IgnoreFile works and nested paths
 	private ignoreTreesPerRoot = new Map<string, TernarySearchTree<URI, IgnoreFile>>();
+	private ignoreFileReadGeneration = new Map<string, number>();
 
 	constructor(
 		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService,
@@ -1385,7 +1405,13 @@ export class FilesFilter implements ITreeFilter<ExplorerItem, FuzzyScore> {
 			return;
 		}
 		// Maybe we need a cancellation token here in case it's super long?
+		const ignoreFileKey = ignoreFileResource.toString();
+		const readGeneration = (this.ignoreFileReadGeneration.get(ignoreFileKey) ?? 0) + 1;
+		this.ignoreFileReadGeneration.set(ignoreFileKey, readGeneration);
 		const content = await this.fileService.readFile(ignoreFileResource);
+		if (this.ignoreFileReadGeneration.get(ignoreFileKey) !== readGeneration) {
+			return;
+		}
 
 		// If it's just an update we update the contents keeping all references the same
 		if (update) {
