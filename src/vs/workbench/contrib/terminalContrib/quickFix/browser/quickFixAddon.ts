@@ -76,6 +76,8 @@ export class TerminalQuickFixAddon extends Disposable implements ITerminalAddon,
 
 	private _didRun: boolean = false;
 
+	private _resolveSeq = 0;
+
 	private readonly _onDidRequestRerunCommand = this._register(new Emitter<{ command: string; shouldExecute?: boolean }>());
 	readonly onDidRequestRerunCommand = this._onDidRequestRerunCommand.event;
 	private readonly _onDidUpdateQuickFixes = this._register(new Emitter<{ command: ITerminalCommand; actions: ITerminalAction[] | undefined }>());
@@ -192,6 +194,7 @@ export class TerminalQuickFixAddon extends Disposable implements ITerminalAddon,
 	 * @param command & its output
 	 */
 	private async _resolveQuickFixes(command: ITerminalCommand, aliases?: string[][]): Promise<void> {
+		const resolveSeq = ++this._resolveSeq;
 		const terminal = this._terminal;
 		if (!terminal || command.wasReplayed) {
 			return;
@@ -216,6 +219,9 @@ export class TerminalQuickFixAddon extends Disposable implements ITerminalAddon,
 			}, new CancellationTokenSource().token);
 		};
 		const result = await getQuickFixesForCommand(aliases, terminal, command, this._commandListeners, this._commandService, this._openerService, this._labelService, this._onDidRequestRerunCommand, resolver);
+		if (resolveSeq !== this._resolveSeq) {
+			return;
+		}
 		if (!result) {
 			return;
 		}

@@ -107,6 +107,7 @@ export class TerminalChatWidget extends Disposable {
 
 	private _currentRequestId: string | undefined;
 	private _activeRequestCts?: CancellationTokenSource;
+	private _acceptSeq = 0;
 
 	private readonly _requestInProgress = observableValue(this, false);
 	readonly requestInProgress: IObservable<boolean> = this._requestInProgress;
@@ -454,10 +455,14 @@ export class TerminalChatWidget extends Disposable {
 		}
 		this._activeRequestCts?.cancel();
 		this._activeRequestCts = new CancellationTokenSource();
+		const acceptSeq = ++this._acceptSeq;
 		const store = new DisposableStore();
 		this._requestActiveContextKey.set(true);
 		const response = await this._inlineChatWidget.chatWidget.acceptInput(lastInput, { isVoiceInput: options?.isVoiceInput });
 		if (this._store.isDisposed) {
+			return;
+		}
+		if (acceptSeq !== this._acceptSeq) {
 			return;
 		}
 		this._currentRequestId = response?.requestId;
@@ -475,12 +480,12 @@ export class TerminalChatWidget extends Disposable {
 						this._requestActiveContextKey.set(false);
 						this._requestActiveContextKey.set(false);
 						const firstCodeBlock = await this._inlineChatWidget.getCodeBlockInfo(0);
-						if (this._store.isDisposed) {
+						if (this._store.isDisposed || acceptSeq !== this._acceptSeq) {
 							responsePromise.complete(undefined);
 							return;
 						}
 						const secondCodeBlock = await this._inlineChatWidget.getCodeBlockInfo(1);
-						if (this._store.isDisposed) {
+						if (this._store.isDisposed || acceptSeq !== this._acceptSeq) {
 							responsePromise.complete(undefined);
 							return;
 						}
@@ -492,10 +497,15 @@ export class TerminalChatWidget extends Disposable {
 				}));
 			}
 			await responsePromise.p;
+			if (this._store.isDisposed || acceptSeq !== this._acceptSeq) {
+				return;
+			}
 			this._lastResponseContent = response?.response.getMarkdown();
 			return response;
 		} catch {
-			this._lastResponseContent = undefined;
+			if (acceptSeq === this._acceptSeq) {
+				this._lastResponseContent = undefined;
+			}
 			return;
 		} finally {
 			store.dispose();
