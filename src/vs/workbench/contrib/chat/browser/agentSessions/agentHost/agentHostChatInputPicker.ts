@@ -14,6 +14,7 @@ import { Codicon } from '../../../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Disposable, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../../../../base/common/lifecycle.js';
 import { autorun } from '../../../../../../base/common/observable.js';
+import { isEqual } from '../../../../../../base/common/resources.js';
 import { ThemeIcon } from '../../../../../../base/common/themables.js';
 import { URI } from '../../../../../../base/common/uri.js';
 import { localize } from '../../../../../../nls.js';
@@ -826,6 +827,7 @@ export class AgentHostChatInputPicker extends Disposable {
 		if (this._property === SessionConfigKey.AutoApprove && !isPermissionLevelVisible(value, isAssistedPermissionsEnabled(this._configurationService))) {
 			return;
 		}
+		const sessionResource = this._widget.viewModel?.sessionResource;
 		if (this._property === SessionConfigKey.AutoApprove) {
 			const levelToConfirm = isChatPermissionLevel(value)
 				? value
@@ -840,15 +842,13 @@ export class AgentHostChatInputPicker extends Disposable {
 				}
 			}
 		}
-		await this._setValue(backendSession, value);
-	}
-
-	private async _setValue(backendSession: URI, value: string): Promise<void> {
-		const sessionResource = this._widget.viewModel?.sessionResource;
-		if (!sessionResource) {
+		if (!sessionResource || !isEqual(this._widget.viewModel?.sessionResource, sessionResource)) {
 			return;
 		}
+		await this._setValue(backendSession, sessionResource, value);
+	}
 
+	private async _setValue(backendSession: URI, sessionResource: URI, value: string): Promise<void> {
 		const ctx = this._readContext();
 		const normalizedValue = ctx?.schema.type === 'boolean'
 			? value === 'true'
