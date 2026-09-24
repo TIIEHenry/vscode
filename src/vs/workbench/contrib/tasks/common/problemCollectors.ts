@@ -131,6 +131,20 @@ export abstract class AbstractProblemCollector extends Disposable implements IDi
 		}
 	}
 
+	protected enqueueOnTail(work: () => Promise<void> | void): void {
+		if (this.tail) {
+			const oldTail = this.tail;
+			this.tail = oldTail.then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				return work();
+			});
+		} else {
+			this.tail = Promise.resolve(work());
+		}
+	}
+
 	protected abstract processLineInternal(line: string): Promise<void>;
 
 	public override dispose() {
@@ -480,12 +494,14 @@ export class WatchingProblemCollector extends AbstractProblemCollector implement
 					return;
 				}
 				const oldLines = Array.from(this.lines);
-				for (const line of oldLines) {
-					await this.processLineInternal(line, false);
-					if (this._store.isDisposed) {
-						return;
+				this.enqueueOnTail(async () => {
+					for (const line of oldLines) {
+						await this.processLineInternal(line, false);
+						if (this._store.isDisposed) {
+							return;
+						}
 					}
-				}
+				});
 			});
 
 			// Dispose the debounced listener after timeout - no need to register it since
