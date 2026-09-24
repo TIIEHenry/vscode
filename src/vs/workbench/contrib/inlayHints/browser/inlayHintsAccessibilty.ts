@@ -54,6 +54,7 @@ export class InlayHintsAccessibility implements IEditorContribution {
 	}
 
 	dispose(): void {
+		this._readSeq++;
 		this._sessionDispoosables.dispose();
 		this._ctxIsReading.reset();
 		this._ariaElement.remove();
