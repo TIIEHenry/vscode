@@ -14,7 +14,6 @@ import { ServicesAccessor } from '../../../../../editor/browser/editorExtensions
 import { EditorContextKeys } from '../../../../../editor/common/editorContextKeys.js';
 import { localize, localize2 } from '../../../../../nls.js';
 import { Action2, MenuId, registerAction2 } from '../../../../../platform/actions/common/actions.js';
-import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
@@ -37,7 +36,7 @@ import { type IChatAcceptInputOptions, IChatWidget, IChatWidgetService } from '.
 import { getAgentSessionProvider, AgentSessionProviders, AgentSessionTarget } from '../agentSessions/agentSessions.js';
 import { getEditingSessionContext } from '../chatEditing/chatEditingActions.js';
 import { ctxHasEditorModification, ctxHasRequestInProgress, ctxIsGlobalEditingSession } from '../chatEditing/chatEditingEditorContextKeys.js';
-import { ACTION_ID_NEW_CHAT, CHAT_CATEGORY, clearChatSessionPreservingType, handleCurrentEditingSession, handleModeSwitch } from './chatActions.js';
+import { CHAT_CATEGORY, clearChatSessionPreservingType, handleCurrentEditingSession, handleModeSwitch } from './chatActions.js';
 import { CreateRemoteAgentJobAction } from './chatContinueInAction.js';
 
 export interface IVoiceChatExecuteActionContext {
@@ -277,7 +276,6 @@ class ToggleChatModeAction extends Action2 {
 	}
 
 	async run(accessor: ServicesAccessor, ...args: unknown[]) {
-		const commandService = accessor.get(ICommandService);
 		const instaService = accessor.get(IInstantiationService);
 		const telemetryService = accessor.get(ITelemetryService);
 		const chatWidgetService = accessor.get(IChatWidgetService);
@@ -314,12 +312,19 @@ class ToggleChatModeAction extends Action2 {
 			return;
 		}
 
+		if (!chatWidgetService.getAllWidgets().includes(widget)) {
+			return;
+		}
+
 		reportChatModeChange(telemetryService, currentMode, switchToMode, requestCount);
 
 		widget.input.setChatMode(switchToMode.id, true, true);
 
 		if (chatModeCheck.needToClearSession) {
-			await commandService.executeCommand(ACTION_ID_NEW_CHAT);
+			await instaService.invokeFunction(clearChatSessionPreservingType, widget, undefined);
+			if (!chatWidgetService.getAllWidgets().includes(widget)) {
+				return;
+			}
 		}
 	}
 
@@ -900,6 +905,10 @@ class SendToNewChatAction extends Action2 {
 			return;
 		}
 
+		if (!widgetService.getAllWidgets().includes(widget)) {
+			return;
+		}
+
 		// Clear the input from the current session before creating a new one
 		widget.setInput('');
 
@@ -907,9 +916,17 @@ class SendToNewChatAction extends Action2 {
 			return;
 		}
 
+		if (!widgetService.getAllWidgets().includes(widget)) {
+			return;
+		}
+
 		await instantiationService.invokeFunction(clearChatSessionPreservingType, widget, undefined);
 
 		if (!widget.viewModel || isEqual(widget.viewModel.sessionResource, originSessionResource)) {
+			return;
+		}
+
+		if (!widgetService.getAllWidgets().includes(widget)) {
 			return;
 		}
 
