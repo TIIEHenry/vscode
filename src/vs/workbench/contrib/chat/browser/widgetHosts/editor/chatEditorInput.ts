@@ -267,17 +267,29 @@ export class ChatEditorInput extends EditorInput implements IEditorCloseHandler 
 						LEGACY_MIGRATION_RESTORE_TIMEOUT_MS,
 					),
 				);
+				if (this.isDisposed()) {
+					return null;
+				}
 				if (migrated) {
 					this._sessionResource = migrated;
 				}
 			}
+			let acquired: IChatModelReference | undefined;
 			try {
-				this.modelRef.value = await this.chatService.acquireOrLoadSession(this._sessionResource, ChatAgentLocation.Chat, CancellationToken.None, 'ChatEditorInput#resolve', this.options.sessionTypeSelectionReason);
+				acquired = await this.chatService.acquireOrLoadSession(this._sessionResource, ChatAgentLocation.Chat, CancellationToken.None, 'ChatEditorInput#resolve', this.options.sessionTypeSelectionReason);
 			} catch (error) {
 				this.logService.warn(`[ChatEditorInput] Failed to acquire session ${this._sessionResource.toString()}`, error);
 			}
+			if (this.isDisposed()) {
+				acquired?.dispose();
+				return null;
+			}
+			this.modelRef.value = acquired;
 
 			if (!this.model && isUntitledChatSession(this._sessionResource) && getChatSessionType(this._sessionResource) !== localChatSessionType) {
+				if (this.isDisposed()) {
+					return null;
+				}
 				this.logService.warn(`[ChatEditorInput] Falling back to a local chat session because ${this._sessionResource.toString()} could not be acquired`);
 				this.modelRef.value = this.chatService.startNewLocalSession(ChatAgentLocation.Chat, { canUseTools: !inputType, debugOwner: 'ChatEditorInput#resolveUntitledFallback', sessionTypeSelectionReason: getLocalFallbackSessionTypeSelectionReason(getChatSessionType(this._sessionResource), false) });
 			}
@@ -292,6 +304,10 @@ export class ChatEditorInput extends EditorInput implements IEditorCloseHandler 
 					} catch (error) {
 						this.logService.warn(`[ChatEditorInput] Failed to acquire default session ${defaultResource.toString()}`, error);
 					}
+					if (this.isDisposed()) {
+						modelRef?.dispose();
+						return null;
+					}
 					if (modelRef) {
 						this._sessionResource = defaultResource;
 						this.modelRef.value = modelRef;
@@ -303,6 +319,9 @@ export class ChatEditorInput extends EditorInput implements IEditorCloseHandler 
 
 			// For local session only, if we find no existing session, create a new one
 			if (!this.model && LocalChatSessionUri.parseLocalSessionId(this._sessionResource)) {
+				if (this.isDisposed()) {
+					return null;
+				}
 				this.modelRef.value = this.chatService.startNewLocalSession(ChatAgentLocation.Chat, { canUseTools: true, debugOwner: 'ChatEditorInput#resolveNewLocalSession', sessionTypeSelectionReason: this.options.sessionTypeSelectionReason });
 			}
 		} else if (!this.options.target) {
@@ -314,14 +333,23 @@ export class ChatEditorInput extends EditorInput implements IEditorCloseHandler 
 				if (getChatSessionType(defaultResource) === localChatSessionType) {
 					this.modelRef.value = this.chatService.startNewLocalSession(ChatAgentLocation.Chat, { canUseTools: !inputType, debugOwner: 'ChatEditorInput#resolveUntitled', sessionTypeSelectionReason: defaultTypeAndReason.selectionReason });
 				} else {
+					let untitledAcquired: IChatModelReference | undefined;
 					try {
-						this.modelRef.value = await this.chatService.acquireOrLoadSession(defaultResource, ChatAgentLocation.Chat, CancellationToken.None, 'ChatEditorInput#resolveDefaultUntitled', defaultTypeAndReason.selectionReason);
+						untitledAcquired = await this.chatService.acquireOrLoadSession(defaultResource, ChatAgentLocation.Chat, CancellationToken.None, 'ChatEditorInput#resolveDefaultUntitled', defaultTypeAndReason.selectionReason);
 					} catch (error) {
 						this.logService.warn(`[ChatEditorInput] Failed to acquire default session ${defaultResource.toString()}`, error);
 					}
+					if (this.isDisposed()) {
+						untitledAcquired?.dispose();
+						return null;
+					}
+					this.modelRef.value = untitledAcquired;
 					if (this.model) {
 						this._sessionResource = defaultResource;
 					} else {
+						if (this.isDisposed()) {
+							return null;
+						}
 						this.logService.warn(`[ChatEditorInput] Falling back to a local chat session because ${defaultResource.toString()} could not be acquired`);
 						this.modelRef.value = this.chatService.startNewLocalSession(ChatAgentLocation.Chat, { canUseTools: !inputType, debugOwner: 'ChatEditorInput#resolveUntitledFallback', sessionTypeSelectionReason: getLocalFallbackSessionTypeSelectionReason(getChatSessionType(defaultResource), false) });
 					}
