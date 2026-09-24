@@ -12,6 +12,8 @@ import { GroupModelChangeKind } from '../../../common/editor.js';
 
 export class EditorProgressIndicator extends Disposable implements IProgressIndicator {
 
+	private whilePromise: Promise<unknown> | undefined;
+
 	constructor(
 		private readonly progressBar: ProgressBar,
 		private readonly group: IEditorGroupView
@@ -96,6 +98,14 @@ export class EditorProgressIndicator extends Disposable implements IProgressIndi
 	}
 
 	private async doShowWhile(promise: Promise<unknown>, delay?: number): Promise<void> {
+
+		// Join with existing running promise to ensure progress is accurate
+		if (this.whilePromise) {
+			promise = Promise.allSettled([promise, this.whilePromise]);
+		}
+
+		this.whilePromise = promise;
+
 		try {
 			this.progressBar.infinite().show(delay);
 
@@ -103,7 +113,12 @@ export class EditorProgressIndicator extends Disposable implements IProgressIndi
 		} catch (error) {
 			// ignore
 		} finally {
-			this.progressBar.stop().hide();
+
+			// If this is not the last promise in the list of joined promises, skip this
+			if (this.whilePromise === promise) {
+				this.whilePromise = undefined;
+				this.progressBar.stop().hide();
+			}
 		}
 	}
 }
