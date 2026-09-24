@@ -611,6 +611,10 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 
 		const { configurationModel } = await startInput.resolveModels();
 		if (searchSeq !== this._searchSeq) {
+			this.ongoingOperations--;
+			if (this.ongoingOperations === 0) {
+				this.searchOperation.stop();
+			}
 			return;
 		}
 		configurationModel.updateConfig(config);
