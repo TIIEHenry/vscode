@@ -331,9 +331,11 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 				this.restoringSession =
 					this.acquireTransferredOrPersistedSession(CancellationToken.None, 'ChatViewPane#onDidChangeAgents').then(async session => {
 						if (!this._widget) {
+							session.modelRef?.dispose();
 							return; // renderBody has not been called yet
 						}
 						if (this._store.isDisposed) {
+							session.modelRef?.dispose();
 							return;
 						}
 
