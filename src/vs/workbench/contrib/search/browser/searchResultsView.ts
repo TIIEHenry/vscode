@@ -136,7 +136,7 @@ export class TextSearchResultRenderer extends Disposable implements ICompressibl
 		return { label, disposables, actions, contextKeyService: contextKeyServiceMain };
 	}
 
-	async renderElement(node: ITreeNode<ITextSearchHeading, any>, index: number, templateData: IFolderMatchTemplate): Promise<void> {
+	renderElement(node: ITreeNode<ITextSearchHeading, any>, index: number, templateData: IFolderMatchTemplate): void {
 		if (isPlainTextSearchHeading(node.element)) {
 			templateData.label.setLabel(nls.localize('searchFolderMatch.plainText.label', "Text Results"));
 			SearchContext.AIResultsTitle.bindTo(templateData.contextKeyService).set(false);
@@ -144,12 +144,6 @@ export class TextSearchResultRenderer extends Disposable implements ICompressibl
 			SearchContext.FileFocusKey.bindTo(templateData.contextKeyService).set(false);
 			SearchContext.FolderFocusKey.bindTo(templateData.contextKeyService).set(false);
 		} else {
-			try {
-				await node.element.parent().searchModel.getAITextResultProviderName();
-			} catch {
-				// ignore
-			}
-
 			const localizedLabel = nls.localize({
 				key: 'searchFolderMatch.aiText.label',
 				comment: ['This is displayed before the AI text search results, now always "AI-assisted results".']
