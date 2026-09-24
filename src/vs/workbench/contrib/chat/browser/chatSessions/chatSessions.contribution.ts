@@ -1853,6 +1853,10 @@ export async function openChatSession(accessor: ServicesAccessor, openOptions: N
 				switch (openOptions.position) {
 					case ChatSessionPosition.Sidebar: {
 						const view = await viewsService.openView(ChatViewId) as ChatViewPane;
+						const current = view.widget.viewModel?.sessionResource;
+						if (current && !resources.isEqual(current, sessionResource) && !resources.isEqual(current, newSessionResource)) {
+							break;
+						}
 						await view.loadSession(newSessionResource);
 						break;
 					}
