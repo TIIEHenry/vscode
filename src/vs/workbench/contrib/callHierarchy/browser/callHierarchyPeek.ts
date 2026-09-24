@@ -80,6 +80,7 @@ export class CallHierarchyTreePeekWidget extends peekView.PeekViewWidget {
 
 	private readonly _previewDisposable = new DisposableStore();
 	private _updatePreviewGeneration = 0;
+	private _showModelChain: Promise<void> = Promise.resolve();
 
 	constructor(
 		editor: ICodeEditor,
@@ -370,6 +371,12 @@ export class CallHierarchyTreePeekWidget extends peekView.PeekViewWidget {
 	}
 
 	async showModel(model: CallHierarchyModel): Promise<void> {
+		const run = this._showModelChain.then(() => this.showModelNow(model));
+		this._showModelChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async showModelNow(model: CallHierarchyModel): Promise<void> {
 
 		this._show();
 		const viewState = this._treeViewStates.get(this._direction);
