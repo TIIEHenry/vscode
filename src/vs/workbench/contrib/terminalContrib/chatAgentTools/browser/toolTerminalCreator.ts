@@ -109,6 +109,10 @@ export class ToolTerminalCreator {
 					if (!didStart) {
 						this._logService.info(`ToolTerminalCreator#createTerminal: PromptInputModel state did not change within timeout`);
 					}
+					if (token.isCancellationRequested) {
+						instance.dispose();
+						throw new CancellationError();
+					}
 				}
 			}
 
@@ -119,6 +123,11 @@ export class ToolTerminalCreator {
 			}
 		} else {
 			this._logService.info(`ToolTerminalCreator#createTerminal: Skipping wait for shell integration - last successful launch type ${ToolTerminalCreator._lastSuccessfulShell}`);
+		}
+
+		if (token.isCancellationRequested) {
+			instance.dispose();
+			throw new CancellationError();
 		}
 
 		// Fallback case: No shell integration in default profile

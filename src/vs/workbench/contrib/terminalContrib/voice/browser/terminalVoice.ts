@@ -134,7 +134,8 @@ export class TerminalVoiceSession extends Disposable {
 	async start(): Promise<void> {
 		this.stop();
 		const activeInstance = this._terminalService.activeInstance;
-		this._sessionTerminalInstanceId = activeInstance?.instanceId;
+		const sessionTerminalInstanceId = activeInstance?.instanceId;
+		this._sessionTerminalInstanceId = sessionTerminalInstanceId;
 		this._sessionTerminalDisposed = false;
 		this._disposables.add(this._terminalService.onDidChangeActiveInstance(instance => {
 			if (instance?.instanceId !== this._sessionTerminalInstanceId) {
@@ -165,7 +166,8 @@ export class TerminalVoiceSession extends Disposable {
 			this._sendText();
 			this.stop();
 		}, voiceTimeout));
-		this._cancellationTokenSource = new CancellationTokenSource();
+		const cancellationTokenSource = new CancellationTokenSource();
+		this._cancellationTokenSource = cancellationTokenSource;
 		this._register(toDisposable(() => this._cancellationTokenSource?.dispose(true)));
 
 		// Prefer the built-in on-device engine (private, in-box) when configured,
@@ -174,7 +176,14 @@ export class TerminalVoiceSession extends Disposable {
 			return this._startBuiltin(voiceTimeout);
 		}
 
-		const session = await this._speechService.createSpeechToTextSession(this._cancellationTokenSource?.token, 'terminal');
+		const session = await this._speechService.createSpeechToTextSession(cancellationTokenSource.token, 'terminal');
+
+		if (this._store.isDisposed || cancellationTokenSource.token.isCancellationRequested) {
+			return;
+		}
+		if (this._terminalService.activeInstance?.instanceId !== sessionTerminalInstanceId) {
+			return;
+		}
 
 		this._disposables.add(session.onDidChange((e) => {
 			if (this._cancellationTokenSource?.token.isCancellationRequested) {
@@ -225,6 +234,8 @@ export class TerminalVoiceSession extends Disposable {
 	 */
 	private async _startBuiltin(voiceTimeout: number): Promise<void> {
 		const service = this._chatSpeechToTextService;
+		const sessionTerminalInstanceId = this._sessionTerminalInstanceId;
+		const cancellationTokenSource = this._cancellationTokenSource;
 
 		// Only one dictation can run at a time (the on-device engine is a shared
 		// singleton). If it is already recording elsewhere (chat input or an
@@ -234,6 +245,12 @@ export class TerminalVoiceSession extends Disposable {
 		// down this new terminal session.
 		if (service.isBusy) {
 			await service.cancel();
+		}
+		if (this._store.isDisposed || cancellationTokenSource?.token.isCancellationRequested) {
+			return;
+		}
+		if (this._terminalService.activeInstance?.instanceId !== sessionTerminalInstanceId) {
+			return;
 		}
 		// If the engine somehow stayed busy, bail rather than subscribing to it.
 		if (service.state !== ChatSpeechToTextState.Idle) {

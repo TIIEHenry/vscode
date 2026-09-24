@@ -2743,6 +2743,9 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 					this._sessionTerminalAssociations.delete(chatSessionResource);
 				} else {
 					this._logService.debug(`RunInTerminalTool: Using cached terminal with session resource \`${chatSessionResource}\``);
+					if (token.isCancellationRequested) {
+						throw new CancellationError();
+					}
 					this._terminalToolCreator.refreshShellIntegrationQuality(cachedTerminal);
 					this._terminalChatService.registerTerminalInstanceWithToolSession(terminalToolSessionId, cachedTerminal.instance);
 					// Dispose any previous background notification (e.g. from an earlier
@@ -2758,15 +2761,15 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 		const profile = await this._profileFetcher.getCopilotProfile();
 		const os = await this._osBackend;
 		const toolTerminal = await this._terminalToolCreator.createTerminal(profile, os, token);
+		if (token.isCancellationRequested) {
+			toolTerminal.instance.dispose();
+			throw new CancellationError();
+		}
 		toolTerminal.isBackground = isBackground;
 		this._terminalChatService.registerTerminalInstanceWithToolSession(terminalToolSessionId, toolTerminal.instance);
 		this._terminalChatService.registerTerminalInstanceWithChatSession(chatSessionResource, toolTerminal.instance);
 		this._registerInputListener(toolTerminal);
 		this._addSessionTerminalAssociation(chatSessionResource, toolTerminal);
-		if (token.isCancellationRequested) {
-			toolTerminal.instance.dispose();
-			throw new CancellationError();
-		}
 		await this._setupProcessIdAssociation(toolTerminal, chatSessionResource, termId, isBackground);
 		return toolTerminal;
 	}
