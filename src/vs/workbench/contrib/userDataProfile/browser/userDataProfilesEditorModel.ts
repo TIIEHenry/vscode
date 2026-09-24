@@ -558,6 +558,7 @@ export class NewProfileElement extends AbstractUserDataProfileElement {
 
 	private templatePromise: CancelablePromise<void> | undefined;
 	private template: IUserDataProfileTemplate | null = null;
+	private _initializeSeq = 0;
 
 	private defaultName: string;
 	private defaultIcon: string | undefined;
@@ -669,10 +670,14 @@ export class NewProfileElement extends AbstractUserDataProfileElement {
 	}
 
 	private async initialize(): Promise<void> {
+		const seq = ++this._initializeSeq;
 		this.disabled = true;
 		try {
 			if (this.copyFrom instanceof URI) {
 				await this.resolveTemplate(this.copyFrom);
+				if (seq !== this._initializeSeq) {
+					return;
+				}
 				if (this.template) {
 					this.copyFromTemplates.set(this.copyFrom, this.template.name);
 					if (this.defaultName === this.name) {
@@ -723,7 +728,9 @@ export class NewProfileElement extends AbstractUserDataProfileElement {
 			this.setCopyFlag(ProfileResourceType.Mcp, false);
 			this._onDidChange.fire({ copyFromInfo: true });
 		} finally {
-			this.disabled = false;
+			if (seq === this._initializeSeq) {
+				this.disabled = false;
+			}
 		}
 	}
 
@@ -1160,14 +1167,16 @@ export class UserDataProfilesEditorModel extends EditorModel {
 		if (this.newProfileElement.previewProfile) {
 			return;
 		}
+		const element = this.newProfileElement;
 		const profile = await this.saveNewProfile(true, token);
-		if (profile) {
-			this.newProfileElement.previewProfile = profile;
-			if (isWeb) {
-				await this.userDataProfileManagementService.switchProfile(profile);
-			} else {
-				await this.openWindow(profile);
-			}
+		if (!profile || this.newProfileElement !== element) {
+			return;
+		}
+		this.newProfileElement.previewProfile = profile;
+		if (isWeb) {
+			await this.userDataProfileManagementService.switchProfile(profile);
+		} else {
+			await this.openWindow(profile);
 		}
 	}
 
