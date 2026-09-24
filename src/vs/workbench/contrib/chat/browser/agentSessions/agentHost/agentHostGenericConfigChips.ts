@@ -6,7 +6,8 @@
 import * as dom from '../../../../../../base/browser/dom.js';
 import { CancellationTokenSource } from '../../../../../../base/common/cancellation.js';
 import { onUnexpectedError } from '../../../../../../base/common/errors.js';
-import { Disposable, DisposableMap, IDisposable, MutableDisposable } from '../../../../../../base/common/lifecycle.js';
+import { Disposable, DisposableMap, IDisposable, MutableDisposable, toDisposable } from '../../../../../../base/common/lifecycle.js';
+import { isEqual } from '../../../../../../base/common/resources.js';
 import { URI } from '../../../../../../base/common/uri.js';
 import { IInstantiationService } from '../../../../../../platform/instantiation/common/instantiation.js';
 import { IAgentHostService } from '../../../../../../platform/agentHost/common/agentService.js';
@@ -70,6 +71,7 @@ export class AgentHostGenericConfigChips extends Disposable {
 				this._reattach();
 			}
 		}));
+		this._register(toDisposable(() => this._cancelInitialResolve()));
 		this._reattach();
 	}
 
@@ -133,7 +135,7 @@ export class AgentHostGenericConfigChips extends Disposable {
 				provider: backendSession.scheme,
 				workingDirectory: this._readWorkingDirectory(),
 			});
-			if (cts.token.isCancellationRequested || this._widget.viewModel?.sessionResource?.toString() !== sessionResource.toString()) {
+			if (cts.token.isCancellationRequested || this._store.isDisposed || !isEqual(this._widget.viewModel?.sessionResource, sessionResource)) {
 				return;
 			}
 			this._initialResolved = { sessionResource, result };
