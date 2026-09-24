@@ -81,6 +81,8 @@ export class CopilotAssignmentFilterProvider extends Disposable implements IExpe
 	private copilotIsSn: string | undefined;
 	private copilotIsFcv1: string | undefined;
 
+	private extensionVersionGeneration = 0;
+
 	private readonly _onDidChangeFilters = this._register(new Emitter<void>());
 	readonly onDidChangeFilters = this._onDidChangeFilters.event;
 
@@ -122,6 +124,8 @@ export class CopilotAssignmentFilterProvider extends Disposable implements IExpe
 	}
 
 	private async updateExtensionVersions() {
+		const generation = ++this.extensionVersionGeneration;
+
 		let copilotExtensionVersion;
 		let copilotChatExtensionVersion;
 		let copilotCompletionsVersion;
@@ -137,6 +141,10 @@ export class CopilotAssignmentFilterProvider extends Disposable implements IExpe
 			copilotCompletionsVersion = (copilotChatExtension as typeof copilotChatExtension & { completionsCoreVersion?: string })?.completionsCoreVersion;
 		} catch (error) {
 			this._logService.error('Failed to update extension version assignments', error);
+		}
+
+		if (generation !== this.extensionVersionGeneration) {
+			return;
 		}
 
 		if (this.copilotCompletionsVersion === copilotCompletionsVersion &&
