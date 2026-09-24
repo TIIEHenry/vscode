@@ -2969,11 +2969,16 @@ export class AICustomizationManagementEditor extends EditorPane {
 		this.editorActionButtonInProgress = true;
 		this.updateEditorActionButton();
 
+		const editingUri = this.currentEditingUri;
 		let backgroundSaveRequest: IBuiltinPromptSaveRequest | undefined;
 		try {
 			if (this.shouldShowBuiltinSaveAction()) {
 				const selection = await this.pickBuiltinPromptSaveTarget();
 				if (!selection || selection.target === 'cancel') {
+					return;
+				}
+
+				if (this.viewMode !== 'editor' || !isEqual(this.currentEditingUri, editingUri)) {
 					return;
 				}
 
@@ -2996,7 +3001,11 @@ export class AICustomizationManagementEditor extends EditorPane {
 			}
 		} finally {
 			this.editorActionButtonInProgress = false;
-			this.updateEditorActionButton();
+			if (this.viewMode === 'editor' && isEqual(this.currentEditingUri, editingUri)) {
+				this.updateEditorActionButton();
+			} else if (this.editorActionButton) {
+				this.editorActionButton.disabled = false;
+			}
 		}
 	}
 
@@ -3058,8 +3067,10 @@ export class AICustomizationManagementEditor extends EditorPane {
 				saveTarget: target.target,
 			});
 
-			this._editorContentChanged = false;
-			this.updateEditorActionButton();
+			if (this.viewMode === 'editor' && isEqual(this.currentEditingUri, saveRequest.sourceUri)) {
+				this._editorContentChanged = false;
+				this.updateEditorActionButton();
+			}
 
 			return true;
 		} catch (error) {
