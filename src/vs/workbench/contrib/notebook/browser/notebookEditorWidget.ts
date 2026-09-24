@@ -2308,10 +2308,13 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 		if (!this.hasModel()) {
 			return;
 		}
-		const { selected } = this.notebookKernelService.getMatchingKernel(this.textModel);
 		if (!this._webview?.isResolved()) {
 			await this._resolveWebview();
 		}
+		if (!this.hasModel()) {
+			return;
+		}
+		const { selected } = this.notebookKernelService.getMatchingKernel(this.textModel);
 		this._webview?.updateKernelPreloads(selected);
 	}
 
