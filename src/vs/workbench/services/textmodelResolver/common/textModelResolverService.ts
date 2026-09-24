@@ -23,6 +23,7 @@ class ResourceModelCollection extends ReferenceCollection<Promise<IResolvedTextE
 
 	private readonly providers = new Map<string, ITextModelContentProvider[]>();
 	private readonly modelsToDispose = new Map<string, Promise<ITextEditorModel>>();
+	private readonly disposeTokens = new Map<string, object>();
 
 	constructor(
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
@@ -43,6 +44,7 @@ class ResourceModelCollection extends ReferenceCollection<Promise<IResolvedTextE
 		// Untrack as being disposed
 		const pendingModel = this.modelsToDispose.get(key);
 		this.modelsToDispose.delete(key);
+		this.disposeTokens.delete(key);
 
 		// Untitled Schema: go through untitled text service
 		if (resource.scheme === Schemas.untitled) {
@@ -108,13 +110,15 @@ class ResourceModelCollection extends ReferenceCollection<Promise<IResolvedTextE
 
 		// Track as being disposed before waiting for model to load
 		// to handle the case that the reference is acquired again
+		const disposeToken = {};
 		this.modelsToDispose.set(key, modelPromise);
+		this.disposeTokens.set(key, disposeToken);
 
 		(async () => {
 			try {
 				const model = await modelPromise;
 
-				if (!this.modelsToDispose.has(key)) {
+				if (this.disposeTokens.get(key) !== disposeToken) {
 					// return if model has been acquired again meanwhile
 					return;
 				}
@@ -129,7 +133,7 @@ class ResourceModelCollection extends ReferenceCollection<Promise<IResolvedTextE
 					await this.textFileService.untitled.canDispose(model);
 				}
 
-				if (!this.modelsToDispose.has(key)) {
+				if (this.disposeTokens.get(key) !== disposeToken) {
 					// return if model has been acquired again meanwhile
 					return;
 				}
@@ -139,7 +143,10 @@ class ResourceModelCollection extends ReferenceCollection<Promise<IResolvedTextE
 			} catch (error) {
 				// ignore
 			} finally {
-				this.modelsToDispose.delete(key); // Untrack as being disposed
+				if (this.disposeTokens.get(key) === disposeToken) {
+					this.modelsToDispose.delete(key); // Untrack as being disposed
+					this.disposeTokens.delete(key);
+				}
 			}
 		})();
 	}
