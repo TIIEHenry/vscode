@@ -482,6 +482,9 @@ export class IssueReporterEditorPane extends EditorPane {
 		// Experiments (independent from system info)
 		try {
 			const experiments = await this.experimentService.getCurrentExperiments();
+			if (this.wizard !== wizard) {
+				return;
+			}
 			this.wizard?.updateModel({ experimentInfo: experiments?.join('\n') ?? localize('noExperiments', "No current experiments.") });
 		} catch {
 			// Ignore
@@ -490,6 +493,9 @@ export class IssueReporterEditorPane extends EditorPane {
 		// Wait for the issue service to finish enumerating installed extensions
 		// (it kicks off enumeration in parallel with this pane opening).
 		await data?.whenExtensionsLoaded;
+		if (this.wizard !== wizard) {
+			return;
+		}
 		if (data && data.enabledExtensions.length > 0) {
 			const nonTheme = data.enabledExtensions.filter(e => !e.isTheme && !e.isBuiltin);
 			const themeCount = data.enabledExtensions.filter(e => e.isTheme).length;
@@ -505,6 +511,9 @@ export class IssueReporterEditorPane extends EditorPane {
 		// Note: githubAccessToken doesn't need forwarding — it's read from the
 		// shared data object at submit time, not from the overlay's internal model.
 		await data?.whenDataComplete;
+		if (this.wizard !== wizard) {
+			return;
+		}
 		if (data) {
 			this.wizard?.updateModel({
 				isInstallationPure: data.isInstallationPure,

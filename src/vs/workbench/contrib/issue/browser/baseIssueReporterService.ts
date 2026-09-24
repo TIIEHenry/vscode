@@ -71,6 +71,8 @@ export class BaseIssueReporterService extends Disposable {
 	public nonGitHubIssueUrl = false;
 	public needsUpdate = false;
 	public acknowledged = false;
+	private searchRequestEpoch = 0;
+	private githubSessionEpoch = 0;
 	private createAction: Action;
 	private previewAction: Action;
 	private privateAction: Action;
@@ -110,6 +112,7 @@ export class BaseIssueReporterService extends Disposable {
 
 		this._register(this.authenticationService.onDidChangeSessions(async () => {
 			const previousAuthState = !!this.data.githubAccessToken;
+			const epoch = ++this.githubSessionEpoch;
 
 			let githubAccessToken = '';
 			try {
@@ -118,6 +121,10 @@ export class BaseIssueReporterService extends Disposable {
 				githubAccessToken = potentialSessions[0]?.accessToken;
 			} catch (e) {
 				// Ignore
+			}
+
+			if (epoch !== this.githubSessionEpoch) {
+				return;
 			}
 
 			this.data.githubAccessToken = githubAccessToken;
@@ -806,6 +813,9 @@ export class BaseIssueReporterService extends Disposable {
 	}
 
 	public updatePerformanceInfo(info: Partial<IssueReporterData>) {
+		if (this.issueReporterModel.getData().issueType !== IssueType.PerformanceIssue) {
+			return;
+		}
 		this.issueReporterModel.update(info);
 		this.receivedPerformanceInfo = true;
 
@@ -916,12 +926,16 @@ export class BaseIssueReporterService extends Disposable {
 
 	@debounce(300)
 	private searchGitHub(repo: string, title: string): void {
+		const epoch = ++this.searchRequestEpoch;
 		const query = `is:issue+repo:${repo}+${title}`;
 		// eslint-disable-next-line no-restricted-syntax
 		const similarIssues = this.getElementById('similar-issues')!;
 
 		fetch(`https://api.github.com/search/issues?q=${query}`).then((response) => {
 			response.json().then(result => {
+				if (epoch !== this.searchRequestEpoch) {
+					return;
+				}
 				similarIssues.innerText = '';
 				if (result && result.items) {
 					this.displaySearchResults(result.items);
@@ -936,6 +950,7 @@ export class BaseIssueReporterService extends Disposable {
 
 	@debounce(300)
 	private searchDuplicates(title: string, body?: string): void {
+		const epoch = ++this.searchRequestEpoch;
 		const url = 'https://vscode-probot.westus.cloudapp.azure.com:7890/duplicate_candidates';
 		const init = {
 			method: 'POST',
@@ -950,6 +965,9 @@ export class BaseIssueReporterService extends Disposable {
 
 		fetch(url, init).then((response) => {
 			response.json().then(result => {
+				if (epoch !== this.searchRequestEpoch) {
+					return;
+				}
 				this.clearSearchResults();
 
 				if (result && result.candidates) {
