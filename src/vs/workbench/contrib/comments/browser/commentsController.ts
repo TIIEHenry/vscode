@@ -474,6 +474,7 @@ export class CommentController extends Disposable implements IEditorContribution
 	private _activeEditorHasCommentingRange: IContextKey<boolean>;
 	private _commentWidgetVisible: IContextKey<boolean>;
 	private _hasRespondedToEditorChange: boolean = false;
+	private _commentingRangeEpoch = 0;
 
 	constructor(
 		editor: ICodeEditor,
@@ -721,8 +722,10 @@ export class CommentController extends Disposable implements IEditorContribution
 	private beginComputeCommentingRanges() {
 		if (this._computeCommentingRangeScheduler) {
 			let uriAtStart: URI | undefined;
+			let rangeEpochAtStart: number;
 			this._computeCommentingRangeScheduler.trigger(() => {
 				uriAtStart = this.editor && this.editor.hasModel() ? this.editor.getModel().uri : undefined;
+				rangeEpochAtStart = ++this._commentingRangeEpoch;
 
 				if (uriAtStart) {
 					return this.commentService.getDocumentComments(uriAtStart);
@@ -732,6 +735,9 @@ export class CommentController extends Disposable implements IEditorContribution
 			}).then(commentInfos => {
 				const currentURI = this.editor && this.editor.hasModel() && this.editor.getModel().uri;
 				if (!uriAtStart || !currentURI || !this.uriIdentityService.extUri.isEqual(uriAtStart, currentURI)) {
+					return;
+				}
+				if (this._commentingRangeEpoch !== rangeEpochAtStart) {
 					return;
 				}
 				if (this.commentService.isCommentingEnabled) {
@@ -1476,6 +1482,7 @@ export class CommentController extends Disposable implements IEditorContribution
 			return;
 		}
 
+		this._commentingRangeEpoch++;
 		this._commentingRangeDecorator.update(this.editor, this._commentInfos);
 		this._commentThreadRangeDecorator.update(this.editor, this._commentInfos);
 

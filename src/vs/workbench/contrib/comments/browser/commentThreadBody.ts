@@ -179,6 +179,7 @@ export class CommentThreadBody<T extends IRange | ICellRange = IRange> extends D
 
 	async updateCommentThread(commentThread: languages.CommentThread<T>, preserveFocus: boolean) {
 		this._displayRound++;
+		const displayRound = this._displayRound;
 		const oldCommentsLen = this._commentElements.length;
 		const newCommentsLen = commentThread.comments ? commentThread.comments.length : 0;
 
@@ -240,6 +241,10 @@ export class CommentThreadBody<T extends IRange | ICellRange = IRange> extends D
 		this._commentElements = newCommentNodeList;
 		// Start editing *after* updating the thread and elements to avoid a sequencing issue https://github.com/microsoft/vscode/issues/239191
 		await Promise.all(startEditing);
+
+		if (this._store.isDisposed || this._displayRound !== displayRound) {
+			return;
+		}
 
 		if (newCommentsInEditMode.length) {
 			const lastIndex = this._commentElements.indexOf(newCommentsInEditMode[newCommentsInEditMode.length - 1]);
