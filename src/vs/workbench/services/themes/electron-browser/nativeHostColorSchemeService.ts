@@ -28,6 +28,9 @@ export class NativeHostColorSchemeService extends Disposable implements IHostCol
 	public dark: boolean;
 	public highContrast: boolean;
 
+	private _schemeEpoch = 0;
+	private _fetchEpoch = 0;
+
 	constructor(
 		@INativeHostService private readonly nativeHostService: INativeHostService,
 		@INativeWorkbenchEnvironmentService environmentService: INativeWorkbenchEnvironmentService,
@@ -37,7 +40,10 @@ export class NativeHostColorSchemeService extends Disposable implements IHostCol
 		super();
 
 		// register listener with the OS
-		this._register(this.nativeHostService.onDidChangeColorScheme(scheme => this.update(scheme)));
+		this._register(this.nativeHostService.onDidChangeColorScheme(scheme => {
+			++this._schemeEpoch;
+			this.applyColorScheme(scheme);
+		}));
 
 		let initial = environmentService.window.colorScheme;
 		if (lifecycleService.startupKind === StartupKind.ReloadedWindow) {
@@ -47,6 +53,7 @@ export class NativeHostColorSchemeService extends Disposable implements IHostCol
 		this.highContrast = initial.highContrast;
 
 		// fetch the actual value from the OS
+		this._fetchEpoch = ++this._schemeEpoch;
 		this.nativeHostService.getOSColorScheme().then(scheme => this.update(scheme)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
@@ -65,7 +72,14 @@ export class NativeHostColorSchemeService extends Disposable implements IHostCol
 		return dftl;
 	}
 
-	private update({ highContrast, dark }: IColorScheme) {
+	private update(scheme: IColorScheme) {
+		if (this._fetchEpoch !== this._schemeEpoch) {
+			return;
+		}
+		this.applyColorScheme(scheme);
+	}
+
+	private applyColorScheme({ highContrast, dark }: IColorScheme) {
 		if (dark !== this.dark || highContrast !== this.highContrast) {
 
 			this.dark = dark;
