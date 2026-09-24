@@ -342,6 +342,7 @@ export class DetachedTerminalCommandMirror extends Disposable implements IDetach
 	private _lastUpToDateCursorY: number | undefined;
 	private _lowestDirtyCursorY: number | undefined;
 	private _flushPromise: Promise<void> | undefined;
+	private _writeChain: Promise<void> = Promise.resolve();
 	private _dirtyScheduled = false;
 	private _isStreaming = false;
 	private _sourceRaw: RawXtermTerminal | undefined;
@@ -430,62 +431,65 @@ export class DetachedTerminalCommandMirror extends Disposable implements IDetach
 		if (this._store.isDisposed) {
 			return undefined;
 		}
-		let vt;
-		try {
-			vt = await this._getCommandOutputAsVT(this._xtermTerminal);
-		} catch {
-			// ignore and treat as no output
-		}
-		if (!vt) {
-			return undefined;
-		}
-		if (this._store.isDisposed) {
-			return undefined;
-		}
 
-		await new Promise<void>(resolve => {
-			// Only append if the boundary around the slice point matches; otherwise rewrite.
-			// This is an efficient constant-time check (checking up to 50 characters) instead of comparing the entire prefix.
-			// On Windows, VT sequences can differ even for equivalent content, causing corruption
-			// if we blindly append.
-			const canAppend = !!this._lastVT && vt.text.length >= this._lastVT.length && this._vtBoundaryMatches(vt.text, this._lastVT.length);
-			if (!canAppend) {
-				// Use \x1bc (RIS) + new content in one write to avoid a blank frame
-				const payload = this._lastVT ? `\x1bc${vt.text}` : vt.text;
-				if (payload) {
-					detached.xterm.write(payload, resolve);
+		return this._enqueueMirrorWrite(async () => {
+			let vt;
+			try {
+				vt = await this._getCommandOutputAsVT(this._xtermTerminal);
+			} catch {
+				// ignore and treat as no output
+			}
+			if (!vt) {
+				return undefined;
+			}
+			if (this._store.isDisposed) {
+				return undefined;
+			}
+
+			await new Promise<void>(resolve => {
+				// Only append if the boundary around the slice point matches; otherwise rewrite.
+				// This is an efficient constant-time check (checking up to 50 characters) instead of comparing the entire prefix.
+				// On Windows, VT sequences can differ even for equivalent content, causing corruption
+				// if we blindly append.
+				const canAppend = !!this._lastVT && vt.text.length >= this._lastVT.length && this._vtBoundaryMatches(vt.text, this._lastVT.length);
+				if (!canAppend) {
+					// Use \x1bc (RIS) + new content in one write to avoid a blank frame
+					const payload = this._lastVT ? `\x1bc${vt.text}` : vt.text;
+					if (payload) {
+						detached.xterm.write(payload, resolve);
+					} else {
+						resolve();
+					}
 				} else {
-					resolve();
+					const appended = vt.text.slice(this._lastVT.length);
+					if (appended) {
+						detached.xterm.write(appended, resolve);
+					} else {
+						resolve();
+					}
 				}
-			} else {
-				const appended = vt.text.slice(this._lastVT.length);
-				if (appended) {
-					detached.xterm.write(appended, resolve);
-				} else {
-					resolve();
+			});
+
+			this._lastVT = vt.text;
+
+			const sourceRaw = this._xtermTerminal.raw;
+			if (sourceRaw) {
+				this._sourceRaw = sourceRaw;
+				this._lastUpToDateCursorY = this._getAbsoluteCursorY(sourceRaw);
+				if (!this._isStreaming && (!this._command.endMarker || this._command.endMarker.isDisposed)) {
+					this._startStreaming(sourceRaw);
 				}
 			}
+
+			this._lineCount = this._getRenderedLineCount();
+			// Only compute max column width after the command finishes and for small outputs
+			const commandFinished = this._command.endMarker && !this._command.endMarker.isDisposed;
+			if (commandFinished && this._lineCount <= ChatTerminalMirrorMetrics.MaxLinesForColumnWidthComputation) {
+				this._maxColumnWidth = this._computeMaxColumnWidth();
+			}
+
+			return { lineCount: this._lineCount, maxColumnWidth: this._maxColumnWidth };
 		});
-
-		this._lastVT = vt.text;
-
-		const sourceRaw = this._xtermTerminal.raw;
-		if (sourceRaw) {
-			this._sourceRaw = sourceRaw;
-			this._lastUpToDateCursorY = this._getAbsoluteCursorY(sourceRaw);
-			if (!this._isStreaming && (!this._command.endMarker || this._command.endMarker.isDisposed)) {
-				this._startStreaming(sourceRaw);
-			}
-		}
-
-		this._lineCount = this._getRenderedLineCount();
-		// Only compute max column width after the command finishes and for small outputs
-		const commandFinished = this._command.endMarker && !this._command.endMarker.isDisposed;
-		if (commandFinished && this._lineCount <= ChatTerminalMirrorMetrics.MaxLinesForColumnWidthComputation) {
-			this._maxColumnWidth = this._computeMaxColumnWidth();
-		}
-
-		return { lineCount: this._lineCount, maxColumnWidth: this._maxColumnWidth };
 	}
 
 	/**
@@ -516,6 +520,7 @@ export class DetachedTerminalCommandMirror extends Disposable implements IDetach
 		}
 		// Wait for any in-flight streaming flush so the resize does not interleave with it
 		await this._flushPromise;
+		await this._writeChain;
 		if (this._store.isDisposed || detached.xterm.cols === cols) {
 			return undefined;
 		}
@@ -672,11 +677,18 @@ export class DetachedTerminalCommandMirror extends Disposable implements IDetach
 		});
 	}
 
+	private _enqueueMirrorWrite<T>(work: () => Promise<T>): Promise<T> {
+		const run = this._writeChain.then(() => work());
+		this._writeChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
 	private _flushDirtyRange(): void {
 		if (this._store.isDisposed || this._flushPromise) {
 			return;
 		}
-		this._flushPromise = this._doFlushDirtyRange().finally(() => {
+		const run = this._enqueueMirrorWrite(() => this._doFlushDirtyRange());
+		this._flushPromise = run.then(() => undefined, () => undefined).finally(() => {
 			this._flushPromise = undefined;
 		});
 	}
