@@ -556,6 +556,7 @@ export class SuggestModel implements IDisposable {
 		}
 
 		this._requestToken = new CancellationTokenSource();
+		const requestToken = this._requestToken;
 
 		// kind filter and snippet sort rules
 		const snippetSuggestions = this._editor.getOption(EditorOption.snippetSuggestions);
@@ -588,7 +589,12 @@ export class SuggestModel implements IDisposable {
 
 		Promise.all([completions, wordDistance]).then(async ([completions, wordDistance]) => {
 
-			this._requestToken?.dispose();
+			if (this._requestToken !== requestToken) {
+				completions.disposable.dispose();
+				return;
+			}
+
+			this._requestToken.dispose();
 
 			if (!this._editor.hasModel()) {
 				completions.disposable.dispose();
@@ -600,7 +606,7 @@ export class SuggestModel implements IDisposable {
 				clipboardText = await this._clipboardService.readText();
 			}
 
-			if (this._triggerState === undefined) {
+			if (this._requestToken !== requestToken || this._triggerState === undefined) {
 				completions.disposable.dispose();
 				return;
 			}

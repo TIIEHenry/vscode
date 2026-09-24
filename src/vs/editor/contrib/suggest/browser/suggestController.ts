@@ -506,7 +506,9 @@ export class SuggestController implements IEditorContribution {
 		Promise.all(tasks).finally(() => {
 			this._reportSuggestionAcceptedTelemetry(item, model, isResolved, _commandExectionDuration, _additionalEditsAppliedAsync, event.index, event.model.items);
 
-			this.model.clear();
+			if (this.model.state === State.Idle) {
+				this.model.clear();
+			}
 			cts.dispose();
 		});
 	}
