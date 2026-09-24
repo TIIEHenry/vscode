@@ -9,6 +9,7 @@ import { IReference } from '../../../../base/common/lifecycle.js';
 import * as paths from '../../../../base/common/path.js';
 import { isEqual, joinPath } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
+import { ITextModel } from '../../../../editor/common/model.js';
 import { PLAINTEXT_LANGUAGE_ID } from '../../../../editor/common/languages/modesRegistry.js';
 import { IResolvedTextEditorModel, ITextModelService } from '../../../../editor/common/services/resolverService.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -77,6 +78,7 @@ export class InteractiveEditorInput extends EditorInput implements ICompositeNot
 	private _editorModelReference: IResolvedNotebookEditorModel | null;
 
 	private _inputModelRef: IReference<IResolvedTextEditorModel> | null;
+	private _inputModelRefPromise: Promise<ITextModel | undefined> | null;
 
 	get primary(): EditorInput {
 		return this._notebookEditorInput;
@@ -111,6 +113,7 @@ export class InteractiveEditorInput extends EditorInput implements ICompositeNot
 		this._inputResolver = null;
 		this._editorModelReference = null;
 		this._inputModelRef = null;
+		this._inputModelRefPromise = null;
 		this._textModelService = textModelService;
 		this._interactiveDocumentService = interactiveDocumentService;
 		this._historyService = historyService;
@@ -144,7 +147,10 @@ export class InteractiveEditorInput extends EditorInput implements ICompositeNot
 
 	private async _resolveEditorModel() {
 		if (!this._editorModelReference) {
-			this._editorModelReference = await this._notebookEditorInput.resolve();
+			const resolved = await this._notebookEditorInput.resolve();
+			if (!this._store.isDisposed) {
+				this._editorModelReference = resolved;
+			}
 		}
 
 		return this._editorModelReference;
@@ -169,16 +175,27 @@ export class InteractiveEditorInput extends EditorInput implements ICompositeNot
 			return this._inputModelRef.object.textEditorModel;
 		}
 
-		const resolvedLanguage = language ?? this._initLanguage ?? PLAINTEXT_LANGUAGE_ID;
-		this._interactiveDocumentService.willCreateInteractiveDocument(this.resource, this.inputResource, resolvedLanguage);
-		const ref = await this._textModelService.createModelReference(this.inputResource);
-		if (this._store.isDisposed) {
-			ref.dispose();
-			return;
-		}
-		this._inputModelRef = ref;
+		if (!this._inputModelRefPromise) {
+			const resolvedLanguage = language ?? this._initLanguage ?? PLAINTEXT_LANGUAGE_ID;
+			this._interactiveDocumentService.willCreateInteractiveDocument(this.resource, this.inputResource, resolvedLanguage);
+			this._inputModelRefPromise = (async () => {
+				try {
+					const ref = await this._textModelService.createModelReference(this.inputResource);
+					if (this._store.isDisposed) {
+						ref.dispose();
+						return;
+					}
+					this._inputModelRef = ref;
 
-		return this._inputModelRef.object.textEditorModel;
+					return this._inputModelRef.object.textEditorModel;
+				} catch (err) {
+					this._inputModelRefPromise = null;
+					throw err;
+				}
+			})();
+		}
+
+		return this._inputModelRefPromise;
 	}
 
 	override async save(group: GroupIdentifier, options?: ISaveOptions): Promise<EditorInput | IUntypedEditorInput | undefined> {
