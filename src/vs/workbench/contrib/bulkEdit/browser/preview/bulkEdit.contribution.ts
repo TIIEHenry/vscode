@@ -97,6 +97,8 @@ class BulkEditPreviewContribution {
 
 	private _activeSession: PreviewSession | undefined;
 
+	private _previewSeq = 0;
+
 	constructor(
 		@IPaneCompositePartService private readonly _paneCompositeService: IPaneCompositePartService,
 		@IViewsService private readonly _viewsService: IViewsService,
@@ -110,10 +112,14 @@ class BulkEditPreviewContribution {
 	}
 
 	private async _previewEdit(edits: ResourceEdit[]): Promise<ResourceEdit[]> {
+		const seq = ++this._previewSeq;
 		this._ctxEnabled.set(true);
 
 		const uxState = this._activeSession?.uxState ?? new UXState(this._paneCompositeService, this._editorGroupsService);
 		const view = await getBulkEditPane(this._viewsService);
+		if (seq !== this._previewSeq) {
+			return [];
+		}
 		if (!view) {
 			this._ctxEnabled.set(false);
 			return edits;
@@ -128,6 +134,10 @@ class BulkEditPreviewContribution {
 				primaryButton: localize({ key: 'continue', comment: ['&& denotes a mnemonic'] }, "&&Continue")
 			});
 
+			if (seq !== this._previewSeq) {
+				return [];
+			}
+
 			if (!confirmed) {
 				return [];
 			}
@@ -138,6 +148,9 @@ class BulkEditPreviewContribution {
 		if (this._activeSession) {
 			const previous = this._activeSession;
 			await this._activeSession.uxState.restore(false, true);
+			if (seq !== this._previewSeq) {
+				return [];
+			}
 			if (this._activeSession !== previous) {
 				return [];
 			}
@@ -146,20 +159,30 @@ class BulkEditPreviewContribution {
 		} else {
 			session = new PreviewSession(uxState);
 		}
+		if (seq !== this._previewSeq) {
+			session.cts.dispose(true);
+			return [];
+		}
 		this._activeSession = session;
 
 		// the actual work...
 		try {
 
-			return await view.setInput(edits, session.cts.token) ?? [];
+			const result = await view.setInput(edits, session.cts.token) ?? [];
+			if (seq !== this._previewSeq) {
+				return [];
+			}
+			return result;
 
 		} finally {
 			// restore UX state
-			if (this._activeSession === session) {
+			if (this._activeSession === session && seq === this._previewSeq) {
 				await this._activeSession.uxState.restore(true, true);
-				this._activeSession.cts.dispose();
-				this._ctxEnabled.set(false);
-				this._activeSession = undefined;
+				if (this._activeSession === session && seq === this._previewSeq) {
+					this._activeSession.cts.dispose();
+					this._ctxEnabled.set(false);
+					this._activeSession = undefined;
+				}
 			}
 		}
 	}
