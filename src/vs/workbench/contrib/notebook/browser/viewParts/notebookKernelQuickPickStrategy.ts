@@ -569,12 +569,14 @@ export class KernelPickerMRUStrategy extends KernelPickerStrategyBase {
 				resolve(undefined);
 			}));
 
-			this._calculdateKernelSources(editor).then(quickPickItems => {
+			let chain: Promise<void> = Promise.resolve();
+			const initialRun = chain.then(() => this._calculdateKernelSources(editor).then(quickPickItems => {
 				quickPick.items = quickPickItems;
 				if (quickPick.items.length > 0) {
 					quickPick.busy = false;
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError).catch(onUnexpectedError));
+			chain = initialRun.then(() => undefined, () => undefined);
 
 			disposables.add(Event.debounce<void, void>(
 				Event.any(
@@ -584,11 +586,14 @@ export class KernelPickerMRUStrategy extends KernelPickerStrategyBase {
 				),
 				(last, _current) => last,
 				KERNEL_PICKER_UPDATE_DEBOUNCE
-			)(async () => {
-				quickPick.busy = true;
-				const quickPickItems = await this._calculdateKernelSources(editor);
-				quickPick.items = quickPickItems;
-				quickPick.busy = false;
+			)(() => {
+				const run = chain.then(async () => {
+					quickPick.busy = true;
+					const quickPickItems = await this._calculdateKernelSources(editor);
+					quickPick.items = quickPickItems;
+					quickPick.busy = false;
+				});
+				chain = run.then(() => undefined, () => undefined);
 			}));
 		});
 

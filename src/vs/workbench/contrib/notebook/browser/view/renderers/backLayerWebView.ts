@@ -152,6 +152,7 @@ export class BackLayerWebView<T extends ICommonCellInfo> extends Themable {
 	private readonly _preloadsCache = new Set<string>();
 	public readonly onMessage: Event<INotebookWebviewMessage> = this._onMessage.event;
 	private _disposed = false;
+	private readonly _highlightCodeBlockChains = new Map<string, Promise<void>>();
 	private _currentKernel?: INotebookKernel;
 
 	private firstInit = true;
@@ -1166,7 +1167,8 @@ export class BackLayerWebView<T extends ICommonCellInfo> extends Themable {
 				continue;
 			}
 
-			tokenizeToString(this.languageService, value, languageId).then((html) => {
+			let chain = this._highlightCodeBlockChains.get(id) ?? Promise.resolve();
+			const run = chain.then(() => tokenizeToString(this.languageService, value, languageId).then((html) => {
 				if (this._disposed) {
 					return;
 				}
@@ -1175,7 +1177,9 @@ export class BackLayerWebView<T extends ICommonCellInfo> extends Themable {
 					html,
 					codeBlockId: id
 				});
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError).catch(onUnexpectedError));
+			chain = run.then(() => undefined, () => undefined);
+			this._highlightCodeBlockChains.set(id, chain);
 		}
 	}
 	private async _onDidClickDataLink(event: IClickedDataUrlMessage): Promise<void> {
