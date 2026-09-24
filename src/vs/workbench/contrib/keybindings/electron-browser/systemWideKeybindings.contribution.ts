@@ -96,6 +96,8 @@ export class SystemWideKeybindingsContribution extends Disposable implements IWo
 	/** User settings labels whose ignored `when` clause we already warned about. */
 	private readonly warnedWhenLabels = new Set<string>();
 
+	private _syncChain: Promise<void> = Promise.resolve();
+
 	constructor(
 		@IKeybindingService private readonly keybindingService: IKeybindingService,
 		@INativeHostService private readonly nativeHostService: INativeHostService,
@@ -119,6 +121,12 @@ export class SystemWideKeybindingsContribution extends Disposable implements IWo
 	}
 
 	private async sync(): Promise<void> {
+		const run = this._syncChain.then(() => this._syncNow());
+		this._syncChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async _syncNow(): Promise<void> {
 		const candidates = this.collectCandidates();
 
 		// Nothing to register (no valid system-wide bindings): clear any previous registrations.
