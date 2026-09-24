@@ -807,6 +807,11 @@ registerAction2(class ResolveSymbolsContextAction extends EditingSessionAction {
 			return;
 		}
 
+		const sessionResource = chatWidget.viewModel?.sessionResource;
+		if (!sessionResource) {
+			return;
+		}
+
 		const textModelService = accessor.get(ITextModelService);
 		const languageFeaturesService = accessor.get(ILanguageFeaturesService);
 		const symbol = args[0] as Location;
@@ -831,6 +836,10 @@ registerAction2(class ResolveSymbolsContextAction extends EditingSessionAction {
 			const attachments = [];
 			for (const reference of [...definitions, ...implementations, ...references]) {
 				attachments.push(chatWidget.attachmentModel.asFileVariableEntry(reference.uri));
+			}
+
+			if (!chatWidget.viewModel || !isEqual(chatWidget.viewModel.sessionResource, sessionResource)) {
+				return;
 			}
 
 			chatWidget.attachmentModel.addContext(...attachments);
