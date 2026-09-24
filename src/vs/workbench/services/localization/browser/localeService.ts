@@ -137,7 +137,9 @@ class WebActiveLanguagePackService implements IActiveLanguagePackService {
 			// Only install extensions that are published by Microsoft and start with vscode-language-pack for extra certainty
 			const extensionToInstall = tagResult.firstPage.find(e => e.publisher === 'MS-CEINTL' && e.name.startsWith('vscode-language-pack'));
 			if (extensionToInstall) {
-				localeStorage.setExtensionId(extensionToInstall.identifier.id);
+				if (!localeStorage.getExtensionId()) {
+					localeStorage.setExtensionId(extensionToInstall.identifier.id);
+				}
 				return extensionToInstall.identifier.id;
 			}
 
