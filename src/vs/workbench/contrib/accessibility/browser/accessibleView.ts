@@ -616,6 +616,9 @@ export class AccessibleView extends Disposable {
 			if (renderSeq !== this._renderSeq) {
 				return;
 			}
+			if (!this._currentProvider) {
+				return;
+			}
 			if (!model) {
 				return;
 			}
