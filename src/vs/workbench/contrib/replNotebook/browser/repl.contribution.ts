@@ -146,6 +146,12 @@ export class ReplDocumentContribution extends Disposable implements IWorkbenchCo
 
 					const notebookUri = ref.object.notebook.uri;
 
+					const cachedEditor = this.editorInputCache.get(notebookUri);
+					if (cachedEditor && !cachedEditor.isDisposed()) {
+						ref.dispose();
+						return { editor: cachedEditor, options };
+					}
+
 					// untitled notebooks are disposed when they get saved. we should not hold a reference
 					// to such a disposed notebook and therefore dispose the reference as well
 					Event.once(ref.object.notebook.onWillDispose)(() => {
