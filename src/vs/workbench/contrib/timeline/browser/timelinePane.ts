@@ -651,11 +651,12 @@ export class TimelinePane extends ViewPane {
 			// Ignore
 		}
 
-		// If the request was cancelled then it was already deleted from the pendingRequests map
-		if (!request.tokenSource.token.isCancellationRequested) {
-			this.pendingRequests.get(request.source)?.dispose();
-			this.pendingRequests.delete(request.source);
+		if (request.tokenSource.token.isCancellationRequested) {
+			return;
 		}
+
+		this.pendingRequests.get(request.source)?.dispose();
+		this.pendingRequests.delete(request.source);
 
 		if (this._store.isDisposed) {
 			return;
