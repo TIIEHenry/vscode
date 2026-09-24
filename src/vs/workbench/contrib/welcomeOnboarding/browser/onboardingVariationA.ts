@@ -133,6 +133,8 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 	private enterpriseSignInUiState: EnterpriseSignInUiState = 'options';
 	private enterpriseInstanceValue = '';
 	private enterpriseSignInWatch: StopWatch | undefined;
+	private _enterpriseSubmitSeq = 0;
+	private _enterpriseSubmitChain: Promise<void> = Promise.resolve();
 
 	constructor(
 		@ILayoutService private readonly layoutService: ILayoutService,
@@ -737,7 +739,9 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 						setupStrategy: ChatSetupStrategy.DefaultSetup,
 					}).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
-				this._nextStep();
+				if (this.steps[this.currentStepIndex] === OnboardingStepId.SignIn) {
+					this._nextStep();
+				}
 			}
 		} catch (error) {
 			if (isCancellationError(error)) {
@@ -767,11 +771,27 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 	}
 
 	private async _submitEnterpriseInstance(resolvedUri: string): Promise<void> {
+		const seq = ++this._enterpriseSubmitSeq;
+		const run = this._enterpriseSubmitChain.then(() => this._submitEnterpriseInstanceNow(seq, resolvedUri));
+		this._enterpriseSubmitChain = run.then(() => { }, () => { });
+		await run;
+	}
+
+	private async _submitEnterpriseInstanceNow(seq: number, resolvedUri: string): Promise<void> {
+		if (seq !== this._enterpriseSubmitSeq) {
+			return;
+		}
 		try {
 			await this.configurationService.updateValue(defaultChat.providerUriSetting, resolvedUri, ConfigurationTarget.USER);
+			if (seq !== this._enterpriseSubmitSeq) {
+				return;
+			}
 			this.enterpriseInstanceValue = resolvedUri;
 			await this._runEnterpriseSignInSetup();
 		} catch {
+			if (seq !== this._enterpriseSubmitSeq) {
+				return;
+			}
 			this.enterpriseSignInWatch = undefined;
 			this._setEnterpriseSignInUiState('instance');
 			this._notifyEnterpriseSignInError();
@@ -783,11 +803,14 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 			return;
 		}
 
-		const watch = this.enterpriseSignInWatch ?? StopWatch.create();
 		const provider = defaultChat.provider.enterprise.id;
 		this._setEnterpriseSignInUiState('progress');
 
+		let stepAtStart: number;
+		let watch: StopWatch;
 		try {
+			stepAtStart = this.currentStepIndex;
+			watch = this.enterpriseSignInWatch ?? StopWatch.create();
 			const success = await this.commandService.executeCommand<boolean>('workbench.action.chat.triggerSetup', undefined, {
 				disableChatViewReveal: true,
 				setupStrategy: ChatSetupStrategy.SetupWithEnterpriseProvider,
@@ -796,22 +819,30 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 			if (success) {
 				this._userSignedIn = true;
 				this.telemetryService.publicLog2<InstallChatEvent, InstallChatClassification>('commandCenter.chatInstall', { installResult: 'installed', installDuration: watch.elapsed(), signUpErrorCode: undefined, provider });
-				this._nextStep();
-			} else {
+				if (stepAtStart === this.currentStepIndex && this.steps[this.currentStepIndex] === OnboardingStepId.SignIn) {
+					this._nextStep();
+				}
+			} else if (stepAtStart === this.currentStepIndex) {
 				this._setEnterpriseSignInUiState('options');
 			}
 		} catch (error) {
 			if (isCancellationError(error)) {
-				this._setEnterpriseSignInUiState('options');
+				if (stepAtStart === this.currentStepIndex) {
+					this._setEnterpriseSignInUiState('options');
+				}
 				this.telemetryService.publicLog2<InstallChatEvent, InstallChatClassification>('commandCenter.chatInstall', { installResult: 'cancelled', installDuration: watch.elapsed(), signUpErrorCode: undefined, provider });
 				return;
 			}
 
-			this._setEnterpriseSignInUiState('instance');
+			if (stepAtStart === this.currentStepIndex) {
+				this._setEnterpriseSignInUiState('instance');
+			}
 			this.telemetryService.publicLog2<InstallChatEvent, InstallChatClassification>('commandCenter.chatInstall', { installResult: 'failedNotSignedIn', installDuration: watch.elapsed(), signUpErrorCode: undefined, provider });
 			this._notifyEnterpriseSignInError();
 		} finally {
-			this.enterpriseSignInWatch = undefined;
+			if (this.enterpriseSignInWatch === watch) {
+				this.enterpriseSignInWatch = undefined;
+			}
 		}
 	}
 
@@ -973,6 +1004,9 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 	private async _selectTheme(theme: IOnboardingThemeOption): Promise<void> {
 		this.selectedThemeId = theme.id;
 		const allThemes = await this.themeService.getColorThemes();
+		if (this.selectedThemeId !== theme.id) {
+			return;
+		}
 		const match = allThemes.find(t => t.settingsId === theme.themeId);
 		if (match) {
 			this.themeService.setColorTheme(match.id, ConfigurationTarget.USER).catch(onUnexpectedError).catch(onUnexpectedError);
@@ -987,6 +1021,9 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 
 		try {
 			const gallery = await this.extensionGalleryService.getExtensions([{ id: keymap.extensionId }], CancellationToken.None);
+			if (this.selectedKeymapId !== keymapId) {
+				return;
+			}
 			if (gallery.length > 0) {
 				await this.extensionManagementService.installFromGallery(gallery[0], { context: { [EXTENSION_INSTALL_SKIP_WALKTHROUGH_CONTEXT]: true } });
 			}
