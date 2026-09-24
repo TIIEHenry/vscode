@@ -268,6 +268,10 @@ export class CodeLensWidget {
 		return this._isDisposed;
 	}
 
+	isCurrentData(data: readonly CodeLensItem[]): boolean {
+		return this._data === data;
+	}
+
 	isValid(): boolean {
 		return this._decorationIds.some((id, i) => {
 			const range = this._editor.getModel().getDecorationRange(id);
