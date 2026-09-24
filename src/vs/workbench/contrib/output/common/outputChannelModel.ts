@@ -22,7 +22,7 @@ import { VSBuffer } from '../../../../base/common/buffer.js';
 import { ILogger, ILoggerService, ILogService, LogLevel } from '../../../../platform/log/common/log.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { ILogEntry, IOutputContentSource, LOG_MIME, OutputChannelUpdateMode } from '../../../services/output/common/output.js';
-import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
+import { CancellationError, isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { TextModel } from '../../../../editor/common/model/textModel.js';
 import { binarySearch, sortedDiff } from '../../../../base/common/arrays.js';
 
@@ -159,8 +159,8 @@ class FileContentProvider extends Disposable implements IContentProvider {
 	watch(): void {
 		if (!this.watching) {
 			this.logService.trace('Started polling', this.resource.toString());
-			this.poll();
 			this.watching = true;
+			this.poll();
 		}
 	}
 
@@ -174,6 +174,9 @@ class FileContentProvider extends Disposable implements IContentProvider {
 
 	private poll(): void {
 		const loop = () => this.doWatch().then(() => this.poll());
+		if (this._store.isDisposed || !this.watching) {
+			return;
+		}
 		this.syncDelayer.trigger(loop).catch(error => {
 			if (!isCancellationError(error)) {
 				throw error;
@@ -187,6 +190,9 @@ class FileContentProvider extends Disposable implements IContentProvider {
 				return;
 			}
 			const stat = await this.fileService.stat(this.resource);
+			if (this._store.isDisposed || !this.watching) {
+				return;
+			}
 			if (stat.etag !== this.etag) {
 				this.etag = stat.etag;
 				if (isNumber(stat.size) && this.endOffset > stat.size) {
@@ -494,20 +500,27 @@ export abstract class AbstractFileOutputChannelModel extends Disposable implemen
 			try {
 				this.modelDisposable.value = new DisposableStore();
 				this.model = this.modelService.createModel('', this.language, this.modelUri);
+				const model = this.model;
 				const { content, consume } = await this.outputContentProvider.getContent();
+				if (this._store.isDisposed || this.model !== model || model?.isDisposed()) {
+					if (this._store.isDisposed && model && !model.isDisposed()) {
+						model.dispose();
+					}
+					return;
+				}
 				consume();
-				this.doAppendContent(this.model, content);
+				this.doAppendContent(model, content);
 				this.modelDisposable.value.add(this.outputContentProvider.onDidReset(() => this.onDidContentChange(true, true)));
 				this.modelDisposable.value.add(this.outputContentProvider.onDidAppend(() => this.onDidContentChange(false, false)));
 				this.outputContentProvider.watch();
 				this.modelDisposable.value.add(toDisposable(() => this.outputContentProvider.unwatch()));
-				this.modelDisposable.value.add(this.model.onWillDispose(() => {
+				this.modelDisposable.value.add(model.onWillDispose(() => {
 					this.outputContentProvider.reset();
 					this.modelDisposable.value = undefined;
 					this.cancelModelUpdate();
 					this.model = null;
 				}));
-				c(this.model);
+				c(model);
 			} catch (error) {
 				e(error);
 			}
@@ -685,6 +698,9 @@ export class FileOutputChannelModel extends AbstractFileOutputChannelModel imple
 	override update(mode: OutputChannelUpdateMode, till: number | undefined, immediate: boolean): void {
 		const loadModelPromise = this.loadModelPromise ? this.loadModelPromise : Promise.resolve();
 		loadModelPromise.then(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (mode === OutputChannelUpdateMode.Clear || mode === OutputChannelUpdateMode.Replace) {
 				if (isNumber(till)) {
 					this.fileOutput.reset(till);
@@ -731,6 +747,9 @@ export class MultiFileOutputChannelModel extends AbstractFileOutputChannelModel 
 	override clear(): void {
 		const loadModelPromise = this.loadModelPromise ? this.loadModelPromise : Promise.resolve();
 		loadModelPromise.then(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.multifileOutput.resetToEnd();
 			this.doUpdate(OutputChannelUpdateMode.Clear, true);
 		}).catch(onUnexpectedError).catch(onUnexpectedError);
@@ -809,9 +828,20 @@ export class DelegatedOutputChannelModel extends Disposable implements IOutputCh
 
 	private async createOutputChannelModel(id: string, modelUri: URI, language: ILanguageSelection, outputDir: URI, outputDirPromise: Promise<void>): Promise<IOutputChannelModel> {
 		await outputDirPromise;
+		if (this._store.isDisposed) {
+			throw new CancellationError();
+		}
 		const file = resources.joinPath(outputDir, `${id.replace(/[\\/:\*\?"<>\|]/g, '')}.log`);
 		await this.fileService.createFile(file);
-		const outputChannelModel = this._register(this.instantiationService.createInstance(OutputChannelBackedByFile, id, modelUri, language, file));
+		if (this._store.isDisposed) {
+			throw new CancellationError();
+		}
+		const outputChannelModel = this.instantiationService.createInstance(OutputChannelBackedByFile, id, modelUri, language, file);
+		if (this._store.isDisposed) {
+			outputChannelModel.dispose();
+			throw new CancellationError();
+		}
+		this._register(outputChannelModel);
 		this._register(outputChannelModel.onDispose(() => this._onDispose.fire()));
 		return outputChannelModel;
 	}
@@ -821,26 +851,56 @@ export class DelegatedOutputChannelModel extends Disposable implements IOutputCh
 	}
 
 	append(output: string): void {
-		this.outputChannelModel.then(outputChannelModel => outputChannelModel.append(output)).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.outputChannelModel.then(outputChannelModel => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			outputChannelModel.append(output);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	update(mode: OutputChannelUpdateMode, till: number | undefined, immediate: boolean): void {
-		this.outputChannelModel.then(outputChannelModel => outputChannelModel.update(mode, till, immediate)).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.outputChannelModel.then(outputChannelModel => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			outputChannelModel.update(mode, till, immediate);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	loadModel(): Promise<ITextModel> {
-		return this.outputChannelModel.then(outputChannelModel => outputChannelModel.loadModel());
+		return this.outputChannelModel.then(outputChannelModel => {
+			if (this._store.isDisposed) {
+				throw new CancellationError();
+			}
+			return outputChannelModel.loadModel();
+		});
 	}
 
 	clear(): void {
-		this.outputChannelModel.then(outputChannelModel => outputChannelModel.clear()).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.outputChannelModel.then(outputChannelModel => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			outputChannelModel.clear();
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	replace(value: string): void {
-		this.outputChannelModel.then(outputChannelModel => outputChannelModel.replace(value)).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.outputChannelModel.then(outputChannelModel => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			outputChannelModel.replace(value);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	updateChannelSources(files: IOutputContentSource[]): void {
-		this.outputChannelModel.then(outputChannelModel => outputChannelModel.updateChannelSources(files)).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.outputChannelModel.then(outputChannelModel => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			outputChannelModel.updateChannelSources(files);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 }
