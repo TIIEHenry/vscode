@@ -113,6 +113,8 @@ export class WorkspaceTrustManagementService extends Disposable implements IWork
 	private _trustStateInfo: IWorkspaceTrustInfo;
 	private _remoteAuthority: ResolverResult | undefined;
 
+	private _trustChain: Promise<void> = Promise.resolve();
+
 	private readonly _storedTrustState: WorkspaceTrustMemento;
 	private readonly _trustTransitionManager: WorkspaceTrustTransitionManager;
 
@@ -217,6 +219,12 @@ export class WorkspaceTrustManagementService extends Disposable implements IWork
 	}
 
 	private async resolveCanonicalUris(): Promise<void> {
+		const run = this._trustChain.then(() => this.resolveCanonicalUrisNow());
+		this._trustChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async resolveCanonicalUrisNow(): Promise<void> {
 		// Open editors
 		const filesToOpen: IPath[] = [];
 		if (this.environmentService.filesToOpenOrCreate) {
@@ -277,10 +285,16 @@ export class WorkspaceTrustManagementService extends Disposable implements IWork
 	}
 
 	private async saveTrustInfo(): Promise<void> {
+		const run = this._trustChain.then(() => this.saveTrustInfoNow());
+		this._trustChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async saveTrustInfoNow(): Promise<void> {
 		this.storageService.store(this.storageKey, JSON.stringify(this._trustStateInfo), StorageScope.APPLICATION_SHARED, StorageTarget.MACHINE);
 		this._onDidChangeTrustedFolders.fire();
 
-		await this.updateWorkspaceTrust();
+		await this.updateWorkspaceTrustNow();
 	}
 
 	private getWorkspaceUris(): URI[] {
@@ -329,12 +343,18 @@ export class WorkspaceTrustManagementService extends Disposable implements IWork
 	}
 
 	private async updateWorkspaceTrust(trusted?: boolean): Promise<void> {
+		const run = this._trustChain.then(() => this.updateWorkspaceTrustNow(trusted));
+		this._trustChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async updateWorkspaceTrustNow(trusted?: boolean): Promise<void> {
 		if (!this.workspaceTrustEnablementService.isWorkspaceTrustEnabled()) {
 			return;
 		}
 
 		if (trusted === undefined) {
-			await this.resolveCanonicalUris();
+			await this.resolveCanonicalUrisNow();
 			trusted = this.calculateWorkspaceTrust();
 		}
 
@@ -430,7 +450,7 @@ export class WorkspaceTrustManagementService extends Disposable implements IWork
 		}
 
 		if (changed) {
-			await this.saveTrustInfo();
+			await this.saveTrustInfoNow();
 		}
 	}
 
@@ -626,7 +646,11 @@ export class WorkspaceTrustManagementService extends Disposable implements IWork
 	}
 
 	async setUrisTrust(uris: URI[], trusted: boolean): Promise<void> {
-		await this.doSetUrisTrust(await Promise.all(uris.map(uri => this.getCanonicalUri(uri))), trusted);
+		const run = this._trustChain.then(async () => {
+			await this.doSetUrisTrust(await Promise.all(uris.map(uri => this.getCanonicalUri(uri))), trusted);
+		});
+		this._trustChain = run.then(() => undefined, () => undefined);
+		return run;
 	}
 
 	getTrustedUris(): URI[] {
@@ -634,29 +658,33 @@ export class WorkspaceTrustManagementService extends Disposable implements IWork
 	}
 
 	async setTrustedUris(uris: URI[]): Promise<void> {
-		this._trustStateInfo.uriTrustInfo = [];
-		for (const uri of uris) {
-			const canonicalUri = await this.getCanonicalUri(uri);
-			const cleanUri = this.uriIdentityService.extUri.removeTrailingPathSeparator(canonicalUri);
-			let added = false;
-			for (const addedUri of this._trustStateInfo.uriTrustInfo) {
-				if (this.uriIdentityService.extUri.isEqual(addedUri.uri, cleanUri)) {
-					added = true;
-					break;
+		const run = this._trustChain.then(async () => {
+			this._trustStateInfo.uriTrustInfo = [];
+			for (const uri of uris) {
+				const canonicalUri = await this.getCanonicalUri(uri);
+				const cleanUri = this.uriIdentityService.extUri.removeTrailingPathSeparator(canonicalUri);
+				let added = false;
+				for (const addedUri of this._trustStateInfo.uriTrustInfo) {
+					if (this.uriIdentityService.extUri.isEqual(addedUri.uri, cleanUri)) {
+						added = true;
+						break;
+					}
 				}
+
+				if (added) {
+					continue;
+				}
+
+				this._trustStateInfo.uriTrustInfo.push({
+					trusted: true,
+					uri: cleanUri
+				});
 			}
 
-			if (added) {
-				continue;
-			}
-
-			this._trustStateInfo.uriTrustInfo.push({
-				trusted: true,
-				uri: cleanUri
-			});
-		}
-
-		await this.saveTrustInfo();
+			await this.saveTrustInfoNow();
+		});
+		this._trustChain = run.then(() => undefined, () => undefined);
+		return run;
 	}
 
 	addWorkspaceTrustTransitionParticipant(participant: IWorkspaceTrustTransitionParticipant): IDisposable {

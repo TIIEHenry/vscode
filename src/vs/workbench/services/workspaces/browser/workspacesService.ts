@@ -30,6 +30,8 @@ export class BrowserWorkspacesService extends Disposable implements IWorkspacesS
 	private readonly _onRecentlyOpenedChange = this._register(new Emitter<void>());
 	readonly onDidChangeRecentlyOpened = this._onRecentlyOpenedChange.event;
 
+	private _recentlyOpenedChain: Promise<void> = Promise.resolve();
+
 	constructor(
 		@IStorageService private readonly storageService: IStorageService,
 		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService,
@@ -113,30 +115,38 @@ export class BrowserWorkspacesService extends Disposable implements IWorkspacesS
 	}
 
 	async addRecentlyOpened(recents: IRecent[]): Promise<void> {
-		const recentlyOpened = await this.getRecentlyOpened();
+		const run = this._recentlyOpenedChain.then(async () => {
+			const recentlyOpened = await this.getRecentlyOpened();
 
-		for (const recent of recents) {
-			if (isRecentFile(recent)) {
-				this.doRemoveRecentlyOpened(recentlyOpened, [recent.fileUri]);
-				recentlyOpened.files.unshift(recent);
-			} else if (isRecentFolder(recent)) {
-				this.doRemoveRecentlyOpened(recentlyOpened, [recent.folderUri]);
-				recentlyOpened.workspaces.unshift(recent);
-			} else {
-				this.doRemoveRecentlyOpened(recentlyOpened, [recent.workspace.configPath]);
-				recentlyOpened.workspaces.unshift(recent);
+			for (const recent of recents) {
+				if (isRecentFile(recent)) {
+					this.doRemoveRecentlyOpened(recentlyOpened, [recent.fileUri]);
+					recentlyOpened.files.unshift(recent);
+				} else if (isRecentFolder(recent)) {
+					this.doRemoveRecentlyOpened(recentlyOpened, [recent.folderUri]);
+					recentlyOpened.workspaces.unshift(recent);
+				} else {
+					this.doRemoveRecentlyOpened(recentlyOpened, [recent.workspace.configPath]);
+					recentlyOpened.workspaces.unshift(recent);
+				}
 			}
-		}
 
-		return this.saveRecentlyOpened(recentlyOpened);
+			return this.saveRecentlyOpened(recentlyOpened);
+		});
+		this._recentlyOpenedChain = run.then(() => undefined, () => undefined);
+		return run;
 	}
 
 	async removeRecentlyOpened(paths: URI[]): Promise<void> {
-		const recentlyOpened = await this.getRecentlyOpened();
+		const run = this._recentlyOpenedChain.then(async () => {
+			const recentlyOpened = await this.getRecentlyOpened();
 
-		this.doRemoveRecentlyOpened(recentlyOpened, paths);
+			this.doRemoveRecentlyOpened(recentlyOpened, paths);
 
-		return this.saveRecentlyOpened(recentlyOpened);
+			return this.saveRecentlyOpened(recentlyOpened);
+		});
+		this._recentlyOpenedChain = run.then(() => undefined, () => undefined);
+		return run;
 	}
 
 	private doRemoveRecentlyOpened(recentlyOpened: IRecentlyOpened, paths: URI[]): void {
