@@ -219,6 +219,7 @@ export class BreakpointEditorContribution implements IBreakpointEditorContributi
 	private breakpointDecorations: IBreakpointDecoration[] = [];
 	private candidateDecorations: { decorationId: string; inlineWidget: InlineBreakpointWidget }[] = [];
 	private setDecorationsScheduler!: RunOnceScheduler;
+	private _setDecorationsChain: Promise<void> = Promise.resolve();
 
 	constructor(
 		private readonly editor: ICodeEditor,
@@ -231,7 +232,11 @@ export class BreakpointEditorContribution implements IBreakpointEditorContributi
 		@ILabelService private readonly labelService: ILabelService
 	) {
 		this.breakpointWidgetVisible = CONTEXT_BREAKPOINT_WIDGET_VISIBLE.bindTo(contextKeyService);
-		this.setDecorationsScheduler = new RunOnceScheduler(() => this.setDecorations(), 30);
+		this.setDecorationsScheduler = new RunOnceScheduler(() => {
+			const run = this._setDecorationsChain.then(() => this.setDecorations());
+			this._setDecorationsChain = run.then(() => undefined, () => undefined);
+			return run;
+		}, 30);
 		this.setDecorationsScheduler.schedule();
 		this.registerListeners();
 	}

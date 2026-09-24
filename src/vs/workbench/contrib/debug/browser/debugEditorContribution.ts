@@ -264,6 +264,7 @@ export class DebugEditorContribution implements IDebugEditorContribution {
 	private readonly altListener = new MutableDisposable();
 	private altPressed = false;
 	private oldDecorations: IEditorDecorationsCollection;
+	private _updateInlineValuesChain: Promise<void> = Promise.resolve();
 	private readonly displayedStore = new DisposableStore();
 	private editorHoverOptions: IEditorHoverOptions | undefined;
 	private readonly debounceInfo: IFeatureDebounceInformation;
@@ -766,7 +767,11 @@ export class DebugEditorContribution implements IDebugEditorContribution {
 	private get updateInlineValuesScheduler(): RunOnceScheduler {
 		const model = this.editor.getModel();
 		return new RunOnceScheduler(
-			async () => await this.updateInlineValueDecorations(this.debugService.getViewModel().focusedStackFrame),
+			() => {
+				const run = this._updateInlineValuesChain.then(() => this.updateInlineValueDecorations(this.debugService.getViewModel().focusedStackFrame));
+				this._updateInlineValuesChain = run.then(() => undefined, () => undefined);
+				return run;
+			},
 			model ? this.debounceInfo.get(model) : DEAFULT_INLINE_DEBOUNCE_DELAY
 		);
 	}

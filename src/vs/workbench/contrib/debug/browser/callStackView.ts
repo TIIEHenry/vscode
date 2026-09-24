@@ -150,6 +150,7 @@ export class CallStackView extends ViewPane {
 	private stateMessageLabel!: HTMLSpanElement;
 	private stateMessageLabelHover!: IManagedHover;
 	private onCallStackChangeScheduler: RunOnceScheduler;
+	private _onCallStackChangeChain: Promise<void> = Promise.resolve();
 	private needsRefresh = false;
 	private ignoreSelectionChangedEvent = false;
 	private ignoreFocusStackFrameEvent = false;
@@ -176,53 +177,59 @@ export class CallStackView extends ViewPane {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
 
 		// Create scheduler to prevent unnecessary flashing of tree when reacting to changes
-		this.onCallStackChangeScheduler = this._register(new RunOnceScheduler(async () => {
-			// Only show the global pause message if we do not display threads.
-			// Otherwise there will be a pause message per thread and there is no need for a global one.
-			const sessions = this.debugService.getModel().getSessions();
-			if (sessions.length === 0) {
-				this.autoExpandedSessions.clear();
-			}
-
-			const thread = sessions.length === 1 && sessions[0].getAllThreads().length === 1 ? sessions[0].getAllThreads()[0] : undefined;
-			const stoppedDetails = sessions.length === 1 ? sessions[0].getStoppedDetails() : undefined;
-			if (stoppedDetails && (thread || typeof stoppedDetails.threadId !== 'number')) {
-				this.stateMessageLabel.textContent = stoppedDescription(stoppedDetails);
-				this.stateMessageLabelHover.update(stoppedText(stoppedDetails));
-				this.stateMessageLabel.classList.toggle('exception', stoppedDetails.reason === 'exception');
-				this.stateMessage.hidden = false;
-			} else if (sessions.length === 1 && sessions[0].state === State.Running) {
-				this.stateMessageLabel.textContent = localize({ key: 'running', comment: ['indicates state'] }, "Running");
-				this.stateMessageLabelHover.update(sessions[0].getLabel());
-				this.stateMessageLabel.classList.remove('exception');
-				this.stateMessage.hidden = false;
-			} else {
-				this.stateMessage.hidden = true;
-			}
-			this.updateActions();
-
-			this.needsRefresh = false;
-			await this.tree.updateChildren();
-			try {
-				const toExpand = new Set<IDebugSession>();
-				sessions.forEach(s => {
-					// Automatically expand sessions that have children, but only do this once.
-					if (s.parentSession && !this.autoExpandedSessions.has(s.parentSession)) {
-						toExpand.add(s.parentSession);
-					}
-				});
-				for (const session of toExpand) {
-					await expandTo(session, this.tree);
-					this.autoExpandedSessions.add(session);
-				}
-			} catch (e) {
-				// Ignore tree expand errors if element no longer present
-			}
-			if (this.selectionNeedsUpdate) {
-				this.selectionNeedsUpdate = false;
-				await this.updateTreeSelection();
-			}
+		this.onCallStackChangeScheduler = this._register(new RunOnceScheduler(() => {
+			const run = this._onCallStackChangeChain.then(() => this.onCallStackChangeNow());
+			this._onCallStackChangeChain = run.then(() => undefined, () => undefined);
+			return run;
 		}, 50));
+	}
+
+	private async onCallStackChangeNow(): Promise<void> {
+		// Only show the global pause message if we do not display threads.
+		// Otherwise there will be a pause message per thread and there is no need for a global one.
+		const sessions = this.debugService.getModel().getSessions();
+		if (sessions.length === 0) {
+			this.autoExpandedSessions.clear();
+		}
+
+		const thread = sessions.length === 1 && sessions[0].getAllThreads().length === 1 ? sessions[0].getAllThreads()[0] : undefined;
+		const stoppedDetails = sessions.length === 1 ? sessions[0].getStoppedDetails() : undefined;
+		if (stoppedDetails && (thread || typeof stoppedDetails.threadId !== 'number')) {
+			this.stateMessageLabel.textContent = stoppedDescription(stoppedDetails);
+			this.stateMessageLabelHover.update(stoppedText(stoppedDetails));
+			this.stateMessageLabel.classList.toggle('exception', stoppedDetails.reason === 'exception');
+			this.stateMessage.hidden = false;
+		} else if (sessions.length === 1 && sessions[0].state === State.Running) {
+			this.stateMessageLabel.textContent = localize({ key: 'running', comment: ['indicates state'] }, "Running");
+			this.stateMessageLabelHover.update(sessions[0].getLabel());
+			this.stateMessageLabel.classList.remove('exception');
+			this.stateMessage.hidden = false;
+		} else {
+			this.stateMessage.hidden = true;
+		}
+		this.updateActions();
+
+		this.needsRefresh = false;
+		await this.tree.updateChildren();
+		try {
+			const toExpand = new Set<IDebugSession>();
+			sessions.forEach(s => {
+				// Automatically expand sessions that have children, but only do this once.
+				if (s.parentSession && !this.autoExpandedSessions.has(s.parentSession)) {
+					toExpand.add(s.parentSession);
+				}
+			});
+			for (const session of toExpand) {
+				await expandTo(session, this.tree);
+				this.autoExpandedSessions.add(session);
+			}
+		} catch (e) {
+			// Ignore tree expand errors if element no longer present
+		}
+		if (this.selectionNeedsUpdate) {
+			this.selectionNeedsUpdate = false;
+			await this.updateTreeSelection();
+		}
 	}
 
 	protected override renderHeaderTitle(container: HTMLElement): void {

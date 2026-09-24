@@ -49,6 +49,7 @@ let useCachedEvaluation = false;
 export class WatchExpressionsView extends ViewPane implements IDebugViewWithVariables {
 
 	private watchExpressionsUpdatedScheduler: RunOnceScheduler;
+	private _watchExpressionsUpdatedChain: Promise<void> = Promise.resolve();
 	private needsRefresh = false;
 	private tree!: WorkbenchAsyncDataTree<IDebugService | IExpression, IExpression, FuzzyScore>;
 	private watchExpressionsExist: IContextKey<boolean>;
@@ -76,8 +77,12 @@ export class WatchExpressionsView extends ViewPane implements IDebugViewWithVari
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
 
 		this.watchExpressionsUpdatedScheduler = this._register(new RunOnceScheduler(() => {
-			this.needsRefresh = false;
-			void this.tree.updateChildren().catch(onUnexpectedError).catch(onUnexpectedError);
+			const run = this._watchExpressionsUpdatedChain.then(() => {
+				this.needsRefresh = false;
+				return this.tree.updateChildren().catch(onUnexpectedError).catch(onUnexpectedError);
+			});
+			this._watchExpressionsUpdatedChain = run.then(() => undefined, () => undefined);
+			return run;
 		}, 50));
 		this.watchExpressionsExist = CONTEXT_WATCH_EXPRESSIONS_EXIST.bindTo(contextKeyService);
 		this.watchExpressionsExist.set(this.debugService.getModel().getWatchExpressions().length > 0);
