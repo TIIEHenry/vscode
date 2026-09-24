@@ -420,6 +420,9 @@ class RenderedContentHoverParts extends Disposable {
 				continue;
 			}
 			const renderedPart = await this._markdownHoverParticipant.updateMarkdownHoverVerbosityLevel(action, normalizedMarkdownHoverIndex);
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (!renderedPart) {
 				continue;
 			}

@@ -446,6 +446,14 @@ class MarkdownRenderedHoverParts implements IRenderedHoverParts<MarkdownHover> {
 		} catch (e) {
 			onUnexpectedExternalError(e);
 		}
+		const isThisOperation = this._ongoingHoverOperations.get(provider)?.tokenSource === tokenSource;
+		if (this._disposables.isDisposed || tokenSource.token.isCancellationRequested) {
+			if (isThisOperation) {
+				this._ongoingHoverOperations.delete(provider);
+			}
+			tokenSource.dispose();
+			return undefined;
+		}
 		tokenSource.dispose();
 		this._ongoingHoverOperations.delete(provider);
 		return hover;
