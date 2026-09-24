@@ -236,12 +236,15 @@ export class RemoteTunnelWorkbenchContribution extends Disposable implements IWo
 	}
 
 	private async initialize(): Promise<void> {
+		const statusSeq = this._tunnelStatusSeq;
 		const [mode, status] = await Promise.all([
 			this.remoteTunnelService.getMode(),
 			this.remoteTunnelService.getTunnelStatus(),
 		]);
 
-		this.handleTunnelStatusUpdate(status);
+		if (statusSeq === this._tunnelStatusSeq) {
+			this.handleTunnelStatusUpdate(status);
+		}
 
 		if (mode.active && mode.session.token) {
 			return; // already initialized, token available
