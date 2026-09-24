@@ -24,6 +24,8 @@ import { conversationDiffComparisonLoadFailedMessage, didSourcesConversationComp
 import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
 import { sourcesDiffPanelComparisonLoadFailedMessage, watchSourcesDiffPanelComparison } from './sourcesDiffPanelView.js';
 
+const sourcesGitFileDiffReadSeqByKey = new Map<string, number>();
+
 export interface ISourcesChangeEntryOpenOptions {
 	readonly preserveFocus?: boolean;
 	readonly pinned?: boolean;
@@ -77,7 +79,13 @@ async function applySourcesGitFileDiffIfNeeded(
 		return ref;
 	}
 
+	const diffSeqKey = `${entry.gitPath ?? ''}\0${entry.indexState ?? ''}`;
+	const seq = (sourcesGitFileDiffReadSeqByKey.get(diffSeqKey) ?? 0) + 1;
+	sourcesGitFileDiffReadSeqByKey.set(diffSeqKey, seq);
 	const result = await deps.readGitFileDiff(entry);
+	if (sourcesGitFileDiffReadSeqByKey.get(diffSeqKey) !== seq) {
+		return ref;
+	}
 	if (!result || !result.supported) {
 		return ref;
 	}

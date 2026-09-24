@@ -87,6 +87,7 @@ export class SourcesFilesList extends Disposable {
 	private labels: ResourceLabels | undefined;
 	private lastGoodEntries: ISourcesFileEntry[] = [];
 	private readonly refreshScheduler: RunOnceScheduler;
+	private _refreshSeq = 0;
 
 	constructor(
 		host: HTMLElement,
@@ -174,6 +175,7 @@ export class SourcesFilesList extends Disposable {
 	}
 
 	private async refresh(): Promise<void> {
+		const seq = ++this._refreshSeq;
 		const sortOrder = this.explorerService.sortOrderConfiguration.sortOrder;
 		let collected: ISourcesFileEntry[] | undefined;
 		let error: unknown | undefined;
@@ -181,6 +183,10 @@ export class SourcesFilesList extends Disposable {
 			collected = await collectSourcesFileEntries(this.explorerService.roots, sortOrder);
 		} catch (caught) {
 			error = caught;
+		}
+
+		if (seq !== this._refreshSeq) {
+			return;
 		}
 
 		const resolved = resolveSourcesFilesCollectResult(this.lastGoodEntries, collected, error);

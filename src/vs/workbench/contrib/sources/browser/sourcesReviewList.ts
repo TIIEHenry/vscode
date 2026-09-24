@@ -431,12 +431,15 @@ export class SourcesReviewList extends Disposable {
 		return key ? this.reviewProgressService.isReviewed(key) : false;
 	}
 
-	private async ensureEntryKeys(entries: readonly ISourcesReviewEntry[]): Promise<void> {
+	private async ensureEntryKeys(entries: readonly ISourcesReviewEntry[], seq = this.refreshSeq): Promise<void> {
 		const nextEntryKeys = new Map<string, ISourcesReviewProgressKey>();
 		await Promise.all(entries.map(async entry => {
 			const key = await this.reviewProgressService.resolveKey(entry.resource);
 			nextEntryKeys.set(entry.resource.toString(), key);
 		}));
+		if (seq !== this.refreshSeq) {
+			return;
+		}
 		this.entryKeys.clear();
 		for (const [resourceKey, progressKey] of nextEntryKeys) {
 			this.entryKeys.set(resourceKey, progressKey);
@@ -767,7 +770,7 @@ export class SourcesReviewList extends Disposable {
 		}
 
 		const hasRepository = this.usingGitRead || this.scmService.repositoryCount > 0;
-		await this.ensureEntryKeys(this.allEntries);
+		await this.ensureEntryKeys(this.allEntries, seq);
 		if (seq !== this.refreshSeq) {
 			return;
 		}
