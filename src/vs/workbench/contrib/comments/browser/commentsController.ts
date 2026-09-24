@@ -689,15 +689,26 @@ export class CommentController extends Disposable implements IEditorContribution
 
 			return Promise.resolve([]);
 		});
+		const computePromise = this._computePromise;
 
 		this._computeAndSetPromise = this._computePromise.then(async commentInfos => {
 			const currentURI = this.editor && this.editor.hasModel() && this.editor.getModel().uri;
 			if (!uriAtStart || !currentURI || !this.uriIdentityService.extUri.isEqual(uriAtStart, currentURI)) {
-				this._computePromise = null;
+				if (this._computePromise === computePromise) {
+					this._computePromise = null;
+				}
+				return;
+			}
+			if (this._store.isDisposed) {
+				if (this._computePromise === computePromise) {
+					this._computePromise = null;
+				}
 				return;
 			}
 			await this.setComments(coalesce(commentInfos));
-			this._computePromise = null;
+			if (this._computePromise === computePromise) {
+				this._computePromise = null;
+			}
 		}, error => {
 			if (!isCancellationError(error)) {
 				console.log(error);
@@ -941,7 +952,13 @@ export class CommentController extends Disposable implements IEditorContribution
 			?? continueOnCommentText;
 		const pendingEdits = this._pendingEditsCache[uniqueOwner] && this._pendingEditsCache[uniqueOwner][thread.threadId];
 		const shouldReveal = thread.canReply && thread.isTemplate && (!thread.comments || (thread.comments.length === 0)) && (!thread.editorId || (thread.editorId === editorId));
+		const commentInfos = this._commentInfos;
+		const uriAtStart = this.editor && this.editor.hasModel() ? this.editor.getModel().uri : undefined;
 		await this.displayCommentThread(uniqueOwner, thread, shouldReveal, pendingCommentText, pendingEdits);
+		const currentURI = this.editor && this.editor.hasModel() ? this.editor.getModel().uri : undefined;
+		if (this._store.isDisposed || this._commentInfos !== commentInfos || !uriAtStart || !currentURI || !this.uriIdentityService.extUri.isEqual(uriAtStart, currentURI)) {
+			return;
+		}
 		this._commentInfos.filter(info => info.uniqueOwner === uniqueOwner)[0].threads.push(thread);
 		this.tryUpdateReservedSpace();
 	}
@@ -1445,7 +1462,7 @@ export class CommentController extends Disposable implements IEditorContribution
 
 				await this.displayCommentThread(info.uniqueOwner, thread, false, pendingComment, pendingEdits);
 				const currentURIAfterDisplay = this.editor.hasModel() ? this.editor.getModel().uri : undefined;
-				if (!currentURIAfterDisplay || !this.uriIdentityService.extUri.isEqual(uriAtStart, currentURIAfterDisplay)) {
+				if (!currentURIAfterDisplay || !this.uriIdentityService.extUri.isEqual(uriAtStart, currentURIAfterDisplay) || this._store.isDisposed || this._commentInfos !== commentInfos) {
 					return;
 				}
 			}
@@ -1455,7 +1472,7 @@ export class CommentController extends Disposable implements IEditorContribution
 		}
 
 		const currentURIBeforeDecorators = this.editor.hasModel() ? this.editor.getModel().uri : undefined;
-		if (!currentURIBeforeDecorators || !this.uriIdentityService.extUri.isEqual(uriAtStart, currentURIBeforeDecorators)) {
+		if (!currentURIBeforeDecorators || !this.uriIdentityService.extUri.isEqual(uriAtStart, currentURIBeforeDecorators) || this._store.isDisposed || this._commentInfos !== commentInfos) {
 			return;
 		}
 

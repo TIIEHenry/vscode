@@ -210,7 +210,7 @@ export class CommentThreadWidget<T extends IRange | ICellRange = IRange> extends
 		this._bindCommentThreadListeners();
 
 		await this._body.updateCommentThread(commentThread, this._commentReply?.isCommentEditorFocused() ?? false);
-		if (this._commentThread !== commentThread) {
+		if (this._store.isDisposed || this._commentThread !== commentThread) {
 			return;
 		}
 		this._threadIsEmpty.set(!this._body.length);
@@ -233,6 +233,9 @@ export class CommentThreadWidget<T extends IRange | ICellRange = IRange> extends
 		this._header.updateHeight(headHeight);
 
 		await this._body.display();
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		// create comment thread only when it supports reply
 		if (this._commentThread.canReply) {

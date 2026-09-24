@@ -24,6 +24,7 @@ export class CommentThreadBody<T extends IRange | ICellRange = IRange> extends D
 	private _commentsElement!: HTMLElement;
 	private _commentElements: CommentNode<T>[] = [];
 	private _resizeObserver: MutationObserver | null = null;
+	private _displayRound = 0;
 	private _focusedComment: number | undefined = undefined;
 	private _onDidResize = this._register(new Emitter<dom.Dimension>());
 	onDidResize = this._onDidResize.event;
@@ -80,6 +81,7 @@ export class CommentThreadBody<T extends IRange | ICellRange = IRange> extends D
 	}
 
 	async display() {
+		this._displayRound++;
 		this._commentsElement = dom.append(this.container, dom.$('div.comments-container'));
 		this._commentsElement.setAttribute('role', 'presentation');
 		this._commentsElement.tabIndex = 0;
@@ -101,6 +103,7 @@ export class CommentThreadBody<T extends IRange | ICellRange = IRange> extends D
 
 		this._commentDisposable.clearAndDisposeAll();
 		this._commentElements = [];
+		const displayRound = this._displayRound;
 		if (this._commentThread.comments) {
 			for (const comment of this._commentThread.comments) {
 				const newCommentNode = this.createNewCommentNode(comment);
@@ -109,6 +112,9 @@ export class CommentThreadBody<T extends IRange | ICellRange = IRange> extends D
 				this._commentsElement.appendChild(newCommentNode.domNode);
 				if (comment.mode === languages.CommentMode.Editing) {
 					await newCommentNode.switchToEditMode();
+					if (this._store.isDisposed || this._displayRound !== displayRound) {
+						return;
+					}
 				}
 			}
 		}
@@ -172,6 +178,7 @@ export class CommentThreadBody<T extends IRange | ICellRange = IRange> extends D
 	}
 
 	async updateCommentThread(commentThread: languages.CommentThread<T>, preserveFocus: boolean) {
+		this._displayRound++;
 		const oldCommentsLen = this._commentElements.length;
 		const newCommentsLen = commentThread.comments ? commentThread.comments.length : 0;
 
