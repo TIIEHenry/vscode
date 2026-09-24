@@ -221,6 +221,7 @@ export class SettingsEditor2 extends EditorPane {
 	private searchDelayer: Delayer<void>;
 	private searchInProgress: CancellationTokenSource | null = null;
 	private searchTriggerGeneration = 0;
+	private configUpdateGeneration = 0;
 	private aiSearchPromise: CancelablePromise<void> | null = null;
 
 	/**
@@ -555,6 +556,9 @@ export class SettingsEditor2 extends EditorPane {
 
 		// Don't block setInput on render (which can trigger an async search)
 		this.onConfigUpdate(undefined, true).then(() => {
+			if (this._store.isDisposed || this.input !== input) {
+				return;
+			}
 			// This event runs when the editor closes.
 			this.inputChangeListener.value = input.onWillDispose(() => {
 				this.searchWidget.setValue('');
@@ -1030,7 +1034,11 @@ export class SettingsEditor2 extends EditorPane {
 			this.searchWidget.setValue(idQuery);
 			this.searchInputDelayer.cancel();
 			const p = this.triggerSearch(idQuery, true);
+			const generation = this.searchTriggerGeneration;
 			p.then(() => {
+				if (this._store.isDisposed || generation !== this.searchTriggerGeneration) {
+					return;
+				}
 				this.onDidClickSetting(evt, true);
 			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
@@ -1492,6 +1500,8 @@ export class SettingsEditor2 extends EditorPane {
 			return;
 		}
 
+		const generation = ++this.configUpdateGeneration;
+
 		const groups = this.defaultSettingsEditorModel.settingsGroups.slice(1); // Without commonlyUsed
 		const coreSettingsGroups = [], extensionSettingsGroups = [];
 		for (const group of groups) {
@@ -1530,10 +1540,16 @@ export class SettingsEditor2 extends EditorPane {
 		let setAdditionalGroups = false;
 		if (isSessionsWindow) {
 			const toggleData = await getExperimentalExtensionToggleData(this.chatEntitlementService, this.extensionGalleryService, this.productService);
+			if (this._store.isDisposed || generation !== this.configUpdateGeneration) {
+				return;
+			}
 			if (toggleData && groups.filter(g => g.extensionInfo).length && Object.keys(toggleData.settingsEditorRecommendedExtensions).length) {
 				// Refresh installed extensions once per onConfigUpdate invocation for performance,
 				// instead of per extension. The installed list may still change while iterating.
 				await this.refreshInstalledExtensionsList();
+				if (this._store.isDisposed || generation !== this.configUpdateGeneration) {
+					return;
+				}
 				for (const key in toggleData.settingsEditorRecommendedExtensions) {
 					const extension: IGalleryExtension = toggleData.recommendedExtensionsGalleryInfo[key];
 					if (!extension) {
@@ -1571,7 +1587,14 @@ export class SettingsEditor2 extends EditorPane {
 					} catch (e) {
 						// Likely a networking issue.
 						// Skip adding a button for this extension to the Settings editor.
+						if (this._store.isDisposed || generation !== this.configUpdateGeneration) {
+							return;
+						}
 						continue;
+					}
+
+					if (this._store.isDisposed || generation !== this.configUpdateGeneration) {
+						return;
 					}
 
 					if (manifest === null) {
@@ -1626,6 +1649,9 @@ export class SettingsEditor2 extends EditorPane {
 			}
 
 			if (setAdditionalGroups) {
+				if (this._store.isDisposed || generation !== this.configUpdateGeneration) {
+					return;
+				}
 				// Add the additional groups to the model to help with searching.
 				this.defaultSettingsEditorModel.setAdditionalGroups(additionalGroups);
 			}
@@ -1634,6 +1660,9 @@ export class SettingsEditor2 extends EditorPane {
 		const extensionGroupsForToc = filterExtensionSettingsGroupsForWindow(extensionSettingsGroups, isSessionsWindow);
 		if (extensionGroupsForToc.length) {
 			resolvedSettingsRoot.children!.push(await createTocTreeForExtensionSettings(this.extensionService, extensionGroupsForToc, filter));
+			if (this._store.isDisposed || generation !== this.configUpdateGeneration) {
+				return;
+			}
 		}
 
 		const commonlyUsedExclude = isSessionsWindow ? undefined : DEFAULT_COMMONLY_USED_EXCLUDE_KEY_PATTERNS;
@@ -1648,6 +1677,10 @@ export class SettingsEditor2 extends EditorPane {
 					settings: configuredUntrustedWorkspaceSettings
 				});
 			}
+		}
+
+		if (this._store.isDisposed || generation !== this.configUpdateGeneration) {
+			return;
 		}
 
 		this.searchResultModel?.updateChildren();
@@ -1718,6 +1751,9 @@ export class SettingsEditor2 extends EditorPane {
 			const cachedState = !this.viewState.query ? this.restoreCachedState() : undefined;
 			if (cachedState?.searchQuery || this.searchWidget.getValue()) {
 				await this.onSearchInputChanged(true);
+				if (this._store.isDisposed || generation !== this.configUpdateGeneration) {
+					return;
+				}
 			} else {
 				this.refreshTOCTree();
 
@@ -1953,6 +1989,9 @@ export class SettingsEditor2 extends EditorPane {
 		if (query && query !== '@') {
 			query = this.parseSettingFromJSON(query) || query;
 			await this.triggerFilterPreferences(query, expandResults, progressRunner);
+			if (this._store.isDisposed || generation !== this.searchTriggerGeneration) {
+				return;
+			}
 			this.toggleTocBySearchBehaviorType();
 		} else {
 			if (this.viewState.tagFilters.size || this.viewState.extensionFilters.size || this.viewState.featureFilters.size || this.viewState.idFilters.size || this.viewState.languageFilter) {
