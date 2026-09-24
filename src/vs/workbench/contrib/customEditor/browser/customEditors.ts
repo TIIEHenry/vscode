@@ -54,6 +54,8 @@ export class CustomEditorService extends Disposable implements ICustomEditorServ
 
 	private readonly _models: ICustomEditorModelManager;
 
+	private _diffLayoutChain: Promise<void> = Promise.resolve();
+
 	private readonly _onDidChangeEditorTypes = this._register(new Emitter<void>());
 	public readonly onDidChangeEditorTypes: Event<void> = this._onDidChangeEditorTypes.event;
 
@@ -265,6 +267,12 @@ export class CustomEditorService extends Disposable implements ICustomEditorServ
 	}
 
 	private async updateCustomDiffEditorsForDiffConfigurationChange(e: ITextResourceConfigurationChangeEvent): Promise<void> {
+		const run = this._diffLayoutChain.then(() => this._updateCustomDiffEditorsForDiffConfigurationChangeNow(e));
+		this._diffLayoutChain = run.then(() => undefined, () => undefined);
+		await run;
+	}
+
+	private async _updateCustomDiffEditorsForDiffConfigurationChangeNow(e: ITextResourceConfigurationChangeEvent): Promise<void> {
 		for (const group of this.editorGroupService.groups) {
 			const replacements: IUntypedEditorReplacement[] = [];
 			for (const editor of group.editors) {
