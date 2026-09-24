@@ -13,7 +13,7 @@ import { Disposable } from '../../../../../../../base/common/lifecycle.js';
 import { revive } from '../../../../../../../base/common/marshalling.js';
 import { Mimes } from '../../../../../../../base/common/mime.js';
 import { Schemas } from '../../../../../../../base/common/network.js';
-import { basename, joinPath } from '../../../../../../../base/common/resources.js';
+import { basename, isEqual, joinPath } from '../../../../../../../base/common/resources.js';
 import { URI, UriComponents } from '../../../../../../../base/common/uri.js';
 import { Position } from '../../../../../../../editor/common/core/position.js';
 import { IRange, Range } from '../../../../../../../editor/common/core/range.js';
@@ -111,17 +111,24 @@ export class PasteImageProvider implements DocumentPasteEditProvider {
 		if (!imageItem || !mimeType) {
 			return;
 		}
-		const currClipboard = await imageItem.asFile()?.data();
-		if (token.isCancellationRequested || !currClipboard) {
-			return;
-		}
 
 		const target = this.pasteTargetService.getTarget(model.uri);
 		if (!target) {
 			return;
 		}
+		const boundSessionResource = target.sessionResource;
 
-		const attachedVariables = target.attachments;
+		const currClipboard = await imageItem.asFile()?.data();
+		if (token.isCancellationRequested || !currClipboard) {
+			return;
+		}
+
+		const liveTarget = this.pasteTargetService.getTarget(model.uri);
+		if (!liveTarget || !isEqual(liveTarget.sessionResource, boundSessionResource)) {
+			return;
+		}
+
+		const attachedVariables = liveTarget.attachments;
 		const displayName = localize('pastedImageName', 'Pasted Image');
 		let tempDisplayName = displayName;
 
@@ -144,13 +151,18 @@ export class PasteImageProvider implements DocumentPasteEditProvider {
 			return;
 		}
 
+		const currentTarget = this.pasteTargetService.getTarget(model.uri);
+		if (!currentTarget || !isEqual(currentTarget.sessionResource, boundSessionResource)) {
+			return;
+		}
+
 		// Make sure to attach only new contexts
-		const currentContextIds = new Set(target.attachments.map(attachment => attachment.id));
+		const currentContextIds = new Set(currentTarget.attachments.map(attachment => attachment.id));
 		if (currentContextIds.has(scaledImageContext.id)) {
 			return;
 		}
 
-		const edit = createCustomPasteEdit(model, [scaledImageContext], mimeType, this.kind, localize('pastedImageAttachment', 'Pasted Image Attachment'), this.pasteTargetService);
+		const edit = createCustomPasteEdit(model, [scaledImageContext], mimeType, this.kind, localize('pastedImageAttachment', 'Pasted Image Attachment'), this.pasteTargetService, boundSessionResource);
 		return createEditSession(edit);
 	}
 }
@@ -289,6 +301,7 @@ class CopyAttachmentsProvider implements DocumentPasteEditProvider {
 		if (!target) {
 			return undefined;
 		}
+		const boundSessionResource = target.sessionResource;
 
 		const text = dataTransfer.get(Mimes.text);
 		const data = dataTransfer.get(CHAT_ATTACHMENT_MIME_TYPE);
@@ -314,6 +327,11 @@ class CopyAttachmentsProvider implements DocumentPasteEditProvider {
 			return;
 		}
 
+		const currentTarget = this.pasteTargetService.getTarget(model.uri);
+		if (!currentTarget || !isEqual(currentTarget.sessionResource, boundSessionResource)) {
+			return;
+		}
+
 		const resolveTarget = (operation: string): IChatPasteTarget => {
 			const pasteTarget = this.pasteTargetService.getTarget(model.uri);
 			if (!pasteTarget) {
@@ -336,13 +354,20 @@ class CopyAttachmentsProvider implements DocumentPasteEditProvider {
 			resource: model.uri,
 			redo: () => {
 				const pasteTarget = resolveTarget('redo');
+				if (!isEqual(pasteTarget.sessionResource, boundSessionResource)) {
+					return;
+				}
 				pasteTarget.addAttachments(pastedData.attachments);
 				for (const dynamicVariable of pastedData.dynamicVariables) {
 					pasteTarget.addInlineReference(dynamicVariable);
 				}
 			},
 			undo: () => {
-				resolveTarget('undo').removeAttachments(pastedData.attachments.map(c => c.id));
+				const pasteTarget = resolveTarget('undo');
+				if (!isEqual(pasteTarget.sessionResource, boundSessionResource)) {
+					return;
+				}
+				pasteTarget.removeAttachments(pastedData.attachments.map(c => c.id));
 			}
 		});
 
@@ -377,11 +402,13 @@ export class PasteTextProvider implements DocumentPasteEditProvider {
 			return;
 		}
 
-		const textdata = await text.asString();
 		const target = this.pasteTargetService.getTarget(model.uri);
 		if (!target) {
 			return;
 		}
+		const boundSessionResource = target.sessionResource;
+
+		const textdata = await text.asString();
 
 		let copiedContext: IChatRequestPasteVariableEntry | undefined;
 		if (editorData && additionalEditorData) {
@@ -418,12 +445,16 @@ export class PasteTextProvider implements DocumentPasteEditProvider {
 		if (token.isCancellationRequested) {
 			return;
 		}
-		const artifact = hasRicherPaste ? undefined : createPastedTextArtifact(textdata, target.attachments, {
+		const currentTarget = this.pasteTargetService.getTarget(model.uri);
+		if (!currentTarget || !isEqual(currentTarget.sessionResource, boundSessionResource)) {
+			return;
+		}
+		const artifact = hasRicherPaste ? undefined : createPastedTextArtifact(textdata, currentTarget.attachments, {
 			content: markdown,
 			minLength: this.configurationService.getValue<number>(ChatConfiguration.PasteAsAttachmentThreshold, { resource: model.uri }),
 		});
 		if (artifact) {
-			if (ranges.length !== 1 || target.isTerminalCommandPaste(textdata, ranges[0])) {
+			if (ranges.length !== 1 || currentTarget.isTerminalCommandPaste(textdata, ranges[0])) {
 				return;
 			}
 			const pasteRange = ranges[0];
@@ -444,6 +475,7 @@ export class PasteTextProvider implements DocumentPasteEditProvider {
 				this.kind,
 				localize('pastedTextArtifact', "Pasted Text Attachment"),
 				this.pasteTargetService,
+				boundSessionResource,
 				{
 					inlineReference: { text: artifact.referenceText, range: referenceRange },
 					announcement: localize('chat.pastedTextAttached', "Attached pasted text as {0}", artifact.attachment.name),
@@ -455,12 +487,12 @@ export class PasteTextProvider implements DocumentPasteEditProvider {
 		if (!copiedContext) {
 			return;
 		}
-		const currentContextIds = new Set(target.attachments.map(attachment => attachment.id));
+		const currentContextIds = new Set(currentTarget.attachments.map(attachment => attachment.id));
 		if (currentContextIds.has(copiedContext.id)) {
 			return;
 		}
 
-		const edit = createCustomPasteEdit(model, [copiedContext], Mimes.text, this.kind, localize('pastedCodeAttachment', 'Pasted Code Attachment'), this.pasteTargetService);
+		const edit = createCustomPasteEdit(model, [copiedContext], Mimes.text, this.kind, localize('pastedCodeAttachment', 'Pasted Code Attachment'), this.pasteTargetService, boundSessionResource);
 		edit.yieldTo = [{ kind: HierarchicalKind.Empty.append('text', 'plain') }];
 		return createEditSession(edit);
 	}
@@ -545,6 +577,7 @@ function createCustomPasteEdit(
 	kind: HierarchicalKind,
 	title: string,
 	pasteTargetService: IChatPasteTargetService,
+	boundSessionResource: URI,
 	options?: {
 		readonly inlineReference?: { readonly text: string; readonly range: IRange };
 		readonly announcement?: string;
@@ -569,10 +602,17 @@ function createCustomPasteEdit(
 		resource: model.uri,
 		variable: context,
 		undo: () => {
-			resolveTarget('undo').removeAttachments(context.map(c => c.id));
+			const target = resolveTarget('undo');
+			if (!isEqual(target.sessionResource, boundSessionResource)) {
+				return;
+			}
+			target.removeAttachments(context.map(c => c.id));
 		},
 		redo: () => {
 			const target = resolveTarget('redo');
+			if (!isEqual(target.sessionResource, boundSessionResource)) {
+				return;
+			}
 			if (inlineReference) {
 				target.addInlineAttachment(context[0], inlineReference.text, inlineReference.range);
 			} else {
@@ -722,6 +762,12 @@ class PasteSymbolProvider implements DocumentPasteEditProvider {
 			return;
 		}
 
+		const target = this.pasteTargetService.getTarget(model.uri);
+		if (!target) {
+			return;
+		}
+		const boundSessionResource = target.sessionResource;
+
 		const pastedText = await text.asString();
 		if (!identifierPattern.test(pastedText)) {
 			return;
@@ -736,10 +782,6 @@ class PasteSymbolProvider implements DocumentPasteEditProvider {
 
 		const sourceUri = URI.revive(additionalData.uri);
 		const sourceRange = additionalData.range;
-
-		if (!this.pasteTargetService.getTarget(model.uri)) {
-			return;
-		}
 
 		const cached = await getCachedSymbolReference(sourceUri, sourceRange, pastedText);
 		let resolved = cached;
@@ -759,6 +801,11 @@ class PasteSymbolProvider implements DocumentPasteEditProvider {
 		}
 
 		if (token.isCancellationRequested) {
+			return;
+		}
+
+		const currentTarget = this.pasteTargetService.getTarget(model.uri);
+		if (!currentTarget || !isEqual(currentTarget.sessionResource, boundSessionResource)) {
 			return;
 		}
 
@@ -790,7 +837,11 @@ class PasteSymbolProvider implements DocumentPasteEditProvider {
 				edits: [{
 					resource: model.uri,
 					redo: () => {
-						this.pasteTargetService.getTarget(model.uri)?.addInlineReference(dynamicRef);
+						const pasteTarget = this.pasteTargetService.getTarget(model.uri);
+						if (!isEqual(pasteTarget?.sessionResource, boundSessionResource)) {
+							return;
+						}
+						pasteTarget?.addInlineReference(dynamicRef);
 					},
 					undo: () => {
 						// The text removal by undo is sufficient; the dynamic variable
