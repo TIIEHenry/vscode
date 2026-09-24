@@ -247,6 +247,10 @@ class RenameController implements IEditorContribution {
 
 		const resolvedNewSymbolnamesProviders = await Promise.all(newSymbolNamesProviders.map(async p => [p, await p.supportsAutomaticNewSymbolNamesTriggerKind ?? false] as const));
 
+		if (this._disposableStore.isDisposed) {
+			return undefined;
+		}
+
 		const requestRenameSuggestions = (triggerKind: NewSymbolNameTriggerKind, cts: CancellationToken) => {
 			let providers = resolvedNewSymbolnamesProviders.slice();
 

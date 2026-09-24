@@ -609,6 +609,10 @@ export class RenameWidget implements IRenameWidget, IContentWidget, IDisposable 
 		trace('start');
 		const namesListResults = await raceCancellation(Promise.allSettled(candidates), token);
 
+		if (this._disposables.isDisposed) {
+			return;
+		}
+
 		this._inputWithButton.setSparkleButton();
 
 		if (namesListResults === undefined) {
