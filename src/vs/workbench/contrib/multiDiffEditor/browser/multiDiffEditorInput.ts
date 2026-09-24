@@ -265,8 +265,12 @@ export class MultiDiffEditorInput extends EditorInput implements ILanguageSuppor
 
 		const updateDocuments = derived(async reader => {
 			/** @description Update documents */
+			const store = reader.store;
 			const docsPromises = documentsWithPromises.read(reader);
 			const docs = await Promise.all(docsPromises);
+			if (store.isDisposed) {
+				return;
+			}
 			const newDocuments = docs.filter(isDefined);
 			documents.set(newDocuments, undefined);
 		});
