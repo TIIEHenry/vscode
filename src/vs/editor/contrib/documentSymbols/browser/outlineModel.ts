@@ -458,7 +458,9 @@ export class OutlineModelService implements IOutlineModelService {
 				data!.model = outlineModel;
 				this._debounceInformation.update(textModel, Date.now() - now);
 			}).catch(_err => {
-				this._cache.delete(textModel.id);
+				if (this._cache.get(textModel.id) === data) {
+					this._cache.delete(textModel.id);
+				}
 			});
 		}
 
@@ -474,7 +476,9 @@ export class OutlineModelService implements IOutlineModelService {
 			// last -> cancel provider request, remove cached promise
 			if (--data.promiseCnt === 0) {
 				data.source.cancel();
-				this._cache.delete(textModel.id);
+				if (this._cache.get(textModel.id) === data) {
+					this._cache.delete(textModel.id);
+				}
 			}
 		});
 
