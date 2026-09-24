@@ -60,6 +60,8 @@ export function registerChatExportActions() {
 				return;
 			}
 
+			const sessionResource = widget.viewModel.sessionResource;
+
 			if (!outputPath) {
 				const defaultUri = joinPath(await fileDialogService.defaultFilePath(), defaultFileName);
 				const result = await fileDialogService.showSaveDialog({
@@ -72,7 +74,7 @@ export function registerChatExportActions() {
 				outputPath = result;
 			}
 
-			const model = chatService.getSession(widget.viewModel.sessionResource);
+			const model = chatService.getSession(sessionResource);
 			if (!model) {
 				return;
 			}
