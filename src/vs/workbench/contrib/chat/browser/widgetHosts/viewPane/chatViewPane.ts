@@ -1511,11 +1511,12 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 		// Cancel any in-flight loadSession call to prevent it from
 		// overwriting the fresh session we are about to create.
 		this.loadSessionCts.value?.cancel();
+		const cts = this.loadSessionCts.value = new CancellationTokenSource();
 
 		// Grab the widget's latest view state because it will be loaded back into the widget
 		this.updateViewState();
-		await this.showModel(CancellationToken.None);
-		if (this._store.isDisposed) {
+		await this.showModel(cts.token);
+		if (this._store.isDisposed || cts.token.isCancellationRequested) {
 			return;
 		}
 
