@@ -373,6 +373,7 @@ export class BulkEditPreviewProvider implements ITextModelContentProvider {
 	private readonly _disposables = new DisposableStore();
 	private readonly _ready: Promise<any>;
 	private readonly _modelPreviewEdits = new Map<string, ISingleEditOperation[]>();
+	private readonly _previewChain = new Map<URI, Promise<void>>();
 	private readonly _instanceId = generateUuid();
 
 	constructor(
@@ -405,6 +406,12 @@ export class BulkEditPreviewProvider implements ITextModelContentProvider {
 	}
 
 	private async _applyTextEditsToPreviewModel(uri: URI) {
+		const run = (this._previewChain.get(uri) ?? Promise.resolve()).then(() => this._applyTextEditsToPreviewModelNow(uri));
+		this._previewChain.set(uri, run.then(() => undefined, () => undefined));
+		return run;
+	}
+
+	private async _applyTextEditsToPreviewModelNow(uri: URI) {
 		const model = await this._getOrCreatePreviewModel(uri);
 		if (this._disposables.isDisposed || model.isDisposed()) {
 			return;
