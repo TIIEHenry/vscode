@@ -292,6 +292,30 @@ export class VoiceTranscriptStore extends Disposable implements IVoiceTranscript
 	}
 
 	async deleteAll(userId: string): Promise<void> {
+		const work = this.writeQueue.queue(() => this.doDeleteAll(userId));
+		this.pendingWrite = work;
+		try {
+			await work;
+		} finally {
+			if (this.pendingWrite === work) {
+				this.pendingWrite = undefined;
+			}
+		}
+	}
+
+	// --- Internals ---
+
+	private fileFor(userId: string): URI {
+		// Sanitize userId to prevent path traversal — strip anything that isn't
+		// alphanumeric or hyphen (GitHub logins are [A-Za-z0-9-], max 39 chars).
+		const safe = userId.replace(/[^A-Za-z0-9-]/g, '_');
+		if (!safe) {
+			throw new Error('Invalid userId for transcript storage');
+		}
+		return joinPath(this.storageRoot, `${safe}.jsonl`);
+	}
+
+	private async doDeleteAll(userId: string): Promise<void> {
 		const file = this.fileFor(userId);
 		try {
 			await this.fileService.del(file);
@@ -305,18 +329,6 @@ export class VoiceTranscriptStore extends Disposable implements IVoiceTranscript
 		delete next[userId];
 		this.indexCache = { ...this.indexCache, entries: next };
 		this.flushIndex();
-	}
-
-	// --- Internals ---
-
-	private fileFor(userId: string): URI {
-		// Sanitize userId to prevent path traversal — strip anything that isn't
-		// alphanumeric or hyphen (GitHub logins are [A-Za-z0-9-], max 39 chars).
-		const safe = userId.replace(/[^A-Za-z0-9-]/g, '_');
-		if (!safe) {
-			throw new Error('Invalid userId for transcript storage');
-		}
-		return joinPath(this.storageRoot, `${safe}.jsonl`);
 	}
 
 	private async doAppendTurn(userId: string, turn: IVoiceTranscriptTurn): Promise<void> {
