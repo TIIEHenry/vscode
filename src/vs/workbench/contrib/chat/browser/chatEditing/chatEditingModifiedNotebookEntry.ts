@@ -460,6 +460,9 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 					await this.modifiedResourceRef.object.save({ reason: SaveReason.EXPLICIT, skipSaveParticipants: true });
 				}
 			});
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.initializeModelsFromDiff().catch(onUnexpectedError).catch(onUnexpectedError);
 			await this._collapse(undefined);
 		}
