@@ -1055,12 +1055,20 @@ export class ChatEntitlementRequests extends Disposable {
 		}));
 	}
 
-	private async resolve(): Promise<void> {
+	private replacePendingResolve(parent?: CancellationToken): CancellationTokenSource {
 		this.pendingResolveCts.dispose(true);
-		const cts = this.pendingResolveCts = new CancellationTokenSource();
+		return this.pendingResolveCts = new CancellationTokenSource(parent);
+	}
+
+	private shouldApplyPendingResolve(token: CancellationToken): boolean {
+		return !token.isCancellationRequested && this.pendingResolveCts.token === token;
+	}
+
+	private async resolve(): Promise<void> {
+		const cts = this.replacePendingResolve();
 
 		const defaultAccount = await this.defaultAccountService.getDefaultAccount();
-		if (cts.token.isCancellationRequested) {
+		if (!this.shouldApplyPendingResolve(cts.token)) {
 			return;
 		}
 
@@ -1074,7 +1082,7 @@ export class ChatEntitlementRequests extends Disposable {
 		} else {
 			state = { entitlement: ChatEntitlement.Unknown };
 		}
-		if (state) {
+		if (state && this.shouldApplyPendingResolve(cts.token)) {
 			this.update(state);
 		}
 
@@ -1087,7 +1095,7 @@ export class ChatEntitlementRequests extends Disposable {
 
 	private async resolveEntitlement(defaultAccount: IDefaultAccount, token: CancellationToken): Promise<IEntitlements | undefined> {
 		const entitlements = await this.doResolveEntitlement(defaultAccount, token);
-		if (typeof entitlements?.entitlement === 'number' && !token.isCancellationRequested) {
+		if (typeof entitlements?.entitlement === 'number' && this.shouldApplyPendingResolve(token)) {
 			this.update(entitlements);
 		}
 		return entitlements;
@@ -1216,12 +1224,20 @@ export class ChatEntitlementRequests extends Disposable {
 	}
 
 	async forceResolveEntitlement(token = CancellationToken.None): Promise<IEntitlements | undefined> {
+		const cts = this.replacePendingResolve(token);
+		if (!this.shouldApplyPendingResolve(cts.token)) {
+			return undefined;
+		}
+
 		const defaultAccount = await this.defaultAccountService.refresh({ forceRefresh: true });
+		if (!this.shouldApplyPendingResolve(cts.token)) {
+			return undefined;
+		}
 		if (!defaultAccount) {
 			return undefined;
 		}
 
-		return this.resolveEntitlement(defaultAccount, token);
+		return this.resolveEntitlement(defaultAccount, cts.token);
 	}
 
 	async signUpFree(): Promise<true /* signed up */ | false /* already signed up */ | { errorCode: number } /* error */ | undefined /* no session */> {
@@ -1233,14 +1249,23 @@ export class ChatEntitlementRequests extends Disposable {
 	}
 
 	private async doSignUpFree(sessions: AuthenticationSession[]): Promise<true /* signed up */ | false /* already signed up */ | { errorCode: number } /* error */> {
+		const cts = this.replacePendingResolve();
+		const token = cts.token;
+
 		const body = {
 			restricted_telemetry: this.telemetryService.telemetryLevel === TelemetryLevel.NONE ? 'disabled' : 'enabled',
 			public_code_suggestions: 'enabled'
 		};
 
-		const response = await this.request(defaultChatAgent.entitlementSignupLimitedUrl, 'POST', body, sessions, CancellationToken.None, 'chatEntitlementService.signUpFree');
+		const response = await this.request(defaultChatAgent.entitlementSignupLimitedUrl, 'POST', body, sessions, token, 'chatEntitlementService.signUpFree');
+		if (!this.shouldApplyPendingResolve(token)) {
+			return { errorCode: 1 };
+		}
 		if (!response) {
 			const retry = await this.onUnknownSignUpError(localize('signUpNoResponseError', "No response received."), '[chat entitlement] sign-up: no response');
+			if (!this.shouldApplyPendingResolve(token)) {
+				return { errorCode: 1 };
+			}
 			return retry ? this.doSignUpFree(sessions) : { errorCode: 1 };
 		}
 
@@ -1260,6 +1285,9 @@ export class ChatEntitlementRequests extends Disposable {
 				}
 			}
 			const retry = await this.onUnknownSignUpError(localize('signUpUnexpectedStatusError', "Unexpected status code {0}.", response.res.statusCode), `[chat entitlement] sign-up: unexpected status code ${response.res.statusCode}`);
+			if (!this.shouldApplyPendingResolve(token)) {
+				return { errorCode: response.res.statusCode };
+			}
 			return retry ? this.doSignUpFree(sessions) : { errorCode: response.res.statusCode };
 		}
 
@@ -1270,8 +1298,15 @@ export class ChatEntitlementRequests extends Disposable {
 			// ignore - handled below
 		}
 
+		if (!this.shouldApplyPendingResolve(token)) {
+			return { errorCode: 2 };
+		}
+
 		if (!responseText) {
 			const retry = await this.onUnknownSignUpError(localize('signUpNoResponseContentsError', "Response has no contents."), '[chat entitlement] sign-up: response has no content');
+			if (!this.shouldApplyPendingResolve(token)) {
+				return { errorCode: 2 };
+			}
 			return retry ? this.doSignUpFree(sessions) : { errorCode: 2 };
 		}
 
@@ -1281,11 +1316,17 @@ export class ChatEntitlementRequests extends Disposable {
 			this.logService.trace(`[chat entitlement] sign-up: response is ${responseText}`);
 		} catch (err) {
 			const retry = await this.onUnknownSignUpError(localize('signUpInvalidResponseError', "Invalid response contents."), `[chat entitlement] sign-up: error parsing response (${err})`);
+			if (!this.shouldApplyPendingResolve(token)) {
+				return { errorCode: 3 };
+			}
 			return retry ? this.doSignUpFree(sessions) : { errorCode: 3 };
 		}
 
 		// We have made it this far, so the user either did sign-up or was signed-up already.
 		// That is, because the endpoint throws in all other case according to Patrick.
+		if (!this.shouldApplyPendingResolve(token)) {
+			return Boolean(parsedResult?.subscribed);
+		}
 		this.update({ entitlement: ChatEntitlement.Free });
 
 		return Boolean(parsedResult?.subscribed);
