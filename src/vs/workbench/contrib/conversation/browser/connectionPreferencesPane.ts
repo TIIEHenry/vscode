@@ -442,6 +442,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private hubDirectoryListFailed: string | undefined;
 	private pendingPairs: UniverseAgentPendingPairInfo[] = [];
 	private pendingPairsListFailed: string | undefined;
+	private engineDevicesRefreshGeneration = 0;
+	private enginePendingRefreshGeneration = 0;
 	private selectedPending: UniverseAgentPendingPairInfo | undefined;
 	private readonly pendingRowDisposables = this._register(new DisposableStore());
 	private connectionPhase: ConnectionPhase = { kind: 'disconnected' };
@@ -1217,6 +1219,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private async refreshEngineDevices(): Promise<void> {
+		const generation = ++this.engineDevicesRefreshGeneration;
 		const hook = this.connectionService.listDevices;
 		const connected = this.connectionService.isEngineConnected();
 		// D341 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
@@ -1240,6 +1243,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 		try {
 			const result = await hook.call(this.connectionService);
+			if (generation !== this.engineDevicesRefreshGeneration) {
+				return;
+			}
 			if (isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected()) {
 				this.applyDisconnectedDevicesRefresh();
 				return;
@@ -1253,6 +1259,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				writeStatus(this.devicesConnectStatus, '', 'neutral');
 			}
 		} catch (error) {
+			if (generation !== this.engineDevicesRefreshGeneration) {
+				return;
+			}
 			if (isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected()) {
 				this.applyDisconnectedDevicesRefresh();
 				return;
@@ -1287,6 +1296,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private async refreshEnginePending(): Promise<void> {
+		const generation = ++this.enginePendingRefreshGeneration;
 		const hook = this.connectionService.listPending;
 		const connected = this.connectionService.isEngineConnected();
 		// D341 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
@@ -1306,6 +1316,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 		try {
 			const result = await hook.call(this.connectionService);
+			if (generation !== this.enginePendingRefreshGeneration) {
+				return;
+			}
 			if (isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected()) {
 				this.applyDisconnectedPendingRefresh();
 				return;
@@ -1315,12 +1328,18 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.pendingPairsListFailed = undefined;
 			this.rebindSelectedPendingAfterListRefresh(previousSelected);
 		} catch (error) {
+			if (generation !== this.enginePendingRefreshGeneration) {
+				return;
+			}
 			if (isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected()) {
 				this.applyDisconnectedPendingRefresh();
 				return;
 			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.pendingPairsListFailed = reason;
+		}
+		if (generation !== this.enginePendingRefreshGeneration) {
+			return;
 		}
 		this.renderPendingPairs();
 	}

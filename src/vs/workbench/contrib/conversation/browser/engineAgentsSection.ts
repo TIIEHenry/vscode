@@ -235,6 +235,8 @@ export class EngineAgentsSection extends Disposable {
 	private activeDetailTab: EngineAgentDetailTab = 'instructions';
 	private agentTools: UniverseAgentToolSummary[] = [];
 	private agentToolsLoadFailed: string | undefined;
+	private refreshGeneration = 0;
+	private agentToolsLoadGeneration = 0;
 	private readonly agentToolPending = new Map<string, boolean>();
 	private sectionActive = false;
 
@@ -788,6 +790,7 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private async ensureAgentToolsLoaded(forceReload = false): Promise<void> {
+		const generation = ++this.agentToolsLoadGeneration;
 		// D352 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
 		if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 			return;
@@ -803,9 +806,15 @@ export class EngineAgentsSection extends Disposable {
 		}
 		try {
 			const result = await this.connection.listTools();
+			if (generation !== this.agentToolsLoadGeneration) {
+				return;
+			}
 			this.agentTools = [...result.tools];
 			this.agentToolsLoadFailed = undefined;
 		} catch (error) {
+			if (generation !== this.agentToolsLoadGeneration) {
+				return;
+			}
 			if (this.agentTools.length === 0) {
 				this.agentTools = [];
 			}
@@ -988,6 +997,7 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private async refresh(): Promise<boolean> {
+		const generation = ++this.refreshGeneration;
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.agentProfiles.support;
@@ -1031,6 +1041,9 @@ export class EngineAgentsSection extends Disposable {
 
 		try {
 			const result = await this.connection.listAgentProfiles();
+			if (generation !== this.refreshGeneration) {
+				return false;
+			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'profile');
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				return this.applyDisconnectedRefresh(support, leftoverAfterList);
@@ -1052,6 +1065,9 @@ export class EngineAgentsSection extends Disposable {
 			this.renderStatus();
 			return true;
 		} catch (error) {
+			if (generation !== this.refreshGeneration) {
+				return false;
+			}
 			const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'profile');
 			if (!hadLiveCatalog) {
 				this.clearCatalogPresentation();

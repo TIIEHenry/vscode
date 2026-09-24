@@ -219,6 +219,7 @@ export class EngineMcpSection extends Disposable {
 	private selectedServer: UniverseAgentMcpServerSummary | undefined;
 	private writeFailedReason: string | undefined;
 	private sectionActive = false;
+	private refreshGeneration = 0;
 	private lastLayout: { readonly width: number; readonly listHeight: number } | undefined;
 
 	constructor(
@@ -556,6 +557,7 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private async refresh(): Promise<boolean> {
+		const generation = ++this.refreshGeneration;
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.mcp.support;
@@ -598,6 +600,9 @@ export class EngineMcpSection extends Disposable {
 
 		try {
 			const result = await this.connection.listMcpServers();
+			if (generation !== this.refreshGeneration) {
+				return false;
+			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'server');
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				return this.applyDisconnectedRefresh(support, leftoverAfterList);
@@ -612,6 +617,9 @@ export class EngineMcpSection extends Disposable {
 			this.renderStatus();
 			return true;
 		} catch (error) {
+			if (generation !== this.refreshGeneration) {
+				return false;
+			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'server');
 			if (!leftoverAfterList) {
 				this.clearCatalogPresentation();

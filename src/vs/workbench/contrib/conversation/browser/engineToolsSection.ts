@@ -205,6 +205,7 @@ export class EngineToolsSection extends Disposable {
 	private readonly pendingEnablement = new Map<string, boolean>();
 	private sectionActive = false;
 	private selectedToolName: string | undefined;
+	private refreshGeneration = 0;
 	private infoLoadGeneration = 0;
 
 	constructor(
@@ -591,6 +592,7 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	private async refresh(): Promise<void> {
+		const generation = ++this.refreshGeneration;
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.tools.support;
@@ -635,6 +637,9 @@ export class EngineToolsSection extends Disposable {
 				this.connection.listTools(),
 				this.connection.listAgentProfiles(),
 			]);
+			if (generation !== this.refreshGeneration) {
+				return;
+			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'tool');
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				this.applyDisconnectedRefresh(support, leftoverAfterList);
@@ -659,6 +664,9 @@ export class EngineToolsSection extends Disposable {
 				void this.loadToolInfo(selectedToolName).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		} catch (error) {
+			if (generation !== this.refreshGeneration) {
+				return;
+			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'tool');
 			if (!leftoverAfterList) {
 				this.clearCatalogPresentation();

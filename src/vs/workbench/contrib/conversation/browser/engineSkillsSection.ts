@@ -182,6 +182,7 @@ export class EngineSkillsSection extends Disposable {
 	private loadedBodyText: string | undefined;
 	private bodyDirty = false;
 	private bodyLoadGeneration = 0;
+	private refreshGeneration = 0;
 	private sectionActive = false;
 
 	constructor(
@@ -460,6 +461,7 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private async refresh(): Promise<boolean> {
+		const generation = ++this.refreshGeneration;
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.skills.support;
@@ -500,6 +502,9 @@ export class EngineSkillsSection extends Disposable {
 
 		try {
 			const result = await this.connection.listSkills();
+			if (generation !== this.refreshGeneration) {
+				return false;
+			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'skill');
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				return this.applyDisconnectedRefresh(support, leftoverAfterList);
@@ -519,6 +524,9 @@ export class EngineSkillsSection extends Disposable {
 			}
 			return true;
 		} catch (error) {
+			if (generation !== this.refreshGeneration) {
+				return false;
+			}
 			const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'skill');
 			if (!hadLiveCatalog) {
 				this.clearCatalogPresentation();
