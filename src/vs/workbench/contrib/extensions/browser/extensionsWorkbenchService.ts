@@ -602,6 +602,7 @@ class Extensions extends Disposable {
 	private installing: Extension[] = [];
 	private uninstalling: Extension[] = [];
 	private installed: Extension[] = [];
+	private _chain: Promise<void> = Promise.resolve();
 
 	constructor(
 		readonly server: IExtensionManagementServer,
@@ -671,6 +672,12 @@ class Extensions extends Disposable {
 	}
 
 	async syncInstalledExtensionsWithGallery(galleryExtensions: IGalleryExtension[], productVersion: IProductVersion, flagExtensionsMissingFromGallery?: IExtensionInfo[]): Promise<void> {
+		const run = this._chain.then(() => this.syncInstalledExtensionsWithGalleryNow(galleryExtensions, productVersion, flagExtensionsMissingFromGallery));
+		this._chain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async syncInstalledExtensionsWithGalleryNow(galleryExtensions: IGalleryExtension[], productVersion: IProductVersion, flagExtensionsMissingFromGallery?: IExtensionInfo[]): Promise<void> {
 		const extensions = await this.mapInstalledExtensionWithCompatibleGalleryExtension(galleryExtensions, productVersion);
 		for (const [extension, gallery] of extensions) {
 			// update metadata of the extension if it does not exist
@@ -812,6 +819,12 @@ class Extensions extends Disposable {
 	}
 
 	private async fetchInstalledExtensions(productVersion?: IProductVersion): Promise<void> {
+		const run = this._chain.then(() => this.fetchInstalledExtensionsNow(productVersion));
+		this._chain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async fetchInstalledExtensionsNow(productVersion?: IProductVersion): Promise<void> {
 		const extensionsControlManifest = await this.server.extensionManagementService.getExtensionsControlManifest();
 		const all = await this.server.extensionManagementService.getInstalled(undefined, undefined, productVersion);
 		if (this.isWorkspaceServer) {

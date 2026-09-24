@@ -1583,6 +1583,9 @@ export class PreferredExtensionsPagedModel implements IPagedModel<IExtension> {
 		cts: CancellationTokenSource | null;
 		promiseIndexes: Set<number>;
 	}>;
+	private nextPageToPopulate = 1;
+	private readonly pendingPageExtensions = new Map<number, IExtension[]>();
+	private populateWaiters: Array<() => void> = [];
 
 	public readonly length: number;
 
@@ -1641,7 +1644,7 @@ export class PreferredExtensionsPagedModel implements IPagedModel<IExtension> {
 		if (!page.promise) {
 			page.cts = new CancellationTokenSource();
 			page.promise = this.pager.getPage(pageIndex, page.cts.token)
-				.then(extensions => this.populateResolvedExtensions(pageIndex, extensions))
+				.then(extensions => this.whenPopulatedInOrder(pageIndex, extensions))
 				.catch(e => { page.promise = null; throw e; })
 				.finally(() => page.cts = null);
 		}
@@ -1665,6 +1668,28 @@ export class PreferredExtensionsPagedModel implements IPagedModel<IExtension> {
 		}
 
 		return this.get(index);
+	}
+
+	private async whenPopulatedInOrder(pageIndex: number, extensions: IExtension[]): Promise<void> {
+		this.pendingPageExtensions.set(pageIndex, extensions);
+		this.flushPopulatesInOrder();
+		while (this.nextPageToPopulate <= pageIndex) {
+			await new Promise<void>(resolve => this.populateWaiters.push(resolve));
+		}
+	}
+
+	private flushPopulatesInOrder(): void {
+		while (this.pendingPageExtensions.has(this.nextPageToPopulate)) {
+			const extensions = this.pendingPageExtensions.get(this.nextPageToPopulate)!;
+			this.pendingPageExtensions.delete(this.nextPageToPopulate);
+			this.populateResolvedExtensions(this.nextPageToPopulate, extensions);
+			this.nextPageToPopulate++;
+			const waiters = this.populateWaiters;
+			this.populateWaiters = [];
+			for (const waiter of waiters) {
+				waiter();
+			}
+		}
 	}
 
 	private populateResolvedExtensions(pageIndex: number, extensions: IExtension[]): void {
