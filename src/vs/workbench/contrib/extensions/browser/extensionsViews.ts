@@ -277,7 +277,11 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 			}
 		});
 
-		request.finally(() => this.queryRequest = null);
+		request.finally(() => {
+			if (this.queryRequest?.request === request) {
+				this.queryRequest = null;
+			}
+		});
 		this.queryRequest = { query, request };
 		return request;
 	}
