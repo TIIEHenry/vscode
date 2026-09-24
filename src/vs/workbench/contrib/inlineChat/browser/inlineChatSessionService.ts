@@ -6,6 +6,7 @@ import { Event } from '../../../../base/common/event.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { IMarkdownString } from '../../../../base/common/htmlContent.js';
 import { IObservable } from '../../../../base/common/observable.js';
+import { isEqual } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IActiveCodeEditor, ICodeEditor } from '../../../../editor/browser/editorBrowser.js';
 import { Position } from '../../../../editor/common/core/position.js';
@@ -64,11 +65,18 @@ async function askInPanelChat(accessor: ServicesAccessor, request: IChatRequestM
 		mode: { id: 'agent', kind: ChatModeKind.Agent }
 	});
 
+	const intended = newModel.sessionResource;
 	const widget = await widgetService.openSession(newModelRef.object.sessionResource);
 
 	newModelRef.dispose(); // can be freed after opening because the widget also holds a reference
 	if (widget && fileContext && !fileContext.selection.isEmpty()) {
+		if (!widget.viewModel || !isEqual(widget.viewModel.sessionResource, intended)) {
+			return;
+		}
 		await widget.attachmentModel.addFile(fileContext.uri, fileContext.selection);
+	}
+	if (!widget?.viewModel || !isEqual(widget.viewModel.sessionResource, intended)) {
+		return;
 	}
 	widget?.acceptInput(request.message.text);
 }
