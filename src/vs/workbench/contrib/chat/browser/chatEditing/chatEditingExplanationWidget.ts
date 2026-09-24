@@ -15,6 +15,7 @@ import { renderIcon } from '../../../../../base/browser/ui/iconLabel/iconLabels.
 import { $, addDisposableListener, clearNode, getTotalWidth } from '../../../../../base/browser/dom.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
 import { URI } from '../../../../../base/common/uri.js';
+import { isEqual } from '../../../../../base/common/resources.js';
 import { Range } from '../../../../../editor/common/core/range.js';
 import { overviewRulerRangeHighlight } from '../../../../../editor/common/core/editorColorRegistry.js';
 import { IEditorDecorationsCollection } from '../../../../../editor/common/editorCommon.js';
@@ -353,7 +354,15 @@ export class ChatEditingExplanationWidget extends Disposable implements IOverlay
 				const range = new Range(exp.startLineNumber, 1, exp.endLineNumber, 1);
 				let chatWidget: IChatWidget | undefined;
 				if (this._chatSessionResource) {
-					chatWidget = await this._chatWidgetService.openSession(this._chatSessionResource);
+					const intended = this._chatSessionResource;
+					chatWidget = await this._chatWidgetService.openSession(intended);
+					if (!chatWidget || !isEqual(chatWidget.viewModel?.sessionResource, intended)) {
+						return;
+					}
+					chatWidget.attachmentModel.addContext(
+						chatWidget.attachmentModel.asFileVariableEntry(this._uri, range)
+					);
+					return;
 				} else {
 					await this._viewsService.openView(ChatViewId, true);
 					chatWidget = this._chatWidgetService.lastFocusedWidget;
