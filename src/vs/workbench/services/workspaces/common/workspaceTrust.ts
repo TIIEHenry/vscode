@@ -285,12 +285,6 @@ export class WorkspaceTrustManagementService extends Disposable implements IWork
 	}
 
 	private async saveTrustInfo(): Promise<void> {
-		const run = this._trustChain.then(() => this.saveTrustInfoNow());
-		this._trustChain = run.then(() => undefined, () => undefined);
-		return run;
-	}
-
-	private async saveTrustInfoNow(): Promise<void> {
 		this.storageService.store(this.storageKey, JSON.stringify(this._trustStateInfo), StorageScope.APPLICATION_SHARED, StorageTarget.MACHINE);
 		this._onDidChangeTrustedFolders.fire();
 
@@ -450,7 +444,7 @@ export class WorkspaceTrustManagementService extends Disposable implements IWork
 		}
 
 		if (changed) {
-			await this.saveTrustInfoNow();
+			await this.saveTrustInfo();
 		}
 	}
 
@@ -681,7 +675,7 @@ export class WorkspaceTrustManagementService extends Disposable implements IWork
 				});
 			}
 
-			await this.saveTrustInfoNow();
+			await this.saveTrustInfo();
 		});
 		this._trustChain = run.then(() => undefined, () => undefined);
 		return run;
