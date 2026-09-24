@@ -173,9 +173,8 @@ export class BreadcrumbsModel {
 
 		this._outlineService.createOutline(editor, OutlineTarget.Breadcrumbs, newCts.token).then(outline => {
 			if (newCts.token.isCancellationRequested) {
-				// cancelled: dispose new outline and reset
 				outline?.dispose();
-				outline = undefined;
+				return;
 			}
 			this._currentOutline.value = outline;
 			this._onDidUpdate.fire(this);
