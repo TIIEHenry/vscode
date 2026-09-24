@@ -329,6 +329,9 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 						if (!this._widget) {
 							return; // renderBody has not been called yet
 						}
+						if (this._store.isDisposed) {
+							return;
+						}
 
 						// The widget may be hidden at this point, because welcome views were allowed. Use setVisible to
 						// avoid doing a render while the widget is hidden. This is changing the condition in `shouldShowWelcome`
@@ -339,6 +342,9 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 
 							await this.showModel(CancellationToken.None, session.modelRef, true, !session.modelRef, undefined, session.localFallbackSelectionReason);
 						} finally {
+							if (this._store.isDisposed) {
+								return;
+							}
 							this._widget.setVisible(wasVisible);
 						}
 					});
