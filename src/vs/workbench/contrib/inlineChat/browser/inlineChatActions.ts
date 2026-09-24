@@ -5,6 +5,7 @@
 
 import { Codicon } from '../../../../base/common/codicons.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
+import { isEqual } from '../../../../base/common/resources.js';
 import { ICodeEditor, isCodeEditor, isDiffEditor } from '../../../../editor/browser/editorBrowser.js';
 import { EditorAction2 } from '../../../../editor/browser/editorExtensions.js';
 import { EmbeddedDiffEditorWidget } from '../../../../editor/browser/widget/diffEditor/embeddedDiffEditorWidget.js';
@@ -449,8 +450,12 @@ export class AskInChatAction extends EditorAction2 {
 		if (!session) {
 			return;
 		}
-		const widget = await chatWidgetService.openSession(session.chatSessionResource);
-		if (!widget) {
+		const intended = session.chatSessionResource;
+		const widget = await chatWidgetService.openSession(intended);
+		if (!widget || !chatWidgetService.getAllWidgets().includes(widget)) {
+			return;
+		}
+		if (!widget.viewModel || !isEqual(widget.viewModel.sessionResource, intended)) {
 			return;
 		}
 		const selection = editor.getSelection();
