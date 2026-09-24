@@ -112,6 +112,7 @@ export class NotebookMultiCursorController extends Disposable implements INotebo
 	}
 
 	private _multicursorEpoch = 0;
+	private _syncCursorsControllersSeq = 0;
 
 	private _nbIsMultiSelectSession;
 	private _nbMultiSelectState;
@@ -144,8 +145,9 @@ export class NotebookMultiCursorController extends Disposable implements INotebo
 		// need to create new controllers when the anchor cell changes, then update their listeners
 		// ** cursor controllers need to happen first, because anchor listeners relay to them
 		this._register(this.onDidChangeAnchorCell(async () => {
-			await this.syncCursorsControllers();
-			this.syncAnchorListeners();
+			if (await this.syncCursorsControllers()) {
+				this.syncAnchorListeners();
+			}
 		}));
 	}
 
@@ -255,11 +257,12 @@ export class NotebookMultiCursorController extends Disposable implements INotebo
 		}));
 	}
 
-	private async syncCursorsControllers() {
+	private async syncCursorsControllers(): Promise<boolean> {
+		const seq = ++this._syncCursorsControllersSeq;
 		this.cursorsDisposables.clear(); // TODO: dial this back for perf and just update the relevant controllers
 		await Promise.all(this.trackedCells.map(async cell => {
-			const controller = await this.createCursorController(cell);
-			if (!controller) {
+			const controller = await this.createCursorController(cell, seq);
+			if (!controller || seq !== this._syncCursorsControllersSeq) {
 				return;
 			}
 			this.cursorsControllers.set(cell.cellViewModel.uri, controller);
@@ -268,11 +271,19 @@ export class NotebookMultiCursorController extends Disposable implements INotebo
 			controller.setSelections(new ViewModelEventsCollector(), undefined, selections, CursorChangeReason.Explicit);
 		}));
 
+		if (seq !== this._syncCursorsControllersSeq) {
+			return false;
+		}
 		this.updateLazyDecorations();
+		return true;
 	}
 
-	private async createCursorController(cell: TrackedCell): Promise<CursorsController | undefined> {
+	private async createCursorController(cell: TrackedCell, syncSeq: number): Promise<CursorsController | undefined> {
 		const textModelRef = await this.textModelService.createModelReference(cell.cellViewModel.uri);
+		if (syncSeq !== this._syncCursorsControllersSeq) {
+			textModelRef.dispose();
+			return undefined;
+		}
 		const textModel = textModelRef.object.textEditorModel;
 		if (!textModel) {
 			textModelRef.dispose();
@@ -642,9 +653,10 @@ export class NotebookMultiCursorController extends Disposable implements INotebo
 			await this.handleCellEditorSelectAllMatches(notebookTextModel, focusedCell);
 		}
 
-		await this.syncCursorsControllers();
-		this.syncAnchorListeners();
-		this.updateLazyDecorations();
+		if (await this.syncCursorsControllers()) {
+			this.syncAnchorListeners();
+			this.updateLazyDecorations();
+		}
 	}
 
 	private async handleFindWidgetSelectAllMatches(matches: CellFindMatchWithIndex[]) {

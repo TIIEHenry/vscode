@@ -33,6 +33,7 @@ export class NotebookEditorContextKeys {
 	private readonly _viewModelDisposables = new DisposableStore();
 	private readonly _cellOutputsListeners: IDisposable[] = [];
 	private readonly _selectedKernelDisposables = new DisposableStore();
+	private _updateForInstalledExtensionSeq = 0;
 
 	constructor(
 		private readonly _editor: INotebookEditorDelegate,
@@ -167,10 +168,17 @@ export class NotebookEditorContextKeys {
 			return;
 		}
 
+		const seq = ++this._updateForInstalledExtensionSeq;
 		const viewType = this._editor.textModel.viewType;
 		const kernelExtensionId = KERNEL_EXTENSIONS.get(viewType);
-		this._missingKernelExtension.set(
-			!!kernelExtensionId && !(await this._extensionService.getExtension(kernelExtensionId)));
+		const missing = !!kernelExtensionId && !(await this._extensionService.getExtension(kernelExtensionId));
+		if (seq !== this._updateForInstalledExtensionSeq) {
+			return;
+		}
+		if (!this._editor.hasModel() || this._editor.textModel.viewType !== viewType) {
+			return;
+		}
+		this._missingKernelExtension.set(missing);
 	}
 
 	private _updateKernelContext(): void {

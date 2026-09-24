@@ -121,7 +121,7 @@ export class NotebookOutlineEntryFactory implements INotebookOutlineEntryFactory
 		return entries;
 	}
 
-	public async cacheSymbols(cell: ICellViewModel, cancelToken: CancellationToken) {
+	public async cacheSymbols(cell: ICellViewModel, cancelToken: CancellationToken, computeSeq?: number, isComputeSeqCurrent?: () => boolean) {
 		if (cell.cellKind === CellKind.Markup) {
 			return;
 		}
@@ -130,6 +130,9 @@ export class NotebookOutlineEntryFactory implements INotebookOutlineEntryFactory
 		try {
 			const textModel = ref.object.textEditorModel;
 			const outlineModel = await this.outlineModelService.getOrCreate(textModel, cancelToken);
+			if (cancelToken.isCancellationRequested || (computeSeq !== undefined && isComputeSeqCurrent && !isComputeSeqCurrent())) {
+				return;
+			}
 			const entries = createOutlineEntries(outlineModel.getTopLevelSymbols(), 8);
 			this.cellOutlineEntryCache[cell.id] = entries;
 		} finally {

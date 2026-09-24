@@ -111,10 +111,13 @@ export class NotebookInlineDiffDecorationContribution extends Disposable impleme
 			this.cachedNotebookDiff.originalVersion !== previous.versionId ||
 			this.cachedNotebookDiff.version !== current.versionId) {
 
+			const originalVersion = previous.versionId;
+			const version = current.versionId;
 			let diffInfo: { cellDiffInfo: CellDiffInfo[] } = { cellDiffInfo: [] };
 			try {
 				const notebookDiff = await this.notebookEditorWorkerService.computeDiff(previous.uri, current.uri);
-				if (this._store.isDisposed || this.notebookEditor.getViewModel()?.notebookDocument !== current || this.previous !== previous) {
+				if (this._store.isDisposed || this.notebookEditor.getViewModel()?.notebookDocument !== current || this.previous !== previous
+					|| previous.versionId !== originalVersion || current.versionId !== version) {
 					return;
 				}
 				diffInfo = computeDiff(previous, current, notebookDiff);
@@ -123,7 +126,7 @@ export class NotebookInlineDiffDecorationContribution extends Disposable impleme
 				return;
 			}
 
-			this.cachedNotebookDiff = { cellDiffInfo: diffInfo.cellDiffInfo, originalVersion: previous.versionId, version: current.versionId };
+			this.cachedNotebookDiff = { cellDiffInfo: diffInfo.cellDiffInfo, originalVersion, version };
 
 			this.insertedCellDecorator?.apply(diffInfo.cellDiffInfo);
 			this.deletedCellDecorator?.apply(diffInfo.cellDiffInfo, previous);

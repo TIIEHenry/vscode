@@ -128,7 +128,9 @@ export class NotebookDeletedCellDecorator extends Disposable implements INoteboo
 			const widget = new NotebookDeletedCellWidget(this._notebookEditor, this.toolbar, cell.cell.getValue(), cell.cell.language, rootContainer, cell.originalIndex, this.languageService, this.instantiationService);
 			widgets.push(widget);
 			const height = await widget.render();
-			this.deletedCellInfos.set(cell.originalIndex, { height, previousIndex: cell.previousIndex, offset: 0 });
+			if (generation === this._generation) {
+				this.deletedCellInfos.set(cell.originalIndex, { height, previousIndex: cell.previousIndex, offset: 0 });
+			}
 			return height;
 		}));
 		if (generation !== this._generation || this._notebookEditor.isDisposed || this._store.isDisposed) {
