@@ -145,12 +145,15 @@ export class CopyPasteController extends Disposable implements IEditorContributi
 	public async pasteAs(preferred?: PastePreference) {
 		this._logService.trace('CopyPasteController.pasteAs');
 		this._editor.focus();
+		const ctx = { preferred };
 		try {
 			this._logService.trace('Before calling editor.action.clipboardPasteAction');
-			this._pasteAsActionContext = { preferred };
+			this._pasteAsActionContext = ctx;
 			await this._commandService.executeCommand('editor.action.clipboardPasteAction');
 		} finally {
-			this._pasteAsActionContext = undefined;
+			if (this._pasteAsActionContext === ctx) {
+				this._pasteAsActionContext = undefined;
+			}
 		}
 	}
 
