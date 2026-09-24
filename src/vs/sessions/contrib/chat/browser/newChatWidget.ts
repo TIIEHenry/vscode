@@ -875,6 +875,9 @@ export class NewChatWidget extends Disposable {
 		if (!background) {
 			clearFeedback();
 		}
+		if (this._store.isDisposed) {
+			return true;
+		}
 		this._workspacePicker.clearAttachedContext();
 
 		// A background send graduated the composer's in-flight session and
@@ -888,6 +891,9 @@ export class NewChatWidget extends Disposable {
 				this.sessionsService.openQuickChat();
 			} else if (reseedFolderUri) {
 				await this._createNewSession(reseedFolderUri);
+				if (this._store.isDisposed) {
+					return true;
+				}
 			}
 		}
 		return true;
@@ -971,6 +977,9 @@ export class NewChatWidget extends Disposable {
 		}
 
 		const result = await this._createNewSession(folderUri);
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (refreshingPromptOptions && !result.session) {
 			this._newChatInput.showPromptOptions(undefined);
 		}
