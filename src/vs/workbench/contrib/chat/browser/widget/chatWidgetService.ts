@@ -149,11 +149,16 @@ export class ChatWidgetService extends Disposable implements IChatWidgetService 
 			const chatView = await this.viewsService.openView<ChatViewPane>(ChatViewId, !options?.preserveFocus);
 			if (chatView) {
 				await chatView.loadSession(sessionResource, options?.sessionTypeSelectionReason);
+				if (!isEqual(chatView.widget.viewModel?.sessionResource, sessionResource)) {
+					this.logService.trace(`[ChatWidgetService] openSession cancelled mismatch uri=${sessionResource.toString()}`);
+					return undefined;
+				}
 				if (!options?.preserveFocus) {
 					chatView.focusInput();
 				}
+				this.logService.trace(`[ChatWidgetService] openSession done total=${Date.now() - t0}ms uri=${sessionResource.toString()} path=view`);
+				return chatView.widget;
 			}
-			this.logService.trace(`[ChatWidgetService] openSession done total=${Date.now() - t0}ms uri=${sessionResource.toString()} path=view`);
 			return chatView?.widget;
 		}
 
