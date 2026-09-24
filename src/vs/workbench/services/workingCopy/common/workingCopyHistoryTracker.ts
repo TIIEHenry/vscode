@@ -145,12 +145,12 @@ export class WorkingCopyHistoryTracker extends Disposable implements IWorkbenchC
 			// Add entry
 			await this.workingCopyHistoryService.addEntry({ resource: e.workingCopy.resource, source, timestamp: e.stat.mtime }, cts.token);
 
-			// Remember content version as being added to history
-			this.historyEntryContentVersion.set(e.workingCopy.resource, contentVersion);
-
 			if (cts.token.isCancellationRequested) {
 				return;
 			}
+
+			// Remember content version as being added to history
+			this.historyEntryContentVersion.set(e.workingCopy.resource, contentVersion);
 
 			// Finally remove from pending operations
 			this.pendingAddHistoryEntryOperations.delete(e.workingCopy.resource);
