@@ -819,6 +819,7 @@ class PickBrowserDevicePresetAction extends Action2 {
 			return;
 		}
 		const quickInputService = accessor.get(IQuickInputService);
+		const model = browserEditor.model;
 
 		type PresetItem = IQuickPickItem & { preset: IBrowserDevicePreset };
 		const items: PresetItem[] = DEFAULT_BROWSER_DEVICE_PRESETS.map(p => ({
@@ -833,7 +834,7 @@ class PickBrowserDevicePresetAction extends Action2 {
 			placeHolder: localize('browser.devicePresets.placeholder', "Select a device preset"),
 			matchOnDescription: true,
 		});
-		if (picked) {
+		if (picked && browserEditor.model === model && model) {
 			support.applyPreset(picked.preset);
 		}
 	}
@@ -871,6 +872,7 @@ class SetBrowserUserAgentAction extends Action2 {
 			return;
 		}
 		const quickInputService = accessor.get(IQuickInputService);
+		const model = browserEditor.model;
 		const value = await quickInputService.input({
 			prompt: localize('browser.userAgent.prompt', "User agent string (leave empty for VS Code default)"),
 			value: support.userAgent ?? '',
@@ -878,7 +880,9 @@ class SetBrowserUserAgentAction extends Action2 {
 		if (value === undefined) {
 			return;
 		}
-		support.setUserAgent(value.trim() || undefined);
+		if (browserEditor.model === model) {
+			support.setUserAgent(value.trim() || undefined);
+		}
 	}
 }
 MenuRegistry.appendMenuItem(MenuId.BrowserEmulationToolbar, {
