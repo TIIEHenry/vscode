@@ -351,6 +351,10 @@ async function runNewChatAction(
 
 	await editingSession?.stop();
 
+	if (!chatWidgetService.getAllWidgets().includes(widget)) {
+		return;
+	}
+
 	// Create a new session, preserving the session type (or using the specified one)
 	await instantiationService.invokeFunction(clearChatSessionPreservingType, widget, sessionType);
 
