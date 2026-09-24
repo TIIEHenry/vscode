@@ -84,6 +84,8 @@ export class AccountPolicyService extends AbstractPolicyService implements IPoli
 	private readonly _onDidChangeManagedSettings = this._register(new Emitter<void>());
 	readonly onDidChangeManagedSettings = this._onDidChangeManagedSettings.event;
 
+	private _policyChain: Promise<void> = Promise.resolve();
+
 	getManagedSettingValue(key: string): ManagedSettingValue | undefined {
 		return this._managedSettings[key];
 	}
@@ -143,6 +145,12 @@ export class AccountPolicyService extends AbstractPolicyService implements IPoli
 	}
 
 	protected async _updatePolicyDefinitions(policyDefinitions: IStringDictionary<PolicyDefinition>): Promise<void> {
+		const run = this._policyChain.then(() => this._updatePolicyDefinitionsNow(policyDefinitions));
+		this._policyChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async _updatePolicyDefinitionsNow(policyDefinitions: IStringDictionary<PolicyDefinition>): Promise<void> {
 		this.logService.trace(`AccountPolicyService#_updatePolicyDefinitions: Got ${Object.keys(policyDefinitions).length} policy definitions`);
 		const managedSettings = await this.updateCopilotManagedSettingDefinitions(policyDefinitions);
 
