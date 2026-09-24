@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { coalesce } from '../../../../../base/common/arrays.js';
+import { Sequencer } from '../../../../../base/common/async.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../../base/common/errors.js';
@@ -53,40 +54,46 @@ export class LocalAgentsSessionsController extends Disposable implements IChatSe
 		super.dispose();
 	}
 
+	private readonly _sequencer = new Sequencer();
 	private _items = new ResourceMap<LocalChatSessionItem>();
 	get items(): readonly IChatSessionItem[] {
 		return Array.from(this._items.values());
 	}
 
 	async refresh(token: CancellationToken): Promise<void> {
-		const newItems = await this.provideChatSessionItems(token);
-
-		const newResources = new ResourceSet(newItems.map(i => i.resource));
-		const addedOrUpdated: LocalChatSessionItem[] = [];
-		const removed: URI[] = [];
-
-		for (const item of newItems) {
-			if (!this._items.has(item.resource)) {
-				addedOrUpdated.push(item);
+		await this._sequencer.queue(async () => {
+			const newItems = await this.provideChatSessionItems(token);
+			if (this._isDisposed || token.isCancellationRequested) {
+				return;
 			}
-		}
-		for (const resource of this._items.keys()) {
-			if (!newResources.has(resource)) {
-				removed.push(resource);
+
+			const newResources = new ResourceSet(newItems.map(i => i.resource));
+			const addedOrUpdated: LocalChatSessionItem[] = [];
+			const removed: URI[] = [];
+
+			for (const item of newItems) {
+				if (!this._items.has(item.resource)) {
+					addedOrUpdated.push(item);
+				}
 			}
-		}
+			for (const resource of this._items.keys()) {
+				if (!newResources.has(resource)) {
+					removed.push(resource);
+				}
+			}
 
-		this._items.clear();
-		for (const item of newItems) {
-			this._items.set(item.resource, item);
-		}
+			this._items.clear();
+			for (const item of newItems) {
+				this._items.set(item.resource, item);
+			}
 
-		if (addedOrUpdated.length > 0 || removed.length > 0) {
-			this._onDidChangeChatSessionItems.fire({
-				...(addedOrUpdated.length > 0 ? { addedOrUpdated } : undefined),
-				...(removed.length > 0 ? { removed } : undefined),
-			});
-		}
+			if (addedOrUpdated.length > 0 || removed.length > 0) {
+				this._onDidChangeChatSessionItems.fire({
+					...(addedOrUpdated.length > 0 ? { addedOrUpdated } : undefined),
+					...(removed.length > 0 ? { removed } : undefined),
+				});
+			}
+		});
 	}
 
 	private registerListeners(): void {
@@ -133,24 +140,29 @@ export class LocalAgentsSessionsController extends Disposable implements IChatSe
 	}
 
 	private async tryUpdateLiveSessionItem(model: IChatModel): Promise<void> {
-		const updated = this.toChatSessionItem(await chatModelToChatDetail(model));
-		if (!updated) {
-			// The session no longer qualifies as a list item (e.g. it has no requests
-			// yet, or its requests were removed). Drop any stale item we were showing.
-			if (this._items.has(model.sessionResource)) {
-				this._items.delete(model.sessionResource);
-				this._onDidChangeChatSessionItems.fire({ removed: [model.sessionResource] });
+		await this._sequencer.queue(async () => {
+			const updated = this.toChatSessionItem(await chatModelToChatDetail(model));
+			if (this._isDisposed) {
+				return;
 			}
-			return;
-		}
+			if (!updated) {
+				// The session no longer qualifies as a list item (e.g. it has no requests
+				// yet, or its requests were removed). Drop any stale item we were showing.
+				if (this._items.has(model.sessionResource)) {
+					this._items.delete(model.sessionResource);
+					this._onDidChangeChatSessionItems.fire({ removed: [model.sessionResource] });
+				}
+				return;
+			}
 
-		const existing = this._items.get(updated.resource);
-		if (existing?.isEqual(updated)) {
-			return;
-		}
+			const existing = this._items.get(updated.resource);
+			if (existing?.isEqual(updated)) {
+				return;
+			}
 
-		this._items.set(updated.resource, updated);
-		this._onDidChangeChatSessionItems.fire({ addedOrUpdated: [updated] });
+			this._items.set(updated.resource, updated);
+			this._onDidChangeChatSessionItems.fire({ addedOrUpdated: [updated] });
+		});
 	}
 
 	private async provideChatSessionItems(token: CancellationToken): Promise<LocalChatSessionItem[]> {
