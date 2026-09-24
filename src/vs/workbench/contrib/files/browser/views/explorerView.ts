@@ -885,6 +885,13 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 	}
 
 	async setTreeInput(): Promise<void> {
+		if (this.findProvider) {
+			return this.findProvider.enqueueTreeWork(() => this._setTreeInputNow());
+		}
+		return this._setTreeInputNow();
+	}
+
+	private async _setTreeInputNow(): Promise<void> {
 		if (!this.isBodyVisible()) {
 			return Promise.resolve(undefined);
 		}
