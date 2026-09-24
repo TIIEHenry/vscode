@@ -34,6 +34,7 @@ export class NotebookDeletedCellDecorator extends Disposable implements INoteboo
 	private readonly zoneRemover = this._register(new DisposableStore());
 	private readonly createdViewZones = new Map<number, string>();
 	private readonly deletedCellInfos = new Map<number, { height: number; previousIndex: number; offset: number }>();
+	private _generation = 0;
 	constructor(
 		private readonly _notebookEditor: INotebookEditor,
 		private readonly toolbar: { menuId: MenuId; className: string; telemetrySource?: string; argFactory: (deletedCellIndex: number) => any; actionViewItemProvider?: IActionViewItemProvider } | undefined,
@@ -79,6 +80,7 @@ export class NotebookDeletedCellDecorator extends Disposable implements INoteboo
 	}
 
 	public apply(diffInfo: CellDiffInfo[], original: NotebookTextModel): void {
+		this._generation++;
 		this.clear();
 
 		let currentIndex = -1;
@@ -104,8 +106,14 @@ export class NotebookDeletedCellDecorator extends Disposable implements INoteboo
 	}
 
 	public clear() {
+		this._generation++;
 		this.deletedCellInfos.clear();
 		this.zoneRemover.clear();
+	}
+
+	override dispose(): void {
+		this._generation++;
+		super.dispose();
 	}
 
 
@@ -113,6 +121,7 @@ export class NotebookDeletedCellDecorator extends Disposable implements INoteboo
 		this._createWidgetImpl(index, cells);
 	}
 	private async _createWidgetImpl(index: number, cells: { cell: NotebookCellTextModel; originalIndex: number; previousIndex: number }[]) {
+		const generation = this._generation;
 		const rootContainer = document.createElement('div');
 		const widgets: NotebookDeletedCellWidget[] = [];
 		const heights = await Promise.all(cells.map(async cell => {
@@ -122,6 +131,9 @@ export class NotebookDeletedCellDecorator extends Disposable implements INoteboo
 			this.deletedCellInfos.set(cell.originalIndex, { height, previousIndex: cell.previousIndex, offset: 0 });
 			return height;
 		}));
+		if (generation !== this._generation || this._notebookEditor.isDisposed || this._store.isDisposed) {
+			return;
+		}
 
 		Array.from(this.deletedCellInfos.keys()).sort((a, b) => a - b).forEach((originalIndex) => {
 			const previousDeletedCell = this.deletedCellInfos.get(originalIndex - 1);

@@ -101,31 +101,35 @@ export class NotebookInlineDiffDecorationContribution extends Disposable impleme
 
 	private async _update() {
 		const current = this.notebookEditor.getViewModel()?.notebookDocument;
-		if (!this.previous || !current) {
+		const previous = this.previous;
+		if (!previous || !current) {
 			this.logService.debug('inlineDiff', 'Update skipped - no original or current document');
 			return;
 		}
 
 		if (!this.cachedNotebookDiff ||
-			this.cachedNotebookDiff.originalVersion !== this.previous.versionId ||
+			this.cachedNotebookDiff.originalVersion !== previous.versionId ||
 			this.cachedNotebookDiff.version !== current.versionId) {
 
 			let diffInfo: { cellDiffInfo: CellDiffInfo[] } = { cellDiffInfo: [] };
 			try {
-				const notebookDiff = await this.notebookEditorWorkerService.computeDiff(this.previous.uri, current.uri);
-				diffInfo = computeDiff(this.previous, current, notebookDiff);
+				const notebookDiff = await this.notebookEditorWorkerService.computeDiff(previous.uri, current.uri);
+				if (this._store.isDisposed || this.notebookEditor.getViewModel()?.notebookDocument !== current || this.previous !== previous) {
+					return;
+				}
+				diffInfo = computeDiff(previous, current, notebookDiff);
 			} catch (e) {
 				this.logService.error('inlineDiff', 'Error computing diff:\n' + e);
 				return;
 			}
 
-			this.cachedNotebookDiff = { cellDiffInfo: diffInfo.cellDiffInfo, originalVersion: this.previous.versionId, version: current.versionId };
+			this.cachedNotebookDiff = { cellDiffInfo: diffInfo.cellDiffInfo, originalVersion: previous.versionId, version: current.versionId };
 
 			this.insertedCellDecorator?.apply(diffInfo.cellDiffInfo);
-			this.deletedCellDecorator?.apply(diffInfo.cellDiffInfo, this.previous);
+			this.deletedCellDecorator?.apply(diffInfo.cellDiffInfo, previous);
 		}
 
-		await this.updateCells(this.previous, current, this.cachedNotebookDiff.cellDiffInfo);
+		await this.updateCells(previous, current, this.cachedNotebookDiff.cellDiffInfo);
 	}
 
 	private async updateCells(original: NotebookTextModel, modified: NotebookTextModel, cellDiffs: CellDiffInfo[]) {

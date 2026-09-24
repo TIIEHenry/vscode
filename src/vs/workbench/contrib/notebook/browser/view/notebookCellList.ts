@@ -1072,7 +1072,12 @@ export class NotebookCellList extends WorkbenchList<CellViewModel> implements ID
 		const element = this.view.element(viewIndex);
 
 		if (!element.editorAttached) {
-			return getEditorAttachedPromise(element).then(() => reveal(viewIndex, range));
+			return getEditorAttachedPromise(element).then(() => {
+				if (this._isDisposed || this.view.element(viewIndex) !== element) {
+					return;
+				}
+				reveal(viewIndex, range);
+			});
 		} else {
 			reveal(viewIndex, range);
 		}
@@ -1105,7 +1110,12 @@ export class NotebookCellList extends WorkbenchList<CellViewModel> implements ID
 
 			// reveal editor
 			if (!element.editorAttached) {
-				return getEditorAttachedPromise(element).then(() => reveal(viewIndex, range));
+				return getEditorAttachedPromise(element).then(() => {
+					if (this._isDisposed || this.view.element(viewIndex) !== element) {
+						return;
+					}
+					reveal(viewIndex, range);
+				});
 			} else {
 				// for example markdown
 			}
@@ -1114,7 +1124,12 @@ export class NotebookCellList extends WorkbenchList<CellViewModel> implements ID
 				element.revealRangeInCenter(range);
 			} else {
 				// for example, markdown cell in preview mode
-				return getEditorAttachedPromise(element).then(() => reveal(viewIndex, range));
+				return getEditorAttachedPromise(element).then(() => {
+					if (this._isDisposed || this.view.element(viewIndex) !== element) {
+						return;
+					}
+					reveal(viewIndex, range);
+				});
 			}
 		}
 	}

@@ -43,15 +43,23 @@ export class NotebookInlineDiffWidget extends Disposable {
 			this.createNotebookWidget(input, this.groupId, this.rootElement);
 		}
 
+		const widget = this.widget.value;
+
 		if (this.dimension) {
-			this.widget.value?.layout(this.dimension, this.rootElement, this.position);
+			widget?.layout(this.dimension, this.rootElement, this.position);
 		}
 
 		if (model) {
-			await this.widget.value?.setOptions({ ...options });
-			this.widget.value?.notebookOptions.previousModelToCompare.set(previousModel, undefined);
+			await widget?.setOptions({ ...options });
+			if (this._store.isDisposed || this.widget.value !== widget) {
+				return;
+			}
+			widget?.notebookOptions.previousModelToCompare.set(previousModel, undefined);
 
-			await this.widget.value!.setModel(model, options?.viewState);
+			await widget!.setModel(model, options?.viewState);
+			if (this._store.isDisposed || this.widget.value !== widget) {
+				return;
+			}
 		}
 	}
 
