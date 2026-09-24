@@ -116,6 +116,7 @@ export class TestingPeekOpener extends Disposable implements ITestingPeekOpener 
 	declare _serviceBrand: undefined;
 
 	private lastUri?: TestUriWithDocument;
+	private _showPeekSeq = 0;
 
 	/** @inheritdoc */
 	public readonly historyVisible: MutableObservableValue<boolean>;
@@ -261,15 +262,21 @@ export class TestingPeekOpener extends Disposable implements ITestingPeekOpener 
 	/** @inheritdoc */
 	private async showPeekFromUri(uri: TestUriWithDocument, editor?: IEditor, options?: ITextEditorOptions) {
 		if (isCodeEditor(editor)) {
+			++this._showPeekSeq;
 			this.lastUri = uri;
 			TestingOutputPeekController.get(editor)?.show(buildTestUri(this.lastUri));
 			return true;
 		}
 
+		const showSeq = ++this._showPeekSeq;
 		const pane = await this.editorService.openEditor({
 			resource: uri.documentUri,
 			options: { revealIfOpened: true, ...options }
 		});
+
+		if (showSeq !== this._showPeekSeq || this._store.isDisposed) {
+			return false;
+		}
 
 		const control = pane?.getControl();
 		if (!isCodeEditor(control)) {
@@ -451,6 +458,7 @@ export class TestingOutputPeekController extends Disposable implements IEditorCo
 	 * Context key updated when the peek is visible/hidden.
 	 */
 	private readonly visible: IContextKey<boolean>;
+	private _openAndShowSeq = 0;
 
 	/**
 	 * Gets the currently display subject. Undefined if the peek is not open.
@@ -511,6 +519,8 @@ export class TestingOutputPeekController extends Disposable implements IEditorCo
 			return;
 		}
 
+		const openSeq = ++this._openAndShowSeq;
+
 		if (!subject.revealLocation || subject.revealLocation.uri.toString() === this.editor.getModel()?.uri.toString()) {
 			return this.show(uri);
 		}
@@ -519,6 +529,10 @@ export class TestingOutputPeekController extends Disposable implements IEditorCo
 			resource: subject.revealLocation.uri,
 			options: { pinned: false, revealIfOpened: true }
 		}, this.editor);
+
+		if (openSeq !== this._openAndShowSeq || this._store.isDisposed) {
+			return;
+		}
 
 		if (otherEditor) {
 			TestingOutputPeekController.get(otherEditor)?.removePeek();
