@@ -267,8 +267,12 @@ export class EditSessionsWorkbenchService extends Disposable implements IEditSes
 		if (!this.cachedMachines) {
 			if (!this.cachedMachinesPromise) {
 				this.cachedMachinesPromise = (async () => {
-					const machines = await this.machineClient!.getMachines();
-					this.cachedMachines = machines.reduce((map, machine) => map.set(machine.id, machine.name), new Map<string, string>());
+					try {
+						const machines = await this.machineClient!.getMachines();
+						this.cachedMachines = machines.reduce((map, machine) => map.set(machine.id, machine.name), new Map<string, string>());
+					} finally {
+						this.cachedMachinesPromise = undefined;
+					}
 				})();
 			}
 			await this.cachedMachinesPromise;
