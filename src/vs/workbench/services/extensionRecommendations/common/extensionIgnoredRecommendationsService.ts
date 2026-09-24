@@ -29,6 +29,7 @@ export class ExtensionIgnoredRecommendationsService extends Disposable implement
 
 	// Ignored Workspace Recommendations
 	private ignoredWorkspaceRecommendations: string[] = [];
+	private _ignoredWorkspaceChain: Promise<void> = Promise.resolve();
 
 	get ignoredRecommendations(): string[] { return distinct([...this.globalIgnoredRecommendations, ...this.ignoredWorkspaceRecommendations]); }
 
@@ -43,12 +44,19 @@ export class ExtensionIgnoredRecommendationsService extends Disposable implement
 		this.initIgnoredWorkspaceRecommendations().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
-	private async initIgnoredWorkspaceRecommendations(): Promise<void> {
-		this.ignoredWorkspaceRecommendations = await this.workspaceExtensionsConfigService.getUnwantedRecommendations();
-		this._onDidChangeIgnoredRecommendations.fire();
-		this._register(this.workspaceExtensionsConfigService.onDidChangeExtensionsConfigs(async () => {
+	private enqueueRefreshIgnoredWorkspaceRecommendations(): Promise<void> {
+		const run = this._ignoredWorkspaceChain.then(async () => {
 			this.ignoredWorkspaceRecommendations = await this.workspaceExtensionsConfigService.getUnwantedRecommendations();
 			this._onDidChangeIgnoredRecommendations.fire();
+		});
+		this._ignoredWorkspaceChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async initIgnoredWorkspaceRecommendations(): Promise<void> {
+		await this.enqueueRefreshIgnoredWorkspaceRecommendations();
+		this._register(this.workspaceExtensionsConfigService.onDidChangeExtensionsConfigs(() => {
+			this.enqueueRefreshIgnoredWorkspaceRecommendations().catch(onUnexpectedError);
 		}));
 	}
 
