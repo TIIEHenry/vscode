@@ -708,6 +708,9 @@ export class InlineChatController implements IEditorContribution {
 			await existingSession.editingSession.accept();
 			existingSession.dispose();
 		}
+		if (this.#store.isDisposed || !this.#editor.hasModel()) {
+			return false;
+		}
 
 		this.#isActiveController.set(true, undefined);
 		this.#ctxInlineChatVisible.set(true);
