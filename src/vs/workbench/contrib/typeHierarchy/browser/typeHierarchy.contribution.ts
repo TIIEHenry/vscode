@@ -120,8 +120,10 @@ class TypeHierarchyController implements IEditorContribution {
 				this._widget!.showMessage(localize('no.item', "No results"));
 			}
 		}).catch(err => {
-			if (isCancellationError(err)) {
-				this.endTypeHierarchy();
+			if (cts.token.isCancellationRequested || isCancellationError(err)) {
+				return;
+			}
+			if (this._widget && (this._widget as unknown as { readonly _disposables: DisposableStore })._disposables.isDisposed) {
 				return;
 			}
 			this._widget!.showMessage(localize('error', "Failed to show type hierarchy"));
@@ -132,12 +134,16 @@ class TypeHierarchyController implements IEditorContribution {
 		if (!this._widget) {
 			return;
 		}
-		const model = this._widget.getModel();
-		const typeItem = this._widget.getFocused();
+		const widget = this._widget;
+		const model = widget.getModel();
+		const typeItem = widget.getFocused();
 		if (!typeItem || !model) {
 			return;
 		}
 		const newEditor = await this._editorService.openCodeEditor({ resource: typeItem.item.uri }, this._editor);
+		if (this._disposables.isDisposed || this._widget !== widget || (widget as unknown as { readonly _disposables: DisposableStore })._disposables.isDisposed) {
+			return;
+		}
 		if (!newEditor) {
 			return;
 		}
@@ -146,7 +152,7 @@ class TypeHierarchyController implements IEditorContribution {
 
 		TypeHierarchyController.get(newEditor)?._showTypeHierarchyWidget(
 			Range.lift(newModel.root.selectionRange).getStartPosition(),
-			this._widget.direction,
+			widget.direction,
 			Promise.resolve(newModel),
 			new CancellationTokenSource()
 		);
