@@ -311,7 +311,7 @@ export class OutputEditor extends AbstractTextResourceEditor {
 		}
 		await super.setInput(input, options, context, token);
 
-		if (token.isCancellationRequested) {
+		if (token.isCancellationRequested || this._store.isDisposed) {
 			return;
 		}
 

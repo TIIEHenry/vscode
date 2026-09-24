@@ -117,6 +117,9 @@ class OutputLinkWorkerClient extends Disposable {
 
 	public async provideLinks(modelUri: URI): Promise<ILink[]> {
 		await this._initializeBarrier;
+		if (this._store.isDisposed) {
+			return [];
+		}
 		this._workerTextModelSyncClient.ensureSyncedResources([modelUri]);
 		return this._workerClient.proxy.$computeLinks(modelUri.toString());
 	}
