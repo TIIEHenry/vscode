@@ -36,6 +36,9 @@ const EXTENSIONS_VIEWLET_ID = 'workbench.view.extensions';
 class NativeLocaleService implements ILocaleService {
 	_serviceBrand: undefined;
 
+	private localeWriteGeneration = 0;
+	private _localeWriteChain: Promise<void> = Promise.resolve();
+
 	constructor(
 		@IJSONEditingService private readonly jsonEditingService: IJSONEditingService,
 		@IEnvironmentService private readonly environmentService: IEnvironmentService,
@@ -77,12 +80,22 @@ class NativeLocaleService implements ILocaleService {
 		return true;
 	}
 
-	private async writeLocaleValue(locale: string | undefined): Promise<boolean> {
+	private async writeLocaleValue(locale: string | undefined, generation: number): Promise<boolean> {
 		if (!(await this.validateLocaleFile())) {
 			return false;
 		}
-		await this.jsonEditingService.write(this.environmentService.argvResource, [{ path: ['locale'], value: locale }], true);
-		return true;
+		if (generation !== this.localeWriteGeneration) {
+			return false;
+		}
+		const run = this._localeWriteChain.then(async () => {
+			if (generation !== this.localeWriteGeneration) {
+				return false;
+			}
+			await this.jsonEditingService.write(this.environmentService.argvResource, [{ path: ['locale'], value: locale }], true);
+			return true;
+		});
+		this._localeWriteChain = run.then(() => undefined, () => undefined);
+		return run;
 	}
 
 	async setLocale(languagePackItem: ILanguagePackItem, skipDialog = false): Promise<void> {
@@ -90,6 +103,7 @@ class NativeLocaleService implements ILocaleService {
 		if (locale === Language.value() || (!locale && Language.isDefaultVariant())) {
 			return;
 		}
+		const generation = ++this.localeWriteGeneration;
 		const installedLanguages = await this.languagePackService.getInstalledLanguages();
 		try {
 
@@ -121,7 +135,15 @@ class NativeLocaleService implements ILocaleService {
 			if (!skipDialog && !await this.showRestartDialog(languagePackItem.label)) {
 				return;
 			}
-			await this.writeLocaleValue(locale);
+			if (generation !== this.localeWriteGeneration) {
+				return;
+			}
+			if (!(await this.writeLocaleValue(locale, generation))) {
+				return;
+			}
+			if (generation !== this.localeWriteGeneration) {
+				return;
+			}
 			await this.hostService.restart();
 		} catch (err) {
 			this.notificationService.error(err);
@@ -129,8 +151,14 @@ class NativeLocaleService implements ILocaleService {
 	}
 
 	async clearLocalePreference(): Promise<void> {
+		const generation = ++this.localeWriteGeneration;
 		try {
-			await this.writeLocaleValue(undefined);
+			if (!(await this.writeLocaleValue(undefined, generation))) {
+				return;
+			}
+			if (generation !== this.localeWriteGeneration) {
+				return;
+			}
 			if (!Language.isDefaultVariant()) {
 				await this.showRestartDialog('English');
 			}
