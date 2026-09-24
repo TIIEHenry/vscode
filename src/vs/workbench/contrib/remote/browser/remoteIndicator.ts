@@ -117,6 +117,7 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 	private loggedInvalidGroupNames: { [group: string]: boolean } = Object.create(null);
 
 	private _remoteExtensionMetadata: RemoteExtensionMetadata[] | undefined = undefined;
+	private _remoteExtensionMetadataInstalledEpoch: number[] = [];
 	private get remoteExtensionMetadata(): RemoteExtensionMetadata[] {
 		if (!this._remoteExtensionMetadata) {
 			const remoteExtensionTips = { ...this.productService.remoteExtensionTips, ...this.productService.virtualWorkspaceExtensionTips };
@@ -136,6 +137,7 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 			});
 
 			this.remoteExtensionMetadata.sort((ext1, ext2) => ext1.priority - ext2.priority);
+			this._remoteExtensionMetadataInstalledEpoch = this._remoteExtensionMetadata.map(() => 0);
 		}
 
 		return this._remoteExtensionMetadata;
@@ -321,6 +323,7 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 				const index = this.remoteExtensionMetadata.findIndex(value => ExtensionIdentifier.equals(value.id, ext.identifier));
 				if (index > -1) {
 					this.remoteExtensionMetadata[index].installed = true;
+					this._remoteExtensionMetadataInstalledEpoch[index]++;
 				}
 			}
 		}));
@@ -329,6 +332,7 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 			const index = this.remoteExtensionMetadata.findIndex(value => ExtensionIdentifier.equals(value.id, result.identifier.id));
 			if (index > -1) {
 				this.remoteExtensionMetadata[index].installed = false;
+				this._remoteExtensionMetadataInstalledEpoch[index]++;
 			}
 		}));
 	}
@@ -343,10 +347,13 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 		for (let i = 0; i < this.remoteExtensionMetadata.length; i++) {
 			const extensionId = this.remoteExtensionMetadata[i].id;
 			const supportedPlatforms = this.remoteExtensionMetadata[i].supportedPlatforms;
+			const installedEpochBefore = this._remoteExtensionMetadataInstalledEpoch[i];
 			const isInstalled = (await this.extensionManagementService.getInstalled()).find(value => ExtensionIdentifier.equals(value.identifier.id, extensionId)) ? true : false;
 
-			this.remoteExtensionMetadata[i].installed = isInstalled;
-			if (isInstalled) {
+			if (installedEpochBefore === this._remoteExtensionMetadataInstalledEpoch[i]) {
+				this.remoteExtensionMetadata[i].installed = isInstalled;
+			}
+			if (this.remoteExtensionMetadata[i].installed) {
 				this.remoteExtensionMetadata[i].isPlatformCompatible = true;
 			}
 			else if (supportedPlatforms && !supportedPlatforms.includes(currentPlatform)) {

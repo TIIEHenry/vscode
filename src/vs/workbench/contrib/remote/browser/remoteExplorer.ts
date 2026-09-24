@@ -549,6 +549,7 @@ class OnAutoForwardedAction extends Disposable {
 			// Privileged ports are not on Windows, so it's ok to stick to just "sudo".
 			label: nls.localize('remote.tunnelsView.elevationButton', "Use Port {0} as Sudo...", tunnel.tunnelRemotePort),
 			run: async () => {
+				const notificationAtStart = this.lastNotification;
 				await this.remoteExplorerService.close({ host: tunnel.tunnelRemoteHost, port: tunnel.tunnelRemotePort }, TunnelCloseReason.Other);
 				const newTunnel = await this.remoteExplorerService.forward({
 					remote: { host: tunnel.tunnelRemoteHost, port: tunnel.tunnelRemotePort },
@@ -557,6 +558,10 @@ class OnAutoForwardedAction extends Disposable {
 					source: AutoTunnelSource
 				});
 				if (!newTunnel || (typeof newTunnel === 'string')) {
+					return;
+				}
+				if (this.lastNotification !== notificationAtStart) {
+					notificationAtStart?.close();
 					return;
 				}
 				this.lastNotification?.close();
@@ -653,6 +658,7 @@ class OutputAutomaticPortForwarding extends Disposable {
 
 class ProcAutomaticPortForwarding extends Disposable {
 	private candidateListener: IDisposable | undefined;
+	private candidateListenerEpoch = 0;
 	private autoForwarded: Set<string> = new Set();
 	private notifiedOnly: Set<string> = new Set();
 	private notifier: OnAutoForwardedAction;
@@ -711,6 +717,7 @@ class ProcAutomaticPortForwarding extends Disposable {
 	}
 
 	private stopCandidateListener() {
+		this.candidateListenerEpoch++;
 		if (this.candidateListener) {
 			this.candidateListener.dispose();
 			this.candidateListener = undefined;
@@ -723,13 +730,22 @@ class ProcAutomaticPortForwarding extends Disposable {
 		}
 		this.portsFeatures?.dispose();
 
+		const listenerEpoch = ++this.candidateListenerEpoch;
+
 		// Capture list of starting candidates so we don't auto forward them later.
 		await this.setInitialCandidates();
 
 		// Need to check the setting again, since it may have changed while we waited for the initial candidates to be set.
-		if (this.configurationService.getValue(PORT_AUTO_FORWARD_SETTING)) {
-			this.candidateListener = this._register(this.remoteExplorerService.tunnelModel.onCandidatesChanged(this.handleCandidateUpdate, this));
+		if (listenerEpoch !== this.candidateListenerEpoch) {
+			return;
 		}
+		if (!this.configurationService.getValue(PORT_AUTO_FORWARD_SETTING)) {
+			return;
+		}
+		if (this.candidateListener) {
+			return;
+		}
+		this.candidateListener = this._register(this.remoteExplorerService.tunnelModel.onCandidatesChanged(this.handleCandidateUpdate, this));
 	}
 
 	private async setInitialCandidates() {
