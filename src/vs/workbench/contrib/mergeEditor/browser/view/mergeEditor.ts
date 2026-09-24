@@ -216,6 +216,9 @@ export class MergeEditor extends AbstractTextEditor<IMergeEditorViewState> {
 		});
 
 		const inputModel = await input.resolve();
+		if (token.isCancellationRequested || this._store.isDisposed) {
+			return;
+		}
 		const model = inputModel.model;
 
 		const viewModel = this.instantiationService.createInstance(

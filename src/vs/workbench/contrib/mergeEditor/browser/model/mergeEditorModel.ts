@@ -210,6 +210,9 @@ export class MergeEditorModel extends EditorModel {
 
 	public async reset(): Promise<void> {
 		await waitForState(this.inputDiffComputingState, state => state === MergeEditorModelState.upToDate);
+		if (this._store.isDisposed) {
+			return;
+		}
 		const states = this.modifiedBaseRangeResultStates.get();
 
 		transaction(tx => {
