@@ -443,6 +443,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private pendingPairs: UniverseAgentPendingPairInfo[] = [];
 	private pendingPairsListFailed: string | undefined;
 	private engineDevicesRefreshGeneration = 0;
+	private hubDirectoryRefreshGeneration = 0;
 	private enginePendingRefreshGeneration = 0;
 	private selectedPending: UniverseAgentPendingPairInfo | undefined;
 	private readonly pendingRowDisposables = this._register(new DisposableStore());
@@ -1133,9 +1134,13 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	/** Hub write-success stays only after refreshDirectory listed (D221 sibling). */
-	private async refreshDirectoryListed(): Promise<boolean> {
+	private async refreshDirectoryListed(): Promise<boolean | undefined> {
+		const generation = ++this.hubDirectoryRefreshGeneration;
 		try {
 			const status = await this.hubService.refreshDirectory();
+			if (generation !== this.hubDirectoryRefreshGeneration) {
+				return undefined;
+			}
 			if (this.hubDirectoryRefreshListed(status)) {
 				this.hubDirectoryListFailed = undefined;
 				this.renderHubDirectory();
@@ -1148,6 +1153,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			);
 			return false;
 		} catch (error) {
+			if (generation !== this.hubDirectoryRefreshGeneration) {
+				return undefined;
+			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.applyHubDirectoryRefreshFailure(reason);
 			return false;
@@ -1823,6 +1831,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				return;
 			}
 			const listed = await this.refreshDirectoryListed();
+			if (listed === undefined) {
+				return;
+			}
 			this.restoreHubDirectoryWriteSuccessIfListed(listed && this.engineDeviceListsListed(), result.message);
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
@@ -1866,6 +1877,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 					return;
 				}
 				const listed = await this.refreshDirectoryListed();
+				if (listed === undefined) {
+					return;
+				}
 				this.restoreHubDirectoryWriteSuccessIfListed(listed, result.message);
 				this.renderProfiles();
 			} catch (error) {
@@ -1885,7 +1899,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				this.hubDirectoryBanner.style.display = '';
 				return;
 			}
-			await this.refreshDirectoryListed();
+			const listed = await this.refreshDirectoryListed();
+			if (listed === undefined) {
+				return;
+			}
 			this.renderProfiles();
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
@@ -1933,6 +1950,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			}
 			this.confirmDeviceCodeInput.value = '';
 			const listed = await this.refreshDirectoryListed();
+			if (listed === undefined) {
+				return;
+			}
 			this.restoreHubDeviceCodeSuccessIfListed(
 				listed,
 				localize('ua.connectionConfirmDeviceCodeOk', "Device code confirmed"),
