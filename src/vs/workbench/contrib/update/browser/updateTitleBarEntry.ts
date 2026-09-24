@@ -85,6 +85,7 @@ export class UpdateTitleBarContribution extends Disposable implements IWorkbench
 	private entry: UpdateTitleBarEntry | undefined;
 	private tooltipVisible = false;
 	private tooltipFocused = false;
+	private _stateSeq = 0;
 
 	constructor(
 		@IActionViewItemService actionViewItemService: IActionViewItemService,
@@ -166,6 +167,7 @@ export class UpdateTitleBarContribution extends Disposable implements IWorkbench
 	}
 
 	private async onStateChange(startup = false) {
+		const seq = ++this._stateSeq;
 		if (this.configurationService.getValue<boolean>(UPDATE_TITLE_BAR_SETTING) === false) {
 			this.tooltipVisible = false;
 			this.tooltipFocused = false;
@@ -174,7 +176,18 @@ export class UpdateTitleBarContribution extends Disposable implements IWorkbench
 		}
 
 		// Tooltip already shown or window not last focused: only sync content and indicator visibility.
-		if (this.tooltipVisible || !await this.hostService.hadLastFocus()) {
+		if (this.tooltipVisible) {
+			this.context.set(this.tooltipVisible || ACTIONABLE_STATES.includes(this.state.type));
+			this.tooltip.renderState(this.state);
+			return;
+		}
+
+		const hadLastFocus = await this.hostService.hadLastFocus();
+		if (seq !== this._stateSeq) {
+			return;
+		}
+
+		if (!hadLastFocus) {
 			this.context.set(this.tooltipVisible || ACTIONABLE_STATES.includes(this.state.type));
 			this.tooltip.renderState(this.state);
 			return;
