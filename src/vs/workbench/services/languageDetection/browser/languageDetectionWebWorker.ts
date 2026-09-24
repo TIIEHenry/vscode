@@ -32,9 +32,11 @@ export class LanguageDetectionWorker implements ILanguageDetectionWorker {
 	private readonly _host: LanguageDetectionWorkerHost;
 	private _regexpModel: RegexpModel | undefined;
 	private _regexpLoadFailed: boolean = false;
+	private _regexpModelLoadPromise: Promise<RegexpModel | undefined> | undefined;
 
 	private _modelOperations: ModelOperations | undefined;
 	private _loadFailed: boolean = false;
+	private _modelOperationsLoadPromise: Promise<ModelOperations> | undefined;
 
 	private modelIdToCoreId = new Map<string, string | undefined>();
 
@@ -101,22 +103,29 @@ export class LanguageDetectionWorker implements ILanguageDetectionWorker {
 		return content;
 	}
 
-	private async getRegexpModel(): Promise<RegexpModel | undefined> {
-		if (this._regexpLoadFailed) {
-			return;
-		}
+	private getRegexpModel(): Promise<RegexpModel | undefined> {
 		if (this._regexpModel) {
-			return this._regexpModel;
+			return Promise.resolve(this._regexpModel);
 		}
-		const uri: string = await this._host.$getRegexpModelUri();
-		try {
-			this._regexpModel = await importAMDNodeModule(uri, '') as RegexpModel;
-			return this._regexpModel;
-		} catch (e) {
-			this._regexpLoadFailed = true;
-			// console.warn('error loading language detection model', e);
-			return;
+		if (this._regexpLoadFailed) {
+			return Promise.resolve(undefined);
 		}
+		if (!this._regexpModelLoadPromise) {
+			this._regexpModelLoadPromise = (async () => {
+				try {
+					const uri: string = await this._host.$getRegexpModelUri();
+					this._regexpModel = await importAMDNodeModule(uri, '') as RegexpModel;
+					return this._regexpModel;
+				} catch (e) {
+					if (!this._regexpModel) {
+						this._regexpLoadFailed = true;
+					}
+					// console.warn('error loading language detection model', e);
+					return this._regexpModel;
+				}
+			})();
+		}
+		return this._regexpModelLoadPromise;
 	}
 
 	private async runRegexpModel(content: string, langBiases: Record<string, number>, supportedLangs?: string[]): Promise<string | undefined> {
@@ -138,32 +147,35 @@ export class LanguageDetectionWorker implements ILanguageDetectionWorker {
 		return detected;
 	}
 
-	private async getModelOperations(): Promise<ModelOperations> {
+	private getModelOperations(): Promise<ModelOperations> {
 		if (this._modelOperations) {
-			return this._modelOperations;
+			return Promise.resolve(this._modelOperations);
 		}
-
-		const uri: string = await this._host.$getIndexJsUri();
-		const { ModelOperations } = await importAMDNodeModule(uri, '') as typeof import('@vscode/vscode-languagedetection');
-		this._modelOperations = new ModelOperations({
-			modelJsonLoaderFunc: async () => {
-				const response = await fetch(await this._host.$getModelJsonUri());
-				try {
-					const modelJSON = await response.json();
-					return modelJSON;
-				} catch (e) {
-					const message = `Failed to parse model JSON.`;
-					throw new Error(message);
-				}
-			},
-			weightsLoaderFunc: async () => {
-				const response = await fetch(await this._host.$getWeightsUri());
-				const buffer = await response.arrayBuffer();
-				return buffer;
-			}
-		});
-
-		return this._modelOperations;
+		if (!this._modelOperationsLoadPromise) {
+			this._modelOperationsLoadPromise = (async () => {
+				const uri: string = await this._host.$getIndexJsUri();
+				const { ModelOperations } = await importAMDNodeModule(uri, '') as typeof import('@vscode/vscode-languagedetection');
+				this._modelOperations = new ModelOperations({
+					modelJsonLoaderFunc: async () => {
+						const response = await fetch(await this._host.$getModelJsonUri());
+						try {
+							const modelJSON = await response.json();
+							return modelJSON;
+						} catch (e) {
+							const message = `Failed to parse model JSON.`;
+							throw new Error(message);
+						}
+					},
+					weightsLoaderFunc: async () => {
+						const response = await fetch(await this._host.$getWeightsUri());
+						const buffer = await response.arrayBuffer();
+						return buffer;
+					}
+				});
+				return this._modelOperations;
+			})();
+		}
+		return this._modelOperationsLoadPromise;
 	}
 
 	// This adjusts the language confidence scores to be more accurate based on:
@@ -220,7 +232,7 @@ export class LanguageDetectionWorker implements ILanguageDetectionWorker {
 	}
 
 	private async * detectLanguagesImpl(content: string): AsyncGenerator<ModelResult, void, unknown> {
-		if (this._loadFailed) {
+		if (this._loadFailed && !this._modelOperations) {
 			return;
 		}
 
@@ -229,7 +241,9 @@ export class LanguageDetectionWorker implements ILanguageDetectionWorker {
 			modelOperations = await this.getModelOperations();
 		} catch (e) {
 			console.log(e);
-			this._loadFailed = true;
+			if (!this._modelOperations) {
+				this._loadFailed = true;
+			}
 			return;
 		}
 
