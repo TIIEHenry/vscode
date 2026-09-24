@@ -182,6 +182,9 @@ suite('Search leftover remaining Promise fire-and-forget catch scan (D756)', () 
 	test('searchModel already-double _startStreamDelay stays; assigned asyncResults / two-arg then stay skipped', () => {
 		const source = fs.readFileSync(resolveSource(SEARCH_MODEL_REL), 'utf8');
 		const delayThen = `this._startStreamDelay.then(() => {
+					if ((!ai && searchInstanceID !== this._plainSearchInstanceID) || (ai && searchInstanceID !== this._aiSearchInstanceID)) {
+						return;
+					}
 					if (targetQueue.length) {
 						this._searchResult.add(targetQueue, searchInstanceID, ai, !ai);
 						targetQueue.length = 0;
