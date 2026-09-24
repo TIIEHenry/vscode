@@ -29,6 +29,7 @@ export class NativeAccessibilityService extends AccessibilityService implements 
 
 	private didSendTelemetry = false;
 	private shouldAlwaysUnderlineAccessKeys: boolean | undefined = undefined;
+	private alwaysUnderlineAccessKeysPromise: Promise<boolean> | undefined = undefined;
 
 	constructor(
 		@INativeWorkbenchEnvironmentService environmentService: INativeWorkbenchEnvironmentService,
@@ -42,17 +43,29 @@ export class NativeAccessibilityService extends AccessibilityService implements 
 		this.setAccessibilitySupport(environmentService.window.accessibilitySupport ? AccessibilitySupport.Enabled : AccessibilitySupport.Disabled);
 	}
 
-	override async alwaysUnderlineAccessKeys(): Promise<boolean> {
+	override alwaysUnderlineAccessKeys(): Promise<boolean> {
 		if (!isWindows) {
-			return false;
+			return Promise.resolve(false);
 		}
 
-		if (typeof this.shouldAlwaysUnderlineAccessKeys !== 'boolean') {
-			const windowsKeyboardAccessibility = await this.nativeHostService.windowsGetStringRegKey('HKEY_CURRENT_USER', 'Control Panel\\Accessibility\\Keyboard Preference', 'On');
-			this.shouldAlwaysUnderlineAccessKeys = (windowsKeyboardAccessibility === '1');
+		if (typeof this.shouldAlwaysUnderlineAccessKeys === 'boolean') {
+			return Promise.resolve(this.shouldAlwaysUnderlineAccessKeys);
 		}
 
-		return this.shouldAlwaysUnderlineAccessKeys;
+		if (!this.alwaysUnderlineAccessKeysPromise) {
+			this.alwaysUnderlineAccessKeysPromise = (async () => {
+				try {
+					const windowsKeyboardAccessibility = await this.nativeHostService.windowsGetStringRegKey('HKEY_CURRENT_USER', 'Control Panel\\Accessibility\\Keyboard Preference', 'On');
+					this.shouldAlwaysUnderlineAccessKeys = (windowsKeyboardAccessibility === '1');
+					return this.shouldAlwaysUnderlineAccessKeys;
+				} catch (error) {
+					this.alwaysUnderlineAccessKeysPromise = undefined;
+					throw error;
+				}
+			})();
+		}
+
+		return this.alwaysUnderlineAccessKeysPromise;
 	}
 
 	override setAccessibilitySupport(accessibilitySupport: AccessibilitySupport): void {
