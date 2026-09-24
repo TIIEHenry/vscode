@@ -254,6 +254,14 @@ class ModelSemanticColoring extends Disposable {
 
 		const sw = new StopWatch(false);
 		request.then((res) => {
+			if (this._currentDocumentRequestCancellationTokenSource !== cancellationTokenSource) {
+				contentChangeListener.dispose();
+				if (res?.tokens) {
+					res.provider.releaseDocumentSemanticTokens(res.tokens.resultId);
+				}
+				return;
+			}
+
 			this._debounceInformation.update(this._model, sw.elapsed());
 			this._currentDocumentRequestCancellationTokenSource = null;
 			contentChangeListener.dispose();
@@ -266,6 +274,11 @@ class ModelSemanticColoring extends Disposable {
 				this._setDocumentSemanticTokens(provider, tokens || null, styling, pendingChanges);
 			}
 		}, (err) => {
+			if (this._currentDocumentRequestCancellationTokenSource !== cancellationTokenSource) {
+				contentChangeListener.dispose();
+				return;
+			}
+
 			const isExpectedError = err && (errors.isCancellationError(err) || (typeof err.message === 'string' && err.message.indexOf('busy') !== -1));
 			if (!isExpectedError) {
 				errors.onUnexpectedError(err);
