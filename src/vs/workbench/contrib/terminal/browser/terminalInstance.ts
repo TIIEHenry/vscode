@@ -2272,6 +2272,9 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		this._hasScrollBar = true;
 		this._initDimensions();
 		await this._resize();
+		if (this.isDisposed) {
+			return;
+		}
 		this._terminalHasFixedWidth.set(true);
 		if (!this._horizontalScrollbar) {
 			this._horizontalScrollbar = this._register(new DomScrollableElement(this._wrapperElement, {

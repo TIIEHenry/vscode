@@ -412,6 +412,9 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 	async getContentsAsHtml(): Promise<string> {
 		if (!this._serializeAddon) {
 			const Addon = await this._xtermAddonLoader.importAddon('serialize');
+			if (this._store.isDisposed) {
+				return '';
+			}
 			this._serializeAddon = new Addon();
 			this.raw.loadAddon(this._serializeAddon);
 		}
@@ -422,6 +425,9 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 	async getCommandOutputAsHtml(command: ITerminalCommand, maxLines: number): Promise<{ text: string; truncated?: boolean }> {
 		if (!this._serializeAddon) {
 			const Addon = await this._xtermAddonLoader.importAddon('serialize');
+			if (this._store.isDisposed) {
+				return { text: '' };
+			}
 			this._serializeAddon = new Addon();
 			this.raw.loadAddon(this._serializeAddon);
 		}
@@ -484,6 +490,9 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 	async getSelectionAsHtml(command?: ITerminalCommand): Promise<string> {
 		if (!this._serializeAddon) {
 			const Addon = await this._xtermAddonLoader.importAddon('serialize');
+			if (this._store.isDisposed) {
+				return '';
+			}
 			this._serializeAddon = new Addon();
 			this.raw.loadAddon(this._serializeAddon);
 		}
@@ -1016,6 +1025,9 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 		if (this._terminalConfigurationService.config.enableImages && this._webglAddon) {
 			if (!this._imageAddon) {
 				const AddonCtor = await this._xtermAddonLoader.importAddon('image');
+				if (this._store.isDisposed) {
+					return;
+				}
 				this._imageAddon = new AddonCtor();
 				this.raw.loadAddon(this._imageAddon);
 				type TerminalImageAddonActivatedClassification = {
@@ -1064,6 +1076,9 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 	async getRangeAsVT(startMarker?: IXtermMarker, endMarker?: IXtermMarker, skipLastLine?: boolean): Promise<string> {
 		if (!this._serializeAddon) {
 			const Addon = await this._xtermAddonLoader.importAddon('serialize');
+			if (this._store.isDisposed) {
+				return '';
+			}
 			this._serializeAddon = new Addon();
 			this.raw.loadAddon(this._serializeAddon);
 		}
@@ -1159,6 +1174,9 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 	private async _updateUnicodeVersion(): Promise<void> {
 		if (!this._unicode11Addon && this._terminalConfigurationService.config.unicodeVersion === '11') {
 			const Addon = await this._xtermAddonLoader.importAddon('unicode11');
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._unicode11Addon = new Addon();
 			this.raw.loadAddon(this._unicode11Addon);
 		}

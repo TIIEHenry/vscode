@@ -77,6 +77,9 @@ export class TerminalEditor extends EditorPane {
 		this._editorInput?.terminalInstance?.detachFromElement();
 		this._editorInput = newInput;
 		await super.setInput(newInput, options, context, token);
+		if (token.isCancellationRequested || this._store.isDisposed || this._editorInput !== newInput) {
+			return;
+		}
 		this._editorInput.terminalInstance?.attachToElement(this._overflowGuardElement!);
 		if (this._lastDimension) {
 			this.layout(this._lastDimension);
