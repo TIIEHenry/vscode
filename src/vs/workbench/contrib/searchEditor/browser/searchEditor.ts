@@ -98,6 +98,7 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 	private ongoingOperations: number = 0;
 	private updatingModelForSearch: boolean = false;
 	private _searchSeq = 0;
+	private _openAttachmentSearchSeq = 0;
 
 	constructor(
 		group: IEditorGroup,
@@ -647,6 +648,10 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 			return;
 		}
 
+		if (searchSeq === undefined && operation === undefined && this._searchSeq !== this._openAttachmentSearchSeq) {
+			return;
+		}
+
 		if (operation === undefined) {
 			input.ongoingSearchOperation = undefined;
 		} else if (input.ongoingSearchOperation === operation) {
@@ -778,6 +783,8 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 		}
 
 		this.pauseSearching = false;
+
+		this._openAttachmentSearchSeq = this._searchSeq;
 
 		if (newInput.ongoingSearchOperation) {
 			const existingConfig = this.readConfigFromWidget();
