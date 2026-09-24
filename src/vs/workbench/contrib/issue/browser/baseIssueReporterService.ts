@@ -559,7 +559,9 @@ export class BaseIssueReporterService extends Disposable {
 							}
 							this.removeLoading(iconElement);
 							// if not using command, should have no configuration data in fields we care about and check later.
-							this.clearExtensionData();
+							if (this.selectedExtension === selectedExtensionId) {
+								this.clearExtensionData();
+							}
 
 							// case when previous extension was opened from normal openIssueReporter command
 							selectedExtension.data = undefined;

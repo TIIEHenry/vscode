@@ -419,8 +419,12 @@ export class IssueReporterEditorPane extends EditorPane {
 		if (!this.wizard) {
 			return;
 		}
+		const wizard = this.wizard;
 		try {
 			const performanceInfo = await this.processService.getPerformanceInfo(options);
+			if (this.wizard !== wizard) {
+				return;
+			}
 			this.wizard.updateModel({
 				processInfo: performanceInfo.processInfo,
 				workspaceInfo: performanceInfo.workspaceInfo,
@@ -428,7 +432,9 @@ export class IssueReporterEditorPane extends EditorPane {
 		} catch (err) {
 			this.logService.error('[IssueReporterEditorPane] Failed to fetch performance info:', err);
 		} finally {
-			this.wizard?.markPerformanceInfoLoaded();
+			if (this.wizard === wizard) {
+				this.wizard.markPerformanceInfoLoaded();
+			}
 		}
 	}
 
@@ -444,6 +450,8 @@ export class IssueReporterEditorPane extends EditorPane {
 			return;
 		}
 
+		const wizard = this.wizard;
+
 		const input = this.input as IssueReporterEditorInput | undefined;
 		const data = input?.data;
 
@@ -451,6 +459,9 @@ export class IssueReporterEditorPane extends EditorPane {
 			// Version info
 			const vscodeVersion = `${product.nameShort} ${!!product.darwinUniversalAssetId ? `${product.version} (Universal)` : product.version} (${product.commit || 'Commit unknown'}, ${product.date || 'Date unknown'})`;
 			const systemInfo = await this.processService.getSystemInfo();
+			if (this.wizard !== wizard) {
+				return;
+			}
 			this.wizard.updateModel({
 				versionInfo: { vscodeVersion, os: systemInfo.os },
 				systemInfo,
