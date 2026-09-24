@@ -28,7 +28,7 @@ import { InstantiationType, registerSingleton } from '../../../../platform/insta
 import { getRemoteAuthority } from '../../../../platform/remote/common/remoteHosts.js';
 import { IWorkbenchLayoutService } from '../../layout/browser/layoutService.js';
 import { IExtensionResourceLoaderService } from '../../../../platform/extensionResourceLoader/common/extensionResourceLoader.js';
-import { ThemeRegistry, registerColorThemeExtensionPoint, registerFileIconThemeExtensionPoint, registerProductIconThemeExtensionPoint } from '../common/themeExtensionPoints.js';
+import { ThemeChangeEvent, ThemeRegistry, registerColorThemeExtensionPoint, registerFileIconThemeExtensionPoint, registerProductIconThemeExtensionPoint } from '../common/themeExtensionPoints.js';
 import { updateColorThemeConfigurationSchemas, updateFileIconThemeConfigurationSchemas, ThemeConfiguration, updateProductIconThemeConfigurationSchemas } from '../common/themeConfiguration.js';
 import { ProductIconThemeData, DEFAULT_PRODUCT_ICON_THEME_ID } from './productIconThemeData.js';
 import { registerProductIconThemeSchemas } from '../common/productIconThemeSchema.js';
@@ -276,6 +276,8 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 			this.storageService.store(WorkbenchThemeService.NEW_THEME_NOTIFICATION_KEY, true, StorageScope.APPLICATION, StorageTarget.USER);
 		}
 
+		const colorThemeIdBeforePrompt = this.currentColorTheme.id;
+
 		const keepTheme = await new Promise(resolve => {
 			this.notificationService.prompt(
 				Severity.Info,
@@ -300,7 +302,7 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 
 		if (!keepTheme) {
 			const previousTheme = this.colorThemeRegistry.findThemeBySettingsId(previousSettingsId);
-			if (previousTheme) {
+			if (previousTheme && this.currentColorTheme.id === colorThemeIdBeforePrompt) {
 				this.setColorTheme(previousTheme.id, 'auto').catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}
@@ -379,9 +381,9 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 	private installRegistryListeners(): Promise<void> {
 
 		let prevColorId: string | undefined = undefined;
+		let colorThemeRegistryChangeChain: Promise<void> = Promise.resolve();
 
-		// update settings schema setting for theme specific settings
-		this._register(this.colorThemeRegistry.onDidChange(async event => {
+		const onColorThemeRegistryChangeNow = async (event: ThemeChangeEvent<ColorThemeData>) => {
 			updateColorThemeConfigurationSchemas(event.themes);
 			if (await this.restoreColorTheme()) { // checks if theme from settings exists and is set
 				// restore theme
@@ -397,10 +399,19 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 				const defaultTheme = this.colorThemeRegistry.findThemeBySettingsId(ThemeSettingDefaults.COLOR_THEME_LIGHT);
 				await this.setColorTheme(defaultTheme, 'auto');
 			}
+		};
+
+		// update settings schema setting for theme specific settings
+		this._register(this.colorThemeRegistry.onDidChange(async event => {
+			const run = colorThemeRegistryChangeChain.then(() => onColorThemeRegistryChangeNow(event));
+			colorThemeRegistryChangeChain = run.then(() => undefined, () => undefined);
+			return run;
 		}));
 
 		let prevFileIconId: string | undefined = undefined;
-		this._register(this._register(this.fileIconThemeRegistry.onDidChange(async event => {
+		let fileIconThemeRegistryChangeChain: Promise<void> = Promise.resolve();
+
+		const onFileIconThemeRegistryChangeNow = async (event: ThemeChangeEvent<FileIconThemeData>) => {
 			updateFileIconThemeConfigurationSchemas(event.themes);
 			if (await this.restoreFileIconTheme()) { // checks if theme from settings exists and is set
 				// restore theme
@@ -415,11 +426,18 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 				prevFileIconId = this.currentFileIconTheme.id;
 				await this.setFileIconTheme(DEFAULT_FILE_ICON_THEME_ID, 'auto');
 			}
+		};
 
+		this._register(this._register(this.fileIconThemeRegistry.onDidChange(async event => {
+			const run = fileIconThemeRegistryChangeChain.then(() => onFileIconThemeRegistryChangeNow(event));
+			fileIconThemeRegistryChangeChain = run.then(() => undefined, () => undefined);
+			return run;
 		})));
 
 		let prevProductIconId: string | undefined = undefined;
-		this._register(this.productIconThemeRegistry.onDidChange(async event => {
+		let productIconThemeRegistryChangeChain: Promise<void> = Promise.resolve();
+
+		const onProductIconThemeRegistryChangeNow = async (event: ThemeChangeEvent<ProductIconThemeData>) => {
 			updateProductIconThemeConfigurationSchemas(event.themes);
 			if (await this.restoreProductIconTheme()) { // checks if theme from settings exists and is set
 				// restore theme
@@ -434,6 +452,12 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 				prevProductIconId = this.currentProductIconTheme.id;
 				await this.setProductIconTheme(DEFAULT_PRODUCT_ICON_THEME_ID, 'auto');
 			}
+		};
+
+		this._register(this.productIconThemeRegistry.onDidChange(async event => {
+			const run = productIconThemeRegistryChangeChain.then(() => onProductIconThemeRegistryChangeNow(event));
+			productIconThemeRegistryChangeChain = run.then(() => undefined, () => undefined);
+			return run;
 		}));
 		this._register(this.languageService.onDidChange(() => this.reloadCurrentFileIconTheme().catch(onUnexpectedError).catch(onUnexpectedError)));
 
