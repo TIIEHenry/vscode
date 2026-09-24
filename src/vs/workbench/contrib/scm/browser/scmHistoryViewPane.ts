@@ -1125,6 +1125,7 @@ class SCMHistoryViewModel extends Disposable {
 	readonly isViewModelEmpty = observableValue(this, false);
 
 	private readonly _repositoryState = new Map<ISCMRepository, RepositoryState>();
+	private readonly _repositoryEpoch = new Map<ISCMRepository, number>();
 	private readonly _repositoryFilterState = new Map<string, HistoryItemRefsFilter>();
 
 	private readonly _scmHistoryItemCountCtx: IContextKey<number>;
@@ -1192,6 +1193,7 @@ class SCMHistoryViewModel extends Disposable {
 			return;
 		}
 
+		this._bumpRepositoryEpoch(repository);
 		this._repositoryState.delete(repository);
 	}
 
@@ -1239,6 +1241,7 @@ class SCMHistoryViewModel extends Disposable {
 			return;
 		}
 
+		this._bumpRepositoryEpoch(repository);
 		this._repositoryState.set(repository, { ...state, loadMore: cursor ?? true });
 	}
 
@@ -1253,6 +1256,8 @@ class SCMHistoryViewModel extends Disposable {
 			this.isViewModelEmpty.set(true, undefined);
 			return [];
 		}
+
+		const epoch = this._getRepositoryEpoch(repository);
 
 		let state = this._repositoryState.get(repository);
 
@@ -1318,6 +1323,10 @@ class SCMHistoryViewModel extends Disposable {
 					type: 'historyItemViewModel'
 				}) satisfies SCMHistoryItemViewModelTreeElement);
 
+			if (this._store.isDisposed || this._getRepositoryEpoch(repository) !== epoch) {
+				return this._repositoryState.get(repository)?.viewModels ?? [];
+			}
+
 			state = { historyItemsFilter: historyItemRefs, viewModels, mergeBase, loadMore: false };
 			this._repositoryState.set(repository, state);
 
@@ -1371,6 +1380,14 @@ class SCMHistoryViewModel extends Disposable {
 		}
 
 		return mode;
+	}
+
+	private _getRepositoryEpoch(repository: ISCMRepository): number {
+		return this._repositoryEpoch.get(repository) ?? 0;
+	}
+
+	private _bumpRepositoryEpoch(repository: ISCMRepository): void {
+		this._repositoryEpoch.set(repository, this._getRepositoryEpoch(repository) + 1);
 	}
 
 	private _getGraphColorMap(historyItemRefs: ISCMHistoryItemRef[]): Map<string, ColorIdentifier | undefined> {
@@ -1471,6 +1488,7 @@ class SCMHistoryViewModel extends Disposable {
 
 	override dispose(): void {
 		this._repositoryState.clear();
+		this._repositoryEpoch.clear();
 		super.dispose();
 	}
 }
