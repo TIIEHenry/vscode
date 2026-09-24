@@ -1420,6 +1420,10 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 			ref?.dispose();
 			return undefined;
 		}
+		if (this._store.isDisposed) {
+			ref?.dispose();
+			return undefined;
+		}
 
 		this.modelRef.value = ref;
 		const model = ref?.object;
