@@ -95,6 +95,8 @@ export class UserDataSyncWorkbenchService extends Disposable implements IUserDat
 
 	private turnOnSyncCancellationToken: CancellationTokenSource | undefined = undefined;
 
+	private _accountChain: Promise<void> = Promise.resolve();
+
 	constructor(
 		@IUserDataSyncService private readonly userDataSyncService: IUserDataSyncService,
 		@IUriIdentityService private readonly uriIdentityService: IUriIdentityService,
@@ -222,6 +224,12 @@ export class UserDataSyncWorkbenchService extends Disposable implements IUserDat
 	}
 
 	private async update(reason: string): Promise<void> {
+		const run = this._accountChain.then(() => this.updateNow(reason));
+		this._accountChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async updateNow(reason: string): Promise<void> {
 		this.logService.trace(`Settings Sync: Updating due to ${reason}`);
 
 		this.updateAuthenticationProviders();
