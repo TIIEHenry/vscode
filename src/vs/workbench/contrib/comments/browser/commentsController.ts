@@ -1003,9 +1003,12 @@ export class CommentController extends Disposable implements IEditorContribution
 				return;
 			}
 
-			if (this._computePromise) {
+			const computePromiseAtStart = this._computePromise;
+			const computeAndSetAtStart = this._computeAndSetPromise;
+
+			if (computePromiseAtStart) {
 				try {
-					await this._computePromise;
+					await computePromiseAtStart;
 				} catch (err) {
 					if (isCancellationError(err)) {
 						return;
@@ -1014,10 +1017,27 @@ export class CommentController extends Disposable implements IEditorContribution
 				}
 			}
 
+			if (computeAndSetAtStart) {
+				try {
+					await computeAndSetAtStart;
+				} catch (err) {
+					if (isCancellationError(err)) {
+						return;
+					}
+					throw err;
+				}
+			}
+
+			if (computePromiseAtStart && this._computePromise !== computePromiseAtStart) {
+				return;
+			}
+
 			const currentEditorURI = this.editor && this.editor.hasModel() && this.editor.getModel().uri;
 			if (!currentEditorURI || !this.uriIdentityService.extUri.isEqual(editorURI, currentEditorURI)) {
 				return;
 			}
+
+			const commentInfosAtStart = this._commentInfos;
 
 			const commentInfo = this._commentInfos.filter(info => info.uniqueOwner === e.uniqueOwner);
 			if (!commentInfo || !commentInfo.length) {
@@ -1057,10 +1077,22 @@ export class CommentController extends Disposable implements IEditorContribution
 			const editorId = this.editor?.getId();
 			for (const thread of added) {
 				await this.handleCommentAdded(editorId, e.uniqueOwner, thread);
+				const currentURIAfterAdded = this.editor && this.editor.hasModel() && this.editor.getModel().uri;
+				if (this._commentInfos !== commentInfosAtStart || !currentURIAfterAdded || !this.uriIdentityService.extUri.isEqual(editorURI, currentURIAfterAdded)) {
+					return;
+				}
 			}
 
 			for (const thread of pending) {
 				await this.resumePendingComment(editorURI, thread);
+				const currentURIAfterPending = this.editor && this.editor.hasModel() && this.editor.getModel().uri;
+				if (this._commentInfos !== commentInfosAtStart || !currentURIAfterPending || !this.uriIdentityService.extUri.isEqual(editorURI, currentURIAfterPending)) {
+					return;
+				}
+			}
+			const currentEditorURIBeforeDecorator = this.editor && this.editor.hasModel() && this.editor.getModel().uri;
+			if (this._commentInfos !== commentInfosAtStart || !currentEditorURIBeforeDecorator || !this.uriIdentityService.extUri.isEqual(editorURI, currentEditorURIBeforeDecorator)) {
+				return;
 			}
 			this._commentThreadRangeDecorator.update(this.editor, commentInfo);
 		}));
