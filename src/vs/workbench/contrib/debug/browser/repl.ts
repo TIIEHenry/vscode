@@ -461,6 +461,9 @@ export class Repl extends FilterViewPane implements IHistoryNavigationWidget {
 					// then changing the root may fail. Log to help with debugging if needed.
 					this.logService.error(err);
 				}
+				if (this._store.isDisposed) {
+					return;
+				}
 				revealLastElement(this.tree);
 			}
 		}
@@ -597,6 +600,9 @@ export class Repl extends FilterViewPane implements IHistoryNavigationWidget {
 			}
 
 			await this.tree.updateChildren(undefined, true, false, { diffIdentityProvider: identityProvider });
+			if (this._store.isDisposed) {
+				return;
+			}
 
 			const session = this.tree.getInput();
 			if (session) {
