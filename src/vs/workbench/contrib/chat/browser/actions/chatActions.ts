@@ -261,7 +261,7 @@ abstract class OpenChatGlobalAction extends Action2 {
 
 		const switchToMode = opts?.mode ? chatWidget.input.currentChatModesObs.get().findModeByName(opts.mode) : this.mode;
 		if (switchToMode) {
-			await this.handleSwitchToMode(switchToMode, chatWidget, instaService, commandService);
+			await this.handleSwitchToMode(switchToMode, chatWidget, instaService, commandService, widgetService);
 		}
 
 		if (opts?.modelSelector) {
@@ -308,9 +308,12 @@ abstract class OpenChatGlobalAction extends Action2 {
 				chatService.addCompleteRequest(chatWidget.viewModel.sessionResource, request, undefined, 0, { message: response });
 			}
 		}
+		const attachSessionResource = chatWidget.viewModel?.sessionResource;
 		if (opts?.attachScreenshot) {
 			const screenshot = await hostService.getScreenshot();
-			if (screenshot) {
+			if (screenshot
+				&& widgetService.getAllWidgets().includes(chatWidget)
+				&& !(attachSessionResource && (!chatWidget.viewModel || !isEqual(attachSessionResource, chatWidget.viewModel.sessionResource)))) {
 				chatWidget.attachmentModel.addContext(convertBufferToScreenshotVariable(screenshot));
 			}
 		}
@@ -320,6 +323,12 @@ abstract class OpenChatGlobalAction extends Action2 {
 				const range = file instanceof URI ? undefined : file.range;
 
 				if (await fileService.exists(uri)) {
+					if (!widgetService.getAllWidgets().includes(chatWidget)) {
+						continue;
+					}
+					if (attachSessionResource && (!chatWidget.viewModel || !isEqual(attachSessionResource, chatWidget.viewModel.sessionResource))) {
+						continue;
+					}
 					chatWidget.attachmentModel.addFile(uri, range);
 				}
 			}
@@ -334,6 +343,12 @@ abstract class OpenChatGlobalAction extends Action2 {
 
 				const historyItem = await historyProvider.resolveHistoryItem(historyItemChange.historyItemId);
 				if (!historyItem) {
+					continue;
+				}
+				if (!widgetService.getAllWidgets().includes(chatWidget)) {
+					continue;
+				}
+				if (attachSessionResource && (!chatWidget.viewModel || !isEqual(attachSessionResource, chatWidget.viewModel.sessionResource))) {
 					continue;
 				}
 
@@ -359,6 +374,12 @@ abstract class OpenChatGlobalAction extends Action2 {
 					historyProvider.resolveHistoryItem(historyItemChangeRange.end.historyItemId),
 				]);
 				if (!historyItemStart || !historyItemEnd) {
+					continue;
+				}
+				if (!widgetService.getAllWidgets().includes(chatWidget)) {
+					continue;
+				}
+				if (attachSessionResource && (!chatWidget.viewModel || !isEqual(attachSessionResource, chatWidget.viewModel.sessionResource))) {
 					continue;
 				}
 
@@ -476,13 +497,20 @@ abstract class OpenChatGlobalAction extends Action2 {
 		return undefined;
 	}
 
-	private async handleSwitchToMode(switchToMode: IChatMode, chatWidget: IChatWidget, instaService: IInstantiationService, commandService: ICommandService): Promise<void> {
+	private async handleSwitchToMode(switchToMode: IChatMode, chatWidget: IChatWidget, instaService: IInstantiationService, commandService: ICommandService, chatWidgetService: IChatWidgetService): Promise<void> {
 		const currentMode = chatWidget.input.currentModeKind;
 
 		if (switchToMode) {
 			const model = chatWidget.viewModel?.model;
+			const sessionResource = chatWidget.viewModel?.sessionResource;
 			const chatModeCheck = model ? await instaService.invokeFunction(handleModeSwitch, currentMode, switchToMode.kind, model.getRequests().length, model) : { needToClearSession: false };
 			if (!chatModeCheck) {
+				return;
+			}
+			if (!chatWidgetService.getAllWidgets().includes(chatWidget)) {
+				return;
+			}
+			if (sessionResource && (!chatWidget.viewModel || !isEqual(sessionResource, chatWidget.viewModel.sessionResource))) {
 				return;
 			}
 			chatWidget.input.setChatMode(switchToMode.id, true, true);
