@@ -878,6 +878,9 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 				resource: URI.revive(this.review.planUri),
 				options: { pinned: true, override: MARKDOWN_EDITOR_ID },
 			});
+			if (this._store.isDisposed) {
+				return;
+			}
 		}
 		if (!this.review.planUri && options?.focus !== false) {
 			this.focusFeedbackInput();
