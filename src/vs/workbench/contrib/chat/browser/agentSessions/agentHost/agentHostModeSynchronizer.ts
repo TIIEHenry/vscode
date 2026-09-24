@@ -6,6 +6,7 @@
 import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Disposable, DisposableMap, DisposableStore } from '../../../../../../base/common/lifecycle.js';
 import { autorun } from '../../../../../../base/common/observable.js';
+import { isEqual } from '../../../../../../base/common/resources.js';
 import { URI } from '../../../../../../base/common/uri.js';
 import { AgentSession } from '../../../../../../platform/agentHost/common/agentService.js';
 import { fromAgentHostUri } from '../../../../../../platform/agentHost/common/agentHostUri.js';
@@ -124,7 +125,7 @@ export class AgentHostModeSynchronizer extends Disposable implements IWorkbenchC
 		const modes = widget.input.currentChatModesObs.get();
 		await modes.waitForPendingUpdates();
 
-		if (widget.viewModel?.sessionResource.toString() !== sessionResource.toString()) {
+		if (this._store.isDisposed || !this._widgetListeners.has(widget) || !isEqual(widget.viewModel?.sessionResource, sessionResource)) {
 			return;
 		}
 
