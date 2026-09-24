@@ -216,7 +216,9 @@ export class NewSessionPromptOptionsWidget extends Disposable {
 			throw error;
 		} finally {
 			this._selecting = false;
-			this._updateButtons();
+			if (!this._store.isDisposed) {
+				this._updateButtons();
+			}
 		}
 	}
 
