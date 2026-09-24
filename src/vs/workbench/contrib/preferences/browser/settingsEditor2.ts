@@ -2011,6 +2011,10 @@ export class SettingsEditor2 extends EditorPane {
 				this.searchInProgress = null;
 			}
 
+			if (this.aiSearchPromise) {
+				this.aiSearchPromise.cancel();
+			}
+
 			if (expandResults) {
 				this.tocTree.setFocus([]);
 				this.viewState.categoryFilter = undefined;
