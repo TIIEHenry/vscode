@@ -145,6 +145,7 @@ export class FindWidget extends Widget implements IOverlayWidget, IVerticalSashL
 	private _isVisible: boolean;
 	private _isReplaceVisible: boolean;
 	private _ignoreChangeEvent: boolean;
+	private _globalBufferFocusSeq = 0;
 	private _accessibilityHelpHintAnnounced: boolean;
 	private _labelResetTimeout: IDisposable | undefined;
 	private _lastFocusedInputWasReplace: boolean = false;
@@ -234,7 +235,12 @@ export class FindWidget extends Widget implements IOverlayWidget, IVerticalSashL
 		}));
 		this._register(this._codeEditor.onDidFocusEditorWidget(async () => {
 			if (this._isVisible) {
+				const seq = ++this._globalBufferFocusSeq;
+				const searchStringAtFocus = this._state.searchString;
 				const globalBufferTerm = await this._controller.getGlobalBufferTerm();
+				if (seq !== this._globalBufferFocusSeq || !this._isVisible || this._state.searchString !== searchStringAtFocus) {
+					return;
+				}
 				if (globalBufferTerm && globalBufferTerm !== this._state.searchString) {
 					this._state.change({ searchString: globalBufferTerm }, false);
 					this._findInput.select();
