@@ -478,7 +478,7 @@ export class InteractiveEditor extends EditorPane implements IEditorPaneWithScro
 
 		const languageId = this._notebookWidget.value?.activeKernel?.supportedLanguages[0] ?? input.language ?? PLAINTEXT_LANGUAGE_ID;
 		const editorModel = await input.resolveInput(languageId);
-		if (token.isCancellationRequested) {
+		if (token.isCancellationRequested || !editorModel) {
 			return;
 		}
 		editorModel.setLanguage(languageId);
