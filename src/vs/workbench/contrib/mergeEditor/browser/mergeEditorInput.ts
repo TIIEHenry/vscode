@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { assertFn } from '../../../../base/common/assert.js';
+import { CancellationError } from '../../../../base/common/cancellation.js';
 import { autorun } from '../../../../base/common/observable.js';
 import { isEqual } from '../../../../base/common/resources.js';
 import { isDefined } from '../../../../base/common/types.js';
@@ -111,12 +112,17 @@ export class MergeEditorInput extends AbstractTextResourceEditorInput implements
 
 	override async resolve(): Promise<IMergeEditorInputModel> {
 		if (!this._inputModel) {
-			const inputModel = this._register(await this.mergeEditorModeFactory.createInputModel({
+			const inputModel = await this.mergeEditorModeFactory.createInputModel({
 				base: this.base,
 				input1: this.input1,
 				input2: this.input2,
 				result: this.result,
-			}));
+			});
+			if (this._store.isDisposed) {
+				inputModel.dispose();
+				throw new CancellationError();
+			}
+			this._register(inputModel);
 			this._inputModel = inputModel;
 
 			this._register(autorun(reader => {
@@ -126,6 +132,9 @@ export class MergeEditorInput extends AbstractTextResourceEditorInput implements
 			}));
 
 			await this._inputModel.model.onInitialized;
+			if (this._store.isDisposed) {
+				throw new CancellationError();
+			}
 		}
 
 		return this._inputModel;
