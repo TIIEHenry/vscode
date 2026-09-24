@@ -313,6 +313,9 @@ export class MarkersView extends FilterViewPane implements IMarkersView {
 					revealIfVisible: true
 				},
 			}, sideByside ? SIDE_GROUP : ACTIVE_GROUP).then(editor => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				const selected = this.widget.getSelection();
 				if (selected.length !== 1 || selected[0] !== element) {
 					return;
