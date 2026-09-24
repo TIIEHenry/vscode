@@ -332,6 +332,7 @@ async function runNewChatAction(
 ) {
 	const accessibilityService = accessor.get(IAccessibilityService);
 	const instantiationService = accessor.get(IInstantiationService);
+	const chatWidgetService = accessor.get(IChatWidgetService);
 
 	const { editingSession, chatWidget: widget } = context ?? {};
 	if (!widget) {
@@ -352,6 +353,10 @@ async function runNewChatAction(
 
 	// Create a new session, preserving the session type (or using the specified one)
 	await instantiationService.invokeFunction(clearChatSessionPreservingType, widget, sessionType);
+
+	if (!chatWidgetService.getAllWidgets().includes(widget)) {
+		return;
+	}
 
 	const newSession = widget.viewModel?.sessionResource;
 	if ((voiceSessionController.isConnected.get() || voiceSessionController.isConnecting.get())
