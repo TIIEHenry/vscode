@@ -506,6 +506,8 @@ export class McpServer extends Disposable implements IMcpServer {
 	private _potentialSandboxBlockListener = this._register(new MutableDisposable<IDisposable>());
 	/** Count of running tool calls, used to detect if sampling is during an LM call */
 	public runningToolCalls = new Set<IMcpToolCallContext>();
+	private _toolsRefreshEpoch = 0;
+	private _promptsRefreshEpoch = 0;
 
 	public readonly enablement: IObservable<ContributionEnablementState>;
 
@@ -1167,10 +1169,13 @@ export class McpServer extends Disposable implements IMcpServer {
 	}
 
 	private _setServerTools(nonce: string | undefined, toolsPromise: Promise<MCP.Tool[]>, tx: ITransaction | undefined) {
+		const epoch = ++this._toolsRefreshEpoch;
 		const toolPromiseSafe = toolsPromise.then(async tools => {
 			this._logger.info(`Discovered ${tools.length} tools`);
 			const data = await this._getValidatedTools(tools);
-			this._primitiveCache.store(this.definition.id, { tools: data, nonce });
+			if (epoch === this._toolsRefreshEpoch) {
+				this._primitiveCache.store(this.definition.id, { tools: data, nonce });
+			}
 			return { data, nonce };
 		});
 		this._tools.fromServerPromise.set(new ObservablePromise(toolPromiseSafe), tx);
@@ -1178,12 +1183,15 @@ export class McpServer extends Disposable implements IMcpServer {
 	}
 
 	private _setServerPrompts(nonce: string | undefined, promptsPromise: Promise<MCP.Prompt[]>, tx: ITransaction | undefined) {
+		const epoch = ++this._promptsRefreshEpoch;
 		const promptsPromiseSafe = promptsPromise.then((result): { data: StoredMcpPrompt[]; nonce: string | undefined } => {
 			const data: StoredMcpPrompt[] = result.map(prompt => ({
 				...prompt,
 				_icons: this._parseIcons(prompt)
 			}));
-			this._primitiveCache.store(this.definition.id, { prompts: data, nonce });
+			if (epoch === this._promptsRefreshEpoch) {
+				this._primitiveCache.store(this.definition.id, { prompts: data, nonce });
+			}
 			return { data, nonce };
 		});
 
