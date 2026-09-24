@@ -21,6 +21,8 @@ export class WorkbenchMcpGalleryManifestService extends McpGalleryManifestServic
 	private _onDidChangeMcpGalleryManifest = this._register(new Emitter<IMcpGalleryManifest | null>());
 	override readonly onDidChangeMcpGalleryManifest = this._onDidChangeMcpGalleryManifest.event;
 
+	private _galleryChain: Promise<void> = Promise.resolve();
+
 	private currentStatus: McpGalleryManifestStatus = McpGalleryManifestStatus.Unavailable;
 	override get mcpGalleryManifestStatus(): McpGalleryManifestStatus { return this.currentStatus; }
 	private _onDidChangeMcpGalleryManifestStatus = this._register(new Emitter<McpGalleryManifestStatus>());
@@ -64,6 +66,12 @@ export class WorkbenchMcpGalleryManifestService extends McpGalleryManifestServic
 	}
 
 	private async getAndUpdateMcpGalleryManifest(): Promise<void> {
+		const run = this._galleryChain.then(() => this.getAndUpdateMcpGalleryManifestNow());
+		this._galleryChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async getAndUpdateMcpGalleryManifestNow(): Promise<void> {
 		const mcpGalleryConfig = this.configurationService.getValue<IMcpGalleryConfig | undefined>('chat.mcp.gallery');
 		if (mcpGalleryConfig?.serviceUrl) {
 			this.update(await this.createMcpGalleryManifest(mcpGalleryConfig.serviceUrl, mcpGalleryConfig.version));

@@ -549,6 +549,8 @@ class WorkspaceMcpManagementService extends AbstractMcpManagementService impleme
 
 	private allMcpServers: ILocalMcpServer[] = [];
 
+	private _workspaceMcpChain: Promise<void> = Promise.resolve();
+
 	private workspaceConfiguration?: URI | null;
 	private readonly workspaceMcpManagementServices = new ResourceMap<{ service: WorkspaceMcpResourceManagementService } & IDisposable>();
 
@@ -574,30 +576,48 @@ class WorkspaceMcpManagementService extends AbstractMcpManagementService impleme
 		}
 	}
 
+	private runOnWorkspaceMcpChain(fn: () => Promise<void>): Promise<void> {
+		const run = this._workspaceMcpChain.then(fn);
+		this._workspaceMcpChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
 	private async onDidChangeWorkbenchState(): Promise<void> {
+		return this.runOnWorkspaceMcpChain(() => this.onDidChangeWorkbenchStateNow());
+	}
+
+	private async onDidChangeWorkbenchStateNow(): Promise<void> {
 		if (this.workspaceConfiguration) {
-			await this.removeWorkspaceService(this.workspaceConfiguration);
+			await this.removeWorkspaceServiceNow(this.workspaceConfiguration);
 		}
 		this.workspaceConfiguration = this.workspaceContextService.getWorkspace().configuration;
 		if (this.workspaceConfiguration) {
-			await this.addWorkspaceService(this.workspaceConfiguration, ConfigurationTarget.WORKSPACE);
+			await this.addWorkspaceServiceNow(this.workspaceConfiguration, ConfigurationTarget.WORKSPACE);
 		}
 	}
 
 	private async onDidChangeWorkspaceFolders(e: IWorkspaceFoldersChangeEvent): Promise<void> {
+		return this.runOnWorkspaceMcpChain(() => this.onDidChangeWorkspaceFoldersNow(e));
+	}
+
+	private async onDidChangeWorkspaceFoldersNow(e: IWorkspaceFoldersChangeEvent): Promise<void> {
 		try {
-			await Promise.allSettled(e.removed.map(folder => this.removeWorkspaceService(folder.toResource(WORKSPACE_STANDALONE_CONFIGURATIONS[MCP_CONFIGURATION_KEY]))));
+			await Promise.allSettled(e.removed.map(folder => this.removeWorkspaceServiceNow(folder.toResource(WORKSPACE_STANDALONE_CONFIGURATIONS[MCP_CONFIGURATION_KEY]))));
 		} catch (error) {
 			this.logService.error(error);
 		}
 		try {
-			await Promise.allSettled(e.added.map(folder => this.addWorkspaceService(folder.toResource(WORKSPACE_STANDALONE_CONFIGURATIONS[MCP_CONFIGURATION_KEY]), ConfigurationTarget.WORKSPACE_FOLDER)));
+			await Promise.allSettled(e.added.map(folder => this.addWorkspaceServiceNow(folder.toResource(WORKSPACE_STANDALONE_CONFIGURATIONS[MCP_CONFIGURATION_KEY]), ConfigurationTarget.WORKSPACE_FOLDER)));
 		} catch (error) {
 			this.logService.error(error);
 		}
 	}
 
 	private async addWorkspaceService(mcpResource: URI, target: McpResourceTarget): Promise<void> {
+		return this.runOnWorkspaceMcpChain(() => this.addWorkspaceServiceNow(mcpResource, target));
+	}
+
+	private async addWorkspaceServiceNow(mcpResource: URI, target: McpResourceTarget): Promise<void> {
 		if (this.workspaceMcpManagementServices.has(mcpResource)) {
 			return;
 		}
@@ -652,6 +672,10 @@ class WorkspaceMcpManagementService extends AbstractMcpManagementService impleme
 	}
 
 	private async removeWorkspaceService(mcpResource: URI): Promise<void> {
+		return this.runOnWorkspaceMcpChain(() => this.removeWorkspaceServiceNow(mcpResource));
+	}
+
+	private async removeWorkspaceServiceNow(mcpResource: URI): Promise<void> {
 		const serviceItem = this.workspaceMcpManagementServices.get(mcpResource);
 		if (serviceItem) {
 			try {
