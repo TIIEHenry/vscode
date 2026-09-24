@@ -599,6 +599,10 @@ export class DebugEditorContribution implements IDebugEditorContribution {
 				return;
 			}
 
+			if (this.debugService.getViewModel().focusedStackFrame !== focusedSf) {
+				return;
+			}
+
 			if (exceptionInfo) {
 				if (isActiveEditor) {
 					// Active editor: show widget and scroll to it

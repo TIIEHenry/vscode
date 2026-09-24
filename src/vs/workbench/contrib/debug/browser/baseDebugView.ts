@@ -120,9 +120,12 @@ export abstract class AbstractExpressionDataSource<Input, Element extends IExpre
 		return Promise.all(children.map(async r => {
 			const vizOrTree = vm.getVisualizedExpression(r as IExpression);
 			if (typeof vizOrTree === 'string') {
+				const vizId = vizOrTree;
 				const viz = await this.debugVisualizer.getVisualizedNodeFor(vizOrTree, r);
 				if (viz) {
-					vm.setVisualizedExpression(r, viz);
+					if (vm.getVisualizedExpression(r as IExpression) === vizId) {
+						vm.setVisualizedExpression(r, viz);
+					}
 					return viz as IExpression as Element;
 				}
 			} else if (vizOrTree) {

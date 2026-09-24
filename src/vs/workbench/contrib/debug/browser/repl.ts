@@ -124,6 +124,7 @@ export class Repl extends FilterViewPane implements IHistoryNavigationWidget {
 	private menu: IMenu;
 	private replDataSource: IAsyncDataSource<IDebugSession, IReplElement> | undefined;
 	private findIsOpen: boolean = false;
+	private _selectSessionChain: Promise<void> = Promise.resolve();
 
 	constructor(
 		options: IViewPaneOptions,
@@ -437,6 +438,12 @@ export class Repl extends FilterViewPane implements IHistoryNavigationWidget {
 	}
 
 	async selectSession(session?: IDebugSession): Promise<void> {
+		const run = this._selectSessionChain.then(() => this._selectSessionNow(session));
+		this._selectSessionChain = run.then(() => { }, () => { });
+		return run;
+	}
+
+	private async _selectSessionNow(session?: IDebugSession): Promise<void> {
 		const treeInput = this.tree?.getInput();
 		if (!session) {
 			const focusedSession = this.debugService.getViewModel().focusedSession;

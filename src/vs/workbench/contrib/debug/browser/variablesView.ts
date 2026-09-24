@@ -65,6 +65,7 @@ interface IVariablesContext {
 export class VariablesView extends ViewPane implements IDebugViewWithVariables {
 
 	private updateTreeScheduler: RunOnceScheduler;
+	private _updateTreeChain: Promise<void> = Promise.resolve();
 	private needsRefresh = false;
 	private tree!: WorkbenchAsyncDataTree<IStackFrame | null, IExpression | IScope, FuzzyScore>;
 	private savedViewState = new Map<string, IAsyncDataTreeViewState>();
@@ -91,33 +92,38 @@ export class VariablesView extends ViewPane implements IDebugViewWithVariables {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
 
 		// Use scheduler to prevent unnecessary flashing
-		this.updateTreeScheduler = this._register(new RunOnceScheduler(async () => {
-			const stackFrame = this.debugService.getViewModel().focusedStackFrame;
-
-			this.needsRefresh = false;
-			const input = this.tree.getInput();
-			if (input) {
-				this.savedViewState.set(input.getId(), this.tree.getViewState());
-			}
-			if (!stackFrame) {
-				await this.tree.setInput(null);
-				return;
-			}
-
-			const viewState = this.savedViewState.get(stackFrame.getId());
-			await this.tree.setInput(stackFrame, viewState);
-
-			// Automatically expand the first non-expensive scope
-			const scopes = await stackFrame.getScopes();
-			const toExpand = scopes.find(s => !s.expensive);
-
-			// A race condition could be present causing the scopes here to be different from the scopes that the tree just retrieved.
-			// If that happened, don't try to reveal anything, it will be straightened out on the next update
-			if (toExpand && this.tree.hasNode(toExpand)) {
-				this.autoExpandedScopes.add(toExpand.getId());
-				await this.tree.expand(toExpand);
-			}
+		this.updateTreeScheduler = this._register(new RunOnceScheduler(() => {
+			const run = this._updateTreeChain.then(() => this._updateTreeNow());
+			this._updateTreeChain = run.then(() => { }, () => { });
 		}, 400));
+	}
+
+	private async _updateTreeNow(): Promise<void> {
+		const stackFrame = this.debugService.getViewModel().focusedStackFrame;
+
+		this.needsRefresh = false;
+		const input = this.tree.getInput();
+		if (input) {
+			this.savedViewState.set(input.getId(), this.tree.getViewState());
+		}
+		if (!stackFrame) {
+			await this.tree.setInput(null);
+			return;
+		}
+
+		const viewState = this.savedViewState.get(stackFrame.getId());
+		await this.tree.setInput(stackFrame, viewState);
+
+		// Automatically expand the first non-expensive scope
+		const scopes = await stackFrame.getScopes();
+		const toExpand = scopes.find(s => !s.expensive);
+
+		// A race condition could be present causing the scopes here to be different from the scopes that the tree just retrieved.
+		// If that happened, don't try to reveal anything, it will be straightened out on the next update
+		if (toExpand && this.tree.hasNode(toExpand)) {
+			this.autoExpandedScopes.add(toExpand.getId());
+			await this.tree.expand(toExpand);
+		}
 	}
 
 	protected override renderBody(container: HTMLElement): void {

@@ -97,6 +97,7 @@ export class DisassemblyView extends EditorPane {
 	private _instructionBpList: readonly IInstructionBreakpoint[] = [];
 	private _enableSourceCodeRender: boolean = true;
 	private _loadingLock: boolean = false;
+	private _loadSeq = 0;
 	private readonly _referenceToMemoryAddress = new Map<string, bigint>();
 	private menu: IMenu;
 
@@ -476,7 +477,8 @@ export class DisassemblyView extends EditorPane {
 	}
 
 	/** Loads disasembled instructions. Returns the number of instructions that were loaded. */
-	private async loadDisassembledInstructions(instructionReference: string, offset: number, instructionOffset: number, instructionCount: number): Promise<number> {
+	private async loadDisassembledInstructions(instructionReference: string, offset: number, instructionOffset: number, instructionCount: number, seq?: number): Promise<number> {
+		const loadSeq = seq ?? ++this._loadSeq;
 		const session = this.debugSession;
 		const sessionId = session?.getId();
 		const resultEntries = await session?.disassemble(instructionReference, offset, instructionOffset, instructionCount);
@@ -484,11 +486,17 @@ export class DisassemblyView extends EditorPane {
 		if (this.debugSession?.getId() !== sessionId) {
 			return 0;
 		}
+		if (loadSeq !== this._loadSeq) {
+			return 0;
+		}
 
 		// Ensure we always load the baseline instructions so we know what address the instructionReference refers to.
 		if (!this._referenceToMemoryAddress.has(instructionReference) && instructionOffset !== 0) {
-			await this.loadDisassembledInstructions(instructionReference, 0, 0, DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD);
+			await this.loadDisassembledInstructions(instructionReference, 0, 0, DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD, loadSeq);
 			if (this.debugSession?.getId() !== sessionId) {
+				return 0;
+			}
+			if (loadSeq !== this._loadSeq) {
 				return 0;
 			}
 		}
@@ -654,10 +662,14 @@ export class DisassemblyView extends EditorPane {
 			return;
 		}
 
+		const loadSeq = ++this._loadSeq;
 		this._loadingLock = true; // stop scrolling during the load.
 		this.clear();
 		this._instructionBpList = this._debugService.getModel().getInstructionBreakpoints();
-		this.loadDisassembledInstructions(instructionReference, offset, -DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD * 4, DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD * 8).then(() => {
+		this.loadDisassembledInstructions(instructionReference, offset, -DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD * 4, DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD * 8, loadSeq).then(() => {
+			if (loadSeq !== this._loadSeq) {
+				return;
+			}
 			// on load, set the target instruction as the current instructionReference.
 			if (this._disassembledInstructions!.length > 0) {
 				let targetIndex: number | undefined = undefined;
