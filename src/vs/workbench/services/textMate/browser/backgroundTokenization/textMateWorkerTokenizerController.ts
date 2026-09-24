@@ -196,6 +196,9 @@ export class TextMateWorkerTokenizerController extends Disposable {
 				this._vscodeTextmateImportPromise = importAMDNodeModule<typeof import('vscode-textmate')>('vscode-textmate', 'release/main.js').then(({ applyStateStackDiff, INITIAL }) => {
 					this._applyStateStackDiffFn = applyStateStackDiff;
 					this._initialState = INITIAL;
+				}).catch(err => {
+					this._vscodeTextmateImportPromise = undefined;
+					throw err;
 				});
 			}
 			await this._vscodeTextmateImportPromise;
@@ -251,7 +254,6 @@ export class TextMateWorkerTokenizerController extends Disposable {
 		if (versionId < this._lastAppliedVersionId) {
 			return;
 		}
-		this._lastAppliedVersionId = versionId;
 		this._backgroundTokenizationStore.setFontInfo(fontTokensUpdate);
 		if (versionId < this._lastAppliedVersionId) {
 			return;
