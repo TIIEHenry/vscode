@@ -113,6 +113,9 @@ export class NotebookMultiTextDiffEditor extends EditorPane {
 	override async setInput(input: NotebookMultiDiffEditorInput, options: IMultiDiffEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
 		super.setInput(input, options, context, token);
 		const model = await input.resolve();
+		if (token.isCancellationRequested || this.input !== input) {
+			return;
+		}
 		if (this._model !== model) {
 			this._detachModel();
 			this._model = model;
@@ -121,11 +124,17 @@ export class NotebookMultiTextDiffEditor extends EditorPane {
 		const diffEditorHeightCalculator = this.instantiationService.createInstance(DiffEditorHeightCalculatorService, this.fontInfo.lineHeight);
 		this.viewModel = this.modelSpecificResources.add(new NotebookDiffViewModel(model, this.notebookEditorWorkerService, this.configurationService, eventDispatcher, this.notebookService, diffEditorHeightCalculator, undefined, true));
 		await this.viewModel.computeDiff(this.modelSpecificResources.add(new CancellationTokenSource()).token);
+		if (token.isCancellationRequested || this.input !== input) {
+			return;
+		}
 		this.ctxHasUnchangedCells.set(this.viewModel.hasUnchangedCells);
 		this.ctxHasUnchangedCells.set(this.viewModel.hasUnchangedCells);
 
 		const widgetInput = this.modelSpecificResources.add(NotebookMultiDiffEditorWidgetInput.createInput(this.viewModel, this.instantiationService));
 		this.widgetViewModel = this.modelSpecificResources.add(await widgetInput.getViewModel());
+		if (token.isCancellationRequested || this.input !== input) {
+			return;
+		}
 
 		const itemsWeHaveSeen = new WeakSet<DocumentDiffItemViewModel>();
 		this.modelSpecificResources.add(autorun(reader => {

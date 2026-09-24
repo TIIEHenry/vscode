@@ -160,8 +160,14 @@ export class NotebookOutputEditor extends EditorPane implements INotebookDelegat
 
 	override async setInput(input: NotebookOutputEditorInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
 		await super.setInput(input, options, context, token);
+		if (token.isCancellationRequested || this._isDisposed) {
+			return;
+		}
 
 		const model = await input.resolve();
+		if (token.isCancellationRequested || this._isDisposed) {
+			return;
+		}
 		if (!model) {
 			throw new Error('Invalid notebook output editor input');
 		}
@@ -169,6 +175,9 @@ export class NotebookOutputEditor extends EditorPane implements INotebookDelegat
 		const resolvedNotebookEditorModel = model.resolvedNotebookEditorModel;
 
 		await this._createOriginalWebview(generateUuid(), resolvedNotebookEditorModel.viewType, URI.from({ scheme: Schemas.vscodeNotebookCellOutput, path: '', query: 'openIn=notebookOutputEditor' }));
+		if (token.isCancellationRequested || this._isDisposed) {
+			return;
+		}
 
 		const notebookTextModel = resolvedNotebookEditorModel.notebook;
 		const eventDispatcher = this._register(new NotebookEventDispatcher());
