@@ -388,6 +388,7 @@ export class ChatDragAndDrop extends Themable {
 	}
 
 	private async downloadImageAsUint8Array(url: string): Promise<Uint8Array | undefined> {
+		const dropSessionKey = this.widgetRef()?.viewModel?.model.sessionResource?.toString();
 		try {
 			const extractedImages = await this.webContentExtractorService.readImage(URI.parse(url), CancellationToken.None);
 			if (extractedImages) {
@@ -398,10 +399,14 @@ export class ChatDragAndDrop extends Themable {
 		}
 
 		// TODO: use dnd provider to insert text @justschen
-		const widget = this.widgetRef();
-		const selection = widget?.inputEditor.getSelection();
-		if (selection && widget) {
-			widget.inputEditor.executeEdits('chatInsertUrl', [{ range: selection, text: url }]);
+		if (!this._store.isDisposed) {
+			if (dropSessionKey === undefined || this.widgetRef()?.viewModel?.model.sessionResource?.toString() === dropSessionKey) {
+				const widget = this.widgetRef();
+				const selection = widget?.inputEditor.getSelection();
+				if (selection && widget) {
+					widget.inputEditor.executeEdits('chatInsertUrl', [{ range: selection, text: url }]);
+				}
+			}
 		}
 
 		this.logService.warn(`Image URLs must end in .jpg, .png, .gif, .webp, or .bmp. Failed to fetch image from this URL: ${url}`);
