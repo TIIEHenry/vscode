@@ -339,25 +339,8 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 			}
 
 			this._setTaskLRUCacheLimit();
-			const mapStringToFolderTasks: Map<string, IWorkspaceFolderTaskResult> = await this._updateWorkspaceTasks(TaskRunSource.ConfigurationChange);
+			await this._updateWorkspaceTasks(TaskRunSource.ConfigurationChange);
 			this._onDidChangeTaskConfig.fire();
-
-			// Loop through all workspaceFolderTask result
-			for (const [folderUri, folderResult] of mapStringToFolderTasks) {
-				if (!folderResult.set?.tasks?.length) {
-					continue;
-				}
-
-				for (const task of folderResult.set.tasks) {
-					const realUniqueId = task._id;
-					const lastTask = this._taskSystem?.lastTask?.task._id;
-
-					if (lastTask && lastTask === realUniqueId && folderUri !== 'setting') {
-						const verifiedLastTask = new VerifiedTask(task, this._taskSystem!.lastTask!.resolver, Triggers.command);
-						this._taskSystem!.lastTask = verifiedLastTask;
-					}
-				}
-			}
 
 		}));
 		this._taskRunningState = TASK_RUNNING_STATE.bindTo(_contextKeyService);
@@ -535,8 +518,12 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 			: nls.localize('task.longRunningTaskCompleted', 'Task finished in {0}.', durationText);
 		this._hostService.focus(targetWindow, { mode: FocusMode.Notify });
 		const cts = new CancellationTokenSource();
-		this.toast.value = toDisposable(() => cts.dispose(true));
+		const toastHandle = toDisposable(() => cts.dispose(true));
+		this.toast.value = toastHandle;
 		const { clicked } = await this._hostService.showToast({ title: message }, cts.token);
+		if (this.toast.value !== toastHandle) {
+			return;
+		}
 		this.toast.clear();
 		if (clicked) {
 			this._hostService.focus(targetWindow, { mode: FocusMode.Force });
@@ -2571,9 +2558,37 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 		return this._taskSystem?.getTaskProblems(instanceId);
 	}
 
-	private _updateWorkspaceTasks(runSource: TaskRunSource = TaskRunSource.User): Promise<Map<string, IWorkspaceFolderTaskResult>> {
-		this._workspaceTasksPromise = this._computeWorkspaceTasks(runSource);
-		return this._workspaceTasksPromise;
+	private async _updateWorkspaceTasks(runSource: TaskRunSource = TaskRunSource.User): Promise<Map<string, IWorkspaceFolderTaskResult>> {
+		const compute = this._computeWorkspaceTasks(runSource);
+		this._workspaceTasksPromise = compute;
+		const mapStringToFolderTasks = await compute;
+		if (this._workspaceTasksPromise !== compute) {
+			return mapStringToFolderTasks;
+		}
+
+		const hasAnyTasks = Array.from(mapStringToFolderTasks.values()).some(folderResult =>
+			(folderResult.set?.tasks && folderResult.set.tasks.length > 0) ||
+			(folderResult.configurations?.byIdentifier && Object.keys(folderResult.configurations.byIdentifier).length > 0)
+		);
+		this._tasksAvailableState.set(hasAnyTasks);
+
+		for (const [folderUri, folderResult] of mapStringToFolderTasks) {
+			if (!folderResult.set?.tasks?.length) {
+				continue;
+			}
+
+			for (const task of folderResult.set.tasks) {
+				const realUniqueId = task._id;
+				const lastTask = this._taskSystem?.lastTask?.task._id;
+
+				if (lastTask && lastTask === realUniqueId && folderUri !== 'setting') {
+					const verifiedLastTask = new VerifiedTask(task, this._taskSystem!.lastTask!.resolver, Triggers.command);
+					this._taskSystem!.lastTask = verifiedLastTask;
+				}
+			}
+		}
+
+		return mapStringToFolderTasks;
 	}
 
 	private async _getAFolder(): Promise<IWorkspaceFolder> {
@@ -2614,13 +2629,6 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 		if (userTasks) {
 			result.set(USER_TASKS_GROUP_KEY, userTasks);
 		}
-
-		// Update tasks available context key
-		const hasAnyTasks = Array.from(result.values()).some(folderResult =>
-			(folderResult.set?.tasks && folderResult.set.tasks.length > 0) ||
-			(folderResult.configurations?.byIdentifier && Object.keys(folderResult.configurations.byIdentifier).length > 0)
-		);
-		this._tasksAvailableState.set(hasAnyTasks);
 
 		return result;
 	}
