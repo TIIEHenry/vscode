@@ -39,6 +39,7 @@ export class ExtensionHostProfileService extends Disposable implements IExtensio
 	private _profile: IExtensionHostProfile | null;
 	private _profileSession: ProfileSession | null;
 	private _state: ProfileSessionState = ProfileSessionState.None;
+	private _profileSessionToken = 0;
 
 	private profilingStatusBarIndicator: IStatusbarEntryAccessor | undefined;
 	private readonly profilingStatusBarIndicatorLabelUpdater = this._register(new MutableDisposable());
@@ -119,7 +120,14 @@ export class ExtensionHostProfileService extends Disposable implements IExtensio
 			return null;
 		}
 
+		const sessionToken = ++this._profileSessionToken;
+		const idleState = this._state;
+
 		const inspectPorts = await this._extensionService.getInspectPorts(ExtensionHostKind.LocalProcess, true);
+
+		if (this._store.isDisposed || this._state !== idleState || sessionToken !== this._profileSessionToken) {
+			return;
+		}
 
 		if (inspectPorts.length === 0) {
 			return this._dialogService.confirm({
@@ -140,11 +148,18 @@ export class ExtensionHostProfileService extends Disposable implements IExtensio
 		}
 
 		this._setState(ProfileSessionState.Starting);
+		const startingState = this._state;
 
 		return this._instantiationService.createInstance(ExtensionHostProfiler, inspectPorts[0].host, inspectPorts[0].port).start().then((value) => {
+			if (this._store.isDisposed || this._state !== startingState || sessionToken !== this._profileSessionToken) {
+				return;
+			}
 			this._profileSession = value;
 			this._setState(ProfileSessionState.Running);
 		}, (err) => {
+			if (this._store.isDisposed || this._state !== startingState || sessionToken !== this._profileSessionToken) {
+				return;
+			}
 			onUnexpectedError(err);
 			this._setState(ProfileSessionState.None);
 		});
@@ -155,11 +170,18 @@ export class ExtensionHostProfileService extends Disposable implements IExtensio
 			return;
 		}
 
+		const sessionToken = this._profileSessionToken;
 		this._setState(ProfileSessionState.Stopping);
 		this._profileSession.stop().then((result) => {
+			if (this._store.isDisposed || sessionToken !== this._profileSessionToken) {
+				return;
+			}
 			this._setLastProfile(result);
 			this._setState(ProfileSessionState.None);
 		}, (err) => {
+			if (this._store.isDisposed || sessionToken !== this._profileSessionToken) {
+				return;
+			}
 			onUnexpectedError(err);
 			this._setState(ProfileSessionState.None);
 		});
