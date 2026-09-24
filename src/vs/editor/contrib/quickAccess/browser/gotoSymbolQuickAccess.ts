@@ -215,7 +215,7 @@ export abstract class AbstractGotoSymbolQuickAccessProvider extends AbstractEdit
 					}
 				}
 			} finally {
-				if (!token.isCancellationRequested) {
+				if (!token.isCancellationRequested && !picksToken.isCancellationRequested) {
 					picker.busy = false;
 				}
 			}
