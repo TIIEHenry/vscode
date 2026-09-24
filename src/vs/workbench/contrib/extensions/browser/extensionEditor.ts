@@ -1011,6 +1011,11 @@ export class ExtensionEditor extends EditorPane {
 
 		const extensionsGridView = this.instantiationService.createInstance(ExtensionsGridView, content, new Delegate());
 		const extensions: IExtension[] = await getExtensions(manifest.extensionPack!, this.extensionsWorkbenchService);
+		if (token.isCancellationRequested) {
+			extensionsGridView.dispose();
+			scrollableContent.dispose();
+			return null;
+		}
 		extensionsGridView.setExtensions(extensions);
 		scrollableContent.scanDomNode();
 
@@ -1091,6 +1096,12 @@ class AdditionalDetailsWidget extends Disposable {
 			const categoriesElement = append(categoriesContainer, $('.categories'));
 			this.extensionGalleryManifestService.getExtensionGalleryManifest()
 				.then(manifest => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					if (!this.container.contains(categoriesElement)) {
+						return;
+					}
 					const hasCategoryFilter = manifest?.capabilities.extensionQuery.filtering?.some(({ name }) => name === FilterType.Category);
 					for (const category of extension.categories) {
 						const categoryElement = append(categoriesElement, $('span.category', { tabindex: '0' }, category));
@@ -1200,10 +1211,22 @@ class AdditionalDetailsWidget extends Disposable {
 			}
 		}
 		this.getCacheLocation(extension).then(cacheLocation => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			if (!this.container.contains(installInfo)) {
+				return;
+			}
 			if (!cacheLocation) {
 				return;
 			}
 			computeSize(cacheLocation, this.fileService).then(cacheSize => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				if (!this.container.contains(installInfo)) {
+					return;
+				}
 				if (!cacheSize) {
 					return;
 				}
