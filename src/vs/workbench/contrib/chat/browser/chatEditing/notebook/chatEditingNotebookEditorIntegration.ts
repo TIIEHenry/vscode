@@ -771,10 +771,16 @@ export class ChatEditingNotebookDiffEditorIntegration extends Disposable impleme
 	}
 	async acceptNearestChange(change: IModifiedFileEntryChangeHunk): Promise<void> {
 		await change.accept();
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.next(true);
 	}
 	async rejectNearestChange(change: IModifiedFileEntryChangeHunk): Promise<void> {
 		await change.reject();
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.next(true);
 	}
 	async toggleDiff(_change: IModifiedFileEntryChangeHunk | undefined, _show?: boolean): Promise<void> {
