@@ -374,13 +374,18 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 
 			// Try to resolve the authority to figure out connection state
 			(async () => {
+				const stateAtStart = this.connectionState;
 				try {
 					const { authority } = await this.remoteAuthorityResolverService.resolveAuthority(remoteAuthority);
 					this.connectionToken = authority.connectionToken;
 
-					this.setConnectionState('connected');
+					if (this.connectionState === stateAtStart) {
+						this.setConnectionState('connected');
+					}
 				} catch (error) {
-					this.setConnectionState('disconnected');
+					if (this.connectionState === stateAtStart) {
+						this.setConnectionState('disconnected');
+					}
 				}
 			})();
 		}
@@ -430,7 +435,7 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 
 		if (this.hostService.hasFocus && this.networkState !== 'offline') {
 			const measurement = await remoteConnectionLatencyMeasurer.measure(this.remoteAgentService);
-			if (measurement) {
+			if (measurement && this.networkState !== 'offline') {
 				if (measurement.high) {
 					this.setNetworkState('high-latency');
 				} else if (this.networkState === 'high-latency') {

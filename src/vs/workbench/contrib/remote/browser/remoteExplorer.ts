@@ -359,6 +359,7 @@ class OnAutoForwardedAction extends Disposable {
 	private lastShownPort: number | undefined;
 	private doActionTunnels: RemoteTunnel[] | undefined;
 	private alreadyOpenedOnce: Set<string> = new Set();
+	private _doActionChain: Promise<void> = Promise.resolve();
 
 	constructor(private readonly notificationService: INotificationService,
 		private readonly remoteExplorerService: IRemoteExplorerService,
@@ -373,7 +374,13 @@ class OnAutoForwardedAction extends Disposable {
 		this.lastNotifyTime.setFullYear(this.lastNotifyTime.getFullYear() - 1);
 	}
 
-	public async doAction(tunnels: RemoteTunnel[]): Promise<void> {
+	public doAction(tunnels: RemoteTunnel[]): Promise<void> {
+		const run = this._doActionChain.then(() => this._doActionNow(tunnels));
+		this._doActionChain = run.then(() => { }, () => { });
+		return run;
+	}
+
+	private async _doActionNow(tunnels: RemoteTunnel[]): Promise<void> {
 		this.logService.trace(`ForwardedPorts: (OnAutoForwardedAction) Starting action for ${tunnels[0]?.tunnelRemotePort}`);
 		this.doActionTunnels = tunnels;
 		const tunnel = await this.portNumberHeuristicDelay();
@@ -651,6 +658,7 @@ class ProcAutomaticPortForwarding extends Disposable {
 	private notifier: OnAutoForwardedAction;
 	private initialCandidates: Set<string> = new Set();
 	private portsFeatures: IDisposable | undefined;
+	private _candidateChain: Promise<void> = Promise.resolve();
 
 	constructor(
 		private readonly unforwardOnly: boolean,
@@ -796,7 +804,13 @@ class ProcAutomaticPortForwarding extends Disposable {
 		return allTunnels;
 	}
 
-	private async handleCandidateUpdate(removed: Map<string, { host: string; port: number }>) {
+	private handleCandidateUpdate(removed: Map<string, { host: string; port: number }>): Promise<void> {
+		const run = this._candidateChain.then(() => this._handleCandidateUpdateNow(removed));
+		this._candidateChain = run.then(() => { }, () => { });
+		return run;
+	}
+
+	private async _handleCandidateUpdateNow(removed: Map<string, { host: string; port: number }>) {
 		const removedPorts: number[] = [];
 		let autoForwarded: Map<string, string | Tunnel>;
 		if (this.unforwardOnly) {

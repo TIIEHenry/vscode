@@ -74,6 +74,8 @@ class RemoteAgentDiagnosticListener implements IWorkbenchContribution {
 }
 
 class RemoteExtensionHostEnvironmentUpdater extends Disposable implements IWorkbenchContribution {
+	private _gainChain: Promise<void> = Promise.resolve();
+
 	constructor(
 		@IRemoteAgentService remoteAgentService: IRemoteAgentService,
 		@IRemoteAuthorityResolverService remoteResolverService: IRemoteAuthorityResolverService,
@@ -83,12 +85,15 @@ class RemoteExtensionHostEnvironmentUpdater extends Disposable implements IWorkb
 
 		const connection = remoteAgentService.getConnection();
 		if (connection) {
-			this._register(connection.onDidStateChange(async e => {
+			this._register(connection.onDidStateChange(e => {
 				if (e.type === PersistentConnectionEventType.ConnectionGain) {
-					const resolveResult = await remoteResolverService.resolveAuthority(connection.remoteAuthority);
-					if (resolveResult.options && resolveResult.options.extensionHostEnv) {
-						await extensionService.setRemoteEnvironment(resolveResult.options.extensionHostEnv);
-					}
+					const run = this._gainChain.then(async () => {
+						const resolveResult = await remoteResolverService.resolveAuthority(connection.remoteAuthority);
+						if (resolveResult.options && resolveResult.options.extensionHostEnv) {
+							await extensionService.setRemoteEnvironment(resolveResult.options.extensionHostEnv);
+						}
+					});
+					this._gainChain = run.then(() => { }, () => { });
 				}
 			}));
 		}
