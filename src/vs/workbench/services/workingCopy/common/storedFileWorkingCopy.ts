@@ -442,6 +442,8 @@ export class StoredFileWorkingCopy<M extends IStoredFileWorkingCopyModel> extend
 
 	lastResolvedFileStat: IFileStatWithMetadata | undefined; // !!! DO NOT MARK PRIVATE! USED IN TESTS !!!
 
+	private _resolveChain: Promise<void> = Promise.resolve();
+
 	isResolved(): this is IResolvedStoredFileWorkingCopy<M> {
 		return !!this.model;
 	}
@@ -579,7 +581,13 @@ export class StoredFileWorkingCopy<M extends IStoredFileWorkingCopyModel> extend
 		}
 	}
 
-	private async resolveFromFile(options?: IStoredFileWorkingCopyResolveOptions): Promise<void> {
+	private resolveFromFile(options?: IStoredFileWorkingCopyResolveOptions): Promise<void> {
+		const run = this._resolveChain.then(() => this.resolveFromFileNow(options));
+		this._resolveChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async resolveFromFileNow(options?: IStoredFileWorkingCopyResolveOptions): Promise<void> {
 		this.trace('resolveFromFile()');
 
 		const forceReadFromFile = options?.forceReadFromFile;
