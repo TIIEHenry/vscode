@@ -1028,7 +1028,7 @@ export class CommentController extends Disposable implements IEditorContribution
 				}
 			}
 
-			if (computePromiseAtStart && this._computePromise !== computePromiseAtStart) {
+			if (this._computePromise && this._computePromise !== computePromiseAtStart) {
 				return;
 			}
 
