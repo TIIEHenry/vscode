@@ -156,6 +156,7 @@ export class AgentSessionsWelcomePage extends EditorPane {
 	private _openedAt: number = 0;
 	private _closedBy?: string;
 	private _storedInput: AgentSessionsWelcomeInput | undefined;
+	private _chatOpenChain: Promise<void> = Promise.resolve();
 
 	constructor(
 		group: IEditorGroup,
@@ -505,9 +506,10 @@ export class AgentSessionsWelcomePage extends EditorPane {
 			mode,
 			timestamp: Date.now(),
 		};
+		const storedPrefill = JSON.stringify(prefillData);
 		this.storageService.store(
 			'chat.welcomeViewPrefill',
-			JSON.stringify(prefillData),
+			storedPrefill,
 			StorageScope.APPLICATION,
 			StorageTarget.MACHINE
 		);
@@ -528,7 +530,9 @@ export class AgentSessionsWelcomePage extends EditorPane {
 				// Ignore errors
 			}
 		}
-		this.storageService.remove('chat.welcomeViewPrefill', StorageScope.APPLICATION);
+		if (this.storageService.get('chat.welcomeViewPrefill', StorageScope.APPLICATION) === storedPrefill) {
+			this.storageService.remove('chat.welcomeViewPrefill', StorageScope.APPLICATION);
+		}
 		return false;
 	}
 
@@ -899,7 +903,13 @@ export class AgentSessionsWelcomePage extends EditorPane {
 		}
 	}
 
-	private async closeEditorAndMaximizeAuxiliaryBar(sessionResource?: URI): Promise<void> {
+	private closeEditorAndMaximizeAuxiliaryBar(sessionResource?: URI): Promise<void> {
+		const run = this._chatOpenChain.then(() => this.closeEditorAndMaximizeAuxiliaryBarNow(sessionResource));
+		this._chatOpenChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async closeEditorAndMaximizeAuxiliaryBarNow(sessionResource?: URI): Promise<void> {
 		const editorToClose = this.input || this._storedInput;
 
 		if (editorToClose && this.group.contains(editorToClose)) {
