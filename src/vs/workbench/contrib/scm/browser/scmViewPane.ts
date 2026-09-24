@@ -1727,16 +1727,17 @@ export class SCMViewPane extends ViewPane {
 					await this.commandService.executeCommand(e.element.command.id, ...(e.element.command.arguments || []), e);
 				}
 			} else {
-				await e.element.open(!!e.editorOptions.preserveFocus);
+				const resource = e.element;
+				await resource.open(!!e.editorOptions.preserveFocus);
 
 				if (e.editorOptions.pinned) {
 					const activeEditorPane = this.editorService.activeEditorPane;
 					const activePrimary = EditorResourceAccessor.getOriginalUri(activeEditorPane?.input, { supportSideBySide: SideBySideEditor.PRIMARY });
 					const activeSecondary = EditorResourceAccessor.getOriginalUri(activeEditorPane?.input, { supportSideBySide: SideBySideEditor.SECONDARY });
 					const matchesOpenedResource = (uri: URI | undefined) => !!uri && (
-						isEqual(uri, e.element.sourceUri) ||
-						isEqual(uri, e.element.multiDiffEditorOriginalUri) ||
-						isEqual(uri, e.element.multiDiffEditorModifiedUri)
+						isEqual(uri, resource.sourceUri) ||
+						isEqual(uri, resource.multiDiffEditorOriginalUri) ||
+						isEqual(uri, resource.multiDiffEditorModifiedUri)
 					);
 
 					if (activeEditorPane && (matchesOpenedResource(activePrimary) || matchesOpenedResource(activeSecondary))) {
