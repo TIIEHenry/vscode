@@ -77,6 +77,7 @@ export class SearchEditorInput extends EditorInput {
 	readonly onDidSave: Event<IWorkingCopySaveEvent> = this._onDidSave.event;
 
 	private oldDecorationsIDs: string[] = [];
+	private _matchRangesSeq = 0;
 
 	get resource() {
 		return this.backingUri || this.modelUri;
@@ -265,7 +266,12 @@ export class SearchEditorInput extends EditorInput {
 	}
 
 	async setMatchRanges(ranges: Range[]) {
-		this.oldDecorationsIDs = (await this.resolveModels()).resultsModel.deltaDecorations(this.oldDecorationsIDs, ranges.map(range =>
+		const seq = ++this._matchRangesSeq;
+		const { resultsModel } = await this.resolveModels();
+		if (seq !== this._matchRangesSeq) {
+			return;
+		}
+		this.oldDecorationsIDs = resultsModel.deltaDecorations(this.oldDecorationsIDs, ranges.map(range =>
 			({ range, options: { description: 'search-editor-find-match', className: SearchEditorFindMatchClass, stickiness: TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges } })));
 	}
 
