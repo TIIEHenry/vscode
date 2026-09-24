@@ -1300,6 +1300,10 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 
 	private async _applyModel(token: CancellationToken): Promise<void> {
 		const session = await this.acquireTransferredOrPersistedSession(token, 'ChatViewPane#applyModel');
+		if (this._store.isDisposed) {
+			session.modelRef?.dispose();
+			return;
+		}
 		await this.showModel(token, session.modelRef, true, !session.modelRef, undefined, session.localFallbackSelectionReason);
 	}
 
