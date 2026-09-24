@@ -46,6 +46,8 @@ class DefaultLogLevelsService extends Disposable implements IDefaultLogLevelsSer
 
 	private _defaultLogLevels: DefaultLogLevels;
 
+	private _argvChain: Promise<void> = Promise.resolve();
+
 	constructor(
 		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 		@IFileService private readonly fileService: IFileService,
@@ -66,8 +68,12 @@ class DefaultLogLevelsService extends Disposable implements IDefaultLogLevelsSer
 	}
 
 	private async onDidChangeArgv(): Promise<void> {
-		const defaultLogLevelsFromArgv = await this._parseLogLevelsFromArgv();
-		this.updateDefaultLogLevels(defaultLogLevelsFromArgv);
+		const run = this._argvChain.then(async () => {
+			const defaultLogLevelsFromArgv = await this._parseLogLevelsFromArgv();
+			this.updateDefaultLogLevels(defaultLogLevelsFromArgv);
+		});
+		this._argvChain = run.then(() => undefined, () => undefined);
+		return run;
 	}
 
 	get defaultLogLevels(): DefaultLogLevels {
@@ -95,33 +101,37 @@ class DefaultLogLevelsService extends Disposable implements IDefaultLogLevelsSer
 	}
 
 	async setDefaultLogLevel(defaultLogLevel: LogLevel, extensionId?: string): Promise<void> {
-		const defaultLogLevelsFromArgv = await this._parseLogLevelsFromArgv() ?? {};
-		if (extensionId) {
-			extensionId = extensionId.toLowerCase();
-			const currentDefaultLogLevel = this._getDefaultLogLevel(defaultLogLevelsFromArgv, extensionId);
-			defaultLogLevelsFromArgv.extensions = defaultLogLevelsFromArgv.extensions ?? [];
-			const extension = defaultLogLevelsFromArgv.extensions.find(([extension]) => extension === extensionId);
-			if (extension) {
-				extension[1] = defaultLogLevel;
+		const run = this._argvChain.then(async () => {
+			const defaultLogLevelsFromArgv = await this._parseLogLevelsFromArgv() ?? {};
+			if (extensionId) {
+				const extensionIdLower = extensionId.toLowerCase();
+				const currentDefaultLogLevel = this._getDefaultLogLevel(defaultLogLevelsFromArgv, extensionIdLower);
+				defaultLogLevelsFromArgv.extensions = defaultLogLevelsFromArgv.extensions ?? [];
+				const extension = defaultLogLevelsFromArgv.extensions.find(([extension]) => extension === extensionIdLower);
+				if (extension) {
+					extension[1] = defaultLogLevel;
+				} else {
+					defaultLogLevelsFromArgv.extensions.push([extensionIdLower, defaultLogLevel]);
+				}
+				await this._writeLogLevelsToArgv(defaultLogLevelsFromArgv);
+				const extensionLoggers = [...this.loggerService.getRegisteredLoggers()].filter(logger => logger.extensionId && logger.extensionId.toLowerCase() === extensionIdLower);
+				for (const { resource } of extensionLoggers) {
+					if (this.loggerService.getLogLevel(resource) === currentDefaultLogLevel) {
+						this.loggerService.setLogLevel(resource, defaultLogLevel);
+					}
+				}
 			} else {
-				defaultLogLevelsFromArgv.extensions.push([extensionId, defaultLogLevel]);
-			}
-			await this._writeLogLevelsToArgv(defaultLogLevelsFromArgv);
-			const extensionLoggers = [...this.loggerService.getRegisteredLoggers()].filter(logger => logger.extensionId && logger.extensionId.toLowerCase() === extensionId);
-			for (const { resource } of extensionLoggers) {
-				if (this.loggerService.getLogLevel(resource) === currentDefaultLogLevel) {
-					this.loggerService.setLogLevel(resource, defaultLogLevel);
+				const currentLogLevel = this._getDefaultLogLevel(defaultLogLevelsFromArgv);
+				defaultLogLevelsFromArgv.default = defaultLogLevel;
+				await this._writeLogLevelsToArgv(defaultLogLevelsFromArgv);
+				if (this.loggerService.getLogLevel() === currentLogLevel) {
+					this.loggerService.setLogLevel(defaultLogLevel);
 				}
 			}
-		} else {
-			const currentLogLevel = this._getDefaultLogLevel(defaultLogLevelsFromArgv);
-			defaultLogLevelsFromArgv.default = defaultLogLevel;
-			await this._writeLogLevelsToArgv(defaultLogLevelsFromArgv);
-			if (this.loggerService.getLogLevel() === currentLogLevel) {
-				this.loggerService.setLogLevel(defaultLogLevel);
-			}
-		}
-		this.updateDefaultLogLevels(defaultLogLevelsFromArgv);
+			this.updateDefaultLogLevels(defaultLogLevelsFromArgv);
+		});
+		this._argvChain = run.then(() => undefined, () => undefined);
+		return run;
 	}
 
 	private _getDefaultLogLevel(argvLogLevels: ParsedArgvLogLevels, extension?: string): LogLevel {
