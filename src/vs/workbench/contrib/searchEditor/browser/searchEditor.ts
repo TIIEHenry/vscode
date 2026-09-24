@@ -97,6 +97,7 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 	private searchModel: SearchModelImpl;
 	private ongoingOperations: number = 0;
 	private updatingModelForSearch: boolean = false;
+	private _searchSeq = 0;
 
 	constructor(
 		group: IEditorGroup,
@@ -603,24 +604,37 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 			return;
 		}
 
+		const searchSeq = ++this._searchSeq;
+
 		this.searchOperation.start(500);
 		this.ongoingOperations++;
 
 		const { configurationModel } = await startInput.resolveModels();
+		if (searchSeq !== this._searchSeq) {
+			this.ongoingOperations--;
+			if (this.ongoingOperations === 0) {
+				this.searchOperation.stop();
+			}
+			return;
+		}
 		configurationModel.updateConfig(config);
 		const result = this.searchModel.search(query);
-		startInput.ongoingSearchOperation = result.asyncResults.finally(() => {
+		const operation = result.asyncResults.finally(() => {
 			this.ongoingOperations--;
 			if (this.ongoingOperations === 0) {
 				this.searchOperation.stop();
 			}
 		});
+		startInput.ongoingSearchOperation = operation;
 
-		const searchOperation = await startInput.ongoingSearchOperation;
-		await this.onSearchComplete(searchOperation, config, startInput);
+		const searchOperation = await operation;
+		if (searchSeq !== this._searchSeq) {
+			return;
+		}
+		await this.onSearchComplete(searchOperation, config, startInput, searchSeq, operation);
 	}
 
-	private async onSearchComplete(searchOperation: ISearchComplete, startConfig: SearchConfiguration, startInput: SearchEditorInput) {
+	private async onSearchComplete(searchOperation: ISearchComplete, startConfig: SearchConfiguration, startInput: SearchEditorInput, searchSeq?: number, operation?: Promise<ISearchComplete>) {
 		const isStaleCompletion = (): boolean => {
 			const currentInput = this.getInput();
 			return !currentInput ||
@@ -633,7 +647,11 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 			return;
 		}
 
-		input.ongoingSearchOperation = undefined;
+		if (operation === undefined) {
+			input.ongoingSearchOperation = undefined;
+		} else if (input.ongoingSearchOperation === operation) {
+			input.ongoingSearchOperation = undefined;
+		}
 
 		const sortOrder = this.searchConfig.sortOrder;
 		if (sortOrder === SearchSortOrder.Modified) {
@@ -641,6 +659,10 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 		}
 
 		if (isStaleCompletion()) {
+			return;
+		}
+
+		if (searchSeq !== undefined && searchSeq !== this._searchSeq) {
 			return;
 		}
 
