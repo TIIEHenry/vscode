@@ -506,7 +506,7 @@ export abstract class AbstractFileOutputChannelModel extends Disposable implemen
 					if (this._store.isDisposed && model && !model.isDisposed()) {
 						model.dispose();
 					}
-					return;
+					throw new CancellationError();
 				}
 				consume();
 				this.doAppendContent(model, content);
