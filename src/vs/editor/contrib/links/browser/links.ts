@@ -132,10 +132,15 @@ export class LinkDetector extends Disposable implements IEditorContribution {
 			this.activeLinksList = null;
 		}
 
-		this.computePromise = createCancelablePromise(token => getLinks(this.providers, model, token));
+		const computePromise = this.computePromise = createCancelablePromise(token => getLinks(this.providers, model, token));
 		try {
 			const sw = new StopWatch(false);
-			this.activeLinksList = await this.computePromise;
+			const linksList = await computePromise;
+			if (this.computePromise !== computePromise) {
+				linksList.dispose();
+				return;
+			}
+			this.activeLinksList = linksList;
 			this.debounceInformation.update(model, sw.elapsed());
 			if (model.isDisposed()) {
 				return;
@@ -144,7 +149,9 @@ export class LinkDetector extends Disposable implements IEditorContribution {
 		} catch (err) {
 			onUnexpectedError(err);
 		} finally {
-			this.computePromise = null;
+			if (this.computePromise === computePromise) {
+				this.computePromise = null;
+			}
 		}
 	}
 
