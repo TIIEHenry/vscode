@@ -167,8 +167,12 @@ export class ColorDetector extends Disposable implements IEditorContribution {
 			this._debounceInformation.update(model, sw.elapsed());
 			return colors;
 		});
+		const computePromise = this._computePromise;
 		try {
-			const colors = await this._computePromise;
+			const colors = await computePromise;
+			if (this._computePromise !== computePromise) {
+				return;
+			}
 			this.updateDecorations(colors);
 			this.updateColorDecorators(colors);
 			this._computePromise = null;
