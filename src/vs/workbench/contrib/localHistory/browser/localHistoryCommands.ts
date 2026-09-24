@@ -113,6 +113,7 @@ registerAction2(class extends Action2 {
 //#region Select for Compare / Compare with Selected
 
 let itemSelectedForCompare: ITimelineCommandArgument | undefined = undefined;
+let selectForCompareEpoch = 0;
 
 const LocalHistoryItemSelectedForCompare = new RawContextKey<boolean>('localHistoryItemSelectedForCompare', false, true);
 
@@ -133,7 +134,11 @@ registerAction2(class extends Action2 {
 		const workingCopyHistoryService = accessor.get(IWorkingCopyHistoryService);
 		const contextKeyService = accessor.get(IContextKeyService);
 
+		const epoch = ++selectForCompareEpoch;
 		const { entry } = await findLocalHistoryEntry(workingCopyHistoryService, item);
+		if (epoch !== selectForCompareEpoch) {
+			return;
+		}
 		if (entry) {
 			itemSelectedForCompare = item;
 			LocalHistoryItemSelectedForCompare.bindTo(contextKeyService).set(true);
