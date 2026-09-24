@@ -806,11 +806,9 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 		const provider = defaultChat.provider.enterprise.id;
 		this._setEnterpriseSignInUiState('progress');
 
-		let stepAtStart: number;
-		let watch: StopWatch;
+		const stepAtStart = this.currentStepIndex;
+		const watch = this.enterpriseSignInWatch ?? StopWatch.create();
 		try {
-			stepAtStart = this.currentStepIndex;
-			watch = this.enterpriseSignInWatch ?? StopWatch.create();
 			const success = await this.commandService.executeCommand<boolean>('workbench.action.chat.triggerSetup', undefined, {
 				disableChatViewReveal: true,
 				setupStrategy: ChatSetupStrategy.SetupWithEnterpriseProvider,
