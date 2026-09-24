@@ -421,6 +421,9 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 		restoreSnapshot(this.originalModel, snapshot);
 		this.initializeModelsFromDiff().catch(onUnexpectedError).catch(onUnexpectedError);
 		await this._collapse(undefined);
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		const config = this._fileConfigService.getAutoSaveConfiguration(this.modifiedURI);
 		if (this.modifiedModel.uri.scheme !== Schemas.untitled && (!config.autoSave || !this.notebookResolver.isDirty(this.modifiedURI))) {
