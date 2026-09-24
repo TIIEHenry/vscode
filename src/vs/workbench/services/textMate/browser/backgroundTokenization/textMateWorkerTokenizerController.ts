@@ -204,6 +204,9 @@ export class TextMateWorkerTokenizerController extends Disposable {
 			await this._vscodeTextmateImportPromise;
 		}
 
+		if (!this._applyStateStackDiffFn || this._initialState === undefined) {
+			return;
+		}
 
 		// Apply state deltas to _states and _backgroundTokenizationStore
 		for (const d of stateDeltas) {
