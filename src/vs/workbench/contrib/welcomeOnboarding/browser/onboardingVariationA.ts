@@ -1025,7 +1025,13 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 			if (gallery.length > 0) {
 				await this.extensionManagementService.installFromGallery(gallery[0], { context: { [EXTENSION_INSTALL_SKIP_WALKTHROUGH_CONTEXT]: true } });
 			}
+			if (this.selectedKeymapId !== keymapId) {
+				return;
+			}
 		} catch {
+			if (this.selectedKeymapId !== keymapId) {
+				return;
+			}
 			this.notificationService.notify({
 				severity: Severity.Warning,
 				message: localize('onboarding.keymap.installError', "Could not install {0} keymap. You can install it later from Extensions.", keymap.label),
