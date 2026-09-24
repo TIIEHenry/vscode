@@ -6,6 +6,7 @@
 import { IChatWidget, IChatWidgetService } from '../chat.js';
 import { ACTION_ID_NEW_CHAT, CHAT_CATEGORY } from '../actions/chatActions.js';
 import { URI } from '../../../../../base/common/uri.js';
+import { isEqual } from '../../../../../base/common/resources.js';
 import { OS } from '../../../../../base/common/platform.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
@@ -147,11 +148,18 @@ abstract class RunPromptBaseAction extends Action2 {
 		}
 
 		const widget = await widgetService.revealWidget();
-		if (widget) {
-			widget.setInput(`/${await promptsService.getPromptSlashCommandName(resource, CancellationToken.None)}`);
-			// submit the prompt immediately
-			await widget.acceptInput();
+		if (!widget?.viewModel) {
+			return widget;
 		}
+
+		const sessionResource = widget.viewModel.sessionResource;
+		const name = await promptsService.getPromptSlashCommandName(resource, CancellationToken.None);
+		if (!widget.viewModel || !isEqual(widget.viewModel.sessionResource, sessionResource)) {
+			return widget;
+		}
+
+		widget.setInput(`/${name}`);
+		await widget.acceptInput();
 		return widget;
 	}
 }
@@ -233,12 +241,19 @@ class RunSelectedPromptAction extends Action2 {
 		}
 
 		const widget = await widgetService.revealWidget();
-		if (widget) {
-			widget.setInput(`/${await promptsService.getPromptSlashCommandName(promptFile, CancellationToken.None)}`);
-			// submit the prompt immediately
-			await widget.acceptInput();
-			widget.focusInput();
+		if (!widget?.viewModel) {
+			return;
 		}
+
+		const sessionResource = widget.viewModel.sessionResource;
+		const name = await promptsService.getPromptSlashCommandName(promptFile, CancellationToken.None);
+		if (!widget.viewModel || !isEqual(widget.viewModel.sessionResource, sessionResource)) {
+			return;
+		}
+
+		widget.setInput(`/${name}`);
+		await widget.acceptInput();
+		widget.focusInput();
 	}
 }
 
