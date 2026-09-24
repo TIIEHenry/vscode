@@ -41,7 +41,7 @@ class DiffEditorBreadcrumbsSource extends Disposable implements IDiffEditorBread
 
 			const src = store.add(new DisposableCancellationTokenSource());
 			const model = await this._outlineModelService.getOrCreate(this._textModel, src.token);
-			if (store.isDisposed) { return; }
+			if (store.isDisposed || src.token.isCancellationRequested) { return; }
 
 			this._currentModel.set(model, undefined);
 		}));
