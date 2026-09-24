@@ -1566,6 +1566,11 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 					return undefined;
 				}
 
+				if (this._store.isDisposed) {
+					newModelRef?.dispose();
+					return undefined;
+				}
+
 				const localFallbackSelectionReason = getLocalFallbackSessionTypeSelectionReason(getChatSessionType(sessionResource), !!newModelRef);
 				const result = await this.showModel(token, newModelRef, true, false, inputBeforeLoad, localFallbackSelectionReason);
 				this.logService.trace(`[ChatViewPane] loadSession done total=${Date.now() - t0}ms uri=${sessionResource.toString()}`);
@@ -1576,6 +1581,10 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 
 				if (token.isCancellationRequested) {
 					this.logService.trace(`[ChatViewPane] loadSession done total=${Date.now() - t0}ms uri=${sessionResource.toString()} cancelled=true phase=error`);
+					return undefined;
+				}
+
+				if (this._store.isDisposed) {
 					return undefined;
 				}
 
