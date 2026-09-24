@@ -155,6 +155,8 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 	private _imageAddon?: ImageAddonType;
 	private readonly _ligaturesAddon: MutableDisposable<LigaturesAddonType> = this._register(new MutableDisposable());
 	private _ligaturesAddonConfig?: ILigatureOptions;
+	private _refreshLigaturesAddonChain: Promise<void> = Promise.resolve();
+	private _refreshImageAddonChain: Promise<void> = Promise.resolve();
 
 	private readonly _attachedDisposables = this._register(new DisposableStore());
 	private readonly _anyTerminalFocusContextKey: IContextKey<boolean>;
@@ -978,6 +980,12 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 
 	@debounce(100)
 	private async _refreshLigaturesAddon(): Promise<void> {
+		const run = this._refreshLigaturesAddonChain.then(() => this._refreshLigaturesAddonBody());
+		this._refreshLigaturesAddonChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async _refreshLigaturesAddonBody(): Promise<void> {
 		if (!this.raw.element) {
 			return;
 		}
@@ -1021,6 +1029,12 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 
 	@debounce(100)
 	private async _refreshImageAddon(): Promise<void> {
+		const run = this._refreshImageAddonChain.then(() => this._refreshImageAddonBody());
+		this._refreshImageAddonChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async _refreshImageAddonBody(): Promise<void> {
 		// Only allow the image addon when webgl is being used to avoid possible GPU issues
 		if (this._terminalConfigurationService.config.enableImages && this._webglAddon) {
 			if (!this._imageAddon) {

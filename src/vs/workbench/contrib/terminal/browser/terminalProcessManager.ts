@@ -104,6 +104,7 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 	private _processTraits: IProcessReadyEvent | undefined;
 	private _shellLaunchConfig?: IShellLaunchConfig;
 	private _dimensions: ITerminalDimensions = { cols: 0, rows: 0 };
+	private _launchGeneration = 0;
 
 	private readonly _onPtyDisconnect = this._register(new Emitter<void>());
 	readonly onPtyDisconnect = this._onPtyDisconnect.event;
@@ -246,17 +247,30 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 		rows: number,
 		reset: boolean = true
 	): Promise<ITerminalLaunchError | ITerminalLaunchResult | undefined> {
+		this._launchGeneration++;
 		this._shellLaunchConfig = shellLaunchConfig;
 		this._dimensions.cols = cols;
 		this._dimensions.rows = rows;
+		const launchGeneration = this._launchGeneration;
 
 		let newProcess: ITerminalChildProcess | undefined;
+
+		const abortIfStale = (): boolean => {
+			if (launchGeneration !== this._launchGeneration || this._isDisposed) {
+				newProcess?.shutdown(false);
+				return true;
+			}
+			return false;
+		};
 
 		if (shellLaunchConfig.customPtyImplementation) {
 			this._processType = ProcessType.PsuedoTerminal;
 			newProcess = shellLaunchConfig.customPtyImplementation(this._instanceId, cols, rows);
 		} else {
 			const backend = await this._terminalInstanceService.getBackend(this.remoteAuthority);
+			if (abortIfStale()) {
+				return undefined;
+			}
 			if (!backend) {
 				throw new Error(`No terminal backend registered for remote authority '${this.remoteAuthority}'`);
 			}
@@ -267,7 +281,13 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 			// available, then overlay the shell environment on top so that launch configuration
 			// variables and shell-profile modifications take precedence.
 			const envForResolver = { ...await this._terminalProfileResolverService.getEnvironment(this.remoteAuthority) };
+			if (abortIfStale()) {
+				return undefined;
+			}
 			terminalEnvironment.mergeEnvironments(envForResolver, await backend.getShellEnvironment());
+			if (abortIfStale()) {
+				return undefined;
+			}
 			const variableResolver = terminalEnvironment.createVariableResolver(this._cwdWorkspaceFolder, envForResolver, this._configurationResolverService);
 
 			// resolvedUserHome is needed here as remote resolvers can launch local terminals before
@@ -277,8 +297,14 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 			if (!!this.remoteAuthority) {
 
 				const userHomeUri = await this._pathService.userHome();
+				if (abortIfStale()) {
+					return undefined;
+				}
 				this.userHome = userHomeUri.path;
 				const remoteEnv = await this._remoteAgentService.getEnvironment();
+				if (abortIfStale()) {
+					return undefined;
+				}
 				if (!remoteEnv) {
 					throw new Error(`Failed to get remote environment for remote authority "${this.remoteAuthority}"`);
 				}
@@ -286,10 +312,16 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 				this.os = remoteEnv.os;
 
 				// this is a copy of what the merged environment collection is on the remote side
-				const env = await this._resolveEnvironment(backend, variableResolver, shellLaunchConfig);
+				const env = await this._resolveEnvironment(backend, variableResolver, shellLaunchConfig, launchGeneration);
+				if (abortIfStale()) {
+					return undefined;
+				}
 				const shouldPersist = ((this._configurationService.getValue(TaskSettingId.Reconnection) && shellLaunchConfig.reconnectionProperties) || !shellLaunchConfig.isFeatureTerminal) && this._terminalConfigurationService.config.enablePersistentSessions && !shellLaunchConfig.isTransient;
 				if (shellLaunchConfig.attachPersistentProcess) {
 					const result = await backend.attachToProcess(shellLaunchConfig.attachPersistentProcess.id);
+					if (abortIfStale()) {
+						return undefined;
+					}
 					if (result) {
 						newProcess = result;
 					} else {
@@ -303,6 +335,9 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 						remoteAuthority: this.remoteAuthority,
 						os: this.os
 					});
+					if (abortIfStale()) {
+						return undefined;
+					}
 					const options: ITerminalProcessOptions = {
 						shellIntegration: {
 							enabled: this._configurationService.getValue(TerminalSettingId.ShellIntegrationEnabled),
@@ -332,13 +367,19 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 						}
 						throw e;
 					}
+					if (abortIfStale()) {
+						return undefined;
+					}
 				}
-				if (!this._isDisposed) {
+				if (!this._isDisposed && launchGeneration === this._launchGeneration) {
 					this._setupPtyHostListeners(backend);
 				}
 			} else {
 				if (shellLaunchConfig.attachPersistentProcess) {
 					const result = shellLaunchConfig.attachPersistentProcess.findRevivedId ? await backend.attachToRevivedProcess(shellLaunchConfig.attachPersistentProcess.id) : await backend.attachToProcess(shellLaunchConfig.attachPersistentProcess.id);
+					if (abortIfStale()) {
+						return undefined;
+					}
 					if (result) {
 						newProcess = result;
 					} else {
@@ -348,17 +389,20 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 					}
 				}
 				if (!newProcess) {
-					newProcess = await this._launchLocalProcess(backend, shellLaunchConfig, cols, rows, this.userHome, variableResolver);
+					newProcess = await this._launchLocalProcess(backend, shellLaunchConfig, cols, rows, this.userHome, variableResolver, launchGeneration);
+					if (abortIfStale()) {
+						return undefined;
+					}
 				}
-				if (!this._isDisposed) {
+				if (!this._isDisposed && launchGeneration === this._launchGeneration) {
 					this._setupPtyHostListeners(backend);
 				}
 			}
 		}
 
 		// If the process was disposed during its creation, shut it down and return failure
-		if (this._isDisposed) {
-			newProcess.shutdown(false);
+		if (launchGeneration !== this._launchGeneration || this._isDisposed) {
+			newProcess?.shutdown(false);
 			return undefined;
 		}
 
@@ -454,7 +498,7 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 	}
 
 	// Fetch any extension environment additions and apply them
-	private async _resolveEnvironment(backend: ITerminalBackend, variableResolver: terminalEnvironment.VariableResolver | undefined, shellLaunchConfig: IShellLaunchConfig): Promise<IProcessEnvironment> {
+	private async _resolveEnvironment(backend: ITerminalBackend, variableResolver: terminalEnvironment.VariableResolver | undefined, shellLaunchConfig: IShellLaunchConfig, launchGeneration: number): Promise<IProcessEnvironment> {
 		const workspaceFolder = terminalEnvironment.getWorkspaceForTerminal(shellLaunchConfig.cwd, this._workspaceContextService, this._historyService);
 		const platformKey = isWindows ? 'windows' : (isMacintosh ? 'osx' : 'linux');
 		const envFromConfigValue = this._configurationService.getValue<ITerminalEnvironment | undefined>(`terminal.integrated.env.${platformKey}`);
@@ -474,8 +518,11 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 		}
 		const env = await terminalEnvironment.createTerminalEnvironment(shellLaunchConfig, envFromConfigValue, variableResolver, this._productService.version, this._terminalConfigurationService.config.detectLocale, baseEnv);
 		this._logService.debug(`Terminal environment created with ${Object.keys(env).length} variables: ${Object.keys(env).sort().join(', ')}`);
-		this._environmentVariableCollectionListener.clear();
-		if (!this._isDisposed && shouldUseEnvironmentVariableCollection(shellLaunchConfig)) {
+		if (launchGeneration !== this._launchGeneration || this._isDisposed) {
+			return env;
+		}
+		if (shouldUseEnvironmentVariableCollection(shellLaunchConfig)) {
+			this._environmentVariableCollectionListener.clear();
 			this._extEnvironmentVariableCollection = this._environmentVariableService.mergedCollection;
 
 			this._environmentVariableCollectionListener.value = this._environmentVariableService.onDidChangeCollections(newCollection => this._onEnvironmentVariableCollectionChange(newCollection));
@@ -486,6 +533,9 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 			// condition, the chance is minimal plus the impact on the user is also not that great
 			// if it happens - it's not worth adding plumbing to sync back the resolved collection.
 			await this._extEnvironmentVariableCollection.applyToProcessEnvironment(env, { workspaceFolder }, variableResolver);
+			if (launchGeneration !== this._launchGeneration || this._isDisposed) {
+				return env;
+			}
 			if (this._extEnvironmentVariableCollection.getVariableMap({ workspaceFolder }).size) {
 				this.environmentVariableInfo = this._instantiationService.createInstance(EnvironmentVariableInfoChangesActive, this._extEnvironmentVariableCollection);
 				this._onEnvironmentVariableInfoChange.fire(this.environmentVariableInfo);
@@ -500,12 +550,16 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 		cols: number,
 		rows: number,
 		userHome: string | undefined,
-		variableResolver: terminalEnvironment.VariableResolver | undefined
-	): Promise<ITerminalChildProcess> {
+		variableResolver: terminalEnvironment.VariableResolver | undefined,
+		launchGeneration: number
+	): Promise<ITerminalChildProcess | undefined> {
 		await this._terminalProfileResolverService.resolveShellLaunchConfig(shellLaunchConfig, {
 			remoteAuthority: undefined,
 			os: OS
 		});
+		if (launchGeneration !== this._launchGeneration || this._isDisposed) {
+			return undefined;
+		}
 		const activeWorkspaceRootUri = this._historyService.getLastActiveWorkspaceRoot(Schemas.file);
 
 		const initialCwd = await terminalEnvironment.getCwd(
@@ -516,8 +570,14 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 			this._terminalConfigurationService.config.cwd,
 			this._logService
 		);
+		if (launchGeneration !== this._launchGeneration || this._isDisposed) {
+			return undefined;
+		}
 
-		const env = await this._resolveEnvironment(backend, variableResolver, shellLaunchConfig);
+		const env = await this._resolveEnvironment(backend, variableResolver, shellLaunchConfig, launchGeneration);
+		if (launchGeneration !== this._launchGeneration || this._isDisposed) {
+			return undefined;
+		}
 
 		const options: ITerminalProcessOptions = {
 			shellIntegration: {
@@ -531,7 +591,12 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 			isScreenReaderOptimized: this._accessibilityService.isScreenReaderOptimized()
 		};
 		const shouldPersist = ((this._configurationService.getValue(TaskSettingId.Reconnection) && shellLaunchConfig.reconnectionProperties) || !shellLaunchConfig.isFeatureTerminal) && this._terminalConfigurationService.config.enablePersistentSessions && !shellLaunchConfig.isTransient;
-		return await backend.createProcess(shellLaunchConfig, initialCwd, cols, rows, this._terminalConfigurationService.config.unicodeVersion, env, options, shouldPersist);
+		const process = await backend.createProcess(shellLaunchConfig, initialCwd, cols, rows, this._terminalConfigurationService.config.unicodeVersion, env, options, shouldPersist);
+		if (launchGeneration !== this._launchGeneration || this._isDisposed) {
+			process.shutdown(false);
+			return undefined;
+		}
+		return process;
 	}
 
 	private _setupPtyHostListeners(backend: ITerminalBackend) {

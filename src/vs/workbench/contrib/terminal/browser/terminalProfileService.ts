@@ -45,6 +45,7 @@ export class TerminalProfileService extends Disposable implements ITerminalProfi
 	private readonly _refreshTerminalActionsDisposable = this._register(new MutableDisposable());
 	private readonly _profileProviders: Map</*ext id*/string, Map</*provider id*/string, ITerminalProfileProvider>> = new Map();
 	private _defaultProfileOverride: { extensionIdentifier: string; id: string } | undefined;
+	private _refreshAvailableProfilesChain: Promise<void> = Promise.resolve();
 
 	private readonly _onDidChangeAvailableProfiles = this._register(new Emitter<ITerminalProfile[]>());
 	get onDidChangeAvailableProfiles(): Event<ITerminalProfile[]> { return this._onDidChangeAvailableProfiles.event; }
@@ -149,6 +150,12 @@ export class TerminalProfileService extends Disposable implements ITerminalProfi
 	}
 
 	protected async _refreshAvailableProfilesNow(): Promise<void> {
+		const run = this._refreshAvailableProfilesChain.then(() => this._now());
+		this._refreshAvailableProfilesChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async _now(): Promise<void> {
 		// Profiles
 		const profiles = await this._detectProfiles(true);
 		const profilesChanged = !arrays.equals(profiles, this._availableProfiles, profilesEqual);

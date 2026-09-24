@@ -44,6 +44,7 @@ export abstract class BaseTerminalProfileResolverService extends Disposable impl
 	private readonly _iconRegistry: IIconRegistry = getIconRegistry();
 
 	private _defaultProfileName: string | undefined;
+	private _refreshDefaultProfileNameChain: Promise<void> = Promise.resolve();
 	get defaultProfileName(): string | undefined { return this._defaultProfileName; }
 
 	constructor(
@@ -75,6 +76,12 @@ export abstract class BaseTerminalProfileResolverService extends Disposable impl
 
 	@debounce(200)
 	private async _refreshDefaultProfileName() {
+		const run = this._refreshDefaultProfileNameChain.then(() => this._refreshDefaultProfileNameBody());
+		this._refreshDefaultProfileNameChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async _refreshDefaultProfileNameBody() {
 		if (this._primaryBackendOs) {
 			this._defaultProfileName = (await this.getDefaultProfile({
 				remoteAuthority: this._remoteAgentService.getConnection()?.remoteAuthority,

@@ -547,8 +547,13 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		this._attachBarrier = new AutoOpenBarrier(1000);
 		this._xtermReadyPromise = this._createXterm();
 		this._xtermReadyPromise.then(async () => {
+			const launchConfig = this._shellLaunchConfig;
+
 			// Wait for a period to allow a container to be ready
 			await this._containerReadyBarrier.wait();
+			if (this.isDisposed || this._shellLaunchConfig !== launchConfig) {
+				return;
+			}
 
 			// Resolve the executable ahead of time if shell integration is enabled, this should not
 			// be done for custom PTYs as that would cause extension Pseudoterminal-based terminals
@@ -556,7 +561,13 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 			let os: OperatingSystem | undefined;
 			if (!this.shellLaunchConfig.customPtyImplementation && this._terminalConfigurationService.config.shellIntegration?.enabled && !this.shellLaunchConfig.executable) {
 				os = await this._processManager.getBackendOS();
+				if (this.isDisposed || this._shellLaunchConfig !== launchConfig) {
+					return;
+				}
 				const defaultProfile = (await this._terminalProfileResolverService.getDefaultProfile({ remoteAuthority: this.remoteAuthority, os }));
+				if (this.isDisposed || this._shellLaunchConfig !== launchConfig) {
+					return;
+				}
 				this.shellLaunchConfig.executable = defaultProfile.path;
 				this.shellLaunchConfig.args = defaultProfile.args;
 				// Only use default icon and color and env if they are undefined in the SLC
@@ -571,7 +582,13 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 				this.setShellType(guessShellTypeFromExecutable(os, this.shellLaunchConfig.executable));
 			}
 
+			if (this.isDisposed || this._shellLaunchConfig !== launchConfig) {
+				return;
+			}
 			await this._createProcess();
+			if (this.isDisposed || this._shellLaunchConfig !== launchConfig) {
+				return;
+			}
 
 			// Re-establish the title after reconnect
 			if (this.shellLaunchConfig.attachPersistentProcess) {
@@ -580,6 +597,9 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 				this.setShellType(this.shellType);
 			}
 
+			if (this.isDisposed || this._shellLaunchConfig !== launchConfig) {
+				return;
+			}
 			if (this._fixedCols) {
 				await this._addScrollbar();
 			}
