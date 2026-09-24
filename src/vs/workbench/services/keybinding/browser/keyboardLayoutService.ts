@@ -44,6 +44,7 @@ export class BrowserKeyboardMapperFactoryBase extends Disposable {
 	protected _keymapInfos: KeymapInfo[];
 	protected _mru: KeymapInfo[];
 	private _activeKeymapInfo: KeymapInfo | null;
+	private _layoutChain: Promise<void> = Promise.resolve();
 	private keyboardLayoutMapAllowed: boolean = (navigator as INavigatorWithKeyboard).keyboard !== undefined;
 
 	get activeKeymap(): KeymapInfo | null {
@@ -277,13 +278,14 @@ export class BrowserKeyboardMapperFactoryBase extends Disposable {
 			return;
 		}
 
-		this._getBrowserKeyMapping(keyboardEvent).then(keyMap => {
+		const run = this._layoutChain.then(() => this._getBrowserKeyMapping(keyboardEvent).then(keyMap => {
 			// might be false positive
 			if (this.isKeyMappingActive(keyMap)) {
 				return;
 			}
 			this.setActiveKeyMapping(keyMap);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError).catch(onUnexpectedError));
+		this._layoutChain = run.then(() => undefined, () => undefined);
 	}
 
 	public getKeyboardMapper(): IKeyboardMapper {
@@ -478,6 +480,7 @@ class UserKeyboardLayout extends Disposable {
 	readonly onDidChange: Event<void> = this._onDidChange.event;
 
 	private _keyboardLayout: KeymapInfo | null;
+	private _reloadChain: Promise<void> = Promise.resolve();
 	get keyboardLayout(): KeymapInfo | null { return this._keyboardLayout; }
 
 	constructor(
@@ -502,6 +505,12 @@ class UserKeyboardLayout extends Disposable {
 	}
 
 	private async reload(): Promise<boolean> {
+		const run = this._reloadChain.then(() => this.reloadNow());
+		this._reloadChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async reloadNow(): Promise<boolean> {
 		const existing = this._keyboardLayout;
 		try {
 			const content = await this.fileService.readFile(this.keyboardLayoutResource);

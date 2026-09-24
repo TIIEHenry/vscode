@@ -747,6 +747,7 @@ class UserKeybindings extends Disposable {
 	get keybindings(): IUserKeybindingItem[] { return this._keybindings; }
 
 	private readonly reloadConfigurationScheduler: RunOnceScheduler;
+	private _reloadChain: Promise<void> = Promise.resolve();
 
 	private readonly watchDisposables = this._register(new DisposableStore());
 
@@ -805,6 +806,12 @@ class UserKeybindings extends Disposable {
 	}
 
 	private async reload(): Promise<boolean> {
+		const run = this._reloadChain.then(() => this.reloadNow());
+		this._reloadChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async reloadNow(): Promise<boolean> {
 		const newKeybindings = await this.readUserKeybindings();
 		if (objects.equals(this._rawKeybindings, newKeybindings)) {
 			// no change
