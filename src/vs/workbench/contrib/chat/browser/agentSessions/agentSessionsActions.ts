@@ -895,8 +895,8 @@ export class DeleteAllLocalSessionsAction extends Action2 {
 			return;
 		}
 
-		// Clear all chat widgets
-		await Promise.all(widgetService.getAllWidgets().map(widget => widget.clear()));
+		const localSessionResources = agentSessionsService.model.sessions.filter(isLocalAgentSessionItem).map(session => session.resource);
+		await Promise.all(localSessionResources.map(resource => widgetService.getWidgetBySessionResource(resource)?.clear()));
 
 		// Remove from storage
 		await chatService.clearAllHistoryEntries();
