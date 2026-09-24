@@ -128,11 +128,18 @@ class LocalTerminalBackend extends BaseTerminalBackend implements ITerminalBacke
 		// if remote auth exists, don't await
 		if (!this._remoteAgentService.getConnection()?.remoteAuthority) {
 			await this._lifecycleService.when(LifecyclePhase.Restored);
+			if (this._directProxyClientEventually !== directProxyClientEventually) {
+				return;
+			}
 		}
 
 		mark('code/terminal/willConnectPtyHost');
 		this._logService.trace('Renderer->PtyHost#connect: before acquirePort');
 		acquirePort('vscode:createPtyHostMessageChannel', 'vscode:createPtyHostMessageChannelResult').then(port => {
+			if (this._directProxyClientEventually !== directProxyClientEventually) {
+				port.close();
+				return;
+			}
 			mark('code/terminal/didConnectPtyHost');
 			this._logService.trace('Renderer->PtyHost#connect: connection established');
 
