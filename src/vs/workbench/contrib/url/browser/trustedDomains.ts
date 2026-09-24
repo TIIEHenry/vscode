@@ -146,16 +146,23 @@ export async function configureOpenerTrustedDomainsHandler(
 			}
 			case 'trust': {
 				const itemToTrust = pickedResult.toTrust;
-				if (trustedDomains.indexOf(itemToTrust) === -1) {
+				let currentTrustedDomains: string[] = [];
+				try {
+					const trustedDomainsSrc = storageService.get(TRUSTED_DOMAINS_STORAGE_KEY, StorageScope.APPLICATION);
+					if (trustedDomainsSrc) {
+						currentTrustedDomains = JSON.parse(trustedDomainsSrc);
+					}
+				} catch (err) { }
+				if (currentTrustedDomains.indexOf(itemToTrust) === -1) {
 					storageService.remove(TRUSTED_DOMAINS_CONTENT_STORAGE_KEY, StorageScope.APPLICATION);
 					storageService.store(
 						TRUSTED_DOMAINS_STORAGE_KEY,
-						JSON.stringify([...trustedDomains, itemToTrust]),
+						JSON.stringify([...currentTrustedDomains, itemToTrust]),
 						StorageScope.APPLICATION,
 						StorageTarget.USER
 					);
 
-					return [...trustedDomains, itemToTrust];
+					return [...currentTrustedDomains, itemToTrust];
 				}
 			}
 		}
