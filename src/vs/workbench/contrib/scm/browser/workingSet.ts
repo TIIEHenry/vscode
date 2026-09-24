@@ -64,6 +64,7 @@ export class SCMWorkingSetController extends Disposable implements IWorkbenchCon
 
 	private _onDidAddRepository(repository: ISCMRepository): void {
 		const disposables = new DisposableStore();
+		let restoreChain: Promise<void> = Promise.resolve();
 
 		const historyItemRefId = derived(reader => {
 			const historyProvider = repository.provider.historyProvider.read(reader);
@@ -96,7 +97,9 @@ export class SCMWorkingSetController extends Disposable implements IWorkbenchCon
 			this._saveWorkingSet(providerKey, historyItemRefIdValue, repositoryWorkingSets);
 
 			// Restore the working set
-			await this._restoreWorkingSet(providerKey, historyItemRefIdValue);
+			const run = restoreChain.then(() => this._restoreWorkingSet(providerKey, historyItemRefIdValue));
+			restoreChain = run.then(() => { }, () => { });
+			await run;
 		}));
 
 		this._repositoryDisposables.set(repository, disposables);
