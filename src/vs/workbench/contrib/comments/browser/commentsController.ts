@@ -44,6 +44,7 @@ import { AccessibilityVerbositySettingId } from '../../accessibility/browser/acc
 import { AccessibilityCommandId } from '../../accessibility/common/accessibilityCommands.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { IAccessibilityService } from '../../../../platform/accessibility/common/accessibility.js';
+import { isEqual } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
 import { threadHasMeaningfulComments } from './commentsModel.js';
@@ -1245,9 +1246,14 @@ export class CommentController extends Disposable implements IEditorContribution
 
 				return Promise.resolve();
 			} else {
+				const uri = this.editor!.getModel()!.uri;
 				const picks = this.getCommentProvidersQuickPicks(newCommentInfos);
 				return this.quickInputService.pick(picks, { placeHolder: nls.localize('pickCommentService', "Select Comment Provider"), matchOnDescription: true }).then(pick => {
 					if (!pick) {
+						return;
+					}
+
+					if (!this.editor || !isEqual(this.editor.getModel()?.uri, uri)) {
 						return;
 					}
 

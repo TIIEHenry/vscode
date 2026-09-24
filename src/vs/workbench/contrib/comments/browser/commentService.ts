@@ -320,6 +320,7 @@ export class CommentService extends Disposable implements ICommentService {
 	}
 
 	private _lastActiveCommentController: ICommentController | undefined;
+	private _setActiveCommentAndThreadGeneration = 0;
 	async setActiveCommentAndThread(uniqueOwner: string, commentInfo: { thread: CommentThread<IRange>; comment?: Comment } | undefined) {
 		const commentController = this._commentControls.get(uniqueOwner);
 
@@ -327,8 +328,13 @@ export class CommentService extends Disposable implements ICommentService {
 			return;
 		}
 
+		const generation = ++this._setActiveCommentAndThreadGeneration;
+
 		if (commentController !== this._lastActiveCommentController) {
 			await this._lastActiveCommentController?.setActiveCommentAndThread(undefined);
+			if (generation !== this._setActiveCommentAndThreadGeneration) {
+				return;
+			}
 		}
 		this._lastActiveCommentController = commentController;
 		return commentController.setActiveCommentAndThread(commentInfo);
