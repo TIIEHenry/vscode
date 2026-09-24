@@ -213,6 +213,7 @@ export class SnippetsService implements ISnippetsService {
 	private readonly _files = new ResourceMap<SnippetFile>();
 	private readonly _enablement: SnippetEnablement;
 	private readonly _usageTimestamps: SnippetUsageTimestamps;
+	private _workspaceSnippetsEpoch = 0;
 
 	constructor(
 		@IEnvironmentService private readonly _environmentService: IEnvironmentService,
@@ -433,6 +434,7 @@ export class SnippetsService implements ISnippetsService {
 		const disposables = new DisposableStore();
 		const updateWorkspaceSnippets = () => {
 			disposables.clear();
+			++this._workspaceSnippetsEpoch;
 			this._trackPendingWork(this._initWorkspaceFolderSnippets(this._contextService.getWorkspace(), disposables));
 		};
 		this._disposables.add(disposables);
@@ -442,9 +444,13 @@ export class SnippetsService implements ISnippetsService {
 	}
 
 	private async _initWorkspaceFolderSnippets(workspace: IWorkspace, bucket: DisposableStore): Promise<void> {
+		const epoch = this._workspaceSnippetsEpoch;
 		const promises = workspace.folders.map(async folder => {
 			const snippetFolder = folder.toResource('.vscode');
 			const value = await this._fileService.exists(snippetFolder);
+			if (epoch !== this._workspaceSnippetsEpoch || bucket.isDisposed) {
+				return;
+			}
 			if (value) {
 				this._initFolderSnippets(SnippetSource.Workspace, snippetFolder, bucket).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else {
@@ -461,10 +467,15 @@ export class SnippetsService implements ISnippetsService {
 
 	private async _initUserSnippets(): Promise<any> {
 		const disposables = new DisposableStore();
+		let userSnippetsEpoch = 0;
 		const updateUserSnippets = async () => {
+			const epoch = ++userSnippetsEpoch;
 			disposables.clear();
 			const userSnippetsFolder = this._userDataProfileService.currentProfile.snippetsHome;
 			await this._fileService.createFolder(userSnippetsFolder);
+			if (epoch !== userSnippetsEpoch || disposables.isDisposed) {
+				return;
+			}
 			await this._initFolderSnippets(SnippetSource.User, userSnippetsFolder, disposables);
 		};
 		this._disposables.add(disposables);
@@ -476,13 +487,21 @@ export class SnippetsService implements ISnippetsService {
 
 	private _initFolderSnippets(source: SnippetSource, folder: URI, bucket: DisposableStore): Promise<any> {
 		const disposables = new DisposableStore();
+		let folderSnippetsEpoch = 0;
 		const addFolderSnippets = async () => {
+			const epoch = ++folderSnippetsEpoch;
 			disposables.clear();
 			if (!await this._fileService.exists(folder)) {
 				return;
 			}
+			if (epoch !== folderSnippetsEpoch || disposables.isDisposed) {
+				return;
+			}
 			try {
 				const stat = await this._fileService.resolve(folder);
+				if (epoch !== folderSnippetsEpoch || disposables.isDisposed) {
+					return;
+				}
 				for (const entry of stat.children || []) {
 					disposables.add(this._addSnippetFile(entry.resource, source));
 				}

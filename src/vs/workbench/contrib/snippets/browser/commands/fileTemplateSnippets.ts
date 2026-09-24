@@ -40,6 +40,7 @@ export class ApplyFileSnippetAction extends SnippetsAction {
 		}
 
 		const resourceUri = editor.getModel().uri;
+		const model = editor.getModel();
 		const snippets = await snippetService.getSnippets(undefined, resourceUri, { fileTemplateSnippets: true, noRecencySort: true, includeNoPrefixSnippets: true });
 		if (snippets.length === 0) {
 			return;
@@ -50,18 +51,20 @@ export class ApplyFileSnippetAction extends SnippetsAction {
 			return;
 		}
 
-		if (editor.hasModel()) {
-			// set language before applying so snippet comment variables resolve against this language
-			editor.getModel().setLanguage(langService.createById(selection.langId), ApplyFileSnippetAction.Id);
-
-			// apply snippet edit -> replaces everything
-			SnippetController2.get(editor)?.apply([{
-				range: editor.getModel().getFullModelRange(),
-				template: selection.snippet.body
-			}]);
-
-			editor.focus();
+		if (!editor.hasModel() || editor.getModel() !== model || model.isDisposed()) {
+			return;
 		}
+
+		// set language before applying so snippet comment variables resolve against this language
+		editor.getModel().setLanguage(langService.createById(selection.langId), ApplyFileSnippetAction.Id);
+
+		// apply snippet edit -> replaces everything
+		SnippetController2.get(editor)?.apply([{
+			range: editor.getModel().getFullModelRange(),
+			template: selection.snippet.body
+		}]);
+
+		editor.focus();
 	}
 
 	private async _pick(quickInputService: IQuickInputService, langService: ILanguageService, snippets: Snippet[]) {

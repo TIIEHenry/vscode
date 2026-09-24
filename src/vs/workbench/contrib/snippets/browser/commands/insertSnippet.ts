@@ -85,6 +85,7 @@ export class InsertSnippetAction extends SnippetEditorAction {
 			return;
 		}
 
+		const model = editor.getModel();
 		const clipboardService = accessor.get(IClipboardService);
 		const instaService = accessor.get(IInstantiationService);
 
@@ -145,6 +146,9 @@ export class InsertSnippetAction extends SnippetEditorAction {
 			clipboardText = await clipboardService.readText();
 		}
 		editor.focus();
+		if (!editor.hasModel() || editor.getModel() !== model || model.isDisposed()) {
+			return;
+		}
 		SnippetController2.get(editor)?.insert(snippet.codeSnippet, { clipboardText });
 		snippetService.updateUsageTimestamp(snippet);
 	}
