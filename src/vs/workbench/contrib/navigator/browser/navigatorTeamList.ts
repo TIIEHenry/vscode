@@ -190,6 +190,7 @@ export class NavigatorTeamView extends ViewPane {
 
 	private teamInfoCallCount = 0;
 	private hadTeamSnapshot = false;
+	private _refreshSeq = 0;
 	/** D445: leftover KEEP must close Inspect / member-task row-open without reselect. */
 	private leftoverRowActionsClosed = false;
 	private lastBodyHeight = 0;
@@ -395,6 +396,7 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	private async refreshTeamData(): Promise<void> {
+		const refreshSeq = ++this._refreshSeq;
 		const hadLiveTeamPaint = this.hadTeamSnapshot || this.memberEntries.length > 0 || this.taskEntries.length > 0;
 		const pairingHold = isConversationPairingHold(this.uaConnection);
 		if (pairingHold && hadLiveTeamPaint) {
@@ -518,6 +520,10 @@ export class NavigatorTeamView extends ViewPane {
 				}
 			}
 
+			if (refreshSeq !== this._refreshSeq) {
+				return;
+			}
+
 			if (this.rosterService.getActiveSessionId() !== sessionId) {
 				return;
 			}
@@ -537,6 +543,9 @@ export class NavigatorTeamView extends ViewPane {
 			this.publishLiveTaskIds(tasks);
 			this.setTeamSnapshotNote(undefined);
 		} catch {
+			if (refreshSeq !== this._refreshSeq) {
+				return;
+			}
 			if (this.rosterService.getActiveSessionId() !== sessionId) {
 				return;
 			}
