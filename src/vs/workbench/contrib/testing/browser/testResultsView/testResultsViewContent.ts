@@ -359,9 +359,13 @@ export class TestResultsViewContent extends Disposable {
 			this.currentSubjectStore.clear();
 			const callFrames = this.getCallFrames(opts.subject) || [];
 			const topFrame = await this.prepareTopFrame(opts.subject, callFrames);
-			if (this._store.isDisposed) {
+			if (this._store.isDisposed || !this.current || !equalsSubject(this.current, opts.subject)) {
+				if ('dispose' in topFrame && typeof topFrame.dispose === 'function') {
+					topFrame.dispose();
+				}
 				return;
 			}
+			this.currentTopFrame = topFrame;
 			this.setCallStackFrames(topFrame, callFrames);
 
 			this.followupWidget.show(opts.subject);
@@ -413,7 +417,7 @@ export class TestResultsViewContent extends Disposable {
 		this.messageContainer.style.visibility = 'hidden';
 		this.stackContainer.appendChild(this.messageContainer);
 
-		const topFrame = this.currentTopFrame = this.instantiationService.createInstance(MessageStackFrame, this.messageContainer, this.followupWidget, subject);
+		const topFrame = this.instantiationService.createInstance(MessageStackFrame, this.messageContainer, this.followupWidget, subject);
 
 		const hasMultipleFrames = callFrames.length > 0;
 		topFrame.showHeader.set(hasMultipleFrames, undefined);
