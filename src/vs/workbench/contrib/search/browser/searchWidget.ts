@@ -138,6 +138,7 @@ export class SearchWidget extends Widget {
 	private _replaceHistoryDelayer: Delayer<void>;
 	private ignoreGlobalFindBufferOnNextFocus = false;
 	private previousGlobalFindBufferValue: string | null = null;
+	private _globalFindBufferFocusEpoch = 0;
 
 	/**
 	 * Tracks whether the accessibility help hint has been announced in the ARIA label.
@@ -489,12 +490,16 @@ export class SearchWidget extends Widget {
 
 		this.searchInputFocusTracker = this._register(dom.trackFocus(this.searchInput.inputBox.inputElement));
 		this._register(this.searchInputFocusTracker.onDidFocus(async () => {
+			const focusEpoch = ++this._globalFindBufferFocusEpoch;
 			this.searchInputBoxFocused.set(true);
 
 			const useGlobalFindBuffer = this.searchConfiguration.globalFindClipboard;
 			if (!this.ignoreGlobalFindBufferOnNextFocus && useGlobalFindBuffer) {
 				const valueBefore = this.searchInput?.inputBox.value;
 				const globalBufferText = await this.clipboardServce.readFindText();
+				if (focusEpoch !== this._globalFindBufferFocusEpoch) {
+					return;
+				}
 				if (this.ignoreGlobalFindBufferOnNextFocus) {
 					return;
 				}
