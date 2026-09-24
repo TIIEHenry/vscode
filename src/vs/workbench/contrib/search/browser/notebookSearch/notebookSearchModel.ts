@@ -5,7 +5,7 @@
 
 import { coalesce } from '../../../../../base/common/arrays.js';
 import { RunOnceScheduler } from '../../../../../base/common/async.js';
-import { CancellationToken } from '../../../../../base/common/cancellation.js';
+import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { IDisposable } from '../../../../../base/common/lifecycle.js';
 import { FindMatch } from '../../../../../editor/common/model.js';
 import { IModelService } from '../../../../../editor/common/services/model.js';
@@ -179,6 +179,8 @@ export class NotebookCompatibleFileMatch extends FileMatchImpl implements INoteb
 	private _editorWidgetListener: IDisposable | null = null;
 	private _notebookUpdateScheduler: RunOnceScheduler;
 	private _lastEditorWidgetIdForUpdate: string | undefined;
+	private _updateMatchesForEditorWidgetCts: CancellationTokenSource | undefined;
+	private _updateMatchesForEditorWidgetGeneration = 0;
 
 	constructor(
 		_query: IPatternInfo,
@@ -274,6 +276,8 @@ export class NotebookCompatibleFileMatch extends FileMatchImpl implements INoteb
 			this._notebookUpdateScheduler.cancel();
 			this._editorWidgetListener?.dispose();
 		}
+		this._updateMatchesForEditorWidgetCts?.dispose(true);
+		this._updateMatchesForEditorWidgetCts = undefined;
 		this._removeNotebookHighlights();
 		this._notebookEditorWidget = null;
 	}
@@ -375,20 +379,29 @@ export class NotebookCompatibleFileMatch extends FileMatchImpl implements INoteb
 			return;
 		}
 
+		this._updateMatchesForEditorWidgetCts?.dispose(true);
+		this._updateMatchesForEditorWidgetCts = new CancellationTokenSource();
+		const token = this._updateMatchesForEditorWidgetCts.token;
+		const widget = this._notebookEditorWidget;
+		const generation = ++this._updateMatchesForEditorWidgetGeneration;
+
 		this._textMatches = new Map<string, ISearchTreeMatch>();
 
 		const wordSeparators = this._query.isWordMatch && this._query.wordSeparators ? this._query.wordSeparators : null;
-		const allMatches = await this._notebookEditorWidget
-			.find(this._query.pattern, {
-				regex: this._query.isRegExp,
-				wholeWord: this._query.isWordMatch,
-				caseSensitive: this._query.isCaseSensitive,
-				wordSeparators: wordSeparators ?? undefined,
-				includeMarkupInput: this._query.notebookInfo?.isInNotebookMarkdownInput,
-				includeMarkupPreview: this._query.notebookInfo?.isInNotebookMarkdownPreview,
-				includeCodeInput: this._query.notebookInfo?.isInNotebookCellInput,
-				includeOutput: this._query.notebookInfo?.isInNotebookCellOutput,
-			}, CancellationToken.None, false, true, this.searchInstanceID);
+		const allMatches = await widget.find(this._query.pattern, {
+			regex: this._query.isRegExp,
+			wholeWord: this._query.isWordMatch,
+			caseSensitive: this._query.isCaseSensitive,
+			wordSeparators: wordSeparators ?? undefined,
+			includeMarkupInput: this._query.notebookInfo?.isInNotebookMarkdownInput,
+			includeMarkupPreview: this._query.notebookInfo?.isInNotebookMarkdownPreview,
+			includeCodeInput: this._query.notebookInfo?.isInNotebookCellInput,
+			includeOutput: this._query.notebookInfo?.isInNotebookCellOutput,
+		}, token, false, true, this.searchInstanceID);
+
+		if (this._store.isDisposed || this._notebookEditorWidget !== widget || generation !== this._updateMatchesForEditorWidgetGeneration) {
+			return;
+		}
 
 		this.updateNotebookMatches(allMatches, true);
 	}
