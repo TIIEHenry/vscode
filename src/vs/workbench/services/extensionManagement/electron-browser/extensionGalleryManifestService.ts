@@ -84,6 +84,8 @@ export class WorkbenchExtensionGalleryManifestService extends ExtensionGalleryMa
 		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
+	private _accountAccessGeneration = 0;
+
 	private extensionGalleryManifestPromise: Promise<void> | undefined;
 	override async getExtensionGalleryManifest(): Promise<IExtensionGalleryManifest | null> {
 		if (!this.extensionGalleryManifestPromise) {
@@ -118,7 +120,12 @@ export class WorkbenchExtensionGalleryManifestService extends ExtensionGalleryMa
 	}
 
 	private async handleDefaultAccountAccess(configuredServiceUrl: string): Promise<void> {
+		const generation = ++this._accountAccessGeneration;
 		const account = await this.defaultAccountService.getDefaultAccount();
+
+		if (generation !== this._accountAccessGeneration) {
+			return;
+		}
 
 		if (!account) {
 			this.logService.debug('[Marketplace] Enterprise marketplace configured but user not signed in');
@@ -129,6 +136,9 @@ export class WorkbenchExtensionGalleryManifestService extends ExtensionGalleryMa
 		} else if (this.currentStatus !== ExtensionGalleryManifestStatus.Available) {
 			try {
 				const manifest = await this.getExtensionGalleryManifestFromServiceUrl(configuredServiceUrl);
+				if (generation !== this._accountAccessGeneration) {
+					return;
+				}
 				this.update(manifest);
 				this.telemetryService.publicLog2<
 					{},
@@ -137,6 +147,9 @@ export class WorkbenchExtensionGalleryManifestService extends ExtensionGalleryMa
 						comment: 'Reports when a user successfully accesses a custom marketplace';
 					}>('galleryservice:custom:marketplace');
 			} catch (error) {
+				if (generation !== this._accountAccessGeneration) {
+					return;
+				}
 				this.logService.error('[Marketplace] Error retrieving enterprise gallery manifest', error);
 				this.update(null, ExtensionGalleryManifestStatus.AccessDenied);
 			}
