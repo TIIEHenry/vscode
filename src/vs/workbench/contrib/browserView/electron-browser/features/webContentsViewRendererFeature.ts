@@ -56,6 +56,7 @@ class WebContentsViewRendererFeature extends BrowserEditorContribution {
 	private readonly _overlayPauseContent: IBrowserEditorWidget;
 
 	private readonly _screenshotHandle = this._register(new MutableDisposable());
+	private _screenshotGeneration = 0;
 	private _focusTimeout: ReturnType<typeof setTimeout> | undefined;
 
 	constructor(
@@ -269,18 +270,26 @@ class WebContentsViewRendererFeature extends BrowserEditorContribution {
 	}
 
 	private async _doScreenshot(): Promise<void> {
-		if (!this._model) {
+		const generation = ++this._screenshotGeneration;
+		const model = this._model;
+		if (!model) {
 			return;
 		}
 		this._screenshotHandle.clear();
-		if (!this._model.visible) {
+		if (!model.visible) {
 			return;
 		}
 		try {
-			const screenshot = await this._model.captureScreenshot({ quality: 80 });
+			const screenshot = await model.captureScreenshot({ quality: 80 });
+			if (generation !== this._screenshotGeneration || this._model !== model) {
+				return;
+			}
 			this._setBackgroundImage(screenshot);
 		} catch (error) {
 			this.logService.error('Failed to capture browser view screenshot', error);
+		}
+		if (generation !== this._screenshotGeneration || this._model !== model) {
+			return;
 		}
 		const handle = setTimeout(() => void this._doScreenshot().catch(onUnexpectedError).catch(onUnexpectedError), 1000);
 		this._screenshotHandle.value = toDisposable(() => clearTimeout(handle));
