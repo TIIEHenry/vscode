@@ -37,6 +37,7 @@ class NativeLocaleService implements ILocaleService {
 	_serviceBrand: undefined;
 
 	private localeWriteGeneration = 0;
+	private _localeWriteChain: Promise<void> = Promise.resolve();
 
 	constructor(
 		@IJSONEditingService private readonly jsonEditingService: IJSONEditingService,
@@ -86,8 +87,15 @@ class NativeLocaleService implements ILocaleService {
 		if (generation !== this.localeWriteGeneration) {
 			return false;
 		}
-		await this.jsonEditingService.write(this.environmentService.argvResource, [{ path: ['locale'], value: locale }], true);
-		return true;
+		const run = this._localeWriteChain.then(async () => {
+			if (generation !== this.localeWriteGeneration) {
+				return false;
+			}
+			await this.jsonEditingService.write(this.environmentService.argvResource, [{ path: ['locale'], value: locale }], true);
+			return true;
+		});
+		this._localeWriteChain = run.then(() => undefined, () => undefined);
+		return run;
 	}
 
 	async setLocale(languagePackItem: ILanguagePackItem, skipDialog = false): Promise<void> {
