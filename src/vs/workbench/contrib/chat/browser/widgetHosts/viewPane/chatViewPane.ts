@@ -431,6 +431,9 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 		EventHelper.stop(event, true);
 		event.stopImmediatePropagation();
 		await this.clear();
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.focusSessions();
 	}
 
@@ -1488,6 +1491,9 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 		// Grab the widget's latest view state because it will be loaded back into the widget
 		this.updateViewState();
 		await this.showModel(CancellationToken.None);
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		// Update the toolbar context with new sessionId
 		this.updateActions();
