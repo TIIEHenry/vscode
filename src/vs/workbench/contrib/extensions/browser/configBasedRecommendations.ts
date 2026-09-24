@@ -26,6 +26,8 @@ export class ConfigBasedRecommendations extends ExtensionRecommendations {
 	private _importantRecommendations: ConfigBasedExtensionRecommendation[] = [];
 	get importantRecommendations(): ReadonlyArray<ConfigBasedExtensionRecommendation> { return this._importantRecommendations; }
 
+	private _fetchChain: Promise<void> = Promise.resolve();
+
 	get recommendations(): ReadonlyArray<ConfigBasedExtensionRecommendation> { return [...this.importantRecommendations, ...this.otherRecommendations]; }
 
 	constructor(
@@ -41,6 +43,12 @@ export class ConfigBasedRecommendations extends ExtensionRecommendations {
 	}
 
 	private async fetch(): Promise<void> {
+		const run = this._fetchChain.then(() => this._fetchNow());
+		this._fetchChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async _fetchNow(): Promise<void> {
 		const workspace = this.workspaceContextService.getWorkspace();
 		const importantTips: Map<string, IConfigBasedExtensionTip> = new Map<string, IConfigBasedExtensionTip>();
 		const otherTips: Map<string, IConfigBasedExtensionTip> = new Map<string, IConfigBasedExtensionTip>();

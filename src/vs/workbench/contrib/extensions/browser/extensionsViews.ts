@@ -269,7 +269,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 				return model;
 			} catch (e) {
 				const model = new PagedModel([]);
-				if (!isCancellationError(e)) {
+				if (!isCancellationError(e) && !token.isCancellationRequested) {
 					this.logService.error(e);
 					this.setModel(model, this.getMessage(e));
 				}

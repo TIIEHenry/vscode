@@ -33,6 +33,8 @@ export class WorkspaceRecommendations extends ExtensionRecommendations {
 	get ignoredRecommendations(): ReadonlyArray<string> { return this._ignoredRecommendations; }
 
 	private workspaceExtensions: URI[] = [];
+	private _fetchChain: Promise<void> = Promise.resolve();
+	private _folderChain: Promise<void> = Promise.resolve();
 	private readonly onDidChangeWorkspaceExtensionsScheduler: RunOnceScheduler;
 
 	constructor(
@@ -68,6 +70,12 @@ export class WorkspaceRecommendations extends ExtensionRecommendations {
 	}
 
 	private async onDidChangeWorkspaceExtensionsFolders(): Promise<void> {
+		const run = this._folderChain.then(() => this._onDidChangeWorkspaceExtensionsFoldersNow());
+		this._folderChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async _onDidChangeWorkspaceExtensionsFoldersNow(): Promise<void> {
 		const existing = this.workspaceExtensions;
 		this.workspaceExtensions = await this.fetchWorkspaceExtensions();
 		if (!equals(existing, this.workspaceExtensions, (a, b) => this.uriIdentityService.extUri.isEqual(a, b))) {
@@ -102,6 +110,12 @@ export class WorkspaceRecommendations extends ExtensionRecommendations {
 	 * Parse all extensions.json files, fetch workspace recommendations, filter out invalid and unwanted ones
 	 */
 	private async fetch(): Promise<void> {
+		const run = this._fetchChain.then(() => this._fetchNow());
+		this._fetchChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async _fetchNow(): Promise<void> {
 
 		const extensionsConfigs = await this.workspaceExtensionsConfigService.getExtensionsConfigs();
 
