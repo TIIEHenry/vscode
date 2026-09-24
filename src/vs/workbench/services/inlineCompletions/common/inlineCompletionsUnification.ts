@@ -47,6 +47,7 @@ export class InlineCompletionsUnificationImpl extends Disposable implements IInl
 	readonly _serviceBrand: undefined;
 
 	private _state = new InlineCompletionsUnificationState(false, false, false, []);
+	private _generation = 0;
 	public get state(): IInlineCompletionsUnificationState { return this._state; }
 
 	private isRunningUnificationExperiment;
@@ -103,16 +104,23 @@ export class InlineCompletionsUnificationImpl extends Disposable implements IInl
 	}
 
 	private async _update(): Promise<void> {
+		const generation = ++this._generation;
 		const [codeUnificationFF, modelUnificationFF, extensionUnificationEnabled] = await Promise.all([
 			this._assignmentService.getTreatment<boolean>(CODE_UNIFICATION_FF),
 			this._assignmentService.getTreatment<boolean>(MODEL_UNIFICATION_FF),
 			this._isExtensionUnificationActive()
 		]);
+		if (this._store.isDisposed || generation !== this._generation) {
+			return;
+		}
 
 		const extensionStatesMatchUnificationSetting = this._configurationService.getValue<boolean>(ExtensionUnificationSetting) === extensionUnificationEnabled;
 
 		// Intentionally read the current experiments after fetching the treatments
 		const currentExperiments = await this._assignmentService.getCurrentExperiments();
+		if (this._store.isDisposed || generation !== this._generation) {
+			return;
+		}
 		const newState = new InlineCompletionsUnificationState(
 			codeUnificationFF === true,
 			modelUnificationFF === true,
