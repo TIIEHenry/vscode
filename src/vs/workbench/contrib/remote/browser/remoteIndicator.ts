@@ -435,7 +435,8 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 
 		if (this.hostService.hasFocus && this.networkState !== 'offline') {
 			const measurement = await remoteConnectionLatencyMeasurer.measure(this.remoteAgentService);
-			if (measurement && this.networkState !== 'offline') {
+			const networkState: 'online' | 'offline' | 'high-latency' | undefined = this.networkState;
+			if (measurement && networkState !== 'offline') {
 				if (measurement.high) {
 					this.setNetworkState('high-latency');
 				} else if (this.networkState === 'high-latency') {
