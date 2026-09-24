@@ -1198,6 +1198,7 @@ class WorkspaceExtensionsManagementService extends Disposable {
 
 	private readonly extensions: ILocalExtension[] = [];
 	private readonly initializePromise: Promise<void>;
+	private _extensionsChain = Promise.resolve();
 
 	private readonly invalidExtensionWatchers = this._register(new DisposableStore());
 
@@ -1264,7 +1265,17 @@ class WorkspaceExtensionsManagementService extends Disposable {
 		}
 	}
 
-	private async checkExtensionsValidity(extensions: ILocalExtension[]): Promise<void> {
+	private checkExtensionsValidity(extensions: ILocalExtension[]): Promise<void> {
+		return this.runOnExtensionsChain(() => this.doCheckExtensionsValidity(extensions));
+	}
+
+	private runOnExtensionsChain<T>(fn: () => Promise<T>): Promise<T> {
+		const run = this._extensionsChain.then(() => fn(), () => fn());
+		this._extensionsChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async doCheckExtensionsValidity(extensions: ILocalExtension[]): Promise<void> {
 		const validExtensions: ILocalExtension[] = [];
 		await Promise.all(extensions.map(async extension => {
 			const newExtension = await this.scanWorkspaceExtension(extension.location);
@@ -1295,7 +1306,10 @@ class WorkspaceExtensionsManagementService extends Disposable {
 
 	async install(extension: IResourceExtension): Promise<ILocalExtension> {
 		await this.initializePromise;
+		return this.runOnExtensionsChain(() => this.doInstall(extension));
+	}
 
+	private async doInstall(extension: IResourceExtension): Promise<ILocalExtension> {
 		const workspaceExtension = await this.scanWorkspaceExtension(extension.location);
 		if (!workspaceExtension) {
 			throw new Error('Cannot install the extension as it does not exist.');
@@ -1319,7 +1333,10 @@ class WorkspaceExtensionsManagementService extends Disposable {
 
 	async uninstall(extension: ILocalExtension): Promise<void> {
 		await this.initializePromise;
+		return this.runOnExtensionsChain(() => this.doUninstall(extension));
+	}
 
+	private async doUninstall(extension: ILocalExtension): Promise<void> {
 		const existingExtensionIndex = this.extensions.findIndex(e => areSameExtensions(e.identifier, extension.identifier));
 		if (existingExtensionIndex !== -1) {
 			this.extensions.splice(existingExtensionIndex, 1);
