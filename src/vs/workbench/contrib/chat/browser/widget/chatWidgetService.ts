@@ -159,7 +159,7 @@ export class ChatWidgetService extends Disposable implements IChatWidgetService 
 				this.logService.trace(`[ChatWidgetService] openSession done total=${Date.now() - t0}ms uri=${sessionResource.toString()} path=view`);
 				return chatView.widget;
 			}
-			return chatView?.widget;
+			return undefined;
 		}
 
 		// Open in chat editor
