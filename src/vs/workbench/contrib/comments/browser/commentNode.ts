@@ -600,6 +600,9 @@ export class CommentNode<T extends IRange | ICellRange> extends Disposable {
 		this._body.classList.add('hidden');
 		this._commentEditContainer = dom.append(this._commentDetailsContainer, dom.$('.edit-container'));
 		await this.createCommentEditor(this._commentEditContainer);
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		const formActions = dom.append(this._commentEditContainer, dom.$('.form-actions'));
 		const otherActions = dom.append(formActions, dom.$('.other-actions'));
@@ -697,6 +700,9 @@ export class CommentNode<T extends IRange | ICellRange> extends Disposable {
 			} else {
 				this.removeCommentEditor();
 			}
+		}
+		if (this._store.isDisposed || this.comment !== newComment) {
+			return;
 		}
 
 		if (newComment.label) {
