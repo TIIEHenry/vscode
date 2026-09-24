@@ -1476,6 +1476,10 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 			this.logService.warn(`Failed to resolve chat session type '${sessionType}' for locking`, error);
 		}
 
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		if (!canResolve) {
 			this._widget.unlockFromCodingAgent();
 			return;
