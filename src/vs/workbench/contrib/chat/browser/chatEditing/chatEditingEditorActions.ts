@@ -38,6 +38,7 @@ import { IChatWidgetService } from '../chat.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
+import { isEqual } from '../../../../../base/common/resources.js';
 import { Event } from '../../../../../base/common/event.js';
 import { ChatConfiguration } from '../../common/constants.js';
 
@@ -565,6 +566,19 @@ class ExplainMultiDiffAction extends Action2 {
 			const diffEditorVM = item.diffEditorViewModel as DiffEditorViewModel;
 			await diffEditorVM.waitForDiff();
 
+			if (input.isDisposed() || widgetsStore.isDisposed) {
+				return;
+			}
+
+			if (diffEditorVM.model.original.isDisposed() || diffEditorVM.model.modified.isDisposed()) {
+				continue;
+			}
+
+			const liveEditorInfo = activePane.tryGetCodeEditor(modifiedUri);
+			if (!liveEditorInfo || liveEditorInfo.editor !== editorInfo.editor || !isEqual(liveEditorInfo.editor.getModel()?.uri, modifiedUri)) {
+				continue;
+			}
+
 			const diff = diffEditorVM.diff.get();
 			if (!diff || diff.identical) {
 				continue;
@@ -578,7 +592,7 @@ class ExplainMultiDiffAction extends Action2 {
 			} else {
 				// Create new file entry
 				diffsByFile.set(fileKey, {
-					editor: editorInfo.editor,
+					editor: liveEditorInfo.editor,
 					changes: diff.mappings.map(m => m.lineRangeMapping),
 					originalModel: diffEditorVM.model.original,
 					modifiedModel: diffEditorVM.model.modified,
@@ -590,6 +604,12 @@ class ExplainMultiDiffAction extends Action2 {
 		const allDiffInfos: IExplanationDiffInfo[] = [];
 
 		for (const fileData of diffsByFile.values()) {
+			const modifiedUri = fileData.modifiedModel.uri;
+			const liveEditorInfo = activePane.tryGetCodeEditor(modifiedUri);
+			if (!liveEditorInfo || liveEditorInfo.editor !== fileData.editor || !isEqual(liveEditorInfo.editor.getModel()?.uri, modifiedUri)) {
+				continue;
+			}
+
 			// Build diff info with all changes for this file
 			const diffInfo: IExplanationDiffInfo = {
 				changes: fileData.changes,
@@ -613,6 +633,9 @@ class ExplainMultiDiffAction extends Action2 {
 		// Generate explanations for all files in a single request
 		// This populates state which triggers the managers' autoruns to create widgets
 		if (allDiffInfos.length > 0) {
+			if (input.isDisposed() || widgetsStore.isDisposed) {
+				return;
+			}
 			widgetsStore.add(explanationModelManager.generateExplanations(allDiffInfos, chatSessionResource, CancellationToken.None));
 		}
 	}
