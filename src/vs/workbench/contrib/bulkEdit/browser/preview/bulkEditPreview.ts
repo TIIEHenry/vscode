@@ -406,6 +406,9 @@ export class BulkEditPreviewProvider implements ITextModelContentProvider {
 
 	private async _applyTextEditsToPreviewModel(uri: URI) {
 		const model = await this._getOrCreatePreviewModel(uri);
+		if (this._disposables.isDisposed || model.isDisposed()) {
+			return;
+		}
 
 		// undo edits that have been done before
 		const undoEdits = this._modelPreviewEdits.get(model.id);
@@ -414,6 +417,9 @@ export class BulkEditPreviewProvider implements ITextModelContentProvider {
 		}
 		// apply new edits and keep (future) undo edits
 		const newEdits = await this._operations.getFileEdits(uri);
+		if (this._disposables.isDisposed || model.isDisposed()) {
+			return;
+		}
 		const newUndoEdits = model.applyEdits(newEdits, true);
 		this._modelPreviewEdits.set(model.id, newUndoEdits);
 	}

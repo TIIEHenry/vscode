@@ -136,8 +136,12 @@ class BulkEditPreviewContribution {
 		// session
 		let session: PreviewSession;
 		if (this._activeSession) {
+			const previous = this._activeSession;
 			await this._activeSession.uxState.restore(false, true);
-			this._activeSession.cts.dispose(true);
+			if (this._activeSession !== previous) {
+				return [];
+			}
+			previous.cts.dispose(true);
 			session = new PreviewSession(uxState);
 		} else {
 			session = new PreviewSession(uxState);

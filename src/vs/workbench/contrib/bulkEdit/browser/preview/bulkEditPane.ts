@@ -7,10 +7,10 @@ import { ButtonBar } from '../../../../../base/browser/ui/button/button.js';
 import type { IAsyncDataTreeViewState } from '../../../../../base/browser/ui/tree/asyncDataTree.js';
 import { ITreeContextMenuEvent } from '../../../../../base/browser/ui/tree/tree.js';
 import { CachedFunction, LRUCachedFunction } from '../../../../../base/common/cache.js';
-import { CancellationToken } from '../../../../../base/common/cancellation.js';
+import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { FuzzyScore } from '../../../../../base/common/filters.js';
-import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+import { DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { Mutable } from '../../../../../base/common/types.js';
 import { URI } from '../../../../../base/common/uri.js';
 import './bulkEdit.css';
@@ -196,7 +196,15 @@ export class BulkEditPane extends ViewPane {
 			this._currentResolve = undefined;
 		}
 
+		const cts = new CancellationTokenSource();
+		this._sessionDisposables.add(toDisposable(() => cts.dispose(true)));
+
 		const input = await this._instaService.invokeFunction(BulkFileOperations.create, edit);
+		if (this._store.isDisposed || cts.token.isCancellationRequested || token.isCancellationRequested) {
+			input.dispose();
+			return;
+		}
+
 		this._currentProvider = this._instaService.createInstance(BulkEditPreviewProvider, input);
 		this._sessionDisposables.add(this._currentProvider);
 		this._sessionDisposables.add(input);
