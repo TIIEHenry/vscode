@@ -78,6 +78,7 @@ export abstract class AbstractRuntimeExtensionsEditor extends EditorPane {
 	private _list: WorkbenchList<IRuntimeExtension> | null;
 	private _elements: IRuntimeExtension[] | null;
 	private _updateSoon: RunOnceScheduler;
+	private _updateExtensionsGeneration = 0;
 
 	constructor(
 		group: IEditorGroup,
@@ -109,7 +110,12 @@ export abstract class AbstractRuntimeExtensionsEditor extends EditorPane {
 	}
 
 	protected async _updateExtensions(): Promise<void> {
-		this._elements = await this._resolveExtensions();
+		const generation = ++this._updateExtensionsGeneration;
+		const elements = await this._resolveExtensions();
+		if (this._store.isDisposed || generation !== this._updateExtensionsGeneration) {
+			return;
+		}
+		this._elements = elements;
 		this._list?.splice(0, this._list.length, this._elements);
 	}
 
