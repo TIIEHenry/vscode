@@ -420,7 +420,7 @@ export class CodeLensContribution implements IEditorContribution {
 				});
 
 				return Promise.all(promises).then(() => {
-					if (!token.isCancellationRequested && !lenses[i].isDisposed()) {
+					if (!token.isCancellationRequested && !lenses[i].isDisposed() && lenses[i].isCurrentData(request)) {
 						lenses[i].updateCommands(resolvedSymbols);
 					}
 				});
