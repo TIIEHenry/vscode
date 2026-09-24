@@ -6,7 +6,7 @@
 import './media/scm.css';
 import { Event, Emitter } from '../../../../base/common/event.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
-import { basename, dirname } from '../../../../base/common/resources.js';
+import { basename, dirname, isEqual } from '../../../../base/common/resources.js';
 import { IDisposable, Disposable, DisposableStore, combinedDisposable, dispose, toDisposable, MutableDisposable, DisposableMap } from '../../../../base/common/lifecycle.js';
 import { ViewPane, IViewPaneOptions, ViewAction } from '../../../browser/parts/views/viewPane.js';
 import { append, $, clearNode, isPointerEvent, isActiveElement } from '../../../../base/browser/dom.js';
@@ -1731,8 +1731,17 @@ export class SCMViewPane extends ViewPane {
 
 				if (e.editorOptions.pinned) {
 					const activeEditorPane = this.editorService.activeEditorPane;
+					const activePrimary = EditorResourceAccessor.getOriginalUri(activeEditorPane?.input, { supportSideBySide: SideBySideEditor.PRIMARY });
+					const activeSecondary = EditorResourceAccessor.getOriginalUri(activeEditorPane?.input, { supportSideBySide: SideBySideEditor.SECONDARY });
+					const matchesOpenedResource = (uri: URI | undefined) => !!uri && (
+						isEqual(uri, e.element.sourceUri) ||
+						isEqual(uri, e.element.multiDiffEditorOriginalUri) ||
+						isEqual(uri, e.element.multiDiffEditorModifiedUri)
+					);
 
-					activeEditorPane?.group.pinEditor(activeEditorPane.input);
+					if (activeEditorPane && (matchesOpenedResource(activePrimary) || matchesOpenedResource(activeSecondary))) {
+						activeEditorPane.group.pinEditor(activeEditorPane.input);
+					}
 				}
 			}
 
