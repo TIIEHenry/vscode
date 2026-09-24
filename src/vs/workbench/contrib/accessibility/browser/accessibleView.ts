@@ -94,6 +94,7 @@ export class AccessibleView extends Disposable {
 
 	private _currentProvider: AccesibleViewContentProvider | undefined;
 	private _currentContent: string | undefined;
+	private _renderSeq = 0;
 
 	private _lastProvider: AccesibleViewContentProvider | undefined;
 	private _lastProviderPosition: Map<string, Position> = new Map();
@@ -599,6 +600,7 @@ export class AccessibleView extends Disposable {
 	}
 
 	private _render(provider: AccesibleViewContentProvider, container: HTMLElement, showAccessibleViewHelp?: boolean, updatedContent?: string): IDisposable {
+		const renderSeq = ++this._renderSeq;
 		const isSameProvider = this._currentProvider?.id === provider.id;
 		const previousPosition = isSameProvider ? this._editorWidget.getPosition() : undefined;
 		const previousScrollTop = isSameProvider ? this._editorWidget.getScrollTop() : undefined;
@@ -611,6 +613,9 @@ export class AccessibleView extends Disposable {
 		const widgetIsFocused = this._editorWidget.hasTextFocus() || this._editorWidget.hasWidgetFocus();
 		const stableUri = this._getStableUri(provider.id);
 		this._getTextModel(stableUri).then((model) => {
+			if (renderSeq !== this._renderSeq) {
+				return;
+			}
 			if (!model) {
 				return;
 			}
