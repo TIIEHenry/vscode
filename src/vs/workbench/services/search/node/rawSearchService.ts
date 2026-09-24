@@ -178,7 +178,10 @@ export class SearchService implements IRawSearchService {
 			allResultsPromise.then(() => {
 				cacheRow.resolved = true;
 			}, err => {
-				delete cache.resultsToSearchCache[config.filePattern || ''];
+				const key = config.filePattern || '';
+				if (cache.resultsToSearchCache[key] === cacheRow) {
+					delete cache.resultsToSearchCache[key];
+				}
 			});
 
 			allResultsPromise = this.preventCancellation(allResultsPromise);
