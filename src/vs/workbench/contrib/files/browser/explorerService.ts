@@ -322,6 +322,11 @@ export class ExplorerService implements IExplorerService {
 		try {
 			const stat = await this.fileService.resolve(root.resource, options);
 
+			// setRoots() replaces ExplorerItems; do not merge/refresh/select a discarded root.
+			if (!this.view || this.findClosestRoot(resource) !== root || !this.roots.includes(root)) {
+				return;
+			}
+
 			// Convert to model
 			const modelStat = ExplorerItem.create(this.fileService, this.configurationService, this.filesConfigurationService, stat, undefined, options.resolveTo);
 			// Update Input with disk Stat
@@ -333,8 +338,14 @@ export class ExplorerService implements IExplorerService {
 			if (item && !this.shouldAutoRevealItem(item, ignoreRevealExcludes)) {
 				return;
 			}
+			if (!this.view) {
+				return;
+			}
 			await this.view.selectResource(item ? item.resource : undefined, reveal);
 		} catch (error) {
+			if (!this.view || this.findClosestRoot(resource) !== root || !this.roots.includes(root)) {
+				return;
+			}
 			root.error = error;
 			await this.view.refresh(false, root);
 		}
@@ -381,6 +392,9 @@ export class ExplorerService implements IExplorerService {
 					const resolveMetadata = this.config.sortOrder === `modified`;
 					if (!p.isDirectoryResolved) {
 						const stat = await this.fileService.resolve(p.resource, { resolveMetadata });
+						if (!this.model.findAll(p.resource).includes(p)) {
+							return;
+						}
 						if (stat) {
 							const modelStat = ExplorerItem.create(this.fileService, this.configurationService, this.filesConfigurationService, stat, p.parent);
 							ExplorerItem.mergeLocalWithDisk(modelStat, p);
