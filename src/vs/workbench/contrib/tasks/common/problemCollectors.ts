@@ -121,6 +121,9 @@ export abstract class AbstractProblemCollector extends Disposable implements IDi
 		if (this.tail) {
 			const oldTail = this.tail;
 			this.tail = oldTail.then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				return this.processLineInternal(line);
 			});
 		} else {
@@ -175,10 +178,20 @@ export abstract class AbstractProblemCollector extends Disposable implements IDi
 		switch (result.description.applyTo) {
 			case ApplyToKind.allDocuments:
 				return true;
-			case ApplyToKind.openDocuments:
-				return !!this.openModels[(await result.resource).toString()];
-			case ApplyToKind.closedDocuments:
-				return !this.openModels[(await result.resource).toString()];
+			case ApplyToKind.openDocuments: {
+				const resource = await result.resource;
+				if (this._store.isDisposed) {
+					return false;
+				}
+				return !!this.openModels[resource.toString()];
+			}
+			case ApplyToKind.closedDocuments: {
+				const resource = await result.resource;
+				if (this._store.isDisposed) {
+					return false;
+				}
+				return !this.openModels[resource.toString()];
+			}
 			default:
 				return true;
 		}
@@ -388,9 +401,15 @@ export class StartStopProblemCollector extends AbstractProblemCollector implemen
 
 		const owner = markerMatch.description.owner;
 		const resource = await markerMatch.resource;
+		if (this._store.isDisposed) {
+			return;
+		}
 		const resourceAsString = resource.toString();
 		this.removeResourceToClean(owner, resourceAsString);
 		const shouldApplyMatch = await this.shouldApplyMatch(markerMatch);
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (shouldApplyMatch) {
 			this.recordMarker(markerMatch.marker, owner, resourceAsString);
 			if (this.currentOwner !== owner || this.currentResource !== resourceAsString) {
@@ -450,6 +469,9 @@ export class WatchingProblemCollector extends AbstractProblemCollector implement
 				false,
 				true
 			)(async (markerEvent: readonly URI[]) => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (markerEvent.length === 0) {
 					return;
 				}
@@ -460,6 +482,9 @@ export class WatchingProblemCollector extends AbstractProblemCollector implement
 				const oldLines = Array.from(this.lines);
 				for (const line of oldLines) {
 					await this.processLineInternal(line, false);
+					if (this._store.isDisposed) {
+						return;
+					}
 				}
 			});
 
@@ -486,7 +511,11 @@ export class WatchingProblemCollector extends AbstractProblemCollector implement
 	}
 
 	protected async processLineInternal(line: string, recordLine = true): Promise<void> {
-		if (await this.tryBegin(line, recordLine) || this.tryFinish(line, recordLine)) {
+		const began = await this.tryBegin(line, recordLine);
+		if (this._store.isDisposed) {
+			return;
+		}
+		if (began || this.tryFinish(line, recordLine)) {
 			return;
 		}
 		if (recordLine) {
@@ -497,10 +526,16 @@ export class WatchingProblemCollector extends AbstractProblemCollector implement
 			return;
 		}
 		const resource = await markerMatch.resource;
+		if (this._store.isDisposed) {
+			return;
+		}
 		const owner = markerMatch.description.owner;
 		const resourceAsString = resource.toString();
 		this.removeResourceToClean(owner, resourceAsString);
 		const shouldApplyMatch = await this.shouldApplyMatch(markerMatch);
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (shouldApplyMatch) {
 			this.recordMarker(markerMatch.marker, owner, resourceAsString);
 			if (this.currentOwner !== owner || this.currentResource !== resourceAsString) {
@@ -541,8 +576,11 @@ export class WatchingProblemCollector extends AbstractProblemCollector implement
 				const owner = background.matcher.owner;
 				const file = matches[background.begin.file!];
 				if (file) {
-					const resource = getResource(file, background.matcher);
-					this.recordResourceToClean(owner, await resource);
+					const resource = await getResource(file, background.matcher);
+					if (this._store.isDisposed) {
+						return result;
+					}
+					this.recordResourceToClean(owner, resource);
 				} else {
 					this.recordResourcesToClean(owner);
 				}
