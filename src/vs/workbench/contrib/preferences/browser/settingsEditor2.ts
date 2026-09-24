@@ -269,6 +269,7 @@ export class SettingsEditor2 extends EditorPane {
 	private dimension!: DOM.Dimension;
 
 	private installedExtensionIds: string[] = [];
+	private refreshInstalledExtensionsListGeneration = 0;
 	private dismissedExtensionSettings: string[] = [];
 
 	private readonly DISMISSED_EXTENSION_SETTINGS_STORAGE_KEY = 'settingsEditor2.dismissedExtensionSettings';
@@ -572,7 +573,11 @@ export class SettingsEditor2 extends EditorPane {
 	}
 
 	private async refreshInstalledExtensionsList(): Promise<void> {
+		const generation = ++this.refreshInstalledExtensionsListGeneration;
 		const installedExtensions = await this.extensionManagementService.getInstalled();
+		if (generation !== this.refreshInstalledExtensionsListGeneration) {
+			return;
+		}
 		this.installedExtensionIds = installedExtensions
 			.filter(ext => ext.manifest.contributes?.configuration)
 			.map(ext => ext.identifier.id);

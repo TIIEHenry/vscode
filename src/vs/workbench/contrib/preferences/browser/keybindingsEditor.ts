@@ -89,6 +89,7 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 	readonly onLayout: Event<void> = this._onLayout.event;
 
 	private keybindingsEditorModel: KeybindingsEditorModel | null = null;
+	private renderGeneration = 0;
 
 	private headerContainer!: HTMLElement;
 	private actionsContainer!: HTMLElement;
@@ -562,9 +563,17 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 
 	private async render(preserveFocus: boolean): Promise<void> {
 		if (this.input) {
+			const generation = ++this.renderGeneration;
 			const input: KeybindingsEditorInput = this.input as KeybindingsEditorInput;
-			this.keybindingsEditorModel = await input.resolve();
+			const model = await input.resolve();
+			if (generation !== this.renderGeneration || this.input !== input) {
+				return;
+			}
+			this.keybindingsEditorModel = model;
 			await this.keybindingsEditorModel.resolve(this.getActionsLabels());
+			if (generation !== this.renderGeneration || this.input !== input) {
+				return;
+			}
 			const searchFocused = this.searchWidget.hasFocus();
 			this.renderKeybindingsEntries(searchFocused, searchFocused || preserveFocus);
 			if (input.searchOptions) {
