@@ -98,7 +98,7 @@ import { IChatSessionProviderOptionGroup, IChatSessionProviderOptionItem, IChatS
 import { getStoredSelectedModel, storeSelectedModel } from '../../../common/chatSelectedModel.js';
 import { ChatAgentLocation, ChatConfiguration, ChatModeKind, ChatPermissionLevel, isChatPermissionLevel } from '../../../common/constants.js';
 import { isAutoApprovePolicyRestricted, isAutoApproveValuePolicyRestricted } from '../../../common/agentHostConfigPolicy.js';
-import { IChatEditingSession, IModifiedFileEntry, ModifiedFileEntryState } from '../../../common/editing/chatEditingService.js';
+import { ChatEditingSessionState, IChatEditingSession, IModifiedFileEntry, ModifiedFileEntryState } from '../../../common/editing/chatEditingService.js';
 import { ILanguageModelChatMetadata, ILanguageModelChatMetadataAndIdentifier, ILanguageModelsService } from '../../../common/languageModels.js';
 import { ChatInputModelSelectionController, IChatInputModelSelectionRuntime } from './chatInputModelSelectionController.js';
 import { ChatModelConfigurationStore } from './chatModelConfigurationStore.js';
@@ -4926,15 +4926,23 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 						return;
 					}
 
-					const entry = chatEditingSession?.getEntry(modifiedFileUri);
-
 					const pane = await this.editorService.openEditor({
 						resource: modifiedFileUri,
 						options: e.editorOptions
 					}, e.sideBySide ? SIDE_GROUP : ACTIVE_GROUP);
 
+					if (this._store.isDisposed) {
+						return;
+					}
+					if (chatEditingSession?.state.get() === ChatEditingSessionState.Disposed) {
+						return;
+					}
+
 					if (pane) {
-						entry?.getEditorIntegration(pane).reveal(true, e.editorOptions.preserveFocus);
+						const entry = chatEditingSession?.getEntry(modifiedFileUri);
+						if (entry) {
+							entry.getEditorIntegration(pane).reveal(true, e.editorOptions.preserveFocus);
+						}
 					}
 				}
 			}));
