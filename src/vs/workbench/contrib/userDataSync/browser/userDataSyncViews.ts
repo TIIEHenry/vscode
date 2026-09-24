@@ -637,6 +637,7 @@ class ExtractedUserDataSyncActivityViewDataProvider extends UserDataSyncActivity
 class UserDataSyncMachinesViewDataProvider implements ITreeViewDataProvider {
 
 	private machinesPromise: Promise<IUserDataSyncMachine[]> | undefined;
+	private _childrenChain: Promise<void> = Promise.resolve();
 
 	constructor(
 		private readonly treeView: TreeView,
@@ -648,7 +649,13 @@ class UserDataSyncMachinesViewDataProvider implements ITreeViewDataProvider {
 	) {
 	}
 
-	async getChildren(element?: ITreeItem): Promise<ITreeItem[]> {
+	getChildren(element?: ITreeItem): Promise<ITreeItem[]> {
+		const run = this._childrenChain.then(() => this.getChildrenNow(element));
+		this._childrenChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async getChildrenNow(element?: ITreeItem): Promise<ITreeItem[]> {
 		if (!element) {
 			this.machinesPromise = undefined;
 		}
