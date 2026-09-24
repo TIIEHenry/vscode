@@ -126,6 +126,9 @@ export class LanguageConfigurationFileHandler extends Disposable {
 		this._done.set(languageId, configurationHash);
 
 		const configs = await Promise.all(configurationFiles.map(configFile => this._readConfigFile(configFile)));
+		if (this._done.get(languageId) !== configurationHash) {
+			return;
+		}
 		for (const config of configs) {
 			this._handleConfig(languageId, config);
 		}

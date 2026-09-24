@@ -197,6 +197,7 @@ class InspectEditorTokensWidget extends Disposable implements IContentWidget {
 	private readonly _model: ITextModel;
 	private readonly _domNode: HTMLElement;
 	private readonly _currentRequestCancellationTokenSource: CancellationTokenSource;
+	private _computeSeq = 0;
 
 	constructor(
 		editor: IActiveCodeEditor,
@@ -239,6 +240,7 @@ class InspectEditorTokensWidget extends Disposable implements IContentWidget {
 	}
 
 	private _beginCompute(position: Position): void {
+		const computeSeq = ++this._computeSeq;
 		const grammar = this._textMateService.createTokenizer(this._model.getLanguageId());
 		const semanticTokens = this._computeSemanticTokens(position);
 		const backend = (this._model.tokenization as TokenizationTextModelPart).tokens.get();
@@ -248,7 +250,7 @@ class InspectEditorTokensWidget extends Disposable implements IContentWidget {
 		this._domNode.appendChild(document.createTextNode(nls.localize('inspectTMScopesWidget.loading', "Loading...")));
 
 		Promise.all([grammar, semanticTokens]).then(([grammar, semanticTokens]) => {
-			if (this._isDisposed) {
+			if (this._isDisposed || computeSeq !== this._computeSeq) {
 				return;
 			}
 			const treeSitterTree = asTreeSitterBackend?.tree.get();
@@ -256,6 +258,9 @@ class InspectEditorTokensWidget extends Disposable implements IContentWidget {
 			this._domNode.style.maxWidth = `${Math.max(this._editor.getLayoutInfo().width * 0.66, 500)}px`;
 			this._editor.layoutContentWidget(this);
 		}, (err) => {
+			if (this._isDisposed || computeSeq !== this._computeSeq) {
+				return;
+			}
 			this._notificationService.warn(err);
 
 			setTimeout(() => {
