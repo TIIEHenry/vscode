@@ -36,6 +36,7 @@ export class InlayHintsAccessibility implements IEditorContribution {
 	private readonly _ctxIsReading: IContextKey<boolean>;
 
 	private readonly _sessionDispoosables = new DisposableStore();
+	private _readSeq = 0;
 
 	constructor(
 		private readonly _editor: ICodeEditor,
@@ -59,6 +60,7 @@ export class InlayHintsAccessibility implements IEditorContribution {
 	}
 
 	private _reset(): void {
+		this._readSeq++;
 		dom.clearNode(this._ariaElement);
 		this._sessionDispoosables.clear();
 		this._ctxIsReading.reset();
@@ -66,6 +68,7 @@ export class InlayHintsAccessibility implements IEditorContribution {
 
 	private async _read(line: number, hints: InlayHintItem[]) {
 
+		const seq = ++this._readSeq;
 		this._sessionDispoosables.clear();
 
 		if (!this._ariaElement.isConnected) {
@@ -84,7 +87,7 @@ export class InlayHintsAccessibility implements IEditorContribution {
 			await hint.resolve(cts.token);
 		}
 
-		if (cts.token.isCancellationRequested) {
+		if (seq !== this._readSeq || cts.token.isCancellationRequested) {
 			return;
 		}
 		const model = this._editor.getModel();
