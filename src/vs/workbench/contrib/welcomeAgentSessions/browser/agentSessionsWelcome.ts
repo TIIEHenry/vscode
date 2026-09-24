@@ -146,6 +146,7 @@ export class AgentSessionsWelcomePage extends EditorPane {
 	private contextService: IContextKeyService;
 	private walkthroughs: IResolvedWalkthrough[] = [];
 	private _selectedSessionProvider: AgentSessionTarget = AgentSessionProviders.Local;
+	private _recreateSessionGeneration = 0;
 	private _selectedWorkspace: IWorkspacePickerItem | undefined;
 	private _recentTrustedWorkspaces: Array<IRecentWorkspace | IRecentFolder> = [];
 	private _isEmptyWorkspace: boolean = false;
@@ -240,6 +241,7 @@ export class AgentSessionsWelcomePage extends EditorPane {
 
 	private async buildContent(): Promise<void> {
 		this.contentDisposables.clear();
+		this._recreateSessionGeneration++;
 		this.sessionsControlDisposables.clear();
 		this.sessionsControl = undefined;
 		clearNode(this.contentContainer);
@@ -328,6 +330,8 @@ export class AgentSessionsWelcomePage extends EditorPane {
 		// Create a delegate for the session target picker with independent local state
 		const onDidChangeActiveSessionProvider = this.contentDisposables.add(new Emitter<AgentSessionTarget>());
 		const recreateSessionForProvider = async (provider: AgentSessionTarget) => {
+			this._recreateSessionGeneration++;
+			const generation = this._recreateSessionGeneration;
 			if (this.chatWidget && this.chatModelRef) {
 				this.chatWidget.setModel(undefined);
 				this.chatModelRef.dispose();
@@ -337,6 +341,10 @@ export class AgentSessionsWelcomePage extends EditorPane {
 					displayName: ''
 				});
 				const ref = await this.chatService.acquireOrLoadSession(newResource, ChatAgentLocation.Chat, CancellationToken.None);
+				if (generation !== this._recreateSessionGeneration || provider !== this._selectedSessionProvider || this.contentDisposables.isDisposed) {
+					ref?.dispose();
+					return;
+				}
 				this.chatModelRef = ref ?? this.chatService.startNewLocalSession(ChatAgentLocation.Chat);
 				this.contentDisposables.add(this.chatModelRef);
 				if (this.chatModelRef.object) {
