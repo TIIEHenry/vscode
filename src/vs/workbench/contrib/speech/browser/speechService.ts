@@ -408,7 +408,12 @@ export class SpeechService extends Disposable implements ISpeechService {
 
 		const disposables = new DisposableStore();
 
+		let stopped = false;
 		const onSessionStoppedOrCanceled = () => {
+			if (stopped) {
+				return;
+			}
+			stopped = true;
 			this.activeKeywordRecognitionSessions = Math.max(0, this.activeKeywordRecognitionSessions - 1);
 			this._onDidEndKeywordRecognition.fire();
 
