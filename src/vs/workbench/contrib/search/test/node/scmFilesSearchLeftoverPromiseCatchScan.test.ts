@@ -54,6 +54,9 @@ suite('scm/files/search leftover Promise fire-and-forget catch scan (D691)', () 
 	test('searchModel leftover _startStreamDelay then is double-chain', () => {
 		const source = fs.readFileSync(resolveSource(SEARCH_MODEL_REL), 'utf8');
 		const delayThen = `this._startStreamDelay.then(() => {
+					if ((!ai && searchInstanceID !== this._plainSearchInstanceID) || (ai && searchInstanceID !== this._aiSearchInstanceID)) {
+						return;
+					}
 					if (targetQueue.length) {
 						this._searchResult.add(targetQueue, searchInstanceID, ai, !ai);
 						targetQueue.length = 0;

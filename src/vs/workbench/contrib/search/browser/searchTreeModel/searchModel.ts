@@ -32,6 +32,7 @@ export class SearchModelImpl extends Disposable implements ISearchModel {
 	private _preserveCase: boolean = false;
 	private _startStreamDelay: Promise<void> = Promise.resolve();
 	private _plainSearchInstanceID: string = '';
+	private _aiSearchInstanceID: string = '';
 	private readonly _resultQueue: IFileMatch[] = [];
 	private readonly _aiResultQueue: IFileMatch[] = [];
 
@@ -126,6 +127,7 @@ export class SearchModelImpl extends Disposable implements ISearchModel {
 		}
 
 		const searchInstanceID = Date.now().toString();
+		this._aiSearchInstanceID = searchInstanceID;
 		const tokenSource = new CancellationTokenSource();
 		this.currentAICancelTokenSource = tokenSource;
 		const start = Date.now();
@@ -295,15 +297,20 @@ export class SearchModelImpl extends Disposable implements ISearchModel {
 			throw new Error('onSearchCompleted must be called after a search is started');
 		}
 
-		if (ai) {
+		if (ai && searchInstanceID === this._aiSearchInstanceID && searchInstanceID !== '') {
 			this._searchResult.add(this._aiResultQueue, searchInstanceID, true);
 			this._aiResultQueue.length = 0;
-		} else if (searchInstanceID === this._plainSearchInstanceID) {
+		} else if (!ai && searchInstanceID === this._plainSearchInstanceID) {
 			this._searchResult.add(this._resultQueue, searchInstanceID, false);
 			this._resultQueue.length = 0;
 		}
 
-		this.searchResult.setCachedSearchComplete(completed, ai);
+		const cacheCurrent = ai
+			? (searchInstanceID !== '' && searchInstanceID === this._aiSearchInstanceID) || (searchInstanceID === '' && !this.aiSearchCancelledForNewSearch && this._aiSearchInstanceID !== '')
+			: (searchInstanceID === this._plainSearchInstanceID || (searchInstanceID === '' && !this.searchCancelledForNewSearch));
+		if (cacheCurrent) {
+			this.searchResult.setCachedSearchComplete(completed, ai);
+		}
 
 		const options: IPatternInfo = Object.assign({}, this._searchQuery.contentPattern);
 		// eslint-disable-next-line local/code-no-any-casts
@@ -367,7 +374,7 @@ export class SearchModelImpl extends Disposable implements ISearchModel {
 				}
 			} else {
 				this._startStreamDelay.then(() => {
-					if (!ai && searchInstanceID !== this._plainSearchInstanceID) {
+					if ((!ai && searchInstanceID !== this._plainSearchInstanceID) || (ai && searchInstanceID !== this._aiSearchInstanceID)) {
 						return;
 					}
 					if (targetQueue.length) {
@@ -395,6 +402,9 @@ export class SearchModelImpl extends Disposable implements ISearchModel {
 	cancelAISearch(cancelledForNewSearch = false): boolean {
 		if (this.currentAICancelTokenSource) {
 			this.aiSearchCancelledForNewSearch = cancelledForNewSearch;
+			if (cancelledForNewSearch) {
+				this._aiSearchInstanceID = '';
+			}
 			this.currentAICancelTokenSource.cancel();
 			return true;
 		}
