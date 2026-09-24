@@ -296,6 +296,10 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 			}
 
 			const modelRef = await this.chatService.acquireOrLoadSession(e.committed, ChatAgentLocation.Chat, CancellationToken.None, 'ChatViewPane#onDidCommitSession');
+			if (this._store.isDisposed) {
+				modelRef?.dispose();
+				return;
+			}
 			const currentSession = this._widget.viewModel?.sessionResource ?? this.modelRef.value?.object.sessionResource;
 			if (modelRef && (!currentSession || !isEqual(currentSession, e.original))) {
 				modelRef.dispose();
