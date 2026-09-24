@@ -423,6 +423,7 @@ export class RenameSymbolProcessor extends Disposable {
 	private readonly _renameInferenceEngine = new RenameInferenceEngine();
 
 	private _renameRunnable: RenameSymbolRunnable | undefined = undefined;
+	private _generation = 0;
 
 	constructor(
 		@ICommandService private readonly _commandService: ICommandService,
@@ -453,6 +454,7 @@ export class RenameSymbolProcessor extends Disposable {
 	}
 
 	public async proposeRenameRefactoring(textModel: ITextModel, suggestItem: InlineSuggestionItem, context: InlineCompletionContextWithoutUuid): Promise<InlineSuggestionItem> {
+		const generation = ++this._generation;
 		if (!suggestItem.supportsRename || suggestItem.action?.kind !== 'edit' || context.selectedSuggestionInfo) {
 			return suggestItem;
 		}
@@ -487,6 +489,9 @@ export class RenameSymbolProcessor extends Disposable {
 		// Check asynchronously if a rename is possible
 		let timedOut = false;
 		const check = await raceTimeout<PrepareNesRenameResult>(this.checkRenamePrecondition(suggestItem, textModel, position, oldName, newName, lastSymbolRename), 100, () => { timedOut = true; });
+		if (this._store.isDisposed || generation !== this._generation) {
+			return suggestItem;
+		}
 		const renamePossible = this.isRenamePossible(suggestItem, check, state, textModel);
 
 		suggestItem.setRenameProcessingInfo({
