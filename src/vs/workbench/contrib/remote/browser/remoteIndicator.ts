@@ -427,6 +427,10 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 		this.measureNetworkConnectionLatencyScheduler.schedule(RemoteStatusIndicator.REMOTE_CONNECTION_LATENCY_SCHEDULER_FIRST_RUN_DELAY);
 	}
 
+	private isNetworkOffline(): boolean {
+		return this.networkState === 'offline';
+	}
+
 	private async measureNetworkConnectionLatency(): Promise<void> {
 
 		// Measure latency if we are online
@@ -435,8 +439,7 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 
 		if (this.hostService.hasFocus && this.networkState !== 'offline') {
 			const measurement = await remoteConnectionLatencyMeasurer.measure(this.remoteAgentService);
-			const networkState: 'online' | 'offline' | 'high-latency' | undefined = this.networkState;
-			if (measurement && networkState !== 'offline') {
+			if (measurement && !this.isNetworkOffline()) {
 				if (measurement.high) {
 					this.setNetworkState('high-latency');
 				} else if (this.networkState === 'high-latency') {
