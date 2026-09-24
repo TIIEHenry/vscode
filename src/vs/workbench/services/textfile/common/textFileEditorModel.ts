@@ -108,6 +108,7 @@ export class TextFileEditorModel extends BaseTextEditorModel implements ITextFil
 	private dirty = false;
 	private inConflictMode = false;
 	private inOrphanMode = false;
+	private _orphanCheckGeneration = 0;
 	private inErrorMode = false;
 
 	constructor(
@@ -169,6 +170,7 @@ export class TextFileEditorModel extends BaseTextEditorModel implements ITextFil
 		}
 
 		if (fileEventImpactsModel && this.inOrphanMode !== newInOrphanModeGuess) {
+			const generation = ++this._orphanCheckGeneration;
 			let newInOrphanModeValidated = false;
 			if (newInOrphanModeGuess) {
 				// We have received reports of users seeing delete events even though the file still
@@ -183,6 +185,12 @@ export class TextFileEditorModel extends BaseTextEditorModel implements ITextFil
 					const exists = await this.fileService.exists(this.resource);
 					newInOrphanModeValidated = !exists;
 				}
+
+				if (generation !== this._orphanCheckGeneration) {
+					return;
+				}
+			} else {
+				++this._orphanCheckGeneration;
 			}
 
 			if (this.inOrphanMode !== newInOrphanModeValidated && !this.isDisposed()) {

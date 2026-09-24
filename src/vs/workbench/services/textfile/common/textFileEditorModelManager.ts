@@ -376,6 +376,7 @@ export class TextFileEditorModelManager extends Disposable implements ITextFileE
 		}
 
 		let modelResolve: Promise<void>;
+		let mapPendingResolve: Promise<void> | undefined;
 		let didCreateModel = false;
 
 		// Model exists
@@ -391,8 +392,7 @@ export class TextFileEditorModelManager extends Disposable implements ITextFileE
 
 				// async reload: trigger a reload but return immediately
 				if (options.reload.async) {
-					modelResolve = Promise.resolve();
-					(async () => {
+					const asyncReloadPromise = (async () => {
 						try {
 							await model.resolve(options);
 						} catch (error) {
@@ -401,6 +401,13 @@ export class TextFileEditorModelManager extends Disposable implements ITextFileE
 							}
 						}
 					})().catch(onUnexpectedError).catch(onUnexpectedError);
+					modelResolve = Promise.resolve();
+					mapPendingResolve = asyncReloadPromise;
+					asyncReloadPromise.finally(() => {
+						if (this.mapResourceToPendingModelResolvers.get(resource) === asyncReloadPromise) {
+							this.mapResourceToPendingModelResolvers.delete(resource);
+						}
+					});
 				}
 
 				// sync reload: do not return until model reloaded
@@ -425,8 +432,10 @@ export class TextFileEditorModelManager extends Disposable implements ITextFileE
 			this.registerModel(newModel);
 		}
 
+		const pendingResolveForMap = mapPendingResolve ?? modelResolve;
+
 		// Store pending resolves to avoid race conditions
-		this.mapResourceToPendingModelResolvers.set(resource, modelResolve);
+		this.mapResourceToPendingModelResolvers.set(resource, pendingResolveForMap);
 
 		// Make known to manager (if not already known)
 		this.add(resource, model);
@@ -457,7 +466,9 @@ export class TextFileEditorModelManager extends Disposable implements ITextFileE
 		} finally {
 
 			// Remove from pending resolves
-			this.mapResourceToPendingModelResolvers.delete(resource);
+			if (this.mapResourceToPendingModelResolvers.get(resource) === modelResolve) {
+				this.mapResourceToPendingModelResolvers.delete(resource);
+			}
 		}
 
 		// Apply language if provided
