@@ -249,6 +249,9 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 		} finally {
 			this._isProcessingResponse.set(false, undefined);
 		}
+		if (id !== this.computeRequestId || this._store.isDisposed) {
+			return;
+		}
 		this.initializeModelsFromDiffImpl(cellsDiffInfo);
 	}
 	updateCellDiffInfo(cellsDiffInfo: ICellDiffInfo[], transcation: ITransaction | undefined) {
