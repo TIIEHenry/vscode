@@ -32,6 +32,7 @@ import { IEditorGroupsService } from '../../../services/editor/common/editorGrou
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { forcedExpandRecursively } from './searchActionsTopBar.js';
 import { RenderableMatch, ISearchTreeFileMatch, ISearchTreeFolderMatchWithResource, ISearchResult, isSearchTreeFileMatch, isSearchTreeMatch } from './searchTreeModel/searchTreeCommon.js';
+import { SearchView } from './searchView.js';
 
 registerAction2(class RestrictSearchToFolderAction extends Action2 {
 	constructor() {
@@ -362,6 +363,7 @@ async function searchWithFolderCommand(accessor: ServicesAccessor, isFromExplore
 	const commandService = accessor.get(ICommandService);
 	const searchConfig = accessor.get(IConfigurationService).getValue<ISearchConfiguration>().search;
 	const mode = searchConfig?.mode;
+	const generation = SearchView.beginSearchCommandGeneration();
 
 	let resources: URI[];
 
@@ -387,25 +389,36 @@ async function searchWithFolderCommand(accessor: ServicesAccessor, isFromExplore
 
 	if (mode === 'view') {
 		const searchView = await openSearchView(viewsService, true);
+		if (generation !== SearchView.getSearchCommandGeneration()) {
+			return undefined;
+		}
 		if (resources && resources.length && searchView) {
+			const folderIncludes = await resolvedResources;
+			if (generation !== SearchView.getSearchCommandGeneration()) {
+				return undefined;
+			}
 			if (isIncludes) {
-				searchView.searchInFolders(await resolvedResources);
+				searchView.searchInFolders(folderIncludes);
 			} else {
-				searchView.searchOutsideOfFolders(await resolvedResources);
+				searchView.searchOutsideOfFolders(folderIncludes);
 			}
 		}
 		return undefined;
 	} else {
+		const folderIncludes = await resolvedResources;
+		if (generation !== SearchView.getSearchCommandGeneration()) {
+			return undefined;
+		}
 		if (isIncludes) {
 			return commandService.executeCommand(SearchEditorConstants.OpenEditorCommandId, {
-				filesToInclude: (await resolvedResources).join(', '),
+				filesToInclude: folderIncludes.join(', '),
 				showIncludesExcludes: true,
 				location: mode === 'newEditor' ? 'new' : 'reuse',
 			});
 		}
 		else {
 			return commandService.executeCommand(SearchEditorConstants.OpenEditorCommandId, {
-				filesToExclude: (await resolvedResources).join(', '),
+				filesToExclude: folderIncludes.join(', '),
 				showIncludesExcludes: true,
 				location: mode === 'newEditor' ? 'new' : 'reuse',
 			});

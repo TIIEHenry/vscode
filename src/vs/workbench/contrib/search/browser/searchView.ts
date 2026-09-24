@@ -184,6 +184,7 @@ export class SearchView extends ViewPane {
 
 	private currentSearchQ = Promise.resolve();
 	private queryValidationGeneration = 0;
+	private static searchCommandGeneration = 0;
 	private addToSearchHistoryDelayer: Delayer<void>;
 
 	private toggleCollapseStateDelayer: Delayer<void>;
@@ -471,16 +472,21 @@ export class SearchView extends ViewPane {
 		this.tree.setInput(this.viewModel.searchResult);
 
 		await this.onSearchResultsChanged();
-		this.refreshInputs();
+		if (!this.isDisposed && this.viewModel === searchModel) {
+			this.refreshInputs();
+		}
 
 		asyncResults.then((complete) => {
 			clearTimeout(slowTimer);
-			return this.onSearchComplete(progressComplete, undefined, undefined, complete);
+			return this.onSearchComplete(progressComplete, undefined, undefined, complete, true, undefined, searchModel);
 		}, (e) => {
 			clearTimeout(slowTimer);
-			return this.onSearchError(e, progressComplete, undefined, undefined);
+			return this.onSearchError(e, progressComplete, undefined, undefined, undefined, true, searchModel);
 		});
 
+		if (this.isDisposed || this.viewModel !== searchModel) {
+			return;
+		}
 		await this.expandIfSingularResult();
 	}
 
@@ -1492,7 +1498,18 @@ export class SearchView extends ViewPane {
 		this.triggerQueryChange({ shouldKeepAIResults: true });
 	}
 
+	public static beginSearchCommandGeneration(): number {
+		return ++SearchView.searchCommandGeneration;
+	}
+
+	public static getSearchCommandGeneration(): number {
+		return SearchView.searchCommandGeneration;
+	}
+
 	setSearchParameters(args: IFindInFilesArgs = {}): void {
+		if (this.isDisposed) {
+			return;
+		}
 		if (typeof args.isCaseSensitive === 'boolean') {
 			this.searchWidget.searchInput?.setCaseSensitive(args.isCaseSensitive);
 		}
@@ -1565,10 +1582,16 @@ export class SearchView extends ViewPane {
 	}
 
 	searchInFolders(folderPaths: string[] = []): void {
+		if (this.isDisposed) {
+			return;
+		}
 		this._searchWithIncludeOrExclude(true, folderPaths);
 	}
 
 	searchOutsideOfFolders(folderPaths: string[] = []): void {
+		if (this.isDisposed) {
+			return;
+		}
 		this._searchWithIncludeOrExclude(false, folderPaths);
 	}
 
@@ -1816,23 +1839,28 @@ export class SearchView extends ViewPane {
 		completed?: ISearchComplete,
 		shouldDoFinalRefresh = true,
 		keywords?: AISearchKeyword[],
+		searchModel?: ISearchModel,
 	) {
-
-		this.state = SearchUIState.Idle;
 
 		// Complete up to 100% as needed
 		progressComplete();
 
+		if (this.isDisposed || completed?.exit === SearchCompletionExitCode.NewSearchStarted || (searchModel && this.viewModel !== searchModel)) {
+			return;
+		}
+
+		this.state = SearchUIState.Idle;
+
 		if (shouldDoFinalRefresh) {
 			// anything that gets called from `getChildren` should not do this, since the tree will refresh anyways.
 			await this.refreshAndUpdateCount();
+			if (this.isDisposed || this.state !== SearchUIState.Idle || (searchModel && this.viewModel !== searchModel)) {
+				return;
+			}
 		}
 
 		const allResults = !this.viewModel.searchResult.isEmpty();
 		const aiResults = this.searchResult.getCachedSearchComplete(true);
-		if (completed?.exit === SearchCompletionExitCode.NewSearchStarted) {
-			return;
-		}
 
 		// Special case for when we have an AI provider registered
 		Constants.SearchContext.AIResultsRequested.bindTo(this.contextKeyService).set(this.shouldShowAIResults() && !!aiResults);
@@ -1922,12 +1950,15 @@ export class SearchView extends ViewPane {
 		this.reLayout();
 	}
 
-	private async onSearchError(e: any, progressComplete: () => void, excludePatternText?: string, includePatternText?: string, completed?: ISearchComplete, shouldDoFinalRefresh = true) {
-		this.state = SearchUIState.Idle;
+	private async onSearchError(e: any, progressComplete: () => void, excludePatternText?: string, includePatternText?: string, completed?: ISearchComplete, shouldDoFinalRefresh = true, searchModel?: ISearchModel) {
 		if (errors.isCancellationError(e)) {
-			return this.onSearchComplete(progressComplete, excludePatternText, includePatternText, completed, shouldDoFinalRefresh);
+			return this.onSearchComplete(progressComplete, excludePatternText, includePatternText, completed, shouldDoFinalRefresh, undefined, searchModel);
 		} else {
 			progressComplete();
+			if (this.isDisposed || (searchModel && this.viewModel !== searchModel)) {
+				return Promise.resolve();
+			}
+			this.state = SearchUIState.Idle;
 			this.searchWidget.searchInput?.showMessage({ content: e.message, type: MessageType.ERROR });
 			this.viewModel.searchResult.clear();
 
@@ -1958,6 +1989,7 @@ export class SearchView extends ViewPane {
 	public async addAIResults() {
 		const excludePatternText = this._getExcludePattern();
 		const includePatternText = this._getIncludePattern();
+		const searchModel = this.viewModel;
 
 		this.searchWidget.searchInput?.clearMessage();
 		this.showEmptyStage();
@@ -1979,10 +2011,13 @@ export class SearchView extends ViewPane {
 		}
 
 		aiSearchPromise.then((complete) => {
+			if (this.isDisposed || this.viewModel !== searchModel) {
+				return;
+			}
 			this.updateSearchResultCount(this.viewModel.searchResult.query?.userDisabledExcludesAndIgnoreFiles, this.viewModel.searchResult.query?.onlyOpenEditors, false);
-			return this.onSearchComplete(() => { }, excludePatternText, includePatternText, complete, false, complete.aiKeywords);
+			return this.onSearchComplete(() => { }, excludePatternText, includePatternText, complete, false, complete.aiKeywords, searchModel);
 		}, (e) => {
-			return this.onSearchError(e, () => { }, excludePatternText, includePatternText, undefined, false);
+			return this.onSearchError(e, () => { }, excludePatternText, includePatternText, undefined, false, searchModel);
 		});
 	}
 

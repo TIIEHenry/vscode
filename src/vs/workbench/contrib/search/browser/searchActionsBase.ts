@@ -95,6 +95,7 @@ export async function findInFilesCommand(accessor: ServicesAccessor, _args: IFin
 	const searchConfig = accessor.get(IConfigurationService).getValue<ISearchConfiguration>().search;
 	const viewsService = accessor.get(IViewsService);
 	const commandService = accessor.get(ICommandService);
+	const generation = SearchView.beginSearchCommandGeneration();
 	const args: IFindInFilesArgs = {};
 	if (Object.keys(_args).length !== 0) {
 		// resolve variables in the same way as in
@@ -112,6 +113,9 @@ export async function findInFilesCommand(accessor: ServicesAccessor, _args: IFin
 			if (value !== undefined) {
 				// eslint-disable-next-line local/code-no-any-casts
 				(args as any)[name as any] = (typeof value === 'string') ? await configurationResolverService.resolveAsync(lastActiveWorkspaceRoot, value) : value;
+				if (generation !== SearchView.getSearchCommandGeneration()) {
+					return;
+				}
 			}
 		}
 	}
@@ -119,22 +123,26 @@ export async function findInFilesCommand(accessor: ServicesAccessor, _args: IFin
 	const mode = searchConfig?.mode;
 	if (mode === 'view') {
 		openSearchView(viewsService, false).then(openedView => {
-			if (openedView) {
-				const searchAndReplaceWidget = openedView.searchAndReplaceWidget;
-				searchAndReplaceWidget.toggleReplace(typeof args.replace === 'string');
-				let updatedText = false;
-				if (typeof args.query !== 'string') {
-					updatedText = openedView.updateTextFromFindWidgetOrSelection({ allowUnselectedWord: typeof args.replace !== 'string' });
-				}
-				openedView.setSearchParameters(args);
-				if (typeof args.showIncludesExcludes === 'boolean') {
-					openedView.toggleQueryDetails(false, args.showIncludesExcludes);
-				}
-
-				openedView.searchAndReplaceWidget.focus(undefined, updatedText, updatedText);
+			if (!openedView || generation !== SearchView.getSearchCommandGeneration()) {
+				return;
 			}
+			const searchAndReplaceWidget = openedView.searchAndReplaceWidget;
+			searchAndReplaceWidget.toggleReplace(typeof args.replace === 'string');
+			let updatedText = false;
+			if (typeof args.query !== 'string') {
+				updatedText = openedView.updateTextFromFindWidgetOrSelection({ allowUnselectedWord: typeof args.replace !== 'string' });
+			}
+			openedView.setSearchParameters(args);
+			if (typeof args.showIncludesExcludes === 'boolean') {
+				openedView.toggleQueryDetails(false, args.showIncludesExcludes);
+			}
+
+			openedView.searchAndReplaceWidget.focus(undefined, updatedText, updatedText);
 		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	} else {
+		if (generation !== SearchView.getSearchCommandGeneration()) {
+			return;
+		}
 		const convertArgs = (args: IFindInFilesArgs): OpenSearchEditorArgs => ({
 			location: mode === 'newEditor' ? 'new' : 'reuse',
 			query: args.query,
