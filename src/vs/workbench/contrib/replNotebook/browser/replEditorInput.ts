@@ -119,6 +119,10 @@ export class ReplEditorInput extends NotebookEditorInput implements ICompositeNo
 		return model;
 	}
 
+	private getInputTextEditorModel() {
+		return this.inputModelRef?.object.textEditorModel;
+	}
+
 	private ensureInputBoxCell(notebook: NotebookTextModel) {
 		const lastCell = notebook.cells[notebook.cells.length - 1];
 
@@ -155,8 +159,9 @@ export class ReplEditorInput extends NotebookEditorInput implements ICompositeNo
 		const localRef = await this._textModelService.createModelReference(lastCell.uri);
 		if (generation !== this._resolveInputGeneration || this.isDisposing) {
 			localRef.dispose();
-			if (this.inputModelRef) {
-				return this.inputModelRef.object.textEditorModel;
+			const model = this.getInputTextEditorModel();
+			if (model) {
+				return model;
 			}
 			throw new CancellationError();
 		}
