@@ -101,6 +101,7 @@ export class AgentHostResourceService extends Disposable implements IAgentHostRe
 
 	private readonly _inMemoryGrants = new Map<string, IInMemoryGrant>();
 	private readonly _pending = observableValue<readonly IInternalPendingRequest[]>('agentHostResources.pending', []);
+	private _grantChain: Promise<void> = Promise.resolve();
 
 	readonly allPending: IObservable<readonly IPendingResourceRequest[]> = this._pending;
 
@@ -565,7 +566,13 @@ export class AgentHostResourceService extends Disposable implements IAgentHostRe
 		}
 	}
 
-	private async _persistGrant(address: string, uri: URI, lexicalUri: URI, mode: AgentHostPermissionMode): Promise<void> {
+	private _persistGrant(address: string, uri: URI, lexicalUri: URI, mode: AgentHostPermissionMode): Promise<void> {
+		const work = this._grantChain.then(() => this._persistGrantNow(address, uri, lexicalUri, mode));
+		this._grantChain = work.then(() => { }, () => { });
+		return work;
+	}
+
+	private async _persistGrantNow(address: string, uri: URI, lexicalUri: URI, mode: AgentHostPermissionMode): Promise<void> {
 		const requested: AgentHostAccessMode = mode === AgentHostPermissionMode.Write
 			? AgentHostAccessMode.ReadWrite
 			: AgentHostAccessMode.Read;
