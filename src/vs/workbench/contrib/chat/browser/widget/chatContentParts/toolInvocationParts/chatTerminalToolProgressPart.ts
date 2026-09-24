@@ -1048,6 +1048,12 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 	private async _toggleOutput(expanded: boolean): Promise<boolean> {
 		const didChange = await this._outputView.toggle(expanded);
 		const isExpanded = this._outputView.isExpanded;
+		if (didChange) {
+			expandedStateByInvocation.set(this.toolInvocation, isExpanded);
+		}
+		if (this._store.isDisposed) {
+			return didChange;
+		}
 		// Only drop the title's bottom border/radius when the output section is
 		// actually rendered below the title to visually close the box. Display-only
 		// invocations (e.g. a denied command with no terminal session or output) never
@@ -1057,9 +1063,6 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 		this._titleElement.classList.toggle('chat-terminal-content-title-no-bottom-radius', isExpanded && hasOutputSection);
 		this._toolbarOutputExpanded = isExpanded;
 		this._updateToolbarActions();
-		if (didChange) {
-			expandedStateByInvocation.set(this.toolInvocation, isExpanded);
-		}
 		return didChange;
 	}
 
@@ -1273,6 +1276,9 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 		this._userToggledOutput = true;
 		if (!this._outputView.isExpanded) {
 			await this._toggleOutput(true);
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.focusOutput();
 			return;
 		}
@@ -1425,8 +1431,14 @@ export class ChatTerminalToolOutputSection extends Disposable {
 
 		if (!this._scrollableContainer) {
 			await this._createScrollableContainer();
+			if (this._store.isDisposed) {
+				return false;
+			}
 		}
 		await this._updateTerminalContent();
+		if (this._store.isDisposed) {
+			return false;
+		}
 
 		// Only now show the expanded state (after content is ready)
 		this._setExpanded(true);
