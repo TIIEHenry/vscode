@@ -1128,6 +1128,10 @@ export class GettingStartedPage extends EditorPane {
 		this.recentlyOpened.then(({ workspaces }) => {
 			const workspacesWithID = this.filterRecentlyOpened(workspaces);
 
+			if (this._store.isDisposed || this.recentlyOpenedList.value !== recentlyOpenedList) {
+				return;
+			}
+
 			const updateEntries = () => {
 				recentlyOpenedList.setEntries(workspacesWithID);
 			};
@@ -1150,8 +1154,12 @@ export class GettingStartedPage extends EditorPane {
 			return;
 		}
 
+		const pending = this.recentlyOpened;
 		this.recentlyOpened.then(({ workspaces }) => {
 			const workspacesWithID = this.filterRecentlyOpened(workspaces);
+			if (this._store.isDisposed || this.recentlyOpened !== pending) {
+				return;
+			}
 			this.recentlyOpenedList.value?.setEntries(workspacesWithID);
 		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}

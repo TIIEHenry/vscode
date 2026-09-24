@@ -141,6 +141,7 @@ export class WalkthroughsService extends Disposable implements IWalkthroughsServ
 	private steps = new Map<string, IWalkthroughStep>();
 
 	private sessionInstalledExtensions: Set<string> = new Set<string>();
+	private readonly extensionWalkthroughRounds = new Map<string, number>();
 
 	private categoryVisibilityContextKeys = new Set<string>();
 	private stepCompletionContextKeyExpressions = new Set<ContextKeyExpression>();
@@ -291,6 +292,10 @@ export class WalkthroughsService extends Disposable implements IWalkthroughsServ
 	}
 
 	private async registerExtensionWalkthroughContributions(extension: IExtensionDescription) {
+		const extensionId = extension.identifier.value;
+		const round = (this.extensionWalkthroughRounds.get(extensionId) ?? 0) + 1;
+		this.extensionWalkthroughRounds.set(extensionId, round);
+
 		const convertExtensionPathToFileURI = (path: string) => path.startsWith('https://')
 			? URI.parse(path, true)
 			: FileAccess.uriToFileUri(joinPath(extension.extensionLocation, path));
@@ -331,6 +336,10 @@ export class WalkthroughsService extends Disposable implements IWalkthroughsServ
 				this.tasExperimentService?.getTreatment<string>(`gettingStarted.overrideCategory.${extension.identifier.value + '.' + walkthrough.id}.when`),
 				new Promise<string | undefined>(resolve => setTimeout(() => resolve(walkthrough.when), 5000))
 			]);
+
+			if (this._store.isDisposed || this.extensionWalkthroughRounds.get(extensionId) !== round) {
+				return;
+			}
 
 			if (this.sessionInstalledExtensions.has(extension.identifier.value.toLowerCase())
 				&& this.contextService.contextMatchesRules(ContextKeyExpr.deserialize(override ?? walkthrough.when) ?? ContextKeyExpr.true())
@@ -410,6 +419,10 @@ export class WalkthroughsService extends Disposable implements IWalkthroughsServ
 				isFeatured = await this.instantiationService.invokeFunction(a => checkGlobFileExists(a, folders, walkthrough.featuredFor!, token.token));
 			}
 
+			if (this._store.isDisposed || this.extensionWalkthroughRounds.get(extensionId) !== round) {
+				return;
+			}
+
 			const iconStr = walkthrough.icon ?? extension.icon;
 			const walkthoughDescriptor: IWalkthrough = {
 				description: walkthrough.description,
@@ -435,9 +448,16 @@ export class WalkthroughsService extends Disposable implements IWalkthroughsServ
 			this._onDidAddWalkthrough.fire(this.resolveWalkthrough(walkthoughDescriptor));
 		}));
 
+		if (this._store.isDisposed || this.extensionWalkthroughRounds.get(extensionId) !== round) {
+			return;
+		}
+
 		this.storageService.store(walkthroughMetadataConfigurationKey, JSON.stringify([...this.metadata.entries()]), StorageScope.PROFILE, StorageTarget.USER);
 
 		const hadLastFoucs = await this.hostService.hadLastFocus();
+		if (this._store.isDisposed || this.extensionWalkthroughRounds.get(extensionId) !== round) {
+			return;
+		}
 		const startupEditor = this.configurationService.getValue<string>('workbench.startupEditor');
 		if (hadLastFoucs && sectionToOpen && this.configurationService.getValue<string>('workbench.welcomePage.walkthroughs.openOnInstall') && startupEditor !== 'agentSessionsWelcomePage') {
 			type GettingStartedAutoOpenClassification = {
@@ -464,6 +484,9 @@ export class WalkthroughsService extends Disposable implements IWalkthroughsServ
 	}
 
 	private unregisterExtensionWalkthroughContributions(extension: IExtensionDescription) {
+		const extensionId = extension.identifier.value;
+		this.extensionWalkthroughRounds.set(extensionId, (this.extensionWalkthroughRounds.get(extensionId) ?? 0) + 1);
+
 		if (!(extension.contributes?.walkthroughs?.length)) {
 			return;
 		}
