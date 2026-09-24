@@ -178,7 +178,13 @@ export class DiffContentProvider extends Disposable implements IPeekOutputRender
 			this.modelService.createModelReference(subject.actualUri),
 		]);
 
-		const model = this.model.value = new SimpleDiffEditorModel(original, modified);
+		const model = new SimpleDiffEditorModel(original, modified);
+		if (this._store.isDisposed) {
+			model.dispose();
+			return false;
+		}
+
+		this.model.value = model;
 		if (!this.widget.value) {
 			const options = { ...diffEditorOptions };
 			const listener = applyEditorMirrorOptions(
@@ -355,7 +361,13 @@ export class PlainTextMessagePeek extends Disposable implements IPeekOutputRende
 			return false;
 		}
 
-		const modelRef = this.model.value = await this.modelService.createModelReference(subject.messageUri);
+		const modelRef = await this.modelService.createModelReference(subject.messageUri);
+		if (this._store.isDisposed) {
+			modelRef.dispose();
+			return false;
+		}
+
+		this.model.value = modelRef;
 		if (!this.widget.value) {
 			const options = { ...commonEditorOptions };
 			const listener = applyEditorMirrorOptions(
@@ -439,6 +451,10 @@ export class TerminalMessagePeek extends Disposable implements IPeekOutputRender
 	}
 
 	private async makeTerminal() {
+		if (this._store.isDisposed) {
+			return undefined;
+		}
+
 		const prev = this.terminal.value;
 		if (prev) {
 			prev.xterm.clearBuffer();
@@ -459,7 +475,7 @@ export class TerminalMessagePeek extends Disposable implements IPeekOutputRender
 			updateCwd: () => { },
 		});
 
-		return this.terminal.value = await this.terminalService.createDetachedTerminal({
+		const terminal = await this.terminalService.createDetachedTerminal({
 			rows: 10,
 			cols: 80,
 			readonly: true,
@@ -481,6 +497,12 @@ export class TerminalMessagePeek extends Disposable implements IPeekOutputRender
 				},
 			}
 		});
+		if (this._store.isDisposed) {
+			terminal.dispose();
+			return undefined;
+		}
+
+		return this.terminal.value = terminal;
 	}
 
 	public async update(subject: InspectSubject): Promise<boolean> {
@@ -560,6 +582,10 @@ export class TerminalMessagePeek extends Disposable implements IPeekOutputRender
 		}
 
 		const terminal = await this.makeTerminal();
+		if (!terminal || this._store.isDisposed) {
+			return;
+		}
+
 		let didWriteData = false;
 
 		const pendingWrites = new MutableObservableValue(0);

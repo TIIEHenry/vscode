@@ -359,6 +359,9 @@ export class TestResultsViewContent extends Disposable {
 			this.currentSubjectStore.clear();
 			const callFrames = this.getCallFrames(opts.subject) || [];
 			const topFrame = await this.prepareTopFrame(opts.subject, callFrames);
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.setCallStackFrames(topFrame, callFrames);
 
 			this.followupWidget.show(opts.subject);
@@ -505,6 +508,7 @@ class FollowupActionWidget extends Disposable {
 	private readonly visibleStore = this._register(new DisposableStore());
 	private readonly onCloseEmitter = this._register(new Emitter<void>());
 	public readonly onClose = this.onCloseEmitter.event;
+	private currentSubject: InspectSubject | undefined;
 
 	public get domNode() {
 		return this.el.root;
@@ -520,18 +524,24 @@ class FollowupActionWidget extends Disposable {
 
 	public show(subject: InspectSubject) {
 		this.visibleStore.clear();
+		this.currentSubject = subject;
 		if (subject instanceof MessageSubject) {
 			this.showMessage(subject);
 		}
 	}
 
 	private async showMessage(subject: MessageSubject) {
-		const cts = this.visibleStore.add(new CancellationTokenSource());
+		const cts = new CancellationTokenSource();
+		this.visibleStore.add(toDisposable(() => cts.dispose(true)));
 		const start = Date.now();
 
 		// Wait for completion otherwise results will not be available to the ext host:
 		if (subject.result instanceof LiveTestResult && !subject.result.completedAt) {
 			await new Promise(r => Event.once((subject.result as LiveTestResult).onComplete)(r));
+		}
+
+		if (this._store.isDisposed || this.currentSubject !== subject) {
+			return;
 		}
 
 		const followups = await this.testService.provideTestFollowups({
@@ -541,8 +551,7 @@ class FollowupActionWidget extends Disposable {
 			taskIndex: subject.taskIndex,
 		}, cts.token);
 
-
-		if (!followups.followups.length || cts.token.isCancellationRequested) {
+		if (this._store.isDisposed || this.currentSubject !== subject || !followups.followups.length || cts.token.isCancellationRequested) {
 			followups.dispose();
 			return;
 		}

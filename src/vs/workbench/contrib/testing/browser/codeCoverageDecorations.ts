@@ -333,7 +333,23 @@ export class CodeCoverageDecorations extends Disposable implements IEditorContri
 	}
 
 	private async apply(model: ITextModel, coverage: FileCoverage, testId: TestId | undefined, showInlineByDefault: boolean, showMinimap: boolean) {
-		const details = this.details = await this.loadDetails(coverage, testId, model);
+		this.loadingCancellation?.cancel();
+		const detailsPromise = this.loadDetails(coverage, testId, model);
+		const loadingCts = this.loadingCancellation;
+		const details = await detailsPromise;
+		const currentFile = this.coverage.selected.get()?.getUri(model.uri);
+		const currentTestId = this.coverage.filterToTest.get();
+		if (
+			this._store.isDisposed
+			|| loadingCts?.token.isCancellationRequested
+			|| this.editor.getModel() !== model
+			|| currentFile !== coverage
+			|| currentTestId !== testId
+		) {
+			return;
+		}
+
+		this.details = details;
 		if (!details) {
 			this.hasInlineCoverageDetails.set(false, undefined);
 			return this.clear();
