@@ -410,7 +410,13 @@ export class ReplEditor extends EditorPane implements IEditorPaneWithScrolling {
 		}
 
 		await super.setInput(input, options, context, token);
+		if (token.isCancellationRequested) {
+			return;
+		}
 		const model = await input.resolve();
+		if (token.isCancellationRequested) {
+			return;
+		}
 		if (this._runbuttonToolbar) {
 			this._runbuttonToolbar.context = input.resource;
 		}
@@ -423,7 +429,13 @@ export class ReplEditor extends EditorPane implements IEditorPaneWithScrolling {
 
 		const viewState = options?.viewState ?? this._loadNotebookEditorViewState(input);
 		await this._extensionService.whenInstalledExtensionsRegistered();
+		if (token.isCancellationRequested) {
+			return;
+		}
 		await this._notebookWidget.value!.setModel(model.notebook, viewState?.notebook, undefined, 'repl');
+		if (token.isCancellationRequested) {
+			return;
+		}
 		model.notebook.setCellCollapseDefault(this._notebookOptions.getCellCollapseDefault());
 		this._notebookWidget.value!.setOptions({
 			isReadOnly: true
@@ -449,6 +461,9 @@ export class ReplEditor extends EditorPane implements IEditorPaneWithScrolling {
 		}));
 
 		const editorModel = await input.resolveInput(model.notebook);
+		if (token.isCancellationRequested) {
+			return;
+		}
 		this._codeEditorWidget.setModel(editorModel);
 		if (viewState?.input) {
 			this._codeEditorWidget.restoreViewState(viewState.input);
