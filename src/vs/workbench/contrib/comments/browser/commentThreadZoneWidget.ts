@@ -389,6 +389,9 @@ export class ReviewZoneWidget extends ZoneWidget implements ICommentThreadWidget
 		}
 
 		await this._commentThreadWidget.updateCommentThread(commentThread);
+		if (this._disposables.isDisposed || this._commentThread !== commentThread) {
+			return;
+		}
 
 		// Move comment glyph widget and show position if the line has changed.
 		const lineNumber = this._commentThread.range?.endLineNumber ?? 1;
