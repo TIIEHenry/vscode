@@ -360,7 +360,7 @@ export class LinkedEditingContribution extends Disposable implements IEditorCont
 			if (!isCancellationError(err)) {
 				onUnexpectedError(err);
 			}
-			if (this._currentRequestCts === currentRequestCts || !this._currentRequestCts) {
+			if (this._currentRequestCts === currentRequestCts) {
 				// stop if we are still the latest request
 				this.clearRanges();
 			}
