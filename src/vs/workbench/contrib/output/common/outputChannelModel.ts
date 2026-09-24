@@ -558,7 +558,13 @@ export abstract class AbstractFileOutputChannelModel extends Disposable implemen
 		}
 
 		else if (mode === OutputChannelUpdateMode.Replace) {
-			this.replacePromise = this.replaceContent(this.model, token).finally(() => this.replacePromise = undefined);
+			let replacePromise: Promise<void>;
+			replacePromise = this.replaceContent(this.model, token).finally(() => {
+				if (this.replacePromise === replacePromise) {
+					this.replacePromise = undefined;
+				}
+			});
+			this.replacePromise = replacePromise;
 		}
 
 		else {
