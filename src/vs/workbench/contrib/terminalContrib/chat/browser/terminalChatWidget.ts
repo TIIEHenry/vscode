@@ -303,6 +303,9 @@ export class TerminalChatWidget extends Disposable {
 	}
 
 	hide(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this._container.classList.add('hide');
 		this._inlineChatWidget.reset();
 		this._resetPlaceholder();
@@ -337,7 +340,7 @@ export class TerminalChatWidget extends Disposable {
 
 	async acceptCommand(shouldExecute: boolean): Promise<void> {
 		const code = await this.inlineChatWidget.getCodeBlockInfo(0);
-		if (!code) {
+		if (this._store.isDisposed || this._instance.isDisposed || !code) {
 			return;
 		}
 		const value = code.getValue();
@@ -356,7 +359,7 @@ export class TerminalChatWidget extends Disposable {
 		// Intentionally only starts asynchronous creation so `reveal` can display and focus immediately.
 		const sessionCtor = createCancelablePromise<void>(async token => {
 			const resolution = await this._sessionResolver.resolve(token, this._instance.shellType ?? this._instance.processName, this._instance.os ?? OS);
-			if (!resolution || token.isCancellationRequested) {
+			if (!resolution || this._store.isDisposed || this._sessionCtor !== sessionCtor || token.isCancellationRequested) {
 				resolution?.modelRef.dispose();
 				return;
 			}
@@ -454,6 +457,9 @@ export class TerminalChatWidget extends Disposable {
 		const store = new DisposableStore();
 		this._requestActiveContextKey.set(true);
 		const response = await this._inlineChatWidget.chatWidget.acceptInput(lastInput, { isVoiceInput: options?.isVoiceInput });
+		if (this._store.isDisposed) {
+			return;
+		}
 		this._currentRequestId = response?.requestId;
 		const responsePromise = new DeferredPromise<IChatResponseModel | undefined>();
 		try {
@@ -469,7 +475,15 @@ export class TerminalChatWidget extends Disposable {
 						this._requestActiveContextKey.set(false);
 						this._requestActiveContextKey.set(false);
 						const firstCodeBlock = await this._inlineChatWidget.getCodeBlockInfo(0);
+						if (this._store.isDisposed) {
+							responsePromise.complete(undefined);
+							return;
+						}
 						const secondCodeBlock = await this._inlineChatWidget.getCodeBlockInfo(1);
+						if (this._store.isDisposed) {
+							responsePromise.complete(undefined);
+							return;
+						}
 						this._responseContainsCodeBlockContextKey.set(!!firstCodeBlock);
 						this._responseContainsMulitpleCodeBlocksContextKey.set(!!secondCodeBlock);
 						this._inlineChatWidget.updateToolbar(true);
@@ -501,9 +515,8 @@ export class TerminalChatWidget extends Disposable {
 	}
 
 	async viewInChat(): Promise<void> {
-		const widget = await this._chatWidgetService.revealWidget();
 		const currentRequest = this._inlineChatWidget.chatWidget.viewModel?.model.getRequests().find(r => r.id === this._currentRequestId);
-		if (!widget || !currentRequest?.response) {
+		if (!currentRequest?.response) {
 			return;
 		}
 
@@ -538,16 +551,25 @@ export class TerminalChatWidget extends Disposable {
 			}
 		}
 
-		this._chatService.addCompleteRequest(widget!.viewModel!.sessionResource,
+		const widget = await this._chatWidgetService.revealWidget();
+		const dest = widget?.viewModel?.sessionResource;
+		if (this._store.isDisposed || !widget || !dest) {
+			return;
+		}
+
+		this._chatService.addCompleteRequest(dest,
 			`@${this._terminalAgentName} ${currentRequest.message.text}`,
 			currentRequest.variableData,
 			currentRequest.attempt,
 			{
 				message,
-				result: currentRequest.response!.result,
-				followups: currentRequest.response!.followups
+				result: currentRequest.response.result,
+				followups: currentRequest.response.followups
 			});
 		widget.focusResponseItem();
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.hide();
 	}
 }

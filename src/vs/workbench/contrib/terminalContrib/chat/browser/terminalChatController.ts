@@ -6,6 +6,7 @@
 import type { Terminal as RawXtermTerminal } from '@xterm/xterm';
 import { Lazy } from '../../../../../base/common/lazy.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
+import { isEqual } from '../../../../../base/common/resources.js';
 import { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { IInstantiationService, type ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IChatCodeBlockContextProviderService, IChatWidgetService } from '../../../chat/browser/chat.js';
@@ -147,7 +148,11 @@ export class TerminalChatController extends Disposable implements ITerminalContr
 		if (chatModel) {
 			await this._instantiationService.invokeFunction(moveToPanelChat, chatModel);
 		}
-		this._terminalChatWidget?.rawValue?.hide();
+		const widget = this._terminalChatWidget?.rawValue;
+		if (!widget) {
+			return;
+		}
+		widget.hide();
 	}
 }
 
@@ -156,11 +161,18 @@ async function moveToPanelChat(accessor: ServicesAccessor, model: IChatModel | u
 	const chatWidgetService = accessor.get(IChatWidgetService);
 
 	const widget = await chatWidgetService.revealWidget();
-
-	if (widget && widget.viewModel && model) {
-		for (const request of model.getRequests().slice()) {
-			await chatService.adoptRequest(widget.viewModel.model.sessionResource, request);
-		}
-		widget.focusResponseItem();
+	if (!widget || !model) {
+		return;
 	}
+	const dest = widget.viewModel?.sessionResource;
+	if (!dest) {
+		return;
+	}
+	for (const request of model.getRequests().slice()) {
+		await chatService.adoptRequest(dest, request);
+		if (!isEqual(widget.viewModel?.sessionResource, dest)) {
+			return;
+		}
+	}
+	widget.focusResponseItem();
 }
