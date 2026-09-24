@@ -313,6 +313,12 @@ export class ImplicitContextAttachmentWidget extends Disposable {
 			const file = URI.isUri(attachment.value) ? attachment.value : attachment.value.uri;
 			if (file.scheme === Schemas.vscodeNotebookCell && isLocation(attachment.value)) {
 				this.attachmentModel.addFile(file, attachment.value.range);
+			} else if (file.scheme === Schemas.vscodeBrowser) {
+				const boundSession = this.widgetRef()?.viewModel?.sessionResource;
+				await this.attachmentModel.addFile(file, undefined, () => isEqual(this.widgetRef()?.viewModel?.sessionResource, boundSession));
+				if (!isEqual(this.widgetRef()?.viewModel?.sessionResource, boundSession)) {
+					return;
+				}
 			} else {
 				this.attachmentModel.addFile(file);
 			}

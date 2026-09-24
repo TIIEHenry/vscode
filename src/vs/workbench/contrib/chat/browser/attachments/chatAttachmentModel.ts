@@ -56,7 +56,7 @@ export class ChatAttachmentModel extends Disposable {
 		return new Set(this._attachments.keys());
 	}
 
-	async addFile(uri: URI, range?: IRange) {
+	async addFile(uri: URI, range?: IRange, stillAttach?: () => boolean) {
 		if (/\.(png|jpe?g|gif|bmp|webp)$/i.test(uri.path)) {
 			const context = await this.asImageVariableEntry(uri);
 			if (context) {
@@ -66,6 +66,9 @@ export class ChatAttachmentModel extends Disposable {
 		} else if (uri.scheme === Schemas.vscodeBrowser) {
 			const entry = await this.chatAttachmentResolveService.resolveEditorAttachContext({ resource: uri });
 			if (entry) {
+				if (stillAttach && !stillAttach()) {
+					return;
+				}
 				this.addContext(entry);
 			}
 			return;
