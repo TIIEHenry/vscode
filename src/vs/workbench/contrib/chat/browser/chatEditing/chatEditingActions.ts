@@ -370,8 +370,6 @@ function restoreRequestToMainInputIfEmpty(widget: IChatWidget | undefined, item:
 async function restoreSnapshotWithConfirmationByRequestId(accessor: ServicesAccessor, sessionResource: URI, requestId: string): Promise<boolean> {
 	const configurationService = accessor.get(IConfigurationService);
 	const dialogService = accessor.get(IDialogService);
-	const chatWidgetService = accessor.get(IChatWidgetService);
-	const widget = chatWidgetService.getWidgetBySessionResource(sessionResource);
 	const chatService = accessor.get(IChatService);
 	const chatModel = chatService.getSession(sessionResource);
 	if (!chatModel) {
@@ -424,7 +422,7 @@ async function restoreSnapshotWithConfirmationByRequestId(accessor: ServicesAcce
 		: { confirmed: true };
 
 	if (!confirmation.confirmed) {
-		widget?.viewModel?.model.setCheckpoint(undefined);
+		chatModel.setCheckpoint(undefined);
 		return false;
 	}
 
