@@ -218,8 +218,11 @@ export class AgentSessionsWelcomePage extends EditorPane {
 		this._storedInput = input;
 		this._openedAt = Date.now();
 		await super.setInput(input, options, context, token);
+		if (token.isCancellationRequested) {
+			return;
+		}
 		this._workspaceKind = input.workspaceKind ?? 'empty';
-		await this.buildContent();
+		await this.buildContent(token);
 	}
 
 	override clearInput(): void {
@@ -239,9 +242,10 @@ export class AgentSessionsWelcomePage extends EditorPane {
 		super.clearInput();
 	}
 
-	private async buildContent(): Promise<void> {
+	private async buildContent(token: CancellationToken): Promise<void> {
 		this.contentDisposables.clear();
 		this._recreateSessionGeneration++;
+		const generation = this._recreateSessionGeneration;
 		this.sessionsControlDisposables.clear();
 		this.sessionsControl = undefined;
 		clearNode(this.contentContainer);
@@ -250,6 +254,9 @@ export class AgentSessionsWelcomePage extends EditorPane {
 		this._isEmptyWorkspace = this.workspaceContextService.getWorkbenchState() === WorkbenchState.EMPTY;
 		if (this._isEmptyWorkspace) {
 			const recentlyOpened = await this.getRecentlyOpenedWorkspaces(true);
+			if (generation !== this._recreateSessionGeneration || token.isCancellationRequested) {
+				return;
+			}
 			this._recentTrustedWorkspaces = recentlyOpened.slice(0, MAX_REPO_PICKS);
 		}
 
@@ -262,6 +269,9 @@ export class AgentSessionsWelcomePage extends EditorPane {
 
 		const startEntries = append(header, $('.agentSessionsWelcome-startEntries'));
 		await this.buildStartEntries(startEntries);
+		if (generation !== this._recreateSessionGeneration || token.isCancellationRequested) {
+			return;
+		}
 
 		// Chat input section
 		const chatSection = append(this.contentContainer, $('.agentSessionsWelcome-chatSection'));
