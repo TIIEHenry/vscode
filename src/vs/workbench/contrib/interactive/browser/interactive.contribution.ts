@@ -266,6 +266,9 @@ class InteractiveWindowWorkingCopyEditorHandler extends Disposable implements IW
 
 	private async _installHandler(): Promise<void> {
 		await this._extensionService.whenInstalledExtensionsRegistered();
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		this._register(this._workingCopyEditorService.registerHandler(this));
 	}
