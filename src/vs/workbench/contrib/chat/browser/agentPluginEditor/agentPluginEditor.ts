@@ -311,7 +311,11 @@ export class AgentPluginEditor extends EditorPane {
 		}));
 
 		// Open readme
-		this.activeElement = await this.openDetails(item, template, token);
+		const activeElement = await this.openDetails(item, template, token);
+		if (token.isCancellationRequested) {
+			return;
+		}
+		this.activeElement = activeElement;
 	}
 
 	private getItemActions(item: IAgentPluginItem, storedPlugin: IMarketplacePlugin | undefined): Action[] {
