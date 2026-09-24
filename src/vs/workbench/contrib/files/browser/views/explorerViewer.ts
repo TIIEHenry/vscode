@@ -388,10 +388,12 @@ export class ExplorerFindProvider implements IAsyncFindProvider<ExplorerItem> {
 			throw new Error('ExplorerFindProvider: no session state');
 		}
 
-		const roots = Array.from(this.filterSessionStartState.rootsWithProviders);
+		const sessionId = this.sessionId;
+		const filterSessionStartState = this.filterSessionStartState;
+		const roots = Array.from(filterSessionStartState.rootsWithProviders);
 		const searchResults = await this.getSearchResults(pattern, roots, matchType, token);
 
-		if (token.isCancellationRequested) {
+		if (token.isCancellationRequested || this.sessionId !== sessionId || this.filterSessionStartState !== filterSessionStartState) {
 			return undefined;
 		}
 
@@ -401,7 +403,11 @@ export class ExplorerFindProvider implements IAsyncFindProvider<ExplorerItem> {
 		}
 
 		const tree = this.treeProvider();
-		await tree.setInput(this.filterSessionStartState.input);
+		await tree.setInput(filterSessionStartState.input);
+
+		if (token.isCancellationRequested || this.sessionId !== sessionId || this.filterSessionStartState !== filterSessionStartState) {
+			return undefined;
+		}
 
 		const hitMaxResults = searchResults.some(({ hitMaxResults }) => hitMaxResults);
 		return {
@@ -471,17 +477,23 @@ export class ExplorerFindProvider implements IAsyncFindProvider<ExplorerItem> {
 	}
 
 	async endFilterSession(): Promise<void> {
+		const captured = this.filterSessionStartState;
+
 		this.clearPhantomElements();
 
 		this.explorerFindActiveContextKey.set(false);
 
 		// Restore view state
-		if (!this.filterSessionStartState) {
+		if (!captured) {
 			throw new Error('ExplorerFindProvider: no session state to restore');
 		}
 
 		const tree = this.treeProvider();
-		await tree.setInput(this.filterSessionStartState.input, this.filterSessionStartState.viewState);
+		await tree.setInput(captured.input, captured.viewState);
+
+		if (this.filterSessionStartState !== captured) {
+			return;
+		}
 
 		this.filterSessionStartState = undefined;
 		this.explorerService.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
@@ -508,10 +520,12 @@ export class ExplorerFindProvider implements IAsyncFindProvider<ExplorerItem> {
 			throw new Error('ExplorerFindProvider: no highlight session state');
 		}
 
-		const roots = Array.from(this.highlightSessionStartState.rootsWithProviders);
+		const sessionId = this.sessionId;
+		const highlightSessionStartState = this.highlightSessionStartState;
+		const roots = Array.from(highlightSessionStartState.rootsWithProviders);
 		const searchResults = await this.getSearchResults(pattern, roots, matchType, token);
 
-		if (token.isCancellationRequested) {
+		if (token.isCancellationRequested || this.sessionId !== sessionId || this.highlightSessionStartState !== highlightSessionStartState) {
 			return undefined;
 		}
 
