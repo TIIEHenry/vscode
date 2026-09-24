@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancelablePromise, RunOnceScheduler } from '../../../../base/common/async.js';
+import { CancelablePromise, createCancelablePromise, RunOnceScheduler } from '../../../../base/common/async.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ICodeEditor } from '../../../browser/editorBrowser.js';
@@ -134,8 +134,13 @@ export class SectionHeaderDetector extends Disposable implements IEditorContribu
 		}
 
 		const modelVersionId = model.getVersionId();
-		this.editorWorkerService.findSectionHeaders(model.uri, this.options)
+		const options = this.options;
+		const computePromise = this.computePromise = createCancelablePromise(() => this.editorWorkerService.findSectionHeaders(model.uri, options));
+		computePromise
 			.then((sectionHeaders) => {
+				if (this.computePromise !== computePromise) {
+					return;
+				}
 				if (model.isDisposed() || model.getVersionId() !== modelVersionId) {
 					// model changed in the meantime
 					return;
