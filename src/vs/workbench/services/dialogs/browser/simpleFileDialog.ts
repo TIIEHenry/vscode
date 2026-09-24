@@ -143,6 +143,7 @@ export class SimpleFileDialog extends Disposable implements ISimpleFileDialog {
 	private updatingPromise: CancelablePromise<boolean> | undefined;
 
 	private _showDotFiles: boolean = true;
+	private _dotFilesRefreshGeneration: number = 0;
 
 	constructor(
 		@IFileService private readonly fileService: IFileService,
@@ -169,12 +170,16 @@ export class SimpleFileDialog extends Disposable implements ISimpleFileDialog {
 		this.getShowDotFiles();
 		const disposableStore = this._register(new DisposableStore());
 		disposableStore.add(this.storageService.onDidChangeValue(StorageScope.WORKSPACE, 'remoteFileDialog.showDotFiles', disposableStore)(async _ => {
+			const generation = ++this._dotFilesRefreshGeneration;
 			this.getShowDotFiles();
 			this.setButtons();
 			const startingValue = this.filePickBox.value;
 			const folderValue = this.pathFromUri(this.currentFolder, true);
 			this.filePickBox.value = folderValue;
 			await this.tryUpdateItems(folderValue, this.currentFolder, true);
+			if (generation !== this._dotFilesRefreshGeneration) {
+				return;
+			}
 			this.filePickBox.value = startingValue;
 		}));
 	}
@@ -1037,7 +1042,6 @@ export class SimpleFileDialog extends Disposable implements ISimpleFileDialog {
 
 			return this.createItems(folderStat, currentFolder, token).then(items => {
 				if (token.isCancellationRequested) {
-					this.busy = false;
 					return false;
 				}
 
@@ -1051,6 +1055,9 @@ export class SimpleFileDialog extends Disposable implements ISimpleFileDialog {
 					this.filePickBox.valueSelection = [0, this.filePickBox.value.length];
 					this.insertText(newValue, newValue);
 				}
+				if (token.isCancellationRequested) {
+					return false;
+				}
 				if (force && trailing && isSave) {
 					// Keep the cursor position in front of the save as name.
 					this.filePickBox.valueSelection = [this.filePickBox.value.length - trailing.length, this.filePickBox.value.length - trailing.length];
@@ -1059,7 +1066,9 @@ export class SimpleFileDialog extends Disposable implements ISimpleFileDialog {
 					this.filePickBox.valueSelection = [this.filePickBox.value.length, this.filePickBox.value.length];
 				}
 				this.busy = false;
-				this.updatingPromise = undefined;
+				if (this.updatingPromise === updatingPromise) {
+					this.updatingPromise = undefined;
+				}
 				return result;
 			});
 		});
