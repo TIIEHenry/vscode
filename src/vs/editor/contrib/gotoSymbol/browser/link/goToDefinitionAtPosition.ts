@@ -216,6 +216,10 @@ export class GotoDefinitionAtPositionEditorContribution implements IEditorContri
 					ref.dispose();
 					return;
 				}
+				if (this.currentWordAtPosition !== word) {
+					ref.dispose();
+					return;
+				}
 				this.addDecoration(
 					linkRange,
 					previewValue ? new MarkdownString().appendCodeblock(languageId ? languageId : '', previewValue) : undefined

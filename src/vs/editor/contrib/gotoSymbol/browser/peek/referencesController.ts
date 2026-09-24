@@ -255,11 +255,17 @@ export abstract class ReferencesController implements IEditorContribution {
 		this._ignoreModelChangeEvent = true;
 		const range = Range.lift(ref.range).collapseToStart();
 
+		const requestId = this._requestIdPool;
+
 		return this._editorService.openCodeEditor({
 			resource: ref.uri,
 			options: { selection: range, selectionSource: TextEditorSelectionSource.JUMP, pinned }
 		}, this._editor).then(openedEditor => {
 			this._ignoreModelChangeEvent = false;
+
+			if (requestId !== this._requestIdPool) {
+				return;
+			}
 
 			if (!openedEditor || !this._widget) {
 				// something went wrong...
