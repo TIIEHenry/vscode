@@ -867,11 +867,13 @@ export class NewProfileElement extends AbstractUserDataProfileElement {
 	}
 
 	protected override async doSave(): Promise<void> {
-		if (this.previewProfile) {
-			const profile = await this.saveProfile(this.previewProfile);
-			if (profile) {
-				this.previewProfile = profile;
-			}
+		const preview = this.previewProfile;
+		if (!preview) {
+			return;
+		}
+		const profile = await this.saveProfile(preview);
+		if (profile && this.previewProfile === preview) {
+			this.previewProfile = profile;
 		}
 	}
 }
@@ -1194,6 +1196,7 @@ export class UserDataProfilesEditorModel extends EditorModel {
 		if (!this.newProfileElement) {
 			return undefined;
 		}
+		const element = this.newProfileElement;
 
 		this.newProfileElement.validate();
 		if (this.newProfileElement.message) {
@@ -1258,8 +1261,8 @@ export class UserDataProfilesEditorModel extends EditorModel {
 				}
 			}
 		} finally {
-			if (this.newProfileElement) {
-				this.newProfileElement.disabled = false;
+			if (this.newProfileElement === element) {
+				element.disabled = false;
 			}
 		}
 
@@ -1275,7 +1278,9 @@ export class UserDataProfilesEditorModel extends EditorModel {
 		}
 
 		if (profile && !profile.isInternal && this.newProfileElement) {
-			this.removeNewProfile();
+			if (this.newProfileElement === element) {
+				this.removeNewProfile();
+			}
 			const existing = this._profiles.find(([p]) => p.name === profile.name);
 			if (existing) {
 				this._onDidChange.fire(existing[0]);

@@ -576,16 +576,30 @@ class ExtractedUserDataSyncActivityViewDataProvider extends UserDataSyncActivity
 	override async getChildren(element?: ITreeItem): Promise<ITreeItem[]> {
 		if (!element) {
 			this.machinesPromise = undefined;
-			if (!this.activityDataResource) {
+			const resource = this.activityDataResource;
+			if (!resource) {
 				return [];
 			}
-			const stat = await this.fileService.resolve(this.activityDataResource);
+			const stat = await this.fileService.resolve(resource);
+			if (this.activityDataResource !== resource) {
+				return [];
+			}
 			if (stat.isDirectory) {
-				this.activityDataLocation = this.activityDataResource;
+				this.activityDataLocation = resource;
 			} else {
-				this.activityDataLocation = this.uriIdentityService.extUri.joinPath(this.uriIdentityService.extUri.dirname(this.activityDataResource), 'remoteActivity');
-				try { await this.fileService.del(this.activityDataLocation, { recursive: true }); } catch (e) {/* ignore */ }
-				await this.userDataSyncService.extractActivityData(this.activityDataResource, this.activityDataLocation);
+				const location = this.uriIdentityService.extUri.joinPath(this.uriIdentityService.extUri.dirname(resource), 'remoteActivity');
+				if (this.activityDataResource !== resource) {
+					return [];
+				}
+				try { await this.fileService.del(location, { recursive: true }); } catch (e) {/* ignore */ }
+				if (this.activityDataResource !== resource) {
+					return [];
+				}
+				await this.userDataSyncService.extractActivityData(resource, location);
+				if (this.activityDataResource !== resource) {
+					return [];
+				}
+				this.activityDataLocation = location;
 			}
 		}
 		return super.getChildren(element);
