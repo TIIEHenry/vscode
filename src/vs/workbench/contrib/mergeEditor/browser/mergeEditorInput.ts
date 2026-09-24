@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { assertFn } from '../../../../base/common/assert.js';
-import { CancellationError } from '../../../../base/common/cancellation.js';
+import { CancellationError } from '../../../../base/common/errors.js';
 import { autorun } from '../../../../base/common/observable.js';
 import { isEqual } from '../../../../base/common/resources.js';
 import { isDefined } from '../../../../base/common/types.js';
