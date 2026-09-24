@@ -248,6 +248,7 @@ class WorkbenchHostService extends Disposable implements IHostService {
 	//#region Toast Notifications
 
 	private readonly activeBrowserToasts = this._register(new DisposableSet());
+	private readonly browserToasts: IDisposable[] = [];
 
 	async showToast(options: IToastOptions, token: CancellationToken): Promise<IToastResult> {
 		const id = generateUuid();
@@ -262,8 +263,17 @@ class WorkbenchHostService extends Disposable implements IHostService {
 
 			// Then fallback to browser notifications
 			return await showBrowserToast({
-				onDidCreateToast: (toast: IDisposable) => this.activeBrowserToasts.add(toast),
-				onDidDisposeToast: (toast: IDisposable) => this.activeBrowserToasts.deleteAndDispose(toast)
+				onDidCreateToast: (toast: IDisposable) => {
+					this.browserToasts.push(toast);
+					this.activeBrowserToasts.add(toast);
+				},
+				onDidDisposeToast: (toast: IDisposable) => {
+					const index = this.browserToasts.indexOf(toast);
+					if (index >= 0) {
+						this.browserToasts.splice(index, 1);
+					}
+					this.activeBrowserToasts.deleteAndDispose(toast);
+				}
 			}, options, token);
 		} finally {
 			listener.dispose();
@@ -271,9 +281,16 @@ class WorkbenchHostService extends Disposable implements IHostService {
 	}
 
 	private async clearToasts(): Promise<void> {
+		const toClear = [...this.browserToasts];
 		await this.nativeHostService.clearToasts();
 
-		this.activeBrowserToasts.clearAndDisposeAll();
+		for (const toast of toClear) {
+			const index = this.browserToasts.indexOf(toast);
+			if (index >= 0) {
+				this.browserToasts.splice(index, 1);
+			}
+			this.activeBrowserToasts.deleteAndDispose(toast);
+		}
 	}
 
 	//#endregion
