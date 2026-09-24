@@ -38,6 +38,7 @@ export class InlineChatEditReviewSession extends Disposable implements IChatEdit
 	private readonly _readonlyLocks = new ResourceMap<true>();
 	private readonly _externalEditListener = this._register(new MutableDisposable<IDisposable>());
 	private readonly _externalEditEntriesInFlight = new ResourceMap<Promise<void>>();
+	private _editChain: Promise<void> = Promise.resolve();
 	private readonly _onDidDispose = this._register(new Emitter<void>());
 	readonly onDidDispose = this._onDidDispose.event;
 
@@ -174,6 +175,12 @@ export class InlineChatEditReviewSession extends Disposable implements IChatEdit
 	}
 
 	private async _processExternalEdits(response: IChatResponseModel): Promise<void> {
+		const run = this._editChain.then(() => this._processExternalEditsNow(response));
+		this._editChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async _processExternalEditsNow(response: IChatResponseModel): Promise<void> {
 		for (const part of response.response.value) {
 			if (part.kind !== 'externalEdit') {
 				continue;
@@ -213,7 +220,7 @@ export class InlineChatEditReviewSession extends Disposable implements IChatEdit
 			return;
 		}
 
-		const createEntry = this._createExternalEditEntry(edit, telemetryInfo);
+		const createEntry = Promise.resolve().then(() => this._createExternalEditEntry(edit, telemetryInfo));
 		this._externalEditEntriesInFlight.set(edit.uri, createEntry);
 		try {
 			await createEntry;
