@@ -615,9 +615,10 @@ export class NewProfileElement extends AbstractUserDataProfileElement {
 			this._onDidChange.fire({ copyFrom: true });
 			this.flags = undefined;
 			this.copyFlags = this.getCopyFlagsFrom(copyFrom);
-			if (copyFrom instanceof URI) {
-				this.templatePromise?.cancel();
-				this.templatePromise = undefined;
+			this.templatePromise?.cancel();
+			this.templatePromise = undefined;
+			if (!(copyFrom instanceof URI)) {
+				this.template = null;
 			}
 			this.initialize();
 		}
@@ -750,7 +751,9 @@ export class NewProfileElement extends AbstractUserDataProfileElement {
 		if (!this.templatePromise) {
 			this.templatePromise = createCancelablePromise(async token => {
 				const template = await this.userDataProfileImportExportService.resolveProfileTemplate(uri);
-				if (!token.isCancellationRequested) {
+				if (!token.isCancellationRequested
+					&& this.copyFrom instanceof URI
+					&& this.uriIdentityService.extUri.isEqual(this.copyFrom, uri)) {
 					this.template = template;
 				}
 			});
