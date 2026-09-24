@@ -153,6 +153,7 @@ export interface ISortOrderConfiguration {
 
 export class TextFileContentProvider extends Disposable implements ITextModelContentProvider {
 	private readonly fileWatcherDisposable = this._register(new MutableDisposable());
+	private readonly _resolveChains = new Map<string, Promise<void>>();
 
 	constructor(
 		@ITextFileService private readonly textFileService: ITextFileService,
@@ -215,6 +216,14 @@ export class TextFileContentProvider extends Disposable implements ITextModelCon
 	private resolveEditorModel(resource: URI, createAsNeeded?: true): Promise<ITextModel>;
 	private resolveEditorModel(resource: URI, createAsNeeded?: boolean): Promise<ITextModel | null>;
 	private async resolveEditorModel(resource: URI, createAsNeeded: boolean = true): Promise<ITextModel | null> {
+		const key = resource.toString();
+		const prev = this._resolveChains.get(key) ?? Promise.resolve();
+		const run = prev.then(() => this._resolveEditorModelNow(resource, createAsNeeded), () => this._resolveEditorModelNow(resource, createAsNeeded));
+		this._resolveChains.set(key, run.then(() => undefined, () => undefined));
+		return run;
+	}
+
+	private async _resolveEditorModelNow(resource: URI, createAsNeeded: boolean = true): Promise<ITextModel | null> {
 		const savedFileResource = TextFileContentProvider.textFileToResource(resource);
 
 		const content = await this.textFileService.readStream(savedFileResource);
