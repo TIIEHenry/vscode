@@ -773,6 +773,9 @@ export class GettingStartedPage extends EditorPane {
 			const videoPoster = media.poster ? media.poster[themeType] : undefined;
 			const altText = media.altText ? media.altText : localize('videoAltText', "Video for {0}", stepToExpand.title);
 			const rawHTML = await this.detailsRenderer.renderVideo(videoPath, videoPoster, altText);
+			if (this.editorInput?.selectedStep !== stepId) {
+				return;
+			}
 			this.webview.setHtml(rawHTML);
 
 			let isDisposed = false;
@@ -1125,10 +1128,11 @@ export class GettingStartedPage extends EditorPane {
 			});
 
 		recentlyOpenedList.onDidChange(() => this.registerDispatchListeners());
+		const pending = this.recentlyOpened;
 		this.recentlyOpened.then(({ workspaces }) => {
 			const workspacesWithID = this.filterRecentlyOpened(workspaces);
 
-			if (this._store.isDisposed || this.recentlyOpenedList.value !== recentlyOpenedList) {
+			if (this._store.isDisposed || this.recentlyOpenedList.value !== recentlyOpenedList || this.recentlyOpened !== pending) {
 				return;
 			}
 
