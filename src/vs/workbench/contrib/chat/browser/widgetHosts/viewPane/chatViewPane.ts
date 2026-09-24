@@ -327,14 +327,27 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 
 	private onDidChangeAgents(): void {
 		if (this.chatAgentService.getDefaultAgent(ChatAgentLocation.Chat)) {
-			if (!this._widget?.viewModel && !this.restoringSession) {
+			// loadSession's 100ms timer clears viewModel while acquire is still
+			// in flight. A CTS exists only after loadSession has been called;
+			// welcome (never loaded) still restores the default session.
+			const loadSessionInFlight = !!this.loadSessionCts.value && !this.loadSessionCts.value.token.isCancellationRequested;
+			if (!this._widget?.viewModel && !this.restoringSession && !loadSessionInFlight) {
+				// Cancel any previous in-flight resolution first: assigning to the
+				// MutableDisposable only disposes the old source, and disposing a
+				// CancellationTokenSource does not cancel it.
+				this._applyModelCts.value?.cancel();
+				const cts = this._applyModelCts.value = new CancellationTokenSource();
 				this.restoringSession =
-					this.acquireTransferredOrPersistedSession(CancellationToken.None, 'ChatViewPane#onDidChangeAgents').then(async session => {
+					this.acquireTransferredOrPersistedSession(cts.token, 'ChatViewPane#onDidChangeAgents').then(async session => {
 						if (!this._widget) {
 							session.modelRef?.dispose();
 							return; // renderBody has not been called yet
 						}
 						if (this._store.isDisposed) {
+							session.modelRef?.dispose();
+							return;
+						}
+						if (this._widget.viewModel) {
 							session.modelRef?.dispose();
 							return;
 						}
@@ -346,12 +359,16 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 						try {
 							this._widget.setVisible(false);
 
-							await this.showModel(CancellationToken.None, session.modelRef, true, !session.modelRef, undefined, session.localFallbackSelectionReason);
+							await this.showModel(cts.token, session.modelRef, true, !session.modelRef, undefined, session.localFallbackSelectionReason);
 						} finally {
 							if (this._store.isDisposed) {
 								return;
 							}
 							this._widget.setVisible(wasVisible);
+						}
+					}).catch(err => {
+						if (!isCancellationError(err)) {
+							this.logService.error('ChatViewPane#onDidChangeAgents failed', err);
 						}
 					});
 
@@ -1533,8 +1550,11 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 		// baselined here to be preserved rather than erased. See #325323.
 		const inputBeforeLoad = this._widget?.getInput() ?? '';
 
-		// Cancel any in-flight loadSession call so the last one always wins
+		// Cancel any in-flight loadSession call so the last one always wins.
+		// Also cancel agent-change restore: MutableDisposable.dispose does not
+		// cancel, and restore may already be inside showModel.
 		this.loadSessionCts.value?.cancel();
+		this._applyModelCts.value?.cancel();
 		const cts = this.loadSessionCts.value = new CancellationTokenSource();
 		const token = cts.token;
 
