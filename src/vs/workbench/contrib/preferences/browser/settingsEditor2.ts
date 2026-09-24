@@ -2082,6 +2082,10 @@ export class SettingsEditor2 extends EditorPane {
 			this.searchInProgress = null;
 		}
 
+		if (this.aiSearchPromise) {
+			this.aiSearchPromise.cancel();
+		}
+
 		const searchInProgress = this.searchInProgress = new CancellationTokenSource();
 		return this.searchDelayer.trigger(async () => {
 			if (searchInProgress.token.isCancellationRequested) {

@@ -133,6 +133,7 @@ export type ExtensionToggleData = {
 };
 
 let cachedExtensionToggleData: ExtensionToggleData | undefined;
+let pendingExtensionToggleData: Promise<ExtensionToggleData | undefined> | undefined;
 
 export async function getExperimentalExtensionToggleData(
 	chatEntitlementService: IChatEntitlementService,
@@ -155,44 +156,60 @@ export async function getExperimentalExtensionToggleData(
 		return cachedExtensionToggleData;
 	}
 
-	if (productService.extensionRecommendations) {
-		const settingsEditorRecommendedExtensions: IStringDictionary<IExtensionRecommendations> = {};
-		Object.keys(productService.extensionRecommendations).forEach(extensionId => {
-			const extensionInfo = productService.extensionRecommendations![extensionId];
-			if (extensionInfo.onSettingsEditorOpen) {
-				settingsEditorRecommendedExtensions[extensionId] = extensionInfo;
-			}
-		});
+	if (pendingExtensionToggleData) {
+		return pendingExtensionToggleData;
+	}
 
-		const recommendedExtensionsGalleryInfo: IStringDictionary<IGalleryExtension> = {};
-		for (const key in settingsEditorRecommendedExtensions) {
-			const extensionId = key;
-			// Recommend prerelease if not on Stable.
-			const isStable = productService.quality === 'stable';
-			try {
-				const extensions = await raceTimeout(
-					extensionGalleryService.getExtensions([{ id: extensionId, preRelease: !isStable }], CancellationToken.None),
-					EXTENSION_FETCH_TIMEOUT_MS);
-				if (extensions?.length === 1) {
-					recommendedExtensionsGalleryInfo[key] = extensions[0];
-				} else {
-					// same as network connection fail. we do not want a blank settings page: https://github.com/microsoft/vscode/issues/195722
-					// so instead of returning partial data we return undefined here
-					return undefined;
+	let flight!: Promise<ExtensionToggleData | undefined>;
+	flight = (async () => {
+		try {
+			if (productService.extensionRecommendations) {
+				const settingsEditorRecommendedExtensions: IStringDictionary<IExtensionRecommendations> = {};
+				Object.keys(productService.extensionRecommendations).forEach(extensionId => {
+					const extensionInfo = productService.extensionRecommendations![extensionId];
+					if (extensionInfo.onSettingsEditorOpen) {
+						settingsEditorRecommendedExtensions[extensionId] = extensionInfo;
+					}
+				});
+
+				const recommendedExtensionsGalleryInfo: IStringDictionary<IGalleryExtension> = {};
+				for (const key in settingsEditorRecommendedExtensions) {
+					const extensionId = key;
+					// Recommend prerelease if not on Stable.
+					const isStable = productService.quality === 'stable';
+					try {
+						const extensions = await raceTimeout(
+							extensionGalleryService.getExtensions([{ id: extensionId, preRelease: !isStable }], CancellationToken.None),
+							EXTENSION_FETCH_TIMEOUT_MS);
+						if (extensions?.length === 1) {
+							recommendedExtensionsGalleryInfo[key] = extensions[0];
+						} else {
+							// same as network connection fail. we do not want a blank settings page: https://github.com/microsoft/vscode/issues/195722
+							// so instead of returning partial data we return undefined here
+							return undefined;
+						}
+					} catch (e) {
+						// Network connection fail. Return nothing rather than partial data.
+						return undefined;
+					}
 				}
-			} catch (e) {
-				// Network connection fail. Return nothing rather than partial data.
-				return undefined;
+
+				cachedExtensionToggleData = {
+					settingsEditorRecommendedExtensions,
+					recommendedExtensionsGalleryInfo
+				};
+				return cachedExtensionToggleData;
+			}
+			return undefined;
+		} finally {
+			if (pendingExtensionToggleData === flight) {
+				pendingExtensionToggleData = undefined;
 			}
 		}
+	})();
 
-		cachedExtensionToggleData = {
-			settingsEditorRecommendedExtensions,
-			recommendedExtensionsGalleryInfo
-		};
-		return cachedExtensionToggleData;
-	}
-	return undefined;
+	pendingExtensionToggleData = flight;
+	return flight;
 }
 
 /**
