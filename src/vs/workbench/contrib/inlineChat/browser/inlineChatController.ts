@@ -771,6 +771,9 @@ export class InlineChatController implements IEditorContribution {
 
 		try {
 			await this.#applyModelDefaults(session, sessionStore);
+			if (this.#store.isDisposed || !this.#editor.hasModel()) {
+				return false;
+			}
 			if (this.#currentSession.get() !== session) {
 				return false;
 			}
@@ -811,6 +814,9 @@ export class InlineChatController implements IEditorContribution {
 					await Promise.all(arg.attachments.map(async attachment => {
 						await this.#zone.value.widget.chatWidget.attachmentModel.addFile(attachment);
 					}));
+					if (this.#store.isDisposed || !this.#editor.hasModel()) {
+						return false;
+					}
 					if (this.#currentSession.get() !== session) {
 						return false;
 					}
@@ -818,6 +824,9 @@ export class InlineChatController implements IEditorContribution {
 				}
 				if (arg.modelSelector) {
 					const id = (await this.#languageModelService.selectLanguageModels(arg.modelSelector)).sort().at(0);
+					if (this.#store.isDisposed || !this.#editor.hasModel()) {
+						return false;
+					}
 					if (this.#currentSession.get() !== session) {
 						return false;
 					}
@@ -834,6 +843,9 @@ export class InlineChatController implements IEditorContribution {
 					this.#zone.value.widget.chatWidget.setInput(arg.message);
 					if (arg.autoSend) {
 						await this.#zone.value.widget.chatWidget.acceptInput();
+						if (this.#store.isDisposed || !this.#editor.hasModel()) {
+							return false;
+						}
 					}
 				}
 			}
@@ -906,6 +918,9 @@ export class InlineChatController implements IEditorContribution {
 		const model = this.#zone.value.widget.chatWidget.input.selectedLanguageModel.get();
 		if (model && !model.metadata.isDefaultForLocation[session.chatModel.initialLocation]) {
 			const ids = await this.#languageModelService.selectLanguageModels({ vendor: model.metadata.vendor });
+			if (this.#store.isDisposed || !this.#editor.hasModel()) {
+				return;
+			}
 			if (this.#currentSession.get() !== session) {
 				return;
 			}
@@ -949,6 +964,10 @@ export class InlineChatController implements IEditorContribution {
 		// 3. Fall back to vendor default
 		if (!modelApplied) {
 			await this.#selectVendorDefaultModel(session);
+		}
+
+		if (this.#store.isDisposed || !this.#editor.hasModel()) {
+			return;
 		}
 
 		// Track model changes - store user's explicit choice in the given sessions.
