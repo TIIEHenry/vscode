@@ -88,6 +88,7 @@ export class ExplorerModel implements IDisposable {
 
 export class ExplorerItem {
 	_isDirectoryResolved: boolean; // used in tests
+	private _fetchChildrenGeneration = 0;
 	public error: Error | undefined = undefined;
 	private _isExcluded = false;
 
@@ -323,15 +324,20 @@ export class ExplorerItem {
 				// Mtime is only used when the sort order is 'modified'
 				const resolveMetadata = sortOrder === SortOrder.Modified;
 				this.error = undefined;
+				const generation = ++this._fetchChildrenGeneration;
 				try {
 					const stat = await this.fileService.resolve(this.resource, { resolveSingleChildDescendants: true, resolveMetadata });
-					const resolved = ExplorerItem.create(this.fileService, this.configService, this.filesConfigService, stat, this);
-					ExplorerItem.mergeLocalWithDisk(resolved, this);
+					if (generation === this._fetchChildrenGeneration) {
+						const resolved = ExplorerItem.create(this.fileService, this.configService, this.filesConfigService, stat, this);
+						ExplorerItem.mergeLocalWithDisk(resolved, this);
+						this._isDirectoryResolved = true;
+					}
 				} catch (e) {
-					this.error = e;
+					if (generation === this._fetchChildrenGeneration) {
+						this.error = e;
+					}
 					throw e;
 				}
-				this._isDirectoryResolved = true;
 			}
 
 			const items: ExplorerItem[] = [];
@@ -406,6 +412,7 @@ export class ExplorerItem {
 	}
 
 	forgetChildren(): void {
+		++this._fetchChildrenGeneration;
 		this.children.clear();
 		this.nestedChildren = undefined;
 		this._isDirectoryResolved = false;
