@@ -43,6 +43,7 @@ export class GotoDefinitionAtPositionEditorContribution implements IEditorContri
 	private readonly linkDecorations: IEditorDecorationsCollection;
 	private currentWordAtPosition: IWordAtPosition | null = null;
 	private previousPromise: CancelablePromise<LocationLink[] | null> | null = null;
+	private startFindDefinitionFromCursorGeneration = 0;
 
 	constructor(
 		editor: ICodeEditor,
@@ -86,7 +87,11 @@ export class GotoDefinitionAtPositionEditorContribution implements IEditorContri
 
 		// First find the definition and add decorations
 		// to the editor to be shown with the content hover widget
+		const generation = ++this.startFindDefinitionFromCursorGeneration;
 		await this.startFindDefinition(position);
+		if (generation !== this.startFindDefinitionFromCursorGeneration || this.toUnhook.isDisposed) {
+			return;
+		}
 		// Add listeners for editor cursor move and key down events
 		// Dismiss the "extended" editor decorations when the user hides
 		// the hover widget. There is no event for the widget itself so these
