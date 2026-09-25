@@ -340,13 +340,17 @@ export class NotebookEditorInput extends AbstractResourceEditorInput {
 		}
 
 		if (this.options._backupId) {
-			const info = await this._notebookService.withNotebookDataProvider(this.editorModelReference.object.notebook.viewType);
+			const modelRef = this.editorModelReference;
+			const info = await this._notebookService.withNotebookDataProvider(modelRef.object.notebook.viewType);
 			if (!(info instanceof SimpleNotebookProviderInfo)) {
 				throw new Error('CANNOT open file notebook with this provider');
 			}
 
 			const data = await info.serializer.dataToNotebook(VSBuffer.fromString(JSON.stringify({ __webview_backup: this.options._backupId })));
-			this.editorModelReference.object.notebook.applyEdits([
+			if (this.isDisposed() || this.editorModelReference !== modelRef) {
+				return null;
+			}
+			modelRef.object.notebook.applyEdits([
 				{
 					editType: CellEditType.Replace,
 					index: 0,
