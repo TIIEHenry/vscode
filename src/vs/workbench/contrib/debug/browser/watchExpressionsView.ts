@@ -51,6 +51,7 @@ export class WatchExpressionsView extends ViewPane implements IDebugViewWithVari
 	private watchExpressionsUpdatedScheduler: RunOnceScheduler;
 	private _watchExpressionsUpdatedChain: Promise<void> = Promise.resolve();
 	private needsRefresh = false;
+	private watchExpressionsChangeGeneration = 0;
 	private tree!: WorkbenchAsyncDataTree<IDebugService | IExpression, IExpression, FuzzyScore>;
 	private watchExpressionsExist: IContextKey<boolean>;
 	private expressionRenderer: DebugExpressionRenderer;
@@ -127,18 +128,23 @@ export class WatchExpressionsView extends ViewPane implements IDebugViewWithVari
 		this._register(this.tree.onContextMenu(e => this.onContextMenu(e)));
 		this._register(this.tree.onMouseDblClick(e => this.onMouseDblClick(e)));
 		this._register(this.debugService.getModel().onDidChangeWatchExpressions(async we => {
+			const generation = ++this.watchExpressionsChangeGeneration;
+			const changedWatchExpression = we;
 			this.watchExpressionsExist.set(this.debugService.getModel().getWatchExpressions().length > 0);
 			if (!this.isBodyVisible()) {
 				this.needsRefresh = true;
 			} else {
-				if (we && !we.name) {
+				if (changedWatchExpression && !changedWatchExpression.name) {
 					// We are adding a new input box, no need to re-evaluate watch expressions
 					useCachedEvaluation = true;
 				}
 				await this.tree.updateChildren();
+				if (generation !== this.watchExpressionsChangeGeneration || this._store.isDisposed || !this.isBodyVisible()) {
+					return;
+				}
 				useCachedEvaluation = false;
-				if (we instanceof Expression) {
-					this.tree.reveal(we);
+				if (changedWatchExpression instanceof Expression && this.debugService.getModel().getWatchExpressions().includes(changedWatchExpression)) {
+					this.tree.reveal(changedWatchExpression);
 				}
 			}
 		}));
