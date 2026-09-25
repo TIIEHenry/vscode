@@ -198,6 +198,8 @@ class WorkingCopyBackupServiceImpl extends Disposable implements IWorkingCopyBac
 
 	private ready!: Promise<WorkingCopyBackupsModel>;
 	private model: WorkingCopyBackupsModel | undefined = undefined;
+	/** Bumped at each initialize entry so a stale doInitialize cannot overwrite this.model. */
+	private initializeGeneration = 0;
 
 	constructor(
 		private backupWorkspaceHome: URI,
@@ -211,16 +213,21 @@ class WorkingCopyBackupServiceImpl extends Disposable implements IWorkingCopyBac
 
 	initialize(backupWorkspaceResource: URI): void {
 		this.backupWorkspaceHome = backupWorkspaceResource;
+		this.initializeGeneration++;
 
 		this.ready = this.doInitialize();
 	}
 
 	private async doInitialize(): Promise<WorkingCopyBackupsModel> {
+		const generation = this.initializeGeneration;
 
 		// Create backup model
-		this.model = await WorkingCopyBackupsModel.create(this.backupWorkspaceHome, this.fileService);
+		const model = await WorkingCopyBackupsModel.create(this.backupWorkspaceHome, this.fileService);
+		if (generation === this.initializeGeneration) {
+			this.model = model;
+		}
 
-		return this.model;
+		return model;
 	}
 
 	hasBackupSync(identifier: IWorkingCopyIdentifier, versionId?: number, meta?: IWorkingCopyBackupMeta): boolean {
