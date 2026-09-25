@@ -62,6 +62,7 @@ MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
 export class TaskStatusBarContributions extends Disposable implements IWorkbenchContribution {
 	private _runningTasksStatusItem: IStatusbarEntryAccessor | undefined;
 	private _activeTasksCount: number = 0;
+	private _runningTasksStatusGeneration = 0;
 
 	constructor(
 		@ITaskService private readonly _taskService: ITaskService,
@@ -125,7 +126,11 @@ export class TaskStatusBarContributions extends Disposable implements IWorkbench
 	}
 
 	private async _updateRunningTasksStatus(): Promise<void> {
+		const generation = ++this._runningTasksStatusGeneration;
 		const tasks = await this._taskService.getActiveTasks();
+		if (generation !== this._runningTasksStatusGeneration || this._store.isDisposed) {
+			return;
+		}
 		if (tasks.length === 0) {
 			if (this._runningTasksStatusItem) {
 				this._runningTasksStatusItem.dispose();
