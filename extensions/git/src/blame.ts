@@ -7,7 +7,6 @@ import { DecorationOptions, l10n, Position, Range, TextEditor, TextEditorChange,
 import { Model } from './model';
 import { dispose, fromNow, getCommitShortHash, IDisposable, truncate } from './util';
 import { Repository } from './repository';
-import { throttle } from './decorators';
 import { BlameInformation, Commit } from './git';
 import { fromGitUri, isGitUri, toGitUri } from './uri';
 import { emojify, ensureEmojis } from './emoji';
@@ -182,6 +181,9 @@ export class GitBlameController {
 	private _repositoryDisposables = new Map<Repository, IDisposable[]>();
 	private _enablementDisposables: IDisposable[] = [];
 	private _disposables: IDisposable[] = [];
+
+	private _blameUpdateRunning = false;
+	private _pendingBlameUpdate: { readonly textEditor: TextEditor | undefined; readonly reason?: 'selection' } | undefined;
 
 	constructor(private readonly _model: Model) {
 		workspace.onDidChangeConfiguration(this._onDidChangeConfiguration, this, this._disposables);
@@ -376,8 +378,35 @@ export class GitBlameController {
 		return blameInformation;
 	}
 
-	@throttle
-	private async _updateTextEditorBlameInformation(textEditor: TextEditor | undefined, reason?: 'selection'): Promise<void> {
+	private _updateTextEditorBlameInformation(textEditor: TextEditor | undefined, reason?: 'selection'): void {
+		// One publish runs at a time and is not cancelled. Later calls replace
+		// the single follow-up, so the last active editor still runs after it
+		// returns instead of keeping only the first queued call.
+		this._pendingBlameUpdate = { textEditor, reason };
+		if (this._blameUpdateRunning) {
+			return;
+		}
+
+		this._blameUpdateRunning = true;
+		const finish = () => {
+			this._blameUpdateRunning = false;
+			if (this._pendingBlameUpdate) {
+				this._updateTextEditorBlameInformation(this._pendingBlameUpdate.textEditor, this._pendingBlameUpdate.reason);
+			}
+		};
+		// A rejected publish must not drop the editor that replaced the queue.
+		this._drainPendingBlameUpdate().then(finish, finish);
+	}
+
+	private async _drainPendingBlameUpdate(): Promise<void> {
+		while (this._pendingBlameUpdate) {
+			const pending = this._pendingBlameUpdate;
+			this._pendingBlameUpdate = undefined;
+			await this._publishTextEditorBlameInformation(pending.textEditor, pending.reason);
+		}
+	}
+
+	private async _publishTextEditorBlameInformation(textEditor: TextEditor | undefined, reason?: 'selection'): Promise<void> {
 		if (textEditor) {
 			if (!textEditor.diffInformation || textEditor !== window.activeTextEditor) {
 				return;
@@ -388,7 +417,7 @@ export class GitBlameController {
 		}
 
 		// Snapshot the editor/document this invocation is publishing for.
-		// `@throttle` queues a later call but does not cancel this one.
+		// A later editor switch does not cancel this publish.
 		const editor = textEditor;
 		const document = textEditor.document;
 
@@ -632,7 +661,7 @@ class GitBlameEditorDecoration implements HoverProvider {
 		// Register hover provider, then paint only when the stored blame is for
 		// this editor. Switching away clears the previous editor; switching
 		// back must restore a still-matching result without waiting for a
-		// publish that `@throttle` may collapse to an equal value.
+		// publish that is equal to the stored blame and does not fire.
 		this._registerHoverProvider();
 		this._onDidChangeBlameInformation();
 	}
