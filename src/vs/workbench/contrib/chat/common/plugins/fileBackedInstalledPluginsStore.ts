@@ -82,6 +82,7 @@ export class FileBackedInstalledPluginsStore extends Disposable {
 	private readonly _writeDelayer: ThrottledDelayer<void>;
 	private _suppressFileWatch = false;
 	private _initialized = false;
+	private _initializeGeneration = 0;
 
 	readonly value: IObservable<readonly IStoredInstalledPlugin[]> = this._installed;
 
@@ -98,29 +99,45 @@ export class FileBackedInstalledPluginsStore extends Disposable {
 		void this._initialize().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
+	override dispose(): void {
+		++this._initializeGeneration;
+		super.dispose();
+	}
+
 	get(): readonly IStoredInstalledPlugin[] {
 		return this._installed.get();
 	}
 
 	set(newValue: readonly IStoredInstalledPlugin[], tx: ITransaction | undefined): void {
+		++this._initializeGeneration;
 		this._setValue(newValue, tx, true);
 	}
 
 	private async _initialize(): Promise<void> {
+		const generation = ++this._initializeGeneration;
 		try {
 			const read = await this._readFromFile();
-			if (read !== undefined) {
-				this._setValue(read, undefined, false);
-			} else {
-				// No installed.json yet — attempt migration from legacy storage.
-				await this._migrateFromStorage();
+			if (generation === this._initializeGeneration && !this._store.isDisposed) {
+				if (read !== undefined) {
+					this._setValue(read, undefined, false);
+				} else {
+					// No installed.json yet — attempt migration from legacy storage.
+					await this._migrateFromStorage();
+				}
 			}
 		} catch (error) {
 			this._logService.error('[FileBackedInstalledPluginsStore] Initialization failed', error);
 		}
 
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		this._initialized = true;
 		this._setupFileWatcher();
+		if (generation !== this._initializeGeneration) {
+			this._scheduleWrite();
+		}
 	}
 
 	// --- File I/O ----------------------------------------------------------------
