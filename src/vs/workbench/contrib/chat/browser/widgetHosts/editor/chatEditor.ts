@@ -253,18 +253,21 @@ export class ChatEditor extends AbstractEditorWithViewState<IChatEditorViewState
 				// The next `setInput` cancels this token only after the race may already
 				// have resolved, so a stale continuation must not lock or unlock the
 				// widget that already moved on.
-				if (!token.isCancellationRequested && this.input === input) {
-					const contributions = this.chatSessionsService.getAllChatSessionContributions();
-					const contribution = contributions.find(c => c.type === chatSessionType);
-					if (contribution) {
-						this.widget.lockToCodingAgent(contribution.name, contribution.displayName, contribution.type, contribution.agentHostProviderId);
-						isContributedChatSession = true;
-					} else {
-						this.widget.unlockFromCodingAgent();
-					}
+				if (token.isCancellationRequested || this.input !== input) {
+					return;
+				}
+				const contributions = this.chatSessionsService.getAllChatSessionContributions();
+				const contribution = contributions.find(c => c.type === chatSessionType);
+				if (contribution) {
+					this.widget.lockToCodingAgent(contribution.name, contribution.displayName, contribution.type, contribution.agentHostProviderId);
+					isContributedChatSession = true;
+				} else {
+					this.widget.unlockFromCodingAgent();
 				}
 			} catch (error) {
-				this.hideLoadingInChatWidget();
+				if (!token.isCancellationRequested && this.input === input) {
+					this.hideLoadingInChatWidget();
+				}
 				throw error;
 			}
 		} else {
@@ -273,6 +276,13 @@ export class ChatEditor extends AbstractEditorWithViewState<IChatEditorViewState
 
 		try {
 			const editorModel = await raceCancellationError(input.resolve(), token);
+
+			// `input.resolve()` can win the race against the next `setInput`, which
+			// cancels this token and replaces `this.input` before this continuation
+			// runs. Do not hide loading, bind the model, or restore view state then.
+			if (token.isCancellationRequested || this.input !== input) {
+				return;
+			}
 
 			if (!editorModel) {
 				throw new Error(`Failed to get model for chat editor. resource: ${input.sessionResource}`);
@@ -298,7 +308,9 @@ export class ChatEditor extends AbstractEditorWithViewState<IChatEditorViewState
 				this.chatService.setChatSessionTitle(input.sessionResource, options.title.preferred);
 			}
 		} catch (error) {
-			this.hideLoadingInChatWidget();
+			if (!token.isCancellationRequested && this.input === input) {
+				this.hideLoadingInChatWidget();
+			}
 			throw error;
 		}
 	}
