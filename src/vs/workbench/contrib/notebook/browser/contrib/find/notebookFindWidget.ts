@@ -299,13 +299,16 @@ class NotebookFindWidget extends SimpleFindReplaceWidget implements INotebookEdi
 		this._findWidgetVisible.set(true);
 
 		if (typeof options?.matchIndex === 'number') {
+			const searchStringAtShow = this._state.searchString;
 			if (!this._findModel.findMatches.length) {
 				await this._findModel.research();
 				if (!this._state.isRevealed) {
 					return;
 				}
 			}
-			this.findIndex(options.matchIndex);
+			if (this._state.isRevealed && this._state.searchString === searchStringAtShow) {
+				this.findIndex(options.matchIndex);
+			}
 		} else if (options?.focus !== false) {
 			this._findInput.select();
 		}
