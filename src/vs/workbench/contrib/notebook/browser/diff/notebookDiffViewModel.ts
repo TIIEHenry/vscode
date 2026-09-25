@@ -74,6 +74,7 @@ export class NotebookDiffViewModel extends Disposable implements INotebookDiffVi
 	private hideOutput?: boolean;
 	private ignoreMetadata?: boolean;
 
+	private _viewModelGeneration = 0;
 	private originalCellViewModels: IDiffElementViewModelBase[] = [];
 	constructor(private readonly model: INotebookDiffEditorModel,
 		private readonly notebookEditorWorkerService: INotebookEditorWorkerService,
@@ -133,6 +134,7 @@ export class NotebookDiffViewModel extends Disposable implements INotebookDiffVi
 	}
 
 	async computeDiff(token: CancellationToken): Promise<void> {
+		++this._viewModelGeneration;
 		const diffResult = await raceCancellation(this.notebookEditorWorkerService.computeDiff(this.model.original.resource, this.model.modified.resource), token);
 		if (!diffResult || token.isCancellationRequested) {
 			// after await the editor might be disposed.
@@ -226,8 +228,9 @@ export class NotebookDiffViewModel extends Disposable implements INotebookDiffVi
 	}
 
 	private async updateViewModels(cellDiffInfo: CellDiffInfo[], metadataChanged: boolean, firstChangeIndex: number) {
+		const generation = ++this._viewModelGeneration;
 		const cellViewModels = await this.createDiffViewModels(cellDiffInfo, metadataChanged);
-		if (this._store.isDisposed) {
+		if (this._store.isDisposed || generation !== this._viewModelGeneration) {
 			dispose(cellViewModels);
 			return;
 		}
