@@ -153,10 +153,6 @@ export class TestingPeekOpener extends Disposable implements ITestingPeekOpener 
 			uri = await this.getFileCandidateMessage(entryModelUri, entryPosition);
 		}
 
-		if (uri && entryModelUri) {
-			return this.showPeekFromUri(uri);
-		}
-
 		if (entryModelUri) {
 			const activeAfter = this.editorService.activeTextEditorControl;
 			const activeModelUri = isCodeEditor(activeAfter) ? activeAfter.getModel()?.uri : undefined;
