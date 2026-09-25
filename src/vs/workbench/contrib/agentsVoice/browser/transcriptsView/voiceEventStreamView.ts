@@ -41,6 +41,8 @@ export class VoiceEventStreamViewPane extends ViewPane {
 	/** Cached login resolved on first render, refreshed lazily on each refresh(). */
 	private userLogin: string | undefined;
 	private currentTurns: readonly IVoiceTranscriptTurn[] = [];
+	/** Bumped on every refresh() so a stale load cannot paint over a newer one or a disposed pane. */
+	private refreshGeneration = 0;
 
 	constructor(
 		options: IViewletViewOptions,
@@ -116,12 +118,17 @@ export class VoiceEventStreamViewPane extends ViewPane {
 	}
 
 	async refresh(): Promise<void> {
+		const generation = ++this.refreshGeneration;
 		if (!this.contentContainer || !this.emptyState) {
 			return;
 		}
 
 		try {
-			this.userLogin = await this.resolveUserLogin();
+			const userLogin = await this.resolveUserLogin();
+			if (generation !== this.refreshGeneration || this._store.isDisposed) {
+				return;
+			}
+			this.userLogin = userLogin;
 			if (!this.userLogin) {
 				this.currentTurns = [];
 				this.renderEmpty();
@@ -129,6 +136,9 @@ export class VoiceEventStreamViewPane extends ViewPane {
 			}
 
 			const turns = await this.voiceTranscriptStore.loadTurns(this.userLogin);
+			if (generation !== this.refreshGeneration || this._store.isDisposed) {
+				return;
+			}
 			this.currentTurns = turns;
 
 			if (turns.length === 0) {
@@ -139,6 +149,9 @@ export class VoiceEventStreamViewPane extends ViewPane {
 			this.renderTurns(turns);
 		} catch (err) {
 			this.logService.warn('[voiceEventStream] refresh failed', err);
+			if (generation !== this.refreshGeneration || this._store.isDisposed) {
+				return;
+			}
 			this.currentTurns = [];
 			this.renderEmpty();
 		}
