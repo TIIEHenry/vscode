@@ -53,7 +53,15 @@ function assertWrapped(source: string, call: string): void {
 
 const executeCommandCall = 'void this._commandService.executeCommand(CHAT_SETUP_COMMAND_ID)';
 const refreshThenCall = `provider.refresh().then(account => {
-			this.defaultAccount = account;
+			// A newer refresh already owns the publish. Do not apply this snapshot.
+			if (refreshGeneration !== this.defaultAccountRefreshGeneration) {
+				return;
+			}
+			const currentAccount = this.defaultAccountProvider?.defaultAccount ?? null;
+			// The provider can move on before this callback runs, and the change
+			// listener is registered only after it. Keep the provider's current
+			// account instead of the snapshot this refresh captured.
+			this.defaultAccount = account === currentAccount ? account : currentAccount;
 		}).finally(() => {
 			this.initBarrier.open();
 			this._register(provider.onDidChangeDefaultAccount(account => this.setDefaultAccount(account)));

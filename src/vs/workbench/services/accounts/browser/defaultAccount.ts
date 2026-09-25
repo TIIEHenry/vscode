@@ -120,6 +120,8 @@ export class DefaultAccountService extends Disposable implements IDefaultAccount
 	declare _serviceBrand: undefined;
 
 	private defaultAccount: IDefaultAccount | null = null;
+	/** Latest refresh allowed to publish. A slower call must not overwrite a newer account. */
+	private defaultAccountRefreshGeneration = 0;
 	get currentDefaultAccount(): IDefaultAccount | null { return this.defaultAccount; }
 	get policyData(): IPolicyData | null { return this.defaultAccountProvider?.policyData ?? null; }
 	get copilotTokenInfo(): ICopilotTokenInfo | null { return this.defaultAccountProvider?.copilotTokenInfo ?? null; }
@@ -189,8 +191,17 @@ export class DefaultAccountService extends Disposable implements IDefaultAccount
 		if (this.defaultAccountProvider.managedSettingsFreshness.state !== ManagedSettingsFreshnessState.NotRequired) {
 			this._onDidChangeManagedSettingsFreshness.fire(this.defaultAccountProvider.managedSettingsFreshness);
 		}
+		const refreshGeneration = ++this.defaultAccountRefreshGeneration;
 		provider.refresh().then(account => {
-			this.defaultAccount = account;
+			// A newer refresh already owns the publish. Do not apply this snapshot.
+			if (refreshGeneration !== this.defaultAccountRefreshGeneration) {
+				return;
+			}
+			const currentAccount = this.defaultAccountProvider?.defaultAccount ?? null;
+			// The provider can move on before this callback runs, and the change
+			// listener is registered only after it. Keep the provider's current
+			// account instead of the snapshot this refresh captured.
+			this.defaultAccount = account === currentAccount ? account : currentAccount;
 		}).finally(() => {
 			this.initBarrier.open();
 			this._register(provider.onDidChangeDefaultAccount(account => this.setDefaultAccount(account)));
@@ -202,7 +213,12 @@ export class DefaultAccountService extends Disposable implements IDefaultAccount
 	async refresh(options?: IDefaultAccountRefreshOptions): Promise<IDefaultAccount | null> {
 		await this.initBarrier.wait();
 
+		const refreshGeneration = ++this.defaultAccountRefreshGeneration;
 		const account = await this.defaultAccountProvider?.refresh(options);
+		// Session removal can publish a newer account while this call is still in flight.
+		if (refreshGeneration !== this.defaultAccountRefreshGeneration || (account ?? null) !== (this.defaultAccountProvider?.defaultAccount ?? null)) {
+			return this.defaultAccount;
+		}
 		this.setDefaultAccount(account ?? null);
 		return this.defaultAccount;
 	}
