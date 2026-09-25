@@ -79,6 +79,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 	private primarySessionKey: string | undefined;
 	private focusedLeafSessionKey: string | undefined;
 	private primaryBootstrapInFlight: Promise<void> | undefined;
+	private primaryBootstrapGeneration = 0;
 	private pendingReveal: { sessionKey: string; options?: { replace?: string } } | undefined;
 	private revealInFlight: IRevealInFlight | undefined;
 	private readonly leaves = new Map<string, IConversationSessionLeaf>();
@@ -595,13 +596,19 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 	}
 
 	private async tryBootstrapPrimaryWindow(sessionKey: string): Promise<void> {
+		const generation = ++this.primaryBootstrapGeneration;
 		try {
 			await this.ensureLeaf(sessionKey, { primary: true });
+			if (generation !== this.primaryBootstrapGeneration) {
+				return;
+			}
 			this.primarySessionKey = sessionKey;
 			this.setFocusedLeaf(sessionKey);
 			this.fireVisibleWindowsChange();
 		} catch (error) {
-			this.primarySessionKey = undefined;
+			if (generation === this.primaryBootstrapGeneration) {
+				this.primarySessionKey = undefined;
+			}
 			this.rollbackHalfAppliedLeaf(sessionKey);
 			this.logService.warn(`[ConversationSessionWindowService] ensurePrimaryWindow failed: ${getErrorMessage(error)}`);
 			this.notificationService.error(getErrorMessage(error));
