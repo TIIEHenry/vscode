@@ -56,8 +56,11 @@ export abstract class AbstractTextResourceEditor extends AbstractTextCodeEditor<
 		await super.setInput(input, options, context, token);
 		const resolvedModel = await input.resolve();
 
-		// Check for cancellation
-		if (token.isCancellationRequested) {
+		// Check for cancellation, or that this pane still owns the input we resolved.
+		// clearInput / dispose already drop this.input, so a same-group switch,
+		// clear, or pane close must not setModel on the shared control.
+		// The resolved model stays with the input (model reference / untitled model).
+		if (token.isCancellationRequested || this.input !== input || this._store.isDisposed) {
 			return undefined;
 		}
 
