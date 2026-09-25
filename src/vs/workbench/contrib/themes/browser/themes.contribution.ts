@@ -138,6 +138,12 @@ class MarketplaceThemesPicker implements IDisposable {
 					}
 				}
 				const allThemes = await Promise.all(promises);
+				if (token.isCancellationRequested) {
+					for (const ext of promisesGalleries) {
+						this._marketplaceExtensions.delete(ext.identifier.id);
+					}
+					break;
+				}
 				for (let i = 0; i < allThemes.length; i++) {
 					const ext = promisesGalleries[i];
 					for (const theme of allThemes[i]) {

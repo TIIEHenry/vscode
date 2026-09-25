@@ -31,6 +31,8 @@ import { IEditorGroupsService } from '../../../services/editor/common/editorGrou
 const OPEN_IN_TERMINAL_COMMAND_ID = 'openInTerminal';
 const OPEN_IN_INTEGRATED_TERMINAL_COMMAND_ID = 'openInIntegratedTerminal';
 
+let integratedTerminalOpenSeq = 0;
+
 function registerOpenTerminalCommand(id: string, explorerKind: 'integrated' | 'external') {
 	CommandsRegistry.registerCommand({
 		id: id,
@@ -45,6 +47,8 @@ function registerOpenTerminalCommand(id: string, explorerKind: 'integrated' | 'e
 			try {
 				externalTerminalService = accessor.get(IExternalTerminalService);
 			} catch { }
+
+			const openSeq = ++integratedTerminalOpenSeq;
 
 			const resources = getMultiSelectedResources(resource, accessor.get(IListService), accessor.get(IEditorService), accessor.get(IEditorGroupsService), accessor.get(IExplorerService));
 			return fileService.resolveAll(resources.map(r => ({ resource: r }))).then(async stats => {
@@ -75,7 +79,7 @@ function registerOpenTerminalCommand(id: string, explorerKind: 'integrated' | 'e
 						}
 						opened[cwd.path] = true;
 						const instance = await integratedTerminalService.createTerminal({ config: { cwd } });
-						if (instance && instance.target !== TerminalLocation.Editor && (resources.length === 1 || !resource || cwd.path === resource.path || cwd.path === dirname(resource.path))) {
+						if (openSeq === integratedTerminalOpenSeq && instance && instance.target !== TerminalLocation.Editor && (resources.length === 1 || !resource || cwd.path === resource.path || cwd.path === dirname(resource.path))) {
 							integratedTerminalService.setActiveInstance(instance);
 							terminalGroupService.showPanel(true);
 						}

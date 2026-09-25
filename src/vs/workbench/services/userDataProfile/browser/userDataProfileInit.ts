@@ -97,13 +97,12 @@ export class UserDataProfileInitializer implements IUserDataInitializer {
 	private initializeInstalledExtensionsPromise: Promise<void> | undefined;
 	async initializeInstalledExtensions(instantiationService: IInstantiationService): Promise<void> {
 		if (!this.initializeInstalledExtensionsPromise) {
-			const profileTemplate = await this.getProfileTemplate();
-			if (profileTemplate?.extensions) {
-				this.initializeInstalledExtensionsPromise = this.initialize(instantiationService.createInstance(ExtensionsResourceInitializer), profileTemplate.extensions, ProfileResourceType.Extensions);
-			} else {
-				this.initializeInstalledExtensionsPromise = Promise.resolve();
-			}
-
+			this.initializeInstalledExtensionsPromise = (async () => {
+				const profileTemplate = await this.getProfileTemplate();
+				if (profileTemplate?.extensions) {
+					await this.initialize(instantiationService.createInstance(ExtensionsResourceInitializer), profileTemplate.extensions, ProfileResourceType.Extensions);
+				}
+			})();
 		}
 		return this.initializeInstalledExtensionsPromise;
 	}

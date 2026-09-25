@@ -262,6 +262,9 @@ export class SideBySideEditor extends AbstractEditorWithViewState<ISideBySideEdi
 	override async setInput(input: SideBySideEditorInput, options: ISideBySideEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
 		const oldInput = this.input;
 		await super.setInput(input, options, context, token);
+		if (token.isCancellationRequested) {
+			return;
+		}
 
 		// Create new side by side editors if either we have not
 		// been created before or the input no longer matches.
@@ -290,6 +293,9 @@ export class SideBySideEditor extends AbstractEditorWithViewState<ISideBySideEdi
 			this.secondaryEditorPane?.setInput(input.secondary, secondary, context, token),
 			this.primaryEditorPane?.setInput(input.primary, primary, context, token)
 		]);
+		if (token.isCancellationRequested) {
+			return;
+		}
 
 		// Update focus if target is provided
 		if (typeof options?.target === 'number') {

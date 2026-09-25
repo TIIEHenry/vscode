@@ -73,6 +73,10 @@ export class BrowserHostService extends Disposable implements IHostService {
 
 	private shutdownReason = HostShutdownReason.Unknown;
 
+	private expectedShutdownDepth = 0;
+
+	private expectedShutdownRestore: HostShutdownReason | undefined;
+
 	constructor(
 		@ILayoutService private readonly layoutService: ILayoutService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
@@ -642,12 +646,19 @@ export class BrowserHostService extends Disposable implements IHostService {
 	}
 
 	async withExpectedShutdown<T>(expectedShutdownTask: () => Promise<T>): Promise<T> {
-		const previousShutdownReason = this.shutdownReason;
+		if (this.expectedShutdownDepth === 0) {
+			this.expectedShutdownRestore = this.shutdownReason;
+		}
+		this.expectedShutdownDepth++;
 		try {
 			this.shutdownReason = HostShutdownReason.Api;
 			return await expectedShutdownTask();
 		} finally {
-			this.shutdownReason = previousShutdownReason;
+			this.expectedShutdownDepth--;
+			if (this.expectedShutdownDepth === 0) {
+				this.shutdownReason = this.expectedShutdownRestore!;
+				this.expectedShutdownRestore = undefined;
+			}
 		}
 	}
 

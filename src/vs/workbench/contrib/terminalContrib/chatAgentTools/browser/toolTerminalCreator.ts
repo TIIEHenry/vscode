@@ -48,6 +48,7 @@ export class ToolTerminalCreator {
 	 * shell approaches that failed in previous runs to save time.
 	 */
 	private static _lastSuccessfulShell: ShellLaunchType = ShellLaunchType.Unknown;
+	private static _shellLaunchSeq = 0;
 
 	constructor(
 		@IAccessibilityService private readonly _accessibilityService: IAccessibilityService,
@@ -58,6 +59,7 @@ export class ToolTerminalCreator {
 	}
 
 	async createTerminal(shellOrProfile: string | ITerminalProfile, os: OperatingSystem, token: CancellationToken): Promise<IToolTerminal> {
+		const seq = ++ToolTerminalCreator._shellLaunchSeq;
 		const instance = await this._createCopilotTerminal(shellOrProfile, os);
 		const toolTerminal: IToolTerminal = {
 			instance,
@@ -117,7 +119,9 @@ export class ToolTerminalCreator {
 			}
 
 			if (shellIntegrationQuality !== ShellIntegrationQuality.None) {
-				ToolTerminalCreator._lastSuccessfulShell = ShellLaunchType.Default;
+				if (seq === ToolTerminalCreator._shellLaunchSeq) {
+					ToolTerminalCreator._lastSuccessfulShell = ShellLaunchType.Default;
+				}
 				toolTerminal.shellIntegrationQuality = shellIntegrationQuality;
 				return toolTerminal;
 			}
@@ -131,7 +135,9 @@ export class ToolTerminalCreator {
 		}
 
 		// Fallback case: No shell integration in default profile
-		ToolTerminalCreator._lastSuccessfulShell = ShellLaunchType.Fallback;
+		if (seq === ToolTerminalCreator._shellLaunchSeq) {
+			ToolTerminalCreator._lastSuccessfulShell = ShellLaunchType.Fallback;
+		}
 		return toolTerminal;
 	}
 

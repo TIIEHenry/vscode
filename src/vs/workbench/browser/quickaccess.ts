@@ -64,6 +64,7 @@ export class PickerEditorState extends Disposable {
 	} | undefined = undefined;
 
 	private readonly openedTransientEditors = new Set<EditorInput>(); // editors that were opened between set and restore
+	private transientEditorGeneration = 0;
 
 	constructor(
 		@IEditorService private readonly editorService: IEditorService,
@@ -94,7 +95,11 @@ export class PickerEditorState extends Disposable {
 	async openTransientEditor(editor: IResourceEditorInput | ITextResourceEditorInput | IUntitledTextResourceEditorInput | IUntypedEditorInput, group?: PreferredGroup): Promise<IEditorPane | undefined> {
 		editor.options = { ...editor.options, transient: true };
 
+		const generation = this.transientEditorGeneration;
 		const editorPane = await this.editorService.openEditor(editor, group);
+		if (generation !== this.transientEditorGeneration) {
+			return editorPane;
+		}
 		if (editorPane?.input && editorPane.input !== this.editorViewState?.editor && editorPane.group.isTransient(editorPane.input)) {
 			this.openedTransientEditors.add(editorPane.input);
 		}
@@ -126,6 +131,7 @@ export class PickerEditorState extends Disposable {
 	}
 
 	reset() {
+		this.transientEditorGeneration++;
 		this.editorViewState = undefined;
 		this.openedTransientEditors.clear();
 	}

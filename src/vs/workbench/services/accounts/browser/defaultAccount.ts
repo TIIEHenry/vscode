@@ -300,6 +300,7 @@ type ManagedSettingsFetchTelemetryClassification = {
 export class DefaultAccountProvider extends Disposable implements IDefaultAccountProvider {
 
 	private _defaultAccount: IDefaultAccountData | null = null;
+	private defaultAccountGeneration = 0;
 	get defaultAccount(): IDefaultAccount | null { return this._defaultAccount?.defaultAccount ?? null; }
 
 	private _policyData: IAccountPolicyData | null = null;
@@ -444,6 +445,7 @@ export class DefaultAccountProvider extends Disposable implements IDefaultAccoun
 				return;
 			}
 			if (this.defaultAccount && e.event.removed?.some(session => session.id === this.defaultAccount?.sessionId)) {
+				this.defaultAccountGeneration++;
 				this.setDefaultAccount(null);
 			} else {
 				this.logService.debug('[DefaultAccount] Sessions changed for default account provider, updating default account');
@@ -561,11 +563,18 @@ export class DefaultAccountProvider extends Disposable implements IDefaultAccoun
 	}
 
 	private async doUpdateDefaultAccount(options?: IDefaultAccountRefreshOptions): Promise<void> {
+		const generation = ++this.defaultAccountGeneration;
 		try {
 			const defaultAccount = await this.fetchDefaultAccount(options);
+			if (generation !== this.defaultAccountGeneration) {
+				return;
+			}
 			this.setDefaultAccount(defaultAccount);
 			this.scheduleAccountDataPoll();
 		} catch (error) {
+			if (generation !== this.defaultAccountGeneration) {
+				return;
+			}
 			this.logService.error('[DefaultAccount] Error while updating default account', getErrorMessage(error));
 			this.blockPendingManagedSettingsFreshness();
 		}

@@ -280,7 +280,7 @@ export abstract class BaseConfigurationResolverService extends AbstractVariableR
 					}
 					return this.userInputAccessQueue.queue(() => this.quickInputService.input(inputOptions)).then(resolvedInput => {
 						if (typeof resolvedInput === 'string' && !info.password) {
-							this.storeInputLru(defaultValueMap.set(defaultValueKey, resolvedInput));
+							this.storeInputLru(this.readInputLru().set(defaultValueKey, resolvedInput));
 						}
 						return resolvedInput !== undefined ? { value: resolvedInput as string, input: info } : undefined;
 					});
@@ -328,7 +328,7 @@ export abstract class BaseConfigurationResolverService extends AbstractVariableR
 					return this.userInputAccessQueue.queue(() => this.quickInputService.pick(picks, pickOptions, undefined)).then(resolvedInput => {
 						if (resolvedInput) {
 							const value = (resolvedInput as PickStringItem).value;
-							this.storeInputLru(defaultValueMap.set(defaultValueKey, value));
+							this.storeInputLru(this.readInputLru().set(defaultValueKey, value));
 							return { value, input: info };
 						}
 						return undefined;

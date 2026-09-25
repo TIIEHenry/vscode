@@ -324,8 +324,24 @@ export class UntitledTextEditorModel extends BaseTextEditorModel implements IUnt
 	//#region Resolve
 
 	private ignoreDirtyOnModelContentChange = false;
+	private resolvePromise: Promise<void> | undefined;
 
 	override async resolve(): Promise<void> {
+		if (this.resolvePromise) {
+			return this.resolvePromise;
+		}
+		const run = this.doResolve();
+		this.resolvePromise = run;
+		try {
+			await run;
+		} finally {
+			if (this.resolvePromise === run) {
+				this.resolvePromise = undefined;
+			}
+		}
+	}
+
+	private async doResolve(): Promise<void> {
 
 		// Create text editor model if not yet done
 		let createdUntitledModel = false;

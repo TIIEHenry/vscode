@@ -24,6 +24,8 @@ class SharedProcessTunnel extends Disposable implements RemoteTunnel {
 	public readonly privacy = TunnelPrivacyId.Private;
 	public readonly protocol: string | undefined = undefined;
 
+	private _addressGeneration = 0;
+
 	constructor(
 		private readonly _id: string,
 		private readonly _addressProvider: IAddressProvider,
@@ -41,7 +43,11 @@ class SharedProcessTunnel extends Disposable implements RemoteTunnel {
 	}
 
 	private _updateAddress(): void {
+		const generation = ++this._addressGeneration;
 		this._addressProvider.getAddress().then((address) => {
+			if (generation !== this._addressGeneration) {
+				return;
+			}
 			this._sharedProcessTunnelService.setAddress(this._id, address);
 		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}

@@ -57,6 +57,7 @@ export abstract class ResourceWorkingCopy extends Disposable implements IResourc
 	readonly onDidChangeOrphaned = this._onDidChangeOrphaned.event;
 
 	private orphaned = false;
+	private _orphanCheckGeneration = 0;
 
 	isOrphaned(): boolean {
 		return this.orphaned;
@@ -85,6 +86,7 @@ export abstract class ResourceWorkingCopy extends Disposable implements IResourc
 		}
 
 		if (fileEventImpactsUs && this.orphaned !== newInOrphanModeGuess) {
+			const generation = ++this._orphanCheckGeneration;
 			let newInOrphanModeValidated = false;
 			if (newInOrphanModeGuess) {
 
@@ -100,6 +102,12 @@ export abstract class ResourceWorkingCopy extends Disposable implements IResourc
 					const exists = await this.fileService.exists(this.resource);
 					newInOrphanModeValidated = !exists;
 				}
+
+				if (generation !== this._orphanCheckGeneration) {
+					return;
+				}
+			} else {
+				++this._orphanCheckGeneration;
 			}
 
 			if (this.orphaned !== newInOrphanModeValidated && !this.isDisposed()) {

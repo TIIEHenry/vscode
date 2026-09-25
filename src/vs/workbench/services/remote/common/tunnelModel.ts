@@ -457,12 +457,16 @@ export class TunnelModel extends Disposable {
 				if (tunnel.localAddress) {
 					const key = makeAddress(tunnel.tunnelRemoteHost, tunnel.tunnelRemotePort);
 					const matchingCandidate = mapHasAddressLocalhostOrAllInterfaces(this._candidates ?? new Map(), tunnel.tunnelRemoteHost, tunnel.tunnelRemotePort);
+					const localUri = await this.makeLocalUri(tunnel.localAddress, attributes?.get(tunnel.tunnelRemotePort));
+					if (mapHasAddressLocalhostOrAllInterfaces(this.forwarded, tunnel.tunnelRemoteHost, tunnel.tunnelRemotePort)) {
+						continue;
+					}
 					this.forwarded.set(key, {
 						remotePort: tunnel.tunnelRemotePort,
 						remoteHost: tunnel.tunnelRemoteHost,
 						localAddress: tunnel.localAddress,
 						protocol: attributes?.get(tunnel.tunnelRemotePort)?.protocol ?? TunnelProtocol.Http,
-						localUri: await this.makeLocalUri(tunnel.localAddress, attributes?.get(tunnel.tunnelRemotePort)),
+						localUri,
 						localPort: tunnel.tunnelLocalPort,
 						name: attributes?.get(tunnel.tunnelRemotePort)?.label,
 						runningProcess: matchingCandidate?.detail,
@@ -471,7 +475,10 @@ export class TunnelModel extends Disposable {
 						privacy: tunnel.privacy,
 						source: UserTunnelSource,
 					});
-					this.remoteTunnels.set(key, tunnel);
+					const existingRemoteTunnel = this.remoteTunnels.get(key);
+					if (!existingRemoteTunnel || existingRemoteTunnel === tunnel) {
+						this.remoteTunnels.set(key, tunnel);
+					}
 				}
 			}
 		}).catch(onUnexpectedError).catch(onUnexpectedError);
@@ -749,6 +756,11 @@ export class TunnelModel extends Disposable {
 				const protocol = (tunnel.protocol ?
 					((tunnel.protocol === TunnelProtocol.Https) ? TunnelProtocol.Https : TunnelProtocol.Http)
 					: (attributes?.protocol ?? TunnelProtocol.Http));
+				const localUri = await this.makeLocalUri(tunnel.localAddress, attributes);
+				if (mapHasAddressLocalhostOrAllInterfaces(this.forwarded, tunnel.tunnelRemoteHost, tunnel.tunnelRemotePort)) {
+					this.inProgress.delete(key);
+					return this.remoteTunnels.get(key) ?? tunnel;
+				}
 				const newForward: Tunnel = {
 					remoteHost: tunnel.tunnelRemoteHost,
 					remotePort: tunnel.tunnelRemotePort,
@@ -757,7 +769,7 @@ export class TunnelModel extends Disposable {
 					closeable: true,
 					localAddress: tunnel.localAddress,
 					protocol,
-					localUri: await this.makeLocalUri(tunnel.localAddress, attributes),
+					localUri,
 					runningProcess: matchingCandidate?.detail,
 					hasRunningProcess: !!matchingCandidate,
 					pid: matchingCandidate?.pid,

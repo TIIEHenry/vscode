@@ -50,6 +50,8 @@ interface ExistingAccountQuickPickItem extends IQuickPickItem {
 }
 
 class ManageAccountPreferenceForExtensionActionImpl {
+	private readonly _acceptGeneration = new Map<string, number>();
+
 	constructor(
 		@IAuthenticationService private readonly _authenticationService: IAuthenticationService,
 		@IQuickInputService private readonly _quickInputService: IQuickInputService,
@@ -184,6 +186,10 @@ class ManageAccountPreferenceForExtensionActionImpl {
 
 	private async _accept(extensionId: string, selectedItems: ReadonlyArray<AccountPreferenceQuickPickItem>) {
 		for (const item of selectedItems) {
+			const key = `${item.providerId}\0${extensionId}`;
+			const seq = (this._acceptGeneration.get(key) ?? 0) + 1;
+			this._acceptGeneration.set(key, seq);
+
 			let account: AuthenticationSessionAccount;
 			if (!item.account) {
 				try {
@@ -191,6 +197,9 @@ class ManageAccountPreferenceForExtensionActionImpl {
 					account = session.account;
 				} catch (e) {
 					this._logService.error(e);
+					continue;
+				}
+				if (this._acceptGeneration.get(key) !== seq) {
 					continue;
 				}
 			} else {

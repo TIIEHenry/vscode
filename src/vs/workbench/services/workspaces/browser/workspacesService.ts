@@ -164,7 +164,11 @@ export class BrowserWorkspacesService extends Disposable implements IWorkspacesS
 	}
 
 	async clearRecentlyOpened(): Promise<void> {
-		this.storageService.remove(BrowserWorkspacesService.RECENTLY_OPENED_KEY, StorageScope.APPLICATION);
+		const run = this._recentlyOpenedChain.then(() => {
+			this.storageService.remove(BrowserWorkspacesService.RECENTLY_OPENED_KEY, StorageScope.APPLICATION);
+		});
+		this._recentlyOpenedChain = run.then(() => undefined, () => undefined);
+		return run;
 	}
 
 	//#endregion
