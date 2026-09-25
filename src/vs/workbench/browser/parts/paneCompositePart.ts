@@ -131,6 +131,7 @@ export abstract class AbstractPaneCompositePart extends CompositePart<PaneCompos
 
 	private globalToolBar: MenuWorkbenchToolBar | undefined;
 	private blockOpening: DeferredPromise<PaneComposite | undefined> | undefined = undefined;
+	private paneOpenGeneration = 0;
 	protected contentDimension: Dimension | undefined;
 	private floatingLayoutDimension: Dimension | undefined;
 
@@ -503,11 +504,17 @@ export abstract class AbstractPaneCompositePart extends CompositePart<PaneCompos
 	}
 
 	async openPaneComposite(id?: string, focus?: boolean): Promise<PaneComposite | undefined> {
+		const generation = ++this.paneOpenGeneration;
+
 		if (typeof id === 'string' && this.getPaneComposite(id)) {
 			return this.doOpenPaneComposite(id, focus);
 		}
 
 		await this.extensionService.whenInstalledExtensionsRegistered();
+
+		if (generation !== this.paneOpenGeneration) {
+			return undefined;
+		}
 
 		if (typeof id === 'string' && this.getPaneComposite(id)) {
 			return this.doOpenPaneComposite(id, focus);
@@ -517,6 +524,8 @@ export abstract class AbstractPaneCompositePart extends CompositePart<PaneCompos
 	}
 
 	private async doOpenPaneComposite(id: string, focus?: boolean): Promise<PaneComposite | undefined> {
+		++this.paneOpenGeneration;
+
 		if (this.blockOpening) {
 			// Workaround against a potential race condition when calling
 			// `setPartHidden` we may end up in `openPaneComposite` again.
