@@ -112,7 +112,7 @@ export abstract class MediaPreview extends Disposable {
 		}
 
 		const content = await this.getWebviewContents();
-		if (generation !== this._renderGeneration || this.previewState === PreviewState.Disposed) {
+		if (generation !== this._renderGeneration) {
 			return;
 		}
 
