@@ -7,7 +7,8 @@ import './media/mcpServersView.css';
 import * as dom from '../../../../base/browser/dom.js';
 import { ActionBar } from '../../../../base/browser/ui/actionbar/actionbar.js';
 import { IListContextMenuEvent } from '../../../../base/browser/ui/list/list.js';
-import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { CancelablePromise, createCancelablePromise } from '../../../../base/common/async.js';
+import { CancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { createMarkdownCommandLink, MarkdownString } from '../../../../base/common/htmlContent.js';
 import { combinedDisposable, Disposable, DisposableStore, dispose, IDisposable, isDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
@@ -86,6 +87,8 @@ export class McpServersListView extends AbstractExtensionsListView<IWorkbenchMcp
 	} | undefined;
 	private readonly contextMenuActionRunner = this._register(new ActionRunner());
 	private readonly modalNavigationDisposable = this._register(new MutableDisposable());
+	private queryRequest: { query: string; request: CancelablePromise<IPagedModel<IWorkbenchMcpServer>> } | null = null;
+	private queryGeneration = 0;
 	private input: IQueryResult | undefined;
 
 	constructor(
@@ -218,6 +221,12 @@ export class McpServersListView extends AbstractExtensionsListView<IWorkbenchMcp
 	}
 
 	async show(query: string): Promise<IPagedModel<IWorkbenchMcpServer>> {
+		const generation = ++this.queryGeneration;
+		if (this.queryRequest) {
+			this.queryRequest.request.cancel();
+			this.queryRequest = null;
+		}
+
 		if (this.input) {
 			this.input.disposables.dispose();
 			this.input = undefined;
@@ -225,23 +234,40 @@ export class McpServersListView extends AbstractExtensionsListView<IWorkbenchMcp
 
 		if (this.mpcViewOptions.showWelcome) {
 			this.input = { model: new PagedModel([]), disposables: new DisposableStore(), showWelcomeContent: true };
-		} else {
-			this.input = await this.query(query.trim());
+			this.renderInput();
+			return this.input.model;
 		}
 
-		this.renderInput();
+		const request = createCancelablePromise(async token => {
+			const result = await this.query(query.trim());
+			if (token.isCancellationRequested || generation !== this.queryGeneration) {
+				result.disposables.dispose();
+				throw new CancellationError();
+			}
 
-		if (this.input.onDidChangeModel) {
-			this.input.disposables.add(this.input.onDidChangeModel(model => {
-				if (!this.input) {
-					return;
-				}
-				this.input.model = model;
-				this.renderInput();
-			}));
-		}
+			this.input = result;
+			this.renderInput();
 
-		return this.input.model;
+			if (this.input.onDidChangeModel) {
+				this.input.disposables.add(this.input.onDidChangeModel(model => {
+					if (this.input !== result || generation !== this.queryGeneration) {
+						return;
+					}
+					this.input.model = model;
+					this.renderInput();
+				}));
+			}
+
+			return this.input.model;
+		});
+
+		request.finally(() => {
+			if (this.queryRequest?.request === request) {
+				this.queryRequest = null;
+			}
+		});
+		this.queryRequest = { query, request };
+		return request;
 	}
 
 	private renderInput() {

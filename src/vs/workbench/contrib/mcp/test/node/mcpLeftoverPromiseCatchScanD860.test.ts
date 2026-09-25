@@ -222,7 +222,7 @@ suite('leftover remaining unused after D824 leftover remaining unused mcp leftov
 		assert.ok(handler.includes('import { CancellationError, onUnexpectedError } from \'../../../../base/common/errors.js\';'));
 		assert.ok(editor.includes('import { isCancellationError, onUnexpectedError } from \'../../../../base/common/errors.js\';'));
 		assert.ok(stdio.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assert.ok(serversView.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.ok(serversView.includes("import { CancellationError, onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(server.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertWrapped(quick, checkDirCall);
 		assertWrapped(handler, sendLogCall);
