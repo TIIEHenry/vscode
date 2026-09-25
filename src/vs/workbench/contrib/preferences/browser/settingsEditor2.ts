@@ -537,6 +537,9 @@ export class SettingsEditor2 extends EditorPane {
 		if (token.isCancellationRequested || !(model instanceof Settings2EditorModel)) {
 			return;
 		}
+		if (token.isCancellationRequested || this.input !== input || this._store.isDisposed) {
+			return;
+		}
 
 		this.modelDisposables.clear();
 		this.modelDisposables.add(model.onDidChangeGroups(() => {
