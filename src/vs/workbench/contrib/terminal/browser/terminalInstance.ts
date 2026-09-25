@@ -161,6 +161,7 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 	private _latestXtermParseData: number = 0;
 	private _isExiting: boolean;
 	private _isDisposing: boolean;
+	private _reuseTerminalGeneration = 0;
 	private _hadFocusOnExit: boolean;
 	private _exitCode: number | undefined;
 	private _exitReason: TerminalExitReason | undefined;
@@ -1325,6 +1326,7 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		if (this.isDisposed) {
 			return;
 		}
+		this._reuseTerminalGeneration++;
 		this._logService.trace(`terminalInstance#dispose (instanceId: ${this.instanceId})`);
 		this._isDisposing = true;
 		dispose(this._widgetManager);
@@ -1907,6 +1909,7 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 	}
 
 	async reuseTerminal(shell: IShellLaunchConfig, reset: boolean = false): Promise<void> {
+		const generation = ++this._reuseTerminalGeneration;
 		// Unsubscribe any key listener we may have.
 		this._pressAnyKeyToCloseListener?.dispose();
 		this._pressAnyKeyToCloseListener = undefined;
@@ -1916,12 +1919,18 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 			if (!reset) {
 				// Ensure new processes' output starts at start of new line
 				await new Promise<void>(r => xterm.raw.write('\n\x1b[G', r));
+				if (generation !== this._reuseTerminalGeneration || this.isDisposed) {
+					return;
+				}
 			}
 
 			// Print initialText if specified
 			if (shell.initialText) {
 				this._shellLaunchConfig.initialText = shell.initialText;
 				await new Promise<void>(r => this._writeInitialText(xterm, r));
+				if (generation !== this._reuseTerminalGeneration || this.isDisposed) {
+					return;
+				}
 			}
 
 			// Clean up waitOnExit state
@@ -1949,6 +1958,9 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		this._shellLaunchConfig = shell; // Must be done before calling _createProcess()
 		this._agentShellTypeFromSequence = undefined;
 		await this._processManager.relaunch(this._shellLaunchConfig, this._cols || Constants.DefaultCols, this._rows || Constants.DefaultRows, reset).then(result => {
+			if (generation !== this._reuseTerminalGeneration || this.isDisposed) {
+				return;
+			}
 			if (result) {
 				if (hasKey(result, { message: true })) {
 					this._onProcessExit(result);
