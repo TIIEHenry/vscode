@@ -696,6 +696,7 @@ export class SimpleFileDialog extends Disposable implements ISimpleFileDialog {
 			const newFolderIsUnrelated = !newFolderIsParent && !newFolderIsSubFolder;
 			if ((!newFolderIsOldFolder && (this.endsWithSlash(value) || newFolderIsParent || newFolderIsUnrelated)) || reset) {
 				let stat: IFileStatWithPartialMetadata | undefined;
+				const valueAtStat = value;
 				try {
 					stat = await this.fileService.stat(valueUri);
 				} catch (e) {
@@ -705,6 +706,9 @@ export class SimpleFileDialog extends Disposable implements ISimpleFileDialog {
 					valueUri = this.tryAddTrailingSeparatorToDirectory(valueUri, stat);
 					return await this.updateItems(valueUri) ? UpdateResult.UpdatedWithTrailing : UpdateResult.Updated;
 				} else if (this.endsWithSlash(value)) {
+					if (this._store.isDisposed || this.filePickBox.value !== valueAtStat) {
+						return UpdateResult.NotUpdated;
+					}
 					// The input box contains a path that doesn't exist on the system.
 					this.filePickBox.validationMessage = nls.localize('remoteFileDialog.badPath', 'The path does not exist. Use ~ to go to your home directory.');
 					// Save this bad path. It can take too long to a stat on every user entered character, but once a user enters a bad path they are likely
@@ -719,16 +723,22 @@ export class SimpleFileDialog extends Disposable implements ISimpleFileDialog {
 						&& (!/^[a-zA-Z]:$/.test(this.filePickBox.value)
 							|| !equalsIgnoreCase(this.pathFromUri(this.currentFolder).substring(0, this.filePickBox.value.length), this.filePickBox.value))) {
 						let statWithoutTrailing: IFileStatWithPartialMetadata | undefined;
+						const valueAtDirStat = value;
 						try {
 							statWithoutTrailing = await this.fileService.stat(inputUriDirname);
 						} catch (e) {
 							// do nothing
+						}
+						if (this._store.isDisposed || this.filePickBox.value !== valueAtDirStat) {
+							return UpdateResult.NotUpdated;
 						}
 						if (statWithoutTrailing?.isDirectory) {
 							this.badPath = undefined;
 							inputUriDirname = this.tryAddTrailingSeparatorToDirectory(inputUriDirname, statWithoutTrailing);
 							return await this.updateItems(inputUriDirname, false, resources.basename(valueUri)) ? UpdateResult.UpdatedWithTrailing : UpdateResult.Updated;
 						}
+					} else if (this._store.isDisposed || this.filePickBox.value !== valueAtStat) {
+						return UpdateResult.NotUpdated;
 					}
 				}
 			}
