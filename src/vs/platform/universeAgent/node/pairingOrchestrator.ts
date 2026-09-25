@@ -172,6 +172,7 @@ export class PairingOrchestrator {
 			};
 		}
 		this.pairingGeneration++;
+		const generation = this.pairingGeneration;
 
 		const identityState = await this.deps.clientIdentityStore.getOrCreateIdentity();
 		if (identityState.kind !== 'ready') {
@@ -224,6 +225,9 @@ export class PairingOrchestrator {
 			);
 			if (!provisional.ok) {
 				if (provisional.recoverTrust) {
+					if (generation !== this.pairingGeneration || this.disposed) {
+						return { ok: false, code: 'pairing_superseded', reason: 'pairing superseded' };
+					}
 					this.recoverContext = {
 						profile,
 						endpoint,
@@ -265,6 +269,9 @@ export class PairingOrchestrator {
 			}
 			const sasCode = provisional.sasCode.length > 0 ? provisional.sasCode : sasLocal;
 
+			if (generation !== this.pairingGeneration || this.disposed) {
+				return { ok: false, code: 'pairing_superseded', reason: 'pairing superseded' };
+			}
 			this.activeContext = {
 				profile,
 				endpoint,
