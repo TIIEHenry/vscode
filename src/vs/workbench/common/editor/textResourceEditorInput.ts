@@ -165,6 +165,7 @@ export class TextResourceEditorInput extends AbstractTextResourceEditorInput imp
 		this.preferredContents = undefined;
 		this.preferredLanguageId = undefined;
 
+		const createdModelReference = !this.modelReference;
 		if (!this.modelReference) {
 			this.modelReference = this.textModelService.createModelReference(this.resource);
 		}
@@ -178,6 +179,17 @@ export class TextResourceEditorInput extends AbstractTextResourceEditorInput imp
 			this.modelReference = undefined;
 
 			throw new Error(`Unexpected model for TextResourceEditorInput: ${this.resource}`);
+		}
+
+		// Resolve can outlive this input. Drop a reference created by this
+		// call so it is not leaked, and do not write back onto a disposed input.
+		if (this.isDisposed()) {
+			if (createdModelReference) {
+				ref.dispose();
+				this.modelReference = undefined;
+			}
+
+			return model;
 		}
 
 		this.cachedModel = model;
