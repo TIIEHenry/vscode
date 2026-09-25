@@ -262,7 +262,7 @@ export class SideBySideEditor extends AbstractEditorWithViewState<ISideBySideEdi
 	override async setInput(input: SideBySideEditorInput, options: ISideBySideEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
 		const oldInput = this.input;
 		await super.setInput(input, options, context, token);
-		if (token.isCancellationRequested) {
+		if (token.isCancellationRequested || this.input !== input || this._store.isDisposed) {
 			return;
 		}
 
@@ -293,7 +293,7 @@ export class SideBySideEditor extends AbstractEditorWithViewState<ISideBySideEdi
 			this.secondaryEditorPane?.setInput(input.secondary, secondary, context, token),
 			this.primaryEditorPane?.setInput(input.primary, primary, context, token)
 		]);
-		if (token.isCancellationRequested) {
+		if (token.isCancellationRequested || this.input !== input || this._store.isDisposed) {
 			return;
 		}
 
