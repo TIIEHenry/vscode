@@ -78,6 +78,7 @@ export class SessionsRecentWorkspacesService extends Disposable implements ISess
 	readonly onDidChangeRecentWorkspaces: Event<void> = this._onDidChangeRecentWorkspaces.event;
 
 	private _vsCodeRecentFolderUris: URI[] = [];
+	private _vsCodeRecentRefreshGeneration = 0;
 
 	constructor(
 		@IStorageService private readonly storageService: IStorageService,
@@ -170,7 +171,11 @@ export class SessionsRecentWorkspacesService extends Disposable implements ISess
 	}
 
 	private async _refreshVSCodeRecentWorkspaces(): Promise<void> {
+		const generation = ++this._vsCodeRecentRefreshGeneration;
 		const recentlyOpened = await this.workspacesService.getRecentlyOpened();
+		if (generation !== this._vsCodeRecentRefreshGeneration || this._store.isDisposed) {
+			return;
+		}
 		this._vsCodeRecentFolderUris = recentlyOpened.workspaces
 			.filter(isRecentFolder)
 			.map(f => f.folderUri)
