@@ -2943,11 +2943,15 @@ export class ChatWidget extends Disposable implements IChatWidget {
 			return undefined;
 		}
 
+		const acceptedSessionResource = this.viewModel?.sessionResource;
 		if (!options?.preserveInput) {
 			// preserveInput submissions (e.g. /compact or programmatic maintenance
 			// requests) leave the input draft untouched, so they must not stop an
 			// unrelated dictation and flush its final transcript into that draft.
 			await stopDictationForEditor(this.inputEditor);
+		}
+		if (acceptedSessionResource && (!this.viewModel || this._store.isDisposed || !isEqual(this.viewModel.sessionResource, acceptedSessionResource))) {
+			return undefined;
 		}
 
 		if (this.viewModel) {
@@ -3059,13 +3063,14 @@ export class ChatWidget extends Disposable implements IChatWidget {
 
 	/**
 	 * @returns `false` when the prompt metadata requested an agent switch that the
-	 * user cancelled, signalling that input submission should be aborted.
+	 * user cancelled, signalling that input submission should be aborted. Otherwise
+	 * `{ clearedSession }` reports whether `_switchToAgentByName` ran `this.clear()`.
 	 */
-	private async _applyPromptFileIfSet(requestInput: IChatRequestInputOptions, sessionResource: URI): Promise<boolean> {
+	private async _applyPromptFileIfSet(requestInput: IChatRequestInputOptions, sessionResource: URI): Promise<false | { clearedSession: boolean }> {
 		// first check if the input has a prompt slash command
 		const agentSlashPromptPart = this.parsedInput.parts.find((r): r is ChatRequestSlashPromptPart => r instanceof ChatRequestSlashPromptPart);
 		if (!agentSlashPromptPart) {
-			return true;
+			return { clearedSession: false };
 		}
 
 		// Prompt slash commands are transformed out of the input before sendRequest.
@@ -3075,7 +3080,10 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		// need to resolve the slash command to get the prompt file
 		const slashCommand = await this.customizationHarnessService.resolvePromptSlashCommand(agentSlashPromptPart.name, sessionResource, CancellationToken.None);
 		if (!slashCommand) {
-			return true;
+			return { clearedSession: false };
+		}
+		if (!this.viewModel || this._store.isDisposed || !isEqual(this.viewModel.sessionResource, sessionResource)) {
+			return false;
 		}
 		const parseResult = slashCommand.parsedPromptFile;
 		// add the prompt file to the context
@@ -3099,18 +3107,28 @@ export class ChatWidget extends Disposable implements IChatWidget {
 			if (!applied) {
 				return false;
 			}
+			return applied;
 		}
 
-		return true;
+		return { clearedSession: false };
 	}
 
 	private async _acceptInput(query: { query: string } | undefined, options: IChatAcceptInputOptions = {}): Promise<IChatResponseModel | undefined> {
+		let capturedSession = this.viewModel?.sessionResource;
+		const stillOn = (expected: URI) => {
+			const viewModel = this.viewModel;
+			return !!viewModel && !this._store.isDisposed && isEqual(viewModel.sessionResource, expected);
+		};
+
 		if (!query && this.input.generating) {
 			// if the user submits the input and generation finishes quickly, just submit it for them
 			const generatingAutoSubmitWindow = 500;
 			const start = Date.now();
 			await this.input.generating;
 			if (Date.now() - start > generatingAutoSubmitWindow) {
+				return;
+			}
+			if (capturedSession && !stillOn(capturedSession)) {
 				return;
 			}
 		}
@@ -3146,11 +3164,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 
 		const isUserQuery = !query;
 		const inputValue = isUserQuery ? this.getInput() : query.query;
-		const capturedSession = this.viewModel.sessionResource;
-		const stillOn = (expected: URI) => {
-			const viewModel = this.viewModel;
-			return !!viewModel && !this._store.isDisposed && isEqual(viewModel.sessionResource, expected);
-		};
+		capturedSession ??= this.viewModel.sessionResource;
 		let sendSessionResource = capturedSession;
 		if (this.viewModel.model.hasActiveRequest.get() && await this._tryExecuteImmediateSlashCommand(inputValue, isUserQuery ? this.parsedInput : undefined)) {
 			if (!stillOn(capturedSession)) {
@@ -3286,14 +3300,11 @@ export class ChatWidget extends Disposable implements IChatWidget {
 				return;
 			}
 			const promptApplied = await this._applyPromptFileIfSet(requestInputs, this.viewModel.sessionResource);
-			if (!promptApplied) {
+			const nextSession = resolveSendSessionAfterPromptApply(capturedSession, this.viewModel, this._store.isDisposed, promptApplied);
+			if (!nextSession) {
 				return;
 			}
-			const viewModelAfterPrompt = this.viewModel;
-			if (!viewModelAfterPrompt || this._store.isDisposed) {
-				return;
-			}
-			sendSessionResource = viewModelAfterPrompt.sessionResource;
+			sendSessionResource = nextSession;
 		}
 
 		if (this.viewOptions.enableWorkingSet !== undefined && resolveEditedRequestSelection(editedModeKind, this.input.currentModeKind) === ChatModeKind.Edit) {
@@ -3390,14 +3401,14 @@ export class ChatWidget extends Disposable implements IChatWidget {
 				} : undefined,
 			});
 		} catch (error) {
-			if (transcriptContext) {
+			if (transcriptContext && stillOn(sendSessionResource)) {
 				this.setTranscriptContext(transcriptContext);
 			}
 			throw error;
 		}
 
 		if (ChatSendResult.isRejected(result)) {
-			if (transcriptContext) {
+			if (transcriptContext && stillOn(sendSessionResource)) {
 				this.setTranscriptContext(transcriptContext);
 			}
 			if (stillOn(sendSessionResource) && result.newSessionResource) {
@@ -3446,6 +3457,9 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		if (!options.preserveInput) {
 			// Not a user submission; listeners would consume draft state. Also skips editor pinning.
 			this._onDidSubmitAgent.fire({ agent: sent.data.agent, slashCommand: sent.data.slashCommand });
+		}
+		if (!stillOn(sendSessionResource)) {
+			return;
 		}
 		this.handleDelegationExitIfNeeded(this._lockedAgent, sent.data.agent);
 
@@ -3910,13 +3924,13 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		this.agentInInput.set(!!currentAgent);
 	}
 
-	private async _switchToAgentByName(agentName: string): Promise<boolean> {
+	private async _switchToAgentByName(agentName: string): Promise<false | { clearedSession: boolean }> {
 		const switchSessionResource = this.viewModel?.sessionResource;
 		const currentAgent = this.input.currentModeObs.get();
 
 		// already on the target agent
 		if (agentName === currentAgent.name.get()) {
-			return true;
+			return { clearedSession: false };
 		}
 
 		// Find the mode object to get its kind
@@ -3925,6 +3939,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 			return false;
 		}
 
+		let clearedSession = false;
 		if (currentAgent.kind !== agent.kind) {
 			const chatModeCheck = await this.instantiationService.invokeFunction(handleModeSwitch, currentAgent.kind, agent.kind, this.viewModel?.model.getRequests().length ?? 0, this.viewModel?.model);
 			if (!chatModeCheck) {
@@ -3937,28 +3952,50 @@ export class ChatWidget extends Disposable implements IChatWidget {
 
 			if (chatModeCheck.needToClearSession) {
 				await this.clear();
+				if (this._store.isDisposed || !this.viewModel) {
+					return false;
+				}
+				clearedSession = true;
 			}
 		}
+		if (this._store.isDisposed || (switchSessionResource && !clearedSession && (!this.viewModel || !isEqual(this.viewModel.sessionResource, switchSessionResource)))) {
+			return false;
+		}
 		this.input.setChatMode(agent.id);
-		return true;
+		return { clearedSession };
 	}
 
 	/**
 	 * @returns `false` when the agent switch was cancelled (e.g. user dismissed the
 	 * mode-switch confirmation dialog), signalling that the caller should abort the
-	 * current input submission.
+	 * current input submission. Otherwise `{ clearedSession }` reports whether the
+	 * agent switch ran `this.clear()`.
 	 */
-	private async _applyPromptMetadata({ agent, tools, model }: PromptHeader, requestInput: IChatRequestInputOptions): Promise<boolean> {
+	private async _applyPromptMetadata({ agent, tools, model }: PromptHeader, requestInput: IChatRequestInputOptions): Promise<false | { clearedSession: boolean }> {
 
 		if (tools !== undefined && !agent && this.input.currentModeKind !== ChatModeKind.Agent) {
 			agent = ChatMode.Agent.name.get();
 		}
+		let clearedSession = false;
 		// switch to appropriate agent if needed
 		if (agent) {
 			const switched = await this._switchToAgentByName(agent);
 			if (!switched) {
 				return false;
 			}
+			clearedSession = switched.clearedSession;
+		}
+
+		const sessionAfterSwitch = this.viewModel?.sessionResource;
+		if (this._store.isDisposed || !sessionAfterSwitch) {
+			return false;
+		}
+
+		if (model !== undefined && !await this.input.requestModelByQualifiedName(model)) {
+			return false;
+		}
+		if (this._store.isDisposed || !this.viewModel || !isEqual(this.viewModel.sessionResource, sessionAfterSwitch)) {
+			return false;
 		}
 
 		// if not tools to enable are present, we are done
@@ -3967,16 +4004,27 @@ export class ChatWidget extends Disposable implements IChatWidget {
 			this.input.selectedToolsModel.set(enablementMap, true);
 		}
 
-		if (model !== undefined) {
-			return this.input.requestModelByQualifiedName(model);
-		}
-
-		return true;
+		return { clearedSession };
 	}
 
 	delegateScrollFromMouseWheelEvent(browserEvent: IMouseWheelEvent): void {
 		this.listWidget.delegateScrollFromMouseWheelEvent(browserEvent);
 	}
+}
+
+/**
+ * A prompt file may replace the session by calling `clear()`. Any other session
+ * change during that await belongs to a newer open and must not be sent into.
+ * Returns the session to send on, or `undefined` to abort.
+ */
+export function resolveSendSessionAfterPromptApply(capturedSession: URI, viewModel: { sessionResource: URI } | undefined, widgetDisposed: boolean, promptApplied: false | { clearedSession: boolean }): URI | undefined {
+	if (!promptApplied || widgetDisposed || !viewModel) {
+		return undefined;
+	}
+	if (!isEqual(viewModel.sessionResource, capturedSession) && !promptApplied.clearedSession) {
+		return undefined;
+	}
+	return viewModel.sessionResource;
 }
 
 export function layoutChatWidgetForInputHeight(widget: Pick<ChatWidget, 'setInputPartMaxHeightOverride' | 'layoutForInputHeight'>, inputMaxHeight: number | undefined, height: number, width: number): void {
