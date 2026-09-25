@@ -126,6 +126,8 @@ export class SyncedCustomizationBundler extends Disposable {
 	private _lastRef: IBundleResult | undefined;
 	/** Maps a synced (destination) URI string back to its original source location. Rebuilt on every {@link bundle}. */
 	private _originByDest = new ResourceMap<ISyncedCustomizationOrigin>();
+	/** Incremented when a bundle starts and on dispose, so a slower older call cannot publish over a newer one. */
+	private _bundleGeneration = 0;
 
 	constructor(
 		authority: string,
@@ -160,6 +162,8 @@ export class SyncedCustomizationBundler extends Disposable {
 		if (syncable.length === 0 && mcpServers.length === 0) {
 			return undefined;
 		}
+
+		const generation = ++this._bundleGeneration;
 
 		// Read every source file up front so the content nonce can be computed
 		// before touching the in-memory tree. This lets us skip the destructive
@@ -202,6 +206,10 @@ export class SyncedCustomizationBundler extends Disposable {
 			const content = await this._fileService.readFile(file.uri);
 			entries.push({ destUri, content: content.value, hashPart: `${hashKey}:${content.value.toString()}` });
 		}));
+
+		if (generation !== this._bundleGeneration || this._store.isDisposed) {
+			return undefined;
+		}
 
 		// Publish the freshly computed provenance map. This is done before the
 		// nonce short-circuit below so the map always reflects the latest set of
@@ -260,14 +268,23 @@ export class SyncedCustomizationBundler extends Disposable {
 		} catch {
 			// Directory may not exist on first bundle
 		}
+		if (generation !== this._bundleGeneration || this._store.isDisposed) {
+			return undefined;
+		}
 
 		// Write the manifest
 		const manifestUri = URI.joinPath(this._rootUri, '.plugin', 'plugin.json');
 		await this._fileService.writeFile(manifestUri, VSBuffer.fromString(MANIFEST_CONTENT));
+		if (generation !== this._bundleGeneration || this._store.isDisposed) {
+			return undefined;
+		}
 
 		// Write each source file into the correct plugin directory.
 		for (const entry of entries) {
 			await this._fileService.writeFile(entry.destUri, entry.content);
+			if (generation !== this._bundleGeneration || this._store.isDisposed) {
+				return undefined;
+			}
 		}
 
 		// Write MCP servers into `.mcp.json`. The agent host's Open Plugin
@@ -275,6 +292,9 @@ export class SyncedCustomizationBundler extends Disposable {
 		if (mcpContent !== undefined) {
 			const mcpUri = URI.joinPath(this._rootUri, '.mcp.json');
 			await this._fileService.writeFile(mcpUri, VSBuffer.fromString(mcpContent));
+			if (generation !== this._bundleGeneration || this._store.isDisposed) {
+				return undefined;
+			}
 		}
 
 		this._lastNonce = nonce;
@@ -318,5 +338,10 @@ export class SyncedCustomizationBundler extends Disposable {
 	 */
 	getOrigin(syncedUri: URI): ISyncedCustomizationOrigin | undefined {
 		return this._originByDest.get(syncedUri);
+	}
+
+	override dispose(): void {
+		++this._bundleGeneration;
+		super.dispose();
 	}
 }
