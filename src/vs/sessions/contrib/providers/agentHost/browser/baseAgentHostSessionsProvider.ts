@@ -2746,6 +2746,20 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 	/** True while a {@link _refreshSessions} call is awaiting `listSessions()`. */
 	private _sessionRefreshInFlight = false;
 
+	/**
+	 * Bumped when a {@link _refreshSessions} attempt starts. A `listSessions()`
+	 * result from an older attempt must not publish the cache.
+	 */
+	private _sessionRefreshGeneration = 0;
+
+	/**
+	 * Token for the attempt that currently owns {@link _sessionRefreshInFlight}.
+	 * A superseded attempt's `finally` must not clear a newer attempt's flag.
+	 * When the connection changes without a newer attempt, this attempt still
+	 * owns the flag and must clear it so the next refresh can start.
+	 */
+	private _sessionRefreshOwner: object | undefined;
+
 	private readonly _activeSessionScope = this._register(new MutableDisposable<IAgentCustomizationScope>());
 	private readonly _activeClientSyncCancellation = this._register(new MutableDisposable<ActiveClientSyncCancellationTokenSource>());
 	private _activeSessionScopeSessionType: string | undefined;
@@ -5353,11 +5367,19 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		if (!connection) {
 			return;
 		}
+		const generation = ++this._sessionRefreshGeneration;
+		const owner = {};
+		this._sessionRefreshOwner = owner;
 		// Cancel any pending retry; this attempt supersedes it.
 		this._sessionRefreshRetry.clear();
 		this._sessionRefreshInFlight = true;
 		try {
 			const sessions = await connection.listSessions();
+			// A newer refresh, a replaced connection, or disposal supersedes
+			// this listing. Do not mark the cache authoritative or evict sessions.
+			if (generation !== this._sessionRefreshGeneration || this.connection !== connection || this._store.isDisposed) {
+				return;
+			}
 			// A successful return (even an empty list) means the cache is
 			// authoritative. Mark it initialized and reset the backoff.
 			this._cacheInitialized = true;
@@ -5433,6 +5455,9 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 				(cached as AgentHostSessionAdapter).dispose();
 			}
 		} catch (err) {
+			if (generation !== this._sessionRefreshGeneration || this.connection !== connection || this._store.isDisposed) {
+				return;
+			}
 			// The connection / agent may not be ready yet — e.g. the agent
 			// throws `AHP_AUTH_REQUIRED` until its token is effective
 			// server-side, or there's a transient offline/network error. We
@@ -5443,7 +5468,9 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 			this._logService.trace(`[AgentHostSessionsProvider] listSessions failed; scheduling retry: ${err}`);
 			this._scheduleSessionRefreshRetry(announceExistingAsAdded);
 		} finally {
-			this._sessionRefreshInFlight = false;
+			if (this._sessionRefreshOwner === owner) {
+				this._sessionRefreshInFlight = false;
+			}
 		}
 	}
 
