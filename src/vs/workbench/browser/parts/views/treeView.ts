@@ -629,6 +629,9 @@ abstract class AbstractTreeView extends Disposable implements ITreeView {
 		}
 
 		this.isVisible = isVisible;
+		if (!this.isVisible) {
+			this.childrenResolveGeneration++;
+		}
 
 		if (this.tree) {
 			if (this.isVisible) {
@@ -692,6 +695,7 @@ abstract class AbstractTreeView extends Disposable implements ITreeView {
 
 	private readonly treeDisposables: DisposableStore = this._register(new DisposableStore());
 	protected createTree() {
+		this.childrenResolveGeneration++;
 		this.treeDisposables.clear();
 		const actionViewItemProvider = createActionViewItem.bind(undefined, this.instantiationService);
 		const treeMenus = this.treeDisposables.add(this.instantiationService.createInstance(TreeMenus, this.id));
@@ -1100,6 +1104,7 @@ abstract class AbstractTreeView extends Disposable implements ITreeView {
 	private childrenResolveGeneration: number = 0;
 	private async doRefresh(elements: readonly ITreeItem[]): Promise<void> {
 		const tree = this.tree;
+		const generation = this.childrenResolveGeneration;
 		if (tree && this.visible) {
 			this.refreshing = true;
 			const oldSelection = tree.getSelection();
@@ -1110,6 +1115,11 @@ abstract class AbstractTreeView extends Disposable implements ITreeView {
 				// we can get a "Tree element not found" error. This is expected.
 				// Ideally this is fixable, so log instead of ignoring so the error is preserved.
 				this.logService.error(e);
+			}
+			if (generation !== this.childrenResolveGeneration || this.tree !== tree || !this.visible || this._store.isDisposed) {
+				this.refreshing = false;
+				this._onDidCompleteRefresh.fire();
+				return;
 			}
 			const newSelection = tree.getSelection();
 			if (oldSelection.length !== newSelection.length || oldSelection.some((value, index) => value.handle !== newSelection[index].handle)) {
@@ -1161,6 +1171,11 @@ abstract class AbstractTreeView extends Disposable implements ITreeView {
 
 	get container(): HTMLElement | undefined {
 		return this._container;
+	}
+
+	override dispose(): void {
+		this.childrenResolveGeneration++;
+		super.dispose();
 	}
 }
 
