@@ -90,7 +90,15 @@ export class ImageCarouselEditor extends EditorPane {
 	}
 
 	override async setInput(input: ImageCarouselEditorInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
+		const inputIdentity = input;
 		await super.setInput(input, options, context, token);
+
+		// A later setInput replaces this.input, clearInput clears it, and dispose
+		// marks the pane dead. The awaited super.setInput above can resume after
+		// any of those and must not paint the album captured on entry.
+		if (this.input !== inputIdentity || token.isCancellationRequested || this._store.isDisposed) {
+			return;
+		}
 
 		this._sections = input.collection.sections;
 		this._flatImages = [];
