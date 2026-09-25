@@ -43,6 +43,9 @@ export class VoiceTranscriptsViewPane extends ViewPane {
 	/** Cached login resolved on first render, refreshed lazily on each refresh(). */
 	private userLogin: string | undefined;
 
+	/** Incremented at each refresh() entry so a slower pass cannot write after a newer one or dispose. */
+	private refreshGeneration = 0;
+
 	constructor(
 		options: IViewletViewOptions,
 		@IKeybindingService keybindingService: IKeybindingService,
@@ -128,13 +131,21 @@ export class VoiceTranscriptsViewPane extends ViewPane {
 			return;
 		}
 
+		const generation = ++this.refreshGeneration;
 		try {
-			this.userLogin = await this.resolveUserLogin();
+			const userLogin = await this.resolveUserLogin();
+			if (generation !== this.refreshGeneration || this._store.isDisposed) {
+				return;
+			}
+			this.userLogin = userLogin;
 			if (!this.userLogin) {
 				this.renderEmpty();
 				return;
 			}
 			const turns = await this.voiceTranscriptStore.loadTurns(this.userLogin);
+			if (generation !== this.refreshGeneration || this._store.isDisposed) {
+				return;
+			}
 			const indexEntry = this.voiceTranscriptStore.getIndexEntry(this.userLogin);
 			const archiveCutoff = indexEntry?.archivedBefore;
 			// Only voice-spoken entries are user-visible. ``agent_tool_call`` and
@@ -155,6 +166,9 @@ export class VoiceTranscriptsViewPane extends ViewPane {
 
 			this.renderTurns(visible, archivedCount);
 		} catch (err) {
+			if (generation !== this.refreshGeneration || this._store.isDisposed) {
+				return;
+			}
 			this.logService.warn('[voiceTranscripts] refresh failed', err);
 			this.renderEmpty();
 		}
