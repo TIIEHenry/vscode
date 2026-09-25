@@ -255,6 +255,9 @@ export class DebugEditorContribution implements IDebugEditorContribution {
 	private toDispose: IDisposable[];
 	private hoverWidget: DebugHoverWidget;
 	private hoverPosition?: { position: Position; event: IMouseEvent };
+	/** Invalidates an in-flight `showHover` so a late `NOT_AVAILABLE` cannot fall back to the editor hover. */
+	private showHoverGeneration = 0;
+	private disposed = false;
 	private mouseDown = false;
 	private exceptionWidgetVisible: IContextKey<boolean>;
 	private gutterIsHovered = false;
@@ -416,10 +419,15 @@ export class DebugEditorContribution implements IDebugEditorContribution {
 		// normally will already be set in `showHoverScheduler`, but public callers may hit this directly:
 		this.preventDefaultEditorHover();
 
+		const showGeneration = ++this.showHoverGeneration;
 		const sf = this.debugService.getViewModel().focusedStackFrame;
 		const model = this.editor.getModel();
 		if (sf && model && this.uriIdentityService.extUri.isEqual(sf.source.uri, model.uri)) {
 			const result = await this.hoverWidget.showAt(position, focus, mouseEvent);
+			// hideHoverWidget (including model changes), a later showHover, or dispose bumps this generation.
+			if (this.disposed || showGeneration !== this.showHoverGeneration) {
+				return;
+			}
 			if (result === ShowDebugHoverResult.NOT_AVAILABLE) {
 				// When no expression available fallback to editor hover
 				this.showEditorHover(position, focus);
@@ -498,6 +506,7 @@ export class DebugEditorContribution implements IDebugEditorContribution {
 	}
 
 	private hideHoverWidget(): void {
+		this.showHoverGeneration++;
 		if (this.hoverWidget.willBeVisible()) {
 			this.hoverWidget.hide();
 		}
@@ -989,6 +998,8 @@ export class DebugEditorContribution implements IDebugEditorContribution {
 	}
 
 	dispose(): void {
+		this.disposed = true;
+		this.showHoverGeneration++;
 		this.hoverWidget?.dispose();
 		this.configurationWidget?.dispose();
 		this.exceptionWidget?.dispose();
