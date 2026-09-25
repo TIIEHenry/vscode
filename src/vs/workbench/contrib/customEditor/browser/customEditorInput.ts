@@ -332,7 +332,21 @@ export class CustomEditorInput extends LazilyResolvedWebviewEditorInput {
 
 		if (!this._modelRef) {
 			const oldCapabilities = this.capabilities;
-			this._modelRef = this._register(assertReturnsDefined(await this.customEditorService.models.tryRetain(this.resource, this.viewType)));
+			const resource = this.resource;
+			const viewType = this.viewType;
+			const modelRef = assertReturnsDefined(await this.customEditorService.models.tryRetain(resource, viewType));
+			// A slow retain can outlive dispose, close, or a re-entrant resolve that already owns the slot.
+			const retainStillBelongs = !this.isDisposed()
+				&& !this._modelRef
+				&& isEqual(this.resource, resource)
+				&& this.viewType === viewType
+				&& isEqual(modelRef.object.resource, this.resource)
+				&& modelRef.object.viewType === this.viewType;
+			if (!retainStillBelongs) {
+				modelRef.dispose();
+				return null;
+			}
+			this._modelRef = this._register(modelRef);
 			this._register(this._modelRef.object.onDidChangeDirty(() => this._onDidChangeDirty.fire()));
 			this._register(this._modelRef.object.onDidChangeReadonly(() => this._onDidChangeCapabilities.fire()));
 			// If we're loading untitled file data we should ensure it's dirty
