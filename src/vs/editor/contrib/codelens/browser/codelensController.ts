@@ -170,21 +170,27 @@ export class CodeLensContribution implements IEditorContribution {
 
 		const scheduler = new RunOnceScheduler(() => {
 			const t1 = Date.now();
+			const requestModel = model;
 
 			this._getCodeLensModelPromise?.cancel();
-			this._getCodeLensModelPromise = createCancelablePromise(token => getCodeLensModel(this._languageFeaturesService.codeLensProvider, model, token));
+			const request = this._getCodeLensModelPromise = createCancelablePromise(token => getCodeLensModel(this._languageFeaturesService.codeLensProvider, requestModel, token));
 
-			this._getCodeLensModelPromise.then(result => {
+			request.then(result => {
+				if (this._disposables.isDisposed || this._editor.getModel() !== requestModel || this._getCodeLensModelPromise !== request) {
+					result.dispose();
+					return;
+				}
+
 				if (this._currentCodeLensModel) {
 					this._oldCodeLensModels.add(this._currentCodeLensModel);
 				}
 				this._currentCodeLensModel = result;
 
 				// cache model to reduce flicker
-				this._codeLensCache.put(model, result);
+				this._codeLensCache.put(requestModel, result);
 
 				// update moving average
-				const newDelay = this._provideCodeLensDebounce.update(model, Date.now() - t1);
+				const newDelay = this._provideCodeLensDebounce.update(requestModel, Date.now() - t1);
 				scheduler.delay = newDelay;
 
 				// render lenses
