@@ -108,8 +108,10 @@ export class TextFileEditor extends AbstractTextCodeEditor<ICodeEditorViewState>
 		try {
 			const resolvedModel = await input.resolve(options);
 
-			// Check for cancellation
-			if (token.isCancellationRequested) {
+			// Check for cancellation, or that this pane still owns the input we resolved.
+			// clearInput / dispose already drop this.input, so a same-group switch,
+			// clear, or pane close must not setModel on the shared control.
+			if (token.isCancellationRequested || this.input !== input || this._store.isDisposed) {
 				return;
 			}
 
