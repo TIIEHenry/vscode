@@ -51,6 +51,7 @@ export class CommentReply<T extends IRange | ICellRange> extends Disposable {
 	private _commentEditorActions!: CommentFormActions;
 	private _reviewThreadReplyButton!: HTMLElement;
 	private _editorHeight = MIN_EDITOR_HEIGHT;
+	private _submitGeneration = 0;
 
 	constructor(
 		readonly owner: string,
@@ -177,6 +178,7 @@ export class CommentReply<T extends IRange | ICellRange> extends Disposable {
 	}
 
 	public setPendingComment(pending: languages.PendingComment) {
+		++this._submitGeneration;
 		this._pendingComment = pending;
 		this.expandReplyArea();
 		this.commentEditor.setValue(pending.body);
@@ -229,7 +231,11 @@ export class CommentReply<T extends IRange | ICellRange> extends Disposable {
 	}
 
 	async submitComment(): Promise<void> {
+		const generation = ++this._submitGeneration;
 		await this._commentFormActions?.triggerDefaultAction();
+		if (generation !== this._submitGeneration || this._store.isDisposed) {
+			return;
+		}
 		this._pendingComment = undefined;
 	}
 
