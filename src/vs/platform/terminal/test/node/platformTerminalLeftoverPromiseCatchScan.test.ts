@@ -76,6 +76,9 @@ suite('platform terminal leftover Promise fire-and-forget catch scan (D720)', ()
 		assertDoubleThen(source, 'this._startMonitoringShell()');
 		assertDoubleThen(source, 'this.checkShell()');
 		const thenCall = `this.getShellName().then(title => {
+				if (generation !== this._checkShellGeneration || this._store.isDisposed) {
+					return;
+				}
 				const type = this.getShellType(title);
 				if (type !== this._shellType) {
 					this._onShellTypeChanged.fire(type);
