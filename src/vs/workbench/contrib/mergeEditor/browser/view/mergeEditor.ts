@@ -57,6 +57,7 @@ export class MergeEditor extends AbstractTextEditor<IMergeEditorViewState> {
 	static readonly ID = 'mergeEditor';
 
 	private readonly _sessionDisposables;
+	private _setInputGeneration = 0;
 	private readonly _viewModel;
 
 	public get viewModel(): IObservable<MergeEditorViewModel | undefined> {
@@ -138,6 +139,7 @@ export class MergeEditor extends AbstractTextEditor<IMergeEditorViewState> {
 	}
 
 	override dispose(): void {
+		++this._setInputGeneration;
 		this._sessionDisposables.dispose();
 		this._ctxIsMergeEditor.reset();
 		this._ctxUsesColumnLayout.reset();
@@ -208,7 +210,12 @@ export class MergeEditor extends AbstractTextEditor<IMergeEditorViewState> {
 			throw new BugIndicatingError('ONLY MergeEditorInput is supported');
 		}
 		const mergeInput = input;
+		const generation = ++this._setInputGeneration;
 		await super.setInput(input, options, context, token);
+
+		if (generation !== this._setInputGeneration || token.isCancellationRequested || this.input !== mergeInput || this._store.isDisposed) {
+			return;
+		}
 
 		this._sessionDisposables.clear();
 		transaction(tx => {
@@ -217,7 +224,7 @@ export class MergeEditor extends AbstractTextEditor<IMergeEditorViewState> {
 		});
 
 		const inputModel = await input.resolve();
-		if (token.isCancellationRequested || this.input !== mergeInput || this._store.isDisposed) {
+		if (generation !== this._setInputGeneration || token.isCancellationRequested || this.input !== mergeInput || this._store.isDisposed) {
 			return;
 		}
 		const model = inputModel.model;
@@ -485,6 +492,7 @@ export class MergeEditor extends AbstractTextEditor<IMergeEditorViewState> {
 	}
 
 	override clearInput(): void {
+		++this._setInputGeneration;
 		super.clearInput();
 
 		this._sessionDisposables.clear();
