@@ -3,10 +3,8 @@ title: "UniverseAgent 引擎参考索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-04
-summary: "本仓消费 UniverseAgent 引擎（外仓）协议面与 Connection Hub 控制面的导航：已知 gRPC / Hub REST / 能力探测 / 协议缺口汇总；Engine 页九节 UI 见 engine-catalog；权威在外仓，本目录只登记本仓口径"
-updated: 2026-09-03
-summary: "本仓消费 UniverseAgent 引擎协议面与 Hub 控制面的导航；调试用钉死 HeadlessServer 见指南"
+updated: 2026-09-25
+summary: "本仓消费 UniverseAgent 引擎协议面与 Hub 控制面的导航；Engine 页九节见 engine-catalog；调试用钉死 HeadlessServer 见指南"
 ---
 
 # UniverseAgent 引擎参考
@@ -23,8 +21,7 @@ summary: "本仓消费 UniverseAgent 引擎协议面与 Hub 控制面的导航�
 |----|------|
 | [engine-protocol-surface.md](engine-protocol-surface.md) | 已知 gRPC 服务与 RPC、Device Grant 握手、能力探测三态、本仓消费口径、协议缺口、会话面清单 |
 | [hub-control-plane-surface.md](hub-control-plane-surface.md) | Connection Hub HTTPS 控制面：AuthSession、设备目录、relay ticket、Hub 失败码 |
-| [engine-catalog §](../../systems/workbench/engine-catalog.md) | Engine 页九节 UI 规格（六态 + 写 RPC 边界 @ HEAD；PRD-025 待产品验证） |
-| [engine-catalog §](../../systems/workbench/engine-catalog.md) | Engine 页九节壳 + 四节写路径；Provider/Rules/Hooks 仍 unsupported |
+| [engine-catalog §](../../systems/workbench/engine-catalog.md) | Engine 页九节：四节写路径；Provider/Rules/Hooks 只读列表已接（无写表单）；PRD-025 待产品验证 |
 | [钉死引擎调试](../../guides/debug-engine.md) | 仓外隔离 HeadlessServer；Direct Address `127.0.0.1:50061`；不升 PRD-008 |
 
 ## 红线（摘自 ADR-006 壳不变量、ADR-003 adapter 边界草案与 customizations-engine）

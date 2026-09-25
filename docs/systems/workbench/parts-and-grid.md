@@ -3,7 +3,7 @@ title: "Workbench UI 框架：Parts、Grid、显隐"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-18
+updated: 2026-09-25
 summary: "默认 Code 窗口的 Part 枚举、SerializableGrid、Conversation∨(Editor∨Sources)；INV-TOPO：中心叶仍是 CONVERSATION_PART；对话 tab 走嵌套 Conversation IEditorPart（PRD-016 S1–S6 已落）"
 ---
 
@@ -29,7 +29,7 @@ summary: "默认 Code 窗口的 Part 枚举、SerializableGrid、Conversation∨
 | `SIDEBAR_PART` | `workbench.parts.sidebar` | 主侧栏 ViewContainer（资源管理器等） |
 | `CONVERSATION_PART` | `workbench.parts.conversation` | **中心锚点**（Part 级窗口 chrome：SessionBar / session 窗口网格；每叶内嵌 Conversation `IEditorPart`；页内 timeline/dock 在 `ConversationEditorPane`，非 `EditorInput`） |
 | `EDITOR_PART` | `workbench.parts.editor` | **End 列上格**：EditorGroup + tabs + `EditorInput`（`IEditorService.openEditor` 仍落这里） |
-| `SOURCES_PART` | `workbench.parts.sources` | **End 列下格**：`contrib/sources` **Files \| Changes \| Review** tab strip（Files = 只读列表投影，空工作区 copy 诚实：Explorer 列表投影、非 file tree、非 Chat；Changes = SCM 变更资源列表 + **stage/unstage/commit** 列表操作，行点击经 `ISCMResource.open()` 在 Preview 开 Diff；Review = 同一批 SCM 资源只读列表（`SourcesReviewList`）；树权威仍在 Sidebar Explorer；详见 [Sources 系统](../sources/overview.md)） |
+| `SOURCES_PART` | `workbench.parts.sources` | **End 列下格**：`contrib/sources` **Files \| Changes \| Review**。列表权威见 [Sources §4](../sources/overview.md)：接通、会话非空、hook 在且引擎列表非空才用 `readGitChanges`；无 hook、`supported:false`、空列表、空 session 或断连回退 SCM；已画引擎行后再失 hook 不切回 SCM。打开按 `sources.diff.defaultOwner`（默认 Preview）。unstage 始终 `git.unstage`。 |
 | `PANEL_PART` | `workbench.parts.panel` | 底（可左右）面板：终端、问题、输出 |
 | `AUXILIARYBAR_PART` | `workbench.parts.auxiliarybar` | 对侧栏（Secondary Side Bar）；默认仍可关 |
 | `STATUSBAR_PART` | `workbench.parts.statusbar` | 底栏 |
@@ -106,7 +106,7 @@ CSS class：`LayoutClasses.MAIN_EDITOR_AREA_HIDDEN` / `CONVERSATION_HIDDEN` 等�
 4. **注册** — `Parts.CONVERSATION_PART` / `SOURCES_PART`；`ConversationPart` / `SourcesPart` eager singleton；`createWorkbenchLayout` view map；`workbench.ts` `createPart` 循环。
 5. **四钮（D7）** — `layoutActions.ts`：主簇 `LayoutControlMenu` 仅 **Navigator / Conversation / Preview / Sources**（产品名标签）；Panel / Aux 退到 `LayoutControlMenuSubmenu`。
 6. **Conversation session 窗口** — [PRD-016](../../product/requirements.md#prd-016-conversation-session-窗口与-chat-tab) S1–S6：`ConversationPart` 自管最多两叶 session 窗口（`IConversationSessionWindowService`）；每叶内嵌 Conversation `IEditorPart` + `ConversationChatInput` 默认根 tab（关闭拦截器）；timeline/dock 与「对话\|轨迹」在 `ConversationEditorPane` / 子代理 overlay；Part 级 SessionBar 保留 SelectBox、←→、关非根与 roster「打开到旁边」。非 `ChatEditor` / `ChatViewPane`。子代理 catalog **GC-4** 由 roster 观察 `liveAgentTree` 预同步；传输 `forkAgent?` 已进 `AgentService.Fork` catalog + node unary，用户 Fork tab 仍本地 `registerForkChat`；完整会话权威仍依赖 PRD-008；stub 期 catalog 用内存 fixture。
-7. **Sources tabs** — `contrib/sources`：title 区 **Files \| Changes \| Review** tab strip；各 tab 面板顶有紧凑 **filter** 输入（`filterSourcesEntries`）。Files = `SourcesFilesList` 只读列表投影（`openEditor` → Preview）；Changes = `SourcesChangesList` SCM 变更资源列表（行点击 `openSourcesChangeEntry` 按 `sources.diff.defaultOwner` 分派：默认 Preview Diff；`conversation` → `ConversationDiffReviewInput`；`panel` → `SourcesDiffPanelView`；行内 / 选中 **stage/unstage** 经 `git.stage` / `git.unstage`；底部 **commit** 行走 `acceptInputCommand` / `git.commit`）；Review = `SourcesReviewList` 同一批 SCM 资源只读列表（同一打开路径）。三宿主间 `sources.diff.moveToConversation` / `moveToPanel` / `moveToPreview` 已落（[sources-changes-diff](../../../dev/plans/sources-changes-diff.md) F1–F3）。系统正文见 [Sources 系统](../sources/overview.md)。
+7. **Sources tabs** — `contrib/sources`：title 区 **Files \| Changes \| Review**。列表权威同 [Sources §4](../sources/overview.md)（接通、会话非空、hook 在且引擎列表非空才是引擎读面；无 hook、`supported:false`、空列表、空 session、断连回退 SCM；leftover 失 hook 不切回）。行点击按 `sources.diff.defaultOwner` 分派（默认 Preview；也可进 Conversation 或 Panel）。接通且会话非空时 stage 走 `writeGitStagePaths`、commit 走 `writeGitCommit`，否则走 git 扩展命令。unstage 始终 `git.unstage`。
 8. **storage keys** — `workbench.conversation.hidden`、`workbench.sources.hidden`（runtime）、`workbench.editor.size` / `workbench.sources.size`（End 列）。Workbench grid 每次启动从描述符重建，不读旧 grid JSON。
 9. **辅助窗口** — 仍复用 `EDITOR_PART`；Conversation / Sources 只在主窗口。
 

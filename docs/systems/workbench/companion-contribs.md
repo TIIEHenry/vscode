@@ -3,7 +3,7 @@ title: "配套 IDE 设施：files / SCM / terminal / debug"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-02
+updated: 2026-09-25
 summary: "Explorer、SCM/git、Terminal、Debug 是配套设施不是 Conversation；Sources 三 tab 已在 contrib/sources；Changes/Review SCM 列表投影；Review 无写操作、审阅进度不入 SCM；Diff 归属 ADR-005 已裁决（默认 Preview，可移对话窗口/底部 Panel，F1–F3 已落）"
 ---
 
@@ -54,7 +54,7 @@ Activity rail 只切换 Sidebar 容器图标，不是第三套宿主。Auxiliary
 
 `scm` 拥有 Source Control **容器与 Changes 列表**（`SCMViewPane`，视图名 Changes）。`git` contrib 几乎只有 `IGitService`；真正的 `ISCMProvider`、stage/commit、资源命令在 **`extensions/git`**。两边合起来才是用户看到的 Git SCM。
 
-**默认 Code 窗口**：Sidebar SCM Activity 经 `IsSessionsWindowContext` 门闩隐藏；Changes **清单 + stage/unstage/commit** 落在 End **`SOURCES_PART`** 的 Changes tab（`contrib/sources` / `SourcesChangesList`），经 `git.stage` / `git.unstage` / `git.commit` / `acceptInputCommand`。Sidebar SCM 容器仍注册，Agents Window 可保留 Activity 图标。
+**默认 Code 窗口**：Sidebar SCM Activity 经 `IsSessionsWindowContext` 门闩隐藏；Changes **清单 + stage/unstage/commit** 落在 End **`SOURCES_PART`** 的 Changes tab（`contrib/sources` / `SourcesChangesList`）。接通且 roster 会话非空时，stage 走 `writeGitStagePaths`、commit 走 `writeGitCommit`；否则走 `git.stage` / `git.commit` / `acceptInputCommand`。unstage 始终是 `git.unstage`。列表权威见 [Sources §4](../sources/overview.md)。Sidebar SCM 容器仍注册，Agents Window 可保留 Activity 图标。
 
 现行习惯（与 Desktop 目标对照见 §5）：
 

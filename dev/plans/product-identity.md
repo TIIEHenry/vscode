@@ -3,8 +3,8 @@ title: "UniverseAgentStudio 产品身份方案"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-22
-summary: "I2–I5 / I3a / I3b 代码已落（product.json 已是 UniverseAgentStudio）；I6 Appx Publisher/签名等发布方；D18 安装包未验；方案仍 accepted"
+updated: 2026-09-25
+summary: "I2–I5 代码已落。2026-09-25：studio.universeagent.app 定为开发期 bundle id，不是发行标识。Appx Publisher 与签名仍等发布方。D18 未验。"
 ---
 
 # UniverseAgentStudio 产品身份方案
@@ -33,7 +33,7 @@ summary: "I2–I5 / I3a / I3b 代码已落（product.json 已是 UniverseAgentSt
 | `linuxIconName` | `universe-agent-studio` |
 | `urlProtocol` | `universe-agent`（与 `UNIVERSE_AGENT_SCHEME` 常量一致；handler **路由逻辑不改**，只把常量 import 改到下沉后的 common 模块） |
 | `win32MutexName` / `win32DirName` / `win32NameVersion` / `win32RegValueName` / `win32x64AppId` / `win32arm64AppId` / `win32x64UserAppId` / `win32arm64UserAppId` / `win32AppUserModelId` / `win32ShellNameShort` / `win32TunnelServiceMutex` / `win32TunnelMutex`（字段名以 `product.json` / `build/gulpfile.vscode.win32.ts:67,87,102` 为准） | I2 改为 UniverseAgentStudio 命名；GUID 生成新值，不复用 Code OSS GUID；`win32ShellNameShort` = `&UniverseAgentStudio`（加速键有意从 C 改为 U） |
-| `darwinBundleIdentifier` / `darwinProfileUUID` / `darwinProfilePayloadUUID`、Appx `Publisher` / `PublisherDisplayName` | **不在 I2 / I3b 完成线**；归 **I6 发行标识定稿**（第一次正式打包前，由发布方提供反向域名与签名主体）。开发态保留上游占位值，仅用于本机开发；占位包不得当发行物 |
+| `darwinBundleIdentifier` / `darwinProfileUUID` / `darwinProfilePayloadUUID`、Appx `Publisher` / `PublisherDisplayName` | **不在 I2 / I3b 完成线**；归 **I6**。2026-09-25：`studio.universeagent.app` 与 `product.json` 里现有两个 profile UUID 是**开发期**标识，用来和本机 Code OSS 分开，不回退 `com.visualstudio.code.oss`，也不是发行标识。正式反向域名、签名主体与 Appx Publisher 仍由发布方在第一次面向用户的打包前提供。开发构建不设发行 quality、不签名、不打 Appx、不分发。换正式 id 后不迁移 secret |
 | `nameShort` 派生的 userData 目录 | `{appData}/UniverseAgentStudio`；开发态改 `userDataPath.ts` 硬编码为 `universe-agent-studio-dev` |
 
 `universe-agent://settings/...` 深链因此与应用协议注册统一；现有 handler 的 fail-closed 路由不变。一致性断言放在 **node 层构建/单测**（直接读仓内 `product.json` 与导出常量 `UNIVERSE_AGENT_SCHEME`），不放 browser 单测——browser 的 `IProductService` 替身走 `product.ts` 回退，测不到仓内文件。I2 同时改 `product.ts` 回退里的 `code-oss` 字面值。知识层 `docs/glossary.md` 与 `commands.md:59`「深链不绑 `product.urlProtocol`」随 I2 改口。
@@ -58,7 +58,7 @@ summary: "I2–I5 / I3a / I3b 代码已落（product.json 已是 UniverseAgentSt
 - UniverseAgent connection trust、Hub refresh、客户端身份只从本产品 userData 读取；不得从 Code OSS 目录猜测导入。
 - 命令行显式 `--user-data-dir` 继续优先。
 - `serverDataFolderName` 改名影响 remote server 数据目录与 `scripts/code-server.sh`；`serverApplicationName` / `tunnelApplicationName` 影响 remote-cli 模板 `@@APPNAME@@` / `@@SERVERDATAFOLDER@@` 与 tunnel 二进制名（`codeTunnelCliProcess.ts:40`、`cli.ts:80`）。
-- macOS `safeStorage` 按 bundle id 封密钥：bundle id 在 **I6** 定死后才允许产出面向用户的 macOS 包；此前的占位包只用于开发，换 id 后 `state.vscdb` 里的 Hub/secret 密文无法解密属预期，不做迁移。
+- 开发期 bundle id 已是 `studio.universeagent.app`。面向用户的 macOS / Appx 包仍须等 I6 的发布方签名主体。换正式 id 后 `state.vscdb` 里的 Hub/secret 密文无法解密属预期，不做迁移。钥匙链是否按 bundle id 命名，改 I6 文字时再核对；无论哪种，都不做迁移。
 
 ## 4. 图标资产
 

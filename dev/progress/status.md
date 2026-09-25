@@ -3,8 +3,8 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-09-22
-summary: "人类工位在途已合入：会话镜头清空时拆除、Review 打开失败带错误态、Rebuild 流测试对齐 bytes。A 的 D752 与 dev/loop gitlink 仍不入库。D24 仍开。"
+updated: 2026-09-25
+summary: "2026-09-25 裁定已入账：Accept 暂存 hunk、链路本地、多根仓库、时间线角色与完成事件、R9 关闭、开发期 bundle id。subscription 仍 draft。D24 仍开。"
 ---
 
 # Development Progress
@@ -17,7 +17,7 @@ summary: "人类工位在途已合入：会话镜头清空时拆除、Review 打
 | 切片 | 提交 |
 |:-----|:-----|
 | **A SessionStream / L2** | 16/23/30–32/34–39/44/46/50–52；envelope leftover |
-| **catch** | D677–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847、D850–D851、D854–D858、D860–D868、D871、D875–D876、D881、D883、D886、D895、D898、D917、D922、D939、D943、D955、D964、D972、D974、D978、D980、D983、D1015、D1032、D1254、D1258、D1278、D1294、D1295 |
+| **catch** | D677–D751、D753–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847、D850–D851、D854–D858、D860–D868、D871、D875–D876、D881、D883、D886、D895、D898、D917、D922、D939、D943、D955、D964、D972、D974、D978、D980、D983、D1015、D1032、D1254、D1258、D1278、D1294、D1295（D752 仍不入库） |
 | **UA chrome** | 人类 `agent-ide`：Maximize Inbox 文档流、pairing-hold 禁 Connect、Diff SIDE_GROUP、live SAS/Stop 可达、本地 health-gates 门禁说明 |
 | **四份方案** | 活流 decoder/thinking 已与 SessionStream 波重叠，Chat 11/13/20 与 recover 仍开；拨号 / 绑定叶 / Sources 打开身份未实施。跟踪 [D944](deferred-gaps.md) |
 
@@ -27,7 +27,7 @@ summary: "人类工位在途已合入：会话镜头清空时拆除、Review 打
 |:---|:-----|
 | **loop** | leftover 未完成。人类工位在途已合入：会话镜头清空时拆除、Review 打开失败带错误态、Rebuild 流测试对齐 bytes。A 的 D752 与 `dev/loop` gitlink 仍不入库。E blocked。 |
 
-子 agent 发现：
+子 agent 发现（扫描笔记；D724 在延期表已 closed，D736 / D739 / D740 为 skipped，都不是当前阻塞）：
 | ID | 问题 |
 |:---|:-----|
 | [D24](deferred-gaps.md) | **仍开**：Connect/Watch/Resolve/Pty 仍 JSON |

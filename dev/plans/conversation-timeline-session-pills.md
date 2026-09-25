@@ -3,7 +3,7 @@ title: "Conversation 时间线正文：会话与子代理 pill"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-19
+updated: 2026-09-25
 summary: "助手 markdown 里的内部会话/子代理链接升级为行内 pill + 轻量 hover + 点击按 PRD-016 路由；跨会话 reveal 目标自己的叶；S3w 钉死叶级 SessionBar（方案 C，每扇一份，用户 2026-09-14 拍板）+ 隐藏叶 restore 仍单叶 + 隐藏叶释放 lease；规则 16 第五轮（fable 5.1）已审改稿，2026-09-14 用户签收"
 ---
 
@@ -24,14 +24,14 @@ summary: "助手 markdown 里的内部会话/子代理链接升级为行内 pill
 | 宿主 | 只在 `ConversationTurnContentAdapter.renderTurnBody` 内升级助手 markdown 渲染出的 `<a>`；识别、装饰、hover、点击路由四件事都收在这一个 adapter 实现里 | 新建 `ChatListRenderer` 或第二条时间线正文渲染路径；在 `conversationTimelineRenderer.ts` 各行模板里另挂链接监听；把正文渲染搬进 `contrib/chat` |
 | 链接放行 | 在 `render` 的 `sanitizerConfig.allowedLinkSchemes.augment` 里放行 **且仅放行** `conversation-chat`；其余 scheme 保持 HEAD 白名单 | 放行 `agent-host-session`、`command`、通配 `'*'`；靠 `isTrusted: true` 把 `command:` 一起放进来 |
 | 点击宿主 | 给 `render` 传**显式** `actionHandler`，由它单点分流；同批**删掉** adapter 今天挂在同一 container 上的第二个 `click` 监听 | 保留两条监听「互相兜底」；改读 `anchor.href` 却不管 `href` 已被渲染器清空；在 `activateLink` 之外再包一层 `stopImmediatePropagation` 打补丁 |
-| 链接来源合同 | 正文里的 `conversation-chat:` 链接只有两个**显式**来源：(a) stub 帧源种子会话与单测 fixture 直接写（S4，本期唯一实际来源，文案带 `Stub`）；(b) 引擎接通后由帧源侧适配器在投影 `ConversationStubTurn.text` 时，**仅**改写引擎字面给出的会话链接 | 假设 UA 正文里已经有 `agent-host-session://`（本仓无此合同）；在自由文本里按 agent 名或会话标题猜引用；为拿到链接向引擎提新 RPC 或把本稿升 PRD-008 |
+| 链接来源合同 | 正文里的 `conversation-chat:` 只有 stub / fixture 直接写（S4，文案带 `Stub`）。2026-09-25：引擎不在正文写会话链接字面格式，[R9](../progress/research-queue.md) 以「没有字面格式可登记」关闭。同一会话子代理的结构化 `child_agent_id` 另开切片装饰，不在助手 markdown 里改写自由文本 | 假设 UA 正文里已经有 `agent-host-session://`；把 TUI 的 `/server/…/session/<id>` 当正文格式；按标题猜引用；把 `peer_id` 当 `sessionKey`；为拿链接提新 RPC |
 | 打开路由 | 同会话 `originKind === 'tool'` → `openSubAgent`；同会话 `chatId === 'default'` → 聚焦根 tab + 关对话框（**不**走会关 tool tab 的 breadcrumb）；同会话 `originKind === 'fork'` → 延伸 tab；另一会话 → 先 `revealSessionWindow` 再按同会话表。装饰与点击同一条 resolve。S3w 钉死叶级 SessionBar（方案 C，§3.4） | 只调 `switchSession`；就地改 `part.sessionKey`；只 `restoreSessionWindow` 当单叶切回已藏会话；SessionBar 方案 B（透镜拥有 bar）；每个新叶再 `mountSessionBar`；把未命中交给 `openSubAgent` |
 | SessionBar 所有权 | **方案 C：叶级 bar，每扇 session 窗一份**（用户 2026-09-14 拍板）。与已签收 [conversation-session-windows](conversation-session-windows.md) L73「窗口 chrome……**每扇 session 窗一份**」/ L358「SelectBox 只切**当前叶**」及 PRD-016「**每扇窗口**有一键关闭……按钮」一致，主语是该叶 `sessionKey`（构造期常量），不需要焦点派生状态；两叶时用户用哪一叶的 SelectBox 就替换哪一叶。前提：bar 脱离透镜、「对话\|轨迹」迁页 chrome、隐藏叶透镜不得 `reset` 共享节点、overlay 改传 `lensTablist` 且可见形态不变 | **方案 A（Part 级唯一条，主语 = 焦点叶）**：与 L73 / PRD-016「每扇」措辞相悖，须改 PRD-016 依赖段并 supersede 签收方案；两叶时用户不能选替换哪叶；需要 `promoteLeaf` / `demoteLeaf` 拆装 secondary chrome。**方案 B（透镜拥有 bar）**：构造期挂载 / `void openEditor` / `reset` 清 window-nav，不可落 |
 | adapter 依赖 | adapter 新增注入 `IHoverService` 与 catalog 读面；`IConversationSessionChatService` 的装饰器与接口先挪到 `common/conversationSessionChat.ts` 再注入（§3.2） | adapter 直接 import `./conversationSessionChatService.js`（经 overlay → lens → timelineTree 成环，§2） |
 | 装饰时机 | 渲染时 resolve 一次 + 订阅 `onDidChangeCatalog(sessionKey)` / roster `onDidChangeSession` 补画（§3.2） | 只渲染时装饰一次，引擎 catalog / roster 晚到就静默缺 pill |
 | 隐藏叶资源 | 叶被藏后其透镜释放 `sessionViewLease`，恢复可见时重取；tab / 导航栈 / 草稿保留（§3.4） | 隐藏叶常驻 lease（用户切过的每个会话都常驻订阅）；设隐藏叶上限 + LRU dispose（丢 tab，违 PRD-016 验收 2） |
 | 并排打开 | **修饰键 / 右键「打开到旁边」不在本期。** 两叶已可见且目标无叶时，`revealSessionWindow` 走 HEAD 已有的 `openSessionBeside`（驱逐当前 secondary）——这是 PRD-016 验收 7 的既有并列，不是新手势 | 在 S3 为 pill 另写一份 beside；把「当前可见叶就地换成另一 session」当成并列的替代品 |
-| SideChat / 非根 user | 本期 **不画 pill、点击无动作**。协议 `sideChat` 与 [conversation-session-windows](conversation-session-windows.md) §3.3b「与工具子代理同款对话框」仍有效，但不在本稿切片落地 | 命中 catalog 就装饰；实施时猜「与 tool 同款」或「与 fork 同款」 |
+| SideChat / 非根 user | sideChat 的打开形态仍是 §3.3b 的子代理对话框。2026-09-25：在 catalog 能产出 sideChat 且对话框有「侧聊」标识与一级来源之前，不单独放行 pill。非根 user 的产品方向是延伸 tab，须先修订 §3.3b 并签收，此前不画 | 现在就放行命中；把 sideChat 画成 fork 延伸 tab；在 §3.3b 修订前实施非根 user |
 | pill 视觉 | Conversation 自绘轻量 pill（新 `conversationSessionPill.ts` + 自有 CSS），**视觉参考** ChatRichLink 的「图标 + 标题 + detail」行结构 | `import` `chatRichLink.ts`（该模块顶层就 import `agentSessions/sessionSummaryHoverService.js`，见 §2；进口门禁只扫直接 import，过得了门禁却把 `agentSessions/` 拖进默认窗）；把 `ChatRichLink` 拆到更低层以便复用（为几行 CSS 动 donor 共享文件）；复用类名 `.chat-rich-link*` |
 | pill 数据源 | Conversation 自己的 roster + session chat catalog + live agent tree | 挂 Agent Host 的 `ILinkPresentationService` provider / watcher（那些规则由扩展与 Agents 窗注册，默认窗一条都没有）；在默认窗注册 `agent-host-session://` opener 与 Agents 窗抢 |
 | hover | Conversation 自研轻量摘要：一行「会话标题 · 目标名」+ 工作区行 + 模型行，缺数据**整行省略**；经 `IHoverService.setupManagedHover` | `import` `agentSessions/sessionSummaryHoverService.ts`（进口门禁明禁）；把 `SessionSummaryHoverWidget` 迁到 `chatContentParts/` 或更低层再经 adapter 用；像素复制 Cursor 三行；无数据时回填 IDE 自己的工作区路径冒充会话工作目录 |
@@ -99,7 +99,7 @@ summary: "助手 markdown 里的内部会话/子代理链接升级为行内 pill
 | 来源 | 合同 | 本期 |
 |------|------|------|
 | stub 帧源种子会话 / 单测 fixture | 助手正文可直接写 `[标签](conversation-chat:/session/<sessionKey>/chat/<chatId>)`（S4，文案带 `Stub`）；亦可写字面 `/session/<sessionKey>/chat/<chatId>`，投影 `ConversationStubTurn.text` 时 **仅** catalog 命中 tool/fork 才改写成 `conversation-chat:`，未命中或已是该 scheme 则原样 | S4 直写已落；字面路径改写 D472 |
-| 引擎帧源适配器 | 引擎正文里**字面**给出会话链接时，在投影成 `ConversationStubTurn.text` 的同一步改写成 `conversation-chat:`；改写前必须能解析出 `chatId` 并在该 session catalog 命中，命中不了**原样保留**（不造内部链接） | 不在本期切片；live-engine scheme/path 属 [R9](../progress/research-queue.md)，不猜、不发明 RPC |
+| 引擎帧源适配器 | 2026-09-25：[R9](../progress/research-queue.md) 已闭，引擎正文没有可登记的会话链接字面格式。自由文本保持普通文字。同一会话子代理用已有 `child_agent_id` 另开切片，不在本稿改写正文 | 把 TUI 路由或 `peer_id` 当正文链接；发明 RPC |
 | 自由文本推断 | **禁止**。不按 agent 名、会话标题或「看起来像会话」的字样猜引用 | — |
 
 与 [glossary](../../docs/glossary.md) 的 attribution sidecar 同一条原则：**禁止按 title 猜测**（那条禁的是猜测身份，不是禁展示 catalog 已登记的 `title`）。
@@ -314,7 +314,7 @@ S1–S4 全部可在**无引擎**下落地：链接目标是本窗口自己的 c
 | reveal-on-every-switch 让隐藏叶常驻 lease，订阅数随访问会话数线性涨 | §3.4 隐藏叶释放 lease、恢复重取；测试 17；与 [session-subscription-lifecycle](session-subscription-lifecycle.md) 的 lease 归属不冲突（那稿管重连，本稿管可见性） |
 | 删掉 container 级监听后漏掉某条既有点击路径（非 `<a>` 的可点元素） | S1 先跑 `conversationLens` 全套；`actionHandler` 只接管 `a[data-href]`，与今天 `closest('a')` 的判定面一致 |
 | 反悔复用 `chatRichLink.ts` 省事 | §1 已拒绝并给出理由（模块顶层 transitive 拖进 `agentSessions/`，门禁只扫直接 import）；测试 9 把 `chatRichLink` 写进禁止清单，机械挡住 |
-| 引擎正文到底给不给会话链接（上游缺口） | §3.1 把 live-engine 来源排除在本期切片外。stub/fixture 字面 `/session/…/chat/…` 改写已由 D472 落地（catalog 命中才改）。live-engine scheme 仍记 [R9](../progress/research-queue.md)，按 [cross-repo-protocol](cross-repo-protocol.md) 登记，不发明 RPC |
+| 引擎正文到底给不给会话链接 | 2026-09-25 已查：没有字面格式。[R9](../progress/research-queue.md) 关闭。stub/fixture 改写仍只覆盖 D472。结构化 `child_agent_id` 另开切片 |
 | `LiveAgentTreeNodeView.model` 在真引擎下可能为空串 | 空串与 `undefined` 同样省略模型行；测试 5 覆盖 |
 | 跨会话只调 `switchSession`、或只改透镜、或就地改 `sessionKey` 会假绿 / throw | §2 / §3.4 / S3 / 测试 8 锁目标 `part.sessionKey` 与旧叶身份 |
 | catalog 未就绪却打开根 tab 变成半成品页 | 装饰与点击同一条 resolve；非 `default` catalog 未命中 = 不画不跳；测试 3 锁死 |
@@ -333,7 +333,7 @@ S1–S4 全部可在**无引擎**下落地：链接目标是本窗口自己的 c
 | 根 pill 关掉已有 tool tab | 不走 `navigateAgentBreadcrumb`；测试 7 |
 | `toString` 往返误杀合法 key | §3.2 改 parse + authority/query/fragment |
 
-**仍开放（不阻塞正文）：** 修饰键 / 右键「打开到旁边」与 Navigator 入口如何统一；live-engine 正文链接格式（R9）确定后，帧源侧改写规则写在哪个方案（stub/fixture 路径改写已落，不闭合 R9）；`sideChat` 何时按 [conversation-session-windows](conversation-session-windows.md) §3.3b 画 pill 并走子代理对话框。已删除会话的隐藏叶 DOM / part 永不回收（lease 已释放），不在本期设上限。
+**仍开放（不阻塞正文）：** 修饰键 / 右键「打开到旁边」与 Navigator 入口如何统一。R9 已闭，不再等字面链接格式。`sideChat` 要等 catalog 能产出条目且对话框有「侧聊」标识和一级来源，才按 §3.3b 放行 pill。已删除会话的隐藏叶 DOM / part 永不回收（lease 已释放），不在本期设上限。
 
 **群聊 / DeepThink / Team member / Advise（引擎已有，本仓 Conversation 未分面；外仓细节待核，不当事合同）：** wire 层 `AGENT_TYPE_ROOT | SUB | MEMBER | ADVISE`，`LiveAgentTreeNodeView.type` 只是 `string`。HEAD `collectLiveAgentTreeCatalogEntries` **不看 type**，`syncSubAgentsFromLiveTree` 把非根一律写成 catalog `originKind:'tool'`。DeepThink / Circle 群聊的引擎形态不在本仓 docs 落锚，本稿 **不**按 type 分 pill、**不**加 `agentType`。若这类节点已经在 catalog 里且链接命中，点击会走今天的 `openSubAgent` 对话框——可能是错面。后续要分面时另开方案，先改 PRD。
 

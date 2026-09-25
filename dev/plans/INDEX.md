@@ -3,8 +3,8 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-22
-summary: "dev/plans 导航：四份修补见 D944（活流 decoder/thinking 已与 SessionStream 重叠，Chat 臂与 recover 仍开；其余三份未实施）；pills 代码在仓、方案未升 implemented；subscription / accept-empty 仍 draft；仍 accepted 未升：prd-008 / prd-020 / packaging / giant-file / cross-repo；M7 的 W1 已跑、I6 未完；GitHub Actions 已关"
+updated: 2026-09-25
+summary: "2026-09-25 入账：Accept 暂存 hunk、链路本地拒私网、多根按所属仓、缺角色中性行、缺 turn id 不清流、R9 关闭、开发期 bundle id。subscription 仍 draft。四份修补见 D944。"
 ---
 
 # 方案
@@ -48,7 +48,8 @@ summary: "dev/plans 导航：四份修补见 D944（活流 decoder/thinking 已�
 | [connection-hub-client.md](connection-hub-client.md) | `accepted` | Hub Client 接入：**H0–H5 已落**；**GC-1b/2/3** 配对/设备动作/probe 已落；**H6** GUA 直连仍 v2；H4a 真 Hub 冒烟 / PRD-024 `implemented` 未签收 |
 | [navigator-engine-segments.md](navigator-engine-segments.md) | `accepted` | PRD-022：**N1–N4 已落**；**GC-5** Inspect/Team 读取态已落；**N5** 隔离 profile 验收待冒烟；缺口 G-NAV-1 / G-NAV-2 |
 | [sources-review-progress.md](sources-review-progress.md) | `accepted` | PRD-023：**R1–R4b 已落** @ `05007b60`–`f1065288`；**R5** 验收 + 知识层待冒烟；缺口 G-REV-1 |
-| [sources-accept-empty-success.md](sources-accept-empty-success.md) | `draft` | ADR-008 之后的产品 Accept：A1 已落；HEAD 两 pane 已接 roster session、仍空 patches（门仍挡）；空 Accept 不 git.stage；P5 停线；A2 须新选定 + 新 Arch-First；D31 F4 仍开 |
+| [sources-accept-empty-success.md](sources-accept-empty-success.md) | `draft` | A1 拒空仍有效。2026-09-25 推翻 P5 停线：真 Accept 见 sources-accept-stage-hunk。本稿不升 accepted。D31 F4 仍开 |
+| [sources-accept-stage-hunk.md](sources-accept-stage-hunk.md) | `accepted` | 2026-09-25：Accept 暂存光标 hunk。客户端切单个 hunk，argv 为 git apply --cached。先拆带着走的 unifiedDiff。未实施 |
 | [composer-fake-chrome.md](composer-fake-chrome.md) | `accepted` | D194 出口选定「删」：无 voice/transcript/route capability，不门控不接 RPC；S1 四刀已落 `4156c6528f1`，本稿回补方案层与复开门禁 |
 | [chat-compare-split.md](chat-compare-split.md) | `implemented` | PRD-011 并排比对已落；D4 已验 |
 | [page-access-schemes.md](page-access-schemes.md) | `implemented` | 切片 1a–5 已落；M7 不重开混合宿主、同 token 与 Navigator 拓扑 |
@@ -61,3 +62,5 @@ summary: "dev/plans 导航：四份修补见 D944（活流 decoder/thinking 已�
 | [thinkrail-visualize-port.md](thinkrail-visualize-port.md) | `implemented` | PRD-014 T1–T3 @ `5cad7c3b`–`0eb470f2` |
 | [conversation-empty-hero.md](conversation-empty-hero.md) | `implemented` | PRD-015 T1–T6 @ `ea0104c0`–`d4064ba0` · [canvas](conversation-empty-hero.canvas.tsx) |
 | [conversation-session-windows.md](conversation-session-windows.md) | `implemented` | PRD-016 S1–S6 @ `569ce371` |
+
+上表只收本目录顶层方案。2026-09-24 自有代码缺陷扫描的方案在 [bug-hunt-2026-09-24](bug-hunt-2026-09-24/INDEX.md)，已签收，不进生成状态列。

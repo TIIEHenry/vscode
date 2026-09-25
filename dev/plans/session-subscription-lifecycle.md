@@ -3,8 +3,8 @@ title: "会话订阅生命周期：lease 所有权回收、流级重开与 bind 
 type: plan
 status: draft
 phase: M7
-updated: 2026-09-20
-summary: "S1–S4b 代码已合入。2026-09-20：S4b 闩改为只在连接 down 时清；仍-connected snapshot 回归测绿。§5 手测未跑（D405）。仍 draft，不升 accepted"
+updated: 2026-09-25
+summary: "S1–S4b 代码已合入。2026-09-25：仍 draft，因为断连再重连会在不开流时画成已连接（BH-04-1）。手测是升 implemented 的门槛，不是 accepted 的门槛。用户签收前不升 accepted。"
 ---
 
 # 会话订阅生命周期
@@ -19,11 +19,12 @@ summary: "S1–S4b 代码已合入。2026-09-20：S4b 闩改为只在连接 down
 
 **S1 / S2 / S3a / S3b 代码已落**，四刀一次性合入 `b2211b23fa5`（2026-09-12，「补会话订阅生命周期」），类型修补 `3c07195f6bf`；合入 merge 的提交是 `9f8ca6a236d`（含该 feature）。§7 知识层回填已随实施 commit；本稿自身已入 git（`e460de220e1`，2026-09-14）。§4 单元 Exit 全绿（含 `sessionViewHostReopen.test.ts` / `grpcUnaryDeadline.test.ts` / `universeAgentSessionViewChannel.test.ts`）。**S4a 代码已合入 merge**：electron-main 注入 `createSessionViewDiagnosticsPort(logService)`，生产 `count` 落主进程 `log.info`。**S4b 代码已合入 merge**（`streamReopenSkipReason` 含 `fail_closed`，宿主自记 `mailbox.overflow`）。**2026-09-20 闩修：** `failClosedSessions.clear()` 只走连接 **down** 分支；仍-connected snapshot（generation +1 / `bringUpBoundSession`）不清闩、不取消武装定时器。回归测 `armed reopen timer keeps fail_closed across still-connected snapshot and does not paint live` 绿。G-CORE-2（Actor `onConnectionUp` 无条件刷 live）仍是上游真锁。2026-09-14 规则 16 回溯审查已做并改稿；2026-09-20 再审对照当时 HEAD `434ad999580`，当轮已改方案并落地闩修。
 
-**本稿仍为 `draft`**，一件未闭：
+**本稿仍为 `draft`**。挡住 `accepted` 的不是手测：
 
 | 未闭 | 性质 |
 |------|------|
-| **§5 手测** V-S1–V-S3 / V-S4b-1 一次未跑（[D405](../progress/deferred-gaps.md) 仍 open） | 须隔离 profile + 钉死引擎实跑；S4a 已提供主进程日志观察点。S4b 宿主闩的 snapshot 洞已在单测闭合，手测仍未跑 |
+| **BH-04-1** 断连清闩后再重连，`allowOpen === false` 仍画成已连接 | 设计洞。补进方案并经签收之前不升 `accepted` |
+| **§5 手测** V-S1–V-S3 / V-S4b-1 一次未跑（[D405](../progress/deferred-gaps.md) 仍 open） | 升 `implemented` 的门槛，不代替上面的设计补洞 |
 
 **S4b 闩 vs 仍-connected snapshot（已修，2026-09-20）：** 选定合同「停止 reopen 直至 `acquireLease` / **连接 down**」现与代码一致。此前 `onEngineConnectionChanged` 在非 `pairingPending` 时无条件 `failClosedSessions.clear()`，武装定时器可在闩被清后 `fireStreamReopen`。现 connected 分支不再清闩。
 
@@ -191,14 +192,14 @@ S1 / S2 / S3b / S4a / S4b 都改宿主侧，**P 槽单写者串行**：S1 → S2
 | S3a deadline 让慢引擎的长 unary（List 大会话、GetHistory 大页）失败 | 30 s 默认 + 参数可调；`getHistory` 分页已由 `fillHistoryGap` 控制页大小；观察后再收紧 |
 | S3a 相位恢复误判（`connecting/transport_lost` 但 token 已失效） | 附加 `isEngineConnected()` 条件；`unauthenticated` 走既有路径不受影响 |
 | S3b 渲染端重试 bind 与 roster `markEngineSessionBindFailed` 占位并存 | 占位仍由 roster 决定；lease 侧成功后 `post` 直接可用，占位在下一次 `doRefreshEngineCatalog` 消失（现状） |
-| **（2026-09-14 审查追加）** 退避定时器已武装期间发生 fail-closed → 定时器触发 → `onConnectionUp` 无条件刷 `sync: live` 且清 `subscriptionFailed`，但 `allowOpen === false` 不开流 ⇒ **无订阅的会话被永久画成「已连接」** | **S4b 宿主闩（2026-09-20）：** 仍-connected snapshot 不再清闩；顺序测 + snapshot 回归测锁 `reopen_skipped` / 无 live。G-CORE-2 仍是 Actor 侧真锁（不开流时不该刷 live）。可达性已收到「须先绕过宿主闩」（例如新 lease） |
+| **（2026-09-14 审查追加）** 退避定时器已武装期间发生 fail-closed → 定时器触发 → `onConnectionUp` 无条件刷 `sync: live` 且清 `subscriptionFailed`，但 `allowOpen === false` 不开流 ⇒ **无订阅的会话被永久画成「已连接」** | **S4b 宿主闩（2026-09-20）：** 仍-connected snapshot 不再清闩。**2026-09-25：** 断连会 `failClosedSessions.clear()`，重连时 `onConnectionUp` 在 `allowOpen === false` 下仍把状态画成 live。这条路径未收口，见 [04-session-actor](bug-hunt-2026-09-24/04-session-actor.md) BH-04-1。不得把「须先绕过宿主闩」写成已闭合 |
 | **（追加）** 连接级重连（D408/D410）与 S2 流级重开退避参数相同但互不知情 | 目前不冲突：连接翻转时 `onEngineConnectionChanged` down 分支 `clearAllReopenTimers()`，两层不会同时活。若将来改参数须同步两处 |
 | **（追加）** `_withTransport` 摘掉 failed 快速失败后，failed 态下每次 unary 都会真发一次请求 | 代价是一次 deadline 等待（默认 30 s 上限）；这是相位恢复可达性的必要代价，且流 / bidi 入口仍快速失败 |
 | **（追加）** `openStream` 在 engine id 未绑时只 warn 并 return，**不** post `streamClosed`（`sessionViewHost.ts` `openStream` ~L1264–1268），Actor `currentAttemptId` 保持非 null ⇒ `streamReopenSkipReason` 永久返回 `attempt_open`，S2 永久哑掉 | 当前该分支不可达（§2 原判 Minor 9），但**它的不可达性现在是 S2 的承重墙**：谁让它可达就必须同时补 post `streamClosed`。已从「非目标」升为本表 |
 
 ## 7. 知识层回填（实施 commit 时）
 
-**状态：** 下列六项已随 `b2211b23fa5` 完成（含 `platform/overview.md` 的两件顺手活）。本稿已入 git（`e460de220e1`）；`deferred-gaps.md` / `traceability.md` / `engine-protocol-surface.md` / `dev/plans/INDEX.md` 指向本稿的链接可解析。**不要**再做「commit 本稿」任务。剩余只是 §5 / D405。
+**状态：** 下列六项已随 `b2211b23fa5` 完成（含 `platform/overview.md` 的两件顺手活）。本稿已入 git（`e460de220e1`）；`deferred-gaps.md` / `traceability.md` / `engine-protocol-surface.md` / `dev/plans/INDEX.md` 指向本稿的链接可解析。**不要**再做「commit 本稿」任务。剩余是 BH-04-1 的断连再重连路径，以及升 `implemented` 才需要的 §5 / D405。
 
 fanout §3.1 已补「`acknowledge` 后由订阅流 Actor 回路切片加入合同（HEAD 已有）」。**未消的矛盾：** [session-view-frame-fanout §1](session-view-frame-fanout.md) 事实表仍写六方法且「**无** `acknowledge`」。本稿不改已签收 fanout；不得宣称与 HEAD 的矛盾已全部消除。
 
@@ -261,4 +262,4 @@ fanout §3.1 已补「`acknowledge` 后由订阅流 Actor 回路切片加入合�
 
 **2026-09-20 闩修（同会话，用户批准实施）：** `onEngineConnectionChanged` connected 分支不再清闩。`sessionViewHostReopen.test.ts` 11/0（含 snapshot 回归）。`sessionViewHostEngineBind.test.ts` 20/0。升格条件 (1) 的宿主单测已满足；§5 手测仍未跑。
 
-**升格条件：** S4a 代码已满足。S4b 宿主闩在仍-connected snapshot 下仍有效（单测已锁）。还须 §5 全部实跑并回填 [D405](../progress/deferred-gaps.md)。此前保持 `draft`。不得因代码已合入而签收。
+**升格条件（2026-09-25）：** 保持 `draft`。挡住 `accepted` 的是 fail-closed 在断连再重连后仍会画成已连接，以及用户尚未签收。§5 手测与 [D405](../progress/deferred-gaps.md) 是升 `implemented` 的门槛，不代替设计补洞。补上 BH-04-1 路径并经签收之后才可升 `accepted`。不得因代码已合入而签收。不得让其它波次把「溢出后不会显示已连接」当成已定保证。

@@ -3,7 +3,7 @@ title: "软件架构文档系统设计规范"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-09-02
+updated: 2026-09-25
 summary: "基于 Git + Markdown 的文档系统规范：结构、模块归属、人工索引与健康检查；适配 VS Code 分层而非 Gradle 多模块"
 ---
 
@@ -87,7 +87,7 @@ docs/
 │   ├── agent-host/
 │   ├── extension-api/
 │   └── processes/
-├── reference/                     # 只读对照与协议面（code-oss-b2、universe-agent、commands）
+├── reference/                     # 只读对照与协议面（code-oss-b2、universe-agent）
 └── guides/
 
 dev/
@@ -199,7 +199,7 @@ summary: "一句话"
 
 INDEX.md 只导航，frontmatter type 为 index。vision.md 只写用户、问题、价值、原则、范围，type 为 concept。requirements.md 用稳定 ID，type 为 demand。traceability.md 只做追踪，type 为 reference。每条需求包含：状态（proposed / accepted / implemented / blocked）、用户价值、用户可观察陈述、产品验收标准、依赖或未决。
 
-traceability.md 只维护 PRD-ID → 产品状态 → 系统/架构规格 → 实施方案 → 测试或验证证据。没有证据写「待验证」，不把 implemented 当成验证结论。禁止在产品文件里写类名、文件切片、排期。
+traceability.md 手写 PRD-ID、系统/架构规格、实施方案、测试或验证证据。「产品状态」列与分桶由 `generate-docs-status.py` 生成，禁止手改（见 §5）。没有证据写「待验证」，不把 implemented 当成验证结论。禁止在产品文件里写类名、文件切片、排期。
 
 需求条目示例：
 

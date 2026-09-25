@@ -3,7 +3,7 @@ title: "文档负担收敛：状态列生成、单一真相与术语对外可读
 type: plan
 status: implemented
 phase: N/A
-updated: 2026-09-10
+updated: 2026-09-25
 summary: "S1–S5 已落：plans/traceability 状态列由 generate-docs-status.py 生成（本地 health-gates 为门禁；GitHub Actions 已关）；glossary 对外可读约束；status 停止复述四写枚举；归档标准入 DOCUMENTATION 规则 7"
 ---
 
@@ -14,14 +14,14 @@ summary: "S1–S5 已落：plans/traceability 状态列由 generate-docs-status.
 > **不推翻：** 规则 3a 的 `status.md` ≤ 200 行；规则 7 只归档不删除；规则 10 单一事实源；`check-docs-health.py` **只读、不写文件**。规则 10a 的需求顺序（先 requirements，再追踪，再系统 / 方案）与状态闭集保留；**第 2 步合同本稿实施时同步改**（见 §1.5）。禁止写「不推翻 10a」却把 `traceability.md` 产品状态列改成生成区。  
 > **本稿用词：** 正文按 §3 对外可读约束书写。旧称只出现在 §3.2 对照表。  
 > **审查：** 规则 16 第一轮已改入；2026-09-05 第二轮对抗性审查（Reject）复核改入后**签收**。记录见文末。  
-> **机器调用方（签收裁定）：** 本方案所有「健康检查失败」都只有在被 CI 调用时才是门禁。`check-docs-health.py` 今日无任何生产调用方（`package.json` / gulp / workflows 均不调；health-gates.md 只写「建议」）。**唯一**机器调用方定为 [test-baseline-ci](test-baseline-ci.md) 的 `docs-health` job（先 `check-docs-health.py`，S1 合入后追加 `generate-docs-status.py --check`）。本方案不自建 workflow；`docs-health` job 未合入前，本方案的检查只是本地工具，不得在任何文档里写成「门禁」。
+> **机器调用方（签收当时，已被下一段取代）：** 本方案所有「健康检查失败」都只有在被 CI 调用时才是门禁。`check-docs-health.py` 今日无任何生产调用方（`package.json` / gulp / workflows 均不调；health-gates.md 只写「建议」）。**唯一**机器调用方定为 [test-baseline-ci](test-baseline-ci.md) 的 `docs-health` job（先 `check-docs-health.py`，S1 合入后追加 `generate-docs-status.py --check`）。本方案不自建 workflow；`docs-health` job 未合入前，本方案的检查只是本地工具，不得在任何文档里写成「门禁」。
 > **2026-09-10 改口：** GitHub Actions 已永久关闭（[DISABLED.md](../../.github/workflows/DISABLED.md)）。`docs-health` job 不再跑；提交前门禁改回本地 [health-gates](../progress/health-gates.md) 的 `check-docs-health.py` / `generate-docs-status.py --check`。
 
 ## 0. 目标 / 非目标
 
 ### 目标
 
-1. **状态只在一处手写，索引只展示。** `dev/plans/INDEX.md` 的「状态」列、`docs/product/traceability.md` 的「产品状态」列（以及按产品状态机械分组的分桶表）由脚本从源生成；健康检查发现手改生成区或忘跑脚本则失败，并由 `docs-health` CI job 阻断合入。
+1. **状态只在一处手写，索引只展示。** `dev/plans/INDEX.md` 的「状态」列、`docs/product/traceability.md` 的「产品状态」列（以及按产品状态机械分组的分桶表）由脚本从源生成；健康检查发现手改生成区或忘跑脚本则失败。阻断合入的是本地 [health-gates](../progress/health-gates.md)；GitHub `docs-health` job 已关（见文首 2026-09-10）。
 2. **四份手写账各司其职，禁止互抄枚举。** 见 §1。
 3. **术语对外可读。** `docs/glossary.md` 增补约束与允许的缩写；**对外闭集 = glossary 主表 ∪ glossary 第二张表（旧称对照）**——S3 前由本稿 §3.2 暂代第二张表，S3 合入后 §3.2 改成一行指针，避免双写；只约束本稿之后新写正文。
 4. **定归档标准，本波不批量搬家。** 见 §5。只把「明确过时且已有取代者」的篇目列为后续候选，本波不移。
@@ -222,7 +222,7 @@ python3 scripts/check-docs-health.py
 
 `--check` 与健康检查的 `generated_status` 组必须同一套比较函数，禁止两套解析各算各的。
 
-S1 必须带入仓的 `scripts/tests/test_docs_status.py`（`python3 -m unittest scripts/tests/test_docs_status.py` 可跑；`docs-health` job 一并调用）。**不接受**「对临时副本手跑」——手跑不能证明空实现没有过关。至少六条断言：
+S1 必须带入仓的 `scripts/tests/test_docs_status.py`（`python3 -m unittest scripts/tests/test_docs_status.py` 可跑；现行由本地 health-gates 一并调用。GitHub `docs-health` job 已于 2026-09-10 关闭）。**不接受**「对临时副本手跑」——手跑不能证明空实现没有过关。至少六条断言：
 
 1. 源为 `accepted`、生成列为 `implemented` → `--check` 非零；
 2. 删掉任一 `generated-col` 注释或 `generated:start|end` → 健康检查非零；
@@ -274,7 +274,7 @@ glossary 今日是一张产品 / 架构术语表，**没有**过程黑话，也�
 
 | 切片 | 做什么 | 验收 |
 |------|--------|------|
-| **S1 脚本 + 标记 + 接通（一次合入）** | 新增 `scripts/docs_status.py`、`scripts/generate-docs-status.py`、`scripts/tests/test_docs_status.py`；健康检查加 `generated_status`（期望三 id，无短路）。**同一提交**：先把 D5 等非 PRD 行搬到分桶区间外（不得「只留 deferred-gaps」——追踪页必须保留一行指向 D 项），再给 plans INDEX、traceability 主表加 `generated-col`，分桶加 `generated` 区间并覆盖成四值机械表；跑一次写入。**验证叙事承接（硬条件）**：现分桶里每一句验证叙事（「D4 已验」「待产品验证」「EH 探针已验」等）在覆盖前逐条落到该 PRD 的「测试或验证证据」列或 `deferred-gaps.md` 对应行，PR 描述附「原句 → 落点」对照表；产品状态列的手写尾巴同法处理。改 DOCS-SPEC §1.2 / §5 / §6 点名两处例外；规则 11 补「状态列禁止手改」；**同步改 DOCUMENTATION 规则 10a 第 2 步**（§1.5）。合入后在 test-baseline-ci 的 `docs-health` job 追加 `generate-docs-status.py --check` 与单测调用 | 单测全绿；健康检查 0 error；故意改一个状态单元格 → 失败；删光三处标记 → 失败；改回后通过；分桶无验证分组；D5 在区间外仍可从 traceability 到达；对照表每一句都有落点 |
+| **S1 脚本 + 标记 + 接通（一次合入）** | 新增 `scripts/docs_status.py`、`scripts/generate-docs-status.py`、`scripts/tests/test_docs_status.py`；健康检查加 `generated_status`（期望三 id，无短路）。**同一提交**：先把 D5 等非 PRD 行搬到分桶区间外（不得「只留 deferred-gaps」——追踪页必须保留一行指向 D 项），再给 plans INDEX、traceability 主表加 `generated-col`，分桶加 `generated` 区间并覆盖成四值机械表；跑一次写入。**验证叙事承接（硬条件）**：现分桶里每一句验证叙事（「D4 已验」「待产品验证」「EH 探针已验」等）在覆盖前逐条落到该 PRD 的「测试或验证证据」列或 `deferred-gaps.md` 对应行，PR 描述附「原句 → 落点」对照表；产品状态列的手写尾巴同法处理。改 DOCS-SPEC §1.2 / §5 / §6 点名两处例外；规则 11 补「状态列禁止手改」；**同步改 DOCUMENTATION 规则 10a 第 2 步**（§1.5）。合入后由本地 health-gates 调用 `generate-docs-status.py --check` 与单测（GitHub `docs-health` job 已于 2026-09-10 关闭） | 单测全绿；健康检查 0 error；故意改一个状态单元格 → 失败；删光三处标记 → 失败；改回后通过；分桶无验证分组；D5 在区间外仍可从 traceability 到达；对照表每一句都有落点 |
 | ~~S2~~ | 并入 S1（见 §2.6 说明）。下文 S2 字样一律读作 S1 | — |
 | **S3 glossary + 维护规则** | **等** stream-timeline §6 的 glossary 条目先入表。glossary 写入 §3.1–§3.2（含「只约束本稿之后新写正文；存量豁免」）；同一提交把本稿 §3.2 改成指针；DOCUMENTATION 规则 3a 清单加「生成列与源一致」；规则 10 加四份账边界（链到本方案或一小节）；规则 3c 注明「表内产品 / 方案状态枚举改靠脚本，叙述过时仍手扫」；doc-style-guide 加对外可读指针。**不重写** 10a 第 2 步 | 三份规则文有链；不复制对照表正文 |
 | **S4 status 停止复述** | 按 §1.3 改 `status.md`：Current Session / Next / Blockers 去掉 plan·PRD·D 项枚举复述，改链接。不把延期表搬进 status | `status.md` ≤ 200；读一遍即可知道「去哪看状态」而不是「这里抄了一份」 |
@@ -284,7 +284,7 @@ glossary 今日是一张产品 / 架构术语表，**没有**过程黑话，也�
 
 | 对方 | 关系 | 处理 |
 |:-----|:-----|:-----|
-| [test-baseline-ci](test-baseline-ci.md) `docs-health` job | 本方案唯一机器调用方 | 该 job 先只跑 `check-docs-health.py`；S1 合入后同 PR 追加 `--check` 与单测。本方案不自建 workflow |
+| [test-baseline-ci](test-baseline-ci.md) `docs-health` job | 签收时拟定的机器调用方；2026-09-10 起该 job 已关 | 现行门禁是本地 health-gates 的 `check-docs-health.py`、`generate-docs-status.py --check` 与 `test_docs_status.py`。本方案不自建 workflow |
 | [prd-008-engine-e2e](prd-008-engine-e2e.md) E6 | E6 要改 `traceability.md` PRD-008 行与 `requirements.md` 状态行 | 若 S1 已合入：E6 只手改 requirements 状态行 + 证据列，然后跑 `generate-docs-status.py`；若 S1 未合入：E6 手改，S1 落地时以 requirements 为源覆盖。两边不互等 |
 | test-baseline-ci 切片 5 | 改 `plans/INDEX.md` 摘要 / m7 §2 | 只碰摘要列与正文，不碰状态列；S1 前后都合法 |
 | [conversation-stream-timeline](conversation-stream-timeline.md) §6 glossary 条目 | 与 S3 同写 `docs/glossary.md` | stream-timeline 的条目（帧源 / lease 等）**先**入表；S3 之后再加约束段与对照表。S3 不得重排或改写既有条目 |
@@ -319,7 +319,7 @@ glossary 今日是一张产品 / 架构术语表，**没有**过程黑话，也�
 | status ≤ 200 | 健康检查现有 `check_status_md_line_limit` 仍为 error；S4 后正文不再复述四写枚举 |
 | 生成区与手写区分离 | 两处 `generated-col`、一处 `generated:start/end`；引言与非状态列可手改且检查不因手改摘要 / 证据列而红。单测证明摘要列 / 表外引言 byte-stable |
 | 标记必在 | 三 id 必在；删光标记红；无零标记短路 |
-| 健康检查抓住漂移，且有人调 | §2.5 六条单测入仓并在 `docs-health` job 里跑；默认 `python3 scripts/check-docs-health.py`（无 `--strict-*`）即对漂移失败；`docs-health` job 未合入前不得称「门禁」 |
+| 健康检查抓住漂移，且有人调 | §2.5 单测入仓，由本地 health-gates 调用；默认 `python3 scripts/check-docs-health.py`（无 `--strict-*`）即对生成列漂移失败。GitHub `docs-health` job 已关，不得再把它写成现行门禁 |
 | 单一真相 | 改 plan `frontmatter.status` 而不跑脚本 → 红；跑脚本后 INDEX 状态列对齐。改 requirements「状态」行后跑脚本（10a 第 2 步）同理。分桶无验证分组 |
 | 验证叙事不丢 | S1 PR 附「分桶原句 → 证据列 / D 项落点」对照表，逐句可查；D5 仍可从 traceability 到达 |
 | 对外可读 | glossary 有约束 + 第二张表；S3 后 §3.2 只剩指针；只约束本稿之后新写正文；本稿正文不使用未定义旧称 |
@@ -327,7 +327,7 @@ glossary 今日是一张产品 / 架构术语表，**没有**过程黑话，也�
 
 ## 7. 实施时改的路径（本稿不改）
 
-S1：`scripts/docs_status.py`、`scripts/generate-docs-status.py`、`scripts/tests/test_docs_status.py`（必带）、`scripts/check-docs-health.py`、`dev/plans/INDEX.md`、`docs/product/traceability.md`、`docs/DOCS-SPEC.md`、`docs/DOCUMENTATION.md`（规则 10a 第 2 步 + 规则 11 一句）、`dev/progress/deferred-gaps.md`（承接验证叙事时）；合入后 `.github/workflows/` 里 test-baseline-ci 的 `docs-health` job 追加两条命令。  
+S1：`scripts/docs_status.py`、`scripts/generate-docs-status.py`、`scripts/tests/test_docs_status.py`（必带）、`scripts/check-docs-health.py`、`dev/plans/INDEX.md`、`docs/product/traceability.md`、`docs/DOCS-SPEC.md`、`docs/DOCUMENTATION.md`（规则 10a 第 2 步 + 规则 11 一句）、`dev/progress/deferred-gaps.md`（承接验证叙事时）；合入后这两条命令在本地 health-gates 里调用。GitHub `docs-health` job 已于 2026-09-10 关闭，不再往 workflow 追加。  
 S3：`docs/glossary.md`、`docs/DOCUMENTATION.md`（3a / 10 / 3c，不重写 10a 第 2 步）、`docs/guides/doc-style-guide.md`、本稿 §3.2（改指针）。  
 S4：`dev/progress/status.md`。  
 S5：`docs/DOCUMENTATION.md` 规则 7。  
@@ -361,4 +361,4 @@ S5：`docs/DOCUMENTATION.md` 规则 7。
 | Minor S1/S2 拆交可删、脚本可合一 | 采纳前者 | S1/S2 合并；`docs_status.py` 保留为可 import 模块（健康检查与写入脚本共用一套比较函数，是 §2.5 的硬要求） |
 | Minor plan `frontmatter.status` 无枚举校验 | 采纳 | §2.4 增：`frontmatter.status` 不在 DOCS-SPEC 闭集 → error |
 
-**签收裁定：** 本方案的价值全部系于「有机器调它」。实施顺序：S1（含接通）→ S3（等 stream-timeline glossary）→ S4 → S5；`docs-health` job 由 test-baseline-ci 先落，S1 合入后追加命令。
+**签收裁定：** 本方案的价值全部系于「有机器调它」。实施顺序：S1（含接通）→ S3（等 stream-timeline glossary）→ S4 → S5；`docs-health` job 由 test-baseline-ci 先落，S1 合入后追加命令。**2026-09-10 起该 job 已关**，同一检查改由本地 health-gates 执行。

@@ -3,7 +3,7 @@ title: "Agent IDE 产品需求"
 type: demand
 status: accepted
 phase: N/A
-updated: 2026-09-22
+updated: 2026-09-25
 summary: "PRD-001–026：M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、仍 accepted；PRD-010/018/025/026 仍缺产品验证；PRD-008 仍待接通证据"
 ---
 
@@ -11,7 +11,7 @@ summary: "PRD-001–026：M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、
 
 > 需求唯一正文。原则见 [vision.md](vision.md)。追踪见 [traceability.md](traceability.md)。
 
-状态约定：`accepted` = 产品陈述已接受，代码可能已落但启动冒烟未完成，不得当成验证结论。`implemented` = 用户可观察行为已交付且有验证证据。`blocked` = 已知缺口，等待未决决策。`proposed` = 尚未接受。
+状态约定：`accepted` = 产品陈述已接受；代码可能已落，但不得把 `accepted` 当成验证结论。`implemented` = 用户可观察行为已交付且有验证证据。`blocked` = 已知缺口，等待未决决策。`proposed` = 尚未接受。D4 启动冒烟已 PASS，不再作为「保持 accepted」的理由。
 
 ## 已接受的现行壳需求
 
@@ -24,7 +24,7 @@ summary: "PRD-001–026：M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、
   1. 默认窗口中心可见会话标题条、时间线、输入区。
   2. 用户不能把中心 Conversation 理解成 Copilot Chat 标签页。
   3. 用户可以临时隐藏 Conversation；隐藏后仍能用四钮回到对话，而不是被送到 Chat 侧栏。
-- **依赖或未决**：无。启动冒烟待验证，故保持 `accepted`。
+- **依赖或未决**：无。D4 启动冒烟已 PASS。追踪矩阵对本条只记该证据，没有另写剩余缺口；状态仍是 `accepted`。
 
 ### PRD-002 会话上下文
 
@@ -86,7 +86,7 @@ summary: "PRD-001–026：M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、
   1. 第一次打开默认桌面窗口时，右侧栏默认关闭。
   2. 打开 Chat 不会把中心 Conversation 换成 Chat 视图。
   3. 默认命令/启动路径不把用户带进 Chat 编辑器标签作为主对话。
-- **依赖或未决**：无。命令/还原路径的卫生已有代码，启动路径待验证。
+- **依赖或未决**：无。命令/还原路径的卫生已有代码。D4 V6 已 PASS。追踪矩阵没有另写剩余缺口；状态仍是 `accepted`。
 
 ### PRD-007 诚实降级
 
@@ -103,7 +103,7 @@ summary: "PRD-001–026：M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、
 
 ## 待验证说明
 
-PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–T3 与 M3 目视）仍阻塞于 compile。因此这些需求保持 `accepted`，不升 `implemented`。验证证据只写在 [traceability.md](traceability.md)。
+PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（追踪矩阵记 V1–V8 PASS）。PRD-003、004、007 的验收 4–5 仍待验证；PRD-005 的 R5 冒烟未做。PRD-001、002、006 的矩阵证据就是 D4（及已落的配套单测），没有另列缺口，状态仍是 `accepted`。
 
 ## Agents 窗口需求
 
@@ -208,11 +208,11 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
 - **产品验收标准**：
   1. 点击 Changes 行，Diff 出现在 Preview（End 上格），不是替换中心 Conversation，也不自动撑开已收起的 Sources。
   2. 对已打开的 Diff 执行「移到对话窗口」后，它成为当前会话窗口的一张延伸 tab，原对话根 tab 仍在且仍不可关闭；关闭该 Diff tab 不影响对话；后退可关掉它。
-  3. 对话窗口里的 Diff 是审阅面：能看、能 revert / accept 变更、能「在 Preview 打开」进入可编辑状态；不能在对话窗口内直接编辑文件正文。
+  3. 对话窗口里的 Diff 是审阅面：能看、能 revert、能接受光标所在的一块改动、能「在 Preview 打开」进入可编辑状态；不能在对话窗口内直接编辑文件正文。接受一块改动是把它暂存进索引（整文件仍用 Stage，再用 Commit 收尾）。未连接引擎时不显示这块接受。无载荷不得把 Stage 当成接受成功。
   4. 「移到底部」后 Diff 出现在底部 Panel 的产品 Diff 视图中；Panel 因用户动作显示不算违反四钮互斥；再「移到 Preview / 对话窗口」能回去。
   5. 焦点在 Conversation 时，从 Changes 或任何默认路径打开 Diff 仍落 Preview；只有用户显式动作或已设的默认归属才把 Diff 送进对话窗口或底部。
   6. 无引擎时 Changes 来自本地 SCM 诚实枚举；没有仓库或没有变更时写空态，不造假变更，不出现「Agent 改了 N 个文件」之类文案。
-- **依赖或未决**：形态见 [ADR-005](../../dev/decisions/005-changes-diff-owner.md)。「Agent 改过的文件」这层归因（哪些变更来自哪一轮）依赖 PRD-008；本条只约束 Diff 的打开与移动。本仓不再沿用外仓 ADR-047「Diff 只在底部 Panel」的单一归属。
+- **依赖或未决**：形态见 [ADR-005](../../dev/decisions/005-changes-diff-owner.md)。「Agent 改过的文件」这层归因（哪些变更来自哪一轮）依赖 PRD-008；本条只约束 Diff 的打开与移动。本仓不再沿用外仓 ADR-047「Diff 只在底部 Panel」的单一归属。验收 3 的「接受一块」于 2026-09-25 定为暂存该 hunk：客户端从点击时现拉的原始 unified diff 切出单个 hunk，经已有 `WriteGitApplyHunks` 以 `git apply --cached` 执行。见 [sources-accept-stage-hunk](../../dev/plans/sources-accept-stage-hunk.md)。空 `patches` 仍是成功空操作，不得当接受成功（[ADR-008](../../dev/decisions/008-write-git-apply-hunks-empty.md)）。
 
 ## 未决或阻塞
 
@@ -221,8 +221,10 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
 - **状态**：`blocked`
 - **用户价值**：用户的对话、工具执行和权限应来自真实 Agent 引擎，而不是本地占位会话/占位回复。
 - **用户可观察陈述**：用户发送后由引擎产生助手回合与工具请求；会话列表来自引擎诚实枚举。
-- **产品验收标准**：未决。在引擎接线方案接受之前，本条不算成功，也不许占位界面冒充已接通。
-- **依赖或未决**：引擎未接入本产品；禁止用内置 Chat 会话模型顶替引擎权威。**接线方案已于 2026-09-02 签收**：[m6-engine-wave](../../dev/plans/m6-engine-wave.md) + [ADR-003](../../dev/decisions/003-engine-adapter-boundary.md) + [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md)（均 `accepted`）；本条保持 `blocked` 直到 M6-A2 接通并有隔离 profile 启动冒烟证据，届时补验收标准并升 `implemented`。
+- **产品验收标准**：未决。接线方案已签收，本条仍不算成功，直到有隔离 profile 启动冒烟证据；不许占位界面冒充已接通。
+- **依赖或未决**：禁止用内置 Chat 会话模型顶替引擎权威。接线方案已于 2026-09-02 签收：[m6-engine-wave](../../dev/plans/m6-engine-wave.md) + [ADR-003](../../dev/decisions/003-engine-adapter-boundary.md) + [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md)。A1/A2 代码已在 HEAD。本条仍 `blocked`，直到隔离 profile 启动冒烟；catalog 单测不算接通证据。届时补验收标准并升 `implemented`。
+
+## 已接受
 
 ### PRD-010 产品身份
 
@@ -234,7 +236,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
   2. Linux / Windows / macOS 图标来自同一份已批准品牌源；不得从截图抠图或混用 Hub logo。
   3. `universe-agent://` 深链由本产品接管；产品数据目录与 Code OSS 分离，且不自动迁移旧目录中的 secret。
   4. 上游许可证、第三方 notices 与内置扩展来源保留。
-- **依赖或未决**：**图标源已裁定（用户，2026-09-02）**：以 Singularity 标识 `Singular/logo/singularity.svg` 为唯一品牌源，入仓为 `resources/brand/universe-agent-studio.svg`，三平台产物只由脚本从它生成（小尺寸允许同源粗线派生）；见 [product-identity §4](../../dev/plans/product-identity.md)。验收 2 的「同一份已批准品牌源」据此有了具体所指。Darwin 发布域名与签名主体仍由发布方提供。完整扩展市场分发继续排除。
+- **依赖或未决**：**图标源已裁定（用户，2026-09-02）**：以 Singularity 标识 `Singular/logo/singularity.svg` 为唯一品牌源，入仓为 `resources/brand/universe-agent-studio.svg`，三平台产物只由脚本从它生成（小尺寸允许同源粗线派生）；见 [product-identity §4](../../dev/plans/product-identity.md)。验收 2 的「同一份已批准品牌源」据此有了具体所指。`product.json` 的 `darwinBundleIdentifier` `studio.universeagent.app` 与两个 profile UUID 是**开发期**标识，用来和本机 Code OSS 分开，不是发行标识。正式反向域名、签名主体与 Appx Publisher 仍由发布方在第一次面向用户的打包前提供；换正式 id 后不迁移 secret。开发构建不打 Appx、不签名、不分发。完整扩展市场分发继续排除。见 [product-identity](../../dev/plans/product-identity.md) I6。
 
 ## 非功能需求（2026-09-02 新增；同日签收 `accepted`）
 
@@ -249,7 +251,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
   1. 重启后会话列表、当前会话与各会话回合与重启前一致。
   2. Conversation 显隐、session 窗口叶与 chat tab 结构恢复（PRD-016 验收 2 的跨重启版）。
   3. 无引擎时不出现远端同步文案；引擎接通后本地缓存不得冒充引擎回报。
-- **依赖或未决**：HEAD 的 `IConversationRosterService` 是纯内存（只有透镜选择持久化到 `StorageScope.WORKSPACE`）。**存储落点已裁定（2026-09-02）**：无引擎时本地会话（标题、回合、权限记录）存 `IStorageService` **`StorageScope.WORKSPACE` + `StorageTarget.MACHINE`**（随工作区、不随 Settings Sync 漫游，天然满足「不写已同步」）；session 窗口布局沿用 PRD-016 已有的 Layout 持久化。**引擎接通后不迁移**：UA 会话权威在引擎，本地存储只保留 stub 会话与「最后一次 UA 快照」缓存（供 PRD-007 断连只读），并以 `source: local | engine-cache` 标注，缓存不得冒充引擎回报。实施挂 [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) 帧源之上（在 S3 之后、作为独立切片，登记 [D13](../../dev/progress/deferred-gaps.md)）。
+- **依赖或未决**：D13 已实施。无引擎时本地会话（标题、回合、权限记录）存 `IStorageService` 的工作区、本机目标（随工作区、不随 Settings Sync 漫游）。session 窗口布局沿用 PRD-016 已有的 Layout 持久化。引擎接通后不把本地存储迁成引擎权威：本地只保留 stub 会话与「最后一次 UA 快照」缓存（供 PRD-007 断连只读），缓存不得冒充引擎回报。证据见 [traceability.md](traceability.md) PRD-017。
 
 ### PRD-018 键盘可达与辅助功能
 
@@ -280,7 +282,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
 - **产品验收标准**：
   1. 上述规模下发送一条消息到出现在时间线 ≤ 200 ms（本机、无引擎）。
   2. 轨迹页在上限规模有搜索与虚拟化（PRD-012 T5）。
-- **依赖或未决**：上限数值按初值写死，不再等裁定。**HEAD：** 轨迹页 T5 搜索、虚拟化、`CONVERSATION_TRAJECTORY_RECORD_LIMIT = 5000` 诚实截断已实施（[D10](../../dev/progress/deferred-gaps.md) 已闭；Overview 瀑布条仍 Deferred）。验收 1 的 200 ms 须在 [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) S2 三类帧增量落地后，用 1,000 回合 fixture 测一次并记入 D10 退出记录。
+- **依赖或未决**：上限数值按初值写死，不再等裁定。**HEAD：** 轨迹页 T5 搜索、虚拟化、`CONVERSATION_TRAJECTORY_RECORD_LIMIT = 5000` 诚实截断已实施（[D10](../../dev/progress/deferred-gaps.md) 已闭；Overview 瀑布条仍 Deferred）。[conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) S2 已落。验收 1 的 200 ms 仍要用 1,000 回合 fixture 测一次并记入证据；未测之前不升 `implemented`。
 
 ### PRD-021 未知内容与错误的诚实呈现
 
@@ -309,7 +311,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
   4. 引擎不提供 Agent 树或 Team 能力时，对应段写「当前引擎不提供 …」，不用空列表冒充「没有 agent / 没有团队」；当前会话只有根 Agent 时写「只有根 Agent」而不是「no agents」。
   5. 引擎断开后三段保留断开前内容并标明「显示为断开前快照」；不写「已同步」。
   6. 三段与 Inspect Panel 里没有任何会改变引擎状态的按钮。
-- **依赖或未决**：活数据依赖 PRD-008（M6-A2 之后）。方案见 [navigator-engine-segments](../../dev/plans/navigator-engine-segments.md)（`accepted` @2026-09-02；N1–N5 全排 M6-A2 后）。按工作目录分组已接引擎 `SessionSummary.work_dir`（G-NAV-1）；重连后团队标题已接 `ListTeams`（G-NAV-2；引擎 v1 内存面，冷启动仍可能无标题）。Agent 树只读会话视图（由 M6-A2 host 填充）；成员与任务经引擎连接层的三个只读查询取得（实现在 M6-A1 / A2，导航区不直接碰协议）；团队整体状态优先会话视图 `liveTeamId`，否则 `ListTeams`。根 Agent 对应对话窗口的根 tab；非根子代理 / 成员的对话 id 逐字等于引擎 `agent_id`。指挥类操作（Kill / StartMember / MessageMember / TaskUpdate）不在本条，需另立需求与权限座位设计。Desktop 侧这三段同样是 not-wired 空 chrome，本条无外仓需求可继承。
+- **依赖或未决**：活数据依赖 PRD-008。方案见 [navigator-engine-segments](../../dev/plans/navigator-engine-segments.md)（N1–N4 已在 HEAD；N5 隔离 profile 冒烟未做，故本条不升 `implemented`）。G-NAV-1 仍缺：`SessionSummary` 没有 `work_dir`，分组只用连接级 `workDir`。G-NAV-2 仍缺：引擎没有 `ListTeams`；`liveTeamId` 为空时节标题不写团队状态。Agent 树只读会话视图；成员与任务经 `MemberStatus` / `TaskList` / `TeamInfo` 取得（导航区不直接碰协议）。根 Agent 对应对话窗口的根 tab；非根子代理 / 成员的对话 id 逐字等于引擎 `agent_id`。指挥类操作（Kill / StartMember / MessageMember / TaskUpdate）不在本条，需另立需求与权限座位设计。
 
 ### PRD-023 Sources Review 审阅进度与归因
 
