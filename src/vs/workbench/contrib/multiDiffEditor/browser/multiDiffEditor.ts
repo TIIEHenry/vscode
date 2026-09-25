@@ -103,7 +103,9 @@ export class MultiDiffEditor extends AbstractEditorWithViewState<IMultiDiffEdito
 			return;
 		}
 		const viewModel = await input.getViewModel();
-		if (token.isCancellationRequested) {
+		// Input owns the view model. A later setInput, clearInput, or dispose drops this.input
+		// (or disposes the editor). Do not install a stale model, and do not dispose one the input still holds.
+		if (token.isCancellationRequested || this.input !== input || this._store.isDisposed) {
 			return;
 		}
 		this._viewModel = viewModel;
