@@ -178,6 +178,15 @@ export class ChatEditor extends AbstractEditorWithViewState<IChatEditorViewState
 		if (this._editorContainer) {
 			delete this._editorContainer.dataset.boundChatResource;
 		}
+		// `doSetInput` calls `clearInput` and then `setInput` synchronously, which
+		// restores `this.input` before this microtask. A real close leaves it unset.
+		queueMicrotask(() => {
+			if (this.input) {
+				return;
+			}
+			this.hideLoadingInChatWidget();
+			this.widget.unlockFromCodingAgent();
+		});
 	}
 
 	private showLoadingInChatWidget(message: string): void {
@@ -223,6 +232,18 @@ export class ChatEditor extends AbstractEditorWithViewState<IChatEditorViewState
 		}
 	}
 
+	/**
+	 * A superseded `setInput` must not remove a loading overlay the next
+	 * non-local session already installed. A local successor never installs one,
+	 * and a cleared editor leaves the previous overlay in place.
+	 */
+	private hideLoadingUnlessNextNonLocal(): void {
+		if (this.input instanceof ChatEditorInput && this.input.getSessionType() !== localChatSessionType) {
+			return;
+		}
+		this.hideLoadingInChatWidget();
+	}
+
 	override async setInput(input: ChatEditorInput, options: IChatEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
 		// Capture the input draft before the load window opens so text typed
 		// during loading is preserved when the model binds. See #325323.
@@ -238,7 +259,7 @@ export class ChatEditor extends AbstractEditorWithViewState<IChatEditorViewState
 
 		await super.setInput(input, options, context, token);
 		if (token.isCancellationRequested) {
-			this.hideLoadingInChatWidget();
+			this.hideLoadingUnlessNextNonLocal();
 			return;
 		}
 
@@ -254,6 +275,7 @@ export class ChatEditor extends AbstractEditorWithViewState<IChatEditorViewState
 				// have resolved, so a stale continuation must not lock or unlock the
 				// widget that already moved on.
 				if (token.isCancellationRequested || this.input !== input) {
+					this.hideLoadingUnlessNextNonLocal();
 					return;
 				}
 				const contributions = this.chatSessionsService.getAllChatSessionContributions();
@@ -267,6 +289,8 @@ export class ChatEditor extends AbstractEditorWithViewState<IChatEditorViewState
 			} catch (error) {
 				if (!token.isCancellationRequested && this.input === input) {
 					this.hideLoadingInChatWidget();
+				} else {
+					this.hideLoadingUnlessNextNonLocal();
 				}
 				throw error;
 			}
@@ -281,6 +305,7 @@ export class ChatEditor extends AbstractEditorWithViewState<IChatEditorViewState
 			// cancels this token and replaces `this.input` before this continuation
 			// runs. Do not hide loading, bind the model, or restore view state then.
 			if (token.isCancellationRequested || this.input !== input) {
+				this.hideLoadingUnlessNextNonLocal();
 				return;
 			}
 
@@ -310,6 +335,8 @@ export class ChatEditor extends AbstractEditorWithViewState<IChatEditorViewState
 		} catch (error) {
 			if (!token.isCancellationRequested && this.input === input) {
 				this.hideLoadingInChatWidget();
+			} else {
+				this.hideLoadingUnlessNextNonLocal();
 			}
 			throw error;
 		}
