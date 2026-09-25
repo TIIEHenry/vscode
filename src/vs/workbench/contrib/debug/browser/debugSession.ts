@@ -58,6 +58,8 @@ export class DebugSession implements IDebugSession {
 	private _subId: string | undefined;
 	raw: RawDebugSession | undefined; // used in tests
 	private initialized = false;
+	/** Bumped by shutdown and by each initialize after its entry shutdown, so a stale init cannot write back. */
+	private initializeGeneration = 0;
 	private _options: IDebugSessionOptions;
 
 	private sources = new Map<string, Source>();
@@ -350,11 +352,24 @@ export class DebugSession implements IDebugSession {
 			await this.shutdown();
 		}
 
+		// Entry shutdown also bumps the generation. Capture only after that, so this attempt stays current.
+		const generation = ++this.initializeGeneration;
+		let unclaimedAdapter: { dispose?: () => void } | undefined;
+
 		try {
 			const debugAdapter = await dbgr.createDebugAdapter(this);
+			unclaimedAdapter = debugAdapter;
+			if (generation !== this.initializeGeneration) {
+				this.disposeUnclaimedDebugAdapter(unclaimedAdapter);
+				return;
+			}
 			this.raw = this.instantiationService.createInstance(RawDebugSession, debugAdapter, dbgr, this.id, this.configuration.name);
+			unclaimedAdapter = undefined;
 
 			await this.raw.start();
+			if (generation !== this.initializeGeneration) {
+				return;
+			}
 			this.registerListeners();
 			await this.raw.initialize({
 				clientID: 'vscode',
@@ -375,6 +390,9 @@ export class DebugSession implements IDebugSession {
 				supportsStartDebuggingRequest: true,
 				supportsANSIStyling: true,
 			});
+			if (generation !== this.initializeGeneration) {
+				return;
+			}
 
 			this.initialized = true;
 			this._onDidChangeState.fire();
@@ -382,11 +400,19 @@ export class DebugSession implements IDebugSession {
 			this.debugService.setExceptionBreakpointsForSession(this, (this.raw && this.raw.capabilities.exceptionBreakpointFilters) || []);
 			this.debugService.getModel().registerBreakpointModes(this.configuration.type, this.raw.capabilities.breakpointModes || []);
 		} catch (err) {
+			if (generation !== this.initializeGeneration) {
+				this.disposeUnclaimedDebugAdapter(unclaimedAdapter);
+				return;
+			}
 			this.initialized = true;
 			this._onDidChangeState.fire();
 			await this.shutdown();
 			throw err;
 		}
+	}
+
+	private disposeUnclaimedDebugAdapter(adapter: { dispose?: () => void } | undefined): void {
+		adapter?.dispose?.();
 	}
 
 	/**
@@ -1488,6 +1514,7 @@ export class DebugSession implements IDebugSession {
 
 	// Disconnects and clears state. Session can be initialized again for a new connection.
 	private shutdown(): void {
+		this.initializeGeneration++;
 		this.rawListeners.clear();
 		if (this.raw) {
 			// Send out disconnect and immediatly dispose (do not wait for response) #127418
