@@ -1005,6 +1005,11 @@ class PersistentTerminalProcess extends Disposable {
 		await this._orphanQuestionBarrier.wait();
 		return (Date.now() - this._orphanQuestionReplyTime > 500);
 	}
+
+	override dispose(): void {
+		this._serializer.dispose?.();
+		super.dispose();
+	}
 }
 
 class MutationLogger<T> {
@@ -1033,6 +1038,8 @@ class XtermSerializer implements ITerminalSerializer {
 	private readonly _xterm: XtermTerminal;
 	private readonly _shellIntegrationAddon: ShellIntegrationAddon;
 	private _unicodeAddon?: XtermUnicode11Addon;
+	private _unicodeGeneration = 0;
+	private _unicodeRequestedVersion?: '6' | '11';
 
 	constructor(
 		cols: number,
@@ -1109,16 +1116,32 @@ class XtermSerializer implements ITerminalSerializer {
 
 	async setUnicodeVersion(version: '6' | '11'): Promise<void> {
 		if (this._xterm.unicode.activeVersion === version) {
-			return;
+			if (this._unicodeRequestedVersion === undefined || this._unicodeRequestedVersion === version) {
+				return;
+			}
 		}
-		if (version === '11') {
-			this._unicodeAddon = new (await this._getUnicode11Constructor());
+		const generation = ++this._unicodeGeneration;
+		const requestedVersion = version;
+		this._unicodeRequestedVersion = requestedVersion;
+		if (requestedVersion === '11') {
+			const Unicode11Ctor = await this._getUnicode11Constructor();
+			if (generation !== this._unicodeGeneration) {
+				return;
+			}
+			this._unicodeAddon = new Unicode11Ctor();
 			this._xterm.loadAddon(this._unicodeAddon);
 		} else {
 			this._unicodeAddon?.dispose();
 			this._unicodeAddon = undefined;
 		}
-		this._xterm.unicode.activeVersion = version;
+		this._xterm.unicode.activeVersion = requestedVersion;
+	}
+
+	dispose(): void {
+		++this._unicodeGeneration;
+		this._unicodeRequestedVersion = undefined;
+		this._unicodeAddon?.dispose();
+		this._unicodeAddon = undefined;
 	}
 
 	async _getUnicode11Constructor(): Promise<typeof Unicode11Addon> {
@@ -1167,4 +1190,5 @@ interface ITerminalSerializer {
 	generateReplayEvent(normalBufferOnly?: boolean, restoreToLastReviveBuffer?: boolean): Promise<IPtyHostProcessReplayEvent>;
 	setUnicodeVersion?(version: '6' | '11'): void;
 	setNextCommandId?(commandLine: string, commandId: string): void;
+	dispose?(): void;
 }
