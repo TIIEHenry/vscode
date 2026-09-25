@@ -144,11 +144,20 @@ export class TestingPeekOpener extends Disposable implements ITestingPeekOpener 
 	/** @inheritdoc */
 	public async open() {
 		let uri: TestUriWithDocument | undefined;
+		let entryModelUri: URI | undefined;
+
 		const active = this.editorService.activeTextEditorControl;
 		if (isCodeEditor(active) && active.getModel()?.uri) {
-			const modelUri = active.getModel()?.uri;
-			if (modelUri) {
-				uri = await this.getFileCandidateMessage(modelUri, active.getPosition());
+			entryModelUri = active.getModel()!.uri;
+			const entryPosition = active.getPosition() ?? null;
+			uri = await this.getFileCandidateMessage(entryModelUri, entryPosition);
+		}
+
+		if (entryModelUri) {
+			const activeAfter = this.editorService.activeTextEditorControl;
+			const activeModelUri = isCodeEditor(activeAfter) ? activeAfter.getModel()?.uri : undefined;
+			if (activeModelUri?.toString() !== entryModelUri.toString()) {
+				uri = undefined;
 			}
 		}
 
