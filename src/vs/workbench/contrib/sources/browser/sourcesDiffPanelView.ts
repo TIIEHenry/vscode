@@ -167,6 +167,7 @@ export class SourcesDiffPanelView extends ViewPane {
 	private comparisonLoadFailed = false;
 	private renderGeneration = 0;
 	private renderSettledGeneration = 0;
+	private _stageGeneration = 0;
 	/** Engine stage accepted for this modified URI; hide Stage until renderRef switches away. */
 	private stageEngineAcceptedModified: URI | undefined;
 	/** git.clean succeeded for this modified URI; hide Revert until renderRef switches away. */
@@ -516,6 +517,9 @@ export class SourcesDiffPanelView extends ViewPane {
 			return;
 		}
 
+		const stagedRef = this.currentRef;
+		const generation = ++this._stageGeneration;
+
 		const hook = this.uaConnection.writeGitStagePaths;
 		try {
 			const attempt = await attemptSourcesGitWrite(() => tryWriteSourcesGitStagePaths(
@@ -527,10 +531,12 @@ export class SourcesDiffPanelView extends ViewPane {
 				false,
 				this.getEngineSessionReady(),
 			));
+			if (generation !== this._stageGeneration || this._store.isDisposed || this.currentRef !== stagedRef) {
+				return;
+			}
 			if (attempt.kind === 'accepted') {
-				const ref = this.currentRef;
-				if (ref && isSourcesChangeStageable(context.groupId)) {
-					this.stageEngineAcceptedModified = ref.modified;
+				if (stagedRef && isSourcesChangeStageable(context.groupId)) {
+					this.stageEngineAcceptedModified = stagedRef.modified;
 				}
 				this.hideActionNotice();
 				this.updateWriteActions();
@@ -542,8 +548,15 @@ export class SourcesDiffPanelView extends ViewPane {
 				return;
 			}
 		} catch (error) {
+			if (generation !== this._stageGeneration || this._store.isDisposed || this.currentRef !== stagedRef) {
+				return;
+			}
 			this.showActionNotice(getErrorMessage(error));
 			this.updateWriteActions();
+			return;
+		}
+
+		if (generation !== this._stageGeneration || this._store.isDisposed || this.currentRef !== stagedRef) {
 			return;
 		}
 
