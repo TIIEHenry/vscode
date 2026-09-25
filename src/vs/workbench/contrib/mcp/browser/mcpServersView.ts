@@ -270,6 +270,14 @@ export class McpServersListView extends AbstractExtensionsListView<IWorkbenchMcp
 		return request;
 	}
 
+	override dispose(): void {
+		super.dispose();
+		if (this.queryRequest) {
+			this.queryRequest.request.cancel();
+			this.queryRequest = null;
+		}
+	}
+
 	private renderInput() {
 		if (!this.input) {
 			return;
