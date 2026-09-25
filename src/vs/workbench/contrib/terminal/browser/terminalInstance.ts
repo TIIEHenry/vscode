@@ -182,6 +182,7 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 	private _rows: number = 0;
 	private _fixedCols: number | undefined;
 	private _fixedRows: number | undefined;
+	private _fixedDimensionsGeneration = 0;
 	private _cwd: string | undefined = undefined;
 	private _initialCwd: string | undefined = undefined;
 	private _injectedArgs: string[] | undefined = undefined;
@@ -2233,12 +2234,16 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 	}
 
 	async setFixedDimensions(): Promise<void> {
+		const generation = ++this._fixedDimensionsGeneration;
 		const cols = await this._quickInputService.input({
 			title: nls.localize('setTerminalDimensionsColumn', "Set Fixed Dimensions: Column"),
 			placeHolder: 'Enter a number of columns or leave empty for automatic width',
 			validateInput: async (text) => text.length > 0 && !text.match(/^\d+$/) ? { content: 'Enter a number or leave empty size automatically', severity: Severity.Error } : undefined
 		});
 		if (cols === undefined) {
+			return;
+		}
+		if (generation !== this._fixedDimensionsGeneration || this._store.isDisposed) {
 			return;
 		}
 		this._fixedCols = this._parseFixedDimension(cols);
@@ -2252,9 +2257,15 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		if (rows === undefined) {
 			return;
 		}
+		if (generation !== this._fixedDimensionsGeneration || this._store.isDisposed) {
+			return;
+		}
 		this._fixedRows = this._parseFixedDimension(rows);
 		this._labelComputer?.refreshLabel(this);
 		await this._refreshScrollbar();
+		if (generation !== this._fixedDimensionsGeneration || this._store.isDisposed) {
+			return;
+		}
 		this._resize();
 		this.focus();
 	}
