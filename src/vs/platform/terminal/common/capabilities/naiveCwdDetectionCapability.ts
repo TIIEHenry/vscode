@@ -11,6 +11,7 @@ export class NaiveCwdDetectionCapability implements INaiveCwdDetectionCapability
 	constructor(private readonly _process: ITerminalChildProcess) { }
 	readonly type = TerminalCapability.NaiveCwdDetection;
 	private _cwd = '';
+	private _cwdGeneration = 0;
 
 	private readonly _onDidChangeCwd = new Emitter<string>();
 	readonly onDidChangeCwd = this._onDidChangeCwd.event;
@@ -19,7 +20,11 @@ export class NaiveCwdDetectionCapability implements INaiveCwdDetectionCapability
 		if (!this._process) {
 			return Promise.resolve('');
 		}
+		const generation = ++this._cwdGeneration;
 		const newCwd = await this._process.getCwd();
+		if (generation !== this._cwdGeneration) {
+			return newCwd;
+		}
 		if (newCwd !== this._cwd) {
 			this._onDidChangeCwd.fire(newCwd);
 		}
