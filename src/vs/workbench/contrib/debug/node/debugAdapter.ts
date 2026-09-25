@@ -239,6 +239,7 @@ export class NamedPipeDebugAdapter extends NetworkDebugAdapter {
 export class ExecutableDebugAdapter extends StreamDebugAdapter {
 
 	private serverProcess: cp.ChildProcess | undefined;
+	private _startGeneration = 0;
 
 	constructor(private adapterExecutable: IDebugAdapterExecutable, private debugType: string) {
 		super();
@@ -251,10 +252,15 @@ export class ExecutableDebugAdapter extends StreamDebugAdapter {
 		const options = this.adapterExecutable.options || {};
 
 		try {
+			const generation = ++this._startGeneration;
+			try {
 			// verify executables asynchronously
 			if (command) {
 				if (path.isAbsolute(command)) {
 					const commandExists = await Promises.exists(command);
+					if (generation !== this._startGeneration) {
+						return;
+					}
 					if (!commandExists) {
 						throw new Error(nls.localize('debugAdapterBinNotFound', "Debug adapter executable '{0}' does not exist.", command));
 					}
@@ -336,12 +342,19 @@ export class ExecutableDebugAdapter extends StreamDebugAdapter {
 			// finally connect to the DA
 			this.connect(this.serverProcess.stdout!, this.serverProcess.stdin!);
 
-		} catch (err) {
-			this._onError.fire(err);
+			} catch (err) {
+				if (generation !== this._startGeneration) {
+					return;
+				}
+				this._onError.fire(err);
+			}
+		} finally {
+			// generation is captured in this try, before exists; the inner catch reports errors
 		}
 	}
 
 	async stopSession(): Promise<void> {
+		++this._startGeneration;
 
 		if (!this.serverProcess) {
 			return Promise.resolve(undefined);
@@ -359,6 +372,11 @@ export class ExecutableDebugAdapter extends StreamDebugAdapter {
 			this.serverProcess.kill('SIGTERM');
 			return Promise.resolve(undefined);
 		}
+	}
+
+	override dispose(): void {
+		++this._startGeneration;
+		super.dispose();
 	}
 
 	private static extract(platformContribution: IPlatformSpecificAdapterContribution, extensionFolderPath: string): IDebuggerContribution | undefined {
