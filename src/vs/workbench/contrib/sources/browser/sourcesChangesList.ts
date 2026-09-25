@@ -885,6 +885,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			repo.provider.inputBoxTextModel.setValue(message);
 		}
 
+		const repository = this.activeRepository;
 		const writeHook = this.uaConnection.writeGitCommit;
 		try {
 			const written = await tryWriteSourcesGitCommit(
@@ -896,6 +897,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				this.leftoverListFailed,
 				this.getEngineSessionReady(),
 			);
+			if (this._store.isDisposed || this.activeRepository !== repository) {
+				return;
+			}
 			if (isSourcesGitWriteAccepted(written)) {
 				this.setWriteStatusMessage(undefined);
 				this.scheduleRefresh();
@@ -906,7 +910,13 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				return;
 			}
 		} catch (error) {
+			if (this._store.isDisposed || this.activeRepository !== repository) {
+				return;
+			}
 			this.setWriteStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", getErrorMessage(error)));
+			return;
+		}
+		if (this._store.isDisposed || this.activeRepository !== repository) {
 			return;
 		}
 
