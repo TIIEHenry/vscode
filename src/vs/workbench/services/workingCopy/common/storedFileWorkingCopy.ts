@@ -319,6 +319,7 @@ export class StoredFileWorkingCopy<M extends IStoredFileWorkingCopyModel> extend
 	readonly capabilities: WorkingCopyCapabilities = WorkingCopyCapabilities.None;
 
 	private _model: M | undefined = undefined;
+	private _createModelGeneration = 0;
 	get model(): M | undefined { return this._model; }
 
 	//#region events
@@ -688,7 +689,9 @@ export class StoredFileWorkingCopy<M extends IStoredFileWorkingCopyModel> extend
 
 		// Create new model otherwise
 		else {
-			await this.doCreateModel(content.value);
+			if (!await this.doCreateModel(content.value)) {
+				return;
+			}
 		}
 
 		// Update working copy dirty flag. This is very important to call
@@ -702,14 +705,27 @@ export class StoredFileWorkingCopy<M extends IStoredFileWorkingCopyModel> extend
 		this._onDidResolve.fire();
 	}
 
-	private async doCreateModel(contents: VSBufferReadableStream): Promise<void> {
+	private async doCreateModel(contents: VSBufferReadableStream): Promise<boolean> {
 		this.trace('doCreateModel()');
 
+		const generation = ++this._createModelGeneration;
+
+		const model = await this.modelFactory.createModel(this.resource, contents, CancellationToken.None);
+
+		// A slower create finished after a newer one, or the working copy was disposed while creating.
+		if (generation !== this._createModelGeneration || this.isDisposed()) {
+			model.dispose();
+
+			return false;
+		}
+
 		// Create model and dispose it when we get disposed
-		this._model = this._register(await this.modelFactory.createModel(this.resource, contents, CancellationToken.None));
+		this._model = this._register(model);
 
 		// Model listeners
 		this.installModelListeners(this._model);
+
+		return true;
 	}
 
 	private ignoreDirtyOnModelContentChange = false;
