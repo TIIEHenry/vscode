@@ -193,9 +193,16 @@ export class BrowserEditorInput extends EditorInput {
 	override async resolve(): Promise<IBrowserViewModel> {
 		if (!this._model && !this._modelPromise) {
 			this._modelPromise = (async () => {
-				this._model = await this._resolveModel();
+				const model = await this._resolveModel();
 				this._modelPromise = undefined;
+				if (this.isDisposed()) {
+					if (typeof model.dispose === 'function') {
+						model.dispose();
+					}
+					return model;
+				}
 
+				this._model = model;
 				return this._model;
 			})();
 		}
