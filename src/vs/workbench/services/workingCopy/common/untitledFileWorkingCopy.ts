@@ -166,6 +166,8 @@ export class UntitledFileWorkingCopy<M extends IUntitledFileWorkingCopyModel> ex
 
 	//#region Resolve
 
+	private _resolveGeneration = 0;
+
 	async resolve(): Promise<void> {
 		this.trace('resolve()');
 
@@ -178,10 +180,16 @@ export class UntitledFileWorkingCopy<M extends IUntitledFileWorkingCopyModel> ex
 			return;
 		}
 
+		const generation = ++this._resolveGeneration;
+
 		let untitledContents: VSBufferReadableStream;
 
 		// Check for backups or use initial value or empty
 		const backup = await this.workingCopyBackupService.resolve(this);
+		if (generation !== this._resolveGeneration || this.isDisposed()) {
+			return;
+		}
+
 		if (backup) {
 			this.trace('resolve() - with backup');
 
@@ -197,7 +205,20 @@ export class UntitledFileWorkingCopy<M extends IUntitledFileWorkingCopyModel> ex
 		}
 
 		// Create model
-		await this.doCreateModel(untitledContents);
+		const model = await this.doCreateModel(untitledContents);
+
+		// A newer resolve or dispose during backup/model creation must not
+		// attach the model, mark this working copy modified, or emit content.
+		if (generation !== this._resolveGeneration || this.isDisposed()) {
+			model.dispose();
+			return;
+		}
+
+		// Create model and dispose it when we get disposed
+		this._model = this._register(model);
+
+		// Model listeners
+		this.installModelListeners(this._model);
 
 		// Untitled associated to file path are modified right away as well as untitled with content
 		this.setModified(this.hasAssociatedFilePath || !!backup || Boolean(this.initialContents && this.initialContents.markModified !== false));
@@ -209,14 +230,10 @@ export class UntitledFileWorkingCopy<M extends IUntitledFileWorkingCopyModel> ex
 		}
 	}
 
-	private async doCreateModel(contents: VSBufferReadableStream): Promise<void> {
+	private async doCreateModel(contents: VSBufferReadableStream): Promise<M> {
 		this.trace('doCreateModel()');
 
-		// Create model and dispose it when we get disposed
-		this._model = this._register(await this.modelFactory.createModel(this.resource, contents, CancellationToken.None));
-
-		// Model listeners
-		this.installModelListeners(this._model);
+		return this.modelFactory.createModel(this.resource, contents, CancellationToken.None);
 	}
 
 	private installModelListeners(model: M): void {
@@ -314,6 +331,10 @@ export class UntitledFileWorkingCopy<M extends IUntitledFileWorkingCopyModel> ex
 	}
 
 	//#endregion
+
+	isDisposed(): boolean {
+		return this._store.isDisposed;
+	}
 
 	override dispose(): void {
 		this.trace('dispose()');
