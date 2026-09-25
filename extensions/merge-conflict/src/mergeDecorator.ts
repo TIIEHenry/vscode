@@ -175,8 +175,9 @@ export default class MergeDecorator implements vscode.Disposable {
 		try {
 			this.updating.set(editor, true);
 
+			const documentVersion = editor.document.version;
 			const conflicts = await this.tracker.getConflicts(editor.document);
-			if (vscode.window.visibleTextEditors.indexOf(editor) === -1) {
+			if (vscode.window.visibleTextEditors.indexOf(editor) === -1 || editor.document.version !== documentVersion) {
 				return;
 			}
 
