@@ -34,6 +34,7 @@ export class ProductIconThemeData implements IWorkbenchProductIconTheme {
 
 	iconThemeDocument: ProductIconThemeDocument = { iconDefinitions: new Map() };
 	styleSheetContent?: string;
+	private loadGeneration = 0;
 
 	private constructor(id: string, label: string, settingsId: string) {
 		this.id = id;
@@ -60,7 +61,12 @@ export class ProductIconThemeData implements IWorkbenchProductIconTheme {
 			return Promise.resolve(this.styleSheetContent);
 		}
 		const warnings: string[] = [];
-		this.iconThemeDocument = await _loadProductIconThemeDocument(fileService, location, warnings);
+		const generation = ++this.loadGeneration;
+		const iconThemeDocument = await _loadProductIconThemeDocument(fileService, location, warnings);
+		if (generation !== this.loadGeneration) {
+			return this.styleSheetContent;
+		}
+		this.iconThemeDocument = iconThemeDocument;
 		this.isLoaded = true;
 		if (warnings.length) {
 			logService.error(nls.localize('error.parseicondefs', "Problems processing product icons definitions in {0}:\n{1}", location.toString(), warnings.join('\n')));
