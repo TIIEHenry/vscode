@@ -1173,6 +1173,7 @@ export class CommentController extends Disposable implements IEditorContribution
 			return;
 		}
 		const uriAtEntry = editor.uri;
+		const commentInfosAtStart = this._commentInfos;
 		if (!this.editor || this.isEditorInlineOriginal(this.editor)) {
 			return;
 		}
@@ -1184,7 +1185,7 @@ export class CommentController extends Disposable implements IEditorContribution
 		const zoneWidget = this.instantiationService.createInstance(ReviewZoneWidget, this.editor, uniqueOwner, thread, pendingComment ?? continueOnCommentReply?.comment, pendingEdits);
 		await zoneWidget.display(thread.range, shouldReveal);
 		const currentURI = this.editor?.getModel()?.uri;
-		if (!currentURI || !this.uriIdentityService.extUri.isEqual(uriAtEntry, currentURI)) {
+		if (!currentURI || !this.uriIdentityService.extUri.isEqual(uriAtEntry, currentURI) || this._commentInfos !== commentInfosAtStart) {
 			zoneWidget.dispose();
 			return;
 		}
