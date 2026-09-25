@@ -1528,9 +1528,18 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 			this.shellLaunchConfig.shellIntegrationNonce ?? this.shellLaunchConfig.attachPersistentProcess?.shellIntegrationNonce
 		);
 		this.capabilities.add(processManager.capabilities);
+		let processReadyGeneration = 0;
 		this._register(processManager.onProcessReady(async (e) => {
+			const readyGeneration = ++processReadyGeneration;
+			const readyPid = e.pid;
 			this._onProcessIdReady.fire(this);
-			this._initialCwd = await this.getInitialCwd();
+			const initialCwd = await this.getInitialCwd();
+			// getInitialCwd can outlive this process. A restarted terminal already
+			// has a new pid; do not write the old cwd back or retitle from it.
+			if (readyGeneration !== processReadyGeneration || this._processManager.shellProcessId !== readyPid) {
+				return;
+			}
+			this._initialCwd = initialCwd;
 			// Set the initial name based on the _resolved_ shell launch config, this will also
 			// ensure the resolved icon gets shown
 			if (!this._labelComputer) {
