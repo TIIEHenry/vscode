@@ -17,6 +17,7 @@ export class BinaryEditorModel extends EditorModel {
 
 	private size: number | undefined;
 	private etag: string | undefined;
+	private resolveGeneration = 0;
 
 	constructor(
 		readonly resource: URI,
@@ -55,10 +56,14 @@ export class BinaryEditorModel extends EditorModel {
 	}
 
 	override async resolve(): Promise<void> {
+		const generation = ++this.resolveGeneration;
 
 		// Make sure to resolve up to date stat for file resources
 		if (this.fileService.hasProvider(this.resource)) {
 			const stat = await this.fileService.stat(this.resource);
+			if (generation !== this.resolveGeneration || this.isDisposed()) {
+				return;
+			}
 			this.etag = stat.etag;
 			if (typeof stat.size === 'number') {
 				this.size = stat.size;
