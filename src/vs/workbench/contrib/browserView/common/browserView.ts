@@ -445,6 +445,7 @@ export class BrowserViewModel extends Disposable implements IBrowserViewModel {
 	private _title: string = '';
 	private _favicon: string | undefined = undefined;
 	private _screenshot: VSBuffer | undefined = undefined;
+	private _screenshotGeneration = 0;
 	private _loading: boolean = false;
 	private _focused: boolean = false;
 	private _visible: boolean = false;
@@ -756,8 +757,12 @@ export class BrowserViewModel extends Disposable implements IBrowserViewModel {
 	}
 
 	async captureScreenshot(options?: IBrowserViewCaptureScreenshotOptions): Promise<VSBuffer> {
+		const generation = ++this._screenshotGeneration;
 		const result = await this.browserViewService.captureScreenshot(this.id, options);
 		// Store full-page screenshots for display in UI as placeholders
+		if (generation !== this._screenshotGeneration || this._store.isDisposed) {
+			return result;
+		}
 		if (!options?.screenRect && !options?.pageRect && !options?.fullPage) {
 			this._screenshot = result;
 		}
@@ -1012,6 +1017,7 @@ export class BrowserViewModel extends Disposable implements IBrowserViewModel {
 	}
 
 	override dispose(): void {
+		++this._screenshotGeneration;
 		this._onWillDispose.fire();
 
 		// Clean up the browser view when the model is disposed
