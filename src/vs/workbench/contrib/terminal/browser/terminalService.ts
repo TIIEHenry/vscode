@@ -84,6 +84,7 @@ export class TerminalService extends Disposable implements ITerminalService {
 	private _nativeDelegate?: ITerminalServiceNativeDelegate;
 	private _shutdownWindowCount?: number;
 	private _createContributedTerminalProfileGeneration = 0;
+	private _createAndFocusTerminalGeneration = 0;
 
 	get isProcessSupportRegistered(): boolean { return !!this._processSupportContextKey.get(); }
 
@@ -1119,7 +1120,11 @@ export class TerminalService extends Disposable implements ITerminalService {
 	}
 
 	async createAndFocusTerminal(options?: ICreateTerminalOptions): Promise<ITerminalInstance> {
+		const generation = ++this._createAndFocusTerminalGeneration;
 		const instance = await this.createTerminal(options);
+		if (generation !== this._createAndFocusTerminalGeneration) {
+			return instance;
+		}
 		this.setActiveInstance(instance);
 		await instance.focusWhenReady();
 		return instance;
