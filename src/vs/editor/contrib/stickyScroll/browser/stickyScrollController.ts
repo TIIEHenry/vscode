@@ -557,14 +557,22 @@ export class StickyScrollController extends Disposable implements IEditorContrib
 			} else {
 				// Suppose that previously the sticky scroll widget had height 0, then if there are visible lines, set the last line as focused
 				if (this._focusedStickyElementIndex === -1) {
+					const expectedUpdateSeq = this._updateSeq + 1;
 					await this._updateState(nextRebuildFromLine);
+					if (expectedUpdateSeq !== this._updateSeq) {
+						return;
+					}
 					this._focusedStickyElementIndex = this._stickyScrollWidget.lineNumberCount - 1;
 					if (this._focusedStickyElementIndex !== -1) {
 						this._stickyScrollWidget.focusLineWithIndex(this._focusedStickyElementIndex);
 					}
 				} else {
 					const focusedStickyElementLineNumber = this._stickyScrollWidget.lineNumbers[this._focusedStickyElementIndex];
+					const expectedUpdateSeq = this._updateSeq + 1;
 					await this._updateState(nextRebuildFromLine);
+					if (expectedUpdateSeq !== this._updateSeq) {
+						return;
+					}
 					// Suppose that after setting the state, there are no sticky lines, set the focused index to -1
 					if (this._stickyScrollWidget.lineNumberCount === 0) {
 						this._focusedStickyElementIndex = -1;
