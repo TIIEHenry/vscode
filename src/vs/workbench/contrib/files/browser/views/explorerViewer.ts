@@ -1649,6 +1649,7 @@ export class FileDragAndDrop implements ITreeDragAndDrop<ExplorerItem> {
 
 	private readonly disposables = new DisposableStore();
 	private dropEnabled = false;
+	private explorerDropCopyGeneration = 0;
 
 	constructor(
 		private isCollapsed: (item: ExplorerItem) => boolean,
@@ -2024,6 +2025,7 @@ export class FileDragAndDrop implements ITreeDragAndDrop<ExplorerItem> {
 	}
 
 	private async doHandleExplorerDropOnCopy(sources: ExplorerItem[], target: ExplorerItem): Promise<void> {
+		const generation = ++this.explorerDropCopyGeneration;
 
 		// Reuse duplicate action when user copies
 		const explorerConfig = this.configurationService.getValue<IFilesConfiguration>().explorer;
@@ -2037,6 +2039,9 @@ export class FileDragAndDrop implements ITreeDragAndDrop<ExplorerItem> {
 				{ resource, isDirectory, allowOverwrite },
 				explorerConfig.incrementalNaming
 			);
+			if (generation !== this.explorerDropCopyGeneration) {
+				return;
+			}
 			if (!newResource) {
 				continue;
 			}
@@ -2049,6 +2054,9 @@ export class FileDragAndDrop implements ITreeDragAndDrop<ExplorerItem> {
 			undoLabel: localize('copy', "Copy {0}", labelSuffix),
 			progressLabel: localize('copying', "Copying {0}", labelSuffix),
 		});
+		if (generation !== this.explorerDropCopyGeneration) {
+			return;
+		}
 
 		const editors = resourceFileEdits.filter(edit => {
 			const item = edit.newResource ? this.explorerService.findClosest(edit.newResource) : undefined;
