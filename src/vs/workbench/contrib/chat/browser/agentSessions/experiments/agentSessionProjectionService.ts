@@ -89,6 +89,12 @@ export class AgentSessionProjectionService extends Disposable implements IAgentS
 	/** Prevents re-entrant exits and enter-on-exit races */
 	private _isExiting = false;
 
+	/** Bumped on every enter/exit so an in-flight open cannot write back into a newer projection. */
+	private _projectionGeneration = 0;
+
+	/** Session this generation is projecting. Cleared on exit. */
+	private _projectionSession: IAgentSession | undefined;
+
 	/** Prevents checkForEmptyEditors from exiting during session swaps */
 	private _isSwappingSessions = false;
 
@@ -241,6 +247,9 @@ export class AgentSessionProjectionService extends Disposable implements IAgentS
 	}
 
 	async enterProjection(session: IAgentSession): Promise<void> {
+		const generation = ++this._projectionGeneration;
+		this._projectionSession = session;
+
 		// Check if the feature is enabled
 		if (!this._isEnabled()) {
 			this.logService.trace('[AgentSessionProjection] Agent Session Projection is disabled');
@@ -340,6 +349,9 @@ export class AgentSessionProjectionService extends Disposable implements IAgentS
 				} else {
 					// Try to open session files - only continue with projection if files were displayed
 					filesOpened = await this._openSessionFiles(session);
+					if (generation !== this._projectionGeneration || this._projectionSession !== session || this._store.isDisposed) {
+						return;
+					}
 				}
 
 				if (!filesOpened) {
@@ -400,6 +412,9 @@ export class AgentSessionProjectionService extends Disposable implements IAgentS
 	}
 
 	async exitProjection(options?: { startNewChat?: boolean }): Promise<void> {
+		++this._projectionGeneration;
+		this._projectionSession = undefined;
+
 		if (!this._isActive || this._isExiting) {
 			return;
 		}
