@@ -35,6 +35,7 @@ export class NativeTitlebarPart extends TitlebarPart {
 
 	private cachedWindowControlStyles: { bgColor: string; fgColor: string } | undefined;
 	private cachedWindowControlHeight: number | undefined;
+	private alwaysOnTopGeneration = 0;
 
 	constructor(
 		id: string,
@@ -155,11 +156,16 @@ export class NativeTitlebarPart extends TitlebarPart {
 
 		this._register(this.nativeHostService.onDidChangeWindowAlwaysOnTop(({ windowId, alwaysOnTop }) => {
 			if (windowId === targetWindowId) {
+				this.alwaysOnTopGeneration++;
 				isWindowAlwaysOnTopContext.set(alwaysOnTop);
 			}
 		}));
 
-		isWindowAlwaysOnTopContext.set(await this.nativeHostService.isWindowAlwaysOnTop({ targetWindowId }));
+		const generation = this.alwaysOnTopGeneration;
+		const result = await this.nativeHostService.isWindowAlwaysOnTop({ targetWindowId });
+		if (generation === this.alwaysOnTopGeneration) {
+			isWindowAlwaysOnTopContext.set(result);
+		}
 	}
 
 	override updateStyles(): void {
