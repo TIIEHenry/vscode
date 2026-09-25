@@ -551,6 +551,7 @@ export class CommentController extends Disposable implements IEditorContribution
 				this._commentThreadRangeDecorator.update(this.editor, []);
 				dispose(this._commentWidgets);
 				this._commentWidgets = [];
+				this._commentInfos = [];
 			}
 		}));
 
@@ -942,17 +943,17 @@ export class CommentController extends Disposable implements IEditorContribution
 			return;
 		}
 
-		const continueOnCommentIndex = this._inProcessContinueOnComments.get(uniqueOwner)?.findIndex(pending => {
+		const matchesContinueOnComment = (pending: languages.PendingCommentThread) => {
 			if (pending.range === undefined) {
 				return thread.range === undefined;
 			} else {
 				return Range.lift(pending.range).equalsRange(thread.range);
 			}
-		});
-		let continueOnCommentText: string | undefined;
-		if ((continueOnCommentIndex !== undefined) && continueOnCommentIndex >= 0) {
-			continueOnCommentText = this._inProcessContinueOnComments.get(uniqueOwner)?.splice(continueOnCommentIndex, 1)[0].comment.body;
-		}
+		};
+		const continueOnCommentIndex = this._inProcessContinueOnComments.get(uniqueOwner)?.findIndex(matchesContinueOnComment);
+		const continueOnCommentText = (continueOnCommentIndex !== undefined) && continueOnCommentIndex >= 0
+			? this._inProcessContinueOnComments.get(uniqueOwner)?.[continueOnCommentIndex].comment.body
+			: undefined;
 
 		const pendingCommentText = (this._pendingNewCommentCache[uniqueOwner] && this._pendingNewCommentCache[uniqueOwner][thread.threadId])
 			?? continueOnCommentText;
@@ -965,6 +966,11 @@ export class CommentController extends Disposable implements IEditorContribution
 		if (this._store.isDisposed || this._commentInfos !== commentInfos || !uriAtStart || !currentURI || !this.uriIdentityService.extUri.isEqual(uriAtStart, currentURI)) {
 			return;
 		}
+		const continueOnComments = this._inProcessContinueOnComments.get(uniqueOwner);
+		const continueOnCommentIndexAfterDisplay = continueOnComments?.findIndex(matchesContinueOnComment);
+		if ((continueOnCommentIndexAfterDisplay !== undefined) && continueOnCommentIndexAfterDisplay >= 0) {
+			continueOnComments?.splice(continueOnCommentIndexAfterDisplay, 1);
+		}
 		this._commentInfos.filter(info => info.uniqueOwner === uniqueOwner)[0].threads.push(thread);
 		this.tryUpdateReservedSpace();
 	}
@@ -974,6 +980,7 @@ export class CommentController extends Disposable implements IEditorContribution
 		this.tryUpdateReservedSpace();
 
 		this.removeCommentWidgetsAndStoreCache();
+		this._commentInfos = [];
 		if (!this.editor) {
 			return;
 		}
@@ -1178,16 +1185,18 @@ export class CommentController extends Disposable implements IEditorContribution
 			return;
 		}
 
-		let continueOnCommentReply: languages.PendingCommentThread | undefined;
-		if (thread.range && !pendingComment) {
-			continueOnCommentReply = this.commentService.removeContinueOnComment({ uniqueOwner, uri: editor.uri, range: thread.range, isReply: true });
-		}
-		const zoneWidget = this.instantiationService.createInstance(ReviewZoneWidget, this.editor, uniqueOwner, thread, pendingComment ?? continueOnCommentReply?.comment, pendingEdits);
+		const zoneWidget = this.instantiationService.createInstance(ReviewZoneWidget, this.editor, uniqueOwner, thread, pendingComment, pendingEdits);
 		await zoneWidget.display(thread.range, shouldReveal);
 		const currentURI = this.editor?.getModel()?.uri;
 		if (!currentURI || !this.uriIdentityService.extUri.isEqual(uriAtEntry, currentURI) || this._commentInfos !== commentInfosAtStart) {
 			zoneWidget.dispose();
 			return;
+		}
+		if (thread.range && !pendingComment) {
+			const continueOnCommentReply = this.commentService.removeContinueOnComment({ uniqueOwner, uri: uriAtEntry, range: thread.range, isReply: true });
+			if (continueOnCommentReply) {
+				zoneWidget.setPendingComment(continueOnCommentReply.comment);
+			}
 		}
 		this._commentWidgets.push(zoneWidget);
 		this.localToDispose.add(zoneWidget.onDidChangeExpandedState(() => this._updateCommentWidgetVisibleContext()));
