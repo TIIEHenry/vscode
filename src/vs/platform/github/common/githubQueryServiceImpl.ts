@@ -808,9 +808,13 @@ export class GitHubQueryService extends Disposable implements IGitHubQuery {
 		}, undefined);
 		let credential: GitHubCredential | undefined;
 		const startedAt = this._clock.now();
+		const generation = entry.generation;
 		this._logService.trace(`[GitHubQueryService] Refreshing ${entry.kind} ${formatEntityRef(entry.ref)} (entry ${entry.id})`);
 		try {
 			credential = await this._credentials.getCredential(controller.signal);
+			if (generation !== entry.generation || entry.disposed || controller.signal.aborted) {
+				return;
+			}
 			if (!sameAccount(entry.ref, credential)) {
 				throw new GitHubRequestError('GitHub resource account does not match the current credential', 'authentication');
 			}
@@ -822,7 +826,7 @@ export class GitHubQueryService extends Disposable implements IGitHubQuery {
 				etag: true,
 				priority: toRequestPriority(this._effectivePriority(entry)),
 			}, AbortSignal.any([controller.signal, credential.signal]));
-			if (entry.disposed || controller.signal.aborted || entry.subscriptions.size === 0) {
+			if (generation !== entry.generation || entry.disposed || controller.signal.aborted || entry.subscriptions.size === 0) {
 				return;
 			}
 			const value = entry.kind === 'repository'
@@ -844,10 +848,13 @@ export class GitHubQueryService extends Disposable implements IGitHubQuery {
 				this._scheduleEntity(entry, this._clock.now() + this._pollDelay(entry) + this._clock.jitter(this._policy.jitter));
 			}
 		} catch (error) {
+			if (generation !== entry.generation || entry.disposed || controller.signal.aborted) {
+				return;
+			}
 			if (credential && sameAccount(entry.ref, credential)) {
 				this._credentials.handleRequestError(credential, error);
 			}
-			if (!entry.disposed && !controller.signal.aborted && entry.subscriptions.size > 0) {
+			if (entry.subscriptions.size > 0) {
 				if (credential?.signal.aborted) {
 					this._scheduleEntity(entry, this._clock.now());
 					throw error;
