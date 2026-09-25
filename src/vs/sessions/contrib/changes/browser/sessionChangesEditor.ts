@@ -301,7 +301,7 @@ export class SessionChangesEditor extends AbstractEditorWithViewState<IMultiDiff
 		const viewModel = await input.getViewModel();
 		// Input owns the view model (inner multi-diff input). A switch, clearInput, or
 		// dispose drops this.input; do not install a stale model, and do not dispose one the input still holds.
-		if (token.isCancellationRequested || this.input !== input || this.isDisposed) {
+		if (token.isCancellationRequested || this.input !== input || this._store.isDisposed) {
 			return;
 		}
 		const sessionResource = this.sessionChangesService.getSessionResource(input.multiDiffSource);
