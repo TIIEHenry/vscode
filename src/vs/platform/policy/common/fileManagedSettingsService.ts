@@ -41,6 +41,7 @@ export class FileManagedSettingsService extends Disposable implements IFileManag
 
 	private readonly throttledDelayer = this._register(new ThrottledDelayer(500));
 	private readonly initialized = new Barrier();
+	private _refreshGeneration = 0;
 
 	constructor(
 		private readonly file: URI,
@@ -61,6 +62,11 @@ export class FileManagedSettingsService extends Disposable implements IFileManag
 		return this._managedSettings;
 	}
 
+	override dispose(): void {
+		++this._refreshGeneration;
+		super.dispose();
+	}
+
 	private scheduleRefresh(delay?: number): void {
 		void this.throttledDelayer.trigger(() => this.refresh(), delay).then(() => {
 			this.initialized.open();
@@ -73,11 +79,15 @@ export class FileManagedSettingsService extends Disposable implements IFileManag
 	}
 
 	private async refresh(): Promise<void> {
+		const generation = ++this._refreshGeneration;
 		const previousRaw = this._rawManagedSettings;
 		const previous = this._managedSettings;
 
 		try {
 			const content = await this.fileService.readFile(this.file, { limits: { size: MANAGED_SETTINGS_MAX_FILE_SIZE } });
+			if (generation !== this._refreshGeneration || this._store.isDisposed) {
+				return;
+			}
 			const parsed = JSON.parse(content.value.toString());
 
 			if (isObject(parsed)) {
@@ -90,6 +100,9 @@ export class FileManagedSettingsService extends Disposable implements IFileManag
 				this._managedSettings = {};
 			}
 		} catch (error) {
+			if (generation !== this._refreshGeneration || this._store.isDisposed) {
+				return;
+			}
 			if ((<FileOperationError>error).fileOperationResult !== FileOperationResult.FILE_NOT_FOUND) {
 				this.logService.error('[FileManagedSettingsService] Failed to read managed-settings.json', error);
 			}
