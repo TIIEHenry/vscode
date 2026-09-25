@@ -100,6 +100,7 @@ export class VariablesView extends ViewPane implements IDebugViewWithVariables {
 
 	private async _updateTreeNow(): Promise<void> {
 		const stackFrame = this.debugService.getViewModel().focusedStackFrame;
+		const stillThisFrame = () => !this._store.isDisposed && this.debugService.getViewModel().focusedStackFrame === stackFrame;
 
 		this.needsRefresh = false;
 		const input = this.tree.getInput();
@@ -108,14 +109,23 @@ export class VariablesView extends ViewPane implements IDebugViewWithVariables {
 		}
 		if (!stackFrame) {
 			await this.tree.setInput(null);
+			if (!stillThisFrame()) {
+				return;
+			}
 			return;
 		}
 
 		const viewState = this.savedViewState.get(stackFrame.getId());
 		await this.tree.setInput(stackFrame, viewState);
+		if (!stillThisFrame()) {
+			return;
+		}
 
 		// Automatically expand the first non-expensive scope
 		const scopes = await stackFrame.getScopes();
+		if (!stillThisFrame()) {
+			return;
+		}
 		const toExpand = scopes.find(s => !s.expensive);
 
 		// A race condition could be present causing the scopes here to be different from the scopes that the tree just retrieved.
