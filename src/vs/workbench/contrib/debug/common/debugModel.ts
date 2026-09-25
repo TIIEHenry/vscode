@@ -72,8 +72,14 @@ export class ExpressionContainer implements IExpressionContainer {
 			return;
 		}
 
-		const response = await this.session!.variables(this.reference, this.threadId, undefined, undefined, undefined);
+		const reference = this.reference;
+		const session = this.session;
+		const response = await session!.variables(reference, this.threadId, undefined, undefined, undefined);
 		if (!response || !response.body || !response.body.variables || response.body.variables.length !== 1) {
+			return;
+		}
+
+		if (this.session !== session || this.reference !== reference || !this.session) {
 			return;
 		}
 
