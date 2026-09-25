@@ -45,6 +45,7 @@ export class SimpleNotebookEditorModel extends EditorModel implements INotebookE
 	readonly onDidRevertUntitled: Event<void> = this._onDidRevertUntitled.event;
 
 	private _workingCopy?: IStoredFileWorkingCopy<NotebookFileWorkingCopyModel> | IUntitledFileWorkingCopy<NotebookFileWorkingCopyModel>;
+	private _loadGeneration = 0;
 	private readonly _workingCopyListeners = this._register(new DisposableStore());
 	private readonly scratchPad: boolean;
 
@@ -62,6 +63,7 @@ export class SimpleNotebookEditorModel extends EditorModel implements INotebookE
 	}
 
 	override dispose(): void {
+		++this._loadGeneration;
 		this._workingCopy?.dispose();
 		super.dispose();
 	}
@@ -130,18 +132,40 @@ export class SimpleNotebookEditorModel extends EditorModel implements INotebookE
 
 	async load(options?: INotebookLoadOptions): Promise<IResolvedNotebookEditorModel> {
 		if (!this._workingCopy || !this._workingCopy.model) {
+			const generation = ++this._loadGeneration;
 			if (this.resource.scheme === Schemas.untitled) {
 				if (this._hasAssociatedFilePath) {
-					this._workingCopy = await this._workingCopyManager.resolve({ associatedResource: this.resource });
+					const workingCopy = await this._workingCopyManager.resolve({ associatedResource: this.resource });
+					if (generation !== this._loadGeneration || this._store.isDisposed) {
+						if (workingCopy !== this._workingCopy) {
+							workingCopy.dispose();
+						}
+						throw new CancellationError();
+					}
+					this._workingCopy = workingCopy;
 				} else {
-					this._workingCopy = await this._workingCopyManager.resolve({ untitledResource: this.resource, isScratchpad: this.scratchPad });
+					const workingCopy = await this._workingCopyManager.resolve({ untitledResource: this.resource, isScratchpad: this.scratchPad });
+					if (generation !== this._loadGeneration || this._store.isDisposed) {
+						if (workingCopy !== this._workingCopy) {
+							workingCopy.dispose();
+						}
+						throw new CancellationError();
+					}
+					this._workingCopy = workingCopy;
 				}
 				this._register(this._workingCopy.onDidRevert(() => this._onDidRevertUntitled.fire()));
 			} else {
-				this._workingCopy = await this._workingCopyManager.resolve(this.resource, {
+				const workingCopy = await this._workingCopyManager.resolve(this.resource, {
 					limits: options?.limits,
 					reload: options?.forceReadFromFile ? { async: false, force: true } : undefined
 				});
+				if (generation !== this._loadGeneration || this._store.isDisposed) {
+					if (workingCopy !== this._workingCopy) {
+						workingCopy.dispose();
+					}
+					throw new CancellationError();
+				}
+				this._workingCopy = workingCopy;
 				this._workingCopyListeners.add(this._workingCopy.onDidSave(e => this._onDidSave.fire(e)));
 				this._workingCopyListeners.add(this._workingCopy.onDidChangeOrphaned(() => this._onDidChangeOrphaned.fire()));
 				this._workingCopyListeners.add(this._workingCopy.onDidChangeReadonly(() => this._onDidChangeReadonly.fire()));
