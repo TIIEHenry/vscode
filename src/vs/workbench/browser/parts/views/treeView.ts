@@ -408,7 +408,11 @@ abstract class AbstractTreeView extends Disposable implements ITreeView {
 						childrenGroups = nodes.map(node => node.children);
 					} else {
 						nodes = nodes ?? [self.root];
+						const generation = self.childrenResolveGeneration;
 						const batchedChildren = await (nodes.length === 1 && nodes[0] instanceof Root ? doGetChildrenOrBatch(dataProvider, undefined) : doGetChildrenOrBatch(dataProvider, nodes));
+						if (generation !== self.childrenResolveGeneration) {
+							return batchedChildren ?? [];
+						}
 						for (let i = 0; i < nodes.length; i++) {
 							const node = nodes[i];
 							node.children = batchedChildren ? batchedChildren[i] : undefined;
@@ -1018,6 +1022,7 @@ abstract class AbstractTreeView extends Disposable implements ITreeView {
 			if (this.refreshing) {
 				await Event.toPromise(this._onDidCompleteRefresh.event);
 			}
+			this.childrenResolveGeneration++;
 			if (!elements) {
 				elements = [this.root];
 				// remove all waiting elements to refresh if root is asked to refresh
@@ -1092,6 +1097,7 @@ abstract class AbstractTreeView extends Disposable implements ITreeView {
 	}
 
 	private refreshing: boolean = false;
+	private childrenResolveGeneration: number = 0;
 	private async doRefresh(elements: readonly ITreeItem[]): Promise<void> {
 		const tree = this.tree;
 		if (tree && this.visible) {
