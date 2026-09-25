@@ -298,8 +298,8 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 			const model = await input.resolve(options, perf);
 			perf.mark('inputLoaded');
 
-			// Check for cancellation
-			if (token.isCancellationRequested) {
+			// Check for cancellation, a newer input, or a disposed pane before writing the widget.
+			if (token.isCancellationRequested || this.input !== input || this._store.isDisposed) {
 				return undefined;
 			}
 
