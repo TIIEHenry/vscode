@@ -62,6 +62,10 @@ export abstract class BreadcrumbsPicker<TInput, TElement> {
 
 	private readonly _previewDispoables = new MutableDisposable();
 
+	/** 这次 picker 的身份。dispose、后一次 show 或 _setInput 递增，使尚未写回的那次失效。 */
+	private _pickerGeneration = 0;
+	private _disposed = false;
+
 	constructor(
 		parent: HTMLElement,
 		protected resource: URI,
@@ -75,6 +79,8 @@ export abstract class BreadcrumbsPicker<TInput, TElement> {
 	}
 
 	dispose(): void {
+		this._disposed = true;
+		this._pickerGeneration++;
 		this._disposables.dispose();
 		this._previewDispoables.dispose();
 		this._onWillPickElement.dispose();
@@ -83,6 +89,7 @@ export abstract class BreadcrumbsPicker<TInput, TElement> {
 	}
 
 	async show(input: FileElement | OutlineElement2, maxHeight: number, width: number, arrowSize: number, arrowOffset: number): Promise<void> {
+		this._claimPickerGeneration();
 
 		const theme = this._themeService.getColorTheme();
 		const color = theme.getColor(breadcrumbsPickerBackground);
@@ -119,11 +126,25 @@ export abstract class BreadcrumbsPicker<TInput, TElement> {
 
 		this._domNode.focus();
 		try {
-			await this._setInput(input);
+			const setInputDone = this._setInput(input);
+			const generation = this._pickerGeneration;
+			await setInputDone;
+			if (!this._isPickerGenerationCurrent(generation)) {
+				return;
+			}
 			this._layout();
 		} catch (err) {
 			onUnexpectedError(err);
 		}
+	}
+
+	/** 入口拿住本次身份。后一次 show / _setInput，或 dispose，都会让旧代失效。 */
+	protected _claimPickerGeneration(): number {
+		return ++this._pickerGeneration;
+	}
+
+	protected _isPickerGenerationCurrent(generation: number): boolean {
+		return !this._disposed && generation === this._pickerGeneration;
 	}
 
 	protected _layout(): void {
@@ -393,6 +414,7 @@ export class BreadcrumbsFilePicker extends BreadcrumbsPicker<IWorkspace | URI, I
 	}
 
 	protected async _setInput(element: FileElement | OutlineElement2): Promise<void> {
+		const generation = this._claimPickerGeneration();
 		const { uri, kind } = (element as FileElement);
 		let input: IWorkspace | URI;
 		if (kind === FileKind.ROOT_FOLDER) {
@@ -403,6 +425,9 @@ export class BreadcrumbsFilePicker extends BreadcrumbsPicker<IWorkspace | URI, I
 
 		const tree = this._tree as WorkbenchAsyncDataTree<IWorkspace | URI, IWorkspaceFolder | IFileStat, FuzzyScore>;
 		await tree.setInput(input);
+		if (!this._isPickerGenerationCurrent(generation)) {
+			return;
+		}
 		let focusElement: IWorkspaceFolder | IFileStat | undefined;
 		for (const { element } of tree.getNode().children) {
 			if (isWorkspaceFolder(element) && isEqual(element.uri, uri)) {
