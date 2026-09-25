@@ -108,12 +108,15 @@ export class TextDiffEditor extends AbstractTextEditor<IDiffEditorViewState> imp
 
 		// Set input and resolve
 		await super.setInput(input, options, context, token);
+		if (token.isCancellationRequested || this.input !== input || this._store.isDisposed) {
+			return undefined;
+		}
 
 		try {
 			const resolvedModel = await input.resolve();
 
-			// Check for cancellation
-			if (token.isCancellationRequested) {
+			// Check for cancellation, a newer input, or a disposed pane before touching the view model.
+			if (token.isCancellationRequested || this.input !== input || this._store.isDisposed) {
 				return undefined;
 			}
 
@@ -130,7 +133,7 @@ export class TextDiffEditor extends AbstractTextEditor<IDiffEditorViewState> imp
 			const vm = resolvedDiffEditorModel.textDiffEditorModel ? control.createViewModel(resolvedDiffEditorModel.textDiffEditorModel) : null;
 			this._previousViewModel = vm;
 			await vm?.waitForDiff();
-			if (token.isCancellationRequested || this._previousViewModel !== vm) {
+			if (token.isCancellationRequested || this.input !== input || this._store.isDisposed || this._previousViewModel !== vm) {
 				return undefined;
 			}
 			control.setModel(vm);
