@@ -231,9 +231,14 @@ export class UserDataSyncWorkbenchService extends Disposable implements IUserDat
 
 	private async updateNow(reason: string): Promise<void> {
 		this.logService.trace(`Settings Sync: Updating due to ${reason}`);
+		const currentSessionId = this.currentSessionId;
 
 		this.updateAuthenticationProviders();
 		await this.updateCurrentAccount();
+
+		if (this.currentSessionId !== currentSessionId || this._store.isDisposed) {
+			return;
+		}
 
 		if (this._current) {
 			this.currentAuthenticationProviderId = this._current.authenticationProviderId;
@@ -251,6 +256,9 @@ export class UserDataSyncWorkbenchService extends Disposable implements IUserDat
 			const authenticationProviders = currentAuthenticationProviderId ? this.authenticationProviders.filter(({ id }) => id === currentAuthenticationProviderId) : this.authenticationProviders;
 			for (const { id, scopes } of authenticationProviders) {
 				const sessions = (await this.authenticationService.getSessions(id, scopes)) || [];
+				if (this.currentSessionId !== currentSessionId || this._store.isDisposed) {
+					return;
+				}
 				for (const session of sessions) {
 					if (session.id === currentSessionId) {
 						this._current = new UserDataSyncAccount(id, session);
