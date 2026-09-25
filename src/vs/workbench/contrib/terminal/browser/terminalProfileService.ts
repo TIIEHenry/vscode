@@ -47,6 +47,7 @@ export class TerminalProfileService extends Disposable implements ITerminalProfi
 	private readonly _profileProviders: Map</*ext id*/string, Map</*provider id*/string, ITerminalProfileProvider>> = new Map();
 	private _defaultProfileOverride: { extensionIdentifier: string; id: string } | undefined;
 	private _refreshAvailableProfilesChain: Promise<void> = Promise.resolve();
+	private _registerContributedProfileChain: Promise<void> = Promise.resolve();
 
 	private readonly _onDidChangeAvailableProfiles = this._register(new Emitter<ITerminalProfile[]>());
 	get onDidChangeAvailableProfiles(): Event<ITerminalProfile[]> { return this._onDidChangeAvailableProfiles.event; }
@@ -261,6 +262,12 @@ export class TerminalProfileService extends Disposable implements ITerminalProfi
 	}
 
 	async registerContributedProfile(args: IRegisterContributedProfileArgs): Promise<void> {
+		const run = this._registerContributedProfileChain.then(() => this._doRegisterContributedProfile(args));
+		this._registerContributedProfileChain = run.then(() => undefined, () => undefined);
+		return run;
+	}
+
+	private async _doRegisterContributedProfile(args: IRegisterContributedProfileArgs): Promise<void> {
 		const platformKey = await this.getPlatformKey();
 		const profilesConfig = await this._configurationService.getValue(`${TerminalSettingPrefix.Profiles}${platformKey}`);
 		if (typeof profilesConfig === 'object') {
@@ -276,7 +283,6 @@ export class TerminalProfileService extends Disposable implements ITerminalProfi
 			(profilesConfig as { [key: string]: ITerminalProfileObject })[args.title] = newProfile;
 		}
 		await this._configurationService.updateValue(`${TerminalSettingPrefix.Profiles}${platformKey}`, profilesConfig, ConfigurationTarget.USER);
-		return;
 	}
 
 	registerInternalContributedProfile(profile: IExtensionTerminalProfile): IDisposable {
