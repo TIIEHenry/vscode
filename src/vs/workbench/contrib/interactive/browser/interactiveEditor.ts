@@ -425,12 +425,14 @@ export class InteractiveEditor extends EditorPane implements IEditorPaneWithScro
 			this._inputCellContainer.style.width = `${this._lastLayoutDimensions.dimension.width}px`;
 		}
 
+		const inputLeft = () => token.isCancellationRequested || this.input !== input || this._store.isDisposed;
+
 		await super.setInput(input, options, context, token);
-		if (token.isCancellationRequested) {
+		if (inputLeft()) {
 			return;
 		}
 		const model = await input.resolve();
-		if (token.isCancellationRequested) {
+		if (inputLeft()) {
 			return;
 		}
 		if (this._runbuttonToolbar) {
@@ -445,11 +447,11 @@ export class InteractiveEditor extends EditorPane implements IEditorPaneWithScro
 
 		const viewState = options?.viewState ?? this._loadNotebookEditorViewState(input);
 		await this._extensionService.whenInstalledExtensionsRegistered();
-		if (token.isCancellationRequested) {
+		if (inputLeft()) {
 			return;
 		}
 		await this._notebookWidget.value!.setModel(model.notebook, viewState?.notebook);
-		if (token.isCancellationRequested) {
+		if (inputLeft()) {
 			return;
 		}
 		model.notebook.setCellCollapseDefault(this._notebookOptions.getCellCollapseDefault());
@@ -478,7 +480,7 @@ export class InteractiveEditor extends EditorPane implements IEditorPaneWithScro
 
 		const languageId = this._notebookWidget.value?.activeKernel?.supportedLanguages[0] ?? input.language ?? PLAINTEXT_LANGUAGE_ID;
 		const editorModel = await input.resolveInput(languageId);
-		if (token.isCancellationRequested || !editorModel) {
+		if (inputLeft() || !editorModel) {
 			return;
 		}
 		editorModel.setLanguage(languageId);
