@@ -3048,6 +3048,11 @@ export class ChatWidget extends Disposable implements IChatWidget {
 			if (!current) {
 				return;
 			}
+			// The summary outlives the session that started it. The input is reused
+			// across sessions, so a switch while waiting must not paint this banner.
+			if (!isEqual(this.viewModel?.model.sessionResource, sessionResource)) {
+				return;
+			}
 			if (summary) {
 				current.setGoalBanner(summary);
 			} else {
@@ -3055,6 +3060,9 @@ export class ChatWidget extends Disposable implements IChatWidget {
 			}
 		}, () => {
 			if (cts.token.isCancellationRequested) {
+				return;
+			}
+			if (!isEqual(this.viewModel?.model.sessionResource, sessionResource)) {
 				return;
 			}
 			this.inputPartDisposable.value?.clearGoalBanner();
