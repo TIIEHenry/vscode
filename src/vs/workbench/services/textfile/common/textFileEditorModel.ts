@@ -109,6 +109,7 @@ export class TextFileEditorModel extends BaseTextEditorModel implements ITextFil
 	private inConflictMode = false;
 	private inOrphanMode = false;
 	private _orphanCheckGeneration = 0;
+	private _resolveFromFileGeneration = 0;
 	private inErrorMode = false;
 
 	constructor(
@@ -455,6 +456,7 @@ export class TextFileEditorModel extends BaseTextEditorModel implements ITextFil
 		// Remember current version before doing any long running operation
 		// to ensure we are not changing a model that was changed meanwhile
 		const currentVersionId = this.versionId;
+		const generation = ++this._resolveFromFileGeneration;
 
 		// Resolve Content
 		try {
@@ -464,6 +466,10 @@ export class TextFileEditorModel extends BaseTextEditorModel implements ITextFil
 				encoding: this.preferredEncoding,
 				limits: options?.limits
 			});
+
+			if (generation !== this._resolveFromFileGeneration || this.isDisposed()) {
+				return;
+			}
 
 			// Clear orphaned state when resolving was successful
 			this.setOrphaned(false);
