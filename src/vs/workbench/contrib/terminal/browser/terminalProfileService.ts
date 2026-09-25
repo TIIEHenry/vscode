@@ -41,6 +41,7 @@ export class TerminalProfileService extends Disposable implements ITerminalProfi
 	private _contributedProfiles: IExtensionTerminalProfile[] = [];
 	private readonly _internalContributedProfiles: IExtensionTerminalProfile[] = [];
 	private _defaultProfileName?: string;
+	private _detectProfilesGeneration = 0;
 	private _platformConfigJustRefreshed = false;
 	private readonly _refreshTerminalActionsDisposable = this._register(new MutableDisposable());
 	private readonly _profileProviders: Map</*ext id*/string, Map</*provider id*/string, ITerminalProfileProvider>> = new Map();
@@ -200,21 +201,35 @@ export class TerminalProfileService extends Disposable implements ITerminalProfi
 	}
 
 	private async _detectProfiles(includeDetectedProfiles?: boolean): Promise<ITerminalProfile[]> {
+		const generation = ++this._detectProfilesGeneration;
+		const discardStale = (): ITerminalProfile[] => this._availableProfiles || [];
+
 		// On web without a pty host, getBackend() waits forever for a backend
 		// that will never register. Check synchronously first to avoid hanging.
 		if (isWeb && !this._environmentService.remoteAuthority) {
 			const hasAnyBackend = [...this._terminalInstanceService.getRegisteredBackends()].length > 0;
 			if (!hasAnyBackend) {
-				return this._availableProfiles || [];
+				return discardStale();
 			}
 		}
 		const primaryBackend = await this._terminalInstanceService.getBackend(this._environmentService.remoteAuthority);
+		if (generation !== this._detectProfilesGeneration) {
+			return discardStale();
+		}
 		if (!primaryBackend) {
-			return this._availableProfiles || [];
+			return discardStale();
 		}
 		const platform = await this.getPlatformKey();
-		this._defaultProfileName = this._configurationService.getValue(`${TerminalSettingPrefix.DefaultProfile}${platform}`) ?? undefined;
-		return primaryBackend.getProfiles(this._configurationService.getValue(`${TerminalSettingPrefix.Profiles}${platform}`), this._defaultProfileName, includeDetectedProfiles);
+		if (generation !== this._detectProfilesGeneration) {
+			return discardStale();
+		}
+		const defaultProfileName = this._configurationService.getValue(`${TerminalSettingPrefix.DefaultProfile}${platform}`) ?? undefined;
+		const profiles = await primaryBackend.getProfiles(this._configurationService.getValue(`${TerminalSettingPrefix.Profiles}${platform}`), defaultProfileName, includeDetectedProfiles);
+		if (generation !== this._detectProfilesGeneration) {
+			return discardStale();
+		}
+		this._defaultProfileName = defaultProfileName;
+		return profiles;
 	}
 
 	private _updateWebContextKey(): void {
