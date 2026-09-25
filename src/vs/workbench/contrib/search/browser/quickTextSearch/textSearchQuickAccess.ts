@@ -58,6 +58,7 @@ export class TextSearchQuickAccess extends PickerQuickAccessProvider<ITextSearch
 	private editorSequencer: Sequencer;
 	private queryBuilder: QueryBuilder;
 	private searchModel: SearchModelImpl;
+	private _moveToViewletGeneration = 0;
 	private currentAsyncSearch: Promise<ISearchComplete> = Promise.resolve({
 		results: [],
 		messages: []
@@ -98,6 +99,7 @@ export class TextSearchQuickAccess extends PickerQuickAccessProvider<ITextSearch
 	}
 
 	override dispose(): void {
+		++this._moveToViewletGeneration;
 		this.searchModel.dispose();
 		super.dispose();
 	}
@@ -214,7 +216,13 @@ export class TextSearchQuickAccess extends PickerQuickAccessProvider<ITextSearch
 		// then, this._searchModel will construct a new (empty) SearchModel.
 		this._viewsService.openView(VIEW_ID, false);
 		const viewlet: SearchView | undefined = this._viewsService.getActiveViewWithId(VIEW_ID) as SearchView;
-		await viewlet.replaceSearchModel(this.searchModel, this.currentAsyncSearch);
+		const generation = ++this._moveToViewletGeneration;
+		const searchModel = this.searchModel;
+		await viewlet.replaceSearchModel(searchModel, this.currentAsyncSearch);
+
+		if (generation !== this._moveToViewletGeneration || this._store.isDisposed) {
+			return;
+		}
 
 		this.searchModel = this._instantiationService.createInstance(SearchModelImpl);
 		this.searchModel.location = SearchModelLocation.QUICK_ACCESS;
