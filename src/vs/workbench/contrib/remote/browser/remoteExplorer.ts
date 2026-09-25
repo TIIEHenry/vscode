@@ -360,6 +360,7 @@ class OnAutoForwardedAction extends Disposable {
 	private doActionTunnels: RemoteTunnel[] | undefined;
 	private alreadyOpenedOnce: Set<string> = new Set();
 	private _doActionChain: Promise<void> = Promise.resolve();
+	private notificationGeneration = 0;
 
 	constructor(private readonly notificationService: INotificationService,
 		private readonly remoteExplorerService: IRemoteExplorerService,
@@ -420,6 +421,7 @@ class OnAutoForwardedAction extends Disposable {
 	}
 
 	public hide(removedPorts: number[]) {
+		++this.notificationGeneration;
 		if (this.doActionTunnels) {
 			this.doActionTunnels = this.doActionTunnels.filter(value => !removedPorts.includes(value.tunnelRemotePort));
 		}
@@ -478,6 +480,9 @@ class OnAutoForwardedAction extends Disposable {
 	}
 
 	private async showNotification(tunnel: RemoteTunnel) {
+		const generation = ++this.notificationGeneration;
+		const remoteHost = tunnel.tunnelRemoteHost;
+		const remotePort = tunnel.tunnelRemotePort;
 		if (!await this.hostService.hadLastFocus()) {
 			return;
 		}
@@ -500,6 +505,10 @@ class OnAutoForwardedAction extends Disposable {
 		}
 
 		message += this.linkMessage();
+
+		if (generation !== this.notificationGeneration || this._store.isDisposed || tunnel.tunnelRemoteHost !== remoteHost || tunnel.tunnelRemotePort !== remotePort) {
+			return;
+		}
 
 		this.lastNotification = this.notificationService.prompt(Severity.Info, message, choices, { neverShowAgain: { id: 'remote.tunnelsView.autoForwardNeverShow', isSecondary: true } });
 		this.lastShownPort = tunnel.tunnelRemotePort;
