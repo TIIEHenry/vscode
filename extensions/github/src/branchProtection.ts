@@ -144,6 +144,8 @@ export class GitHubBranchProtectionProvider implements BranchProtectionProvider 
 
 	private branchProtection: BranchProtection[];
 	private readonly globalStateKey: string;
+	/** Set in dispose(); in-flight fetches must not write back after the provider is unregistered. */
+	private disposed = false;
 
 	private readonly disposables = new DisposableStore();
 
@@ -217,6 +219,9 @@ export class GitHubBranchProtectionProvider implements BranchProtectionProvider 
 				// Repository details
 				this.logger.trace(`[GitHubBranchProtectionProvider][updateRepositoryBranchProtection] Fetching repository details for "${repository.owner}/${repository.repo}".`);
 				const repositoryDetails = await this.getRepositoryDetails(repository.owner, repository.repo);
+				if (this.disposed) {
+					return;
+				}
 
 				// Check repository write permission
 				if (repositoryDetails.viewerPermission !== 'ADMIN' && repositoryDetails.viewerPermission !== 'MAINTAIN' && repositoryDetails.viewerPermission !== 'WRITE') {
@@ -227,6 +232,9 @@ export class GitHubBranchProtectionProvider implements BranchProtectionProvider 
 				// Get repository rulesets
 				const branchProtectionRules: BranchProtectionRule[] = [];
 				const repositoryRulesets = await this.getRepositoryRulesets(repository.owner, repository.repo);
+				if (this.disposed) {
+					return;
+				}
 
 				for (const ruleset of repositoryRulesets) {
 					branchProtectionRules.push({
@@ -285,6 +293,7 @@ export class GitHubBranchProtectionProvider implements BranchProtectionProvider 
 	}
 
 	dispose(): void {
+		this.disposed = true;
 		this.disposables.dispose();
 	}
 }
