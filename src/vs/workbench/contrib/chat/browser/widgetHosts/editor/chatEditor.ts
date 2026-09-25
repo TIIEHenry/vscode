@@ -249,13 +249,19 @@ export class ChatEditor extends AbstractEditorWithViewState<IChatEditorViewState
 		if (chatSessionType !== localChatSessionType) {
 			try {
 				await raceCancellationError(this.chatSessionsService.canResolveChatSession(chatSessionType), token);
-				const contributions = this.chatSessionsService.getAllChatSessionContributions();
-				const contribution = contributions.find(c => c.type === chatSessionType);
-				if (contribution) {
-					this.widget.lockToCodingAgent(contribution.name, contribution.displayName, contribution.type, contribution.agentHostProviderId);
-					isContributedChatSession = true;
-				} else {
-					this.widget.unlockFromCodingAgent();
+				// `canResolveChatSession` waits on extension registration / activateByEvent.
+				// The next `setInput` cancels this token only after the race may already
+				// have resolved, so a stale continuation must not lock or unlock the
+				// widget that already moved on.
+				if (!token.isCancellationRequested && this.input === input) {
+					const contributions = this.chatSessionsService.getAllChatSessionContributions();
+					const contribution = contributions.find(c => c.type === chatSessionType);
+					if (contribution) {
+						this.widget.lockToCodingAgent(contribution.name, contribution.displayName, contribution.type, contribution.agentHostProviderId);
+						isContributedChatSession = true;
+					} else {
+						this.widget.unlockFromCodingAgent();
+					}
 				}
 			} catch (error) {
 				this.hideLoadingInChatWidget();
