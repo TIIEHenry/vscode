@@ -905,6 +905,7 @@ export class Repository implements Disposable {
 	private commitCommandCenter: CommitCommandsCenter;
 	private resourceCommandResolver = new ResourceCommandResolver(this);
 	private updateModelStateCancellationTokenSource: CancellationTokenSource | undefined;
+	private _disposed = false;
 	private disposables: Disposable[] = [];
 
 	constructor(
@@ -2895,6 +2896,13 @@ export class Repository implements Disposable {
 					this.getInputTemplate(),
 					this.initIsUsingVirtualFileSystem()]);
 
+			// A later updateModelState cancels this token; dispose marks the
+			// repository dead. Either can happen while the calls above are in
+			// flight, and the stale result must not overwrite HEAD or status.
+			if (cancellationToken?.isCancellationRequested || this._disposed) {
+				return;
+			}
+
 			// Reset the list of unpublished commits if HEAD has
 			// changed (ex: checkout, fetch, pull, push, publish, etc.).
 			// The list of unpublished commits will be computed lazily
@@ -2921,6 +2929,10 @@ export class Repository implements Disposable {
 				await Promise.all([
 					this.getStatus(cancellationToken),
 					this.getRefs({}, cancellationToken)]);
+
+			if (cancellationToken?.isCancellationRequested || this._disposed) {
+				return;
+			}
 
 			this._refs = refs;
 			this._updateResourceGroupsState(resourceGroups);
@@ -3491,6 +3503,7 @@ export class Repository implements Disposable {
 	}
 
 	dispose(): void {
+		this._disposed = true;
 		this.disposables = dispose(this.disposables);
 	}
 }
