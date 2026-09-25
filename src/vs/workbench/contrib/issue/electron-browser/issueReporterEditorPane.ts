@@ -145,6 +145,9 @@ export class IssueReporterEditorPane extends EditorPane {
 		if (token.isCancellationRequested || !this.container) {
 			return;
 		}
+		if (token.isCancellationRequested || this.input !== input || this._store.isDisposed) {
+			return;
+		}
 
 		// Keep our own input reference for revealAndActivate() after clearInput().
 		this.wizardInput = input;
@@ -413,6 +416,11 @@ export class IssueReporterEditorPane extends EditorPane {
 				this.wizard?.resetGenerateButton();
 			}
 		}));
+	}
+
+	override dispose(): void {
+		this._input = undefined;
+		super.dispose();
 	}
 
 	private async fetchPerformanceInfo(options?: { skipCache?: boolean; unbounded?: boolean }): Promise<void> {
