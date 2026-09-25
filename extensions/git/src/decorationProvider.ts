@@ -173,6 +173,7 @@ class GitIncomingChangesFileDecorationProvider implements FileDecorationProvider
 
 	private _currentHistoryItemRef: SourceControlHistoryItemRef | undefined;
 	private _currentHistoryItemRemoteRef: SourceControlHistoryItemRef | undefined;
+	private _currentHistoryItemRefsGeneration = 0;
 
 	private _decorations = new Map<string, FileDecoration>();
 	private readonly disposables: Disposable[] = [];
@@ -185,6 +186,11 @@ class GitIncomingChangesFileDecorationProvider implements FileDecorationProvider
 	}
 
 	private async onDidChangeCurrentHistoryItemRefs(): Promise<void> {
+		// Bump before the equality return. A→B→A fires again while B is still
+		// in flight; that call sees the stored refs and returns, but it must
+		// still retire B so the slower collect cannot write back.
+		const generation = ++this._currentHistoryItemRefsGeneration;
+
 		const historyProvider = this.repository.historyProvider;
 		const currentHistoryItemRef = historyProvider.currentHistoryItemRef;
 		const currentHistoryItemRemoteRef = historyProvider.currentHistoryItemRemoteRef;
@@ -196,6 +202,10 @@ class GitIncomingChangesFileDecorationProvider implements FileDecorationProvider
 
 		const decorations = new Map<string, FileDecoration>();
 		await this.collectIncomingChangesFileDecorations(decorations);
+		if (generation !== this._currentHistoryItemRefsGeneration) {
+			return;
+		}
+
 		const uris = new Set([...this._decorations.keys()].concat([...decorations.keys()]));
 
 		this._decorations = decorations;
