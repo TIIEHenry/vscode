@@ -116,7 +116,7 @@ class CellStatusBarHelper extends Disposable {
 		this._activeToken?.dispose(true);
 		const tokenSource = this._activeToken = new CancellationTokenSource();
 		const itemLists = await this._notebookCellStatusBarService.getStatusBarItemsForCell(docUri, cellIndex, viewType, tokenSource.token);
-		if (tokenSource.token.isCancellationRequested) {
+		if (tokenSource.token.isCancellationRequested || this._isDisposed || this._notebookViewModel.getCellIndex(this._cell) !== cellIndex) {
 			itemLists.forEach(itemList => itemList.dispose && itemList.dispose());
 			return;
 		}
