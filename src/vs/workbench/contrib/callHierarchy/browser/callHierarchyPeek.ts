@@ -321,6 +321,10 @@ export class CallHierarchyTreePeekWidget extends peekView.PeekViewWidget {
 		}
 
 		const value = await this._textModelService.createModelReference(previewUri);
+		if (this._disposables.isDisposed) {
+			value.dispose();
+			return;
+		}
 		const [currentFocus] = this._tree.getFocus();
 		if (generation !== this._updatePreviewGeneration || currentFocus !== element) {
 			value.dispose();
@@ -379,12 +383,19 @@ export class CallHierarchyTreePeekWidget extends peekView.PeekViewWidget {
 	private async showModelNow(model: CallHierarchyModel): Promise<void> {
 
 		this._show();
-		const viewState = this._treeViewStates.get(this._direction);
+		const direction = this._direction;
+		const viewState = this._treeViewStates.get(direction);
 
 		await this._tree.setInput(model, viewState);
+		if (this._disposables.isDisposed || this._direction !== direction || this._tree.getInput() !== model) {
+			return;
+		}
 
 		const root = <ITreeNode<callHTree.Call, FuzzyScore>>this._tree.getNode(model).children[0];
 		await this._tree.expand(root.element);
+		if (this._disposables.isDisposed || this._direction !== direction || this._tree.getInput() !== model) {
+			return;
+		}
 
 		if (root.children.length === 0) {
 			//
