@@ -384,6 +384,9 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 				const stateAtStart = this.connectionState;
 				try {
 					const { authority } = await this.remoteAuthorityResolverService.resolveAuthority(remoteAuthority);
+					if (this._store.isDisposed || this.remoteAuthority !== remoteAuthority || this.connectionState !== stateAtStart) {
+						return;
+					}
 					this.connectionToken = authority.connectionToken;
 
 					if (this.connectionState === stateAtStart) {
