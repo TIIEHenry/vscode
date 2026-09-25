@@ -72,6 +72,7 @@ export class HoverOperation<TArgs, TResult> extends Disposable {
 	private _state = HoverOperationState.Idle;
 	private _asyncIterable: CancelableAsyncIterableProducer<TResult> | null = null;
 	private _asyncIterableDone: boolean = false;
+	private _asyncComputationGeneration = 0;
 	private _result: TResult[] = [];
 	private _options: TArgs | undefined;
 
@@ -83,6 +84,7 @@ export class HoverOperation<TArgs, TResult> extends Disposable {
 	}
 
 	public override dispose(): void {
+		++this._asyncComputationGeneration;
 		if (this._asyncIterable) {
 			this._asyncIterable.cancel();
 			this._asyncIterable = null;
@@ -119,15 +121,23 @@ export class HoverOperation<TArgs, TResult> extends Disposable {
 
 		if (this._computer.computeAsync) {
 			this._asyncIterableDone = false;
-			this._asyncIterable = createCancelableAsyncIterableProducer(token => this._computer.computeAsync!(options, token));
+			const generation = ++this._asyncComputationGeneration;
+			const asyncIterable = createCancelableAsyncIterableProducer(token => this._computer.computeAsync!(options, token));
+			this._asyncIterable = asyncIterable;
 
 			(async () => {
 				try {
-					for await (const item of this._asyncIterable!) {
+					for await (const item of asyncIterable) {
+						if (generation !== this._asyncComputationGeneration || this._store.isDisposed) {
+							return;
+						}
 						if (item) {
 							this._result.push(item);
 							this._fireResult(options);
 						}
+					}
+					if (generation !== this._asyncComputationGeneration || this._store.isDisposed) {
+						return;
 					}
 					this._asyncIterableDone = true;
 
@@ -191,6 +201,7 @@ export class HoverOperation<TArgs, TResult> extends Disposable {
 	}
 
 	public cancel(): void {
+		++this._asyncComputationGeneration;
 		this._asyncComputationScheduler.cancel();
 		this._syncComputationScheduler.cancel();
 		this._loadingMessageScheduler.cancel();
