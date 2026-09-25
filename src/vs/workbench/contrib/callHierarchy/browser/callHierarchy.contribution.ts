@@ -101,12 +101,16 @@ class CallHierarchyController implements IEditorContribution {
 		if (!this._widget) {
 			return;
 		}
-		const model = this._widget.getModel();
-		const call = this._widget.getFocused();
+		const widget = this._widget;
+		const model = widget.getModel();
+		const call = widget.getFocused();
 		if (!call || !model) {
 			return;
 		}
 		const newEditor = await this._editorService.openCodeEditor({ resource: call.item.uri }, this._editor);
+		if (this._dispoables.isDisposed || this._widget !== widget || (widget as unknown as { readonly _disposables: DisposableStore })._disposables.isDisposed) {
+			return;
+		}
 		if (!newEditor) {
 			return;
 		}
@@ -115,7 +119,7 @@ class CallHierarchyController implements IEditorContribution {
 
 		CallHierarchyController.get(newEditor)?._showCallHierarchyWidget(
 			Range.lift(newModel.root.selectionRange).getStartPosition(),
-			this._widget.direction,
+			widget.direction,
 			Promise.resolve(newModel),
 			new CancellationTokenSource()
 		);
@@ -147,8 +151,10 @@ class CallHierarchyController implements IEditorContribution {
 				this._widget!.showMessage(localize('no.item', "No results"));
 			}
 		}).catch(err => {
-			if (isCancellationError(err)) {
-				this.endCallHierarchy();
+			if (cts.token.isCancellationRequested || isCancellationError(err)) {
+				return;
+			}
+			if (this._widget && (this._widget as unknown as { readonly _disposables: DisposableStore })._disposables.isDisposed) {
 				return;
 			}
 			this._widget!.showMessage(localize('error', "Failed to show call hierarchy"));
