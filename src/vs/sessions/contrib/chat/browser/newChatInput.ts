@@ -419,6 +419,7 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 	// Send button
 	private _sendButton: Button | undefined;
 	private _sending = false;
+	private _sendGeneration = 0;
 
 	// Loading state
 	private _loadingSpinner: HTMLElement | undefined;
@@ -1432,6 +1433,10 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 		// before the editor is cleared below.
 		notifyDictationSubmitted(this._editor);
 
+		const generation = ++this._sendGeneration;
+		this._sending = true;
+		this._updateSendButtonState();
+
 		const session = this.options.session.get();
 		if (!hasAdditionalSendContent && session && await this.chatSubmitRequestHandlerService.tryHandle({
 			sessionResource: session.resource,
@@ -1439,8 +1444,17 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 			sessionId: session.sessionId,
 			input: query,
 		})) {
+			if (generation !== this._sendGeneration || this._store.isDisposed) {
+				return false;
+			}
 			this._editor.getModel()?.setValue('');
+			this._sending = false;
+			this._updateSendButtonState();
 			return true;
+		}
+
+		if (generation !== this._sendGeneration || this._store.isDisposed) {
+			return false;
 		}
 
 		const attachments = this._agentHostInputCompletionHandler?.getAttachmentsForSend(query, queryOffset) ?? [...this._contextAttachments.attachments];
@@ -1463,6 +1477,9 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 		let sent = false;
 		try {
 			sent = await this.options.sendRequest({ query: request, attachments: attachedContext, background });
+			if (generation !== this._sendGeneration || this._store.isDisposed) {
+				return false;
+			}
 			if (!sent) {
 				return false;
 			}
@@ -1473,11 +1490,13 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 			this.logService.error('Failed to send request:', e);
 			return false;
 		} finally {
-			this._sending = false;
-			this._editor.updateOptions({ readOnly: false });
-			this._updateDraftState();
-			this._updateSendButtonState();
-			this._updateInputLoadingState();
+			if (!this._store.isDisposed && generation === this._sendGeneration) {
+				this._sending = false;
+				this._editor.updateOptions({ readOnly: false });
+				this._updateDraftState();
+				this._updateSendButtonState();
+				this._updateInputLoadingState();
+			}
 		}
 		return sent;
 	}
@@ -1706,6 +1725,7 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 	}
 
 	override dispose(): void {
+		++this._sendGeneration;
 		this._cancelPromptOptionsRefresh();
 		super.dispose();
 	}
