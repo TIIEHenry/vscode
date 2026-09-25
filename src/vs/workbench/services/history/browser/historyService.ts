@@ -972,6 +972,8 @@ export class HistoryService extends Disposable implements IHistoryService {
 	private removeExcludedFromHistory(): void {
 		this.ensureHistoryLoaded(this.history);
 
+		const lengthBefore = this.history.length;
+
 		this.history = this.history.filter(entry => {
 			const include = this.includeInHistory(entry);
 
@@ -982,6 +984,10 @@ export class HistoryService extends Disposable implements IHistoryService {
 
 			return include;
 		});
+
+		if (this.history.length !== lengthBefore) {
+			this.historyMutationEpoch++;
+		}
 	}
 
 	private moveInHistory(event: FileOperationEvent): void {
@@ -1052,6 +1058,10 @@ export class HistoryService extends Disposable implements IHistoryService {
 		}
 
 		this.history = newHistory;
+
+		if (replaced || replacements.length > 0) {
+			this.historyMutationEpoch++;
+		}
 	}
 
 	clearRecentlyOpened(): void {
