@@ -128,6 +128,7 @@ class FileContentProvider extends Disposable implements IContentProvider {
 	private logEntries: ILogEntry[] = [];
 	private startOffset: number = 0;
 	private endOffset: number = 0;
+	private contentGeneration: number = 0;
 
 	readonly resource: URI;
 	readonly name: string;
@@ -147,11 +148,13 @@ class FileContentProvider extends Disposable implements IContentProvider {
 	}
 
 	reset(offset?: number): void {
+		++this.contentGeneration;
 		this.endOffset = this.startOffset = offset ?? this.startOffset;
 		this.logEntries = [];
 	}
 
 	resetToEnd(): void {
+		++this.contentGeneration;
 		this.startOffset = this.endOffset;
 		this.logEntries = [];
 	}
@@ -194,6 +197,7 @@ class FileContentProvider extends Disposable implements IContentProvider {
 				return;
 			}
 			if (stat.etag !== this.etag) {
+				++this.contentGeneration;
 				this.etag = stat.etag;
 				if (isNumber(stat.size) && this.endOffset > stat.size) {
 					this.reset(0);
@@ -222,7 +226,9 @@ class FileContentProvider extends Disposable implements IContentProvider {
 					consume: () => { /* No Op */ }
 				};
 			}
-			const fileContent = await this.fileService.readFile(this.resource, { position: this.endOffset });
+			const generation = ++this.contentGeneration;
+			const readOffset = this.endOffset;
+			const fileContent = await this.fileService.readFile(this.resource, { position: readOffset });
 			const content = fileContent.value.toString();
 			const logEntries = donotConsumeLogEntries ? [] : this.parseLogEntries(content, this.logEntries[this.logEntries.length - 1]);
 			let consumed = false;
@@ -232,6 +238,9 @@ class FileContentProvider extends Disposable implements IContentProvider {
 				consume: () => {
 					if (!consumed) {
 						consumed = true;
+						if (generation !== this.contentGeneration || this._store.isDisposed || this.endOffset !== readOffset) {
+							return;
+						}
 						this.endOffset += fileContent.value.byteLength;
 						this.etag = fileContent.etag;
 						this.logEntries.push(...logEntries);
