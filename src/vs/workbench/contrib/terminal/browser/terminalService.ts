@@ -83,6 +83,7 @@ export class TerminalService extends Disposable implements ITerminalService {
 	private _terminalCountContextKey: IContextKey<number>;
 	private _nativeDelegate?: ITerminalServiceNativeDelegate;
 	private _shutdownWindowCount?: number;
+	private _createContributedTerminalProfileGeneration = 0;
 
 	get isProcessSupportRegistered(): boolean { return !!this._processSupportContextKey.get(); }
 
@@ -412,6 +413,7 @@ export class TerminalService extends Disposable implements ITerminalService {
 	}
 
 	async createContributedTerminalProfile(extensionIdentifier: string, id: string, options: ICreateContributedTerminalProfileOptions): Promise<void> {
+		const generation = ++this._createContributedTerminalProfileGeneration;
 		await this._extensionService.activateByEvent(`onTerminalProfile:${id}`);
 
 		const profileProvider = this._terminalProfileService.getContributedProfileProvider(extensionIdentifier, id);
@@ -421,6 +423,9 @@ export class TerminalService extends Disposable implements ITerminalService {
 		}
 		try {
 			await profileProvider.createContributedTerminalProfile(options);
+			if (generation !== this._createContributedTerminalProfileGeneration) {
+				return;
+			}
 			this._terminalGroupService.setActiveInstanceByIndex(this._terminalGroupService.instances.length - 1);
 			await this._terminalGroupService.activeInstance?.focusWhenReady();
 		} catch (e) {
