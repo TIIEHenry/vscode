@@ -42,6 +42,7 @@ export class FileQueryCacheState {
 
 	private loadingPhase;
 	private loadPromise: Promise<void> | undefined;
+	private _loadGeneration = 0;
 
 	constructor(
 		private cacheQuery: (cacheKey: string) => IFileQuery,
@@ -68,10 +69,15 @@ export class FileQueryCacheState {
 		}
 
 		this.loadingPhase = LoadingPhase.Loading;
+		const generation = ++this._loadGeneration;
 
 		this.loadPromise = (async () => {
 			try {
 				await this.loadFn(this.query);
+
+				if (generation !== this._loadGeneration) {
+					return;
+				}
 
 				this.loadingPhase = LoadingPhase.Loaded;
 
@@ -80,6 +86,10 @@ export class FileQueryCacheState {
 					this.previousCacheState = undefined;
 				}
 			} catch (error) {
+				if (generation !== this._loadGeneration) {
+					return;
+				}
+
 				this.loadingPhase = LoadingPhase.Errored;
 
 				throw error;
@@ -90,6 +100,8 @@ export class FileQueryCacheState {
 	}
 
 	dispose(): void {
+		this._loadGeneration++;
+
 		if (this.loadPromise) {
 			(async () => {
 				try {
