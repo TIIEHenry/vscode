@@ -43,6 +43,7 @@ export class TextMateWorkerTokenizerController extends Disposable {
 	private _initialState?: StateStack;
 	private _vscodeTextmateImportPromise?: Promise<void>;
 	private _lastAppliedVersionId = -1;
+	private _setTokensGeneration = 0;
 
 	constructor(
 		private readonly _model: ITextModel,
@@ -103,6 +104,7 @@ export class TextMateWorkerTokenizerController extends Disposable {
 	}
 
 	public override dispose(): void {
+		this._setTokensGeneration++;
 		super.dispose();
 		this._worker.$acceptRemovedModel(this.controllerId);
 	}
@@ -119,6 +121,8 @@ export class TextMateWorkerTokenizerController extends Disposable {
 			// This event is for an outdated controller (the worker didn't receive the delete/create messages yet), ignore the event.
 			return;
 		}
+
+		const generation = ++this._setTokensGeneration;
 
 		// _states state, change{k}, ..., change{versionId}, state delta base & rawTokens, change{j}, ..., change{m}, current renderer state
 		//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -194,6 +198,9 @@ export class TextMateWorkerTokenizerController extends Disposable {
 		if (!this._applyStateStackDiffFn || !this._initialState) {
 			if (!this._vscodeTextmateImportPromise) {
 				this._vscodeTextmateImportPromise = importAMDNodeModule<typeof import('vscode-textmate')>('vscode-textmate', 'release/main.js').then(({ applyStateStackDiff, INITIAL }) => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					this._applyStateStackDiffFn = applyStateStackDiff;
 					this._initialState = INITIAL;
 				}).catch(err => {
@@ -202,6 +209,10 @@ export class TextMateWorkerTokenizerController extends Disposable {
 				});
 			}
 			await this._vscodeTextmateImportPromise;
+		}
+
+		if (generation !== this._setTokensGeneration || this._store.isDisposed || this.controllerId !== controllerId) {
+			return;
 		}
 
 		if (!this._applyStateStackDiffFn || this._initialState === undefined) {
