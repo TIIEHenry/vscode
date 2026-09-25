@@ -335,6 +335,7 @@ export class SpeechService extends Disposable implements ISpeechService {
 	readonly onDidEndKeywordRecognition = this._onDidEndKeywordRecognition.event;
 
 	private activeKeywordRecognitionSessions = 0;
+	private _keywordRecognitionGeneration = 0;
 	get hasActiveKeywordRecognition() { return this.activeKeywordRecognitionSessions > 0; }
 
 	async recognizeKeyword(token: CancellationToken): Promise<KeywordRecognitionStatus> {
@@ -400,7 +401,12 @@ export class SpeechService extends Disposable implements ISpeechService {
 	}
 
 	private async doRecognizeKeyword(token: CancellationToken): Promise<KeywordRecognitionStatus> {
+		const generation = ++this._keywordRecognitionGeneration;
 		const provider = await this.getProvider();
+
+		if (generation !== this._keywordRecognitionGeneration || token.isCancellationRequested || this._store.isDisposed) {
+			return KeywordRecognitionStatus.Stopped;
+		}
 
 		const session = provider.createKeywordRecognitionSession(token);
 		this.activeKeywordRecognitionSessions++;
@@ -436,6 +442,11 @@ export class SpeechService extends Disposable implements ISpeechService {
 		} finally {
 			onSessionStoppedOrCanceled();
 		}
+	}
+
+	override dispose(): void {
+		this._keywordRecognitionGeneration++;
+		super.dispose();
 	}
 
 	//#endregion
