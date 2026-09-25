@@ -233,6 +233,8 @@ export class ExtensionEditor extends EditorPane {
 	private readonly transientDisposables = this._register(new DisposableStore());
 	private activeElement: IActiveElement | null = null;
 	private dimension: Dimension | undefined;
+	/** 本次 setInput 的身份。后来的 setInput / clearInput / dispose 递增，使尚未写回的那次失效。 */
+	private setInputIdentity = 0;
 
 	private showPreReleaseVersionContextKey: IContextKey<boolean> | undefined;
 
@@ -462,11 +464,20 @@ export class ExtensionEditor extends EditorPane {
 	}
 
 	override async setInput(input: ExtensionsInput, options: IExtensionEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
+		const setInputIdentity = ++this.setInputIdentity;
 		await super.setInput(input, options, context, token);
+		if (setInputIdentity !== this.setInputIdentity || token.isCancellationRequested || this._store.isDisposed) {
+			return;
+		}
 		this.updatePreReleaseVersionContext();
 		if (this.template) {
 			await this.render(input.extension, this.template, !!options?.preserveFocus);
 		}
+	}
+
+	override dispose(): void {
+		this.setInputIdentity++;
+		super.dispose();
 	}
 
 	override setOptions(options: IExtensionEditorOptions | undefined): void {
@@ -623,6 +634,7 @@ export class ExtensionEditor extends EditorPane {
 	}
 
 	override clearInput(): void {
+		this.setInputIdentity++;
 		this.contentDisposables.clear();
 		this.transientDisposables.clear();
 
