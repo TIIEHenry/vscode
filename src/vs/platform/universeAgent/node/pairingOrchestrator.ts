@@ -126,6 +126,10 @@ function isFirstPairingProfile(profile: ConnectionProfile): boolean {
 		&& (profile.target.kind === 'directAddress' || profile.target.kind === 'hubDevice');
 }
 
+function staleConfirmSas(): PairingConfirmResult {
+	return { ok: false, code: 'no_active_pairing', reason: 'no pairing awaiting SAS confirmation' };
+}
+
 function emptySnapshot(profileId: string): PairingOrchestratorSnapshot {
 	return {
 		phase: 'idle',
@@ -139,6 +143,9 @@ export class PairingOrchestrator {
 	private activeContext: ActivePairingContext | undefined;
 	private recoverContext: RecoverTrustContext | undefined;
 	private lastSnapshot: PairingOrchestratorSnapshot | undefined;
+	/** Bumped when confirmSas starts, a new pairing opens, abandon runs, or dispose runs. */
+	private pairingGeneration = 0;
+	private disposed = false;
 
 	constructor(private readonly deps: PairingOrchestratorDeps) { }
 
@@ -151,6 +158,11 @@ export class PairingOrchestrator {
 		return !!this.lastSnapshot?.sessionTokenInstalled;
 	}
 
+	dispose(): void {
+		this.pairingGeneration++;
+		this.disposed = true;
+	}
+
 	async startPairing(profile: ConnectionProfile, endpoint: PairingDialEndpoint): Promise<PairingStartResult> {
 		if (!isFirstPairingProfile(profile)) {
 			return {
@@ -159,6 +171,7 @@ export class PairingOrchestrator {
 				reason: 'profile is not eligible for first-pairing orchestrator',
 			};
 		}
+		this.pairingGeneration++;
 
 		const identityState = await this.deps.clientIdentityStore.getOrCreateIdentity();
 		if (identityState.kind !== 'ready') {
@@ -283,6 +296,9 @@ export class PairingOrchestrator {
 			return { ok: false, code: 'no_active_pairing', reason: 'no pairing awaiting SAS confirmation' };
 		}
 
+		this.pairingGeneration++;
+		const generation = this.pairingGeneration;
+
 		const confirm = this.deps.confirmSas ?? (async () => true);
 		const approved = await confirm({
 			sasCode: context.sasCode,
@@ -290,6 +306,9 @@ export class PairingOrchestrator {
 			leafSha256Hex: context.leafSha256Hex,
 			displayName: context.profile.displayName,
 		});
+		if (!this.isCurrentConfirmSas(context, generation)) {
+			return staleConfirmSas();
+		}
 		if (!approved) {
 			this.activeContext = undefined;
 			this.lastSnapshot = emptySnapshot(context.profile.profileId);
@@ -297,6 +316,9 @@ export class PairingOrchestrator {
 		}
 
 		const identityState = await this.deps.clientIdentityStore.getOrCreateIdentity();
+		if (!this.isCurrentConfirmSas(context, generation)) {
+			return staleConfirmSas();
+		}
 		if (identityState.kind !== 'ready') {
 			return { ok: false, code: 'identity_unavailable', reason: 'client identity unavailable' };
 		}
@@ -313,6 +335,10 @@ export class PairingOrchestrator {
 		});
 
 		const signer = await this.deps.clientIdentityStore.createSigner();
+		if (!this.isCurrentConfirmSas(context, generation)) {
+			transport.close();
+			return staleConfirmSas();
+		}
 		if (!signer) {
 			return { ok: false, code: 'signer_unavailable', reason: 'device auth signer unavailable' };
 		}
@@ -329,6 +355,9 @@ export class PairingOrchestrator {
 				signer,
 				{ pairingPhase: 'formal' },
 			);
+			if (!this.isCurrentConfirmSas(context, generation)) {
+				return staleConfirmSas();
+			}
 
 			if (handshake.kind === 'failed') {
 				return {
@@ -377,6 +406,12 @@ export class PairingOrchestrator {
 		}
 	}
 
+	private isCurrentConfirmSas(context: ActivePairingContext, generation: number): boolean {
+		return !this.disposed
+			&& this.pairingGeneration === generation
+			&& this.activeContext === context;
+	}
+
 	async confirmRecoverTrust(): Promise<PairingConfirmResult> {
 		const context = this.recoverContext;
 		if (!context) {
@@ -420,6 +455,7 @@ export class PairingOrchestrator {
 	}
 
 	abandonRecoverTrust(): void {
+		this.pairingGeneration++;
 		const profileId = this.recoverContext?.profile.profileId;
 		this.recoverContext = undefined;
 		if (profileId) {
