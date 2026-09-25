@@ -45,6 +45,7 @@ export class AgentHostIpcChannelTransport extends Disposable implements IClientT
 	private _isOpen = false;
 	private _closeFired = false;
 	private _malformedFrames = 0;
+	private _connectGeneration = 0;
 
 	constructor(
 		private readonly _channel: IChannel,
@@ -66,7 +67,11 @@ export class AgentHostIpcChannelTransport extends Disposable implements IClientT
 		// host emits between open and our listener attaching.
 		this._register(this._channel.listen<string>('frame')(text => this._handleFrame(text)));
 		this._register(this._channel.listen<void>('close')(() => this._fireClose()));
+		const generation = ++this._connectGeneration;
 		await this._channel.call('connect');
+		if (generation !== this._connectGeneration || this._store.isDisposed || this._closeFired) {
+			throw new Error('Transport is disposed');
+		}
 		this._isOpen = true;
 	}
 
@@ -84,6 +89,7 @@ export class AgentHostIpcChannelTransport extends Disposable implements IClientT
 	}
 
 	override dispose(): void {
+		this._connectGeneration++;
 		if (this._isOpen && !this._closeFired) {
 			// Best-effort close — ignore any rejection since we're tearing down.
 			this._channel.call('close').catch(() => { });
