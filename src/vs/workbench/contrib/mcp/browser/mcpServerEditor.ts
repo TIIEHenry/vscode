@@ -171,6 +171,8 @@ export class McpServerEditor extends EditorPane {
 	private readonly transientDisposables = this._register(new DisposableStore());
 	private activeElement: IActiveElement | null = null;
 	private dimension: Dimension | undefined;
+	/** 本次 setInput 的身份。后来的 setInput / clearInput / dispose 递增，使尚未写回的那次失效。 */
+	private setInputIdentity = 0;
 
 	constructor(
 		group: IEditorGroup,
@@ -345,7 +347,11 @@ export class McpServerEditor extends EditorPane {
 	}
 
 	override async setInput(input: McpServerEditorInput, options: IMcpServerEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
+		const setInputIdentity = ++this.setInputIdentity;
 		await super.setInput(input, options, context, token);
+		if (setInputIdentity !== this.setInputIdentity || token.isCancellationRequested || this._store.isDisposed) {
+			return;
+		}
 		if (this.template) {
 			await this.render(input.mcpServer, this.template, !!options?.preserveFocus);
 		}
@@ -421,10 +427,16 @@ export class McpServerEditor extends EditorPane {
 	}
 
 	override clearInput(): void {
+		this.setInputIdentity++;
 		this.contentDisposables.clear();
 		this.transientDisposables.clear();
 
 		super.clearInput();
+	}
+
+	override dispose(): void {
+		this.setInputIdentity++;
+		super.dispose();
 	}
 
 	override focus(): void {
