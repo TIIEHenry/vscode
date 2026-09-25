@@ -489,7 +489,11 @@ export class InstallAction extends ExtensionAction {
 		}
 		this.hidden = false;
 		this.class = InstallAction.CLASS;
-		if (await this.extensionsWorkbenchService.canInstall(this.extension) === true) {
+		const extension = this.extension;
+		if (await this.extensionsWorkbenchService.canInstall(extension) === true) {
+			if (this.extension !== extension || this.extension.state !== ExtensionState.Uninstalled || this._store.isDisposed) {
+				return;
+			}
 			this.enabled = true;
 			this.updateLabel();
 		}
