@@ -51,6 +51,7 @@ export class WebviewViewPane extends ViewPane {
 	private readonly _webview = this._register(new MutableDisposable<IOverlayWebview>());
 	private readonly _webviewDisposables = this._register(new DisposableStore());
 	private _activated = false;
+	private _activateGeneration = 0;
 
 	private _container?: HTMLElement;
 	private _rootContainer?: HTMLElement;
@@ -164,6 +165,9 @@ export class WebviewViewPane extends ViewPane {
 			return;
 		}
 
+		// Drop listeners from an activation that hide/dispose already invalidated.
+		this._webviewDisposables.clear();
+		const generation = ++this._activateGeneration;
 		this._activated = true;
 
 		const origin = this.extensionId ? WebviewViewPane.getOriginStore(this.storageService).getOrigin(this.id, this.extensionId) : undefined;
@@ -200,13 +204,60 @@ export class WebviewViewPane extends ViewPane {
 		this._webviewDisposables.add(new WebviewWindowDragMonitor(getWindow(this.element), () => this._webview.value));
 
 		const source = this._webviewDisposables.add(new CancellationTokenSource());
+		let committed = false;
+
+		const overlayStillCurrent = () =>
+			!this._store.isDisposed
+			&& generation === this._activateGeneration
+			&& !source.token.isCancellationRequested
+			&& this._webview.value === webview;
+
+		// Release only this generation's overlay. A newer activate may already own `_webview`.
+		const releaseExpiredOverlay = () => {
+			if (this._webview.value !== webview) {
+				return;
+			}
+			webview.release(this);
+			this._webview.clear();
+			if (!this._store.isDisposed && generation === this._activateGeneration) {
+				this._activated = false;
+			}
+		};
+
+		const invalidateOverlay = () => {
+			if (generation !== this._activateGeneration) {
+				return;
+			}
+			this._activateGeneration++;
+			this._activated = false;
+			source.cancel();
+			releaseExpiredOverlay();
+		};
+
+		// Hide releases the overlay. Invalidate before resolve writes into that released instance.
+		this._webviewDisposables.add(this.onDidChangeBodyVisibility(() => {
+			if (committed || this._store.isDisposed || this.isBodyVisible()) {
+				return;
+			}
+			invalidateOverlay();
+		}));
 
 		// Cancel in-flight revival when the webview is torn down (dispose or re-activation)
 		// so the webview view service drops any pending `_awaitingRevival` entry for this view.
-		this._webviewDisposables.add(toDisposable(() => source.cancel()));
+		this._webviewDisposables.add(toDisposable(() => {
+			if (generation === this._activateGeneration) {
+				this._activateGeneration++;
+			}
+			source.cancel();
+		}));
 
 		this.withProgress(async () => {
 			await this.extensionService.activateByEvent(`onView:${this.id}`);
+
+			if (!overlayStillCurrent()) {
+				releaseExpiredOverlay();
+				return;
+			}
 
 			const self = this;
 			const webviewView: WebviewView = {
@@ -224,9 +275,11 @@ export class WebviewViewPane extends ViewPane {
 				set badge(badge: IViewBadge | undefined) { self.updateBadge(badge); },
 
 				dispose: () => {
-					// Only reset and clear the webview itself. Don't dispose of the view container
-					this._activated = false;
-					this._webview.clear();
+					// Only reset and clear this generation's webview. A later activate owns the store.
+					if (generation !== this._activateGeneration) {
+						return;
+					}
+					invalidateOverlay();
 					this._webviewDisposables.clear();
 				},
 
@@ -236,6 +289,13 @@ export class WebviewViewPane extends ViewPane {
 			};
 
 			await this.webviewViewService.resolve(this.id, webviewView, source.token);
+
+			if (!overlayStillCurrent()) {
+				releaseExpiredOverlay();
+				return;
+			}
+
+			committed = true;
 		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
