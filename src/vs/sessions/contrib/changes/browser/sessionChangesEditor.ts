@@ -298,12 +298,14 @@ export class SessionChangesEditor extends AbstractEditorWithViewState<IMultiDiff
 
 	override async setInput(input: SessionChangesEditorInput, options: IMultiDiffEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
 		await super.setInput(input, options, context, token);
-		const sessionResource = this.sessionChangesService.getSessionResource(input.multiDiffSource);
-		this._inputSessionResource.set(sessionResource, undefined);
 		const viewModel = await input.getViewModel();
-		if (token.isCancellationRequested) {
+		// Input owns the view model (inner multi-diff input). A switch, clearInput, or
+		// dispose drops this.input; do not install a stale model, and do not dispose one the input still holds.
+		if (token.isCancellationRequested || this.input !== input || this.isDisposed) {
 			return;
 		}
+		const sessionResource = this.sessionChangesService.getSessionResource(input.multiDiffSource);
+		this._inputSessionResource.set(sessionResource, undefined);
 		this.viewModel = viewModel;
 
 		// Apply the model and any restored view state together so the widget's
