@@ -131,6 +131,9 @@ export class PreferencesEditor extends EditorPane {
 
 	override async setInput(input: EditorInput, options: IPreferencesEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
 		await super.setInput(input, options, context, token);
+		if (token.isCancellationRequested || this.input !== input || this._store.isDisposed) {
+			return;
+		}
 		if (this.preferencesTabActions.length) {
 			const paneId = options?.paneId;
 			if (paneId && this.preferencesTabActions.some(action => action.id === paneId)) {
