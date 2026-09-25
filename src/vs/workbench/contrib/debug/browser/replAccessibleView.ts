@@ -36,6 +36,7 @@ export class ReplAccessibleView implements IAccessibleViewImplementation {
 class ReplOutputAccessibleViewProvider extends Disposable implements IAccessibleViewContentProvider {
 	public readonly id = AccessibleViewProviderId.Repl;
 	private _content: string | undefined;
+	private _updateGeneration = 0;
 	private readonly _onDidChangeContent: Emitter<void> = this._register(new Emitter<void>());
 	public readonly onDidChangeContent: Event<void> = this._onDidChangeContent.event;
 	private readonly _onDidResolveChildren: Emitter<void> = this._register(new Emitter<void>());
@@ -73,6 +74,7 @@ class ReplOutputAccessibleViewProvider extends Disposable implements IAccessible
 	}
 
 	public onClose(): void {
+		this._updateGeneration++;
 		this._content = undefined;
 		this._elementPositionMap.clear();
 		if (this._treeHadFocus) {
@@ -97,6 +99,7 @@ class ReplOutputAccessibleViewProvider extends Disposable implements IAccessible
 	}
 
 	private async _updateContent(elements: IReplElement[]) {
+		const generation = ++this._updateGeneration;
 		const dataSource = this._replView.getReplDataSource();
 		if (!dataSource) {
 			return;
@@ -110,6 +113,9 @@ class ReplOutputAccessibleViewProvider extends Disposable implements IAccessible
 			if (dataSource.hasChildren(e)) {
 				const childContent: string[] = [];
 				const children = await dataSource.getChildren(e);
+				if (generation !== this._updateGeneration || this._store.isDisposed) {
+					return;
+				}
 				for (const child of children) {
 					const id = child.getId();
 					if (!this._elementPositionMap.has(id)) {
@@ -123,6 +129,9 @@ class ReplOutputAccessibleViewProvider extends Disposable implements IAccessible
 			}
 		}
 
+		if (generation !== this._updateGeneration || this._store.isDisposed) {
+			return;
+		}
 		this._content = content.join('\n');
 		this._onDidResolveChildren.fire();
 	}
