@@ -207,6 +207,7 @@ export class MergeEditor extends AbstractTextEditor<IMergeEditorViewState> {
 		if (!(input instanceof MergeEditorInput)) {
 			throw new BugIndicatingError('ONLY MergeEditorInput is supported');
 		}
+		const mergeInput = input;
 		await super.setInput(input, options, context, token);
 
 		this._sessionDisposables.clear();
@@ -216,7 +217,7 @@ export class MergeEditor extends AbstractTextEditor<IMergeEditorViewState> {
 		});
 
 		const inputModel = await input.resolve();
-		if (token.isCancellationRequested || this._store.isDisposed) {
+		if (token.isCancellationRequested || this.input !== mergeInput || this._store.isDisposed) {
 			return;
 		}
 		const model = inputModel.model;
