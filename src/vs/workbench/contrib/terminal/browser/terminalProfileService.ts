@@ -223,7 +223,7 @@ export class TerminalProfileService extends Disposable implements ITerminalProfi
 		if (generation !== this._detectProfilesGeneration) {
 			return discardStale();
 		}
-		const defaultProfileName = this._configurationService.getValue(`${TerminalSettingPrefix.DefaultProfile}${platform}`) ?? undefined;
+		const defaultProfileName = this._configurationService.getValue<string>(`${TerminalSettingPrefix.DefaultProfile}${platform}`) ?? undefined;
 		const profiles = await primaryBackend.getProfiles(this._configurationService.getValue(`${TerminalSettingPrefix.Profiles}${platform}`), defaultProfileName, includeDetectedProfiles);
 		if (generation !== this._detectProfilesGeneration) {
 			return discardStale();
