@@ -24,6 +24,7 @@ import { NOTEBOOK_EDITOR_EDITABLE } from '../../notebook/common/notebookContextK
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { EditorContextKeys } from '../../../../editor/common/editorContextKeys.js';
 import { Schemas } from '../../../../base/common/network.js';
+import { isEqual } from '../../../../base/common/resources.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 
@@ -37,6 +38,8 @@ class LanguageDetectionStatusContribution implements IWorkbenchContribution {
 	private _combinedEntry?: IStatusbarEntryAccessor;
 	private _delayer = new ThrottledDelayer(1000);
 	private readonly _renderDisposables = new DisposableStore();
+	/** Bumped by a later `_update` or `dispose` so an in-flight detection cannot write the status entry. */
+	private _detectionEpoch = 0;
 
 	constructor(
 		@ILanguageDetectionService private readonly _languageDetectionService: ILanguageDetectionService,
@@ -51,6 +54,7 @@ class LanguageDetectionStatusContribution implements IWorkbenchContribution {
 	}
 
 	dispose(): void {
+		this._detectionEpoch++;
 		this._disposables.dispose();
 		this._delayer.dispose();
 		this._combinedEntry?.dispose();
@@ -58,6 +62,7 @@ class LanguageDetectionStatusContribution implements IWorkbenchContribution {
 	}
 
 	private _update(clear: boolean): void {
+		this._detectionEpoch++;
 		if (clear) {
 			this._combinedEntry?.dispose();
 			this._combinedEntry = undefined;
@@ -66,6 +71,7 @@ class LanguageDetectionStatusContribution implements IWorkbenchContribution {
 	}
 
 	private async _doUpdate(): Promise<void> {
+		const epoch = this._detectionEpoch;
 		const editor = getCodeEditor(this._editorService.activeTextEditorControl);
 
 		this._renderDisposables.clear();
@@ -85,6 +91,19 @@ class LanguageDetectionStatusContribution implements IWorkbenchContribution {
 			this._combinedEntry = undefined;
 		} else {
 			const lang = await this._languageDetectionService.detectLanguage(editorUri);
+			const currentEditor = getCodeEditor(this._editorService.activeTextEditorControl);
+			const currentModel = currentEditor?.getModel();
+			if (epoch !== this._detectionEpoch
+				|| this._disposables.isDisposed
+				|| currentEditor !== editor
+				|| !editorModel
+				|| editorModel.isDisposed()
+				|| currentModel !== editorModel
+				|| !currentModel
+				|| currentModel.isDisposed()
+				|| !isEqual(currentModel.uri, editorUri)) {
+				return;
+			}
 			const skip: Record<string, string | undefined> = { 'jsonc': 'json' };
 			const existing = editorModel.getLanguageId();
 			if (lang && lang !== existing && skip[existing] !== lang) {
