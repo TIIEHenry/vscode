@@ -596,9 +596,43 @@ export class Model implements IRepositoryResolver, IBranchProtectionProviderRegi
 		commands.executeCommand('setContext', 'git.activeResourceHasMergeConflicts', hasMergeConflicts);
 	}
 
+	/**
+	 * After a critical await, the root may already be open, closed by the user,
+	 * or detached from the workspace folder this attempt started with.
+	 * False means the caller must not call open() / push / fire.
+	 */
+	private async canStillRegisterRepository(repositoryRoot: string, openIfClosed: boolean, anchoredWorkspaceFolders: readonly string[]): Promise<boolean> {
+		const existingRepository = await this.getRepositoryExact(repositoryRoot);
+		if (existingRepository) {
+			this.logger.trace(`[Model][openRepository] Repository for path ${repositoryRoot} already exists: ${existingRepository.root}`);
+			return false;
+		}
+
+		if (!openIfClosed && this._closedRepositoriesManager.isRepositoryClosed(repositoryRoot)) {
+			this.logger.trace(`[Model][openRepository] Repository for path ${repositoryRoot} is closed`);
+			return false;
+		}
+
+		if (anchoredWorkspaceFolders.length > 0) {
+			const folders = workspace.workspaceFolders || [];
+			const folderStillPresent = anchoredWorkspaceFolders.some(anchored => folders.some(folder => pathEquals(folder.uri.fsPath, anchored)));
+			if (!folderStillPresent) {
+				this.logger.trace(`[Model][openRepository] Workspace folder for repository ${repositoryRoot} is no longer present`);
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	@sequentialize
 	async openRepository(repoPath: string, openIfClosed = false, openIfParent = false): Promise<void> {
 		this.logger.trace(`[Model][openRepository] Repository: ${repoPath}`);
+		// Workspace folder this attempt is tied to. Captured before any await so a
+		// later removal is visible even if the folder list no longer contains it.
+		const anchoredWorkspaceFolders = (workspace.workspaceFolders || [])
+			.filter(folder => folder.uri.scheme === 'file' && (pathEquals(folder.uri.fsPath, repoPath) || isDescendant(folder.uri.fsPath, repoPath)))
+			.map(folder => folder.uri.fsPath);
 		const existingRepository = await this.getRepositoryExact(repoPath);
 		if (existingRepository) {
 			this.logger.trace(`[Model][openRepository] Repository for path ${repoPath} already exists: ${existingRepository.root}`);
@@ -617,9 +651,7 @@ export class Model implements IRepositoryResolver, IBranchProtectionProviderRegi
 			const { repositoryRoot, unsafeRepositoryMatch } = await this.getRepositoryRoot(repoPath);
 			this.logger.trace(`[Model][openRepository] Repository root for path ${repoPath} is: ${repositoryRoot}`);
 
-			const existingRepository = await this.getRepositoryExact(repositoryRoot);
-			if (existingRepository) {
-				this.logger.trace(`[Model][openRepository] Repository for path ${repositoryRoot} already exists: ${existingRepository.root}`);
+			if (!await this.canStillRegisterRepository(repositoryRoot, openIfClosed, anchoredWorkspaceFolders)) {
 				return;
 			}
 
@@ -632,6 +664,9 @@ export class Model implements IRepositoryResolver, IBranchProtectionProviderRegi
 			const parentRepositoryConfig = config.get<'always' | 'never' | 'prompt'>('openRepositoryInParentFolders', 'prompt');
 			if (parentRepositoryConfig !== 'always' && this.globalState.get<boolean>(`parentRepository:${repositoryRoot}`) !== true) {
 				const isRepositoryOutsideWorkspace = await this.isRepositoryOutsideWorkspace(repositoryRoot);
+				if (!await this.canStillRegisterRepository(repositoryRoot, openIfClosed, anchoredWorkspaceFolders)) {
+					return;
+				}
 				if (!openIfParent && isRepositoryOutsideWorkspace) {
 					this.logger.trace(`[Model][openRepository] Repository in parent folder: ${repositoryRoot}`);
 
@@ -670,6 +705,9 @@ export class Model implements IRepositoryResolver, IBranchProtectionProviderRegi
 
 			// Get .git path and real path
 			const [dotGit, repositoryRootRealPath] = await Promise.all([this.git.getRepositoryDotGit(repositoryRoot), this.getRepositoryRootRealPath(repositoryRoot)]);
+			if (!await this.canStillRegisterRepository(repositoryRoot, openIfClosed, anchoredWorkspaceFolders)) {
+				return;
+			}
 
 			// Check that the folder containing the .git folder is trusted
 			const dotGitPath = dotGit.commonPath ?? dotGit.path;
@@ -683,9 +721,19 @@ export class Model implements IRepositoryResolver, IBranchProtectionProviderRegi
 				return;
 			}
 
-			// Open repository
+			if (!await this.canStillRegisterRepository(repositoryRoot, openIfClosed, anchoredWorkspaceFolders)) {
+				return;
+			}
+
+			// Open repository. Re-check after constructing: getRepositoryExact awaits,
+			// and the root may have been opened, closed, or lost its workspace folder
+			// while that check was in flight. Dispose instead of registering.
 			const gitRepository = this.git.open(repositoryRoot, repositoryRootRealPath, dotGit, this.logger);
 			const repository = new Repository(gitRepository, this, this, this, this, this, this, this.globalState, this.logger, this.telemetryReporter, this._repositoryCache);
+			if (!await this.canStillRegisterRepository(repositoryRoot, openIfClosed, anchoredWorkspaceFolders)) {
+				repository.dispose();
+				return;
+			}
 
 			this.open(repository);
 			this._closedRepositoriesManager.deleteRepository(repository.root);
