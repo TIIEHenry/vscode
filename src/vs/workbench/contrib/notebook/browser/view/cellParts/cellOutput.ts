@@ -69,6 +69,7 @@ class CellOutputElement extends Disposable {
 
 	private readonly contextKeyService: IContextKeyService;
 	private toolbarAttached = false;
+	private _pickMimeTypeGeneration = 0;
 
 	constructor(
 		private notebookEditor: INotebookEditorDelegate,
@@ -351,6 +352,8 @@ class CellOutputElement extends Disposable {
 	}
 
 	private async _pickActiveMimeTypeRenderer(outputItemDiv: HTMLElement, notebookTextModel: NotebookTextModel, kernel: INotebookKernel | undefined, viewModel: ICellOutputViewModel) {
+		const generation = ++this._pickMimeTypeGeneration;
+		const activeViewModel = viewModel;
 		const [mimeTypes, currIndex] = viewModel.resolveMimeTypes(notebookTextModel, kernel?.preloadProvides);
 
 		const items: IMimeTypeRenderer[] = [];
@@ -398,6 +401,10 @@ class CellOutputElement extends Disposable {
 			}));
 			picker.show();
 		});
+
+		if (generation !== this._pickMimeTypeGeneration || this._store.isDisposed || this.output !== activeViewModel) {
+			return;
+		}
 
 		if (pick === undefined || pick.index === currIndex) {
 			return;
