@@ -108,6 +108,8 @@ export class UserDataProfilesEditor extends EditorPane implements IUserDataProfi
 
 	private model: UserDataProfilesEditorModel | undefined;
 	private templates: readonly IProfileTemplateInfo[] = [];
+	/** Bumped by a later setInput, clearInput, or dispose so an in-flight resolve cannot write back. */
+	private profilesInputGeneration = 0;
 
 	constructor(
 		group: IEditorGroup,
@@ -366,8 +368,18 @@ export class UserDataProfilesEditor extends EditorPane implements IUserDataProfi
 	}
 
 	override async setInput(input: UserDataProfilesEditorInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
+		const generation = ++this.profilesInputGeneration;
 		await super.setInput(input, options, context, token);
-		this.model = await input.resolve();
+		if (this.isStaleProfilesInput(generation, input, token)) {
+			return;
+		}
+
+		const model = await input.resolve();
+		if (this.isStaleProfilesInput(generation, input, token)) {
+			return;
+		}
+
+		this.model = model;
 		this.model.getTemplates().then(templates => {
 			this.templates = templates;
 			if (this.profileWidget) {
@@ -377,6 +389,23 @@ export class UserDataProfilesEditor extends EditorPane implements IUserDataProfi
 		this.updateProfilesList();
 		this._register(this.model.onDidChange(element =>
 			this.updateProfilesList(element)));
+	}
+
+	override clearInput(): void {
+		this.profilesInputGeneration++;
+		super.clearInput();
+	}
+
+	override dispose(): void {
+		this.profilesInputGeneration++;
+		super.dispose();
+	}
+
+	private isStaleProfilesInput(generation: number, input: UserDataProfilesEditorInput, token: CancellationToken): boolean {
+		return generation !== this.profilesInputGeneration
+			|| this.input !== input
+			|| token.isCancellationRequested
+			|| this._store.isDisposed;
 	}
 
 	override focus(): void {
