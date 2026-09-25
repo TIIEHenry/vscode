@@ -199,6 +199,12 @@ export class LocalTranscriptionService extends Disposable implements ILocalTrans
 	private _modelPromise: Promise<IModel> | undefined;
 	/** Cancellation source for the in-flight model download/load; aborts it when cancelled. */
 	private _modelPrepareCts: CancellationTokenSource | undefined;
+	/**
+	 * Bumped when a model download/load starts, is cancelled, or the service is
+	 * disposed. Distinct from the session `_generation`: a load that finishes
+	 * late must not write its model over a newer load, or clear that load's promise.
+	 */
+	private _modelLoadGeneration = 0;
 
 	/**
 	 * Where to download the native runtime from (product.dictationRuntime), or
@@ -256,6 +262,7 @@ export class LocalTranscriptionService extends Disposable implements ILocalTrans
 		// service — and its utility process — goes away.
 		this._register(toDisposable(() => {
 			void this._disposeSession();
+			++this._modelLoadGeneration;
 			this._modelPrepareCts?.cancel();
 			this._modelPrepareCts?.dispose();
 			this._modelPrepareCts = undefined;
@@ -466,9 +473,17 @@ export class LocalTranscriptionService extends Disposable implements ILocalTrans
 			return this._modelPromise;
 		}
 
-		this._loadedModelId = modelId;
+		if (this._modelPrepareCts) {
+			this._modelPrepareCts.cancel();
+			this._modelPrepareCts.dispose();
+		}
+		const loadGeneration = ++this._modelLoadGeneration;
 		const cts = new CancellationTokenSource();
 		this._modelPrepareCts = cts;
+		const requestedModelId = modelId;
+		this._loadedModelId = requestedModelId;
+		const loadIsStale = (): boolean =>
+			loadGeneration !== this._modelLoadGeneration || this._store.isDisposed || cts.token.isCancellationRequested;
 		this._modelPromise = (async () => {
 			try {
 				// The model cache state is unknown until the catalog is queried.
@@ -485,25 +500,39 @@ export class LocalTranscriptionService extends Disposable implements ILocalTrans
 				// skip provisioning and leave the loader on its default path.
 				if (this._runtimeDownload) {
 					const nativeDir = await ensureFoundryLocalRuntime(runtimeCacheDir(cacheDir), this._runtimeDownload, cts.token);
+					if (loadIsStale()) {
+						throw new Error('cancelled');
+					}
 					process.env.VSCODE_FOUNDRY_LOCAL_NATIVE_DIR = nativeDir;
 				}
 
 				if (!this._sdk) {
-					this._sdk = await import('foundry-local-sdk');
+					const sdk = await import('foundry-local-sdk');
+					if (loadIsStale()) {
+						throw new Error('cancelled');
+					}
+					this._sdk = sdk;
 				}
 				if (!this._manager) {
 					// Store downloaded model files under VS Code's cache dir so
 					// subsequent sessions load without re-downloading ("model
 					// management"). `createAsync` avoids blocking the event loop
 					// during native init.
-					this._manager = await this._sdk.FoundryLocalManager.createAsync({
+					const manager = await this._sdk.FoundryLocalManager.createAsync({
 						appName: FOUNDRY_APP_NAME,
 						modelCacheDir: cacheDir,
 						logLevel: 'warn',
 					});
+					if (loadIsStale()) {
+						throw new Error('cancelled');
+					}
+					this._manager = manager;
 				}
 
-				const model = await this._manager.catalog.getModel(modelId);
+				const model = await this._manager.catalog.getModel(requestedModelId);
+				if (loadIsStale()) {
+					throw new Error('cancelled');
+				}
 
 				let didDownload = false;
 				if (!model.isCached) {
@@ -518,19 +547,28 @@ export class LocalTranscriptionService extends Disposable implements ILocalTrans
 					const sub = cts.token.onCancellationRequested(() => ac.abort());
 					try {
 						await model.download((percent: number) => {
+							if (loadIsStale()) {
+								return;
+							}
 							this._setStatus({ state: LocalTranscriptionModelState.Downloading, progress: Math.min(1, Math.max(0, percent / 100)) });
 						}, ac.signal);
 					} finally {
 						sub.dispose();
 					}
+					if (loadIsStale()) {
+						throw new Error('cancelled');
+					}
 				}
 
-				// model.load() has no AbortSignal; check cancellation before starting it.
-				if (cts.token.isCancellationRequested) {
+				// model.load() has no AbortSignal; drop this load before starting it when superseded.
+				if (loadIsStale()) {
 					throw new Error('cancelled');
 				}
 				this._setStatus({ state: LocalTranscriptionModelState.Loading });
 				await model.load();
+				if (loadIsStale()) {
+					throw new Error('cancelled');
+				}
 
 				this._model = model;
 				this._setStatus({ state: LocalTranscriptionModelState.Ready, downloaded: didDownload });
@@ -539,11 +577,13 @@ export class LocalTranscriptionService extends Disposable implements ILocalTrans
 				}
 				return model;
 			} catch (err) {
-				this._model = undefined;
-				this._modelPromise = undefined;
-				this._loadedModelId = undefined;
-				if (this._modelPrepareCts === cts) {
-					this._modelPrepareCts = undefined;
+				if (loadGeneration === this._modelLoadGeneration && !this._store.isDisposed) {
+					this._model = undefined;
+					this._modelPromise = undefined;
+					this._loadedModelId = undefined;
+					if (this._modelPrepareCts === cts) {
+						this._modelPrepareCts = undefined;
+					}
 				}
 				throw err;
 			}
@@ -705,6 +745,7 @@ export class LocalTranscriptionService extends Disposable implements ILocalTrans
 	}
 
 	async cancel(): Promise<void> {
+		++this._modelLoadGeneration;
 		this._modelPrepareCts?.cancel();
 		this._modelPrepareCts = undefined;
 		this._sessionActive = false;
