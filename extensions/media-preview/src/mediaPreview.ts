@@ -43,6 +43,7 @@ export abstract class MediaPreview extends Disposable {
 
 	protected previewState = PreviewState.Visible;
 	private _binarySize: number | undefined;
+	private _renderGeneration = 0;
 
 	constructor(
 		extensionRoot: vscode.Uri,
@@ -88,6 +89,7 @@ export abstract class MediaPreview extends Disposable {
 	}
 
 	public override dispose() {
+		this._renderGeneration++;
 		super.dispose();
 		this._binarySizeStatusBarEntry.hide(this);
 	}
@@ -104,12 +106,13 @@ export abstract class MediaPreview extends Disposable {
 	}
 
 	protected async render() {
+		const generation = ++this._renderGeneration;
 		if (this.previewState === PreviewState.Disposed) {
 			return;
 		}
 
 		const content = await this.getWebviewContents();
-		if (this.previewState as PreviewState === PreviewState.Disposed) {
+		if (generation !== this._renderGeneration || this.previewState === PreviewState.Disposed) {
 			return;
 		}
 
