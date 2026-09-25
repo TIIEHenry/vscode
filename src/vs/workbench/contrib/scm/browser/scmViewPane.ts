@@ -1773,6 +1773,9 @@ export class SCMViewPane extends ViewPane {
 			return;
 		}
 
+		// Identity for this attempt. A later editor switch, SCM hide, or dispose must drop the write-back.
+		const revealUri = uri;
+
 		// Do not set focus/selection when the resource is already focused and selected
 		if (this.tree.getFocus().some(e => isSCMResource(e) && this.uriIdentityService.extUri.isEqual(e.sourceUri, uri)) &&
 			this.tree.getSelection().some(e => isSCMResource(e) && this.uriIdentityService.extUri.isEqual(e.sourceUri, uri))) {
@@ -1793,11 +1796,15 @@ export class SCMViewPane extends ViewPane {
 						for (let j = repository.provider.groups.length - 1; j >= 0; j--) {
 							const groupItem = repository.provider.groups[j];
 							const resource = this.viewMode === ViewMode.Tree
-								? groupItem.resourceTree.getNode(uri)?.element
-								: groupItem.resources.find(r => this.uriIdentityService.extUri.isEqual(r.sourceUri, uri));
+								? groupItem.resourceTree.getNode(revealUri)?.element
+								: groupItem.resources.find(r => this.uriIdentityService.extUri.isEqual(r.sourceUri, revealUri));
 
 							if (resource) {
 								await this.tree.expandTo(resource);
+								const currentUri = EditorResourceAccessor.getOriginalUri(this.editorService.activeEditor, { supportSideBySide: SideBySideEditor.PRIMARY });
+								if (!this.tree || this._store.isDisposed || this.disposables.isDisposed || !this.isBodyVisible() || !currentUri || !this.uriIdentityService.extUri.isEqual(currentUri, revealUri)) {
+									return;
+								}
 								this.tree.reveal(resource);
 
 								this.tree.setSelection([resource]);
