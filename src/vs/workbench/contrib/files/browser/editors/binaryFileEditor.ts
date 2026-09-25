@@ -67,6 +67,10 @@ export class BinaryFileEditor extends BaseBinaryResourceEditor {
 				}
 			}, this.group);
 
+			if (this._store.isDisposed || this.input !== input || this.group.activeEditor !== activeEditor) {
+				return;
+			}
+
 			if (resolvedEditor === ResolvedStatus.NONE) {
 				resolvedEditor = undefined;
 			} else if (resolvedEditor === ResolvedStatus.ABORT) {
