@@ -276,15 +276,26 @@ export class WalkThroughPart extends EditorPane {
 
 		this.content.innerText = '';
 
+		const stale = () => token.isCancellationRequested || this.input !== input || this._store.isDisposed;
+
 		return super.setInput(input, options, context, token)
 			.then(async () => {
+				if (stale()) {
+					return;
+				}
 				if (input.resource.path.endsWith('.md')) {
 					await this.extensionService.whenInstalledExtensionsRegistered();
+					if (stale()) {
+						return;
+					}
 				}
 				return input.resolve();
 			})
 			.then(model => {
 				if (token.isCancellationRequested) {
+					return;
+				}
+				if (!model || this.input !== input || this._store.isDisposed) {
 					return;
 				}
 
