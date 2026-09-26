@@ -3,7 +3,7 @@ title: "进度索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-12
+updated: 2026-09-24
 summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直接 CLI 仍 OOM（dest 未写）"
 ---
 
@@ -23,3 +23,4 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 | [d390-packaging-p2-vscode-web-machine](../roadmap/active/d390-packaging-p2-vscode-web-machine.md) | D390 无窗 vscode-web 排除面合同（实施 blocked；dest 未写） |
 | [worktree-pool.md](worktree-pool.md) | 仓外 `vscode-WorkTrees` 工位表 |
 | [钉死引擎调试](../../docs/guides/debug-engine.md) | 仓外 HeadlessServer，不是 Loop 槽 |
+| [bug-hunt-2026-09-24](bug-hunt-2026-09-24/INDEX.md) | 2026-09-24 十六路只读扫描；方案在 `dev/plans/bug-hunt-2026-09-24/` |

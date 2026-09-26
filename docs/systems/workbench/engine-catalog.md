@@ -3,7 +3,7 @@ title: "Engine 页 Customizations catalog（ua.engine）"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-19
+updated: 2026-09-25
 summary: "HEAD 九节壳已挂：四节写路径 + Overview/Model/MCP Runtime/Plugins；Provider/Rules/Hooks 只读列表已接（无写表单）；产品验证未做"
 ---
 
@@ -64,27 +64,16 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 
 ## 3. @ HEAD 已落地
 
-| 节 | 传输（`platform/universeAgent`） | Engine UI | 备注 |
-|----|-----------------------------------|-----------|------|
-| **Overview** | 读 snapshot + 可选 `listModels()` | `EngineOverviewSection`：Connection / workDir / Transport；Model 行在 `models=SUPPORTED` 时取已启用数（GC-6）；capability 产品文案。**不**暴露 token / 地址 / ticket | Provider 行 G-ENG-1 前**不画**（E2 §3.1）；不出现 Unavailable 假摘要、不出现 provider 名或计数 |
-| **Provider & Model** | `listModels()`（`include_disabled=true`） | `EngineProviderModelSection`：Provider 组零列表零输入、CONNECTED+SUPPORTED 也折成 unsupported。Model 按 `provider` 分组只读列表；禁用灰显；无 Enable/Disable | 脚注「provider 名来自模型注册表，不代表已配置凭据」。会话级 SwitchModel **不**画在本页 |
-| **Skills** | `ListSkills` · `SetSkillEnabled` · `saveSkillContent?` | 分组 list + 开关 + USER/PROJECT textarea + Save；BUNDLED 只读；connected 且 `SUPPORTED` 时 New | list/toggle @ `8bfc299e`；正文 @ `f3f2d366`；node 传输 @ `45fa7a35`；新建 @ `e6167c45` |
-| **Agents** | `ListAgentProfiles` · `Save` / `Delete` / `Reset` | 分组 list + New/Delete/Reset + `AGENTS.md` textarea + Save | 写入口 @ `7f10e65c` / `f49615a1`；`AGENTS.md` @ `9419f583`。profile `model.json` **无**独立编辑器（G-ENG-4） |
-| **Rules** | **无** list/CRUD 方法 | `EngineRulesSection`：Global / Project 壳；已连接一律 unsupported 完整态（capability 或「无 API」） | 行数完成线 = 0；不扫 Copilot rules |
-| **Hooks** | **无** metadata RPC | `EngineHooksSection`：Definitions / Hook points 壳；已连接一律 unsupported | 不抄 `points.md`、不读 `{AgentHome}/hooks.json` |
-| **MCP Servers** | 定义：`List` / `Toggle` / `Add` / `Update` / `Remove`。运行态：`getMcpServerStatuses` / `getMcpServerTools` | Definitions tab + Runtime tab | 定义 CRUD @ `f49615a1`；Runtime @ E2-4 / P1a。不混 vscode `IMcpService` |
-| **Plugins** | `listPlugins` · `enablePlugin` · `reloadPlugin` · `unloadPlugin` · `scanNewPlugins` | `EnginePluginsSection`：列表 + 启停/重载/扫描（方法存在且 `canWrite` 才画）；pairing-hold KEEP leftover 关 Enable/Reload/Unload/Scan chrome（disable，不重选；D428） | P1a 真探测；**无** Browse Marketplace |
-| **Tools** | `ListTools` · `SaveAgentProfile`（`tools.json`）。`ToolInfo` 已进 catalog + node unary；**选中行**拉 `getToolInfo` 只读详情 | 目录 + profile 下拉 + 启用 checkbox + 只读详情 | profile 启用集 @ `7f10e65c` / `f49615a1`；无 hook 仍 list-only；不画 schema 编辑器 |
 | 节 | 传输（`platform/universeAgent`） | Engine UI（`contrib/conversation/browser`） | 备注 |
 |----|-----------------------------------|---------------------------------------------|------|
 | **Skills** | 读：`ListSkills` · `SkillInfo` · `SetSkillEnabled`。写：`IUniverseAgentConnection.saveSkillContent?`（common 契约 @ `f3f2d366`；node gRPC `SaveSkillContent` @ `45fa7a35`/`040c823d`） | `EngineSkillsSection`：bundled/user/project 分组 + 启用开关（旁冻结句 `getSkillToggleFreezeNotice`）+ 选中 skill **textarea**（`getSkillInfo` 读正文）；USER/PROJECT 在 `saveSkillContent` 存在且 `supported` 时 **Save**；BUNDLED 只读；断连/`UNSUPPORTED` 不渲染正文区 | list/toggle @ `8bfc299e`；**正文 UI** @ `f3f2d366`/`3e986bde`；**node 传输** @ `45fa7a35`/`040c823d`；**新建 UI** @ `e6167c45`/`9255e363` |
 | **Agents** | `ListAgentProfiles` · `SaveAgentProfile` · `DeleteAgentProfile` · `ResetAgentProfile` | `EngineAgentsSection`：project/user/built_in 分组列表；`supported` 时写工具栏 **New / Delete / Reset** + 选中 profile **`AGENTS.md` textarea + Save**（`engineAgentAgentsMd.ts`） | list @ `4833c008`；写 RPC + 写入口 @ `7f10e65c` / `f49615a1`；**`AGENTS.md` 全文编辑器** @ `9419f583`/`3756d04e`（断连/`UNSUPPORTED` 不渲染） |
 | **MCP Servers** | `ListMcpServers` · `ToggleMcpServer` · `AddMcpServer` · `UpdateMcpServer` · `RemoveMcpServer` | `EngineMcpSection`：global/project 分组 + 启用 checkbox；`supported` 时写工具栏 **Add / Update / Remove** | list + toggle @ `4833c008`；定义 CRUD @ `7f10e65c` / `f49615a1` |
-| **Tools** | `ListTools` · `SaveAgentProfile`（profile `tools.json`） | `EngineToolsSection`：`ListTools` 目录 + profile 下拉（user/project，不含 built_in）+ 启用 checkbox；经 `engineToolProfile.ts` 写 `disabledTools` / `enabledTools` | list @ `4833c008`；profile 启用集 @ `7f10e65c` / `f49615a1` |
-| **Overview** | 无独立 RPC | `EngineOverviewSection`：连接路径 / workDir / 能力摘要 | E2 壳 |
+| **Tools** | `ListTools` · `SaveAgentProfile`（profile `tools.json`）。`ToolInfo` 已进 catalog；选中行 `getToolInfo` 只读详情 | `EngineToolsSection`：`ListTools` 目录 + profile 下拉（user/project，不含 built_in）+ 启用 checkbox + 只读详情；经 `engineToolProfile.ts` 写 `disabledTools` / `enabledTools` | list @ `4833c008`；profile 启用集 @ `7f10e65c` / `f49615a1` |
+| **Overview** | 读 snapshot；`models=SUPPORTED` 时 `listModels()` 取已启用数（GC-6） | `EngineOverviewSection`：连接路径 / workDir / 能力摘要 / Model 计数。不暴露 token / 地址 / ticket | E2 壳；Provider 行不画 |
 | **Provider & Model** | `ListModels` + `listProviderStatus?`（只读） | `EngineProviderModelSection`：Model 注册表 + Provider 只读行；零凭据输入 | P1b；G-ENG-1 |
 | **MCP Runtime** | `GetMcpServerStatuses` · `GetMcpServerTools` | `EngineMcpRuntimePanel`（MCP 节 Runtime tab） | P1a；能力键 `mcpRuntime` |
-| **Plugins** | `PluginService.List` / `Info` / `Enable` / `Reload` / `Unload` / `ScanNew` | `EnginePluginsSection`：列表 + 行工具栏 + Hooks 表（行数随引擎；无 marketplace） | P1a |
+| **Plugins** | `PluginService.List` / `Info` / `Enable` / `Reload` / `Unload` / `ScanNew` | `EnginePluginsSection`：列表 + 行工具栏 + Hooks 表（行数随引擎；无 marketplace）。pairing-hold KEEP leftover 关掉 Enable / Reload / Unload / Scan（disable，不重选；D428） | P1a |
 | **Rules / Hooks** | `listProjectRules?` / `listHookPoints?` | `EngineRulesSection` / `EngineHooksSection`：只读列表；无写控件 | G-ENG-2 / G-ENG-3 |
 
 单测：`engineCatalogSections.test.ts` · `enginePreferencesPane.test.ts` · `engineAgentAgentsMd.test.ts` · `engineSkillsSection.test.ts` · `engineToolProfile.test.ts`（能力三态、断连路径、Skills 正文 Save 形状、AGENTS.md 保存与写 RPC 形状、九节导航）。
@@ -102,8 +91,6 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 | Plugins marketplace | — | 不做 |
 | 产品验证 / 隔离 profile 冒烟 | PRD-025 § / PRD-008 | 未做；不升 `implemented` |
 | Agent profile `model.json` 独立编辑器 | proto 已有 `model`/`model_type`/`max_turns`；Model 子 tab 未接 | `AGENTS.md` 正文已落；`tools.json` 经 Tools 节；**G-ENG-4** |
-| Provider 凭据读/写/测试 | node 已绑、未进 connection | 节壳在；表单未接前零输入控件 |
-| Rules / Hooks 真数据 | node 已绑、未进 connection | 节壳在；G-ENG-2 / G-ENG-3 |
 | 完整插件市场 | — | Plugins 只接 Engine `PluginService`，无 marketplace |
 | Composer 选择进发送载荷 | `submitInput` / `SwitchModel` | Agent / Tools / Model **只读填表**（`conversationComposerCatalog.ts`）。Model 选中 catalog id 进 `submitInput.modelProfileId`（Chat `SessionInput.model_profile_id`；诚实空不带）。下拉变更可走已有 `switchModel?`。Agent / Tools 选择不进发送载荷。Permission 接通后走 `setPermissionMode`。Route 省略（无引擎 `routeIndex`） |
 

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-26
-summary: "关仓代码尖 dd33706fb00。槽位账在其后的提交上推到 origin/agent-ide。A/B/E–J idle。C 因 dev/loop gitlink 占槽。D 本地合并未推。人类工位不能 ff。leftover 未完成。D24 仍开。D752 不入库。"
+summary: "2026-09-25 裁定已入账：Accept 暂存 hunk、链路本地、多根仓库、时间线角色与完成事件、R9 关闭、开发期 bundle id。subscription 仍 draft。关仓代码尖 dd33706fb00 已合进人类工位。A/B/E–J idle。C 因 dev/loop gitlink 占槽。D 本地合并未推。leftover 未完成。D24 仍开。D752 不入库。"
 ---
 
 # Development Progress
@@ -17,7 +17,7 @@ summary: "关仓代码尖 dd33706fb00。槽位账在其后的提交上推到 ori
 | 切片 | 提交 |
 |:-----|:-----|
 | **A SessionStream / L2** | 16/23/30–32/34–39/44/46/50–52；envelope leftover |
-| **catch** | D677–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847、D850–D851、D854–D858、D860–D868、D871、D875–D876、D881、D883、D886、D895、D898、D917、D922、D939、D943、D955、D964、D972、D974、D978、D980、D983、D1015、D1032、D1254、D1258、D1278、D1294、D1295 |
+| **catch** | D677–D751、D753–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847、D850–D851、D854–D858、D860–D868、D871、D875–D876、D881、D883、D886、D895、D898、D917、D922、D939、D943、D955、D964、D972、D974、D978、D980、D983、D1015、D1032、D1254、D1258、D1278、D1294、D1295（D752 仍不入库） |
 | **UA chrome** | 人类 `agent-ide`：Maximize Inbox 文档流、pairing-hold 禁 Connect、Diff SIDE_GROUP、live SAS/Stop 可达、本地 health-gates 门禁说明 |
 | **四份方案** | 活流 decoder/thinking 已与 SessionStream 波重叠，Chat 11/13/20 与 recover 仍开；拨号 / 绑定叶 / Sources 打开身份未实施。跟踪 [D944](deferred-gaps.md) |
 
@@ -25,9 +25,9 @@ summary: "关仓代码尖 dd33706fb00。槽位账在其后的提交上推到 ori
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **loop** | leftover 未完成。关仓代码尖 `dd33706fb00`。A/B/E/F/G/H/I/J `idle` 并跟推送后的 `MERGE_SHA`。C `blocked`（仅脏 `dev/loop` gitlink，不入库）。D `occupied`（`592fa2cddbb` 保留本地合并，未推）。人类工位 `agent-ide` @ `1fe23f074bd` 不是集成分支祖先，ff 拒绝，工作区未动。D752 不入库。 |
+| **loop** | leftover 未完成。关仓代码尖 `dd33706fb00` 已合进人类工位，本地文档与工作区提交仍在。A/B/E/F/G/H/I/J `idle`。C `blocked`（仅脏 `dev/loop` gitlink，不入库）。D `occupied`（`592fa2cddbb` 保留本地合并，未推）。D752 不入库。 |
 
-子 agent 发现：
+子 agent 发现（扫描笔记；D724 在延期表已 closed，D736 / D739 / D740 为 skipped，都不是当前阻塞）：
 | ID | 问题 |
 |:---|:-----|
 | [D24](deferred-gaps.md) | **仍开**：Connect/Watch/Resolve/Pty 仍 JSON |
@@ -59,7 +59,7 @@ summary: "关仓代码尖 dd33706fb00。槽位账在其后的提交上推到 ori
 | A B E F G H I J | `idle` | 同推送后的 `MERGE_SHA`，干净 |
 | C | `blocked` | `34b6ca17caa`，仅脏 `dev/loop` |
 | D | `occupied` | `592fa2cddbb`，未推 |
-| edit（人类 `agent-ide`） | ff 拒绝 | `1fe23f074bd`；脏路径仍在：`dev/loop`、`.idea/`、`*.iml`、`screenshots/` |
+| edit（人类 `agent-ide`） | 已合并 | 含 `9128b870dbe` 与本地 `1fe23f074bd`、`e1a637e8aa8` |
 
 ## Next
 | 项 | 指针 |

@@ -3,8 +3,8 @@ title: "ADR-008 WriteGitApplyHunks 空 argv / patches：引擎为成功空操作
 type: decision
 status: accepted
 phase: N/A
-updated: 2026-09-22
-summary: "R8 已闭。引擎空 patches = 成功空操作。产品 A1 拒空已落；两 pane 传 roster sessionId、仍空 patches。不是 A2。D31 F4 未跑。"
+updated: 2026-09-25
+summary: "R8 已闭。引擎空 patches = 成功空操作。A1 拒空仍在。2026-09-25：真 Accept 由客户端预组单 hunk，见 sources-accept-stage-hunk。D31 F4 未跑。"
 ---
 
 # ADR-008 WriteGitApplyHunks 空 argv / patches
@@ -71,7 +71,7 @@ R8 闭合后的**产品**选项已写入 [sources-accept-empty-success](../plans
 | B 本刀改传真 path / hunks | **拒绝。** 无既有 apply 载荷；禁止发明 hunk。 |
 | C 继续空送、只记残留风险 | **拒绝。** 空白 `sessionId` 只是碰巧 `INVALID_ARGUMENT`；只补 session 即假 Accept。 |
 
-不变量：禁止发明 proto / 默认 hunk；禁止把空请求的 `supported && success` 读成用户已接受全部 hunk。[D31](../progress/deferred-gaps.md) 仍开（F4 未跑；A2 未开）。
+不变量：禁止发明 proto；禁止把空请求的 `supported && success` 读成用户已接受全部 hunk。2026-09-25 产品补记：Accept 是暂存光标 hunk，patch 由客户端从点击时现拉的原始 diff 切出，argv 为 `git apply --cached --whitespace=nowarn`。这不是新协议。整段 diff 与 monaco 两侧仍不得当 patches。见 [sources-accept-stage-hunk](../plans/sources-accept-stage-hunk.md)。[D31](../progress/deferred-gaps.md) 仍开（F4 未跑）。
 
 ## Alternatives
 

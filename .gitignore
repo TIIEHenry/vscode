@@ -56,3 +56,5 @@ dist
 .agent-validation/
 # Byte cache from scripts/*.py
 __pycache__/
+# Local HeadlessServer runtime copied in from UniverseAgent (jars, not source)
+/engine/

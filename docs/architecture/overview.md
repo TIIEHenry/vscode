@@ -3,7 +3,7 @@ title: "VS Code 架构概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-08-30
+updated: 2026-09-25
 summary: "src/vs 分层全景：有序依赖、进程入口、目标环境与文档导航"
 ---
 
@@ -137,6 +137,9 @@ Extension Host 由 `workbench/api` 实现，与 renderer 分进程。跨进程�
 | Chat | [INDEX](../systems/chat/INDEX.md) | Chat 模型、工具、编辑会话 |
 | Extension API | [INDEX](../systems/extension-api/INDEX.md) | `vscode.d.ts` 与 extension host |
 | Processes | [INDEX](../systems/processes/INDEX.md) | main / renderer / shared / ext host / server |
+| Conversation | [INDEX](../systems/conversation/INDEX.md) | 产品中心：`CONVERSATION_PART` 与 `contrib/conversation` |
+| Sources | [INDEX](../systems/sources/INDEX.md) | End 列下格：`SOURCES_PART` 与 `contrib/sources` |
+| Agent Host | [INDEX](../systems/agent-host/INDEX.md) | 引擎宿主与会话视图 |
 
 ## 相关文档
 

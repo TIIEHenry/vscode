@@ -3,7 +3,7 @@ title: "Agent IDE 产品愿景"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-09-02
+updated: 2026-09-25
 summary: "本仓 Agent IDE：主流程在 Conversation，配套按完整 IDE 配齐；当前范围是无引擎默认窗产品壳"
 ---
 
@@ -17,9 +17,9 @@ summary: "本仓 Agent IDE：主流程在 Conversation，配套按完整 IDE 配
 |------|------------|
 | 本地开发者 | 打开本机项目，在对话里推进改码，需要时查看 Preview / Sources，而不是先找聊天插件 |
 | 后续团队成员 | 将来连接远程引擎与权限代理；**当前产品壳不交付此能力** |
-| 后续多 Agent 操作者 | 将来查看 Agents / Team 并干预权限；**当前产品壳不交付此能力** |
+| 后续多 Agent 操作者 | 查看 Agents / Team 的只读导航已由 [PRD-022](requirements.md#prd-022-navigator-引擎段) 接受；指挥类操作（Kill / StartMember 等）仍不在现行需求里 |
 
-首批只把「本地开发者使用默认桌面窗口」写成现行范围。后两行是愿景方向，不是已接受的现行需求。
+首批现行范围是本地开发者使用默认桌面窗口。远程引擎与权限代理仍是愿景，不是已接受的现行需求。Agents / Team 的只读查看已接受；干预权限没有。
 
 ## 用户当前遇到的问题
 

@@ -3,7 +3,7 @@ title: "Connection Hub 客户端接入：IDE 作为 Hub Client 设备"
 type: plan
 status: accepted
 phase: M6+
-updated: 2026-09-04
+updated: 2026-09-25
 summary: "IDE 扮演 Hub Client 设备；H0–H5 已落；GC-1b 配对接入 connectProfile、GC-2 设备动作、GC-3 probe 已落；H6 仍 v2；H4a 真 Hub 冒烟 / PRD-024 implemented 未签收"
 ---
 
@@ -157,7 +157,7 @@ interface ConnectionProfile {            // 持久化（§3.6）；不含 token 
   profileId: string; displayName: string; target: ConnectionTarget;
   trust: EngineTrustRecord | null;       // 远程形态 null ⇒ 常规拨号 fail-closed（trust_missing）→ 走 pairing
   state: 'active' | 'pairingPending' | 'revoked' | 'disabled';
-  allowPrivateNetwork: boolean;          // 默认 false：directAddress / hubDevice 解析出的 RFC1918 / ULA / loopback 地址一律拒拨（failed: private_network_denied）；
+  allowPrivateNetwork: boolean;          // 默认 false：directAddress / hubDevice 解析出的 RFC1918 / ULA / 链路本地（169.254/16、fe80::/10）/ loopback 地址一律拒拨（failed: private_network_denied）。2026-09-25 把链路本地补进同一拒绝集，不新增开关。loopback 目标形态仍不过闸。
                                          // 只能由用户在 pane 显式勾选，renderer 不得代填（Desktop network-policy 同款）；loopback 形态不受此约束
 }
 
@@ -182,7 +182,7 @@ interface ConnectionState {
 }
 ```
 
-失败码闭集（renderer 只按码画文案，不解析 reason）：`trust_missing` · `private_network_denied` · `pairing_required` · `sas_mismatch` · `grant_pending`（Engine 尚未批准）· `grant_revoked` · `pin_mismatch` · `hub_session_required` · `hub_password_change_required` · `hub_auth_expired`（4xx，≠ 不可达）· `hub_unreachable` · `hub_device_not_in_directory` · `hub_device_revoked` · `engine_not_serving` · `hub_ticket_failed` · `hub_rate_limited` · `transport_failed`。
+失败码闭集（renderer 只按码画文案，不解析 reason）：`trust_missing` · `private_network_denied` · `pairing_required` · `sas_mismatch` · `grant_pending`（Engine 尚未批准）· `grant_revoked` · `pin_mismatch` · `identity_mismatch` · `fingerprint_malformed` · `signer_unavailable` · `hub_session_required` · `hub_password_change_required` · `hub_auth_expired`（4xx，≠ 不可达）· `hub_unreachable` · `hub_device_not_in_directory` · `hub_device_revoked` · `engine_not_serving` · `hub_ticket_failed` · `hub_rate_limited` · `transport_failed`。
 
 **对上游 `ClientConnection` 转换表（architecture.md §2.2）逐行映射，确认无漏格：**
 

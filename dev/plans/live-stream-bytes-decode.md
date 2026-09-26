@@ -3,20 +3,21 @@ title: "活流 bytes 解码、thinking 键与 Create 错绑恢复"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-22
+updated: 2026-09-25
 summary: "2026-09-19 签收。decoder/thinking 已与 SessionStream 波重叠（含 32/46）；Chat 11/13/20 与 Create recover 仍开。不发明字段。不手改 sessionCore。不升 PRD-008。"
 ---
 
 # 活流 bytes 解码、thinking 键与 Create 错绑恢复
 
 > **slice_id**：`live-stream-bytes-decode`  
-> **冲突域**：`src/vs/platform/universeAgent/node/grpc/grpcSessionAttachWire.ts` · `sessionStreamDemux.ts` · `sessionCreateRecover.ts` · `sessionViewHost.ts` · `fileMutationJoin.ts` 及对应 `test/node`  
+> **冲突域**：`src/vs/platform/universeAgent/node/grpc/grpcSessionAttachWire.ts` · `sessionStreamDemux.ts` · `sessionCreateRecover.ts` · `sessionViewHost.ts` · `overlayDeltaJoin.ts` · `fileMutationJoin.ts` 及对应 `test/node`  
 > **基线：** `agent-ide` HEAD `5c910c59a226`  
 > **触发：** 2026-09-18 十六路只读审查。单测大量 JSON 直灌 demux，绕过 decoder，测绿但活窗黑。  
 > **2026-09-22 核对：** `decodeSessionStreamEvent` 已解多臂（含 `tool_call_lifecycle`=32 / `tool_runtime_snapshot`=46），`decodeThinkingBlock` 写 `thinking`。这与进度账「SessionStream / L2」合入重叠，不是本方案整份已实施。**仍开：** `encodeChatRequest` 只编 heartbeat_ack=12 与 session_input=30（permission_response=11 / client_tool_response=13 / question_response=20 未与 30 互斥）；`recoverSessionAfterAlreadyExists` 仍 title 优先、否则名册第一行，`clientSessionId` 只在 List 失败或空时 Resume。不升 `implemented`。  
 > **禁止发明：** 本仓不存在的 proto 字段号、capability key、引擎 RPC。号只从钉死引擎 `grpc-api/.../message_envelope.proto` / `agent_service.proto` **只读抄**。  
 > **不推翻：** [conversation-stream-timeline](conversation-stream-timeline.md)「显示写源 = SessionEventStream L1–L4」；[ADR-003](../decisions/003-engine-adapter-boundary.md)；[giant-file-split](giant-file-split.md) GFS-4 **禁止手改** `node/sessionCore/**`；[session-subscription-lifecycle](session-subscription-lifecycle.md) D405 S4a/S4b / §5 手测仍开，本稿不占。  
 > **不升：** [PRD-008](../../docs/product/requirements.md#prd-008-引擎与会话权威)。本稿是接通后显示/绑会话诚实，不是冒烟升档。
+> **2026-09-25 产品与架构裁定（归 S1，与解码同一提交）：** `turn_completed` 仅当 `turn_id` 等于当前 turn 时才清流式覆盖。没有 `turn_id` 视为未知轮，不清。`decodeTurnLifecycleEvent` 必须把已有的 `turn_id` 解进嵌套对象，禁止再写成 `{}`。文本行角色在 `normalizeAttributionRole` 按 `titleFromRole` 的 `1`/`2`/`3`/`4` 归一；无法归一化则不写 `assistant`。投影侧中性行见 [11-conversation-timeline](bug-hunt-2026-09-24/11-conversation-timeline.md)。冲突域补 `overlayDeltaJoin.ts`。不新增角色 kind，不改 session-core。
 
 ## Problem class
 
@@ -145,7 +146,7 @@ HEAD `submitInputWritePayload` **不写** `kind`，只摊 `{ text, originLeaseId
    - L4 `ask_user_question` bytes 测（至少一条 item）必须让 **`localFactFromQuestionArm` 非空**（HEAD demux 无 items 仍出 `arm:'question'`，宿主只在 fact 有值时才 `questionAsked`；`items`/`questions` 若 `lastBytes` 成对象 = 提问座不出现）。`options` 可弱于 items（无 options 座仍在）
    - 无 snapshot 的 30/31/34 → **`OverlayDeltaJoin.handlePayload`** 出 `overlayActiveTurn`，且 **`streamingText` / `thinkingText` / `generatingToolName` 必须等于编进去的 `text_delta=5` / `tool_name=4`**（HEAD `overlayDeltaJoin.ts` L114–150：`turn_id` 合法就出臂，delta 缺或非字符串时正文为空串；只 assert 有臂会假绿）
    - 32/46 → join：PIN oneof 在 **snapshot 根上** field 23。HEAD `onToolRuntimeSnapshot` **只**认夹具 `{ payload: { file_mutation_payload } }`。选定：**join 兼认根上 `file_mutation_payload`**。HEAD 无 lifecycle binding 只入 pending、**不 emit**（`fileMutationJoin.ts` L159–163）。PIN `SessionStreamEvent.event` 是 oneof：32 / 44 / 46 **不能同条 wire**。HEAD `handleStreamPayload` 能在一个 JSON 里同时读两键（L84–96）；decoder 按字段独立 `lastBytes`，单包同编 32+46 会两键都出、**非法夹具仍绿**。S1 测必须是 **两条 `SessionStreamEvent` bytes**（先 32 再 46/44，或先 46/44 再 32）先后进 `handleStreamPayload`，根上 field 23，禁止 `payload` wrapper。**禁止**单包同编 32+44/46。
-   - 37 嵌套 `turn_lifecycle.turn_completed` → OverlayDeltaJoin **clear**；**另**一条 bytes → decoder → `handleStreamPayload` **兼认嵌套形** → `onTurnSettle`（或 `assistant_turn_id` 重发）。HEAD join **只**读顶层 `turn_completed`（L99–102）；只测 OverlayDeltaJoin clear 不需要改 join，Sources 回合 settle 仍丢
+   - 37 嵌套 `turn_lifecycle.turn_completed` 必须带上 `turn_id`。OverlayDeltaJoin **只在 `turn_id` 等于当前 turn 时 clear**；缺 id 或不等于当前 turn 则不清（2026-09-25）。解码与 join 同一提交。**另**一条 bytes → decoder → `handleStreamPayload` **兼认嵌套形** → `onTurnSettle`（或 `assistant_turn_id` 重发）。HEAD join **只**读顶层 `turn_completed`（L99–102）；Sources 回合 settle 仍须嵌套形
    - 16 → demux `sessionPurged` → closed
    - 39 → bytes → decoder → **`readTeamCreatedTeamId` 得到 JS number**（或 host `teamIdBound`）。HEAD demux 对 `multi_agent_status` 无臂、落到 `return []`（`sessionStreamDemux.ts` 末），切片禁止把 39 放进 demux 测桶
    禁止只 `Object.hasOwn(payload, 'permission_request')`。测文件点名 `overlayDeltaJoin.test.ts`、`fileMutationJoin.test.ts`（37 **与** 32/46 形）。`turn_lifecycle` 输出 proto 嵌套形。`session_purged=16` 必须解成 `{}`。
@@ -171,7 +172,7 @@ HEAD `submitInputWritePayload` **不写** `kind`，只摊 `{ text, originLeaseId
 
 | Slice | Goal | Files | Tests / 本地门禁 | Exit |
 |:------|:-----|:------|:-----------------|:-----|
-| **S1** 必须解臂 | decoder + OverlayDeltaJoin + join 兼认 37 嵌套与 46 **根上** field 23；16/30/31/34/44/50–52/32/46/39 | `grpcSessionAttachWire.ts` · `overlayDeltaJoin.ts` · `fileMutationJoin.ts` | bytes → decoder → **demux**（座 / 44 含 `pending kind=1` 数组 / purge）且 OverlayDeltaJoin 30/31/34 **正文等于 field 5/4**（及 37 clear）且 **两条 bytes** 先后 `handleStreamPayload` 出 mutation record（先 32 再 46/44，禁单包）且 44 pending kind=2 `questions` 数组 → overlay 问句非空 且 L4 ask_user → **`localFactFromQuestionArm` 非空** 且 39 → **`readTeamCreatedTeamId` 得 number** 且 **嵌套 37 → `handleStreamPayload` `onTurnSettle`** | 禁止只 assert 有臂 / 只测 demux / 单包 32+46 / 只测 overlay 37 |
+| **S1** 必须解臂 | decoder + OverlayDeltaJoin + join 兼认 37 嵌套与 46 **根上** field 23；16/30/31/34/44/50–52/32/46/39。另：`normalizeAttributionRole` 映射数字 1–4，无法归一化的文本行不写 `assistant` | `grpcSessionAttachWire.ts` · `overlayDeltaJoin.ts` · `fileMutationJoin.ts` · `sessionViewHost.ts` | bytes → decoder → demux，且 OverlayDeltaJoin 30/31/34 正文等于 field 5/4；37 仅当 `turn_id` 等于当前 turn 才 clear，缺 id 或其它 turn 不清，decoder 不得把 `turn_completed` 解成 `{}`；两条 bytes 先后出 mutation record；44 pending kind=2 问句非空；L4 `localFactFromQuestionArm` 非空；39 `readTeamCreatedTeamId` 得 number；嵌套 37 到达 `onTurnSettle` | 禁止只 assert 有臂 / 只测 demux / 单包 32+46 / 把缺 id 当成 clear |
 | **S2** thinking | field 1 → `thinking` | 同上 + `sessionStreamDemux.ts` 若需双认 | bytes thinking 块 → reasoning 臂 | 夹具 `{ text }` 不再是唯一绿路径 |
 | **S3** 活 L2 mutation | stream envelope 进 join | `fileMutationJoin.ts` | `fileMutationJoin.test.ts`：打 **`handleStreamPayload`**（不是只复制 history）：stream `envelope_appended`+`file_mutation` 出 record | 不碰 Apply |
 | **S4** recover | Resume(client id) 或 throw | `sessionCreateRecover.ts` | 非空 List 无匹配 id → 不绑首行；有匹配 id 才 Resume | title 测删除或改口 |

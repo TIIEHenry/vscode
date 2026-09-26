@@ -27,9 +27,9 @@
 
 ## 架构摘要
 
-`src/vs/` 分层（低 → 高）：`base` → `platform` → `editor` → `workbench` → `sessions`。`code`（桌面）与 `server`（远程）是入口层。`sessions` 可依赖 `workbench`，反向禁止。
+`src/vs/` 分层（低 → 高）：`base` → `platform` → `editor` → `workbench`。`code`（桌面）、`server`（远程）与 `sessions` 都在 `workbench` 之上，彼此是产品入口层。`sessions` 可依赖 `workbench`，反向禁止。
 
-目标环境子目录：`common` / `browser` / `node` / `electron-browser` / `electron-main`。
+目标环境子目录：`common` / `browser` / `node` / `electron-browser` / `electron-utility` / `electron-main`。
 
 工作台：`workbench/{common,browser,electron-browser}` 核心 · `services/` 核心服务 · `contrib/` 功能 · `api/` Extension API。
 
@@ -44,4 +44,4 @@
 
 ## 校验（按影响面选用，勿当作收尾仪式）
 
-详见 [.github/copilot-instructions.md](.github/copilot-instructions.md)：优先最小针对性测试；`scripts/test.sh`；分层变更才跑 `npm run valid-layers-check`。门禁命令见 [health-gates](dev/progress/health-gates.md)。托管 CI 已关（[.github/workflows/DISABLED.md](.github/workflows/DISABLED.md)）是既定选择：**不得**写成验证缺口、缺自动化的原因，也**不得**建议重开。
+详见 [.github/copilot-instructions.md](.github/copilot-instructions.md)：优先最小针对性测试；`scripts/test.sh`。`npm run valid-layers-check` 在 [D8](dev/progress/deferred-gaps.md) 修好前不作合入门禁，见 [health-gates](dev/progress/health-gates.md)。托管 CI 已关（[.github/workflows/DISABLED.md](.github/workflows/DISABLED.md)）是既定选择：**不得**写成验证缺口、缺自动化的原因，也**不得**建议重开。

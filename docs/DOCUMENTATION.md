@@ -3,7 +3,7 @@ title: "Documentation System — LLM Maintenance Rules"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-09-18
+updated: 2026-09-25
 summary: "本仓库 LLM 文档维护规则；结构见 DOCS-SPEC.md；规则 3c 状态翻转后扫知识层；阶段日志落 status + evidence，不设 dev/iterations；门禁只走本地 health-gates"
 ---
 
@@ -120,7 +120,7 @@ summary: "一行描述"
 
 ### 规则 3c：方案状态翻转后扫知识层
 
-`check-docs-health.py` 只查 frontmatter 与断链，**查不出叙述性内容过时**。表内产品 / 方案状态枚举（`dev/plans/INDEX.md`「状态」列、`docs/product/traceability.md`「产品状态」列及分桶）由 `generate-docs-status.py` 写入、`check-docs-health.py` 的 `generated_status` 组校验；改源后须跑生成脚本，**不必**手扫这些生成列。当某个 plan / PRD / D 项状态翻转（`accepted → implemented`、`open → closed`）时，仍须在 `docs/` 中检索该项名称与「未实施 / deferred / 仍 open / 待验证」等**叙述**字样并逐处改口，尤其是 `docs/systems/**` 与 `docs/glossary.md`。
+`check-docs-health.py` 的 error 组查必备入口、模块 / 系统 INDEX、`status.md` 行数（≤ 200）和 `generated_status`。frontmatter 与本地断链默认只警告，`--strict-frontmatter` / `--strict-links` 才升为失败。这些检查**查不出叙述性内容过时**。表内产品 / 方案状态枚举（`dev/plans/INDEX.md`「状态」列、`docs/product/traceability.md`「产品状态」列及分桶）由 `generate-docs-status.py` 写入、`generated_status` 组校验；改源后须跑生成脚本，**不必**手扫这些生成列。当某个 plan / PRD / D 项状态翻转（`accepted → implemented`、`open → closed`）时，仍须在 `docs/` 中检索该项名称与「未实施 / deferred / 仍 open / 待验证」等**叙述**字样并逐处改口，尤其是 `docs/systems/**` 与 `docs/glossary.md`。
 
 ### 规则 4：ADR vs 阶段日志
 

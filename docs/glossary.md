@@ -3,7 +3,7 @@ title: "术语表"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-09-16
+updated: 2026-09-25
 summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI 宿主、Conversation 系统术语（SessionBar / 会话 pill / 叶 / Composer / Inbox / MessageQueue / stub / 帧源 / lease / ViewFrame / pendingActions / SyncChrome / attribution sidecar）、Connection Hub（Hub / Client / SAS / Grant / DirectAddress）、不变量、能力三态、页面接入与文档约定；对外可读闭集与旧称对照表"
 ---
 
@@ -73,7 +73,7 @@ summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI �
 | **轨迹透镜** | 详细对话列表：强制显示注入/chip/环境/压缩相关；长工具段可过程折（默认展开）。 | [PRD-012](product/requirements.md#prd-012-conversation-轨迹透镜) · [lens-and-trajectory](systems/conversation/lens-and-trajectory.md) |
 | **过程折** | 连续思考与工具上的显示 overlay（外层摘要 → Thinking → 工具）。对话默认收起，轨迹可复用且默认展开。不是列表身份，也不是 Copilot thinking 设置。 | [PRD-013](product/requirements.md#prd-013-conversation-过程折) · [lens-and-trajectory §4](systems/conversation/lens-and-trajectory.md) |
 | **图示卡（visualize）** | `visualize` 工具结果在时间线的卡片：`diagram`（mermaid）或 `comparison`（方案对比）；全屏为 Conversation overlay；扩展缺失降级为 fence。 | [PRD-014](product/requirements.md#prd-014-conversation-图示卡visualize) · [lens-and-trajectory §5](systems/conversation/lens-and-trajectory.md) |
-| **IConversationRosterService** | 产品 Conversation 的会话数据契约（decorator id `'conversationStubService'`）；今天由 `ConversationStubService` 内存实现，引擎接通后由 adapter 同 token 替换。含产品方法与测试夹具两组。 | [stub-and-fixtures](systems/conversation/stub-and-fixtures.md) |
+| **IConversationRosterService** | 产品 Conversation 的会话数据契约（decorator id `'conversationStubService'`）。生产注册 `ConversationEngineRosterService`：无引擎走 stub 帧源，已连接走会话视图 lease。本地会话持久化已落（D13）。`ConversationStubService` 留给单测与断连路径。 | [stub-and-fixtures](systems/conversation/stub-and-fixtures.md) |
 | **stub / fixture** | stub = 无引擎时的本地占位实现（回复 echo、连接态断开）；fixture = 单测与种子会话用的假数据。UI 文案凡来自二者必带 `Stub`。 | [stub-and-fixtures](systems/conversation/stub-and-fixtures.md) · [PRD-007](product/requirements.md#prd-007-诚实降级) |
 | **诚实降级** | 无引擎 / 无权威 / 能力缺失时省略槽位或明示空，禁止假列表、假「已连接」、假同步。贯穿所有 PRD 的体验原则 3。 | [vision](product/vision.md) · [PRD-007](product/requirements.md#prd-007-诚实降级) |
 | **能力三态** | UA `CapabilitySupport`：`SUPPORTED / UNSUPPORTED / UNKNOWN`（带 reason）；IDE 传输失败是独立态，不得映射为 UNSUPPORTED 或空列表。 | [engine-protocol-surface §2](reference/universe-agent/engine-protocol-surface.md) |

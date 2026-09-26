@@ -3,8 +3,8 @@ title: "Sources Accept：空载荷宿主拒送（产品切片）"
 type: plan
 status: draft
 phase: N/A
-updated: 2026-09-20
-summary: "A1 宿主拒空已落。HEAD 两 pane 已注入 roster sessionId、仍空 patches（土地雷在、门仍挡）。空 Accept 不再 git.stage。P5 停线；A2 须新选定 + 新 Arch-First。D31 F4 仍开。仍 draft。"
+updated: 2026-09-25
+summary: "A1 拒空仍有效。2026-09-25 推翻 P5 停线：真 Accept 见 sources-accept-stage-hunk。本稿不升 accepted。D31 F4 仍开。"
 ---
 
 # Sources Accept：空载荷宿主拒送
@@ -12,7 +12,7 @@ summary: "A1 宿主拒空已落。HEAD 两 pane 已注入 roster sessionId、仍
 > **slice_id**：`accept-empty-success-plan`  
 > **冲突域**：sources-git Accept payload  
 > **引擎语义不重审**：[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 已裁定空 `patches` = 成功空操作。本稿只定**产品** Accept 切片。  
-> **A1 已实施**（工位 D `accept-refuse-empty`）。不发明 proto / hunk。不跑 F4。不占 D26。不做 D22/F3。不改引擎。**A2 仍 blocked**。  
+> **A1 已实施**（工位 D `accept-refuse-empty`）。不改引擎。**2026-09-25：** P5 停线已推翻。真 Accept 见 [sources-accept-stage-hunk](sources-accept-stage-hunk.md)：点击时现拉的 diff 只按单个 hunk 切片，整段字符串和打开时缓存仍禁止当 patches。HEAD 上带着走的 `unifiedDiff` 由该方案 S0 拆掉。下文若仍写「再拉的 unified_diff 一律禁止」，以该新方案的单 hunk 切片为准。D31 F4 仍开。  
 > **审查**：`draft`。独立审查 [bfc9d2ed](bfc9d2ed-e75b-4706-b142-d2e10fcbcc77) **Approve with changes：只批准 P5 停线，不批准 A2**。must-fix 已并入。2026-09-20 规则 16 再审 **Approve with changes**（对照 HEAD `434ad999580`）：只改正文事实，不解锁 A2。主笔不自宣 Approve。整案不标 `accepted`。A2 须**新**选定设计 + **新**独立 Arch-First（**新方案文件**，不是给本稿盖章），不得因本裁定或「session 已接线」自动解锁。
 
 ## Problem class

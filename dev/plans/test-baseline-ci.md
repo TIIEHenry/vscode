@@ -3,7 +3,7 @@ title: "测试基线治理 + agent-ide CI"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-22
+updated: 2026-09-25
 summary: "先按账本修/改 D16 失败使三文件基线归零；agent-ide workflow 曾 github-hosted 跑四 job（2026-09-10 起永久关闭，见 workflows/DISABLED.md）；门禁用失败名单差集 + 用例数下限 + skipped 不增，不恢复 valid-layers-check；签收裁定：三域新增失败挡合入"
 ---
 
@@ -24,7 +24,7 @@ summary: "先按账本修/改 D16 失败使三文件基线归零；agent-ide wor
 
 1. 把 [D16](../progress/deferred-gaps.md) 点名的三文件失败逐条分类并收口（过时断言改测，产品 bug 修码），使 `conversationLens` / `conversationIdentityStrip` / `conversationStubService` 三文件在 `scripts/test.sh --run` 下 **exit 0 且 skipped 数不高于基线**。D16 记的「15」是它在 `0649602d` 上的观测值，**不是合同数字**：账本行数 = 切片 0 在当前 `agent-ide` HEAD 实测的失败数；多于或少于 15 都如实记，并回写 D16 行。
 2. 顺手堵住 D16 脚注的 **假绿**：[`conversationImportBoundaries.test.ts`](../../src/vs/workbench/contrib/conversation/test/browser/conversationImportBoundaries.test.ts) 用 `__dirname` 扫 `out/` 下的 `.ts`，对照 HEAD [`universeAgentImportBoundaries.test.ts`](../../src/vs/platform/universeAgent/test/common/universeAgentImportBoundaries.test.ts)（`import.meta.url` + 扫描计数；D16 正文写「FileAccess」，与现文件不符，**以源码为准**）。
-3. 在 `.github/workflows` **新建**只服务 `agent-ide` 的 workflow：`compile`、`eslint`、`docs-health`（`python3 scripts/check-docs-health.py`；[docs-burden-reduction](docs-burden-reduction.md) S1 落地后再加 `generate-docs-status.py --check`——这是该方案「忘跑则红」的唯一机器调用方）、三自定义模块单测（`contrib/conversation`、`contrib/sources`、`platform/universeAgent`）。
+3. 签收时要在 `.github/workflows` **新建**只服务 `agent-ide` 的 workflow：`compile`、`eslint`、`docs-health`、三自定义模块单测（`contrib/conversation`、`contrib/sources`、`platform/universeAgent`）。**2026-09-10 起该 workflow 已关闭。**「忘跑则红」的现行命令在本地 [health-gates](../progress/health-gates.md)：`check-docs-health.py`、`generate-docs-status.py --check`、`python3 -m unittest scripts/tests/test_docs_status.py`。
 4. 三域单测的机器门禁用 **「本次失败集合 ⊆ 已登记基线名单」+「每域用例数 ≥ 名单登记下限」+「每域 skipped 数 ≤ 名单登记值」**，不是 mocha 全绿、也不是全仓单测。
 
 **非目标**
@@ -154,7 +154,7 @@ on:
 |--------|------|------|
 | `compile` | `npm run compile` | 与 [health-gates](../progress/health-gates.md) 集成检查一致 = `compile-client` + `compile-copilot`（见根 `package.json`）。**不含** `valid-layers-check`。最低前置见下 |
 | `eslint` | `npm run eslint` | `build/eslint.ts`；分层靠已有 `local/code-layering`，不靠 D8。同样要 `build/` + 根 `npm ci` |
-| `docs-health` | `python3 scripts/check-docs-health.py`；docs-burden S1 落地后追加 `python3 scripts/generate-docs-status.py --check` | 只需 checkout + python3；无 `npm ci`。这是 [docs-burden-reduction](docs-burden-reduction.md)「忘跑生成脚本则红」的唯一机器调用方；health-gates 现只写「提交前建议」 |
+| `docs-health` | 已关闭的 job 历史步骤：`check-docs-health.py`，S1 合入后另有 `generate-docs-status.py --check` 与 `test_docs_status.py` | 该 job 已于 2026-09-10 关闭。现行三条命令在本地 [health-gates](../progress/health-gates.md) |
 | `unit-custom` | 见下 | 只跑三域；用 §5 名单判定，**不要**让 mocha 的非零退出直接当 job 失败 |
 | `baseline-guard`（`unit-custom` 内一步，仅 `pull_request`） | `git diff -U0 $BASE...HEAD -- dev/progress/test-baseline-failures.txt` | 若同一 PR 改了 `src/**`，**且**名单里新增了非注释非空行（即真的登记了新失败）→ exit 1 并打印那几行。名单加行必须是**单独 PR**（§5「加行 = D17 登记 PR」的机器面）。**只改头部键**（新域的 `min_cases` / `max_skipped`）**或只删行**不拦——追平型 PR 需要一次同时修 src 与接入新域，2026-09-07 工位 E 实测撞上后放宽 |
 
@@ -317,7 +317,7 @@ D8 仍豁免，不进名单、不进本 workflow。
 ### 7.3 验收
 
 1. `d16-ledger.md` 全部行闭合；三 `--run` exit 0 且 skipped / 用例数满足 §3.4；import boundaries 非空扫。
-2. `.github/workflows/agent-ide.yml` 存在，触发 `agent-ide`，四 job 如上（含 `docs-health`），`runs-on: ubuntu-24.04`，无 1ES / `vscode-large-runners`。
+2. **已过时（2026-09-10）：** 不再要求 `.github/workflows/agent-ide.yml` 触发 `agent-ide`。该 workflow 已关闭（[DISABLED.md](../../.github/workflows/DISABLED.md)）。现行对照是本地 health-gates 的 compile / eslint / docs-health / unit-custom。
 3. `unit-custom` 在「只存在名单内失败」时绿；人为加一个不在名单里的 `assert.fail` 时红；删掉一个已通过但仍在名单中的 `classname::name` 时红；把某域 `--glob` 改成不匹配任何文件时红（`min_cases`）；给一个用例加 `it.skip` 时红（`max_skipped`）；PR 在改 `src/**` 的同时**往名单里加一行失败登记**时红（`baseline-guard`），而只改头部域键或只删行时不红。
 4. `compile` / `eslint` 失败 → workflow 红，与名单无关。
 5. workflow **没有** `valid-layers-check`。
