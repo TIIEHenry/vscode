@@ -105,6 +105,9 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 		})`],
 			[layout, 'window.whenStylesHaveLoaded.then(() => this.containerStylesLoaded.delete(windowId))'],
 			[menubar, `this.workspacesService.getRecentlyOpened().then(recentlyOpened => {
+				if (generation !== this._recentlyOpenedGeneration || this._store.isDisposed) {
+					return;
+				}
 				this.recentlyOpened = recentlyOpened;
 				this.updateMenubar();
 			})`],
@@ -188,6 +191,9 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 		assertPromiseSignature(workspaces, 'getRecentlyOpened(): Promise<IRecentlyOpened>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertDoubleThen(source, `this.workspacesService.getRecentlyOpened().then(recentlyOpened => {
+				if (generation !== this._recentlyOpenedGeneration || this._store.isDisposed) {
+					return;
+				}
 				this.recentlyOpened = recentlyOpened;
 				this.updateMenubar();
 			})`);
