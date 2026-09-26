@@ -1,0 +1,19 @@
+### Result
+[
+  {
+    "text": "Files",
+    "selected": "true"
+  },
+  {
+    "text": "Changes",
+    "selected": "false"
+  },
+  {
+    "text": "Review",
+    "selected": "false"
+  }
+]
+### Ran Playwright code
+```js
+await page.evaluate('() => (\n(() => {\n  const tabs = [...document.querySelectorAll(".part.sources [role=tab], .part.sources .sources-tab")];\n  return tabs.map(t => ({ text: t.textContent?.trim(), selected: t.getAttribute("aria-selected") }));\n})())');
+```

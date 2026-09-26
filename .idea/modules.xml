@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/extensions/copilot/src/copilot.iml" filepath="$PROJECT_DIR$/extensions/copilot/src/copilot.iml" />
+      <module fileurl="file://$PROJECT_DIR$/extensions/copilot/test/simulation/fixtures/tests/java-example-project/java-example-project.iml" filepath="$PROJECT_DIR$/extensions/copilot/test/simulation/fixtures/tests/java-example-project/java-example-project.iml" />
+      <module fileurl="file://$PROJECT_DIR$/extensions/copilot/test/simulation/fixtures/tests/java-example-project-with-existing-test-file/src/main/main.iml" filepath="$PROJECT_DIR$/extensions/copilot/test/simulation/fixtures/tests/java-example-project-with-existing-test-file/src/main/main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/extensions/copilot/test/scenarios/scenarios.iml" filepath="$PROJECT_DIR$/extensions/copilot/test/scenarios/scenarios.iml" />
+      <module fileurl="file://$PROJECT_DIR$/extensions/copilot/test/simulation/fixtures/tests/java-example-project-with-existing-test-file/src/test/test.iml" filepath="$PROJECT_DIR$/extensions/copilot/test/simulation/fixtures/tests/java-example-project-with-existing-test-file/src/test/test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/extensions/copilot/test/simulation/fixtures/tlaplus/tlaplus.iml" filepath="$PROJECT_DIR$/extensions/copilot/test/simulation/fixtures/tlaplus/tlaplus.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/vscode.iml" filepath="$PROJECT_DIR$/.idea/vscode.iml" />
+      <module fileurl="file://$PROJECT_DIR$/extensions/vscode-colorize-tests/vscode-colorize-tests.iml" filepath="$PROJECT_DIR$/extensions/vscode-colorize-tests/vscode-colorize-tests.iml" />
+    </modules>
+  </component>
+</project>

@@ -1,0 +1,51 @@
+### Result
+{
+  "v1": {
+    "conversation": {
+      "exists": true,
+      "visible": true,
+      "w": 612,
+      "h": 23
+    },
+    "editor": {
+      "exists": true,
+      "visible": false,
+      "w": 612,
+      "h": 0
+    },
+    "sources": {
+      "exists": true,
+      "visible": true,
+      "w": 480,
+      "h": 1000000
+    },
+    "panel": {
+      "exists": true,
+      "visible": false,
+      "w": 0,
+      "h": 0
+    },
+    "aux": {
+      "exists": true,
+      "visible": false,
+      "w": 0,
+      "h": 0
+    },
+    "chatEditorTab": false
+  },
+  "sourcesTabs": [
+    "Files",
+    "Changes",
+    "Review"
+  ],
+  "navTabs": [],
+  "composer": true,
+  "engine": "Engine not connected",
+  "session": "Untitled session",
+  "four": [],
+  "editorTabs": []
+}
+### Ran Playwright code
+```js
+await page.evaluate('() => (\n(() => {\n  const part = (sel) => {\n    const el = document.querySelector(sel);\n    if (!el) return { exists: false, visible: false };\n    const r = el.getBoundingClientRect();\n    return { exists: true, visible: r.width > 0 && r.height > 20, w: Math.round(r.width), h: Math.round(Math.min(r.height, 1e6)) };\n  };\n  const editorTabs = [...document.querySelectorAll(".part.editor .tab")].map(t => t.getAttribute("aria-label") || t.textContent?.trim());\n  const sourcesTabs = [...document.querySelectorAll(".part.sources .sources-tab, .part.sources [role=tab]")].map(t => t.textContent?.trim()).filter(Boolean);\n  const navTabs = [...document.querySelectorAll(".part.sidebar .action-item, [aria-label*=\\"Active View Switcher\\"] [role=tab]")].map(t => t.getAttribute("aria-label") || t.textContent?.trim()).filter(Boolean);\n  const composer = !!document.querySelector(".part.conversation textarea, .part.conversation .native-edit-context, .part.conversation .monaco-editor");\n  const inbox = [...document.querySelectorAll(".part.conversation *")].some(el => /inbox|Inbox|收件/i.test(el.getAttribute("aria-label") || el.textContent || "") && (el.textContent || "").length < 40);\n  const engine = document.querySelector("#status\\\\.conversation\\\\.engine")?.textContent?.trim();\n  const session = document.querySelector("#status\\\\.conversation\\\\.session")?.textContent?.trim();\n  const four = [...document.querySelectorAll("button")].filter(b => /Navigator|Conversation|Preview|Sources/.test(b.getAttribute("aria-label") || "")).map(b => ({\n    label: b.getAttribute("aria-label"), pressed: b.getAttribute("aria-pressed")\n  }));\n  const chatEditor = editorTabs.some(t => /chat/i.test(t || ""));\n  return {\n    v1: {\n      conversation: part(".part.conversation"),\n      editor: part(".part.editor"),\n      sources: part(".part.sources"),\n      panel: part(".part.panel"),\n      aux: part(".part.auxiliarybar"),\n      chatEditorTab: chatEditor\n    },\n    sourcesTabs,\n    navTabs: navTabs.slice(0, 10),\n    composer,\n    engine,\n    session,\n    four,\n    editorTabs: editorTabs.slice(0, 6)\n  };\n})())');
+```
