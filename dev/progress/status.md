@@ -3,8 +3,8 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-09-22
-summary: "人类工位在途已合入：会话镜头清空时拆除、Review 打开失败带错误态、Rebuild 流测试对齐 bytes。A 的 D752 与 dev/loop gitlink 仍不入库。D24 仍开。"
+updated: 2026-09-26
+summary: "关仓 MERGE_SHA dd33706fb00 已在 origin/agent-ide。字母槽 A/B/E–J idle。C 因 dev/loop gitlink 占槽。D 本地合并未推。人类工位不能 ff。leftover 未完成。D24 仍开。D752 不入库。"
 ---
 
 # Development Progress
@@ -25,7 +25,7 @@ summary: "人类工位在途已合入：会话镜头清空时拆除、Review 打
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **loop** | leftover 未完成。人类工位在途已合入：会话镜头清空时拆除、Review 打开失败带错误态、Rebuild 流测试对齐 bytes。A 的 D752 与 `dev/loop` gitlink 仍不入库。E blocked。 |
+| **loop** | leftover 未完成。关仓 `MERGE_SHA` `dd33706fb00` = `origin/agent-ide`。A/B/E/F/G/H/I/J `idle`。C `blocked`（仅脏 `dev/loop` gitlink，不入库）。D `occupied`（`592fa2cddbb` 保留本地合并，未推）。人类工位 `agent-ide` @ `1fe23f074bd` 不是该 SHA 的祖先，ff 拒绝，工作区未动。D752 不入库。 |
 
 子 agent 发现：
 | ID | 问题 |
@@ -51,6 +51,16 @@ summary: "人类工位在途已合入：会话镜头清空时拆除、Review 打
 | variableResolver | `columnNumber` 抛 `Error`，`lineNumber`/`selectedText` 抛 `VariableError` |
 | timeline handleRequest | 空 `catch` 吞掉 provider 失败 |
 | workingCopy whenReady | 赋值 `resolveBackupsToRestore()` / leftover `limiter.queue` reject 可未处理 |
+## 槽位（2026-09-26 关仓）
+
+| 槽 | 状态 | HEAD |
+|:---|:-----|:-----|
+| merge | `parked` | `dd33706fb00` = `origin/agent-ide` |
+| A B E F G H I J | `idle` | 同 `MERGE_SHA`，干净 |
+| C | `blocked` | `34b6ca17caa`，仅脏 `dev/loop` |
+| D | `occupied` | `592fa2cddbb`，未推 |
+| edit（人类 `agent-ide`） | ff 拒绝 | `1fe23f074bd`；脏路径仍在：`dev/loop`、`.idea/`、`*.iml`、`screenshots/` |
+
 ## Next
 | 项 | 指针 |
 |:-----|:-----|
