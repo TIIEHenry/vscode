@@ -275,6 +275,7 @@ export class AgentPluginsListView extends AbstractExtensionsListView<IAgentPlugi
 	private list: WorkbenchPagedList<IAgentPluginItem> | null = null;
 	private listContainer: HTMLElement | null = null;
 	private currentQuery = '@agentPlugins';
+	private _showGeneration = 0;
 	private readonly refreshOnPluginsChangedScheduler = this._register(new RunOnceScheduler(() => {
 		if (this.list) {
 			void this.show(this.currentQuery).catch(onUnexpectedError).catch(onUnexpectedError);
@@ -445,7 +446,11 @@ export class AgentPluginsListView extends AbstractExtensionsListView<IAgentPlugi
 		let items: IAgentPluginItem[] = installed;
 
 		if (!this.listOptions.installedOnly && !isInstalled) {
+			const generation = ++this._showGeneration;
 			const marketplacePlugins = await this.queryMarketplacePlugins();
+			if (generation !== this._showGeneration || this._store.isDisposed) {
+				return this.list?.model ?? new PagedModel<IAgentPluginItem>([]);
+			}
 			let filteredMp = marketplacePlugins;
 
 			if (isRecommended) {
@@ -554,6 +559,11 @@ export class AgentPluginsListView extends AbstractExtensionsListView<IAgentPlugi
 				this.bodyTemplate.messageBox.textContent = localize('noAgentPlugins', "No agent plugins found.");
 			}
 		}
+	}
+
+	override dispose(): void {
+		++this._showGeneration;
+		super.dispose();
 	}
 }
 
