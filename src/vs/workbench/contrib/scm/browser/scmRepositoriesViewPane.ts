@@ -440,6 +440,7 @@ export class SCMRepositoriesViewPane extends ViewPane {
 
 	private readonly visibilityDisposables = new DisposableStore();
 	private readonly repositoryDisposables = new DisposableMap<ISCMRepository>();
+	private readonly _repositoryListenerGeneration = new Map<ISCMRepository, number>();
 
 	constructor(
 		options: IViewPaneOptions,
@@ -630,6 +631,8 @@ export class SCMRepositoriesViewPane extends ViewPane {
 	}
 
 	private async onDidAddRepository(repository: ISCMRepository): Promise<void> {
+		const generation = (this._repositoryListenerGeneration.get(repository) ?? 0) + 1;
+		this._repositoryListenerGeneration.set(repository, generation);
 		const disposables = new DisposableStore();
 
 		// Artifact group changed
@@ -658,11 +661,20 @@ export class SCMRepositoriesViewPane extends ViewPane {
 		}));
 
 		await this.updateRepository(repository);
+		if (generation !== this._repositoryListenerGeneration.get(repository) || this._store.isDisposed || !Iterable.some(this.scmService.repositories, candidate => candidate === repository)) {
+			disposables.dispose();
+			return;
+		}
 		this.repositoryDisposables.set(repository, disposables);
 	}
 
 	private async onDidRemoveRepository(repository: ISCMRepository): Promise<void> {
+		const generation = (this._repositoryListenerGeneration.get(repository) ?? 0) + 1;
+		this._repositoryListenerGeneration.set(repository, generation);
 		await this.updateRepository(repository);
+		if (generation !== this._repositoryListenerGeneration.get(repository) || this._store.isDisposed) {
+			return;
+		}
 		this.repositoryDisposables.deleteAndDispose(repository);
 	}
 
@@ -883,6 +895,9 @@ export class SCMRepositoriesViewPane extends ViewPane {
 	}
 
 	override dispose(): void {
+		for (const [repository, generation] of this._repositoryListenerGeneration) {
+			this._repositoryListenerGeneration.set(repository, generation + 1);
+		}
 		this.visibilityDisposables.dispose();
 		this.repositoryDisposables.dispose();
 		super.dispose();
