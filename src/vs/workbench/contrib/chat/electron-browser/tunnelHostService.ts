@@ -40,6 +40,8 @@ export class TunnelHostService extends Disposable implements ITunnelHostService 
 	private _isSharing = false;
 	private _isConnecting = false;
 	private _sharingInfo: ITunnelHostInfo | undefined;
+	/** Invalidates in-flight start/stop writes when a newer call takes over. */
+	private _sharingGeneration = 0;
 
 	/** Tracks which auth provider was last used successfully. */
 	private _lastAuthProvider: 'github' | 'microsoft' | undefined;
@@ -91,11 +93,15 @@ export class TunnelHostService extends Disposable implements ITunnelHostService 
 	}
 
 	async startSharing(): Promise<void> {
+		const generation = ++this._sharingGeneration;
 		this._isConnecting = true;
 		this._onDidChangeStatus.fire();
 
 		try {
 			const auth = await this._getToken(false);
+			if (generation !== this._sharingGeneration || this._store.isDisposed) {
+				return;
+			}
 			if (!auth) {
 				this._logger.warn('No auth token available for tunnel hosting');
 				throw new Error(localize('tunnelHost.noAuth', "No authentication token available. Please sign in and try again."));
@@ -104,17 +110,26 @@ export class TunnelHostService extends Disposable implements ITunnelHostService 
 			this._logger.info('Starting tunnel hosting...');
 
 			const info = await this._mainService.startHosting(auth.token, auth.provider);
+			if (generation !== this._sharingGeneration || this._store.isDisposed) {
+				return;
+			}
 			this._isSharing = true;
 			this._sharingInfo = info;
 		} finally {
-			this._isConnecting = false;
-			this._onDidChangeStatus.fire();
+			if (generation === this._sharingGeneration) {
+				this._isConnecting = false;
+				this._onDidChangeStatus.fire();
+			}
 		}
 	}
 
 	async stopSharing(): Promise<void> {
+		const generation = ++this._sharingGeneration;
 		this._logger.info('Stopping tunnel hosting...');
 		await this._mainService.stopHosting();
+		if (generation !== this._sharingGeneration || this._store.isDisposed) {
+			return;
+		}
 		this._isSharing = false;
 		this._sharingInfo = undefined;
 		this._onDidChangeStatus.fire();

@@ -683,6 +683,7 @@ export class VoiceModeOnboardingBanner extends ChatInputNoticeWidget implements 
 	private readonly options: IVoiceModeOnboardingBannerOptions;
 	private readonly microphonePicker = this._register(new MutableDisposable<DisposableStore>());
 	private microphoneOptions: IMicrophoneOption[] = [];
+	private _microphoneGeneration = 0;
 	private microphonePickerContainer: HTMLElement | undefined;
 
 	private readonly voiceElements = new Map<string, IVoiceElement>();
@@ -790,6 +791,7 @@ export class VoiceModeOnboardingBanner extends ChatInputNoticeWidget implements 
 			return;
 		}
 
+		const generation = ++this._microphoneGeneration;
 		let devices: MediaDeviceInfo[];
 		try {
 			devices = await mediaDevices.enumerateDevices();
@@ -797,7 +799,7 @@ export class VoiceModeOnboardingBanner extends ChatInputNoticeWidget implements 
 			this.logService.trace(`[voice] could not enumerate microphones: ${error}`);
 			return;
 		}
-		if (this._store.isDisposed) {
+		if (generation !== this._microphoneGeneration || this._store.isDisposed) {
 			return;
 		}
 

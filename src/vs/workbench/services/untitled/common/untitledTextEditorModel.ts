@@ -351,6 +351,9 @@ export class UntitledTextEditorModel extends BaseTextEditorModel implements IUnt
 
 			// Check for backups or use initial value or empty
 			const backup = await this.workingCopyBackupService.resolve(this);
+			if (this.isDisposed()) {
+				return;
+			}
 			if (backup) {
 				untitledContents = backup.value;
 				hasBackup = true;
@@ -363,6 +366,9 @@ export class UntitledTextEditorModel extends BaseTextEditorModel implements IUnt
 			// to create the text factory to respect encodings
 			// accordingly.
 			const untitledContentsFactory = await createTextBufferFactoryFromStream(await this.textFileService.getDecodedStream(this.resource, untitledContents, { encoding: UTF8 }));
+			if (this.isDisposed()) {
+				return;
+			}
 
 			this.createTextEditorModel(untitledContentsFactory, this.resource, this.preferredLanguageId);
 			createdUntitledModel = true;
@@ -372,6 +378,9 @@ export class UntitledTextEditorModel extends BaseTextEditorModel implements IUnt
 		// that the value of the model was changed by the user. As such we
 		// do not update the contents, only the language if configured.
 		else {
+			if (this.isDisposed()) {
+				return;
+			}
 			this.updateTextEditorModel(undefined, this.preferredLanguageId);
 		}
 

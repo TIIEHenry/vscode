@@ -105,6 +105,7 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 	private _activeHubBaseUrl: string | undefined;
 	private _directoryStatus: HubDirectoryStatus = { kind: 'idle' };
 	private _directoryAuthExpired = false;
+	private _directoryGeneration = 0;
 
 	readonly whenStartupRestoreComplete: Promise<void>;
 
@@ -132,6 +133,7 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 	}
 
 	setActiveHubBaseUrl(hubBaseUrl: string | undefined): void {
+		this._directoryGeneration++;
 		this._activeHubBaseUrl = hubBaseUrl?.trim() || undefined;
 		this._directoryStatus = { kind: 'idle' };
 		this._directoryAuthExpired = false;
@@ -168,6 +170,7 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 		if (!result.ok) {
 			return { ok: false, code: result.code, reason: result.reason };
 		}
+		this._directoryGeneration++;
 		this._activeHubBaseUrl = trimmed;
 		this._directoryAuthExpired = false;
 		await this._hubSessionStore.applyAuthSession(trimmed, result.session, this._nowMs(), result.refreshToken);
@@ -177,6 +180,7 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 	}
 
 	async logout(): Promise<void> {
+		this._directoryGeneration++;
 		const hubBaseUrl = this._activeHubBaseUrl;
 		if (hubBaseUrl) {
 			const token = this._hubSessionStore.getAccessTokenForHub(hubBaseUrl, this._nowMs());
@@ -185,6 +189,7 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 			}
 			await this._hubSessionStore.clear(hubBaseUrl);
 		}
+		this._directoryGeneration++;
 		this._directoryAuthExpired = false;
 		this._directoryStatus = { kind: 'idle' };
 		this._fireAuthChanged();
@@ -237,6 +242,7 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 			}
 		}
 
+		const generation = ++this._directoryGeneration;
 		const result = await withHubAccessRetry(
 			{
 				store: this._hubSessionStore,
@@ -246,6 +252,14 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 			},
 			accessToken => listHubDevices({ hubBaseUrl, accessToken }, this._http),
 		);
+
+		if (
+			generation !== this._directoryGeneration
+			|| hubBaseUrl !== this._activeHubBaseUrl
+			|| this._store.isDisposed
+		) {
+			return this._directoryStatus;
+		}
 
 		if (isHubAccessAuthExpired(result)) {
 			this._directoryAuthExpired = true;
@@ -467,6 +481,7 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 
 		// v1: single Hub bucket — deterministic pick when multiple keys exist.
 		const hubBaseUrl = [...hubBaseUrls].sort()[0];
+		this._directoryGeneration++;
 		this._activeHubBaseUrl = hubBaseUrl;
 		this._directoryAuthExpired = false;
 
@@ -510,6 +525,11 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 
 	private _fireProfilesChanged(): void {
 		this._onDidChangeProfiles.fire(this.listConnectionProfiles());
+	}
+
+	override dispose(): void {
+		this._directoryGeneration++;
+		super.dispose();
 	}
 }
 

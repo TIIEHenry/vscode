@@ -113,6 +113,7 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 	// State
 	private _terminating: boolean;
 	private _mainProcessHandlesExtHostShutdown: boolean;
+	private _startGeneration: number;
 
 	// Resources, in order they get acquired/created when .start() is called:
 	private _inspectListener: IExtensionInspectInfo | null;
@@ -150,6 +151,7 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 
 		this._terminating = false;
 		this._mainProcessHandlesExtHostShutdown = false;
+		this._startGeneration = 0;
 
 		this._inspectListener = null;
 		this._extensionHostProcess = null;
@@ -169,6 +171,7 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 	}
 
 	public override dispose(): void {
+		this._startGeneration++;
 		if (!this._terminating) {
 			this._terminating = true;
 		}
@@ -177,6 +180,7 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 	}
 
 	public async disconnect(): Promise<void> {
+		this._startGeneration++;
 		this._terminating = true;
 
 		// Send the Terminate message so the extension host can run
@@ -221,11 +225,16 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 	}
 
 	private async _start(): Promise<IMessagePassingProtocol> {
+		const startGeneration = ++this._startGeneration;
 		const [extensionHostCreationResult, portNumber, processEnv] = await Promise.all([
 			this._extensionHostStarter.createExtensionHost(),
 			this._tryFindDebugPort(),
 			this._shellEnvironmentService.getShellEnv(),
 		]);
+
+		if (startGeneration !== this._startGeneration || this._terminating || this._store.isDisposed) {
+			throw new CancellationError();
+		}
 
 		this._extensionHostProcess = new ExtensionHostProcess(extensionHostCreationResult.id, this._extensionHostStarter);
 
@@ -375,9 +384,12 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 		}
 
 		// Initialize extension host process with hand shakes
-		const protocol = await this._establishProtocol(this._extensionHostProcess, opts);
+		const protocol = await this._establishProtocol(this._extensionHostProcess, opts, startGeneration);
 		await this._performHandshake(protocol);
 		clearTimeout(startupTimeoutHandle);
+		if (startGeneration !== this._startGeneration || this._terminating || this._store.isDisposed) {
+			throw new CancellationError();
+		}
 		return protocol;
 	}
 
@@ -411,7 +423,7 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 		return port || 0;
 	}
 
-	private _establishProtocol(extensionHostProcess: ExtensionHostProcess, opts: IExtensionHostProcessOptions): Promise<IMessagePassingProtocol> {
+	private _establishProtocol(extensionHostProcess: ExtensionHostProcess, opts: IExtensionHostProcessOptions, startGeneration: number): Promise<IMessagePassingProtocol> {
 
 		writeExtHostConnection(new MessagePortExtHostConnection(), opts.env);
 
@@ -449,6 +461,9 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 			// Now that the message port listener is installed, start the ext host process
 			const sw = StopWatch.create(false);
 			extensionHostProcess.start(opts).then(({ pid }) => {
+				if (startGeneration !== this._startGeneration || this._terminating || this._store.isDisposed) {
+					return;
+				}
 				if (pid) {
 					this.pid = pid;
 				}

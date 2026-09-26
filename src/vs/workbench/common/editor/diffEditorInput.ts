@@ -58,6 +58,7 @@ export class DiffEditorInput extends SideBySideEditorInput implements IDiffEdito
 	}
 
 	private cachedModel: DiffEditorModel | undefined = undefined;
+	private resolveGeneration = 0;
 
 	private readonly labels: IDiffEditorInputLabels;
 
@@ -178,12 +179,20 @@ export class DiffEditorInput extends SideBySideEditorInput implements IDiffEdito
 	}
 
 	override async resolve(): Promise<EditorModel> {
+		const generation = ++this.resolveGeneration;
 
 		// Create Model - we never reuse our cached model if refresh is true because we cannot
 		// decide for the inputs within if the cached model can be reused or not. There may be
 		// inputs that need to be loaded again and thus we always recreate the model and dispose
 		// the previous one - if any.
 		const resolvedModel = await this.createModel();
+		if (this.isDisposed() || generation !== this.resolveGeneration) {
+			if (resolvedModel !== this.cachedModel) {
+				resolvedModel.dispose();
+			}
+			return this.cachedModel ?? resolvedModel;
+		}
+
 		this.cachedModel?.dispose();
 
 		this.cachedModel = resolvedModel;
@@ -246,6 +255,7 @@ export class DiffEditorInput extends SideBySideEditorInput implements IDiffEdito
 	}
 
 	override dispose(): void {
+		this.resolveGeneration++;
 
 		// Free the diff editor model but do not propagate the dispose() call to the two inputs
 		// We never created the two inputs (original and modified) so we can not dispose

@@ -638,7 +638,9 @@ export class SearchView extends ViewPane {
 			if (this.changedWhileHidden) {
 				// Render if results changed while viewlet was hidden - #37818
 				await this.refreshAndUpdateCount();
-				this.changedWhileHidden = false;
+				if (this.isVisible()) {
+					this.changedWhileHidden = false;
+				}
 			}
 		} else {
 			// Reset last focus to input to preserve opening the viewlet always focusing the query editor.

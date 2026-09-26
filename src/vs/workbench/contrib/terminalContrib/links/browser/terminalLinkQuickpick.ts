@@ -8,7 +8,7 @@ import { Emitter, Event } from '../../../../../base/common/event.js';
 import { localize } from '../../../../../nls.js';
 import { QuickPickItem, IQuickInputService, IQuickPickItem, QuickInputHideReason } from '../../../../../platform/quickinput/common/quickInput.js';
 import { IDetectedLinks } from './terminalLinkManager.js';
-import { TerminalLinkQuickPickEvent, type IDetachedTerminalInstance, type ITerminalInstance } from '../../../terminal/browser/terminal.js';
+import { isDetachedTerminalInstance, TerminalLinkQuickPickEvent, type IDetachedTerminalInstance, type ITerminalInstance } from '../../../terminal/browser/terminal.js';
 import type { ILink } from '@xterm/xterm';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import type { TerminalLink } from './terminalLink.js';
@@ -48,14 +48,29 @@ export class TerminalLinkQuickpick extends DisposableStore {
 		// Allow all links a small amount of time to elapse to finish, if this is not done in this
 		// time they will be loaded upon the first filter.
 		const result = await Promise.race([links.all, timeout(500)]);
+		if (this._isStaleShow(instance)) {
+			return;
+		}
 		const usingAllLinks = typeof result === 'object';
 		const resolvedLinks = usingAllLinks ? result : links.viewport;
 
 		// Get raw link picks
 		const wordPicks = resolvedLinks.wordLinks ? await this._generatePicks(resolvedLinks.wordLinks) : undefined;
+		if (this._isStaleShow(instance)) {
+			return;
+		}
 		const filePicks = resolvedLinks.fileLinks ? await this._generatePicks(resolvedLinks.fileLinks) : undefined;
+		if (this._isStaleShow(instance)) {
+			return;
+		}
 		const folderPicks = resolvedLinks.folderLinks ? await this._generatePicks(resolvedLinks.folderLinks) : undefined;
+		if (this._isStaleShow(instance)) {
+			return;
+		}
 		const webPicks = resolvedLinks.webLinks ? await this._generatePicks(resolvedLinks.webLinks) : undefined;
+		if (this._isStaleShow(instance)) {
+			return;
+		}
 
 		const picks: LinkQuickPickItem[] = [];
 		if (webPicks) {
@@ -175,6 +190,15 @@ export class TerminalLinkQuickpick extends DisposableStore {
 				r();
 			}));
 		});
+	}
+
+	/**
+	 * A later {@link show} replaces `this._instance`. Closing the terminal sets
+	 * {@link ITerminalInstance.isDisposed}. Either one drops this invocation before
+	 * it writes the quick pick or previews a link.
+	 */
+	private _isStaleShow(instance: ITerminalInstance | IDetachedTerminalInstance): boolean {
+		return this._instance !== instance || (!isDetachedTerminalInstance(instance) && instance.isDisposed);
 	}
 
 	/**

@@ -88,6 +88,8 @@ export class ConversationDiffReviewPane extends EditorPane {
 	private renderGeneration = 0;
 	/** Engine stage accepted for this modified URI; hide Stage until input modified switches away. */
 	private stageEngineAcceptedModified: URI | undefined;
+	/** Bumped by setInput / clearInput / dispose so an in-flight runStage cannot write back. */
+	private stageAttemptGeneration = 0;
 
 	constructor(
 		group: IEditorGroup,
@@ -183,6 +185,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 	}
 
 	override async setInput(input: ConversationDiffReviewInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
+		this.stageAttemptGeneration++;
 		const generation = ++this.renderGeneration;
 		if (this.stageEngineAcceptedModified && input.modified.toString() !== this.stageEngineAcceptedModified.toString()) {
 			this.stageEngineAcceptedModified = undefined;
@@ -233,11 +236,13 @@ export class ConversationDiffReviewPane extends EditorPane {
 	}
 
 	override dispose(): void {
+		this.stageAttemptGeneration++;
 		this.clearEditors();
 		super.dispose();
 	}
 
 	override clearInput(): void {
+		this.stageAttemptGeneration++;
 		this.stageEngineAcceptedModified = undefined;
 		this.comparisonLoadFailed = false;
 		this.clearEditors();
@@ -397,6 +402,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		if (!(input instanceof ConversationDiffReviewInput) || this.isSourcesDiffWriteHold()) {
 			return;
 		}
+		const stageAttemptGeneration = this.stageAttemptGeneration;
 
 		const match = findScmResourceForUri(this.scmService, input.modified);
 		const hook = this.uaConnection.writeGitStagePaths;
@@ -411,6 +417,9 @@ export class ConversationDiffReviewPane extends EditorPane {
 				this.getEngineSessionReady(),
 			));
 			if (attempt.kind === 'accepted') {
+				if (this._store.isDisposed || this.input !== input || stageAttemptGeneration !== this.stageAttemptGeneration) {
+					return;
+				}
 				const groupId = match?.groupId || input.groupId;
 				if (isSourcesChangeStageable(groupId)) {
 					this.stageEngineAcceptedModified = input.modified;

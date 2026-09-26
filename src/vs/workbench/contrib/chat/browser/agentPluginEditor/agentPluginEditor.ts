@@ -168,12 +168,16 @@ export class AgentPluginEditor extends EditorPane {
 
 	override async setInput(input: AgentPluginEditorInput, options: undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
 		await super.setInput(input, options, context, token);
+		if (token.isCancellationRequested || this.input !== input || this._store.isDisposed) {
+			return;
+		}
 		if (this.template) {
-			await this.render(input.item, this.template);
+			await this.render(input, this.template, token);
 		}
 	}
 
-	private async render(item: IAgentPluginItem, template: IAgentPluginEditorTemplate): Promise<void> {
+	private async render(input: AgentPluginEditorInput, template: IAgentPluginEditorTemplate, editorToken: CancellationToken): Promise<void> {
+		const item = input.item;
 		this.activeElement = null;
 		this.transientDisposables.clear();
 		this.contentDisposables.clear();
@@ -312,7 +316,7 @@ export class AgentPluginEditor extends EditorPane {
 
 		// Open readme
 		const activeElement = await this.openDetails(item, template, token);
-		if (token.isCancellationRequested) {
+		if (editorToken.isCancellationRequested || token.isCancellationRequested || this.input !== input || this._store.isDisposed) {
 			return;
 		}
 		this.activeElement = activeElement;

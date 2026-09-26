@@ -66,8 +66,12 @@ const modalClose = 'void editorPart.close()';
 const trustOpen = 'this.groupView.openEditor(editor, options)';
 const dropOpenEditors = 'this.editorService.openEditors(editors, ensureTargetGroup(), { validateTrust: true })';
 const nativeMenubarIife = `(async () => {
-			this.recentlyOpened = await this.workspacesService.getRecentlyOpened();
-
+			const generation = ++this._nativeRecentlyOpenedGeneration;
+			const recentlyOpened = await this.workspacesService.getRecentlyOpened();
+			if (generation !== this._nativeRecentlyOpenedGeneration || this._store.isDisposed) {
+				return;
+			}
+			this.recentlyOpened = recentlyOpened;
 			this.doUpdateMenubar();
 		})()`;
 const treeProgressThen = `this.progressService.withProgress({ location: this.id }, () => this.extensionService.activateByEvent(\`onView:\${this.id}\`))

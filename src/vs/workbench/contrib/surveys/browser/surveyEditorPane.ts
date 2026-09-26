@@ -63,6 +63,9 @@ export class SurveyEditorPane extends EditorPane {
 		if (token.isCancellationRequested || !this.container) {
 			return;
 		}
+		if (token.isCancellationRequested || this.input !== input || this._store.isDisposed) {
+			return;
+		}
 
 		this.resetState();
 		this.renderForm(this.container, input.survey);

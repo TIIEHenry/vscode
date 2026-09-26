@@ -767,14 +767,35 @@ export class WorkspaceTrustEditor extends EditorPane {
 		this.rootElement.focus();
 	}
 
+	/** Bumped at each setInput entry so a later setInput invalidates an in-flight attempt, even if the same input object is installed again after clearInput. */
+	private setInputEpoch = 0;
+
 	override async setInput(input: WorkspaceTrustEditorInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
+		const epoch = ++this.setInputEpoch;
+		const inputIdentity = input;
 
 		await super.setInput(input, options, context, token);
-		if (token.isCancellationRequested) { return; }
+		if (this.isSetInputStale(epoch, inputIdentity, token)) {
+			return;
+		}
 
 		await this.workspaceTrustManagementService.workspaceTrustInitialized;
+		if (this.isSetInputStale(epoch, inputIdentity, token)) {
+			return;
+		}
+
 		this.registerListeners();
 		await this.render();
+		if (this.isSetInputStale(epoch, inputIdentity, token)) {
+			return;
+		}
+	}
+
+	private isSetInputStale(epoch: number, inputIdentity: WorkspaceTrustEditorInput, token: CancellationToken): boolean {
+		return epoch !== this.setInputEpoch
+			|| this.input !== inputIdentity
+			|| token.isCancellationRequested
+			|| this._store.isDisposed;
 	}
 
 	private registerListeners(): void {

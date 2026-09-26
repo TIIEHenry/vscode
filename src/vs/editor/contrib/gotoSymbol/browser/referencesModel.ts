@@ -101,6 +101,7 @@ export class FileReferences implements IDisposable {
 	readonly children: OneReference[] = [];
 
 	private _previews = new ResourceMap<FilePreview>();
+	private _resolveGeneration = 0;
 
 	constructor(
 		readonly parent: ReferencesModel,
@@ -108,6 +109,7 @@ export class FileReferences implements IDisposable {
 	) { }
 
 	dispose(): void {
+		++this._resolveGeneration;
 		dispose(this._previews.values());
 		this._previews.clear();
 	}
@@ -129,12 +131,20 @@ export class FileReferences implements IDisposable {
 		if (this._previews.size !== 0) {
 			return this;
 		}
+		const generation = ++this._resolveGeneration;
 		for (const child of this.children) {
+			if (generation !== this._resolveGeneration) {
+				return this;
+			}
 			if (this._previews.has(child.uri)) {
 				continue;
 			}
 			try {
 				const ref = await textModelResolverService.createModelReference(child.uri);
+				if (generation !== this._resolveGeneration) {
+					ref.dispose();
+					return this;
+				}
 				this._previews.set(child.uri, new FilePreview(ref));
 			} catch (err) {
 				onUnexpectedError(err);

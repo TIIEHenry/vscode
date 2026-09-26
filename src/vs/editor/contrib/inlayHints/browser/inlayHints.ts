@@ -54,13 +54,15 @@ export class InlayHintItem {
 	private async _doResolve(token: CancellationToken) {
 		try {
 			const newHint = await Promise.resolve(this.provider.resolveInlayHint!(this.hint, token));
+			if (token.isCancellationRequested) {
+				return;
+			}
 			this.hint.tooltip = newHint?.tooltip ?? this.hint.tooltip;
 			this.hint.label = newHint?.label ?? this.hint.label;
 			this.hint.textEdits = newHint?.textEdits ?? this.hint.textEdits;
 			this._isResolved = true;
 		} catch (err) {
 			onUnexpectedExternalError(err);
-			this._isResolved = false;
 		}
 	}
 }

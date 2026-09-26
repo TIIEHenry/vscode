@@ -123,6 +123,8 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 	private welcomeController: ChatViewWelcomeController | undefined;
 
 	private restoringSession: Promise<void> | undefined;
+	/** Bumped on every `updateWidgetLockState` so a slower `canResolveChatSession` cannot lock the widget after a newer `showModel`. */
+	private widgetLockStateGeneration = 0;
 	private readonly loadSessionCts = this._register(new MutableDisposable<CancellationTokenSource>());
 	private readonly _applyModelCts = this._register(new MutableDisposable<CancellationTokenSource>());
 	/** While > 0 the sessions list is suppressed so a session transition's transiently-empty widget does not reveal it (see {@link beginSessionsListSuppression}). */
@@ -1446,7 +1448,7 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 		const model = ref?.object;
 
 		if (model) {
-			await this.updateWidgetLockState(getChatSessionType(model.sessionResource)); // Update widget lock state based on session type
+			await this.updateWidgetLockState(getChatSessionType(model.sessionResource), token); // Update widget lock state based on session type
 
 			if (token.isCancellationRequested) {
 				this.modelRef.value = undefined;
@@ -1494,7 +1496,13 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 		return model;
 	}
 
-	private async updateWidgetLockState(sessionType: string): Promise<void> {
+	private async updateWidgetLockState(sessionType: string, token: CancellationToken): Promise<void> {
+		// A token that is already cancelled must not supersede an in-flight lock write.
+		if (token.isCancellationRequested || this._store.isDisposed) {
+			return;
+		}
+
+		const generation = ++this.widgetLockStateGeneration;
 		if (sessionType === localChatSessionType) {
 			this._widget.unlockFromCodingAgent();
 			return;
@@ -1507,7 +1515,11 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 			this.logService.warn(`Failed to resolve chat session type '${sessionType}' for locking`, error);
 		}
 
-		if (this._store.isDisposed) {
+		// `canResolveChatSession` waits on extension registration / activateByEvent.
+		// `loadSession` cancels the previous token and enters `showModel` again; the
+		// caller only checks the token after this returns, so a stale resolve must
+		// not lockToCodingAgent / unlockFromCodingAgent on the widget that already moved on.
+		if (this._store.isDisposed || token.isCancellationRequested || generation !== this.widgetLockStateGeneration) {
 			return;
 		}
 

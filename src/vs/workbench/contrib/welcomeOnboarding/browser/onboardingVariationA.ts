@@ -129,6 +129,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 	private selectedKeymapId = 'vscode';
 	private _detectedEditorIds: Set<string> | undefined;
 	private _userSignedIn = false;
+	private _signInGeneration = 0;
 	private selectedAiMode: AiCollaborationMode = AiCollaborationMode.Balanced;
 	private enterpriseSignInUiState: EnterpriseSignInUiState = 'options';
 	private enterpriseInstanceValue = '';
@@ -724,11 +725,15 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 	private async _handleSignIn(socialProvider?: string): Promise<void> {
 		const provider = socialProvider ?? 'github';
 		const watch = StopWatch.create();
+		const generation = ++this._signInGeneration;
 		try {
 			const account = await this.defaultAccountService.signIn({
 				extraAuthorizeParameters: { get_started_with: 'copilot-vscode' },
 				provider: socialProvider,
 			});
+			if (generation !== this._signInGeneration || this._store.isDisposed || !this._isShowing) {
+				return;
+			}
 			if (account) {
 				this._userSignedIn = true;
 				this.telemetryService.publicLog2<InstallChatEvent, InstallChatClassification>('commandCenter.chatInstall', { installResult: 'installed', installDuration: watch.elapsed(), signUpErrorCode: undefined, provider });
@@ -744,6 +749,9 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 				}
 			}
 		} catch (error) {
+			if (generation !== this._signInGeneration || this._store.isDisposed || !this._isShowing) {
+				return;
+			}
 			if (isCancellationError(error)) {
 				this.telemetryService.publicLog2<InstallChatEvent, InstallChatClassification>('commandCenter.chatInstall', { installResult: 'cancelled', installDuration: watch.elapsed(), signUpErrorCode: undefined, provider });
 				return;
@@ -1303,6 +1311,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 	// =====================================================================
 
 	private _removeFromDOM(): void {
+		++this._signInGeneration;
 		if (this.overlay) {
 			this.overlay.remove();
 			this.overlay = undefined;

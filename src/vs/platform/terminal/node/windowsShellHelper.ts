@@ -58,6 +58,7 @@ let windowsProcessTree: typeof WindowsProcessTreeType;
 
 export class WindowsShellHelper extends Disposable implements IWindowsShellHelper {
 	private _currentRequest: Promise<string> | undefined;
+	private _checkShellGeneration = 0;
 	private _shellType: TerminalShellType | undefined;
 	get shellType(): TerminalShellType | undefined { return this._shellType; }
 	private _shellTitle: string = '';
@@ -79,6 +80,11 @@ export class WindowsShellHelper extends Disposable implements IWindowsShellHelpe
 		this._startMonitoringShell().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
+	override dispose(): void {
+		++this._checkShellGeneration;
+		super.dispose();
+	}
+
 	private async _startMonitoringShell(): Promise<void> {
 		if (this._store.isDisposed) {
 			return;
@@ -89,11 +95,18 @@ export class WindowsShellHelper extends Disposable implements IWindowsShellHelpe
 	@debounce(500)
 	async checkShell(): Promise<void> {
 		if (isWindows) {
+			const generation = ++this._checkShellGeneration;
 			// Wait to give the shell some time to actually launch a process, this
 			// could lead to a race condition but it would be recovered from when
 			// data stops and should cover the majority of cases
 			await timeout(300);
+			if (generation !== this._checkShellGeneration || this._store.isDisposed) {
+				return;
+			}
 			this.getShellName().then(title => {
+				if (generation !== this._checkShellGeneration || this._store.isDisposed) {
+					return;
+				}
 				const type = this.getShellType(title);
 				if (type !== this._shellType) {
 					this._onShellTypeChanged.fire(type);

@@ -438,13 +438,18 @@ export class SuggestAddon extends Disposable implements ITerminalAddon, ISuggest
 			this._cancellationTokenSource.cancel();
 			this._cancellationTokenSource.dispose();
 		}
-		this._cancellationTokenSource = new CancellationTokenSource();
-		const token = this._cancellationTokenSource.token;
+		const cancellationTokenSource = new CancellationTokenSource();
+		this._cancellationTokenSource = cancellationTokenSource;
+		const token = cancellationTokenSource.token;
 
 		// Track the time when completions are requested
 		this._completionRequestTimestamp = Date.now();
 
 		await this._handleCompletionProviders(this._terminal, token, explicitlyInvoked);
+
+		if (token.isCancellationRequested || this._cancellationTokenSource !== cancellationTokenSource) {
+			return;
+		}
 
 		// If completions are not shown (widget not visible), reset the tracker
 		if (!this._terminalSuggestWidgetVisibleContextKey.get()) {

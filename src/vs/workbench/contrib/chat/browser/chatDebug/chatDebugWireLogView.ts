@@ -140,6 +140,8 @@ export class ChatDebugWireLogView extends Disposable {
 	private filterText = '';
 	/** Monotonic token guarding against out-of-order async loads. */
 	private loadGeneration = 0;
+	/** Guards {@link load}'s enumerate write-back only; not shared with {@link loadGeneration}. */
+	private sourcesLoadGeneration = 0;
 	/** Max number of (filtered) frames rendered at once; grows via "Load more". */
 	private visibleLimit = PAGE_SIZE;
 	private readonly loadMoreContainer: HTMLElement;
@@ -313,7 +315,12 @@ export class ChatDebugWireLogView extends Disposable {
 			return;
 		}
 
-		const allSources = await enumerateAgentHostLogSources(this.logSourceServices, this.currentSessionResource);
+		const generation = ++this.sourcesLoadGeneration;
+		const sessionResource = this.currentSessionResource;
+		const allSources = await enumerateAgentHostLogSources(this.logSourceServices, sessionResource);
+		if (generation !== this.sourcesLoadGeneration || this.currentSessionResource !== sessionResource || this._store.isDisposed) {
+			return;
+		}
 		this.sources = allSources.filter(source => source.kind === AgentHostLogSourceKind.WireLog);
 		if (this.sources.length === 0) {
 			this.renderMessage(wireLoggingEnabled

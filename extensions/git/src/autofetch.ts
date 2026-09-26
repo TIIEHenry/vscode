@@ -21,6 +21,7 @@ export class AutoFetcher {
 	set enabled(enabled: boolean) { this._enabled = enabled; this._onDidChange.fire(enabled); }
 
 	private disposables: Disposable[] = [];
+	private disposed = false;
 
 	constructor(private repository: Repository, private globalState: Memento) {
 		workspace.onDidChangeConfiguration(this.onConfiguration, this, this.disposables);
@@ -34,6 +35,7 @@ export class AutoFetcher {
 	}
 
 	private async onFirstGoodRemoteOperation(): Promise<void> {
+		const repository = this.repository;
 		const didInformUser = !this.globalState.get<boolean>(AutoFetcher.DidInformUser);
 
 		if (this.enabled && !didInformUser) {
@@ -52,6 +54,10 @@ export class AutoFetcher {
 		const result = await window.showInformationMessage(l10n.t('Would you like {0} to [periodically run "git fetch"]({1})?', env.appName, 'https://go.microsoft.com/fwlink/?linkid=865294'), yes, no, askLater);
 
 		if (result === askLater) {
+			return;
+		}
+
+		if (this.disposed || this.repository !== repository) {
 			return;
 		}
 
@@ -137,6 +143,7 @@ export class AutoFetcher {
 	}
 
 	dispose(): void {
+		this.disposed = true;
 		this.disable();
 		this.disposables.forEach(d => d.dispose());
 	}

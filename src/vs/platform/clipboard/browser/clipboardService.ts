@@ -210,10 +210,14 @@ export class BrowserClipboardService extends Disposable implements IClipboardSer
 
 	private resources: URI[] = []; // unsupported in web (only in-memory)
 	private resourcesStateHash: number | undefined = undefined;
+	private _writeResourcesGeneration = 0;
 
 	private static readonly MAX_RESOURCE_STATE_SOURCE_LENGTH = 1000;
 
 	async writeResources(resources: URI[]): Promise<void> {
+		const generation = ++this._writeResourcesGeneration;
+		const pendingResources = resources;
+
 		// Guard access to navigator.clipboard with try/catch
 		// as we have seen DOMExceptions in certain browsers
 		// due to security policies.
@@ -234,11 +238,22 @@ export class BrowserClipboardService extends Disposable implements IClipboardSer
 			// Noop
 		}
 
-		if (resources.length === 0) {
-			this.clearResourcesState();
+		if (generation !== this._writeResourcesGeneration) {
+			return;
+		}
+
+		if (pendingResources.length === 0) {
+			if (generation === this._writeResourcesGeneration) {
+				this.clearResourcesState();
+			}
 		} else {
-			this.resources = resources;
-			this.resourcesStateHash = await this.computeResourcesStateHash();
+			if (generation === this._writeResourcesGeneration) {
+				this.resources = pendingResources;
+			}
+			const resourcesStateHash = await this.computeResourcesStateHash();
+			if (generation === this._writeResourcesGeneration && this.resources === pendingResources) {
+				this.resourcesStateHash = resourcesStateHash;
+			}
 		}
 	}
 
@@ -304,6 +319,7 @@ export class BrowserClipboardService extends Disposable implements IClipboardSer
 	}
 
 	private clearResourcesState(): void {
+		++this._writeResourcesGeneration;
 		this.resources = [];
 		this.resourcesStateHash = undefined;
 	}

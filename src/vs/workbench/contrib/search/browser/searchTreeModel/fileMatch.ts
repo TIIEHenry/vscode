@@ -70,6 +70,7 @@ export class FileMatchImpl extends Disposable implements ISearchTreeFileMatch {
 
 	protected _resource: URI;
 	private _fileStat?: IFileStatWithPartialMetadata;
+	private _resolveFileStatGeneration = 0;
 	private _model: ITextModel | null = null;
 	private _modelListener: DisposableStore | null = null;
 	protected _textMatches: Map<string, ISearchTreeMatch>;
@@ -337,7 +338,12 @@ export class FileMatchImpl extends Disposable implements ISearchTreeFileMatch {
 	}
 
 	async resolveFileStat(fileService: IFileService): Promise<void> {
-		this._fileStat = await fileService.stat(this.resource).catch(() => undefined);
+		const generation = ++this._resolveFileStatGeneration;
+		const fileStat = await fileService.stat(this.resource).catch(() => undefined);
+		if (generation !== this._resolveFileStatGeneration || this._store.isDisposed) {
+			return;
+		}
+		this._fileStat = fileStat;
 	}
 
 	public get fileStat(): IFileStatWithPartialMetadata | undefined {

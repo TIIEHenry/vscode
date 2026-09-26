@@ -125,6 +125,7 @@ export function createFeedbackDialog(): FeedbackDialogComponent {
  */
 export class FeedbackDialogController extends Disposable {
 	private _state: FeedbackDialogState = { isSubmitting: false, submitted: false };
+	private _submitGeneration = 0;
 	private readonly _dialog: FeedbackDialogComponent;
 
 	constructor(
@@ -146,10 +147,14 @@ export class FeedbackDialogController extends Disposable {
 	}
 
 	private async _handleSubmit(text: string): Promise<void> {
+		const generation = ++this._submitGeneration;
 		this._state = { isSubmitting: true, submitted: false };
 		this._render();
 
 		const result = await this._onSubmit(text);
+		if (generation !== this._submitGeneration || this._store.isDisposed) {
+			return;
+		}
 		if (result.ok) {
 			this._state = { isSubmitting: false, submitted: true };
 			this._render();
@@ -161,6 +166,7 @@ export class FeedbackDialogController extends Disposable {
 	}
 
 	override dispose(): void {
+		++this._submitGeneration;
 		dom.clearNode(this._container);
 		super.dispose();
 	}

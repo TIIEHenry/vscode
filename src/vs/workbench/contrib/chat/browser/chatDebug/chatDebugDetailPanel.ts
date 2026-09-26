@@ -135,6 +135,9 @@ export class ChatDebugDetailPanel extends Disposable {
 		this.currentDetailEventId = event.id;
 
 		const resolved = event.id ? await this.chatDebugService.resolveEvent(event.id) : undefined;
+		if (this._store.isDisposed || this.currentDetailEventId !== event.id) {
+			return;
+		}
 
 		DOM.show(this.element);
 		this.sash.state = SashState.Enabled;
@@ -289,6 +292,11 @@ export class ChatDebugDetailPanel extends Disposable {
 
 	layoutSash(): void {
 		this.sash.layout();
+	}
+
+	override dispose(): void {
+		this.currentDetailEventId = undefined;
+		super.dispose();
 	}
 
 	hide(): void {

@@ -2921,6 +2921,7 @@ async function webviewPreloads(ctx: PreloadContext) {
 		private hasResizeObserver = false;
 
 		private renderTaskAbort?: AbortController;
+		private _renderGeneration = 0;
 		private isImageOutput = false;
 
 		constructor(
@@ -2976,15 +2977,18 @@ async function webviewPreloads(ctx: PreloadContext) {
 		}
 
 		public dispose() {
+			++this._renderGeneration;
 			this.renderTaskAbort?.abort();
 			this.renderTaskAbort = undefined;
 		}
 
 		public async render(content: webviewMessages.ICreationContent, preferredRendererId: string | undefined, preloadErrors: ReadonlyArray<Error | undefined>, signal?: AbortSignal) {
+			const generation = ++this._renderGeneration;
 			this.renderTaskAbort?.abort();
 			this.renderTaskAbort = undefined;
 
 			this._content = { preferredRendererId, preloadErrors };
+			let controller: AbortController | undefined;
 			if (content.type === 0 /* RenderOutputType.Html */) {
 				const trustedHtml = ttPolicy?.createHTML(content.htmlContent) ?? content.htmlContent;
 				this.element.innerHTML = trustedHtml as string;  // CodeQL [SM03712] The content comes from renderer extensions, not from direct user input.
@@ -2999,11 +3003,11 @@ async function webviewPreloads(ctx: PreloadContext) {
 
 				const item = createOutputItem(this.outputId, content.output.mime, content.metadata, content.output.valueBytes, content.allOutputs, content.output.appended);
 
-				const controller = new AbortController();
+				controller = new AbortController();
 				this.renderTaskAbort = controller;
 
 				// Abort rendering if caller aborts
-				signal?.addEventListener('abort', () => controller.abort());
+				signal?.addEventListener('abort', () => controller?.abort());
 
 				try {
 					await renderers.render(item, preferredRendererId, this.element, controller.signal);
@@ -3012,6 +3016,10 @@ async function webviewPreloads(ctx: PreloadContext) {
 						this.renderTaskAbort = undefined;
 					}
 				}
+			}
+
+			if (generation !== this._renderGeneration || controller?.signal.aborted) {
+				return;
 			}
 
 			if (!this.hasResizeObserver) {

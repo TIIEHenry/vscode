@@ -99,17 +99,25 @@ class TypeHierarchyController implements IEditorContribution {
 		this._ctxIsVisible.set(true);
 		this._ctxDirection.set(direction);
 		Event.any<any>(this._editor.onDidChangeModel, this._editor.onDidChangeModelLanguage)(this.endTypeHierarchy, this, this._sessionDisposables);
-		this._widget = this._instantiationService.createInstance(TypeHierarchyTreePeekWidget, this._editor, position, direction);
-		this._widget.showLoading();
-		this._sessionDisposables.add(this._widget.onDidClose(() => {
-			this.endTypeHierarchy();
-			this._storageService.store(TypeHierarchyController._storageDirectionKey, this._widget!.direction, StorageScope.PROFILE, StorageTarget.USER);
+		const widget = this._widget = this._instantiationService.createInstance(TypeHierarchyTreePeekWidget, this._editor, position, direction);
+		widget.showLoading();
+		this._sessionDisposables.add(widget.onDidClose(() => {
+			const direction = widget.direction;
+			if (this._widget === widget) {
+				this.endTypeHierarchy();
+			}
+			this._storageService.store(TypeHierarchyController._storageDirectionKey, direction, StorageScope.PROFILE, StorageTarget.USER);
 		}));
 		this._sessionDisposables.add({ dispose() { cts.dispose(true); } });
-		this._sessionDisposables.add(this._widget);
+		this._sessionDisposables.add(widget);
 
 		model.then(model => {
+			if (this._widget !== widget) {
+				model?.dispose();
+				return;
+			}
 			if (cts.token.isCancellationRequested) {
+				model?.dispose();
 				return; // nothing
 			}
 			if (model) {
@@ -121,6 +129,9 @@ class TypeHierarchyController implements IEditorContribution {
 			}
 		}).catch(err => {
 			if (cts.token.isCancellationRequested || isCancellationError(err)) {
+				return;
+			}
+			if (this._widget !== widget) {
 				return;
 			}
 			if (this._widget && (this._widget as unknown as { readonly _disposables: DisposableStore })._disposables.isDisposed) {

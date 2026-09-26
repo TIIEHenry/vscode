@@ -414,6 +414,7 @@ export abstract class ExtHostTaskBase implements ExtHostTaskShape, IExtHostTask 
 	private _notProvidedCustomExecutions: Set<string>; // Used for custom executions tasks that are created and run through executeTask.
 	protected _activeCustomExecutions2: Map<string, types.CustomExecution>;
 	private _lastStartedTask: string | undefined;
+	private _startTaskGeneration = 0;
 	protected readonly _onDidExecuteTask: Emitter<vscode.TaskStartEvent> = new Emitter<vscode.TaskStartEvent>();
 	protected readonly _onDidTerminateTask: Emitter<vscode.TaskEndEvent> = new Emitter<vscode.TaskEndEvent>();
 
@@ -499,17 +500,21 @@ export abstract class ExtHostTaskBase implements ExtHostTaskShape, IExtHostTask 
 	}
 
 	public async $onDidStartTask(execution: tasks.ITaskExecutionDTO, terminalId: number, resolvedDefinition: tasks.ITaskDefinitionDTO): Promise<void> {
-		const customExecution: types.CustomExecution | undefined = this._providedCustomExecutions2.get(execution.id);
+		const generation = ++this._startTaskGeneration;
+		const executionId = execution.id;
+		const customExecution: types.CustomExecution | undefined = this._providedCustomExecutions2.get(executionId);
 		if (customExecution) {
 			// Clone the custom execution to keep the original untouched. This is important for multiple runs of the same task.
-			this._activeCustomExecutions2.set(execution.id, customExecution);
+			this._activeCustomExecutions2.set(executionId, customExecution);
 			this._terminalService.attachPtyToTerminal(terminalId, await customExecution.callback(resolvedDefinition));
 		}
-		this._lastStartedTask = execution.id;
+		if (generation === this._startTaskGeneration) {
+			this._lastStartedTask = executionId;
+		}
 
 		const taskExecution = await this.getTaskExecution(execution);
 		const terminal = this._terminalService.getTerminalById(terminalId)?.value;
-		if (taskExecution) {
+		if (taskExecution && taskExecution._id === executionId) {
 			taskExecution.terminal = terminal;
 		}
 

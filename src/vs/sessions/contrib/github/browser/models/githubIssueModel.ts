@@ -95,6 +95,8 @@ export class GitHubIssueModel extends Disposable {
 	private _refreshPromise: Promise<void> | undefined = undefined;
 	/** When the last request completed (whether it returned `200` or `304`). */
 	private _refreshedAt: number | undefined = undefined;
+	/** Bumped when a newer refresh starts or the model is disposed, so a late GET cannot write state. */
+	private _refreshGeneration = 0;
 
 	private readonly _pollScheduler: RunOnceScheduler;
 	private readonly _pollingDisposables = this._register(new DisposableSet());
@@ -178,17 +180,29 @@ export class GitHubIssueModel extends Disposable {
 	}
 
 	private async _refresh(): Promise<void> {
+		const generation = ++this._refreshGeneration;
 		try {
 			const response = await this._fetcher.getIssue(this.owner, this.repo, this.issueNumber, this._etag);
+			if (generation !== this._refreshGeneration || this._store.isDisposed) {
+				return;
+			}
 			this._refreshedAt = Date.now();
 			if (response.statusCode === 200 && response.data) {
 				this._etag = response.etag;
 				this._issue.set(response.data, undefined);
 			}
 		} catch (err) {
+			if (generation !== this._refreshGeneration || this._store.isDisposed) {
+				return;
+			}
 			// Leave `_refreshedAt` untouched so the next caller retries instead of being
 			// debounced against a request that never produced data.
 			this._logService.error(`${LOG_PREFIX} Failed to refresh issue ${this.owner}/${this.repo}#${this.issueNumber}:`, err);
 		}
+	}
+
+	override dispose(): void {
+		++this._refreshGeneration;
+		super.dispose();
 	}
 }

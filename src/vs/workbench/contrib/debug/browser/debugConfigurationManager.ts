@@ -429,6 +429,7 @@ export class ConfigurationManager implements IConfigurationManager {
 		const previousName = this.selectedName;
 		const previousSelectedDynamic = this.selectedDynamic;
 		this.selectedLaunch = launch;
+		const launchThisSelection = launch;
 
 		if (this.selectedLaunch) {
 			this.storageService.store(DEBUG_SELECTED_ROOT, this.selectedLaunch.uri.toString(), StorageScope.WORKSPACE, StorageTarget.MACHINE);
@@ -451,6 +452,9 @@ export class ConfigurationManager implements IConfigurationManager {
 			type = dynamicConfig.type;
 			if (!config) {
 				const providers = (await this.getDynamicProviders()).filter(p => p.type === type);
+				if (this.selectedLaunch !== launchThisSelection || this.toDispose.length === 0) {
+					return;
+				}
 				this.getSelectedConfig = async () => {
 					const activatedProviders = await Promise.all(providers.map(p => p.getProvider()));
 					const provider = activatedProviders.length > 0 ? activatedProviders[0] : undefined;

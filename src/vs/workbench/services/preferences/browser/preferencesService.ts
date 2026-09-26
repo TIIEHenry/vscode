@@ -623,22 +623,37 @@ export class PreferencesService extends Disposable implements IPreferencesServic
 	}
 
 	private async revealSetting(settingKey: string, edit: boolean, editor: IEditorPane, settingsResource: URI): Promise<void> {
-		const codeEditor = editor ? getCodeEditor(editor.getControl()) : null;
-		if (!codeEditor) {
+		const codeEditor = getCodeEditor(editor.getControl());
+		const model = codeEditor?.getModel();
+		const editorInput = editor.input;
+		if (!codeEditor || !model || !editorInput) {
 			return;
 		}
+		const isRevealTargetCurrent = (): boolean => {
+			// setInput replaces editor.input; closing the tab clears it or disposes the input.
+			if (editor.input !== editorInput || editorInput.isDisposed()) {
+				return false;
+			}
+			// A replaced or disposed control is no longer the editor captured at entry.
+			if (getCodeEditor(editor.getControl()) !== codeEditor) {
+				return false;
+			}
+			const currentModel = codeEditor.getModel();
+			return currentModel === model && !model.isDisposed();
+		};
 		const settingsModel = await this.createPreferencesEditorModel(settingsResource);
-		if (!settingsModel) {
+		if (!settingsModel || !isRevealTargetCurrent()) {
 			return;
 		}
 		const position = await this.getPositionToReveal(settingKey, edit, settingsModel, codeEditor);
-		if (position) {
-			codeEditor.setPosition(position);
-			codeEditor.revealPositionNearTop(position);
-			codeEditor.focus();
-			if (edit) {
-				SuggestController.get(codeEditor)?.triggerSuggest();
-			}
+		if (!position || !isRevealTargetCurrent()) {
+			return;
+		}
+		codeEditor.setPosition(position);
+		codeEditor.revealPositionNearTop(position);
+		codeEditor.focus();
+		if (edit) {
+			SuggestController.get(codeEditor)?.triggerSuggest();
 		}
 	}
 

@@ -28,6 +28,7 @@ function keysDiff<T>(a: Map<string, T>, b: Map<string, T>): string[] {
 export class FilePolicyService extends AbstractPolicyService implements IPolicyService {
 
 	private readonly throttledDelayer = this._register(new ThrottledDelayer(500));
+	private _refreshGeneration = 0;
 
 	constructor(
 		private readonly file: URI,
@@ -71,7 +72,11 @@ export class FilePolicyService extends AbstractPolicyService implements IPolicyS
 	}
 
 	private async refresh(): Promise<void> {
+		const generation = ++this._refreshGeneration;
 		const policies = await this.read();
+		if (generation !== this._refreshGeneration || this._store.isDisposed) {
+			return;
+		}
 		const diff = keysDiff(this.policies, policies);
 		this.policies = policies;
 

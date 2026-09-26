@@ -648,7 +648,10 @@ export class NotebookMultiCursorController extends Disposable implements INotebo
 		}
 
 		if (matches) {
-			await this.handleFindWidgetSelectAllMatches(matches);
+			const applied = await this.handleFindWidgetSelectAllMatches(matches);
+			if (!applied) {
+				return;
+			}
 		} else {
 			await this.handleCellEditorSelectAllMatches(notebookTextModel, focusedCell);
 		}
@@ -659,17 +662,21 @@ export class NotebookMultiCursorController extends Disposable implements INotebo
 		}
 	}
 
-	private async handleFindWidgetSelectAllMatches(matches: CellFindMatchWithIndex[]) {
+	private async handleFindWidgetSelectAllMatches(matches: CellFindMatchWithIndex[]): Promise<boolean> {
 		// TODO: support selecting state maybe. UX could get confusing since selecting state could be hit via ctrl+d which would have different filters (case sensetive + whole word)
 		if (this.state !== NotebookMultiCursorState.Idle) {
-			return;
+			return false;
 		}
 
 		if (!matches.length) {
-			return;
+			return false;
 		}
 
+		const epoch = ++this._multicursorEpoch;
 		await this.notebookEditor.focusNotebookCell(matches[0].cell, 'editor');
+		if (this._multicursorEpoch !== epoch || this._store.isDisposed) {
+			return false;
+		}
 		this.anchorCell = this.notebookEditor.activeCellAndCodeEditor;
 
 		this.trackedCells = [];
@@ -685,6 +692,7 @@ export class NotebookMultiCursorController extends Disposable implements INotebo
 		this._nbIsMultiSelectSession.set(true);
 		this.state = NotebookMultiCursorState.Selecting;
 		this._nbMultiSelectState.set(NotebookMultiCursorState.Selecting);
+		return true;
 	}
 
 	private async handleCellEditorSelectAllMatches(notebookTextModel: NotebookTextModel, focusedCell: ICellViewModel) {
@@ -1035,6 +1043,7 @@ export class NotebookMultiCursorController extends Disposable implements INotebo
 	}
 
 	override dispose(): void {
+		this._multicursorEpoch++;
 		super.dispose();
 		this.anchorDisposables.dispose();
 		this.cursorsDisposables.dispose();

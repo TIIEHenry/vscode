@@ -74,6 +74,7 @@ export class EngineClipboardSection extends Disposable {
 
 	private sectionActive = false;
 	private renderGeneration = 0;
+	private _writeGeneration = 0;
 	private leftoverListFailed = false;
 	private entries: UniverseAgentClipboardEntrySummary[] = [];
 	private selectedEntry: UniverseAgentClipboardEntrySummary | undefined;
@@ -331,17 +332,27 @@ export class EngineClipboardSection extends Disposable {
 		if (this.isClipboardWriteListFailed() || !canSendEngineClipboardWrite(this.connection.isEngineConnected(), typeof hook === 'function', this.isClipboardWritePairingHold()) || !hook) {
 			return;
 		}
+		const generation = ++this._writeGeneration;
 		const request = engineClipboardWriteRequest();
 		try {
 			const result = await hook.call(this.connection, request);
+			if (generation !== this._writeGeneration || this._store.isDisposed) {
+				return;
+			}
 			this.writeStatus.style.display = '';
 			writeStatus(this.writeStatus, formatEngineClipboardWriteLabel(result.clipId), 'success');
 			const listed = await this.refresh();
+			if (generation !== this._writeGeneration || this._store.isDisposed) {
+				return;
+			}
 			if (listed) {
 				this.writeStatus.style.display = '';
 				writeStatus(this.writeStatus, formatEngineClipboardWriteLabel(result.clipId), 'success');
 			}
 		} catch (error) {
+			if (generation !== this._writeGeneration || this._store.isDisposed) {
+				return;
+			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.writeStatus.style.display = '';
 			writeStatus(this.writeStatus, reason, 'error');

@@ -943,6 +943,7 @@ interface IExtensionCacheData {
 class CachedExtensionsScanner extends ExtensionsScanner {
 
 	private input: ExtensionScannerInput | undefined;
+	private _scanGeneration = 0;
 	private readonly cacheValidatorThrottler: ThrottledDelayer<void> = this._register(new ThrottledDelayer(3000));
 
 	private readonly _onDidChangeCache = this._register(new Emitter<void>());
@@ -962,12 +963,17 @@ class CachedExtensionsScanner extends ExtensionsScanner {
 	}
 
 	override async scanExtensions(input: ExtensionScannerInput): Promise<IRelaxedScannedExtension[]> {
+		const generation = ++this._scanGeneration;
 		const cacheFile = this.getCacheFile(input);
 		const cacheContents = await this.readExtensionCache(cacheFile);
-		this.input = input;
-		if (cacheContents && cacheContents.input && ExtensionScannerInput.equals(cacheContents.input, this.input)) {
+		if (generation === this._scanGeneration && !this._store.isDisposed) {
+			this.input = input;
+		}
+		if (cacheContents && cacheContents.input && ExtensionScannerInput.equals(cacheContents.input, input)) {
 			this.logService.debug('Using cached extensions scan result', input.type === ExtensionType.System ? 'system' : 'user', input.location.toString());
-			this.cacheValidatorThrottler.trigger(() => this.validateCache());
+			if (generation === this._scanGeneration && !this._store.isDisposed) {
+				this.cacheValidatorThrottler.trigger(() => this.validateCache());
+			}
 			return cacheContents.result.map((extension) => {
 				// revive URI object
 				extension.location = URI.revive(extension.location);

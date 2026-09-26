@@ -237,6 +237,11 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 	}
 
 	private _isDisposed: boolean = false;
+	/**
+	 * Bumped by a later `setModel`, by `onWillHide` (editor close / clearInput / hide),
+	 * and by `dispose`, so an in-flight `setModel` does not write the previous notebook back.
+	 */
+	private _setModelGeneration = 0;
 
 	get isDisposed() {
 		return this._isDisposed;
@@ -1154,10 +1159,15 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 	}
 
 	async setModel(textModel: NotebookTextModel, viewState: INotebookEditorViewState | undefined, perf?: NotebookPerfMarks, viewType?: string): Promise<void> {
+		const generation = ++this._setModelGeneration;
 		if (this.viewModel === undefined || !this.viewModel.equal(textModel)) {
 			const oldBottomToolbarDimensions = this._notebookOptions.computeBottomToolbarDimensions(this.viewModel?.viewType);
 			this._detachModel();
 			await this._attachModel(textModel, viewType ?? textModel.viewType, viewState, perf);
+			// A later setModel / onWillHide (editor close) / dispose owns the widget now.
+			if (this._isDisposed || generation !== this._setModelGeneration) {
+				return;
+			}
 			const newBottomToolbarDimensions = this._notebookOptions.computeBottomToolbarDimensions(this.viewModel?.viewType);
 
 			if (oldBottomToolbarDimensions.bottomToolbarGap !== newBottomToolbarDimensions.bottomToolbarGap
@@ -2028,6 +2038,7 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 	}
 
 	onWillHide() {
+		this._setModelGeneration++;
 		this._isVisible = false;
 		this._editorFocus.set(false);
 		this._overlayContainer.inert = true;
@@ -3209,6 +3220,7 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 
 	override dispose() {
 		this._isDisposed = true;
+		this._setModelGeneration++;
 		// dispose webview first
 		this._webview?.dispose();
 		this._webview = null;

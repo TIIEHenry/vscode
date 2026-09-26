@@ -317,7 +317,14 @@ export class ExternalSessionBanner extends Disposable {
 				}
 			}
 
+			if (this._selectedMode !== mode || this._session.get() !== session || this._store.isDisposed) {
+				return;
+			}
+
 			await this._configurationService.updateValue(ChatConfiguration.ShowExternalAgentSessions, mode, ConfigurationTarget.USER);
+			if (this._selectedMode !== mode || this._session.get() !== session || this._store.isDisposed) {
+				return;
+			}
 			this._dismiss();
 		} finally {
 			this._saving = false;

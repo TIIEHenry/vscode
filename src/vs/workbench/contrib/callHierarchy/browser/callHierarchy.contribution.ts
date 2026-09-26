@@ -101,12 +101,16 @@ class CallHierarchyController implements IEditorContribution {
 		if (!this._widget) {
 			return;
 		}
-		const model = this._widget.getModel();
-		const call = this._widget.getFocused();
+		const widget = this._widget;
+		const model = widget.getModel();
+		const call = widget.getFocused();
 		if (!call || !model) {
 			return;
 		}
 		const newEditor = await this._editorService.openCodeEditor({ resource: call.item.uri }, this._editor);
+		if (this._dispoables.isDisposed || this._widget !== widget || (widget as unknown as { readonly _disposables: DisposableStore })._disposables.isDisposed) {
+			return;
+		}
 		if (!newEditor) {
 			return;
 		}
@@ -115,7 +119,7 @@ class CallHierarchyController implements IEditorContribution {
 
 		CallHierarchyController.get(newEditor)?._showCallHierarchyWidget(
 			Range.lift(newModel.root.selectionRange).getStartPosition(),
-			this._widget.direction,
+			widget.direction,
 			Promise.resolve(newModel),
 			new CancellationTokenSource()
 		);
@@ -126,18 +130,23 @@ class CallHierarchyController implements IEditorContribution {
 		this._ctxIsVisible.set(true);
 		this._ctxDirection.set(direction);
 		Event.any<unknown>(this._editor.onDidChangeModel, this._editor.onDidChangeModelLanguage)(this.endCallHierarchy, this, this._sessionDisposables);
-		this._widget = this._instantiationService.createInstance(CallHierarchyTreePeekWidget, this._editor, position, direction);
-		this._widget.showLoading();
-		this._sessionDisposables.add(this._widget.onDidClose(() => {
+		const widget = this._widget = this._instantiationService.createInstance(CallHierarchyTreePeekWidget, this._editor, position, direction);
+		widget.showLoading();
+		this._sessionDisposables.add(widget.onDidClose(() => {
+			const direction = widget.direction;
+			if (this._widget !== widget) {
+				return;
+			}
 			this.endCallHierarchy();
-			this._storageService.store(CallHierarchyController._StorageDirection, this._widget!.direction, StorageScope.PROFILE, StorageTarget.USER);
+			this._storageService.store(CallHierarchyController._StorageDirection, direction, StorageScope.PROFILE, StorageTarget.USER);
 		}));
 		this._sessionDisposables.add({ dispose() { cts.dispose(true); } });
 		this._sessionDisposables.add(this._widget);
 
 		model.then(model => {
 			if (cts.token.isCancellationRequested) {
-				return; // nothing
+				model?.dispose();
+				return;
 			}
 			if (model) {
 				this._sessionDisposables.add(model);
@@ -147,8 +156,10 @@ class CallHierarchyController implements IEditorContribution {
 				this._widget!.showMessage(localize('no.item', "No results"));
 			}
 		}).catch(err => {
-			if (isCancellationError(err)) {
-				this.endCallHierarchy();
+			if (cts.token.isCancellationRequested || isCancellationError(err)) {
+				return;
+			}
+			if (this._widget && (this._widget as unknown as { readonly _disposables: DisposableStore })._disposables.isDisposed) {
 				return;
 			}
 			this._widget!.showMessage(localize('error', "Failed to show call hierarchy"));

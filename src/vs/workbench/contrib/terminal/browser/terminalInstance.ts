@@ -161,6 +161,7 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 	private _latestXtermParseData: number = 0;
 	private _isExiting: boolean;
 	private _isDisposing: boolean;
+	private _reuseTerminalGeneration = 0;
 	private _hadFocusOnExit: boolean;
 	private _exitCode: number | undefined;
 	private _exitReason: TerminalExitReason | undefined;
@@ -181,6 +182,7 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 	private _rows: number = 0;
 	private _fixedCols: number | undefined;
 	private _fixedRows: number | undefined;
+	private _fixedDimensionsGeneration = 0;
 	private _cwd: string | undefined = undefined;
 	private _initialCwd: string | undefined = undefined;
 	private _injectedArgs: string[] | undefined = undefined;
@@ -1325,6 +1327,7 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		if (this.isDisposed) {
 			return;
 		}
+		this._reuseTerminalGeneration++;
 		this._logService.trace(`terminalInstance#dispose (instanceId: ${this.instanceId})`);
 		this._isDisposing = true;
 		dispose(this._widgetManager);
@@ -1528,9 +1531,18 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 			this.shellLaunchConfig.shellIntegrationNonce ?? this.shellLaunchConfig.attachPersistentProcess?.shellIntegrationNonce
 		);
 		this.capabilities.add(processManager.capabilities);
+		let processReadyGeneration = 0;
 		this._register(processManager.onProcessReady(async (e) => {
+			const readyGeneration = ++processReadyGeneration;
+			const readyPid = e.pid;
 			this._onProcessIdReady.fire(this);
-			this._initialCwd = await this.getInitialCwd();
+			const initialCwd = await this.getInitialCwd();
+			// getInitialCwd can outlive this process. A restarted terminal already
+			// has a new pid; do not write the old cwd back or retitle from it.
+			if (readyGeneration !== processReadyGeneration || this._processManager.shellProcessId !== readyPid) {
+				return;
+			}
+			this._initialCwd = initialCwd;
 			// Set the initial name based on the _resolved_ shell launch config, this will also
 			// ensure the resolved icon gets shown
 			if (!this._labelComputer) {
@@ -1898,6 +1910,7 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 	}
 
 	async reuseTerminal(shell: IShellLaunchConfig, reset: boolean = false): Promise<void> {
+		const generation = ++this._reuseTerminalGeneration;
 		// Unsubscribe any key listener we may have.
 		this._pressAnyKeyToCloseListener?.dispose();
 		this._pressAnyKeyToCloseListener = undefined;
@@ -1907,12 +1920,18 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 			if (!reset) {
 				// Ensure new processes' output starts at start of new line
 				await new Promise<void>(r => xterm.raw.write('\n\x1b[G', r));
+				if (generation !== this._reuseTerminalGeneration || this.isDisposed) {
+					return;
+				}
 			}
 
 			// Print initialText if specified
 			if (shell.initialText) {
 				this._shellLaunchConfig.initialText = shell.initialText;
 				await new Promise<void>(r => this._writeInitialText(xterm, r));
+				if (generation !== this._reuseTerminalGeneration || this.isDisposed) {
+					return;
+				}
 			}
 
 			// Clean up waitOnExit state
@@ -1940,6 +1959,9 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		this._shellLaunchConfig = shell; // Must be done before calling _createProcess()
 		this._agentShellTypeFromSequence = undefined;
 		await this._processManager.relaunch(this._shellLaunchConfig, this._cols || Constants.DefaultCols, this._rows || Constants.DefaultRows, reset).then(result => {
+			if (generation !== this._reuseTerminalGeneration || this.isDisposed) {
+				return;
+			}
 			if (result) {
 				if (hasKey(result, { message: true })) {
 					this._onProcessExit(result);
@@ -2212,12 +2234,16 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 	}
 
 	async setFixedDimensions(): Promise<void> {
+		const generation = ++this._fixedDimensionsGeneration;
 		const cols = await this._quickInputService.input({
 			title: nls.localize('setTerminalDimensionsColumn', "Set Fixed Dimensions: Column"),
 			placeHolder: 'Enter a number of columns or leave empty for automatic width',
 			validateInput: async (text) => text.length > 0 && !text.match(/^\d+$/) ? { content: 'Enter a number or leave empty size automatically', severity: Severity.Error } : undefined
 		});
 		if (cols === undefined) {
+			return;
+		}
+		if (generation !== this._fixedDimensionsGeneration || this._store.isDisposed) {
 			return;
 		}
 		this._fixedCols = this._parseFixedDimension(cols);
@@ -2231,9 +2257,15 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		if (rows === undefined) {
 			return;
 		}
+		if (generation !== this._fixedDimensionsGeneration || this._store.isDisposed) {
+			return;
+		}
 		this._fixedRows = this._parseFixedDimension(rows);
 		this._labelComputer?.refreshLabel(this);
 		await this._refreshScrollbar();
+		if (generation !== this._fixedDimensionsGeneration || this._store.isDisposed) {
+			return;
+		}
 		this._resize();
 		this.focus();
 	}

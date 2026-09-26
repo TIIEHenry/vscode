@@ -38,7 +38,9 @@ export class NativeAuxiliaryWindow extends AuxiliaryWindow {
 	private skipUnloadConfirmation = false;
 
 	private maximized = false;
+	private maximizedGeneration = 0;
 	private alwaysOnTop = false;
+	private alwaysOnTopGeneration = 0;
 
 	constructor(
 		window: CodeWindow,
@@ -67,17 +69,23 @@ export class NativeAuxiliaryWindow extends AuxiliaryWindow {
 
 	private handleMaximizedState(): void {
 		(async () => {
-			this.maximized = await this.nativeHostService.isMaximized({ targetWindowId: this.window.vscodeWindowId });
+			const generation = this.maximizedGeneration;
+			const maximized = await this.nativeHostService.isMaximized({ targetWindowId: this.window.vscodeWindowId });
+			if (generation === this.maximizedGeneration) {
+				this.maximized = maximized;
+			}
 		})();
 
 		this._register(this.nativeHostService.onDidMaximizeWindow(windowId => {
 			if (windowId === this.window.vscodeWindowId) {
+				this.maximizedGeneration++;
 				this.maximized = true;
 			}
 		}));
 
 		this._register(this.nativeHostService.onDidUnmaximizeWindow(windowId => {
 			if (windowId === this.window.vscodeWindowId) {
+				this.maximizedGeneration++;
 				this.maximized = false;
 			}
 		}));
@@ -85,11 +93,16 @@ export class NativeAuxiliaryWindow extends AuxiliaryWindow {
 
 	private handleAlwaysOnTopState(): void {
 		(async () => {
-			this.alwaysOnTop = await this.nativeHostService.isWindowAlwaysOnTop({ targetWindowId: this.window.vscodeWindowId });
+			const generation = this.alwaysOnTopGeneration;
+			const alwaysOnTop = await this.nativeHostService.isWindowAlwaysOnTop({ targetWindowId: this.window.vscodeWindowId });
+			if (generation === this.alwaysOnTopGeneration) {
+				this.alwaysOnTop = alwaysOnTop;
+			}
 		})();
 
 		this._register(this.nativeHostService.onDidChangeWindowAlwaysOnTop(({ windowId, alwaysOnTop }) => {
 			if (windowId === this.window.vscodeWindowId) {
+				this.alwaysOnTopGeneration++;
 				this.alwaysOnTop = alwaysOnTop;
 			}
 		}));

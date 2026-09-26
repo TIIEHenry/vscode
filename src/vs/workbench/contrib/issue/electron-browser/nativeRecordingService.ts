@@ -23,6 +23,7 @@ export class NativeRecordingService extends Disposable implements IRecordingServ
 		&& !!navigator.mediaDevices?.getDisplayMedia;
 
 	private _state = RecordingState.Idle;
+	private _recordingGeneration = 0;
 	private readonly _onDidChangeState = this._register(new Emitter<RecordingState>());
 	readonly onDidChangeState: Event<RecordingState> = this._onDidChangeState.event;
 
@@ -88,12 +89,14 @@ export class NativeRecordingService extends Disposable implements IRecordingServ
 		}
 
 		this.cleanup();
+		const generation = ++this._recordingGeneration;
 
 		// Use getDisplayMedia — on Electron desktop the main process handler
 		// auto-selects the screen containing the VS Code window via
 		// desktopCapturer.getSources() (cached for subsequent recordings).
+		let stream: MediaStream;
 		try {
-			this.mediaStream = await navigator.mediaDevices.getDisplayMedia({
+			stream = await navigator.mediaDevices.getDisplayMedia({
 				video: true,
 				audio: false,
 			});
@@ -101,6 +104,15 @@ export class NativeRecordingService extends Disposable implements IRecordingServ
 			this.logService.error('[RecordingService] Failed to get display media:', err);
 			throw new Error('Failed to start recording. The user may have cancelled the source picker.');
 		}
+
+		if (generation !== this._recordingGeneration || this._store.isDisposed) {
+			for (const track of stream.getTracks()) {
+				track.stop();
+			}
+			return;
+		}
+
+		this.mediaStream = stream;
 
 		// Select mime type: prefer caller's choice, fall back to best available
 		let mimeType: string;
@@ -171,6 +183,7 @@ export class NativeRecordingService extends Disposable implements IRecordingServ
 	}
 
 	async stopRecording(): Promise<IRecordingData | undefined> {
+		++this._recordingGeneration;
 		if (this._state !== RecordingState.Recording && this._state !== RecordingState.Stopped) {
 			return undefined;
 		}
@@ -221,6 +234,7 @@ export class NativeRecordingService extends Disposable implements IRecordingServ
 	}
 
 	discardRecording(): void {
+		++this._recordingGeneration;
 		if (this.mediaRecorder) {
 			// Clear handlers BEFORE stop() so any final ondataavailable fired after stop()
 			// does not append a chunk that we'd then have to GC explicitly.
@@ -244,6 +258,7 @@ export class NativeRecordingService extends Disposable implements IRecordingServ
 	}
 
 	private cleanup(): void {
+		++this._recordingGeneration;
 		this.stopTracks();
 		this.chunks = [];
 		this.bytesRecorded = 0;

@@ -7,7 +7,6 @@ import { DecorationOptions, l10n, Position, Range, TextEditor, TextEditorChange,
 import { Model } from './model';
 import { dispose, fromNow, getCommitShortHash, IDisposable, truncate } from './util';
 import { Repository } from './repository';
-import { throttle } from './decorators';
 import { BlameInformation, Commit } from './git';
 import { fromGitUri, isGitUri, toGitUri } from './uri';
 import { emojify, ensureEmojis } from './emoji';
@@ -182,6 +181,9 @@ export class GitBlameController {
 	private _repositoryDisposables = new Map<Repository, IDisposable[]>();
 	private _enablementDisposables: IDisposable[] = [];
 	private _disposables: IDisposable[] = [];
+
+	private _blameUpdateRunning = false;
+	private _pendingBlameUpdate: { readonly textEditor: TextEditor | undefined; readonly reason?: 'selection' } | undefined;
 
 	constructor(private readonly _model: Model) {
 		workspace.onDidChangeConfiguration(this._onDidChangeConfiguration, this, this._disposables);
@@ -376,8 +378,35 @@ export class GitBlameController {
 		return blameInformation;
 	}
 
-	@throttle
-	private async _updateTextEditorBlameInformation(textEditor: TextEditor | undefined, reason?: 'selection'): Promise<void> {
+	private _updateTextEditorBlameInformation(textEditor: TextEditor | undefined, reason?: 'selection'): void {
+		// One publish runs at a time and is not cancelled. Later calls replace
+		// the single follow-up, so the last active editor still runs after it
+		// returns instead of keeping only the first queued call.
+		this._pendingBlameUpdate = { textEditor, reason };
+		if (this._blameUpdateRunning) {
+			return;
+		}
+
+		this._blameUpdateRunning = true;
+		const finish = () => {
+			this._blameUpdateRunning = false;
+			if (this._pendingBlameUpdate) {
+				this._updateTextEditorBlameInformation(this._pendingBlameUpdate.textEditor, this._pendingBlameUpdate.reason);
+			}
+		};
+		// A rejected publish must not drop the editor that replaced the queue.
+		this._drainPendingBlameUpdate().then(finish, finish);
+	}
+
+	private async _drainPendingBlameUpdate(): Promise<void> {
+		while (this._pendingBlameUpdate) {
+			const pending = this._pendingBlameUpdate;
+			this._pendingBlameUpdate = undefined;
+			await this._publishTextEditorBlameInformation(pending.textEditor, pending.reason);
+		}
+	}
+
+	private async _publishTextEditorBlameInformation(textEditor: TextEditor | undefined, reason?: 'selection'): Promise<void> {
 		if (textEditor) {
 			if (!textEditor.diffInformation || textEditor !== window.activeTextEditor) {
 				return;
@@ -387,13 +416,18 @@ export class GitBlameController {
 			return;
 		}
 
-		const repository = this._model.getRepository(textEditor.document.uri);
+		// Snapshot the editor/document this invocation is publishing for.
+		// A later editor switch does not cancel this publish.
+		const editor = textEditor;
+		const document = textEditor.document;
+
+		const repository = this._model.getRepository(document.uri);
 		if (!repository || !repository.HEAD?.commit) {
 			return;
 		}
 
 		// Only support resources with `file` and `git` schemes
-		if (!isResourceSchemeSupported(textEditor.document.uri)) {
+		if (!isResourceSchemeSupported(document.uri)) {
 			this.textEditorBlameInformation = undefined;
 			return;
 		}
@@ -412,8 +446,8 @@ export class GitBlameController {
 		let workingTreeChanges: readonly TextEditorChange[];
 		let workingTreeAndIndexChanges: readonly TextEditorChange[] | undefined;
 
-		if (isGitUri(textEditor.document.uri)) {
-			const { ref } = fromGitUri(textEditor.document.uri);
+		if (isGitUri(document.uri)) {
+			const { ref } = fromGitUri(document.uri);
 
 			// For the following scenarios we can discard the diff information
 			// 1) Commit - Resource in the multi-file diff editor when viewing the details of a commit.
@@ -472,23 +506,30 @@ export class GitBlameController {
 		}
 
 		let commit: string;
-		if (!isGitUri(textEditor.document.uri)) {
+		if (!isGitUri(document.uri)) {
 			// Resource with the `file` scheme
 			commit = repository.HEAD.commit;
 		} else {
 			// Resource with the `git` scheme
-			const { ref } = fromGitUri(textEditor.document.uri);
+			const { ref } = fromGitUri(document.uri);
 			commit = /^[0-9a-f]{40}$/i.test(ref) ? ref : repository.HEAD.commit;
 		}
 
 		// Git blame information
-		const resourceBlameInformation = await this._getBlameInformation(textEditor.document.uri, commit);
+		const resourceBlameInformation = await this._getBlameInformation(document.uri, commit);
 		if (!resourceBlameInformation) {
 			return;
 		}
 
+		// `blame2` can outlive an editor switch. Do not publish this result onto
+		// whatever editor is active now.
+		const activeEditor = window.activeTextEditor;
+		if (activeEditor !== editor || activeEditor.document !== document) {
+			return;
+		}
+
 		const lineBlameInformation: LineBlameInformation[] = [];
-		for (const lineNumber of new Set(textEditor.selections.map(s => s.active.line))) {
+		for (const lineNumber of new Set(editor.selections.map(s => s.active.line))) {
 			// Check if the line is contained in the working tree diff information
 			if (lineRangesContainLine(workingTreeChanges, lineNumber + 1)) {
 				if (reason === 'selection') {
@@ -518,7 +559,7 @@ export class GitBlameController {
 		}
 
 		this.textEditorBlameInformation = {
-			resource: textEditor.document.uri,
+			resource: document.uri,
 			blameInformation: lineBlameInformation
 		};
 	}
@@ -561,7 +602,7 @@ class GitBlameEditorDecoration implements HoverProvider {
 		}
 
 		const textEditor = window.activeTextEditor;
-		if (!textEditor) {
+		if (!textEditor || textEditor.document !== document) {
 			return undefined;
 		}
 
@@ -571,16 +612,22 @@ class GitBlameEditorDecoration implements HoverProvider {
 		}
 
 		// Get blame information
-		const blameInformation = this._controller.textEditorBlameInformation?.blameInformation;
+		const resourceBlameInformation = this._controller.textEditorBlameInformation;
+		if (!resourceBlameInformation || resourceBlameInformation.resource.toString() !== document.uri.toString()) {
+			return undefined;
+		}
+
+		const blameInformation = resourceBlameInformation.blameInformation;
 		const lineBlameInformation = blameInformation?.find(blame => blame.lineNumber === position.line);
 
 		if (!lineBlameInformation || typeof lineBlameInformation.blameInformation === 'string') {
 			return undefined;
 		}
 
-		const contents = await this._controller.getBlameInformationHover(textEditor.document.uri, lineBlameInformation.blameInformation);
+		const contents = await this._controller.getBlameInformationHover(document.uri, lineBlameInformation.blameInformation);
 
-		if (!contents || token.isCancellationRequested) {
+		const activeEditor = window.activeTextEditor;
+		if (!contents || token.isCancellationRequested || activeEditor !== textEditor || activeEditor.document !== document) {
 			return undefined;
 		}
 
@@ -611,8 +658,12 @@ class GitBlameEditorDecoration implements HoverProvider {
 			}
 		}
 
-		// Register hover provider
+		// Register hover provider, then paint only when the stored blame is for
+		// this editor. Switching away clears the previous editor; switching
+		// back must restore a still-matching result without waiting for a
+		// publish that is equal to the stored blame and does not fire.
 		this._registerHoverProvider();
+		this._onDidChangeBlameInformation();
 	}
 
 	private _onDidChangeBlameInformation(): void {
@@ -621,9 +672,14 @@ class GitBlameEditorDecoration implements HoverProvider {
 			return;
 		}
 
-		// Get blame information
-		const blameInformation = this._controller.textEditorBlameInformation?.blameInformation;
-		if (!blameInformation || blameInformation.length === 0) {
+		// Get blame information. A stale publish for another resource must not
+		// paint that file's lines onto the editor that is active now.
+		const resourceBlameInformation = this._controller.textEditorBlameInformation;
+		const blameInformation = resourceBlameInformation?.blameInformation;
+		if (!resourceBlameInformation
+			|| resourceBlameInformation.resource.toString() !== textEditor.document.uri.toString()
+			|| !blameInformation
+			|| blameInformation.length === 0) {
 			textEditor.setDecorations(this._decoration, []);
 			return;
 		}
@@ -683,6 +739,7 @@ class GitBlameStatusBarItem {
 		this._disposables.push(this._statusBarItem);
 
 		workspace.onDidChangeConfiguration(this._onDidChangeConfiguration, this, this._disposables);
+		window.onDidChangeActiveTextEditor(() => this._onDidChangeBlameInformation(), this, this._disposables);
 		this._controller.onDidChangeBlameInformation(() => this._onDidChangeBlameInformation(), this, this._disposables);
 
 		this._onDidChangeConfiguration();
@@ -703,13 +760,18 @@ class GitBlameStatusBarItem {
 	}
 
 	private async _onDidChangeBlameInformation(): Promise<void> {
-		if (!window.activeTextEditor) {
+		const textEditor = window.activeTextEditor;
+		if (!textEditor) {
 			this._statusBarItem.hide();
 			return;
 		}
 
-		const blameInformation = this._controller.textEditorBlameInformation?.blameInformation;
-		if (!blameInformation || blameInformation.length === 0) {
+		const resourceBlameInformation = this._controller.textEditorBlameInformation;
+		const blameInformation = resourceBlameInformation?.blameInformation;
+		if (!resourceBlameInformation
+			|| resourceBlameInformation.resource.toString() !== textEditor.document.uri.toString()
+			|| !blameInformation
+			|| blameInformation.length === 0) {
 			this._statusBarItem.hide();
 			return;
 		}
@@ -720,14 +782,14 @@ class GitBlameStatusBarItem {
 			this._statusBarItem.command = undefined;
 		} else {
 			this._statusBarItem.text = `$(git-commit) ${this._controller.formatBlameInformationMessage(
-				window.activeTextEditor.document.uri, this._template, blameInformation[0].blameInformation)}`;
+				textEditor.document.uri, this._template, blameInformation[0].blameInformation)}`;
 
+			const uri = textEditor.document.uri;
 			this._statusBarItem.tooltip2 = (cancellationToken: CancellationToken) => {
-				return this._provideTooltip(window.activeTextEditor!.document.uri,
+				return this._provideTooltip(uri,
 					blameInformation[0].blameInformation as BlameInformation, cancellationToken);
 			};
 
-			const uri = window.activeTextEditor.document.uri;
 			const hash = blameInformation[0].blameInformation.hash;
 
 			this._statusBarItem.command = {

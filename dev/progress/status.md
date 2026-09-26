@@ -3,8 +3,8 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-09-25
-summary: "2026-09-25 裁定已入账：Accept 暂存 hunk、链路本地、多根仓库、时间线角色与完成事件、R9 关闭、开发期 bundle id。subscription 仍 draft。D24 仍开。"
+updated: 2026-09-26
+summary: "2026-09-25 裁定已入账：Accept 暂存 hunk、链路本地、多根仓库、时间线角色与完成事件、R9 关闭、开发期 bundle id。subscription 仍 draft。关仓代码尖 dd33706fb00 已合进人类工位。A/B/E–J idle。C 因 dev/loop gitlink 占槽。D 本地合并未推。leftover 未完成。D24 仍开。D752 不入库。"
 ---
 
 # Development Progress
@@ -25,7 +25,7 @@ summary: "2026-09-25 裁定已入账：Accept 暂存 hunk、链路本地、多�
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **loop** | leftover 未完成。人类工位在途已合入：会话镜头清空时拆除、Review 打开失败带错误态、Rebuild 流测试对齐 bytes。A 的 D752 与 `dev/loop` gitlink 仍不入库。E blocked。 |
+| **loop** | leftover 未完成。关仓代码尖 `dd33706fb00` 已合进人类工位，本地文档与工作区提交仍在。A/B/E/F/G/H/I/J `idle`。C `blocked`（仅脏 `dev/loop` gitlink，不入库）。D `occupied`（`592fa2cddbb` 保留本地合并，未推）。D752 不入库。 |
 
 子 agent 发现（扫描笔记；D724 在延期表已 closed，D736 / D739 / D740 为 skipped，都不是当前阻塞）：
 | ID | 问题 |
@@ -51,6 +51,16 @@ summary: "2026-09-25 裁定已入账：Accept 暂存 hunk、链路本地、多�
 | variableResolver | `columnNumber` 抛 `Error`，`lineNumber`/`selectedText` 抛 `VariableError` |
 | timeline handleRequest | 空 `catch` 吞掉 provider 失败 |
 | workingCopy whenReady | 赋值 `resolveBackupsToRestore()` / leftover `limiter.queue` reject 可未处理 |
+## 槽位（2026-09-26 关仓）
+
+| 槽 | 状态 | HEAD |
+|:---|:-----|:-----|
+| merge | `parked` | 推送后的 `origin/agent-ide`（含本槽位账；代码尖 `dd33706fb00`） |
+| A B E F G H I J | `idle` | 同推送后的 `MERGE_SHA`，干净 |
+| C | `blocked` | `34b6ca17caa`，仅脏 `dev/loop` |
+| D | `occupied` | `592fa2cddbb`，未推 |
+| edit（人类 `agent-ide`） | 已合并 | 含 `9128b870dbe` 与本地 `1fe23f074bd`、`e1a637e8aa8` |
+
 ## Next
 | 项 | 指针 |
 |:-----|:-----|

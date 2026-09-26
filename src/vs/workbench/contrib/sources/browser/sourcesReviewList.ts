@@ -230,6 +230,7 @@ export class SourcesReviewList extends Disposable {
 	private lastRevealMissToolCallId: string | undefined;
 	private usingGitRead = false;
 	private refreshSeq = 0;
+	private _revealGeneration = 0;
 	/** List-fail leftover is not a live FileDiff / Mark surface (D444 / D448). */
 	private leftoverListFailed = false;
 
@@ -338,6 +339,11 @@ export class SourcesReviewList extends Disposable {
 		for (const repo of this.scmService.repositories) {
 			this.registerRepository(repo);
 		}
+	}
+
+	override dispose(): void {
+		++this._revealGeneration;
+		super.dispose();
 	}
 
 	setPathFilter(paths: URI[] | undefined): void {
@@ -515,11 +521,18 @@ export class SourcesReviewList extends Disposable {
 	}
 
 	private async revealAttributionItem(toolCallId: string): Promise<void> {
+		const generation = ++this._revealGeneration;
 		const itemId = this.attributionService.resolveRevealItemId(toolCallId);
 		try {
 			await this.commandService.executeCommand(CONVERSATION_REVEAL_ITEM_COMMAND, { toolCallId });
+			if (generation !== this._revealGeneration || this._store.isDisposed) {
+				return;
+			}
 			this.lastRevealMissToolCallId = itemId ? undefined : toolCallId;
 		} catch {
+			if (generation !== this._revealGeneration || this._store.isDisposed) {
+				return;
+			}
 			this.lastRevealMissToolCallId = toolCallId;
 		}
 		this.updateHeaderHint();
