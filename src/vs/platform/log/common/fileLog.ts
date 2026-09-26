@@ -20,6 +20,7 @@ class FileLogger extends AbstractMessageLogger implements ILogger {
 	private readonly flushDelayer: ThrottledDelayer<void>;
 	private backupIndex: number = 1;
 	private buffer: string = '';
+	private _flushChain: Promise<void> = Promise.resolve();
 
 	constructor(
 		private readonly resource: URI,
@@ -34,6 +35,12 @@ class FileLogger extends AbstractMessageLogger implements ILogger {
 	}
 
 	override async flush(): Promise<void> {
+		const run = this._flushChain.then(() => this._flushNow());
+		this._flushChain = run.then(() => { }, () => { });
+		await run;
+	}
+
+	private async _flushNow(): Promise<void> {
 		if (!this.buffer) {
 			return;
 		}
