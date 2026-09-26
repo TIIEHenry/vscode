@@ -149,6 +149,7 @@ export abstract class BaseCellViewModel extends Disposable {
 	}
 
 	protected _textModelRef: IReference<IResolvedTextEditorModel> | undefined;
+	private _resolveTextModelGeneration = 0;
 
 	private _inputCollapsed: boolean = false;
 	get isInputCollapsed(): boolean {
@@ -681,11 +682,16 @@ export abstract class BaseCellViewModel extends Disposable {
 	 */
 	async resolveTextModel(): Promise<model.ITextModel> {
 		if (!this._textModelRef || !this.textModel) {
-			this._textModelRef = await this._modelService.createModelReference(this.uri);
-			if (this._isDisposed) {
+			const generation = ++this._resolveTextModelGeneration;
+			const ref = await this._modelService.createModelReference(this.uri);
+			if (generation !== this._resolveTextModelGeneration || this._isDisposed) {
+				if (ref) {
+					ref.dispose();
+				}
 				return this.textModel!;
 			}
 
+			this._textModelRef = ref;
 			if (!this._textModelRef) {
 				throw new Error(`Cannot resolve text model for ${this.uri}`);
 			}
@@ -728,6 +734,7 @@ export abstract class BaseCellViewModel extends Disposable {
 	}
 
 	override dispose() {
+		++this._resolveTextModelGeneration;
 		this._isDisposed = true;
 		super.dispose();
 
