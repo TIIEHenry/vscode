@@ -220,6 +220,7 @@ export class EngineMcpSection extends Disposable {
 	private writeFailedReason: string | undefined;
 	private sectionActive = false;
 	private refreshGeneration = 0;
+	private _removeServerGeneration = 0;
 	private lastLayout: { readonly width: number; readonly listHeight: number } | undefined;
 
 	constructor(
@@ -302,6 +303,7 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	override dispose(): void {
+		this._removeServerGeneration++;
 		this.clearCatalogPresentation();
 		super.dispose();
 	}
@@ -343,6 +345,13 @@ export class EngineMcpSection extends Disposable {
 		return this.selectedServer?.id;
 	}
 
+	private setSelectedServer(server: UniverseAgentMcpServerSummary | undefined): void {
+		if (server?.id !== this.selectedServer?.id) {
+			this._removeServerGeneration++;
+		}
+		this.selectedServer = server;
+	}
+
 	isWriteToolbarVisible(): boolean {
 		return this.writeToolbar.style.display !== 'none';
 	}
@@ -350,12 +359,12 @@ export class EngineMcpSection extends Disposable {
 	selectServerByIdForTest(id: string): boolean {
 		const index = this.listEntries.findIndex(entry => entry.kind === 'server' && entry.server.id === id);
 		if (index < 0 || !this.list) {
-			this.selectedServer = undefined;
+			this.setSelectedServer(undefined);
 			return false;
 		}
 		const entry = this.listEntries[index];
 		if (entry.kind === 'server') {
-			this.selectedServer = entry.server;
+			this.setSelectedServer(entry.server);
 		}
 		this.list.setSelection([index]);
 		return true;
@@ -436,12 +445,17 @@ export class EngineMcpSection extends Disposable {
 		}
 		this.writeFailedReason = undefined;
 		this.hideCatalogWriteStatus();
+		const generation = ++this._removeServerGeneration;
+		const serverId = this.selectedServer.id;
 		const scope = this.selectedServer.origin === 'project' ? 'project' : 'global';
 		try {
 			const result = await this.connection.removeMcpServer({
-				serverId: this.selectedServer.id,
+				serverId,
 				scope,
 			});
+			if (generation !== this._removeServerGeneration || this._store.isDisposed || this.selectedServer?.id !== serverId) {
+				return false;
+			}
 			if (!result.ok) {
 				this.showWriteFailed(result.reason);
 				return false;
@@ -449,11 +463,17 @@ export class EngineMcpSection extends Disposable {
 			this.selectedServer = undefined;
 			this.showCatalogWriteStatus(ENGINE_MCP_REMOVE_SUCCESS_COPY);
 			const listed = await this.refresh();
+			if (generation !== this._removeServerGeneration || this._store.isDisposed) {
+				return true;
+			}
 			if (listed) {
 				this.showCatalogWriteStatus(ENGINE_MCP_REMOVE_SUCCESS_COPY);
 			}
 			return true;
 		} catch (error) {
+			if (generation !== this._removeServerGeneration || this._store.isDisposed || this.selectedServer?.id !== serverId) {
+				return false;
+			}
 			this.showWriteFailed(error);
 			return false;
 		}
@@ -511,7 +531,7 @@ export class EngineMcpSection extends Disposable {
 			)) as WorkbenchList<EngineMcpListEntry>;
 			this._register(this.list.onDidChangeSelection(e => {
 				const entry = e.elements[0];
-				this.selectedServer = entry?.kind === 'server' ? entry.server : undefined;
+				this.setSelectedServer(entry?.kind === 'server' ? entry.server : undefined);
 			}));
 		}
 		return this.list;
@@ -666,7 +686,7 @@ export class EngineMcpSection extends Disposable {
 	private clearCatalogPresentation(): void {
 		this.listEntries = [];
 		this.list?.splice(0, this.list?.length ?? 0, []);
-		this.selectedServer = undefined;
+		this.setSelectedServer(undefined);
 		this.writeFailedReason = undefined;
 		this.hideCatalogWriteStatus();
 		this.status.hide();
@@ -685,7 +705,7 @@ export class EngineMcpSection extends Disposable {
 		this.listEntries = entries;
 		if (entries.length === 0) {
 			this.list?.splice(0, this.list?.length ?? 0, []);
-			this.selectedServer = undefined;
+			this.setSelectedServer(undefined);
 			return;
 		}
 		const list = this.ensureList();
@@ -700,12 +720,12 @@ export class EngineMcpSection extends Disposable {
 		}
 		const index = this.listEntries.findIndex(entry => entry.kind === 'server' && entry.server.id === id);
 		if (index < 0) {
-			this.selectedServer = undefined;
+			this.setSelectedServer(undefined);
 			return;
 		}
 		const entry = this.listEntries[index];
 		if (entry?.kind === 'server') {
-			this.selectedServer = entry.server;
+			this.setSelectedServer(entry.server);
 		}
 		this.list.setSelection([index]);
 	}
