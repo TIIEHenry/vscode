@@ -53,6 +53,7 @@ import {
 } from '../common/sourcesReviewAttribution.js';
 import { openSourcesChangeEntry } from './sourcesChangesList.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
+import { SourcesListViewport } from './sourcesListViewport.js';
 import { sourcesReviewListEmptyMessage, sourcesReviewListHeaderHint, sourcesReviewRevealMissHint } from './sourcesReviewListStrings.js';
 
 const $ = dom.$;
@@ -218,6 +219,7 @@ export class SourcesReviewList extends Disposable {
 	private readonly emptyMessage: HTMLElement;
 	private readonly statusMessage: HTMLElement;
 	private list: WorkbenchList<ISourcesReviewEntry> | undefined;
+	private listViewport: SourcesListViewport | undefined;
 	private labels: ResourceLabels | undefined;
 	private readonly refreshScheduler: RunOnceScheduler;
 	private readonly repositoryListeners = this._register(new DisposableMap<ISCMRepository>());
@@ -656,6 +658,7 @@ export class SourcesReviewList extends Disposable {
 			});
 		}));
 
+		this.listViewport = this._register(new SourcesListViewport(this.listContainer, () => this.list));
 		return this.list;
 	}
 
@@ -848,5 +851,6 @@ export class SourcesReviewList extends Disposable {
 		} else if (hasVisibleEntries) {
 			this.ensureList().splice(0, 0, this.visibleEntries);
 		}
+		this.listViewport?.layout();
 	}
 }

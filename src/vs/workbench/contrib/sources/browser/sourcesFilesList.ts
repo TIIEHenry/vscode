@@ -24,6 +24,7 @@ import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
 import { collectSourcesFileEntries, ISourcesFileEntry, resolveSourcesFilesCollectResult } from '../common/sourcesFilesModel.js';
 import { sourcesFilesListEmptyMessage, sourcesFilesListReadFailureMessage } from './sourcesFilesListStrings.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
+import { SourcesListViewport } from './sourcesListViewport.js';
 
 const $ = dom.$;
 
@@ -84,6 +85,7 @@ export class SourcesFilesList extends Disposable {
 	private readonly statusMessage: HTMLElement;
 	private readonly filterBox: SourcesListFilterBox;
 	private list: WorkbenchList<ISourcesFileEntry> | undefined;
+	private listViewport: SourcesListViewport | undefined;
 	private labels: ResourceLabels | undefined;
 	private lastGoodEntries: ISourcesFileEntry[] = [];
 	private readonly refreshScheduler: RunOnceScheduler;
@@ -171,6 +173,7 @@ export class SourcesFilesList extends Disposable {
 			}, ACTIVE_GROUP).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
+		this.listViewport = this._register(new SourcesListViewport(this.listContainer, () => this.list));
 		return this.list;
 	}
 
@@ -219,6 +222,7 @@ export class SourcesFilesList extends Disposable {
 
 		const list = this.ensureList();
 		list.splice(0, list.length, entries);
+		this.listViewport?.layout();
 	}
 
 	private setStatusMessage(message: string | undefined): void {

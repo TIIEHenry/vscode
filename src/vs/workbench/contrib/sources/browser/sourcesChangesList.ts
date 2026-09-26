@@ -68,6 +68,7 @@ import { collectSourcesChangeEntries, ISourcesChangeEntry, sourcesChangeEntryIde
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import { openSourcesChangeEntry, ISourcesChangeEntryOpenOptions } from './sourcesChangeEntryOpen.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
+import { SourcesListViewport } from './sourcesListViewport.js';
 
 const $ = dom.$;
 
@@ -242,6 +243,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	private readonly statusMessage: HTMLElement;
 
 	private list: WorkbenchList<ISourcesChangeEntry> | undefined;
+	private listViewport: SourcesListViewport | undefined;
 	private labels: ResourceLabels | undefined;
 	private readonly refreshScheduler: RunOnceScheduler;
 	private readonly repositoryListeners = this._register(new DisposableMap<ISCMRepository>());
@@ -528,6 +530,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 		this._register(this.list.onDidChangeSelection(() => this.updateSelectionToolbar()));
 
+		this.listViewport = this._register(new SourcesListViewport(this.listContainer, () => this.list));
 		return this.list;
 	}
 
@@ -681,6 +684,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		} else if (hasVisibleEntries) {
 			this.ensureList().splice(0, 0, entries);
 		}
+		this.listViewport?.layout();
 		this.updateSelectionToolbar();
 	}
 

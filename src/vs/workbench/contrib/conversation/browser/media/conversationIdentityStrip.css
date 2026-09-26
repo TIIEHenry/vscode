@@ -21,6 +21,12 @@
 	pointer-events: auto;
 }
 
+/* Author `display` beats the UA `[hidden]` rule, so hidden chips/strip stayed visible as empty pills. */
+.monaco-workbench .part.conversation .conversation-identity-strip[hidden],
+.monaco-workbench .part.conversation .conversation-identity-chip[hidden] {
+	display: none;
+}
+
 .monaco-workbench .part.conversation .conversation-identity-chip {
 	display: inline-flex;
 	align-items: center;

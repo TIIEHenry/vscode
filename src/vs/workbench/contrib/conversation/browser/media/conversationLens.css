@@ -791,8 +791,7 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-record-row--selected {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-table-kind {
@@ -2123,6 +2122,11 @@
 	padding: 4px 2px 6px;
 }
 
+/* Author `display` beats the UA `[hidden]` rule, so the exit button stayed painted when not editing. */
+.monaco-workbench .part.conversation .conversation-lens-composer-edit-header[hidden] {
+	display: none;
+}
+
 .monaco-workbench .part.conversation .conversation-lens-composer-edit-title {
 	font-size: 12px;
 	font-weight: 600;
@@ -2169,8 +2173,7 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-composer:focus-within {
-	outline: 1px solid var(--ua-status-focus, var(--vscode-focusBorder));
-	outline-offset: -1px;
+	outline: none;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-input::placeholder {

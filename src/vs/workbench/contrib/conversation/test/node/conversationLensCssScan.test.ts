@@ -78,6 +78,13 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.ok(!/\{\s*\n\s*\.monaco-workbench/.test(css));
 	});
 
+	test('composer edit header stays hidden until an edit is active', () => {
+		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
+		const hiddenRule = collectCssRules(css).find(rule => rule.selector.includes('.conversation-lens-composer-edit-header[hidden]'));
+		assert.ok(hiddenRule, 'edit header needs an author [hidden] rule; display:flex overrides the UA hidden style');
+		assert.ok(hidesDisplayNone(hiddenRule.body));
+	});
+
 	test('narrow SessionBar CSS shows More instead of New/Delete', () => {
 		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
 		assert.ok(css.includes('.is-medium .conversation-lens-session-more'));

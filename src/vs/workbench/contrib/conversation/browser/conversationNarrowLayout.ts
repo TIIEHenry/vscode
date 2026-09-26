@@ -38,3 +38,10 @@ export function isConversationLeafMedium(width: number): boolean {
 export function isConversationLeafCompact(width: number): boolean {
 	return width > 0 && width < CONVERSATION_LEAF_COMPACT_WIDTH;
 }
+
+export function applyLeafWidthClasses(element: HTMLElement, width: number): void {
+	element.dataset.conversationWidth = conversationLeafWidthBucket(width);
+	element.classList.toggle('is-medium', isConversationLeafMedium(width));
+	element.classList.toggle('is-narrow', isConversationLeafNarrow(width));
+	element.classList.toggle('is-compact', isConversationLeafCompact(width));
+}

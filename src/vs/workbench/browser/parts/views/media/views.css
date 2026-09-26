@@ -97,6 +97,12 @@
 	align-items: center;
 }
 
+/* The welcome region is focusable. The workbench tabindex rule must not
+   stroke the whole pane. */
+.monaco-workbench .pane > .pane-body .welcome-view-content:focus {
+	outline: none;
+}
+
 .monaco-workbench .pane > .pane-body .welcome-view-content > .button-container {
 	width: 100%;
 	max-width: 300px;

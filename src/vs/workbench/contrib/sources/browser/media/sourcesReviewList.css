@@ -170,8 +170,14 @@
 }
 
 .monaco-workbench .part.sources .sources-tab-panel .sources-review-list {
-	flex: 1;
+	flex: 1 1 0;
 	min-height: 0;
+	overflow: hidden;
+}
+
+.monaco-workbench .part.sources .sources-review-list > .monaco-list {
+	height: 100%;
+	width: 100%;
 }
 
 .monaco-workbench .part.sources .sources-review-status {

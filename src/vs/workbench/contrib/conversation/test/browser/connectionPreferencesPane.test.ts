@@ -76,6 +76,10 @@ import { promptSasConfirmDialog, promptSasConfirmInPane } from '../../browser/co
 import { getConnectionPhaseStatusBarText, getConversationEngineStatusText, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { conversationIdentityStripClass } from '../../browser/conversationIdentityStrip.js';
 import {
+	conversationLensPhasePreFirstClass,
+	conversationLensPrefirstHeroClass,
+} from '../../browser/conversationLensDockStrings.js';
+import {
 	applyConnectionPaneIdentityStripReservation,
 	boxesOverlap,
 	connectionPaneIdentityReservationHostClass,
@@ -355,6 +359,46 @@ suite('ConnectionPreferencesPane', () => {
 		const { pane, modalBlock } = mountPaneInPreferencesModal();
 		store.add(toDisposable(() => modalBlock.remove()));
 		pane.layout(new Dimension(800, 400));
+		assert.ok(modalBlock.classList.contains(connectionPaneIdentityReservationHostClass));
+		assert.strictEqual(modalBlock.style.getPropertyValue(connectionPaneIdentityReservedTopVar), '0px');
+		assert.strictEqual(modalBlock.style.top, '0px');
+	});
+
+	test('D28 reservation is zero when identity strip is inside prefirst hero', () => {
+		const workbench = document.createElement('div');
+		workbench.className = 'monaco-workbench';
+		const part = document.createElement('div');
+		part.className = 'part conversation';
+		const readingColumn = document.createElement('div');
+		readingColumn.className = `conversation-lens-reading-column ${conversationLensPhasePreFirstClass}`;
+		const prefirstHero = document.createElement('div');
+		prefirstHero.className = conversationLensPrefirstHeroClass;
+		const strip = document.createElement('div');
+		strip.className = conversationIdentityStripClass;
+		strip.textContent = 'Engine not connected';
+		strip.getBoundingClientRect = () => DOMRect.fromRect({ x: 10, y: 616, width: 240, height: 28 });
+		prefirstHero.appendChild(strip);
+		readingColumn.appendChild(prefirstHero);
+		part.appendChild(readingColumn);
+		workbench.appendChild(part);
+		document.body.appendChild(workbench);
+		store.add(toDisposable(() => workbench.remove()));
+
+		const { pane, modalBlock } = mountPaneInPreferencesModal();
+		store.add(toDisposable(() => modalBlock.remove()));
+		pane.layout(new Dimension(800, 400));
+
+		assert.ok(modalBlock.classList.contains(connectionPaneIdentityReservationHostClass));
+		assert.strictEqual(modalBlock.style.getPropertyValue(connectionPaneIdentityReservedTopVar), '0px');
+		assert.strictEqual(modalBlock.style.top, '0px');
+	});
+
+	test('D28 reservation fails closed to zero when identity strip bottom is excessively deep', () => {
+		mountIdentityStripInConversation(644, 616, 240);
+		const { pane, modalBlock } = mountPaneInPreferencesModal();
+		store.add(toDisposable(() => modalBlock.remove()));
+		pane.layout(new Dimension(800, 400));
+
 		assert.ok(modalBlock.classList.contains(connectionPaneIdentityReservationHostClass));
 		assert.strictEqual(modalBlock.style.getPropertyValue(connectionPaneIdentityReservedTopVar), '0px');
 		assert.strictEqual(modalBlock.style.top, '0px');

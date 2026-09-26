@@ -21,7 +21,7 @@ import { ConversationAgentBreadcrumbBox } from './conversationAgentBreadcrumb.js
 import { ConversationLens } from './conversationLens.js';
 import { ConversationChatInput, parseConversationChatResource } from '../common/conversationChatInput.js';
 import { ConversationEditorPaneId } from '../common/conversationSessionWindow.js';
-import { CONVERSATION_LEAF_COMPACT_WIDTH, CONVERSATION_LEAF_NARROW_WIDTH } from './conversationNarrowLayout.js';
+import { applyLeafWidthClasses, CONVERSATION_LEAF_COMPACT_WIDTH, CONVERSATION_LEAF_NARROW_WIDTH } from './conversationNarrowLayout.js';
 import { IConversationSessionChatService } from '../common/conversationSessionChat.js';
 import { ConversationLeafSessionBar, IConversationLeafPaneAccessors } from './conversationLeafSessionBar.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
@@ -41,6 +41,7 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 	private dockHost: HTMLElement | undefined;
 	private lens: ConversationLens | undefined;
 	private leafSessionBar: ConversationLeafSessionBar | undefined;
+	private lastWidth = 0;
 	private activeInput: ConversationChatInput | undefined;
 	private readonly chromeDisposables = this._register(new DisposableStore());
 	private readonly lensDisposables = this._register(new DisposableStore());
@@ -150,6 +151,9 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 			leaf.sessionBar,
 			this,
 		));
+		if (this.lastWidth > 0) {
+			this.leafSessionBar.layout(this.lastWidth);
+		}
 	}
 
 	private bindHiddenLeafLease(sessionKey: string | undefined): void {
@@ -229,14 +233,15 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 	}
 
 	override layout(dimension: { width: number; height: number }): void {
-		const narrow = dimension.width > 0 && dimension.width < CONVERSATION_LEAF_NARROW_WIDTH;
-		const compact = dimension.width > 0 && dimension.width < CONVERSATION_LEAF_COMPACT_WIDTH;
-		this.pageRoot?.classList.toggle('is-narrow', narrow);
-		this.pageRoot?.classList.toggle('is-compact', compact);
+		this.lastWidth = dimension.width;
+		if (this.pageRoot) {
+			applyLeafWidthClasses(this.pageRoot, dimension.width);
+		}
 		this.breadcrumb?.layout(dimension.width);
 		const chromeHeight = this.pageChrome?.offsetHeight ?? 0;
 		const contentHeight = Math.max(0, dimension.height - chromeHeight);
 		this.lens?.layout(contentHeight, dimension.width);
+		this.leafSessionBar?.layout(dimension.width);
 	}
 
 	override focus(): void {

@@ -18,6 +18,12 @@
 	container-name: conversation;
 }
 
+/* The part root is focusable so focus can land in the region. The workbench
+   tabindex rule would otherwise stroke the entire region. */
+.monaco-workbench .part.conversation:focus {
+	outline: none;
+}
+
 .monaco-workbench .part.conversation > .conversation-region-chrome {
 	position: absolute;
 	top: 0;
@@ -100,8 +106,7 @@
 
 .monaco-workbench .part.conversation .conversation-session-bar .monaco-button:focus,
 .monaco-workbench .part.conversation .conversation-session-bar .monaco-button:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder, transparent) !important;
-	outline-offset: -1px !important;
+	outline: none !important;
 }
 
 .monaco-workbench .part.conversation .conversation-session-bar .monaco-button .codicon {

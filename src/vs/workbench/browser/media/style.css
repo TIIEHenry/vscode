@@ -271,6 +271,19 @@ body {
 	opacity: 1;
 }
 
+/* Focus frames stay on tree rows only. Repeated class beats later !important outlines. */
+.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench :is(:focus, :focus-visible, :focus-within),
+.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench .monaco-list-row:not(:has(> .monaco-tl-row)) {
+	outline: none !important;
+}
+
+.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench .monaco-list:focus .monaco-list-row.focused:has(> .monaco-tl-row),
+.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench .monaco-list:focus .monaco-list-row.focused.selected:has(> .monaco-tl-row),
+.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench .context-menu-visible .monaco-list.last-focused .monaco-list-row.focused:has(> .monaco-tl-row) {
+	outline: 1px solid var(--vscode-list-focusOutline, var(--vscode-focusBorder)) !important;
+	outline-offset: -1px !important;
+}
+
 .monaco-workbench.hc-black .synthetic-focus input,
 .monaco-workbench.hc-light .synthetic-focus input {
 	background: transparent; /* Search input focus fix when in high contrast */
