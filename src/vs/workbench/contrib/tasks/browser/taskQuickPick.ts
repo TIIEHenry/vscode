@@ -49,6 +49,7 @@ const runTaskStorageKey = 'runTaskStorageKey';
 export class TaskQuickPick extends Disposable {
 	private _sorter: TaskSorter;
 	private _topLevelEntries: QuickPickInput<ITaskTwoLevelQuickPickEntry>[] | undefined;
+	private _topLevelGeneration = 0;
 	constructor(
 		@ITaskService private _taskService: ITaskService,
 		@IConfigurationService private _configurationService: IConfigurationService,
@@ -59,6 +60,11 @@ export class TaskQuickPick extends Disposable {
 		@IStorageService private _storageService: IStorageService) {
 		super();
 		this._sorter = this._taskService.createSorter();
+	}
+
+	public override dispose(): void {
+		this._topLevelGeneration++;
+		super.dispose();
 	}
 
 	private _showDetail(): boolean {
@@ -181,10 +187,14 @@ export class TaskQuickPick extends Disposable {
 		if (this._topLevelEntries !== undefined) {
 			return { entries: this._topLevelEntries };
 		}
+		const generation = ++this._topLevelGeneration;
 		let recentTasks: (Task | ConfiguringTask)[] = (await this._taskService.getSavedTasks('historical')).reverse();
 		const configuredTasks: (Task | ConfiguringTask)[] = this._handleFolderTaskResult(await this._taskService.getWorkspaceTasks());
+		if (generation !== this._topLevelGeneration || this._store.isDisposed) {
+			return { entries: this._topLevelEntries ?? [] };
+		}
 		const extensionTaskTypes = this._taskService.taskTypes();
-		this._topLevelEntries = [];
+		const entries: QuickPickInput<ITaskTwoLevelQuickPickEntry>[] = [];
 		// Dedupe will update recent tasks if they've changed in tasks.json.
 		const dedupeAndPrune = this._dedupeConfiguredAndRecent(recentTasks, configuredTasks);
 		const dedupedConfiguredTasks: (Task | ConfiguringTask)[] = dedupeAndPrune.configuredTasks;
@@ -194,22 +204,26 @@ export class TaskQuickPick extends Disposable {
 				iconClass: ThemeIcon.asClassName(removeTaskIcon),
 				tooltip: nls.localize('removeRecent', 'Remove Recently Used Task')
 			};
-			this._createEntriesForGroup(this._topLevelEntries, recentTasks, nls.localize('recentlyUsed', 'recently used'), [removeRecentButton]);
+			this._createEntriesForGroup(entries, recentTasks, nls.localize('recentlyUsed', 'recently used'), [removeRecentButton]);
 		}
 		if (configuredTasks.length > 0) {
 			if (dedupedConfiguredTasks.length > 0) {
-				this._createEntriesForGroup(this._topLevelEntries, dedupedConfiguredTasks, nls.localize('configured', 'configured'));
+				this._createEntriesForGroup(entries, dedupedConfiguredTasks, nls.localize('configured', 'configured'));
 			}
 		}
 
 		if (defaultEntry && (configuredTasks.length === 0)) {
-			this._topLevelEntries.push({ type: 'separator', label: nls.localize('configured', 'configured') });
-			this._topLevelEntries.push(defaultEntry);
+			entries.push({ type: 'separator', label: nls.localize('configured', 'configured') });
+			entries.push(defaultEntry);
 		}
 
 		if (extensionTaskTypes.length > 0) {
-			this._createTypeEntries(this._topLevelEntries, extensionTaskTypes);
+			this._createTypeEntries(entries, extensionTaskTypes);
 		}
+		if (generation !== this._topLevelGeneration || this._store.isDisposed) {
+			return { entries: this._topLevelEntries ?? [] };
+		}
+		this._topLevelEntries = entries;
 		return { entries: this._topLevelEntries, isSingleConfigured: configuredTasks.length === 1 ? configuredTasks[0] : undefined };
 	}
 
